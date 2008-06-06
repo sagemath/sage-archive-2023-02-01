@@ -473,6 +473,38 @@ class Worksheet:
         except AttributeError:
             return True
 
+    def user_can_edit(self, user):
+        """
+        Return True if the user with given name is allowed to edit this worksheet.
+
+        INPUT:
+            user -- string
+        OUTPUT:
+            bool
+
+        EXAMPLES:
+        We create a notebook with one worksheet and two users.
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb.add_user('william', 'william', 'wstein@sagemath.org', force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W.user_can_edit('sage')
+            True
+
+        At first the user 'william' can't edit this worksheet:
+            sage: W.user_can_edit('william')
+            False
+
+        After adding 'william' as a collaborator he can edit the worksheet.
+            sage: W.add_collaborator('william')
+            sage: W.user_can_edit('william')
+            True
+
+        Clean up:
+            sage: nb.delete()
+        """
+        return self.user_is_collaborator(user) or self.is_owner(user)
+
     def delete_user(self, user):
         """
         Delete a user from having any view or ownership of this worksheet.
@@ -482,10 +514,10 @@ class Worksheet:
 
         EXAMPLES:
         We create a notebook with 2 users and 1 worksheet that both view.
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
-            sage: n.add_user('wstein','sage','wstein@sagemath.org',force=True)
-            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
-            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('wstein','sage','wstein@sagemath.org',force=True)
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.new_worksheet_with_title_from_text('Sage', owner='sage')
             sage: W.add_viewer('wstein')
             sage: W.owner()
             'sage'
@@ -508,7 +540,7 @@ class Worksheet:
             []
 
         Finally, we clean up.
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: nb.delete()
         """
         if user in self.__collaborators:
             self.__collaborators.remove(user)
@@ -886,10 +918,10 @@ class Worksheet:
         return """
 
         <a  title="Print this worksheet" class="usercontrol" onClick="print_worksheet()"><img border=0 src="/images/icon_print.gif" alt="Print">Print</a>
-        <a class="%s" title="Interactively use this worksheet" onClick="edit_worksheet();">Use</a>
+        <a class="%s" title="Interactively use this worksheet" onClick="edit_worksheet();">Worksheet</a>
         <a class="%s" title="Edit text version of this worksheet" href="edit">Edit</a>
         <a class="%s" title="View plain text version of this worksheet" href="text">Text</a>
-        <a class="%s" href="revisions" title="View changes to this worksheet over time">Revisions</a>
+        <a class="%s" href="revisions" title="View changes to this worksheet over time">Undo</a>
         <a class="%s" href="share" title="Let others edit this worksheet">Share</a>
         <a class="control" onClick="publish_worksheet();" title="Let others view this worksheet">Publish</a>
         """%(cls('use'),cls('edit'),cls('text'),cls('revisions'),cls('share'))
@@ -931,11 +963,12 @@ class Worksheet:
  <option title="Select a worksheet function" value="" selected>Action...</option>
  <option title="Interrupt currently running calculations, if possible" value="interrupt();">Interrupt</option>
  <option title="Restart the worksheet process" value="restart_sage();">Restart worksheet</option>
- <option title="Quit the worksheet process" value="quit_sage();">Quit worksheet</option>
+ <option title="Quit the worksheet process" value="save_worksheet_and_close();">Save and quit worksheet</option>
  <option value="">---------------------------</option>
  <option title="Evaluate all input cells in the worksheet" value="evaluate_all();">Evaluate All</option>
  <option title="Hide all output" value="hide_all();">Hide All Output</option>
  <option title="Show all output" value="show_all();">Show All Output</option>
+ <option title="Delete all output" value="delete_all_output();">Delete All Output</option>
  <option value="">---------------------------</option>
  <option title="Switch to single-cell mode" value="slide_mode();">One Cell Mode</option>
  <option title="Switch to multi-cell mode" value="cell_mode();">Multi Cell Mode</option>
@@ -1234,7 +1267,7 @@ class Worksheet:
     def initialize_sage(self):
         self.delete_cell_input_files()
         object_directory = os.path.abspath(self.notebook().object_directory())
-        S = self.__sage
+        S = self.sage()
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__; DATA="%s/"; '%(self.DIR(), os.path.abspath(self.data_directory()))
             cmd += '_support_.init(None, globals()); '
@@ -1272,6 +1305,13 @@ class Worksheet:
                                           ulimit = self.notebook().get_ulimit())
         self.__next_block_id = 0
         self.initialize_sage()
+
+        # Check to see if the typeset/pretty print button is checked.
+        # If so, send code to initialize the worksheet to have the
+        # right pretty printing mode.
+        if self.pretty_print():
+            self.__sage._send('pretty_print_default(True);')
+
         return self.__sage
 
     def eval_asap_no_output(self, cmd, username=None):
@@ -1336,7 +1376,6 @@ class Worksheet:
         absD = os.path.abspath(D)
         input = 'os.chdir("%s")\n'%absD
 
-        # TODOss
         os.system('chmod -R a+rw "%s"'%absD)
 
         # This is useful mainly for interact -- it allows
@@ -1345,7 +1384,11 @@ class Worksheet:
 
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
-        if I.endswith('?'):
+
+        # If the input ends in a question mark and is *not* a comment line,
+        # then we introspect on it.
+        Istrip = I.strip()
+        if Istrip.endswith('?') and not Istrip.startswith('#'):
             C.set_introspect(I, '')
         I = I.replace('\\\n','')
         C._before_preparse = input + I
@@ -1402,6 +1445,24 @@ class Worksheet:
             C.set_output_text('The Sage compute process quit (possibly Sage crashed?).\nPlease retry your calculation.','')
 
     def check_comp(self, wait=0.2):
+        """
+        Check on currently computing cells in the queue.
+
+        INPUT:
+            wait -- float (default: 0.2); how long to wait for output.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W.edit_save('Sage\n{{{\n3^20\n}}}')
+            sage: W.cell_list()[0].evaluate()
+            sage: W.check_comp()     # random output -- depends on computer speed
+            ('d', Cell 0; in=3^20, out=
+            3486784401
+            )
+            sage: nb.delete()
+        """
         if len(self.__queue) == 0:
             return 'e', None
         S = self.sage()
@@ -1471,6 +1532,29 @@ class Worksheet:
         OUTPUT:
             bool -- return True if no problems interrupting calculation
                     return False if the Sage interpreter had to be restarted.
+
+        EXAMPLES:
+        We create a worksheet and start a large factorization going:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W.edit_save('Sage\n{{{\nfactor(2^997-1)\n}}}')
+            sage: W.cell_list()[0].evaluate()
+
+        It's running still
+            sage: W.check_comp()
+            ('w', Cell 0; in=factor(2^997-1), out=...)
+
+        We interrupt it successfully.
+            sage: W.interrupt()
+            True
+
+        Now we check and nothing is computing.
+            sage: W.check_comp()
+            ('e', None)
+
+        Clean up.
+            sage: nb.delete()
         """
         if len(self.__queue) == 0:
             # nothing to do
@@ -1780,14 +1864,14 @@ class Worksheet:
             i += 1
         if before_prompt.endswith('??'):
             input = self._get_last_identifier(before_prompt[:-2])
-            input = 'print _support_.source_code("%s", globals())'%input
+            input = 'print _support_.source_code("%s", globals(), system="%s")'%(input, self.system())
         elif before_prompt.endswith('?'):
             input = self._get_last_identifier(before_prompt[:-1])
-            input = 'print _support_.docstring("%s", globals())'%input
+            input = 'print _support_.docstring("%s", globals(), system="%s")'%(input, self.system())
         else:
             input = self._get_last_identifier(before_prompt)
             C._word_being_completed = input
-            input = 'print "\\n".join(_support_.completions("%s", globals()))'%(input)
+            input = 'print "\\n".join(_support_.completions("%s", globals(), system="%s"))'%(input, self.system())
         return input
 
     def preparse_nonswitched_input(self, input):
@@ -1879,14 +1963,7 @@ class Worksheet:
         return out
 
     def _get_last_identifier(self, s):
-        t = support.get_rightmost_identifier(s)
-        S = self.system()
-        # If we are tab completing in a worksheet for another
-        # system, e.g., mathematica, this is like typing mathematica.[tab].
-        # However, for Sage and Python, we want regular tab completion.
-        if S and not (S in ['sage', 'python']):
-            t = S + '.' + t
-        return t
+        return support.get_rightmost_identifier(s)
 
     def preparse(self, s):
         if sage.misc.interpreter.do_preparse:
@@ -2119,19 +2196,12 @@ class Worksheet:
         if s.startswith("%cython") or s.startswith("%pyrex") or s.startswith("%sagex"):  # a block of Cython code.
             return True, self.cython_import(after_first_word(s).lstrip(), C)
 
-        i = s.find('\n')
-        if i == -1:
-            # nothing to evaluate
-            return True, ''
-        j = s.find(' ')
-        if j == -1:
-            j = i
-        else:
-            j = min(i,j)
-        sys = s[1:j]
-        s = s[i+1:]
-        cmd = self._eval_cmd(sys, s, os.path.abspath(C.directory()))
-        if sys == 'html':
+        # Determine system = the system doing the computation, e.g., %magma, and
+        #           code_to_eval = the code to feed to the system via .eval.
+        system = first_word(s)[1:]     # get rid of the percent sign.
+        code_to_eval = after_first_word(s)
+        cmd = self._eval_cmd(system, code_to_eval, os.path.abspath(C.directory()))
+        if system == 'html':
             C.set_is_html(True)
         return True, cmd
 
@@ -2165,6 +2235,45 @@ class Worksheet:
                 C.set_cell_output_type('hidden')
             except AttributeError:
                 pass
+
+    def delete_all_output(self, username):
+        """
+        Delete all the output in all the worksheet cells.
+
+        INPUT:
+            username -- name of the user requesting the deletion.
+
+        EXAMPLES:
+        We create a new notebook, user, and a worksheet with one cell.
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}')
+
+        Notice that there is 1 cell with 5 in its output.
+            sage: W.cell_list()
+            [Cell 0; in=2+3, out=5]
+
+        We now delete the output, observe that it is gone.
+            sage: W.delete_all_output('sage')
+            sage: W.cell_list()
+            [Cell 0; in=2+3, out=]
+
+        If an invalid user tries to delete all, a ValueError is raised.
+            sage: W.delete_all_output('hacker')
+            Traceback (most recent call last):
+            ...
+            ValueError: user 'hacker' not allowed to edit this worksheet
+
+        Clean up.
+            sage: nb.delete()
+        """
+        if not self.user_can_edit(username):
+            raise ValueError, "user '%s' not allowed to edit this worksheet"%username
+        self.save_snapshot(username)
+        for C in self.__cells:
+            C.delete_output()
+
 
 __internal_test1 = '''
 def foo(x):

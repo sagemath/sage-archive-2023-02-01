@@ -76,7 +76,7 @@ class SymbolicData:
             term_order -- term order for the polynomial ring (default: degrevlex)
 
         OUTPUT:
-            ideal as given by name in MPolynomialRing(base_ring,vars,term_order)
+            ideal as given by name in PolynomialRing(base_ring,vars,term_order)
 
         """
 

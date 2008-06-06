@@ -54,7 +54,7 @@ We illustrate the exponent notation for creation of free modules.
     Vector space of dimension 3 over Real Field with 53 bits of precision
 
 Base ring:
-    sage: R.<x,y> = MPolynomialRing(QQ,2)
+    sage: R.<x,y> = PolynomialRing(QQ,2)
     sage: M = FreeModule(R,2)
     sage: M.base_ring()
     Multivariate Polynomial Ring in x, y over Rational Field
@@ -1405,6 +1405,35 @@ class FreeModule_generic(module.Module):
         # it is is used by __call__ to make a new copy of the 0 element.
 
         return self._element_class(self, 0)
+
+    def _magma_init_(self):
+        """
+        EXAMPLES:
+            sage: magma(FreeModule(Integers(8), 2))             # optional
+            Full RSpace of degree 2 over IntegerRing(8)
+
+            sage: magma(FreeModule(QQ, 9))                      # optional
+            Full Vector space of degree 9 over Rational Field
+
+            sage: magma(FreeModule(QQ['x'], 2))                 # optional
+            Full RSpace of degree 2 over Univariate Polynomial Ring over Rational Field
+
+            sage: A = MatrixSpace(ZZ,2)([[1,0],[0,-1]])
+            sage: M = FreeModule(ZZ,2,inner_product_matrix=A)
+            sage: magma(M)                                      # optional
+            Full RSpace of degree 2 over Integer Ring
+            Inner Product Matrix:
+            [ 1  0]
+            [ 0 -1]
+        """
+        K = self.base_ring()._magma_init_()
+        if self._inner_product_matrix:
+            s = "RSpace(%s, %s, %s)"%(K, self.__rank,
+                self._inner_product_matrix._magma_init_())
+        else:
+            s = "RSpace(%s, %s)"%(K, self.__rank)
+
+        return s
 
 class FreeModule_generic_pid(FreeModule_generic):
     """
@@ -2817,7 +2846,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: A = GF(5)^20; latex(A)
             \mathbf{F}_{5}^{20}
 
-            sage: A = MPolynomialRing(QQ,3,'x') ^ 20; latex(A)
+            sage: A = PolynomialRing(QQ,3,'x') ^ 20; latex(A)
             (\mathbf{Q}[x_{0}, x_{1}, x_{2}])^{20}
         """
         t = "%s"%latex.latex(self.base_ring())

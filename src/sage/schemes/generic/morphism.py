@@ -103,7 +103,7 @@ class SchemeMorphism(PyMorphism):
         EXAMPLES:
         We construct a scheme isomorphic to the projective line over
         $\Spec(\Q)$ by gluing two copies of $\A^1$ minus a point.
-            sage: R.<x,y> = MPolynomialRing(QQ, 2)
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: S.<xbar, ybar> = R.quotient(x*y - 1)
             sage: Rx = PolynomialRing(QQ, 'x')
             sage: i1 = Rx.hom([xbar])

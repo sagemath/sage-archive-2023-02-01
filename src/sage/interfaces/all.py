@@ -1,6 +1,6 @@
 # interfaces to other interpreters
 
-
+from frobby import frobby
 from axiom import Axiom, axiom, axiom_console
 
 from expect import is_ExpectElement

@@ -456,7 +456,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.permanent()
             a^2 + 2*a
 
-            sage: R.<x,y> = MPolynomialRing(ZZ,2)
+            sage: R.<x,y> = PolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: A.permanent()
             x^2*y + x*y^2
@@ -699,7 +699,7 @@ cdef class Matrix(matrix1.Matrix):
             -x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
 
         We create a matrix over $\Z[x,y]$ and compute its determinant.
-            sage: R.<x,y> = MPolynomialRing(IntegerRing(),2)
+            sage: R.<x,y> = PolynomialRing(IntegerRing(),2)
             sage: A = MatrixSpace(R,2)([x, y, x**2, y**2])
             sage: A.determinant()
             -x^2*y + x*y^2
@@ -949,7 +949,7 @@ cdef class Matrix(matrix1.Matrix):
 
         We compute the characteristic polynomial of a matrix over the
         multi-variate polynomial ring $\Z[x,y]$:
-            sage: R.<x,y> = MPolynomialRing(ZZ,2)
+            sage: R.<x,y> = PolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: f = A.charpoly('x'); f
             x^2 + (-y^2 - x)*x - x^2*y + x*y^2
@@ -1494,7 +1494,7 @@ cdef class Matrix(matrix1.Matrix):
             [               0                0                1 -2*zeta12^2 + 1]
 
         A nontrivial kernel over a complicated base field.
-            sage: K = FractionField(MPolynomialRing(QQ, 2, 'x'))
+            sage: K = FractionField(PolynomialRing(QQ, 2, 'x'))
             sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
             sage: M
             [x1 x0]
@@ -1606,7 +1606,7 @@ cdef class Matrix(matrix1.Matrix):
             [      0                     0      1                     0]
 
         A nontrivial kernel over a complicated base field.
-            sage: K = FractionField(MPolynomialRing(QQ, 2, 'x'))
+            sage: K = FractionField(PolynomialRing(QQ, 2, 'x'))
             sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
             sage: M
             [x1 x0]

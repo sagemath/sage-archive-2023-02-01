@@ -263,6 +263,27 @@ class FractionFieldElement(field_element.FieldElement):
         return "\\frac{%s}{%s}"%(latex.latex(self.__numerator),
                                  latex.latex(self.__denominator))
 
+    def _magma_init_(self):
+        """
+        Return a string representation of self Magma can understand.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: magma((x^2 + x + 1)/(x + 1))          # optional
+            (x^2 + x + 1)/(x + 1)
+
+            sage: R.<x,y> = QQ[]
+            sage: magma((x+y)/x)                        # optional
+            (x + y)/x
+        """
+        pgens = self.parent()._magma_().gens()
+
+        s = self._repr_()
+        for i, j in zip(self.parent().variable_names(), pgens):
+            s = s.replace(i, j.name())
+
+        return s
+
     def _add_(self, right):
         if self.parent().is_exact():
             try:

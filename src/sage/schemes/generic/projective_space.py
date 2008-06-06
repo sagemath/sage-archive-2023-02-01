@@ -47,7 +47,7 @@ For example, we use $x,y,z$ to define the intersection of two lines.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import (MPolynomialRing,
+from sage.rings.all import (PolynomialRing,
                             is_Field,
                             is_FiniteField,
                             is_RationalField,
@@ -186,7 +186,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         try:
             return self._coordinate_ring
         except AttributeError:
-            self._coordinate_ring = MPolynomialRing(self.base_ring(),
+            self._coordinate_ring = PolynomialRing(self.base_ring(),
                                self.variable_names(), self.dimension()+1)
             return self._coordinate_ring
 

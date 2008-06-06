@@ -82,8 +82,7 @@ import power_series_poly
 import power_series_mpoly
 import power_series_ring_element
 
-from polynomial.all import (is_MPolynomialRing, is_PolynomialRing,
-                            MPolynomialRing)
+from polynomial.all import is_MPolynomialRing, is_PolynomialRing
 from polynomial.polynomial_ring_constructor import PolynomialRing
 import laurent_series_ring
 import commutative_ring
@@ -224,7 +223,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
                                     is_PolynomialRing(base_ring)):
             K = base_ring
             names = K.variable_names() + (name,)
-            self.__mpoly_ring = MPolynomialRing(K.base_ring(), names=names)
+            self.__mpoly_ring = PolynomialRing(K.base_ring(), names=names)
             assert is_MPolynomialRing(self.__mpoly_ring)
             self.__power_series_class = power_series_mpoly.PowerSeries_mpoly
 

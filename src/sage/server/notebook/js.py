@@ -786,14 +786,21 @@ function lstrip(s) {
 
 function resize_all_cells() {
     /*
-    Resizes all cells; called whenever the window gets resized.
+    Resizes all cells that do not start with %hide;
+    called whenever the window gets resized.
 
     GLOBAL INPUT:
         cell_id_list -- a list of integers
     */
-    var i;
-    for(i=0;i<cell_id_list.length;i++)
-        cell_input_resize(cell_id_list[i]);
+    var i,id;
+    for(i=0;i<cell_id_list.length;i++) {
+        // Get the id of the cell to resize
+        id = cell_id_list[i];
+        // Make sure it is not hidden, and if not resize it.
+        if (get_cell(id).className != "cell_input_hide") {
+           cell_input_resize(id);
+        }
+    }
 }
 
 function input_keyup(id, event) {
@@ -1159,7 +1166,7 @@ function worksheet_list_button(action) {
     filenames = "";
 
     // Concatenate the list of all worksheet filenames that are checked
-    // togethers separated by the separator string.
+    // together separated by the separator string.
     for(i=0; i<worksheet_filenames.length; i++) {
         id = worksheet_filenames[i];
         X  = get_element(id);
@@ -1189,7 +1196,7 @@ function worksheet_list_button_callback(status, response_text) {
             alert(response_text);
         }
     } else {
-        alert("Failure deleting worksheet." + response_text);
+        alert("Error applying function to worksheet(s)." + response_text);
     }
     window.location.reload(true);
 }
@@ -1217,6 +1224,12 @@ function archive_button() {
     worksheet_list_button("/send_to_archive");
 }
 
+function stop_worksheets_button() {
+    /*
+    Saves and then quits sage process for each checked worksheet.
+    */
+    worksheet_list_button("/send_to_stop");
+}
 
 function history_window() {
     /*
@@ -1411,11 +1424,13 @@ function go_system_select(theform, original_system) {
     */
     with(theform) {
         var system = options[selectedIndex].value;
-        if (confirm("All cells will be evaluated using " + system + " until you change the system back.")) {
+        system_select(system);
+/*        if (confirm("All cells will be evaluated using " + system + " until you change the system back.")) {
             system_select(system);
         } else {
             options[original_system].selected = 1;
         }
+*/
     }
 }
 
@@ -1697,6 +1712,10 @@ function send_cell_input(id) {
     cell = get_cell(id)
     if(cell == null) return;
 
+    // When the input changes we set the CSS to indicate that
+    // the cell with this new text has not been evaluated.
+    cell_set_not_evaluated(id);
+
     async_request(worksheet_command('eval'), generic_callback, "save_only=1&id="+id+"&input="+escape0(cell.value));
 }
 
@@ -1763,8 +1782,12 @@ function cell_focused(cell, id) {
         sets the global variable current_cell and update display of the evaluate link.
     */
     cell.className = "cell_input_active";
-    if(current_cell == id) return;
 
+    // This makes sure the input textarea is resized right when it is
+    // clicked on.
+    cell_input_resize(id);
+
+    if(current_cell == id) return;
     if (current_cell != -1) {
         set_class("eval_button"+current_cell,"eval_button");
     }
@@ -2035,7 +2058,9 @@ function cell_input_key_event(id, e) {
     // An actual non-controlling character was sent, which means this cell has changed.
     // When the cursor leaves the cell, we'll use this to know to send the changed
     // version back to the server.
-    cell_has_changed = true;
+    // We do still have to account for the arrow keys which don't change the text.
+    if (! (key_up_arrow(e) || key_down_arrow(e) || key_menu_right(e) || key_menu_left(e)) )
+        cell_has_changed = true;
     return true;
 }
 
@@ -2253,7 +2278,8 @@ function join_cell(id) {
     whitespace, in which case the output is the output of the first
     cell.  We do this since a common way to delete a cell is to empty
     its input, then hit backspace.  It would be very confusing if the
-    output of the second cell were retained.
+    output of the second cell were retained.  WARNING: Backspace
+    on the first cell if empty deletes it.
 
     INPUT:
         id -- integer cell id.
@@ -2262,17 +2288,34 @@ function join_cell(id) {
         etc., and updates the server on this change.
     */
     var id_prev = id_of_cell_delta(id, -1);
-    if(id_prev == id) return;
-
     var cell = get_cell(id);
+
+    // The top cell is a special case.  Here we delete the top cell
+    // if it is empty.  Otherwise, we simply return doing nothing.
+    if(id_prev == id) {
+        // yes, top cell
+        if (is_whitespace(cell.value)) {
+            // Special case -- deleting the first cell in a worksheet and its whitespace
+            // get next cell
+            var cell_next = get_cell(id_of_cell_delta(id,1));
+            // put cursor on next one
+            cell_next.focus();
+            // delete this cell
+            cell_delete(id);
+            return;
+        } else {
+            return;
+        }
+    }
+
     var cell_prev = get_cell(id_prev);
 
     // We delete the cell above the cell with given id except in the
     // one case when the cell with id has empty input, in which case
     // we just delete that cell.
     if (is_whitespace(cell.value)) {
-        cell_delete(id);
         cell_prev.focus();
+        cell_delete(id);
         return;
     }
 
@@ -2282,8 +2325,8 @@ function join_cell(id) {
     // bottom cell.
     var val_prev = cell_prev.value;
 
-    cell_delete(id_prev);
     cell.focus();
+    cell_delete(id_prev);
 
     // The following is so that joining two cells keeps a newline
     // between the input contents.
@@ -3434,6 +3477,39 @@ function show_all() {
     async_request(worksheet_command('show_all'));
 }
 
+function delete_all_output() {
+    /*
+    Delete the contents of every output cell in the worksheet (in the DOM) then
+    send a message back to the server recording that we deleted all cells, so
+    if we refresh the browser or visit the page with another browser,
+    etc., the cells are still deleted.
+
+    Things that could go wrong:
+         1. Message to server to actually do the delete is not received or fails.
+            Not so bad, since no data is lost; a mild inconvenience.
+         2. User accidently clicks on delete all.  There is no confirm dialog.
+            Not so bad, since we save a revision right before the delete all, so
+            they can easily go back to the previous version.
+    */
+    var v = cell_id_list;
+    var n = v.length;
+    var i, id;
+    /* Iterate over each cell in the worksheet. */
+    for(i=0; i<n; i++) {
+        id = v[i];
+        /* First delete the actual test from the output of each cell. */
+        get_element('cell_output_' + id).innerHTML = "";
+        get_element('cell_output_nowrap_' + id).innerHTML = "";
+        get_element('cell_output_html_' + id).innerHTML = "";
+        /* Then record that the cell hasn't been evaluated and produced that output. */
+        cell_set_not_evaluated(id);
+    }
+    /* Finally tell the server to do the actual delete.
+       We first delete from DOM then contact the server for maximum
+       snappiness of the user interface. */
+    async_request(worksheet_command('delete_all_output'));
+}
+
 function halt_active_cells() {
     /*
     Set all cells so they do not look like they are being evaluates or
@@ -3545,6 +3621,10 @@ function interact(id, input) {
     active_cell_list = active_cell_list.concat([id]);
     cell_has_changed = false;
     current_cell = id;
+
+    // Delete the old images, etc., that might be sitting
+    // in the output from the previos evaluation of this cell.
+    get_element('cell_output_html_' + id).innerHTML = "";
 
     var cell_number = get_element('cell_number_' + id);
     cell_number.className = 'cell_number_running';

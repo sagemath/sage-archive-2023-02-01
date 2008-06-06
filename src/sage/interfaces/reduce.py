@@ -44,7 +44,7 @@ class Reduce(Expect):
     """
     def __init__(self,
                  maxread=100000, script_subdirectory=None,
-                 logfile='/home/was/a',
+                 logfile=None,
                  server=None,
                  server_tmpdir=None):
         Expect.__init__(self,

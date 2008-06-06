@@ -11,8 +11,8 @@ AUTHOR:
 
 EXAMPLE:
 
-    sage: import sage.interfaces.libecm
-    sage: from sage.interfaces.libecm import ecmfactor
+    sage: import sage.libs.libecm
+    sage: from sage.libs.libecm import ecmfactor
     sage: result = ecmfactor(999, 0.00)
     sage: result in [(True, 27), (True, 37), (True, 999)]
     True

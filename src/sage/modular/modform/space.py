@@ -245,7 +245,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
             sage: CuspForms(Gamma1(1),12).group()
             Congruence Subgroup Gamma0(1)
-            sage: CuspForms(SL2Z(),12).group()
+            sage: CuspForms(SL2Z,12).group()
             Congruence Subgroup Gamma0(1)
         """
         return self.__group
@@ -434,7 +434,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             q^2 - 4*q^3 + 2*q^4 + 8*q^5 + O(q^6)
             ]
 
-            sage: M = ModularForms(SL2Z(), 12)
+            sage: M = ModularForms(SL2Z, 12)
             sage: M.echelon_basis()
             [
             1 + 196560*q^2 + 16773120*q^3 + 398034000*q^4 + 4629381120*q^5 + O(q^6),

@@ -17,7 +17,7 @@ Schubert Polynomials
 #*****************************************************************************
 
 import combinatorial_algebra
-from sage.rings.all import Integer, is_MPolynomial, MPolynomialRing
+from sage.rings.all import Integer, is_MPolynomial, PolynomialRing
 import permutation
 import sage.libs.symmetrica.all as symmetrica
 
@@ -90,7 +90,7 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
         """
         p = symmetrica.t_SCHUBERT_POLYNOM(self)
         if not is_MPolynomial(p):
-            R = MPolynomialRing(self.parent().base_ring(), 1, 'x')
+            R = PolynomialRing(self.parent().base_ring(), 1, 'x')
             p = R(p)
         return p
 

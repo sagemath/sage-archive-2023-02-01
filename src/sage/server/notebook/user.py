@@ -44,6 +44,8 @@ class User:
     def set_hashed_password(self, password):
         self.__password = password
 
+    def set_email(self, email):
+        self.__email = email
 
     def password_is(self, password):
         if self.__username == "pub":

@@ -1000,12 +1000,13 @@ textarea.cell_input_hide {
   border: 0px solid white;
   font-family: monospace;
   font-size:12pt;
+  color:#888888;
   overflow:hidden;
   padding-left:3px;
   padding-top:0px;
   padding-bottom:0px;
   /* width: 100%; */
-  height:0.5em;
+  height:1em;
   margin:0px;
 }
 

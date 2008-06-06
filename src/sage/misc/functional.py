@@ -680,8 +680,8 @@ def numerical_approx(x, prec=None, digits=None):
     INPUT:
         x -- an object that has a numerical_approx method, or can
              be coerced into a real or complex field
-        prec -- an integer (bits of precision)
-        digits -- an integer  (digits of precision)
+        prec (optional) -- an integer (bits of precision)
+        digits (optional) -- an integer (digits of precision)
 
     If neither the prec or digits are specified, the default
     is 53 bits of precision.
@@ -723,7 +723,7 @@ N = numerical_approx
 def objgens(x):
     """
     EXAMPLES:
-        sage: R, x = objgens(MPolynomialRing(QQ,3, 'x'))
+        sage: R, x = objgens(PolynomialRing(QQ,3, 'x'))
         sage: R
         Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         sage: x
@@ -950,10 +950,15 @@ def isqrt(x):
     EXAMPLES:
         sage: isqrt(10)
         3
+        sage: isqrt(10r)
+        3
     """
-    try: return x.isqrt()
+    try:
+        return x.isqrt()
     except AttributeError:
-        raise NotImplementedError
+        import sage.calculus.calculus
+        n = sage.rings.integer.Integer(sage.calculus.calculus.floor(x))
+        return n.isqrt()
 
 def squarefree_part(x):
     """

@@ -21,8 +21,9 @@ from sage.interfaces.all import singular
 
 from sage.misc.all import latex, generic_cmp, add
 
-from sage.rings.all import (MPolynomialRing,
-                            degree_lowest_rational_function, is_PrimeField)
+from sage.rings.all import degree_lowest_rational_function, is_PrimeField
+
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.schemes.generic.affine_space import is_AffineSpace
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
@@ -84,7 +85,7 @@ class AffineCurve_generic(Curve_generic):
         numpts = len(pts)
         R = f.parent()
         x,y = R.gens()
-        R0 = MPolynomialRing(F,3,names = [str(x),str(y),"t"])
+        R0 = PolynomialRing(F,3,names = [str(x),str(y),"t"])
         vars0 = R0.gens()
         t = vars0[2]
         divf = []
@@ -118,7 +119,7 @@ class AffineCurve_generic(Curve_generic):
         EXAMPLES:
             sage: F = GF(5)
             sage: pt = (2,3)
-            sage: R = MPolynomialRing(F,2, names = ['x','y'])
+            sage: R = PolynomialRing(F,2, names = ['x','y'])
             sage: x,y = R.gens()
             sage: f = y^2-x^9-x
             sage: C = Curve(f)
@@ -133,7 +134,7 @@ class AffineCurve_generic(Curve_generic):
         y0 = F(pt[1])
         astr = ["a"+str(i) for i in range(1,2*n)]
         x,y = R.gens()
-        R0 = MPolynomialRing(F,2*n+2,names = [str(x),str(y),"t"]+astr)
+        R0 = PolynomialRing(F,2*n+2,names = [str(x),str(y),"t"]+astr)
         vars0 = R0.gens()
         t = vars0[2]
         yt = y0*t**0+add([vars0[i]*t**(i-2) for i in range(3,2*n+2)])
@@ -224,7 +225,7 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             basis of L(Div)
 
         EXAMPLE:
-            sage: R = MPolynomialRing(GF(5),2,names = ["x","y"])
+            sage: R = PolynomialRing(GF(5),2,names = ["x","y"])
             sage: x, y = R.gens()
             sage: f = y^2 - x^9 - x
             sage: C = Curve(f)
@@ -253,7 +254,7 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
 
         dim = len(LG)
         basis = [(LG[i][1], LG[i][2]) for i in range(1,dim+1)]
-        x, y, z = MPolynomialRing(F, 3, names = ["x","y","z"]).gens()
+        x, y, z = PolynomialRing(F, 3, names = ["x","y","z"]).gens()
         V = []
         for g in basis:
             T.set_ring()  # necessary...

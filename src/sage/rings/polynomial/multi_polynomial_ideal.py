@@ -340,6 +340,10 @@ class MPolynomialIdeal_singular_repr:
             sage: I == R.ideal()
             True
 
+            sage: R = PolynomialRing(QQ, names=[])
+            sage: R.ideal(0) == R.ideal(0)
+            True
+
             sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
             sage: I = (x^3 + y, y)*R
             sage: J = (x^3 + y, y, y*x^3 + y^2)*R
@@ -1942,10 +1946,17 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.homogenize(y)
             Ideal (x^2*y + y^3 + y^2*z, x*y) of Multivariate
             Polynomial Ring in x, y, z over Finite Field of size 2
+
+
+           sage: I = Ideal([x^2*y + z^3 + y^2*x, x + y^2 + 1])
+	   sage: I.homogenize()
+	   Ideal (x^2*y + x*y^2 + z^3, y^2 + x*h + h^2) of
+	   Multivariate Polynomial Ring in x, y, z, h over Finite
+	   Field of size 2
         """
-        I = ([f.homogenize(var) for f in self.gens()])
-        P = I[0].parent()
-        return P.ideal(I)
+        I = [f.homogenize(var) for f in self.gens()]
+        P = max(I, key=lambda x: x.parent().ngens()).parent()
+        return P.ideal([P(f) for f in I])
 
     def is_homogeneous(self):
         r"""
@@ -1977,3 +1988,46 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 return False
         return True
 
+    def _libsingular_normal_basis(self):
+        """
+        Returns the normal basis for a given groebner basis. It will use
+        the Groebner Basis as computed by
+        self._groebner_basis_using_libsingular().
+
+        EXAMPLES:
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: I = R.ideal(x^2-2*x*z+5, x*y^2+y*z+1, 3*y^2-8*x*z)
+            sage: I.normal_basis()
+            [z^2, y*z, x*z, z, x*y, y, x, 1]
+
+        """
+        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import kbase_libsingular
+        gb = self._groebner_basis_using_libsingular()
+
+        return kbase_libsingular(self.ring().ideal(gb))
+
+    def normal_basis(self, algorithm='libsingular'):
+        """
+        Returns a vector space basis (consisting of monomials) of the quotient
+        ring by the ideal, resp. of a free module by the module, in case it is
+        finite dimensional and if the input is a standard basis with respect
+        to the ring ordering.
+
+        INPUT:
+            algorithm - defaults to use libsingular, if it is anything else
+                        we will use the kbase() command
+
+        EXAMPLES:
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: I = R.ideal(x^2+y^2+z^2-4, x^2+2*y^2-5, x*z-1)
+            sage: I.normal_basis()
+            [y*z^2, z^2, y*z, z, x*y, y, x, 1]
+            sage: I.normal_basis(algorithm='singular')
+            [y*z^2, z^2, y*z, z, x*y, y, x, 1]
+        """
+
+        if algorithm == 'libsingular':
+            return self._libsingular_normal_basis()
+        else:
+            gb = self.groebner_basis()
+            return list(singular.kbase(self.ring().ideal(gb)))

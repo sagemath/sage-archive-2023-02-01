@@ -14,7 +14,7 @@ from sage.rings.all import (
     is_FiniteField,
     is_RationalField,
     is_Ring,
-    MPolynomialRing,
+    PolynomialRing,
     is_MPolynomialRing,
     ZZ,
     Integer)
@@ -259,7 +259,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         try:
             return self._coordinate_ring
         except AttributeError:
-            self._coordinate_ring = MPolynomialRing(self.base_ring(), self.dimension(), names=self.variable_names())
+            self._coordinate_ring = PolynomialRing(self.base_ring(), self.dimension(), names=self.variable_names())
             return self._coordinate_ring
 
     def projective_embedding(self, i=None, PP=None):

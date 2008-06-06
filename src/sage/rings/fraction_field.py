@@ -35,7 +35,7 @@ TESTS:
     sage: F == loads(dumps(F))
     True
 
-    sage: F = FractionField(MPolynomialRing(RationalField(),2,'x'))
+    sage: F = FractionField(PolynomialRing(RationalField(),2,'x'))
     sage: F == loads(dumps(F))
     True
 
@@ -83,7 +83,7 @@ def FractionField(R, names=None):
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: FractionField(PolynomialRing(IntegerRing(),'x'))
         Fraction Field of Univariate Polynomial Ring in x over Integer Ring
-        sage: FractionField(MPolynomialRing(RationalField(),2,'x'))
+        sage: FractionField(PolynomialRing(RationalField(),2,'x'))
         Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
 
     Dividing elements often implicitly creates elements of the fraction field.
@@ -173,6 +173,45 @@ class FractionField_generic(field.Field):
 
     def _latex_(self):
         return "\\mbox{\\rm Frac}(%s)"%latex.latex(self.ring())
+
+    __magma = None
+    def _magma_init_(self):
+        """
+        Return a string representation of self Magma can understand.
+
+        EXAMPLES:
+            sage: QQ['x'].fraction_field()._magma_init_()
+            'FieldOfFractions(PolynomialRing(RationalField()))'
+        """
+        if self.__magma:
+            return self.__magma
+        B = self.ring()._magma_init_()
+        return "FieldOfFractions(%s)"%B
+
+    def _magma_(self, magma = None):
+        """
+        EXAMPLES:
+            sage: magma(QQ['x,y'].fraction_field()) #optional
+            Multivariate rational function field of rank 2 over Rational Field
+            Variables: x, y
+
+            sage: magma(ZZ['x'].fraction_field()) #optional
+            Univariate rational function field over Integer Ring
+            Variables: x
+
+        """
+        if magma is None:
+            import sage.interfaces.magma
+            magma = sage.interfaces.magma.magma
+        if self.__magma is None:
+            s = self._magma_init_()
+            F = magma(s)
+            F.assign_names(self.variable_names())
+            self.__magma = F
+            return F
+        else:
+            self.__magma._check_valid()
+            return self.__magma
 
     def ring(self):
         """

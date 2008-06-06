@@ -275,6 +275,19 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     return R
 
+def MPolynomialRing(*args, **kwds):
+    import warnings
+    warnings.warn("MPolynomialRing is deprecated, use PolynomialRing instead!", DeprecationWarning, stacklevel=2)
+    return PolynomialRing(*args, **kwds)
+
+MPolynomialRing.__doc__ = """
+    This function is deprecated and will be removed in a future version of
+    Sage. Please use PolynomialRing instead.
+
+    If you have questions regarding this function and it's replacement,
+    please send your comments to sage-support@googlegroups.com.
+
+""" + PolynomialRing.__doc__
 
 def _get_from_cache(key):
     try:

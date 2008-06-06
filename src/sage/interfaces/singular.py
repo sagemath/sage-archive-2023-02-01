@@ -79,7 +79,7 @@ First we illustrate multivariate polynomial factorization:
 
 We can convert $f$ and each exponent back to SAGE objects as well.
 
-    sage: R.<x, y> = MPolynomialRing(QQ,2)
+    sage: R.<x, y> = PolynomialRing(QQ,2)
     sage: g = eval(f.sage_polystring()); g
     9*x^16 - 18*x^13*y^2 - 9*x^12*y^3 + 9*x^10*y^4 - 18*x^11*y^2 + 36*x^8*y^4 + 18*x^7*y^5 - 18*x^5*y^6 + 9*x^6*y^4 - 18*x^3*y^6 - 9*x^2*y^7 + 9*y^8
     sage: eval(F[1][2].sage_polystring())
@@ -244,7 +244,7 @@ We test an automatic coercion:
 
 #We could also do these calculations without using the singular
 #interface (behind the scenes the interface is used by SAGE):
-#    sage: x, y = MPolynomialRing(RationalField(), 2, names=['x','y']).gens()
+#    sage: x, y = PolynomialRing(RationalField(), 2, names=['x','y']).gens()
 #    sage: C = ProjectivePlaneCurve(y**9 - x**2*(x-1)**9)
 #    sage: C.genus()
 #    0
@@ -712,7 +712,7 @@ class Singular(Expect):
             currently active ring's name
 
         EXAMPLES:
-            sage: r = MPolynomialRing(GF(127),3,'xyz')
+            sage: r = PolynomialRing(GF(127),3,'xyz')
             sage: r._singular_().name() == singular.current_ring_name()
             True
         """
@@ -730,7 +730,7 @@ class Singular(Expect):
         session.
 
         EXAMPLES:
-            sage: r = MPolynomialRing(GF(127),3,'xyz', order='invlex')
+            sage: r = PolynomialRing(GF(127),3,'xyz', order='invlex')
             sage: r._singular_()
             //   characteristic : 127
             //   number of vars : 3
@@ -972,7 +972,7 @@ class SingularElement(ExpectElement):
         poly which is a singular polynomial.
 
         INPUT:
-            R      -- MPolynomialRing: you *must* take care it matches
+            R      -- PolynomialRing: you *must* take care it matches
                       the current singular ring as, e.g., returned by
                       singular.current_ring()
             kcache -- (default: None); an optional dictionary for faster
@@ -983,7 +983,7 @@ class SingularElement(ExpectElement):
            MPolynomial
 
         EXAMPLES:
-            sage: R = MPolynomialRing(GF(2^8,'a'),2,'xy')
+            sage: R = PolynomialRing(GF(2^8,'a'),2,'xy')
             sage: f=R('a^20*x^2*y+a^10+x')
             sage: f._singular_().sage_poly(R)==f
             True
@@ -1198,7 +1198,7 @@ class SingularElement(ExpectElement):
         Returns the internal type of this element.
 
         EXAMPLES:
-            sage: R = MPolynomialRing(GF(2^8,'a'),2,'x')
+            sage: R = PolynomialRing(GF(2^8,'a'),2,'x')
             sage: R._singular_().type()
             'ring'
             sage: fs = singular('x0^2','poly')

@@ -1,5 +1,5 @@
 r"""
-\sage Notebook (Twisted Version)
+The Sage Notebook Twisted Web Server
 """
 
 #############################################################################
@@ -35,7 +35,7 @@ import notebook as _notebook
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
-from sage.misc.misc import SAGE_EXTCODE, SAGE_LOCAL, walltime, tmp_filename
+from sage.misc.misc import SAGE_EXTCODE, SAGE_LOCAL, walltime, tmp_filename, tmp_dir
 from sage.misc.remote_file import get_remote_file
 
 p = os.path.join
@@ -306,30 +306,45 @@ class UploadWorksheet(resource.PostableResource):
 
     def render(self, ctx):
         url = ctx.args['urlField'][0].strip()
+        dir = ''  # we will delete the directory below if it is used
         if url != '':
-            tmp = get_remote_file(url, verbose=True)
+            # downloading a file from the internet
+            filename = get_remote_file(url, verbose=True)
         else:
-            tmp = '%s/tmp.sws'%notebook.directory()
-            f = file(tmp,'wb')
-
-            # Blocking issues (?!)
+            # uploading a file from the user's computer
+            dir = tmp_dir()
+            filename = ctx.files['fileField'][0][0]
+            # Make tmp file in SAGE temp directory
+            filename = '%s/%s'%(dir, filename)
+            f = file(filename,'wb')
+            # Then download to that file.
             f.write(ctx.files['fileField'][0][2].read())
+            # TODO: Server blocking issues (?!)
             f.close()
 
         try:
-            W = notebook.import_worksheet(tmp, self.username)
-            os.unlink(tmp)
-            if ctx.args.has_key('nameField'):
-                new_name = ctx.args['nameField'][0].strip()
-                if new_name:
-                    W.set_name(new_name)
+            try:
+                W = notebook.import_worksheet(filename, self.username)
+            except IOError, msg:
+                print msg
+                raise ValueError, "Unfortunately, there was an error uploading the worksheet.  It could be an old unsupported format or worse.  If you desparately need its contents contact the Google group sage-support and post a link to your worksheet.  Alternatively, an sws file is just a bzip2'd tarball; take a look inside!"
+            finally:
+                # Clean up the temporarily uploaded filename.
+                os.unlink(filename)
+                # if a temp directory was created, we delete it now.
+                if dir:
+                    shutil.rmtree(dir)
+
         except ValueError, msg:
             s = "Error uploading worksheet '%s'."%msg
             return http.Response(stream = message(s, '/'))
 
-        name = ctx.args['nameField'][0].strip()
-        if len(name) > 0:
-            W.set_name(name)
+        # If the user requested in the form a specific title for
+        # the worksheet set it.
+        if ctx.args.has_key('nameField'):
+            new_name = ctx.args['nameField'][0].strip()
+            if new_name:
+                W.set_name(new_name)
 
         return http.RedirectResponse('/home/'+W.filename())
 
@@ -817,15 +832,15 @@ class ProcessUserSettings(resource.PostableResource):
     def render(self, ctx):
         pass
 
-class UserSettings(resource.Resource):
-    child_process = ProcessUserSettings()
-
-    def __init__(self, username):
-        self.username = username
-
-    def render(self, ctx):
-        s = notebook.html_user_settings(self.username)
-        return http.Response(stream = s)
+#class UserSettings(resource.Resource):
+#    child_process = ProcessUserSettings()
+#
+#    def __init__(self, username):
+#        self.username = username
+#
+#    def render(self, ctx):
+#        s = notebook.html_user_settings(self.username)
+#        return http.Response(stream = s)
 
 class ProcessNotebookSettings(resource.PostableResource):
     def render(self, ctx):
@@ -844,6 +859,66 @@ class NotebookSettings(resource.Resource):
             s = notebook.html_notebook_settings()
         return http.Response(stream = s)
 
+class SettingsPage(resource.PostableResource):
+    def __init__(self, username):
+        self.username = username
+
+    def render(self, request):
+        error = None
+        if 'Oldpass' in request.args or 'Newpass' in request.args or 'RetypePass' in request.args:
+            if not 'Oldpass' in request.args:
+                error = 'Old password not given'
+            elif not notebook.user(self.username).password_is(request.args['Oldpass'][0]):
+                error = 'Incorrect password given'
+            elif not 'Newpass' in request.args:
+                error = 'New password not given'
+            elif not 'RetypePass' in request.args:
+                error = 'Please type in new password again.'
+            elif request.args['Newpass'][0] != request.args['RetypePass'][0]:
+                error = 'The passwords you entered do not match.'
+
+            if error:
+                return http.Response(stream=message(error, '/settings'))
+
+            notebook.change_password(self.username, request.args['Newpass'][0])
+            return http.RedirectResponse('/logout')
+
+        if 'Newemail' in request.args:
+            notebook.user(self.username).set_email(request.args['Newemail'][0])
+            return http.RedirectResponse('/settings')
+
+        else:
+            s = """<html><title>Account Settings</title><h1 align=center>Account Settings</h1>
+            <br>
+            <hr>
+            <br>
+            <form method="POST" action="/settings">
+            <br><br>
+            <table align=center><tr>
+            <td colspan=2><h2>Change Password</h2></td></tr><tr>
+            <td align=right>Old password:</td><td><input type="password" name="Oldpass" size="15" /></td></tr>
+            <tr><td align=right>New password:</td><td>
+                <input type="password" name="Newpass" size="15" />
+                </td></tr>
+            <tr><td align=right>Retype new password:</td><td>
+                <input type="password" name="RetypePass" size="15" />
+                </td></tr>
+          <tr><td></td><td></td></tr>
+            <tr><td></td><td align=left><input type="submit" value="Change password" /></td></tr>
+            <tr style="height:20px"><td colspan=2></td></tr>
+            <tr>
+            <td colspan=2><h2>Change E-mail Address</h2></td></tr><tr><tr>
+            <td align=right>Current e-mail:</td><td>%s</td></tr>
+            <tr><td align=right>New e-mail:</td><td>
+                <input type="text" name="Newemail" size="30" />
+                </td></tr><tr><td></td><td align=left><input type="submit" value="Change e-mail" /></td></tr>
+            </table> </form>
+            <br><br>
+            <div align=center><a href="../">Cancel</a></div>
+            <br>
+
+            </html>""" % notebook.user(self.username)._User__email
+        return http.Response(stream=s)
 
 ########################################################
 # Set output type of a cell
@@ -1124,6 +1199,16 @@ class Worksheet_show_all(WorksheetResource, resource.Resource):
         self.worksheet.show_all()
         return http.Response(stream='success')
 
+
+# Delete all the output of cells in a worksheet.
+class Worksheet_delete_all_output(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        try:
+            self.worksheet.delete_all_output(self.username)
+        except ValueError:
+            return http.Response(stream='fail')
+        return http.Response(stream='success')
+
 class Worksheet_print(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.worksheet_html(self.name, do_print=True)
@@ -1274,11 +1359,10 @@ class EmptyTrash(resource.Resource):
         Finally we verify that the trashed worksheet is gone:
             sage: n.worksheet_names()
             []
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         notebook.empty_trash(self.username)
         return http.Response(stream = message("Trash emptied."))
-
 
 class SendWorksheetToFolder(resource.PostableResource):
     def __init__(self, username):
@@ -1322,6 +1406,17 @@ class SendWorksheetToArchive(SendWorksheetToFolder):
 class SendWorksheetToActive(SendWorksheetToFolder):
     def action(self, W):
         W.set_active(self.username)
+
+# Using SendWorksheet does feel somewhat hackish.  It however is
+# exactly the right thing to actually do, and minimizes code
+# duplication.
+class SendWorksheetToStop(SendWorksheetToFolder):
+    """
+    Saves and quits each selected worksheet.
+    """
+    def action(self, W):
+        W.save_snapshot(self.username)
+        W.quit()
 
 ############################
 # Publically Available Worksheets
@@ -1818,23 +1913,32 @@ class UserToplevel(Toplevel):
     userchild_live_history = LiveHistory
     userchild_new_worksheet = NewWorksheet
     userchild_notebook_settings = NotebookSettings
+    userchild_settings = SettingsPage
     userchild_pub = PublicWorksheets
 
     userchild_send_to_trash = SendWorksheetToTrash
     userchild_send_to_archive = SendWorksheetToArchive
     userchild_send_to_active = SendWorksheetToActive
-
-    userchild_settings = UserSettings
+    userchild_send_to_stop = SendWorksheetToStop
 
     userchild_src = SourceBrowser
     userchild_upload_worksheet = UploadWorksheet
     userchild_emptytrash = EmptyTrash
 
-    def render(self, ctx):
-        s = render_worksheet_list(ctx.args, pub=False, username=self.username)
-        return http.Response(responsecode.OK,
-                             {'set-cookie':set_cookie(self.cookie)},
-                             stream=s)
+    def render(self, request):
+        # This resource always does a redirect to the user's home directory
+        # so that after login (which is a POST operation), the postdata will not remain
+        # in the browser on return.  This method is sometimes
+        # referred to as the post-redirect-get method.
+        response = http.RedirectResponse("/home/%s" % self.username)
+        # This allows a Notebook user to select a "remember me" checkbox and not have to
+        # sign back in when she restarts her web browser
+        # This works by setting an expiration date because without one the browser forgets the cookie.
+        if 'remember' in request.args:
+            response.headers.setHeader("set-cookie", [http_headers.Cookie('nb_session', self.cookie, expires=(time.time() + 60 * 60 * 24 * 14))])
+        else:
+            response.headers.setHeader("set-cookie", [http_headers.Cookie('nb_session', self.cookie)])
+        return response
 
 
 class AdminToplevel(UserToplevel):

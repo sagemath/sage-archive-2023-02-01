@@ -152,11 +152,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: B.Parent()                            # optional
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
         """
-        K = self._base_ring._magma_init_()
-        if self._nrows == self._ncols:
-            s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
-        else:
-            s = 'RMatrixSpace(%s, %s, %s)'%(K, self.nrows(), self.ncols())
+        s = self._parent._magma_init_()
         v = []
         for x in self.list():
             v.append(x._magma_init_())

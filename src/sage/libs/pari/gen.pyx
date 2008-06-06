@@ -5389,6 +5389,11 @@ cdef class gen(sage.structure.element.RingElement):
         """
         cdef long n
         _sig_on
+        # if this matrix has no columns
+        # then it has no rows.
+        if self.ncols() == 0:
+            _sig_off
+            return 0
         n = glength(<GEN>(self.g[1]))
         _sig_off
         return n

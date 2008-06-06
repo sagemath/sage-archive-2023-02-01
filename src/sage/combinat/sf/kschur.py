@@ -84,6 +84,23 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         return self._from_dict(out)
 
+
+    def _multiply(self, left, right):
+        """
+        Multiply left and right by coverting to the Schurs,
+        multiplying there, and converting back.
+
+        EXAMPLES:
+            sage: ks3 = kSchurFunctions(QQ, 3)
+            sage: ks3([1])^2 # indirect doctest
+            ks3[1, 1] + ks3[2]
+            sage: ks3([2,1])^2
+            ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1] + (-2*t+2)*ks3[3, 2, 1] + (-t^2+1)*ks3[3, 3]
+
+        """
+        return self( self._s(left) * self._s(right) )
+
+
 class kSchurFunction_generic(sfa.SymmetricFunctionAlgebraElement_generic):
     pass
 
@@ -192,21 +209,6 @@ class kSchurFunctions_t(kSchurFunctions_generic):
             res = sum( [t**tab.charge()*s(tab.shape()) for tab in katom], zero)
             self._self_to_s_cache[n][p] = res.monomial_coefficients()
 
-
-    def _multiply(self, left, right):
-        """
-        Multiply left and right by coverting to the Schurs,
-        multiplying there, and converting back.
-
-        EXAMPLES:
-            sage: ks3 = kSchurFunctions(QQ, 3)
-            sage: ks3([1])^2 # indirect doctest
-            ks3[1, 1] + ks3[2]
-            sage: ks3([2,1])^2
-            ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1] + (-2*t+2)*ks3[3, 2, 1] + (-t^2+1)*ks3[3, 3]
-
-        """
-        return self( self._s(left) * self._s(right) )
 
 
 #############

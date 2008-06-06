@@ -1,5 +1,9 @@
 r"""
 Dyck Words
+
+AUTHORS:
+    -- Mike Hansen
+    -- Dan Drake (2008-05-30): DyckWordBacktracker support
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -16,6 +20,7 @@ Dyck Words
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from combinat import CombinatorialClass, CombinatorialObject, catalan_number
+from backtrack import GenericBacktracker
 
 open_symbol = 1
 close_symbol = 0
@@ -100,7 +105,7 @@ def DyckWord(dw=None, noncrossing_partition=None):
 class DyckWord_class(CombinatorialObject):
     def __str__(self):
         """
-        Returns a string consisting of matched parenteses corresponding to
+        Returns a string consisting of matched parentheses corresponding to
         the Dyck word.
 
         EXAMPLES:
@@ -126,8 +131,15 @@ class DyckWord_class(CombinatorialObject):
         return len(filter(lambda x: x == open_symbol, self))
 
     def height(self):
-        """
+        r"""
         Returns the height of the Dyck word.
+
+        We view the Dyck word as a
+        Dyck path from $(0,0)$ to $(n,0)$ in the first quadrant by letting
+        '1's represent steps in the direction $(1,1)$ and '0's represent
+        steps in the direction $(1,-1)$.
+
+        The height is the maximum $y$-coordinate reached.
 
         EXAMPLES:
             sage: DyckWord([]).height()
@@ -269,12 +281,22 @@ class DyckWord_class(CombinatorialObject):
         raise NotImplementedError, "TODO"
 
     def peaks(self):
-        """
+        r"""
+        Returns a list of the positions of the peaks of a Dyck word.  A
+        peak is 1 followed by a 0.  Note that this does not agree with the
+        definition given by Haglund in: The $q,t$-Catalan Numbers and the
+        Space of Diagonal Harmonics: With an Appendix on the Combinatorics
+        of Macdonald Polynomials - James Haglund, University of
+        Pennsylvania, Philadelphia - AMS, 2008, 167 pp.
+
         EXAMPLES:
             sage: DyckWord([1, 0, 1, 0]).peaks()
             [0, 2]
             sage: DyckWord([1, 1, 0, 0]).peaks()
             [1]
+            sage: DyckWord([1,1,0,1,0,1,0,0]).peaks() # Haglund's def gives 2
+            [1, 3, 5]
+
         """
         return [i for i in range(len(self)-1) if self[i] == open_symbol and self[i+1] == close_symbol]
 
@@ -306,11 +328,25 @@ class DyckWord_class(CombinatorialObject):
 
     def a_statistic(self):
         """
-        Returns the a-statistic for the Dyck word.  When viewed as a lattice
-        path, the Dyck word's a-statistic is the number of boxes
-        above the main diagonal.
+        Returns the a-statistic for the Dyck word.
+
+        One can view a balanced Dyck word as a lattice path from $(0,0)$ to
+        $(n,n)$ in the first quadrant by letting '1's represent steps in
+        the direction $(1,0)$ and '0's represent steps in the direction
+        $(0,1)$.  The resulting path will remain weakly above the diagonal
+        $y = x$.
+
+        The a-statistic, or area statistic, is the number of complete
+        squares in the integer lattice which are below the path and above
+        the line $y = x$. The 'half-squares' directly above the line $y=x$
+        do not contribute to this statistic.
+
 
         EXAMPLES:
+            sage: dw = DyckWord([1,0,1,0])
+            sage: dw.a_statistic() # 2 half-squares, 0 complete squares
+            0
+
             sage: dw = DyckWord([1,1,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0])
             sage: dw.a_statistic()
             19
@@ -356,8 +392,25 @@ class DyckWord_class(CombinatorialObject):
         return a
 
     def b_statistic(self):
-        """
+        r"""
         Returns the b-statistic for the Dyck word.
+
+        One can view a balanced Dyck word as a lattice path from $(0,0)$ to
+        $(n,n)$ in the first quadrant by letting '1's represent steps in
+        the direction $(1,0)$ and '0's represent steps in the direction
+        $(0,1)$.  The resulting path will remain weakly above the diagonal
+        $y = x$.
+
+        We describe the b-statistic of such a path in terms of what is
+        known as the "bounce path".  Quoting from [1]:
+
+        We can think of our bounce path as describing the trail of a
+        billiard ball shot North from $(0, 0)$, which "bounces" right
+        whenever it encounters a horizontal step and "bounces" up when it
+        encounters the line $y = x$. The bouncing ball will strike the
+        diagonal at places $(0, 0), (j_1, j_1), (j_2, j_2), ... , (j_r-1,
+        j_r-1), (j_r, j_r) = (n, n)$. We define the b-statistic to be the
+        sum $\sum_{i=1}^{r-1} n - j_i$.
 
         EXAMPLES:
             sage: dw = DyckWord([1,1,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0])
@@ -393,6 +446,12 @@ class DyckWord_class(CombinatorialObject):
             sage: DyckWord([1,0,1,0,1,0,1,0]).b_statistic()
             6
 
+
+        REFERENCES:
+            [1] The $q,t$-Catalan Numbers and the Space of Diagonal
+            Harmonics: With an Appendix on the Combinatorics of Macdonald
+            Polynomials - James Haglund, University of Pennsylvania,
+            Philadelphia - AMS, 2008, 167 pp.
         """
         x_pos = len(self)/2
         y_pos = len(self)/2
@@ -430,12 +489,19 @@ class DyckWord_class(CombinatorialObject):
 
 
 def DyckWords(k1=None, k2=None):
-    """
-    Returns the combinatorial class of Dyck words.
+    r"""
+    Returns the combinatorial class of Dyck words.  A Dyck word is a
+    sequence $(w_1, ..., w_n)$ consisting of '1's and '0's, with the
+    property that for any $i$ with $1 \le i \le n$, the sequence
+    $(w_1,...,w_i)$ contains at least as many $1$s as $0$s.
+
+    A Dyck word is balanced if the total number of '1's is equal to the
+    total number of '0's.  The number of balanced Dyck words of length $2k$
+    is given by the Catalan number $C_k$.
 
     EXAMPLES:
-      If neither k1 nor k2 are specified, then it returns
-      the combinatorial class of all Dyck words.
+      If neither k1 nor k2 are specified, then DyckWords returns
+      the combinatorial class of all balanced Dyck words.
 
         sage: DW = DyckWords(); DW
         Dyck words
@@ -447,16 +513,18 @@ def DyckWords(k1=None, k2=None):
         False
 
       If just k1 is specified, then it returns the combinatorial
-      class of Dyck words with k1 opening parentheses and k1
+      class of balanced Dyck words with k1 opening parentheses and k1
       closing parentheses.
         sage: DW2 = DyckWords(2); DW2
         Dyck words with 2 opening parentheses and 2 closing parentheses
         sage: DW2.first()
-        [1, 1, 0, 0]
-        sage: DW2.last()
         [1, 0, 1, 0]
+        sage: DW2.last()
+        [1, 1, 0, 0]
         sage: DW2.count()
         2
+        sage: DyckWords(100).count() == catalan_number(100)
+        True
 
       If k2 is specified in addition to k1, then it returns
       the combinatorial class of Dyck words with k1 opening
@@ -464,15 +532,17 @@ def DyckWords(k1=None, k2=None):
         sage: DW32 = DyckWords(3,2); DW32
         Dyck words with 3 opening parentheses and 2 closing parentheses
         sage: DW32.list()
-        [[1, 1, 1, 0, 0],
-         [1, 1, 0, 1, 0],
-         [1, 1, 0, 0, 1],
+        [[1, 0, 1, 0, 1],
          [1, 0, 1, 1, 0],
-         [1, 0, 1, 0, 1]]
+         [1, 1, 0, 0, 1],
+         [1, 1, 0, 1, 0],
+         [1, 1, 1, 0, 0]]
     """
     if k1 is None and k2 is None:
         return DyckWords_all()
     else:
+        if k1 < 0 or (k2 is not None and k2 < 0):
+            raise ValueError, "k1 (= %s) and k2 (= %s) must be nonnegative, with k1 >= k2."%(k1, k2)
         if k2 is not None and k1 < k2:
             raise ValueError, "k1 (= %s) must be >= k2 (= %s)"%(k1, k2)
         if k2 is None:
@@ -530,6 +600,78 @@ class DyckWords_all(CombinatorialClass):
             NotImplementedError
         """
         raise NotImplementedError
+
+
+class DyckWordBacktracker(GenericBacktracker):
+    """DyckWordBacktracker: this class is an iterator for all Dyck words
+    with n opening parentheses and n - endht closing parentheses using
+    the backtracker class. It is used by the DyckWords_size class.
+
+    This is not really meant to be called directly, partially because it
+    fails in a couple corner cases: DWB(0) yields [0], not the empty
+    word, and DWB(k, k+1) yields something (it shouldn't yield
+    anything). This could be fixed with a sanity check in _rec(), but
+    then we'd be doing the sanity check *every time* we generate new
+    objects; instead, we do *one* sanity check in DyckWords and assume
+    here that the sanity check has already been made.
+
+    AUTHOR:
+        -- Dan Drake (2008-05-30)
+    """
+    def __init__(self, k1, k2):
+        """
+        TESTS:
+            sage: from sage.combinat.dyck_word import DyckWordBacktracker
+            sage: len(list(DyckWordBacktracker(5, 5)))
+            42
+            sage: len(list(DyckWordBacktracker(6,4)))
+            90
+            sage: len(list(DyckWordBacktracker(7,0)))
+            1
+        """
+        GenericBacktracker.__init__(self, [], (0, 0))
+        # note that the comments in this class think of our objects as
+        # Dyck paths, not words; having k1 opening parens and k2 closing
+        # parens corresponds to paths of length k1 + k2 ending at height
+        # k1 - k2.
+        self.n = k1 + k2
+        self.endht = k1 - k2
+
+    def _rec(self, path, state):
+        """
+        TESTS:
+            sage: from sage.combinat.dyck_word import DyckWordBacktracker
+            sage: dwb = DyckWordBacktracker(3, 3)
+            sage: list(dwb._rec([1,1,0],(3, 2)))
+            [([1, 1, 0, 0], (4, 1), False), ([1, 1, 0, 1], (4, 3), False)]
+            sage: list(dwb._rec([1,1,0,0],(4, 0)))
+            [([1, 1, 0, 0, 1], (5, 1), False)]
+            sage: list(DyckWordBacktracker(4, 4)._rec([1,1,1,1],(4, 4)))
+            [([1, 1, 1, 1, 0], (5, 3), False)]
+        """
+        len, ht = state
+
+        if len < self.n - 1:
+            # if length is less than n-1, new path won't have length n, so
+            # don't yield it, and keep building paths
+
+            # if the path isn't too low and is not touching the x-axis, we can
+            # yield a path with a downstep at the end
+            if ht > (self.endht - (self.n - len)) and ht > 0:
+                yield path + [0], (len + 1, ht - 1), False
+
+            # if the path isn't too high, it can also take an upstep
+            if ht < (self.endht + (self.n - len)):
+                yield path + [1], (len + 1, ht + 1), False
+        else:
+            # length is n - 1, so add a single step (up or down,
+            # according to current height and endht), don't try to
+            # construct more paths, and yield the path
+            if ht < self.endht:
+                yield path + [1], None, True
+            else:
+                yield path + [0], None, True
+
 
 class DyckWords_size(CombinatorialClass):
     def __init__(self, k1, k2=None):
@@ -598,7 +740,8 @@ class DyckWords_size(CombinatorialClass):
 
     def list(self):
         """
-        Returns a list of all the Dyck words of size n.
+        Returns a list of all the Dyck words with k1 opening and k2
+        closing parentheses.
 
         EXAMPLES:
             sage: DyckWords(0).list()
@@ -606,30 +749,32 @@ class DyckWords_size(CombinatorialClass):
             sage: DyckWords(1).list()
             [[1, 0]]
             sage: DyckWords(2).list()
-            [[1, 1, 0, 0], [1, 0, 1, 0]]
+            [[1, 0, 1, 0], [1, 1, 0, 0]]
         """
-        k1 = self.k1
-        k2 = self.k2
+        return list(self.iterator())
 
-        if k1 == 0:
-            return [ DyckWord_class([]) ]
-        if k2 == 0:
-            return [ DyckWord_class([ open_symbol for _ in range(k1) ]) ]
-        if k1 == 1:
-            return [ DyckWord_class([ open_symbol, close_symbol ]) ]
+    def iterator(self):
+        """
+        Returns an iterator for Dyck words with k1 opening and k2
+        closing parentheses.
 
-        dycks = []
-        if k1 > k2:
-            dycks +=  map( lambda x: [open_symbol] + x._list, DyckWords_size(k1-1, k2).list() )
-
-        for i in range(k2):
-            for d1 in DyckWords_size(i,i).list():
-                for d2 in DyckWords_size(k1-i-1, k2-i-1).list():
-                    dycks.append( [open_symbol] + d1._list + [close_symbol] + d2._list)
-
-        dycks.sort()
-        dycks.reverse()
-        return map(lambda x: DyckWord_class(x), dycks)
+        EXAMPLES:
+            sage: [ w for w in DyckWords(0) ]
+            [[]]
+            sage: [ w for w in DyckWords(1) ]
+            [[1, 0]]
+            sage: [ w for w in DyckWords(2) ]
+            [[1, 0, 1, 0], [1, 1, 0, 0]]
+            sage: len([ 'x' for _ in DyckWords(5) ])
+            42
+        """
+        if self.k1 == 0:
+            yield DyckWord_class([])
+        elif self.k2 == 0:
+            yield DyckWord_class([ open_symbol for _ in range(self.k1) ])
+        else:
+            for w in DyckWordBacktracker(self.k1, self.k2):
+                yield DyckWord_class(w)
 
 
 

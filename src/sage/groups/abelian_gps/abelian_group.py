@@ -410,31 +410,63 @@ class AbelianGroup_class(group.AbelianGroup):
         """
         return isinstance(x, AbelianGroupElement) and x.parent() == self
 
-    def __cmp__(self, right):
-       """
-       Compare self and right.
+    def __eq__(self, right):
+        """
+        Compare self and right.
 
-       The ordering is the ordering induced by that on the invariant factors lists.
+        The ordering is the ordering induced by that on the invariant factors lists.
 
-       EXAMPLES:
-           sage: G1 = AbelianGroup([2,3,4,5])
-           sage: G2 = AbelianGroup([2,3,4,5,1])
-           sage: G1 < G2
-           False
-           sage: G1 > G2
-           False
-           sage: G1 == G2
-           True
-       """
-       if not is_AbelianGroup(right):
-           return -1
-       self_invs = self.invariants()
-       right_invs = right.invariants()
-       for i in range(self_invs.count(1)):
-           self_invs.remove(1)
-       for i in range(right_invs.count(1)):
-           right_invs.remove(1)
-       return cmp(self_invs, right_invs)
+        EXAMPLES:
+            sage: G1 = AbelianGroup([2,3,4,5])
+            sage: G2 = AbelianGroup([2,3,4,5,1])
+            sage: G1 < G2
+            False
+            sage: G1 > G2
+            False
+            sage: G1 == G2
+            True
+        """
+        if not is_AbelianGroup(right):
+            return False
+        if set(self.variable_names()) != set(right.variable_names()):
+            return False
+        svars = list(self.variable_names())
+        sinvs = self.invariants()
+        rvars = list(right.variable_names())
+        rinvs = right.invariants()
+        for i in xrange(len(svars)):
+            if rinvs[rvars.index(svars[i])] != sinvs[i]:
+                return False
+        return True
+
+    def __ne__(self, right):
+        return not self == right
+
+    def __ge__(self, right):
+        for a in right.gens():
+            if a not in self:
+                return False
+        return True
+
+    def __lt__(self, right):
+        """
+        EXAMPLE:
+            sage: G.<a, b> = AbelianGroup(2)
+            sage: H.<c> = AbelianGroup(1)
+            sage: H < G
+            False
+
+        """
+        return self <= right and self != right
+
+    def __gt__(self, right):
+        return self >= right and self != right
+
+    def __le__(self, right):
+        for a in self.gens():
+            if a not in right:
+                return False
+        return True
 
     def dual_group(self):
         """
@@ -472,45 +504,6 @@ class AbelianGroup_class(group.AbelianGroup):
                invs2 = invs2 + pfacs
         invs2.sort()
         return invs2
-
-##     def is_subgroup(self, other):
-##         """
-##         Return True if self is a subgroup of other.
-
-##         EXAMPLES:
-##             sage: G = AbelianGroup(3,[2,3,4], names="abc"); G
-##             Abelian group on 3 generators (a, b, c) with invariants [2, 3, 4]
-##             sage: a,b,c = G.gens()
-##             sage: H = G.subgroup([a*b,a])
-##             sage: H.is_subgroup(G)
-##             True
-##             sage: G.is_subgroup(H)
-##             True
-##             sage: K = AbelianGroup(4,[5,2,3,4], names="abcd"); G
-##             Abelian group on 3 generators (a, b, c) with invariants [2, 3, 4]
-##             sage: G.is_subgroup(K)
-##             True
-##         """
-##         raise NotImplementedError
-##         for x in self.gens():
-##             if not x in other:
-##                 return False
-##         return True
-
-
-##     def __str__(self):
-##         """
-##         Print method.
-
-##         EXAMPLES:
-##             sage: F = AbelianGroup(5,[5,64,729],names = list("abcde")); print F
-##             AbelianGroup( 5, [0, 0, 5, 64, 729])
-## 	    sage: F = AbelianGroup(5,[1,1,5,64,729],names = list("abcde")); print F
-##             AbelianGroup( 3, [5, 64, 729])
-
-##         """
-##         s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())
-##         return s
 
     def exponent(self):
         """
@@ -773,12 +766,18 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G.list()
             [1, b, b^2, a, a*b, a*b^2]
         """
+        try:
+            return list(self.__list)
+        except AttributeError:
+            pass
         if not(self.is_finite()):
            raise NotImplementedError, "Group must be finite"
         invs = self.invariants()
         T = mrange(invs)
         n = self.order()
-        return [AbelianGroupElement(self, t) for t in T]
+        L = [AbelianGroupElement(self, t) for t in T]
+        self.__list = L
+        return list(L)
 
     def __iter__(self):
         """
@@ -967,6 +966,47 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         #print Hgensf, invs, invs0
         AbelianGroup_class.__init__(self, len(invs), invs, names)
 
+    def __contains__(self, x):
+        """
+        Return True if $x$ is an element of this subgroup.
+
+        EXAMPLES:
+            sage: G.<a,b> = AbelianGroup(2)
+            sage: A = G.subgroup([a])
+            sage: a in G
+            True
+            sage: a in A
+            True
+
+        """
+        if not isinstance(x, AbelianGroupElement):
+            return False
+        if x.parent() is self:
+            return True
+        elif x in self.ambient_group():
+            amb_inv = self.ambient_group().invariants()
+            for a in xrange(len(amb_inv)):
+                if amb_inv[a] == 0 and x.list()[a] != 0:
+                    for g in self.__gens:
+                        if g.list()[a] == 0:
+                            continue
+                        if abs(x.list()[a]%g.list()[a]) < abs(x.list()[a]):
+                            if g.list()[a]*x.list()[a] < 0:
+                                x *= g**(x.list()[a]/g.list()[a])
+                            else:
+                                x *= g**((-1)*(x.list()[a]/g.list()[a]))
+                        if x.list()[a] == 0:
+                            break
+                elif x.list()[a] != 0:
+                    for g in self.__gens:
+                        if g.list()[a] == 0:
+                            continue
+                        if abs(x.list()[a]%g.list()[a])%abs(amb_inv[a]) < x.list()[a]%abs(amb_inv[a]):
+                            x *= g**((-1)*(x.list()[a]/g.list()[a]))
+                        if x.list()[a] == 0:
+                            break
+            return x == 1
+
     def ambient_group(self):
         """
         Return the ambient group related to self.
@@ -974,55 +1014,38 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         """
         return self.__ambient_group
 
-    def __cmp__(self, right):
-        r"""
-        Compare self and other.  If self and other are in a common ambient group,
-        then self <= other precisely if self is contained in other.
-
-        EXAMPLES:
-	    sage: G = AbelianGroup(3, [2,3,4], names="abc"); G
+    def __eq__(self, right):
+        """
+            sage: G = AbelianGroup(3, [2,3,4], names="abc"); G
             Multiplicative Abelian Group isomorphic to C2 x C3 x C4
-	    sage: a,b,c = G.gens()
-	    sage: F=G.subgroup([a,b^2]); F
+            sage: a,b,c = G.gens()
+            sage: F=G.subgroup([a,b^2]); F
             Multiplicative Abelian Group isomorphic to C2 x C3, which is the subgroup of
             Multiplicative Abelian Group isomorphic to C2 x C3 x C4
             generated by [a, b^2]
-    	    sage: F<G
+            sage: F<G
             True
+
+            sage: A = AbelianGroup(1, [6])
+            sage: A.subgroup(list(A.gens())) == A
+            True
+
+            sage: G.<a,b> = AbelianGroup(2)
+            sage: A = G.subgroup([a])
+            sage: B = G.subgroup([b])
+            sage: A == B
+            False
+
         """
         if not is_AbelianGroup(right):
             return -1
-        return cmp(self.invariants(), right.invariants())
-        #other = right
-        #if self is other:
-        #    return 0
-        #if not isinstance(other, AbelianGroup_class):
-        #    return -1
-        #c = cmp(self.ambient_group(), other.ambient_group())
-        #if c: return c
-        #if self.is_subgroup(other):
-        #    return -1
-        #else:
-        #    return 1
-
-
-    #def __repr__(self):
-    #    s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())
-    #    return s
+        return self <= right and right <= self
 
     def _repr_(self):
         return '%s, which is the subgroup of\n%s\ngenerated by %s'%(
             AbelianGroup_class._repr_(self),
             self.ambient_group(),
             self.gens())
-
-    #def _latex_(self):
-    #    r"""
-    #    Return latex representation of this group.
-    #
-    #    """
-    #    s = "${\rm AbelianGroup}( %s, %s )$"%(len(self.invariants()), self.invariants())
-    #    return s
 
     def invs(self):
         """
@@ -1041,4 +1064,16 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         """
         return self.__gens
 
+    def gen(self, n):
+        """
+        Return the nth generator of this subgroup.
+
+        EXAMPLE:
+            sage: G.<a,b> = AbelianGroup(2)
+            sage: A = G.subgroup([a])
+            sage: A.gen(0)
+            a
+
+        """
+        return self.__gens[n]
 

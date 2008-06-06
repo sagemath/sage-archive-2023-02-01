@@ -465,6 +465,200 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         E, x, y = self.curve(), self[0], self[1]
         return E.point([x, -y - E.a1()*x - E.a3(), 1], check=False)
 
+    def is_divisible_by(self, m):
+        """
+        Return True if there exists a point Q defined over the same
+        field as self such that m*Q == self.
+
+        INPUT:
+            m -- a positive integer
+        OUTPUT:
+            bool
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: Q = 5*E.1; Q
+            (-2739/1444 : 22161/54872 : 1)
+            sage: Q.is_divisible_by(4)
+            False
+            sage: Q.is_divisible_by(5)
+            True
+        """
+        # For now we simply compute all the m division poins
+        # and see if there are any.  There are many potential
+        # tricks to speed this up that work usually but fall
+        # down like crazy in corner cases.  If you really need
+        # to check this condition much more quickly, maybe
+        # copy some code out of the division_points function
+        # and think hard about what you are doing.
+        return len(self.division_points(m)) > 0
+
+    def _short_division_polynomial(self, m):
+        r"""
+        Return the m-division polynomial of this point, which is a
+        polynomial in x that captures all the x-coordinates of points
+        Q such that m*Q = self ON THE SHORT WEIERSTRASS MODEL.  Except
+        in rare cases involving cancellation, these are exactly the
+        $x$-coordinates of the m-division points on the short model.
+
+        WARNING: It is highly recommended that you read the source code for
+        \code{self._division_points} before using the division polynomial.
+
+        INPUT:
+            m -- positive integer
+        OUTPUT:
+            a polynomial in a single variable x over the base field.
+
+        EXAMPLES:
+        This function is incredibly useful for, e.g., quickly deciding
+        for numerous primes p whether a point has any m-th roots
+        modulo p.
+            sage: E = EllipticCurve('389a')
+            sage: P = E.0
+            sage: f = P._short_division_polynomial(3)
+            sage: [p for p in primes(100) if len(f.change_ring(GF(p)).roots()) > 0]
+            [2, 3, 7, 11, 13, 23, 31, 37, 43, 47, 61, 67, 71, 89, 97]
+            sage: f = E.gen(1)._short_division_polynomial(3)
+            sage: [p for p in primes(100) if len(f.change_ring(GF(p)).roots()) > 0]
+            [2, 3, 7, 11, 13, 19, 23, 31, 37, 43, 47, 59, 61, 67, 71, 89, 97]
+        """
+        return self._division_points(m, poly_only=True)
+
+    def division_points(self, m, poly_only=False):
+        """
+        Return *all* points Q in the base field on the elliptic curve
+        that contains self such that m*Q == self.
+
+        INPUT:
+            m -- a positive integer
+            poly_only -- bool (default: False); if True return polynomial
+                         whose roots give all possible x-coordinates of
+                         m-th roots of self.
+        OUTPUT:
+            a (possibly empty) list
+
+        EXAMPLES:
+        We find the five 5-torsion points on an elliptic curve.
+            sage: E = EllipticCurve('11a'); E
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: P = E(0); P
+            (0 : 1 : 0)
+            sage: P.division_points(5)
+            [(0 : 1 : 0), (5 : -6 : 1), (5 : 5 : 1), (16 : -61 : 1), (16 : 60 : 1)]
+
+
+        Note above that 0 is included since [5]*0 = 0.
+
+        We create a curve of rank 1 with no torsion and do a consistency check:
+            sage: E = EllipticCurve('11a').quadratic_twist(-7)
+            sage: Q = E([44,-270])
+            sage: (4*Q).division_points(4)
+            [(44 : -270 : 1)]
+
+        We create a curve over a non-prime finite field with group of order $18$:
+            sage: k.<a> = GF(25)
+            sage: E = EllipticCurve(k, [1,2+a,3,4*a,2])
+            sage: P = E([3,3*a+4])
+            sage: factor(E.order())
+            2 * 3^2
+            sage: P.order()
+            9
+
+        We find the $1$-division points as a consistency check -- there
+        is just 1 of course:
+            sage: P.division_points(1)
+            [(3 : 3*a + 4 : 1)]
+
+        The point $P$ has order coprime to $2$ but divisible by $3$ so:
+            sage: P.division_points(2)
+            [(2*a + 1 : 3*a + 4 : 1), (3*a + 1 : a : 1)]
+
+        We check that each of the $2$ division points works as claimed:
+            sage: [2*Q for Q in P.division_points(2)]
+            [(3 : 3*a + 4 : 1), (3 : 3*a + 4 : 1)]
+
+        Some other checks:
+            sage: P.division_points(3)
+            []
+            sage: P.division_points(4)
+            [(0 : 3*a + 2 : 1), (1 : 0 : 1)]
+            sage: P.division_points(5)
+            [(1 : 1 : 1)]
+        """
+        return self._division_points(m, poly_only=False)
+
+    def _division_points(self, m, poly_only):
+        """
+        Used internally by both division_points and
+        division_polynomial.  Returns either all the m-division points
+        of a point or if poly_only=True, return the polynomial whose
+        roots 'determine' all the x-coordinates of m-division points.
+
+        """
+        # Coerce the input m to an integer
+        m = rings.Integer(m)
+        # Check for trivial case of m = 1.
+        if m == 1:
+            return [self]
+
+        # Get the curve and convert it to short Weierstrass form so
+        # that we can compute the multiplication by m map explicitly.
+        # Also compute explicit maps back and forth.
+        E = self.curve()
+        F = E.short_weierstrass_model()
+        F_to_E = F.isomorphism_to(E)
+        E_to_F = E.isomorphism_to(F)
+        f = F.multiplication_by_m(m, x_only=True)
+
+        # Map self (our point) over to the short Weierstrass model.
+        W = E_to_F(self)
+
+        # ans will contain the list of division points.
+        ans = []
+
+        # We compute a polynomial g whose roots give all
+        # possible x coordinates of the m-division points.
+        # This polynomial can have even more roots in some
+        # corner cases, but that's OK since we double check
+        # ach below.
+        if self == 0:
+            # If self is the 0, then m*self = self automatically.
+            ans.append(self)
+            # Also the correct poly to choose is just the denominator.
+            g = f.denominator()
+        else:
+            # The poly g below is 0 at x if f(x) = W[0].
+            g = f.numerator() - W[0]*f.denominator()
+        R = E.base_ring()['x']
+        h = R(g)
+        if poly_only:
+            return h
+        for x,_ in h.roots():
+            # We use *no* special tricks or shortcuts here.
+            # Every time I thought of one I discovered corner
+            # cases where it didn't work. So we have none here
+            # at all.
+            try:
+                # Make a point on the curve with this x coordinate.
+                Z = F.lift_x(x)
+                if m*Z == W:
+                    # if it works, take it.
+                    ans.append(F_to_E(Z))
+                # Now try the other possible point with the same x coordinate.
+                # Negation keeps the same x coordinate because F is in
+                # short weierstrass form.
+                nZ = -Z
+                if m*nZ == W:
+                    ans.append(F_to_E(nZ))
+            except ValueError:
+                # This can happen in some exceptional case.
+                pass
+        # Finally remove possible duplicates and sort.  (It's possible I guess
+        # that there would be duplicates in some weird corner case.)
+        ans = list(set(ans))
+        ans.sort()
+        return ans
+
     def height(self):
         """
         The Neron-Tate canonical height of the point.

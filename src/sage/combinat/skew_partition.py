@@ -652,6 +652,8 @@ class SkewPartitions_all(CombinatorialClass):
             False
             sage: [[7, 4, 3, 2], [5, 2, 1]] in SkewPartitions()
             True
+            sage: [[4,2,1],[1,1,1,1]] in SkewPartitions()
+            False
         """
         if isinstance(x, SkewPartition_class):
             return True
@@ -668,7 +670,7 @@ class SkewPartitions_all(CombinatorialClass):
         if x[1] not in p:
             return False
 
-        if not sage.combinat.partition.Partition(x[0]).dominates(x[1]):
+        if not sage.combinat.partition.Partition(x[0]).contains(x[1]):
             return False
 
         return True

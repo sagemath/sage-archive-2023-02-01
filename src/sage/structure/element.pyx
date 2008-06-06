@@ -393,7 +393,7 @@ cdef class Element(sage_object.SageObject):
             new object if substitution is possible, otherwise self.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: x, y = PolynomialRing(ZZ,2,'xy').gens()
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
             25*y^2 + y + 30
@@ -453,7 +453,7 @@ cdef class Element(sage_object.SageObject):
             new object if substitution is possible, otherwise self.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: x, y = PolynomialRing(ZZ,2,'xy').gens()
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
             25*y^2 + y + 30
@@ -1934,6 +1934,31 @@ cdef class Vector(ModuleElement):
                     raise ArithmeticError, "vector is not in free module"
         raise TypeError, arith_error_message(self, right, div)
 
+    def _magma_init_(self):
+        """
+        EXAMPLES:
+            sage: v = vector([1,2,3])
+            sage: mv = magma(v); mv                     # optional
+            (1 2 3)
+            sage: mv.Type()                             # optional
+            ModTupRngElt
+            sage: mv.Parent()                           # optional
+            Full RSpace of degree 3 over Integer Ring
+
+            sage: v = vector(QQ, [1/2, 3/4, 5/6])
+            sage: mv = magma(v); mv                     # optional
+            (1/2 3/4 5/6)
+            sage: mv.Type()                             # optional
+            ModTupFldElt
+            sage: mv.Parent()                           # optional
+            Full Vector space of degree 3 over Rational Field
+        """
+        s = self._parent._magma_init_()
+        v = []
+        for x in self.list():
+            v.append(x._magma_init_())
+        return s + '![%s]'%(','.join(v))
+
 
 
 def is_Vector(x):
@@ -2324,6 +2349,28 @@ cdef class FieldElement(CommutativeRingElement):
         if not isinstance(right, FieldElement) or not (right._parent is self._parent):
             right = self.parent()(right)
         return self/right, 0
+
+    def divides(self, FieldElement other):
+        r"""
+        Check whether self divides other, for field elements.
+
+        Since this is a field, all values divide all other values,
+        except that zero does not divide any non-zero values.
+
+        EXAMPLES:
+            sage: K.<rt3> = QQ[sqrt(3)]
+            sage: K(0).divides(rt3)
+            False
+            sage: rt3.divides(K(17))
+            True
+            sage: K(0).divides(K(0))
+            True
+            sage: rt3.divides(K(0))
+            True
+        """
+        if not (other._parent is self._parent):
+            other = self.parent()(other)
+        return bool(self) or other.is_zero()
 
 ## def is_FiniteFieldElement(x):
 ##     """

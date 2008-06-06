@@ -352,13 +352,18 @@ class DualAbelianGroup_class(group.AbelianGroup):
             [1, B, B^2, A, A*B, A*B^2]
 
         """
+        try:
+            return list(self.__list)
+        except AttributeError:
+            pass
         if not(self.is_finite()):
            raise NotImplementedError, "Group must be finite"
         invs = self.invariants()
         T = mrange(invs)
         n = self.order()
-        return [DualAbelianGroupElement(self, t)
-                            for t in T]
+        L = [DualAbelianGroupElement(self, t) for t in T]
+        self.__list = L
+        return list(self.__list)
 
     def __iter__(self):
         """

@@ -1233,6 +1233,13 @@ def xgcd(a, b):
         sage: x = polygen(QQ)
         sage: xgcd(x^3 - 1, x^2 - 1)
         (x - 1, 1, -x)
+        sage: K.<g> = NumberField(x^2-3)
+        sage: R.<a,b> = K[]
+        sage: S.<y> = R.fraction_field()[]
+        sage: xgcd(y^2, a*y+b)
+        (b^2/a^2, 1, ((-1)/a)*y + b/a^2)
+        sage: xgcd((b+g)*y^2, (a+g)*y+b)
+        ((b^3 + g*b^2)/(a^2 + 2*g*a + 3), 1, ((-b - g)/(a + g))*y + (b^2 + g*b)/(a^2 + 2*g*a + 3))
     """
     try:
         return a.xgcd(b)
@@ -2588,7 +2595,7 @@ def continuant(v, n=None):
         517656/190435
         sage: convergent([2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10],14)
         517656/190435
-        sage: x = MPolynomialRing(RationalField(),'x',5).gens()
+        sage: x = PolynomialRing(RationalField(),'x',5).gens()
         sage: continuant(x)
         x0*x1*x2*x3*x4 + x0*x1*x2 + x0*x1*x4 + x0*x3*x4 + x2*x3*x4 + x0 + x2 + x4
         sage: continuant(x, 3)

@@ -42,14 +42,10 @@ cdef extern from "dancing_links_c.h":
         vector_int solution
         void add_rows(vector_vector_int rows)
         int search()
+        void freemem()
 
-    # Some non-allocating versions
     dancing_links* dancing_links_construct "Construct<dancing_links>"(void *mem)
     void dancing_links_destruct "Destruct<dancing_links>"(dancing_links *mem)
-
-    # some allocating versions for completeness
-    dancing_links* dancing_links_new "New<dancing_links>"()
-    void dancing_links_delete "Delete<dancing_links>"(dancing_links *mem)
 
 from sage.rings.integer cimport Integer
 
@@ -71,20 +67,17 @@ cdef class dancing_linksWrapper:
             sage: loads(x.__reduce__()[1][0])
             [[0, 1, 2], [1, 2]]
         """
-
-        self.rows = PyList_New(len(rows))
-        dancing_links_construct(&self.x)
-        self.add_rows(rows)
+        pass
 
     # Note that the parameters to __new__ must be identical to __init__
     # This is due to some Cython vagary
     def __new__(self, rows):
-        #dancing_links_construct(&self.x)
         self.rows = PyList_New(len(rows))
         dancing_links_construct(&self.x)
         self.add_rows(rows)
 
     def __dealloc__(self):
+        self.x.freemem()
         dancing_links_destruct(&self.x)
 
     def __str__(self):

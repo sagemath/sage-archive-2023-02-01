@@ -172,7 +172,7 @@ def test_notebook(admin_passwd, secure=False, directory=None, port=8050, address
         True
         sage: nb.dispose()
         """
-    import socket
+    import socket, pexpect
 
     if directory is None:
         directory = tmp_dir = tempfile.mkdtemp()
@@ -191,9 +191,10 @@ def test_notebook(admin_passwd, secure=False, directory=None, port=8050, address
     p = notebook(directory=directory, accounts=True, secure=secure, port=port, address=address, open_viewer=False, fork=True, quiet=True)
     p.expect("Starting factory")
     def dispose():
-        p.send('\x03') # control-C
-        p.expect("Press control-C again to exit")
-        p.send('\x03')
+        try:
+            p.send('\x03') # control-C
+        except pexpect.EOF:
+            pass
         p.close(force=True)
         shutil.rmtree(nb.directory())
     p.dispose = dispose

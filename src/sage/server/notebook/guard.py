@@ -307,7 +307,7 @@ def get_our_cookie(request):
     if cookies is None:
         return None
     for C in cookies:
-        if C.name == twist.SID_COOKIE:
+        if C.name == 'nb_session':
             return C.value
     return None  # not found
 

@@ -104,6 +104,8 @@ from sage.combinat.combinat import CombinatorialClass
 from sage.graphs.graph import DiGraph
 from sage.combinat import ranker
 from sage.combinat.tools import transitive_ideal
+from sage.combinat.root_system.weyl_characters import WeylCharacterRing, WeylCharacter
+from sage.combinat.backtrack import GenericBacktracker
 
 ## MuPAD-Combinat's Cat::Crystal
 # FIXME: crystals, like most parent should have unique data representation
@@ -228,6 +230,37 @@ class Crystal(CombinatorialClass, Parent):
                     continue
                 d[x][child]=i
         return DiGraph(d)
+
+    def character(self, R):
+        """
+        INPUT: R, a WeylCharacterRing. Produces the character of the crystal.
+        EXAMPLES:
+           sage: C = CrystalOfLetters(['A',2])
+           sage: T = TensorProductOfCrystals(C, C, generators = "all")
+           sage: A2 = WeylCharacterRing(C.cartan_type); A2
+           The Weyl Character Ring of Type [A,2] with Integer Ring coefficients
+           sage: chi = T.character(A2); chi
+           A2(1,1,0) + A2(2,0,0)
+           sage: chi.check(verbose = true)
+           [9, 9]
+        """
+        if not R.cartan_type == self.cartan_type:
+            raise ValueError, "ring does not have the right Cartan type"
+        hlist = {}
+        mlist = {}
+        for x in self.module_generators:
+            k = tuple(x.weight())
+            if k in hlist:
+                hlist[k] += 1
+            else:
+                hlist[k] = 1
+        for x in self.list():
+            k = tuple(x.weight())
+            if k in mlist:
+                mlist[k] += 1
+            else:
+                mlist[k] = 1
+        return WeylCharacter(R, hlist, mlist)
 
     def latex_file(self, filename):
         r"""
@@ -639,15 +672,9 @@ class CrystalElement(Element):
 	"""
 	return all(self.e(i) == None for i in self.index_set())
 
-class ClassicalCrystal(Crystal):
-    r"""
-    The abstract class of classical crystals
-    """
-    list  = CombinatorialClass.list#__list_from_iterator
-    def __iter__(self):
-        r"""
-        Returns an iterator over the elements of the crystal.
-
+class CrystalBacktracker(GenericBacktracker):
+    def __init__(self, crystal):
+        """
         Time complexity: $O(nf)$ amortized for each produced element,
         where $n$ is the size of the index set, and f is the cost of
         computing $e$ and $f$ operators.
@@ -676,16 +703,70 @@ class ClassicalCrystal(Crystal):
         ignoring those such that $y = f_j(x')$ for some $x'$ and $j<i$
         (this can be tested by computing $e_j(y)$ for $j<i$).
 
-        It probably would be more efficient (and about as readable) to
-        unroll the recursion by managing the stack by hand. This would
-        avoid yieding down through the whole call stack for each
-        element of the crystal.
+        EXAMPLES:
+             sage: from sage.combinat.crystals.crystals import CrystalBacktracker
+             sage: C = CrystalOfTableaux(['B',3],shape=[3,2,1])
+             sage: CB = CrystalBacktracker(C)
+             sage: len(list(CB))
+             1617
+        """
+        GenericBacktracker.__init__(self, None, None)
+        self._crystal = crystal
+
+    def _rec(self, x, state):
+        """
+        Returns an iterator for the (immediate) children of x in the search
+        tree.
+
+        EXAMPLES:
+            sage: from sage.combinat.crystals.crystals import CrystalBacktracker
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: CB = CrystalBacktracker(C)
+            sage: list(CB._rec(C(1), 'n/a'))
+            [(2, 'n/a', True)]
+
+        """
+        #We will signal the inital case by having a object and state
+        #of None and consider it separately.
+        if x is None and state is None:
+            for gen in self._crystal.highest_weight_vectors():
+                yield gen, "n/a", True
+            return
+
+        # Run through the children y of x
+        for i in self._crystal.index_set:
+            y = x.f(i)
+            if y is None:
+                continue
+            # Ignore those which can be reached by an arrow with smaller label
+            hasParent = False
+            for j in x.index_set():
+                if j == i:
+                    break
+                if not y.e(j) is None:
+                    hasParent = True
+                    break
+            if hasParent:
+                continue
+
+            # yield y and all elements further below
+            yield y, "n/a", True
+
+
+
+class ClassicalCrystal(Crystal):
+    r"""
+    The abstract class of classical crystals
+    """
+    list  = CombinatorialClass.list#__list_from_iterator
+    def __iter__(self):
+        r"""
+        Returns an iterator over the elements of the crystal.
 
         EXAMPLES:
             sage: C = CrystalOfLetters(['A',5])
             sage: [x for x in C]
             [1, 2, 3, 4, 5, 6]
-
 
         TESTS:
             sage: C = CrystalOfLetters(['D',4])
@@ -730,39 +811,7 @@ class ClassicalCrystal(Crystal):
 
 
         """
-        for generator in self.highest_weight_vectors():
-            yield generator
-            for x in self._rec(generator):
-                yield x
-
-    def _rec(self, x):
-        """
-        Returns an generator for the children of x.
-
-        EXAMPLES:
-            sage: C = CrystalOfLetters(['A', 5])
-            sage: list(C._rec(C(1)))
-            [2, 3, 4, 5, 6]
-        """
-        for i in self.index_set: # Run through the children y of x
-            y = x.f(i)
-            if y is None:
-                continue
-            # Ignore those which can be reached by an arrow with smaller label
-            hasParent = False
-            for j in x.index_set():
-                if j == i:
-                    break
-                if not y.e(j) == None:
-                    hasParent = True
-                    break
-            if hasParent:
-                continue
-
-            # yield y and all elements further below
-            yield y
-            for z in self._rec(y):
-                yield z
+        return CrystalBacktracker(self).iterator()
 
     iterator = __iter__
 

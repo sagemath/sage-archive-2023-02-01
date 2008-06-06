@@ -44,8 +44,8 @@ def canonical_parameters(group, level, weight, base_ring):
     """
     Given a group, level, weight, and base_ring as input by
     the user, return a canonicalized version of them, where
-    level is a SAGE integer, group really is a group, weight
-    is a SAGE integer, and base_ring a SAGE ring. Note that
+    level is a Sage integer, group really is a group, weight
+    is a Sage integer, and base_ring a Sage ring. Note that
     we can't just get the level from the group, because we
     have the convention that the character for Gamma1(N) is
     None (which makes good sense).
@@ -94,7 +94,7 @@ def canonical_parameters(group, level, weight, base_ring):
         level = rings.Integer(level)
 
 
-    elif isinstance(group, congroup.SL2Z) or \
+    elif congroup.is_SL2Z(group) or \
        isinstance(group, congroup.Gamma1) and group.level() == rings.Integer(1):
         if ( rings.Integer(level) != rings.Integer(1) ):
             raise ValueError, "group.level() and level do not match."

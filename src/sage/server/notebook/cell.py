@@ -46,11 +46,54 @@ class Cell_generic:
     def is_interactive_cell(self):
         return False
 
+    def delete_output(self):
+        """
+        Delete all output in this cell.  This is not executed -- it is
+        an abstract function that must be overwritten in a derived
+        class.
+
+        EXAMPLES:
+        This function just raises a NotImplementedError, since it most be defined
+        in derived class.
+            sage: C = sage.server.notebook.cell.Cell_generic()
+            sage: C.delete_output()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
 class TextCell(Cell_generic):
     def __init__(self, id, text, worksheet):
         self.__id = int(id)
         self.__text = text
         self.__worksheet = worksheet
+
+    def __repr__(self):
+        """
+        String representation of this text cell.
+
+        EXAMPLES:
+            sage: C = sage.server.notebook.cell.TextCell(0, '2+3', None)
+            sage: C.__repr__()
+            'TextCell 0: 2+3'
+        """
+        return "TextCell %s: %s"%(self.__id, self.__text)
+
+    def delete_output(self):
+        """
+        Delete all output in this cell.  This does nothing since text
+        cells have no output.
+
+        EXAMPLES:
+            sage: C = sage.server.notebook.cell.TextCell(0, '2+3', None)
+            sage: C
+            TextCell 0: 2+3
+            sage: C.delete_output()
+            sage: C
+            TextCell 0: 2+3
+        """
+        pass # nothing to do -- text cells have no output
 
     def set_input_text(self, input_text):
         self.__text = input_text
@@ -119,6 +162,78 @@ class Cell(Cell_generic):
         except AttributeError:
             self.__asap = False
             return self.__asap
+
+    def delete_output(self):
+        """
+        Delete all output in this cell.
+
+        EXAMPLES:
+            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None); C
+            Cell 0; in=2+3, out=5
+            sage: C.delete_output()
+            sage: C
+            Cell 0; in=2+3, out=
+        """
+        self.__out = ''
+        self.__out_html = ''
+        self.__evaluated = False
+
+    def evaluated(self):
+        """
+        Return True if this cell has been successfully evaluated
+        in a currently running session.
+
+        This is not about whether the output of the cell is valid
+        given the input.
+
+        OUTPUT:
+            bool -- whether or not this cell has been evaluated in this session
+
+        EXAMPLES:
+        We create a worksheet with a cell that has wrong output:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W.edit_save('Sage\n{{{\n2+3\n///\n20\n}}}')
+            sage: C = W.cell_list()[0]
+            sage: C
+            Cell 0; in=2+3, out=20
+
+        We re-evaluate that input cell:
+            sage: C.evaluate()
+            sage: W.check_comp()
+            ('d', Cell 0; in=2+3, out=
+            5
+            )
+
+        Now the output is right:
+            sage: C
+            Cell 0; in=2+3, out=
+            5
+
+        And the cell is considered to have been evaluated.
+            sage: C.evaluated()
+            True
+        """
+        # Cells are never considered evaluated in a new session.
+        if not self.worksheet().compute_process_has_been_started():
+            self.__evaluated = False
+            return False
+
+        # Figure out if the worksheet is using the same sage
+        # session as this cell.  (I'm not sure when this would
+        # be False.)
+        same_session = self.worksheet().sage() is self.sage()
+        try:
+            # Always not evaluated if sessions are different.
+            if not same_session:
+                self.__evaluated = False
+                return False
+            return self.__evaluated
+        except AttributeError:
+            # Default assumption is that cell has not been evaluated.
+            self.__evaluated = False
+            return False
 
     def set_no_output(self, no_output):
         self.__no_output = bool(no_output)
@@ -296,7 +411,14 @@ class Cell(Cell_generic):
             return L[0].id()
 
     def interrupt(self):
+        """
+        Record that the calculation running in this cell was
+        interrupted.
+
+        EXAMPLES:
+        """
         self.__interrupted = True
+        self.__evaluated = False
 
     def interrupted(self):
         return self.__interrupted
@@ -333,6 +455,9 @@ class Cell(Cell_generic):
             except AttributeError:
                 pass
 
+        # We have updated the input text so the cell can't have
+        # been evaluated.
+        self.__evaluated = False
         self.__version = 1+self.version()
         self.__in = input
         if hasattr(self, '_html_cache'):
@@ -371,7 +496,11 @@ class Cell(Cell_generic):
             del self._html_cache
 
         output = output.replace('\r','')
-        if len(output) > MAX_OUTPUT or output.count('\n') > MAX_OUTPUT_LINES:
+        # We do not truncate if "notruncate" or "Output truncated!" already
+        # appears in the output.  This notruncate tag is used right now
+        # in sage.server.support.help.
+        if 'notruncate' not in output and 'Output truncated!' not in output and \
+               (len(output) > MAX_OUTPUT or output.count('\n') > MAX_OUTPUT_LINES):
             url = ""
             if not self.computing():
                 file = "%s/full_output.txt"%self.directory()
@@ -533,8 +662,27 @@ class Cell(Cell_generic):
             username -- name of user doing the evaluation
             time -- if True return time computation takes
             introspect -- either False or a pair [before_cursor, after_cursor] of strings.
+
+        EXAMPLES:
+        We create a notebook, worksheet, and cell and evaluate it in
+        order to compute $3^5$:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W.edit_save('Sage\n{{{\n3^5\n}}}')
+            sage: C = W.cell_list()[0]; C
+            Cell 0; in=3^5, out=
+            sage: C.evaluate(username='sage')
+            sage: W.check_comp()
+            ('d', Cell 0; in=3^5, out=
+            243
+            )
+            sage: C
+            Cell 0; in=3^5, out=
+            243
         """
         self.__interrupted = False
+        self.__evaluated = True
         self.__time = time
         self.__introspect = introspect
         self.__worksheet.enqueue(self, username=username)
@@ -574,7 +722,7 @@ class Cell(Cell_generic):
         self.evaluate()
         if wrap is None:
             wrap = self.notebook().conf()['word_wrap_cols']
-        evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
+        evaluated = self.evaluated()
         if evaluated:
             cls = 'cell_evaluated'
         else:
@@ -597,10 +745,7 @@ class Cell(Cell_generic):
 
         if wrap is None:
             wrap = self.notebook().conf()['word_wrap_cols']
-        if self.worksheet().compute_process_has_been_started():
-            evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
-        else:
-            evaluated = False
+        evaluated = self.evaluated()
         if evaluated or do_print:
             cls = 'cell_evaluated'
         else:
@@ -806,8 +951,27 @@ class Cell(Cell_generic):
 ########
 
 def format_exception(s0, ncols):
+    """
+    Make it so excpetions don't appear expanded by default.
+
+    INPUT:
+        s0 -- string
+        ncols -- integer
+    OUTPUT:
+        string
+
+    If s0 contains "notracebacks" then this function always returns s0
+
+    EXAMPLES:
+        sage: sage.server.notebook.cell.format_exception(sage.server.notebook.cell.TRACEBACK,80)
+        '\nTraceback (click to the left for traceback)\n...\nTraceback (most recent call last):'
+        sage: sage.server.notebook.cell.format_exception(sage.server.notebook.cell.TRACEBACK + "notracebacks",80)
+        'Traceback (most recent call last):notracebacks'
+    """
     s = s0.lstrip()
-    if TRACEBACK not in s:
+    # Add a notracebacks option -- if it is in the string then tracebacks aren't shrunk.
+    # This is currently used by the sage.server.support.help command.
+    if TRACEBACK not in s or 'notracebacks' in s:
         return s0
     if ncols > 0:
         s = s.strip()

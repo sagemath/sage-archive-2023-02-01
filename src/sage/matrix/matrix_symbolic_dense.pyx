@@ -271,13 +271,28 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [202 228 254 280]
             [314 356 398 440]
             [426 484 542 600]
+
+            sage: m = matrix(SR, 3, [1, 2, 3]); m
+            [1]
+            [2]
+            [3]
+            sage: m.transpose() * m
+            [14]
         """
         if left._ncols != right._nrows:
             raise IndexError, "Number of columns of left must equal number of rows of other."
         cdef Matrix_symbolic_dense M = Matrix_symbolic_dense.__new__(Matrix_symbolic_dense, 0, 0, 0)
         P = left.matrix_space(left._nrows, right._ncols)
         matrix.Matrix.__init__(M, P)
-        M._maxima = left._maxima.dot(right._maxima)
+
+        res = left._maxima.dot(right._maxima)
+
+        #Since maxima doesn't return a 1x1 matrix when multiplying
+        #a 1xn and a nx1 matrix, we need to wrap it in a matrix.
+        if left._nrows == 1 and right._ncols == 1:
+            res = res.parent().matrix([res])
+
+        M._maxima = res
         return M
 
     def _list(self):

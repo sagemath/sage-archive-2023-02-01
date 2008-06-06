@@ -49,6 +49,8 @@ from sage.libs.pari.gen import gen
 
 from sage.interfaces.gap import is_GapElement
 
+from sage.misc.randstate import current_randstate
+
 from finite_field_ext_pari import FiniteField_ext_pari
 from finite_field_element import FiniteField_ext_pariElement
 
@@ -144,7 +146,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             modulus -- you may provide a minimal polynomial to use for
                      reduction or 'random' to force a random
                      irreducible polynomial. (default: None, a conway
-                     polynomial is used if found. Otherwise a random
+                     polynomial is used if found. Otherwise a random sparse
                      polynomial is used)
             repr  -- controls the way elements are printed to the user:
                      (default: 'poly')
@@ -157,6 +159,12 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             sage: k.<a> = GF(2^16)
             sage: type(k)
             <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e'>
+            sage: k.<a> = GF(2^1024)
+            sage: k.modulus()
+            x^1024 + x^19 + x^6 + x + 1
+            sage: k.<a> = GF(2^17, modulus='random')
+            sage: k.modulus()
+            x^17 + x^16 + x^15 + x^10 + x^8 + x^6 + x^4 + x^3 + x^2 + x + 1
         """
         self._zero_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._zero_element).x,0)
@@ -165,31 +173,9 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._one_element).x,1)
 
     def __new__(FiniteField_ntl_gf2e self, q, names="a",  modulus=None, repr="poly"):
-        """
-        Fnite Field for characteristic 2 and order >= 2.
-
-        INPUT:
-            q     -- 2^n (must be 2 power)
-            names  -- variable used for poly_repr (default: 'a')
-            modulus -- you may provide a minimal polynomial to use for
-                     reduction or 'random' to force a random
-                     irreducible polynomial. (default: None, a conway
-                     polynomial is used if found. Otherwise a random
-                     polynomial is used)
-            repr  -- controls the way elements are printed to the user:
-                     (default: 'poly')
-                     'poly': polynomial representation
-
-        OUTPUT:
-            Finite field with characteristic 2 and cardinality 2^n.
-
-        EXAMPLE:
-            sage: k.<a> = GF(2^16)
-            sage: type(k)
-            <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e'>
-        """
         cdef GF2X_c ntl_m
         cdef GF2_c c
+        cdef GF2X_c ntl_tmp
 
         GF2X_construct(&ntl_m)
 
@@ -211,30 +197,34 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
 
         ParentWithGens.__init__(self, GF(p), names, normalize=True)
 
+        self._kwargs = {'repr':repr}
         self._is_conway = False
-        if modulus is None or modulus=="random":
-            if ConwayPolynomials().has_polynomial(p, k) and modulus!="random":
+
+        if modulus is None or modulus == "random":
+            if modulus == "random":
+                current_randstate().set_seed_ntl(False)
+                GF2X_BuildSparseIrred(ntl_tmp, k)
+                GF2X_BuildRandomIrred(ntl_m, ntl_tmp)
+            elif ConwayPolynomials().has_polynomial(p, k):
                 modulus = conway_polynomial(p, k)
+                modulus = modulus.list()
                 self._is_conway = True
+                for i from 0 <= i < len(modulus):
+                    GF2_conv_long(c, int(modulus[i]))
+                    GF2X_SetCoeff(ntl_m, i, c)
             else:
-                R = PolynomialRing(GF(2), 'x')
-                while True:
-                    modulus = R.random_element(k)
-                    modulus = modulus.monic()
-                    if modulus.degree() == k and modulus.is_irreducible():
-                        break
-
-        if is_Polynomial(modulus):
-            modulus = modulus.list()
-
-        if PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
-            for i from 0 <= i < len(modulus):
-                GF2_conv_long(c, int(modulus[i]))
-                GF2X_SetCoeff(ntl_m, i, c)
+                GF2X_BuildSparseIrred(ntl_m, k)
             GF2EContext_construct_GF2X(&self.F, &ntl_m)
-            self._kwargs = {'repr':repr}
         else:
-            raise TypeError, "Modulus parameter not understood"
+            if is_Polynomial(modulus):
+                modulus = modulus.list()
+            if PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
+                for i from 0 <= i < len(modulus):
+                    GF2_conv_long(c, int(modulus[i]))
+                    GF2X_SetCoeff(ntl_m, i, c)
+                GF2EContext_construct_GF2X(&self.F, &ntl_m)
+            else:
+                raise TypeError, "Modulus parameter not understood"
 
     def __dealloc__(FiniteField_ntl_gf2e self):
         self.F.restore()

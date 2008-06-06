@@ -6,7 +6,7 @@ AUTHORS:
      -- Robert Bradshaw: Re-factor to avoid multiple inheritance vs. Cython (2007-09)
 
 TESTS:
-    sage: R = MPolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
+    sage: R = PolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
     sage: R == loads(dumps(R))
     True
     sage: P.<a,b> = PolynomialRing(GF(7), 2)
@@ -72,7 +72,7 @@ class PolynomialRing_singular_repr:
             singular ring matching this ring
 
         EXAMPLES:
-            sage: r = MPolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
+            sage: r = PolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
             sage: r._singular_()
             //   characteristic : 2
             //   1 parameter    : a
@@ -81,14 +81,14 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering rp
             //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
             //        block   2 : ordering C
-            sage: r = MPolynomialRing(GF(127),2,'x', order='invlex')
+            sage: r = PolynomialRing(GF(127),2,'x', order='invlex')
             sage: r._singular_()
             //   characteristic : 127
             //   number of vars : 2
             //        block   1 : ordering rp
             //                  : names    x0 x1
             //        block   2 : ordering C
-            sage: r = MPolynomialRing(QQ,2,'x', order='invlex')
+            sage: r = PolynomialRing(QQ,2,'x', order='invlex')
             sage: r._singular_()
             //   characteristic : 0
             //   number of vars : 2
@@ -249,12 +249,25 @@ class PolynomialRing_singular_repr:
 def can_convert_to_singular(R):
     """
     Returns True if this ring's base field or ring can be
-    represented in Singular.  If this is True then this polynomial
+    represented in Singular, and the polynomial ring has at
+    least one generator.  If this is True then this polynomial
     ring can be represented in Singular.
 
     The following base rings are supported: $GF(p)$, $GF(p^n)$,
     rationals, number fields, and real and complex fields.
+
+    EXAMPLES:
+        sage: from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
+        sage: can_convert_to_singular(PolynomialRing(QQ, names=['x']))
+        True
+
+        sage: can_convert_to_singular(PolynomialRing(QQ, names=[]))
+        False
+
     """
+    if R.ngens() == 0:
+        return False;
+
     base_ring = R.base_ring()
     return ( sage.rings.ring.is_FiniteField(base_ring)
              or is_RationalField(base_ring)
@@ -371,14 +384,14 @@ def lcm_func(self, right, have_ring=False):
     ALGORITHM: Singular
 
     EXAMPLES:
-        sage: r.<x,y> = MPolynomialRing(GF(2**8,'a'),2)
+        sage: r.<x,y> = PolynomialRing(GF(2**8,'a'),2)
         sage: a = r.base_ring().0
         sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
         sage: f.lcm(x^4)
         (a^2 + a)*x^6*y + (a^4 + a^3 + a)*x^4*y + (a^5)*x^4
 
         sage: w = var('w')
-        sage: r.<x,y> = MPolynomialRing(NumberField(w^4+1,'a'),2)
+        sage: r.<x,y> = PolynomialRing(NumberField(w^4+1,'a'),2)
         sage: a = r.base_ring().0
         sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
         sage: f.lcm(x^4)

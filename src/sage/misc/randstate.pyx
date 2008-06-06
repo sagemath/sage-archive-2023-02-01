@@ -354,6 +354,20 @@ Fetch the current \class{randstate} with \code{current_randstate()} in
 every function that wants to use it; don't cache it globally or
 in a class.  (Such caching would break \method{set_random_seed}).
 
+\item[NTL] If you are calling code in the NTL library that uses
+random numbers, call \method{set_seed_ntl} at the beginning of your
+function, like this:
+\begin{verbatim}
+from sage.misc.randstate import current_randstate
+...
+
+    current_randstate().set_seed_ntl(False)
+\end{verbatim}
+
+Fetch the current \class{randstate} with \code{current_randstate()} in
+every function that wants to use it; don't cache it globally or
+in a class.  (Such caching would break \method{set_random_seed}).
+
 \item[libc] If you are writing code that calls the libc function
 \code{random()}: don't!  The \code{random()} function does not give
 reproducible results across different operating systems, so we can't
@@ -374,7 +388,7 @@ call \method{set_seed_libc} at the beginning of your function, like this:
 from sage.misc.randstate import current_randstate
 ...
 
-    current_randstate().set_seed_libc()
+    current_randstate().set_seed_libc(False)
 \end{verbatim}
 
 Fetch the current \class{randstate} with \code{current_randstate()} in

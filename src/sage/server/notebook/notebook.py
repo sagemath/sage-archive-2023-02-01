@@ -35,6 +35,10 @@ import user         # users
 
 SYSTEMS = ['sage', 'gap', 'gp', 'jsmath', 'html', 'latex', 'maxima', 'python', 'r', 'sage', 'sh', 'singular', 'axiom (optional)', 'kash (optional)', 'macaulay2 (optional)', 'magma (optional)', 'maple (optional)', 'mathematica (optional)', 'matlab (optional)', 'mupad (optional)', 'octave (optional)']
 
+# We also record the system names without (optional) since they are
+# used in some of the html menus, etc.
+SYSTEM_NAMES = [v.split()[0] for v in SYSTEMS]
+
 JSMATH = True
 
 JQUERY = True
@@ -62,6 +66,7 @@ class Notebook(SageObject):
         if isinstance(dir, basestring) and len(dir) > 0 and dir[-1] == "/":
             dir = dir[:-1]
         self.__dir = dir
+        self.__absdir = os.path.abspath(dir)
 
         self.__server_pool = server_pool
         self.set_system(system)
@@ -80,6 +85,12 @@ class Notebook(SageObject):
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
 
+        # Install this copy of the notebook in twist.py as *the*
+        # global notebook object used for computations.  This is
+        # mainly to avoid circular references, etc.  This also means
+        # only one notebook can actually be used at any point.
+        import sage.server.notebook.twist
+        sage.server.notebook.twist.notebook = self
 
     def _migrate_worksheets(self):
         v = []
@@ -112,6 +123,37 @@ class Notebook(SageObject):
             print "the objects and worksheets directories in your Sage notebook, as"
             print "they are no longer used.  Do this now or never."
 
+    def delete(self):
+        """
+        Delete all files related to this notebook.
+
+        This is used for doctesting mainly.  This command
+        is obviously *VERY* dangerous to use on a notebook
+        you actually care about.  You could easily lose
+        all data.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: sorted(os.listdir('notebook-test'))
+            ['backups', 'nb.sobj', 'objects', 'worksheets']
+            sage: nb.delete()
+
+        Now the directory is gone.
+            sage: os.listdir('notebook-test')
+            Traceback (most recent call last):
+            ...
+            OSError: [Errno 2] No such file or directory: 'notebook-test'
+        """
+        try:
+            dir = self.__absdir
+        except AttributeErrro:
+            dir = self.__dir
+        import shutil
+        # We ignore_errors because in rare parallel doctesting
+        # situations sometimes the directory gets cleaned up too
+        # quickly, etc.
+        shutil.rmtree(dir, ignore_errors=True)
+
     ##########################################################
     # Users
     ##########################################################
@@ -123,7 +165,7 @@ class Notebook(SageObject):
             passwd -- a string
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.create_default_users('password')
             Creating default users.
             sage: list(sorted(n.users().iteritems()))
@@ -138,7 +180,7 @@ class Notebook(SageObject):
             WARNING: User 'admin' already exists -- and is now being replaced.
             sage: list(sorted(n.passwords().iteritems()))
             [('_sage_', 'aaQSqAReePlq6'), ('admin', 'aajH86zjeUSDY'), ('guest', 'aaQSqAReePlq6'), ('pub', 'aaQSqAReePlq6')]
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         print "Creating default users."
         self.add_user('pub', '', '', account_type='user', force=True)
@@ -151,7 +193,7 @@ class Notebook(SageObject):
         Return whether or not a user exists given a username.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.create_default_users('password')
             Creating default users.
             sage: n.user_exists('admin')
@@ -162,7 +204,7 @@ class Notebook(SageObject):
             False
             sage: n.user_exists('guest')
             True
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         return username in self.users()
 
@@ -171,12 +213,12 @@ class Notebook(SageObject):
         Returns dictionary of users in a notebook.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.create_default_users('password')
             Creating default users.
             sage: list(sorted(n.users().iteritems()))
             [('_sage_', _sage_), ('admin', admin), ('guest', guest), ('pub', pub)]
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         try:
             return self.__users
@@ -190,7 +232,7 @@ class Notebook(SageObject):
         a notebook.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.create_default_users('password')
             Creating default users.
             sage: n.user('admin')
@@ -199,7 +241,7 @@ class Notebook(SageObject):
             ''
             sage: n.user('admin')._User__password
             'aajfMKNH1hTm2'
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         if '/' in username:
             raise ValueError
@@ -340,9 +382,9 @@ class Notebook(SageObject):
                 # 2. copy them over
                 # 3. update worksheet text
                 if os.path.exists(X.data_directory()):
-                    shutil.rmtree(X.data_directory())
+                    shutil.rmtree(X.data_directory(), ignore_errors=True)
                 if os.path.exists(X.cells_directory()):
-                    shutil.rmtree(X.cells_directory())
+                    shutil.rmtree(X.cells_directory(), ignore_errors=True)
                 self._initialize_worksheet(worksheet, X)
                 X.set_worksheet_that_was_published(worksheet)
                 X.move_to_archive(username)
@@ -415,7 +457,7 @@ class Notebook(SageObject):
             raise KeyError, "Attempt to delete missing worksheet '%s'"%filename
         W = self.__worksheets[filename]
         W.quit()
-        shutil.rmtree(W.directory())
+        shutil.rmtree(W.directory(), ignore_errors=True)
         self.deleted_worksheets()[filename] = W
         del self.__worksheets[filename]
 
@@ -437,7 +479,7 @@ class Notebook(SageObject):
         files associated with the worksheets that are in the trash.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
             sage: W.move_to_trash('sage')
@@ -446,7 +488,7 @@ class Notebook(SageObject):
             sage: n.empty_trash('sage')
             sage: n.worksheet_names()
             []
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         X = self.get_worksheets_with_viewer(username)
         X = [W for W in X if W.is_trashed(username)]
@@ -464,14 +506,14 @@ class Notebook(SageObject):
 
         EXAMPLES:
         We make a new notebook with two users and two worksheets, then list their names:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
             sage: n.add_user('wstein','sage','wstein@sagemath.org',force=True)
             sage: W2 = n.new_worksheet_with_title_from_text('Elliptic Curves', owner='wstein')
             sage: n.worksheet_names()
             ['sage/0', 'wstein/0']
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         W = self.__worksheets.keys()
         W.sort()
@@ -687,13 +729,27 @@ class Notebook(SageObject):
     ##########################################################
     # Importing and exporting worksheets to files
     ##########################################################
-    def export_worksheet(self, worksheet_filename, output_filename):
+    def export_worksheet(self, worksheet_filename, output_filename, verbose=True):
+        """
+        Export a worksheet with given directory filenmae to output_filename.
+
+        INPUT:
+            worksheet_filename -- string
+            output_filename -- string
+            verbose -- bool (default: True) if True print some the tar
+                       command used to extract the sws file.
+
+        OUTPUT:
+            creates a file on the filesystem
+        """
         W = self.get_worksheet_with_filename(worksheet_filename)
         W.save()
         path = W.filename_without_owner()
         cmd = 'cd "%s/%s/" && tar -jcf "%s" "%s"'%(
             self.__worksheet_dir, W.owner(),
             os.path.abspath(output_filename), path)
+        if verbose:
+            print cmd
         e = os.system(cmd)
         if e:
             print "Failed to execute command to export worksheet:\n'%s'"%cmd
@@ -713,14 +769,110 @@ class Notebook(SageObject):
         r"""
         Upload the worksheet with name \var{filename} and make it have the
         given owner.
+
+        INPUT:
+            filename -- a string
+            owner -- a string
+
+        OUTPUT:
+            worksheet -- a newly created worksheet
+
+        EXAMPLES:
+        We create a notebook and import a plain text worksheet into it.
+            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: open('a.txt','w').write('foo\n{{{\n2+3\n}}}')
+            sage: W = nb.import_worksheet('a.txt', 'admin')
+
+        W is our newly-created worksheet, with the 2+3 cell in it:
+            sage: W.name()
+            'foo'
+            sage: W.cell_list()
+            [Cell 0; in=2+3, out=]
+            sage: nb.delete()
         """
         if not os.path.exists(filename):
             raise ValueError, "no file %s"%filename
 
+        # Figure out the file extension
+        ext = os.path.splitext(filename)[1]
+        if ext.lower() == '.txt':
+            # A plain text file with {{{'s that defines a worksheet (not graphics).
+            return self._import_worksheet_txt(filename, owner)
+        elif ext.lower() == '.sws':
+            # An sws file (really a tar.bz2) which defines a worksheet with graphics,
+            # revisions, etc.
+            return self._import_worksheet_sws(filename, owner)
+        else:
+            # We only support txt or sws files.
+            raise ValueError, "unknown extension '%s'"%ext
+
+    def _import_worksheet_txt(self, filename, owner):
+        """
+        Import a plain text file as a new worksheet.
+
+        INPUT:
+            filename -- string; a filename that ends in .txt
+            owner -- string; who will own this worksheet when imported
+
+        OUTPUT:
+            a new worksheet
+
+        EXAMPLES:
+        We create a worksheet, make a file, and import it using this function.
+            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: open('a.txt','w').write('foo\n{{{\na = 10\n}}}')
+            sage: W = nb._import_worksheet_txt('a.txt', 'admin'); W
+            [Cell 0; in=a = 10, out=]
+            sage: nb.delete()
+        """
+        # Open the worksheet txt file and load it in.
+        worksheet_txt = open(filename).read()
+        # Create a new worksheet with the write title and owner.
+        worksheet = self.new_worksheet_with_title_from_text(worksheet_txt, owner)
+        # Set the new worksheet to have the contents specified by that file.
+        worksheet.edit_save(worksheet_txt)
+        return worksheet
+
+    def _import_worksheet_sws(self, filename, owner, verbose=True):
+        """
+        Import an sws format worksheet into this notebook as a new worksheet.
+
+        INPUT:
+            filename -- string; a filename that ends in .sws; internally
+                        it must be a tar'd bz2'd file.
+            owner -- string
+            verbose -- bool (default: True) if True print some the tar
+                       command used to extract the sws file.
+
+        OUTPUT:
+            a new worksheet
+
+        EXAMPLES:
+        We create a notebook, then make a worksheet from a plain text file first.
+            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: open('a.txt','w').write('foo\n{{{\n2+3\n}}}')
+            sage: W = nb.import_worksheet('a.txt', 'admin')
+            sage: W.filename()
+            'admin/0'
+
+
+        We then export the worksheet to an sws file.
+            sage: nb.export_worksheet(W.filename(),  'tmp.sws', verbose=False)
+
+        Now we import the sws.
+            sage: nb._import_worksheet_sws('tmp.sws', 'admin', verbose=False)
+            [Cell 0; in=2+3, out=]
+
+        Yep, it's there now (as admin/2):
+            sage: nb.worksheet_names()
+            ['admin/0', 'admin/2']
+            sage: nb.delete()
+        """
         # Decompress the worksheet to a temporary directory.
         tmp = tmp_dir()
         cmd = 'cd "%s"; tar -jxf "%s"'%(tmp, os.path.abspath(filename))
-        print cmd
+        if verbose:
+            print cmd
         e = os.system(cmd)
         if e:
             raise ValueError, "Error decompressing saved worksheet."
@@ -771,7 +923,7 @@ class Notebook(SageObject):
 
         worksheet.edit_save(worksheet_txt)
 
-        shutil.rmtree(tmp)
+        shutil.rmtree(tmp, ignore_errors=True)
 
         return worksheet
 
@@ -1023,6 +1175,7 @@ class Notebook(SageObject):
         if not pub:
             entries.insert(2, ('history_window()', 'Log', 'View a log of recent computations'))
         if not self.user_is_guest(user):
+            entries.append(('/settings', 'Settings', 'Change account settings including password'))
             entries.append(('/logout', 'Sign out', 'Log out of the Sage notebook'))
 
         s += self.html_banner_and_control(user, entries)
@@ -1117,6 +1270,8 @@ class Notebook(SageObject):
             else:
                 s += '&nbsp;&nbsp;<button onClick="make_active_button();" title="Move the selected worksheets out of the trash">Undelete</button>'
 
+            s += '&nbsp;&nbsp;<button onClick="stop_worksheets_button();" title="Stop selected worksheets">Stop</button>'
+
             s += '<span>'
             s += '&nbsp;'*10
             #s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Published Worksheets</a>'
@@ -1161,7 +1316,7 @@ class Notebook(SageObject):
             k += '<td class="entry">%s</td>'%self.html_check_col(w, user, pub)
             name = self.html_worksheet_link(w, pub)
             if w.compute_process_has_been_started():
-                name = '(active) %s'%name
+                name = '(running) %s'%name
             if w.is_active(user):
                 k += '<td class="worksheet_link">%s</td>'%name
             else:
@@ -1411,6 +1566,7 @@ class Notebook(SageObject):
         body += ' or create a linked copy to the worksheet %s,'%ws_form
         body += ' or <a href="/home/%s/datafile?name=%s&action=delete">delete %s.</a>'%(ws.filename(),filename, filename)
 
+        body += "<br><br>Access %s in this worksheet by typing <tt>DATA+'%s'</tt>.  Here DATA is a special variable that gives the exact path to all data files uploaded to this worksheet.<br><br>"%(filename, filename)
 
         body += '<hr class="usercontrol">'
         ext = os.path.splitext(filename)[1].lower()
@@ -1677,7 +1833,7 @@ class Notebook(SageObject):
                        ('/', 'Home', 'Back to your personal worksheet list'),
                        ('/pub', 'Published', 'Browse the published worksheets'),
                        ('history_window()', 'Log', 'View a log of recent computations'),
-                       #('settings', 'Settings', 'Worksheet settings'),  # TODO -- settings
+                       ('/settings', 'Settings', 'Account Settings'),
                        ('help()', 'Help', 'Documentation')]
 
             if not self.user_is_guest(username):
@@ -1873,7 +2029,7 @@ function save_worksheet_and_close() {
             <body>
               <div class="upload_worksheet_menu" id="upload_worksheet_menu">
               %s
-              <h1><font size=+1>Upload worksheet from your computer to the Sage Notebook</font></h1>
+              <h1><font size=+1>Upload worksheet (an sws or txt file) to the Sage Notebook</font></h1>
               <hr>
               <form method="POST" action="upload_worksheet"
                     name="upload" enctype="multipart/form-data">
@@ -2001,13 +2157,13 @@ function save_worksheet_and_close() {
     def html_system_select_form_element(self, ws):
         system = ws.system()
         options = ''
-        i = SYSTEMS.index(system)
-        for S in SYSTEMS:
-            if S == system:
+        i = SYSTEM_NAMES.index(system)
+        for j, S in enumerate(SYSTEMS):
+            if i == j:
                 selected = "selected"
             else:
                 selected = ''
-            T = S.split()[0]
+            T = SYSTEM_NAMES[j]
             options += '<option title="Evaluate all input cells using %s" %s value="%s">%s</option>\n'%(T, selected, T,S)
         s = """<select  onchange="go_system_select(this, %s);" class="worksheet">
             %s

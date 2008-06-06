@@ -312,6 +312,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 raise TypeError, "keys do not match self's parent"
             return self
         return self.__call__(*x, **kwds)
+    substitute = subs
 
     def __call__(self, *x, **kwds):
         """

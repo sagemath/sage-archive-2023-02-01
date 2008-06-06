@@ -109,8 +109,14 @@ cdef extern from "math.h":
 
     double exp(double)
     double log(double)
-    double log2(double)
     double log10(double)
+    double log2_ "log2"(double)
+
+
+# This is only needed on Cygwin since log2 is a macro.
+# If we don't do this the cygwin GCC gets very confused.
+cdef inline double log2(double x):
+    return log2_(x)
 
 cdef extern from *:
     void* memcpy(void* dst, void* src, size_t len)
@@ -138,6 +144,14 @@ cdef enum:
     ABS
     INVERT
 
+# basic comparison
+    LT
+    LE
+    EQ
+    NE
+    GT
+    GE
+
 # functional
     ONE_ARG_FUNC
     TWO_ARG_FUNC
@@ -160,6 +174,15 @@ op_names = {
     NEG: 'neg',
     ABS: 'abs',
     INVERT: 'invert',
+
+
+    LT: 'lt',
+    LE: 'le',
+    EQ: 'eq',
+    NE: 'ne',
+    GT: 'gt',
+    GE: 'ge',
+
 
     ONE_ARG_FUNC: 'call',
     TWO_ARG_FUNC: 'call',
@@ -337,6 +360,30 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
     elif op.type == INVERT:
         stack[top] = 1/stack[top]
         return top
+
+    elif op.type == LT:
+        stack[top-1] = 1.0 if stack[top-1] < stack[top] else 0.0
+        return top-1
+
+    elif op.type == LE:
+        stack[top-1] = 1.0 if stack[top-1] <= stack[top] else 0.0
+        return top-1
+
+    elif op.type == EQ:
+        stack[top-1] = 1.0 if stack[top-1] == stack[top] else 0.0
+        return top-1
+
+    elif op.type == NE:
+        stack[top-1] = 1.0 if stack[top-1] != stack[top] else 0.0
+        return top-1
+
+    elif op.type == GT:
+        stack[top-1] = 1.0 if stack[top-1] > stack[top] else 0.0
+        return top-1
+
+    elif op.type == GE:
+        stack[top-1] = 1.0 if stack[top-1] >= stack[top] else 0.0
+        return top-1
 
     elif op.type == ONE_ARG_FUNC:
         fp[0] = op.params.func
@@ -785,6 +832,50 @@ cdef class FastDoubleFunc:
             2.0
         """
         return self.cfunc(&sqrt)
+
+    ###################################################################
+    #   Basic Comparison
+    ###################################################################
+
+    def _richcmp_(left, right, op):
+        """
+        Compare left and right.
+        EXAMPLES:
+            sage: from sage.ext.fast_eval import fast_float_arg
+            sage: import operator
+            sage: f = fast_float_arg(0)._richcmp_(2, operator.lt)
+            sage: [f(i) for i in (1..3)]
+            [1.0, 0.0, 0.0]
+            sage: f = fast_float_arg(0)._richcmp_(2, operator.le)
+            sage: [f(i) for i in (1..3)]
+            [1.0, 1.0, 0.0]
+            sage: f = fast_float_arg(0)._richcmp_(2, operator.eq)
+            sage: [f(i) for i in (1..3)]
+            [0.0, 1.0, 0.0]
+            sage: f = fast_float_arg(0)._richcmp_(2, operator.ne)
+            sage: [f(i) for i in (1..3)]
+            [1.0, 0.0, 1.0]
+            sage: f = fast_float_arg(0)._richcmp_(2, operator.ge)
+            sage: [f(i) for i in (1..3)]
+            [0.0, 1.0, 1.0]
+            sage: f = fast_float_arg(0)._richcmp_(2, operator.gt)
+            sage: [f(i) for i in (1..3)]
+            [0.0, 0.0, 1.0]
+        """
+        import operator
+        if op == operator.lt:  #<
+            return binop(left, right, LT)
+        elif op == operator.eq: #==
+            return binop(left, right, EQ)
+        elif op == operator.gt: #>
+            return binop(left, right, GT)
+        elif op == operator.le: #<=
+            return binop(left, right, LE)
+        elif op == operator.ne: #!=
+            return binop(left, right, NE)
+        elif op == operator.ge: #>=
+            return binop(left, right, GE)
+
 
     ###################################################################
     #   Exponential and log

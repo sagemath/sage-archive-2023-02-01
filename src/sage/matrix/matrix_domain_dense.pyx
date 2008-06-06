@@ -64,7 +64,7 @@ cdef class Matrix_domain_dense(matrix.Matrix):
 
         We compute the characteristic polynomial of a matrix over the
         multi-variate polynomial ring $\Z[x,y]$:
-            sage: R = MPolynomialRing(IntegerRing(),2); x,y = R.gens()
+            sage: R = PolynomialRing(IntegerRing(),2); x,y = R.gens()
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: f = A.charpoly('x')
             sage: f
@@ -100,7 +100,7 @@ cdef class Matrix_domain_dense(matrix.Matrix):
 
         EXAMPLES:
         We create a matrix over $\Z[x,y]$ and compute its determinant.
-            sage: R = MPolynomialRing(IntegerRing(),2); x,y = R.gens()
+            sage: R = PolynomialRing(IntegerRing(),2); x,y = R.gens()
             sage: A = MatrixSpace(R,2)([x, y, x**2, y**2])
             sage: A.determinant()
             x0*x1^2 - x0^2*x1

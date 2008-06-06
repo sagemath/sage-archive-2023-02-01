@@ -69,7 +69,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             change A in place.
 
         EXAMPLES:
-            sage: P.<x,y> = MPolynomialRing(GF(127),2)
+            sage: P.<x,y> = PolynomialRing(GF(127),2)
             sage: A = matrix(P,2,2,[1,x,1,y])
             sage: A
             [1 x]
@@ -146,7 +146,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
                    'bareiss' -- fraction free Gauss-Bareiss algorithm with column swaps
 
         EXAMPLES:
-            sage: P.<x,y> = MPolynomialRing(QQ,2)
+            sage: P.<x,y> = PolynomialRing(QQ,2)
             sage: A = matrix(P,2,2,[1/2,x,1,3/4*y+1])
             sage: A
             [      1/2         x]
@@ -160,7 +160,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [               1              2*x]
             [               0 -2*x + 3/4*y + 1]
 
-            sage: P.<x,y> = MPolynomialRing(QQ,2)
+            sage: P.<x,y> = PolynomialRing(QQ,2)
             sage: A = matrix(P,2,3,[2,x,0,3,y,1]); A
             [2 x 0]
             [3 y 1]

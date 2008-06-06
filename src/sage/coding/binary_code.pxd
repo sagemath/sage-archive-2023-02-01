@@ -5,6 +5,14 @@ cdef int *hamming_weights()
 
 ctypedef unsigned int codeword
 
+cdef struct WordPermutation:
+    # A word permutation is a permutation of the bits in a codeword.
+    int chunk_num
+    int chunk_words
+    int degree
+    codeword **images
+    codeword gate
+
 cdef class BinaryCode:
     cdef codeword *basis
     cdef codeword *words
@@ -15,6 +23,18 @@ cdef class BinaryCode:
 
     cdef int is_one(self, int, int)
     cdef int is_automorphism(self, int *, int *)
+    cpdef int put_in_std_form(self)
+    cdef void _apply_permutation_to_basis(self, object labeling)
+    cdef void _update_words_from_basis(self)
+
+cdef WordPermutation *create_word_perm(object)
+cdef WordPermutation *create_array_word_perm(int *, int, int)
+cdef WordPermutation *create_id_word_perm(int)
+cdef WordPermutation *create_comp_word_perm(WordPermutation *, WordPermutation *)
+cdef WordPermutation *create_inv_word_perm(WordPermutation *)
+cdef int dealloc_word_perm(WordPermutation *)
+cdef codeword permute_word_by_wp(WordPermutation *, codeword)
+cdef codeword *expand_to_ortho_basis(BinaryCode, int)
 
 cdef class OrbitPartition:
     cdef int nwords
@@ -68,8 +88,8 @@ cdef class PartitionStack:
     cdef int refine(self, int, int *, int, BinaryCode, int *)
     cdef void clear(self, int)
     cdef int cmp(self, PartitionStack, BinaryCode)
-    cdef void find_basis(self, int *)
-    cdef void get_permutation(self, PartitionStack, int *, int *, int *)
+    cdef int find_basis(self, int *)
+    cdef void get_permutation(self, PartitionStack, int *, int *)
 
 cdef class BinaryCodeClassifier:
     cdef int *ham_wts
@@ -84,19 +104,14 @@ cdef class BinaryCodeClassifier:
     cdef int *alpha
     cdef int alpha_size
     cdef int *v, *e
-    cdef int *aut_gp_gens, *labeling
-    cdef int aut_gp_index, aut_gens_size
+    cdef int *aut_gp_gens, *labeling, *base
+    cdef int aut_gp_index, aut_gens_size, base_size
     cdef object aut_gp_size
 
     cdef int Phi_size
 
     cdef void record_automorphism(self, int *, int)
     cdef void aut_gp_and_can_label(self, BinaryCode, int)
-
-
-
-
-
 
 
 

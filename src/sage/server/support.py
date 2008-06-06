@@ -19,6 +19,8 @@ import sage.misc.sageinspect as sageinspect
 
 from sage.misc.preparser import preparse
 
+import pydoc
+
 ######################################################################
 # Initialization
 ######################################################################
@@ -64,6 +66,43 @@ def setup_systems(globs):
 ######################################################################
 # Introspection
 ######################################################################
+def help(obj):
+    """
+    Display help on s.
+
+    NOTE: This a wrapper around the builtin help.  If formats the
+    output as HTML without word wrap, which looks better in the
+    notebook.
+
+    INPUT:
+        s -- Python object, module, etc.
+
+    OUTPUT:
+        prints out help about s; it's often more more extensive than foo?
+
+    TESTS:
+        sage: import numpy.linalg
+        sage: sage.server.support.help(numpy.linalg.norm)
+        <html><table notracebacks bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">
+        &nbsp;&nbsp;&nbsp;<a target='_new' href='cell://docs-....html'>Click to open help window</a>&nbsp;&nbsp;&nbsp;
+        <br></font></tr></td></table></html>
+
+    """
+    from pydoc import resolve, html, describe
+    import sage.server.notebook.interact as interact
+
+    print '<html><table notracebacks bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">'
+    object, name = resolve(obj)
+    page = html.page(describe(object), html.document(object, name))
+    page = page.replace('<a href','<a ')
+    n = 0
+    while True:
+        filename = 'docs-%s.html'%n
+        if not os.path.exists(filename): break
+        n += 1
+    open(filename, 'w').write(page)
+    print "&nbsp;&nbsp;&nbsp;<a target='_new' href='cell://%s'>Click to open help window</a>&nbsp;&nbsp;&nbsp;"%filename
+    print '<br></font></tr></td></table></html>'
 
 def get_rightmost_identifier(s):
     X = string.ascii_letters + string.digits + '._'
@@ -76,6 +115,11 @@ def completions(s, globs, format=False, width=90, system="None"):
     """
     Return a list of completions in the context of globs.
     """
+    if system not in ['sage', 'python']:
+        prepend = system + '.'
+        s = prepend + s
+    else:
+        prepend = ''
     n = len(s)
     if n == 0:
         return '(empty string)'
@@ -109,6 +153,11 @@ def completions(s, globs, format=False, width=90, system="None"):
         v.sort()
     except Exception, msg:
         v = []
+
+    if prepend:
+        i = len(prepend)
+        v = [x[i:] for x in v]
+
     if format:
         if len(v) == 0:
             return "No completions of '%s' currently defined"%s
@@ -116,7 +165,7 @@ def completions(s, globs, format=False, width=90, system="None"):
             return tabulate(v, width)
     return v
 
-def docstring(obj_name, globs):
+def docstring(obj_name, globs, system='sage'):
     r"""
     Format \var{obj_name}'s docstring for printing in \sage notebook.
 
@@ -124,6 +173,8 @@ def docstring(obj_name, globs):
         -- William Stein (but partly taken from IPython for use in \sage).
         -- Extensions by Nick Alexander
     """
+    if system not in ['sage', 'python']:
+        obj_name = system + '.' + obj_name
     try:
         obj = eval(obj_name, globs)
     except (AttributeError, NameError, SyntaxError):
@@ -144,7 +195,7 @@ def docstring(obj_name, globs):
     s += 'Docstring: \n%s\n'%sageinspect.sage_getdoc(obj, obj_name)
     return s.rstrip()
 
-def source_code(s, globs):
+def source_code(s, globs, system='sage'):
     r"""
     Format obj's source code for printing in \sage notebook.
 
@@ -152,6 +203,9 @@ def source_code(s, globs):
         -- William Stein (but partly taken from IPython for use in \sage).
         -- Extensions by Nick Alexander
     """
+    if system not in ['sage', 'python']:
+        s = system + '.' + s
+
     try:
         obj = eval(s, globs)
     except NameError:

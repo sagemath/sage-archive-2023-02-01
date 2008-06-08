@@ -389,7 +389,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         prod = 1
         v = []
         while prod < bound:
-            while p % n != 1 or denom_self % p == 0 or denom_right % p == 0:
+            while (n >= 2 and p % n != 1) or denom_self % p == 0 or denom_right % p == 0:
                 if p == 2:
                     raise RuntimeError, "we ran out of primes in matrix multiplication."
                 p = previous_prime(p)
@@ -887,6 +887,11 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             T^3 + (-z + 3/2)*T^2 + (17/2*z + 9/2)*T - 9/2*z - 23/2
             sage: A._charpoly_multimodular('T', proof=False)
             T^3 + (-z + 3/2)*T^2 + (17/2*z + 9/2)*T - 9/2*z - 23/2
+
+        TESTS:
+        We test a degenerate case:
+            sage: A = matrix(CyclotomicField(1),2,[1,2,3,4]); A.charpoly()
+            x^2 + (-5)*x - 2
         """
         cdef Matrix_cyclo_dense A
         A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
@@ -905,7 +910,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         bound = A._charpoly_bound()
         L_last = 0
         while prod < bound:
-            while p % n != 1 or denom % p == 0:
+            while (n >= 2  and p % n != 1) or denom % p == 0:
                 if p == 2:
                     raise RuntimeError, "we ran out of primes in multimodular charpoly algorithm."
                 p = previous_prime(p)
@@ -1091,6 +1096,12 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             True
             sage: B.echelon_form() == B.echelon_form('classical')
             True
+
+        A degenerate case with the degree 1 cyclotomic field:
+            sage: A = matrix(CyclotomicField(1),2,3,[1,2,3,4,5,6]);
+            sage: A.echelon_form()
+            [ 1  0 -1]
+            [ 0  1  2]
         """
         key = 'echelon_form-%s'%algorithm
         E = self.fetch(key)
@@ -1127,6 +1138,15 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A._echelon_form_multimodular(10)
             [                  1                   0  -192/97*z - 361/97]
             [                  0                   1 1851/97*z + 1272/97]
+
+        TESTS:
+        We test a degenerate case:
+            sage: A = matrix(CyclotomicField(5),0); A
+            []
+            sage: A._echelon_form_multimodular(10)
+            []
+            sage: A.pivots()
+            []
         """
         cdef int i
         cdef Matrix_cyclo_dense res
@@ -1157,7 +1177,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             # Generate primes to use, and find echelon form
             # modulo those primes.
             while found < num_primes or prod < height_bound:
-                if p%n == 1:
+                if (n == 1) or p%n == 1:
                     try:
                         mod_p_ech, piv_ls = A._echelon_form_one_prime(p)
                     except ValueError:
@@ -1169,6 +1189,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                     # if we have the identity, just return it, and
                     # we're done.
                     if mod_p_ech.is_one():
+                        self.cache('pivots', range(self.nrows()))
                         return mod_p_ech
                     if piv_ls > max_pivots:
                         mod_p_ech_ls = [mod_p_ech]

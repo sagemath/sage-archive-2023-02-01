@@ -658,6 +658,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         _p = p_NSet(co.sa2si(element,_ring), _ring)
         return co.new_MP(self,_p)
 
+    def _repr_(self):
+        """
+        EXAMPLE:
+            sage: P.<x,y> = QQ[]
+            sage: P # indirect doctest
+            Multivariate Polynomial Ring in x, y over Rational Field
+        """
+        varstr = ", ".join([ rRingVar(i,self._ring)  for i in range(self.__ngens) ])
+        return "Multivariate Polynomial Ring in %s over %s"%(varstr,self._base)
+
     def ngens(self):
         """
         Returns the number of variables in self.
@@ -2113,24 +2123,21 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = 1 + x*y + x^3 + y^3
             sage: P = f.newton_polytope()
             sage: P
-            Convex hull of points [[1, 0, 0], [1, 0, 3], [1, 1, 1], [1, 3, 0]]
-            sage: P.facets()
-            [(0, 1, 0), (3, -1, -1), (0, 0, 1)]
+            A Polyhedron with 4 vertices.
             sage: P.is_simple()
             True
 
         TESTS:
             sage: R.<x,y> = QQ[]
             sage: R(0).newton_polytope()
-            Convex hull of points []
+            A Polyhedron.
             sage: R(1).newton_polytope()
-            Convex hull of points [[1, 0, 0]]
+            A Polyhedron with 1 vertices.
 
         """
-        from sage.geometry.all import polymake
+        from sage.geometry.polyhedra import Polyhedron
         e = self.exponents()
-        a = [[1] + list(v) for v in e]
-        P = polymake.convex_hull(a)
+        P = Polyhedron(vertices = e)
         return P
 
     def total_degree(self):

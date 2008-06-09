@@ -152,6 +152,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         5/2
         sage: Rational(AA(209735/343 - 17910/49*golden_ratio).nth_root(3) + 3*golden_ratio)
         53/7
+
+    Conversion from PARI:
+        sage: Rational(pari('-939082/3992923'))
+        -939082/3992923
     """
     def __new__(self, x=None, int base=0):
         global the_rational_ring
@@ -188,6 +192,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     def __set_value(self, x, unsigned int base):
         cdef int n
         cdef Rational temp_rational
+        cdef integer.Integer a, b
 
         if isinstance(x, Rational):
             set_from_Rational(self, x)
@@ -255,11 +260,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             self.__set_value(x[0], base)
 
         elif isinstance(x, sage.libs.pari.all.pari_gen):
-            # TODO: figure out how to convert to pari integer in base 16
-            s = str(x)
-            n = mpq_set_str(self.value, s, 0)
-            if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
-                raise TypeError, "Unable to coerce %s (%s) to Rational"%(x,type(x))
+            a = integer.Integer(x.numerator())
+            b = integer.Integer(x.denominator())
+            mpz_set(mpq_numref(self.value), a.value)
+            mpz_set(mpq_denref(self.value), b.value)
 
         elif hasattr(x, 'rational_reconstruction'):
             temp_rational = x.rational_reconstruction()

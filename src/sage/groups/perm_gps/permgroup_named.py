@@ -50,6 +50,10 @@ REFERENCES:
     Wielandt, H., Finite Permutation Groups. New York: Academic Press, 1964.
     Dixon, J. and Mortimer, B., Permutation Groups, Springer-Verlag, Berlin/New York, 1996.
 
+NOTE:
+    Though Suzuki groups are okay, Ree groups should *not* be wrapped as
+    permutation groups - the onstruction is too slow - unless (for
+    small values or the parameter) they are made using explicit generators.
 """
 
 #*****************************************************************************

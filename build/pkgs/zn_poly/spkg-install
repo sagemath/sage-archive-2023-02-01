@@ -22,16 +22,7 @@ cd src
 make tune
 ./tune > tuning.c
 
-
-# optionally run test suite, takes perhaps 10 minutes
-# (shouldn't be run in real release)
-make test
-./test all
-if [ $? -ne 0 ]; then
-    echo "zn_poly test suite failed."
-    exit 1
-fi
-
+make
 
 # UNIX
 if [ $UNAME != "Darwin" ]; then

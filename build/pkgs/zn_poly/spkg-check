@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+################################################################
+#
+#  zn_poly sage check script
+#
+################################################################
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+
+cd src
+
+make test
+./test all
+if [ $? -ne 0 ]; then
+    echo "zn_poly test suite failed."
+    exit 1
+fi
+

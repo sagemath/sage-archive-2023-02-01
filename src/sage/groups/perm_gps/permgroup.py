@@ -202,7 +202,7 @@ def PermutationGroup(x, from_group=False, check=True):
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
         sage: current_randstate().set_seed_gap()
         sage: G._gap_().DerivedSeries()
-        [ Group( [ (1,2,3)(4,5), (3,4) ] ), Group( [ (1,5)(3,4), (1,5)(2,4), (1,3,5) ] ) ]
+        [ Group( [ (1,2,3)(4,5), (3,4) ] ), Group( [ (1,5)(3,4), (1,5)(2,3), (1,5,4) ] ) ]
     """
     if not is_ExpectElement(x) and hasattr(x, '_permgroup_'):
         return x._permgroup_()

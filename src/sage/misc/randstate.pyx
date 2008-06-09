@@ -24,17 +24,23 @@ and showing that these lead to reproducible results.
 sage: K.<x> = QQ[]
 sage: G = PermutationGroup([[(1,2,3),(4,5)], [(1,2)]])
 sage: rgp = Gp()
+sage: def gap_randstring(n):
+...       current_randstate().set_seed_gap()
+...       return gap(n).SCRRandomString()
 sage: def rtest():
 ...       current_randstate().set_seed_gp(rgp)
 ...       return (ZZ.random_element(1000), RR.random_element(),
 ...               K.random_element(), G.random_element(),
+...               gap_randstring(5),
 ...               rgp.random(), ntl.ZZ_random(99999),
 ...               random())
 
-The above test shows the results of five different random number
+The above test shows the results of six different random number
 generators, in three different processes.  The random elements from
 ZZ, RR, and K all derive from a single GMP-based random number
 generator.  The random element from G comes from a GAP subprocess.
+The random ``string'' (5-element binary list) is also from a GAP
+subprocess, using the ``classical'' GAP random generator.
 The random number from rgp is from a Pari/gp subprocess.  NTL's
 ZZ_random uses a separate NTL random number generator in the main
 \sage process.  And random() is from a Python \class{random.Random}
@@ -45,22 +51,22 @@ results of these random number generators reproducible.
 
 sage: set_random_seed(0)
 sage: rtest()
-(303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2), 1698070399, 8045, 0.96619117347084138)
+(303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2), [ 0, 0, 0, 0, 1 ], 1698070399, 8045, 0.96619117347084138)
 sage: set_random_seed(1)
 sage: rtest()
-(978, 0.184109262667515, -3*x^2 - 1/12, (2,3), 1046254370, 60359, 0.83350776541997362)
+(978, 0.184109262667515, -3*x^2 - 1/12, (2,3), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
 sage: set_random_seed(2)
 sage: rtest()
-(207, 0.505364206568040, 4*x^2 + 1/2, (1,2)(4,5), 2137873234, 27695, 0.19982565117278328)
+(207, 0.505364206568040, 4*x^2 + 1/2, (1,2)(4,5), [ 0, 0, 1, 0, 1 ], 2137873234, 27695, 0.19982565117278328)
 sage: set_random_seed(0)
 sage: rtest()
-(303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2), 1698070399, 8045, 0.96619117347084138)
+(303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2), [ 0, 0, 0, 0, 1 ], 1698070399, 8045, 0.96619117347084138)
 sage: set_random_seed(1)
 sage: rtest()
-(978, 0.184109262667515, -3*x^2 - 1/12, (2,3), 1046254370, 60359, 0.83350776541997362)
+(978, 0.184109262667515, -3*x^2 - 1/12, (2,3), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
 sage: set_random_seed(2)
 sage: rtest()
-(207, 0.505364206568040, 4*x^2 + 1/2, (1,2)(4,5), 2137873234, 27695, 0.19982565117278328)
+(207, 0.505364206568040, 4*x^2 + 1/2, (1,2)(4,5), [ 0, 0, 1, 0, 1 ], 2137873234, 27695, 0.19982565117278328)
 
 Once we've set the random number seed, we can check what seed was used.
 (This is not the current random number state; it does not change when
@@ -70,7 +76,7 @@ sage: set_random_seed(12345)
 sage: initial_seed()
 12345L
 sage: rtest()
-(720, 0.0216737401150802, x^2 - x, (), 1506569166, 14005, 0.92053315995181839)
+(720, 0.0216737401150802, x^2 - x, (), [ 1, 0, 0, 0, 0 ], 1506569166, 14005, 0.92053315995181839)
 sage: initial_seed()
 12345L
 
@@ -204,9 +210,9 @@ that you get without intervening \code{with seed}.
 
 sage: set_random_seed(0)
 sage: r1 = rtest(); r1
-(303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2), 1698070399, 8045, 0.96619117347084138)
+(303, -0.187141682737491, 1/2*x^2 - 1/95*x - 1/2, (1,2), [ 0, 0, 0, 0, 1 ], 1698070399, 8045, 0.96619117347084138)
 sage: r2 = rtest(); r2
-(105, -0.581229341007821, -x^2 - x - 6, (1,3,2)(4,5), 697338742, 1271, 0.001767155077382232)
+(105, -0.581229341007821, -x^2 - x - 6, (1,3,2)(4,5), [ 1, 0, 0, 1, 1 ], 697338742, 1271, 0.001767155077382232)
 
 We get slightly different results with an intervening \code{with seed}.
 
@@ -214,9 +220,9 @@ sage: set_random_seed(0)
 sage: r1 == rtest()
 True
 sage: with seed(1): rtest()
-(978, 0.184109262667515, -3*x^2 - 1/12, (2,3), 1046254370, 60359, 0.83350776541997362)
+(978, 0.184109262667515, -3*x^2 - 1/12, (2,3), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
 sage: r2m = rtest(); r2m
-(105, -0.581229341007821, -x^2 - x - 6, (1,3,2)(4,5), 697338742, 19769, 0.001767155077382232)
+(105, -0.581229341007821, -x^2 - x - 6, (1,3,2)(4,5), [ 1, 0, 0, 1, 1 ], 697338742, 19769, 0.001767155077382232)
 sage: r2m == r2
 False
 
@@ -231,7 +237,7 @@ sage: set_random_seed(0)
 sage: r1 == rtest()
 True
 sage: with seed(1): (rtest(), rtest())
-((978, 0.184109262667515, -3*x^2 - 1/12, (2,3), 1046254370, 60359, 0.83350776541997362), (138, -0.247578366457583, 2*x - 24, (), 1077419109, 10234, 0.0033332230808060803))
+((978, 0.184109262667515, -3*x^2 - 1/12, (2,3), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362), (138, -0.247578366457583, 2*x - 24, (), [ 1, 1, 1, 0, 1 ], 1077419109, 10234, 0.0033332230808060803))
 sage: r2m == rtest()
 True
 
@@ -251,7 +257,7 @@ sage: try:
 ... finally:
 ...       ctx.__exit__(None, None, None)
 <sage.misc.randstate.randstate object at 0x...>
-(978, 0.184109262667515, -3*x^2 - 1/12, (2,3), 1046254370, 60359, 0.83350776541997362)
+(978, 0.184109262667515, -3*x^2 - 1/12, (2,3), [ 0, 1, 1, 0, 0 ], 1046254370, 60359, 0.83350776541997362)
 False
 sage: r2m == rtest()
 True
@@ -643,17 +649,21 @@ cdef class randstate:
              sage: current_randstate().set_seed_gap()
              sage: gap.Random(1, 10^50)
              24922966241004817547714978350347109473543873184564
+             sage: gap(35).SCRRandomString()
+             [ 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0,
+               0, 0, 1, 0, 0, 1, 1, 0, 0, 1 ]
          """
          global _gap_seed_randstate
          if _gap_seed_randstate is not self:
              from sage.interfaces.gap import gap
 
              if self._gap_saved_seed is not None:
-                 seed = self._gap_saved_seed
+                 mersenne_seed, classic_seed = self._gap_saved_seed
              else:
                  import sage.rings.integer_ring as integer_ring
                  from sage.rings.integer_ring import ZZ
                  seed = ZZ.random_element(long(1)<<128)
+                 classic_seed = seed
 
                  if sys.byteorder == 'big':
                      # GAP's random number generator initialization
@@ -672,10 +682,14 @@ cdef class randstate:
                          seed = seed[4:]
                      seed = '"' + new_seed + '"'
 
-             prev_seed = gap.Reset(gap.GlobalMersenneTwister, seed)
+                 mersenne_seed = seed
+
+             prev_mersenne_seed = gap.Reset(gap.GlobalMersenneTwister, mersenne_seed)
+             prev_classic_seed = gap.Reset(gap.GlobalRandomSource, classic_seed)
 
              if _gap_seed_randstate is not None:
-                 _gap_seed_randstate._gap_saved_seed = prev_seed
+                 _gap_seed_randstate._gap_saved_seed = \
+                     prev_mersenne_seed, prev_classic_seed
 
              _gap_seed_randstate = self
 

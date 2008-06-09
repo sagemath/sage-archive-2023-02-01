@@ -128,8 +128,10 @@ cdef class Matrix(matrix0.Matrix):
        """
        return '{' + ', '.join([v._mathematica_init_() for v in self.rows()]) + '}'
 
-    def _magma_init_(self):
+    def _magma_(self, magma):
         r"""
+        Return copy of this matrix in the given magma session.
+
         EXAMPLES:
         We first coerce a square matrix.
             sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
@@ -152,11 +154,15 @@ cdef class Matrix(matrix0.Matrix):
             sage: B.Parent()                            # optional
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
         """
-        s = self._parent._magma_init_()
+        K = magma(self.base_ring())
+        if self._nrows == self._ncols:
+           s = 'MatrixAlgebra(%s, %s)'%(K.name(), self.nrows())
+        else:
+           s = 'RMatrixSpace(%s, %s, %s)'%(K.name(), self.nrows(), self.ncols())
         v = []
         for x in self.list():
-            v.append(x._magma_init_())
-        return s + '![%s]'%(','.join(v))
+             v.append(x._magma_init_())
+        return magma(s + '![%s]'%(','.join(v)))
 
     def _maple_init_(self):
         """

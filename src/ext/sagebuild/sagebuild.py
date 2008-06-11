@@ -78,6 +78,9 @@ def buildsage(env, gccc):
     efw = extfilewalker()
     efw.addcallback('.pyx',lambda x: True)
     pyx_list = efw.walk('devel/sage/sage')
+    for entry in pyx_list:
+        if entry.find('#')!=-1:
+            pyx_list.remove(entry)
     #set the absolute devel directory if necessary
     develdir = os.path.realpath('devel/sage/')
     if verbose>100:
@@ -339,6 +342,9 @@ def buildsage(env, gccc):
     depfw.addcallback('.pxi',lambda x: True)
     depfw.addcallback('.py',lambda x: x.find(".doctest") ==-1 )
     dep_list = depfw.walk('devel/sage/sage')
+    for entry in dep_list:
+        if entry.find('#')!=-1:
+            dep_list.remove(entry)
     #Set the dependency locater function
     funcdict = { '.pyx':get_cython_file_deps, '.pxd':get_cython_file_deps, 'pxi':get_cython_file_deps }
     #Set possible include directories for various file extensions

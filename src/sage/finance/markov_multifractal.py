@@ -34,6 +34,7 @@ class MarkovSwitchingMultifractal:
             Markov switching multifractal model with m0 = 1.4, sigma = 0.5, b = 3.0, and gamma_8 = 0.95
             sage: yen_usd = finance.MarkovSwitchingMultifractal(10,1.448,0.461,0.998,3.76)
             sage: cad_usd = finance.MarkovSwitchingMultifractal(10,1.278,0.262,0.644,2.11)
+            sage: dm = finance.MarkovSwitchingMultifractal(10,1.326,0.643,0.959,2.7)
         """
         self.__m0 = float(m0)
         assert self.__m0 >= 0 and self.__m0 <= 2, "m0 must be between 0 and 2"

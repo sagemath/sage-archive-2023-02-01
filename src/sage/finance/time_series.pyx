@@ -47,10 +47,21 @@ cdef extern from "math.h":
 cdef extern from "string.h":
     void* memcpy(void* dst, void* src, size_t len)
 
+cdef extern from "arrayobject.h":
+    cdef enum:
+        NPY_OWNDATA = 0x0004 #bit mask so numpy does not free array contents when its destroyed
+    object PyArray_FromDimsAndData(int,int*,int,double *)
+    ctypedef int intp
+    void import_array()
+    ctypedef extern class numpy.ndarray [object PyArrayObject]:
+        cdef int nd
+        cdef int flags
+        cdef intp *dimensions
+        cdef char* data
+
 from sage.rings.integer import Integer
 from sage.rings.real_double import RDF
 from sage.modules.real_double_vector cimport RealDoubleVectorSpaceElement
-
 
 max_print = 10
 digits = 4
@@ -78,10 +89,35 @@ cdef class TimeSeries:
         This implicity calls init.
             sage: finance.TimeSeries([pi, 3, 18.2])
             [3.1416, 3.0000, 18.2000]
+
+        Conversion from a numpy 1d array, which is very fast.
+            sage: v = finance.TimeSeries([1..5])
+            sage: w = v.numpy()
+            sage: finance.TimeSeries(w)
+            [1.0000, 2.0000, 3.0000, 4.0000, 5.0000]
+
+        Conversion from an n-dimensional numpy array also works:
+            sage: import numpy
+            sage: v = numpy.array([[1,2], [3,4]], dtype=float); v
+            array([[ 1.,  2.],
+                   [ 3.,  4.]])
+            sage: finance.TimeSeries(v)
+            [1.0000, 2.0000, 3.0000, 4.0000]
         """
         cdef RealDoubleVectorSpaceElement z
+        cdef ndarray np
         if isinstance(values, (int, long, Integer)):
             values = [0.0]*values
+        elif PY_TYPE_CHECK(values, ndarray):
+            np = values
+            if np.nd != 1:
+                np = values.reshape([values.size])
+            self._length = np.dimensions[0]
+            self._values = <double*> sage_malloc(sizeof(double) * self._length)
+            if self._values == NULL:
+                raise MemoryError
+            memcpy(self._values, np.data, sizeof(double)*self._length)
+            return
         elif PY_TYPE_CHECK(values, RealDoubleVectorSpaceElement):
             # Fast constructor from real double vector.
             z = values
@@ -465,6 +501,43 @@ cdef class TimeSeries:
             memcpy(v._values + i*T._length, T._values, sizeof(double)*T._length)
         return v
 
+    def linear_filter(self, M):
+        acvs = [self.autocovariance(i) for i in range(M+1)]
+        return linear_filter(acvs)
+
+    def linear_forecast(self, filter):
+        cdef TimeSeries filt
+        if isinstance(filter, TimeSeries):
+            filt = filter
+        else:
+            filt = TimeSeries(filter)
+
+        cdef double f = 0
+        cdef Py_ssize_t i
+        for i from 0 <= i < min(self._length, filt._length):
+            f += self._values[self._length - i - 1] * filt._values[i]
+        return f
+
+    def reversed(self):
+        """
+        Return new time series obtain from this time series by
+        reversing the order of the entries in this time series.
+
+        OUTPUT:
+            time series
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1..5])
+            sage: v.reversed()
+            [5.0000, 4.0000, 3.0000, 2.0000, 1.0000]
+        """
+        cdef Py_ssize_t i, n = self._length-1
+        cdef TimeSeries t = new_time_series(self._length)
+
+        for i from 0 <= i < self._length:
+            t._values[i] = self._values[n - i]
+        return t
+
     def extend(self, right):
         """
         Extend this time series by appending elements from the iterable right.
@@ -579,13 +652,17 @@ cdef class TimeSeries:
             t._values[i] = self._values[i] if self._values[i] >= 0 else -self._values[i]
         return t
 
-    def diffs(self):
+    def diffs(self, Py_ssize_t k = 1):
         """
         Return the new time series got by taking the differences of
         successive terms in the time series.  So if self is the time
         series $X_0, X_1, X_2, ...$, then this function outputs the
         series $X_1 - X_0, X_2 - X_1, ...$.  The output series has one
-        less term than the input series.
+        less term than the input series.  If the optional parameter
+        $k$ is given, return $X_k - X_0, X_{2k} - X_k, ...$.
+
+        INPUT:
+            k -- positive integer (default: 1)
 
         OUTPUT:
             a new time series.
@@ -596,6 +673,8 @@ cdef class TimeSeries:
             sage: v.diffs()
             [-1.0000, -2.7000, 0.7000, 6.0000]
         """
+        if k != 1:
+            return self.scale_time(k).diffs()
         cdef Py_ssize_t i
         cdef TimeSeries t = new_time_series(self._length - 1)
         for i from 1 <= i < self._length:
@@ -626,6 +705,12 @@ cdef class TimeSeries:
             sage: v.scale_time(10)
             []
 
+        A series of odd length:
+            sage: v = finance.TimeSeries([1..5]); v
+            [1.0000, 2.0000, 3.0000, 4.0000, 5.0000]
+            sage: v.scale_time(2)
+            [1.0000, 3.0000, 5.0000]
+
         TESTS:
             sage: v.scale_time(0)
             Traceback (most recent call last):
@@ -639,9 +724,12 @@ cdef class TimeSeries:
         if k <= 0:
             raise ValueError, "k must be positive"
 
-        cdef Py_ssize_t i
-        cdef TimeSeries t = new_time_series(self._length / k)  # in C / is floor division.
-        for i from 0 <= i < self._length/k:
+        cdef Py_ssize_t i, n
+        n = self._length/k
+        if self._length % 2:
+            n += 1
+        cdef TimeSeries t = new_time_series(n)  # in C / is floor division.
+        for i from 0 <= i < n:
             t._values[i] = self._values[i*k]
         return t
 
@@ -739,6 +827,8 @@ cdef class TimeSeries:
 
         return v
 
+    def show(self, *args, **kwds):
+        return self.plot(*args, **kwds)
 
     def plot(self, Py_ssize_t plot_points=1000, points=False, **kwds):
         """
@@ -772,7 +862,7 @@ cdef class TimeSeries:
             s = self._length/plot_points
             if plot_points <= 0:
                 raise ValueError, "plot_points must be a positive integer"
-            v = self.scale_time(s).list()
+            v = self.scale_time(s).list()[:plot_points]
         else:
             s = 1
             v = self.list()
@@ -951,10 +1041,21 @@ cdef class TimeSeries:
         """
         return self.sum() / self._length
 
-    def power(self, double k):
+    def pow(self, double k):
         """
         Return new time series with every elements of self raised to the
         kth power.
+
+        INPUT:
+            k -- float
+        OUTPUT:
+            time series
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,1,1,2,3]); v
+            [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]
+            sage: v.pow(2)
+            [1.0000, 1.0000, 1.0000, 4.0000, 9.0000]
         """
         cdef Py_ssize_t i
         cdef TimeSeries t = new_time_series(self._length)
@@ -979,7 +1080,7 @@ cdef class TimeSeries:
             sage: v.moment(1)
             1.6000000000000001
             sage: v.moment(2)
-            ?
+            3.2000000000000002
         """
         if k <= 0:
             raise ValueError, "k must be positive"
@@ -1011,6 +1112,147 @@ cdef class TimeSeries:
         # We could make this slightly faster by doing the add scalar
         # and moment calculation together.  But that would be nasty.
         return self.add_scalar(-mu).moment(k)
+
+    def covariance(self, TimeSeries other):
+        r"""
+        Return the covariance of the time series self and other.
+
+        INPUT:
+            self, other -- time series
+
+        Whichever time series has more terms is truncated.
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,-2,3]); w = finance.TimeSeries([4,5,-10])
+            sage: v.covariance(w)
+            -11.777777777777779
+        """
+        cdef double mu = self.mean(), mu2 = other.mean()
+        cdef double s = 0
+        cdef Py_ssize_t i
+        cdef Py_ssize_t n = min(self._length, other._length)
+        for i from 0 <= i < n:
+            s += (self._values[i] - mu)*(other._values[i] - mu2)
+        return s / n
+        # NOTE: There is also a formula
+        #       self._values[i]*other._values[i] - mu*mu2
+        # but that seems less numerically stable (?), and when tested
+        # was not noticeably faster.
+
+    def autocovariance(self, Py_ssize_t k=0):
+        r"""
+        Return the k-th autocovariance function $\gamma(k)$ of self.
+        This is the covariance of self with self shifted by $k$, i.e.,
+        $$
+        ( \sum_{t=0}^{n-k-1} (x_t - \mu)(x_{t + k} - \mu) ) / n,
+        $$
+        where $n$ is the length of self.
+
+        Note the denominator of $n$, which gives a "better" sample
+        estimatator.
+
+        INPUT:
+            k -- a nonnegative integer (default: 0)
+
+        OUTPUT:
+            float
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([13,8,15,4,4,12,11,7,14,12])
+            sage: v.autocovariance(0)
+            14.4
+            sage: mu = v.mean(); sum([(a-mu)^2 for a in v])/len(v)
+            14.4
+            sage: v.autocovariance(1)
+            -2.7000000000000002
+            sage: mu = v.mean(); sum([(v[i]-mu)*(v[i+1]-mu) for i in range(len(v)-1)])/len(v)
+            -2.7000000000000002
+            sage: v.autocovariance(1)
+            -2.7000000000000002
+
+        We illustrate with a random sample that an independently and
+        identically distributed distribution with zero mean and
+        variance $\sigma^2$ has autocovariance function $\gamma(h)$
+        with $\gamma(0) = \sigma^2$ and $\gamma(h) = 0$ for $h\neq 0$.
+            sage: set_random_seed(0)
+            sage: v = finance.TimeSeries(10^6)
+            sage: v.randomize('normal', 0, 5)
+            [3.3835, -2.0055, 1.7882, -2.9319, -4.6827 ... -5.1868, 9.2613, 0.9274, -6.2282, -8.7652]
+            sage: v.autocovariance(0)
+            24.954106897195892
+            sage: v.autocovariance(1)
+            -0.0050839047886276651
+            sage: v.autocovariance(2)
+            0.022056325329509487
+            sage: v.autocovariance(3)
+            -0.019020003743134766
+        """
+        cdef double mu = self.mean()
+        cdef double s = 0
+        cdef Py_ssize_t i
+        cdef Py_ssize_t n = self._length - k
+        for i from 0 <= i < n:
+            s += (self._values[i] - mu)*(self._values[i+k] - mu)
+        return s / self._length
+
+    def correlation(self, TimeSeries other):
+        """
+        Return the correlation of self and other, which is the
+        covariance of self and other divided by the product of their
+        standard deviation.
+
+        INPUT:
+            self, other -- time series
+
+        Whichever time series has more terms is truncated.
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,-2,3]); w = finance.TimeSeries([4,5,-10])
+            sage: v.correlation(w)
+            -0.55804160922502144
+            sage: v.covariance(w)/(v.standard_deviation() * w.standard_deviation())
+            -0.55804160922502144
+        """
+        return self.covariance(other) / (self.standard_deviation() * other.standard_deviation())
+
+    def autocorrelation(self, Py_ssize_t k=1):
+        r"""
+        Return the $k$th sample autocorrelation of this time series
+        $x_i$.
+
+        Let $\mu$ be the sample mean.  Then the sample autocorrelation
+        function is
+           $$
+              \frac{\sum_{t=0}^{n-k-1} (x_t - \mu)(x_{t+k} - \mu) }
+                   {\sum_{t=0}^{n-1}   (x_t - \mu)^2}
+           $$
+
+        Note that the variance must be nonzero or you will get a
+        ZeroDivisionError.
+
+        INPUT:
+            k -- a nonnegative integer (default: 1)
+
+        OUTPUT:
+            Time series
+
+        EXAMPLE:
+            sage: v = finance.TimeSeries([13,8,15,4,4,12,11,7,14,12])
+            sage: v.autocorrelation()
+            -0.1875
+            sage: v.autocorrelation(1)
+            -0.1875
+            sage: v.autocorrelation(0)
+            1.0
+            sage: v.autocorrelation(2)
+            -0.20138888888888887
+            sage: v.autocorrelation(3)
+            0.18055555555555555
+
+            sage: finance.TimeSeries([1..1000]).autocorrelation()
+            0.997
+        """
+        return self.autocovariance(k) / self.variance(bias=True)
 
     def variance(self, bias=False):
         """
@@ -1223,10 +1465,7 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries([5,4,1.3,2,8,10,3,-5]); v
             [5.0000, 4.0000, 1.3000, 2.0000, 8.0000, 10.0000, 3.0000, -5.0000]
             sage: v.histogram(3)
-            ([1, 5, 2],
-             [(-5.0, 0.00033333333333285253),
-              (0.00033333333333285253, 5.0006666666666657),
-              (5.0006666666666657, 10.000999999999998)])
+            ([1, 4, 3], [(-5.0, 0.0), (0.0, 5.0), (5.0, 10.0)])
         """
         if bins <= 0:
             raise ValueError, "bins must be positive"
@@ -1297,25 +1536,61 @@ cdef class TimeSeries:
             s.ymax(max(counts))
         return s
 
-    def numpy(self):
+    def numpy(self, copy=True):
         """
-        Return numpy 1-d array corresponding to this time series.
+        Return version of this time series in numpy.
+
+        NOTE: If copy is False, return a numpy 1d array reference to
+        exactly the same block of memory as this time series.  This is
+        very very fast, and makes it easy to quickly use all
+        numpy/scipy functionality on self.  However, it is dangerous
+        because when this time series goes out of scope and is garbage
+        collected, the corresponding numpy reference object will point
+        to garbage.
+
+        INPUT:
+            copy -- bool (default: True)
 
         OUTPUT:
             a numpy 1-d array
 
         EXAMPLES:
             sage: v = finance.TimeSeries([1,-3,4.5,-2])
-            sage: v.numpy()
+            sage: w = v.numpy(copy=False); w
             array([ 1. , -3. ,  4.5, -2. ])
+            sage: type(w)
+            <type 'numpy.ndarray'>
+            sage: w.shape
+            (4,)
+
+        Notice that changing w also changes v too!
+            sage: w[0] = 20
+            sage: w
+            array([ 20. ,  -3. ,   4.5,  -2. ])
+            sage: v
+            [20.0000, -3.0000, 4.5000, -2.0000]
+
+        If you want a separate copy do not give the copy=False option.
+            sage: z = v.numpy(); z
+            array([ 20. ,  -3. ,   4.5,  -2. ])
+            sage: z[0] = -10
+            sage: v
+            [20.0000, -3.0000, 4.5000, -2.0000]
         """
-        import numpy
-        #TODO: make this faster by accessing raw memory?
-        return numpy.array(self.list(), dtype=float)
+        import_array() #This must be called before using the numpy C/api or you will get segfault
+        cdef int dims[1]
+        dims[0] = self._length
+        cdef ndarray n = PyArray_FromDimsAndData(1, dims, 12, self._values)
+        if copy:
+            return n.copy()
+        else:
+            return n
 
     def randomize(self, distribution='uniform', loc=0, scale=1, **kwds):
         """
-        Randomize the entries in this time series.
+        Randomize the entries in this time series, and return a reference
+        to self.  Thus this function both changes self in place, and returns
+        a copy of self, for convenience.
 
         INPUT:
             distribution -- 'uniform':    from loc to loc + scale
@@ -1324,11 +1599,60 @@ cdef class TimeSeries:
             loc   -- float (default: 0)
             scale -- float (default: 1)
 
-        NOTE: All random numbers are generated using the high quality
-        GMP random number function gmp_urandomb_ui.  This respects the
-        Sage set_random_state command.  It's not quite as fast at the
-        C library random number generator, but is better quality, and
-        is platform independent.
+        NOTE: All random numbers are generated using algorithms that
+        build on the high quality GMP random number function
+        gmp_urandomb_ui.  Thus this function fully respects the Sage
+        set_random_state command.  It's not quite as fast at the C
+        library random number generator, but is of course much better
+        quality, and is platform independent.
+
+        EXAMPLES:
+        We generate 5 uniform random numbers in the interval [0,1]:
+            sage: set_random_seed(0)
+            sage: finance.TimeSeries(5).randomize()
+            [0.8685, 0.2816, 0.0229, 0.1456, 0.7314]
+
+        We generate 5 uniform random numbers from 5 to 5+2=7:
+            sage: set_random_seed(0)
+            sage: finance.TimeSeries(10).randomize('uniform', 5, 2)
+            [6.7369, 5.5632, 5.0459, 5.2911, 6.4628, 5.2412, 5.2010, 5.2761, 5.5813, 5.5439]
+
+        We generate 5 normal random values with mean 0 and variance 1.
+            sage: set_random_seed(0)
+            sage: finance.TimeSeries(5).randomize('normal')
+            [0.6767, -0.4011, 0.3576, -0.5864, -0.9365]
+
+        We generate 10 normal random values with mean 5 and variance 2.
+            sage: set_random_seed(0)
+            sage: finance.TimeSeries(10).randomize('normal', 5, 2)
+            [6.3534, 4.1978, 5.7153, 3.8273, 3.1269, 2.9598, 3.7484, 6.7472, 3.8986, 4.6271]
+
+        We generate 5 values using the semicircle distribution.
+            sage: set_random_seed(0)
+            sage: finance.TimeSeries(5).randomize('semicircle')
+            [0.7369, -0.9541, 0.4628, -0.7990, -0.4187]
+
+        We generate 1 million normal random values and create a frequency histogram.
+            sage: set_random_seed(0)
+            sage: a = finance.TimeSeries(10^6).randomize('normal')
+            sage: a.histogram(10)[0]
+            [36, 1148, 19604, 130699, 340054, 347870, 137953, 21290, 1311, 35]
+
+        We take the above values, and compute the proportion that lie within
+        1, 2, 3, 5, and 6 standard deviations of the mean (0):
+            sage: s = a.standard_deviation()
+            sage: len(a.clip(-s,s))/float(len(a))
+            0.68309399999999998
+            sage: len(a.clip(-2*s,2*s))/float(len(a))
+            0.95455900000000005
+            sage: len(a.clip(-3*s,3*s))/float(len(a))
+            0.997228
+            sage: len(a.clip(-5*s,5*s))/float(len(a))
+            0.99999800000000005
+
+        There were no "six sigma events":
+            sage: len(a.clip(-6*s,6*s))/float(len(a))
+            1.0
         """
         if distribution == 'uniform':
             self._randomize_uniform(loc, loc + scale)
@@ -1338,6 +1662,7 @@ cdef class TimeSeries:
             self._randomize_semicircle(loc)
         else:
             raise NotImplementedError
+        return self
 
     def _randomize_uniform(self, double left, double right):
         if left >= right:
@@ -1391,6 +1716,92 @@ cdef class TimeSeries:
                     break
             self._values[k] = x + center
 
+
+    def fft(self, bint overwrite=False):
+        """
+        Return the real discrete fast fourier transform of self, as a
+        real time series:
+
+          [y(0),Re(y(1)),Im(y(1)),...,Re(y(n/2))]              if n is even
+
+          [y(0),Re(y(1)),Im(y(1)),...,Re(y(n/2)),Im(y(n/2))]   if n is odd
+
+        where
+
+          y(j) = sum[k=0..n-1] x[k] * exp(-sqrt(-1)*j*k* 2*pi/n)
+
+        for j = 0..n-1.  Note that y(-j) = y(n-j).
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1..9]); v
+            [1.0000, 2.0000, 3.0000, 4.0000, 5.0000, 6.0000, 7.0000, 8.0000, 9.0000]
+            sage: w = v.fft(); w
+            [45.0000, -4.5000, 12.3636, -4.5000, 5.3629, -4.5000, 2.5981, -4.5000, 0.7935]
+
+        We get just the series of real parts of
+            sage: finance.TimeSeries([w[0]]) + w[1:].scale_time(2)
+            [45.0000, -4.5000, -4.5000, -4.5000, -4.5000]
+
+        An example with an even number of terms.
+            sage: v = finance.TimeSeries([1..10]); v
+            [1.0000, 2.0000, 3.0000, 4.0000, 5.0000, 6.0000, 7.0000, 8.0000, 9.0000, 10.0000]
+            sage: w = v.fft(); w
+            [55.0000, -5.0000, 15.3884, -5.0000, 6.8819, -5.0000, 3.6327, -5.0000, 1.6246, -5.0000]
+            sage: v.fft().ifft()
+            [1.0000, 2.0000, 3.0000, 4.0000, 5.0000, 6.0000, 7.0000, 8.0000, 9.0000, 10.0000]
+        """
+        import scipy.fftpack
+        if overwrite:
+            y = self
+        else:
+            y = self.__copy__()
+        w = y.numpy(copy=False)
+        scipy.fftpack.rfft(w, overwrite_x=1)
+        return y
+
+    def ifft(self, bint overwrite=False):
+        """
+        Return the real discrete inverse fast fourier transform of
+        self, which is also a real time series.
+
+        This is the inverse of fft().
+
+        The returned real array contains
+
+                         [y(0),y(1),...,y(n-1)]
+
+        where for n is even
+
+          y(j) = 1/n (sum[k=1..n/2-1] (x[2*k-1]+sqrt(-1)*x[2*k])
+                                       * exp(sqrt(-1)*j*k* 2*pi/n)
+                      + c.c. + x[0] + (-1)**(j) x[n-1])
+
+        and for n is odd
+
+          y(j) = 1/n (sum[k=1..(n-1)/2] (x[2*k-1]+sqrt(-1)*x[2*k])
+                                       * exp(sqrt(-1)*j*k* 2*pi/n)
+                      + c.c. + x[0])
+
+        c.c. denotes complex conjugate of preceeding expression.
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1..10]); v
+            [1.0000, 2.0000, 3.0000, 4.0000, 5.0000, 6.0000, 7.0000, 8.0000, 9.0000, 10.0000]
+            sage: v.ifft()
+            [5.1000, -5.6876, 1.4764, -1.0774, 0.4249, -0.1000, -0.2249, 0.6663, -1.2764, 1.6988]
+            sage: v.ifft().fft()
+            [1.0000, 2.0000, 3.0000, 4.0000, 5.0000, 6.0000, 7.0000, 8.0000, 9.0000, 10.0000]
+        """
+        import scipy.fftpack
+        if overwrite:
+            y = self
+        else:
+            y = self.__copy__()
+        w = y.numpy(copy=False)
+        scipy.fftpack.irfft(w, overwrite_x=1)
+        return y
+
+
 cdef new_time_series(Py_ssize_t length):
     """
     Return a new uninitialized time series of the given length.
@@ -1438,3 +1849,120 @@ def unpickle_time_series_v1(v, Py_ssize_t n):
     memcpy(t._values, PyString_AsString(v), n*sizeof(double))
     return t
 
+
+
+
+def linear_filter(acvs):
+    """
+    Create a linear filter with given autococvariance sequence.
+
+    EXAMPLES:
+
+    In this example we consider the multifractal cascade random walk
+    of length 1000, and use simultations to estimate the
+    expected first few autocovariance parameters for this model, then
+    use them to construct a linear filter that works vastly better
+    than a linear filter constructed from the same data but not using
+    this model. The Monte-Carlo method illustrated below should work for
+    predicting one "time step" into the future for any
+    model that can be simultated.  To predict k time steps into the
+    future would require using a similar technique but would require
+    scaling time by k.
+
+    We create 100 simultations ofa multifractal random walk.  This
+    models the logarithms of a stock price sequence.
+        sage: set_random_seed(0)
+        sage: y = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,1000,100)
+
+    For each walk below we replace the walk by the walk but where each
+    step size is replaced by its absolute value -- this is what we
+    expect to be able to predict given the model, which is only a
+    model for predicting volatility.  We compute the first 200
+    autocovariance values for every random walk:
+        sage: c = [[a.diffs().abs().sums().autocovariance(i) for a in y] for i in range(200)]
+
+    We make a time series out of the expected values of the
+    autocovariances:
+        sage: ac = finance.TimeSeries([finance.TimeSeries(z).mean() for z in c])
+        sage: ac
+        [3.9962, 3.9842, 3.9722, 3.9601, 3.9481 ... 1.7144, 1.7033, 1.6922, 1.6812, 1.6701]
+
+    Note: ac looks like a line -- one could best fit it to yield a lot
+    more approximate autocovariances.
+
+    We compute the linear filter given by the above autocovariances:
+        sage: F = finance.linear_filter(ac); F
+        [0.9982, -0.0002, -0.0002, 0.0003, 0.0001 ... 0.0002, -0.0002, -0.0000, -0.0002, -0.0014]
+
+    Note that the sum is close to 1.
+        sage: sum(F)
+        0.99593284089454...
+
+    Now we make up an 'out of sample' sequence:
+        sage: y2 = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,1000,1)[0].diffs().abs().sums()
+        sage: y2
+        [0.0013, 0.0059, 0.0066, 0.0068, 0.0184 ... 6.8004, 6.8009, 6.8063, 6.8090, 6.8339]
+
+    And we forecast the very last value using our linear filter; the forecast is close:
+        sage: y2[:-1].linear_forecast(F)
+        6.7836741372407...
+
+    In fact it is closer than we would get by forecasting using a
+    linear filter made from all the autocovariances of our sequence:
+        sage: y2[:-1].linear_forecast(y2[:-1].linear_filter(len(y2)))
+        6.7701687056683...
+
+    We record the last 20 forecasts, always using all correct values up to the
+    one we are forecasting:
+        sage: s1 = sum([(y2[:-i].linear_forecast(F)-y2[-i])^2 for i in range(1,20)])
+
+    We do the same, but using the autocovariances of the sample sequence:
+        sage: F2 = y2[:-100].linear_filter(len(F))
+        sage: s2 = sum([(y2[:-i].linear_forecast(F2)-y2[-i])^2 for i in range(1,20)])
+
+    Our model gives us something that is 15 percent better in this case:
+        sage: s2/s1
+        1.154646361026...
+
+    How does it compare overall?  To find out we do 100 simulations
+    and for each we compute the percent that our model beats naively
+    using the autocovariances of the sample:
+        sage: y_out = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,1000,100)
+        sage: s1 = []; s2 = []
+        sage: for v in y_out:
+        ...       s1.append(sum([(v[:-i].linear_forecast(F)-v[-i])^2 for i in range(1,20)]))
+        ...       F2 = v[:-len(F)].linear_filter(len(F))
+        ...       s2.append(sum([(v[:-i].linear_forecast(F2)-v[-i])^2 for i in range(1,20)]))
+        ...
+
+    We find that overall the model beats naive linear forecasting by 35 percent!
+        sage: s = finance.TimeSeries([s2[i]/s1[i] for i in range(len(s1))])
+        sage: s.mean()
+        1.354073591877...
+    """
+    cdef TimeSeries c
+    cdef Py_ssize_t i
+
+    M = len(acvs)-1
+
+    if M <= 0:
+        raise ValueError, "M must be positive"
+
+    if not isinstance(acvs, TimeSeries):
+        c = TimeSeries(acvs)
+    else:
+        c = acvs
+
+    # Also create the numpy vector v with entries c(1), ..., c(M).
+    v = c[1:].numpy()
+
+    # 2. Create the autocovariances numpy 2d array A whose i,j entry
+    # is c(|i-j|).
+    import numpy
+    A = numpy.array([[c[abs(j-k)] for j in range(M)] for k in range(M)])
+
+    # 3. Solve the equation A * x = v
+    x = numpy.linalg.solve(A, v)
+
+    # 4. The entries of x give the linear filter coefficients.
+    return TimeSeries(x)

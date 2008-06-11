@@ -475,11 +475,13 @@ symmetrica = Extension('sage.libs.symmetrica.symmetrica',
                        include_dirs=debian_include_dirs + ['/usr/include/malloc/'],
                        libraries = ["symmetrica"])
 
-time_series = Extension('sage.finance.time_series',['sage/finance/time_series.pyx'])
+time_series = Extension('sage.finance.time_series',['sage/finance/time_series.pyx'],
+                        include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 markov_multifractal = Extension('sage.finance.markov_multifractal_cython',
                                 ['sage/finance/markov_multifractal_cython.pyx'])
 
+finance_fractal = Extension('sage.finance.fractal', ['sage/finance/fractal.pyx'])
 
 #####################################################
 
@@ -596,6 +598,7 @@ ext_modules = [ \
     time_series,
 
     markov_multifractal,
+    finance_fractal,
 
     Extension('sage.media.channels',
               sources = ['sage/media/channels.pyx']), \

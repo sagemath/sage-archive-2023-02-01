@@ -113,7 +113,7 @@ CXXSOURCES=clapconv.cc \
     prCopy.cc p_Mult_q.cc \
     pDebug.cc pInline2.cc pInline1.cc pInline0.cc \
     pShallowCopyDelete.cc fast_mult.cc digitech.cc\
-    tgb.cc tgbgauss.cc ringgb.cc ratgring.cc shiftgb.cc
+    tgb.cc tgbgauss.cc ringgb.cc f5gb.cc ratgring.cc shiftgb.cc
 
 # normal C source files
 CSOURCES=weight0.c fegetopt.c fereadl.c dError.c mmstd.c

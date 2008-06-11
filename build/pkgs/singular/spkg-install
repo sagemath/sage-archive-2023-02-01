@@ -54,12 +54,7 @@ patch()
 {
     # work-around patches
     cp patches/assert.h src/factory/
-    cp patches/cf_gcd_charp.cc src/factory/
-    cp patches/readcf.y src/factory/
-    cp patches/readcf.cc src/factory/
     cp patches/kernel.Makefile.in src/kernel/Makefile.in
-    cp patches/libfac.factor.Factor.cc src/libfac/factor/Factor.cc
-    cp patches/libfac.factor.SqrFree.cc src/libfac/factor/SqrFree.cc
 }
 
 distclean()

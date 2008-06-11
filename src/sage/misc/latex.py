@@ -566,6 +566,23 @@ def repr_lincomb(symbols, coeffs):
     return s
 
 
+def print_or_typeset(object):
+    """
+    'view' or 'print' the object depending on the situation.
+
+    In particular, if in notebook mode with the typeset box checked,
+    view the object.  Otherwise, print the object.
+
+    INPUT:
+        object: anything
+    """
+    import sys
+    if EMBEDDED_MODE and sys.displayhook == pretty_print:
+        view(object)
+    else:
+        print(object)
+
+
 def pretty_print (object):
     """
     Try to pretty print the object in an intelligent way.  For many

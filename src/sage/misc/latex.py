@@ -575,6 +575,17 @@ def print_or_typeset(object):
 
     INPUT:
         object: anything
+
+    EXAMPLES:
+        sage: sage.misc.latex.print_or_typeset(3)
+        3
+        sage: sage.misc.latex.EMBEDDED_MODE=True
+        sage: sage.misc.latex.print_or_typeset(3)
+        3
+        sage: sys.displayhook = sage.misc.latex.pretty_print
+        sage: sage.misc.latex.print_or_typeset(3)
+        <html><span class="math">3</span></html>
+        sage: sage.misc.latex.EMBEDDED_MODE=False
     """
     import sys
     if EMBEDDED_MODE and sys.displayhook == pretty_print:

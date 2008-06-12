@@ -1839,7 +1839,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                     gb = self._groebner_basis_using_singular("groebner", *args, **kwds)
                 except TypeError: # conversion to Singular not supported
                     # we might want to print a warning here
-                    gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
+                    if self.ring().term_order().is_global():
+                        gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
+                    else:
+                        raise TypeError, "Local/unknown orderings not supported by 'toy_buchberger' implementation."
         elif algorithm.startswith('singular:'):
             gb = self._groebner_basis_using_singular(algorithm[9:])
         elif algorithm.startswith('libsingular:'):

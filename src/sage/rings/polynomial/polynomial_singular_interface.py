@@ -163,7 +163,7 @@ class PolynomialRing_singular_repr:
             if self.base_ring() is ZZ or self.base_ring().is_prime_field():
                 return R
             if sage.rings.ring.is_FiniteField(self.base_ring()) or\
-                    number_field.all.is_NumberField(self.base_ring()):
+                    (number_field.all.is_NumberField(self.base_ring()) and self.base_ring().is_absolute()):
                 R.set_ring() #sorry for that, but needed for minpoly
                 if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
                     singular.eval("minpoly=%s"%(self.__minpoly))
@@ -227,7 +227,7 @@ class PolynomialRing_singular_repr:
 
             self.__singular = r
 
-        elif number_field.all.is_NumberField(self.base_ring()):
+        elif number_field.all.is_NumberField(self.base_ring()) and self.base_ring().is_absolute():
             # not the rationals!
             gen = str(self.base_ring().gen())
             poly=self.base_ring().polynomial()

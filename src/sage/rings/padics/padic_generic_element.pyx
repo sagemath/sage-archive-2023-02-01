@@ -22,7 +22,6 @@ include "../../ext/stdsage.pxi"
 
 import sys
 
-from __future__ import with_statement
 cimport sage.rings.padics.local_generic_element
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
 from sage.rings.rational cimport Rational

@@ -2692,7 +2692,7 @@ class GenericGraph(SageObject):
             u, v -- the vertices (and direction if digraph) of the edge
             l -- the new label
 
-        EXAMPLE:
+        EXAMPLES:
             sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
             sage: SD.set_edge_label(1, 18, 'discrete')
             sage: SD.set_edge_label(4, 7, 'discrete')
@@ -2729,6 +2729,18 @@ class GenericGraph(SageObject):
             Traceback (most recent call last):
             ...
             RuntimeError: Cannot set edge label, since there are multiple edges from 0 to 0.
+
+            sage: dg = DiGraph({0 : [1], 1 : [0]})
+            sage: dg.set_edge_label(0,1,5)
+            sage: dg.set_edge_label(1,0,9)
+            sage: dg.outgoing_edges(1)
+            [(1, 0, 9)]
+            sage: dg.incoming_edges(1)
+            [(0, 1, 5)]
+            sage: dg.outgoing_edges(0)
+            [(0, 1, 5)]
+            sage: dg.incoming_edges(0)
+            [(1, 0, 9)]
 
         """
         self._backend.set_edge_label(u, v, l, self._directed)

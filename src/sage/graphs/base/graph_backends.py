@@ -215,13 +215,15 @@ class NetworkXGraphBackend(GenericGraphBackend):
             if len(self.get_edge_label(u, v)) > 1:
                 raise RuntimeError("Cannot set edge label, since there are multiple edges from %s to %s."%(u,v))
             if directed:
-                self._nxg.adj[u][v] = [l]
+                self._nxg.succ[u][v] = [l]
+                self._nxg.pred[v][u] = [l]
             else:
                 self._nxg.adj[u][v] = [l]
                 self._nxg.adj[v][u] = [l]
         else:
             if directed:
-                self._nxg.adj[u][v] = l
+                self._nxg.succ[u][v] = l
+                self._nxg.pred[v][u] = l
             else:
                 self._nxg.adj[u][v] = l
                 self._nxg.adj[v][u] = l

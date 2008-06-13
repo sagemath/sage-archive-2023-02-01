@@ -53,7 +53,7 @@ class MarkovSwitchingMultifractal:
 
         EXAMPLES:
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
-            sage: msm.__cmp__(3)
+            sage: msm.__cmp__(3) # random - depends on memory layout
             -1
             sage: msm.__cmp__(msm)
             0

@@ -26,7 +26,7 @@ EXAMPLES:
     sage: t.mean()
     -0.089334255069294391
     sage: t.variance()
-    0.11376884939725425
+    0.1137688493972542...
 
 AUTHOR:
     -- William Stein

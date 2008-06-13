@@ -14,8 +14,9 @@ Start the notebook:
     sage: port = find_next_available_port(9000, verbose=False)
     sage: from sage.server.notebook.notebook_object import test_notebook
     sage: passwd = str(randint(1,1<<128))
-    sage: nb = test_notebook(passwd, secure=False, address='localhost', port=port) #doctest: +ELLIPSIS
+    sage: nb = test_notebook(passwd, secure=False, address='localhost', port=port, verbose=True) #doctest: +ELLIPSIS
     ...
+    Notebook started.
 
 Import urllib:
     sage: import urllib, re

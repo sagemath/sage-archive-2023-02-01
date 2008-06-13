@@ -659,6 +659,33 @@ class CrystalElement(Element):
         """
 	return sum(self.phi(i) * self._parent.Lambda()[i-1] for i in self.index_set())
 
+    def s(self, i):
+	r"""
+	Returns the reflection of self along its $i$-string
+
+	EXAMPLES:
+	    sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
+	    sage: b=C(rows=[[1,1],[3]])
+	    sage: b.s(1)
+	    [[2, 2], [3]]
+	    sage: b=C(rows=[[1,2],[3]])
+	    sage: b.s(2)
+	    [[1, 2], [3]]
+	    sage: T=CrystalOfTableaux(['A',2],shape=[4])
+	    sage: t=T(rows=[[1,2,2,2]])
+	    sage: t.s(1)
+	    [[1, 1, 1, 2]]
+	"""
+        d = self.phi(i)-self.epsilon(i)
+	b = self
+	if d > 0:
+	    for j in range(d):
+		b = b.f(i)
+    	else:
+	    for j in range(-d):
+		b = b.e(i)
+	return b
+
     def is_highest_weight(self):
 	r"""
         Returns True if self is a highest weight.

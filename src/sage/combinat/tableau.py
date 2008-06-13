@@ -879,6 +879,59 @@ class Tableau_class(CombinatorialObject):
 
         return sage.combinat.skew_tableau.SkewTableau(st).rectify()
 
+    def promotion_inverse(self, n):
+	"""
+	Inverse promotion operator defined on rectangular tableaux using jeu de taquin
+
+	EXAMPLES:
+	    sage: t = Tableau([[1,2],[3,3]])
+	    sage: t.promotion_inverse(2)
+	    [[1, 2], [2, 3]]
+	    sage: t = Tableau([[1,2],[2,3]])
+	    sage: t.promotion_inverse(2)
+	    [[1, 1], [2, 3]]
+	"""
+	if not self.is_rectangular():
+	    raise ValueError, "Tableau is not rectangular"
+	s = self.shape()[0]
+	l = self.weight()[0]
+	word = [i for i in self.to_word() if i>1]
+	word = [i-1 for i in word]
+	t = Tableau([])
+	t = t.insert_word(word)
+	t = t.to_list()
+	if l<s:
+	    for i in range(l):
+		t[len(t)-1].append(n+1)
+	else:
+	    t.append([n+1 for i in range(s)])
+	return Tableau(t)
+
+    def promotion(self, n):
+	"""
+	Promotion operator defined on rectangular tableaux using jeu de taquin
+
+	EXAMPLES:
+	    sage: t = Tableau([[1,2],[3,3]])
+	    sage: t.promotion(2)
+	    [[1, 1], [2, 3]]
+	    sage: t = Tableau([[1,1,1],[2,2,3],[3,4,4]])
+	    sage: t.promotion(3)
+	    [[1, 1, 2], [2, 2, 3], [3, 4, 4]]
+	    sage: t = Tableau([[1,2],[2]])
+	    sage: t.promotion(3)
+	    Traceback (most recent call last):
+	    ...
+	    ValueError: Tableau is not rectangular
+	"""
+	if not self.is_rectangular():
+	    raise ValueError, "Tableau is not rectangular"
+	t = self.rotate_180()
+	t = [[n+2-i for i in row] for row in t.to_list()]
+	t = Tableau(t).promotion_inverse(n)
+	t = [[n+2-i for i in row] for row in t.to_list()]
+	return Tableau(t).rotate_180()
+
 
     def row_stabilizer(self):
         """

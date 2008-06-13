@@ -108,8 +108,7 @@ cdef class TimeSeries:
         EXAMPLES:
             sage: v = finance.TimeSeries([1,-3.5])
             sage: v.__reduce__()
-            (<built-in function unpickle_time_series_v1>,
-             ('\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\x0c\xc0', 2))
+            (<built-in function unpickle_time_series_v1>, ...)
             sage: loads(dumps(v)) == v
             True
 
@@ -1149,8 +1148,7 @@ def unpickle_time_series_v1(v, Py_ssize_t n):
 
     EXAMPLES:
         sage: v = finance.TimeSeries([1,2,3])
-        sage: s = v.__reduce__()[1][0]; s
-        '\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x08@'
+        sage: s = v.__reduce__()[1][0]
         sage: type(s)
         <type 'str'>
         sage: sage.finance.time_series.unpickle_time_series_v1(s,3)

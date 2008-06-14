@@ -1,0 +1,17 @@
+#!/bin/sh
+# Build and install.
+
+cd src/
+python setup.py build
+
+if [ $? -ne 0 ]; then
+    echo "Failure to build sage-mode.el"
+    exit 1
+fi
+
+python setup.py install
+
+if [ $? -ne 0 ]; then
+    echo "Failure to install sage-mode.el"
+    exit 1
+fi

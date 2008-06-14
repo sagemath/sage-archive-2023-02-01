@@ -24,9 +24,10 @@ LGPL V2 or later
 
 == Changelog ==
 
-=== linbox-1.1.6 (Clement Pernet, June 5th, 2008) ===
+=== linbox-1.1.6 (Clement Pernet, June 14th, 2008) ===
  * Upstream 1.1.6 linbox version
  * merge former linbox_wrap in linbox/interface
+ * no more gmp++ in LinBox
  * several bug fixes
 
 === linbox-1.1.5.p6 (Michael Abshoff, May 18th, 2008) ===

@@ -1293,13 +1293,13 @@ code = setup(name        = 'sage',
 
       version     =  SAGE_VERSION,
 
-      description = 'SAGE: System for Algebra and Geometry Experimentation',
+      description = 'Sage: Open Source Mathematics Software',
 
       license     = 'GNU Public License (GPL)',
 
-      author      = 'William Stein',
+      author      = 'William Stein et al.',
 
-      author_email= 'wstein@gmail.com',
+      author_email= 'http://groups.google.com/group/sage-support',
 
       url         = 'http://www.sagemath.org',
 

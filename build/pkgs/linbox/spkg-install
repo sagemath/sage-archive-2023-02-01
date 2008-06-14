@@ -79,7 +79,7 @@ echo "*************************************************"
 echo " Using LINBOX_BLAS=$LINBOX_BLAS"
 echo "*************************************************"
 
-./configure --prefix="$SAGE_LOCAL" --with-givaro="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL"  --with-blas="$LINBOX_BLAS" --enable-sage --enable-optimization
+./configure --prefix="$SAGE_LOCAL" --with-givaro="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL"  --with-blas="$LINBOX_BLAS" --enable-sage --enable-optimization --disable-static
 
 if [ $? -ne 0 ]; then
     echo "Error configuring linbox"

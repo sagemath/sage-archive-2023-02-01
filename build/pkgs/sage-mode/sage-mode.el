@@ -50,7 +50,7 @@
   (setq comint-prompt-regexp inferior-sage-prompt)
   (setq comint-redirect-finished-regexp "sage:") ; comint-prompt-regexp)
 
-  (setq comint-input-sender 'ipython-input-sender)
+  (setq comint-input-sender 'sage-input-sender)
   ;; I type x? a lot
   (set 'comint-input-filter 'sage-input-filter)
 
@@ -95,7 +95,7 @@
   :type 'boolean)
 
 (defvar ipython-input-string-is-magic-regexp
-  "[^*?]\\(\\?\\??\\)\\'"
+  "\\(\\**\\?\\??\\)\\'"
   "Regexp matching IPython magic input.
 
 The first match group is used to dispatch handlers in
@@ -105,13 +105,67 @@ The first match group is used to dispatch handlers in
   "Return non-nil if STRING is IPython magic."
   (string-match ipython-input-string-is-magic-regexp string))
 
-(defvar ipython-input-magic-handlers '(("?"  . ipython-handle-magic-?)
-				       ("??" . ipython-handle-magic-??))
+(defvar ipython-input-magic-handlers '(("**?" . ipython-handle-magic-**?)
+				       ("??"  . ipython-handle-magic-??)
+				       ("?"  . ipython-handle-magic-?))
   "Association list (STRING . FUNCTION) of IPython magic handlers.
 
 Each FUNCTION should take arguments (PROC STRING MATCH) and
 return non-nil if magic input was handled, nil if input should be
 sent normally.")
+
+;; 			  (cons nil (cdr apropos-item)))))
+;; 	  (insert-text-button (symbol-name symbol)
+;; 			      'type 'apropos-symbol
+;; 			      ;; Can't use default, since user may have
+;; 			      ;; changed the variable!
+;; 			      ;; Just say `no' to variables containing faces!
+;; 			      'face apropos-symbol-face)
+
+(define-button-type 'sage-apropos-command
+  'face 'bold
+  'apropos-label "Command:"
+  'help-echo "mouse-2, RET: Display more help on this command"
+  'follow-link t
+  'action (lambda (button)
+	    (ipython-describe-symbol (button-get button 'apropos-symbol))))
+
+(defun sage-apropos-mode ()
+  (interactive)
+  (apropos-mode)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((case-fold-search nil))
+      (while (re-search-forward "^ \\* \\(.*?\\) \\(.*?\\):" nil t)
+	(let ((type (match-string 1))
+	      (name (match-string 2)))
+	  ;; reformat everything
+	  (replace-match "")
+	  (insert
+	   (format "%s\n  " (propertize name 'face 'bold)))
+	  (insert-text-button (format "%s:" type)
+			      'type 'sage-apropos-command
+			      'apropos-label (format "%s:" type)
+			      'face apropos-label-face
+			      'apropos-symbol name)
+	  )))))
+
+(defun sage-apropos (symbol)
+  (interactive "sApropos SAGE command: ")
+  (when (or (null symbol) (equal "" symbol))
+    (error "No command"))
+  (with-output-to-temp-buffer "*sage-apropos*"
+   (with-current-buffer "*sage-apropos*"
+     (python-send-receive-to-buffer (format "apropos('%s')" symbol) "*sage-apropos*")
+     (sage-apropos-mode)
+     (goto-char 0)
+     (insert (format "Sage apropos for %s:\n\n" symbol))
+     t)))
+
+(defun ipython-handle-magic-**? (proc string &optional match)
+  "Handle SAGE apropos **?."
+  (when (string-match "\\(.*?\\)\\*\\*\\?" string)
+    (sage-apropos (match-string 1 string))))
 
 (defun ipython-handle-magic-? (proc string &optional match)
   "Handle IPython magic ?."
@@ -156,6 +210,25 @@ Otherwise, `comint-simple-send' just sends STRING plus a newline."
       (comint-simple-send proc "")
     (comint-simple-send proc string)))	; otherwise, you're sent
 
+;;;_* Make it easy to read long output
+(defun sage-input-sender (proc string)
+  "A `comint-input-sender' that might send output to a buffer."
+  (when (not current-prefix-arg)
+    ;; When not prefixed, send normally
+    (ipython-input-sender proc string))
+  (when current-prefix-arg
+    ;; When prefixed, output to buffer -- modelled after shell-command
+    (let ((output-buffer (get-buffer-create "*Sage Output*")))
+      (save-excursion
+	;; Clear old output -- maybe this is a bad idea?
+	(set-buffer output-buffer)
+	(setq buffer-read-only nil)
+	(erase-buffer))
+      (python-send-receive-to-buffer string output-buffer)
+      (comint-simple-send proc "") ;; Clears input, saves history
+      (if (with-current-buffer output-buffer (> (point-max) (point-min)))
+	  (display-message-or-buffer output-buffer)))))
+
 ;;;_* SAGE process management
 
 (defcustom sage-command (expand-file-name "~/bin/sage")
@@ -164,7 +237,7 @@ Additional arguments are added when the command is used by `run-sage' et al."
   :group 'sage
   :type 'string)
 
-(defcustom sage-startup-command "import sage.misc.sage_emacs as emacs"
+(defcustom sage-startup-command "import sage_emacs as emacs"
   "Run this command each time SAGE slave is executed by `run-sage'."
   :group 'sage
   :type 'string)
@@ -219,7 +292,8 @@ buffer for a list of commands.)"
 	     )))
     (when create-new-sage-p
       (with-current-buffer
-	  (let* ((cmdlist (python-args-to-list cmd))
+	  (let* ((sage-buffer-name (format "*SAGE-%s*" (sage-current-branch)))
+		 (cmdlist (python-args-to-list cmd))
 		 ;; Set PYTHONPATH to import module emacs from emacs.py,
 		 ;; but ensure that a user specified PYTHONPATH will
 		 ;; override our setting, so that emacs.py can be
@@ -230,7 +304,7 @@ buffer for a list of commands.)"
 		 (process-environment
 		  (cons data-path process-environment)))
 	    (apply 'make-comint-in-buffer "SAGE"
-		   (if new (generate-new-buffer "*SAGE*") "*SAGE*")
+		   (if new (generate-new-buffer sage-buffer-name) sage-buffer-name)
 		   (car cmdlist) nil (cdr cmdlist)))
 	;; Show progress
 	(unless noshow (pop-to-buffer (current-buffer)))
@@ -243,8 +317,7 @@ buffer for a list of commands.)"
 	(when (inferior-sage-wait-for-prompt)
 	  ;; Ensure we're at a prompt before loading the functions we use
 	  ;; XXX: add more error-checking?
-	  (sage-send-command sage-startup-command t)
-	  (sage-set-buffer-name)))))
+	  (sage-send-command sage-startup-command t)))))
 
   ;; If we're coming from a sage-mode buffer, update inferior buffer
   (when (derived-mode-p 'sage-mode)
@@ -268,14 +341,33 @@ buffer for a list of commands.)"
     (rename-buffer
      (generate-new-buffer-name (format "*SAGE-%s*" (sage-current-branch))))))
 
-(defun sage-current-branch ()
+(defun sage-root ()
+  "Return SAGE_ROOT."
   (interactive)
+  (let ((lst (split-string (shell-command-to-string (concat sage-command " -root")))))
+    (nth 0 lst)))
+
+(defun sage-current-branch-link ()
+  "Return the current SAGE branch link, i.e., the target of devel/sage."
+  (interactive)
+  (let ((lst (split-string (shell-command-to-string (concat sage-command " -branch")))))
+    (if (= 1 (length lst))
+	(nth 0 lst)
+      "main")))
+
+(defun sage-current-branch ()
   "Return the current SAGE branch name."
-  (save-excursion
-    (save-match-data
-      (point-max)
-      (when (search-backward-regexp "Current Mercurial branch is: \\(.*\\)$")
-	(match-string 1)))))
+  (interactive)
+  (save-match-data
+    (if (and (derived-mode-p 'inferior-sage-mode)
+	     (string-match "\\*SAGE-\\(.*\\)\\*" (buffer-name)))
+	(match-string 1 (buffer-name))
+      (sage-current-branch-link))))
+
+(defun sage-current-devel-root ()
+  (interactive)
+  "Return the current SAGE branch directory."
+  (format "%s/devel/sage-%s" (sage-root) (sage-current-branch)))
 
 ;;;_* SAGE major mode for editing SAGE library code
 
@@ -286,7 +378,25 @@ buffer for a list of commands.)"
   python-mode
   "SAGE"
   "Major mode for editing SAGE files."
+  (set (make-local-variable 'font-lock-multiline) t)
+  (set (make-local-variable 'font-lock-defaults)
+       `(, (cons
+	    (cons "XXX\\(.*\n\\)*?XXX" font-lock-comment-face)
+	    python-font-lock-keywords)
+	 nil nil nil nil
+	 (font-lock-syntactic-keywords . python-font-lock-syntactic-keywords)
+	 ))
 )
+
+(defun sage-font-lock ()
+  "Install Sage font-lock patterns."
+  (interactive)
+  ;; (font-lock-add-keywords 'sage-mode python-font-lock-keywords 'set) ;; XXX
+;;   (font-lock-add-keywords 'sage-mode
+;; 			  `(("\\(\\*\\*\\)test\\(\\*\\*\\)" . 'font-lock-comment-face)))
+)
+
+(add-hook 'sage-mode-hook 'sage-font-lock)
 
 ;;;_* Treat SAGE code as Python source code
 
@@ -297,6 +407,11 @@ buffer for a list of commands.)"
 ;;;###autoload
 (add-to-list 'python-source-modes 'sage-mode)
 
+(defun sage-send-buffer ()
+  (interactive)
+  (sage-send-command (format "load %s" (buffer-file-name)) t)
+  (pop-to-buffer sage-buffer))
+
 ;;;_* Integrate SAGE mode with Emacs
 
 ;;;_ + SAGE mode key bindings
@@ -306,20 +421,21 @@ buffer for a list of commands.)"
   "Install sage-mode bindings locally."
   (interactive)
 
-  (local-set-key [(control c) (control t)] 'sage-test-file)
+  (local-set-key [(control c) (control j)] 'sage-send-doctest)
+  (local-set-key [(control c) (control c)] 'sage-send-buffer)
+  (local-set-key [(control c) (control t)] 'sage-test)
   (local-set-key [(control h) (control f)] 'ipython-describe-symbol)
   (local-set-key [(control h) (control g)] 'sage-find-symbol-other-window))
 
 (defun sage-pcomplete-or-help ()
   "If point is after ?, describe preceding symbol; otherwise, pcomplete."
   (interactive)
-  (save-excursion
-    (if (not (looking-back "[^\\?]\\?"))
-	(pcomplete)
-      (progn
-	(backward-char)
-	(when (python-current-word)
-	  (ipython-describe-symbol (python-current-word)))))))
+  (if (not (looking-back "[^\\?]\\?"))
+      (pcomplete)
+    (save-excursion
+      (backward-char)
+      (when (python-current-word)
+	(ipython-describe-symbol (python-current-word))))))
 
 (defun inferior-sage-bindings ()
   "Install inferior-sage-mode bindings locally."
@@ -330,13 +446,15 @@ buffer for a list of commands.)"
   (local-set-key [(tab)] 'sage-pcomplete-or-help))
 
 (add-hook 'sage-mode-hook 'sage-bindings)
-(add-hook 'inferior-sage-mode-hook 'sage-bindings)
+;; (add-hook 'inferior-sage-mode-hook 'sage-bindings)
 (add-hook 'inferior-sage-mode-hook 'inferior-sage-bindings)
 
 ;;;_ + Set better grep defaults for SAGE and Pyrex code
 
-(add-to-list 'grep-files-aliases '("py" . "{*.py,*.pyx}"))
-(add-to-list 'grep-files-aliases '("pyx" . "{*.py,*.pyx}"))
+;; (eval-after-load "grep"
+;;   (progn
+;;     (add-to-list 'grep-files-aliases '("py" . "{*.py,*.pyx}"))
+;;     (add-to-list 'grep-files-aliases '("pyx" . "{*.py,*.pyx}"))))
 
 ;;;_ + Make devel/sage files play nicely, and don't jump into site-packages if possible
 
@@ -381,11 +499,25 @@ Match group 1 will be replaced with devel/sage-branch")
     (if maybe-buf (pop-to-buffer maybe-buf)
       (find-alternate-file filename))))
 
+(require 'advice)
 (defadvice compilation-find-file
   (before sage-compilation-find-file (marker filename directory &rest formats))
   "Always try to find compilation errors in FILENAME in the current branch version."
   (ad-set-arg 1 (sage-development-version filename)))
 (ad-activate 'compilation-find-file)
+
+;;;_ + Integrate eshell with hg
+
+(defadvice hg-root
+  (before eshell-hg-root (&optional path))
+  "Use current directory in eshell-mode for hg-root if possible.
+Use current devel directory in inferior-sage-mode for hg-root if possible."
+  (when (derived-mode-p 'eshell-mode)	; buffer local in eshell buffers
+    (ad-set-arg 0 default-directory))
+  (when (derived-mode-p 'inferior-sage-mode) ; buffer local in inferior sage buffers
+    (ad-set-arg 0 (sage-current-devel-root))))
+
+(ad-activate 'hg-root)
 
 ;;;_ + Integrate with eshell
 
@@ -424,7 +556,7 @@ command; other times, it has to execute as a standard eshell command."
   (when (equal command "sage")
     (cond ((not args)
 	   ;; run sage inside emacs
-	   (run-sage sage-command nil t)
+	   (run-sage nil sage-command nil)
 	   t)
 	  ((member (substring (car args) 0 2) '("-t" "-b"))
 	   ;; echo sage build into compilation buffer
@@ -575,12 +707,17 @@ Block while waiting for output."
 
 If ECHO-INPUT is non-nil, echo input in process buffer."
   (interactive "sCommand: ")
-  (if echo-input
-      (with-current-buffer (process-buffer (python-proc))
-	;; Insert and evaluate input string in place
-	(insert command)
-	(comint-send-input nil t))
-    (python-send-command command)))
+  (with-current-buffer (process-buffer (python-proc))
+    (goto-char (point-max))
+    (if echo-input
+	(with-current-buffer (process-buffer (python-proc))
+	  ;; Insert and evaluate input string in place
+	  (let ((old (comint-get-old-input-default)))
+	    (delete-field)
+	    (insert command)
+	    (comint-send-input nil t)
+	    (insert old)))
+      (python-send-command command))))
 
 (defun python-send-receive-to-buffer (command buffer &optional echo-output)
   "Send COMMAND to inferior Python (if any) and send output to BUFFER.
@@ -636,21 +773,6 @@ time, it does not handle multi-line input strings at all."
 ;;;_ + `ipython-completing-read-symbol' is `completing-read' for python symbols
 ;;; using IPython's *? mechanism
 
-(or (fboundp 'uniq)
-    (defun uniq (list predicate)
-      "Uniquify LIST, comparing adjacent elements using PREDICATE.
-Return the list with adjacent duplicate items removed by side effects.
-PREDICATE is called with two elements of LIST, and should return non-nil if the
-first element is \"equal to\" the second.
-This function will only work as expected if LIST is sorted, as with the Un*x
-command of the same name.  See also `sort'."
-      (let ((list list))
-	(while list
-	  (while (funcall predicate (car list) (nth 1 list))
-	    (setcdr list (nthcdr 2 list)))
-	  (setq list (cdr list))))
-      list))
-
 (defvar ipython-completing-read-symbol-history ()
   "List of Python symbols recently queried.")
 
@@ -697,7 +819,7 @@ See `try-completion' and `all-completions' for interface details."
     (cond ((eq action 'lambda) ; action is 'lambda
 	   (test-completion string completions))
 	  (action   ; action is t
-	   (uniq (sort (all-completions string completions predicate) #'string<) #'string=))
+	   (pcomplete-uniqify-list (all-completions string completions predicate)))
 	  (t	    ; action is nil
 	   (try-completion string completions predicate)))))
 
@@ -740,6 +862,32 @@ See `completing-read' for REQUIRE-MATCH."
   (when (string-match "[ \t\n]+\\'" string)
     (concat (substring string 0 (match-beginning 0)) "\n")))
 
+(define-button-type 'help-sage-function-def
+  :supertype 'help-xref
+  'help-function #'sage-find-symbol-other-window
+  'help-echo (purecopy "mouse-2, RET: find function's definition"))
+
+(defun ipython-describe-symbol-markup-buffer (symbol)
+  "Markup IPython's inspection (?) in current buffer for display."
+  (help-make-xrefs (current-buffer))
+  (save-excursion
+    (save-match-data
+      (let ((case-fold-search nil))
+	;; Make HEADERS: stand out
+	(goto-char (point-min))
+	(while (re-search-forward "\\([A-Z][^a-z]+\\):" nil t) ;; t means no error
+	  (toggle-read-only 0)
+	  (add-text-properties (match-beginning 1) (match-end 1) '(face bold)))
+
+	;; make File: a link
+	(goto-char (point-min))
+	(while (re-search-forward "File:\\s-*\\(.*\\)" nil t) ;; t means no error
+	  (toggle-read-only 0)
+	  (replace-match (sage-development-version (match-string 1)) nil nil nil 1)
+	  (help-xref-button 1 'help-sage-function-def symbol)
+	  (toggle-read-only 1))
+	t))))
+
 (defun ipython-describe-symbol (symbol)
   "Get help on SYMBOL using IPython's inspection (?).
 Interactively, prompt for SYMBOL."
@@ -768,7 +916,10 @@ Interactively, prompt for SYMBOL."
 	(set (make-local-variable 'comint-redirect-subvert-readonly) t)
 	(print-help-return-message)
 	;; Finally, display help contents
-	(princ help-contents)))))
+	(princ help-contents)))
+    ;; Markup help buffer
+    (with-current-buffer (help-buffer)
+      (ipython-describe-symbol-markup-buffer symbol))))
 
 ;;;_ + `sage-find-symbol' is `find-function' for SAGE.
 
@@ -865,6 +1016,12 @@ See `sage-find-symbol' for details."
       (skip-syntax-backward "w_")
       (point))))
 
+(defun he-sage-symbol-end ()
+  (save-excursion
+    (with-syntax-table python-dotty-syntax-table
+      (skip-syntax-forward "w_")
+      (point))))
+
 (defun try-complete-sage-symbol-partially (old)
   "Try to complete as a SAGE symbol, as many characters as unique.
 
@@ -893,31 +1050,45 @@ otherwise."
 
 ;;;_ + `pcomplete' support
 
+;; if pcomplete is available, set it up!
+;; (when (featurep 'pcomplete)
+
 (defun pcomplete-sage-setup ()
   (interactive)
   (set (make-local-variable 'pcomplete-autolist)
-       nil)
+      nil)
   (set (make-local-variable 'pcomplete-cycle-completions)
-       nil)
+      nil)
+  (set (make-local-variable 'pcomplete-use-paring)
+      nil)
 
-  (set (make-local-variable 'pcomplete-parse-arguments-function)
+  (set (make-variable-buffer-local 'pcomplete-default-completion-function)
+       'pcomplete-sage-default-completion)
+  (set (make-variable-buffer-local 'pcomplete-command-completion-function)
+       'pcomplete-sage-default-completion)
+  (set (make-variable-buffer-local 'pcomplete-parse-arguments-function)
        'pcomplete-parse-sage-arguments)
-  (set (make-local-variable 'pcomplete-default-completion-function)
-       'pcomplete-sage-default-completion))
+
+  (set (make-variable-buffer-local 'pcomplete-termination-string)
+       "")
+  )
+
+(defun pcomplete-sage-completions ()
+  (save-excursion
+    (save-restriction
+      (let ((stub (nth pcomplete-index pcomplete-args)))
+	(when (and stub (not (string= stub "")))
+	  (ipython-completing-read-symbol-clear-cache)
+	  (ipython-completing-read-symbol-function stub nil t))))))
 
 (defun pcomplete-sage-default-completion ()
-  (let ((stub (python-current-word)))
-    (when (and stub (not (string= stub "")))
-      (ipython-completing-read-symbol-clear-cache)
-      (let* ((cmps (ipython-completing-read-symbol-function (python-current-word) nil t)))
-	(when cmps
-	  (pcomplete-here cmps))))))
+  (pcomplete-here (pcomplete-sage-completions)))
 
 (defun pcomplete-parse-sage-arguments ()
-  (save-excursion
-    (list
-     (list "sage" (buffer-substring-no-properties (he-sage-symbol-beg) (point)))
-     (point-min) (he-sage-symbol-beg))))
+  (list
+   (list (buffer-substring-no-properties (he-sage-symbol-beg)
+					 (he-sage-symbol-end)))
+   (he-sage-symbol-beg)))
 
 ;;;_* Make it easy to sagetest files and methods
 
@@ -967,3 +1138,27 @@ Interactively, try to find current method at point."
       (python-send-receive-to-buffer command (current-buffer)))))
 
 (defvar sage-test-file 'sage-test-file-to-buffer)
+
+;;;_* Read Mercurial's .hg bundle files naturally
+
+(define-derived-mode
+  mercurial-bundle-mode
+  fundamental-mode
+  "Mercurial .hg bundle"
+  "Major mode for interacting with an inferior SAGE process."
+  (completing-read "Against repository: " '("sage-main" "sage-blah" "sage-nuts") nil t "sage-main")
+  nil
+)
+(add-to-list 'auto-mode-alist '("\\.hg\\'" . mercurial-bundle-mode))
+
+;;;_* Setup imenu by defaul
+(when (featurep 'imenu)
+  (add-hook 'sage-mode-hook 'imenu-add-menubar-index))
+
+(require 'sage-test)
+(defun sage-send-doctest (&optional all)
+  (interactive "P")
+  (if all
+      (let ((current-prefix-arg nil))
+	(sage-send-all-doctest-lines))
+    (sage-send-doctest-line-and-forward)))

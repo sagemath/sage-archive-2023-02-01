@@ -358,6 +358,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P.<x,y> = PolynomialRing(k,2)
             sage: P._coerce_(a)
             (a)
+
+        TESTS:
+            sage: P.<x,y> = PolynomialRing(GF(127))
+            sage: P("111111111111111111111111111111111111111111111111111111111")
+            21
+            sage: P.<x,y> = PolynomialRing(QQ)
+            sage: P("111111111111111111111111111111111111111111111111111111111")
+            111111111111111111111111111111111111111111111111111111111
+            sage: P("31367566080")
+            31367566080
         """
         cdef poly *_p
         cdef ring *_ring
@@ -424,7 +434,20 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         # Accepting int
         elif PY_TYPE_CHECK(element, int):
-            _p = p_ISet(int(element), _ring)
+            if PY_TYPE_CHECK(self._base, RationalField):
+                _n = co.sa2si_ZZ(Integer(element),_ring)
+                _p = p_NSet(_n, _ring)
+            else: # GF(p)
+                _p = p_ISet(int(element),_ring)
+
+        # and longs
+        elif PY_TYPE_CHECK(element, long):
+            if PY_TYPE_CHECK(self._base, RationalField):
+                _n = co.sa2si_ZZ(Integer(element),_ring)
+                _p = p_NSet(_n, _ring)
+            else: # GF(p)
+                element = element % self._base.characteristic()
+                _p = p_ISet(int(element),_ring)
         else:
             raise TypeError, "Cannot coerce element"
 

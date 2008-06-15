@@ -117,3 +117,4 @@ version.py
 ^c_lib/libcsage.so$
 sage/rings/complex_double.h
 sage/rings/complex_double_api.h
+sage/misc/allocator.h

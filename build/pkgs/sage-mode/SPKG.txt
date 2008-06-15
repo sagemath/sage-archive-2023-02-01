@@ -1,0 +1,46 @@
+= sage-mode =
+
+== Description ==
+
+`sage-mode' provides Emacs Lisp that helps you use Sage in GNU Emacs.
+
+== License ==
+
+Describe the package's license here.
+
+== SPKG Maintainers ==
+
+ * Nick Alexander
+
+== Upstream Contact ==
+
+ * Author: Nick Alexander
+ * Email: ncalexander [at] gmail.com
+
+== Dependencies ==
+
+ * sage
+ * GNU Emacs (with a current python.el)
+
+== Special Update/Build Instructions ==
+
+A basic install might include the following Emacs Lisp in your .emacs:
+
+{{{
+(add-to-list 'load-path (expand-file-name "path-to-sage-mode-el-files"))
+(require 'python)
+(require 'pyrex "pyrex-mode")
+(require 'sage "sage-mode")
+(setq sage-command "/path/to/sage")
+}}}
+
+== Changelog ==
+
+=== sage-mode-0.3 (Nick Alexander, 2008-06-15) ===
+
+
+=== sage-mode-0.2 (Nick Alexander, 2008-06-14) ===
+ * First alpha version, for Mike Hansen to use and test.
+
+=== sage-mode-0.1 (Nick Alexander) ===
+ * First internal version.

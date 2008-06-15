@@ -385,7 +385,8 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         except KeyError:
             homs = self.discover_coercion_c(R, S)
             if 0:
-                # This breaks too many things that are going to change in the new coercion model anyways.
+                # This breaks too many things that are going to change
+                # in the new coercion model anyways.
                 # COERCE TODO: Enable it then.
                 homs = self.verify_coercion_maps(R, S, homs)
             swap = None if homs is None else (homs[1], homs[0])
@@ -569,7 +570,7 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                     if action.left_domain() is not R:
                         action = PrecomposedAction(action, action.left_domain().coerce_map_from(R), None)
                     if action.right_domain() is not S:
-                        action = PrecomposedAction(action, None, action.left_domain().coerce_map_from(S))
+                        action = PrecomposedAction(action, None, action.right_domain().coerce_map_from(S))
             if action.left_domain() is not R or action.right_domain() is not S:
                 raise RuntimeError, """There is a BUG in the coercion model:
                 Action found for R %s S does not have the correct domains
@@ -578,6 +579,7 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                 (should be %s, %s)
                 action = %s (%s)
                 """ % (op, R, S, action.left_domain(), action.right_domain(), action, type(action))
+
         return action
 
     cdef discover_action_c(self, R, S, op):

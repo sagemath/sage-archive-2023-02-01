@@ -431,7 +431,7 @@ class Notebook(SageObject):
         else:
             dirname = '0'
 
-        W = worksheet.Worksheet(worksheet_name, dirname,
+        W = worksheet.Worksheet(worksheet_name, dirname, self,
                                 system = self.system(username),
                                 owner=username,
                                 docbrowser = docbrowser,

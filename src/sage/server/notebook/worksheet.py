@@ -105,7 +105,7 @@ def worksheet_filename(name, owner):
     return owner + '/' + _notebook.clean_name(name)
 
 class Worksheet:
-    def __init__(self, name, dirname, system, owner, docbrowser=False, pretty_print=False, auto_publish=False):
+    def __init__(self, name, dirname, notebook, system, owner, docbrowser=False, pretty_print=False, auto_publish=False):
 
         # Record the basic properties of the worksheet
         self.__system   = system

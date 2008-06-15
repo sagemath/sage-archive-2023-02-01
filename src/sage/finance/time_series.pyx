@@ -108,7 +108,7 @@ cdef class TimeSeries:
         EXAMPLES:
             sage: v = finance.TimeSeries([1,-3.5])
             sage: v.__reduce__()
-            (<built-in function unpickle_time_series_v1>, ...)
+            (<built-in function unpickle_time_series_v1>, (..., 2))
             sage: loads(dumps(v)) == v
             True
 

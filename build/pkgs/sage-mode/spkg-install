@@ -21,7 +21,7 @@ fi
 # Copy emacs lisp to SAGE_DATA, and print helpful instructions
 cd "$CUR"
 rm -rf $SAGE_DATA/emacs
-cp -r src $SAGE_DATA/emacs
+cp -r *el $SAGE_DATA/emacs
 
 cat <<EOF
 

@@ -1,6 +1,8 @@
 #!/bin/sh
 
-Build and install Python support files
+CUR=`pwd`
+
+# Build and install Python support files
 cd src/
 python setup.py build
 
@@ -17,6 +19,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Copy emacs lisp to SAGE_DATA, and print helpful instructions
+cd "$CUR"
 rm -rf $SAGE_DATA/emacs
 cp -r src $SAGE_DATA/emacs
 

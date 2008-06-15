@@ -1,17 +1,32 @@
 #!/bin/sh
-# Build and install.
 
+Build and install Python support files
 cd src/
 python setup.py build
 
 if [ $? -ne 0 ]; then
-    echo "Failure to build sage-mode.el"
+    echo "Failure to build sage-mode Python support files"
     exit 1
 fi
 
 python setup.py install
 
 if [ $? -ne 0 ]; then
-    echo "Failure to install sage-mode.el"
+    echo "Failure to install sage-mode Python support files"
     exit 1
 fi
+
+# Copy emacs lisp to SAGE_DATA, and print helpful instructions
+rm -rf $SAGE_DATA/emacs
+cp -r src $SAGE_DATA/emacs
+
+echo "A basic install might include the following Emacs Lisp in your .emacs:"
+echo
+
+cat <<EOF
+(add-to-list 'load-path (expand-file-name "$SAGE_DATA/emacs"))
+(require 'python)
+(require 'pyrex "pyrex-mode")
+(require 'sage "sage-mode")
+(setq sage-command "$SAGE_ROOT/sage")
+EOF

@@ -1,6 +1,6 @@
 ;;;_* sage-mode.el --- Major mode for editing SAGE code
 
-;; Copyright (C) 2007  Nick Alexander
+;; Copyright (C) 2007, 2008  Nick Alexander
 
 ;; Author: Nick Alexander <ncalexander@gmail.com>
 ;; Keywords: sage ipython python math

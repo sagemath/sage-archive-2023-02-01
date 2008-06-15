@@ -424,6 +424,7 @@ buffer for a list of commands.)"
   (local-set-key [(control c) (control j)] 'sage-send-doctest)
   (local-set-key [(control c) (control c)] 'sage-send-buffer)
   (local-set-key [(control c) (control t)] 'sage-test)
+  (local-set-key [(control c) (control b)] 'sage-build)
   (local-set-key [(control h) (control f)] 'ipython-describe-symbol)
   (local-set-key [(control h) (control g)] 'sage-find-symbol-other-window))
 

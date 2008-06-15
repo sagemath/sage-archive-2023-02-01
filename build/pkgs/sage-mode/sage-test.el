@@ -45,9 +45,13 @@ Set up `compilation-exit-message-function' and run `sage-test-setup-hook'."
   (set (make-local-variable 'compilation-process-setup-function)
        'sage-test-process-setup))
 
-(defun sage-test-default-command ()
-  "Compute the default sage-test command for C-u M-x sage-test to offer."
-  (format "sage -b >/dev/null && sage -t %s" (buffer-file-name)))
+(defun sage-default-test-command ()
+  "Compute the default sage test command for C-u M-x sage-test to offer."
+  (format "%s >/dev/null && %s -t %s" (sage-default-build-command) sage-command (buffer-file-name)))
+
+(defun sage-default-test-new-command ()
+  "Compute the default sage test new command for C-u M-x sage-test to offer."
+  (format "%s >/dev/null && %s -tnew" (sage-default-build-command) sage-command))
 
 ;;;###autoload
 (defun sage-test (command-args)
@@ -63,10 +67,9 @@ This command uses a special history list for its COMMAND-ARGS, so you can
 easily repeat a sage-test command."
   (interactive
    (progn
-     (let ((default (sage-test-default-command)))
+     (let ((default (sage-default-test-command)))
        (list (read-from-minibuffer "Run sage-test (like this): "
-				   (if current-prefix-arg
-				       "sage -b >/dev/null && sage -tnew" default)
+				   (if current-prefix-arg (sage-default-test-new-command) default)
 				   nil nil 'sage-test-history
 				   (if current-prefix-arg nil default))))))
 
@@ -95,13 +98,12 @@ If NOSHOW is nil, display the Sage process buffer."
     (sage-send-command (buffer-substring-no-properties
 			(point) (line-end-position)) t)
     (unless noshow (display-buffer sage-buffer)))
-  ;; (save-restriction
+  (save-restriction
     (narrow-to-defun)
     (end-of-line)
     (unless (re-search-forward sage-test-prompt (point-max) t)
       (forward-line 1))
-    (end-of-line)
-    (widen)) ;;)
+    (end-of-line)))
 
 (defun sage-send-all-doctest-lines (&optional noshow nogo)
   "If in a docstring, send every 'sage:' prompt.
@@ -117,6 +119,22 @@ If NOGO is nil, pop to the Sage process buffer."
     (while t
       (sage-send-doctest-line-and-forward noshow)
       (inferior-sage-wait-for-prompt)))
+  (unless nogo
+    (pop-to-buffer sage-buffer)))
+
+(defun sage-send-all-doctest-lines-in-file (&optional noshow nogo)
+  "Go to the beginning of the file and send every 'sage:' prompt.
+
+If NOSHOW is nil, display the Sage process buffer.
+If NOGO is nil, pop to the Sage process buffer."
+  (interactive)
+  (save-restriction
+    (goto-char (point-min))
+    (ignore-errors
+      (while t
+	(re-search-forward sage-test-prompt)
+	(sage-send-all-doctest-lines noshow t)
+	(inferior-sage-wait-for-prompt))))
   (unless nogo
     (pop-to-buffer sage-buffer)))
 

@@ -11,6 +11,8 @@
   :type 'hook
   :group 'sage-test)
 
+(require 'sage-build)
+
 ;; History of sage-test commands.
 ;;;###autoload
 (defvar sage-test-history nil)

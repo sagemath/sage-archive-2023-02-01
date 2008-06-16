@@ -780,8 +780,9 @@ class Notebook(SageObject):
         EXAMPLES:
         We create a notebook and import a plain text worksheet into it.
             sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
-            sage: open('a.txt','w').write('foo\n{{{\n2+3\n}}}')
-            sage: W = nb.import_worksheet('a.txt', 'admin')
+            sage: name = tmp_filename() + '.txt'
+            sage: open(name,'w').write('foo\n{{{\n2+3\n}}}')
+            sage: W = nb.import_worksheet(name, 'admin')
 
         W is our newly-created worksheet, with the 2+3 cell in it:
             sage: W.name()
@@ -820,8 +821,9 @@ class Notebook(SageObject):
         EXAMPLES:
         We create a worksheet, make a file, and import it using this function.
             sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
-            sage: open('a.txt','w').write('foo\n{{{\na = 10\n}}}')
-            sage: W = nb._import_worksheet_txt('a.txt', 'admin'); W
+            sage: name = tmp_filename() + '.txt'
+            sage: open(name,'w').write('foo\n{{{\na = 10\n}}}')
+            sage: W = nb._import_worksheet_txt(name, 'admin'); W
             [Cell 0; in=a = 10, out=]
             sage: nb.delete()
         """
@@ -850,8 +852,9 @@ class Notebook(SageObject):
         EXAMPLES:
         We create a notebook, then make a worksheet from a plain text file first.
             sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
-            sage: open('a.txt','w').write('foo\n{{{\n2+3\n}}}')
-            sage: W = nb.import_worksheet('a.txt', 'admin')
+            sage: name = tmp_filename() + '.txt'
+            sage: open(name,'w').write('foo\n{{{\n2+3\n}}}')
+            sage: W = nb.import_worksheet(name, 'admin')
             sage: W.filename()
             'admin/0'
 

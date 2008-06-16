@@ -424,26 +424,46 @@ def jsmath(x, mode='display'):
     return jsmath.eval(x, mode)
 
 def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
-         sep='$$ $$', tiny=False,  center=False, **kwds):
-    """
+         sep='', tiny=False,  **kwds):
+    r"""
     Compute a latex representation of each object in objects, compile, and
-    display using xdvi. (Requires latex and xdvi be installed.)
-
-    NOTE: In notebook mode this function simply embeds a png image
-    in the output and doesn't do any of the following.
+    display a dvi file. (Requires latex be installed.)
 
     INPUT:
         objects -- list (or object)
-        title -- string
+        title -- string (default: 'SAGE'): title for the document
         zoom -- zoom factor, passed on to xdvi
-        expert -- bool (True or False): mode passed onto xdvi
-        debug -- bool (True of False): print verbose output
-        sep -- string -- controls separators for math objects
-        tiny -- bool (default: False) use tiny font.
-        center -- bool (default: False) center
+        expert -- bool (default: True): mode passed on to xdvi
+        debug -- bool (default: False): print verbose output
+        sep -- string (default: ''): separator between math objects
+        tiny -- bool (default: False): use tiny font.
 
     OUTPUT:
-        Pops up xdvi with the objects displayed.
+        Opens a dvi file with the objects displayed, or embeds an image.
+
+    This function behaves differently depending on whether in notebook
+    mode or not.
+
+    If not in notebook mode, this opens up a window displaying a dvi
+    file, displaying the following: the title string is printed,
+    centered, at the top. Beneath that, each object in objects is
+    typeset on its own line, with the string sep typeset between these
+    lines.
+
+    If the program xdvi is used to display the dvi file, then the
+    values of expert and zoom are passed on to it.
+
+    If in notebook mode, this uses jmath to display the output in the
+    notebook. Only the first argument, objects, is relevant; the
+    others are ignored. If objects is a list, the result is typeset
+    as a Python list, e.g. [12, -3.431] -- each object in the list is
+    not printed on its own line.
+
+    EXAMPLES:
+        sage: sage.misc.latex.EMBEDDED_MODE=True
+        sage: view(3)
+        <html><span class="math">3</span></html>
+        sage: sage.misc.latex.EMBEDDED_MODE=False
     """
     if EMBEDDED_MODE:
         print typeset(objects)
@@ -453,7 +473,7 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
         s = str(objects)
     else:
         s = _latex_file_(objects, title=title, expert=expert,
-                     debug=debug, sep=sep, tiny=tiny, center=center)
+                     debug=debug, sep=sep, tiny=tiny)
     from sage.misc.viewer import dvi_viewer
     viewer = dvi_viewer()
     SAGE_ROOT = os.environ['SAGE_ROOT']
@@ -474,6 +494,7 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
         direct = ''
     os.system('cd %s; chmod +x go; ./go %s&'%(tmp,direct))
     #return os.popen('cd %s; chmod +x go; ./go %s & '%(tmp,direct), 'r').read()
+
 
 def png(x, filename, density=150, debug=False, brk=0, do_in_background=True, tiny=False):
     """

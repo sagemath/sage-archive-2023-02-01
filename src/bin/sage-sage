@@ -42,7 +42,7 @@ usage_advanced() {
     echo "  -clone [new branch] -- clone and run a new branch of the SAGE library from current branch"
     echo "  -coverage <files>  -- give info about doctest coverage of files"
     echo "  -coverageall  -- give summary info about doctest coverage of all files in the Sage library"
-    echo "  -crap <tarfile> -- detect suspicious garbage in a tar file"
+    echo "  -crap sage-x.y.z.tar -- detect suspicious garbage in sage source distro"
     echo "  -experimental -- list all experimental packages that can be downloaded"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
     echo "  -gdb          -- run SAGE under the control of gdb"

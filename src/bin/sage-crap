@@ -61,9 +61,9 @@
 #
 
 
-runlevel = 0   # print everything
+#runlevel = 0   # print everything
 runlevel = 1   # only print weird file types
-runlevel = 2   # only print "bad" stuff
+#runlevel = 2   # only print "bad" stuff
 
 import sys,os
 import sage.misc.misc

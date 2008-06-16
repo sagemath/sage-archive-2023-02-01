@@ -1,5 +1,8 @@
 = gap =
 
+=== gap-4.4.10.p8 (Michael Abshoff, June 16th, 2008) ===
+ * unset CC in spkg-install (work around for #2575)
+
 === gap-4.4.10.p6 (David Joyner, April 11th, 2008) ===
  * replace guava 3.4 by guava 3.4 with fixed Makefile.in
 

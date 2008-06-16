@@ -1,8 +1,17 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 ###########################################
 ## GAP
 ###########################################
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+echo "*WARNING*: Unsetting CC since that tends to break GAP building"
+unset CC
 
 TARGET="gap-4.4.10"  #NOTE: Be sure to also update patches/gap*
 

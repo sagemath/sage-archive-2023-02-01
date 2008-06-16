@@ -1800,21 +1800,22 @@ class RegistrationPage(resource.PostableResource):
     def render(self, request):
         if request.args.has_key('email'):
             if request.args['email'][0] is not None:
+                def error(msg):
+                    return http.Response(stream=message(msg, '/register'))
 
-                error = None
                 try:
                     username = request.args['username'][0]
                     if not is_valid_username(username):
-                        error = "Usernames can only contain letters, numbers, dashes, periods and underscores."
+                        return error("Usernames can only contain letters, numbers, dashes, periods and underscores.")
                 except KeyError:
-                    error = "You must specify a username."
+                    return error("You must specify a username.")
                 try:
                     passwd  = request.args['password'][0]
                 except KeyError:
-                    error = "You must specify a password."
+                    return error("You must specify a password.")
                 else:
                     if len(passwd) == 0:
-                        error = "Password must be nonempty."
+                        return error("Password must be nonempty.")
 
                 destaddr = """%s""" % request.args['email'][0]
 
@@ -1822,10 +1823,7 @@ class RegistrationPage(resource.PostableResource):
                 try:
                     self.userdb.add_user(username, passwd, destaddr)
                 except ValueError:
-                    error = "Username is already taken, please choose another one"
-
-                if error:
-                    return http.Response(stream=message(error, '/register'))
+                    return error("Username is already taken, please choose another one")
 
                 from sage.server.notebook.smtpsend import send_mail
                 from sage.server.notebook.register import make_key, build_msg
@@ -1842,7 +1840,8 @@ class RegistrationPage(resource.PostableResource):
                     send_mail(self, fromaddr, destaddr, "Sage Notebook Registration",body)
                 except ValueError:
                     # the email address is invalid
-                    error = "Registration failed -- the email address '%s' is invalid."%destaddr
+                    return error("Registration failed -- the email address '%s' is invalid."%destaddr)
+
 
                 # Store in memory that we are waiting for the user to respond
                 # to their invitation to join the Sage notebook.

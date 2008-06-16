@@ -524,7 +524,7 @@ class InputBox(InteractControl):
 
         EXAMPLES:
             sage: sage.server.notebook.interact.InputBox('theta', 1).render()
-            '<input type=\'text\' value=\'1\' width=200px onchange=\'interact(0, "sage.server.notebook.interact.update(0, \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals())")\'></input>'
+            '<input type=\'text\' value=\'1\' size=80 onchange=\'interact(0, "sage.server.notebook.interact.update(0, \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals())")\'></input>'
         """
         if self.__type is bool:
             return """<input type='checkbox' %s width=200px onchange='%s'></input>"""%(

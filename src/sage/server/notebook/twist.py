@@ -1796,6 +1796,8 @@ def is_valid_username(username):
     m = re_valid_username.match(username)
     return len(username) > 0 and m.start() == 0 and m.end() == len(username)
 
+from sage.server.notebook.template import register_template
+
 class RegistrationPage(resource.PostableResource):
     def __init__(self, userdb):
         self.userdb = userdb
@@ -1861,28 +1863,7 @@ class RegistrationPage(resource.PostableResource):
                 </html>
                 """%destaddr
         else:
-            s = """<html><h1 align=center>Sign up for the Sage Notebook.</h1>
-            <br>
-            <hr>
-            <br>
-            <form method="POST" action="/register">
-            <br><br>
-            <table align=center><tr>
-            <td align=right>Username:</td><td><input type="text" name="username" size="15" /></td></tr>
-            <tr><td align=right>Password:</td><td>
-                <input type="password" name="password" size="15" />
-                </td></tr>
-            <tr><td align=right>Email
-                Address:</td> <td><input type="text" name="email" size="15" />
-                </td></tr>
-          <tr><td></td><td></td></tr>
-            <tr><td></td><td align=left><input type="submit" value="Register Now" /></td></tr>
-            </table> </form>
-            <br><br>
-            <div align=center><a href="/">Cancel and return to the login page</a></div>
-            <br>
-
-            </html>"""
+            s = register_template()
         return http.Response(stream=s)
 
 class ForgotPassPage(resource.Resource):

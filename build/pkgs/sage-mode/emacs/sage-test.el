@@ -36,11 +36,20 @@ Set up `compilation-exit-message-function' and run `sage-test-setup-hook'."
   '(("File \"\\(.*?\\)\", line \\([0-9]+\\):"
      1 2)))
 
+(defun sage-kill-compilation ()
+  "Work hard to really kill sage-test."
+  (interactive)
+  (dotimes (dummy 50)
+    ;; (get-buffer-process (current-buffer))
+    (kill-compilation)
+    (sleep-for 0 1)))
+
 (define-compilation-mode sage-test-mode "sage-test"
   "Sets `grep-last-buffer' and `compilation-window-height'."
 ;;   (set (make-local-variable 'compilation-error-face)
 ;;        grep-hit-face)
 ;;   (set (make-local-variable 'compilation-disable-input) t)
+  (local-set-key [(control c) (control k)] 'sage-kill-compilation)
 
   (set (make-local-variable 'compilation-error-regexp-alist)
        sage-test-regexp-alist)

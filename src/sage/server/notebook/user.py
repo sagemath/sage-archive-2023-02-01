@@ -138,7 +138,11 @@ class User:
             sage: user.is_email_confirmed()
             False
         """
-        return self.__email_confirmed
+        try:
+            return self.__email_confirmed
+        except AttributeError:
+            self.__email_confirmed = False
+            return False
 
     def password_is(self, password):
         """

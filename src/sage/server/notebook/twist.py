@@ -1885,6 +1885,59 @@ class RegistrationPage(resource.PostableResource):
             </html>"""
         return http.Response(stream=s)
 
+class ForgotPassPage(resource.Resource):
+
+    def render(self, request):
+        if request.args.has_key('username'):
+            def error(msg):
+                return http.Response(stream=message(msg, '/forgotpass'))
+
+            try:
+                import string
+                user = notebook.user(request.args[string.strip('username')][0])
+            except KeyError:
+                return error('Username is invalid.')
+
+            if not user.is_email_confirmed():
+                return error("The e-mail address hasn't been confirmed.")
+
+            from random import randint
+            old_pass = user.password()
+            password = str(randint(0,2**128-1))[:8]
+            user.set_password(password)
+
+            from sage.server.notebook.smtpsend import send_mail
+            from sage.server.notebook.register import build_password_msg
+            # TODO: make this come from the server settings
+
+            listenaddr = notebook.address
+            port = notebook.port
+            fromaddr = 'no-reply@%s' % listenaddr
+            body = build_password_msg(password, request.args[string.strip('username')][0], listenaddr, port, notebook.secure)
+            destaddr = user.get_email()
+            try:
+                send_mail(self, fromaddr, destaddr, "Sage Notebook Account Recovery",body)
+            except ValueError:
+                # the email address is invalid
+                user.set_password(oldpass)
+                return error("The new password couldn't be sent."%destaddr)
+
+            return http.Response(stream=message("A new password has been sent to your e-mail address.", '/'))
+        else:
+            s = """<html><h1 align=center>Account Recovery</h1>
+            <br>
+            <hr>
+            <br>
+            <form method="GET" action="/forgotpass">
+            <br><br>
+            <table align=center><tr>
+            <td align=right>Username:</td><td><input type="text" name="username" size="15" /></td></tr>
+            <tr><td></td><td align=left><input type="submit" value="Submit" /><input type="button" value="Cancel" style="margin-left:5px" onClick="parent.location=\'/'"></td></tr>
+            </table> </form>
+
+            </html>"""
+        return http.Response(stream=s)
+
 class InvalidPage(resource.Resource):
     addSlash = True
 
@@ -1953,6 +2006,7 @@ class AnonymousToplevel(Toplevel):
     addSlash = True
     child_register = RegistrationPage(PasswordChecker())
     child_confirm = RegConfirmation()
+    child_forgotpass = ForgotPassPage()
 
     child_images = Images()
     child_css = CSS()

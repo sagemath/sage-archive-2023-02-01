@@ -1,3 +1,59 @@
-<html>
-Registration stuff goes here.
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Sign up | Sage Notebook</title>
+  </head>
+
+  <body>
+    <h1 align="center">Sign up for the Sage Notebook.</h1>
+    <br />
+    <hr />
+    <br />
+
+    <form method="POST" action="/register">
+      <br />
+      <br />
+
+
+      <table align="center">
+        <tr>
+          <td align="right">Username:</td>
+
+          <td><input type="text" name="username"
+          size="15" /></td>
+        </tr>
+
+        <tr>
+          <td align="right">Password:</td>
+
+          <td><input type="password" name="password" size="15" />
+          </td>
+        </tr>
+
+        <tr>
+          <td align="right">Email Address:</td>
+
+          <td><input type="text" name="email" size="15" /> </td>
+        </tr>
+
+        <tr>
+          <td>
+          </td>
+
+          <td>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+          </td>
+
+          <td align="left"><input type="submit"
+          value="Register Now" /><input type="button" value="Cancel" style="margin-left:5px" onClick="parent.location='/'"></td>
+        </tr>
+      </table>
+    </form>
+  </body>
 </html>
+

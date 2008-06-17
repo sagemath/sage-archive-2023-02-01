@@ -1,5 +1,8 @@
 <html>
+<head>
+<title>Login | Sage Notebook</title>
 <link rel=stylesheet href="/css/main.css">
+</head>
 <body>
         <span class="banner">
         <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="Sage"> Mathematics Software</a>: Welcome!
@@ -54,7 +57,9 @@ anything else.
 <form method="POST" action="/login">
 <table>
 <tr><td align=right>Username:</td><td><input type="text" name="email" value="$default" size="15"></td></tr>
+$username_error
 <tr><td align=right>Password:</td><td><input type="password" name="password" size="15"></td></tr>
+$password_error
 <tr><td align=right><input type="checkbox" name="remember" /></td><td>Remember me</td></tr>
 <tr><td>&nbsp</td><td><input type="submit" value="Sign In"></td></tr>
 </table>

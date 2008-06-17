@@ -60,6 +60,7 @@ AUTHOR:
     - Nick Alexander (2007-07): move is_isomorphic to isomorphism_to, add from_gap_list
     - William Stein (2007-07): put is_isomorphic back (and make it better)
     - David Joyner (2007-08): fixed bugs in composition_series, upper/lower_central_series, derived_series,
+    - David Joyner (2008-06): fixed mistake in docstring for is_normal (reported by Willem Jan Palenstijn)
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -1542,13 +1543,14 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def is_normal(self,other):
         """
-        Return True if the group self is a normal subgroup of other.
+        Return True if the group other is a normal subgroup of self.
 
         EXAMPLES:
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: H = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
-            sage: G.is_normal(H)
-            True
+            sage: H.is_normal(G)
+            False
+
         """
         t = self._gap_().IsNormal(other._gap_())
         return t.bool()

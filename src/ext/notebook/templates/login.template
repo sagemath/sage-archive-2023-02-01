@@ -61,7 +61,8 @@ anything else.
 <br><br><br>
 $register
 <br><br><br>
-<a href='/pub'><b>Browse published Sage worksheets<br>(no login required)</b></a>
+<a href='/pub'><b>Browse published Sage worksheets<br>(no login required)</b></a><br /><br/><br/>
+<a href='/forgotpass'><b>Forgot password</b></a>
 </span>
 </td>
 </tr>

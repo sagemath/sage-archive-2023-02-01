@@ -1901,9 +1901,11 @@ class ForgotPassPage(resource.Resource):
             if not user.is_email_confirmed():
                 return error("The e-mail address hasn't been confirmed.")
 
-            from random import randint
+            from random import choice
+            import string
+            chara = string.letters + string.digits
             old_pass = user.password()
-            password = str(randint(0,2**128-1))[:8]
+            password = ''.join([choice(chara) for i in range(8)])
             user.set_password(password)
 
             from sage.server.notebook.smtpsend import send_mail

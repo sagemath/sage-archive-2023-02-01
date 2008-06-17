@@ -39,10 +39,18 @@ templates = ['login', 'yes_no', 'failed_login']
 for name in templates:
     G[name + '_template'] =  PageTemplate(pjoin(path, '%s.template'%name))
 
-def login_page_template(accounts, default_user):
+def login_page_template(accounts, default_user, is_username_error=False, is_password_error=False):
     if accounts:
         reg = "<a href='/register'><b>Sign up for a new SAGE Notebook account</b></a>"
     else:
         reg = ""
-    return login_template(register = reg, default=default_user)
+    if is_username_error:
+        u_e = '<tr><td align=right><span style="color:red">Error:</span></td><td>Username is not in the system</td></tr>'
+    else:
+        u_e = ''
+    if is_password_error:
+        p_e = '<tr><td align=right><span style="color:red">Error:</span></td><td>Wrong password</td></tr>'
+    else:
+        p_e = ''
+    return login_template(register = reg, default=default_user, username_error=u_e, password_error=p_e)
 

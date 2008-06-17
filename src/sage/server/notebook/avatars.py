@@ -23,7 +23,7 @@ def user_type(avatarId):
         if avatarId.failure_type == 'user':
             return 'invalid_user'
         elif avatarId.failure_type == 'password':
-            return 'invalid_password'
+            return 'invalid_password', avatarId.username
         else:
             raise ValueError, 'invalid failure type'
     if twist.notebook.user_is_admin(avatarId):
@@ -135,8 +135,8 @@ class LoginSystem(object):
                 rsrc = twist.FailedToplevel(avatarId, problem='username')
                 return (iweb.IResource, rsrc, self.logout)
 
-            elif user_type(avatarId) == 'invalid_password':
-                rsrc = twist.FailedToplevel(avatarId, problem='password')
+            elif user_type(avatarId)[0] == 'invalid_password':
+                rsrc = twist.FailedToplevel(avatarId, problem='password', username=user_type(avatarId)[1])
                 return (iweb.IResource, rsrc, self.logout)
 
             elif user_type(avatarId) == 'user':

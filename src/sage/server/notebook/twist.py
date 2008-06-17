@@ -2033,21 +2033,19 @@ class AnonymousToplevel(Toplevel):
         return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user()))
 
 class FailedToplevel(Toplevel):
-    def __init__(self, info, problem):
+    def __init__(self, info, problem, username=None):
         self.info = info
         self.problem= problem
+        self.username = username
 
     def render(self, ctx):
         # Since public access is allowed, which lists usernames in the published
         # worksheets and ratings, this gives no new information way.
         # If published pages were disabled, then this should be disabled too.
         if self.problem == 'username':
-            notebook.valid_login_names().sort()
-            valid_login_names = "<strong>Valid login names:</strong><br />" + ', <br />'.join(notebook.valid_login_names())
+            return http.Response(stream = login_page_template(notebook.get_accounts(), notebook.default_user(), is_username_error=True))
         else:
-            valid_login_names = ''
-        return http.Response(stream = failed_login_template(problem=self.problem,
-                                                            logins = valid_login_names))
+            return http.Response(stream = login_page_template(notebook.get_accounts(), self.username, is_password_error=True))
 
 
 class UserToplevel(Toplevel):

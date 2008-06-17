@@ -9,6 +9,7 @@ class User:
         self.__username = username
         self.__password = crypt.crypt(password, SALT)
         self.__email = email
+        self.__email_confirmed = False
         if not account_type in ['admin', 'user', 'guest']:
             raise ValueError, "account type must be one of admin, user, or guest"
         self.__account_type = account_type
@@ -111,6 +112,33 @@ class User:
             'bob@gmail.gov'
         """
         self.__email = email
+
+    def set_email_confirmation(self, value):
+        """
+        EXAMPLES:
+            sage: from sage.server.notebook.user import User
+            sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
+            sage: user.is_email_confirmed()
+            False
+            sage: user.set_email_confirmation(True)
+            sage: user.is_email_confirmed()
+            True
+            sage: user.set_email_confirmation(False)
+            sage: user.is_email_confirmed()
+            False
+        """
+        value = bool(value)
+        self.__email_confirmed = value
+
+    def is_email_confirmed(self):
+        """
+        EXAMPLES:
+            sage: from sage.server.notebook.user import User
+            sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
+            sage: user.is_email_confirmed()
+            False
+        """
+        return self.__email_confirmed
 
     def password_is(self, password):
         """

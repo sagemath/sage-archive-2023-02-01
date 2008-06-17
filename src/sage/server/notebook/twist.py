@@ -976,12 +976,13 @@ Minutes: <select name="autosave">
 
       <div>
         <table style="float:right"><tr><td>Current e-mail:</td><td>%s</td></tr>
+        <tr><td></td><td>%s</td></tr>
         <tr><td style="text-align:right">New e-mail:</td><td><input type="text" name="Newemail" class="c1" /></td></tr></table>
         <div style="clear:both"></div>
       </div>
     </div>
     <div id="buttons">
-    <input type="submit" value="Save">""" % ('None' if notebook.user(self.username)._User__email == '' else notebook.user(self.username)._User__email)
+    <input type="submit" value="Save">""" % ('None' if notebook.user(self.username)._User__email == '' else notebook.user(self.username)._User__email, 'Not confirmed' if not notebook.user(self.username).is_email_confirmed() else 'Confirmed')
         s += '<input type="button" value="Cancel" style="margin-left:5px" onClick="parent.location=\'/home/%s\'">' % self.username
         s += """
     </div>
@@ -1763,6 +1764,8 @@ server. Please <a href="/register">register</a> with the server.</p>
         global waiting
         try:
             username = waiting[key]
+            user = notebook.user(username)
+            user.set_email_confirmation(True)
         except KeyError:
             return http.Response(stream=message(invalid_confirm_key, '/register'))
         success = """<h1>Hello, %s. Thank you for registering!</h1>""" % username
@@ -2002,6 +2005,8 @@ class UserToplevel(Toplevel):
 
     child_upload = Upload()
     child_logout = Logout()
+
+    child_confirm = RegConfirmation()
 
 
 

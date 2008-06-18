@@ -752,7 +752,7 @@ class PHC:
             sage: start_save = sol.save_as_start()         #optional
             sage: end_sys = [x^7-2,y^5-x^2]                #optional
             sage: sol = phc.start_from(start_save, end_sys, R2) #optional
-            sage: len(sol.solutions())
+            sage: len(sol.solutions())                     #optional
             30
 	"""
 	input_filename = sage.misc.misc.tmp_filename()

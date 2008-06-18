@@ -242,24 +242,107 @@ Additional arguments are added when the command is used by `run-sage' et al."
   :group 'sage
   :type 'string)
 
-(defvar sage-buffer nil
-  "*The current SAGE process buffer.
+(defvaralias 'sage-buffer 'python-buffer)
+;; (defvar sage-buffer nil
+;;   "*The current SAGE process buffer.
 
-Commands that send text from source buffers to SAGE processes have
-to choose a process to send to.  This is determined by buffer-local
-value of `sage-buffer'.  If its value in the current buffer,
-i.e. both any local value and the default one, is nil, `run-sage'
-and commands that send to the Python process will start a new process.
+;; Commands that send text from source buffers to SAGE processes have
+;; to choose a process to send to.  This is determined by buffer-local
+;; value of `sage-buffer'.  If its value in the current buffer,
+;; i.e. both any local value and the default one, is nil, `run-sage'
+;; and commands that send to the Python process will start a new process.
 
-Whenever \\[run-sage] starts a new process, it resets the default
-value of `sage-buffer' to be the new process's buffer and sets the
-buffer-local value similarly if the current buffer is in SAGE mode
-or Inferior SAGE mode, so that source buffer stays associated with a
-specific sub-process.
+;; Whenever \\[run-sage] starts a new process, it resets the default
+;; value of `sage-buffer' to be the new process's buffer and sets the
+;; buffer-local value similarly if the current buffer is in SAGE mode
+;; or Inferior SAGE mode, so that source buffer stays associated with a
+;; specific sub-process.
 
-Use \\[sage-set-proc] to set the default value from a buffer with a
-local value.")
-(make-variable-buffer-local 'sage-buffer)
+;; Use \\[sage-set-proc] to set the default value from a buffer with a
+;; local value.")
+;; (make-variable-buffer-local 'sage-buffer)
+
+(defun sage-mode-p ()
+  (interactive)
+  (derived-mode-p 'sage-mode 'pyrex-mode))
+
+(defun inferior-sage-mode-p ()
+  (interactive)
+  (derived-mode-p 'inferior-sage-mode))
+
+(defun sage-all-inferior-sage-buffers ()
+  "List of names of sage buffers."
+  (let ((bufs nil))
+    (save-excursion
+      (dolist (buf (buffer-list))
+	(with-current-buffer buf
+	  (when (inferior-sage-mode-p)
+	    (push (buffer-name buf) bufs))))
+      (nreverse bufs))))
+
+(defun sage-running-inferior-sage-buffers ()
+  (let ((bufs nil))
+    (save-excursion
+      (dolist (buf (sage-all-inferior-sage-buffers))
+	(with-current-buffer buf
+	  (when (get-buffer-process (current-buffer))
+	    (push (current-buffer) bufs))))
+      bufs)))
+
+(defun sage-mode-line-name-for-sage-buffer (buffer)
+  (format ": [%s]" (buffer-name buffer)))
+
+(defun sage-update-mode-line (buffer)
+  (setq mode-line-process (sage-mode-line-name-for-sage-buffer buffer))
+  (force-mode-line-update))
+
+(defun sage-set-buffer (buffer)
+  (interactive
+   (list (progn
+	   (unless (sage-mode-p)
+	     (error "Not in a sage-mode buffer!"))
+	   (completing-read
+	    "SAGE buffer: " (sage-all-inferior-sage-buffers) nil nil
+	    (car (sage-all-inferior-sage-buffers))))))
+  (let ((chosen-buffer (with-current-buffer buffer (current-buffer))))
+    (setq sage-buffer chosen-buffer)
+    (setq python-buffer chosen-buffer) ; update python-buffer too
+    (when (sage-mode-p)
+      (sage-update-mode-line chosen-buffer))))
+
+;; History of sage-run commands.
+;;;###autoload
+(defvar sage-run-history nil)
+
+(defun sage-create-new-sage (cmd)
+  (interactive
+   (progn
+     (let ((default (or cmd sage-command)))
+       (list (read-from-minibuffer "Run sage (like this): "
+				   default
+				   nil nil 'sage-run-history
+				   default)))))
+  (with-current-buffer
+      (let* ((sage-buffer-base-name (format "*SAGE-%s*" (sage-current-branch)))
+	     (sage-buffer-name (if new (generate-new-buffer sage-buffer-base-name) sage-buffer-base-name))
+	     (cmdlist (python-args-to-list cmd))
+	     ;; Set PYTHONPATH to import module emacs from emacs.py,
+	     ;; but ensure that a user specified PYTHONPATH will
+	     ;; override our setting, so that emacs.py can be
+	     ;; customized easily.
+	     (orig-path (getenv "PYTHONPATH"))
+	     (path-sep (if (and orig-path (length orig-path)) ":" ""))
+	     (data-path (concat "PYTHONPATH=" orig-path path-sep data-directory))
+	     (process-environment
+	      (cons data-path process-environment)))
+	(apply 'make-comint-in-buffer "SAGE"
+	       sage-buffer-name
+	       (car cmdlist) nil (cdr cmdlist)))))
+
+(defun sage-new-sage-p ()
+  (interactive)
+  (or (null sage-buffer)		      ; if there isn't a running sage
+      (not (comint-check-proc sage-buffer)))) ; or the sage buffer is dead
 
 ;;;###autoload
 (defun run-sage (&optional new cmd noshow)
@@ -279,60 +362,29 @@ Runs the hook `inferior-sage-mode-hook' \(after the
 `comint-mode-hook' is run).  \(Type \\[describe-mode] in the process
 buffer for a list of commands.)"
   (interactive "P")
-  (unless cmd (setq cmd sage-command))
-  (setq sage-command cmd)
   ;; Fixme: Consider making `sage-buffer' buffer-local as a buffer
   ;; (not a name) in SAGE buffers from which `run-sage' &c is
   ;; invoked.  Would support multiple processes better.
-  (let ((create-new-sage-p
-	 (or new			; if you ask for it
-	     (null sage-buffer)		; or there isn't a running sage
-	     (not (comint-check-proc sage-buffer)) ; or there is a sage
-					; buffer, but it's dead
-	     )))
-    (when create-new-sage-p
-      (with-current-buffer
-	  (let* ((sage-buffer-name (format "*SAGE-%s*" (sage-current-branch)))
-		 (cmdlist (python-args-to-list cmd))
-		 ;; Set PYTHONPATH to import module emacs from emacs.py,
-		 ;; but ensure that a user specified PYTHONPATH will
-		 ;; override our setting, so that emacs.py can be
-		 ;; customized easily.
-		 (orig-path (getenv "PYTHONPATH"))
-		 (path-sep (if (and orig-path (length orig-path)) ":" ""))
-		 (data-path (concat "PYTHONPATH=" orig-path path-sep data-directory))
-		 (process-environment
-		  (cons data-path process-environment)))
-	    (apply 'make-comint-in-buffer "SAGE"
-		   (if new (generate-new-buffer sage-buffer-name) sage-buffer-name)
-		   (car cmdlist) nil (cdr cmdlist)))
-	;; Show progress
-	(unless noshow (pop-to-buffer (current-buffer)))
-	;; Update default SAGE buffers
-	(setq-default sage-buffer (current-buffer))
-	;; Update python-buffer too, so that evaluation keys work
-	(setq-default python-buffer (current-buffer))
-	;; Set up sensible prompt defaults, etc
+  (if (not (or new (sage-new-sage-p)))
+      (unless noshow (pop-to-buffer sage-buffer))
+    (setq sage-buffer (if (called-interactively-p)
+			  (call-interactively 'sage-create-new-sage)
+			(sage-create-new-sage cmd)))
+    (set-default 'sage-buffer sage-buffer) ; update defauls
+    (set-default 'python-buffer python-buffer)
+
+    (with-current-buffer sage-buffer
+      (unless noshow (pop-to-buffer sage-buffer)) ; show progress
+      (unless (inferior-sage-mode-p)
 	(inferior-sage-mode)
-	(when (inferior-sage-wait-for-prompt)
-	  ;; Ensure we're at a prompt before loading the functions we use
-	  ;; XXX: add more error-checking?
-	  (sage-send-command sage-startup-command t)))))
+	(when (inferior-sage-wait-for-prompt) ; wait for prompt
+	  (sage-send-command sage-startup-command t))))
 
-  ;; If we're coming from a sage-mode buffer, update inferior buffer
-  (when (derived-mode-p 'sage-mode)
-      (setq sage-buffer (default-value 'sage-buffer)) ; buffer-local
-      ;; Update python-buffer too, so that evaluation keys work
-      (setq python-buffer (default-value 'sage-buffer))) ; buffer-local
-
-  ;; No matter how we got here, we want this inferior buffer to be the master
-  ;; (when (comint-check-proc sage-buffer)
-  ;;  (setq-default sage-buffer sage-buffer)
-  ;;  (setq-default python-buffer sage-buffer))
-  ;; Without this, help output goes into the inferior python buffer if
-  ;; the process isn't already running.
-  ;; (sit-for 0)        ;Should we use accept-process-output instead?  --Stef
-  (unless noshow (pop-to-buffer sage-buffer)))
+    (when (sage-mode-p)
+      ;; If we're coming from a sage-mode buffer, update inferior buffer
+      (message "Buffer %s will use sage %s" (current-buffer) sage-buffer)
+      (sage-set-buffer sage-buffer))
+    (unless noshow (pop-to-buffer sage-buffer))))
 
 (defun sage-set-buffer-name ()
   (interactive)
@@ -359,7 +411,7 @@ buffer for a list of commands.)"
   "Return the current SAGE branch name."
   (interactive)
   (save-match-data
-    (if (and (derived-mode-p 'inferior-sage-mode)
+    (if (and (inferior-sage-mode-p)
 	     (string-match "\\*SAGE-\\(.*\\)\\*" (buffer-name)))
 	(match-string 1 (buffer-name))
       (sage-current-branch-link))))
@@ -515,7 +567,7 @@ Match group 1 will be replaced with devel/sage-branch")
 Use current devel directory in inferior-sage-mode for hg-root if possible."
   (when (derived-mode-p 'eshell-mode)	; buffer local in eshell buffers
     (ad-set-arg 0 default-directory))
-  (when (derived-mode-p 'inferior-sage-mode) ; buffer local in inferior sage buffers
+  (when (inferior-sage-mode-p) ; buffer local in inferior sage buffers
     (ad-set-arg 0 (sage-current-devel-root))))
 
 (ad-activate 'hg-root)

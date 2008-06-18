@@ -1041,6 +1041,9 @@ ext_modules = [ \
               ['sage/misc/sage_timeit_class.pyx']
               ), \
 
+    Extension('sage.misc.fpickle',
+              ['sage/misc/fpickle.pyx']
+              ), \
     ]
 
 
@@ -1408,6 +1411,8 @@ code = setup(name        = 'sage',
                      'sage.sets',
 
                      'sage.stats',
+
+                     'sage.parallel',
 
                      'sage.schemes',
                      'sage.schemes.generic',

@@ -30,6 +30,8 @@ from profiler import Profiler
 
 from mrange import xmrange, mrange, xmrange_iter, mrange_iter, cartesian_product_iterator
 
+from fpickle import pickle_function, unpickle_function
+
 # deprecated
 #from bug import bug
 

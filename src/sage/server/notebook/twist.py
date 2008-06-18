@@ -1803,65 +1803,63 @@ class RegistrationPage(resource.PostableResource):
         self.userdb = userdb
 
     def render(self, request):
-        if request.args.has_key('email'):
-            if request.args['email'][0] is not None:
-                def error(part):
-                    return http.Response(stream=registration_page_template(error=part))
+        if 'username' in request.args or 'password' in request.args or 'email' in request.args:
+            def error(part):
+                return http.Response(stream=registration_page_template(error=part))
 
-                try:
-                    username = request.args['username'][0]
-                    if not is_valid_username(username):
-                        return error("username_invalid")
-                except KeyError:
-                    return error("username_missing")
-                try:
-                    passwd  = request.args['password'][0]
-                except KeyError:
-                    return error("password_missing")
-                else:
-                    if len(passwd) < 6:
-                        return error("password_too_short")
+            try:
+                username = request.args['username'][0]
+                if not is_valid_username(username):
+                    return error("username_invalid")
+            except KeyError:
+                return error("username_missing")
+            try:
+                passwd  = request.args['password'][0]
+            except KeyError:
+                return error("password_missing")
+            else:
+                if len(passwd) < 6:
+                    return error("password_too_short")
 
-                destaddr = """%s""" % request.args['email'][0]
+            destaddr = """%s""" % request.args['email'][0]
 
-                # Add the user to passwords.txt
-                try:
-                    self.userdb.add_user(username, passwd, destaddr)
-                except ValueError:
-                    return error("username_taken")
+            # Add the user to passwords.txt
+            try:
+                self.userdb.add_user(username, passwd, destaddr)
+            except ValueError:
+                return error("username_taken")
 
-                from sage.server.notebook.smtpsend import send_mail
-                from sage.server.notebook.register import make_key, build_msg
-                # TODO: make this come from the server settings
-                key = make_key()
-                listenaddr = notebook.address
-                port = notebook.port
-                fromaddr = 'no-reply@%s' % listenaddr
-                body = build_msg(key, username, listenaddr, port,
-                                 notebook.secure)
+            from sage.server.notebook.smtpsend import send_mail
+            from sage.server.notebook.register import make_key, build_msg
+            # TODO: make this come from the server settings
+            key = make_key()
+            listenaddr = notebook.address
+            port = notebook.port
+            fromaddr = 'no-reply@%s' % listenaddr
+            body = build_msg(key, username, listenaddr, port, notebook.secure)
 
-                # Send a confirmation message to the user.
-                try:
-                    send_mail(self, fromaddr, destaddr, "Sage Notebook Registration",body)
-                except ValueError:
-                    # the email address is invalid
-                    return error("email_invalid")
+            # Send a confirmation message to the user.
+            try:
+                send_mail(self, fromaddr, destaddr, "Sage Notebook Registration",body)
+            except ValueError:
+                # the email address is invalid
+                return error("email_invalid")
 
 
-                # Store in memory that we are waiting for the user to respond
-                # to their invitation to join the Sage notebook.
-                waiting[key] = username
+            # Store in memory that we are waiting for the user to respond
+            # to their invitation to join the Sage notebook.
+            waiting[key] = username
 
-                # now say that the user has been registered.
-                s = """
-                <html>
-                <h1>Registration information received</h1>
-                <p>Thank you for registering with the Sage notebook. A
-                confirmation message will be sent to %s.</p>
-                <br>
-                <p><a href="/">Click here to login with your new account.</a></p>
-                </html>
-                """%destaddr
+            # now say that the user has been registered.
+            s = """
+            <html>
+            <h1>Registration information received</h1>
+            <p>Thank you for registering with the Sage notebook. A
+            confirmation message will be sent to %s.</p>
+            <br>
+            <p><a href="/">Click here to login with your new account.</a></p>
+            </html>
+            """%destaddr
         else:
             s = registration_page_template()
         return http.Response(stream=s)

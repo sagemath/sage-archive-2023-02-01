@@ -112,9 +112,23 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         return self.uniformizer_pow(n)
 
     def uniformizer(self):
+        """
+        EXAMPLES:
+            sage : A = Zp(7,10)
+            sage : B.<t> = A.ext(x^2+7)
+            sage : B.uniformizer()
+            t + O(t^21)
+        """
         return self.gen()
 
     def uniformiser(self):
+        """
+        EXAMPLES:
+            sage : A = Zp(7,10)
+            sage : B.<t> = A.ext(x^2+7)
+            sage : B.uniformiser()
+            t + O(t^21)
+        """
         return self.uniformizer()
 
     def _uniformizer_print(self):

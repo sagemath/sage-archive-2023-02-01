@@ -1,11 +1,30 @@
-########################################################
-# Function pickling
-########################################################
+"""
+Function pickling
+
+REFERENCE: The python cookbook.
+"""
+
 import new, types, copy_reg, cPickle
-#See python cookbook for more details
+
 def code_ctor(*args):
+    """
+    EXAMPLES:
+    This indirectly tests this function.
+        sage: def foo(a,b,c=10): return a+b+c
+        sage: sage.misc.fpickle.reduce_code(foo.func_code)
+        (<built-in function code_ctor>, ...)
+        sage: unpickle_function(pickle_function(foo))
+        <function foo at ...>
+    """
     return new.code(*args)
+
 def reduce_code(co):
+    """
+    EXAMPLES:
+        sage: def foo(N): return N+1
+        sage: sage.misc.fpickle.reduce_code(foo.func_code)
+        (<built-in function code_ctor>, ...)
+    """
     if co.co_freevars or co.co_cellvars:
         raise ValueError, "Cannot pickle code objects from closures"
     return code_ctor, (co.co_argcount, co.co_nlocals, co.co_stacksize,
@@ -17,6 +36,19 @@ copy_reg.pickle(types.CodeType, reduce_code)
 
 def pickle_function(func):
     """
+    Pickle the Python function func.  This is not a normal pickle; you
+    must use the unpickle_function method to unpickle the pickled
+    function.
+
+    NOTE: This does not work on all functions, but does work on
+    'surprisingly' many functions.  In particular, it does not
+    work on functions that includes nested functions.
+
+    INPUT:
+        func -- a Python function
+    OUTPUT:
+        a string
+
     EXAMPLES:
         sage: def f(N): return N+1
         ...
@@ -29,6 +61,7 @@ def pickle_function(func):
 
 def unpickle_function(pickled):
     """
+    Unpickle a pickled function.
     EXAMPLES:
         sage: def f(N,M): return N*M
         ...
@@ -36,6 +69,5 @@ def unpickle_function(pickled):
         15
     """
     recovered = cPickle.loads(pickled)
-    ret = new.function(recovered, globals())
-    return ret
+    return new.function(recovered, globals())
 

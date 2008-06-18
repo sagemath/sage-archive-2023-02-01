@@ -54,3 +54,19 @@ def login_page_template(accounts, default_user, is_username_error=False, is_pass
         p_e = ''
     return login_template(register = reg, default=default_user, username_error=u_e, password_error=p_e)
 
+def registration_page_template(error=None):
+    if error:
+        if error == 'username_taken':
+            return register_template(username_error='<tr><td align=right><span style="color:red">Error:</span></td><td>Username is not available</td></tr>', password_error='', email_error='')
+        elif error == 'username_invalid':
+            return register_template(username_error='<tr><td align=right><span style="color:red">Error:</span></td><td>Username is not valid</td></tr>', password_error='', email_error='')
+        elif error == 'username_missing':
+            return register_template(username_error='<tr><td align=right><span style="color:red">Error:</span></td><td>Username wasn\'t given</td></tr>', password_error='', email_error='')
+        elif error == 'password_too_short':
+            return register_template(username_error='', password_error='<tr><td align=right><span style="color:red">Error:</span></td><td>Password is too short</td></tr>', email_error='')
+        elif error == 'password_missing':
+            return register_template(username_error='', password_error='<tr><td align=right><span style="color:red">Error:</span></td><td>Password wasn\'t given</td></tr>', email_error='')
+        elif error == 'email_invalid':
+            return register_template(username_error='', password_error='', email_error='<tr><td align=right><span style="color:red">Error:</span></td><td>E-mail address is invalid</td></tr>')
+    else:
+        return register_template(username_error='',password_error='',email_error='')

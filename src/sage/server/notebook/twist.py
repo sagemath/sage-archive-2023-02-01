@@ -1796,7 +1796,7 @@ def is_valid_username(username):
     m = re_valid_username.match(username)
     return len(username) > 0 and m.start() == 0 and m.end() == len(username)
 
-from sage.server.notebook.template import register_template
+from sage.server.notebook.template import registration_page_template
 
 class RegistrationPage(resource.PostableResource):
     def __init__(self, userdb):
@@ -1805,22 +1805,22 @@ class RegistrationPage(resource.PostableResource):
     def render(self, request):
         if request.args.has_key('email'):
             if request.args['email'][0] is not None:
-                def error(msg):
-                    return http.Response(stream=message(msg, '/register'))
+                def error(part):
+                    return http.Response(stream=registration_page_template(error=part))
 
                 try:
                     username = request.args['username'][0]
                     if not is_valid_username(username):
-                        return error("Usernames can only contain letters, numbers, dashes, periods and underscores.")
+                        return error("username_invalid")
                 except KeyError:
-                    return error("You must specify a username.")
+                    return error("username_missing")
                 try:
                     passwd  = request.args['password'][0]
                 except KeyError:
-                    return error("You must specify a password.")
+                    return error("password_missing")
                 else:
-                    if len(passwd) == 0:
-                        return error("Password must be nonempty.")
+                    if len(passwd) < 6:
+                        return error("password_too_short")
 
                 destaddr = """%s""" % request.args['email'][0]
 
@@ -1828,7 +1828,7 @@ class RegistrationPage(resource.PostableResource):
                 try:
                     self.userdb.add_user(username, passwd, destaddr)
                 except ValueError:
-                    return error("Username is already taken, please choose another one")
+                    return error("username_taken")
 
                 from sage.server.notebook.smtpsend import send_mail
                 from sage.server.notebook.register import make_key, build_msg
@@ -1845,7 +1845,7 @@ class RegistrationPage(resource.PostableResource):
                     send_mail(self, fromaddr, destaddr, "Sage Notebook Registration",body)
                 except ValueError:
                     # the email address is invalid
-                    return error("Registration failed -- the email address '%s' is invalid."%destaddr)
+                    return error("email_invalid")
 
 
                 # Store in memory that we are waiting for the user to respond
@@ -1863,7 +1863,7 @@ class RegistrationPage(resource.PostableResource):
                 </html>
                 """%destaddr
         else:
-            s = register_template()
+            s = registration_page_template()
         return http.Response(stream=s)
 
 class ForgotPassPage(resource.Resource):

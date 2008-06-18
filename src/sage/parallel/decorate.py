@@ -9,6 +9,7 @@ from sage.structure.sage_object import save, load
 from sage.misc.fpickle import pickle_function
 
 from reference import parallel_iter as p_iter_reference
+from dsage_p_iter import parallel_iter as p_iter_dsage
 
 def parallel_eval(f, inputs, p_iter, dir=None, compress=True, threads=2):
     """
@@ -105,7 +106,9 @@ class parallel:
     INPUT:
         dir -- string (default: None)
         threads -- integer (default: 2)
-        p_iter -- function/callable (default: None) a parallel iterator
+        p_iter -- parallel iterator function or string:
+                   'reference'
+                   'dsage'
         compress -- bool (default: True)
 
     EXAMPLES:
@@ -141,6 +144,14 @@ class parallel:
         # This may change.
         if p_iter is None:
             self.p_iter = p_iter_reference
+        elif p_iter == 'dsage':
+            self.p_iter = p_iter_dsage
+        elif p_iter == 'reference':
+            self.p_iter = p_iter_reference
+        else:
+            if isinstance(p_iter, str):
+                raise ValueError, "unknown iterator '%s'"%p_iter
+            self.p_iter = p_iter
         try:
             t = int(threads)
         except TypeError:

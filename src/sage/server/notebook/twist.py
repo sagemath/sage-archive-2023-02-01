@@ -1797,6 +1797,7 @@ def is_valid_username(username):
     return len(username) > 0 and m.start() == 0 and m.end() == len(username)
 
 from sage.server.notebook.template import registration_page_template
+from sage.server.notebook.template import login_page_template
 
 class RegistrationPage(resource.PostableResource):
     def __init__(self, userdb):
@@ -1851,15 +1852,7 @@ class RegistrationPage(resource.PostableResource):
             waiting[key] = username
 
             # now say that the user has been registered.
-            s = """
-            <html>
-            <h1>Registration information received</h1>
-            <p>Thank you for registering with the Sage notebook. A
-            confirmation message will be sent to %s.</p>
-            <br>
-            <p><a href="/">Click here to login with your new account.</a></p>
-            </html>
-            """%destaddr
+            s = login_page_template(notebook.get_accounts(), notebook.default_user(), welcome=username)
         else:
             s = registration_page_template()
         return http.Response(stream=s)

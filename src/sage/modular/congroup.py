@@ -1347,11 +1347,11 @@ class GammaH_class(CongruenceSubgroup):
         for the given cusp, and t is either 1 or -1, as explained
         below.
 
-        The minimal representative for a cusp is the element in P^1(Q)
+        The minimal representative for a cusp is the element in $P^1(Q)$
         in lowest terms with minimal denominator, and minimal
         numerator for that denominator.
 
-        Two cusps $u1/v1$ and $u2/v2$ are equivalent modulo Gamma_H(N)
+        Two cusps $u1/v1$ and $u2/v2$ are equivalent modulo $\Gamma_H(N)$
         if and only if
             $v1 =  h*v2 (mod N)$ and $u1 =  h^(-1)*u2 (mod gcd(v1,N))$
         or

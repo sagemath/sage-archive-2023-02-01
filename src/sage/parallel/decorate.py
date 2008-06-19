@@ -76,8 +76,9 @@ def easy_parallel_iter(f, inputs, p_iter=p_iter_reference):
     EXAMPLES:
         sage: def f(N, m=2): return N*m
         sage: p_iter = sage.parallel.decorate.easy_parallel_iter
+        sage: set_random_seed(0)
         sage: list(p_iter(f, [(2,3), ((5,), {'m':10}), 8], sage.parallel.reference.parallel_iter))
-        [((2, 3), 6), (((5,), {'m': 10}), 50), (8, 16)]
+        [(8, 16), (((5,), {'m': 10}), 50), ((2, 3), 6)]
     """
     v = []
     argmap = {}
@@ -110,10 +111,9 @@ def parallel_eval(f, inputs, p_iter, dir=None, compress=True, threads=2):
                   saved compressed
 
     OUTPUT:
-        list of values of f on the tuples (all positional
-        arguments), dicts (all keyword arguments), or
-        on objects.    Also, files are created in dir if
-        specified.
+        list of values of f on the tuples (all positional arguments),
+        dicts (all keyword arguments), or on objects.  Also, files are
+        created in dir if specified.
 
     EXAMPLES:
         sage: def f(N, m=2): return N*m
@@ -184,11 +184,11 @@ class parallel:
     Create parallelizable functions.
 
     INPUT:
-        dir -- string (default: None)
-        threads -- integer (default: 2)
         p_iter -- parallel iterator function or string:
                    'reference'
                    'dsage'
+        dir -- string (default: None)
+        threads -- integer (default: 2)
         compress -- bool (default: True)
 
     EXAMPLES:
@@ -207,19 +207,22 @@ class parallel:
         True
     """
     def __init__(self,
+                 p_iter   = None,
                  dir       = None,
                  threads  = 2,
-                 p_iter   = None,
                  compress = True):
         """
         Create a parallel iterator decorator object.
 
         EXAMPLES:
-            sage: @parallel(dir=tmp_dir(), threads=4, p_iter=None, compress=False)
+            sage: @parallel(p_iter=None, dir=tmp_dir(), threads=4, compress=False)
             ... def f(N): return N^2
             sage: f([1,2,4])
             [(1, 1), (2, 4), (4, 16)]
         """
+        if dir is not None:
+            if not isinstance(dir, str):
+                raise TypeError, "dir must be a string or None"
         # The default p_iter is currently the reference implementation.
         # This may change.
         if p_iter is None:
@@ -268,7 +271,7 @@ class parallel:
             decorated version of f
 
         EXAMPLES:
-            sage: P = parallel(tmp_dir())
+            sage: P = parallel(dir=tmp_dir())
             sage: def g(N,M): return N*M
             sage: P(g)([(1,2),(17,4)])
             [((1, 2), 2), ((17, 4), 68)]

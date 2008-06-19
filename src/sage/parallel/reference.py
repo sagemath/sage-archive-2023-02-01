@@ -6,6 +6,8 @@ primitives. These are not actually parallel, but work the same way.
 They are good for testing.
 """
 
+from sage.misc.prandom import shuffle
+
 def parallel_iter(f, inputs):
     """
     Reference parallel iterator implementation.
@@ -22,11 +24,20 @@ def parallel_iter(f, inputs):
 
     EXAMPLES:
         sage: def f(N,M=10): return N*M
-        sage: for a, val in sage.parallel.reference.parallel_iter(f, [((2,3),{}),  (tuple([]), {'N':3,'M':5}), ((2,),{})]):
+        sage: inputs = [((2,3),{}),  (tuple([]), {'N':3,'M':5}), ((2,),{})]
+        sage: set_random_seed(0)
+        sage: for a, val in sage.parallel.reference.parallel_iter(f, inputs):
         ...       print a, val
+        ((2,), {}) 20
+        ((), {'M': 5, 'N': 3}) 15
         ((2, 3), {}) 6
+        sage: for a, val in sage.parallel.reference.parallel_iter(f, inputs):
+        ...       print a, val
         ((), {'M': 5, 'N': 3}) 15
         ((2,), {}) 20
+        ((2, 3), {}) 6
     """
-    for args, kwds in inputs:
+    v = list(inputs)
+    shuffle(v)
+    for args, kwds in v:
         yield ((args, kwds), f(*args, **kwds))

@@ -60,7 +60,8 @@ AUTHOR:
     - Nick Alexander (2007-07): move is_isomorphic to isomorphism_to, add from_gap_list
     - William Stein (2007-07): put is_isomorphic back (and make it better)
     - David Joyner (2007-08): fixed bugs in composition_series, upper/lower_central_series, derived_series,
-    - David Joyner (2008-06): fixed mistake in docstring for is_normal (reported by Willem Jan Palenstijn)
+    - David Joyner (2008-06): modified is_normal (reported by W. J. Palenstijn),
+                              and added normalizes
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -1552,6 +1553,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             False
 
         """
+        if not(other.is_subgroup(self)):
+            raise TypeError("%s must be a subgroup of %s"%(other,self))
         t = self._gap_().IsNormal(other._gap_())
         return t.bool()
 
@@ -1672,6 +1675,33 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         ans = self._gap_().IsTransitive()
         return ans.bool()
+
+    def normalizes(self,other):
+        """
+        Returns True if the group other is normalized by the self.
+        Wraps GAP's IsNormal function.
+
+        A group G normalizes a group U if and only if for every
+        $g \in G$ and $u \in U$ the element $u^g$ is a member of U. Note
+        that U need not be a subgroup of G.
+
+        EXAMPLES:
+            sage: G = PermutationGroup(['(1,2,3)(4,5)'])
+            sage: H = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: H.normalizes(G)
+            False
+            sage: G = SymmetricGroup(3)
+            sage: H = PermutationGroup( [ (4,5,6) ] )
+            sage: G.normalizes(H)
+            True
+            sage: H.normalizes(G)
+            True
+
+        In the last example, G and H are disjoint, so each normalizes
+        the other.
+        """
+        t = self._gap_().IsNormal(other._gap_())
+        return t.bool()
 
     ############## Series ######################
 

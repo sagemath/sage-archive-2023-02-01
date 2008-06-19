@@ -53,7 +53,7 @@ class pAdicBaseGeneric(padic_generic.pAdicGeneric):
         return self.variable_name()
 
     def plot(self, max_points=2500, **args):
-        """
+        r"""
         Creates a visualization of this p-adic ring as a fractal similar as
         a generalization of the the Sierpi\'nski triangle. The resulting image
         attempts to capture the algebraic and topological characteristics of $\Z_p$.

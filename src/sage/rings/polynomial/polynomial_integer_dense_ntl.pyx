@@ -430,6 +430,9 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: q*g + r == f
             True
 
+            sage: 0//(2*x)
+            0
+
             sage: f = x^2
             sage: f.quo_rem(0)
             Traceback (most recent call last):

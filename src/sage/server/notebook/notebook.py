@@ -1188,7 +1188,8 @@ class Notebook(SageObject):
 
     def html_worksheet_list_top(self, user, actions=True, typ='active', pub=False, search=None):
         s = self.html_topbar(user, pub)
-        s += self.html_new_or_upload()
+        if not pub:
+            s += self.html_new_or_upload()
         s += self.html_search(search, typ)
         s += '<br>'
         s += '<hr class="usercontrol">'

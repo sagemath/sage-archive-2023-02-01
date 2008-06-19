@@ -71,3 +71,12 @@ def unpickle_function(pickled):
     recovered = cPickle.loads(pickled)
     return new.function(recovered, globals())
 
+
+
+def call_pickled_function(fpargs):
+    import sage.all
+    from sage.misc.fpickle import unpickle_function
+    (fp, (args, kwds)) = fpargs
+    f = eval("unpickle_function(fp)", sage.all.__dict__, {'fp':fp})
+    res = eval("f(*args, **kwds)",sage.all.__dict__, {'args':args, 'kwds':kwds, 'f':f})
+    return ((args, kwds), res)

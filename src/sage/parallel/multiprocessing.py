@@ -1,8 +1,13 @@
+"""
+Parallel Iterator built using PyProcessing
+"""
+
 from processing import Pool
 from functools import partial
-from sage.misc.fpickle import pickle_function
+from sage.misc.fpickle import pickle_function, call_pickled_function
+import ncpus
 
-def pyprocessing(processes):
+def pyprocessing(processes=0):
     """
     EXAMPLES:
         sage: from sage.parallel.multiprocessing import pyprocessing
@@ -12,8 +17,9 @@ def pyprocessing(processes):
         sage: def f(x): return x+x
         ...
         sage: P(f)(range(10))
-
     """
+    if processes == 0:
+        processes = ncpus.ncpus()
     return partial(parallel_iter, processes)
 
 def parallel_iter(processes, f, inputs):
@@ -24,10 +30,3 @@ def parallel_iter(processes, f, inputs):
     for res in result:
         yield res
 
-def call_pickled_function(fpargs):
-    import sage.all
-    from sage.misc.fpickle import unpickle_function
-    (fp, (args, kwds)) = fpargs
-    f = eval("unpickle_function(fp)", sage.all.__dict__, locals())
-    res = eval("f(*args, **kwds)",sage.all.__dict__, locals())
-    return ((args, kwds), res)

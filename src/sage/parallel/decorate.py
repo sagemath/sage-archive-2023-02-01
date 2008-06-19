@@ -11,6 +11,88 @@ from sage.misc.fpickle import pickle_function
 from reference import parallel_iter as p_iter_reference
 from dsage_p_iter import parallel_iter as p_iter_dsage
 
+def normalize_input(a):
+    """
+    Convert a to a pair (args, kwds) using some rules:
+
+        * if already of that form, leave that way.
+        * if a is a tuple make (a,{})
+        * if a is a dict make (tuple([]),a)
+        * otherwise make ((a,),{})
+
+    INPUT:
+        a -- object
+    OUTPUT:
+        args -- tuple
+        kwds -- dictionary
+
+    EXAMPLES:
+        sage: sage.parallel.decorate.normalize_input( (2, {3:4}) )
+        ((2, {3: 4}), {})
+        sage: sage.parallel.decorate.normalize_input( (2,3) )
+        ((2, 3), {})
+        sage: sage.parallel.decorate.normalize_input( {3:4} )
+        ((), {3: 4})
+        sage: sage.parallel.decorate.normalize_input( 5 )
+        ((5,), {})
+    """
+    if isinstance(a, tuple) and len(a) == 2 and isinstance(a[0],tuple) and isinstance(a[1],dict):
+        return a
+    elif isinstance(a, tuple):
+        return (a, {})
+    elif isinstance(a, dict):
+        return (tuple([]), a)
+    else:
+        return ((a,), {})
+
+def hashargs(a):
+    """
+    INPUT:
+        a -- object; could e list, tuple, etc.
+
+    OUTPUT:
+        nonnegative integer
+
+    EXAMPLES:
+        sage: sage.parallel.decorate.hashargs( ((2,), {'a':4}) )
+        450573205
+    """
+    b = normalize_input(a)
+    return abs(hash((b[0],tuple(b[1]))))
+
+def easy_parallel_iter(f, inputs, p_iter=p_iter_reference):
+    """
+    Iterate over the inputs and pass them to f using p_iter.
+    Returns an iterator over (input[i], f(...)).
+
+    INPUT:
+        f -- function
+        inputs -- list
+        p_iter -- function
+
+    OUTPUT:
+        generator
+
+    EXAMPLES:
+        sage: def f(N, m=2): return N*m
+        sage: p_iter = sage.parallel.decorate.easy_parallel_iter
+        sage: list(p_iter(f, [(2,3), ((5,), {'m':10}), 8], sage.parallel.reference.parallel_iter))
+        [((2, 3), 6), (((5,), {'m': 10}), 50), (8, 16)]
+    """
+    v = []
+    argmap = {}
+
+    for a in inputs:
+        # we store the (args,kwds) version of each input argument,
+        # along with a mapping back, which we pickle to make hashable.
+        b = normalize_input(a)
+        v.append(b)
+        argmap[(b[0],tuple(b[1]))] = a
+
+    # Now we iterate over the answers yielding the original inputs and values.
+    for b, z in p_iter(f, v):
+        yield argmap[(b[0],tuple(b[1]))], z
+
 def parallel_eval(f, inputs, p_iter, dir=None, compress=True, threads=2):
     """
     INPUT:
@@ -35,7 +117,7 @@ def parallel_eval(f, inputs, p_iter, dir=None, compress=True, threads=2):
 
     EXAMPLES:
         sage: def f(N, m=2): return N*m
-        sage: p_iter = sage.parallel.reference.parallel_iter
+        sage: p_iter = sage.parallel.decorate.easy_parallel_iter
         sage: sage.parallel.decorate.parallel_eval(f, [(2,3), 5, (8,18), {'N':5,'m':3}], p_iter)
         [((2, 3), 6), (5, 10), ((8, 18), 144), ({'m': 3, 'N': 5}, 15)]
         sage: tmpdir = tmp_dir()
@@ -65,15 +147,13 @@ def parallel_eval(f, inputs, p_iter, dir=None, compress=True, threads=2):
 
     # We pickle the input function f
     pf = pickle_function(f)
-    def myhash(a):
-        return abs(hash((pf, cPickle.dumps(a,2))))
 
     # Iterator over the parallel iterator, which can return values in
     # *any* order.
     to_compute = []  # non-cached values that we will need to compute
     for i, a in enumerate(inputs):
         # filename where we will write answer
-        file = '%s/%s'%(dir, myhash(a))
+        file = '%s/%s'%(dir, hashargs(a))
 
         # if it exists, just use cached value
         if dir is not None and os.path.exists(file+'.sobj'):
@@ -89,10 +169,10 @@ def parallel_eval(f, inputs, p_iter, dir=None, compress=True, threads=2):
     # find its value.  Note that the order of output from p_iter is random.
     # As we get results we optionally write them to a file.
     if len(to_compute) > 0:
-        for a, z in p_iter(f, to_compute, threads=threads, blocking=True):
+        for a, z in easy_parallel_iter(f, to_compute, p_iter):
             v[inputs.index(a)] = (a,z)
             if dir is not None:
-                file = '%s/%s'%(dir, myhash(a))
+                file = '%s/%s'%(dir, hashargs(a))
                 save((pf,a,z), file + '.sobj', compress=compress)
                 open(file+'.txt','w').write(str(a))
 

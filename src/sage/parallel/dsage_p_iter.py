@@ -8,15 +8,14 @@ from sage.misc.fpickle import pickle_function
 from sage.structure.sage_object import loads
 
 dsage_client = None
-def parallel_iter(f, inputs, threads=2, blocking=True):
+def parallel_iter(f, inputs):
     """
     Parallel iterator implemented using DSage.
 
     INPUT:
         f -- a function
-        inputs -- a list of tuples, dicts, or objects
-        threads -- integer (default: 2)
-        blocking -- bool (default: True)
+        inputs -- a list of pickleable pairs (args, kwds), where args
+             is a tuple and kwds is a dictionary.
 
     OUTPUT:
         iterator over 2-tuples (inputs[i], f(inputs[i])),

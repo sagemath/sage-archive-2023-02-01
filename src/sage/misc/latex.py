@@ -427,31 +427,33 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
          sep='', tiny=False,  **kwds):
     r"""
     Compute a latex representation of each object in objects, compile, and
-    display a dvi file. (Requires latex be installed.)
+    display typeset. If used from the command line, this requires
+    that latex be installed.
 
     INPUT:
         objects -- list (or object)
         title -- string (default: 'SAGE'): title for the document
-        zoom -- zoom factor, passed on to xdvi
+        zoom -- zoom factor, passed on to xdvi if used
         expert -- bool (default: True): mode passed on to xdvi
         debug -- bool (default: False): print verbose output
         sep -- string (default: ''): separator between math objects
         tiny -- bool (default: False): use tiny font.
 
     OUTPUT:
-        Opens a dvi file with the objects displayed, or embeds an image.
+        Display typeset objects.
 
     This function behaves differently depending on whether in notebook
     mode or not.
 
     If not in notebook mode, this opens up a window displaying a dvi
-    file, displaying the following: the title string is printed,
-    centered, at the top. Beneath that, each object in objects is
-    typeset on its own line, with the string sep typeset between these
-    lines.
+    (or pdf) file, displaying the following: the title string is
+    printed, centered, at the top. Beneath that, each object in
+    objects is typeset on its own line, with the string sep typeset
+    between these lines.
 
     If the program xdvi is used to display the dvi file, then the
-    values of expert and zoom are passed on to it.
+    values of expert and zoom are passed on to it.  On OS X displays
+    a pdf.
 
     If in notebook mode, this uses jmath to display the output in the
     notebook. Only the first argument, objects, is relevant; the

@@ -38,7 +38,7 @@ if os.system(cmd):
 
 #if len(sys.argv) == 2:
 
-print "Copying over all Pyrex auto-generated .c, .cpp and .h files..."
+print "Copying over all Cython auto-generated .c, .cpp and .h files..."
 def cpdir(src, dest):
     if not os.path.isdir(dest):
         return
@@ -89,10 +89,9 @@ if os.system(cmd):
     print "Error building SAGE"
 
 
-print "*** WARNING **"
-print "If you are cloning a previous revision or have uncommited changes to"
-print "pyrex files do "
+print "*** WARNING ***"
+print "If you are cloning a previous revision or have uncommitted changes to"
+print "cython files do "
 print "    sage -ba"
 print "Otherwise SAGE might build using the wrong .c files !!"
-
 

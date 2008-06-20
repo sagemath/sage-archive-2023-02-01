@@ -56,17 +56,26 @@ def login_page_template(accounts, default_user, is_username_error=False, is_pass
 
 def registration_page_template(error=None):
     if error:
+        def error_html(msg):
+            return '<p><span class="error">Error:</span> ' + msg + '</p>'
+
+        error_msg = '<h2 class="error_found">Error found</h2>'
+        username_error = ''
+        password_error = ''
+        confirm_pass_error = ''
+        email_error = ''
         if error == 'username_taken':
-            return register_template(username_error='<tr><td align=right><span style="color:red">Error:</span></td><td>Username is not available</td></tr>', password_error='', email_error='')
-        elif error == 'username_invalid':
-            return register_template(username_error='<tr><td align=right><span style="color:red">Error:</span></td><td>Username is not valid</td></tr>', password_error='', email_error='')
-        elif error == 'username_missing':
-            return register_template(username_error='<tr><td align=right><span style="color:red">Error:</span></td><td>Username wasn\'t given</td></tr>', password_error='', email_error='')
-        elif error == 'password_too_short':
-            return register_template(username_error='', password_error='<tr><td align=right><span style="color:red">Error:</span></td><td>Password is too short</td></tr>', email_error='')
-        elif error == 'password_missing':
-            return register_template(username_error='', password_error='<tr><td align=right><span style="color:red">Error:</span></td><td>Password wasn\'t given</td></tr>', email_error='')
-        elif error == 'email_invalid':
-            return register_template(username_error='', password_error='', email_error='<tr><td align=right><span style="color:red">Error:</span></td><td>E-mail address is invalid</td></tr>')
+            username_error = error_html("The username given is not available.")
+        if error == 'username_invalid':
+            username_error = error_html("The username given contains characters that are not allowed.")
+        if error == 'username_missing':
+            username_error = error_html("There was no username given.")
+        if error == 'password_too_short':
+            password_error = error_html("The password given was too short.")
+        if error == 'password_missing':
+            password_error = error_html("There was no password given.")
+        if error == 'email_invalid':
+            email_error = error_html('The e-mail address given is invalid.')
+        return register_template(error=error_msg, username_error=username_error, password_error=password_error, confirm_pass_error=confirm_pass_error, email_error=email_error)
     else:
-        return register_template(username_error='',password_error='',email_error='')
+        return register_template(error='', username_error='', password_error='', confirm_pass_error='', email_error='')

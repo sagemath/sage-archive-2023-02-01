@@ -1676,6 +1676,18 @@ cdef class TimeSeries:
             right -- right bound on random distribution
 
         EXAMPLES:
+        We generate 5 values distributed with respect to the uniform
+        distribution over the interval [0,1].
+            sage: v = finance.TimeSeries(5)
+            sage: set_random_seed(0)
+            sage: v.randomize('uniform')
+            [0.8685, 0.2816, 0.0229, 0.1456, 0.7314]
+
+        We now test that the mean is indeed 0.5.
+            sage: v = finance.TimeSeries(10^6)
+            sage: set_random_seed(0)
+            sage: v.randomize('uniform').mean()
+            0.50069085504319877
         """
         if left >= right:
             raise ValueError, "left must be less than right"
@@ -1689,13 +1701,33 @@ cdef class TimeSeries:
     def _randomize_normal(self, double m, double s):
         """
         Generates a normal random distribution of doubles with mean m and
-        standard deviation s and stores values in place.
+        standard deviation s and stores values in place. Uses the
+        Box-Muller algorithm.
 
         INPUT:
             m -- mean
             s -- standard deviation
 
         EXAMPLES:
+        We generate 5 values distributed with respect to the normal
+        distribution with mean 0 and standard deviation 1.
+            sage: set_random_seed(0)
+            sage: v = finance.TimeSeries(5)
+            sage: v.randomize('normal')
+            [0.6767, -0.4011, 0.3576, -0.5864, -0.9365]
+
+        We now test that the mean is indeed 0.
+            sage: set_random_seed(0)
+            sage: v = finance.TimeSeries(10^6)
+            sage: v.randomize('normal').mean()
+            6.2705472723385207e-05
+
+        The same test with mean equal to 2 and standard deviation equal
+        to 5.
+            sage: set_random_seed(0)
+            sage: v = finance.TimeSeries(10^6)
+            sage: v.randomize('normal', 2, 5).mean()
+            2.0003135273636117
         """
         # Ported from http://users.tkk.fi/~nbeijar/soft/terrain/source_o2/boxmuller.c
         # This the box muller algorithm.
@@ -1726,6 +1758,24 @@ cdef class TimeSeries:
             center -- the center of the semicircle distribution
 
         EXAMPLES:
+        We generate 5 values distributed with respect to the semicircle
+        distribution located at center.
+            sage: v = finance.TimeSeries(5)
+            sage: set_random_seed(0)
+            sage: v.randomize('semicircle')
+            [0.7369, -0.9541, 0.4628, -0.7990, -0.4187]
+
+        We now test that the mean is indeed the center.
+            sage: v = finance.TimeSeries(10^6)
+            sage: set_random_seed(0)
+            sage: v.randomize('semicircle').mean()
+            0.00072074971804614557
+
+        The same test with center equal to 2.
+            sage: v = finance.TimeSeries(10^6)
+            sage: set_random_seed(0)
+            sage: v.randomize('semicircle', 2).mean()
+            2.0007207497179227
         """
         cdef Py_ssize_t k
         cdef double x, y, s, d = 2, left = center - 1, z
@@ -1752,6 +1802,31 @@ cdef class TimeSeries:
             s -- standard deviation
 
         EXAMPLES:
+        We generate 5 values distributed with respect to the lognormal
+        distribution with mean 0 and standard deviation 1.
+            sage: set_random_seed(0)
+            sage: v = finance.TimeSeries(5)
+            sage: v.randomize('lognormal')
+            [1.9674, 0.6696, 1.4299, 0.5563, 0.3920]
+
+        We now test that the mean is indeed sqrt(e).
+            sage: set_random_seed(0)
+            sage: v = finance.TimeSeries(10^6)
+            sage: v.randomize('lognormal').mean()
+            1.6473519736548801
+            sage: e^0.5
+            1.648721270700128
+
+        A log-normal distribution can be simply thought of as the logarithm
+        of a normally distributed dataset. We test that here by generating
+        5 values distributed with respect to the normal distribution with mean
+        0 and standard deviation 1.
+            sage: set_random_seed(0)
+            sage: w = finance.TimeSeries(5)
+            sage: w.randomize('normal')
+            [0.6767, -0.4011, 0.3576, -0.5864, -0.9365]
+            sage: exp(w)
+            [1.9674, 0.6696, 1.4299, 0.5563, 0.3920]
         """
         # Ported from http://users.tkk.fi/~nbeijar/soft/terrain/source_o2/boxmuller.c
         # This the box muller algorithm.

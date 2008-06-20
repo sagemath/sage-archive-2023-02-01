@@ -107,6 +107,24 @@ from sage.misc.functional import log
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
+cdef extern from "gd.h":
+    ctypedef struct gdImagePtr "gdImagePtr":
+        pass
+
+    gdImagePtr gdImageCreateFromPng(FILE *f)
+    gdImagePtr gdImageCreateFromPngPtr(int size, void *s)
+    gdImagePtr gdImageCreate(int x, int y)
+    void gdImagePng(gdImagePtr im, FILE *out)
+    void *gdImagePngPtr(gdImagePtr im, int *size)
+    void gdImageDestroy(gdImagePtr im)
+    int gdImageSX(gdImagePtr im)
+    int gdImageSY(gdImagePtr im)
+    int gdImageGetPixel(gdImagePtr im, int x, int y)
+    void gdImageSetPixel(gdImagePtr im, int x, int y, int value)
+    int gdImageColorAllocate(gdImagePtr im, int r, int g, int b)
+    void gdImageFilledRectangle(gdImagePtr im, int x1, int y1, int x2, int y2, int color)
+    void gdFree(void *m)
+
 ## from sage.libs.linbox.linbox cimport Linbox_mod2_dense
 ## cdef Linbox_mod2_dense linbox
 ## linbox = Linbox_mod2_dense()
@@ -1255,3 +1273,164 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A._entries = mzd_submatrix(A._entries, self._entries, lowr, lowc, highr, highc)
         return A
 
+    def __reduce__(self):
+        r"""
+        Serialize \code{self}.
+
+        EXAMPLE:
+            sage: A = random_matrix(GF(2),10,10)
+            sage: f,s = A.__reduce__()
+            sage: f(*s) == A
+            True
+        """
+        cdef int i,j, r,c, size
+
+        r, c = self.nrows(), self.ncols()
+        if r == 0 or c == 0:
+            return unpickle_matrix_mod2_dense_v1, (r, c, None, 0)
+
+        _sig_on
+        cdef gdImagePtr im = gdImageCreate(c, r)
+        _sig_off
+        cdef int black = gdImageColorAllocate(im, 0, 0, 0)
+        cdef int white = gdImageColorAllocate(im, 255, 255, 255)
+        gdImageFilledRectangle(im, 0, 0, c-1, r-1, white)
+        for i from 0 <= i < r:
+            for j from 0 <= j < c:
+                if mzd_read_bit(self._entries, i, j):
+                    gdImageSetPixel(im, j, i, black )
+
+        cdef char *buf = <char*>gdImagePngPtr(im, &size)
+
+        data = [buf[i] for i in range(size)]
+        gdFree(buf)
+        return unpickle_matrix_mod2_dense_v1, (r,c, data, size)
+
+def unpickle_matrix_mod2_dense_v1(r, c, data, size):
+    r"""
+    Deserialize a matrix encoded in the string \code{s}.
+
+    INPUT:
+        r -- number of rows of matrix
+        c -- number of columns of matrix
+        s -- a string
+        size -- length of the string s
+
+    EXAMPLE:
+        sage: A = random_matrix(GF(2),100,101)
+        sage: _,(r,c,s,s2) = A.__reduce__()
+        sage: from sage.matrix.matrix_mod2_dense import unpickle_matrix_mod2_dense_v1
+        sage: unpickle_matrix_mod2_dense_v1(r,c,s,s2) == A
+        True
+        sage: loads(dumps(A)) == A
+        True
+    """
+    from sage.matrix.constructor import Matrix
+    from sage.rings.finite_field import FiniteField as GF
+
+    cdef int i, j
+    cdef Matrix_mod2_dense A
+
+    A = <Matrix_mod2_dense>Matrix(GF(2),r,c)
+    if r == 0 or c == 0:
+        return A
+
+    cdef char *buf = <char*>sage_malloc(size)
+    for i from 0 <= i < size:
+        buf[i] = data[i]
+
+    _sig_on
+    cdef gdImagePtr im = gdImageCreateFromPngPtr(size, buf)
+    _sig_off
+
+    sage_free(buf)
+
+    if gdImageSX(im) != c or gdImageSY(im) != r:
+        raise TypeError, "Pickled data dimension doesn't match."
+
+
+    for i from 0 <= i < r:
+        for j from 0 <= j < c:
+            mzd_write_bit(A._entries, i, j, 1-gdImageGetPixel(im, j, i))
+    gdImageDestroy(im)
+    return A
+
+def from_png(filename):
+    r"""
+    Returns a dense matrix over GF(2) from a 1-bit PNG image read from
+    \code{filename}. No attempt is made to verify that the filname string
+    actually points to a PNG image.
+
+    INPUT:
+        filename -- a string
+
+    EXAMPLE:
+        sage: from sage.matrix.matrix_mod2_dense import from_png, to_png
+        sage: A = random_matrix(GF(2),10,10)
+        sage: fn = tmp_filename()
+        sage: to_png(A, fn)
+        sage: B = from_png(fn)
+        sage: A == B
+        True
+    """
+    from sage.matrix.constructor import Matrix
+    from sage.rings.finite_field import FiniteField as GF
+
+    cdef int i,j,r,c
+    cdef Matrix_mod2_dense A
+
+    fn = open(filename,"r") # check filename
+    fn.close()
+
+    cdef FILE *f = fopen(filename, "rb")
+    _sig_on
+    cdef gdImagePtr im = gdImageCreateFromPng(f)
+    _sig_off
+
+    c, r = gdImageSX(im), gdImageSY(im)
+
+    A = <Matrix_mod2_dense>Matrix(GF(2),r,c)
+
+    for i from 0 <= i < r:
+        for j from 0 <= j < c:
+            mzd_write_bit(A._entries, i, j, 1-gdImageGetPixel(im, j, i))
+    fclose(f)
+    gdImageDestroy(im)
+    return A
+
+def to_png(Matrix_mod2_dense A, filename):
+    r"""
+    Saves the matrix \code{A} to filename as a 1-bit PNG image.
+
+    INPUT:
+        A -- a matrix over GF(2)
+        filename -- a string for a file in a writeable position
+
+    EXAMPLE:
+        sage: from sage.matrix.matrix_mod2_dense import from_png, to_png
+        sage: A = random_matrix(GF(2),10,10)
+        sage: fn = tmp_filename()
+        sage: to_png(A, fn)
+        sage: B = from_png(fn)
+        sage: A == B
+        True
+    """
+    cdef int i,j, r,c
+    r, c = A.nrows(), A.ncols()
+    if r == 0 or c == 0:
+        raise TypeError, "Cannot write image with dimensions %d x %d"%(c,r)
+    fn = open(filename,"w") # check filename
+    fn.close()
+    cdef gdImagePtr im = gdImageCreate(c, r)
+    cdef FILE * out = fopen(filename, "wb")
+    cdef int black = gdImageColorAllocate(im, 0, 0, 0)
+    cdef int white = gdImageColorAllocate(im, 255, 255, 255)
+    gdImageFilledRectangle(im, 0, 0, c-1, r-1, white)
+    for i from 0 <= i < r:
+        for j from 0 <= j < c:
+            if mzd_read_bit(A._entries, i, j):
+                gdImageSetPixel(im, j, i, black )
+
+    gdImagePng(im, out)
+    gdImageDestroy(im)
+    fclose(out)

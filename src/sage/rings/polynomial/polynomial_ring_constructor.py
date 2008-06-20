@@ -360,13 +360,6 @@ def _multi_variate(base_ring, names, n, sparse, order):
 
     order = TermOrder(order, n)
 
-    if isinstance(names, list):
-        names = tuple(names)
-
-    elif isinstance(names, str):
-        if ',' in names:
-            names = tuple(names.split(','))
-
     key = (base_ring, names, n, sparse, order)
     R = _get_from_cache(key)
     if not R is None:
@@ -418,6 +411,12 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
         sage: R.term_order()
         Degree reverse lexicographic term order
 
+        sage: BooleanPolynomialRing(names=('x','y'))
+        Boolean PolynomialRing in x, y
+
+        sage: BooleanPolynomialRing(names='x,y')
+        Boolean PolynomialRing in x, y
+
     TESTS:
         sage: P.<x,y> = BooleanPolynomialRing(2,order='degrevlex')
         sage: x > y
@@ -430,22 +429,19 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
         True
     """
 
+    if isinstance(n, str):
+        names = n
+        n = 0
     if n is None and names is not None:
-        if isinstance(names, (tuple, list)):
-            n = len(names)
+        n = 0
 
     names = normalize_names(n, names)
+    if n is 0:
+        n = len(names)
 
     from sage.rings.polynomial.term_order import TermOrder
     from sage.rings.polynomial.pbori import set_cring
     order = TermOrder(order, n)
-
-    if isinstance(names, list):
-        names = tuple(names)
-
-    elif isinstance(names, str):
-        if ',' in names:
-            names = tuple(names.split(','))
 
     key = ("pbori", names, n, order)
     R = _get_from_cache(key)

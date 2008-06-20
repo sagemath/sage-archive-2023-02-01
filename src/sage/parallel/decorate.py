@@ -48,29 +48,33 @@ def normalize_input(a):
 
 class parallel:
     """
-    Create parallelizable functions.
+    Create paralleled functions.
 
     INPUT:
         p_iter -- parallel iterator function or string:
-                   'pyprocessing' -- use pyprocessing
+                   'multiprocessing' -- use multiprocessing (aka pyprocessing)
                    'reference'    -- use a fake serial reference implementation
                    'dsage'        -- use dsage
     """
-    def __init__(self, p_iter = 'pyprocessing'):
+    def __init__(self, p_iter = 'multiprocessing'):
         """
         Create a parallel iterator decorator object.
 
         EXAMPLES:
-            sage: @parallel(p_iter=None)(dir=tmp_dir(), compress=False)
+            sage: @parallel()
             ... def f(N): return N^2
-            sage: f([1,2,4])
-            [(1, 1), (2, 4), (4, 16)]
+            sage: v = list(f([1,2,4])); v.sort(); v
+            [(((1,), {}), 1), (((2,), {}), 4), (((4,), {}), 16)]
+            sage: @parallel('reference')
+            ... def f(N): return N^2
+            sage: v = list(f([1,2,4])); v.sort(); v
+            [(((1,), {}), 1), (((2,), {}), 4), (((4,), {}), 16)]
         """
         # The default p_iter is currently the reference implementation.
         # This may change.
         if isinstance(p_iter, (int, long, Integer)):
             self.p_iter = multiprocessing.pyprocessing(p_iter)
-        elif p_iter == 'pyprocessing':
+        elif p_iter == 'multiprocessing':
             self.p_iter = multiprocessing.pyprocessing()
         elif p_iter == 'dsage':
             self.p_iter = p_iter_dsage

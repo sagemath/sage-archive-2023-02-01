@@ -1544,18 +1544,19 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def is_normal(self,other):
         """
-        Return True if the group other is a normal subgroup of self.
+        Return True if this group is a normal subgroup of other.
 
         EXAMPLES:
-            sage: G = PermutationGroup(['(1,2,3)(4,5)'])
-            sage: H = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: AlternatingGroup(4).is_normal(SymmetricGroup(4))
+            True
+            sage: H = PermutationGroup(['(1,2,3)(4,5)'])
+            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
             sage: H.is_normal(G)
             False
-
         """
-        if not(other.is_subgroup(self)):
-            raise TypeError("%s must be a subgroup of %s"%(other,self))
-        t = self._gap_().IsNormal(other._gap_())
+        if not(self.is_subgroup(other)):
+            raise TypeError("%s must be a subgroup of %s"%(self,other))
+        t = other._gap_().IsNormal(self._gap_())
         return t.bool()
 
     def is_perfect(self):

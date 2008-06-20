@@ -1660,11 +1660,23 @@ cdef class TimeSeries:
             self._randomize_normal(loc, scale)
         elif distribution == 'semicircle':
             self._randomize_semicircle(loc)
+        elif distribution == 'lognormal':
+            self._randomize_lognormal(loc, scale)
         else:
             raise NotImplementedError
         return self
 
     def _randomize_uniform(self, double left, double right):
+        """
+        Generates a uniform random distribution of doubles between left and
+        right and stores values in place.
+
+        INPUT:
+            left -- left bound on random distribution
+            right -- right bound on random distribution
+
+        EXAMPLES:
+        """
         if left >= right:
             raise ValueError, "left must be less than right"
 
@@ -1676,6 +1688,9 @@ cdef class TimeSeries:
 
     def _randomize_normal(self, double m, double s):
         """
+        Generates a normal random distribution of doubles with mean m and
+        standard deviation s and stores values in place.
+
         INPUT:
             m -- mean
             s -- standard deviation
@@ -1703,6 +1718,15 @@ cdef class TimeSeries:
                 self._values[k] = m + y2*s
 
     def _randomize_semicircle(self, double center):
+        """
+        Generates a semicircle random distribution of doubles about center
+        and stores values in place. Uses the acceptance-rejection method.
+
+        INPUT:
+            center -- the center of the semicircle distribution
+
+        EXAMPLES:
+        """
         cdef Py_ssize_t k
         cdef double x, y, s, d = 2, left = center - 1, z
         cdef randstate rstate = current_randstate()
@@ -1716,6 +1740,37 @@ cdef class TimeSeries:
                     break
             self._values[k] = x + center
 
+    def _randomize_lognormal(self, double m, double s):
+        """
+        Generates a log-normal random distribution of doubles with mean m
+        and standard deviation s. Usues Box-Muller algorithm and the identity:
+        if Y is a random variable with normal distribution then X = exp(Y)
+        is a random variable with log-normal distribution.
+
+        INPUT:
+            m -- mean
+            s -- standard deviation
+
+        EXAMPLES:
+        """
+        # Ported from http://users.tkk.fi/~nbeijar/soft/terrain/source_o2/boxmuller.c
+        # This the box muller algorithm.
+        cdef randstate rstate = current_randstate()
+        cdef double x1, x2, w, y1, y2
+        cdef Py_ssize_t k
+        for k from 0 <= k < self._length:
+            while 1:
+                x1 = 2*rstate.c_rand_double() - 1
+                x2 = 2*rstate.c_rand_double() - 1
+                w = x1*x1 + x2*x2
+                if w < 1: break
+            w = sqrt( (-2*log(w))/w )
+            y1 = x1 * w
+            y2 = x2 * w
+            self._values[k] = exp(m + y1*s)
+            k += 1
+            if k < self._length:
+                self._values[k] = exp(m + y2*s)
 
     def fft(self, bint overwrite=False):
         """

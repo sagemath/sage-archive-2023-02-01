@@ -36,7 +36,7 @@ def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None):
         the several adjacent components.
 
     EXAMPLE:
-        sage: G = graphs.DodecahedralGraph()
+        sage: G = Graph(graphs.DodecahedralGraph(), implementation='networkx')
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
         sage: N = G.plot()
 
@@ -70,7 +70,6 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     function alone, especially if we require a function call (let alone
     an object creation) every time we want to add a pair of doubles.
     """
-
     G = G.to_undirected()
     vlist = G.vertices() # this defines a consistant order
 

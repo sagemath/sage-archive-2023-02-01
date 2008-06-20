@@ -848,7 +848,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         order -- whether to return the order of the automorphism group
 
     STATE DIAGRAM:
-        sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
+        sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] }, implementation='networkx' )
         sage: SD.set_edge_label(1, 18, 'discrete')
         sage: SD.set_edge_label(4, 7, 'discrete')
         sage: SD.set_edge_label(2, 5, 'h = 0')
@@ -875,7 +875,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: HS = graphs.HoffmanSingletonGraph()
         sage: clqs = (HS.complement()).cliques()
         sage: alqs = [Set(c) for c in clqs if len(c) == 15]
-        sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0])
+        sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0], implementation='networkx')
         sage: Y0,Y1 = Y.connected_components_subgraphs()
         sage: Y0.is_isomorphic(Y1)
         True
@@ -899,8 +899,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: a,b = search_tree(G, Pi)
         sage: asp,bsp = search_tree(GS, Pi)
         sage: ade,bde = search_tree(GD, Pi)
-        sage: bsg = Graph()
-        sage: bdg = Graph()
+        sage: bsg = Graph(implementation='networkx')
+        sage: bdg = Graph(implementation='networkx')
         sage: for i in range(20):
         ...    for j in range(20):
         ...        if bsp.has_arc(i,j):
@@ -1286,8 +1286,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: Graph('Fll^G').canonical_label()
         Graph on 7 vertices
 
-        sage: g = Graph()
-        sage: g.add_vertices(xrange(21))
+        sage: g = Graph(21)
         sage: g.automorphism_group(return_group=False, order=True)
         51090942171709440000
 
@@ -2075,8 +2074,7 @@ def all_labeled_graphs(n):
     m = len(TE)
     Glist= []
     for i in range(2**m):
-        G = Graph()
-        G.add_vertices(range(n))
+        G = Graph(n)
         b = Integer(i).binary()
         b = '0'*(m-len(b)) + b
         for i in range(m):
@@ -2153,8 +2151,7 @@ def all_labeled_digraphs_with_loops(n):
     m = len(TE)
     Glist= []
     for i in range(2**m):
-        G = DiGraph(loops=True)
-        G.add_vertices(range(n))
+        G = DiGraph(n, loops=True)
         b = Integer(i).binary()
         b = '0'*(m-len(b)) + b
         for j in range(m):
@@ -2208,8 +2205,7 @@ def all_labeled_digraphs(n):
     m = len(TE)
     Glist= []
     for i in range(2**m):
-        G = DiGraph(loops=True)
-        G.add_vertices(range(n))
+        G = DiGraph(n, loops=True)
         b = Integer(i).binary()
         b = '0'*(m-len(b)) + b
         for j in range(m):

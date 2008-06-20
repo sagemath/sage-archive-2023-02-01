@@ -524,6 +524,8 @@ def dumps(obj, compress=True):
         sage: loads(s)
         2/3
     """
+    if make_pickle_jar:
+        picklejar(obj)
     try:
         return obj.dumps(compress)
     except (AttributeError, RuntimeError, TypeError):
@@ -583,3 +585,62 @@ def loads(s, compress=True):
             return loads(s, compress=True)
 
 
+cdef bint make_pickle_jar = os.environ.has_key('PICKLE_JAR')
+
+def picklejar(obj, dir=None):
+    """
+    Create pickled sobj of obj in dir, with name the absolute value of
+    the hash of the pickle of obj.  This is used in conjection with
+    sage.structure.sage_object.unpickle_all.
+
+    To use this to test the whole Sage library right now, set the
+    environment variable PICKLE_JAR, which will make it so dumps will
+    by default call picklejar with the default dir.
+
+    INPUTS:
+        obj -- a pickleable object
+        dir -- a string or None; if None defaults to
+               SAGE_ROOT/tmp/pickle_jar-version
+
+    EXAMPLES:
+        sage: dir = tmp_dir()
+        sage: sage.structure.sage_object.picklejar(1,dir)
+        sage: len(os.listdir(dir))
+        1
+    """
+    if dir is None:
+        from sage.version import version
+        dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar-%s/'%version
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    s = comp.compress(cPickle.dumps(obj,protocol=2))
+    filename = '%s/%s.sobj'%(dir, abs(hash(s)))
+    open(filename, 'wb').write(s)
+
+def unpickle_all(dir):
+    """
+    Unpickle all objects in the given directory, reporting failures
+    as they occur.  Also printed the number of successes and failure.
+
+    INPUT:
+        dir -- string; a directory
+
+    EXAMPLES:
+        sage: dir = tmp_dir()
+        sage: sage.structure.sage_object.picklejar('hello', dir)
+        sage: sage.structure.sage_object.unpickle_all(dir)
+        Successfully unpickled 1 objects.
+        Failed to unpickle 0 objects.
+    """
+    i = 0
+    j = 0
+    for A in os.listdir(dir):
+        try:
+            load(dir + '/' + A)
+            i += 1
+        except Exception, msg:
+            j ++ 1
+            print "** failed: ", A
+
+    print "Successfully unpickled %s objects."%i
+    print "Failed to unpickle %s objects."%j

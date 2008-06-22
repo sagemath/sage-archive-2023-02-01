@@ -1023,10 +1023,9 @@ cdef class PartitionStack:
             cell = []
         #
         if dig:
-            G = DiGraph(loops=True)
+            G = DiGraph(n, loops=True)
         else:
-            G = Graph()
-        G.add_vertices(xrange(n))
+            G = Graph(n)
         for i from 0 <= i < n:
             for j from 0 <= j < n:
                 if g.has_arc_unsafe(i, j):

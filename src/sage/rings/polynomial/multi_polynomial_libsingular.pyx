@@ -291,12 +291,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
 
         for i from 0 <= i < nblcks:
-            self._ring.order[i] = order_dict.get(order.blocks[i][0], ringorder_lp)
+            self._ring.order[i] = order_dict.get(order[i].singular_str(), ringorder_lp)
             self._ring.block0[i] = offset + 1
-            if order.blocks[i][1] == 0: # may be zero in some cases
+            if len(order[i]) == 0: # may be zero in some cases
                 self._ring.block1[i] = offset + n
             else:
-                self._ring.block1[i] = offset + order.blocks[i][1]
+                self._ring.block1[i] = offset + len(order[i])
             offset = self._ring.block1[i]
 
         self._ring.order[nblcks] = ringorder_C

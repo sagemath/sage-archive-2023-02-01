@@ -231,10 +231,10 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         _repr += "       Size : %d Variables\n"%(n,)
         offset = 0
         i = 0
-        for order,_len in T.blocks:
-            _repr += "   Block % 2d : Ordering : %s\n"%(i,inv_singular_name_mapping.get(order, order))
-            _repr += "              Names    : %s\n"%(", ".join(names[offset:offset + _len]))
-            offset += _len
+        for order in T.blocks:
+            _repr += "   Block % 2d : Ordering : %s\n"%(i,inv_singular_name_mapping.get(order.singular_str(), order.singular_str()))
+            _repr += "              Names    : %s\n"%(", ".join(names[offset:offset + len(order)]))
+            offset += len(order)
             i+=1
         return _repr
 

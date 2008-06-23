@@ -1665,7 +1665,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         # so the natural reduction in the quotient ring mod y^2 - x^3 - A*x - B
         # replaces all y^2's by polys in x.  WARNING: Be careful
         # that the gens are in the order y, x!
-        R, (y,x) = PolynomialRing(self.base_ring(), 2, 'y,x', order='revlex').objgens()
+        R, (y,x) = PolynomialRing(self.base_ring(), 2, 'y,x', order='lex').objgens()
 
         # In case m is odd we can just use the usual division
         # polynomial code.  Note however that we are careful to coerce

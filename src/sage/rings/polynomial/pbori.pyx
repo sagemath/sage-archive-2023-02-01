@@ -235,7 +235,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         order = TermOrder(order, n)
 
         try:
-            pb_order_code = order_mapping[order.blocks[0][0]]
+            pb_order_code = order_mapping[order[0].singular_str()]
         except KeyError:
             raise ValueError, "Only lex, deglex, degrevlex orders are supported."
 
@@ -247,7 +247,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             elif pb_order_code is dp_asc:
                 pb_order_code = block_dp_asc
             for i in range(1, len(order.blocks)):
-                if order.blocks[0][0] != order.blocks[i][0]:
+                if order[0] != order[i]:
                     raise ValueError, "Each block must have the same order type (deglex or degrevlex) for block orderings."
 
         if (pb_order_code is dlex) or (pb_order_code is lp) or \
@@ -261,7 +261,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             # pb_order_code is block_dp_asc:
             bstart = 0
             for i from 0 <= i < len(order.blocks):
-                bsize = order.blocks[i][1]
+                bsize = len(order[i])
                 for j from 0 <= j < bsize:
                     self.pbind[bstart + j] = bstart + bsize - j -1
                 bstart += bsize
@@ -272,7 +272,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         counter = 0
         for i in range(len(order.blocks)-1):
-            counter += order.blocks[i][1]
+            counter += len(order[i])
             pb_append_block(counter)
 
         for i from 0 <= i < n:

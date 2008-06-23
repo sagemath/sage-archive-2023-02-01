@@ -54,6 +54,8 @@ from sage.ext.multi_modular import MAX_MODULUS
 
 from sage.structure.proof.proof import get_flag as get_proof_flag
 
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 # parameters for tuning
 echelon_primes_increment = 15
 echelon_verbose_level = 1
@@ -807,11 +809,25 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             x^3 + (z - 3)*x^2 + (-16/3*z^2 - 2*z)*x - 2/3*z^3 + 16/3*z^2 - 5*z + 5/3
             sage: a.charpoly(algorithm='hessenberg')
             x^3 + (z - 3)*x^2 + (-16/3*z^2 - 2*z)*x - 2/3*z^3 + 16/3*z^2 - 5*z + 5/3
+
+            sage: Matrix(K, 1, [0]).charpoly()
+            x
+            sage: Matrix(K, 1, [5]).charpoly(var='y')
+            y - 5
         """
         key = 'charpoly-%s-%s'%(algorithm,proof)
         f = self.fetch(key)
         if f is not None:
             return f.change_variable_name(var)
+
+        if self.nrows() != self.ncols():
+            raise TypeError, "self must be square"
+
+        if self.nrows() == 1:
+            R = PolynomialRing(self.base_ring(), name=var)
+            f = R.gen(0) - self[0,0]
+            self.cache(key, f)
+            return f
 
         if algorithm == 'multimodular':
             f = self._charpoly_multimodular(var, proof=proof)

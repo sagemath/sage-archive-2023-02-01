@@ -81,7 +81,7 @@ $error
 <ol>
 <li><h2>Create a username</h2>
 <p>Your username must start with a letter and be between 4 and 32 characters long. You may only use letters, numbers, underscores, and one dot (.).</p>
-<input type="text" name="username" class="entry" />
+<input type="text" name="username" value="$username" class="entry" />
 $username_error
 </li>
 <li><h2>Create a good password</h2>
@@ -95,7 +95,7 @@ $confirm_pass_error
 </li>
 <li><h2>Enter your e-mail address</h2>
 <p>Your e-mail address is needed so you can recover your account if you ever forget your password.</p>
-<input type="text" name="email" class="entry" />
+<input type="text" name="email" value="$email" class="entry" />
 $email_error
 </li>
 </ol>

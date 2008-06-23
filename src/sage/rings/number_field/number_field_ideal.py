@@ -431,6 +431,23 @@ class NumberFieldIdeal(Ideal_generic):
             (i + 1, 2)
             sage: J.gens_reduced()
             (i + 1,)
+
+        TESTS:
+            sage: all(j.parent() is K for j in J.gens())
+            True
+            sage: all(j.parent() is K for j in J.gens_reduced())
+            True
+
+            sage: K.<a> = NumberField(x^4 + 10*x^2 + 20)
+            sage: J = K.prime_above(5)
+            sage: J.is_principal()
+            False
+            sage: J.gens_reduced()
+            (5, a)
+            sage: all(j.parent() is K for j in J.gens())
+            True
+            sage: all(j.parent() is K for j in J.gens_reduced())
+            True
         """
         from sage.structure.proof.proof import get_flag
         proof = get_flag(proof, "number_field")
@@ -447,7 +464,7 @@ class NumberFieldIdeal(Ideal_generic):
                 alpha = nf.idealtwoelt(self.pari_hnf(), a)
             else:
                 a, alpha = nf.idealtwoelt(self.pari_hnf())
-            gens = [ QQ(a), K(R(nf.getattr('zk')*alpha)) ]
+            gens = [ K(a), K(R(nf.getattr('zk')*alpha)) ]
             if gens[1] in K.ideal(gens[0]):
                 gens = gens[:1]
             elif gens[0] in K.ideal(gens[1]):

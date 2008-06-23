@@ -2243,3 +2243,11 @@ def user_type(username):
     except KeyError:
         return 'guest'
     return U.account_type()
+
+def extract_title(html_page):
+    h = html_page.lower()
+    i = h.find('<title>')
+    if i == -1:
+        return "Untitled"
+    j = h.find('</title>')
+    return h[i + len('<title>') : j]

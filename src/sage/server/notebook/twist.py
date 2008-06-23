@@ -1776,25 +1776,120 @@ server. Please <a href="/register">register</a> with the server.</p>
 # Registration page
 ############################
 import re
-re_valid_username = re.compile('[a-z|A-Z|0-9|_|\-|.]*')
+re_valid_username = re.compile('[a-z|A-Z|0-9|_|.]*')
 def is_valid_username(username):
     r"""
-    Return True if and only if \var{username} is valid, i.e., contains
-    only alphabetic characters, numbers, and underscores.
+    Returns True if and only if \var{username} is valid, i.e., starts with a letter,
+    is between 4 and 32 characters long, and contains only letters, numbers,
+    underscores, and and one dot (.).
 
     EXAMPLES:
         sage: from sage.server.notebook.twist import is_valid_username
-        sage: is_valid_username('sage-devel')
+
+        #\var{username} must start with a letter
+        sage: is_valid_username('mark10')
         True
-        sage: is_valid_username('sage_devel7')
-        True
-        sage: is_valid_username('a@b.c')
+        sage: is_valid_username('10mark')
         False
-        sage: is_valid_username('ab c')
+
+        #\var{username} must be between 4 and 32 characters long
+        sage: is_valid_username('bob')
+        False
+        sage: is_valid_username('I_love_computer_science_and_maths') #33 characters long
+        False
+
+        #\var{username} must not have more than one dot (.)
+        sage: is_valid_username('david.andrews')
+        True
+        sage: is_valid_username('david.m.andrews')
+        False
+        sage: is_valid_username('math125.TA.5')
+        False
+
+        #\var{username} must not have any spaces
+        sage: is_valid_username('David Andrews')
+        False
+        sage: is_valid_username('David M. Andrews')
+        False
+
+        sage: is_valid_username('sarah_andrews')
+        True
+
+        sage: is_valid_username('TA-1')
+        False
+        sage: is_valid_username('math125-TA')
+        False
+
+        sage: is_valid_username('dandrews@sagemath.org')
         False
     """
+    import string
+
+    if not (len(username) > 3 and len(username) < 33):
+        return False
+    if not username[0] in string.letters:
+        return False
+    if '.' in username:
+        if username.count('.') > 1:
+            return False
+
     m = re_valid_username.match(username)
-    return len(username) > 0 and m.start() == 0 and m.end() == len(username)
+    return m.start() == 0 and m.end() == len(username)
+
+def is_valid_password(password, username):
+    r"""
+    Return True if and only if \var{password} is valid, i.e., is between 6 and
+    32 characters long, doesn't contain space(s), and doesn't contain \var{username}.
+
+    EXAMPLES:
+        sage: from sage.server.notebook.twist import is_valid_password
+        sage: is_valid_password('uip@un7!', None)
+        True
+        sage: is_valid_password('markusup89', None)
+        True
+        sage: is_valid_password('8u7', None)
+        False
+        sage: is_valid_password('fUmDagaz8LmtonAowjSe0Pvu9C5Gvr6eKcC6wsAT', None)
+        False
+        sage: is_valid_password('rrcF !u78!', None)
+        False
+        sage: is_valid_password('markusup89', 'markus')
+        False
+    """
+    import string
+    if len(password) < 6 or len(password) > 32 or ' ' in password:
+        return False
+    if username:
+        if string.lower(username) in string.lower(password):
+            return False
+    return True
+
+def do_passwords_match(pass1, pass2):
+    """
+    EXAMPLES:
+        sage: from sage.server.notebook.twist import do_passwords_match
+        sage: do_passwords_match('momcat', 'mothercat')
+        False
+        sage: do_passwords_match('mothercat', 'mothercat')
+        True
+    """
+    return pass1 == pass2
+
+def is_valid_email(email):
+    """
+    from http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/65215
+
+    EXAMPLES:
+        sage: from sage.server.notebook.twist import is_valid_email
+        sage: is_valid_email('joe@washinton.gov')
+        True
+        sage: is_valid_email('joe.washington.gov')
+        False
+    """
+    if len(email) > 7:
+        if re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+\.[a-zA-Z]{2,6}$", email) != None:
+            return True
+    return False
 
 from sage.server.notebook.template import registration_page_template
 from sage.server.notebook.template import login_page_template
@@ -1804,32 +1899,79 @@ class RegistrationPage(resource.PostableResource):
         self.userdb = userdb
 
     def render(self, request):
-        if 'username' in request.args or 'password' in request.args or 'email' in request.args:
-            def error(part):
-                return http.Response(stream=registration_page_template(error=part))
+        input_boxes = ['username', 'password', 'retype_password', 'email']
+        is_valid_dict = {'username': is_valid_username, 'password': is_valid_password,
+                         'retype_password': do_passwords_match, 'email': is_valid_email}
+        missing = [False] * len(input_boxes)
+        filled_in = {}
 
-            try:
-                username = request.args['username'][0]
-                if not is_valid_username(username):
-                    return error("username_invalid")
-            except KeyError:
-                return error("username_missing")
-            try:
-                passwd  = request.args['password'][0]
-            except KeyError:
-                return error("password_missing")
+        is_error = False
+        errors = []
+
+        if set(input_boxes) <= set(request.args):
+            for i, box in enumerate(input_boxes):
+                filled_in[box] = request.args[box][0]
+                if box == 'retype_password':
+                    if not is_valid_dict[box](filled_in[box], filled_in['password']):
+                        is_error = True
+                        errors.append('passwords_dont_match')
+                elif box == 'password':
+                    if 'username' in filled_in:
+                        u = filled_in['username']
+                    else:
+                        u = None
+                    if not is_valid_dict[box](filled_in[box], u):
+                        is_error = True
+                        errors.append('password_invalid')
+                else:
+                    if not is_valid_dict[box](filled_in[box]):
+                        is_error = True
+                        errors.append(box + '_invalid')
+        else:
+            for i, box in enumerate(input_boxes):
+                if not box in request.args:
+                    missing[i] = True
+
+            if set(missing) == set([True]):
+                return http.Response(stream=registration_page_template())
+            elif set(missing) == set([False]):
+                for i, box in enumerate(input_boxes):
+                    filled_in[box] = request.args[box][0]
+                    if box == 'retype_password':
+                        if not is_valid_dict[box](filled_in[box], filled_in['password']):
+                            is_error = True
+                            errors.append('passwords_dont_match')
+                    elif box == 'password':
+                        if 'username' in filled_in:
+                            u = filled_in['username']
+                        else:
+                            u = None
+                        if not is_valid_dict[box](filled_in[box], u):
+                            is_error = True
+                            errors.append('password_invalid')
+                    else:
+                        if not is_valid_dict[box](filled_in[box]):
+                            is_error = True
+                            errors.append(box + '_invalid')
             else:
-                if len(passwd) < 6:
-                    return error("password_too_short")
+                for i, value in enumerate(missing):
+                    if value:
+                        is_error = True
+                        errors.append(input_boxes[i] + '_missing')
+                    elif not value:
+                        filled_in[input_boxes[i]] = request.args[input_boxes[i]][0]
 
-            destaddr = """%s""" % request.args['email'][0]
-
-            # Add the user to passwords.txt
+        if is_error:
+            return http.Response(stream=registration_page_template(error=errors, input=filled_in))
+        else:
             try:
-                self.userdb.add_user(username, passwd, destaddr)
+                self.userdb.add_user(filled_in['username'], request.args['password'][0],
+                                     filled_in['email'])
             except ValueError:
-                return error("username_taken")
+                errors.append('username_taken')
+                return http.Response(stream=registration_page_template(error=errors, input=filled_in))
 
+            destaddr = filled_in['email']
             from sage.server.notebook.smtpsend import send_mail
             from sage.server.notebook.register import make_key, build_msg
             # TODO: make this come from the server settings
@@ -1837,25 +1979,18 @@ class RegistrationPage(resource.PostableResource):
             listenaddr = notebook.address
             port = notebook.port
             fromaddr = 'no-reply@%s' % listenaddr
-            body = build_msg(key, username, listenaddr, port, notebook.secure)
+            body = build_msg(key, filled_in['username'], listenaddr, port,
+                             notebook.secure)
 
             # Send a confirmation message to the user.
             try:
                 send_mail(self, fromaddr, destaddr, "Sage Notebook Registration",body)
+                waiting[key] = filled_in['username']
             except ValueError:
-                # the email address is invalid
-                return error("email_invalid")
+                pass
 
-
-            # Store in memory that we are waiting for the user to respond
-            # to their invitation to join the Sage notebook.
-            waiting[key] = username
-
-            # now say that the user has been registered.
-            s = login_page_template(notebook.get_accounts(), notebook.default_user(), welcome=username)
-        else:
-            s = registration_page_template()
-        return http.Response(stream=s)
+            return http.Response(stream=login_page_template(notebook.get_accounts(),
+                                                            notebook.default_user(), welcome=filled_in['username']))
 
 class ForgotPassPage(resource.Resource):
 
@@ -2108,13 +2243,3 @@ def user_type(username):
     except KeyError:
         return 'guest'
     return U.account_type()
-
-
-def extract_title(html_page):
-    h = html_page.lower()
-    i = h.find('<title>')
-    if i == -1:
-        return "Untitled"
-    j = h.find('</title>')
-    return h[i + len('<title>') : j]
-

@@ -58,28 +58,38 @@ def login_page_template(accounts, default_user, is_username_error=False, is_pass
         welcome = ''
     return login_template(register = reg, default=default_user, username_error=u_e, password_error=p_e, welcome=welcome)
 
-def registration_page_template(error=None):
-    if error:
-        def error_html(msg):
-            return '<p><span class="error">Error:</span> ' + msg + '</p>'
+def registration_page_template(error=None, input=None):
+    keywords = dict([(i, '') for i in ['error', 'username', 'username_error', 'password_error', 'confirm_pass_error', 'email', 'email_error']])
+    def error_html(msg):
+        return '<p><span class="error">Error:</span> ' + msg + '</p>'
 
-        error_msg = '<h2 class="error_found">Error found</h2>'
-        username_error = ''
-        password_error = ''
-        confirm_pass_error = ''
-        email_error = ''
-        if error == 'username_taken':
-            username_error = error_html("The username given is not available.")
-        if error == 'username_invalid':
-            username_error = error_html("The username given contains characters that are not allowed.")
-        if error == 'username_missing':
-            username_error = error_html("There was no username given.")
-        if error == 'password_too_short':
-            password_error = error_html("The password given was too short.")
-        if error == 'password_missing':
-            password_error = error_html("There was no password given.")
-        if error == 'email_invalid':
-            email_error = error_html('The e-mail address given is invalid.')
-        return register_template(error=error_msg, username_error=username_error, password_error=password_error, confirm_pass_error=confirm_pass_error, email_error=email_error)
-    else:
-        return register_template(error='', username_error='', password_error='', confirm_pass_error='', email_error='')
+    if error:
+        error_msgs = {'error_msg': '<h2 class="error_found">Error%s found</h2>' % 's' if len(error) > 1 else '',
+                      'username_taken': error_html("Username taken"),
+                      'username_invalid': error_html("Invalid username"),
+                      'username_missing': error_html("No username given"),
+                      'password_invalid': error_html("Bad password"),
+                      'password_missing': error_html("No password given"),
+                      'passwords_dont_match': error_html("Passwords didn't match"),
+                      'retype_password_missing': error_html("Passwords didn't match"),
+                      'email_missing': error_html('No email address given'),
+                      'email_invalid': error_html('Invalid email address')}
+
+        keywords['error'] = error_msgs['error_msg']
+
+        for i in error:
+            if i != 'passwords_dont_match' and i != 'retype_password_missing':
+                keywords[i.split('_')[0] + '_error'] = error_msgs[i]
+            else:
+                keywords['confirm_pass_error'] = error_msgs[i]
+
+    file = open(pjoin(path, 'register.template'), 'r')
+    if input:
+        if 'password' in input:
+            del input['password']
+        if 'retype_password' in input:
+            del input['retype_password']
+        keywords.update(input)
+    template = Template(file.read()).substitute(keywords)
+    file.close()
+    return template

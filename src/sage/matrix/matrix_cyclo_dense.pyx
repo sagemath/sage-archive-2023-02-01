@@ -385,13 +385,10 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: N2 = Matrix(CyclotomicField(6), 1, 5, [0,1,z6,-z6,-z6+1])
             sage: N1*N2
             [         0          1      zeta6     -zeta6 -zeta6 + 1]
+            sage: N1 = Matrix(CyclotomicField(6), 1, [-1])
+            sage: N1*N2
+            [        0        -1    -zeta6     zeta6 zeta6 - 1]
         """
-        # handle some special cases
-        if self.is_one():
-            return right
-        if right.is_one():
-            return self
-
         A, denom_self = self._matrix._clear_denom()
         B, denom_right = (<Matrix_cyclo_dense>right)._matrix._clear_denom()
 
@@ -402,7 +399,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         p = previous_prime(MAX_MODULUS)
         prod = 1
         v = []
-        while prod < bound:
+        while prod <= bound:
             while (n >= 2 and p % n != 1) or denom_self % p == 0 or denom_right % p == 0:
                 if p == 2:
                     raise RuntimeError, "we ran out of primes in matrix multiplication."
@@ -937,7 +934,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = <Matrix_rational_dense>(denom*self._matrix)
         bound = A._charpoly_bound()
         L_last = 0
-        while prod < bound:
+        while prod <= bound:
             while (n >= 2  and p % n != 1) or denom % p == 0:
                 if p == 2:
                     raise RuntimeError, "we ran out of primes in multimodular charpoly algorithm."
@@ -1204,7 +1201,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         while True:
             # Generate primes to use, and find echelon form
             # modulo those primes.
-            while found < num_primes or prod < height_bound:
+            while found < num_primes or prod <= height_bound:
                 if (n == 1) or p%n == 1:
                     try:
                         mod_p_ech, piv_ls = A._echelon_form_one_prime(p)

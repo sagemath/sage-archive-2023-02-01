@@ -349,12 +349,13 @@ def handle_encoding_declaration(contents, out):
     else output a default utf-8 declaration and return contents.
 
     EXAMPLE:
+        sage: from sage.misc.interpreter import handle_encoding_declaration
         sage: import sys
         sage: c1='# -*- coding: latin-1 -*-\nimport os, sys\n...'
         sage: c2='# -*- coding: iso-8859-15 -*-\nimport os, sys\n...'
         sage: c3='# -*- coding: ascii -*-\nimport os, sys\n...'
         sage: c4='import os, sys\n...'
-        handle_encoding_declaration(c1, sys.stdout)
+        sage: handle_encoding_declaration(c1, sys.stdout)
         # -*- coding: latin-1 -*-
         'import os, sys\n..'
         sage: handle_encoding_declaration(c2, sys.stdout)
@@ -376,6 +377,9 @@ def handle_encoding_declaration(contents, out):
           coding[=:]\s*([-\w.]+)
         The encoding is in the first group.
         See http://docs.python.org/ref/encodings.html
+
+    AUTHOR:
+        - Lars Fischer
     """
     # shebangs could also be dealt with
     #if (contents[0:2] == '#!'):

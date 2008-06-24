@@ -823,6 +823,11 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             x
             sage: Matrix(K, 1, [5]).charpoly(var='y')
             y - 5
+
+            sage: Matrix(CyclotomicField(13),3).charpoly()
+            x^3
+            sage: Matrix(CyclotomicField(13),3).charpoly()[2].parent()
+            Cyclotomic Field of order 13 and degree 12
         """
         key = 'charpoly-%s-%s'%(algorithm,proof)
         f = self.fetch(key)
@@ -831,6 +836,12 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         if self.nrows() != self.ncols():
             raise TypeError, "self must be square"
+
+        if self.is_zero():
+            R = PolynomialRing(self.base_ring(), name=var)
+            f = R.gen(0)**self.nrows()
+            self.cache(key, f)
+            return f
 
         if self.nrows() == 1:
             R = PolynomialRing(self.base_ring(), name=var)

@@ -1127,10 +1127,22 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A.echelon_form()
             [ 1  0 -1]
             [ 0  1  2]
+
+        A case that checks the bug in trac #3500.
+            sage: cf4 = CyclotomicField(4) ; z4 = cf4.0
+            sage: A = Matrix(cf4, 1, 2, [-z4, 1])
+            sage: A.echelon_form()
+            [    1 zeta4]
         """
         key = 'echelon_form-%s'%algorithm
         E = self.fetch(key)
         if E is not None:
+            return E
+
+        if self._nrows == 0:
+            E = self.copy()
+            self.cache(key, E)
+            self.cache('pivots', [])
             return E
 
         if algorithm == 'multimodular':
@@ -1195,6 +1207,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         height_bound = self._ncols * height_guess * A.coefficient_bound() + 1
         mod_p_ech_ls = []
         max_pivots = []
+        is_square = self._nrows == self._ncols
 
         verbose("using height bound %s"%height_bound, level=echelon_verbose_level)
 
@@ -1213,9 +1226,9 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                         continue
                     # if we have the identity, just return it, and
                     # we're done.
-                    if mod_p_ech.is_one():
-                        self.cache('pivots', range(self.nrows()))
-                        return mod_p_ech
+                    if is_square and len(piv_ls) == self._nrows:
+                        self.cache('pivots', range(self._nrows))
+                        return self.parent().identity_matrix()
                     if piv_ls > max_pivots:
                         mod_p_ech_ls = [mod_p_ech]
                         max_pivots = piv_ls
@@ -1319,7 +1332,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         pivot_ls = ech_ls[0].pivots()
         # If we've found the identity matrix, we're all done.
         if self._nrows == self._ncols == len(pivot_ls):
-            return (self.parent().identity_matrix(), self._nrows)
+            return (self.parent().identity_matrix(), range(self._nrows))
 
         # For each reduction of self (i.e. for each prime of
         # self.base_ring() over p), compute the echelon form, and

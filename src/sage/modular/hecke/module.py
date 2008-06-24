@@ -32,6 +32,7 @@ import sage.misc.prandom as random
 import algebra
 import element
 import homspace
+import hecke_operator
 
 from sage.modules.all import FreeModule
 
@@ -127,6 +128,9 @@ class HeckeModule_generic(sage.modules.module.Module):
         Compute and return the matrix of the p-th Hecke operator.
         """
         raise NotImplementedError
+
+    def _hecke_operator_class(self):
+        return hecke_operator.HeckeOperator
 
     def anemic_hecke_algebra(self):
         """

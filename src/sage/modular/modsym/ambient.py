@@ -612,7 +612,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             x^6 + 3*x^4 - 19*x^3 + 24*x^2 - 9*x
         """
         # note -- p doesn't have to be prime despite the function name
-        p = int(p)
+        p = int(rings.Integer(p))   # go through Integer so p = 2.5 gives an error.
         # NOTE -- it is actually NOT necessary that p be prime.
         if isinstance(rows, list):
             rows = tuple(rows)
@@ -633,7 +633,6 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if not rows is None:
             B = [B[i] for i in rows]
         cols = []
-        N = self.level()
         mod2term = self._mod2term
         R = self.manin_gens_to_basis()
         K = self.base_ring()

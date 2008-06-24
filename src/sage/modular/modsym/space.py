@@ -41,6 +41,8 @@ from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
 from   sage.structure.all import Sequence, SageObject
 import sage.modular.modsym.ambient
 
+import hecke_operator
+
 def is_ModularSymbolsSpace(x):
     return isinstance(x, ModularSymbolsSpace)
 
@@ -114,6 +116,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         # fallback on subspace comparison
         return d
 
+    def _hecke_operator_class(self):
+        return hecke_operator.HeckeOperator
 
     def character(self):
         """

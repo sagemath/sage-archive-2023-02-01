@@ -150,7 +150,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         raise NotImplementedError
 
     def gens(self):
-        """
+        r"""
         Return a generator over all Hecke operator $T_n$ for
         $n = 1, 2, 3, \ldots$.  This is infinite.
 
@@ -169,7 +169,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
 
     def hecke_operator(self, n):
         """
-        Return the n-th Hecke operator $T_n$.
+        Return the $n$-th Hecke operator $T_n$.
 
         EXAMPLES:
             sage: T = ModularSymbols(1,12).hecke_algebra()
@@ -183,7 +183,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         except KeyError:
             pass
         n = int(n)
-        T = hecke_operator.HeckeOperator(self, n)
+        T = self.__M._hecke_operator_class()(self, n)
         self.__hecke_operator[n] = T
         return T
 
@@ -249,7 +249,7 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
         n = int(n)
         if arith.gcd(self.module().level(), n) != 1:
             raise IndexError, "Hecke operator T_%s not defined in the anemic Hecke algebra"%n
-        return hecke_operator.HeckeOperator(self, n)
+        return self.module()._hecke_operator_class()(self, n)
 
     def is_anemic(self):
         return True

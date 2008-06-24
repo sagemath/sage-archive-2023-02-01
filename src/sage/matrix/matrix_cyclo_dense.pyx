@@ -379,7 +379,19 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         implementation).
             sage: A*B == A.sparse_matrix()*B.sparse_matrix()
             True
+
+            sage: N1 = Matrix(CyclotomicField(6), 1, [1])
+            sage: cf6 = CyclotomicField(6) ; z6 = cf6.0
+            sage: N2 = Matrix(CyclotomicField(6), 1, 5, [0,1,z6,-z6,-z6+1])
+            sage: N1*N2
+            [         0          1      zeta6     -zeta6 -zeta6 + 1]
         """
+        # handle some special cases
+        if self.is_one():
+            return right
+        if right.is_one():
+            return self
+
         A, denom_self = self._matrix._clear_denom()
         B, denom_right = (<Matrix_cyclo_dense>right)._matrix._clear_denom()
 

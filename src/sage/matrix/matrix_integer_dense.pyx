@@ -427,6 +427,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return z
 
     def _pickle(self):
+        """
+        EXAMPLES:
+            sage: S = ModularSymbols(250,4,sign=1).cuspidal_submodule().new_subspace().decomposition() # long
+            sage: S == loads(dumps(S)) # long
+        """
         return self._pickle_version0(), 0
 
     cdef _pickle_version0(self):
@@ -447,7 +452,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             _sig_on
             for i from 0 <= i < self._nrows * self._ncols:
                 m = mpz_sizeinbase (self._entries[i], 32)
-                if len_so_far + m + 1 >= n:
+                if len_so_far + m + 2 >= n:
                     # copy to new string with double the size
                     n = 2*n + m + 1
                     tmp = <char*> sage_malloc(n * sizeof(char))

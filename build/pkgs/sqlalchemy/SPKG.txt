@@ -30,6 +30,9 @@ Use the standard sources. No changes from the official sources.
 
 == Changelog ==
 
+=== SQLAlchemy-0.4.6.p0 (Yi Qiang, June 25, 2008) ===
+ * version bump
+
 === SQLAlchemy-0.4.3.p1 (Michael Abshoff, March 14th, 2008) ===
  * add hg repo
  * add .hgignore

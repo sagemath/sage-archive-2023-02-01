@@ -11,5 +11,5 @@ cd src
 python setup.py install
 
 # Copy over the documentation
-cp -r doc $SAGE_ROOT/local/doc/SQLAlchemy-0.4.3
+# cp -r doc $SAGE_ROOT/local/doc/SQLAlchemy-0.4.3
 

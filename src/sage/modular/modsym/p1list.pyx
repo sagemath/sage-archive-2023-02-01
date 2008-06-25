@@ -18,6 +18,14 @@ arith_llong = sage.ext.arith.arith_llong()
 ctypedef long long llong
 
 include '../../ext/interrupt.pxi'
+include '../../ext/stdsage.pxi'
+
+###############################################################
+#
+# Int p1_normalize and p1list; a non-int version is below,
+# which should be used for N > 46340
+#
+################################################################
 
 cdef int c_p1_normalize_int(int N, int u, int v,
                             int* uu, int* vv, int* ss,
@@ -300,6 +308,86 @@ def p1_normalize(int N, int u, int v):
     else:
         raise OverflowError
 
+cdef int p1_normalize_xgcdtable(int N, int u, int v,
+                                int compute_s,
+                                int *t_g, int *t_a, int *t_b,
+                                int* uu, int* vv, int* ss) except -1:
+    """
+    INPUT:
+        N, u, v -- integers
+        compute_s -- do not compute s if compute_s == 0.
+        t_g, t_a, t_b -- int arrays of
+
+    OUTPUT:
+        uu, vv, ss -- reduced rep and scalar that changes to it.
+    """
+    cdef int d, k, g, s, t, min_v, min_t, Ng, vNg
+    if N == 1:
+        uu[0] = 0
+        vv[0] = 0
+        ss[0] = 1
+        return 0
+
+    if N<=0 or N > 46340:
+        raise OverflowError, "Modulus is too large (must be < 46340)"
+        return -1
+
+    u = u % N
+    v = v % N
+    if u<0: u = u + N
+    if v<0: v = v + N
+    if u == 0:
+        uu[0] = 0
+        if t_g[v] == 1:    #  "if arith_int.c_gcd_int(v,N) == 1"
+            vv[0] = 1
+        else:
+            vv[0] = 0
+        ss[0] = v
+        return 0
+
+    #  WAS: "g = arith_int.c_xgcd_int(u, N, &s, &t)"
+    g = t_g[u]
+    s = t_a[u]
+    t = t_b[u]
+    s = s % N
+    if s<0: s = s + N
+    if g != 1 and arith_int.c_gcd_int(g, v) != 1:
+        uu[0] = 0
+        vv[0] = 0
+        ss[0] = 0
+        return 0
+
+    # Now g = s*u + t*N, so s is a "pseudo-inverse" of u mod N
+    # Adjust s modulo N/g so it is coprime to N.
+    if g!=1:
+        d = N/g
+        while t_g[s] != 1:  # while arith_int.c_gcd_int(s,N) != 1:
+            s = (s+d) % N
+
+    # Multiply [u,v] by s; then [s*u,s*v] = [g,s*v] (mod N)
+    u = g
+    v = (s*v) % N
+
+    min_v = v; min_t = 1
+    if g!=1:
+        Ng = N/g
+        vNg = (v*Ng) % N
+        t = 1
+        for k from 2 <= k <= g:
+            v = (v + vNg) % N
+            t = (t + Ng) % N
+            if v<min_v and t_g[t] == 1:                           #arith_int.c_gcd_int(t,N)==1:
+                min_v = v; min_t = t
+    v = min_v
+    if u<0: u = u+N
+    if v<0: v = v+N
+    uu[0] = u
+    vv[0] = v
+    if compute_s:
+        #ss[0] = arith_int.c_inverse_mod_int(s*min_t, N);
+        ss[0] = t_a[(s*min_t)%N]
+    return 0
+
 cdef class P1List:
     """
     EXAMPLES:
@@ -324,6 +412,34 @@ cdef class P1List:
             raise OverflowError, "p1list not defined for such large N."
         self.__list.sort()
         self.__end_hash = dict([(x,i) for i, x in enumerate(self.__list[N+1:])])
+
+        # Allocate memory for xgcd table.
+        self.g = NULL; self.s = NULL; self.t = NULL
+        self.g = <int*> sage_malloc(sizeof(int)*N)
+        if not self.g: raise MemoryError
+        self.s = <int*> sage_malloc(sizeof(int)*N)
+        if not self.s: raise MemoryError
+        self.t = <int*> sage_malloc(sizeof(int)*N)
+        if not self.t: raise MemoryError
+
+        # Initialize xgcd table
+        cdef int i
+        cdef llong ll_s, ll_t, ll_N = N
+
+        if N <= 46340:
+            for i from 0 <= i < N:
+                self.g[i] = arith_int.c_xgcd_int(i, N, &self.s[i], &self.t[i])
+        else:
+            for i from 0 <= i < N:
+                self.g[i] = arith_llong.c_xgcd_longlong(i, N, &ll_s, &ll_t)
+                self.s[i] = <int>(ll_s % ll_N)
+                self.t[i] = <int>(ll_t % ll_N)
+
+    def  __dealloc__(self):
+        if self.g: sage_free(self.g)
+        if self.s: sage_free(self.s)
+        if self.t: sage_free(self.t)
+
 
     def __cmp__(self, other):
         if not isinstance(other, P1List):
@@ -421,7 +537,8 @@ cdef class P1List:
             i -- the index of $u$, $v$, in the $P^1$ list.
         """
         cdef int uu, vv, ss
-        self.__normalize(self.__N, u, v, &uu, &vv, &ss, 0)
+        #self.__normalize(self.__N, u, v, &uu, &vv, &ss, 0)
+        p1_normalize_xgcdtable(self.__N, u, v, 0, self.g, self.s, self.t, &uu, &vv, &ss)
         if uu == 1:
             return vv + 1
         elif uu == 0:

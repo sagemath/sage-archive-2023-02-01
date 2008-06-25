@@ -319,18 +319,20 @@ class HeckeModule_free_module(HeckeModule_generic):
         return len(self.decomposition())
 
     def _eigen_nonzero(self):
+        """
+        Return smallest integer i such that the i-th entries of the
+        entries of a basis for the dual vector space are not all 0.
+        Then return the i-th basis vector for the ambient space of
+        modular symbols.
+        """
         try:
             return self.__eigen_nonzero
         except AttributeError:
             pass
-        # Find the smallest integer i such that the i-th entries
-        # of the entries of a basis for the dual vector space
-        # are not all 0.  Then return the i-th basis vector for
-        # the ambient space of modular symbols.
         A = self.ambient_hecke_module()
         V = self.dual_free_module()
         B = V.basis()
-        for i in range(A.rank()):
+        for i in range(V.degree()):
             for b in B:
                 if b[i] != 0:
                     self.__eigen_nonzero = i

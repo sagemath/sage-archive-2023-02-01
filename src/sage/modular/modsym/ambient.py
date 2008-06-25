@@ -1663,6 +1663,52 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             self.level(), self.weight(), self.sign(), self.base_ring())
         return self.__boundary_space
 
+    def _hecke_image_of_ith_basis_vector(self, n, i):
+        """
+        Return $T_n(e_i)$, where $e_i$ is the $i$th basis vector of
+        this ambient space.
+
+        INPUT:
+            n -- an integer which should be prime.
+
+        OUTPUT:
+            modular symbol -- element of this ambient space
+
+        EXAMPLES:
+            sage: M = ModularSymbols(43,2,1)
+            sage: M._hecke_image_of_ith_basis_vector(2, 0)
+            3*(1,0) - 2*(1,33)
+            sage: M.hecke_operator(2)(M.0)
+            3*(1,0) - 2*(1,33)
+            sage: M._hecke_image_of_ith_basis_vector(6, 1)
+            -2*(1,33)
+            sage: M.hecke_operator(6)(M.1)
+            -2*(1,33)
+        """
+        c = self.manin_generators()[self.manin_basis()[i]]
+        N = self.level()
+        I = heilbronn.hecke_images_gamma0_weight2(c.u,c.v,N,[n], self.manin_gens_to_basis())
+        return self(I[0])
+
+    def hecke_images(self, i, B):
+        """
+        Return images of the $i$-th standard basis vector under the
+        Hecke operators $T_p$ for all primes $p < B$.
+
+        INPUT:
+            B -- a positive integer
+
+        OUTPUT:
+            matrix -- whose rows are the Hecke images
+        """
+        # Find basis vector for ambient space such that it is not in
+        # the kernel of the dual space corresponding to self.
+        M = self.ambient()
+        c = M.manin_generators()[M.manin_basis()[i]]
+        N = self.level()
+        indices = arith.prime_range(B)
+        return heilbronn.hecke_images_gamma0_weight2(c.u,c.v,N, indices, M.manin_gens_to_basis())
+
 
 class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
     def __init__(self, level, weight, sign, F):

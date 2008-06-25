@@ -410,13 +410,18 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
     T = matrix(QQ, len(indices), len(P1), sparse=False)
 
     cdef Py_ssize_t i, j
-    cdef int *a, *b
+    cdef int *a, *b, k
 
-    cdef HeilbronnCremona H
+    cdef Heilbronn H
 
+    t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
+                               level=1, caller_name='hecke_images_gamma0_weight2')
     for i, n in enumerate(indices):
         # List the Heilbronn matrices of determinant n defined by Cremona
-        H = HeilbronnCremona(n)
+        if sage.rings.arith.is_prime(n):
+            H = HeilbronnCremona(n)
+        else:
+            H = HeilbronnMerel(n)
 
         # Allocate memory to hold images of (u,v) under all Heilbronn matrices
         a = <int*> sage_malloc(sizeof(int)*H.length)
@@ -430,34 +435,42 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
         # Compute the indexes of these images.
         # We just store them in the array a for simplicity.
         for j from 0 <= j < H.length:
-            # DELETE THESE
-            #a[j],_ = P1.index_and_scalar(a[j], b[j])
-            #if P1.index_and_scalar(a[j], b[j])[0] != P1.index(a[j], b[j]):
-            #    print a[j], b[j], P1.index_and_scalar(a[j], b[j])[0], P1.index(a[j], b[j])
-            a[j] = P1.index(a[j], b[j])
+            # Compute index of the symbol a[j], b[j] in the standard list.
+            k = P1.index(a[j], b[j])
 
-
-        # Now fill in row i of the sparse matrix T.
-        for j from 0 <= j < H.length:
-            # The following is just an evil direct way to do this:
-            #          T[i,a[j]] += 1
-            T._add_ui_unsafe_assuming_int(i,a[j],1)
-            # The following is slightly faster, but is way scary.
-            #mpz_add_ui(mpq_numref(T._matrix[i][a[j]]), mpq_numref(T._matrix[i][a[j]]), 1)
+            # Now fill in row i of the sparse matrix T.
+            if k != -1:
+                 # The following line is just a dangerous direct way to do: T[i,k] += 1
+                 T._add_ui_unsafe_assuming_int(i,k,1)
+                 # The following is slightly faster, but is way scary.
+                 #mpz_add_ui(mpq_numref(T._matrix[i][a[j]]), mpq_numref(T._matrix[i][a[j]]), 1)
 
         # Free a and b
         sage_free(a)
         sage_free(b)
 
+    t = sage.misc.misc.verbose("finished computing non-reduced images",
+                               t, level=1, caller_name='hecke_images_gamma0_weight2')
+
+    t = sage.misc.misc.verbose("Now reducing images of symbol",
+                               level=1, caller_name='hecke_images_gamma0_weight2')
+
     # Return the product T * R, whose rows are the image of (u,v) under
     # the Hecke operators T_n for n in indices.
-    if max(indices) <= 20:   # In this case T tends to be very sparse
-        return T.sparse_matrix()._matrix_times_matrix_dense(R)
+    if max(indices) <= 30:   # In this case T tends to be very sparse
+        ans = T.sparse_matrix()._matrix_times_matrix_dense(R)
+        sage.misc.misc.verbose("did reduction using sparse multiplication",
+                               t, level=1, caller_name='hecke_images_gamma0_weight2')
+    elif R.is_sparse():
+        ans = T * R.dense_matrix()
+        sage.misc.misc.verbose("did reduction using dense multiplication",
+                               t, level=1, caller_name='hecke_images_gamma0_weight2')
+    else:
+        ans = T * R
+        sage.misc.misc.verbose("did reduction using dense multiplication",
+                               t, level=1, caller_name='hecke_images_gamma0_weight2')
 
-    if R.is_sparse():
-        return T * R.dense_matrix()
-
-    return T * R
+    return ans
 
 
 

@@ -119,6 +119,28 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     def _hecke_operator_class(self):
         return hecke_operator.HeckeOperator
 
+    def compact_system_of_eigenvalues(self, B, names='alpha'):
+        """
+        Return a compact system of eigenvalues.  This should only be
+        called on simple factors of modular symbols spaces.
+
+        INPUT:
+            B -- a positive integer
+
+        OUTPUT:
+            v -- a vector over a number field
+            I -- matrix such that I*v is a vector with components
+                 the eigenvalues.
+            i -- integer so that I is in fact just the matrix
+                 of the images of the ith basis vector of the
+                 ambient under the Hecke operators
+        """
+        i = self._eigen_nonzero()
+        M = self.ambient()
+        I = M.hecke_images(i, B)
+        v = self.dual_eigenvector(names=names)
+        return v, I, i
+
     def character(self):
         """
         Return the character associated to self.

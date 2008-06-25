@@ -119,24 +119,25 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     def _hecke_operator_class(self):
         return hecke_operator.HeckeOperator
 
-    def compact_system_of_eigenvalues(self, B, names='alpha', nz=None):
-        """
-        Return a compact system of eigenvalues.  This should only be
-        called on simple factors of modular symbols spaces.
+    def compact_system_of_eigenvalues(self, v, names='alpha', nz=None):
+        r"""
+        Return a compact system of eigenvalues $a_n$ for $n\in v$.
+        This should only be called on simple factors of modular
+        symbols spaces.
 
         INPUT:
-            B -- a positive integer
+            v -- a list of positive integers
             nz -- (default: None); if given specifies a column index such
                  that the dual module has that column nonzero.
         OUTPUT:
             E -- matrix such that E*v is a vector with components
-                 the eigenvalues $a_2$, $a_3$, $a_5$, ...
+                 the eigenvalues $a_n$ for $n \in v$.
             v -- a vector over a number field
 
         EXAMPLES:
             sage: M = ModularSymbols(43,2,1)[2]; M
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field
-            sage: E, v = M.compact_system_of_eigenvalues(10)
+            sage: E, v = M.compact_system_of_eigenvalues(prime_range(10))
             sage: E
             [ 3 -2]
             [-3  2]
@@ -151,7 +152,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             nz = self._eigen_nonzero()
         M = self.ambient()
         try:
-            E = M.hecke_images(nz, B) * self.dual_free_module().basis_matrix().transpose()
+            E = M.hecke_images(nz, v) * self.dual_free_module().basis_matrix().transpose()
         except AttributeError:
             # TODO!!!
             raise NotImplementedError, "ambient space must implement hecke_images but doesn't yet"

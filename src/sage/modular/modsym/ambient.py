@@ -1381,6 +1381,70 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         self.__integral_structure = W
         return self.__integral_structure
 
+    ######################################################################
+    # Eigenvalues
+    #######################################################################
+    def compact_newform_eigenvalues(self, v, names='alpha'):
+        r"""
+        Return compact systems of eigenvalues for each Galois conjugacy
+        class of cuspidal newforms in this ambient space.
+
+        INPUT:
+            v -- list of positive integers
+        OUTPUT:
+            list -- of pairs (E, x),  where E*x is a vector with entries
+            the eigenvalues $a_n$ for $n \in v$.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(43,2,1)
+            sage: X = M.compact_newform_eigenvalues(prime_range(10))
+            sage: X[0][0] * X[0][1]
+            (-2, -2, -4, 0)
+            sage: X[1][0] * X[1][1]
+            (alpha1, -alpha1, -alpha1 + 2, alpha1 - 2)
+        """
+        v = list(v)
+
+        # Get decomposition of this space
+        D = self.cuspidal_submodule().new_subspace().decomposition()
+        B = [A.dual_free_module().basis_matrix().transpose() for A in D]
+
+        # Normalize the names strings.
+        names = ['%s%s'%(names,i) for i in range(len(B))]
+
+        # Find an integer i such that the i-th columns of the basis for the
+        # dual modules corresponding to the factors in D are all nonzero.
+        nz = None
+        for i in range(self.dimension()):
+            # Decide if this i works, i.e., ith row of every element of B is nonzero.
+            bad = False
+            for C in B:
+                if C.row(i) == 0:
+                    # i is bad.
+                    bad = True
+                    continue
+            if bad: continue
+            # It turns out that i is not bad.
+            nz = i
+            break
+
+        if nz is not None:
+            R = self.hecke_images(nz, v)
+            return [(R*m, D[i].dual_eigenvector(names=names[i], lift=False, nz=nz)) for i, m in enumerate(B)]
+        else:
+            # No single i works, so we do something less uniform.
+            ans = []
+            cache = {}
+            for i in range(len(D)):
+                nz = D[i]._eigen_nonzero()
+                if cache.has_key(nz):
+                     R = cache[nz]
+                else:
+                     R = self.hecke_images(nz, v)
+                     cache[nz] = R
+                ans.append((R*B[i], D[i].dual_eigenvector(names=names[i], lift=False, nz=nz)))
+            return ans
+
 
 class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
     r"""
@@ -1690,13 +1754,13 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         I = heilbronn.hecke_images_gamma0_weight2(c.u,c.v,N,[n], self.manin_gens_to_basis())
         return self(I[0])
 
-    def hecke_images(self, i, B):
+    def hecke_images(self, i, v):
         """
         Return images of the $i$-th standard basis vector under the
         Hecke operators $T_p$ for all primes $p < B$.
 
         INPUT:
-            B -- a positive integer
+            v -- a list of positive integer
 
         OUTPUT:
             matrix -- whose rows are the Hecke images
@@ -1706,8 +1770,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         M = self.ambient()
         c = M.manin_generators()[M.manin_basis()[i]]
         N = self.level()
-        indices = arith.prime_range(B)
-        return heilbronn.hecke_images_gamma0_weight2(c.u,c.v,N, indices, M.manin_gens_to_basis())
+        return heilbronn.hecke_images_gamma0_weight2(c.u,c.v,N, v, M.manin_gens_to_basis())
 
 
 class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):

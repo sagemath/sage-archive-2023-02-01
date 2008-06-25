@@ -431,6 +431,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         EXAMPLES:
             sage: S = ModularSymbols(250,4,sign=1).cuspidal_submodule().new_subspace().decomposition() # long
             sage: S == loads(dumps(S)) # long
+            True
         """
         return self._pickle_version0(), 0
 

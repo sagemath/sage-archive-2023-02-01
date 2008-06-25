@@ -119,27 +119,44 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     def _hecke_operator_class(self):
         return hecke_operator.HeckeOperator
 
-    def compact_system_of_eigenvalues(self, B, names='alpha'):
+    def compact_system_of_eigenvalues(self, B, names='alpha', nz=None):
         """
         Return a compact system of eigenvalues.  This should only be
         called on simple factors of modular symbols spaces.
 
         INPUT:
             B -- a positive integer
-
+            nz -- (default: None); if given specifies a column index such
+                 that the dual module has that column nonzero.
         OUTPUT:
+            E -- matrix such that E*v is a vector with components
+                 the eigenvalues $a_2$, $a_3$, $a_5$, ...
             v -- a vector over a number field
-            I -- matrix such that I*v is a vector with components
-                 the eigenvalues.
-            i -- integer so that I is in fact just the matrix
-                 of the images of the ith basis vector of the
-                 ambient under the Hecke operators
+
+        EXAMPLES:
+            sage: M = ModularSymbols(43,2,1)[2]; M
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field
+            sage: E, v = M.compact_system_of_eigenvalues(10)
+            sage: E
+            [ 3 -2]
+            [-3  2]
+            [-1  2]
+            [ 1 -2]
+            sage: v
+            (1, -1/2*alpha + 3/2)
+            sage: E*v
+            (alpha, -alpha, -alpha + 2, alpha - 2)
         """
-        i = self._eigen_nonzero()
+        if nz is None:
+            nz = self._eigen_nonzero()
         M = self.ambient()
-        I = M.hecke_images(i, B)
-        v = self.dual_eigenvector(names=names)
-        return v, I, i
+        try:
+            E = M.hecke_images(nz, B) * self.dual_free_module().basis_matrix().transpose()
+        except AttributeError:
+            # TODO!!!
+            raise NotImplementedError, "ambient space must implement hecke_images but doesn't yet"
+        v = self.dual_eigenvector(names=names, lift=False, nz=nz)
+        return E, v
 
     def character(self):
         """

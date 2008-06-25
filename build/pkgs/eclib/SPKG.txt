@@ -39,6 +39,12 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20080310.p3 (John Cremona) ===
+ * minor bugfixes for gcc 4.2.3
+
+=== eclib-20080310.p2 (Michael Abshoff) ===
+ * add 64 bit OSX build support
+
 === eclib-20080310.p1 (Michael Abshoff, April 1st, 2008) ===
  * minor eclib build system improvements (Tim Abbott, #2735)
  * Fix Debian Sections (Tim Abbott, #2643)

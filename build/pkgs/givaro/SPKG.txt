@@ -22,6 +22,9 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
 == Changelog ==
 
+=== givaro-3.2.11 (Clement Pernet, June 25th, 2008) ===
+ * Upgrade to givaro-3.2.11 (fixing long long issue on 64 bit archs)
+
 === givaro-3.2.10.rc3.p3 (Michael Abshoff, May 18th, 2008) ===
  * improve 64 bit OSX build support
 

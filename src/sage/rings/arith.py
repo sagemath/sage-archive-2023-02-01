@@ -145,19 +145,24 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
 
 algebraic_dependency = algdep
 
-def bernoulli(n, algorithm='pari'):
+def bernoulli(n, algorithm='default', num_threads=1):
     r"""
     Return the n-th Bernoulli number, as a rational number.
 
     INPUT:
         n -- an integer
         algorithm:
-            'pari' -- (default) use the PARI C library, which is
-                      by *far* the fastest.
+            'default' -- (default) use 'pari' for n <= 30000, and
+                         'bernmm' for n > 30000 (this is just a heuristic,
+                         and not guaranteed to be optimal on all hardware)
+            'pari' -- use the PARI C library
             'gap'  -- use GAP
             'gp'   -- use PARI/GP interpreter
             'magma' -- use MAGMA (optional)
             'python' -- use pure Python implementation
+            'bernmm' -- use bernmm package (a multimodular algorithm)
+        num_threads -- positive integer, number of threads to use
+                       (only used for bernmm algorithm)
 
     EXAMPLES:
         sage: bernoulli(12)
@@ -176,6 +181,10 @@ def bernoulli(n, algorithm='pari'):
         -691/2730
         sage: bernoulli(12, algorithm='python')
         -691/2730
+        sage: bernoulli(12, algorithm='bernmm')
+        -691/2730
+        sage: bernoulli(12, algorithm='bernmm', num_threads=4)
+        -691/2730
 
     \note{If $n>50000$ then algorithm = 'gp' is used instead of
     algorithm = 'pari', since the C-library interface to PARI
@@ -185,8 +194,13 @@ def bernoulli(n, algorithm='pari'):
     """
     from sage.rings.all import Integer, Rational
     n = Integer(n)
+
+    if algorithm == 'default':
+        algorithm = 'pari' if n <= 30000 else 'bernmm'
+
     if n > 50000 and algorithm == 'pari':
         algorithm = 'gp'
+
     if algorithm == 'pari':
         x = pari(n).bernfrac()         # Use the PARI C library
         return Rational(x)
@@ -205,6 +219,9 @@ def bernoulli(n, algorithm='pari'):
     elif algorithm == 'python':
         import sage.rings.bernoulli
         return sage.rings.bernoulli.bernoulli_python(n)
+    elif algorithm == 'bernmm':
+        import sage.rings.bernmm
+        return sage.rings.bernmm.bernmm_bern_rat(n, num_threads)
     else:
         raise ValueError, "invalid choice of algorithm"
 

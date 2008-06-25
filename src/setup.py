@@ -813,6 +813,15 @@ ext_modules = [ \
               language = 'c++',
               include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
 
+    Extension('sage.rings.bernmm',
+              sources = ['sage/rings/bernmm.pyx',
+                         'sage/rings/bernmm/bern_modp.cpp',
+                         'sage/rings/bernmm/bern_modp_util.cpp',
+                         'sage/rings/bernmm/bern_rat.cpp'],
+              libraries = ['gmp', 'ntl', 'stdc++', 'pthread'],
+              language = 'c++',
+              define_macros=[('USE_THREADS', '1')]), \
+
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
                  sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
                             'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp',

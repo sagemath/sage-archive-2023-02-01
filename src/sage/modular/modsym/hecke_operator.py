@@ -27,6 +27,8 @@ class HeckeOperator(sage.modular.hecke.hecke_operator.HeckeOperator):
 
         B = M.manin_basis()
 
+        #from sage.all import cputime
+        #t = cputime()
         v = x.element()
         for i in v.nonzero_positions():
             for h in H:
@@ -36,6 +38,10 @@ class HeckeOperator(sage.modular.hecke.hecke_operator.HeckeOperator):
                     if s:
                         W[0,f] += s*K(w)*v[i]
 
+        #print 'sym', cputime(t)
+        #t = cputime()
         ans = M( v.parent()((W * R).row(0)) )
+        #print 'mul', cputime(t)
+        #print 'density: ', len(W.nonzero_positions())/(W.nrows()*float(W.ncols()))
 
         return ans

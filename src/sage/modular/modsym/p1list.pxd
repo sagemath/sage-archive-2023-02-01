@@ -10,3 +10,14 @@ cdef class export:
                                      int compute_s) except -1
 
 
+cdef class P1List:
+    cdef int __N
+    cdef object __list, __end_hash
+    # Here we use a pointer to a function, so the if logic
+    # for normalizing an element does not need to be used
+    # every time the user calls the normalize function.
+    cdef int (*__normalize)(int N, int u, int v,\
+                            int* uu, int* vv, int* ss,
+                            int compute_s) except -1
+    cpdef index(self, int u, int v)
+

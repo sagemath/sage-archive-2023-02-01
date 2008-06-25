@@ -312,15 +312,6 @@ cdef class P1List:
         sage: loads(dumps(P)) == P
         True
     """
-    cdef int __N
-    # Here we use a pointer to a function, so the if logic
-    # for normalizing an element does not need to be used
-    # every time the user calls the normalize function.
-    cdef int (*__normalize)(int N, int u, int v,\
-                            int* uu, int* vv, int* ss,
-                            int compute_s) except -1
-    cdef object __list
-
     def __init__(self, int N):
         self.__N = N
         if N <= 46340:
@@ -332,6 +323,7 @@ cdef class P1List:
         else:
             raise OverflowError, "p1list not defined for such large N."
         self.__list.sort()
+        self.__end_hash = dict([(x,i) for i, x in enumerate(self.__list[N+1:])])
 
     def __cmp__(self, other):
         if not isinstance(other, P1List):
@@ -417,7 +409,7 @@ cdef class P1List:
         _, j = search(self.__list, (uu,vv))
         return j
 
-    def index(self, int u, int v):
+    cpdef index(self, int u, int v):
         r"""
         Returns the index of the class of $(u,v)$ in the fixed list of
         representatives of $\PP^1(\Z/N\Z)$.
@@ -430,9 +422,16 @@ cdef class P1List:
         """
         cdef int uu, vv, ss
         self.__normalize(self.__N, u, v, &uu, &vv, &ss, 0)
-        t, i = search(self.__list, (uu,vv))
-        if t: return i
-        return -1
+        if uu == 1:
+            return vv + 1
+        elif uu == 0:
+            if vv == 0:
+                return -1
+            return 0
+        try:
+            return self.__end_hash[(uu,vv)] + self.__N + 1
+        except KeyError:
+            return -1
 
     def index_of_normalized_pair(self, int u, int v):
         r"""
@@ -462,9 +461,9 @@ cdef class P1List:
         """
         cdef int uu, vv, ss
         self.__normalize(self.__N, u, v, &uu, &vv, &ss, 1)
-        t, i = search(self.__list, (uu,vv)), ss
-        if t: return i
-        return -1
+        t, i = search(self.__list, (uu,vv))
+        if t: return i, ss
+        return -1, ss
 
     def list(self):
         return self.__list

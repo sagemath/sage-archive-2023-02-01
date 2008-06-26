@@ -32,6 +32,9 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ######################################################################
+include "../ext/cdefs.pxi"
+include "../libs/ntl/decl.pxi"
+
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from matrix_space import MatrixSpace
 from constructor import matrix
@@ -59,6 +62,8 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 # parameters for tuning
 echelon_primes_increment = 15
 echelon_verbose_level = 1
+
+from sage.rings.number_field.number_field_element cimport NumberFieldElement
 
 cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     ########################################################################
@@ -179,6 +184,31 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         c = i * self._ncols + j
         for k from 0 <= k < self._degree:
             self._matrix.set_unsafe(k, c, v[k])
+
+## THIS looks 100% right but segfaults on the doctests.
+##     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
+##         # The i,j entry is the (i * self._ncols + j)'th column.
+##         cdef Py_ssize_t k, c
+
+##         # TODO REMOVE
+##         assert isinstance(value, NumberFieldElement)
+
+##         cdef NumberFieldElement v = value
+
+##         cdef mpz_t numer, denom
+##         mpz_init(numer)
+##         mpz_init(denom)
+
+##         c = i * self._ncols + j
+##         v._ntl_denom_as_mpz(&denom)
+##         for k from 0 <= k < self._degree:
+##             v._ntl_coeff_as_mpz(&numer, k)
+##             mpz_set(mpq_numref(self._matrix._matrix[k][c]), numer)
+##             mpz_set(mpq_denref(self._matrix._matrix[k][c]), denom)
+##             mpq_canonicalize(self._matrix._matrix[k][c])
+
+##         mpz_clear(numer)
+##         mpz_clear(denom)
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """

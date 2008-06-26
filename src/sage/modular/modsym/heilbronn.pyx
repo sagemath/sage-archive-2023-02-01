@@ -184,22 +184,16 @@ cdef class Heilbronn:
             u, v, N -- integers
             a, b -- preallocated int arrays of the length self.
         OUTPUT:
-            list
-
-        Return a list of pairs ((c,d),m), which is obtained as follows:
-          1) Compute the images (a,b) of the vector (u,v) (mod N) acted on by
-             each of the HeilbronnCremona matrices in self.
-          2) Reduce each (a,b) to canonical form (c,d) using p1normalize
-          3) Sort.
-          4) Create the list ((c,d),m), where m is the number of times
-             that (c,d) appears in the list created in steps 1--3 above.
-        Note that the pairs ((c,d),m) are sorted lexicographically by (c,d).
+            sets the entries of a,b
 
         EXAMPLES:
-            sage: H = sage.modular.modsym.heilbronn.HeilbronnCremona(2); H
-            The Cremona-Heilbronn matrices of determinant 2
-            sage: H.apply(1,2,7)
-            [((1, 5), 1), ((1, 6), 1), ((1, 1), 1), ((1, 4), 1)]
+            sage: M = ModularSymbols(33,2,1)       # indirect test
+            sage: sage.modular.modsym.heilbronn.hecke_images_gamma0_weight2(1,0,33,[2,3],M.manin_gens_to_basis())
+            [ 3  0  1  0 -1  1]
+            [ 3  2  2  0 -2  2]
+            sage: z = M((1,0))
+            sage: [M.T(n)(z).element() for n in [2,2]]
+            [(3, 0, 1, 0, -1, 1), (3, 0, 1, 0, -1, 1)]
         """
         cdef int i
         _sig_on
@@ -383,6 +377,7 @@ cdef class HeilbronnMerel(Heilbronn):
 ############################################################################
 # Fast application of Heilbronn operators to computation of
 # systems of Hecke eigenvalues.
+#   GAMMA0 trivial character weight 2 case
 ############################################################################
 
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
@@ -399,10 +394,24 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
         a dense matrix with rational entries whose columns are
         the images T_n(x) for n in indices and x the Manin
         symbol (u,v), expressed in terms of the basis.
+
+    EXAMPLES:
+        sage: M = ModularSymbols(23,2,1)
+        sage: A = sage.modular.modsym.heilbronn.hecke_images_gamma0_weight2(1,0,23,[1..6],M.manin_gens_to_basis())
+        sage: A
+        [ 1  0  0]
+        [ 3  0 -1]
+        [ 4 -2 -1]
+        [ 7 -2 -2]
+        [ 6  0 -2]
+        [12 -2 -4]
+        sage: z = M((1,0))
+        sage: [M.T(n)(z).element() for n in [1..6]]
+        [(1, 0, 0), (3, 0, -1), (4, -2, -1), (7, -2, -2), (6, 0, -2), (12, -2, -4)]
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
 
-    # Create a zero sparse matrix over QQ with len(indices) rows
+    # Create a zero dense matrix over QQ with len(indices) rows
     # and #P^1(N) columns.
     cdef Matrix_rational_dense T
     from sage.matrix.all import matrix
@@ -442,8 +451,6 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
             if k != -1:
                  # The following line is just a dangerous direct way to do: T[i,k] += 1
                  T._add_ui_unsafe_assuming_int(i,k,1)
-                 # The following is slightly faster, but is way scary.
-                 #mpz_add_ui(mpq_numref(T._matrix[i][a[j]]), mpq_numref(T._matrix[i][a[j]]), 1)
 
         # Free a and b
         sage_free(a)
@@ -471,6 +478,82 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
                                t, level=1, caller_name='hecke_images_gamma0_weight2')
 
     return ans
+
+
+############################################################################
+# Fast application of Heilbronn operators to computation of
+# systems of Hecke eigenvalues.
+#   Nontrivial character but weight 2.
+############################################################################
+
+from sage.matrix.matrix_cyclo_dense cimport Matrix_cyclo_dense
+
+def hecke_images_character_weight2(int u, int v, int N, indices, chi, R):
+    """
+    INPUT:
+        u, v, N -- integers so that gcd(u,v,N) = 1
+        indices -- a list of positive integers
+        chi     -- a Dirichlet character
+        R       -- matrix over QQ(chi) that writes each elements of P1 =
+                   P1List(N) in terms of a subset of P1.
+
+    OUTPUT:
+        a dense matrix with entries in the field QQ(chi) (the values of chi)
+        whose columns are the images T_n(x) for n in indices and x the Manin
+        symbol (u,v), expressed in terms of the basis.
+
+    EXAMPLES:
+
+    """
+    cdef p1list.P1List P1 = p1list.P1List(N)
+
+    K = chi.base_ring()
+
+    # Create a zero dense matrix over K with len(indices) rows
+    # and #P^1(N) columns.
+    cdef Matrix_cyclo_dense T
+    from sage.matrix.all import matrix
+    T = matrix(K, len(indices), len(P1), sparse=False)
+
+    cdef Py_ssize_t i, j
+    cdef int *a, *b, k, scalar
+
+    cdef Heilbronn H
+
+    t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
+                               level=1, caller_name='hecke_images_character_weight2')
+    w = chi(-1)
+    for i, n in enumerate(indices):
+        H = HeilbronnCremona(n) if sage.rings.arith.is_prime(n) else HeilbronnMerel(n)
+
+        # Allocate memory to hold images of (u,v) under all Heilbronn matrices
+        a = <int*> sage_malloc(sizeof(int)*H.length)
+        if not a: raise MemoryError
+        b = <int*> sage_malloc(sizeof(int)*H.length)
+        if not b: raise MemoryError
+
+        # Compute images of (u,v) under all Heilbronn matrices
+        H.apply_only(u, v, N, a, b)
+
+        for j from 0 <= j < H.length:
+            # Compute index of the symbol a[j], b[j] in the standard list.
+            P1.index_and_scalar(a[j], b[j], &k, &scalar)
+            # Now fill in row i of the sparse matrix T.
+            if k != -1:
+                 # The following line is just a dangerous direct way to do: T[i,k] += chi(scalar)
+                 #T[i,k] += chi(scalar)
+                 #T.set_unsafe(i,k,T.get_unsafe(i,k)+chi(scalar))
+                 T.set_unsafe(i,k,w)
+                 # T._add_ui_unsafe_assuming_int(i,k,1)
+
+
+        # Free a and b
+        sage_free(a)
+        sage_free(b)
+
+    return T
+
+    #return T*R
 
 
 

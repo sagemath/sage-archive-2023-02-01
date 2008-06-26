@@ -1773,3 +1773,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpq_clear(minus_one)
 
 
+    def _add_col_j_of_A_to_col_i_of_self(self,
+               Py_ssize_t i, Matrix_rational_dense A, Py_ssize_t j):
+        """
+        Unsafe technical function that very quickly adds the j-th
+        column of A to the i-th column of self.
+
+        Does not check mutability.
+        """
+        if A._nrows != self._nrows:
+            raise TypeError, "nrows of self and A must be the same"
+        cdef Py_ssize_t r
+        for r from 0 <= r < self._nrows:
+            mpq_add(self._matrix[r][i], self._matrix[r][i], A._matrix[r][j])
+

@@ -537,7 +537,6 @@ cdef class P1List:
             i -- the index of $u$, $v$, in the $P^1$ list.
         """
         cdef int uu, vv, ss
-        #self.__normalize(self.__N, u, v, &uu, &vv, &ss, 0)
         p1_normalize_xgcdtable(self.__N, u, v, 0, self.g, self.s, self.t, &uu, &vv, &ss)
         if uu == 1:
             return vv + 1
@@ -549,6 +548,36 @@ cdef class P1List:
             return self.__end_hash[(uu,vv)] + self.__N + 1
         except KeyError:
             return -1
+
+    cdef index_and_scalar(self, int u, int v, int* i, int* s):
+        r"""
+        Returns the index of the class of $(u,v)$ in the fixed list of
+        representatives of $\PP^1(\Z/N\Z)$.
+
+        INPUT:
+            u, v -- integers, with GCD(u,v,N)=1.
+
+        OUTPUT:
+            i -- the index of $u$, $v$, in the $P^1$ list.
+            s -- scalar that we multiply by to get to normalized
+        """
+        cdef int uu, vv, ss
+        p1_normalize_xgcdtable(self.__N, u, v, 1, self.g, self.s, self.t, &uu, &vv, s)
+        if uu == 1:
+            i[0] = vv + 1
+            return
+        elif uu == 0:
+            if vv == 0:
+                i[0] = -1
+                return
+            i[0] = 0
+            return
+        try:
+            i[0] = self.__end_hash[(uu,vv)] + self.__N + 1
+            return
+        except KeyError:
+            i[0] = -1
+            return
 
     def index_of_normalized_pair(self, int u, int v):
         r"""

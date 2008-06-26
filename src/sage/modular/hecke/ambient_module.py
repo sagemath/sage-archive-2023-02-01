@@ -32,6 +32,7 @@ import sage.misc.misc as misc
 import sage.rings.arith as arith
 
 import sage.matrix.matrix_space as matrix_space
+from   sage.matrix.constructor import matrix
 
 import sage.modular.dims as dims
 
@@ -325,6 +326,36 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def hecke_module_of_level(self, level):
         raise NotImplementedError
+
+
+    def hecke_images(self, i, v):
+        """
+        Return images of the $i$-th standard basis vector under the
+        Hecke operators $T_p$ for all integers in $v$.
+
+        INPUT:
+            i -- nonnegative integer
+            v -- a list of positive integer
+
+        OUTPUT:
+            matrix -- whose rows are the Hecke images
+
+        EXAMPLES:
+            sage: M = ModularSymbols(DirichletGroup(13).0, 3)
+            sage: M.T(2)(M.0).element()
+            (zeta12 + 4, 0, -1, 1)
+            sage: M.hecke_images(0, [1,2])
+            [         1          0          0          0]
+            [zeta12 + 4          0         -1          1]
+        """
+        try:
+            return self._hecke_images(i, v)
+        except (AttributeError, NotImplementedError):
+            pass
+        # Use slow generic algorithm
+        x = self.gen(i)
+        X = [self.hecke_operator(n).apply_sparse(x).element() for n in v]
+        return matrix(self.base_ring(), X)
 
     def intersection(self, other):
         """

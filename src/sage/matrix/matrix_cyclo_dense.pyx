@@ -32,6 +32,9 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ######################################################################
+include "../ext/cdefs.pxi"
+include "../libs/ntl/decl.pxi"
+
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from matrix_space import MatrixSpace
 from constructor import matrix
@@ -45,6 +48,7 @@ from sage.misc.misc import verbose
 import math
 
 from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Matrix as baseMatrix
 
@@ -54,9 +58,14 @@ from sage.ext.multi_modular import MAX_MODULUS
 
 from sage.structure.proof.proof import get_flag as get_proof_flag
 
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 # parameters for tuning
 echelon_primes_increment = 15
 echelon_verbose_level = 1
+
+from sage.rings.number_field.number_field_element cimport NumberFieldElement
+from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
 
 cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     ########################################################################
@@ -152,31 +161,36 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 self.set_unsafe(i,i,z)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-        """
-        Set the ij-th entry of self to value.
-
-        WARNING: As the name suggests, there is no bound or type
-        checking.  Expect errors, segfaults, etc., if you give bad
-        input!!  This is for internal use only.
-
-        EXAMPLES:
-            sage: W.<a> = CyclotomicField(5)
-            sage: A = matrix(2, 3, [1, 1/a, 1-a,a, -2/3*a, a^19])
-
-        This indirectly calls set_unsafe:
-            sage: A[0,0] = 109308420
-            sage: A
-            [         109308420 -a^3 - a^2 - a - 1             -a + 1]
-            [                 a             -2/3*a -a^3 - a^2 - a - 1]
-        """
-        # The i,j entry is the (i * self._ncols + j)'th column.
-        # TODO: This could be made way faster via direct access to the
-        # underlying matrix
         cdef Py_ssize_t k, c
-        v = value.list()
+
+        if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
+            # USE SLOW OLD GENERIC VERSION
+            vl = value.list()
+            c = i * self._ncols + j
+            for k from 0 <= k < self._degree:
+                self._matrix.set_unsafe(k, c, vl[k])
+            return
+
+        # NEW FAST VERSION -- makes assumptions about how the
+        # cyclotomic field is implemented.
+
+        # The i,j entry is the (i * self._ncols + j)'th column.
+        cdef NumberFieldElement v = value
+
+        cdef mpz_t numer, denom
+        mpz_init(numer)
+        mpz_init(denom)
+
         c = i * self._ncols + j
+        v._ntl_denom_as_mpz(&denom)
         for k from 0 <= k < self._degree:
-            self._matrix.set_unsafe(k, c, v[k])
+            v._ntl_coeff_as_mpz(&numer, k)
+            mpz_set(mpq_numref(self._matrix._matrix[k][c]), numer)
+            mpz_set(mpq_denref(self._matrix._matrix[k][c]), denom)
+            mpq_canonicalize(self._matrix._matrix[k][c])
+
+        mpz_clear(numer)
+        mpz_clear(denom)
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
@@ -193,10 +207,47 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A[0,0]
             9939208341
         """
-        # The i,j entry is the (i * self._ncols + j)'th column.
-        # TODO: This could be made way faster via direct access to the
-        # underlying matrix
+        # REALLY SLOW
         return self.base_ring()(self._matrix.column(i*self._ncols + j).list())
+
+# NEW FAST VERSION -- seg faults.
+# The following does get_unsafe maybe 25 times faster or more, but segfaults.
+# I don't need it now, but if you want to write this right, you might start
+# with this.
+##     if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
+##         cdef Py_ssize_t k, c
+##         cdef NumberFieldElement x = self._base_ring(0)
+##         cdef mpz_t denom, quo, tmp
+##         cdef ZZ_c coeff
+##         ZZ_construct(&coeff)
+
+##         mpz_init_set_ui(denom, 1)
+##         mpz_init(tmp)
+
+##         c = i * self._ncols + j
+
+##         # Get the least common multiple of the denominators in
+##         # this column.
+##         for k from 0 <= k < self._degree:
+##             mpz_lcm(denom, denom, mpq_denref(self._matrix._matrix[k][c]))
+
+##         for k from 0 <= k < self._degree:
+##             # set each entry of x to a*denom/b where a/b is the
+##             # k,c entry of _matrix.
+##             mpz_mul(tmp, mpq_numref(self._matrix._matrix[k][c]), denom)
+##             mpz_divexact(tmp, tmp, mpq_denref(self._matrix._matrix[k][c]))
+##             # Now set k-th entry of x's numerator to tmp
+##             mpz_to_ZZ(&coeff, &tmp)
+##             ZZX_SetCoeff(x.__numerator, k, coeff)
+##         # Set the denominator of x to denom.
+##         mpz_to_ZZ(&x.__denominator, &denom)
+##         mpz_clear(denom)
+##         mpz_clear(tmp)
+##         ZZ_destruct(&coeff)
+
+##         return x
+
+
 
     def _pickle(self):
         """
@@ -235,7 +286,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: k == w
             True
         """
-        self.check_mutability()
+        #self.check_mutability()
         if version == 0:
             self._matrix = Matrix_rational_dense(MatrixSpace(QQ, self._degree, self._nrows*self._ncols), None, False, False)
             self._matrix._unpickle(*data)  # data is (data, matrix_QQ_version)
@@ -377,6 +428,15 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         implementation).
             sage: A*B == A.sparse_matrix()*B.sparse_matrix()
             True
+
+            sage: N1 = Matrix(CyclotomicField(6), 1, [1])
+            sage: cf6 = CyclotomicField(6) ; z6 = cf6.0
+            sage: N2 = Matrix(CyclotomicField(6), 1, 5, [0,1,z6,-z6,-z6+1])
+            sage: N1*N2
+            [         0          1      zeta6     -zeta6 -zeta6 + 1]
+            sage: N1 = Matrix(CyclotomicField(6), 1, [-1])
+            sage: N1*N2
+            [        0        -1    -zeta6     zeta6 zeta6 - 1]
         """
         A, denom_self = self._matrix._clear_denom()
         B, denom_right = (<Matrix_cyclo_dense>right)._matrix._clear_denom()
@@ -388,7 +448,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         p = previous_prime(MAX_MODULUS)
         prod = 1
         v = []
-        while prod < bound:
+        while prod <= bound:
             while (n >= 2 and p % n != 1) or denom_self % p == 0 or denom_right % p == 0:
                 if p == 2:
                     raise RuntimeError, "we ran out of primes in matrix multiplication."
@@ -807,11 +867,36 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             x^3 + (z - 3)*x^2 + (-16/3*z^2 - 2*z)*x - 2/3*z^3 + 16/3*z^2 - 5*z + 5/3
             sage: a.charpoly(algorithm='hessenberg')
             x^3 + (z - 3)*x^2 + (-16/3*z^2 - 2*z)*x - 2/3*z^3 + 16/3*z^2 - 5*z + 5/3
+
+            sage: Matrix(K, 1, [0]).charpoly()
+            x
+            sage: Matrix(K, 1, [5]).charpoly(var='y')
+            y - 5
+
+            sage: Matrix(CyclotomicField(13),3).charpoly()
+            x^3
+            sage: Matrix(CyclotomicField(13),3).charpoly()[2].parent()
+            Cyclotomic Field of order 13 and degree 12
         """
         key = 'charpoly-%s-%s'%(algorithm,proof)
         f = self.fetch(key)
         if f is not None:
             return f.change_variable_name(var)
+
+        if self.nrows() != self.ncols():
+            raise TypeError, "self must be square"
+
+        if self.is_zero():
+            R = PolynomialRing(self.base_ring(), name=var)
+            f = R.gen(0)**self.nrows()
+            self.cache(key, f)
+            return f
+
+        if self.nrows() == 1:
+            R = PolynomialRing(self.base_ring(), name=var)
+            f = R.gen(0) - self[0,0]
+            self.cache(key, f)
+            return f
 
         if algorithm == 'multimodular':
             f = self._charpoly_multimodular(var, proof=proof)
@@ -909,7 +994,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = <Matrix_rational_dense>(denom*self._matrix)
         bound = A._charpoly_bound()
         L_last = 0
-        while prod < bound:
+        while prod <= bound:
             while (n >= 2  and p % n != 1) or denom % p == 0:
                 if p == 2:
                     raise RuntimeError, "we ran out of primes in multimodular charpoly algorithm."
@@ -1102,10 +1187,22 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A.echelon_form()
             [ 1  0 -1]
             [ 0  1  2]
+
+        A case that checks the bug in trac #3500.
+            sage: cf4 = CyclotomicField(4) ; z4 = cf4.0
+            sage: A = Matrix(cf4, 1, 2, [-z4, 1])
+            sage: A.echelon_form()
+            [    1 zeta4]
         """
         key = 'echelon_form-%s'%algorithm
         E = self.fetch(key)
         if E is not None:
+            return E
+
+        if self._nrows == 0:
+            E = self.copy()
+            self.cache(key, E)
+            self.cache('pivots', [])
             return E
 
         if algorithm == 'multimodular':
@@ -1170,13 +1267,14 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         height_bound = self._ncols * height_guess * A.coefficient_bound() + 1
         mod_p_ech_ls = []
         max_pivots = []
+        is_square = self._nrows == self._ncols
 
         verbose("using height bound %s"%height_bound, level=echelon_verbose_level)
 
         while True:
             # Generate primes to use, and find echelon form
             # modulo those primes.
-            while found < num_primes or prod < height_bound:
+            while found < num_primes or prod <= height_bound:
                 if (n == 1) or p%n == 1:
                     try:
                         mod_p_ech, piv_ls = A._echelon_form_one_prime(p)
@@ -1188,9 +1286,9 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                         continue
                     # if we have the identity, just return it, and
                     # we're done.
-                    if mod_p_ech.is_one():
-                        self.cache('pivots', range(self.nrows()))
-                        return mod_p_ech
+                    if is_square and len(piv_ls) == self._nrows:
+                        self.cache('pivots', range(self._nrows))
+                        return self.parent().identity_matrix()
                     if piv_ls > max_pivots:
                         mod_p_ech_ls = [mod_p_ech]
                         max_pivots = piv_ls
@@ -1294,7 +1392,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         pivot_ls = ech_ls[0].pivots()
         # If we've found the identity matrix, we're all done.
         if self._nrows == self._ncols == len(pivot_ls):
-            return (self.parent().identity_matrix(), self._nrows)
+            return (self.parent().identity_matrix(), range(self._nrows))
 
         # For each reduction of self (i.e. for each prime of
         # self.base_ring() over p), compute the echelon form, and

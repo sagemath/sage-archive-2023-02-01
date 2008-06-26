@@ -459,7 +459,7 @@ class BlockingDSage(DSage):
             ...     return n*n
             ...
             sage: j = d.block_on_jobs(d.map(f, [25,12,25,32,12]))
-            sage: j
+            sage: j # random
             [625, 144, 625, 1024, 144]
         """
 
@@ -544,8 +544,8 @@ class BlockingDSage(DSage):
             ... def f(n,m):
             ...     return n+m
             ...
-            sage: f([(1,2), (5, 10/3)])
-            [((1, 2), 3), ((5, 10/3), 25/3)]
+            sage: list(f([(1,2), (5, 10/3)])) # random
+            [(((5, 10/3), {}), 25/3), (((1, 2), {}), 3)]
         """
 
         jobs = []

@@ -45,3 +45,4 @@ class HeckeOperator(sage.modular.hecke.hecke_operator.HeckeOperator):
         #print 'density: ', len(W.nonzero_positions())/(W.nrows()*float(W.ncols()))
 
         return ans
+

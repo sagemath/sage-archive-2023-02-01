@@ -666,6 +666,11 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
 #   Trivial character and weight > 2.
 ############################################################################
 
+cdef apply_to_poly_part(int a, int b, int c, int d, int i, int k, mpz_t* v):
+    """
+    """
+
+
 def hecke_images_gamma0_weight_k(int u, int v, int N, indices, R):
     """
     INPUT:

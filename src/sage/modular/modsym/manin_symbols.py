@@ -35,6 +35,8 @@ import sage.rings.all as rings
 
 from sage.structure.sage_object import SageObject
 
+from apply import apply_to_monomial
+
 R = rings.QQ['X']
 
 X = R([0,1])
@@ -693,41 +695,6 @@ class ManinSymbol(SageObject):
               self.__parent, self.i, 0, rings.infinity)
         a,b,c,d = self.lift_to_sl2z(self.__parent.level())
         return x.apply([a,b,c,d])
-
-def apply_to_monomial(i, j, a, b, c, d):
-    r"""
-    Returns a list of the coefficients of
-    $$
-             (aX + bY)^i (cX + dY)^{j-i},
-    $$
-    where $0 \leq i \leq j$, and $a,b,c,d$ are integers.
-
-    One should think of $j$ as being $k-2$ for the application to
-    modular symbols.
-
-    INPUT:
-        i, j, a, b, c, d -- all ints
-
-    OUTPUT:
-        list of ints, which are the coefficients
-        of $Y^j$, $Y^{j-1}*X$, \ldots, $X^j$, respectively.
-
-    EXAMPLE:
-    We compute that $(X+Y)^2(X-Y) = X^3 + X^2Y - XY^2 - Y^3$.
-        sage: from sage.modular.modsym.manin_symbols import apply_to_monomial
-        sage: apply_to_monomial(2, 3, 1,1,1,-1)
-        [-1, -1, 1, 1]
-        sage: apply_to_monomial(5, 8, 1,2,3,4)
-        [2048, 9728, 20096, 23584, 17200, 7984, 2304, 378, 27]
-        sage: apply_to_monomial(6,12, 1,1,1,-1)
-        [1, 0, -6, 0, 15, 0, -20, 0, 15, 0, -6, 0, 1]
-    """
-    f = R([b,a])
-    g = R([d,c])
-    if i < 0 or j-i < 0:
-        raise ValueError, "i (=%s) and j-i (=%s) must both be nonnegative."%(i,j-i)
-    h = (f**i)*(g**(j-i))
-    return [int(h[k]) for k in xrange(j+1)]
 
 def _print_polypart(i, j):
     if i > 1:

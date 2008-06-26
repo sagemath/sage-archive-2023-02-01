@@ -1426,6 +1426,12 @@ class LatticePolytopeClass(SageObject):
 
         Plot without facets and points, shown without the frame:
             sage: c.plot3d(show_facets=false,show_points=false).show(frame=False)
+
+        TESTS:
+            sage: m = matrix([[0,0,0],[0,1,1],[1,0,1],[1,1,0]]).transpose()
+            sage: p = LatticePolytope(m, compute_vertices=True)
+            sage: p.plot3d()
+
         """
         if self.dim() != 3:
             raise ValueError, "Only 3-dimensional polytopes can be plotted in 3D!"
@@ -1445,8 +1451,9 @@ class LatticePolytopeClass(SageObject):
             for i,v in enumerate(self.vertices().columns(copy=False)):
                 pplot += text3d(i, index_shift*v, rgbcolor=vindex_color)
         if show_points:
-            pplot += point3d(self.points().columns(copy=False)[self.nvertices():],
-                        size=point_size, rgbcolor=point_color)
+            points = self.points().columns(copy=False)[self.nvertices():]
+            if points != []:
+                pplot += point3d(points, size=point_size, rgbcolor=point_color)
         if show_pindices == None:
             show_pindices = show_points
         if show_pindices:

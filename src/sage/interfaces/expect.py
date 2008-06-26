@@ -1401,7 +1401,39 @@ class ExpectElement(RingElement):
         import sage.rings.all
         return sage.rings.all.Rational(repr(self))
 
-    def name(self):
+    def name(self, new_name=None):
+        """
+        Returns the name of self.  If new_name is passed in,
+        then this function returns a new object identitical
+        to self whose name is new_name.
+
+        Note that this can overwrite existing variables in
+        the system.
+
+        EXAMPLES:
+            sage: x = r([1,2,3]); x
+            [1] 1 2 3
+            sage: x.name()
+            'sage3'
+            sage: x = r([1,2,3]).name('x'); x
+            [1] 1 2 3
+            sage: x.name()
+            'x'
+
+            sage: s5 = gap.SymmetricGroup(5).name('s5')
+            sage: s5
+            SymmetricGroup( [ 1 .. 5 ] )
+            sage: s5.name()
+            's5'
+
+        """
+        if new_name is not None:
+            if not isinstance(new_name, str):
+                raise TypeError, "new_name must be a string"
+            p = self.parent()
+            p.set(new_name, self._name)
+            return p._object_class()(p, new_name, is_name=True)
+
         return self._name
 
     def gen(self, n):

@@ -291,12 +291,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
 
         for i from 0 <= i < nblcks:
-            self._ring.order[i] = order_dict.get(order.blocks[i][0], ringorder_lp)
+            self._ring.order[i] = order_dict.get(order[i].singular_str(), ringorder_lp)
             self._ring.block0[i] = offset + 1
-            if order.blocks[i][1] == 0: # may be zero in some cases
+            if len(order[i]) == 0: # may be zero in some cases
                 self._ring.block1[i] = offset + n
             else:
-                self._ring.block1[i] = offset + order.blocks[i][1]
+                self._ring.block1[i] = offset + len(order[i])
             offset = self._ring.block1[i]
 
         self._ring.order[nblcks] = ringorder_C
@@ -657,6 +657,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         element = self.base_ring()(element)
         _p = p_NSet(co.sa2si(element,_ring), _ring)
         return co.new_MP(self,_p)
+
+    def _repr_(self):
+        """
+        EXAMPLE:
+            sage: P.<x,y> = QQ[]
+            sage: P # indirect doctest
+            Multivariate Polynomial Ring in x, y over Rational Field
+        """
+        varstr = ", ".join([ rRingVar(i,self._ring)  for i in range(self.__ngens) ])
+        return "Multivariate Polynomial Ring in %s over %s"%(varstr,self._base)
 
     def ngens(self):
         """
@@ -2113,24 +2123,21 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = 1 + x*y + x^3 + y^3
             sage: P = f.newton_polytope()
             sage: P
-            Convex hull of points [[1, 0, 0], [1, 0, 3], [1, 1, 1], [1, 3, 0]]
-            sage: P.facets()
-            [(0, 1, 0), (3, -1, -1), (0, 0, 1)]
+            A Polyhedron with 4 vertices.
             sage: P.is_simple()
             True
 
         TESTS:
             sage: R.<x,y> = QQ[]
             sage: R(0).newton_polytope()
-            Convex hull of points []
+            A Polyhedron.
             sage: R(1).newton_polytope()
-            Convex hull of points [[1, 0, 0]]
+            A Polyhedron with 1 vertices.
 
         """
-        from sage.geometry.all import polymake
+        from sage.geometry.polyhedra import Polyhedron
         e = self.exponents()
-        a = [[1] + list(v) for v in e]
-        P = polymake.convex_hull(a)
+        P = Polyhedron(vertices = e)
         return P
 
     def total_degree(self):

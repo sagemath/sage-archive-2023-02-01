@@ -218,6 +218,18 @@ def RealField_constructor(int prec=53, int sci_not=0, rnd="RNDN"):
         return R
 
 cdef class RealField(sage.rings.ring.Field):
+    """
+    An approximation to the field of real numbers using floating
+    point numbers with any specified precision. Answers derived from
+    calculations in this approximation may differ from what they would
+    be if those calculations were performed in the true field of
+    real numbers. This is due to the rounding errors inherent to
+    finite precision calculations.
+
+    See the documentation for the module sage.rings.real_mpfr for more
+    details.
+    """
+
     def __init__(self, int prec=53, int sci_not=0, rnd="RNDN"):
         cdef RealNumber rn
         if prec < MPFR_PREC_MIN or prec > MY_MPFR_PREC_MAX:
@@ -660,9 +672,13 @@ R = RealField()
 #*****************************************************************************
 cdef class RealNumber(sage.structure.element.RingElement):
     """
-    A real number.
+    A floating point approximation to a real number using any specified
+    precision. Answers derived from calculations with such
+    approximations may differ from what they would be if those
+    calculations were performed with true real numbers. This is due
+    to the rounding errors inherent to finite precision calculations.
 
-    Real numbers are printed to slightly less digits than their
+    The approximation is printed to slightly fewer digits than its
     internal precision, in order to avoid confusing roundoff issues
     that occur because numbers are stored internally in binary.
     """

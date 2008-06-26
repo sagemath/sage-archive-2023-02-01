@@ -306,91 +306,6 @@ class GraphGenerators():
         return graph.Graph(G, pos=pos_dict, name="Bull Graph")
 
 
-    def ButterflyGraph(self, n, vertices='strings'):
-        """
-        Returns a n-dimensional butterfly graph.  The vertices consist
-        of pairs (v,i), where v is an n-dimensional tuple (vector)
-        with binary entries (or a string representation of such)
-        and i is an integer in [0..n].  A directed
-        edge goes from (v,i) to (w,i+1) if v and w are identical
-        except for possibly v[i] != w[i].
-
-        A butterfly graph has $(2^n)(n+1)$ vertices and $n2^{n+1}$ edges.
-
-        INPUT:
-            vertices -- 'strings' (default) or 'vectors', specifying
-            whether the vertices are zero-one strings or actually
-            tuples over GF(2).
-
-        EXAMPLES:
-        sage: graphs.ButterflyGraph(2).edges(labels=False)
-        [(('00', 0), ('00', 1)),
-        (('00', 0), ('10', 1)),
-        (('00', 1), ('00', 2)),
-        (('00', 1), ('01', 2)),
-        (('01', 0), ('01', 1)),
-        (('01', 0), ('11', 1)),
-        (('01', 1), ('00', 2)),
-        (('01', 1), ('01', 2)),
-        (('10', 0), ('00', 1)),
-        (('10', 0), ('10', 1)),
-        (('10', 1), ('10', 2)),
-        (('10', 1), ('11', 2)),
-        (('11', 0), ('01', 1)),
-        (('11', 0), ('11', 1)),
-        (('11', 1), ('10', 2)),
-        (('11', 1), ('11', 2))]
-        sage: graphs.ButterflyGraph(2,vertices='vectors').edges(labels=False)
-        [(((0, 0), 0), ((0, 0), 1)),
-        (((0, 0), 0), ((1, 0), 1)),
-        (((0, 0), 1), ((0, 0), 2)),
-        (((0, 0), 1), ((0, 1), 2)),
-        (((0, 1), 0), ((0, 1), 1)),
-        (((0, 1), 0), ((1, 1), 1)),
-        (((0, 1), 1), ((0, 0), 2)),
-        (((0, 1), 1), ((0, 1), 2)),
-        (((1, 0), 0), ((0, 0), 1)),
-        (((1, 0), 0), ((1, 0), 1)),
-        (((1, 0), 1), ((1, 0), 2)),
-        (((1, 0), 1), ((1, 1), 2)),
-        (((1, 1), 0), ((0, 1), 1)),
-        (((1, 1), 0), ((1, 1), 1)),
-        (((1, 1), 1), ((1, 0), 2)),
-        (((1, 1), 1), ((1, 1), 2))]
-
-        """
-        # We could switch to Sage integers to handle arbitrary n.
-        if vertices=='strings':
-            if n>=31:
-                raise NotImplementedError, "vertices='strings' is only valid for n<=30."
-            from sage.graphs.graph_fast import binary
-            butterfly = {}
-            for v in xrange(2**n):
-                for i in range(n):
-                    w = v
-                    w ^= (1 << i)   # push 1 to the left by i and xor with w
-                    bv = binary(v)
-                    bw = binary(w)
-                    # pad and reverse the strings
-                    padded_bv = ('0'*(n-len(bv))+bv)[::-1]
-                    padded_bw = ('0'*(n-len(bw))+bw)[::-1]
-                    butterfly[(padded_bv,i)]=[(padded_bv,i+1), (padded_bw,i+1)]
-        elif vertices=='vectors':
-            from sage.modules.free_module import VectorSpace
-            from sage.rings.finite_field import FiniteField
-            from copy import copy
-            butterfly = {}
-            for v in VectorSpace(FiniteField(2),n):
-                for i in xrange(n):
-                    w=copy(v)
-                    w[i] += 1 # Flip the ith bit
-                    # We must call tuple since vectors are mutable.  To obtain
-                    # a vector from the tuple t, just call vector(t).
-                    butterfly[(tuple(v),i)]=[(tuple(v),i+1), (tuple(w),i+1)]
-        else:
-            raise NotImplementedError, "vertices must be 'strings' or 'vectors'."
-        return graph.DiGraph(butterfly)
-
     def CircularLadderGraph(self, n):
         """
         Returns a circular ladder graph with 2*n nodes.
@@ -603,7 +518,7 @@ class GraphGenerators():
             ...
             sage: empty2.show()
         """
-        return graph.Graph()
+        return graph.Graph(sparse=True)
 
     def Grid2dGraph(self, n1, n2):
         """
@@ -636,7 +551,7 @@ class GraphGenerators():
                 pos_dict[i,j] = [x,y]
         import networkx
         G = networkx.grid_2d_graph(n1,n2)
-        return graph.Graph(G, pos=pos_dict, name="2D Grid Graph")
+        return graph.Graph(G, pos=pos_dict, name="2D Grid Graph", implementation='networkx')
 
     def GridGraph(self, dim_list):
         """
@@ -664,7 +579,7 @@ class GraphGenerators():
         import networkx
         dim = [int(a) for a in dim_list]
         G = networkx.grid_graph(dim)
-        return graph.Graph(G, name="Grid Graph for %s"%dim)
+        return graph.Graph(G, name="Grid Graph for %s"%dim, implementation='networkx')
 
     def HouseGraph(self):
         """
@@ -1519,7 +1434,7 @@ class GraphGenerators():
             pos_dict[i] = [x,y]
         import networkx
         G = networkx.heawood_graph()
-        return graph.Graph(G, pos=pos_dict, name="Heawood graph")
+        return graph.Graph(G, pos=pos_dict, name="Heawood graph", implementation='networkx')
 
     def HoffmanSingletonGraph(self):
         r"""
@@ -1564,7 +1479,7 @@ class GraphGenerators():
         'p10':['p12'], 'p12':['p14'], 'p14':['p11'], 'p11':['p13'], 'p13':['p10'], \
         'p20':['p22'], 'p22':['p24'], 'p24':['p21'], 'p21':['p23'], 'p23':['p20'], \
         'p30':['p32'], 'p32':['p34'], 'p34':['p31'], 'p31':['p33'], 'p33':['p30'], \
-        'p40':['p42'], 'p42':['p44'], 'p44':['p41'], 'p41':['p43'], 'p43':['p40']} )
+        'p40':['p42'], 'p42':['p44'], 'p44':['p41'], 'p41':['p43'], 'p43':['p40']}, implementation='networkx' )
         for j in range(5):
             for i in range(5):
                 for k in range(5):
@@ -1839,8 +1754,7 @@ class GraphGenerators():
             x = float(cos((pi/2) + ((2*pi)/n)*i))
             y = float(sin((pi/2) + ((2*pi)/n)*i))
             pos_dict[i] = [x,y]
-        G=graph.Graph(name="Circulant graph ("+str(adjacency)+")")
-        G.add_vertices(xrange(n))
+        G=graph.Graph(n, name="Circulant graph ("+str(adjacency)+")")
         G._pos=pos_dict
         for v in G:
             G.add_edges([[v,(v+j)%n] for j in adjacency])
@@ -1936,7 +1850,7 @@ class GraphGenerators():
             pos_dict[i] = [x,y]
         import networkx
         G = networkx.complete_graph(n)
-        return graph.Graph(G, pos=pos_dict, name="Complete graph")
+        return graph.Graph(G, pos=pos_dict, name="Complete graph", implementation='networkx')
 
     def CompleteBipartiteGraph(self, n1, n2):
         """
@@ -2118,7 +2032,7 @@ class GraphGenerators():
                 y += int(vertex[i])*ll[i][1]
             pos[vertex] = [x,y]
 
-        return graph.Graph(data=d, pos=pos, name="%d-Cube"%n)
+        return graph.Graph(data=d, pos=pos, name="%d-Cube"%n, implementation='networkx')
 
     def BalancedTree(self, r, h):
         r"""
@@ -2553,9 +2467,9 @@ class GraphGenerators():
         We show the edge list of a random graph with 8 nodes each of
         degree 3.
             sage: graphs.RandomRegular(3, 8)
-            False
+            Graph on 0 vertices
             sage: graphs.RandomRegular(3, 8)
-            False
+            Graph on 0 vertices
             sage: graphs.RandomRegular(3, 8).edges(labels=False)
             [(0, 1), (0, 4), (0, 5), (1, 6), (1, 7), (2, 3), (2, 4), (2, 7), (3, 4), (3, 5), (5, 6), (6, 7)]
 
@@ -2575,7 +2489,7 @@ class GraphGenerators():
             seed = current_randstate().long_seed()
         import networkx
         try:
-            return graph.Graph(networkx.random_regular_graph(d, n, seed))
+            return graph.Graph(networkx.random_regular_graph(d, n, seed), sparse=True)
         except:
             return False
 
@@ -2677,7 +2591,7 @@ class GraphGenerators():
         if seed is None:
             seed = current_randstate().long_seed()
         import networkx
-        return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed), loops=True, multiedges=True)
+        return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed), loops=True, multiedges=True, implementation='networkx')
 
     def DegreeSequenceTree(self, deg_sequence):
         """
@@ -2726,7 +2640,7 @@ class GraphGenerators():
 
         """
         import networkx
-        return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed))
+        return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed), loops=True)
 
 ################################################################################
 #   Graph Iterators
@@ -2826,17 +2740,17 @@ class GraphGenerators():
             Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
         """
         from sage.graphs.graph import Graph
-        g = Graph()
         if size is not None:
             extra_property = lambda x: x.size() == size
         else:
             extra_property = lambda x: True
         if augment == 'vertices':
+            g = Graph()
             for gg in canaug_traverse_vert(g, [], vertices, property):
                 if extra_property(gg):
                     yield gg
         elif augment == 'edges':
-            g.add_vertices(range(vertices))
+            g = Graph(vertices)
             gens = []
             for i in range(vertices-1):
                 gen = range(i)
@@ -2926,6 +2840,91 @@ class DiGraphGenerators():
             - RandomDirectedGNR
     \end{verbatim}
     """
+
+    def ButterflyGraph(self, n, vertices='strings'):
+        """
+        Returns a n-dimensional butterfly graph.  The vertices consist
+        of pairs (v,i), where v is an n-dimensional tuple (vector)
+        with binary entries (or a string representation of such)
+        and i is an integer in [0..n].  A directed
+        edge goes from (v,i) to (w,i+1) if v and w are identical
+        except for possibly v[i] != w[i].
+
+        A butterfly graph has $(2^n)(n+1)$ vertices and $n2^{n+1}$ edges.
+
+        INPUT:
+            vertices -- 'strings' (default) or 'vectors', specifying
+            whether the vertices are zero-one strings or actually
+            tuples over GF(2).
+
+        EXAMPLES:
+        sage: digraphs.ButterflyGraph(2).edges(labels=False)
+        [(('00', 0), ('00', 1)),
+        (('00', 0), ('10', 1)),
+        (('00', 1), ('00', 2)),
+        (('00', 1), ('01', 2)),
+        (('01', 0), ('01', 1)),
+        (('01', 0), ('11', 1)),
+        (('01', 1), ('00', 2)),
+        (('01', 1), ('01', 2)),
+        (('10', 0), ('00', 1)),
+        (('10', 0), ('10', 1)),
+        (('10', 1), ('10', 2)),
+        (('10', 1), ('11', 2)),
+        (('11', 0), ('01', 1)),
+        (('11', 0), ('11', 1)),
+        (('11', 1), ('10', 2)),
+        (('11', 1), ('11', 2))]
+        sage: digraphs.ButterflyGraph(2,vertices='vectors').edges(labels=False)
+        [(((0, 0), 0), ((0, 0), 1)),
+        (((0, 0), 0), ((1, 0), 1)),
+        (((0, 0), 1), ((0, 0), 2)),
+        (((0, 0), 1), ((0, 1), 2)),
+        (((0, 1), 0), ((0, 1), 1)),
+        (((0, 1), 0), ((1, 1), 1)),
+        (((0, 1), 1), ((0, 0), 2)),
+        (((0, 1), 1), ((0, 1), 2)),
+        (((1, 0), 0), ((0, 0), 1)),
+        (((1, 0), 0), ((1, 0), 1)),
+        (((1, 0), 1), ((1, 0), 2)),
+        (((1, 0), 1), ((1, 1), 2)),
+        (((1, 1), 0), ((0, 1), 1)),
+        (((1, 1), 0), ((1, 1), 1)),
+        (((1, 1), 1), ((1, 0), 2)),
+        (((1, 1), 1), ((1, 1), 2))]
+
+        """
+        # We could switch to Sage integers to handle arbitrary n.
+        if vertices=='strings':
+            if n>=31:
+                raise NotImplementedError, "vertices='strings' is only valid for n<=30."
+            from sage.graphs.graph_fast import binary
+            butterfly = {}
+            for v in xrange(2**n):
+                for i in range(n):
+                    w = v
+                    w ^= (1 << i)   # push 1 to the left by i and xor with w
+                    bv = binary(v)
+                    bw = binary(w)
+                    # pad and reverse the strings
+                    padded_bv = ('0'*(n-len(bv))+bv)[::-1]
+                    padded_bw = ('0'*(n-len(bw))+bw)[::-1]
+                    butterfly[(padded_bv,i)]=[(padded_bv,i+1), (padded_bw,i+1)]
+        elif vertices=='vectors':
+            from sage.modules.free_module import VectorSpace
+            from sage.rings.finite_field import FiniteField
+            from copy import copy
+            butterfly = {}
+            for v in VectorSpace(FiniteField(2),n):
+                for i in xrange(n):
+                    w=copy(v)
+                    w[i] += 1 # Flip the ith bit
+                    # We must call tuple since vectors are mutable.  To obtain
+                    # a vector from the tuple t, just call vector(t).
+                    butterfly[(tuple(v),i)]=[(tuple(v),i+1), (tuple(w),i+1)]
+        else:
+            raise NotImplementedError, "vertices must be 'strings' or 'vectors'."
+        return graph.DiGraph(butterfly, implementation='networkx')
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
         """
@@ -3101,17 +3100,17 @@ class DiGraphGenerators():
             Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
         """
         from sage.graphs.graph import DiGraph
-        g = DiGraph()
         if size is not None:
             extra_property = lambda x: x.size() == size
         else:
             extra_property = lambda x: True
         if augment == 'vertices':
+            g = DiGraph(sparse=True)
             for gg in canaug_traverse_vert(g, [], vertices, property, dig=True):
                 if extra_property(gg):
                     yield gg
         elif augment == 'edges':
-            g.add_vertices(range(vertices))
+            g = DiGraph(vertices)
             gens = []
             for i in range(vertices-1):
                 gen = range(i)
@@ -3314,7 +3313,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False):
 
     EXAMPLES:
         sage: from sage.graphs.graph_generators import canaug_traverse_edge
-        sage: G = Graph(); G.add_vertices(range(3))
+        sage: G = Graph(3)
         sage: list(canaug_traverse_edge(G, [], lambda x: True))
         [Graph on 3 vertices, ... Graph on 3 vertices]
 

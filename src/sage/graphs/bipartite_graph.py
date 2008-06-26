@@ -175,23 +175,23 @@ class BipartiteGraph(Graph):
 
     def __init__(self, *args, **kwds):
         if len(args) == 0:
-            Graph.__init__(self)
+            Graph.__init__(self, implementation='networkx')
             self.left = []; self.right = []
             return
         arg1 = args[0]
         args = args[1:]
         from sage.structure.element import is_Matrix
         if isinstance(arg1, BipartiteGraph):
-            Graph.__init__(self, arg1, *args, **kwds)
+            Graph.__init__(self, arg1, implementation='networkx', *args, **kwds)
             self.left, self.right = arg1.left, arg1.right
         elif isinstance(arg1, str):
-            Graph.__init__(self, *args, **kwds)
+            Graph.__init__(self, implementation='networkx', *args, **kwds)
             self.load_afile(arg1)
         elif is_Matrix(arg1):
             # sanity check for mutually exclusive keywords
             if kwds.get('multiedges',False) and kwds.get('weighted',False):
                 raise TypeError, "Weighted multi-edge bipartite graphs from reduced adjacency matrix not supported."
-            Graph.__init__(self, *args, **kwds)
+            Graph.__init__(self, implementation='networkx', *args, **kwds)
             ncols = arg1.ncols()
             nrows = arg1.nrows()
             self.left, self.right = range(ncols), range(ncols, nrows+ncols)
@@ -216,7 +216,7 @@ class BipartiteGraph(Graph):
                 # Assume that args[0] is a bipartition
                 from copy import copy
                 left, right = args[0]; left = copy(left); right = copy(right)
-                Graph.__init__(self, arg1.subgraph(list(set(left)|set(right))), *args, **kwds)
+                Graph.__init__(self, arg1.subgraph(list(set(left)|set(right))), implementation='networkx', *args, **kwds)
                 if not kwds.has_key('check') or kwds['check']:
                     while len(left) > 0:
                         a = left.pop(0)
@@ -242,14 +242,14 @@ class BipartiteGraph(Graph):
                 self.left, self.right = copy(args[0][0]), copy(args[0][1])
         elif isinstance(arg1, Graph):
             try:
-                Graph.__init__(self, arg1, *args, **kwds)
+                Graph.__init__(self, arg1, implementation='networkx', *args, **kwds)
                 self.left, self.right = self.bipartite_sets()
                 return
             except:
                 raise TypeError("Input graph is not bipartite!")
         else:
             import networkx
-            Graph.__init__(self, arg1, *args, **kwds)
+            Graph.__init__(self, arg1, implementation='networkx', *args, **kwds)
             if isinstance(arg1, (networkx.XGraph, networkx.Graph)):
                 if hasattr(arg1, 'node_type'):
                     # Assume the graph is bipartite
@@ -308,7 +308,7 @@ class BipartiteGraph(Graph):
             (10, 10)
 
         """
-        G = Graph()
+        G = Graph(implementation='networkx')
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
@@ -327,7 +327,7 @@ class BipartiteGraph(Graph):
             (10, 10)
 
         """
-        G = Graph()
+        G = Graph(implementation='networkx')
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):

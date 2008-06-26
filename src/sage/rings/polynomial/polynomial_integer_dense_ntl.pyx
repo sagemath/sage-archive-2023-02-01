@@ -430,6 +430,9 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: q*g + r == f
             True
 
+            sage: 0//(2*x)
+            0
+
             sage: f = x^2
             sage: f.quo_rem(0)
             Traceback (most recent call last):
@@ -446,6 +449,15 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             ...
             ArithmeticError: division not exact in Z[x] (consider coercing to Q[x] first)
 
+        TESTS:
+            sage: z = R(0)
+            sage: z.quo_rem(1)
+            (0, 0)
+            sage: z.quo_rem(x)
+            (0, 0)
+            sage: z.quo_rem(2*x)
+            (0, 0)
+
         """
         if not isinstance(right, Polynomial_integer_dense_ntl):
             right = self.parent()(right)
@@ -456,6 +468,9 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
         if ZZX_IsZero(_right.__poly):
             raise ArithmeticError, "division by zero polynomial"
+
+        if ZZX_IsZero(self.__poly):
+            return self, self
 
         cdef ZZX_c *q, *r
         cdef Polynomial_integer_dense_ntl qq = self._new()

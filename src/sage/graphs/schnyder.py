@@ -50,7 +50,7 @@ def _triangulate(g, comb_emb):
 
     EXAMPLES:
         sage: from sage.graphs.schnyder import _triangulate
-        sage: g = graphs.CycleGraph(4)
+        sage: g = Graph(graphs.CycleGraph(4), implementation='networkx')
         sage: g.is_planar(set_embedding=True)
         True
         sage: _triangulate(g, g._embedding)
@@ -143,7 +143,7 @@ def _normal_label(g, comb_emb, external_face):
 
     EXAMPLES:
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer
-        sage: g = graphs.CycleGraph(7)
+        sage: g = Graph(graphs.CycleGraph(7), implementation='networkx')
         sage: g.is_planar(set_embedding=True)
         True
         sage: faces = g.trace_faces(g._embedding)
@@ -340,7 +340,7 @@ def _realizer(g, x, example=False):
 
     EXAMPLES:
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer
-        sage: g = graphs.CycleGraph(7)
+        sage: g = Graph(graphs.CycleGraph(7), implementation='networkx')
         sage: g.is_planar(set_embedding=True)
         True
         sage: faces = g.trace_faces(g._embedding)
@@ -353,7 +353,7 @@ def _realizer(g, x, example=False):
 
     """
     normal_labeling, (v1, v2, v3) = x
-    realizer = DiGraph()
+    realizer = DiGraph(implementation='networkx')
 
     tree_nodes = {}
     for v in g:
@@ -420,7 +420,7 @@ def _compute_coordinates(g, x):
                     the roots of each tree)
     EXAMPLES:
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
-        sage: g = graphs.CycleGraph(7)
+        sage: g = Graph(graphs.CycleGraph(7), implementation='networkx')
         sage: g.is_planar(set_embedding=True)
         True
         sage: faces = g.trace_faces(g._embedding)

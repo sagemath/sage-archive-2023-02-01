@@ -66,7 +66,7 @@ class BruhatSn(DiGraph):
         adj_dict = {}
         add_above(self, adj_dict, self.identity, None, 0, self.max_length, 0,
                   0, label)
-        DiGraph.__init__(self, adj_dict)
+        DiGraph.__init__(self, adj_dict, implementation='networkx')
 
     def plot(self, **kwds):
         """
@@ -178,7 +178,7 @@ class BruhatIntervalSn(DiGraph):
                         for v in adj_dict[u].keys():
                             if v not in verts:
                                 adj_dict[u].pop(v)
-        DiGraph.__init__(self, adj_dict)
+        DiGraph.__init__(self, adj_dict, implementation='networkx')
 
         self.start = start
         self.end = end

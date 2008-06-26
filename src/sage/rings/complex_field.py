@@ -75,7 +75,12 @@ def ComplexField(prec=53, names=None):
 
 class ComplexField_class(field.Field):
     """
-    The field of complex numbers.
+    An approximation to the field of complex numbers using floating
+    point numbers with any specified precision. Answers derived from
+    calculations in this approximation may differ from what they would
+    be if those calculations were performed in the true field of
+    complex numbers. This is due to the rounding errors inherent to
+    finite precision calculations.
 
     EXAMPLES:
         sage: C = ComplexField(); C

@@ -434,7 +434,8 @@ class Notebook(SageObject):
         W = worksheet.Worksheet(worksheet_name, dirname, self,
                                 system = self.system(username),
                                 owner=username,
-                                docbrowser = docbrowser)
+                                docbrowser = docbrowser,
+                                auto_publish = False)
 
         if add_to_list:
             self.__worksheets[W.filename()] = W
@@ -1187,7 +1188,8 @@ class Notebook(SageObject):
 
     def html_worksheet_list_top(self, user, actions=True, typ='active', pub=False, search=None):
         s = self.html_topbar(user, pub)
-        s += self.html_new_or_upload()
+        if not pub:
+            s += self.html_new_or_upload()
         s += self.html_search(search, typ)
         s += '<br>'
         s += '<hr class="usercontrol">'
@@ -1506,11 +1508,11 @@ class Notebook(SageObject):
         </html>
         """%(head, body)
 
-    def html_worksheet_page_template(self, worksheet, username, title, select=None):
+    def html_worksheet_page_template(self, worksheet, username, title, select=None, backwards=False):
         head = self._html_head(worksheet_filename=worksheet.filename(), username=username)
         head += '<script  type="text/javascript">worksheet_filename="%s"; worksheet_name="%s"; server_ping_while_alive(); </script>'%(worksheet.filename(), worksheet.name())
         body = self._html_body(worksheet.filename(), top_only=True, username=username)
-        body += self.html_worksheet_topbar(worksheet, select=select, username=username)
+        body += self.html_worksheet_topbar(worksheet, select=select, username=username, backwards=backwards)
         body += '<hr class="usercontrol">'
         body += '<span class="sharebar">%s</span>'%title
         body += '<br>'*3
@@ -1727,8 +1729,20 @@ class Notebook(SageObject):
             head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
             if not JSMATH_IMAGE_FONTS:
                 head +=' <script type="text/javascript" src="/javascript/jsmath/plugins/noImageFonts.js"></script>\n'
+
+            # Move the jsMath button 20 pixels from the right edge
+            # (apparently in some browsers, it covers up the scroll
+            # bar)
+            head += """<script type="text/javascript">
+jsMath = {styles: {
+        '#jsMath_button':   'position:fixed; bottom:1px; right:20px; background-color:white; '
+                                + 'border: solid 1px #959595; margin:0px; padding: 0px 3px 1px 3px; '
+                                + 'z-index:102; color:black; text-decoration:none; font-size:x-small; '
+                                + 'width:auto; cursor:hand;',
+      }};
+    </script>
+"""
             head += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
-            head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
 
         if JQUERY:
             # Load the jquery and ui-jquery javascript library.
@@ -1761,7 +1775,7 @@ class Notebook(SageObject):
         head +=' <script>jmolInitialize("/java/jmol");</script>\n' # this must stay in the <head>
         return head
 
-    def html_worksheet_topbar(self, worksheet, select=None, username='guest'):
+    def html_worksheet_topbar(self, worksheet, select=None, username='guest', backwards=False):
         body = ''
         body += """
 <table width="100%%" id="topbar">
@@ -1773,7 +1787,7 @@ class Notebook(SageObject):
 </tr>
 </table>
 """%(worksheet.html_title(username), worksheet.html_save_discard_buttons(),
-     worksheet.html_menu(), worksheet.html_share_publish_buttons(select=select))
+     worksheet.html_menu(), worksheet.html_share_publish_buttons(select=select, backwards=backwards))
 
         body += self.html_slide_controls()
         return body
@@ -1924,6 +1938,61 @@ function save_worksheet_and_close() {
         <textarea class="plaintextedit" id="cell_intext" name="textfield" rows="%s">%s</textarea>
         </form>
         """%(t.count("\n")+1,t)
+
+        return """
+        <html>
+        <head>%s</head>
+        <body>%s</body>
+        </html>
+        """%(head, body)
+
+    def html_beforepublish_window(self, worksheet, username):
+        """
+        Returns the html code for a page dedicated to worksheet publishing prior to the
+        publication of the given worksheet.
+
+        INPUT:
+            worksheet - instance of Worksheet
+            username - string
+        """
+        msg = """You can publish your worksheet to the Internet, where anyone will be able to access and view it online.
+        Your worksheet will be assigned a unique address (URL) that you can send to your friends and colleagues.<br/><br/>
+        Do you want to publish this worksheet?<br/><br/>
+        <form method="get" action=".">
+        <input type="hidden" name="yes" value="" />
+        <input type="submit" value="Yes" style="margin-left:10px" />
+        <input type="button" value="No" style="margin-left:5px" onClick="parent.location=\'../'"><br/><br/>
+        <input type="checkbox" name="auto" style="margin-left:13px" /> Automatically re-publish when changes are made
+        </form>
+        """
+        head, body = self.html_worksheet_page_template(worksheet, username, msg, select="publish", backwards=True)
+
+        return """
+        <html>
+        <head>%s</head>
+        <body>%s</body>
+        </html>
+        """%(head, body)
+
+    def html_afterpublish_window(self, worksheet, username, addr, dtime):
+        """
+        Returns the html code for a page dedicated to worksheet publishing after the
+        publication of the given worksheet.
+
+        INPUT:
+            worksheet - instance of Worksheet
+            username - string
+            addr - string
+            dtime - instance of time.struct_time
+        """
+        from time import strftime
+        time = strftime("%B %d, %Y %I:%M %p", dtime)
+        msg = """Worksheet is publicly viewable at <a href="%s" style="color:#FFF" target="_blank">%s</a><br />
+        Published on %s<br/><br />
+        <input type="button" value="Re-publish worksheet" onClick="parent.location=\'?re'"><input type="button" value="Stop publishing" style="margin-left:5px" onClick="parent.location=\'?stop'"><br /><br />
+<input type="checkbox" name="auto"%s onchange="parent.location=\'?auto'"/> Automatically re-publish when changes are made
+        """ % (addr, addr, time, ' checked="true" ' if worksheet.is_auto_publish() else '')
+        head, body = self.html_worksheet_page_template(worksheet, username, msg, select="publish", backwards=True)
 
         return """
         <html>

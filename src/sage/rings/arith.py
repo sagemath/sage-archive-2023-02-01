@@ -2024,6 +2024,31 @@ def binomial(x,m):
         return P(0)
     return misc.prod([x-i for i in xrange(m)]) / P(factorial(m))
 
+def multinomial(*ks):
+    r"""
+    Return the multinomial coefficient
+    $$
+	\binom{k_1 + \cdots + k_n}{k_1, \cdots, k_n}
+	    = \frac{\left(\sum_{i=1}^n k_i\right)!}{\prod_{i=1}^n k_i!}
+	    = \prod_{i=1}^n \binom{\sum_{j=1}^i k_j}{k_i}
+    $$
+
+    EXAMPLES:
+	sage: multinomial(0, 0, 2, 1, 0, 0)
+	3
+	sage: multinomial(3, 2)
+	10
+	sage: multinomial(2^30, 2, 1)
+	618970023101454657175683075
+
+    AUTHOR: Gabriel Ebner
+    """
+    s, c = 0, 1
+    for k in ks:
+	s += k
+	c *= binomial(s, k)
+    return c
+
 def gaussian_binomial(n,k,q=None):
     r"""
     Return the gaussian binomial

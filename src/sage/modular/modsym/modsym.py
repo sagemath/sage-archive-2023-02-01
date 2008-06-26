@@ -232,6 +232,20 @@ def ModularSymbols(group  = 1,
         [    0     0     0     0     0     a     1     a]
         [    0     0     0     0     0     0 a + 1     a]
         [    0     0     0     0     0     0     1     0]
+
+    TESTS:
+    We test use_cache:
+        sage: ModularSymbols_clear_cache()
+        sage: M = ModularSymbols(11,use_cache=False)
+        sage: sage.modular.modsym.modsym._cache
+        {}
+        sage: M = ModularSymbols(11,use_cache=True)
+        sage: sage.modular.modsym.modsym._cache
+        {(Congruence Subgroup Gamma0(11), 2, 0, Rational Field): <weakref at ...; to 'ModularSymbolsAmbient_wt2_g0' at ...>}
+        sage: M is ModularSymbols(11,use_cache=True)
+        True
+        sage: M is ModularSymbols(11,use_cache=False)
+        False
     """
     key = canonical_parameters(group, weight, sign, base_ring)
 
@@ -265,6 +279,7 @@ def ModularSymbols(group  = 1,
     if M is None:
         raise NotImplementedError, "computation of requested space of modular symbols not defined or implemented"
 
-    _cache[key] = weakref.ref(M)
+    if use_cache:
+        _cache[key] = weakref.ref(M)
     return M
 

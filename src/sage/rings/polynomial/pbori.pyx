@@ -235,7 +235,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         order = TermOrder(order, n)
 
         try:
-            pb_order_code = order_mapping[order.blocks[0][0]]
+            pb_order_code = order_mapping[order[0].singular_str()]
         except KeyError:
             raise ValueError, "Only lex, deglex, degrevlex orders are supported."
 
@@ -247,7 +247,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             elif pb_order_code is dp_asc:
                 pb_order_code = block_dp_asc
             for i in range(1, len(order.blocks)):
-                if order.blocks[0][0] != order.blocks[i][0]:
+                if order[0] != order[i]:
                     raise ValueError, "Each block must have the same order type (deglex or degrevlex) for block orderings."
 
         if (pb_order_code is dlex) or (pb_order_code is lp) or \
@@ -261,7 +261,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             # pb_order_code is block_dp_asc:
             bstart = 0
             for i from 0 <= i < len(order.blocks):
-                bsize = order.blocks[i][1]
+                bsize = len(order[i])
                 for j from 0 <= j < bsize:
                     self.pbind[bstart + j] = bstart + bsize - j -1
                 bstart += bsize
@@ -272,7 +272,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         counter = 0
         for i in range(len(order.blocks)-1):
-            counter += order.blocks[i][1]
+            counter += len(order[i])
             pb_append_block(counter)
 
         for i from 0 <= i < n:
@@ -1103,22 +1103,22 @@ def get_var_mapping(ring, other):
     """
     my_names = list(ring._names) # we need .index(.)
     if PY_TYPE_CHECK(other, ParentWithGens):
-        vars = range(other.ngens())
+        variables = range(other.ngens())
         ovar_names = other._names
     else:
         ovar_names = other.parent().variable_names()
         if PY_TYPE_CHECK(other, BooleanPolynomial):
-            vars = other.vars().iterindex()
+            variables = other.vars().iterindex()
         elif PY_TYPE_CHECK(other, BooleanMonomial):
-            vars = other.iterindex()
+            variables = other.iterindex()
         else:
             t = other.variables()
             ovar_names = list(ovar_names)
-            vars = [ovar_names.index(str(var)) for var in t]
+            variables = [ovar_names.index(str(var)) for var in t]
     var_mapping = [None] * len(ovar_names)
-    for i in vars:
+    for i in variables:
         try:
-            ind = my_names.index(ovar_names[i])
+            ind = int(my_names.index(ovar_names[i]))
         except ValueError:
             # variable name not found in list of our variables
             # raise an exception and bail out
@@ -1154,6 +1154,7 @@ class BooleanMonomialMonoid(Monoid_class):
         ParentWithGens.__init__(self, GF(2), polring._names)
 
         m = new_BM(self, polring)
+        polring._pbring.activate()
         PBMonom_construct(&m._pbmonom)
         self._one_element = m
 
@@ -4122,6 +4123,7 @@ def set_cring(BooleanPolynomialRing R):
     Boolean PolynomialRing in x(0), x(1), y(0), y(1), y(2)
     """
     global cur_ring
+    R._pbring.activate()
     cur_ring = R
 
 def unpickle_BooleanPolynomial(ring, string):

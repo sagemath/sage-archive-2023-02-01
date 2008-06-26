@@ -6,6 +6,9 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+echo "Deleting old SQLAlchemy installs"
+rm -rf "$SAGE_LOCAL/lib/python2.5/site-packages/SQLAlchemy*"
+
 # Install SQLAlchemy
 cd src
 python setup.py install

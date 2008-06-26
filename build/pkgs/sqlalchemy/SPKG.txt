@@ -32,6 +32,7 @@ Use the standard sources. No changes from the official sources.
 
 === SQLAlchemy-0.4.6.p0 (Yi Qiang, June 25, 2008) ===
  * version bump
+ * make sure to delete the old SQLAlchemy install directories (Michael Abshoff)
 
 === SQLAlchemy-0.4.3.p1 (Michael Abshoff, March 14th, 2008) ===
  * add hg repo

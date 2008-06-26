@@ -2943,6 +2943,45 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return str(self)
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(1, verify=True)
+            # Verified
+            1
+            sage: sage_input(1, preparse=False)
+            ZZ(1)
+            sage: sage_input(-12435, verify=True)
+            # Verified
+            -12435
+            sage: sage_input(0, verify=True)
+            # Verified
+            0
+            sage: sage_input(-3^70, verify=True)
+            # Verified
+            -2503155504993241601315571986085849
+            sage: sage_input(-37, preparse=False)
+            -ZZ(37)
+            sage: sage_input(-37 * polygen(ZZ), preparse=False)
+            R = ZZ['x']
+            x = R.gen()
+            -37*x
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: (-314159)._sage_input_(SageInputBuilder(preparse=False), False)
+            {unop:- {call: {atomic:ZZ}({atomic:314159})}}
+            sage: (314159)._sage_input_(SageInputBuilder(preparse=False), True)
+            {atomic:314159}
+        """
+        if coerced or sib.preparse():
+            return sib.int(self)
+        else:
+            if self < 0:
+                return -sib.name('ZZ')(sib.int(-self))
+            else:
+                return sib.name('ZZ')(sib.int(self))
+
     def isqrt(self):
         r"""
         Returns the integer floor of the square root of self, or raises

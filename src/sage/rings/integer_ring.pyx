@@ -823,6 +823,20 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return "ZZ"
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(ZZ, verify=True)
+            # Verified
+            ZZ
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: ZZ._sage_input_(SageInputBuilder(), False)
+            {atomic:ZZ}
+        """
+        return sib.name('ZZ')
+
 ZZ = IntegerRing_class()
 Z = ZZ
 

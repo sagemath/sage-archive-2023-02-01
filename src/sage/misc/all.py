@@ -66,6 +66,8 @@ from interpreter import preparser
 
 from sage_eval import sage_eval, sageobj
 
+from sage_input import sage_input
+
 from cython import cython_lambda
 from cython_c import cython
 pyrex = cython # synonym -- for now

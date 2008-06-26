@@ -393,6 +393,24 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     def _gap_init_(self):
         return 'PolynomialRing(%s, ["%s"])'%(self.base_ring()._gap_init_(), self.variable_name())
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(GF(5)['x']['y'], verify=True)
+            # Verified
+            GF(5)['x']['y']
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: ZZ['z']._sage_input_(SageInputBuilder(), False)
+            {constr_parent: {subscr: {atomic:ZZ}[{atomic:'z'}]} with gens: ('z',)}
+        """
+        base = sib(self.base_ring())
+        sie = base[self.variable_name()]
+        gens_syntax = sib.empty_subscript(base)
+        return sib.parent_with_gens(self, sie, self.variable_names(), 'R',
+                                    gens_syntax=gens_syntax)
+
     def _macaulay2_(self, m2=None):
         """
         EXAMPLES:

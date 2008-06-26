@@ -281,6 +281,44 @@ cdef class RealField(sage.rings.ring.Field):
     def _latex_(self):
         return "\\mathbf{R}"
 
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(RR, verify=True)
+            # Verified
+            RR
+            sage: sage_input(RealField(25, rnd='RNDZ'), verify=True)
+            # Verified
+            RealField(25, rnd='RNDZ')
+            sage: k = (RR, RealField(75, rnd='RNDU'), RealField(13))
+            sage: sage_input(k, verify=True)
+            # Verified
+            (RR, RealField(75, rnd='RNDU'), RealField(13))
+            sage: sage_input((k, k), verify=True)
+            # Verified
+            RR75u = RealField(75, rnd='RNDU')
+            RR13 = RealField(13)
+            ((RR, RR75u, RR13), (RR, RR75u, RR13))
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: RealField(99, rnd='RNDD')._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:RealField}({atomic:99}, rnd={atomic:'RNDD'})}
+        """
+        if self.rnd == GMP_RNDN and self.prec() == 53:
+            return sib.name('RR')
+
+        if self.rnd != GMP_RNDN:
+            rnd_abbrev = self.rnd_str[-1:].lower()
+            v = sib.name('RealField')(sib.int(self.prec()), rnd=self.rnd_str)
+        else:
+            rnd_abbrev = ''
+            v = sib.name('RealField')(sib.int(self.prec()))
+
+        name = 'RR%d%s' % (self.prec(), rnd_abbrev)
+        sib.cache(self, v, name)
+        return v
+
     def is_exact(self):
         return False
 
@@ -928,6 +966,124 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
         """
         return self.str(10, no_sci=True, truncate=False)
+
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: for prec in (2, 53, 200):
+            ...       for rnd_dir in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
+            ...           fld = RealField(prec, rnd=rnd_dir)
+            ...           var = polygen(fld)
+            ...           for v in [NaN, -infinity, -20, -e, 0, 1, 2^500, -2^4000, -2^-500, 2^-4000] + [fld.random_element() for _ in range(5)]:
+            ...               for preparse in (True, False, None):
+            ...                   _ = sage_input(fld(v), verify=True, preparse=preparse)
+            ...                   _ = sage_input(fld(v) * var, verify=True, preparse=preparse)
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: sib_np = SageInputBuilder(preparse=False)
+            sage: RR(-infinity)._sage_input_(sib, True)
+            {unop:- {call: {atomic:RR}({atomic:Infinity})}}
+            sage: RR(NaN)._sage_input_(sib, True)
+            {call: {atomic:RR}({atomic:NaN})}
+            sage: RR(12345)._sage_input_(sib, True)
+            {atomic:12345}
+            sage: RR(-12345)._sage_input_(sib, False)
+            {unop:- {call: {atomic:RR}({atomic:12345})}}
+            sage: RR(1.579)._sage_input_(sib, True)
+            {atomic:1.5790000000000000}
+            sage: RR(1.579)._sage_input_(sib_np, True)
+            {atomic:1.5790000000000000}
+            sage: RealField(150)(pi)._sage_input_(sib, True)
+            {atomic:3.1415926535897932384626433832795028841971694008}
+            sage: RealField(150)(pi)._sage_input_(sib_np, True)
+            {call: {call: {atomic:RealField}({atomic:150})}({atomic:'3.1415926535897932384626433832795028841971694008'})}
+        """
+        # We have a bewildering array of conditions to deal with:
+        # 1) number, or NaN or infinity
+        # 2) rounding direction: up, down, or nearest
+        # 3) preparser enabled: yes, no, or maybe
+        # 4) is this number equal to some Python float: yes or no
+        # 5) coerced
+
+        # First, handle NaN and infinity
+        if not mpfr_number_p(self.value):
+            if mpfr_inf_p(self.value):
+                v = sib.name('Infinity')
+            else:
+                v = sib.name('NaN')
+            v = sib(self._parent)(v)
+            if mpfr_sgn(self.value) < 0:
+                v = -v
+            return v
+
+        from sage.rings.integer_ring import ZZ
+
+        cdef mpfr_rnd_t rnd = (<RealField>self._parent).rnd
+
+        cdef bint negative = mpfr_sgn(self.value) < 0
+        if negative:
+            self = -self
+
+        # There are five possibilities for printing this floating-point
+        # number, ordered from prettiest to ugliest (IMHO).
+        # 1) An integer: 42
+        # 2) A simple literal: 3.14159
+        # 3) A coerced integer: RR(42)
+        # 4) A coerced literal: RR(3.14159)
+        # 5) A coerced string literal: RR('3.14159')
+
+        # To use choice 1 or choice 3, this number must be an integer.
+        cdef bint can_use_int_literal = \
+            self.abs() < (Integer(1) << self.prec()) and self in ZZ
+
+        # To use choice 2 or choice 4, we must be able to read
+        # numbers of this precision as a literal.  We support this
+        # only for the default rounding mode; "pretty" output for
+        # other rounding modes is a lot of work for very little gain
+        # (since other rounding modes are very rarely used).
+        # (One problem is that we don't know whether it will be the
+        # positive or negative value that will be coerced into the
+        # desired parent; for example, this differs between "x^2 - 1.3*x"
+        # and "-1.3*x".)
+        cdef bint can_use_float_literal = \
+            rnd == GMP_RNDN and (sib.preparse() or
+                                 float(str(float(self))) == self)
+
+        if can_use_int_literal or can_use_float_literal:
+            if can_use_int_literal:
+                v = sib.int(self._integer_())
+            else:
+                s = self.str(truncate=False)
+                v = sib.float_str(s)
+            if not coerced:
+                v = sib(self.parent())(v)
+        else:
+            if rnd == GMP_RNDN:
+                s = self.str(truncate=False)
+            else:
+                # This is tricky.  str() uses mpfr_get_str() with
+                # reqdigits=0; this guarantees to give enough digits
+                # to recreate the input, if we print and read with
+                # round-to-nearest.  However, we are not going to
+                # read with round-to-nearest, so we might need more digits.
+                # If we're going to read with round-down, then we need
+                # to print with round-up; and we'll use one more bit
+                # to make sure we have enough digits.
+                # Since we always read nonnegative numbers, reading with
+                # RNDZ is the same as reading with RNDD.
+                if rnd == GMP_RNDD or rnd == GMP_RNDZ:
+                    fld = RealField(self.prec() + 1, rnd='RNDU')
+                else:
+                    fld = RealField(self.prec() + 1, rnd='RNDD')
+                s = fld(self).str(truncate=False)
+            v = sib(self.parent())(sib.float_str(repr(s)))
+
+        if negative:
+            v = -v
+
+        return v
 
     def __hash__(self):
         """

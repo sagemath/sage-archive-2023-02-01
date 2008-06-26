@@ -1136,6 +1136,71 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return "0"
         return s[1:].lstrip().rstrip()
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: K.<x> = ZZ[]
+            sage: sage_input(K(0), verify=True)
+            # Verified
+            ZZ['x'](0)
+            sage: sage_input(K(-54321), preparse=False, verify=True)
+            # Verified
+            ZZ['x'](-54321)
+            sage: sage_input(x, verify=True)
+            # Verified
+            R.<x> = ZZ[]
+            x
+            sage: sage_input(x, preparse=False)
+            R = ZZ['x']
+            x = R.gen()
+            x
+            sage: sage_input((3*x-2)^3, verify=True)
+            # Verified
+            R.<x> = ZZ[]
+            27*x^3 - 54*x^2 + 36*x - 8
+            sage: L.<y> = K[]
+            sage: sage_input(L(0), verify=True)
+            # Verified
+            ZZ['x']['y'](0)
+            sage: sage_input((x+y+1)^2, verify=True)
+            # Verified
+            R1.<x> = ZZ[]
+            R2.<y> = R1[]
+            y^2 + (2*x + 2)*y + (x^2 + 2*x + 1)
+            sage: sage_input(RR(pi) * polygen(RR), verify=True)
+            # Verified
+            R.<x> = RR[]
+            3.1415926535897931*x
+            sage: sage_input(polygen(GF(7)) + 12, verify=True)
+            # Verified
+            R.<x> = GF(7)[]
+            x + 5
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: K(0)._sage_input_(SageInputBuilder(), True)
+            {atomic:0}
+            sage: (x^2 - 1)._sage_input_(SageInputBuilder(), False)
+            {binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:ZZ}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}} {atomic:1}}
+        """
+        if self.degree() > 0:
+            gen = sib.gen(self.parent())
+            coeffs = self.list()
+            terms = []
+            for i in range(len(coeffs)-1, -1, -1):
+                if i > 0:
+                    if i > 1:
+                        gen_pow = gen**sib.int(i)
+                    else:
+                        gen_pow = gen
+                    terms.append(sib.prod((sib(coeffs[i], True), gen_pow), simplify=True))
+                else:
+                    terms.append(sib(coeffs[i], True))
+            return sib.sum(terms, simplify=True)
+        elif coerced:
+            return sib(self.constant_coefficient(), True)
+        else:
+            return sib(self.parent())(sib(self.constant_coefficient(), True))
 
     def __setitem__(self, n, value):
         """

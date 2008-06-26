@@ -363,6 +363,31 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         """
         return '%s!%s'%(self.parent()._magma_init_(), self)
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: K = GF(7)
+            sage: sage_input(K(5), verify=True)
+            # Verified
+            GF(7)(5)
+            sage: sage_input(K(5) * polygen(K), verify=True)
+            # Verified
+            R.<x> = GF(7)[]
+            5*x
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: K(5)._sage_input_(SageInputBuilder(), False)
+            {call: {call: {atomic:GF}({atomic:7})}({atomic:5})}
+            sage: K(5)._sage_input_(SageInputBuilder(), True)
+            {atomic:5}
+        """
+        v = sib.int(self.lift())
+        if coerced:
+            return v
+        else:
+            return sib(self.parent())(v)
+
     def log(self, b=None):
         r"""
         Return an integer $x$ such that $b^x = a$, where $a$ is \code{self}.

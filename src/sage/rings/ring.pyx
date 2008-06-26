@@ -1564,6 +1564,39 @@ cdef class FiniteField(Field):
         """
         return "GF %s"%(self.order())
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(GF(5), verify=True)
+            # Verified
+            GF(5)
+            sage: sage_input(GF(32, 'a'), verify=True)
+            # Verified
+            R.<x> = GF(2)[]
+            GF(2^5, 'a', x^5 + x^2 + 1)
+            sage: K = GF(125, 'b')
+            sage: sage_input((K, K), verify=True)
+            # Verified
+            R.<x> = GF(5)[]
+            GF_5_3 = GF(5^3, 'b', x^3 + 3*x + 3)
+            (GF_5_3, GF_5_3)
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: GF(81, 'a')._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:GF}({binop:** {atomic:3} {atomic:4}}, {atomic:'a'}, {binop:+ {binop:+ {binop:** {gen:x {constr_parent: {subscr: {call: {atomic:GF}({atomic:3})}[{atomic:'x'}]} with gens: ('x',)}} {atomic:4}} {binop:* {atomic:2} {binop:** {gen:x {constr_parent: {subscr: {call: {atomic:GF}({atomic:3})}[{atomic:'x'}]} with gens: ('x',)}} {atomic:3}}}} {atomic:2}})}
+        """
+        if self.degree() == 1:
+            v = sib.name('GF')(sib.int(self.characteristic()))
+            name = 'GF_%d' % self.characteristic()
+        else:
+            v = sib.name('GF')(sib.int(self.characteristic()) ** sib.int(self.degree()),
+                               self.variable_name(),
+                               self.modulus())
+            name = 'GF_%d_%d' % (self.characteristic(), self.degree())
+        sib.cache(self, v, name)
+        return v
+
     cdef int _cmp_c_impl(left, Parent right) except -2:
         """
         Compares this finite field with other.

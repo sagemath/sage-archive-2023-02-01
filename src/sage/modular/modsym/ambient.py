@@ -1402,6 +1402,25 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             (-2, -2, -4, 0)
             sage: X[1][0] * X[1][1]
             (alpha1, -alpha1, -alpha1 + 2, alpha1 - 2)
+
+            sage: M = ModularSymbols(DirichletGroup(24,QQ).1,2,sign=1)
+            sage: M.compact_newform_eigenvalues(prime_range(10),'a')
+            [([-1/2 -1/2]
+            [ 1/2 -1/2]
+            [  -1    1]
+            [  -2    0], (1, -2*a0 - 1))]
+            sage: a = M.compact_newform_eigenvalues([1..10],'a')[0]
+            sage: a[0]*a[1]
+            (1, a0, a0 + 1, -2*a0 - 2, -2*a0 - 2, -a0 - 2, -2, 2*a0 + 4, -1, 2*a0 + 4)
+            sage: M = ModularSymbols(DirichletGroup(13).0^2,2,sign=1)
+            sage: M.compact_newform_eigenvalues(prime_range(10),'a')
+            [([  -zeta6 - 1]
+            [ 2*zeta6 - 2]
+            [-2*zeta6 + 1]
+            [           0], (1))]
+            sage: a = M.compact_newform_eigenvalues([1..10],'a')[0]
+            sage: a[0]*a[1]
+            (1, -zeta6 - 1, 2*zeta6 - 2, zeta6, -2*zeta6 + 1, -2*zeta6 + 4, 0, 2*zeta6 - 1, -zeta6, 3*zeta6 - 3)
         """
         v = list(v)
 
@@ -1754,7 +1773,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         I = heilbronn.hecke_images_gamma0_weight2(c.u,c.v,N,[n], self.manin_gens_to_basis())
         return self(I[0])
 
-    def hecke_images(self, i, v):
+    def _hecke_images(self, i, v):
         """
         Return images of the $i$-th standard basis vector under the
         Hecke operators $T_p$ for all integers in $v$.
@@ -2156,7 +2175,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         """
         return modsym.ModularSymbols(self.character(), k, self.sign(), self.base_ring())
 
-    def hecke_images(self, i, v):
+    def _hecke_images(self, i, v):
         """
         Return images of the $i$-th standard basis vector under the
         Hecke operators $T_p$ for all integers in $v$.
@@ -2181,5 +2200,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         if chi.order() > 2:
             return heilbronn.hecke_images_nonquad_character_weight2(c.u,c.v,N,
                                  v, chi, self.manin_gens_to_basis())
-
+        else:
+            return heilbronn.hecke_images_quad_character_weight2(c.u,c.v,N,
+                                 v, chi, self.manin_gens_to_basis())
         raise NotImplementedError

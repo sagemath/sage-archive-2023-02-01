@@ -3604,25 +3604,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             _sig_off
         return co.new_MP(parent, quo), co.new_MP(parent, rem)
 
-    def _magma_(self, magma=None):
-        """
-        Returns the MAGMA representation of self.
-
-        EXAMPLES:
-            sage: R.<x,y> = GF(2)[]
-            sage: f = y*x^2 + x +1
-            sage: f._magma_() #optional
-            x^2*y + x + 1
-        """
-        if magma is None:
-            # TODO: import this globally
-            import sage.interfaces.magma
-            magma = sage.interfaces.magma.magma
-
-        magma_gens = [e.name() for e in self.parent()._magma_().gens()]
-        f = self._repr_with_changed_varnames(magma_gens)
-        return magma(f)
-
     def _singular_init_(self, singular=singular_default, have_ring=False):
         r"""
         Return a \SINGULAR (as in the computer algebra system) string

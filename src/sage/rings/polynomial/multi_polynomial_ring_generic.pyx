@@ -299,7 +299,26 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             R = magma('PolynomialRing(%s, %s, %s)'%(B.name(), self.ngens(),self.term_order().magma_str()))
             R.assign_names(self.variable_names())
             self.__magma = R
+            self.__magma_gens = [e.name() for e in R.gens()]
             return R
+
+    def _magma_gens(self):
+        """
+        Returns a list with names of Magma representations of the generators
+        of this ring.
+
+        If a Magma object for this ring has not already been initialized,
+        Magma is called first, otherwise cached names are returned.
+
+        EXAMPLES:
+            sage: R = ZZ['x,y']
+            sage: R._magma_gens() #optional
+            ['_sage_[3]', '_sage_[4]']
+
+        """
+        if self.__magma_gens is None or not self.__magma._check_valid():
+            self._magma_()
+        return self.__magma_gens
 
     def _magma_init_(self):
         """

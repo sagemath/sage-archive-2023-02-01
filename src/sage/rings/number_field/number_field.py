@@ -5089,19 +5089,23 @@ class NumberField_cyclotomic(NumberField_absolute):
         else:
             self.__zeta_order = n
         ## quadratic number fields require this:
-        if f.degree() == 2:
-            self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
-            if n == 4:
-                self._D = ZZ(-1)
-                self._NumberField_generic__gen = self._element_class(self, (QQ(0), QQ(1)))
-            else:
-                ## n is 3 or 6
-                self._D = ZZ(-3)
-                one_half = ZZ(1)/ZZ(2)
-                if n == 3:
-                    self._NumberField_generic__gen = self._element_class(self, (one_half-1, one_half))
-                else:
-                    self._NumberField_generic__gen = self._element_class(self, (one_half, one_half))
+        # I am disabling this since the NumberFieldElement_quadratic element
+        # internal format is (1) very very complicated to work with, and (2)
+        # it's necessary to have access to it in order to make lots of other
+        # things like Matrix_cyclo_dense vastly faster.  DO NOT RE-ENABLE THIS.
+##         if f.degree() == 2:
+##             self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
+##             if n == 4:
+##                 self._D = ZZ(-1)
+##                 self._NumberField_generic__gen = self._element_class(self, (QQ(0), QQ(1)))
+##             else:
+##                 ## n is 3 or 6
+##                 self._D = ZZ(-3)
+##                 one_half = ZZ(1)/ZZ(2)
+##                 if n == 3:
+##                     self._NumberField_generic__gen = self._element_class(self, (one_half-1, one_half))
+##                 else:
+##                     self._NumberField_generic__gen = self._element_class(self, (one_half, one_half))
         zeta = self.gen()
         zeta._set_multiplicative_order(n)
 

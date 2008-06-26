@@ -1757,20 +1757,22 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
     def hecke_images(self, i, v):
         """
         Return images of the $i$-th standard basis vector under the
-        Hecke operators $T_p$ for all primes $p < B$.
+        Hecke operators $T_p$ for all integers in $v$.
 
         INPUT:
+            i -- nonnegative integer
             v -- a list of positive integer
-
         OUTPUT:
             matrix -- whose rows are the Hecke images
+
+        EXAMPLES:
+            sage:
         """
         # Find basis vector for ambient space such that it is not in
         # the kernel of the dual space corresponding to self.
-        M = self.ambient()
-        c = M.manin_generators()[M.manin_basis()[i]]
+        c = self.manin_generators()[self.manin_basis()[i]]
         N = self.level()
-        return heilbronn.hecke_images_gamma0_weight2(c.u,c.v,N, v, M.manin_gens_to_basis())
+        return heilbronn.hecke_images_gamma0_weight2(c.u,c.v,N, v, self.manin_gens_to_basis())
 
 
 class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
@@ -2154,3 +2156,30 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         """
         return modsym.ModularSymbols(self.character(), k, self.sign(), self.base_ring())
 
+    def hecke_images(self, i, v):
+        """
+        Return images of the $i$-th standard basis vector under the
+        Hecke operators $T_p$ for all integers in $v$.
+
+        INPUT:
+            i -- nonnegative integer
+            v -- a list of positive integer
+
+        OUTPUT:
+            matrix -- whose rows are the Hecke images
+
+        EXAMPLES:
+            sage:
+        """
+        if self.weight() != 2:
+            raise NotImplementedError, "hecke images only implemented when the weight is 2"
+        chi = self.character()
+        # Find basis vector for ambient space such that it is not in
+        # the kernel of the dual space corresponding to self.
+        c = self.manin_generators()[self.manin_basis()[i]]
+        N = self.level()
+        if chi.order() > 2:
+            return heilbronn.hecke_images_nonquad_character_weight2(c.u,c.v,N,
+                                 v, chi, self.manin_gens_to_basis())
+
+        raise NotImplementedError

@@ -48,6 +48,7 @@ from sage.misc.misc import verbose
 import math
 
 from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Matrix as baseMatrix
 
@@ -64,6 +65,7 @@ echelon_primes_increment = 15
 echelon_verbose_level = 1
 
 from sage.rings.number_field.number_field_element cimport NumberFieldElement
+from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
 
 cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     ########################################################################
@@ -159,56 +161,38 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 self.set_unsafe(i,i,z)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-        """
-        Set the ij-th entry of self to value.
-
-        WARNING: As the name suggests, there is no bound or type
-        checking.  Expect errors, segfaults, etc., if you give bad
-        input!!  This is for internal use only.
-
-        EXAMPLES:
-            sage: W.<a> = CyclotomicField(5)
-            sage: A = matrix(2, 3, [1, 1/a, 1-a,a, -2/3*a, a^19])
-
-        This indirectly calls set_unsafe:
-            sage: A[0,0] = 109308420
-            sage: A
-            [         109308420 -a^3 - a^2 - a - 1             -a + 1]
-            [                 a             -2/3*a -a^3 - a^2 - a - 1]
-        """
-        # The i,j entry is the (i * self._ncols + j)'th column.
-        # TODO: This could be made way faster via direct access to the
-        # underlying matrix
-        cdef Py_ssize_t k, c
-        v = value.list()
-        c = i * self._ncols + j
-        for k from 0 <= k < self._degree:
-            self._matrix.set_unsafe(k, c, v[k])
-
-## THIS looks 100% right but segfaults on the doctests.
-##     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-##         # The i,j entry is the (i * self._ncols + j)'th column.
+        # SLOW OLD GENERIC VERSION
 ##         cdef Py_ssize_t k, c
-
-##         # TODO REMOVE
-##         assert isinstance(value, NumberFieldElement)
-
-##         cdef NumberFieldElement v = value
-
-##         cdef mpz_t numer, denom
-##         mpz_init(numer)
-##         mpz_init(denom)
-
+##         v = value.list()
 ##         c = i * self._ncols + j
-##         v._ntl_denom_as_mpz(&denom)
 ##         for k from 0 <= k < self._degree:
-##             v._ntl_coeff_as_mpz(&numer, k)
-##             mpz_set(mpq_numref(self._matrix._matrix[k][c]), numer)
-##             mpz_set(mpq_denref(self._matrix._matrix[k][c]), denom)
-##             mpq_canonicalize(self._matrix._matrix[k][c])
+##             self._matrix.set_unsafe(k, c, v[k])
 
-##         mpz_clear(numer)
-##         mpz_clear(denom)
+        # NEW FAST VERSION -- makes assumptions about how the
+        # cyclotomic field is implemented.
+
+        # The i,j entry is the (i * self._ncols + j)'th column.
+        cdef Py_ssize_t k, c
+
+        if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
+            raise NotImplementedError, 'type must not be NumberFieldElement_quadratic'
+
+        cdef NumberFieldElement v = value
+
+        cdef mpz_t numer, denom
+        mpz_init(numer)
+        mpz_init(denom)
+
+        c = i * self._ncols + j
+        v._ntl_denom_as_mpz(&denom)
+        for k from 0 <= k < self._degree:
+            v._ntl_coeff_as_mpz(&numer, k)
+            mpz_set(mpq_numref(self._matrix._matrix[k][c]), numer)
+            mpz_set(mpq_denref(self._matrix._matrix[k][c]), denom)
+            mpq_canonicalize(self._matrix._matrix[k][c])
+
+        mpz_clear(numer)
+        mpz_clear(denom)
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
@@ -225,10 +209,47 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A[0,0]
             9939208341
         """
-        # The i,j entry is the (i * self._ncols + j)'th column.
-        # TODO: This could be made way faster via direct access to the
-        # underlying matrix
+        # REALLY SLOW
         return self.base_ring()(self._matrix.column(i*self._ncols + j).list())
+
+# NEW FAST VERSION -- seg faults.
+# The following does get_unsafe maybe 25 times faster or more, but segfaults.
+# I don't need it now, but if you want to write this right, you might start
+# with this.
+
+##         cdef Py_ssize_t k, c
+##         cdef NumberFieldElement x = self._base_ring(0)
+##         cdef mpz_t denom, quo, tmp
+##         cdef ZZ_c coeff
+##         ZZ_construct(&coeff)
+
+##         mpz_init_set_ui(denom, 1)
+##         mpz_init(tmp)
+
+##         c = i * self._ncols + j
+
+##         # Get the least common multiple of the denominators in
+##         # this column.
+##         for k from 0 <= k < self._degree:
+##             mpz_lcm(denom, denom, mpq_denref(self._matrix._matrix[k][c]))
+
+##         for k from 0 <= k < self._degree:
+##             # set each entry of x to a*denom/b where a/b is the
+##             # k,c entry of _matrix.
+##             mpz_mul(tmp, mpq_numref(self._matrix._matrix[k][c]), denom)
+##             mpz_divexact(tmp, tmp, mpq_denref(self._matrix._matrix[k][c]))
+##             # Now set k-th entry of x's numerator to tmp
+##             mpz_to_ZZ(&coeff, &tmp)
+##             ZZX_SetCoeff(x.__numerator, k, coeff)
+##         # Set the denominator of x to denom.
+##         mpz_to_ZZ(&x.__denominator, &denom)
+##         mpz_clear(denom)
+##         mpz_clear(tmp)
+##         ZZ_destruct(&coeff)
+
+##         return x
+
+
 
     def _pickle(self):
         """

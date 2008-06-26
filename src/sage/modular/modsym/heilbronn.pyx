@@ -488,13 +488,21 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
 
 from sage.matrix.matrix_cyclo_dense cimport Matrix_cyclo_dense
 
-def hecke_images_character_weight2(int u, int v, int N, indices, chi, R):
+def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R):
     """
+    Return images of the Hecke operators $T_n$ for $n$ in the list
+    indices, where chi must be a quadratic Dirichlet character with
+    values in QQ.
+
+    R is assumed to be the relation matrix of a weight modular symbols
+    space over QQ with character chi.
+
     INPUT:
         u, v, N -- integers so that gcd(u,v,N) = 1
         indices -- a list of positive integers
-        chi     -- a Dirichlet character
-        R       -- matrix over QQ(chi) that writes each elements of P1 =
+        chi     -- a Dirichlet character that takes values in a nontrivial
+                   extension of QQ.
+        R       -- matrix over QQ that writes each elements of P1 =
                    P1List(N) in terms of a subset of P1.
 
     OUTPUT:
@@ -503,11 +511,30 @@ def hecke_images_character_weight2(int u, int v, int N, indices, chi, R):
         symbol (u,v), expressed in terms of the basis.
 
     EXAMPLES:
-
+        sage: chi = DirichletGroup(13).0^2
+        sage: M = ModularSymbols(chi)
+        sage: eps = M.character()
+        sage: R = M.manin_gens_to_basis()
+        sage: sage.modular.modsym.heilbronn.hecke_images_nonquad_character_weight2(1,0,13,[1,2,6],eps,R)
+        [           1            0            0            0]
+        [   zeta6 + 2            0            0           -1]
+        [           7 -2*zeta6 + 1   -zeta6 - 1     -2*zeta6]
+        sage: x = M((1,0)); x.element()
+        (1, 0, 0, 0)
+        sage: M.T(2)(x).element()
+        (zeta6 + 2, 0, 0, -1)
+        sage: M.T(6)(x).element()
+        (7, -2*zeta6 + 1, -zeta6 - 1, -2*zeta6)
+        sage: (T*S)[-1]
+        (7, -2*zeta6 + 1, -zeta6 - 1, -2*zeta6)
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
 
+    from sage.rings.all import QQ
     K = chi.base_ring()
+
+    if K == QQ:
+        raise TypeError, "character must not be trivial or quadratic"
 
     # Create a zero dense matrix over K with len(indices) rows
     # and #P^1(N) columns.
@@ -522,7 +549,13 @@ def hecke_images_character_weight2(int u, int v, int N, indices, chi, R):
 
     t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
                                level=1, caller_name='hecke_images_character_weight2')
-    w = chi(-1)
+
+    # Make a matrix over the rational numbers each of whose columns
+    # are the values of the character chi.
+    cdef Matrix_rational_dense chi_vals
+    z = [t.list() for t in chi.values()]
+    chi_vals = matrix(QQ, z).transpose()
+
     for i, n in enumerate(indices):
         H = HeilbronnCremona(n) if sage.rings.arith.is_prime(n) else HeilbronnMerel(n)
 
@@ -541,20 +574,116 @@ def hecke_images_character_weight2(int u, int v, int N, indices, chi, R):
             # Now fill in row i of the sparse matrix T.
             if k != -1:
                  # The following line is just a dangerous direct way to do: T[i,k] += chi(scalar)
-                 #T[i,k] += chi(scalar)
-                 #T.set_unsafe(i,k,T.get_unsafe(i,k)+chi(scalar))
-                 T.set_unsafe(i,k,w)
-                 # T._add_ui_unsafe_assuming_int(i,k,1)
-
+                 # T[i,k] += chi(scalar)
+                 # This code makes assumptions about the internal structure
+                 # of matrices over cyclotomic fields.  It's nasty, but it
+                 # is exactly what is needed to get a solid 100 or more
+                 # times speedup.
+                 scalar %= N
+                 if scalar < 0: scalar += N
+                 # Note that the next line totally dominates the runtime of this whole function.
+                 T._matrix._add_col_j_of_A_to_col_i_of_self(i * T._ncols + k, chi_vals, scalar)
 
         # Free a and b
         sage_free(a)
         sage_free(b)
 
-    return T
+    return T * R
 
-    #return T*R
+def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
+    """
+    INPUT:
+        u, v, N -- integers so that gcd(u,v,N) = 1
+        indices -- a list of positive integers
+        chi     -- a Dirichlet character that takes values in a nontrivial
+                   extension of QQ.
+        R       -- matrix over QQ(chi) that writes each elements of P1 =
+                   P1List(N) in terms of a subset of P1.
 
+    OUTPUT:
+        a dense matrix with entries in the field QQ(chi) (the values of chi)
+        whose columns are the images T_n(x) for n in indices and x the Manin
+        symbol (u,v), expressed in terms of the basis.
+
+    EXAMPLES:
+        sage: chi = DirichletGroup(13).0^2
+        sage: M = ModularSymbols(chi)
+        sage: eps = M.character()
+        sage: R = M.manin_gens_to_basis()
+        sage: sage.modular.modsym.heilbronn.hecke_images_nonquad_character_weight2(1,0,13,[1,2,6],eps,R)
+        [           1            0            0            0]
+        [   zeta6 + 2            0            0           -1]
+        [           7 -2*zeta6 + 1   -zeta6 - 1     -2*zeta6]
+        sage: x = M((1,0)); x.element()
+        (1, 0, 0, 0)
+        sage: M.T(2)(x).element()
+        (zeta6 + 2, 0, 0, -1)
+        sage: M.T(6)(x).element()
+        (7, -2*zeta6 + 1, -zeta6 - 1, -2*zeta6)
+        sage: (T*S)[-1]
+        (7, -2*zeta6 + 1, -zeta6 - 1, -2*zeta6)
+    """
+    cdef p1list.P1List P1 = p1list.P1List(N)
+
+    from sage.rings.all import QQ
+    K = chi.base_ring()
+
+    if K == QQ:
+        raise TypeError, "character must not be trivial or quadratic"
+
+    # Create a zero dense matrix over K with len(indices) rows
+    # and #P^1(N) columns.
+    cdef Matrix_cyclo_dense T
+    from sage.matrix.all import matrix
+    T = matrix(K, len(indices), len(P1), sparse=False)
+
+    cdef Py_ssize_t i, j
+    cdef int *a, *b, k, scalar
+
+    cdef Heilbronn H
+
+    t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
+                               level=1, caller_name='hecke_images_character_weight2')
+
+    # Make a matrix over the rational numbers each of whose columns
+    # are the values of the character chi.
+    cdef Matrix_rational_dense chi_vals
+    z = [t.list() for t in chi.values()]
+    chi_vals = matrix(QQ, z).transpose()
+
+    for i, n in enumerate(indices):
+        H = HeilbronnCremona(n) if sage.rings.arith.is_prime(n) else HeilbronnMerel(n)
+
+        # Allocate memory to hold images of (u,v) under all Heilbronn matrices
+        a = <int*> sage_malloc(sizeof(int)*H.length)
+        if not a: raise MemoryError
+        b = <int*> sage_malloc(sizeof(int)*H.length)
+        if not b: raise MemoryError
+
+        # Compute images of (u,v) under all Heilbronn matrices
+        H.apply_only(u, v, N, a, b)
+
+        for j from 0 <= j < H.length:
+            # Compute index of the symbol a[j], b[j] in the standard list.
+            P1.index_and_scalar(a[j], b[j], &k, &scalar)
+            # Now fill in row i of the sparse matrix T.
+            if k != -1:
+                 # The following line is just a dangerous direct way to do: T[i,k] += chi(scalar)
+                 # T[i,k] += chi(scalar)
+                 # This code makes assumptions about the internal structure
+                 # of matrices over cyclotomic fields.  It's nasty, but it
+                 # is exactly what is needed to get a solid 100 or more
+                 # times speedup.
+                 scalar %= N
+                 if scalar < 0: scalar += N
+                 # Note that the next line totally dominates the runtime of this whole function.
+                 T._matrix._add_col_j_of_A_to_col_i_of_self(i * T._ncols + k, chi_vals, scalar)
+
+        # Free a and b
+        sage_free(a)
+        sage_free(b)
+
+    return T * R
 
 
 

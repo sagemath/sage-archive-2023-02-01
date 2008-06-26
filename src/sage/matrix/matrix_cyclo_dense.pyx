@@ -161,22 +161,20 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 self.set_unsafe(i,i,z)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-        # SLOW OLD GENERIC VERSION
-##         cdef Py_ssize_t k, c
-##         v = value.list()
-##         c = i * self._ncols + j
-##         for k from 0 <= k < self._degree:
-##             self._matrix.set_unsafe(k, c, v[k])
+        cdef Py_ssize_t k, c
+
+        if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
+            # USE SLOW OLD GENERIC VERSION
+            vl = value.list()
+            c = i * self._ncols + j
+            for k from 0 <= k < self._degree:
+                self._matrix.set_unsafe(k, c, vl[k])
+            return
 
         # NEW FAST VERSION -- makes assumptions about how the
         # cyclotomic field is implemented.
 
         # The i,j entry is the (i * self._ncols + j)'th column.
-        cdef Py_ssize_t k, c
-
-        if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
-            raise NotImplementedError, 'type must not be NumberFieldElement_quadratic'
-
         cdef NumberFieldElement v = value
 
         cdef mpz_t numer, denom
@@ -216,7 +214,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 # The following does get_unsafe maybe 25 times faster or more, but segfaults.
 # I don't need it now, but if you want to write this right, you might start
 # with this.
-
+##     if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
 ##         cdef Py_ssize_t k, c
 ##         cdef NumberFieldElement x = self._base_ring(0)
 ##         cdef mpz_t denom, quo, tmp
@@ -288,7 +286,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: k == w
             True
         """
-        self.check_mutability()
+        #self.check_mutability()
         if version == 0:
             self._matrix = Matrix_rational_dense(MatrixSpace(QQ, self._degree, self._nrows*self._ncols), None, False, False)
             self._matrix._unpickle(*data)  # data is (data, matrix_QQ_version)

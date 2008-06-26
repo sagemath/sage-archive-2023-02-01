@@ -163,8 +163,10 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: T.apply_sparse(M.gen(0))
             24*(1,0) - 5*(1,9)
         """
-        if not x in self.domain():
+        if x not in self.domain():
             raise TypeError, "x (=%s) must be in %s"%(x, self.domain())
+        # Generic implementation which doesn't actually do anything
+        # special regarding sparseness.  Override this for speed.
         T = self.hecke_module_morphism()
         return T(x)
 

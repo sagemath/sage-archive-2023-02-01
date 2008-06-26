@@ -41,6 +41,8 @@ from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
 from   sage.structure.all import Sequence, SageObject
 import sage.modular.modsym.ambient
 
+import hecke_operator
+
 def is_ModularSymbolsSpace(x):
     return isinstance(x, ModularSymbolsSpace)
 
@@ -114,6 +116,48 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         # fallback on subspace comparison
         return d
 
+    def _hecke_operator_class(self):
+        return hecke_operator.HeckeOperator
+
+    def compact_system_of_eigenvalues(self, v, names='alpha', nz=None):
+        r"""
+        Return a compact system of eigenvalues $a_n$ for $n\in v$.
+        This should only be called on simple factors of modular
+        symbols spaces.
+
+        INPUT:
+            v -- a list of positive integers
+            nz -- (default: None); if given specifies a column index such
+                 that the dual module has that column nonzero.
+        OUTPUT:
+            E -- matrix such that E*v is a vector with components
+                 the eigenvalues $a_n$ for $n \in v$.
+            v -- a vector over a number field
+
+        EXAMPLES:
+            sage: M = ModularSymbols(43,2,1)[2]; M
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field
+            sage: E, v = M.compact_system_of_eigenvalues(prime_range(10))
+            sage: E
+            [ 3 -2]
+            [-3  2]
+            [-1  2]
+            [ 1 -2]
+            sage: v
+            (1, -1/2*alpha + 3/2)
+            sage: E*v
+            (alpha, -alpha, -alpha + 2, alpha - 2)
+        """
+        if nz is None:
+            nz = self._eigen_nonzero()
+        M = self.ambient()
+        try:
+            E = M.hecke_images(nz, v) * self.dual_free_module().basis_matrix().transpose()
+        except AttributeError:
+            # TODO!!!
+            raise NotImplementedError, "ambient space must implement hecke_images but doesn't yet"
+        v = self.dual_eigenvector(names=names, lift=False, nz=nz)
+        return E, v
 
     def character(self):
         """

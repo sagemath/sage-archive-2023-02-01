@@ -32,6 +32,7 @@ import sage.misc.prandom as random
 import algebra
 import element
 import homspace
+import hecke_operator
 
 from sage.modules.all import FreeModule
 
@@ -127,6 +128,9 @@ class HeckeModule_generic(sage.modules.module.Module):
         Compute and return the matrix of the p-th Hecke operator.
         """
         raise NotImplementedError
+
+    def _hecke_operator_class(self):
+        return hecke_operator.HeckeOperator
 
     def anemic_hecke_algebra(self):
         """
@@ -315,18 +319,20 @@ class HeckeModule_free_module(HeckeModule_generic):
         return len(self.decomposition())
 
     def _eigen_nonzero(self):
+        """
+        Return smallest integer i such that the i-th entries of the
+        entries of a basis for the dual vector space are not all 0.
+        Then return the i-th basis vector for the ambient space of
+        modular symbols.
+        """
         try:
             return self.__eigen_nonzero
         except AttributeError:
             pass
-        # Find the smallest integer i such that the i-th entries
-        # of the entries of a basis for the dual vector space
-        # are not all 0.  Then return the i-th basis vector for
-        # the ambient space of modular symbols.
         A = self.ambient_hecke_module()
         V = self.dual_free_module()
         B = V.basis()
-        for i in range(A.rank()):
+        for i in range(V.degree()):
             for b in B:
                 if b[i] != 0:
                     self.__eigen_nonzero = i
@@ -637,23 +643,30 @@ class HeckeModule_free_module(HeckeModule_generic):
     def degree(self):
         return self.free_module().degree()
 
-    def dual_eigenvector(self, names='alpha'):
+    def dual_eigenvector(self, names='alpha', lift=True, nz=None):
         """
         Return an eigenvector for the Hecke operators acting on the
         linear dual of this space.  This eigenvector will have entries
         in an extension of the base ring of degree equal to the
         dimension of this space.
 
+        WARNING: The input space must be simple.
+
         INPUT:
-            The input space must be simple.
             name -- print name of generator for eigenvalue field.
+            lift -- bool (default: True)
+            nz -- if not None, then normalize vector so dot product
+                 with this basis vector of ambient space is 1.
 
         OUTPUT:
             A vector with entries possibly in an extension of the base
             ring.  This vector is an eigenvector for all Hecke operators
             acting via their transpose.
 
-        EXAMPLES:
+            If lift = False, instead return an eigenvector in the
+            subspace for the Hecke operators on the dual space.  I.e.,
+            this is an eigenvector for the restrictions of Hecke
+            operators to the dual space.
 
         NOTES:
             (1) The answer is cached so subsequent calls always return
@@ -668,8 +681,14 @@ class HeckeModule_free_module(HeckeModule_generic):
             eigenvector for the dual action of Hecke operators on
             functionals.
         """
+        # TODO -- optimize by computing the answer for i not None in terms
+        # of the answer for a given i if known !!
         try:
-            return self.__dual_eigenvector[names]
+            w, w_lift = self.__dual_eigenvector[(names,nz)]
+            if lift:
+                return w_lift
+            else:
+                return w
         except KeyError:
             pass
         except AttributeError:
@@ -729,11 +748,20 @@ class HeckeModule_free_module(HeckeModule_generic):
 
         # Finally rescale so the dot product of this vector and
         # the _eigen_nonzero_element is 1.
-        alpha = w_lift.dot_product(self._eigen_nonzero_element().element())
-        w_lift = w_lift * (~alpha)
+        if nz is not None:
+            x = self.ambient().gen(nz)
+        else:
+            x = self._eigen_nonzero_element()
+        alpha = w_lift.dot_product(x.element())
+        beta = ~alpha
+        w_lift = w_lift * beta
+        w = w * beta
 
-        self.__dual_eigenvector[names] = w_lift
-        return w_lift
+        self.__dual_eigenvector[(names,nz)] = (w, w_lift)
+        if lift:
+            return w_lift
+        else:
+            return w
 
     def dual_hecke_matrix(self, n):
         """

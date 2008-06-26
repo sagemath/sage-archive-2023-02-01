@@ -164,6 +164,13 @@ cdef class Heilbronn:
         return self.length
 
     def to_list(self):
+        """
+        EXAMPLES:
+            sage: H = sage.modular.modsym.heilbronn.HeilbronnCremona(2); H
+            The Cremona-Heilbronn matrices of determinant 2
+            sage: H.to_list()
+            [[1, 0, 0, 2], [2, 0, 0, 1], [2, 1, 0, 1], [1, 0, 1, 2]]
+        """
         cdef int i
         L = []
         for i from 0 <= i < self.length:
@@ -171,8 +178,14 @@ cdef class Heilbronn:
                       self.list.v[4*i+2], self.list.v[4*i+3]])
         return L
 
-    def apply(self, int u, int v, int N):
+    cdef apply_only(self, int u, int v, int N, int* a, int* b):
         """
+        INPUT:
+            u, v, N -- integers
+            a, b -- preallocated int arrays of the length self.
+        OUTPUT:
+            list
+
         Return a list of pairs ((c,d),m), which is obtained as follows:
           1) Compute the images (a,b) of the vector (u,v) (mod N) acted on by
              each of the HeilbronnCremona matrices in self.
@@ -181,6 +194,50 @@ cdef class Heilbronn:
           4) Create the list ((c,d),m), where m is the number of times
              that (c,d) appears in the list created in steps 1--3 above.
         Note that the pairs ((c,d),m) are sorted lexicographically by (c,d).
+
+        EXAMPLES:
+            sage: H = sage.modular.modsym.heilbronn.HeilbronnCremona(2); H
+            The Cremona-Heilbronn matrices of determinant 2
+            sage: H.apply(1,2,7)
+            [((1, 5), 1), ((1, 6), 1), ((1, 1), 1), ((1, 4), 1)]
+        """
+        cdef int i
+        _sig_on
+        if N < 32768:   # use ints with no reduction modulo N
+            for i from 0 <= i < self.length:
+                a[i] = u*self.list.v[4*i] + v*self.list.v[4*i+2]
+                b[i] = u*self.list.v[4*i+1] + v*self.list.v[4*i+3]
+        elif N < 46340:    # use ints but reduce mod N so can add two
+            for i from 0 <= i < self.length:
+                a[i] = (u * self.list.v[4*i])%N + (v * self.list.v[4*i+2])%N
+                b[i] = (u * self.list.v[4*i+1])%N + (v * self.list.v[4*i+3])%N
+        else:
+            for i from 0 <= i < self.length:
+                a[i] = llong_prod_mod(u,self.list.v[4*i],N) + llong_prod_mod(v,self.list.v[4*i+2], N)
+                b[i] = llong_prod_mod(u,self.list.v[4*i+1],N) + llong_prod_mod(v,self.list.v[4*i+3], N)
+        _sig_off
+
+    def apply(self, int u, int v, int N):
+        """
+        INPUT:
+            u, v, N -- integers
+        OUTPUT:
+            list
+
+        Return a list of pairs ((c,d),m), which is obtained as follows:
+          1) Compute the images (a,b) of the vector (u,v) (mod N) acted on by
+             each of the HeilbronnCremona matrices in self.
+          2) Reduce each (a,b) to canonical form (c,d) using p1normalize
+          3) Sort.
+          4) Create the list ((c,d),m), where m is the number of times
+             that (c,d) appears in the list created in steps 1--3 above.
+        Note that the pairs ((c,d),m) are sorted lexicographically by (c,d).
+
+        EXAMPLES:
+            sage: H = sage.modular.modsym.heilbronn.HeilbronnCremona(2); H
+            The Cremona-Heilbronn matrices of determinant 2
+            sage: H.apply(1,2,7)
+            [((1, 5), 1), ((1, 6), 1), ((1, 1), 1), ((1, 4), 1)]
         """
         cdef int i, a, b, c, d, s
         cdef object X
@@ -321,3 +378,100 @@ cdef class HeilbronnMerel(Heilbronn):
                         list_append4(L,a,bc/c,c,d)
         self.length = L.i/4
         _sig_off
+
+
+############################################################################
+# Fast application of Heilbronn operators to computation of
+# systems of Hecke eigenvalues.
+############################################################################
+
+from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
+
+def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
+    """
+    INPUT:
+        u, v, N -- integers so that gcd(u,v,N) = 1
+        indices -- a list of positive integers
+        R       -- matrix over QQ that writes each elements of P1 =
+                   P1List(N) in terms of a subset of P1.
+
+    OUTPUT:
+        a dense matrix with rational entries whose columns are
+        the images T_n(x) for n in indices and x the Manin
+        symbol (u,v), expressed in terms of the basis.
+    """
+    cdef p1list.P1List P1 = p1list.P1List(N)
+
+    # Create a zero sparse matrix over QQ with len(indices) rows
+    # and #P^1(N) columns.
+    cdef Matrix_rational_dense T
+    from sage.matrix.all import matrix
+    from sage.rings.all import QQ
+    T = matrix(QQ, len(indices), len(P1), sparse=False)
+
+    cdef Py_ssize_t i, j
+    cdef int *a, *b, k
+
+    cdef Heilbronn H
+
+    t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
+                               level=1, caller_name='hecke_images_gamma0_weight2')
+    for i, n in enumerate(indices):
+        # List the Heilbronn matrices of determinant n defined by Cremona
+        if sage.rings.arith.is_prime(n):
+            H = HeilbronnCremona(n)
+        else:
+            H = HeilbronnMerel(n)
+
+        # Allocate memory to hold images of (u,v) under all Heilbronn matrices
+        a = <int*> sage_malloc(sizeof(int)*H.length)
+        if not a: raise MemoryError
+        b = <int*> sage_malloc(sizeof(int)*H.length)
+        if not b: raise MemoryError
+
+        # Compute images of (u,v) under all Heilbronn matrices
+        H.apply_only(u, v, N, a, b)
+
+        # Compute the indexes of these images.
+        # We just store them in the array a for simplicity.
+        for j from 0 <= j < H.length:
+            # Compute index of the symbol a[j], b[j] in the standard list.
+            k = P1.index(a[j], b[j])
+
+            # Now fill in row i of the sparse matrix T.
+            if k != -1:
+                 # The following line is just a dangerous direct way to do: T[i,k] += 1
+                 T._add_ui_unsafe_assuming_int(i,k,1)
+                 # The following is slightly faster, but is way scary.
+                 #mpz_add_ui(mpq_numref(T._matrix[i][a[j]]), mpq_numref(T._matrix[i][a[j]]), 1)
+
+        # Free a and b
+        sage_free(a)
+        sage_free(b)
+
+    t = sage.misc.misc.verbose("finished computing non-reduced images",
+                               t, level=1, caller_name='hecke_images_gamma0_weight2')
+
+    t = sage.misc.misc.verbose("Now reducing images of symbol",
+                               level=1, caller_name='hecke_images_gamma0_weight2')
+
+    # Return the product T * R, whose rows are the image of (u,v) under
+    # the Hecke operators T_n for n in indices.
+    if max(indices) <= 30:   # In this case T tends to be very sparse
+        ans = T.sparse_matrix()._matrix_times_matrix_dense(R)
+        sage.misc.misc.verbose("did reduction using sparse multiplication",
+                               t, level=1, caller_name='hecke_images_gamma0_weight2')
+    elif R.is_sparse():
+        ans = T * R.dense_matrix()
+        sage.misc.misc.verbose("did reduction using dense multiplication",
+                               t, level=1, caller_name='hecke_images_gamma0_weight2')
+    else:
+        ans = T * R
+        sage.misc.misc.verbose("did reduction using dense multiplication",
+                               t, level=1, caller_name='hecke_images_gamma0_weight2')
+
+    return ans
+
+
+
+

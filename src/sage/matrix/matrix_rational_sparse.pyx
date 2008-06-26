@@ -173,7 +173,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         cdef mpq_vector* v
 
         # Build a table that gives the nonzero positions in each column of right
-        nonzero_positions_in_columns = [set([])]*right._ncols
+        nonzero_positions_in_columns = [set([]) for _ in range(right._ncols)]
         cdef Py_ssize_t i, j, k
         for i from 0 <= i < right._nrows:
             v = &(right._matrix[i])
@@ -198,6 +198,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
                         mpq_mul(x, v.entries[k], y)
                         mpq_add(s, s, x)
                 mpq_vector_set_entry(&ans._matrix[i], j, s)
+
         mpq_clear(x)
         mpq_clear(y)
         mpq_clear(s)
@@ -206,6 +207,18 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     def _matrix_times_matrix_dense(self, sage.structure.element.Matrix _right):
         """
         Do the sparse matrix multiply, but return a dense matrix as the result.
+
+        EXAMPLES:
+            sage: a = matrix(QQ, 2, [1,2,3,4], sparse=True)
+            sage: b = matrix(QQ, 2, 3, [1..6], sparse=True)
+            sage: a * b
+            [ 9 12 15]
+            [19 26 33]
+            sage: c = a._matrix_times_matrix_dense(b); c
+            [ 9 12 15]
+            [19 26 33]
+            sage: type(c)
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
         """
         cdef Matrix_rational_sparse right
         cdef Matrix_rational_dense ans
@@ -214,7 +227,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         cdef mpq_vector* v
 
         # Build a table that gives the nonzero positions in each column of right
-        nonzero_positions_in_columns = [set([])]*right._ncols
+        nonzero_positions_in_columns = [set([]) for _ in range(right._ncols)]
         cdef Py_ssize_t i, j, k
         for i from 0 <= i < right._nrows:
             v = &(right._matrix[i])
@@ -239,6 +252,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
                         mpq_mul(x, v.entries[k], y)
                         mpq_add(s, s, x)
                 mpq_set(ans._matrix[i][j], s)
+
         mpq_clear(x)
         mpq_clear(y)
         mpq_clear(s)

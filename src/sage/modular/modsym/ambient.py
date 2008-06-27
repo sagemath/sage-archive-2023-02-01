@@ -980,6 +980,13 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 for Gamma_0(18) of weight 2 with sign 0 over Rational Field) *
             (Modular Symbols subspace of dimension 5 of Modular Symbols space of dimension 7 for Gamma_0(18) of weight 2 with sign 0 over Rational Field)
 
+            sage: M = ModularSymbols(DirichletGroup(38,CyclotomicField(3)).1^2,  2, +1); M
+            Modular Symbols space of dimension 7 and level 38, weight 2, character [1, zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2
+            sage: M.factorization()                    # long time (about 8 seconds)
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 7 and level 38, weight 2, character [1, zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2) *
+            (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 and level 38, weight 2, character [1, zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2) *
+            (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 and level 38, weight 2, character [1, zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2) *
+            (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 and level 38, weight 2, character [1, zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2)
         """
 
 ##         EXAMPLES:
@@ -1066,7 +1073,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             skip_minus = False
 
         # The cuspidal part
+        # We only run through spaces of level a multiple of the conductor of the character, which
+        # we compute below, or set to 1 in case of Gamma_H or Gamma_1
+        chi = self.character()
+        cond = 1 if chi is None   else   chi.conductor()
+        # Now actually run through the divisor levels, taking only the ones with that are
+        # a multiple of the conductor.
         for d in reversed(arith.divisors(self.level())):
+            if d%cond != 0: continue
             n = arith.number_of_divisors(self.level() // d)
             M = self.modular_symbols_of_level(d)
             N = M.new_submodule().cuspidal_submodule().decomposition()

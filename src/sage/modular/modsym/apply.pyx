@@ -1,9 +1,3 @@
-include "../../ext/stdsage.pxi"
-include "../../ext/cdefs.pxi"
-
-include "../../libs/flint/flint.pxi"
-include "../../libs/flint/fmpz_poly.pxi"
-
 from sage.rings.integer cimport Integer
 
 ## from sage.rings.all import QQ
@@ -14,7 +8,42 @@ from sage.rings.integer cimport Integer
 ##     if i < 0 or j-i < 0:
 ##         raise ValueError, "i (=%s) and j-i (=%s) must both be nonnegative."%(i,j-i)
 ##     h = (f**i)*(g**(j-i))
-##     return [int(a) for a in h.padded_list(j+1)]
+##     return [int(z) for z in h.padded_list(j+1)]
+
+cdef class Apply:
+    def __new__(self):
+        fmpz_poly_init(self.f)
+        fmpz_poly_init(self.g)
+        fmpz_poly_init(self.ff)
+        fmpz_poly_init(self.gg)
+
+    def __dealloc__(self):
+        # clear flint polys
+        fmpz_poly_clear(self.f)
+        fmpz_poly_clear(self.g)
+        fmpz_poly_clear(self.ff)
+        fmpz_poly_clear(self.gg)
+
+    cdef int apply_to_monomial_flint(self, fmpz_poly_t ans, int i, int j,
+                                     int a, int b, int c, int d) except -1:
+        if i < 0 or j-i < 0:
+            raise ValueError, "i (=%s) and j-i (=%s) must both be nonnegative."%(i,j-i)
+
+        # f = b+a*x, g = d+c*x
+        fmpz_poly_set_coeff_si(self.f, 0, b)
+        fmpz_poly_set_coeff_si(self.f, 1, a)
+        fmpz_poly_set_coeff_si(self.g, 0, d)
+        fmpz_poly_set_coeff_si(self.g, 1, c)
+
+        # h = (f**i)*(g**(j-i))
+        fmpz_poly_power(self.ff, self.f, i)
+        fmpz_poly_power(self.gg, self.g, j-i)
+        fmpz_poly_mul(ans, self.ff, self.gg)
+
+        return 0
+
+
+cdef Apply A = Apply()
 
 def apply_to_monomial(int i, int j, int a, int b, int c, int d):
     """
@@ -44,28 +73,10 @@ def apply_to_monomial(int i, int j, int a, int b, int c, int d):
         sage: apply_to_monomial(6,12, 1,1,1,-1)
         [1, 0, -6, 0, 15, 0, -20, 0, 15, 0, -6, 0, 1]
     """
-    cdef Py_ssize_t k
-    if i < 0 or j-i < 0:
-        raise ValueError, "i (=%s) and j-i (=%s) must both be nonnegative."%(i,j-i)
-
-    # initialize flint polys
-    cdef fmpz_poly_t f, g, ff, gg, pr
-    fmpz_poly_init(f)
-    fmpz_poly_init(g)
-    fmpz_poly_init(ff)
-    fmpz_poly_init(gg)
+    cdef fmpz_poly_t pr
     fmpz_poly_init(pr)
 
-    # f = b+a*x, g = d+c*x
-    fmpz_poly_set_coeff_si(f, 0, b)
-    fmpz_poly_set_coeff_si(f, 1, a)
-    fmpz_poly_set_coeff_si(g, 0, d)
-    fmpz_poly_set_coeff_si(g, 1, c)
-
-    # h = (f**i)*(g**(j-i))
-    fmpz_poly_power(ff, f, i)
-    fmpz_poly_power(gg, g, j-i)
-    fmpz_poly_mul(pr, ff, gg)
+    A.apply_to_monomial_flint(pr, i,j,a,b,c,d)
 
     cdef Integer res
     v = []
@@ -74,10 +85,5 @@ def apply_to_monomial(int i, int j, int a, int b, int c, int d):
         fmpz_poly_get_coeff_mpz(res.value, pr, k)
         v.append(int(res))
 
-    # clear flint polys
-    fmpz_poly_clear(f)
-    fmpz_poly_clear(g)
-    fmpz_poly_clear(ff)
-    fmpz_poly_clear(gg)
     fmpz_poly_clear(pr)
     return v

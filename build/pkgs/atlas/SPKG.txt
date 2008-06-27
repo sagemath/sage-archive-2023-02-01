@@ -27,10 +27,15 @@ Atlas devel mainling list.
  * patches/ATLAS_arch_p4d.patch - adds a IntP4D arch
  * patches/ATLAS-copy-dynamic-lib.patch - adds make file targets for dynamic libs
 
+Note that 3.8.1.p2's changes are in the src directory directly since we will upgrade to 3.8.2 in the short term.
 
 == ChangeLog ==
 
-=== atlas-3.8.p1 (Michael Abshoff, March 21st, 2008) ==
+=== atlas-3.8.p2 (Michael Abshoff, June 26th, 2008) ===
+ * Complex GEMM sometimes accesses C when BETA=0 (#3290)
+ * Bad GEMM call causes performance drop for all architectures (#3380)
+
+=== atlas-3.8.p1 (Michael Abshoff, March 21st, 2008) ===
  * add Pentium D 64 bit tuning info (#2986)
 
 === atlas-3.8.p0 (Michael Abshoff, March 19th, 2008) ===

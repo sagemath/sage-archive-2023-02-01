@@ -123,7 +123,7 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
 linbox = Extension('sage.libs.linbox.linbox',
                    ['sage/libs/linbox/linbox.pyx'],
                    # For this to work on cygwin, linboxwrap *must* be before ntl.
-                   libraries = ['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
+                   libraries = ['linboxsage', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
                    language = 'c++')
 
 libsingular = Extension('sage.libs.singular.singular',

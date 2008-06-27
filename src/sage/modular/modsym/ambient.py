@@ -1422,10 +1422,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: a[0]*a[1]
             (1, -zeta6 - 1, 2*zeta6 - 2, zeta6, -2*zeta6 + 1, -2*zeta6 + 4, 0, 2*zeta6 - 1, -zeta6, 3*zeta6 - 3)
         """
+        if self.sign() == 0:
+            raise ValueError, "sign must be nonzero"
         v = list(v)
 
         # Get decomposition of this space
         D = self.cuspidal_submodule().new_subspace().decomposition()
+        for A in D:
+            # since sign is zero and we're on the new cuspidal subspace
+            # each factor is definitely simple.
+            A._is_simple = True
         B = [A.dual_free_module().basis_matrix().transpose() for A in D]
 
         # Normalize the names strings.
@@ -1617,6 +1623,54 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
                                      base_ring=self.base_ring())
 
 
+    def _hecke_images(self, i, v):
+        """
+        Return matrix whose rows are the images of the $i$-th standard
+        basis vector under the Hecke operators $T_p$ for all integers
+        in $v$.
+
+        INPUT:
+            i -- nonnegative integer
+            v -- a list of positive integer
+        OUTPUT:
+            matrix -- whose rows are the Hecke images
+
+        EXAMPLES:
+            sage: M = ModularSymbols(11,4,1)
+            sage: M._hecke_images(0,[1,2,3,4])
+            [ 1  0  0  0]
+            [ 9  0  1 -1]
+            [28  2 -1 -1]
+            [73  2  5 -7]
+            sage: M.T(1)(M.0).element()
+            (1, 0, 0, 0)
+            sage: M.T(2)(M.0).element()
+            (9, 0, 1, -1)
+            sage: M.T(3)(M.0).element()
+            (28, 2, -1, -1)
+            sage: M.T(4)(M.0).element()
+            (73, 2, 5, -7)
+            sage: M = ModularSymbols(12,4)
+            sage: M._hecke_images(0,[1,2,3,4])
+            [  1   0   0   0   0   0   0   0   0   0   0   0]
+            [  8   1  -1  -2   2   2  -3   1  -2   3  -1   0]
+            [ 27   4  -4  -8   8  10 -14   4  -9  14  -5   0]
+            [ 64  10 -10 -20  20  26 -36  10 -24  38 -14   0]
+            sage: M.T(1)(M.0).element()
+            (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            sage: M.T(2)(M.0).element()
+            (8, 1, -1, -2, 2, 2, -3, 1, -2, 3, -1, 0)
+            sage: M.T(3)(M.0).element()
+            (27, 4, -4, -8, 8, 10, -14, 4, -9, 14, -5, 0)
+            sage: M.T(4)(M.0).element()
+            (64, 10, -10, -20, 20, 26, -36, 10, -24, 38, -14, 0)
+        """
+        # Find basis vector for ambient space such that it is not in
+        # the kernel of the dual space corresponding to self.
+        c = self.manin_generators()[self.manin_basis()[i]]
+        N = self.level()
+        return heilbronn.hecke_images_gamma0_weight_k(c.u,c.v, c.i, N, self.weight(),
+                                                      v, self.manin_gens_to_basis())
 
 class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
     """
@@ -1784,8 +1838,6 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         OUTPUT:
             matrix -- whose rows are the Hecke images
 
-        EXAMPLES:
-            sage:
         """
         # Find basis vector for ambient space such that it is not in
         # the kernel of the dual space corresponding to self.
@@ -2186,9 +2238,6 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         OUTPUT:
             matrix -- whose rows are the Hecke images
-
-        EXAMPLES:
-            sage:
         """
         if self.weight() != 2:
             raise NotImplementedError, "hecke images only implemented when the weight is 2"

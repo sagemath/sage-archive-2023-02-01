@@ -765,7 +765,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         """
         if prec is None:
             prec = self.default_prec()
-        if R == ZZ:
+        if R == ZZ and self.base_ring() == QQ:
             return self._q_expansion_module_integral(prec)
         elif R == QQ:
             return self._q_expansion_module_rational(prec)

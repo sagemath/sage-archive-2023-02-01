@@ -24,11 +24,18 @@ import sage.misc.misc
 include '../../ext/cdefs.pxi'
 include '../../ext/interrupt.pxi'
 include '../../ext/stdsage.pxi'
+include "../../libs/flint/flint.pxi"
+include "../../libs/flint/fmpz_poly.pxi"
 
 cimport p1list
 import  p1list
 cdef p1list.export export
 export = p1list.export()
+
+from apply cimport Apply
+cdef Apply PolyApply= Apply()
+
+from sage.rings.integer cimport Integer
 
 ctypedef long long llong
 
@@ -210,6 +217,21 @@ cdef class Heilbronn:
                 a[i] = llong_prod_mod(u,self.list.v[4*i],N) + llong_prod_mod(v,self.list.v[4*i+2], N)
                 b[i] = llong_prod_mod(u,self.list.v[4*i+1],N) + llong_prod_mod(v,self.list.v[4*i+3], N)
         _sig_off
+
+    cdef apply_to_polypart(self, fmpz_poly_t* ans, int i, int k):
+        """
+        INPUT:
+            ans -- fmpz_poly_t*; pre-allocated an initialized array of self.length fmpz_poly_t's
+            i -- integer
+            k -- integer
+        OUTPUT:
+            sets entries of ans
+        """
+        cdef int j, m = k-2
+        for j from 0 <= j < self.length:
+            PolyApply.apply_to_monomial_flint(ans[j], i, m,
+                   self.list.v[4*j], self.list.v[4*j+1],
+                   self.list.v[4*j+2], self.list.v[4*j+3])
 
     def apply(self, int u, int v, int N):
         """
@@ -417,6 +439,8 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
     from sage.matrix.all import matrix
     from sage.rings.all import QQ
     T = matrix(QQ, len(indices), len(P1), sparse=False)
+    if R.base_ring() != QQ:
+        R = R.change_ring(QQ)
 
     cdef Py_ssize_t i, j
     cdef int *a, *b, k
@@ -426,11 +450,8 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
     t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
                                level=1, caller_name='hecke_images_gamma0_weight2')
     for i, n in enumerate(indices):
-        # List the Heilbronn matrices of determinant n defined by Cremona
-        if sage.rings.arith.is_prime(n):
-            H = HeilbronnCremona(n)
-        else:
-            H = HeilbronnMerel(n)
+        # List the Heilbronn matrices of determinant n defined by Cremona or Merel
+        H = HeilbronnCremona(n) if sage.rings.arith.is_prime(n) else HeilbronnMerel(n)
 
         # Allocate memory to hold images of (u,v) under all Heilbronn matrices
         a = <int*> sage_malloc(sizeof(int)*H.length)
@@ -447,7 +468,7 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
             # Compute index of the symbol a[j], b[j] in the standard list.
             k = P1.index(a[j], b[j])
 
-            # Now fill in row i of the sparse matrix T.
+            # Now fill in row i of the matrix T.
             if k != -1:
                  # The following line is just a dangerous direct way to do: T[i,k] += 1
                  T._add_ui_unsafe_assuming_int(i,k,1)
@@ -525,8 +546,6 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
         (zeta6 + 2, 0, 0, -1)
         sage: M.T(6)(x).element()
         (7, -2*zeta6 + 1, -zeta6 - 1, -2*zeta6)
-        sage: (T*S)[-1]
-        (7, -2*zeta6 + 1, -zeta6 - 1, -2*zeta6)
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
 
@@ -535,6 +554,9 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
 
     if K == QQ:
         raise TypeError, "character must not be trivial or quadratic"
+
+    if R.base_ring() != K:
+        R = R.change_ring(K)
 
     # Create a zero dense matrix over K with len(indices) rows
     # and #P^1(N) columns.
@@ -571,7 +593,7 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
         for j from 0 <= j < H.length:
             # Compute index of the symbol a[j], b[j] in the standard list.
             P1.index_and_scalar(a[j], b[j], &k, &scalar)
-            # Now fill in row i of the sparse matrix T.
+            # Now fill in row i of the matrix T.
             if k != -1:
                  # The following line is just a dangerous direct way to do: T[i,k] += chi(scalar)
                  # T[i,k] += chi(scalar)
@@ -605,8 +627,6 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
         indices and x the Manin symbol (u,v), expressed in terms of
         the basis.
 
-    EXAMPLES:
-        sage:
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
     from sage.rings.all import QQ
@@ -618,6 +638,9 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
     cdef Matrix_rational_dense T
     from sage.matrix.all import matrix
     T = matrix(QQ, len(indices), len(P1), sparse=False)
+
+    if R.base_ring() != QQ:
+        R = R.change_ring(QQ)
 
     cdef Py_ssize_t i, j
     cdef int *a, *b, k, scalar
@@ -666,48 +689,48 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
 #   Trivial character and weight > 2.
 ############################################################################
 
-cdef apply_to_poly_part(int a, int b, int c, int d, int i, int k, mpz_t* v):
-    """
-    """
-
-
-def hecke_images_gamma0_weight_k(int u, int v, int N, indices, R):
+def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
     """
     INPUT:
         u, v, N -- integers so that gcd(u,v,N) = 1
+        i       -- integer with 0 <= i <= k-2
+        k       -- weight
         indices -- a list of positive integers
         R       -- matrix over QQ that writes each elements of P1 =
                    P1List(N) in terms of a subset of P1.
     OUTPUT:
         a dense matrix with rational entries whose columns are
         the images T_n(x) for n in indices and x the Manin
-        symbol (u,v), expressed in terms of the basis.
-
-    EXAMPLES:
-        sage:
+        symbol [X^i*Y^(k-2-i), (u,v)], expressed in terms of the basis.
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
 
-    # Create a zero dense matrix over QQ with len(indices) rows
-    # and #P^1(N) columns.
+    # The Manin symbols are enumerated as
+    #   all [0, (u,v)] for (u,v) in P^1(N) then
+    #   all [1, (u,v)] for (u,v) in P^1(N) etc.
+    # So we create a zero dense matrix over QQ with len(indices) rows
+    # and #P^1(N) * (k-1) columns.
     cdef Matrix_rational_dense T
     from sage.matrix.all import matrix
     from sage.rings.all import QQ
-    T = matrix(QQ, len(indices), len(P1), sparse=False)
+    T = matrix(QQ, len(indices), len(P1)*(k-1), sparse=False)
 
-    cdef Py_ssize_t i, j
-    cdef int *a, *b, k
+    if R.base_ring() != QQ:
+        R = R.change_ring(QQ)
+
+    cdef Py_ssize_t j, m, z, w, n, p
+    cdef int *a, *b
+
+    n = len(P1)
 
     cdef Heilbronn H
+    cdef fmpz_poly_t* poly
+    cdef Integer coeff = Integer()
+    cdef mpz_t tmp
+    mpz_init(tmp)
 
-    t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
-                               level=1, caller_name='hecke_images_gamma0_weight2')
-    for i, n in enumerate(indices):
-        # List the Heilbronn matrices of determinant n defined by Cremona
-        if sage.rings.arith.is_prime(n):
-            H = HeilbronnCremona(n)
-        else:
-            H = HeilbronnMerel(n)
+    for z, m in enumerate(indices):
+        H = HeilbronnCremona(m) if sage.rings.arith.is_prime(m) else HeilbronnMerel(m)
 
         # Allocate memory to hold images of (u,v) under all Heilbronn matrices
         a = <int*> sage_malloc(sizeof(int)*H.length)
@@ -718,40 +741,56 @@ def hecke_images_gamma0_weight_k(int u, int v, int N, indices, R):
         # Compute images of (u,v) under all Heilbronn matrices
         H.apply_only(u, v, N, a, b)
 
+        # Compute images of X^i Y^(2-k-i) under each Heilbronn matrix
+        poly = <fmpz_poly_t*> sage_malloc(sizeof(fmpz_poly_t)*H.length)
+        for j from 0 <= j < H.length:
+            fmpz_poly_init(poly[j])
+
+        # The following line dominates the runtime of this entire function:
+        H.apply_to_polypart(poly, i, k)
+
         # Compute the indexes of these images.
         # We just store them in the array a for simplicity.
         for j from 0 <= j < H.length:
             # Compute index of the symbol a[j], b[j] in the standard list.
-            k = P1.index(a[j], b[j])
-
-            # Now fill in row i of the sparse matrix T.
-            if k != -1:
-                 # The following line is just a dangerous direct way to do: T[i,k] += 1
-                 T._add_ui_unsafe_assuming_int(i,k,1)
+            p = P1.index(a[j], b[j])
+            # Now fill in row z of the matrix T.
+            if p != -1:
+                for w from 0 <= w < k-1:
+                    # The following two lines are just a vastly faster version of:
+                    #           T[z, n*w + p] += poly[j][w]
+                    # They use that we know that T has only integer entries.
+                    fmpz_poly_get_coeff_mpz(tmp, poly[j], w)
+                    mpz_add(mpq_numref(T._matrix[z][n*w+p]), mpq_numref(T._matrix[z][n*w+p]), tmp)
 
         # Free a and b
         sage_free(a)
         sage_free(b)
 
-    t = sage.misc.misc.verbose("finished computing non-reduced images",
-                               t, level=1, caller_name='hecke_images_gamma0_weight2')
+        # Free poly part
+        for j from 0 <= j < H.length:
+            fmpz_poly_clear(poly[j])
+        sage_free(poly)
 
-    t = sage.misc.misc.verbose("Now reducing images of symbol",
-                               level=1, caller_name='hecke_images_gamma0_weight2')
+    mpz_clear(tmp)
 
     # Return the product T * R, whose rows are the image of (u,v) under
     # the Hecke operators T_n for n in indices.
-    if max(indices) <= 30:   # In this case T tends to be very sparse
-        ans = T.sparse_matrix()._matrix_times_matrix_dense(R)
-        sage.misc.misc.verbose("did reduction using sparse multiplication",
-                               t, level=1, caller_name='hecke_images_gamma0_weight2')
-    elif R.is_sparse():
-        ans = T * R.dense_matrix()
-        sage.misc.misc.verbose("did reduction using dense multiplication",
-                               t, level=1, caller_name='hecke_images_gamma0_weight2')
-    else:
-        ans = T * R
-        sage.misc.misc.verbose("did reduction using dense multiplication",
-                               t, level=1, caller_name='hecke_images_gamma0_weight2')
+    return T * R.dense_matrix()
 
-    return ans
+
+############################################################################
+# Fast application of Heilbronn operators to computation of
+# systems of Hecke eigenvalues.
+#   Nontrivial character of order > 2 and weight > 2
+############################################################################
+
+# TODO
+
+############################################################################
+# Fast application of Heilbronn operators to computation of
+# systems of Hecke eigenvalues.
+#   Nontrivial character of order 2 and weight > 2
+############################################################################
+
+# TODO

@@ -899,7 +899,9 @@ ext_modules = [ \
               ['sage/modular/modsym/heilbronn.pyx',
                'sage/modular/modsym/p1list.pyx',
                'sage/ext/arith.pyx'],
-              libraries = ['gmp', 'm']), \
+              libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/'],
+              extra_compile_args=["-std=c99"]), \
 
     Extension('sage.modular.modsym.apply',
               ['sage/modular/modsym/apply.pyx'],

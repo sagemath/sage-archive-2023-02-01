@@ -34,16 +34,7 @@ def cblas():
 # In the other cases we just return the same library name as cblas()
 # which is fine for the linker
 def atlas():
-    if os.environ.has_key('SAGE_CBLAS'):
-        return os.environ['SAGE_CBLAS']
-    elif os.path.exists('/usr/lib/libatlas.dylib') or \
-        os.path.exists('/usr/lib/libatlas.so'):
-        return 'atlas'
-    elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested
-        return 'blas'
-    else:
-        # This is very slow  (?), but *guaranteed* to be available.
-        return 'gslcblas'
+    return 'atlas'
 
 include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
                 '%s/local/include/'%SAGE_ROOT,  \
@@ -93,6 +84,77 @@ def environ_parse(s):
     return environ_parse(s)
 
 def pyx_preparse(s):
+    r"""
+    Preparse a Pyx file
+      * include cdefs.pxi, interrupt.pxi, stdsage.pxi
+      * parse clang pragma (c or c++)
+      * parse clib pragma (additional libraries to link in)
+      * parse cinclude (additional include directories)
+
+    The pragmas:
+    \begin{description}
+      \item[clang] may be either c or c++ indicating whether a C or
+                   C++ compiler should be used
+
+      \item[clib] additional libraries to be linked in, the space
+                  separated list is split and passed to distutils.
+
+      \item[cinclude] additional directories to search for header
+                      files. The space separated list is split and
+                      passed to distutils.
+    \end{description}
+
+    EXAMPLE:
+        sage: from sage.misc.cython import pyx_preparse
+        sage: pyx_preparse("")
+        ('\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n\ninclude "cdefs.pxi"\n',
+        ['mpfr',
+        'gmp',
+        'gmpxx',
+        'stdc++',
+        'pari',
+        'm',
+        'curvesntl',
+        'g0nntl',
+        'jcntl',
+        'rankntl',
+        'gsl',
+        'gslcblas',
+        'atlas',
+        'ntl',
+        'csage'],
+        ['/usr/local/sage-3.0.3/local/include/csage/',
+        '/usr/local/sage-3.0.3/local/include/',
+        '/usr/local/sage-3.0.3/local/include/python2.5/',
+        '/usr/local/sage-3.0.3/devel/sage/sage/ext/',
+        '/usr/local/sage-3.0.3/devel/sage/',
+        '/usr/local/sage-3.0.3/devel/sage/sage/gsl/'],
+        'c',
+        [])
+        sage: s, libs, inc, lang, f = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
+        sage: lang
+        'c++'
+
+        sage: libs
+        ['foo', 'mpfr',
+        'gmp', 'gmpxx',
+        'stdc++',
+        'pari',
+        'm',
+        'curvesntl', 'g0nntl', 'jcntl', 'rankntl',
+        'gsl', 'gslcblas', 'atlas',
+        'ntl',
+        'csage']
+
+        sage: inc
+        ['bar',
+        '/usr/local/sage-3.0.3/local/include/csage/',
+        '/usr/local/sage-3.0.3/local/include/',
+        '/usr/local/sage-3.0.3/local/include/python2.5/',
+        '/usr/local/sage-3.0.3/devel/sage/sage/ext/',
+        '/usr/local/sage-3.0.3/devel/sage/',
+        '/usr/local/sage-3.0.3/devel/sage/sage/gsl/']
+    """
     lang = parse_keywords('clang', s)
     if lang[0]:
         lang = lang[0][0]

@@ -1270,12 +1270,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         height bounds. However that function, while it displays a lot
         of output, returns no values.
 
-        TODO: (1) Right now this function assumes that the input curve
-        is in minimal Weierstrass form.  This restriction will be
-        removed in the future.  This function raises a
-        NotImplementedError if a non-minimal curve is given as input.
-
-              (2) Allow passing of command-line parameters to mwrank.
+        TODO: Allow passing of command-line parameters to mwrank.
 
         WARNING: If the program fails to give a provably correct
         result, it prints a warning message, but does not raise an
@@ -1291,7 +1286,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                        fails the usual mwrank procedure is called.
             algorithm -- 'mwrank_shell' (default) -- call mwrank shell command
                       -- 'mwrank_lib' -- call mwrank c library
-            only_use_mwrank -- bool (default True) if false, attempts to
+            only_use_mwrank -- bool (default True) if False, attempts to
                        first use more naive, natively implemented methods.
             proof -- bool or None (default None, see proof.elliptic_curve or
                        sage.structure.proof).
@@ -1304,6 +1299,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('389a')
             sage: E.gens()                 # random output
             [(-1 : 1 : 1), (0 : 0 : 1)]
+
+        A non-integral example:
+            sage: E = EllipticCurve([-3/8,-2/3])
+            sage: E.gens()
+            [(10/9 : 29/54 : 1)]
+
+        A non-minimal example:
+            sage: E = EllipticCurve('389a1')
+            sage: E1 = E.change_weierstrass_model([1/20,0,0,0]); E1
+            Elliptic Curve defined by y^2 + 8000*y = x^3 + 400*x^2 - 320000*x over Rational Field
+            sage: E1.gens()
+            [(-400 : 8000 : 1), (0 : -8000 : 1)]
         """
         if proof is None:
             from sage.structure.proof.proof import get_flag
@@ -1347,8 +1354,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             except RuntimeError:
                 pass
         # end if (not_use_mwrank)
-        if not self.is_integral():
-            raise NotImplementedError, "gens via mwrank only implemented for curves with integer coefficients."
         if algorithm == "mwrank_lib":
             misc.verbose("Calling mwrank C++ library.")
             C = self.mwrank_curve(verbose)
@@ -1362,7 +1367,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             else:
                 proof = C.certain()
         else:
-            X = self.mwrank()
+            # when gens() calls mwrank it passes the command-line
+            # parameter "-p 100" which helps curves with large
+            # coefficients and 2-torsion and is otherwise harmless.
+            # This is pending a more intelligent handling of mwrank
+            # options in gens() (which is nontrivial since gens() needs
+            # to parse the output from mwrank and this is seriously
+            # affected by what parameters the user passes!).
+            # In fact it would be much better to avoid the mwrank console at
+            # all for gens() and just use the library. This is in
+            # progress (see trac #1949).
+            X = self.mwrank('-p 100')
             misc.verbose("Calling mwrank shell.")
             if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
                 msg = 'Generators not provably computed.'

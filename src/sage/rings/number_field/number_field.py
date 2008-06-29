@@ -5548,17 +5548,24 @@ class NumberField_cyclotomic(NumberField_absolute):
         do \code{self.embeddings(ComplexField(53))}.
 
         EXAMPLES:
-            sage: C = CyclotomicField(4)
-            sage: C.complex_embeddings()
+            sage: CyclotomicField(5).complex_embeddings()
             [
             Ring morphism:
-              From: Cyclotomic Field of order 4 and degree 2
+              From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Double Field
-              Defn: zeta4 |--> 2.77555756156e-17 - 1.0*I,
+              Defn: zeta5 |--> 0.309016994375 - 0.951056516295*I,
             Ring morphism:
-              From: Cyclotomic Field of order 4 and degree 2
+              From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Double Field
-              Defn: zeta4 |--> -1.83690953073e-16 + 1.0*I
+              Defn: zeta5 |--> -0.809016994375 - 0.587785252292*I,
+            Ring morphism:
+              From: Cyclotomic Field of order 5 and degree 4
+              To:   Complex Double Field
+              Defn: zeta5 |--> -0.809016994375 + 0.587785252292*I,
+            Ring morphism:
+              From: Cyclotomic Field of order 5 and degree 4
+              To:   Complex Double Field
+              Defn: zeta5 |--> 0.309016994375 + 0.951056516295*I
             ]
         """
         if prec == 53:

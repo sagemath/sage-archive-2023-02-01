@@ -514,6 +514,10 @@ cdef class NumberFieldElement(FieldElement):
         Return the absolute value of this element with respect to the
         ith complex embedding of parent, to the given precision.
 
+        If prec is 53 (the default), then the complex double field is
+        used; otherwise the arbitrary precision (but slow) complex
+        field is used.
+
         INPUT:
             prec -- (default: 53) integer bits of precision
             i -- (default: ) integer, which embedding to use
@@ -521,9 +525,9 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES:
             sage: z = CyclotomicField(7).gen()
             sage: abs(z)
-            1.00000000000000
+            1.0
             sage: abs(z^2 + 17*z - 3)
-            16.0604426799931
+            16.06044268
             sage: K.<a> = NumberField(x^3+17)
             sage: abs(a)
             2.57128159066

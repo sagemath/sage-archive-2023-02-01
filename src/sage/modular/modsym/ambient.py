@@ -783,7 +783,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: w.fcp()
             (x - 1)^2 * (x + 1)^2
 
-        This doesn't work since the character had order > 2.
+        This doesn't work since the character has order > 2:
             sage: M = ModularSymbols((DirichletGroup(13).0), 2,1); M
             Modular Symbols space of dimension 0 and level 13, weight 2, character [zeta12], sign 1, over Cyclotomic Field of order 12 and degree 4
             sage: M._compute_atkin_lehner_matrix(13)
@@ -791,7 +791,8 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             ...
             ValueError: Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)
 
-        Note that Atkin-Lehner does make sense on $\Gamma_1(13)$ but doesn't compute with Hecke:
+        Note that Atkin-Lehner does make sense on $\Gamma_1(13)$, but
+        doesn't commute with the Hecke operators:
             sage: M = ModularSymbols(Gamma1(13),2)
             sage: w = M.atkin_lehner_operator(13).matrix()
             sage: t = M.T(2).matrix()
@@ -804,10 +805,12 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if chi is not None and chi.order() > 2:
             raise ValueError, "Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)"
 
-        if N%d != 0: raise ValueError, "d must divide N"
+        N = self.level()
         k = self.weight()
         R = self.base_ring()
-        N = self.level()
+        if N%d != 0:
+            raise ValueError, "d must divide N"
+
         g, x, y = arith.xgcd(d, -N//d)
         g = [d*x, y, N, d]
         A = self._action_on_modular_symbols(g)

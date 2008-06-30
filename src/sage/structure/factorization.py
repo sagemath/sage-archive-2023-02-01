@@ -78,11 +78,11 @@ factorization has three factors:
     sage: f
     -5*x^2 + 25*x - 30
     sage: F = f.factor(); F
-    (-5) * (x - 3) * (x - 2)
+    (-1) * 5 * (x - 3) * (x - 2)
     sage: F.unit()
-    1
+    -1
     sage: list(F)
-    [(-5, 1), (x - 3, 1), (x - 2, 1)]
+    [(5, 1), (x - 3, 1), (x - 2, 1)]
     sage: expand(F)
     -5*x^2 + 25*x - 30
     sage: len(F)

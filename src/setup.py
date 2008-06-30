@@ -820,6 +820,12 @@ ext_modules = [ \
     Extension('sage.rings.polynomial.polynomial_element',
               sources = ['sage/rings/polynomial/polynomial_element.pyx']), \
 
+    Extension('sage.rings.polynomial.polynomial_integer_dense_flint',
+                 sources = ['sage/rings/polynomial/polynomial_integer_dense_flint.pyx'],
+                 language = 'c++',
+                 libraries = ["csage", "flint", "gmp", "gmpxx", "ntl"],
+                 include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/']),
+
     Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
                  sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],
                  libraries = ['ntl', 'stdc++', 'gmp'],

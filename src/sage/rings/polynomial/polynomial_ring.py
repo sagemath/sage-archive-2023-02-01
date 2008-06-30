@@ -85,6 +85,7 @@ import sage.misc.defaults
 import sage.misc.latex as latex
 import sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
 import sage.rings.polynomial.polynomial_integer_dense_ntl as polynomial_integer_dense_ntl
+import sage.rings.polynomial.polynomial_integer_dense_flint as polynomial_integer_dense_flint
 import sage.rings.polynomial.polynomial_modn_dense_ntl as polynomial_modn_dense_ntl
 import sage.rings.polynomial.padics.polynomial_padic_flat
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
@@ -424,7 +425,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if isinstance(R, rational_field.RationalField) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_rational_dense
         elif is_IntegerRing(R) and not self.is_sparse():
-            self.__polynomial_class = polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
+            self.__polynomial_class = polynomial_integer_dense_flint.Polynomial_integer_dense_flint
         elif isinstance(R, pAdicRingLazy):
             self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
         elif isinstance(R, pAdicFieldLazy):

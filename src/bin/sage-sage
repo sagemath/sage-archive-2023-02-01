@@ -519,7 +519,7 @@ if [ $1 = '-b' ]; then
         if [ "$@" ]; then
             ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
         fi
-        time python "$SAGE_ROOT"/data/extcode/sagebuild/build.py -b
+        time python "$SAGE_ROOT"/devel/sage/build.py -b
     else
         time sage-build "$@"
     fi
@@ -532,7 +532,7 @@ if [ $1 = '-br' -o $1 = "--br" ]; then
         if [ "$@" ]; then
             ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
         fi
-        python "$SAGE_ROOT"/data/extcode/sagebuild/build.py -b && sage
+        python "$SAGE_ROOT"/devel/sage/build.py -b && sage
     else
         sage-build "$@" && sage
     fi
@@ -574,7 +574,7 @@ if [ $1 = '-ba' ]; then
             echo 'foo'
             ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
         fi
-        python "$SAGE_ROOT"/data/extcode/sagebuild/build.py --all
+        python "$SAGE_ROOT"/devel/sage/build.py --all
    else
       sage-build -b "$@"
    fi
@@ -588,7 +588,7 @@ if [ $1 = '-ba-force' ]; then
             echo 'foo'
             ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
         fi
-        python "$SAGE_ROOT"/data/extcode/sagebuild/build.py --all
+        python "$SAGE_ROOT"/devel/sage/build.py --all
    else
       sage-build -b "$@"
    fi

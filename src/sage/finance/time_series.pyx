@@ -502,10 +502,53 @@ cdef class TimeSeries:
         return v
 
     def linear_filter(self, M):
+        """
+        Return a linear filter using the first M autocovariance values
+        of self.  This is useful in forcasting by taking a weighted
+        average of previous values of a time series.
+
+        WARNING: The input sequence is assumed to be stationary, which
+        means that the autocovariance $\langle y_j y_k \rangle$ depends
+        only on the difference $|j-k|$.
+
+        INPUT:
+            M -- integer
+
+        OUTPUT:
+            TimeSeries -- the weights in the linear filter.
+
+        EXAMPLES:
+            sage: set_random_seed(0)
+            sage: v = finance.TimeSeries(10^4).randomize('normal').sums()
+            sage: F = v.linear_filter(100)
+            sage: v
+            [0.6767, 0.2756, 0.6332, 0.0469, -0.8897 ... 87.6759, 87.6825, 87.4120, 87.6639, 86.3194]
+            sage: v.linear_forecast(F)
+            86.017728504280015
+            sage: F
+            [1.0148, -0.0029, -0.0105, 0.0067, -0.0232 ... -0.0106, -0.0068, 0.0085, -0.0131, 0.0092]
+        """
         acvs = [self.autocovariance(i) for i in range(M+1)]
         return linear_filter(acvs)
 
     def linear_forecast(self, filter):
+        """
+        Given a linear filter as output by the linear_filter command,
+        compute the forecast for the next term in the series.
+
+        INPUT:
+            filter -- a time series output by the linear filter command.
+
+        EXAMPLES:
+            sage: set_random_seed(0)
+            sage: v = finance.TimeSeries(100).randomize('normal').sums()
+            sage: F = v[:-1].linear_filter(5); F
+            [1.0019, -0.0524, -0.0643, 0.1323, -0.0539]
+            sage: v.linear_forecast(F)
+            11.782029861181114
+            sage: v
+            [0.6767, 0.2756, 0.6332, 0.0469, -0.8897 ... 9.2447, 9.6709, 10.4037, 10.4836, 12.1960]
+        """
         cdef TimeSeries filt
         if isinstance(filter, TimeSeries):
             filt = filter
@@ -828,6 +871,14 @@ cdef class TimeSeries:
         return v
 
     def show(self, *args, **kwds):
+        """
+        Calls plot and passes all arguments onto the plot function.  This is thus
+        just an alias for plot.
+
+        EXAMPLES:
+        Draw a plot of a time series:
+            sage: finance.TimeSeries([1..10]).show()
+        """
         return self.plot(*args, **kwds)
 
     def plot(self, Py_ssize_t plot_points=1000, points=False, **kwds):
@@ -924,16 +975,18 @@ cdef class TimeSeries:
             t._values[i] = s/k
         return t
 
-    def exponential_moving_average(self, double alpha, double t0 = 0):
+    def exponential_moving_average(self, double alpha):
         """
-        Return the exponential moving average time series over the
-        last .  Assumes the input time series was constant
-        with its starting value for negative time.  The t-th step of
-        the output is the sum of the previous k-1 steps of self and
-        the kth step divided by k.
+        Return the exponential moving average time series.  Assumes
+        the input time series was constant with its starting value for
+        negative time.  The t-th step of the output is the sum of the
+        previous k-1 steps of self and the kth step divided by k.
+
+        The 0th term is formally undefined, so we define it to be 0,
+        and we define the first term to be self[0].
 
         INPUT:
-            alpha -- float; a smoothing factor with 0 <= alpha <= 1.
+            alpha -- float; a smoothing factor with 0 <= alpha <= 1
 
         OUTPUT:
             a time series with the same number of steps as self.
@@ -941,12 +994,19 @@ cdef class TimeSeries:
         EXAMPLES:
             sage: v = finance.TimeSeries([1,1,1,2,3]); v
             [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]
-            sage: v.exponential_moving_average(0,0)
+            sage: v.exponential_moving_average(0)
             [0.0000, 1.0000, 1.0000, 1.0000, 1.0000]
-            sage: v.exponential_moving_average(1,0)
+            sage: v.exponential_moving_average(1)
             [0.0000, 1.0000, 1.0000, 1.0000, 2.0000]
-            sage: v.exponential_moving_average(0.5,0)
+            sage: v.exponential_moving_average(0.5)
             [0.0000, 1.0000, 1.0000, 1.0000, 1.5000]
+
+        Some more examples:
+            sage: v = finance.TimeSeries([1,2,3,4,5])
+            sage: v.exponential_moving_average(1)
+            [0.0000, 1.0000, 2.0000, 3.0000, 4.0000]
+            sage: v.exponential_moving_average(0)
+            [0.0000, 1.0000, 1.0000, 1.0000, 1.0000]
         """
         if alpha < 0 or alpha > 1:
             raise ValueError, "alpha must be between 0 and 1"
@@ -954,7 +1014,7 @@ cdef class TimeSeries:
         cdef TimeSeries t = new_time_series(self._length)
         if self._length == 0:
             return t
-        t._values[0] = t0
+        t._values[0] = 0
         if self._length == 1:
             return t
         t._values[1] = self._values[0]
@@ -1104,7 +1164,20 @@ cdef class TimeSeries:
             double
 
         EXAMPLES:
+            sage: v = finance.TimeSeries([1,2,3])
+            sage: v.central_moment(2)
+            0.66666666666666663
 
+        Note that the central moment is different than the moment
+        here, since the mean is not $0$:
+            sage: v.moment(2)     # doesn't subtract off mean
+            4.666666666666667
+
+        We compute the central moment directly:
+            sage: mu = v.mean(); mu
+            2.0
+            sage: ((1-mu)^2 + (2-mu)^2 + (3-mu)^2) / 3
+            0.66666666666666663
         """
         if k == 1:
             return float(0)
@@ -1308,13 +1381,65 @@ cdef class TimeSeries:
         return sqrt(self.variance(bias=bias))
 
     def range_statistic(self):
-        sums = self.sums()
-        return (sums.max() - sums.min())/self.standard_deviation()
+        """
+        Return the range statistic of self, which is the difference
+        between the maximum and minimum values of this time series,
+        divided by the standard deviation of the series of differences.
+
+        OUTPUT:
+            float
+
+        EXAMPLES:
+        Notice that if we make a Brownian motion random walk, there
+        is no difference if we change the standard deviation.
+            sage: set_random_seed(0); finance.TimeSeries(10^6).randomize('normal').sums().range_statistic()
+            1873.9206979719115
+            sage: set_random_seed(0); finance.TimeSeries(10^6).randomize('normal',0,100).sums().range_statistic()
+            1873.920697971955
+        """
+        return (self.max() - self.min())/self.diffs().standard_deviation()
 
     def hurst_exponent(self):
+        """
+        Returns a very simple naive estimate of the Hurst exponent of
+        this time series.  There are many possible ways to estimate
+        this number, and this is perhaps the most naive.  The estimate
+        we take here is the log of the range statistic divided by the
+        length of this time series.
+
+        We define the Hurst exponent of a constant time series to be 1.
+
+        NOTE: This is only a very rough estimator.  There are supposed
+        to be better ones that use wavelets.
+
+        EXAMPLES:
+        The Hurst exponent of Brownian motion is 1/2.  We approximate
+        it with some specific samples:
+            sage: set_random_seed(0)
+            sage: bm = finance.TimeSeries(10^5).randomize('normal').sums(); bm
+            [0.6767, 0.2756, 0.6332, 0.0469, -0.8897 ... 152.2437, 151.5327, 152.7629, 152.9169, 152.9084]
+            sage: bm.hurst_exponent()
+            0.5174890556918027
+
+        We compute the Hurst exponent of a simulated fractional Brownian
+        motion with Hurst parameter 0.7.  This function estimates the
+        Hurst exponent as 0.6678...
+            sage: set_random_seed(0)
+            sage: fbm = finance.fractional_brownian_motion_simulation(0.7,0.1,10^5,1)[0].sums()
+            sage: fbm.hurst_exponent()
+            0.66787027921443409
+
+        Another example with small Hurst exponent (notice how bad the prediction is...):
+            sage: fbm = finance.fractional_brownian_motion_simulation(0.2,0.1,10^5,1)[0].sums()
+            sage: fbm.hurst_exponent()
+            0.30450273560706259
+
+        The above example illustrate that this is not a very good
+        estimate of the Hurst exponent.
+        """
         cdef double r = self.range_statistic()
         if r == 0:
-            return 0
+            return float(1)
         return log(r)/log(self._length)
 
     def min(self, bint index=False):
@@ -1383,17 +1508,27 @@ cdef class TimeSeries:
         else:
             return s
 
-    def clip(self, min=None, max=None):
+    def clip_remove(self, min=None, max=None):
         """
-        Return new time series obtained from self by removing all values
-        <= a certain maximum value, >= a certain minimum, or both.
+        Return new time series obtained from self by removing all
+        values that are less than or equal to a certain miminum value
+        or greater than or equal to a certain maximum.
 
         INPUT:
             min -- None or double
             max -- None or double
 
         OUTPUT:
-            time seriessx
+            time series
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1..10])
+            sage: v.clip_remove(3,7)
+            [3.0000, 4.0000, 5.0000, 6.0000, 7.0000]
+            sage: v.clip_remove(3)
+            [3.0000, 4.0000, 5.0000, 6.0000, 7.0000, 8.0000, 9.0000, 10.0000]
+            sage: v.clip_remove(max=7)
+            [1.0000, 2.0000, 3.0000, 4.0000, 5.0000, 6.0000, 7.0000]
         """
         cdef Py_ssize_t i, j
         cdef TimeSeries t
@@ -1641,17 +1776,17 @@ cdef class TimeSeries:
         We take the above values, and compute the proportion that lie within
         1, 2, 3, 5, and 6 standard deviations of the mean (0):
             sage: s = a.standard_deviation()
-            sage: len(a.clip(-s,s))/float(len(a))
+            sage: len(a.clip_remove(-s,s))/float(len(a))
             0.68309399999999998
-            sage: len(a.clip(-2*s,2*s))/float(len(a))
+            sage: len(a.clip_remove(-2*s,2*s))/float(len(a))
             0.95455900000000005
-            sage: len(a.clip(-3*s,3*s))/float(len(a))
+            sage: len(a.clip_remove(-3*s,3*s))/float(len(a))
             0.997228
-            sage: len(a.clip(-5*s,5*s))/float(len(a))
+            sage: len(a.clip_remove(-5*s,5*s))/float(len(a))
             0.99999800000000005
 
         There were no "six sigma events":
-            sage: len(a.clip(-6*s,6*s))/float(len(a))
+            sage: len(a.clip_remove(-6*s,6*s))/float(len(a))
             1.0
         """
         if distribution == 'uniform':
@@ -1984,7 +2119,7 @@ def unpickle_time_series_v1(v, Py_ssize_t n):
 
 def linear_filter(acvs):
     """
-    Create a linear filter with given autococvariance sequence.
+    Create a linear filter with given autocovariance sequence.
 
     EXAMPLES:
 

@@ -164,6 +164,14 @@ class Stock:
         def get_data(exchange=''):
             """
             This function is used internally.
+
+            EXAMPLES:
+            This indirectly tests the use of get_data.
+                sage: finance.Stock('aapl').historical()[:2]    # optional -- requires internet
+                [
+                  2-Jan-90 8.81 9.38 8.75 9.31    6542800,
+                  3-Jan-90 9.50 9.50 9.38 9.38    7428400
+                ]
             """
             url = 'http://finance.google.com/finance/historical?q=%s%s&output=csv&startdate=%s'%(
                  exchange, symbol.upper(),startdate)

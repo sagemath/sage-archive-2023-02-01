@@ -14,6 +14,25 @@ from time_series cimport TimeSeries
 def simulations(Py_ssize_t n, Py_ssize_t k,
                double m0, double sigma,
                int kbar, gamma):
+    """
+    Return k simulations of length n using the Markov switching
+    multifractal model.
+
+    INPUT:
+        n, k -- positive integers
+        m0, sigma -- floats
+        kbar -- integer
+        gamma -- list of floats
+
+    OUTPUT:
+        list of lists
+
+    EXAMPLES:
+        sage: set_random_seed(0)
+        sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
+        sage: sage.finance.markov_multifractal_cython.simulations(5,2,1.278,0.262,8,msm.gamma())
+        [[0.0014, -0.0023, -0.0028, -0.0030, -0.0019], [0.0020, -0.0020, 0.0034, -0.0010, -0.0004]]
+    """
     cdef double m1 = 2 - m0
     cdef Py_ssize_t i, j, a, c
     cdef TimeSeries t, eps

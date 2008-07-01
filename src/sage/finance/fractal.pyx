@@ -1,10 +1,23 @@
-"""
+r"""
 Multifractal Random Walk
 
-This module implements Mandelbrot's the multifractal random walk model
-of asset returns as developed by Bacry, Kozhemyak, and Muzy.
-See
+This module implements the fractal approach to understanding financial
+markets that was pionered by Mandelbrot.  In particular, it implements
+the multifractal random walk model of asset returns as developed by
+Bacry, Kozhemyak, and Muzy, 2006, 'Continuous cascade models for asset
+returns' and many other papers by Bacry et al. See
+   \url{http://www.cmap.polytechnique.fr/~bacry/ftpPapers.html}
 
+See also Mandelbrot's 'The Misbehavior of Markets' for a motivated
+introduction to the general idea of using a self-similar approach to
+modeling asset returns.
+
+One of the main goals of this implementation is that everything by
+highly optimized and ready for real world high performance simulation
+work.
+
+AUTHOR:
+     -- William Stein (2008)
 """
 
 from sage.rings.all import RDF, CDF, Integer
@@ -196,27 +209,32 @@ def fractional_brownian_motion_simulation(double H, double sigma2, N, n=1):
     """
     return fractional_gaussian_noise_simulation(H,sigma2,N,n)
 
-def multifractal_cascade_random_walk_simulation(double T, double lambda2,
-                                                   double ell, N, n=1):
-    """
-    Return a simulation of a multifractal random walk using the
-    log-normal cascade model of Bacry-Kozhemyak-Muzy 2008.  This
-    walk can be interpreted as the sequence of logarithms of a
-    price series.
+def multifractal_cascade_random_walk_simulation(double T,
+                                                double lambda2,
+                                                double ell,
+                                                double sigma2,
+                                                N,
+                                                n=1):
+    r"""
+    Return a list of n simulations of a multifractal random walk using
+    the log-normal cascade model of Bacry-Kozhemyak-Muzy 2008.  This
+    walk can be interpreted as the sequence of logarithms of a price
+    series.
 
     INPUT:
         T       -- positive real; the integral scale
         lambda2 -- positive real; the intermittency coefficient
         ell     -- a small number -- time step size.
-        N       -- number of steps in simulation
-        n       -- the number of simulations
+        sigma2  -- variance of the Gaussian white noise eps[n]
+        N       -- number of steps in each simulation
+        n       -- the number of separate simulations to run
 
     OUTPUT:
         list of time series
 
     EXAMPLES:
         sage: set_random_seed(0)
-        sage: a = finance.multifractal_cascade_random_walk_simulation(3770,0.02,0.01,10,3)
+        sage: a = finance.multifractal_cascade_random_walk_simulation(3770,0.02,0.01,0.01,10,3)
         sage: a
         [[-0.0096, 0.0025, 0.0066, 0.0016, 0.0078, 0.0051, 0.0047, -0.0013, 0.0003, -0.0043],
          [0.0003, 0.0035, 0.0257, 0.0358, 0.0377, 0.0563, 0.0661, 0.0746, 0.0749, 0.0689],
@@ -225,6 +243,14 @@ def multifractal_cascade_random_walk_simulation(double T, double lambda2,
     The corresponding price series:
         sage: a[0].exp()
         [0.9905, 1.0025, 1.0067, 1.0016, 1.0078, 1.0051, 1.0047, 0.9987, 1.0003, 0.9957]
+
+    MORE DETAILS: The random walk has $n$th step $\eps_n
+    e^{\omega_n}$, where $\eps_n$ is gaussian white noise of variance
+    $\sigma^2$ and $\omega_n$ is renormalized gaussian magnitude,
+    which is given by a stationary gaussian simultation associated to
+    a certain autocovariance sequence.  See Bacry, Kozhemyak, Muzy,
+    2006, 'Continuous cascade models for asset returns' for details.
+
     """
     if ell <= 0:
         raise ValueError, "ell must be positive"
@@ -266,7 +292,7 @@ def multifractal_cascade_random_walk_simulation(double T, double lambda2,
     cdef TimeSeries eps, steps, om
     for om in omega:
         # First compute N Gaussian white noise steps
-        eps = TimeSeries(N).randomize('normal', 0, ell)
+        eps = TimeSeries(N).randomize('normal', 0, sigma2)
 
         # Compute the steps of the multifractal random walk.
         steps = TimeSeries(N)

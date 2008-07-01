@@ -1872,7 +1872,7 @@ def linear_filter(acvs):
     We create 100 simultations ofa multifractal random walk.  This
     models the logarithms of a stock price sequence.
         sage: set_random_seed(0)
-        sage: y = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,1000,100)
+        sage: y = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,0.01,1000,100)
 
     For each walk below we replace the walk by the walk but where each
     step size is replaced by its absolute value -- this is what we
@@ -1899,7 +1899,7 @@ def linear_filter(acvs):
         0.99593284089454...
 
     Now we make up an 'out of sample' sequence:
-        sage: y2 = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,1000,1)[0].diffs().abs().sums()
+        sage: y2 = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,0.01,1000,1)[0].diffs().abs().sums()
         sage: y2
         [0.0013, 0.0059, 0.0066, 0.0068, 0.0184 ... 6.8004, 6.8009, 6.8063, 6.8090, 6.8339]
 
@@ -1927,7 +1927,7 @@ def linear_filter(acvs):
     How does it compare overall?  To find out we do 100 simulations
     and for each we compute the percent that our model beats naively
     using the autocovariances of the sample:
-        sage: y_out = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,1000,100)
+        sage: y_out = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,0.01,1000,100)
         sage: s1 = []; s2 = []
         sage: for v in y_out:
         ...       s1.append(sum([(v[:-i].linear_forecast(F)-v[-i])^2 for i in range(1,20)]))

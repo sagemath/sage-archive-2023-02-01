@@ -1087,14 +1087,17 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B.augment(A)
             [0 1 0]
             [0 1 1]
+            sage: M = Matrix(GF(2), 0, 0, 0)
+            sage: N = Matrix(GF(2), 0, 19, 0)
+            sage: W = M.augment(N)
+            sage: W.ncols()
+            19
         """
         cdef Matrix_mod2_dense A
 
         if self._nrows != right._nrows:
             raise TypeError, "Both numbers of rows must match."
 
-        if self._nrows == 0:
-            return self.copy()
         if self._ncols == 0:
             return right.copy()
         if right._ncols == 0:
@@ -1133,12 +1136,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 1 1]
             [0 0 0]
+            sage: M = Matrix(GF(2), 0, 0, 0)
+            sage: N = Matrix(GF(2), 19, 0, 0)
+            sage: W = M.stack(N)
+            sage: W.nrows()
+            19
         """
         if self._ncols != other._ncols:
             raise TypeError, "Both numbers of columns must match."
 
-        if self._ncols == 0:
-            return self.copy()
         if self._nrows == 0:
             return other.copy()
         if other._nrows == 0:

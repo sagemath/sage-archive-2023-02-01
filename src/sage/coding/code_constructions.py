@@ -545,7 +545,7 @@ def BinaryGolayCode():
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1]]
     # MS = MatrixSpace(F,12,23)
     # V = VectorSpace(F,23)
-    V = span(F, B)
+    V = span(B, F)
     return LinearCodeFromVectorSpace(V)
 
 
@@ -775,7 +775,7 @@ def ExtendedBinaryGolayCode():
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0],\
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1],\
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1]]
-    V = span(GF(2), B)
+    V = span(B, GF(2))
     return LinearCodeFromVectorSpace(V)
     # C = BinaryGolayCode()
     # return C.extended_code()
@@ -836,7 +836,7 @@ def ExtendedTernaryGolayCode():
          [0, 0, 0, 1, 0, 0, 1, 1, 0, 2, 2, 2],\
          [0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 0, 1],\
          [0, 0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 1]]
-    V = span(GF(3), B)
+    V = span(B, GF(3))
     return LinearCodeFromVectorSpace(V)
     # C = TernaryGolayCode()
     # return C.extended_code()
@@ -1084,7 +1084,7 @@ def RandomLinearCode(n,k,F):
     for i in range(50):
         G = MS.random_element()
         if G.rank() == k:
-            V = span(F, G.rows())
+            V = span(G.rows(), F)
             return LinearCodeFromVectorSpace(V)  # may not be in standard form
     MS1 = MatrixSpace(F,k,k)
     MS2 = MatrixSpace(F,k,n-k)
@@ -1179,7 +1179,7 @@ def TernaryGolayCode():
          [0, 0, 0, 2, 0, 1, 2, 1, 1, 0, 0],\
          [0, 0, 0, 0, 2, 0, 1, 2, 1, 1, 0],\
          [0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 1]]
-    V = span(F, B)
+    V = span(B, F)
     return LinearCodeFromVectorSpace(V)
 
 def ToricCode(P,F):

@@ -851,7 +851,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         are the coefficients of $q$-expansions.
         """
         V = self.q_expansion_module(prec, QQ)
-        return free_module.span(ZZ, V.basis()).saturation()
+        return free_module.span(V.basis(), ZZ).saturation()
 
 
     def congruence_number(self, other, prec=None):

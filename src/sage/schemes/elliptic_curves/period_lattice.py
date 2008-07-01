@@ -17,7 +17,7 @@ class PeriodLattice_ell(PeriodLattice):
         Initializes the period lattice by storing the elliptic curve.
         """
         self.E = E
-        PeriodLattice.__init__(self, base_ring=ZZ, rank=2, degree=1, sparse=False, inner_product_matrix=None)
+        PeriodLattice.__init__(self, base_ring=ZZ, rank=2, degree=1, sparse=False)
 
     def __repr__(self):
         return "Period lattice associated to %s"%(self.E)

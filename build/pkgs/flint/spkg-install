@@ -59,10 +59,10 @@ if [ $UNAME != "Darwin" ]; then
         echo "Error building flint shared library."
         exit 1
     fi
-    $RM "$SAGE_LOCAL/lib/libflint*.so"
-    $CP libflint-1.06.so "$SAGE_LOCAL/lib/"
+    $RM "$SAGE_LOCAL"/lib/libflint*.so
+    $CP libflint-1.010.so "$SAGE_LOCAL/lib/"
     CUR=`pwd`
-    cd $SAGE_LOCAL/lib; $LN -s libflint-1.06.so libflint.so
+    cd $SAGE_LOCAL/lib; $LN -sf libflint-1.010.so libflint.so
     cd $CUR
 fi
 

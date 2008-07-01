@@ -1,4 +1,4 @@
-LIBDIR=$(PREFIX)/lib
+IBDIR=$(PREFIX)/lib
 INCLUDEDIR=$(PREFIX)/include
 DOCDIR=$(PREFIX)/doc
 
@@ -22,9 +22,15 @@ endif
 
 CPP = $(FLINT_CPP)
 
-LIBS = -L$(FLINT_GMP_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lm
+#LIBS = -L$(FLINT_GMP_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lm
 
-INCS = -I$(FLINT_GMP_INCLUDE_DIR)
+LIBS = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm -lstdc++
+LIBS2 = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm -lstdc++
+ifndef FLINT_NTL_INCLUDE_DIR
+	INCS = -I$(FLINT_GMP_INCLUDE_DIR)
+else
+	INCS = -I$(FLINT_GMP_INCLUDE_DIR) -I$(FLINT_NTL_INCLUDE_DIR)
+endif
 
 CFLAGS = $(INCS) $(FLINT_TUNE) -O3
 
@@ -49,7 +55,8 @@ HEADERS = \
 	profiler-main.h \
 	profiler.h \
 	test-support.h \
-	long_extras.h
+	long_extras.h \
+        zmod_poly.h
 
 
 ####### library object files
@@ -66,17 +73,19 @@ FLINTOBJ = \
 	mpz_poly-tuning.o \
 	mpz_poly.o \
 	ZmodF_poly.o \
-	long_extras.o
+	long_extras.o \
+        zmod_poly.o \
+	NTL-interface.o
 
 QS: mpQS tinyQS
 
 tune: ZmodF_mul-tune mpz_poly-tune
 
-test: mpn_extras-test fmpz_poly-test fmpz-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test
+test: mpn_extras-test fmpz_poly-test fmpz-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test zmod_poly-test
 
 profile: ZmodF_poly-profile kara-profile fmpz_poly-profile mpz_poly-profile ZmodF_mul-profile
 
-examples: delta_qexp BPTJCubes bernoulli F_mpz_mul-timing expmod
+examples: delta_qexp BPTJCubes bernoulli_zmod F_mpz_mul-timing expmod
 
 all: QS tune test profile examples
 
@@ -131,6 +140,8 @@ long_extras.o: long_extras.c long_extras.h
 zmod_poly.o: zmod_poly.c $(HEADERS)
 	$(CC) $(CFLAGS) -c zmod_poly.c -o zmod_poly.o
 
+NTL-interface.o: NTL-interface.cpp $(HEADERS)
+	$(CPP) $(CFLAGS) -c NTL-interface.cpp -o NTL-interface.o
 
 ####### test program object files
 
@@ -164,6 +175,9 @@ long_extras-test.o: long_extras-test.c
 zmod_poly-test.o: zmod_poly-test.c
 	$(CC) $(CFLAGS) -c zmod_poly-test.c -o zmod_poly-test.o
 
+NTL-interface-test.o: NTL-interface-test.cpp
+	$(CPP) $(CFLAGS) -c NTL-interface-test.cpp -o NTL-interface-test.o
+
 ####### test program targets
 
 mpn_extras-test: mpn_extras-test.o test-support.o $(FLINTOBJ) $(HEADERS)
@@ -190,9 +204,11 @@ ZmodF_mul-test: ZmodF_mul-test.o test-support.o $(FLINTOBJ) $(HEADERS)
 long_extras-test: long_extras.o long_extras-test.o test-support.o memory-manager.o
 	$(CC) $(CFLAGS) long_extras.o long_extras-test.o test-support.o memory-manager.o -o long_extras-test $(LIBS)
 
-zmod_poly-test: zmod_poly.o zmod_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) zmod_poly.o zmod_poly-test.o test-support.o -o zmod_poly-test $(FLINTOBJ) $(LIBS)
+zmod_poly-test: zmod_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
+	$(CC) $(CFLAGS) zmod_poly-test.o test-support.o -o zmod_poly-test $(FLINTOBJ) $(LIBS)
 
+NTL-interface-test: NTL-interface.o NTL-interface-test.o test-support.o $(FLINTOBJ) $(HEADERS)
+	$(CPP) $(CFLAGS) NTL-interface-test.o NTL-interface.o test-support.o $(FLINTOBJ) -o NTL-interface-test $(LIBS2)
 
 ####### tuning program object files
 
@@ -299,10 +315,10 @@ kara-profile: kara-profile.c profiler.o test-support.o $(FLINTOBJ)
 NTL-profile: NTL-profile.c test-support.o NTL-profile-tables.o $(PROFOBJ)
 	$(CPP) $(CFLAGS) -o NTL-profile NTL-profile.c NTL-profile-tables.o test-support.o $(PROFOBJ) $(LIB) -lntl
 
-zmod_poly-profile: zmod_poly-profile.o zmod_poly.o zmod_poly-profile-tables.o $(PROFOBJ)
+zmod_poly-profile: zmod_poly-profile.o zmod_poly-profile-tables.o $(PROFOBJ)
 	$(CC) $(CFLAGS) -o zmod_poly-profile zmod_poly.o zmod_poly-profile.o zmod_poly-profile-tables.o $(PROFOBJ) $(LIBS)
 
-bernoulli-profile: bernoulli-profile.o zmod_poly.o bernoulli-profile-tables.o $(PROFOBJ)
+bernoulli-profile: bernoulli-profile.o bernoulli-profile-tables.o $(PROFOBJ)
 	$(CC) $(CFLAGS) -o bernoulli-profile zmod_poly.o bernoulli-profile.o bernoulli-profile-tables.o $(PROFOBJ) $(LIBS)
 
 ####### example programs
@@ -334,8 +350,8 @@ bernoulli_fmpz: bernoulli_fmpz.o $(FLINTOBJ)
 bernoulli_zmod.o: bernoulli_zmod.c $(HEADERS)
 	$(CC) $(CFLAGS) -c bernoulli_zmod.c -o bernoulli_zmod.o
 
-bernoulli_zmod: bernoulli_zmod.o zmod_poly.o $(FLINTOBJ)
-	$(CC) $(CFLAGS) -o bernoulli_zmod bernoulli_zmod.o zmod_poly.o $(FLINTOBJ) $(LIBS)
+bernoulli_zmod: bernoulli_zmod.o $(FLINTOBJ)
+	$(CC) $(CFLAGS) -o bernoulli_zmod bernoulli_zmod.o $(FLINTOBJ) $(LIBS)
 
 ####### Quadratic sieve
 
@@ -377,7 +393,7 @@ mpQS: QS/mpQS.c QS/mpQS.h mp_factor_base.o mp_poly.o mp_sieve.o mp_linear_algebr
 
 ####### Integer multiplication timing
 
-ZMULOBJ = memory-manager.o fmpz.o ZmodF_mul-tuning.o mpz_poly.o mpz_poly-tuning.o fmpz_poly.o ZmodF_poly.o mpz_extras.o profiler.o ZmodF_mul.o ZmodF.o mpn_extras.o F_mpz_mul-timing.o
+ZMULOBJ = zmod_poly.o memory-manager.o fmpz.o ZmodF_mul-tuning.o mpz_poly.o mpz_poly-tuning.o fmpz_poly.o ZmodF_poly.o mpz_extras.o profiler.o ZmodF_mul.o ZmodF.o mpn_extras.o F_mpz_mul-timing.o long_extras.o
 
 F_mpz_mul-timing: $(ZMULOBJ)
 	$(CC) $(ZMULOBJ) -o Zmul $(LIBS)

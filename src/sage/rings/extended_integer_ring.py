@@ -228,9 +228,20 @@ class ExtendedInteger(IntegerWrapper):
         return ExtendedRationalField(Integer(self) / Integer(right))
 
     def __floordiv__(self, right):
+        """
+        EXAMPLES:
+            sage: R = ExtendedIntegerRing
+            sage: R(3) // R(17)
+            0
+            sage: R(17) // R(3)
+            5
+            sage: R(25) // Infinity
+            0
+        """
         if isinstance(right, InfinityElement):
             return self.parent()(0)
-        return self.parent()(Integer(self).__floordiv__(Integer(right)))
+        else:
+            return self.parent()(Integer(self).__floordiv__(Integer(right)))
 
     def __invert__(self):
         from sage.rings.extended_rational_field import ExtendedRationalField
@@ -280,11 +291,6 @@ class ExtendedInteger(IntegerWrapper):
         else:
             a, b = Integer(self).quo_rem(other)
             return self.parent()(a), self.parent()(b)
-
-    def div(self, other):
-        if isinstance(other, InfinityElement):
-            return self.parent()(0)
-        return self.parent()(Integer(self).div(other))
 
     def powermod(self, exp, mod):
         if isinstance(mod, InfinityElement):
@@ -459,16 +465,36 @@ class IntegerPlusInfinity(_uniq1, PlusInfinityElement):
         return other.__abs__()
 
     def __floordiv__(self, other):
-        return self * other.__invert__()
+        """
+        EXAMPLES:
+            sage: inf = ExtendedIntegerRing(Infinity)
+            sage: inf // 3
+            +Infinity
+            sage: inf // -3
+            -Infinity
+            sage: inf // inf
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot divide Infinity by Infinity
+            sage: inf // ExtendedIntegerRing(-Infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot divide Infinity by Infinity
+        """
+        if isinstance(other, InfinityElement):
+            raise ValueError, "cannot divide Infinity by Infinity"
+        elif other > ZZ(0):
+            return IntegerPlusInfinity()
+        elif other < ZZ(0):
+            return IntegerMinusInfinity()
+        else:
+            raise TypeError, "cannot divide Infinity by object of type %s"%type(other)
 
     def __mod__(self, right):
         raise ValueError, "remainder not well defined"
 
     def quo_rem(self, other):
         raise ValueError, "remainder not well defined"
-
-    def div(self, other):
-        return self * other.__invert__()
 
     def powermod(self, exp, mod):
         raise ValueError, "remainder not well defined"
@@ -627,16 +653,36 @@ class IntegerMinusInfinity(_uniq2, MinusInfinityElement):
         return other.__abs__()
 
     def __floordiv__(self, other):
-        return self * other.__invert__()
+        """
+        EXAMPLES:
+            sage: inf = ExtendedIntegerRing(-Infinity)
+            sage: inf // 3
+            -Infinity
+            sage: inf // -3
+            +Infinity
+            sage: inf // inf
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot divide Infinity by Infinity
+            sage: inf // ExtendedIntegerRing(Infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot divide Infinity by Infinity
+        """
+        if isinstance(other, InfinityElement):
+            raise ValueError, "cannot divide Infinity by Infinity"
+        elif other > ZZ(0):
+            return IntegerMinusInfinity()
+        elif other < ZZ(0):
+            return IntegerPlusInfinity()
+        else:
+            raise TypeError, "cannot divide Infinity by object of type %s"%type(other)
 
     def __mod__(self, right):
         raise ValueError, "remainder not well defined"
 
     def quo_rem(self, other):
         raise ValueError, "remainder not well defined"
-
-    def div(self, other):
-        return self * other.__invert__()
 
     def powermod(self, exp, mod):
         raise ValueError, "remainder not well defined"

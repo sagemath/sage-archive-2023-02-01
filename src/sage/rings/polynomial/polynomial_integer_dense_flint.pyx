@@ -54,7 +54,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     def __new__(self, parent=None, x=None, check=True, is_gen=False,
             construct=False):
         r"""
-        calls the underlying FLINT fmpz_poly constructor
+        This calls the underlying FLINT fmpz_poly constructor
         """
         fmpz_poly_init(self.__poly)
 
@@ -322,6 +322,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: R.<x> = ZZ['x']
             sage: (-x+1)^5
             -x^5 + 5*x^4 - 10*x^3 + 10*x^2 - 5*x + 1
+            sage: ((-x+1)^5)._repr()
+            '-x^5 + 5*x^4 - 10*x^3 + 10*x^2 - 5*x + 1'
+            sage: ((-x+1)^5)._repr(name='y')
+            '-y^5 + 5*y^4 - 10*y^3 + 10*y^2 - 5*y + 1'
         """
         if name is None:
             name = self.parent().variable_name()
@@ -373,12 +377,14 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: R.<t> = ZZ['t']
             sage: latex(t^10-t^2-5*t+1)
             t^{10} - t^{2} - 5t + 1
-            sage: latex(cyclotomic_polynomial(10^5))
-            x^{40000} - x^{30000} + x^{20000} - x^{10000} + 1
+            sage: cyclotomic_polynomial(10^5)._latex_()
+            'x^{40000} - x^{30000} + x^{20000} - x^{10000} + 1'
+            sage: cyclotomic_polynomial(10^5)._latex_(name='y')
+            'y^{40000} - y^{30000} + y^{20000} - y^{10000} + 1'
         """
         if name is None:
             name = self.parent().latex_variable_names()[0]
-        return self._repr(name, latex=True)
+        return self._repr(name=name, latex=True)
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         r"""
@@ -760,12 +766,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         _sig_off
         return res
 
-    def div(self, other):
-        """
-        This is same as __floordiv__.
-        """
-        return self//other
-
     cpdef _unsafe_mutate(self, long n, value):
         r"""
         Sets coefficient of x^n to value.
@@ -803,7 +803,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
     def real_root_intervals(self):
         """
-        Returns isolating intervals for the real roots of this polynomial.
+        Returns isolating intervals for the real roots of this
+        polynomial.
 
         EXAMPLE:
         We compute the roots of the characteristic polynomial of some
@@ -882,6 +883,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f = t^3 + 3*t - 17
             sage: pari(f)
             t^3 + 3*t - 17
+            sage: f._pari_(variable='y')
+            y^3 + 3*y - 17
         """
         if variable is None:
             variable = self.parent().variable_name()

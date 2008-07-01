@@ -78,7 +78,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     UNIQUENESS and IMMUTABILITY: In SAGE there is exactly one
     single-variate polynomial ring over each base ring in each choice
-    of variable, sparsenes, and implementation.  There is also exactly
+    of variable, sparseness, and implementation.  There is also exactly
     one multivariate polynomial ring over each base ring for each
     choice of names of variables and term order.  The names of the
     generators can only be temporarily changed after the ring has been
@@ -160,7 +160,9 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     \sage has two implementations of univariate polynomials over the
     integers, one based on NTL and one based on FLINT.  The default
-    is FLINT.
+    is FLINT. Note that FLINT uses a "more dense" representation for
+    its polynomials than NTL, so in particular, creating a polynomial
+    like 2^1000000 * x^1000000 in FLINT may be unwise.
         sage: ZxNTL = PolynomialRing(ZZ, 'x', implementation='NTL'); ZxNTL
         Univariate Polynomial Ring in x over Integer Ring (using NTL)
         sage: ZxFLINT = PolynomialRing(ZZ, 'x', implementation='FLINT'); ZxFLINT

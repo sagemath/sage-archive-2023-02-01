@@ -2,17 +2,20 @@
 Dense univariate polynomials over Z, implemented using NTL.
 
 AUTHORS:
-    -- David Harvey: split off from polynomial_element_generic.py (2007-09)
-    -- David Harvey: rewrote to talk to NTL directly, instead of via ntl.pyx (2007-09);
-               a lot of this was based on Joel Mohler's recent rewrite of the NTL wrapper
 
-\sage includes two implementations of dense univariate polynomials over Z;
-this file contains the implementation based on NTL, but there is also an
-implementation based on FLINT.
+    -- David Harvey: split off from polynomial_element_generic.py
+               (2007-09)
+    -- David Harvey: rewrote to talk to NTL directly, instead of via
+               ntl.pyx (2007-09); a lot of this was based on Joel
+               Mohler's recent rewrite of the NTL wrapper
 
-The FLINT implementation is preferred (FLINT's arithmetic operations are
-generally faster), so it is the default; to use the NTL implementation,
-you can do:
+\sage includes two implementations of dense univariate polynomials
+over Z; this file contains the implementation based on NTL, but there
+is also an implementation based on FLINT.
+
+The FLINT implementation is preferred (FLINT's arithmetic operations
+are generally faster), so it is the default; to use the NTL
+implementation, you can do:
 
 sage: K.<x> = PolynomialRing(ZZ, implementation='NTL')
 sage: K
@@ -36,7 +39,6 @@ from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer_ring cimport IntegerRing_class
 ZZ_sage = IntegerRing()
-
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
@@ -62,14 +64,14 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
     def __new__(self, parent=None, x=None, check=True, is_gen=False, construct=False):
         r"""
-        calls the underlying NTL constructor
+        This calls the underlying NTL constructor.
         """
         ZZX_construct(&self.__poly)
 
 
     def __dealloc__(self):
         r"""
-        calls the underlying NTL destructor
+        This calls the underlying NTL destructor.
         """
         ZZX_destruct(&self.__poly)
 
@@ -656,17 +658,30 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
     def __floordiv__(self, right):
         """
-        todo: write a doctest for this as soon as someone figures out
-        what it's actually supposed to do
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
+            sage: f = R([9,6,1]) ; f
+            x^2 + 6*x + 9
+            sage: f // x
+            x + 6
+            sage: f // 3
+            2*x + 3
+            sage: g = x^3 ; g
+            x^3
+            sage: f // g
+            0
+            sage: g // f
+            x - 6
         """
         if is_Polynomial(right) and right.is_constant() and right[0] in ZZ:
             d = ZZ(right[0])
+            return self.parent()([c // d for c in self.list()], construct=True)
         elif (right in self.parent().base_ring()):
             d = ZZ(right)
+            return self.parent()([c // d for c in self.list()], construct=True)
         else:
-            return Polynomial.__floordiv__(self, right)
-        return self.parent()([c // d for c in self.list()], construct=True)
-
+            q, _ = self.quo_rem(right)
+            return q
 
     def _unsafe_mutate(self, long n, value):
         r"""
@@ -715,8 +730,8 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
     def degree(self):
         """
-        Return the degree of this polynomial.  The zero polynomial
-        has degree -1.
+        Return the degree of this polynomial. The zero polynomial has
+        degree -1.
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
@@ -730,7 +745,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             -1
         """
         return ZZX_deg(self.__poly)
-
 
     def discriminant(self, proof=True):
         r"""
@@ -806,13 +820,32 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return Factorization(F, unit=c, sort=False)
 
     def _factor_pari(self):
+        """
+        Use pari to factor self.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
+            sage: f = R([9,6,1]) ; f
+            x^2 + 6*x + 9
+            sage: f.factor()
+            (x + 3)^2
+            sage: f._factor_pari()
+            (x + 3)^2
+        """
         return Polynomial.factor(self) # uses pari for integers over ZZ
 
     def _factor_ntl(self):
         """
-        There are ample doc-tests elsewhere that test this functionality.
+        Use NTL to factor self.
+
         AUTHOR:
             -- Joel B. Mohler
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
+            sage: f = R([9,6,1])
+            sage: f._factor_ntl()
+            (x + 3)^2
         """
         cdef Polynomial_integer_dense_ntl fac_py
         cdef ZZ_c content

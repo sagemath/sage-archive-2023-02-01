@@ -266,14 +266,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         return self.parent()(self.__poly - (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
     def __floordiv__(self, right):
-        if is_Polynomial(right) and right.is_constant() and \
-                         right[0] in self.parent().base_ring():
-            d = right[0]
-        elif (right in self.parent().base_ring()):
-            d = right
-        else:
-            return Polynomial.__floordiv__(self, right)
-        return self.parent()([c // d for c in self.list()], construct=True)
+        q, _ = self.quo_rem(right)
+        return q
 
 ##     def __copy__(self):
 ##         self.parent()._ntl_set_modulus()

@@ -44,7 +44,7 @@ def is_GlobalGenus(G):
         p = loc._prime
         sym = loc._symbol
         v = sum([ s[0]*s[1] for s in sym ])
-        a = D.div(p**v)
+        a = D // (p**v)
         b = Integer(misc.prod([ s[2] for s in sym ]))
         if p == 2:
             if not is_2_adic_genus(sym):
@@ -228,7 +228,7 @@ def p_adic_symbol(A,p,val):
     m0 = min([ c.valuation(p) for c in A.list() ])
     q = p**m0
     n = A.nrows()
-    A = MatrixSpace(IntegerRing(),n,n)([ c.div(q) for c in A.list() ])
+    A = MatrixSpace(IntegerRing(),n,n)([ c // q for c in A.list() ])
     A_p = MatrixSpace(FiniteField(p),n,n)(A)
     B_p = A_p.kernel().echelonized_basis_matrix()
     if B_p.nrows() == 0:
@@ -339,7 +339,7 @@ def two_adic_symbol(A, val):
     """
     m0 = min([ c.valuation(2) for c in A.list() ])
     q = 2**m0
-    A = A.parent()([ c.div(q) for c in A.list() ])
+    A = A.parent()([ c // q for c in A.list() ])
     ZZ = IntegerRing()
     n = A.nrows()
     A_2 = MatrixSpace(FiniteField(2),n,n)(A)

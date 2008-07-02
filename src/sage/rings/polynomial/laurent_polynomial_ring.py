@@ -77,7 +77,7 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
 
     UNIQUENESS and IMMUTABILITY: In SAGE there is exactly one
     single-variate laurent polynomial ring over each base ring in each choice
-    of variable and sparsenes.  There is also exactly one multivariate
+    of variable and sparseness.  There is also exactly one multivariate
     laurent polynomial ring over each base ring for each choice of names of
     variables and term order.
 

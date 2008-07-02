@@ -3,19 +3,31 @@ Elements of the ring $\Z$ of integers
 
 AUTHORS:
     -- William Stein (2005): initial version
-    -- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP conversion; hashing
-    -- Didier Deshommes <dfdeshom@gmail.com> (2006-03-06): numerous examples and docstrings
+
+    -- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP
+                                   conversion; hashing
+    -- Didier Deshommes <dfdeshom@gmail.com> (2006-03-06): numerous
+                                   examples and docstrings
     -- William Stein (2006-03-31): changes to reflect GMP bug fixes
     -- William Stein (2006-04-14): added GMP factorial method (since it's
                                    now very fast).
     -- David Harvey (2006-09-15): added nth_root, exact_log
     -- David Harvey (2006-09-16): attempt to optimise Integer constructor
     -- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
-    -- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01): optimized Integer constructor and pool
-    -- Pablo De Napoli (2007-04-01): multiplicative_order should return +infinity for non zero numbers
-    -- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with Kronecker extension)
-                                     Convert some methods to use GMP directly rather than pari, Integer() -> PY_NEW(Integer)
-    -- David Roe (2007-03-21): sped up valuation and is_square, added val_unit, is_power, is_power_of and divide_knowing_divisible_by
+    -- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01):
+                                   optimized Integer constructor and
+                                   pool
+    -- Pablo De Napoli (2007-04-01): multiplicative_order should
+                                   return +infinity for non zero
+                                   numbers
+    -- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol
+                                   (with Kronecker extension). Convert
+                                   some methods to use GMP directly
+                                   rather than pari, Integer() ->
+                                   PY_NEW(Integer)
+    -- David Roe (2007-03-21): sped up valuation and is_square, added
+                                   val_unit, is_power, is_power_of and
+                                   divide_knowing_divisible_by
     -- Robert Bradshaw (2008-03-26): gamma function, multifactorials
 
 EXAMPLES:
@@ -1100,8 +1112,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a = Integer(321) ; b = Integer(10)
             sage: a // b
             32
+            sage: z = Integer(-231)
+            sage: z // 2
+            -116
+            sage: z = Integer(231)
+            sage: z // 2
+            115
+            sage: z // -2
+            -116
+            sage: z // 0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: other must be nonzero
         """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+            if not mpz_sgn((<Integer>y).value):
+                raise ZeroDivisionError, "other must be nonzero"
             return (<Integer>x)._floordiv(y)
         return bin_op(x, y, operator.floordiv)
 
@@ -1501,6 +1527,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ZeroDivisionError: Integer modulo by zero
             sage: -5 % 7
             2
+            sage: -5 % -7
+            -5
+            sage: 5 % -7
+            -2
          """
         cdef Integer _modulus, _self
         _modulus = integer(modulus)
@@ -1513,15 +1543,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         _sig_on
         mpz_mod(x.value, _self.value, _modulus.value)
+        # GMP always returns a non-negative integer, so we
+        # subtract if we got something positive.
+        if mpz_sgn(_modulus.value) == -1 and mpz_sgn(x.value):
+            mpz_add(x.value, x.value, _modulus.value)
         _sig_off
 
         return x
 
-
     def quo_rem(self, other):
         """
-        Returns the quotient and the remainder of
-        self divided by other.
+        Returns the quotient and the remainder of self divided by
+        other. Note that the remainder returned is always either
+        zero or of the same sign as other.
 
         INPUT:
             other -- the integer the divisor
@@ -1535,7 +1569,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.quo_rem(2)
             (115, 1)
             sage: z.quo_rem(-2)
-            (-115, 1)
+            (-116, -1)
             sage: z.quo_rem(0)
             Traceback (most recent call last):
             ...
@@ -1552,41 +1586,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r = PY_NEW(Integer)
 
         _sig_on
-        if mpz_sgn(_other.value) == 1:
-            mpz_fdiv_qr(q.value, r.value, _self.value, _other.value)
-        else:
-            mpz_cdiv_qr(q.value, r.value, _self.value, _other.value)
+        mpz_fdiv_qr(q.value, r.value, _self.value, _other.value)
         _sig_off
 
         return q, r
-
-    def div(self, other):
-        """
-        Returns the quotient of self divided by other.
-
-        INPUT:
-            other -- the integer the divisor
-
-        OUTPUT:
-            q   -- the quotient of self/other
-
-        EXAMPLES:
-            sage: z = Integer(-231)
-            sage: z.div(2)
-            -116
-            sage: z = Integer(231)
-            sage: z.div(2)
-            115
-            sage: z.div(-2)
-            -115
-            sage: z.div(0)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: other (=0) must be nonzero
-        """
-        q,_=self.quo_rem(other)
-        return q
-
 
     def powermod(self, exp, mod):
         """

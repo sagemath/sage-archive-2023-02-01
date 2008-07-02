@@ -40,7 +40,8 @@ _cache = {}
 
 def PolynomialRing(base_ring, arg1=None, arg2=None,
                    sparse=False, order='degrevlex',
-                   names=None, name=None):
+                   names=None, name=None,
+                   implementation=None):
     r"""
     Return the globally unique univariate or multivariate polynomial
     ring with given properties and variable name or names.
@@ -65,6 +66,10 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
                  'lex'  -- lexicographic
                  'deglex' -- degree lexicographic
                  TermOrder('deglex',3) + TermOrder('deglex',3) -- block ordering
+         implementation -- string or None; selects an implementation
+                 in cases where Sage includes multiple choices
+                 (currently ZZ[x] can be implemented with 'NTL' or 'FLINT';
+                 default is 'FLINT')
 
     OUTPUT:
         PolynomialRing(base_ring, name, sparse=False) returns a univariate
@@ -73,11 +78,11 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     UNIQUENESS and IMMUTABILITY: In SAGE there is exactly one
     single-variate polynomial ring over each base ring in each choice
-    of variable and sparsenes.  There is also exactly one multivariate
-    polynomial ring over each base ring for each choice of names of
-    variables and term order.  The names of the generators can only
-    be temporarily changed after the ring has been created.  Do this
-    using the localvars context:
+    of variable, sparseness, and implementation.  There is also exactly
+    one multivariate polynomial ring over each base ring for each
+    choice of names of variables and term order.  The names of the
+    generators can only be temporarily changed after the ring has been
+    created.  Do this using the localvars context:
 
         EXAMPLES of VARIABLE NAME CONTEXT:
             sage: R.<x,y> = PolynomialRing(QQ,2); R
@@ -152,6 +157,36 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     However, rings with different variables are different:
         sage: QQ['x'] == QQ['y']
         False
+
+    \sage has two implementations of univariate polynomials over the
+    integers, one based on NTL and one based on FLINT.  The default
+    is FLINT. Note that FLINT uses a "more dense" representation for
+    its polynomials than NTL, so in particular, creating a polynomial
+    like 2^1000000 * x^1000000 in FLINT may be unwise.
+        sage: ZxNTL = PolynomialRing(ZZ, 'x', implementation='NTL'); ZxNTL
+        Univariate Polynomial Ring in x over Integer Ring (using NTL)
+        sage: ZxFLINT = PolynomialRing(ZZ, 'x', implementation='FLINT'); ZxFLINT
+        Univariate Polynomial Ring in x over Integer Ring
+        sage: ZxFLINT is ZZ['x']
+        True
+        sage: ZxFLINT is PolynomialRing(ZZ, 'x')
+        True
+        sage: xNTL = ZxNTL.gen()
+        sage: xFLINT = ZxFLINT.gen()
+        sage: xNTL.parent()
+        Univariate Polynomial Ring in x over Integer Ring (using NTL)
+        sage: xFLINT.parent()
+        Univariate Polynomial Ring in x over Integer Ring
+
+    There is a coercion between the two rings, so the values can be
+    mixed in a single expression.
+        sage: (xNTL + xFLINT^2)
+        x^2 + x
+
+    Unfortunately, it is unpredictable whether the result of such an
+    expression will use the NTL or FLINT implementation.
+        sage: (xNTL + xFLINT^2).parent()        # random output
+        Univariate Polynomial Ring in x over Integer Ring
 
     2. PolynomialRing(base_ring, names,   order='degrevlex'):
         sage: R = PolynomialRing(QQ, 'a,b,c'); R
@@ -253,7 +288,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             if not arg2 is None:
                 raise TypeError, "if second arguments is a string with no commas, then there must be no other non-optional arguments"
             name = arg1
-            R = _single_variate(base_ring, name, sparse)
+            R = _single_variate(base_ring, name, sparse, implementation)
         else:
             # 2-4. PolynomialRing(base_ring, names, order='degrevlex'):
             if not arg2 is None:
@@ -304,10 +339,10 @@ def _save_in_cache(key, R):
         raise TypeError, 'key = %s\n%s'%(key,msg)
 
 
-def _single_variate(base_ring, name, sparse):
+def _single_variate(base_ring, name, sparse, implementation):
     import sage.rings.polynomial.polynomial_ring as m
     name = normalize_names(1, name)
-    key = (base_ring, name, sparse)
+    key = (base_ring, name, sparse, implementation)
     R = _get_from_cache(key)
     if not R is None: return R
 
@@ -343,13 +378,18 @@ def _single_variate(base_ring, name, sparse):
             R = m.PolynomialRing_field(base_ring, name, sparse)
 
         elif base_ring.is_integral_domain():
-            R = m.PolynomialRing_integral_domain(base_ring, name, sparse)
+            R = m.PolynomialRing_integral_domain(base_ring, name, sparse, implementation)
         else:
             R = m.PolynomialRing_commutative(base_ring, name, sparse)
     else:
         R = m.PolynomialRing_general(base_ring, name, sparse)
 
-    _save_in_cache(key, R)
+    if hasattr(R, '_implementation_names'):
+        for name in R._implementation_names:
+            real_key = key[0:3] + (name,)
+            _save_in_cache(real_key, R)
+    else:
+        _save_in_cache(key, R)
     return R
 
 def _multi_variate(base_ring, names, n, sparse, order):

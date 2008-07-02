@@ -1164,31 +1164,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Quotient of division of self by other.  This is denoted //.
 
-        If self = quotient * right + remainder, this function returns quotient.
+        If self = quotient * right + remainder, this function returns
+        quotient.
 
         EXAMPLES:
             sage: R.<x> = ZZ[]
             sage: f = x^3 + x + 1
             sage: g = f*(x^2-2) + x
-            sage: g.div(f)
-            x^2 - 2
             sage: g.__floordiv__(f)
             x^2 - 2
             sage: g//f
-            x^2 - 2
-        """
-        Q, _ = self.quo_rem(right)
-        return Q
-
-    def div(self,right):
-        """
-        Quotient of division of self by other.
-
-        EXAMPLES:
-            sage: R.<x> = ZZ[]
-            sage: f = x^3 + x + 1
-            sage: g = f*(x^2-2) + x
-            sage: g.div(f)
             x^2 - 2
         """
         Q, _ = self.quo_rem(right)
@@ -4327,7 +4312,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         return self._parent(self.__coeffs[:n], check=False)
 
-    def truncate_c(self, long n):
+    cdef truncate_c(self, long n):
         r"""
         Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.

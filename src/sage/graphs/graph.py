@@ -6300,6 +6300,42 @@ class GenericGraph(SageObject):
                  4: tuple(output)
                }[len(output)]
 
+    def is_vertex_transitive(self, partition=None, verbosity=0,
+                           edge_labels=False, order=False,
+                           return_group=True, orbits=False):
+        """
+        Returns whether the automorphism group of self is transitive within
+        the partition provided, by default the unit partition of the vertices
+        of self (thus by default tests for vertex transitivity in the usual
+        sense).
+
+        EXAMPLE:
+            sage: G = Graph({0:[1],1:[2]})
+            sage: G.is_vertex_transitive()
+            False
+            sage: P = graphs.PetersenGraph()
+            sage: P.is_vertex_transitive()
+            True
+            sage: D = graphs.DodecahedralGraph()
+            sage: D.is_vertex_transitive()
+            True
+            sage: R = graphs.RandomGNP(2000, .01)
+            sage: R.is_vertex_transitive()
+            False
+
+        """
+        if partition is None:
+            partition = [self.vertices()]
+        new_partition = self.automorphism_group(partition,
+                          verbosity=verbosity, edge_labels=edge_labels,
+                          order=False, return_group=False, orbits=True)
+        for cell in partition:
+            for new_cell in new_partition:
+                if cell[0] in new_cell:
+                    if any([c not in new_cell for c in cell[1:]]):
+                        return False
+        return True
+
     def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False):
         """
         Tests for isomorphism between self and other.

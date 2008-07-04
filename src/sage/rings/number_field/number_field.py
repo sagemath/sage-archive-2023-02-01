@@ -5514,7 +5514,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             Ring morphism:
               From: Cyclotomic Field of order 4 and degree 2
               To:   Complex Double Field
-              Defn: zeta4 |--> 2.77555756156e-17 - 1.0*I
+              Defn: zeta4 |--> 6.12323399574e-17 + 1.0*I
 
         Note in the example above that the way zeta is computed (using
         sin and cosine in MPFR) means that only the prec bits of the
@@ -5553,11 +5553,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             Ring morphism:
               From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Double Field
-              Defn: zeta5 |--> 0.309016994375 - 0.951056516295*I,
-            Ring morphism:
-              From: Cyclotomic Field of order 5 and degree 4
-              To:   Complex Double Field
-              Defn: zeta5 |--> -0.809016994375 - 0.587785252292*I,
+              Defn: zeta5 |--> 0.309016994375 + 0.951056516295*I,
             Ring morphism:
               From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Double Field
@@ -5565,7 +5561,11 @@ class NumberField_cyclotomic(NumberField_absolute):
             Ring morphism:
               From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Double Field
-              Defn: zeta5 |--> 0.309016994375 + 0.951056516295*I
+              Defn: zeta5 |--> -0.809016994375 - 0.587785252292*I,
+            Ring morphism:
+              From: Cyclotomic Field of order 5 and degree 4
+              To:   Complex Double Field
+              Defn: zeta5 |--> 0.309016994375 - 0.951056516295*I
             ]
         """
         if prec == 53:

@@ -400,6 +400,35 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         from sage.categories.pushout import AlgebraicClosureFunctor
         return (AlgebraicClosureFunctor(), self.real_double_field())
 
+    def zeta(self, n=2):
+        """
+        Return a primitive $n$-th root of unity.
+
+        INPUT:
+            n -- an integer (default: 2)
+
+        OUTPUT:
+            a complex n-th root of unity.
+        EXAMPLES:
+            sage: CDF.zeta(7)
+            0.623489801859 + 0.781831482468*I
+        """
+        from integer import Integer
+        n = Integer(n)
+        if n == 1:
+            x = self(1)
+        elif n == 2:
+            x = self(-1)
+        elif n >= 3:
+            # Use De Moivre
+            # e^(2*pi*i/n) = cos(2pi/n) + i *sin(2pi/n)
+            pi = RDF.pi()
+            z = 2*pi/n
+            x = CDF(z.cos(), z.sin())
+#         x._set_multiplicative_order( n ) # not implemented for CDF
+        return x
+
+
 cdef public api ComplexDoubleElement new_ComplexDoubleElement():
     """
     Creates a new (empty) ComplexDoubleElement.

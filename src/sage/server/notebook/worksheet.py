@@ -694,10 +694,42 @@ class Worksheet:
     # huge.
     def __getstate__(self):
         d = copy.copy(self.__dict__)
+
+        # These attributes can take a while too and there is no need to cache them
+        for attr in ['html', 'user_view', 'notebook']:
+            mangled = '_Worksheet__%s'%attr
+            if d.has_key(mangled):
+                del d[mangled]
+
         if d.has_key('_Worksheet__cells'):
-            self.save()  # make sure the worksheet.txt file is up to date.
-            # maybe put a "save to disk" call here first!
-            del d['_Worksheet__cells']
+            try:
+                print "Saving ", self.directory()
+                self.save()  # make sure the worksheet.txt file is up to date.
+                del d['_Worksheet__cells']
+            except:
+                # It is important to catch all exceptions.  If
+                # *anything* goes wrong here we must catch it or the
+                # whole notebook sobj could get messed up,
+                # potentially, in theory, maybe.
+
+                # There is one possible easy fix related to absolute paths in old old versions
+                # of the notebook.  Check for this.
+                try:
+                    dir = self.directory()
+                    i = dir.find('/worksheets/')
+                    if i != -1:
+                        i = dir[:i].rfind('/')
+                        if i != -1:
+                            self.__dir = dir[i+1:]
+                            d['_Worksheet__dir'] = dir[i+1:]
+                            self.save()
+                            del d['_Worksheet__cells']
+                            print "Saving worksheet %s -- getting rid of absolute path."%self.directory()
+                            return d
+                except Exception, msg:
+                    print msg
+
+                    print "Unable to save worksheet %s; you may have a permissions or other problem that could result in data loss."%self.directory()
         return d
 
     # The following setstate method is here

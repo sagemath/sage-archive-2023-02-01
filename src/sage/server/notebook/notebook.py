@@ -16,6 +16,7 @@ import shutil
 import socket
 import time
 import bz2
+import cPickle
 
 # Sage libraries
 from   sage.structure.sage_object import SageObject, load
@@ -81,7 +82,6 @@ class Notebook(SageObject):
         self.__log_server = log_server #log all POST's and GET's
         self.__server_log = [] #server log list
         self.__show_debug = show_debug
-        self.save()
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
 
@@ -91,6 +91,10 @@ class Notebook(SageObject):
         # only one notebook can actually be used at any point.
         import sage.server.notebook.twist
         sage.server.notebook.twist.notebook = self
+
+        # This must happen after twist.notebook is set.
+        self.save()
+
 
     def _migrate_worksheets(self):
         v = []
@@ -622,11 +626,7 @@ class Notebook(SageObject):
     ##########################################################
     def user_history(self, username):
         U = self.user(username)
-        try:
-            return U.history
-        except AttributeError:
-            U.history = []
-            return U.history
+        return U.history_list()
 
     def create_new_worksheet_from_history(self, name, username, maxlen=None):
         W = self.create_new_worksheet(name, username)
@@ -1668,10 +1668,17 @@ class Notebook(SageObject):
         D, _ = os.path.split(F)
         if not os.path.exists(D):
             os.makedirs(D)
+
         t = cputime()
-        SageObject.save(self, F, compress=False)
-        tm = cputime(t)
-        print "Saved notebook to '%s' (%s seconds)"%(F,tm)
+        out = cPickle.dumps(self, 2)
+        print "Dumped notebook to pickle (%s seconds)"%cputime(t)
+
+        t = cputime()
+        # Assuming an exception wasn't raised during pickling we write to the file.
+        # This is vastly superior to writing to a file immediately, which can easily
+        # result in a poor empty file.
+        open(F,'w').write(out)
+        print "Wrote notebook pickle to file '%s' (%s seconds)"%(F,cputime(t))
 
     def delete_doc_browser_worksheets(self):
         names = self.worksheet_names()
@@ -2329,7 +2336,6 @@ def load_notebook(dir, address=None, port=None, secure=None):
                         print "Failed to load backup '%s'"%file
                     else:
                         print "Successfully loaded backup '%s'"%file
-                        nb.save()
                         break
                 if nb is None:
                     print "Unable to restore notebook from *any* auto-saved backups."

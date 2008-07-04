@@ -20,7 +20,7 @@ import bz2
 # Sage libraries
 from   sage.structure.sage_object import SageObject, load
 from   sage.misc.misc       import (alarm, cancel_alarm,
-                                    tmp_dir, pad_zeros)
+                                    tmp_dir, pad_zeros, cputime)
 from   sage.misc.package   import is_package_installed
 # Sage Notebook
 import css          # style
@@ -1668,9 +1668,10 @@ class Notebook(SageObject):
         D, _ = os.path.split(F)
         if not os.path.exists(D):
             os.makedirs(D)
+        t = cputime()
         SageObject.save(self, F, compress=False)
-        #print "Saved notebook to '%s'."%F
-        #print "Press control-C to stop the notebook server."
+        tm = cputime(t)
+        print "Saved notebook to '%s' (%s seconds)"%(F,tm)
 
     def delete_doc_browser_worksheets(self):
         names = self.worksheet_names()

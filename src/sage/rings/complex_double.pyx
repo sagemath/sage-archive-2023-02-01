@@ -402,19 +402,45 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
     def zeta(self, n=2):
         """
-        Return a primitive $n$-th root of unity.
+        Return a primitive $n$-th root of unity in this CDF, for $n\ge1$.
 
         INPUT:
-            n -- an integer (default: 2)
+            n -- a positive integer (default: 2)
 
         OUTPUT:
             a complex n-th root of unity.
         EXAMPLES:
             sage: CDF.zeta(7)
             0.623489801859 + 0.781831482468*I
+            sage: CDF.zeta(1)
+            1.0
+            sage: CDF.zeta()
+            -1.0
+            sage: CDF.zeta() == CDF.zeta(2)
+            True
+
+            sage: CDF.zeta(0.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a positive integer
+            sage: CDF.zeta(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a positive integer
+            sage: CDF.zeta(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a positive integer
         """
         from integer import Integer
-        n = Integer(n)
+        try:
+           n = Integer(n)
+        except:
+           raise ValueError, "n must be a positive integer"
+
+        if n<1:
+           raise ValueError, "n must be a positive integer"
+
         if n == 1:
             x = self(1)
         elif n == 2:
@@ -1806,6 +1832,3 @@ cdef cdf_parser = Parser(float, float,  {"I" : _CDF.gen(), "i" : _CDF.gen()})
 
 
 #####
-#(fset 'wrap
-#   [?\C-s ?F ?u ?n ?c ?\C-a ?\C-s ?g ?s ?l ?_ ?c ?o ?m ?p ?l ?e ?x ?_ ?\C-f ?\C-b ?\C-  ?\C-s ?  ?\C-b ?\M-w ?\C-a return ?\C-p ?  ?  ?  ?  ?d ?e ?f ?  ?\C-y ?( ?s ?e ?l ?f ?) ?: return ?r ?\" ?\" ?\" return ?\" ?\" ?\" return ?r ?e ?t ?u ?r ?n ?  ?n ?e ?w ?_ ?e ?l ?e ?m ?e ?n ?t ?( ?g backspace ?g ?s ?l ?_ ?c ?o ?m ?p ?l ?e ?x ?_ ?\C-y ?( ?s ?e ?l ?f ?. ?_ ?c ?o ?m ?p ?l ?e ?x ?) ?) ?\C-a ?\C-s ?F ?u ?n ?c ?\C-a ?\C-n ?\C-k ?\C-y ?\C-r ?r ?\" ?\" ?\C-f ?\C-f ?\C-f ?\C-f return ?\C-y return ?\C-p ?\M-q ?\C-n ?\C-n ?\C-a backspace ?\C-n ?\C-n ?\C-e return ?\C-n ?\C-n ?\C-n ?\C-n])
-#

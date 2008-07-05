@@ -1671,7 +1671,7 @@ class Worksheet:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
             sage: v = W.__getstate__().keys(); v.sort(); v
-            ['_Worksheet__collaborators', '_Worksheet__comp_is_running', '_Worksheet__dir', '_Worksheet__docbrowser', '_Worksheet__filename', '_Worksheet__name', '_Worksheet__next_id', '_Worksheet__owner', '_Worksheet__pretty_print', '_Worksheet__queue', '_Worksheet__saved_by_info', '_Worksheet__system', '_Worksheet__viewers']
+            ['_Worksheet__autopublish', '_Worksheet__collaborators', '_Worksheet__comp_is_running', '_Worksheet__dir', '_Worksheet__docbrowser', '_Worksheet__filename', '_Worksheet__name', '_Worksheet__next_id', '_Worksheet__owner', '_Worksheet__pretty_print', '_Worksheet__queue', '_Worksheet__saved_by_info', '_Worksheet__system', '_Worksheet__viewers']
         """
         d = copy.copy(self.__dict__)
 

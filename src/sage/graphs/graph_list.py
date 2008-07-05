@@ -107,7 +107,7 @@ def from_sparse6(data):
         l = []
         for d in data:
             if not d == '':
-                l.append(Graph(d, format = 'sparse6'))
+                l.append(Graph(d, format = 'sparse6', sparse=True))
         return l
     elif isinstance(data,list):
         l = []
@@ -115,9 +115,9 @@ def from_sparse6(data):
             if isinstance(d, str):
                 nn = d.rfind('\n')
                 if nn == -1:
-                    l.append(Graph(d, format='sparse6'))
+                    l.append(Graph(d, format='sparse6', sparse=True))
                 elif len(d) == nn + 1:
-                    l.append(Graph(d[:nn], format='sparse6'))
+                    l.append(Graph(d[:nn], format='sparse6', sparse=True))
                 else:
                     l.append(from_sparse6(d))
             else:
@@ -127,7 +127,7 @@ def from_sparse6(data):
         strlist = data.readlines()
         l = []
         for s in strlist:
-            l.append(Graph(s[:s.rfind('\n')], format='sparse6'))
+            l.append(Graph(s[:s.rfind('\n')], format='sparse6', sparse=True))
         return l
 
 def to_graph6(list, file = None, output_list=False):

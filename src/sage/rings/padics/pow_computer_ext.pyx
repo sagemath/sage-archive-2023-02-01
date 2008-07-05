@@ -723,6 +723,8 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         sage: PC.polynomial()
         [9765620 0 1]
         """
+        cdef ZZ_pX_Modulus_c* tmp
+        tmp.val()
         self.restore_top_context()
         cdef ntl_ZZ_pX r = PY_NEW(ntl_ZZ_pX)
         r.c = self.get_top_context()

@@ -31,12 +31,13 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
     def ramification_index(self, K = None):
         if K is None or K is self.ground_ring():
             return self.modulus().degree()
-	elif K is self:
+        elif K is self:
             return 1
         else:
             raise NotImplementedError
 
-    e = ramification_index
+    def e(self, K=None):
+        return self.ramification_index(K)
 
     def inertia_degree(self, K = None):
         if K is None or K is self.ground_ring():
@@ -46,24 +47,29 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         else:
             raise NotImplementedError
 
-    f = inertia_degree
+    def f(self, K=None):
+        return self.intertia_degree(K)
 
-    residue_class_degree = inertia_degree
+    def residue_class_degree(self, K=None):
+        return self.inertia_degree(K)
 
     def inertia_subring(self):
         return self.ground_ring()
 
-    maximal_unramified_subextension = inertia_subring
+    def maximal_unramified_subextension(self):
+        return self.inertia_subring()
 
     def extension(self, *args, **kwds):
         raise NotImplementedError
 
-    ext = extension
+    def ext(self, *args, **kwds):
+        return self.extension(*args, **kwds)
 
     def residue_class_field(self):
         return self.ground_ring().residue_class_field()
 
-    residue_field = residue_class_field
+    def residue_field(self):
+        return self.residue_class_field()
 
     def discriminant(self, K=None):
         if K is self:
@@ -102,10 +108,28 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             ans._set_uniformizer_pow(n)
         return ans
 
-    uniformiser_pow = uniformizer_pow
+    def uniformiser_pow(self, n):
+        return self.uniformizer_pow(n)
 
     def uniformizer(self):
+        """
+        EXAMPLES:
+            sage : A = Zp(7,10)
+            sage : B.<t> = A.ext(x^2+7)
+            sage : B.uniformizer()
+            t + O(t^21)
+        """
         return self.gen()
+
+    def uniformiser(self):
+        """
+        EXAMPLES:
+            sage : A = Zp(7,10)
+            sage : B.<t> = A.ext(x^2+7)
+            sage : B.uniformiser()
+            t + O(t^21)
+        """
+        return self.uniformizer()
 
     def _uniformizer_print(self):
         return self.variable_name()

@@ -747,7 +747,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             R -- list of lists [a,b,c,d] of length 4, which we view as elements of GL_2(Q).
 
         OUTPUT:
-            a matrix, which represents the operator
+            A matrix, which represents the operator
             $$
                x \mapsto \sum_{g in R} g.x
             $$
@@ -766,9 +766,51 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return M(rows)
 
     def _compute_atkin_lehner_matrix(self, d):
+        r"""
+        INPUT:
+            d -- integer that divides level
+
+        OUTPUT:
+            matrix
+
+        EXAMPLES:
+        An example at level 29:
+            sage: M = ModularSymbols((DirichletGroup(29,QQ).0), 2,1); M
+            Modular Symbols space of dimension 4 and level 29, weight 2, character [-1], sign 1, over Rational Field
+            sage: w = M._compute_atkin_lehner_matrix(29)
+            sage: w^2 == 1
+            True
+            sage: w.fcp()
+            (x - 1)^2 * (x + 1)^2
+
+        This doesn't work since the character has order > 2:
+            sage: M = ModularSymbols((DirichletGroup(13).0), 2,1); M
+            Modular Symbols space of dimension 0 and level 13, weight 2, character [zeta12], sign 1, over Cyclotomic Field of order 12 and degree 4
+            sage: M._compute_atkin_lehner_matrix(13)
+            Traceback (most recent call last):
+            ...
+            ValueError: Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)
+
+        Note that Atkin-Lehner does make sense on $\Gamma_1(13)$, but
+        doesn't commute with the Hecke operators:
+            sage: M = ModularSymbols(Gamma1(13),2)
+            sage: w = M.atkin_lehner_operator(13).matrix()
+            sage: t = M.T(2).matrix()
+            sage: t*w == w*t
+            False
+            sage: w^2 == 1
+            True
+        """
+        chi = self.character()
+        if chi is not None and chi.order() > 2:
+            raise ValueError, "Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)"
+
+        N = self.level()
         k = self.weight()
         R = self.base_ring()
-        N = self.level()
+        if N%d != 0:
+            raise ValueError, "d must divide N"
+
         g, x, y = arith.xgcd(d, -N//d)
         g = [d*x, y, N, d]
         A = self._action_on_modular_symbols(g)
@@ -980,6 +1022,13 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 for Gamma_0(18) of weight 2 with sign 0 over Rational Field) *
             (Modular Symbols subspace of dimension 5 of Modular Symbols space of dimension 7 for Gamma_0(18) of weight 2 with sign 0 over Rational Field)
 
+            sage: M = ModularSymbols(DirichletGroup(38,CyclotomicField(3)).1^2,  2, +1); M
+            Modular Symbols space of dimension 7 and level 38, weight 2, character [1, zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2
+            sage: M.factorization()                    # long time (about 8 seconds)
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 7 and level 38, weight 2, character [1, zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2) *
+            (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 and level 38, weight 2, character [1, zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2) *
+            (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 and level 38, weight 2, character [1, zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2) *
+            (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 and level 38, weight 2, character [1, zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2)
         """
 
 ##         EXAMPLES:
@@ -1066,7 +1115,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             skip_minus = False
 
         # The cuspidal part
+        # We only run through spaces of level a multiple of the conductor of the character, which
+        # we compute below, or set to 1 in case of Gamma_H or Gamma_1
+        chi = self.character()
+        cond = 1 if chi is None   else   chi.conductor()
+        # Now actually run through the divisor levels, taking only the ones with that are
+        # a multiple of the conductor.
         for d in reversed(arith.divisors(self.level())):
+            if d%cond != 0: continue
             n = arith.number_of_divisors(self.level() // d)
             M = self.modular_symbols_of_level(d)
             N = M.new_submodule().cuspidal_submodule().decomposition()

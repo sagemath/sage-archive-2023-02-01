@@ -12,7 +12,7 @@ from sage.misc.misc import verbose, get_verbose, cputime, UNAME
 # LinBox bugs to address:
 #  * charpoly and minpoly don't work randomly
 
-cdef extern from "linbox_wrap.h":
+cdef extern from "linbox/linbox-sage.h":
     void linbox_modn_dense_delete_array(mod_int *f)
 
     int linbox_modn_dense_echelonize(unsigned long modulus,
@@ -110,7 +110,7 @@ cdef class Linbox_modn_dense:
 include '../../modules/vector_modn_sparse_c.pxi'
 include '../../ext/stdsage.pxi'
 
-cdef extern from "linbox_wrap.h":
+cdef extern from "linbox/linbox-sage.h":
     ctypedef struct vector_uint "std::vector<unsigned int>":
         void (*push_back)(unsigned int)
         int (*get "operator[]") (size_t i)
@@ -154,7 +154,7 @@ cdef class Linbox_modn_sparse:
 ## Dense matrices over ZZ
 ##########################################################################
 
-cdef extern from "linbox_wrap.h":
+cdef extern from "linbox/linbox-sage.h":
     void linbox_integer_dense_minpoly_hacked(mpz_t* *minpoly, size_t* degree,
                                       size_t n, mpz_t** matrix, int do_minpoly)
 

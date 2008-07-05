@@ -121,7 +121,7 @@ def cantor_reduction_simple(a, b, f, genus):
         sage: 2 * P # indirect doctest
         (1)
     """
-    a2 = (f - b**2).div(a)
+    a2 = (f - b**2) // a
     a2 *= 1/a2.leading_coefficient()
     b2 = -b.mod(a2);
     if a2.degree() == a.degree():
@@ -176,7 +176,7 @@ def cantor_reduction(a, b, f, h, genus):
         b = b + r*(x**g1 - (x**g1).mod(a))
         k = f - h*b - b**2
     assert k.mod(a) == 0
-    a = k.div(a)
+    a = k // a
     a /= a.leading_coefficient()
     b = -(b+h).mod(a)
     if a.degree() > genus:
@@ -217,8 +217,8 @@ def cantor_composition_simple(D1,D2,f,genus):
     if a1 == a2 and b1 == b2:
         # Duplication law:
         d, h1, h3 = a1.xgcd(2*b1)
-        a = (a1.div(d))**2
-        b = (b1 + h3*((f - b1**2).div(d))).mod(a)
+        a = (a1 // d)**2
+        b = (b1 + h3*((f - b1**2) // d)).mod(a)
     else:
         d0, _, h2 = a1.xgcd(a2)
         if d0 == 1:
@@ -226,8 +226,8 @@ def cantor_composition_simple(D1,D2,f,genus):
             b = (b2 + h2*a2*(b1-b2)).mod(a)
         else:
             d, l, h3 = d0.xgcd(b1 + b2)
-            a = (a1*a2).div(d**2)
-            b = ((b2 + l*h2*(b1-b2)*a2.div(d)) + h3*((f - b2**2).div(d))).mod(a)
+            a = (a1*a2) // (d**2)
+            b = ((b2 + l*h2*(b1-b2)*(a2 // d)) + h3*((f - b2**2) // d)).mod(a)
     a *= 1/a.leading_coefficient()
     return (a, b)
 
@@ -259,8 +259,8 @@ def cantor_composition(D1,D2,f,h,genus):
     if a1 == a2 and b1 == b2:
         # Duplication law:
         d, h1, h3 = a1.xgcd(2*b1 + h)
-        a = (a1.div(d))**2;
-        b = (b1 + h3*((f-h*b1-b1**2).div(d))).mod(a)
+        a = (a1 // d)**2;
+        b = (b1 + h3*((f-h*b1-b1**2) // d)).mod(a)
     else:
         d0, _, h2 = a1.xgcd(a2)
         if d0 == 1:
@@ -269,12 +269,12 @@ def cantor_composition(D1,D2,f,h,genus):
         else:
             e0 = b1+b2+h
             if e0 == 0:
-                a = (a1*a2).div(d0**2);
-                b = (b2 + h2*(b1-b2)*(a2.div(d0))).mod(a)
+                a = (a1*a2) // (d0**2)
+                b = (b2 + h2*(b1-b2)*(a2 // d0)).mod(a)
             else:
                 d, l, h3 = d0.xgcd(e0)
-                a = (a1*a2).div(d**2);
-                b = (b2 + l*h2*(b1-b2)*(a2.div(d)) + h3*((f-h*b2-b2**2).div(d))).mod(a)
+                a = (a1*a2) // (d**2)
+                b = (b2 + l*h2*(b1-b2)*(a2 // d) + h3*((f-h*b2-b2**2) // d)).mod(a)
     a *= 1/a.leading_coefficient()
     return (a, b)
 

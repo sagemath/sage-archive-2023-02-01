@@ -1,0 +1,2 @@
+from decorate import parallel
+

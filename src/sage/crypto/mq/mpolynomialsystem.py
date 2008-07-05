@@ -1,4 +1,4 @@
-"""
+r"""
 Multivariate Polynomial Systems.
 
 We call a finite set of multivariate polynomials an MPolynomialSystem.
@@ -124,9 +124,15 @@ def MPolynomialSystem(arg1, arg2=None):
     if is_MPolynomialRing(arg1):
         R = arg1
         rounds = arg2
-    elif isinstance(arg1,MPolynomialIdeal):
+    elif isinstance(arg1,MPolynomialIdeal) and arg2 is None:
         R = arg1.ring()
         rounds = arg1.gens()
+    elif isinstance(arg1, (list,tuple)):
+	rounds = arg1
+	R = iter(rounds).next().parent()
+	for f in rounds:
+	    if f.parent() is not R:
+		raise TypeError("Generators must have same parent.")
     else:
         raise TypeError, "first parameter must be a MPolynomialRing"
 
@@ -140,10 +146,6 @@ def MPolynomialSystem(arg1, arg2=None):
         return MPolynomialSystem_gf2e(R,rounds)
 
 class MPolynomialRoundSystem_generic(SageObject):
-    """
-    Represents a multivariate polynomial set e.g. of a single round of
-    a block cipher.
-    """
     def __init__(self, R, gens):
         """
         Construct an object representing the equations of a single
@@ -167,6 +169,21 @@ class MPolynomialRoundSystem_generic(SageObject):
             self._gens = gens.list()
         else:
             self._gens = list(gens)
+
+    def __copy__(self):
+	"""
+	Return a copy of this round system.
+
+	EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+	    sage: r = F.round(0)
+            sage: copy(r)
+	    [w100 + k000 + (a^3 + a + 1), w101 + k001 + (a^3 + 1),
+	    w102 + k002 + (a^3 + a^2 + 1), w103 + k003 + (a^3 + a^2 +
+	    a)]
+	"""
+	return MPolynomialRoundSystem_generic(self._ring, list(self._gens))
 
     def __cmp__(self, other):
         """
@@ -224,7 +241,7 @@ class MPolynomialRoundSystem_generic(SageObject):
             sage: l[0]
             k000^2 + k000
         """
-        return list(self)
+        return tuple(self)
 
     def variables(self):
         """
@@ -325,9 +342,9 @@ class MPolynomialRoundSystem_generic(SageObject):
 
         """
         if is_MPolynomialRoundSystem(right) and self.ring() == right.ring():
-            return MPolynomialRoundSystem(self.ring(), self._gens + right.gens())
+            return MPolynomialRoundSystem(self.ring(), self._gens + list(right.gens()))
         if isinstance(right, (list,tuple)) and self.ring() == right[0].parent():
-            return MPolynomialRoundSystem(self.ring(), self._gens + right)
+            return MPolynomialRoundSystem(self.ring(), self._gens + list(right))
         else:
             raise ArithmeticError, "Cannot add MPolynomialRoundSystem and %s"%type(right)
 
@@ -414,13 +431,10 @@ class MPolynomialRoundSystem_generic(SageObject):
         return magma.ideal(self._gens)
 
 class MPolynomialSystem_generic(SageObject):
-    """
-    A system of multivariate polynomials. That is, a set of
-    multivariate polynomials with at least one common root.
-    """
     def __init__(self, R, rounds):
         """
-        Construct a new MPolynomialSystem.
+	Construct a new system of multivariate polynomials. That is, a
+	set of multivariate polynomials with at least one common root.
 
         INPUT:
             arg1 -- a multivariate polynomial ring or an ideal
@@ -467,6 +481,19 @@ class MPolynomialSystem_generic(SageObject):
                 self._rounds.append(b)
             else:
                 raise TypeError, "parameter not supported"
+
+    def __copy__(self):
+	"""
+	Return a copy of self. While this is not a deep copy only
+	mutable members of this system are copied.
+
+	EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: copy(F) # indirect doctest
+	    Polynomial System with 40 Polynomials in 20 Variables
+	"""
+	return MPolynomialSystem_generic(self._ring, [r.__copy__() for r in self._rounds])
 
     def __cmp__(self, other):
         """
@@ -520,9 +547,9 @@ class MPolynomialSystem_generic(SageObject):
             sage: F,s = sr.polynomial_system()
             sage: l = F.gens()
             sage: len(l), type(l)
-            (40, <type 'list'>)
+            (40, <type 'tuple'>)
         """
-        return list(self)
+        return tuple(self)
 
     def gen(self, ij):
         """
@@ -796,19 +823,41 @@ class MPolynomialSystem_generic(SageObject):
 
     def _singular_(self):
         """
-        Return SINGULAR ideal representation of self.
+        Return SINGULAR ideal representation of this system.
+
+	EXAMPLE:
+	    sage: P.<a,b,c,d> = PolynomialRing(GF(127))
+	    sage: I = sage.rings.ideal.Katsura(P)
+	    sage: F = mq.MPolynomialSystem(I); F
+	    Polynomial System with 4 Polynomials in 4 Variables
+	    sage: F._singular_()
+	    a+2*b+2*c+2*d-1,
+	    a^2+2*b^2+2*c^2+2*d^2-a,
+	    2*a*b+2*b*c+2*c*d-b,
+	    b^2+2*a*c+2*b*d-c
         """
         return singular.ideal(list(self))
 
     def _magma_(self):
         """
-        Return MAGMA ideal representation of self.
+        Return MAGMA ideal representation of this system as an ideal.
+
+	EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F._magma_() # optional, requires MAGMA
         """
         return magma.ideal(list(self))
 
     def _repr_(self):
         """
-        Return a string representation of self.
+        Return a string representation of this system.
+
+	EXAMPLE:
+	    sage: P.<a,b,c,d> = PolynomialRing(GF(127))
+	    sage: I = sage.rings.ideal.Katsura(P)
+	    sage: F = mq.MPolynomialSystem(I); F # indirect doctest
+	    Polynomial System with 4 Polynomials in 4 Variables
         """
         return "Polynomial System with %d Polynomials in %d Variables"%(self.ngens(),self.nvariables())
 
@@ -816,17 +865,53 @@ class MPolynomialSystem_generic(SageObject):
         """
         Add polynomial systems together, i.e. create a union of their
         polynomials.
+
+	EXAMPLE:
+	    sage: P.<a,b,c,d> = PolynomialRing(GF(127))
+	    sage: I = sage.rings.ideal.Katsura(P)
+	    sage: F = mq.MPolynomialSystem(I)
+	    sage: F + [a^127 + a]
+            Polynomial System with 5 Polynomials in 4 Variables
+
+	    sage: F + P.ideal([a^127 + a])
+            Polynomial System with 5 Polynomials in 4 Variables
+
+            sage: F + mq.MPolynomialSystem(P,[a^127 + a])
+            Polynomial System with 5 Polynomials in 4 Variables
         """
-        if is_MPolynomialRoundSystem(right) and right.ring() == self.ring():
+        if is_MPolynomialSystem(right) and right.ring() == self.ring():
             return MPolynomialSystem(self.ring(),self.rounds() + right.rounds())
         elif is_MPolynomialRoundSystem(right) and right.ring() == self.ring():
             return MPolynomialSystem(self.ring(),self.rounds() + [right.gens()])
+        elif isinstance(right,(tuple,list)) and all(map(lambda x: x.parent() == self.ring(), right)):
+            return MPolynomialSystem(self.ring(),self.rounds() + [right])
+        elif isinstance(right,MPolynomialIdeal) and right.ring() == self.ring():
+            return MPolynomialSystem(self.ring(),self.rounds() + [right.gens()])
         else:
-            raise TypeError, "right must be MPolynomialRing over same ring as self"
+            raise TypeError, "right must be a system over same ring as self"
 
     def __getitem__(self, ij):
-        """
-        See self.gen().
+        r"""
+        See \code{self.gen()}.
+
+	EXAMPLE:
+	    sage: P.<a,b,c,d> = PolynomialRing(GF(127),4)
+            sage: F = mq.MPolynomialSystem(sage.rings.ideal.Katsura(P))
+
+            $ij$-th polynomial overall
+
+            sage: F[0] # indirect doctest
+            a + 2*b + 2*c + 2*d - 1
+
+            $i$-th to $j$-th polynomial overall
+
+            sage: F[0:2]
+            [a + 2*b + 2*c + 2*d - 1, a^2 + 2*b^2 + 2*c^2 + 2*d^2 - a]
+
+            $i$-th round, $j$-th polynomial
+
+            sage: F[0,1]
+            a^2 + 2*b^2 + 2*c^2 + 2*d^2 - a
         """
         if isinstance(ij, tuple):
             i,j = ij
@@ -842,8 +927,23 @@ class MPolynomialSystem_generic(SageObject):
                     return r[ij]
 
     def __contains__(self, element):
-        """
-        Return True if element is in self or False else.
+        r"""
+	Return \code{True} if element is in \code{self} or
+	\code{False} else. This method does not return an answer for
+	the ideal spanned by the generators of this system but
+	literately whether a polynomial is in the list of generators.
+
+	EXAMPLE:
+            sage: P.<x0,x1,x2,x3> = PolynomialRing(GF(37))
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: F = mq.MPolynomialSystem(I)
+	    sage: f = x0 + 2*x1 + 2*x2 + 2*x3 -1
+	    sage: f in F
+	    True
+	    sage: x0*f in F
+	    False
+	    sage: x0*f in F.ideal()
+	    True
         """
         for r in self._rounds:
             if element in r:
@@ -874,12 +974,13 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
     """
     MPolynomialSystem over GF(2).
     """
-    def cnf(self):
-        """
-        Return Canonical Normal Form (CNF) representation of self in a
-        format MiniSAT et al. can understand.
-        """
-        raise NotImplemented
+    #def cnf(self):
+    #    """
+    #    Return Canonical Normal Form (CNF) representation of self in a
+    #    format MiniSAT et al. can understand.
+    #    """
+    #    raise NotImplemented
+    pass
 
 class MPolynomialSystem_gf2e(MPolynomialSystem_generic):
     r"""
@@ -903,14 +1004,14 @@ class MPolynomialSystem_gf2e(MPolynomialSystem_generic):
             sage: F2 = F.change_ring(GF(2)); F2
             Polynomial System with 8 Polynomials in 4 Variables
             sage: F2.gens()
-            [x1*y0 + x0*y1 + x1*y1,
+            (x1*y0 + x0*y1 + x1*y1,
             x0*y0 + x1*y1 + 1,
             x0 + x1,
             x1 + 1,
             x0^2 + x0,
             x1^2 + x1,
             y0^2 + y0,
-            y1^2 + y1]
+            y1^2 + y1)
 
         NOTE: Based on SINGULAR implementation by Michael Brickenstein
         <brickenstein@googlemail.com>

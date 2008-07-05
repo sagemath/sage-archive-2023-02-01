@@ -24,7 +24,7 @@ def inject_on(verbose=True):
 
     EXAMPLES:
         sage: inject_on(verbose=True)
-        Redefining: Frac FreeMonoid GF FractionField FiniteField PolynomialRing quotient NumberField LaurentSeriesRing quo
+        Redefining: FiniteField Frac FractionField FreeMonoid GF LaurentSeriesRing NumberField PolynomialRing quo quotient
         sage: GF(9,'b')
         Defining b
         Finite Field in b of size 3^2
@@ -69,7 +69,7 @@ def inject_on(verbose=True):
     G = globals()
     if verbose:
         print "Redefining:",
-    for X in sage.ext.interactive_constructors_c.__dict__.keys():
+    for X in sorted(sage.ext.interactive_constructors_c.__dict__.keys()):
         if not 'inject' in X and X[0] != '_' and X[:4] != 'sage':
             if verbose:
                 print X,

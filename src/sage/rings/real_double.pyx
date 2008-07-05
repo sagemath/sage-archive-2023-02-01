@@ -58,7 +58,12 @@ def is_RealDoubleField(x):
 
 cdef class RealDoubleField_class(Field):
     """
-    The field of real double precision numbers.
+    An approximation to the field of real numbers using double
+    precision floating point numbers. Answers derived from
+    calculations in this approximation may differ from what they would
+    be if those calculations were performed in the true field of
+    real numbers. This is due to the rounding errors inherent to
+    finite precision calculations.
 
     EXAMPLES:
         sage: RR == RDF
@@ -387,6 +392,13 @@ cdef class RealDoubleField_class(Field):
         return self(0)/self(0)
 
 cdef class RealDoubleElement(FieldElement):
+    """
+    An approximation to a real number using double precision
+    floating point numbers. Answers derived from calculations with
+    such approximations may differ from what they would be if those
+    calculations were performed with true real numbers. This is due
+    to the rounding errors inherent to finite precision calculations.
+    """
     def __new__(self, x=None):
         (<Element>self)._parent = _RDF
 

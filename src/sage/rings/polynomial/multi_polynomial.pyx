@@ -596,6 +596,18 @@ cdef class MPolynomial(CommutativeRingElement):
         P = P.change_ring(R)
         return P(self)
 
+    def _magma_init_(self):
+        """
+        Returns the MAGMA representation of self.
+
+        EXAMPLES:
+            sage: R.<x,y> = GF(2)[]
+            sage: f = y*x^2 + x +1
+            sage: f._magma_init_() #optional
+            '_sage_[3]^2*_sage_[4] + _sage_[3] + 1'
+        """
+        return self._repr_with_changed_varnames(self.parent()._magma_gens())
+
 
 
 cdef remove_from_tuple(e, int ind):

@@ -147,6 +147,17 @@ def Permutation(l):
         sage: type(p)
         <class 'sage.combinat.permutation.Permutation_class'>
 
+    Construction from a string in cycle notation
+        sage: p = Permutation( '(4,5)' ); p
+        [1, 2, 3, 5, 4]
+
+    The length of the permutation is the maximum integer appearing;
+    add a 1-cycle to increase this:
+        sage: p2 = Permutation( '(4,5)(10)' ); p2
+        [1, 2, 3, 5, 4, 6, 7, 8, 9, 10]
+        sage: len(p); len(p2)
+        5
+        10
 
     """
     if isinstance(l, Permutation_class):
@@ -159,7 +170,7 @@ def Permutation(l):
         cycle_list = []
         for c in cycles:
             cycle_list.append(map(int, c.split(",")))
-        return from_cycles(sum([len(c) for c in cycle_list]), cycle_list)
+        return from_cycles(max([max(c) for c in cycle_list]), cycle_list)
     # if it's a tuple or nonempty list of tuples, also assume cycle
     # notation
     elif isinstance(l, tuple) or \

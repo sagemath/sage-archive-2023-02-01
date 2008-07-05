@@ -116,7 +116,12 @@ def is_ComplexDoubleField(x):
 
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
-    The field of complex double precision numbers.
+    An approximation to the field of complex numbers using double
+    precision floating point numbers. Answers derived from
+    calculations in this approximation may differ from what they would
+    be if those calculations were performed in the true field of
+    complex numbers. This is due to the rounding errors inherent to
+    finite precision calculations.
 
     ALGORITHMS: Arithmetic is done using GSL (the GNU Scientific Library).
     """
@@ -417,7 +422,11 @@ def is_ComplexDoubleElement(x):
 
 cdef class ComplexDoubleElement(FieldElement):
     """
-    An element of a complex double field.
+    An approximation to a complex number using double precision
+    floating point numbers. Answers derived from calculations with
+    such approximations may differ from what they would be if those
+    calculations were performed with true complex numbers. This is due
+    to the rounding errors inherent to finite precision calculations.
     """
     def __new__(self, real=None, imag=None):
         self._parent = _CDF

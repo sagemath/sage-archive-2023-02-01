@@ -245,8 +245,8 @@ setup(ext_modules = ext_modules,
             target_c = target_c + "pp"
         cmd += " && cp '%s.c' '%s'"%(name, target_c)
         if annotate:
-            target_html = '%s/_%s.pyx.html'%(os.path.abspath(os.curdir), base)
-            cmd += " && cp '%s.pyx.html' '%s'"%(name, target_html)
+            target_html = '%s/_%s.html'%(os.path.abspath(os.curdir), base)
+            cmd += " && cp '%s.html' '%s'"%(name, target_html)
 
     if verbose:
         print cmd

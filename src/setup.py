@@ -308,7 +308,7 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
 linbox = Extension('sage.libs.linbox.linbox',
                    ['sage/libs/linbox/linbox.pyx'],
                    # For this to work on cygwin, linboxwrap *must* be before ntl.
-                   libraries = ['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS, BLAS2],
+                   libraries = ['linboxsage', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS, BLAS2],
                    language = 'c++')
 
 libsingular = Extension('sage.libs.singular.singular',
@@ -820,6 +820,12 @@ ext_modules = [ \
     Extension('sage.rings.polynomial.polynomial_element',
               sources = ['sage/rings/polynomial/polynomial_element.pyx']), \
 
+    Extension('sage.rings.polynomial.polynomial_integer_dense_flint',
+                 sources = ['sage/rings/polynomial/polynomial_integer_dense_flint.pyx'],
+                 language = 'c++',
+                 libraries = ["csage", "flint", "gmp", "gmpxx", "ntl"],
+                 include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/']),
+
     Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
                  sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],
                  libraries = ['ntl', 'stdc++', 'gmp'],
@@ -1041,6 +1047,9 @@ ext_modules = [ \
               ['sage/misc/sage_timeit_class.pyx']
               ), \
 
+    Extension('sage.misc.fpickle',
+              ['sage/misc/fpickle.pyx']
+              ), \
     ]
 
 
@@ -1409,6 +1418,8 @@ code = setup(name        = 'sage',
 
                      'sage.stats',
 
+                     'sage.parallel',
+
                      'sage.schemes',
                      'sage.schemes.generic',
                      'sage.schemes.jacobians',
@@ -1457,6 +1468,7 @@ code = setup(name        = 'sage',
                      'sage/dsage/web/static/jquery.js',
                      'sage/dsage/web/static/jquery.tablesorter.pack.js',
                      'sage/dsage/web/static/jquery.history.js',
+                     'sage/dsage/web/static/jquery.form.js',
                      'sage/dsage/web/static/asc.gif',
                      'sage/dsage/web/static/desc.gif',
                      'sage/dsage/web/static/bg.gif',

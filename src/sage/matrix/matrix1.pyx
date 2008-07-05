@@ -154,6 +154,18 @@ cdef class Matrix(matrix0.Matrix):
             sage: B.Parent()                            # optional
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
 
+            sage: R.<x,y> = QQ[]
+            sage: A = MatrixSpace(R,2,2)([x+y,x-1,y+5,x*y])
+            sage: B = magma(A); B                       # optional
+            [x + y x - 1]
+            [y + 5   x*y]
+
+            sage: R.<x,y> = ZZ[]
+            sage: A = MatrixSpace(R,2,2)([x+y,x-1,y+5,x*y])
+            sage: B = magma(A); B                       # optional
+            [x + y x - 1]
+            [y + 5   x*y]
+
         We coerce a matrix over a cyclotomic field, where the
         generator must be named during the coercion.
             sage: K = CyclotomicField(9) ; z = K.0

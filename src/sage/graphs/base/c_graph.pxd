@@ -21,3 +21,4 @@ cdef class CGraph:
 
 # TODO: edge functions!
 
+

@@ -1087,20 +1087,29 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B.augment(A)
             [0 1 0]
             [0 1 1]
+            sage: M = Matrix(GF(2), 0, 0, 0)
+            sage: N = Matrix(GF(2), 0, 19, 0)
+            sage: W = M.augment(N)
+            sage: W.ncols()
+            19
+            sage: M = Matrix(GF(2), 0, 1, 0)
+            sage: N = Matrix(GF(2), 0, 1, 0)
+            sage: M.augment(N)
+            []
         """
         cdef Matrix_mod2_dense A
 
         if self._nrows != right._nrows:
             raise TypeError, "Both numbers of rows must match."
 
-        if self._nrows == 0:
-            return self.copy()
         if self._ncols == 0:
             return right.copy()
         if right._ncols == 0:
             return self.copy()
 
         A = self.new_matrix(ncols = self._ncols + right._ncols)
+        if self._nrows == 0:
+            return A
         A._entries = mzd_concat(A._entries, self._entries, right._entries)
         return A
 
@@ -1133,12 +1142,19 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 1 1]
             [0 0 0]
+            sage: M = Matrix(GF(2), 0, 0, 0)
+            sage: N = Matrix(GF(2), 19, 0, 0)
+            sage: W = M.stack(N)
+            sage: W.nrows()
+            19
+            sage: M = Matrix(GF(2), 1, 0, 0)
+            sage: N = Matrix(GF(2), 1, 0, 0)
+            sage: M.stack(N)
+            []
         """
         if self._ncols != other._ncols:
             raise TypeError, "Both numbers of columns must match."
 
-        if self._ncols == 0:
-            return self.copy()
         if self._nrows == 0:
             return other.copy()
         if other._nrows == 0:
@@ -1146,6 +1162,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef Matrix_mod2_dense A
         A = self.new_matrix(nrows = self._nrows + other._nrows)
+        if self._ncols == 0:
+            return A
         A._entries = mzd_stack(A._entries, self._entries, other._entries)
         return A
 

@@ -1587,6 +1587,22 @@ cdef class FiniteField(Field):
 
         return (im_gens[0].charpoly())(self.gen(0)).is_zero()
 
+    def _Hom_(self, codomain, cat=None):
+        """
+        Return homset of homomorphisms from self to the finite field codomain.
+
+        The cat option is currently ignored.
+
+        EXAMPLES:
+            This function is implicitly called by the Hom method or function.
+            sage: K.<a> = GF(25); K
+            Finite Field in a of size 5^2
+            sage: K.Hom(K)
+            Automorphism group of Finite Field in a of size 5^2
+        """
+        from sage.rings.finite_field_morphism import FiniteFieldHomset
+        return FiniteFieldHomset(self, codomain)
+
     def gen(self):
         raise NotImplementedError
 

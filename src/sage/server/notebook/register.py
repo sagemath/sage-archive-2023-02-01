@@ -25,6 +25,17 @@ You will be taken to a page which will confirm that you have indeed
 registered.""" % (url_prefix, addr, port, key)
     return s
 
+def build_password_msg(key, username, addr, port, secure):
+    url_prefix = "https" if secure else "http"
+    s  = "Hi %s!\n\n" % username
+    s += """\
+Your new password is %s
+
+Sign in at %s://%s:%s/
+
+Make sure to reset your password by going to Settings in the upper right bar.""" % (key, url_prefix, addr, port)
+    return s
+
 def make_key():
     from random import randint
     key = randint(0,2**128-1)

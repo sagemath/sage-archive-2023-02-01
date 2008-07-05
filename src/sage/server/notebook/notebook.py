@@ -435,7 +435,7 @@ class Notebook(SageObject):
         else:
             dirname = '0'
 
-        W = worksheet.Worksheet(worksheet_name, dirname, self,
+        W = worksheet.Worksheet(worksheet_name, dirname, self.worksheet_directory(),
                                 system = self.system(username),
                                 owner=username,
                                 docbrowser = docbrowser)
@@ -960,7 +960,7 @@ class Notebook(SageObject):
     def DIR(self):
         """
         Return the absolute path to the directory that contains
-        the \sage Notebook directory.
+        the Sage Notebook directory.
         """
         P = os.path.abspath('%s/..'%self.__dir)
         if not os.path.exists(P):

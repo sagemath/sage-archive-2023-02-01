@@ -1,5 +1,5 @@
 """
-The \sage Notebook object
+The Sage Notebook object
 """
 
 #############################################################################
@@ -1644,7 +1644,7 @@ class Notebook(SageObject):
     # Saving the whole notebook
     ###########################################################
 
-    def save(self, filename=None):
+    def save(self, filename=None, verbose=False):
 
         if filename is None:
             F = os.path.abspath(self.__filename)
@@ -1671,14 +1671,14 @@ class Notebook(SageObject):
 
         t = cputime()
         out = cPickle.dumps(self, 2)
-        print "Dumped notebook to pickle (%s seconds)"%cputime(t)
+        if verbose: print "Dumped notebook to pickle (%s seconds)"%cputime(t)
 
         t = cputime()
         # Assuming an exception wasn't raised during pickling we write to the file.
         # This is vastly superior to writing to a file immediately, which can easily
         # result in a poor empty file.
         open(F,'w').write(out)
-        print "Wrote notebook pickle to file '%s' (%s seconds)"%(F,cputime(t))
+        if verbose: print "Wrote notebook pickle to file '%s' (%s seconds)"%(F,cputime(t))
 
     def delete_doc_browser_worksheets(self):
         names = self.worksheet_names()

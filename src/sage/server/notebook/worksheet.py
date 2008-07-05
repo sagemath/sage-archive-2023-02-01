@@ -689,10 +689,20 @@ class Worksheet:
     # Stuff to customize how pickling works slightly.
     ##########################################################
 
-    # The getstate method makes sure that the self.__cells
-    # dictionary is not saved in the pickle since it could be
-    # huge.
     def __getstate__(self):
+        """
+        The getstate method makes sure that the self.__cells
+        dictionary is not saved in the pickle since it could be huge.
+
+        OUTPUT:
+            a dictionary; same as self.__dict__ but with some fields deleted.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
+            sage: v = W.__getstate__().keys(); v.sort(); v
+            ['_Worksheet__collaborators', '_Worksheet__comp_is_running', '_Worksheet__dir', '_Worksheet__docbrowser', '_Worksheet__filename', '_Worksheet__name', '_Worksheet__next_id', '_Worksheet__owner', '_Worksheet__pretty_print', '_Worksheet__queue', '_Worksheet__saved_by_info', '_Worksheet__system', '_Worksheet__viewers']
+        """
         d = copy.copy(self.__dict__)
 
         # These attributes can take a while too and there is no need to cache them
@@ -703,7 +713,7 @@ class Worksheet:
 
         if d.has_key('_Worksheet__cells'):
             try:
-                print "Saving ", self.directory()
+                #print "Saving ", self.directory()
                 self.save()  # make sure the worksheet.txt file is up to date.
                 del d['_Worksheet__cells']
             except:
@@ -724,7 +734,7 @@ class Worksheet:
                             d['_Worksheet__dir'] = dir[i+1:]
                             self.save()
                             del d['_Worksheet__cells']
-                            print "Saving worksheet %s -- getting rid of absolute path."%self.directory()
+                            #print "Saving worksheet %s -- getting rid of absolute path."%self.directory()
                             return d
                 except Exception, msg:
                     print msg
@@ -814,6 +824,19 @@ class Worksheet:
             text -- a string
             ignore_ids -- bool (default: False); if True ignore all the
                           id's in the {{{}}} code block.
+
+        EXAMPLES:
+        We create a new test notebook and a worksheet.
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test Edit Save', 'sage')
+
+        We set the contents of the worksheet using the edit_save command.
+            sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
+            sage: W
+            [Cell 0; in=2+3, out=5, Cell 1; in=2+8, out=10]
+            sage: W.name()
+            'Sage'
         """
         # Clear any caching.
         try:
@@ -1164,6 +1187,22 @@ class Worksheet:
     ##########################################################
 
     def cell_id_list(self):
+        """
+        Return a new list of the id's of cells in this worksheet.
+
+        OUTPUT:
+            a new list
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
+
+        Now we set the worksheet to have two cells with the default id
+        of 0 and another with id 10.
+            sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
+            sage: W.cell_id_list()
+            [0, 10]
+        """
         return [C.id() for C in self.cell_list()]
 
     def compute_cell_id_list(self):
@@ -1176,18 +1215,27 @@ class Worksheet:
         OUTPUT:
             list -- a list of cells
 
-        This function loads the cell list from disk (the file
+        NOTE: This function loads the cell list from disk (the file
         worksheet.txt) if it isn't available in memory.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
+            sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
+            sage: v = W.cell_list(); v
+            [Cell 0; in=2+3, out=5, Cell 1; in=2+8, out=10]
+            sage: v[0]
+            Cell 0; in=2+3, out=5
         """
         try:
             return self.__cells
         except AttributeError:
             worksheet_txt = '%s/worksheet.txt'%self.__dir
             if not os.path.exists(worksheet_txt):
-                print "Creating new worksheet file %s"%worksheet_txt
+                #print "Creating new worksheet file %s"%worksheet_txt
                 self.__cells = []
             else:
-                print "Loading worksheet %s"%worksheet_txt
+                #print "Loading worksheet %s"%worksheet_txt
                 txt = open(worksheet_txt).read()
                 self.edit_save(txt)
             return self.__cells
@@ -1195,6 +1243,19 @@ class Worksheet:
     def append_new_cell(self):
         """
         Create and append a new cell to the list of cells.
+
+        OUTPUT:
+            a new empty cell
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
+            sage: W
+            [Cell 0; in=, out=]
+            sage: W.append_new_cell()
+            Cell 1; in=, out=
+            sage: W
+            [Cell 0; in=, out=, Cell 1; in=, out=]
         """
         C = self._new_cell()
         self.cell_list().append(C)

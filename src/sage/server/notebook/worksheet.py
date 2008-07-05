@@ -1,12 +1,19 @@
 r"""
 A Worksheet.
 
-A worksheet is embedded in a webpage that is served by the \sage server.
-It is a linearly-ordered collections of numbered cells, where a
-cell is a single input/output block.
-"""
+A worksheet is embedded in a webpage that is served by the Sage
+server.  It is a linearly-ordered collections of numbered cells, where
+a cell is a single input/output block.
 
-from __future__ import with_statement
+The worksheet module is responsible for running calculations in a
+worksheet, spawning Sage processes that do all of the actual work and
+are controlled via pexpect, and reporting on results of calculations.
+The state of the cells in a worksheet is stored on the filesystem (not
+in the notebook pickle sobj).
+
+AUTHOR:
+    -- William Stein
+"""
 
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -15,6 +22,7 @@ from __future__ import with_statement
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
+# Import standard Python libraries that we will use below
 import os
 import copy
 import shutil
@@ -23,70 +31,90 @@ import string
 import traceback
 import time
 import crypt
-
-import sage.misc.remote_file as remote_file
-
-import sage.misc.cython as cython
-
 import bz2
-
 import re
+
+# A library that we ship with sage
+import pexpect
+
+# General sage library code
+import sage.misc.remote_file as remote_file
+import sage.misc.cython as cython
+from   sage.structure.sage_object  import load, save
+from   sage.interfaces.sage0 import Sage
+from   sage.misc.preparser   import preparse_file
+import sage.misc.interpreter
+from   sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE, walltime
+import sage.server.support   as support
+
+# Imports specifically relevant to the sage notebook
+import worksheet_conf
+import twist
+from   cell import Cell, TextCell
+
+# Set some constants that will be used for regular expressions below.
 whitespace = re.compile('\s')  # Match any whitespace character
 non_whitespace = re.compile('\S')
 
-import pexpect
+# Constants that control the behavior of the worksheet.
+INTERRUPT_TRIES = 3    # number of times to send control-c to subprocess before giving up
+INITIAL_NUM_CELLS = 1  # number of empty cells in new worksheets
 
-from sage.structure.sage_object  import load, save
-from sage.interfaces.sage0 import Sage
-from sage.misc.preparser   import preparse_file
-import sage.misc.interpreter
-from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE, walltime
-import sage.server.support as support
+WARN_THRESHOLD = 100   # The number of seconds, so if there was no activity on
+                       # this worksheet for this many seconds, then editing
+                       # is considered safe.  Used when multiple people are editing
+                       # the same worksheet.
 
-import worksheet_conf
-
-import twist
-
-from cell import Cell, TextCell
-
-INTERRUPT_TRIES = 3
-INITIAL_NUM_CELLS = 1
-
-WARN_THRESHOLD = 100
-
-
-#If you make any changes to this, be sure to change the
+# The strings used to synchronized the compute subprocesses.
+# WARNING:  If you make any changes to this, be sure to change the
 # error line below that looks like this:
 #         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
-SC='\x01'
-#SC="__SAGE__"
-SAGE_BEGIN=SC+'b'
-SAGE_END=SC+'e'
-SAGE_ERROR=SC+'r'
+SC         = '\x01'
+SAGE_BEGIN = SC + 'b'
+SAGE_END   = SC + 'e'
+SAGE_ERROR = SC + 'r'
 
-##################################3
+# Integers that define which folder this worksheet is in
+# relative to a given user.
 ARCHIVED = 0
 ACTIVE   = 1
 TRASH    = 2
 
+# The default is for there to be one sage session for each worksheet.
+# If this is False, then there is just one global Sage session, like
+# with Mathematica. The multisessin variable gets possibly changed
+# when the notebook function in notebook.py is called.
 
-# The default is for there to be one sage session for
-# each worksheet.  If this is False, then there is just
-# one global Sage session, like with Mathematica.
-# This variable gets sets when the notebook function
-# in notebook.py is called.
 multisession = True
+
 def initialized_sage(server, ulimit):
+    """
+    Return one copy of a Sage compute process that has initialization
+    code run.
+
+    INPUT:
+       server -- if sessions will be run via ssh on a remote account then
+                 this string specifies that account (passed on to the Sage
+                 pexpect interface).
+       ulimit -- string; passed to the ulimit command before running
+                 the subprocess
+
+    OUTPUT:
+        a pexpect interface to a local or remote copy of Sage
+
+    EXAMPLES:
+        sage: S = sage.server.notebook.worksheet.initialized_sage(None,None)
+        sage: S
+        Sage
+    """
     S = Sage(server=server, ulimit=ulimit, maxread = 1, python=True, verbose_start=False)
     S._start(block_during_init=False)
     E = S.expect()
     E.sendline('\n')
-    E.expect('>>>')
     cmd = 'from sage.all_notebook import *;'
     cmd += 'import sage.server.support as _support_; '
     E.sendline(cmd)
     return S
-
 
 
 _a_sage = None

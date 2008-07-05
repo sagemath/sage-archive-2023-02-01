@@ -39,6 +39,9 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20080310.p4 (John Cremona, July 4th, 2008) ===
+ * Delete some code that was never compiled but which was labelled as having been borrowed from LiDIA
+
 === eclib-20080310.p3 (John Cremona) ===
  * minor bugfixes for gcc 4.2.3
 

@@ -1363,10 +1363,10 @@ class Worksheet:
             sage: os.listdir(W.directory())
             ['snapshots', 'worksheet.txt']
             sage: W.cell_list()[0].evaluate()
-            sage: os.listdir(W.directory())
+            sage: sorted(os.listdir(W.directory()))
             ['cells', 'code', 'data', 'snapshots', 'worksheet.txt']
             sage: W.delete_cells_directory()
-            sage: os.listdir(W.directory())
+            sage: sorted(os.listdir(W.directory()))
             ['code', 'data', 'snapshots', 'worksheet.txt']
         """
         dir = self.cells_directory()

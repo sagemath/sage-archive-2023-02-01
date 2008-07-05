@@ -246,6 +246,11 @@ macaulay2_name_mapping = {'lex'          :'Lex',
                           'degrevlex'    :'GRevLex',
                           'deglex'       :'GLex'}
 
+inv_macaulay2_name_mapping = { 'Lex':'lex',
+                               'RevLex, Global=>false':'revlex',
+                               'GRevLex':"degrevlex",
+                               'GLex':'deglex'}
+
 magma_name_mapping =     {'lex'          :'"lex"',
                           'degrevlex'    :'"grevlex"',
                           'deglex'       :'"glex"'}

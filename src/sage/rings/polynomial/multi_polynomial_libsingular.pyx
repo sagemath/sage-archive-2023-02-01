@@ -646,7 +646,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             return element._polynomial_(self)
 
         if is_Macaulay2Element(element):
-            return self(repr(element))
+            return self(element.external_string())
 
         try:
             return self(str(element))
@@ -3668,7 +3668,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return co.new_MP(self._parent, p_Minus_mm_Mult_qq(p_Copy(self._poly, r), m._poly, q._poly, r))
 
-    def _macaulay2_init_(self, macaulay2=macaulay2):
+    def _macaulay2_(self, macaulay2=macaulay2):
         """
         Return a Macaulay2 string representation of this polynomial.
 
@@ -3682,23 +3682,22 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = (x^3 + 2*y^2*x)^7; f
             x^21 + 2*x^7*y^14
 
-        Always call the Macaulay2 ring conversion on the parent polynomial
-        ring before converting a copy of elements to Macaulay2:
-            sage: macaulay2(R)                      # optional
-            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
-            sage: h = f._macaulay2_(); h            # optional
-            x^21+2*x^7*y^14
-            sage: k = (x+y)._macaulay2_init_(); k
-            'x + y'
-            sage: k = macaulay2(k)                  # optional
+            sage: h = macaulay2(f); h               # optional
+             21     7 14
+            x   + 2x y
+            sage: k = macaulay2(x+y); k             # optional
+            x + y
             sage: k + h                             # optional
-            x^21+2*x^7*y^14+x+y
+             21     7 14
+            x   + 2x y   + x + y
             sage: R(h)                              # optional
             x^21 + 2*x^7*y^14
             sage: R(h^20) == f^20                   # optional
             True
         """
-        return repr(self)
+        m2_parent = macaulay2(self.parent())
+        macaulay2.use(m2_parent)
+        return macaulay2(repr(self))
 
     def add_m_mul_q(self, MPolynomial_libsingular m, MPolynomial_libsingular q):
         r"""

@@ -1546,6 +1546,24 @@ cdef class FiniteField(Field):
         p = self.polynomial()
         return "ext< %s | %s >"%(B._magma_init_(),p._magma_init_())
 
+    def _macaulay2_init_(self):
+        """
+        Returns the string representation of self that Macaulay2 can
+        under stand.
+
+        EXAMPLES:
+            sage: GF(97,'a')._macaulay2_init_()
+            'GF 97'
+
+            sage: macaulay2(GF(97, 'a')) #optional
+            ZZ
+            --
+            97
+            sage: macaulay2(GF(49, 'a')) #optional
+            GF 49
+        """
+        return "GF %s"%(self.order())
+
     cdef int _cmp_c_impl(left, Parent right) except -2:
         """
         Compares this finite field with other.

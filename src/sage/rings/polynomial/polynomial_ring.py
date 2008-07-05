@@ -393,6 +393,21 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     def _gap_init_(self):
         return 'PolynomialRing(%s, ["%s"])'%(self.base_ring()._gap_init_(), self.variable_name())
 
+    def _macaulay2_(self, m2=None):
+        """
+        EXAMPLES:
+            sage: R = QQ['x']
+            sage: macaulay2(R) #optional
+            QQ [x]
+        """
+        if m2 is None:
+            import sage.interfaces.macaulay2
+            m2 = sage.interfaces.macaulay2.macaulay2
+        base_ring = m2( self.base_ring() )
+        var = self.gen()
+        return m2("%s[symbol %s]"%(base_ring.name(), var))
+
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
             # all that is needed is that elements of the base ring

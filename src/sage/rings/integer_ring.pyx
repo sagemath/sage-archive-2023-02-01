@@ -815,6 +815,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return 'IntegerRing()'
 
+    def _macaulay2_init_(self):
+        """
+        EXAMPLES:
+            sage: macaulay2(ZZ)       #optional
+            ZZ
+        """
+        return "ZZ"
+
 ZZ = IntegerRing_class()
 Z = ZZ
 

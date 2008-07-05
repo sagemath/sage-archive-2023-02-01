@@ -1433,6 +1433,21 @@ class FreeModule_generic(module.Module):
 
         return s
 
+    def _macaulay2_(self, macaulay2=None):
+        """
+        EXAMPLES:
+            sage: R = QQ^2
+            sage: macaulay2(R) # optional
+              2
+            QQ
+        """
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2
+        if self._inner_product_matrix:
+            raise NotImplementedError
+        else:
+            return macaulay2(self.base_ring())**self.rank()
+
 class FreeModule_generic_pid(FreeModule_generic):
     """
     Base class for all free modules over a PID.

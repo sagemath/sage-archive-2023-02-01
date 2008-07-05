@@ -27,36 +27,36 @@ GCD of $10$ and $25$ computed using Macaulay2.
 \end{enumerate}
 
 EXAMPLES:
-    sage: print macaulay2('3/5 + 7/11')
+    sage: print macaulay2('3/5 + 7/11') #optional
     68
     --
     55
-    sage: f = macaulay2('f = i -> i^3')
-    sage: f
+    sage: f = macaulay2('f = i -> i^3') #optional
+    sage: f                             #optional
     f
-    sage: f(5)
+    sage: f(5)                          #optional
     125
 
-    sage: R = macaulay2('ZZ/5[x,y,z]')
-    sage: print R
+    sage: R = macaulay2('ZZ/5[x,y,z]')  #optional
+    sage: print R                       #optional
     ZZ
     -- [x, y, z]
      5
-    sage: x = macaulay2('x')
-    sage: y = macaulay2('y')
+    sage: x = macaulay2('x')            #optional
+    sage: y = macaulay2('y')            #optional
     sage: print (x+y)^5
      5    5
     x  + y
-    sage: parent((x+y)^5)
+    sage: parent((x+y)^5)               #optional
     Macaulay2
 
-    sage: R = macaulay2('QQ[x,y,z,w]')
-    sage: f = macaulay2('x^4 + 2*x*y^3 + x*y^2*w + x*y*z*w + x*y*w^2 + 2*x*z*w^2 + y^4 + y^3*w + 2*y^2*z*w + z^4 + w^4')
-    sage: print f
+    sage: R = macaulay2('QQ[x,y,z,w]')  #optional
+    sage: f = macaulay2('x^4 + 2*x*y^3 + x*y^2*w + x*y*z*w + x*y*w^2 + 2*x*z*w^2 + y^4 + y^3*w + 2*y^2*z*w + z^4 + w^4') #optional
+    sage: print f                       #optional
      4       3    4    4      2     3                2           2         2    4
     x  + 2x*y  + y  + z  + x*y w + y w + x*y*z*w + 2y z*w + x*y*w  + 2x*z*w  + w
-    sage: g = f * macaulay2('x+y^5')
-    sage: print g.factor()
+    sage: g = f * macaulay2('x+y^5')    #optional
+    sage: print g.factor()              #optional
       4       3    4    4      2     3                2           2         2    4   5
     (x  + 2x*y  + y  + z  + x*y w + y w + x*y*z*w + 2y z*w + x*y*w  + 2x*z*w  + w )(y  + x)
 
@@ -95,15 +95,23 @@ TODO:
 
 import os
 
-from expect import Expect, ExpectElement, AsciiArtString
+from expect import Expect, ExpectElement, AsciiArtString, ExpectFunction
 
-from sage.misc.misc import verbose
+from sage.misc.misc import DOT_SAGE, verbose
 from sage.misc.multireplace import multiple_replace
+import random
 
-from re import search
+import re
 
 def remove_output_labels(s):
-    m = search('o[0-9]+ = ', s)
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.macaulay2 import remove_output_labels
+        sage: output = 'o1 = QQ [x, y]\n\no1 : PolynomialRing\n'
+        sage: remove_output_labels(output)
+        'QQ [x, y]\n\nPolynomialRing\n'
+    """
+    m = re.search('o[0-9]+ = ', s)
     if m is None: return s
     i = m.start()
     j = m.end()
@@ -114,12 +122,8 @@ def remove_output_labels(s):
     s = '\n'.join([x[n:] for x in v])
     return s
 
-## def clean_output(s):
-##     i = s.find('= ')
-##     if i == -1:
-##         return s
-##     j = s[:i].rfind('\n')
-##     return (s[:j] + ' '*(i+1) + s[i+2:-1]).strip()
+
+COMMANDS_CACHE = '%s/macaulay2_commandlist_cache.sobj'%DOT_SAGE
 
 class Macaulay2(Expect):
     """
@@ -127,6 +131,11 @@ class Macaulay2(Expect):
     """
     def __init__(self, maxread=10000, script_subdirectory="",
                  logfile=None, server=None,server_tmpdir=None):
+        """
+        TESTS:
+            sage: macaulay2 == loads(dumps(macaulay2))
+            True
+        """
         Expect.__init__(self,
                         name = 'macaulay2',
                         prompt = 'i[0-9]* : ',
@@ -144,8 +153,45 @@ class Macaulay2(Expect):
     # garbage collection in SAGE properly sets up garbage collection in
     # Macaulay2.
 
+    def __reduce__(self):
+        """
+        Used in serializing an Macaulay2 interface.
+
+        EXAMPLES:
+            sage: rlm2, t = macaulay2.__reduce__()
+            sage: rlm2(*t)
+            Macaulay2
+        """
+        return reduce_load_macaulay2, tuple([])
+
     def _read_in_file_command(self, filename):
-        return 'value get "%s"'%filename
+        """
+        EXAMPLES:
+            sage: from sage.misc.misc import tmp_filename
+            sage: filename = tmp_filename()
+            sage: f = open(filename, "w")
+            sage: f.write("Hello")
+            sage: f.close()
+            sage: command = macaulay2._read_in_file_command(filename)
+            sage: macaulay2.eval(command)  #optional
+            Hello
+            sage: import os
+            sage: os.unlink(filename)
+        """
+        return 'get "%s"'%filename
+
+    def __getattr__(self, attrname):
+        """
+        EXAMPLES:
+            sage: gb = macaulay2.gb  #optional
+            sage: type(gb)           #optional
+            <class 'sage.interfaces.macaulay2.Macaulay2Function'>
+            sage: gb._name           #optional
+            'gb'
+        """
+        if attrname[:1] == "_":
+            raise AttributeError
+        return Macaulay2Function(self, attrname)
 
     def eval(self, code, strip=True):
         """
@@ -155,6 +201,10 @@ class Macaulay2(Expect):
         INPUT:
             code -- str
             strip -- ignored
+
+        EXAMPLES:
+            sage: macaulay2.eval("2+2") #optional
+            4
         """
         code = code.strip()
         # TODO: in some cases change toExternalString to toString??
@@ -163,16 +213,25 @@ class Macaulay2(Expect):
             ans = remove_output_labels(ans)
         return AsciiArtString(ans)
 
-
     def get(self, var):
         """
         Get the value of the variable var.
+
+        EXAMPLES:
+            sage: macaulay2.set("a", "2") #optional
+            sage: macaulay2.get("a")      #optional
+            2
         """
         return self.eval("describe %s"%var, strip=True)
 
     def set(self, var, value):
         """
         Set the variable var to the given value.
+
+        EXAMPLES:
+            sage: macaulay2.set("a", "2")  #optional
+            sage: macaulay2.get("a")       #optional
+            2
         """
         cmd = '%s=%s;'%(var,value)
         ans = Expect.eval(self, cmd)
@@ -180,35 +239,106 @@ class Macaulay2(Expect):
             raise RuntimeError, "Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(cmd, ans)
 
     def _object_class(self):
+        """
+        Returns the class of Macaulay2 elements.
+
+        EXAMPLES:
+            sage: macaulay2._object_class()
+            <class 'sage.interfaces.macaulay2.Macaulay2Element'>
+
+        """
         return Macaulay2Element
 
     def console(self):
+        """
+        Spawn a new M2 command-line session.
+
+        EXAMPLES:
+            sage: macaulay2.console()                    # not tested
+            Macaulay 2, version 1.1
+            with packages: Classic, Core, Elimination, IntegralClosure, LLLBases, Parsing, PrimaryDecomposition, SchurRings, TangentCone
+            ...
+
+        """
         macaulay2_console()
 
     def _left_list_delim(self):
+        """
+        Returns the Macaulay2 left delimiter for lists.
+
+        EXAMPLES:
+            sage: macaulay2._left_list_delim()
+            '{'
+        """
         return '{'
 
     def _right_list_delim(self):
+        """
+        Returns the Macaulay2 right delimiter for lists.
+
+        EXAMPLES:
+            sage: macaulay2._right_list_delim()
+            '}'
+        """
         return '}'
 
     def _true_symbol(self):
+        """
+        Returns the Macaulay2 symbol for True.
+
+        EXAMPLES:
+            sage: macaulay2._true_symbol()
+            'true'
+        """
         return 'true'
 
     def _false_symbol(self):
+        """
+        Returns the Macaulay2 symbol for False.
+
+        EXAMPLES:
+            sage: macaulay2._false_symbol()
+            'false'
+        """
         return 'false'
 
     def _equality_symbol(self):
+        """
+        Returns the Macaulay2 symbol for equality.
+
+        EXAMPLES:
+            sage: macaulay2._false_symbol()
+            'false'
+        """
         return '=='
 
     def cputime(self, t=None):
-        _t = float(self.eval('elapsedTime()'))
+        """
+        EXAMPLES:
+            sage: R = macaulay2("QQ[x,y]")  #optional
+            sage: x,y = R.gens()            #optional
+            sage: a = (x+y+1)^20            #optional
+            sage: macaulay2.cputime()       #optional random
+            0.48393700000000001
+        """
+        _t = float(self.cpuTime().to_sage())
         if t:
             return _t - t
         else:
             return _t
 
     def version(self):
-        return self("version")
+        """
+        Returns the version of Macaulay2.
+
+        EXAMPLES:
+            sage: macaulay2.version() #optional
+            (1, 1)
+        """
+        s = self.eval("version")
+        r = re.compile("VERSION => (.*?)\n")
+        s = r.search(s).groups()[0]
+        return tuple(int(i) for i in s.split("."))
 
 ### Constructors
 
@@ -225,13 +355,15 @@ class Macaulay2(Expect):
         EXAMPLES:
             sage: R2 = macaulay2.ring('QQ', '[x, y]'); R2            # optional
             QQ [x, y, MonomialOrder => Lex, MonomialSize => 16]
-            sage: I = macaulay2.ideal( ('y^2 - x^3', 'x - y') ); print I   # optional
+            sage: I = macaulay2.ideal( ('y^2 - x^3', 'x - y') ); I   # optional
                       3    2
             ideal (- x  + y , x - y)
-            sage: J = I^3; print J.gb()                                    # optional
-            GroebnerBasis[status: done; S-pairs encountered up to degree 9]
-            sage: print J.gb().generators()                                # optional
-            | y9-3y8+3y7-y6 xy6-2xy5+xy4-y7+2y6-y5 x2y3-x2y2-2xy4+2xy3+y5-y4 x3-3x2y+3xy2-y3 |
+            sage: J = I^3; J.gb().gens().transpose()                 # optional
+            {-9} | y9-3y8+3y7-y6             |
+            {-7} | xy6-2xy5+xy4-y7+2y6-y5    |
+            {-5} | x2y3-x2y2-2xy4+2xy3+y5-y4 |
+            {-3} | x3-3x2y+3xy2-y3           |
+
         """
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
@@ -258,7 +390,7 @@ class Macaulay2(Expect):
         EXAMPLES:
         This is a ring in variables named a through d over the finite field
         of order 7, with graded reverse lex ordering:
-            sage: R1 = macaulay2.ring('ZZ/7', '[a..d]', 'GRevLex'); print R1  # optional
+            sage: R1 = macaulay2.ring('ZZ/7', '[a..d]', 'GRevLex');  R1  # optional
             ZZ
             -- [a, b, c, d, MonomialOrder => GRevLex, MonomialSize => 16]
              7
@@ -270,56 +402,261 @@ class Macaulay2(Expect):
             QQ [x, y, MonomialOrder => Lex, MonomialSize => 16]
         """
         varstr = str(vars)[1:-1]
-        return self.new('%s[%s, MonomialSize=>16, MonomialOrder=>%s]'%(
-            base_ring, varstr, order))
+        if ".." in varstr:
+            varstr = "symbol " + varstr[0] + ".." + "symbol " + varstr[-1]
+        else:
+            varstr = ", ".join(["symbol " + v for v in varstr.split(", ")])
+        return self.new('%s[%s, MonomialSize=>16, MonomialOrder=>%s]'%(base_ring, varstr, order))
+
+    def _commands(self):
+        """
+        Return list of all commands defined in Macaulay2.  This is done by looking at all
+        of the keys of the dictionaries in dictionaryPath.
+
+        EXAMPLES:
+            sage: cmds = macaulay2._commands() #optional
+            sage: 'ring' in cmds               #optional
+            True
+            sage: len(cmds) > 50               #optional
+            True
+        """
+        dicts = self("dictionaryPath")
+        cmds = []
+        for d in dicts:
+            #Ignore the OutputDctionary since it contains
+            #lots of variables that we don't want to tab complete
+            if str(d) in ['OutputDictionary']:
+                continue
+
+            for cmd in d.keys():
+                cmd = str(cmd)
+
+                #Ignore anything before the $
+                if "$" in cmd:
+                    cmd = cmd[cmd.find("$"):]
+
+                #Ignore not alphanumeric cmds
+                if not cmd.isalnum():
+                    continue
+
+                cmds.append(cmd)
+        cmds.sort()
+        return cmds
+
+
+    def help(self, s):
+        """
+        EXAMPLES:
+            sage: macaulay2.help("gb") #optional
+            help(gb)
+            ...
+            gb -- compute a Groebner basis
+            ******************************
+            ...
+            * gb(Matrix)
+            * gb(Module)
+        """
+        import re
+        div = re.compile("o[0-9]+ : DIV")
+        if self._expect is None:
+            self._start()
+        E = self._expect
+        E.sendline("help(%s)"%s)
+        E.expect(div)
+        s = E.before
+        E.expect(self._prompt)
+        return AsciiArtString(s)
+
+
+    def trait_names(self, verbose=True, use_disk_cache=True):
+        """
+        EXAMPLES:
+            sage: names = macaulay2.trait_names(verbose=False) #optional
+            sage: 'ring' in names                              #optional
+            True
+            sage: macaulay2.eval("abcabc = 4")                 #optional
+            4
+            sage: names = macaulay2.trait_names(verbose=False) #optional
+            sage: "abcabc" in names                            #optional
+            True
+        """
+        try:
+            #Get the current variables
+            current = [str(s) for s in self('User#"private dictionary"').keys()]
+            trait_names = [s for s in current if (s.isalnum() and s[:4] != "sage")] + self.__commands
+            return trait_names
+        except AttributeError:
+            import sage.misc.persist
+            if use_disk_cache:
+                try:
+                    self.__commands = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.trait_names()
+                except IOError:
+                    pass
+            if verbose:
+                print "\nBuilding Macaulay2 command completion list (this takes"
+                print "a few seconds only the first time you do it)."
+                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+            v = self._commands()
+            self.__commands = v
+            if len(v) > 200:
+                # M2 is actually installed.
+                sage.misc.persist.save(v, COMMANDS_CACHE)
+            return self.trait_names()
+
+    def use(self, R):
+        """
+        Use the Macaulay2 ring R.
+
+        EXAMPLES:
+            sage: R = macaulay2("QQ[x,y]")                  #optional
+            sage: P = macaulay2("ZZ/7[symbol x, symbol y]") #optional
+            sage: macaulay2("x").cls()                      #optional
+            ZZ
+            -- [x, y]
+             7
+            sage: macaulay2.use(R)                          #optional
+            sage: macaulay2("x").cls()                      #optional
+            QQ [x, y]
+        """
+        R = self(R)
+        self.eval("use %s"%R.name())
+
+    def new_from(self, type, value):
+        """
+        Returns a new Macaulay2Element of type type constructed from
+        value.
+
+        EXAMPLES:
+            sage: l = macaulay2.new_from("MutableList", [1,2,3]) #optional
+            sage: l                                              #optional
+            MutableList{...3...}
+            sage: list(l)                                        #optional
+            [1, 2, 3]
+
+        """
+        type = self(type)
+        value = self(value)
+        return self.new("new %s from %s"%(type.name(), value.name()))
 
 
 class Macaulay2Element(ExpectElement):
-
     def _latex_(self):
-        return self.tex().str().strip('"').strip('$').replace('\\\\','\\')
+        """
+        EXAMPLES:
+            sage: m = macaulay2('matrix {{1,2},{3,4}}') #optional
+            sage: m
+            | 1 2 |
+            | 3 4 |
+            sage: latex(m) #optional
+            \begin{pmatrix}1& {2}\\ {3}& {4}\\ \end{pmatrix}
+        """
+        s = self.tex().external_string().strip('"').strip('$').replace('\\\\','\\')
+        s = s.replace(r"\bgroup","").replace(r"\egroup","")
+        return s
 
     def __iter__(self):
+        """
+        EXAMPLES:
+            sage: l = macaulay2([1,2,3]) #optional
+            sage: list(iter(l))          #optional
+            [1, 2, 3]
+        """
         for i in range(len(self)):  # zero-indexed!
             yield self[i]
 
     def __str__(self):
+        """
+        EXAMPLES:
+            sage: R = macaulay2("QQ[x,y,z]/(x^3-y^3-z^3)") #optional
+            sage: x = macaulay2('x')                       #optional
+            sage: y = macaulay2('y')                       #optional
+            sage: print x+y
+            x + y
+            sage: print macaulay2("QQ[x,y,z]")             #optional
+            QQ [x, y, z]
+            sage: print macaulay2("QQ[x,y,z]/(x+y+z)")     #optional
+            QQ [x, y, z]
+            ------------
+             x + y + z
+        """
         P = self._check_valid()
-        return P.get(self.name())
+        return P.get(self._name)
 
-    def __repr__(self):
-        return self.str()
+    repr = __str__
 
-    def str(self):
+    def external_string(self):
+        """
+        EXAMPLES:
+           sage: R = macaulay2("QQ[symbol x, symbol y]")  #optional
+           sage: R.external_string()                      #optional
+           'QQ [x, y]'
+        """
         P = self._check_valid()
-        X = P.eval('toExternalString(%s)'%self.name(), strip=True)
+        code = 'toExternalString(%s)'%self.name()
+        X = P.eval(code, strip=True)
 
         if 'stdio:' in X:
-            if 'cannot be converted to external string' in ans:
-                return clean_output(P.eval(self, '%s'%code))
-            raise RuntimeError, "Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(code, ans)
+            if 'to external string' in X:
+                return P.eval('%s'%self.name())
+            raise RuntimeError, "Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(code, X)
 
         s = multiple_replace({'\r':'', '\n':' '}, X)
         return s
 
     def __len__(self):
+        """
+        EXAMPLES:
+            sage: l = macaulay2([1,2,3])  #optional
+            sage: len(l)                  #optional
+            3
+            sage: type(_)                 #optional
+            <type 'int'>
+        """
         self._check_valid()
         return int(self.parent()("#%s"%self.name()))
 
     def __getitem__(self, n):
+        """
+        EXAMPLES:
+            sage: l = macaulay2([1,2,3])  #optional
+            sage: l[0]                    #optional
+            1
+        """
         self._check_valid()
-        #return self.parent().new('%s#%s'%(self.name(), n))
-        return self.parent().new('%s_%s'%(self.name(), n))
+        n = self.parent()(n)
+        return self.parent().new('%s # %s'%(self.name(), n.name()))
+
+    def __setitem__(self, index, value):
+        """
+        EXAMPLES:
+            sage: l = macaulay2.new_from("MutableList", [1,2,3]) #optional
+            sage: l[0] = 4               #optional
+            sage: list(l)                #optional
+            [4, 2, 3]
+
+        """
+        P = self.parent()
+        index = P(index)
+        value = P(value)
+        res = P.eval("%s # %s = %s"%(self.name(), index.name(), value.name()))
+        if "assignment attempted to element of immutable list" in res:
+            raise TypeError, "item assignment not supported"
 
     def __call__(self, x):
+        """
+        EXAMPLES:
+            sage: R = macaulay2("QQ[x, y]")     #optional
+            sage: x,y = R.gens()                #optional
+            sage: I = macaulay2.ideal(x*y, x+y) #optional
+            sage: gb = macaulay2.gb             #optional
+            sage: gb(I)                         #optional
+            GroebnerBasis[status: done; S-pairs encountered up to degree 1]
+        """
         self._check_valid()
         P = self.parent()
         r = P(x)
         return P('%s %s'%(self.name(), r.name()))
-
-    def gen(self, n):
-        self._check_valid()
-        return self.parent().new('%s_%s'%(self._name, int(n)))
 
     def __floordiv__(self, x):
         """
@@ -329,20 +666,20 @@ class Macaulay2Element(ExpectElement):
             sage: R.<x,y> = GF(7)[]
 
         Now make the M2 version of R, so we can coerce elements of R to M2:
-            sage: macaulay2(R)                              # optional
-            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
-            sage: f = (x^3 + 2*y^2*x)^7; print f
+            sage: macaulay2(R)                           # optional
+            ZZ
+            -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+             7
+            sage: f = (x^3 + 2*y^2*x)^7; f
             x^21 + 2*x^7*y^14
-            sage: h = macaulay2(f); print h            # optional
+            sage: h = macaulay2(f); h                    # optional
              21     7 14
             x   + 2x y
-            sage: f1 = (x^2 + 2*y*x)                   # optional
-            sage: h1 = macaulay2(f1)                   # optional
-            sage: f2 = (x^3 + 2*y*x)                   # optional
-            sage: h2 = macaulay2(f2)                   # optional
-            sage: u = h // [h1,h2]                     # optional
-            sage: u[0].str(), u[1].str()               # optional
-            ('x^19-2*x^18*y-3*x^17*y^2-x^16*y^3+2*x^15*y^4+3*x^14*y^5+x^13*y^6-2*x^12*y^7-3*x^11*y^8-x^10*y^9+2*x^9*y^10+3*x^8*y^11+x^7*y^12-2*x^6*y^13-x^5*y^14+2*x^4*y^15+3*x^3*y^16+x^2*y^17-x*y^17+2*y^18-3*x*y^16-y^17-2*x*y^15-3*y^16+x*y^14-2*y^15+3*x*y^13+y^14+2*x*y^12+3*y^13-x*y^11+2*y^12-3*x*y^10-y^11-2*x*y^9-3*y^10+x*y^8-2*y^9+3*x*y^7+y^8+2*x*y^6+3*y^7-x*y^5+2*y^6-3*x*y^4-y^5-2*x*y^3-3*y^4+x*y^2-2*y^3+3*x*y+y^2+2*x+3*y', '-2*y^18+y^17+3*y^16+2*y^15-y^14-3*y^13-2*y^12+y^11+3*y^10+2*y^9-y^8-3*y^7-2*y^6+y^5+3*y^4+2*y^3-y^2-3*y-2')
+            sage: f1 = (x^2 + 2*y*x)                     # optional
+            sage: h1 = macaulay2(f1)                     # optional
+            sage: f2 = (x^3 + 2*y*x)                     # optional
+            sage: h2 = macaulay2(f2)                     # optional
+            sage: u = h // [h1,h2]                       # optional
             sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2]) # optional
             True
         """
@@ -362,7 +699,9 @@ class Macaulay2Element(ExpectElement):
 
         Now make the M2 version of R, so we can coerce elements of R to M2:
             sage: macaulay2(R)                              # optional
-            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+            ZZ
+            -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+             7
             sage: f = (x^3 + 2*y^2*x)^7; f                  # optional
             x^21 + 2*x^7*y^14
             sage: h = macaulay2(f); print h                 # optional
@@ -373,7 +712,7 @@ class Macaulay2Element(ExpectElement):
             sage: f2 = (x^3 + 2*y*x)                        # optional
             sage: h2 = macaulay2(f2)                        # optional
             sage: h % [h1,h2]                               # optional
-            -3*x*y
+            -3x*y
             sage: u = h // [h1,h2]                          # optional
             sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2])    # optional
             True
@@ -386,6 +725,14 @@ class Macaulay2Element(ExpectElement):
         return self.parent().new('%s %% %s'%(self.name(), x.name()))
 
     def __nonzero__(self):
+        """
+        EXAMPLES:
+            sage: a = macaulay2(0)  #optional
+            sage: a == 0            #optional
+            True
+            sage: a.__nonzero__()   #optional
+            False
+        """
         P = self.parent()
         return P.eval('%s == 0'%self.name()) == 'false'
 
@@ -406,7 +753,7 @@ class Macaulay2Element(ExpectElement):
             sage: f.sage_polystring()                            # optional
             'x**3+3*y**11+5'
 	"""
-        return self.str().replace('^','**')
+        return self.external_string().replace('^','**')
 
     def structure_sheaf(self):
         """
@@ -416,11 +763,329 @@ class Macaulay2Element(ExpectElement):
             sage: X = R.Proj()                                  # optional
             sage: print X.structure_sheaf()                     # optional
             OO
-              sage5
+              sage...
         """
         return self.parent()('OO_%s'%self.name())
 
+    def substitute(self, *args, **kwds):
+        """
+        Note that we have to override the substitute method so that we get
+        the default one from Macaulay2 instead of the one provided by Element.
+
+        EXAMPLES:
+            sage: R = macaulay2("QQ[x]")            #optional
+            sage: P = macaulay2("ZZ/7[symbol x]")   #optional
+            sage: x, = R.gens()                     #optional
+            sage: a = x^2 + 1                       #optional
+            sage: a = a.substitute(P)               #optional
+            sage: a.to_sage().parent()              #optional
+            Univariate Polynomial Ring in x over Finite Field of size 7
+
+        """
+        return self.__getattr__("substitute")(*args, **kwds)
+
+    subs = substitute
+
+    def trait_names(self):
+        """
+        Returns a list of tab completions for self.  Note that not all of these
+        are valid.
+
+        EXAMPLES:
+            sage: a = macaulay2("QQ[x,y]")   #optional
+            sage: traits = a.trait_names()   #optional
+            sage: "gens" in traits           #optional
+            True
+        """
+        return self.parent().trait_names()
+
+    def cls(self):
+        """
+        Since class is a keyword in Python, we have to use cls to call
+        Macaulay2's class.  In Macaulay2, class corresponds to Sage's
+        notion of parent.
+
+        EXAMPLES:
+            sage: macaulay2(ZZ).cls()  #optional
+            Ring
+
+        """
+        return self.parent()("class %s"%self.name())
+
+    ##########################
+    #Aliases for M2 operators#
+    ##########################
+    def dot(self, x):
+        """
+        EXAMPLES:
+            sage: d = macaulay2.new("MutableHashTable") #optional
+            sage: d["k"] = 4                            #optional
+            sage: d.dot("k")                            #optional
+            4
+        """
+        parent = self.parent()
+        x = parent(x)
+        return parent("%s.%s"%(self.name(), x))
+
+    def _operator(self, opstr, x):
+        """
+        Returns the infix binary operation specified by opstr applied
+        to self and x.
+
+        EXAMPLES:
+            sage: a = macaulay2("3")     #optional
+            sage: a._operator("+", a)    #optional
+            6
+            sage: a._operator("*", a)    #optional
+            9
+        """
+        parent = self.parent()
+        x = parent(x)
+        return parent("%s%s%s"%(self.name(), opstr, x.name()))
+
+    def sharp(self, x):
+        """
+        EXAMPLES:
+            sage: a = macaulay2([1,2,3]) #optional
+            sage: a.sharp(0)             #optional
+            1
+        """
+        return self._operator("#", x)
+
+    def starstar(self, x):
+        """
+        The binary operator ** in Macaulay2 is usually used for tensor
+        or Cartesian power.
+
+        EXAMPLES:
+            sage: a = macaulay2([1,2]).set()  #optional
+            sage: a.starstar(a)               #optional
+            set {(1, 1), (1, 2), (2, 1), (2, 2)}
+
+        """
+        return self._operator("**", x)
+
+    def underscore(self, x):
+        """
+        EXAMPLES:
+            sage: a = macaulay2([1,2,3])  #optional
+            sage: a.underscore(0)         #optional
+            1
+        """
+        return self._operator("_", x)
+
+    ####################
+    #Conversion to Sage#
+    ####################
+    def to_sage(self):
+        """
+        EXAMPLES:
+            sage: macaulay2(ZZ).to_sage()      #optional
+            Integer Ring
+            sage: macaulay2(QQ).to_sage()      #optional
+            Rational Field
+
+            sage: macaulay2(2).to_sage()       #optional
+            2
+            sage: macaulay2(1/2).to_sage()     #optional
+            1/2
+            sage: macaulay2(2/1).to_sage()     #optional
+            2
+            sage: _.parent()                   #optional
+            Rational Field
+            sage: macaulay2([1,2,3]).to_sage() #optional
+            [1, 2, 3]
+
+            sage: m = matrix([[1,2],[3,4]])
+            sage: macaulay2(m).to_sage()       #optional
+            [1 2]
+            [3 4]
+
+            sage: macaulay2(QQ['x,y']).to_sage()    #optional
+            Multivariate Polynomial Ring in x, y over Rational Field
+            sage: macaulay2(QQ['x']).to_sage()      #optional
+            Univariate Polynomial Ring in x over Rational Field
+            sage: macaulay2(GF(7)['x,y']).to_sage() #optional
+            Multivariate Polynomial Ring in x, y over Finite Field of size 7
+
+            sage: macaulay2(GF(7)).to_sage()       #optional
+            Finite Field of size 7
+            sage: macaulay2(GF(49, 'a')).to_sage() #optional
+            Finite Field in a of size 7^2
+
+            sage: R.<x,y> = QQ[]
+            sage: macaulay2(x^2+y^2+1).to_sage()   #optional
+            x^2 + y^2 + 1
+
+            sage: R = macaulay2("QQ[x,y]")         #optional
+            sage: I = macaulay2("ideal (x,y)")     #optional
+            sage: I.to_sage()                      #optional
+            Ideal (x, y) of Multivariate Polynomial Ring in x, y over Rational Field
+
+            sage: X = R/I       #optional
+            sage: X.to_sage()   #optional
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x, y)
+
+            sage: R = macaulay2("QQ^2")  #optional
+            sage: R.to_sage()            #optional
+            Vector space of dimension 2 over Rational Field
+
+            sage: m = macaulay2('"hello"')  #optional
+            sage: m.to_sage()               #optional
+            'hello'
+
+        """
+        repr_str = str(self)
+        cls_str = str(self.cls())
+        cls_cls_str = str(self.cls().cls())
+
+        if repr_str == "ZZ":
+            from sage.rings.all import ZZ
+            return ZZ
+        elif repr_str == "QQ":
+            from sage.rings.all import QQ
+            return QQ
+
+        if cls_cls_str == "Type":
+            if cls_str == "List":
+                return [entry.to_sage() for entry in self]
+            elif cls_str == "Matrix":
+                from sage.matrix.all import matrix
+                base_ring = self.ring().to_sage()
+                entries = self.entries().to_sage()
+                return matrix(base_ring, entries)
+            elif cls_str == "Ideal":
+                parent = self.ring().to_sage()
+                gens = self.gens().entries().flatten().to_sage()
+                return parent.ideal(*gens)
+            elif cls_str == "QuotientRing":
+                #Handle the ZZ/n case
+                if "ZZ" in repr_str and "--" in repr_str:
+                    from sage.rings.all import ZZ, GF
+                    external_string = self.external_string()
+                    zz, n = external_string.split("/")
+
+                    #Note that n must be prime since it is
+                    #coming from Macaulay 2
+                    return GF(ZZ(n))
+
+                ambient = self.ambient().to_sage()
+                ideal = self.ideal().to_sage()
+                return ambient.quotient(ideal)
+            elif cls_str == "PolynomialRing":
+                from sage.rings.all import PolynomialRing
+                from sage.rings.polynomial.term_order import inv_macaulay2_name_mapping
+
+                #Get the base ring
+                base_ring = self.coefficientRing().to_sage()
+
+                #Get a string list of generators
+                gens = str(self.gens())[1:-1]
+
+                #Handle the term order
+                external_string = self.external_string()
+                order = None
+                if "Degrees" in external_string:
+                    raise ValueError, "cannot convert Macaulay2 polynomial ring with non-default degrees to Sage"
+                if "MonomialOrder" not in external_string:
+                    order = "degrevlex"
+                else:
+                    for order_name in inv_macaulay2_name_mapping:
+                        if order_name in external_string:
+                            order = inv_macaulay2_name_mapping[order_name]
+                if len(gens) > 1 and order is None:
+                    raise ValueError, "cannot convert Macaulay2's term order to a Sage term order"
+
+                return PolynomialRing(base_ring, order=order, names=gens)
+            elif cls_str == "GaloisField":
+                from sage.rings.all import ZZ, GF
+                gf, n = repr_str.split(" ")
+                n = ZZ(n)
+                if n.is_prime():
+                    return GF(n)
+                else:
+                    gen = str(self.gens())[1:-1]
+                    return GF(n, gen)
+            elif cls_str == "Boolean":
+                if repr_str == "true":
+                    return True
+                elif repr_str == "false":
+                    return False
+            elif cls_str == "String":
+                return str(repr_str)
+            elif cls_str == "Module":
+                from sage.modules.all import FreeModule
+                if self.isFreeModule().to_sage():
+                    ring = self.ring().to_sage()
+                    rank = self.rank().to_sage()
+                    return FreeModule(ring, rank)
+        else:
+            #Handle the integers and rationals separately
+            if cls_str == "ZZ":
+                from sage.rings.all import ZZ
+                return ZZ(repr_str)
+            elif cls_str == "QQ":
+                from sage.rings.all import QQ
+                repr_str = self.external_string()
+                if "/" not in repr_str:
+                    repr_str = repr_str + "/1"
+                return QQ(repr_str)
+
+            m2_parent = self.cls()
+            parent = m2_parent.to_sage()
+
+            if cls_cls_str == "PolynomialRing":
+                from sage.misc.sage_eval import sage_eval
+                gens_dict = parent.gens_dict()
+                return sage_eval(self.external_string(), gens_dict)
+
+        from sage.misc.sage_eval import sage_eval
+        try:
+            return sage_eval(repr_str)
+        except:
+            raise NotImplementedError, "cannot convert %s to a Sage object"%repr_str
+
+
+class Macaulay2Function(ExpectFunction):
+    def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: print macaulay2.gb._sage_doc_() #optional
+            help(gb)
+            ...
+            gb -- compute a Groebner basis
+            ******************************
+            ...
+            * gb(Matrix)
+            * gb(Module)
+        """
+        return self._parent.help(self._name)
+
+    def _sage_src_(self):
+        """
+        EXAMPLES:
+            sage: print macaulay2.gb._sage_src_() #optional
+            code(methods gb)
+            ...
+        """
+        if self._parent._expect is None:
+            self._parent._start()
+        E = self._parent._expect
+        E.sendline("code(methods %s)"%self._name)
+        E.expect(self._parent._prompt)
+        s = E.before
+        self._parent.eval("2+2")
+        return s
+
 def is_Macaulay2Element(x):
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.macaulay2 import is_Macaulay2Element
+        sage: is_Macaulay2Element(2)              #optional
+        False
+        sage: is_Macaulay2Element(macaulay2(2))   #optional
+        True
+    """
     return isinstance(x, Macaulay2Element)
 
 # An instance
@@ -429,8 +1094,28 @@ macaulay2 = Macaulay2(script_subdirectory='user')
 import os, sys
 
 def macaulay2_console():
+    """
+    Spawn a new M2 command-line session.
+
+    EXAMPLES:
+        sage: macaulay2_console()                    # not tested
+        Macaulay 2, version 1.1
+        with packages: Classic, Core, Elimination, IntegralClosure, LLLBases, Parsing, PrimaryDecomposition, SchurRings, TangentCone
+        ...
+
+    """
     os.system('M2')
 
 
 
+def reduce_load_macaulay2():
+    """
+    Used for reconstructing a copy of the Macaulay2 interpreter from a pickle.
+
+    EXAMPLES:
+        sage: from sage.interfaces.macaulay2 import reduce_load_macaulay2
+        sage: reduce_load_macaulay2()
+        Macaulay2
+    """
+    return macaulay2
 

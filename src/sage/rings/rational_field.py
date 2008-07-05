@@ -649,6 +649,14 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return 'RationalField()'
 
+    def _macaulay2_init_(self):
+        """
+        EXAMPLES:
+            sage: macaulay2(QQ)       #optional
+            QQ
+        """
+        return "QQ"
+
 
 QQ = RationalField()
 Q = QQ

@@ -213,7 +213,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             cache = order < 500
         if cache:
             self._precompute_table()
-
         self._zero_element = integer_mod.IntegerMod(self, 0)
         self._one_element = integer_mod.IntegerMod(self, 1)
 
@@ -513,7 +512,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: FF.factored_order()
             17
         """
-        if self.__factored_order != None:
+        if self.__factored_order is not None:
             return self.__factored_order
         self.__factored_order = factor(self.__order, int_=True)
         return self.__factored_order
@@ -767,6 +766,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R = IntegerModRing(17)
             sage: R.unit_gens()
             [3]
+            sage: IntegerModRing(next_prime(10^30)).unit_gens()
+            [5]
         """
         try:
             return self.__unit_gens

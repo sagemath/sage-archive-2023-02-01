@@ -51,7 +51,7 @@ import weakref
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 import sage.rings.all as rings
-import sage.modules.free_module
+import sage.modules.free_module as free_module
 import sage.modules.free_module_element
 import sage.structure.parent_gens as parent_gens
 import sage.rings.number_field.number_field as number_field
@@ -1300,8 +1300,8 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             w.append(a)
         self._zeta_powers = w  # gives quickly the ith power of zeta
         self._zeta_dlog = v    # dictionary that computes log_{zeta}(power of zeta).
-        self._module = sage.modules.free_module.FreeModule(rings.IntegerModRing(zeta_order),
-                                                           len(self._integers.unit_gens()))
+        self._module = free_module.FreeModule(rings.IntegerModRing(zeta_order),
+                                              len(self._integers.unit_gens()))
 
     def change_ring(self, R, zeta=None, zeta_order=None):
         """

@@ -2,7 +2,7 @@ from stock import Stock
 
 from markov_multifractal import MarkovSwitchingMultifractal
 
-from time_series import TimeSeries, linear_filter
+from time_series import TimeSeries, autoregressive_fit
 
 from fractal import (stationary_gaussian_simulation,
                      fractional_gaussian_noise_simulation,

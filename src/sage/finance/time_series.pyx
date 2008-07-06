@@ -500,11 +500,20 @@ cdef class TimeSeries:
             memcpy(v._values + i*T._length, T._values, sizeof(double)*T._length)
         return v
 
-    def linear_filter(self, M):
+
+    def autoregressive_fit(self,M):
         """
-        Return a linear filter using the first M autocovariance values
-        of self.  This is useful in forcasting by taking a weighted
-        average of previous values of a time series.
+        This method fits the time series to an autoregressive process
+        of order M. That is we assume the process is given by
+        $X_t-\mu=a_1(X_{t-1}-\mu)+a_2(X_{t-1}-\mu)+...+a_M(X_{t-M}-\mu)+Z_t$
+        where $\mu$ is the mean of the process and $Z_t$ is noise.
+        This method returns estimates for $a_1,...,a_M$.
+
+        The method works by solving the Yule-Walker equations
+        $\Gamma a =\gamma$, where $\gamma=(\gamma(1),...,\gamma(M))$,
+        $a=(a_1,..,a_M)$  with $\gamma(i)$ the autocovariance of lag i
+        and $\Gamma_{ij}=\gamma(i-j)$.
+
 
         WARNING: The input sequence is assumed to be stationary, which
         means that the autocovariance $\langle y_j y_k \rangle$ depends
@@ -514,36 +523,52 @@ cdef class TimeSeries:
             M -- integer
 
         OUTPUT:
-            TimeSeries -- the weights in the linear filter.
+            TimeSeries -- the coefficients of the autoregressive process.
 
         EXAMPLES:
             sage: set_random_seed(0)
             sage: v = finance.TimeSeries(10^4).randomize('normal').sums()
-            sage: F = v.linear_filter(100)
+            sage: F = v.autoregressive_fit(100)
             sage: v
             [0.6767, 0.2756, 0.6332, 0.0469, -0.8897 ... 87.6759, 87.6825, 87.4120, 87.6639, 86.3194]
-            sage: v.linear_forecast(F)
+            sage: v.autoregressive_forecast(F)
             86.0177285042...
             sage: F
             [1.0148, -0.0029, -0.0105, 0.0067, -0.0232 ... -0.0106, -0.0068, 0.0085, -0.0131, 0.0092]
+
+            sage: set_random_seed(0)
+            sage: t=finance.TimeSeries(2000)
+            sage: z=finance.TimeSeries(2000)
+            sage: z.randomize('normal',1)
+            [1.6767, 0.5989, 1.3576, 0.4136, 0.0635 ... 1.0057, -1.1467, 1.2809, 1.5705, 1.1095]
+            sage: t[0]=1
+            sage: t[1]=2
+            sage: for i in range(2,2000):
+            ...     t[i]=t[i-1]-0.5*t[i-2]+z[i]
+            ...
+            sage: c=t[0:-1].autoregressive_fit(2)  #recovers recurrence relation
+            sage: c #should be close to [1,-0.5]
+            [1.0371, -0.5199]
+
+
         """
         acvs = [self.autocovariance(i) for i in range(M+1)]
-        return linear_filter(acvs)
+        return autoregressive_fit(acvs)
 
-    def linear_forecast(self, filter):
+    def autoregressive_forecast(self, filter):
         """
-        Given a linear filter as output by the linear_filter command,
+        Given the autoregression coefficients as outputed by the autoregressive_fit command,
         compute the forecast for the next term in the series.
 
         INPUT:
-            filter -- a time series output by the linear filter command.
+            autoregression coefficients -- a time series outputed by the autoregressive_fit command.
 
         EXAMPLES:
             sage: set_random_seed(0)
             sage: v = finance.TimeSeries(100).randomize('normal').sums()
-            sage: F = v[:-1].linear_filter(5); F
+            sage: F = v[:-1].autoregressive_fit(5); F
             [1.0019, -0.0524, -0.0643, 0.1323, -0.0539]
-            sage: v.linear_forecast(F)
+            sage: v.autoregressive_forecast(F)
             11.782029861181114
             sage: v
             [0.6767, 0.2756, 0.6332, 0.0469, -0.8897 ... 9.2447, 9.6709, 10.4037, 10.4836, 12.1960]
@@ -2115,9 +2140,18 @@ def unpickle_time_series_v1(v, Py_ssize_t n):
 
 
 
-def linear_filter(acvs):
+def autoregressive_fit(acvs):
     """
-    Create a linear filter with given autocovariance sequence.
+    Given a sequence of lagged autocovariances of length $M$ produce
+    $a_1,...,a_p$ so that the first $M$ autocovariance coefficients
+    of the autoregressive processs $X_t=a_1X_{t_1}+...a_pX_{t-p}+Z_t$
+    are the same as the input sequence.
+
+    The function works by solving the Yule-Walker equations
+    $\Gamma a =\gamma$, where $\gamma=(\gamma(1),...,\gamma(M))$,
+    $a=(a_1,..,a_M)$, with $\gamma(i)$ the autocovariance of lag i
+    and $\Gamma_{ij}=\gamma(i-j)$.
+
 
     EXAMPLES:
 
@@ -2153,8 +2187,8 @@ def linear_filter(acvs):
     Note: ac looks like a line -- one could best fit it to yield a lot
     more approximate autocovariances.
 
-    We compute the linear filter given by the above autocovariances:
-        sage: F = finance.linear_filter(ac); F
+    We compute the autoregression coefficients matching the above autocovariances:
+        sage: F = finance.autoregressive_fit(ac); F
         [0.9982, -0.0002, -0.0002, 0.0003, 0.0001 ... 0.0002, -0.0002, -0.0000, -0.0002, -0.0014]
 
     Note that the sum is close to 1.
@@ -2167,21 +2201,21 @@ def linear_filter(acvs):
         [0.0013, 0.0059, 0.0066, 0.0068, 0.0184 ... 6.8004, 6.8009, 6.8063, 6.8090, 6.8339]
 
     And we forecast the very last value using our linear filter; the forecast is close:
-        sage: y2[:-1].linear_forecast(F)
+        sage: y2[:-1].autoregressive_forecast(F)
         6.7836741372407...
 
     In fact it is closer than we would get by forecasting using a
     linear filter made from all the autocovariances of our sequence:
-        sage: y2[:-1].linear_forecast(y2[:-1].linear_filter(len(y2)))
+        sage: y2[:-1].autoregressive_forecast(y2[:-1].autoregressive_fit(len(y2)))
         6.7701687056683...
 
     We record the last 20 forecasts, always using all correct values up to the
     one we are forecasting:
-        sage: s1 = sum([(y2[:-i].linear_forecast(F)-y2[-i])^2 for i in range(1,20)])
+        sage: s1 = sum([(y2[:-i].autoregressive_forecast(F)-y2[-i])^2 for i in range(1,20)])
 
     We do the same, but using the autocovariances of the sample sequence:
-        sage: F2 = y2[:-100].linear_filter(len(F))
-        sage: s2 = sum([(y2[:-i].linear_forecast(F2)-y2[-i])^2 for i in range(1,20)])
+        sage: F2 = y2[:-100].autoregressive_fit(len(F))
+        sage: s2 = sum([(y2[:-i].autoregressive_forecast(F2)-y2[-i])^2 for i in range(1,20)])
 
     Our model gives us something that is 15 percent better in this case:
         sage: s2/s1
@@ -2193,9 +2227,9 @@ def linear_filter(acvs):
         sage: y_out = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,0.01,1000,100)
         sage: s1 = []; s2 = []
         sage: for v in y_out:
-        ...       s1.append(sum([(v[:-i].linear_forecast(F)-v[-i])^2 for i in range(1,20)]))
-        ...       F2 = v[:-len(F)].linear_filter(len(F))
-        ...       s2.append(sum([(v[:-i].linear_forecast(F2)-v[-i])^2 for i in range(1,20)]))
+        ...       s1.append(sum([(v[:-i].autoregressive_forecast(F)-v[-i])^2 for i in range(1,20)]))
+        ...       F2 = v[:-len(F)].autoregressive_fit(len(F))
+        ...       s2.append(sum([(v[:-i].autoregressive_forecast(F2)-v[-i])^2 for i in range(1,20)]))
         ...
 
     We find that overall the model beats naive linear forecasting by 35 percent!

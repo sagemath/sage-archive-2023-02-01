@@ -662,7 +662,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         The above bound is just $9 + 7$, coming from the lower left entry.
         A better bound would be the following:
             sage: (A[1,0]).abs()
-            12.9975436637560
+            12.997543663...
         """
         cdef Py_ssize_t i, j
 
@@ -695,9 +695,9 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [  z + 1       0]
             [9*z + 7 4*z - 3]
             sage: A.height()
-            12.9975436637560
+            12.997543663...
             sage: (A[1,0]).abs()
-            12.9975436637560
+            12.997543663...
         """
         cdef Py_ssize_t i, j
 

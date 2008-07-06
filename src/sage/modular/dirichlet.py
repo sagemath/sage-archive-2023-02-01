@@ -671,22 +671,20 @@ class DirichletCharacter(MultiplicativeGroupElement):
         EXAMPLES:
             sage: G = DirichletGroup(3)
             sage: e = G.0
-            sage: e.gauss_sum_numerical()
-            5.55111512312578e-16 + 1.73205080756888*I
             sage: abs(e.gauss_sum_numerical())
-            1.73205080756888
+            1.7320508075...
             sage: sqrt(3.0)
             1.73205080756888
             sage: e.gauss_sum_numerical(a=2)
-            -1.11022302462516e-15 - 1.73205080756888*I
+            -1...e-15 - 1.7320508075...*I
             sage: e.gauss_sum_numerical(a=2, prec=100)
             4.7331654313260708324703713917e-30 - 1.7320508075688772935274463415*I
             sage: G = DirichletGroup(13)
             sage: e = G.0
             sage: e.gauss_sum_numerical()
-            -3.07497205899524 + 1.88269669261902*I
+            -3.07497205... + 1.8826966926...*I
             sage: abs(e.gauss_sum_numerical())
-            3.60555127546399
+            3.60555127546...
             sage: sqrt(13.0)
             3.60555127546399
         """

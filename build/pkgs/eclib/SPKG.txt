@@ -39,6 +39,9 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20080310.p5 (John Cremona, July 6th, 2008) ===
+ * Delete src/procs/ressol.c which was not used (and was labelled as having been borrowed from LiDIA)
+
 === eclib-20080310.p4 (John Cremona, July 4th, 2008) ===
  * Delete some code that was never compiled but which was labelled as having been borrowed from LiDIA
 

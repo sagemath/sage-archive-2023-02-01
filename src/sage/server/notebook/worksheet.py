@@ -3297,19 +3297,80 @@ class Worksheet:
         r"""
         Check for input cells that start with \code{\%foo},
         where \var{foo} is an object with an eval method.
-        """
-        z = s
-        s = s.lstrip()
-        S = self.system()
-        if S != 'sage':
-            if s.startswith('%sage'):
-                s = after_first_word(s).lstrip()
-                z = s
-            else:
-                return True, self._eval_cmd(S, s, os.path.abspath(C.directory()))
 
-        if len(s) == 0 or s[0] != '%':
-            return False, z
+        INPUT:
+            s -- a string of the code from the cell to be executed
+            C -- the cell object
+
+        EXAMPLES:
+        First, we set up a new notebook and worksheet.
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+
+        We first test running a native command in 'sage' mode and then a GAP cell
+        within Sage mode.
+
+            sage: W.edit_save('Sage\nsystem:sage\n{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
+            sage: c0, c1 = W.cell_list()
+            sage: W.check_for_system_switching(c0.input_text(), c0)
+            (False, '2+3')
+            sage: W.check_for_system_switching(c1.input_text(), c1)
+            (True,
+             "print _support_.syseval(gap, ur'''SymmetricGroup(5)''', '...')")
+
+            sage: c0.evaluate()
+            sage: W.check_comp()  #random output -- depends on the computer's speed
+            ('d', Cell 0; in=2+3, out=
+            5
+            )
+            sage: c1.evaluate()
+            sage: W.check_comp()  #random output -- depends on the computer's speed
+            ('d', Cell 1; in=%gap
+            SymmetricGroup(5), out=
+            Sym( [ 1 .. 5 ] )
+            )
+
+        Next, we run the same commands but from 'gap' mode.
+
+            sage: W.edit_save('Sage\nsystem:gap\n{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
+            sage: c0, c1 = W.cell_list()
+            sage: W.check_for_system_switching(c0.input_text(), c0)
+            (False, '2+3')
+            sage: W.check_for_system_switching(c1.input_text(), c1)
+            (True,
+             "print _support_.syseval(gap, ur'''SymmetricGroup(5)''', '...')")
+            sage: c0.evaluate()
+            sage: W.check_comp()  #random output -- depends on the computer's speed
+            ('d', Cell 0; in=%sage
+            2+3, out=
+            5
+            )
+            sage: c1.evaluate()
+            sage: W.check_comp()  #random output -- depends on the computer's speed
+            ('d', Cell 1; in=SymmetricGroup(5), out=
+            Sym( [ 1 .. 5 ] )
+            )
+
+        """
+        s = s.lstrip()
+        if self.system() != 'sage':
+            if len(s) == 0 or s[0] != "%":
+                #Since no other system is specified, we return True
+                #and evaluate the code using self.system()
+                return True, self._eval_cmd(self.system(), s, os.path.abspath(C.directory()))
+            elif s.startswith("%sage"):
+                #Since the code we want to run is Sage code, we return
+                #False.
+                s = after_first_word(s).lstrip()
+                return False, s
+        else:
+            #Since the system in Sage and there is not another
+            #system specified, we return False.
+            if len(s) == 0 or s[0] != '%':
+                return False, s
+
         if s.startswith('%hide'):
             t = after_first_word(s).lstrip()
             if len(t) == 0 or t[0] != '%':
@@ -3515,6 +3576,13 @@ def after_first_word(s):
         s -- string
     OUTPUT:
         a string
+
+    EXAMPLES:
+        sage: from sage.server.notebook.worksheet import after_first_word
+        sage: after_first_word("\%gap\n2+2\n")
+        '2+2\n'
+        sage: after_first_word("2+2")
+        ''
     """
     i = whitespace.search(s)
     if i is None:
@@ -3522,6 +3590,17 @@ def after_first_word(s):
     return s[i.start()+1:]
 
 def first_word(s):
+    """
+    Returns everything before the first whitespace in the string s.
+    If there is no whitespace, then the entire string s is returned.
+
+    EXAMPLES:
+        sage: from sage.server.notebook.worksheet import first_word
+        sage: first_word("\%gap\n2+2\n")
+        '\\%gap'
+        sage: first_word("2+2")
+        '2+2'
+    """
     i = whitespace.search(s)
     if i is None:
         return s

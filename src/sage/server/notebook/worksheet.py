@@ -2365,7 +2365,9 @@ class Worksheet:
 
         # We do this to avoid getting a stale Sage that uses old code.
         self.clear_queue()
-
+        # We do this to avoid saving this worksheet's cells to disk repeatedly.
+        self.save()
+        del self.__cells
 
     def next_block_id(self):
         try:

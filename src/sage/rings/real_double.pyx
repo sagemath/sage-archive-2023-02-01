@@ -1127,36 +1127,40 @@ cdef class RealDoubleElement(FieldElement):
     def nth_root(self, int n):
         """
         Returns the $n^{th}$ root of self.
+
+        INPUT:
+            n -- an integer
+        OUTPUT:
+            an real or complex double
+
+        The output is complex if self is negative
+        and n is even.
+
         EXAMPLES:
             sage: r = RDF(-125.0); r.nth_root(3)
             -5.0
             sage: r.nth_root(5)
             -2.6265278044
+            sage: RDF(-2).nth_root(5)^5
+            -2.0
+            sage: RDF(-1).nth_root(5)^5
+            -1.0
+            sage: RDF(3).nth_root(10)^10
+            3.0
+            sage: RDF(-1).nth_root(2)
+            6.12323399574e-17 + 1.0*I
+            sage: RDF(-1).nth_root(4)
+            0.707106781187 + 0.707106781187*I
         """
         if n == 0:
             return RealDoubleElement(float('nan'))
-        if self._value < 0 and GSL_IS_EVEN(n):
-            pass #return self._complex_double_().pow(1.0/n)
+        if self._value < 0:
+            if GSL_IS_EVEN(n):
+                return self._complex_double_(sage.rings.complex_double.CDF).nth_root(n)
+            else:
+                return - ( (-self).__pow__(float(1)/n) )
         else:
-            return RealDoubleElement(self.__nth_root(n))
-
-    cdef double __nth_root(RealDoubleElement self, int n):
-        cdef int m
-        cdef double x
-        cdef double x0
-        cdef double dx
-        cdef double dx0
-        m  = n-1
-        x  = ( m + self._value ) / n
-        x0 = 0
-        dx = abs(x - x0)
-        dx0= dx + 1
-        while dx < dx0:
-            x0= x
-            dx0 = dx
-            x = ( m*x + self._value / gsl_pow_int(x,m) ) / n
-            dx=abs(x - x0)
-        return x
+            return self.__pow__(float(1)/n)
 
     cdef RealDoubleElement __pow_float(self, double exponent):
         return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent))

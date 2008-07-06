@@ -92,7 +92,6 @@ Gallileus GmbH                   http://www.gallileus.info/
 
 import os, shutil, cPickle
 
-import transaction
 import BTrees.OOBTree
 from ZODB import FileStorage, DB
 
@@ -155,10 +154,12 @@ class Database(_uniq):
 
     def begin(self):
         r"""Start a new database transaction"""
+        import transaction
         transaction.get().begin()
 
     def abort(self):
         r"""Abort the current database transaction, without committing"""
+        import transaction
         transaction.get().abort()
 
     def commit(self):
@@ -172,6 +173,7 @@ class Database(_uniq):
         if self.read_only:
             raise RuntimeError, "Cannot commit read only database."
         self._root._p_changed = 1
+        import transaction
         transaction.get().commit()
         #get_transaction().commit()
 
@@ -236,6 +238,7 @@ class Database(_uniq):
             root[k] = x
         _root._p_changed = 1
         #get_transaction().commit()
+        import transaction
         transaction.get().commit()
         shutil.move(rebuild_name, self._dbname)
         os.unlink(rebuild_name + ".tmp")

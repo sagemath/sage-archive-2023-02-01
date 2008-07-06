@@ -597,7 +597,8 @@ def picklejar(obj, dir=None):
     environment variable SAGE_PICKLE_JAR, which will make it so dumps
     will by default call picklejar with the default dir.  Once you do
     that and doctest Sage, you'll find that the given directory
-    contains a bunch of pickled objects.  Use the
+    contains a bunch of pickled objects along with corresponding txt
+    descriptions of them.  Use the
     sage.structure.sage_object.unpickle_all to see if they unpickle
     later.
 
@@ -610,7 +611,7 @@ def picklejar(obj, dir=None):
         sage: dir = tmp_dir()
         sage: sage.structure.sage_object.picklejar(1,dir)
         sage: len(os.listdir(dir))
-        1
+        2
     """
     if dir is None:
         from sage.version import version
@@ -665,6 +666,7 @@ def unpickle_all(dir):
                 print "** failed: ", A
                 failed.append(A)
 
-    print "Failed:\n%s"%('\n'.join(failed))
+    if len(failed) > 0:
+        print "Failed:\n%s"%('\n'.join(failed))
     print "Successfully unpickled %s objects."%i
     print "Failed to unpickle %s objects."%j

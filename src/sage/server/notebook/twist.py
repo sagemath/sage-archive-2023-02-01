@@ -89,11 +89,10 @@ def notebook_save_check():
         last_save_time = t
 
 def notebook_idle_check():
-    notebook.quit_idle_worksheet_processes()
     global last_idle_time
     t = walltime()
     if t > last_idle_time + idle_interval:
-        notebook.save()
+        notebook.quit_idle_worksheet_processes()
         last_idle_time = t
 
 def notebook_updates():

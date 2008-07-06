@@ -1003,6 +1003,19 @@ class DirichletCharacter(MultiplicativeGroupElement):
             [0, 1, 36, 0, 1, 36, 0, 0, 36, 0, 1, 36, 0, 1, 0, 0, 1, 36, 0, 1, 36]
             sage: e = DirichletGroup(21, base_ring=GF(3)).gen(0) ; e.values()
             [0, 1, 2, 0, 1, 2, 0, 0, 2, 0, 1, 2, 0, 1, 0, 0, 1, 2, 0, 1, 2]
+
+            sage: chi = DirichletGroup(100151, CyclotomicField(10)).0
+            sage: ls = chi.values() ; ls[0:10]
+            [0,
+            1,
+            -zeta10^3,
+            -zeta10,
+            -zeta10,
+            1,
+            zeta10^3 - zeta10^2 + zeta10 - 1,
+            zeta10,
+            zeta10^3 - zeta10^2 + zeta10 - 1,
+            zeta10^2]
         """
         try:
             return self.__values
@@ -1058,7 +1071,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             ########################
             # record character value on n
-            result_list[n.ivalue] = R_values[value.ivalue]
+            result_list[n] = R_values[value]
             # iterate:
             #   increase the exponent vector by 1,
             #   increase n accordingly, and increase value

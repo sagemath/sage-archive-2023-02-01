@@ -1372,7 +1372,7 @@ class BooleanMonomialMonoid(Monoid_class):
                         t = (<BooleanPolynomial>other)._pbpoly.lead()
 
                         m = self._one_element
-                        for i in new_BMI_from_PBMonomIter(t, t.begin()):
+                        for i in new_BMI_from_BooleanMonomial(other.lm()):
                             m*= var_mapping[i]
                         return m
                 else:
@@ -1692,7 +1692,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: list(M(x*z).iterindex())
             [0, 2]
         """
-        return new_BMI_from_PBMonomIter(self._pbmonom, self._pbmonom.begin())
+        return new_BMI_from_BooleanMonomial(self)
 
     cdef MonoidElement _mul_c_impl(left, MonoidElement right):
         """
@@ -1818,7 +1818,8 @@ cdef class BooleanMonomialVariableIterator:
         return self
 
     def __dealloc__(self):
-        PBMonomVarIter_destruct(&self.iter)
+        PBMonomVarIter_destruct(&self._iter)
+        PBMonomVarIter_destruct(&self._end)
 
     def __next__(self):
         """
@@ -1829,24 +1830,26 @@ cdef class BooleanMonomialVariableIterator:
             sage: iter(m).next()
             x
         """
-        cdef PBVar val
-        if self.iter.equal(self.obj.variableEnd()):
+        cdef PBVar value
+        if self._iter.equal(self._end):
             raise StopIteration
-        val = self.iter.value()
-        self.iter.next()
-        return new_BM_from_PBVar(self.parent, self._ring, val)
+        value = self._iter.value()
+        self._iter.next()
+        return new_BM_from_PBVar(self.parent, self._ring, value)
 
 cdef inline BooleanMonomialVariableIterator new_BMVI_from_BooleanMonomial(\
                             BooleanMonomial monom):
     """
-    Construct a new BooleanMonomialIterator
+    Construct a new iterator over the variable indices of a boolean
+    monomial.
     """
     cdef BooleanMonomialVariableIterator m
     m = <BooleanMonomialVariableIterator>PY_NEW(BooleanMonomialVariableIterator)
     m.parent = monom._parent
     m._ring = monom._ring
-    m.obj = monom._pbmonom
-    m.iter = m.obj.variableBegin()
+    m.obj = monom
+    m._iter = m.obj._pbmonom.variableBegin()
+    m._end  = m.obj._pbmonom.variableEnd()
     return m
 
 cdef class BooleanMonomialIterator:
@@ -1867,6 +1870,7 @@ cdef class BooleanMonomialIterator:
 
     def __dealloc__(self):
         PBMonomIter_destruct(&self._iter)
+        PBMonomIter_destruct(&self._end)
 
     def __next__(self):
         """
@@ -1877,22 +1881,22 @@ cdef class BooleanMonomialIterator:
             sage: m.iterindex().next()
             0
         """
-        cdef int val
-        if self._iter.hash() == self._obj.end().hash():
+        cdef int value
+        if self._iter.equal(self._end):
             raise StopIteration
-        val = self._iter.value()
+        value = self._iter.value()
         self._iter.next()
-        return val
+        return value
 
-cdef inline BooleanMonomialIterator new_BMI_from_PBMonomIter(\
-                            PBMonom parent, PBMonomIter juice):
+cdef inline BooleanMonomialIterator new_BMI_from_BooleanMonomial(BooleanMonomial monom):
     """
     Construct a new BooleanMonomialIterator
     """
     cdef BooleanMonomialIterator m
     m = <BooleanMonomialIterator>PY_NEW(BooleanMonomialIterator)
-    m._iter = juice
-    m._obj = parent
+    m._iter = monom._pbmonom.begin()
+    m._end  = monom._pbmonom.end()
+    m.obj = monom
     return m
 
 cdef class BooleanPolynomial(MPolynomial):
@@ -2105,7 +2109,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: R
             Boolean PolynomialRing in y
         """
-        return new_BPI_from_PBPolyIter(self, self._pbpoly.orderedBegin())
+        return new_BPI_from_BooleanPolynomial(self)
 
     def __pow__(BooleanPolynomial self, int exp, ignored):
         r"""
@@ -3017,30 +3021,47 @@ cdef class BooleanPolynomial(MPolynomial):
         return self._parent
 
 cdef class BooleanPolynomialIterator:
+    """
+    Iterator over the monomials of a boolean polynomial.
+    """
     def __iter__(self):
+        """
+        EXAMPLE:
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: list(B.random_element()) # indirect doctest
+            [a*c, a*d, a, b*d, 1]
+        """
         return self
 
     def __dealloc__(self):
         PBPolyIter_destruct(&self._iter)
+        PBPolyIter_destruct(&self._end)
 
     def __next__(self):
-        cdef PBMonom val
-        if self._iter.equal(self._obj._pbpoly.orderedEnd()):
+        """
+        EXAMPLE:
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: it = iter(B.random_element())
+            sage: it.next() # indirect doctest
+            a*c
+        """
+        cdef PBMonom value
+        if self._iter.equal(self._end):
             raise StopIteration
-        val = self._iter.value()
+        value = self._iter.value()
         self._iter.next()
-        return new_BM_from_PBMonom(self._obj._parent._monom_monoid,
-                self._obj._parent, val)
+        return new_BM_from_PBMonom(self.obj._parent._monom_monoid,
+                self.obj._parent, value)
 
-cdef inline BooleanPolynomialIterator new_BPI_from_PBPolyIter(\
-                            BooleanPolynomial parent, PBPolyIter juice):
+cdef inline BooleanPolynomialIterator new_BPI_from_BooleanPolynomial(BooleanPolynomial f):
     """
     Construct a new BooleanMonomialIterator
     """
     cdef BooleanPolynomialIterator m
     m = <BooleanPolynomialIterator>PY_NEW(BooleanPolynomialIterator)
-    m._iter = juice
-    m._obj = parent
+    m.obj = f
+    m._iter = f._pbpoly.orderedBegin()
+    m._end = f._pbpoly.orderedEnd()
     return m
 
 class BooleanPolynomialIdeal(MPolynomialIdeal):
@@ -3519,14 +3540,25 @@ cdef class BooleSetIterator:
 
     def __dealloc__(self):
         PBSetIter_destruct(&self._iter)
+        PBSetIter_destruct(&self._end)
 
     def __next__(self):
-        cdef PBMonom val
-        if self._iter.equal(self._obj.end()):
+        """
+        EXAMPLE:
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: f = B.random_element()
+            sage: f
+            a*c + a*d + a + b*d + 1
+            sage: it = iter(f.set())
+            sage: it.next()
+            a*c
+        """
+        cdef PBMonom value
+        if self._iter.equal(self._end):
             raise StopIteration
-        val = self._iter.value()
+        value = self._iter.value()
         self._iter.next()
-        return new_BM_from_PBMonom(self._parent, self._ring, val)
+        return new_BM_from_PBMonom(self._parent, self._ring, value)
 
 cdef inline BooleSetIterator new_BSI_from_PBSetIter(BooleSet s):
     """
@@ -3536,9 +3568,11 @@ cdef inline BooleSetIterator new_BSI_from_PBSetIter(BooleSet s):
     m = <BooleSetIterator>PY_NEW(BooleSetIterator)
     m._ring = s._ring
     m._parent = m._ring._monom_monoid
-    m._obj = s._pbset
+    m.obj = s
     PBSetIter_construct(&m._iter)
     m._iter = s._pbset.begin()
+    PBSetIter_construct(&m._end)
+    m._end = s._pbset.end()
     return m
 
 cdef class CCuddNavigator:
@@ -3604,18 +3638,19 @@ cdef inline BooleanPolynomialVector new_BPV_from_PBPolyVector(\
 cdef class BooleanPolynomialVectorIterator:
     def __dealloc__(self):
         PBPolyVectorIter_destruct(&self._iter)
+        PBPolyVectorIter_destruct(&self._end)
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        cdef PBPoly val
-        if PBPolyVectorIter_equal(self._iter, self._obj.end()):
+        cdef PBPoly value
+        if PBPolyVectorIter_equal(self._iter, self._end):
             raise StopIteration
 
-        val = self._iter.value()
+        value = self._iter.value()
         self._iter.next()
-        return new_BP_from_PBPoly(self._parent, val)
+        return new_BP_from_PBPoly(self._parent, value)
 
 cdef inline BooleanPolynomialVectorIterator new_BPVI_from_PBPolyVectorIter(\
         BooleanPolynomialVector vec):
@@ -3625,10 +3660,10 @@ cdef inline BooleanPolynomialVectorIterator new_BPVI_from_PBPolyVectorIter(\
     cdef BooleanPolynomialVectorIterator m
     m = <BooleanPolynomialVectorIterator>PY_NEW(BooleanPolynomialVectorIterator)
     m._parent = vec._parent
-    m._obj = vec._vec
-    m._iter = m._obj.begin()
+    m.obj = vec
+    m._iter = vec._vec.begin()
+    m._end = vec._vec.end()
     return m
-
 
 cdef class GroebnerStrategy:
     def __init__(self, param = None):

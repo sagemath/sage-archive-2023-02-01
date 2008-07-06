@@ -50,6 +50,7 @@ cdef extern from "pb_wrap.h":
     ctypedef struct PBMonomIter "BooleMonomial::const_iterator":
         int (* value "operator*")()
         int (* next "operator++")()
+        bint (* equal "operator==")(PBMonomIter rhs)
         int (* hash)()
 
     void PBMonomIter_destruct "Destruct<BooleMonomial::const_iterator>" \
@@ -223,10 +224,9 @@ cdef extern from "pb_wrap.h":
         PBPoly (* value "operator*")()
         int (* next "operator++")()
 
-    void PBPolyVectorIter_destruct "Destruct<std::vector<BoolePolynomial>::iterator>"(PBPolyVectorIter *mem)
+    bint PBPolyVectorIter_equal "operator=="(PBPolyVectorIter lhs, PBPolyVectorIter rhs)
 
-    bint PBPolyVectorIter_equal "operator=="(PBPolyVectorIter lhs, \
-            PBPolyVectorIter rhs)
+    void PBPolyVectorIter_destruct "Destruct<std::vector<BoolePolynomial>::iterator>"(PBPolyVectorIter *mem)
 
     ctypedef struct PBPolyVector "std::vector<BoolePolynomial>":
         int (* size)()

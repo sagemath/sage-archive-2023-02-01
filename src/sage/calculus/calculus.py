@@ -289,9 +289,6 @@ import sage.functions.functions
 
 import sage.ext.fast_eval as fast_float
 
-#needed for converting from SymPy to SAGE
-import sympy
-
 # TODO: What the heck does this is_simplified thing do?
 is_simplified = False
 
@@ -465,8 +462,6 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
         elif isinstance(x, MaximaElement):
             return symbolic_expression_from_maxima_element(x)
         # if "x" is a SymPy object, convert it to a SAGE object
-        elif isinstance(x, sympy.Basic):
-            return self(x._sage_())
         elif is_Polynomial(x) or is_MPolynomial(x):
             if x.base_ring() != self:  # would want coercion to go the other way
                 return SymbolicPolynomial(x)
@@ -494,6 +489,10 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
             return SymbolicConstant(x)
         elif isinstance(x, complex):
             return evaled_symbolic_expression_from_maxima_string('%s+%%i*%s'%(x.real,x.imag))
+
+        from sympy.core.basic import Basic
+        if isinstance(x, Basic):
+            return self(x._sage_())
         else:
             raise TypeError, "cannot coerce type '%s' into a SymbolicExpression."%type(x)
 

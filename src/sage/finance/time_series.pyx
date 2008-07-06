@@ -523,7 +523,7 @@ cdef class TimeSeries:
             sage: v
             [0.6767, 0.2756, 0.6332, 0.0469, -0.8897 ... 87.6759, 87.6825, 87.4120, 87.6639, 86.3194]
             sage: v.linear_forecast(F)
-            86.017728504280015
+            86.0177285042...
             sage: F
             [1.0148, -0.0029, -0.0105, 0.0067, -0.0232 ... -0.0106, -0.0068, 0.0085, -0.0131, 0.0092]
         """
@@ -1426,12 +1426,12 @@ cdef class TimeSeries:
             sage: set_random_seed(0)
             sage: fbm = finance.fractional_brownian_motion_simulation(0.7,0.1,10^5,1)[0].sums()
             sage: fbm.hurst_exponent()
-            0.66787027921443409
+            0.667870279214...
 
         Another example with small Hurst exponent (notice how bad the prediction is...):
             sage: fbm = finance.fractional_brownian_motion_simulation(0.2,0.1,10^5,1)[0].sums()
             sage: fbm.hurst_exponent()
-            0.30450273560706259
+            0.30450273560706...
 
         The above example illustrate that this is not a very good
         estimate of the Hurst exponent.

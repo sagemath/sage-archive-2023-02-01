@@ -113,7 +113,6 @@ import sage.structure.parent_gens
 from sage.structure.proof.proof import get_flag
 import maps
 
-import math, numpy
 from sage.rings.integer_ring import IntegerRing
 
 def proof_flag(t):

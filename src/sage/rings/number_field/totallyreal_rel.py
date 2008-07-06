@@ -31,8 +31,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_totallyreal, enumerate_totallyreal_fields_prim
 from sage.libs.pari.gen import pari
 
-import math, numpy, bisect, sys
-from numpy.linalg import inv
+import math, bisect, sys
 
 r"""
 ## This code needs optimization before any serious use.
@@ -103,6 +102,8 @@ def integral_elements_in_box(K, C):
     Foo = K.real_embeddings()
     B = K.reduced_basis()
 
+    import numpy
+    import numpy.linalg
     L = numpy.array([ [v(b) for b in B] for v in Foo])
     Linv = numpy.linalg.inv(L)
     Vi = [[C[0][0]],[C[0][1]]]
@@ -184,7 +185,7 @@ class tr_data_rel:
     further documentation.
     """
 
-    def __init__(self, F, m, B, a=[]):
+    def __init__(self, F, m, B, a=None):
         r"""
         Initialization routine (constructor).
 
@@ -204,6 +205,8 @@ class tr_data_rel:
             sage: F.<t> = NumberField(x^2-2)
             sage: T = sage.rings.number_field.totallyreal_rel.tr_data_rel(F, 2, 2000)
         """
+        if a is None:  # don't make the stupid noob mistake of putting a=[]
+            a = []     # in the function signature above.
 
         # Initialize constants.
         self.m = m
@@ -245,6 +248,7 @@ class tr_data_rel:
                 anm1s = sum(anm1s, [])
             anm1s = [sum([Z_Fbasis[i]*a[i] for i in range(self.d)]) for a in anm1s]
             # Minimize trace in class.
+            import numpy
             for i in range(len(anm1s)):
                 Q = [ [ v(m*x) for v in self.Foo] + [0] for x in Z_Fbasis] + [[v(anm1s[i]) for v in self.Foo] + [10**6]]
                 Q = str(numpy.array(Q).transpose())

@@ -38,7 +38,7 @@ from sage.rings.real_mpfi import RealIntervalField
 
 # RIF = RealIntervalField()
 
-import math, numpy
+import math
 
 # Other global variables
 ZZx = PolynomialRing(IntegerRing(), 'x')
@@ -269,6 +269,7 @@ def lagrange_degree_3(n, an1, an2, an3):
         df = ZZx([i*p[i] for i in range(1,7)])
         f = f//gcd(f,df)
         fcoeff = [int(c) for c in f.list()]
+        import numpy
         rts = numpy.roots(fcoeff)
 
         rts = numpy.real([rts[i] for i in range(len(rts)) if numpy.isreal(rts[i])]).tolist()
@@ -506,6 +507,7 @@ cdef class tr_data:
             # Annoying, but must reverse coefficients for numpy.
             gnk = [int(binomial(j,k+2))*a[j] for j in range(k+2,n+1)]
             gnk.reverse()
+            import numpy
             rts = numpy.roots(gnk).tolist()
             rts.sort()
             self.beta[(k+1)*(n+1)+0] = self.b_lower

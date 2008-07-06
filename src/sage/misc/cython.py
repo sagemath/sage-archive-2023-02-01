@@ -119,16 +119,16 @@ def pyx_preparse(s):
         'jcntl',
         'rankntl',
         'gsl',
-        'gslcblas',
+        'cblas',
         'atlas',
         'ntl',
         'csage'],
-        ['/usr/local/sage-3.0.3/local/include/csage/',
-        '/usr/local/sage-3.0.3/local/include/',
-        '/usr/local/sage-3.0.3/local/include/python2.5/',
-        '/usr/local/sage-3.0.3/devel/sage/sage/ext/',
-        '/usr/local/sage-3.0.3/devel/sage/',
-        '/usr/local/sage-3.0.3/devel/sage/sage/gsl/'],
+        ['.../local/include/csage/',
+        '.../local/include/',
+        '.../local/include/python2.5/',
+        '.../devel/sage/sage/ext/',
+        '.../devel/sage/',
+        '.../devel/sage/sage/gsl/'],
         'c',
         [])
         sage: s, libs, inc, lang, f = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
@@ -142,18 +142,18 @@ def pyx_preparse(s):
         'pari',
         'm',
         'curvesntl', 'g0nntl', 'jcntl', 'rankntl',
-        'gsl', 'gslcblas', 'atlas',
+        'gsl', 'cblas', 'atlas',
         'ntl',
         'csage']
 
         sage: inc
         ['bar',
-        '/usr/local/sage-3.0.3/local/include/csage/',
-        '/usr/local/sage-3.0.3/local/include/',
-        '/usr/local/sage-3.0.3/local/include/python2.5/',
-        '/usr/local/sage-3.0.3/devel/sage/sage/ext/',
-        '/usr/local/sage-3.0.3/devel/sage/',
-        '/usr/local/sage-3.0.3/devel/sage/sage/gsl/']
+        '.../local/include/csage/',
+        '.../local/include/',
+        '.../local/include/python2.5/',
+        '.../devel/sage/sage/ext/',
+        '.../devel/sage/',
+        '.../devel/sage/sage/gsl/']
     """
     lang = parse_keywords('clang', s)
     if lang[0]:

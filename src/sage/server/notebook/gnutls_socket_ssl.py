@@ -1,7 +1,4 @@
 import socket
-import gnutls
-import gnutls.connection
-import gnutls.errors
 
 class GnuTLSSocketSSL:
     """
@@ -11,6 +8,7 @@ class GnuTLSSocketSSL:
     socket.ssl MUST be set before urllib is imported.
     """
     def __init__(self, sock, key_file=None, cert_file=None):
+        import gnutls.connection
         self.creds = gnutls.connection.X509Credentials()
         self.session = gnutls.connection.ClientSession(sock, self.creds)
         self.session.handshake()
@@ -21,6 +19,7 @@ class GnuTLSSocketSSL:
     write = send
 
     def recv(self, *args, **kwds):
+        import gnutls.errors
         try:
             s = self.session.recv(*args, **kwds)
         except gnutls.errors.GNUTLSError:

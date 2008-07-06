@@ -77,7 +77,7 @@ usage_advanced() {
     echo "  -sh           -- run \$SHELL ($SHELL) with SAGE environment variables set"
     echo "  -singular <..>-- run SAGE's singular with given arguments"
     echo "  -standard     -- list all standard packages that can be downloaded"
-    echo "  -timeup       -- display how long each component of sage takes to startup"
+    echo "  -startuptime  -- display how long each component of sage takes to startup"
     echo "  -twistd <..>  -- run Twisted server"
     echo "  -t [-optional] [-verbose] [-long] <files|dir> -- test examples in .py, .pyx, .sage or .tex files"
     echo "                           -optional -- include examples with 'optional' and 'package'"
@@ -846,8 +846,8 @@ if [ $1 = '-omega' -o $1 = "--omega" ]; then
     exit $?
 fi
 
-if [ $1 = '-timeup'  ]; then
-    python "$SAGE_LOCAL"/bin/sage-timeup.py
+if [ $1 = '-startuptime' -o $1 = '--startuptime' ]; then
+    python "$SAGE_LOCAL"/bin/sage-startuptime.py
     exit $?
 fi
 if [ $1 = '-gthread' -o $1 = '-qthread' -o $1 = '-q4thread' -o $1 = '-wthread' -o $1 = '-pylab' ]; then

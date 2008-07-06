@@ -2,6 +2,12 @@
 # Based on a script by Andrew Dalke:
 #    http://projects.scipy.org/pipermail/numpy-discussion/2008-July/035415.html
 #
+# From: Andrew Dalke <dalke@dalkescientific.com>
+# Date: Sun, Jul 6, 2008 at 10:07 AM
+# To: Mike Hansen <mhansen@gmail.com>
+# "This work written by Andrew Dalke and released into the public
+# domain in 2008.  No copyright protection is asserted."
+#
 # Included in Sage by Mike Hansen and William Stein
 ###########################################################
 

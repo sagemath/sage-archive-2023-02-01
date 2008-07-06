@@ -585,7 +585,7 @@ def loads(s, compress=True):
             return loads(s, compress=True)
 
 
-cdef bint make_pickle_jar = os.environ.has_key('PICKLE_JAR')
+cdef bint make_pickle_jar = os.environ.has_key('SAGE_PICKLE_JAR')
 
 def picklejar(obj, dir=None):
     """
@@ -594,8 +594,12 @@ def picklejar(obj, dir=None):
     sage.structure.sage_object.unpickle_all.
 
     To use this to test the whole Sage library right now, set the
-    environment variable PICKLE_JAR, which will make it so dumps will
-    by default call picklejar with the default dir.
+    environment variable SAGE_PICKLE_JAR, which will make it so dumps
+    will by default call picklejar with the default dir.  Once you do
+    that and doctest Sage, you'll find that the given directory
+    contains a bunch of pickled objects.  Use the
+    sage.structure.sage_object.unpickle_all to see if they unpickle
+    later.
 
     INPUTS:
         obj -- a pickleable object
@@ -613,14 +617,30 @@ def picklejar(obj, dir=None):
         dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar-%s/'%version
     if not os.path.exists(dir):
         os.makedirs(dir)
+
     s = comp.compress(cPickle.dumps(obj,protocol=2))
-    filename = '%s/%s.sobj'%(dir, abs(hash(s)))
-    open(filename, 'wb').write(s)
+
+    typ = str(type(obj))
+    name = ''.join([x if (x.isalnum() or x == '_') else '_' for x in typ])
+    base = '%s/%s'%(dir, name)
+    if os.path.exists(base):
+        i = 0
+        while os.path.exists(base + '-%s'%i):
+            i += 1
+        base += '-%s'%i
+
+    open(base + '.sobj', 'wb').write(s)
+    txt = "type(obj) = %s\n"%typ
+    import sage.version
+    txt += "version = %s\n"%sage.version.version
+    txt += "obj =\n'%s'\n"%obj
+
+    open(base + '.txt', 'w').write(txt)
 
 def unpickle_all(dir):
     """
-    Unpickle all objects in the given directory, reporting failures
-    as they occur.  Also printed the number of successes and failure.
+    Unpickle all sobj's in the given directory, reporting failures as
+    they occur.  Also printed the number of successes and failure.
 
     INPUT:
         dir -- string; a directory
@@ -634,13 +654,17 @@ def unpickle_all(dir):
     """
     i = 0
     j = 0
+    failed = []
     for A in os.listdir(dir):
-        try:
-            load(dir + '/' + A)
-            i += 1
-        except Exception, msg:
-            j ++ 1
-            print "** failed: ", A
+        if A.endswith('.sobj'):
+            try:
+                load(dir + '/' + A)
+                i += 1
+            except Exception, msg:
+                j += 1
+                print "** failed: ", A
+                failed.append(A)
 
+    print "Failed:\n%s"%('\n'.join(failed))
     print "Successfully unpickled %s objects."%i
     print "Failed to unpickle %s objects."%j

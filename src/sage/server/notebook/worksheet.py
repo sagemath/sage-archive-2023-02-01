@@ -2674,11 +2674,11 @@ class Worksheet:
             ('w', Cell 0; in=factor(2^997-1), out=...)
 
         We interrupt it successfully.
-            sage: W.interrupt()
+            sage: W.interrupt()         # random -- could fail on heavily loaded machine
             True
 
         Now we check and nothing is computing.
-            sage: W.check_comp()
+            sage: W.check_comp()        # random -- could fail on heavily loaded machine
             ('e', None)
 
         Clean up.

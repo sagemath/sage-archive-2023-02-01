@@ -30,6 +30,7 @@ def simulations(Py_ssize_t n, Py_ssize_t k,
     EXAMPLES:
         sage: set_random_seed(0)
         sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
+        sage: import sage.finance.markov_multifractal_cython
         sage: sage.finance.markov_multifractal_cython.simulations(5,2,1.278,0.262,8,msm.gamma())
         [[0.0014, -0.0023, -0.0028, -0.0030, -0.0019], [0.0020, -0.0020, 0.0034, -0.0010, -0.0004]]
     """

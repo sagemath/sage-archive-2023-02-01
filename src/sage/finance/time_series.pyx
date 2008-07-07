@@ -569,7 +569,7 @@ cdef class TimeSeries:
             sage: F = v[:-1].autoregressive_fit(5); F
             [1.0019, -0.0524, -0.0643, 0.1323, -0.0539]
             sage: v.autoregressive_forecast(F)
-            11.782029861181114
+            11.7820298611...
             sage: v
             [0.6767, 0.2756, 0.6332, 0.0469, -0.8897 ... 9.2447, 9.6709, 10.4037, 10.4836, 12.1960]
         """
@@ -1261,11 +1261,11 @@ cdef class TimeSeries:
             sage: mu = v.mean(); sum([(a-mu)^2 for a in v])/len(v)
             14.4
             sage: v.autocovariance(1)
-            -2.7000000000000002
+            -2.70000000...
             sage: mu = v.mean(); sum([(v[i]-mu)*(v[i+1]-mu) for i in range(len(v)-1)])/len(v)
-            -2.7000000000000002
+            -2.70000000...
             sage: v.autocovariance(1)
-            -2.7000000000000002
+            -2.70000000...
 
         We illustrate with a random sample that an independently and
         identically distributed distribution with zero mean and
@@ -1276,13 +1276,13 @@ cdef class TimeSeries:
             sage: v.randomize('normal', 0, 5)
             [3.3835, -2.0055, 1.7882, -2.9319, -4.6827 ... -5.1868, 9.2613, 0.9274, -6.2282, -8.7652]
             sage: v.autocovariance(0)
-            24.954106897195892
+            24.95410689...
             sage: v.autocovariance(1)
-            -0.0050839047886276651
+            -0.00508390...
             sage: v.autocovariance(2)
-            0.022056325329509487
+            0.022056325...
             sage: v.autocovariance(3)
-            -0.019020003743134766
+            -0.01902000...
         """
         cdef double mu = self.mean()
         cdef double s = 0
@@ -1306,9 +1306,9 @@ cdef class TimeSeries:
         EXAMPLES:
             sage: v = finance.TimeSeries([1,-2,3]); w = finance.TimeSeries([4,5,-10])
             sage: v.correlation(w)
-            -0.55804160922502144
+            -0.558041609...
             sage: v.covariance(w)/(v.standard_deviation() * w.standard_deviation())
-            -0.55804160922502144
+            -0.558041609...
         """
         return self.covariance(other) / (self.standard_deviation() * other.standard_deviation())
 
@@ -1398,9 +1398,9 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries([1,1,1,2,3]); v
             [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]
             sage: v.standard_deviation()
-            0.89442719099991586
+            0.8944271909...
             sage: v.standard_deviation(bias=True)
-            0.80000000000000004
+            0.8000000000...
         """
         return sqrt(self.variance(bias=bias))
 
@@ -1417,9 +1417,9 @@ cdef class TimeSeries:
         Notice that if we make a Brownian motion random walk, there
         is no difference if we change the standard deviation.
             sage: set_random_seed(0); finance.TimeSeries(10^6).randomize('normal').sums().range_statistic()
-            1873.9206979719115
+            1873.9206979...
             sage: set_random_seed(0); finance.TimeSeries(10^6).randomize('normal',0,100).sums().range_statistic()
-            1873.920697971955
+            1873.9206979...
         """
         return (self.max() - self.min())/self.diffs().standard_deviation()
 
@@ -1443,7 +1443,7 @@ cdef class TimeSeries:
             sage: bm = finance.TimeSeries(10^5).randomize('normal').sums(); bm
             [0.6767, 0.2756, 0.6332, 0.0469, -0.8897 ... 152.2437, 151.5327, 152.7629, 152.9169, 152.9084]
             sage: bm.hurst_exponent()
-            0.5174890556918027
+            0.5174890556...
 
         We compute the Hurst exponent of a simulated fractional Brownian
         motion with Hurst parameter 0.7.  This function estimates the
@@ -1451,12 +1451,12 @@ cdef class TimeSeries:
             sage: set_random_seed(0)
             sage: fbm = finance.fractional_brownian_motion_simulation(0.7,0.1,10^5,1)[0].sums()
             sage: fbm.hurst_exponent()
-            0.667870279214...
+            0.6678702792...
 
         Another example with small Hurst exponent (notice how bad the prediction is...):
             sage: fbm = finance.fractional_brownian_motion_simulation(0.2,0.1,10^5,1)[0].sums()
             sage: fbm.hurst_exponent()
-            0.30450273560706...
+            0.3045027356...
 
         The above example illustrate that this is not a very good
         estimate of the Hurst exponent.
@@ -1846,7 +1846,7 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries(10^6)
             sage: set_random_seed(0)
             sage: v.randomize('uniform').mean()
-            0.50069085504319877
+            0.50069085...
         """
         if left >= right:
             raise ValueError, "left must be less than right"
@@ -1879,14 +1879,14 @@ cdef class TimeSeries:
             sage: set_random_seed(0)
             sage: v = finance.TimeSeries(10^6)
             sage: v.randomize('normal').mean()
-            6.2705472723385207e-05
+            6.2705472723...
 
         The same test with mean equal to 2 and standard deviation equal
         to 5.
             sage: set_random_seed(0)
             sage: v = finance.TimeSeries(10^6)
             sage: v.randomize('normal', 2, 5).mean()
-            2.0003135273636117
+            2.0003135273...
         """
         # Ported from http://users.tkk.fi/~nbeijar/soft/terrain/source_o2/boxmuller.c
         # This the box muller algorithm.
@@ -1928,13 +1928,13 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries(10^6)
             sage: set_random_seed(0)
             sage: v.randomize('semicircle').mean()
-            0.00072074971804614557
+            0.0007207497...
 
         The same test with center equal to 2.
             sage: v = finance.TimeSeries(10^6)
             sage: set_random_seed(0)
             sage: v.randomize('semicircle', 2).mean()
-            2.0007207497179227
+            2.0007207497...
         """
         cdef Py_ssize_t k
         cdef double x, y, s, d = 2, left = center - 1, z
@@ -1972,9 +1972,9 @@ cdef class TimeSeries:
             sage: set_random_seed(0)
             sage: v = finance.TimeSeries(10^6)
             sage: v.randomize('lognormal').mean()
-            1.6473519736548801
+            1.647351973...
             sage: e^0.5
-            1.648721270700128
+            1.648721270...
 
         A log-normal distribution can be simply thought of as the logarithm
         of a normally distributed dataset. We test that here by generating

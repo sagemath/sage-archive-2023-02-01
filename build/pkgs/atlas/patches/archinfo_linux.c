@@ -72,6 +72,7 @@ enum MACHTYPE ProbeArch()
          if (strstr(res, "G4")) mach = PPCG4;
          else if (strstr(res, "7400")) mach = PPCG4;
          else if (strstr(res, "7410")) mach = PPCG4;
+         else if (strstr(res, "7447")) mach = PPCG4;
          else if (strstr(res, "7455")) mach = PPCG4;
          else if (strstr(res, "PPC970FX")) mach = PPCG5;
          else if (strstr(res, "POWER5")) mach = IbmPwr5;

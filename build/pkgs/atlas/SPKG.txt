@@ -31,6 +31,9 @@ Note that 3.8.1.p2's changes are in the src directory directly since we will upg
 
 == ChangeLog ==
 
+=== atlas-3.8.p3 (Michael Abshoff, July 6th, 2008) ===
+ * Really apply the ATLAS-3.8.1-ppc-g4-7447-detect-fix.patch
+
 === atlas-3.8.p2 (Michael Abshoff, June 26th, 2008) ===
  * Complex GEMM sometimes accesses C when BETA=0 (#3290)
  * Bad GEMM call causes performance drop for all architectures (#3380)

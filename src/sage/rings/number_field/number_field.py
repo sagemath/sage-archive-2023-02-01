@@ -3632,11 +3632,11 @@ class NumberField_absolute(NumberField_generic):
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.629960524947436 - 1.09112363597172*I,
+              Defn: a |--> -0.62996052494743... - 1.09112363597172*I,
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.629960524947436 + 1.09112363597172*I,
+              Defn: a |--> -0.62996052494743... + 1.09112363597172*I,
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision

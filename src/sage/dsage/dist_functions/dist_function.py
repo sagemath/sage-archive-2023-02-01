@@ -23,10 +23,8 @@ import zlib
 
 from sage.dsage.database.job import Job
 from sage.dsage.interface.dsage_interface import (JobWrapper,
-                                                  BlockingJobWrapper)
-
-from twisted.internet import reactor
-from twisted.internet.threads import blockingCallFromThread
+                                                  BlockingJobWrapper,
+                                                  blockingCallFromThread)
 
 class DistributedFunction(object):
     """
@@ -114,7 +112,7 @@ class DistributedFunction(object):
         Reloads a distributed job from disk.
 
         """
-
+        from twisted.internet import reactor
         from twisted.internet import task
         if dsage.remoteobj is None:
             # XXX This is a hack because dsage.remoteobj is not set yet

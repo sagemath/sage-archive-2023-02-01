@@ -4,7 +4,7 @@
 # 3.4.0. If so it exits with status 0 and no output.
 # If not, it exits with status 1, and prints a warning
 $ver_string=`gcc -dumpversion`;
-$ver_string =~ m/(\d)\.(\d)\.(\d)/;
+$ver_string =~ m/(\d)\.(\d);
 
 
 

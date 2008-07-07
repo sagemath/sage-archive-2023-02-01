@@ -1,6 +1,9 @@
 Upstream maintainer: Bill Heart
 Website: www.flintlib.org
 
+=== flint-1.010.p0 (Michael Abshoff, July 6th, 2008) ===
+ * Only check major and minor gcc release number, not tiny (fixes #3528)
+
 === flint-1.010 (William Stein and Craig Citro, June 30, 2008) ===
  * upgrade to version 1.0.10
 

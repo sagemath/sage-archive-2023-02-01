@@ -450,8 +450,8 @@ class BlockingDSage(DSage):
             jobs -- a list of completed jobs
 
         EXAMPLE:
-            sage: from sage.dsage.misc.misc import find_open_port
-            sage: port = find_open_port().next()
+            sage: from sage.server.misc import find_next_available_port
+            sage: port = find_next_available_port(8000)
             sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
             Going into testing mode...
             sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
@@ -490,8 +490,8 @@ class BlockingDSage(DSage):
             *args -- iterables containing the parameters to the function
 
         EXAMPLE:
-            sage: from sage.dsage.misc.misc import find_open_port
-            sage: port = find_open_port().next()
+            sage: from sage.server.misc import find_next_available_port
+            sage: port = find_next_available_port(8000)
             sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
             Going into testing mode...
             sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
@@ -534,8 +534,8 @@ class BlockingDSage(DSage):
             where the order may be completely random
 
         EXAMPLE:
-            sage: from sage.dsage.misc.misc import find_open_port
-            sage: port = find_open_port().next()
+            sage: from sage.server.misc import find_next_available_port
+            sage: port = find_next_available_port(8000)
             sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
             Going into testing mode...
             sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
@@ -573,8 +573,8 @@ class BlockingDSage(DSage):
             job wrapper representing the function evaluated at input.
 
         EXAMPLE:
-            sage: from sage.dsage.misc.misc import find_open_port
-            sage: port = find_open_port().next()
+            sage: from sage.server.misc import find_next_available_port
+            sage: port = find_next_available_port(8000)
             sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
             Going into testing mode...
             sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)

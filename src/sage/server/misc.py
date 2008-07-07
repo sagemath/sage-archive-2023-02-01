@@ -70,7 +70,7 @@ def print_open_msg(address, port, secure=False, path=""):
 
 
 import socket
-def find_next_available_port(start, max_tries=100, verbose=True):
+def find_next_available_port(start, max_tries=100, verbose=False):
     """
     Find the next port that is available to be used, where available means that
     currently trying to connect to it gives a 'Connection refused'
@@ -88,13 +88,21 @@ def find_next_available_port(start, max_tries=100, verbose=True):
         sage: sage.server.misc.find_next_available_port(9000, verbose=False)   # random output -- depends on network
         9002
     """
+    from sage.misc.misc import alarm, cancel_alarm
     for port in range(start, start+max_tries+1):
         try:
+            alarm(1)
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect(('', port))
         except socket.error, msg:
             if msg[1] == 'Connection refused':
+                if verbose: print "Using port = %s"%port
                 return port
+        except KeyboardInterrupt:
+            if verbose: print "alarm"
+            pass
+        finally:
+            cancel_alarm()
         if verbose:
             print "Port %s is already in use."%port
             print "Trying next port..."

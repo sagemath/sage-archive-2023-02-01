@@ -9,7 +9,8 @@ NOTE:
 
 
 TESTS:
-Start the notebook:
+
+Start the notebook.
     sage: from sage.server.misc import find_next_available_port
     sage: port = find_next_available_port(9000, verbose=False)
     sage: from sage.server.notebook.notebook_object import test_notebook
@@ -24,6 +25,7 @@ Import urllib:
 
 
 Login to a new session:
+    sage: sleep(1)
     sage: login_page = get_url('http://localhost:%s/simple/login?username=admin&password=%s' % (port, passwd))
     sage: print login_page # random session id
     {

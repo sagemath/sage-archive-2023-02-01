@@ -50,21 +50,50 @@ standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'curvesntl', \
 offset = 0
 
 def parse_keywords(kwd, s):
+    """
+    Given a keyword kwd and a string s, return a list of all arguments
+    on the same line as that keyword in s, as well as a new copy of
+    s in which each occurrence of kwd is in a comment. If a comment
+    already occurs on the line containing kwd, no words after the #
+    are added to the list.
+
+    EXAMPLES:
+        sage: sage.misc.cython.parse_keywords('clib', " clib foo bar baz\n #cinclude bar\n")
+        (['foo', 'bar', 'baz'], ' #clib foo bar baz\n #cinclude bar\n')
+
+        sage: sage.misc.cython.parse_keywords('clib', "# qux clib foo bar baz\n #cinclude bar\n")
+        (['foo', 'bar', 'baz'], '# qux clib foo bar baz\n #cinclude bar\n')
+        sage: sage.misc.cython.parse_keywords('clib', "# clib foo bar # baz\n #cinclude bar\n")
+        (['foo', 'bar'], '# clib foo bar # baz\n #cinclude bar\n')
+    """
     j = 0
     v = []
     while True:
+        # see if kwd occurs
         i = s[j:].find(kwd)
         if i == -1: break
         j = i + j
-        s = s[:j] + '#' + s[j:]
-        j += len(kwd) + 1
+
+        # add a hash, if necessary
+        last_hash = s[:j].rfind('#')
+        last_newline = s[:j].rfind('\n')
+        if last_hash > last_newline:
+            j += len(kwd)
+        else:
+            s = s[:j] + '#' + s[j:]
+            j += len(kwd) + 1
+
+        # find all other words on this line
         k = s[j:].find('\n')
         if k == -1:
             k = len(s)
+
+        # add them to our list, until we find a comment
         for X in s[j:j+k].split():
             if X[0] == '#':   # skip rest of line
                 break
             v.append(X)
+
     return v, s
 
 def environ_parse(s):
@@ -119,7 +148,7 @@ def pyx_preparse(s):
         'jcntl',
         'rankntl',
         'gsl',
-        'cblas',
+        '...blas',
         'atlas',
         'ntl',
         'csage'],
@@ -142,9 +171,11 @@ def pyx_preparse(s):
         'pari',
         'm',
         'curvesntl', 'g0nntl', 'jcntl', 'rankntl',
-        'gsl', 'cblas', 'atlas',
+        'gsl', '...blas', 'atlas',
         'ntl',
         'csage']
+        sage: libs[1:] == sage.misc.cython.standard_libs
+        True
 
         sage: inc
         ['bar',
@@ -168,14 +199,9 @@ def pyx_preparse(s):
 
     v, s = parse_keywords('cinclude', s)
     inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + include_dirs
-    s = """
-include "cdefs.pxi"
-""" + s
+    s = """\ninclude "cdefs.pxi"\n""" + s
     if lang != "c++": # has issues with init_csage()
-        s = """
-include "interrupt.pxi"  # ctrl-c interrupt block support
-include "stdsage.pxi"  # ctrl-c interrupt block support
-""" + s
+        s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n""" + s
     return s, libs, inc, lang, additional_source_files
 
 ################################################################

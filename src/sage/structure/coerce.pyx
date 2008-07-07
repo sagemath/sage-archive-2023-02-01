@@ -637,7 +637,7 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             from sage.rings.ring import is_Ring
             if is_Ring(S):
                 try:
-                    K = S.fraction_field()
+                    K = S._pseudo_fraction_field()
                 except TypeError:
                     K = None
             elif PY_TYPE_CHECK(S, Parent):

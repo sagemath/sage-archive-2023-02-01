@@ -330,6 +330,24 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             self.__field = k
             return k
 
+    def _pseudo_fraction_field(self):
+        """
+        If self is composite, we may still want to do divison by
+        elements of self.
+
+        EXAMPLES:
+            sage: Integers(15).fraction_field()
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be an integral domain.
+            sage: Integers(15)._pseudo_fraction_field()
+            Ring of integers modulo 15
+            sage: R.<x> = Integers(15)[]
+            sage: (x+5)/2
+            8*x + 10
+        """
+        return self
+
     def multiplicative_group_is_cyclic(self):
         """
         Return True if the multiplicative group of this field is

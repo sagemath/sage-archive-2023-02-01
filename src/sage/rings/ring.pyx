@@ -692,6 +692,32 @@ cdef class CommutativeRing(Ring):
             self.__fraction_field = K
         return self.__fraction_field
 
+    def _pseudo_fraction_field(self):
+        r"""
+        This method is used by the coercion model to
+        determine if a / b should be treated as a * (1/b),
+        for example when dividing an element of $\Z[x]$ by
+        an element of $\Z$.
+
+        The default is to return the same value as
+        self.fraction_field(), but it may return some other
+        domain in which division is usually defined (for
+        example, $\Z/n\Z$ for possibly composite $n$.
+
+        EXAMPLES:
+            sage: ZZ._pseudo_fraction_field()
+            Rational Field
+            sage: ZZ['x']._pseudo_fraction_field()
+            Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+            sage: Integers(15)._pseudo_fraction_field()
+            Ring of integers modulo 15
+            sage: Integers(15).fraction_field()
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be an integral domain.
+        """
+        return self.fraction_field()
+
     def __pow__(self, n, _):
         """
         Return the free module of rank $n$ over this ring.
@@ -1287,6 +1313,21 @@ cdef class Field(PrincipalIdealDomain):
             sage: F = NumberField(x^2 + 1, 'i')
             sage: F.fraction_field()
             Number Field in i with defining polynomial x^2 + 1
+        """
+        return self
+
+    def _pseudo_fraction_field(self):
+        """
+        The fraction field of self is always available as self.
+
+        EXAMPLES:
+            sage: QQ._pseudo_fraction_field()
+            Rational Field
+            sage: K = GF(5)
+            sage: K._pseudo_fraction_field()
+            Finite Field of size 5
+            sage: K._pseudo_fraction_field() is K
+            True
         """
         return self
 

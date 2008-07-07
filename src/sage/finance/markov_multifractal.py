@@ -15,10 +15,6 @@ TESTS:
 import math
 import random
 
-import time_series
-
-import markov_multifractal_cython
-
 class MarkovSwitchingMultifractal:
     def __init__(self, kbar, m0, sigma, gamma_kbar, b):
         """
@@ -198,6 +194,7 @@ class MarkovSwitchingMultifractal:
             sage: cad_usd = finance.MarkovSwitchingMultifractal(10,1.278,0.262,0.644,2.11); cad_usd
             Markov switching multifractal model with m0 = 1.278, sigma = 0.262, b = 2.11, and gamma_10 = 0.644
         """
+        import markov_multifractal_cython
         return markov_multifractal_cython.simulations(n, k,
                    self.__m0, self.__sigma,
                    self.__kbar, self.gamma())

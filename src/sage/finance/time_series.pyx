@@ -28,6 +28,13 @@ EXAMPLES:
     sage: t.variance()
     0.1137688493972542...
 
+TESTS:
+It is tempting to accidently import numpy as a result of changing
+to the finance code (e.g., by importing time_series).  We make
+sure that doesn't happen.
+    sage: os.system('sage -startuptime |grep numpy')
+    256
+
 AUTHOR:
     -- William Stein
 """

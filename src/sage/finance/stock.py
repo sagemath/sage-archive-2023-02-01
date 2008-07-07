@@ -13,9 +13,6 @@ TESTS:
 import urllib
 from sage.structure.all import Sequence
 
-from time_series import TimeSeries
-
-
 class Day:
     def __init__(self, date, open, high, low, close, volume):
         """
@@ -204,4 +201,5 @@ class Stock:
             sage: finance.Stock('vmw').close()                 # optional -- requires internet
             [57.7100, 56.9900, 55.5500, 57.3300, 65.9900 ...
         """
+        from time_series import TimeSeries
         return TimeSeries([x.close for x in self.historical(*args, **kwds)])

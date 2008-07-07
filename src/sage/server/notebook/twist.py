@@ -1785,19 +1785,19 @@ def is_valid_username(username):
     EXAMPLES:
         sage: from sage.server.notebook.twist import is_valid_username
 
-        #\var{username} must start with a letter
+    \var{username} must start with a letter
         sage: is_valid_username('mark10')
         True
         sage: is_valid_username('10mark')
         False
 
-        #\var{username} must be between 4 and 32 characters long
+    \var{username} must be between 4 and 32 characters long
         sage: is_valid_username('bob')
         False
         sage: is_valid_username('I_love_computer_science_and_maths') #33 characters long
         False
 
-        #\var{username} must not have more than one dot (.)
+    \var{username} must not have more than one dot (.)
         sage: is_valid_username('david.andrews')
         True
         sage: is_valid_username('david.m.andrews')
@@ -1805,7 +1805,7 @@ def is_valid_username(username):
         sage: is_valid_username('math125.TA.5')
         False
 
-        #\var{username} must not have any spaces
+    \var{username} must not have any spaces
         sage: is_valid_username('David Andrews')
         False
         sage: is_valid_username('David M. Andrews')

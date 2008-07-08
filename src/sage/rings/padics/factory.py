@@ -1,3 +1,5 @@
+from sage.structure.factory import UniqueFactory
+
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -51,7 +53,7 @@ import weakref
 padic_field_cache = {}
 twenty = Integer(20)
 forty = Integer(40)
-def Qp(p, prec = twenty, type = 'capped-rel', print_mode = None, halt = forty, names = None, check = True):
+class Qp_class(UniqueFactory):
     """
     A creation function for p-adic fields.
 
@@ -85,38 +87,43 @@ def Qp(p, prec = twenty, type = 'capped-rel', print_mode = None, halt = forty, n
         'bars' -- elements are displayed as a string of base p digits with separators
         For more details and more control, see sage.rings.padics.padic_printing or look at padic_printing.<tab> from the command line.
     """
-    if check:
-        if not isinstance(p, Integer):
-            p = Integer(p)
-        if not isinstance(prec, Integer):
-            prec = Integer(prec)
-        if not isinstance(halt, Integer):
-            halt = Integer(halt)
-        if not p.is_prime():
-            raise ValueError, "p must be prime"
-    if names is None:
-        name = str(p)
-    elif isinstance(names, tuple):
-        name = names[0]
-    else:
-        name = str(names)
-    if type != 'lazy':
-        key = (p, prec, type, name, print_mode)
-    else:
-        key = (p, prec, halt, name, print_mode)
-    if padic_field_cache.has_key(key):
-        K = padic_field_cache[key]()
-        if K != None:
-            return K
-    if (type == 'capped-rel'):
-        K = pAdicFieldCappedRelative(p, prec, print_mode, name)
-    elif (type == 'lazy'):
-        raise NotImplementedError, "lazy p-adics need more work.  Sorry."
-        K = pAdicFieldLazy(p, prec, print_mode, halt, name)
-    else:
-        raise ValueError, "type must be either 'capped-rel' or 'lazy'"
-    padic_field_cache[key] = weakref.ref(K)
-    return K
+    def create_key(self, p, prec = twenty, type = 'capped-rel', print_mode = None, halt = forty, names = None, check = True):
+        if check:
+            if not isinstance(p, Integer):
+                p = Integer(p)
+            if not isinstance(prec, Integer):
+                prec = Integer(prec)
+            if not isinstance(halt, Integer):
+                halt = Integer(halt)
+            if not p.is_prime():
+                raise ValueError, "p must be prime"
+        if names is None:
+            name = str(p)
+        elif isinstance(names, tuple):
+            name = names[0]
+        else:
+            name = str(names)
+        if type == 'capped-rel':
+            key = (p, prec, type, print_mode, name)
+        elif type == 'lazy':
+            key = (p, prec, halt, print_mode, name)
+        else:
+            raise ValueError, "type must be either 'capped-rel' or 'lazy'"
+        return key
+
+
+    def create_object(self, version, key):
+        p, prec, type, print_mode, name = key
+        if isinstance(type, Integer):
+            # lazy
+            raise NotImplementedError, "lazy p-adics need more work.  Sorry."
+        elif type == 'capped-rel':
+            return pAdicFieldCappedRelative(p, prec, print_mode, name)
+        else:
+            raise ValueError, "unexpected type"
+
+Qp = Qp_class("Qp")
+
 
 ######################################################
 # Qq -- unramified extensions
@@ -203,8 +210,7 @@ def QqL(p, prec = twenty, print_mode = None, halt = forty, check=True):
 #
 #######################################################################################################
 
-padic_ring_cache = {}
-def Zp(p, prec = twenty, type = 'capped-rel', print_mode = None, halt = forty, names = None, check=True):
+class Zp_class(UniqueFactory):
     """
     Return a model of the $p$-adic integer $\Z_p$.
 
@@ -320,42 +326,46 @@ def Zp(p, prec = twenty, type = 'capped-rel', print_mode = None, halt = forty, n
         'bars' -- elements are displayed as a string of base p digits with separators
         For more details and more control, see sage.rings.padics.padic_printing or look at padic_printing.<tab> from the command line.
     """
-    if check:
-        if not isinstance(p, Integer):
-            p = Integer(p)
-        if not isinstance(prec, Integer):
-            prec = Integer(prec)
-        if not isinstance(halt, Integer):
-            halt = Integer(halt)
-        if not p.is_prime():
-            raise ValueError, "p must be prime"
-    if names is None:
-        name = str(p)
-    elif isinstance(names, tuple):
-        name = names[0]
-    else:
-        name = str(names)
-    if type != 'lazy':
-        key = (p, prec, type, name, print_mode)
-    else:
-        key = (p, prec, halt, name, print_mode)
-    if padic_ring_cache.has_key(key):
-        K = padic_ring_cache[key]()
-        if not (K is None):
-            return K
-    if (type == 'capped-rel'):
-        K = pAdicRingCappedRelative(p, prec, print_mode, name)
-    elif (type == 'fixed-mod'):
-        K = pAdicRingFixedMod(p, prec, print_mode, name)
-    elif (type == 'capped-abs'):
-        K = pAdicRingCappedAbsolute(p, prec, print_mode, name)
-    elif (type == 'lazy'):
-        raise NotImplementedError, "lazy p-adics need more work.  Sorry."
-        K = pAdicRingLazy(p, prec, print_mode, halt, name)
-    else:
-        raise ValueError, "type must be one of 'capped-rel', 'fixed-mod', 'capped-abs' or 'lazy'"
-    padic_ring_cache[key] = weakref.ref(K)
-    return K
+    def create_key(self, p, prec = twenty, type = 'capped-rel', print_mode = None, halt = forty, names = None, check = True):
+        if check:
+            if not isinstance(p, Integer):
+                p = Integer(p)
+            if not isinstance(prec, Integer):
+                prec = Integer(prec)
+            if not isinstance(halt, Integer):
+                halt = Integer(halt)
+            if not p.is_prime():
+                raise ValueError, "p must be prime"
+        if names is None:
+            name = str(p)
+        elif isinstance(names, tuple):
+            name = names[0]
+        else:
+            name = str(names)
+        if type in ['capped-rel', 'fixed-mod', 'capped-abs']:
+            key = (p, prec, type, print_mode, name)
+        elif type == 'lazy':
+            key = (p, prec, halt, print_mode, name)
+        else:
+            raise ValueError, "type must be one of 'capped-rel', 'fixed-mod', 'capped-abs' or 'lazy'"
+        return key
+
+    def create_object(self, version, key):
+        p, prec, type, print_mode, name = key
+        if isinstance(type, Integer):
+            # lazy
+            raise NotImplementedError, "lazy p-adics need more work.  Sorry."
+        elif type == 'capped-rel':
+            return pAdicRingCappedRelative(p, prec, print_mode, name)
+        elif type == 'fixed-mod':
+            return pAdicRingFixedMod(p, prec, print_mode, name)
+        elif type == 'capped-abs':
+            return pAdicRingCappedAbsolute(p, prec, print_mode, name)
+        else:
+            raise ValueError, "unexpected type"
+
+Zp = Zp_class("Zp")
+
 
 ######################################################
 # Zq -- unramified extensions
@@ -462,126 +472,123 @@ def ZqL(q, prec = twenty, modulus = None, names = None, print_mode = 'series', h
 #
 #######################################################################################################
 
-extension_cache = {}
-def ExtensionFactory(base, premodulus, prec = None, print_mode = None, halt = None, names = None, check = True, unram = False):
-    from sage.calculus.all import is_SymbolicExpression
-    from sage.rings.polynomial.all import is_Polynomial
-    if check:
-        if is_SymbolicExpression(premodulus):
-            if len(premodulus.variables()) != 1:
-                raise ValueError, "symbolic expression must be in only one variable"
-            modulus = premodulus.polynomial(base)
-        elif is_Polynomial(premodulus):
-            if premodulus.parent().ngens() != 1:
-                raise ValueError, "must use univariate polynomial"
-            modulus = premodulus.change_ring(base)
+class pAdicExtension_class(UniqueFactory):
+    def create_key_and_extra_args(self, base, premodulus, prec = None, print_mode = None, halt = None, names = None, check = True, unram = False):
+        from sage.calculus.all import is_SymbolicExpression
+        from sage.rings.polynomial.all import is_Polynomial
+        if check:
+            if is_SymbolicExpression(premodulus):
+                if len(premodulus.variables()) != 1:
+                    raise ValueError, "symbolic expression must be in only one variable"
+                modulus = premodulus.polynomial(base)
+            elif is_Polynomial(premodulus):
+                if premodulus.parent().ngens() != 1:
+                    raise ValueError, "must use univariate polynomial"
+                modulus = premodulus.change_ring(base)
+            else:
+                raise ValueError, "modulus must be a polynomial"
+            if modulus.degree() <= 1:
+                raise NotImplementedError, "degree of modulus must be at least 2"
+            # need to add more checking here.
+            if not unram: #this is not quite the condition we want for not checking these things; deal with fixed-mod sanely
+                if not modulus.is_monic():
+                    if base.is_field():
+                        modulus = modulus / modulus.leading_coefficient()
+                    elif modulus.leading_coefficient().valuation() <= min(c.valuation() for c in modulus.list()):
+                        modulus = modulus.parent()(modulus / modulus.leading_coefficient())
+                    else:
+                        modulus = modulus / modulus.leading_coefficient()
+                        base = base.fraction_field()
+                #Now modulus is monic
+                if not krasner_check(modulus, prec):
+                    raise ValueError, "polynomial does not determine a unique extension.  Please specify more precision or use parameter check=False."
+            if print_mode is None:
+                print_mode = base.print_mode()
+            if names is None:
+                raise ValueError, "must specify name of generator of extension"
+            if isinstance(names, tuple):
+                names = names[0]
         else:
-            raise ValueError, "modulus must be a polynomial"
-        if modulus.degree() <= 1:
-            raise NotImplementedError, "degree of modulus must be at least 2"
-        # need to add more checking here.
-        if not unram: #this is not quite the condition we want for not checking these things; deal with fixed-mod sanely
-            if not modulus.is_monic():
-                if base.is_field():
-                    modulus = modulus / modulus.leading_coefficient()
-                elif modulus.leading_coefficient().valuation() <= min(c.valuation() for c in modulus.list()):
-                    modulus = modulus.parent()(modulus / modulus.leading_coefficient())
+            modulus = premodulus
+        #print type(base)
+        # We now decide on the extension class: unramified, eisenstein, two-step or general
+        if unram or is_unramified(modulus):
+            polytype = 'u'
+            if halt is None and isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
+                halt = base.halting_paramter()
+            elif not isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
+                halt = None
+            if prec is None:
+                prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()])
+            else:
+                prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()] + [prec])
+            shift_seed = None
+        elif is_eisenstein(modulus):
+            polytype = 'e'
+            e = modulus.degree()
+            if halt is None and isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
+                halt = base.halting_paramter() * e
+            elif not isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
+                halt = None
+            # The precision of an eisenstein extension is governed both by the absolute precision of the polynomial,
+            # and also by the precision of polynomial with the leading term removed (for shifting).
+            # The code below is to determine the correct prec for the extension, and possibly to obtain
+            # the information needed to shift right with full precision from the premodulus.
+            if is_SymbolicExpression(premodulus):
+                # Here we assume that the output of coeffs is sorted in increasing order by exponent:
+                coeffs = premodulus.coeffs()
+                preseed = premodulus / coeffs[-1][0]
+                preseed -= preseed.variables()[0]**coeffs[-1][1]
+                preseed /= base.prime() # here we assume that the base is unramified over Qp
+                shift_seed = -preseed.polynomial(base)
+            else: # a polynomial
+                if not premodulus.is_monic():
+                    preseed = preseed / premodulus.leading_coefficient()
                 else:
-                    modulus = modulus / modulus.leading_coefficient()
-                    base = base.fraction_field()
-            #Now modulus is monic
-            if not krasner_check(modulus, prec):
-                raise ValueError, "polynomial does not determine a unique extension.  Please specify more precision or use parameter check=False."
-        if print_mode is None:
-            print_mode = base.print_mode()
-        if names is None:
-            raise ValueError, "must specify name of generator of extension"
-        if isinstance(names, tuple):
-            names = names[0]
-    else:
-        modulus = premodulus
-    #print type(base)
-    # We now decide on the extension class: unramified, eisenstein, two-step or general
-    if unram or is_unramified(modulus):
-        polytype = 'u'
-        if halt is None and isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
-            halt = base.halting_paramter()
-        elif not isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
-            halt = None
-        if prec is None:
-            prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()])
-        else:
-            prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()] + [prec])
-        shift_seed = None
-    elif is_eisenstein(modulus):
-        polytype = 'e'
-        e = modulus.degree()
-        if halt is None and isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
-            halt = base.halting_paramter() * e
-        elif not isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
-            halt = None
-        # The precision of an eisenstein extension is governed both by the absolute precision of the polynomial,
-        # and also by the precision of polynomial with the leading term removed (for shifting).
-        # The code below is to determine the correct prec for the extension, and possibly to obtain
-        # the information needed to shift right with full precision from the premodulus.
-        if is_SymbolicExpression(premodulus):
-            # Here we assume that the output of coeffs is sorted in increasing order by exponent:
-            coeffs = premodulus.coeffs()
-            preseed = premodulus / coeffs[-1][0]
-            preseed -= preseed.variables()[0]**coeffs[-1][1]
-            preseed /= base.prime() # here we assume that the base is unramified over Qp
-            shift_seed = -preseed.polynomial(base)
-        else: # a polynomial
-            if not premodulus.is_monic():
-                preseed = preseed / premodulus.leading_coefficient()
-            else:
-                preseed = premodulus
-            preseed = preseed[:preseed.degree()]
-            if base.is_fixed_mod():
-                shift_seed = -preseed.change_ring(base)
-                shift_seed = shift_seed.parent()([a >> 1 for a in shift_seed.list()])
-            else:
-                if base.e() == 1:
-                    try:
-                        preseed *= 1/base.prime()
-                        shift_seed = -preseed.change_ring(base)
-                    except TypeError:
+                    preseed = premodulus
+                preseed = preseed[:preseed.degree()]
+                if base.is_fixed_mod():
+                    shift_seed = -preseed.change_ring(base)
+                    shift_seed = shift_seed.parent()([a >> 1 for a in shift_seed.list()])
+                else:
+                    if base.e() == 1:
+                        try:
+                            preseed *= 1/base.prime()
+                            shift_seed = -preseed.change_ring(base)
+                        except TypeError:
+                            # give up on getting more precision
+                            shift_seed = -preseed.change_ring(base)
+                            shift_seed /= base.uniformizer()
+                    else:
                         # give up on getting more precision
                         shift_seed = -preseed.change_ring(base)
                         shift_seed /= base.uniformizer()
-                else:
-                    # give up on getting more precision
-                    shift_seed = -preseed.change_ring(base)
-                    shift_seed /= base.uniformizer()
-        if prec is None:
-            prec = min([c.precision_absolute() for c in shift_seed.list() if not c._is_exact_zero()] + [modulus.leading_coefficient().precision_absolute()] + [base.precision_cap()]) * e
+            if prec is None:
+                prec = min([c.precision_absolute() for c in shift_seed.list() if not c._is_exact_zero()] + [modulus.leading_coefficient().precision_absolute()] + [base.precision_cap()]) * e
+            else:
+                prec = min([c.precision_absolute() * e for c in shift_seed.list() if not c._is_exact_zero()] + [modulus.leading_coefficient().precision_absolute() * e] + [base.precision_cap() * e] + [prec])
         else:
-            prec = min([c.precision_absolute() * e for c in shift_seed.list() if not c._is_exact_zero()] + [modulus.leading_coefficient().precision_absolute() * e] + [base.precision_cap() * e] + [prec])
-    else:
-        polytype = 'p'
-    #print "polytype = %s"%polytype
-    if polytype == 'u' or polytype == 'e':
-        modulus = truncate_to_prec(modulus, prec)
-        key = (base, modulus, names, prec, halt, print_mode)
-        if extension_cache.has_key(key):
-            K = extension_cache[key]()
-            if not (K is None):
-                return K
-        #print ext_table[polytype, type(base.ground_ring_of_tower())]
-        K = ext_table[polytype, type(base.ground_ring_of_tower())](premodulus, modulus, prec, halt, print_mode, shift_seed, names)
-        extension_cache[key] = weakref.ref(K)
-        return K
-    else:
-        upoly, epoly, prec = split(modulus, prec)
-        key = (base, upoly, epoly, names, prec, halt, print_mode)
-        precmult = epoly.degree()
-        if extension_cache.has_key(key):
-            K = extension_cache[key]()
-            if not (K is None):
-                return K
-        K = ext_table['p', type(base.ground_ring_of_tower())](premodulus, upoly, epoly, prec*precmult, halt, print_mode, names)
-        extension_cache[key] = weakref.ref(K)
-        return K
+            polytype = 'p'
+        #print "polytype = %s"%polytype
+        if polytype == 'u' or polytype == 'e':
+            modulus = truncate_to_prec(modulus, prec)
+            key = (polytype, base, premodulus, modulus, names, prec, halt, print_mode)
+        else:
+            upoly, epoly, prec = split(modulus, prec)
+            key = (polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode)
+        return key, {'shift_seed': shift_seed}
+
+    def create_object(self, version, key, shift_seed):
+        polytype = key[0]
+        if polytype == 'u' or polytype == 'e':
+            polytype, base, premodulus, modulus, names, prec, halt, print_mode = key
+            return ext_table[polytype, type(base.ground_ring_of_tower())](premodulus, modulus, prec, halt, print_mode, shift_seed, names)
+        elif polytype == 'p':
+            polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode = key
+            precmult = epoly.degree()
+            return ext_table['p', type(base.ground_ring_of_tower())](premodulus, upoly, epoly, prec*precmult, halt, print_mode, names)
+
+ExtensionFactory = pAdicExtension = pAdicExtension_class("pAdicExtension")
 
 ######################################################
 # Helper functions for the Extension Factory

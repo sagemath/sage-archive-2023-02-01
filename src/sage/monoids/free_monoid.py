@@ -35,8 +35,9 @@ from monoid import Monoid_class
 
 import weakref
 
-_cache = {}
-def FreeMonoid(n, names):
+from sage.structure.factory import UniqueFactory
+
+class FreeMonoidFactory(UniqueFactory):
     """
     Returns a free monoid on $n$ generators.
 
@@ -57,15 +58,16 @@ def FreeMonoid(n, names):
         sage: mul([ a, b, a, c, b, d, c, d ], F(1))
         a*b*a*c*b*d*c*d
     """
-    names = normalize_names(n, names)
-    key = (n, names)
-    if _cache.has_key(key):
-        M = _cache[key]()
-        if not M is None:
-            return M
-    M = FreeMonoid_class(n, names)
-    _cache[key] = weakref.ref(M)
-    return M
+    def create_key(self, n, names):
+        n = int(n)
+        names = normalize_names(n, names)
+        return (n, names)
+
+    def create_object(self, version, key):
+        return FreeMonoid_class(*key)
+
+FreeMonoid = FreeMonoidFactory("FreeMonoid")
+
 
 def is_FreeMonoid(x):
     """

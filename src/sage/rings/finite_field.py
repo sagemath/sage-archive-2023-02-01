@@ -124,6 +124,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import random
+
 from ring import is_FiniteField
 from sage.structure.parent_gens import normalize_names
 
@@ -140,10 +142,9 @@ from finite_field_givaro import FiniteField_givaro
 import sage.interfaces.gap
 import sage.databases.conway
 
-cache = {}
+from sage.structure.factory import UniqueFactory
 
-def FiniteField(order, name=None, modulus=None, names=None,
-                elem_cache=False, check_irreducible=True, *args, **kwds):
+class FiniteFieldFactory(UniqueFactory):
     """
     Return the globally unique finite field of given order with generator
     labeled by the given name and possibly with given modulus.
@@ -223,47 +224,127 @@ def FiniteField(order, name=None, modulus=None, names=None,
         sage: n.<a> = GF(2^17,modulus='random')
         sage: n is k
         False
+
+    We check that various ways of creating the same finite field yield the same object.
+        sage: K = GF(7, 'a')
+        sage: L = GF(7, 'b')
+        sage: K is L
+        True
+        sage: K = GF(4,'a'); K.modulus()
+        x^2 + x + 1
+        sage: L = GF(4,'a', K.modulus())
+        sage: K is L
+        True
+        sage: M = GF(4,'a', K.modulus().change_variable_name('y'))
+        sage: K is M
+        True
     """
-    if not names is None: name = names
-    order = int(order)
-    name = normalize_names(1,name)
-
-    if elem_cache is None:
-        elem_cache = order < 500
-
-    key = (order, name, modulus, str([args, kwds]))
-    if (modulus != 'random' and cache.has_key(key)):
-        return cache[key]
-    if arith.is_prime(order):
-        from finite_field_prime_modn import FiniteField_prime_modn
-        K = FiniteField_prime_modn(order,*args,**kwds)
-    else:
-        if not arith.is_prime_power(order):
-            raise ValueError, "order of finite field must be a prime power"
-        if check_irreducible and polynomial_element.is_Polynomial(modulus):
-            if modulus.parent().base_ring().characteristic() == 0:
-                p = arith.factor(order)[0][0]
-                modulus = modulus.change_ring(FiniteField(p))
-            if not modulus.is_irreducible():
-                raise ValueError, "finite field modulus must be irreducible but it is not"
-        if name is None:
-            raise TypeError, "you must specify the generator name"
-        if order < zech_log_bound:
-            # DO *NOT* use for prime subfield, since that would lead to
-            # a circular reference in the call to ParentWithGens in the
-            # __init__ method.
-            K = FiniteField_givaro(order, name, modulus, cache=elem_cache, *args,**kwds)
+    def create_key_and_extra_args(self, order, name=None, modulus=None, names=None, impl=None, **kwds):
+        """
+        EXAMPLES:
+            sage: GF.create_key_and_extra_args(9, 'a')
+            ((9, ('a',), None, None, '{}'), {})
+            sage: GF.create_key_and_extra_args(9, 'a', foo='value')
+            ((9, ('a',), None, None, "{'foo': 'value'}"), {'foo': 'value'})
+        """
+        order = int(order)
+        if arith.is_prime(order):
+            name = None
+            modulus = None
         else:
-            if integer.Integer(order).factor()[0][0] == 2:
-                from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
-                K = FiniteField_ntl_gf2e(order, name, modulus, *args, **kwds)
-            else:
-                from finite_field_ext_pari import FiniteField_ext_pari
-                K = FiniteField_ext_pari(order, name, modulus, *args, **kwds)
+            if not names is None: name = names
+            name = normalize_names(1,name)
+            if modulus is not None:
+                if isinstance(modulus, (list, tuple)):
+                    p = arith.factor(order)[0][0]
+                    modulus = FiniteField(p)['x'](modulus)
+                # some classes use 'random' as the modulus to
+                # generate a random modulus, but we don't want
+                # to cache it
+                elif isinstance(modulus, str):
+                    if modulus == 'random':
+                        modulus += str(random.randint(0, 1<<128))
+                else:
+                    modulus = modulus.change_variable_name('x')
 
-    if modulus != 'random':
-        cache[key] = K
-    return K
+        return (order, name, modulus, impl, str(kwds)), kwds
+
+    def create_object(self, version, key, check_irreducible=True, elem_cache=None, names=None, **kwds):
+        """
+        EXAMPLES:
+            sage: K = GF(19)
+            sage: loads(dumps(K)) is K
+            True
+        """
+        order, name, modulus, impl, _ = key
+
+        if isinstance(modulus, str) and modulus.startswith("random"):
+            modulus = "random"
+
+        if elem_cache is None:
+            elem_cache = order < 500
+
+        if arith.is_prime(order) and (impl is None or impl == 'modn'):
+            from finite_field_prime_modn import FiniteField_prime_modn
+            K = FiniteField_prime_modn(order, **kwds)
+        else:
+            if not arith.is_prime_power(order):
+                raise ValueError, "order of finite field must be a prime power"
+            if check_irreducible and polynomial_element.is_Polynomial(modulus):
+                if modulus.parent().base_ring().characteristic() == 0:
+                    p = arith.factor(order)[0][0]
+                    modulus = modulus.change_ring(FiniteField(p))
+                if not modulus.is_irreducible():
+                    raise ValueError, "finite field modulus must be irreducible but it is not"
+            if name is None:
+                raise TypeError, "you must specify the generator name"
+            if order < zech_log_bound:
+                # DO *NOT* use for prime subfield, since that would lead to
+                # a circular reference in the call to ParentWithGens in the
+                # __init__ method.
+                K = FiniteField_givaro(order, name, modulus, cache=elem_cache,**kwds)
+            else:
+                if order % 2 == 0 and (impl is None or impl == 'ntl'):
+                    from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+                    K = FiniteField_ntl_gf2e(order, name, modulus, **kwds)
+                else:
+                    from finite_field_ext_pari import FiniteField_ext_pari
+                    K = FiniteField_ext_pari(order, name, modulus, **kwds)
+
+        return K
+
+    def other_keys(self, key, K):
+        """
+        EXAMPLES:
+            sage: key, extra = GF.create_key_and_extra_args(9, 'a'); key
+            (9, ('a',), None, None, '{}')
+            sage: K = GF.create_object(0, key); K
+            Finite Field in a of size 3^2
+            sage: GF.other_keys(key, K)
+            [(9, ('a',), x^2 + 2*x + 2, None, '{}'),
+             (9, ('a',), x^2 + 2*x + 2, 'givaro', '{}')]
+        """
+        order, name, modulus, impl, _ = key
+        if K.degree() > 1:
+            modulus = K.modulus().change_variable_name('x')
+        new_keys = [(order, name, modulus, impl, _)]
+        from finite_field_prime_modn import FiniteField_prime_modn
+        if isinstance(K, FiniteField_prime_modn):
+            impl = 'modn'
+        elif isinstance(K, FiniteField_givaro):
+            impl = 'givaro'
+        else:
+            from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+            from finite_field_ext_pari import FiniteField_ext_pari
+            if isinstance(K, FiniteField_ntl_gf2e):
+                impl = 'ntl'
+            elif isinstance(K, FiniteField_ext_pari):
+                impl = 'pari'
+        new_keys.append( (order, name, modulus, impl, _) )
+        return new_keys
+
+
+GF = FiniteField = FiniteFieldFactory("FiniteField")
 
 
 def is_PrimeFiniteField(x):

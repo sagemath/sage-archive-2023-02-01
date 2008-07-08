@@ -54,8 +54,9 @@ from sage.structure.parent_gens import ParentWithGens, normalize_names
 from free_abelian_monoid_element import FreeAbelianMonoidElement
 from sage.rings.integer import Integer
 
-_cache = {}
-def FreeAbelianMonoid(n, names):
+from sage.structure.factory import UniqueFactory
+
+class FreeAbelianMonoidFactory(UniqueFactory):
     """
     Create the free abelian monoid in $n$ generators.
 
@@ -79,16 +80,19 @@ def FreeAbelianMonoid(n, names):
         a^2*b^2*c^2*d^2
         sage: a**2 * b**3 * a**2 * b**4
         a^4*b^7
+
+        sage: loads(dumps(F)) is F
+        True
     """
-    names = normalize_names(n, names)
-    key = (n, names)
-    if _cache.has_key(key):
-        M = _cache[key]()
-        if not M is None:
-            return M
-    M = FreeAbelianMonoid_class(n, names)
-    _cache[key] = weakref.ref(M)
-    return M
+    def create_key(self, n, names):
+        n = int(n)
+        names = normalize_names(n, names)
+        return (n, names)
+    def create_object(self, version, key):
+        return FreeAbelianMonoid_class(*key)
+
+FreeAbelianMonoid = FreeAbelianMonoidFactory("FreeAbelianMonoid")
+
 
 def is_FreeAbelianMonoid(x):
     """

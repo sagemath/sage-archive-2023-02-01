@@ -113,14 +113,13 @@ class FiniteField_ext_pari(FiniteField_generic):
         1
 
     Illustration of dumping and loading:
-        sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
         sage: K = FiniteField(7)
         sage: loads(K.dumps()) == K
         True
-        sage: K = FiniteField_ext_pari(7^10, 'b')
+        sage: K = FiniteField(7^10, 'b')
         sage: loads(K.dumps()) == K
         True
-        sage: K = FiniteField_ext_pari(7^10, 'a')
+        sage: K = FiniteField(7^10, 'a')
         sage: loads(K.dumps()) == K
         True
 
@@ -616,12 +615,6 @@ class FiniteField_ext_pari(FiniteField_generic):
         Return the hash of this field.
 
         EXAMPLES:
-            sage: hash(GF(3,'b'))
-            904200654                      # 32-bit
-            -586939294780423730            # 64-bit
-            sage: hash(GF(3,'a'))
-            904200654                      # 32-bit
-            -586939294780423730            # 64-bit
             sage: hash(GF(9,'a'))
             -417021630                     # 32-bit
             1006006598732398914            # 64-bit

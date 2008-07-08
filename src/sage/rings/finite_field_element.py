@@ -60,8 +60,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     write the element in terms of a.
 
     EXAMPLES:
-        sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
-        sage: K = FiniteField_ext_pari(10007^10, 'a')
+        sage: K = FiniteField(10007^10, 'a')
         sage: a = K.gen(); a
         a
         sage: loads(a.dumps()) == a

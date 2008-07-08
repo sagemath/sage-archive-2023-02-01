@@ -72,8 +72,10 @@ from sage.libs.pari.all import pari, PariError
 
 import sage.interfaces.all
 
-_objsIntegerModRing = {}
-def IntegerModRing(order=0):
+
+from sage.structure.factory import UniqueFactory
+
+class IntegerModFactory(UniqueFactory):
     r"""
     Return the quotient ring $\ZZ / n\ZZ$.
 
@@ -92,18 +94,28 @@ def IntegerModRing(order=0):
     for \code{IntegerModRing}.
         sage: Integers(18)
         Ring of integers modulo 18
+        sage: Integers() is Integers(0) is ZZ
+        True
     """
-    if order == 0:
-        return integer_ring.IntegerRing()
-    if order < 0:
-        order = -order
-    global _objsIntegerModRing
-    if _objsIntegerModRing.has_key(order):
-        x = _objsIntegerModRing[order]()
-        if not x is None: return x
-    R = IntegerModRing_generic(order)
-    _objsIntegerModRing[order] = weakref.ref(R)
-    return R
+    def create_key(self, order=0):
+        return order
+
+    def create_object(self, version, order):
+        """
+        EXAMPLES:
+            sage: R = Integers(10)
+            sage: loads(dumps(R)) is R
+            True
+        """
+        if order < 0:
+            order = -order
+        if order == 0:
+            return integer_ring.IntegerRing()
+        else:
+            return IntegerModRing_generic(order)
+
+Zmod = Integers = IntegerModRing = IntegerModFactory("IntegerModRing")
+
 
 def is_IntegerModRing(x):
     """

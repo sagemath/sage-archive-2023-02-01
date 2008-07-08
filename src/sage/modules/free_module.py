@@ -172,9 +172,10 @@ from sage.structure.parent_gens import ParentWithGens
 # Constructor functions
 #
 ###############################################################################
-_cache = {}
 
-def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
+from sage.structure.factory import UniqueFactory
+
+class FreeModuleFactory(UniqueFactory):
     r"""
     Create the free module over the given commutative ring of the given rank.
 
@@ -277,45 +278,56 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
         [1 2]
         [3 4]
     """
-    if inner_product_matrix is not None:
-        from free_quadratic_module import FreeQuadraticModule
-        return FreeQuadraticModule(base_ring, rank, inner_product_matrix=inner_product_matrix, sparse=sparse)
-    if not isinstance(sparse,bool):
-        raise TypeError, "Argument sparse (= %s) must be True or False" % sparse
+    def create_key(self, base_ring, rank, sparse=False, inner_product_matrix=None):
+        """
+        TESTS:
+            sage: loads(dumps(ZZ^6)) is ZZ^6
+            True
+            sage: loads(dumps(RDF^3)) is RDF^3
+            True
+        """
+        rank = int(rank)
 
-    global _cache
+        if not (inner_product_matrix is None):
+            inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
+            inner_product_matrix.set_immutable()
 
-    key = (base_ring, rank, sparse)
+        return (base_ring, rank, sparse, inner_product_matrix)
 
-    if _cache.has_key(key):
-        M = _cache[key]()
-        if not (M is None):
-            return M
+    def create_object(self, version, key):
 
-    if not base_ring.is_commutative():
-        raise TypeError, "The base_ring must be a commutative ring."
+        base_ring, rank, sparse, inner_product_matrix = key
 
-    if not sparse and isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
-        M = RealDoubleVectorSpace_class(rank)
+        if inner_product_matrix is not None:
+            from free_quadratic_module import FreeQuadraticModule
+            return FreeQuadraticModule(base_ring, rank, inner_product_matrix=inner_product_matrix, sparse=sparse)
 
-    elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
-        M=ComplexDoubleVectorSpace_class(rank)
+        if not isinstance(sparse,bool):
+            raise TypeError, "Argument sparse (= %s) must be True or False" % sparse
 
-    elif base_ring.is_field():
-        M = FreeModule_ambient_field(base_ring, rank, sparse=sparse)
+        if not base_ring.is_commutative():
+            raise TypeError, "The base_ring must be a commutative ring."
 
-    elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
-        M = FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
+        if not sparse and isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
+            return RealDoubleVectorSpace_class(rank)
 
-    elif isinstance(base_ring, integral_domain.IntegralDomain) or base_ring.is_integral_domain():
-        M = FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
+        elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
+            return ComplexDoubleVectorSpace_class(rank)
 
-    else:
-        M = FreeModule_ambient(base_ring, rank, sparse=sparse)
+        elif base_ring.is_field():
+            return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
 
-    _cache[key] = weakref.ref(M)
+        elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
+            return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
-    return M
+        elif isinstance(base_ring, integral_domain.IntegralDomain) or base_ring.is_integral_domain():
+            return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
+
+        else:
+            return FreeModule_ambient(base_ring, rank, sparse=sparse)
+
+
+FreeModule = FreeModuleFactory("FreeModule")
 
 
 def VectorSpace(K, dimension, sparse=False, inner_product_matrix=None):

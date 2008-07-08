@@ -75,8 +75,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             sage: K = FiniteField(3)
             sage: copy(K) == K
             True
-            sage: copy(K) is K
-            False
         """
         if not isinstance(other, FiniteField_prime_modn):
             return cmp(type(self), type(other))

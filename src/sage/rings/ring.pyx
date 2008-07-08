@@ -2004,6 +2004,9 @@ cdef class FiniteField(Field):
             self.__vector_space = V
             return V
 
+    def __hash__(self):
+        return hash("GF") + hash(self.order())
+
     def __reduce__(self):
         """
             sage: A = FiniteField(127)
@@ -2016,13 +2019,10 @@ cdef class FiniteField(Field):
             sage: C == loads(dumps(C))
             True
             sage: D = FiniteField(3^20,'d')
-            sage: D== loads(dumps(D))
+            sage: D == loads(dumps(D))
             True
         """
-        if self.degree() > 1:
-            return (unpickle_FiniteField_ext, (type(self), self.order(), self.variable_name(), map(int, list(self.modulus())),self._kwargs))
-        else:
-            return (unpickle_FiniteField_prm, (type(self), self.order(), self.variable_name(), self._kwargs))
+        return self._factory_data[0].reduce_data(self)
 
 def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):
     return _type(order, variable_name, modulus, **kwargs)

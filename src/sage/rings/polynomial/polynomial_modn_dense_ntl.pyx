@@ -127,7 +127,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             else:
                 raise TypeError, "Denominator not a unit."
 
-        elif not isinstance(x, list):
+        elif not isinstance(x, list) and not isinstance(x, tuple):
             x = [x]   # constant polynomials
 
         if check:

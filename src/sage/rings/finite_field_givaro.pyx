@@ -1044,24 +1044,6 @@ cdef class FiniteField_givaro(FiniteField):
         r = self.objectptr.amxy(r , a.element, b.element, c.element, )
         return make_FiniteField_givaroElement(self,r)
 
-    def __reduce__(FiniteField_givaro self):
-        """
-        Pickle self:
-
-        EXAMPLE:
-            sage: k.<a> = GF(2**8)
-            sage: loads(dumps(k)) == k
-            True
-        """
-        if self._array is None:
-            cache = 0
-        else:
-            cache = 1
-
-        return sage.rings.finite_field_givaro.unpickle_FiniteField_givaro, \
-               (self.order_c(),(self.variable_name(),),
-                map(int,list(self.modulus())),int(self.repr),int(self._array is not None))
-
 def unpickle_FiniteField_givaro(order,variable_name,modulus,rep,cache):
     """
     EXAMPLE:

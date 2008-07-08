@@ -1128,6 +1128,9 @@ ext_modules = [
     Extension('sage.structure.element',
               sources = ['sage/structure/element.pyx']),
 
+    Extension('sage.structure.factory',
+              sources = ['sage/structure/factory.pyx']),
+
     Extension('sage.structure.generators',
               sources = ['sage/structure/generators.pyx']),
 

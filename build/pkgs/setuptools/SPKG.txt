@@ -23,6 +23,11 @@ PSF or ZPL. i.e Python Software Foundation License or Zope Public License
 
 == Changelog ==
 
+=== setuptools-0.6c8.p1 (William Stein, July 7, 2008) ===
+ * Delete two windows binaries (!!)
+    src/setuptools/gui.exe
+    src/setuptools/cli.exe
+
 === setuptools-0.6c8.p0 (Michael Abshoff, March 14th, 2008) ===
  * add hg repo
  * add .hgignore

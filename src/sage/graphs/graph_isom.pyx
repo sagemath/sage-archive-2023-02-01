@@ -2167,8 +2167,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
             # TODO: investigate the following line
             if nu.k == -1: nu.k = 0 # not in BDM, broke at G = Graph({0:[], 1:[]}), Pi = [[0,1]], lab=False
 
-            if hb > nu.k: # update hb since we are backtracking (not in [1])
-                hb = nu.k # recall hb is the longest common ancestor of rho and nu
+            if lab:
+                if hb > nu.k: # update hb since we are backtracking (not in [1])
+                    hb = nu.k # recall hb is the longest common ancestor of rho and nu
 
             if j == hh: state = 13; continue
             # recall hh: the height of the oldest ancestor of zeta for which
@@ -2408,8 +2409,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
             index = 0
             nu.k -= 1
 
-            if hb > nu.k: # update hb since we are backtracking (not in [1]):
-                hb = nu.k # recall hb is the longest common ancestor of rho and nu
+            if lab:
+                if hb > nu.k: # update hb since we are backtracking (not in [1]):
+                    hb = nu.k # recall hb is the longest common ancestor of rho and nu
 
             state = 13
 

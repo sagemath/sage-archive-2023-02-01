@@ -561,7 +561,7 @@ class Worksheet:
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename()
             'admin/0'
-            sage: os.listdir(nb.directory() + '/worksheets/' + W.filename())
+            sage: sorted(os.listdir(nb.directory() + '/worksheets/' + W.filename()))
             ['snapshots', 'worksheet.txt']
         """
         return self.__filename
@@ -1360,7 +1360,7 @@ class Worksheet:
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('Sage\n{{{\n3^20\n}}}')
-            sage: os.listdir(W.directory())
+            sage: sorted(os.listdir(W.directory()))
             ['snapshots', 'worksheet.txt']
             sage: W.cell_list()[0].evaluate()
             sage: sorted(os.listdir(W.directory()))

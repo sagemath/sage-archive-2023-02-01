@@ -1,3 +1,16 @@
+"""nodoctest
+
+Doctesting of this file is disabled because it fails in so many ways it is even funny.
+See http://trac.sagemath.org/sage_trac/ticket/3593 for two of the four ways I've
+seen it fail.
+
+When the dsage framework is rewritten to work more solidly then this can can be turned
+back on.  Hopefully for now the dsage unit tests will have to suffice.
+
+  -- William Stein; 2008-07-07
+"""
+
+
 ############################################################################
 #
 #   DSAGE: Distributed SAGE

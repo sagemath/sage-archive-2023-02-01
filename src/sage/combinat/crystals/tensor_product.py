@@ -25,11 +25,13 @@ from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
-from crystals import CrystalElement, ClassicalCrystal
+from crystals import CrystalElement, ClassicalCrystal, Crystal
 from letters import CrystalOfLetters
 from sage.misc.flatten import flatten
 from sage.rings.integer import Integer
 from sage.misc.mrange import xmrange_iter
+from sage.misc.mrange import cartesian_product_iterator
+from sage.combinat.combinat import CombinatorialClass
 
 ##############################################################################
 # Support classes
@@ -160,8 +162,7 @@ class ImmutableListWithParent(CombinatorialObject, Element):
         l[k] = value
         return self.sibling(l)
 
-# FIXME: should be, or not, in ClassicalCrystal depending on the input
-class TensorProductOfCrystals(ClassicalCrystal):
+def TensorProductOfCrystals(*crystals, **options):
     r"""
     Tensor product of crystals.
 
@@ -175,28 +176,58 @@ class TensorProductOfCrystals(ClassicalCrystal):
 
         It has $8$ elements
 
-        sage: [t for t in T]
-        [[2, 1, 1],
-        [2, 1, 2],
-        [2, 1, 3],
-        [3, 1, 3],
-        [3, 2, 3],
-        [3, 1, 1],
-        [3, 1, 2],
-        [3, 2, 2]]
+	sage: T.list()
+	[[2, 1, 1], [2, 1, 2], [2, 1, 3], [3, 1, 3], [3, 2, 3], [3, 1, 1], [3, 1, 2], [3, 2, 2]]
 
         sage: C = CrystalOfTableaux(['A',3], shape=[1,1,0])
         sage: D = CrystalOfTableaux(['A',3], shape=[1,0,0])
-        sage: T = TensorProductOfCrystals(C,D,generators="all")
+        sage: T = TensorProductOfCrystals(C,D, generators=[[C(rows=[[1], [2]]), D(rows=[[1]])], [C(rows=[[2], [3]]), D(rows=[[1]])]])
         sage: T.count()
         24
         sage: T.check()
         True
         sage: T.module_generators
-        [[[[1], [2]], [[1]]], [[[2], [3]], [[1]]]]
-        sage: [x.weight() for x in T.module_generators]
-        [(2, 1, 0, 0), (1, 1, 1, 0)]
+	[[[[1], [2]], [[1]]], [[[2], [3]], [[1]]]]
+	sage: [x.weight() for x in T.module_generators]
+	[(2, 1, 0, 0), (1, 1, 1, 0)]
+
+	If no module generators are specified, we obtain the full tensor product:
+
+	sage: C=CrystalOfLetters(['A',2])
+	sage: T=TensorProductOfCrystals(C,C)
+	sage: T.list()
+	[[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
+	sage: T.count()
+	9
+
+        For a tensor product of crystals without module generators, the default implementation of module_generators
+	contains all elements in the tensor product of the crystals. If there is a subset of elements
+	in the tensor product that still generates the crystal, this needs to be implemented for the specific
+	crystal separately:
+
+	sage: T.module_generators.list()
+	[[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
+
+	For classical highest weight crystals, it is also possible to list all highest weight elements:
+
+	sage: C = CrystalOfLetters(['A',2])
+	sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
+	sage: T.highest_weight_vectors()
+	[[2, 1, 1], [1, 2, 1]]
     """
+    if options.has_key('generators'):
+	if all(isinstance(crystal,ClassicalCrystal) for crystal in crystals):
+	    return TensorProductOfClassicalCrystalsWithGenerators(generators=options['generators'], *crystals)
+	else:
+	    return TensorProductOfCrystalsWithGenerators(generators=options['generators'], *crystals)
+    else:
+	if all(isinstance(crystal,ClassicalCrystal) for crystal in crystals):
+	    return FullTensorProductOfClassicalCrystals(*crystals)
+	else:
+	    return FullTensorProductOfCrystals(*crystals)
+
+class TensorProductOfCrystalsWithGenerators(Crystal):
+
     def __init__(self, *crystals, **options):
         """
         EXAMPLES:
@@ -216,15 +247,16 @@ class TensorProductOfCrystals(ClassicalCrystal):
             else:
                 self.cartan_type = crystals[0].cartan_type
         self.index_set = self.cartan_type.index_set()
-        if options.has_key('generators'):
-            if options['generators'] == "all":
-                self.module_generators = []
-                for c in list(xmrange_iter([D.list() for D in crystals])):
-                    candidate = self(*c)
-                    if all(candidate.e(k) == None for k in self.index_set):
-                        self.module_generators.append(candidate)
-            else:
-                self.module_generators = [ self(*x) for x in options['generators']]
+#        if options.has_key('generators'):
+#            if options['generators'] == "all":
+#                self.module_generators = []
+#                for c in list(xmrange_iter([D.list() for D in crystals])):
+#                    candidate = self(*c)
+#                    if all(candidate.e(k) == None for k in self.index_set):
+#                        self.module_generators.append(candidate)
+#            else:
+#                self.module_generators = [ self(*x) for x in options['generators']]
+	self.module_generators = [ self(*x) for x in options['generators']]
 
     def __call__(self, *args):
         """
@@ -236,6 +268,44 @@ class TensorProductOfCrystals(ClassicalCrystal):
         """
         return TensorProductOfCrystalsElement(self,
                                               [crystalElement for crystalElement in args])
+
+class TensorProductOfClassicalCrystalsWithGenerators(TensorProductOfCrystalsWithGenerators, ClassicalCrystal):
+    pass
+
+class FullTensorProductOfCrystals(Crystal):
+
+    def __init__(self, *crystals, **options):
+        crystals = [ crystal for crystal in crystals]
+        self._name = "Full tensor product of the crystals %s"%crystals
+        self.crystals = crystals
+        if options.has_key('cartan_type'):
+            self.cartan_type = CartanType(options['cartan_type'])
+        else:
+            if len(crystals) == 0:
+                raise ValueError, "you need to specify the Cartan type if the tensor product list is empty"
+            else:
+                self.cartan_type = crystals[0].cartan_type
+	    self.index_set = self.cartan_type.index_set()
+	self.cartesian_product = CartesianProduct(*self.crystals)
+	self.module_generators = self
+
+    def iterator(self):
+	for x in self.cartesian_product:
+	    yield self(*x)
+
+    __iter__ = iterator
+
+    list = CombinatorialClass._CombinatorialClass__list_from_iterator
+
+    def count(self):
+	return self.cartesian_product.count()
+
+    def __call__(self, *args):
+        return TensorProductOfCrystalsElement(self,
+                                              [crystalElement for crystalElement in args])
+
+class FullTensorProductOfClassicalCrystals(FullTensorProductOfCrystals, ClassicalCrystal):
+    pass
 
 class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
     r"""
@@ -390,7 +460,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
         l.reverse()
         return [len(self)-1-l[j] for j in range(len(l))]
 
-class CrystalOfTableaux(TensorProductOfCrystals):
+class CrystalOfTableaux(TensorProductOfCrystalsWithGenerators, ClassicalCrystal):
     r"""
     Crystals of tableaux. Input: a Cartan Type type and "shape",
     a partition of length <= type[1]. Produces a classical crystal with
@@ -517,7 +587,8 @@ class CrystalOfTableaux(TensorProductOfCrystals):
                 if module_generator[i] == type[1]:
                     module_generator[i] = -type[1]
         module_generator=[self.letters(x) for x in module_generator]
-        TensorProductOfCrystals.__init__(self, *[self.letters]*shape.size(), **{'generators':[module_generator],'cartan_type':type})
+        TensorProductOfCrystalsWithGenerators.__init__(self, *[self.letters]*shape.size(),
+						       **{'generators':[module_generator],'cartan_type':type})
         self._name = "The crystal of tableaux of type %s and shape %s"%(type, str(shape))
         self.shape = shape
 

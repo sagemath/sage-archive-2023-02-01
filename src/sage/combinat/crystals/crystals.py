@@ -236,7 +236,7 @@ class Crystal(CombinatorialClass, Parent):
         INPUT: R, a WeylCharacterRing. Produces the character of the crystal.
         EXAMPLES:
            sage: C = CrystalOfLetters(['A',2])
-           sage: T = TensorProductOfCrystals(C, C, generators = "all")
+           sage: T = TensorProductOfCrystals(C, C)
            sage: A2 = WeylCharacterRing(C.cartan_type); A2
            The Weyl Character Ring of Type [A,2] with Integer Ring coefficients
            sage: chi = T.character(A2); chi
@@ -248,7 +248,8 @@ class Crystal(CombinatorialClass, Parent):
             raise ValueError, "ring does not have the right Cartan type"
         hlist = {}
         mlist = {}
-        for x in self.module_generators:
+#        for x in self.module_generators:
+	for x in self.highest_weight_vectors():
             k = tuple(x.weight())
             if k in hlist:
                 hlist[k] += 1

@@ -2219,7 +2219,7 @@ def autoregressive_fit(acvs):
 
     Our model gives us something that is 15 percent better in this case:
         sage: s2/s1
-        1.154646361026...
+        1.15464636102...
 
     How does it compare overall?  To find out we do 100 simulations
     and for each we compute the percent that our model beats naively

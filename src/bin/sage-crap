@@ -62,8 +62,8 @@
 
 
 #runlevel = 0   # print everything
-runlevel = 1   # only print weird file types
-#runlevel = 2   # only print "bad" stuff
+#runlevel = 1   # only print weird file types
+runlevel = 2   # only print "bad" stuff
 
 import sys,os
 import sage.misc.misc
@@ -72,17 +72,23 @@ if len(sys.argv) != 2:
  print "tar file required"
  sys.exit()
 
+print os.path.abspath('.')
 name = sys.argv[1]
+basename = os.path.split(name)[1]
 tempdir = sage.misc.misc.tmp_dir()
 cmd = "cp %s %s"%(name,tempdir)
 os.system(cmd)
+
 os.chdir(tempdir)
-cmd = "tar xf " + name
+cmd = "tar xvf " + basename
+print cmd
 os.system(cmd)
 
 def cleanup():
     global tempdir
-    os.system('rm -rf tempdir')
+    os.system('rm -rf "%s"'%tempdir)
+
+name = basename
 
 stack = [ name ]
 print os.getcwd() + "/" + name
@@ -611,7 +617,5 @@ while len(stack) > 0:
    else:
      print fullname + ": UNKNOWN"
      print file_output
-     cleanup()
-     sys.exit()
 cleanup()
 print "DONE!!!"

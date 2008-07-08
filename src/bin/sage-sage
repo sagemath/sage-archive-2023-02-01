@@ -467,6 +467,7 @@ fi
 
 if [ $1 = "-crap" -o $1 = "--crap" ]; then
    shift
+   cd "$CUR"
    sage-crap $@
    exit $?
 fi

@@ -14,7 +14,14 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
-   FLINT_TUNE="-mtune=opteron -march=opteron -fPIC -funroll-loops "
+   # This line causes *MAJOR* Illegal Instruction problems on
+   # 64-bit Pentium 4's.  Do *not* do that!!  Only enable the
+   # opteron stuff with a surefire way of detecting that a
+   # machine is really an opteron.
+   #FLINT_TUNE="-mtune=opteron -march=opteron -fPIC -funroll-loops "
+
+   FLINT_TUNE="-fPIC -funroll-loops "
+
 elif [ "`uname`" = "Darwin" -a "`uname -m`" = "Power Macintosh" ]; then
    FLINT_TUNE=" -fPIC -funroll-loops "
 elif [ "`uname -m`" = "ia64" ]; then
@@ -96,6 +103,6 @@ fi
 
 #uncomment the line below to avoid running the test suite.
 #this should be done in all final releases
-#exit 0
+exit 0
 cd ..; ./spkg-check
 

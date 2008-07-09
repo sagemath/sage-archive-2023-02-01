@@ -2521,9 +2521,19 @@ cdef class FiniteFieldElement(FieldElement):
             return s
         return s.replace(self.parent().variable_name(), var)
 
-    def charpoly(self, var='x'):
+    def charpoly(self, var='x', algorithm='matrix'):
         """
         Return the characteristic polynomial of self as a polynomial with given variable.
+
+        INPUT:
+            var -- string (default: 'x')
+            algorithm -- string (default: 'matrix')
+                         'matrix' -- return the charpoly computed from the
+                                     matrix of left multiplication by self
+                         'pari' -- use pari's charpoly routine on polymods,
+                                   which is not very good except in small cases
+
+        The result is not cached.
 
         EXAMPLES:
             sage: k.<a> = GF(19^2)
@@ -2533,10 +2543,17 @@ cdef class FiniteFieldElement(FieldElement):
             X^2 + 18*X + 2
             sage: a^2 + 18*a + 2
             0
+            sage: a.charpoly('X', algorithm='pari')
+            X^2 + 18*X + 2
         """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        R = PolynomialRing(self.parent().prime_subfield(), var)
-        return R(self._pari_().charpoly('x').lift())
+        if algorithm == 'matrix':
+            return self.matrix().charpoly(var)
+        elif algorithm == 'pari':
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            R = PolynomialRing(self.parent().prime_subfield(), var)
+            return R(self._pari_().charpoly('x').lift())
+        else:
+            raise ValueError, "unknown algorithm '%s'"%algorithm
 
     def norm(self):
         """

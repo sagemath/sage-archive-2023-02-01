@@ -1,6 +1,11 @@
 Upstream maintainer: Bill Heart
 Website: www.flintlib.org
 
+=== flint-1.011 (Michael Abshoff, July 9th, 2008) ===
+ * update FLINT to 1.0.11 release (fixes a critical Itanium bug - thanks to Bill Hart)
+ * turn on spkg-check per default
+ * add additional tests to spkg-check as instructed by Bill Hart
+
 === flint-1.010.p0 (Michael Abshoff, July 6th, 2008) ===
  * Only check major and minor gcc release number, not tiny (fixes #3528)
 

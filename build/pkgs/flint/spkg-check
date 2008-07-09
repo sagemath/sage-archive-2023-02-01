@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "*************************************************"
 echo "Running test suite. This should take 6-20 minutes"
@@ -49,4 +49,7 @@ make test
 ./ZmodF_poly-test
 ./fmpz-test
 ./fmpz_poly-test
+./mpz_poly-test
+./long_extras-test
+./zmod_poly-test
 

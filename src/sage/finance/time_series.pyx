@@ -2207,7 +2207,7 @@ def autoregressive_fit(acvs):
     In fact it is closer than we would get by forecasting using a
     linear filter made from all the autocovariances of our sequence:
         sage: y2[:-1].autoregressive_forecast(y2[:-1].autoregressive_fit(len(y2)))
-        6.7701687056683...
+        6.770168705668...
 
     We record the last 20 forecasts, always using all correct values up to the
     one we are forecasting:

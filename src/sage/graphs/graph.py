@@ -901,10 +901,14 @@ class GenericGraph(SageObject):
             sage: G.set_boundary([0,1,2,3,4])
             sage: G.get_boundary()
             [0, 1, 2, 3, 4]
-
+            sage: G.set_boundary((1..4))
+            sage: G.get_boundary()
+            [1, 2, 3, 4]
         """
         if isinstance(boundary,list):
             self._boundary = boundary
+        else:
+            self._boundary = list(boundary)
 
     def set_embedding(self, embedding):
         """

@@ -980,6 +980,45 @@ class Slider(InteractControl):
                            default=self.default_position())
 
 
+class TextControl(InteractControl):
+    def __init__(self, var, data):
+        """
+        A text field interact control
+
+        INPUT:
+            data -- the HTML value of the text field
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.TextControl('x', 'something')
+            Text Interact Control: something
+        """
+        InteractControl.__init__(self, var, data, label='')
+        self.__data = data
+
+    def __repr__(self):
+        """
+        Return string representation of this control.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.TextControl('x', 'something').__repr__()
+            'Text Interact Control: something'
+        """
+        return 'Text Interact Control: %s'%self.default_value()
+
+    def render(self):
+        """
+        Render this control as an HTML string.
+
+        OUTPUT:
+             string -- html format
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.TextControl('x', 'something').render()
+            '<div ...>something</div>'
+        """
+        return '<div style="color:black; padding-bottom:5px">%s</div>'%self.default_value()
+
+
 class InteractCanvas:
     def __init__(self, controls, id):
         """
@@ -1069,8 +1108,13 @@ class InteractCanvas:
             sage: sage.server.notebook.interact.InteractCanvas([B], 3).render_controls()
             '<table>...'
         """
-        row = '<tr><td align=right><font color="black">%s&nbsp;</font></td><td>%s</td></tr>\n'
-        tbl_body = ''.join([row%(c.label(), c.render()) for c in self.__controls])
+        tbl_body = ''
+        for c in self.__controls:
+            if c.label() == '':
+                tbl_body += '<tr><td colspan=2>%s</td></tr>\n'%c.render()
+            else:
+                tbl_body += '<tr><td align=right><font color="black">%s&nbsp;</font></td><td>%s</td></tr>\n'%(
+                c.label(), c.render())
         return '<table>%s</table>'%tbl_body
 
     def wrap_in_outside_frame(self, inside):
@@ -1955,6 +1999,43 @@ class selector(control):
                         default=self.__default,
                         nrows=self.__nrows, ncols=self.__ncols, width=self.__width,
                         buttons=self.__buttons)
+
+class text_control(control):
+    def __init__(self, value):
+    	"""
+    	Text that can be inserted among other interact controls.
+
+        INPUT:
+            value -- HTML for the control
+
+        EXAMPLES:
+            sage: text_control('something')
+            Text field: something
+    	"""
+        self.__default = value
+        control.__init__(self, '')
+
+    def __repr__(self):
+        """
+        Return print representation of this control.
+
+        EXAMPLES:
+            sage: text_control('something')
+            Text field: something
+        """
+        return "Text field: %s"%self.__default
+
+    def render(self, var):
+        """
+        Return rendering of the text field
+
+        INPUT:
+            var -- a string (variable; one of the variable names input to f)
+
+        OUTPUT:
+            TextControl -- a TextControl instance
+        """
+        return TextControl(var, self.__default)
 
 
 def automatic_control(default):

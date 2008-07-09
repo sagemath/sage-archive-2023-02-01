@@ -216,18 +216,17 @@ def TensorProductOfCrystals(*crystals, **options):
 	[[2, 1, 1], [1, 2, 1]]
     """
     if options.has_key('generators'):
-	if all(isinstance(crystal,ClassicalCrystal) for crystal in crystals):
-	    return TensorProductOfClassicalCrystalsWithGenerators(generators=options['generators'], *crystals)
-	else:
-	    return TensorProductOfCrystalsWithGenerators(generators=options['generators'], *crystals)
+        if all(isinstance(crystal,ClassicalCrystal) for crystal in crystals):
+            return TensorProductOfClassicalCrystalsWithGenerators(generators=options['generators'], *crystals)
+        else:
+            return TensorProductOfCrystalsWithGenerators(generators=options['generators'], *crystals)
     else:
-	if all(isinstance(crystal,ClassicalCrystal) for crystal in crystals):
-	    return FullTensorProductOfClassicalCrystals(*crystals)
-	else:
-	    return FullTensorProductOfCrystals(*crystals)
+        if all(isinstance(crystal,ClassicalCrystal) for crystal in crystals):
+            return FullTensorProductOfClassicalCrystals(*crystals)
+        else:
+            return FullTensorProductOfCrystals(*crystals)
 
 class TensorProductOfCrystalsWithGenerators(Crystal):
-
     def __init__(self, *crystals, **options):
         """
         EXAMPLES:
@@ -247,16 +246,7 @@ class TensorProductOfCrystalsWithGenerators(Crystal):
             else:
                 self.cartan_type = crystals[0].cartan_type
         self.index_set = self.cartan_type.index_set()
-#        if options.has_key('generators'):
-#            if options['generators'] == "all":
-#                self.module_generators = []
-#                for c in list(xmrange_iter([D.list() for D in crystals])):
-#                    candidate = self(*c)
-#                    if all(candidate.e(k) == None for k in self.index_set):
-#                        self.module_generators.append(candidate)
-#            else:
-#                self.module_generators = [ self(*x) for x in options['generators']]
-	self.module_generators = [ self(*x) for x in options['generators']]
+        self.module_generators = [ self(*x) for x in options['generators']]
 
     def __call__(self, *args):
         """
@@ -273,9 +263,18 @@ class TensorProductOfClassicalCrystalsWithGenerators(TensorProductOfCrystalsWith
     pass
 
 class FullTensorProductOfCrystals(Crystal):
-
     def __init__(self, *crystals, **options):
-        crystals = [ crystal for crystal in crystals]
+        """
+        TESTS:
+            sage: from sage.combinat.crystals.tensor_product import FullTensorProductOfCrystals
+            sage: C = CrystalOfLetters(['A',2])
+            sage: T = TensorProductOfCrystals(C,C)
+            sage: isinstance(T, FullTensorProductOfCrystals)
+            True
+            sage: T == loads(dumps(T))
+            True
+        """
+        crystals = list(crystals)
         self._name = "Full tensor product of the crystals %s"%crystals
         self.crystals = crystals
         if options.has_key('cartan_type'):
@@ -285,24 +284,49 @@ class FullTensorProductOfCrystals(Crystal):
                 raise ValueError, "you need to specify the Cartan type if the tensor product list is empty"
             else:
                 self.cartan_type = crystals[0].cartan_type
-	    self.index_set = self.cartan_type.index_set()
-	self.cartesian_product = CartesianProduct(*self.crystals)
-	self.module_generators = self
+            self.index_set = self.cartan_type.index_set()
+        self.cartesian_product = CartesianProduct(*self.crystals)
+        self.module_generators = self
 
     def iterator(self):
-	for x in self.cartesian_product:
-	    yield self(*x)
+        """
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',2])
+            sage: T = TensorProductOfCrystals(C,C)
+            sage: list(T.iterator())
+            [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
+            sage: _[0].parent()
+            Full tensor product of the crystals [The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2]]
+        """
+        for x in self.cartesian_product:
+            yield self(*x)
 
     __iter__ = iterator
 
     list = CombinatorialClass._CombinatorialClass__list_from_iterator
 
     def count(self):
-	return self.cartesian_product.count()
+        """
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',2])
+            sage: T = TensorProductOfCrystals(C,C)
+            sage: T.count()
+            9
+        """
+        return self.cartesian_product.count()
 
-    def __call__(self, *args):
-        return TensorProductOfCrystalsElement(self,
-                                              [crystalElement for crystalElement in args])
+    def __call__(self, *crystalElements):
+        """
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',2])
+            sage: T = TensorProductOfCrystals(C,C)
+            sage: T(1,1)
+            [1, 1]
+            sage: _.parent()
+            Full tensor product of the crystals [The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2]]
+        """
+        return TensorProductOfCrystalsElement(self, list(crystalElements))
+
 
 class FullTensorProductOfClassicalCrystals(FullTensorProductOfCrystals, ClassicalCrystal):
     pass

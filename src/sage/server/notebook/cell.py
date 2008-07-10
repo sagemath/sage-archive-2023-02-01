@@ -445,7 +445,7 @@ class Cell(Cell_generic):
     def set_input_text(self, input):
         # Stuff to deal with interact
         if input.startswith('%__sage_interact__'):
-            self.interact = input[len('%__sage_interact__')+1]
+            self.interact = input[len('%__sage_interact__')+1:]
             self.__version = 1+self.version()
             return
         elif self.is_interacting():

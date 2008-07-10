@@ -1,3 +1,6 @@
+=== polybori-0.5rc (Tim Abbott, Jul 10, 2008) ===
+ * update to PolyBoRi-0.5rc release.
+ * Remove patches for problems fixed upstream.
 
 === polybori-0.3.1.p3 (Michael Abshoff, William Stein, May 17, 2008) ===
  * cygwin support by patching cpu_stat.c  (this should be upstreamed)

@@ -1,17 +1,14 @@
-# choose: dense or sparse
+cimport matrix_double_dense
 cimport matrix_dense
-#from sage.structure.element cimport ModuleElement
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
-include '../gsl/gsl.pxi'
 include '../ext/python.pxi'
+include '../ext/numpy.pxd'
 import matrix
 cimport matrix
-cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):
-    cdef gsl_matrix_complex *_matrix
-    cdef gsl_matrix_complex *_LU
-    cdef gsl_permutation *_p
-    cdef int _signum
-    cdef int _LU_valid
-    cdef _c_compute_LU(self)
-#    cpdef ModuleElement _add_(self, ModuleElement right )
+
+import numpy
+
+cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
+    pass
+

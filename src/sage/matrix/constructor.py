@@ -566,10 +566,7 @@ def matrix(*args, **kwds):
                 else:
                     raise TypeError("cannot convert numpy matrix to SAGE matrix")
 
-                if num_array.flags.c_contiguous:
-                    return m
-                else:
-                    return m.transpose()
+                return m
             elif nrows is not None and ncols is not None:
                 # assume that we should just pass the thing into the
                 # MatrixSpace constructor and hope for the best

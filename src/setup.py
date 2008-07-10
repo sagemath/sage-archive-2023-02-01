@@ -364,21 +364,22 @@ matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
                                   libraries = ['iml', 'gmp', 'm', BLAS, BLAS2])  # order matters for cygwin!!
 
+matrix_double_dense=Extension('sage.matrix.matrix_double_dense',
+   ['sage/matrix/matrix_double_dense.pyx'],libraries=[BLAS, BLAS2],
+   include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
-   ['sage/matrix/matrix_real_double_dense.pyx'],libraries=[BLAS, BLAS2, 'gsl'],
-   define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+   ['sage/matrix/matrix_real_double_dense.pyx'],libraries=[BLAS, BLAS2],
+   include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 matrix_change_ring = Extension('sage.matrix.change_ring',
-   ['sage/matrix/change_ring.pyx'],libraries=[BLAS, BLAS2, 'gsl', 'gmp'],
-   define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+   ['sage/matrix/change_ring.pyx'],libraries=[BLAS, BLAS2, 'gmp'],
+   include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 matrix_complex_double_dense=Extension('sage.matrix.matrix_complex_double_dense',
-   ['sage/matrix/matrix_complex_double_dense.pyx'],libraries=['gsl', BLAS, BLAS2],
-   define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+   ['sage/matrix/matrix_complex_double_dense.pyx'],libraries=[BLAS, BLAS2],
+   include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
-
-solve = Extension('sage.matrix.solve',['sage/matrix/solve.pyx'],libraries = ['gsl', BLAS, BLAS2],define_macros =
-   [('GSL_DISABLE_DEPRECATED','1')])
 
 matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
                                    ['sage/matrix/matrix_rational_sparse.pyx'],
@@ -487,10 +488,10 @@ markov_multifractal = Extension('sage.finance.markov_multifractal_cython',
 finance_fractal = Extension('sage.finance.fractal', ['sage/finance/fractal.pyx'])
 
 hmm = Extension('sage.stats.hmm.hmm', ['sage/stats/hmm/hmm.pyx'],
-                libraries = ['ghmm'])
+                libraries = ['ghmm'],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 chmm = Extension('sage.stats.hmm.chmm', ['sage/stats/hmm/chmm.pyx'],
-                libraries = ['ghmm'])
+                libraries = ['ghmm'],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 #####################################################
 
@@ -600,11 +601,11 @@ ext_modules = [ \
 
      matrix_integer_2x2,
      matrix_integer_sparse,
+     matrix_double_dense,
      matrix_real_double_dense,
      matrix_change_ring,
      matrix_complex_double_dense,
 #     matrix_padic_capped_relative_dense,
-     solve,
      linbox,
      matrix_modn_dense,
      matrix_modn_sparse,

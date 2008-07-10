@@ -10,7 +10,7 @@ from sage.rings.real_double import RDF
 
 include "../ext/cdefs.pxi"
 include "../ext/interrupt.pxi"
-include "../gsl/gsl.pxi"
+include "../ext/numpy.pxd"
 
 def integer_to_real_double_dense(Matrix_integer_dense A):
     """
@@ -40,7 +40,7 @@ def integer_to_real_double_dense(Matrix_integer_dense A):
                                          S, None, None, None)
     for i from 0 <= i < A._nrows:
         for j from 0 <= j < A._ncols:
-            gsl_matrix_set(M._matrix, i, j, mpz_get_d(A._matrix[i][j]))
+            M.set_unsafe_double(i, j, mpz_get_d(A._matrix[i][j]))
     return M
 
 

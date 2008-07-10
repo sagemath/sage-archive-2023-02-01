@@ -131,9 +131,9 @@ For details on this interface see:
    \url{http://polybori.sourceforge.net/doc/tutorial/tutorial.html}.
 
 Note that due to this duality of this interface some functions do not
-obey \Sage's naming convention. For instance, \code{f.zeroesIn} should
-be called \code{f.zeroes_in} by \Sage's standards. However, \PolyBoRi
-expects the function \code{f.zeroesIn}.
+obey \Sage's naming convention. For instance, \code{f.zerosIn} should
+be called \code{f.zeros_in} by \Sage's standards. However, \PolyBoRi
+expects the function \code{f.zerosIn}.
 
 Also, the interface provides functions for compatibility with \Sage
 accepting convenient \Sage datatypes which are slower than their
@@ -1043,18 +1043,18 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         vn = [x._magma_().name() for x in self.cover_ring().gens()]
         return "quo<%s | %s>"%(R.name(), ",".join([f._repr_with_changed_varnames(vn) for f in self.defining_ideal().gens()]))
 
-    def interpolation_polynomial(self, zeroes, ones):
+    def interpolation_polynomial(self, zeros, ones):
         """
         Return the lexicographically minimal boolean polynomial for
         the given sets of points.
 
-        Given two sets of points \var{zeroes} -- evaluating to zero --
+        Given two sets of points \var{zeros} -- evaluating to zero --
         and \var{ones} -- evaluating to one --, compute the
         lexicographically minimal boolean polynomial satisfying these
         points.
 
         INPUT:
-            zeroes -- the set of interpolation points mapped to zero
+            zeros -- the set of interpolation points mapped to zero
             ones -- the set of interpolation points mapped to one
 
         EXAMPLE:
@@ -1066,7 +1066,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         Now we find interpolation points mapping to zero and to one.
 
-            sage: zeroes = set([(1, 0, 1, 0, 0, 0), (1, 0, 0, 0, 1, 0), \
+            sage: zeros = set([(1, 0, 1, 0, 0, 0), (1, 0, 0, 0, 1, 0), \
                                 (0, 0, 1, 1, 1, 1), (1, 0, 1, 1, 1, 1), \
                                 (0, 0, 0, 0, 1, 0), (0, 1, 1, 1, 1, 0), \
                                 (1, 1, 0, 0, 0, 1), (1, 1, 0, 1, 0, 1)])
@@ -1074,7 +1074,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                               (0, 0, 0, 1, 1, 1), (1, 0, 0, 1, 0, 1), \
                               (0, 0, 0, 0, 1, 1), (0, 1, 1, 0, 1, 1), \
                               (0, 1, 1, 1, 1, 1), (1, 1, 1, 0, 1, 0)])
-            sage: [f(*p) for p in zeroes]
+            sage: [f(*p) for p in zeros]
             [0, 0, 0, 0, 0, 0, 0, 0]
             sage: [f(*p) for p in ones]
             [1, 1, 1, 1, 1, 1, 1, 1]
@@ -1082,10 +1082,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         Finally, we find the lexicographically smallest interpolation
         polynomial using \PolyBoRi .
 
-            sage: g = B.interpolation_polynomial(zeroes, ones); g
+            sage: g = B.interpolation_polynomial(zeros, ones); g
             b*f + c + d*f + d + e*f + e + 1
 
-            sage: [g(*p) for p in zeroes]
+            sage: [g(*p) for p in zeros]
             [0, 0, 0, 0, 0, 0, 0, 0]
             sage: [g(*p) for p in ones]
             [1, 1, 1, 1, 1, 1, 1, 1]
@@ -1098,7 +1098,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: V=(x(0)+x(1)+x(2)+x(3)+1).set(); V
             {{x0}, {x1}, {x2}, {x3}, {}}
             sage: f=x(0)*x(1)+x(1)+x(2)+1
-            sage: z = f.zeroesIn(V); z
+            sage: z = f.zerosIn(V); z
             {{x1}, {x2}}
             sage: o = V.diff(z); o
             {{x0}, {x3}, {}}
@@ -1112,11 +1112,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         from sage.misc.misc_c import prod
         n = self.ngens()
         x = self.gens()
-        if PY_TYPE_CHECK(zeroes, BooleSet):
-            z = zeroes
+        if PY_TYPE_CHECK(zeros, BooleSet):
+            z = zeros
         else:
             z = sum([prod([x[i] for i in xrange(n) if v[i]],
-                          self.one_element()) for v in zeroes],
+                          self.one_element()) for v in zeros],
                     self.zero_element())
             z = z.set()
         if PY_TYPE_CHECK(ones, BooleSet):
@@ -1228,7 +1228,7 @@ def get_var_mapping(ring, other):
     else:
         ovar_names = other.parent().variable_names()
         if PY_TYPE_CHECK(other, BooleanPolynomial):
-            variables = other.vars().iterindex()
+            variables = other.varsAsMonomial().iterindex()
         elif PY_TYPE_CHECK(other, BooleanMonomial):
             variables = other.iterindex()
         else:
@@ -1800,6 +1800,19 @@ cdef class BooleanMonomial(MonoidElement):
             [x, z]
         """
         return new_BMVI_from_BooleanMonomial(self)
+
+    def variables(self):
+        """
+        Return a list of the variables in this monomial.
+
+        EXAMPLE:
+            sage: from polybori import BooleanMonomialMonoid
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: M = BooleanMonomialMonoid(P)
+            sage: M(x*z).variables() # indirect doctest
+            [x, z]
+        """
+        return list(self)
 
     def iterindex(self):
         """
@@ -2478,28 +2491,28 @@ cdef class BooleanPolynomial(MPolynomial):
             return 0
         return self._pbpoly.lmDeg()
 
-    def vars(self):
+    def varsAsMonomial(self):
         r"""
         Return a boolean monomial with all the variables appearing in
         \code{self}.
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: (x + y).vars()
+            sage: (x + y).varsAsMonomial()
             x*y
 
-            sage: (x*y + z).vars()
+            sage: (x*y + z).varsAsMonomial()
             x*y*z
 
-            sage: P.zero_element().vars()
+            sage: P.zero_element().varsAsMonomial()
             1
 
-            sage: P.one_element().vars()
+            sage: P.one_element().varsAsMonomial()
             1
 
         TESTS:
             sage: R = BooleanPolynomialRing(1, 'y')
-            sage: y.vars()
+            sage: y.varsAsMonomial()
             y
             sage: R
             Boolean PolynomialRing in y
@@ -2529,7 +2542,7 @@ cdef class BooleanPolynomial(MPolynomial):
         o = P.one_element()
         if self is o or self == o:
             return [o]
-        return list(self.vars())
+        return list(self.varsAsMonomial())
 
     def nvariables(self):
         """
@@ -2648,9 +2661,9 @@ cdef class BooleanPolynomial(MPolynomial):
 
         Evaluation of polynomials can be used fully symbolic:
 
-            sage: f(x=var('a'),y=var('b'),z=var('c'))   # long time -- requires lots of RAM
+            sage: f(x=var('a'),y=var('b'),z=var('c'))
             c + a*b + 1
-            sage: f(var('a'),var('b'),1)                # long time -- requires lots of RAM
+            sage: f(var('a'),var('b'),1)
             a*b
         """
         P = self._parent
@@ -2721,10 +2734,10 @@ cdef class BooleanPolynomial(MPolynomial):
 
             This method can work fully symbolic:
 
-            sage: f.subs(x=var('a'),y=var('b'),z=var('c'))  # long time -- requires lots of RAM
+            sage: f.subs(x=var('a'),y=var('b'),z=var('c'))
             b*c + c + a*b + 1
 
-            sage: f.subs({'x':var('a'),'y':var('b'),'z':var('c')})  # long time -- requires lots of RAM
+            sage: f.subs({'x':var('a'),'y':var('b'),'z':var('c')})
             b*c + c + a*b + 1
         """
         P = self._parent
@@ -3122,7 +3135,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._pbpoly.hasConstantPart()
 
-    def zeroesIn(self, s):
+    def zerosIn(self, s):
         r"""
         Return a set containing all elements of \var{s} where this
         boolean polynomial evaluates to zero.
@@ -3147,14 +3160,14 @@ cdef class BooleanPolynomial(MPolynomial):
         This encodes the points (1,1,1,0), (1,1,0,0), (0,0,1,1) and
         (0,0,0,0). But of these only (1,1,0,0) evaluates to zero.
 
-            sage: f.zeroesIn(s)
+            sage: f.zerosIn(s)
             {{a,b}}
 
-            sage: f.zeroesIn([(1,1,1,0), (1,1,0,0), (0,0,1,1), (0,0,0,0)])
+            sage: f.zerosIn([(1,1,1,0), (1,1,0,0), (0,0,1,1), (0,0,0,0)])
             ((1, 1, 0, 0),)
         """
         if PY_TYPE_CHECK(s, BooleSet):
-            return new_BS_from_PBSet(pb_zeroes(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
+            return new_BS_from_PBSet(pb_zeros(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
         elif PY_TYPE_CHECK(s, list) or PY_TYPE_CHECK(s, tuple) or PY_TYPE_CHECK(s, set):
             from sage.misc.misc_c import prod
             B = self.parent()
@@ -3165,7 +3178,7 @@ cdef class BooleanPolynomial(MPolynomial):
             s = sum([prod([x[i] for i in reversed(range(n)) if v[i]], one)
                      for v in s], zero)
             s = s.set()
-            r =  new_BS_from_PBSet(pb_zeroes(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
+            r =  new_BS_from_PBSet(pb_zeros(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
             L= []
             for e in r:
                 l = [0 for _ in xrange(n)]
@@ -3379,6 +3392,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             g = GroebnerStrategy()
             for p in gb:
                 g.addGenerator(p)
+            g.optRedTail=True
             self.__gb = g
         return Sequence(gb, self.ring(), check=False, immutable=True)
 
@@ -3413,7 +3427,8 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         p = g.nf(f)
         # Michael Brickenstein: For PolyBoRi >0.4 set
         # strat.optRedTail=True
-        return red_tail(g, p)
+        #return red_tail(g, p)
+        return p
 
 ##
 #
@@ -4180,7 +4195,7 @@ def map_every_x_to_x_plus_one(BooleanPolynomial p):
     return new_BP_from_PBPoly(p._parent,
             pb_map_every_x_to_x_plus_one(p._pbpoly))
 
-def zeroes(pol, BooleSet s):
+def zeros(pol, BooleSet s):
     cdef PBPoly p
     if PY_TYPE_CHECK(pol, BooleanPolynomial):
         p = (<BooleanPolynomial>pol)._pbpoly
@@ -4188,7 +4203,7 @@ def zeroes(pol, BooleSet s):
         PBPoly_construct_pbmonom(&p, (<BooleanMonomial>pol)._pbmonom)
     else:
         raise TypeError, "Argument 'p' has incorrect type (expected BooleanPolynomial or BooleanMonomial, got %s)"%(type(pol))
-    return new_BS_from_PBSet(pb_zeroes(p, s._pbset), s._ring)
+    return new_BS_from_PBSet(pb_zeros(p, s._pbset), s._ring)
 
 def interpolate(zero, one):
     cdef PBSet z, o
@@ -4465,11 +4480,10 @@ cdef int M4RI_init = 0
 cdef init_M4RI():
     global M4RI_init
     if M4RI_init is int(0):
-        buildAllCodes()
-        setupPackingMasks()
+        m4ri_build_all_codes()
         M4RI_init = 1
 
 def free_m4ri():
-    destroyAllCodes()
+    m4ri_destroy_all_codes()
 
 init_M4RI()

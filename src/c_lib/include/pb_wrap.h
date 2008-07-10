@@ -5,8 +5,14 @@
 #include "ccobject.h"
 
 // M4RI
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
 #define PACKED 1
 #include "M4RI/m4ri.h"
+#ifdef __cplusplus
+}
+#endif //__cplusplus
 
 #include <sstream>
 #include <vector>

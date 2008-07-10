@@ -15,7 +15,10 @@
 #
 #                  http://www.gnu.org/licenses/
 ############################################################################
+
 import os
+import commands
+
 
 class HostInfo(object):
     """
@@ -80,7 +83,7 @@ class HostInfo(object):
                     else:
                         host_info[key] = value.strip()
         elif host_info['os'] == 'Darwin':
-            for line in os.popen('sysctl -a hw machdep').readlines():
+            for line in commands.getoutput('sysctl -a hw machdep').split('\n'):
                 l = line.strip()
                 if '=' in l:
                     l = l.split('=')

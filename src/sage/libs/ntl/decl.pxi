@@ -828,6 +828,8 @@ cdef extern from "ntl_wrap.h":
 
     GF2X_c GF2XModulus_GF2X "GF2X" (GF2XModulus_c m)
 
+    GF2X_c GF2X_IrredPolyMod "IrredPolyMod" (GF2X_c g, GF2XModulus_c F)
+
     #### GF2EContext_c
 
     ctypedef struct GF2EContext_c "struct GF2EContext":

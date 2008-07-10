@@ -3909,6 +3909,32 @@ sage: rts[0][0] == rt2
 
         return RR(sum([abs(i)**p for i in coeffs]))**(1/p)
 
+    def hamming_weight(self):
+        """
+        Returns the number of non-zero coefficients of self.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = x^3 - x
+            sage: f.hamming_weight()
+            2
+            sage: R(0).hamming_weight()
+            0
+            sage: f = (x+1)^100
+            sage: f.hamming_weight()
+            101
+            sage: S = GF(5)['y']
+            sage: S(f).hamming_weight()
+            5
+            sage: cyclotomic_polynomial(105).hamming_weight()
+            33
+        """
+        cdef long w = 0
+        for a in self.coeffs():
+            if a:
+                w += 1
+        return w
+
 # ----------------- inner functions -------------
 # Sagex can't handle function definitions inside other function
 

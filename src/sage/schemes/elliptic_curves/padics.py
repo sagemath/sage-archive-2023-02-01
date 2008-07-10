@@ -366,11 +366,13 @@ def _multiply_point(E, R, P, m):
         ...           "_multiply_point() gave an incorrect answer"
 
     """
-    assert m >= 2
+    assert m >= 1
 
     alpha = R(P[0].numerator())
     beta = R(P[1].numerator())
     d = R(P[0].denominator().sqrt())
+    if m == 1:
+        return alpha, beta, d
 
     a1 = R(E.a1()) * d
     a3 = R(E.a3()) * d**3

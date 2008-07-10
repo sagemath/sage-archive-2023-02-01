@@ -2185,6 +2185,8 @@ class GraphGenerators():
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
             sage: G.show()
+            sage: graphs.RandomGNP(4,1)
+            Complete graph: Graph on 4 vertices
 
         TIMINGS:
         The following timings compare the speed with fast==False and
@@ -2209,6 +2211,8 @@ class GraphGenerators():
         """
         if seed is None:
             seed = current_randstate().long_seed()
+        if p == 1:
+            return graphs.CompleteGraph(n)
         import networkx
         if fast:
             G = networkx.fast_gnp_random_graph(n, p, seed)

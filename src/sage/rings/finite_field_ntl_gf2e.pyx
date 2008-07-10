@@ -1113,11 +1113,44 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             C.append(GF2_conv_to_long(GF2X_coeff(r,i)))
         return self._parent.polynomial_ring(name)(C)
 
-    def minpoly(self, var='x'):
+    def charpoly(self, var='x'):
+        r"""
+        Return the characteristic polynomial of self as a polynomial
+        in var over the prime subfield.
+
+        INPUT:
+            var -- string (default: 'x')
+        OUTPUT:
+            polynomial
+
+        EXAMPLES:
+            sage: k.<a> = GF(2^8)
+            sage: b = a^3 + a
+            sage: b.minpoly()
+            x^4 + x^3 + x^2 + x + 1
+            sage: b.charpoly()
+            x^8 + x^6 + x^4 + x^2 + 1
+            sage: b.charpoly().factor()
+            (x^4 + x^3 + x^2 + x + 1)^2
+            sage: b.charpoly('Z')
+            Z^8 + Z^6 + Z^4 + Z^2 + 1
         """
-        Return the minimal polynomial of self, which is
-        the smallest degree polynomial $f \in \F_{2}[x]$
-        such that $f(self) = 0$.
+        f = self.minpoly(var)
+        cdef int d = f.degree(), n = self.parent().degree()
+        cdef int pow = n/d
+        return f if pow == 1 else f**pow
+
+
+    def minpoly(self, var='x'):
+        r"""
+        Return the minimal polynomial of self, which is the smallest
+        degree polynomial $f \in \mathbf{F}_{2}[x]$ such that
+        $f(self) = 0$.
+
+        INPUT:
+            var -- string (default: 'x')
+        OUTPUT:
+            polynomial
 
         EXAMPLES:
             sage: K.<a> = GF(2^100)

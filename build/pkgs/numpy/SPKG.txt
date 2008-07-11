@@ -19,6 +19,9 @@ Dependencies:
   Fortran
 
 Special Update/Build Instructions:
+  * The file $SAGE_ROOT/devel/sage/sage/ext/numpy.pxi comes from this file and must be updated if/when
+    the file src/numpy/doc/cython/numpy.pxi is updated.
+
   * Josh Kantor has done this the most so get him to do it if possible.
 
   * To ensure that numpy compiles consistently regardless of what fortrans are on the
@@ -36,7 +39,7 @@ Special Update/Build Instructions:
     compiler, which uses either Sage_FCompiler or Sage_FCompiler_1.
     This file changes sometimes and the exact modification necessary is not constant
     so it basically requires figuring out what is going on. For example in the current
-    1.0.4:
+    1.1.0:
 
     At line 682 we add sage_fortran to the beginning of the list of compilers on all
     platforms of interest, this is the _default_compilers dict.
@@ -55,6 +58,9 @@ Special Update/Build Instructions:
 
 
 Changelog:
+
+=== numpy-1.1.0 (Jason Grout, July 10, 2008) ===
+ * update to numpy 1.1.0
 
 === numpy-20080104-1.0.4.p4 (Michael Abshoff, May 18th, 2008) ===
  * add 64 bit OSX build support

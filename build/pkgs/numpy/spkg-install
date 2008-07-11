@@ -60,3 +60,9 @@ if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
    rm $SAGE_LOCAL/bin/gcc
 fi
 
+
+$CUR/bin/update-pxi.py $CUR/src/numpy/doc/cython/numpy.pxi $SAGE_ROOT/devel/sage/sage/ext/numpy.pxi
+
+if [$? -ne 0]; then
+    exit 1
+fi

@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 This module provides a very simple API for interacting with a Sage session
 over http. It runs in as part of the notebook server.
 

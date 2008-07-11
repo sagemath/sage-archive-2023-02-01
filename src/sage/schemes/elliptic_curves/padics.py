@@ -310,7 +310,7 @@ def _multiply_point(E, R, P, m):
              at all primes
         R -- a ring in which 2 is invertible (typically $\ZZ/L\ZZ$ for some
              positive odd integer $L$).
-        m -- an integer, >= 2
+        m -- an integer, >= 1
 
     OUTPUT:
         A triple $(a', b', d')$ such that if the point $mP$ has coordinates
@@ -345,21 +345,19 @@ def _multiply_point(E, R, P, m):
         (229, 170, 541)
         sage: -59997896 % 625
         229
-        sage: 67387681.sqrt()
-        8209
-        sage: -8209 % 625          # note sign is flipped
+        sage: -88075171080 % 625         # note sign is flipped
+        170
+        sage: -67387681.sqrt() % 625     # sign is flipped here too
         541
-        sage: 641260644409 % 625   # sign flipped here too
-        34
 
-    a trivial case (#trac 3632):
+    Trivial cases (#trac 3632):
         sage: _multiply_point(E, R, P, 1)
         (0, 624, 1)
-        sage: _multiply_point(E, R, 19*P, 1)       # note the sign did not flip here
+        sage: _multiply_point(E, R, 19*P, 1)
         (229, 455, 84)
-        sage: (455 + 170) % 625
+        sage: (170 + 455) % 625       # note the sign did not flip here
         0
-        sage: (541+84) % 625
+        sage: (541 + 84) % 625
         0
 
     Test over a range of $n$ for a single curve with fairly random
@@ -369,8 +367,7 @@ def _multiply_point(E, R, P, m):
         sage: P = E.gens()[0] * LCM(E.tamagawa_numbers())
         sage: from sage.schemes.elliptic_curves.padics import _multiply_point
         sage: Q = P
-        sage: for n in range(2, 25):
-        ...      Q = Q + P
+        sage: for n in range(1, 25):
         ...      naive = R(Q[0].numerator()),  \
         ...              R(Q[1].numerator()),  \
         ...              R(Q[0].denominator().sqrt())
@@ -379,6 +376,7 @@ def _multiply_point(E, R, P, m):
         ...        (triple[1] == naive[1] and triple[2] == naive[2]) or \
         ...        (triple[1] == -naive[1] and triple[2] == -naive[2])), \
         ...           "_multiply_point() gave an incorrect answer"
+        ...      Q = Q + P
 
     """
     assert m >= 1

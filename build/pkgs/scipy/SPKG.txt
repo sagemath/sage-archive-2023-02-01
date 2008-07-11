@@ -7,6 +7,9 @@
 
 == Changelog ==
 
+=== scipy-20071020-0.6.p4 (William Stein; July 11, 2008) ===
+ * bump version to force recompile since we improved the numpy distutils.
+
 === scipy-20071020-0.6.p3 ===
  * add hg repo, add .hgignore, remove backup files
 

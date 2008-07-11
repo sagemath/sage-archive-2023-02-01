@@ -191,6 +191,11 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
         sage: for prec in range(1, max_prec):                 # long time
         ...       assert E.padic_regulator(5, prec) == full   # long time
 
+    A case where the generator belongs to the formal group already (trac #3632):
+        sage: E = EllipticCurve([37,0])
+        sage: E.padic_regulator(5,10)
+        3*5^2 + 2*5^3 + 3*5^4 + 3*5^5 + 4*5^7 + 5^8 + O(5^10)
+
     """
     if check_hypotheses:
         if not p.is_prime():
@@ -346,6 +351,16 @@ def _multiply_point(E, R, P, m):
         541
         sage: 641260644409 % 625   # sign flipped here too
         34
+
+    a trivial case (#trac 3632):
+        sage: _multiply_point(E, R, P, 1)
+        (0, 624, 1)
+        sage: _multiply_point(E, R, 19*P, 1)       # note the sign did not flip here
+        (229, 455, 84)
+        sage: (455 + 170) % 625
+        0
+        sage: (541+84) % 625
+        0
 
     Test over a range of $n$ for a single curve with fairly random
     coefficients:

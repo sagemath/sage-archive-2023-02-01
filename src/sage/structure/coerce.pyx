@@ -638,7 +638,7 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             if is_Ring(S):
                 try:
                     K = S._pseudo_fraction_field()
-                except TypeError:
+                except (TypeError, AttributeError):
                     K = None
             elif PY_TYPE_CHECK(S, Parent):
                 K = S

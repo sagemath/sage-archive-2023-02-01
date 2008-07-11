@@ -1,3 +1,5 @@
+=== singular-3-0-4-4-20080711 (Martin Albrecht, July 11th, 2008) ===
+ * new upstream release
 
 === singular-3-0-4-2-20080405.p2 (Michael Abshoff, May 10th, 2008) ===
  * Default to "-O2" on Linux/Itanium (fixes #2983)

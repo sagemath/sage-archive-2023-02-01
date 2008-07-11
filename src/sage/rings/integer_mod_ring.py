@@ -345,6 +345,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R.<x> = Integers(15)[]
             sage: (x+5)/2
             8*x + 10
+
+
+        This should be very fast:
+            sage: R.<x> = Integers(next_prime(10^101)*next_prime(10^100))[]
+            sage: x / R.base_ring()(2)
+            500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000013365000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000401*x
         """
         return self
 

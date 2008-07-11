@@ -6,3 +6,4 @@ rm -rf modules
 rm -rf MP
 rm -rf Tst
 gzip omalloc/Misc/dlmalloc/malloc.ps
+rm -rf Singular/LIB/surfex

@@ -148,8 +148,10 @@ if [ -z "$SAGE_TESTDIR" ]; then
 fi
 
 LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
-# This following is needed for openmpi:
+# The following is needed for openmpi:
 LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/openmpi:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
+# The following is needed for R (in case the Sage install is moved):
+LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/R/lib:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 # The following is needed for OS X (especially for the
 # Singular install).
 if [ `uname` = "Darwin" ]; then

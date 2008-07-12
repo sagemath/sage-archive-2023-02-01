@@ -1576,3 +1576,26 @@ def embedded():
         False
     """
     return sage.server.support.EMBEDDED_MODE
+
+#################################################################
+# Deprecation
+#################################################################
+from warnings import warn
+
+def deprecation(message):
+    r"""
+    Issue a deprecation warning.
+
+    EXAMPLE:
+        sage: def foo():
+        ...    sage.misc.misc.deprecation("The function foo is replaced by bar.")
+        ...
+        sage: def my_function():
+        ...    foo()
+        ...
+        sage: my_function() # random: I don't know how to test the output.
+        doctest:1: DeprecationWarning: The function foo is replaced by bar.
+    """
+    # Stack level 3 to get the line number of the code which called
+    # the deprecated function which called this function.
+    warn(message, DeprecationWarning, stacklevel=3)

@@ -77,8 +77,8 @@ def dynkin_diagram(t):
         Dynkin diagram of type ['A', 3]
 
     """
-    import warnings
-    warnings.warn("dynkin_diagram is deprecated, use DynkinDiagram instead!", DeprecationWarning, stacklevel=2)
+    from sage.misc.misc import deprecation
+    deprecation("dynkin_diagram is deprecated, use DynkinDiagram instead!")
     return DynkinDiagram(t)
 
 

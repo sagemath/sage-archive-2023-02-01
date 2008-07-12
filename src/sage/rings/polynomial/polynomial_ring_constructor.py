@@ -311,8 +311,8 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     return R
 
 def MPolynomialRing(*args, **kwds):
-    import warnings
-    warnings.warn("MPolynomialRing is deprecated, use PolynomialRing instead!", DeprecationWarning, stacklevel=2)
+    from sage.misc.misc import deprecation
+    deprecation("MPolynomialRing is deprecated, use PolynomialRing instead!")
     return PolynomialRing(*args, **kwds)
 
 MPolynomialRing.__doc__ = """

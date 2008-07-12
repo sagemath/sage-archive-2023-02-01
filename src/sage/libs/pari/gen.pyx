@@ -963,6 +963,25 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_off
         return d
 
+    def __complex__(self):
+        r"""
+        Return \code{self} as a Python \class{complex} value.
+
+        EXAMPLES:
+            sage: g = pari(-1.0)^(1/5); g
+            0.8090169943749474241 + 0.5877852522924731292*I
+            sage: g.__complex__()
+            (0.80901699437494745+0.58778525229247314j)
+            sage: complex(g)
+            (0.80901699437494745+0.58778525229247314j)
+        """
+        cdef double re, im
+        _sig_on
+        re = gtodouble(greal(self.g))
+        im = gtodouble(gimag(self.g))
+        _sig_off
+        return complex(re, im)
+
     def __nonzero__(self):
         """
         EXAMPLES:

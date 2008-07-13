@@ -3007,6 +3007,38 @@ class FreeModule_ambient(FreeModule_generic):
     def echelon_coordinates(self, v, check=True):
         return self.coordinate_vector(v, check=check)
 
+    def random_element(self, prob=1.0, **kwds):
+        """
+        Returns a random element of self.
+
+        INPUT:
+            prob -- float; probability that given coefficient is nonzero.
+            **kwds -- passed on to random_element function of base ring.
+
+        EXAMPLES:
+            sage: M = FreeModule(ZZ, 3)
+            sage: M.random_element()
+            (-1, 2, 1)
+            sage: M.random_element()
+            (-95, -1, -2)
+            sage: M.random_element()
+            (-12, 0, 0)
+
+            sage: M = FreeModule(ZZ, 16)
+            sage: M.random_element()
+            (1, -1, 1, -1, -2, -1, 4, -4, -6, 5, 0, 0, -2, 0, 1, -4)
+            sage: M.random_element(prob=0.3)
+            (0, 0, 0, 0, 0, 0, 0, -6, 1, -1, 1, 0, 1, 0, 0, 0)
+        """
+        rand = current_randstate().python_random().random
+        R = self.base_ring()
+        v = self(0)
+        prob = float(prob)
+        for i in range(self.rank()):
+            if rand() <= prob:
+                v[i] = R.random_element(**kwds)
+        return v
+
 
 ###############################################################################
 #

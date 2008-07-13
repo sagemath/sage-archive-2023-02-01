@@ -84,6 +84,7 @@ def create_dep_dict(flist, funcdict, includedict, cwd):
                 newfilename = os.path.normpath(r)
                 newfiles.append(newfilename)
             newlist = newfiles
+            newlist.append(x)
         except:
             newlist = [x]
         dict[x] = newlist
@@ -96,7 +97,8 @@ def recurse_files(flist, depdict):
     fset = set(flist)
     outset = set()
     for x in fset:
-        outset.update(depdict[x])
+        deps = depdict[x]
+        outset.update(deps)
     if fset==outset:
         return fset
     else:
@@ -179,4 +181,5 @@ def get_compile_list(files, funcdict, includedict, cachefile, cwd):
 
 def write_cache(modfiles, newdict, invdict, moddict, hashdict, olddeps, cachefile):
     commit_new_dep_pickle(modfiles, newdict, moddict, hashdict, cachefile)
+
 

@@ -974,6 +974,13 @@ cdef class gen(sage.structure.element.RingElement):
             (0.80901699437494745+0.58778525229247314j)
             sage: complex(g)
             (0.80901699437494745+0.58778525229247314j)
+
+            sage: g = pari(Integers(5)(3)); g
+            Mod(3, 5)
+            sage: complex(g)
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type (20)
         """
         cdef double re, im
         _sig_on

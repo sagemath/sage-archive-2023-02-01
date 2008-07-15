@@ -2,11 +2,6 @@
 Interactively tracing execution of a command
 """
 
-import pdb
-
-import preparser
-
-
 def trace(code, preparse=True):
     r"""
     Evaluate \sage code using the interactive tracer and return the
@@ -39,10 +34,18 @@ def trace(code, preparse=True):
     For an article on how to use the Python debuger, see
        \url{http://www.onlamp.com/pub/a/python/2005/09/01/debugger.html}
     """
+
+    import IPython.Debugger
+    pdb = IPython.Debugger.Pdb()
+
+    import IPython.ipapi
+    _ip = IPython.ipapi.get()
+
+    import preparser
+
     code = preparser.preparse(code)
-    return pdb.runeval(code)
+    return pdb.runeval(code, _ip.user_ns)
 
     # this could also be useful; it drops
     # us into a debugger in an except block:
     #     import pdb; pdb.post_mortem(sys.exc_info()[2])
-

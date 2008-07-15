@@ -96,6 +96,8 @@ so the w = [5] above would work right.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import IPython.ipapi
+_ip = IPython.ipapi.get()
 
 __author__ = 'William Stein <wstein@gmail.com> et al.'
 __license__ = 'GPL'

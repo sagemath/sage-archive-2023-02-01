@@ -33,8 +33,9 @@ Implemented methods:
     domain
     range
     list
-    __add__ - addition (of functions)
-    __mul__ - multiplication (of functions, or fcn*scalar - ie, *right* multiplication by QQ)
+    __add__  - addition (of functions)
+    __mul__  - multiplication (of functions, or fcn*scalar - ie, *right* multiplication by QQ)
+    __rmul__ - *left* multiplication by QQ
     extend_by_zero_to
     unextend
 
@@ -66,6 +67,8 @@ AUTHOR: David Joyner (2006-04) -- initial version
 	DJ (2007-09) - bug fixes due to behaviour of SymbolicArithmetic
 	DJ (2008-04) - fixed docstring bugs reported by J Morrow; added support for
                        laplace transform of functions with infinite support.
+        DJ (2008-07) - fixed a left multiplication bug reported by C. Boncelet
+                       (by defining __rmul__ = __mul__).
 
 """
 
@@ -1335,7 +1338,7 @@ class PiecewisePolynomial:
     def __add__(self,other):
 	"""
 	Returns the piecewise defined function which is the sum of
-	self and other. Doesnot require both domains be the same.
+	self and other. Does not require both domains be the same.
 
 	EXAMPLES:
 	    sage: x = PolynomialRing(QQ,'x').gen()
@@ -1415,6 +1418,8 @@ class PiecewisePolynomial:
 	    x0 = endpts[j+1]
 	    fcn.append([(endpts[j],endpts[j+1]),self.which_function(x0)*other.which_function(x0)])
 	return Piecewise(fcn)
+
+    __rmul__ = __mul__
 
     def __eq__(self,other):
         """

@@ -214,7 +214,7 @@ fi
 
 sage() {
     sage_setup
-    sage-ipython "$@" -c "$SAGE_STARTUP_COMMAND;"
+    sage-ipython "$@" -i -c "$SAGE_STARTUP_COMMAND;"
 }
 
 if [ $# -eq 0 ]; then
@@ -521,7 +521,7 @@ if [ $1 = '-q' ]; then
    SAGE_BANNER="no"
    sage_setup
    shift
-   sage-ipython  $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND" "$@"
+   sage-ipython  $LOGOPT -rcfile="$IPYTHONRC" -i -c "$SAGE_STARTUP_COMMAND" "$@"
    exit $?
 fi
 

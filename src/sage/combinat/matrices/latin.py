@@ -102,7 +102,7 @@ for converting to a pair of LatinSquare objects.
         sage: print genus(T1, T2)
         1
 
- \section{To do}
+To do:
 
 \begin{enumerate}
 
@@ -120,7 +120,7 @@ AUTHORS:
     - Carlo Hamalainen (2008-03-23): initial version
 
 TESTS:
-    sage: L = abelian_2group(3)
+    sage: L = elementary_abelian_2group(3)
     sage: L == loads(dumps(L))
     True
 """
@@ -154,6 +154,8 @@ from sage.interfaces.gap import gap
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.rings.arith import is_prime
 from sage.rings.finite_field import FiniteField
+from sage.misc.misc import uniq
+from sage.misc.flatten import flatten
 
 #load "dancing_links.spyx"
 #load "dancing_links.sage"
@@ -427,6 +429,94 @@ class LatinSquare:
                 if self[r, c] >= 0: s += 1
         return s
 
+    def actual_row_col_sym_sizes(self):
+        """
+        Bitrades sometimes end up in partial latin squares with unused
+        rows, columns, or symbols. This function works out the actual
+        number of used rows, columns, and symbols.
+
+        WARNING: we assume that the unused rows/columns occur in the lower
+        right of self, and that the used symbols are in the range
+        {0, 1, ..., m} (no holes in that list).
+
+        EXAMPLE:
+            sage: from sage.combinat.matrices.latin import *
+            sage: B = back_circulant(3)
+            sage: B[0,2] = B[1,2] = B[2,2] = -1
+            sage: B[0,0] = B[2,1] = -1
+            sage: print B
+            [-1  1 -1]
+            [ 1  2 -1]
+            [ 2 -1 -1]
+            sage: print B.actual_row_col_sym_sizes()
+            (3, 2, 2)
+        """
+
+        row_max = self.nrows()
+        col_max = self.ncols()
+        sym_max = self.nr_distinct_symbols()
+
+        while self.is_empty_row(row_max-1): row_max -= 1
+        while self.is_empty_column(col_max-1): col_max -= 1
+
+        return row_max, col_max, sym_max
+
+    def is_empty_column(self, c):
+        """
+        Checks if column c of the partial latin square self is empty.
+
+        EXAMPLES:
+            sage: from sage.combinat.matrices.latin import *
+            sage: L = back_circulant(4)
+            sage: print L.is_empty_column(0)
+            False
+            sage: L[0,0] = L[1,0] = L[2,0] = L[3,0] = -1
+            sage: print L.is_empty_column(0)
+            True
+        """
+
+        return uniq(self.column(c)) == [-1]
+
+    def is_empty_row(self, r):
+        """
+        Checks if row r of the partial latin square self is empty.
+
+        EXAMPLES:
+            sage: from sage.combinat.matrices.latin import *
+            sage: L = back_circulant(4)
+            sage: print L.is_empty_row(0)
+            False
+            sage: L[0,0] = L[0,1] = L[0,2] = L[0,3] = -1
+            sage: print L.is_empty_row(0)
+            True
+
+        """
+
+        return uniq(self.row(r)) == [-1]
+
+    def nr_distinct_symbols(self):
+        """
+        Returns the number of distinct symbols in the partial
+        latin square self.
+
+        EXAMPLE:
+            sage: from sage.combinat.matrices.latin import *
+            sage: back_circulant(5).nr_distinct_symbols()
+            5
+            sage: L = LatinSquare(10)
+            sage: print L.nr_distinct_symbols()
+            0
+            sage: L[0, 0] = 0
+            sage: L[0, 1] = 1
+            sage: print L.nr_distinct_symbols()
+            2
+        """
+
+        symbols = uniq(flatten(map(lambda x: list(x), list(self.square))))
+        symbols = filter(lambda x: x >= 0, symbols)
+
+        return len(symbols)
+
     def apply_isotopism(self, row_perm, col_perm, sym_perm):
         """
         An isotopism is a permutation of the rows, columns, and symbols of a
@@ -588,7 +678,7 @@ class LatinSquare:
 
         EXAMPLES:
             sage: from sage.combinat.matrices.latin import *
-            sage: abelian_2group(4).is_latin_square()
+            sage: elementary_abelian_2group(4).is_latin_square()
             True
 
             sage: forward_circulant(7).is_latin_square()
@@ -700,7 +790,7 @@ class LatinSquare:
             sage: back_circulant(4).gcs().is_uniquely_completable()
             True
 
-            sage: G = abelian_2group(3).gcs()
+            sage: G = elementary_abelian_2group(3).gcs()
             sage: G.is_uniquely_completable()
             True
 
@@ -752,7 +842,7 @@ class LatinSquare:
 
         EXAMPLES:
             sage: from sage.combinat.matrices.latin import *
-            sage: A = abelian_2group(3)
+            sage: A = elementary_abelian_2group(3)
             sage: G = A.gcs()
             sage: print A
             [0 1 2 3 4 5 6 7]
@@ -848,6 +938,166 @@ class LatinSquare:
             if e >= 0: vals_in_col[e] = True
 
         return vals_in_col
+
+    def latex(self):
+        r"""
+        Returns LaTeX code for the latin square.
+
+        EXAMPLES:
+            sage: from sage.combinat.matrices.latin import *
+            sage: print back_circulant(3).latex()
+            \begin{array}{|c|c|c|}\hline 0 & 1 & 2\\\hline 1 & 2 & 0\\\hline 2 & 0 & 1\\\hline\end{array}
+        """
+
+        a = ""
+        a += r"\begin{array}{" + self.ncols()*"|c" + "|}"
+        for r in range(self.nrows()):
+            a += r"\hline "
+            for c in range(self.ncols()):
+                s = self[r, c]
+
+                if s < 0: a += "~"
+                else: a += str(s)
+
+                if c < self.ncols()-1: a += " & "
+                else: a += "\\\\"
+        a += r"\hline"
+        a += r"\end{array}"
+        return a
+
+    def disjoint_mate_dlxcpp_rows_and_map(self, allow_subtrade):
+        """
+        Internal function for find_disjoint_mates.
+
+        EXAMPLES:
+            sage: from sage.combinat.matrices.latin import *
+            sage: B = back_circulant(4)
+            sage: print B.disjoint_mate_dlxcpp_rows_and_map(allow_subtrade = True)
+            ([[0, 16, 32], [1, 17, 32], [2, 18, 32], [3, 19, 32], [4, 16, 33], [5, 17, 33], [6, 18, 33], [7, 19, 33], [8, 16, 34], [9, 17, 34], [10, 18, 34], [11, 19, 34], [12, 16, 35], [13, 17, 35], [14, 18, 35], [15, 19, 35], [0, 20, 36], [1, 21, 36], [2, 22, 36], [3, 23, 36], [4, 20, 37], [5, 21, 37], [6, 22, 37], [7, 23, 37], [8, 20, 38], [9, 21, 38], [10, 22, 38], [11, 23, 38], [12, 20, 39], [13, 21, 39], [14, 22, 39], [15, 23, 39], [0, 24, 40], [1, 25, 40], [2, 26, 40], [3, 27, 40], [4, 24, 41], [5, 25, 41], [6, 26, 41], [7, 27, 41], [8, 24, 42], [9, 25, 42], [10, 26, 42], [11, 27, 42], [12, 24, 43], [13, 25, 43], [14, 26, 43], [15, 27, 43], [0, 28, 44], [1, 29, 44], [2, 30, 44], [3, 31, 44], [4, 28, 45], [5, 29, 45], [6, 30, 45], [7, 31, 45], [8, 28, 46], [9, 29, 46], [10, 30, 46], [11, 31, 46], [12, 28, 47], [13, 29, 47], [14, 30, 47], [15, 31, 47]], {(9, 29, 46): (3, 2, 1), (13, 17, 35): (0, 3, 1), (7, 19, 33): (0, 1, 3), (14, 26, 43): (2, 3, 2), (0, 28, 44): (3, 0, 0), (5, 25, 41): (2, 1, 1), (11, 31, 46): (3, 2, 3), (14, 18, 35): (0, 3, 2), (11, 23, 38): (1, 2, 3), (5, 29, 45): (3, 1, 1), (13, 21, 39): (1, 3, 1), (1, 29, 44): (3, 0, 1), (0, 20, 36): (1, 0, 0), (12, 24, 43): (2, 3, 0), (8, 28, 46): (3, 2, 0), (12, 20, 39): (1, 3, 0), (11, 27, 42): (2, 2, 3), (6, 22, 37): (1, 1, 2), (1, 17, 32): (0, 0, 1), (10, 18, 34): (0, 2, 2), (12, 28, 47): (3, 3, 0), (1, 25, 40): (2, 0, 1), (10, 22, 38): (1, 2, 2), (5, 17, 33): (0, 1, 1), (3, 23, 36): (1, 0, 3), (6, 26, 41): (2, 1, 2), (9, 25, 42): (2, 2, 1), (7, 31, 45): (3, 1, 3), (15, 27, 43): (2, 3, 3), (3, 31, 44): (3, 0, 3), (8, 20, 38): (1, 2, 0), (2, 22, 36): (1, 0, 2), (3, 19, 32): (0, 0, 3), (9, 17, 34): (0, 2, 1), (15, 31, 47): (3, 3, 3), (8, 16, 34): (0, 2, 0), (14, 22, 39): (1, 3, 2), (4, 16, 33): (0, 1, 0), (14, 30, 47): (3, 3, 2), (2, 30, 44): (3, 0, 2), (4, 20, 37): (1, 1, 0), (6, 30, 45): (3, 1, 2), (12, 16, 35): (0, 3, 0), (15, 19, 35): (0, 3, 3), (5, 21, 37): (1, 1, 1), (4, 24, 41): (2, 1, 0), (13, 25, 43): (2, 3, 1), (0, 16, 32): (0, 0, 0), (15, 23, 39): (1, 3, 3), (7, 23, 37): (1, 1, 3), (6, 18, 33): (0, 1, 2), (10, 30, 46): (3, 2, 2), (13, 29, 47): (3, 3, 1), (11, 19, 34): (0, 2, 3), (1, 21, 36): (1, 0, 1), (7, 27, 41): (2, 1, 3), (0, 24, 40): (2, 0, 0), (10, 26, 42): (2, 2, 2), (3, 27, 40): (2, 0, 3), (2, 26, 40): (2, 0, 2), (9, 21, 38): (1, 2, 1), (8, 24, 42): (2, 2, 0), (4, 28, 45): (3, 1, 0), (2, 18, 32): (0, 0, 2)})
+        """
+
+        assert self.nrows() == self.ncols()
+
+        n = self.nrows()
+
+        # We will need 3n^2 columns in total:
+        #
+        # n^2 for the xCy columns
+        # n^2 for the xRy columns
+        # n^2 for the xy columns
+
+        dlx_rows = []
+        cmap = {}
+
+        max_column_nr = -1
+
+        for r in range(n):
+            valsrow = self.vals_in_row(r)
+
+            for c in range(n):
+                valscol = self.vals_in_col(c)
+
+                # If this is an empty cell of self then we do nothing.
+                if self[r, c] < 0: continue
+
+                for e in uniq(valsrow.keys() + valscol.keys()):
+                    # These should be constants
+                    c_OFFSET  = e + c*n
+                    r_OFFSET  = e + r*n + n*n
+                    xy_OFFSET = 2*n*n + r*n + c
+
+                    cmap[(c_OFFSET, r_OFFSET, xy_OFFSET)] = (r,c,e)
+
+                    # The disjoint mate has to be disjoint.
+                    if (not allow_subtrade) and self[r, c] == e: continue
+
+                    # The permissible symbols must come from this row/column.
+                    if not(valsrow.has_key(e)): continue
+                    if not(valscol.has_key(e)): continue
+
+                    dlx_rows.append([c_OFFSET, r_OFFSET, xy_OFFSET])
+
+                    if max_column_nr < max(c_OFFSET, r_OFFSET, xy_OFFSET):
+                        max_column_nr = max(c_OFFSET, r_OFFSET, xy_OFFSET)
+
+        # We will have missed some columns. We
+        # have to add 'dummy' rows so that the C++ DLX solver will find
+        # a solution.
+        used_columns = flatten(dlx_rows)
+        for i in range(0, max_column_nr+1):
+            if not i in used_columns:
+                dlx_rows.append([i])
+
+        return dlx_rows, cmap
+
+
+    def find_disjoint_mates(self, nr_to_find = None, allow_subtrade = False):
+        """
+
+        WARNING: if allow_subtrade is True then we may return a partial
+        latin square that is *not* disjoint to self. In that case, use
+        bitrade(P, Q) to get an actual bitrade.
+
+        EXAMPLES:
+            sage: from sage.combinat.matrices.latin import *
+            sage: B = back_circulant(4)
+            sage: g = B.find_disjoint_mates(allow_subtrade = True)
+            sage: B1 = g.next()
+            sage: B0, B1 = bitrade(B, B1)
+            sage: assert is_bitrade(B0, B1)
+            sage: print B0, "\n,\n", B1
+            [-1  1  2 -1]
+            [-1  2 -1  0]
+            [-1 -1 -1 -1]
+            [-1  0  1  2]
+            ,
+            [-1  2  1 -1]
+            [-1  0 -1  2]
+            [-1 -1 -1 -1]
+            [-1  1  2  0]
+        """
+
+        assert self.nrows() == self.ncols()
+
+        n = self.nrows()
+
+        dlx_rows, cmap = self.disjoint_mate_dlxcpp_rows_and_map(allow_subtrade)
+
+        nr_found = 0
+
+        for x in DLXCPP(dlx_rows):
+            nr_found += 1
+
+            Q = copy.deepcopy(self)
+
+            for y in x:
+                if len(dlx_rows[y]) == 1: continue # dummy row
+                (r, c, e) = cmap[tuple(dlx_rows[y])]
+                Q[r, c] = e
+
+            yield Q
+
+            if nr_to_find is not None and nr_found >= nr_to_find: return
+
+    def contained_in(self, Q):
+        r"""
+        Is self \\subseteq Q?
+
+        EXAMPLES:
+            sage: from sage.combinat.matrices.latin import *
+            sage: P = elementary_abelian_2group(2)
+            sage: P[0, 0] = -1
+            sage: print P.contained_in(elementary_abelian_2group(2))
+            True
+            sage: print back_circulant(4).contained_in(elementary_abelian_2group(2))
+            False
+        """
+
+        for r in range(self.nrows()):
+            for c in range(self.ncols()):
+                if self[r, c] >= 0 and Q[r, c] < 0: return False
+                if self[r, c] >= 0 and (self[r, c] != Q[r, c]): return False
+        return True
 
 def genus(T1, T2):
     """
@@ -1176,11 +1426,11 @@ def beta3(rce, T1, T2):
     raise PairNotBitrade
 
 def tau1(T1, T2, cells_map):
-    """
+    r"""
     The definition of tau1 is:
 
         tau1 : T1 -> T1
-        tau1 = beta^(-1)_2 beta_3   (composing left to right)
+        tau1 = beta\^(-1)_2 beta_3   (composing left to right 000)
 
     where
 
@@ -1228,10 +1478,10 @@ def tau1(T1, T2, cells_map):
 
 def tau2(T1, T2, cells_map):
     """
-    The definition of tau1 is:
+    The definition of tau2 is:
 
-        tau1 : T1 -> T1
-        tau1 = beta^(-1)_2 beta_3   (composing left to right)
+        tau2 : T1 -> T1
+        tau2 = beta\^(-1)_3 beta_1   (composing left to right)
 
     where
 
@@ -1282,7 +1532,7 @@ def tau3(T1, T2, cells_map):
     The definition of tau1 is:
 
         tau1 : T1 -> T1
-        tau1 = beta^(-1)_2 beta_3   (composing left to right)
+        tau1 = beta\^(-1)_3 beta_1   (composing left to right)
 
     where
 
@@ -1400,7 +1650,7 @@ def direct_product(L1, L2, L3, L4):
 
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
-        sage: direct_product(back_circulant(4), back_circulant(4), abelian_2group(2), abelian_2group(2))
+        sage: direct_product(back_circulant(4), back_circulant(4), elementary_abelian_2group(2), elementary_abelian_2group(2))
         [0 1 2 3 4 5 6 7]
         [1 2 3 0 5 6 7 4]
         [2 3 0 1 6 7 4 5]
@@ -1428,17 +1678,17 @@ def direct_product(L1, L2, L3, L4):
 
     return D
 
-def abelian_2group(s):
+def elementary_abelian_2group(s):
     """
     Returns the latin square based on the Cayley table for the
-    abelian 2-group of order 2^s.
+    elementary abelian 2-group of order 2\^s.
 
     INPUT:
-        s --    int; order of the latin square will be 2^s.
+        s --    int; order of the latin square will be 2\^s.
 
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
-        sage: print abelian_2group(3)
+        sage: print elementary_abelian_2group(3)
         [0 1 2 3 4 5 6 7]
         [1 0 3 2 5 4 7 6]
         [2 3 0 1 6 7 4 5]
@@ -1460,7 +1710,7 @@ def abelian_2group(s):
 
         return L
     else:
-        L_prev = abelian_2group(s-1)
+        L_prev = elementary_abelian_2group(s-1)
         L = LatinSquare(2**s, 2**s)
 
         offset = L.nrows()/2
@@ -1902,7 +2152,7 @@ def pq_group_bitrade_generators(p, q):
 
 def p3_group_bitrade_generators(p):
     """
-    Generators for a group of order p^3 where p is a prime.
+    Generators for a group of order p\^3 where p is a prime.
 
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
@@ -2174,7 +2424,7 @@ def is_same_shape(T1, T2):
 
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
-        sage: is_same_shape(abelian_2group(2), back_circulant(4))
+        sage: is_same_shape(elementary_abelian_2group(2), back_circulant(4))
         True
         sage: is_same_shape(LatinSquare(5), LatinSquare(5))
         True
@@ -2328,4 +2578,47 @@ def dlxcpp_find_completions(P, nr_to_find = None):
         comps.append(Q)
 
     return comps
+
+def bitrade(T1, T2):
+    r"""
+    Form the bitrade (Q1, Q2) from (T1, T2) by setting empty the cells
+    (r, c) such that T1[r, c] == T2[r, c].
+
+    EXAMPLES:
+        sage: from sage.combinat.matrices.latin import *
+        sage: B1 = back_circulant(5)
+        sage: alpha = isotopism((0,1,2,3,4))
+        sage: beta  = isotopism((1,0,2,3,4))
+        sage: gamma = isotopism((2,1,0,3,4))
+        sage: B2 = B1.apply_isotopism(alpha, beta, gamma)
+        sage: T1, T2 = bitrade(B1, B2)
+        sage: print T1
+        [ 0  1 -1  3  4]
+        [ 1 -1 -1  4  0]
+        [ 2 -1  4  0  1]
+        [ 3  4  0  1  2]
+        [ 4  0  1  2  3]
+        sage: print T2
+        [ 3  4 -1  0  1]
+        [ 0 -1 -1  1  4]
+        [ 1 -1  0  4  2]
+        [ 4  0  1  2  3]
+        [ 2  1  4  3  0]
+    """
+    assert T1.nrows() == T1.ncols()
+    assert T2.nrows() == T2.ncols()
+    assert T1.nrows() == T2.nrows()
+
+    n = T1.nrows()
+
+    Q1 = T1.copy()
+    Q2 = T2.copy()
+
+    for r in range(n):
+        for c in range(n):
+            if T1[r, c] == T2[r, c]:
+                Q1[r, c] = -1
+                Q2[r, c] = -1
+
+    return Q1, Q2
 

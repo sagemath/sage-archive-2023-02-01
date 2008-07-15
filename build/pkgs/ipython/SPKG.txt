@@ -36,6 +36,9 @@ ipython-user@scipy.org
 
 == Changelog ==
 
+== ipython-0.8.4.p0 (Mike Hansen July 15, 2008 ==
+ * update to the official 0.8.4 release
+
 === ipython-0.8.2.p0 (Michael Abshoff, May 11, 2008) ===
  * add hg repo & .hgignore
  * clean up spkg-install

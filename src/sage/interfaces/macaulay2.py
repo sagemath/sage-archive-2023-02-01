@@ -545,7 +545,7 @@ class Macaulay2Element(ExpectElement):
         """
         EXAMPLES:
             sage: m = macaulay2('matrix {{1,2},{3,4}}') #optional
-            sage: m
+            sage: m                                     #optional
             | 1 2 |
             | 3 4 |
             sage: latex(m) #optional
@@ -571,7 +571,7 @@ class Macaulay2Element(ExpectElement):
             sage: R = macaulay2("QQ[x,y,z]/(x^3-y^3-z^3)") #optional
             sage: x = macaulay2('x')                       #optional
             sage: y = macaulay2('y')                       #optional
-            sage: print x+y
+            sage: print x+y                                #optional
             x + y
             sage: print macaulay2("QQ[x,y,z]")             #optional
             QQ [x, y, z]

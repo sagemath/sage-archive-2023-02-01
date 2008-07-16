@@ -6,7 +6,11 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-cp Makefile.in src/
+cp patches/Makefile.in src/
+if [ $? -ne 0 ]; then
+   echo "Error copying Makefile for gdbm."
+   exit 1
+fi
 
 cd src
 

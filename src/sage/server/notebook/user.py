@@ -46,6 +46,7 @@ class User:
                     self.history = cPickle.load(open(history_file))
                 except:
                     print "Error loading history for user %s"%self.__username
+                    self.history = []
             else:
                 self.history = []
             return self.history

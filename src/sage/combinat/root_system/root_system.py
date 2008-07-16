@@ -682,7 +682,7 @@ class AmbientLattice_e(AmbientLattice_generic):
         """
         Create the ambient lattice for the root system for E6, E7, E8.
         Specify the Base, i.e., the simple roots w.r. to the canonical
-        basis for R^8.
+        basis for $R^8$.
 
         EXAMPLES:
             sage: e = RootSystem(['E',6]).ambient_lattice()
@@ -864,7 +864,7 @@ class AmbientLattice_f(AmbientLattice_generic):
         """
         Create the ambient lattice for the root system for F4.
         Specify the Base, i.e., the simple roots w.r. to the canonical
-        basis for R^4.
+        basis for $R^4$.
 
         EXAMPLES:
             sage: e = RootSystem(['F',4]).ambient_lattice()

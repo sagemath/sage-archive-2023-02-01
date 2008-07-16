@@ -1,3 +1,6 @@
+"""
+Cartan matrices
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #

@@ -242,10 +242,10 @@ class WeylCharacter(AlgebraElement):
 
     def __pow__(self, n):
         """
-        Returns self^n.
+        Returns $self^n$.
 
-        The coefficients in chi^k are the degrees of those irreducible representations
-        of the symmetric group S_k corresponding to partitions of length <=3.
+        The coefficients in $chi^k$ are the degrees of those irreducible representations
+        of the symmetric group $S_k$ corresponding to partitions of length <=3.
 
         EXAMPLES:
             sage: A2 = WeylCharacterRing(['A',2])
@@ -871,7 +871,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     Here A3(x,y,z,w) can be understood as a representation of SL(4). The
     weights x,y,z,w and x+t,y+t,z+t,w+t represent the same representation
     of SL(4) - though not of GL(4) -- since A3(x+t,y+t,z+t,w+t) is the
-    same as A3(x,y,z,w) tensored with det^t. So as a representation of
+    same as A3(x,y,z,w) tensored with $det^t$. So as a representation of
     SL(4), A3(1/4,1/4,1/4,-3/4) is the same as A3(1,1,1,0). The exterior
     square representation SL(4) --> GL(6) admits an invariant symmetric
     bilinear form, so is a representation SL(4) --> SO(6) that lifts to

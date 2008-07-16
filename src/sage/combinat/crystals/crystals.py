@@ -10,11 +10,16 @@ such that:
 \begin{itemize}
 \item each edge has a label in $I$
 \item for each $i$ in $I$, each node $x$ has:
-    - at most one $i$-successor $f_i(x)$
-    - at most one $i$-predecessor $e_i(x)$
+  \begin{itemize}
+     \item at most one $i$-successor $f_i(x)$
+     \item at most one $i$-predecessor $e_i(x)$
+  \end{itemize}
    Furthermore, when the exists,
-    - $f_i(x)$.weight() = x.weight() - $\alpha_i$
-    - $e_i(x)$.weight() = x.weight() + $\alpha_i$
+   \begin{itemize}
+     \item $f_i(x)$.weight() = x.weight() - $\alpha_i$
+     \item $e_i(x)$.weight() = x.weight() + $\alpha_i$
+   \end{itemize}
+\end{itemize}
 
 This crystal actually models a representation of a Lie algebra if it
 satisfies some further local conditions due to Stembridge.
@@ -61,17 +66,21 @@ classical crystals, is still in an early development stage, and the
 syntax details may be subject to changes.
 
 TODO:
- - Vocabulary and conventions:
-   - elements or vectors of a crystal?
-   - For a classical crystal: connected / highest weight / irreducible
-   - ...
- - More introductory doc explaining the mathematical background
- - Layout instructions for plot() for rank 2 types
- - Streamlining the latex output
- - Littelmann paths and/or alcove paths (this would give us the exceptional types)
- - RestrictionOfCrystal / DirectSumOfCrystals
- - Crystal.crystal_morphism
- - Affine crystals
+\begin{itemize}
+  \item Vocabulary and conventions:
+  \begin{itemize}
+    \item elements or vectors of a crystal?
+    \item For a classical crystal: connected / highest weight / irreducible
+    \item ...
+  \end{itemize}
+  \item More introductory doc explaining the mathematical background
+  \item Layout instructions for plot() for rank 2 types
+  \item Streamlining the latex output
+  \item Littelmann paths and/or alcove paths (this would give us the exceptional types)
+  \item RestrictionOfCrystal / DirectSumOfCrystals
+  \item Crystal.crystal_morphism
+  \item Affine crystals
+\end{itemize}
 
 Most of the above features (except Littelmann/alcove paths) are in
 MuPAD-Combinat (see lib/COMBINAT/crystals.mu), which could provide
@@ -157,12 +166,12 @@ class Crystal(CombinatorialClass, Parent):
         r"""
         Runs sanity checks on the crystal:
         \begin{itemize}
-        \item Checks that count, list, and __iter__ are
+          \item Checks that count, list, and __iter__ are
         consistent. For a ClassicalCrystal, this in particular checks
         that the number of elements returned by the brute force
         listing and the iterator __iter__ are consistent with the Weyl
         dimension formula.
-        \item Should check Stembridge's rules, etc.
+          \item Should check Stembridge's rules, etc.
         \end{itemize}
 
         EXAMPLES:
@@ -301,39 +310,50 @@ class Crystal(CombinatorialClass, Parent):
         This requires dot2tex to be installed in sage-python.
 
         Here some tips for installation:
-         - Install graphviz >= 2.14
-         - Make sure sage-python is >= 2.4
-         - Download pyparsing-1.4.11.tar.gz pydot-0.9.10.tar.gz dot2tex-2.7.0.tar.gz
+        \begin{itemize}
+         \item Install graphviz >= 2.14
+         \item Download pyparsing-1.4.11.tar.gz pydot-0.9.10.tar.gz dot2tex-2.7.0.tar.gz
            (see the dot2tex web page for download links)
            (note that the most recent version of pydot may not work.  Be sure to install the 0.9.10
            version.)
            Install each of them using the standard python install, but using sage-python:
 
-                sagedir=/opt/sage-2.10-opteron-ubuntu64-x86_64-Linux/  # FIX ACCORDING TO YOUR SAGE INSTALL
-                sagepython=$sagedir/local/bin/sage-python
-            for package in pyparsing-1.4.11 pydot-0.9.10 dot2tex-2.7.0; do\  # Use downloaded version nums
+           \begin{verbatim}
+            # FIX ACCORDING TO YOUR SAGE INSTALL
+            export sagedir=/opt/sage/
+            export sagepython=$sagedir/local/bin/sage-python
+
+            # Use downloaded version nums
+            for package in pyparsing-1.4.11 pydot-0.9.10 dot2tex-2.7.0; do\
                     tar zxvf $package.tar.gz;\
                     cd $package;\
                     sudo $sagepython setup.py install;\
                     cd ..;\
                 done
+           \end{verbatim}
 
-         - Install pgf-2.00 inside your latex tree
+         \item Install pgf-2.00 inside your latex tree
            In short:
-            - untaring in /usr/share/texmf/tex/generic
-            - clean out remaining pgf files from older version
-            - run texhash
+           \begin{itemize}
+             \item untaring in /usr/share/texmf/tex/generic
+             \item clean out remaining pgf files from older version
+             \item run texhash
+           \end{itemize}
+        \end{itemize}
 
         You should be done!
         To test, go to the dot2tex-2.7.0/examples directory, and type:
 
-            $sagedir//local/bin/dot2tex balls.dot > balls.tex
-                pdflatex balls.tex
-                open balls.pdf # your favorite viewer here
+        \begin{verbatim}
+        $sagedir//local/bin/dot2tex balls.dot > balls.tex
+        pdflatex balls.tex
+        open balls.pdf \#your favorite viewer here
+        \end{verbatim}
 
         EXAMPLES:
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.latex() #optional requires dot2tex
+            ...
         """
 
         try:

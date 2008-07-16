@@ -670,7 +670,7 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
         return repr(self.to_tableau())
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES:
             sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
             sage: t = T(rows=[[1,2],[3,4]])

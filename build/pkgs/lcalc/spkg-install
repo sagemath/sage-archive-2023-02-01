@@ -13,7 +13,7 @@ fi
 
 cd src
 
-CFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated -static-libgcc"
+CFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated "
 
 export CFLAGS
 if [ "$UNAME" = "SunOS" ]; then

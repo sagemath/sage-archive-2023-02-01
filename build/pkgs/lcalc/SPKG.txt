@@ -1,5 +1,7 @@
 = lcalc =
 
+=== lcalc-20080205.p2 (Michael Abshoff, July 15th, 2008) ===
+ * remove "-static-libgcc" from CFLAGS (fixes #3647)
 
 === lcalc-20080205.p1 (Michael Abshoff, May 18th, 2008) ===
  * add 64 bit OSX build support

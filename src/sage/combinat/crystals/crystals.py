@@ -4,35 +4,39 @@ Crystals
 Let $T$ be a CartanType with index set $I$, and $W$ be a realization of the
 type $T$ weight lattice.
 
-A type $T$ crystal $C$ is an oriented graph equipped with a weight
-function the nodes to some realization of the type $T$ weight lattice
+A type $T$ crystal $C$ is a colored oriented graph equipped with a weight
+function from the nodes to some realization of the type $T$ weight lattice
 such that:
 \begin{itemize}
-\item each edge has a label in $I$
-\item for each $i$ in $I$, each node $x$ has:
+\item Each edge is colored with a label in $i \in I$.
+\item For each $i\in I$, each node $x$ has:
   \begin{itemize}
-     \item at most one $i$-successor $f_i(x)$
-     \item at most one $i$-predecessor $e_i(x)$
+     \item at most one $i$-successor $f_i(x)$;
+     \item at most one $i$-predecessor $e_i(x)$.
   \end{itemize}
-   Furthermore, when the exists,
+   Furthermore, when they exist,
    \begin{itemize}
-     \item $f_i(x)$.weight() = x.weight() - $\alpha_i$
-     \item $e_i(x)$.weight() = x.weight() + $\alpha_i$
+     \item $f_i(x)$.weight() = x.weight() - $\alpha_i$;
+     \item $e_i(x)$.weight() = x.weight() + $\alpha_i$.
    \end{itemize}
 \end{itemize}
 
 This crystal actually models a representation of a Lie algebra if it
-satisfies some further local conditions due to Stembridge.
+satisfies some further local conditions due to Stembridge, see
+J. Stembridge, \textit{A local characterization of simply-laced crystals},
+Trans. Amer. Math. Soc. 355 (2003), no. 12, 4807--4823.
 
 EXAMPLES:
 
-We construct the type $A_5$ crystal on letters
+We construct the type $A_5$ crystal on letters (or in representation
+theoretic terms, the highest weight crystal of type $A_5$ corresponding
+to the highest weight $\Lambda_1$)
 
     sage: C = CrystalOfLetters(['A',5]); C
     The crystal of letters for type ['A', 5]
 
 It has a single highest weight element:
-    sage: C.module_generators
+    sage: C.highest_weight_vectors()
     [1]
 
 A crystal is a CombinatorialClass; and we can count and list its elements
@@ -57,7 +61,6 @@ One can get (currently) crude ploting via:
     sage: Tab.plot()
 
 
-
 For rank two crystals, there is an alternative method of getting
 metapost pictures. For more information see C.metapost?
 
@@ -80,6 +83,7 @@ TODO:
   \item RestrictionOfCrystal / DirectSumOfCrystals
   \item Crystal.crystal_morphism
   \item Affine crystals
+  \item Kirillov--Reshetikhin crystals
 \end{itemize}
 
 Most of the above features (except Littelmann/alcove paths) are in
@@ -128,7 +132,7 @@ class Crystal(CombinatorialClass, Parent):
     \item index_set
         the index set of the cartan type
     \item module_generators
-        a list (or container) of distinct elements which generate the crystal
+        a list (or container) of distinct elements which generate the crystal using $f_i$
     \item weight_lattice_realization
     \end{itemize}
     """
@@ -514,9 +518,10 @@ class Crystal(CombinatorialClass, Parent):
         Returns a dot_tex version of self.
 
         EXAMPLES:
-            sage: C = CrystalOfLetters(['A',2])
-            sage: C.dot_tex()
-            'digraph G { \n  node [ shape=plaintext ];\n  N_0 [ label = " ", texlbl = "$\\text{1}$" ];\n  N_1 [ label = " ", texlbl = "$\\text{2}$" ];\n  N_2 [ label = " ", texlbl = "$\\text{3}$" ];\n  N_0 -> N_1 [ label = " ", texlbl = "1" ];\n  N_1 -> N_2 [ label = " ", texlbl = "2" ];\n}'
+
+        sage: C = CrystalOfLetters(['A',2])
+        sage: C.dot_tex()
+        'digraph G { \n  node [ shape=plaintext ];\n  N_0 [ label = " ", texlbl = "$\\text{1}$" ];\n  N_1 [ label = " ", texlbl = "$\\text{2}$" ];\n  N_2 [ label = " ", texlbl = "$\\text{3}$" ];\n  N_0 -> N_1 [ label = " ", texlbl = "1" ];\n  N_1 -> N_2 [ label = " ", texlbl = "2" ];\n}'
 
         """
         import re

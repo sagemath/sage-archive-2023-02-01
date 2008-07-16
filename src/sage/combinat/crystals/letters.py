@@ -30,9 +30,11 @@ def CrystalOfLetters(cartan_type):
     For classical types, this is a combinatorial model for the crystal
     with highest weight Lambda_1 (the first fundamental weight).
 
-    Any irreducible classical crystal appears as irreducible component
+    Any irreducible classical crystal appears as the irreducible component
     of the tensor product of several copies of this crystal (plus
     possibly one copy of the spin crystal, see CrystalOfSpins).
+    See M. Kashiwara, T. Nakashima, \textit{Crystal graphs for representations of
+    the $q$-analogue of classical Lie algebras}, J. Algebra \textbf{165} (1994), no. 2, 295--345.
     Elements of this irreducible component have a fixed shape, and can
     be fit inside a tableau shape. Otherwise said, any irreducible
     classical crystal is isomorphic to a crystal of tableaux with
@@ -74,9 +76,9 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
 
     All classical crystals of letters should be instances of this class
     or of subclasses. To define a new crystal of letters, one only
-    need to implement a class for the elements (which subclasses
+    needs to implement a class for the elements (which subclasses
     Letter and CrystalElement), with appropriate e and f
-    operations. If the module generator is not 1, one also need to
+    operations. If the module generator is not 1, one also needs to define the
     subclass ClassicalCrystalOfLetters for the crystal itself.
 
     The basic assumption is that crystals of letters are small, but

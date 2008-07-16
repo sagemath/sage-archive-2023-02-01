@@ -1,3 +1,21 @@
+"""
+Families
+"""
+#*****************************************************************************
+#       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
+#                          Mike Hansen <mhansen@gmail.com>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.finite_class import FiniteCombinatorialClass_l
 
@@ -41,9 +59,9 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
             ['a', 'b', 'd']
             sage: f.keys()
             [3, 4, 7]
-            sage: 'b' in f       # todo: not implemented
+            sage: 'b' in f
             True
-            sage: 'e' in f       # todo: not implemented
+            sage: 'e' in f
             False
 
         A familly can also be constructed by its index set $I$ and a
@@ -69,7 +87,7 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
         list to be hashable. One can ask instead for the images $f(i)$
         to be computed lazily, when needed:
 
-            sage: f = LazyFamily([3,4,7], lambda i: 2*i)
+            sage: f = LazyFamily([3,4,7], lambda i: 2r*i)
             sage: f
             Lazy family (f(i))_{i in [3, 4, 7]}
             sage: f[7]
@@ -82,7 +100,7 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
             3
 
         This allows in particular for modeling infinite families:
-            sage: f = Family(ZZ, lambda i: 2*i)
+            sage: f = Family(ZZ, lambda i: 2r*i)
             sage: f
             Lazy family (f(i))_{i in Integer Ring}
             sage: f.keys()
@@ -95,11 +113,13 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
             sage: i.next(), i.next(), i.next(), i.next(), i.next()
             (0, 2, -2, 4, -4)
 
-        Caveat: families with lazy behavior cannot be pickled
-
+        Caveat: Only certain families with lazy behavior can be pickled. In
+        particular, only functions that work with Sage's pickle_function
+        and unpickle_function (in sage.misc.fpickle) will correctly
+        unpickle.
 
         Finally, it can occasionally be useful to add some hidden
-        elements in a familly, which are accessible as f[i], but
+        elements in a family, which are accessible as f[i], but
         do not appear in the keys or the container operations.
 
             sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])
@@ -226,10 +246,14 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
     raise NotImplementedError
 
 class AbstractFamily(CombinatorialClass):
-
     def hidden_keys(self):
         """
-        Returns the hidden keys of the family, if any
+        Returns the hidden keys of the family, if any.
+
+        EXAMPLES:
+            sage: f = Family({3: 'a', 4: 'b', 7: 'd'})
+            sage: f.hidden_keys()
+            []
         """
         return []
 
@@ -293,34 +317,94 @@ class FiniteFamily(AbstractFamily):
         ['a', 'b', 'd']
         sage: [ x for x in f ]
         ['a', 'b', 'd']
-        sage: f == loads(dumps(f))
-        True
     """
 
     def __init__(self, dictionary, keys = None):
+        """
+        TESTS:
+            sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
+            sage: f == loads(dumps(f))
+            True
+        """
         # TODO: use keys to specify the order of the elements
         self.dictionary = dictionary
         self.keys = dictionary.keys
-        self.__iter__ = dictionary.itervalues
-        self.list = dictionary.values # should not be required
         self.values = dictionary.values
-        self.__getitem__ = dictionary.__getitem__
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: FiniteFamily({3: 'a'})
+            Finite family {3: 'a'}
+        """
         return "Finite family %s"%self.dictionary
 
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: f = FiniteFamily({3: 'a'})
+            sage: 'a' in f
+            True
+            sage: 'b' in f
+            False
+        """
+        return x in self.values()
+
     def count(self):
+        """
+        Returns the number of elements in self.
+
+        EXAMPLES:
+            sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
+            sage: f.count()
+            3
+        """
         return len(self.dictionary)
 
-    # Why isn't it sufficient to set self.__getitem__ as above?
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: f = FiniteFamily({3: 'a'})
+            sage: i = iter(f)
+            sage: i.next()
+            'a'
+
+        """
+        return iter(self.values())
+
     def __getitem__(self, i):
-        return self.__getitem__(i)
+        """
+
+        Note that we can't just do self.__getitem__ = dictionary.__getitem__ in the
+        __init__ method since Python queries the object's type/class
+        for the special methods rather than querying the object itself.
+
+        EXAMPLES:
+            sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
+            sage: f[3]
+            'a'
+        """
+        return self.dictionary.__getitem__(i)
 
     # For the pickle and copy modules
     def __getstate__(self):
+        """
+        TESTS:
+            sage: f = FiniteFamily({3: 'a'})
+            sage: f.__getstate__()
+            {'dictionary': {3: 'a'}}
+        """
         return {'dictionary': self.dictionary}
 
     def __setstate__(self, state):
+        """
+        EXAMPLES:
+            sage: f = FiniteFamily({3: 'a'})
+            sage: f.__setstate__({'dictionary': {4:'b'}})
+            sage: f
+            Finite family {4: 'b'}
+
+        """
         self.__init__(state['dictionary'])
 
 class FiniteFamilyWithHiddenKeys(FiniteFamily):
@@ -330,10 +414,16 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
     remembered). Instances should be created via the Family factory,
     which see for examples and tests.
 
-    Caveat: instances of this class cannot be pickled, because the
-    hidden_function itself cannot.
+    Caveat: Only instances of this class whose functions are
+    compatible with sage.misc.fpickle can be pickled.
     """
     def __init__(self, dictionary, hidden_keys, hidden_function):
+        """
+        EXAMPLES:
+            sage: f = Family([3,4,7], lambda i: 2r*i, hidden_keys=[2])
+            sage: f == loads(dumps(f))
+            True
+        """
         FiniteFamily.__init__(self, dictionary)
         self._hidden_keys = hidden_keys
         self.hidden_function = hidden_function
@@ -344,19 +434,72 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
         #self.__getitem__ = lambda i: dictionary[i] if dictionary.has_key(i) else hidden_dictionary[i]
 
     def __getitem__(self, i):
-        if self.dictionary.has_key(i):
+        """
+        EXAMPLES:
+            sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])
+            sage: f[3]
+            6
+            sage: f[2]
+            4
+            sage: f[5]
+            Traceback (most recent call last):
+            ...
+            KeyError
+
+        """
+        if i in self.dictionary:
             return self.dictionary[i]
-        if not self.hidden_dictionary.has_key(i):
-            if not i in self._hidden_keys:
+
+        if i not in self.hidden_dictionary:
+            if i not in self._hidden_keys:
                 raise KeyError
             self.hidden_dictionary[i] = self.hidden_function(i)
+
         return self.hidden_dictionary[i]
 
     def hidden_keys(self):
+        """
+        Returns self's hidden keys.
+
+        EXAMPLES:
+            sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])
+            sage: f.hidden_keys()
+            [2]
+        """
         return self._hidden_keys
 
     def __getstate__(self):
-        raise NotImplementedError
+        """
+        EXAMPLES:
+            sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])
+            sage: d = f.__getstate__()
+            sage: d['hidden_keys']
+            [2]
+        """
+        from sage.misc.fpickle import pickle_function
+        f = pickle_function(self.hidden_function)
+        return {'dictionary': self.dictionary,
+                'hidden_keys': self._hidden_keys,
+                'hidden_dictionary': self.hidden_dictionary,
+                'hidden_function': f}
+
+    def __setstate__(self, d):
+        """
+        EXAMPLES:
+            sage: f = Family([3,4,7], lambda i: 2r*i, hidden_keys=[2])
+            sage: d = f.__getstate__()
+            sage: f = Family([4,5,6], lambda i: 2r*i, hidden_keys=[2])
+            sage: f.__setstate__(d)
+            sage: f.keys()
+            [3, 4, 7]
+            sage: f[3]
+            6
+        """
+        from sage.misc.fpickle import unpickle_function
+        hidden_function = unpickle_function(d['hidden_function'])
+        self.__init__(d['dictionary'], d['hidden_keys'], hidden_function)
+        self.hidden_dictionary = d['hidden_dictionary']
+
 
 class LazyFamily(AbstractFamily):
     r"""
@@ -366,25 +509,87 @@ class LazyFamily(AbstractFamily):
     Instances should be created via the Family factory, which see for
     examples and tests.
     """
-
     def __init__(self, set, function, name = "f"):
+        """
+        EXAMPLES:
+            sage: f = LazyFamily([3,4,7], lambda i: 2r*i); f
+            Lazy family (f(i))_{i in [3, 4, 7]}
+            sage: f == loads(dumps(f))
+            True
+        """
         self.set = set
         self.name = name
-        self.__getitem__ = function
+        self.function = function
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: f = LazyFamily([3,4,7], lambda i: 2*i); f
+            Lazy family (f(i))_{i in [3, 4, 7]}
+        """
         return "Lazy family (%s(i))_{i in %s}"%(self.name,self.set)
 
     def keys(self):
+        """
+        Returns self's keys.
+
+        EXAMPLES:
+            sage: f = LazyFamily([3,4,7], lambda i: 2*i)
+            sage: f.keys()
+            [3, 4, 7]
+        """
         return self.set
 
-    def __iter__(self):
-        for i in self.set.__iter__():
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: f = LazyFamily([3,4,7], lambda i: 2*i)
+            sage: [i for i in f]
+            [6, 8, 14]
+        """
+        for i in self.set:
             yield self[i]
 
-    # Should disappear
-    iterator = __iter__
-
-    # Why isn't it sufficient to set self.__getitem__ as above?
     def __getitem__(self, i):
-        return self.__getitem__(i)
+        """
+        EXAMPLES:
+            sage: f = LazyFamily([3,4,7], lambda i: 2*i)
+            sage: f[3]
+            6
+
+        TESTS:
+            sage: f[5]
+            10
+        """
+        return self.function(i)
+
+    def __getstate__(self):
+        """
+        EXAMPLES:
+            sage: f = LazyFamily([3,4,7], lambda i: 2r*i)
+            sage: d = f.__getstate__()
+            sage: d['set']
+            [3, 4, 7]
+
+        """
+        from sage.misc.fpickle import pickle_function
+        f = pickle_function(self.function)
+        return {'set': self.set,
+                'name': self.name,
+                'function': f}
+
+    def __setstate__(self, d):
+        """
+        EXAMPLES:
+            sage: f = LazyFamily([3,4,7], lambda i: 2r*i)
+            sage: d = f.__getstate__()
+            sage: f = LazyFamily([4,5,6], lambda i: 2r*i)
+            sage: f.__setstate__(d)
+            sage: f.keys()
+            [3, 4, 7]
+            sage: f[3]
+            6
+        """
+        from sage.misc.fpickle import unpickle_function
+        function = unpickle_function(d['function'])
+        self.__init__(d['set'], function, d['name'])

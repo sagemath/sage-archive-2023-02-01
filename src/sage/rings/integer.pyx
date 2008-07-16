@@ -609,6 +609,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self.str()
 
+    def _sympy_(self):
+        """
+        Convert Sage Integer() to SymPy Integer.
+
+        EXAMPLES:
+            sage: n = 5; n._sympy_()
+            5
+            sage: n = -5; n._sympy_()
+            -5
+        """
+        import sympy
+        return sympy.sympify(int(self))
+
     def _mathml_(self):
         """
         Return mathml representation of this integer.

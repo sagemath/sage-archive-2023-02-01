@@ -158,4 +158,15 @@ sage: e = sage.all.cos(var("y")**3)**4+var("x")**2
 sage: e = e._sympy_()
 sage: print e
     x**2 + cos(y**3)**4
+
+sage: a = sympy.Matrix([1, 2, 3])
+sage: a[1]
+2
+
+sage: sympify(1.5)
+1.5
+sage: sympify(2)
+2
+sage: sympify(-2)
+-2
 """

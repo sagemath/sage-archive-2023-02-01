@@ -1,0 +1,3 @@
+src/configure --prefix=$SAGE_LOCAL --enable-large-config
+make
+make install

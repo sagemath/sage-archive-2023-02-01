@@ -1,0 +1,35 @@
+= gdbm =
+
+== Description ==
+
+GNU dbm is a set of database routines that use extendible hashing and
+works similar to the standard UNIX dbm routines.
+
+== License ==
+
+GPL 2.0+
+
+== SPKG Maintainers ==
+
+ * Gary Furnish
+ * Mike Hansen
+
+== Upstream Contact ==
+
+Report bugs to bug-gnu-utils@gnu.org
+The author of GNU dbm may be reached via e-mail to <phil@cs.wwu.edu>,
+and the current maintainer may be reached at <downsj@downsj.com>.
+E-mail may be sent to either, or both, of these people.
+
+== Dependencies==
+
+None
+
+== Special Update/Build Instructions ==
+
+Modified makefile.in to remove references to BINOWN and BINGRP which set permissions on installed files, as this is broken on OSX.
+
+== Changelog ==
+
+=== gdbm-1.8.3 (Gary Furnish, July 16th 2008) ===
+ * Initial Version

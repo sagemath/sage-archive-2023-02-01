@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cp Makefile.in src/
+
+cd src
+
+./configure --prefix=$SAGE_LOCAL
+if [ $? -ne 0 ]; then
+   echo "Error configuring gdbm."
+   exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+   echo "Error building gdbm."
+   exit 1
+fi
+
+make install
+if [ $? -ne 0 ]; then
+   echo "Error installing gdbm."
+   exit 1
+fi
+

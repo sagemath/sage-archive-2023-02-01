@@ -194,9 +194,10 @@ cdef class NumberFieldElement(FieldElement):
             else:
                 f = f.polynomial()
 
-        ppr = parent.polynomial_ring()
         if isinstance(parent, number_field.NumberField_relative):
             ppr = parent.base_field().polynomial_ring()
+        else:
+            ppr = parent.polynomial_ring()
 
         cdef long i
         if isinstance(f, pari_gen):
@@ -215,13 +216,10 @@ cdef class NumberFieldElement(FieldElement):
                     f = ppr(f)
                 else:
                     raise TypeError, "Unsupported Pari type"
-        if not isinstance(f, sage.rings.polynomial.polynomial_element.Polynomial):
-            f = ppr(f)
+        f = ppr(f)
         if f.degree() >= parent.absolute_degree():
-            if f.variable_name() != 'x':
-                f = f.change_variable_name('x')
             if isinstance(parent, number_field.NumberField_relative):
-                f %= parent.absolute_polynomial()
+                f %= ppr(parent.absolute_polynomial())
             else:
                 f %= parent.polynomial()
 

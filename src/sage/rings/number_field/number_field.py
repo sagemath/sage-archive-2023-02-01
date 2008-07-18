@@ -1184,9 +1184,17 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K._coerce_non_number_field_element_in([0,0,0,1,1])
             -2/3*a - 2/3
 
-        Not any polynomial coerces in, e.g., not this one in characteristic 7.
+        Any polynomial whose coefficients can be coerced to rationals will
+        coerce, e.g., this one in characteristic 7.
             sage: f = GF(7)['y']([1,2,3]); f
             3*y^2 + 2*y + 1
+            sage: K._coerce_non_number_field_element_in(f)
+            3*a^2 + 2*a + 1
+
+       But not this one over a field of order 27.
+            sage: F27.<g> = GF(27)
+            sage: f = F27['z']([g^2, 2*g, 1]); f
+            z^2 + 2*g*z + g^2
             sage: K._coerce_non_number_field_element_in(f)
             Traceback (most recent call last):
             ...
@@ -3369,7 +3377,7 @@ class NumberField_absolute(NumberField_generic):
     def subfields(self, degree=0, name=None):
         """
         EXAMPLES:
-            sage: K.<a> = NumberField( [x^3 - 2, x^2 + x + 1] );
+            sage: K.<a> = NumberField( [x^3 - 2, x^2 + x + 1] )
             sage: K = K.absolute_field('b')
             sage: S = K.subfields()
             sage: len(S)
@@ -3381,6 +3389,17 @@ class NumberField_absolute(NumberField_generic):
              x^3 - 3*x^2 + 3*x + 1,
              x^3 - 3*x^2 + 3*x - 17,
              x^6 - 3*x^5 + 6*x^4 - 11*x^3 + 12*x^2 + 3*x + 1]
+             sage: R.<t> = QQ[]
+             sage: L = NumberField(t^3 - 3*t + 1, 'c')
+             sage: [k[1] for k in L.subfields()]
+             [Ring morphism:
+               From: Number Field in c0 with defining polynomial t
+               To:   Number Field in c with defining polynomial t^3 - 3*t + 1
+               Defn: 0 |--> 0,
+              Ring morphism:
+               From: Number Field in c1 with defining polynomial t^3 - 3*t + 1
+               To:   Number Field in c with defining polynomial t^3 - 3*t + 1
+               Defn: c1 |--> c]
         """
         return self._subfields_helper(degree=degree, name=name,
                                       both_maps=True, optimize=False)

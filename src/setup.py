@@ -676,6 +676,12 @@ ext_modules = [ \
     Extension('sage.groups.perm_gps.permgroup_element',
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']), \
 
+    Extension('sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label',
+              sources = ['sage/groups/perm_gps/partn_ref/automorphism_group_canonical_label.pyx']), \
+
+    Extension('sage.groups.perm_gps.partn_ref.refinement_graphs',
+              sources = ['sage/groups/perm_gps/partn_ref/refinement_graphs.pyx']), \
+
     Extension('sage.structure.sage_object',
               sources = ['sage/structure/sage_object.pyx']), \
 
@@ -1375,6 +1381,7 @@ code = setup(name        = 'sage',
                      'sage.groups.abelian_gps',
                      'sage.groups.matrix_gps',
                      'sage.groups.perm_gps',
+                     'sage.groups.perm_gps.partn_ref',
 
                      'sage.interfaces',
 

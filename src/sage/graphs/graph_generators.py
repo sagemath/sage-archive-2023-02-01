@@ -3234,6 +3234,35 @@ class DiGraphGenerators():
         import networkx
         return graph.DiGraph(networkx.gnc_graph(n, seed))
 
+    def RandomDirectedGNP(self, n, p):
+        r"""
+        Returns a random digraph on $n$ nodes.  Each edge is inserted
+        independently with probability $p$.
+
+        REFERENCES:
+            [1] P. Erdos and A. Renyi, On Random Graphs, Publ. Math. 6, 290 (1959).
+            [2] E. N. Gilbert, Random Graphs, Ann. Math. Stat., 30, 1141 (1959).
+
+        PLOTTING:
+        When plotting, this graph will use the default spring-layout
+        algorithm, unless a position dictionary is specified.
+
+        EXAMPLE:
+            sage: digraphs.RandomDirectedGNP(10, .2).num_verts()
+            10
+
+        """
+        from random import random
+        D = graph.DiGraph(n)
+        for i in xrange(n):
+            for j in xrange(i):
+                if random() < p:
+                    D.add_edge(i,j)
+            for j in xrange(i+1,n):
+                if random() < p:
+                    D.add_edge(i,j)
+        return D
+
     def RandomDirectedGNR(self, n, p, seed=None):
         """
         Returns a random GNR (growing network with redirection) digraph with n

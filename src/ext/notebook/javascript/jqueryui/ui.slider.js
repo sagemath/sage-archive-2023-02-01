@@ -33,7 +33,18 @@
 			axis: o.axis || (element.offsetWidth < element.offsetHeight ? 'vertical' : 'horizontal'),
 			maxValue: !isNaN(parseInt(o.maxValue,10)) ? parseInt(o.maxValue,10) :  100,
 			minValue: parseInt(o.minValue,10) || 0,
-			startValue: parseInt(o.startValue,10) || 'none'
+			startValue: (function()
+			{
+				if(o.startValue.constructor == Array)
+				{
+					var ret = [];
+					for(i in o.startValue)
+						ret[i] = parseInt(o.startValue[i],10) || 'none';
+					return ret;
+				}
+				else
+					return (parseInt(o.startValue,10) || 'none');
+			})()
 		});
 
 		//Prepare the real maxValue
@@ -92,8 +103,15 @@
 		//Bind the click to the slider itself
 		this.element.bind('click', function(e) { self.click.apply(self, [e]); });
 
-		//Move the first handle to the startValue
-		if(!isNaN(o.startValue)) this.moveTo(o.startValue, 0);
+		//Move all handles to the startValue
+		if(o.startValue!='none')
+		{
+			if(o.startValue.constructor == Array)
+				for(i in o.startValue)
+					this.moveTo(o.startValue[i], i);
+			else
+				this.moveTo(o.startValue, 0);
+		}
 
 		//If we only have one handle, set the previous handle to this one to allow clicking before selecting the handle
 		if(this.handle.length == 1) this.previousHandle = this.handle;

@@ -2054,12 +2054,12 @@ class GraphicPrimitive_Line(GraphicPrimitive):
         This implicitly calls this function:
             sage: line([(1,2), (3,-4), (2, 5), (1,2)])
         """
-        import matplotlib.patches as patches
+        import matplotlib.lines as lines
         options = dict(self.options())
         del options['alpha']
         del options['thickness']
         del options['rgbcolor']
-        p = patches.lines.Line2D(self.xdata, self.ydata, **options)
+        p = lines.Line2D(self.xdata, self.ydata, **options)
         options = self.options()
         a = float(options['alpha'])
         p.set_alpha(a)

@@ -245,23 +245,23 @@ class Axes(SageObject):
         return oppaxis, step, tslminor, tslmajor
 
     def _draw_axes(self, subplot, axes, xmin, xmax, ymin, ymax, x_axis_ypos, y_axis_xpos):
-        from matplotlib import patches
+        from matplotlib import lines
         if isinstance(axes, (list, tuple)) and len(axes) == 2 and \
         (axes[0] in [True, False]) and (axes[1] in [True, False]):
             self.__draw_x_axis = axes[0]
             self.__draw_y_axis = axes[1]
             #draw the x-axes?
             if self.__draw_x_axis:
-                subplot.add_line(patches.lines.Line2D([xmin, xmax], [x_axis_ypos, x_axis_ypos],
+                subplot.add_line(lines.Line2D([xmin, xmax], [x_axis_ypos, x_axis_ypos],
                                  color=self.__color, linewidth=float(self.__linewidth)))
             #draw y axis line?
             if self.__draw_y_axis:
-                subplot.add_line(patches.lines.Line2D([y_axis_xpos, y_axis_xpos],[ymin, ymax],
+                subplot.add_line(lines.Line2D([y_axis_xpos, y_axis_xpos],[ymin, ymax],
                                   color=self.__color, linewidth=float(self.__linewidth)))
         else: #draw them both
-            subplot.add_line(patches.lines.Line2D([xmin, xmax], [x_axis_ypos, x_axis_ypos],
+            subplot.add_line(lines.Line2D([xmin, xmax], [x_axis_ypos, x_axis_ypos],
                              color=self.__color, linewidth=float(self.__linewidth)))
-            subplot.add_line(patches.lines.Line2D([y_axis_xpos, y_axis_xpos],[ymin, ymax],
+            subplot.add_line(lines.Line2D([y_axis_xpos, y_axis_xpos],[ymin, ymax],
                               color=self.__color, linewidth=float(self.__linewidth)))
 
     def _draw_axes_labels(self, subplot, axes_labels, xmin, xmax, ymin, ymax, xstep, ystep, x_axis_ypos, y_axis_xpos, pad=0.2):
@@ -310,7 +310,7 @@ class Axes(SageObject):
         xlabel : "where the xlabel is drawn"
 
         """
-        from matplotlib import patches
+        from matplotlib import lines
         xmin = float(xmin); xmax=float(xmax); ymin=float(ymin); ymax=float(ymax)
         yspan = ymax - ymin
         xspan = xmax - xmin
@@ -338,12 +338,12 @@ class Axes(SageObject):
             s = self._format_tick_string(x)
             subplot.text(x, xlabel, s, fontsize=int(self.__fontsize), horizontalalignment="center",
                         color=self.__tick_label_color, verticalalignment="top")
-            subplot.add_line(patches.lines.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
+            subplot.add_line(lines.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
                         color=self.__color, linewidth=float(self.__linewidth)))
 
         #now draw the x-axis minor tick marks
         for x in xtslminor:
-            subplot.add_line(patches.lines.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xstheight],
+            subplot.add_line(lines.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xstheight],
                         color=self.__color, linewidth=float(self.__linewidth)))
 
         #the y-axis ticks and labels
@@ -354,12 +354,12 @@ class Axes(SageObject):
             s = self._format_tick_string(y)
             subplot.text(ylabel, y, s, fontsize=int(self.__fontsize), verticalalignment="center",
                         color=self.__tick_label_color, horizontalalignment="right")
-            subplot.add_line(patches.lines.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
+            subplot.add_line(lines.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
                     color=self.__color, linewidth=float(self.__linewidth)))
 
         #now draw the x-axis minor tick marks
         for y in ytslminor:
-            subplot.add_line(patches.lines.Line2D([y_axis_xpos, y_axis_xpos + ystheight], [y, y],
+            subplot.add_line(lines.Line2D([y_axis_xpos, y_axis_xpos + ystheight], [y, y],
                 color=self.__color, linewidth=float(self.__linewidth)))
 
         # now draw the x and y axis labels
@@ -375,20 +375,20 @@ class Axes(SageObject):
         Draw a frame around a graphic at the given
         (scaled out) x and y min and max values.
         """
-        from matplotlib import patches
+        from matplotlib import lines
         #border horizontal axis:
         #bottom:
-        subplot.add_line(patches.lines.Line2D([xmins, xmaxs], [ymins, ymins],
+        subplot.add_line(lines.Line2D([xmins, xmaxs], [ymins, ymins],
                                         color=self.__color, linewidth=float(self.__linewidth)))
         #top:
-        subplot.add_line(patches.lines.Line2D([xmins, xmaxs], [ymaxs, ymaxs],
+        subplot.add_line(lines.Line2D([xmins, xmaxs], [ymaxs, ymaxs],
                                         color=self.__color, linewidth=float(self.__linewidth)))
         #border vertical axis:
         #left:
-        subplot.add_line(patches.lines.Line2D([xmins, xmins], [ymins, ymaxs],
+        subplot.add_line(lines.Line2D([xmins, xmins], [ymins, ymaxs],
                                         color=self.__color, linewidth=float(self.__linewidth)))
         #right:
-        subplot.add_line(patches.lines.Line2D([xmaxs, xmaxs], [ymins, ymaxs],
+        subplot.add_line(lines.Line2D([xmaxs, xmaxs], [ymins, ymaxs],
                                         color=self.__color, linewidth=float(self.__linewidth)))
 
 
@@ -403,7 +403,7 @@ class Axes(SageObject):
         centered axes with no tick marks.
 
         """
-        from matplotlib import patches
+        from matplotlib import lines
         xmin = float(xmin); xmax=float(xmax); ymin=float(ymin); ymax=float(ymax)
         yspan = ymax - ymin
         xspan = xmax - xmin
@@ -431,11 +431,11 @@ class Axes(SageObject):
         #these are the centered axes, like in regular plot, but with no ticks
         if axes_with_no_ticks:
             #the x axis line
-            subplot.add_line(patches.lines.Line2D([xmins, xmaxs], [x_axis_ypos, x_axis_ypos],
+            subplot.add_line(lines.Line2D([xmins, xmaxs], [x_axis_ypos, x_axis_ypos],
                                             color=self.__color, linewidth=float(self.__linewidth)))
 
             #the y axis line
-            subplot.add_line(patches.lines.Line2D([y_axis_xpos, y_axis_xpos],[ymins, ymaxs],
+            subplot.add_line(lines.Line2D([y_axis_xpos, y_axis_xpos],[ymins, ymaxs],
                                             color=self.__color, linewidth=float(self.__linewidth)))
 
         #the x-axis ticks and labels
@@ -447,9 +447,9 @@ class Axes(SageObject):
 
         #now draw the x-axis minor tick marks
         for x in xtslminor:
-            subplot.add_line(patches.lines.Line2D([x, x], [ymins, xstheight + ymins],
+            subplot.add_line(lines.Line2D([x, x], [ymins, xstheight + ymins],
                         color=self.__color, linewidth=float(self.__linewidth)))
-            subplot.add_line(patches.lines.Line2D([x, x], [ymaxs, ymaxs - xstheight],
+            subplot.add_line(lines.Line2D([x, x], [ymaxs, ymaxs - xstheight],
                         color=self.__color, linewidth=float(self.__linewidth)))
 
 
@@ -462,9 +462,9 @@ class Axes(SageObject):
 
         #now draw the x-axis minor tick marks
         for y in ytslminor:
-            subplot.add_line(patches.lines.Line2D([xmins, ystheight + xmins], [y, y],
+            subplot.add_line(lines.Line2D([xmins, ystheight + xmins], [y, y],
                 color=self.__color, linewidth=float(self.__linewidth)))
-            subplot.add_line(patches.lines.Line2D([xmaxs, xmaxs - ystheight], [y, y],
+            subplot.add_line(lines.Line2D([xmaxs, xmaxs - ystheight], [y, y],
                 color=self.__color, linewidth=float(self.__linewidth)))
 
     def _adjustments_for_frame(self, xmin, xmax, ymin, ymax):
@@ -501,7 +501,7 @@ class Axes(SageObject):
         the ith row and jth column of the matrix.
 
         """
-        from matplotlib import patches
+        from matplotlib import lines
         xmax = int(xmax)
         ymax = int(ymax)
 
@@ -558,9 +558,9 @@ class Axes(SageObject):
                          horizontalalignment="center", verticalalignment="top")
             subplot.text(xr, -2*xlabel + ymaxs, s, fontsize=int(self.__fontsize),
                          horizontalalignment="center", verticalalignment="top")
-            subplot.add_line(patches.lines.Line2D([xr, xr], [ymins, xstheight + ymins],
+            subplot.add_line(lines.Line2D([xr, xr], [ymins, xstheight + ymins],
                         color=self.__color, linewidth=float(self.__linewidth)))
-            subplot.add_line(patches.lines.Line2D([xr, xr], [ymaxs, ymaxs - xstheight],
+            subplot.add_line(lines.Line2D([xr, xr], [ymaxs, ymaxs - xstheight],
                         color=self.__color, linewidth=float(self.__linewidth)))
 
         #the y-axis ticks and labels
@@ -571,9 +571,9 @@ class Axes(SageObject):
                          verticalalignment="center", horizontalalignment="right")
             subplot.text(-2*ylabel + xmaxs, yr, s, fontsize=int(self.__fontsize),
                          verticalalignment="center", horizontalalignment="left")
-            subplot.add_line(patches.lines.Line2D([xmins, ystheight + xmins], [yr, yr],
+            subplot.add_line(lines.Line2D([xmins, ystheight + xmins], [yr, yr],
                 color=self.__color, linewidth=float(self.__linewidth)))
-            subplot.add_line(patches.lines.Line2D([xmaxs, xmaxs - ystheight], [yr, yr],
+            subplot.add_line(lines.Line2D([xmaxs, xmaxs - ystheight], [yr, yr],
                 color=self.__color, linewidth=float(self.__linewidth)))
 
 class GridLines(SageObject):
@@ -799,16 +799,16 @@ class GridLines(SageObject):
         xlines, ylines = new_gridlines
 
         # draw the grid lines
-        from matplotlib import patches
+        from matplotlib import lines
         # horizontal lines
         for (yval, ykwds) in ylines:
             subplot.add_line(
-                    patches.lines.Line2D(points[0],[yval,yval],**ykwds)
+                    lines.Line2D(points[0],[yval,yval],**ykwds)
                     )
         # vertical lines
         for (xval, xkwds) in xlines:
             subplot.add_line(
-                    patches.lines.Line2D([xval,xval],points[1],**xkwds)
+                    lines.Line2D([xval,xval],points[1],**xkwds)
                     )
 
     def _get_ticks_locations(self, interval, ticks="major"):

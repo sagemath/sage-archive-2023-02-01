@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+BOEHM_GC=`cd $SAGE_ROOT/spkg/standard/; ./newest_version boehm_gc`
+if [ $? -ne 0 ]; then
+    echo "Failed to find boehm_gc.  Please install the boehm_gc spkg with sage -i boehm_gc-7.1.p0"
+    exit 1
+fi
+GDBM=`cd $SAGE_ROOT/spkg/standard/; ./newest_version gdbm`
+if [ $? -ne 0 ]; then
+    echo "Failed to find gmp. Please install the gdbm spkg with sage -i gdbm-1.8.3"
+    exit 1
+fi
+
+export RM="rm -f"
+set -e
+cd src
+make
+mkdir -p BUILD/normal
+cd BUILD/normal
+if [ $UNAME = "Linux" ]; then
+	../../configure --prefix=$SAGE_LOCAL --disable-encap --disable-building \
+		LDFLAGS="-L$SAGE_LOCAL/lib/" CFLAGS="" CPPFLAGS="-I$SAGE_LOCAL/include/" \
+		FC=sage_fortran \
+		LIBS="-llapack -lf77blas -latlas -lcblas" \
+		--disable-fc-lib-ldflags --disable-dumpdata
+elif [ $UNAME = "Darwin" ]; then
+	../../configure --prefix=$SAGE_LOCAL --disable-encap --disable-building \
+		LDFLAGS="-L$SAGE_LOCAL/lib/" CFLAGS="" CPPFLAGS="-I$SAGE_LOCAL/include/" \
+		FC=sage_fortran \
+		LIBS="-framework Accelerate" \
+		--disable-fc-lib-ldflags --disable-dumpdata
+else
+	echo "Unknown operating system"
+	exit 1
+fi
+if [ $? -ne 0 ]; then
+    echo "Failed to configure Macaulay2."
+    exit 1
+fi
+make IgnoreExampleErrors=true
+if [ $? -ne 0 ]; then
+    echo "Failed to make Macaulay2."
+    exit 1
+fi
+make IgnoreExampleErrors=true install
+if [ $? -ne 0 ]; then
+    echo "Failed to install Macaulay2."
+    exit 1
+fi

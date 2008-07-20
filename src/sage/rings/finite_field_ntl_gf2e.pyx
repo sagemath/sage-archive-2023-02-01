@@ -181,8 +181,6 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         cdef GF2_c c
         cdef GF2X_c ntl_tmp
 
-        GF2X_construct(&ntl_m)
-
         # we are calling late_import here because this constructor is
         # called at least once before any arithmetic is perfored.
         late_import()

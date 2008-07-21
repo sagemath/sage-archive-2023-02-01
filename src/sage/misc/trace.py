@@ -46,7 +46,7 @@ def trace(code, preparse=True):
 
     Seeing the ipdb prompt and the 2 * 5 in the output below is a
     strong indication that the trace command worked correctly.
-        sage: print s.before
+        sage: print s.before[s.before.find('-'):]
         ---...
         ipdb> c
         2 * 5

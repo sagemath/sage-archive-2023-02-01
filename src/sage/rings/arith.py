@@ -1585,8 +1585,13 @@ def __factor_using_pari(n, int_=False, debug_level=0, proof=None):
 
 def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     """
-    Returns the factorization of the integer n as a sorted list of
-    tuples (p,e).
+    Returns the factorization of n. The result depends on the type of n.
+
+    If n is an integer, factor returns the factorization of the integer n as a
+    sorted list of tuples (p,e). If n is not an integer, n.factor(proof=proof,
+    **kwds) gets called. See n.factor?? for more documentation in this case.
+
+    What follows is a documentation for n integer.
 
     INPUT:
         n -- an nonzero integer
@@ -1660,6 +1665,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     """
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
+        # this happens for example if n = x**2 + y**2 + 2*x*y
         try:
             return n.factor(proof=proof, **kwds)
         except AttributeError:

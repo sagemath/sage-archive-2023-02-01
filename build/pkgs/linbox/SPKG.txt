@@ -24,6 +24,10 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6.p0 (Michael Abshoff, July 21st, 2008) ===
+ * Integrate patch by Clement Pernet fixing #3671
+ * miscellaneous cleanup
+
 === linbox-1.1.6 (Clement Pernet, June 14th, 2008) ===
  * Upstream 1.1.6 linbox version
  * merge former linbox_wrap in linbox/interface

@@ -40,15 +40,14 @@ def trace(code, preparse=True):
     that uses IPython.
         sage: import pexpect
         sage: s = pexpect.spawn('sage')
-        sage: _ = s.sendline("trace('print factor(10)')")
+        sage: _ = s.sendline("trace('print factor(10)'); print 3+97")
         sage: _ = s.sendline("s"); _ = s.sendline("c");
-        sage: _ = s.expect('sage'); _ = s.expect('sage'); _ = s.expect('sage')
+        sage: _ = s.expect('100')
 
     Seeing the ipdb prompt and the 2 * 5 in the output below is a
     strong indication that the trace command worked correctly.
         sage: print s.before
-        /rings/arith.py(...)factor()
-        ...
+        ---...
         ipdb> c
         2 * 5
         <BLANKLINE>

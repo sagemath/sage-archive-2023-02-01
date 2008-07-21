@@ -1,0 +1,11 @@
+--- spkg/standard/linbox-1.1.6rc0/linbox/linbox/ffpack/ffpack.h	2008-07-18 12:19:25.000000000 -0700
++++ /home/pernet/Logiciels/linbox/linbox/ffpack/ffpack.h	2008-07-18 12:19:56.000000000 -0700
+@@ -1306,7 +1306,7 @@
+ 	static std::list<Polynomial>&
+ 	CharPoly( const Field& F, std::list<Polynomial>& charp, const size_t N,
+ 		  typename Field::Element * A, const size_t lda,
+-		  const FFPACK_CHARPOLY_TAG CharpTag= FfpackArithProg);
++		  const FFPACK_CHARPOLY_TAG CharpTag= FfpackLUK);
+ 	
+ 	/**
+ 	 * Compute the minimal polynomial of (A,v) using an LUP 

@@ -2071,6 +2071,118 @@ def multinomial(*ks):
 	c *= binomial(s, k)
     return c
 
+def binomial_coefficients(n):
+    r"""
+    Return a dictionary containing pairs $\{(k_1,k_2) : C_{k_n}\}$ where
+    $C_{k_n}$ are binomial coefficients and $n = k_1 + k_2$.
+
+    INPUT:
+        n -- an integer
+
+    OUTPUT:
+        dict
+
+    EXAMPLES:
+        sage: sorted(binomial_coefficients(3).items())
+        [((0, 3), 1), ((1, 2), 3), ((2, 1), 3), ((3, 0), 1)]
+
+    Notice the coefficients above are the same as below:
+        sage: R.<x,y> = QQ[]
+        sage: (x+y)^3
+        x^3 + 3*x^2*y + 3*x*y^2 + y^3
+
+    AUTHOR: Pearu Peterson
+    """
+    d = {(0, n):1, (n, 0):1}
+    a = 1
+    for k in xrange(1, n//2+1):
+        a = (a * (n-k+1))//k
+        d[k, n-k] = d[n-k, k] = a
+    return d
+
+def multinomial_coefficients(m, n, _tuple=tuple, _zip=zip):
+    r"""
+    Return a dictionary containing pairs $\{(k_1,k_2,...,k_m) : C_{k_n}\}$
+    where $C_{k_n}$ are multinomial coefficients such that
+    $n = k_1 + k_2 + ...+ k_m$.
+
+    INPUT:
+        m -- integer
+        n -- integer
+        _tuple, _zip -- hacks for speed; don't set these as a user.
+
+    OUTPUT:
+        dict
+
+    EXAMPLES:
+        sage: sorted(multinomial_coefficients(2,5).items())
+        [((0, 5), 1), ((1, 4), 5), ((2, 3), 10), ((3, 2), 10), ((4, 1), 5), ((5, 0), 1)]
+
+    Notice that these are the coefficients of $(x+y)^5$:
+        sage: R.<x,y> = QQ[]
+        sage: (x+y)^5
+        x^5 + 5*x^4*y + 10*x^3*y^2 + 10*x^2*y^3 + 5*x*y^4 + y^5
+
+        sage: sorted(multinomial_coefficients(3,2).items())
+        [((0, 0, 2), 1), ((0, 1, 1), 2), ((0, 2, 0), 1), ((1, 0, 1), 2), ((1, 1, 0), 2), ((2, 0, 0), 1)]
+
+    ALGORITHM:
+    The algorithm we implement for computing the multinomial coefficients
+    is based on the following result:
+
+       Consider a polynomial and it's $m$-th exponent::
+
+          $$ P(x) = \sum_{i=0}^m p_i x^k $$
+
+          $$ P(x)^n = \sum_{k=0}^{m n} a(n,k) x^k $$
+
+       We compute the coefficients $a(n,k)$ using the J.C.P. Miller
+       Pure Recurrence [see D.E.Knuth, Seminumerical Algorithms, The
+       art of Computer Programming v.2, Addison Wesley, Reading,
+       1981;]::
+       $$
+         a(n,k) = 1/(k p_0) \sum_{i=1}^m p_i ((n+1)i-k) a(n,k-i),
+       $$
+       where $a(n,0) = p_0^n$.
+
+    AUTHOR: Pearu Peterson
+    """
+    if m == 2:
+        return binomial_coefficients(n)
+    symbols = [(0,)*i + (1,) + (0,)*(m-i-1) for i in range(m)]
+    s0 = symbols[0]
+    p0 = [_tuple(aa-bb for aa,bb in _zip(s,s0)) for s in symbols]
+    r = {_tuple(aa*n for aa in s0):1}
+    r_get = r.get
+    r_update = r.update
+    l = [0] * (n*(m-1)+1)
+    l[0] = r.items()
+    for k in xrange(1, n*(m-1)+1):
+        d = {}
+        d_get = d.get
+        for i in xrange(1, min(m,k+1)):
+            nn = (n+1)*i-k
+            if not nn:
+                continue
+            t = p0[i]
+            for t2, c2 in l[k-i]:
+                tt = _tuple([aa+bb for aa,bb in _zip(t2,t)])
+                cc = nn * c2
+                b = d_get(tt)
+                if b is None:
+                    d[tt] = cc
+                else:
+                    cc = b + cc
+                    if cc:
+                        d[tt] = cc
+                    else:
+                        del d[tt]
+        r1 = [(t, c//k) for (t, c) in d.iteritems()]
+        l[k] = r1
+        r_update(r1)
+    return r
+
+
 def gaussian_binomial(n,k,q=None):
     r"""
     Return the gaussian binomial

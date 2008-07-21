@@ -13,6 +13,10 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
+echo "Deleting old FLINT"
+rm -f $SAGE_LOCAL/lib/libflint*
+
+
 if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
    # This line causes *MAJOR* Illegal Instruction problems on
    # 64-bit Pentium 4's.  Do *not* do that!!  Only enable the
@@ -67,9 +71,9 @@ if [ $UNAME != "Darwin" ]; then
         exit 1
     fi
     $RM "$SAGE_LOCAL"/lib/libflint*.so
-    $CP libflint-1.010.so "$SAGE_LOCAL/lib/"
+    $CP libflint-1.0.13.so "$SAGE_LOCAL/lib/"
     CUR=`pwd`
-    cd $SAGE_LOCAL/lib; $LN -sf libflint-1.010.so libflint.so
+    cd $SAGE_LOCAL/lib; $LN -sf libflint-1.0.13.so libflint.so
     cd $CUR
 fi
 

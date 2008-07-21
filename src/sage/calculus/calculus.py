@@ -6095,6 +6095,31 @@ class SymbolicComposition(SymbolicOperation):
         else:
             return x
 
+    def _sympy_(self):
+        """Converts any expression to SymPy."""
+
+        f = repr(self._operands[0])
+        g = self._operands[1]
+        import sympy
+        # translates Sage function names to SymPy function names
+        translation_table = {
+                "arcsin": "asin",
+                "arccos": "acos",
+                "arctan": "atan",
+                "arccot": "acot",
+                "arcsinh": "asinh",
+                "arccosh": "acosh",
+                "arctanh": "atanh",
+                "arccoth": "acoth",
+                }
+        if f in translation_table:
+            f = translation_table[f]
+        f_sympy = getattr(sympy, f, None)
+        if f_sympy:
+            return f_sympy(sympy.sympify(g))
+        else:
+            return TypeError("SymPy function '%s' doesn't exist" % f)
+
 
     def _complex_mpfr_field_(self, field):
         """

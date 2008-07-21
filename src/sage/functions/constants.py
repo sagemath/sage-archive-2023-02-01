@@ -746,6 +746,18 @@ class Pi(Constant):
         """
         return Integer(3)
 
+    def _sympy_(self):
+        """
+        Converts pi to sympy pi.
+
+        EXAMPLES:
+            sage: import sympy
+            sage: sympy.pi == pi
+            True
+        """
+        import sympy
+        return sympy.pi
+
     # This just gives a string in singular anyways, and it's
     # *REALLY* slow!
     #def _singular_(self, singular):
@@ -1034,6 +1046,18 @@ class E(Constant):
         """
         return R.e()
 
+    def _sympy_(self):
+        """
+        Converts e to sympy E.
+
+        EXAMPLES:
+            sage: import sympy
+            sage: sympy.E == e
+            True
+        """
+        import sympy
+        return sympy.E
+
     # This just gives a string in singular anyways, and it's
     # *REALLY* slow!
     #def _singular_(self, singular):
@@ -1091,6 +1115,18 @@ class NotANumber(Constant):
             'NaN'
         """
         return R.NaN()
+
+    def _sympy_(self):
+        """
+        Converts NaN to SymPy NaN.
+
+        EXAMPLES:
+            sage: import sympy
+            sage: sympy.nan == NaN
+            True
+        """
+        import sympy
+        return sympy.nan
 
 NaN = NotANumber()
 
@@ -1199,6 +1235,18 @@ class GoldenRatio(Constant):
         """
         import sage.rings.qqbar
         return field(sage.rings.qqbar.get_AA_golden_ratio())
+
+    def _sympy_(self):
+        """
+        Converts golden_ratio to SymPy GoldenRation.
+
+        EXAMPLES:
+            sage: import sympy
+            sage: sympy.GoldenRatio == golden_ratio
+            True
+        """
+        import sympy
+        return sympy.GoldenRatio
 
 golden_ratio = GoldenRatio()
 
@@ -1393,6 +1441,18 @@ class EulerGamma(Constant):
         """
         return Integer(0)
 
+    def _sympy_(self):
+        """
+        Converts euler_gamma to SymPy EulerGamma..
+
+        EXAMPLES:
+            sage: import sympy
+            sage: sympy.EulerGamma == euler_gamma
+            True
+        """
+        import sympy
+        return sympy.EulerGamma
+
 euler_gamma = EulerGamma()
 
 class Catalan(Constant):
@@ -1468,6 +1528,18 @@ class Catalan(Constant):
             0
         """
         return Integer(0)
+
+    def _sympy_(self):
+        """
+        Converts catalan to SymPy Catalan.
+
+        EXAMPLES:
+            sage: import sympy
+            sage: sympy.Catalan == catalan
+            True
+        """
+        import sympy
+        return sympy.Catalan
 
 catalan = Catalan()
 

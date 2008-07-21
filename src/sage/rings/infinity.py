@@ -633,6 +633,23 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
     def square_root(self):
         return self
 
+    def _sympy_(self):
+        """
+        Converts oo to sympy oo.
+
+        Then you don't have to worry which oo you use, like in these examples:
+
+        EXAMPLE:
+            sage: import sympy
+            sage: bool(oo == sympy.oo)
+            True
+            sage: bool(SR(oo) == sympy.oo)
+            True
+
+        """
+        import sympy
+        return sympy.oo
+
 InfinityRing = InfinityRing_class()
 infinity = InfinityRing.gen(0)
 Infinity = infinity

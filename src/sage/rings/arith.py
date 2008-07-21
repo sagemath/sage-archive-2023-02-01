@@ -1587,9 +1587,10 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     """
     Returns the factorization of n. The result depends on the type of n.
 
-    If n is an integer, factor returns the factorization of the integer n as a
-    sorted list of tuples (p,e). If n is not an integer, n.factor(proof=proof,
-    **kwds) gets called. See n.factor?? for more documentation in this case.
+    If n is an integer, factor returns the factorization of the
+    integer n as an object of type Factorization. If n is not an
+    integer, n.factor(proof=proof, **kwds) gets called. See n.factor??
+    for more documentation in this case.
 
     What follows is a documentation for n integer.
 
@@ -1615,14 +1616,29 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         they aren't as optimized).  Thus you might consider using them
         instead for certain numbers.
 
-        The factorization prints in user-friendly format but the (p,e)
-        pairs can easily be accessed -- see examples
+        The factorization returned is an element of the class
+        Factorization; see Factorization?? for more details, and
+        examples below for usage.  A Factorization contains both the
+        unit factor (+1 or -1) and a sorted list of (prime, exponent)
+        pairs.
+
+        The factorization displays in pretty-print format but it is
+        easy to obtain access to the (prime,exponent) pairs and the
+        unit, to recover the number from its factorization, and even
+        to multiply two factorizations.  See examples below.
 
     EXAMPLES:
         sage: factor(500)
         2^2 * 5^3
         sage: factor(-20)
         -1 * 2^2 * 5
+        sage: f=factor(-20)
+        sage: list(f)
+        [(2, 2), (5, 1)]
+        sage: f.unit()
+        -1
+        sage: f.value()
+        -20
 
         sage: factor(500, algorithm='kash')     # requires optional kash package
         2^2 * 5^3
@@ -1635,8 +1651,8 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         1
         sage: factor(-1)
         -1
-        sage: factor(2004)
-        2^2 * 3 * 167
+        sage: factor(2^(2^7)+1)
+        59649589127497217 * 5704689200685129054721
 
     SAGE calls PARI's factor, which has proof False by default.  SAGE has
     a global proof flag, set to True by default (see sage.structure.proof,
@@ -1652,15 +1668,15 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
     To access the data in a factorization:
 
-        sage: factor(420)
+        sage: f = factor(420); f
         2^2 * 3 * 5 * 7
-        sage: [x for x in factor(420)]
+        sage: [x for x in f]
         [(2, 2), (3, 1), (5, 1), (7, 1)]
-        sage: [p for p,e in factor(420)]
+        sage: [p for p,e in f]
         [2, 3, 5, 7]
-        sage: [e for p,e in factor(420)]
+        sage: [e for p,e in f]
         [2, 1, 1, 1]
-        sage: [p^e for p,e in factor(420)]
+        sage: [p^e for p,e in f]
         [4, 3, 5, 7]
     """
     Z = integer_ring.ZZ

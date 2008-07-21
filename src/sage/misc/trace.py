@@ -4,9 +4,10 @@ Interactively tracing execution of a command
 
 def trace(code, preparse=True):
     r"""
-    Evaluate \sage code using the interactive tracer and return the
+    Evaluate Sage code using the interactive tracer and return the
     result.  The string \var{code} must be a valid expression enclosed in
     quotes (no assignments -- the result of the expression is returned).
+    In the Sage notebook this just raises a NotImplementedException.
 
     INPUT:
         code -- str
@@ -33,7 +34,35 @@ def trace(code, preparse=True):
 
     For an article on how to use the Python debuger, see
        \url{http://www.onlamp.com/pub/a/python/2005/09/01/debugger.html}
+
+    TESTS:
+    The only real way to test this is via pexpect spawning a sage subprocess
+    that uses IPython.
+        sage: import pexpect
+        sage: s = pexpect.spawn('sage')
+        sage: _ = s.sendline("trace('print factor(10)')")
+        sage: _ = s.sendline("s"); _ = s.sendline("c");
+        sage: _ = s.expect('sage'); _ = s.expect('sage'); _ = s.expect('sage')
+
+    Seeing the ipdb prompt and the 2 * 5 in the output below is a
+    strong indication that the trace command worked correctly.
+        sage: print s.before
+        /rings/arith.py(...)factor()
+        ...
+        ipdb> c
+        2 * 5
+        <BLANKLINE>
+
+    We test what happens in notebook embedded mode:
+        sage: sage.plot.plot.EMBEDDED_MODE = True
+        sage: trace('print factor(10)')
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: the trace command is not implemented in the Sage notebook; you must use the command line.
     """
+    from sage.plot.plot import EMBEDDED_MODE
+    if EMBEDDED_MODE:
+        raise NotImplementedError, "the trace command is not implemented in the Sage notebook; you must use the command line."
 
     import IPython.Debugger
     pdb = IPython.Debugger.Pdb()
@@ -44,7 +73,7 @@ def trace(code, preparse=True):
     import preparser
 
     code = preparser.preparse(code)
-    return pdb.runeval(code, _ip.user_ns)
+    return pdb.run(code, _ip.user_ns)
 
     # this could also be useful; it drops
     # us into a debugger in an except block:

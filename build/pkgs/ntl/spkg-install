@@ -33,9 +33,6 @@ do_make()
 
 do_tune()
 {
-    if [ $UNAME = "SunOS" ]; then
-        return
-    fi
     do_make setup1
     do_make setup2
     do_make setup3

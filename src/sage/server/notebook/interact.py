@@ -1210,6 +1210,12 @@ def interact(f):
         ...     show(plot(sin(a*x+b), (x,0,6)), figsize=3)
         <html>...
 
+    Place a block of text among the controls:
+        sage: @interact
+        ... def _(t1=text_control("Factors an integer."), n="1"):
+        ...     print factor(Integer(n))
+        <html>...
+
     You do not have to use interact as a decorators; you can also
     simply write \code{interact(f)} where f is any Python function
     that you have defined, though this is frowned on.  E.g., f can
@@ -1221,8 +1227,9 @@ def interact(f):
     DEFAULTS:
     Defaults for the variables of the input function determine
     interactive controls.  The standard controls are \code{input_box},
-    \code{slider}, \code{checkbox}, \code{selector}, and
-    \code{input_grid}.  There is also a color selector (see defaults below).
+    \code{slider}, \code{checkbox}, \code{selector},
+    \code{input_grid}.  There is also a color selector and text control
+    (see defaults below).
 
     \begin{itemize}
         \item u = input_box(default=None, label=None, type=None)
@@ -1238,7 +1245,8 @@ def interact(f):
         \item u = input_grid(nrows, ncols, default=None, label=None,
                              to_value=lambda x:x, width=4)
                          -- an editable grid of objects (a matrix or array)
-
+        \item u = text_control(value='')
+                         -- a block of text
     \end{itemize}
 
     You can create a color selector by setting the default value for a
@@ -2001,7 +2009,7 @@ class selector(control):
                         buttons=self.__buttons)
 
 class text_control(control):
-    def __init__(self, value):
+    def __init__(self, value=''):
     	"""
     	Text that can be inserted among other interact controls.
 

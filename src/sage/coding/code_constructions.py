@@ -1,4 +1,6 @@
 r"""
+Linear code constructions.
+
 AUTHOR:
     -- David Joyner (2007-05): initial version
     --    "         (2008-02): added cyclic codes, Hamming codes

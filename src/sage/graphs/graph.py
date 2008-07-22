@@ -2760,6 +2760,13 @@ class GenericGraph(SageObject):
             sage: dg.incoming_edges(0)
             [(1, 0, 9)]
 
+            sage: G = Graph({0:{1:1}}, implementation='c_graph')
+            sage: G.num_edges()
+            1
+            sage: G.set_edge_label(0,1,1)
+            sage: G.num_edges()
+            1
+
         """
         if self.multiple_edges():
             if len(self.edge_label(u, v)) > 1:

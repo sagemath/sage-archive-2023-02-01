@@ -3,6 +3,9 @@
 
 == Changelog ==
 
+=== mercurial-1.01.p0 (Mike Hansen, July 21st, 2009) ===
+ * Upgraded to Mercurial 1.01
+
 === mercurial-0.9.5.p1 (Michael Abshoff, May 22nd, 2008) ===
  * add 64 bit OSX build support
 

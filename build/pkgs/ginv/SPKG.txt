@@ -1,0 +1,42 @@
+= Ginv =
+
+== Description ==
+
+The open source software GINV implements the Gröbner bases method for
+systems of equations.
+
+GINV is a C++ module of Python designed for constructing Gröbner bases
+of ideals and modules in polynomial, differential and difference
+rings.
+
+Gröbner bases are constructed by involutive algorithms.
+
+== License ==
+
+GPL2+
+
+== SPKG Maintainers ==
+
+ * Martin Albrecht
+
+== Upstream Contact ==
+
+Webpage: http://invo.jinr.ru/ginv/index.html
+Vladimir Gerdt: gerdt@jinr.ru
+
+== Dependencies ==
+
+ * gdbm
+ * boemh_gc
+
+== Special Update/Build Instructions ==
+
+This is the stock Ginv tarball from the website.
+
+== Changelog ==
+
+=== Ginv-1.9-20080723 (Martin Albrecht, July 24th 2008) ===
+ * New upstream release
+
+=== Ginv-1.2-20080404 (Martin Albrecht, April 4th 2008) ===
+ * Initial version

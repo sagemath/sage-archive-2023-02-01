@@ -1,10 +1,22 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 cp patches/setup.py src/
-cp patches/modules.basis.cpp src/modules/basis.cpp
-cp patches/modules.poly.cpp src/modules/poly.cpp
-cp patches/modules.monom.cpp src/modules/monom.cpp
 
 cd src/
 python setup.py build
+if [ $? -ne 0 ]; then
+   echo "Error building GINV."
+   exit 1
+fi
+
 python setup.py install
+if [ $? -ne 0 ]; then
+   echo "Error installing GINV."
+   exit 1
+fi

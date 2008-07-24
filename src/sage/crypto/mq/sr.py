@@ -1134,6 +1134,12 @@ class SR_generic(MPolynomialSystemGenerator):
         Variables are ordered in the reverse of their natural
         ordering, i.e. the reverse of as they appear.
 
+        The variable assignment is as follows:
+         * k_ijl subkey round i word j conjugate/bit l
+         * s_ijl subkey inverse round i word j conjugate/bit l
+         * w_ijl inversion input  round i word j conjugate/bit l
+         * x_ijl inversion output round i word j conjugate/bit l
+
         EXAMPLE:
             sage: sr = mq.SR(2, 1, 1, 4)
             sage: P = sr.ring(order='block')
@@ -1338,7 +1344,8 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def polynomial_system(self, P=None, K=None):
         """
-        Return a MPolynomialSystem for self for a given plaintext-key pair.
+        Return a MPolynomialSystem for self for a given plaintext-key
+        pair.
 
         If none are provided a random pair will be generated.
 

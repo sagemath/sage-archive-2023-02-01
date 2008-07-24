@@ -6,8 +6,7 @@
 
 // M4RI
 #define PACKED 1
-#include "M4RI/packedmatrix.h"
-#include "M4RI/grayflex.h"
+#include "M4RI/m4ri.h"
 
 #include <sstream>
 #include <vector>

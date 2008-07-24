@@ -262,6 +262,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             {[0 1 0]
             [0 1 1]
             [0 0 0]: 0}
+            sage: A = matrix(GF(2),2,2)
+            sage: A.set_immutable()
+            sage: hex(hash(A))
+            '0xdeadbeed'
 
         TEST:
             sage: A = matrix(GF(2),2,0)
@@ -269,7 +273,28 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: hash(A)
             0
         """
-        return self._hash()
+        cdef unsigned long _hash = 0xDEADBEEF
+        cdef unsigned long counter = 0
+        cdef unsigned long i, j, truerow
+        cdef word mask = 1
+        mask = ~((mask<<(RADIX - self._ncols%RADIX))-1)
+
+        if self._nrows == 0 or self._ncols == 0:
+            return 0
+
+        for i from 0 <= i < self._entries.nrows:
+            truerow = self._entries.rowswap[i]
+            for j from 0 <= j < self._entries.width - 1:
+                _hash ^= self._entries.values[truerow + j]
+                counter += 1
+            _hash ^= self._entries.values[truerow + j] & mask
+            counter += 1
+
+        _hash = _hash ^ counter
+
+        if _hash == -1:
+            return -2
+        return _hash
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         mzd_write_bit(self._entries, i, j, int(value))

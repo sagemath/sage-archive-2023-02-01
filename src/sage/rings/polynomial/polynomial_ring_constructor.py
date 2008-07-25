@@ -327,14 +327,15 @@ MPolynomialRing.__doc__ = """
 def _get_from_cache(key):
     try:
         if _cache.has_key(key):
-            return _cache[key]()
+            return _cache[key] #()
     except TypeError, msg:
         raise TypeError, 'key = %s\n%s'%(key,msg)
     return None
 
 def _save_in_cache(key, R):
     try:
-        _cache[key] = weakref.ref(R)
+        #_cache[key] = weakref.ref(R)
+         _cache[key] = R
     except TypeError, msg:
         raise TypeError, 'key = %s\n%s'%(key,msg)
 

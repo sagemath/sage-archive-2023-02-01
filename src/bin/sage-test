@@ -92,6 +92,9 @@ def test(F, cmd):
 
 def test_file(F):
     if not os.path.exists(F):
+        if os.path.exists(os.environ["SAGE_ROOT"] + "/" + F):
+            F = os.environ["SAGE_ROOT"] + "/" + F
+    if not os.path.exists(F):
         if F[:6] != "__test" and not F.endswith('.png'):
             print "ERROR: File %s/%s is missing"%(os.curdir,F)
             failed.append('%s/%s'%(os.curdir,F))

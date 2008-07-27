@@ -100,22 +100,27 @@ sage: print bool(f == g)
 True
 
 sage: # (YES) Expand (1+x)^20, take derivative and factorize.
-sage: # first do it is using algebraic polys
+sage: # first do it using algebraic polys
 sage: R.<x> = QQ[]
-sage: f = (1+x)^20
-sage: print f
-x^20 + 20*x^19 + 190*x^18 + 1140*x^17 + 4845*x^16 + 15504*x^15 + 38760*x^14 + 77520*x^13 + 125970*x^12 + 167960*x^11 + 184756*x^10 + 167960*x^9 + 125970*x^8 + 77520*x^7 + 38760*x^6 + 15504*x^5 + 4845*x^4 + 1140*x^3 + 190*x^2 + 20*x + 1
-sage: print f.factor()
-(x + 1)^20
-sage: # next do it symbolically
-sage: restore('x')
 sage: f = (1+x)^20; f
-(x + 1)^20
-sage: g = f.expand(); g
 x^20 + 20*x^19 + 190*x^18 + 1140*x^17 + 4845*x^16 + 15504*x^15 + 38760*x^14 + 77520*x^13 + 125970*x^12 + 167960*x^11 + 184756*x^10 + 167960*x^9 + 125970*x^8 + 77520*x^7 + 38760*x^6 + 15504*x^5 + 4845*x^4 + 1140*x^3 + 190*x^2 + 20*x + 1
-sage: g.factor()
-(x + 1)^20
-
+sage: deriv = f.derivative()
+sage: deriv
+20*x^19 + 380*x^18 + 3420*x^17 + 19380*x^16 + 77520*x^15 + 232560*x^14 + 542640*x^13 + 1007760*x^12 + 1511640*x^11 + 1847560*x^10 + 1847560*x^9 + 1511640*x^8 + 1007760*x^7 + 542640*x^6 + 232560*x^5 + 77520*x^4 + 19380*x^3 + 3420*x^2 + 380*x + 20
+sage: deriv.factor()
+(20) * (x + 1)^19
+sage: restore('x')
+sage: # next do it symbolically
+sage: var('y')
+y
+sage: f = (1+y)^20; f
+(y + 1)^20
+sage: g = f.expand(); g
+y^20 + 20*y^19 + 190*y^18 + 1140*y^17 + 4845*y^16 + 15504*y^15 + 38760*y^14 + 77520*y^13 + 125970*y^12 + 167960*y^11 + 184756*y^10 + 167960*y^9 + 125970*y^8 + 77520*y^7 + 38760*y^6 + 15504*y^5 + 4845*y^4 + 1140*y^3 + 190*y^2 + 20*y + 1
+sage: deriv = g.derivative(); deriv
+20*y^19 + 380*y^18 + 3420*y^17 + 19380*y^16 + 77520*y^15 + 232560*y^14 + 542640*y^13 + 1007760*y^12 + 1511640*y^11 + 1847560*y^10 + 1847560*y^9 + 1511640*y^8 + 1007760*y^7 + 542640*y^6 + 232560*y^5 + 77520*y^4 + 19380*y^3 + 3420*y^2 + 380*y + 20
+sage: deriv.factor()
+20*(y + 1)^19
 
 sage: # (YES) Factorize x^100-1.
 sage: factor(x^100-1)

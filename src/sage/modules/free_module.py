@@ -3503,7 +3503,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if v.parent() is self:
             return x
         lc = E.linear_combination_of_rows(x)
-        if lc != v:
+        if lc != v and list(lc) != list(v):
             raise ArithmeticError, "vector is not in free module"
         return x
 

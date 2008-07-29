@@ -464,7 +464,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             Composite morphism:
               From: Rational Field
               To:   Multivariate Laurent Polynomial Ring in x, y over Rational Field
-              Defn:   Coercion morphism:
+              Defn:   Call morphism:
                       From: Rational Field
                       To:   Multivariate Polynomial Ring in x, y over Rational Field
                     then

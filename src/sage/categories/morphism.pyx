@@ -246,7 +246,7 @@ cdef class Morphism(Element):
             Composite morphism:
               From: Integer Ring
               To:   Real Double Field
-              Defn:   Ring morphism:
+              Defn:   Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
                     then

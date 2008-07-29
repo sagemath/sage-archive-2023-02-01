@@ -21,18 +21,11 @@ cdef class TripleDict:
          types (tuple, list, etc.) map to the same item.
        - Comparison is done using the 'is' rather than '==' operator.
 
-    In addition, there is the following difference which (unlike the above
-    three) should probably be changed.
-
-       - Its size is fixed at creation time, so no load-adjusting parameters
-         are in place. One can re-size it by creating a new TripleDict
-         passing in self as a parameter.
-
     There are special cdef set/get methods for faster access.
     It is bare-bones in the sense that not all dictionary methods are
     implemented.
 
-    It is implemented as a list of lists (called buckets). The bucket
+    It is implemented as a list of lists (hereafter called buckets). The bucket
     is chosen according to a very simple hash based on the object pointer.
     and each bucket is of the form [k1, k2, k3, value, k1, k2, k3, value, ...]
     on which a linear search is performed.
@@ -115,6 +108,7 @@ cdef class TripleDict:
             1
         """
         cdef int i
+        self.threshold = threshold
         self.buckets = [[] for i from 0 <= i <  size]
         if data is not None:
             for k, v in data.iteritems():
@@ -326,13 +320,29 @@ cdef class TripleDict:
     def iteritems(self):
         """
         EXAMPLES:
-            sage: from sage.structure.coerce_dict import TripleDict, TripleDictIter
+            sage: from sage.structure.coerce_dict import TripleDict
             sage: L = TripleDict(31)
             sage: L[1,2,3] = None
             sage: list(L.iteritems())
             [((1, 2, 3), None)]
         """
         return TripleDictIter(self)
+
+    def __reduce__(self):
+        """
+        Note that we don't expect equality as this class concerns itself with
+        object identy rather than object equality.
+
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(31)
+            sage: L[1,2,3] = True
+            sage: loads(dumps(L)) == L
+            False
+            sage: list(loads(dumps(L)).iteritems())
+            [((1, 2, 3), True)]
+        """
+        return TripleDict, (len(self.buckets), dict(self.iteritems()), self.threshold)
 
 
 cdef class TripleDictIter:

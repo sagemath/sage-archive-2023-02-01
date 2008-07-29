@@ -697,6 +697,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         elif S is integer_ring.ZZ:
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
+            if isinstance(S, field.Field):
+                return None
             try:
                 return integer_mod.IntegerMod_to_IntegerMod(S, self)
             except TypeError:

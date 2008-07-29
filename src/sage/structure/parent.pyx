@@ -570,12 +570,13 @@ cdef class Parent(category_object.CategoryObject):
         return self.coerce_map_from(S) is not None
 
     cpdef coerce_map_from(self, S):
+        cdef morphism.Morphism mor
         if S is self:
             from sage.categories.homset import Hom
             return Hom(self, self).identity()
 
         elif isinstance(S, Set_PythonType_class):
-            return self.coerce_map_from_c(S._type)
+            return self.coerce_map_from(S._type)
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
         cdef object ret
@@ -604,7 +605,8 @@ cdef class Parent(category_object.CategoryObject):
             #        # mor = None
             if mor is not None:
                 # NOTE: this line is what makes the coercion detection stateful
-                self._coerce_from_list.append(mor)
+                # self._coerce_from_list.append(mor)
+                pass
             self._coerce_from_hash[S] = mor
             _unregister_pair(self, S)
             return mor
@@ -864,7 +866,7 @@ cdef class Parent(category_object.CategoryObject):
                 # maybe there is a more clever way of detecting ZZ than importing here...
                 from sage.rings.integer_ring import ZZ
                 from sage.rings.ring import Ring
-                if S is ZZ and not PY_TYPE_CHECK(self, Ring) and not self.has_coerce_map_from(ZZ):
+                if S is ZZ and not self.has_coerce_map_from(ZZ):
                     #print "IntegerMulAction"
                     from sage.structure.coerce_actions import IntegerMulAction
                     action = IntegerMulAction(S, self, not self_on_left)

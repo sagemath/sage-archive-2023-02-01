@@ -206,7 +206,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         an integer and a rational:
             sage: left_morphism, right_morphism = maps[ZZ, QQ]
             sage: print left_morphism
-            Ring morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
             sage: print right_morphism
@@ -367,11 +367,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: cm.explain(ZZ['x'], QQ, operator.add)
             Coercion on left operand via
-                Conversion morphism:
+                Call morphism:
                   From: Univariate Polynomial Ring in x over Integer Ring
                   To:   Univariate Polynomial Ring in x over Rational Field
             Coercion on right operand via
-                Conversion morphism:
+                Call morphism:
                   From: Rational Field
                   To:   Univariate Polynomial Ring in x over Rational Field
             Arithmetic performed after coercions.
@@ -719,7 +719,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: f, g = cm.coercion_maps(ZZ, QQ)
             sage: print f
-            Ring morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
             sage: print g
@@ -727,11 +727,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: f, g = cm.coercion_maps(ZZ['x'], QQ)
             sage: print f
-            Conversion morphism:
+            Call morphism:
               From: Univariate Polynomial Ring in x over Integer Ring
               To:   Univariate Polynomial Ring in x over Rational Field
             sage: print g
-            Conversion morphism:
+            Call morphism:
               From: Rational Field
               To:   Univariate Polynomial Ring in x over Rational Field
 
@@ -747,6 +747,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 # in the new coercion model anyways.
                 # COERCE TODO: Enable it then.
                 homs = self.verify_coercion_maps(R, S, homs)
+            else:
+                if homs is not None:
+                    x_map, y_map = homs
+                    if x_map is not None and not isinstance(x_map, Morphism):
+                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return Morphism"
+                    if y_map is not None and not isinstance(y_map, Morphism):
+                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return Morphism"
             swap = None if homs is None else (homs[1], homs[0])
             self._coercion_maps.set(R, S, None, homs)
             self._coercion_maps.set(S, R, None, swap)
@@ -766,9 +773,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.verify_coercion_maps(ZZ, QQ, homs) == homs
             Traceback (most recent call last):
             ...
-            RuntimeError: ('BUG in coercion model, codomains must be identical', Ring morphism:
+            RuntimeError: ('BUG in coercion model, codomains must be identical', Natural morphism:
               From: Integer Ring
-              To:   Rational Field, Conversion morphism:
+              To:   Rational Field, Call morphism:
               From: Rational Field
               To:   Real Field with 53 bits of precision)
         """
@@ -832,21 +839,21 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         If there is a coercion map either direction, use that:
             sage: cm.discover_coercion(ZZ, QQ)
-            (Ring morphism:
+            (Natural morphism:
               From: Integer Ring
               To:   Rational Field, None)
             sage: cm.discover_coercion(RR, QQ)
             (None,
-             Conversion morphism:
+             Call morphism:
               From: Rational Field
               To:   Real Field with 53 bits of precision)
 
         Otherwise, try and compute an appropriate cover:
             sage: cm.discover_coercion(ZZ['x,y'], RDF)
-            (Conversion morphism:
+            (Call morphism:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
               To:   Multivariate Polynomial Ring in x, y over Real Double Field,
-             Conversion morphism:
+             Call morphism:
               From: Real Double Field
               To:   Multivariate Polynomial Ring in x, y over Real Double Field)
 
@@ -908,7 +915,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: R.<x> = QQ['x']
             sage: A = cm.get_action(R, ZZ, operator.div); A
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
-            with precomposition on right by Ring morphism:
+            with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Rational Field
             sage: A(x+10, 5)
@@ -1018,7 +1025,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         If op is division, look for action on right by inverse:
             sage: cm.discover_action(P, ZZ, operator.div)
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
-            with precomposition on right by Ring morphism:
+            with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Rational Field
         """

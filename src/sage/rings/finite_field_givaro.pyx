@@ -558,7 +558,7 @@ cdef class FiniteField_givaro(FiniteField):
             if e.is_constant():
                 return self(e.constant_coefficient())
             else:
-                return e(self.gen())
+                return e.change_ring(self)(self.gen())
 
         elif PY_TYPE_CHECK(e, Rational):
             num = e.numer()

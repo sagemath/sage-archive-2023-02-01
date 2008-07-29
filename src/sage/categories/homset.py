@@ -249,6 +249,14 @@ class Homset(Set_generic):
     def __nonzero__(self):
         return True
 
+    def _generic_convert_map(self, S):
+        if self._element_constructor is None:
+            from sage.categories.morphism import CallMorphism
+            from sage.categories.homset import Hom
+            return CallMorphism(Hom(S, self))
+        else:
+            return parent.Parent._generic_convert_map(self, S)
+
     def homset_category(self):
         """
         Return the category that this is a Hom in, i.e., this is
@@ -279,7 +287,7 @@ class Homset(Set_generic):
               Defn:   Composite morphism:
                       From: SymmetricGroup(4)
                       To:   SymmetricGroup(6)
-                      Defn:   Coercion morphism:
+                      Defn:   Call morphism:
                               From: SymmetricGroup(4)
                               To:   SymmetricGroup(5)
                             then
@@ -287,7 +295,7 @@ class Homset(Set_generic):
                               From: SymmetricGroup(5)
                               To:   SymmetricGroup(6)
                     then
-                      Coercion morphism:
+                      Call morphism:
                       From: SymmetricGroup(6)
                       To:   SymmetricGroup(7)
 

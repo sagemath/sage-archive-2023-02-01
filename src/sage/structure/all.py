@@ -22,6 +22,9 @@ from element import (\
     is_PrincipalIdealDomainElement,
     is_RingElement,
     is_Vector,
+
+    get_coercion_model,
+    coercion_traceback
     )
 
 from parent      import Parent, is_Parent

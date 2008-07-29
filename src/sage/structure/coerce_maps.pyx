@@ -16,7 +16,7 @@ cdef bint print_warnings = 0
 
 cdef class DefaultConvertMorphism(Morphism):
     """
-    This morphism simply differs action to the codomain's element_class method,
+    This morphism simply differs action to the codomain's element_constructor method,
     passing in the codomain as the first argument.
     """
     def __init__(self, domain, codomain, force_use=False):
@@ -25,34 +25,34 @@ cdef class DefaultConvertMorphism(Morphism):
         Morphism.__init__(self, homset.Hom(domain, codomain))
         self._coerce_cost = 100
         self._force_use = force_use
-        if self._codomain._element_class is None:
-            raise RuntimeError, "BUG in coercion model, no element class for %s" % type(self._codomain)
+        if self._codomain._element_constructor is None:
+            raise RuntimeError, "BUG in coercion model, no element constructor for %s" % type(self._codomain)
 
     cpdef Element _call_(self, x):
         try:
-            return self._codomain._element_class(self._codomain, x)
+            return self._codomain._element_constructor(self._codomain, x)
         except:
             if print_warnings:
                 print type(self._codomain), self._codomain
-                print type(self._codomain._element_class), self._codomain._element_class
+                print type(self._codomain._element_constructor), self._codomain._element_constructor
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         try:
             if len(args) == 0:
                 if len(kwds) == 0:
-                    return self._codomain._element_class(self._codomain, x)
+                    return self._codomain.__element_constructor(self._codomain, x)
                 else:
-                    return self._codomain._element_class(self._codomain, x, **kwds)
+                    return self._codomain._element_constructor(self._codomain, x, **kwds)
             else:
                 if len(kwds) == 0:
-                    return self._codomain._element_class(self._codomain, x, *args)
+                    return self._codomain._element_constructor(self._codomain, x, *args)
                 else:
-                    return self._codomain._element_class(self._codomain, x, *args, **kwds)
+                    return self._codomain._element_constructor(self._codomain, x, *args, **kwds)
         except:
             if print_warnings:
                 print type(self._codomain), self._codomain
-                print type(self._codomain._element_class), self._codomain._element_class
+                print type(self._codomain._element_constructor), self._codomain._element_constructor
             raise
 
     def _repr_type(self):
@@ -60,39 +60,39 @@ cdef class DefaultConvertMorphism(Morphism):
 
 cdef class DefaultConvertMorphism_unique(DefaultConvertMorphism):
     """
-    This morphism simply differs action to the codomain's element_class method,
+    This morphism simply differs action to the codomain's element_constructor method,
     WITHOUT passing in the codomain as the first argument.
 
     This is used for creating elements that don't take a parent as the first argument
     to their __init__ method, for example, Integers, Rationals, Algebraic Reals... all
-    have a unique parent. It is also used when the element_class is a bound method
+    have a unique parent. It is also used when the element_constructor is a bound method
     (whose self argument is assumed to be bound to the codomain).
     """
     cpdef Element _call_(self, x):
         try:
-            return self._codomain._element_class(x)
+            return self._codomain._element_constructor(x)
         except:
             if print_warnings:
                 print type(self._codomain), self._codomain
-                print type(self._codomain._element_class), self._codomain._element_class
+                print type(self._codomain._element_constructor), self._codomain._element_constructor
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         try:
             if len(args) == 0:
                 if len(kwds) == 0:
-                    return self._codomain._element_class(x)
+                    return self._codomain._element_constructor(x)
                 else:
-                    return self._codomain._element_class(x, **kwds)
+                    return self._codomain._element_constructor(x, **kwds)
             else:
                 if len(kwds) == 0:
-                    return self._codomain._element_class(x, *args)
+                    return self._codomain._element_constructor(x, *args)
                 else:
-                    return self._codomain._element_class(x, *args, **kwds)
+                    return self._codomain._element_constructor(x, *args, **kwds)
         except:
             if print_warnings:
                 print type(self._codomain), self._codomain
-                print type(self._codomain._element_class), self._codomain._element_class
+                print type(self._codomain._element_constructor), self._codomain._element_constructor
             raise
 
     def _repr_type(self):

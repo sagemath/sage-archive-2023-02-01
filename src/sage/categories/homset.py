@@ -246,6 +246,9 @@ class Homset(Set_generic):
         return "Set of Morphisms from %s to %s in %s"%(
             self._domain, self._codomain, self.__category)
 
+    def __nonzero__(self):
+        return True
+
     def homset_category(self):
         """
         Return the category that this is a Hom in, i.e., this is

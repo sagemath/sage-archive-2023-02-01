@@ -484,6 +484,10 @@ finance_fractal = Extension('sage.finance.fractal', ['sage/finance/fractal.pyx']
 #####################################################
 
 ext_modules = [ \
+
+    Extension('sage.structure.generators',
+              sources = ['sage/structure/generators.pyx']), \
+
     free_module_element,
 
     complex_double_vector,

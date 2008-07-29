@@ -26,8 +26,7 @@ Vladimir Gerdt: gerdt@jinr.ru
 
 == Dependencies ==
 
- * gdbm
- * boemh_gc
+ * gmp
 
 == Special Update/Build Instructions ==
 

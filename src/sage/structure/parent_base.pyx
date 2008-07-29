@@ -8,6 +8,13 @@
 
 include "../ext/stdsage.pxi"
 
+cimport parent
+
+cdef inline check_old_coerce(parent.Parent p):
+    if p._element_constructor is not None:
+        raise RuntimeError, "%s still using old coercion framework" % p
+
+
 # TODO: Unpickled parents with base sometimes have thier base set to None.
 # This causes a segfault in the module arithmetic architecture.
 #
@@ -49,10 +56,12 @@ cdef class ParentWithBase(parent_old.Parent):
         self._base = base
 
     def _richcmp(left, right, int op):
+        check_old_coerce(left)
         return (<parent_old.Parent>left)._richcmp(right, op) # the cdef method
 
 
     cdef _coerce_c_impl(self,x):
+       check_old_coerce(self)
        if not self._base is self:
            return self._coerce_try(x,(self._base))
        else:
@@ -68,16 +77,11 @@ cdef class ParentWithBase(parent_old.Parent):
 ##         else:
 ##             return (make_parent_with_base_v0, (self.__class__, _dict, self._base, self._has_coerce_map_from))
 
-    def base_ring(self):
-        return self._base
-
     # Derived class *must* define base_extend.
     def base_extend(self, X):
+        check_old_coerce(self)
         raise TypeError, "BUG: the base_extend method must be defined for '%s' (class '%s')"%(
             self, type(self))
-
-    def base(self):
-        return self._base
 
     # Canonical base extension by X (recursive)
     def base_extend_canonical(self, X):
@@ -86,6 +90,7 @@ cdef class ParentWithBase(parent_old.Parent):
         NOTE: this function should not be extended.
         AUTHOR: Gonzalo Tornaria (2007-06-20)
         """
+        check_old_coerce(self)
         return  self.base_extend_canonical_c(X)
 
     # Canonical base extension by X (recursive)
@@ -238,6 +243,7 @@ cdef class ParentWithBase(parent_old.Parent):
 
 
         """
+        check_old_coerce(self)
         #cdef special(t):
         #    return PY_TYPE_CHECK(self, t) and not PY_TYPE_CHECK(X, t)
         #
@@ -271,9 +277,11 @@ cdef class ParentWithBase(parent_old.Parent):
         NOTE: this function should not be extended.
         AUTHOR: Gonzalo Tornaria (2007-06-20)
         """
+        check_old_coerce(self)
         return  self.base_extend_canonical_sym_c(X)
 
     cdef base_extend_canonical_sym_c(self, ParentWithBase X):
+        check_old_coerce(self)
         from sage.matrix.matrix_space import MatrixSpace_generic
         from sage.modules.free_module import FreeModule_generic
 
@@ -312,6 +320,7 @@ cdef class ParentWithBase(parent_old.Parent):
         NOTE: this function should not be extended.
         AUTHOR: Gonzalo Tornaria (2007-06-20)
         """
+        check_old_coerce(self)
         return  self.base_extend_recursive_c(X)
 
     # Not sure if this function is ready to use. It should work fine in the non-ambiguous case,
@@ -320,6 +329,7 @@ cdef class ParentWithBase(parent_old.Parent):
         """
         AUTHOR: Gonzalo Tornaria (2007-06-20)
         """
+        check_old_coerce(self)
         if X.has_coerce_map_from(self):
             return X
         B = self._base_extend_canonical_rec(X)
@@ -332,6 +342,7 @@ cdef class ParentWithBase(parent_old.Parent):
         """
         AUTHOR: Gonzalo Tornaria (2007-06-20)
         """
+        check_old_coerce(self)
         cdef ParentWithBase self_b
         self_b = self._base
         if self_b is self or self_b is None:
@@ -384,6 +395,8 @@ cdef class ParentWithBase(parent_old.Parent):
             sage: QQ.Hom(ZZ, Sets())
             Set of Morphisms from Rational Field to Integer Ring in Category of sets
         """
+        if self._element_constructor is None:
+            return parent.Parent.Hom(self, codomain, cat)
         try:
             return self._Hom_(codomain, cat)
         except (TypeError, AttributeError):

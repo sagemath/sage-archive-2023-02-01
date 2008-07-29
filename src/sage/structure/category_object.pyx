@@ -391,8 +391,11 @@ cdef class CategoryObject(sage_object.SageObject):
 #        except AttributeError:
 #            raise TypeError, "base extension not defined for %s" % self
 
+    # COERCE TODO: When everything has a category, move let it be an optional arg.
     def base_ring(self):
-        # COERCE TODO: When everything has a category, move this to the category level.
+        return self._base
+
+    def base(self):
         return self._base
 
     #################################################################################################

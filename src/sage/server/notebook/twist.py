@@ -1407,11 +1407,11 @@ class WorksheetsByUser(resource.Resource):
         self.username = username
 
     def render_list(self, ctx):
-        s = render_worksheet_list(ctx.args, pub=False, username=self.username)
+        s = render_worksheet_list(ctx.args, pub=False, username=self.user)
         return http.Response(stream = s)
 
     def render(self, ctx):
-        if self.user == self.username:
+        if self.user == self.username or self.username == 'admin':
             return self.render_list(ctx)
         else:
             s = message("User '%s' does not have permission to view the home page of '%s'."%(self.username, self.user))
@@ -1423,13 +1423,13 @@ class WorksheetsByUser(resource.Resource):
 
         filename = self.user + '/' + name
         try:
-            return Worksheet(filename, self.username)
+            return Worksheet(filename, self.user)
         except KeyError:
             s = "The user '%s' has no worksheet '%s'."%(self.user, name)
-            return InvalidPage(msg = s, username = self.username)
+            return InvalidPage(msg = s, username = self.user)
         except RuntimeError:
             s = "You are not logged in or do not have access to the worksheet '%s'."%name
-            return InvalidPage(msg = s, username = self.username)
+            return InvalidPage(msg = s, username = self.user)
 
 
 
@@ -2046,6 +2046,22 @@ class ForgotPassPage(resource.Resource):
             </html>"""
         return http.Response(stream=s)
 
+class ListOfUsers(resource.Resource):
+        def __init__(self, username):
+            self.username = username
+
+        def render(self, ctx):
+            if self.username != 'admin':
+                s = message('You must an admin to manage other users.')
+            else:
+                s = """
+                <html><head><title>Users | Sage Notebook</title></head>
+                <body>
+                %s
+                </body></html>
+                """ % '<br/>'.join(['<a href="/home/%s/">%s</a>' % (i, i) for i in notebook.valid_login_names()])
+            return http.Response(stream = s)
+
 class InvalidPage(resource.Resource):
     addSlash = True
 
@@ -2191,6 +2207,7 @@ class UserToplevel(Toplevel):
     userchild_home = Worksheets
     userchild_live_history = LiveHistory
     userchild_new_worksheet = NewWorksheet
+    userchild_users = ListOfUsers
     userchild_notebook_settings = NotebookSettings
     userchild_settings = SettingsPage
     userchild_pub = PublicWorksheets

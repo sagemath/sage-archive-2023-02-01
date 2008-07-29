@@ -254,7 +254,7 @@ def html_slider(id, values, callback, steps, default=0, margin=0):
 
 def html_rangeslider(id, values, callback, steps, default_l=0, default_r=1, margin=0):
     """
-    Return the HTML representation of a jQuery slider.
+    Return the HTML representation of a jQuery range slider.
 
     INPUT:
         id      -- string -- the DOM id of the slider (better be unique)
@@ -266,11 +266,11 @@ def html_rangeslider(id, values, callback, steps, default_l=0, default_r=1, marg
         margin  -- (default: 0) size of margin to insert around the slider
 
     EXAMPLES:
-    We create a jQuery HTML slider.    If you do the following in the notebook
+    We create a jQuery range slider. If you do the following in the notebook
     you should obtain a slider that when moved pops up a window showing its
     current position.
         sage: from sage.server.notebook.interact import html_rangeslider, html
-        sage: html(html_rangeslider('slider-007', 'null', 'alert(position)', steps=5, default_l=2, default_r=3, margin=5))
+        sage: html(html_rangeslider('slider-007', 'null', 'alert(pos[0]+", "+pos[1])', steps=5, default_l=2, default_r=3, margin=5))
         <html>...</html>
     """
     s = """<table>
@@ -1490,7 +1490,7 @@ def interact(f):
     DEFAULTS:
     Defaults for the variables of the input function determine
     interactive controls.  The standard controls are \code{input_box},
-    \code{slider}, \code{checkbox}, \code{selector},
+    \code{slider}, \code{range_slider}, \code{checkbox}, \code{selector},
     \code{input_grid}.  There is also a color selector and text control
     (see defaults below).
 
@@ -1499,7 +1499,10 @@ def interact(f):
                          -- input box with given default; use type=str to
                             get input as an arbitrary string
         \item u = slider(vmin, vmax=None,step_size=1,default=None,label=None)
-                         -- slider with given list of possible values; vmin an be a list
+                         -- slider with given list of possible values; vmin can be a list
+        \item u = range_slider(vmin, vmax=None,step_size=1,default=None,label=None)
+                         -- range slider with given list of possible values;
+                            vmin can be a list
         \item u = checkbox(default=True, label=None)
                          -- a checkbox
         \item u = selector(values, label=None, nrows=None, ncols=None, buttons=False)
@@ -1588,6 +1591,12 @@ def interact(f):
         ... def _(a = slider(1, 4, default=2, label='Multiplier'),
         ...       b = slider(0, 10, default=0, label='Phase Variable')):
         ...     show(plot(sin(a*x+b), (x,0,6)), figsize=4)
+        <html>...
+
+    An example where the range slider control is useful.
+        sage: @interact
+        ... def _(b = range_slider(-20, 20, 1, default=(-19,3), label='Range')):
+        ...     plot(sin(x)/x, b[0], b[1]).show(xmin=b[0],xmax=b[1])
         <html>...
 
     An example using checkboxes, obtained by making the default values bools.
@@ -2156,36 +2165,33 @@ class slider(slider_generic):
 class range_slider(slider_generic):
     def __init__(self, vmin, vmax=None, step_size=1, default=None, label=None, display_value=True):
         r"""
-        An interactive slider control, which can be used in conjunction
+        An interactive range slider control, which can be used in conjunction
         with the interact command.
 
-        \code{slider(vmin, vmax=None, step_size=1, default=None, label=None)}
+        \code{range_slider(vmin, vmax=None, step_size=1, default=None, label=None)}
 
         INPUT:
             vmin -- object or number
             vmax -- object or None; if None then vmin must be a list, and the slider
                     then varies over elements of the list.
             step_size -- integer (default: 1)
-            default -- object or None; default value is ``closest'' in vmin or range
+            default -- (object, object) or None; default range is ``closest'' in vmin or range
                        to this default.
             label -- string
-            display_value -- boolean, whether to display the current value to the right
-                             of the slider
+            display_value -- boolean, whether to display the current value below
+                             the slider
 
         EXAMPLES:
-        We specify both vmin and vmax.  We make the default 3, but
-        since 3 isn't one of 3/17-th spaced values between 2 and 5,
-        52/17 is instead chosen as the default (it is closest).
-            sage: slider(2, 5, 3/17, 3, 'alpha')
-            Slider: alpha [2--|52/17|---5]
+        We specify both vmin and vmax.  We make the default (3,4) but
+        since neither is one of 3/17-th spaced values between 2 and 5,
+        the closest values: 52/17 and 67/17, are instead chosen as the
+        default.
+            sage: range_slider(2, 5, 3/17, (3,4), 'alpha')
+            Range Slider: alpha [2--|52/17==67/17|---5]
 
         Here we give a list:
-            sage: slider([1..10], None, None, 3, 'alpha')
-            Slider: alpha [1--|3|---10]
-
-        The elements of the list can be anything:
-            sage: slider([1, 'x', 'abc', 2/3], None, None, 'x', 'alpha')
-            Slider: alpha [1--|x|---2/3]
+            sage: range_slider([1..10], None, None, (3,7), 'alpha')
+            Range Slider: alpha [1--|3==7|---10]
         """
         slider_generic.__init__(self, vmin, vmax, step_size, label, display_value)
 
@@ -2203,7 +2209,7 @@ class range_slider(slider_generic):
                 except ValueError:
                     # here no index matches -- which is best?
                     try:
-                        v = [(abs(default - self.values()[j]), j) for j in range(len(self.values()))]
+                        v = [(abs(default[i] - self.values()[j]), j) for j in range(len(self.values()))]
                         m = min(v)
                         d = m[1]
                     except TypeError: # abs not defined on everything, so give up
@@ -2217,9 +2223,9 @@ class range_slider(slider_generic):
 
         EXAMPLES:
             sage: range_slider(2, 5, 1/5, (3,4), 'alpha').__repr__()
-            'Slider: alpha [2--|3==4|---5]'
+            'Range Slider: alpha [2--|3==4|---5]'
         """
-        return "Slider: %s [%s--|%s==%s|---%s]"%(self.label(), self.values()[0],
+        return "Range Slider: %s [%s--|%s==%s|---%s]"%(self.label(), self.values()[0],
              self.values()[self.default_index()[0]],
              self.values()[self.default_index()[1]], self.values()[-1])
 
@@ -2245,13 +2251,13 @@ class range_slider(slider_generic):
             var -- string; variable name
 
         EXAMPLES:
-            sage: S = slider(0,10, default=3, label='theta'); S
-            Slider: theta [0--|3|---10]
+            sage: S = range_slider(0,10, default=(3,7), label='theta'); S
+            Range Slider: theta [0--|3==7|---10]
             sage: S.render('x')
-            Slider Interact Control: theta [0--|3|---10]
+            Range Slider Interact Control: theta [0--|3==7|---10]
 
-            sage: slider(2, 5, 2/7, 3, 'alpha').render('x')
-            Slider Interact Control: alpha [2--|20/7|---5]
+            sage: range_slider(2, 5, 2/7, (3,4), 'alpha').render('x')
+            Range Slider Interact Control: alpha [2--|20/7==4|---5]
         """
         return RangeSlider(var, self.values(), self.__default, label=self.label(), display_value=self.display_value())
 

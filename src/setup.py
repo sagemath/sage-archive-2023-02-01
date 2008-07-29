@@ -509,6 +509,12 @@ ext_modules = [ \
     Extension('sage.structure.coerce',
               sources = ['sage/structure/coerce.pyx']), \
 
+    Extension('sage.structure.coerce_actions',
+              sources = ['sage/structure/coerce_actions.pyx']), \
+
+    Extension('sage.structure.coerce_maps',
+              sources = ['sage/structure/coerce_maps.pyx']), \
+
     Extension('sage.structure.coerce_dict',
               sources = ['sage/structure/coerce_dict.pyx']), \
 

@@ -34,11 +34,6 @@ import sage.structure.element
 
 include "../ext/stdsage.pxi"
 
-#def LeftAction(G, S, op=None):
-#    return Action(G, S, 1, op)
-#
-#def RightAction(G, S, op=None):
-#    return Action(G, S, 0, op)
 
 cdef class Action(Functor):
 
@@ -48,6 +43,7 @@ cdef class Action(Functor):
         self.G = G
         self.S = S
         self._is_left = is_left
+        self.op = op
 
     def _apply_functor(self, x):
         return self(x)
@@ -63,20 +59,11 @@ cdef class Action(Functor):
                 raise TypeError, "%s not an element of %s"%(g, self.G)
         elif len(args) == 2:
             if self._is_left:
-                return self._call_c(self.G(args[0]), self.S(args[1]))
+                return self._call_(self.G(args[0]), self.S(args[1]))
             else:
-                return self._call_c(self.S(args[0]), self.G(args[1]))
+                return self._call_(self.S(args[0]), self.G(args[1]))
 
-    def _call_(self, a, b):
-        return self._call_c_impl(a, b)
-
-    cdef Element _call_c(self, a, b):
-        if HAS_DICTIONARY(self):
-            return self._call_(a, b)
-        else:
-            return self._call_c_impl(a, b)
-
-    cdef Element _call_c_impl(self, Element a, Element b):
+    cpdef Element _call_(self, a, b):
         raise NotImplementedError, "Action not implemented."
 
     def act(self, g, a):
@@ -85,9 +72,9 @@ cdef class Action(Functor):
         irregardless of whether its a left or right action.
         """
         if self._is_left:
-            return self._call_c(g, a)
+            return self._call_(g, a)
         else:
-            return self._call_c(a, g)
+            return self._call_(a, g)
 
     def __invert__(self):
         return InverseAction(self)
@@ -123,6 +110,9 @@ cdef class Action(Functor):
         else:
             return self.G
 
+    def operation(self):
+        return self.op
+
 
 cdef class InverseAction(Action):
     """
@@ -151,19 +141,24 @@ cdef class InverseAction(Action):
                 Action.__init__(self, G, action.S, action._is_left)
                 self._action = action
                 return
+            else:
+                K = G.fraction_field()
+                Action.__init__(self, K, action.S, action._is_left)
+                self._action = action
+                return
         except (AttributeError, NotImplementedError):
             pass
         raise TypeError, "No inverse defined for %r." % action
 
-    cdef Element _call_c(self, a, b):
+    cpdef Element _call_(self, a, b):
         if self._action._is_left:
             if self.S_precomposition is not None:
                 b = self.S_precomposition(b)
-            return self._action._call_c(~a, b)
+            return self._action._call_(~a, b)
         else:
             if self.S_precomposition is not None:
                 a = self.S_precomposition(a)
-            return self._action._call_c(a, ~b)
+            return self._action._call_(a, ~b)
 
     def __invert__(self):
         return self._action
@@ -192,12 +187,12 @@ cdef class PrecomposedAction(Action):
         self.left_precomposition = left_precomposition
         self.right_precomposition = right_precomposition
 
-    cdef Element _call_c(self, a, b):
+    cpdef Element _call_(self, a, b):
         if self.left_precomposition is not None:
-            a = self.left_precomposition._call_c(a)
+            a = self.left_precomposition._call_(a)
         if self.right_precomposition is not None:
-            b = self.right_precomposition._call_c(b)
-        return self._action._call_c(a, b)
+            b = self.right_precomposition._call_(b)
+        return self._action._call_(a, b)
 
     def domain(self):
         if self._is_left and self.right_precomposition is not None:
@@ -226,11 +221,11 @@ cdef class ActionEndomorphism(Morphism):
         self._action = action
         self._g = g
 
-    cdef Element _call_c(self, x):
+    cpdef Element _call_(self, x):
         if self._action._is_left:
-            return self._action._call_c(self._g, x)
+            return self._action._call_(self._g, x)
         else:
-            return self._action._call_c(x, self._g)
+            return self._action._call_(x, self._g)
 
     def _repr_(self):
         return "Action of %s on %s under %s."%(self._g, self._action.S, self._action)

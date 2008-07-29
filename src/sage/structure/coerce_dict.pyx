@@ -102,7 +102,7 @@ cdef class TripleDict:
        -- Robert Bradshaw, 2007-08
     """
 
-    def __init__(self, size, data=None):
+    def __init__(self, size, data=None, threshold=0):
         """
         Create a special dict using triples for keys.
 
@@ -229,7 +229,7 @@ cdef class TripleDict:
         return self.get(k1, k2, k3)
 
     cdef get(self, k1, k2, k3):
-        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 + 503*<Py_ssize_t><void *>k3)
+        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 ^ 503*<Py_ssize_t><void *>k3)
         if h < 0: h = -h
         cdef Py_ssize_t i
         bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
@@ -257,7 +257,9 @@ cdef class TripleDict:
         self.set(k1, k2, k3, value)
 
     cdef set(self, k1, k2, k3, value):
-        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 + 503*<Py_ssize_t><void *>k3)
+        if self.threshold and len(self) > len(self.buckets) * self.threshold:
+            self.resize()
+        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 ^ 503*<Py_ssize_t><void *>k3)
         if h < 0: h = -h
         cdef Py_ssize_t i
         bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
@@ -284,7 +286,7 @@ cdef class TripleDict:
             k1, k2, k3 = k
         except (TypeError,ValueError):
             raise KeyError, k
-        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 + 503*<Py_ssize_t><void *>k3)
+        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 ^ 503*<Py_ssize_t><void *>k3)
         if h < 0: h = -h
         cdef Py_ssize_t i
         bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
@@ -295,6 +297,31 @@ cdef class TripleDict:
                 del bucket[i:i+4]
                 return
         raise KeyError, k
+
+    def resize(self, int buckets=0):
+        """
+        Changes the number of buckets of self, while preserving the contents.
+
+        If the number of buckes is 0 or not given, it resizes self to the
+        smallest prime that is at least twice as large as self.
+
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(8)
+            sage: for i in range(100): L[i,i,i] = None
+            sage: L.bucket_lens() # random
+            [50, 0, 0, 0, 50, 0, 0, 0]
+            sage: L.resize(7) # random
+            [15, 14, 14, 14, 14, 15, 14]
+            sage: L.resize()
+            sage: len(L.bucket_lens())
+            17
+        """
+        if buckets == 0:
+            from sage.rings.arith import next_prime
+            buckets = next_prime(2*len(self.buckets))
+        cdef TripleDict new = TripleDict(buckets, self)
+        self.buckets = new.buckets
 
     def iteritems(self):
         """

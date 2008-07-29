@@ -49,6 +49,10 @@ cdef class Morphism(Element):
         Element.__init__(self, parent)
         self._domain = parent.domain()
         self._codomain = parent.codomain()
+        if self._domain.is_exact() and self._codomain.is_exact():
+            self._coerce_cost = 10 # default value.
+        else:
+            self._coerce_cost = 10000 # inexact morphisms are bad.
 
     cdef _update_slots(self, _slots):
         self._domain = _slots['_domain']
@@ -105,7 +109,7 @@ cdef class Morphism(Element):
     def __invert__(self):  # notation in python is (~f) for the inverse of f.
         raise NotImplementedError
 
-    def __call__(self, x):
+    def __call__(self, x, *args, **kwds):
         """
         Apply this morphism to x.
 
@@ -127,32 +131,32 @@ cdef class Morphism(Element):
             sage: phi(I)
             Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field
         """
-        if not PY_TYPE_CHECK(x, Element):
-            try:
-                return self._call_c(x)
-            except TypeError:
-                raise TypeError, "%s must be coercible into %s (and is not an element)"%(x, self._domain)
-        elif (<Element>x)._parent is not self._domain:
-            try:
-                x = self._domain(x)
-            except TypeError:
+        if len(args) == 0 and len(kwds) == 0:
+            if not PY_TYPE_CHECK(x, Element):
+                return self._call_(x)
+            elif (<Element>x)._parent is not self._domain:
                 try:
-                    return self.pushforward(x)
+                    x = self._domain(x)
                 except TypeError:
-                    raise TypeError, "%s must be coercible into %s"%(x, self._domain)
-        return self._call_c(x)
-
-    def _call_(self, x):
-        return self._call_c_impl(x)
-
-    cdef Element _call_c(self, x):
-        if HAS_DICTIONARY(self):
+                    try:
+                        return self.pushforward(x)
+                    except (TypeError, NotImplementedError):
+                        raise TypeError, "%s must be coercible into %s"%(x, self._domain)
             return self._call_(x)
         else:
-            return self._call_c_impl(x)
+            if PY_TYPE_CHECK(x, Element):
+                if (<Element>x)._parent is not self._domain:
+                    x = self._domain(x)
+            return self._call_with_args(x, args, kwds)
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         raise NotImplementedError
+
+    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        if len(args) == 0 and len(kwds) == 0:
+            return self(x)
+        else:
+            raise NotImplementedError, "_call_with_args not overridden to accept arguments for %s" % type(self)
 
     def pushforward(self, I):
         raise NotImplementedError
@@ -178,11 +182,104 @@ cdef class Morphism(Element):
     def _composition_(self, right, homset):
         return FormalCompositeMorphism(homset, right, self)
 
+    def pre_compose(self, right):
+        if self.domain() is not right.codomain():
+            right = right.extend_codomain(self.domain())
+        H = homset.Hom(right.domain(), self.codomain(), self.parent().category())
+        return self._composition_(right, H)
+
+    def post_compose(self, left):
+        H = homset.Hom(self.domain(), left.codomain(), self.parent().category())
+        return left._composition_(self, H)
+
+    def extend_domain(self, new_domain):
+        r"""
+        INPUT:
+            self          -- a member of Hom(Y, Z)
+            new_codomain  -- an object X such that there is a cannonical
+                             coercion $\phi$ in Hom(X, Y)
+
+        OUTPUT:
+            An element of Hom(X, Z) obtained by composing self with the $\phi$.
+            If no cannonical $\phi$ exists, a TypeError is raised.
+
+        EXAMPLES:
+            sage: mor = CDF.coerce_map_from(RDF)
+            sage: mor.extend_domain(QQ)
+            Composite morphism:
+              From: Rational Field
+              To:   Complex Double Field
+              Defn:   Native morphism:
+                      From: Rational Field
+                      To:   Real Double Field
+                    then
+                      Native morphism:
+                      From: Real Double Field
+                      To:   Complex Double Field
+            sage: mor.extend_domain(ZZ['x'])
+            Traceback (most recent call last):
+            ...
+            TypeError: No coercion from Univariate Polynomial Ring in x over Integer Ring to Real Double Field
+        """
+        cdef Morphism connecting = self.domain().coerce_map_from(new_domain)
+        if connecting is None:
+            raise TypeError, "No coercion from %s to %s" % (new_domain, self.domain())
+        elif connecting.codomain() is not self.domain():
+            raise RuntimeError, "BUG: coerce_map_from should always return a map to self (%s)" % self.domain()
+        else:
+            return self.pre_compose(connecting)
+
+    def extend_codomain(self, new_codomain):
+        r"""
+        INPUT:
+            self          -- a member of Hom(X, Y)
+            new_codomain  -- an object Z such that there is a cannonical
+                             coercion $\phi$ in Hom(Y, Z)
+
+        OUTPUT:
+            An element of Hom(X, Z) obtained by composing self with the $\phi$.
+            If no cannonical $\phi$ exists, a TypeError is raised.
+
+        EXAMPLES:
+            sage: mor = QQ.coerce_map_from(ZZ)
+            sage: mor.extend_codomain(RDF)
+            Composite morphism:
+              From: Integer Ring
+              To:   Real Double Field
+              Defn:   Ring morphism:
+                      From: Integer Ring
+                      To:   Rational Field
+                    then
+                      Native morphism:
+                      From: Rational Field
+                      To:   Real Double Field
+            sage: mor.extend_codomain(GF(7))
+            Traceback (most recent call last):
+            ...
+            TypeError: No coercion from Rational Field to Finite Field of size 7
+        """
+        cdef Morphism connecting = new_codomain.coerce_map_from(self.codomain())
+        if connecting is None:
+            raise TypeError, "No coercion from %s to %s" % (self.codomain(), new_codomain)
+        elif connecting.domain() is not self.codomain():
+            raise RuntimeError, "BUG: coerce_map_from should always return a map from its input (%s)" % new_codomain
+        else:
+            return self.post_compose(connecting)
+
+    def is_injective(self):
+        raise NotImplementedError, type(self)
+
+    def is_surjective(self):
+        raise NotImplementedError, type(self)
+
     def __pow__(self, n, dummy):
         if not self.is_endomorphism():
             raise TypeError, "self must be an endomorphism."
         # todo -- what about the case n=0 -- need to specify the identity map somehow.
         return generic_power(self, n)
+
+    def section(self):
+        return None
 
 cdef class Section(Morphism):
     def __init__(self, morphism):
@@ -203,17 +300,15 @@ cdef class FormalCoercionMorphism(Morphism):
     def _repr_type(self):
         return "Coercion"
 
-    # We need to override _call_c in this special case so that FormalCoercionMorphisms can operate on things that are not elements.
-    cdef Element _call_c(self, x):
-        return self._codomain._coerce_(x)
+    cpdef Element _call_(self, x):
+        return self._codomain.coerce(x)
 
 cdef class CallMorphism(Morphism):
 
     def _repr_type(self):
         return "Call"
 
-    # We need to override _call_c in this special case so that CallMorphisms can operate on things that are not elements.
-    cdef Element _call_c(self, x):
+    cpdef Element _call_(self, x):
         return self._codomain(x)
 
 cdef class IdentityMorphism(Morphism):
@@ -226,8 +321,16 @@ cdef class IdentityMorphism(Morphism):
     def _repr_type(self):
         return "Identity"
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         return x
+
+    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        if len(args) == 0 and len(kwds) == 0:
+            return x
+        elif self._codomain._element_init_pass_parent:
+            return self._codomain._element_class(self._codomain, x, *args, **kwds)
+        else:
+            return self._codomain._element_class(x, *args, **kwds)
 
     def __mul__(left, right):
         if not isinstance(right, Morphism):
@@ -253,6 +356,7 @@ cdef class FormalCompositeMorphism(Morphism):
         Morphism.__init__(self, parent)
         self.__first = first
         self.__second = second
+        self._coerce_cost = (<Morphism>first)._coerce_cost + (<Morphism>second)._coerce_cost
 
     cdef _update_slots(self, _slots):
         self.__first = _slots['__first']
@@ -264,8 +368,11 @@ cdef class FormalCompositeMorphism(Morphism):
         _slots['__second'] = self.__second
         return Morphism._extra_slots(self, _slots)
 
-    cdef Element _call_c_impl(self, Element x):
-        return self.__second(self.__first(x))
+    cpdef Element _call_(self, x):
+        return self.__second._call_(self.__first._call_(x))
+
+    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        return self.__second._call_with_args(self.__first._call_(x), args, kwds)
 
     def _repr_type(self):
         return "Composite"
@@ -287,4 +394,39 @@ cdef class FormalCompositeMorphism(Morphism):
         composition is x|--> second(first(x)).
         """
         return self.__second
+
+    def is_injective(self):
+        if self.__first.is_injective():
+            if self.__second.is_injective():
+                return True
+            elif self.__first.is_surjective():
+                return False
+            else:
+                raise NotImplementedError, "Not enough information to deduce injectivity."
+        else:
+            return False
+
+    def is_surjective(self):
+        if self.__second.is_surjective():
+            if self.__first.is_surjective():
+                return True
+            elif self.__second.is_injective():
+                return False
+            else:
+                raise NotImplementedError, "Not enough information to deduce surjectivity."
+        else:
+            return False
+
+cdef class SetMorphism(Morphism):
+    def __init__(self, parent, function):
+        """
+        INPUT:
+        parent -- a Homset
+        function -- a Python function that takes elements of the domain as input
+                    and returns elements of the domain.
+        """
+        self._function = function
+
+    cpdef Element _call_(self, x):
+        return self._function(x)
 

@@ -2951,21 +2951,12 @@ cdef class CoercionModel:
     """
     Most basic coersion scheme. If it doesn't already match, throw an error.
     """
-    def canonical_coercion(self, x, y):
-        return self.canonical_coercion_c(x,y)
-    cdef canonical_coercion_c(self, x, y):
+    cpdef canonical_coercion(self, x, y):
         if parent_c(x) is parent_c(y):
             return x,y
         raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(parent_c(x), parent_c(y))
 
-    cdef canonical_base_coercion_c(self, Element x, Element y):
-        if have_same_base(x, y):
-            return x,y
-        raise TypeError, "Incompatible bases '%s' and '%s'"%(parent_c(x), parent_c(y))
-
-    def bin_op(self, x, y, op):
-        return self.bin_op_c(x,y,op)
-    cdef bin_op_c(self, x, y, op):
+    cpdef bin_op(self, x, y, op):
         if parent_c(x) is parent_c(y):
             return op(x,y)
         raise TypeError, arith_error_message(x,y,op)
@@ -2992,15 +2983,6 @@ def get_coercion_model():
 def set_coercion_model(cm):
     global coercion_model
     coercion_model = cm
-
-def swap_coercion_model():
-    global coercion_model
-    if isinstance(coercion_model, coerce.CoercionModel_cache_maps):
-        coercion_model = coerce.CoercionModel_original()
-    else:
-        coercion_model = coerce.CoercionModel_cache_maps()
-    return coercion_model
-
 
 
 ###############################################################################

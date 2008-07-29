@@ -177,7 +177,7 @@ cdef class RealDoubleField_class(Field):
         from sage.rings.complex_double import CDF
         return CDF
 
-    cdef coerce_map_from_c(self, S):
+    cpdef coerce_map_from_c(self, S):
         from integer_ring import ZZ
         from rational_field import QQ
         import real_mpfr

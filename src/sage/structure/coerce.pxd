@@ -2,7 +2,6 @@
 from element cimport Element, RingElement, ModuleElement, CoercionModel
 
 from parent cimport Parent
-from parent_base cimport ParentWithBase
 from sage.categories.action cimport Action
 from sage.categories.morphism cimport Morphism
 

@@ -48,6 +48,10 @@ cdef class ParentWithBase(parent_old.Parent):
         parent_old.Parent.__init__(self, coerce_from=coerce_from, actions=actions, embeddings=embeddings)
         self._base = base
 
+    def _richcmp(left, right, int op):
+        return (<parent_old.Parent>left)._richcmp(right, op) # the cdef method
+
+
     cdef _coerce_c_impl(self,x):
        if not self._base is self:
            return self._coerce_try(x,(self._base))

@@ -12,7 +12,7 @@ cimport sage.structure.category_object
 
 cdef class Parent(category_object.CategoryObject):
 
-    cdef public _element_class
+    cdef public _element_constructor
     cdef public _convert_method_name
     cdef public bint _element_init_pass_parent
     cdef public _initial_coerce_list

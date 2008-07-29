@@ -141,6 +141,8 @@ def enum_affine_finite_field(X):
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sage.structure.parent_old as parent_old
+
 from sage.categories.all import HomsetWithBase, Schemes
 from sage.rings.all      import (
     is_FiniteField, is_RationalField, is_RingHomomorphism, ZZ)
@@ -159,7 +161,7 @@ def SchemeHomset(R, S, cat=None, check=True):
     else:
         return SchemeHomset_generic(R, S, cat=cat, check=check)
 
-class SchemeHomset_generic(HomsetWithBase):
+class SchemeHomset_generic(parent_old.Parent, HomsetWithBase):
     def __init__(self, X, Y, cat=None, check=True, base=ZZ):
         HomsetWithBase.__init__(self, X, Y, cat=cat, check=check, base=base)
 

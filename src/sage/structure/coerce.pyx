@@ -525,7 +525,7 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             return self._action_maps.get(R, S, op)
         except KeyError:
             action = self.discover_action_c(R, S, op)
-            action = self.verify_action(action, R, S, op)
+            #action = self.verify_action(action, R, S, op)
             self._action_maps.set(R, S, op, action)
             return action
 

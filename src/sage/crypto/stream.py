@@ -38,7 +38,7 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
 
         TESTS:
             sage: E = LFSRCryptosystem(FiniteField(2))
-	    sage: E == loads(dumps(E))
+            sage: E == loads(dumps(E))
             True
 
 

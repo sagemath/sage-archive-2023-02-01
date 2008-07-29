@@ -4732,27 +4732,35 @@ ax = QQbarPoly.gen()
 #     return x, y
 # # heptadecagon2()
 
+def _init_qqbar():
+    """
+    This code indirectly uses a huge amount of sage, dispite the fact
+    that qqbar is imported rather early on in the sage loading. This function
+    is called at the end of sage.all.
+    """
+    global ZZX_x, AA_0, QQbar_I, AA_hash_offset, QQbar_hash_offset, QQbar_I_generator, QQbar_I_nf
+    global QQ_0, QQ_1, QQ_1_2, QQ_1_4, RR_1_10
 
-RR_1_10 = RR(ZZ(1)/10)
-QQ_0 = QQ(0)
-QQ_1 = QQ(1)
-QQ_1_2 = QQ(1)/2
-QQ_1_4 = QQ(1)/4
+    RR_1_10 = RR(1)/10
+    QQ_0 = QQ(0)
+    QQ_1 = QQ(1)
+    QQ_1_2 = QQ(1)/2
+    QQ_1_4 = QQ(1)/4
 
-AA_0 = AA(0)
+    AA_0 = AA(0)
 
-QQbar_I_nf = QuadraticField(-1, 'I')
-# XXX change ANRoot to ANRootOfUnity below
-QQbar_I_generator = AlgebraicGenerator(QQbar_I_nf, ANRoot(AAPoly.gen()**2 + 1, CIF(0, 1)))
-QQbar_I = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, QQbar_I_nf.gen()))
-_cyclotomic_gen_cache[4] = QQbar_I_generator
-QQbar_I_generator.set_cyclotomic(4)
+    QQbar_I_nf = QuadraticField(-1, 'I')
+    # XXX change ANRoot to ANRootOfUnity below
+    QQbar_I_generator = AlgebraicGenerator(QQbar_I_nf, ANRoot(AAPoly.gen()**2 + 1, CIF(0, 1)))
+    QQbar_I = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, QQbar_I_nf.gen()))
+    _cyclotomic_gen_cache[4] = QQbar_I_generator
+    QQbar_I_generator.set_cyclotomic(4)
 
-AA_hash_offset = AA(~ZZ(123456789))
+    AA_hash_offset = AA(~ZZ(123456789))
 
-QQbar_hash_offset = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, ~ZZ(123456789) + QQbar_I_nf.gen()/ZZ(987654321)))
+    QQbar_hash_offset = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, ~ZZ(123456789) + QQbar_I_nf.gen()/ZZ(987654321)))
 
-ZZX_x = ZZ['x'].gen()
+    ZZX_x = ZZ['x'].gen()
 
 # This is used in the _algebraic_ method of the golden_ratio constant,
 # in sage/functions/constants.py

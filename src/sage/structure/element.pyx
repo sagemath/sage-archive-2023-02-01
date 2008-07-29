@@ -211,8 +211,6 @@ cdef MethodType
 from types import MethodType
 
 from sage.structure.parent      cimport Parent
-from sage.structure.parent_base cimport ParentWithBase
-from sage.structure.parent_gens import is_ParentWithGens
 
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
@@ -281,10 +279,10 @@ cdef class Element(sage_object.SageObject):
         """
         self._parent = parent
 
-    cdef _set_parent_c(self, ParentWithBase parent):
+    cdef _set_parent_c(self, Parent parent):
         self._parent = parent
 
-    def _make_new_with_parent_c(self, ParentWithBase parent):
+    def _make_new_with_parent_c(self, Parent parent):
         self._parent = parent
         return self
 
@@ -305,14 +303,14 @@ cdef class Element(sage_object.SageObject):
         """
         raise NotImplementedError
 
-    cdef base_extend_c(self, ParentWithBase R):
+    cdef base_extend_c(self, Parent R):
         if HAS_DICTIONARY(self):
             return self.base_extend(R)
         else:
             return self.base_extend_c_impl(R)
 
-    cdef base_extend_c_impl(self, ParentWithBase R):
-        cdef ParentWithBase V
+    cdef base_extend_c_impl(self, Parent R):
+        cdef Parent V
         V = self._parent.base_extend(R)
         return (<Parent>V)._coerce_c(self)
 
@@ -322,35 +320,35 @@ cdef class Element(sage_object.SageObject):
     def base_base_extend(self, R):
         return self.base_extend_c_impl(self.base_ring().base_extend(R))
 
-    cdef base_extend_recursive_c(self, ParentWithBase R):
-        cdef ParentWithBase V
-        # Don't call _c function so we check for ParentWithBase
+    cdef base_extend_recursive_c(self, Parent R):
+        cdef Parent V
+        # Don't call _c function so we check for Parent
         V = self._parent.base_extend_recursive(R)
         return (<Parent>V)._coerce_c(self)
 
     def base_extend_recursive(self, R):
         return self.base_extend_recursive_c(R)
 
-    cdef base_extend_canonical_c(self, ParentWithBase R):
-        cdef ParentWithBase V
+    cdef base_extend_canonical_c(self, Parent R):
+        cdef Parent V
         V = self._parent.base_extend_canonical(R)
         return (<Parent>V)._coerce_c(self)
 
     def base_extend_canonical(self, R):
         return self.base_extend_canonical_c(R)
 
-    cdef base_extend_canonical_sym_c(self, ParentWithBase R):
-        cdef ParentWithBase V
-        # Don't call _c function so we check for ParentWithBase
+    cdef base_extend_canonical_sym_c(self, Parent R):
+        cdef Parent V
+        # Don't call _c function so we check for Parent
         V = self._parent.base_extend_canonical_sym(R)
         return (<Parent>V)._coerce_c(self)
 
     def base_extend_canonical_sym(self, R):
         return self.base_extend_canonical_sym_c(R)
 
-    cdef base_base_extend_canonical_sym_c(self, ParentWithBase R):
-        cdef ParentWithBase V
-        # Don't call _c function so we check for ParentWithBase
+    cdef base_base_extend_canonical_sym_c(self, Parent R):
+        cdef Parent V
+        # Don't call _c function so we check for Parent
         V = self.base_ring().base_extend_canonical_sym(R)
         return self.base_extend(V)
 
@@ -409,6 +407,7 @@ cdef class Element(sage_object.SageObject):
         if not hasattr(self,'__call__'):
             return self
         parent=self._parent
+        from sage.structure.parent_gens import is_ParentWithGens
         if not is_ParentWithGens(parent):
             return self
         variables=[]
@@ -873,7 +872,10 @@ cdef class ModuleElement(Element):
         """
         # default implementation is to try multiplying by -1.
         global coercion_model
-        return coercion_model.bin_op_c(self._parent._base(-1), self, mul)
+        if self._parent._base is None:
+            return coercion_model.bin_op_c(-1, self, mul)
+        else:
+            return coercion_model.bin_op_c(self._parent._base(-1), self, mul)
 
 
     def _neg_(ModuleElement self):

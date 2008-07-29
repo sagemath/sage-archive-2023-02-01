@@ -116,28 +116,28 @@ cdef class Parent(category_object.CategoryObject):
     in computer science.
     """
 
-    def __init__(self, base=None, *, categories=[], element_class=None, gens=None, names=None, normalize=True, **kwds):
+    def __init__(self, base=None, *, categories=[], element_constructor=None, gens=None, names=None, normalize=True, **kwds):
         CategoryObject.__init__(self, categories, base)
         if len(kwds) > 0:
             if bad_parent_warnings:
                 print "Illegal keywords for %s: %s" % (type(self), kwds)
         # TODO: many classes don't call this at all, but __new__ crashes SAGE
         if bad_parent_warnings:
-            if element_class is None:
-                print "coerce BUG: No element_class provided", type(self)
-            elif not callable(element_class):
-                print "coerce BUG: Bad element_class provided", type(self), type(element_class), element_class
+            if element_constructor is None:
+                element_constructor = self._element_constructor_
+            elif not callable(element_constructor):
+                print "coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor
         if gens is not None:
             self._populate_generators_(gens, names, normalize)
         elif names is not None:
             self._assign_names(names, normalize)
-        self._element_class = element_class
-        if hasattr(element_class, 'init_no_parent'):
-            self._element_init_pass_parent = not element_class.init_no_parent
-        elif PY_TYPE_CHECK(element_class, types.MethodType):
+        self._element_constructor = element_constructor
+        if hasattr(element_constructor, 'init_no_parent'):
+            self._element_init_pass_parent = not element_constructor.init_no_parent
+        elif PY_TYPE_CHECK(element_constructor, types.MethodType):
             self._element_init_pass_parent = False
-        elif PY_TYPE_CHECK(element_class, BuiltinMethodType):
-            self._element_init_pass_parent = element_class.__self__ is not self
+        elif PY_TYPE_CHECK(element_constructor, BuiltinMethodType):
+            self._element_init_pass_parent = element_constructor.__self__ is not self
         else:
             self._element_init_pass_parent = True
         self._coerce_from_list = []
@@ -192,7 +192,7 @@ cdef class Parent(category_object.CategoryObject):
         #print self._introspect_coerce()
         d = CategoryObject.__getstate__(self)
         d['_embedding'] = self._embedding
-        d['_element_class'] = self._element_class
+        d['_element_constructor'] = self._element_constructor
         d['_convert_method_name'] = self._convert_method_name
         d['_element_init_pass_parent'] = self._element_init_pass_parent
         d['_initial_coerce_list'] = self._initial_coerce_list
@@ -207,11 +207,11 @@ cdef class Parent(category_object.CategoryObject):
         except KeyError:
             version = 0
         if version == 1:
-            self._element_class = d['_element_class']
+            self._element_constructor = d['_element_constructor']
             self.init_coerce(False) # Really, do we want to init this with the same initial data as before?
-            self._populate_coercion_lists_(coerce_list=d['_initial_coerce_list'],
-                                           action_list=d['_initial_action_list'],
-                                           convert_list=d['_initial_convert_list'],
+            self._populate_coercion_lists_(coerce_list=d['_initial_coerce_list'] or [],
+                                           action_list=d['_initial_action_list'] or [],
+                                           convert_list=d['_initial_convert_list'] or [],
                                            embedding=d['_embedding'],
                                            convert_method_name=d['_convert_method_name'],
                                            init_no_parent=not d['_element_init_pass_parent'])
@@ -316,6 +316,9 @@ cdef class Parent(category_object.CategoryObject):
                 return self._list
             except AttributeError:
                 return list(self.__iter__())
+
+    def __nonzero__(self):
+        return True
 
     def __len__(self):
         return len(self.list())
@@ -437,8 +440,8 @@ cdef class Parent(category_object.CategoryObject):
             convert_method_name -- a name to look for that other elements
                             can implement to create elements of self (e.g. _integer_)
             init_no_parent -- if True omit passing self in as the first
-                              argument of element_class for conversion. This is
-                              useful if parents are unique, or element_class is
+                              argument of element_constructor for conversion. This is
+                              useful if parents are unique, or element_constructor is
                               a bound method.
         """
         if not PY_TYPE_CHECK(coerce_list, list):
@@ -516,15 +519,15 @@ cdef class Parent(category_object.CategoryObject):
         if self._convert_method_name is not None:
             # handle methods like _integer_
             if PY_TYPE_CHECK(S, type):
-                element_class = S
+                element_constructor = S
             elif PY_TYPE_CHECK(S, Parent):
-                element_class = (<Parent>S)._element_class
-                if not PY_TYPE_CHECK(element_class, type):
-                    # if element_class is not an actual class, get the element class
-                    element_class = type(S.an_element())
+                element_constructor = (<Parent>S)._element_constructor
+                if not PY_TYPE_CHECK(element_constructor, type):
+                    # if element_constructor is not an actual class, get the element class
+                    element_constructor = type(S.an_element())
             else:
-                element_class = None
-            if element_class is not None and hasattr(element_class, self._convert_method_name):
+                element_constructor = None
+            if element_constructor is not None and hasattr(element_constructor, self._convert_method_name):
                 return coerce_maps.NamedConvertMorphism(S, self, self._convert_method_name)
 
         if self._element_init_pass_parent:
@@ -950,31 +953,31 @@ cdef class Parent(category_object.CategoryObject):
         """
         return True
 
-    cpdef base_extend(self, other, category=None):
-        """
-        EXAMPLES:
-            sage: QQ.base_extend(GF(7))
-            Traceback (most recent call last):
-            ...
-            TypeError: base extension not defined for Rational Field
-            sage: ZZ.base_extend(GF(7))
-            Finite Field of size 7
-        """
-        # Use the coerce map if a base extend is not defined in the category.
-        # this is the default implementation.
-        try:
-            if category is None:
-                method = self._categories[0].get_object_method("base_extend") # , self._categories[1:])
-            else:
-                method = category.get_object_method("base_extend")
-            if method is not None:
-                return method(self)
-            elif other.has_coerce_map_from(self):
-                return other
-            else:
-                raise TypeError, "base extension not defined for %s" % self
-        except AttributeError:
-            raise TypeError, "base extension not defined for %s" % self
+#    cpdef base_extend(self, other, category=None):
+#        """
+#        EXAMPLES:
+#            sage: QQ.base_extend(GF(7))
+#            Traceback (most recent call last):
+#            ...
+#            TypeError: base extension not defined for Rational Field
+#            sage: ZZ.base_extend(GF(7))
+#            Finite Field of size 7
+#        """
+#        # Use the coerce map if a base extend is not defined in the category.
+#        # this is the default implementation.
+#        try:
+#            if category is None:
+#                method = self._categories[0].get_object_method("base_extend") # , self._categories[1:])
+#            else:
+#                method = category.get_object_method("base_extend")
+#            if method is not None:
+#                return method(self)
+#            elif other.has_coerce_map_from(self):
+#                return other
+#            else:
+#                raise TypeError, "base extension not defined for %s" % self
+#        except AttributeError:
+#            raise TypeError, "base extension not defined for %s" % self
 
 ############################################################################
 # Set baseclass --
@@ -999,6 +1002,9 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
 
     def object(self):
         return self
+
+    def __nonzero__(self):
+        return len(self) != 0
 
 
 
@@ -1032,7 +1038,7 @@ cdef class Set_PythonType_class(Set_generic):
 
     def __init__(self, theType):
         from sage.categories.category_types import Sets
-        Set_generic.__init__(self, element_class=theType, categories=[Sets()])
+        Set_generic.__init__(self, element_constructor=theType, categories=[Sets()])
         self._type = theType
 
     def __call__(self, x):

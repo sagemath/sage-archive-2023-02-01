@@ -17,15 +17,15 @@ from sage.structure.generators cimport Generators
 cdef class CategoryObject(sage_object.SageObject):
 
     cdef _generators
-    cdef _categories
-    cdef readonly _base
+    cdef _category
+    cdef public _base
     cdef public _cdata
     cdef public _names # will be _printer
     cdef public _factory_data
     cdef object __weakref__
 
-    cpdef Generators gens(self, category = *)
-    cpdef gen(self, index = *, category = *)
-    cpdef ngens(self, category = *)
-    cpdef base(self, category = *)
-    cpdef base_extend(self, other, category = *)
+#    cpdef Generators gens(self, category = *)
+#    cpdef gen(self, index = *, category = *)
+#    cpdef ngens(self, category = *)
+#    cpdef base(self, category = *)
+#    cpdef base_extend(self, other, category = *)

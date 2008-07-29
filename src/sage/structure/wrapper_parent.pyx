@@ -68,7 +68,7 @@ cdef class StealMorphism(Morphism):
         y = copy.copy(x)
         return (<Element>y)._make_new_with_parent_c(self.codomain())
 
-cdef class WrapperParent_model0(ParentWithBase):
+cdef class WrapperParent_model0(Parent):
     """
     This class is designed to wrap around unique parents to provide facility for different coercions, actions and embeddings.
 
@@ -81,7 +81,7 @@ cdef class WrapperParent_model0(ParentWithBase):
         stealS = StealMorphism(Hom(R, self, cat))
         stealR = StealMorphism(Hom(self, R, cat))
         # need to modify actions
-        ParentWithBase.__init__(self, R.base(), [stealS * f for f in coerce_from], actions, [f * stealR for f in embeddings])
+        Parent.__init__(self, R.base(), [stealS * f for f in coerce_from], actions, [f * stealR for f in embeddings])
 
     def __call__(self, x):
         """
@@ -104,9 +104,9 @@ cdef class WrapperParent_model0(ParentWithBase):
         try:
             return self.R.__getattribute__(name)
         except AttributeError:
-            return ParentWithBase.__getattribute__(name)
+            return Parent.__getattribute__(name)
 
-cdef class WrapperParent_model1(ParentWithBase):
+cdef class WrapperParent_model1(Parent):
     """
     """
     def __init__(self, R, cat = None, coerce_from = [], actions = [], embeddings = []):
@@ -116,7 +116,7 @@ cdef class WrapperParent_model1(ParentWithBase):
         stealS = CallMorphism(Hom(R, self, cat))
         stealR = CallMorphism(Hom(self, R, cat))
         # need to modify actions
-        ParentWithBase.__init__(self, R.base(), [stealS * f for f in coerce_from], actions, [f * stealR for f in embeddings])
+        Parent.__init__(self, R.base(), [stealS * f for f in coerce_from], actions, [f * stealR for f in embeddings])
 
     def __call__(self, x):
         """
@@ -141,7 +141,7 @@ cdef class WrapperParent_model1(ParentWithBase):
         try:
             return self.R.__getattribute__(name)
         except AttributeError:
-            return ParentWithBase.__getattribute__(name)
+            return Parent.__getattribute__(name)
 
 cdef class WrapperElement(AlgebraElement):
     """
@@ -172,7 +172,7 @@ cdef class WrapperElement(AlgebraElement):
         return (<Element>left.val)._richcmp_c(right, op)
     cdef int _cmp_c_impl(left, Element right):
         return (<Element>left.val)._cmp_c(right)
-    cdef base_extend_c_impl(self, ParentWithBase R):
+    cdef base_extend_c_impl(self, Parent R):
         return (<Element>self.val).base_extend_c(R)
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         return self.val + (<WrapperElement>right).val

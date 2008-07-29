@@ -9,7 +9,6 @@
 cimport parent_old
 
 cdef class ParentWithBase(parent_old.Parent):
-    cdef parent_old.Parent _base
     # DO NOT OVERRIDE ANY OF THE FOLLOWING
     cdef base_extend_recursive_c(self, ParentWithBase X)
     cdef base_extend_canonical_c(self, ParentWithBase X)

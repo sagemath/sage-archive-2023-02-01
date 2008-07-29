@@ -289,7 +289,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         else:
             return ComplexDoubleElement(x, im)
 
-    cdef coerce_map_from_c(self, S):
+    cpdef coerce_map_from_c(self, S):
         from integer_ring import ZZ
         from rational_field import QQ
         import real_mpfr

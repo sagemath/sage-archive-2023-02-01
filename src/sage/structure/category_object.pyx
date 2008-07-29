@@ -75,14 +75,13 @@ cdef class CategoryObject(sage_object.SageObject):
     """
     An object in some category.
     """
-    def __init__(self, categories, base = None):
+    def __init__(self, category, base = None):
         """
         Initializes an object in a category
 
         INPUT:
-        categories - a list of leaf categories that this object belongs to
-                     (eg you do not need to list AbelianGroups if you specify
-                     Rings because there is a forgetful functor from AbelianGroups to Rings)
+        category - The category this object belongs to. If this object belongs to multiple categories,
+                   pass in a join category.
         base - If this object has another object that should be considered a base in its primary category,
                you can include that base here.
         gens_with_names - if this object has generators, there are a number of ways of specifying them.
@@ -90,20 +89,19 @@ cdef class CategoryObject(sage_object.SageObject):
         """
         if base is not None:
             self._base = base
-        if len(categories) == 0:
+        if category is None:
             if bad_parent_warnings:
-                print "No categories for %s" % type(self)
-            categories = [guess_category(self)] # so generators don't crash
-        self._categories = list(categories)
+                print "No category for %s" % type(self)
+            category = guess_category(self) # so generators don't crash
+        self._category = category
         self._generators = {}
 
     def category(self):
-        cat = self._categories[0]
-        if cat is None:
+        if self._category is None:
             # COERCE TODO: we shouldn't need this
             from sage.categories.all import Objects
-            cat = Objects()
-        return cat
+            self._category = Objects()
+        return self._category
 
 
     ##############################################################################
@@ -114,7 +112,7 @@ cdef class CategoryObject(sage_object.SageObject):
         if self._generators.has_key(category):
             raise ValueError, "Generators cannot be changed after object creation."
         if category is None:
-            category = self._categories[0]
+            category = self._category
         from sage.structure.sequence import Sequence
         if gens is None:
             n = self._ngens_()
@@ -132,34 +130,34 @@ cdef class CategoryObject(sage_object.SageObject):
         else:
             gens = generators.Generators_list(self, [gens], category)
         self._generators[category] = gens
-        if category == self._categories[0]:
+        if category == self._category:
             if names is not None and self._names is None:
                 self._assign_names(names, ngens=gens.count(), normalize=normalize)
             self._generators[category] = gens
 
-    cpdef Generators gens(self, category=None):
-        if category is None:
-            category = self._categories[0]
-        try:
-            return self._generators[category]
-        except KeyError:
-            if category == self._categories[0]:
-                n = self._ngens_()
-                from sage.rings.infinity import infinity
-                if n is infinity:
-                    gens = generators.Generators_naturals(self, category)
-                else:
-                    gens = generators.Generators_finite(self, self._ngens_(), None, category)
-            else:
-                gens = self._compute_generators_(category)
-            self._generators[category] = gens
-            return gens
-
-    cpdef gen(self, index=0, category=None):
-        return self.gens(category)[index]
-
-    cpdef ngens(self, category=None):
-        return self.gens(category).count()
+#    cpdef Generators gens(self, category=None):
+#        if category is None:
+#            category = self._categories[0]
+#        try:
+#            return self._generators[category]
+#        except KeyError:
+#            if category == self._categories[0]:
+#                n = self._ngens_()
+#                from sage.rings.infinity import infinity
+#                if n is infinity:
+#                    gens = generators.Generators_naturals(self, category)
+#                else:
+#                    gens = generators.Generators_finite(self, self._ngens_(), None, category)
+#            else:
+#                gens = self._compute_generators_(category)
+#            self._generators[category] = gens
+#            return gens
+#
+#    cpdef gen(self, index=0, category=None):
+#        return self.gens(category)[index]
+#
+#    cpdef ngens(self, category=None):
+#        return self.gens(category).count()
 
     def _ngens_(self):
         return 0
@@ -362,11 +360,11 @@ cdef class CategoryObject(sage_object.SageObject):
     # Bases
     #################################################################################################
 
-    cpdef base(self, category=None):
-        if category is None:
-            return self._base
-        else:
-            return category._obj_base(self)
+#    cpdef base(self, category=None):
+#        if category is None:
+#            return self._base
+#        else:
+#            return category._obj_base(self)
 
     def has_base(self, category=None):
         if category is None:
@@ -374,24 +372,24 @@ cdef class CategoryObject(sage_object.SageObject):
         else:
             return category._obj_base(self) is not None
 
-    cpdef base_extend(self, other, category=None):
-        """
-        EXAMPLES:
-            sage: QQ.base_extend(GF(7))
-            Traceback (most recent call last):
-            ...
-            TypeError: base extension not defined for Rational Field
-            sage: ZZ.base_extend(GF(7))
-            Finite Field of size 7
-        """
-        try:
-            if category is None:
-                method = self._categories[0].get_object_method("base_extend") # , self._categories[1:])
-            else:
-                method = category.get_object_method("base_extend")
-            return method(self)
-        except AttributeError:
-            raise TypeError, "base extension not defined for %s" % self
+#    cpdef base_extend(self, other, category=None):
+#        """
+#        EXAMPLES:
+#            sage: QQ.base_extend(GF(7))
+#            Traceback (most recent call last):
+#            ...
+#            TypeError: base extension not defined for Rational Field
+#            sage: ZZ.base_extend(GF(7))
+#            Finite Field of size 7
+#        """
+#        try:
+#            if category is None:
+#                method = self._category.get_object_method("base_extend") # , self._categories[1:])
+#            else:
+#                method = category.get_object_method("base_extend")
+#            return method(self)
+#        except AttributeError:
+#            raise TypeError, "base extension not defined for %s" % self
 
     def base_ring(self):
         # COERCE TODO: When everything has a category, move this to the category level.
@@ -401,34 +399,30 @@ cdef class CategoryObject(sage_object.SageObject):
     # Automatic lookup of methods on the category.
     #################################################################################################
 
-    def __getattr__(self, name):
-        """
-        Overriding the __getattr__ method allows one to define methods for objects in a particular
-        category by writing a correpsonding method on the category.
-
-        In order to write a method called FOO that's automatically attached to a category object,
-        write a method object_FOO on one of that object's categories.
-
-        EXAMPLES:
-        sage: G = DirichletGroup(18); G
-        Group of Dirichlet characters of modulus 18 over Cyclotomic Field of order 6 and degree 2
-        sage: G.generator_orders()
-        [1, 6]
-        sage: G.category().object_generator_orders(G)
-        [1, 6]
-        """
-        if self._categories is not None:
-            if self._categories[0] is None:
-                # COERCE TODO: something went wrong earlier
-                return object.__getattribute__(self, name)
-            for C in self._categories:
-                attr = C.get_object_method(name)
-                if attr is not None:
-                    if callable(attr):
-                        return FillFirstArg(attr, self)
-                    else:
-                        return attr
-        return object.__getattribute__(self, name)
+#    def __getattr__(self, name):
+#        """
+#        Overriding the __getattr__ method allows one to define methods for objects in a particular
+#        category by writing a correpsonding method on the category.
+#
+#        In order to write a method called FOO that's automatically attached to a category object,
+#        write a method object_FOO on one of that object's categories.
+#
+#        EXAMPLES:
+#        sage: G = DirichletGroup(18); G
+#        Group of Dirichlet characters of modulus 18 over Cyclotomic Field of order 6 and degree 2
+#        sage: G.generator_orders()
+#        [1, 6]
+#        sage: G.category().object_generator_orders(G)
+#        [1, 6]
+#        """
+#        if self._category is not None:
+#            attr = self._category.get_object_method(name)
+#            if attr is not None:
+#                if callable(attr):
+#                    return FillFirstArg(attr, self)
+#                else:
+#                    return attr
+#        return object.__getattribute__(self, name)
 
     ############################################################################
     # Homomorphism --
@@ -511,7 +505,7 @@ cdef class CategoryObject(sage_object.SageObject):
             pass
         d = dict(d)
         d['_generators'] = self._generators
-        d['_categories'] = self._categories
+        d['_category'] = self._category
         d['_base'] = self._base
         d['_cdata'] = self._cdata
         d['_names'] = self._names
@@ -536,7 +530,7 @@ cdef class CategoryObject(sage_object.SageObject):
         try:
             if version == 1:
                 self._generators = d['_generators']
-                self._categories = d['_categories']
+                self._category = d['_category']
                 self._base = d['_base']
                 self._cdata = d['_cdata']
                 self._names = d['_names']

@@ -506,6 +506,18 @@ ext_modules = [ \
     Extension('sage.structure.generators',
               sources = ['sage/structure/generators.pyx']), \
 
+    Extension('sage.structure.coerce',
+              sources = ['sage/structure/coerce.pyx']), \
+
+    Extension('sage.structure.coerce_dict',
+              sources = ['sage/structure/coerce_dict.pyx']), \
+
+    Extension('sage.structure.element',
+              sources = ['sage/structure/element.pyx']), \
+
+    Extension('sage.categories.morphism',
+              sources = ['sage/categories/morphism.pyx']), \
+
     free_module_element,
 
     complex_double_vector,
@@ -640,21 +652,9 @@ ext_modules = [ \
               sources = ['sage/ext/multi_modular.pyx'],
               libraries=['gmp']), \
 
-    Extension('sage.structure.coerce',
-              sources = ['sage/structure/coerce.pyx']), \
-
-    Extension('sage.structure.coerce_dict',
-              sources = ['sage/structure/coerce_dict.pyx']), \
-
     Extension('sage.modular.congroup_pyx',
               sources = ['sage/modular/congroup_pyx.pyx', \
                          'sage/ext/arith.pyx']), \
-
-    Extension('sage.structure.element',
-              sources = ['sage/structure/element.pyx']), \
-
-    Extension('sage.categories.morphism',
-              sources = ['sage/categories/morphism.pyx']), \
 
     Extension('sage.categories.functor',
               sources = ['sage/categories/functor.pyx']), \
@@ -1281,8 +1281,6 @@ def need_to_build(deps, f, outfile):
     if is_newer(f, outfile):
         print '\nBuilding %s because it depends on %s.' % (outfile, f)
         return True
-    else:
-        return False
     try:
         this_deps = deps[f]
     except KeyError:

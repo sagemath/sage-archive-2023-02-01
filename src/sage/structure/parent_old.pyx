@@ -84,7 +84,7 @@ cdef class Parent(parent.Parent):
         # old
         self._has_coerce_map_from = {}
 
-    def init_coerce(self):
+    def init_coerce(self, dummy=True):
         if self._coerce_from_hash is None:
 #            print "init_coerce() for ", type(self)
             self._coerce_from_list = []
@@ -133,7 +133,7 @@ cdef class Parent(parent.Parent):
     def coerce_map_from(self, S):
         return self.coerce_map_from_c(S)
 
-    cdef coerce_map_from_c(self, S):
+    cpdef coerce_map_from_c(self, S):
         if S is self:
             from sage.categories.homset import Hom
             return Hom(self, self).identity()
@@ -202,7 +202,7 @@ cdef class Parent(parent.Parent):
     def get_action(self, S, op=operator.mul, self_on_left=True):
         return self.get_action_c(S, op, self_on_left)
 
-    cdef get_action_c(self, S, op, bint self_on_left):
+    cpdef get_action_c(self, S, op, bint self_on_left):
         try:
             if self._action_hash is None: # this is because parent.__init__() does not always get called
                 self.init_coerce()
@@ -351,7 +351,7 @@ cdef class Parent(parent.Parent):
     def _coerce_(self, x):            # Call this from Python (do not override!)
         return self._coerce_c(x)
 
-    cdef _coerce_c(self, x):          # DO NOT OVERRIDE THIS (call it)
+    cpdef _coerce_c(self, x):          # DO NOT OVERRIDE THIS (call it)
         try:
             P = x.parent()   # todo -- optimize
             if P is self:
@@ -421,7 +421,7 @@ cdef class Parent(parent.Parent):
     def has_coerce_map_from(self, S):
         return self.has_coerce_map_from_c(S)
 
-    cdef has_coerce_map_from_c(self, S):
+    cpdef has_coerce_map_from_c(self, S):
         """
         Return True if there is a natural map from S to self.
         Otherwise, return False.
@@ -467,7 +467,7 @@ cdef class Parent(parent.Parent):
         """
         return self._an_element_c_impl()
 
-    cdef _an_element_c_impl(self):  # override this in SageX
+    cpdef _an_element_c_impl(self):  # override this in SageX
         """
         Returns an element of self. Want it in sufficent generality
         that poorly-written functions won't work when they're not
@@ -487,7 +487,7 @@ cdef class Parent(parent.Parent):
         for x in ['_an_element_', 'pi', 1.2, 2, 1, 0, infinity]:
             try:
                 return self(x)
-            except (TypeError, NameError, NotImplementedError):
+            except (TypeError, NameError, NotImplementedError, AttributeError, ValueError):
                 pass
 
         raise NotImplementedError, "please implement _an_element_c_impl or _an_element_impl for %s"%self
@@ -495,7 +495,7 @@ cdef class Parent(parent.Parent):
     def _an_element(self):        # do not override this (call from Python)
         return self._an_element_c()
 
-    cdef _an_element_c(self):     # do not override this (call from SageX)
+    cpdef _an_element_c(self):     # do not override this (call from SageX)
         if not self.__an_element is None:
             return self.__an_element
         if HAS_DICTIONARY(self):
@@ -562,7 +562,7 @@ cdef class Parent(parent.Parent):
 ##             _dict = None
 ##         return (make_parent_v0, (self.__class__, _dict, self._has_coerce_map_from))
 
-    cdef int _cmp_c_impl(left, Parent right) except -2:
+    cdef int _cmp_c_impl(left, parent.Parent right) except -2:
         pass
         # this would be nice to do, but we can't since
         # it leads to infinite recurssions -- and is slow -- and this

@@ -219,6 +219,87 @@ cdef class CallableConvertMap(Map):
         except AttributeError:
             return "Conversion via %s" % self._func
 
+
+cdef class CCallableConvertMap_class(Map):
+    cdef Element (*_func)(Parent, object)
+    cdef public _name
+
+    def __init__(self, domain, codomain, name):
+        if PY_TYPE_CHECK(domain, type):
+            domain = Set_PythonType(domain)
+        Map.__init__(self, domain, codomain)
+        self._coerce_cost = 10
+        self._name = name
+
+    cpdef Element _call_(self, x):
+        return self._func(self._codomain, x)
+
+    def _repr_type(self):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_maps import test_CCallableConvertMap
+            sage: test_CCallableConvertMap(ZZ, 'any name')
+            Conversion via c call 'any name' map:
+              From: Integer Ring
+              To:   Integer Ring
+            sage: test_CCallableConvertMap(ZZ, None)  # random address
+            Conversion via c call at 0xc339000 map:
+              From: Integer Ring
+              To:   Integer Ring
+        """
+        if self._name is None:
+            return "Conversion via c call at 0x%x" % <long>self._func
+        else:
+            return "Conversion via c call '%s'" % self._name
+
+
+cdef Map CCallableConvertMap(domain, codomain, void* func, name):
+    """
+    Use this to create a map from domain to codomain by calling func
+    (which must be a function pointer taking a Parent and object, and
+    returning an Element in the given Parent).
+
+    This is the c analogue of CallableConvertMap.
+    """
+    # Cython doesn't yet accept function pointers as arguments,
+    # change this when it does.
+    cdef CCallableConvertMap_class map = CCallableConvertMap_class(domain, codomain, name)
+    map._func = <Element (*)(Parent, object)>func
+    return map
+
+cpdef Element _ccall_test_function(codomain, x):
+    """
+    For testing CCallableConvertMap_class. Returns x*x*x-x in the codomain.
+
+    TESTS:
+        sage: from sage.structure.coerce_maps import _ccall_test_function
+        sage: _ccall_test_function(ZZ, 1)
+        0
+        sage: _ccall_test_function(ZZ, 2)
+        6
+        sage: _ccall_test_function(ZZ, -3)
+        -24
+    """
+    return codomain(x*x*x-x)
+
+def test_CCallableConvertMap(domain, name=None):
+    """
+    For testing CCallableConvertMap_class.
+
+    TESTS:
+        sage: from sage.structure.coerce_maps import test_CCallableConvertMap
+        sage: f = test_CCallableConvertMap(ZZ, 'test'); f
+        Conversion via c call 'test' map:
+          From: Integer Ring
+          To:   Integer Ring
+        sage: f(3)
+        24
+        sage: f(9)
+        720
+    """
+    return CCallableConvertMap(domain, domain, <void*>&_ccall_test_function, name)
+
+
 cdef class ListMorphism(Map):
 
     cdef Map _real_morphism

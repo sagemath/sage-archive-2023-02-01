@@ -16,3 +16,5 @@ cdef class TryMap(Map):
     cdef Map _map_p
     cdef Map _map_b
     cdef _error_types
+
+cdef Map CCallableConvertMap(domain, codomain, void* func, name)

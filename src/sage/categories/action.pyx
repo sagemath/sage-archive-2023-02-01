@@ -120,7 +120,7 @@ cdef class InverseAction(Action):
 
     TESTS:
     This illustrates a shortcoming in the current coercion model.
-    See the comments in _call_c below.
+    See the comments in _call_ below.
 
         sage: x = polygen(QQ,'x')
         sage: a = 2*x^2+2; a

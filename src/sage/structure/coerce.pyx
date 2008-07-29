@@ -963,13 +963,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if PY_TYPE_CHECK(S, type):
                 S = Set_PythonType(S)
 
-            if action.left_domain() == R and action.right_domain() == S:
-                # Non-unique parents
-                if fix:
-                    if action.left_domain() is not R:
-                        action = PrecomposedAction(action, action.left_domain().coerce_map_from(R), None)
-                    if action.right_domain() is not S:
-                        action = PrecomposedAction(action, None, action.right_domain().coerce_map_from(S))
+            # Non-unique parents
+            if fix and action.left_domain() is not R and action.left_domain() == R:
+                action = PrecomposedAction(action, action.left_domain().coerce_map_from(R), None)
+            if fix and action.right_domain() is not S and action.right_domain() == S:
+                action = PrecomposedAction(action, None, action.right_domain().coerce_map_from(S))
+
             if action.left_domain() is not R or action.right_domain() is not S:
                 raise RuntimeError, """There is a BUG in the coercion model:
                 Action found for R %s S does not have the correct domains

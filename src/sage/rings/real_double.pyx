@@ -1745,8 +1745,7 @@ cdef class ToRDF(Morphism):
             from sage.structure.parent import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, RDF))
-    cdef Element _call_c(self, x):
-        # Override this _call_c rather than _call_c_impl because a may not be an Element
+    cpdef Element _call_(self, x):
         cdef RealDoubleElement r = <RealDoubleElement>PY_NEW(RealDoubleElement)
         r._value = PyFloat_AsDouble(x)
         return r

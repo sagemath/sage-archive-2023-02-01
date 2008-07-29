@@ -150,7 +150,7 @@ cdef class Morphism(Element):
             return self._call_with_args(x, args, kwds)
 
     cpdef Element _call_(self, x):
-        raise NotImplementedError
+        raise NotImplementedError, type(self)
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         if len(args) == 0 and len(kwds) == 0:

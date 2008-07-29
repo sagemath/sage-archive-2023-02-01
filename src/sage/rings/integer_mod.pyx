@@ -2848,7 +2848,7 @@ cdef class IntegerMod_hom(Morphism):
         Morphism.__init__(self, parent)
         self.zero = self._codomain(0)
         self.modulus = self._codomain._pyx_order
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         return IntegerMod(self.codomain(), x)
 
 cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
@@ -2872,7 +2872,7 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
         import sage.categories.homset
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(R, S))
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
         if PY_TYPE_CHECK(x, IntegerMod_int):
             return (<IntegerMod_int>self.zero)._new_c((<IntegerMod_int>x).ivalue % self.modulus.int32)
@@ -2904,7 +2904,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
         import sage.categories.homset
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(integer_ring.ZZ, R))
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
         cdef Py_ssize_t res
         if self.modulus.table is not None:
@@ -2941,7 +2941,7 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
         from sage.structure.parent import Set_PythonType
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), R))
 
-    cdef Element _call_c(self, x):
+    cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
         cdef long res = PyInt_AS_LONG(x)
         if PY_TYPE_CHECK(self.zero, IntegerMod_gmp):

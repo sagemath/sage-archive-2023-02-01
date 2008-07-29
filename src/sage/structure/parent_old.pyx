@@ -229,7 +229,7 @@ cdef class Parent(parent.Parent):
         from sage.categories.action import Action, PrecomposedAction
         from sage.categories.morphism import Morphism
         from sage.categories.homset import Hom
-        from coerce import LeftModuleAction, RightModuleAction
+        from coerce_actions import LeftModuleAction, RightModuleAction
         cdef Parent R
         for action in self._action_list:
             if PY_TYPE_CHECK(action, Action):
@@ -266,7 +266,7 @@ cdef class Parent(parent.Parent):
 
 
         if op is operator.mul and PY_TYPE_CHECK(S, Parent):
-            from coerce import LeftModuleAction, RightModuleAction, LAction, RAction
+            from coerce_actions import LeftModuleAction, RightModuleAction, LAction, RAction
             # Actors define _l_action_ and _r_action_
             # Acted-on elements define _lmul_ and _rmul_
 

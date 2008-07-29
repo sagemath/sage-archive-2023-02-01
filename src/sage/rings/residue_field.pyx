@@ -556,7 +556,7 @@ cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
         self.p = p
         ResidueFieldHomomorphism.__init__(self,Hom(p.number_field().maximal_order(), k, Rings())) # should eventually change to p.order()
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         """
         Applies this morphism to an element
 

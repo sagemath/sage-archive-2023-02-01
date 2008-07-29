@@ -59,7 +59,7 @@ cdef class StealMorphism(Morphism):
     def _repr_type(self):
         return "Steal"
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         """
         Applies this morphism to the element x.
 

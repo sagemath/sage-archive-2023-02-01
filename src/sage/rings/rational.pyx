@@ -2206,7 +2206,7 @@ cdef class Z_to_Q(Morphism):
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(integer_ring.ZZ, rational_field.QQ))
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         cdef Rational rat
         rat = <Rational> PY_NEW(Rational)
         mpq_set_z(rat.value, (<integer.Integer>x).value)
@@ -2236,8 +2236,7 @@ cdef class int_to_Q(Morphism):
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))
 
-    cdef Element _call_c(self, a):
-        # Override this _call_c rather than _call_c_impl because a is not an Element
+    cpdef Element _call_(self, a):
         cdef Rational rat
         rat = <Rational> PY_NEW(Rational)
         mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)

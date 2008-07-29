@@ -526,7 +526,7 @@ cdef class Element(sage_object.SageObject):
         return not self
 
     def _cmp_(left, right):
-        return left._cmp(right)
+        return left._cmp_c_impl(right)
 
     cdef _cmp(left, right):
         """
@@ -536,7 +536,7 @@ cdef class Element(sage_object.SageObject):
         cdef int r
         if not have_same_parent(left, right):
             try:
-                _left, _right = coercion_model.canonical_coercion_c(left, right)
+                _left, _right = coercion_model.canonical_coercion(left, right)
                 if PY_IS_NUMERIC(_left):
                     return cmp(_left, _right)
                 else:
@@ -547,6 +547,12 @@ cdef class Element(sage_object.SageObject):
                     r = -1
                 return r
         else:
+            if HAS_DICTIONARY(left):
+                left_cmp = left._cmp_
+                if PY_TYPE_CHECK(left_cmp, MethodType):
+                    # it must have been overriden
+                    return left_cmp(right)
+
             return left._cmp_c_impl(right)
 
     def _richcmp_(left, right, op):
@@ -560,7 +566,7 @@ cdef class Element(sage_object.SageObject):
         cdef int r
         if not have_same_parent(left, right):
             try:
-                _left, _right = coercion_model.canonical_coercion_c(left, right)
+                _left, _right = coercion_model.canonical_coercion(left, right)
                 if PY_IS_NUMERIC(_left):
                     return _rich_to_bool(op, cmp(_left, _right))
                 else:
@@ -709,7 +715,7 @@ cdef class ModuleElement(Element):
                 return _add_c(<ModuleElement>left, <ModuleElement>right)
 
         global coercion_model
-        return coercion_model.bin_op_c(left, right, add)
+        return coercion_model.bin_op(left, right, add)
 
     cdef ModuleElement _add_c(left, ModuleElement right):
         """
@@ -758,7 +764,7 @@ cdef class ModuleElement(Element):
                 return _add_c(<ModuleElement>self, <ModuleElement>right)
         else:
             global coercion_model
-            return coercion_model.bin_op_c(self, right, iadd)
+            return coercion_model.bin_op(self, right, iadd)
 
     def _iadd_(self, right):
         return self._iadd_c_impl(right)
@@ -781,7 +787,7 @@ cdef class ModuleElement(Element):
             else:
                 return _sub_c(<ModuleElement>left, <ModuleElement>right)
         global coercion_model
-        return coercion_model.bin_op_c(left, right, sub)
+        return coercion_model.bin_op(left, right, sub)
 
     cdef ModuleElement _sub_c(left, ModuleElement right):
         """
@@ -829,7 +835,7 @@ cdef class ModuleElement(Element):
                 return _sub_c(<ModuleElement>self, <ModuleElement>right)
         else:
             global coercion_model
-            return coercion_model.bin_op_c(self, right, isub)
+            return coercion_model.bin_op(self, right, isub)
 
     def _isub_(self, right):
         return self._isub_c_impl(right)
@@ -873,9 +879,9 @@ cdef class ModuleElement(Element):
         # default implementation is to try multiplying by -1.
         global coercion_model
         if self._parent._base is None:
-            return coercion_model.bin_op_c(-1, self, mul)
+            return coercion_model.bin_op(-1, self, mul)
         else:
-            return coercion_model.bin_op_c(self._parent._base(-1), self, mul)
+            return coercion_model.bin_op(self._parent._base(-1), self, mul)
 
 
     def _neg_(ModuleElement self):
@@ -894,14 +900,14 @@ cdef class ModuleElement(Element):
             raise arith_error_message(left, right, mul)
         # Always do this
         global coercion_model
-        return coercion_model.bin_op_c(left, right, mul)
+        return coercion_model.bin_op(left, right, mul)
 
     def __imul__(left, right):
         if have_same_parent(left, right):
              raise TypeError
         # Always do this
         global coercion_model
-        return coercion_model.bin_op_c(left, right, imul)
+        return coercion_model.bin_op(left, right, imul)
 
     cdef ModuleElement _multiply_by_scalar(self, right):
         # self * right,  where right need not be a ring element in the base ring
@@ -1081,7 +1087,7 @@ cdef class MonoidElement(Element):
         if have_same_parent(left, right):
             return (<MonoidElement>left)._mul_c(<MonoidElement>right)
         try:
-            return coercion_model.bin_op_c(left, right, mul)
+            return coercion_model.bin_op(left, right, mul)
         except TypeError, msg:
             if isinstance(left, (int, long)) and left==1:
                 return right
@@ -1198,7 +1204,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         if have_same_parent(left, right):
             return left._div_(right)
         global coercion_model
-        return coercion_model.bin_op_c(left, right, div)
+        return coercion_model.bin_op(left, right, div)
 
     cdef MultiplicativeGroupElement _div_c(self, MultiplicativeGroupElement right):
         """
@@ -1373,7 +1379,7 @@ cdef class RingElement(ModuleElement):
             else:
                 return _mul_c(<RingElement>self, <RingElement>right)
         global coercion_model
-        return coercion_model.bin_op_c(self, right, mul)
+        return coercion_model.bin_op(self, right, mul)
 
     cdef RingElement _mul_c(self, RingElement right):
         """
@@ -1411,7 +1417,7 @@ cdef class RingElement(ModuleElement):
                 return _mul_c(<RingElement>left, <RingElement>right)
 
         global coercion_model
-        return coercion_model.bin_op_c(left, right, imul)
+        return coercion_model.bin_op(left, right, imul)
 
     def _imul_(self, right):
         return self._imul_c_impl(right)
@@ -1467,7 +1473,7 @@ cdef class RingElement(ModuleElement):
     def __truediv__(self, right):
         # in sage all divs are true
         if not PY_TYPE_CHECK(self, Element):
-            return coercion_model.bin_op_c(self, right, div)
+            return coercion_model.bin_op(self, right, div)
         return self.__div__(right)
 
     def __div__(self, right):
@@ -1481,7 +1487,7 @@ cdef class RingElement(ModuleElement):
             else:
                 return _div_c(<RingElement>self, <RingElement>right)
         global coercion_model
-        return coercion_model.bin_op_c(self, right, div)
+        return coercion_model.bin_op(self, right, div)
 
 
     cdef RingElement _div_c(self, RingElement right):
@@ -1526,7 +1532,7 @@ cdef class RingElement(ModuleElement):
             else:
                 return _div_c(<RingElement>self, <RingElement>right)
         global coercion_model
-        return coercion_model.bin_op_c(self, right, idiv)
+        return coercion_model.bin_op(self, right, idiv)
 
     def _idiv_(self, right):
         return self._idiv_c_impl(right)
@@ -1717,7 +1723,7 @@ cdef class Vector(ModuleElement):
             return (<Vector>left)._dot_product_c(<Vector>right)
         # Always do this
         global coercion_model
-        return coercion_model.bin_op_c(left, right, imul)
+        return coercion_model.bin_op(left, right, imul)
 
 
     def __mul__(left, right):
@@ -1886,14 +1892,14 @@ cdef class Vector(ModuleElement):
             return (<Vector>left)._dot_product_c(<Vector>right)
         # Always do this
         global coercion_model
-        return coercion_model.bin_op_c(left, right, imul)
+        return coercion_model.bin_op(left, right, imul)
 
     cdef Element _dot_product_c(Vector left, Vector right):
         if left._degree != right._degree:
             raise TypeError, "incompatible degrees"
         elif left._parent._base is not right._parent._base:
             global coercion_model
-            left, right = coercion_model.canonical_coercion_c(left, right)
+            left, right = coercion_model.canonical_coercion(left, right)
         if HAS_DICTIONARY(left):
             return left._dot_product(right)
         else:
@@ -1910,7 +1916,7 @@ cdef class Vector(ModuleElement):
             raise TypeError, "incompatible degrees"
         elif left._parent._base is not right._parent._base:
             global coercion_model
-            left, right = coercion_model.canonical_coercion_c(left, right)
+            left, right = coercion_model.canonical_coercion(left, right)
         if HAS_DICTIONARY(left):
             return left._pairwise_product(right)
         else:
@@ -1978,7 +1984,7 @@ cdef class Matrix(AlgebraElement):
             return (<Matrix>left)._matrix_times_matrix_c_impl(<Matrix>right)
         else:
             global coercion_model
-            return coercion_model.bin_op_c(left, right, imul)
+            return coercion_model.bin_op(left, right, imul)
 
     def __mul__(left, right):
         """
@@ -2146,7 +2152,7 @@ cdef class Matrix(AlgebraElement):
             return (<Matrix>left)._matrix_times_matrix_c_impl(<Matrix>right)
         else:
             global coercion_model
-            return coercion_model.bin_op_c(left, right, mul)
+            return coercion_model.bin_op(left, right, mul)
 
     cdef Vector _vector_times_matrix_c_impl(matrix_right, Vector vector_left):
         raise TypeError
@@ -2194,7 +2200,7 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
         Returns the least common multiple of self and right.
         """
         if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op_c(self, right, lcm)
+            return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
 
     def gcd(self, right):
@@ -2202,7 +2208,7 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
         Returns the gcd of self and right, or 0 if both are 0.
         """
         if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op_c(self, right, gcd)
+            return coercion_model.bin_op(self, right, gcd)
         return self._gcd(right)
 
     def xgcd(self, right):
@@ -2217,7 +2223,7 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
         obtain minimal cofactors.
         """
         if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op_c(self, right, xgcd)
+            return coercion_model.bin_op(self, right, xgcd)
         return self._xgcd(right)
 
 
@@ -2711,7 +2717,7 @@ include "coerce.pxi"
 #
 #################################################################################
 
-def canonical_coercion(x, y):
+cpdef canonical_coercion(x, y):
     """
     canonical_coercion(x,y) is what is called before doing an
     arithmetic operation between x and y.  It returns a pair (z,w)
@@ -2726,208 +2732,12 @@ def canonical_coercion(x, y):
         [0 1])
     """
     global coercion_model
-    return coercion_model.canonical_coercion_c(x,y)
+    return coercion_model.canonical_coercion(x,y)
 
-def canonical_base_coercion(x, y):
+cpdef bin_op(x, y, op):
     global coercion_model
-    return coercion_model.canonical_base_coercion(x,y)
+    return coercion_model.bin_op(x,y,op)
 
-def bin_op(x, y, op):
-    global coercion_model
-    return coercion_model.bin_op_c(x,y,op)
-
-
-
-cdef bin_op_c(x, y, op):
-    """
-    Compute x op y, where coercion of x and y works according to
-    SAGE's coercion rules.
-
-    AUTHOR:
-
-        Gonzalo Tornaria (2007-06-20) - write test cases and fix them
-
-    TEST CASES:
-
-        sage: x, y = var('x, y')
-        sage: parent(ZZ[x](x) / ZZ(2))
-        Univariate Polynomial Ring in x over Rational Field
-        sage: parent(QQ(1/2)+ZZ[x](x))
-        Univariate Polynomial Ring in x over Rational Field
-        sage: parent(QQ(1/2)*ZZ[x](x))
-        Univariate Polynomial Ring in x over Rational Field
-        sage: parent(ZZ[x](x) / QQ(2))
-        Univariate Polynomial Ring in x over Rational Field
-        sage: parent(Mod(1,5)+ZZ[x](x))
-        Univariate Polynomial Ring in x over Ring of integers modulo 5
-        sage: parent(Mod(1,5)*ZZ[x](x))
-        Univariate Polynomial Ring in x over Ring of integers modulo 5
-        sage: parent(ZZ[x](x) / Mod(1,5))
-        Univariate Polynomial Ring in x over Ring of integers modulo 5
-        sage: parent(QQ(1/2) + Mod(1,5))
-        Traceback (most recent call last):
-        ...
-        TypeError: unsupported operand parent(s) for '+': 'Rational Field' and 'Ring of integers modulo 5'
-        sage: parent(QQ(1/2) * Mod(1,5))
-        Traceback (most recent call last):
-        ...
-        TypeError: unsupported operand parent(s) for '*': 'Rational Field' and 'Ring of integers modulo 5'
-        sage: parent(ZZ[x](x)+ZZ[y](y))
-        Traceback (most recent call last):
-        ...
-        TypeError: unsupported operand parent(s) for '+': 'Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Integer Ring'
-        sage: parent(ZZ[x](x)*ZZ[y](y))
-        Traceback (most recent call last):
-        ...
-        TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Integer Ring'
-        sage: parent(ZZ[x](x)+QQ[y](y))
-        Traceback (most recent call last):
-        ...
-        TypeError: unsupported operand parent(s) for '+': 'Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Rational Field'
-        sage: parent(ZZ[x](x)*QQ[y](y))
-        Traceback (most recent call last):
-        ...
-        TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Rational Field'
-        sage: parent(QQ[x](x)+ZZ[y](y))
-        Traceback (most recent call last):
-        ...
-        TypeError: unsupported operand parent(s) for '+': 'Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Integer Ring'
-        sage: parent(QQ[x](x)*ZZ[y](y))
-        Traceback (most recent call last):
-        ...
-        TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Integer Ring'
-        sage: parent(QQ(1/2)+matrix(ZZ,2,2,[1,2,3,4]))
-        Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-        sage: parent(QQ(1/2)*matrix(ZZ,2,2,[1,2,3,4]))
-        Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-        sage: parent(QQ[x](1/2)+matrix(ZZ[x],2,2,[1,2,3,4]))
-        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
-        sage: parent(QQ[x](1/2)*matrix(ZZ[x],2,2,[1,2,3,4]))
-        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
-        sage: parent(QQ(1/2)+matrix(ZZ[x],2,2,[1,2,3,4]))
-        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
-        sage: parent(matrix(ZZ[x],2,2,[1,2,3,4])+QQ(1/2))
-        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
-        sage: parent(QQ(1/2)*matrix(ZZ[x],2,2,[1,2,3,4]))
-        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
-        sage: parent(matrix(ZZ[x],2,2,[1,2,3,4])*QQ(1/2))
-        Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
-    """
-    # Try canonical element coercion.
-    try:
-        x1, y1 = canonical_coercion_c(x, y)
-        return op(x1,y1)
-    except TypeError, msg:
-        #print msg  # this can be useful for debugging.
-        if op is add or op is sub:
-            return addsub_op_c(x, y, op)
-        if op is mul or op is div:
-            return muldiv_op_c(x, y, op)
-        raise TypeError, arith_error_message(x,y,op)
-
-cdef addsub_op_c(x, y, op):
-
-    # Try base extending one object by the parent of the other object
-    # raise an error if both are defined
-
-    nr = 0
-    if  PY_TYPE_CHECK(x, RingElement):
-        try:
-            val = op(x, y.base_extend_recursive((<RingElement>x)._parent))
-            nr += 1
-        except (TypeError, AttributeError), msg:
-            pass
-    # Also try to base extending the left object by the parent of the right
-    if  PY_TYPE_CHECK(y, RingElement):
-        try:
-            val = op(x.base_extend_recursive((<RingElement>y)._parent), y)
-            nr += 1
-        except (TypeError, AttributeError), msg:
-            pass
-    if nr == 1:
-        return val
-
-    raise TypeError, arith_error_message(x,y,op)
-
-
-cdef muldiv_op_c(x, y, op):
-    # If the op is multiplication, then some other algebra multiplications
-    # may be defined
-
-    if op is div and PY_TYPE_CHECK(y, RingElement):
-        y = y.__invert__()
-
-    # 2. Try scalar multiplication.
-    # No way to multiply x and y using the ``coerce into a canonical
-    # parent'' rule.
-    # The next rule to try is scalar multiplication by coercing
-    # into the base ring.
-    cdef bint x_is_modelt, y_is_modelt
-
-    y_is_modelt = PY_TYPE_CHECK(y, ModuleElement)
-    if y_is_modelt:
-        # First try to coerce x into the base ring of y if y is an element.
-        try:
-            R = (<ModuleElement> y)._parent._base
-            if R is None:
-                raise RuntimeError, "base of '%s' must be set to a ring (but it is None)!"%((<ModuleElement> y)._parent)
-            x = (<Parent>R)._coerce_c(x)
-            return (<ModuleElement> y)._rmul_c(x)     # the product x * y
-        except TypeError, msg:
-            pass
-
-    x_is_modelt = PY_TYPE_CHECK(x, ModuleElement)
-    if x_is_modelt:
-        # That did not work.  Try to coerce y into the base ring of x.
-        try:
-            R = (<ModuleElement> x)._parent._base
-            if R is None:
-                raise RuntimeError, "base of '%s' must be set to a ring (but it is None)!"%((<ModuleElement> x)._parent)
-            y = (<Parent> R)._coerce_c(y)
-            return (<ModuleElement> x)._lmul_c(y)    # the product x * y
-        except TypeError:
-            pass
-
-    if y_is_modelt and x_is_modelt:
-        # 3. Both canonical coercion failed, but both are module elements.
-        # Try base extending the right object by the parent of the left
-
-        try:
-            return addsub_op_c(x, y, mul)
-        except TypeError:
-            pass
-
-#        ## TODO -- WORRY -- only unambiguous if one succeeds!
-#        nr = 0
-#        if  PY_TYPE_CHECK(x, RingElement):
-#            try:
-#                val = operator.mul(x, y.base_extend((<RingElement>x)._parent))
-#                nr += 1
-#            except (TypeError, AttributeError), msg:
-#                pass
-#        # Also try to base extending the left object by the parent of the right
-#        if  PY_TYPE_CHECK(y, RingElement):
-#            try:
-#                val =  operator.mul(x.base_extend((<Element>y)._parent), y)
-#                nr += 1
-#            except (TypeError, AttributeError), msg:
-#                pass
-#        if nr == 1:
-#            return val
-
-    # 4. Try _l_action or _r_action.
-    # Test to see if an _r_action or _l_action is
-    # defined on either side.
-    try:
-        return x._l_action(y)
-    except (AttributeError, TypeError):
-        pass
-    try:
-        return y._r_action(x)
-    except (AttributeError, TypeError):
-        pass
-
-    raise TypeError, arith_error_message(x,y,op)
 
 def coerce(Parent p, x):
     try:
@@ -2939,7 +2749,7 @@ def coerce_cmp(x,y):
     global coercion_model
     cdef int c
     try:
-        x, y = coercion_model.canonical_coercion_c(x, y)
+        x, y = coercion_model.canonical_coercion(x, y)
         return cmp(x,y)
     except TypeError:
         c = cmp(type(x), type(y))
@@ -2963,10 +2773,6 @@ cdef class CoercionModel:
 
 import coerce
 cdef CoercionModel coercion_model = coerce.CoercionModel_cache_maps()
-
-# for now while I'm merging in base extension code
-cdef canonical_coercion_c(x, y):
-    return coercion_model.canonical_coercion_c(x,y)
 
 def get_coercion_model():
     """

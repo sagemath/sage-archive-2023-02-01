@@ -35,7 +35,7 @@ AUTHORS:
 cimport free_module_element
 import  free_module_element
 
-from sage.structure.element cimport Element, ModuleElement, RingElement
+from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
 from sage.rings.complex_double import CDF
 from sage.rings.complex_double cimport ComplexDoubleElement, new_ComplexDoubleElement
@@ -389,6 +389,35 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             Vector space of dimension 3 over Real Field with 75 bits of precision
         """
         return free_module_element.vector( [e.n(*args, **kwargs) for e in self] )
+
+    cdef Vector _pairwise_product_c_impl(self, Vector right):
+        """
+        Return the component-wise product of self and right.
+
+        EXAMPLES:
+            sage: v = vector(CDF, [1,2,3]); w = vector(CDF, [2, 4, -3])
+            sage: v.pairwise_product(w)
+            (2.0, 8.0, -9.0)
+        """
+        if not right.parent() == self.parent():
+            right = self.parent().ambient_module()(right)
+        if not self.v:
+            return self
+        cdef gsl_vector_complex *v
+        cdef gsl_complex lcoeff, rcoeff
+        cdef size_t i
+
+        gsl_set_error_handler_off()
+        v = self.gsl_vector_complex_copy()
+
+        for i from 0 <= i < v.size:
+            lcoeff = gsl_vector_complex_get(v, i)
+            rcoeff = gsl_vector_complex_get((<ComplexDoubleVectorSpaceElement>right).v, i)
+            gsl_vector_complex_set(v, i, gsl_complex_mul(lcoeff, rcoeff))
+
+        return self._new_c(v)
+
+
 
 cdef int ispow(int n):
     while n and n%2==0:

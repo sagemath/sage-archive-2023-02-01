@@ -1333,6 +1333,10 @@ class Notebook(SageObject):
             v.append(k)
 
         s += ''.join(v)
+        if not v:
+            s += """<tr><td colspan="5" style="padding:20px;text-align:center">Welcome to Sage! You can
+<a href="/new_worksheet/">create a new worksheet</a>, view some <a href="/pub/">published worksheets</a>, or read
+some <a href="/help">documentation</a>.</td></tr>"""
         s += '</table>'
 
         return s

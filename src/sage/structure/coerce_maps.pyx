@@ -106,6 +106,16 @@ cdef class NamedConvertMap(Map):
     """
 
     def __init__(self, domain, codomain, method_name, force_use=False):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_maps import NamedConvertMap
+            sage: mor = NamedConvertMap(SR, QQ['t'], '_polynomial_')
+            sage: mor(x^2/4+1)
+            1/4*t^2 + 1
+            sage: mor = NamedConvertMap(SR, GF(7)[['t']], '_polynomial_')
+            sage: mor(x^2/4+1)
+            1 + 2*t^2
+        """
         if PY_TYPE_CHECK(domain, type):
             domain = Set_PythonType(domain)
         Map.__init__(self, domain, codomain)
@@ -114,6 +124,18 @@ cdef class NamedConvertMap(Map):
         self.method_name = method_name
 
     cpdef Element _call_(self, x):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_maps import NamedConvertMap
+            sage: f = NamedConvertMap(GF(5), QQ, '_integer_'); f
+            Conversion via _integer_ method map:
+              From: Finite Field of size 5
+              To:   Rational Field
+            sage: f(19)
+            4
+            sage: f(19).parent()
+            Rational Field
+        """
         try:
             method = getattr(x, self.method_name)
         except AttributeError:
@@ -134,7 +156,7 @@ cdef class NamedConvertMap(Map):
         return e
 
     def _repr_type(self):
-        return "Conversion via %s" % self.method_name
+        return "Conversion via %s method" % self.method_name
 
 cdef class CallableConvertMap(Map):
     cdef bint _parent_as_first_arg

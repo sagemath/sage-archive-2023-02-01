@@ -89,13 +89,8 @@ cdef class Parent(parent.Parent):
         # old
         self._has_coerce_map_from = {}
 
-    def init_coerce(self, dummy=True):
-        if self._coerce_from_hash is None:
-#            print "init_coerce() for ", type(self)
-            self._coerce_from_list = []
-            self._coerce_from_hash = {}
-            self._action_list = []
-            self._action_hash = {}
+    def init_coerce(self, dummy=False):
+        parent.Parent.init_coerce(self, dummy)
 
 
     #################################################################################

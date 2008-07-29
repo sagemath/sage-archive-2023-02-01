@@ -959,7 +959,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
     def _latex_(self):
         return str(self)
 
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         return self.lift()
 
     def _rational_(self):

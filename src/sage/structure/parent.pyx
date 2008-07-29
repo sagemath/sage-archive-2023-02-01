@@ -186,11 +186,9 @@ cdef class Parent(category_object.CategoryObject):
             '_initial_action_list': self._initial_action_list,
             '_initial_convert_list': self._initial_convert_list,
             '_element_init_pass_parent': self._element_init_pass_parent,
-
         }
 
     def __getstate__(self):
-        #print self._introspect_coerce()
         d = CategoryObject.__getstate__(self)
         d['_embedding'] = self._embedding
         d['_element_constructor'] = self._element_constructor
@@ -218,6 +216,17 @@ cdef class Parent(category_object.CategoryObject):
                                            init_no_parent=not d['_element_init_pass_parent'])
 
     def __call__(self, x=0, *args, **kwds):
+        """
+        This is the generic call method for all parents.
+
+        When called, it will find a map based on the Parent (or type) of x.
+        If a coercion exists, this it will always be chosen. This map will
+        then be called (with the arguments and keywords if any).
+
+        By default this will dispatch as quickly as possible to
+        \code{self._element_constructor_()} though faster pathways are
+        possible if so desired.
+        """
         cdef Py_ssize_t i
         R = parent_c(x)
         cdef bint no_extra_args = PyTuple_GET_SIZE(args) == 0 and PyDict_Size(kwds) == 0
@@ -236,7 +245,7 @@ cdef class Parent(category_object.CategoryObject):
                 self._convert_from_hash.pop(mor.domain(), None)
                 for i from 0 <= i < len(self._convert_from_list):
                     if self._convert_from_list[i] is mor:
-                        self._convert_from_list = self._convert_from_list[:i] + self._convert_from_list[i+1:]
+                        del self._convert_from_list[i]
                         break
                 raise
 
@@ -321,6 +330,15 @@ cdef class Parent(category_object.CategoryObject):
         return the_list
 
     def __nonzero__(self):
+        """
+        By default, all Parents are treated as True when used in an if
+        statement. Override this method if other behavior is desired
+        (for example, for empty sets).
+
+        EXAMPLES:
+            sage: if ZZ: print "Yes"
+            Yes
+        """
         return True
 
     def __len__(self):
@@ -715,6 +733,8 @@ cdef class Parent(category_object.CategoryObject):
         return None
 
     cpdef convert_map_from(self, S):
+        if self._convert_from_hash is None: # this is because parent.__init__() does not always get called
+            self.init_coerce()
         try:
             return self._convert_from_hash[S]
         except KeyError:

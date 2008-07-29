@@ -113,6 +113,18 @@ cdef class ModuleAction(Action):
 
 
     def _repr_name_(self):
+        """
+        The default name of this action type, which is has a sane default.
+
+        EXAMPLES:
+            sage: from sage.structure.coerce_actions import LeftModuleAction, RightModuleAction
+            sage: A = LeftModuleAction(ZZ, ZZ['x']); A
+            Left scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
+            sage: A._repr_name_()
+            'scalar multiplication'
+            sage: RightModuleAction(GF(5), GF(5)[['t']])
+            Right scalar multiplication by Finite Field of size 5 on Power Series Ring in t over Finite Field of size 5
+        """
         return "scalar multiplication"
 
     def codomain(self):
@@ -212,27 +224,6 @@ cdef class RightModuleAction(ModuleAction):
 
 
 
-cdef class PyScalarAction(Action):
-    r"""
-    This class implements the action of a python scalar (e.g. an int or float)
-    on a \sage element.
-    """
-    def __init__(self, Action action):
-        Action.__init__(self, action.G, action.S, action._is_left, action.op)
-        self._action = action
-
-    cpdef Element _call_(self, a, b):
-        if self._is_left:
-            a = self.G(a)
-            return self._action._call_(a,b)
-        else:
-            b = self.G(b)
-            return self._action._call_(a,b)
-
-    def __inverse__(self):
-        return PyScalarAction(~self._action)
-
-
 cdef class IntegerMulAction(Action):
 
     def __init__(self, ZZ, M, is_left=True):
@@ -248,6 +239,10 @@ cdef class IntegerMulAction(Action):
             sage: act = IntegerMulAction(ZZ, R)
             sage: act(5, x)
             5*x
+            sage: act(0, x)
+            0
+            sage: act(-3, x-1)
+            -3*x + 3
         """
         if PY_TYPE_CHECK(ZZ, type):
             from sage.structure.parent import Set_PythonType
@@ -256,6 +251,23 @@ cdef class IntegerMulAction(Action):
         Action.__init__(self, ZZ, M, is_left, operator.mul)
 
     cpdef Element _call_(self, nn, a):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_actions import IntegerMulAction
+            sage: act = IntegerMulAction(ZZ, GF(101))
+            sage: act(3, 9)
+            27
+            sage: act(3^689, 9)
+            42
+            sage: 3^689 * mod(9, 101)
+            42
+
+        Use round off error to verify this is doing actual repeated addition
+        instead of just multiplying:
+            sage: act = IntegerMulAction(ZZ, RR)
+            sage: act(49, 1/49) == 49*RR(1/49)
+            False
+        """
         if not self._is_left:
             a, nn = nn, a
         if not PyInt_CheckExact(nn):
@@ -265,10 +277,25 @@ cdef class IntegerMulAction(Action):
 
         return fast_mul_long(a, PyInt_AS_LONG(nn))
 
-    def __inverse__(self):
+    def __invert__(self):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_actions import IntegerMulAction
+            sage: act = IntegerMulAction(ZZ, CDF)
+            sage: ~act
+            Traceback (most recent call last):
+            ...
+            TypeError: No generic module division by Z.
+        """
         raise TypeError, "No generic module division by Z."
 
-    def _repr_type(self):
+    def _repr_name_(self):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_actions import IntegerMulAction
+            sage: IntegerMulAction(ZZ, GF(5))
+            Left Integer Multiplication by Integer Ring on Finite Field of size 5
+        """
         return "Integer Multiplication"
 
 

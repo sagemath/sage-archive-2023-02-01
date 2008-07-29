@@ -84,7 +84,7 @@ from parent import Set_PythonType
 
 import sys, traceback
 
-from coerce_actions import LeftModuleAction, RightModuleAction, PyScalarAction, IntegerMulAction
+from coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 
 cpdef py_scalar_parent(py_type):
     """

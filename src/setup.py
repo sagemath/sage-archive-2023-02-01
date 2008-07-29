@@ -485,6 +485,24 @@ finance_fractal = Extension('sage.finance.fractal', ['sage/finance/fractal.pyx']
 
 ext_modules = [ \
 
+    Extension('sage.structure.sage_object',
+              sources = ['sage/structure/sage_object.pyx']), \
+
+    Extension('sage.structure.category_object',
+              sources = ['sage/structure/category_object.pyx']), \
+
+    Extension('sage.structure.parent',
+              sources = ['sage/structure/parent.pyx']), \
+
+    Extension('sage.structure.parent_old',
+              sources = ['sage/structure/parent_old.pyx']), \
+
+    Extension('sage.structure.parent_base',
+              sources = ['sage/structure/parent_base.pyx']), \
+
+    Extension('sage.structure.parent_gens',
+              sources = ['sage/structure/parent_gens.pyx']), \
+
     Extension('sage.structure.generators',
               sources = ['sage/structure/generators.pyx']), \
 
@@ -679,18 +697,6 @@ ext_modules = [ \
 
     Extension('sage.groups.perm_gps.permgroup_element',
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']), \
-
-    Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx']), \
-
-    Extension('sage.structure.parent',
-              sources = ['sage/structure/parent.pyx']), \
-
-    Extension('sage.structure.parent_base',
-              sources = ['sage/structure/parent_base.pyx']), \
-
-    Extension('sage.structure.parent_gens',
-              sources = ['sage/structure/parent_gens.pyx']), \
 
     Extension('sage.ext.interactive_constructors_c',
               sources = ['sage/ext/interactive_constructors_c.pyx']), \
@@ -1275,6 +1281,8 @@ def need_to_build(deps, f, outfile):
     if is_newer(f, outfile):
         print '\nBuilding %s because it depends on %s.' % (outfile, f)
         return True
+    else:
+        return False
     try:
         this_deps = deps[f]
     except KeyError:

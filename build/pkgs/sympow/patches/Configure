@@ -5,18 +5,18 @@ if [ "$1" != "" ]; then
 fi
 
 whichexe() {
-    if [ -f /bin/$1 ]; then
-        echo /bin/$1
-        return;
-    fi;
-    if [ -f /usr/bin/$1 ]; then
-        echo /usr/bin/$1
-        return;
-    fi;
-    if [ -f /usr/local/bin/$1 ]; then
-        echo /usr/local/bin/$1
-        return;
-    fi;
+#    if [ -f /bin/$1 ]; then
+#        echo /bin/$1
+#        return;
+#    fi;
+#    if [ -f /usr/bin/$1 ]; then
+#        echo /usr/bin/$1
+#        return;
+#    fi;
+#    if [ -f /usr/local/bin/$1 ]; then
+#        echo /usr/local/bin/$1
+#        return;
+#    fi;
     echo `which $1`
 }
 
@@ -81,7 +81,7 @@ if [ `"$UNAME"` = "SunOS" ]; then
   echo "using gcc"
   CC='gcc'
 else
-  CC=`whichexe cc`
+  CC=`whichexe gcc`
 fi
 
 echo "CC = $CC" >> $FILE

@@ -1,3 +1,8 @@
+== Changelog ==
+
+=== sympow-1.018.1.p5 ===
+ * make sure we pick gcc over cc
+
 A comment from Mark Watkins:
 
 William Stein wrote:

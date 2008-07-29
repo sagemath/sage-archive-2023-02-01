@@ -1,8 +1,12 @@
-#!/bin/sh
+#!/usr/bin/en bash
 
-if [ `uname` = "SunOS" ]; then
-  cp patches/Configure src/
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
 fi
+
+cp patches/Configure src/
 
 cd src/
 

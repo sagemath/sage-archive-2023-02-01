@@ -2404,6 +2404,9 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             Traceback (most recent call last):
             ...
             ArithmeticError: 0^0 is undefined.
+            sage: R = Integers(17^5)
+            sage: R(17)^5
+            0
         """
         cdef sage.rings.integer.Integer exp, base
         exp = sage.rings.integer_ring.Z(right)
@@ -2570,7 +2573,7 @@ cdef int_fast64_t mod_pow_int64(int_fast64_t base, int_fast64_t exp, int_fast64_
             if prod >= INTEGER_MOD_INT64_LIMIT: prod = prod % n
         exp = exp >> 1
 
-    if prod > n:
+    if prod >= n:
         prod = prod % n
     return prod
 

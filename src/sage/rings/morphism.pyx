@@ -146,7 +146,7 @@ We next compose the inclusion with reduction from the integers to GF(2).
       To:   Finite Field of size 2
     sage: f = i * pi
     sage: f
-    Composite morphism:
+    Composite map:
       From: Integer Ring
       To:   Finite Field in a of size 2^2
       Defn:   Ring Coercion morphism:

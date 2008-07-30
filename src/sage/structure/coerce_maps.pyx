@@ -3,10 +3,9 @@ include "../ext/stdsage.pxi"
 import re
 import types
 
-import sage.categories.homset as homset
 from parent import Set_PythonType
-from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
+from sage.structure.element cimport Element
 
 cdef object BuiltinMethodType = type(repr)
 
@@ -14,15 +13,15 @@ cdef object BuiltinMethodType = type(repr)
 cdef bint print_warnings = 0
 
 
-cdef class DefaultConvertMorphism(Morphism):
+cdef class DefaultConvertMap(Map):
     """
-    This morphism simply differs action to the codomain's element_constructor method,
+    This morphism simply calls the codomain's element_constructor method,
     passing in the codomain as the first argument.
     """
     def __init__(self, domain, codomain, force_use=False):
         if not PY_TYPE_CHECK(domain, Parent):
             domain = Set_PythonType(domain)
-        Morphism.__init__(self, homset.Hom(domain, codomain))
+        Map.__init__(self, domain, codomain)
         self._coerce_cost = 100
         self._force_use = force_use
         if self._codomain._element_constructor is None:
@@ -58,7 +57,7 @@ cdef class DefaultConvertMorphism(Morphism):
     def _repr_type(self):
         return "Conversion"
 
-cdef class DefaultConvertMorphism_unique(DefaultConvertMorphism):
+cdef class DefaultConvertMap_unique(DefaultConvertMap):
     """
     This morphism simply differs action to the codomain's element_constructor method,
     WITHOUT passing in the codomain as the first argument.
@@ -98,7 +97,7 @@ cdef class DefaultConvertMorphism_unique(DefaultConvertMorphism):
     def _repr_type(self):
         return "Coercion" if self._is_coercion else "Conversion"
 
-cdef class NamedConvertMorphism(Morphism):
+cdef class NamedConvertMap(Map):
     """
     This is used for creating a elements via the _xxx_ methods.
 
@@ -109,7 +108,7 @@ cdef class NamedConvertMorphism(Morphism):
     def __init__(self, domain, codomain, method_name, force_use=False):
         if PY_TYPE_CHECK(domain, type):
             domain = Set_PythonType(domain)
-        Morphism.__init__(self, homset.Hom(domain, codomain))
+        Map.__init__(self, domain, codomain)
         self._coerce_cost = 400
         self._force_use = force_use
         self.method_name = method_name
@@ -123,7 +122,7 @@ cdef class NamedConvertMorphism(Morphism):
                 print type(self._codomain), self._codomain
                 print self.method_name
             raise TypeError, "Cannot coerce %s to %s"%(x, self._codomain)
-        cdef Morphism m
+        cdef Map m
         cdef Element e = method(self._codomain)
         if e is None:
             raise RuntimeError, "BUG in coercion model: %s method of %s returned None" % (self.method_name, type(x))
@@ -137,29 +136,29 @@ cdef class NamedConvertMorphism(Morphism):
     def _repr_type(self):
         return "Conversion via %s" % self.method_name
 
-cdef class CallableConvertMorphism(Morphism):
+cdef class CallableConvertMap(Map):
     cdef bint _parent_as_first_arg
     cdef _func
 
     def __init__(self, domain, codomain, func, parent_as_first_arg=None):
         """
-        This lets one easily create morphims from any callable object.
+        This lets one easily create maps from any callable object.
 
-        This is especially useful to create morphisms from bound methods.
+        This is especially useful to create maps from bound methods.
 
         EXAMPLES:
-            sage: from sage.structure.coerce_maps import CallableConvertMorphism
+            sage: from sage.structure.coerce_maps import CallableConvertMap
             sage: def foo(P, x): return x/2
-            sage: f = CallableConvertMorphism(ZZ, QQ, foo)
+            sage: f = CallableConvertMap(ZZ, QQ, foo)
             sage: f(3)
             3/2
             sage: f
-            Conversion via foo morphism:
+            Conversion via foo map:
               From: Integer Ring
               To:   Rational Field
 
         Create a homomorphism from $\R$ to $\R^+$ viewed as additave groups.
-            sage: f = CallableConvertMorphism(RR, RR, exp, parent_as_first_arg=False)
+            sage: f = CallableConvertMap(RR, RR, exp, parent_as_first_arg=False)
             sage: f(0)
             1.00000000000000
             sage: f(1)
@@ -169,7 +168,7 @@ cdef class CallableConvertMorphism(Morphism):
         """
         if PY_TYPE_CHECK(domain, type):
             domain = Set_PythonType(domain)
-        Morphism.__init__(self, homset.Hom(domain, codomain))
+        Map.__init__(self, domain, codomain)
         self._coerce_cost = 100
         self._func = func
         if parent_as_first_arg is None:
@@ -188,12 +187,12 @@ cdef class CallableConvertMorphism(Morphism):
         checking (the return value must be an element with the correct parent).
 
         TESTS:
-            sage: from sage.structure.coerce_maps import CallableConvertMorphism
+            sage: from sage.structure.coerce_maps import CallableConvertMap
             sage: def foo(P, x): return x
-            sage: f = CallableConvertMorphism(ZZ, ZZ, foo)
+            sage: f = CallableConvertMap(ZZ, ZZ, foo)
             sage: f(0)
             0
-            sage: f = CallableConvertMorphism(ZZ, QQ, foo)
+            sage: f = CallableConvertMap(ZZ, QQ, foo)
             sage: f(0)
             Traceback (most recent call last):
             ...
@@ -220,14 +219,14 @@ cdef class CallableConvertMorphism(Morphism):
         except AttributeError:
             return "Conversion via %s" % self._func
 
-cdef class ListMorphism(Morphism):
+cdef class ListMorphism(Map):
 
-    cdef Morphism _real_morphism
+    cdef Map _real_morphism
 
-    def __init__(self, domain, Morphism real_morphism):
+    def __init__(self, domain, Map real_morphism):
         if not PY_TYPE_CHECK(domain, Parent):
             domain = Set_PythonType(domain)
-        Morphism.__init__(self, homset.Hom(domain, real_morphism.codomain()))
+        Map.__init__(self, domain, real_morphism.codomain())
         self._coerce_cost = real_morphism._coerce_cost + 3
         self._real_morphism = real_morphism
 
@@ -248,13 +247,13 @@ cdef class ListMorphism(Morphism):
     def _repr_type(self):
         return "List"
 
-cdef class TryMorphism(Morphism):
+cdef class TryMap(Map):
     def __init__(self, morphism_preferred, morphism_backup, error_types=None):
         if morphism_preferred.parent() is not morphism_backup.parent():
             raise TypeError, "incorrectly matching parent"
-        Morphism.__init__(self, morphism_preferred.parent())
-        self._morphism_p = <Morphism?>morphism_preferred
-        self._morphism_b = <Morphism?>morphism_backup
+        Map.__init__(self, morphism_preferred.parent())
+        self._map_p = morphism_preferred
+        self._map_b = morphism_backup
         if error_types is None:
             self._error_types = (ValueError, TypeError, AttributeError)
         else:
@@ -262,12 +261,12 @@ cdef class TryMorphism(Morphism):
 
     cpdef Element _call_(self, x):
         try:
-            return self._morphism_p._call_(x)
+            return self._map_p._call_(x)
         except self._error_types:
-            return self._morphism_b._call_(x)
+            return self._map_b._call_(x)
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         try:
-            return self._morphism_p._call_with_args(x, args, kwds)
+            return self._map_p._call_with_args(x, args, kwds)
         except self._error_types:
-            return self._morphism_b._call_with_args(x, args, kwds)
+            return self._map_b._call_with_args(x, args, kwds)

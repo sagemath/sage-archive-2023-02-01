@@ -1,18 +1,18 @@
 from sage.categories.action cimport Action
-from sage.categories.morphism cimport Morphism
+from sage.categories.map cimport Map
 
-cdef class DefaultConvertMorphism(Morphism):
+cdef class DefaultConvertMap(Map):
     cdef public bint _force_use
     cdef public bint _is_coercion
 
-cdef class DefaultConvertMorphism_unique(DefaultConvertMorphism):
+cdef class DefaultConvertMap_unique(DefaultConvertMap):
     pass
 
-cdef class NamedConvertMorphism(Morphism):
+cdef class NamedConvertMap(Map):
     cdef readonly method_name
     cdef public bint _force_use
 
-cdef class TryMorphism(Morphism):
-    cdef Morphism _morphism_p
-    cdef Morphism _morphism_b
+cdef class TryMap(Map):
+    cdef Map _map_p
+    cdef Map _map_b
     cdef _error_types

@@ -158,12 +158,13 @@ cdef class Parent(parent.Parent):
         else:
             mor = self.coerce_map_from_c_impl(S)
         import sage.categories.morphism
+        import sage.categories.map
         if mor is True:
             mor = sage.categories.morphism.CallMorphism(S, self)
         elif mor is False:
             mor = None
-        elif mor is not None and not isinstance(mor, sage.categories.morphism.Morphism):
-            raise TypeError, "coerce_map_from_impl must return a boolean, None, or an explicit Morphism"
+        elif mor is not None and not isinstance(mor, sage.categories.map.Map):
+            raise TypeError, "coerce_map_from_impl must return a boolean, None, or an explicit Map"
         if mor is not None:
             self._coerce_from_hash[S] = mor # TODO: if this is None, could it be non-None in the future?
         return mor
@@ -173,11 +174,11 @@ cdef class Parent(parent.Parent):
 
     cdef coerce_map_from_c_impl(self, S):
         import sage.categories.morphism
-        from sage.categories.morphism import Morphism
+        from sage.categories.map import Map
         from sage.categories.homset import Hom
         cdef parent.Parent R
         for mor in self._coerce_from_list:
-            if PY_TYPE_CHECK(mor, Morphism):
+            if PY_TYPE_CHECK(mor, Map):
                 R = mor.domain()
             else:
                 R = mor
@@ -226,9 +227,7 @@ cdef class Parent(parent.Parent):
 
     cdef get_action_c_impl(self, S, op, bint self_on_left):
         # G acts on S, G -> G', R -> S => G' acts on R (?)
-        import sage.categories.morphism
         from sage.categories.action import Action, PrecomposedAction
-        from sage.categories.morphism import Morphism
         from sage.categories.homset import Hom
         from coerce_actions import LeftModuleAction, RightModuleAction
         cdef parent.Parent R

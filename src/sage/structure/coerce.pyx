@@ -76,6 +76,7 @@ include "coerce.pxi"
 import operator
 
 from sage_object cimport SageObject
+from sage.categories.map cimport Map
 import sage.categories.morphism
 from sage.categories.morphism import IdentityMorphism
 from sage.categories.action import InverseAction, PrecomposedAction
@@ -186,7 +187,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
-        # None or of type Morphism.
+        # None or of type Map.
         self._coercion_maps = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
         # This MUST be a mapping to actions.
         self._action_maps = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
@@ -305,7 +306,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         Returns the list of exceptions that were caught in the course of
         executing the last binary operation. Useful for diagnosis when
-        user-defined morphisms or actions raise exceptions that are caught in
+        user-defined maps or actions raise exceptions that are caught in
         the course of coercion detection.
 
         If all went well, this should be the empty list. If things aren't
@@ -632,21 +633,21 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if coercions is not None:
             x_map, y_map = coercions
             if x_map is not None:
-                x_elt = (<Morphism>x_map)._call_(x)
+                x_elt = (<Map>x_map)._call_(x)
             else:
                 x_elt = x
             if y_map is not None:
-                y_elt = (<Morphism>y_map)._call_(y)
+                y_elt = (<Map>y_map)._call_(y)
             else:
                 y_elt = y
             if x_elt is None:
-                raise RuntimeError, "BUG in morphism, returned None %s %s %s" % (x, type(x_map), x_map)
+                raise RuntimeError, "BUG in map, returned None %s %s %s" % (x, type(x_map), x_map)
             elif y_elt is None:
-                raise RuntimeError, "BUG in morphism, returned None %s %s %s" % (y, type(y_map), y_map)
+                raise RuntimeError, "BUG in map, returned None %s %s %s" % (y, type(y_map), y_map)
             if x_elt._parent is y_elt._parent:
                 # We must verify this as otherwise we are prone to
                 # getting into an infinite loop in c, and the above
-                # morphisms may be written by (imperfect) users.
+                # maps may be written by (imperfect) users.
                 return x_elt,y_elt
             elif x_elt._parent == y_elt._parent:
                 # TODO: Non-uniqueness of parents strikes again!
@@ -750,10 +751,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             else:
                 if homs is not None:
                     x_map, y_map = homs
-                    if x_map is not None and not isinstance(x_map, Morphism):
-                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return Morphism"
-                    if y_map is not None and not isinstance(y_map, Morphism):
-                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return Morphism"
+                    if x_map is not None and not isinstance(x_map, Map):
+                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
+                    if y_map is not None and not isinstance(y_map, Map):
+                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
             swap = None if homs is None else (homs[1], homs[0])
             self._coercion_maps.set(R, S, None, homs)
             self._coercion_maps.set(S, R, None, swap)
@@ -781,7 +782,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         if homs is None:
             return None
-        cdef Morphism x_map, y_map
+        cdef Map x_map, y_map
         R_map, S_map = homs
         if PY_TYPE_CHECK(R, type):
             R = Set_PythonType(R)
@@ -1119,7 +1120,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Both x (='f(a)') and y (='g(b)') are supposed to have identical parents but they don't.
             In fact, x has parent '<type 'str'>'
             whereas y has parent '<type 'str'>'
-            Original elements 'a' (parent <type 'str'>) and 'b' (parent <type 'str'>) and morphisms
+            Original elements 'a' (parent <type 'str'>) and 'b' (parent <type 'str'>) and maps
             <type 'str'> 'f'
             <type 'str'> 'g'
         """
@@ -1127,7 +1128,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 Both x (=%r) and y (=%r) are supposed to have identical parents but they don't.
 In fact, x has parent '%s'
 whereas y has parent '%s'
-Original elements %r (parent %s) and %r (parent %s) and morphisms
+Original elements %r (parent %s) and %r (parent %s) and maps
 %s %r
 %s %r"""%( x_elt, y_elt, parent_c(x_elt), parent_c(y_elt),
             x, parent_c(x), y, parent_c(y),

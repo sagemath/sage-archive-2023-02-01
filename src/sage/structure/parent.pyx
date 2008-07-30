@@ -15,6 +15,7 @@ This came up in some subtle bug once.
 """
 cimport element
 cimport sage.categories.morphism as morphism
+cimport sage.categories.map as map
 
 cdef int bad_parent_warnings = 0
 cdef int unique_parent_warnings = 0
@@ -224,7 +225,7 @@ cdef class Parent(category_object.CategoryObject):
             return x
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
-        cdef morphism.Morphism mor = <morphism.Morphism>self.convert_map_from(R)
+        cdef map.Map mor = <map.Map>self.convert_map_from(R)
         if mor is not None:
             try:
                 if no_extra_args:
@@ -300,7 +301,7 @@ cdef class Parent(category_object.CategoryObject):
                     _record_exception()
             raise TypeError, "no cannonical coercion from %s to %s" % (parent_c(x), self)
         else:
-            return (<morphism.Morphism>mor)._call_(x)
+            return (<map.Map>mor)._call_(x)
 
     def list(self):
         """
@@ -434,7 +435,7 @@ cdef class Parent(category_object.CategoryObject):
             coerce_list  -- a list of coercion Morphisms to self and
                             parents with cannonical coercions to self
             action_list  -- a list of actions on and by self
-            convert_list -- a list of conversion Morphisms to self and
+            convert_list -- a list of conversion Maps to self and
                             parents with conversions to self
             embedding    -- a single Morphism from self
             convert_method_name -- a name to look for that other elements
@@ -455,16 +456,14 @@ cdef class Parent(category_object.CategoryObject):
         self._initial_action_list = action_list
         self._initial_convert_list = convert_list
 
-        from sage.categories.morphism import Morphism
-
         self._convert_method_name = convert_method_name
         if init_no_parent is not None:
             self._element_init_pass_parent = not init_no_parent
 
         for mor in coerce_list:
-            if PY_TYPE_CHECK(mor, Morphism):
+            if PY_TYPE_CHECK(mor, map.Map):
                 if mor.codomain() is not self:
-                    raise ValueError, "Morphism's codomain must be self (%s) is not (%s)" % (self, mor.codomain())
+                    raise ValueError, "Map's codomain must be self (%s) is not (%s)" % (self, mor.codomain())
                 self._coerce_from_list.append(mor)
                 self._coerce_from_hash[mor.domain()] = mor
             elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
@@ -473,7 +472,7 @@ cdef class Parent(category_object.CategoryObject):
                 self._coerce_from_list.append(mor)
                 self._coerce_from_hash[P] = mor
             else:
-                raise TypeError, "entries in the coerce_list must be parents or morphisms (got %s)" % type(mor)
+                raise TypeError, "entries in the coerce_list must be parents or maps (got %s)" % type(mor)
 
         from sage.categories.action import Action
         for action in action_list:
@@ -490,9 +489,9 @@ cdef class Parent(category_object.CategoryObject):
                 raise TypeError, "entries in the action_list must be actions"
 
         for mor in convert_list:
-            if isinstance(mor, Morphism):
+            if isinstance(mor, map.Map):
                 if mor.codomain() is not self:
-                    raise ValueError, "Morphism's codomain must be self"
+                    raise ValueError, "Map's codomain must be self"
                 self._convert_from_list.append(mor)
                 self._convert_from_hash[mor.domain()] = mor
             elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
@@ -500,16 +499,16 @@ cdef class Parent(category_object.CategoryObject):
                 self._convert_from_list.append(mor)
                 self._convert_from_hash[mor.domain()] = mor
             else:
-                raise TypeError, "entries in the convert_list must be parents or morphisms"
+                raise TypeError, "entries in the convert_list must be parents or maps"
 
-        if isinstance(embedding, Morphism):
+        if isinstance(embedding, map.Map):
             if embedding.domain() is not self:
-                raise ValueError, "Morphism's domain must be self"
+                raise ValueError, "embedding's domain must be self"
             self._embedding = embedding
         elif isinstance(embedding, Parent):
             self._embedding = embedding._generic_convert_map(self)
         elif embedding is not None:
-            raise TypeError, "embedding must be a parent or morphism"
+            raise TypeError, "embedding must be a parent or map"
 
     def get_embedding(self):
         return self._embedding
@@ -528,12 +527,12 @@ cdef class Parent(category_object.CategoryObject):
             else:
                 element_constructor = None
             if element_constructor is not None and hasattr(element_constructor, self._convert_method_name):
-                return coerce_maps.NamedConvertMorphism(S, self, self._convert_method_name)
+                return coerce_maps.NamedConvertMap(S, self, self._convert_method_name)
 
         if self._element_init_pass_parent:
-            return coerce_maps.DefaultConvertMorphism(S, self)
+            return coerce_maps.DefaultConvertMap(S, self)
         else:
-            return coerce_maps.DefaultConvertMorphism_unique(S, self)
+            return coerce_maps.DefaultConvertMap_unique(S, self)
 
     cpdef bint has_coerce_map_from(self, S) except -2:
         """
@@ -570,7 +569,7 @@ cdef class Parent(category_object.CategoryObject):
         return self.coerce_map_from(S) is not None
 
     cpdef coerce_map_from(self, S):
-        cdef morphism.Morphism mor
+        cdef map.Map mor
         if S is self:
             from sage.categories.homset import Hom
             return Hom(self, self).identity()
@@ -620,11 +619,11 @@ cdef class Parent(category_object.CategoryObject):
 
             1. If S has an embedding into T, look for T -> self and return composition
             2. If self._coerce_map_from_(S) is NOT exactly one of
-                    - DefaultConvertMorphism
-                    - DefaultConvertMorphism_unique
-                    - NamedConvertMorphism
-                return this morphism
-            3. Traverse the coercion lists looking for the "best" morphism
+                    - DefaultConvertMap
+                    - DefaultConvertMap_unique
+                    - NamedConvertMap
+                return this map
+            3. Traverse the coercion lists looking for the "best" map
                (including the one found at 2).
         """
         best_mor = None
@@ -635,31 +634,30 @@ cdef class Parent(category_object.CategoryObject):
             if connecting is not None:
                 return (<Parent>S)._embedding.post_compose(connecting)
 
-        cdef morphism.Morphism mor = self._coerce_map_from_(S)
+        cdef map.Map mor = self._coerce_map_from_(S)
         if mor is not None:
-            from sage.categories.morphism import Morphism
-            from coerce_maps import DefaultConvertMorphism, DefaultConvertMorphism_unique, NamedConvertMorphism
-            if not PY_TYPE_CHECK(mor, Morphism):
-                raise TypeError, "_coerce_map_from_ must return None or an explicit Morphism"
-            elif (PY_TYPE_CHECK_EXACT(mor, DefaultConvertMorphism) or
-                  PY_TYPE_CHECK_EXACT(mor, DefaultConvertMorphism_unique) or
-                  PY_TYPE_CHECK_EXACT(mor, NamedConvertMorphism)) and not mor._force_use:
+            from sage.categories.map import Map
+            from coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap
+            if not PY_TYPE_CHECK(mor, Map):
+                raise TypeError, "_coerce_map_from_ must return None or an explicit Map"
+            elif (PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap) or
+                  PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap_unique) or
+                  PY_TYPE_CHECK_EXACT(mor, NamedConvertMap)) and not mor._force_use:
                 # If there is something better in the list, try to return that instead
                 # This is so, for example, has_coerce_map_from can return True but still
                 # take advantage of the _populate_coercion_lists_ data.
                 best_mor = mor
             else:
                 return mor
-        import sage.categories.morphism
-        from sage.categories.morphism import Morphism
+        from sage.categories.map import Map
         from sage.categories.homset import Hom
 
         cdef int num_paths = 1 # this is the number of paths we find before settling on the best (the one with lowest coerce_cost).
                                # setting this to 1 will make it return the first path found.
         cdef int mor_found = 0
         cdef Parent R
-        # Recurse.  Note that if S is the domain of one of the morphisms in self._coerce_from_list,
-        # we will have stuck the morphism into _coerce_map_hash and thus returned it already.
+        # Recurse.  Note that if S is the domain of one of the maps in self._coerce_from_list,
+        # we will have stuck the map into _coerce_map_hash and thus returned it already.
         for mor in self._coerce_from_list:
             if mor._domain is S:
                 if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
@@ -694,7 +692,7 @@ cdef class Parent(category_object.CategoryObject):
             return mor
 
     cdef discover_convert_map_from(self, S):
-        cdef morphism.Morphism mor = self.coerce_map_from(S)
+        cdef map.Map mor = self.coerce_map_from(S)
         if mor is not None:
             return mor
 
@@ -759,9 +757,7 @@ cdef class Parent(category_object.CategoryObject):
         # G acts on S, G -> G', R -> S => G' acts on R (?)
         # NO! ZZ[x,y] acts on Matrices(ZZ[x]) but ZZ[y] does not.
         # What may be true is that if the action's desination is S, then this can be allowed.
-        import sage.categories.morphism
         from sage.categories.action import Action, PrecomposedAction
-        from sage.categories.morphism import Morphism
         from sage.categories.homset import Hom
         from coerce_actions import LeftModuleAction, RightModuleAction
         cdef Parent R

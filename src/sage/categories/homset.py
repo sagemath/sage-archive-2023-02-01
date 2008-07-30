@@ -281,10 +281,10 @@ class Homset(Set_generic):
               From: SymmetricGroup(5)
               To:   SymmetricGroup(6)
             sage: H(phi)
-            Composite morphism:
+            Composite map:
               From: SymmetricGroup(4)
               To:   SymmetricGroup(7)
-              Defn:   Composite morphism:
+              Defn:   Composite map:
                       From: SymmetricGroup(4)
                       To:   SymmetricGroup(6)
                       Defn:   Call morphism:

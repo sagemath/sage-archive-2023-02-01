@@ -521,6 +521,9 @@ ext_modules = [ \
     Extension('sage.structure.element',
               sources = ['sage/structure/element.pyx']), \
 
+    Extension('sage.categories.map',
+              sources = ['sage/categories/map.pyx']), \
+
     Extension('sage.categories.morphism',
               sources = ['sage/categories/morphism.pyx']), \
 

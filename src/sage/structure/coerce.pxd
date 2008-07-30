@@ -3,7 +3,6 @@ from element cimport Element, RingElement, ModuleElement, CoercionModel
 
 from parent cimport Parent
 from sage.categories.action cimport Action
-from sage.categories.morphism cimport Morphism
 
 from coerce_dict cimport TripleDict, TripleDictIter
 

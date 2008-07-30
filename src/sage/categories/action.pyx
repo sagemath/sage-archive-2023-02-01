@@ -96,7 +96,7 @@ cdef class Action(Functor):
         return self.S
 
     def domain(self):
-        return self.codomain()
+        return self.S
 
     def left_domain(self):
         if self._is_left:
@@ -142,7 +142,7 @@ cdef class InverseAction(Action):
                 self._action = action
                 return
             else:
-                K = G.fraction_field()
+                K = G._pseudo_fraction_field()
                 Action.__init__(self, K, action.S, action._is_left)
                 self._action = action
                 return
@@ -159,6 +159,9 @@ cdef class InverseAction(Action):
             if self.S_precomposition is not None:
                 a = self.S_precomposition(a)
             return self._action._call_(a, ~b)
+
+    def codomain(self):
+        return self._action.codomain()
 
     def __invert__(self):
         return self._action
@@ -200,7 +203,10 @@ cdef class PrecomposedAction(Action):
         elif not self._is_left and self.left_precomposition is not None:
             return self.left_precomposition.domain()
         else:
-            return self.codomain()
+            return self._action.domain()
+
+    def codomain(self):
+        return self._action.codomain()
 
     def __invert__(self):
         return PrecomposedAction(~self._action, self.left_precomposition, self.right_precomposition)

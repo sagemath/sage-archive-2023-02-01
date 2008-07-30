@@ -191,6 +191,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         self._coercion_maps = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
         # This MUST be a mapping to actions.
         self._action_maps = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
+        # This is a mapping from Parents to Parents, storing the result of division in the given parent.
+        self._division_parents = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
 
     def get_cache(self):
         """
@@ -393,11 +395,46 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: parent(QQ(1) + float(1))
             <type 'float'>
 
-        NOTE: This function is accurate only in so far as analyze is kept in
+
+        Special care is taken to deal with division:
+
+            sage: cm.explain(ZZ, ZZ, operator.div)
+            Identical parents, arithmetic performed immediately.
+            Result lives in Rational Field
+            Rational Field
+
+            sage: cm.explain(ZZ['x'], QQ['x'], operator.div)
+            Coercion on left operand via
+                Call morphism:
+                  From: Univariate Polynomial Ring in x over Integer Ring
+                  To:   Univariate Polynomial Ring in x over Rational Field
+            Arithmetic performed after coercions.
+            Result lives in Fraction Field of Univariate Polynomial Ring in x over Rational Field
+            Fraction Field of Univariate Polynomial Ring in x over Rational Field
+
+            sage: cm.explain(int, ZZ, operator.div)
+            Coercion on left operand via
+                Native morphism:
+                  From: Set of Python objects of type 'int'
+                  To:   Integer Ring
+            Arithmetic performed after coercions.
+            Result lives in Rational Field
+            Rational Field
+
+            sage: cm.explain(ZZ['x'], ZZ, operator.div)
+            Action discovered.
+                Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+                with precomposition on right by Natural morphism:
+                  From: Integer Ring
+                  To:   Rational Field
+            Result lives in Univariate Polynomial Ring in x over Rational Field
+            Univariate Polynomial Ring in x over Rational Field
+
+        NOTE: This function is accurate only in so far as analyse is kept in
               sync with the \code{bin_op} and \code{canonical_coercion} which
               are kept seperate for maximal efficiency.
         """
-        all, res = self.analyze(xp, yp, op)
+        all, res = self.analyse(xp, yp, op)
         indent = " "*4
         if verbosity >= 2:
             print "\n".join([s if isinstance(s, str) else indent+(repr(s).replace("\n", "\n"+indent)) for s in all])
@@ -410,7 +447,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 print "Result lives in", res
         return res
 
-    def analyze(self, xp, yp, op=operator.mul):
+    cpdef analyse(self, xp, yp, op=mul):
         """
         Emulate the process of doing arithmetic between xp and yp, returning
         a list of steps and the parent that the result will live in. The
@@ -420,7 +457,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         EXAMPLES:
             sage: cm = sage.structure.element.get_coercion_model()
-            sage: steps, res = cm.analyze(GF(7), ZZ)
+            sage: steps, res = cm.analyse(GF(7), ZZ)
             sage: print steps
             ['Coercion on right operand via', Natural morphism:
               From: Integer Ring
@@ -431,7 +468,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             <type 'sage.rings.integer_mod.Integer_to_IntegerMod'>
             sage: f(100)
             2
-        """
+            """
         self._exceptions_cleared = False
         if not PY_TYPE_CHECK(xp, type) and not PY_TYPE_CHECK(xp, Parent):
             xp = parent_c(xp)
@@ -441,6 +478,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         all = []
         if xp is yp:
             all.append("Identical parents, arithmetic performed immediately." % xp)
+            if op is div and PY_TYPE_CHECK(xp, Parent):
+                xp = self.division_parent(xp)
             return all, xp
         if xp == yp:
             all.append("Equal but distinct parents.")
@@ -466,6 +505,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     raise RuntimeError, ("BUG in coercion model: codomains not equal!", x_mor, y_mor)
                 res = y_mor.codomain()
             all.append("Arithmetic performed after coercions.")
+            if op is div and PY_TYPE_CHECK(res, Parent):
+                res = self.division_parent(res)
             return all, res
 
         if PY_TYPE_CHECK(yp, Parent) and xp in [int, long, float, complex, bool]:
@@ -473,6 +514,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if mor is not None:
                 all.append("Coercion on numeric left operand via")
                 all.append(mor)
+                if op is div and PY_TYPE_CHECK(yp, Parent):
+                    yp = self.division_parent(yp)
                 return all, yp
             all.append("Left operand is numeric, will attempt conversion in both directions.")
         elif type(xp) is type:
@@ -483,6 +526,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if mor is not None:
                 all.append("Coercion on numeric right operand via")
                 all.append(mor)
+                if op is div and PY_TYPE_CHECK(xp, Parent):
+                    xp = self.division_parent(xp)
                 return all, xp
             all.append("Right operand is numeric, will attempt conversion in both directions.")
         elif type(yp) is type:
@@ -492,6 +537,40 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             all.append("Will try _r_action and _l_action")
 
         return all, None
+
+    cpdef Parent division_parent(self, Parent parent):
+        r"""
+        Deduces where the result of division in parent lies by calculating
+        the inverse of \code{parent.one_element()} or \code{parent.an_element()}.
+
+        The result is cached.
+
+        EXAMPLES:
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.division_parent(ZZ)
+            Rational Field
+            sage: cm.division_parent(QQ)
+            Rational Field
+            sage: cm.division_parent(ZZ['x'])
+            Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+            sage: cm.division_parent(GF(41))
+            Finite Field of size 41
+            sage: cm.division_parent(Integers(100))
+            Ring of integers modulo 100
+            sage: cm.division_parent(SymmetricGroup(5))
+            Symmetric group of order 5! as a permutation group
+        """
+        try:
+            return self._division_parents.get(parent, None, None)
+        except KeyError:
+            pass
+        try:
+            ret = parent_c(~parent.one_element())
+        except:
+            self._record_exception()
+            ret = parent_c(~parent.an_element())
+        self._division_parents.set(parent, None, None, ret)
+        return ret
 
 
     cpdef bin_op(self, x, y, op):

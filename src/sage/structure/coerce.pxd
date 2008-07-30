@@ -25,3 +25,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     cdef readonly _exception_stack
     cdef bint _exceptions_cleared
+
+    cdef TripleDict _division_parents
+    cpdef analyse(self, xp, yp, op=*)
+    cpdef Parent division_parent(self, Parent parent)

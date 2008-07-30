@@ -484,6 +484,9 @@ finance_fractal = Extension('sage.finance.fractal', ['sage/finance/fractal.pyx']
 hmm = Extension('sage.stats.hmm.hmm', ['sage/stats/hmm/hmm.pyx'],
                 libraries = ['ghmm'])
 
+chmm = Extension('sage.stats.hmm.chmm', ['sage/stats/hmm/chmm.pyx'],
+                libraries = ['ghmm'])
+
 #####################################################
 
 ext_modules = [ \
@@ -601,7 +604,7 @@ ext_modules = [ \
     markov_multifractal,
     finance_fractal,
 
-    hmm,
+    hmm, chmm,
 
     Extension('sage.media.channels',
               sources = ['sage/media/channels.pyx']), \

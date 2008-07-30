@@ -5,6 +5,10 @@ AUTHOR: William Stein
 
 EXAMPLES:
 
+TODO:
+   * make models pickleable (i.e., all parameters should be obtainable
+     using functions to make this easy).
+   * continuous hmm's
 """
 
 import math
@@ -13,195 +17,12 @@ from sage.matrix.all import is_Matrix, matrix
 from sage.rings.all  import RDF
 from sage.misc.randstate import random
 
-from sage.matrix.matrix_real_double_dense cimport Matrix_real_double_dense
-
 include "../../ext/stdsage.pxi"
 
-cdef extern from "ghmm/ghmm.h":
-    cdef int GHMM_kSilentStates
-    cdef int GHMM_kHigherOrderEmissions
-    cdef int GHMM_kDiscreteHMM
-
-cdef extern from "ghmm/model.h":
-    ctypedef struct ghmm_dstate:
-        # Initial probability
-        double pi
-        # Output probability
-        double *b
-
-        # ID's of the following states
-        int *out_id
-        # ID's of the previous states
-        int *in_id
-
-        # Transition probabilities to successor states.
-        double *out_a
-        # Transition probabilities from predecessor states.
-        double *in_a
-
-        # Number of successor states
-        int out_states
-        # Number of precursor states
-        int in_states
-        # if fix == 1 then output probabilities b stay fixed during the training
-        int fix
-        # Contains a description of the state (null terminated utf-8)
-        char * desc
-        # x coordinate position for graph representation plotting
-        int xPosition
-        # y coordinate position for graph representation plotting
-        int yPosition
-
-    ctypedef struct ghmm_dbackground:
-        pass
-
-    ctypedef struct ghmm_alphabet:
-        pass
-
-    # Discrete HMM's.
-    ctypedef struct ghmm_dmodel:
-        # Number of states
-        int N
-        # Number of outputs
-        int M
-        # Vector of states
-        ghmm_dstate *s
-        # Contains bit flags for varios model extensions such as
-        # kSilentStates, kTiedEmissions (see ghmm.h for a complete list)
-        int model_type
-        # The a priori probability for the model.
-        # A value of -1 indicates that no prior is defined.
-        # Note: this is not to be confused with priors on emission distributions.
-        double prior
-        # An arbitrary name for the model (null terminated utf-8)
-        char * name
-
-        # Flag variables for each state indicating whether it is emitting or not.
-        # Note: silent != NULL iff (model_type & kSilentStates) == 1
-        int *silent
-
-        # Int variable for the maximum level of higher order emissions.
-        int maxorder
-
-        # saves the history of emissions as int,
-        # the nth-last emission is (emission_history * |alphabet|^n+1) % |alphabet|
-        int emission_history
-
-        # Flag variables for each state indicating whether the states emissions
-        # are tied to another state. Groups of tied states are represented
-        # by their tie group leader (the lowest numbered member of the group).
-        # tied_to[s] == kUntied  : s is not a tied state
-        # tied_to[s] == s        : s is a tie group leader
-        # tied_to[t] == s        : t is tied to state s (t>s)
-        # Note: tied_to != NULL iff (model_type & kTiedEmissions) != 0  */
-        int *tied_to
-
-        # Note: State store order information of the emissions.
-        # Classical HMMS have emission order 0; that is, the emission probability
-        # is conditioned only on the state emitting the symbol.
-        # For higher order emissions, the emission are conditioned on the state s
-        # as well as the previous emission_order observed symbols.
-        # The emissions are stored in the state's usual double* b.
-        # Note: order != NULL iff (model_type & kHigherOrderEmissions) != 0  */
-        int * order
-
-        # ghmm_dbackground is a pointer to a
-        # ghmm_dbackground structure, which holds (essentially) an
-        # array of background distributions (which are just vectors of floating
-        # point numbers like state.b).
-        # For each state the array background_id indicates which of the background
-        # distributions to use in parameter estimation. A value of kNoBackgroundDistribution
-        # indicates that none should be used.
-        # Note: background_id != NULL iff (model_type & kHasBackgroundDistributions) != 0
-        int *background_id
-        ghmm_dbackground *bp
-
-        # Topological ordering of silent states
-        #  Condition: topo_order != NULL iff (model_type & kSilentStates) != 0
-        int *topo_order
-        int topo_order_length
-
-        # pow_lookup is a array of precomputed powers
-        # It contains in the i-th entry M (alphabet size) to the power of i
-        # The last entry is maxorder+1.
-        int *pow_lookup
-
-        # Store for each state a class label. Limits the possibly state sequence
-        # Note: label != NULL iff (model_type & kLabeledStates) != 0
-        int* label
-        ghmm_alphabet* label_alphabet
-        ghmm_alphabet* alphabet
-
-
-    # Discrete sequences
-    ctypedef struct ghmm_dseq:
-        # sequence array. sequence[i] [j] = j-th symbol of i-th seq
-        int **seq
-        # matrix of state ids, can be used to save the viterbi path during sequence generation.
-        # ATTENTION: is NOT allocated by ghmm_dseq_calloc
-        int **states
-        # array of sequence length
-        int *seq_len
-        # array of state path lengths
-        int *states_len
-        # array of sequence IDs
-        double *seq_id
-        # positive sequence weights.  default is 1 = no weight
-        double *seq_w
-        # total number of sequences
-        long seq_number
-        # reserved space for sequences is always >= seq_number
-        long capacity
-        # sum of sequence weights
-        double total_w
-        # matrix of state labels corresponding to seq
-        int **state_labels
-        # number of labels for each sequence
-        int *state_labels_len
-        # internal flags
-        unsigned int flags
-
-    ghmm_dseq *ghmm_dmodel_label_generate_sequences(
-        ghmm_dmodel * mo, int seed, int global_len, long seq_number, int Tmax)
-    ghmm_dseq *ghmm_dmodel_generate_sequences(ghmm_dmodel* mo, int seed, int global_len,
-                                          long seq_number, int Tmax)
-
-
-    int ghmm_dmodel_normalize(ghmm_dmodel *m)
-    int ghmm_dmodel_free(ghmm_dmodel **m)
-    int ghmm_dmodel_logp(ghmm_dmodel *m, int *O, int len, double *log_p)
-    int *ghmm_dmodel_viterbi (ghmm_dmodel *m, int *O, int len, int *pathlen, double *log_p)
-    int ghmm_dmodel_baum_welch (ghmm_dmodel *m, ghmm_dseq *sq)
-    int ghmm_dmodel_baum_welch_nstep (ghmm_dmodel * m, ghmm_dseq *sq, int max_step,
-                                      double likelihood_delta)
-
+include "misc.pxi"
 
 cdef class HiddenMarkovModel:
-    pass
-
-
-cdef class DiscreteHiddenMarkovModel:
-    cdef ghmm_dmodel* m
-    cdef bint initialized
-    cdef object _emission_symbols, _emission_symbols_dict
-    cdef Matrix_real_double_dense A, B
-
-    def __init__(self, A, B, pi, emission_symbols=None, name=None):
-        """
-        INPUTS:
-            A  -- square matrix of doubles; the state change probabilities
-            B  -- matrix of doubles; emission probabilities
-            pi -- list of doubles; probabilities for each initial state
-            emission_state -- list of B.ncols() symbols (just used for printing)
-            name -- (optional) name of the model
-
-        EXAMPLES:
-        We create a discrete HMM with 2 internal states on an alphabet of
-        size 2.
-
-            sage: a = hmm.DiscreteHiddenMarkovModel([[0.2,0.8],[0.5,0.5]], [[1,0],[0,1]], [0,1])
-
-        """
+    def __init__(self, A, B, pi):
         if not is_Matrix(A):
             A = matrix(RDF, len(A), len(A[0]), A)
         if not is_Matrix(B):
@@ -214,13 +35,37 @@ cdef class DiscreteHiddenMarkovModel:
             A = A.change_ring(RDF)
         if B.base_ring() != RDF:
             B = B.change_ring(RDF)
-        if len(pi) != A.nrows():
-            raise ValueError, "length of pi must equal number of rows of A"
 
-        cdef Py_ssize_t i, j, k
+        self.pi = [float(x) for x in pi]
+        if len(self.pi) != A.nrows():
+            raise ValueError, "length of pi must equal number of rows of A"
 
         self.A = A
         self.B = B
+
+
+cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
+
+    def __init__(self, A, B, pi, emission_symbols=None, name=None):
+        """
+        INPUTS:
+            A  -- square matrix of doubles; the state change probabilities
+            B  -- matrix of doubles; emission probabilities
+            pi -- list of floats; probabilities for each initial state
+            emission_state -- list of B.ncols() symbols (just used for printing)
+            name -- (optional) name of the model
+
+        EXAMPLES:
+        We create a discrete HMM with 2 internal states on an alphabet of
+        size 2.
+
+            sage: a = hmm.DiscreteHiddenMarkovModel([[0.2,0.8],[0.5,0.5]], [[1,0],[0,1]], [0,1])
+
+        """
+        self.initialized = False
+        HiddenMarkovModel.__init__(self, A, B, pi)
+
+        cdef Py_ssize_t i, j, k
         self.set_emission_symbols(emission_symbols)
 
         self.m = <ghmm_dmodel*> safe_malloc(sizeof(ghmm_dmodel))
@@ -234,13 +79,14 @@ cdef class DiscreteHiddenMarkovModel:
         self.m.label_alphabet = NULL; self.m.alphabet = NULL
 
         # Set number of states and number of outputs
-        self.m.N = A.nrows()
+        self.m.N = self.A.nrows()
         self.m.M = len(self._emission_symbols)
         # Set the model type to discrete
         self.m.model_type = GHMM_kDiscreteHMM
 
         # Set that no a prior model probabilities are set.
         self.m.prior = -1
+
         # Assign model identifier if specified
         if name is not None:
             name = str(name)
@@ -256,7 +102,7 @@ cdef class DiscreteHiddenMarkovModel:
         tmp_order     = []
 
         for i in range(self.m.N):
-            v = B[i]
+            v = self.B[i]
 
             # Get a reference to the i-th state for convenience of the notation below.
             state = &(states[i])
@@ -274,16 +120,16 @@ cdef class DiscreteHiddenMarkovModel:
                 tmp_order.append(order)
             else:
                 raise ValueError, "number of columns (= %s) of B must be a power of the number of emission symbols (= %s)"%(
-                    B.ncols(), len(emission_symbols))
+                    self.B.ncols(), len(emission_symbols))
 
             state.b = to_double_array(v)
-            state.pi = pi[i]
+            state.pi = self.pi[i]
 
             silent_states.append( 1 if sum(v) == 0 else 0)
 
             # Set out probabilities, i.e., the probabilities that each
             # symbol will be emitted from this state.
-            v = A[i]
+            v = self.A[i]
             nz = v.nonzero_positions()
             k = len(nz)
             state.out_states = k
@@ -294,7 +140,7 @@ cdef class DiscreteHiddenMarkovModel:
                 state.out_a[j]  = v[nz[j]]
 
             # Set "in" probabilities
-            v = A.column(i)
+            v = self.A.column(i)
             nz = v.nonzero_positions()
             k = len(nz)
             state.in_states = k
@@ -307,25 +153,22 @@ cdef class DiscreteHiddenMarkovModel:
             state.fix = 0
 
         self.m.s = states
-        self.initialized = True; return
-
-        if sum(silent_states) > 0:
-            self.m.model_type |= GHMM_kSilentStates
-            self.m.silent = to_int_array(silent_states)
-
-        self.m.maxorder = max(tmp_order)
-        if self.m.maxorder > 0:
-            self.m.model_type |= GHMM_kHigherOrderEmissions
-            self.m.order = to_int_array(tmp_order)
-
-        # Initialize lookup table for powers of the alphabet size,
-        # which speeds up models with higher order states.
-        powLookUp = [1] * (self.m.maxorder+2)
-        for i in range(1,len(powLookUp)):
-            powLookUp[i] = powLookUp[i-1] * self.m.M
-        self.m.pow_lookup = to_int_array(powLookUp)
-
         self.initialized = True
+
+##         if sum(silent_states) > 0:
+##             self.m.model_type |= GHMM_kSilentStates
+##             self.m.silent = to_int_array(silent_states)
+##         self.m.maxorder = max(tmp_order)
+##         if self.m.maxorder > 0:
+##             self.m.model_type |= GHMM_kHigherOrderEmissions
+##             self.m.order = to_int_array(tmp_order)
+##         # Initialize lookup table for powers of the alphabet size,
+##         # which speeds up models with higher order states.
+##         powLookUp = [1] * (self.m.maxorder+2)
+##         for i in range(1,len(powLookUp)):
+##             powLookUp[i] = powLookUp[i-1] * self.m.M
+##         self.m.pow_lookup = to_int_array(powLookUp)
+##         self.initialized = True
 
     def __dealloc__(self):
         if self.initialized:
@@ -341,9 +184,9 @@ cdef class DiscreteHiddenMarkovModel:
         EXAMPLES:
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[0.9,0.1],[0.1,0.9]], [0.5,0.5], [3/4, 'abc'])
             sage: a.__repr__()
-            "Discrete Hidden Markov Model (2 states, 2 outputs)\n\nInitial probabilities: [0.5, 0.5]\nTransition matrix:\n[0.1 0.9]\n[0.1 0.9]\nEmission matrix:\n[0.9 0.1]\n[0.1 0.9]\nEmission symbols: [3/4, 'abc']"
+            "Discrete Hidden Markov Model (2 states, 2 outputs)\nInitial probabilities: [0.5, 0.5]\nTransition matrix:\n[0.1 0.9]\n[0.1 0.9]\nEmission matrix:\n[0.9 0.1]\n[0.1 0.9]\nEmission symbols: [3/4, 'abc']"
         """
-        s = "Discrete Hidden Markov Model%s (%s states, %s outputs)\n"%(
+        s = "Discrete Hidden Markov Model%s (%s states, %s outputs)"%(
             ' ' + self.m.name if self.m.name else '',
             self.m.N, self.m.M)
         s += '\nInitial probabilities: %s'%self.initial_probabilities()
@@ -439,6 +282,7 @@ cdef class DiscreteHiddenMarkovModel:
         cdef ghmm_dseq *d = ghmm_dmodel_generate_sequences(self.m, seed, length, 1, length)
         cdef Py_ssize_t i
         v = [d.seq[0][i] for i in range(length)]
+        ghmm_dseq_free(&d)
         if self._emission_symbols_dict:
             w = self._emission_symbols
             return [w[i] for i in v]
@@ -510,10 +354,10 @@ cdef class DiscreteHiddenMarkovModel:
     ####################################################################
     def log_likelihood(self, seq):
         r"""
-        HMM Problem 1: Return $\log ( P[seq | model] )$, the log of
-        the probability of seeing the given sequence given this model,
-        using the forward algorithm and assuming independance of the
-        sequence seq.
+        HMM Problem 1: Likelihood. Return $\log ( P[seq | model] )$,
+        the log of the probability of seeing the given sequence given
+        this model, using the forward algorithm and assuming
+        independance of the sequence seq.
 
         INPUT:
             seq -- a list; sequence of observed emissions of the HMM
@@ -566,8 +410,9 @@ cdef class DiscreteHiddenMarkovModel:
     ####################################################################
     def viterbi(self, seq):
         """
-        HMM Problem 2: Determine a hidden sequence of states that is
-        most likely to produce the given sequence seq of obserations.
+        HMM Problem 2: Decoding.  Determine a hidden sequence of
+        states that is most likely to produce the given sequence seq
+        of obserations.
 
         INPUT:
             seq -- sequence of emitted symbols
@@ -612,65 +457,106 @@ cdef class DiscreteHiddenMarkovModel:
     # probability of observing O.
     ####################################################################
     def baum_welch(self, training_seqs, nsteps=None, log_likelihood_cutoff=None):
-        pass
-## /** Baum-Welch-Algorithm for parameter reestimation (training) in
-##     a discrete (discrete output functions) HMM. Scaled version
-##     for multiple sequences, alpha and beta matrices are allocated with
-## 	ighmm_cmatrix_stat_alloc
-##     New parameters set directly in hmm (no storage of previous values!).
-##     For reference see:
-##     Rabiner, L.R.: "`A Tutorial on Hidden {Markov} Models and Selected
-##                 Applications in Speech Recognition"', Proceedings of the IEEE,
-## 	77, no 2, 1989, pp 257--285
-##   @return            0/-1 success/error
-##   @param mo          initial model
-##   @param sq          training sequences
-##   */
-## /** Just like reestimate_baum_welch, but you can limit
-##     the maximum number of steps
-##   @return            0/-1 success/error
-##   @param mo          initial model
-##   @param sq          training sequences
-##   @param max_step    maximal number of Baum-Welch steps
-##   @param likelihood_delta minimal improvement in likelihood required for carrying on. Relative value
-##   to log likelihood
-##   */
+        """
+        HMM Problem 3: Learning.  Given an observation sequence O and
+        the set of states in the HMM, improve the HMM using the
+        Baum-Welch algorithm to increase the probability of observing O.
 
+        INPUT:
+            training_seqs -- a list of lists of emission symbols
+            nsteps -- integer or None (default: None) maximum number
+                      of Baum-Welch steps to take
+            log_likehood_cutoff -- positive float or None (default:
+                      None); the minimal improvement in likelihood
+                      with respect to the last iteration required to
+                      continue. Relative value to log likelihood
 
+        OUTPUT:
+            changes the model in places, or raises a RuntimError
+            exception on error
 
+        EXAMPLES:
+        We make a model that has two states and is equally likely to output
+        0 or 1 in either state and transitions back and forth with equal
+        probability.
+            sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.5,0.5]], [[0.5,0.5],[0.5,0.5]], [0.5,0.5])
 
+        We give the model some training data this much more likely to
+        be 1 than 0.
+            sage: a.baum_welch([[1,1,1,1,0,1], [1,0,1,1,1,1]])
 
+        Now the model's emission matrix changes since it is much
+        more likely to emit 1 than 0.
+            sage: a
+            Discrete Hidden Markov Model (2 states, 2 outputs)
+            Initial probabilities: [0.5, 0.5]
+            Transition matrix:
+            [0.5 0.5]
+            [0.5 0.5]
+            Emission matrix:
+            [0.166666666667 0.833333333333]
+            [0.166666666667 0.833333333333]
+
+        Note that 1/6 = 1.666...:
+            sage: 1.0/6
+            0.166666666666667
+
+        TESTS:
+        We test training with non-default string symbols:
+            sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.5,0.5]], [[0.5,0.5],[0.5,0.5]], [0.5,0.5], ['up','down'])
+            sage: a.baum_welch([['up','up'], ['down','up']])
+            sage: a
+            Discrete Hidden Markov Model (2 states, 2 outputs)
+            Initial probabilities: [0.5, 0.5]
+            Transition matrix:
+            [0.5 0.5]
+            [0.5 0.5]
+            Emission matrix:
+            [0.75 0.25]
+            [0.75 0.25]
+            Emission symbols: ['up', 'down']
+
+        NOTE: Training for models including silent states is not yet supported.
+
+        REFERENCES:
+            Rabiner, L.R.: "`A Tutorial on Hidden Markov Models and Selected
+            Applications in Speech Recognition"', Proceedings of the IEEE,
+            77, no 2, 1989, pp 257--285.
+        """
+        if self._emission_symbols_dict:
+            seqs = [[self._emission_symbols_dict[z] for z in x] for x in training_seqs]
+        else:
+            seqs = training_seqs
+
+        cdef ghmm_dseq* d = malloc_ghmm_dseq(seqs)
+
+        if ghmm_dmodel_baum_welch(self.m, d):
+            raise RuntimeError, "error running Baum-Welch algorithm"
+
+        ghmm_dseq_free(&d)
 
 
 ##################################################################################
 # Helper Functions
 ##################################################################################
 
-cdef double* to_double_array(v) except NULL:
-    cdef double x
-    cdef double* w = <double*> safe_malloc(sizeof(double)*len(v))
-    cdef Py_ssize_t i = 0
-    for x in v:
-        w[i] = x
-        i += 1
-    return w
-
-cdef int* to_int_array(v) except NULL:
-    cdef int x
-    cdef int* w = <int*> safe_malloc(sizeof(int)*len(v))
-    cdef Py_ssize_t i = 0
-    for x in v:
-        w[i] = x
-        i += 1
-    return w
-
-cdef void* safe_malloc(int bytes) except NULL:
-    """
-    malloc the given bytes of memory and check that the malloc
-    succeeds -- if not raise a MemoryError.
-    """
-    cdef void* t = sage_malloc(bytes)
-    if not t:
-        raise MemoryError, "error allocating memory for Hidden Markov Model"
-    return t
-
+cdef ghmm_dseq* malloc_ghmm_dseq(seqs) except NULL:
+    cdef ghmm_dseq* d = ghmm_dseq_calloc(len(seqs))
+    if d == NULL:
+        raise MemoryError
+    cdef int i, j, m, n
+    m = len(seqs)
+    d.seq_number = m
+    d.capacity = m
+    d.total_w = m
+    for i from 0 <= i < m:
+        v = seqs[i]
+        n = len(v)
+        d.seq[i] = <int*> safe_malloc(sizeof(int) * n)
+        for j from 0 <= j < n:
+            d.seq[i][j] = v[j]
+        d.seq_len[i] = n
+        d.seq_id[i] = i
+        d.seq_w[i] = 1
+    d.flags = 0
+    return d

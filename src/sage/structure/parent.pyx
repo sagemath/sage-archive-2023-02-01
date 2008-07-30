@@ -95,6 +95,14 @@ def is_Parent(x):
     """
     return PY_TYPE_CHECK(x, Parent)
 
+cdef bint guess_pass_parent(parent, element_constructor):
+    if PY_TYPE_CHECK(element_constructor, types.MethodType):
+        return False
+    elif PY_TYPE_CHECK(element_constructor, BuiltinMethodType):
+        return element_constructor.__self__ is not parent
+    else:
+        return True
+
 
 cdef object all_parents = [] #weakref.WeakKeyDictionary()
 
@@ -133,14 +141,7 @@ cdef class Parent(category_object.CategoryObject):
         elif names is not None:
             self._assign_names(names, normalize)
         self._element_constructor = element_constructor
-        if hasattr(element_constructor, 'init_no_parent'):
-            self._element_init_pass_parent = not element_constructor.init_no_parent
-        elif PY_TYPE_CHECK(element_constructor, types.MethodType):
-            self._element_init_pass_parent = False
-        elif PY_TYPE_CHECK(element_constructor, BuiltinMethodType):
-            self._element_init_pass_parent = element_constructor.__self__ is not self
-        else:
-            self._element_init_pass_parent = True
+        self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
         self._coerce_from_list = []
         self._coerce_from_hash = {}
         self._action_list = []
@@ -206,14 +207,15 @@ cdef class Parent(category_object.CategoryObject):
         except KeyError:
             version = 0
         if version == 1:
-            self._element_constructor = d['_element_constructor']
             self.init_coerce(False) # Really, do we want to init this with the same initial data as before?
             self._populate_coercion_lists_(coerce_list=d['_initial_coerce_list'] or [],
                                            action_list=d['_initial_action_list'] or [],
                                            convert_list=d['_initial_convert_list'] or [],
                                            embedding=d['_embedding'],
                                            convert_method_name=d['_convert_method_name'],
-                                           init_no_parent=not d['_element_init_pass_parent'])
+                                           element_constructor = d['_element_constructor'],
+                                           init_no_parent=not d['_element_init_pass_parent'],
+                                           unpickling=True)
 
     def __call__(self, x=0, *args, **kwds):
         """
@@ -474,7 +476,15 @@ cdef class Parent(category_object.CategoryObject):
     # New New Coercion support functionality
     #################################################################################
 
-    def _populate_coercion_lists_(self, coerce_list=[], action_list=[], convert_list=[], embedding=None, convert_method_name=None, init_no_parent=None):
+    def _populate_coercion_lists_(self,
+                                  coerce_list=[],
+                                  action_list=[],
+                                  convert_list=[],
+                                  embedding=None,
+                                  convert_method_name=None,
+                                  element_constructor=None,
+                                  init_no_parent=None,
+                                  unpickling=False):
         """
         This function allows one to specify coercions, actions, conversions
         and embeddings involving this parent.
@@ -482,19 +492,33 @@ cdef class Parent(category_object.CategoryObject):
         IT SHOULD ONLY BE CALLED DURING THE __INIT__ method, often at the end.
 
         INPUT:
-            coerce_list  -- a list of coercion Morphisms to self and
-                            parents with cannonical coercions to self
-            action_list  -- a list of actions on and by self
-            convert_list -- a list of conversion Maps to self and
-                            parents with conversions to self
-            embedding    -- a single Morphism from self
+            coerce_list    -- a list of coercion Morphisms to self and
+                              parents with cannonical coercions to self
+            action_list    -- a list of actions on and by self
+            convert_list   -- a list of conversion Maps to self and
+                              parents with conversions to self
+            embedding      -- a single Morphism from self
             convert_method_name -- a name to look for that other elements
-                            can implement to create elements of self (e.g. _integer_)
+                              can implement to create elements of self (e.g. _integer_)
+            element_constructor -- A callable object used by the __call__ method to
+                              construct new elements. Typically the element class or a
+                              bound method (defaults to self._element_constructor_).
             init_no_parent -- if True omit passing self in as the first
                               argument of element_constructor for conversion. This is
                               useful if parents are unique, or element_constructor is
-                              a bound method.
+                              a bound method (this latter case can be detected
+                              automatically).
         """
+        self.init_coerce(False)
+
+        if element_constructor is None and not unpickling:
+            try:
+                element_constructor = self._element_constructor_
+            except AttributeError:
+                raise RuntimeError, "element_constructor must be provided, either as an _element_constructor_ method or via the _populate_coercion_lists_ call"
+        self._element_constructor = element_constructor
+        self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
+
         if not PY_TYPE_CHECK(coerce_list, list):
             raise ValueError, "%s_populate_coercion_lists_: coerce_list is type %s, must be list" % (type(coerce_list), type(self))
         if not PY_TYPE_CHECK(action_list, list):

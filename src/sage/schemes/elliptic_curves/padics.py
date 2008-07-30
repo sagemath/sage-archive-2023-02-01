@@ -191,7 +191,7 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
         sage: for prec in range(1, max_prec):                 # long time
         ...       assert E.padic_regulator(5, prec) == full   # long time
 
-    A case where the generator belongs to the formal group already (trac #3632):
+    A case where the generator belongs to the formal group already (trac \#3632):
         sage: E = EllipticCurve([37,0])
         sage: E.padic_regulator(5,10)
         3*5^2 + 2*5^3 + 3*5^4 + 3*5^5 + 4*5^7 + 5^8 + O(5^10)

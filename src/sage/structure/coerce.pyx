@@ -738,6 +738,32 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: cm.coercion_maps(QQ, GF(7)) == None
             True
+
+        Note that to break symmetry, if there is a coercion map in both
+        directions, the parent on the left is used:
+            sage: V = QQ^3
+            sage: W = loads(dumps(V))
+            sage: V == W
+            True
+            sage: V is W
+            False
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.coercion_maps(V, W)
+            (None,
+             Call morphism:
+              From: Vector space of dimension 3 over Rational Field
+              To:   Vector space of dimension 3 over Rational Field)
+            sage: cm.coercion_maps(W, V)
+            (None,
+             Call morphism:
+              From: Vector space of dimension 3 over Rational Field
+              To:   Vector space of dimension 3 over Rational Field)
+            sage: v = V([1,2,3])
+            sage: w = W([1,2,3])
+            sage: parent(v+w) is V
+            True
+            sage: parent(w+v) is W
+            True
         """
         try:
             return self._coercion_maps.get(R, S, None)
@@ -755,7 +781,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                         raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
                     if y_map is not None and not isinstance(y_map, Map):
                         raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
-            swap = None if homs is None else (homs[1], homs[0])
+            if homs is None:
+                swap = None
+            else:
+                R_map, S_map = homs
+                if R_map is None and PY_TYPE_CHECK(S, Parent) and (<Parent>S).has_coerce_map_from(R):
+                    swap = None, (<Parent>S).coerce_map_from(R)
+                else:
+                    swap = S_map, R_map
             self._coercion_maps.set(R, S, None, homs)
             self._coercion_maps.set(S, R, None, swap)
         return homs

@@ -256,7 +256,7 @@ class Notebook(SageObject):
                 self.add_user(username, '', '', account_type='user', force=True)
                 return self.users()[username]
             elif username == 'admin':
-                self.add_user(username, '', '', account_type='user', force=True)
+                self.add_user(username, '', '', account_type='admin', force=True)
                 return self.users()[username]
             elif username == 'guest':
                 self.add_user('guest', '', '', account_type='guest', force=True)

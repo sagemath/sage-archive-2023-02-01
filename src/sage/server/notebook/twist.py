@@ -1411,7 +1411,7 @@ class WorksheetsByUser(resource.Resource):
         return http.Response(stream = s)
 
     def render(self, ctx):
-        if self.user == self.username or self.username == 'admin':
+        if self.user == self.username or user_type(self.username) == 'admin':
             return self.render_list(ctx)
         else:
             s = message("User '%s' does not have permission to view the home page of '%s'."%(self.username, self.user))
@@ -2051,7 +2051,7 @@ class ListOfUsers(resource.Resource):
             self.username = username
 
         def render(self, ctx):
-            if self.username != 'admin':
+            if user_type(self.username) != 'admin':
                 s = message('You must an admin to manage other users.')
             else:
                 s = """

@@ -217,6 +217,8 @@ class User:
             sage: User('C', account_type='guest').account_type()
             'guest'
         """
+        if self.__username == 'admin':
+            return 'admin'
         return self.__account_type
 
     def is_admin(self):

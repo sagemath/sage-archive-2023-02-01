@@ -1,0 +1,49 @@
+= FriCAS =
+
+== Description ==
+
+FriCAS is an advanced computer algebra system. Its capabilities range from calculus (integration and differentiation) to abstract algebra. It can plot functions and has an integrated help system.
+
+FriCAS is a fork of the Axiom project -- its starting point was the wh-sandbox branch of the Axiom project.
+
+This version of the fricas package is built using hardware independent cached Lisp files to generate the executables.
+
+== License ==
+
+Modified BSD
+
+== SPKG Maintainers ==
+
+Bill Page  bill.page@newsynthesis.org
+
+== Upstream Contact ==
+
+Development web site:
+
+http://fricas.sourceforge.net/
+
+Mailing list:
+
+fricas-devel@googlegroups.com
+
+http://groups.google.com/group/fricas-devel/
+
+== Dependencies ==
+
+???
+
+== Special Update/Build Instructions ==
+
+???
+
+== Changelog ==
+
+=== fricas-1.0.3 (Waldek Hebisch) ===
+ * update to FriCAS-1.0.3 release, switch back to clisp, apply a patch
+ to allow building without FFI
+
+=== fricas-1.0.2 (Burcin Erocal) ===
+ * update to FriCAS-1.0.2 release
+
+=== fricas-0.3.1 (Bill Page) ===
+ * FriCAS-0.3.1 release

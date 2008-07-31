@@ -31,6 +31,9 @@ from quaternion_algebra import (QuaternionAlgebra, QuaternionAlgebraWithInnerPro
      hilbert_symbol, fundamental_discriminant)
 from quaternion_order import QuaternionOrderWithBasis, QuaternionDefiningOrder
 from quaternion_order_ideal import QuaternionOrderLeftIdeal, QuaternionOrderRightIdeal, QuaternionOrderTwoSidedIdeal
+from steenrod_algebra import SteenrodAlgebra
+from steenrod_algebra_element import Sq
+from steenrod_algebra_bases import steenrod_algebra_basis
 
 
 def is_R_algebra(Q, R):

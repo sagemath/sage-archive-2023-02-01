@@ -1,0 +1,57 @@
+diff -ru fricas.bb2/src/interp/util.lisp fricas/src/interp/util.lisp
+--- fricas.bb2/src/interp/util.lisp	2008-07-20 03:04:34.000000000 -0400
++++ fricas/src/interp/util.lisp	2008-07-20 03:44:01.000000000 -0400
+@@ -1301,12 +1301,12 @@
+                     (sb-alien::load-shared-object spad-lib)
+                     #+:openmcl
+                     (ccl::open-shared-library spad-lib)
+-                    #+:clisp
++                    #+(and :clisp :ffi)
+                     (progn
+                         (eval `(FFI:DEFAULT-FOREIGN-LIBRARY ,spad-lib))
+                         (FRICAS-LISP::clisp-init-foreign-calls)))
+                 (setf $openServerIfTrue nil))))
+-    #+(or :gcl :clisp :sbcl :openmcl :ecl)
++    #+(or :gcl (and :clisp :ffi) :sbcl :openmcl :ecl)
+     (if $openServerIfTrue
+         (let ((os (|openServer| $SpadServerName)))
+              (format t "openServer result ~S~%" os)
+diff -ru fricas.bb2/src/lisp/fricas-lisp.lisp fricas/src/lisp/fricas-lisp.lisp
+--- fricas.bb2/src/lisp/fricas-lisp.lisp	2008-07-20 03:04:43.000000000 -0400
++++ fricas/src/lisp/fricas-lisp.lisp	2008-07-20 03:18:58.000000000 -0400
+@@ -240,7 +240,7 @@
+ 
+ )
+ 
+-#+:clisp
++#+(and :clisp :ffi)
+ (eval-when (:compile-toplevel :load-toplevel :execute)
+ 
+ (setf *c-type-to-ffi* '(
+@@ -382,7 +382,7 @@
+ 
+ (defmacro foreign-defs (&rest arguments)
+     #-:clisp `(progn ,@arguments)
+-    #+:clisp `(defun clisp-init-foreign-calls () ,@arguments)
++    #+(and :clisp :ffi) `(defun clisp-init-foreign-calls () ,@arguments)
+ )
+ 
+ (foreign-defs
+@@ -453,7 +453,7 @@
+             buf))
+ 
+ )
+-#+:clisp
++#+(and :clisp :ffi)
+ (eval '(FFI:DEF-CALL-OUT sock_get_string_buf
+     (:NAME "sock_get_string_buf")
+     (:arguments (purpose ffi:int)
+@@ -464,7 +464,7 @@
+ 
+ )
+ 
+-#+:clisp
++#+(and :clisp :ffi)
+ (defun |sockGetStringFrom| (purpose)
+     (let ((buf nil))
+         (FFI:WITH-C-VAR (tmp-buf '(FFI:C-ARRAY

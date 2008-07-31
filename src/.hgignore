@@ -3,6 +3,7 @@ PKG-INFO
 push
 pull
 .cython_hash$
+\.git$
 \.hi$
 \.mtl$
 \.obj$

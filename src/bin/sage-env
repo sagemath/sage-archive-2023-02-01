@@ -166,7 +166,9 @@ if [ "$1" = "-short" ]; then
     exit 0
 fi
 
-RHOME="$SAGE_LOCAL/lib/R" && export RHOME
+if [ -z "$RHOME" ]; then
+    RHOME="$SAGE_LOCAL/lib/R" && export RHOME
+fi
 
 
 ############ compilation flags

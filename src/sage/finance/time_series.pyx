@@ -1370,7 +1370,15 @@ cdef class TimeSeries:
             0.80000000000000004
             sage: v.variance(bias=True)
             0.64000000000000001
+
+        TESTS:
+            sage: finance.TimeSeries([1]).variance()
+            0.0
+            sage: finance.TimeSeries([]).variance()
+            0.0
         """
+        if self._length <= 1:
+            return float(0)
         cdef double mu = self.mean()
         cdef double s = 0
         cdef double a
@@ -1401,14 +1409,39 @@ cdef class TimeSeries:
             0.8944271909...
             sage: v.standard_deviation(bias=True)
             0.8000000000...
+
+        TESTS:
+            sage: finance.TimeSeries([1]).standard_deviation()
+            0.0
+            sage: finance.TimeSeries([]).standard_deviation()
+            0.0
         """
         return sqrt(self.variance(bias=bias))
 
-    def range_statistic(self):
-        """
-        Return the range statistic of self, which is the difference
-        between the maximum and minimum values of this time series,
-        divided by the standard deviation of the series of differences.
+    def range_statistic(self, b=None):
+        r"""
+        Return the rescaled range statistic $R/S$ of self, which is
+        defined as follows (see Hurst 1951).  If the optional
+        parameter $b$ is given, return the average of $R/S$ range
+        statistics of disjoint blocks of size $b$.
+
+        Let $\sigma$ be the standard deviation of the seqeunce of
+        differences of self, and let $Y_k$ be the $k$th term of self.
+        Let $n$ be the number of terms of self, and set
+        $Z_k = Y_k - ((k+1)/n)*Y_n$. Then
+        $$
+           R/S = ( max( Z_k ) - min ( Z_k ) ) / \sigma
+        $$
+        where the max and min are over all $Z_k$.
+        Basically replacing $Y_k$ by $Z_k$ allows us to measure
+        the difference from the line from the origin to $(n,Y_n)$.
+
+        INPUT:
+            self -- a time series  (*not* the series of differences)
+            b -- integer (default: None); if given instead divide the
+                 input time series up into j = floor(n/b) disjoint
+                 blocks, compute the R/S statistic for each block,
+                 and return the average of those R/S statistics.
 
         OUTPUT:
             float
@@ -1417,54 +1450,92 @@ cdef class TimeSeries:
         Notice that if we make a Brownian motion random walk, there
         is no difference if we change the standard deviation.
             sage: set_random_seed(0); finance.TimeSeries(10^6).randomize('normal').sums().range_statistic()
-            1873.9206979...
+            1897.8392602...
             sage: set_random_seed(0); finance.TimeSeries(10^6).randomize('normal',0,100).sums().range_statistic()
-            1873.9206979...
+            1897.8392602...
         """
-        return (self.max() - self.min())/self.diffs().standard_deviation()
+        cdef Py_ssize_t j, k, n = self._length
+
+        if b is not None:
+            j = n // b
+            return sum([self[k*b:(k+1)*b].add_scalar(-self[k*b]).range_statistic() for k in range(j)]) / j
+
+        cdef double Yn = self._values[n - 1]
+        cdef TimeSeries Z = self.__copy__()
+        for k from 0 <= k < n:
+            Z._values[k] -= (k+1)*Yn / n
+
+        sigma = self.diffs().standard_deviation()
+
+        return (Z.max() - Z.min()) / sigma
 
     def hurst_exponent(self):
         """
-        Returns a very simple naive estimate of the Hurst exponent of
-        this time series.  There are many possible ways to estimate
-        this number, and this is perhaps the most naive.  The estimate
-        we take here is the log of the range statistic divided by the
-        length of this time series.
+        Returns an estimate of the Hurst exponent of this time series.
+        We use the algorithm from pages 61 -- 63 of [Peteres, Fractal
+        Market Analysis (1994); see Google Books].
 
         We define the Hurst exponent of a constant time series to be 1.
 
-        NOTE: This is only a very rough estimator.  There are supposed
-        to be better ones that use wavelets.
-
         EXAMPLES:
         The Hurst exponent of Brownian motion is 1/2.  We approximate
-        it with some specific samples:
+        it with some specific samples.  Note that the estimator is
+        biased and slightly overestimates.
             sage: set_random_seed(0)
             sage: bm = finance.TimeSeries(10^5).randomize('normal').sums(); bm
             [0.6767, 0.2756, 0.6332, 0.0469, -0.8897 ... 152.2437, 151.5327, 152.7629, 152.9169, 152.9084]
             sage: bm.hurst_exponent()
-            0.5174890556...
+            0.527450972...
 
         We compute the Hurst exponent of a simulated fractional Brownian
         motion with Hurst parameter 0.7.  This function estimates the
-        Hurst exponent as 0.6678...
+        Hurst exponent as 0.706511951...
             sage: set_random_seed(0)
             sage: fbm = finance.fractional_brownian_motion_simulation(0.7,0.1,10^5,1)[0].sums()
             sage: fbm.hurst_exponent()
-            0.6678702792...
+            0.706511951...
 
-        Another example with small Hurst exponent (notice how bad the prediction is...):
+        Another example with small Hurst exponent (notice the overestimation).
             sage: fbm = finance.fractional_brownian_motion_simulation(0.2,0.1,10^5,1)[0].sums()
             sage: fbm.hurst_exponent()
-            0.3045027356...
+            0.278997441...
 
-        The above example illustrate that this is not a very good
-        estimate of the Hurst exponent.
+        We compute the mean Hurst exponent of 100 simulated multifractal
+        cascade random walks:
+            sage: set_random_seed(0)
+            sage: y = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,0.01,1000,100)
+            sage: finance.TimeSeries([z.hurst_exponent() for z in y]).mean()
+            0.57984822577934747
+
+        We compute the mean Hurst exponent of 100 simulated Markov switching
+        multifractal time series.  The Hurst exponent is quite small.
+            sage: set_random_seed(0)
+            sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,0.5,0.95,3)
+            sage: y = msm.simulations(1000,100)
+            sage: finance.TimeSeries([z.hurst_exponent() for z in y]).mean()
+            0.2861023256237053
         """
-        cdef double r = self.range_statistic()
-        if r == 0:
+        # We use disjoint blocks of size 8, 16, 32, ....
+        cdef Py_ssize_t k = 8
+        if self._length <= 32:   # small data, estimate of Hurst will suck but...
+            k = 4
+        v0 = []
+        v1 = []
+        while k <= self._length:
+            try:
+                v1.append(log(self.range_statistic(k)))
+                v0.append(log(k))
+            except ZeroDivisionError:   # 0 standard deviation
+                pass
+            k *= 2
+        if len(v0) == 0:
             return float(1)
-        return log(r)/log(self._length)
+        if len(v0) == 1:
+            return v1[0]/v0[0]
+        import scipy.stats
+        slope,intercept, _,_,_ = scipy.stats.linregress(v0,v1)
+        return slope
+
 
     def min(self, bint index=False):
         """
@@ -2156,17 +2227,17 @@ def autoregressive_fit(acvs):
     EXAMPLES:
 
     In this example we consider the multifractal cascade random walk
-    of length 1000, and use simultations to estimate the
+    of length 1000, and use simulations to estimate the
     expected first few autocovariance parameters for this model, then
     use them to construct a linear filter that works vastly better
     than a linear filter constructed from the same data but not using
     this model. The Monte-Carlo method illustrated below should work for
     predicting one "time step" into the future for any
-    model that can be simultated.  To predict k time steps into the
+    model that can be simulated.  To predict k time steps into the
     future would require using a similar technique but would require
     scaling time by k.
 
-    We create 100 simultations ofa multifractal random walk.  This
+    We create 100 simulations of a multifractal random walk.  This
     models the logarithms of a stock price sequence.
         sage: set_random_seed(0)
         sage: y = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,0.01,1000,100)

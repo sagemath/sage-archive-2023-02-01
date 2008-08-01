@@ -279,7 +279,7 @@ def multifractal_cascade_random_walk_simulation(double T,
         else:
             break  # all covariance numbers after this point are 0
 
-    # Compute n simultations of omega, but with mean 0.
+    # Compute n simulations of omega, but with mean 0.
     omega = stationary_gaussian_simulation(s, N+1, n)
 
     # Increase each by the given mean.

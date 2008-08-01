@@ -6066,6 +6066,16 @@ class NumberField_quadratic(NumberField_absolute):
         class number $1$:n
             sage: len([d for d in range(2,200) if not is_square(d) and QuadraticField(d,'a').class_number() == 1])
             121
+
+        TESTS:
+            sage: type(QuadraticField(-23,'a').class_number())
+            <type 'sage.rings.integer.Integer'>
+            sage: type(NumberField(x^3 + 23, 'a').class_number())
+            <type 'sage.rings.integer.Integer'>
+            sage: type(NumberField(x^3 + 23, 'a').extension(x^2 + 5, 'b').class_number())
+            <type 'sage.rings.integer.Integer'>
+            sage: type(CyclotomicField(10).class_number())
+            <type 'sage.rings.integer.Integer'>
         """
         proof = proof_flag(proof)
         try:
@@ -6073,9 +6083,9 @@ class NumberField_quadratic(NumberField_absolute):
         except AttributeError:
             D = self.discriminant()
             if D < 0 and proof:
-                self.__class_number = pari("qfbclassno(%s,1)"%D).python()
+                self.__class_number = ZZ(pari("qfbclassno(%s,1)"%D))
             else:
-                self.__class_number = pari("qfbclassno(%s)"%D).python()
+                self.__class_number = ZZ(pari("qfbclassno(%s)"%D))
             return self.__class_number
 
     def hilbert_class_polynomial(self):

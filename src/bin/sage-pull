@@ -1,1 +1,2 @@
+#!/bin/sh
 sage -hg pull http://www.sagemath.org/hg/scripts-main

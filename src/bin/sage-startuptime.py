@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###########################################################
 # Based on a script by Andrew Dalke:
 #    http://projects.scipy.org/pipermail/numpy-discussion/2008-July/035415.html

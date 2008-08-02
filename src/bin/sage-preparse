@@ -1,4 +1,4 @@
-#!sage.bin
+#!/usr/bin/env python
 """
 Preparse a .sage file and save the result to a .py file.
 

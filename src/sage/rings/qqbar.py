@@ -120,7 +120,7 @@ We can coerce from symbolic expressions:
     sage: AA(I)
     Traceback (most recent call last):
     ...
-    TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+    ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
     sage: QQbar(I * golden_ratio)
     1.618033988749895?*I
     sage: AA(golden_ratio)^2 - AA(golden_ratio)
@@ -134,7 +134,7 @@ We can coerce from symbolic expressions:
     sage: AA((-4)^(1/4))
     Traceback (most recent call last):
     ...
-    TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+    ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
 
 Note the different behavior in taking roots: for AA we prefer real roots if they exist, but for QQbar we take the principal root:
 
@@ -331,6 +331,48 @@ We can pickle and unpickle algebraic numbers:
     <class 'sage.rings.qqbar.ANBinaryExpr'>
     sage: loads(dumps(t)) == QQbar(sqrt(2)) + QQbar(sqrt(3))
     True
+
+We can convert elements of QQbar and AA into the following types:
+float, complex, RDF, CDF, RR, CC, RIF, CIF, ZZ, and QQ, with a few
+exceptions.  (For the arbitrary-precision types, RR, CC, RIF, and CIF,
+it can convert into a field of arbitrary precision.)
+
+Converting from QQbar to a real type (float, RDF, RR, RIF, ZZ, or QQ)
+succeeds only if the QQbar is actually real (has an imaginary
+component of exactly zero).  Converting from either AA or QQbar to ZZ
+or QQ succeeds only if the number actually is an integer or rational.
+If conversion fails, a ValueError will be raised.
+
+Here are examples of all of these conversions.
+
+    sage: all_vals = [AA(42), AA(22/7), AA(golden_ratio), QQbar(-13), QQbar(89/55), QQbar(-sqrt(7)), QQbar.zeta(5)]
+    sage: def convert_test_all(ty):
+    ...       def convert_test(v):
+    ...           try:
+    ...               return ty(v)
+    ...           except ValueError:
+    ...               return None
+    ...       return map(convert_test, all_vals)
+    sage: convert_test_all(float)
+    [42.0, 3.1428571428571432, 1.6180339887498949, -13.0, 1.6181818181818182, -2.6457513110645907, None]
+    sage: convert_test_all(complex)
+    [(42+0j), (3.1428571428571432+0j), (1.6180339887498949+0j), (-13+0j), (1.6181818181818182+0j), (-2.6457513110645907+0j), (0.30901699437494745+0.95105651629515364j)]
+    sage: convert_test_all(RDF)
+    [42.0, 3.14285714286, 1.61803398875, -13.0, 1.61818181818, -2.64575131106, None]
+    sage: convert_test_all(CDF)
+    [42.0, 3.14285714286, 1.61803398875, -13.0, 1.61818181818, -2.64575131106, 0.309016994375 + 0.951056516295*I]
+    sage: convert_test_all(RR)
+    [42.0000000000000, 3.14285714285714, 1.61803398874989, -13.0000000000000, 1.61818181818182, -2.64575131106459, None]
+    sage: convert_test_all(CC)
+    [42.0000000000000, 3.14285714285714, 1.61803398874989, -13.0000000000000, 1.61818181818182, -2.64575131106459, 0.309016994374947 + 0.951056516295154*I]
+    sage: convert_test_all(RIF)
+    [42.000000000000000?, 3.142857142857143?, 1.618033988749895?, -13.000000000000000?, 1.6181818181818183?, -2.645751311064591?, None]
+    sage: convert_test_all(CIF)
+    [42.000000000000000?, 3.142857142857143?, 1.618033988749895?, -13.000000000000000?, 1.6181818181818183?, -2.645751311064591?, 0.3090169943749475? + 0.9510565162951536?*I]
+    sage: convert_test_all(ZZ)
+    [42, None, None, -13, None, None, None]
+    sage: convert_test_all(QQ)
+    [42, 22/7, None, -13, 89/55, None, None]
 """
 
 import sage.rings.ring
@@ -454,7 +496,7 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
             if x.imag().is_zero():
                 return x.real()
             else:
-                raise TypeError, "Cannot coerce algebraic number with non-zero imaginary part to algebraic real"
+                raise ValueError, "Cannot coerce algebraic number with non-zero imaginary part to algebraic real"
         elif hasattr(x, '_algebraic_'):
             return x._algebraic_(AA)
         return AlgebraicReal(x)
@@ -2623,6 +2665,66 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
         return AlgebraicNumber(ANRoot(poly, target))
 
+    def _mpfr_(self, field):
+        r"""
+        Given a RealField, compute a good approximation to self in
+        that field.  Works only if the imaginary component of self is
+        exactly zero; otherwise it raises a ValueError.
+
+        EXAMPLES:
+            sage: QQbar(sqrt(2))._mpfr_(RR)
+            1.41421356237309
+            sage: QQbar(-22/7)._mpfr_(RR)
+            -3.14285714285714
+            sage: QQbar.zeta(3)._mpfr_(RR)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+        """
+        return AA(self)._mpfr_(field)
+
+    def __float__(self):
+        r"""
+        Compute a good float approximation to self.  Works only if the
+        imaginary component of self is exactly zero; otherwise it
+        raises a ValueError.
+
+        EXAMPLES:
+            sage: QQbar(sqrt(2)).__float__()
+            1.4142135623730949
+            sage: float(QQbar(-22/7))
+            -3.1428571428571432
+            sage: float(QQbar.zeta(3))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+        """
+        return AA(self).__float__()
+
+    def __complex__(self):
+        r"""
+        Compute a good complex approximation to self.
+
+        EXAMPLES:
+            sage: QQbar(sqrt(2)).__complex__()
+            (1.4142135623730949+0j)
+            sage: complex(QQbar.zeta(3))
+            (-0.5+0.8660254037844386j)
+        """
+        return CC(self).__complex__()
+
+    def _complex_double_(self, cdf):
+        r"""
+        Compute a good approximation to self in CDF.
+
+        EXAMPLES:
+            sage: QQbar(sqrt(-5))._complex_double_(CDF)
+            2.2360679775*I
+            sage: CDF(QQbar.zeta(12))
+            0.866025403784 + 0.5*I
+        """
+        return cdf(CC(self))
+
     def _interval_fast(self, prec):
         return self.interval_fast(ComplexIntervalField(prec))
 
@@ -2638,7 +2740,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar.zeta(6)._integer_()
             Traceback (most recent call last):
             ...
-            TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
             sage: QQbar(sqrt(17))._integer_()
             Traceback (most recent call last):
             ...
@@ -2664,7 +2766,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: (QQbar.zeta(7)^3)._rational_()
             Traceback (most recent call last):
             ...
-            TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
             sage: QQbar(sqrt(2))._rational_()
             Traceback (most recent call last):
             ...
@@ -3215,6 +3317,18 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     _mpfr_ = real_number
 
+    def __float__(self):
+        r"""
+        Compute a good float approximation to self.
+
+        EXAMPLES:
+            sage: AA(golden_ratio).__float__()
+            1.6180339887498949
+            sage: float(AA(sqrt(11)))
+            3.3166247903553998
+        """
+        return float(RR(self))
+
     def _complex_mpfr_field_(self, field):
         if is_ComplexIntervalField(field):
             return field(self.interval(field._real_field()))
@@ -3617,7 +3731,7 @@ class AlgebraicPolynomialTracker(SageObject):
             try:
                 poly = poly.change_ring(AA)
                 complex = False
-            except TypeError:
+            except (TypeError, ValueError):
                 poly = poly.change_ring(QQbar)
                 complex = True
         self._poly = poly
@@ -4500,6 +4614,7 @@ class ANUnaryExpr(ANDescr):
     def __init__(self, arg, op):
         self._arg = arg
         self._op = op
+        self._complex = True
 
     def __reduce__(self):
         """
@@ -4516,45 +4631,51 @@ class ANUnaryExpr(ANDescr):
     def kind(self):
         return 'other'
 
+    def is_complex(self):
+        return self._complex
+
     def _interval_fast(self, prec):
         op = self._op
 
+        v = self._arg._interval_fast(prec)
+
+        if not is_ComplexIntervalFieldElement(v):
+            self._complex = False
+
         if op == '-':
-            return -self._arg._interval_fast(prec)
+            return -v
 
         if op == '~':
-            return ~self._arg._interval_fast(prec)
+            return ~v
+
+        if op == 'conjugate':
+            if is_ComplexIntervalFieldElement(v):
+                return v.conjugate()
+            else:
+                return v
+
+        self._complex = False
 
         if op == 'real':
-            v = self._arg._interval_fast(prec)
             if is_ComplexIntervalFieldElement(v):
                 return v.real()
             else:
                 return v
 
         if op == 'imag':
-            v = self._arg._interval_fast(prec)
             if is_ComplexIntervalFieldElement(v):
                 return v.imag()
             else:
                 return RealIntervalField(prec)(0)
 
         if op == 'abs':
-            return abs(self._arg._interval_fast(prec))
+            return abs(v)
 
         if op == 'norm':
-            v = self._arg._interval_fast(prec)
             if is_ComplexIntervalFieldElement(v):
                 return v.norm()
             else:
                 return v.square()
-
-        if op == 'conjugate':
-            v = self._arg._interval_fast(prec)
-            if is_ComplexIntervalFieldElement(v):
-                return v.conjugate()
-            else:
-                return v
 
         raise NotImplementedError
 

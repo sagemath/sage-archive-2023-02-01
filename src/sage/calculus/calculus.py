@@ -4072,7 +4072,7 @@ class SymbolicConstant(Symbolic_object):
             sage: AA(i)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
             sage: QQbar(i)
             1*I
             sage: phi = SymbolicConstant(golden_ratio)
@@ -6163,7 +6163,7 @@ class SymbolicComposition(SymbolicOperation):
         g = self._operands[1]
         try:
             return field(f(g._algebraic_(field)))
-        except TypeError:
+        except (TypeError, ValueError):
             if self._has_been_simplified():
                 raise
             else:

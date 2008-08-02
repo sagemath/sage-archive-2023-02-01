@@ -1,3 +1,4 @@
+#!/bin/sh
 echo "\\r ex-bsw" | sage -gp
 echo "\\r ex-chgen" | sage -gp
 echo "\\r ex-chqua" | sage -gp

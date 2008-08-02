@@ -1,2 +1,2 @@
 from hmm  import DiscreteHiddenMarkovModel
-from chmm import NormalHiddenMarkovModel
+from chmm import GaussianHiddenMarkovModel

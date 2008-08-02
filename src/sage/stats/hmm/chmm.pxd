@@ -74,10 +74,10 @@ cdef extern from "ghmm/smodel.h":
         # IDs of predecessor states
         int *in_id
         # transition probs to successor states. It is a
-        # matrix in case of mult. transition matrices (COS > 1)
+        # matrix in case of mult. transition matrices (cos > 1)
         double **out_a
         # transition probs from predecessor states. It is a
-        # matrix in case of mult. transition matrices (COS > 1)
+        # matrix in case of mult. transition matrices (cos > 1)
         double **in_a
         # number of  successor states
         int out_states
@@ -97,6 +97,9 @@ cdef extern from "ghmm/smodel.h":
         int xPosition
         # y coordinate position for graph representation plotting
         int yPosition
+
+
+    double **ighmm_cmatrix_alloc (int nrows, int ncols)
 
     #############################################################
     # Continous Hidden Markov Model
@@ -196,7 +199,7 @@ cdef class ContinuousHiddenMarkovModel(HiddenMarkovModel):
     cdef ghmm_cmodel* m
     cdef bint initialized
 
-cdef class NormalHiddenMarkovModel(ContinuousHiddenMarkovModel):
+cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
     pass
 
 

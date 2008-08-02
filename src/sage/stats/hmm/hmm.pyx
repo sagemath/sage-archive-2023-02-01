@@ -200,6 +200,9 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         """
         Return the list of initial state probabilities.
 
+        OUTPUT:
+            list of floats
+
         EXAMPLES:
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.9,0.1],[0.9,0.1]], [[0.5,0.5,0,0],[0,0,.5,.5]], [0.5,0.5], [1,-1,3,-3])
             sage: a.initial_probabilities()

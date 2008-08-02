@@ -1491,12 +1491,12 @@ cdef class TimeSeries:
         motion with Hurst parameter 0.7.  This function estimates the
         Hurst exponent as 0.706511951...
             sage: set_random_seed(0)
-            sage: fbm = finance.fractional_brownian_motion_simulation(0.7,0.1,10^5,1)[0].sums()
+            sage: fbm = finance.fractional_brownian_motion_simulation(0.7,0.1,10^5,1)[0]
             sage: fbm.hurst_exponent()
             0.706511951...
 
         Another example with small Hurst exponent (notice the overestimation).
-            sage: fbm = finance.fractional_brownian_motion_simulation(0.2,0.1,10^5,1)[0].sums()
+            sage: fbm = finance.fractional_brownian_motion_simulation(0.2,0.1,10^5,1)[0]
             sage: fbm.hurst_exponent()
             0.278997441...
 

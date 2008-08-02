@@ -145,6 +145,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement)
 #
 #*****************************************************************************
 
+# Global settings
+printing_style = 'question'
+printing_error_digits = 0
+
 #*****************************************************************************
 #
 #       Real Field
@@ -805,7 +809,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: cmp(loads(dumps(b)), b)
             0
         """
-        s = self.str(32, no_sci=False, e='@')
+        s = self.str(32, style='brackets', no_sci=False, e='@')
         return (__create__RealIntervalFieldElement_version0, (self._parent, s, 32))
 
     def  __dealloc__(self):
@@ -878,34 +882,572 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
     # because I think it's less confusing to get such results than to
     # see [0.333 .. 0.333] for an interval with unequal left and right
     # sides.
-    def str(self, int base=10, no_sci=None, e='e'):
-        """
+    def str(self, int base=10, style=None, no_sci=None, e=None, error_digits=None):
+        r"""
         INPUT:
              base -- base for output
+             style -- The printing style; either 'brackets' or 'question'
+                      (or None, to use the current default).
              no_sci -- if True do not print using scientific notation; if False
                        print with scientific notation; if None (the default), print how the parent prints.
-             e - symbol used in scientific notation
+             e -- symbol used in scientific notation
+             error_digits -- The number of digits of error to print, in
+                             'question' style.
+
+        We support two different styles of printing; 'question' style
+        and 'brackets' style.  In question style (the default), we
+        print the ``known correct'' part of the number, followed by a
+        question mark:
+
+        sage: RIF(pi).str()
+        '3.141592653589794?'
+        sage: RIF(pi, 22/7).str()
+        '3.142?'
+        sage: RIF(pi, 22/7).str(style='question')
+        '3.142?'
+
+        In brackets style, we print the lower and upper bounds of the
+        interval within brackets:
+
+        sage: RIF(237/16).str(style='brackets')
+        '[14.812500000000000 .. 14.812500000000000]'
+
+        Note that the lower bound is rounded down, and the upper bound is
+        rounded up.  So even if the lower and upper bounds are equal,
+        they may print differently.  (This is done so that the printed
+        representation of the interval contains all the numbers in the
+        internal binary interval.)
+
+        For instance, we find the best 10-bit floating point
+        representation of 1/3:
+
+        sage: RR10 = RealField(10)
+        sage: RR(RR10(1/3))
+        0.333496093750000
+
+        And we see that the point interval containing only this
+        floating-point number prints as a wider decimal interval, that
+        does contain the number:
+
+        sage: RIF10 = RealIntervalField(10)
+        sage: RIF10(RR10(1/3)).str(style='brackets')
+        '[0.33349 .. 0.33350]'
+
+        We always use brackets style for NaN and infinities.
+
+        sage: RIF(pi, infinity)
+        [3.1415926535897931 .. +infinity]
+        sage: RIF(NaN)
+        [.. NaN ..]
+
+        Let's take a closer, formal look at the question style.  In
+        its full generality, a number printed in the question style
+        looks like:
+
+        MANTISSA ?ERROR eEXPONENT
+
+        (without the spaces).  The ``eEXPONENT'' part is optional; if
+        it is missing, then the exponent is 0.  (If the base is
+        greater than 10, then the exponent separator is ``@'' instead
+        of ``e''.)
+
+        The ``ERROR'' is optional; if it is missing, then the error is 1.
+
+        The mantissa is printed in base $b$, and always contains a
+        decimal point (also known as a radix point, in bases other
+        than 10).  (The error and exponent are always printed in base 10.)
+
+        We define the ``precision'' of a floating-point printed
+        representation to be the positional value of the last digit of
+        the mantissa.  For instance, in 2.7?e5, the precision is
+        $10^4$; in 8.?, the precision is $10^0$; and in 9.35?  the
+        precision is $10^{-2}$.  This precision will always be $10^k$
+        for some $k$ (or, for an arbitrary base $b$, $b^k$).
+
+        Then the interval is contained in the interval:
+
+        mantissa*b^exponent - error*b^k .. mantissa*b^exponent + error*b^k
+
+        To control the printing, we can specify a maximum number of
+        error digits.  The default is 0, which means that we do not print
+        an error at all (so that the error is always the default, 1).
+
+        Now, consider the precisions needed to represent the endpoints
+        (this is the precision that would be produced by
+        \code{v.lower().str(no_sci=False, truncate=False)}).
+        Our result is no more precise than the less precise endpoint,
+        and is sufficiently imprecise that the error can be represented
+        with the given number of decimal digits.  Our result is the
+        most precise possible result, given these restrictions.
+        When there are two possible results of equal precision and with
+        the same error width, then we pick the one which is farther from zero.
+        (For instance, RIF(0, 123) with two error digits could print as
+        61.?62 or 62.?62. We prefer the latter because it makes it clear that
+        the interval is known not to be negative.)
 
         EXAMPLES:
             sage: a = RIF(59/27); a
-            [2.1851851851851851 .. 2.1851851851851856]
+            2.185185185185186?
+            sage: a.str()
+            '2.185185185185186?'
+            sage: a.str(style='brackets')
+            '[2.1851851851851851 .. 2.1851851851851856]'
             sage: a.str(16)
-            '[2.2f684bda12f68 .. 2.2f684bda12f6a]'
+            '2.2f684bda12f69?'
             sage: a.str(no_sci=False)
-            '[2.1851851851851851e0 .. 2.1851851851851856e0]'
+            '2.185185185185186?e0'
+            sage: pi_appr = RIF(pi, 22/7)
+            sage: pi_appr.str(style='brackets')
+            '[3.1415926535897931 .. 3.1428571428571433]'
+            sage: pi_appr.str()
+            '3.142?'
+            sage: pi_appr.str(error_digits=1)
+            '3.1422?7'
+            sage: pi_appr.str(error_digits=2)
+            '3.14223?64'
+            sage: pi_appr.str(base=36)
+            '3.6?'
+            sage: RIF(NaN)
+            [.. NaN ..]
+            sage: RIF(pi, infinity)
+            [3.1415926535897931 .. +infinity]
+            sage: RIF(-infinity, pi)
+            [-infinity .. 3.1415926535897936]
+            sage: RealIntervalField(210)(3).sqrt()
+            1.732050807568877293527446341505872366942805253810380628055806980?
+            sage: RealIntervalField(210)(RIF(3).sqrt())
+            1.732050807568878?
+            sage: RIF(3).sqrt()
+            1.732050807568878?
         """
         if base < 2 or base > 36:
             raise ValueError, "the base (=%s) must be between 2 and 36"%base
+
+        # If self is a NaN, always use brackets style.
         if mpfi_nan_p(self.value):
             if base >= 24:
                 return "[.. @NaN@ ..]"
             else:
                 return "[.. NaN ..]"
 
-        t1 = self.lower().str(base=base, no_sci=no_sci, e=e, truncate=False)
-        t2 = self.upper().str(base=base, no_sci=no_sci, e=e, truncate=False)
+        if e is None:
+            if base > 10:
+                e = '@'
+            else:
+                e = 'e'
 
-        return "[%s .. %s]"%(t1, t2)
+        if style is None:
+            style = printing_style
+        if error_digits is None:
+            error_digits = printing_error_digits
+
+        if mpfr_inf_p(&self.value.left) or mpfr_inf_p(&self.value.right):
+            style = 'brackets'
+
+        if style == 'brackets':
+            t1 = self.lower().str(base=base, no_sci=no_sci, e=e, truncate=False)
+            t2 = self.upper().str(base=base, no_sci=no_sci, e=e, truncate=False)
+
+            return "[%s .. %s]"%(t1, t2)
+
+        elif style == 'question':
+            if no_sci == False:
+                prefer_sci = True
+            else:
+                prefer_sci = False
+            return self._str_question_style(base, error_digits, e, prefer_sci)
+
+        else:
+            raise ValueError, 'Illegal interval printing style %s'%printing_style
+
+    cpdef _str_question_style(self, int base, int error_digits, e, bint prefer_sci):
+        r"""
+        Compute the ``question-style print representation'' of this value,
+        with the given base and error_digits.  See the documentation
+        for the \method{str} method for the definition of the question
+        style.
+
+        INPUTS:
+            base -- base for output
+            error_digits -- maximum number of decimal digits for
+                error
+            e -- symbol for exponent (typically \code{'e'} for base
+                less than or equal to 10, \code{'@'} for larger base)
+            prefer_sci -- \code{True} to always print in scientific notation;
+                \code{False} to prefer non-scientific notation when
+                possible
+
+        EXAMPLES:
+            sage: v = RIF(e, pi)
+            sage: v.str(2, style='brackets')
+            '[10.101101111110000101010001011000101000101011101101001 .. 11.001001000011111101101010100010001000010110100011001]'
+            sage: v._str_question_style(2, 0, 'e', False)
+            '11.0?'
+            sage: v._str_question_style(2, 3, '@', False)
+            '10.111011100001?867'
+            sage: v._str_question_style(2, 30, 'e', False)
+            '10.111011100001000001011101111101011000100001001000001?476605618580184'
+            sage: v.str(5, style='brackets')
+            '[2.32434303404423034041024 .. 3.03232214303343241124132]'
+            sage: v._str_question_style(5, 3, '@', False)
+            '2.43111?662'
+            sage: (Integer('232434', 5) + 2*662).str(5)
+            '303233'
+            sage: v.str(style='brackets')
+            '[2.7182818284590450 .. 3.1415926535897936]'
+            sage: v._str_question_style(10, 3, '@', False)
+            '2.930?212'
+            sage: v._str_question_style(10, 3, '@', True)
+            '2.930?212@0'
+            sage: v.str(16, style='brackets')
+            '[2.b7e151628aed2 .. 3.243f6a8885a32]'
+            sage: v._str_question_style(16, 3, '@', False)
+            '2.ee1?867'
+            sage: (Integer('2b7e', 16) + 2*867).str(16)
+            '3244'
+            sage: v.str(36, style='brackets')
+            '[2.puw5nggjf8f .. 3.53i5ab8p5gz]'
+            sage: v._str_question_style(36, 3, '@', False)
+            '2.xh?275'
+            sage: (Integer('2pu', 36) + 2*275).str(36)
+            '354'
+
+        TESTS:
+            sage: RIF(0, infinity)._str_question_style(10, 0, 'e', False)
+            Traceback (most recent call last):
+            ...
+            ValueError: _str_question_style on NaN or infinity
+            sage: for i in range(1, 9):
+            ...       print RIF(-10^i, 12345).str(style='brackets')
+            ...       print RIF(-10^i, 12345)._str_question_style(10, 0, 'e', False)
+            ...       print RIF(-10^i, 12345)._str_question_style(10, 3, 'e', False)
+            [-10.000000000000000 .. 12345.000000000000]
+            0.?e5
+            6.17?618e3
+            [-100.00000000000000 .. 12345.000000000000]
+            0.?e5
+            6.13?623e3
+            [-1000.0000000000000 .. 12345.000000000000]
+            0.?e5
+            5.68?668e3
+            [-10000.000000000000 .. 12345.000000000000]
+            0.?e5
+            1.2?112e3
+            [-100000.00000000000 .. 12345.000000000000]
+            0.?e5
+            -4.38?562e4
+            [-1.0000000000000000e6 .. 12345.000000000000]
+            0.?e6
+            -4.94?507e5
+            [-1.0000000000000000e7 .. 12345.000000000000]
+            0.?e7
+            -4.99?501e6
+            [-1.0000000000000000e8 .. 12345.000000000000]
+            0.?e8
+            -5.00?501e7
+            sage: RIF(10^-3, 12345)._str_question_style(10, 3, 'e', False)
+            '6.18?618e3'
+            sage: RIF(-golden_ratio, -10^-6)._str_question_style(10, 3, 'e', False)
+            '-0.810?810'
+            sage: RIF(-0.85, 0.85)._str_question_style(10, 0, 'e', False)
+            '0.?'
+            sage: RIF(-0.85, 0.85)._str_question_style(10, 1, 'e', False)
+            '0.0?9'
+            sage: RIF(-0.85, 0.85)._str_question_style(10, 2, 'e', False)
+            '0.00?85'
+            sage: RIF(-8.5, 8.5)._str_question_style(10, 0, 'e', False)
+            '0.?e1'
+            sage: RIF(-85, 85)._str_question_style(10, 0, 'e', False)
+            '0.?e2'
+            sage: for i in range(-6, 7):
+            ...       v = RIF(2).sqrt() * 10^i
+            ...       print v._str_question_style(10, 0, 'e', False)
+            1.414213562373095?e-6
+            0.00001414213562373095?
+            0.0001414213562373095?
+            0.001414213562373095?
+            0.01414213562373095?
+            0.1414213562373095?
+            1.414213562373095?
+            14.14213562373095?
+            141.4213562373095?
+            1414.213562373095?
+            14142.13562373095?
+            141421.3562373095?
+            1.414213562373095?e6
+        """
+        if not(mpfr_number_p(&self.value.left) and mpfr_number_p(&self.value.right)):
+            raise ValueError, "_str_question_style on NaN or infinity"
+        if base < 2 or base > 36:
+            raise ValueError, "the base (=%s) must be between 2 and 36"%base
+        if error_digits < 0 or error_digits > 1000:
+            # The restriction to 1000 is not essential.  The reason to have
+            # a restriction is that this code is not efficient for
+            # large error_digits values (for instance, we always construct
+            # a number with that many digits); a very large error_digits
+            # could run out of memory, etc.
+            # I think that 1000 is a pretty "safe" limit.  The whole
+            # purpose of question_style is to be human-readable, and
+            # the human-readability will go way down after about 6
+            # error digits; 1000 error digits is just silly.
+            raise ValueError, "error_digits (=%s) must be between 0 and 1000"%error_digits
+
+        # We want the endpoints represented as an integer mantissa
+        # and an exponent, using the given base.  MPFR will do that for
+        # us in mpfr_get_str, so we end up converting from MPFR to strings
+        # to MPZ to strings... ouch.  We could avoid this overhead by
+        # copying most of the guts of mpfr_get_str to give something like
+        # mpfr_get_mpz_exp (to give the mantissa as an mpz and the exponent);
+        # we could also write the body of this method using the string
+        # values, so that the second and third conversions are always
+        # on small values (of around the size of error_digits).
+        # We don't do any of that.
+
+        cdef char *lower_s
+        cdef char *upper_s
+        cdef mp_exp_t lower_expo
+        cdef mp_exp_t upper_expo
+        cdef mpz_t lower_mpz
+        cdef mpz_t upper_mpz
+
+        _sig_on
+        lower_s = mpfr_get_str(<char*>0, &lower_expo, base, 0,
+                                &self.value.left, GMP_RNDN)
+        upper_s = mpfr_get_str(<char*>0, &upper_expo, base, 0,
+                                &self.value.right, GMP_RNDU)
+        _sig_off
+
+        if lower_s == <char*> 0:
+            raise RuntimeError, "Unable to convert interval lower bound to a string"
+        if upper_s == <char*> 0:
+            raise RuntimeError, "Unable to convert interval upper bound to a string"
+
+        # MPFR returns an exponent assuming that the implicit radix point
+        # is to the left of the first mantissa digit.  We'll be doing
+        # arithmetic on mantissas that might not preserve the number of
+        # digits; we adjust the exponent so that the radix point is to
+        # the right of the last mantissa digit (that is, so the number
+        # is mantissa*base^exponent, if you interpret mantissa as an integer).
+
+        cdef int digits
+        digits = strlen(lower_s)
+        if lower_s[0] == '-':
+            digits -= 1
+        lower_expo -= digits
+
+        digits = strlen(upper_s)
+        if upper_s[0] == '-':
+            digits -= 1
+        upper_expo -= digits
+
+        _sig_on
+        mpz_init_set_str(lower_mpz, lower_s, base)
+        mpz_init_set_str(upper_mpz, upper_s, base)
+        mpfr_free_str(lower_s)
+        mpfr_free_str(upper_s)
+        _sig_off
+
+        cdef mpz_t tmp
+        mpz_init(tmp)
+
+        # At several places in the function, we divide by a power of
+        # base.  This could be sped up by shifting instead, when base
+        # is a power of 2.  (I'm not bothering right now because I
+        # expect the not-base-10 case to be quite rare, especially
+        # when combined with high precision and question style.)
+
+        # First we normalize so that both mantissas are at the same
+        # precision.  This just involves dividing the more-precise
+        # endpoint by the appropriate power of base.  However, there's
+        # one potentially very slow case we want to avoid: if the two
+        # exponents are sufficiently different, the simple code would
+        # involve computing a huge power of base, and then dividing
+        # by it to get -1, 0, or 1 (depending on the rounding).
+
+        cdef int expo_delta
+
+        if lower_expo < upper_expo:
+            expo_delta = upper_expo - lower_expo
+            if mpz_sizeinbase(lower_mpz, base) < expo_delta:
+                # abs(lower) < base^expo_delta, so
+                # floor(lower/base^expo_delta) is either -1 or 0
+                # (depending on the sign of lower).
+                if mpz_sgn(lower_mpz) < 0:
+                    mpz_set_si(lower_mpz, -1)
+                else:
+                    mpz_set_ui(lower_mpz, 0)
+            else:
+                mpz_ui_pow_ui(tmp, base, expo_delta)
+                mpz_fdiv_q(lower_mpz, lower_mpz, tmp)
+            lower_expo = upper_expo
+        elif upper_expo < lower_expo:
+            expo_delta = lower_expo - upper_expo
+            if mpz_sizeinbase(upper_mpz, base) < expo_delta:
+                # abs(upper) < base^expo_delta, so
+                # ceiling(upper/base^expo_delta) is either 0 or 1
+                # (depending on the sign of upper).
+                if mpz_sgn(upper_mpz) > 0:
+                    mpz_set_ui(upper_mpz, 1)
+                else:
+                    mpz_set_ui(upper_mpz, 0)
+            else:
+                mpz_ui_pow_ui(tmp, base, expo_delta)
+                mpz_cdiv_q(upper_mpz, upper_mpz, tmp)
+            upper_expo = lower_expo
+
+        cdef int expo = lower_expo
+
+        # Now the basic plan is to repeat
+        # lower = floor(lower/base); upper = ceiling(upper/base)
+        # until the error upper-lower is sufficiently small.  However,
+        # if this loop executes many times, that's pretty inefficient
+        # (quadratic).  We do a single pre-check to see approximately
+        # how many times we would have to go through that loop,
+        # and do most of them with a single division.
+
+        cdef mpz_t cur_error
+        mpz_init(cur_error)
+
+        mpz_sub(cur_error, upper_mpz, lower_mpz)
+
+        cdef mpz_t max_error
+        mpz_init(max_error)
+        if error_digits == 0:
+            mpz_set_ui(max_error, 2)
+        else:
+            mpz_ui_pow_ui(max_error, 10, error_digits)
+            mpz_sub_ui(max_error, max_error, 1)
+            mpz_mul_2exp(max_error, max_error, 1)
+
+        # Now we want to compute k as large as possible such that
+        # ceiling(upper/base^(k-1)) - floor(lower/base^(k-1)) > max_error.
+        # We start by noting that
+        # ceiling(upper/base^(k-1)) - floor(lower/base^(k-1)) >=
+        #    cur_error/base^(k-1),
+        # so it suffices if
+        # cur_error/base^(k-1) > max_error, or
+        # cur_error/max_error > base^(k-1).
+
+        # We would like to take logarithms and subtract, but taking
+        # logarithms is expensive.  Instead we use mpz_sizeinbase
+        # as an approximate logarithm.  (This could probably be
+        # improved, either by assuming undocumented knowledge of
+        # the internals of mpz_sizeinbase, or by writing our own
+        # approximate logarithm.)
+
+        cdef int cur_error_digits = mpz_sizeinbase(cur_error, base)
+        cdef int max_error_digits = mpz_sizeinbase(max_error, base)
+
+        # The GMP documentation claims that mpz_sizeinbase will be either
+        # the true number of digits, or one too high.  So
+        # cur_error might have as few as cur_error_digits-1 digits,
+        # so it might be as small as base^(cur_error_digits-2).
+        # max_error might have as many as max_error_digits digits, so it
+        # might be almost (but not quite) as large as base^max_error_digits.
+        # Then their quotient will be at least slightly larger than
+        # base^(cur_error_digits-2-max_error_digits).  So we can take
+        # k-1 = cur_error_digits-2-max_error_digits, and
+        # k = cur_error_digits-1-max_error_digits.
+
+        cdef int k = cur_error_digits - 1 - max_error_digits
+
+        if k > 0:
+            mpz_ui_pow_ui(tmp, base, k)
+            mpz_fdiv_q(lower_mpz, lower_mpz, tmp)
+            mpz_cdiv_q(upper_mpz, upper_mpz, tmp)
+            expo += k
+            mpz_sub(cur_error, upper_mpz, lower_mpz)
+
+        # OK, we've almost divided enough times to fit within max_error.
+        # (In fact, maybe we already have.)  Now we just loop a few more
+        # times until we're done.
+
+        while mpz_cmp(cur_error, max_error) > 0:
+            mpz_fdiv_q_ui(lower_mpz, lower_mpz, base)
+            mpz_cdiv_q_ui(upper_mpz, upper_mpz, base)
+            expo += 1
+            mpz_sub(cur_error, upper_mpz, lower_mpz)
+
+        # Almost done.  Now we need to print out a floating-point number
+        # with a mantissa halfway between lower_mpz and upper_mpz,
+        # an error of half of cur_error (rounded up), and an exponent
+        # based on expo (shifted by the location of the decimal point
+        # within the mantissa).
+
+        # We briefly repurpose lower_mpz to hold the final mantissa:
+        mpz_add(lower_mpz, lower_mpz, upper_mpz)
+        # According to our spec, we're supposed to divide lower_mpz
+        # by 2, rounding away from 0.
+        if mpz_sgn(lower_mpz) >= 0:
+            mpz_cdiv_q_2exp(lower_mpz, lower_mpz, 1)
+        else:
+            mpz_fdiv_q_2exp(lower_mpz, lower_mpz, 1)
+
+        # and cur_error to hold the error:
+        mpz_cdiv_q_2exp(cur_error, cur_error, 1)
+
+        cdef char *tmp_cstr
+
+        tmp_cstr = <char *>PyMem_Malloc(mpz_sizeinbase(lower_mpz, base) + 2)
+        if tmp_cstr == NULL:
+            raise MemoryError, "Unable to allocate memory for the mantissa of an interval"
+        mpz_get_str(tmp_cstr, base, lower_mpz)
+        digits = strlen(tmp_cstr)
+        if tmp_cstr[0] == '-':
+            digits -= 1
+            mant_string = <object> PyString_FromString(tmp_cstr+1)
+            sign_string = '-'
+        else:
+            mant_string = <object> PyString_FromString(tmp_cstr)
+            sign_string = ''
+        PyMem_Free(tmp_cstr)
+
+        if error_digits == 0:
+            error_string = ''
+        else:
+            tmp_cstr = <char *>PyMem_Malloc(mpz_sizeinbase(cur_error, 10) + 2)
+            if tmp_cstr == NULL:
+                raise MemoryError, "Unable to allocate memory for the error of an interval"
+            mpz_get_str(tmp_cstr, 10, cur_error)
+            error_string = <object> PyString_FromString(tmp_cstr)
+            PyMem_Free(tmp_cstr)
+
+        mpz_clear(lower_mpz)
+        mpz_clear(upper_mpz)
+        mpz_clear(tmp)
+        mpz_clear(cur_error)
+        mpz_clear(max_error)
+
+        cdef bint scientific = prefer_sci
+
+        # If the exponent is >0, we must use scientific notation.  For
+        # instance, RIF(10, 30) gives 2.?e1; we couldn't write that
+        # number in the question syntax (with no error digits) without
+        # scientific notation.
+        if expo > 0:
+            scientific = True
+
+        # If we use scientific notation, we put the radix point to the
+        # right of the first digit; that would give us an exponent of:
+        cdef int sci_expo = expo + digits - 1
+        if abs(sci_expo) >= 6:
+            scientific = True
+
+        if scientific:
+            return '%s%s.%s?%s%s%s'%(sign_string,
+                                     mant_string[0], mant_string[1:],
+                                     error_string, e, sci_expo)
+
+        if expo + digits <= 0:
+            return '%s0.%s%s?%s'%(sign_string,
+                                  '0' * -(expo + digits), mant_string,
+                                  error_string)
+
+        return '%s%s.%s?%s'%(sign_string,
+                             mant_string[:expo+digits],
+                             mant_string[expo+digits:],
+                             error_string)
+
 
     def __copy__(self):
         """

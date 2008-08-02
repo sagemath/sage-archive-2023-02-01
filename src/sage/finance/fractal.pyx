@@ -142,9 +142,9 @@ def fractional_gaussian_noise_simulation(double H, double sigma2, N, n=1):
 
     INPUT:
         H -- float; 0 < H < 1; the Hurst parameter
-        sigma2 - float; innovation variance
-        N -- positive integer
-        n -- positive integer (default: 1)
+        sigma2 - positive float; innovation variance
+        N -- positive integer; number of steps in simulation
+        n -- positive integer (default: 1) -- number of simulations
 
     OUTPUT:
         list of n time series.
@@ -190,7 +190,7 @@ def fractional_brownian_motion_simulation(double H, double sigma2, N, n=1):
 
     INPUT:
         H -- float; 0 < H < 1; the Hurst parameter
-        sigma2 - float; innovation variance
+        sigma2 - float; innovation variance (should be close to 0)
         N -- positive integer
         n -- positive integer (default: 1)
     OUTPUT:
@@ -199,15 +199,15 @@ def fractional_brownian_motion_simulation(double H, double sigma2, N, n=1):
     EXAMPLES:
         sage: set_random_seed(0)
         sage: finance.fractional_brownian_motion_simulation(0.8,0.1,8,1)
-        [[-0.0754, 0.2629, 0.0861, 0.2324, 0.1765, -0.0557, 0.0198, -0.0177]]
+        [[-0.0754, 0.1874, 0.2735, 0.5059, 0.6824, 0.6267, 0.6465, 0.6289]]
         sage: set_random_seed(0)
         sage: finance.fractional_brownian_motion_simulation(0.8,0.01,8,1)
-        [[-0.0239, 0.0831, 0.0272, 0.0735, 0.0558, -0.0176, 0.0063, -0.0056]]
+        [[-0.0239, 0.0593, 0.0865, 0.1600, 0.2158, 0.1982, 0.2044, 0.1989]]
         sage: finance.fractional_brownian_motion_simulation(0.8,0.01,8,2)
-        [[-0.0167, 0.0510, -0.0081, 0.0595, 0.0878, 0.0806, -0.1131, 0.0283],
-         [0.0244, -0.0397, 0.0278, -0.0489, 0.1127, 0.0245, 0.0589, 0.0535]]
+        [[-0.0167, 0.0342, 0.0261, 0.0856, 0.1735, 0.2541, 0.1409, 0.1692],
+         [0.0244, -0.0153, 0.0125, -0.0363, 0.0764, 0.1009, 0.1598, 0.2133]]
     """
-    return fractional_gaussian_noise_simulation(H,sigma2,N,n)
+    return [a.sums() for a in fractional_gaussian_noise_simulation(H,sigma2,N,n)]
 
 def multifractal_cascade_random_walk_simulation(double T,
                                                 double lambda2,
@@ -279,7 +279,7 @@ def multifractal_cascade_random_walk_simulation(double T,
         else:
             break  # all covariance numbers after this point are 0
 
-    # Compute n simulations of omega, but with mean 0.
+    # Compute n simultations of omega, but with mean 0.
     omega = stationary_gaussian_simulation(s, N+1, n)
 
     # Increase each by the given mean.

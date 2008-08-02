@@ -3199,7 +3199,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLE:
             sage: E = EllipticCurve('11a')
             sage: E.heegner_point_height(-7)
-            [0.22226977 ... 0.22227479]
+            0.22227?
         """
 
         if not self.satisfies_heegner_hypothesis(D):
@@ -3266,13 +3266,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.heegner_discriminants(50)
             [-7, -8, -19, -24, -35, -39, -40, -43]
             sage: E.heegner_index(-7)
-            [0.99999332 .. 1.0000077]
+            1.00000?
 
             sage: E = EllipticCurve('37b')
             sage: E.heegner_discriminants(100)
             [-3, -4, -7, -11, -40, -47, -67, -71, -83, -84, -95]
             sage: E.heegner_index(-95)          # long time (1 second)
-            [1.9999923 .. 2.0000077]
+            2.00000?
 
         Current discriminants -3 and -4 are not supported:
             sage: E.heegner_index(-3)
@@ -3285,9 +3285,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         true index is $3$:
             sage: E = EllipticCurve('681b')
             sage: I = E.heegner_index(-8); I
-            [1.4999942 .. 1.5000058]
+            1.50000?
             sage: 2*I
-            [2.9999885 .. 3.0000115]
+            3.0000?
 
         In fact, whenever the returned index has a denominator
         of $2$, the true index is got by multiplying the returned
@@ -3344,7 +3344,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('11a1')
             sage: a = RIF(sqrt(2))-1.4142135623730951
             sage: E._EllipticCurve_rational_field__adjust_heegner_index(a)
-            [0.0000000... .. 1.490116...e-8]
+            1.?e-8
         """
         if a.lower() < 0:
             a = IR((0, a.upper()))

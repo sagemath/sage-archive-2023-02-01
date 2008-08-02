@@ -108,13 +108,13 @@ We can test that these definitions do give the same result.
 We can coerce from symbolic expressions:
 
     sage: QQbar(sqrt(-5))
-    [2.2360679774997893 .. 2.2360679774997899]*I
+    2.236067977499790?*I
     sage: AA(sqrt(2) + sqrt(3))
-    [3.1462643699419721 .. 3.1462643699419726]
+    3.146264369941973?
     sage: AA(sqrt(2)) + sqrt(3)
-    [3.1462643699419721 .. 3.1462643699419726]
+    3.146264369941973?
     sage: sqrt(2) + QQbar(sqrt(3))
-    [3.1462643699419721 .. 3.1462643699419726]
+    3.146264369941973?
     sage: QQbar(I)
     1*I
     sage: AA(I)
@@ -122,15 +122,15 @@ We can coerce from symbolic expressions:
     ...
     TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
     sage: QQbar(I * golden_ratio)
-    [1.6180339887498946 .. 1.6180339887498950]*I
+    1.618033988749895?*I
     sage: AA(golden_ratio)^2 - AA(golden_ratio)
     1
     sage: QQbar((-8)^(1/3))
-    [0.99999999999999988 .. 1.0000000000000003] + [1.7320508075688771 .. 1.7320508075688775]*I
+    1.000000000000000? + 1.732050807568878?*I
     sage: AA((-8)^(1/3))
     -2
     sage: QQbar((-4)^(1/4))
-    [1.0000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 1.0000000000000000]*I
+    1.0000000000000000? + 1.0000000000000000?*I
     sage: AA((-4)^(1/4))
     Traceback (most recent call last):
     ...
@@ -141,7 +141,7 @@ Note the different behavior in taking roots: for AA we prefer real roots if they
     sage: AA(-1)^(1/3)
     -1
     sage: QQbar(-1)^(1/3)
-    [0.49999999999999994 .. 0.50000000000000012] + [0.86602540378443859 .. 0.86602540378443871]*I
+    0.500000000000000? + 0.8660254037844387?*I
 
 We can explicitly coerce from QQ[I].  (Technically, this is not quite
 kosher, since QQ[I] doesn't come with an embedding; we don't know
@@ -195,7 +195,7 @@ expressions (over the reals and complex numbers respectively):
 
     sage: a = AA((2/(3*sqrt(3)) + 10/27)^(1/3) - 2/(9*(2/(3*sqrt(3)) + 10/27)^(1/3)) + 1/3)
     sage: a
-    [0.99999999999999988 .. 1.0000000000000003]
+    1.000000000000000?
     sage: a == 1
     True
 
@@ -209,21 +209,21 @@ otherwise they print as intervals (with 53-bit precision).
     sage: QQbar(1/3 - 1/4*I)
     -1/4*I + 1/3
     sage: two = QQbar(4).nth_root(4)^2; two
-    [1.9999999999999997 .. 2.0000000000000005]
+    2.000000000000000?
     sage: two == 2; two
     True
     2
     sage: phi
-    [1.6180339887498946 .. 1.6180339887498950]
+    1.618033988749895?
 
 We can find the real and imaginary parts of an algebraic number (exactly).
 
     sage: r = QQbar.polynomial_root(x^5 - x - 1, CIF(RIF(0.1, 0.2), RIF(1.0, 1.1))); r
-    [0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I
+    0.1812324444698754? + 1.083954101317711?*I
     sage: r.real()
-    [0.18123244446987538 .. 0.18123244446987541]
+    0.1812324444698754?
     sage: r.imag()
-    [1.0839541013177105 .. 1.0839541013177108]
+    1.083954101317711?
     sage: r.minpoly()
     x^5 - x - 1
     sage: r.real().minpoly()
@@ -237,7 +237,7 @@ complex conjugate; this is the algebraic definition of norm, if we
 view QQbar as AA[I].)
 
     sage: r = QQbar((-8)^(1/3)); r
-    [0.99999999999999988 .. 1.0000000000000003] + [1.7320508075688771 .. 1.7320508075688775]*I
+    1.000000000000000? + 1.732050807568878?*I
     sage: r.abs() == 2
     True
     sage: r.norm() == 4
@@ -245,7 +245,7 @@ view QQbar as AA[I].)
     sage: (r+I).norm().minpoly()
     x^2 - 10*x + 13
     sage: r = AA.polynomial_root(x^2 - x - 1, RIF(-1, 0)); r
-    [-0.61803398874989491 .. -0.61803398874989479]
+    -0.6180339887498948?
     sage: r.abs().minpoly()
     x^2 + x - 1
 
@@ -272,7 +272,7 @@ And they're still pretty fast even if you add and subtract, and trigger
 exact computation:
 
     sage: (z3_3 + z4_4 + z5_5 + z6_6 + z20_20)._exact_value()
-    4*zeta60^15 + 5*zeta60^12 + 9*zeta60^10 + 20*zeta60^3 - 3 where a^16 + a^14 - a^10 - a^8 - a^6 + a^2 + 1 = 0 and a in [0.99452189536827328 .. 0.99452189536827341] + [0.10452846326765345 .. 0.10452846326765352]*I
+    4*zeta60^15 + 5*zeta60^12 + 9*zeta60^10 + 20*zeta60^3 - 3 where a^16 + a^14 - a^10 - a^8 - a^6 + a^2 + 1 = 0 and a in 0.994521895368274? + 0.1045284632676535?*I
 
 The paper _ARPREC: An Arbitrary Precision Computation Package_ discusses
 this result.  Evidently it is difficult to find, but we can easily
@@ -284,17 +284,17 @@ verify it.
     sage: rhs_den = (alpha^35 - 1) * (alpha^15 - 1)^2 * (alpha^14 - 1)^2 * (alpha^5 - 1)^6 * alpha^68
     sage: rhs = rhs_num / rhs_den
     sage: lhs
-    [2.6420403358193507e44 .. 2.6420403358193520e44]
+    2.642040335819351?e44
     sage: rhs
-    [2.6420403358193503e44 .. 2.6420403358193520e44]
+    2.642040335819351?e44
     sage: lhs - rhs
-    [-7.9344219392947342e28 .. 8.1800756658404269e28]
+    0.?e29
     sage: lhs == rhs
     True
     sage: lhs - rhs
     0
     sage: lhs._exact_value()
-    -242494609856316402264822833062350847769474540*a^9 + 862295472068289472491654837785947906234680703*a^8 - 829559238431038252116584538075753012193290520*a^7 - 125882239615006638366472766103700441555126185*a^6 + 1399067970863104691667276008776398309383579345*a^5 - 1561176687069361567616835847286958553574223422*a^4 + 761706318888840943058230840550737823821027895*a^3 + 580740464974951394762758666210754821723780266*a^2 - 954587496403409756503464154898858512440951323*a + 546081123623099782018260884934770383777092602 where a^10 - 4*a^9 + 5*a^8 - a^7 - 6*a^6 + 9*a^5 - 6*a^4 - a^3 + 5*a^2 - 4*a + 1 = 0 and a in [0.44406334400909258 .. 0.44406334400909265]
+    -242494609856316402264822833062350847769474540*a^9 + 862295472068289472491654837785947906234680703*a^8 - 829559238431038252116584538075753012193290520*a^7 - 125882239615006638366472766103700441555126185*a^6 + 1399067970863104691667276008776398309383579345*a^5 - 1561176687069361567616835847286958553574223422*a^4 + 761706318888840943058230840550737823821027895*a^3 + 580740464974951394762758666210754821723780266*a^2 - 954587496403409756503464154898858512440951323*a + 546081123623099782018260884934770383777092602 where a^10 - 4*a^9 + 5*a^8 - a^7 - 6*a^6 + 9*a^5 - 6*a^4 - a^3 + 5*a^2 - 4*a + 1 = 0 and a in 0.4440633440090926?
 
 We can pickle and unpickle algebraic fields (and they are globally unique):
 
@@ -420,17 +420,17 @@ class AlgebraicField_common(sage.rings.ring.Field):
             x^2 + ((1 - sqrt(3))*(1 - sqrt(5)*I) - sqrt(3)*sqrt(5)*I - 1)*x + sqrt(3)*sqrt(5)*I
             sage: p = QQbar.common_polynomial(p)
             sage: a = QQbar.polynomial_root(p, CIF(RIF(-0.1, 0.1), RIF(2, 3))); a
-            [-6.1814409042940318e-19 .. 6.0853195377215860e-19] + [2.2360679774997893 .. 2.2360679774997899]*I
+            0.?e-18 + 2.236067977499790?*I
             sage: b = QQbar.polynomial_root(p, RIF(1, 2)); b
-            [1.7320508075688771 .. 1.7320508075688775]
+            1.732050807568878?
 
         These "common polynomials" can be shared between real and
         complex roots:
              sage: p = AA.common_polynomial(x^3 - x - 1)
              sage: r1 = AA.polynomial_root(p, RIF(1.3, 1.4)); r1
-             [1.3247179572447458 .. 1.3247179572447461]
+             1.324717957244746?
              sage: r2 = QQbar.polynomial_root(p, CIF(RIF(-0.7, -0.6), RIF(0.5, 0.6))); r2
-             [-0.66235897862237303 .. -0.66235897862237291] + [0.56227951206230120 .. 0.56227951206230132]*I
+             -0.6623589786223730? + 0.5622795120623013?*I
         """
         return AlgebraicPolynomialTracker(poly)
 
@@ -540,16 +540,16 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         EXAMPLES:
             sage: x = polygen(AA)
             sage: phi = AA.polynomial_root(x^2 - x - 1, RIF(1, 2)); phi
-            [1.6180339887498946 .. 1.6180339887498950]
+            1.618033988749895?
             sage: p = (x-1)^7 * (x-2)
             sage: r = AA.polynomial_root(p, RIF(9/10, 11/10), multiplicity=7)
             sage: r; r == 1
-            [0.99999999999999988 .. 1.0000000000000003]
+            1.000000000000000?
             True
             sage: p = (x-phi)*(x-sqrt(AA(2)))
             sage: r = AA.polynomial_root(p, RIF(1, 3/2))
             sage: r; r == sqrt(AA(2))
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             True
 
         We allow complex polynomials, as long as the particular root
@@ -559,7 +559,7 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
             sage: p = (im + 1) * (x^3 - 2); p
             (I + 1)*x^3 - 2*I - 2
             sage: r = AA.polynomial_root(p, RIF(1, 2)); r^3
-            [1.9999999999999997 .. 2.0000000000000005]
+            2.000000000000000?
         """
         if not is_RealIntervalFieldElement(interval):
             raise ValueError, "interval argument of .polynomial_root on algebraic real field must be real"
@@ -642,15 +642,15 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
             sage: QQbar.zeta(2)
             -1
             sage: QQbar.zeta(3)
-            [-0.50000000000000012 .. -0.49999999999999994] + [0.86602540378443859 .. 0.86602540378443871]*I
+            -0.500000000000000? + 0.8660254037844387?*I
             sage: QQbar.zeta(4)
             1*I
             sage: QQbar.zeta()
             1*I
             sage: QQbar.zeta(5)
-            [0.30901699437494739 .. 0.30901699437494746] + [0.95105651629515353 .. 0.95105651629515365]*I
+            0.3090169943749475? + 0.9510565162951536?*I
             sage: QQbar.zeta(314159)
-            [0.99999999979999965 .. 0.99999999979999977] + [0.000020000016891958231 .. 0.000020000016891958236]*I
+            0.9999999997999997? + 0.00002000001689195824?*I
         """
         return AlgebraicNumber(ANRootOfUnity(QQ_1/n, QQ_1))
 
@@ -680,16 +680,16 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         EXAMPLES:
             sage: x = polygen(QQbar)
             sage: phi = QQbar.polynomial_root(x^2 - x - 1, RIF(0, 2)); phi
-            [1.6180339887498946 .. 1.6180339887498950]
+            1.618033988749895?
             sage: p = (x-1)^7 * (x-2)
             sage: r = QQbar.polynomial_root(p, RIF(9/10, 11/10), multiplicity=7)
             sage: r; r == 1
-            [1.0000000000000000 .. 1.0000000000000000]
+            1.0000000000000000?
             True
             sage: p = (x-phi)*(x-sqrt(QQbar(2)))
             sage: r = QQbar.polynomial_root(p, RIF(1, 3/2))
             sage: r; r == sqrt(QQbar(2))
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             True
         """
         return AlgebraicNumber(ANRoot(poly, interval, multiplicity))
@@ -852,18 +852,18 @@ def isolating_interval(intv_fn, pol):
 
         sage: _.<x> = QQ['x']
         sage: isolating_interval(lambda prec: sqrt(RealIntervalField(prec)(2)), x^2 - 2)
-        [1.41421356237309504876 .. 1.41421356237309504888]
+        1.4142135623730950488?
 
     And an example that requires more precision:
         sage: delta = 10^(-70)
         sage: p = (x - 1) * (x - 1 - delta) * (x - 1 + delta)
         sage: isolating_interval(lambda prec: RealIntervalField(prec)(1 + delta), p)
-        [1.00000000000000000000000000000000000000000000000000000000000000000000009999999999999999999999999999999999999999999999999999999999999999999999999999999999998 .. 1.00000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000014]
+        1.000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000?
 
     The function also works with complex intervals and complex roots:
         sage: p = x^2 - x + 13/36
         sage: isolating_interval(lambda prec: ComplexIntervalField(prec)(1/2, 1/3), p)
-        [0.500000000000000000000 .. 0.500000000000000000000] + [0.333333333333333333315 .. 0.333333333333333333343]*I
+        0.500000000000000000000? + 0.3333333333333333334?*I
     """
     dpol = pol.derivative()
 
@@ -930,14 +930,14 @@ def conjugate_expand(v):
 
     EXAMPLES:
         sage: from sage.rings.qqbar import conjugate_expand
-        sage: conjugate_expand(CIF(RIF(0, 1), RIF(1, 2)))
-        [0.00000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 2.0000000000000000]*I
-        sage: conjugate_expand(CIF(RIF(0, 1), RIF(0, 1)))
-        [0.00000000000000000 .. 1.0000000000000000] + [-1.0000000000000000 .. 1.0000000000000000]*I
-        sage: conjugate_expand(CIF(RIF(0, 1), RIF(-2, 1)))
-        [0.00000000000000000 .. 1.0000000000000000] + [-2.0000000000000000 .. 2.0000000000000000]*I
-        sage: conjugate_expand(RIF(1, 2))
-        [1.0000000000000000 .. 2.0000000000000000]
+        sage: conjugate_expand(CIF(RIF(0, 1), RIF(1, 2))).str(style='brackets')
+        '[0.00000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 2.0000000000000000]*I'
+        sage: conjugate_expand(CIF(RIF(0, 1), RIF(0, 1))).str(style='brackets')
+        '[0.00000000000000000 .. 1.0000000000000000] + [-1.0000000000000000 .. 1.0000000000000000]*I'
+        sage: conjugate_expand(CIF(RIF(0, 1), RIF(-2, 1))).str(style='brackets')
+        '[0.00000000000000000 .. 1.0000000000000000] + [-2.0000000000000000 .. 2.0000000000000000]*I'
+        sage: conjugate_expand(RIF(1, 2)).str(style='brackets')
+        '[1.0000000000000000 .. 2.0000000000000000]'
     """
     if is_RealIntervalFieldElement(v):
         return v
@@ -961,14 +961,14 @@ def conjugate_shrink(v):
 
     EXAMPLES:
         sage: from sage.rings.qqbar import conjugate_shrink
-        sage: conjugate_shrink(RIF(3, 4))
-        [3.0000000000000000 .. 4.0000000000000000]
-        sage: conjugate_shrink(CIF(RIF(1, 2), RIF(1, 2)))
-        [1.0000000000000000 .. 2.0000000000000000] + [1.0000000000000000 .. 2.0000000000000000]*I
-        sage: conjugate_shrink(CIF(RIF(1, 2), RIF(0, 1)))
-        [1.0000000000000000 .. 2.0000000000000000]
-        sage: conjugate_shrink(CIF(RIF(1, 2), RIF(-1, 2)))
-        [1.0000000000000000 .. 2.0000000000000000]
+        sage: conjugate_shrink(RIF(3, 4)).str(style='brackets')
+        '[3.0000000000000000 .. 4.0000000000000000]'
+        sage: conjugate_shrink(CIF(RIF(1, 2), RIF(1, 2))).str(style='brackets')
+        '[1.0000000000000000 .. 2.0000000000000000] + [1.0000000000000000 .. 2.0000000000000000]*I'
+        sage: conjugate_shrink(CIF(RIF(1, 2), RIF(0, 1))).str(style='brackets')
+        '[1.0000000000000000 .. 2.0000000000000000]'
+        sage: conjugate_shrink(CIF(RIF(1, 2), RIF(-1, 2))).str(style='brackets')
+        '[1.0000000000000000 .. 2.0000000000000000]'
     """
     if is_RealIntervalFieldElement(v):
         return v
@@ -1009,29 +1009,29 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         [(-9/2176*a^4 - 1121/2176*a^2 - 1625/136, 1), (9/17408*a^5 + 9/4352*a^4 + 1121/17408*a^3 + 1121/4352*a^2 + 1489/1088*a + 1489/272, 1), (-9/17408*a^5 + 9/4352*a^4 - 1121/17408*a^3 + 1121/4352*a^2 - 1489/1088*a + 1489/272, 1)]
 
         sage: rt2 = AA(sqrt(2)); rt2
-        [1.4142135623730949 .. 1.4142135623730952]
+        1.414213562373095?
         sage: rt3 = AA(sqrt(3)); rt3
-        [1.7320508075688771 .. 1.7320508075688775]
+        1.732050807568878?
         sage: qqI = QQbar.zeta(4); qqI
         1*I
         sage: z3 = QQbar.zeta(3); z3
-        [-0.50000000000000012 .. -0.49999999999999994] + [0.86602540378443859 .. 0.86602540378443871]*I
+        -0.500000000000000? + 0.8660254037844387?*I
         sage: rt2b = rt3 + rt2 - rt3; rt2b
-        [1.4142135623730949 .. 1.4142135623730952]
+        1.414213562373095?
         sage: rt2c = z3 + rt2 - z3; rt2c
-        [1.4142135623730949 .. 1.4142135623730952] + [-2.7105054312137611e-19 .. 2.7105054312137611e-19]*I
+        1.414213562373095? + 0.?e-18*I
 
         sage: number_field_elements_from_algebraics(rt2)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
-            Defn: a |--> [1.4142135623730949 .. 1.4142135623730952])
+            Defn: a |--> 1.414213562373095?)
 
         sage: number_field_elements_from_algebraics((rt2,rt3))
         (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, [-a^3 + 3*a, -a^2 + 2], Ring morphism:
             From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
             To:   Algebraic Real Field
-            Defn: a |--> [0.51763809020504147 .. 0.51763809020504159])
+            Defn: a |--> 0.5176380902050415?)
 
     We've created \code{rt2b} in such a way that \sage doesn't initially know
     that it's in a degree-2 extension of $\QQ$.
@@ -1039,14 +1039,14 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, -a^3 + 3*a, Ring morphism:
             From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
             To:   Algebraic Real Field
-            Defn: a |--> [0.51763809020504147 .. 0.51763809020504159])
+            Defn: a |--> 0.5176380902050415?)
 
     We can specify \code{minimal=True} if we want the smallest number field.
         sage: number_field_elements_from_algebraics(rt2b, minimal=True)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
-            Defn: a |--> [1.4142135623730949 .. 1.4142135623730952])
+            Defn: a |--> 1.414213562373095?)
 
     Things work fine with rational numbers, too.
         sage: number_field_elements_from_algebraics((QQbar(1/2), AA(17)))
@@ -1061,7 +1061,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         (Number Field in a with defining polynomial y^4 - 9*y^2 + 1, [-a^3 + 8*a, 3, -a^3 + 10*a], Ring morphism:
             From: Number Field in a with defining polynomial y^4 - 9*y^2 + 1
             To:   Algebraic Real Field
-            Defn: a |--> [0.33543673964540460 .. 0.33543673964540466])
+            Defn: a |--> 0.3354367396454047?)
 
     Here we see an example of doing some computations with number field
     elements, and then mapping them back into \code{QQbar}.
@@ -1070,10 +1070,10 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         (Number Field in a with defining polynomial y^8 - y^4 + 1, [-a^5 + a^3 + a, a^6 - 2*a^2, a^6, -a^4], Ring morphism:
             From: Number Field in a with defining polynomial y^8 - y^4 + 1
             To:   Algebraic Field
-            Defn: a |--> [-0.25881904510252080 .. -0.25881904510252073] - [0.96592582628906820 .. 0.96592582628906832]*I)
+            Defn: a |--> -0.2588190451025208? - 0.9659258262890683?*I)
         sage: (nfrt2, nfrt3, nfI, nfz3) = nums
         sage: hom(nfrt2)
-        [1.4142135623730949 .. 1.4142135623730952] + [-5.4210108624275222e-19 .. 7.8604657505199072e-19]*I
+        1.414213562373095? + 0.?e-18*I
         sage: nfrt2^2
         2
         sage: nfrt3^2
@@ -1085,7 +1085,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         sage: sum = nfrt2 + nfrt3 + nfI + nfz3; sum
         2*a^6 - a^5 - a^4 + a^3 - 2*a^2 + a
         sage: hom(sum)
-        [2.6462643699419721 .. 2.6462643699419726] + [1.8660254037844385 .. 1.8660254037844389]*I
+        2.646264369941973? + 1.866025403784439?*I
         sage: hom(sum) == rt2 + rt3 + qqI + z3
         True
         sage: [hom(n) for n in nums] == [rt2, rt3, qqI, z3]
@@ -1096,12 +1096,12 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 3
             To:   Algebraic Real Field
-            Defn: a |--> [1.7320508075688771 .. 1.7320508075688775])
+            Defn: a |--> 1.732050807568878?)
         sage: number_field_elements_from_algebraics((rt2,qqI))
         (Number Field in a with defining polynomial y^4 + 1, [a^3 - a, -a^2], Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 1
             To:   Algebraic Field
-            Defn: a |--> [-0.70710678118654758 .. -0.70710678118654746] + [0.70710678118654746 .. 0.70710678118654758]*I)
+            Defn: a |--> -0.7071067811865475? + 0.7071067811865475?*I)
 
     Note that for the first example, where \sage doesn't realize that
     the number is real, we get a homomorphism to \code{QQbar}; but with
@@ -1112,13 +1112,13 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, 1/2*a^3, Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 2*y^2 + 4
             To:   Algebraic Field
-            Defn: a |--> [-0.70710678118654758 .. -0.70710678118654746] + [1.2247448713915889 .. 1.2247448713915892]*I) # 32-bit
-            Defn: a |--> [-0.70710678118654758 .. -0.70710678118654746] - [1.2247448713915889 .. 1.2247448713915892]*I) # 64-bit
+            Defn: a |--> -0.7071067811865475? + 1.224744871391589?*I) # 32-bit
+            Defn: a |--> -0.7071067811865475? - 1.224744871391589?*I) # 64-bit
         sage: number_field_elements_from_algebraics(rt2c, minimal=True)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
-            Defn: a |--> [1.4142135623730949 .. 1.4142135623730952])
+            Defn: a |--> 1.414213562373095?)
 
     """
     gen = qq_generator
@@ -1199,7 +1199,7 @@ class AlgebraicGenerator(SageObject):
         sage: root = ANRoot(x^2 - x - 1, RIF(1, 2))
         sage: gen = AlgebraicGenerator(nf, root)
         sage: gen
-        Number Field in a with defining polynomial y^2 - y - 1 with a in [1.6180339887498946 .. 1.6180339887498950]
+        Number Field in a with defining polynomial y^2 - y - 1 with a in 1.618033988749895?
         sage: gen.field()
         Number Field in a with defining polynomial y^2 - y - 1
         sage: gen.is_trivial()
@@ -1211,7 +1211,7 @@ class AlgebraicGenerator(SageObject):
         sage: nf = NumberField(y^2 + 1, name='a', check=False)
         sage: root = ANRoot(x^2 + 1, CIF(0, 1))
         sage: x = AlgebraicGenerator(nf, root); x
-        Number Field in a with defining polynomial y^2 + 1 with a in [1.0000000000000000 .. 1.0000000000000000]*I
+        Number Field in a with defining polynomial y^2 + 1 with a in 1.0000000000000000?*I
         """
         self._field = field
         self._pari_field = None
@@ -1321,18 +1321,18 @@ class AlgebraicGenerator(SageObject):
             sage: root2 = ANRoot(x^2 - 2, RIF(1, 2))
             sage: gen2 = AlgebraicGenerator(nf2, root2)
             sage: gen2
-            Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 .. 1.4142135623730952]
+            Number Field in a with defining polynomial y^2 - 2 with a in 1.414213562373095?
             sage: nf3 = NumberField(y^2 - 3, name='a', check=False)
             sage: root3 = ANRoot(x^2 - 3, RIF(1, 2))
             sage: gen3 = AlgebraicGenerator(nf3, root3)
             sage: gen3
-            Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 .. 1.7320508075688775]
+            Number Field in a with defining polynomial y^2 - 3 with a in 1.732050807568878?
             sage: gen2.union(qq_generator) is gen2
             True
             sage: qq_generator.union(gen3) is gen3
             True
             sage: gen2.union(gen3)
-            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in [0.51763809020504147 .. 0.51763809020504159]
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in 0.5176380902050415?
         """
         if self._trivial:
             return other
@@ -1438,15 +1438,15 @@ class AlgebraicGenerator(SageObject):
             sage: root2 = ANRoot(x^2 - 2, RIF(1, 2))
             sage: gen2 = AlgebraicGenerator(nf2, root2)
             sage: gen2
-            Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 .. 1.4142135623730952]
+            Number Field in a with defining polynomial y^2 - 2 with a in 1.414213562373095?
             sage: nf3 = NumberField(y^2 - 3, name='a', check=False)
             sage: root3 = ANRoot(x^2 - 3, RIF(1, 2))
             sage: gen3 = AlgebraicGenerator(nf3, root3)
             sage: gen3
-            Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 .. 1.7320508075688775]
+            Number Field in a with defining polynomial y^2 - 3 with a in 1.732050807568878?
             sage: gen2_3 = gen2.union(gen3)
             sage: gen2_3
-            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in [0.51763809020504147 .. 0.51763809020504159]
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in 0.5176380902050415?
             sage: qq_generator.super_poly(gen2) is None
             True
             sage: gen2.super_poly(gen2_3)
@@ -1491,17 +1491,17 @@ class AlgebraicGenerator(SageObject):
             sage: root2 = ANRoot(x^2 - 2, RIF(1, 2))
             sage: gen2 = AlgebraicGenerator(nf2, root2)
             sage: gen2
-            Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 .. 1.4142135623730952]
+            Number Field in a with defining polynomial y^2 - 2 with a in 1.414213562373095?
             sage: sqrt2 = ANExtensionElement(gen2, nf2.gen())
             sage: nf3 = NumberField(y^2 - 3, name='a', check=False)
             sage: root3 = ANRoot(x^2 - 3, RIF(1, 2))
             sage: gen3 = AlgebraicGenerator(nf3, root3)
             sage: gen3
-            Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 .. 1.7320508075688775]
+            Number Field in a with defining polynomial y^2 - 3 with a in 1.732050807568878?
             sage: sqrt3 = ANExtensionElement(gen3, nf3.gen())
             sage: gen2_3 = gen2.union(gen3)
             sage: gen2_3
-            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in [0.51763809020504147 .. 0.51763809020504159]
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in 0.5176380902050415?
             sage: gen2_3(sqrt2)
             -a^3 + 3*a
             sage: gen2_3(ANRational(1/7))
@@ -1870,17 +1870,17 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     EXAMPLES:
         sage: sqrt(QQbar(2))
-        [1.4142135623730949 .. 1.4142135623730952]
+        1.414213562373095?
         sage: sqrt(QQbar(2))^2 == 2
         True
         sage: x = polygen(QQbar)
         sage: phi = QQbar.polynomial_root(x^2 - x - 1, RIF(1, 2))
         sage: phi
-        [1.6180339887498946 .. 1.6180339887498950]
+        1.618033988749895?
         sage: phi^2 == phi+1
         True
         sage: AA(sqrt(65537))
-        [256.00195311754941 .. 256.00195311754948]
+        256.0019531175495?
     """
 
     def __init__(self, parent, x):
@@ -1892,7 +1892,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         sage: AlgebraicReal(22/7)
         22/7
         sage: AlgebraicNumber(ANRootOfUnity(2/5, 1))
-        [-0.80901699437494746 .. -0.80901699437494734] + [0.58778525229247302 .. 0.58778525229247314]*I
+        -0.8090169943749474? + 0.5877852522924731?*I
         """
         sage.structure.element.FieldElement.__init__(self, parent)
         if isinstance(x, (int, long, sage.rings.integer.Integer,
@@ -1921,9 +1921,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: QQbar.zeta(4) + 5
             I + 5
             sage: QQbar.zeta(17)
-            [0.93247222940435570 .. 0.93247222940435582] + [0.36124166618715292 .. 0.36124166618715298]*I
+            0.9324722294043558? + 0.3612416661871530?*I
             sage: AA(19).sqrt()
-            [4.3588989435406730 .. 4.3588989435406740]
+            4.358898943540674?
         """
         if self._descr.is_rational():
             return repr(self._descr)
@@ -1940,7 +1940,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         TESTS:
             sage: AA(sqrt(2)) * AA(sqrt(8))
-            [3.9999999999999995 .. 4.0000000000000009]
+            4.000000000000000?
         """
         sd = self._descr
         od = other._descr
@@ -1952,7 +1952,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         TESTS:
             sage: AA(sqrt(2)) / AA(sqrt(8))
-            [0.49999999999999994 .. 0.50000000000000012]
+            0.500000000000000?
         """
         sd = self._descr
         od = other._descr
@@ -1964,7 +1964,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         TESTS:
             sage: ~AA(sqrt(~2))
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
         """
         sd = self._descr
         return type(self)(self._descr.invert(self))
@@ -1975,7 +1975,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: x = polygen(ZZ)
             sage: rt1, rt2 = (x^2 - x - 1).roots(ring=AA, multiplicities=False)
             sage: rt1 + rt2
-            [0.99999999999999988 .. 1.0000000000000003]
+            1.000000000000000?
         """
         sd = self._descr
         od = other._descr
@@ -1987,7 +1987,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         TESTS:
             sage: AA(golden_ratio) * 2 - AA(5).sqrt()
-            [0.99999999999999988 .. 1.0000000000000003]
+            1.000000000000000?
         """
         sd = self._descr
         od = other._descr
@@ -2007,7 +2007,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         TESTS:
             sage: abs(AA(sqrt(2) - sqrt(3)))
-            [0.31783724519578221 .. 0.31783724519578227]
+            0.3178372451957823?
             sage: abs(QQbar(3+4*I))
             5
             sage: v = QQbar.zeta(3) + 1
@@ -2029,7 +2029,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         The hash code is stable, even when the representation changes.
             sage: two = QQbar(4).nth_root(4)^2
             sage: two
-            [1.9999999999999997 .. 2.0000000000000005]
+            2.000000000000000?
             sage: h1 = hash(two)
             sage: two == 2
             True
@@ -2087,9 +2087,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: AA(2).sqrt()
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             sage: QQbar(I).sqrt()
-            [0.70710678118654746 .. 0.70710678118654758] + [0.70710678118654746 .. 0.70710678118654758]*I
+            0.7071067811865475? + 0.7071067811865475?*I
         """
         return self.__pow__(~ZZ(2))
 
@@ -2106,9 +2106,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: AA(-8).nth_root(3)
             -2
             sage: QQbar(-8).nth_root(3)
-            [0.99999999999999988 .. 1.0000000000000003] + [1.7320508075688771 .. 1.7320508075688775]*I
+            1.000000000000000? + 1.732050807568878?*I
             sage: QQbar.zeta(12).nth_root(15)
-            [0.99939082701909565 .. 0.99939082701909577] + [0.034899496702500969 .. 0.034899496702500977]*I
+            0.9993908270190957? + 0.03489949670250097?*I
         """
         return self.__pow__(~ZZ(n))
 
@@ -2130,16 +2130,16 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             (Number Field in a with defining polynomial y^2 - 2, 2*a, Ring morphism:
                 From: Number Field in a with defining polynomial y^2 - 2
                 To:   Algebraic Real Field
-                Defn: a |--> [1.4142135623730949 .. 1.4142135623730952])
+                Defn: a |--> 1.414213562373095?)
             sage: x = polygen(ZZ)
             sage: p = x^3 + x^2 + x + 17
             sage: (rt,) = p.roots(ring=AA, multiplicities=False); rt
-            [-2.8046427269327419 .. -2.8046427269327414]
+            -2.804642726932742?
             sage: (nf, elt, hom) = rt.as_number_field_element(); (nf, elt, hom)
             (Number Field in a with defining polynomial y^3 - y^2 + y - 17, -a, Ring morphism:
                 From: Number Field in a with defining polynomial y^3 - y^2 + y - 17
                 To:   Algebraic Real Field
-                Defn: a |--> [2.8046427269327414 .. 2.8046427269327419])
+                Defn: a |--> 2.804642726932742?)
             sage: hom(elt) == rt
             True
 
@@ -2152,12 +2152,12 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, -a^2 + 2, Ring morphism:
                 From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
                 To:   Algebraic Real Field
-                Defn: a |--> [0.51763809020504147 .. 0.51763809020504159])
+                Defn: a |--> 0.5176380902050415?)
             sage: rt3b.as_number_field_element(minimal=True)
             (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
                 From: Number Field in a with defining polynomial y^2 - 3
                 To:   Algebraic Real Field
-                Defn: a |--> [1.7320508075688771 .. 1.7320508075688775])
+                Defn: a |--> 1.732050807568878?)
         """
         return number_field_elements_from_algebraics(self, minimal=minimal)
 
@@ -2168,7 +2168,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: two = QQbar(4).nth_root(4)^2
             sage: two
-            [1.9999999999999997 .. 2.0000000000000005]
+            2.000000000000000?
             sage: two.exactify()
             sage: two
             2
@@ -2186,10 +2186,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: z3 = QQbar.zeta(3)
             sage: half = z3 + 1/2 - z3
             sage: half._value
-            [0.499999999999999999593 .. 0.500000000000000000434] + [-2.71050543121376108502e-19 .. 2.71050543121376108502e-19]*I
+            0.500000000000000000? + 0.?e-18*I
             sage: half._set_descr(half._descr.exactify())
             sage: half._value
-            [0.500000000000000000000 .. 0.500000000000000000000]
+            0.500000000000000000000?
         """
         self._descr = new_descr
         new_val = self._descr._interval_fast(self.parent().default_interval_prec())
@@ -2211,10 +2211,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: rt2b = rt3 + rt2 - rt3
             sage: rt2b.exactify()
             sage: rt2b._exact_value()
-            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in [1.9318516525781364 .. 1.9318516525781367]
+            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in 1.931851652578137?
             sage: rt2b.simplify()
             sage: rt2b._exact_value()
-            a where a^2 - 2 = 0 and a in [1.4142135623730949 .. 1.4142135623730952]
+            a where a^2 - 2 = 0 and a in 1.414213562373095?
         """
         self.exactify()
         od = self._descr
@@ -2230,9 +2230,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: QQbar(2)._exact_field()
             Trivial generator
             sage: (sqrt(QQbar(2)) + sqrt(QQbar(19)))._exact_field()
-            Number Field in a with defining polynomial y^4 - 20*y^2 + 81 with a in [3.7893137826710354 .. 3.7893137826710360]
+            Number Field in a with defining polynomial y^4 - 20*y^2 + 81 with a in 3.789313782671036?
             sage: (QQbar(7)^(3/5))._exact_field()
-            Number Field in a with defining polynomial y^5 - 7 with a in [1.4757731615945519 .. 1.4757731615945522]
+            Number Field in a with defining polynomial y^5 - 7 with a in 1.4757731615945521?
         """
 
         sd = self._descr
@@ -2250,9 +2250,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: QQbar(2)._exact_value()
             2
             sage: (sqrt(QQbar(2)) + sqrt(QQbar(19)))._exact_value()
-            1/9*a^3 + a^2 - 11/9*a - 10 where a^4 - 20*a^2 + 81 = 0 and a in [3.7893137826710354 .. 3.7893137826710360]
+            1/9*a^3 + a^2 - 11/9*a - 10 where a^4 - 20*a^2 + 81 = 0 and a in 3.789313782671036?
             sage: (QQbar(7)^(3/5))._exact_value()
-            a^3 where a^5 - 7 = 0 and a in [1.4757731615945519 .. 1.4757731615945522]
+            a^3 where a^5 - 7 = 0 and a in 1.4757731615945521?
         """
         sd = self._descr
         if sd.is_exact():
@@ -2268,13 +2268,13 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: rt2 = sqrt(QQbar(2))
             sage: rt2._value
-            [1.41421356237309504876 .. 1.41421356237309504888]
+            1.4142135623730950488?
             sage: rt2._more_precision()
             sage: rt2._value
-            [1.414213562373095048801688724209698078568 .. 1.414213562373095048801688724209698078575]
+            1.41421356237309504880168872420969807857?
             sage: rt2._more_precision()
             sage: rt2._value
-            [1.414213562373095048801688724209698078569671875376948073176679737990732478462101 .. 1.414213562373095048801688724209698078569671875376948073176679737990732478462120]
+            1.41421356237309504880168872420969807856967187537694807317667973799073247846211?
         """
         prec = self._value.prec()
         self._value = self._descr._interval_fast(prec*2)
@@ -2291,7 +2291,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: ((QQbar(2).nth_root(4))^2).minpoly()
             x^2 - 2
             sage: v = sqrt(QQbar(2)) + sqrt(QQbar(3)); v
-            [3.1462643699419721 .. 3.1462643699419726]
+            3.146264369941973?
             sage: p = v.minpoly(); p
             x^4 - 10*x^2 + 1
             sage: p(RR(v.real()))
@@ -2334,12 +2334,12 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: x = AA(2).sqrt()
             sage: x.interval_fast(RIF)
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             sage: x.interval_fast(RealIntervalField(200))
-            [1.4142135623730950488016887242096980785696718753769480731766796 .. 1.4142135623730950488016887242096980785696718753769480731766809]
+            1.414213562373095048801688724209698078569671875376948073176680?
             sage: x = QQbar(I).sqrt()
             sage: x.interval_fast(CIF)
-            [0.70710678118654746 .. 0.70710678118654758] + [0.70710678118654746 .. 0.70710678118654758]*I
+            0.7071067811865475? + 0.7071067811865475?*I
             sage: x.interval_fast(RIF)
             Traceback (most recent call last):
             ...
@@ -2360,13 +2360,13 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: AA(2).sqrt().interval_diameter(1e-10)
-            [1.41421356237309504876 .. 1.41421356237309504888]
+            1.4142135623730950488?
             sage: AA(2).sqrt().interval_diameter(1e-30)
-            [1.414213562373095048801688724209698078568 .. 1.414213562373095048801688724209698078575]
+            1.41421356237309504880168872420969807857?
             sage: QQbar(2).sqrt().interval_diameter(1e-10)
-            [1.41421356237309504876 .. 1.41421356237309504888]
+            1.4142135623730950488?
             sage: QQbar(2).sqrt().interval_diameter(1e-30)
-            [1.414213562373095048801688724209698078568 .. 1.414213562373095048801688724209698078575]
+            1.41421356237309504880168872420969807857?
         """
         if diam <= 0:
             raise ValueError, 'diameter must be positive in interval_diameter'
@@ -2392,15 +2392,15 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: y = x*x
             sage: y = 1000 * y - 999 * y
             sage: y.interval_fast(RIF64)
-            [1.99999999999999966693 .. 2.00000000000000033307]
+            2.000000000000000?
             sage: y.interval(RIF64)
-            [1.99999999999999999989 .. 2.00000000000000000022]
+            2.000000000000000000?
             sage: CIF64 = ComplexIntervalField(64)
             sage: x = QQbar.zeta(11)
             sage: x.interval_fast(CIF64)
-            [0.841253532831181168808 .. 0.841253532831181168918] + [0.540640817455597581992 .. 0.540640817455597582210]*I
+            0.8412535328311811689? + 0.540640817455597582?*I
             sage: x.interval(CIF64)
-            [0.841253532831181168808 .. 0.841253532831181168864] + [0.540640817455597582101 .. 0.540640817455597582156]*I
+            0.8412535328311811689? + 0.5406408174555975822?*I
         """
         target = RR(1.0) >> field.prec()
         val = self.interval_diameter(target)
@@ -2434,7 +2434,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
         EXAMPLES:
             sage: x = QQbar.zeta(3); x
-            [-0.50000000000000012 .. -0.49999999999999994] + [0.86602540378443859 .. 0.86602540378443871]*I
+            -0.500000000000000? + 0.8660254037844387?*I
             sage: cmp(QQbar(-1), x)
             -1
             sage: cmp(QQbar(-1/2), x)
@@ -2509,7 +2509,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
         EXAMPLES:
             sage: QQbar(2)^(1/2)
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             sage: QQbar(8)^(2/3)
             4
             sage: QQbar(8)^(2/3) == 4
@@ -2519,27 +2519,27 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: tau = QQbar.polynomial_root(x^2 - x - 1, RIF(-1, 0))
             sage: rt5 = QQbar(5)^(1/2)
             sage: phi^10 / rt5
-            [55.003636123247410 .. 55.003636123247418]
+            55.00363612324742?
             sage: tau^10 / rt5
-            [0.0036361232474132654 .. 0.0036361232474132659]
+            0.003636123247413266?
             sage: (phi^10 - tau^10) / rt5
-            [54.999999999999992 .. 55.000000000000008]
+            55.00000000000000?
             sage: (phi^10 - tau^10) / rt5 == fibonacci(10)
             True
             sage: (phi^50 - tau^50) / rt5 == fibonacci(50)
             True
             sage: QQbar(-8)^(1/3)
-            [0.99999999999999988 .. 1.0000000000000003] + [1.7320508075688771 .. 1.7320508075688775]*I
+            1.000000000000000? + 1.732050807568878?*I
             sage: (QQbar(-8)^(1/3))^3
             -8
             sage: QQbar(32)^(1/5)
             2
             sage: a = QQbar.zeta(7)^(1/3); a
-            [0.95557280578614067 .. 0.95557280578614079] + [0.29475517441090420 .. 0.29475517441090427]*I
+            0.9555728057861407? + 0.2947551744109043?*I
             sage: a == QQbar.zeta(21)
             True
             sage: QQbar.zeta(7)^6
-            [0.62348980185873348 .. 0.62348980185873360] - [0.78183148246802980 .. 0.78183148246802992]*I
+            0.6234898018587335? - 0.7818314824680299?*I
             sage: (QQbar.zeta(7)^6)^(1/3) * QQbar.zeta(21)
             1
         """
@@ -2642,11 +2642,11 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar(sqrt(17))._integer_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce non-integral Algebraic Real [4.1231056256176596 .. 4.1231056256176606] to Integer
+            ValueError: Cannot coerce non-integral Algebraic Real 4.123105625617660? to Integer
             sage: QQbar(sqrt(16))._integer_()
             4
             sage: v = QQbar(1 + I*sqrt(3))^5 + QQbar(16*sqrt(3)*I); v
-            [15.999999999999998 .. 16.000000000000004] + [-6.9388939039072284e-18 .. 8.6736173798840355e-18]*I
+            16.00000000000000? + 0.?e-17*I
             sage: v._integer_()
             16
         """
@@ -2668,11 +2668,11 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar(sqrt(2))._rational_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce irrational Algebraic Real [1.4142135623730949 .. 1.4142135623730952] to Rational
+            ValueError: Cannot coerce irrational Algebraic Real 1.414213562373095? to Rational
             sage: v1 = QQbar(1/3 + I*sqrt(5))^7
             sage: v2 = QQbar(100336/729*golden_ratio - 50168/729)*I
             sage: v = v1 + v2; v
-            [-259.69090077732057 .. -259.69090077732050] + [-2.6367796834847468e-16 .. 3.8857805861880479e-16]*I
+            -259.6909007773206? + 0.?e-15*I
             sage: v._rational_()
             -567944/2187
         """
@@ -2690,11 +2690,11 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
         EXAMPLES:
             sage: QQbar(3 + 4*I).conjugate()
-            [3.0000000000000000 .. 3.0000000000000000] - [4.0000000000000000 .. 4.0000000000000000]*I
+            3.0000000000000000? - 4.0000000000000000?*I
             sage: QQbar.zeta(7).conjugate()
-            [0.62348980185873348 .. 0.62348980185873360] - [0.78183148246802980 .. 0.78183148246802992]*I
+            0.6234898018587335? - 0.7818314824680299?*I
             sage: QQbar.zeta(7) + QQbar.zeta(7).conjugate()
-            [1.2469796037174669 .. 1.2469796037174672] + [-3.2526065174565134e-19 .. 3.7947076036992656e-19]*I
+            1.2469796037174671? + 0.?e-18*I
         """
         return AlgebraicNumber(self._descr.conjugate(self))
 
@@ -2724,12 +2724,12 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
         EXAMPLES:
             sage: a = QQbar(I).sqrt(); a
-            [0.70710678118654746 .. 0.70710678118654758] + [0.70710678118654746 .. 0.70710678118654758]*I
+            0.7071067811865475? + 0.7071067811865475?*I
             sage: a.interval_exact(CIF)
-            [0.70710678118654746 .. 0.70710678118654758] + [0.70710678118654746 .. 0.70710678118654758]*I
+            0.7071067811865475? + 0.7071067811865475?*I
             sage: b = QQbar((1+I)*sqrt(2)/2)
             sage: (a - b).interval(CIF)
-            [-5.4210108624275222e-20 .. 5.4210108624275222e-20] + [-1.0842021724855045e-19 .. 5.4210108624275222e-20]*I
+            0.?e-19 + 0.?e-18*I
             sage: (a - b).interval_exact(CIF)
             0
         """
@@ -2774,9 +2774,9 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
         EXAMPLES:
             sage: a = QQbar.zeta(9) + I + QQbar.zeta(9).conjugate(); a
-            [1.5320888862379560 .. 1.5320888862379563] + [0.99999999999999988 .. 1.0000000000000003]*I
+            1.532088886237957? + 1.000000000000000?*I
             sage: a.complex_exact(CIF)
-            [1.5320888862379560 .. 1.5320888862379563] + [1.0000000000000000 .. 1.0000000000000000]*I
+            1.532088886237957? + 1.0000000000000000?*I
         """
         rfld = field._real_field()
         re = self.real().real_exact(rfld)
@@ -2894,7 +2894,7 @@ class AlgebraicReal(AlgebraicNumber_base):
 
         EXAMPLES:
             sage: AA(2)^(1/2)
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             sage: AA(8)^(2/3)
             4
             sage: AA(8)^(2/3) == 4
@@ -2904,11 +2904,11 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: tau = AA.polynomial_root(x^2 - x - 1, RIF(-2, 0))
             sage: rt5 = AA(5)^(1/2)
             sage: phi^10 / rt5
-            [55.003636123247410 .. 55.003636123247418]
+            55.00363612324742?
             sage: tau^10 / rt5
-            [0.0036361232474132654 .. 0.0036361232474132659]
+            0.003636123247413266?
             sage: (phi^10 - tau^10) / rt5
-            [54.999999999999992 .. 55.000000000000008]
+            55.00000000000000?
             sage: (phi^10 - tau^10) / rt5 == fibonacci(10)
             True
             sage: (phi^50 - tau^50) / rt5 == fibonacci(50)
@@ -2924,7 +2924,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: AA(-16)^(1/2)
             4*I
             sage: AA(-16)^(1/4)
-            [1.4142135623730949 .. 1.4142135623730952] + [1.4142135623730949 .. 1.4142135623730952]*I
+            1.414213562373095? + 1.414213562373095?*I
             sage: AA(-16)^(1/4)/QQbar.zeta(8)
             2
         """
@@ -2975,7 +2975,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: AA(golden_ratio)._integer_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce non-integral Algebraic Real [1.6180339887498946 .. 1.6180339887498950] to Integer
+            ValueError: Cannot coerce non-integral Algebraic Real 1.618033988749895? to Integer
             sage: (AA(golden_ratio)^10 + AA(1-golden_ratio)^10)._integer_()
             123
             sage: AA(-22/7)._integer_()
@@ -3005,9 +3005,9 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: AA(sqrt(7))._rational_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce irrational Algebraic Real [2.6457513110645902 .. 2.6457513110645908] to Rational
+            ValueError: Cannot coerce irrational Algebraic Real 2.645751311064591? to Rational
             sage: v = AA(1/2 + sqrt(2))^3 - AA(11/4*sqrt(2)); v
-            [3.1249999999999995 .. 3.1250000000000005]
+            3.125000000000000?
             sage: v._rational_()
             25/8
         """
@@ -3025,7 +3025,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         EXAMPLES:
             sage: a = AA(sqrt(2) + sqrt(3))
             sage: a.real()
-            [3.1462643699419721 .. 3.1462643699419726]
+            3.146264369941973?
             sage: a.real() is a
             True
         """
@@ -3105,18 +3105,18 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: x = AA(2).sqrt()
             sage: y = x*x
             sage: x.interval(RIF)
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             sage: x.interval_exact(RIF)
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             sage: y.interval(RIF)
-            [1.9999999999999997 .. 2.0000000000000005]
+            2.000000000000000?
             sage: y.interval_exact(RIF)
-            [2.0000000000000000 .. 2.0000000000000000]
+            2.0000000000000000?
             sage: z = 1 + AA(2).sqrt() / 2^200
             sage: z.interval(RIF)
-            [1.0000000000000000 .. 1.0000000000000003]
+            1.000000000000001?
             sage: z.interval_exact(RIF)
-            [1.0000000000000000 .. 1.0000000000000003]
+            1.000000000000001?
         """
         for extra in (0, 40):
             target = RR(1.0) >> field.prec()
@@ -3525,11 +3525,11 @@ class ANRootOfUnity(ANDescr):
         """
         EXAMPLES:
             sage: a = QQbar.zeta(7) * 2; a
-            [1.2469796037174669 .. 1.2469796037174672] + [1.5636629649360596 .. 1.5636629649360599]*I
+            1.2469796037174671? + 1.563662964936060?*I
             sage: a.minpoly()
             x^6 + 2*x^5 + 4*x^4 + 8*x^3 + 16*x^2 + 32*x + 64
             sage: a.minpoly()(a)
-            [-3.1918911957973251e-16 .. 3.4694469519536142e-16] + [-3.3133218391157016e-16 .. 3.2786273695961655e-16]*I
+            0.?e-15 + 0.?e-15*I
             sage: a.minpoly()(a) == 0
             True
         """
@@ -3605,7 +3605,7 @@ class AlgebraicPolynomialTracker(SageObject):
         sage: P
         x^2 + (-1)*x - 1
         sage: QQbar.polynomial_root(P, RIF(1, 2))
-        [1.6180339887498946 .. 1.6180339887498950]
+        1.618033988749895?
     """
 
     def __init__(self, poly):
@@ -3654,7 +3654,10 @@ class AlgebraicPolynomialTracker(SageObject):
             sage: x = polygen(ZZ)
             sage: cp = AA.common_polynomial(x^4 - 2)
             sage: cp.complex_roots(30, 1)
-            [[1.1892071150027208 .. 1.1892071150027213], [-1.1892071150027213 .. -1.18920711500272...], [1.18920711500272... .. 1.1892071150027213]*I, [-1.1892071150027213 .. -1.1892071150027208]*I]
+            [1.189207115002721?,
+             -1.189207115002721?,
+             1.189207115002721?*I,
+             -1.189207115002721?*I]
         """
         if self._roots_cache.has_key(multiplicity):
             roots = self._roots_cache[multiplicity]
@@ -3786,7 +3789,7 @@ class ANRoot(ANDescr):
             sage: x = polygen(AA)
             sage: rt2 = ANRoot(x^2 - 2, RIF(0, 2))
             sage: rt2.refine_interval(RIF(0, 2), 75)
-            [1.41421356237309504880163 .. 1.41421356237309504880175]
+            1.4142135623730950488017?
         """
         # Don't throw away bits in the original interval; doing so might
         # invalidate it (include an extra root)
@@ -3965,9 +3968,9 @@ class ANRoot(ANDescr):
             sage: intv = CIF(RIF(0, 1), RIF(0.1, 1))
             sage: rt = ANRoot(x^5 - 1, intv)
             sage: new_intv = rt.refine_interval(intv, 53); new_intv
-            [0.309016994374947424022 .. 0.309016994374947424185] + [0.951056516295153572002 .. 0.951056516295153572219]*I
+            0.3090169943749474241? + 0.951056516295153573?*I
             sage: rt.refine_interval(new_intv, 70)
-            [0.30901699437494742410148 .. 0.30901699437494742410319] + [0.95105651629515357211565 .. 0.95105651629515357211735]*I
+            0.30901699437494742411? + 0.95105651629515357212?*I
         """
         # Don't throw away bits in the original interval; doing so might
         # invalidate it (include an extra root)
@@ -4104,7 +4107,7 @@ class ANRoot(ANDescr):
             sage: intv = CIF(RIF(0, 1), RIF(0.1, 1))
             sage: rt = ANRoot(x^5 - 1, intv)
             sage: rt._complex_isolate_interval(intv, 53)
-            [0.309016994374947424022 .. 0.309016994374947424185] + [0.951056516295153572002 .. 0.951056516295153572219]*I
+            0.3090169943749474241? + 0.951056516295153573?*I
         """
         rts = self._poly.complex_roots(prec, self._multiplicity)
 
@@ -4142,7 +4145,7 @@ class ANRoot(ANDescr):
             2
             sage: strange = ANRoot(x^2 + sqrt(QQbar(3))*x - sqrt(QQbar(2)), RIF(-0, 1))
             sage: strange.exactify()
-            a where a^8 - 6*a^6 + 5*a^4 - 12*a^2 + 4 = 0 and a in [0.60510122651395104 .. 0.60510122651395116]
+            a where a^8 - 6*a^6 + 5*a^4 - 12*a^2 + 4 = 0 and a in 0.6051012265139511?
         """
         gen = self._poly.generator()
 
@@ -4341,13 +4344,13 @@ class ANExtensionElement(ANDescr):
             sage: rt2b = rt3 + rt2 - rt3
             sage: rt2.exactify()
             sage: rt2._descr
-            a where a^2 - 2 = 0 and a in [1.4142135623730949 .. 1.4142135623730952]
+            a where a^2 - 2 = 0 and a in 1.414213562373095?
             sage: rt2._descr.is_simple()
             True
 
             sage: rt2b.exactify()
             sage: rt2b._descr
-            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in [1.9318516525781364 .. 1.9318516525781367]
+            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in 1.931851652578137?
             sage: rt2b._descr.is_simple()
             False
         """
@@ -4375,7 +4378,7 @@ class ANExtensionElement(ANDescr):
 
         EXAMPLES:
             sage: a = AA(sqrt(2)) + QQbar(I); a
-            [1.4142135623730949 .. 1.4142135623730952] + [1.0000000000000000 .. 1.0000000000000000]*I
+            1.414213562373095? + 1.0000000000000000?*I
             sage: p = a.minpoly(); p
             x^4 - 2*x^2 + 9
             sage: p(a)
@@ -4402,9 +4405,9 @@ class ANExtensionElement(ANDescr):
             sage: rt2b = rt3 + rt2 - rt3
             sage: rt2b.exactify()
             sage: rt2b._descr
-            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in [1.9318516525781364 .. 1.9318516525781367]
+            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in 1.931851652578137?
             sage: rt2b._descr.simplify(rt2b)
-            a where a^2 - 2 = 0 and a in [1.4142135623730949 .. 1.4142135623730952]
+            a where a^2 - 2 = 0 and a in 1.414213562373095?
         """
 
         if self.is_simple():

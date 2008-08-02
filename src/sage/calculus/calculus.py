@@ -4077,9 +4077,9 @@ class SymbolicConstant(Symbolic_object):
             1*I
             sage: phi = SymbolicConstant(golden_ratio)
             sage: AA(phi)
-            [1.6180339887498946 .. 1.6180339887498950]
+            1.618033988749895?
             sage: QQbar(phi)
-            [1.6180339887498946 .. 1.6180339887498950]
+            1.618033988749895?
         """
 
         # Out of the many kinds of things that can be in a SymbolicConstant,
@@ -4826,13 +4826,13 @@ class SymbolicArithmetic(SymbolicOperation):
 
         EXAMPLES:
             sage: QQbar(sqrt(2) + sqrt(8))
-            [4.2426406871192847 .. 4.2426406871192857]
+            4.242640687119285?
             sage: AA(sqrt(2) ^ 4) == 4
             True
             sage: AA(-golden_ratio)
-            [-1.6180339887498950 .. -1.6180339887498946]
+            -1.618033988749895?
             sage: QQbar((2*I)^(1/2))
-            [1.0000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 1.0000000000000000]*I
+            1.0000000000000000? + 1.0000000000000000?*I
 
         TESTS:
             sage: AA(x*sin(0))
@@ -6152,9 +6152,9 @@ class SymbolicComposition(SymbolicOperation):
 
         EXAMPLES:
             sage: QQbar(sqrt(2))
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             sage: AA(abs(1+I))
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
         """
         # We try to avoid simplifying, because maxima's simplify command
         # can change the value of a radical expression (by changing which

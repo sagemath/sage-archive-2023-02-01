@@ -132,10 +132,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         # is native and much faster -- doesn't use .real()/.imag()
         return (make_ComplexIntervalFieldElement0, (self._parent, self.real(), self.imag()))
 
-    def str(self, base=10):
+    def str(self, base=10, style=None):
         s = ""
         if not self.real().is_zero():
-            s = self.real().str(base)
+            s = self.real().str(base=base, style=style)
         if not self.imag().is_zero():
             y  =  self.imag()
             if s!="":
@@ -144,7 +144,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                     y = -y
                 else:
                     s = s+" + "
-            s = s+"%s*I"%y.str(base)
+            s = s+"%s*I"%y.str(base=base, style=style)
         if len(s) == 0:
             s = "0"
         return s
@@ -205,8 +205,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         Returns the intersection of two complex intervals.
 
         EXAMPLES:
-            sage: CIF(RIF(1, 3), RIF(1, 3)).intersection(CIF(RIF(2, 4), RIF(2, 4)))
-            [2.0000000000000000 .. 3.0000000000000000] + [2.0000000000000000 .. 3.0000000000000000]*I
+            sage: CIF(RIF(1, 3), RIF(1, 3)).intersection(CIF(RIF(2, 4), RIF(2, 4))).str(style='brackets')
+            '[2.0000000000000000 .. 3.0000000000000000] + [2.0000000000000000 .. 3.0000000000000000]*I'
             sage: CIF(RIF(1, 2), RIF(1, 3)).intersection(CIF(RIF(3, 4), RIF(2, 4)))
             Traceback (most recent call last):
             ...
@@ -235,8 +235,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         two complex intervals.
 
         EXAMPLES:
-            sage: CIF(0).union(CIF(5, 5))
-            [0.00000000000000000 .. 5.0000000000000000] + [0.00000000000000000 .. 5.0000000000000000]*I
+            sage: CIF(0).union(CIF(5, 5)).str(style='brackets')
+            '[0.00000000000000000 .. 5.0000000000000000] + [0.00000000000000000 .. 5.0000000000000000]*I'
         """
         cdef ComplexIntervalFieldElement x = self._new()
         cdef ComplexIntervalFieldElement other_intv
@@ -407,25 +407,25 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: C.<i> = ComplexIntervalField(20)
             sage: a = i^2; a
-            [-1.0000000 .. -1.0000000]
+            -1.0000000?
             sage: a.parent()
             Complex Interval Field with 20 bits of precision
             sage: a = (1+i)^7; a
-            [8.0000000 .. 8.0000000] - [8.0000000 .. 8.0000000]*I
+            8.0000000? - 8.0000000?*I
             sage: (1+i)^(1+i)
-            [0.27395439 .. 0.27396012] + [0.58369827 .. 0.58370495]*I
+            0.27396? + 0.58370?*I
             sage: a.parent()
             Complex Interval Field with 20 bits of precision
             sage: (2+i)^(-39)
-            [1.6873519e-14 .. 1.6879375e-14] + [1.6273278e-14 .. 1.6279215e-14]*I
+            1.688?e-14 + 1.628?e-14*I
 
         If the interval crosses the negative real axis, then we don't
         use the standard branch cut (and we violate the interval
         guarantees):
-            sage: CIF(-7, RIF(-1, 1)) ^ CIF(0.3)
-            [0.99109735947126309 .. 1.1179269966896264] + [1.4042388462787560 .. 1.4984624123369835]*I
+            sage: (CIF(-7, RIF(-1, 1)) ^ CIF(0.3)).str(style='brackets')
+            '[0.99109735947126309 .. 1.1179269966896264] + [1.4042388462787560 .. 1.4984624123369835]*I'
             sage: CIF(-7, -1) ^ CIF(0.3)
-            [1.1179269966896254 .. 1.1179269966896264] - [1.4085007145753596 .. 1.4085007145753606]*I
+            1.117926996689626? - 1.408500714575360?*I
         """
         if isinstance(right, (int, long, integer.Integer)):
             return sage.rings.ring_element.RingElement.__pow__(self, right)
@@ -450,7 +450,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: i = ComplexIntervalField(100).0
             sage: z = 2 + 3*i
             sage: x = z.real(); x
-            [2.0000000000000000000000000000000 .. 2.0000000000000000000000000000000]
+            2.0000000000000000000000000000000?
             sage: x.parent()
             Real Interval Field with 100 bits of precision
         """
@@ -467,7 +467,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: i = ComplexIntervalField(100).0
             sage: z = 2 + 3*i
             sage: x = z.imag(); x
-            [3.0000000000000000000000000000000 .. 3.0000000000000000000000000000000]
+            3.0000000000000000000000000000000?
             sage: x.parent()
             Real Interval Field with 100 bits of precision
         """
@@ -497,7 +497,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: I = CIF.0
             sage: a = ~(5+I)
             sage: a * (5+I)
-            [0.99999999999999988 .. 1.0000000000000003] + [-2.7755575615628914e-17 .. 5.5511151231257828e-17]*I
+            1.000000000000000? + 0.?e-16*I
         """
         cdef ComplexIntervalFieldElement x
         x = self._new()
@@ -601,27 +601,27 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: i = CIF.0
             sage: (i^2).argument()
-            [3.1415926535897931 .. 3.1415926535897936]
+            3.141592653589794?
             sage: (1+i).argument()
-            [0.78539816339744816 .. 0.78539816339744851]
+            0.785398163397449?
             sage: i.argument()
-            [1.5707963267948965 .. 1.5707963267948968]
+            1.5707963267948967?
             sage: (-i).argument()
-            [-1.5707963267948968 .. -1.5707963267948965]
+            -1.570796326794897?
             sage: (RR('-0.001') - i).argument()
-            [-1.5717963264615638 .. -1.5717963264615633]
+            -1.571796326461564?
             sage: CIF(2).argument()
-            [0.00000000000000000 .. 0.00000000000000000]
+            0.?e-17
             sage: CIF(-2).argument()
-            [3.1415926535897931 .. 3.1415926535897936]
+            3.141592653589794?
 
         Here we see that if the interval crosses the negative real
         axis, then the argument() can exceed $\pi$, and we
         we violate the standard interval guarantees in the process:
-            sage: CIF(-2, RIF(-0.1, 0.1)).argument()
-            [3.0916342578678501 .. 3.1915510493117365]
+            sage: CIF(-2, RIF(-0.1, 0.1)).argument().str(style='brackets')
+            '[3.0916342578678501 .. 3.1915510493117365]'
             sage: CIF(-2, -0.1).argument()
-            [-3.0916342578678511 .. -3.0916342578678501]
+            -3.091634257867851?
         """
         if mpfi_has_zero(self.__re) and mpfi_has_zero(self.__im):
 
@@ -691,7 +691,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: i = CIF.0
             sage: (i^2).arg()
-            [3.1415926535897931 .. 3.1415926535897936]
+            3.141592653589794?
         """
         return self.argument()
 
@@ -718,7 +718,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: i = CIF.0
             sage: (1+i).conjugate()
-            [1.0000000000000000 .. 1.0000000000000000] - [1.0000000000000000 .. 1.0000000000000000]*I
+            1.0000000000000000? - 1.0000000000000000?*I
         """
         cdef ComplexIntervalFieldElement x
         x = self._new()
@@ -735,7 +735,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: i = ComplexIntervalField(300).0
             sage: z = 1 + i
             sage: z.exp()
-            [1.4686939399158851571389675973266042613269567366290087227976756763109369658595121387227244953 .. 1.4686939399158851571389675973266042613269567366290087227976756763109369658595121387227244983] + [2.2873552871788423912081719067005018089555862566683556809386581141036471601893454092673448481 .. 2.2873552871788423912081719067005018089555862566683556809386581141036471601893454092673448541]*I
+            1.46869393991588515713896759732660426132695673662900872279767567631093696585951213872272450? + 2.28735528717884239120817190670050180895558625666835568093865811410364716018934540926734485?*I
         """
         mag = self.real().exp()
         theta = self.imag()
@@ -751,19 +751,19 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: a = CIF(RIF(3, 4), RIF(13, 14))
-            sage: a.log()
-            [2.5908917751460420 .. 2.6782931373360067] + [1.2722973952087170 .. 1.3597029935721503]*I
-            sage: a.log().exp()
-            [2.7954667135098274 .. 4.2819545928390213] + [12.751682453911920 .. 14.237018048974635]*I
+            sage: a.log().str(style='brackets')
+            '[2.5908917751460420 .. 2.6782931373360067] + [1.2722973952087170 .. 1.3597029935721503]*I'
+            sage: a.log().exp().str(style='brackets')
+            '[2.7954667135098274 .. 4.2819545928390213] + [12.751682453911920 .. 14.237018048974635]*I'
             sage: a in a.log().exp()
             True
 
         If the interval crosses the negative real axis, then we don't
         use the standard branch cut (and we violate the interval guarantees):
-            sage: CIF(-3, RIF(-1/4, 1/4)).log()
-            [1.0986122886681095 .. 1.1020725100903968] + [3.0584514217013518 .. 3.2247338854782349]*I
+            sage: CIF(-3, RIF(-1/4, 1/4)).log().str(style='brackets')
+            '[1.0986122886681095 .. 1.1020725100903968] + [3.0584514217013518 .. 3.2247338854782349]*I'
             sage: CIF(-3, -1/4).log()
-            [1.1020725100903963 .. 1.1020725100903968] - [3.0584514217013518 .. 3.0584514217013524]*I
+            1.102072510090397? - 3.058451421701352?*I
         """
         theta = self.argument()
         rho = abs(self)
@@ -785,22 +785,22 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: a = CIF(-1).sqrt()^2; a
-            [-1.0000000000000003 .. -0.99999999999999966] + [-3.2162452993532733e-16 .. 1.2246467991473533e-16]*I
+            -1.000000000000000? + 0.?e-15*I
             sage: sqrt(CIF(2))
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             sage: sqrt(CIF(-1))
-            [-1.6081226496766367e-16 .. 6.1232339957367661e-17] + [0.99999999999999988 .. 1.0000000000000000]*I
+            0.?e-15 + 0.9999999999999999?*I
             sage: sqrt(CIF(2-I))^2
-            [1.9999999999999980 .. 2.0000000000000014] - [0.99999999999999877 .. 1.0000000000000012]*I
+            2.00000000000000? - 1.00000000000000?*I
             sage: CC(-2-I).sqrt()^2
             -2.00000000000000 - 1.00000000000000*I
 
         Here, we select a non-principal root for part of the interval, and
         violate the standard interval guarantees:
-            sage: CIF(-5, RIF(-1, 1)).sqrt()
-            [-0.22250788030178321 .. 0.22250788030178296] + [2.2251857651053086 .. 2.2581008643532262]*I
+            sage: CIF(-5, RIF(-1, 1)).sqrt().str(style='brackets')
+            '[-0.22250788030178321 .. 0.22250788030178296] + [2.2251857651053086 .. 2.2581008643532262]*I'
             sage: CIF(-5, -1).sqrt()
-            [0.22250788030178228 .. 0.22250788030178296] - [2.2471114250958694 .. 2.2471114250958709]*I
+            0.222507880301783? - 2.247111425095870?*I
         """
         if self.is_zero():
             return [self] if all else self
@@ -870,17 +870,17 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
 
     EXAMPLES:
         sage: ComplexIntervalFieldElement('2.3')
-        [2.2999999999999998 .. 2.3000000000000003]
+        2.300000000000000?
         sage: ComplexIntervalFieldElement('2.3','1.1')
-        [2.2999999999999998 .. 2.3000000000000003] + [1.0999999999999998 .. 1.1000000000000001]*I
+        2.300000000000000? + 1.1000000000000000?*I
         sage: ComplexIntervalFieldElement(10)
-        [10.000000000000000 .. 10.000000000000000]
+        10.000000000000000?
         sage: ComplexIntervalFieldElement(10,10)
-        [10.000000000000000 .. 10.000000000000000] + [10.000000000000000 .. 10.000000000000000]*I
+        10.000000000000000? + 10.000000000000000?*I
         sage: ComplexIntervalFieldElement(1.000000000000000000000000000,2)
-        [1.00000000000000000000000000000 .. 1.00000000000000000000000000000] + [2.00000000000000000000000000000 .. 2.00000000000000000000000000000]*I
+        1.00000000000000000000000000000? + 2.00000000000000000000000000000?*I
         sage: ComplexIntervalFieldElement(1,2.000000000000000000000)
-        [1.00000000000000000000000 .. 1.00000000000000000000000] + [2.00000000000000000000000 .. 2.00000000000000000000000]*I
+        1.00000000000000000000000? + 2.00000000000000000000000?*I
     """
     if s_imag is None:
         s_imag = 0

@@ -286,6 +286,16 @@ class Notebook(SageObject):
         U.set_hashed_password(passwd)
 
     def user_is_admin(self, user):
+        """
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('Administrator', 'password', '', 'admin', True)
+            sage: nb.add_user('RegularUser', 'password', '', 'user', True)
+            sage: nb.user_is_admin('Administrator')
+            True
+            sage: nb.user_is_admin('RegularUser')
+            False
+        """
         return self.user(user).is_admin()
 
     def user_is_guest(self, username):

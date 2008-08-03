@@ -59,7 +59,6 @@ class Notebook(SageObject):
                  system=None,
                  pretty_print=False,
                  show_debug = False,
-                 log_server=False,
                  address='localhost',
                  port=8000,
                  secure=True,
@@ -79,7 +78,6 @@ class Notebook(SageObject):
         self.__makedirs()
         self.__history = []
         self.__history_count = 0
-        self.__log_server = log_server #log all POST's and GET's
         self.__server_log = [] #server log list
         self.__show_debug = show_debug
         self.__admins = []
@@ -546,7 +544,6 @@ class Notebook(SageObject):
         same contents as \var{worksheet}.
 
         EXAMPLES:
-        We make a new notebook with two users and two worksheets, then list their names:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('Mark','password','',force=True)
             sage: W = nb.new_worksheet_with_title_from_text('First steps', owner='Mark')
@@ -859,15 +856,6 @@ class Notebook(SageObject):
 
     def history_count(self):
         return self.__history_count
-
-    def server_log(self):
-        return self.__server_log
-
-    def log_server(self):
-        return self.__log_server
-
-    def set_log_server(self, log_server):
-        self.__log_server = log_server
 
     def history(self):
         try:

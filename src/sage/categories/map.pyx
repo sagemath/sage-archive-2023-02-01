@@ -69,7 +69,10 @@ cdef class Map(Element):
         return unpickle_map, (self.__class__, self._parent, _dict, self._extra_slots({}))
 
     def _repr_type(self):
-        return "Generic"
+        if self._repr_type_str is None:
+            return "Generic"
+        else:
+            return self._repr_type_str
 
     def _repr_defn(self):
         return ""

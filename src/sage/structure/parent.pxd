@@ -19,6 +19,9 @@ cdef class Parent(category_object.CategoryObject):
     cdef public _initial_action_list
     cdef public _initial_convert_list
 
+    # Called from the __init__ method to set up coercion.
+    cdef int init_coerce(self, bint warn=*) except -1
+
     # New New Coercion support functionality
 
     # returns whether or not there is a Morphism from S to self
@@ -40,8 +43,10 @@ cdef class Parent(category_object.CategoryObject):
 
     # coerce x into self
     cpdef coerce(self, x)
+
     cpdef an_element(self)
     cpdef _an_element_(self)
+    cdef public object __an_element
 
 
     # For internal use
@@ -75,10 +80,4 @@ cdef class Parent(category_object.CategoryObject):
     cdef _convert_from_hash
     # An optional single Morphism that describes a cannonical coercion out of self
     cdef _embedding
-
-
-    #########################################
-
-    cdef public object __an_element
-    cpdef _an_element_impl(self)
 

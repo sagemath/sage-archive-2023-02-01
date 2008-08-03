@@ -26,6 +26,7 @@ cdef class DefaultConvertMap(Map):
         self._force_use = force_use
         if self._codomain._element_constructor is None:
             raise RuntimeError, "BUG in coercion model, no element constructor for %s" % type(self._codomain)
+        self._repr_type_str = "Coercion" if self._is_coercion else "Conversion"
 
     cpdef Element _call_(self, x):
         try:
@@ -54,8 +55,6 @@ cdef class DefaultConvertMap(Map):
                 print type(self._codomain._element_constructor), self._codomain._element_constructor
             raise
 
-    def _repr_type(self):
-        return "Conversion"
 
 cdef class DefaultConvertMap_unique(DefaultConvertMap):
     """
@@ -94,8 +93,6 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
                 print type(self._codomain._element_constructor), self._codomain._element_constructor
             raise
 
-    def _repr_type(self):
-        return "Coercion" if self._is_coercion else "Conversion"
 
 cdef class NamedConvertMap(Map):
     """
@@ -122,6 +119,7 @@ cdef class NamedConvertMap(Map):
         self._coerce_cost = 400
         self._force_use = force_use
         self.method_name = method_name
+        self._repr_type_str = "Conversion via %s method" % self.method_name
 
     cpdef Element _call_(self, x):
         """
@@ -155,8 +153,6 @@ cdef class NamedConvertMap(Map):
             e = m._call_(e)
         return e
 
-    def _repr_type(self):
-        return "Conversion via %s method" % self.method_name
 
 cdef class CallableConvertMap(Map):
     cdef bint _parent_as_first_arg
@@ -202,6 +198,10 @@ cdef class CallableConvertMap(Map):
             else:
                 parent_as_first_arg = True
         self._parent_as_first_arg = parent_as_first_arg
+        try:
+            self._repr_type_str = "Conversion via %s" % self._func.__name__
+        except AttributeError:
+            self._repr_type_str = "Conversion via %s" % self._func
 
     cpdef Element _call_(self, x):
         """
@@ -225,21 +225,56 @@ cdef class CallableConvertMap(Map):
             RuntimeError: BUG in coercion model: <function foo at ...> returned None
         """
         cdef Element y
-        if self._parent_as_first_arg:
-            y = self._func(self._codomain, x)
-        else:
-            y = self._func(x)
+        try:
+            if self._parent_as_first_arg:
+                y = self._func(self._codomain, x)
+            else:
+                y = self._func(x)
+        except:
+            if print_warnings:
+                print self._func
+                print self._codomain
+            raise
         if y is None:
             raise RuntimeError, "BUG in coercion model: %s returned None" % (self._func)
         elif y._parent is not self._codomain:
             raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent)
         return y
 
-    def _repr_type(self):
+    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        """
+        TESTS:
+            sage: from sage.structure.coerce_maps import CallableConvertMap
+            sage: def foo(P, x, y): return x or y
+            sage: f = CallableConvertMap(ZZ, ZZ, foo)
+            sage: f(0, 3)
+            3
+            sage: f = CallableConvertMap(ZZ, QQ, foo)
+            sage: f(0, 3)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: BUG in coercion model: <function foo at ...> returned element with wrong parent (expected Rational Field got Integer Ring)
+            sage: f(None, None)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: BUG in coercion model: <function foo at ...> returned None
+        """
+        cdef Element y
         try:
-            return "Conversion via %s" % self._func.__name__
-        except AttributeError:
-            return "Conversion via %s" % self._func
+            if self._parent_as_first_arg:
+                y = self._func(self._codomain, x, *args, **kwds)
+            else:
+                y = self._func(x, *args, **kwds)
+        except:
+            if print_warnings:
+                print self._func
+                print self._codomain
+            raise
+        if y is None:
+            raise RuntimeError, "BUG in coercion model: %s returned None" % (self._func)
+        elif y._parent is not self._codomain:
+            raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent)
+        return y
 
 
 cdef class CCallableConvertMap_class(Map):
@@ -254,6 +289,13 @@ cdef class CCallableConvertMap_class(Map):
         self._name = name
 
     cpdef Element _call_(self, x):
+        """
+        TESTS:
+            sage: from sage.structure.coerce_maps import test_CCallableConvertMap
+            sage: f = test_CCallableConvertMap(QQ, 'test')
+            sage: f(1/3)
+            -8/27
+        """
         return self._func(self._codomain, x)
 
     def _repr_type(self):
@@ -332,6 +374,7 @@ cdef class ListMorphism(Map):
         Map.__init__(self, domain, real_morphism.codomain())
         self._coerce_cost = real_morphism._coerce_cost + 3
         self._real_morphism = real_morphism
+        self._repr_type_str = "List"
 
     cpdef Element _call_(self, x):
         try:
@@ -347,12 +390,18 @@ cdef class ListMorphism(Map):
             x = list(x)
         return self._real_morphism._call_with_args(x, args, kwds)
 
-    def _repr_type(self):
-        return "List"
 
 cdef class TryMap(Map):
-    def __init__(self, morphism_preferred, morphism_backup, error_types=None):
-        if morphism_preferred.parent() is not morphism_backup.parent():
+    def __init__(self, Map morphism_preferred, Map morphism_backup, error_types=None):
+        """
+        TESTS:
+            sage: sage.structure.coerce_maps.TryMap(RDF.coerce_map_from(QQ), RDF.coerce_map_from(ZZ))
+            Traceback (most recent call last):
+            ...
+            TypeError: incorrectly matching parent
+        """
+        if (morphism_preferred.domain() is not morphism_backup.domain()
+             or morphism_preferred.codomain() is not morphism_backup.codomain()):
             raise TypeError, "incorrectly matching parent"
         Map.__init__(self, morphism_preferred.parent())
         self._map_p = morphism_preferred
@@ -363,12 +412,36 @@ cdef class TryMap(Map):
             self._error_types = error_types
 
     cpdef Element _call_(self, x):
+        """
+        EXAMPLES:
+            sage: map1 = sage.structure.coerce_maps.CallableConvertMap(ZZ, QQ, lambda parent, x: 1/x)
+            sage: map2 = QQ.coerce_map_from(ZZ)
+            sage: map = sage.structure.coerce_maps.TryMap(map1, map2, error_types=(ZeroDivisionError,))
+            sage: map(3)
+            1/3
+            sage: map(-7)
+            -1/7
+            sage: map(0)
+            0
+        """
         try:
             return self._map_p._call_(x)
         except self._error_types:
             return self._map_b._call_(x)
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        """
+        EXAMPLES:
+            sage: map1 = sage.structure.coerce_maps.CallableConvertMap(ZZ, QQ, lambda parent, x, y:  y/x)
+            sage: map2 = sage.structure.coerce_maps.CallableConvertMap(ZZ, QQ, lambda parent, x, y: 23/1)
+            sage: map = sage.structure.coerce_maps.TryMap(map1, map2, error_types=(ZeroDivisionError,))
+            sage: map._call_with_args(3, (2,))
+            2/3
+            sage: map._call_with_args(-7, (5,))
+            -5/7
+            sage: map._call_with_args(0, (1,))
+            23
+        """
         try:
             return self._map_p._call_with_args(x, args, kwds)
         except self._error_types:

@@ -458,6 +458,18 @@ class Set_object(Set_generic):
         except TypeError:
             raise NotImplementedError, "computation of cardinality of %s not yet implemented"%self.__object
 
+    def is_finite(self):
+        """
+        EXAMPLES:
+            sage: Set(QQ).is_finite()
+            False
+            sage: Set(GF(250037)).is_finite()
+            True
+            sage: Set(Integers(2^1000000)).is_finite()
+            True
+        """
+        return self.__object.is_finite()
+
     def object(self):
         """
         Return underlying object.

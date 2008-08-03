@@ -158,9 +158,9 @@ cdef class Parent(category_object.CategoryObject):
 #        except:
 #            print "couldn't weakref", type(self)
 
-    def init_coerce(self, bint verbose=True):
+    cdef int init_coerce(self, bint warn=True) except -1:
         if self._coerce_from_hash is None:
-            if verbose:
+            if warn:
                 print "init_coerce() for ", type(self)
                 raise ZeroDivisionError, "hello"
             self._initial_coerce_list = []
@@ -175,6 +175,23 @@ cdef class Parent(category_object.CategoryObject):
             self._embedding = None
 
     def _introspect_coerce(self):
+        """
+        Used for debugging the coercion model.
+
+        EXAMPLES:
+            sage: sorted(QQ._introspect_coerce().items())
+            [('_action_hash', {...}),
+             ('_action_list', []),
+             ('_coerce_from_hash', {...}),
+             ('_coerce_from_list', []),
+             ('_convert_from_hash', {}),
+             ('_convert_from_list', []),
+             ('_element_init_pass_parent', False),
+             ('_embedding', None),
+             ('_initial_action_list', []),
+             ('_initial_coerce_list', []),
+             ('_initial_convert_list', [])]
+        """
         return {
             '_coerce_from_list': self._coerce_from_list,
             '_coerce_from_hash': self._coerce_from_hash,
@@ -190,6 +207,13 @@ cdef class Parent(category_object.CategoryObject):
         }
 
     def __getstate__(self):
+        """
+        Used for pickling.
+
+        TESTS:
+            sage: loads(dumps(RR['x'])) == RR['x']
+            True
+        """
         d = CategoryObject.__getstate__(self)
         d['_embedding'] = self._embedding
         d['_element_constructor'] = self._element_constructor
@@ -201,6 +225,13 @@ cdef class Parent(category_object.CategoryObject):
         return d
 
     def __setstate__(self, d):
+        """
+        Used for pickling.
+
+        TESTS:
+            sage: loads(dumps(CDF['x'])) == CDF['x']
+            True
+        """
         CategoryObject.__setstate__(self, d)
         try:
             version = d['_pickle_version']
@@ -344,12 +375,55 @@ cdef class Parent(category_object.CategoryObject):
         return True
 
     def __len__(self):
-        return len(self.list())
+        """
+        Returns the number of elements in self. This is the naive algorithm
+        of listing self and counting the elements.
+
+        EXAMPLES:
+            sage: len(GF(5))
+            5
+            sage: len(MatrixSpace(GF(2), 3, 3))
+            512
+        """
+        cdef Py_ssize_t total = 0
+        if self.is_finite():
+            for x in self:
+                total += 1
+            return total
+        else:
+            raise ValueError, "%s has infinite cardinality" % self
 
     def __getitem__(self, n):
+        """
+        Returns the $n$-th item of self, by getting self as a list.
+
+        EXAMPLES:
+            sage: MatrixSpace(GF(3), 2, 2)[9]
+            [0 2]
+            [0 0]
+            sage: MatrixSpace(GF(3), 2, 2)[0]
+            [0 0]
+            [0 0]
+        """
         return self.list()[n]
 
     def __getslice__(self,  Py_ssize_t n,  Py_ssize_t m):
+        """
+        Returns the $n$-th through $m$-th items in self.
+
+        EXAMPLES:
+            sage: VectorSpace(GF(7), 3)[:10]
+            [(0, 0, 0),
+             (1, 0, 0),
+             (2, 0, 0),
+             (3, 0, 0),
+             (4, 0, 0),
+             (5, 0, 0),
+             (6, 0, 0),
+             (0, 1, 0),
+             (1, 1, 0),
+             (2, 1, 0)]
+        """
         return self.list()[int(n):int(m)]
 
     #################################################################################
@@ -584,10 +658,35 @@ cdef class Parent(category_object.CategoryObject):
         elif embedding is not None:
             raise TypeError, "embedding must be a parent or map"
 
-    def get_embedding(self):
+    def coerce_embedding(self):
+        """
+        Returns the embedding of self into some other parent, if such a parent
+        exists.
+
+        This does not mean that there are no coercion maps from self into other
+        fields, this is simply a specific morphism specified out of self and
+        ususally denotes a special relationship (e.g. sub-objects, choice of
+        completion, etc.)
+
+        EXAMPLES:
+        """
         return self._embedding
 
     cpdef _generic_convert_map(self, S):
+        r"""
+        Returns the default conversion map based on the data provided to
+        \code{_populate_coercion_lists_()}.
+
+        This called by the default \code{_coerce_map_from_()} when \code{has_coerce_map_from()}
+        returns \code{True} and can be useful for implementing one own's
+        \code{_coerce_map_from_()}.
+
+        If a \code{convert_method_name} is provided, it creates a \code{NamedConvertMap}, otherwise
+        it creates a \code{DefaultConvertMap} or \code{DefaultConvertMap_unique} depending
+        on whether or not init_no_parent is set.
+
+        EXAMPLES:
+        """
         import coerce_maps
         if self._convert_method_name is not None:
             # handle methods like _integer_
@@ -612,6 +711,16 @@ cdef class Parent(category_object.CategoryObject):
         """
         Return True if there is a natural map from S to self.
         Otherwise, return False.
+
+        EXAMPLES:
+            sage: RDF.has_coerce_map_from(QQ)
+            True
+            sage: RDF.has_coerce_map_from(QQ['x'])
+            False
+            sage: RDF['x'].has_coerce_map_from(QQ['x'])
+            True
+            sage: RDF['x,y'].has_coerce_map_from(QQ['x'])
+            True
         """
         if S is self:
             return True
@@ -629,6 +738,16 @@ cdef class Parent(category_object.CategoryObject):
         return self._has_coerce_map_from_(S)
 
     cpdef bint _has_coerce_map_from_(self, S) except -2:
+        """
+        Override this method to specify coercions beyond those
+        specified in coerce_list.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: S.<y> = R[]
+            sage: S._has_coerce_map_from_(ZZ)
+            True
+        """
         # We first check (using some cython trickery) to see if coerce_map_from_ has been overridden.
         # If it has, then we can just (by default) call it and see if it returns None or not.
         # Otherwise we return False by default (so that no canonical coercions exist)
@@ -642,7 +761,33 @@ cdef class Parent(category_object.CategoryObject):
         # At this point we are guaranteed coerce_map_from is actually implemented
         return self.coerce_map_from(S) is not None
 
+    cpdef _coerce_map_from_(self, S):
+        """
+        Override this method to specify coercions beyond those
+        specified in coerce_list.
+
+        This method must return a Map object going from S to self,
+        or None if no such coercion exists.
+        """
+        if self.has_coerce_map_from(S):
+            return self._generic_convert_map(S)
+        return None
+
     cpdef coerce_map_from(self, S):
+        """
+        This returns a Map object to coerce from S to self if one exists,
+        or None if no such coercion exists.
+
+        EXAMPLES:
+            sage: ZZ.coerce_map_from(int)
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Integer Ring
+            sage: QQ.coerce_map_from(ZZ)
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+        """
         cdef map.Map mor
         if S is self:
             from sage.categories.homset import Hom
@@ -751,12 +896,24 @@ cdef class Parent(category_object.CategoryObject):
         return best_mor
 
 
-    cpdef _coerce_map_from_(self, S):
-        if self.has_coerce_map_from(S):
-            return self._generic_convert_map(S)
-        return None
-
     cpdef convert_map_from(self, S):
+        """
+        This function returns a Map from S to self, which may or may not
+        succeed on all inputs. If a coercion map from S to self exists,
+        then the it will be returned. If a coercion from self to S exists,
+        then it will attempt to return a section of that map.
+
+        Under the new coercion model, this is the fastest way to convert
+        elements of S to elements of self (short of manually constructing
+        the elements) and is used by __call__.
+
+        EXAMPLES:
+            sage: m = ZZ.convert_map_from(QQ)
+            sage: m(-35/7)
+            -5
+            sage: parent(m(-35/7))
+            Integer Ring
+        """
         if self._convert_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
         try:
@@ -797,10 +954,23 @@ cdef class Parent(category_object.CategoryObject):
         return mor
 
     cpdef _convert_map_from_(self, S):
+        """
+        Override this method to provide additional conversions beyond those
+        given in convert_list.
+
+        This function is called after coercions are attempted.
+
+        This MUST return a Map from S to self, or None. If None is returned
+        then a generic map will be provided.
+        """
         return None
 
     cpdef get_action(self, S, op=operator.mul, bint self_on_left=True):
         """
+        Returns an action of self on S or S on self.
+
+        To provide additional actions, override _get_action_.
+
         TESTS:
             sage: M = QQ['y']^3
             sage: M.get_action(ZZ['x']['y'])
@@ -954,12 +1124,30 @@ cdef class Parent(category_object.CategoryObject):
 
 
     cpdef _get_action_(self, S, op, bint self_on_left):
+        """
+        Override this method to provide an action of self on S or S on self
+        beyond what was specified in action_list.
+
+        This must return an action which accepts an element of self and an
+        element of S (in the order specified by self_on_left).
+        """
         return None
 
     def construction(self):
         """
         Returns a pair (functor, parent) such that functor(parent) return self.
         If this ring does not have a functorial construction, return None.
+
+        EXAMPLES:
+            sage: QQ.construction()
+            (FractionField, Integer Ring)
+            sage: f, R = QQ['x'].construction()
+            sage: f
+            PolynomialFunctor
+            sage: R
+            Rational Field
+            sage: f(R)
+            Univariate Polynomial Ring in x over Rational Field
         """
         return None
 
@@ -968,25 +1156,28 @@ cdef class Parent(category_object.CategoryObject):
         Implementation of a function that returns an element (often non-trivial)
         of a parent object.  This is cached. Parent structures that are should
         override \code{_an_element_} instead.
+
+        EXAMPLES:
+            sage: CDF.an_element()
+            1.0*I
+            sage: ZZ[['t']].an_element()
+            t
         """
         if self.__an_element is None:
             self.__an_element = self._an_element_()
         return self.__an_element
-
-    cpdef _an_element_impl(self):
-        """
-        COERCE TODO
-        Here so that I didn't have to change parent.pxd.  Should be eliminated and _an_element_ made cpdef.  Also need to change:
-        sage/rings/real_rqdf.pyx
-        sage/libs/pari/gen.pyx
-        """
-        return self._an_element_()
 
     cpdef _an_element_(self):
         """
         Returns an element of self. Want it in sufficent generality
         that poorly-written functions won't work when they're not
         supposed to. This is cached so doesn't have to be super fast.
+
+        EXAMPLES:
+            sage: QQ._an_element_()
+            1/2
+            sage: ZZ['x,y,z']._an_element_()
+            x
         """
         try:
             return self.gen(0)
@@ -1083,7 +1274,17 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
         return self
 
     def __nonzero__(self):
-        return len(self) != 0
+        """
+        A set is considered True unless it is empty, in which case it is
+        considered to be False.
+
+        EXAMPLES:
+            sage: bool(Set(QQ))
+            True
+            sage: bool(Set(GF(3)))
+            True
+        """
+        return not (self.is_finite() and len(self) == 0)
 
 
 
@@ -1121,12 +1322,41 @@ cdef class Set_PythonType_class(Set_generic):
         self._type = theType
 
     def __call__(self, x):
+        """
+        This doesn't return Elements, but actual objects of the given type.
+
+        EXAMPLES:
+            sage: S = sage.structure.parent.Set_PythonType(float)
+            sage: S(5)
+            5.0
+            sage: S(9/3)
+            3.0
+            sage: S(1/3)
+            0.333333333333333...
+        """
         return self._type(x)
 
     def __hash__(self):
+        """
+        TESTS:
+            sage: S = sage.structure.parent.Set_PythonType(int)
+            sage: hash(S) == -hash(int)
+            True
+        """
         return -hash(self._type)
 
     cpdef int _cmp_(self, other) except -100:
+        """
+        Two Python type sets are considered the same if they contain the same
+        type.
+
+        EXAMPLES:
+            sage: S = sage.structure.parent.Set_PythonType(int)
+            sage: S == S
+            True
+            sage: S == sage.structure.parent.Set_PythonType(float)
+            False
+        """
         if self is other:
             return 0
         if isinstance(other, Set_PythonType_class):
@@ -1135,21 +1365,70 @@ cdef class Set_PythonType_class(Set_generic):
             return cmp(self._type, other)
 
     def __contains__(self, x):
+        """
+        Only things of the right type (or subtypes thereof) are considered to
+        belong to the set.
+
+        EXAMPLES:
+            sage: S = sage.structure.parent.Set_PythonType(tuple)
+            sage: (1,2,3) in S
+            True
+            sage: () in S
+            True
+            sage: [1,2] in S
+            False
+        """
         return isinstance(x, self._type)
 
-    def _latex_(self):
-        return self._repr_()
-
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: sage.structure.parent.Set_PythonType(tuple)
+            Set of Python objects of type 'tuple'
+            sage: sage.structure.parent.Set_PythonType(Integer)
+            Set of Python objects of type 'sage.rings.integer.Integer'
+            sage: sage.structure.parent.Set_PythonType(Parent)
+            Set of Python objects of type 'sage.structure.parent.Parent'
+        """
         return "Set of Python objects of %s"%(str(self._type)[1:-1])
 
     def object(self):
+        """
+        EXAMPLES:
+            sage: S = sage.structure.parent.Set_PythonType(tuple)
+            sage: S.object()
+            <type 'tuple'>
+        """
         return self._type
 
     def cardinality(self):
+        """
+        EXAMPLES:
+            sage: S = sage.structure.parent.Set_PythonType(bool)
+            sage: S.cardinality()
+            2
+            sage: S = sage.structure.parent.Set_PythonType(int)
+            sage: S.cardinality()
+            4294967296                        # 32-bit
+            18446744073709551616              # 64-bit
+            sage: S = sage.structure.parent.Set_PythonType(float)
+            sage: S.cardinality()
+            18437736874454810627
+            sage: S = sage.structure.parent.Set_PythonType(long)
+            sage: S.cardinality()
+            +Infinity
+        """
+        from sage.rings.integer import Integer
+        two = Integer(2)
         if self._type is bool:
-            return 2
+            return two
+        elif self._type is int:
+            import sys
+            return two*sys.maxint + 2
+        elif self._type is float:
+            return 2 * two**52 * (two**11 - 1) + 3 # all NaN's are the same from Python's point of view
         else:
+            # probably
             import sage.rings.infinity
             return sage.rings.infinity.infinity
 
@@ -1189,22 +1468,14 @@ cdef bint _unregister_pair(x, y) except -1:
         pass
 
 
-def coerce_graph(parents=None):
-    from sage.graphs.graph import DiGraph
-    G = DiGraph()
-    if parents is None:
-        parents = all_parents #.keys()
-    G.add_vertices(parents)
-    cdef Parent P
-    for P in parents:
-        for S, mor in P._coerce_from_hash.iteritems():
-            if S in parents:
-                G.add_edge(P, S, mor)
-    return G
-
-
-
 empty_set = Set_generic()
 
 def normalize_names(ngens, names):
+    """
+    TESTS:
+        sage: sage.structure.parent.normalize_names(5, 'x')
+        ('x0', 'x1', 'x2', 'x3', 'x4')
+        sage: sage.structure.parent.normalize_names(2, ['x','y'])
+        ('x', 'y')
+    """
     return empty_set.normalize_names(ngens, names)

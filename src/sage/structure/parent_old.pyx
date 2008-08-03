@@ -89,8 +89,8 @@ cdef class Parent(parent.Parent):
         # old
         self._has_coerce_map_from = {}
 
-    def init_coerce(self, dummy=False):
-        parent.Parent.init_coerce(self, dummy)
+    cdef int init_coerce(self, bint warn=False) except -1:
+        parent.Parent.init_coerce(self, warn)
 
 
     #################################################################################
@@ -431,7 +431,7 @@ cdef class Parent(parent.Parent):
             raise NotImplementedError, "%s\nAlso, please make sure you have implemented has_coerce_map_from_impl or has_coerce_map_from_c_impl (or better _an_element_c_impl or _an_element_impl if possible) for %s"%(msg,self)
         return True
 
-    cpdef _an_element_impl(self):     # override this in Python
+    def _an_element_impl(self):     # override this in Python
         check_old_coerce(self)
         return self._an_element_c_impl()
 

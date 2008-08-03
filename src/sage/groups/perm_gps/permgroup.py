@@ -62,6 +62,7 @@ AUTHOR:
     - David Joyner (2007-08): fixed bugs in composition_series, upper/lower_central_series, derived_series,
     - David Joyner (2008-06): modified is_normal (reported by W. J. Palenstijn),
                               and added normalizes
+    - David Joyner (2008-08): Added example to docstring of cohomology.
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -1022,6 +1023,11 @@ class PermutationGroup_generic(group.FiniteGroup):
             GAP package HAP (in gap_packages-*.spkg).
 
         EXAMPLES:
+            sage: gap.eval('LoadPackage("hap")')               # requires optional gap_packages
+            'true'
+            sage: G = SymmetricGroup(4)
+            sage: G.cohomology(1,2)                            # requires optional gap_packages
+            Multiplicative Abelian Group isomorphic to C2
             sage: G = SymmetricGroup(3)
             sage: G.cohomology(5)                              # requires optional gap_packages
             Trivial Abelian Group
@@ -1040,10 +1046,11 @@ class PermutationGroup_generic(group.FiniteGroup):
             David Joyner and Graham Ellis
 
         REFERENCES:
-            G. Ellis, "Computing group resolutions", J. Symbolic Computation. Vol.38, (2004)1077--1118
-            (Available at \code{http://hamilton.nuigalway.ie/}.
+            G. Ellis, "Computing group resolutions", J. Symbolic Computation. Vol.38,
+             (2004)1077--1118
+             (Available at \code{http://hamilton.nuigalway.ie/}).
             D. Joyner, "A primer on computational group homology and cohomology",
-            \code{http://front.math.ucdavis.edu/0706.0549}
+             \code{http://front.math.ucdavis.edu/0706.0549}.
 
         """
         gap.eval('RequirePackage("HAP")')

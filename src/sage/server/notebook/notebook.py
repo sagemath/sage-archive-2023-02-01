@@ -299,19 +299,64 @@ class Notebook(SageObject):
         return self.user(user).is_admin()
 
     def user_is_guest(self, username):
+        """
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
+            Creating default users.
+            sage: nb.user_is_guest('guest')
+            True
+            sage: nb.user_is_guest('admin')
+            False
+        """
         try:
             return self.user(username).is_guest()
         except KeyError:
             return False
 
     def user_list(self):
+        """
+        Returns list of user objects.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
+            Creating default users.
+            sage: sorted(nb.user_list(), key=lambda k: k.username())
+            [_sage_, admin, guest, pub]
+        """
         return list(self.users().itervalues())
 
     def usernames(self):
+        """
+        Returns list of usernames.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
+            Creating default users.
+            sage: sorted(nb.usernames())
+            ['_sage_', 'admin', 'guest', 'pub']
+        """
         U = self.users()
         return U.keys()
 
     def valid_login_names(self):
+        """
+        Returns list of users that can be signed in.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
+            Creating default users.
+            sage: nb.valid_login_names()
+            ['admin']
+            sage: nb.add_user('Mark', 'password', '', force=True)
+            sage: nb.add_user('Sarah', 'password', '', force=True)
+            sage: nb.add_user('David', 'password', '', force=True)
+            sage: sorted(nb.valid_login_names())
+            ['David', 'Mark', 'Sarah', 'admin']
+        """
         return [x for x in self.usernames() if not x in ['guest', '_sage_', 'pub']]
 
     def default_user(self):
@@ -324,6 +369,16 @@ class Notebook(SageObject):
 
         Currently this returns 'admin' if that is the *only* user.  Otherwise it
         returns the string ''.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
+            Creating default users.
+            sage: nb.default_user()
+            'admin'
+            sage: nb.add_user('AnotherUser', 'password', '', force=True)
+            sage: nb.default_user()
+            ''
         """
         if self.valid_login_names() == ['admin']:
             return 'admin'
@@ -331,9 +386,34 @@ class Notebook(SageObject):
             return ''
 
     def set_accounts(self, value):
+        """
+        Changes \var{__accounts} to \var{value}
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.get_accounts()
+            False
+            sage: nb.set_accounts(True)
+            sage: nb.get_accounts()
+            True
+            sage: nb.set_accounts(False)
+            sage: nb.get_accounts()
+            False
+        """
         self.__accounts = value
 
     def get_accounts(self):
+        """
+        Returns \var{__accounts}
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.get_accounts()
+            False
+            sage: nb.set_accounts(True)
+            sage: nb.get_accounts()
+            True
+        """
         try:
             return self.__accounts
         except AttributeError:
@@ -347,6 +427,22 @@ class Notebook(SageObject):
             password -- the password
             email -- the email address
             account_type -- one of 'user', 'admin', or 'guest'
+            force -- bool
+
+        If the method get_accounts returns False then user can only be added if force=True
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('Mark', 'password', '', force=True)
+            sage: nb.user('Mark')
+            Mark
+            sage: nb.add_user('Sarah', 'password', '')
+            Traceback (most recent call last):
+            ValueError: creating new accounts disabled.
+            sage: nb.set_accounts(True)
+            sage: nb.add_user('Sarah', 'password', '')
+            sage: nb.user('Sarah')
+            Sarah
         """
         if not self.get_accounts() and not force:
             raise ValueError, "creating new accounts disabled."
@@ -358,9 +454,36 @@ class Notebook(SageObject):
         us[username] = U
 
     def change_password(self, username, password):
+        """
+        INPUT:
+            username -- the username
+            password -- the password to change the user's password to
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('Mark', 'password', '', force=True)
+            sage: nb.user('Mark').password()
+            'aajfMKNH1hTm2'
+            sage: nb.change_password('Mark', 'different_password')
+            sage: nb.user('Mark').password()
+            'aaTlXok5npQME'
+        """
         self.user(username).set_password(password)
 
     def del_user(self, username):
+        """
+        Deletes the given user
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('Mark', 'password', '', force=True)
+            sage: nb.user('Mark')
+            Mark
+            sage: nb.del_user('Mark')
+            sage: nb.user('Mark')
+            Traceback (most recent call last):
+            KeyError: "no user 'Mark'"
+        """
         us = self.users()
         if us.has_key(username):
             del us[username]
@@ -368,10 +491,35 @@ class Notebook(SageObject):
     def passwords(self):
         """
         Return the username:password dictionary.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
+            Creating default users.
+            sage: nb.add_user('Mark', 'password', '', force=True)
+            sage: list(sorted(nb.passwords().iteritems()))
+            [('Mark', 'aajfMKNH1hTm2'), ('_sage_', 'aaQSqAReePlq6'), ('admin', 'aajfMKNH1hTm2'), ('guest', 'aaQSqAReePlq6'), ('pub', 'aaQSqAReePlq6')]
         """
         return dict([(user.username(), user.password()) for user in self.user_list()])
 
     def user_conf(self, username):
+        """
+        Returns a user's configuration.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
+            Creating default users.
+            sage: config = nb.user_conf('admin')
+            sage: config['max_history_length']
+            500
+            sage: config['default_system']
+            'sage'
+            sage: config['autosave_interval']
+            180
+            sage: config['default_pretty_print']
+            False
+        """
         return self.users()[username].conf()
 
     ##########################################################

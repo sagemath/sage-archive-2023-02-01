@@ -565,6 +565,8 @@ class Notebook(SageObject):
                     shutil.rmtree(X.data_directory(), ignore_errors=True)
                 if os.path.exists(X.cells_directory()):
                     shutil.rmtree(X.cells_directory(), ignore_errors=True)
+                if os.path.exists(X.snapshot_directory()):
+                    shutil.rmtree(X.snapshot_directory(), ignore_errors=True)
                 self._initialize_worksheet(worksheet, X)
                 X.set_worksheet_that_was_published(worksheet)
                 X.move_to_archive(username)

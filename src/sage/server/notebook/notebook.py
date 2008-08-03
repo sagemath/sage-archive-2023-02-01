@@ -137,16 +137,17 @@ class Notebook(SageObject):
         all data.
 
         EXAMPLES:
-            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
-            sage: sorted(os.listdir('notebook-test'))
+            sage: tmp = tmp_dir()
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp)
+            sage: sorted(os.listdir(tmp))
             ['backups', 'nb.sobj', 'objects', 'worksheets']
             sage: nb.delete()
 
         Now the directory is gone.
-            sage: os.listdir('notebook-test')
+            sage: os.listdir(tmp)
             Traceback (most recent call last):
             ...
-            OSError: [Errno 2] No such file or directory: 'notebook-test'
+            OSError: [Errno 2] No such file or directory: '...
         """
         try:
             dir = self.__absdir
@@ -169,22 +170,21 @@ class Notebook(SageObject):
             passwd -- a string
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: n.create_default_users('password')
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
             Creating default users.
-            sage: list(sorted(n.users().iteritems()))
+            sage: list(sorted(nb.users().iteritems()))
             [('_sage_', _sage_), ('admin', admin), ('guest', guest), ('pub', pub)]
-            sage: list(sorted(n.passwords().iteritems()))
+            sage: list(sorted(nb.passwords().iteritems()))
             [('_sage_', 'aaQSqAReePlq6'), ('admin', 'aajfMKNH1hTm2'), ('guest', 'aaQSqAReePlq6'), ('pub', 'aaQSqAReePlq6')]
-            sage: n.create_default_users('newpassword')
+            sage: nb.create_default_users('newpassword')
             Creating default users.
             WARNING: User 'pub' already exists -- and is now being replaced.
             WARNING: User '_sage_' already exists -- and is now being replaced.
             WARNING: User 'guest' already exists -- and is now being replaced.
             WARNING: User 'admin' already exists -- and is now being replaced.
-            sage: list(sorted(n.passwords().iteritems()))
+            sage: list(sorted(nb.passwords().iteritems()))
             [('_sage_', 'aaQSqAReePlq6'), ('admin', 'aajH86zjeUSDY'), ('guest', 'aaQSqAReePlq6'), ('pub', 'aaQSqAReePlq6')]
-            sage: n.delete()
         """
         print "Creating default users."
         self.add_user('pub', '', '', account_type='user', force=True)
@@ -197,18 +197,17 @@ class Notebook(SageObject):
         Return whether or not a user exists given a username.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: n.create_default_users('password')
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
             Creating default users.
-            sage: n.user_exists('admin')
+            sage: nb.user_exists('admin')
             True
-            sage: n.user_exists('pub')
+            sage: nb.user_exists('pub')
             True
-            sage: n.user_exists('mark')
+            sage: nb.user_exists('mark')
             False
-            sage: n.user_exists('guest')
+            sage: nb.user_exists('guest')
             True
-            sage: n.delete()
         """
         return username in self.users()
 
@@ -217,12 +216,12 @@ class Notebook(SageObject):
         Returns dictionary of users in a notebook.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: n.create_default_users('password')
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
             Creating default users.
-            sage: list(sorted(n.users().iteritems()))
+            sage: list(sorted(nb.users().iteritems()))
             [('_sage_', _sage_), ('admin', admin), ('guest', guest), ('pub', pub)]
-            sage: n.delete()
+            sage: nb.delete()
         """
         try:
             return self.__users
@@ -236,16 +235,15 @@ class Notebook(SageObject):
         a notebook.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: n.create_default_users('password')
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.create_default_users('password')
             Creating default users.
-            sage: n.user('admin')
+            sage: nb.user('admin')
             admin
-            sage: n.user('admin')._User__email
+            sage: nb.user('admin')._User__email
             ''
-            sage: n.user('admin')._User__password
+            sage: nb.user('admin')._User__password
             'aajfMKNH1hTm2'
-            sage: n.delete()
         """
         if '/' in username:
             raise ValueError
@@ -266,11 +264,13 @@ class Notebook(SageObject):
     def create_user_with_same_password(self, user, other_user):
         """
         INPUT:
-           user -- a string
-           other_user -- a string
+            user -- a string
+            other_user -- a string
         OUTPUT:
-           creates the given user and makes their password the
-           same as for other_user.
+            creates the given user and makes their password the
+            same as for other_user.
+
+        EXAMPLES:
         """
         U = self.user(user)
         O = self.user(other_user)
@@ -484,16 +484,15 @@ class Notebook(SageObject):
         files associated with the worksheets that are in the trash.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
-            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.new_worksheet_with_title_from_text('Sage', owner='sage')
             sage: W.move_to_trash('sage')
-            sage: n.worksheet_names()
+            sage: nb.worksheet_names()
             ['sage/0']
-            sage: n.empty_trash('sage')
-            sage: n.worksheet_names()
+            sage: nb.empty_trash('sage')
+            sage: nb.worksheet_names()
             []
-            sage: n.delete()
         """
         X = self.get_worksheets_with_viewer(username)
         X = [W for W in X if W.is_trashed(username)]
@@ -511,14 +510,13 @@ class Notebook(SageObject):
 
         EXAMPLES:
         We make a new notebook with two users and two worksheets, then list their names:
-            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
-            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
-            sage: n.add_user('wstein','sage','wstein@sagemath.org',force=True)
-            sage: W2 = n.new_worksheet_with_title_from_text('Elliptic Curves', owner='wstein')
-            sage: n.worksheet_names()
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: nb.add_user('wstein','sage','wstein@sagemath.org',force=True)
+            sage: W2 = nb.new_worksheet_with_title_from_text('Elliptic Curves', owner='wstein')
+            sage: nb.worksheet_names()
             ['sage/0', 'wstein/0']
-            sage: n.delete()
         """
         W = self.__worksheets.keys()
         W.sort()
@@ -780,7 +778,7 @@ class Notebook(SageObject):
 
         EXAMPLES:
         We create a notebook and import a plain text worksheet into it.
-            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\n2+3\n}}}')
             sage: W = nb.import_worksheet(name, 'admin')
@@ -790,7 +788,6 @@ class Notebook(SageObject):
             'foo'
             sage: W.cell_list()
             [Cell 0; in=2+3, out=]
-            sage: nb.delete()
         """
         if not os.path.exists(filename):
             raise ValueError, "no file %s"%filename
@@ -820,13 +817,13 @@ class Notebook(SageObject):
             a new worksheet
 
         EXAMPLES:
-        We create a worksheet, make a file, and import it using this function.
-            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            We write a plain text worksheet to a file and import it using this function.
+
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\na = 10\n}}}')
             sage: W = nb._import_worksheet_txt(name, 'admin'); W
             [Cell 0; in=a = 10, out=]
-            sage: nb.delete()
         """
         # Open the worksheet txt file and load it in.
         worksheet_txt = open(filename).read()
@@ -852,7 +849,7 @@ class Notebook(SageObject):
 
         EXAMPLES:
         We create a notebook, then make a worksheet from a plain text file first.
-            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\n2+3\n}}}')
             sage: W = nb.import_worksheet(name, 'admin')
@@ -870,7 +867,6 @@ class Notebook(SageObject):
         Yep, it's there now (as admin/2):
             sage: nb.worksheet_names()
             ['admin/0', 'admin/2']
-            sage: nb.delete()
         """
         # Decompress the worksheet to a temporary directory.
         tmp = tmp_dir()

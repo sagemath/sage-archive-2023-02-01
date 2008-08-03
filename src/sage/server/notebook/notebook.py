@@ -213,7 +213,7 @@ class Notebook(SageObject):
 
     def users(self):
         """
-        Returns dictionary of users in a notebook.
+        Return dictionary of users in a notebook.
 
         EXAMPLES:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
@@ -230,7 +230,7 @@ class Notebook(SageObject):
 
     def user(self, username):
         """
-        Returns an instance of the User class given the username of a user in
+        Return an instance of the User class given the username of a user in
         a notebook.
 
         EXAMPLES:
@@ -316,7 +316,7 @@ class Notebook(SageObject):
 
     def user_list(self):
         """
-        Returns list of user objects.
+        Return list of user objects.
 
         EXAMPLES:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
@@ -329,7 +329,7 @@ class Notebook(SageObject):
 
     def usernames(self):
         """
-        Returns list of usernames.
+        Return list of usernames.
 
         EXAMPLES:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
@@ -343,7 +343,7 @@ class Notebook(SageObject):
 
     def valid_login_names(self):
         """
-        Returns list of users that can be signed in.
+        Return list of users that can be signed in.
 
         EXAMPLES:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
@@ -404,7 +404,7 @@ class Notebook(SageObject):
 
     def get_accounts(self):
         """
-        Returns \var{__accounts}
+        Return \var{__accounts}
 
         EXAMPLES:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
@@ -429,7 +429,7 @@ class Notebook(SageObject):
             account_type -- one of 'user', 'admin', or 'guest'
             force -- bool
 
-        If the method get_accounts returns False then user can only be added if force=True
+        If the method get_accounts return False then user can only be added if force=True
 
         EXAMPLES:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
@@ -504,7 +504,7 @@ class Notebook(SageObject):
 
     def user_conf(self, username):
         """
-        Returns a user's configuration.
+        Return a user's configuration.
 
         EXAMPLES:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
@@ -544,6 +544,19 @@ class Notebook(SageObject):
 
         This creates a new worksheet in the \file{pub} directory with the
         same contents as \var{worksheet}.
+
+        EXAMPLES:
+        We make a new notebook with two users and two worksheets, then list their names:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('Mark','password','',force=True)
+            sage: W = nb.new_worksheet_with_title_from_text('First steps', owner='Mark')
+            sage: nb.worksheet_names()
+            ['Mark/0']
+            sage: nb.publish_worksheet(nb.get_worksheet_with_filename('Mark/0'), 'Mark')
+            <BLANKLINE>
+            [Cell 0; in=, out=]
+            sage: sorted(nb.worksheet_names())
+            ['Mark/0', 'pub/0']
         """
         for X in self.__worksheets.itervalues():
             if X.is_published() and X.worksheet_that_was_published() == worksheet:
@@ -2122,7 +2135,7 @@ function save_worksheet_and_close() {
 
     def html_beforepublish_window(self, worksheet, username):
         """
-        Returns the html code for a page dedicated to worksheet publishing prior to the
+        Return the html code for a page dedicated to worksheet publishing prior to the
         publication of the given worksheet.
 
         INPUT:
@@ -2150,7 +2163,7 @@ function save_worksheet_and_close() {
 
     def html_afterpublish_window(self, worksheet, username, addr, dtime):
         """
-        Returns the html code for a page dedicated to worksheet publishing after the
+        Return the html code for a page dedicated to worksheet publishing after the
         publication of the given worksheet.
 
         INPUT:

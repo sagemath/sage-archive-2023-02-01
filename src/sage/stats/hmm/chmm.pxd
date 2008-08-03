@@ -1,3 +1,10 @@
+#############################################################################
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version at your option.
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
 
 from hmm cimport HiddenMarkovModel
 
@@ -194,6 +201,9 @@ cdef extern from "ghmm/smodel.h":
 
     int ghmm_cmodel_free (ghmm_cmodel ** smo)
 
+    # Normalizes initial and transition probabilities and mixture weights.
+    # 0 on success / -1 on error
+    int ghmm_cmodel_normalize(ghmm_cmodel *smo)
 
 cdef class ContinuousHiddenMarkovModel(HiddenMarkovModel):
     cdef ghmm_cmodel* m

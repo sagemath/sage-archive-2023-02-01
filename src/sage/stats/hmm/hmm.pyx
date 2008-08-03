@@ -11,6 +11,14 @@ TODO:
    * continuous hmm's
 """
 
+#############################################################################
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version at your option.
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
 import math
 
 from sage.matrix.all import is_Matrix, matrix
@@ -22,24 +30,67 @@ include "../../ext/stdsage.pxi"
 include "misc.pxi"
 
 cdef class HiddenMarkovModel:
+    """
+    Abstract base class for all Hidden Markov Models.
+
+    INPUT:
+        A -- matrix or list
+        B -- matrix or list
+        pi -- list of floats
+
+    EXAMPLES:
+    One shouldn't directly call this constructor since this class is an abstract
+    base class.
+        sage: sage.stats.hmm.hmm.HiddenMarkovModel([[0.4,0.6],[1,0]], [[1,0],[0.5,0.5]], [0.5,0.5])
+        <sage.stats.hmm.hmm.HiddenMarkovModel object at ...>
+    """
     def __init__(self, A, B, pi):
+        """
+        INPUT:
+            A -- matrix or list
+            B -- matrix or list
+            pi -- list of floats
+
+        EXAMPLES:
+            sage: hmm.DiscreteHiddenMarkovModel([[1]], [[0.0,1.0]], [1])
+            Discrete Hidden Markov Model with 1 States and 2 Emissions
+            Transition matrix:
+            [1.0]
+            Emission matrix:
+            [0.0 1.0]
+            Initial probabilities: [1.0]
+        """
+        # Convert A to a matrix
         if not is_Matrix(A):
-            A = matrix(RDF, len(A), len(A[0]), A)
+            n = len(A)
+            A = matrix(RDF, n, len(A[0]) if n > 0 else 0, A)
+
+        # Convert B to a matrix
         if not is_Matrix(B):
-            B = matrix(RDF, len(B), len(B[0]), B)
+            n = len(B)
+            B = matrix(RDF, n, len(B[0]) if n > 0 else 0, B)
+
+        # Some consistency checks
         if not A.is_square():
+            print A.parent()
             raise ValueError, "A must be square"
         if A.nrows() != B.nrows():
             raise ValueError, "number of rows of A and B must be the same"
+
+        # Make sure A and B are over RDF.
         if A.base_ring() != RDF:
             A = A.change_ring(RDF)
         if B.base_ring() != RDF:
             B = B.change_ring(RDF)
 
+        # Make sure the initial probabilities are all floats.
         self.pi = [float(x) for x in pi]
         if len(self.pi) != A.nrows():
             raise ValueError, "length of pi must equal number of rows of A"
 
+        # Record the now validated matrices A and B as attributes.
+        # They get used later as attributes in the constructors for
+        # derived classes.
         self.A = A
         self.B = B
 
@@ -56,16 +107,15 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             name -- (optional) name of the model
 
         EXAMPLES:
-        We create a discrete HMM with 2 internal states on an alphabet of
-        size 2.
-
+        We create a discrete HMM with 2 internal states on an alphabet of size 2.
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.2,0.8],[0.5,0.5]], [[1,0],[0,1]], [0,1])
-
         """
+        # memory has not all been setup yet.
         self.initialized = False
+
+        # This sets self.A, self.B and pi after doing appropriate coercions, etc.
         HiddenMarkovModel.__init__(self, A, B, pi)
 
-        cdef Py_ssize_t i, j, k
         self.set_emission_symbols(emission_symbols)
 
         self.m = <ghmm_dmodel*> safe_malloc(sizeof(ghmm_dmodel))
@@ -101,7 +151,9 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         silent_states = []
         tmp_order     = []
 
-        for i in range(self.m.N):
+        cdef Py_ssize_t i, j, k
+
+        for i from 0 <= i < self.m.N:
             v = self.B[i]
 
             # Get a reference to the i-th state for convenience of the notation below.
@@ -127,50 +179,107 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
             silent_states.append( 1 if sum(v) == 0 else 0)
 
-            # Set out probabilities, i.e., the probabilities that each
-            # symbol will be emitted from this state.
+            # Set "out" probabilities, i.e., the probabilities to
+            # transition to another hidden state from this state.
             v = self.A[i]
-            nz = v.nonzero_positions()
-            k = len(nz)
+            k = self.m.N
             state.out_states = k
             state.out_id = <int*> safe_malloc(sizeof(int)*k)
             state.out_a  = <double*> safe_malloc(sizeof(double)*k)
-            for j in range(k):
-                state.out_id[j] = nz[j]
-                state.out_a[j]  = v[nz[j]]
+            for j from 0 <= j < k:
+                state.out_id[j] = j
+                state.out_a[j]  = v[j]
 
             # Set "in" probabilities
             v = self.A.column(i)
-            nz = v.nonzero_positions()
-            k = len(nz)
             state.in_states = k
             state.in_id = <int*> safe_malloc(sizeof(int)*k)
             state.in_a  = <double*> safe_malloc(sizeof(double)*k)
-            for j in range(k):
-                state.in_id[j] = nz[j]
-                state.in_a[j]  = v[nz[j]]
+            for j from 0 <= j < k:
+                state.in_id[j] = j
+                state.in_a[j]  = v[j]
 
             state.fix = 0
 
         self.m.s = states
         self.initialized = True
 
-##         if sum(silent_states) > 0:
-##             self.m.model_type |= GHMM_kSilentStates
-##             self.m.silent = to_int_array(silent_states)
-##         self.m.maxorder = max(tmp_order)
-##         if self.m.maxorder > 0:
-##             self.m.model_type |= GHMM_kHigherOrderEmissions
-##             self.m.order = to_int_array(tmp_order)
-##         # Initialize lookup table for powers of the alphabet size,
-##         # which speeds up models with higher order states.
-##         powLookUp = [1] * (self.m.maxorder+2)
-##         for i in range(1,len(powLookUp)):
-##             powLookUp[i] = powLookUp[i-1] * self.m.M
-##         self.m.pow_lookup = to_int_array(powLookUp)
-##         self.initialized = True
+    def __cmp__(self, other):
+        """
+        Compare two Discrete HMM's.
+
+        INPUT:
+            self, other -- objects; if other is not a Discrete HMM compare types.
+        OUTPUT:
+            -1,0,1
+
+        The transition matrices are compared, then the emission
+        parameters, and the initial probabilities.  The names are not
+        compared, so two GHMM's with the same parameters but different
+        names compare to be equal.
+
+        EXAMPLES:
+            sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [1,2])
+            sage: m.__cmp__(m)
+            0
+
+        Note that the name doesn't matter:
+            sage: n = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [1,2])
+            sage: m.__cmp__(n)
+            0
+
+        Normalizing fixes the initial probabilities, hence m and n are no longer equal.
+            sage: n.normalize()
+            sage: m.__cmp__(n)
+            1
+        """
+        if not isinstance(other, DiscreteHiddenMarkovModel):
+            return cmp(type(self), type(other))
+
+        if self is other: return 0  # easy special case
+
+        cdef DiscreteHiddenMarkovModel o = other
+        if self.m.N < o.m.N:
+            return -1
+        elif self.m.N > o.m.N:
+            return 1
+        cdef Py_ssize_t i, j
+
+        # This code is similar to code in chmm.pyx, but with several small differences.
+
+        # Compare transition matrices
+        for i from 0 <= i < self.m.N:
+            for j from 0 <= j < self.m.s[i].out_states:
+                if self.m.s[i].out_a[j] < o.m.s[i].out_a[j]:
+                    return -1
+                elif self.m.s[i].out_a[j] > o.m.s[i].out_a[j]:
+                    return 1
+
+        # Compare emission matrices
+        for i from 0 <= i < self.m.N:
+            for j from 0 <= j < self.B._ncols:
+                if self.m.s[i].b[j] < o.m.s[i].b[j]:
+                    return -1
+                elif self.m.s[i].b[j] > o.m.s[i].b[j]:
+                    return 1
+
+        # Compare initial state probabilities
+        for 0 <= i < self.m.N:
+            if self.m.s[i].pi < o.m.s[i].pi:
+                return -1
+            elif self.m.s[i].pi > o.m.s[i].pi:
+                return 1
+
+        return 0
 
     def __dealloc__(self):
+        """
+        Deallocate memory allocated by the HMM.
+
+        EXAMPLES:
+            sage: a = hmm.DiscreteHiddenMarkovModel([[0.2,0.8],[0.5,0.5]], [[1,0],[0,1]], [0,1])  # indirect doctest
+            sage: del a
+        """
         if self.initialized:
             ghmm_dmodel_free(&self.m)
 
@@ -184,14 +293,14 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         EXAMPLES:
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[0.9,0.1],[0.1,0.9]], [0.5,0.5], [3/4, 'abc'])
             sage: a.__repr__()
-            "Discrete Hidden Markov Model (2 states, 2 outputs)\nInitial probabilities: [0.5, 0.5]\nTransition matrix:\n[0.1 0.9]\n[0.1 0.9]\nEmission matrix:\n[0.9 0.1]\n[0.1 0.9]\nEmission symbols: [3/4, 'abc']"
+            "Discrete Hidden Markov Model with 2 States and 2 Emissions\nTransition matrix:\n[0.1 0.9]\n[0.1 0.9]\nEmission matrix:\n[0.9 0.1]\n[0.1 0.9]\nInitial probabilities: [0.5, 0.5]\nEmission symbols: [3/4, 'abc']"
         """
-        s = "Discrete Hidden Markov Model%s (%s states, %s outputs)"%(
+        s = "Discrete Hidden Markov Model%s with %s States and %s Emissions"%(
             ' ' + self.m.name if self.m.name else '',
             self.m.N, self.m.M)
-        s += '\nInitial probabilities: %s'%self.initial_probabilities()
         s += '\nTransition matrix:\n%s'%self.transition_matrix()
         s += '\nEmission matrix:\n%s'%self.emission_matrix()
+        s += '\nInitial probabilities: %s'%self.initial_probabilities()
         if self._emission_symbols_dict:
             s += '\nEmission symbols: %s'%self._emission_symbols
         return s
@@ -251,14 +360,14 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,1],[1.2,0.9]], [[1,0.5],[0.5,1]], [0.1,1.2])
             sage: a.normalize()
             sage: a
-            Discrete Hidden Markov Model (2 states, 2 outputs)
-            Initial probabilities: [0.076923076923076927, 0.92307692307692302]
+            Discrete Hidden Markov Model with 2 States and 2 Emissions
             Transition matrix:
             [0.333333333333 0.666666666667]
             [0.571428571429 0.428571428571]
             Emission matrix:
             [0.666666666667 0.333333333333]
             [0.333333333333 0.666666666667]
+            Initial probabilities: [0.076923076923076927, 0.92307692307692302]
         """
         ghmm_dmodel_normalize(self.m)
 
@@ -491,14 +600,14 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         Now the model's emission matrix changes since it is much
         more likely to emit 1 than 0.
             sage: a
-            Discrete Hidden Markov Model (2 states, 2 outputs)
-            Initial probabilities: [0.5, 0.5]
+            Discrete Hidden Markov Model with 2 States and 2 Emissions
             Transition matrix:
             [0.5 0.5]
             [0.5 0.5]
             Emission matrix:
             [0.166666666667 0.833333333333]
             [0.166666666667 0.833333333333]
+            Initial probabilities: [0.5, 0.5]
 
         Note that 1/6 = 1.666...:
             sage: 1.0/6
@@ -509,14 +618,14 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.5,0.5]], [[0.5,0.5],[0.5,0.5]], [0.5,0.5], ['up','down'])
             sage: a.baum_welch([['up','up'], ['down','up']])
             sage: a
-            Discrete Hidden Markov Model (2 states, 2 outputs)
-            Initial probabilities: [0.5, 0.5]
+            Discrete Hidden Markov Model with 2 States and 2 Emissions
             Transition matrix:
             [0.5 0.5]
             [0.5 0.5]
             Emission matrix:
             [0.75 0.25]
             [0.75 0.25]
+            Initial probabilities: [0.5, 0.5]
             Emission symbols: ['up', 'down']
 
         NOTE: Training for models including silent states is not yet supported.
@@ -544,6 +653,15 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 ##################################################################################
 
 cdef ghmm_dseq* malloc_ghmm_dseq(seqs) except NULL:
+    """
+    Allocate a discrete sequence of samples.
+
+    INPUT:
+        seqs -- a list of sequences
+
+    OUTPUT:
+        C pointer to ghmm_dseq
+    """
     cdef ghmm_dseq* d = ghmm_dseq_calloc(len(seqs))
     if d == NULL:
         raise MemoryError

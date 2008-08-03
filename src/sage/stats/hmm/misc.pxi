@@ -1,5 +1,24 @@
+#############################################################################
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version at your option.
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
+cdef extern from "string.h":
+    char *strcpy(char *s1, char *s2)
 
 cdef double* to_double_array(v) except NULL:
+    """
+    Transform a Python list of floats to a C array of doubles.  The caller is
+    responsible for deallocating the resulting memory.
+
+    INPUT:
+        v -- a list of objects coercible to floats
+    OUTPUT:
+        a newly allocated C array of doubles
+    """
     cdef double x
     cdef double* w = <double*> safe_malloc(sizeof(double)*len(v))
     cdef Py_ssize_t i = 0
@@ -9,6 +28,15 @@ cdef double* to_double_array(v) except NULL:
     return w
 
 cdef int* to_int_array(v) except NULL:
+    """
+    Transform a Python list of ints to a C array of ints.  The caller is
+    responsible for deallocating the resulting memory.
+
+    INPUT:
+        v -- a list of objects coercible to ints
+    OUTPUT:
+        a newly allocated C array of ints
+    """
     cdef int x
     cdef int* w = <int*> safe_malloc(sizeof(int)*len(v))
     cdef Py_ssize_t i = 0
@@ -21,6 +49,12 @@ cdef void* safe_malloc(int bytes) except NULL:
     """
     malloc the given bytes of memory and check that the malloc
     succeeds -- if not raise a MemoryError.
+
+    INPUT:
+        bytes -- a nonnegatie integer
+
+    OUTPUT:
+        void pointer or raise a MemoryError.
     """
     cdef void* t = sage_malloc(bytes)
     if not t:

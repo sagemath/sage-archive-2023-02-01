@@ -221,7 +221,6 @@ class Notebook(SageObject):
             Creating default users.
             sage: list(sorted(nb.users().iteritems()))
             [('_sage_', _sage_), ('admin', admin), ('guest', guest), ('pub', pub)]
-            sage: nb.delete()
         """
         try:
             return self.__users
@@ -262,15 +261,24 @@ class Notebook(SageObject):
             raise KeyError, "no user '%s'"%username
 
     def create_user_with_same_password(self, user, other_user):
-        """
+        r"""
         INPUT:
             user -- a string
             other_user -- a string
         OUTPUT:
-            creates the given user and makes their password the
-            same as for other_user.
+            Changes password of \var{user} to that of \var{other_user}.
 
         EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('bob', 'an**d', 'bob@gmail.com', force=True)
+            sage: nb.user('bob').password()
+            'aa4Q6Jbx/MiUs'
+            sage: nb.add_user('mary', 'ccd', 'mary@gmail.com', force=True)
+            sage: nb.user('mary').password()
+            'aaxr0gcWJMXKU'
+            sage: nb.create_user_with_same_password('bob', 'mary')
+            sage: nb.user('bob').password() == nb.user('mary').password()
+            True
         """
         U = self.user(user)
         O = self.user(other_user)

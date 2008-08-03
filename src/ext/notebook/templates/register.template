@@ -94,7 +94,7 @@ $password_error
 $confirm_pass_error
 </li>
 <li><h2>Enter your e-mail address</h2>
-<p>Your e-mail address is needed so you can recover your account if you ever forget your password.</p>
+<p>Your e-mail address is required for account confirmation and recovery. You will be emailed a confirmation link right after you successfully sign up.</p>
 <input type="text" name="email" value="$email" class="entry" />
 $email_error
 </li>

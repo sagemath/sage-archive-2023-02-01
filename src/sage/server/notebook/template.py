@@ -39,11 +39,15 @@ templates = ['login', 'yes_no', 'failed_login', 'register']
 for name in templates:
     G[name + '_template'] =  PageTemplate(pjoin(path, '%s.template'%name))
 
-def login_page_template(accounts, default_user, is_username_error=False, is_password_error=False, welcome=None):
+def login_page_template(accounts, default_user, is_username_error=False, is_password_error=False, welcome=None, recover=False):
     if accounts:
         reg = "<a href='/register'><b>Sign up for a new SAGE Notebook account</b></a>"
     else:
         reg = ""
+    if recover:
+        forgot_pass = "<a href='/forgotpass'><b>Forgot password</b></a>"
+    else:
+        forgot_pass = ''
     if is_username_error:
         u_e = '<tr><td align=right><span style="color:red">Error:</span></td><td>Username is not in the system</td></tr>'
     else:
@@ -56,9 +60,9 @@ def login_page_template(accounts, default_user, is_username_error=False, is_pass
         welcome = '<h2>Congratulations %s! You can now sign into the Sage Notebook.</h2>' % welcome
     else:
         welcome = ''
-    return login_template(register = reg, default=default_user, username_error=u_e, password_error=p_e, welcome=welcome)
+    return login_template(register = reg, default=default_user, username_error=u_e, password_error=p_e, welcome=welcome, forgot_pass=forgot_pass)
 
-def registration_page_template(error=None, input=None):
+def registration_page_template(is_email=False, error=None, input=None):
     keywords = dict([(i, '') for i in ['error', 'username', 'username_error', 'password_error', 'confirm_pass_error', 'email', 'email_error']])
     def error_html(msg):
         return '<p><span class="error">Error:</span> ' + msg + '</p>'
@@ -90,6 +94,18 @@ def registration_page_template(error=None, input=None):
         if 'retype_password' in input:
             del input['retype_password']
         keywords.update(input)
+
+    if is_email:
+        e_box = """<li><h2>Enter your e-mail address</h2>
+<p>Your e-mail address is required for account confirmation and recovery. You will be emailed a confirmation link right after you successfully sign up.</p>
+<input type="text" name="email" value="%s" class="entry" />
+%s
+</li>""" % (keywords['email'], keywords['email_error'])
+    else:
+        e_box = ''
+    keywords['email_box'] = e_box
+    del keywords['email']
+    del keywords['email_error']
     template = Template(file.read()).substitute(keywords)
     file.close()
     return template

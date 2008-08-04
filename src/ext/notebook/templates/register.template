@@ -93,11 +93,7 @@ $password_error
 <input type="password" name="retype_password" class="entry" />
 $confirm_pass_error
 </li>
-<li><h2>Enter your e-mail address</h2>
-<p>Your e-mail address is required for account confirmation and recovery. You will be emailed a confirmation link right after you successfully sign up.</p>
-<input type="text" name="email" value="$email" class="entry" />
-$email_error
-</li>
+$email_box
 </ol>
 <input type="submit" value="Create account" class="button" />
 <input type="button" value="Cancel" style="margin-left:10px" onClick="parent.location='/'" class="button" />

@@ -140,7 +140,8 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         # Assign model identifier if specified
         if name is not None:
             name = str(name)
-            self.m.name = name
+            self.m.name = <char*> safe_malloc(len(name))
+            strcpy(self.m.name, name)
         else:
             self.m.name = NULL
 
@@ -270,7 +271,21 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             elif self.m.s[i].pi > o.m.s[i].pi:
                 return 1
 
-        return 0
+        # Compare emission symbols
+        return cmp(self._emission_symbols, o._emission_symbols)
+
+    def __reduce__(self):
+        """
+        Used in pickling.
+
+        EXAMPLES:
+            sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [0,1], ['a','b'], name='test model')
+            sage: f,g = m.__reduce__()
+            sage: f(*g) == m
+            True
+        """
+        return unpickle_discrete_hmm_v0, (self.transition_matrix(), self.emission_matrix(),
+                      self.initial_probabilities(), self._emission_symbols, self.name())
 
     def __dealloc__(self):
         """
@@ -304,6 +319,29 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         if self._emission_symbols_dict:
             s += '\nEmission symbols: %s'%self._emission_symbols
         return s
+
+    def name(self):
+        """
+        Return the name of this model.
+
+        OUTPUT:
+            string or None
+
+        EXAMPLES:
+            sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [1,2], name='test model')
+            sage: m.name()
+            'test model'
+
+        If the model is not explicitly named then this function returns None:
+            sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [1,2])
+            sage: m.name() is None
+            True
+        """
+        if self.m.name:
+            s = str(self.m.name)
+            return s
+        else:
+            return None
 
     def initial_probabilities(self):
         """
@@ -683,3 +721,25 @@ cdef ghmm_dseq* malloc_ghmm_dseq(seqs) except NULL:
         d.seq_w[i] = 1
     d.flags = 0
     return d
+
+
+def unpickle_discrete_hmm_v0(A, B, pi, emission_symbols,name):
+    """
+    TESTS:
+        sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [1,0], name='test model')
+        sage: loads(dumps(m)) == m
+        True
+        sage: loads(dumps(m)).name()
+        'test model'
+        sage: sage.stats.hmm.hmm.unpickle_discrete_hmm_v0(m.transition_matrix(), m.emission_matrix(), m.initial_probabilities(), ['a','b'], m.name())
+        Discrete Hidden Markov Model test model with 2 States and 2 Emissions
+        Transition matrix:
+        [0.4 0.6]
+        [0.1 0.9]
+        Emission matrix:
+        [0.0 1.0]
+        [1.0 1.0]
+        Initial probabilities: [1.0, 0.0]
+        Emission symbols: ['a', 'b']
+    """
+    return DiscreteHiddenMarkovModel(A,B,pi,emission_symbols,name)

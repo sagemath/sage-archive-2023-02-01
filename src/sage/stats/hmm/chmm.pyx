@@ -221,6 +221,19 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
 
         self.initialized = True
 
+    def __reduce__(self):
+        """
+        Used in pickling.
+
+        EXAMPLES:
+            sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(0,1)], [1], 'test')
+            sage: f,g = m.__reduce__()
+            sage: f(*g) == m
+            True
+        """
+        return unpickle_gaussian_hmm_v0, (self.transition_matrix(), self.emission_parameters(),
+                             self.initial_probabilities(), self.name())
+
     def __dealloc__(self):
         """
         Dealloc the memory used by this Gaussian HMM, but only if the
@@ -688,3 +701,19 @@ cdef ghmm_cseq* to_cseq(seq) except NULL:
         memcpy(sqd.seq[i], T._values , sizeof(double)*T._length)
 
     return sqd
+
+def unpickle_gaussian_hmm_v0(A, B, pi, name):
+    """
+    EXAMPLES:
+        sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(0,1)], [1], 'test')
+        sage: loads(dumps(m)) == m
+        True
+        sage: sage.stats.hmm.chmm.unpickle_gaussian_hmm_v0(m.transition_matrix(), m.emission_parameters(), m.initial_probabilities(), 'test')
+        Gaussian Hidden Markov Model test with 1 States
+        Transition matrix:
+        [1.0]
+        Emission parameters:
+        [(0.0, 1.0)]
+        Initial probabilities: [1.0]
+    """
+    return GaussianHiddenMarkovModel(A,B,pi,name)

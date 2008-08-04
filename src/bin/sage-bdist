@@ -55,8 +55,6 @@ if [ -d devel/sage-main ]; then
    cd sage
    # Delete cython hash, so that "sage -br" works the first time.
    rm -f .cython_hash
-   rm -rf build/lib.*
-   rm -rf build/temp.*
    cd "$TMP"/local/lib/python/site-packages
    rm -rf sage
    ln -sf ../../../../devel/sage/build/sage .

@@ -596,24 +596,32 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             exception on error
 
         EXAMPLES:
+        We train a very simple model:
+            sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(0,1)], [1])
+            sage: m.baum_welch([1,1,1,1])
 
-        NOTE: Training for models including silent states is not yet supported.
-
-        REFERENCES:
-            Rabiner, L.R.: "`A Tutorial on Hidden Markov Models and Selected
-            Applications in Speech Recognition"', Proceedings of the IEEE,
-            77, no 2, 1989, pp 257--285.
+        Notice that after training the mean in the emission parameters changes
+        form 0 to 1.
+            sage: m
+            Gaussian Hidden Markov Model with 1 States
+            Transition matrix:
+            [1.0]
+            Emission parameters:
+            [(1.0, 0.0001)]
+            Initial probabilities: [1.0]
         """
         cdef ghmm_cmodel_baum_welch_context cs
 
         cs.smo      = self.m
         cs.sqd      = to_cseq(training_seqs)
+        cs.logp     = <double*> safe_malloc(sizeof(double))
         cs.eps      = log_likelihood_cutoff
         cs.max_iter = max_iter
 
         if ghmm_cmodel_baum_welch(&cs):
             raise RuntimeError, "error running Baum-Welch algorithm"
-        #ghmm_cseq_free(&cs.sqd)
+        ghmm_cseq_free(&cs.sqd)
+
 
 cdef ghmm_cseq* to_cseq(seq) except NULL:
     """

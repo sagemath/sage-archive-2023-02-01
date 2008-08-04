@@ -558,6 +558,8 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         path = ghmm_dmodel_viterbi(self.m, O, len(seq), &pathlen, &log_p)
         sage_free(O)
+        if not path:
+            raise RuntimeError, "error computing viterbi path"
         p = [path[i] for i in range(pathlen)]
         sage_free(path)
 

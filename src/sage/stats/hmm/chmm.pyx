@@ -527,7 +527,11 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         """
 
         cdef double log_p
-        cdef ghmm_cseq* sqd = to_cseq(seq)
+        cdef ghmm_cseq* sqd
+        try:
+            sqd = to_cseq(seq)
+        except ValueError:
+            return float(0)
         cdef int ret = ghmm_cmodel_likelihood(self.m, sqd, &log_p)
         ghmm_cseq_free(&sqd)
         if ret == -1:
@@ -566,6 +570,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             seq = TimeSeries(seq)
         cdef TimeSeries T = seq
         cdef int* path = ghmm_cmodel_viterbi(self.m, T._values, T._length, &log_p)
+        if not path:
+            raise RuntimeError, "sequence can't be built from model"
         cdef Py_ssize_t i
         v = [path[i] for i in range(T._length)]
         sage_free(path)
@@ -583,7 +589,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         Baum-Welch algorithm to increase the probability of observing O.
 
         INPUT:
-            training_seqs -- a list of lists of emission symbols
+            training_seqs -- a list of lists of emission symbols; all sequences of length 0 are ignored.
             max_iter -- integer or None (default: 10000) maximum number
                       of Baum-Welch steps to take
             log_likehood_cutoff -- positive float or None (default: 0.00001);
@@ -609,11 +615,19 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             Emission parameters:
             [(1.0, 0.0001)]
             Initial probabilities: [1.0]
+
+        Training sequences of length 0 are gracefully ignored:
+            sage: m.baum_welch([])
+            sage: m.baum_welch([([],1)])
         """
         cdef ghmm_cmodel_baum_welch_context cs
 
         cs.smo      = self.m
-        cs.sqd      = to_cseq(training_seqs)
+        try:
+            cs.sqd      = to_cseq(training_seqs)
+        except ValueError:
+            # No sequences
+            return
         cs.logp     = <double*> safe_malloc(sizeof(double))
         cs.eps      = log_likelihood_cutoff
         cs.max_iter = max_iter
@@ -626,6 +640,10 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
 cdef ghmm_cseq* to_cseq(seq) except NULL:
     """
     Return a pointer to a ghmm_cseq C struct.
+
+    All empty sequences are ignored.  If there are no nonempty
+    sequences a ValueError is raised, since GHMM doesn't treat
+    this degenerate case well.
     """
     if isinstance(seq, list) and len(seq) > 0 and not isinstance(seq[0], tuple):
         seq = TimeSeries(seq)
@@ -645,8 +663,11 @@ cdef ghmm_cseq* to_cseq(seq) except NULL:
             else:
                 z = (TimeSeries(z), float(1))
         seq[i] = z
+    seq = [x for x in seq if len(x[0]) > 0]
 
     n = len(seq)
+    if n == 0:
+        raise ValueError, "there must be at least one nonempty sequence"
     cdef ghmm_cseq* sqd = <ghmm_cseq*>safe_malloc(sizeof(ghmm_cseq))
     sqd.seq        = <double**>safe_malloc(sizeof(double*) * n)
     sqd.seq_len    = to_int_array([len(v) for v,_ in seq])

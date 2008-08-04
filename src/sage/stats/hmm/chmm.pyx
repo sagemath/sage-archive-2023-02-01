@@ -18,6 +18,10 @@ include "../../ext/stdsage.pxi"
 
 include "misc.pxi"
 
+from sage.misc.randstate import random
+
+from sage.finance.time_series cimport TimeSeries
+
 cdef class ContinuousHiddenMarkovModel(HiddenMarkovModel):
     """
     Abstract base class for continuous hidden Markov models.
@@ -170,6 +174,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             state.M     = 1
             state.pi    = pi[i]
             state.desc  = NULL
+            state.fix   = 0
             e = <ghmm_c_emission*> safe_malloc(sizeof(ghmm_c_emission))
             e.type      = 0  # normal
             e.dimension = 1
@@ -411,3 +416,246 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         """
         if ghmm_cmodel_normalize(self.m):
             raise RuntimeError, "error normalizing model (note that model may still have been partly changed)"
+
+    def sample(self, long length, long number):
+        """
+        Return number samples from this HMM of given length.
+
+        INPUT:
+            length -- positive integer
+
+        OUTPUT:
+            a list of number TimeSeries each of the given length
+
+        EXAMPLES:
+            sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(0,1)], [1])
+            sage: set_random_seed(0)
+            sage: m.sample(5,2)
+            [[-2.2808, -0.0699, 0.1858, 1.3624, 1.8252],
+             [0.0080, 0.1244, 0.5098, 0.9961, 0.4710]]
+        """
+        seed = random()
+        cdef ghmm_cseq *d = ghmm_cmodel_generate_sequences(self.m, seed, length, number, length)
+        cdef Py_ssize_t i, j
+        cdef TimeSeries T
+        ans = []
+        for j from 0 <= j < number:
+            T = TimeSeries(length)
+            for i from 0 <= i < length:
+                T._values[i] = d.seq[j][i]
+            ans.append(T)
+        return ans
+        # The line below would replace the above by something that returns a list of lists.
+        #return [[d.seq[j][i] for i in range(length)] for j in range(number)]
+
+    def sample_single(self, long length):
+        """
+        Return a single sample computed using this Gaussian Hidden Markov Model.
+
+        INPUT:
+            length -- positive integer
+        OUTPUT:
+            a TimeSeries
+
+        EXAMPLES:
+            sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(0,1)], [1])
+            sage: set_random_seed(0)
+            sage: m.sample_single(5)
+            [-2.2808, -0.0699, 0.1858, 1.3624, 1.8252]
+        """
+        return self.sample(length,1)[0]
+
+
+
+
+    ####################################################################
+    # HMM Problem 1 -- Computing likelihood: Given the parameter set
+    # lambda of an HMM model and an observation sequence O, determine
+    # the likelihood P(O | lambda).
+    ####################################################################
+    def log_likelihood(self, seq):
+        r"""
+        HMM Problem 1: Likelihood.
+        Computes sum over all sequence of seq_w * log( P ( O|lambda )).
+
+        INPUT:
+            seq -- a single TimeSeries, or
+                   a list of object z where z is either a TimeSeries
+                   or a pair (TimeSeries, float), where float is a positive
+                   weight.    When the weight isn't given it defaults to 1.
+
+        OUTPUT:
+            float -- the weight sum of logs of the probability of
+                     observing these sequences given the model
+
+        EXAMPLES:
+        We create a very simple GHMM that generates random numbers with mean 0
+        and standard deviation 1.
+            sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(0,1)], [1])
+
+        We compute the log probability of a certain series:
+            sage: m.log_likelihood(finance.TimeSeries([1,0,1,1]))
+            -5.1757541328186907
+
+        We compute the log probability of another much less likely sequence:
+            sage: m.log_likelihood(finance.TimeSeries([1,0,1,20]))
+            -204.6757541328187
+
+        We compute weighted sum of log probabilities of two sequences:
+            sage: m.log_likelihood([ ([1,0,1,1], 10),  ([1,0,1,20], 0.1)  ])
+            -72.225116741468781
+
+        We verify that the above weight computation is right.
+            sage: 10 * m.log_likelihood([1,0,1,1]) + 0.1 * m.log_likelihood([1,0,1,20])
+            -72.2251167414688
+
+        We generate two normally distributed sequences and see that the one
+        with mean 0 and standard deviation 1 is vastly more likely given
+        the model than the one with mean 10 and standard deviation 1.
+            sage: set_random_seed(0)
+            sage: m.log_likelihood(finance.TimeSeries(100).randomize('normal',0,1))
+            -129.87209711900121
+            sage: m.log_likelihood(finance.TimeSeries(100).randomize('normal',10,1))
+            -5010.151947016132
+
+        However, if we change the model then the situation reverses:
+            sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(10,1)], [1])
+            sage: m.log_likelihood(finance.TimeSeries(100).randomize('normal',10,1))
+            -149.68737352182211
+            sage: m.log_likelihood(finance.TimeSeries(100).randomize('normal',0,1))
+            -5275.3082940787635
+        """
+
+        cdef double log_p
+        cdef ghmm_cseq* sqd = to_cseq(seq)
+        cdef int ret = ghmm_cmodel_likelihood(self.m, sqd, &log_p)
+        ghmm_cseq_free(&sqd)
+        if ret == -1:
+            raise RuntimeError, "unable to compute log likelihood"
+        return log_p
+
+
+    ####################################################################
+    # HMM Problem 2 -- Decoding: Given the complete parameter set that
+    # defines the model and an observation sequence seq, determine the
+    # best hidden sequence Q.  Use the Viterbi algorithm.
+    ####################################################################
+    def viterbi(self, seq):
+        """
+        HMM Problem 2: Decoding.  Determine a hidden sequence of
+        states that is most likely to produce the given sequence seq
+        of obserations.
+
+        INPUT:
+            seq -- TimeSeries
+
+        OUTPUT:
+            list -- a most probable sequence of hidden states, i.e., the
+                    Viterbi path.
+            float -- log of the probability that the sequence of hidden
+                     states actually produced the given sequence seq.
+
+        EXAMPLES:
+        We find the optimal state sequence for a given model.
+            sage: m = hmm.GaussianHiddenMarkovModel([[0.5,0.5],[0.5,0.5]], [(0,1),(10,1)], [0.5,0.5])
+            sage: m.viterbi([0,1,10,10,1])
+            ([0, 0, 1, 1, 0], -9.0604285688230899)
+        """
+        cdef double log_p
+        if not isinstance(seq, TimeSeries):
+            seq = TimeSeries(seq)
+        cdef TimeSeries T = seq
+        cdef int* path = ghmm_cmodel_viterbi(self.m, T._values, T._length, &log_p)
+        cdef Py_ssize_t i
+        v = [path[i] for i in range(T._length)]
+        sage_free(path)
+        return v, log_p
+
+    ####################################################################
+    # HMM Problem 3 -- Learning: Given an observation sequence O and
+    # the set of states in the HMM, improve the HMM to increase the
+    # probability of observing O.
+    ####################################################################
+    def baum_welch(self, training_seqs, max_iter=10000, log_likelihood_cutoff=0.00001):
+        """
+        HMM Problem 3: Learning.  Given an observation sequence O and
+        the set of states in the HMM, improve the HMM using the
+        Baum-Welch algorithm to increase the probability of observing O.
+
+        INPUT:
+            training_seqs -- a list of lists of emission symbols
+            max_iter -- integer or None (default: 10000) maximum number
+                      of Baum-Welch steps to take
+            log_likehood_cutoff -- positive float or None (default: 0.00001);
+                      the minimal improvement in likelihood
+                      with respect to the last iteration required to
+                      continue. Relative value to log likelihood
+
+        OUTPUT:
+            changes the model in places, or raises a RuntimError
+            exception on error
+
+        EXAMPLES:
+
+        NOTE: Training for models including silent states is not yet supported.
+
+        REFERENCES:
+            Rabiner, L.R.: "`A Tutorial on Hidden Markov Models and Selected
+            Applications in Speech Recognition"', Proceedings of the IEEE,
+            77, no 2, 1989, pp 257--285.
+        """
+        cdef ghmm_cmodel_baum_welch_context cs
+
+        cs.smo      = self.m
+        cs.sqd      = to_cseq(training_seqs)
+        cs.eps      = log_likelihood_cutoff
+        cs.max_iter = max_iter
+
+        if ghmm_cmodel_baum_welch(&cs):
+            raise RuntimeError, "error running Baum-Welch algorithm"
+        #ghmm_cseq_free(&cs.sqd)
+
+cdef ghmm_cseq* to_cseq(seq) except NULL:
+    """
+    Return a pointer to a ghmm_cseq C struct.
+    """
+    if isinstance(seq, list) and len(seq) > 0 and not isinstance(seq[0], tuple):
+        seq = TimeSeries(seq)
+    if isinstance(seq, TimeSeries):
+        seq = [(seq,float(1))]
+    cdef Py_ssize_t i, n
+    for i in range(len(seq)):
+        z = seq[i]
+        if isinstance(z, tuple) and len(z) == 2:
+            if isinstance(z[0],TimeSeries):
+                z = (z[0], float(z[1]))
+            else:
+                z = (TimeSeries(z[0]), float(z[1]))
+        else:
+            if isinstance(z, TimeSeries):
+                z = (z, float(1))
+            else:
+                z = (TimeSeries(z), float(1))
+        seq[i] = z
+
+    n = len(seq)
+    cdef ghmm_cseq* sqd = <ghmm_cseq*>safe_malloc(sizeof(ghmm_cseq))
+    sqd.seq        = <double**>safe_malloc(sizeof(double*) * n)
+    sqd.seq_len    = to_int_array([len(v) for v,_ in seq])
+    sqd.seq_id     = to_double_array([0]*n)
+    sqd.seq_label  = to_int_array([])  # obsolete but no choice
+    weights        = [w for _, w in seq]
+    sqd.seq_w      = to_double_array(weights)
+    sqd.seq_number = n
+    sqd.total_w    = sum(weights)
+    sqd.dim        = 1
+    sqd.flags      = 0
+    sqd.capacity   = n
+
+    cdef TimeSeries T
+    for i from 0 <= i < len(seq):
+        T = seq[i][0]
+        sqd.seq[i] = <double*>safe_malloc(sizeof(double) * T._length)
+        memcpy(sqd.seq[i], T._values , sizeof(double)*T._length)
+
+    return sqd

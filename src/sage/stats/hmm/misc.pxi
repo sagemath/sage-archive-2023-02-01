@@ -8,6 +8,7 @@
 
 cdef extern from "string.h":
     char *strcpy(char *s1, char *s2)
+    void* memcpy(void* dst, void* src, size_t len)
 
 cdef double* to_double_array(v) except NULL:
     """

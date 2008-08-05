@@ -544,6 +544,8 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: a.log_likelihood([1,1])
             -1.3862943611198906
         """
+        if self._emission_symbols_dict:
+            seq = [self._emission_symbols_dict[z] for z in seq]
         cdef double log_p
         cdef int* O = to_int_array(seq)
         cdef int ret = ghmm_dmodel_logp(self.m, O, len(seq), &log_p)
@@ -587,6 +589,8 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: a.viterbi([3/4, 'abc', 'abc'] + [3/4]*10)
             ([0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], -25.299405845367794)
         """
+        if len(seq) == 0:
+            return [], 0.0
         if self._emission_symbols_dict:
             seq = [self._emission_symbols_dict[z] for z in seq]
         cdef int* path
@@ -615,7 +619,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         Baum-Welch algorithm to increase the probability of observing O.
 
         INPUT:
-            training_seqs -- a list of lists of emission symbols
+            training_seqs -- a list of lists of emission symbols (or a single list)
             nsteps -- integer or None (default: None) maximum number
                       of Baum-Welch steps to take
             log_likehood_cutoff -- positive float or None (default:
@@ -675,6 +679,9 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             Applications in Speech Recognition"', Proceedings of the IEEE,
             77, no 2, 1989, pp 257--285.
         """
+        if len(training_seqs) > 0 and not isinstance(training_seqs[0], (list, tuple)):
+            training_seqs = [training_seqs]
+
         if self._emission_symbols_dict:
             seqs = [[self._emission_symbols_dict[z] for z in x] for x in training_seqs]
         else:

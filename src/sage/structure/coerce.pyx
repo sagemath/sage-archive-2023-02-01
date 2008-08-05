@@ -621,6 +621,28 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ...
             TypeError: unsupported operand parent(s) for '*': '<type 'instance'>' and 'Integer Ring'
 
+            sage: class Nonsense:
+            ...       def __init__(self, s):
+            ...           self.s = s
+            ...       def __repr__(self):
+            ...           return self.s
+            ...       def __mul__(self, x):
+            ...           return Nonsense(self.s + chr(x%256))
+            ...       __add__ = __mul__
+            ...       def __rmul__(self, x):
+            ...           return Nonsense(chr(x%256) + self.s)
+            ...       __radd__ = __rmul__
+            ...
+            sage: a = Nonsense('blahblah')
+            sage: a*80
+            blahblahP
+            sage: 80*a
+            Pblahblah
+            sage: a+80
+            blahblahP
+            sage: 80+a
+            Pblahblah
+
         """
         self._exceptions_cleared = False
         if (op is not sub) and (op is not isub):
@@ -651,11 +673,15 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 return y._r_action(x)
             except (AttributeError, TypeError), err:
                 self._record_exception()
-            if not isinstance(y, Element):
-                try:
-                    return y.__rmul__(x)
-                except (AttributeError, TypeError):
-                    pass
+
+        if not isinstance(y, Element):
+            try:
+                op_name = op.__name__
+                if op_name[0] == 'i':
+                    op_name = op_name[1:]
+                return getattr(y, '__r%s__'%op_name)(x)
+            except (AttributeError, TypeError):
+                pass
 
         # We should really include the underlying error.
         # This causes so much headache.

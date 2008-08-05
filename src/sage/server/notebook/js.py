@@ -2766,9 +2766,11 @@ function check_for_cell_update_callback(status, response_text) {
     var j = id_of_cell_delta(id,1);
 
     // Evaluate javascript
-    output_text = output_text.replace(/<script.*?>(.|\n|\r)*?<\/script>/gim, '&lt;script&gt;');
-    output_text_wrapped = eval_script_tags(output_text_wrapped);
-    output_html = eval_script_tags(output_html);
+    var cell_is_not_an_interact_update = ! get_element("cell-interact-" + id);
+    if (cell_is_not_an_interact_update) {
+        output_text_wrapped = eval_script_tags(output_text_wrapped);
+        output_html = eval_script_tags(output_html);
+    }
 
     // Set the latest output text got from the server.
     set_output_text(id, output_text, output_text_wrapped,
@@ -2902,7 +2904,9 @@ function set_output_text(id, text, wrapped_text, output_html,
             /* alert("Bug in notebook -- interact wrapped text is invalid" + wrapped_text); */
             return;
         }
+
         var new_interact_output = wrapped_text.slice(i+16,j);
+        new_interact_output = eval_script_tags(new_interact_output);
 
         // An error occured accessing the data for this cell.  Just force reload
         // of the cell, which will certainly define that data.

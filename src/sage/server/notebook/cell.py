@@ -629,6 +629,18 @@ class Cell(Cell_generic):
             t += format(s[:i]) + format_html(s[i+6:j])
             s = s[j+7:]
         t = t.replace('</html>','')
+
+        # Get rid of the <script> tags, since we do not want them to
+        # be evaluated twice.  They are only evaluated in the wrapped
+        # version of the output.
+        if ncols == 0:
+            while True:
+                i = t.lower().find('<script>')
+                if i == -1: break
+                j = t[i:].lower().find('</script>')
+                if j == -1: break
+                t = t[:i] + t[i+j+len('</script>'):]
+
         return t
 
 

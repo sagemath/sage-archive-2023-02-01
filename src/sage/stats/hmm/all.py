@@ -7,4 +7,4 @@
 #############################################################################
 
 from hmm  import DiscreteHiddenMarkovModel
-from chmm import GaussianHiddenMarkovModel
+from chmm import GaussianHiddenMarkovModel, GaussianMixtureHiddenMarkovModel

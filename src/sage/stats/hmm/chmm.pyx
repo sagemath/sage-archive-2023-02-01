@@ -19,8 +19,12 @@ include "../../ext/stdsage.pxi"
 include "misc.pxi"
 
 from sage.misc.randstate import random
+from sage.misc.flatten   import flatten
 
 from sage.finance.time_series cimport TimeSeries
+
+cdef extern from "math.h":
+    double sqrt(double)
 
 cdef class ContinuousHiddenMarkovModel(HiddenMarkovModel):
     """
@@ -97,7 +101,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
     INPUT:
         A  -- matrix; the transition matrix (n x n)
         B  -- list of n pairs (mu, sigma) that define the
-              Gaussian distributions associated to each state
+              Gaussian distributions associated to each state,
+              where mu is the mean and sigma the standard deviation.
         pi -- list of floats that sums to 1.0; these are
               the initial probabilities of each hidden state
         name -- (default: None); a string
@@ -146,20 +151,21 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         """
         ContinuousHiddenMarkovModel.__init__(self, A, B, pi, name=name)
 
-        # Set number of outputs.  This is 1 here because each
-        # output is a single Gaussian distribution.
+        # Set number of outputs.
         self.m.M = 1
-
         # Set the model type to continuous
         self.m.model_type = GHMM_kContinuousHMM
-
         # 1 transition matrix
         self.m.cos   =  1
         # Set that no a prior model probabilities are set.
         self.m.prior = -1
         # Dimension is 1
         self.m.dim   =  1
+        self._initialize_state(pi)
+        self.m.class_change = NULL
+        self.initialized = True
 
+    def _initialize_state(self, pi):
         # Allocate and initialize states
         cdef ghmm_cstate* states = <ghmm_cstate*> safe_malloc(sizeof(ghmm_cstate) * self.m.N)
         cdef ghmm_cstate* state
@@ -179,7 +185,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             e.type      = 0  # normal
             e.dimension = 1
             e.mean.val  = mu
-            e.variance.val = sigma
+            e.variance.val = sigma*sigma  # variance! not standard deviation
             # fixing of emissions is deactivated by default
             e.fixed     = 0
             e.sigmacd   = NULL
@@ -212,14 +218,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
                 state.in_a[0][j]  = v[j]
 
             #########################################################
-
-
         # Set states
         self.m.s = states
-
-        self.m.class_change = NULL
-
-        self.initialized = True
 
     def __reduce__(self):
         """
@@ -338,6 +338,62 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
 
         return 0
 
+    def fix_emission_state(self, Py_ssize_t i, bint fixed=True):
+        """
+        Sets the i-th emission state to be either fixed or not fixed.
+        If it is fixed, then running the Baum-Welch algorithm will not
+        change it.
+
+        INPUT:
+            i -- nonnegative integer < self.m.N
+            fixed -- bool
+
+        EXAMPLES:
+        We run Baum-Welch once without fixing the emission states:
+            sage: m = hmm.GaussianHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [(0.0,1.0),(1,1)], [1,0])
+            sage: m.baum_welch([0,1])
+            sage: m
+            Gaussian Hidden Markov Model with 2 States
+            Transition matrix:
+            [0.0 1.0]
+            [0.1 0.9]
+            Emission parameters:
+            [(0.0, 0.01), (1.0, 0.01)]
+            Initial probabilities: [1.0, 0.0]
+
+        Now we run Baum-Welch with the emission states fixed.  Notice that they don't change.
+            sage: m = hmm.GaussianHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [(0.0,1.0),(1,1)], [1,0])
+            sage: m.fix_emission_state(0); m.fix_emission_state(1)
+            sage: m.baum_welch([0,1])
+            sage: m
+            Gaussian Hidden Markov Model with 2 States
+            Transition matrix:
+            [0.000368587006957    0.999631412993]
+            [              0.1               0.9]
+            Emission parameters:
+            [(0.0, 1.0), (1.0, 1.0)]
+            Initial probabilities: [1.0, 0.0]
+        """
+        if i < 0 or i >= self.m.N:
+            raise IndexError, "index out of range"
+        self.m.s[i].e.fixed = fixed
+
+    def fix_hidden_state(self, Py_ssize_t i, bint fixed=True):
+        """
+        Sets the i-th hidden state to be either fixed or not fixed.
+        If it is fixed, then running the Baum-Welch algorithm will not
+        change it.
+
+        INPUT:
+            i -- nonnegative integer < self.m.N
+            fixed -- bool
+
+        EXAMPLES:
+        """
+        if i < 0 or i >= self.m.N:
+            raise IndexError, "index out of range"
+        self.m.s[i].fix = fixed
+
     def __repr__(self):
         """
         Return string representation of this Continuous HMM.
@@ -401,6 +457,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
 
         OUTPUT:
             list of tuples (mu, sigma) that define Gaussian distributions associated to each state.
+            Here mu is the mean and sigma the standard deviation.
 
         EXAMPLES:
             sage: m = hmm.GaussianHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [(1.5,2),(-1,3)], [1,0], 'NAME')
@@ -408,7 +465,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             [(1.5, 2.0), (-1.0, 3.0)]
         """
         cdef Py_ssize_t i
-        return [(self.m.s[i].e.mean.val, self.m.s[i].e.variance.val) for i in range(self.m.N)]
+        return [(self.m.s[i].e.mean.val, sqrt(self.m.s[i].e.variance.val)) for i in range(self.m.N)]
 
     def normalize(self):
         """
@@ -626,7 +683,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             Transition matrix:
             [1.0]
             Emission parameters:
-            [(1.0, 0.0001)]
+            [(1.0, 0.01)]
             Initial probabilities: [1.0]
 
         Training sequences of length 0 are gracefully ignored:
@@ -717,3 +774,119 @@ def unpickle_gaussian_hmm_v0(A, B, pi, name):
         Initial probabilities: [1.0]
     """
     return GaussianHiddenMarkovModel(A,B,pi,name)
+
+
+cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
+    """
+    GaussianMixtureHiddenMarkovModel(A, B, pi, name)
+
+    INPUT:
+        A  -- matrix; the transition matrix (n x n)
+        B  -- list of lists of pairs (w, (mu, sigma)) that define the
+              Gaussian mixture associated to each state, where w is
+              the weight, mu is the mean and sigma the standard
+              deviation.
+        pi -- list of floats that sums to 1.0; these are
+              the initial probabilities of each hidden state
+        name -- (default: None); a string
+    """
+    def __init__(self, A, B, pi, name=None):
+        """
+        EXAMPLES:
+        """
+        # Turn B into a list of lists
+        B = [flatten(x) for x in B]
+        m = max([len(x) for x in B])
+        if m == 0:
+            raise ValueError, "number of Gaussian mixtures must be positive"
+        B = [x + [0]*(m-len(x)) for x in B]
+        GaussianHiddenMarkovModel.__init__(self, A, B, pi)
+        print m//3
+        self.m.M = m//3
+        # Set number of outputs.
+
+    def _initialize_state(self, pi):
+        # Allocate and initialize states
+        cdef ghmm_cstate* states = <ghmm_cstate*> safe_malloc(sizeof(ghmm_cstate) * self.m.N)
+        cdef ghmm_cstate* state
+        cdef ghmm_c_emission* e
+        cdef Py_ssize_t i, j, k, M, n
+
+        for i in range(self.m.N):
+            # Parameters of Gaussian distributions
+            v = self.B[i]
+            M = len(v)//3   # number of distinct Gaussians
+
+            # Get a reference to the i-th state for convenience of the notation below.
+            state = &(states[i])
+            state.M     = M
+            state.pi    = pi[i]
+            state.desc  = NULL
+            state.fix   = 0
+            e           = <ghmm_c_emission*> safe_malloc(sizeof(ghmm_c_emission)*M)
+            weights     = []
+
+            for n in range(M):
+                e[n].type      = 0  # Gaussian
+                e[n].dimension = 1
+                mu             = v[n*3+1]
+                sigma          = v[n*3+2]
+                weights.append(  v[n*3] )
+                e[n].mean.val     = mu
+                e[n].variance.val = sigma*sigma  # variance! not standard deviation
+
+                # fixing of emissions is deactivated by default
+                e[n].fixed     = 0
+                e[n].sigmacd   = NULL
+                e[n].sigmainv  = NULL
+
+            state.e     = e
+            state.c     = to_double_array(weights)
+
+            #########################################################
+            # Initialize state transition data.
+            # NOTE: This code is similar to a block of code in hmm.pyx.
+
+            # Set "out" probabilities, i.e., the probabilities to
+            # transition to another hidden state from this state.
+            v = self.A[i]
+            k = self.m.N
+            state.out_states = k
+            state.out_id = <int*> safe_malloc(sizeof(int)*k)
+            state.out_a  = ighmm_cmatrix_alloc(1, k)
+            for j in range(k):
+                state.out_id[j] = j
+                state.out_a[0][j]  = v[j]
+
+            # Set "in" probabilities
+            v = self.A.column(i)
+            state.in_states = k
+            state.in_id = <int*> safe_malloc(sizeof(int)*k)
+            state.in_a  = ighmm_cmatrix_alloc(1, k)
+            for j in range(k):
+                state.in_id[j] = j
+                state.in_a[0][j]  = v[j]
+
+            #########################################################
+        # Set states
+        self.m.s = states
+
+    def emission_parameters(self):
+        """
+        Return the emission parameters list.
+
+        OUTPUT:
+           list of lists of tuples (weight, (mu, sigma))
+p
+        EXAMPLES:
+            sage: m = hmm.GaussianMixtureHiddenMarkovModel([[0.5,0.5],[0.5,0.5]], [[(0.5,(0.0,1.0)), (0.1,(1,10000))],[(1,(1,1))]], [1,0])
+            sage: m.emission_parameters()
+            [[(0.5, (0.0, 1.0)), (0.10000000000000001, (1.0, 10000.0))],
+             [(1.0, (1.0, 1.0)), (0.0, (0.0, 0.0))]]
+        """
+        cdef Py_ssize_t i,j
+
+        return [[(self.m.s[i].c[j], (self.m.s[i].e[j].mean.val, sqrt(self.m.s[i].e[j].variance.val)))
+                 for j in range(self.m.s[i].M)]  for i in range(self.m.N)]
+
+

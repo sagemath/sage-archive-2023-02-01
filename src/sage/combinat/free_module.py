@@ -36,7 +36,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: B = F.basis()
             sage: f = B['a'] + 3*B['c']; f
-            B('a') + 3*B('c')
+            B['a'] + 3*B['c']
             sage: f == loads(dumps(f))
             True
 
@@ -118,13 +118,13 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'], prefix='F')
             sage: e = F.basis()
             sage: e['a'] + 2*e['b']
-            F('a') + 2*F('b')
+            F['a'] + 2*F['b']
 
         """
         v = self._monomial_coefficients.items()
         v.sort()
         prefix = self.parent().prefix()
-        mons = [ prefix + "(" + repr(m) + ")" for (m, _) in v ]
+        mons = [ prefix + "[" + repr(m) + "]" for (m, _) in v ]
         cffs = [ x for (_, x) in v ]
         x = repr_lincomb(mons, cffs).replace("*1 "," ")
         if x[len(x)-2:] == "*1":
@@ -185,7 +185,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: B = F.basis()
             sage: B['a'] + 3*B['c']
-            B('a') + 3*B('c')
+            B['a'] + 3*B['c']
 
             sage: s = SFASchur(QQ)
             sage: s([2,1]) + s([5,4]) # indirect doctest
@@ -227,7 +227,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: B = F.basis()
             sage: f = B['a'] + 3*B['c']
             sage: -f
-            -B('a') - 3*B('c')
+            -B['a'] - 3*B['c']
 
             sage: s = SFASchur(QQ)
             sage: -s([2,1]) # indirect doctest
@@ -242,7 +242,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: B = F.basis()
             sage: B['a'] - 3*B['c']
-            B('a') - 3*B('c')
+            B['a'] - 3*B['c']
 
             sage: s = SFASchur(QQ)
             sage: s([2,1]) - s([5,4]) # indirect doctest
@@ -422,7 +422,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: B = F.basis()
             sage: f = B['a'] + 2*B['c']
             sage: f.monomials()
-            [B('a'), B('c')]
+            [B['a'], B['c']]
         """
         P = self.parent()
         one = P.base_ring()(1)
@@ -437,7 +437,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: B = F.basis()
             sage: f = B['a'] + 2*B['c']
             sage: f.terms()
-            [B('a'), 2*B('c')]
+            [B['a'], 2*B['c']]
         """
         P = self.parent()
         v = self._monomial_coefficients.items()
@@ -529,7 +529,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: B = F.basis()
             sage: f = B['a'] - 3*B['c']
             sage: f.map_coefficients(lambda x: x+5)
-            6*B('a') + 2*B('c')
+            6*B['a'] + 2*B['c']
 
             sage: s = SFASchur(QQ)
             sage: a = s([2,1])+2*s([3,2])
@@ -591,7 +591,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: B = F.basis()
             sage: B['a']*1/2
-            1/2*B('a')
+            1/2*B['a']
 
         """
         x = self.base_ring()(x)
@@ -606,7 +606,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: B = F.basis()
             sage: 1/2*B['a']
-            1/2*B('a')
+            1/2*B['a']
 
         """
         x = self.base_ring()(x)
@@ -620,13 +620,13 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: F = CombinatorialFreeModule(QQ, [1,2,3])
             sage: x = F._from_dict({1:2, 2:3})
             sage: x/2
-            B(1) + 3/2*B(2)
+            B[1] + 3/2*B[2]
 
             sage: F = CombinatorialFreeModule(QQ, [1,2,3])
             sage: B = F.basis()
             sage: f = 2*B[2] + 4*B[3]
             sage: f/2
-            B(2) + 2*B(3)
+            B[2] + 2*B[3]
 
         """
         if self.base_ring().is_field():
@@ -658,8 +658,6 @@ def _divide_if_possible(x, y):
 
 class CombinatorialFreeModuleInterface(sage.structure.parent_base.ParentWithBase):
     def __init__(self, R, element_class):
-        """
-        """
         #Make sure R is a ring with unit element
         if not isinstance(R, Ring):
             raise TypeError, "Argument R must be a ring."
@@ -687,7 +685,7 @@ class CombinatorialFreeModuleInterface(sage.structure.parent_base.ParentWithBase
         EXAMPLES:
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: F.basis()
-            Finite family {'a': B('a'), 'c': B('c'), 'b': B('b')}
+            Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
 
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
             sage: list(QS3.basis())
@@ -932,7 +930,7 @@ class CombinatorialFreeModuleInterface(sage.structure.parent_base.ParentWithBase
         EXAMPLES:
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
             sage: F.term('a')
-            B('a')
+            B['a']
         """
         return self._from_dict({i:self.base_ring().one_element()})
 
@@ -951,7 +949,7 @@ class CombinatorialFreeModuleInterface(sage.structure.parent_base.ParentWithBase
         EXAMPLES:
             sage: F = CombinatorialFreeModule(QQ, [1,2,3,4])
             sage: F.sum(F.term(i) for i in [1,2,3])
-            B(1) + B(2) + B(3)
+            B[1] + B[2] + B[3]
         """
         return sum(operands, self.zero())
 
@@ -999,15 +997,15 @@ class CombinatorialFreeModule(CombinatorialFreeModuleInterface, Module):
             sage: list(sorted(e.keys()))
             ['a', 'b', 'c']
             sage: list(sorted(e))
-            [B('a'), B('b'), B('c')]
+            [B['a'], B['b'], B['c']]
 
         Let us construct some elements, and compute with them:
             sage: e['a']
-            B('a')
+            B['a']
             sage: 2*e['a']
-            2*B('a')
+            2*B['a']
             sage: e['a'] + 3*e['b']
-            B('a') + 3*B('b')
+            B['a'] + 3*B['b']
     """
     def __init__(self, R, cc, element_class = CombinatorialFreeModuleElement, prefix="B"):
         """

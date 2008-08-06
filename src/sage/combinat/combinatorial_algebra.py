@@ -317,6 +317,25 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
         """
         return self._element_class(self, {self._one:self.base_ring()(1)})
 
+    def _coerce_impl(self, x):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s._coerce_impl(2)
+            2*s[]
+        """
+        try:
+            R = x.parent()
+            if R.__class__ is self.__class__:
+                #Only perform the coercion if we can go from the base
+                #ring of x to the base ring of self
+                if self.base_ring().has_coerce_map_from( R.base_ring() ):
+                    return self(x)
+        except AttributeError:
+            pass
+
+        # any ring that coerces to the base ring
+        return self._coerce_try(x, [self.base_ring()])
 
     def multiply(self,left,right):
         """

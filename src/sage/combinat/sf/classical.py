@@ -342,97 +342,13 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         return "Symmetric Function Algebra over %s, %s symmetric functions as basis"%(self.base_ring(), self._basis.capitalize())
 
 
-    def prefix(self):
-        """
-        Returns the prefix on the elements of self.
-
-        EXAMPLES:
-            sage: s = SFASchur(QQ)
-            sage: s.prefix()
-            's'
-        """
-        return self._prefix
-
-    def transition_matrix(self, basis, n):
-        """
-        Returns the transitions matrix between self and basis
-        for the homogenous component of degree n.
-
-        EXAMPLES:
-            sage: s = SFASchur(QQ)
-            sage: m = SFAMonomial(QQ)
-            sage: s.transition_matrix(m,5)
-            [1 1 1 1 1 1 1]
-            [0 1 1 2 2 3 4]
-            [0 0 1 1 2 3 5]
-            [0 0 0 1 1 3 6]
-            [0 0 0 0 1 2 5]
-            [0 0 0 0 0 1 4]
-            [0 0 0 0 0 0 1]
-
-            sage: p = SFAPower(QQ)
-            sage: s.transition_matrix(p, 4)
-            [ 1/4  1/3  1/8  1/4 1/24]
-            [-1/4    0 -1/8  1/4  1/8]
-            [   0 -1/3  1/4    0 1/12]
-            [ 1/4    0 -1/8 -1/4  1/8]
-            [-1/4  1/3  1/8 -1/4 1/24]
-            sage: StoP = s.transition_matrix(p,4)
-            sage: a = s([3,1])+5*s([1,1,1,1])-s([4])
-            sage: a
-            5*s[1, 1, 1, 1] + s[3, 1] - s[4]
-            sage: mon, coef = a.support()
-            sage: coef
-            [5, 1, -1]
-            sage: mon
-            [[1, 1, 1, 1], [3, 1], [4]]
-            sage: cm = matrix([[-1,1,0,0,5]])
-            sage: cm * StoP
-            [-7/4  4/3  3/8 -5/4 7/24]
-            sage: p(a)
-            7/24*p[1, 1, 1, 1] - 5/4*p[2, 1, 1] + 3/8*p[2, 2] + 4/3*p[3, 1] - 7/4*p[4]
-
-
-            sage: h = SFAHomogeneous(QQ)
-            sage: e = SFAElementary(QQ)
-            sage: s.transition_matrix(m,7) == h.transition_matrix(s,7).transpose()
-            True
-
-            sage: h.transition_matrix(m, 7) == h.transition_matrix(m, 7).transpose()
-            True
-
-            sage: h.transition_matrix(e, 7) == e.transition_matrix(h, 7)
-            True
-
-
-            sage: p.transition_matrix(s, 5)
-            [ 1 -1  0  1  0 -1  1]
-            [ 1  0 -1  0  1  0 -1]
-            [ 1 -1  1  0 -1  1 -1]
-            [ 1  1 -1  0 -1  1  1]
-            [ 1  0  1 -2  1  0  1]
-            [ 1  2  1  0 -1 -2 -1]
-            [ 1  4  5  6  5  4  1]
-
-            sage: e.transition_matrix(m,7) == e.transition_matrix(m,7).transpose()
-            True
-
-
-        """
-        P = sage.combinat.partition.Partitions_n(n)
-        Plist = P.list()
-        m = []
-        for row_part in Plist:
-            z = basis(self(row_part))
-            m.append( map( lambda col_part: z.coefficient(col_part), Plist ) )
-        return matrix(m)
 
 
 class SymmetricFunctionAlgebraElement_classical(sfa.SymmetricFunctionAlgebraElement_generic):
     """
     A symmetric function.
     """
-
+    pass
 
 ##     def __pow__(self, n):
 ##         """

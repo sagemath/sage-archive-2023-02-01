@@ -113,7 +113,7 @@ sage: z.coefficient([2,1])
 sage: z.length()
 2
 sage: z.support()
-[[[1, 1, 1], [2, 1]], [1, 1]]
+[[1, 1, 1], [2, 1]]
 sage: z.degree()
 3
 
@@ -771,8 +771,9 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             sage: a = s([3,1])+5*s([1,1,1,1])-s([4])
             sage: a
             5*s[1, 1, 1, 1] + s[3, 1] - s[4]
-            sage: mon, coef = a.support()
-            sage: coef
+            sage: mon = a.support()
+            sage: coeffs = a.coefficients()
+            sage: coeffs
             [5, 1, -1]
             sage: mon
             [[1, 1, 1, 1], [3, 1], [4]]
@@ -1120,7 +1121,7 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         #Takes n an symmetric function f, and an n and returns the
         #symmetric function with all of its basis partitions scaled
         #by n
-        pn_pleth = lambda f, n: f.map_basis(scale_part(n))
+        pn_pleth = lambda f, n: f.map_support(scale_part(n))
 
         #Takes in a partition and applies
         f = lambda part: prod( pn_pleth(p_x.map_coefficients(raise_c(i)), i) for i in part )
@@ -1154,7 +1155,7 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
         p = SFAPower(QQ)
         res = 0
-        degrees = uniq([ sum(m) for m in g.monomials() ])
+        degrees = uniq([ sum(m) for m in g.support() ])
         for d in degrees:
             for mu in sage.combinat.partition.Partitions(d):
                 mu_k = mu.power(k)
@@ -1190,7 +1191,7 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         if len(nu) == 0:
             s = SFASchur(self.base_ring())
             p = SFAPower(self.base_ring())
-            degrees = [ part.size() for part in p_x.monomials() ]
+            degrees = [ part.size() for part in p_x.support() ]
             degrees = uniq(degrees)
             return p(sum([s([n]) for n in degrees]))
 

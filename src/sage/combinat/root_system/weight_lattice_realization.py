@@ -2,9 +2,15 @@ from sage.misc.misc import prod
 from sage.combinat.family import Family
 from root_lattice_realization import RootLatticeRealization
 
-class WeightLatticeRealization (RootLatticeRealization):
-
+class WeightLatticeRealization(RootLatticeRealization):
     def check(self):
+        """
+        EXAMPLES:
+            sage: types = CartanType.samples(finite=True)
+            sage: ambients = [ct.root_system().ambient_space() for ct in types]
+            sage: all(e.check() for e in ambients if e is not None)
+            True
+        """
         RootLatticeRealization.check(self)
         Lambda     = self.fundamental_weights()
         alphacheck = self.simple_coroots()
@@ -16,12 +22,19 @@ class WeightLatticeRealization (RootLatticeRealization):
 
         assert(self.rho().is_dominant())
         assert(self.highest_root().is_dominant())
+        return True
 
     # Should this be a method or an attribute?
     # same question for the roots, ...
     def fundamental_weights(self):
         """
-        Returns the family $(\Lambda_i)_{i\in I}$ of the fundamental weights
+        Returns the family $(\Lambda_i)_{i\in I}$ of the fundamental weights.
+
+        EXAMPLES:
+            sage: e = RootSystem(['A',3]).ambient_lattice()
+            sage: f = e.fundamental_weights()
+            sage: [f[i] for i in [1,2,3]]
+            [(1, 0, 0, 0), (1, 1, 0, 0), (1, 1, 1, 0)]
         """
         if not hasattr(self,"_fundamental_weights"):
             self._fundamental_weights = Family(self.index_set(),

@@ -18,10 +18,10 @@ Root systems
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # Design largely inspired from MuPAD-Combinat
-
+from sage.structure.sage_object import SageObject
 from cartan_type import CartanType
 from sage.rings.all import ZZ, QQ
-from sage import combinat
+from sage.misc.all import cached_method
 from root_space import RootSpace
 from weight_space import WeightSpace
 import type_A
@@ -35,7 +35,7 @@ import type_dual
 import type_reducible
 import type_None
 
-class RootSystem:
+class RootSystem(SageObject):
     r"""
     Returns the root system associated to the Cartan type t.
 
@@ -51,7 +51,7 @@ class RootSystem:
 
         sage: space = R.root_lattice()
         sage: space
-        The root lattice of the Root system of type ['B', 3]
+        Root lattice of the Root system of type ['B', 3]
 
       It is the free \ZZ module $\bigoplus_i \ZZ.\alpha_i$ spanned by
       the simple roots:
@@ -70,7 +70,7 @@ class RootSystem:
       There is a canonical pairing between the root lattice and the
       coroot lattice:
         sage: R.coroot_lattice()
-        The coroot lattice of the Root system of type ['B', 3]
+        Coroot lattice of the Root system of type ['B', 3]
 
       We construct the simple coroots, and do some computations (see
       comments about duality below for some caveat).
@@ -87,7 +87,7 @@ class RootSystem:
 
         sage: space = R.weight_space()
         sage: space
-        The weight space over the Rational Field of the Root system of type ['B', 3]
+        Weight space over the Rational Field of the Root system of type ['B', 3]
 
         sage: space.base_ring()
         Rational Field
@@ -164,7 +164,7 @@ class RootSystem:
       really implemented as the root lattice of the dual root system:
 
         sage: R.dual.root_lattice()
-        The coroot lattice of the Root system of type ['B', 3]
+        Coroot lattice of the Root system of type ['B', 3]
 
       In particular, the coroots for the root lattice are in fact the
       roots of the coroot lattice:
@@ -196,21 +196,10 @@ class RootSystem:
         sage: L == loads(dumps(L))
         True
 
-        sage: for T in CartanType.samples(finite=True,crystalographic=True):
-        ...       RootSystem(T).check()
+        sage: all(RootSystem(T).check() for T in CartanType.samples(finite=True,crystalographic=True))
+        True
     """
-
-    def check(self):
-        self.root_lattice().check()
-        self.root_space  ().check()
-        self.weight_lattice().check()
-        self.weight_space().check()
-        if not self.ambient_lattice() is None:
-            self.ambient_lattice().check()
-        if not self.ambient_space() is None:
-            self.ambient_space().check()
-
-    def __init__(self, cartan_type, asDualOf=None):
+    def __init__(self, cartan_type, as_dual_of=None):
         """
         TESTS:
             sage: R = RootSystem(['A',3])
@@ -218,24 +207,37 @@ class RootSystem:
             Root system of type ['A', 3]
         """
         self._cartan_type = CartanType(cartan_type)
-
-        # Get the python module containing type-specific information,
-        # if it exists
-        self.tools = getattr(combinat.root_system,
-                             self._cartan_type.type_string(),
-                             combinat.root_system.type_None);
+        self.tools = self._cartan_type.tools
 
         # Duality
         # The root system can be defined as dual of another root system. This will
         # only affects the pretty printing
-        if asDualOf == None:
-            self.dual = RootSystem(self._cartan_type.dual(), asDualOf=self);
-            self.dualSide = False
-            self.dualString = ""
+        if as_dual_of is None:
+            self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
+            self.dual_side = False
         else:
-            self.dual = asDualOf
-            self.dualSide = True
-            self.dualString = "co"
+            self.dual = as_dual_of
+            self.dual_side = True
+
+
+    def check(self):
+        """
+        Runs the checks on the root system.
+
+        EXAMPLES:
+            sage: RootSystem(["A",3]).check()
+            True
+        """
+        self.root_lattice().check()
+        self.root_space().check()
+        self.weight_lattice().check()
+        self.weight_space().check()
+        if self.ambient_lattice() is not None:
+            self.ambient_lattice().check()
+        if self.ambient_space() is not None:
+            self.ambient_space().check()
+
+        return True
 
     def __repr__(self):
         """
@@ -243,7 +245,7 @@ class RootSystem:
             sage: RootSystem(['A',3])
             Root system of type ['A', 3]
         """
-        if self.dualSide:
+        if self.dual_side:
             return "Dual of root system of type %s"%self.dual.cartan_type()
         else:
             return "Root system of type %s"%self.cartan_type()
@@ -259,7 +261,7 @@ class RootSystem:
         """
         return self._cartan_type
 
-    # TODO: remember
+    @cached_method
     def dynkin_diagram(self):
         """
         Returns the Dynkin diagram of the root system.
@@ -271,7 +273,7 @@ class RootSystem:
         """
         return self.cartan_type().dynkin_diagram()
 
-    # TODO: remember
+    @cached_method
     def cartan_matrix(self):
         """
         EXAMPLES:
@@ -290,12 +292,30 @@ class RootSystem:
         """
         return self.cartan_type().index_set()
 
+    @cached_method
     def is_finite(self):
-        # TODO: remember
+        """
+        Returns True if self is a finite root system.
+
+        EXAMPLES:
+            sage: RootSystem(["A",3]).is_finite()
+            True
+            sage: RootSystem(["A",3,1]).is_finite()
+            False
+        """
         return self.cartan_type().is_finite()
 
+    @cached_method
     def is_irreducible(self):
-        # TODO: remember
+        """
+        Returns True if self is an irreducible root system.
+
+        EXAMPLES:
+            sage: RootSystem(['A', 3]).is_irreducible()
+            True
+            sage: RootSystem("A2xB2").is_irreducible()
+            False
+        """
         return self.cartan_type().is_irreducible()
 
     def __cmp__(self, other):
@@ -314,30 +334,92 @@ class RootSystem:
             return cmp(self._cartan_type, other._cartan_type)
         return 0
 
-
     def root_lattice(self):
+        """
+        Returns the root lattice associated to self.
+
+        EXAMPLES:
+            sage: RootSystem(['A',3]).root_lattice()
+            Root lattice of the Root system of type ['A', 3]
+        """
         return self.root_space(ZZ)
 
-    def root_space(self, base_ring = QQ):
+    @cached_method
+    def root_space(self, base_ring=QQ):
+        """
+        Returns the root space associated to self.
+
+        EXAMPLES
+            sage: RootSystem(['A',3]).root_space()
+            Root space over the Rational Field of the Root system of type ['A', 3]
+        """
         return RootSpace(self, base_ring)
 
     def coroot_lattice(self):
+        """
+        Returns the coroot lattice associated to self.
+
+        EXAMPLES:
+            sage: RootSystem(['A',3]).coroot_lattice()
+            Coroot lattice of the Root system of type ['A', 3]
+
+        """
         return self.dual.root_lattice()
 
-    def coroot_space(self, base_ring = QQ):
+    def coroot_space(self, base_ring=QQ):
+        """
+        Returns the coroot space associated to self.
+
+        EXAMPLES
+            sage: RootSystem(['A',3]).coroot_space()
+            Coroot space over the Rational Field of the Root system of type ['A', 3]
+
+        """
         return self.dual.root_space(base_ring)
 
-
     def weight_lattice(self):
+        """
+        Returns the weight lattice associated to self.
+
+        EXAMPLES:
+            sage: RootSystem(['A',3]).weight_lattice()
+            Weight lattice of the Root system of type ['A', 3]
+
+        """
         return self.weight_space(ZZ)
 
-    def weight_space(self, base_ring = QQ):
+    @cached_method
+    def weight_space(self, base_ring=QQ):
+        """
+        Returns the weight space associated to self.
+
+        EXAMPLES:
+            sage: RootSystem(['A',3]).weight_space()
+            Weight space over the Rational Field of the Root system of type ['A', 3]
+
+        """
         return WeightSpace(self, base_ring)
 
     def coweight_lattice(self):
+        """
+        Returns the coweight lattice associated to self.
+
+        EXAMPLES:
+            sage: RootSystem(['A',3]).coweight_lattice()
+            Coweight lattice of the Root system of type ['A', 3]
+
+        """
         return self.dual.weight_lattice()
 
-    def coweight_space(self, base_ring = QQ):
+    def coweight_space(self, base_ring=QQ):
+        """
+        Returns the weight space associated to self.
+
+        EXAMPLES:
+            sage: RootSystem(['A',3]).coweight_space()
+            Coweight space over the Rational Field of the Root system of type ['A', 3]
+
+        """
         return self.dual.weight_space(base_ring)
 
 
@@ -351,7 +433,7 @@ class RootSystem:
 
         EXAMPLES:
             sage: RootSystem(['A',4]).ambient_lattice()
-            Ambient lattice for the Root system of type ['A', 4]
+            Ambient lattice of the Root system of type ['A', 4]
 
             sage: RootSystem(['B',4]).ambient_lattice()
             sage: RootSystem(['C',4]).ambient_lattice()
@@ -362,6 +444,7 @@ class RootSystem:
         """
         return self.ambient_space(ZZ)
 
+    @cached_method
     def ambient_space(self, base_ring=QQ):
         """
         Returns the usual ambient space for this root_system, if it is
@@ -375,25 +458,25 @@ class RootSystem:
 
         EXAMPLES:
             sage: RootSystem(['A',4]).ambient_space()
-            Ambient space for the Root system of type ['A', 4]
+            Ambient space of the Root system of type ['A', 4]
 
             sage: RootSystem(['B',4]).ambient_space()
-            Ambient space for the Root system of type ['B', 4]
+            Ambient space of the Root system of type ['B', 4]
 
             sage: RootSystem(['C',4]).ambient_space()
-            Ambient space for the Root system of type ['C', 4]
+            Ambient space of the Root system of type ['C', 4]
 
             sage: RootSystem(['D',4]).ambient_space()
-            Ambient space for the Root system of type ['D', 4]
+            Ambient space of the Root system of type ['D', 4]
 
             sage: RootSystem(['E',6]).ambient_space()
-            Ambient space for the Root system of type ['E', 6]
+            Ambient space of the Root system of type ['E', 6]
 
             sage: RootSystem(['F',4]).ambient_space()
-            Ambient space for the Root system of type ['F', 4]
+            Ambient space of the Root system of type ['F', 4]
 
             sage: RootSystem(['G',2]).ambient_space()
-            Ambient space for the Root system of type ['G', 2]
+            Ambient space of the Root system of type ['G', 2]
         """
         # Intention: check that the ambient_space is implemented and that
         # base_ring contains the smallest base ring for this ambient space

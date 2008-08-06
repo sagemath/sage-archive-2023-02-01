@@ -18,7 +18,6 @@ Dynkin diagrams
 from sage.graphs.all import DiGraph
 from cartan_type import CartanType, CartanType_abstract
 from cartan_matrix import cartan_matrix
-import cartan_type
 from root_system import RootSystem
 
 def DynkinDiagram(*args):
@@ -54,15 +53,12 @@ def DynkinDiagram(*args):
         ct = t.cartan_type()
     else:
         ct = CartanType(t)
-    if ct.is_reducible():
-        function = globals()["type_reducible"]
+
+    if ct.is_affine():
+        function = ct.tools.affine_dynkin_diagram
     else:
-        letter = ct[0].lower()
-        affine = ""
-        ct = CartanType(ct)
-        if ct.is_affine():
-            affine = "_affine"
-        function = globals()["type_"+letter+affine]
+        function = ct.tools.dynkin_diagram
+
     try:
         return function(ct)
     except KeyError:
@@ -70,21 +66,37 @@ def DynkinDiagram(*args):
 
 def dynkin_diagram(t):
     """
-    Deprecated; please use DynkinDiagram
+    Returns the Dynkin diagram of type t.
+
+    Note that this function is deprecated, and that you should use DynkinDiagram
+    instead as this will be disappearing in the near future.
+
+    EXAMPLES:
+        sage: dynkin_diagram(["A", 3])
+        Dynkin diagram of type ['A', 3]
+
     """
+    import warnings
+    warnings.warn("dynkin_diagram is deprecated, use DynkinDiagram instead!", DeprecationWarning, stacklevel=2)
     return DynkinDiagram(t)
 
 
 class DynkinDiagram_class(DiGraph, CartanType_abstract):
     def __init__(self, t):
+        """
+        EXAMPLES:
+            sage: d = DynkinDiagram(["A", 3])
+            sage: d == loads(dumps(d))
+            True
+        """
         DiGraph.__init__(self)
         self._cartan_type = t
 
     def __repr__(self):
         """
         EXAMPLES:
-          sage: DynkinDiagram(['A',3])
-          Dynkin diagram of type ['A', 3]
+            sage: DynkinDiagram(['A',3])
+            Dynkin diagram of type ['A', 3]
         """
         if self._cartan_type is None:
             return "Dynkin diagram of rank %s"%self.rank()
@@ -92,6 +104,17 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             return "Dynkin diagram of type %s"%self._cartan_type
 
     def add_edge(self, i, j, label=1):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
+            sage: d = DynkinDiagram_class(CartanType(['A',3]))
+            sage: list(sorted(d.edges()))
+            []
+            sage: d.add_edge(2, 3)
+            sage: list(sorted(d.edges()))
+            [(2, 3, 1), (3, 2, 1)]
+
+        """
         DiGraph.add_edge(self, i, j, label)
         if not self.has_edge(j,i):
             self.add_edge(j,i,1)
@@ -99,30 +122,39 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
     def index_set(self):
         """
         EXAMPLES:
-          sage: DynkinDiagram(['C',3]).index_set()
-          [1, 2, 3]
-          sage: DynkinDiagram("A2","B2","F4").index_set()
-          [1, 2, 3, 4, 5, 6, 7, 8]
+             sage: DynkinDiagram(['C',3]).index_set()
+             [1, 2, 3]
+             sage: DynkinDiagram("A2","B2","F4").index_set()
+             [1, 2, 3, 4, 5, 6, 7, 8]
         """
         return self.vertices()
 
     def cartan_type(self):
         """
         EXAMPLES:
-          sage: DynkinDiagram("A2","B2","F4").cartan_type()
-          A2xB2xF4
+            sage: DynkinDiagram("A2","B2","F4").cartan_type()
+            A2xB2xF4
         """
         return self._cartan_type
 
     def rank(self):
         r"""
-        returns the index set for this Dynkin diagram
+        Returns the index set for this Dynkin diagram
 
         EXAMPLES:
+            sage: DynkinDiagram(['C',3]).rank()
+            3
+            sage: DynkinDiagram("A2","B2","F4").rank()
+            8
         """
         return self.num_verts()
 
     def dynkin_diagram(self):
+        """
+        EXAMPLES:
+            sage: DynkinDiagram(['C',3]).dynkin_diagram()
+            Dynkin diagram of type ['C', 3]
+        """
         return self
 
     def cartan_matrix(self):
@@ -218,7 +250,6 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: [ (i,a) for (i,a) in g.column(3) ]
             [(3, 2), (2, -1), (4, -2)]
 
-        Caveat: broken in sage < 3.0.3
         """
         return [(j,2)] + [(i,-m) for (j1, i, m) in self.outgoing_edges(j)]
 
@@ -284,364 +315,3 @@ def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
     if n is not None:
         if t[1] != n:
             raise ValueError, "t[1] must be = %s"%n
-
-##############################################################################
-# Everything below is type by type hardcoded data. It probably should be moved
-# into the type_... files
-##############################################################################
-
-
-def type_a(t):
-    """
-    Returns the graph corresponding to the Dynkin diagram
-    of type A.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.dynkin_diagram import type_a
-        sage: ct = CartanType(['A',3])
-        sage: a = type_a(ct); a
-        Dynkin diagram of type ['A', 3]
-        sage: e = a.edges(); e.sort(); e
-        [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 1)]
-
-    TEST:
-        sage: a = DynkinDiagram(['A',1])
-        sage: a
-        Dynkin diagram of type ['A', 1]
-        sage: a.vertices(), a.edges()
-        ([1], [])
-    """
-    precheck(t, letter="A", length=2)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(1, n):
-        g.add_edge(i, i+1)
-    return g
-
-def type_a_affine(t):
-    """
-    Returns the extended Dynkin diagram for affine type A.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.dynkin_diagram import type_a_affine
-        sage: ct = CartanType(['A',3,1])
-        sage: a = type_a_affine(ct); a
-        Dynkin diagram of type ['A', 3, 1]
-        sage: e = a.edges(); e.sort(); e
-        [(0, 1, 1),
-         (0, 3, 1),
-         (1, 0, 1),
-         (1, 2, 1),
-         (2, 1, 1),
-         (2, 3, 1),
-         (3, 0, 1),
-         (3, 2, 1)]
-    """
-    precheck(t, letter="A", length=3, affine=1)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(1, n):
-        g.add_edge(i, i+1)
-    g.add_edge(0, 1)
-    g.add_edge(0, n)
-
-    return g
-
-def type_b(t):
-    """
-    Returns a Dynkin diagram for type B.
-
-    EXAMPLES:
-         sage: from sage.combinat.root_system.dynkin_diagram import type_b
-         sage: ct = CartanType(['B',3])
-         sage: b = type_b(ct);b
-         Dynkin diagram of type ['B', 3]
-         sage: e = b.edges(); e.sort(); e
-         [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1)]
-
-    """
-    precheck(t, letter='B', length=2, n_ge=2)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(1, n):
-        g.add_edge(i, i+1)
-    g.set_edge_label(n-1, n, 2)
-    return g
-
-def type_b_affine(t):
-    """
-    Returns the extended Dynkin diagram for affine type B.
-
-    EXAMPLES:
-       sage: DynkinDiagram(['B',3,1]).edges()
-       [(0, 2, 1), (1, 2, 1), (2, 0, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1)]
-
-    """
-    precheck(t, letter='B', length=3, affine=1)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(1, n):
-        g.add_edge(i, i+1)
-    g.set_edge_label(n-1, n, 2)
-    g.add_edge(0,2)
-    return g
-
-def type_c(t):
-    """
-    Returns a Dynkin diagram for type C.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.dynkin_diagram import type_c
-        sage: ct = CartanType(['C',3])
-        sage: c = type_c(ct); c
-        Dynkin diagram of type ['C', 3]
-        sage: e = c.edges(); e.sort(); e
-        [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
-
-    """
-    precheck(t, letter='C', length=2, n_ge=2)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(1, n):
-        g.add_edge(i, i+1)
-    g.set_edge_label(n,n-1,2)
-    return g
-
-def type_c_affine(t):
-    """
-    Returns the extended Dynkin diagram for affine type C.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.dynkin_diagram import type_c_affine
-        sage: ct = CartanType(['C',3,1])
-        sage: c = type_c_affine(ct);c
-        Dynkin diagram of type ['C', 3, 1]
-        sage: e = c.edges(); e.sort(); e
-        [(0, 1, 2), (1, 0, 1), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
-
-    """
-    precheck(t, letter='C', length=3, affine=1)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(1, n):
-        g.add_edge(i, i+1)
-    g.set_edge_label(n,n-1,2)
-    g.add_edge(0,1,1)
-    g.add_edge(0,1,2)
-    return g
-
-def type_d(t):
-    """
-    Returns a Dynkin diagram for type D.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.dynkin_diagram import type_d
-        sage: ct = CartanType(['D',4])
-        sage: d = type_d(ct);d
-        Dynkin diagram of type ['D', 4]
-        sage: e = d.edges(); e.sort(); e
-        [(1, 2, 1), (2, 1, 1), (2, 3, 1), (2, 4, 1), (3, 2, 1), (4, 2, 1)]
-
-    """
-    precheck(t, letter="D", length=2, n_ge=3)
-    n = t[1]
-
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(1, n-1):
-        g.add_edge(i, i+1)
-    g.add_edge(n-2,n)
-    return g
-
-def type_d_affine(t):
-    """
-    Returns the extended Dynkin diagram for affine type D.
-
-    EXAMPLES:
-       sage: DynkinDiagram(CartanType(['D', 4, 1]))
-       Dynkin diagram of type ['D', 4, 1]
-       sage: DynkinDiagram(CartanType(['D', 4, 1])).edges()
-       [(0, 2, 1),
-        (1, 2, 1),
-        (2, 0, 1),
-        (2, 1, 1),
-        (2, 3, 1),
-        (2, 4, 1),
-        (3, 2, 1),
-        (4, 2, 1)]
-
-    """
-    precheck(t, letter="D", length=3, affine=1)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(1, n-1):
-        g.add_edge(i, i+1)
-    g.add_edge(n-2,n)
-    g.add_edge(0,2)
-    return g
-
-def type_e(t):
-    """
-    Returns a Dynkin diagram for type E.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.dynkin_diagram import type_e
-        sage: ct = CartanType(['E',6])
-        sage: e = type_e(ct);e
-        Dynkin diagram of type ['E', 6]
-        sage: edges = e.edges(); edges.sort(); edges
-        [(1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1), (4, 2, 1), (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1), (6, 5, 1)]
-
-    """
-    precheck(t, letter="E", length=2, n_ge=3)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_edge(1,3)
-    g.add_edge(2,4)
-    for i in range(3,n):
-        g.add_edge(i, i+1)
-    return g
-
-def type_e_affine(t):
-    """
-    Returns the extended Dynkin diagram for affine type E.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.dynkin_diagram import type_e_affine
-        sage: e = DynkinDiagram(['E', 6, 1])
-        sage: edges = e.edges(); edges.sort(); edges
-        [(0, 2, 1),
-         (1, 3, 1),
-         (2, 0, 1),
-         (2, 4, 1),
-         (3, 1, 1),
-         (3, 4, 1),
-         (4, 2, 1),
-         (4, 3, 1),
-         (4, 5, 1),
-         (5, 4, 1),
-         (5, 6, 1),
-         (6, 5, 1)]
-
-    """
-    precheck(t, letter="E", length=3, affine=1)
-    n = t[1]
-    g = DynkinDiagram_class(t)
-    g.add_edge(1,3)
-    g.add_edge(2,4)
-    for i in range(3,n):
-        g.add_edge(i, i+1)
-    if n == 6:
-        g.add_edge(0, 2)
-    elif n == 7:
-        g.add_edge(0, 1)
-    elif n == 8:
-        g.add_edge(0, 8)
-    else:
-        raise ValueError, "Invalid Cartan Type for Type E affine"
-    return g
-
-def type_f(t):
-    """
-    Returns a Dynkin diagram for type F.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.dynkin_diagram import type_f
-        sage: ct = CartanType(['F',4])
-        sage: f = type_f(ct);f
-        Dynkin diagram of type ['F', 4]
-        sage: e = f.edges(); e.sort(); e
-        [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
-
-    """
-    precheck(t, letter='F', length=2, n=4)
-    g = DynkinDiagram_class(t)
-    for i in range(1, 4):
-        g.add_edge(i, i+1)
-    g.set_edge_label(2,3,2)
-    return g
-
-def type_f_affine(t):
-    """
-    Returns the extended Dynkin diagram for affine type F.
-
-    EXAMPLES:
-        sage: f = DynkinDiagram(['F', 4, 1])
-        sage: edges = f.edges(); edges.sort(); edges
-        [(0, 1, 1), (1, 0, 1), (1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
-
-    """
-    precheck(t, letter="F", length=3, affine=1)
-    g = DynkinDiagram_class(t)
-    for i in range(1, 4):
-        g.add_edge(i, i+1)
-    g.set_edge_label(2,3,2)
-    g.add_edge(0, 1)
-    return g
-
-def type_g(t):
-    """
-    Returns a Dynkin diagram for type G.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.dynkin_diagram import type_g
-        sage: ct = CartanType(['G',2])
-        sage: g = type_g(ct);g
-        Dynkin diagram of type ['G', 2]
-        sage: e = g.edges(); e.sort(); e
-        [(1, 2, 1), (2, 1, 3)]
-
-    """
-    precheck(t, letter='G', length=2, n=2)
-    g = DynkinDiagram_class(t)
-    g.add_edge(1,2)
-    g.set_edge_label(2,1,3)
-    return g
-
-def type_g_affine(t):
-    """
-    Returns the extended Dynkin diagram for type G.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.dynkin_diagram import type_g_affine
-        sage: ct = CartanType(['G',2,1])
-        sage: g = type_g_affine(ct); g
-        Dynkin diagram of type ['G', 2, 1]
-        sage: e = g.edges(); e.sort(); e
-        [(0, 2, 1), (1, 2, 1), (2, 0, 1), (2, 1, 3)]
-
-    """
-    precheck(t, letter="G", length=3, affine=1)
-    g = DynkinDiagram_class(t)
-    g.add_edge(1, 2)
-    g.set_edge_label(2,1,3)
-    g.add_edge(0, 2)
-    return g
-
-def type_reducible(t):
-    """
-    Returns a Dynkin diagram for type reducible.
-    EXAMPLES:
-      sage: t = CartanType("A2xB2xF4")
-      sage: dd = DynkinDiagram(t); dd
-      Dynkin diagram of type A2xB2xF4
-      sage: dd.edges()
-      [(1, 2, 1), (2, 1, 1), (3, 4, 2), (4, 3, 1), (5, 6, 1), (6, 5, 1), (6, 7, 2), (7, 6, 1), (7, 8, 1), (8, 7, 1)]
-
-    """
-    g = DynkinDiagram_class(t)
-    g.add_vertices(t.index_set())
-    for i in range(len(t._types)):
-        for [e1, e2, l] in DynkinDiagram(t._types[i]).edges():
-            shift = t._rshifts[i]
-            g.add_edge(e1+shift, e2+shift, label=l)
-    return g
-
-

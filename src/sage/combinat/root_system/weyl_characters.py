@@ -575,7 +575,7 @@ class WeylCharacterRing_class(Algebra):
 
         EXAMPLES:
             sage: WeylCharacterRing(['E',8]).lattice()
-            Ambient space for the Root system of type ['E', 8]
+            Ambient space of the Root system of type ['E', 8]
         """
         return self._lattice
 
@@ -1401,7 +1401,7 @@ class WeightRing(Algebra):
             sage: E8 = WeylCharacterRing(['E',8])
             sage: e8 = WeightRing(E8)
             sage: e8.lattice()
-            Ambient space for the Root system of type ['E', 8]
+            Ambient space of the Root system of type ['E', 8]
         """
         return self._lattice
 

@@ -15,10 +15,9 @@ Cartan types
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-#import sage.combinat.root_system.root_system as root_system
 from sage.combinat import root_system
-from cartan_matrix import cartan_matrix
 from sage.rings.all import ZZ
+from sage.structure.sage_object import SageObject
 
 # TODO:
 # Get rid of almost all runtype type checking by extending the class hierarchy with:
@@ -35,131 +34,138 @@ from sage.rings.all import ZZ
 # Implement coxeter diagrams for non crystalographic
 # Implement dual ambient space
 
+# Intention: we want simultaneously CartanType to be a factory for
+# the various subtypes of CartanType_abstract, as in:
+#     CartanType(["A",4,1])
+# and to behaves as a "module" for some extra utilities:
+#     CartanType.samples()
+#
+# Implementation: CartanType is the unique instance of this class
+# CartanTypeFactory. Is there a better/more standard way to do it?
+class CartanTypeFactory(SageObject):
+    def __call__(self, *args):
+        """
+        Returns an object corresponding to the Cartan type t.
 
-class CartanTypeFactory:
-    # Intention: we want simultaneously CartanType to be a factory for
-    # the various subtypes of CartanType_abstract, as in:
-    #     CartanType(["A",4,1])
-    # and to behaves as a "module" for some extra utilities:
-    #     CartanType.samples()
-    #
-    # Implementation: CartanType is the unique instance of this class
-    # CartanTypeFactory. Is there a better/more standard way to do it?
+        INPUT:
+        [letter, rank]
+        where letter is one of 'A','B','C','D','E','F','G' and rank
+        is the rank. An alternative string notation is allowed.
+        A third optional parameter is permitted for affine
+        types. Reducible types may be entered by giving a list of
+        irreducible types or by a single string
 
-  def __call__(self, *args):
-    """
-    Returns an object corresponding to the Cartan type t.
-    INPUT:
-       [letter, rank]
-    where letter is one of 'A','B','C','D','E','F','G' and rank
-    is the rank. An alternative string notation is allowed.
-    A third optional parameter is permitted for affine
-    types. Reducible types may be entered by giving a list of
-    irreducible types or by a single string
-
-    EXAMPLES:
-        sage: CartanType(['A',4])
-        ['A', 4]
-        sage: CartanType("A4")
-        ['A', 4]
-        sage: CartanType(['A',2],['B',2])
-        A2xB2
-        sage: CartanType(['A',2],['B',2]).is_reducible()
-        True
-        sage: CartanType("A2xB2")
-        A2xB2
-        sage: CartanType("A2","B2") == CartanType("A2xB2")
-        True
-        sage: CartanType(['A',4,1])
-        ['A', 4, 1]
-        sage: CartanType(['A',4,1]).is_affine()
-        True
-    """
-    if len(args) == 1:
-        t = args[0]
-    else:
-        t = args
-    if isinstance(t, CartanType_abstract):
-        return t
-
-    if type(t)==str:
-        if "x" in t:
-            return root_system.type_reducible.CartanType([CartanType(u) for u in t.split("x")])
+        EXAMPLES:
+            sage: CartanType(['A',4])
+            ['A', 4]
+            sage: CartanType("A4")
+            ['A', 4]
+            sage: CartanType(['A',2],['B',2])
+            A2xB2
+            sage: CartanType(['A',2],['B',2]).is_reducible()
+            True
+            sage: CartanType("A2xB2")
+            A2xB2
+            sage: CartanType("A2","B2") == CartanType("A2xB2")
+            True
+            sage: CartanType(['A',4,1])
+            ['A', 4, 1]
+            sage: CartanType(['A',4,1]).is_affine()
+            True
+        """
+        if len(args) == 1:
+            t = args[0]
         else:
-            return CartanType([t[0], eval(t[1:])])
+            t = args
+        if isinstance(t, CartanType_abstract):
+            return t
 
-    t = list(t)
+        if type(t)==str:
+            if "x" in t:
+                return root_system.type_reducible.CartanType([CartanType(u) for u in t.split("x")])
+            else:
+                return CartanType([t[0], eval(t[1:])])
 
-    if type(t[0]) == str and t[1] in ZZ:
-        if len(t) == 2:
-            return CartanType_simple_finite(t)
-        elif len(t) == 3:
-            return CartanType_simple_affine(t)
+        t = list(t)
 
-    return root_system.type_reducible.CartanType([ CartanType(subt) for subt in t ])
+        if type(t[0]) == str and t[1] in ZZ:
+            if len(t) == 2:
+                return CartanType_simple_finite(t)
+            elif len(t) == 3:
+                return CartanType_simple_affine(t)
 
-  def samples(self, finite=False, affine=False, crystalographic=False):
-      """
-      Returns a sample of the implemented cartan types
+        return root_system.type_reducible.CartanType([ CartanType(subt) for subt in t ])
 
-      With finite=True resp. affine=True, one can restrict to finite
-      resp. affine only cartan types
+    def samples(self, finite=False, affine=False, crystalographic=False):
+        """
+        Returns a sample of the implemented cartan types
 
-      EXAMPLES:
-          sage: CartanType.samples(finite=True)
-          [['A', 1], ['A', 5], ['B', 5], ['C', 5], ['D', 5], ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4]]
+        With finite=True resp. affine=True, one can restrict to finite
+        resp. affine only cartan types
 
-          sage: CartanType.samples(affine=True)
-          [['A', 1, 1], ['A', 5, 1], ['B', 5, 1], ['C', 5, 1], ['D', 5, 1], ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['A', 2, 2], ['A', 10, 2], ['A', 9, 2], ['D', 5, 2], ['D', 4, 3], ['E', 6, 2]]
+        EXAMPLES:
+            sage: CartanType.samples(finite=True)
+            [['A', 1], ['A', 5], ['B', 5], ['C', 5], ['D', 5], ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4]]
 
-          sage: CartanType.samples()
-          [['A', 1], ['A', 5], ['B', 5], ['C', 5], ['D', 5], ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4], ['A', 1, 1], ['A', 5, 1], ['B', 5, 1], ['C', 5, 1], ['D', 5, 1], ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['A', 2, 2], ['A', 10, 2], ['A', 9, 2], ['D', 5, 2], ['D', 4, 3], ['E', 6, 2]]
-          sage: CartanType.samples(crystalographic=True)
-          [['A', 1], ['A', 5], ['B', 5], ['C', 5], ['D', 5], ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['A', 1, 1], ['A', 5, 1], ['B', 5, 1], ['C', 5, 1], ['D', 5, 1], ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['A', 2, 2], ['A', 10, 2], ['A', 9, 2], ['D', 5, 2], ['D', 4, 3], ['E', 6, 2]]
-      """
-      if crystalographic:
-          return [ t for t in CartanType.samples(finite=finite, affine=affine) if t.is_crystalographic() ]
-      if finite:
-          return([CartanType(t) for t in [["A", 1], ["A", 5], ["B", 5], ["C", 5], ["D", 5],
-                                          ["E", 6], ["E", 7], ["E", 8],
-                                          ["F", 4],
-                                          ["G", 2],
-                                          ["I", 5],
-                                          ["H", 3], ["H", 4]]])
-      elif affine:
-          return([t.affine() for t in CartanType.samples(finite=True, crystalographic=True)] +
-                 [CartanType(t) for t in [["A", 2, 2], ["A", 10, 2], ["A", 9, 2],
-                                          ["D", 5, 2],
-                                          ["D", 4, 3],
-                                          ["E", 6, 2]]]);
-      else:
-          return CartanType.samples(finite=True) + CartanType.samples(affine=True)
+            sage: CartanType.samples(affine=True)
+            [['A', 1, 1], ['A', 5, 1], ['B', 5, 1], ['C', 5, 1], ['D', 5, 1], ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['A', 2, 2], ['A', 10, 2], ['A', 9, 2], ['D', 5, 2], ['D', 4, 3], ['E', 6, 2]]
+
+            sage: CartanType.samples()
+            [['A', 1], ['A', 5], ['B', 5], ['C', 5], ['D', 5], ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4], ['A', 1, 1], ['A', 5, 1], ['B', 5, 1], ['C', 5, 1], ['D', 5, 1], ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['A', 2, 2], ['A', 10, 2], ['A', 9, 2], ['D', 5, 2], ['D', 4, 3], ['E', 6, 2]]
+            sage: CartanType.samples(crystalographic=True)
+            [['A', 1], ['A', 5], ['B', 5], ['C', 5], ['D', 5], ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['A', 1, 1], ['A', 5, 1], ['B', 5, 1], ['C', 5, 1], ['D', 5, 1], ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['A', 2, 2], ['A', 10, 2], ['A', 9, 2], ['D', 5, 2], ['D', 4, 3], ['E', 6, 2]]
+        """
+        if crystalographic:
+            return [ t for t in CartanType.samples(finite=finite, affine=affine) if t.is_crystalographic() ]
+        if finite:
+            return([CartanType(t) for t in [["A", 1], ["A", 5], ["B", 5], ["C", 5], ["D", 5],
+                                            ["E", 6], ["E", 7], ["E", 8],
+                                            ["F", 4],
+                                            ["G", 2],
+                                            ["I", 5],
+                                            ["H", 3], ["H", 4]]])
+        elif affine:
+            return([t.affine() for t in CartanType.samples(finite=True, crystalographic=True)] +
+                   [CartanType(t) for t in [["A", 2, 2], ["A", 10, 2], ["A", 9, 2],
+                                            ["D", 5, 2],
+                                            ["D", 4, 3],
+                                            ["E", 6, 2]]])
+        else:
+            return CartanType.samples(finite=True) + CartanType.samples(affine=True)
 
 CartanType = CartanTypeFactory()
 
-class CartanType_abstract:
+class CartanType_abstract(SageObject):
     r"""
     Abstract class for cartan types
 
     Subclasses should implement:
 
     type()
+    type_string()
     dynkin_diagram()
     cartan_matrix()
     is_finite()
     is_affine()
     is_irreducible()
     """
-
     def type(self):
         r"""
-        Returns the type of self, or None if unknown
+        Returns the type of self, or None if unknown. This method should be overridden in
+        any subclass.
+
+        EXAMPLES:
+            sage: from sage.combinat.root_system.cartan_type import CartanType_abstract
+            sage: C = CartanType_abstract()
+            sage: C.type() is None
+            True
         """
         return None
 
     def rank(self):
         """
         Returns the rank of self.
+
         EXAMPLES:
             sage: CartanType(['A', 4]).rank()
             4
@@ -168,33 +174,18 @@ class CartanType_abstract:
             sage: CartanType(['I', 8]).rank()
             2
         """
-        raise notImplementedError
+        raise NotImplementedError
 
     def dual(self):
         """
-        Returns the dual cartan type, possibly just as a formal dual
+        Returns the dual cartan type, possibly just as a formal dual.
 
         EXAMPLES:
-            sage: CartanType(['A',3]).dual()
-            ['A', 3]
-            sage: CartanType(['D',4]).dual()
-            ['D', 4]
-            sage: CartanType(['E',8]).dual()
-            ['E', 8]
-            sage: CartanType(['B',3]).dual()
-            ['C', 3]
-            sage: CartanType(['C',2]).dual()
-            ['B', 2]
+            sage: CartanType(['F',4]).dual()
+            ['F', 4]^*
+
         """
         return root_system.type_dual.CartanType(self)
-
-    def type_string(self):
-        r"""
-        Returns a string suitable for type-specific code dispatch
-
-        EXAMPLES: (TODO!)
-        """
-        return "type_None"
 
     def is_reducible(self):
         """
@@ -203,28 +194,45 @@ class CartanType_abstract:
         systems.
 
         EXAMPLES:
-          sage: CartanType("A2xB3").is_reducible()
-          True
-          sage: CartanType(['A',2]).is_reducible()
-          False
+            sage: CartanType("A2xB3").is_reducible()
+            True
+            sage: CartanType(['A',2]).is_reducible()
+            False
         """
         return not self.is_irreducible()
 
     def is_irreducible(self):
         """
-        Report whether this Cartan type is irreducible (i.e. simple)
+        Report whether this Cartan type is irreducible (i.e. simple).  This
+        should be overridden in any subclass.
+
+        EXAMPLES:
+            sage: from sage.combinat.root_system.cartan_type import CartanType_abstract
+            sage: C = CartanType_abstract()
+            sage: C.is_irreducible()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
 
         """
         raise NotImplementedError
 
     def is_finite(self):
         """
-        Returns whether this Cartan type is finite.
+        Returns whether this Cartan type is finite.  This should be overridden in
+        any subclass.
 
         EXAMPLES:
+            sage: from sage.combinat.root_system.cartan_type import CartanType_abstract
+            sage: C = CartanType_abstract()
+            sage: C.is_irreducible()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
             sage: CartanType(['A',4]).is_finite()
             True
-            sage: CartanType(['A',4,1]).is_finite()
+            sage: CartanType(['A',4, 1]).is_finite()
             False
         """
         raise NotImplementedError
@@ -306,8 +314,9 @@ class CartanType_abstract:
 # Maybe we want a separate class for affine
 
 class CartanType_simple(CartanType_abstract):
-    """
-    TESTS:
+    def __cmp__(self, other):
+        """
+        TESTS:
             sage: ct1 = CartanType(['A',4])
             sage: ct2 = CartanType(['A',4])
             sage: ct3 = CartanType(['A',5])
@@ -316,6 +325,11 @@ class CartanType_simple(CartanType_abstract):
             sage: ct1 != ct3
             True
         """
+        if other.__class__ != self.__class__:
+            return cmp(self.__class__, other.__class__)
+        if other.letter != self.letter:
+            return cmp(self.letter, other.letter)
+        return cmp(self.n, other.n)
 
     def __hash__(self):
         """
@@ -344,6 +358,11 @@ class CartanType_simple(CartanType_abstract):
         return self.t[x]
 
     def is_irreducible(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['A', 3]).is_irreducible()
+            True
+        """
         return True
 
     def dynkin_diagram(self):
@@ -382,32 +401,20 @@ class CartanType_simple(CartanType_abstract):
         """
         return self.letter
 
-    def type_string(self):
-        """
-        Returns a string suitable for type-specific code dispatch
-
-        EXAMPLES:
-            sage: CartanType(['A', 4]).type_string()
-            'type_A'
-            sage: CartanType(['A', 4, 1]).type_string()
-            'type_A_affine'
-        """
-        if self.is_affine():
-            return "type_%s_affine"%self.letter
-        else:
-            return "type_%s"%self.letter
-
     def dual(self):
+        """
+        EXAMPLES:
+            sage: CartanType(["A", 3]).dual()
+            ['A', 3]
+            sage: CartanType(["B", 3]).dual()
+            ['C', 3]
+
+        """
         if self.type() in ["A", "D", "E"]:
             return self
         else:
             return CartanType_abstract.dual(self)
 
-    def is_irreducible(self):
-        """
-        Report that this Cartan type is irreducible.
-        """
-        return True
 
 class CartanType_simple_finite(CartanType_simple):
     r"""
@@ -441,6 +448,12 @@ class CartanType_simple_finite(CartanType_simple):
         self.letter = t[0]
         self.n = t[1]
 
+        # Get the python module containing type-specific information,
+        # if it exists
+        self.tools = getattr(root_system,
+                             "type_"+self.type(),
+                             root_system.type_None)
+
 
     def __repr__(self):
         """
@@ -459,28 +472,51 @@ class CartanType_simple_finite(CartanType_simple):
         """
         return 2
 
-    def __cmp__(self, other):
-        if other.__class__ != self.__class__:
-            return cmp(self.__class__, other.__class__)
-        if other.letter != self.letter:
-            return cmp(self.letter, other.letter)
-        return cmp(self.n, other.n)
-
     def rank(self):
+        """
+        EXAMPLES:
+            sage: CartanType(["A", 3]).rank()
+            3
+        """
         if self.letter == "I":
             return 2
         else:
             return self.n
+
     def is_finite(self):
+        """
+        EXAMPLES:
+            sage: CartanType(["A", 3]).is_finite()
+            True
+        """
         return True
 
     def is_affine(self):
+        """
+        EXAMPLES:
+            sage: CartanType(["A", 3]).is_affine()
+            False
+        """
         return False
 
     def is_crystalographic(self):
+        """
+        EXAMPLES:
+            sage: CartanType(["A", 3]).is_crystalographic()
+            True
+            sage: CartanType(["I", 2]).is_crystalographic()
+            False
+        """
         return self.letter in ["A", "B", "C", "D", "E", "F", "G"]
 
     def is_simply_laced(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['A',3]).is_simply_laced()
+            True
+            sage: CartanType(['B',3]).is_simply_laced()
+            False
+        """
         return self.letter in  ["A", "D", "E"]
 
     def affine(self):
@@ -494,6 +530,19 @@ class CartanType_simple_finite(CartanType_simple):
         return CartanType([self.letter, self.n, 1])
 
     def dual(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['A',3]).dual()
+            ['A', 3]
+            sage: CartanType(['D',4]).dual()
+            ['D', 4]
+            sage: CartanType(['E',8]).dual()
+            ['E', 8]
+            sage: CartanType(['B',3]).dual()
+            ['C', 3]
+            sage: CartanType(['C',2]).dual()
+            ['B', 2]
+        """
         if self.type() == "B":
             return CartanType(["C",self.n])
         elif self.type() == "C":
@@ -506,7 +555,6 @@ class CartanType_simple_affine(CartanType_simple):
     r"""
     A class for affine simple Cartan types
     """
-
     def __init__(self, t):
         """
         EXAMPLES:
@@ -541,6 +589,12 @@ class CartanType_simple_affine(CartanType_simple):
         self.n = t[1]
         self.affine = t[2]
 
+        # Get the python module containing type-specific information,
+        # if it exists
+        self.tools = getattr(root_system,
+                             'type_'+self.type(),
+                             root_system.type_None);
+
     def __repr__(self):
         """
         TESTS:
@@ -551,7 +605,19 @@ class CartanType_simple_affine(CartanType_simple):
         return "['%s', %s, %s]"%(self.letter, self.n, self.affine)
 
     def __cmp__(self, other):
-        c = CartanType_simple_finite.cmp(self, other)
+        """
+        EXAMPLES:
+            sage: ct1 = CartanType(['A',3, 1])
+            sage: ct2 = CartanType(['B',3, 1])
+            sage: ct3 = CartanType(['A',3])
+            sage: ct1 == ct1
+            True
+            sage: ct1 == ct2
+            False
+            sage: ct1 == ct3
+            False
+        """
+        c = CartanType_simple.__cmp__(self, other)
         if c != 0:
             return c
         else:
@@ -566,6 +632,13 @@ class CartanType_simple_affine(CartanType_simple):
         return 3
 
     def rank(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['D', 4, 3]).rank()
+            3
+            sage: CartanType(['B', 4, 1]).rank()
+            4
+        """
         if self.affine == 3 and self.letter == 'D':
             return self.n-1
         elif self.affine == 2 and self.letter == 'A':
@@ -576,15 +649,41 @@ class CartanType_simple_affine(CartanType_simple):
             return self.n
 
     def is_finite(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['A', 3, 1]).is_finite()
+            False
+        """
         return False
 
     def is_affine(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['A', 3, 1]).is_affine()
+            True
+        """
         return True
 
     def is_crystalographic(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['A', 3, 1]).is_crystalographic()
+            True
+        """
         return True
 
     def is_simply_laced(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['A', 3, 1]).is_simply_laced()
+            True
+            sage: CartanType(['D', 4, 3]).is_simply_laced()
+            False
+            sage: CartanType(['D', 4, 1]).is_simply_laced()
+            True
+            sage: CartanType(['B', 4, 1]).is_simply_laced()
+            False
+        """
         if self.affine != 1:
             return False
         if self.letter == "A":

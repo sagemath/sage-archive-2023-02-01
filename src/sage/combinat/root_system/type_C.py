@@ -9,6 +9,12 @@ class ambient_space(AmbientSpace):
 #        return ZZ;
 
     def dimension(self):
+        """
+        EXAMPLES:
+            sage: e = RootSystem(['C',3]).ambient_space()
+            sage: e.dimension()
+            3
+        """
         return self.root_system.cartan_type().rank()
 
     def root(self, i, j, p1, p2):
@@ -81,3 +87,53 @@ class ambient_space(AmbientSpace):
             Finite family {1: (1, 0, 0), 2: (1, 1, 0), 3: (1, 1, 1)}
         """
         return self.sum(self._term(j) for j in range(i))
+
+
+def dynkin_diagram(t):
+    """
+    Returns a Dynkin diagram for type C.
+
+    EXAMPLES:
+        sage: from sage.combinat.root_system.type_C import dynkin_diagram
+        sage: ct = CartanType(['C',3])
+        sage: c = dynkin_diagram(ct); c
+        Dynkin diagram of type ['C', 3]
+        sage: e = c.edges(); e.sort(); e
+        [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+
+    """
+    from dynkin_diagram import precheck , DynkinDiagram_class
+    precheck(t, letter='C', length=2, n_ge=2)
+    n = t[1]
+    g = DynkinDiagram_class(t)
+    g.add_vertices(t.index_set())
+    for i in range(1, n):
+        g.add_edge(i, i+1)
+    g.set_edge_label(n,n-1,2)
+    return g
+
+def affine_dynkin_diagram(t):
+    """
+    Returns the extended Dynkin diagram for affine type C.
+
+    EXAMPLES:
+        sage: from sage.combinat.root_system.type_C import affine_dynkin_diagram
+        sage: ct = CartanType(['C',3,1])
+        sage: c = affine_dynkin_diagram(ct);c
+        Dynkin diagram of type ['C', 3, 1]
+        sage: e = c.edges(); e.sort(); e
+        [(0, 1, 2), (1, 0, 1), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
+
+    """
+    from dynkin_diagram import precheck , DynkinDiagram_class
+    precheck(t, letter='C', length=3, affine=1)
+    n = t[1]
+    g = DynkinDiagram_class(t)
+    g.add_vertices(t.index_set())
+    for i in range(1, n):
+        g.add_edge(i, i+1)
+    g.set_edge_label(n,n-1,2)
+    g.add_edge(0,1,1)
+    g.add_edge(0,1,2)
+    return g
+

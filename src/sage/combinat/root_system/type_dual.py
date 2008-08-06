@@ -1,4 +1,5 @@
 from sage.combinat.root_system.cartan_type import CartanType_abstract
+import sage
 
 class CartanType(CartanType_abstract):
     r"""
@@ -10,7 +11,6 @@ class CartanType(CartanType_abstract):
     properties in common with its dual. In particular, the Weyl group
     is isomorphic to that of the dual as a Coxeter group.
     """
-
     def __init__(self, type):
         """
         INPUT:
@@ -22,6 +22,7 @@ class CartanType(CartanType_abstract):
            True
         """
         self._dual = type
+        self.tools = sage.combinat.root_system.type_dual
 
     def __repr__(self):
         """
@@ -30,7 +31,7 @@ class CartanType(CartanType_abstract):
            sage: ct
            ['F', 4]^*
         """
-        return self.dual().__repr__()+"^*"
+        return repr(self.dual())+"^*"
 
     def __cmp__(self, other):
         """
@@ -49,28 +50,77 @@ class CartanType(CartanType_abstract):
         return cmp(self._dual, other._dual)
 
     def dual(self):
+        """
+        EXAMPLES:
+           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct.dual()
+           ['F', 4]
+        """
         return self._dual
 
     def is_irreducible(self):
+        """
+        EXAMPLES:
+           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct.is_irreducible()
+           True
+        """
         return self._dual.is_irreducible()
 
     def is_finite(self):
+        """
+        EXAMPLES:
+           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct.is_finite()
+           True
+        """
         return self._dual.is_finite()
 
     def is_crystalographic(self):
-        return self._dual.is_crystalographic
+        """
+        EXAMPLES:
+           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct.is_crystalographic()
+           True
+        """
+        return self._dual.is_crystalographic()
 
     def is_affine(self):
+        """
+        EXAMPLES:
+           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct.is_affine()
+           False
+        """
         return self._dual.is_affine()
 
     def rank(self):
+        """
+        EXAMPLES:
+           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct.rank()
+           4
+        """
         return self._dual.rank()
 
     def index_set(self):
+        """
+        EXAMPLES:
+           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct.index_set()
+           [1, 2, 3, 4]
+        """
         return self._dual.index_set()
 
     def dynkin_diagram(self):
+        """
+        EXAMPLES:
+           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct.dynkin_diagram()
+           Dynkin diagram of type ['F', 4]^*
+        """
         return self._dual.dynkin_diagram().dual()
+
 
 #class ambient_space(AmbientSpace):
 # todo?

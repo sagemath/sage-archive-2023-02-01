@@ -19,6 +19,8 @@ from sage.modules.module import Module
 from sage.rings.all import Ring, Integer
 import sage.structure.parent_base
 from sage.combinat.family import Family
+from sage.combinat.finite_class import FiniteCombinatorialClass
+from sage.combinat.combinat import CombinatorialClass
 
 # TODO:
 # Rewrite all tests in a more self contained way
@@ -82,15 +84,16 @@ class CombinatorialFreeModuleElement(ModuleElement):
     def __repr__(self):
         """
         EXAMPLES:
-            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
-            sage: a = 2 + QS3([2,1,3])
-            sage: print a.__repr__()
-            2*[1, 2, 3] + [2, 1, 3]
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'], prefix='F')
+            sage: e = F.basis()
+            sage: e['a'] + 2*e['b']
+            F('a') + 2*F('b')
+
         """
         v = self._monomial_coefficients.items()
         v.sort()
         prefix = self.parent().prefix()
-        mons = [ prefix + repr(m) for (m, _) in v ]
+        mons = [ prefix + "(" + repr(m) + ")" for (m, _) in v ]
         cffs = [ x for (_, x) in v ]
         x = repr_lincomb(mons, cffs).replace("*1 "," ")
         if x[len(x)-2:] == "*1":
@@ -409,12 +412,11 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: a.map_coefficients(lambda x: x*2)
             2*s[2, 1] + 4*s[3, 2]
         """
-        res = self.parent()(0)
         z_elt = {}
         for m,c in self.monomial_coefficients().iteritems():
             z_elt[m] = f(c)
-        res._monomial_coefficients = z_elt
-        return res
+        return self.parent()._from_dict(z_elt)
+
 
     def map_basis(self, f):
         """
@@ -437,7 +439,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
         res._monomial_coefficients = z_elt
         return res
 
-    def map_mc(self, f):
+    def map(self, f):
         """
         Returns a new element of self.parent() obtained
         by applying the function f to a monomial coefficient
@@ -457,6 +459,17 @@ class CombinatorialFreeModuleElement(ModuleElement):
             new_m, new_c = f(m,c)
             z_elt[new_m] = new_c
         return self.parent()._from_dict(z_elt)
+
+    map_mc = map
+
+    def _l_action(self, x):
+        x = self.base_ring()(x)
+        return self.map_coefficients(lambda c: x*c)
+
+    def _r_action(self, x):
+        x = self.base_ring()(x)
+        return self.map_coefficients(lambda c: c*x)
+
 
 # NT: There is nothing combinatorial here
 # NT: It's really too bad that we can't have the ring as second optional argument
@@ -537,27 +550,14 @@ class CombinatorialFreeModuleInterface(): # Should not it inherit from ParentWit
             else:
                 return eclass(self, dict([ (e1,R(e2)) for e1,e2 in x._monomial_coefficients.items()]))
         #x is an element of the basis combinatorial class
-        elif isinstance(x, self._combinatorial_class.object_class):
+        elif isinstance(self._combinatorial_class.object_class, type) and isinstance(x, self._combinatorial_class.object_class):
             return eclass(self, {x:R(1)})
         elif x in self._combinatorial_class:
             return eclass(self, {self._combinatorial_class.object_class(x):R(1)})
-        #Coerce elements of the base ring
-        elif hasattr(x, 'parent') and x.parent() is R:
-            if x == R(0):
-                return eclass(self, {})
-            else:
-                return eclass(self, {self._one:x})
-        #Coerce things that coerce into the base ring
-        elif R.has_coerce_map_from(x.parent()):
-            rx = R(x)
-            if rx == R(0):
-                return eclass(self, {})
-            else:
-                return eclass(self, {self._one:R(x)})
         else:
             if hasattr(self, '_coerce_end'):
                 try:
-                    return self._coerce_start(x)
+                    return self._coerce_end(x)
                 except TypeError:
                     pass
             raise TypeError, "do not know how to make x (= %s) an element of self (=%s)"%(x,self)
@@ -567,13 +567,13 @@ class CombinatorialFreeModuleInterface(): # Should not it inherit from ParentWit
         Returns an element of self, namely the unit element.
 
         EXAMPLES:
-            sage: s = SFASchur(QQ)
-            sage: s._an_element_impl()
-            s[]
-            sage: _.parent() is s
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
+            sage: F._an_element_impl()
+            0
+            sage: _.parent() is F
             True
         """
-        return self._element_class(self, {self._one:self.base_ring()(1)})
+        return self._element_class(self, {})
 
     def __repr__(self):
         """
@@ -581,7 +581,6 @@ class CombinatorialFreeModuleInterface(): # Should not it inherit from ParentWit
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
             sage: print QS3.__repr__()
             Symmetric group algebra of order 3 over Rational Field
-
         """
         return self._name + " over %s"%self.base_ring()
 
@@ -744,7 +743,13 @@ class CombinatorialFreeModuleInterface(): # Should not it inherit from ParentWit
         return self._from_dict(z_elt)
 
     def term(self, i):
-        return self._from_dict({i:self.base_ring()._one_element})
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
+            sage: F.term('a')
+            B('a')
+        """
+        return self._from_dict({i:self.base_ring().one_element()})
 
     def _from_dict(self, d, coerce=False):
         """
@@ -773,6 +778,7 @@ class CombinatorialFreeModuleInterface(): # Should not it inherit from ParentWit
 
         return self._element_class(self, d)
 
+
 class CombinatorialFreeModule(CombinatorialFreeModuleInterface, Module):
     r"""
     EXAMPLES:
@@ -797,12 +803,17 @@ class CombinatorialFreeModule(CombinatorialFreeModuleInterface, Module):
             sage: 2*e['a']
             2*B('a')
             sage: e['a'] + 3*e['b']
-            2*B('a') + 3*e['b']
+            B('a') + 3*B('b')
     """
 
 
-    def __init__(self, R, combinatorial_class):
-        self._combinatorial_class = combinatorial_class
-        self._name = "Free module generated by %s"%combinatorial_class
+    def __init__(self, R, cc, prefix="B"):
+        if isinstance(cc, list):
+            cc = FiniteCombinatorialClass(cc)
+        if not isinstance(cc, CombinatorialClass):
+            raise TypeError, "cc = (%s) must be an instance of CombinatorialClass"%cc
+        self._combinatorial_class = cc
+        self._prefix = prefix
+        self._name = "Free module generated by %s"%cc
         CombinatorialFreeModuleInterface.__init__(self, R, CombinatorialFreeModuleElement)
     pass

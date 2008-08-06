@@ -62,6 +62,7 @@ from sage.rings.ring import Ring
 from sage.algebras.algebra_element import AlgebraElement
 from sage.matrix.all import MatrixSpace
 from sage.combinat.free_module import CombinatorialFreeModuleElement, CombinatorialFreeModule, CombinatorialFreeModuleInterface
+from sage.misc.misc import repr_lincomb
 
 class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
     def __init__(self, A, x):
@@ -226,6 +227,26 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
         return self._matrix_()
 
 
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: a = 2 + QS3([2,1,3])
+            sage: print a.__repr__()
+            2*[1, 2, 3] + [2, 1, 3]
+        """
+        v = self._monomial_coefficients.items()
+        v.sort()
+        prefix = self.parent().prefix()
+        mons = [ prefix + repr(m) for (m, _) in v ]
+        cffs = [ x for (_, x) in v ]
+        x = repr_lincomb(mons, cffs).replace("*1 "," ")
+        if x[len(x)-2:] == "*1":
+            return x[:len(x)-2]
+        else:
+            return x
+
+
 class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
     def __init__(self, R, element_class = None):
         """
@@ -256,6 +277,46 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
             self._element_class = element_class
 
         CombinatorialFreeModuleInterface.__init__(self, R, self._element_class)
+
+    def __call__(self, x):
+        try:
+            return CombinatorialFreeModuleInterface.__call__(self, x)
+        except TypeError:
+            pass
+
+        R = self.base_ring()
+        eclass = self._element_class
+        #Coerce elements of the base ring
+        if not hasattr(x, 'parent'):
+            x = R(x)
+        if x.parent() == R:
+            if x == R(0):
+                return eclass(self, {})
+            else:
+                return eclass(self, {self._one:x})
+        #Coerce things that coerce into the base ring
+        elif R.has_coerce_map_from(x.parent()):
+            rx = R(x)
+            if rx == R(0):
+                return eclass(self, {})
+            else:
+                return eclass(self, {self._one:R(x)})
+
+        raise TypeError, "do not know how to make x (= %s) an element of self (=%s)"%(x,self)
+
+    def _an_element_impl(self):
+        """
+        Returns an element of self, namely the unit element.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s._an_element_impl()
+            s[]
+            sage: _.parent() is s
+            True
+        """
+        return self._element_class(self, {self._one:self.base_ring()(1)})
+
 
     def multiply(self,left,right):
         """

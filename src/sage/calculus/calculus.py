@@ -1495,7 +1495,7 @@ class SymbolicExpression(RingElement):
         right = self.parent()(right)
         return SymbolicArithmetic([self, right], operator.pow)
 
-    def variables(self, vars=tuple([])):
+    def variables(self):
         r"""
         Return sorted list of variables that occur in the simplified
         form of \code{self}.
@@ -1515,7 +1515,7 @@ class SymbolicExpression(RingElement):
             sage: a.variables()
             (x,)
         """
-        return vars
+        return tuple([])
 
     def arguments(self):
         r"""
@@ -4377,7 +4377,7 @@ class SymbolicOperation(SymbolicExpression):
         SymbolicExpression.__init__(self)
         self._operands = operands   # don't even make a copy -- ok, since immutable.
 
-    def variables(self, vars=tuple([])):
+    def variables(self):
         r"""
         Return sorted list of variables that occur in the simplified
         form of \code{self}.  The ordering is alphabetic.
@@ -4397,13 +4397,13 @@ class SymbolicOperation(SymbolicExpression):
             (x,)
         """
         if not self._has_been_simplified():
-            return self.simplify().variables(vars)
+            return self.simplify().variables()
 
         try:
             return self.__variables
         except AttributeError:
             pass
-        vars = list(set(sum([list(op.variables()) for op in self._operands], list(vars))))
+        vars = list(set(sum([list(op.variables()) for op in self._operands], [])))
 
         vars.sort(var_cmp)
         vars = tuple(vars)
@@ -5194,7 +5194,7 @@ class SymbolicVariable(SymbolicExpression):
         else:
             return ring(self)
 
-    def variables(self, vars=tuple([])):
+    def variables(self):
         r"""
         Return sorted list of variables that occur in the simplified
         form of \code{self}.

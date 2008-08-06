@@ -4,6 +4,7 @@ Numerical Integration
 AUTHORS:
     -- Josh Kantor (2007-02): first version
     -- William Stein (2007-02): rewrite of docs, conventions, etc.
+    -- Robert Bradshaw (2008-08): fast float integration
 """
 
 ##############################################################################
@@ -23,6 +24,8 @@ include 'gsl.pxi'
 import sage.rings.complex_double
 import sage.plot.plot
 import sage.gsl.interpolation
+
+from sage.ext.fast_eval cimport FastDoubleFunc
 
 cdef class PyFunctionWrapper:
    cdef object the_function
@@ -55,6 +58,9 @@ cdef double c_f(double t,void *params):
    return value
 
 
+cdef double c_ff(double t, void *params):
+    return (<FastDoubleFunc>params)._call_c(&t)
+
 
 def numerical_integral(func, a, b=None,
                        algorithm='qag',
@@ -66,10 +72,14 @@ def numerical_integral(func, a, b=None,
 
    EXAMPLES:
       To integrate the function $x^2$ from 0 to 1, we do
-          sage: numerical_integral(lambda x: x^2, 0, 1, max_points=100)
+          sage: numerical_integral(x^2, 0, 1, max_points=100)
           (0.33333333333333331, 3.7007434154171879e-15)
 
       To integrate the function $\sin(x)^3 + \sin(x)$ we do
+         sage: numerical_integral(sin(x)^3 + sin(x),  0, pi)
+         (3.333333333333333, 3.7007434154171883e-14)
+
+      The input can be any callable:
          sage: numerical_integral(lambda x: sin(x)^3 + sin(x),  0, pi)
          (3.333333333333333, 3.7007434154171883e-14)
 
@@ -110,12 +120,12 @@ def numerical_integral(func, a, b=None,
 
    MORE EXAMPLES:
    If we want to change the error tolerances and gauss rule used
-       sage: f = lambda x: x^2
+       sage: f = x^2
        sage: numerical_integral(f, 0, 1, max_points=200, eps_abs=1e-7, eps_rel=1e-7, rule=4)
        (0.33333333333333331, 3.7007434154171879e-15)
 
    For a Python function with parameters:
-      sage: f = lambda x, a:1.0/(a[0]+x**2)
+      sage: f(x,a) = 1/(a+x^2)
       sage: [numerical_integral(f, 1, 2, max_points=100, params=[n]) for n in range(10)]   # slightly random output (architecture and os dependent)
       [(0.49999999999998657, 5.5511151231256336e-15),
        (0.32175055439664557, 3.5721487367706477e-15),
@@ -132,13 +142,13 @@ def numerical_integral(func, a, b=None,
 
    It is possible to perform on infinite intervals as well by using
    +Infinity or -Infinity in the interval argument. For example,
-       sage: f = lambda x: float(exp(RR(-x)))
+       sage: f = exp(-x)
        sage: numerical_integral(f, 0, +Infinity)       # slightly random output
        (0.99999999999957279, 1.8429811298996553e-07)
 
    Note the coercion to the real field RR, which prevents underflow.
 
-       sage: f = lambda x: float(exp(RR(-x**2)))
+       sage: f = exp(-x**2)
        sage: numerical_integral(f, -Infinity, +Infinity)           # slightly random output
        (1.7724538509060035, 3.4295192165889879e-08)
 
@@ -153,12 +163,17 @@ def numerical_integral(func, a, b=None,
        sage: numerical_integral(exp(-1/x), 1, 2)
        (0.50479221787318407, 5.6043194293440744e-15)
 
+   We can also integrate constant expressions:
+       sage: numerical_integral(2, 1, 7)
+       (12.0, 0.0)
+
    IMPLEMENTATION NOTES:
        Uses calls to the GSL -- the GNU Scientific Library -- C library.
 
    AUTHORS:
        -- Josh Kantor
        -- William Stein
+       -- Robert Bradshaw
    """
 
    import inspect
@@ -173,7 +188,34 @@ def numerical_integral(func, a, b=None,
       b = a[1]
       a = a[0]
 
-   if not isinstance(func, compiled_integrand):
+   if not callable(func):
+        # handle the constant case
+        return (((<double>b - <double>a) * <double>func), 0.0)
+
+   cdef gsl_function F
+   cdef gsl_integration_workspace* W
+   W=NULL
+
+   if not isinstance(func, FastDoubleFunc):
+        try:
+            if hasattr(func, 'arguments'):
+                vars = func.arguments()
+            else:
+                vars = func.variables()
+            if len(vars) != 1:
+                if len(params) + 1 != len(vars):
+                    raise ValueError, "Integrand has wrong number of parameters"
+                to_sub = dict(zip(vars[1:], params))
+                func = func.subs(to_sub)
+            func = func._fast_float_(str(vars[0]))
+        except (AttributeError):
+            pass
+
+   if isinstance(func, FastDoubleFunc):
+        F.function = c_ff
+        F.params = <void *>func
+
+   elif not isinstance(func, compiled_integrand):
       wrapper = PyFunctionWrapper()
       if not func is None:
          wrapper.the_function = func
@@ -190,12 +232,10 @@ def numerical_integral(func, a, b=None,
          wrapper.the_function = eval("lambda x: func(x)", {'func':func})
          wrapper.the_parameters = []
 
+      F.function=c_f
+      F.params=<void *> wrapper
 
-   cdef gsl_function F
-   cdef gsl_integration_workspace* W
-   W=NULL
-   F.function=c_f
-   F.params=<void *> wrapper
+
    cdef size_t n
    n=max_points
 

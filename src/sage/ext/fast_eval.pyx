@@ -35,11 +35,11 @@ math functions such sqrt, exp, and trig functions.
 
 EXAMPLES:
     sage: from sage.ext.fast_eval import fast_float
-    sage: f = fast_float(sqrt(x^2+1), 'x')
+    sage: f = fast_float(sqrt(x^7+1), 'x')
     sage: f(1)
     1.4142135623730951
     sage: f.op_list()
-    ['load 0', 'push 2.0', 'call pow(2)', 'push 1.0', 'add', 'call sqrt(1)']
+    ['load 0', 'push 7.0', 'call pow(2)', 'push 1.0', 'add', 'call sqrt(1)']
 
     To interpret that last line, we load argument 0 ('x' in this case) onto
     the stack, push the constant 2.0 onto the stack, call the pow function
@@ -50,7 +50,7 @@ Here we take sin of the first argument and add it to f:
     sage: from sage.ext.fast_eval import fast_float_arg
     sage: g = fast_float_arg(0).sin()
     sage: (f+g).op_list()
-    ['load 0', 'push 2.0', 'call pow(2)', 'push 1.0', 'add', 'call sqrt(1)', 'load 0', 'call sin(1)', 'add']
+    ['load 0', 'push 7.0', 'call pow(2)', 'push 1.0', 'add', 'call sqrt(1)', 'load 0', 'call sin(1)', 'add']
 
 TESTS:
 This used to segfault because of an assumption that assigning None to a
@@ -775,8 +775,10 @@ cdef class FastDoubleFunc:
             sage: f(5,3)
             125.0
         """
+        if isinstance(right, FastDoubleFunc) and right.nargs == 0:
+            right = float(right)
         if not isinstance(right, FastDoubleFunc):
-            if right == int(right):
+            if right == int(float(right)):
                 if right == 1:
                     return left
                 elif right == 2:
@@ -811,6 +813,27 @@ cdef class FastDoubleFunc:
             3.0
         """
         return self.unop(ABS)
+
+    def __float__(self):
+        """
+        EXAMPLES:
+            sage: from sage.ext.fast_eval import fast_float_constant, fast_float_arg
+            sage: ff = fast_float_constant(17)
+            sage: float(ff)
+            17.0
+            sage: ff = fast_float_constant(17) - fast_float_constant(2)^2
+            sage: float(ff)
+            13.0
+            sage: ff = fast_float_constant(17) - fast_float_constant(2)^2 + fast_float_arg(1)
+            sage: float(ff)
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a constant.
+        """
+        if self.nargs == 0:
+            return self._call_c(NULL)
+        else:
+            raise TypeError, "Not a constant."
 
     def abs(FastDoubleFunc self):
         """

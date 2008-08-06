@@ -252,8 +252,8 @@ cdef class Map(Element):
     def is_surjective(self):
         raise NotImplementedError, type(self)
 
-    def __pow__(self, n, dummy):
-        if not self._domain is not self._codomain:
+    def __pow__(Map self, n, dummy):
+        if self._domain is not self._codomain:
             raise TypeError, "self must be an endomorphism."
         # todo -- what about the case n=0 -- need to specify the identity map somehow.
         return generic_power(self, n)

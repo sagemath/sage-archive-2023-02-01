@@ -385,13 +385,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: len(MatrixSpace(GF(2), 3, 3))
             512
         """
-        cdef Py_ssize_t total = 0
-        if self.is_finite():
-            for x in self:
-                total += 1
-            return total
-        else:
-            raise ValueError, "%s has infinite cardinality" % self
+        return len(self.list())
 
     def __getitem__(self, n):
         """

@@ -449,7 +449,7 @@ class Set_object(Set_generic):
             25
         """
         try:
-            if not self.__object.is_finite():
+            if self.is_finite():
                 return sage.rings.infinity.infinity
         except AttributeError:
             pass
@@ -467,8 +467,13 @@ class Set_object(Set_generic):
             True
             sage: Set(Integers(2^1000000)).is_finite()
             True
+            sage: Set([1,'a',ZZ]).is_finite()
+            True
         """
-        return self.__object.is_finite()
+        if isinstance(self.__object, (set, frozenset, tuple, list)):
+            return True
+        else:
+            return self.__object.is_finite()
 
     def object(self):
         """

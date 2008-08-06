@@ -56,7 +56,7 @@ class WeylCharacter(AlgebraElement):
     weight vector.
 
     EXAMPLES:
-        sage: L = RootSystem(['A',2]).ambient_lattice()
+        sage: L = RootSystem(['A',2]).ambient_space()
         sage: [fw1,fw2] = L.fundamental_weights()
         sage: R = WeylCharacterRing(['A',2], prefix="R")
         sage: [R(1),R(fw1),R(fw2)]
@@ -112,7 +112,9 @@ class WeylCharacter(AlgebraElement):
         if self._hdict == {}:
             return "0"
         v = self._hdict.keys()
-        v.sort()
+        # Just a workaround to keep the same sorting as before when
+        # the dictionary was indexed by tuples
+        v.sort(key = lambda v: tuple(v.to_vector()))
         return repr_lincomb([self._parent.irr_repr(k) for k in v], [self._hdict[k] for k in v])
 
     def __cmp__(self, right):
@@ -207,7 +209,7 @@ class WeylCharacter(AlgebraElement):
             sage: [F4(x).check(verbose = true) for x in F4.lattice().fundamental_weights()]
             [[52, 52], [1274, 1274], [273, 273], [26, 26]]
         """
-        theoretical = sum(self._hdict[k]*self._lattice.weyl_dimension(self._parent.VS(k)) for k in self._hdict)
+        theoretical = sum(self._hdict[k]*self._lattice.weyl_dimension(k) for k in self._hdict)
         practical = sum(self._mdict[k] for k in self._mdict)
         if verbose:
             return [theoretical, practical]
@@ -228,7 +230,7 @@ class WeylCharacter(AlgebraElement):
         mdict = {}
         for k in self._mdict:
             for l in y._mdict:
-                m = tuple(self._parent.VS(k)+self._parent.VS(l))
+                m = k+l
                 if m in mdict:
                     mdict[m] += self._mdict[k]*y._mdict[l]
                 else:
@@ -300,7 +302,7 @@ class WeylCharacter(AlgebraElement):
            sage: B3(1/2,1/2,1/2).hlist()
            [[(1/2, 1/2, 1/2), 1]]
         """
-        return [[self._parent.VS(k),m] for k,m in self._hdict.iteritems()]
+        return [[k,m] for k,m in self._hdict.iteritems()]
 
     def mlist(self):
         """
@@ -309,16 +311,19 @@ class WeylCharacter(AlgebraElement):
         EXAMPLES:
             sage: B3 = WeylCharacterRing(['B',3])
             sage: B3(1/2,1/2,1/2).mlist()
-            [[(1/2, 1/2, 1/2), 1],
-             [(-1/2, 1/2, -1/2), 1],
-             [(-1/2, -1/2, -1/2), 1],
-             [(1/2, -1/2, 1/2), 1],
-             [(-1/2, 1/2, 1/2), 1],
-             [(1/2, -1/2, -1/2), 1],
-             [(-1/2, -1/2, 1/2), 1],
-             [(1/2, 1/2, -1/2), 1]]
+            [[(1/2, -1/2, -1/2), 1], [(-1/2, 1/2, -1/2), 1], [(1/2, 1/2, 1/2), 1], [(1/2, 1/2, -1/2), 1], [(-1/2, -1/2, 1/2), 1], [(-1/2, -1/2, -1/2), 1], [(1/2, -1/2, 1/2), 1], [(-1/2, 1/2, 1/2), 1]]
+
+# Why did the test not pass with the following indentation?
+#             [[( 1/2, -1/2, -1/2), 1],
+#              [(-1/2,  1/2, -1/2), 1],
+#              [( 1/2,  1/2,  1/2), 1],
+#              [( 1/2,  1/2, -1/2), 1],
+#              [(-1/2, -1/2,  1/2), 1],
+#              [(-1/2, -1/2, -1/2), 1],
+#              [( 1/2, -1/2,  1/2), 1],
+#              [(-1/2,  1/2,  1/2), 1]]
         """
-        return [[self._parent.VS(k),m] for k,m in self._mdict.iteritems()]
+        return [[k,m] for k,m in self._mdict.iteritems()]
 
     def parent(self):
         """
@@ -369,7 +374,7 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False):
 
     EXAMPLES:
         sage: R = WeylCharacterRing(['B',3], prefix='R')
-        sage: chi = R(R.lattice().fundamental_weights()[2]); chi
+        sage: chi = R(R.lattice().fundamental_weights()[3]); chi
         R(1/2,1/2,1/2)
         sage: R(1/2,1/2,1/2) == chi
         True
@@ -407,18 +412,20 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False):
     EXAMPLES:
         sage: R = WeylCharacterRing(['A',2], prefix = R)
         sage: R([2,1,0]).mlist()
-        [[(2, 1, 0), 1],
-          [(0, 1, 2), 1],
-          [(1, 1, 1), 2],
-          [(0, 2, 1), 1],
-          [(2, 0, 1), 1],
-          [(1, 2, 0), 1],
-          [(1, 0, 2), 1]]
+        [[(1, 0, 2), 1],
+         [(1, 1, 1), 2],
+         [(2, 1, 0), 1],
+         [(1, 2, 0), 1],
+         [(2, 0, 1), 1],
+         [(0, 1, 2), 1],
+         [(0, 2, 1), 1]]
 
 
     """
     ct = cartan_type.CartanType(ct)
     return cache_wcr(ct, base_ring=base_ring, prefix=prefix, cache=cache)
+
+# TODO: inherit all the data structure from CombinatorialFreeModule(base_ring, self._lattice)
 
 class WeylCharacterRing_class(Algebra):
     def __init__(self, ct, base_ring, prefix, cache):
@@ -432,14 +439,16 @@ class WeylCharacterRing_class(Algebra):
 
         self.cartan_type = ct
         self._base_ring = base_ring
-        self._lattice = RootSystem(self.cartan_type).ambient_lattice()
-        self._origin = tuple(self._lattice._free_module(0))
-        self.VS = VectorSpace(QQ, self._lattice.n)
+        self._lattice = RootSystem(self.cartan_type).ambient_space()
+        self._origin = self._lattice.zero()
         if prefix == None:
             prefix = ct[0]+str(ct[1])
         self._prefix = prefix
-        self._ip = [self._lattice.fundamental_weights()[i].inner_product(self._lattice.simple_roots()[i])
-                                                                           for i in range(ct[1])]
+        alpha = self._lattice.simple_roots()
+        Lambda = self._lattice.fundamental_weights()
+        # FIXME: indexing of fundamental weights
+        self._ip = [Lambda[i].inner_product(alpha[i])
+                    for i in ct.index_set()]
         self._cache = cache
         if cache:
             self._irreducibles={}
@@ -496,20 +505,22 @@ class WeylCharacterRing_class(Algebra):
                 hdict = {self._origin: x}
                 return WeylCharacter(self, hdict, hdict)
 
-        x = self.VS(x)
-        vp = [QQ(x.inner_product(self._lattice.simple_roots()[i]))/QQ(self._ip[i])
-              for i in range(self.cartan_type[1])]
+        x = self._lattice(x)
+
+        alphacheck = self._lattice.simple_coroots()
+        vp = [x.inner_product(alphacheck[i])
+              for i in self.cartan_type.index_set()]
         if not all(v in ZZ for v in vp):
             raise ValueError, "not in weight lattice"
         if not all(v >= 0 for v in vp):
             raise ValueError, "the weight%s is not dominant"%x.__repr__()
-        if self._cache and tuple(x) in self._irreducibles:
-            return self._irreducibles[tuple(x)]
-        hdict = {tuple(x): 1}
+        if self._cache and x in self._irreducibles:
+            return self._irreducibles[x]
+        hdict = {x: 1}
         mdict = irreducible_character_freudenthal(x, self._lattice)
         ret = WeylCharacter(self, hdict, mdict)
         if self._cache:
-            self._irreducibles[tuple(x)] = ret
+            self._irreducibles[x] = ret
         return ret
 
     def __repr__(self):
@@ -557,13 +568,14 @@ class WeylCharacterRing_class(Algebra):
             return self.__call__(x)
         raise TypeError, "no canonical coercion of x"
 
+    # FIXME: should be something like weight_lattice_realization?
     def lattice(self):
         """
         Returns the weight lattice associated to self.
 
         EXAMPLES:
             sage: WeylCharacterRing(['E',8]).lattice()
-            Ambient lattice of the root system of type ['E', 8]
+            Ambient space for the Root system of type ['E', 8]
         """
         return self._lattice
 
@@ -583,14 +595,13 @@ class WeylCharacterRing_class(Algebra):
         hdict = {}
         ddict = mdict.copy()
         while not ddict == {}:
-            highest = max((self.VS(x).inner_product(self._lattice.rho()),x) for x in ddict)[1]
-            hvect = self.VS(highest)
-            if not self._lattice.is_dominant(hvect):
+            highest = max((x.inner_product(self._lattice.rho()),x) for x in ddict)[1]
+            if not highest.is_dominant():
                 raise ValueError, "multiplicity dictionary may not be Weyl group invariant"
             if self._cache and highest in self._irreducibles:
                 sdict = self._irreducibles[highest]._mdict
             else:
-                sdict = irreducible_character_freudenthal(hvect, self._lattice)
+                sdict = irreducible_character_freudenthal(highest, self._lattice)
             if self._cache and not highest in self._irreducibles:
                 self._irreducibles[highest] = WeylCharacter(self, {highest:1}, sdict)
             c = ddict[highest]
@@ -643,37 +654,36 @@ def irreducible_character_freudenthal(hwv, L, debug=False):
         L - the ambient lattice
 
     """
-    VS = VectorSpace(QQ, L.n)
+
     rho = L.rho()
     mdict = {}
-    current_layer = {tuple(hwv):1}
+    current_layer = {hwv:1}
     while len(current_layer) > 0:
         next_layer = {}
         for mu in current_layer:
             if not current_layer[mu] == 0:
                 mdict[mu] = current_layer[mu]
                 for alpha in L.simple_roots():
-                    next_layer[tuple(VS(mu)-alpha)] = None
+                    next_layer[mu-alpha] = None
         if debug:
             print next_layer
         for mu in next_layer:
-            vmu = VS(mu)
             if next_layer[mu] == None:
                 if debug:
                     print "  mu:", mu
                 accum = 0
                 for alpha in L.positive_roots():
                     i = 1
-                    while tuple(vmu+i*alpha) in mdict:
+                    while mu+i*alpha in mdict:
                         if debug:
-                            print "    ", vmu+i*alpha,
-                            print mdict[tuple(vmu + i*alpha)]*(vmu + i*alpha).inner_product(alpha)
-                        accum += mdict[tuple(vmu + i*alpha)]*(vmu + i*alpha).inner_product(alpha)
+                            print "    ", mu+i*alpha,
+                            print mdict[mu + i*alpha]*(mu + i*alpha).inner_product(alpha)
+                        accum += mdict[mu + i*alpha]*(mu + i*alpha).inner_product(alpha)
                         i += 1
                 if accum == 0:
                     next_layer[mu] = 0
                 else:
-                    next_layer[mu] = QQ(2*accum)/QQ((hwv+rho).inner_product(hwv+rho)-(vmu+rho).inner_product(vmu+rho))
+                    next_layer[mu] = QQ(2*accum)/QQ((hwv+rho).inner_product(hwv+rho)-(mu+rho).inner_product(mu+rho))
         current_layer = next_layer
     return mdict
 
@@ -897,6 +907,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     """
     r = R.cartan_type[1]
     s = S.cartan_type[1]
+    # Each rule takes a tuple or list and returns a list
     if rule == "levi":
         if not s == r-1:
             raise ValueError, "Rank is wrong"
@@ -928,7 +939,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
         elif R.cartan_type[0] == 'A':
             def rule(x) : y = [-i for i in x]; y.reverse(); return y
         elif R.cartan_type[0] == 'D':
-            def rule(x) : y = R.VS(x); y[len(y)-1] = -y[len(y)-1]; return y
+            def rule(x) : x[len(x)-1] = -x[len(x)-1]; return x
         elif R.cartan_type[0] == 'E' and R.cartan_type[1] == 6:
             raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
         else:
@@ -991,7 +1002,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     mdict = {}
     for k in chi._mdict:
-        h = tuple(S.VS(rule(k)))
+        h = S._lattice(rule(list(k.to_vector())))
         if h in mdict:
             mdict[h] += chi._mdict[k]
         else:
@@ -1045,16 +1056,18 @@ class WeightRingElement(AlgebraElement):
             sage: B3 = WeylCharacterRing(['B',3])
             sage: b3 = WeightRing(B3)
             sage: fw = b3.lattice().fundamental_weights()
-            sage: b3(fw[2])
+            sage: b3(fw[3])
             b3(1/2,1/2,1/2)
-            sage: b3(B3(fw[2]))
+            sage: b3(B3(fw[3]))
             b3(-1/2,-1/2,-1/2) + b3(-1/2,-1/2,1/2) + b3(-1/2,1/2,-1/2) + b3(-1/2,1/2,1/2) + b3(1/2,-1/2,-1/2) + b3(1/2,-1/2,1/2) + b3(1/2,1/2,-1/2) + b3(1/2,1/2,1/2)
         """
 
         if self._mdict == {}:
             return "0"
         v = self._mdict.keys()
-        v.sort()
+        # Just a workaround to keep the same sorting as before when
+        # the dictionary was indexed by tuples
+        v.sort(key = lambda v: tuple(v.to_vector()))
         return repr_lincomb([self._wt_repr(k) for k in v], [self._mdict[k] for k in v])
 
     def __cmp__(left, right):
@@ -1131,7 +1144,7 @@ class WeightRingElement(AlgebraElement):
         mdict = {}
         for k in self._mdict:
             for l in y._mdict:
-                m = tuple(self._parent.VS(k)+self._parent.VS(l))
+                m = k+l
                 if m in mdict:
                     mdict[m] += self._mdict[k]*y._mdict[l]
                 else:
@@ -1173,14 +1186,14 @@ class WeightRingElement(AlgebraElement):
             sage: g2 = WeightRing(G2)
             sage: pr = sum(g2(a) for a in g2.lattice().positive_roots())
             sage: pr.mlist()
-            [[(1, 1, -2), 1],
-             [(1, -1, 0), 1],
-             [(1, 0, -1), 1],
-             [(1, -2, 1), 1],
+            [[(1, -2,  1), 1],
+             [(1, -1,  0), 1],
+             [(1,  0, -1), 1],
              [(2, -1, -1), 1],
-             [(0, 1, -1), 1]]
+             [(0,  1, -1), 1],
+             [(1,  1, -2), 1]]
         """
-        return [[self._parent.VS(k),m] for k,m in self._mdict.iteritems()]
+        return [[k,m] for k,m in self._mdict.iteritems()]
 
     def weyl_group_action(self, w):
         """
@@ -1194,7 +1207,7 @@ class WeightRingElement(AlgebraElement):
             sage: sum(g2(fw2).weyl_group_action(w) for w in L.weyl_group())
             2*g2(-2,1,1) + 2*g2(-1,-1,2) + 2*g2(-1,2,-1) + 2*g2(1,-2,1) + 2*g2(1,1,-2) + 2*g2(2,-1,-1)
         """
-        return WeightRingElement(self._parent, dict([[tuple(w.action(self._parent.VS(x))),self._mdict[x]] for x in self._mdict.keys()]))
+        return WeightRingElement(self._parent, dict([[w.action(x),self._mdict[x]] for x in self._mdict.keys()]))
 
     def character(self):
         """
@@ -1292,7 +1305,6 @@ class WeightRing(Algebra):
         self._base_ring = self._parent._base_ring
         self._lattice = self._parent._lattice
         self._origin = self._parent._origin
-        self.VS = self._parent.VS
         self._prefix = prefix
         self._ip = self._parent._ip
 
@@ -1329,8 +1341,8 @@ class WeightRing(Algebra):
                 return WeightRingElement(self, x._mdict)
         except AttributeError:
             pass
-        x = self.VS(x)
-        mdict = {tuple(x): 1}
+        x = self._lattice(x)
+        mdict = {x: 1}
         return WeightRingElement(self, mdict)
 
     def __repr__(self):
@@ -1383,13 +1395,13 @@ class WeightRing(Algebra):
 
     def lattice(self):
         """
-        Returns the weight lattice associated to self.
+        Returns the weight lattice realization associated to self.
         .
         EXAMPLES:
             sage: E8 = WeylCharacterRing(['E',8])
             sage: e8 = WeightRing(E8)
             sage: e8.lattice()
-            Ambient lattice of the root system of type ['E', 8]
+            Ambient space for the Root system of type ['E', 8]
         """
         return self._lattice
 

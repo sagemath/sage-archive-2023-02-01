@@ -15,29 +15,9 @@ Cartan matrices
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from dynkin_diagram import dynkin_diagram_as_function
 import cartan_type
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import ZZ
-
-def cartan_matrix_as_function(t):
-    """
-    Returns a function that represents the Cartan matrix
-    of type t.
-
-    EXAMPLES:
-        sage: from sage.combinat.root_system.cartan_matrix import cartan_matrix_as_function
-        sage: f = cartan_matrix_as_function(['A',4])
-        sage: matrix([[f(i,j) for j in range(1,5)] for i in range(1,5)])
-        [ 2 -1  0  0]
-        [-1  2 -1  0]
-        [ 0 -1  2 -1]
-        [ 0  0 -1  2]
-    """
-    ct = cartan_type.CartanType(t)
-    f = dynkin_diagram_as_function(ct)
-    cmf = lambda i,j: 2 if i == j else -f(j,i)
-    return cmf
 
 def cartan_matrix(t):
     """
@@ -54,13 +34,13 @@ def cartan_matrix(t):
         [-1  2 -1  0  0  0]
         [ 0 -1  2 -1  0  0]
         [ 0  0 -1  2 -1  0]
-        [ 0  0  0 -1  2 -2]
-        [ 0  0  0  0 -1  2]
+        [ 0  0  0 -1  2 -1]
+        [ 0  0  0  0 -2  2]
         sage: cartan_matrix(['C', 4])
         [ 2 -1  0  0]
         [-1  2 -1  0]
-        [ 0 -1  2 -1]
-        [ 0  0 -2  2]
+        [ 0 -1  2 -2]
+        [ 0  0 -1  2]
         sage: cartan_matrix(['D', 6])
         [ 2 -1  0  0  0  0]
         [-1  2 -1  0  0  0]
@@ -68,6 +48,21 @@ def cartan_matrix(t):
         [ 0  0 -1  2 -1 -1]
         [ 0  0  0 -1  2  0]
         [ 0  0  0 -1  0  2]
+        sage: cartan_matrix(['E',6])
+        [ 2  0 -1  0  0  0]
+        [ 0  2  0 -1  0  0]
+        [-1  0  2 -1  0  0]
+        [ 0 -1 -1  2 -1  0]
+        [ 0  0  0 -1  2 -1]
+        [ 0  0  0  0 -1  2]
+        sage: cartan_matrix(['E',7])
+        [ 2  0 -1  0  0  0  0]
+        [ 0  2  0 -1  0  0  0]
+        [-1  0  2 -1  0  0  0]
+        [ 0 -1 -1  2 -1  0  0]
+        [ 0  0  0 -1  2 -1  0]
+        [ 0  0  0  0 -1  2 -1]
+        [ 0  0  0  0  0 -1  2]
         sage: cartan_matrix(['E', 8])
         [ 2  0 -1  0  0  0  0  0]
         [ 0  2  0 -1  0  0  0  0]
@@ -79,20 +74,80 @@ def cartan_matrix(t):
         [ 0  0  0  0  0  0 -1  2]
         sage: cartan_matrix(['F', 4])
         [ 2 -1  0  0]
-        [-1  2 -2  0]
-        [ 0 -1  2 -1]
+        [-1  2 -1  0]
+        [ 0 -2  2 -1]
         [ 0  0 -1  2]
-        sage: cartan_matrix(['G', 2])
-        [ 2 -1]
-        [-3  2]
 
+      This is different from MuPAD-Combinat, due to different node convention?
+
+        sage: cartan_matrix(['G', 2])
+        [ 2 -3]
+        [-1  2]
+        sage: cartan_matrix(['A', 3, 1])
+        [ 2 -1  0 -1]
+        [-1  2 -1  0]
+        [ 0 -1  2 -1]
+        [-1  0 -1  2]
+        sage: cartan_matrix(['B', 3, 1])
+        [ 2  0 -1  0]
+        [ 0  2 -1  0]
+        [-1 -1  2 -1]
+        [ 0  0 -2  2]
+        sage: cartan_matrix(['C', 3, 1])
+        [ 2 -1  0  0]
+        [-2  2 -1  0]
+        [ 0 -1  2 -2]
+        [ 0  0 -1  2]
+        sage: cartan_matrix(['D', 4, 1])
+        [ 2  0 -1  0  0]
+        [ 0  2 -1  0  0]
+        [-1 -1  2 -1 -1]
+        [ 0  0 -1  2  0]
+        [ 0  0 -1  0  2]
+        sage: cartan_matrix(['E', 6, 1])
+        [ 2  0 -1  0  0  0  0]
+        [ 0  2  0 -1  0  0  0]
+        [-1  0  2  0 -1  0  0]
+        [ 0 -1  0  2 -1  0  0]
+        [ 0  0 -1 -1  2 -1  0]
+        [ 0  0  0  0 -1  2 -1]
+        [ 0  0  0  0  0 -1  2]
+        sage: cartan_matrix(['E', 7, 1])
+        [ 2 -1  0  0  0  0  0  0]
+        [-1  2  0 -1  0  0  0  0]
+        [ 0  0  2  0 -1  0  0  0]
+        [ 0 -1  0  2 -1  0  0  0]
+        [ 0  0 -1 -1  2 -1  0  0]
+        [ 0  0  0  0 -1  2 -1  0]
+        [ 0  0  0  0  0 -1  2 -1]
+        [ 0  0  0  0  0  0 -1  2]
+        sage: cartan_matrix(['E', 8, 1])
+        [ 2  0  0  0  0  0  0  0 -1]
+        [ 0  2  0 -1  0  0  0  0  0]
+        [ 0  0  2  0 -1  0  0  0  0]
+        [ 0 -1  0  2 -1  0  0  0  0]
+        [ 0  0 -1 -1  2 -1  0  0  0]
+        [ 0  0  0  0 -1  2 -1  0  0]
+        [ 0  0  0  0  0 -1  2 -1  0]
+        [ 0  0  0  0  0  0 -1  2 -1]
+        [-1  0  0  0  0  0  0 -1  2]
+        sage: cartan_matrix(['F', 4, 1])
+        [ 2 -1  0  0  0]
+        [-1  2 -1  0  0]
+        [ 0 -1  2 -1  0]
+        [ 0  0 -2  2 -1]
+        [ 0  0  0 -1  2]
+        sage: cartan_matrix(['G', 2, 1])
+        [ 2  0 -1]
+        [ 0  2 -3]
+        [-1 -1  2]
     """
-    ct = cartan_type.CartanType(t)
-    index_set = ct.index_set()
-    cmf = cartan_matrix_as_function(ct)
+    t = cartan_type.CartanType(t)
+    dynkin_diagram = t.dynkin_diagram()
+    index_set = t.index_set()
     MS = MatrixSpace(ZZ, len(index_set), sparse=True)
     m = MS(0)
     for i in range(len(index_set)):
         for j in range(len(index_set)):
-            m[i,j] = cmf(index_set[i],index_set[j])
+            m[i,j] = dynkin_diagram[index_set[i],index_set[j]]
     return m

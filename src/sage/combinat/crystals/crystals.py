@@ -145,9 +145,9 @@ class Crystal(CombinatorialClass, Parent):
         EXAMPLES:
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.weight_lattice_realization()
-            Ambient lattice of the root system of type ['A', 5]
+            Ambient space for the Root system of type ['A', 5]
         """
-        return self.cartan_type.root_system().ambient_lattice()
+        return self.cartan_type.root_system().ambient_space()
 
     def Lambda(self):
         """

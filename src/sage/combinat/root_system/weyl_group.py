@@ -41,7 +41,7 @@ def WeylGroup(ct):
 
       or alternatively and equivalently:
 
-        sage: L = RootSystem(['F',4]).ambient_lattice()
+        sage: L = RootSystem(['F',4]).ambient_space()
         sage: G = L.weyl_group()
 
       Either produces a weight lattice, with access to its
@@ -65,7 +65,7 @@ def WeylGroup(ct):
 
         sage: L = G.lattice()
         sage: fw = L.fundamental_weights(); fw
-        [(1, 1, 0, 0), (2, 1, 1, 0), (3/2, 1/2, 1/2, 1/2), (1, 0, 0, 0)]
+        Finite family {1: (1, 1, 0, 0), 2: (2, 1, 1, 0), 3: (3/2, 1/2, 1/2, 1/2), 4: (1, 0, 0, 0)}
         sage: rho = sum(fw); rho
         (11/2, 5/2, 3/2, 1/2)
         sage: w.action(rho) # action of G on weight lattice
@@ -85,16 +85,17 @@ def _WeylGroup(ct):
         The Weyl Group of type ['A', 2]
     """
     from sage.combinat.root_system.root_system import RootSystem
-    e = RootSystem(ct).ambient_lattice()
+    e = RootSystem(ct).ambient_space()
     n = e.n
-    rank = e.ct[1]
-    basis = e._free_module.basis()
+    rank = ct.rank()
+    basis = e.basis()
     gens = []
+    s = e.simple_reflections()
     for k in range(rank):
         m = []
         for i in range(n):
             for j in range(n):
-                m.append(e.simple_reflection(k+1,basis[j]).inner_product(basis[i]))
+                m.append(s[k+1](basis[j]).inner_product(basis[i]))
         gens.append(matrix(QQ,n,m))
     return WeylGroup_gens(gens,e)
 
@@ -111,7 +112,7 @@ class WeylGroup_gens(MatrixGroup_gens):
             True
         """
         MatrixGroup_gens.__init__(self, gens)
-        self.ambient_lattice = L
+        self.ambient_space = L
         self.reflections = [WeylGroupElement(g, self) for g in gens]
         self.n = L.n
 
@@ -121,7 +122,8 @@ class WeylGroup_gens(MatrixGroup_gens):
             sage: WeylGroup(['A',1]).__repr__()
             "The Weyl Group of type ['A', 1]"
         """
-        return "The Weyl Group of type %s"%repr(self.ambient_lattice.ct)
+        # FIXME: do we want to say Weyl Group of the AmbientSpace of ...?
+        return "The Weyl Group of type %s"%repr(self.cartan_type())
 
     def __call__(self, x):
         """
@@ -189,9 +191,9 @@ class WeylGroup_gens(MatrixGroup_gens):
         EXAMPLES:
             sage: G = WeylGroup(['F',4])
             sage: G.lattice()
-            Ambient lattice of the root system of type ['F', 4]
+            Ambient space for the Root system of type ['F', 4]
         """
-        return self.ambient_lattice
+        return self.ambient_space
 
     def simple_reflections(self):
         """
@@ -224,7 +226,7 @@ class WeylGroup_gens(MatrixGroup_gens):
             [0 1 0 0]
             [0 0 0 1]
         """
-        if i not in self.ambient_lattice.ct.index_set():
+        if i not in self.cartan_type().index_set():
             raise ValueError, "i must be in the index set"
         return self.reflections[i-1]
 
@@ -235,7 +237,7 @@ class WeylGroup_gens(MatrixGroup_gens):
           sage: [WeylGroup(t).long_element().length() for t in ['A',5],['B',3],['C',3],['D',4],['G',2],['F',4],['E',6]]
           [15, 9, 9, 12, 6, 24, 36]
         """
-        type = self.ambient_lattice.ct
+        type = self.cartan_type()
         if type[0] == 'D' and type[1]%2 == 1:
             l = [-1 for i in range(self.n-1)]
             l.append(1)
@@ -280,7 +282,7 @@ class WeylGroup_gens(MatrixGroup_gens):
             ['F', 4]
 
         """
-        return self.ambient_lattice.ct
+        return self.ambient_space.root_system.cartan_type()
 
     def __cmp__(self, other):
         """
@@ -293,8 +295,8 @@ class WeylGroup_gens(MatrixGroup_gens):
         """
         if self.__class__ != other.__class__:
             return cmp(self.__class__, other.__class__)
-        if self.ambient_lattice.ct != other.ambient_lattice.ct:
-            return cmp(self.ambient_lattice.ct, other.ambient_lattice.ct)
+        if self.cartan_type() != other.cartan_type():
+            return cmp(self.cartan_type(), other.cartan_type())
         return 0
 
 class WeylGroupElement(MatrixGroupElement):
@@ -321,7 +323,7 @@ class WeylGroupElement(MatrixGroupElement):
             sage: w = WeylGroup(['A',2])
             sage: s1 = w.simple_reflection(1)
             sage: s1.lattice()
-            Ambient lattice of the root system of type ['A', 2]
+            Ambient space for the Root system of type ['A', 2]
         """
         return self._parent.lattice()
 
@@ -342,8 +344,8 @@ class WeylGroupElement(MatrixGroupElement):
 
         """
         ret = 0
-        for alph in self.lattice().positive_roots():
-            walph = self.__matrix*alph
+        for alpha in self.lattice().positive_roots():
+            walph = self.action(alpha)
             for v in self.lattice().fundamental_weights():
                 if walph.inner_product(v) < 0:
                     ret += 1
@@ -415,8 +417,8 @@ class WeylGroupElement(MatrixGroupElement):
         EXAMPLES:
             sage: w = WeylGroup(['A',2])
             sage: s1 = w.simple_reflection(1)
-            sage: v = vector(QQ,[1,0,0])
+            sage: v = w.lattice()([1,0,0])
             sage: s1.action(v)
             (0, 1, 0)
         """
-        return (self.__matrix*transpose(v)).columns()[0]
+        return (self.lattice()(list(self.__matrix*transpose(v.to_vector()).columns()[0])))

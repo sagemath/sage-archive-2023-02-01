@@ -16,7 +16,6 @@ Coxeter matrices
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from cartan_type import CartanType
-from dynkin_diagram import dynkin_diagram_as_function
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import ZZ
 
@@ -33,15 +32,12 @@ def coxeter_matrix_as_function(t):
         [2 3 1 3]
         [2 2 3 1]
     """
-    ct = CartanType(t)
-    f = dynkin_diagram_as_function(ct)
+    a = CartanType(t).dynkin_diagram()
+    scalarproducts_to_order = { 0: 2,  1: 3,  2: 4,  3: 7
+                                # 4 should be infinity
+                                }
 
-    if ct.letter == "G":
-        coxeter = lambda i,j: 1 if i == j else max(f(j,i), f(i,j))+4
-    else:
-        coxeter = lambda i,j: 1 if i == j else max(f(j,i), f(i,j))+2
-
-    return coxeter
+    return lambda i,j: 1 if i == j else scalarproducts_to_order[a[i,j]*a[j,i]]
 
 
 def coxeter_matrix(t):

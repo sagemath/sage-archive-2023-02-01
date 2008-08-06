@@ -150,7 +150,7 @@ from latex import latex, view, pretty_print, pretty_print_default, jsmath
 
 from trace import trace
 
-from cachefunc import CachedFunction
+from cachefunc import CachedFunction, cached_function, cached_method
 
 from sagex_ds import BinaryTree
 

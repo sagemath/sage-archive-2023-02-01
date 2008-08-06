@@ -45,7 +45,7 @@ class CachedFunction(object):
         self.cache = {}
         self.__doc__ = f.func_doc
         self.__name__ = f.func_name
-        self.instance = None
+        self.__module__ = f.__module__
 
     def __call__(self, *args, **kwds):
         """
@@ -61,12 +61,7 @@ class CachedFunction(object):
         k = (args, tuple(kwds))
         if self.cache.has_key(k):
             return self.cache[k]
-
-        #Handle the case where self.f is a method of a class
-        if self.instance is not None:
-            w = self.f(self.instance, *args, **kwds)
-        else:
-            w = self.f(*args, **kwds)
+        w = self.f(*args, **kwds)
         self.cache[k] = w
         return w
 
@@ -79,20 +74,56 @@ class CachedFunction(object):
         """
         return "Cached version of %s"%self.f
 
+cached_function = CachedFunction
+
+class CachedMethod(CachedFunction):
+    def __init__(self, f):
+        """
+        EXAMPLES:
+            sage: class Foo:
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       @cached_method
+            ...       def f(self):
+            ...           return self._x^2
+            ...
+            sage: Foo.f._cache_name
+            '_cache__f'
+        """
+        self._cache_name = '_cache__' + f.__name__
+        CachedFunction.__init__(self, f)
+
+    def __call__(self, *args, **kwds):
+        """
+        EXAMPLES:
+            sage: class Foo:
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       @cached_method
+            ...       def f(self):
+            ...           return self._x^2
+            ...
+            sage: a = Foo(2)
+            sage: a.f()
+            4
+            sage: b = Foo(3)
+            sage: b.f()
+            9
+        """
+        cache = self._instance.__dict__.setdefault(self._cache_name, {})
+        key = (args, tuple(kwds))
+        if cache.has_key(key):
+            return cache[key]
+        else:
+            cache[key] = self.f(self._instance, *args, **kwds)
+            return cache[key]
+
     def __get__(self, inst, cls=None):
         """
         This is needed to allow CachedFunction to decorate
         methods.
-
-        EXAMPLES:
-            sage: class Foo:
-            ...       @CachedFunction
-            ...       def f(self, x):
-            ...           return x^2
-            ...
-            sage: a = Foo()
-            sage: a.f(2)
-            4
         """
-        self.instance = inst
+        self._instance = inst
         return self
+
+cached_method = CachedMethod

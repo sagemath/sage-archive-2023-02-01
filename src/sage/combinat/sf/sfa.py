@@ -354,7 +354,12 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         f = lambda m,c: (m, c*prod([expr_k(k) for k in m]))
         return self(p_x.map_mc(f))
 
-
+    # TODO:
+    #  - lift to combinatorial_module
+    #  - rename to _apply_bimodule_morphism or generalize to true multi_module
+    #  - generalization with a "neighbor function" that given x says
+    #    for which y one has f(x,y) != 0
+    #  - add option orthonormal
     def _apply_multi_module_morphism(self, x, y, f, orthogonal=False):
         """
         INPUT:
@@ -380,13 +385,19 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             sage: s._apply_multi_module_morphism(a,b,f2,orthogonal=True)  #2+2
             4
         """
+        # broken for most coeff ring
         res = 0
         if orthogonal:
+            # could check which of x and y has less terms
+            # for mx, cx in x:
             for mx, cx in x._monomial_coefficients.iteritems():
+                # if not y.has_key(mx):
                 if mx not in y._monomial_coefficients:
                     continue
                 else:
+                    # cy = y[mx]
                     cy = y._monomial_coefficients[mx]
+                # might as well call f(mx)
                 res += cx*cy*f(mx, mx)
             return res
         else:

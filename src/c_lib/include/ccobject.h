@@ -18,6 +18,9 @@
  *
  */
 
+#ifndef __SAGE_CCOBJECT_H__
+#define __SAGE_CCOBJECT_H__
+
 #ifdef __cplusplus
 
 #include <iostream>
@@ -95,3 +98,7 @@ PyObject* _to_PyString(const T *x)
 }
 
 #endif
+
+#endif // ndef __SAGE_CCOBJECT_H__
+
+

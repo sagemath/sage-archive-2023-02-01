@@ -989,6 +989,16 @@ ext_modules = [ \
     Extension('sage.calculus.var',
               ['sage/calculus/var.pyx']), \
 
+    Extension('sage.symbolic.ring',
+                 sources = ['sage/symbolic/ring.pyx'],
+                 language = 'c++',
+                 libraries = ["ginac", "cln"]), \
+
+    Extension('sage.symbolic.expression',
+                 sources = ['sage/symbolic/expression.pyx'],
+                 language = 'c++',
+                 libraries = ["ginac", "cln"]), \
+
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',
                'sage/modular/modsym/p1list.pyx',
@@ -1506,6 +1516,8 @@ code = setup(name        = 'sage',
                      'sage.stats',
 
                      'sage.stats.hmm',
+
+                     'sage.symbolic',
 
                      'sage.parallel',
 

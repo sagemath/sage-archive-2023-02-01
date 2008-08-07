@@ -319,6 +319,19 @@ This working tests that a subtle bug has been fixed:
     sage: maxima(sin(x))
     sin(x)
 
+This tests to make sure we handle the case where Maxima asks if an expression
+is positive or zero.
+
+    sage: var('Ax,Bx,By')
+    (Ax, Bx, By)
+    sage: t = -Ax*sin(sqrt(Ax^2)/2)/(sqrt(Ax^2)*sqrt(By^2 + Bx^2))
+    sage: t.limit(Ax=0,dir='above')
+    Traceback (most recent call last):
+    ...
+    TypeError: Computation failed since Maxima requested additional constraints (use assume):
+    Is By^2+Bx^2  positive or zero?
+
+
 A long complicated input expression:
 
     sage: maxima._eval_line('((((((((((0) + ((1) / ((n0) ^ (0)))) + ((1) / ((n1) ^ (1)))) + ((1) / ((n2) ^ (2)))) + ((1) / ((n3) ^ (3)))) + ((1) / ((n4) ^ (4)))) + ((1) / ((n5) ^ (5)))) + ((1) / ((n6) ^ (6)))) + ((1) / ((n7) ^ (7)))) + ((1) / ((n8) ^ (8)))) + ((1) / ((n9) ^ (9)));')
@@ -405,7 +418,8 @@ class Maxima(Expect):
                         eval_using_file_cutoff=eval_using_file_cutoff)
         self._display_prompt = '<sage-display>'  # must match what is in the file local/ibn/sage-maxima.lisp!!
         self._output_prompt_re = re.compile('\(\%o[0-9]+\)')
-        self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?', 'positive or negative?']
+        self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?',
+                     'positive or negative?', 'positive or zero?']
         self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
                             ['Break [0-9]+'] #note that you might need to change _expect_expr if you
                                              #change this

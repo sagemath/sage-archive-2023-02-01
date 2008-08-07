@@ -133,11 +133,12 @@ from sage.misc.randstate import current_randstate
 
 class GraphGenerators():
     r"""
-    A class consisting of constructors for several common graphs.
+    A class consisting of constructors for several common graphs, as well as
+    orderly generation of isomorphism class representatives.
 
-    A list of all graphs and graph structures in this database is available
-    via tab completion. Type "graphs." and then hit tab to see which graphs
-    are available.
+    A list of all graphs and graph structures (other than iso. class rep's) in
+    this database is available via tab completion. Type "graphs." and then hit
+    tab to see which graphs are available.
 
     The docstrings include educational information about each named graph
     with the hopes that this class can be used as a reference.
@@ -208,6 +209,100 @@ class GraphGenerators():
             - DegreeSequenceTree
             - DegreeSequenceExpected
     \end{verbatim}
+
+    ORDERLY GENERATION:
+    graphs(vertices, property=lambda x: True, augment='edges', size=None)
+
+    This syntax accesses the generator of isomorphism class representatives.
+    Iterates over distinct, exhaustive representatives.
+
+    INPUT:
+        vertices -- natural number
+        property -- any property to be tested on graphs before generation.
+        augment -- choices:
+            'vertices' -- augments by adding a vertex, and edges incident
+                to that vertex.
+                In this case, all graphs on up to n=vertices are generated.
+                If for any graph G satisfying the property, every subgraph,
+                obtained from G by deleting one vertex and only edges incident
+                to that vertex, satisfies the property, then this will generate
+                all graphs with that property. If this does not hold, then all
+                the graphs generated will satisfy the property, but there will
+                be some missing.
+            'edges' -- augments a fixed number of vertices by adding one edge
+                In this case, all graphs on exactly n=vertices are generated.
+                If for any graph G satisfying the property, every subgraph,
+                obtained from G by deleting one edge but not the vertices
+                incident to that edge, satisfies the property, then this will
+                generate all graphs with that property. If this does not hold,
+                then all the graphs generated will satisfy the property, but
+                there will be some missing.
+
+    EXAMPLES:
+    Print graphs on 3 or less vertices.
+        sage: for G in graphs(3, augment='vertices'):
+        ...    print G
+        Graph on 0 vertices
+        Graph on 1 vertex
+        Graph on 2 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 2 vertices
+        Graph on 3 vertices
+
+    Print graphs on 3 vertices.
+        sage: for G in graphs(3):
+        ...    print G
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+
+    Generate all graphs with 5 vertices and 4 edges.
+        sage: L = graphs(5, size=4)
+        sage: len(list(L))
+        6
+
+    Generate all graphs with 5 vertices and up to 4 edges.
+        sage: L = list(graphs(5, lambda G: G.size() <= 4))
+        sage: len(L)
+        14
+        sage: graphs_list.show_graphs(L)    # long time
+
+    Generate all graphs with degree at most 2, up to 6 vertices.
+        sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
+        sage: L = list(graphs(6, property, augment='vertices'))
+        sage: len(L)
+        45
+
+    Generate all bipartite graphs on up to 7 vertices:
+    (see http://www.research.att.com/~njas/sequences/A033995)
+        sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
+        sage: [len([g for g in L if g.order() == i]) for i in [1..7]]
+        [1, 2, 3, 7, 13, 35, 88]
+
+    Generate all bipartite graphs on exactly 8 vertices:
+    (see http://www.research.att.com/~njas/sequences/A033995)
+        sage: L = list( graphs(8, lambda G: G.is_bipartite()) )
+        sage: len(L)
+        303
+
+    Generate graphs on the fly:
+    (see http://www.research.att.com/~njas/sequences/A000088)
+        sage: for i in range(0, 7):
+        ...    print len(list(graphs(i)))
+        1
+        1
+        2
+        4
+        11
+        34
+        156
+
+    REFERENCE:
+        Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
+        Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
     """
 
 ################################################################################
@@ -2827,7 +2922,8 @@ class GraphGenerators():
 
 class DiGraphGenerators():
     r"""
-    A class consisting of constructors for several common digraphs.
+    A class consisting of constructors for several common digraphs, including
+    orderly generation of isomorphism class representatives.
 
     A list of all graphs and graph structures in this database is available
     via tab completion. Type "digraphs." and then hit tab to see which graphs
@@ -2843,6 +2939,85 @@ class DiGraphGenerators():
             - RandomDirectedGNC
             - RandomDirectedGNR
     \end{verbatim}
+
+    ORDERLY GENERATION:
+    digraphs(vertices, property=lambda x: True, augment='edges', size=None)
+
+    Accesses the generator of isomorphism class representatives. Iterates
+    over distinct, exhaustive representatives.
+
+    INPUT:
+        vertices -- natural number
+        property -- any property to be tested on digraphs before generation.
+        augment -- choices:
+            'vertices' -- augments by adding a vertex, and edges incident
+                to that vertex.
+                In this case, all digraphs on up to n=vertices are generated.
+                If for any digraph G satisfying the property, every subgraph,
+                obtained from G by deleting one vertex and only edges incident
+                to that vertex, satisfies the property, then this will generate
+                all digraphs with that property. If this does not hold, then all
+                the digraphs generated will satisfy the property, but there will
+                be some missing.
+            'edges' -- augments a fixed number of vertices by adding one edge
+                In this case, all digraphs on exactly n=vertices are generated.
+                If for any graph G satisfying the property, every subgraph,
+                obtained from G by deleting one edge but not the vertices
+                incident to that edge, satisfies the property, then this will
+                generate all digraphs with that property. If this does not hold,
+                then all the digraphs generated will satisfy the property, but
+                there will be some missing.
+
+    EXAMPLES:
+    Print digraphs on 2 or less vertices.
+        sage: for D in digraphs(2, augment='vertices'):
+        ...    print D
+        ...
+        Digraph on 0 vertices
+        Digraph on 1 vertex
+        Digraph on 2 vertices
+        Digraph on 2 vertices
+        Digraph on 2 vertices
+
+    Print digraphs on 3 vertices.
+        sage: for D in digraphs(3):
+        ...    print D
+        Digraph on 3 vertices
+        Digraph on 3 vertices
+        ...
+        Digraph on 3 vertices
+        Digraph on 3 vertices
+
+    Generate all digraphs with 4 vertices and 3 edges.
+        sage: L = digraphs(4, size=3)
+        sage: len(list(L))
+        13
+
+    Generate all digraphs with 4 vertices and up to 3 edges.
+        sage: L = list(digraphs(4, lambda G: G.size() <= 3))
+        sage: len(L)
+        20
+        sage: graphs_list.show_graphs(L)    # long time
+
+    Generate all digraphs with degree at most 2, up to 5 vertices.
+        sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
+        sage: L = list(digraphs(5, property, augment='vertices'))
+        sage: len(L)
+        75
+
+    Generate digraphs on the fly:
+    (see http://www.research.att.com/~njas/sequences/A000273)
+        sage: for i in range(0, 5):
+        ...    print len(list(digraphs(i)))
+        1
+        1
+        3
+        16
+        218
+
+    REFERENCE:
+        Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
+        Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
     """
 
     def ButterflyGraph(self, n, vertices='strings'):

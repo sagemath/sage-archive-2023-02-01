@@ -48,9 +48,14 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
 
     AUTHOR: Nick Alexander
     """
-    def __init__(self, E, flag=0):
+    def __init__(self, E, algorithm="pari"):
         self.__E = E
 
+        flag = 0
+        if algorithm=="doud":
+            flag = 1
+        if algorithm=="lutz_nagell":
+            flag = 2
         G = None
         loop = 0
         while G is None and loop < 3:

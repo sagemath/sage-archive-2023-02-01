@@ -54,7 +54,7 @@ We illustrate the exponent notation for creation of free modules.
     Vector space of dimension 3 over Real Field with 53 bits of precision
 
 Base ring:
-    sage: R.<x,y> = PolynomialRing(QQ,2)
+    sage: R.<x,y> = QQ[]
     sage: M = FreeModule(R,2)
     sage: M.base_ring()
     Multivariate Polynomial Ring in x, y over Rational Field
@@ -108,8 +108,6 @@ Basis vectors are immutable:
 
 We can save and load submodules and elements:
     sage: M = ZZ^3
-    sage: M is loads(M.dumps()) # is this a caching BUG?
-    False
     sage: M == loads(M.dumps())
     True
     sage: W = M.span_of_basis([[1,2,3],[4,5,19]])
@@ -370,11 +368,22 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         Vector space of degree 3 and dimension 1 over Finite Field of size 2
         Basis matrix:
         [1 0 1]
+
+    TESTS:
+        sage: span([[1,2,3], [2,2,2], [1,2/3,5]], ZZ)
+        Free module of degree 3 and rank 3 over Integer Ring
+        Echelon basis matrix:
+        [  1   0  13]
+        [  0 2/3   6]
+        [  0   0  14]
+        sage: span([[1,2,3], [2,2,2], [1,2,QQ['x'].gen()]], ZZ)
+        Traceback (most recent call last):
+        ...
+        ValueError: The elements of gens (= [[1, 2, 3], [2, 2, 2], [1, 2, x]]) must be defined over base_ring (= Integer Ring) or its field of fractions.
+
     """
-    if base_ring is None:
-        R = self.base_ring()
-    else:
-        R = base_ring
+    R = self.base_ring() if base_ring is None else base_ring
+
     if not isinstance(R, principal_ideal_domain.PrincipalIdealDomain):
         raise TypeError, "The base_ring (= %s) must be a principal ideal domain."%R
     if len(gens) == 0:
@@ -384,14 +393,14 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         if isinstance(x,(list,tuple)):
             try:
                 gens = [ [ R(c) for c in v ] for v in gens ]
-            except:
+            except TypeError:
                 R = R.fraction_field()
                 try:
                     gens = [ [ R(c) for c in v ] for v in gens ]
-                except:
+                except TypeError:
                     raise ValueError, \
-                        "The elements of gens (= %s) must be defined over " + \
-                        "base_ring (= %s) or its field of fractions."%(gens, base_ring)
+                        "The elements of gens (= %s) must be defined over "%gens + \
+                        "base_ring (= %s) or its field of fractions."%base_ring
             M = FreeModule(R,len(x))
         else:
             M = x.parent()
@@ -432,7 +441,7 @@ class FreeModule_generic(module.Module):
             sparse -- bool (default: False)
 
         EXAMPLES:
-            sage: MPolynomialRing(QQ,3,'x')^3
+            sage: PolynomialRing(QQ,3,'x')^3
             Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         """
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
@@ -452,30 +461,12 @@ class FreeModule_generic(module.Module):
         self._gram_matrix = None
         self.element_class()
 
-    def __hash__(self):
-        """
-        The hash of self.
-
-        EXAMPLES:
-            sage: V = QQ^7
-            sage: V.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U = QQ^7
-            sage: U.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U is V
-            True
-        """
-        raise NotImplementedError
-
     def construction(self):
         """
         The construction functor and base ring for self.
 
         EXAMPLES:
-            sage: R = MPolynomialRing(QQ,3,'x')
+            sage: R = PolynomialRing(QQ,3,'x')
             sage: V = R^5
             sage: V.construction()
             (VectorFunctor, Multivariate Polynomial Ring in x0, x1, x2 over Rational Field)
@@ -603,12 +594,15 @@ class FreeModule_generic(module.Module):
         """
         try:
             return self([k+2 for k in range(self.__rank)])
-        except:
+        except TypeError:
             pass
+
         try:
             return self.gen(0)
-        except:
+        except ValueError:
+            #No generators
             pass
+
         return self(0)
 
     def element_class(self):
@@ -765,27 +759,6 @@ class FreeModule_generic(module.Module):
             if self._has_coerce_map_from_space(x.parent()):
                 return self(x)
         raise TypeError, "Automatic coercion supported only for vectors or 0."
-
-    def __cmp__(self, other):
-        """
-        Compare the free module self with other.
-
-        EXAMPLES:
-            sage: R = MPolynomialRing(ZZ,2,'xy')
-            sage: U = FreeModule(R,7)
-            sage: V = FreeModule(QQ,7)
-            sage: W = FreeModule(R,8)
-            sage: U.__cmp__(V)
-            1
-            sage: U < V
-            False
-            sage: U.__cmp__(W)
-            -1
-            sage: U < W
-            True
-        """
-        raise NotImplementedError
-
 
     def __contains__(self, v):
         r"""
@@ -986,12 +959,19 @@ class FreeModule_generic(module.Module):
 
         EXAMPLES:
             sage: R = IntegerModRing(12)
-            sage: S.<x,y> = MPolynomialRing(R,2)
+            sage: S.<x,y> = R[]
             sage: M = FreeModule(S,3)
             sage: M.echelonized_basis_matrix()
             [1 0 0]
             [0 1 0]
             [0 0 1]
+
+        TESTS:
+            sage: from sage.modules.free_module import FreeModule_generic
+            sage: FreeModule_generic.echelonized_basis_matrix(M)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -1327,95 +1307,6 @@ class FreeModule_generic(module.Module):
             True
         """
         return True
-
-# I commented out both setting and unsetting the inner product matrix
-# since being able to change them contradicts that unique objects are
-# immutable.
-##     def unset_inner_product_matrix(self):
-##         r"""
-##         If an inner product was set on this module using
-##         \code{self.set_inner_product_matrix(...)}, this function
-##         unsets that inner product, thus reverting to the inner
-##         product induced from that on the ambient module.
-
-##         EXAMPLES:
-##             sage: M = FreeModule(QQ, 2)
-##             sage: M.set_inner_product_matrix([-1,0,0,-1])
-##             sage: (M.0).inner_product(M.0)
-##             -1
-
-##         We set and unset an inner product matrix on a submodule.  Note
-##         that unsetting the inner product on the submodule switches back
-##         to using the ambient inner product.
-##             sage: M2 = M.submodule([[1,1]])
-##             sage: M2.gen(0).inner_product(M2.gen(0))
-##             -2
-##             sage: M2.set_inner_product_matrix([1])
-##             sage: M2.gen(0).inner_product(M2.gen(0))
-##             1
-##             sage: M2.unset_inner_product_matrix()
-##             sage: M2.gen(0).inner_product(M2.gen(0))
-##             -2
-
-##         Changing the ambient inner product changes that
-##         on the submodule, since the submodule uses the ambient
-##         product after calling \code{unset_inner_product_matrix}.
-##             sage: M.unset_inner_product_matrix()
-##             sage: M2.gen(0).inner_product(M2.gen(0))
-##             2
-##         """
-##         self.__uses_ambient_inner_product = True
-##         try:
-##             del self._inner_product_is_dot_product_cache
-##             self._inner_product_matrix = None
-##         except AttributeError:
-##             pass
-
-##     def set_inner_product_matrix(self, A):
-##         """
-##         Sets the inner product matrix of this module to the matrix A.
-
-##         EXAMPLES:
-##         We change the inner product matrix over an ambient free module.
-##             sage: M = FreeModule(ZZ, 2)
-##             sage: M.inner_product_matrix()
-##             [1 0]
-##             [0 1]
-##             sage: M.set_inner_product_matrix([0,-1,-1,0])
-##             sage: M.inner_product_matrix()
-##             [ 0 -1]
-##             [-1  0]
-##             sage: (M.0).inner_product(M.1)
-##             -1
-
-##         We can also set the inner product matrix of a submodule:
-##             sage: W = M.submodule([[1,2]])
-##             sage: W.set_inner_product_matrix([2])
-##             sage: W
-##             Free module of degree 2 and rank 1 over Integer Ring
-##             Echelon basis matrix:
-##             [1 2]
-##             sage: W.inner_product_matrix()
-##             [2]
-##             sage: v = W.gen(0)
-##             sage: v.inner_product(v)
-##             2
-##         """
-##         if not isinstance(A, sage.matrix.matrix_generic.Matrix):
-##             A = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.rank())(A)
-##         else:
-##             if A.nrows() != self.rank():
-##                 raise ArithmeticError, "A must have %s rows but it has %s rows"%(self.rank(),
-##                                                                                 A.nrows())
-##             if A.ncols() != self.rank():
-##                 raise ArithmeticError, "A must have %s columns but it has %s rows"%(self.rank(),
-##                                                                                 A.ncols())
-##         self._inner_product_matrix = A
-##         self.__uses_ambient_inner_product = False
-##         try:
-##             del self._inner_product_is_dot_product_cache
-##         except AttributeError:
-##             pass
 
     def is_ambient(self):
         """
@@ -2129,14 +2020,14 @@ class FreeModule_generic_pid(FreeModule_generic):
         else:
             try:
                 M = self.change_ring(base_ring)
-            except:
-                raise ValueError, "Argument base_ring (= %s) is not compatible " + \
-                    "with the base field (= %s)." % (base_ring, V.base_field() )
+            except TypeError:
+                raise ValueError, "Argument base_ring (= %s) is not compatible "%base_ring + \
+                    "with the base field (= %s)." % self.base_field()
             try:
                 return M.span(gens)
-            except:
-                raise ValueError, "Argument gens (= %s) is not compatible " + \
-                    "with base_ring (= %s)." % (gens, base_ring)
+            except TypeError:
+                raise ValueError, "Argument gens (= %s) is not compatible "%gens + \
+                    "with base_ring (= %s)."%base_ring
 
     def submodule(self, gens, check=True, already_echelonized=False):
         r"""
@@ -2250,14 +2141,14 @@ class FreeModule_generic_pid(FreeModule_generic):
         else:
             try:
                 M = self.change_ring(base_ring)
-            except:
-                raise ValueError, "Argument base_ring (= %s) is not compatible " + \
-                    "with the base ring (= %s)." % (base_ring, self.base_ring())
+            except TypeError:
+                raise ValueError, "Argument base_ring (= %s) is not compatible "%base_ring + \
+                    "with the base ring (= %s)."%self.base_ring()
             try:
                 return M.span_of_basis(basis)
-            except:
-                raise ValueError, "Argument gens (= %s) is not compatible " + \
-                    "with base_ring (= %s)." % (basis, base_ring)
+            except TypeError:
+                raise ValueError, "Argument gens (= %s) is not compatible "%basis + \
+                    "with base_ring (= %s)."%base_ring
 
     def submodule_with_basis(self, basis, check=True, already_echelonized=False):
         """
@@ -2652,6 +2543,16 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
             Basis matrix:
             [1 1 1]
+
+        TESTS:
+            sage: V = FreeModule(RDF,3)
+            sage: W = V.submodule([V.gen(0)])
+            sage: W.span([V.gen(1)], base_ring=GF(7))
+            Traceback (most recent call last):
+            ...
+            ValueError: Argument base_ring (= Finite Field of size 7) is not compatible with the base field (= Real Double Field).
+
+
         """
         if is_FreeModule(gens):
             gens = gens.gens()
@@ -2663,12 +2564,12 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         else:
             try:
                 M = self.change_ring(base_ring)
-            except:
+            except TypeError:
                 raise ValueError, \
-                    "Argument base_ring (= %s) is not compatible with the base field (= %s)." % (base_ring, V.base_field() )
+                    "Argument base_ring (= %s) is not compatible with the base field (= %s)." % (base_ring, self.base_field() )
             try:
                 return M.span(gens)
-            except:
+            except TypeError:
                 raise ValueError, \
                     "Argument gens (= %s) is not compatible with base_ring (= %s)." % (gens, base_ring)
 
@@ -2718,13 +2619,13 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         else:
             try:
                 M = self.change_ring(base_ring)
-            except:
+            except TypeError:
                 raise ValueError, \
                     "Argument base_ring (= %s) is not compatible with the base field (= %s)." % (
                     base_ring, self.base_field() )
             try:
                 return M.span_of_basis(basis)
-            except:
+            except TypeError:
                 raise ValueError, \
                     "Argument basis (= %s) is not compatible with base_ring (= %s)." % (basis, base_ring)
 
@@ -4617,12 +4518,11 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
     We can save and load submodules and elements.
 
-        # BUG: Fixme! loads(dumps) fails here...but works in preamble.
-        #sage: loads(W.dumps()) == W
-        #True
-        #sage: v = W.0 + W.1
-        #sage: loads(v.dumps()) == v
-        #True
+        sage: loads(W.dumps()) == W
+        True
+        sage: v = W.0 + W.1
+        sage: loads(v.dumps()) == v
+        True
     """
     def __init__(self, ambient, gens, check=True, already_echelonized=False):
         """

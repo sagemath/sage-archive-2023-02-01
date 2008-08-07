@@ -128,7 +128,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         [(0.0, 1.0), (-1.0, 0.5), (1.0, 0.20000000000000001)]
         Initial probabilities: [1.0, 0.0, 0.0]
     """
-    def __init__(self, A, B, pi, name=None):
+    def __init__(self, A, B, pi=None, name=None):
         """
         EXAMPLES:
         We make a very simple model:
@@ -166,7 +166,20 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         self.initialized = True
 
     def _initialize_state(self, pi):
-        # Allocate and initialize states
+        """
+        Allocate and initialize states.
+
+        INPUT:
+            pi -- initial probabilities
+
+        All other inputs are set as self.A and self.B.
+
+        EXAMPLES:
+        This function is called implicitly during object creation.  It should
+        never be called directly by the user, unless they want to LEAKE MEMORY.
+
+            sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(1,10)], [1]) # indirect test
+        """
         cdef ghmm_cstate* states = <ghmm_cstate*> safe_malloc(sizeof(ghmm_cstate) * self.m.N)
         cdef ghmm_cstate* state
         cdef ghmm_c_emission* e
@@ -338,11 +351,12 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
 
         return 0
 
-    def fix_emission_state(self, Py_ssize_t i, bint fixed=True):
+    def fix_emissions(self, Py_ssize_t i, bint fixed=True):
         """
-        Sets the i-th emission state to be either fixed or not fixed.
-        If it is fixed, then running the Baum-Welch algorithm will not
-        change it.
+        Sets the Gaussian emission parameters for the i-th state to be
+        either fixed or not fixed.  If it is fixed, then running the
+        Baum-Welch algorithm will not change the emission parameters
+        for the i-th state.
 
         INPUT:
             i -- nonnegative integer < self.m.N
@@ -363,7 +377,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
 
         Now we run Baum-Welch with the emission states fixed.  Notice that they don't change.
             sage: m = hmm.GaussianHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [(0.0,1.0),(1,1)], [1,0])
-            sage: m.fix_emission_state(0); m.fix_emission_state(1)
+            sage: m.fix_emissions(0); m.fix_emissions(1)
             sage: m.baum_welch([0,1])
             sage: m
             Gaussian Hidden Markov Model with 2 States
@@ -377,22 +391,6 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         if i < 0 or i >= self.m.N:
             raise IndexError, "index out of range"
         self.m.s[i].e.fixed = fixed
-
-    def fix_hidden_state(self, Py_ssize_t i, bint fixed=True):
-        """
-        Sets the i-th hidden state to be either fixed or not fixed.
-        If it is fixed, then running the Baum-Welch algorithm will not
-        change it.
-
-        INPUT:
-            i -- nonnegative integer < self.m.N
-            fixed -- bool
-
-        EXAMPLES:
-        """
-        if i < 0 or i >= self.m.N:
-            raise IndexError, "index out of range"
-        self.m.s[i].fix = fixed
 
     def __repr__(self):
         """
@@ -789,10 +787,43 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
         pi -- list of floats that sums to 1.0; these are
               the initial probabilities of each hidden state
         name -- (default: None); a string
+
+    EXAMPLES:
+        sage: A  = [[0.5,0.5],[0.5,0.5]]
+        sage: B  = [[(0.5,(0.0,1.0)), (0.1,(1,10000))],[(1,(1,1)), (0,(0,0.1))]]
+        sage: pi = [1,0]
+        sage: hmm.GaussianMixtureHiddenMarkovModel(A, B, pi)
+        Gaussian Hidden Markov Model with 2 States
+        Transition matrix:
+        [0.5 0.5]
+        [0.5 0.5]
+        Emission parameters:
+        [[(0.5, (0.0, 1.0)), (0.10000000000000001, (1.0, 10000.0))], [(1.0, (1.0, 1.0)), (0.0, (0.0, 0.10000000000000001))]]
+        Initial probabilities: [1.0, 0.0]
+
+    TESTS:
+    We test that standard deviations must be positive:
+        sage: m = hmm.GaussianMixtureHiddenMarkovModel([[1]], [[(1,(0,0))]], [1])
+        Traceback (most recent call last):
+        ...
+        ValueError: sigma must be positive (if weight is nonzero)
+
+    We test that number of mixtures must be positive:
+        sage: m = hmm.GaussianMixtureHiddenMarkovModel([[1]], [[]], [1])
+        Traceback (most recent call last):
+        ...
+        ValueError: number of Gaussian mixtures must be positive
     """
-    def __init__(self, A, B, pi, name=None):
+    def __init__(self, A, B, pi=None, name=None):
         """
         EXAMPLES:
+            sage: hmm.GaussianMixtureHiddenMarkovModel([[1]], [[(1,(0,1))]], [1], name='simple')
+            Gaussian Hidden Markov Model simple with 1 States
+            Transition matrix:
+            [1.0]
+            Emission parameters:
+            [[(1.0, (0.0, 1.0))]]
+            Initial probabilities: [1.0]
         """
         # Turn B into a list of lists
         B = [flatten(x) for x in B]
@@ -800,13 +831,25 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
         if m == 0:
             raise ValueError, "number of Gaussian mixtures must be positive"
         B = [x + [0]*(m-len(x)) for x in B]
-        GaussianHiddenMarkovModel.__init__(self, A, B, pi)
-        print m//3
+        GaussianHiddenMarkovModel.__init__(self, A, B, pi, name=name)
         self.m.M = m//3
         # Set number of outputs.
 
     def _initialize_state(self, pi):
-        # Allocate and initialize states
+        """
+        Allocate and initialize states.
+
+        INPUT:
+            pi -- initial probabilities
+
+        All other inputs are set as self.A and self.B.
+
+        EXAMPLES:
+        This function is called implicitly during object creation.  It should
+        never be called directly by the user, unless they want to LEAKE MEMORY.
+
+            sage: m = hmm.GaussianMixtureHiddenMarkovModel([[1]], [[(1,(1,10))]], [1]) # indirect test
+        """
         cdef ghmm_cstate* states = <ghmm_cstate*> safe_malloc(sizeof(ghmm_cstate) * self.m.N)
         cdef ghmm_cstate* state
         cdef ghmm_c_emission* e
@@ -831,6 +874,8 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
                 e[n].dimension = 1
                 mu             = v[n*3+1]
                 sigma          = v[n*3+2]
+                if sigma <= 0 and v[n*3]:
+                    raise ValueError, "sigma must be positive (if weight is nonzero)"
                 weights.append(  v[n*3] )
                 e[n].mean.val     = mu
                 e[n].variance.val = sigma*sigma  # variance! not standard deviation
@@ -890,3 +935,47 @@ p
                  for j in range(self.m.s[i].M)]  for i in range(self.m.N)]
 
 
+
+    def fix_emissions(self, Py_ssize_t i, Py_ssize_t j, bint fixed=True):
+        """
+        Sets the j-th Gaussian of the emission parameters for the i-th
+        state to be either fixed or not fixed.  If it is fixed, then
+        running the Baum-Welch algorithm will not change the emission
+        parameters for the i-th state.
+
+        INPUT:
+            i -- nonnegative integer < self.m.N
+            j -- nonnegative integer < self.m.M
+            fixed -- bool
+
+        EXAMPLES:
+        We run Baum-Welch once without fixing the emission states:
+            sage: m = hmm.GaussianHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [(0.0,1.0),(1,1)], [1,0])
+            sage: m.baum_welch([0,1])
+            sage: m
+            Gaussian Hidden Markov Model with 2 States
+            Transition matrix:
+            [0.0 1.0]
+            [0.1 0.9]
+            Emission parameters:
+            [(0.0, 0.01), (1.0, 0.01)]
+            Initial probabilities: [1.0, 0.0]
+
+        Now we run Baum-Welch with the emission states fixed.  Notice that they don't change.
+            sage: m = hmm.GaussianHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [(0.0,1.0),(1,1)], [1,0])
+            sage: m.fix_emissions(0); m.fix_emissions(1)
+            sage: m.baum_welch([0,1])
+            sage: m
+            Gaussian Hidden Markov Model with 2 States
+            Transition matrix:
+            [0.000368587006957    0.999631412993]
+            [              0.1               0.9]
+            Emission parameters:
+            [(0.0, 1.0), (1.0, 1.0)]
+            Initial probabilities: [1.0, 0.0]
+        """
+        if i < 0 or i >= self.m.N:
+            raise IndexError, "index i out of range"
+        if j < 0 or j >= self.m.M:
+            raise IndexError, "index j out of range"
+        self.m.s[i].e[j].fixed = fixed

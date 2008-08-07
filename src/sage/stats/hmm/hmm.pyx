@@ -2,13 +2,6 @@ r"""
 Hidden Markov Models
 
 AUTHOR: William Stein
-
-EXAMPLES:
-
-TODO:
-   * make models pickleable (i.e., all parameters should be obtainable
-     using functions to make this easy).
-   * continuous hmm's
 """
 
 #############################################################################
@@ -44,7 +37,7 @@ cdef class HiddenMarkovModel:
         sage: sage.stats.hmm.hmm.HiddenMarkovModel([[0.4,0.6],[1,0]], [[1,0],[0.5,0.5]], [0.5,0.5])
         <sage.stats.hmm.hmm.HiddenMarkovModel object at ...>
     """
-    def __init__(self, A, B, pi):
+    def __init__(self, A, B, pi=None):
         """
         INPUT:
             A -- matrix or list
@@ -84,9 +77,15 @@ cdef class HiddenMarkovModel:
             B = B.change_ring(RDF)
 
         # Make sure the initial probabilities are all floats.
-        self.pi = [float(x) for x in pi]
-        if len(self.pi) != A.nrows():
-            raise ValueError, "length of pi must equal number of rows of A"
+        if pi is None:
+            if A.nrows() == 0:
+                self.pi = []
+            else:
+                self.pi = [1.0/A.nrows()]*A.nrows()
+        else:
+            self.pi = [float(x) for x in pi]
+            if len(self.pi) != A.nrows():
+                raise ValueError, "length of pi must equal number of rows of A"
 
         # Record the now validated matrices A and B as attributes.
         # They get used later as attributes in the constructors for
@@ -97,7 +96,7 @@ cdef class HiddenMarkovModel:
 
 cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
-    def __init__(self, A, B, pi, emission_symbols=None, name=None):
+    def __init__(self, A, B, pi=None, emission_symbols=None, name=None):
         """
         INPUTS:
             A  -- square matrix of doubles; the state change probabilities
@@ -292,11 +291,63 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         Deallocate memory allocated by the HMM.
 
         EXAMPLES:
-            sage: a = hmm.DiscreteHiddenMarkovModel([[0.2,0.8],[0.5,0.5]], [[1,0],[0,1]], [0,1])  # indirect doctest
-            sage: del a
+            sage: m = hmm.DiscreteHiddenMarkovModel([[0.2,0.8],[0.5,0.5]], [[1,0],[0,1]], [0,1])  # indirect doctest
+            sage: del m
         """
         if self.initialized:
             ghmm_dmodel_free(&self.m)
+
+    def fix_emissions(self, Py_ssize_t i, bint fixed=True):
+        """
+        Sets the i-th emission parameters to be either fixed or not
+        fixed.  If it is fixed, then running the Baum-Welch algorithm
+        will not change the emission parameters for the i-th state.
+
+        INPUT:
+            i -- nonnegative integer < self.m.N
+            fixed -- bool
+
+        EXAMPLES:
+        First without calling fix_emissions:
+            sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]],[[.5,.5],[.5,.5]])
+            sage: m.baum_welch([0,0,0,1,1,1])
+            sage: m.emission_matrix()
+            [              1.0               0.0]
+            [3.92881039079e-05    0.999960711896]
+
+        We call fix_emissions on the first state and notice that the first
+        row of the emission matrix does not change:
+            sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]],[[.5,.5],[.5,.5]])
+            sage: m.fix_emissions(0)
+            sage: m.baum_welch([0,0,0,1,1,1])
+            sage: m.emission_matrix()
+            [              0.5               0.5]
+            [0.000542712675606    0.999457287324]
+
+        We call fix_emissions on the second state and notice that the second
+        row of the emission matrix does not change:
+            sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]],[[.5,.5],[.5,.5]])
+            sage: m.fix_emissions(1)
+            sage: m.baum_welch([0,0,0,1,1,1])
+            sage: m.emission_matrix()
+            [   0.999999904763 9.52366620142e-08]
+            [              0.5               0.5]
+
+        TESTS:
+        Make sure that out of range indices are handled correctly with an IndexError.
+            sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]],[[.5,.5],[.5,.5]])
+            sage: m.fix_emissions(2)
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: m.fix_emissions(-1)
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+        """
+        if i < 0 or i >= self.m.N:
+            raise IndexError, "index out of range"
+        self.m.s[i].fix = fixed
 
     def __repr__(self):
         """
@@ -574,7 +625,6 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
                     Viterbi path.
             float -- log of the probability that the sequence of hidden
                      states actually produced the given sequence seq.
-                     [[TODO: I do not understand precisely what this means.]]
 
         EXAMPLES:
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[0.9,0.1],[0.1,0.9]], [0.5,0.5])

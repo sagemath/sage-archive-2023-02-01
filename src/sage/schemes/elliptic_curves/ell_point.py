@@ -840,12 +840,18 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         if disc < 0: #Connected Case
             # Here we use formulae equivalent to those in Cohen, but better
             # behaved when roots are close together
+
+            # For some curves (e.g. 3314b3) the default precision is not enough!
+            while len(real_roots)!=1:
+                precision*=2
+                RR=rings.RealField(precision)
+                real_roots = pol.roots(RR,multiplicities=False)
             try:
                 assert len(real_roots) == 1
             except:
                 raise ValueError, ' no or more than one real root despite disc < 0'
             e1 = real_roots[0]
-            roots = pol.roots(CC,multiplicities=False)
+            roots = pol.roots(rings.ComplexField(precision),multiplicities=False)
             roots.remove(e1)
             e2,e3 = roots
             zz = (e1-e2).sqrt() # complex
@@ -865,6 +871,12 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             return z
 
         else:                    #Disconnected Case, disc > 0
+            # For some curves (e.g. 2370i5) the default precision is not enough!
+            while len(real_roots)!=3:
+                precision*=2
+                RR=rings.RealField(precision)
+                real_roots = pol.roots(RR,multiplicities=False)
+
             real_roots.sort() # increasing order
             real_roots.reverse() # decreasing order e1>e2>e3
             try:

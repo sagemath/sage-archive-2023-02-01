@@ -1539,7 +1539,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             points = self.gens()
         else:
             for P in points:
-                assert P.curve() is self
+                assert P.curve() == self
 
         r = len(points)
         if precision is None:
@@ -3902,18 +3902,96 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             bounded by $H_q$.  The bound $H_q$ will be computed at
             runtime.
             """
+            from sage.misc.all import cartesian_product_iterator
+            from sage.groups.generic import multiples
             xs=set()
-            for i in range(ceil(((2*H_q+1)**r)/2)):
-                koeffs = Z(i).digits(base=2*H_q+1)
-                koeffs = [0]*(r-len(koeffs)) + koeffs # pad with 0s
-                P = sum([(koeffs[j]-H_q)*mw_base[j] for j in range(r)],self(0))
-                for Q in tors_points: # P + torsion points (includes 0)
-                    tmp = P + Q
-                    if not tmp.is_zero():
-                        x = tmp[0]
-                        if x.is_integral():
-                            xs.add(x)
+            N=H_q
+
+            def use(P):
+                """
+                Helper function to record x-coord of a point if integral.
+                """
+                if not P.is_zero():
+                    xP = P[0]
+                    if xP.is_integral():
+                        xs.add(xP)
+
+            def use_t(R):
+                """
+                Helper function to record x-coords of a point +torsion if integral.
+                """
+                for T in tors_points:
+                    use(R+T)
+
+            # We use a naive method when the number of possibilities is small:
+
+            if r==1 or N<=10:
+                for P in multiples(mw_base[0],N+1):
+                    use_t(P)
+                return xs
+
+            # Otherwise is is very very much faster to first compute
+            # the linear combinations over RR, and only compte them as
+            # rational points if they are approximately integral
+
+            def is_approx_integral(P):
+                return (abs(P[0]-P[0].round()))<0.001 and (abs(P[1]-P[1].round()))<0.001
+
+            RR = RealField() #(100)
+            ER = self.change_ring(RR)
+            Rgens = [ER.lift_x(P[0]) for P in mw_base]
+            for i in range(r):
+                if abs(Rgens[i][1]-mw_base[i][1])>abs((-Rgens[i])[1]-mw_base[i][1]):
+                    Rgens[i] = -Rgens[i]
+            for ni in cartesian_product_iterator([range(-N,N+1) for i in range(r-1)]+[range(N+1)]):
+                RP=sum([ni[i]*Rgens[i] for i in range(r)],ER(0))
+                for T in tors_points:
+                    if is_approx_integral(RP+ER(T)):
+                        P = sum([ni[i]*mw_base[i] for i in range(r)],T)
+                        use(P)
             return xs
+
+            # Below this point we keep earlier experimental code which
+            # is slower when either N or r is large
+
+#           if r==2:
+#               for P in multiples(mw_base[0],N+1):
+#                   for Q in multiples(mw_base[1],N+1):
+#                       for R in set([Q+P,Q-P]):
+#                           use_t(R)
+#               return xs
+#
+#           if r==3:
+#               for P in multiples(mw_base[0],N+1):
+#                   for Q in multiples(mw_base[1],N+1):
+#                       PQ = [P+Q,P-Q]
+#                       PQ = set(PQ + [-R for R in PQ]) # {\pm P\pm Q}
+#                       for R in multiples(mw_base[2],N+1):
+#                           for S in PQ:
+#                               use_t(R+S)
+#               return xs
+#
+#           # general rank
+#           mults=[list(multiples(mw_base[i],N+1)) for i in range(r)]
+#           for i in range(r-1):
+#               mults[i] = [-P for P in mults[i] if not P.is_zero()] + mults[i]
+#           for Pi in cartesian_product_iterator(mults):
+#               use_t(sum(Pi,self(0)))
+#           return xs
+#
+#  older, even slower  code:
+#
+#           for i in range(ceil(((2*H_q+1)**r)/2)):
+#               koeffs = Z(i).digits(base=2*H_q+1)
+#               koeffs = [0]*(r-len(koeffs)) + koeffs # pad with 0s
+#               P = sum([(koeffs[j]-H_q)*mw_base[j] for j in range(r)],self(0))
+#               for Q in tors_points: # P + torsion points (includes 0)
+#                   tmp = P + Q
+#                   if not tmp.is_zero():
+#                       x = tmp[0]
+#                       if x.is_integral():
+#                           xs.add(x)
+#           return xs
         ##############################  end  #################################
 
         # END Internal functions #############################################

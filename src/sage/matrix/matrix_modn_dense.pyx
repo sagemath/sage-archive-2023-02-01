@@ -87,6 +87,10 @@ include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 include '../ext/random.pxi'
 
+cdef extern from *:
+    int memcmp(void* a, void* b, long n)
+    void* memcpy(void* dst, void* src, long n)
+
 import sage.ext.multi_modular
 cimport sage.ext.arith
 import sage.ext.arith
@@ -125,7 +129,7 @@ from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
-from sage.rings.integer import Integer
+from sage.rings.integer cimport Integer
 
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 
@@ -134,6 +138,12 @@ from sage.ext.arith cimport arith_int
 cdef arith_int ai
 ai = arith_int()
 ################
+
+
+
+cdef long num = 1
+cdef bint little_endian = (<char*>(&num))[0]
+
 
 ##############################################################################
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
@@ -156,12 +166,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         matrix_dense.Matrix_dense.__init__(self, parent)
 
-        cdef mod_int p
+        cdef long p
         p = self._base_ring.characteristic()
         self.p = p
         if p >= MAX_MODULUS:
             raise OverflowError, "p (=%s) must be < %s"%(p, MAX_MODULUS)
-        self.gather = MOD_INT_OVERFLOW/(p*p)
+        self.gather = MOD_INT_OVERFLOW/<mod_int>(p*p)
 
         _sig_on
         self._entries = <mod_int *> sage_malloc(sizeof(mod_int)*self._nrows*self._ncols)
@@ -189,11 +199,17 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         sage_free(self._matrix)
 
     def __init__(self, parent, entries, copy, coerce):
+        """
+        TESTS:
+            sage: matrix(GF(7), 2, 2, [-1, int(-2), GF(7)(-3), 1/4])
+            [6 5]
+            [4 2]
+        """
 
         cdef mod_int e
         cdef Py_ssize_t i, j, k
         cdef mod_int *v
-        cdef mod_int p
+        cdef long p
         p = self._base_ring.characteristic()
 
         R = self.base_ring()
@@ -220,25 +236,32 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         k = 0
         cdef mod_int n
+        cdef long tmp
 
-        if coerce:
-            for i from 0 <= i < self._nrows:
-                if PyErr_CheckSignals(): raise KeyboardInterrupt
-                v = self._matrix[i]
-                for j from 0 <= j < self._ncols:
+        for i from 0 <= i < self._nrows:
+            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            v = self._matrix[i]
+            for j from 0 <= j < self._ncols:
+                x = entries[k]
+                if PY_TYPE_CHECK_EXACT(x, int):
+                    tmp = (<long>x) % p
+                    v[j] = tmp + (tmp<0)*p
+                elif PY_TYPE_CHECK_EXACT(x, IntegerMod_int) and (<IntegerMod_int>x)._parent is R:
+                    v[j] = (<IntegerMod_int>x).ivalue
+                elif PY_TYPE_CHECK_EXACT(x, Integer):
+                    if coerce:
+                        v[j] = mpz_fdiv_ui((<Integer>x).value, p)
+                    else:
+                        v[j] = mpz_get_ui((<Integer>x).value)
+                elif coerce:
                     v[j] = R(entries[k])
-                    k = k + 1
-        else:
-            for i from 0 <= i < self._nrows:
-                if PyErr_CheckSignals(): raise KeyboardInterrupt
-                v = self._matrix[i]
-                for j from 0 <= j < self._ncols:
-                    v[j] = int(entries[k])
-                    k = k + 1
-
+                else:
+                    v[j] = <long>(entries[k])
+                k = k + 1
 
     def __richcmp__(Matrix_modn_dense self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
+
     def __hash__(self):
         return self._hash()
 
@@ -256,11 +279,11 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     # LEVEL 2 functionality
     #   * cdef _pickle
     #   * cdef _unpickle
-    #   * cdef _add_c_impl
+    # x * cdef _add_c_impl
     #   * cdef _mul_c_impl
-    #   * cdef _matrix_times_matrix_c_impl
-    #   * cdef _cmp_c_impl
-    #   * __neg__
+    # x * cdef _matrix_times_matrix_c_impl
+    # x * cdef _cmp_c_impl
+    # x * __neg__
     #   * __invert__
     # x * __copy__
     #   * _multiply_classical
@@ -272,11 +295,269 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     # cdef ModuleElement _add_c_impl(self, ModuleElement right):
     # cdef _mul_c_impl(self, Matrix right):
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
-    # def __neg__(self):
     # def __invert__(self):
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
     # def _dict(self):
+
+    def _pickle(self):
+        """
+        Utility function for pickling.
+
+        If the prime is small enough to fit in a byte, then it is stored as a
+        contiguous string of bytes (to save space). Otherwise, memcpy is used
+        to copy the raw data in the platforms native format. Any byte-swapping
+        or word size difference is taken care of in unpickling (optimizing for
+        unpickling on the same platform things were pickled on).
+
+        The upcoming buffer protocol would be useful to not have to do any copying.
+
+        EXAMPLES:
+            sage: m = matrix(Integers(128), 3, 3, [ord(c) for c in "Hi there!"]); m
+            [ 72 105  32]
+            [116 104 101]
+            [114 101  33]
+            sage: m._pickle()
+            ((1, True, 'Hi there!'), 10)
+        """
+        cdef Py_ssize_t i, j
+        cdef unsigned char* ss
+        cdef unsigned char* row_ss
+        cdef long word_size
+        cdef mod_int *row_self
+
+        if self.p <= 0xFF:
+            word_size = sizeof(char)
+        else:
+            word_size = sizeof(mod_int)
+
+        s = PyString_FromStringAndSize(NULL, word_size * self._nrows * self._ncols)
+        ss = <unsigned char*><char *>s
+
+        _sig_on
+        if word_size == sizeof(char):
+            for i from 0 <= i < self._nrows:
+                row_self = self._matrix[i]
+                row_ss = &ss[i*self._ncols]
+                for j from 0<= j < self._ncols:
+                    row_ss[j] = row_self[j]
+        else:
+            for i from 0 <= i < self._nrows:
+                memcpy(&ss[i*sizeof(mod_int)*self._ncols], self._matrix[i], sizeof(mod_int) * self._ncols)
+        _sig_off
+
+        return (word_size, little_endian, s), 10
+
+
+    def _unpickle(self, data, int version):
+        """
+        TESTS:
+
+        Test for char-sized modulus:
+            sage: A = random_matrix(GF(7), 5, 9)
+            sage: data, version = A._pickle()
+            sage: B = A.parent()(0)
+            sage: B._unpickle(data, version)
+            sage: B == A
+            True
+
+        And for larger modulus:
+            sage: A = random_matrix(GF(1009), 51, 5)
+            sage: data, version = A._pickle()
+            sage: B = A.parent()(0)
+            sage: B._unpickle(data, version)
+            sage: B == A
+            True
+
+        Now test all the bit-packing options:
+            sage: A = matrix(Integers(1000), 2, 2)
+            sage: A._unpickle((1, True, '\x01\x02\xFF\x00'), 10)
+            sage: A
+            [  1   2]
+            [255   0]
+
+            sage: A = matrix(Integers(1000), 1, 2)
+            sage: A._unpickle((4, True, '\x02\x01\x00\x00\x01\x00\x00\x00'), 10)
+            sage: A
+            [258   1]
+            sage: A._unpickle((4, False, '\x00\x00\x02\x01\x00\x00\x01\x03'), 10)
+            sage: A
+            [513 259]
+            sage: A._unpickle((8, True, '\x03\x01\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00'), 10)
+            sage: A
+            [259   5]
+            sage: A._unpickle((8, False, '\x00\x00\x00\x00\x00\x00\x02\x08\x00\x00\x00\x00\x00\x00\x01\x04'), 10)
+            sage: A
+            [520 260]
+
+        Now make sure it works in context:
+            sage: A = random_matrix(Integers(33), 31, 31)
+            sage: loads(dumps(A)) == A
+            True
+            sage: A = random_matrix(Integers(3333), 31, 31)
+            sage: loads(dumps(A)) == A
+            True
+        """
+
+        if version < 10:
+            return matrix_dense.Matrix_dense._unpickle(self, data, version)
+
+        cdef Py_ssize_t i, j
+        cdef unsigned char* ss
+        cdef unsigned char* row_ss
+        cdef long word_size
+        cdef mod_int *row_self
+        cdef bint little_endian_data
+        cdef unsigned char* udata
+
+        if version == 10:
+            word_size, little_endian_data, s = data
+            ss = <unsigned char*><char *>s
+
+            _sig_on
+            if word_size == sizeof(char):
+                for i from 0 <= i < self._nrows:
+                    row_self = self._matrix[i]
+                    row_ss = &ss[i*self._ncols]
+                    for j from 0<= j < self._ncols:
+                        row_self[j] = row_ss[j]
+
+            elif word_size == sizeof(mod_int) and little_endian == little_endian_data:
+                for i from 0 <= i < self._nrows:
+                    memcpy(self._matrix[i], &ss[i*sizeof(mod_int)*self._ncols], sizeof(mod_int) * self._ncols)
+
+            # Note that mod_int is at least 32 bits, and never stores more than 32 bits of info
+            elif little_endian_data:
+                for i from 0 <= i < self._nrows:
+                    row_self = self._matrix[i]
+                    for j from 0<= j < self._ncols:
+                        udata = &ss[(i*self._ncols+j)*word_size]
+                        row_self[j] =  ((udata[0]) +
+                                        (udata[1] << 8) +
+                                        (udata[2] << 16) +
+                                        (udata[3] << 24))
+
+            else:
+                for i from 0 <= i < self._nrows:
+                    row_self = self._matrix[i]
+                    for j from 0<= j < self._ncols:
+                        udata = &ss[(i*self._ncols+j)*word_size]
+                        row_self[j] =  ((udata[word_size-1]) +
+                                        (udata[word_size-2] << 8) +
+                                        (udata[word_size-3] << 16) +
+                                        (udata[word_size-4] << 24))
+
+            _sig_off
+
+        else:
+            raise RuntimeError, "unknown matrix version"
+
+
+    cdef long _hash(self) except -1:
+        """
+        TESTS:
+            sage: a = random_matrix(GF(11), 5, 5, range(25))
+            sage: a.set_immutable()
+            sage: hash(a) #random
+            216
+            sage: b = a.change_ring(ZZ)
+            sage: b.set_immutable()
+            sage: hash(b) == hash(a)
+            True
+        """
+        x = self.fetch('hash')
+        if not x is None: return x
+
+        if not self._mutability._is_immutable:
+            raise TypeError, "mutable matrices are unhashable"
+
+        cdef Py_ssize_t i
+        cdef long h = 0, n = 0
+
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            for j from 0<= j < self._ncols:
+                h ^= n * self._matrix[i][j]
+                n += 1
+        _sig_off
+
+        self.cache('hash', h)
+        return h
+
+
+    def __neg__(self):
+        """
+        EXAMPLES:
+            sage: m = matrix(GF(19), 3, 3, range(9)); m
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: -m
+            [19 18 17]
+            [16 15 14]
+            [13 12 11]
+        """
+        cdef Py_ssize_t i,j
+        cdef Matrix_modn_dense M
+        cdef mod_int p = self.p
+
+        M = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,None,None,None)
+        M.p = p
+
+        _sig_on
+        cdef mod_int *row_self, *row_ans
+        for i from 0 <= i < self._nrows:
+            row_self = self._matrix[i]
+            row_ans = M._matrix[i]
+            for j from 0<= j < self._ncols:
+                row_ans[j] = p - row_self[j]
+        _sig_off
+        return M
+
+
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        """
+        EXAMPLES:
+            sage: a = random_matrix(Integers(60), 400, 500)
+            sage: 3*a + 9*a == 12*a
+            True
+        """
+        return self._rmul_c_impl(right)
+
+    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        """
+        EXAMPLES:
+            sage: a = matrix(GF(101), 3, 3, range(9)); a
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: a * 5
+            [ 0  5 10]
+            [15 20 25]
+            [30 35 40]
+            sage: a * 50
+            [  0  50 100]
+            [ 49  99  48]
+            [ 98  47  97]
+        """
+        cdef Py_ssize_t i,j
+        cdef Matrix_modn_dense M
+        cdef mod_int p = self.p
+        cdef mod_int a = left
+
+        M = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,None,None,None)
+        M.p = p
+
+        _sig_on
+        cdef mod_int *row_self, *row_ans
+        for i from 0 <= i < self._nrows:
+            row_self = self._matrix[i]
+            row_ans = M._matrix[i]
+            for j from 0<= j < self._ncols:
+                row_ans[j] = (a*row_self[j]) % p
+        _sig_off
+        return M
+
     def __copy__(self):
         cdef Matrix_modn_dense A
         A = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,
@@ -312,11 +593,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
 
         cdef Py_ssize_t i,j
-        cdef long k
+        cdef mod_int k, p
         cdef Matrix_modn_dense M
 
         M = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,None,None,None)
         Matrix.__init__(M, self._parent)
+        p = self.p
 
         _sig_on
         cdef mod_int *row_self, *row_right, *row_ans
@@ -325,15 +607,92 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             row_right = (<Matrix_modn_dense> right)._matrix[i]
             row_ans = M._matrix[i]
             for j from 0<= j < self._ncols:
-                k = (row_self[j]+row_right[j])
-                # division is really slow, so we normalize only when it is necessary
-                if k>=self.p:
-                    row_ans[j]=k-self.p
-                else:
-                    row_ans[j]=k
-
+                k = row_self[j] + row_right[j]
+                row_ans[j] = k - (k >= p) * p
         _sig_off
-        return M;
+        return M
+
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        """
+        Subtract two dense matrices over Z/nZ
+
+        EXAMPLES:
+            sage: a = matrix(GF(11), 3, 3, range(9)); a
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: a - 4
+            [7 1 2]
+            [3 0 5]
+            [6 7 4]
+            sage: a - matrix(GF(11), 3, 3, range(1, 19, 2))
+            [10  9  8]
+            [ 7  6  5]
+            [ 4  3  2]
+        """
+
+        cdef Py_ssize_t i,j
+        cdef mod_int k, p
+        cdef Matrix_modn_dense M
+
+        M = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,None,None,None)
+        Matrix.__init__(M, self._parent)
+        p = self.p
+
+        _sig_on
+        cdef mod_int *row_self, *row_right, *row_ans
+        for i from 0 <= i < self._nrows:
+            row_self = self._matrix[i]
+            row_right = (<Matrix_modn_dense> right)._matrix[i]
+            row_ans = M._matrix[i]
+            for j from 0<= j < self._ncols:
+                k = p + row_self[j] - row_right[j]
+                row_ans[j] = k - (k >= p) * p
+        _sig_off
+        return M
+
+
+    cdef int _cmp_c_impl(self, Element right) except -2:
+        """
+        Compare two dense matrices over Z/nZ
+
+        EXAMPLES:
+            sage: a = matrix(GF(17), 4, range(3, 83, 5)); a
+            [ 3  8 13  1]
+            [ 6 11 16  4]
+            [ 9 14  2  7]
+            [12  0  5 10]
+            sage: a == a
+            True
+            sage: b = a - 3; b
+            [ 0  8 13  1]
+            [ 6  8 16  4]
+            [ 9 14 16  7]
+            [12  0  5  7]
+            sage: b < a
+            True
+            sage: b > a
+            False
+            sage: b == a
+            False
+            sage: b + 3 == a
+            True
+        """
+
+        cdef Py_ssize_t i
+        cdef int cmp
+
+        _sig_on
+        cdef mod_int *row_self, *row_right
+        for i from 0 <= i < self._nrows:
+            row_self = self._matrix[i]
+            row_right = (<Matrix_modn_dense> right)._matrix[i]
+            cmp = memcmp(row_self, row_right, sizeof(mod_int)*self._ncols)
+            if cmp:
+                return cmp
+        _sig_off
+        return 0
 
 
     cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
@@ -399,7 +758,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
-    #    * cdef _sub_c_impl
+    #  x * cdef _sub_c_impl
     #    * __deepcopy__
     #    * __invert__
     #    * Matrix windows -- only if you need strassen for that base

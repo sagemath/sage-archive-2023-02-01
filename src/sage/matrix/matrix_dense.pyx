@@ -66,9 +66,8 @@ cdef class Matrix_dense(matrix.Matrix):
 
         v = self._list()
         cdef Py_ssize_t i
-        cdef long h
-        h = 0
-        n = 1
+        cdef long h = 0
+
         for i from 0 <= i < len(v):
             h = h ^ (i * hash(v[i]))
 

@@ -138,12 +138,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         WARNING:  No checking is done!  Not intended for use by users.
 
         EXAMPLES:
-            sage: E=EllipticCurve('37a1')
+            sage: E = EllipticCurve('37a1')
             sage: E._set_rank(99)  # bogus value -- not checked
             sage: E.rank()         # returns bogus cached value
             99
-            sage: E.gens()         # causes actual rank to be computed
-            [(0 : -1 : 1)]
+            sage: E._EllipticCurve_rational_field__rank={} # undo the damage
             sage: E.rank()         # the correct rank
             1
         """
@@ -248,9 +247,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E._set_gens([]) # bogus list
             sage: E.rank()        # unchanged
             3
-            sage: E._set_gens(E.database_curve().gens())
+            sage: E._set_gens([E(-2,3), E(-1,3), E(0,2)])
             sage: E.gens()
-            [(-2 : 3 : 1), (-7/4 : 25/8 : 1), (1 : -1 : 1)]
+            [(-2 : 3 : 1), (-1 : 3 : 1), (0 : 2 : 1)]
         """
         self.__gens = {}
         self.__gens[True] = [self.point(x, check=True) for x in gens]
@@ -1410,7 +1409,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         EXAMPLES:
             sage: E=EllipticCurve('37a1')
-            sage: E.gens()
+            sage: E.gens()                   # random (up to sign)
             [(0 : -1 : 1)]
             sage: E.gens_certain()
             True
@@ -1534,11 +1533,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         EXAMPLES:
             sage: E=EllipticCurve('37a1')
-            sage: P=E.gens()[0]
+            sage: P=E(0,0)
             sage: Q=5*P; Q
-            (1/4 : -3/8 : 1)
+            (1/4 : -5/8 : 1)
             sage: E.saturation([Q])
-            ([(0 : -1 : 1)], '5', 0.0511114075779915)
+            ([(0 : 0 : 1)], '5', 0.0511114075779915)
         """
         if not isinstance(points, list):
             raise TypeError, "points (=%s) must be a list."%points
@@ -2267,7 +2266,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         The default database only contains conductors up to 10000, so
         any curve with conductor greater than that will cause an error
-        to be raised:
+        to be raised.  The optional package
+        'database_cremona_ellcurve-20071019' contains more curves,
+        with conductors up to 130000.
 
             sage: E=EllipticCurve([1,2,3,4,5]);
             sage: E.conductor()

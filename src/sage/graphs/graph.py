@@ -6927,23 +6927,26 @@ class Graph(GenericGraph):
                 n = len(data)
             s = data[:n]
             n, s = graph_fast.N_inverse(s[1:])
-            k = int(ceil(log(n,2)))
-            bits = ''.join([graph_fast.binary(ord(i)-63).zfill(6) for i in s])
-            b = []
-            x = []
-            for i in xrange(int(floor(len(bits)/(k+1)))):
-                b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
-                x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
-            v = 0
-            edges = []
-            for i in xrange(len(b)):
-                if b[i] == 1:
-                    v += 1
-                if x[i] > v:
-                    v = x[i]
-                else:
-                    if v < n:
-                        edges.append((x[i],v))
+            if n == 0:
+                edges = []
+            else:
+                k = int(ceil(log(n,2)))
+                bits = ''.join([graph_fast.binary(ord(i)-63).zfill(6) for i in s])
+                b = []
+                x = []
+                for i in xrange(int(floor(len(bits)/(k+1)))):
+                    b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
+                    x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
+                v = 0
+                edges = []
+                for i in xrange(len(b)):
+                    if b[i] == 1:
+                        v += 1
+                    if x[i] > v:
+                        v = x[i]
+                    else:
+                        if v < n:
+                            edges.append((x[i],v))
             if implementation == 'networkx':
                 self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops = True, multiedges = True))
                 self.add_vertices(xrange(n))
@@ -7073,8 +7076,18 @@ class Graph(GenericGraph):
             sage: G.sparse6_string()
             ':Da@en'
 
+            sage: G = Graph()
+            sage: G.sparse6_string()
+            ':?'
+
+            sage: G = Graph(loops=True, multiedges=True)
+            sage: Graph(':?') == G
+            True
+
         """
         n = self.order()
+        if n == 0:
+            return ':?'
         if n > 262143:
             raise ValueError, 'sparse6 format supports graphs on 0 to 262143 vertices only.'
         else:

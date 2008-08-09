@@ -364,7 +364,7 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
         elif self.value < 0:
             return -self._parent.weight_lattice_realization()._term(-self.value-1)
         else:
-            return self._parent.weight_lattice_realization()._free_module(0)
+            return self._parent.weight_lattice_realization()(0)
 
     def e(self, i):
         r"""
@@ -461,7 +461,7 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
         elif self.value < 0:
             return -self._parent.weight_lattice_realization()._term(-self.value-1)
         else:
-            return self._parent.weight_lattice_realization()._free_module(0)
+            return self._parent.weight_lattice_realization()(0)
 
     def e(self, i):
         r"""
@@ -546,7 +546,7 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
         elif self.value < 0:
             return -self._parent.weight_lattice_realization()._term(-self.value-1)
         else:
-            return self._parent.weight_lattice_realization()._free_module(0)
+            return self._parent.weight_lattice_realization()(0)
 
     def e(self, i):
         r"""
@@ -637,19 +637,19 @@ class Crystal_of_letters_type_G_element(Letter, CrystalElement):
             [(1, 0, -1), (1, -1, 0), (0, 1, -1), (0, 0, 0), (0, -1, 1), (-1, 1, 0), (-1, 0, 1)]
         """
         if self.value == 1:
-            return self._parent.weight_lattice_realization()._free_module((1, 0, -1))
+            return self._parent.weight_lattice_realization()((1, 0, -1))
         elif self.value == 2:
-            return self._parent.weight_lattice_realization()._free_module((1, -1, 0))
+            return self._parent.weight_lattice_realization()((1, -1, 0))
         elif self.value == 3:
-            return self._parent.weight_lattice_realization()._free_module((0, 1, -1))
+            return self._parent.weight_lattice_realization()((0, 1, -1))
         elif self.value == 0:
-            return self._parent.weight_lattice_realization()._free_module((0, 0, 0))
+            return self._parent.weight_lattice_realization()((0, 0, 0))
         elif self.value == -3:
-            return self._parent.weight_lattice_realization()._free_module((0, -1, 1))
+            return self._parent.weight_lattice_realization()((0, -1, 1))
         elif self.value == -2:
-            return self._parent.weight_lattice_realization()._free_module((-1, 1, 0))
+            return self._parent.weight_lattice_realization()((-1, 1, 0))
         elif self.value == -1:
-            return self._parent.weight_lattice_realization()._free_module((-1, 0, 1))
+            return self._parent.weight_lattice_realization()((-1, 0, 1))
         else:
             raise RuntimeError, "G2 crystal of letters element %d not valid"%self.value
 

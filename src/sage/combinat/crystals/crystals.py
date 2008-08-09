@@ -145,7 +145,7 @@ class Crystal(CombinatorialClass, Parent):
         EXAMPLES:
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.weight_lattice_realization()
-            Ambient space for the Root system of type ['A', 5]
+            Ambient space of the Root system of type ['A', 5]
         """
         return self.cartan_type.root_system().ambient_space()
 
@@ -157,11 +157,7 @@ class Crystal(CombinatorialClass, Parent):
         EXAMPLES:
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.Lambda()
-            [(1, 0, 0, 0, 0, 0),
-             (1, 1, 0, 0, 0, 0),
-             (1, 1, 1, 0, 0, 0),
-             (1, 1, 1, 1, 0, 0),
-             (1, 1, 1, 1, 1, 0)]
+            Finite family {1: (1, 0, 0, 0, 0, 0), 2: (1, 1, 0, 0, 0, 0), 3: (1, 1, 1, 0, 0, 0), 4: (1, 1, 1, 1, 0, 0), 5: (1, 1, 1, 1, 1, 0)}
 
         """
         return self.weight_lattice_realization().fundamental_weights()
@@ -247,6 +243,7 @@ class Crystal(CombinatorialClass, Parent):
     def character(self, R):
         """
         INPUT: R, a WeylCharacterRing. Produces the character of the crystal.
+
         EXAMPLES:
            sage: C = CrystalOfLetters(['A',2])
            sage: T = TensorProductOfCrystals(C, C)
@@ -261,15 +258,15 @@ class Crystal(CombinatorialClass, Parent):
             raise ValueError, "ring does not have the right Cartan type"
         hlist = {}
         mlist = {}
-#        for x in self.module_generators:
+
 	for x in self.highest_weight_vectors():
-            k = tuple(x.weight())
+            k = x.weight()
             if k in hlist:
                 hlist[k] += 1
             else:
                 hlist[k] = 1
         for x in self.list():
-            k = tuple(x.weight())
+            k = x.weight()
             if k in mlist:
                 mlist[k] += 1
             else:
@@ -669,7 +666,7 @@ class CrystalElement(Element):
             sage: C(2).Epsilon()
             (1, 0, 0, 0, 0, 0)
         """
-	return sum(self.epsilon(i) * self._parent.Lambda()[i-1] for i in self.index_set())
+	return sum(self.epsilon(i) * self._parent.Lambda()[i] for i in self.index_set())
 
     def Phi(self):
         """
@@ -683,7 +680,7 @@ class CrystalElement(Element):
             (1, 1, 0, 0, 0, 0)
 
         """
-	return sum(self.phi(i) * self._parent.Lambda()[i-1] for i in self.index_set())
+	return sum(self.phi(i) * self._parent.Lambda()[i] for i in self.index_set())
 
     def s(self, i):
 	r"""

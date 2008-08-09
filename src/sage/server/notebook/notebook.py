@@ -1862,6 +1862,7 @@ jsMath = {styles: {
                        ('/pub', 'Published', 'Browse the published worksheets'),
                        ('history_window()', 'Log', 'View a log of recent computations'),
                        ('/settings', 'Settings', 'Account Settings'),
+                       ('bugreport()', 'Report a Problem', 'Report a problem or submit a bug to improve Sage'),
                        ('help()', 'Help', 'Documentation')]
 
             if not self.user_is_guest(username):

@@ -3605,6 +3605,14 @@ function help() {
     "menubar=1,location=1,scrollbars=1,width=800,height=650,toolbar=1,  resizable=1");
 }
 
+function bugreport() {
+    /*
+    Popup the bug report window.
+    */
+    log = window.open ("http://spreadsheets.google.com/viewform?key=pCwvGVwSMxTzT6E2xNdo5fA","",
+    "menubar=1,location=1,scrollbars=1,width=800,height=650,toolbar=1,  resizable=1");
+}
+
 
 
 ///////////////////////////////////////////////////////////////////

@@ -946,7 +946,7 @@ cdef class FastDoubleFunc:
             sage: from sage.ext.fast_eval import fast_float_arg
             sage: f = fast_float_arg(0).exp()
             sage: f(1)
-            2.7182818284590451
+            2.718281828459045...
             sage: f(100)
             2.6881171418161356e+43
         """

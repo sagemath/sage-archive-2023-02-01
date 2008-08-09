@@ -1897,7 +1897,7 @@ class Worksheet:
 
 
     ##########################################################
-    # HTML rendering of the wholea worksheet
+    # HTML rendering of the whole worksheet
     ##########################################################
     def html(self, include_title=True, do_print=False,
              confirm_before_leave=False, read_only=False):
@@ -2466,7 +2466,7 @@ class Worksheet:
 
         D = C.directory()
         if not C.introspect():
-            if hasattr(C, 'interact'):
+            if C.is_interacting():
                 I = C.interact
             else:
                 I = C.input_text().strip()
@@ -2484,7 +2484,8 @@ class Worksheet:
                     C.do_time()
                     I = after_first_word(I).lstrip()
         else:
-            I = C.introspect()[0]
+            before_prompt, after_prompt = C.introspect()
+            I = before_prompt
 
         S = self.sage()
 
@@ -2767,11 +2768,6 @@ class Worksheet:
 
     def queue_id_list(self):
         return [c.id() for c in self.__queue]
-
-    def _enqueue_auto(self):
-        for c in self.cell_list():
-            if c.is_auto_cell():
-                self.__queue.append(c)
 
 
     def enqueue(self, C, username=None, next=False):

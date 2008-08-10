@@ -1014,10 +1014,6 @@ ext_modules = [ \
               'sage/graphs/planarity/stack.c']
               ), \
 
-    Extension('sage.graphs.bruhat_sn',
-              ['sage/graphs/bruhat_sn.pyx']
-              ), \
-
     Extension('sage.graphs.chrompoly',
               ['sage/graphs/chrompoly.pyx']
               ), \

@@ -2380,33 +2380,6 @@ class NumberField_generic(number_field_base.NumberField):
             v = [v]
         return tuple([ZZ(x) for x in v])
 
-    def power_basis(self):
-        r"""
-        Return the power basis for this number field over its base field.
-
-        If the polynomial defining this number field is $f(x)$ and $t$
-        is a root of $f(x)$ in this field, then the power basis is $1,
-        t, t^2, \ldots, t^d$ where $d$ is the degree of this number
-        field over its base field.
-
-        EXAMPLES:
-            sage: K.<a> = NumberField(x^5 + 10*x + 1)
-            sage: K.power_basis()
-            [1, a, a^2, a^3, a^4]
-
-            sage: L.<b> = K.extension(x^2 - 2)
-            sage: L.power_basis()
-            [1, b]
-            sage: L.absolute_field('c').power_basis()
-            [1, c, c^2, c^3, c^4, c^5, c^6, c^7, c^8, c^9]
-
-            sage: M = CyclotomicField(15)
-            sage: M.power_basis()
-            [1, zeta15, zeta15^2, zeta15^3, zeta15^4, zeta15^5, zeta15^6, zeta15^7]
-        """
-        g = self.gen()
-        return [ g**i for i in range(self.degree()) ]
-
     def integral_basis(self, v=None):
         """
         Return a list of elements of this number field that are a basis

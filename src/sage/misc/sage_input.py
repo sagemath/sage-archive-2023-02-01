@@ -135,7 +135,10 @@ sage: test_qq_formatter(qq_sage_input_v3)
 This is the prettiest output we're going to get, but let's make one
 further refinement.  Other \class{_sage_input_} methods, like the one
 for polynomials, analyze the structure of SIEs; they work better (give
-prettier output) if negations are at the outside.
+prettier output) if negations are at the outside.  If the above code were
+used for rationals, then \code{sage_input(polygen(QQ) - 2/3)} would produce
+\code{x + (-2/3)}; if we change to the following code, then we would get
+\code{x - 2/3} instead.
 
 sage: def qq_sage_input_v4(self, sib, coerced):
 ...       num = self.numerator()

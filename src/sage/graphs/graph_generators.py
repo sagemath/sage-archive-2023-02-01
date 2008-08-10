@@ -239,7 +239,7 @@ class GraphGenerators():
                 then all the graphs generated will satisfy the property, but
                 there will be some missing.
         deg_seq -- a sequence of degrees for the graph to have. If specified,
-            augment, property and size are all ignored.
+            property and size are all ignored.
         loops -- whether to allow loops in the graph or not.
 
     EXAMPLES:
@@ -2798,7 +2798,7 @@ class GraphGenerators():
                     then all the graphs generated will satisfy the property, but
                     there will be some missing.
             deg_seq -- a sequence of degrees for the graph to have. If specified,
-                augment, property and size are all ignored.
+                property and size are all ignored.
             loops -- whether to allow loops in the graph or not.
 
         EXAMPLES:
@@ -2881,6 +2881,11 @@ class GraphGenerators():
             4 1
             6 2
             8 5
+            sage: for i in [4,6,8]: # this is slower...
+            ...    print i, len([g for g in graphs(i,augment='vertices',deg_seq=[3]*i) if g.is_connected()])
+            4 1
+            6 2
+            8 5
 
             sage: print 10, len([g for g in graphs(10,deg_seq=[3]*10) if g.is_connected()]) # long time
             10 19
@@ -2894,9 +2899,12 @@ class GraphGenerators():
             if len(deg_seq) != vertices or sum(deg_seq)%2 or sum(deg_seq) > vertices*(vertices-1):
                 raise ValueError("Invalid degree sequence.")
             deg_seq = sorted(deg_seq)
-            augment = 'edges'
-            property = lambda x: all([deg_seq[i] >= d for i,d in enumerate(sorted(x.degree()))])
-            extra_property = lambda x: deg_seq == sorted(x.degree())
+            if augment == 'edges':
+                property = lambda x: all([deg_seq[i] >= d for i,d in enumerate(sorted(x.degree()))])
+                extra_property = lambda x: deg_seq == sorted(x.degree())
+            else:
+                property = lambda x: all([deg_seq[i] >= d for i,d in enumerate(sorted(x.degree() + [0]*(vertices-x.num_verts()) ))])
+                extra_property = lambda x: x.num_verts() == vertices and deg_seq == sorted(x.degree())
         elif size is not None:
             extra_property = lambda x: x.size() == size
         else:

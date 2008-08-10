@@ -707,11 +707,11 @@ def xi_degrees(n,p=2):
     OUTPUT:
         list -- list of integers
 
-    When p=2: decreasing list of the degrees of the $\xi_i$'s with
+    When $p=2$: decreasing list of the degrees of the $\xi_i$'s with
     degree at most n.
 
     At odd primes: decreasing list of these degrees, each divided
-    by 2(p-1).
+    by $2(p-1)$.
 
     EXAMPLES:
         sage: sage.algebras.steenrod_algebra_bases.xi_degrees(17)
@@ -963,7 +963,7 @@ def atomic_basis(n, basis, long=False):
     Arnon's A basis, the $P^s_t$-bases, and the commutator bases.
     (All of these bases are constructed similarly, hence their
     constructions have been consolidated into a single function.
-    Also, See the documentation for 'steenrod_algebra_basis' for
+    Also, see the documentation for 'steenrod_algebra_basis' for
     descriptions of them.)
 
     EXAMPLES:

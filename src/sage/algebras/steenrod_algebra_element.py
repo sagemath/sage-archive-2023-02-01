@@ -908,14 +908,7 @@ not %s" % (poly, poly.parent().prime, p)
         and change bases.  Store the result in self._raw[basis], for later
         use; this way, an element only needs to be converted once.
         """
-        def is_power_of_two(n):
-            """
-            True if and only n is a power of 2
-            """
-            while n != 0 and n%2 == 0:
-                n = n >> 1
-            return n == 1
-
+        from sage.rings.arith import is_power_of_two
         from steenrod_algebra import _steenrod_serre_cartan_basis_names, \
             _steenrod_milnor_basis_names, get_basis_name
         from steenrod_algebra_bases import milnor_convert
@@ -1297,13 +1290,13 @@ not %s" % (poly, poly.parent().prime, p)
         that $x$ is in $F_k(A)$ and not in $F_{k+1}(A)$.  According to
         Theorem 2.6 in May's thesis [May], the weight of a Milnor
         basis element is computed as follows: first, to compute the
-        weight of $P(r_1,r2, ...)$, write each $r_i$ in base
+        weight of $P(r_1,r_2, ...)$, write each $r_i$ in base
         $p$ as $r_i = \sum_j p^j r_{ij}$.  Then each nonzero binary
         digit $r_{ij}$ contributes $i$ to the weight: the weight is
         $\sum_{i,j} i r_{ij}$.  When $p$ is odd, the weight of $Q_i$
         is $i+1$, so the weight of a product $Q_{i_1} Q_{i_2} ...$ is
         equal $(i_1+1) + (i_2+1) + ...$.  Then the weight of $Q_{i_1}
-        Q_{i_2} ...P(r_1,r2, ...)$ is the sum of $(i_1+1) +
+        Q_{i_2} ...P(r_1,r_2, ...)$ is the sum of $(i_1+1) +
         (i_2+1) + ...$ and $\sum_{i,j} i r_{ij}$.
 
         The weight of a sum of basis elements is the minimum of the
@@ -1529,6 +1522,7 @@ not %s" % (poly, poly.parent().prime, p)
             """
             from steenrod_algebra_bases import steenrod_algebra_basis
             return sum(steenrod_algebra_basis(n,'milnor',p=p))
+
         from sage.algebras.steenrod_algebra import SteenrodAlgebra
         from steenrod_algebra_bases import milnor_convert
         result = 0
@@ -1627,7 +1621,7 @@ not %s" % (poly, poly.parent().prime, p)
         if len(self._raw['milnor']) == 0:
             return "0"
         else:
-            return string_rep(self,LaTeX=True)
+            return string_rep(self,latex=True)
 
 
     def __iter__(self):
@@ -1878,19 +1872,19 @@ admissible = serre_cartan
 
 ## string representations
 
-def string_rep(element, LaTeX=False, sort=True):
+def string_rep(element, latex=False, sort=True):
     """
     String representation of element.
 
     INPUT:
         element -- element of the Steenrod algebra
-        LaTeX -- boolean (optional, default False), if True, output LaTeX string
+        latex -- boolean (optional, default False), if True, output LaTeX string
         sort -- boolean (optional, default True), if True, sort output
 
     OUTPUT:
         string -- string representation of element in current basis
 
-    If LaTeX is True, output a string suitable for LaTeX; otherwise,
+    If latex is True, output a string suitable for LaTeX; otherwise,
     output a plain string.  If sort is True, sort element left
     lexicographically; otherwise, no sorting is done, and so the
     order in which the summands are printed may be unpredictable.
@@ -1904,7 +1898,7 @@ def string_rep(element, LaTeX=False, sort=True):
         Sq^{10} Sq^{4} + Sq^{11} Sq^{2} Sq^{1} + Sq^{12} Sq^{2} + Sq^{13} Sq^{1}
         + Sq^{14}'
         sage: b = Sq(0,2)
-        sage: string_rep(A(b),LaTeX=True)
+        sage: string_rep(A(b),latex=True)
         '\\text{Sq}^{4} \\text{Sq}^{2} + \\text{Sq}^{5} \\text{Sq}^{1} +
         \\text{Sq}^{6}'
         sage: A_wood_z = SteenrodAlgebra(2, 'woodz')
@@ -1920,13 +1914,13 @@ def string_rep(element, LaTeX=False, sort=True):
         sage: string_rep(SteenrodAlgebra(2, 'pst_llex')(a))
         'P^{1}_{3}'
         sage: Ac = SteenrodAlgebra(2, 'comm_revz')
-        sage: string_rep(Ac(a),LaTeX=True,sort=False)
+        sage: string_rep(Ac(a),latex=True,sort=False)
         'c_{0,2} c_{0,3} c_{2,1} + c_{1,3} + c_{0,1} c_{1,1} c_{0,3} c_{2,1}'
-        sage: string_rep(Ac(a),LaTeX=True)
+        sage: string_rep(Ac(a),latex=True)
         'c_{0,1} c_{1,1} c_{0,3} c_{2,1} + c_{0,2} c_{0,3} c_{2,1} + c_{1,3}'
         sage: string_rep(a)
         'Sq(0,0,2)'
-        sage: string_rep(a,LaTeX=True)
+        sage: string_rep(a,latex=True)
         '\\text{Sq}(0,0,2)'
 
     Some odd primary examples:
@@ -1934,7 +1928,7 @@ def string_rep(element, LaTeX=False, sort=True):
         sage: a = A5.P(5,1); b = A5.Q(0,1,3)
         sage: string_rep(b)
         'Q_0 Q_1 Q_3'
-        sage: string_rep(a, LaTeX=True)
+        sage: string_rep(a, latex=True)
         '\\mathcal{P}(5,1)'
         sage: A5sc = SteenrodAlgebra(5, 'serre-cartan')
         sage: string_rep(A5sc(a))
@@ -1980,12 +1974,12 @@ def string_rep(element, LaTeX=False, sort=True):
             coeff = str(dict[mono]) + " "
         else:
             coeff = ""
-        output = output + coeff + mono_to_string(mono, LaTeX,
+        output = output + coeff + mono_to_string(mono, latex,
                                                  p=element._prime) + " + "
     return output.strip(" +")
 
 
-def milnor_mono_to_string(mono,LaTeX=False,p=2):
+def milnor_mono_to_string(mono,latex=False,p=2):
     """
     String representation of element of the Milnor basis.
 
@@ -1995,7 +1989,7 @@ def milnor_mono_to_string(mono,LaTeX=False,p=2):
         mono -- if $p=2$, tuple of non-negative integers (a,b,c,...);
                 if $p>2$, pair of tuples of non-negative integers
                 ((e0, e1, e2, ...), (r1, r2, ...))
-        LaTeX -- boolean (optional, default False), if true, output LaTeX string
+        latex -- boolean (optional, default False), if true, output LaTeX string
         p -- positive prime number (optional, default 2)
 
     OUTPUT:
@@ -2008,11 +2002,11 @@ def milnor_mono_to_string(mono,LaTeX=False,p=2):
         sage: from sage.algebras.steenrod_algebra_element import milnor_mono_to_string
         sage: milnor_mono_to_string((1,2,3,4))
         'Sq(1,2,3,4)'
-        sage: milnor_mono_to_string((1,2,3,4),LaTeX=True)
+        sage: milnor_mono_to_string((1,2,3,4),latex=True)
         '\\text{Sq}(1,2,3,4)'
         sage: milnor_mono_to_string(((1,0), (2,3,1)), p=3)
         'Q_1 Q_0 P(2,3,1)'
-        sage: milnor_mono_to_string(((1,0), (2,3,1)), LaTeX=True, p=3)
+        sage: milnor_mono_to_string(((1,0), (2,3,1)), latex=True, p=3)
         'Q_{1} Q_{0} \\mathcal{P}(2,3,1)'
 
     The empty tuple represents the unit element Sq(0) (or P(0) at an odd prime):
@@ -2021,7 +2015,7 @@ def milnor_mono_to_string(mono,LaTeX=False,p=2):
         sage: milnor_mono_to_string((), p=5)
         'P(0)'
     """
-    if LaTeX:
+    if latex:
         if p == 2:
             sq = "\\text{Sq}"
             P = "\\text{Sq}"
@@ -2045,7 +2039,7 @@ def milnor_mono_to_string(mono,LaTeX=False,p=2):
             string = ""
             if len(mono[0]) > 0:
                 for e in mono[0]:
-                    if LaTeX:
+                    if latex:
                         string = string + "Q_{" + str(e) + "} "
                     else:
                         string = string + "Q_" + str(e) + " "
@@ -2057,7 +2051,7 @@ def milnor_mono_to_string(mono,LaTeX=False,p=2):
         return string.strip(" ")
 
 
-def serre_cartan_mono_to_string(mono,LaTeX=False,p=2):
+def serre_cartan_mono_to_string(mono,latex=False,p=2):
     r"""
     String representation of element of the Serre-Cartan basis.
 
@@ -2067,7 +2061,7 @@ def serre_cartan_mono_to_string(mono,LaTeX=False,p=2):
         mono -- tuple of positive integers (a,b,c,...) when $p=2$, or tuple
                 (e0, n1, e1, n2, ...) when $p>2$, where each ei is 0 or 1, and
                 each ni is positive
-        LaTeX -- boolean (optional, default False), if true, output LaTeX string
+        latex -- boolean (optional, default False), if true, output LaTeX string
         p -- positive prime number (optional, default 2)
 
     OUTPUT:
@@ -2081,11 +2075,11 @@ def serre_cartan_mono_to_string(mono,LaTeX=False,p=2):
         sage: from sage.algebras.steenrod_algebra_element import serre_cartan_mono_to_string
         sage: serre_cartan_mono_to_string((1,2,3,4))
         'Sq^{1} Sq^{2} Sq^{3} Sq^{4}'
-        sage: serre_cartan_mono_to_string((1,2,3,4),LaTeX=True)
+        sage: serre_cartan_mono_to_string((1,2,3,4),latex=True)
         '\\text{Sq}^{1} \\text{Sq}^{2} \\text{Sq}^{3} \\text{Sq}^{4}'
         sage: serre_cartan_mono_to_string((0,5,1,1,0), p=3)
         'P^{5} beta P^{1}'
-        sage: serre_cartan_mono_to_string((0,5,1,1,0), p=3, LaTeX=True)
+        sage: serre_cartan_mono_to_string((0,5,1,1,0), p=3, latex=True)
         '\\mathcal{P}^{5} \\beta \\mathcal{P}^{1}'
 
     The empty tuple represents the unit element $Sq^0$ (or $P^0$ at an odd prime):
@@ -2094,7 +2088,7 @@ def serre_cartan_mono_to_string(mono,LaTeX=False,p=2):
         sage: serre_cartan_mono_to_string((), p=7)
         'P^{0}'
     """
-    if LaTeX:
+    if latex:
         if p == 2:
             sq = "\\text{Sq}"
             P = "\\text{Sq}"
@@ -2120,7 +2114,7 @@ def serre_cartan_mono_to_string(mono,LaTeX=False,p=2):
                 from sage.misc.functional import is_even
                 if is_even(index):
                     if n == 1:
-                        if LaTeX:
+                        if latex:
                             string = string + "\\beta "
                         else:
                             string = string + "beta "
@@ -2130,7 +2124,7 @@ def serre_cartan_mono_to_string(mono,LaTeX=False,p=2):
         return string.strip(" ")
 
 
-def wood_mono_to_string(mono,LaTeX=False,p=2):
+def wood_mono_to_string(mono,latex=False,p=2):
     """
     String representation of element of Wood's Y and Z bases.
 
@@ -2146,14 +2140,14 @@ def wood_mono_to_string(mono,LaTeX=False,p=2):
         sage: from sage.algebras.steenrod_algebra_element import wood_mono_to_string
         sage: wood_mono_to_string(((1,2),(3,0)))
         'Sq^{14} Sq^{8}'
-        sage: wood_mono_to_string(((1,2),(3,0)),LaTeX=True)
+        sage: wood_mono_to_string(((1,2),(3,0)),latex=True)
         '\\text{Sq}^{14} \\text{Sq}^{8}'
 
     The empty tuple represents the unit element Sq(0):
         sage: wood_mono_to_string(())
         'Sq(0)'
     """
-    if LaTeX:
+    if latex:
         sq = "\\text{Sq}"
     else:
         sq = "Sq"
@@ -2167,7 +2161,7 @@ def wood_mono_to_string(mono,LaTeX=False,p=2):
         return string.strip(" ")
 
 
-def wall_mono_to_string(mono,LaTeX=False,p=2):
+def wall_mono_to_string(mono,latex=False,p=2):
     """
     String representation of element of Wall's basis.
 
@@ -2183,14 +2177,14 @@ def wall_mono_to_string(mono,LaTeX=False,p=2):
         sage: from sage.algebras.steenrod_algebra_element import wall_mono_to_string
         sage: wall_mono_to_string(((1,2),(3,0)))
         'Q^{1}_{2} Q^{3}_{0}'
-        sage: wall_mono_to_string(((1,2),(3,0)),LaTeX=True)
+        sage: wall_mono_to_string(((1,2),(3,0)),latex=True)
         'Q^{1}_{2} Q^{3}_{0}'
 
     The empty tuple represents the unit element Sq(0):
         sage: wall_mono_to_string(())
         'Sq(0)'
     """
-    if LaTeX:
+    if latex:
         sq = "\\text{Sq}"
     else:
         sq = "Sq"
@@ -2204,7 +2198,7 @@ def wall_mono_to_string(mono,LaTeX=False,p=2):
         return string.strip(" ")
 
 
-def wall_long_mono_to_string(mono,LaTeX=False,p=2):
+def wall_long_mono_to_string(mono,latex=False,p=2):
     """
     Alternate string representation of element of Wall's basis.
 
@@ -2220,14 +2214,14 @@ def wall_long_mono_to_string(mono,LaTeX=False,p=2):
         sage: from sage.algebras.steenrod_algebra_element import wall_long_mono_to_string
         sage: wall_long_mono_to_string(((1,2),(3,0)))
         'Sq^{1} Sq^{2} Sq^{4} Sq^{8}'
-        sage: wall_long_mono_to_string(((1,2),(3,0)),LaTeX=True)
+        sage: wall_long_mono_to_string(((1,2),(3,0)),latex=True)
         '\\text{Sq}^{1} \\text{Sq}^{2} \\text{Sq}^{4} \\text{Sq}^{8}'
 
     The empty tuple represents the unit element Sq(0):
         sage: wall_long_mono_to_string(())
         'Sq(0)'
     """
-    if LaTeX:
+    if latex:
         sq = "\\text{Sq}"
     else:
         sq = "Sq"
@@ -2241,7 +2235,7 @@ def wall_long_mono_to_string(mono,LaTeX=False,p=2):
         return string.strip(" ")
 
 
-def arnonA_mono_to_string(mono,LaTeX=False,p=2):
+def arnonA_mono_to_string(mono,latex=False,p=2):
     """
     String representation of element of Arnon's A basis.
 
@@ -2257,14 +2251,14 @@ def arnonA_mono_to_string(mono,LaTeX=False,p=2):
         sage: from sage.algebras.steenrod_algebra_element import arnonA_mono_to_string
         sage: arnonA_mono_to_string(((1,2),(3,0)))
         'X^{1}_{2} X^{3}_{0}'
-        sage: arnonA_mono_to_string(((1,2),(3,0)),LaTeX=True)
+        sage: arnonA_mono_to_string(((1,2),(3,0)),latex=True)
         'X^{1}_{2} X^{3}_{0}'
 
     The empty tuple represents the unit element Sq(0):
         sage: arnonA_mono_to_string(())
         'Sq(0)'
     """
-    if LaTeX:
+    if latex:
         sq = "\\text{Sq}"
     else:
         sq = "Sq"
@@ -2278,7 +2272,7 @@ def arnonA_mono_to_string(mono,LaTeX=False,p=2):
         return string.strip(" ")
 
 
-def arnonA_long_mono_to_string(mono,LaTeX=False,p=2):
+def arnonA_long_mono_to_string(mono,latex=False,p=2):
     """
     Alternate string representation of element of Arnon's A basis.
 
@@ -2294,14 +2288,14 @@ def arnonA_long_mono_to_string(mono,LaTeX=False,p=2):
         sage: from sage.algebras.steenrod_algebra_element import arnonA_long_mono_to_string
         sage: arnonA_long_mono_to_string(((1,2),(3,0)))
         'Sq^{8} Sq^{4} Sq^{2} Sq^{1}'
-        sage: arnonA_long_mono_to_string(((1,2),(3,0)),LaTeX=True)
+        sage: arnonA_long_mono_to_string(((1,2),(3,0)),latex=True)
         '\\text{Sq}^{8} \\text{Sq}^{4} \\text{Sq}^{2} \\text{Sq}^{1}'
 
     The empty tuple represents the unit element Sq(0):
         sage: arnonA_long_mono_to_string(())
         'Sq(0)'
     """
-    if LaTeX:
+    if latex:
         sq = "\\text{Sq}"
     else:
         sq = "Sq"
@@ -2315,7 +2309,7 @@ def arnonA_long_mono_to_string(mono,LaTeX=False,p=2):
         return string.strip(" ")
 
 
-def pst_mono_to_string(mono,LaTeX=False,p=2):
+def pst_mono_to_string(mono,latex=False,p=2):
     r"""
     String representation of element of a $P^s_t$-basis.
 
@@ -2331,14 +2325,14 @@ def pst_mono_to_string(mono,LaTeX=False,p=2):
         sage: from sage.algebras.steenrod_algebra_element import pst_mono_to_string
         sage: pst_mono_to_string(((1,2),(0,3)))
         'P^{1}_{2} P^{0}_{3}'
-        sage: pst_mono_to_string(((1,2),(0,3)),LaTeX=True)
+        sage: pst_mono_to_string(((1,2),(0,3)),latex=True)
         'P^{1}_{2} P^{0}_{3}'
 
     The empty tuple represents the unit element Sq(0):
         sage: pst_mono_to_string(())
         'Sq(0)'
     """
-    if LaTeX:
+    if latex:
         sq = "\\text{Sq}"
     else:
         sq = "Sq"
@@ -2352,7 +2346,7 @@ def pst_mono_to_string(mono,LaTeX=False,p=2):
         return string.strip(" ")
 
 
-def comm_mono_to_string(mono,LaTeX=False,p=2):
+def comm_mono_to_string(mono,latex=False,p=2):
     r"""
     String representation of element of a commutator basis.
 
@@ -2368,14 +2362,14 @@ def comm_mono_to_string(mono,LaTeX=False,p=2):
         sage: from sage.algebras.steenrod_algebra_element import comm_mono_to_string
         sage: comm_mono_to_string(((1,2),(0,3)))
         'c_{1,2} c_{0,3}'
-        sage: comm_mono_to_string(((1,2),(0,3)),LaTeX=True)
+        sage: comm_mono_to_string(((1,2),(0,3)),latex=True)
         'c_{1,2} c_{0,3}'
 
     The empty tuple represents the unit element Sq(0):
         sage: comm_mono_to_string(())
         'Sq(0)'
     """
-    if LaTeX:
+    if latex:
         sq = "\\text{Sq}"
     else:
         sq = "Sq"
@@ -2389,7 +2383,7 @@ def comm_mono_to_string(mono,LaTeX=False,p=2):
         return string.strip(" ")
 
 
-def comm_long_mono_to_string(mono,LaTeX=False,p=2):
+def comm_long_mono_to_string(mono,latex=False,p=2):
     r"""
     Alternate string representation of element of a commutator basis.
 
@@ -2405,14 +2399,14 @@ def comm_long_mono_to_string(mono,LaTeX=False,p=2):
         sage: from sage.algebras.steenrod_algebra_element import comm_long_mono_to_string
         sage: comm_long_mono_to_string(((1,2),(0,3)))
         's_{24} s_{124}'
-        sage: comm_long_mono_to_string(((1,2),(0,3)),LaTeX=True)
+        sage: comm_long_mono_to_string(((1,2),(0,3)),latex=True)
         's_{24} s_{124}'
 
     The empty tuple represents the unit element Sq(0):
         sage: comm_long_mono_to_string(())
         'Sq(0)'
     """
-    if LaTeX:
+    if latex:
         sq = "\\text{Sq}"
     else:
         sq = "Sq"

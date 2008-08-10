@@ -384,7 +384,7 @@ class Notebook(SageObject):
             return ''
 
     def set_accounts(self, value):
-        """
+        r"""
         Changes \var{__accounts} to \var{value}
 
         EXAMPLES:
@@ -401,7 +401,7 @@ class Notebook(SageObject):
         self.__accounts = value
 
     def get_accounts(self):
-        """
+        r"""
         Return \var{__accounts}
 
         EXAMPLES:

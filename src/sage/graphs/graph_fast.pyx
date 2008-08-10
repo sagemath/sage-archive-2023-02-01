@@ -22,7 +22,7 @@ from random import random
 cdef extern from *:
     double sqrt(double)
 
-def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None):
+def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None, height=False):
     """
     Graphs each component of G separately, placing them adjacent to
     each other. This is done because on a disconnected graph, the
@@ -50,7 +50,7 @@ def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None):
     left = 0
     buffer = 1/sqrt(len(G))
     for g in Gs:
-        cur_pos = spring_layout_fast(g, iterations, dim, vpos)
+        cur_pos = spring_layout_fast(g, iterations, dim, vpos, height)
         xmin = min([x[0] for x in cur_pos.values()])
         xmax = max([x[0] for x in cur_pos.values()])
         if len(g) > 1:
@@ -61,7 +61,7 @@ def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None):
         left += xmax - xmin + buffer
     return pos
 
-def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True):
+def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True, bint height=False):
     """
     Spring force model layout
 
@@ -124,7 +124,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     elist[cur_edge] = -1
     elist[cur_edge+1] = -1
 
-    run_spring(iterations, dim, pos, elist, n)
+    run_spring(iterations, dim, pos, elist, n, height)
 
     # recenter
     cdef double* cen
@@ -164,7 +164,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     return vpos
 
 
-cdef run_spring(int iterations, int dim, double* pos, int* edges, int n):
+cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint height):
     """
     Find a locally optimal layout for this graph, according to the
     constraints that neighboring nodes want to be a fixed distance
@@ -189,6 +189,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n):
                       (smallest) vertex, terminated by -1, -1.
                       The first two entries represent the first edge, and so on.
         n          -- number of vertices in the graph
+        height     -- if True, do not update the last coordinate ever
 
     OUTPUT:
         Modifies contents of pos.
@@ -210,6 +211,11 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n):
     if disp is NULL:
             raise MemoryError, "error allocating scratch space for spring layout"
     delta = &disp[n*dim]
+
+    if height:
+        update_dim = dim-1
+    else:
+        update_dim = dim
 
     _sig_on
 
@@ -255,7 +261,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n):
 
           scale = t / (1 if square_dist < 0.01 else sqrt(square_dist))
 
-          for x from 0 <= x < dim:
+          for x from 0 <= x < update_dim:
               pos[i*dim+x] += disp_i[x] * scale
 
       t -= dt

@@ -5105,7 +5105,7 @@ class GenericGraph(SageObject):
             edge_labels=False, vertex_size=200, graph_border=False,
             vertex_colors=None, partition=None, edge_colors=None,
             scaling_term=0.05, iterations=50, loop_size=.1, talk=False,
-            color_by_label=False, heights=None, edge_style=None):
+            color_by_label=False, heights=None, edge_style=None, save_pos=False):
         """
         Returns a graphics object representing the (di)graph.
 
@@ -5145,6 +5145,7 @@ class GenericGraph(SageObject):
                 edge-drawing routine.  This currently only works for
                 directed graphs, since we pass off the undirected graph to
                 networkx
+            save_pos -- save position computed during plotting
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -5220,6 +5221,31 @@ class GenericGraph(SageObject):
             sage: P.axes()
             False
 
+            sage: G = graphs.PetersenGraph()
+            sage: G.get_pos()
+            {0: [6.12..., 1.0...],
+             1: [-0.95..., 0.30...],
+             2: [-0.58..., -0.80...],
+             3: [0.58..., -0.80...],
+             4: [0.95..., 0.30...],
+             5: [1.53..., 0.5...],
+             6: [-0.47..., 0.15...],
+             7: [-0.29..., -0.40...],
+             8: [0.29..., -0.40...],
+             9: [0.47..., 0.15...]}
+            sage: P = G.plot(save_pos=True, layout='spring')
+            sage: G.get_pos()
+            {0: [-0.39..., 0.06...],
+             1: [-0.26..., 0.94...],
+             2: [-0.29..., 0.43...],
+             3: [-0.40..., -0.70...],
+             4: [-0.88..., -0.46...],
+             5: [0.75..., -0.16...],
+             6: [0.32..., 0.28...],
+             7: [0.67..., 0.52...],
+             8: [0.44..., -0.72...],
+             9: [0.05..., -0.19...]}
+
         """
         if edge_style is None:
             edge_style={}
@@ -5261,7 +5287,7 @@ class GenericGraph(SageObject):
                 x = float(cos((pi/2) + ((2*pi)/n)*i))
                 y = float(sin((pi/2) + ((2*pi)/n)*i))
                 pos[verts[i]] = [x,y]
-        elif heights is not None:
+        elif heights is not None and self.num_verts() > 0:
             pos = {}
             mmax = max([len(ccc) for ccc in heights.values()])
             ymin = min(heights.keys())
@@ -5272,9 +5298,9 @@ class GenericGraph(SageObject):
                 if num_xes == 0: continue
                 j = (mmax - num_xes)/2.0
                 for k in range(num_xes):
-                    pos[heights[height][k]] = [ dist * (j+k+1), height ]
-        if pos is None or layout == 'spring':
-            pos = graph_fast.spring_layout_fast(self, iterations=iterations, vpos=pos)
+                    pos[heights[height][k]] = [ dist * (j+k+1) + random()*(dist*0.03), height ]
+        if pos is None or layout == 'spring' or heights is not None:
+            pos = graph_fast.spring_layout_fast(self, iterations=iterations, vpos=pos, height=(heights is not None))
         else:
             for v in pos:
                 for a in range(len(pos[v])):
@@ -5287,6 +5313,8 @@ class GenericGraph(SageObject):
           vertex_size=vertex_size, vertex_colors=vertex_colors, \
           edge_colors=edge_colors, graph_border=graph_border, \
           scaling_term=scaling_term, draw_edges=(not self._directed))
+        if save_pos:
+            self.set_pos(pos)
         if self._directed:
             from sage.plot.plot import arrow
             P = Graphics()
@@ -5329,7 +5357,8 @@ class GenericGraph(SageObject):
              edge_labels=False, vertex_size=200, graph_border=False,
              vertex_colors=None, edge_colors=None, partition=None,
              scaling_term=0.05, talk=False, iterations=50, loop_size=.1,
-             color_by_label=False, heights=None, edge_style=None, **kwds):
+             color_by_label=False, heights=None, edge_style=None, save_pos=False,
+             **kwds):
         """
         Shows the (di)graph.
 
@@ -5366,6 +5395,7 @@ class GenericGraph(SageObject):
             heights -- if specified, this is a dictionary from a set of
                 floating point heights to a set of vertices
             edge_style -- options for the arrows of directed graphs
+            save_pos -- save position computed during plotting
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -5428,7 +5458,7 @@ class GenericGraph(SageObject):
                   graph_border=graph_border, partition=partition, talk=talk,
                   scaling_term=scaling_term, iterations=iterations,
                   color_by_label=color_by_label, loop_size=loop_size,
-                  heights=heights, edge_style=edge_style).show(**kwds)
+                  heights=heights, edge_style=edge_style, save_pos=save_pos).show(**kwds)
 
     def plot3d(self, bgcolor=(1,1,1), vertex_colors=None, vertex_size=0.06,
                      edge_colors=None, edge_size=0.02, edge_size2=0.0325,

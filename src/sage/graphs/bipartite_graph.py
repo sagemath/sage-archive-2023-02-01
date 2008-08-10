@@ -174,6 +174,15 @@ class BipartiteGraph(Graph):
     """
 
     def __init__(self, *args, **kwds):
+        """
+        Create a bipartite graph. See documentation: BipartiteGraph?
+
+        EXAMPLE:
+            sage: P = graphs.PetersenGraph()
+            sage: partition = [range(5), range(5,10)]
+            sage: B = BipartiteGraph(P, partition, check=False)
+
+        """
         if len(args) == 0:
             Graph.__init__(self, implementation='networkx')
             self.left = []; self.right = []
@@ -268,7 +277,7 @@ class BipartiteGraph(Graph):
                     except:
                         raise TypeError("Input graph is not bipartite!")
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
         Returns a short string representation of self.
 
@@ -538,6 +547,14 @@ class BipartiteGraph(Graph):
         Translate an edge to its reduced adjacency matrix position.
 
         Returns (row index, column index) for the given pair of vertices.
+
+        EXAMPLE:
+            sage: P = graphs.PetersenGraph()
+            sage: partition = [range(5), range(5,10)]
+            sage: B = BipartiteGraph(P, partition, check=False)
+            sage: B._BipartiteGraph__edge2idx(2,7)
+            (2, 2)
+
         """
         try:
             if v1 in self.left:

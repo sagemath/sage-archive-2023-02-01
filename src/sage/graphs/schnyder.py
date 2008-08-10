@@ -527,6 +527,29 @@ class TreeNode():
 
     """
     def __init__(self, parent = None, children = None, label = None):
+        """
+        INPUT:
+            parent -- the parent TreeNode of self
+            children -- a list of TreeNode children of self
+            label -- the associated realizer vertex label
+
+        EXAMPLE:
+            sage: from sage.graphs.schnyder import TreeNode
+            sage: tn = TreeNode(label=5)
+            sage: tn2 = TreeNode(label=2,parent=tn)
+            sage: tn3 = TreeNode(label=3)
+            sage: tn.append_child(tn3)
+            sage: tn.compute_number_of_descendants()
+            2
+            sage: tn.number_of_descendants
+            2
+            sage: tn3.number_of_descendants
+            1
+            sage: tn.compute_depth_of_self_and_children()
+            sage: tn3.depth
+            2
+
+        """
         if children is None:
             children = []
         self.parent = parent

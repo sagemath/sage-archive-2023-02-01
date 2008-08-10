@@ -400,9 +400,31 @@ class DenseGraphBackend(CGraphBackend):
             self.add_edge(u,v,None,directed)
 
     def add_vertex(self, name):
+        """
+        Adding vertices to dense graphs is not supported:
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_vertex(10)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Dense graphs do not support adding vertices.
+
+        """
         raise NotImplementedError("Dense graphs do not support adding vertices.")
 
     def add_vertices(self, vertices):
+        """
+        Adding vertices to dense graphs is not supported:
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_vertices([10,11,12])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Dense graphs do not support adding vertices.
+
+        """
         raise NotImplementedError("Dense graphs do not support adding vertices.")
 
     def del_edge(self, u, v, l, directed):
@@ -441,9 +463,31 @@ class DenseGraphBackend(CGraphBackend):
             self._cg.del_arc(v, u)
 
     def del_vertex(self, v):
+        """
+        Adding vertices to dense graphs is not supported:
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.del_vertex(9)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Dense graphs do not support deleting vertices.
+
+        """
         raise NotImplementedError("Dense graphs do not support deleting vertices.")
 
     def del_vertices(self, vertices):
+        """
+        Adding vertices to dense graphs is not supported:
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.del_vertices([7,8])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Dense graphs do not support deleting vertices.
+
+        """
         raise NotImplementedError("Dense graphs do not support deleting vertices.")
 
     def get_edge_label(self, u, v):

@@ -238,8 +238,9 @@ class GraphGenerators():
                 generate all graphs with that property. If this does not hold,
                 then all the graphs generated will satisfy the property, but
                 there will be some missing.
-        deg_seq -- a sequence of degrees for the graph to have. If specified,
-            property and size are all ignored.
+        deg_seq -- a sequence of non-negative integers, or None. If specified,
+            the generated graphs will have these integers for degrees. In this
+            case property and size are both ignored.
         loops -- whether to allow loops in the graph or not.
 
     EXAMPLES:
@@ -2797,8 +2798,9 @@ class GraphGenerators():
                     generate all graphs with that property. If this does not hold,
                     then all the graphs generated will satisfy the property, but
                     there will be some missing.
-            deg_seq -- a sequence of degrees for the graph to have. If specified,
-                property and size are all ignored.
+            deg_seq -- a sequence of non-negative integers, or None. If specified,
+                the generated graphs will have these integers for degrees. In this
+                case property and size are both ignored.
             loops -- whether to allow loops in the graph or not.
 
         EXAMPLES:

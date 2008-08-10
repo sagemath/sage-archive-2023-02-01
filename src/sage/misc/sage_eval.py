@@ -110,6 +110,27 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
         in Python, and has the wrong precedence.
 
     Here you can see eval simply will not work but \code{sage_eval} will.
+
+    TESTS:
+
+    We get a nice minimal error message for syntax errors, that still
+    points to the location of the error (in the input string):
+
+        sage: sage_eval('RR(22/7]')
+        Traceback (most recent call last):
+        ...
+         File "<string>", line 1
+            RR(Integer(22)/Integer(7)]
+                                     ^
+        SyntaxError: unexpected EOF while parsing
+
+        sage: sage_eval('None', cmds='$x = $y[3] # Does Perl syntax work?')
+        Traceback (most recent call last):
+        ...
+         File "<string>", line 1
+            $x = $y[Integer(3)] # Does Perl syntax work?
+            ^
+        SyntaxError: invalid syntax
     """
     if isinstance(source, (list, tuple)):
         cmds = source[0]
@@ -131,14 +152,12 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
     else:
         if preparse:
             source = preparser.preparse(source)
-    try:
-        if len(cmds):
-            exec cmd_seq in sage.all.__dict__, locals
-            return locals['_sage_eval_returnval_']
-        else:
-            return eval(source, sage.all.__dict__, locals)
-    except SyntaxError, msg:
-        raise SyntaxError, "%s\nError using SAGE to evaluate '%s'"%(msg, cmd_seq if len(cmds) else source)
+
+    if len(cmds):
+        exec cmd_seq in sage.all.__dict__, locals
+        return locals['_sage_eval_returnval_']
+    else:
+        return eval(source, sage.all.__dict__, locals)
 
 
 

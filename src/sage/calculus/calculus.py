@@ -235,6 +235,12 @@ This simplification is done using maxima (behind the scenes):
 Note that \code{x} is still \var{x}, since the maxima used by the calculus package
 is different than the one in the interactive interpreter.
 
+Check to see that the problem with the variables method mentioned in Trac
+ticket #3779 is actually fixed:
+    sage: f = function('F',x)
+    sage: diff(f*SR(1),x)
+    diff(F(x), x, 1)
+
 """
 
 import weakref

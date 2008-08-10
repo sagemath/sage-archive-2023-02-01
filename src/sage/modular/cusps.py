@@ -24,15 +24,12 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import unsigned_infinity, is_Infinite, Rational, Integer, ZZ, QQ
+from sage.rings.all import is_Infinite, Rational, Integer, ZZ, QQ
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.rational_field import RationalField
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import Element
+from sage.structure.element import Element, is_InfinityElement
 
 import congroup
-
-infinity = unsigned_infinity
 
 class Cusps_class(ParentWithBase):
     """
@@ -45,6 +42,15 @@ class Cusps_class(ParentWithBase):
         True
     """
     def __init__(self):
+        r"""
+        The set of cusps, i.e. $\PP^1(\Q)$.
+
+        EXAMPLES:
+            sage: C = sage.modular.cusps.Cusps_class() ; C
+            Set P^1(QQ) of all cusps
+            sage: Cusps == C
+            True
+        """
         ParentWithBase.__init__(self, self)
 
     def __cmp__(self, right):
@@ -66,6 +72,8 @@ class Cusps_class(ParentWithBase):
         EXAMPLES:
             sage: Cusps
             Set P^1(QQ) of all cusps
+            sage: Cusps._repr_()
+            'Set P^1(QQ) of all cusps'
             sage: Cusps.rename('CUSPS'); Cusps
             CUSPS
             sage: Cusps.rename(); Cusps
@@ -82,6 +90,8 @@ class Cusps_class(ParentWithBase):
         EXAMPLES:
             sage: latex(Cusps)
             \mathbf{P}^1(\mathbf{Q})
+            sage: latex(Cusps) == Cusps._latex_()
+            True
         """
         return "\\mathbf{P}^1(\\mathbf{Q})"
 
@@ -101,8 +111,7 @@ class Cusps_class(ParentWithBase):
             sage: Cusps(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce I (<class 'sage.functions.constants.I_class'>) to Rational
-
+            TypeError: Unable to convert I to a Cusp
         """
         return Cusp(x, parent=self)
 
@@ -118,6 +127,8 @@ class Cusps_class(ParentWithBase):
             ...
             TypeError: no canonical coercion of element into self
             sage: Cusps(GF(7)(3))
+            3
+            sage: Cusps._coerce_impl(GF(7)(3))
             3
         """
         if is_Infinite(x):
@@ -144,10 +155,13 @@ class Cusp(Element):
         True
     """
 
-    def __init__(self, a, b=ZZ(1), construct=False, parent=None):
+    def __init__(self, a, b=None, parent=None):
         r"""
         Create the cusp a/b in $\PP^1(\Q)$, where if b=0 this is the
         cusp at infinity.
+
+        When present, b must either be Infinity or coercible to an
+        Integer.
 
         EXAMPLES:
             sage: Cusp(2,3)
@@ -160,82 +174,143 @@ class Cusp(Element):
             Infinity
             sage: Cusp(5)
             5
-            sage: Cusp(1/2)             # rational number
+            sage: Cusp(1/2)
             1/2
             sage: Cusp(1.5)
             3/2
+            sage: Cusp(int(7))
+            7
 
-            sage: Cusp(sqrt(-1))
+            sage: I**2
+            -1
+            sage: Cusp(I)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert I to a rational
+            TypeError: Unable to convert I to a Cusp
 
             sage: a = Cusp(2,3)
             sage: loads(a.dumps()) == a
             True
+
+            sage: Cusp(1/3,0)
+            Infinity
+            sage: Cusp((1,0))
+            Infinity
+
+        TESTS:
+            sage: Cusp("1/3", 5)
+            1/15
+            sage: Cusp(Cusp(3/5), 7)
+            3/35
+            sage: Cusp(5/3, 0)
+            Infinity
+            sage: Cusp(3,oo)
+            0
+            sage: Cusp((7,3), 5)
+            7/15
+            sage: Cusp(int(5), 7)
+            5/7
+
+            sage: Cusp(0,0)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert (0, 0) to a Cusp
+
+            sage: Cusp(oo,oo)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert (+Infinity, +Infinity) to a Cusp
+
+            sage: Cusp(Cusp(oo),oo)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert (Infinity, +Infinity) to a Cusp
+
         """
         if parent is None:
             parent = Cusps
         Element.__init__(self, parent)
 
-        if construct:
-            self.__a = a; self.__b = b
+        if b is None:
+            if isinstance(a, Integer):
+                self.__a = a
+                self.__b = ZZ(1)
+            elif isinstance(a, Rational):
+                self.__a = a.numer()
+                self.__b = a.denom()
+            elif is_InfinityElement(a):
+                self.__a = ZZ(1)
+                self.__b = ZZ(0)
+            elif isinstance(a, Cusp):
+                self.__a = a.__a
+                self.__b = a.__b
+            elif isinstance(a, (int, long)):
+                self.__a = ZZ(a)
+                self.__b = ZZ(1)
+            elif isinstance(a, (tuple, list)):
+                if len(a) != 2:
+                    raise TypeError, "Unable to convert %s to a Cusp"%a
+                if ZZ(a[1]) == 0:
+                    self.__a = ZZ(1)
+                    self.__b = ZZ(0)
+                    return
+                try:
+                    r = QQ((a[0], a[1]))
+                    self.__a = r.numer()
+                    self.__b = r.denom()
+                except (ValueError, TypeError):
+                    raise TypeError, "Unable to convert %s to a Cusp"%a
+            else:
+                try:
+                    r = QQ(a)
+                    self.__a = r.numer()
+                    self.__b = r.denom()
+                except (ValueError, TypeError):
+                    raise TypeError, "Unable to convert %s to a Cusp"%a
             return
 
-        if is_Infinite(a):
+        if is_InfinityElement(b):
+            if is_InfinityElement(a) or (isinstance(a, Cusp) and a.is_infinity()):
+                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
+            self.__a = ZZ(0)
+            self.__b = ZZ(1)
+            return
+        elif not b:
+            if not a:
+                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
             self.__a = ZZ(1)
             self.__b = ZZ(0)
             return
 
+        if isinstance(a, Integer) or isinstance(a, Rational):
+            r = a / ZZ(b)
+        elif is_InfinityElement(a):
+            self.__a = ZZ(1)
+            self.__b = ZZ(0)
+            return
         elif isinstance(a, Cusp):
-            self.__a = a.__a
-            self.__b = a.__b
-            return
-
-        elif isinstance(a, Rational):
-            a = a/b
-            self.__a = a.numer()
-            self.__b = a.denom()
-            return
-
-        elif isinstance(a, (int, long, Integer)) and \
-                 isinstance(b, (int, long, Integer)):
-            a = ZZ(a)
-            b = ZZ(b)
-
-        elif isinstance(a, Integer) and isinstance(b, Integer):
-            pass
-
-        elif isinstance(a, str):
-            a = RationalField()(a)/b
-            self.__a = a.numer()
-            self.__b = a.denom()
-            return
-
-        elif isinstance(a, (list, tuple)):
-            a, b = a
-            a = ZZ(a)
-            b = ZZ(b)
-
-        elif b==1:
-
-            self.__a = RationalField()(a)
-            self.__b = b
-            return
-
+            if a.__b:
+                r = a.__a / (a.__b * b)
+            else:
+                self.__a = ZZ(1)
+                self.__b = ZZ(0)
+                return
+        elif isinstance(a, (int, long)):
+            r = ZZ(a) / b
+        elif isinstance(a, (tuple, list)):
+            if len(a) != 2:
+                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
+            r = ZZ(a[0]) / (ZZ(a[1]) * b)
         else:
+            try:
+                r = QQ(a) / b
+            except (ValueError, TypeError):
+                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
 
-            raise TypeError, "Unable to coerce %s,%s to a Cusp"%(a,b)
+        self.__a = r.numer()
+        self.__b = r.denom()
 
 
-        # Now a, b are both of type ZZ.
-        if b < 0:
-            b *= -1
-            a *= -1
-        g = a.gcd(b)
-        self.__a = a//g
-        self.__b = b//g
-        return
 
     def __cmp__(self, right):
         """
@@ -353,6 +428,8 @@ class Cusp(Element):
             TypeError: cusp Infinity is not a rational number
             sage: QQ(Cusp(-3,7))
             -3/7
+            sage: Cusp(11,2)._rational_()
+            11/2
         """
         if self.__b == 0:
             raise TypeError, "cusp %s is not a rational number"%self
@@ -365,6 +442,8 @@ class Cusp(Element):
         EXAMPLES:
             sage: ZZ(Cusp(-19))
             -19
+            sage: Cusp(4,2)._integer_()
+            2
 
             sage: ZZ(Cusp(oo))
             Traceback (most recent call last):
@@ -386,6 +465,8 @@ class Cusp(Element):
         EXAMPLES:
             sage: a = Cusp(2/3); a
             2/3
+            sage: a._repr_()
+            '2/3'
             sage: a.rename('2/3(cusp)'); a
             2/3(cusp)
         """
@@ -405,6 +486,8 @@ class Cusp(Element):
             \frac{-2}{7}
             sage: latex(Cusp(oo))
             \infty
+            sage: latex(Cusp(oo)) == Cusp(oo)._latex_()
+            True
         """
         if self.__b.is_zero():
             return "\\infty"

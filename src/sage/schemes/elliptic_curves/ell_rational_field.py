@@ -3803,7 +3803,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             set([2, 3, 4])
             starting search of remaining points using coefficient bound  6
             x-coords of extra integral points:
-            set([2, 3, 4, 37, 406, 8, 11, 14, 816, 52, 21, 342, 93])
+            set([2, 3, 4, 37, 8, 342, 11, 14, 816, 52, 21, 406, 93])
             Total number of integral points: 18
 
         It is also possible to not specify mw_base, but then the
@@ -3925,7 +3925,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             # We use a naive method when the number of possibilities is small:
 
-            if r==1 or N<=10:
+            if r==1 and N<=10:
                 for P in multiples(mw_base[0],N+1):
                     use_t(P)
                 return xs
@@ -4029,7 +4029,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             e1,e2,e3 = ei
             if r >= 2: #preprocessing of mw_base only necessary if rank > 1
                 mw_base = point_preprocessing(mw_base) #at most one point in
-                                                       #E^{egg}, saved in P_egg
+                                                       #E^{egg}
 
         elif disc < 0: # one real component => 1 root in RR (=: e3),
                        # 2 roots in C (e1,e2)
@@ -4110,7 +4110,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             m = M.identity_matrix()
             for i in range(r):
                 m[i, r] = R(c*mw_base_log[i]).round()
-            m[r,r] = R(c*w1).round()
+            m[r,r] = max(1,R(c*w1).round()) #ensures that m isn't singular
 
             #LLL - implemented in sage - operates on rows not on columns
             m_LLL = m.LLL()

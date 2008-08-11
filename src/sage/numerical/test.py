@@ -22,13 +22,8 @@ sage: n[0,:]=-1
 sage: n[1,:]=2
 sage: n[2,:]=-1
 sage: A=sparse.spdiags(n,[-1,0,1],int(500),int(500))
-
-# The following two lines are not tested because they crash
-# Sage on Pentium 4 (built with gfortran).  See Trac #1686.
-sage: e,v=arpack.speigs.ARPACK_eigs(A.matvec,500,6,which='SM')  # not tested
-sage: e[0]*float(501/pi)**2          # not tested
+sage: e,v=arpack.speigs.ARPACK_eigs(A.matvec,500,6,which='SM')
+sage: e[0]*float(501/pi)**2
 0.999............
-
-
 """
 

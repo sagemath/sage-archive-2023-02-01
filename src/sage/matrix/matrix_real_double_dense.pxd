@@ -15,3 +15,4 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):
     cdef int _LU_valid
     cdef _c_compute_LU(self)
     cdef set_unsafe_double(self, Py_ssize_t i, Py_ssize_t j, double value)
+    cdef double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j)

@@ -53,6 +53,8 @@ cdef class HiddenMarkovModel:
             [0.0 1.0]
             Initial probabilities: [1.0]
         """
+        cdef Py_ssize_t n
+
         # Convert A to a matrix
         if not is_Matrix(A):
             n = len(A)
@@ -93,21 +95,70 @@ cdef class HiddenMarkovModel:
         self.A = A
         self.B = B
 
+        # Check that all entries of A are nonnegative and raise a
+        # ValueError otherwise. Note that we don't check B since it
+        # has entries that are potentially negative in the continuous
+        # case.  But GHMM prints clear warnings when the emission
+        # probabilities are negative, i.e., it does not silently give
+        # wrong results like it does for negative transition
+        # probabilities.
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self.A._nrows:
+            for j from 0 <= j < self.A._ncols:
+                if self.A.get_unsafe_double(i,j) < 0:
+                    raise ValueError, "each transition probability must be nonnegative"
+
+
 
 cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
+    """
+    Create a discrete hidden Markov model.
 
-    def __init__(self, A, B, pi=None, emission_symbols=None, name=None):
+    hmm.DiscreteHiddenMarkovModel(A, B, pi=None, emission_symbols=None, name=None, normalize=True)
+n
+    INPUTS:
+        A  -- square matrix of doubles; the state change probabilities
+        B  -- matrix of doubles; emission probabilities
+        pi -- list of floats; probabilities for each initial state
+        emission_state -- list of B.ncols() symbols (just used for printing)
+        name -- (optional) name of the model
+        normalize -- (optional; default=True) whether or not to normalize
+                     the model so the probabilities add to 1
+
+    EXAMPLES:
+    We create a discrete HMM with 2 internal states on an alphabet of size 2.
+        sage: hmm.DiscreteHiddenMarkovModel([[0.2,0.8],[0.5,0.5]], [[1,0],[0,1]], [0,1])
+        Discrete Hidden Markov Model with 2 States and 2 Emissions
+        Transition matrix:
+        [0.2 0.8]
+        [0.5 0.5]
+        Emission matrix:
+        [1.0 0.0]
+        [0.0 1.0]
+        Initial probabilities: [0.0, 1.0]
+
+    The transition probabilities must be nonnegative:
+        sage: hmm.DiscreteHiddenMarkovModel([[-0.2,0.8],[0.5,0.5]], [[1,0],[0,1]], [0,1])
+        Traceback (most recent call last):
+        ...
+        ValueError: each transition probability must be nonnegative
+
+    The transition probabilities are by default automatically normalized:
+        sage: a = hmm.DiscreteHiddenMarkovModel([[0.2,0.3],[0.5,0.5]], [[1,0],[0,1]], [0,1])
+        sage: a.transition_matrix()
+        [0.4 0.6]
+        [0.5 0.5]
+    """
+    def __init__(self, A, B, pi=None, emission_symbols=None, name=None, normalize=True):
         """
-        INPUTS:
-            A  -- square matrix of doubles; the state change probabilities
-            B  -- matrix of doubles; emission probabilities
-            pi -- list of floats; probabilities for each initial state
-            emission_state -- list of B.ncols() symbols (just used for printing)
-            name -- (optional) name of the model
-
         EXAMPLES:
-        We create a discrete HMM with 2 internal states on an alphabet of size 2.
-            sage: a = hmm.DiscreteHiddenMarkovModel([[0.2,0.8],[0.5,0.5]], [[1,0],[0,1]], [0,1])
+            sage: hmm.DiscreteHiddenMarkovModel([[1]], [[0.0,1.0]], [1])
+            Discrete Hidden Markov Model with 1 States and 2 Emissions
+            Transition matrix:
+            [1.0]
+            Emission matrix:
+            [0.0 1.0]
+            Initial probabilities: [1.0]
         """
         # memory has not all been setup yet.
         self.initialized = False
@@ -203,6 +254,8 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         self.m.s = states
         self.initialized = True
+        if normalize:
+            self.normalize()
 
     def __cmp__(self, other):
         """
@@ -219,12 +272,12 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         names compare to be equal.
 
         EXAMPLES:
-            sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [1,2])
+            sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [1,2], normalize=False)
             sage: m.__cmp__(m)
             0
 
         Note that the name doesn't matter:
-            sage: n = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [1,2])
+            sage: n = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [1,2], normalize=False)
             sage: m.__cmp__(n)
             0
 
@@ -460,55 +513,49 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         """
         ghmm_dmodel_normalize(self.m)
 
-    def sample_single(self, long length):
-        """
-        Return a single sample computed using this Hidden Markov Model.
-
-        EXAMPLE:
-            sage: set_random_seed(0)
-            sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[1,0],[0,1]], [0,1])
-            sage: a.sample_single(20)
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-            sage: a.sample_single(1000).count(0)
-            113
-
-        If the emission symbols are set
-            sage: set_random_seed(0)
-            sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.1,0.9]], [[1,0],[0,1]], [0,1], ['up', 'down'])
-            sage: print a.sample_single(10)
-            ['down', 'up', 'down', 'down', 'up', 'down', 'down', 'up', 'down', 'up']
-
-        """
-        seed = random()
-        cdef ghmm_dseq *d = ghmm_dmodel_generate_sequences(self.m, seed, length, 1, length)
-        cdef Py_ssize_t i
-        v = [d.seq[0][i] for i in range(length)]
-        ghmm_dseq_free(&d)
-        if self._emission_symbols_dict:
-            w = self._emission_symbols
-            return [w[i] for i in v]
-        else:
-            return v
-
-    def sample(self, long length, long number):
+    def sample(self, long length, number=None):
         """
         Return number samples from this HMM of given length.
+
+        INPUT:
+            length -- positive integer
+            number -- (default: None) if given, compute list of this many sample sequences
+
+        OUTPUT:
+            if number is not given, return a single TimeSeries.
+            if number is given, return a list of TimeSeries.
 
         EXAMPLES:
             sage: set_random_seed(0)
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[1,0],[0,1]], [0,1])
             sage: print a.sample(10, 3)
             [[1, 0, 1, 1, 0, 1, 1, 0, 1, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+            sage: a.sample(15)
+            [1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1]
+            sage: list(a.sample(1000)).count(0)
+            95
+
+        If the emission symbols are set
+            sage: set_random_seed(0)
+            sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.1,0.9]], [[1,0],[0,1]], [0,1], ['up', 'down'])
+            sage: a.sample(10)
+            ['down', 'up', 'down', 'down', 'up', 'down', 'down', 'up', 'down', 'up']
         """
         seed = random()
+        if number is None:
+            number = 1
+            single = True
+        else:
+            single = False
         cdef ghmm_dseq *d = ghmm_dmodel_generate_sequences(self.m, seed, length, number, length)
         cdef Py_ssize_t i, j
         v = [[d.seq[j][i] for i in range(length)] for j in range(number)]
         if self._emission_symbols_dict:
             w = self._emission_symbols
-            return [[w[i] for i in z] for z in v]
-        else:
-            return v
+            v = [[w[i] for i in z] for z in v]
+        if single:
+            return v[0]
+        return v
 
     def emission_symbols(self):
         """
@@ -533,10 +580,10 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: a.set_emission_symbols([3,5])
             sage: a.emission_symbols()
             [3, 5]
-            sage: a.sample_single(10)
+            sage: a.sample(10)
             [5, 3, 5, 5, 3, 5, 5, 3, 5, 3]
             sage: a.set_emission_symbols([pi,5/9+e])
-            sage: a.sample_single(10)
+            sage: a.sample(10)
             [e + 5/9, e + 5/9, e + 5/9, e + 5/9, e + 5/9, e + 5/9, pi, pi, e + 5/9, pi]
         """
         if emission_symbols is None:
@@ -707,6 +754,19 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: 1.0/6
             0.166666666666667
 
+        We run Baum-Welch on a single sequence:
+            sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.5,0.5]], [[0.5,0.5],[0.5,0.5]], [0.5,0.5])
+            sage: a.baum_welch([1,0,1]*10)
+            sage: a
+            Discrete Hidden Markov Model with 2 States and 2 Emissions
+            Transition matrix:
+            [0.5 0.5]
+            [0.5 0.5]
+            Emission matrix:
+            [0.333333333333 0.666666666667]
+            [0.333333333333 0.666666666667]
+            Initial probabilities: [0.5, 0.5]
+
         TESTS:
         We test training with non-default string symbols:
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.5,0.5]], [[0.5,0.5],[0.5,0.5]], [0.5,0.5], ['up','down'])
@@ -783,7 +843,7 @@ cdef ghmm_dseq* malloc_ghmm_dseq(seqs) except NULL:
 def unpickle_discrete_hmm_v0(A, B, pi, emission_symbols,name):
     """
     TESTS:
-        sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[1,1]], [1,0], name='test model')
+        sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[0.5,0.5]], [1,0], name='test model')
         sage: loads(dumps(m)) == m
         True
         sage: loads(dumps(m)).name()
@@ -795,7 +855,7 @@ def unpickle_discrete_hmm_v0(A, B, pi, emission_symbols,name):
         [0.1 0.9]
         Emission matrix:
         [0.0 1.0]
-        [1.0 1.0]
+        [0.5 0.5]
         Initial probabilities: [1.0, 0.0]
         Emission symbols: ['a', 'b']
     """

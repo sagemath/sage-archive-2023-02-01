@@ -106,6 +106,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         pi -- list of floats that sums to 1.0; these are
               the initial probabilities of each hidden state
         name -- (default: None); a string
+        normalize -- (optional; default=True) whether or not to
+                     normalize the model so the probabilities add to 1
 
     EXAMPLES:
     Define the transition matrix:
@@ -128,7 +130,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         [(0.0, 1.0), (-1.0, 0.5), (1.0, 0.20000000000000001)]
         Initial probabilities: [1.0, 0.0, 0.0]
     """
-    def __init__(self, A, B, pi=None, name=None):
+    def __init__(self, A, B, pi=None, name=None, normalize=True):
         """
         EXAMPLES:
         We make a very simple model:
@@ -148,6 +150,12 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             Emission parameters:
             []
             Initial probabilities: []
+
+        TESTS:
+        We test normalize=False:
+            sage: hmm.GaussianHiddenMarkovModel([[1,100],[0,1]], [(0,1),(0,2)], [1/2,1/2], normalize=False).transition_matrix()
+            [  1.0 100.0]
+            [  0.0   1.0]
         """
         ContinuousHiddenMarkovModel.__init__(self, A, B, pi, name=name)
 
@@ -164,6 +172,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         self._initialize_state(pi)
         self.m.class_change = NULL
         self.initialized = True
+        if normalize:
+            self.normalize()
 
     def _initialize_state(self, pi):
         """
@@ -293,12 +303,12 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         names compare to be equal.
 
         EXAMPLES:
-            sage: m = hmm.GaussianHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [(0.0,1.0),(1,1)], [1,2], "Test 1")
+            sage: m = hmm.GaussianHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [(0.0,1.0),(1,1)], [1,2], "Test 1", normalize=False)
             sage: m.__cmp__(m)
             0
 
         Note that the name doesn't matter:
-            sage: n = hmm.GaussianHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [(0.0,1.0),(1,1)], [1,2], "Test 2")
+            sage: n = hmm.GaussianHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [(0.0,1.0),(1,1)], [1,2], "Test 2", normalize=False)
             sage: m.__cmp__(n)
             0
 
@@ -485,7 +495,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         if ghmm_cmodel_normalize(self.m):
             raise RuntimeError, "error normalizing model (note that model may still have been partly changed)"
 
-    def sample(self, long length, long number):
+    def sample(self, long length, number=None):
         """
         Return number samples from this HMM of given length.
 
@@ -493,7 +503,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             length -- positive integer
 
         OUTPUT:
-            a list of number TimeSeries each of the given length
+            if number is not given, return a single TimeSeries.
+            if number is given, return a list of TimeSeries.
 
         EXAMPLES:
             sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(0,1)], [1])
@@ -501,7 +512,17 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             sage: m.sample(5,2)
             [[-2.2808, -0.0699, 0.1858, 1.3624, 1.8252],
              [0.0080, 0.1244, 0.5098, 0.9961, 0.4710]]
+
+            sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(0,1)], [1])
+            sage: set_random_seed(0)
+            sage: m.sample(5)
+            [-2.2808, -0.0699, 0.1858, 1.3624, 1.8252]
         """
+        if number is None:
+            single = True
+            number = 1
+        else:
+            single = False
         seed = random()
         cdef ghmm_cseq *d = ghmm_cmodel_generate_sequences(self.m, seed, length, number, length)
         cdef Py_ssize_t i, j
@@ -512,26 +533,11 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             for i from 0 <= i < length:
                 T._values[i] = d.seq[j][i]
             ans.append(T)
+        if single:
+            return ans[0]
         return ans
         # The line below would replace the above by something that returns a list of lists.
         #return [[d.seq[j][i] for i in range(length)] for j in range(number)]
-
-    def sample_single(self, long length):
-        """
-        Return a single sample computed using this Gaussian Hidden Markov Model.
-
-        INPUT:
-            length -- positive integer
-        OUTPUT:
-            a TimeSeries
-
-        EXAMPLES:
-            sage: m = hmm.GaussianHiddenMarkovModel([[1]], [(0,1)], [1])
-            sage: set_random_seed(0)
-            sage: m.sample_single(5)
-            [-2.2808, -0.0699, 0.1858, 1.3624, 1.8252]
-        """
-        return self.sample(length,1)[0]
 
 
 
@@ -657,7 +663,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         Baum-Welch algorithm to increase the probability of observing O.
 
         INPUT:
-            training_seqs -- a list of lists of emission symbols; all sequences of length 0 are ignored.
+            training_seqs -- a list of lists of emission symbols; all sequences of
+                      length 0 are ignored.
             max_iter -- integer or None (default: 10000) maximum number
                       of Baum-Welch steps to take
             log_likehood_cutoff -- positive float or None (default: 0.00001);
@@ -683,6 +690,31 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             Emission parameters:
             [(1.0, 0.01)]
             Initial probabilities: [1.0]
+
+        We train using a list of lists:
+            sage: m = hmm.GaussianHiddenMarkovModel([[1,0],[0,1]], [(0,1),(0,2)], [1/2,1/2])
+            sage: m.baum_welch([[1,2,], [3,2]])
+            sage: m
+            Gaussian Hidden Markov Model with 2 States
+            Transition matrix:
+            [1.0 0.0]
+            [0.0 1.0]
+            Emission parameters:
+            [(1.946539535984342, 0.70508296299241024), (2.0208156913293394, 0.70680033099099593)]
+            Initial probabilities: [0.28024729110782109, 0.71975270889217891]
+
+        We train the same model, but waiting one of the lists more than the other.
+            sage: m = hmm.GaussianHiddenMarkovModel([[1,0],[0,1]], [(0,1),(0,2)], [1/2,1/2])
+            sage: m.baum_welch([([1,2,],10), ([3,2],1)])
+            sage: m
+            Gaussian Hidden Markov Model with 2 States
+            Transition matrix:
+            [1.0 0.0]
+            [0.0 1.0]
+            Emission parameters:
+            [(1.5851786151779879, 0.57264580740105153), (1.5945035666064733, 0.57928632238916189)]
+            Initial probabilities: [0.38546857052811945, 0.61453142947188055]
+
 
         Training sequences of length 0 are gracefully ignored:
             sage: m.baum_welch([])
@@ -713,7 +745,7 @@ cdef ghmm_cseq* to_cseq(seq) except NULL:
     sequences a ValueError is raised, since GHMM doesn't treat
     this degenerate case well.
     """
-    if isinstance(seq, list) and len(seq) > 0 and not isinstance(seq[0], tuple):
+    if isinstance(seq, list) and len(seq) > 0 and not isinstance(seq[0], (list, tuple)):
         seq = TimeSeries(seq)
     if isinstance(seq, TimeSeries):
         seq = [(seq,float(1))]
@@ -787,6 +819,8 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
         pi -- list of floats that sums to 1.0; these are
               the initial probabilities of each hidden state
         name -- (default: None); a string
+        normalize -- (optional; default=True) whether or not to normalize
+                     the model so the probabilities add to 1
 
     EXAMPLES:
         sage: A  = [[0.5,0.5],[0.5,0.5]]
@@ -798,8 +832,9 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
         [0.5 0.5]
         [0.5 0.5]
         Emission parameters:
-        [[(0.5, (0.0, 1.0)), (0.10000000000000001, (1.0, 10000.0))], [(1.0, (1.0, 1.0)), (0.0, (0.0, 0.10000000000000001))]]
+        [[(1.0, (0.0, 1.0)), (0.10000000000000001, (1.0, 10000.0))], [(1.0, (1.0, 1.0)), (0.0, (0.0, 0.10000000000000001))]]
         Initial probabilities: [1.0, 0.0]
+
 
     TESTS:
     We test that standard deviations must be positive:
@@ -814,7 +849,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
         ...
         ValueError: number of Gaussian mixtures must be positive
     """
-    def __init__(self, A, B, pi=None, name=None):
+    def __init__(self, A, B, pi=None, name=None, normalize=True):
         """
         EXAMPLES:
             sage: hmm.GaussianMixtureHiddenMarkovModel([[1]], [[(1,(0,1))]], [1], name='simple')
@@ -922,12 +957,11 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
 
         OUTPUT:
            list of lists of tuples (weight, (mu, sigma))
-p
+
         EXAMPLES:
             sage: m = hmm.GaussianMixtureHiddenMarkovModel([[0.5,0.5],[0.5,0.5]], [[(0.5,(0.0,1.0)), (0.1,(1,10000))],[(1,(1,1))]], [1,0])
             sage: m.emission_parameters()
-            [[(0.5, (0.0, 1.0)), (0.10000000000000001, (1.0, 10000.0))],
-             [(1.0, (1.0, 1.0)), (0.0, (0.0, 0.0))]]
+            [[(1.0, (0.0, 1.0)), (0.10000000000000001, (1.0, 10000.0))], [(1.0, (1.0, 1.0)), (0.0, (0.0, 0.0))]]
         """
         cdef Py_ssize_t i,j
 

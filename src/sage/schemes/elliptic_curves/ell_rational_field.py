@@ -3803,7 +3803,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             set([2, 3, 4])
             starting search of remaining points using coefficient bound  6
             x-coords of extra integral points:
-            set([2, 3, 4, 37, 8, 342, 11, 14, 816, 52, 21, 406, 93])
+            set([2, 3, 4, 37, 406, 8, 11, 14, 816, 52, 21, 342, 93])
             Total number of integral points: 18
 
         It is also possible to not specify mw_base, but then the
@@ -3935,7 +3935,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # rational points if they are approximately integral
 
             def is_approx_integral(P):
-                return (abs(P[0]-P[0].round()))<0.001 and (abs(P[1]-P[1].round()))<0.001
+                return (abs(P[0]-P[0].round()))<0.1 #one case was 0.09, so 0.001 was too small
 
             RR = RealField() #(100)
             ER = self.change_ring(RR)
@@ -3943,7 +3943,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             for i in range(r):
                 if abs(Rgens[i][1]-mw_base[i][1])>abs((-Rgens[i])[1]-mw_base[i][1]):
                     Rgens[i] = -Rgens[i]
-            for ni in cartesian_product_iterator([range(-N,N+1) for i in range(r-1)]+[range(N+1)]):
+            #for ni in cartesian_product_iterator([range(-N,N+1) for i in range(r-1)]+[range(N+1)]): ##opt1
+            for mi in range(ceil(((2*H_q+1)**r)/2)): ##opt2
+                ni = Z(mi).digits(base=2*H_q+1, padto=r, digits=range(-H_q, H_q+1)) ##opt2
                 RP=sum([ni[i]*Rgens[i] for i in range(r)],ER(0))
                 for T in tors_points:
                     if is_approx_integral(RP+ER(T)):
@@ -4110,7 +4112,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             m = M.identity_matrix()
             for i in range(r):
                 m[i, r] = R(c*mw_base_log[i]).round()
-            m[r,r] = max(1,R(c*w1).round()) #ensures that m isn't singular
+            m[r,r] = max(Z(1),R(c*w1).round()) #ensures that m isn't singular
 
             #LLL - implemented in sage - operates on rows not on columns
             m_LLL = m.LLL()

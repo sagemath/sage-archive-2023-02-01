@@ -1473,7 +1473,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve([1, -1, 0, -79, 289]).regulator()  # long time (seconds)
             1.50434488827528
             sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (seconds)
-            14.7905275701310
+            14.790527570131...
         """
         if proof is None:
             from sage.structure.proof.proof import get_flag

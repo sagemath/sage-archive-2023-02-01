@@ -26,6 +26,8 @@ from sage.interfaces.all import gp
 from sage.misc.misc import prod
 from sage.rings.fraction_field_element import is_FractionFieldElement
 
+import sage.ext.arith as fast_arith
+
 import integer_ring
 import integer
 
@@ -1317,6 +1319,51 @@ def inverse_mod(a, m):
         return a.inverse_mod(m)
     except AttributeError:
         return integer.Integer(a).inverse_mod(m)
+
+#######################################################
+# Functions to find the fastest available commands
+# for gcd and inverse_mod
+#######################################################
+
+def get_gcd(order):
+    """
+    Return the fastest gcd function for integers of size
+    no larger than order.
+
+    EXAMPLES:
+        sage: sage.rings.arith.get_gcd(4000)
+        <built-in method gcd_int of sage.ext.arith.arith_int object at ...>
+        sage: sage.rings.arith.get_gcd(400000)
+        <built-in method gcd_longlong of sage.ext.arith.arith_llong object at ...>
+        sage: sage.rings.arith.get_gcd(4000000000)
+        <function gcd at ...>
+    """
+    if order <= 46340:   # todo: don't hard code
+        return fast_arith.arith_int().gcd_int
+    elif order <= 2147483647:   # todo: don't hard code
+        return fast_arith.arith_llong().gcd_longlong
+    else:
+        return gcd
+
+def get_inverse_mod(order):
+    """
+    Return the fastest inverse_mod function for integers of
+    size no larger than order.
+
+    EXAMPLES:
+        sage: sage.rings.arith.get_inverse_mod(6000)
+        <built-in method inverse_mod_int of sage.ext.arith.arith_int object at ...>
+        sage: sage.rings.arith.get_inverse_mod(600000)
+        <built-in method inverse_mod_longlong of sage.ext.arith.arith_llong object at ...>
+        sage: sage.rings.arith.get_inverse_mod(6000000000)
+        <function inverse_mod at ...>
+    """
+    if order <= 46340:   # todo: don't hard code
+        return fast_arith.arith_int().inverse_mod_int
+    elif order <= 2147483647:   # todo: don't hard code
+        return fast_arith.arith_llong().inverse_mod_longlong
+    else:
+        return inverse_mod
 
 # def sqrt_mod(a, m):
 #     """A square root of a modulo m."""

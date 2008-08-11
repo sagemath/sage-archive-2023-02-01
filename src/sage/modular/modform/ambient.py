@@ -100,11 +100,11 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: m.is_ambient()
             True
         """
-        if not isinstance(group, congroup.CongruenceSubgroup):
+        if not congroup.is_CongruenceSubgroup(group):
             raise TypeError, 'group (=%s) must be a congruence subgroup'%group
         weight = rings.Integer(weight)
 
-        if character is None and isinstance(group, congroup.Gamma0):
+        if character is None and congroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
 
         space.ModularFormsSpace.__init__(self, group, weight, character, base_ring)
@@ -578,7 +578,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         try:
             return self.__the_dim_new_eisenstein
         except AttributeError:
-            if isinstance(self.group(), congroup.Gamma0) and self.weight() == 2:
+            if congroup.is_Gamma0(self.group()) and self.weight() == 2:
                 if rings.is_prime(self.level()):
                     d = 1
                 else:
@@ -613,7 +613,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         except AttributeError:
             eps = self.character()
             if eps == None:
-                if isinstance(self.group(), congroup.Gamma1):
+                if congroup.is_Gamma1(self.group()):
                     eps = self.level()
                 else:
                     raise NotImplementedError

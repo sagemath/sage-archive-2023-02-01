@@ -784,11 +784,11 @@ def dimension_new_cusp_forms_group(group, k=2, p=0):
         sage: sage.modular.dims.dimension_new_cusp_forms_group(GammaH(33,[1,2]),2)
         3
     """
-    assert isinstance(group, congroup.CongruenceSubgroup), \
+    assert congroup.is_CongruenceSubgroup(group), \
            "Argument 1 must be a congruence subgroup."
-    if isinstance(group, congroup.Gamma0):
+    if congroup.is_Gamma0(group):
         return dimension_new_cusp_forms_gamma0(group.level(), k, p)
-    elif isinstance(group, congroup.Gamma1):
+    elif congroup.is_Gamma1(group):
         return dimension_new_cusp_forms_gamma1(group.level(), k, p)
     elif congroup.is_GammaH(group):
         return dimension_new_cusp_forms_H(group, k, p)
@@ -1299,7 +1299,7 @@ def dimension_new_cusp_forms(X, k=2, p=0):
         sage: dimension_new_cusp_forms(Gamma1(30),3)
         12
     """
-    if isinstance(X, congroup.CongruenceSubgroup):
+    if congroup.is_CongruenceSubgroup(X):
         return dimension_new_cusp_forms_group(X,k,p)
     elif isinstance(X, dirichlet.DirichletCharacter):
         return dimension_new_cusp_forms_eps(X,k,p)
@@ -1382,15 +1382,15 @@ def dimension_cusp_forms(X, k=2):
     """
     if isinstance(X, dirichlet.DirichletCharacter):
         return dimension_cusp_forms_eps(X, k)
-    elif isinstance(X, congroup.Gamma0):
+    elif congroup.is_Gamma0(X):
         return dimension_cusp_forms_gamma0(X.level(),k)
     elif isinstance(X, (Integer,int,long)):
         return dimension_cusp_forms_gamma0(Integer(X),k)
-    elif isinstance(X, congroup.Gamma1):
+    elif congroup.is_Gamma1(X):
         return dimension_cusp_forms_gamma1(X.level(),k)
     elif congroup.is_GammaH(X):
         return dimension_cusp_forms_H(X,k)
-    elif not isinstance(X, congroup.CongruenceSubgroup):
+    elif not congroup.is_CongruenceSubgroup(X):
         raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character"
     else:
         raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
@@ -1462,12 +1462,12 @@ def dimension_eis(X, k=2):
         return Z(d)
     if isinstance(X, dirichlet.DirichletCharacter):
         return dimension_eis_eps(X, k)
-    if isinstance(X, congroup.Gamma0):
+    if congroup.is_Gamma0(X):
         if k%2 == 1: return 0
         d = c0(X.level())
         if k==2: d -= 1
         return Z(d)
-    elif isinstance(X, congroup.Gamma1):
+    elif congroup.is_Gamma1(X):
         N = X.level()
         if N == 2 and k%2 == 1:
             d = 0  # level Gamma1(2) and odd weight is a special case.
@@ -1479,7 +1479,7 @@ def dimension_eis(X, k=2):
         return Z(d)
     elif congroup.is_GammaH(X):
         return dimension_eis_H(X, k)
-    elif isinstance(X, congroup.CongruenceSubgroup):
+    elif congroup.is_CongruenceSubgroup(X):
         raise NotImplementedError, "Computation of dimensions for congruence subgroups besides " + \
               "Gamma0 and Gamma1 is not yet implemented."
     else:
@@ -1516,7 +1516,7 @@ def dimension_modular_forms(X, k=2):
     """
     if isinstance(X, (int, long, Integer)):
         X = congroup.Gamma0(X)
-    elif not isinstance(X, congroup.CongruenceSubgroup) and \
+    elif not congroup.is_CongruenceSubgroup(X) and \
          not isinstance(X, dirichlet.DirichletCharacter):
         raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character."
     if k == 0:

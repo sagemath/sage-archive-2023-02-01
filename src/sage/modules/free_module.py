@@ -381,7 +381,17 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         ...
         ValueError: The elements of gens (= [[1, 2, 3], [2, 2, 2], [1, 2, x]]) must be defined over base_ring (= Integer Ring) or its field of fractions.
 
+    For backwards compatibility one can also give the base ring as the first argument:
+        sage: span(QQ,[[1,2],[3,4]])
+        Vector space of degree 2 and dimension 2 over Rational Field
+        Basis matrix:
+        [1 0]
+        [0 1]
     """
+    if ring.is_Ring(gens):
+        # we allow the old input format with first input the base_ring.
+        base_ring, gens = gens, base_ring
+
     R = self.base_ring() if base_ring is None else base_ring
 
     if not isinstance(R, principal_ideal_domain.PrincipalIdealDomain):

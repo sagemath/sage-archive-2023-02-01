@@ -129,7 +129,9 @@ class Cusps_class(ParentWithBase):
             sage: Cusps(GF(7)(3))
             3
             sage: Cusps._coerce_impl(GF(7)(3))
-            3
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion of element into self
         """
         if is_Infinite(x):
             return Cusp(x, parent=self)

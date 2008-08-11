@@ -21,7 +21,7 @@ It's possible for these relations to kill a class, i.e., for a pair
 is equivalent mod Gamma_1(4) to (1,2) since v=-v (mod 4) and u=-u (mod
 2). But since k is odd, [(-1,-2)] is also equivalent to -[(1,2)]. Thus
 this symbol is equivalent to its negative, hence 0 (notice that this
-wouldn't be the case in char 2).  See also prop 2.30 of Stein PhD
+wouldn't be the case in char 2).  See also prop 2.30 of Stein's Ph.D.
 thesis.
 
 In addition, in the case that our space is of sign 1 or -1, we also
@@ -39,7 +39,7 @@ $\infty$, multiplying the cusp by -1 corresponds to taking [(u,v)] to
 [(-u,v)] in $B_k(G)$. This means that [(u,v)] is equivalent to
 [(-u,v)] whenever u/v is equivalent to -u/v, except in the case of 0
 and $\infty$. We have that [(1,0)] is equivalent to [(-1,0)] exactly
-our space has sign -1 and when one of the following conditions is
+when our space has sign -1 and when one of the following conditions is
 satisfied:
  - $G = \Gamma_0(N)$
  - $G = \Gamma_1(2)$
@@ -1106,7 +1106,7 @@ class BoundarySpace_wtk_eps(BoundarySpace):
 
         ###############################################################
         # TODO?: This is a very dumb way to check for solutions to an
-        # equation (see Prop 2.30 of Stein's PhD thesis for which
+        # equation (see Prop 2.30 of Stein's Ph.D. thesis for which
         # equation); however, computing the cusp equivalence for the
         # boundary map takes much less time than computing the kernel
         # of the boundary map, so it's not worth optimizing this now.

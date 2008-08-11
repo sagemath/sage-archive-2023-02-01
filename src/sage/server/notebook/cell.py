@@ -657,11 +657,6 @@ class Cell(Cell_generic):
 
         TODO:
             Add more comprehensive doctests.
-
-        EXAMPLES:
-            sage: C = sage.server.notebook.cell.Cell(0, '5+3', '', None)
-            sage: C.plain_text().strip()
-            'sage: 5+3'
         """
         if ncols == 0:
             ncols = self.word_wrap_cols()

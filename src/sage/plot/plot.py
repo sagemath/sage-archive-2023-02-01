@@ -990,10 +990,10 @@ class Graphics(SageObject):
             angle --
             options -- dictionary of options
         """
-        xmin = point[0] - 2*r
-        xmax = point[0] + 2*r
-        ymin = point[1] - 2*r
-        ymax = point[1] + 2*r
+        xmin = point[0] - r
+        xmax = point[0] + r
+        ymin = point[1] - r
+        ymax = point[1] + r
         self.__objects.append(GraphicPrimitive_Disk(point, r, angle, options))
         self._extend_axes(xmin, xmax, ymin, ymax)
 
@@ -1009,10 +1009,8 @@ class Graphics(SageObject):
             options -- dictionary of options
         """
         self.__objects.append(GraphicPrimitive_Line(xdata, ydata, options))
-        try:
-            self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
-        except ValueError:
-            pass
+        self._extend_axes(*minmax_data(xdata, ydata))
+
 
     def _matrix_plot(self, xy_data_array, xrange, yrange, options):
         """
@@ -1059,10 +1057,7 @@ class Graphics(SageObject):
             options -- dictionary of options
         """
         self.__objects.append(GraphicPrimitive_Point(xdata, ydata, options))
-        try:
-            self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
-        except ValueError:
-            pass
+        self._extend_axes(*minmax_data(xdata, ydata))
 
     def _polygon(self, xdata, ydata, options):
         """
@@ -1076,10 +1071,7 @@ class Graphics(SageObject):
             options -- dictionary of options
         """
         self.__objects.append(GraphicPrimitive_Polygon(xdata, ydata, options))
-        try:
-            self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
-        except ValueError:
-            pass
+        self._extend_axes(*minmax_data(xdata, ydata))
 
     def _text(self, string, point, options):
         """
@@ -1682,6 +1674,7 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         p.set_edgecolor(c)
         p.set_facecolor(c)
         subplot.add_patch(p)
+
 
 #TODO: make bar_chart more general
 class GraphicPrimitive_BarChart(GraphicPrimitive):
@@ -2634,7 +2627,10 @@ class ArrowFactory(GraphicPrimitiveFactory):
         ymin = float(minpoint[1])
         xmax = float(maxpoint[0])
         ymax = float(maxpoint[1])
-        return self._from_xdata_ydata(xmin, ymin, xmax, ymax, options=options)
+
+        g = Graphics(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+        g._arrow(xmin, ymin, xmax, ymax, options=options)
+        return g
 
     def _reset(self):
         self.options={'width':0.02,'rgbcolor':(0, 0, 1)}
@@ -2648,11 +2644,6 @@ class ArrowFactory(GraphicPrimitiveFactory):
             type arrow? for help and examples
         """
         return "type arrow? for help and examples"
-
-    def _from_xdata_ydata(self, xmin, ymin, xmax, ymax, options):
-        g = Graphics(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        g._arrow(xmin, ymin, xmax, ymax, options=options)
-        return g
 
 #an unique arrow instance
 arrow = ArrowFactory()
@@ -2691,7 +2682,17 @@ class BarChartFactory(GraphicPrimitiveFactory):
         yrange = (min(datalist), max(datalist))
             #bardata.append([ind, pnts, xrange, yrange])
             #cnt += 1
-        return self._from_xdata_ydata(ind, datalist, xrange, yrange, options=options)
+
+        g = Graphics()
+        #TODO: improve below for multiple data sets!
+        #cnt = 1
+        #for ind, pnts, xrange, yrange in bardata:
+            #options={'rgbcolor':hue(cnt/dl),'width':0.5/dl}
+        #    g._bar_chart(ind, pnts, xrange, yrange, options=options)
+        #    cnt += 1
+        #else:
+        g._bar_chart(ind, datalist, xrange, yrange, options=options)
+        return g
 
     def _reset(self):
         self.options={'width':0.5,'rgbcolor':(0, 0, 1)}
@@ -2705,18 +2706,6 @@ class BarChartFactory(GraphicPrimitiveFactory):
             type bar_chart? for help and examples
         """
         return "type bar_chart? for help and examples"
-
-    def _from_xdata_ydata(self, ind, datalist, xrange, yrange, options):
-        g = Graphics()
-        #TODO: improve below for multiple data sets!
-        #cnt = 1
-        #for ind, pnts, xrange, yrange in bardata:
-            #options={'rgbcolor':hue(cnt/dl),'width':0.5/dl}
-        #    g._bar_chart(ind, pnts, xrange, yrange, options=options)
-        #    cnt += 1
-        #else:
-        g._bar_chart(ind, datalist, xrange, yrange, options=options)
-        return g
 
 #an unique bar_chart instance
 bar_chart = BarChartFactory()
@@ -2758,13 +2747,25 @@ class CircleFactory(GraphicPrimitiveFactory):
         ...       ocur = (rnext-r)-ocur
         ...
         sage: g.show(xmin=-(paths+1)^2, xmax=(paths+1)^2, ymin=-(paths+1)^2, ymax=(paths+1)^2, figsize=[6,6])
+
+    TESTS:
+    We test to make sure the x/y min/max data is set correctly.
+        sage: p = circle((3, 3), 1)
+        sage: p.xmin()
+        2.0
+        sage: p.ymin()
+        2.0
     """
     def __call__(self, point, radius, **kwds):
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
-        return self._from_xdata_ydata((float(point[0]), float(point[1])),
-                                       float(radius), options=options)
+
+        r = float(radius)
+        point = (float(point[0]), float(point[1]))
+        g = Graphics(xmin=point[0]-r, xmax=point[0]+r, ymin=point[1]-r, ymax=point[1]+r)
+        g._circle(point[0], point[1], r, options)
+        return g
 
     def _reset(self):
         self.options={'alpha':1,'fill':False,'thickness':1,'rgbcolor':(0, 0, 1)}
@@ -2778,11 +2779,6 @@ class CircleFactory(GraphicPrimitiveFactory):
             type circle? for help and examples
         """
         return "type circle? for help and examples"
-
-    def _from_xdata_ydata(self, point, r, options):
-        g = Graphics()
-        g._circle(float(point[0]), float(point[1]), float(r), options)
-        return g
 
 
 #an unique circle instance
@@ -2851,6 +2847,14 @@ class ContourPlotFactory(GraphicPrimitiveFactory):
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
 
+
+    TESTS:
+    We test to make sure that the x/y min/max data is set correctly.
+        sage: p = contour_plot(f, (3, 6), (3, 6))
+        sage: p.xmin()
+        3.0
+        sage: p.ymin()
+        3.0
     """
     def __call__(self, f, xrange, yrange, **kwds):
         options = dict(self.options)
@@ -2862,7 +2866,10 @@ class ContourPlotFactory(GraphicPrimitiveFactory):
         xy_data_array = [[g(x, y) for x in \
                           sage.misc.misc.xsrange(xrange[0], xrange[1], xstep)]
                           for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep)]
-        return self._from_xdata_ydata(xy_data_array, xrange, yrange, options=options)
+
+        g = Graphics(xmin=float(xrange[0]), xmax=float(xrange[1]), ymin=float(yrange[0]), ymax=float(yrange[1]))
+        g._contour_plot(xy_data_array, xrange, yrange, options)
+        return g
 
     def _reset(self):
         self.options={'plot_points':25, 'fill':True, 'cmap':'gray', 'contours':None}
@@ -2877,10 +2884,6 @@ class ContourPlotFactory(GraphicPrimitiveFactory):
         """
         return "type contour_plot? for help and examples"
 
-    def _from_xdata_ydata(self, xy_data_array, xrange, yrange, options):
-        g = Graphics()
-        g._contour_plot(xy_data_array, xrange, yrange, options)
-        return g
 
 #unique contour_plot instance
 contour_plot = ContourPlotFactory()
@@ -3074,12 +3077,11 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
             100.0
             sage: l.xmax()
             120.0
-
         """
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
 
-        g = Graphics(xmin=min(xdata), xmax=max(xdata), ymin=min(ydata), ymax=max(ydata))
+        g = Graphics(**minmax_data(xdata, ydata, dict=True))
         g._Graphics__objects.append(GraphicPrimitive_Line(xdata, ydata, options))
         return g
 
@@ -3114,6 +3116,7 @@ class MatrixPlotFactory(GraphicPrimitiveFactory):
 
     Another random plot, but over GF(389):
         sage: matrix_plot(random_matrix(GF(389), 10), cmap='Oranges')
+
     """
     def __call__(self, mat, **kwds):
         from sage.matrix.all import is_Matrix
@@ -3130,7 +3133,10 @@ class MatrixPlotFactory(GraphicPrimitiveFactory):
             xrange = (0, len(mat[0]))
             yrange = (0, len(mat))
         xy_data_array = [array(r, dtype=float) for r in mat]
-        return self._from_xdata_ydata(xy_data_array, xrange, yrange, options=options)
+
+        g = Graphics()
+        g._matrix_plot(xy_data_array, xrange, yrange, options)
+        return g
 
     def _reset(self):
         self.options={'cmap':'gray'}
@@ -3145,10 +3151,6 @@ class MatrixPlotFactory(GraphicPrimitiveFactory):
         """
         return "type matrix_plot? for help and examples"
 
-    def _from_xdata_ydata(self, xy_data_array, xrange, yrange, options):
-        g = Graphics()
-        g._matrix_plot(xy_data_array, xrange, yrange, options)
-        return g
 
 #unique matrix_plot instance
 matrix_plot = MatrixPlotFactory()
@@ -3180,7 +3182,11 @@ class PlotFieldFactory(GraphicPrimitiveFactory):
 
 
     TESTS:
-        sage: plot_vector_field((lambda x,y: .01*x,x+y), (-10,10), (-10,10))
+        sage: p = plot_vector_field((lambda x,y: .01*x,x+y), (10,20), (10,20))
+        sage: p.xmin()
+        10.0
+        sage: p.ymin()
+        10.0
 
     """
     def __call__(self, (f, g), xrange, yrange, **kwds):
@@ -3190,28 +3196,26 @@ class PlotFieldFactory(GraphicPrimitiveFactory):
         z, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f,g], xrange, yrange, options['plot_points'])
         f,g = z
 
-        Lpx,Lpy,Lcx,Lcy = [],[],[],[]
+        xpos_array, ypos_array, xvec_array, yvec_array = [],[],[],[]
         for x in sage.misc.misc.xsrange(xrange[0], xrange[1], xstep):
             for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep):
-                Lpx.append(x)
-                Lpy.append(y)
-                Lcx.append(f(x,y))
-                Lcy.append(g(x,y))
-        return self._from_xdata_ydata(Lpx, Lpy, Lcx, Lcy, xrange, yrange, options=options)
+                xpos_array.append(x)
+                ypos_array.append(y)
+                xvec_array.append(f(x,y))
+                yvec_array.append(g(x,y))
+
+        import numpy
+        xvec_array = numpy.array(xvec_array, dtype=float)
+        yvec_array = numpy.array(yvec_array, dtype=float)
+        g = Graphics(xmin=xrange[0], xmax=xrange[1], ymin=yrange[0],  ymax=yrange[1])
+        g._plot_field(xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options)
+        return g
 
     def _reset(self):
         self.options={'plot_points':20, 'cmap':'gray'}
 
     def _repr_(self):
         return "type plot_vector_field? for help and examples"
-
-    def _from_xdata_ydata(self, xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options):
-        import numpy
-        xvec_array = numpy.array(xvec_array, dtype=float)
-        yvec_array = numpy.array(yvec_array, dtype=float)
-        g = Graphics()
-        g._plot_field(xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options)
-        return g
 
 #unique plot_vector_field instance
 plot_vector_field = PlotFieldFactory()
@@ -3234,13 +3238,32 @@ class DiskFactory(GraphicPrimitiveFactory):
         sage: P  = tl+tr+bl+br
         sage: P.show(figsize=(4,4),xmin=-2,xmax=2,ymin=-2,ymax=2)
 
+    TESTS:
+    Check to make sure that the x/y min/max data is correctly set.
+        sage: d = disk((5,5), 1, (pi/2, pi), rgbcolor=(0,0,0))
+        sage: d.xmin()
+        4.0
+        sage: d.ymin()
+        4.0
+        sage: d.xmax()
+        6.0
     """
     def __call__(self, point, radius, angle, **kwds):
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
-        return self._from_xdata_ydata((float(point[0]), float(point[1])),float(radius),
-                    (float(angle[0]), float(angle[1])), options=options)
+
+        r = float(radius)
+        point = (float(point[0]), float(point[1]))
+        angle = (float(angle[0]), float(angle[1]))
+
+        xmin = point[0] - r
+        xmax = point[0] + r
+        ymin = point[1] - r
+        ymax = point[1] + r
+        g = Graphics(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+        g._disk(point, r, angle, options)
+        return g
 
     def _reset(self):
         self.options={'alpha':1,'fill':True,'rgbcolor':(0,0,1),'thickness':0}
@@ -3254,11 +3277,6 @@ class DiskFactory(GraphicPrimitiveFactory):
             type disk? for help and examples
         """
         return "type disk? for help and examples"
-
-    def _from_xdata_ydata(self, point, r, angle, options):
-        g = Graphics()
-        g._disk(point, r, angle, options)
-        return g
 
 #an unique disk instance
 disk = DiskFactory()
@@ -3277,6 +3295,14 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
         Here are some random larger red points, given as a list of tuples
         sage: point(((0.5, 0.5), (1, 2), (0.5, 0.9), (-1, -1)), rgbcolor=hue(1), pointsize=30)
 
+    TESTS:
+    We check to make sure that the x/y min/max data is set correctly.
+        sage: p = point((3, 3), rgbcolor=hue(0.75))
+        sage: p.xmin()
+        3.0
+        sage: p.ymin()
+        3.0
+
     """
     def _reset(self):
         self.options = {'alpha':1,'pointsize':10,'faceted':False,'rgbcolor':(0,0,1)}
@@ -3294,7 +3320,7 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
     def _from_xdata_ydata(self, xdata, ydata, coerce, options):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
-        g = Graphics(xmin=min(xdata), xmax=max(xdata), ymin=min(ydata), ymax=max(ydata))
+        g = Graphics(**minmax_data(xdata, ydata, dict=True))
         g._Graphics__objects.append(GraphicPrimitive_Point(xdata, ydata, options))
         return g
 
@@ -3360,6 +3386,15 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
         sage: L = [[sin(pi*i/100)+sin(pi*i/50),-(1+cos(pi*i/100)+cos(pi*i/50))] for i in range(-100,100)]
         sage: polygon(L, rgbcolor=(1,1/4,1/2))
 
+    TESTS:
+    We check to make sure that the x/y min/max data is set correctly.
+        sage: p = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,1))
+        sage: p.ymin()
+        0.0
+        sage: p.xmin()
+        1.0
+
+
     AUTHORS:
         -- David Joyner (2006-04-14): the long list of examples above.
 
@@ -3380,12 +3415,8 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
     def _from_xdata_ydata(self, xdata, ydata, coerce, options):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
-        g = Graphics()
+        g = Graphics(**minmax_data(xdata, ydata, dict=True))
         g._Graphics__objects.append(GraphicPrimitive_Polygon(xdata, ydata, options))
-        try:
-            g._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
-        except ValueError:
-            pass
         return g
 
 # unique polygon instance
@@ -3648,10 +3679,16 @@ class PlotFactory(GraphicPrimitiveFactory):
 
             try:
                 data[i] = (float(xi), float(f(xi)))
-            except (ZeroDivisionError, TypeError, ValueError,OverflowError), msg:
+            except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 exceptions += 1
                 exception_indices.append(i)
+
+            if str(data[i][1]) in ['nan', 'NaN']:
+                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+                exceptions += 1
+                exception_indices.append(i)
+
         data = [data[i] for i in range(len(data)) if i not in exception_indices]
 
         # adaptive refinement
@@ -3836,6 +3873,15 @@ def list_plot(data, plotjoined=False, **kwargs):
 
     This gives all the random points joined in a purple line:
         sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1))
+
+    TESTS:
+    We check to see that the x/y min/max data are set correctly.
+        sage: p = list_plot([(100,100), (120, 120)])
+        sage: p.xmin()
+        100.0
+        sage: p.ymin()
+        100.0
+
     """
     if not isinstance(data[0], (list, tuple)):
         data = zip(range(len(data)),data)
@@ -4460,3 +4506,34 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
                 g.append(fast_float(f, str(xvar), str(yvar)))
 
     return g, xstep, ystep, xrange, yrange
+
+
+def minmax_data(xdata, ydata, dict=False):
+    """
+    Returns the minimums and maximums of xdata and ydata.
+
+    If dict is False, then minmax_data returns the tuple
+    (xmin, xmax, ymin, ymax); otherwise, it returns a dictionary
+    whose keys are 'xmin', 'xmax', 'ymin', and 'ymax' and whose
+    values are the corresponding values.
+
+    EXAMPLES:
+         sage: from sage.plot.plot import minmax_data
+         sage: minmax_data([], [])
+         (-1, 1, -1, 1)
+         sage: minmax_data([-1, 2], [4, -3])
+         (-1, 2, -3, 4)
+         sage: d = minmax_data([-1, 2], [4, -3], dict=True)
+         sage: list(sorted(d.items()))
+         [('xmax', 2), ('xmin', -1), ('ymax', 4), ('ymin', -3)]
+
+    """
+    xmin = min(xdata) if len(xdata) > 0 else -1
+    xmax = max(xdata) if len(xdata) > 0 else 1
+    ymin = min(ydata) if len(ydata) > 0 else -1
+    ymax = max(ydata) if len(ydata) > 0 else 1
+    if dict:
+        return {'xmin':xmin, 'xmax':xmax,
+                'ymin':ymin, 'ymax':ymax}
+    else:
+        return xmin, xmax, ymin, ymax

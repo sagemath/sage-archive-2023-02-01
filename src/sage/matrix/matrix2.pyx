@@ -2448,9 +2448,10 @@ cdef class Matrix(matrix1.Matrix):
         If algebraic_multiplicity=True, return a list of pairs
              (e, V, n)
         where e and V are as above and n is the algebraic multiplicity
-        of the eigenvalue.  If the eigenvalue is a root of a
-        polynomial, then the algebraic multiplicity is for each root
-        separately.
+        of the eigenvalue.  If the eigenvalues are given symbolically,
+        as roots of an irreducible factor of the characteristic
+        polynomial, then the algebraic multiplicity returned is the
+        multiplicity of each conjugate eigenvalue.
 
         The eigenspaces are returned sorted by the corresponding characteristic
         polynomials, where polynomials are sorted in dictionary order starting
@@ -2648,9 +2649,10 @@ cdef class Matrix(matrix1.Matrix):
         If algebraic_multiplicity=True, return a list of pairs
              (e, V, n)
         where e and V are as above and n is the algebraic multiplicity
-        of the eigenvalue.  If the eigenvalue is a root of a
-        polynomial, then the algebraic multiplicity is for each root
-        separately.
+        of the eigenvalue.  If the eigenvalues are given symbolically,
+        as roots of an irreducible factor of the characteristic
+        polynomial, then the algebraic multiplicity returned is the
+        multiplicity of each conjugate eigenvalue.
 
         The eigenspaces are returned sorted by the corresponding characteristic
         polynomials, where polynomials are sorted in dictionary order starting
@@ -2747,7 +2749,7 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Return a sequence of the eigenvalues of a matrix, with
         multiplicity.  If the eigenvalues are roots of polynomials in
-        CC, then QQbar elements are returned that represent each
+        QQ, then QQbar elements are returned that represent each
         separate root.
 
         EXAMPLES:
@@ -2776,6 +2778,10 @@ cdef class Matrix(matrix1.Matrix):
             x^4 - 30*x^3 - 171*x^2 + 1460*x + 1784
             sage: p(e) == 0
             True
+
+        To perform computations on the eigenvalue as an element of a
+        number field, you can always convert back to a number field
+        element.
             sage: e.as_number_field_element()
             (Number Field in a with defining polynomial y^4 - 2*y^3 - 507*y^2 + 4988*y - 8744,
             -a + 8,
@@ -2783,7 +2789,6 @@ cdef class Matrix(matrix1.Matrix):
             From: Number Field in a with defining polynomial y^4 - 2*y^3 - 507*y^2 + 4988*y - 8744
             To:   Algebraic Real Field
             Defn: a |--> 16.35066086057957?)
-
         """
         x = self.fetch('eigenvalues')
         if not x is None:
@@ -2802,7 +2807,10 @@ cdef class Matrix(matrix1.Matrix):
                 alpha = [-h[0]/h[1]]
             else:
                 F = h.root_field('%s%s'%('a',i))
-                alpha = F.gen(0).galois_conjugates(QQbar)
+                try:
+                    alpha = F.gen(0).galois_conjugates(QQbar)
+                except AttributeError, TypeError:
+                    raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
             V.extend(alpha*e)
             i+=1
         V = Sequence(V)
@@ -2853,19 +2861,25 @@ cdef class Matrix(matrix1.Matrix):
         evec_list=[]
         n = self._nrows
         evec_eval_list = []
+        F = self.base_ring().fraction_field()
         for ev in eigenspaces:
             eigval = ev[0]
             eigbasis = ev[1].basis()
             eigmult = ev[2]
-            if hasattr(eigval, 'galois_conjugates'):
-                eigval_conj = eigval.galois_conjugates(QQbar)
+            if eigval.parent().fraction_field() == F:
+                evec_eval_list.append((eigval, eigbasis, eigmult))
+            else:
+                try:
+                    eigval_conj = eigval.galois_conjugates(QQbar)
+                except AttributeError, TypeError:
+                    raise NotImplementedError, "eigenvectors are not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
+
                 for e in eigval_conj:
                     m = hom(eigval.parent(), e.parent(), e)
                     space = (e.parent())**n
                     evec_list = [(space)([m(i) for i in v]) for v in eigbasis]
                     evec_eval_list.append( (e, evec_list, eigmult))
-            else:
-                evec_eval_list.append((eigval, eigbasis, eigmult))
+
         return evec_eval_list
 
     left_eigenvectors = eigenvectors_left
@@ -2905,7 +2919,7 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Return matrices D and P, where D is a diagonal matrix of
         eigenvalues and P is the corresponding matrix where the rows
-        are corresponding eigenvectors so that P*self = D*P.
+        are corresponding eigenvectors (or zero vectors) so that P*self = D*P.
 
         EXAMPLES:
             sage: A = matrix(QQ,3,3,range(9)); A
@@ -2921,6 +2935,31 @@ cdef class Matrix(matrix1.Matrix):
             [                   1                   -2                    1]
             [                   1  0.3101020514433644? -0.3797958971132713?]
             [                   1   1.289897948556636?  1.5797958971132712?]
+            sage: P*A == D*P
+            True
+
+        Because P is invertible, A is diagonalizable.
+            sage: A == (~P)*D*P
+            True
+
+        The matrix P may contain zero rows corresponding to
+        eigenvalues for which the algebraic multiplicity is greater
+        than the geometric multiplicity.  In these cases, the matrix
+        is not diagonalizable.
+            sage: A = jordan_block(2,3); A
+            [2 1 0]
+            [0 2 1]
+            [0 0 2]
+            sage: A = jordan_block(2,3)
+            sage: D, P = A.eigenmatrix_left()
+            sage: D
+            [2 0 0]
+            [0 2 0]
+            [0 0 2]
+            sage: P
+            [0 0 1]
+            [0 0 0]
+            [0 0 0]
             sage: P*A == D*P
             True
         """
@@ -2939,7 +2978,7 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Return matrices D and P, where D is a diagonal matrix of
         eigenvalues and P is the corresponding matrix where the columns
-        are corresponding eigenvectors so that self*P = P*D.
+        are corresponding eigenvectors (or zero vectors) so that self*P = P*D.
 
         EXAMPLES:
             sage: A = matrix(QQ,3,3,range(9)); A
@@ -2957,6 +2996,31 @@ cdef class Matrix(matrix1.Matrix):
             [                   1 -0.7393876913398137?   5.139387691339814?]
             sage: A*P == P*D
             True
+
+        Because P is invertible, A is diagonalizable.
+            sage: A == P*D*(~P)
+            True
+
+        The matrix P may contain zero columns corresponding to
+        eigenvalues for which the algebraic multiplicity is greater
+        than the geometric multiplicity.  In these cases, the matrix
+        is not diagonalizable.
+           sage: A = jordan_block(2,3); A
+           [2 1 0]
+           [0 2 1]
+           [0 0 2]
+           sage: A = jordan_block(2,3)
+           sage: D, P = A.eigenmatrix_right()
+           sage: D
+           [2 0 0]
+           [0 2 0]
+           [0 0 2]
+           sage: P
+           [1 0 0]
+           [0 0 0]
+           [0 0 0]
+           sage: A*P == P*D
+           True
         """
         D,P=self.transpose().eigenmatrix_left()
         return D,P.transpose()

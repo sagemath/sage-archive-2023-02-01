@@ -1505,7 +1505,7 @@ cdef class TimeSeries:
             sage: set_random_seed(0)
             sage: y = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,0.01,1000,100)
             sage: finance.TimeSeries([z.hurst_exponent() for z in y]).mean()
-            0.57984822577934747
+            0.579848225779347...
 
         We compute the mean Hurst exponent of 100 simulated Markov switching
         multifractal time series.  The Hurst exponent is quite small.
@@ -1513,7 +1513,7 @@ cdef class TimeSeries:
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,0.5,0.95,3)
             sage: y = msm.simulations(1000,100)
             sage: finance.TimeSeries([z.hurst_exponent() for z in y]).mean()
-            0.2861023256237053
+            0.286102325623705...
         """
         # We use disjoint blocks of size 8, 16, 32, ....
         cdef Py_ssize_t k = 8

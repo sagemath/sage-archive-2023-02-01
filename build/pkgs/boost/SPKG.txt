@@ -1,0 +1,28 @@
+= boost =
+
+== Description ==
+
+Describe the package here.
+
+== License ==
+
+Describe the package's license here.
+
+== SPKG Maintainers ==
+
+List the maintainers here
+
+== Upstream Contact ==
+
+Provide information for upstream contact.
+
+== Dependencies ==
+ * None
+
+== Special Update/Build Instructions ==
+ * Vanilla sources
+
+== Changelog ==
+
+Provide a changelog of the spkg here.
+

@@ -1826,6 +1826,7 @@ cdef class TimeSeries:
             distribution -- 'uniform':    from loc to loc + scale
                             'normal':     mean loc and standard deviation scale
                             'semicircle': with center at loc (scale is ignored)
+                            'lognormal':  mean loc and standard deviation scale
             loc   -- float (default: 0)
             scale -- float (default: 1)
 

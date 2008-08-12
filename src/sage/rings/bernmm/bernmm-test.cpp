@@ -211,9 +211,9 @@ int test__bern_modp_pow2()
    }
 
    // try a few just below the REDC barrier
-   if (LONG_BIT == 32)
+   if (ULONG_BITS == 32)
    {
-      long boundary = 1L << (LONG_BIT/2 - 1);
+      long boundary = 1L << (ULONG_BITS/2 - 1);
       for (long p = boundary - 1000; p < boundary && success; p++)
       {
          if (ProbPrime(p))
@@ -229,7 +229,7 @@ int test__bern_modp_pow2()
    else
    {
       // on a 64-bit machine, only try one, since these are huge!
-      long p = 1L << (LONG_BIT/2 - 1);
+      long p = 1L << (ULONG_BITS/2 - 1);
       while (!ProbPrime(p))
          p--;
       success = success && testcase__bern_modp_pow2(p, 10);

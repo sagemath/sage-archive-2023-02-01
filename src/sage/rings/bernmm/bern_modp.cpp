@@ -115,7 +115,7 @@ long bernsum_powg(long p, double pinv, long k, long g)
 
 #define MAX_INV 256
 
-#if (GMP_NAIL_BITS == 0) && (GMP_LIMB_BITS >= LONG_BIT)
+#if (GMP_NAIL_BITS == 0) && (GMP_LIMB_BITS >= ULONG_BITS)
 // fast mpn-based version
 
 typedef mp_limb_t word_t;
@@ -176,7 +176,7 @@ public:
 // absurdly narrow
 
 typedef unsigned long word_t;
-#define WORD_BITS LONG_BIT
+#define WORD_BITS ULONG_BITS
 
 class Expander
 {
@@ -426,7 +426,7 @@ long bernsum_pow2(long p, double pinv, long k, long g, long n)
 
    Computing the main sum (c = 1/2 case, with REDC arithmetic)
 
-   Throughout this section F denotes 2^(LONG_BIT / 2).
+   Throughout this section F denotes 2^(ULONG_BITS / 2).
 
 ******************************************************************************/
 
@@ -441,12 +441,12 @@ long bernsum_pow2(long p, double pinv, long k, long g, long n)
       0 <= x < nF/2  (if n > F/2)
       ninv2 = -1/n mod F
 */
-#define LOW_MASK ((1L << (LONG_BIT / 2)) - 1)
+#define LOW_MASK ((1L << (ULONG_BITS / 2)) - 1)
 static inline long RedcFast(long x, long n, long ninv2)
 {
    unsigned long y = (x * ninv2) & LOW_MASK;
    unsigned long z = x + (n * y);
-   return z >> (LONG_BIT / 2);
+   return z >> (ULONG_BITS / 2);
 }
 
 
@@ -473,7 +473,7 @@ long PrepRedc(long n)
    long ninv2 = -n;   // already correct mod 8
 
    // newton's method for 2-adic inversion
-   for (long bits = 3; bits < LONG_BIT/2; bits *= 2)
+   for (long bits = 3; bits < ULONG_BITS/2; bits *= 2)
       ninv2 = 2*ninv2 + n * ninv2 * ninv2;
 
    return ninv2 & LOW_MASK;
@@ -486,7 +486,7 @@ long PrepRedc(long n)
 
    PRECONDITIONS:
       Same as bernsum_pow2(), and in addition:
-      p < 2^(LONG_BIT/2 - 1)
+      p < 2^(ULONG_BITS/2 - 1)
 
    (See bernsum_pow2() for code comments; we only add comments here where
    something is different from bernsum_pow2())
@@ -494,7 +494,7 @@ long PrepRedc(long n)
 long bernsum_pow2_redc(long p, double pinv, long k, long g, long n)
 {
    long pinv2 = PrepRedc(p);
-   long F = (1L << (LONG_BIT/2)) % p;
+   long F = (1L << (ULONG_BITS/2)) % p;
 
    long tables[NUM_TABLES][TABLE_SIZE];
    memset(tables, 0, sizeof(long) * NUM_TABLES * TABLE_SIZE);
@@ -614,9 +614,9 @@ long bernsum_pow2_redc(long p, double pinv, long k, long g, long n)
 
    long weights[TABLE_SIZE];
    weights[0] = 0;
-   // we store the weights multiplied by a factor of 2^(3*LONG_BIT/2) to
+   // we store the weights multiplied by a factor of 2^(3*ULONG_BITS/2) to
    // compensate for the three rounds of REDC reduction in the loop below
-   for (long h = 0, x = PowerMod(2, 3*LONG_BIT/2, p, pinv);
+   for (long h = 0, x = PowerMod(2, 3*ULONG_BITS/2, p, pinv);
         h < TABLE_LG_SIZE; h++, x = Redc(x * two_to_km1_redc, p, pinv2))
    {
       for (long i = (1L << h) - 1; i >= 0; i--)
@@ -703,7 +703,7 @@ long _bern_modp_pow2(long p, double pinv, long k)
 
    // compute main sum
    long x;
-   if (p < (1L << (LONG_BIT/2 - 1)))
+   if (p < (1L << (ULONG_BITS/2 - 1)))
       x = bernsum_pow2_redc(p, pinv, k, g, n);
    else
       x = bernsum_pow2(p, pinv, k, g, n);

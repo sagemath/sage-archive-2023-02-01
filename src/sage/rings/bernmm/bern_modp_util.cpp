@@ -89,7 +89,7 @@ Factorisation::Factorisation(long n)
 
 PrimeTable::PrimeTable(long bound)
 {
-   long size = (bound - 1) / LONG_BIT + 1;   // = ceil(bound / LONG_BIT)
+   long size = (bound - 1) / ULONG_BITS + 1;   // = ceil(bound / ULONG_BITS)
    data.resize(size);
 
    for (long i = 2; i * i < bound; i++)

@@ -280,6 +280,7 @@ import operator
 
 #Sage 2D Graphics Axes class:
 from axes import Axes
+from axes import GridLines
 
 def is_Graphics(x):
     """
@@ -1185,7 +1186,9 @@ class Graphics(SageObject):
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
              dpi=DEFAULT_DPI, axes=None, axes_labels=None,frame=False,
-             fontsize=None, aspect_ratio=None):
+             fontsize=None, aspect_ratio=None,
+             gridlines=None, gridlinesstyle=None,
+             vgridlinesstyle=None, hgridlinesstyle=None):
         """
         Show this graphics image with the default image viewer.
 
@@ -1210,8 +1213,27 @@ class Graphics(SageObject):
                             integer; used for axes labels; if you make
                             this very large, you may have to increase
                             figsize to see all labels.
-
             frame        -- (default: False) draw a frame around the image
+            gridlines -- (default: None) can be any one of the following:
+                None, False -- do not add grid lines
+                True, "automatic", "major" -- add grid at major ticks
+                    of axes
+                "minor" -- add grid at major and minor ticks of axes
+                [xlist,ylist] -- a tuple or list containing two elements,
+                    where xlist (or ylist) can be any of the following:
+                    None, False -- don't add horizontal (or vertical) lines
+                    True, "automatic", "major" -- add horizontal (or
+                        vertical) grid lines at the major ticks of axes
+                    "minor" -- add horizontal (or vertical) grid lines
+                        at major and minor ticks of axes
+                    iterable yielding numbers n or pairs (n,opts) where
+                        n is the coordinate of the line and opt is a
+                        dictionary of MATPLOTLIB options for rendering the
+                        line.
+            gridlinesstyle, hgridlinesstyle, vgridlinesstyle
+                -- (default: None) a dictionary of MATPLOTLIB options for
+                    the rendering of the grid lines, the horizontal grid lines
+                    or the vertical grid lines, respectively.
 
         EXAMPLES:
             sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
@@ -1234,24 +1256,105 @@ class Graphics(SageObject):
 
             sage: show(plot(sin,-4,4), frame=True)
 
+        Add grid lines at the major ticks of the axes.
+            sage: c = circle((0,0), 1)
+            sage: c.show(gridlines=True)
+            sage: c.show(gridlines="automatic")
+            sage: c.show(gridlines="major")
+
+        Add grid lines at the major and minor ticks of the axes.
+            sage: u,v = var('u v')
+            sage: f = exp(-(u^2+v^2))
+            sage: p = plot_vector_field(f.gradient(), (u,-2,2), (v,-2,2))
+            sage: p.show(gridlines="minor")
+
+        Add only horizontal or vertical grid lines.
+            sage: p = plot(sin,-10,20)
+            sage: p.show(gridlines=[None, "automatic"])
+            sage: p.show(gridlines=["minor", False])
+
+        Add grid lines at specific positions (using lists/tuples).
+            sage: x, y = var('x, y')
+            sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2, \
+            ...             (-2,2), (-2,2), plot_points=1000)
+            sage: p.show(gridlines=[[1,0],[-1,0,1]])
+
+        Add grid lines at specific positions (using iterators).
+            sage: def maple_leaf(t):
+            ...     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
+            sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, rgbcolor="red",plot_points=1000)
+            sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) ))
+
+        Add grid lines at specific positions (using functions).
+            sage: y = x^5 + 4*x^4 - 10*x^3 - 40*x^2 + 9*x + 36
+            sage: p = plot(y, -4.1, 1.1)
+            sage: xlines = lambda a,b: [z for z,m in y.roots()]
+            sage: p.show(gridlines=[xlines, [0]], frame=True, axes=False)
+
+        Change the style of all the grid lines.
+            sage: b = bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
+            sage: b.show(gridlines=([-1,-0.5,..,4],True), \
+            ...     gridlinesstyle=dict(color="blue", linestyle=":"))
+
+        Change the style of the horizontal or vertical grid lines separately.
+            sage: p = polar_plot(lambda x:2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
+            sage: p.show(gridlines=True, \
+            ...     hgridlinesstyle=dict(color="orange", linewidth=1.0), \
+            ...     vgridlinesstyle=dict(color="blue", linestyle=":"))
+
+        Change the style of each grid line individually.
+            sage: x, y = var('x, y')
+            sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2, \
+            ...             (-2,2), (-2,2), plot_points=1000)
+            sage: p.show(gridlines=(
+            ...    [
+            ...     (1,{"color":"red","linestyle":":"}),
+            ...     (0,{"color":"blue","linestyle":"--"})
+            ...    ],
+            ...    [
+            ...     (-1,{"color":"red","linestyle":":"}),
+            ...     (0,{"color":"blue","linestyle":"--"}),
+            ...     (1,{"color":"red","linestyle":":"}),
+            ...    ]
+            ...    ),
+            ...    gridlinesstyle=dict(marker='x'))
+
+        Grid lines can be added to contour plots.
+            sage: f = lambda x,y: sin(x^2 + y^2)*cos(x)*sin(y)
+            sage: c = contour_plot(f, (-4, 4), (-4, 4), plot_points=100)
+            sage: c.show(gridlines=True, gridlinesstyle={'linestyle':':','linewidth':1})
+
+        Grid lines can be added to matrix plots.
+            sage: M = MatrixSpace(QQ,10).random_element()
+            sage: matrix_plot(M).show(gridlines=True)
         """
         if DOCTEST_MODE:
             self.save(sage.misc.misc.SAGE_TMP + '/test.png',
                       xmin, xmax, ymin, ymax, figsize,
                       dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame,
-                      aspect_ratio=aspect_ratio)
+                      aspect_ratio=aspect_ratio, gridlines=gridlines,
+                      gridlinesstyle=gridlinesstyle,
+                      vgridlinesstyle=vgridlinesstyle,
+                      hgridlinesstyle=hgridlinesstyle)
             return
         if EMBEDDED_MODE:
             self.save(filename, xmin, xmax, ymin, ymax, figsize,
                       dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame,
-                      aspect_ratio=aspect_ratio)
+                      aspect_ratio=aspect_ratio, gridlines=gridlines,
+                      gridlinesstyle=gridlinesstyle,
+                      vgridlinesstyle=vgridlinesstyle,
+                      hgridlinesstyle=hgridlinesstyle)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
         self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes,
                   axes_labels=axes_labels,
                   frame=frame, fontsize=fontsize,
-                  aspect_ratio=aspect_ratio)
+                  aspect_ratio=aspect_ratio,
+                  gridlines=gridlines,
+                  gridlinesstyle=gridlinesstyle,
+                  vgridlinesstyle=vgridlinesstyle,
+                  hgridlinesstyle=hgridlinesstyle)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
 
     def _prepare_axes(self, xmin, xmax, ymin, ymax):
@@ -1313,8 +1416,9 @@ class Graphics(SageObject):
              xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
              dpi=DEFAULT_DPI, axes=None, axes_labels=None, fontsize=None,
-             frame=False, verify=True,
-             aspect_ratio = None):
+             frame=False, verify=True, aspect_ratio = None,
+             gridlines=None, gridlinesstyle=None,
+             vgridlinesstyle=None, hgridlinesstyle=None):
         r"""
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
         depending on the file extension you give the filename.
@@ -1413,6 +1517,10 @@ class Graphics(SageObject):
                          axes_label_color=self.__axes_label_color,
                          tick_label_color=self.__tick_label_color, linewidth=self.__axes_width)
 
+        # construct a GridLines instance, see 'axes.py' for relevant code
+        sage_gridlines = GridLines(gridlines=gridlines, gridlinesstyle=gridlinesstyle,
+                vgridlinesstyle=vgridlinesstyle, hgridlinesstyle=hgridlinesstyle)
+
         #adjust the xy limits and draw the axes:
         if not (contour or plotfield or matrixplot): #the plot is a 'regular' plot
             if frame: #add the frame axes
@@ -1421,15 +1529,18 @@ class Graphics(SageObject):
                 aymin, aymax = ymin - 0.04*abs(ymax - ymin), ymax + 0.04*abs(ymax - ymin)
                 subplot.set_xlim([axmin, axmax])
                 subplot.set_ylim([aymin, aymax])
+                # draw the grid
+                sage_gridlines.add_gridlines(subplot, xmin, xmax, ymin, ymax, True)
                 #add a frame to the plot and possibly 'axes_with_no_ticks'
                 sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax,
                                         axes_with_no_ticks=axes)
+
             elif not frame and axes: #regular plot with regular axes
-
                 xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
-
+                # draw the grid
+                sage_gridlines.add_gridlines(subplot, xmin, xmax, ymin, ymax, False)
+                # draw the axes
                 xmin, xmax, ymin, ymax = sage_axes.add_xy_axes(subplot, xmin, xmax, ymin, ymax)
-
                 subplot.set_xlim(xmin, xmax)
                 subplot.set_ylim(ymin, ymax)
 
@@ -1437,12 +1548,17 @@ class Graphics(SageObject):
                 xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
                 subplot.set_xlim(xmin, xmax)
                 subplot.set_ylim(ymin, ymax)
+                # draw the grid
+                sage_gridlines.add_gridlines(subplot, xmin, xmax, ymin, ymax, False)
 
         elif (contour or plotfield): #contour or field plot in self.__objects, so adjust axes accordingly
             xmin, xmax = self.__xmin, self.__xmax
             ymin, ymax = self.__ymin, self.__ymax
             subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
             subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
+            # draw the grid
+            sage_gridlines.add_gridlines(subplot, xmin, xmax, ymin, ymax, True)
+            # draw the axes
             if axes: #axes=True unless user specifies axes=False
                 sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax)
 
@@ -1451,6 +1567,16 @@ class Graphics(SageObject):
             ymin, ymax = self.__ymin, self.__ymax
             subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
             subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
+            # draw the grid
+            if gridlines in ["major", "automatic", True]:
+                gridlines = [sage.misc.misc.srange(-0.5,xmax+1,1),
+                        sage.misc.misc.srange(-0.5,ymax+1,1)]
+            sage_gridlines = GridLines(gridlines=gridlines,
+                    gridlinesstyle=gridlinesstyle,
+                    vgridlinesstyle=vgridlinesstyle,
+                    hgridlinesstyle=hgridlinesstyle)
+            sage_gridlines.add_gridlines(subplot, xmin, xmax, ymin, ymax, False)
+            # draw the axes
             if axes: #axes=True unless user specifies axes=False
                 sage_axes.add_xy_matrix_frame_axes(subplot, xmin, xmax, ymin, ymax)
 

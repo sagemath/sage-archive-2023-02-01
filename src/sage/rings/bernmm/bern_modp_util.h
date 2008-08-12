@@ -24,6 +24,11 @@
 #define BERNMM_BERN_MODP_UTIL_H
 
 
+#include <vector>
+#include <cassert>
+#include <climits>
+
+
 #if ULONG_MAX == 4294967295U
 #define ULONG_BITS 32
 #elif ULONG_MAX == 18446744073709551615U
@@ -32,11 +37,6 @@
 #error Oops! Unsigned long is neither 32 nor 64 bits.
 #error You need to update bern_modp_util.h.
 #endif
-
-
-#include <vector>
-#include <cassert>
-#include <climits>
 
 
 namespace bernmm {

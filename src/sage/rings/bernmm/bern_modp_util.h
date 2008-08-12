@@ -26,7 +26,7 @@
 
 #include <vector>
 #include <cassert>
-
+#include "pyport.h"
 
 namespace bernmm {
 

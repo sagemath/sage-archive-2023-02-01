@@ -2005,7 +2005,7 @@ class checkbox(input_box):
         return "Interact checkbox labeled %r with default value %r"%(self.label(), self.default())
 
 class slider_generic(control):
-    def __init__(self, vmin, vmax=None, step_size=1, label=None, display_value=True):
+    def __init__(self, vmin, vmax=None, step_size=None, label=None, display_value=True):
         control.__init__(self, label=label)
         self.__display_value = display_value
         if isinstance(vmin, list):
@@ -2014,22 +2014,28 @@ class slider_generic(control):
             if vmax is None:
                 vmax = vmin
                 vmin = 0
-            if step_size <= 0:
+
+            #Compute step size; vmin and vmax are both defined here
+            #500 is the length of the slider (in px)
+            if step_size is None:
+                step_size = (vmax-vmin)/500.0
+            elif step_size <= 0:
                 raise ValueError, "invalid negative step size -- step size must be positive"
+
+            #Compute list of values
+            num_steps = int(math.ceil((vmax-vmin)/float(step_size)))
+            if num_steps <= 2:
+                self.__values = [vmin, vmax]
             else:
-                num_steps = int(math.ceil((vmax-vmin)/float(step_size)))
-                if num_steps <= 2:
-                    self.__values = [vmin, vmax]
-                else:
-                    self.__values = [vmin + i*step_size for i in range(num_steps)]
-                    if self.__values[-1] != vmax:
-                        try:
-                            if self.__values[-1] > vmax:
-                                self.__values[-1] = vmax
-                            else:
-                                self.__values.append(vmax)
-                        except (ValueError, TypeError):
-                            pass
+                self.__values = [vmin + i*step_size for i in range(num_steps+1)]
+                if self.__values[-1] != vmax:
+                    try:
+                        if self.__values[-1] > vmax:
+                            self.__values[-1] = vmax
+                        else:
+                            self.__values.append(vmax)
+                    except (ValueError, TypeError):
+                        pass
 
         if len(self.__values) == 0:
             self.__values = [0]
@@ -2064,7 +2070,7 @@ class slider_generic(control):
 
 
 class slider(slider_generic):
-    def __init__(self, vmin, vmax=None, step_size=1, default=None, label=None, display_value=True):
+    def __init__(self, vmin, vmax=None, step_size=None, default=None, label=None, display_value=True):
         r"""
         An interactive slider control, which can be used in conjunction
         with the interact command.
@@ -2151,7 +2157,7 @@ class slider(slider_generic):
             var -- string; variable name
 
         EXAMPLES:
-            sage: S = slider(0,10, default=3, label='theta'); S
+            sage: S = slider(0, 10, 1, default=3, label='theta'); S
             Slider: theta [0--|3|---10]
             sage: S.render('x')
             Slider Interact Control: theta [0--|3|---10]
@@ -2163,7 +2169,7 @@ class slider(slider_generic):
 
 
 class range_slider(slider_generic):
-    def __init__(self, vmin, vmax=None, step_size=1, default=None, label=None, display_value=True):
+    def __init__(self, vmin, vmax=None, step_size=None, default=None, label=None, display_value=True):
         r"""
         An interactive range slider control, which can be used in conjunction
         with the interact command.
@@ -2251,7 +2257,7 @@ class range_slider(slider_generic):
             var -- string; variable name
 
         EXAMPLES:
-            sage: S = range_slider(0,10, default=(3,7), label='theta'); S
+            sage: S = range_slider(0, 10, 1, default=(3,7), label='theta'); S
             Range Slider: theta [0--|3==7|---10]
             sage: S.render('x')
             Range Slider Interact Control: theta [0--|3==7|---10]
@@ -2463,12 +2469,12 @@ def automatic_control(default):
         Slider: None [1.0--|1.0|---250.0]
         sage: sage.server.notebook.interact.automatic_control(('alpha', (1,250)))
         Slider: alpha [1.0--|1.0|---250.0]
-        sage: sage.server.notebook.interact.automatic_control((2,(1,250)))
-        Slider: None [1.0--|2.0|---250.0]
-        sage: sage.server.notebook.interact.automatic_control(('alpha label', (2,(1,250))))
-        Slider: alpha label [1.0--|2.0|---250.0]
-        sage: sage.server.notebook.interact.automatic_control((2, ('alpha label',(1,250))))
-        Slider: alpha label [1.0--|2.0|---250.0]
+        sage: sage.server.notebook.interact.automatic_control((2,(0,250)))
+        Slider: None [0.0--|2.0|---250.0]
+        sage: sage.server.notebook.interact.automatic_control(('alpha label', (2,(0,250))))
+        Slider: alpha label [0.0--|2.0|---250.0]
+        sage: sage.server.notebook.interact.automatic_control((2, ('alpha label',(0,250))))
+        Slider: alpha label [0.0--|2.0|---250.0]
         sage: C = sage.server.notebook.interact.automatic_control((1,52, 5)); C
         Slider: None [1--|1|---52]
         sage: C.values()
@@ -2511,9 +2517,7 @@ def automatic_control(default):
         C = input_box(default, label=label, type=Color)
     elif isinstance(default, tuple):
         if len(default) == 2:
-            # The default 249.0 below is for a slider with length 500px, so there are 250 steps with 2px per step
-            C = slider(srange(default[0], default[1], (default[1]-default[0])/249.0,
-                              include_endpoint=True), default = default_value, label=label)
+            C = slider(default[0], default[1], default=default_value, label=label)
         elif len(default) == 3:
             C = slider(default[0], default[1], default[2], default=default_value, label=label)
         else:

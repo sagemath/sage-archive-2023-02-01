@@ -1329,9 +1329,19 @@ class Graphics(SageObject):
             to show with a '\code{figsize}' of square dimensions.
 
             sage: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
+
+            sage: point((-1,1),pointsize=30, rgbcolor=(1,0,0))
+
         """
         xmin = self.xmin(xmin); xmax = self.xmax(xmax);
         ymin = self.ymin(ymin); ymax = self.ymax(ymax)
+
+        if xmin == xmax:
+            xmin -= 1
+            xmax += 1
+        if ymin == ymax:
+            ymin -= 1
+            ymax += 1
 
         # adjust the figsize in case the user also specifies an aspect ratio
         if aspect_ratio is None:

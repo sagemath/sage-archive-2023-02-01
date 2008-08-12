@@ -24,6 +24,11 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6rc1 (Clement Pernet, Aug 12th, 2008) ===
+ * Fix bug in Charpoly and revert to the "good" algorithm. See #3671
+ * upstream linbox-1.1.6rc1
+ * uniformize source directory name (linbox->src)
+
 === linbox-1.1.6.p0 (Michael Abshoff, July 21st, 2008) ===
  * Integrate patch by Clement Pernet fixing #3671
  * miscellaneous cleanup

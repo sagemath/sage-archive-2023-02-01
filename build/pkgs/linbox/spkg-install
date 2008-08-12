@@ -9,21 +9,14 @@ fi
 CUR=`pwd`
 
 echo "Copying commentator patch"
-cp patches/commentator.C linbox/linbox/util/
+cp patches/commentator.C src/linbox/util/
 
 if [ $? -ne 0 ]; then
     echo "Error copying commentator OSX 10.4 fix"
     exit 1
 fi
 
-echo "Copying ffpack.h patch for charpoly mpd p issue (#3671)"
-cp patches/ffpack.h linbox/linbox/ffpack/
-if [ $? -ne 0 ]; then
-    echo "Error copying ffpack.h patch for charpoly mod p issue"
-    exit 1
-fi
-
-cd linbox/
+cd src/
 
 CFLAGS="$CFLAGS -g -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"-L\"$SAGE_LOCAL/lib\""
 CXXFLAGS="$CXXFLAGS -g -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"  -L\"$SAGE_LOCAL/lib\""

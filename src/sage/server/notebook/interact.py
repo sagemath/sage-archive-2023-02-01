@@ -1398,7 +1398,7 @@ class InteractCanvas:
             sage: sage.server.notebook.interact.InteractCanvas([B], 3).wrap_in_outside_frame('<!--inside-->')
             "<!--notruncate--><div padding=6 id='div-interact-3'> ...</div>\n                 "
         """
-        return """<!--notruncate--><div padding=6 id='div-interact-%s'> <table width=800px height=400px bgcolor='#c5c5c5'
+        return """<!--notruncate--><div padding=6 id='div-interact-%s'> <table width=800px height=20px bgcolor='#c5c5c5'
                  cellpadding=15><tr><td bgcolor='#f9f9f9' valign=top align=left>%s</td>
                  </tr></table></div>
                  """%(self.cell_id(), inside)

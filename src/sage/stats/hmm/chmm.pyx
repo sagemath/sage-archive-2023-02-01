@@ -604,7 +604,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         cdef ghmm_cseq* sqd
         try:
             sqd = to_cseq(seq)
-        except ValueError:
+        except RuntimeError:
+            # no sequences
             return float(0)
         cdef int ret = ghmm_cmodel_likelihood(self.m, sqd, &log_p)
         ghmm_cseq_free(&sqd)
@@ -663,8 +664,11 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         Baum-Welch algorithm to increase the probability of observing O.
 
         INPUT:
-            training_seqs -- a list of lists of emission symbols; all sequences of
-                      length 0 are ignored.
+            training_seqs -- a list of lists of emission symbols, where all sequences of
+                      length 0 are ignored; or, a list of pairs
+                            (sample_sequence, weight),
+                      where sample_sequence is a list or TimeSeries, and weight is
+                      a positive real number.
             max_iter -- integer or None (default: 10000) maximum number
                       of Baum-Welch steps to take
             log_likehood_cutoff -- positive float or None (default: 0.00001);
@@ -693,7 +697,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
 
         We train using a list of lists:
             sage: m = hmm.GaussianHiddenMarkovModel([[1,0],[0,1]], [(0,1),(0,2)], [1/2,1/2])
-            sage: m.baum_welch([[1,2,], [3,2]])
+            sage: m.baum_welch([[1,2], [3,2]])
             sage: m
             Gaussian Hidden Markov Model with 2 States
             Transition matrix:
@@ -725,8 +729,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
         cs.smo      = self.m
         try:
             cs.sqd      = to_cseq(training_seqs)
-        except ValueError:
-            # No sequences
+        except RuntimeError:
+            # No nonempty sequences
             return
         cs.logp     = <double*> safe_malloc(sizeof(double))
         cs.eps      = log_likelihood_cutoff
@@ -742,10 +746,11 @@ cdef ghmm_cseq* to_cseq(seq) except NULL:
     Return a pointer to a ghmm_cseq C struct.
 
     All empty sequences are ignored.  If there are no nonempty
-    sequences a ValueError is raised, since GHMM doesn't treat
-    this degenerate case well.
+    sequences a RuntimeError is raised, since GHMM doesn't treat
+    this degenerate case well.   If there are any nonpositive
+    weights, then a ValueError is raised.
     """
-    if isinstance(seq, list) and len(seq) > 0 and not isinstance(seq[0], (list, tuple)):
+    if isinstance(seq, list) and len(seq) > 0 and not isinstance(seq[0], (list, tuple, TimeSeries)):
         seq = TimeSeries(seq)
     if isinstance(seq, TimeSeries):
         seq = [(seq,float(1))]
@@ -767,7 +772,12 @@ cdef ghmm_cseq* to_cseq(seq) except NULL:
 
     n = len(seq)
     if n == 0:
-        raise ValueError, "there must be at least one nonempty sequence"
+        raise RuntimeError, "there must be at least one nonempty sequence"
+
+    for _, w in seq:
+        if w <= 0:
+            raise ValueError, "each weight must be positive"
+
     cdef ghmm_cseq* sqd = <ghmm_cseq*>safe_malloc(sizeof(ghmm_cseq))
     sqd.seq        = <double**>safe_malloc(sizeof(double*) * n)
     sqd.seq_len    = to_int_array([len(v) for v,_ in seq])

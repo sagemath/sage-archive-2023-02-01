@@ -637,16 +637,38 @@ class MatrixGroup_gens(MatrixGroup_gap):
 
     def as_permutation_group(self, method =None):
         r"""
-        EXAMPLES:
-            sage: F = GF(7); MS = MatrixSpace(F,2,2)
-            sage: gens = [MS([[0,1],[-1,0]]),MS([[1,1],[2,3]])]
-            sage: G = MatrixGroup(gens)
-            sage: G.as_permutation_group()
-            Permutation Group with generators [(1,2,4,8)(3,6,9,16)(5,10,15,25)(7,13,17,28)(11,19,26,37)(12,21,27,20)(14,24,29,18)(22,32,38,47)(23,34,39,33)(30,40,36,45)(31,42,46,41)(35,44,48,43), (1,3,7,14,4,9,17,29)(2,5,11,20,8,15,26,21)(6,12,22,33,16,27,38,34)(10,18,30,41,25,24,36,42)(13,23,35,40,28,39,48,45)(19,31,43,47,37,46,44,32)]
-            sage: G.as_permutation_group(method="smaller")
-            Permutation Group with generators [(1,2,4,8)(3,6,9,16)(5,10,15,25)(7,13,17,28)(11,19,26,37)(12,21,27,20)(14,24,29,18)(22,32,38,47)(23,34,39,33)(30,40,36,45)(31,42,46,41)(35,44,48,43), (1,3,7,14,4,9,17,29)(2,5,11,20,8,15,26,21)(6,12,22,33,16,27,38,34)(10,18,30,41,25,24,36,42)(13,23,35,40,28,39,48,45)(19,31,43,47,37,46,44,32)]
+        This returns a permutation group representation for the group. In most cases
+        occurring in practice, this is a permutation group of minimal degree (the degree
+        begin determined from orbits under the group action). When these orbits are hard to
+        compute, the procedure can be time-consuming and the degree may not be minimal.
+        The "method=smaller" option tries return an isomorphic group of lower degree.
 
-        Sometimes the "smaller" option will return an isomorphic group of lower degree.
+        EXAMPLES:
+            sage: MS = MatrixSpace( GF(2), 5, 5)
+            sage: A = MS([[0,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0],[1,0,0,0,0]])
+            sage: G = MatrixGroup([A])
+            sage: G.as_permutation_group()
+            Permutation Group with generators [(1,2)]
+            sage: MS = MatrixSpace( GF(7), 12, 12)
+            sage: GG = gap("ImfMatrixGroup( 12, 3 )")
+            sage: GG.GeneratorsOfGroup().Length()
+            3
+            sage: g1 = MS(eval(str(GG.GeneratorsOfGroup()[1]).replace("\n","")))
+            sage: g2 = MS(eval(str(GG.GeneratorsOfGroup()[2]).replace("\n","")))
+            sage: g3 = MS(eval(str(GG.GeneratorsOfGroup()[3]).replace("\n","")))
+            sage: G = MatrixGroup([g1, g2, g3])
+            sage: G.order()
+            21499084800
+            sage: current_randstate().set_seed_gap()
+            sage: G.as_permutation_group()                      # random output
+            Permutation Group with generators [(1,2)(3,7,13,25,45,5,10,19,35,57)(8,16,31,56,87,11,22,41,71,91)(14,28,51,81,46,20,38,66,98,61)(17,33,59,39,69,23,43,73,29,54)(26,48,77,49,79,36,63,94,64,96)(52,83,108,123,102,67,84,110,126,88)(112,129,139,121,127,116,132,141,114,124), (1,3,8,17)(2,5,11,23)(7,14,29,48)(10,20,39,63)(13,26,49,69)(19,36,64,54)(25,46,31,57)(28,52,84,94)(35,61,41,45)(38,67,83,77)(51,59,91,116)(56,88,114,96)(66,73,87,112)(71,102,121,79)(108,124,110,127), (1,4)(2,6)(3,9)(5,12)(7,15)(8,18)(10,21)(11,24)(13,27)(14,30)(16,32)(17,34)(19,37)(20,40)(22,42)(23,44)(25,47)(26,50)(28,53)(29,55)(31,58)(33,60)(35,62)(36,65)(38,68)(39,70)(41,72)(43,74)(45,75)(46,76)(48,78)(49,80)(51,82)(52,85)(54,86)(56,89)(57,90)(59,92)(61,93)(63,95)(64,97)(66,99)(67,100)(69,101)(71,103)(73,104)(77,105)(79,106)(81,107)(83,109)(84,111)(87,113)(88,115)(91,117)(94,118)(96,119)(98,120)(102,122)(108,125)(110,128)(112,130)(114,131)(116,133)(121,134)(123,135)(124,136)(126,137)(127,138)(129,140)(132,142)(139,143)(141,144)]
+            sage: G.as_permutation_group(method="smaller")          # random output
+            Permutation Group with generators [(1,2)(3,7,13,25,45,5,10,19,35,60)(8,16,30,52,65,11,22,40,67,50)(14,23,43,72,53,20,17,33,57,68)(26,48,61,87,28,36,63,46,75,38)(31,55,73,96,103,41,70,58,84,99)(78,90), (1,3,8,17)(2,5,11,23)(7,14,28,50)(10,20,38,65)(13,26,16,31)(19,36,22,41)(25,46)(30,53)(33,58)(35,61)(40,68)(43,73)(45,75,99,70)(48,78,57,84)(52,67)(55,60,87,103)(63,90,72,96), (1,4)(2,6)(3,9)(5,12)(7,15)(8,18)(10,21)(11,24)(13,27)(14,29)(16,32)(17,34)(19,37)(20,39)(22,42)(23,44)(25,47)(26,49)(28,51)(30,54)(31,56)(33,59)(35,62)(36,64)(38,66)(40,69)(41,71)(43,74)(45,76)(46,77)(48,79)(50,80)(52,81)(53,82)(55,83)(57,85)(58,86)(60,88)(61,89)(63,91)(65,92)(67,93)(68,94)(70,95)(72,97)(73,98)(75,100)(78,101)(84,102)(87,104)(90,105)(96,106)(99,107)(103,108)]
+
+        In this case, the "smaller" option returned an isomorphic group of lower degree.
+        The above example used GAP's library of irreducible maximal finite ("imf") integer matrix
+        groups to construct the MatrixGroup G over GF(7). The section "Irreducible Maximal Finite
+        Integral Matrix Groups" in the GAP reference manual has more details.
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
         F = self.base_ring()
@@ -666,7 +688,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
         gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
         gap.eval("iso:=IsomorphismPermGroup(Group("+mats_str+"))")
         C = gap("Image( iso )")
-        if method == "smallest":
+        if method == "smaller":
             gap.eval("small:= SmallerDegreePermutationRepresentation( Image( iso ) );")
             C = gap("Image( small )")
         return PermutationGroup(C, from_group = True)
@@ -678,6 +700,14 @@ class MatrixGroup_gens(MatrixGroup_gap):
         returns more information, but in Meataxe notation.
 
         EXAMPLES:
+            sage: F=GF(3);MS=MatrixSpace(F,4,4)
+            sage: M=MS(0)
+            sage: M[0,1]=1;M[1,2]=1;M[2,3]=1;M[3,0]=1
+            sage: G = MatrixGroup([M])
+            sage: G.module_composition_factors()
+            [[Finite Field of size 3, 1, True],
+             [Finite Field of size 3, 1, True],
+             [Finite Field of size 3, 2, True]]
             sage: F = GF(7); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[0,1],[-1,0]]),MS([[1,1],[2,3]])]
             sage: G = MatrixGroup(gens)

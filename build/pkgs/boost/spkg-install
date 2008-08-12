@@ -10,7 +10,7 @@ PACKAGE_NAME="boost"
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --with-python-root="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
    echo "Error configuring $PACKAGE_NAME."
    exit 1

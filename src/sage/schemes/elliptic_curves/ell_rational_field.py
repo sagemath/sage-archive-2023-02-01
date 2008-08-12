@@ -3798,12 +3798,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             e1,e2,e3:  -3.01243037259331 1.06582054769620 1.94660982489710
             Minimal eigenvalue of height pairing matrix:  0.472730555831538
             x-coords of points on compact component with  -3 <=x<= 1
-            set([0, -1, -3, -2, 1])
+            [-3, -2, -1, 0, 1]
             x-coords of points on non-compact component with  2 <=x<= 6
-            set([2, 3, 4])
+            [2, 3, 4]
             starting search of remaining points using coefficient bound  6
             x-coords of extra integral points:
-            set([2, 3, 4, 37, 406, 8, 11, 14, 816, 52, 21, 342, 93])
+            [2, 3, 4, 8, 11, 14, 21, 37, 52, 93, 342, 406, 816]
             Total number of integral points: 18
 
         It is also possible to not specify mw_base, but then the
@@ -3930,22 +3930,44 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     use_t(P)
                 return xs
 
-            # Otherwise is is very very much faster to first compute
-            # the linear combinations over RR, and only compte them as
-            # rational points if they are approximately integral
+            # Otherwise it is very very much faster to first compute
+            # the linear combinations over RR, and only compute them as
+            # rational points if they are approximately integral.
+
+            # Note: making eps larger here will dramatically increase
+            # the running time.  If evidence arises that integral
+            # points are being missed, it would be better to increase
+            # the real precision than to increase eps.
 
             def is_approx_integral(P):
-                return (abs(P[0]-P[0].round()))<0.1 #one case was 0.09, so 0.001 was too small
+                eps = 0.0001
+                return (abs(P[0]-P[0].round()))<eps and (abs(P[1]-P[1].round()))<eps
 
-            RR = RealField() #(100)
+            RR = RealField(100) #(100)
             ER = self.change_ring(RR)
+
+# Note: doing [ER(P) for P in mw_base] sometimes fails.  This way is
+# harder since we have to make sure we don't use -P instead of P, but
+# is safer.
+
             Rgens = [ER.lift_x(P[0]) for P in mw_base]
             for i in range(r):
                 if abs(Rgens[i][1]-mw_base[i][1])>abs((-Rgens[i])[1]-mw_base[i][1]):
                     Rgens[i] = -Rgens[i]
-            #for ni in cartesian_product_iterator([range(-N,N+1) for i in range(r-1)]+[range(N+1)]): ##opt1
-            for mi in range(ceil(((2*H_q+1)**r)/2)): ##opt2
-                ni = Z(mi).digits(base=2*H_q+1, padto=r, digits=range(-H_q, H_q+1)) ##opt2
+
+            # the ni loop through all tuples (a1,a2,...,ar) with
+            # |ai|<=N, but we stop immediately after using the tuple
+            # (0,0,...,0).
+
+            for ni in cartesian_product_iterator([range(-N,N+1) for i in range(r)]): ##opt1
+
+#  Alternative version not using the fancy iterator:
+#            for mi in range(ceil(((2*H_q+1)**r)/2)): ##opt2
+#                ni = Z(mi).digits(base=2*H_q+1, padto=r, digits=range(-H_q, H_q+1)) ##opt2
+
+                if all([n==0 for n in ni]):
+                    use_t(self(0))
+                    break
                 RP=sum([ni[i]*Rgens[i] for i in range(r)],ER(0))
                 for T in tors_points:
                     if is_approx_integral(RP+ER(T)):
@@ -4158,7 +4180,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             x_int_points = integral_x_coords_in_interval(ceil(e1-b2_12), floor(e2-b2_12)+1)
             if verbose:
                 print 'x-coords of points on compact component with ',ceil(e1-b2_12),'<=x<=',floor(e2-b2_12)
-                print x_int_points
+                L = list(x_int_points) # to have the order
+                L.sort()               # deterministic for doctests!
+                print L
         else:
             x_int_points = set()
 
@@ -4169,7 +4193,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         x_int_points = x_int_points.union(x_int_points2)
         if verbose:
             print 'x-coords of points on non-compact component with ',x0,'<=x<=',x1-1
-            print x_int_points2
+            L = list(x_int_points2)
+            L.sort()
+            print L
 
         if verbose:
             print 'starting search of remaining points using coefficient bound ',H_q
@@ -4177,7 +4203,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         x_int_points = x_int_points.union(x_int_points3)
         if verbose:
             print 'x-coords of extra integral points:'
-            print x_int_points3
+            L = list(x_int_points3)
+            L.sort()
+            print L
 
         # Now we have all the x-coordinates of integral points, and we
         # construct the points, depending on the parameter both_signs:

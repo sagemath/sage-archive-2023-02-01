@@ -1759,7 +1759,6 @@ class RegConfirmation(resource.Resource):
         if not notebook.conf()['email']:
             return http.Response(stream=message('The confirmation system is not active.'))
         key = request.args['key'][0]
-        global notebook
         invalid_confirm_key = """\
 <h1>Invalid confirmation key</h1>
 <p>You are reporting a confirmation key that has not been assigned by this

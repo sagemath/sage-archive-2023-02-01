@@ -101,9 +101,11 @@ class CongruenceSubgroup(group.Group):
 
         EXAMPLES:
             sage: Gamma0(11).__hash__()
-            -545929996
+            -545929996 # 32-bit
+            466678398374495476 # 64-bit
             sage: Gamma1(11).__hash__()
-            -830809815
+            -830809815 # 32-bit
+            4909638266971150633 # 64-bit
         """
         return hash(str(self))
 

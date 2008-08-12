@@ -69,8 +69,8 @@ class CongruenceSubgroupElement(MultiplicativeGroupElement):
 
         EXAMPLES:
             sage: x = Gamma0(18)([19,1,18,1])
-            sage: x.__cmp__(3)
-            1
+            sage: x.__cmp__(3) is not 0
+            True
             sage: x.__cmp__(x)
             0
         """

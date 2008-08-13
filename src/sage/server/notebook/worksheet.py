@@ -1546,6 +1546,9 @@ class Worksheet:
     ##########################################################
     def satisfies_search(self, search):
         """
+        Return True if all words in search are in the saved text of
+        the worksheet.
+
         INPUT:
             search is a string that describes a search query, i.e.,
             a space-separated collections of words.
@@ -1554,14 +1557,15 @@ class Worksheet:
             True if the search is satisfied by self, i.e., all
             the words appear in the text version of self.
         """
-        E = self.edit_text() + \
-            ' '.join(self.collaborators()) + ' '.join(self.viewers()) + ' ' + self.publisher() + \
-            ' '.join(self.attached_data_files())
-        E = E.lower()
-        words = split_search_string_into_keywords(search)
-        for word in words:
-            if not word.lower() in E:
+        # Load the worksheet data file from disk.
+        r = open('%s/worksheet.txt'%self.__dir).read().lower()
+        # Check that every single word is in the file from disk.
+        for W in split_search_string_into_keywords(search):
+            if W.lower() not in r:
+                # Some word from the text is not in the search list, so
+                # we return False.
                 return False
+        # Every single word is there.
         return True
 
 

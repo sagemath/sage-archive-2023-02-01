@@ -648,18 +648,28 @@ class NumberField_generic(number_field_base.NumberField):
         It can also be dangerous:
             sage: (a-1)*(a+1)
             0
+
+        TESTS:
+            sage: NumberField(ZZ['x'].0^4 + 23, 'a')
+            Number Field in a with defining polynomial x^4 + 23
+            sage: NumberField(QQ['x'].0^4 + 23, 'a')
+            Number Field in a with defining polynomial x^4 + 23
+            sage: NumberField(GF(7)['x'].0^4 + 23, 'a')
+            Traceback (most recent call last):
+            ...
+            TypeError...
         """
         ParentWithGens.__init__(self, QQ, name)
         if not isinstance(polynomial, polynomial_element.Polynomial):
             raise TypeError, "polynomial (=%s) must be a polynomial"%repr(polynomial)
 
         if check:
-            if not polynomial.is_irreducible():
-                raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
             if not polynomial.parent().base_ring() == QQ:
                 raise TypeError, "polynomial must be defined over rational field"
             if not polynomial.is_monic():
                 raise NotImplementedError, "number fields for non-monic polynomials not yet implemented."
+            if not polynomial.is_irreducible():
+                raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
 
         self._assign_names(name)
         if latex_name is None:

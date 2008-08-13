@@ -7528,7 +7528,7 @@ class Graph(GenericGraph):
 
         EXAMPLE:
             sage: P = graphs.PetersenGraph()
-            sage: P.write_to_eps('sage.eps')
+            sage: P.write_to_eps(tmp_dir() + 'sage.eps')
         """
         from sage.graphs.print_graphs import print_graph_eps
         if self._pos is None:

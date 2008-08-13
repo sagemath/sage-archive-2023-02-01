@@ -2689,7 +2689,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             5 Elliptic Curve defined by y^2 + x*y  = x^3 - 8125*x - 282568 over Rational Field
             6 Elliptic Curve defined by y^2 + x*y  = x^3 - 7930*x - 296725 over Rational Field
             7 Elliptic Curve defined by y^2 + x*y  = x^3 - 130000*x - 18051943 over Rational Field
-            sage: G.plot(edge_labels=True).save('isogeny_graph.png')
+            sage: G.plot(edge_labels=True)
         """
         from sage.graphs.graph import Graph
         L, M = self.isogeny_class()

@@ -22,7 +22,7 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-make install
+make -C Python install
 if [ $? -ne 0 ]; then
    echo "Error installing $PACKAGE_NAME."
    exit 1

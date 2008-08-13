@@ -657,7 +657,8 @@ class SymbolicExpression(RingElement):
 
     def __hash__(self):
         """
-        Returns the hash of this symbolic expression.
+        Returns the hash of the simplified string representation of
+        this symbolic expression.
 
         EXAMPLES:
         We hash a symbolic polynomial:
@@ -665,7 +666,7 @@ class SymbolicExpression(RingElement):
             -832266011
 
         The default hashing strategy is to simply hash
-        the string representation of an object.
+        the string representation of the simplified form.
             sage: hash(repr(x^2+1)) #random due to architecture dependence
             -832266011
 
@@ -674,8 +675,13 @@ class SymbolicExpression(RingElement):
             3
             sage: hash(repr(SR(3/1))) #random due to architecture dependence
             -2061914958
+
+        In this example hashing is important otherwise the answer is
+        wrong:
+            sage: uniq([x-x, -x+x])
+            [0]
         """
-        return hash(self._repr_(simplify=False))
+        return hash(self._repr_(simplify=True))
 
     def __nonzero__(self):
         """

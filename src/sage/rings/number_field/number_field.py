@@ -641,6 +641,12 @@ class NumberField_generic(number_field_base.NumberField):
             sage: NumberField(x^97 - 19, 'a')
             Number Field in a with defining polynomial x^97 - 19
 
+        The defining polynomial must be irreducible:
+            sage: K.<a> = NumberField(x^2 - 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: defining polynomial (x^2 - 1) must be irreducible
+
         If you use check=False, you avoid checking irreducibility of
         the defining polynomial, which can save time.
             sage: K.<a> = NumberField(x^2 - 1, check=False)
@@ -657,7 +663,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: NumberField(GF(7)['x'].0^4 + 23, 'a')
             Traceback (most recent call last):
             ...
-            TypeError...
+            TypeError: polynomial must be defined over rational field
         """
         ParentWithGens.__init__(self, QQ, name)
         if not isinstance(polynomial, polynomial_element.Polynomial):

@@ -196,7 +196,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True):
         sage: s^2
         2
 
-    EXAMPLES: Constructing a relative number field
+    Constructing a relative number field
         sage: K.<a> = NumberField(x^2 - 2)
         sage: R.<t> = K[]
         sage: L.<b> = K.extension(t^3+t+a); L
@@ -239,6 +239,19 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True):
         sage: theta = polygen(QQ, 'theta')
         sage: M.<z> = NumberField([theta^3 + 4, theta^2 + 3]); M
         Number Field in z0 with defining polynomial theta^3 + 4 over its base field
+
+    TESTS:
+        sage: x = QQ['x'].gen()
+        sage: y = ZZ['y'].gen()
+        sage: K = NumberField(x^3 + x + 3, 'a'); K
+        Number Field in a with defining polynomial x^3 + x + 3
+        sage: K.defining_polynomial().parent()
+        Univariate Polynomial Ring in x over Rational Field
+
+        sage: L = NumberField(y^3 + y + 3, 'a'); L
+        Number Field in a with defining polynomial y^3 + y + 3
+        sage: L.defining_polynomial().parent()
+        Univariate Polynomial Ring in y over Rational Field
     """
     if name is None and names is None:
         raise TypeError, "You must specify the name of the generator."
@@ -256,8 +269,10 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True):
         except (AttributeError, TypeError):
             raise TypeError, "polynomial (=%s) must be a polynomial."%repr(polynomial)
 
-    #if all:
-    #    return [NumberField(f, name=name, check=check, names=names) for f, _ in polynomial.factor()]
+    # convert ZZ to QQ
+    R = polynomial.base_ring()
+    Q = polynomial.parent().base_extend(R.fraction_field())
+    polynomial = Q(polynomial)
 
     if cache:
         key = (polynomial, name)
@@ -265,10 +280,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True):
             K = _nf_cache[key]()
             if not K is None: return K
 
-    R = polynomial.base_ring()
-    if R == ZZ:
-        polynomial = QQ['x'](polynomial)
-    elif isinstance(R, NumberField_generic):
+    if isinstance(R, NumberField_generic):
         S = R.extension(polynomial, name, check=check)
         if cache:
             _nf_cache[key] = weakref.ref(S)
@@ -1304,12 +1316,43 @@ class NumberField_generic(number_field_base.NumberField):
             False
             sage: k == m
             True
+
+        TESTS:
+            sage: x = QQ['x'].gen()
+            sage: y = ZZ['y'].gen()
+            sage: K = NumberField(x^3 + x + 3, 'a'); K
+            Number Field in a with defining polynomial x^3 + x + 3
+            sage: K.defining_polynomial().parent()
+            Univariate Polynomial Ring in x over Rational Field
+
+            sage: L = NumberField(y^3 + y + 3, 'a'); L
+            Number Field in a with defining polynomial y^3 + y + 3
+            sage: L.defining_polynomial().parent()
+            Univariate Polynomial Ring in y over Rational Field
+            sage: L == K
+            True
+
+            sage: NumberField(ZZ['x'].0^4 + 23, 'a') == NumberField(ZZ['y'].0^4 + 23, 'a')
+            True
+            sage: NumberField(ZZ['x'].0^4 + 23, 'a') == NumberField(QQ['y'].0^4 + 23, 'a')
+            True
+            sage: NumberField(QQ['x'].0^4 + 23, 'a') == NumberField(QQ['y'].0^4 + 23, 'a')
+            True
+
+            sage: x = var('x'); y = ZZ['y'].gen()
+            sage: NumberField(x^3 + x + 5, 'a') == NumberField(y^3 + y + 5, 'a')
+            True
+            sage: NumberField(x^3 + x + 5, 'a') == NumberField(y^4 + y + 5, 'a')
+            False
+            sage: NumberField(x^3 + x + 5, 'a') == NumberField(x^3 + x + 5, 'b')
+            False
         """
         if not isinstance(other, NumberField_generic):
             return cmp(type(self), type(other))
         c = cmp(self.variable_name(), other.variable_name())
         if c: return c
-        return cmp(self.__polynomial, other.__polynomial)
+        # compare coefficients so that the polynomial variable does not count
+        return cmp(list(self.__polynomial), list(other.__polynomial))
 
     def _ideal_class_(self):
         """

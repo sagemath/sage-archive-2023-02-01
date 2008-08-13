@@ -274,10 +274,10 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         elif isinstance(x, orthotriang.SymmetricFunctionAlgebraElement_orthotriang):
             #Convert to its base and then to self
             xp = x.parent()
-            if self is xp._base:
-                return xp._base._from_cache(x, xp._base_cache, xp._self_to_base_cache)
+            if self is xp._sf_base:
+                return xp._sf_base._from_cache(x, xp._base_cache, xp._self_to_base_cache)
             else:
-                return self( xp._base(x) )
+                return self( xp._sf_base(x) )
 
         ###################
         # Skew Partitions #

@@ -484,6 +484,49 @@ finance_fractal = Extension('sage.finance.fractal', ['sage/finance/fractal.pyx']
 #####################################################
 
 ext_modules = [ \
+
+    Extension('sage.structure.sage_object',
+              sources = ['sage/structure/sage_object.pyx']), \
+
+    Extension('sage.structure.category_object',
+              sources = ['sage/structure/category_object.pyx']), \
+
+    Extension('sage.structure.parent',
+              sources = ['sage/structure/parent.pyx']), \
+
+    Extension('sage.structure.parent_old',
+              sources = ['sage/structure/parent_old.pyx']), \
+
+    Extension('sage.structure.parent_base',
+              sources = ['sage/structure/parent_base.pyx']), \
+
+    Extension('sage.structure.parent_gens',
+              sources = ['sage/structure/parent_gens.pyx']), \
+
+    Extension('sage.structure.generators',
+              sources = ['sage/structure/generators.pyx']), \
+
+    Extension('sage.structure.coerce',
+              sources = ['sage/structure/coerce.pyx']), \
+
+    Extension('sage.structure.coerce_actions',
+              sources = ['sage/structure/coerce_actions.pyx']), \
+
+    Extension('sage.structure.coerce_maps',
+              sources = ['sage/structure/coerce_maps.pyx']), \
+
+    Extension('sage.structure.coerce_dict',
+              sources = ['sage/structure/coerce_dict.pyx']), \
+
+    Extension('sage.structure.element',
+              sources = ['sage/structure/element.pyx']), \
+
+    Extension('sage.categories.map',
+              sources = ['sage/categories/map.pyx']), \
+
+    Extension('sage.categories.morphism',
+              sources = ['sage/categories/morphism.pyx']), \
+
     free_module_element,
 
     complex_double_vector,
@@ -618,21 +661,9 @@ ext_modules = [ \
               sources = ['sage/ext/multi_modular.pyx'],
               libraries=['gmp']), \
 
-    Extension('sage.structure.coerce',
-              sources = ['sage/structure/coerce.pyx']), \
-
-    Extension('sage.structure.coerce_dict',
-              sources = ['sage/structure/coerce_dict.pyx']), \
-
     Extension('sage.modular.congroup_pyx',
               sources = ['sage/modular/congroup_pyx.pyx', \
                          'sage/ext/arith.pyx']), \
-
-    Extension('sage.structure.element',
-              sources = ['sage/structure/element.pyx']), \
-
-    Extension('sage.categories.morphism',
-              sources = ['sage/categories/morphism.pyx']), \
 
     Extension('sage.categories.functor',
               sources = ['sage/categories/functor.pyx']), \

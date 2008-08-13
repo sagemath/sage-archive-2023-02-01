@@ -26,8 +26,7 @@ import weakref
 
 import category
 import morphism
-from sage.structure.parent import Set_generic
-from sage.structure.parent_base import ParentWithBase
+from sage.structure.parent import Parent, Set_generic
 
 _cache = {}
 def Hom(X, Y, cat=None):
@@ -145,7 +144,7 @@ def Hom(X, Y, cat=None):
         H = SchemeHomset(X, Y)
 
     else:  # default
-        if isinstance(X, ParentWithBase):
+        if hasattr(X, '_base') and X._base is not X and X._base is not None:
             H = HomsetWithBase(X, Y, cat)
         else:
             H = Homset(X, Y, cat)
@@ -217,10 +216,7 @@ def end(X, f):
     """
     return End(X)(f)
 
-# We have to use ParentWithBase here, otherwise
-# we can't create elements of this Homset as
-# Element._parent has been changed to ParentWithBase.
-class Homset(ParentWithBase, Set_generic):
+class Homset(Set_generic):
     """
     The class for collections of morphisms in a category.
 
@@ -250,6 +246,17 @@ class Homset(ParentWithBase, Set_generic):
         return "Set of Morphisms from %s to %s in %s"%(
             self._domain, self._codomain, self.__category)
 
+    def __nonzero__(self):
+        return True
+
+    def _generic_convert_map(self, S):
+        if self._element_constructor is None:
+            from sage.categories.morphism import CallMorphism
+            from sage.categories.homset import Hom
+            return CallMorphism(Hom(S, self))
+        else:
+            return parent.Parent._generic_convert_map(self, S)
+
     def homset_category(self):
         """
         Return the category that this is a Hom in, i.e., this is
@@ -274,13 +281,13 @@ class Homset(ParentWithBase, Set_generic):
               From: SymmetricGroup(5)
               To:   SymmetricGroup(6)
             sage: H(phi)
-            Composite morphism:
+            Composite map:
               From: SymmetricGroup(4)
               To:   SymmetricGroup(7)
-              Defn:   Composite morphism:
+              Defn:   Composite map:
                       From: SymmetricGroup(4)
                       To:   SymmetricGroup(6)
-                      Defn:   Coercion morphism:
+                      Defn:   Call morphism:
                               From: SymmetricGroup(4)
                               To:   SymmetricGroup(5)
                             then
@@ -288,7 +295,7 @@ class Homset(ParentWithBase, Set_generic):
                               From: SymmetricGroup(5)
                               To:   SymmetricGroup(6)
                     then
-                      Coercion morphism:
+                      Call morphism:
                       From: SymmetricGroup(6)
                       To:   SymmetricGroup(7)
 
@@ -362,14 +369,21 @@ class Homset(ParentWithBase, Set_generic):
         """
         return Homset(self._codomain, self._domain, self.__category)
 
-# class HomsetWithBase(ParentWithBase, Homset): # redundant, see above
+    ############### For compatability with old coercion model #######################
+
+    def get_action_c(self, R, op, self_on_left):
+        return None
+
+    def coerce_map_from_c(self, R):
+        return None
+
 class HomsetWithBase(Homset):
     def __init__(self, X, Y, cat=None, check=True, base=None):
         Homset.__init__(self, X, Y, cat, check)
         if base is None:
-            ParentWithBase.__init__(self, X.base_ring())
+            Parent.__init__(self, X.base_ring())
         else:
-            ParentWithBase.__init__(self, base)
+            Parent.__init__(self, base)
 
 def is_Homset(x):
     """

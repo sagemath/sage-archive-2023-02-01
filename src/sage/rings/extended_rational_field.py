@@ -148,7 +148,7 @@ class ExtendedRationalField_class(_uniq0, RationalField):
         EXAMPLES:
             sage: E = ExtendedRationalField
             sage: E.coerce_map_from(ZZ) #indirect doctest
-            Coercion morphism:
+            Call morphism:
               From: Integer Ring
               To:   Extended Rational Field
             sage: E.coerce_map_from(QQ) #indirect doctest
@@ -156,7 +156,7 @@ class ExtendedRationalField_class(_uniq0, RationalField):
               From: Rational Field
               To:   Extended Rational Field
             sage: E.coerce_map_from(ExtendedIntegerRing)
-            Coercion morphism:
+            Call morphism:
               From: Extended Integer Ring
               To:   Extended Rational Field
 

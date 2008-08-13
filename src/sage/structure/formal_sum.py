@@ -105,7 +105,7 @@ class FormalSums_generic(Module):
 
             sage: A = FormalSums(ZZ).get_action(QQ); A
             Right scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
-            with precomposition on left by Coercion morphism:
+            with precomposition on left by Call morphism:
               From: Abelian Group of all Formal Finite Sums over Integer Ring
               To:   Abelian Group of all Formal Finite Sums over Rational Field
             sage: A = FormalSums(QQ).get_action(ZZ); A

@@ -6,6 +6,5 @@ cdef class ResidueFieldHomomorphism(RingHomomorphism):
     pass
 
 cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
-    cdef Element _call_c_impl(self, Element x)
     cdef object im_gen
     cdef object p

@@ -3685,8 +3685,7 @@ cdef class int_to_Z(Morphism):
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
-    cdef Element _call_c(self, a):
-        # Override this _call_c rather than _call_c_impl because a is not an element
+    cpdef Element _call_(self, a):
         cdef Integer r
         r = <Integer>PY_NEW(Integer)
         mpz_set_si(r.value, PyInt_AS_LONG(a))
@@ -3711,7 +3710,7 @@ cdef class long_to_Z(Morphism):
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
-    cdef Element _call_c(self, a):
+    cpdef Element _call_(self, a):
         cdef Integer r
         r = <Integer>PY_NEW(Integer)
         mpz_set_pylong(r.value, a)

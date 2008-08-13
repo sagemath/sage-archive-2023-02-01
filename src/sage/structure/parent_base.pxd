@@ -6,10 +6,9 @@
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-cimport parent
+cimport parent_old
 
-cdef class ParentWithBase(parent.Parent):
-    cdef parent.Parent _base
+cdef class ParentWithBase(parent_old.Parent):
     # DO NOT OVERRIDE ANY OF THE FOLLOWING
     cdef base_extend_recursive_c(self, ParentWithBase X)
     cdef base_extend_canonical_c(self, ParentWithBase X)

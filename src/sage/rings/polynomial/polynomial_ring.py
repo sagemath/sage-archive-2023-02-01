@@ -215,6 +215,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return x
             elif P == self.base_ring():
                 return self([x])
+            elif self.base_ring().has_coerce_map_from(P):
+                return self([P(x)])
         if hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
         if is_SingularElement(x) and self._has_singular:

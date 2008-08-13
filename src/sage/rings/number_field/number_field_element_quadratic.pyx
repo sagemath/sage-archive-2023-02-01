@@ -1150,7 +1150,7 @@ cdef class Q_to_quadratic_field_element(Morphism):
         self.zero_element.D = K._D
 
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         cdef NumberFieldElement_quadratic y = self.zero_element._new()
         y.D = self.zero_element.D
         mpz_set(y.a, mpq_numref((<Rational>x).value))

@@ -2430,7 +2430,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         # sage.misc.misc.deprecation("Use eigenspaces_left")
         if even_if_inexact is not None:
-            sage.misc.misc.deprecated("The 'even_if_inexact' parameter is deprecated; a warning will be issued if called over an inexact ring.")
+            sage.misc.misc.deprecation("The 'even_if_inexact' parameter is deprecated; a warning will be issued if called over an inexact ring.")
         return self.eigenspaces_left(var=var)
 
 
@@ -2599,7 +2599,7 @@ cdef class Matrix(matrix1.Matrix):
             if algebraic_multiplicity:
                 return x
             else:
-                return [(e[0],e[1]) for e in x]
+                return  Sequence([(e[0],e[1]) for e in x], cr=True)
 
         if not self.base_ring().is_exact():
             from warnings import warn

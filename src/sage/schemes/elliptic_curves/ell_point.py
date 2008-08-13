@@ -476,8 +476,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: Q = 5*E.1; Q
-            (-2739/1444 : 22161/54872 : 1)
+            sage: Q = 5*E(0,0); Q
+            (-2739/1444 : -77033/54872 : 1)
             sage: Q.is_divisible_by(4)
             False
             sage: Q.is_divisible_by(5)

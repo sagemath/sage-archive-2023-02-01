@@ -474,6 +474,9 @@ class Axes(SageObject):
         INPUT:
             xmin, xmax, ymin, ymax -- numbers
 
+        OUTPUT:
+            xmin, xmax, ymin, ymax -- numbers
+
         TESTS:
             sage: from sage.plot.axes import Axes
             sage: Axes()._adjustments_for_frame(-10,40,10,35)
@@ -585,26 +588,34 @@ class GridLines(SageObject):
         Add horizontal and vertical grid lines to a Graphics object.
 
         INPUT:
-            gridlines -- (default: None) can be any one of the following:
-                None, False -- do not add grid lines
-                True, "automatic", "major" -- add grid at major ticks
-                    of axes
-                "minor" -- add grid at major and minor ticks of axes
-                [xlist,ylist] -- a tuple or list containing two elements,
-                    where xlist (or ylist) can be any of the following:
-                    None, False -- don't add horizontal (or vertical) lines
-                    True, "automatic", "major" -- add horizontal (or
-                        vertical) grid lines at the major ticks of axes
-                    "minor" -- add horizontal (or vertical) grid lines
-                        at major and minor ticks of axes
-                    iterable yielding numbers n or pairs (n,opts) where
-                        n is the coordinate of the line and opt is a
-                        dictionary of MATPLOTLIB options for rendering the
-                        line.
-            gridlinesstyle, hgridlinesstyle, vgridlinesstyle
-                -- (default: None) a dictionary of MATPLOTLIB options for
-                    the rendering of the grid lines, the horizontal grid lines
-                    or the vertical grid lines, respectively.
+            gridlines    -- (default: None) can be any of the following:
+                            1. None, False: do not add grid lines.
+                            2. True, "automatic", "major": add grid lines
+                               at major ticks of the axes.
+                            3. "minor": add grid at major and minor ticks.
+                            4. [xlist,ylist]: a tuple or list containing
+                               two elements, where xlist (or ylist) can be
+                               any of the following.
+                               4a. None, False: don't add horizontal (or
+                                   vertical) lines.
+                               4b. True, "automatic", "major": add
+                                   horizontal (or vertical) grid lines at
+                                   the major ticks of the axes.
+                               4c. "minor": add horizontal (or vertical)
+                                   grid lines at major and minor ticks of
+                                   axes.
+                               4d. an iterable yielding numbers n or pairs
+                                   (n,opts), where n is the coordinate of
+                                   the line and opt is a dictionary of
+                                   MATPLOTLIB options for rendering the
+                                   line.
+            gridlinesstyle,
+            hgridlinesstyle,
+            vgridlinesstyle
+                         -- (default: None) a dictionary of MATPLOTLIB
+                            options for the rendering of the grid lines,
+                            the horizontal grid lines or the vertical grid
+                            lines, respectively.
 
         TESTS:
             sage: from sage.plot.axes import GridLines
@@ -621,22 +632,37 @@ class GridLines(SageObject):
             sage: gl = GridLines([range(-10,10,2), lambda x,y:srange(x,y,0.5)])
             sage: gl = GridLines(None, dict(color="red"),
             ...     dict(linestyle=":"), dict(color="blue"))
+            sage: gl = GridLines(None, dict(rgbcolor="red"),
+            ...     dict(linestyle=":"), dict(color="blue"))
         """
         self.__gridlines = gridlines
 
         defaultstyle = dict(color=(0.3,0.3,0.3),linewidth=0.4)
         if gridlinesstyle is not None:
+            rgbcolor_keyword_support(gridlinesstyle)
             defaultstyle.update(gridlinesstyle)
         self.__gridlinesstyle = [copy(defaultstyle),copy(defaultstyle)]
         if vgridlinesstyle is not None:
+            rgbcolor_keyword_support(vgridlinesstyle)
             self.__gridlinesstyle[0].update(vgridlinesstyle)
         if hgridlinesstyle is not None:
+            rgbcolor_keyword_support(hgridlinesstyle)
             self.__gridlinesstyle[1].update(hgridlinesstyle)
 
     def add_gridlines(self, subplot, xmin, xmax, ymin, ymax, frame=False):
         # Process the input to get valid gridline data.
         r"""
         Add the grid lines to a subplot object.
+
+        INPUT:
+            subplot     -- an instance of matplotlib.axes.Subplot
+            xmin, xmax  -- $x$ range of the Graphics object containing subplot
+            ymin, ymax  -- $y$ range of the Graphics object containing subplot
+            frame       -- (default: False) if True, then adjust the lengths of
+                           the grid lines to touch connect to the frame.
+
+        OUTPUT:
+            None (modifies subplot)
 
         TESTS:
             sage: from sage.plot.axes import GridLines
@@ -763,6 +789,7 @@ class GridLines(SageObject):
                 if hasattr(entry,'__len__'):
                     if len(entry) == 2:
                         val = entry[0]
+                        rgbcolor_keyword_support(entry[1])
                         kwds.update(entry[1])
                 else:
                     val = entry
@@ -794,6 +821,9 @@ class GridLines(SageObject):
             ticks -- "major" or "minor". If "minor", then return also
                 the locations of the minor ticks.
 
+        OUTPUT:
+            list -- the locations of the ticks on the axes
+
         TESTS:
             sage: from sage.plot.axes import GridLines
             sage: GridLines()._get_ticks_locations([-10,20])
@@ -819,9 +849,58 @@ class GridLines(SageObject):
             xinterval -- x-axis interval as pairs of numbers
             yinterval -- y-axis interval as pairs of numbers
 
+        OUTPUT:
+            xmin, xmax, ymin, ymax -- numbers
+
         TESTS:
             sage: from sage.plot.axes import GridLines
             sage: GridLines()._get_adjustments_for_frame([-10,40],[10,35])
             (-11.0, 41.0, 9.5, 35.5)
         """
         return Axes()._adjustments_for_frame(*(xinterval+yinterval))
+
+def rgbcolor_keyword_support(d):
+    r"""
+    Change the rgbcolor key to color.
+
+    NOTE: The rgbcolor keyword is a synonym for color and not a matplotlib
+    option.
+
+    INPUT:
+        d -- a dictionary
+
+    OUTPUT:
+        None -- modifies d
+
+    TESTS:
+        sage: from sage.plot.axes import rgbcolor_keyword_support
+        sage: d = dict(rgbcolor="red",other="blue")
+        sage: rgbcolor_keyword_support(d)
+        sage: d
+        {'color': 'red', 'other': 'blue'}
+
+        sage: d = dict(color="red",other="blue")
+        sage: rgbcolor_keyword_support(d)
+        sage: d
+        {'color': 'red', 'other': 'blue'}
+
+        sage: d = dict(color="red", rgbcolor="red")
+        sage: rgbcolor_keyword_support(d)
+        sage: d
+        {'color': 'red'}
+
+        sage: d = dict(color="red", rgbcolor="black")
+        sage: rgbcolor_keyword_support(d)
+        Traceback (most recent call last):
+        ...
+        TypeError: specify only one of color or rgbcolor
+    """
+    if d.has_key("rgbcolor"):
+        if d.has_key("color"):
+            if d["rgbcolor"] == d["color"]:
+                del d["rgbcolor"]
+            else:
+                raise TypeError, "specify only one of color or rgbcolor"
+        else:
+            d["color"] = d["rgbcolor"]
+            del d["rgbcolor"]

@@ -1214,26 +1214,34 @@ class Graphics(SageObject):
                             this very large, you may have to increase
                             figsize to see all labels.
             frame        -- (default: False) draw a frame around the image
-            gridlines -- (default: None) can be any one of the following:
-                None, False -- do not add grid lines
-                True, "automatic", "major" -- add grid at major ticks
-                    of axes
-                "minor" -- add grid at major and minor ticks of axes
-                [xlist,ylist] -- a tuple or list containing two elements,
-                    where xlist (or ylist) can be any of the following:
-                    None, False -- don't add horizontal (or vertical) lines
-                    True, "automatic", "major" -- add horizontal (or
-                        vertical) grid lines at the major ticks of axes
-                    "minor" -- add horizontal (or vertical) grid lines
-                        at major and minor ticks of axes
-                    iterable yielding numbers n or pairs (n,opts) where
-                        n is the coordinate of the line and opt is a
-                        dictionary of MATPLOTLIB options for rendering the
-                        line.
-            gridlinesstyle, hgridlinesstyle, vgridlinesstyle
-                -- (default: None) a dictionary of MATPLOTLIB options for
-                    the rendering of the grid lines, the horizontal grid lines
-                    or the vertical grid lines, respectively.
+            gridlines    -- (default: None) can be any of the following:
+                            1. None, False: do not add grid lines.
+                            2. True, "automatic", "major": add grid lines
+                               at major ticks of the axes.
+                            3. "minor": add grid at major and minor ticks.
+                            4. [xlist,ylist]: a tuple or list containing
+                               two elements, where xlist (or ylist) can be
+                               any of the following.
+                               4a. None, False: don't add horizontal (or
+                                   vertical) lines.
+                               4b. True, "automatic", "major": add
+                                   horizontal (or vertical) grid lines at
+                                   the major ticks of the axes.
+                               4c. "minor": add horizontal (or vertical)
+                                   grid lines at major and minor ticks of
+                                   axes.
+                               4d. an iterable yielding numbers n or pairs
+                                   (n,opts), where n is the coordinate of
+                                   the line and opt is a dictionary of
+                                   MATPLOTLIB options for rendering the
+                                   line.
+            gridlinesstyle,
+            hgridlinesstyle,
+            vgridlinesstyle
+                         -- (default: None) a dictionary of MATPLOTLIB
+                            options for the rendering of the grid lines,
+                            the horizontal grid lines or the vertical grid
+                            lines, respectively.
 
         EXAMPLES:
             sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
@@ -1312,17 +1320,17 @@ class Graphics(SageObject):
             ...     (0,{"color":"blue","linestyle":"--"})
             ...    ],
             ...    [
-            ...     (-1,{"color":"red","linestyle":":"}),
+            ...     (-1,{"rgbcolor":"red","linestyle":":"}),
             ...     (0,{"color":"blue","linestyle":"--"}),
-            ...     (1,{"color":"red","linestyle":":"}),
+            ...     (1,{"rgbcolor":"red","linestyle":":"}),
             ...    ]
             ...    ),
-            ...    gridlinesstyle=dict(marker='x'))
+            ...    gridlinesstyle=dict(marker='x',rgbcolor="black"))
 
         Grid lines can be added to contour plots.
             sage: f = lambda x,y: sin(x^2 + y^2)*cos(x)*sin(y)
             sage: c = contour_plot(f, (-4, 4), (-4, 4), plot_points=100)
-            sage: c.show(gridlines=True, gridlinesstyle={'linestyle':':','linewidth':1})
+            sage: c.show(gridlines=True, gridlinesstyle={'linestyle':':','linewidth':1, 'rgbcolor':'red'})
 
         Grid lines can be added to matrix plots.
             sage: M = MatrixSpace(QQ,10).random_element()

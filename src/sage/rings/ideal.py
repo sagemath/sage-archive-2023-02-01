@@ -316,6 +316,59 @@ class Ideal_generic(MonoidElement):
         """
         return self.ring().base_ring()
 
+    def apply_morphism(self, phi):
+        r"""
+        Apply the morphism phi to every element of this ideal.  Returns an ideal in the domain of phi.
+
+        EXAMPLES:
+            sage: psi = CC['x'].hom([-CC['x'].0])
+            sage: J = ideal([CC['x'].0 + 1]); J
+            Principal ideal (1.00000000000000*x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+            sage: psi(J)
+            Principal ideal (-1.00000000000000*x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+            sage: J.apply_morphism(psi)
+            Principal ideal (-1.00000000000000*x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+
+            sage: psi = ZZ['x'].hom([-ZZ['x'].0])
+            sage: J = ideal([ZZ['x'].0, 2]); J
+            Ideal (x, 2) of Univariate Polynomial Ring in x over Integer Ring
+            sage: psi(J)
+            Ideal (-x, 2) of Univariate Polynomial Ring in x over Integer Ring
+            sage: J.apply_morphism(psi)
+            Ideal (-x, 2) of Univariate Polynomial Ring in x over Integer Ring
+
+        TESTS:
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: A = K.ideal(a)
+            sage: taus = K.embeddings(K)
+            sage: A.apply_morphism(taus[0]) # identity
+            Fractional ideal (a)
+            sage: A.apply_morphism(taus[1]) # complex conjugation
+            Fractional ideal (-a)
+            sage: A.apply_morphism(taus[0]) == A.apply_morphism(taus[1])
+            True
+
+            sage: K.<a> = NumberField(x^2 + 5)
+            sage: B = K.ideal([2, a + 1]); B
+            Fractional ideal (2, a + 1)
+            sage: taus = K.embeddings(K)
+            sage: B.apply_morphism(taus[0]) # identity
+            Fractional ideal (2, a + 1)
+
+            Since 2 is totally ramified, complex conjugation fixes it:
+
+            sage: B.apply_morphism(taus[1]) # complex conjugation
+            Fractional ideal (2, a + 1)
+
+            sage: taus[1](B)
+            Fractional ideal (2, a + 1)
+        """
+        from sage.categories.morphism import is_Morphism
+        if not is_Morphism(phi):
+            raise TypeError, "phi must be a morphism"
+        # delegate: morphisms know how to apply themselves to ideals
+        return phi(self)
+
     def _latex_(self):
         return '\\left(%s\\right)%s'%(", ".join([latex.latex(g) for g in \
                                                  self.gens()]),

@@ -335,7 +335,7 @@ cdef class CategoryObject(sage_object.SageObject):
         equal to the generators of self.
 
         NOTE: If Foo is a constructor for a SAGE object with
-        generators, and Foo is defined in Pyrex, then it would
+        generators, and Foo is defined in Cython, then it would
         typically call inject_variables() on the object it
         creates.  E.g., PolyomialRing(QQ, 'y') does this so that the
         variable y is the generator of the polynomial ring.
@@ -497,7 +497,7 @@ cdef class CategoryObject(sage_object.SageObject):
 
     #################################################################################
     # Give all objects with generators a dictionary, so that attribute setting
-    # works.   It would be nice if this functionality were standard in Pyrex,
+    # works.   It would be nice if this functionality were standard in Cython,
     # i.e., just define __dict__ as an attribute and all this code gets generated.
     #################################################################################
     def __getstate__(self):

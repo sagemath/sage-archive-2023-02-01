@@ -190,7 +190,7 @@ cdef class RightModuleAction(ModuleAction):
 
     cpdef Element _call_(self, a, g):
         """
-        A rikght module action is an action that takes the module element as the
+        A right module action is an action that takes the module element as the
         first argument (the left side) and the ring element as the second
         argument (the right side).
 
@@ -217,6 +217,8 @@ cdef class RightModuleAction(ModuleAction):
             else:
                 return _lmul_c(<ModuleElement>a, <RingElement>g)  # a * g
         else:
+            # If we have few enough references to this object, then we know
+            # it is safe to do a (mutating) inplace operation.
             if (<RefPyObject *>a).ob_refcnt < inplace_threshold + self.is_inplace:
                 return _ilmul_c(<ModuleElement>a, <RingElement>g)  # a * g
             else:

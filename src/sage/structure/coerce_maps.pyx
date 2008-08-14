@@ -58,7 +58,7 @@ cdef class DefaultConvertMap(Map):
 
 cdef class DefaultConvertMap_unique(DefaultConvertMap):
     """
-    This morphism simply differs action to the codomain's element_constructor method,
+    This morphism simply defers action to the codomain's element_constructor method,
     WITHOUT passing in the codomain as the first argument.
 
     This is used for creating elements that don't take a parent as the first argument

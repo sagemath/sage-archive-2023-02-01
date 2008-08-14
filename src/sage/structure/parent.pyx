@@ -17,6 +17,8 @@ cimport element
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 
+import copy
+
 cdef int bad_parent_warnings = 0
 cdef int unique_parent_warnings = 0
 
@@ -253,7 +255,7 @@ cdef class Parent(category_object.CategoryObject):
         This is the generic call method for all parents.
 
         When called, it will find a map based on the Parent (or type) of x.
-        If a coercion exists, this it will always be chosen. This map will
+        If a coercion exists, it will always be chosen. This map will
         then be called (with the arguments and keywords if any).
 
         By default this will dispatch as quickly as possible to
@@ -594,9 +596,9 @@ cdef class Parent(category_object.CategoryObject):
         if not PY_TYPE_CHECK(convert_list, list):
             raise ValueError, "%s_populate_coercion_lists_: convert_list is type %s, must be list" % (type(convert_list), type(self))
 
-        self._initial_coerce_list = coerce_list
-        self._initial_action_list = action_list
-        self._initial_convert_list = convert_list
+        self._initial_coerce_list = copy(coerce_list)
+        self._initial_action_list = copy(action_list)
+        self._initial_convert_list = copy(convert_list)
 
         self._convert_method_name = convert_method_name
         if init_no_parent is not None:
@@ -744,7 +746,8 @@ cdef class Parent(category_object.CategoryObject):
         """
         # We first check (using some cython trickery) to see if coerce_map_from_ has been overridden.
         # If it has, then we can just (by default) call it and see if it returns None or not.
-        # Otherwise we return False by default (so that no canonical coercions exist)
+        # Otherwise the default would call this function again, so we we return False by default
+        # (so that no canonical coercions exist)
         if HAS_DICTIONARY(self):
             method = (<object>self)._coerce_map_from_
             if PyCFunction_Check(method) and \
@@ -836,8 +839,10 @@ cdef class Parent(category_object.CategoryObject):
                     - DefaultConvertMap_unique
                     - NamedConvertMap
                 return this map
-            3. Traverse the coercion lists looking for the "best" map
-               (including the one found at 2).
+            3. Traverse the coercion lists looking for another map
+               returning the map from step (2) if none is found.
+
+        In the future, multiple paths may be discovered and compared.
         """
         best_mor = None
         if PY_TYPE_CHECK(S, Parent) and (<Parent>S)._embedding is not None:

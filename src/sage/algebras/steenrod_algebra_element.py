@@ -207,16 +207,15 @@ Multiplication works within bases:
     sage: x * y
     Sq^{5} Sq^{1}
 
-Multiplying elements defined with respect to two different bases may
-have unpredictable results (as far as the basis in which the result is
-printed):
+When multiplying elements defined with respect to different bases, the
+result is printed in the basis of the left-hand factor:
     sage: milnor = SteenrodAlgebra(2, 'milnor')
     sage: xm = milnor.Sq(5)
     sage: ym = milnor.Sq(1)
     sage: xm * ym
     Sq(3,1)
     sage: xm * y
-    Sq^{5} Sq^{1}
+    Sq(3,1)
     sage: x * ym
     Sq^{5} Sq^{1}
 

@@ -43,6 +43,7 @@ namespace GiNaC {
   typedef double Number_T;
   typedef double Integer_T;
   typedef double Float_T;
+  typedef double Real_T;
 
 /** Function pointer to implement callbacks in the case 'Digits' gets changed.
  *  Main purpose of such callbacks is to adjust look-up tables of certain
@@ -201,7 +202,8 @@ protected:
 
 // member variables
 
-protected:
+//protected:
+ public:
 	Number_T value;
 };
 

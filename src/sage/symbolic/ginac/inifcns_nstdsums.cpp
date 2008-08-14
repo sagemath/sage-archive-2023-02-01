@@ -125,6 +125,7 @@ int xnsize = 0;
 // The second index in Xn corresponds to the index from the actual sum.
 void fill_Xn(int n)
 {
+  /*
 	if (n>1) {
 		// calculate X_2 and higher (corresponding to Li_4 and higher)
 		std::vector<Number_T> buf(xninitsize);
@@ -186,11 +187,13 @@ void fill_Xn(int n)
 	}
 
 	xnsize++;
+  */
 }
 
 // doubles the number of entries in each Xn[]
 void double_Xn()
 {
+  /*
 	const int pos0 = xninitsize / 2;
 	// X_0
 	for (int i=1; i<=xninitsizestep/2; ++i) {
@@ -232,6 +235,7 @@ void double_Xn()
 		}
 	}
 	xninitsize += xninitsizestep;
+  */
 }
 
 
@@ -257,6 +261,7 @@ Number_T Li2_do_sum(const Number_T& x)
 // calculates Li(2,x) with Xn
 Number_T Li2_do_sum_Xn(const Number_T& x)
 {
+  /*
 	std::vector<Number_T>::const_iterator it = Xn[0].begin();
 	std::vector<Number_T>::const_iterator xend = Xn[0].end();
 	Number_T u = -log(1-x);
@@ -277,12 +282,14 @@ Number_T Li2_do_sum_Xn(const Number_T& x)
 		}
 	} while (res != resbuf);
 	return res;
+  */
 }
 
 
 // calculates Li(n,x), n>2 without Xn
 Number_T Lin_do_sum(int n, const Number_T& x)
 {
+  /*
 	Number_T factor = x;
 	Number_T res = x;
 	Number_T resbuf;
@@ -294,6 +301,7 @@ Number_T Lin_do_sum(int n, const Number_T& x)
 		i++;
 	} while (res != resbuf);
 	return res;
+  */
 }
 
 
@@ -551,6 +559,7 @@ ex G_eval1(int a, int scale)
 // G_eval-function for G transformations
 ex G_eval(const Gparameter& a, int scale)
 {
+  /*
 	// check for properties of G
 	ex sc = gsyms[std::abs(scale)];
 	lst newa;
@@ -633,12 +642,14 @@ ex G_eval(const Gparameter& a, int scale)
 		}
 	}
 	return pow(-1, x.nops()) * Li(m, x);
+  */
 }
 
 
 // converts data for G: pending_integrals -> a
 Gparameter convert_pending_integrals_G(const Gparameter& pending_integrals)
 {
+  /*
 	GINAC_ASSERT(pending_integrals.size() != 1);
 
 	if (pending_integrals.size() > 0) {
@@ -650,6 +661,7 @@ Gparameter convert_pending_integrals_G(const Gparameter& pending_integrals)
 		Gparameter new_a;
 		return new_a;
 	}
+  */
 }
 
 
@@ -2264,6 +2276,7 @@ struct map_trafo_H_convert_to_zeta : public map_function
 // remove trailing zeros from H-parameters
 struct map_trafo_H_reduce_trailing_zeros : public map_function
 {
+  /*
 	ex operator()(const ex& e)
 	{
 		if (is_a<add>(e) || is_a<mul>(e)) {
@@ -2332,22 +2345,26 @@ struct map_trafo_H_reduce_trailing_zeros : public map_function
 		}
 		return e;
 	}
+  */
 };
 
 
 // returns an expression with zeta functions corresponding to the parameter list for H
 ex convert_H_to_zeta(const lst& m)
 {
+  /*
 	symbol xtemp("xtemp");
 	map_trafo_H_reduce_trailing_zeros filter;
 	map_trafo_H_convert_to_zeta filter2;
 	return filter2(filter(H(m, xtemp).hold())).subs(xtemp == 1);
+  */
 }
 
 
 // convert signs form Li to H representation
 lst convert_parameter_Li_to_H(const lst& m, const lst& x, ex& pf)
 {
+  /*
 	lst res;
 	lst::const_iterator itm = m.begin();
 	lst::const_iterator itx = ++x.begin();
@@ -2363,6 +2380,7 @@ lst convert_parameter_Li_to_H(const lst& m, const lst& x, ex& pf)
 		itx++;
 	}
 	return res;
+  */
 }
 
 
@@ -2728,6 +2746,7 @@ struct map_trafo_H_1mx : public map_function
 // do x -> 1/x transformation
 struct map_trafo_H_1overx : public map_function
 {
+  /*
 	ex operator()(const ex& e)
 	{
 		if (is_a<add>(e) || is_a<mul>(e)) {
@@ -2843,12 +2862,14 @@ struct map_trafo_H_1overx : public map_function
 		}
 		return e;
 	}
+  */
 };
 
 
 // do x -> (1-x)/(1+x) transformation
 struct map_trafo_H_1mxt1px : public map_function
 {
+  /*
 	ex operator()(const ex& e)
 	{
 		if (is_a<add>(e) || is_a<mul>(e)) {
@@ -2966,6 +2987,7 @@ struct map_trafo_H_1mxt1px : public map_function
 		}
 		return e;
 	}
+  */
 };
 
 
@@ -3327,6 +3349,7 @@ REGISTER_FUNCTION(H,
 // takes a parameter list for H and returns an expression with corresponding multiple polylogarithms
 ex convert_H_to_Li(const ex& m, const ex& x)
 {
+  /*
 	map_trafo_H_reduce_trailing_zeros filter;
 	map_trafo_H_convert_to_Li filter2;
 	if (is_a<lst>(m)) {
@@ -3334,6 +3357,7 @@ ex convert_H_to_Li(const ex& m, const ex& x)
 	} else {
 		return filter2(filter(H(lst(m), x).hold()));
 	}
+  */
 }
 
 
@@ -3351,7 +3375,8 @@ namespace {
 
 
 // parameters and data for [Cra] algorithm
-const Number_T lambda = Number_T("319/320");
+//const Number_T lambda = Number_T("319/320");
+const Number_T lambda = Number_T(319)/Number_T(320);
 int L1;
 int L2;
 std::vector<std::vector<Number_T> > f_kj;
@@ -3602,6 +3627,7 @@ Number_T zeta_do_sum_simple(const std::vector<int>& r)
 // does Hoelder convolution. see [BBB] (7.0)
 Number_T zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vector<int>& s_)
 {
+  /*
 	// prepare parameters
 	// holds Li arguments in [BBB] notation
 	std::vector<int> s = s_;
@@ -3682,6 +3708,7 @@ Number_T zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vect
 	res = res + signum * multipleLi_do_sum(m_q, s_q);
 
 	return res;
+  */
 }
 
 

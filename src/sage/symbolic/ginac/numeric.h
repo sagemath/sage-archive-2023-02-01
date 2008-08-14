@@ -29,15 +29,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include <cln/complex.h>
-
-#if defined(G__CINTVERSION) && !defined(__MAKECINT__)
-// Cint @$#$! doesn't like forward declaring classes used for casting operators
-// so we have to include the definition of cln::cl_N here, but it is enough to
-// do so for the compiler, hence the !defined(__MAKECINT__).
-  #include <cln/complex_class.h>
-#endif
-
 namespace GiNaC {
 
   typedef double Number_T;
@@ -334,10 +325,5 @@ ex CatalanEvalf();
 
 
 } // namespace GiNaC
-
-#ifdef __MAKECINT__
-#pragma link off defined_in cln/number.h;
-#pragma link off defined_in cln/complex_class.h;
-#endif
 
 #endif // ndef __GINAC_NUMERIC_H__

@@ -2765,9 +2765,10 @@ function check_for_cell_update_callback(status, response_text) {
     var introspect_html = D[5];
     var j = id_of_cell_delta(id,1);
 
-    // Evaluate javascript
+    // Evaluate javascript, but *only* after the entire
+    // cell output has been loaded (hence the stat == 'd') below.
     var cell_is_not_an_interact_update = ! get_element("cell-interact-" + id);
-    if (cell_is_not_an_interact_update) {
+    if (stat == 'd' && cell_is_not_an_interact_update) {
         output_text_wrapped = eval_script_tags(output_text_wrapped);
         output_html = eval_script_tags(output_html);
     }

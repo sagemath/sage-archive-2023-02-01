@@ -38,14 +38,14 @@ cusps 0 and $\infty$ in $B_k(G)$. For all cusps *except* 0 and
 $\infty$, multiplying the cusp by -1 corresponds to taking [(u,v)] to
 [(-u,v)] in $B_k(G)$. This means that [(u,v)] is equivalent to
 [(-u,v)] whenever u/v is equivalent to -u/v, except in the case of 0
-and $\infty$. We have that [(1,0)] is equivalent to [(-1,0)] exactly
-when our space has sign -1 and when one of the following conditions is
-satisfied:
- - $G = \Gamma_0(N)$
- - $G = \Gamma_1(2)$
- - $G = \Gamma_H(N)$, and $-1\in H$.
-(Of course, [(0,1)] is equivalent to [(0,-1)] under exactly the same
-conditions.)
+and $\infty$. We have the following conditions for [(1,0)] and
+[(0,1)]:
+
+ - [(0,1)] = sign * [(0,1)], so [(0,1)] is 0 exactly when the
+   sign is -1.
+
+ - [(1,0)] = sign * [(-1,0)] and [(1,0)] = (-1)**k * [(-1,0)],
+   so [(1,0)] = 0 whenever sign != (-1)**k.
 
 NOTE/WARNING: For all the spaces of boundary symbols below, no work is
 done to determine the cusps for G at creation time. Instead, cusps are
@@ -609,6 +609,15 @@ class BoundarySpace_wtk_g0(BoundarySpace):
             sage: B = ModularSymbols(Gamma0(17), 6, sign=-1).boundary_space()
             sage: B._coerce_cusp(Cusp(0))
             0
+            sage: B = ModularSymbols(Gamma0(16), 4).boundary_space()
+            sage: [ B(Cusp(i,4)) for i in range(4) ]
+            [[0], [1/4], [1/2], [3/4]]
+            sage: B = ModularSymbols(Gamma0(16), 4, sign=1).boundary_space()
+            sage: [ B(Cusp(i,4)) for i in range(4) ]
+            [[0], [1/4], [1/2], [1/4]]
+            sage: B = ModularSymbols(Gamma0(16), 4, sign=-1).boundary_space()
+            sage: [ B(Cusp(i,4)) for i in range(4) ]
+            [0, [1/4], 0, -[1/4]]
         """
         if self.weight()%2 != 0:
             return self(0)
@@ -635,10 +644,31 @@ class BoundarySpace_wtk_g0(BoundarySpace):
         g.append(c)
         self._known_gens_repr.append("[%s]"%c)
 
+        # See if the new cusp is killed by sign relations. The
+        # relevant relations (for cusps other than 0 and Infinity)
+        # are:
+        #
+        #    [(u,v)] = (-1)^k [(-u,-v)]
+        #    [(u,v)] = [gamma * (u,v)]
+        #   [(-u,v)] = sign * [(u,v)]
+        #
+        # So since k is always even on Gamma0, we have that [(u,v)] =
+        # 0 from the above relations exactly when (u,v) = gamma*(-u,v)
+        # and the sign is -1.
         if sign == -1:
-            # new cusp and nonzero sign, so if the sign is -1
-            # its possible that the cusp class is killed by
-            # the sign relations
+            # NOTE: this code looks wrong. One should do the
+            # following:
+            #
+            #  - if c is 0, if the sign is -1, append & return 0
+            #  - if c is Infinity, then if the sign
+            #    is not equal to (-1)**self.weight(), then
+            #    append & return 0
+            #  - otherwise, if the sign is -1, and c is
+            #    equivalent to -c, append & return 0.
+            #
+            # Interestingly, the code below does precisely that.
+            # (It's important to recall that for Gamma0, odd weight
+            # spaces are 0.)
             if self._is_equiv(c, -c):
                 self._is_zero.append(len(g)-1)
                 return self(0)
@@ -762,7 +792,7 @@ class BoundarySpace_wtk_g1(BoundarySpace):
             [1/4]
             sage: B = ModularSymbols(Gamma1(5), 3, sign=-1).boundary_space()
             sage: B._coerce_cusp(Cusp(0))
-            [0]
+            0
             sage: B._coerce_cusp(Cusp(oo))
             [Infinity]
             sage: B = ModularSymbols(Gamma1(2), 3, sign=-1).boundary_space()
@@ -770,6 +800,21 @@ class BoundarySpace_wtk_g1(BoundarySpace):
             0
             sage: B._coerce_cusp(Cusp(oo))
             0
+            sage: B = ModularSymbols(Gamma1(7), 3).boundary_space()
+            sage: [ B(Cusp(i,7)) for i in range(7) ]
+            [[0], [1/7], [2/7], [3/7], -[3/7], -[2/7], -[1/7]]
+            sage: B._is_equiv(Cusp(1,6), Cusp(5,6))
+            (True, 1)
+            sage: B._is_equiv(Cusp(1,6), Cusp(0))
+            (True, -1)
+            sage: B(Cusp(0))
+            [0]
+            sage: B = ModularSymbols(Gamma1(7), 3, sign=1).boundary_space()
+            sage: [ B(Cusp(i,7)) for i in range(7) ]
+            [[0], 0, 0, 0, 0, 0, 0]
+            sage: B = ModularSymbols(Gamma1(7), 3, sign=-1).boundary_space()
+            sage: [ B(Cusp(i,7)) for i in range(7) ]
+            [0, [1/7], [2/7], [3/7], -[3/7], -[2/7], -[1/7]]
         """
         N    = self.level()
         k    = self.weight()
@@ -802,18 +847,38 @@ class BoundarySpace_wtk_g1(BoundarySpace):
                     self._is_zero.append(len(g)-1)
                     return self(0)
 
-        # Does class vanish because of sign relations?
-        if sign == -1:
-            if c.is_infinity() or c.is_zero():
-                if N == 2:
+        # Does class vanish because of sign relations?  The relevant
+        # relations are
+        #
+        #    [(u,v)] = (-1)^k [(-u,-v)]
+        #    [(u,v)] = sign * [(-u,v)]
+        #    [(u,v)] = eps * (-1)^k [(-u,v)]
+        #
+        # where, in the last line, (u,v) is Gamma1-equivalent to
+        # (-u,v) or (u,-v) as eps is 1 or -1.
+        #
+        # Thus (other than for 0 and Infinity), we have that [(u,v)]
+        # can only be killed by sign relations when:
+        #
+        #  - (u,v) is Gamma1-equivalent to (-u,v) or (u,-v), and
+        #  - eps is 1 and sign is -1, or eps is -1 and sign is not
+        #    (-1)^k.
+        #
+        if sign:
+            if c.is_infinity():
+                if sign != (-1)**self.weight():
+                    self._is_zero.append(len(g)-1)
+                    return self(0)
+            elif c.is_zero():
+                if (sign == -1):
                     self._is_zero.append(len(g)-1)
                     return self(0)
             else:
                 t, eps = self._is_equiv(c, -c)
-                if t:
-                    if eps == 1:
-                        self._is_zero.append(len(g)-1)
-                        return self(0)
+                if t and ((eps == 1 and sign == -1) or \
+                          (eps == -1 and sign != (-1)**self.weight())):
+                    self._is_zero.append(len(g)-1)
+                    return self(0)
 
         return BoundarySpaceElement(self, {(len(g)-1):1})
 
@@ -916,6 +981,40 @@ class BoundarySpace_wtk_gamma_h(BoundarySpace):
             sage: B = ModularSymbols(GammaH(25, [6]), 2).boundary_space()
             sage: B._coerce_cusp(Cusp(0))
             [0]
+
+            sage: B = ModularSymbols(GammaH(11,[3]), 3).boundary_space()
+            sage: [ B(Cusp(i,11)) for i in range(11) ]
+            [[0],
+            [1/11],
+            -[1/11],
+            [1/11],
+            [1/11],
+            [1/11],
+            -[1/11],
+            -[1/11],
+            -[1/11],
+            [1/11],
+            -[1/11]]
+            sage: B._is_equiv(Cusp(0), Cusp(1,11))
+            (False, 0)
+            sage: B._is_equiv(Cusp(oo), Cusp(1,11))
+            (True, 1)
+            sage: B = ModularSymbols(GammaH(11,[3]), 3, sign=1).boundary_space()
+            sage: [ B(Cusp(i,11)) for i in range(11) ]
+            [[0], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: B = ModularSymbols(GammaH(11,[3]), 3, sign=-1).boundary_space()
+            sage: [ B(Cusp(i,11)) for i in range(11) ]
+            [0,
+            [1/11],
+            -[1/11],
+            [1/11],
+            [1/11],
+            [1/11],
+            -[1/11],
+            -[1/11],
+            -[1/11],
+            [1/11],
+            -[1/11]]
         """
         N    = self.level()
         k    = self.weight()
@@ -947,18 +1046,43 @@ class BoundarySpace_wtk_gamma_h(BoundarySpace):
                     self._is_zero.append(len(g)-1)
                     return self(0)
 
-        # Does cusp class vanish because of sign relations?
-        if sign == -1:
-            if c.is_infinity() or c.is_zero():
-                if self.group().is_even() or N == 2:
+        # Does class vanish because of sign relations?  The relevant
+        # relations are
+        #
+        #    [(u,v)] = (-1)^k [(-u,-v)]
+        #    [(u,v)] = sign * [(-u,v)]
+        #    [(u,v)] = eps * (-1)^k [(-u,v)]
+        #
+        # where, in the last line, (u,v) is GammaH-equivalent to
+        # (-u,v) or (u,-v) as eps is 1 or -1.
+        #
+        # Thus (other than for 0 and Infinity), we have that [(u,v)]
+        # can only be killed by sign relations when:
+        #
+        #  - (u,v) is GammaH-equivalent to (-u,v) or (u,-v), and
+        #  - eps is 1 and sign is -1, or eps is -1 and sign is not
+        #    (-1)^k.
+        #
+        # (Notice that while this description looks identical to that
+        # of Gamma1, it differs in that the condition of being GammaH
+        # equivalent is weaker than that of being Gamma1 equivalent
+        # when H is larger than {1}.)
+        #
+        if sign:
+            if c.is_infinity():
+                if sign != (-1)**self.weight():
+                    self._is_zero.append(len(g)-1)
+                    return self(0)
+            elif c.is_zero():
+                if (sign == -1):
                     self._is_zero.append(len(g)-1)
                     return self(0)
             else:
                 t, eps = self._is_equiv(c, -c)
-                if t:
-                    if eps == 1:
-                        self._is_zero.append(len(g)-1)
-                        return self(0)
+                if t and ((eps == 1 and sign == -1) or \
+                          (eps == -1 and sign != (-1)**self.weight())):
+                    self._is_zero.append(len(g)-1)
+                    return self(0)
 
         return BoundarySpaceElement(self, {(len(g)-1):1})
 
@@ -1059,7 +1183,7 @@ class BoundarySpace_wtk_eps(BoundarySpace):
         Coerce the cusp c into self.
 
         EXAMPLES:
-            sage: B = ModularSymbols(DirichletGroup(13).0**3, 5, sign=1).boundary_space()
+            sage: B = ModularSymbols(DirichletGroup(13).0**3, 5, sign=0).boundary_space()
             sage: [ B(Cusp(i,13)) for i in range(13) ]
             [[0],
             [1/13],
@@ -1074,8 +1198,30 @@ class BoundarySpace_wtk_eps(BoundarySpace):
             (-1)*[1/13],
             zeta4*[1/13],
             (-1)*[1/13]]
+            sage: B._is_equiv(Cusp(oo), Cusp(1,13))
+            (True, 1)
+            sage: B._is_equiv(Cusp(0), Cusp(1,13))
+            (False, None)
+            sage: B = ModularSymbols(DirichletGroup(13).0**3, 5, sign=1).boundary_space()
+            sage: [ B(Cusp(i,13)) for i in range(13) ]
+            [[0], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             sage: B._coerce_cusp(Cusp(oo))
-            [1/13]
+            0
+            sage: B = ModularSymbols(DirichletGroup(13).0**3, 5, sign=-1).boundary_space()
+            sage: [ B(Cusp(i,13)) for i in range(13) ]
+            [0,
+            [1/13],
+            (-zeta4)*[1/13],
+            [1/13],
+            (-1)*[1/13],
+            (-zeta4)*[1/13],
+            (-zeta4)*[1/13],
+            zeta4*[1/13],
+            zeta4*[1/13],
+            [1/13],
+            (-1)*[1/13],
+            zeta4*[1/13],
+            (-1)*[1/13]]
             sage: B = ModularSymbols(DirichletGroup(13).0**4, 5, sign=1).boundary_space()
             sage: B._coerce_cusp(Cusp(0))
             [0]
@@ -1125,10 +1271,27 @@ class BoundarySpace_wtk_eps(BoundarySpace):
                         self._is_zero.append(len(g)-1)
                         return self(0)
 
-        # Does cusp class vanish because of sign relations?
-        if sign == -1:
-            if c.is_zero() or c.is_infinity():
-                if N == 2 or not self.__eps.is_odd():
+        # Does class vanish because of sign relations?  The relevant
+        # relations are
+        #
+        #    [(u,v)] = (-1)^k [(-u,-v)]
+        #    [(u,v)] = sign * [(-u,v)]
+        #    [(u,v)] = eps(d) * [(-u,v)]
+        #
+        # where, in the last line, eps is the character defining
+        # our space, and [a,b;c,d] takes (u,v) to (-u,v).
+        #
+        # Thus (other than for 0 and Infinity), we have that [(u,v)]
+        # can only be killed by sign relations when the sign is not
+        # equal to eps(d).
+        #
+        if sign:
+            if c.is_zero():
+                if sign == -1:
+                    self._is_zero.append(len(g)-1)
+                    return self(0)
+            elif c.is_infinity():
+                if sign != (-1)**self.weight():
                     self._is_zero.append(len(g)-1)
                     return self(0)
             else:

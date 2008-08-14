@@ -1159,10 +1159,10 @@ class RElement(ExpectElement):
 
     def __getitem__(self, n):
         """
-        Return n-th element of self.
+        Return element(s) of self.
 
         INPUT:
-            n -- an integer
+            n -- an integer, a tuple, a string that makes sense to R, or an RElement
         OUTPUT:
             RElement
 
@@ -1178,17 +1178,42 @@ class RElement(ExpectElement):
             [1] 10.4  3.1  6.4 21.7
             sage: x[-3]
             [1] 10.4  5.6  6.4 21.7
-            sage: x[4]
-            [1] 6.4
+            sage: x['c(2,3)']
+            [1]  5.6 3.1
+            sage: key = r.c(2,3)
+            sage: x[key]
+            [1]  5.6 3.1
+            sage: m = r.array('1:3',r.c(2,4,2))
+            sage: m
+            , , 1
+                 [,1] [,2] [,3] [,4]
+            [1,]    1    3    2    1
+            [2,]    2    1    3    2
+            , , 2
+                 [,1] [,2] [,3] [,4]
+            [1,]    3    2    1    3
+            [2,]    1    3    2    1
+            sage: m[1,2,2]
+            [1] 2
+            sage: m[1,r.c(1,2),1]
+            [1] 1 3
         """
         P = self._check_valid()
         if isinstance(n, basestring):
             n = n.replace('self', self._name)
             return P.new('%s[%s]'%(self._name, n))
-        elif not isinstance(n, tuple):
+        elif (hasattr(n,'parent') and n.parent() is P): # the key is RElement itself
+            return P.new('%s[%s]'%(self._name, n.name()))
+        elif not isinstance(n,tuple):
             return P.new('%s[%s]'%(self._name, n))
         else:
-            return P.new('%s[%s]'%(self._name, str(n)[1:-1]))
+            L = []
+            for i in xrange(len(n)):
+                if (hasattr(n[i],'parent') and n[i].parent() is P):
+                    L.append(n[i].name())
+                else:
+                    L.append(str(n[i]))
+            return P.new('%s[%s]'%(self._name, ','.join(L)))
 
     def __nonzero__(self):
         """

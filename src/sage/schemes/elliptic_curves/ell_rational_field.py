@@ -57,7 +57,7 @@ import sage.matrix.all as matrix
 import sage.databases.cremona
 from   sage.libs.pari.all import pari
 import sage.functions.transcendental as transcendental
-from sage.calculus.calculus import sqrt, floor, ceil
+from math import sqrt
 import sage.libs.mwrank.all as mwrank
 import constructor
 from sage.interfaces.all import gp
@@ -3962,7 +3962,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             for ni in cartesian_product_iterator([range(-N,N+1) for i in range(r)]): ##opt1
 
 #  Alternative version not using the fancy iterator:
-#            for mi in range(ceil(((2*H_q+1)**r)/2)): ##opt2
+#            for mi in range((((2*H_q+1)**r)/2).ceil()): ##opt2
 #                ni = Z(mi).digits(base=2*H_q+1, padto=r, digits=range(-H_q, H_q+1)) ##opt2
 
                 if all([n==0 for n in ni]):
@@ -4005,7 +4005,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 #
 #  older, even slower  code:
 #
-#           for i in range(ceil(((2*H_q+1)**r)/2)):
+#           for i in range((((2*H_q+1)**r)/2).ceil()):
 #               koeffs = Z(i).digits(base=2*H_q+1)
 #               koeffs = [0]*(r-len(koeffs)) + koeffs # pad with 0s
 #               P = sum([(koeffs[j]-H_q)*mw_base[j] for j in range(r)],self(0))
@@ -4104,8 +4104,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         n=r+1
         c10 = R(2 * 10**(8+7*n) * R((2/e)**(2 * n**2)) * (n+1)**(4 * n**2 + 10 * n) * log(c9)**(-2*n - 1) * misc.prod(mod_h_list))
 
-        top = 128 #arbitrary first upper bound
-        bottom = 0
+        top = Z(128) #arbitrary first upper bound
+        bottom = Z(0)
         log_c9=log(c9); log_c5=log(c5)
         log_r_top = log(R(r*(10**top)))
 #        if verbose:
@@ -4118,7 +4118,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         while top >= bottom: #binary-search like search for fitting exponent (bound)
 #            if verbose:
 #                print "[bottom,top] = ",[bottom,top]
-            bound = floor(bottom + (top - bottom)/2)
+            bound = (bottom + (top - bottom)/2).floor()
             log_r_bound = log(R(r*(10**bound)))
             if R(c10*(log_r_bound+log_c9)*(log(log_r_bound)+h_E+log_c9)**(n+1)) > R(c2/2 * (10**bound)**2 - log_c5):
                 bottom = bound + 1
@@ -4164,7 +4164,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             #[c_5 exp((-c_2*H_q^2)/2)] provided by Corollary 8.7.3
             if low_bound != 0:
                 H_q_new = R(sqrt(log(low_bound/c5)/(-c2/2)))
-                H_q_new = ceil(H_q_new)
+                H_q_new = H_q_new.ceil()
                 if H_q_new == 1:
                     break_cond = 1 # stops reduction
                 else:
@@ -4177,9 +4177,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         b2_12 = b2/12
         if disc > 0:
             ##Points in egg have X(P) between e1 and e2 [X(P)=x(P)+b2/12]:
-            x_int_points = integral_x_coords_in_interval(ceil(e1-b2_12), floor(e2-b2_12)+1)
+            x_int_points = integral_x_coords_in_interval((e1-b2_12).ceil(), (e2-b2_12).floor()+1)
             if verbose:
-                print 'x-coords of points on compact component with ',ceil(e1-b2_12),'<=x<=',floor(e2-b2_12)
+                print 'x-coords of points on compact component with ',(e1-b2_12).ceil(),'<=x<=',(e2-b2_12).floor()
                 L = list(x_int_points) # to have the order
                 L.sort()               # deterministic for doctests!
                 print L
@@ -4187,8 +4187,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             x_int_points = set()
 
         ##Points in noncompact component with X(P)< 2*max(|e1|,|e2|,|e3|) , espec. X(P)>=e3
-        x0 = ceil(e3-b2_12)
-        x1 = ceil(2*max(abs(e1),abs(e2),abs(e3)) - b2_12)
+        x0 = (e3-b2_12).ceil()
+        x1 = (2*max(abs(e1),abs(e2),abs(e3)) - b2_12).ceil()
         x_int_points2 = integral_x_coords_in_interval(x0, x1)
         x_int_points = x_int_points.union(x_int_points2)
         if verbose:

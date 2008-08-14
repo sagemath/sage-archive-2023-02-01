@@ -94,7 +94,7 @@ public:
 	numeric(long i);
 	numeric(unsigned long i);
 	numeric(long numer, long denom);
-	//	numeric(double d);
+	numeric(double d);
 	numeric(const char *);
 	
 	// functions overriding virtual functions from base classes
@@ -179,8 +179,7 @@ public:
 	const numeric numer() const;
 	const numeric denom() const;
 	int int_length() const;
-	// converting routines for interfacing with CLN:
-	numeric(const Number_T &z);
+	//numeric(const Number_T &z);
 
 protected:
 	void print_numeric(const print_context & c, const char *par_open, const char *par_close, const char *imag_sym, const char *mul_sym, unsigned level) const;

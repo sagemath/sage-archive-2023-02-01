@@ -17,7 +17,7 @@ cimport element
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 
-import copy
+from copy import copy
 
 cdef int bad_parent_warnings = 0
 cdef int unique_parent_warnings = 0

@@ -731,11 +731,22 @@ class EndomorphismSubring(Homspace, Ring):
         Return the discriminant of this ring, which is the
         discriminant of the trace pairing.
 
+        NOTE: One knows that for modular abelian varieties, the
+        endomorphism ring should be isomorphic to an order in a number
+        field. However, the discriminant returned by this function
+        will be 2^(self.dimension()) times the discriminant of that
+        order, since the elements are represented as 2d x 2d matrices.
+        Notice, for example, that the case of a one dimensional
+        abelian variety, whose endomorphism ring must be ZZ, has
+        discriminant 2, as in the example below.
+
         EXAMPLES:
              sage: J0(33).endomorphism_ring().discriminant()
              -64800
              sage: J0(46).endomorphism_ring().discriminant()
              24200000000
+             sage: J0(11).endomorphism_ring().discriminant()
+             2
         """
         g = self.gens()
         M = Matrix(ZZ,len(g), [ (g[i]*g[j]).trace()

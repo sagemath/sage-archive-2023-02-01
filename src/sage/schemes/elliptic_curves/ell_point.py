@@ -777,12 +777,12 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         else:
             return self[0]/self[2], self[1]/self[2]
 
-    def elliptic_logarithm(self, precision=53):
+    def elliptic_logarithm(self, precision=100):
         """ Returns the elliptic logarithm of this point on an
             elliptic curve defined over the reals
 
-        INPUT: - precision: a positive integer (default 53) setting
-        the number of bits of precision required
+        INPUT: - precision: a positive integer (default 100) setting
+        the number of bits of precision for the computation
 
         ALGORITHM: See -[Co2] Cohen H., A Course in Computational
                         Algebraic Number Theory GTM 138, Springer 1996
@@ -816,6 +816,15 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             0.2538418608559106843377589233
             sage: E.period_lattice().basis()[0] / P.elliptic_logarithm (96)
             5.000000000000000000000000000
+
+            sage: E = EllipticCurve([1, 0, 1, -85357462, 303528987048]) #18074g1
+            sage: P = E([4458713781401/835903744, -64466909836503771/24167649046528, 1])
+            sage: P.elliptic_logarithm(54)
+            NaN
+            sage: P.elliptic_logarithm(55)
+            0.2735052671206336
+            sage: P.elliptic_logarithm()  # 100 bits
+            0.27656204014107100870070982517
 
         """
         RR = rings.RealField(precision)

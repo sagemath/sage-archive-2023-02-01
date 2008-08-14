@@ -122,14 +122,14 @@ numeric::numeric(long numer, long denom) : basic(&numeric::tinfo_static)
 }
 
 
-// numeric::numeric(double d) : basic(&numeric::tinfo_static)
-// {
-// 	// We really want to explicitly use the type cl_LF instead of the
-// 	// more general cl_F, since that would give us a cl_DF only which
-// 	// will not be promoted to cl_LF if overflow occurs:
-//   //	value = cln::cl_float(d, cln::default_float_format);
-// 	setflag(status_flags::evaluated | status_flags::expanded);
-// }
+numeric::numeric(double d) : basic(&numeric::tinfo_static)
+{
+	// We really want to explicitly use the type cl_LF instead of the
+	// more general cl_F, since that would give us a cl_DF only which
+	// will not be promoted to cl_LF if overflow occurs:
+  //	value = cln::cl_float(d, cln::default_float_format);
+	setflag(status_flags::evaluated | status_flags::expanded);
+}
 
 
 /** ctor from C-style string.  It also accepts complex numbers in GiNaC
@@ -879,6 +879,10 @@ double numeric::to_double() const
 	return (double)(value); //more to be done
 }
 
+Number_T numeric::to_cl_N() const 
+{
+  return value;
+}
 
 /** Real part of a number. */
 const numeric numeric::real() const

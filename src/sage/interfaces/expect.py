@@ -1323,9 +1323,16 @@ class ExpectElement(RingElement):
             return '(invalid object -- defined in terms of closed session)'
         try:
             if self._get_using_file:
-                return self.parent().get_using_file(self._name)
+                s = self.parent().get_using_file(self._name)
         except AttributeError:
-            return self.parent().get(self._name)
+            s = self.parent().get(self._name)
+        if s.__contains__(self._name):
+            if hasattr(self, '__custom_name'):
+                return s.replace(self._name, self.__dict__['__custom_name'])
+            if isinstance(self, sage.interfaces.singular.SingularElement):
+                if self.parent().eval('typeof(%s)'%(self._name)) == 'matrix':
+                    return self.parent().eval('pmat(%s,20)'%(self.name()))
+        return s
 
     def __getattr__(self, attrname):
         self._check_valid()

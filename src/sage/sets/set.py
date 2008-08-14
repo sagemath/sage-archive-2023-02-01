@@ -449,7 +449,7 @@ class Set_object(Set_generic):
             25
         """
         try:
-            if self.is_finite():
+            if not self.is_finite():
                 return sage.rings.infinity.infinity
         except AttributeError:
             pass

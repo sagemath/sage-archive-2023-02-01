@@ -2712,7 +2712,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: parent(~1)
             Rational Field
 
-        A matrix with 0 rows and 0 columns is invertible (see trac#3734):
+        A matrix with 0 rows and 0 columns is invertible (see trac \#3734):
             sage: M = MatrixSpace(RR,0,0)(0); M
             []
             sage: M.determinant()

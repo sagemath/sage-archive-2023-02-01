@@ -210,7 +210,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         return result
 
     def __getitem__(self, i):
-        """
+        r"""
         With a tuple (i,j) as argument, returns the scalar product $\langle
         \alpha^\vee_i, \alpha_j\rangle$.
 

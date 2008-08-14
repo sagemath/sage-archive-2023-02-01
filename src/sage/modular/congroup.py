@@ -476,7 +476,7 @@ class CongruenceSubgroup(group.Group):
 
 def lift_to_sl2z(c, d, N):
     """
-    Given a vector (c, d) in (Z/NZ)^2, this function computes and
+    Given a vector (c, d) in $(Z/NZ)^2$, this function computes and
     returns a list [a, b, c', d'] that defines a 2x2 matrix with
     determinant 1 and integer entries, such that c=c'(mod N) and
     d=d'(mod N).
@@ -1565,7 +1565,7 @@ class GammaH_class(CongruenceSubgroup):
 
 
     def _reduce_coset(self, uu, vv):
-        """
+        r"""
         Compute a canonical form for a given Manin symbol.
 
         INPUT:
@@ -1604,7 +1604,7 @@ class GammaH_class(CongruenceSubgroup):
             sage: len(v)
             361
 
-        This demonstrates the problem underlying trac #1220:
+        This demonstrates the problem underlying trac \#1220:
             sage: G = GammaH(99, [67])
             sage: G._reduce_coset(11,-3)
             (11, 96)

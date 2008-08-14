@@ -6,15 +6,15 @@ We represent boundary modular symbols as a sum of Manin symbols of the
 form $[P, u/v]$, where $u/v$ is a cusp for our group $G$. The group of
 boundary modular symbols naturally embeds into a vector space $B_k(G)$
 (see Stein, section 8.4, or Merel, section 1.4, where this space is
-called $\mathbb{C}[\Gamma \\ \mathbb{Q}]_k$, for a definition), which
-is a finite dimensional $\mathbb{Q}$ vector space of dimension equal
+called $\CC[\Gamma \\ \QQ]_k$, for a definition), which
+is a finite dimensional $\QQ$ vector space of dimension equal
 to the number of cusps for $G$. The embedding takes $[P, u/v]$ to
 $P(u,v)\cdot [(u,v)]$. We represent the basis vectors by pairs [(u,v)]
 with u, v coprime. On $B_k(G)$, we have the relations
 \[ [\gamma \cdot (u,v)] = [(u,v)] \]
 for all $\gamma \in G$ and
 \[ [(\lambda u, \lambda v)] = \operatorname{sign}(\lambda)^k [(u,v)] \]
-for all $\lambda \in \mathbb{Q}^\times$.
+for all $\lambda \in \QQ^\times$.
 
 It's possible for these relations to kill a class, i.e., for a pair
 [(u,v)] to be 0. For example, when N=4, u=1, v=2 and k=3 then (-1,-2)

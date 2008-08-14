@@ -852,10 +852,10 @@ class FreeModule_generic(module.Module):
 
 
     def __len__(self):
-        """
+        r"""
         Return the cardinality of the free module.
 
-        N.B. Currently len(QQ) gives a TypeError, hence so does len(QQ^3).
+        N.B. Currently len(QQ) gives a TypeError, hence so does len(QQ\^{}3).
 
         EXAMPLES:
             sage: k.<a> = FiniteField(9)
@@ -2122,8 +2122,8 @@ class FreeModule_generic_pid(FreeModule_generic):
             User basis matrix:
             [2 4 0]
 
-        The following module isn't in the ambient module ZZ^3 but is
-        contained in the ambient vector space QQ^3:
+        The following module isn't in the ambient module $ZZ^3$ but is
+        contained in the ambient vector space $QQ^3$:
 
             sage: V = M.ambient_vector_space()
             sage: W.span_of_basis([ V([1/5,2/5,0]), V([1/7,1/7,0]) ])

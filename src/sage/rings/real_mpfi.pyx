@@ -1010,7 +1010,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         Then the interval is contained in the interval:
 
-        mantissa*b^exponent - error*b^k .. mantissa*b^exponent + error*b^k
+        $\text{mantissa}*b^{\text{exponent}} - \text{error}*b^k ..
+        \text{mantissa}*b^{\text{exponent}} + \text{error}*b^k$
 
         To control the printing, we can specify a maximum number of
         error digits.  The default is 0, which means that we do not print
@@ -2931,7 +2932,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         return x
 
     def is_int(self):
-        """
+        r"""
         OUTPUT:
             bool -- True or False
             n -- an integer

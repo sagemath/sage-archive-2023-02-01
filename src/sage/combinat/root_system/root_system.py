@@ -53,7 +53,7 @@ class RootSystem(SageObject):
         sage: space
         Root lattice of the Root system of type ['B', 3]
 
-      It is the free \ZZ module $\bigoplus_i \ZZ.\alpha_i$ spanned by
+      It is the free $\ZZ$-module $\bigoplus_i \ZZ.\alpha_i$ spanned by
       the simple roots:
 
         sage: space.base_ring()

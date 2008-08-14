@@ -350,7 +350,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
 
     def _unpickle(self, data, int version):
-        """
+        r"""
         TESTS:
 
         Test for char-sized modulus:

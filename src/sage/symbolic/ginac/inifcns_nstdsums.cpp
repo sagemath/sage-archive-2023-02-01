@@ -67,7 +67,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-#include <cln/cln.h>
+//#include <cln/cln.h>
 
 #include "inifcns.h"
 
@@ -103,12 +103,15 @@ namespace {
 
 // lookup table for factors built from Bernoulli numbers
 // see fill_Xn()
-std::vector<std::vector<cln::cl_N> > Xn;
+std::vector<std::vector<Number_T> > Xn;
 // initial size of Xn that should suffice for 32bit machines (must be even)
 const int xninitsizestep = 26;
 int xninitsize = xninitsizestep;
 int xnsize = 0;
 
+  // Waiting to be implemented
+  void binomial(Integer_T x, Integer_T y) {throw dunno();}
+  void factorial (Integer_T x) {throw dunno();}
 
 // This function calculates the X_n. The X_n are needed for speed up of classical polylogarithms.
 // With these numbers the polylogs can be calculated as follows:
@@ -124,10 +127,10 @@ void fill_Xn(int n)
 {
 	if (n>1) {
 		// calculate X_2 and higher (corresponding to Li_4 and higher)
-		std::vector<cln::cl_N> buf(xninitsize);
-		std::vector<cln::cl_N>::iterator it = buf.begin();
-		cln::cl_N result;
-		*it = -(cln::expt(cln::cl_I(2),n+1) - 1) / cln::expt(cln::cl_I(2),n+1); // i == 1
+		std::vector<Number_T> buf(xninitsize);
+		std::vector<Number_T>::iterator it = buf.begin();
+		Number_T result;
+		*it = -(pow(Integer_T(2),n+1) - 1) / pow(Integer_T(2),n+1); // i == 1
 		it++;
 		for (int i=2; i<=xninitsize; i++) {
 			if (i&1) {
@@ -137,10 +140,10 @@ void fill_Xn(int n)
 			}
 			for (int k=1; k<i-1; k++) {
 				if ( !(((i-k) & 1) && ((i-k) > 1)) ) {
-					result = result + cln::binomial(i,k) * Xn[0][(i-k)/2-1] * Xn[n-1][k-1] / (k+1);
+					result = result + binomial(i,k) * Xn[0][(i-k)/2-1] * Xn[n-1][k-1] / (k+1);
 				}
 			}
-			result = result - cln::binomial(i,i-1) * Xn[n-1][i-2] / 2 / i; // k == i-1
+			result = result - binomial(i,i-1) * Xn[n-1][i-2] / 2 / i; // k == i-1
 			result = result + Xn[n-1][i-1] / (i+1); // k == i
 			
 			*it = result;
@@ -149,22 +152,22 @@ void fill_Xn(int n)
 		Xn.push_back(buf);
 	} else if (n==1) {
 		// special case to handle the X_0 correct
-		std::vector<cln::cl_N> buf(xninitsize);
-		std::vector<cln::cl_N>::iterator it = buf.begin();
-		cln::cl_N result;
-		*it = cln::cl_I(-3)/cln::cl_I(4); // i == 1
+		std::vector<Number_T> buf(xninitsize);
+		std::vector<Number_T>::iterator it = buf.begin();
+		Number_T result;
+		*it = Integer_T(-3)/Integer_T(4); // i == 1
 		it++;
-		*it = cln::cl_I(17)/cln::cl_I(36); // i == 2
+		*it = Integer_T(17)/Integer_T(36); // i == 2
 		it++;
 		for (int i=3; i<=xninitsize; i++) {
 			if (i & 1) {
 				result = -Xn[0][(i-3)/2]/2;
-				*it = (cln::binomial(i,1)/cln::cl_I(2) + cln::binomial(i,i-1)/cln::cl_I(i))*result;
+				*it = (binomial(i,1)/Integer_T(2) + binomial(i,i-1)/Integer_T(i))*result;
 				it++;
 			} else {
 				result = Xn[0][i/2-1] + Xn[0][i/2-1]/(i+1);
 				for (int k=1; k<i/2; k++) {
-					result = result + cln::binomial(i,k*2) * Xn[0][k-1] * Xn[0][i/2-k-1] / (k*2+1);
+					result = result + binomial(i,k*2) * Xn[0][k-1] * Xn[0][i/2-k-1] / (k*2+1);
 				}
 				*it = result;
 				it++;
@@ -173,10 +176,10 @@ void fill_Xn(int n)
 		Xn.push_back(buf);
 	} else {
 		// calculate X_0
-		std::vector<cln::cl_N> buf(xninitsize/2);
-		std::vector<cln::cl_N>::iterator it = buf.begin();
+		std::vector<Number_T> buf(xninitsize/2);
+		std::vector<Number_T>::iterator it = buf.begin();
 		for (int i=1; i<=xninitsize/2; i++) {
-			*it = bernoulli(i*2).to_cl_N();
+			*it = bernoulli(i*2);
 			it++;
 		}
 		Xn.push_back(buf);
@@ -191,20 +194,20 @@ void double_Xn()
 	const int pos0 = xninitsize / 2;
 	// X_0
 	for (int i=1; i<=xninitsizestep/2; ++i) {
-		Xn[0].push_back(bernoulli((i+pos0)*2).to_cl_N());
+		Xn[0].push_back(bernoulli((i+pos0)*2);
 	}
 	if (Xn.size() > 1) {
 		int xend = xninitsize + xninitsizestep;
-		cln::cl_N result;
+		Number_T result;
 		// X_1
 		for (int i=xninitsize+1; i<=xend; ++i) {
 			if (i & 1) {
 				result = -Xn[0][(i-3)/2]/2;
-				Xn[1].push_back((cln::binomial(i,1)/cln::cl_I(2) + cln::binomial(i,i-1)/cln::cl_I(i))*result);
+				Xn[1].push_back((binomial(i,1)/Integer_T(2) + binomial(i,i-1)/Integer_T(i))*result);
 			} else {
 				result = Xn[0][i/2-1] + Xn[0][i/2-1]/(i+1);
 				for (int k=1; k<i/2; k++) {
-					result = result + cln::binomial(i,k*2) * Xn[0][k-1] * Xn[0][i/2-k-1] / (k*2+1);
+					result = result + binomial(i,k*2) * Xn[0][k-1] * Xn[0][i/2-k-1] / (k*2+1);
 				}
 				Xn[1].push_back(result);
 			}
@@ -219,10 +222,10 @@ void double_Xn()
 				}
 				for (int k=1; k<i-1; ++k) {
 					if ( !(((i-k) & 1) && ((i-k) > 1)) ) {
-						result = result + cln::binomial(i,k) * Xn[0][(i-k)/2-1] * Xn[n-1][k-1] / (k+1);
+						result = result + binomial(i,k) * Xn[0][(i-k)/2-1] * Xn[n-1][k-1] / (k+1);
 					}
 				}
-				result = result - cln::binomial(i,i-1) * Xn[n-1][i-2] / 2 / i; // k == i-1
+				result = result - binomial(i,i-1) * Xn[n-1][i-2] / 2 / i; // k == i-1
 				result = result + Xn[n-1][i-1] / (i+1); // k == i
 				Xn[n].push_back(result);
 			}
@@ -233,12 +236,12 @@ void double_Xn()
 
 
 // calculates Li(2,x) without Xn
-cln::cl_N Li2_do_sum(const cln::cl_N& x)
+Number_T Li2_do_sum(const Number_T& x)
 {
-	cln::cl_N res = x;
-	cln::cl_N resbuf;
-	cln::cl_N num = x * cln::cl_float(1, cln::float_format(Digits));
-	cln::cl_I den = 1; // n^2 = 1
+	Number_T res = x;
+	Number_T resbuf;
+	Number_T num = x ;
+	Integer_T den = 1; // n^2 = 1
 	unsigned i = 3;
 	do {
 		resbuf = res;
@@ -252,15 +255,15 @@ cln::cl_N Li2_do_sum(const cln::cl_N& x)
 
 
 // calculates Li(2,x) with Xn
-cln::cl_N Li2_do_sum_Xn(const cln::cl_N& x)
+Number_T Li2_do_sum_Xn(const Number_T& x)
 {
-	std::vector<cln::cl_N>::const_iterator it = Xn[0].begin();
-	std::vector<cln::cl_N>::const_iterator xend = Xn[0].end();
-	cln::cl_N u = -cln::log(1-x);
-	cln::cl_N factor = u * cln::cl_float(1, cln::float_format(Digits));
-	cln::cl_N uu = cln::square(u);
-	cln::cl_N res = u - uu/4;
-	cln::cl_N resbuf;
+	std::vector<Number_T>::const_iterator it = Xn[0].begin();
+	std::vector<Number_T>::const_iterator xend = Xn[0].end();
+	Number_T u = -log(1-x);
+	Number_T factor = u * ;
+	Number_T uu = square(u);
+	Number_T res = u - uu/4;
+	Number_T resbuf;
 	unsigned i = 1;
 	do {
 		resbuf = res;
@@ -278,16 +281,16 @@ cln::cl_N Li2_do_sum_Xn(const cln::cl_N& x)
 
 
 // calculates Li(n,x), n>2 without Xn
-cln::cl_N Lin_do_sum(int n, const cln::cl_N& x)
+Number_T Lin_do_sum(int n, const Number_T& x)
 {
-	cln::cl_N factor = x * cln::cl_float(1, cln::float_format(Digits));
-	cln::cl_N res = x;
-	cln::cl_N resbuf;
+	Number_T factor = x;
+	Number_T res = x;
+	Number_T resbuf;
 	int i=2;
 	do {
 		resbuf = res;
 		factor = factor * x;
-		res = res + factor / cln::expt(cln::cl_I(i),n);
+		res = res + factor / pow(Integer_T(i),n);
 		i++;
 	} while (res != resbuf);
 	return res;
@@ -295,27 +298,27 @@ cln::cl_N Lin_do_sum(int n, const cln::cl_N& x)
 
 
 // calculates Li(n,x), n>2 with Xn
-cln::cl_N Lin_do_sum_Xn(int n, const cln::cl_N& x)
+Number_T Lin_do_sum_Xn(int n, const Number_T& x)
 {
-	std::vector<cln::cl_N>::const_iterator it = Xn[n-2].begin();
-	std::vector<cln::cl_N>::const_iterator xend = Xn[n-2].end();
-	cln::cl_N u = -cln::log(1-x);
-	cln::cl_N factor = u * cln::cl_float(1, cln::float_format(Digits));
-	cln::cl_N res = u;
-	cln::cl_N resbuf;
-	unsigned i=2;
-	do {
-		resbuf = res;
-		factor = factor * u / i;
-		res = res + (*it) * factor;
-		i++;
-		if (++it == xend) {
-			double_Xn();
-			it = Xn[n-2].begin() + (i-2);
-			xend = Xn[n-2].end();
-		}
-	} while (res != resbuf);
-	return res;
+// 	std::vector<Number_T>::const_iterator it = Xn[n-2].begin();
+// 	std::vector<Number_T>::const_iterator xend = Xn[n-2].end();
+// 	Number_T u = -cln::log(1-x);
+// 	Number_T factor = u * cln::cl_float(1, cln::float_format(Digits));
+// 	Number_T res = u;
+// 	Number_T resbuf;
+// 	unsigned i=2;
+// 	do {
+// 		resbuf = res;
+// 		factor = factor * u / i;
+// 		res = res + (*it) * factor;
+// 		i++;
+// 		if (++it == xend) {
+// 			double_Xn();
+// 			it = Xn[n-2].begin() + (i-2);
+// 			xend = Xn[n-2].end();
+// 		}
+// 	} while (res != resbuf);
+// 	return res;
 }
 
 
@@ -324,131 +327,131 @@ numeric S_num(int n, int p, const numeric& x);
 
 
 // helper function for classical polylog Li
-cln::cl_N Li_projection(int n, const cln::cl_N& x, const cln::float_format_t& prec)
-{
-	// treat n=2 as special case
-	if (n == 2) {
-		// check if precalculated X0 exists
-		if (xnsize == 0) {
-			fill_Xn(0);
-		}
+// Number_T Li_projection(int n, const Number_T& x, const cln::float_format_t& prec)
+// {
+// 	// treat n=2 as special case
+// 	if (n == 2) {
+// 		// check if precalculated X0 exists
+// 		if (xnsize == 0) {
+// 			fill_Xn(0);
+// 		}
 
-		if (cln::realpart(x) < 0.5) {
-			// choose the faster algorithm
-			// the switching point was empirically determined. the optimal point
-			// depends on hardware, Digits, ... so an approx value is okay.
-			// it solves also the problem with precision due to the u=-log(1-x) transformation
-			if (cln::abs(cln::realpart(x)) < 0.25) {
+// 		if (cln::realpart(x) < 0.5) {
+// 			// choose the faster algorithm
+// 			// the switching point was empirically determined. the optimal point
+// 			// depends on hardware, Digits, ... so an approx value is okay.
+// 			// it solves also the problem with precision due to the u=-log(1-x) transformation
+// 			if (cln::abs(cln::realpart(x)) < 0.25) {
 				
-				return Li2_do_sum(x);
-			} else {
-				return Li2_do_sum_Xn(x);
-			}
-		} else {
-			// choose the faster algorithm
-			if (cln::abs(cln::realpart(x)) > 0.75) {
-				return -Li2_do_sum(1-x) - cln::log(x) * cln::log(1-x) + cln::zeta(2);
-			} else {
-				return -Li2_do_sum_Xn(1-x) - cln::log(x) * cln::log(1-x) + cln::zeta(2);
-			}
-		}
-	} else {
-		// check if precalculated Xn exist
-		if (n > xnsize+1) {
-			for (int i=xnsize; i<n-1; i++) {
-				fill_Xn(i);
-			}
-		}
+// 				return Li2_do_sum(x);
+// 			} else {
+// 				return Li2_do_sum_Xn(x);
+// 			}
+// 		} else {
+// 			// choose the faster algorithm
+// 			if (cln::abs(cln::realpart(x)) > 0.75) {
+// 				return -Li2_do_sum(1-x) - cln::log(x) * cln::log(1-x) + cln::zeta(2);
+// 			} else {
+// 				return -Li2_do_sum_Xn(1-x) - cln::log(x) * cln::log(1-x) + cln::zeta(2);
+// 			}
+// 		}
+// 	} else {
+// 		// check if precalculated Xn exist
+// 		if (n > xnsize+1) {
+// 			for (int i=xnsize; i<n-1; i++) {
+// 				fill_Xn(i);
+// 			}
+// 		}
 
-		if (cln::realpart(x) < 0.5) {
-			// choose the faster algorithm
-			// with n>=12 the "normal" summation always wins against the method with Xn
-			if ((cln::abs(cln::realpart(x)) < 0.3) || (n >= 12)) {
-				return Lin_do_sum(n, x);
-			} else {
-				return Lin_do_sum_Xn(n, x);
-			}
-		} else {
-			cln::cl_N result = -cln::expt(cln::log(x), n-1) * cln::log(1-x) / cln::factorial(n-1);
-			for (int j=0; j<n-1; j++) {
-				result = result + (S_num(n-j-1, 1, 1).to_cl_N() - S_num(1, n-j-1, 1-x).to_cl_N())
-				                  * cln::expt(cln::log(x), j) / cln::factorial(j);
-			}
-			return result;
-		}
-	}
-}
+// 		if (cln::realpart(x) < 0.5) {
+// 			// choose the faster algorithm
+// 			// with n>=12 the "normal" summation always wins against the method with Xn
+// 			if ((cln::abs(cln::realpart(x)) < 0.3) || (n >= 12)) {
+// 				return Lin_do_sum(n, x);
+// 			} else {
+// 				return Lin_do_sum_Xn(n, x);
+// 			}
+// 		} else {
+// 			Number_T result = -pow(log(x), n-1) * log(1-x) / factorial(n-1);
+// 			for (int j=0; j<n-1; j++) {
+// 				result = result + (S_num(n-j-1, 1, 1).to_cl_N() - S_num(1, n-j-1, 1-x).to_cl_N())
+// 				                  * pow(log(x), j) / factorial(j);
+// 			}
+// 			return result;
+// 		}
+// 	}
+// }
 
 
 // helper function for classical polylog Li
 numeric Lin_numeric(int n, const numeric& x)
 {
-	if (n == 1) {
-		// just a log
-		return -cln::log(1-x.to_cl_N());
-	}
-	if (x.is_zero()) {
-		return 0;
-	}
-	if (x == 1) {
-		// [Kol] (2.22)
-		return cln::zeta(n);
-	}
-	else if (x == -1) {
-		// [Kol] (2.22)
-		return -(1-cln::expt(cln::cl_I(2),1-n)) * cln::zeta(n);
-	}
-	if (abs(x.real()) < 0.4 && abs(abs(x)-1) < 0.01) {
-		cln::cl_N x_ = ex_to<numeric>(x).to_cl_N();
-		cln::cl_N result = -cln::expt(cln::log(x_), n-1) * cln::log(1-x_) / cln::factorial(n-1);
-		for (int j=0; j<n-1; j++) {
-			result = result + (S_num(n-j-1, 1, 1).to_cl_N() - S_num(1, n-j-1, 1-x_).to_cl_N())
-				* cln::expt(cln::log(x_), j) / cln::factorial(j);
-		}
-		return result;
-	}
+// 	if (n == 1) {
+// 		// just a log
+// 		return -cln::log(1-x.to_cl_N());
+// 	}
+// 	if (x.is_zero()) {
+// 		return 0;
+// 	}
+// 	if (x == 1) {
+// 		// [Kol] (2.22)
+// 		return cln::zeta(n);
+// 	}
+// 	else if (x == -1) {
+// 		// [Kol] (2.22)
+// 		return -(1-pow(Integer_T(2),1-n)) * cln::zeta(n);
+// 	}
+// 	if (abs(x.real()) < 0.4 && abs(abs(x)-1) < 0.01) {
+// 		Number_T x_ = ex_to<numeric>(x).to_cl_N();
+// 		Number_T result = -cln::expt(cln::log(x_), n-1) * cln::log(1-x_) / cln::factorial(n-1);
+// 		for (int j=0; j<n-1; j++) {
+// 			result = result + (S_num(n-j-1, 1, 1).to_cl_N() - S_num(1, n-j-1, 1-x_).to_cl_N())
+// 				* cln::expt(cln::log(x_), j) / cln::factorial(j);
+// 		}
+// 		return result;
+// 	}
 
-	// what is the desired float format?
-	// first guess: default format
-	cln::float_format_t prec = cln::default_float_format;
-	const cln::cl_N value = x.to_cl_N();
-	// second guess: the argument's format
-	if (!x.real().is_rational())
-		prec = cln::float_format(cln::the<cln::cl_F>(cln::realpart(value)));
-	else if (!x.imag().is_rational())
-		prec = cln::float_format(cln::the<cln::cl_F>(cln::imagpart(value)));
+// 	// what is the desired float format?
+// 	// first guess: default format
+// 	cln::float_format_t prec = cln::default_float_format;
+// 	const Number_T value = x.to_cl_N();
+// 	// second guess: the argument's format
+// 	if (!x.real().is_rational())
+// 		prec = cln::float_format(cln::the<cln::cl_F>(cln::realpart(value)));
+// 	else if (!x.imag().is_rational())
+// 		prec = cln::float_format(cln::the<cln::cl_F>(cln::imagpart(value)));
 	
-	// [Kol] (5.15)
-	if (cln::abs(value) > 1) {
-		cln::cl_N result = -cln::expt(cln::log(-value),n) / cln::factorial(n);
-		// check if argument is complex. if it is real, the new polylog has to be conjugated.
-		if (cln::zerop(cln::imagpart(value))) {
-			if (n & 1) {
-				result = result + conjugate(Li_projection(n, cln::recip(value), prec));
-			}
-			else {
-				result = result - conjugate(Li_projection(n, cln::recip(value), prec));
-			}
-		}
-		else {
-			if (n & 1) {
-				result = result + Li_projection(n, cln::recip(value), prec);
-			}
-			else {
-				result = result - Li_projection(n, cln::recip(value), prec);
-			}
-		}
-		cln::cl_N add;
-		for (int j=0; j<n-1; j++) {
-			add = add + (1+cln::expt(cln::cl_I(-1),n-j)) * (1-cln::expt(cln::cl_I(2),1-n+j))
-			            * Lin_numeric(n-j,1).to_cl_N() * cln::expt(cln::log(-value),j) / cln::factorial(j);
-		}
-		result = result - add;
-		return result;
-	}
-	else {
-		return Li_projection(n, value, prec);
-	}
+// 	// [Kol] (5.15)
+// 	if (cln::abs(value) > 1) {
+// 		Number_T result = -cln::expt(cln::log(-value),n) / cln::factorial(n);
+// 		// check if argument is complex. if it is real, the new polylog has to be conjugated.
+// 		if (cln::zerop(cln::imagpart(value))) {
+// 			if (n & 1) {
+// 				result = result + conjugate(Li_projection(n, cln::recip(value), prec));
+// 			}
+// 			else {
+// 				result = result - conjugate(Li_projection(n, cln::recip(value), prec));
+// 			}
+// 		}
+// 		else {
+// 			if (n & 1) {
+// 				result = result + Li_projection(n, cln::recip(value), prec);
+// 			}
+// 			else {
+// 				result = result - Li_projection(n, cln::recip(value), prec);
+// 			}
+// 		}
+// 		Number_T add;
+// 		for (int j=0; j<n-1; j++) {
+// 			add = add + (1+cln::expt(Integer_T(-1),n-j)) * (1-cln::expt(Integer_T(2),1-n+j))
+// 			            * Lin_numeric(n-j,1).to_cl_N() * cln::expt(cln::log(-value),j) / cln::factorial(j);
+// 		}
+// 		result = result - add;
+// 		return result;
+// 	}
+// 	else {
+// 		return Li_projection(n, value, prec);
+// 	}
 }
 
 
@@ -469,45 +472,45 @@ namespace {
 
 
 // performs the actual series summation for multiple polylogarithms
-cln::cl_N multipleLi_do_sum(const std::vector<int>& s, const std::vector<cln::cl_N>& x)
+Number_T multipleLi_do_sum(const std::vector<int>& s, const std::vector<Number_T>& x)
 {
-	// ensure all x <> 0.
-	for (std::vector<cln::cl_N>::const_iterator it = x.begin(); it != x.end(); ++it) {
-		if ( *it == 0 ) return cln::cl_float(0, cln::float_format(Digits));
-	}
+// 	// ensure all x <> 0.
+// 	for (std::vector<Number_T>::const_iterator it = x.begin(); it != x.end(); ++it) {
+// 		if ( *it == 0 ) return cln::cl_float(0, cln::float_format(Digits));
+// 	}
 
-	const int j = s.size();
-	bool flag_accidental_zero = false;
+// 	const int j = s.size();
+// 	bool flag_accidental_zero = false;
 
-	std::vector<cln::cl_N> t(j);
-	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
+// 	std::vector<Number_T> t(j);
+// 	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
 
-	cln::cl_N t0buf;
-	int q = 0;
-	do {
-		t0buf = t[0];
-		q++;
-		t[j-1] = t[j-1] + cln::expt(x[j-1], q) / cln::expt(cln::cl_I(q),s[j-1]) * one;
-		for (int k=j-2; k>=0; k--) {
-			t[k] = t[k] + t[k+1] * cln::expt(x[k], q+j-1-k) / cln::expt(cln::cl_I(q+j-1-k), s[k]);
-		}
-		q++;
-		t[j-1] = t[j-1] + cln::expt(x[j-1], q) / cln::expt(cln::cl_I(q),s[j-1]) * one;
-		for (int k=j-2; k>=0; k--) {
-			flag_accidental_zero = cln::zerop(t[k+1]);
-			t[k] = t[k] + t[k+1] * cln::expt(x[k], q+j-1-k) / cln::expt(cln::cl_I(q+j-1-k), s[k]);
-		}
-	} while ( (t[0] != t0buf) || cln::zerop(t[0]) || flag_accidental_zero );
+// 	Number_T t0buf;
+// 	int q = 0;
+// 	do {
+// 		t0buf = t[0];
+// 		q++;
+// 		t[j-1] = t[j-1] + cln::expt(x[j-1], q) / cln::expt(Integer_T(q),s[j-1]) * one;
+// 		for (int k=j-2; k>=0; k--) {
+// 			t[k] = t[k] + t[k+1] * cln::expt(x[k], q+j-1-k) / cln::expt(Integer_T(q+j-1-k), s[k]);
+// 		}
+// 		q++;
+// 		t[j-1] = t[j-1] + cln::expt(x[j-1], q) / cln::expt(Integer_T(q),s[j-1]) * one;
+// 		for (int k=j-2; k>=0; k--) {
+// 			flag_accidental_zero = cln::zerop(t[k+1]);
+// 			t[k] = t[k] + t[k+1] * cln::expt(x[k], q+j-1-k) / cln::expt(Integer_T(q+j-1-k), s[k]);
+// 		}
+// 	} while ( (t[0] != t0buf) || cln::zerop(t[0]) || flag_accidental_zero );
 
-	return t[0];
+// 	return t[0];
 }
 
 
 // converts parameter types and calls multipleLi_do_sum (convenience function for G_numeric)
-cln::cl_N mLi_do_summation(const lst& m, const lst& x)
+Number_T mLi_do_summation(const lst& m, const lst& x)
 {
 	std::vector<int> m_int;
-	std::vector<cln::cl_N> x_cln;
+	std::vector<Number_T> x_cln;
 	for (lst::const_iterator itm = m.begin(), itx = x.begin(); itm != m.end(); ++itm, ++itx) {
 		m_int.push_back(ex_to<numeric>(*itm).to_int());
 		x_cln.push_back(ex_to<numeric>(*itx).to_cl_N());
@@ -1629,7 +1632,7 @@ namespace {
 
 // lookup table for special Euler-Zagier-Sums (used for S_n,p(x))
 // see fill_Yn()
-std::vector<std::vector<cln::cl_N> > Yn;
+std::vector<std::vector<Number_T> > Yn;
 int ynsize = 0; // number of Yn[]
 int ynlength = 100; // initial length of all Yn[i]
 
@@ -1642,333 +1645,333 @@ int ynlength = 100; // initial length of all Yn[i]
 // The second index in Y_n corresponds to the running index of the outermost sum in the full Z-sum
 // representing S_{n,p}(x).
 // The calculation of Y_n uses the values from Y_{n-1}.
-void fill_Yn(int n, const cln::float_format_t& prec)
-{
-	const int initsize = ynlength;
-	//const int initsize = initsize_Yn;
-	cln::cl_N one = cln::cl_float(1, prec);
+// void fill_Yn(int n, const cln::float_format_t& prec)
+// {
+// 	const int initsize = ynlength;
+// 	//const int initsize = initsize_Yn;
+// 	Number_T one = cln::cl_float(1, prec);
 
-	if (n) {
-		std::vector<cln::cl_N> buf(initsize);
-		std::vector<cln::cl_N>::iterator it = buf.begin();
-		std::vector<cln::cl_N>::iterator itprev = Yn[n-1].begin();
-		*it = (*itprev) / cln::cl_N(n+1) * one;
-		it++;
-		itprev++;
-		// sums with an index smaller than the depth are zero and need not to be calculated.
-		// calculation starts with depth, which is n+2)
-		for (int i=n+2; i<=initsize+n; i++) {
-			*it = *(it-1) + (*itprev) / cln::cl_N(i) * one;
-			it++;
-			itprev++;
-		}
-		Yn.push_back(buf);
-	} else {
-		std::vector<cln::cl_N> buf(initsize);
-		std::vector<cln::cl_N>::iterator it = buf.begin();
-		*it = 1 * one;
-		it++;
-		for (int i=2; i<=initsize; i++) {
-			*it = *(it-1) + 1 / cln::cl_N(i) * one;
-			it++;
-		}
-		Yn.push_back(buf);
-	}
-	ynsize++;
-}
+// 	if (n) {
+// 		std::vector<Number_T> buf(initsize);
+// 		std::vector<Number_T>::iterator it = buf.begin();
+// 		std::vector<Number_T>::iterator itprev = Yn[n-1].begin();
+// 		*it = (*itprev) / Number_T(n+1) * one;
+// 		it++;
+// 		itprev++;
+// 		// sums with an index smaller than the depth are zero and need not to be calculated.
+// 		// calculation starts with depth, which is n+2)
+// 		for (int i=n+2; i<=initsize+n; i++) {
+// 			*it = *(it-1) + (*itprev) / Number_T(i) * one;
+// 			it++;
+// 			itprev++;
+// 		}
+// 		Yn.push_back(buf);
+// 	} else {
+// 		std::vector<Number_T> buf(initsize);
+// 		std::vector<Number_T>::iterator it = buf.begin();
+// 		*it = 1 * one;
+// 		it++;
+// 		for (int i=2; i<=initsize; i++) {
+// 			*it = *(it-1) + 1 / Number_T(i) * one;
+// 			it++;
+// 		}
+// 		Yn.push_back(buf);
+// 	}
+// 	ynsize++;
+// }
 
 
 // make Yn longer ... 
-void make_Yn_longer(int newsize, const cln::float_format_t& prec)
-{
+// void make_Yn_longer(int newsize, const cln::float_format_t& prec)
+// {
 
-	cln::cl_N one = cln::cl_float(1, prec);
+// 	Number_T one = cln::cl_float(1, prec);
 
-	Yn[0].resize(newsize);
-	std::vector<cln::cl_N>::iterator it = Yn[0].begin();
-	it += ynlength;
-	for (int i=ynlength+1; i<=newsize; i++) {
-		*it = *(it-1) + 1 / cln::cl_N(i) * one;
-		it++;
-	}
+// 	Yn[0].resize(newsize);
+// 	std::vector<Number_T>::iterator it = Yn[0].begin();
+// 	it += ynlength;
+// 	for (int i=ynlength+1; i<=newsize; i++) {
+// 		*it = *(it-1) + 1 / Number_T(i) * one;
+// 		it++;
+// 	}
 
-	for (int n=1; n<ynsize; n++) {
-		Yn[n].resize(newsize);
-		std::vector<cln::cl_N>::iterator it = Yn[n].begin();
-		std::vector<cln::cl_N>::iterator itprev = Yn[n-1].begin();
-		it += ynlength;
-		itprev += ynlength;
-		for (int i=ynlength+n+1; i<=newsize+n; i++) {
-			*it = *(it-1) + (*itprev) / cln::cl_N(i) * one;
-			it++;
-			itprev++;
-		}
-	}
+// 	for (int n=1; n<ynsize; n++) {
+// 		Yn[n].resize(newsize);
+// 		std::vector<Number_T>::iterator it = Yn[n].begin();
+// 		std::vector<Number_T>::iterator itprev = Yn[n-1].begin();
+// 		it += ynlength;
+// 		itprev += ynlength;
+// 		for (int i=ynlength+n+1; i<=newsize+n; i++) {
+// 			*it = *(it-1) + (*itprev) / Number_T(i) * one;
+// 			it++;
+// 			itprev++;
+// 		}
+// 	}
 	
-	ynlength = newsize;
-}
+// 	ynlength = newsize;
+// }
 
 
 // helper function for S(n,p,x)
 // [Kol] (7.2)
-cln::cl_N C(int n, int p)
+// Number_T C(int n, int p)
+// {
+// 	Number_T result;
+
+// 	for (int k=0; k<p; k++) {
+// 		for (int j=0; j<=(n+k-1)/2; j++) {
+// 			if (k == 0) {
+// 				if (n & 1) {
+// 					if (j & 1) {
+// 						result = result - 2 * cln::expt(cln::pi(),2*j) * S_num(n-2*j,p,1).to_cl_N() / cln::factorial(2*j);
+// 					}
+// 					else {
+// 						result = result + 2 * cln::expt(cln::pi(),2*j) * S_num(n-2*j,p,1).to_cl_N() / cln::factorial(2*j);
+// 					}
+// 				}
+// 			}
+// 			else {
+// 				if (k & 1) {
+// 					if (j & 1) {
+// 						result = result + cln::factorial(n+k-1)
+// 						                  * cln::expt(cln::pi(),2*j) * S_num(n+k-2*j,p-k,1).to_cl_N()
+// 						                  / (cln::factorial(k) * cln::factorial(n-1) * cln::factorial(2*j));
+// 					}
+// 					else {
+// 						result = result - cln::factorial(n+k-1)
+// 						                  * cln::expt(cln::pi(),2*j) * S_num(n+k-2*j,p-k,1).to_cl_N()
+// 						                  / (cln::factorial(k) * cln::factorial(n-1) * cln::factorial(2*j));
+// 					}
+// 				}
+// 				else {
+// 					if (j & 1) {
+// 						result = result - cln::factorial(n+k-1) * cln::expt(cln::pi(),2*j) * S_num(n+k-2*j,p-k,1).to_cl_N()
+// 						                  / (cln::factorial(k) * cln::factorial(n-1) * cln::factorial(2*j));
+// 					}
+// 					else {
+// 						result = result + cln::factorial(n+k-1)
+// 						                  * cln::expt(cln::pi(),2*j) * S_num(n+k-2*j,p-k,1).to_cl_N()
+// 						                  / (cln::factorial(k) * cln::factorial(n-1) * cln::factorial(2*j));
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// 	int np = n+p;
+// 	if ((np-1) & 1) {
+// 		if (((np)/2+n) & 1) {
+// 			result = -result - cln::expt(cln::pi(),np) / (np * cln::factorial(n-1) * cln::factorial(p));
+// 		}
+// 		else {
+// 			result = -result + cln::expt(cln::pi(),np) / (np * cln::factorial(n-1) * cln::factorial(p));
+// 		}
+// 	}
+
+// 	return result;
+// }
+
+
+// helper function for S(n,p,x)
+// [Kol] remark to (9.1)
+Number_T a_k(int k)
 {
-	cln::cl_N result;
+// 	Number_T result;
 
-	for (int k=0; k<p; k++) {
-		for (int j=0; j<=(n+k-1)/2; j++) {
-			if (k == 0) {
-				if (n & 1) {
-					if (j & 1) {
-						result = result - 2 * cln::expt(cln::pi(),2*j) * S_num(n-2*j,p,1).to_cl_N() / cln::factorial(2*j);
-					}
-					else {
-						result = result + 2 * cln::expt(cln::pi(),2*j) * S_num(n-2*j,p,1).to_cl_N() / cln::factorial(2*j);
-					}
-				}
-			}
-			else {
-				if (k & 1) {
-					if (j & 1) {
-						result = result + cln::factorial(n+k-1)
-						                  * cln::expt(cln::pi(),2*j) * S_num(n+k-2*j,p-k,1).to_cl_N()
-						                  / (cln::factorial(k) * cln::factorial(n-1) * cln::factorial(2*j));
-					}
-					else {
-						result = result - cln::factorial(n+k-1)
-						                  * cln::expt(cln::pi(),2*j) * S_num(n+k-2*j,p-k,1).to_cl_N()
-						                  / (cln::factorial(k) * cln::factorial(n-1) * cln::factorial(2*j));
-					}
-				}
-				else {
-					if (j & 1) {
-						result = result - cln::factorial(n+k-1) * cln::expt(cln::pi(),2*j) * S_num(n+k-2*j,p-k,1).to_cl_N()
-						                  / (cln::factorial(k) * cln::factorial(n-1) * cln::factorial(2*j));
-					}
-					else {
-						result = result + cln::factorial(n+k-1)
-						                  * cln::expt(cln::pi(),2*j) * S_num(n+k-2*j,p-k,1).to_cl_N()
-						                  / (cln::factorial(k) * cln::factorial(n-1) * cln::factorial(2*j));
-					}
-				}
-			}
-		}
-	}
-	int np = n+p;
-	if ((np-1) & 1) {
-		if (((np)/2+n) & 1) {
-			result = -result - cln::expt(cln::pi(),np) / (np * cln::factorial(n-1) * cln::factorial(p));
-		}
-		else {
-			result = -result + cln::expt(cln::pi(),np) / (np * cln::factorial(n-1) * cln::factorial(p));
-		}
-	}
+// 	if (k == 0) {
+// 		return 1;
+// 	}
 
-	return result;
+// 	result = result;
+// 	for (int m=2; m<=k; m++) {
+// 		result = result + cln::expt(Number_T(-1),m) * cln::zeta(m) * a_k(k-m);
+// 	}
+
+// 	return -result / k;
 }
 
 
 // helper function for S(n,p,x)
 // [Kol] remark to (9.1)
-cln::cl_N a_k(int k)
+Number_T b_k(int k)
 {
-	cln::cl_N result;
+// 	Number_T result;
 
-	if (k == 0) {
-		return 1;
-	}
+// 	if (k == 0) {
+// 		return 1;
+// 	}
 
-	result = result;
-	for (int m=2; m<=k; m++) {
-		result = result + cln::expt(cln::cl_N(-1),m) * cln::zeta(m) * a_k(k-m);
-	}
+// 	result = result;
+// 	for (int m=2; m<=k; m++) {
+// 		result = result + cln::expt(Number_T(-1),m) * cln::zeta(m) * b_k(k-m);
+// 	}
 
-	return -result / k;
+// 	return result / k;
 }
 
 
 // helper function for S(n,p,x)
-// [Kol] remark to (9.1)
-cln::cl_N b_k(int k)
-{
-	cln::cl_N result;
+//Number_T S_do_sum(int n, int p, const Number_T& x, const cln::float_format_t& prec)
+//{
+// 	static cln::float_format_t oldprec = cln::default_float_format;
 
-	if (k == 0) {
-		return 1;
-	}
+// 	if (p==1) {
+// 		return Li_projection(n+1, x, prec);
+// 	}
 
-	result = result;
-	for (int m=2; m<=k; m++) {
-		result = result + cln::expt(cln::cl_N(-1),m) * cln::zeta(m) * b_k(k-m);
-	}
-
-	return result / k;
-}
-
-
-// helper function for S(n,p,x)
-cln::cl_N S_do_sum(int n, int p, const cln::cl_N& x, const cln::float_format_t& prec)
-{
-	static cln::float_format_t oldprec = cln::default_float_format;
-
-	if (p==1) {
-		return Li_projection(n+1, x, prec);
-	}
-
-	// precision has changed, we need to clear lookup table Yn
-	if ( oldprec != prec ) {
-		Yn.clear();
-		ynsize = 0;
-		ynlength = 100;
-		oldprec = prec;
-	}
+// 	// precision has changed, we need to clear lookup table Yn
+// 	if ( oldprec != prec ) {
+// 		Yn.clear();
+// 		ynsize = 0;
+// 		ynlength = 100;
+// 		oldprec = prec;
+// 	}
 		
-	// check if precalculated values are sufficient
-	if (p > ynsize+1) {
-		for (int i=ynsize; i<p-1; i++) {
-			fill_Yn(i, prec);
-		}
-	}
+// 	// check if precalculated values are sufficient
+// 	if (p > ynsize+1) {
+// 		for (int i=ynsize; i<p-1; i++) {
+// 			fill_Yn(i, prec);
+// 		}
+// 	}
 
-	// should be done otherwise
-	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
-	cln::cl_N xf = x * one;
-	//cln::cl_N xf = x * cln::cl_float(1, prec);
+// 	// should be done otherwise
+// 	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
+// 	Number_T xf = x * one;
+// 	//Number_T xf = x * cln::cl_float(1, prec);
 
-	cln::cl_N res;
-	cln::cl_N resbuf;
-	cln::cl_N factor = cln::expt(xf, p);
-	int i = p;
-	do {
-		resbuf = res;
-		if (i-p >= ynlength) {
-			// make Yn longer
-			make_Yn_longer(ynlength*2, prec);
-		}
-		res = res + factor / cln::expt(cln::cl_I(i),n+1) * Yn[p-2][i-p]; // should we check it? or rely on magic number? ...
-		//res = res + factor / cln::expt(cln::cl_I(i),n+1) * (*it); // should we check it? or rely on magic number? ...
-		factor = factor * xf;
-		i++;
-	} while (res != resbuf);
+// 	Number_T res;
+// 	Number_T resbuf;
+// 	Number_T factor = cln::expt(xf, p);
+// 	int i = p;
+// 	do {
+// 		resbuf = res;
+// 		if (i-p >= ynlength) {
+// 			// make Yn longer
+// 			make_Yn_longer(ynlength*2, prec);
+// 		}
+// 		res = res + factor / cln::expt(Integer_T(i),n+1) * Yn[p-2][i-p]; // should we check it? or rely on magic number? ...
+// 		//res = res + factor / cln::expt(Integer_T(i),n+1) * (*it); // should we check it? or rely on magic number? ...
+// 		factor = factor * xf;
+// 		i++;
+// 	} while (res != resbuf);
 	
-	return res;
-}
+// 	return res;
+//}
 
 
 // helper function for S(n,p,x)
-cln::cl_N S_projection(int n, int p, const cln::cl_N& x, const cln::float_format_t& prec)
-{
-	// [Kol] (5.3)
-	if (cln::abs(cln::realpart(x)) > cln::cl_F("0.5")) {
+// Number_T S_projection(int n, int p, const Number_T& x, const cln::float_format_t& prec)
+// {
+// 	// [Kol] (5.3)
+// 	if (cln::abs(cln::realpart(x)) > cln::cl_F("0.5")) {
 
-		cln::cl_N result = cln::expt(cln::cl_I(-1),p) * cln::expt(cln::log(x),n)
-		                   * cln::expt(cln::log(1-x),p) / cln::factorial(n) / cln::factorial(p);
+// 		Number_T result = cln::expt(Integer_T(-1),p) * cln::expt(cln::log(x),n)
+// 		                   * cln::expt(cln::log(1-x),p) / cln::factorial(n) / cln::factorial(p);
 
-		for (int s=0; s<n; s++) {
-			cln::cl_N res2;
-			for (int r=0; r<p; r++) {
-				res2 = res2 + cln::expt(cln::cl_I(-1),r) * cln::expt(cln::log(1-x),r)
-				              * S_do_sum(p-r,n-s,1-x,prec) / cln::factorial(r);
-			}
-			result = result + cln::expt(cln::log(x),s) * (S_num(n-s,p,1).to_cl_N() - res2) / cln::factorial(s);
-		}
+// 		for (int s=0; s<n; s++) {
+// 			Number_T res2;
+// 			for (int r=0; r<p; r++) {
+// 				res2 = res2 + cln::expt(Integer_T(-1),r) * cln::expt(cln::log(1-x),r)
+// 				              * S_do_sum(p-r,n-s,1-x,prec) / cln::factorial(r);
+// 			}
+// 			result = result + cln::expt(cln::log(x),s) * (S_num(n-s,p,1).to_cl_N() - res2) / cln::factorial(s);
+// 		}
 
-		return result;
-	}
+// 		return result;
+// 	}
 	
-	return S_do_sum(n, p, x, prec);
-}
+// 	return S_do_sum(n, p, x, prec);
+// }
 
 
 // helper function for S(n,p,x)
 numeric S_num(int n, int p, const numeric& x)
 {
-	if (x == 1) {
-		if (n == 1) {
-		    // [Kol] (2.22) with (2.21)
-			return cln::zeta(p+1);
-		}
+// 	if (x == 1) {
+// 		if (n == 1) {
+// 		    // [Kol] (2.22) with (2.21)
+// 			return cln::zeta(p+1);
+// 		}
 
-		if (p == 1) {
-		    // [Kol] (2.22)
-			return cln::zeta(n+1);
-		}
+// 		if (p == 1) {
+// 		    // [Kol] (2.22)
+// 			return cln::zeta(n+1);
+// 		}
 
-		// [Kol] (9.1)
-		cln::cl_N result;
-		for (int nu=0; nu<n; nu++) {
-			for (int rho=0; rho<=p; rho++) {
-				result = result + b_k(n-nu-1) * b_k(p-rho) * a_k(nu+rho+1)
-				                  * cln::factorial(nu+rho+1) / cln::factorial(rho) / cln::factorial(nu+1);
-			}
-		}
-		result = result * cln::expt(cln::cl_I(-1),n+p-1);
+// 		// [Kol] (9.1)
+// 		Number_T result;
+// 		for (int nu=0; nu<n; nu++) {
+// 			for (int rho=0; rho<=p; rho++) {
+// 				result = result + b_k(n-nu-1) * b_k(p-rho) * a_k(nu+rho+1)
+// 				                  * cln::factorial(nu+rho+1) / cln::factorial(rho) / cln::factorial(nu+1);
+// 			}
+// 		}
+// 		result = result * cln::expt(Integer_T(-1),n+p-1);
 
-		return result;
-	}
-	else if (x == -1) {
-		// [Kol] (2.22)
-		if (p == 1) {
-			return -(1-cln::expt(cln::cl_I(2),-n)) * cln::zeta(n+1);
-		}
-//		throw std::runtime_error("don't know how to evaluate this function!");
-	}
+// 		return result;
+// 	}
+// 	else if (x == -1) {
+// 		// [Kol] (2.22)
+// 		if (p == 1) {
+// 			return -(1-cln::expt(Integer_T(2),-n)) * cln::zeta(n+1);
+// 		}
+// //		throw std::runtime_error("don't know how to evaluate this function!");
+// 	}
 
-	// what is the desired float format?
-	// first guess: default format
-	cln::float_format_t prec = cln::default_float_format;
-	const cln::cl_N value = x.to_cl_N();
-	// second guess: the argument's format
-	if (!x.real().is_rational())
-		prec = cln::float_format(cln::the<cln::cl_F>(cln::realpart(value)));
-	else if (!x.imag().is_rational())
-		prec = cln::float_format(cln::the<cln::cl_F>(cln::imagpart(value)));
+// 	// what is the desired float format?
+// 	// first guess: default format
+// 	cln::float_format_t prec = cln::default_float_format;
+// 	const Number_T value = x.to_cl_N();
+// 	// second guess: the argument's format
+// 	if (!x.real().is_rational())
+// 		prec = cln::float_format(cln::the<cln::cl_F>(cln::realpart(value)));
+// 	else if (!x.imag().is_rational())
+// 		prec = cln::float_format(cln::the<cln::cl_F>(cln::imagpart(value)));
 
-	// [Kol] (5.3)
-	if ((cln::realpart(value) < -0.5) || (n == 0) || ((cln::abs(value) <= 1) && (cln::abs(value) > 0.95))) {
+// 	// [Kol] (5.3)
+// 	if ((cln::realpart(value) < -0.5) || (n == 0) || ((cln::abs(value) <= 1) && (cln::abs(value) > 0.95))) {
 
-		cln::cl_N result = cln::expt(cln::cl_I(-1),p) * cln::expt(cln::log(value),n)
-		                   * cln::expt(cln::log(1-value),p) / cln::factorial(n) / cln::factorial(p);
+// 		Number_T result = cln::expt(Integer_T(-1),p) * cln::expt(cln::log(value),n)
+// 		                   * cln::expt(cln::log(1-value),p) / cln::factorial(n) / cln::factorial(p);
 
-		for (int s=0; s<n; s++) {
-			cln::cl_N res2;
-			for (int r=0; r<p; r++) {
-				res2 = res2 + cln::expt(cln::cl_I(-1),r) * cln::expt(cln::log(1-value),r)
-				              * S_num(p-r,n-s,1-value).to_cl_N() / cln::factorial(r);
-			}
-			result = result + cln::expt(cln::log(value),s) * (S_num(n-s,p,1).to_cl_N() - res2) / cln::factorial(s);
-		}
+// 		for (int s=0; s<n; s++) {
+// 			Number_T res2;
+// 			for (int r=0; r<p; r++) {
+// 				res2 = res2 + cln::expt(Integer_T(-1),r) * cln::expt(cln::log(1-value),r)
+// 				              * S_num(p-r,n-s,1-value).to_cl_N() / cln::factorial(r);
+// 			}
+// 			result = result + cln::expt(cln::log(value),s) * (S_num(n-s,p,1).to_cl_N() - res2) / cln::factorial(s);
+// 		}
 
-		return result;
+// 		return result;
 		
-	}
-	// [Kol] (5.12)
-	if (cln::abs(value) > 1) {
+// 	}
+// 	// [Kol] (5.12)
+// 	if (cln::abs(value) > 1) {
 		
-		cln::cl_N result;
+// 		Number_T result;
 
-		for (int s=0; s<p; s++) {
-			for (int r=0; r<=s; r++) {
-				result = result + cln::expt(cln::cl_I(-1),s) * cln::expt(cln::log(-value),r) * cln::factorial(n+s-r-1)
-				                  / cln::factorial(r) / cln::factorial(s-r) / cln::factorial(n-1)
-				                  * S_num(n+s-r,p-s,cln::recip(value)).to_cl_N();
-			}
-		}
-		result = result * cln::expt(cln::cl_I(-1),n);
+// 		for (int s=0; s<p; s++) {
+// 			for (int r=0; r<=s; r++) {
+// 				result = result + cln::expt(Integer_T(-1),s) * cln::expt(cln::log(-value),r) * cln::factorial(n+s-r-1)
+// 				                  / cln::factorial(r) / cln::factorial(s-r) / cln::factorial(n-1)
+// 				                  * S_num(n+s-r,p-s,cln::recip(value)).to_cl_N();
+// 			}
+// 		}
+// 		result = result * cln::expt(Integer_T(-1),n);
 
-		cln::cl_N res2;
-		for (int r=0; r<n; r++) {
-			res2 = res2 + cln::expt(cln::log(-value),r) * C(n-r,p) / cln::factorial(r);
-		}
-		res2 = res2 + cln::expt(cln::log(-value),n+p) / cln::factorial(n+p);
+// 		Number_T res2;
+// 		for (int r=0; r<n; r++) {
+// 			res2 = res2 + cln::expt(cln::log(-value),r) * C(n-r,p) / cln::factorial(r);
+// 		}
+// 		res2 = res2 + cln::expt(cln::log(-value),n+p) / cln::factorial(n+p);
 
-		result = result + cln::expt(cln::cl_I(-1),p) * res2;
+// 		result = result + cln::expt(Integer_T(-1),p) * res2;
 
-		return result;
-	}
-	else {
-		return S_projection(n, p, value, prec);
-	}
+// 		return result;
+// 	}
+// 	else {
+// 		return S_projection(n, p, value, prec);
+// 	}
 }
 
 
@@ -2967,28 +2970,28 @@ struct map_trafo_H_1mxt1px : public map_function
 
 
 // do the actual summation.
-cln::cl_N H_do_sum(const std::vector<int>& m, const cln::cl_N& x)
+Number_T H_do_sum(const std::vector<int>& m, const Number_T& x)
 {
-	const int j = m.size();
+// 	const int j = m.size();
 
-	std::vector<cln::cl_N> t(j);
+// 	std::vector<Number_T> t(j);
 
-	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
-	cln::cl_N factor = cln::expt(x, j) * one;
-	cln::cl_N t0buf;
-	int q = 0;
-	do {
-		t0buf = t[0];
-		q++;
-		t[j-1] = t[j-1] + 1 / cln::expt(cln::cl_I(q),m[j-1]);
-		for (int k=j-2; k>=1; k--) {
-			t[k] = t[k] + t[k+1] / cln::expt(cln::cl_I(q+j-1-k), m[k]);
-		}
-		t[0] = t[0] + t[1] * factor / cln::expt(cln::cl_I(q+j-1), m[0]);
-		factor = factor * x;
-	} while (t[0] != t0buf);
+// 	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
+// 	Number_T factor = cln::expt(x, j) * one;
+// 	Number_T t0buf;
+// 	int q = 0;
+// 	do {
+// 		t0buf = t[0];
+// 		q++;
+// 		t[j-1] = t[j-1] + 1 / cln::expt(Integer_T(q),m[j-1]);
+// 		for (int k=j-2; k>=1; k--) {
+// 			t[k] = t[k] + t[k+1] / cln::expt(Integer_T(q+j-1-k), m[k]);
+// 		}
+// 		t[0] = t[0] + t[1] * factor / cln::expt(Integer_T(q+j-1), m[0]);
+// 		factor = factor * x;
+// 	} while (t[0] != t0buf);
 
-	return t[0];
+  return 0;
 }
 
 
@@ -3006,131 +3009,132 @@ cln::cl_N H_do_sum(const std::vector<int>& m, const cln::cl_N& x)
 
 static ex H_evalf(const ex& x1, const ex& x2)
 {
-	if (is_a<lst>(x1)) {
+// 	if (is_a<lst>(x1)) {
 		
-		cln::cl_N x;
-		if (is_a<numeric>(x2)) {
-			x = ex_to<numeric>(x2).to_cl_N();
-		} else {
-			ex x2_val = x2.evalf();
-			if (is_a<numeric>(x2_val)) {
-				x = ex_to<numeric>(x2_val).to_cl_N();
-			}
-		}
+// 		Number_T x;
+// 		if (is_a<numeric>(x2)) {
+// 			x = ex_to<numeric>(x2).to_cl_N();
+// 		} else {
+// 			ex x2_val = x2.evalf();
+// 			if (is_a<numeric>(x2_val)) {
+// 				x = ex_to<numeric>(x2_val).to_cl_N();
+// 			}
+// 		}
 
-		for (int i=0; i<x1.nops(); i++) {
-			if (!x1.op(i).info(info_flags::integer)) {
-				return H(x1, x2).hold();
-			}
-		}
-		if (x1.nops() < 1) {
-			return H(x1, x2).hold();
-		}
+// 		for (int i=0; i<x1.nops(); i++) {
+// 			if (!x1.op(i).info(info_flags::integer)) {
+// 				return H(x1, x2).hold();
+// 			}
+// 		}
+// 		if (x1.nops() < 1) {
+// 			return H(x1, x2).hold();
+// 		}
 
-		const lst& morg = ex_to<lst>(x1);
-		// remove trailing zeros ...
-		if (*(--morg.end()) == 0) {
-			symbol xtemp("xtemp");
-			map_trafo_H_reduce_trailing_zeros filter;
-			return filter(H(x1, xtemp).hold()).subs(xtemp==x2).evalf();
-		}
-		// ... and expand parameter notation
-		bool has_minus_one = false;
-		lst m;
-		for (lst::const_iterator it = morg.begin(); it != morg.end(); it++) {
-			if (*it > 1) {
-				for (ex count=*it-1; count > 0; count--) {
-					m.append(0);
-				}
-				m.append(1);
-			} else if (*it <= -1) {
-				for (ex count=*it+1; count < 0; count++) {
-					m.append(0);
-				}
-				m.append(-1);
-				has_minus_one = true;
-			} else {
-				m.append(*it);
-			}
-		}
+// 		const lst& morg = ex_to<lst>(x1);
+// 		// remove trailing zeros ...
+// 		if (*(--morg.end()) == 0) {
+// 			symbol xtemp("xtemp");
+// 			map_trafo_H_reduce_trailing_zeros filter;
+// 			return filter(H(x1, xtemp).hold()).subs(xtemp==x2).evalf();
+// 		}
+// 		// ... and expand parameter notation
+// 		bool has_minus_one = false;
+// 		lst m;
+// 		for (lst::const_iterator it = morg.begin(); it != morg.end(); it++) {
+// 			if (*it > 1) {
+// 				for (ex count=*it-1; count > 0; count--) {
+// 					m.append(0);
+// 				}
+// 				m.append(1);
+// 			} else if (*it <= -1) {
+// 				for (ex count=*it+1; count < 0; count++) {
+// 					m.append(0);
+// 				}
+// 				m.append(-1);
+// 				has_minus_one = true;
+// 			} else {
+// 				m.append(*it);
+// 			}
+// 		}
 
-		// do summation
-		if (cln::abs(x) < 0.95) {
-			lst m_lst;
-			lst s_lst;
-			ex pf;
-			if (convert_parameter_H_to_Li(m, m_lst, s_lst, pf)) {
-				// negative parameters -> s_lst is filled
-				std::vector<int> m_int;
-				std::vector<cln::cl_N> x_cln;
-				for (lst::const_iterator it_int = m_lst.begin(), it_cln = s_lst.begin(); 
-				     it_int != m_lst.end(); it_int++, it_cln++) {
-					m_int.push_back(ex_to<numeric>(*it_int).to_int());
-					x_cln.push_back(ex_to<numeric>(*it_cln).to_cl_N());
-				}
-				x_cln.front() = x_cln.front() * x;
-				return pf * numeric(multipleLi_do_sum(m_int, x_cln));
-			} else {
-				// only positive parameters
-				//TODO
-				if (m_lst.nops() == 1) {
-					return Li(m_lst.op(0), x2).evalf();
-				}
-				std::vector<int> m_int;
-				for (lst::const_iterator it = m_lst.begin(); it != m_lst.end(); it++) {
-					m_int.push_back(ex_to<numeric>(*it).to_int());
-				}
-				return numeric(H_do_sum(m_int, x));
-			}
-		}
+// 		// do summation
+// 		if (cln::abs(x) < 0.95) {
+// 			lst m_lst;
+// 			lst s_lst;
+// 			ex pf;
+// 			if (convert_parameter_H_to_Li(m, m_lst, s_lst, pf)) {
+// 				// negative parameters -> s_lst is filled
+// 				std::vector<int> m_int;
+// 				std::vector<Number_T> x_cln;
+// 				for (lst::const_iterator it_int = m_lst.begin(), it_cln = s_lst.begin(); 
+// 				     it_int != m_lst.end(); it_int++, it_cln++) {
+// 					m_int.push_back(ex_to<numeric>(*it_int).to_int());
+// 					x_cln.push_back(ex_to<numeric>(*it_cln).to_cl_N());
+// 				}
+// 				x_cln.front() = x_cln.front() * x;
+// 				return pf * numeric(multipleLi_do_sum(m_int, x_cln));
+// 			} else {
+// 				// only positive parameters
+// 				//TODO
+// 				if (m_lst.nops() == 1) {
+// 					return Li(m_lst.op(0), x2).evalf();
+// 				}
+// 				std::vector<int> m_int;
+// 				for (lst::const_iterator it = m_lst.begin(); it != m_lst.end(); it++) {
+// 					m_int.push_back(ex_to<numeric>(*it).to_int());
+// 				}
+// 				return numeric(H_do_sum(m_int, x));
+// 			}
+// 		}
 
-		symbol xtemp("xtemp");
-		ex res = 1;	
+// 		symbol xtemp("xtemp");
+// 		ex res = 1;	
 		
-		// ensure that the realpart of the argument is positive
-		if (cln::realpart(x) < 0) {
-			x = -x;
-			for (int i=0; i<m.nops(); i++) {
-				if (m.op(i) != 0) {
-					m.let_op(i) = -m.op(i);
-					res *= -1;
-				}
-			}
-		}
+// 		// ensure that the realpart of the argument is positive
+// 		if (cln::realpart(x) < 0) {
+// 			x = -x;
+// 			for (int i=0; i<m.nops(); i++) {
+// 				if (m.op(i) != 0) {
+// 					m.let_op(i) = -m.op(i);
+// 					res *= -1;
+// 				}
+// 			}
+// 		}
 
-		// x -> 1/x
-		if (cln::abs(x) >= 2.0) {
-			map_trafo_H_1overx trafo;
-			res *= trafo(H(m, xtemp));
-			if (cln::imagpart(x) <= 0) {
-				res = res.subs(H_polesign == -I*Pi);
-			} else {
-				res = res.subs(H_polesign == I*Pi);
-			}
-			return res.subs(xtemp == numeric(x)).evalf();
-		}
+// 		// x -> 1/x
+// 		if (cln::abs(x) >= 2.0) {
+// 			map_trafo_H_1overx trafo;
+// 			res *= trafo(H(m, xtemp));
+// 			if (cln::imagpart(x) <= 0) {
+// 				res = res.subs(H_polesign == -I*Pi);
+// 			} else {
+// 				res = res.subs(H_polesign == I*Pi);
+// 			}
+// 			return res.subs(xtemp == numeric(x)).evalf();
+// 		}
 		
-		// check transformations for 0.95 <= |x| < 2.0
+// 		// check transformations for 0.95 <= |x| < 2.0
 		
-		// |(1-x)/(1+x)| < 0.9 -> circular area with center=9.53+0i and radius=9.47
-		if (cln::abs(x-9.53) <= 9.47) {
-			// x -> (1-x)/(1+x)
-			map_trafo_H_1mxt1px trafo;
-			res *= trafo(H(m, xtemp));
-		} else {
-			// x -> 1-x
-			if (has_minus_one) {
-				map_trafo_H_convert_to_Li filter;
-				return filter(H(m, numeric(x)).hold()).evalf();
-			}
-			map_trafo_H_1mx trafo;
-			res *= trafo(H(m, xtemp));
-		}
+// 		// |(1-x)/(1+x)| < 0.9 -> circular area with center=9.53+0i and radius=9.47
+// 		if (cln::abs(x-9.53) <= 9.47) {
+// 			// x -> (1-x)/(1+x)
+// 			map_trafo_H_1mxt1px trafo;
+// 			res *= trafo(H(m, xtemp));
+// 		} else {
+// 			// x -> 1-x
+// 			if (has_minus_one) {
+// 				map_trafo_H_convert_to_Li filter;
+// 				return filter(H(m, numeric(x)).hold()).evalf();
+// 			}
+// 			map_trafo_H_1mx trafo;
+// 			res *= trafo(H(m, xtemp));
+// 		}
 
-		return res.subs(xtemp == numeric(x)).evalf();
-	}
+// 		return res.subs(xtemp == numeric(x)).evalf();
+// 	}
 
-	return H(x1,x2).hold();
+// 	return H(x1,x2).hold();
+  return 0;
 }
 
 
@@ -3347,16 +3351,16 @@ namespace {
 
 
 // parameters and data for [Cra] algorithm
-const cln::cl_N lambda = cln::cl_N("319/320");
+const Number_T lambda = Number_T("319/320");
 int L1;
 int L2;
-std::vector<std::vector<cln::cl_N> > f_kj;
-std::vector<cln::cl_N> crB;
-std::vector<std::vector<cln::cl_N> > crG;
-std::vector<cln::cl_N> crX;
+std::vector<std::vector<Number_T> > f_kj;
+std::vector<Number_T> crB;
+std::vector<std::vector<Number_T> > crG;
+std::vector<Number_T> crX;
 
 
-void halfcyclic_convolute(const std::vector<cln::cl_N>& a, const std::vector<cln::cl_N>& b, std::vector<cln::cl_N>& c)
+void halfcyclic_convolute(const std::vector<Number_T>& a, const std::vector<Number_T>& b, std::vector<Number_T>& c)
 {
 	const int size = a.size();
 	for (int n=0; n<size; n++) {
@@ -3371,229 +3375,232 @@ void halfcyclic_convolute(const std::vector<cln::cl_N>& a, const std::vector<cln
 // [Cra] section 4
 void initcX(const std::vector<int>& s)
 {
-	const int k = s.size();
+// 	const int k = s.size();
 
-	crX.clear();
-	crG.clear();
-	crB.clear();
+// 	crX.clear();
+// 	crG.clear();
+// 	crB.clear();
 
-	for (int i=0; i<=L2; i++) {
-		crB.push_back(bernoulli(i).to_cl_N() / cln::factorial(i));
-	}
+// 	for (int i=0; i<=L2; i++) {
+// 		crB.push_back(bernoulli(i).to_cl_N() / cln::factorial(i));
+// 	}
 
-	int Sm = 0;
-	int Smp1 = 0;
-	for (int m=0; m<k-1; m++) {
-		std::vector<cln::cl_N> crGbuf;
-		Sm = Sm + s[m];
-		Smp1 = Sm + s[m+1];
-		for (int i=0; i<=L2; i++) {
-			crGbuf.push_back(cln::factorial(i + Sm - m - 2) / cln::factorial(i + Smp1 - m - 2));
-		}
-		crG.push_back(crGbuf);
-	}
+// 	int Sm = 0;
+// 	int Smp1 = 0;
+// 	for (int m=0; m<k-1; m++) {
+// 		std::vector<Number_T> crGbuf;
+// 		Sm = Sm + s[m];
+// 		Smp1 = Sm + s[m+1];
+// 		for (int i=0; i<=L2; i++) {
+// 			crGbuf.push_back(cln::factorial(i + Sm - m - 2) / cln::factorial(i + Smp1 - m - 2));
+// 		}
+// 		crG.push_back(crGbuf);
+// 	}
 
-	crX = crB;
+// 	crX = crB;
 
-	for (int m=0; m<k-1; m++) {
-		std::vector<cln::cl_N> Xbuf;
-		for (int i=0; i<=L2; i++) {
-			Xbuf.push_back(crX[i] * crG[m][i]);
-		}
-		halfcyclic_convolute(Xbuf, crB, crX);
-	}
+// 	for (int m=0; m<k-1; m++) {
+// 		std::vector<Number_T> Xbuf;
+// 		for (int i=0; i<=L2; i++) {
+// 			Xbuf.push_back(crX[i] * crG[m][i]);
+// 		}
+// 		halfcyclic_convolute(Xbuf, crB, crX);
+// 	}
 }
 
 
 // [Cra] section 4
-cln::cl_N crandall_Y_loop(const cln::cl_N& Sqk)
+Number_T crandall_Y_loop(const Number_T& Sqk)
 {
-	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
-	cln::cl_N factor = cln::expt(lambda, Sqk);
-	cln::cl_N res = factor / Sqk * crX[0] * one;
-	cln::cl_N resbuf;
-	int N = 0;
-	do {
-		resbuf = res;
-		factor = factor * lambda;
-		N++;
-		res = res + crX[N] * factor / (N+Sqk);
-	} while ((res != resbuf) || cln::zerop(crX[N]));
-	return res;
+// 	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
+// 	Number_T factor = cln::expt(lambda, Sqk);
+// 	Number_T res = factor / Sqk * crX[0] * one;
+// 	Number_T resbuf;
+// 	int N = 0;
+// 	do {
+// 		resbuf = res;
+// 		factor = factor * lambda;
+// 		N++;
+// 		res = res + crX[N] * factor / (N+Sqk);
+// 	} while ((res != resbuf) || cln::zerop(crX[N]));
+// 	return res;
 }
 
 
 // [Cra] section 4
 void calc_f(int maxr)
 {
-	f_kj.clear();
-	f_kj.resize(L1);
+// 	f_kj.clear();
+// 	f_kj.resize(L1);
 	
-	cln::cl_N t0, t1, t2, t3, t4;
-	int i, j, k;
-	std::vector<std::vector<cln::cl_N> >::iterator it = f_kj.begin();
-	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
+// 	Number_T t0, t1, t2, t3, t4;
+// 	int i, j, k;
+// 	std::vector<std::vector<Number_T> >::iterator it = f_kj.begin();
+// 	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
 	
-	t0 = cln::exp(-lambda);
-	t2 = 1;
-	for (k=1; k<=L1; k++) {
-		t1 = k * lambda;
-		t2 = t0 * t2;
-		for (j=1; j<=maxr; j++) {
-			t3 = 1;
-			t4 = 1;
-			for (i=2; i<=j; i++) {
-				t4 = t4 * (j-i+1);
-				t3 = t1 * t3 + t4;
-			}
-			(*it).push_back(t2 * t3 * cln::expt(cln::cl_I(k),-j) * one);
-		}
-		it++;
-	}
+// 	t0 = cln::exp(-lambda);
+// 	t2 = 1;
+// 	for (k=1; k<=L1; k++) {
+// 		t1 = k * lambda;
+// 		t2 = t0 * t2;
+// 		for (j=1; j<=maxr; j++) {
+// 			t3 = 1;
+// 			t4 = 1;
+// 			for (i=2; i<=j; i++) {
+// 				t4 = t4 * (j-i+1);
+// 				t3 = t1 * t3 + t4;
+// 			}
+// 			(*it).push_back(t2 * t3 * cln::expt(Integer_T(k),-j) * one);
+// 		}
+// 		it++;
+// 	}
 }
 
 
 // [Cra] (3.1)
-cln::cl_N crandall_Z(const std::vector<int>& s)
+Number_T crandall_Z(const std::vector<int>& s)
 {
-	const int j = s.size();
+// 	const int j = s.size();
 
-	if (j == 1) {	
-		cln::cl_N t0;
-		cln::cl_N t0buf;
-		int q = 0;
-		do {
-			t0buf = t0;
-			q++;
-			t0 = t0 + f_kj[q+j-2][s[0]-1];
-		} while (t0 != t0buf);
+// 	if (j == 1) {	
+// 		Number_T t0;
+// 		Number_T t0buf;
+// 		int q = 0;
+// 		do {
+// 			t0buf = t0;
+// 			q++;
+// 			t0 = t0 + f_kj[q+j-2][s[0]-1];
+// 		} while (t0 != t0buf);
 		
-		return t0 / cln::factorial(s[0]-1);
-	}
+// 		return t0 / cln::factorial(s[0]-1);
+// 	}
 
-	std::vector<cln::cl_N> t(j);
+// 	std::vector<Number_T> t(j);
 
-	cln::cl_N t0buf;
-	int q = 0;
-	do {
-		t0buf = t[0];
-		q++;
-		t[j-1] = t[j-1] + 1 / cln::expt(cln::cl_I(q),s[j-1]);
-		for (int k=j-2; k>=1; k--) {
-			t[k] = t[k] + t[k+1] / cln::expt(cln::cl_I(q+j-1-k), s[k]);
-		}
-		t[0] = t[0] + t[1] * f_kj[q+j-2][s[0]-1];
-	} while (t[0] != t0buf);
+// 	Number_T t0buf;
+// 	int q = 0;
+// 	do {
+// 		t0buf = t[0];
+// 		q++;
+// 		t[j-1] = t[j-1] + 1 / cln::expt(Integer_T(q),s[j-1]);
+// 		for (int k=j-2; k>=1; k--) {
+// 			t[k] = t[k] + t[k+1] / cln::expt(Integer_T(q+j-1-k), s[k]);
+// 		}
+// 		t[0] = t[0] + t[1] * f_kj[q+j-2][s[0]-1];
+// 	} while (t[0] != t0buf);
 	
-	return t[0] / cln::factorial(s[0]-1);
+// 	return t[0] / cln::factorial(s[0]-1);
+  return 0;
 }
 
 
 // [Cra] (2.4)
-cln::cl_N zeta_do_sum_Crandall(const std::vector<int>& s)
+Number_T zeta_do_sum_Crandall(const std::vector<int>& s)
 {
-	std::vector<int> r = s;
-	const int j = r.size();
+// 	std::vector<int> r = s;
+// 	const int j = r.size();
 
-	// decide on maximal size of f_kj for crandall_Z
-	if (Digits < 50) {
-		L1 = 150;
-	} else {
-		L1 = Digits * 3 + j*2;
-	}
+// 	// decide on maximal size of f_kj for crandall_Z
+// 	if (Digits < 50) {
+// 		L1 = 150;
+// 	} else {
+// 		L1 = Digits * 3 + j*2;
+// 	}
 
-	// decide on maximal size of crX for crandall_Y
-	if (Digits < 38) {
-		L2 = 63;
-	} else if (Digits < 86) {
-		L2 = 127;
-	} else if (Digits < 192) {
-		L2 = 255;
-	} else if (Digits < 394) {
-		L2 = 511;
-	} else if (Digits < 808) {
-		L2 = 1023;
-	} else {
-		L2 = 2047;
-	}
+// 	// decide on maximal size of crX for crandall_Y
+// 	if (Digits < 38) {
+// 		L2 = 63;
+// 	} else if (Digits < 86) {
+// 		L2 = 127;
+// 	} else if (Digits < 192) {
+// 		L2 = 255;
+// 	} else if (Digits < 394) {
+// 		L2 = 511;
+// 	} else if (Digits < 808) {
+// 		L2 = 1023;
+// 	} else {
+// 		L2 = 2047;
+// 	}
 
-	cln::cl_N res;
+// 	Number_T res;
 
-	int maxr = 0;
-	int S = 0;
-	for (int i=0; i<j; i++) {
-		S += r[i];
-		if (r[i] > maxr) {
-			maxr = r[i];
-		}
-	}
+// 	int maxr = 0;
+// 	int S = 0;
+// 	for (int i=0; i<j; i++) {
+// 		S += r[i];
+// 		if (r[i] > maxr) {
+// 			maxr = r[i];
+// 		}
+// 	}
 
-	calc_f(maxr);
+// 	calc_f(maxr);
 
-	const cln::cl_N r0factorial = cln::factorial(r[0]-1);
+// 	const Number_T r0factorial = cln::factorial(r[0]-1);
 
-	std::vector<int> rz;
-	int skp1buf;
-	int Srun = S;
-	for (int k=r.size()-1; k>0; k--) {
+// 	std::vector<int> rz;
+// 	int skp1buf;
+// 	int Srun = S;
+// 	for (int k=r.size()-1; k>0; k--) {
 
-		rz.insert(rz.begin(), r.back());
-		skp1buf = rz.front();
-		Srun -= skp1buf;
-		r.pop_back();
+// 		rz.insert(rz.begin(), r.back());
+// 		skp1buf = rz.front();
+// 		Srun -= skp1buf;
+// 		r.pop_back();
 
-		initcX(r);
+// 		initcX(r);
 		
-		for (int q=0; q<skp1buf; q++) {
+// 		for (int q=0; q<skp1buf; q++) {
 			
-			cln::cl_N pp1 = crandall_Y_loop(Srun+q-k);
-			cln::cl_N pp2 = crandall_Z(rz);
+// 			Number_T pp1 = crandall_Y_loop(Srun+q-k);
+// 			Number_T pp2 = crandall_Z(rz);
 
-			rz.front()--;
+// 			rz.front()--;
 			
-			if (q & 1) {
-				res = res - pp1 * pp2 / cln::factorial(q);
-			} else {
-				res = res + pp1 * pp2 / cln::factorial(q);
-			}
-		}
-		rz.front() = skp1buf;
-	}
-	rz.insert(rz.begin(), r.back());
+// 			if (q & 1) {
+// 				res = res - pp1 * pp2 / cln::factorial(q);
+// 			} else {
+// 				res = res + pp1 * pp2 / cln::factorial(q);
+// 			}
+// 		}
+// 		rz.front() = skp1buf;
+// 	}
+// 	rz.insert(rz.begin(), r.back());
 
-	initcX(rz);
+// 	initcX(rz);
 
-	res = (res + crandall_Y_loop(S-j)) / r0factorial + crandall_Z(rz);
+// 	res = (res + crandall_Y_loop(S-j)) / r0factorial + crandall_Z(rz);
 
-	return res;
+// 	return res;
+  return 0;
 }
 
 
-cln::cl_N zeta_do_sum_simple(const std::vector<int>& r)
+Number_T zeta_do_sum_simple(const std::vector<int>& r)
 {
-	const int j = r.size();
+// 	const int j = r.size();
 
-	// buffer for subsums
-	std::vector<cln::cl_N> t(j);
-	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
+// 	// buffer for subsums
+// 	std::vector<Number_T> t(j);
+// 	cln::cl_F one = cln::cl_float(1, cln::float_format(Digits));
 
-	cln::cl_N t0buf;
-	int q = 0;
-	do {
-		t0buf = t[0];
-		q++;
-		t[j-1] = t[j-1] + one / cln::expt(cln::cl_I(q),r[j-1]);
-		for (int k=j-2; k>=0; k--) {
-			t[k] = t[k] + one * t[k+1] / cln::expt(cln::cl_I(q+j-1-k), r[k]);
-		}
-	} while (t[0] != t0buf);
+// 	Number_T t0buf;
+// 	int q = 0;
+// 	do {
+// 		t0buf = t[0];
+// 		q++;
+// 		t[j-1] = t[j-1] + one / cln::expt(Integer_T(q),r[j-1]);
+// 		for (int k=j-2; k>=0; k--) {
+// 			t[k] = t[k] + one * t[k+1] / cln::expt(Integer_T(q+j-1-k), r[k]);
+// 		}
+// 	} while (t[0] != t0buf);
 
-	return t[0];
+// 	return t[0];
+  return 0;
 }
 
 
 // does Hoelder convolution. see [BBB] (7.0)
-cln::cl_N zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vector<int>& s_)
+Number_T zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vector<int>& s_)
 {
 	// prepare parameters
 	// holds Li arguments in [BBB] notation
@@ -3601,8 +3608,8 @@ cln::cl_N zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vec
 	std::vector<int> m_p = m_;
 	std::vector<int> m_q;
 	// holds Li arguments in nested sums notation
-	std::vector<cln::cl_N> s_p(s.size(), cln::cl_N(1));
-	s_p[0] = s_p[0] * cln::cl_N("1/2");
+	std::vector<Number_T> s_p(s.size(), Number_T(1));
+	s_p[0] = s_p[0] * Number_T("1/2");
 	// convert notations
 	int sig = 1;
 	for (int i=0; i<s_.size(); i++) {
@@ -3612,11 +3619,11 @@ cln::cl_N zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vec
 		}
 		s[i] = sig * std::abs(s[i]);
 	}
-	std::vector<cln::cl_N> s_q;
-	cln::cl_N signum = 1;
+	std::vector<Number_T> s_q;
+	Number_T signum = 1;
 
 	// first term
-	cln::cl_N res = multipleLi_do_sum(m_p, s_p);
+	Number_T res = multipleLi_do_sum(m_p, s_p);
 
 	// middle terms
 	do {
@@ -3627,7 +3634,7 @@ cln::cl_N zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vec
 				m_p.erase(m_p.begin());
 				s_p.erase(s_p.begin());
 				if (s_p.size() > 0) {
-					s_p.front() = s_p.front() * cln::cl_N("1/2");
+					s_p.front() = s_p.front() * Number_T("1/2");
 				}
 				s.erase(s.begin());
 				m_q.front()++;
@@ -3637,12 +3644,12 @@ cln::cl_N zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vec
 				if (s_q.size() > 0) {
 					s_q.front() = s_q.front() * 2;
 				}
-				s_q.insert(s_q.begin(), cln::cl_N("1/2"));
+				s_q.insert(s_q.begin(), Number_T("1/2"));
 			}
 		} else {
 			if (m_p.front() == 1) {
 				m_p.erase(m_p.begin());
-				cln::cl_N spbuf = s_p.front();
+				Number_T spbuf = s_p.front();
 				s_p.erase(s_p.begin());
 				if (s_p.size() > 0) {
 					s_p.front() = s_p.front() * spbuf;
@@ -3652,7 +3659,7 @@ cln::cl_N zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vec
 				if (s_q.size() > 0) {
 					s_q.front() = s_q.front() * 4;
 				}
-				s_q.insert(s_q.begin(), cln::cl_N("1/4"));
+				s_q.insert(s_q.begin(), Number_T("1/4"));
 				signum = -signum;
 			} else {
 				m_p.front()--;
@@ -3660,7 +3667,7 @@ cln::cl_N zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vec
 				if (s_q.size() > 0) {
 					s_q.front() = s_q.front() * 2;
 				}
-				s_q.insert(s_q.begin(), cln::cl_N("1/2"));
+				s_q.insert(s_q.begin(), Number_T("1/2"));
 			}
 		}
 

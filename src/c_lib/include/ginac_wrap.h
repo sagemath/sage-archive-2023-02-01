@@ -17,4 +17,6 @@ const symbol & get_symbol(const std::string & s)
 }
 
 #define ADD_WRAP(x,y) (x)+(y)
+#define SUB_WRAP(x,y) (x)-(y)
 #define MUL_WRAP(x,y) (x)*(y)
+#define DIV_WRAP(x,y) (x)/(y)

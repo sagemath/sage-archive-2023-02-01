@@ -17,7 +17,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x+y
             x+y
         """
-        return GEx_to_str(&self._gobj)
+        return GEx_to_str(&self._gobj).replace('+',' + ')
 
     def __hash__(self):
         """
@@ -43,6 +43,18 @@ cdef class Expression(CommutativeRingElement):
         _sig_off
         return new_Expression_from_GEx(e)
 
+    cdef ModuleElement _sub_c_impl(left, ModuleElement right):
+        """
+            sage.: var("x y", ns=1)
+            (x, y)
+            sage.: x - x
+            x-y
+        """
+        _sig_on
+        cdef GEx e = gsub(left._gobj, (<Expression>right)._gobj)
+        _sig_off
+        return new_Expression_from_GEx(e)
+
     cdef RingElement _mul_c_impl(left, RingElement right):
         """
             sage: var("x y", ns=1)
@@ -52,6 +64,18 @@ cdef class Expression(CommutativeRingElement):
         """
         _sig_on
         cdef GEx e = gmul(left._gobj, (<Expression>right)._gobj)
+        _sig_off
+        return new_Expression_from_GEx(e)
+
+    cdef RingElement _div_c_impl(left, RingElement right):
+        """
+            sage: var("x y", ns=1)
+            (x, y)
+            sage: x/y/y
+            x*y^(-2)
+        """
+        _sig_on
+        cdef GEx e = gdiv(left._gobj, (<Expression>right)._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
 

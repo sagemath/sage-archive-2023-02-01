@@ -28,7 +28,9 @@ cdef extern from "ginac_wrap.h":
     object GEx_to_str "_to_PyString<ex>"(GEx *s)
 
     GEx gadd "ADD_WRAP" (GEx left, GEx right)
+    GEx gsub "SUB_WRAP" (GEx left, GEx right)
     GEx gmul "MUL_WRAP" (GEx left, GEx right)
+    GEx gdiv "DIV_WRAP" (GEx left, GEx right)
     GEx gpow "pow" (GEx left, GEx exp)
 
     GSymbol get_symbol(char* s)

@@ -2009,7 +2009,7 @@ class slider_generic(control):
         control.__init__(self, label=label)
         self.__display_value = display_value
         if isinstance(vmin, list):
-            self.__values = vmin
+            vals = vmin
         else:
             if vmax is None:
                 vmax = vmin
@@ -2018,27 +2018,34 @@ class slider_generic(control):
             #Compute step size; vmin and vmax are both defined here
             #500 is the length of the slider (in px)
             if step_size is None:
-                step_size = (vmax-vmin)/500.0
+                step_size = (vmax-vmin)/499.0
             elif step_size <= 0:
                 raise ValueError, "invalid negative step size -- step size must be positive"
 
             #Compute list of values
             num_steps = int(math.ceil((vmax-vmin)/float(step_size)))
             if num_steps <= 2:
-                self.__values = [vmin, vmax]
+                vals = [vmin, vmax]
             else:
-                self.__values = [vmin + i*step_size for i in range(num_steps+1)]
-                if self.__values[-1] != vmax:
+                vals = srange(vmin, vmax, step_size, include_endpoint=True)
+                if vals[-1] != vmax:
                     try:
-                        if self.__values[-1] > vmax:
-                            self.__values[-1] = vmax
+                        if vals[-1] > vmax:
+                            vals[-1] = vmax
                         else:
-                            self.__values.append(vmax)
+                            vals.append(vmax)
                     except (ValueError, TypeError):
                         pass
 
-        if len(self.__values) == 0:
+        #Is the list of values is small (len<=50), use the whole list.
+        #Otherwise, use part of the list.
+        if len(vals) == 0:
             self.__values = [0]
+        elif(len(vals)<=500):
+            self.__values = vals
+        else:
+	    vlen = (len(vals)-1)/499.0
+	    self.__values = [vals[(int)(i*vlen)] for i in range(500)]
 
     def values(self):
         """

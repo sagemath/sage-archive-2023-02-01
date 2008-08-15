@@ -2501,7 +2501,8 @@ class Moebius:
                         in seeing their order).
                 **kwds -- passed on
         """
-        v = self.range(xmin, xmax + 1)
+        values = self.range(xmin, xmax + 1)
+        v = [(n,values[n-xmin]) for n in range(xmin,xmax + 1)]
         from sage.plot.all import list_plot
         P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
         if join:

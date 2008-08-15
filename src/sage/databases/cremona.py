@@ -42,6 +42,9 @@ import sage.schemes.elliptic_curves.constructor as elliptic
 import sage.databases.db   # very important that this be fully qualified
 import sage.misc.misc
 
+import re
+import string
+
 _map = {'allcurves':'a', 'degphi':'b', 'allbsd':'c', 'allgens':'d'}
 
 def rebuild(data_tgz, largest_conductor, decompress=True):
@@ -245,7 +248,53 @@ def parse_cremona_label(label):
     #iso = iso.lower()
     return conductor, iso, num
 
+def split_code(key):
+    """
+    Splits class+curve id string into its two parts.
 
+    EXAMPLES:
+        sage: import sage.databases.cremona as cremona
+        sage: cremona.split_code('ba2')
+        ('ba', '2')
+    """
+    cu = re.split("[a-z]*",key)[1]
+    cl =  re.split("[0-9]*",key)[0]
+    return (cl,cu)
+
+def class_to_int(k):
+    """
+    Converts class id string into an integer.
+
+    EXAMPLES:
+        sage: import sage.databases.cremona as cremona
+        sage: cremona.class_to_int('ba')
+        26
+    """
+    kk = [string.ascii_lowercase.index(ch) for ch in list(k)]
+    kk.reverse()
+    return sum([kk[i]*26**i for i in range(len(kk))])
+
+def cmp_code(key1,key2):
+    """
+    Comparison function for curve id strings.
+
+    NOTE: Not the same as standard lexicographic order!
+
+    EXAMPLES:
+        sage: import sage.databases.cremona as cremona
+        sage: cremona.cmp_code('ba1','z1')
+        1
+
+        By contrast:
+        sage: cmp('ba1','z1')
+        -1
+
+    """
+    cl1,cu1 = split_code(key1)
+    cl2,cu2 = split_code(key2)
+    d = class_to_int(cl1)-class_to_int(cl2)
+    if d!=0:  return d
+    return cmp(cu1,cu2)
 
 
 class LargeCremonaDatabase(sage.databases.db.Database):
@@ -466,7 +515,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         """
         for N in conductors:
             K = self.allcurves(N).keys()
-            K.sort()
+            K.sort(cmp_code)
             for e in K:
                 yield self.elliptic_curve(str(N) + e)
 
@@ -481,7 +530,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         classes = []
         A = self.allcurves(conductor)
         K = A.keys()
-        K.sort()
+        K.sort(cmp_code)
         for k in K:
             v = A[k]
             # test if not first curve in class
@@ -516,7 +565,9 @@ class LargeCremonaDatabase(sage.databases.db.Database):
             generator that iterates over EllipticCurve objects.
         """
         for N in conductors:
-            for id in self.curves(N).keys():
+            K = self.curves(N).keys()
+            K.sort(cmp_code)
+            for id in K:
                 yield self.elliptic_curve(str(N) + id)
 
     def list(self, conductors):

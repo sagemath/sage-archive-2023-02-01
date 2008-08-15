@@ -31,6 +31,12 @@ cdef extern from "ginac_wrap.h":
     GEx gsub "SUB_WRAP" (GEx left, GEx right)
     GEx gmul "MUL_WRAP" (GEx left, GEx right)
     GEx gdiv "DIV_WRAP" (GEx left, GEx right)
+    GEx g_lt "LT_WRAP" (GEx left, GEx right)
+    GEx g_eq "EQ_WRAP" (GEx left, GEx right)
+    GEx g_gt "GT_WRAP" (GEx left, GEx right)
+    GEx g_le "LE_WRAP" (GEx left, GEx right)
+    GEx g_ne "NE_WRAP" (GEx left, GEx right)
+    GEx g_ge "GE_WRAP" (GEx left, GEx right)
     GEx g_pow "pow" (GEx left, GEx exp)
 
     GSymbol get_symbol(char* s)

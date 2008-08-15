@@ -31,6 +31,26 @@ cdef class Expression(CommutativeRingElement):
         """
         return self._gobj.gethash()
 
+    def __richcmp__(left, right, int op):
+        cdef Expression l = left
+        cdef Expression r = right
+        cdef GEx e
+        _sig_on
+        if op == Py_LT:
+            e = g_lt(l._gobj, r._gobj)
+        elif op == Py_EQ:
+            e = g_eq(l._gobj, r._gobj)
+        elif op == Py_GT:
+            e = g_gt(l._gobj, r._gobj)
+        elif op == Py_LE:
+            e = g_le(l._gobj, r._gobj)
+        elif op == Py_NE:
+            e = g_ne(l._gobj, r._gobj)
+        elif op == Py_GE:
+            e = g_ge(l._gobj, r._gobj)
+        _sig_off
+        return new_Expression_from_GEx(e)
+
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
         """
             sage.: var("x y", ns=1)
@@ -78,10 +98,6 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx e = gdiv(left._gobj, (<Expression>right)._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
-
-    def __richcmp__(left, right, int op):
-        #boilerplate from sage.structure.element
-        return (<Element>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         return left._gobj.compare((<Expression>right)._gobj)

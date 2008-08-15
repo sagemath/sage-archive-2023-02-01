@@ -20,3 +20,11 @@ const symbol & get_symbol(const std::string & s)
 #define SUB_WRAP(x,y) (x)-(y)
 #define MUL_WRAP(x,y) (x)*(y)
 #define DIV_WRAP(x,y) (x)/(y)
+
+#define LT_WRAP(x,y)  (x)<(y)
+#define EQ_WRAP(x,y)  (x)==(y)
+#define GT_WRAP(x,y)  (x)>(y)
+#define LE_WRAP(x,y)  (x)<=(y)
+#define NE_WRAP(x,y)  (x)!=(y)
+#define GE_WRAP(x,y)  (x)>=(y)
+

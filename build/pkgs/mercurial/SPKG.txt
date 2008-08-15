@@ -3,7 +3,10 @@
 
 == Changelog ==
 
-=== mercurial-1.01.p0 (Mike Hansen, July 21st, 2009) ===
+=== mercurial-1.01.p1 (Michael Abshoff, August 15th, 2008) ===
+ * Disable inotify extenion since it is broken on Itanium
+
+=== mercurial-1.01.p0 (Mike Hansen, July 21st, 2008) ===
  * Upgraded to Mercurial 1.01
 
 === mercurial-0.9.5.p1 (Michael Abshoff, May 22nd, 2008) ===

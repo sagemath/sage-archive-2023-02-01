@@ -27,6 +27,7 @@ $CP patches/style.css src/templates/static/
 $CP patches/changelog.tmpl src/templates/
 
 $CP patches/util.py src/mercurial/util.py
+$CP patches/setup.py src/setup.py
 
 perl -p -i -e 's/>manifest</>browse all files</g' src/templates/*.tmpl
 

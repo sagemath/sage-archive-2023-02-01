@@ -52,7 +52,7 @@ cdef class NSymbolicRing(Ring):
             GEx_construct_double(&exp, float(other))
 #FIXME precision
         else:
-            raise TypeError, "coercion to %s from %s not defined."%(self, other.parent())
+            raise TypeError
 
         return new_Expression_from_GEx(exp)
 

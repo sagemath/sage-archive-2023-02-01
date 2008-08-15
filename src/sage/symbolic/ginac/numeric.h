@@ -28,13 +28,87 @@
 
 #include <stdexcept>
 #include <vector>
+#include <iostream>
+
+
 
 namespace GiNaC {
 
-  typedef double Number_T;
-  typedef double Integer_T;
-  typedef double Float_T;
-  typedef double Real_T;
+class Number_T {  // abstract base class
+ public:
+ Number_T() : value(0) { }
+ Number_T(const int& x) : value(x) { }
+ Number_T(const long int& x) : value(x) { }
+ Number_T(const unsigned int& x) : value(x) { }
+ Number_T(const double& x) : value(x) { }
+ Number_T(const Number_T& x) : value(x.value) { }
+
+  Number_T operator+(Number_T x) const { return value + x.value; }
+  Number_T operator*(Number_T x) const { return value * x.value; }
+  Number_T operator/(Number_T x) const { return value / x.value; }
+  Number_T operator-(Number_T x) const { return value - x.value; }
+  Number_T& operator=(const Number_T& x) { value = x.value; return *this; }
+
+  Number_T operator()(const int& x) { return Number_T(x); }
+  Number_T operator-() { return -value; }
+
+  operator double() const { return value; }
+  operator int() const { return (int)value; }
+  operator long int() const { return (long int)value; }
+
+  unsigned hash() const { return static_cast<unsigned>(value); }
+  bool operator==(const Number_T& right) const { return value == right.value; }
+  bool operator!=(const Number_T& right) const { return value != right.value; }
+  bool operator<=(const Number_T& right) const { return value <= right.value; }
+  bool operator>=(const Number_T& right) const { return value >= right.value; }
+  bool operator<(const Number_T& right) const { return value < right.value; }
+  bool operator>(const Number_T& right) const { return value > right.value; }
+
+  bool is_zero() const { return value == 0; }
+  bool is_positive() const { return value > 0; }
+  bool is_negative() const { return value < 0; }
+  Number_T inverse() const { return 1/value; }
+ 
+  public:
+    double value;
+};
+
+ std::ostream& operator << (std::ostream& os, const Number_T& s);
+
+ typedef Number_T Real_T;
+ typedef Number_T Integer_T;
+ typedef Number_T GMP_T;
+ typedef Number_T FixedInt_T;
+ typedef Number_T Rational_T;
+ typedef Number_T Float_T;
+ typedef Number_T Double_T;
+ typedef Number_T MPFR_T;
+
+/*
+class Real_T : Number_T {
+};
+
+class Integer_T : Real_T {   // abstract base class
+};
+
+class GMP_T : Integer_T {  
+};
+
+class FixedInt_T : Integer_T {  
+};
+
+class Rational_T : Real_T {
+};
+
+class Float_T : Real_T {  // abstract base class
+};
+
+class Double_T : Float_T {
+};
+
+class MPFR_T : Float_T {
+};
+*/
 
 /** Function pointer to implement callbacks in the case 'Digits' gets changed.
  *  Main purpose of such callbacks is to adjust look-up tables of certain
@@ -96,6 +170,7 @@ public:
 	numeric(long numer, long denom);
 	numeric(double d);
 	numeric(const char *);
+	numeric(const Number_T& x);
 	
 	// functions overriding virtual functions from base classes
 public:

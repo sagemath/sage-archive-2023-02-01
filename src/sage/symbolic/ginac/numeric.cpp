@@ -60,6 +60,10 @@
 
 namespace GiNaC {
 
+ std::ostream& operator << (std::ostream& os, const Number_T& s) {
+   return os << s.value;
+ }
+
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(numeric, basic,
   print_func<print_context>(&numeric::do_print).
   print_func<print_latex>(&numeric::do_print_latex).
@@ -86,6 +90,8 @@ numeric::numeric() : basic(&numeric::tinfo_static)
 
 numeric::numeric(int i) : basic(&numeric::tinfo_static)
 {
+  std::cout << "a\n";
+
   value = Number_T(i);
   setflag(status_flags::evaluated | status_flags::expanded);
 }
@@ -93,6 +99,7 @@ numeric::numeric(int i) : basic(&numeric::tinfo_static)
 
 numeric::numeric(unsigned int i) : basic(&numeric::tinfo_static)
 {
+  std::cout << "b\n";
   value = Number_T(i);
   setflag(status_flags::evaluated | status_flags::expanded);
 }
@@ -100,12 +107,14 @@ numeric::numeric(unsigned int i) : basic(&numeric::tinfo_static)
 
 numeric::numeric(long i) : basic(&numeric::tinfo_static)
 {
+  std::cout << "c\n";
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 
 numeric::numeric(unsigned long i) : basic(&numeric::tinfo_static)
 {
+  std::cout << "d\n";
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -124,6 +133,7 @@ numeric::numeric(long numer, long denom) : basic(&numeric::tinfo_static)
 
 numeric::numeric(double d) : basic(&numeric::tinfo_static)
 {
+  std::cout << "e\n";
 	// We really want to explicitly use the type cl_LF instead of the
 	// more general cl_F, since that would give us a cl_DF only which
 	// will not be promoted to cl_LF if overflow occurs:
@@ -132,10 +142,17 @@ numeric::numeric(double d) : basic(&numeric::tinfo_static)
 }
 
 
+numeric::numeric(const Number_T& x) : basic(&numeric::tinfo_static),
+				      value(x)
+{
+  setflag(status_flags::evaluated | status_flags::expanded);
+}
+
 /** ctor from C-style string.  It also accepts complex numbers in GiNaC
  *  notation like "2+5*I". */
 numeric::numeric(const char *s) : basic(&numeric::tinfo_static)
 {
+  std::cout << "e\n";
 // 	cln::cl_N ctorval = 0;
 // 	// parse complex numbers (functional but not completely safe, unfortunately
 // 	// std::string does not understand regexpese):
@@ -285,11 +302,14 @@ static void print_real_cl_N(const print_context & c, const Real_T & x)
 
 void numeric::print_numeric(const print_context & c, const char *par_open, const char *par_close, const char *imag_sym, const char *mul_sym, unsigned level) const
 {
+  std::cout << "1\n";
+  c.s << value;
 }
 
 void numeric::do_print(const print_context & c, unsigned level) const
 {
-	print_numeric(c, "(", ")", "I", "*", level);
+  std::cout << "2\n";
+  print_numeric(c, "(", ")", "I", "*", level);
 }
 
 void numeric::do_print_latex(const print_latex & c, unsigned level) const
@@ -299,6 +319,7 @@ void numeric::do_print_latex(const print_latex & c, unsigned level) const
 
 void numeric::do_print_csrc(const print_csrc & c, unsigned level) const
 {
+  std::cout << "3\n";
 }
 
 
@@ -436,8 +457,8 @@ ex numeric::eval(int level) const
  *  @return  an ex-handle to a numeric. */
 ex numeric::evalf(int level) const
 {
-	// level can safely be discarded for numeric objects.
-	return value;
+  // TODO
+  return *this;
 }
 
 ex numeric::conjugate() const
@@ -477,7 +498,7 @@ bool numeric::is_equal_same_type(const basic &other) const
 
 unsigned numeric::calchash() const
 {
-  return static_cast<unsigned>(value);
+  return value.hash();
 }
 
 
@@ -523,7 +544,7 @@ const numeric numeric::mul(const numeric &other) const
  *  @exception overflow_error (division by zero) */
 const numeric numeric::div(const numeric &other) const
 {
-	if (value == 0)
+  if (value.is_zero())
 	  throw std::overflow_error("numeric::div(): division by zero");
 	return numeric(value / other.value);
 }
@@ -563,7 +584,7 @@ const numeric &numeric::sub_dyn(const numeric &other) const
 {
 	// Efficiency shortcut: trap the neutral exponent (first by pointer).  This
 	// hack is supposed to keep the number of distinct numeric objects low.
-	if (&other==_num0_p || (other.value == 0))
+  if (&other==_num0_p || (other.value.is_zero()))
 		return *this;
 	
 	return static_cast<const numeric &>((new numeric(value - other.value))->
@@ -601,7 +622,7 @@ const numeric &numeric::div_dyn(const numeric &other) const
 	// is supposed to keep the number of distinct numeric objects low.
 	if (&other==_num1_p)
 		return *this;
-	if (other.value == 0)
+	if (other.value.is_zero())
 		throw std::overflow_error("division by zero");
 	return static_cast<const numeric &>((new numeric(value / other.value))->
 	                                    setflag(status_flags::dynallocated));
@@ -664,9 +685,9 @@ const numeric &numeric::operator=(const char * s)
 /** Inverse of a number. */
 const numeric numeric::inverse() const
 {
-	if (value == 0)
+	if (value.is_zero())
 		throw std::overflow_error("numeric::inverse(): division by zero");
-	return numeric(1/value);
+	return numeric(value.inverse());
 }
 
 /** Return the step function of a numeric. The imaginary part of it is
@@ -711,21 +732,21 @@ bool numeric::is_equal(const numeric &other) const
 /** True if object is zero. */
 bool numeric::is_zero() const
 {
-	return value == 0;
+	return value.is_zero();
 }
 
 
 /** True if object is not complex and greater than zero. */
 bool numeric::is_positive() const
 {
-  return value > 0; // check this? ( >= ? )
+  return value.is_positive();
 }
 
 
 /** True if object is not complex and less than zero. */
 bool numeric::is_negative() const
 {
-  return value < 0;
+  return value.is_negative();
 }
 
 

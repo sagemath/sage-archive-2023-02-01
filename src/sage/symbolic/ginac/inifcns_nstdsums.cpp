@@ -242,6 +242,7 @@ void double_Xn()
 // calculates Li(2,x) without Xn
 Number_T Li2_do_sum(const Number_T& x)
 {
+  /*
 	Number_T res = x;
 	Number_T resbuf;
 	Number_T num = x ;
@@ -255,6 +256,7 @@ Number_T Li2_do_sum(const Number_T& x)
 		res = res + num / den;
 	} while (res != resbuf);
 	return res;
+  */
 }
 
 
@@ -517,6 +519,7 @@ Number_T multipleLi_do_sum(const std::vector<int>& s, const std::vector<Number_T
 // converts parameter types and calls multipleLi_do_sum (convenience function for G_numeric)
 Number_T mLi_do_summation(const lst& m, const lst& x)
 {
+  /*
 	std::vector<int> m_int;
 	std::vector<Number_T> x_cln;
 	for (lst::const_iterator itm = m.begin(), itx = x.begin(); itm != m.end(); ++itm, ++itx) {
@@ -524,6 +527,7 @@ Number_T mLi_do_summation(const lst& m, const lst& x)
 		x_cln.push_back(ex_to<numeric>(*itx).to_cl_N());
 	}
 	return multipleLi_do_sum(m_int, x_cln);
+  */
 }
 
 
@@ -542,6 +546,7 @@ typedef std::vector<int> Gparameter;
 // G_eval1-function for G transformations
 ex G_eval1(int a, int scale)
 {
+  /*
 	if (a != 0) {
 		const ex& scs = gsyms[std::abs(scale)];
 		const ex& as = gsyms[std::abs(a)];
@@ -553,6 +558,7 @@ ex G_eval1(int a, int scale)
 	} else {
 		return log(gsyms[std::abs(scale)]);
 	}
+  */
 }
 
 
@@ -673,6 +679,7 @@ Gparameter convert_pending_integrals_G(const Gparameter& pending_integrals)
 Gparameter::const_iterator check_parameter_G(const Gparameter& a, int scale,
 		bool& convergent, int& depth, int& trailing_zeros, Gparameter::const_iterator& min_it)
 {
+  /*
 	convergent = true;
 	depth = 0;
 	trailing_zeros = 0;
@@ -694,12 +701,14 @@ Gparameter::const_iterator check_parameter_G(const Gparameter& a, int scale,
 		}
 	}
 	return ++lastnonzero;
+  */
 }
 
 
 // add scale to pending_integrals if pending_integrals is empty
 Gparameter prepare_pending_integrals(const Gparameter& pending_integrals, int scale)
 {
+  /*
 	GINAC_ASSERT(pending_integrals.size() != 1);
 
 	if (pending_integrals.size() > 0) {
@@ -709,12 +718,14 @@ Gparameter prepare_pending_integrals(const Gparameter& pending_integrals, int sc
 		new_pending_integrals.push_back(scale);
 		return new_pending_integrals;
 	}
+  */
 }
 
 
 // handles trailing zeroes for an otherwise convergent integral
 ex trailing_zeros_G(const Gparameter& a, int scale)
 {
+  /*
 	bool convergent;
 	int depth, trailing_zeros;
 	Gparameter::const_iterator last, dummyit;
@@ -737,12 +748,14 @@ ex trailing_zeros_G(const Gparameter& a, int scale)
 	} else {
 		return G_eval(a, scale);
 	}
+  */
 }
 
 
 // G transformation [VSW] (57),(58)
 ex depth_one_trafo_G(const Gparameter& pending_integrals, const Gparameter& a, int scale)
 {
+  /*
 	// pendint = ( y1, b1, ..., br )
 	//       a = ( 0, ..., 0, amin )
 	//   scale = y2
@@ -814,6 +827,7 @@ ex depth_one_trafo_G(const Gparameter& pending_integrals, const Gparameter& a, i
 	}
 
 	return result;
+  */
 }
 
 
@@ -825,6 +839,7 @@ ex shuffle_G(const Gparameter & a0, const Gparameter & a1, const Gparameter & a2
 // G transformation [VSW]
 ex G_transform(const Gparameter& pendint, const Gparameter& a, int scale)
 {
+  /*
 	// main recursion routine
 	//
 	// pendint = ( y1, b1, ..., br )
@@ -946,6 +961,7 @@ ex G_transform(const Gparameter& pendint, const Gparameter& a, int scale)
 		result += G_transform(new_pendint, new_a, scale);
 	}
 	return result;
+  */
 }
 
 
@@ -954,6 +970,7 @@ ex G_transform(const Gparameter& pendint, const Gparameter& a, int scale)
 ex shuffle_G(const Gparameter & a0, const Gparameter & a1, const Gparameter & a2,
 	     const Gparameter& pendint, const Gparameter& a_old, int scale) 
 {
+  /*
 	if (a1.size()==0 && a2.size()==0) {
 		// veto the one configuration we don't want
 		if ( a0 == a_old ) return 0;
@@ -986,6 +1003,7 @@ ex shuffle_G(const Gparameter & a0, const Gparameter & a1, const Gparameter & a2
 
 	return shuffle_G(a01,a1_removed,a2,pendint,a_old,scale)
 	     + shuffle_G(a02,a1,a2_removed,pendint,a_old,scale);
+  */
 }
 
 
@@ -993,6 +1011,7 @@ ex shuffle_G(const Gparameter & a0, const Gparameter & a1, const Gparameter & a2
 // the parameter x, s and y must only contain numerics
 ex G_numeric(const lst& x, const lst& s, const ex& y)
 {
+  /*
 	// check for convergence and necessary accelerations
 	bool need_trafo = false;
 	bool need_hoelder = false;
@@ -1161,11 +1180,13 @@ ex G_numeric(const lst& x, const lst& s, const ex& y)
 	}
 
 	return sign * numeric(mLi_do_summation(m, newx));
+  */
 }
 
 
 ex mLi_numeric(const lst& m, const lst& x)
 {
+  /*
 	// let G_numeric do the transformation
 	lst newx;
 	lst s;
@@ -1180,6 +1201,7 @@ ex mLi_numeric(const lst& m, const lst& x)
 		s.append(1);
 	}
 	return pow(-1, m.nops()) * G_numeric(newx, s, _ex1);
+  */
 }
 
 
@@ -1197,6 +1219,7 @@ ex mLi_numeric(const lst& m, const lst& x)
 
 static ex G2_evalf(const ex& x_, const ex& y)
 {
+  /*
 	if (!y.info(info_flags::positive)) {
 		return G(x_, y).hold();
 	}
@@ -1222,13 +1245,14 @@ static ex G2_evalf(const ex& x_, const ex& y)
 		return pow(log(y), x.nops()) / factorial(x.nops());
 	}
 	return G_numeric(x, s, y);
+  */
 }
 
 
 static ex G2_eval(const ex& x_, const ex& y)
 {
 	//TODO eval to MZV or H or S or Lin
-
+  /*
 	if (!y.info(info_flags::positive)) {
 		return G(x_, y).hold();
 	}
@@ -1264,6 +1288,7 @@ static ex G2_eval(const ex& x_, const ex& y)
 		return G(x_, y).hold();
 	}
 	return G_numeric(x, s, y);
+  */
 }
 
 
@@ -1279,6 +1304,7 @@ unsigned G2_SERIAL::serial = function::register_new(function_options("G", 2).
 
 static ex G3_evalf(const ex& x_, const ex& s_, const ex& y)
 {
+  /*
 	if (!y.info(info_flags::positive)) {
 		return G(x_, s_, y).hold();
 	}
@@ -1315,13 +1341,14 @@ static ex G3_evalf(const ex& x_, const ex& s_, const ex& y)
 		return pow(log(y), x.nops()) / factorial(x.nops());
 	}
 	return G_numeric(x, sn, y);
+  */
 }
 
 
 static ex G3_eval(const ex& x_, const ex& s_, const ex& y)
 {
 	//TODO eval to MZV or H or S or Lin
-
+  /*
 	if (!y.info(info_flags::positive)) {
 		return G(x_, s_, y).hold();
 	}
@@ -1368,6 +1395,7 @@ static ex G3_eval(const ex& x_, const ex& s_, const ex& y)
 		return G(x_, s_, y).hold();
 	}
 	return G_numeric(x, sn, y);
+  */
 }
 
 
@@ -1392,6 +1420,7 @@ unsigned G3_SERIAL::serial = function::register_new(function_options("G", 3).
 
 static ex Li_evalf(const ex& m_, const ex& x_)
 {
+  /*
 	// classical polylogs
 	if (m_.info(info_flags::posint)) {
 		if (x_.info(info_flags::numeric)) {
@@ -1435,11 +1464,13 @@ static ex Li_evalf(const ex& m_, const ex& x_)
 	}
 
 	return Li(m_,x_).hold();
+  */
 }
 
 
 static ex Li_eval(const ex& m_, const ex& x_)
 {
+  /*
 	if (is_a<lst>(m_)) {
 		if (is_a<lst>(x_)) {
 			// multiple polylogs
@@ -1518,11 +1549,13 @@ static ex Li_eval(const ex& m_, const ex& x_)
 	}
 
 	return Li(m_, x_).hold();
+  */
 }
 
 
 static ex Li_series(const ex& m, const ex& x, const relational& rel, int order, unsigned options)
 {
+  /*
 	if (is_a<lst>(m) || is_a<lst>(x)) {
 		// multiple polylog
 		epvector seq;
@@ -1554,11 +1587,13 @@ static ex Li_series(const ex& m, const ex& x, const relational& rel, int order, 
 	}
 	// all other cases should be safe, by now:
 	throw do_taylor();  // caught by function::series()
+  */
 }
 
 
 static ex Li_deriv(const ex& m_, const ex& x_, unsigned deriv_param)
 {
+  /*
 	GINAC_ASSERT(deriv_param < 2);
 	if (deriv_param == 0) {
 		return _ex0;
@@ -1583,11 +1618,13 @@ static ex Li_deriv(const ex& m_, const ex& x_, unsigned deriv_param)
 	} else {
 		return 1/(1-x);
 	}
+  */
 }
 
 
 static void Li_print_latex(const ex& m_, const ex& x_, const print_context& c)
 {
+  /*
 	lst m;
 	if (is_a<lst>(m_)) {
 		m = ex_to<lst>(m_);
@@ -1617,6 +1654,7 @@ static void Li_print_latex(const ex& m_, const ex& x_, const print_context& c)
 		(*itx).print(c);
 	}
 	c.s << ")";
+  */
 }
 
 
@@ -2001,6 +2039,7 @@ numeric S_num(int n, int p, const numeric& x)
 
 static ex S_evalf(const ex& n, const ex& p, const ex& x)
 {
+  /*
 	if (n.info(info_flags::posint) && p.info(info_flags::posint)) {
 		if (is_a<numeric>(x)) {
 			return S_num(ex_to<numeric>(n).to_int(), ex_to<numeric>(p).to_int(), ex_to<numeric>(x));
@@ -2012,11 +2051,13 @@ static ex S_evalf(const ex& n, const ex& p, const ex& x)
 		}
 	}
 	return S(n, p, x).hold();
+  */
 }
 
 
 static ex S_eval(const ex& n, const ex& p, const ex& x)
 {
+  /*
 	if (n.info(info_flags::posint) && p.info(info_flags::posint)) {
 		if (x == 0) {
 			return _ex0;
@@ -2040,11 +2081,13 @@ static ex S_eval(const ex& n, const ex& p, const ex& x)
 		return pow(-log(1-x), p) / factorial(p);
 	}
 	return S(n, p, x).hold();
+  */
 }
 
 
 static ex S_series(const ex& n, const ex& p, const ex& x, const relational& rel, int order, unsigned options)
 {
+  /*
 	if (p == _ex1) {
 		return Li(n+1, x).series(rel, order, options);
 	}
@@ -2087,11 +2130,13 @@ static ex S_series(const ex& n, const ex& p, const ex& x, const relational& rel,
 	}
 	// all other cases should be safe, by now:
 	throw do_taylor();  // caught by function::series()
+  */
 }
 
 
 static ex S_deriv(const ex& n, const ex& p, const ex& x, unsigned deriv_param)
 {
+  /*
 	GINAC_ASSERT(deriv_param < 3);
 	if (deriv_param < 2) {
 		return _ex0;
@@ -2101,11 +2146,13 @@ static ex S_deriv(const ex& n, const ex& p, const ex& x, unsigned deriv_param)
 	} else {
 		return S(n, p-1, x) / (1-x);
 	}
+  */
 }
 
 
 static void S_print_latex(const ex& n, const ex& p, const ex& x, const print_context& c)
 {
+  /*
 	c.s << "\\mbox{S}_{";
 	n.print(c);
 	c.s << ",";
@@ -2113,6 +2160,7 @@ static void S_print_latex(const ex& n, const ex& p, const ex& x, const print_con
 	c.s << "}(";
 	x.print(c);
 	c.s << ")";
+  */
 }
 
 
@@ -2147,6 +2195,7 @@ symbol H_polesign("IMSIGN");
 // returns true if some parameters are negative
 bool convert_parameter_H_to_Li(const lst& l, lst& m, lst& s, ex& pf)
 {
+  /*
 	// expand parameter list
 	lst mexp;
 	for (lst::const_iterator it = l.begin(); it != l.end(); it++) {
@@ -2198,6 +2247,7 @@ bool convert_parameter_H_to_Li(const lst& l, lst& m, lst& s, ex& pf)
 	}
 	
 	return has_negative_parameters;
+  */
 }
 
 
@@ -2388,6 +2438,7 @@ lst convert_parameter_Li_to_H(const lst& m, const lst& x, ex& pf)
 // [ReV] (18)
 ex trafo_H_mult(const ex& h1, const ex& h2)
 {
+  /*
 	ex res;
 	ex hshort;
 	lst hlong;
@@ -2417,6 +2468,7 @@ ex trafo_H_mult(const ex& h1, const ex& h2)
 		res += H(newparameter, h1.op(1)).hold();
 	}
 	return res;
+  */
 }
 
 
@@ -2488,6 +2540,7 @@ struct map_trafo_H_mult : public map_function
 // put parameter 0 in front of existing parameters
 ex trafo_H_1tx_prepend_zero(const ex& e, const ex& arg)
 {
+  /*
 	ex h;
 	std::string name;
 	if (is_a<function>(e)) {
@@ -2513,6 +2566,7 @@ ex trafo_H_1tx_prepend_zero(const ex& e, const ex& arg)
 	} else {
 		return e * (-H(lst(0),1/arg).hold());
 	}
+  */
 }
 
 
@@ -2520,6 +2574,7 @@ ex trafo_H_1tx_prepend_zero(const ex& e, const ex& arg)
 // put parameter 1 in front of existing parameters
 ex trafo_H_prepend_one(const ex& e, const ex& arg)
 {
+  /*
 	ex h;
 	std::string name;
 	if (is_a<function>(e)) {
@@ -2544,6 +2599,7 @@ ex trafo_H_prepend_one(const ex& e, const ex& arg)
 	} else {
 		return e * H(lst(1),1-arg).hold();
 	}
+  */
 }
 
 
@@ -2551,6 +2607,7 @@ ex trafo_H_prepend_one(const ex& e, const ex& arg)
 // put parameter -1 in front of existing parameters
 ex trafo_H_1tx_prepend_minusone(const ex& e, const ex& arg)
 {
+  /*
 	ex h;
 	std::string name;
 	if (is_a<function>(e)) {
@@ -2608,6 +2665,7 @@ ex trafo_H_1mxt1px_prepend_minusone(const ex& e, const ex& arg)
 	} else {
 		return (e * H(lst(-1),(1-arg)/(1+arg)).hold()).expand();
 	}
+  */
 }
 
 
@@ -2615,6 +2673,7 @@ ex trafo_H_1mxt1px_prepend_minusone(const ex& e, const ex& arg)
 // put parameter 1 in front of existing parameters
 ex trafo_H_1mxt1px_prepend_one(const ex& e, const ex& arg)
 {
+  /*
 	ex h;
 	std::string name;
 	if (is_a<function>(e)) {
@@ -2639,6 +2698,7 @@ ex trafo_H_1mxt1px_prepend_one(const ex& e, const ex& arg)
 	} else {
 		return (e * H(lst(1),(1-arg)/(1+arg)).hold()).expand();
 	}
+  */
 }
 
 

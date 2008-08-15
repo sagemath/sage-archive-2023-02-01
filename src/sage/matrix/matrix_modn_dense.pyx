@@ -680,7 +680,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             True
         """
 
-        cdef Py_ssize_t i
+        cdef Py_ssize_t i, j
         cdef int cmp
 
         _sig_on
@@ -688,9 +688,14 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         for i from 0 <= i < self._nrows:
             row_self = self._matrix[i]
             row_right = (<Matrix_modn_dense> right)._matrix[i]
-            cmp = memcmp(row_self, row_right, sizeof(mod_int)*self._ncols)
-            if cmp:
-                return cmp
+            for j from 0 <= j < self._ncols:
+                if row_self[j] < row_right[j]:
+                    return -1
+                elif row_self[j] > row_right[j]:
+                    return 1
+            #cmp = memcmp(row_self, row_right, sizeof(mod_int)*self._ncols)
+            #if cmp:
+            #    return cmp
         _sig_off
         return 0
 

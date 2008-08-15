@@ -4097,7 +4097,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         for i in range(0,r):
             mw_base_log.append(mw_base[i].elliptic_logarithm().abs())
             mod_h_list.append(modified_height(i))
-            c9_help_list.append(sqrt(mod_h_list[i])/mw_base_log[i])
+            c9_help_list.append((mod_h_list[i]).sqrt()/mw_base_log[i])
 
         c8 = max(e*h_E,max(mod_h_list))
         c9 = e/c7.sqrt() * min(c9_help_list)
@@ -4158,12 +4158,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             T = (1 + (3/2*r*H_q))/2
             if d_L_0 < R(T**2+Q):
                 d_L_0 = 10*(T**2*Q)
-            low_bound = R((sqrt(d_L_0 - Q) - T)/c)
+            low_bound = R(((d_L_0 - Q).sqrt() - T)/c)
 
             #new bound according to low_bound and upper bound
             #[c_5 exp((-c_2*H_q^2)/2)] provided by Corollary 8.7.3
             if low_bound != 0:
-                H_q_new = R(sqrt(log(low_bound/c5)/(-c2/2)))
+                H_q_new = R((log(low_bound/c5)/(-c2/2))).sqrt()
                 H_q_new = H_q_new.ceil()
                 if H_q_new == 1:
                     break_cond = 1 # stops reduction

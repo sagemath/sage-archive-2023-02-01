@@ -988,7 +988,7 @@ def divisors(n):
     ans.sort()
     return ans
 
-def sigma(n, k=1):
+class Sigma:
     """
     Return the sum of the k-th powers of the divisors of n.
 
@@ -1004,6 +1004,12 @@ def sigma(n, k=1):
         6
         sage: sigma(5,2)
         26
+
+    The sigma function also has a special plotting method.
+        sage: P = plot(sigma, 1, 100)
+
+    This method also works with k-th powers.
+        sage: P = plot(sigma, 1, 100, k=2)
 
     AUTHORS:
         -- William Stein: original implementation
@@ -1023,18 +1029,44 @@ def sigma(n, k=1):
         sage: sigma(factorial(41),1)
         229199532273029988767733858700732906511758707916800
     """
-    ZZ = integer_ring.ZZ
-    n = ZZ(n)
-    k = ZZ(k)
-    one = ZZ(1)
+    def __repr__(self):
+        return "Function that adds up (k-th powers of) the divisors of n"
 
-    if (k == ZZ(0)):
-        return prod([ expt+one for p, expt in factor(n) ])
-    elif (k == one):
-        return prod([ (p**(expt+one) - one) // (p - one) for p, expt in factor(n) ])
-    else:
-        return prod([ (p**((expt+one)*k)-one) // (p**k-one) for p,expt in factor(n) ])
+    def __call__(self, n, k=1):
+        ZZ = integer_ring.ZZ
+        n = ZZ(n)
+        k = ZZ(k)
+        one = ZZ(1)
 
+        if (k == ZZ(0)):
+            return prod([ expt+one for p, expt in factor(n) ])
+        elif (k == one):
+            return prod([ (p**(expt+one) - one) // (p - one) for p, expt in factor(n) ])
+        else:
+            return prod([ (p**((expt+one)*k)-one) // (p**k-one) for p,expt in factor(n) ])
+
+    def plot(self, xmin=1, xmax=50, k=1, pointsize=30, rgbcolor=(0,0,1), join=True,
+             **kwds):
+        """
+        Plot the sigma (sum of k-th powers of divisors) function.
+
+            INPUT:
+                xmin -- default: 1
+                xmax -- default: 50
+                k -- default: 1
+                pointsize -- default: 30
+                rgbcolor -- default: (0,0,1)
+                join -- default: True; whether to join the points.
+                **kwds -- passed on
+        """
+        v = [(n,sigma(n,k)) for n in range(xmin,xmax + 1)]
+        from sage.plot.all import list_plot
+        P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
+        if join:
+            P += list_plot(v, plotjoined=True, rgbcolor=(0.7,0.7,0.7), **kwds)
+        return P
+
+sigma = Sigma()
 
 def gcd(a, b=0, integer=False, **kwargs):
     """

@@ -193,6 +193,18 @@ def extract_doc(file_name, module):
     s = "# -*- coding: utf-8 -*-\n"
     s += "from sage.all_cmdline import *; \n"
     s += "import sage.plot.plot; sage.plot.plot.DOCTEST_MODE=True\n"  # turn off image popup
+    s += """
+def warning_function(f):
+    def doctest_showwarning(message, category, filename, lineno, file=f):
+        try:
+            file.write(warnings.formatwarning(message, category, filename, lineno))
+        except IOError:
+            pass # the file (probably stdout) is invalid
+    return doctest_showwarning
+
+def change_warning_output(file):
+    warnings.showwarning = warning_function(file)
+"""
 
     while True:
         i = F.find('"""')
@@ -219,7 +231,7 @@ def extract_doc(file_name, module):
         except SyntaxError:
             doc = F[i:j+3]
         if len(doc):
-            doc = '""">>> set_random_seed(0L)\n\n' + doc[3:]
+            doc = '""">>> set_random_seed(0L)\n\n' + '>>> change_warning_output(sys.stdout)\n\n' + doc[3:]
         s += "\tr"+ doc + "\n\n"
         F = F[j+3:]
 

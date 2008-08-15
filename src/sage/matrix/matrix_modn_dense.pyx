@@ -318,7 +318,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [116 104 101]
             [114 101  33]
             sage: m._pickle()
-            ((1, True, 'Hi there!'), 10)
+            ((1, ..., 'Hi there!'), 10)
         """
         cdef Py_ssize_t i, j
         cdef unsigned char* ss

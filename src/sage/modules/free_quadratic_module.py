@@ -268,7 +268,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             rank -- a non-negative integer
 
         EXAMPLES:
-            sage: R = MPolynomialRing(QQ,3,'x')
+            sage: R = PolynomialRing(QQ,3,'x')
             sage: FreeModule(R,3,inner_product_matrix=diagonal_matrix(list(R.gens())))
             Ambient free quadratic module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
             Inner product matrix:
@@ -844,7 +844,7 @@ class FreeQuadraticModule_ambient(
             sage: A = GF(5)^20; latex(A)
             \mathbf{F}_{5}^{20}
 
-            sage: A = MPolynomialRing(QQ,3,'x')^20; latex(A)
+            sage: A = PolynomialRing(QQ,3,'x')^20; latex(A)
             (\mathbf{Q}[x_{0}, x_{1}, x_{2}])^{20}
 
             sage: V = QuadraticSpace(QQ,3,inner_product_matrix=[[2,1,0],[1,4,1],[0,1,8]])

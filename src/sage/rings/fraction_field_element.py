@@ -210,7 +210,7 @@ class FractionFieldElement(field_element.FieldElement):
         that a call function is defined for the numerator and denominator.
 
         EXAMPLES:
-            sage: x = MPolynomialRing(RationalField(),'x',3).gens()
+            sage: x = PolynomialRing(RationalField(),'x',3).gens()
             sage: f = x[0] + x[1] - 2*x[1]*x[2]
             sage: f
             -2*x1*x2 + x0 + x1

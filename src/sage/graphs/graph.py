@@ -8084,6 +8084,15 @@ class DiGraph(GenericGraph):
         sage: DiGraph(M)
         Digraph on 6 vertices
 
+    8. A c_graph implemented DiGraph can be constructed from a networkx
+    implemented DiGraph if its vertex set is equal to range(n):
+
+        sage: D = DiGraph({0:[1],1:[2],2:[0]}, implementation="networkx")
+        sage: E = DiGraph(D,implementation="c_graph")
+        sage: D == E
+        True
+
+
     """
     _directed = True
 
@@ -8126,7 +8135,7 @@ class DiGraph(GenericGraph):
                         verts = data.vertices()
                         self._backend.relabel(dict([[i, verts[i]] for i in xrange(data.num_verts())]), False)
                     for u,v,l in data.edge_iterator():
-                        self._backend.add_edge(u,v,l,False)
+                        self._backend.add_edge(u,v,l,True)
             elif hasattr(data, 'adj'):
                 import networkx
                 if isinstance(data, (networkx.XGraph, networkx.Graph)) and not isinstance(data, (networkx.XDiGraph, networkx.DiGraph)):

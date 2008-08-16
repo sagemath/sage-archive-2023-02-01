@@ -19,6 +19,12 @@ cdef extern from "ginac_wrap.h":
         GEx expand(unsigned int opt)
         GEx collect(GEx s, bint dist)
 
+    # Constants
+    GEx g_Pi "Pi"
+    GEx g_Catalan "Catalan"
+    GEx g_Euler "Euler"
+
+    # Destructor and constructor
     void GEx_destruct "Destruct<ex>"(GEx *mem)
     GEx* GEx_construct_symbol "Construct_p<ex, symbol>" (void *mem, GSymbol m)
     GEx* GEx_construct_ex "Construct_p<ex, ex>" (void *mem, GEx m)

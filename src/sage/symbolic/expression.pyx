@@ -17,7 +17,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x+y
             x+y
         """
-        return GEx_to_str(&self._gobj).replace('+',' + ')
+        return GEx_to_str(&self._gobj)
 
     def __hash__(self):
         """
@@ -101,6 +101,9 @@ cdef class Expression(CommutativeRingElement):
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         return left._gobj.compare((<Expression>right)._gobj)
+
+    def _add_benchmark(self):
+        gadd(self._gobj, self._gobj)
 
     def __pow__(Expression self, exp, ignored):
         cdef Expression nexp = self._parent._coerce_c(exp)
@@ -364,3 +367,5 @@ cdef Expression new_Expression_from_GEx(GEx juice):
     GEx_construct_ex(&nex._gobj, juice)
     nex._parent = ring.NSR
     return nex
+
+

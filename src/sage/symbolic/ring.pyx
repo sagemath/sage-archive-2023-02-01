@@ -100,3 +100,9 @@ def new_symbol(name):
     GEx_construct_symbol(&e._gobj, symb)
     e._parent = NSR
     return e
+
+
+pi = new_Expression_from_GEx(g_Pi)
+catalan = new_Expression_from_GEx(g_Catalan)
+euler = new_Expression_from_GEx(g_Euler)
+

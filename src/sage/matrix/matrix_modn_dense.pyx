@@ -226,7 +226,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             else:
                 e = R(entries)
                 if e != 0:
-                    for i from 0 <= i < self._nrows:
+                    for i from 0 <= i < min(self._nrows, self._ncols):
                         self._matrix[i][i] = e
             return
 

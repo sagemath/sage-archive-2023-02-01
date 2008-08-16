@@ -191,7 +191,7 @@ namespace GiNaC {
   /** 
    *
    *  @see numeric::print() */
-  static void print_real_number(const print_context & c, const Real_T & x)
+  static void print_real_number(const print_context & c, const Number_T & x)
   {
     c.s << x;
   }
@@ -199,14 +199,14 @@ namespace GiNaC {
   /** Helper function to print integer number in C++ source format.
    *
    *  @see numeric::print() */
-  static void print_integer_csrc(const print_context & c, const Real_T & x)
+  static void print_integer_csrc(const print_context & c, const Number_T & x)
   {
     stub("print_integer_csrc");
   }
   /** Helper function to print real number in C++ source format.
    *
    *  @see numeric::print() */
-  static void print_real_csrc(const print_context & c, const Real_T & x)
+  static void print_real_csrc(const print_context & c, const Number_T & x)
   {
     stub("print_real_csrc");
   }
@@ -220,13 +220,13 @@ namespace GiNaC {
    * @sa http://www.ginac.de/pipermail/cln-list/2006-October/000248.html
    */
   template<>
-  inline bool coerce<int, Integer_T>(int& dst, const Integer_T& arg)
+  inline bool coerce<int, Number_T>(int& dst, const Number_T& arg)
   {
     stub("coerce to int");
   }
 
   template<>
-  inline bool coerce<unsigned int, Integer_T>(unsigned int& dst, const Integer_T& arg)
+  inline bool coerce<unsigned int, Number_T>(unsigned int& dst, const Number_T& arg)
   {
     stub("coerce to unsigned int");
   }
@@ -234,7 +234,7 @@ namespace GiNaC {
   /** Helper function to print real number in C++ source format using cl_N types.
    *
    *  @see numeric::print() */
-  static void print_real_cl_N(const print_context & c, const Real_T & x)
+  static void print_real_cl_N(const print_context & c, const Number_T & x)
   {
     stub("coerce to real_cl_N");
   }

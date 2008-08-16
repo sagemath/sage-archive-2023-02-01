@@ -110,8 +110,8 @@ int xninitsize = xninitsizestep;
 int xnsize = 0;
 
   // Waiting to be implemented
-  void binomial(Integer_T x, Integer_T y) {throw dunno();}
-  void factorial (Integer_T x) {throw dunno();}
+  void binomial(Number_T x, Number_T y) {throw dunno();}
+  void factorial (Number_T x) {throw dunno();}
 
 // This function calculates the X_n. The X_n are needed for speed up of classical polylogarithms.
 // With these numbers the polylogs can be calculated as follows:

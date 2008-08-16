@@ -113,41 +113,6 @@ namespace GiNaC {
   std::ostream& operator << (std::ostream& os, const Number_T& s);
   Number_T pow(const Number_T& base, const Number_T& exp);
 
-  typedef Number_T Real_T;
-  typedef Number_T Integer_T;
-  typedef Number_T GMP_T;
-  typedef Number_T FixedInt_T;
-  typedef Number_T Rational_T;
-  typedef Number_T Float_T;
-  typedef Number_T Double_T;
-  typedef Number_T MPFR_T;
-
-  /*
-    class Real_T : Number_T {
-    };
-
-    class Integer_T : Real_T {   // abstract base class
-    };
-
-    class GMP_T : Integer_T {  
-    };
-
-    class FixedInt_T : Integer_T {  
-    };
-
-    class Rational_T : Real_T {
-    };
-
-    class Float_T : Real_T {  // abstract base class
-    };
-
-    class Double_T : Float_T {
-    };
-
-    class MPFR_T : Float_T {
-    };
-  */
-
   /** Function pointer to implement callbacks in the case 'Digits' gets changed.
    *  Main purpose of such callbacks is to adjust look-up tables of certain
    *  functions to the new precision. Parameter contains the signed difference

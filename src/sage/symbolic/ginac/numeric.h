@@ -55,11 +55,18 @@
 
 namespace GiNaC {
   enum Type {
-    DOUBLE
+    LONG,
+    DOUBLE,
+    MPFR,
+    MPZ,
+    MPQ,
+    MPFC,
+    MPQC
   };
 
   union Value {
-    double double_;
+    double _double;
+    long int _long;
   };
 
   class Number_T {  // abstract base class
@@ -68,57 +75,58 @@ namespace GiNaC {
     Value v;
 
   public:
-    Number_T() { v.double_ = 0; t = DOUBLE; }
-    Number_T(const int& x) { v.double_ = x; t = DOUBLE; }
-    Number_T(const long int& x) { v.double_ = x; t = DOUBLE; }
-    Number_T(const unsigned int& x) { v.double_ = x; t = DOUBLE; }
-    Number_T(const unsigned long& x) { v.double_ = x; t = DOUBLE; }
-    Number_T(const double& x) { v.double_ = x; t = DOUBLE; }
-    Number_T(const Number_T& x) { v.double_ = x.v.double_; t = DOUBLE; }
-    Number_T(const char* s) { sscanf(s, "%f", &v.double_); }
+    Number_T();
+    Number_T(const int& x);
+    Number_T(const long int& x);
+    Number_T(const unsigned int& x);
+    Number_T(const unsigned long& x);
+    Number_T(const double& x);
+    Number_T(const Number_T& x);
+    Number_T(const char* s);
     
-    Number_T operator+(Number_T x) const { return v.double_ + v.double_; }
-    Number_T operator*(Number_T x) const { return v.double_ * x.v.double_; }
-    Number_T operator/(Number_T x) const { return v.double_ / x.v.double_; }
-    Number_T operator-(Number_T x) const { return v.double_ - x.v.double_; }
-    Number_T& operator=(const Number_T& x) { v.double_ = x.v.double_; return *this; }
+    Number_T operator+(Number_T x) const;
+    Number_T operator*(Number_T x) const;
+    Number_T operator/(Number_T x) const;
+    Number_T operator-(Number_T x) const;
+    Number_T& operator=(const Number_T& x);
 
-    Number_T operator()(const int& x) { return Number_T(x); }
-    Number_T operator-() { return -v.double_; }
+    Number_T operator()(const int& x);
+    Number_T operator-();
 
-    operator double() const { return v.double_; }
-    operator int() const { return (int)v.double_; }
-    operator long int() const { return (long int)v.double_; }
+    operator double() const;
+    operator int() const;
+    operator long int() const;
 
-    unsigned hash() const { return static_cast<unsigned>(v.double_); }
-    bool operator==(const Number_T& right) const { return v.double_ == right.v.double_; }
-    bool operator!=(const Number_T& right) const { return v.double_ != right.v.double_; }
-    bool operator<=(const Number_T& right) const { return v.double_ <= right.v.double_; }
-    bool operator>=(const Number_T& right) const { return v.double_ >= right.v.double_; }
-    bool operator<(const Number_T& right) const { return v.double_ < right.v.double_; }
-    bool operator>(const Number_T& right) const { return v.double_ > right.v.double_; }
-    Number_T inverse() const { return 1/v.double_; }
-    int csgn() const { if (v.double_<0) return -1; if (v.double_==0) return 0; return 1;}
+    unsigned hash() const;
+    bool operator==(const Number_T& right) const;
+    bool operator!=(const Number_T& right) const;
+    bool operator<=(const Number_T& right) const;
+    bool operator>=(const Number_T& right) const;
+    bool operator<(const Number_T& right) const;
+    bool operator>(const Number_T& right) const;
+    Number_T inverse() const;
+    int csgn() const;
 
-    bool is_zero() const { return v.double_ == 0; }
-    bool is_positive() const { return v.double_ > 0; }
-    bool is_negative() const { return v.double_ < 0; }
-    bool is_integer() const { return false; }
-    bool is_pos_integer() const { return false; }
-    bool is_nonneg_integer() const { return false; }
-    bool is_even() const { return false; }
-    bool is_odd() const { return false; }
-    bool is_prime() const { return false; }
-    bool is_rational() const { return false; }
-    bool is_real() const { return true; }
+    bool is_zero() const;
+    bool is_positive() const;
+    bool is_negative() const;
+    bool is_integer() const;
+    bool is_pos_integer() const;
+    bool is_nonneg_integer() const;
+    bool is_even() const;
+    bool is_odd() const;
+    bool is_prime() const;
+    bool is_rational() const;
+    bool is_real() const;
 
-    Number_T numer() const { return *this; }
-    Number_T denom() const { return *this; }
-    Number_T lcm(Number_T b) const { if (v.double_ == 0 && b.v.double_==0) return 0; return 1; }
-    Number_T gcd(Number_T b) const { if (v.double_ == 0 && b.v.double_==0) return 0; return 1; }
+    Number_T numer() const;
+    Number_T denom() const;
+    Number_T lcm(Number_T b) const;
+    Number_T gcd(Number_T b) const;
     
     friend std::ostream& operator << (std::ostream& os, const Number_T& s);
     friend Number_T pow(const Number_T& base, const Number_T& exp);
+    friend void coerce(Number_T& new_left, Number_T& new_right, const Number_T& left, const Number_T& right);
   };
 
   std::ostream& operator << (std::ostream& os, const Number_T& s);

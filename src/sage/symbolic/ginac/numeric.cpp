@@ -54,7 +54,10 @@
 #include <string>
 #include <sstream>
 #include <limits>
+
+namespace math {
 #include <math.h>
+}
 
 #include "numeric.h"
 #include "ex.h"
@@ -63,23 +66,630 @@
 #include "tostring.h"
 #include "utils.h"
 
+int DEBUG=1;
+
 namespace GiNaC {
+  void todo(const char* s) {
+    if (DEBUG)
+      std::cout << "TODO: " << s << std::endl;
+  }
+
   void stub(const char* s) {
-    std::cout << "Hit STUB: " << s << std::endl;
-    std::cout << "All further computations may be garbage!" << std::endl;
+    if (DEBUG)
+      std::cout << "Hit STUB: " << s << std::endl;
   }
 
   void fake(const char* s) {
-    std::cout << "fake: " << s << std::endl;
+    if (DEBUG)
+      std::cout << "fake: " << s << std::endl;
   }
 
-  std::ostream& operator << (std::ostream& os, const Number_T& s) {
-    return os << s.v.double_;
+long 
+gcd_long ( long a, long b )
+{
+  long c;
+  while ( a != 0 ) {
+     c = a; a = b%a;  b = c;
   }
+  return b;
+}
+
+/* returns ln(Gamma(xx)) for xx > 0 */
+double gammln(double xx)
+{
+   double x,y,tmp,ser;
+   static double cof[6]={76.18009172947146,-86.50532032941677,
+      24.01409824083091,-1.231739572450155,0.1208650973866179e-2,
+      -0.5395239384953e-5};
+   int j;
+
+   y=x=xx;
+   tmp=x+5.5;
+   tmp -= (x+0.5)*math::log(tmp);
+   ser = 1.000000000190015;
+   for (j=0;j<=5;j++) ser += cof[j]/++y;
+   return -tmp + math::log(2.5066282746310005*ser/x);
+}
+
+/* returns ln(n!) */
+double factln(int n)
+{
+   static double a[256];
+
+   if (n<0) 
+   {
+      printf("binomial: factln: negative factorial (%d) attempted.\n",n);
+   }
+   if (n<=1) return 0.0;
+   /* check if in range of table */
+   if (n<=255) return a[n] ? a[n] : (a[n] = gammln(n+1.0));
+   /* out of range of table */
+   else return gammln(n+1.0);
+}
+
+/* returns n choose k, as a double */
+double binomial(int n, int k)
+{
+  return math::floor(0.5 + math::exp(factln(n)-factln(k)-factln(n-k)));
+}
+
+  ///////////////////////////////////////////////////////////////////////////////
+  // class Number_T
+  ///////////////////////////////////////////////////////////////////////////////
+  std::ostream& operator << (std::ostream& os, const Number_T& s) {
+    switch(s.t) {
+    case LONG:
+      return os << s.v._long;
+    case DOUBLE:
+      return os << s.v._double;
+    default:
+      stub("operator << type not handled");
+    }
+  }
+  
+  void coerce(Number_T& new_left, Number_T& new_right, const Number_T& left, const Number_T& right) {
+    // Return a Number_T 
+    if (left.t == right.t) {
+      new_left = left;
+      new_right = right;
+      return;
+    }
+    switch(left.t) {
+    case LONG:
+      switch(right.t) {
+      case DOUBLE:
+	new_left = (double)left;
+	new_right = right;
+	return;
+      default:
+	stub("** coerce not fully implemented yet -- left LONG**");
+      }
+    case DOUBLE:
+      switch(right.t) {
+      case LONG:
+	new_left = left;
+	new_right = (double) right;
+	return;
+      default:
+	stub("** coerce not fully implemented -- left DOUBLE ** ");
+      }
+    }
+    stub("** coerce not fully implemented yet **");
+  }
+
 
   Number_T pow(const Number_T& base, const Number_T& exp) {
-    return ::pow(base.v.double_, exp.v.double_);
+    if (base.t != exp.t) {
+      Number_T a, b;
+      coerce(a, b, base, exp);
+      return pow(a,b);
+    }
+    switch (base.t) {
+    case DOUBLE:
+      return math::pow(base.v._double, exp.v._double);
+    case LONG:
+      // TODO: change to use GMP!
+      return math::pow((double)base.v._long, (double)exp.v._long);
+    default:
+      stub("pow Number_T");
+    }
   }
+
+  Number_T::Number_T()  { 
+    t = LONG;
+    v._long = 0;
+  }
+  Number_T::Number_T(const int& x) { 
+    t = LONG;
+    v._long = x;
+  }
+  Number_T::Number_T(const long int& x) { 
+    t = LONG;
+    v._long = x;
+  }
+  Number_T::Number_T(const unsigned int& x) { 
+    stub("unsigned int constructor -- should use gmp");
+    t = LONG;
+    v._long = x;
+  }
+  Number_T::Number_T(const unsigned long& x) { 
+    stub("unsigned long constructor -- should use gmp");
+    t = LONG; 
+    v._long = x; 
+  }
+  Number_T::Number_T(const double& x) { 
+    t = DOUBLE;
+    v._double = x; 
+  }
+  Number_T::Number_T(const Number_T& x) { 
+    t = x.t;
+    switch(t) {
+    case DOUBLE:
+      v._double = x.v._double;
+      return;
+    case LONG:
+      v._long = x.v._long;
+      return;
+    default:
+      std::cout << "copy type: " << x << "\n";
+      stub("Number_T(const Number_T& x) type not handled");
+    }
+  }
+
+  Number_T::Number_T(const char* s) { 
+    stub("Number_T(const char* s)");
+    t = DOUBLE;
+    sscanf(s, "%f", &v._double); 
+  }
+    
+  Number_T Number_T::operator+(Number_T x) const { 
+    // We will have to write a coercion model :-(
+    // Or just a nested switch of switches that covers all
+    // combinations of long,double,mpfr,mpz,mpq,mpfc,mpqc.  Yikes.
+    if (t != x.t) {
+      Number_T a, b;
+      coerce(a, b, *this, x);
+      return a + b;
+    }
+    switch(t) {
+    case DOUBLE:
+      return v._double + (double)x;
+    case LONG:
+      return v._long + (long int)x;
+    default:
+      stub("operator+x() type not handled");
+    }
+  }
+
+  Number_T Number_T::operator*(Number_T x) const { 
+    if (t != x.t) {
+      Number_T a, b;
+      coerce(a, b, *this, x);
+      return a * b;
+    }
+    switch(t) {
+    case DOUBLE:
+      return v._double * (double)x;
+    case LONG:
+      return v._long * (long int)x;
+    default:
+      stub("operator*() type not handled");
+    }
+  }
+
+  Number_T Number_T::operator/(Number_T x) const { 
+    if (t != x.t) {
+      Number_T a, b;
+      coerce(a, b, *this, x);
+      return a / b;
+    }
+    switch(t) {
+    case DOUBLE:
+      return v._double / (double)x;
+    case LONG:
+      return v._long / (long int)x;
+    default:
+      stub("operator/() type not handled");
+    }
+  }
+  Number_T Number_T::operator-(Number_T x) const { 
+    if (t != x.t) {
+      Number_T a, b;
+      coerce(a, b, *this, x);
+      return a - b;
+    }
+    switch(t) {
+    case DOUBLE:
+      return v._double - (double)x;
+    case LONG:
+      return v._long - (long int)x;
+    default:
+      stub("operator-() type not handled");
+    }
+  }
+
+  Number_T& Number_T::operator=(const Number_T& x) { 
+    t = x.t;
+    switch(x.t) {
+    case DOUBLE:
+      v._double = x.v._double; break;
+    case LONG:
+      v._long = x.v._long; break;
+    default:
+      stub("operator=() type not handled");
+    };
+    return *this; 
+  }
+  
+  Number_T Number_T::operator()(const int& x) { 
+    return Number_T(x); 
+  }
+
+  Number_T Number_T::operator-() { 
+    switch(t) {
+    case DOUBLE:
+      return -v._double; 
+    case LONG:
+      return -v._long;
+    default:
+      stub("operator-() type not handled");
+    }
+  }
+
+  Number_T::operator double() const { 
+    switch(t) {
+    case DOUBLE:
+      return v._double; 
+    case LONG:
+      return (double) v._long;
+    default:
+      stub("operator double() type not handled");
+    }
+  }
+
+  Number_T::operator int() const { 
+    switch(t) {
+    case DOUBLE:
+      return (int) v._double; 
+    case LONG:
+      todo("Need to check for overflow in   Number_T::operator int() const");
+      return (int) v._long;
+    default:
+      stub("operator int() type not handled");
+    }
+  }
+
+  Number_T::operator long int() const { 
+    switch(t) {
+    case DOUBLE:
+      return (long int) v._double; 
+    case LONG:
+      return (long int) v._long;
+    default:
+      stub("operator long int() type not handled");
+    }
+  }
+
+  unsigned Number_T::hash() const { 
+    switch(t) {
+    case DOUBLE:
+      return (unsigned int) v._double; 
+    case LONG:
+      return (unsigned int) v._long;
+    default:
+      stub("::hash() type not handled");
+    }
+    //    return static_cast<unsigned>(v._double); 
+  }
+  
+  bool Number_T::operator==(const Number_T& right) const { 
+    if (t != right.t) {
+      Number_T a, b;
+      coerce(a, b, *this, right);
+      return a == b;
+    }
+    switch(t) {
+    case DOUBLE:
+      return v._double == right.v._double;
+    case LONG:
+      return v._long == right.v._long;
+    default:
+      stub("operator== type not handled");
+    }
+  }
+
+  bool Number_T::operator!=(const Number_T& right) const { 
+    if (t != right.t) {
+      Number_T a, b;
+      coerce(a, b, *this, right);
+      return a != b;
+    }
+    switch(t) {
+    case DOUBLE:
+      return v._double != right.v._double;
+    case LONG:
+      return v._long != right.v._long;
+    default:
+      stub("operator!= type not handled");
+    }
+  }
+
+  bool Number_T::operator<=(const Number_T& right) const { 
+    if (t != right.t) {
+      Number_T a, b;
+      coerce(a, b, *this, right);
+      return a <= b;
+    }
+    switch(t) {
+    case DOUBLE:
+      return v._double <= right.v._double;
+    case LONG:
+      return v._long <= right.v._long;
+    default:
+      stub("operator<= type not handled");
+    }
+
+  }
+  
+  bool Number_T::operator>=(const Number_T& right) const { 
+    if (t != right.t) {
+      Number_T a, b;
+      coerce(a, b, *this, right);
+      return a >= b;
+    }
+    switch(t) {
+    case DOUBLE:
+      return v._double >= right.v._double;
+    case LONG:
+      return v._long >= right.v._long;
+    default:
+      stub("operator!= type not handled");
+    }
+  }
+
+  bool Number_T::operator<(const Number_T& right) const {
+    if (t != right.t) {
+      Number_T a, b;
+      coerce(a, b, *this, right);
+      return a < b;
+    }
+
+    switch(t) {
+    case DOUBLE:
+      return v._double < right.v._double;
+    case LONG:
+      return v._long < right.v._long;
+    default:
+      stub("operator< type not handled");
+    }
+  }
+
+  bool Number_T::operator>(const Number_T& right) const { 
+    if (t != right.t) {
+      Number_T a, b;
+      coerce(a, b, *this, right);
+      return a > b;
+    }
+    switch(t) {
+    case DOUBLE:
+      return v._double > right.v._double;
+    case LONG:
+      return v._long > right.v._long;
+    default:
+      stub("operator> type not handled");
+    }
+  }
+  
+  Number_T Number_T::inverse() const { 
+    switch(t) {
+    case DOUBLE:
+      return 1/v._double; 
+    case LONG:
+      return 1/v._long;
+    default:
+      stub("inverse() type not handled");
+    }
+  }
+  
+  int Number_T::csgn() const { 
+    switch(t) {
+    case DOUBLE:
+      if (v._double<0) 
+	return -1; 
+      if (v._double==0) 
+	return 0; 
+      return 1;
+    case LONG:
+      if (v._long<0) 
+	return -1; 
+      if (v._long==0) 
+	return 0; 
+      return 1;
+    default:
+      stub("csgn() type not handled");
+    }
+  }
+
+  bool Number_T::is_zero() const { 
+    switch(t) {
+    case DOUBLE:
+      return v._double == 0; 
+    case LONG:
+      return v._long == 0; 
+    default:
+      stub("is_zero() type not handled");
+    }
+  }
+
+  bool Number_T::is_positive() const { 
+    switch(t) {
+    case DOUBLE:
+      return v._double > 0; 
+    case LONG:
+      return v._long > 0; 
+    default:
+      stub("is_positive() type not handled");
+    }
+  }
+
+  bool Number_T::is_negative() const { 
+    switch(t) {
+    case DOUBLE:
+      return v._double < 0; 
+    case LONG:
+      return v._long < 0; 
+    default:
+      stub("is_negative() type not handled");
+    }
+  }
+
+  bool Number_T::is_integer() const { 
+    switch(t) {
+    case DOUBLE:
+      return false;
+    case LONG:
+      return true;
+    default:
+      stub("is_integer() type not handled");
+    }
+  }
+
+  bool Number_T::is_pos_integer() const { 
+    switch(t) {
+    case DOUBLE:
+      return false;
+    case LONG:
+      return (v._long > 0);
+    default:
+      stub("is_pos_integer() type not handled");
+    }
+  }
+
+  bool Number_T::is_nonneg_integer() const { 
+    switch(t) {
+    case DOUBLE:
+      return false;
+    case LONG:
+      return (v._long >= 0);
+    default:
+      stub("is_nonneg_integer() type not handled");
+    }
+  }
+  
+  bool Number_T::is_even() const { 
+    switch(t) {
+    case DOUBLE:
+      return false;
+    case LONG:
+      return (v._long %2 == 0);
+    default:
+      stub("is_even() type not handled");
+    }
+  }
+
+  bool Number_T::is_odd() const { 
+    switch(t) {
+    case DOUBLE:
+      return false;
+    case LONG:
+      return (v._long %2 == 1);
+    default:
+      stub("is_odd() type not handled");
+    }
+  }
+  
+  bool Number_T::is_prime() const { 
+    switch(t) {
+    case DOUBLE:
+      return false;
+    case LONG:
+      stub("is_prime not implemented");
+      return false;
+    default:
+      stub("is_prime() type not handled");
+    }
+  }
+   
+  bool Number_T::is_rational() const { 
+    switch(t) {
+    case DOUBLE:
+      return false;
+    case LONG:
+      return true;
+    default:
+      stub("is_rational() type not handled");
+    }
+  }
+
+  bool Number_T::is_real() const { 
+    switch(t) {
+    case DOUBLE:
+    case LONG:
+      return true;
+    default:
+      stub("is_real() type not handled");
+    }
+  }
+
+  Number_T Number_T::numer() const { 
+    switch(t) {
+    case DOUBLE:
+    case LONG:
+      return *this;
+    default:
+      stub("numer() type not handled");
+    }
+  }
+
+  Number_T Number_T::denom() const { 
+    switch(t) {
+    case DOUBLE:
+    case LONG:
+      return 1;
+    default:
+      stub("denom() type not handled");
+    }
+  }
+  
+  Number_T Number_T::lcm(Number_T b) const { 
+    if (t != b.t) {
+      Number_T a, c;
+      coerce(a, c, *this, b);
+      return a.lcm(c);
+    }
+    switch(t) {
+    case DOUBLE:
+      if (v._double == 0 && b.v._double==0) {
+	return 0.0; } else { return 1.0; }
+    case LONG:
+      return (v._long * b.v._long) / gcd_long(v._long, b.v._long);
+    default:
+      stub("lcm() type not handled");
+    }
+  }
+
+  Number_T Number_T::gcd(Number_T b) const { 
+    if (t != b.t) {
+      Number_T a, c;
+      coerce(a, c, *this, b);
+      return a.gcd(c);
+    }
+    switch(t) {
+    case DOUBLE:
+      if (v._double == 0 && b.v._double==0)  {
+	return 0.0; } else { return 1.0; }
+    case LONG:
+      return gcd_long(v._long, b.v._long);
+    default:
+      stub("gcd() type not handled");
+    }
+  }
+
+  
+
+  ///////////////////////////////////////////////////////////////////////////////
+  // class numeric
+  ///////////////////////////////////////////////////////////////////////////////
 
   GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(numeric, basic,
 				       print_func<print_context>(&numeric::do_print).
@@ -87,6 +697,7 @@ namespace GiNaC {
 				       print_func<print_csrc>(&numeric::do_print_csrc).
 				       print_func<print_tree>(&numeric::do_print_tree).
 				       print_func<print_python_repr>(&numeric::do_print_python_repr))
+
 
   //////////
   // default constructor
@@ -222,21 +833,13 @@ namespace GiNaC {
   template<>
   inline bool coerce<int, Number_T>(int& dst, const Number_T& arg)
   {
-    stub("coerce to int");
+    dst = (int) arg;
   }
 
   template<>
   inline bool coerce<unsigned int, Number_T>(unsigned int& dst, const Number_T& arg)
   {
-    stub("coerce to unsigned int");
-  }
-
-  /** Helper function to print real number in C++ source format using cl_N types.
-   *
-   *  @see numeric::print() */
-  static void print_real_cl_N(const print_context & c, const Number_T & x)
-  {
-    stub("coerce to real_cl_N");
+    dst = (long int) arg;   // TODO: worry about long int to unsigned int!!
   }
 
   void numeric::print_numeric(const print_context & c, const char *par_open, const char *par_close, const char *imag_sym, const char *mul_sym, unsigned level) const
@@ -414,6 +1017,8 @@ namespace GiNaC {
 
   ex numeric::imag_part() const
   {
+    if (is_real())
+      return 0;
     stub("imag_part of complex");
   }
 
@@ -696,9 +1301,6 @@ namespace GiNaC {
   /** True if object is a non-complex integer. */
   bool numeric::is_integer() const
   {
-    fake("is integer test");
-    return true;
-
     return value.is_integer();
   }
 
@@ -706,9 +1308,6 @@ namespace GiNaC {
   /** True if object is an exact integer greater than zero. */
   bool numeric::is_pos_integer() const
   {
-    fake("is positive integer test");
-    return true;
-
     return value.is_pos_integer();
   }
 
@@ -773,15 +1372,19 @@ namespace GiNaC {
    *  of the form a+b*I, where a and b are integers. */
   bool numeric::is_cinteger() const
   {
-    stub("is_cinteger");
+   // TODO: I just call is_integer here.  Need something better
+   // that takes into account what cinteger actually means??
+    return value.is_integer();
   }
 
 
   /** True if object is an exact rational number, may even be complex
    *  (denominator may be unity). */
   bool numeric::is_crational() const
-  {
-    stub("is_crational");
+ {
+   // TODO: I just call is_rational here.  Need something better
+   // that takes into account what crational actually means??
+    return value.is_rational();
   }
 
 
@@ -1206,6 +1809,7 @@ namespace GiNaC {
   const numeric binomial(const numeric &n, const numeric &k)
   {
     stub("binomial");
+    return (long) binomial((long)n.value, (long)k.value);
   }
 
 

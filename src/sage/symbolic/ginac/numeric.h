@@ -54,44 +54,55 @@
 
 
 namespace GiNaC {
+  enum Type {
+    DOUBLE
+  };
+
+  union Value {
+    double double_;
+  };
 
   class Number_T {  // abstract base class
+  protected:
+    Type t;
+    Value v;
+
   public:
-    Number_T() : value(0) { }
-    Number_T(const int& x) : value(x) { }
-    Number_T(const long int& x) : value(x) { }
-    Number_T(const unsigned int& x) : value(x) { }
-    Number_T(const unsigned long& x) : value(x) { }
-    Number_T(const double& x) : value(x) { }
-    Number_T(const Number_T& x) : value(x.value) { }
-    Number_T(const char* s) { sscanf(s, "%f", &value); }
+    Number_T() { v.double_ = 0; t = DOUBLE; }
+    Number_T(const int& x) { v.double_ = x; t = DOUBLE; }
+    Number_T(const long int& x) { v.double_ = x; t = DOUBLE; }
+    Number_T(const unsigned int& x) { v.double_ = x; t = DOUBLE; }
+    Number_T(const unsigned long& x) { v.double_ = x; t = DOUBLE; }
+    Number_T(const double& x) { v.double_ = x; t = DOUBLE; }
+    Number_T(const Number_T& x) { v.double_ = x.v.double_; t = DOUBLE; }
+    Number_T(const char* s) { sscanf(s, "%f", &v.double_); }
     
-    Number_T operator+(Number_T x) const { return value + x.value; }
-    Number_T operator*(Number_T x) const { return value * x.value; }
-    Number_T operator/(Number_T x) const { return value / x.value; }
-    Number_T operator-(Number_T x) const { return value - x.value; }
-    Number_T& operator=(const Number_T& x) { value = x.value; return *this; }
+    Number_T operator+(Number_T x) const { return v.double_ + v.double_; }
+    Number_T operator*(Number_T x) const { return v.double_ * x.v.double_; }
+    Number_T operator/(Number_T x) const { return v.double_ / x.v.double_; }
+    Number_T operator-(Number_T x) const { return v.double_ - x.v.double_; }
+    Number_T& operator=(const Number_T& x) { v.double_ = x.v.double_; return *this; }
 
     Number_T operator()(const int& x) { return Number_T(x); }
-    Number_T operator-() { return -value; }
+    Number_T operator-() { return -v.double_; }
 
-    operator double() const { return value; }
-    operator int() const { return (int)value; }
-    operator long int() const { return (long int)value; }
+    operator double() const { return v.double_; }
+    operator int() const { return (int)v.double_; }
+    operator long int() const { return (long int)v.double_; }
 
-    unsigned hash() const { return static_cast<unsigned>(value); }
-    bool operator==(const Number_T& right) const { return value == right.value; }
-    bool operator!=(const Number_T& right) const { return value != right.value; }
-    bool operator<=(const Number_T& right) const { return value <= right.value; }
-    bool operator>=(const Number_T& right) const { return value >= right.value; }
-    bool operator<(const Number_T& right) const { return value < right.value; }
-    bool operator>(const Number_T& right) const { return value > right.value; }
-    Number_T inverse() const { return 1/value; }
-    int csgn() const { if (value<0) return -1; if (value==0) return 0; return 1;}
+    unsigned hash() const { return static_cast<unsigned>(v.double_); }
+    bool operator==(const Number_T& right) const { return v.double_ == right.v.double_; }
+    bool operator!=(const Number_T& right) const { return v.double_ != right.v.double_; }
+    bool operator<=(const Number_T& right) const { return v.double_ <= right.v.double_; }
+    bool operator>=(const Number_T& right) const { return v.double_ >= right.v.double_; }
+    bool operator<(const Number_T& right) const { return v.double_ < right.v.double_; }
+    bool operator>(const Number_T& right) const { return v.double_ > right.v.double_; }
+    Number_T inverse() const { return 1/v.double_; }
+    int csgn() const { if (v.double_<0) return -1; if (v.double_==0) return 0; return 1;}
 
-    bool is_zero() const { return value == 0; }
-    bool is_positive() const { return value > 0; }
-    bool is_negative() const { return value < 0; }
+    bool is_zero() const { return v.double_ == 0; }
+    bool is_positive() const { return v.double_ > 0; }
+    bool is_negative() const { return v.double_ < 0; }
     bool is_integer() const { return false; }
     bool is_pos_integer() const { return false; }
     bool is_nonneg_integer() const { return false; }
@@ -103,11 +114,11 @@ namespace GiNaC {
 
     Number_T numer() const { return *this; }
     Number_T denom() const { return *this; }
-    Number_T lcm(Number_T b) const { if (value == 0 && b.value==0) return 0; return 1; }
-    Number_T gcd(Number_T b) const { if (value == 0 && b.value==0) return 0; return 1; }
+    Number_T lcm(Number_T b) const { if (v.double_ == 0 && b.v.double_==0) return 0; return 1; }
+    Number_T gcd(Number_T b) const { if (v.double_ == 0 && b.v.double_==0) return 0; return 1; }
     
-  public:
-    double value;
+    friend std::ostream& operator << (std::ostream& os, const Number_T& s);
+    friend Number_T pow(const Number_T& base, const Number_T& exp);
   };
 
   std::ostream& operator << (std::ostream& os, const Number_T& s);

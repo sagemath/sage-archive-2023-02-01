@@ -74,11 +74,11 @@ namespace GiNaC {
   }
 
   std::ostream& operator << (std::ostream& os, const Number_T& s) {
-    return os << s.value;
+    return os << s.v.double_;
   }
 
   Number_T pow(const Number_T& base, const Number_T& exp) {
-    return ::pow(base.value, exp.value);
+    return ::pow(base.v.double_, exp.v.double_);
   }
 
   GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(numeric, basic,

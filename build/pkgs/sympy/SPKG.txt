@@ -1,3 +1,4 @@
+* upgraded to sympy-0.6.2
 * upgraded to sympy-0.6.0
 * upgraded to sympy-0.5.13
 * added a README file

@@ -79,9 +79,22 @@ namespace GiNaC {
       std::cout << "Hit STUB: " << s << std::endl;
   }
 
+  void py_error(const char* s) {
+    if (DEBUG) {
+      std::cout << "PYTHON ERROR! " << s << std::endl;
+      if (PyErr_Occurred())
+	PyErr_Print();
+    }
+  }
+
   void fake(const char* s) {
     if (DEBUG)
       std::cout << "fake: " << s << std::endl;
+  }
+
+  void verbose(const char* s) {
+    //    if (DEBUG)
+    //      std::cout << s << std::endl;
   }
 
 long 
@@ -136,6 +149,15 @@ double binomial(int n, int k)
   ///////////////////////////////////////////////////////////////////////////////
   // class Number_T
   ///////////////////////////////////////////////////////////////////////////////
+
+PyObject* ZERO = PyInt_FromLong(0);   // todo: never freed
+PyObject* ONE  = PyInt_FromLong(1);   // todo: never freed
+PyObject* TWO  = PyInt_FromLong(2);   // todo: never freed
+PyObject* s_lcm = PyString_FromString("lcm");  // todo: never freed
+PyObject* s_gcd = PyString_FromString("gcd");  // todo: never freed
+PyObject* s_numerator = PyString_FromString("numerator");  // todo: never freed
+PyObject* s_denominator = PyString_FromString("denominator");  // todo: never freed
+
   std::ostream& operator << (std::ostream& os, const Number_T& s) {
     switch(s.t) {
     case LONG:
@@ -158,6 +180,7 @@ double binomial(int n, int k)
   }
   
   void coerce(Number_T& new_left, Number_T& new_right, const Number_T& left, const Number_T& right) {
+    verbose("coerce");
     // Return a Number_T 
     if (left.t == right.t) {
       new_left = left;
@@ -208,6 +231,7 @@ double binomial(int n, int k)
 
 
   Number_T pow(const Number_T& base, const Number_T& exp) {
+    verbose("pow");
     if (base.t != exp.t) {
       Number_T a, b;
       coerce(a, b, base, exp);
@@ -227,35 +251,45 @@ double binomial(int n, int k)
   }
 
   Number_T::Number_T()  { 
+    verbose("Number_T::Number_T()");
     t = LONG;
     v._long = 0;
+    //t = PYOBJECT;
+    //    v._pyobject = PyInt_FromLong(0);
   }
   Number_T::Number_T(const int& x) { 
+    verbose("Number_T::Number_T(const int& x)");
+    //t = PYOBJECT;
+    //v._pyobject = PyInt_FromLong(x);
     t = LONG;
     v._long = x;
   }
   Number_T::Number_T(const long int& x) { 
-    /* t = LONG;
+    verbose("Number_T::Number_T(const long int& x)");
+    t = LONG;
     v._long = x;
-    */
+    //t = PYOBJECT;
+    //v._pyobject = PyInt_FromLong(x);
+  }
+  Number_T::Number_T(const unsigned int& x) { 
+    verbose("Number_T::Number_T(const unsigned int& x)");
     t = PYOBJECT;
     v._pyobject = PyInt_FromLong(x);
   }
-  Number_T::Number_T(const unsigned int& x) { 
-    stub("unsigned int constructor -- should use gmp");
-    t = LONG;
-    v._long = x;
-  }
   Number_T::Number_T(const unsigned long& x) { 
-    stub("unsigned long constructor -- should use gmp");
-    t = LONG; 
-    v._long = x; 
+    verbose("Number_T::Number_T(const unsigned long& x)");
+    t = PYOBJECT;
+    v._pyobject = PyInt_FromLong(x);
   }
   Number_T::Number_T(const double& x) { 
+    verbose("Number_T::Number_T(const double& x)");
     t = DOUBLE;
     v._double = x; 
+    //t = PYOBJECT;
+    //v._pyobject = PyFloat_FromDouble(x);
   }
   Number_T::Number_T(const Number_T& x) { 
+    verbose("Number_T::Number_T(const Number_T& x)");
     t = x.t;
     switch(t) {
     case DOUBLE:
@@ -269,7 +303,6 @@ double binomial(int n, int k)
       Py_INCREF(v._pyobject);
       return;
     default:
-      std::cout << "copy type: " << x << "\n";
       stub("Number_T(const Number_T& x) type not handled");
     }
   }
@@ -281,6 +314,7 @@ double binomial(int n, int k)
   }
 
   Number_T::Number_T(PyObject* o) {
+    verbose("Number_T::Number_T(PyObject* o)");
     t = PYOBJECT;
     if (!o) {
       // TODO: something bad happened -- an exception; figure out how to deal with this.
@@ -292,14 +326,17 @@ double binomial(int n, int k)
   }
   
   Number_T::~Number_T() {
+    verbose("destruct");
     switch(t) {
     case PYOBJECT:
-      Py_DECREF(v._pyobject);
+      // TODO: enable
+      //Py_DECREF(v._pyobject);
       return;
     }
   }
     
   Number_T Number_T::operator+(Number_T x) const { 
+    verbose("operator+");
     // We will have to write a coercion model :-(
     // Or just a nested switch of switches that covers all
     // combinations of long,double,mpfr,mpz,mpq,mpfc,mpqc.  Yikes.
@@ -321,6 +358,7 @@ double binomial(int n, int k)
   }
 
   Number_T Number_T::operator*(Number_T x) const { 
+    verbose("operator*");
     if (t != x.t) {
       Number_T a, b;
       coerce(a, b, *this, x);
@@ -339,6 +377,7 @@ double binomial(int n, int k)
   }
 
   Number_T Number_T::operator/(Number_T x) const { 
+    verbose("operator/");
     if (t != x.t) {
       Number_T a, b;
       coerce(a, b, *this, x);
@@ -356,6 +395,7 @@ double binomial(int n, int k)
     }
   }
   Number_T Number_T::operator-(Number_T x) const { 
+    verbose("operator-");
     if (t != x.t) {
       Number_T a, b;
       coerce(a, b, *this, x);
@@ -374,6 +414,7 @@ double binomial(int n, int k)
   }
 
   Number_T& Number_T::operator=(const Number_T& x) { 
+    verbose("operator=");
     switch(x.t) {
     case DOUBLE:
       v._double = x.v._double; break;
@@ -393,10 +434,12 @@ double binomial(int n, int k)
   }
   
   Number_T Number_T::operator()(const int& x) { 
+    verbose("operator()(const int)");
     return Number_T(x); 
   }
 
   Number_T Number_T::operator-() { 
+    verbose("operator-");
     switch(t) {
     case DOUBLE:
       return -v._double; 
@@ -410,6 +453,7 @@ double binomial(int n, int k)
   }
 
   Number_T::operator double() const { 
+    verbose("operator double");
     switch(t) {
     case DOUBLE:
       return v._double; 
@@ -423,34 +467,43 @@ double binomial(int n, int k)
   }
 
   Number_T::operator int() const { 
+    verbose("operator int");
     switch(t) {
     case DOUBLE:
       return (int) v._double; 
     case LONG:
       todo("Need to check for overflow in   Number_T::operator int() const");
       return (int) v._long;
+    case PYOBJECT:
+      return PyInt_AsLong(v._pyobject);
     default:
       stub("operator int() type not handled");
     }
   }
 
   Number_T::operator long int() const { 
+    verbose("operator long int");
     switch(t) {
     case DOUBLE:
       return (long int) v._double; 
     case LONG:
       return (long int) v._long;
+    case PYOBJECT:
+      return PyInt_AsLong(v._pyobject);
     default:
       stub("operator long int() type not handled");
     }
   }
 
   unsigned Number_T::hash() const { 
+    verbose("hash");
     switch(t) {
     case DOUBLE:
       return (unsigned int) v._double; 
     case LONG:
       return (unsigned int) v._long;
+    case PYOBJECT:
+      return PyObject_Hash(v._pyobject);
     default:
       stub("::hash() type not handled");
     }
@@ -458,6 +511,7 @@ double binomial(int n, int k)
   }
   
   bool Number_T::operator==(const Number_T& right) const { 
+    verbose("operator==");
     if (t != right.t) {
       Number_T a, b;
       coerce(a, b, *this, right);
@@ -468,12 +522,19 @@ double binomial(int n, int k)
       return v._double == right.v._double;
     case LONG:
       return v._long == right.v._long;
+    case PYOBJECT:
+      int result;
+      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result)== -1) {
+	py_error("==");
+      }
+      return (result == 0);
     default:
       stub("operator== type not handled");
     }
   }
 
   bool Number_T::operator!=(const Number_T& right) const { 
+    verbose("operator!=");
     if (t != right.t) {
       Number_T a, b;
       coerce(a, b, *this, right);
@@ -484,12 +545,19 @@ double binomial(int n, int k)
       return v._double != right.v._double;
     case LONG:
       return v._long != right.v._long;
+    case PYOBJECT:
+      int result;
+      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
+	py_error("!=");
+      }
+      return (result != 0);
     default:
       stub("operator!= type not handled");
     }
   }
 
   bool Number_T::operator<=(const Number_T& right) const { 
+    verbose("operator<=");
     if (t != right.t) {
       Number_T a, b;
       coerce(a, b, *this, right);
@@ -500,6 +568,12 @@ double binomial(int n, int k)
       return v._double <= right.v._double;
     case LONG:
       return v._long <= right.v._long;
+    case PYOBJECT:
+      int result;
+      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
+	py_error("<=");
+      }
+      return (result <= 0);
     default:
       stub("operator<= type not handled");
     }
@@ -507,6 +581,7 @@ double binomial(int n, int k)
   }
   
   bool Number_T::operator>=(const Number_T& right) const { 
+    verbose("operator>=");
     if (t != right.t) {
       Number_T a, b;
       coerce(a, b, *this, right);
@@ -517,12 +592,19 @@ double binomial(int n, int k)
       return v._double >= right.v._double;
     case LONG:
       return v._long >= right.v._long;
+    case PYOBJECT:
+      int result;
+      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
+	py_error(">=");
+      }
+      return (result >= 0);
     default:
       stub("operator!= type not handled");
     }
   }
 
   bool Number_T::operator<(const Number_T& right) const {
+    verbose("operator<");
     if (t != right.t) {
       Number_T a, b;
       coerce(a, b, *this, right);
@@ -534,12 +616,19 @@ double binomial(int n, int k)
       return v._double < right.v._double;
     case LONG:
       return v._long < right.v._long;
+    case PYOBJECT:
+      int result;
+      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
+	py_error("<");
+      }
+      return (result < 0);
     default:
       stub("operator< type not handled");
     }
   }
 
   bool Number_T::operator>(const Number_T& right) const { 
+    verbose("operator>");
     if (t != right.t) {
       Number_T a, b;
       coerce(a, b, *this, right);
@@ -550,23 +639,34 @@ double binomial(int n, int k)
       return v._double > right.v._double;
     case LONG:
       return v._long > right.v._long;
+    case PYOBJECT:
+      int result;
+      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
+	py_error(">");
+      }
+      return (result > 0);
     default:
       stub("operator> type not handled");
     }
   }
   
   Number_T Number_T::inverse() const { 
+    verbose("inverse");
     switch(t) {
     case DOUBLE:
       return 1/v._double; 
     case LONG:
       return 1/v._long;
+    case PYOBJECT:
+      // TODO: handle errors
+      return PyNumber_Invert(v._pyobject);
     default:
       stub("inverse() type not handled");
     }
   }
   
   int Number_T::csgn() const { 
+    verbose("csgn");
     switch(t) {
     case DOUBLE:
       if (v._double<0) 
@@ -580,83 +680,130 @@ double binomial(int n, int k)
       if (v._long==0) 
 	return 0; 
       return 1;
+    case PYOBJECT:
+      int result;
+      if (PyObject_Cmp(v._pyobject, ZERO, &result) == -1) 
+	py_error("csgn");
+      return result;
     default:
       stub("csgn() type not handled");
     }
   }
 
   bool Number_T::is_zero() const { 
+    verbose("is_zero");
     switch(t) {
     case DOUBLE:
       return v._double == 0; 
     case LONG:
       return v._long == 0; 
+    case PYOBJECT:
+      return PyObject_Not(v._pyobject);
     default:
       stub("is_zero() type not handled");
     }
   }
 
   bool Number_T::is_positive() const { 
+    verbose("is_positive");
     switch(t) {
     case DOUBLE:
       return v._double > 0; 
     case LONG:
       return v._long > 0; 
+    case PYOBJECT:
+      return PyObject_Compare(v._pyobject, ZERO) > 0;
     default:
       stub("is_positive() type not handled");
     }
   }
 
   bool Number_T::is_negative() const { 
+    verbose("is_negative");
     switch(t) {
     case DOUBLE:
       return v._double < 0; 
     case LONG:
       return v._long < 0; 
+    case PYOBJECT:
+      return PyObject_Compare(v._pyobject, ZERO) < 0;
     default:
       stub("is_negative() type not handled");
     }
   }
 
   bool Number_T::is_integer() const { 
+    verbose("is_integer");
     switch(t) {
     case DOUBLE:
       return false;
     case LONG:
       return true;
+    case PYOBJECT:
+      return true;
+      /*
+      // Successfully coerces to an integer.
+      // REWRITE!  Need to do isinstance with Sage gmp integer *only* or PY_EXACT type check thingy.
+      PyObject* o = PyObject_Call((PyObject*)PyInt_Type, v._pyobject, NULL);
+      if(!o) {
+	// can't even coerce
+	return false;
+      }
+      if (PyObject_Compare(v._pyobject, o) != 0) {
+	// not equal to the result of comparison
+	return false;
+      }
+      return true;
+      */
     default:
       stub("is_integer() type not handled");
     }
   }
 
   bool Number_T::is_pos_integer() const { 
+    verbose("is_pos_integer");
     switch(t) {
     case DOUBLE:
       return false;
     case LONG:
       return (v._long > 0);
+    case PYOBJECT:
+      return (is_integer() && is_positive());
     default:
       stub("is_pos_integer() type not handled");
     }
   }
 
   bool Number_T::is_nonneg_integer() const { 
+    verbose("is_nonneg_integer");
     switch(t) {
     case DOUBLE:
       return false;
     case LONG:
       return (v._long >= 0);
+    case PYOBJECT:
+      return (is_integer() && (PyObject_Compare(v._pyobject, ZERO) >= 0));
     default:
       stub("is_nonneg_integer() type not handled");
     }
   }
   
   bool Number_T::is_even() const { 
+    verbose("is_even");
     switch(t) {
     case DOUBLE:
       return false;
     case LONG:
       return (v._long %2 == 0);
+    case PYOBJECT:
+      PyObject* o = PyNumber_Remainder(v._pyobject, TWO);
+      if (!o) {
+	Py_DECREF(o);
+	return false;
+      }
+      bool ans = (PyObject_Compare(o, ZERO) == 0);
+      Py_DECREF(o);
+      return ans;
     default:
       stub("is_even() type not handled");
     }
@@ -668,28 +815,37 @@ double binomial(int n, int k)
       return false;
     case LONG:
       return (v._long %2 == 1);
+    case PYOBJECT:
+      return !is_even();
     default:
       stub("is_odd() type not handled");
     }
   }
   
   bool Number_T::is_prime() const { 
+    verbose("is_prime");
     switch(t) {
     case DOUBLE:
       return false;
     case LONG:
       stub("is_prime not implemented");
       return false;
+    case PYOBJECT:
+      stub("is_prime not implemented for pyobjects");
     default:
       stub("is_prime() type not handled");
     }
   }
    
   bool Number_T::is_rational() const { 
+    verbose("is_rational");
     switch(t) {
     case DOUBLE:
       return false;
     case LONG:
+      return true;
+    case PYOBJECT:
+      //TODO: stub("pyobject is_rational() -- faking true");
       return true;
     default:
       stub("is_rational() type not handled");
@@ -697,6 +853,7 @@ double binomial(int n, int k)
   }
 
   bool Number_T::is_real() const { 
+    verbose("is_real");
     switch(t) {
     case DOUBLE:
     case LONG:
@@ -707,26 +864,41 @@ double binomial(int n, int k)
   }
 
   Number_T Number_T::numer() const { 
+    verbose("numer");
     switch(t) {
     case DOUBLE:
     case LONG:
       return *this;
+    case PYOBJECT:
+      PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_numerator);
+      if (!o) {
+	return *this;
+      }
+      return o;
     default:
       stub("numer() type not handled");
     }
   }
 
   Number_T Number_T::denom() const { 
+    verbose("denom");
     switch(t) {
     case DOUBLE:
     case LONG:
       return 1;
+    case PYOBJECT:
+      PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_denominator);
+      if (!o) {
+	return ONE;
+      }
+      return o;
     default:
       stub("denom() type not handled");
     }
   }
   
   Number_T Number_T::lcm(Number_T b) const { 
+    verbose("lcm");
     if (t != b.t) {
       Number_T a, c;
       coerce(a, c, *this, b);
@@ -738,12 +910,20 @@ double binomial(int n, int k)
 	return 0.0; } else { return 1.0; }
     case LONG:
       return (v._long * b.v._long) / gcd_long(v._long, b.v._long);
+    case PYOBJECT:
+      // TODO: deal with null return value
+      PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_lcm, b.v._pyobject);
+      if (!o) {
+	py_error("lcm()");
+      }
+      return o;
     default:
       stub("lcm() type not handled");
     }
   }
 
   Number_T Number_T::gcd(Number_T b) const { 
+    verbose("gcd");
     if (t != b.t) {
       Number_T a, c;
       coerce(a, c, *this, b);
@@ -755,6 +935,12 @@ double binomial(int n, int k)
 	return 0.0; } else { return 1.0; }
     case LONG:
       return gcd_long(v._long, b.v._long);
+    case PYOBJECT:
+      PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_gcd, b.v._pyobject);
+      if (!o) {
+	py_error("gcd()");
+      }
+      return o;
     default:
       stub("gcd() type not handled");
     }
@@ -790,6 +976,12 @@ double binomial(int n, int k)
   //////////
 
   // public
+
+  numeric::numeric(PyObject* o) : basic(&numeric::tinfo_static), 
+				  value(o)
+  {
+    setflag(status_flags::evaluated | status_flags::expanded);
+  }
 
   numeric::numeric(int i) : basic(&numeric::tinfo_static), 
 			    value(i)

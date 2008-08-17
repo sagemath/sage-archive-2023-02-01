@@ -200,6 +200,7 @@ namespace GiNaC {
     numeric(double d);
     numeric(const char *);
     numeric(const Number_T& x);
+    numeric(PyObject*);
 	
     // functions overriding virtual functions from base classes
   public:

@@ -31,6 +31,8 @@
 #include "basic.h"
 #include "ptr.h"
 
+#include "Python.h"
+
 namespace GiNaC {
 
 
@@ -89,6 +91,7 @@ public:
 	ex(long i);
 	ex(unsigned long i);
 	ex(double const d);
+	ex(PyObject* o);
 
 	/** Construct ex from string and a list of symbols. The input grammar is
 	 *  similar to the GiNaC output format. All symbols and indices to be used
@@ -231,6 +234,7 @@ public:
 private:
 	static ptr<basic> construct_from_basic(const basic & other);
 	static basic & construct_from_int(int i);
+	static basic & construct_from_pyobject(PyObject* o);
 	static basic & construct_from_uint(unsigned int i);
 	static basic & construct_from_long(long i);
 	static basic & construct_from_ulong(unsigned long i);
@@ -266,6 +270,12 @@ ex::ex(const basic & other) : bp(construct_from_basic(other))
 
 inline
 ex::ex(int i) : bp(construct_from_int(i))
+{
+	GINAC_ASSERT(bp->flags & status_flags::dynallocated);
+}
+
+inline
+ex::ex(PyObject* o) : bp(construct_from_pyobject(o))
 {
 	GINAC_ASSERT(bp->flags & status_flags::dynallocated);
 }

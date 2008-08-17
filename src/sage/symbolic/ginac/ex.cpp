@@ -555,6 +555,17 @@ basic & ex::construct_from_double(double d)
 	return *bp;
 }
 
+basic & ex::construct_from_pyobject(PyObject* o)
+{
+  Py_INCREF(o);   // since numeric steals a reference
+  basic *bp = new numeric(o);
+  bp->setflag(status_flags::dynallocated);
+  GINAC_ASSERT(bp->get_refcount() == 0);
+  return *bp;
+}
+
+
+ 
 ptr<basic> ex::construct_from_string_and_lst(const std::string &s, const ex &l)
 {
 	set_lexer_string(s);

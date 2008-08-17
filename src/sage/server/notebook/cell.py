@@ -39,7 +39,7 @@ from   sage.misc.html import math_parse
 from   sage.misc.preparser import strip_string_literals
 
 
-class Cell_generic(object):
+class Cell_generic:
     def is_interactive_cell(self):
         """
         Returns True if this cell contains the use of interact either

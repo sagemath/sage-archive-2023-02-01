@@ -483,45 +483,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: Q.is_divisible_by(5)
             True
         """
-        # For now we simply compute all the m division poins
-        # and see if there are any.  There are many potential
-        # tricks to speed this up that work usually but fall
-        # down like crazy in corner cases.  If you really need
-        # to check this condition much more quickly, maybe
-        # copy some code out of the division_points function
-        # and think hard about what you are doing.
-        return len(self.division_points(m)) > 0
-
-    def _short_division_polynomial(self, m):
-        r"""
-        Return the m-division polynomial of this point, which is a
-        polynomial in x that captures all the x-coordinates of points
-        Q such that m*Q = self ON THE SHORT WEIERSTRASS MODEL.  Except
-        in rare cases involving cancellation, these are exactly the
-        $x$-coordinates of the m-division points on the short model.
-
-        WARNING: It is highly recommended that you read the source code for
-        \code{self._division_points} before using the division polynomial.
-
-        INPUT:
-            m -- positive integer
-        OUTPUT:
-            a polynomial in a single variable x over the base field.
-
-        EXAMPLES:
-        This function is incredibly useful for, e.g., quickly deciding
-        for numerous primes p whether a point has any m-th roots
-        modulo p.
-            sage: E = EllipticCurve('389a')
-            sage: P = E.0
-            sage: f = P._short_division_polynomial(3)
-            sage: [p for p in primes(100) if len(f.change_ring(GF(p)).roots()) > 0]
-            [2, 3, 7, 11, 13, 23, 31, 37, 43, 47, 61, 67, 71, 89, 97]
-            sage: f = E.gen(1)._short_division_polynomial(3)
-            sage: [p for p in primes(100) if len(f.change_ring(GF(p)).roots()) > 0]
-            [2, 3, 7, 11, 13, 19, 23, 31, 37, 43, 47, 59, 61, 67, 71, 89, 97]
-        """
-        return self._division_points(m, poly_only=True)
+        g = self.division_points(m, poly_only=True)
+        return len(g.roots(multiplicities=False)) > 0
 
     def division_points(self, m, poly_only=False):
         """
@@ -595,88 +558,91 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         sage: E(0).division_points(9)
         [(0 : 1 : 0), (5 : -10 : 1), (5 : 9 : 1)]
         sage: EK(0).division_points(9)
-        [(0 : 1 : 0),
-        (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : 30847/484*t^8 - 21789/121*t^7 - 34605/121*t^6 + 117164/121*t^5 - 10633/484*t^4 - 29437/22*t^3 + 39725/484*t^2 + 55428/121*t - 176909/484 : 1),
-        (5 : 9 : 1),
-        (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : 927/121*t^8 - 5209/242*t^7 - 8187/242*t^6 + 27975/242*t^5 - 1147/242*t^4 - 1729/11*t^3 + 1566/121*t^2 + 12873/242*t - 10871/242 : 1),
-        (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : -30847/484*t^8 + 21789/121*t^7 + 34605/121*t^6 - 117164/121*t^5 + 10633/484*t^4 + 29437/22*t^3 - 39725/484*t^2 - 55428/121*t + 176425/484 : 1),
-        (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : -35/484*t^8 + 133/242*t^7 - 445/242*t^6 + 799/242*t^5 - 373/484*t^4 - 113/22*t^3 + 2355/484*t^2 + 753/242*t - 1649/484 : 1),
-        (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : 35/484*t^8 - 133/242*t^7 + 445/242*t^6 - 799/242*t^5 + 373/484*t^4 + 113/22*t^3 - 2355/484*t^2 - 753/242*t + 1165/484 : 1),
-        (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : -927/121*t^8 + 5209/242*t^7 + 8187/242*t^6 - 27975/242*t^5 + 1147/242*t^4 + 1729/11*t^3 - 1566/121*t^2 - 12873/242*t + 10629/242 : 1),
-        (5 : -10 : 1)]
-
-        """
-        return self._division_points(m, poly_only=False)
-
-    def _division_points(self, m, poly_only):
-        """
-        Used internally by both division_points and
-        division_polynomial.  Returns either all the m-division points
-        of a point or if poly_only=True, return the polynomial whose
-        roots 'determine' all the x-coordinates of m-division points.
+        [(0 : 1 : 0), (5 : 9 : 1), (5 : -10 : 1), (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : 35/484*t^8 - 133/242*t^7 + 445/242*t^6 - 799/242*t^5 + 373/484*t^4 + 113/22*t^3 - 2355/484*t^2 - 753/242*t + 1165/484 : 1), (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : -35/484*t^8 + 133/242*t^7 - 445/242*t^6 + 799/242*t^5 - 373/484*t^4 - 113/22*t^3 + 2355/484*t^2 + 753/242*t - 1649/484 : 1), (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : 927/121*t^8 - 5209/242*t^7 - 8187/242*t^6 + 27975/242*t^5 - 1147/242*t^4 - 1729/11*t^3 + 1566/121*t^2 + 12873/242*t - 10871/242 : 1), (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : -927/121*t^8 + 5209/242*t^7 + 8187/242*t^6 - 27975/242*t^5 + 1147/242*t^4 + 1729/11*t^3 - 1566/121*t^2 - 12873/242*t + 10629/242 : 1), (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : 30847/484*t^8 - 21789/121*t^7 - 34605/121*t^6 + 117164/121*t^5 - 10633/484*t^4 - 29437/22*t^3 + 39725/484*t^2 + 55428/121*t - 176909/484 : 1), (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : -30847/484*t^8 + 21789/121*t^7 + 34605/121*t^6 - 117164/121*t^5 + 10633/484*t^4 + 29437/22*t^3 - 39725/484*t^2 - 55428/121*t + 176425/484 : 1)]
 
         """
         # Coerce the input m to an integer
         m = rings.Integer(m)
-        # Check for trivial case of m = 1.
-        if m == 1:
+        # Check for trivial cases of m = 1, -1 and 0.
+        if m == 1 or m == -1:
             return [self]
-
-        # Get the curve and convert it to short Weierstrass form so
-        # that we can compute the multiplication by m map explicitly.
-        # Also compute explicit maps back and forth.
-        E = self.curve()
-        F = E.short_weierstrass_model()
-        F_to_E = F.isomorphism_to(E)
-        E_to_F = E.isomorphism_to(F)
-        f = F.multiplication_by_m(m, x_only=True)
-
-        # Map self (our point) over to the short Weierstrass model.
-        W = E_to_F(self)
+        if m == 0:
+            if self == 0: # then every point Q is a solution, but...
+                return [self]
+            else:
+                return []
 
         # ans will contain the list of division points.
         ans = []
 
-        # We compute a polynomial g whose roots give all
-        # possible x coordinates of the m-division points.
-        # This polynomial can have even more roots in some
-        # corner cases, but that's OK since we double check
-        # ach below.
-        if self == 0:
-            # If self is the 0, then m*self = self automatically.
-            ans.append(self)
-            # Also the correct poly to choose is just the denominator.
-            g = f.denominator()
+        # We compute a polynomial g whose roots give all possible x
+        # coordinates of the m-division points.  The number of
+        # solutions (over the algebraic closure) is m^2, assuming that
+        # the characteristic does not divide m.
+
+        E = self.curve()
+        P = self
+        nP = -P
+        P_is_2_torsion = (P==nP)
+
+        # If self is the 0, then self is a solution, and the correct
+        # poly is the m'th division polynomial
+        if P == 0:
+            ans.append(P)
+            g = E.division_polynomial(m)
         else:
-            # The poly g below is 0 at x if f(x) = W[0].
-            g = f.numerator() - W[0]*f.denominator()
-        R = E.base_ring()['x']
-        h = R(g)
+            # The poly g here is 0 at x(Q) iff x(m*Q) = x(P).
+            g = E.multiple_x_numerator(m) - P[0]*E.multiple_x_denominator(m)
+
+            # When 2*P=0, then -Q is a solution iff Q is.  For even m,
+            # no 2-torsion point is a solution, so that g is the
+            # square of a polynomial g1 of degree m^2/2, and each root
+            # of g1 leads to a pair of solutions Q, -Q to m*Q=P.  For
+            # odd m, P itself is the only 2-torsion solution, so g has
+            # the form (x-x(P))*g1(x)^2 where g1 has degree (m^2-1)/2
+            # and each root of g1 leads to a pair Q, -Q.
+
+            if P_is_2_torsion:
+                if m%2==0:
+                    # This computes g.sqrt() which is not implemented
+                    g = g.gcd(g.derivative())*g.leading_coefficient().sqrt()
+
+            # When 2*P!=0, then for each solution Q to m*Q=P, -Q is
+            # not a solution (and points of order 2 are not
+            # solutions).  Hence the roots of g are distinct and each
+            # gives rise to precisely one solution Q.
+
+                else:
+                    g0 = g.variables()[0] - P[0]
+                    g = g // g0
+                    g = g.gcd(g.derivative())*g.leading_coefficient().sqrt()
+                    g = g0*g
+
         if poly_only:
-            return h
-        for x,_ in h.roots():
-            # We use *no* special tricks or shortcuts here.
-            # Every time I thought of one I discovered corner
-            # cases where it didn't work. So we have none here
-            # at all.
-            try:
+            return g
+
+        for x in g.roots(multiplicities=False):
+            if E.is_x_coord(x):
                 # Make a point on the curve with this x coordinate.
-                Z = F.lift_x(x)
-                if m*Z == W:
-                    # if it works, take it.
-                    ans.append(F_to_E(Z))
-                # Now try the other possible point with the same x coordinate.
-                # Negation keeps the same x coordinate because F is in
-                # short weierstrass form.
-                nZ = -Z
-                if m*nZ == W:
-                    ans.append(F_to_E(nZ))
-            except ValueError:
-                # This can happen in some exceptional case.
-                pass
-        # Finally remove possible duplicates and sort.  (It's possible I guess
-        # that there would be duplicates in some weird corner case.)
-        ans = list(set(ans))
+                Q = E.lift_x(x)
+                nQ = -Q
+                mQ = m*Q
+                # if P==-P then Q works iff -Q works, so we include
+                # both unless they are equal:
+                if P_is_2_torsion:
+                    if mQ == P:
+                        ans.append(Q)
+                        if nQ != Q:
+                            ans.append(nQ)
+                else:
+                    # P is not 2-torsion so at most one of Q, -Q works
+                    # and we must try both:
+                    if mQ == P:
+                        ans.append(Q)
+                    elif mQ == nP:
+                        ans.append(nQ)
+
+        # Finally, sort and return
         ans.sort()
         return ans
 

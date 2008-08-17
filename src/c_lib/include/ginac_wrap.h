@@ -16,6 +16,8 @@ const symbol & get_symbol(const std::string & s)
         return directory.insert(std::make_pair(s, symbol(s))).first->second;
 }
 
+#define ASSIGN_WRAP(x,y) x = y
+
 #define ADD_WRAP(x,y) (x)+(y)
 #define SUB_WRAP(x,y) (x)-(y)
 #define MUL_WRAP(x,y) (x)*(y)

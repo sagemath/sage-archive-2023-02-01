@@ -7,6 +7,8 @@ from sage.rings.real_mpfr import RealNumber
 
 from expression cimport Expression, new_Expression_from_GEx
 
+from sage.structure.element import RingElement
+
 cdef class NSymbolicRing(Ring):
     """
     Symbolic Ring, parent object for all symbolic expressions.
@@ -42,22 +44,25 @@ cdef class NSymbolicRing(Ring):
         cdef GEx exp
 
         if isinstance(other, (int, long)):
-            GEx_construct_long(&exp, other)
+            GEx_construct_pyobject(exp, Integer(other))
+            #GEx_construct_long(&exp, other)
         elif isinstance(other, float):
-            GEx_construct_double(&exp, other)
+            GEx_construct_pyobject(exp, other)
+            #GEx_construct_double(&exp, other)
         elif isinstance(other, Integer):
-#FIXME big ints not supported
-            GEx_construct_long(&exp,mpz_get_si((<Integer>other).value))
+            GEx_construct_pyobject(exp, other)
+            #GEx_construct_long(&exp,mpz_get_si((<Integer>other).value))
         elif isinstance(other, RealNumber):
-            GEx_construct_double(&exp, float(other))
-#FIXME precision
+            #GEx_construct_double(&exp, float(other))
+            GEx_construct_pyobject(exp, other)
+        elif isinstance(other, RingElement):
+            GEx_construct_pyobject(exp, other)
         else:
             raise TypeError
-
         return new_Expression_from_GEx(exp)
 
     def __call__(self, other):
-#FIXME
+#TODO:
         try:
             return self._coerce_(other)
         except TypeError:

@@ -31,6 +31,8 @@ cdef extern from "ginac_wrap.h":
     GEx* GEx_construct_long "Construct_p<ex, long>" (void *mem, long n)
     GEx* GEx_construct_double "Construct_p<ex, double>" (void *mem, double d)
 
+    GEx* GEx_construct_pyobject "ASSIGN_WRAP" (GEx mem, object n)
+
     object GEx_to_str "_to_PyString<ex>"(GEx *s)
 
     GEx gadd "ADD_WRAP" (GEx left, GEx right)

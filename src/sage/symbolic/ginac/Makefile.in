@@ -200,7 +200,8 @@ am_libginac_la_OBJECTS = add.lo archive.lo basic.lo clifford.lo color.lo \
 	input_parser.lo input_lexer.lo
 libginac_la_OBJECTS = $(am_libginac_la_OBJECTS)
 
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
+# TODO: Change that python2.5 thing below to something much more official!
+DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir) -I$(SAGE_LOCAL)/include/python2.5
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/add.Plo ./$(DEPDIR)/archive.Plo \

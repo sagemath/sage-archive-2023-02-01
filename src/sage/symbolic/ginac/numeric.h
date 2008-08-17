@@ -51,12 +51,14 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include "Python.h"
 
 
 namespace GiNaC {
   enum Type {
     LONG,
     DOUBLE,
+    PYOBJECT,
     MPFR,
     MPZ,
     MPQ,
@@ -67,6 +69,7 @@ namespace GiNaC {
   union Value {
     double _double;
     long int _long;
+    PyObject* _pyobject;
   };
 
   class Number_T {  // abstract base class
@@ -83,6 +86,10 @@ namespace GiNaC {
     Number_T(const double& x);
     Number_T(const Number_T& x);
     Number_T(const char* s);
+    Number_T(PyObject* o);  // *STEALS a REFERENCE*
+
+    // Descructor
+    Number_T::~Number_T();
     
     Number_T operator+(Number_T x) const;
     Number_T operator*(Number_T x) const;

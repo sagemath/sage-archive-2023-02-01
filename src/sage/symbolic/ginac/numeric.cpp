@@ -142,6 +142,16 @@ double binomial(int n, int k)
       return os << s.v._long;
     case DOUBLE:
       return os << s.v._double;
+    case PYOBJECT:
+      PyObject* o = PyObject_Repr(s.v._pyobject);
+      if (!o) {
+	// TODO: get proper exception.
+	os << "(exception printing python object)";
+      } else {
+	os << PyString_AsString(o);
+	Py_DECREF(o);
+      }
+      return os;
     default:
       stub("operator << type not handled");
     }
@@ -161,6 +171,10 @@ double binomial(int n, int k)
 	new_left = (double)left;
 	new_right = right;
 	return;
+      case PYOBJECT:
+	new_left = PyInt_FromLong(left);
+	new_right = right;
+	return;
       default:
 	stub("** coerce not fully implemented yet -- left LONG**");
       }
@@ -170,8 +184,23 @@ double binomial(int n, int k)
 	new_left = left;
 	new_right = (double) right;
 	return;
+      case PYOBJECT:
+	new_left = PyFloat_FromDouble(left);
+	new_right = right;
+	return;
       default:
 	stub("** coerce not fully implemented -- left DOUBLE ** ");
+      }
+    case PYOBJECT:
+      switch(right.t) {
+      case LONG:
+	new_left = left;
+	new_right = PyInt_FromLong(right);
+	return;
+      case DOUBLE:
+	new_left = left;
+	new_right = PyFloat_FromDouble(right);
+	return;
       }
     }
     stub("** coerce not fully implemented yet **");
@@ -190,6 +219,8 @@ double binomial(int n, int k)
     case LONG:
       // TODO: change to use GMP!
       return math::pow((double)base.v._long, (double)exp.v._long);
+    case PYOBJECT:
+      return PyNumber_Power(base.v._pyobject, exp.v._pyobject, Py_None);
     default:
       stub("pow Number_T");
     }
@@ -204,8 +235,11 @@ double binomial(int n, int k)
     v._long = x;
   }
   Number_T::Number_T(const long int& x) { 
-    t = LONG;
+    /* t = LONG;
     v._long = x;
+    */
+    t = PYOBJECT;
+    v._pyobject = PyInt_FromLong(x);
   }
   Number_T::Number_T(const unsigned int& x) { 
     stub("unsigned int constructor -- should use gmp");
@@ -230,6 +264,10 @@ double binomial(int n, int k)
     case LONG:
       v._long = x.v._long;
       return;
+    case PYOBJECT:
+      v._pyobject = x.v._pyobject;
+      Py_INCREF(v._pyobject);
+      return;
     default:
       std::cout << "copy type: " << x << "\n";
       stub("Number_T(const Number_T& x) type not handled");
@@ -240,6 +278,25 @@ double binomial(int n, int k)
     stub("Number_T(const char* s)");
     t = DOUBLE;
     sscanf(s, "%f", &v._double); 
+  }
+
+  Number_T::Number_T(PyObject* o) {
+    t = PYOBJECT;
+    if (!o) {
+      // TODO: something bad happened -- an exception; figure out how to deal with this.
+      std::cout << "ERROR IN GINAC; objects will be invalid";
+      v._pyobject = PyInt_FromLong(0);
+      return;
+    }
+    v._pyobject = o;
+  }
+  
+  Number_T::~Number_T() {
+    switch(t) {
+    case PYOBJECT:
+      Py_DECREF(v._pyobject);
+      return;
+    }
   }
     
   Number_T Number_T::operator+(Number_T x) const { 
@@ -256,6 +313,8 @@ double binomial(int n, int k)
       return v._double + (double)x;
     case LONG:
       return v._long + (long int)x;
+    case PYOBJECT:
+      return PyNumber_Add(v._pyobject, x.v._pyobject);
     default:
       stub("operator+x() type not handled");
     }
@@ -272,6 +331,8 @@ double binomial(int n, int k)
       return v._double * (double)x;
     case LONG:
       return v._long * (long int)x;
+    case PYOBJECT:
+      return PyNumber_Multiply(v._pyobject, x.v._pyobject);
     default:
       stub("operator*() type not handled");
     }
@@ -288,6 +349,8 @@ double binomial(int n, int k)
       return v._double / (double)x;
     case LONG:
       return v._long / (long int)x;
+    case PYOBJECT:
+      return PyNumber_Divide(v._pyobject, x.v._pyobject);
     default:
       stub("operator/() type not handled");
     }
@@ -303,21 +366,29 @@ double binomial(int n, int k)
       return v._double - (double)x;
     case LONG:
       return v._long - (long int)x;
+    case PYOBJECT:
+      return PyNumber_Subtract(v._pyobject, x.v._pyobject);
     default:
       stub("operator-() type not handled");
     }
   }
 
   Number_T& Number_T::operator=(const Number_T& x) { 
-    t = x.t;
     switch(x.t) {
     case DOUBLE:
       v._double = x.v._double; break;
     case LONG:
       v._long = x.v._long; break;
+    case PYOBJECT:
+      if (t == PYOBJECT) {
+	Py_DECREF(v._pyobject);
+      }
+      v._pyobject = x.v._pyobject; break;
     default:
-      stub("operator=() type not handled");
+      Py_INCREF(x.v._pyobject);
+      v._pyobject = x.v._pyobject; break;
     };
+    t = x.t;
     return *this; 
   }
   
@@ -331,6 +402,8 @@ double binomial(int n, int k)
       return -v._double; 
     case LONG:
       return -v._long;
+    case PYOBJECT:
+      return PyNumber_Negative(v._pyobject);
     default:
       stub("operator-() type not handled");
     }
@@ -342,6 +415,8 @@ double binomial(int n, int k)
       return v._double; 
     case LONG:
       return (double) v._long;
+    case PYOBJECT:
+      PyFloat_AsDouble(v._pyobject);
     default:
       stub("operator double() type not handled");
     }

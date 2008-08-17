@@ -756,11 +756,11 @@ class AbsoluteOrder(Order):
             sage: x = polygen(QQ)
             sage: K.<a> = NumberField(x^3+2)
             sage: V, from_v, to_v = K.vector_space()
-            sage: M = span(ZZ, [to_v(a^2), to_v(a), to_v(1)])
+            sage: M = span([to_v(a^2), to_v(a), to_v(1)],ZZ)
             sage: O = AbsoluteOrder(K, M); O
             Order in Number Field in a with defining polynomial x^3 + 2
 
-            sage: M = span(ZZ, [to_v(a^2), to_v(a), to_v(2)])
+            sage: M = span([to_v(a^2), to_v(a), to_v(2)],ZZ)
             sage: O = AbsoluteOrder(K, M); O
             Traceback (most recent call last):
             ...

@@ -25,10 +25,9 @@ The following axes types are supported:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from math import floor, log
-
 from sage.structure.sage_object import SageObject
-
 import sage.misc.misc
+from copy import copy
 
 class Axes(SageObject):
     """
@@ -424,12 +423,7 @@ class Axes(SageObject):
         xlabel    = -xltheight
 
         #scale the axes out from the actual plot
-        ys = 0.02*yspan
-        xs = 0.02*xspan
-        ymins = ymin - ys
-        ymaxs = ymax + ys
-        xmins = xmin - xs
-        xmaxs = xmax + xs
+        xmins, xmaxs, ymins, ymaxs = self._adjustments_for_frame(xmin, xmax, ymin, ymax)
 
         #now draw the frame border:
         self._draw_frame(subplot, xmins, xmaxs, ymins, ymaxs)
@@ -473,6 +467,31 @@ class Axes(SageObject):
             subplot.add_line(patches.lines.Line2D([xmaxs, xmaxs - ystheight], [y, y],
                 color=self.__color, linewidth=float(self.__linewidth)))
 
+    def _adjustments_for_frame(self, xmin, xmax, ymin, ymax):
+        r"""
+        Scale the axes out from the actual plot to accommodate a frame.
+
+        INPUT:
+            xmin, xmax, ymin, ymax -- numbers
+
+        OUTPUT:
+            xmin, xmax, ymin, ymax -- numbers
+
+        TESTS:
+            sage: from sage.plot.axes import Axes
+            sage: Axes()._adjustments_for_frame(-10,40,10,35)
+            (-11.0, 41.0, 9.5, 35.5)
+        """
+        xmin = float(xmin); xmax=float(xmax); ymin=float(ymin); ymax=float(ymax)
+        yspan = ymax - ymin
+        xspan = xmax - xmin
+        ys = 0.02*yspan
+        xs = 0.02*xspan
+        ymin -= ys
+        ymax += ys
+        xmin -= xs
+        xmax += xs
+        return xmin, xmax, ymin, ymax
 
     def add_xy_matrix_frame_axes(self, subplot, xmin, xmax, ymin, ymax):
         """
@@ -557,3 +576,331 @@ class Axes(SageObject):
             subplot.add_line(patches.lines.Line2D([xmaxs, xmaxs - ystheight], [yr, yr],
                 color=self.__color, linewidth=float(self.__linewidth)))
 
+class GridLines(SageObject):
+    """
+    Grid lines for SAGE 2D Graphics.
+
+    See the docstring for Graphics.show for examples.
+    """
+    def __init__(self, gridlines=None, gridlinesstyle=None,
+            vgridlinesstyle=None, hgridlinesstyle=None):
+        r"""
+        Add horizontal and vertical grid lines to a Graphics object.
+
+        INPUT:
+            gridlines    -- (default: None) can be any of the following:
+                            1. None, False: do not add grid lines.
+                            2. True, "automatic", "major": add grid lines
+                               at major ticks of the axes.
+                            3. "minor": add grid at major and minor ticks.
+                            4. [xlist,ylist]: a tuple or list containing
+                               two elements, where xlist (or ylist) can be
+                               any of the following.
+                               4a. None, False: don't add horizontal (or
+                                   vertical) lines.
+                               4b. True, "automatic", "major": add
+                                   horizontal (or vertical) grid lines at
+                                   the major ticks of the axes.
+                               4c. "minor": add horizontal (or vertical)
+                                   grid lines at major and minor ticks of
+                                   axes.
+                               4d. an iterable yielding numbers n or pairs
+                                   (n,opts), where n is the coordinate of
+                                   the line and opt is a dictionary of
+                                   MATPLOTLIB options for rendering the
+                                   line.
+            gridlinesstyle,
+            hgridlinesstyle,
+            vgridlinesstyle
+                         -- (default: None) a dictionary of MATPLOTLIB
+                            options for the rendering of the grid lines,
+                            the horizontal grid lines or the vertical grid
+                            lines, respectively.
+
+        TESTS:
+            sage: from sage.plot.axes import GridLines
+            sage: GridLines()
+            <class 'sage.plot.axes.GridLines'>
+            sage: gl = GridLines(False)
+            sage: gl = GridLines(True)
+            sage: gl = GridLines("automatic")
+            sage: gl = GridLines("major")
+            sage: gl = GridLines("minor")
+            sage: gl = GridLines([True,False])
+            sage: gl = GridLines(["minor","major"])
+            sage: gl = GridLines(["automatic",None])
+            sage: gl = GridLines([range(-10,10,2), lambda x,y:srange(x,y,0.5)])
+            sage: gl = GridLines(None, dict(color="red"),
+            ...     dict(linestyle=":"), dict(color="blue"))
+            sage: gl = GridLines(None, dict(rgbcolor="red"),
+            ...     dict(linestyle=":"), dict(color="blue"))
+        """
+        self.__gridlines = gridlines
+
+        defaultstyle = dict(color=(0.3,0.3,0.3),linewidth=0.4)
+        if gridlinesstyle is not None:
+            rgbcolor_keyword_support(gridlinesstyle)
+            defaultstyle.update(gridlinesstyle)
+        self.__gridlinesstyle = [copy(defaultstyle),copy(defaultstyle)]
+        if vgridlinesstyle is not None:
+            rgbcolor_keyword_support(vgridlinesstyle)
+            self.__gridlinesstyle[0].update(vgridlinesstyle)
+        if hgridlinesstyle is not None:
+            rgbcolor_keyword_support(hgridlinesstyle)
+            self.__gridlinesstyle[1].update(hgridlinesstyle)
+
+    def add_gridlines(self, subplot, xmin, xmax, ymin, ymax, frame=False):
+        # Process the input to get valid gridline data.
+        r"""
+        Add the grid lines to a subplot object.
+
+        INPUT:
+            subplot     -- an instance of matplotlib.axes.Subplot
+            xmin, xmax  -- $x$ range of the Graphics object containing subplot
+            ymin, ymax  -- $y$ range of the Graphics object containing subplot
+            frame       -- (default: False) if True, then adjust the lengths of
+                           the grid lines to touch connect to the frame.
+
+        OUTPUT:
+            None (modifies subplot)
+
+        TESTS:
+            sage: from sage.plot.axes import GridLines
+            sage: from matplotlib.figure import Figure
+            sage: subplot = Figure().add_subplot(111)
+            sage: lims = [-10,20,10,35]
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines().add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            0
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines(False).add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            0
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines(True).add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            13
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines("automatic").add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            13
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines("major").add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            13
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines("minor").add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            57
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines([True,False]).add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            7
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines(["minor","major"]).add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            37
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines(["automatic",None]).add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            7
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines([range(-10,10,2), lambda x,y:srange(x,y,0.5)]).add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            60
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines("automatic", dict(color="red"),
+            ...     dict(linestyle=":"),
+            ...     dict(color="blue")).add_gridlines(subplot,*lims)
+            sage: len(subplot.lines)
+            13
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines([1,2,3]).add_gridlines(subplot,*lims)
+            Traceback (most recent call last):
+            ...
+            TypeError: gridlines is not a list or tuple of length 2
+
+            sage: subplot = Figure().add_subplot(111)
+            sage: GridLines([1,2]).add_gridlines(subplot,*lims)
+            Traceback (most recent call last):
+            ...
+            TypeError: elements of gridlines need to be iterable: [1, 2]
+        """
+        points = [[xmin, xmax], [ymin, ymax]]
+        if self.__gridlines is None or self.__gridlines is False:
+            return
+        elif self.__gridlines in ["major", "automatic"] or self.__gridlines is True:
+            self.__gridlines = [
+                    self._get_ticks_locations(points[0]),
+                    self._get_ticks_locations(points[1])
+                    ]
+        elif self.__gridlines == "minor":
+            self.__gridlines = [
+                    self._get_ticks_locations(points[0], self.__gridlines),
+                    self._get_ticks_locations(points[1], self.__gridlines)
+                    ]
+        else:
+            try:
+                gridlines = [None]*2
+                gridlines[0], gridlines[1] = self.__gridlines
+            except ValueError:
+                raise TypeError, "gridlines is not a list or tuple of length 2"
+
+            for i in range(2):
+                if gridlines[i] is None or gridlines[i] is False:
+                    gridlines[i] = []
+                elif gridlines[i] in ["major", "automatic"] or gridlines[i] is True:
+                    gridlines[i] = self._get_ticks_locations(points[i])
+                elif gridlines[i] == "minor":
+                    gridlines[i] = self._get_ticks_locations(points[i],gridlines[i])
+                elif callable(gridlines[i]):
+                    gridlines[i] = gridlines[i](*points[i])
+
+            if not (hasattr(gridlines[0],'__iter__') and
+                    hasattr(gridlines[1],'__iter__')):
+                raise TypeError, "elements of gridlines need to be iterable: %s" \
+                    % gridlines
+            self.__gridlines = gridlines
+
+        # add the gridlines to subplot.
+        if frame is True:
+            xmin, xmax, ymin, ymax = \
+                    self._get_adjustments_for_frame(*points)
+            points = [[xmin, xmax], [ymin, ymax]]
+
+        new_gridlines = []
+        for i in range(2):
+            new_list = []
+            for entry in self.__gridlines[i]:
+                kwds = copy(self.__gridlinesstyle[i])
+                if hasattr(entry,'__len__'):
+                    if len(entry) == 2:
+                        val = entry[0]
+                        rgbcolor_keyword_support(entry[1])
+                        kwds.update(entry[1])
+                else:
+                    val = entry
+                    kwds = copy(self.__gridlinesstyle[i])
+                new_list.append([val,kwds])
+            new_gridlines.append(new_list)
+        xlines, ylines = new_gridlines
+
+        # draw the grid lines
+        from matplotlib import patches
+        # horizontal lines
+        for (yval, ykwds) in ylines:
+            subplot.add_line(
+                    patches.lines.Line2D(points[0],[yval,yval],**ykwds)
+                    )
+        # vertical lines
+        for (xval, xkwds) in xlines:
+            subplot.add_line(
+                    patches.lines.Line2D([xval,xval],points[1],**xkwds)
+                    )
+
+    def _get_ticks_locations(self, interval, ticks="major"):
+        r"""
+        Find the locations of the major and/or minor ticks of the axes
+        in the interval.
+
+        INPUT:
+            interval -- an interval as a pair of numbers
+            ticks -- "major" or "minor". If "minor", then return also
+                the locations of the minor ticks.
+
+        OUTPUT:
+            list -- the locations of the ticks on the axes
+
+        TESTS:
+            sage: from sage.plot.axes import GridLines
+            sage: GridLines()._get_ticks_locations([-10,20])
+            [-10, -5, 0, 5, 10, 15, 20]
+            sage: GridLines()._get_ticks_locations([10,35],"minor")
+            [10.0, 11.0, 12.0, 13.0, ..., 32.0, 33.0, 34.0, 35.0]
+
+        """
+        # Axes._find_axes[2] returns locations of minor ticks
+        # Axes._find_axes[3] returns locations of major ticks
+        if ticks == "minor":
+            minorticks = True
+        else:
+            minorticks = False
+        return Axes()._find_axes(*interval)[2 if minorticks else 3]
+
+    def _get_adjustments_for_frame(self, xinterval, yinterval):
+        r"""
+        Returns new limits for axes to accommodate a frame drawn around the
+        plot.
+
+        INPUT:
+            xinterval -- x-axis interval as pairs of numbers
+            yinterval -- y-axis interval as pairs of numbers
+
+        OUTPUT:
+            xmin, xmax, ymin, ymax -- numbers
+
+        TESTS:
+            sage: from sage.plot.axes import GridLines
+            sage: GridLines()._get_adjustments_for_frame([-10,40],[10,35])
+            (-11.0, 41.0, 9.5, 35.5)
+        """
+        return Axes()._adjustments_for_frame(*(xinterval+yinterval))
+
+def rgbcolor_keyword_support(d):
+    r"""
+    Change the rgbcolor key to color.
+
+    NOTE: The rgbcolor keyword is a synonym for color and not a matplotlib
+    option.
+
+    INPUT:
+        d -- a dictionary
+
+    OUTPUT:
+        None -- modifies d
+
+    TESTS:
+        sage: from sage.plot.axes import rgbcolor_keyword_support
+        sage: d = dict(rgbcolor="red",other="blue")
+        sage: rgbcolor_keyword_support(d)
+        sage: d
+        {'color': 'red', 'other': 'blue'}
+
+        sage: d = dict(color="red",other="blue")
+        sage: rgbcolor_keyword_support(d)
+        sage: d
+        {'color': 'red', 'other': 'blue'}
+
+        sage: d = dict(color="red", rgbcolor="red")
+        sage: rgbcolor_keyword_support(d)
+        sage: d
+        {'color': 'red'}
+
+        sage: d = dict(color="red", rgbcolor="black")
+        sage: rgbcolor_keyword_support(d)
+        Traceback (most recent call last):
+        ...
+        TypeError: specify only one of color or rgbcolor
+    """
+    if d.has_key("rgbcolor"):
+        if d.has_key("color"):
+            if d["rgbcolor"] == d["color"]:
+                del d["rgbcolor"]
+            else:
+                raise TypeError, "specify only one of color or rgbcolor"
+        else:
+            d["color"] = d["rgbcolor"]
+            del d["rgbcolor"]

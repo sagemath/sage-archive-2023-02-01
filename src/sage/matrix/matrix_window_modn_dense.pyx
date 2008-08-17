@@ -1,3 +1,12 @@
+"""
+TESTS:
+    sage: a = random_matrix(GF(11), 30, 40)
+    sage: b = random_matrix(GF(11), 40, 53)
+    sage: a._multiply_strassen(b, 7) == a.change_ring(ZZ)*b.change_ring(ZZ)
+    True
+"""
+
+
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
 
@@ -40,7 +49,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
 
     cdef add(self, MatrixWindow A):
         cdef Py_ssize_t i, j
-        cdef mod_int p
+        cdef mod_int k, p
         cdef mod_int* self_row
         cdef mod_int* A_row
         if self._nrows != A._nrows or self._ncols != A._ncols:
@@ -50,13 +59,12 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
             self_row = ( <Matrix_modn_dense> self._matrix )._matrix[i + self._row] + self._col
             A_row    = ( <Matrix_modn_dense>    A._matrix )._matrix[i +    A._row] + A._col
             for j from 0 <= j < self._ncols:
-                self_row[j] += A_row[j]
-                if self_row[j] >= p:
-                    self_row[j] -= p
+                k = self_row[j] + A_row[j]
+                self_row[j] = k - (k >= p) * p
 
     cdef subtract(self, MatrixWindow A):
         cdef Py_ssize_t i, j
-        cdef mod_int p
+        cdef mod_int k, p
         cdef mod_int* self_row
         cdef mod_int* A_row
         if self._nrows != A._nrows or self._ncols != A._ncols:
@@ -66,14 +74,12 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
             self_row = ( <Matrix_modn_dense> self._matrix )._matrix[i + self._row] + self._col
             A_row    = ( <Matrix_modn_dense>    A._matrix )._matrix[i +    A._row] + A._col
             for j from 0 <= j < self._ncols:
-                if self_row[j] >= A_row[j]:
-                    self_row[j] -= A_row[j]
-                else:
-                    self_row[j] += p - A_row[j]
+                k = p + self_row[j] - A_row[j]
+                self_row[j] = k - (k >= p) * p
 
     cdef set_to_sum(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j
-        cdef mod_int p
+        cdef mod_int k, p
         cdef mod_int* self_row
         cdef mod_int* A_row
         cdef mod_int* B_row
@@ -87,13 +93,12 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
             A_row    = ( <Matrix_modn_dense>    A._matrix )._matrix[i +    A._row] + A._col
             B_row    = ( <Matrix_modn_dense>    B._matrix )._matrix[i +    B._row] + B._col
             for j from 0 <= j < self._ncols:
-                self_row[j] = A_row[j] + B_row[j]
-                if self_row[j] >= p:
-                    self_row[j] -= p
+                k = A_row[j] + B_row[j]
+                self_row[j] = k - (k >= p) * p
 
     cdef set_to_diff(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j
-        cdef mod_int p
+        cdef mod_int k, p
         cdef mod_int* self_row
         cdef mod_int* A_row
         cdef mod_int* B_row
@@ -107,10 +112,8 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
             A_row    = ( <Matrix_modn_dense>    A._matrix )._matrix[i +    A._row] + A._col
             B_row    = ( <Matrix_modn_dense>    B._matrix )._matrix[i +    B._row] + B._col
             for j from 0 <= j < self._ncols:
-                if A_row[j] > B_row[j]:
-                    self_row[j] = A_row[j] - B_row[j]
-                else:
-                    self_row[j] = p + A_row[j] - B_row[j]
+                k = p + A_row[j] - B_row[j]
+                self_row[j] = k - (k >= p) * p
 
     cdef set_to_prod(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j, k, gather, top, A_ncols
@@ -133,12 +136,12 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                 self_row = ( <Matrix_modn_dense> self._matrix )._matrix[i + self._row] + self._col
                 A_row    = ( <Matrix_modn_dense>    A._matrix )._matrix[i +    A._row] + A._col
                 k = 0
-                for j from 1 <= j < B._ncols:
+                for j from 0 <= j < B._ncols:
                     self_row[j] = (A_row[k] * B_matrix_off[k][B._col+j]) % p
                 for k from 1 <= k < A._ncols:
                     A_i_k = A_row[k]
                     B_row_k = B_matrix_off[k] + B._col
-                    for j from 1 <= j < B._ncols:
+                    for j from 0 <= j < B._ncols:
                         self_row[j] = (self_row[j] + A_i_k * B_row_k[j]) % p
 
         else:

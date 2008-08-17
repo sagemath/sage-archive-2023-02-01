@@ -1,11 +1,11 @@
 """
 Torsion subgroups of modular abelian varieties.
 
-\sage can compute information about the structure of the torsion
-subgroup of a modular abelian variety.  \sage computes a multiple of
+Sage can compute information about the structure of the torsion
+subgroup of a modular abelian variety.  Sage computes a multiple of
 the order by computing the greatest common divisor of the orders of
 the torsion subgroup of the reduction of the abelian variety modulo p
-for various primes p.  \sage computes a divisor of the order by
+for various primes p.  Sage computes a divisor of the order by
 computing the rational cuspidal subgroup.  When these two bounds agree
 (which is often the case), we determine the exact structure of the
 torsion subgroup.
@@ -266,10 +266,12 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         Hecke operators of odd index not dividing the level.
 
         INPUT:
-            maxp -- (default: None)  If maxp is None (the default),
-                    compute bound until it stabilizes for 3 successive
-                    primes.  Otherwise, use all primes up to and
-                    including maxp.
+            maxp -- (default: None) If maxp is None (the default),
+                    return gcd of best bound computed so far with
+                    bound obtained by computing gcd's of orders modulo
+                    p until this gcd stabilizes for 3 successive
+                    primes.  If maxp is given, just use all primes up
+                    to and including maxp.
 
         EXAMPLES:
             sage: J = J0(11)
@@ -292,11 +294,29 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             Traceback (most recent call last):
             ...
             NotImplementedError: torsion multiple only implemented for Gamma0
+
+        The next example illustrates calling this function with a
+        larger input and how the result may be cached when maxp is None:
+            sage: T = J0(43)[1].rational_torsion_subgroup()
+            sage: T.multiple_of_order()
+            14
+            sage: T.multiple_of_order(50)
+            7
+            sage: T.multiple_of_order()
+            7
+
         """
+        if maxp is None:
+            try:
+                return self.__multiple_of_order
+            except AttributeError:
+                pass
         bnd = ZZ(0)
         A = self.abelian_variety()
         if A.dimension() == 0:
-            return ZZ(1)
+            T = ZZ(1)
+            self.__multiple_of_order = T
+            return T
         N = A.level()
         if not (len(A.groups()) == 1 and is_Gamma0(A.groups()[0])):
             # to generalize to this case, you'll need to
@@ -333,6 +353,25 @@ class RationalTorsionSubgroup(FiniteSubgroup):
                 if maxp is None and cnt >= 2:
                     break
 
+        # The code below caches the computed bound and
+        # will be used if this function is called
+        # again with maxp equal to None (the default).
+        if maxp is None:
+            # maxp is None but self.__multiple_of_order  is
+            # not set, since otherwise we would have immediately
+            # returned at the top of this function
+            self.__multiple_of_order = bnd
+        else:
+            # maxp is given -- record new info we get as
+            # a gcd...
+            try:
+                self.__multiple_of_order = gcd(self.__multiple_of_order, bnd)
+            except AttributeError:
+                # ... except in the case when self.__multiple_of_order
+                # was never set.  In this case, we just set
+                # it as long as the gcd stabilized for 3 in a row.
+                if cnt >= 2:
+                    self.__multiple_of_order = bnd
         return bnd
 
 

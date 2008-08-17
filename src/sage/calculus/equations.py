@@ -214,6 +214,21 @@ class SymbolicEquation(SageObject):
         return self._op(left, right)
 
 
+    def _maple_(self, maple=None):
+        """
+        Returns a Maple version of self.
+
+        EXAMPLES:
+            sage: eq = x == 2
+            sage: maple(eq)   #optional
+            x = 2
+        """
+        if maple is None:
+            from sage.interfaces.maple import maple
+        lhs = maple(self.lhs())
+        rhs = maple(self.rhs())
+        return maple("%s = %s"%(lhs.name(), rhs.name()))
+
     def __getitem__(self, i):
         """
         Return the ith part of this equation:

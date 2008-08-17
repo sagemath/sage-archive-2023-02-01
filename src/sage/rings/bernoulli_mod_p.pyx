@@ -6,6 +6,7 @@ AUTHOR:
     - William Stein (2006-07-28): some touch up.
     - David Harvey (2006-08-06): new, faster algorithm, also using faster NTL interface
     - David Harvey (2007-08-31): algorithm for a single bernoulli number mod p
+    - David Harvey (2008-06): added interface to bernmm, removed old code
 """
 
 #*****************************************************************************
@@ -29,6 +30,7 @@ from sage.libs.ntl import all as ntl
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 import sage.libs.pari.gen
 from sage.rings.integer_mod_ring import Integers
+from sage.rings.bernmm import bernmm_bern_modp
 
 
 
@@ -208,36 +210,18 @@ def bernoulli_mod_p(int p):
 
 
 
-def bernoulli_mod_p_single(int p, int k):
+def bernoulli_mod_p_single(long p, long k):
     r"""
     Returns the bernoulli number $B_k$ mod $p$.
 
+    If $B_k$ is not $p$-integral, an ArithmeticError is raised.
+
     INPUT:
         p -- integer, a prime
-        k -- even integer in the range $0 \leq k \leq p-3$
+        k -- non-negative integer
 
     OUTPUT:
         The $k$-th bernoulli number mod $p$.
-
-    ALGORITHM:
-        Uses the identity
-          $$ (1-g^k) B_k/k = 2\sum_{r=1}^{(p-1)/2} g^{r(k-1)} ( [g^r/p] - g [g^(r-1)/p] + (g-1)/2 ), $$
-        where $g$ is a primitive root mod $p$, and where square brackets
-        denote the fractional part. This identity can be derived from
-        Theorem 2.3, chapter 2 of Lang's book "Cyclotomic fields".
-
-    PERFORMANCE:
-        Linear in $p$. In particular the running time doesn't depend on k.
-
-        It's much faster than computing *all* bernoulli numbers by using
-        bernoulli_mod_p(). For p = 1000003, the latter takes about 3s on my
-        laptop, whereas this function takes only 0.06s.
-
-        It may or may not be faster than computing literally bernoulli(k) % p,
-        depending on how big k and p are relative to each other. For example on
-        my laptop, computing bernoulli(2000) % p only takes 0.01s. But
-        computing bernoulli(100000) % p takes 40s, whereas this function still
-        takes only 0.06s.
 
     EXAMPLES:
         sage: bernoulli_mod_p_single(1009, 48)
@@ -256,19 +240,17 @@ def bernoulli_mod_p_single(int p, int k):
         ValueError: p (=100) must be a prime
 
         sage: bernoulli_mod_p_single(19, 5)
-        Traceback (most recent call last):
-        ...
-        ValueError: k (=5) must be even
+        0
 
         sage: bernoulli_mod_p_single(19, 18)
         Traceback (most recent call last):
         ...
-        ValueError: k (=18) must be non-negative, and at most p-3
+        ArithmeticError: B_k is not integral at p
 
         sage: bernoulli_mod_p_single(19, -4)
         Traceback (most recent call last):
         ...
-        ValueError: k (=-4) must be non-negative, and at most p-3
+        ValueError: k must be non-negative
 
     Check results against bernoulli_mod_p:
 
@@ -299,6 +281,7 @@ def bernoulli_mod_p_single(int p, int k):
 
     AUTHOR:
         -- David Harvey (2007-08-31)
+        -- David Harvey (2008-06): rewrote to use bernmm library
 
     """
     if p <= 2:
@@ -309,34 +292,10 @@ def bernoulli_mod_p_single(int p, int k):
 
     R = Integers(p)
 
-    if k == 0:
-        return R(1)
-
-    if k & 1:
-        raise ValueError, "k (=%s) must be even" % k
-
-    if k < 0 or k > p-3:
-        raise ValueError, "k (=%s) must be non-negative, and at most p-3" % k
-
-    g = R.multiplicative_generator()
-    cdef llong g_lift = g.lift()
-    cdef llong g_to_km1 = (g**(k-1)).lift()
-    cdef llong g_to_km1_pow = g_to_km1
-    cdef llong c = ((g-1)/2).lift()
-    cdef llong g_pow = 1
-    cdef llong g_pow_new, quot
-    cdef llong sum = 0
-    cdef int r
-
-    for r from 0 <= r < (p-1)/2:
-        g_pow_new = g_pow * g_lift
-        quot = g_pow_new / p
-        sum = sum + g_to_km1_pow * (p + c - quot)
-        sum = sum % p
-        g_pow = g_pow_new % p
-        g_to_km1_pow = (g_to_km1_pow * g_to_km1) % p
-
-    return R(sum) * 2 * k / (1 - g**k)
+    cdef long x = bernmm_bern_modp(p, k)
+    if x == -1:
+        raise ArithmeticError, "B_k is not integral at p"
+    return x
 
 
 # ============ end of file

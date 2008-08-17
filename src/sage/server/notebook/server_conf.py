@@ -14,7 +14,8 @@ defaults = {'cell_input_color':'#0000000',
 
             'save_interval':360,        # seconds
 
-            'doc_pool_size':128
+            'doc_pool_size':128,
+            'email':False
            }
 
 class ServerConfiguration(conf.Configuration):

@@ -901,10 +901,14 @@ class GenericGraph(SageObject):
             sage: G.set_boundary([0,1,2,3,4])
             sage: G.get_boundary()
             [0, 1, 2, 3, 4]
-
+            sage: G.set_boundary((1..4))
+            sage: G.get_boundary()
+            [1, 2, 3, 4]
         """
         if isinstance(boundary,list):
             self._boundary = boundary
+        else:
+            self._boundary = list(boundary)
 
     def set_embedding(self, embedding):
         """
@@ -2755,6 +2759,13 @@ class GenericGraph(SageObject):
             [(0, 1, 5)]
             sage: dg.incoming_edges(0)
             [(1, 0, 9)]
+
+            sage: G = Graph({0:{1:1}}, implementation='c_graph')
+            sage: G.num_edges()
+            1
+            sage: G.set_edge_label(0,1,1)
+            sage: G.num_edges()
+            1
 
         """
         if self.multiple_edges():
@@ -5094,7 +5105,7 @@ class GenericGraph(SageObject):
             edge_labels=False, vertex_size=200, graph_border=False,
             vertex_colors=None, partition=None, edge_colors=None,
             scaling_term=0.05, iterations=50, loop_size=.1, talk=False,
-            color_by_label=False, heights=None, edge_style=None):
+            color_by_label=False, heights=None, edge_style=None, save_pos=False):
         """
         Returns a graphics object representing the (di)graph.
 
@@ -5134,6 +5145,7 @@ class GenericGraph(SageObject):
                 edge-drawing routine.  This currently only works for
                 directed graphs, since we pass off the undirected graph to
                 networkx
+            save_pos -- save position computed during plotting
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -5192,10 +5204,6 @@ class GenericGraph(SageObject):
             sage: D.show()
             sage: D.show(edge_colors={(0,1,0):[(0,1,None),(1,2,None)],(0,0,0):[(2,3,None)]})
 
-            sage: from sage.graphs.bruhat_sn import *
-            sage: S = BruhatSn(5)
-            sage: S.to_directed().show(heights = S.lengths, vertex_labels=False, vertex_size=0, figsize=[10,10], edge_style={'width': 0.1, 'rgbcolor': (0,1,0)})
-
             sage: pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8], 3:[0.6, -0.8], 4:[0.8, 0.3]}
             sage: g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
             sage: g.plot(pos=pos, layout='spring', iterations=0)
@@ -5208,6 +5216,31 @@ class GenericGraph(SageObject):
             sage: P = G.plot()
             sage: P.axes()
             False
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.get_pos()
+            {0: [6.12..., 1.0...],
+             1: [-0.95..., 0.30...],
+             2: [-0.58..., -0.80...],
+             3: [0.58..., -0.80...],
+             4: [0.95..., 0.30...],
+             5: [1.53..., 0.5...],
+             6: [-0.47..., 0.15...],
+             7: [-0.29..., -0.40...],
+             8: [0.29..., -0.40...],
+             9: [0.47..., 0.15...]}
+            sage: P = G.plot(save_pos=True, layout='spring')
+            sage: G.get_pos()
+            {0: [-0.39..., 0.06...],
+             1: [-0.26..., 0.94...],
+             2: [-0.29..., 0.43...],
+             3: [-0.40..., -0.70...],
+             4: [-0.88..., -0.46...],
+             5: [0.75..., -0.1...],
+             6: [0.32..., 0.28...],
+             7: [0.67..., 0.52...],
+             8: [0.44..., -0.72...],
+             9: [0.05..., -0.19...]}
 
         """
         if edge_style is None:
@@ -5250,7 +5283,7 @@ class GenericGraph(SageObject):
                 x = float(cos((pi/2) + ((2*pi)/n)*i))
                 y = float(sin((pi/2) + ((2*pi)/n)*i))
                 pos[verts[i]] = [x,y]
-        elif heights is not None:
+        elif heights is not None and self.num_verts() > 0:
             pos = {}
             mmax = max([len(ccc) for ccc in heights.values()])
             ymin = min(heights.keys())
@@ -5261,9 +5294,9 @@ class GenericGraph(SageObject):
                 if num_xes == 0: continue
                 j = (mmax - num_xes)/2.0
                 for k in range(num_xes):
-                    pos[heights[height][k]] = [ dist * (j+k+1), height ]
-        if pos is None or layout == 'spring':
-            pos = graph_fast.spring_layout_fast(self, iterations=iterations, vpos=pos)
+                    pos[heights[height][k]] = [ dist * (j+k+1) + random()*(dist*0.03), height ]
+        if pos is None or layout == 'spring' or heights is not None:
+            pos = graph_fast.spring_layout_fast(self, iterations=iterations, vpos=pos, height=(heights is not None))
         else:
             for v in pos:
                 for a in range(len(pos[v])):
@@ -5276,6 +5309,8 @@ class GenericGraph(SageObject):
           vertex_size=vertex_size, vertex_colors=vertex_colors, \
           edge_colors=edge_colors, graph_border=graph_border, \
           scaling_term=scaling_term, draw_edges=(not self._directed))
+        if save_pos:
+            self.set_pos(pos)
         if self._directed:
             from sage.plot.plot import arrow
             P = Graphics()
@@ -5318,7 +5353,8 @@ class GenericGraph(SageObject):
              edge_labels=False, vertex_size=200, graph_border=False,
              vertex_colors=None, edge_colors=None, partition=None,
              scaling_term=0.05, talk=False, iterations=50, loop_size=.1,
-             color_by_label=False, heights=None, edge_style=None, **kwds):
+             color_by_label=False, heights=None, edge_style=None, save_pos=False,
+             **kwds):
         """
         Shows the (di)graph.
 
@@ -5355,6 +5391,7 @@ class GenericGraph(SageObject):
             heights -- if specified, this is a dictionary from a set of
                 floating point heights to a set of vertices
             edge_style -- options for the arrows of directed graphs
+            save_pos -- save position computed during plotting
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -5417,7 +5454,7 @@ class GenericGraph(SageObject):
                   graph_border=graph_border, partition=partition, talk=talk,
                   scaling_term=scaling_term, iterations=iterations,
                   color_by_label=color_by_label, loop_size=loop_size,
-                  heights=heights, edge_style=edge_style).show(**kwds)
+                  heights=heights, edge_style=edge_style, save_pos=save_pos).show(**kwds)
 
     def plot3d(self, bgcolor=(1,1,1), vertex_colors=None, vertex_size=0.06,
                      edge_colors=None, edge_size=0.02, edge_size2=0.0325,
@@ -6916,23 +6953,26 @@ class Graph(GenericGraph):
                 n = len(data)
             s = data[:n]
             n, s = graph_fast.N_inverse(s[1:])
-            k = int(ceil(log(n,2)))
-            bits = ''.join([graph_fast.binary(ord(i)-63).zfill(6) for i in s])
-            b = []
-            x = []
-            for i in xrange(int(floor(len(bits)/(k+1)))):
-                b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
-                x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
-            v = 0
-            edges = []
-            for i in xrange(len(b)):
-                if b[i] == 1:
-                    v += 1
-                if x[i] > v:
-                    v = x[i]
-                else:
-                    if v < n:
-                        edges.append((x[i],v))
+            if n == 0:
+                edges = []
+            else:
+                k = int(ceil(log(n,2)))
+                bits = ''.join([graph_fast.binary(ord(i)-63).zfill(6) for i in s])
+                b = []
+                x = []
+                for i in xrange(int(floor(len(bits)/(k+1)))):
+                    b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
+                    x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
+                v = 0
+                edges = []
+                for i in xrange(len(b)):
+                    if b[i] == 1:
+                        v += 1
+                    if x[i] > v:
+                        v = x[i]
+                    else:
+                        if v < n:
+                            edges.append((x[i],v))
             if implementation == 'networkx':
                 self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops = True, multiedges = True))
                 self.add_vertices(xrange(n))
@@ -7062,8 +7102,18 @@ class Graph(GenericGraph):
             sage: G.sparse6_string()
             ':Da@en'
 
+            sage: G = Graph()
+            sage: G.sparse6_string()
+            ':?'
+
+            sage: G = Graph(loops=True, multiedges=True)
+            sage: Graph(':?') == G
+            True
+
         """
         n = self.order()
+        if n == 0:
+            return ':?'
         if n > 262143:
             raise ValueError, 'sparse6 format supports graphs on 0 to 262143 vertices only.'
         else:
@@ -7478,7 +7528,7 @@ class Graph(GenericGraph):
 
         EXAMPLE:
             sage: P = graphs.PetersenGraph()
-            sage: P.write_to_eps('sage.eps')
+            sage: P.write_to_eps(tmp_dir() + 'sage.eps')
         """
         from sage.graphs.print_graphs import print_graph_eps
         if self._pos is None:
@@ -8034,6 +8084,15 @@ class DiGraph(GenericGraph):
         sage: DiGraph(M)
         Digraph on 6 vertices
 
+    8. A c_graph implemented DiGraph can be constructed from a networkx
+    implemented DiGraph if its vertex set is equal to range(n):
+
+        sage: D = DiGraph({0:[1],1:[2],2:[0]}, implementation="networkx")
+        sage: E = DiGraph(D,implementation="c_graph")
+        sage: D == E
+        True
+
+
     """
     _directed = True
 
@@ -8076,7 +8135,7 @@ class DiGraph(GenericGraph):
                         verts = data.vertices()
                         self._backend.relabel(dict([[i, verts[i]] for i in xrange(data.num_verts())]), False)
                     for u,v,l in data.edge_iterator():
-                        self._backend.add_edge(u,v,l,False)
+                        self._backend.add_edge(u,v,l,True)
             elif hasattr(data, 'adj'):
                 import networkx
                 if isinstance(data, (networkx.XGraph, networkx.Graph)) and not isinstance(data, (networkx.XDiGraph, networkx.DiGraph)):

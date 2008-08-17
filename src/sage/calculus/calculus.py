@@ -235,6 +235,12 @@ This simplification is done using maxima (behind the scenes):
 Note that \code{x} is still \var{x}, since the maxima used by the calculus package
 is different than the one in the interactive interpreter.
 
+Check to see that the problem with the variables method mentioned in Trac
+ticket \#3779 is actually fixed:
+    sage: f = function('F',x)
+    sage: diff(f*SR(1),x)
+    diff(F(x), x, 1)
+
 """
 
 import weakref
@@ -288,9 +294,6 @@ import math
 import sage.functions.functions
 
 import sage.ext.fast_eval as fast_float
-
-#needed for converting from SymPy to SAGE
-import sympy
 
 # TODO: What the heck does this is_simplified thing do?
 is_simplified = False
@@ -465,8 +468,6 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
         elif isinstance(x, MaximaElement):
             return symbolic_expression_from_maxima_element(x)
         # if "x" is a SymPy object, convert it to a SAGE object
-        elif isinstance(x, sympy.Basic):
-            return self(x._sage_())
         elif is_Polynomial(x) or is_MPolynomial(x):
             if x.base_ring() != self:  # would want coercion to go the other way
                 return SymbolicPolynomial(x)
@@ -494,6 +495,10 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
             return SymbolicConstant(x)
         elif isinstance(x, complex):
             return evaled_symbolic_expression_from_maxima_string('%s+%%i*%s'%(x.real,x.imag))
+
+        from sympy.core.basic import Basic
+        if isinstance(x, Basic):
+            return self(x._sage_())
         else:
             raise TypeError, "cannot coerce type '%s' into a SymbolicExpression."%type(x)
 
@@ -652,7 +657,8 @@ class SymbolicExpression(RingElement):
 
     def __hash__(self):
         """
-        Returns the hash of this symbolic expression.
+        Returns the hash of the simplified string representation of
+        this symbolic expression.
 
         EXAMPLES:
         We hash a symbolic polynomial:
@@ -660,7 +666,7 @@ class SymbolicExpression(RingElement):
             -832266011
 
         The default hashing strategy is to simply hash
-        the string representation of an object.
+        the string representation of the simplified form.
             sage: hash(repr(x^2+1)) #random due to architecture dependence
             -832266011
 
@@ -669,8 +675,13 @@ class SymbolicExpression(RingElement):
             3
             sage: hash(repr(SR(3/1))) #random due to architecture dependence
             -2061914958
+
+        In this example hashing is important otherwise the answer is
+        wrong:
+            sage: uniq([x-x, -x+x])
+            [0]
         """
-        return hash(self._repr_(simplify=False))
+        return hash(self._repr_(simplify=True))
 
     def __nonzero__(self):
         """
@@ -1496,7 +1507,7 @@ class SymbolicExpression(RingElement):
         right = self.parent()(right)
         return SymbolicArithmetic([self, right], operator.pow)
 
-    def variables(self, vars=tuple([])):
+    def variables(self):
         r"""
         Return sorted list of variables that occur in the simplified
         form of \code{self}.
@@ -1516,7 +1527,7 @@ class SymbolicExpression(RingElement):
             sage: a.variables()
             (x,)
         """
-        return vars
+        return tuple([])
 
     def arguments(self):
         r"""
@@ -4073,14 +4084,14 @@ class SymbolicConstant(Symbolic_object):
             sage: AA(i)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
             sage: QQbar(i)
             1*I
             sage: phi = SymbolicConstant(golden_ratio)
             sage: AA(phi)
-            [1.6180339887498946 .. 1.6180339887498950]
+            1.618033988749895?
             sage: QQbar(phi)
-            [1.6180339887498946 .. 1.6180339887498950]
+            1.618033988749895?
         """
 
         # Out of the many kinds of things that can be in a SymbolicConstant,
@@ -4378,7 +4389,7 @@ class SymbolicOperation(SymbolicExpression):
         SymbolicExpression.__init__(self)
         self._operands = operands   # don't even make a copy -- ok, since immutable.
 
-    def variables(self, vars=tuple([])):
+    def variables(self):
         r"""
         Return sorted list of variables that occur in the simplified
         form of \code{self}.  The ordering is alphabetic.
@@ -4398,13 +4409,13 @@ class SymbolicOperation(SymbolicExpression):
             (x,)
         """
         if not self._has_been_simplified():
-            return self.simplify().variables(vars)
+            return self.simplify().variables()
 
         try:
             return self.__variables
         except AttributeError:
             pass
-        vars = list(set(sum([list(op.variables()) for op in self._operands], list(vars))))
+        vars = list(set(sum([list(op.variables()) for op in self._operands], [])))
 
         vars.sort(var_cmp)
         vars = tuple(vars)
@@ -4827,13 +4838,13 @@ class SymbolicArithmetic(SymbolicOperation):
 
         EXAMPLES:
             sage: QQbar(sqrt(2) + sqrt(8))
-            [4.2426406871192847 .. 4.2426406871192857]
+            4.242640687119285?
             sage: AA(sqrt(2) ^ 4) == 4
             True
             sage: AA(-golden_ratio)
-            [-1.6180339887498950 .. -1.6180339887498946]
+            -1.618033988749895?
             sage: QQbar((2*I)^(1/2))
-            [1.0000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 1.0000000000000000]*I
+            1.0000000000000000? + 1.0000000000000000?*I
 
         TESTS:
             sage: AA(x*sin(0))
@@ -5195,7 +5206,7 @@ class SymbolicVariable(SymbolicExpression):
         else:
             return ring(self)
 
-    def variables(self, vars=tuple([])):
+    def variables(self):
         r"""
         Return sorted list of variables that occur in the simplified
         form of \code{self}.
@@ -6153,9 +6164,9 @@ class SymbolicComposition(SymbolicOperation):
 
         EXAMPLES:
             sage: QQbar(sqrt(2))
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
             sage: AA(abs(1+I))
-            [1.4142135623730949 .. 1.4142135623730952]
+            1.414213562373095?
         """
         # We try to avoid simplifying, because maxima's simplify command
         # can change the value of a radical expression (by changing which
@@ -6164,7 +6175,7 @@ class SymbolicComposition(SymbolicOperation):
         g = self._operands[1]
         try:
             return field(f(g._algebraic_(field)))
-        except TypeError:
+        except (TypeError, ValueError):
             if self._has_been_simplified():
                 raise
             else:

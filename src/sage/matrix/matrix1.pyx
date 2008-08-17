@@ -224,6 +224,25 @@ cdef class Matrix(matrix0.Matrix):
 
         return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
 
+    def _macaulay2_(self, macaulay2=None):
+        """
+        EXAMPLES:
+            sage: m = matrix(ZZ, [[1,2],[3,4]])
+            sage: macaulay2(m)                  #optional
+            | 1 2 |
+            | 3 4 |
+
+            sage: R.<x,y> = QQ[]
+            sage: m = matrix([[x,y],[1+x,1+y]])
+            sage: macaulay2(m)                  #optional
+            | x   y   |
+            | x+1 y+1 |
+
+        """
+        base_ring = macaulay2(self.base_ring())
+        entries = map(list, self)
+        return macaulay2(entries).matrix()
+
     def numpy(self, dtype=None):
         """
         Return the Numpy matrix associated to this matrix.

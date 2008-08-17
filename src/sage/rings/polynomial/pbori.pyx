@@ -1489,7 +1489,7 @@ cdef class BooleanMonomial(MonoidElement):
             if d.has_key(i):
                 res *= d[i]
             else:
-                res *= self._parent.gen(i)
+                res *= (<object>self._parent).gen(i)
         return res
 
 

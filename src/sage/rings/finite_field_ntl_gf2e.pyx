@@ -166,9 +166,12 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             sage: k.<a> = GF(2^1024)
             sage: k.modulus()
             x^1024 + x^19 + x^6 + x + 1
+            sage: set_random_seed(0)
             sage: k.<a> = GF(2^17, modulus='random')
             sage: k.modulus()
             x^17 + x^16 + x^15 + x^10 + x^8 + x^6 + x^4 + x^3 + x^2 + x + 1
+            sage: k.modulus().is_irreducible()
+            True
         """
         self._zero_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._zero_element).x,0)
@@ -181,10 +184,8 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         cdef GF2_c c
         cdef GF2X_c ntl_tmp
 
-        GF2X_construct(&ntl_m)
-
         # we are calling late_import here because this constructor is
-        # called at least once before any arithmetic is perfored.
+        # called at least once before any arithmetic is performed.
         late_import()
 
         q = Integer(q)

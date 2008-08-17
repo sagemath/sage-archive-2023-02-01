@@ -216,6 +216,24 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self._zero_element = integer_mod.IntegerMod(self, 0)
         self._one_element = integer_mod.IntegerMod(self, 1)
 
+    def _macaulay2_init_(self):
+        """
+        EXAMPLES:
+            sage: macaulay2(Integers(7))  #optional
+            ZZ
+            --
+             7
+
+            sage: macaulay2(Integers(10)) #optional
+            Traceback (most recent call last):
+            ...
+            TypeError: Error evaluating Macaulay2 code.
+            IN:sage1=ZZ/10;
+            OUT:stdio:3:9:(1):[0]: ZZ/n not implemented yet for composite n
+
+        """
+        return "ZZ/%s"%self.order()
+
     def krull_dimension(self):
         """
         EXAMPLES:
@@ -697,6 +715,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         elif S is integer_ring.ZZ:
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
+            if isinstance(S, field.Field):
+                return None
             try:
                 return integer_mod.IntegerMod_to_IntegerMod(S, self)
             except TypeError:

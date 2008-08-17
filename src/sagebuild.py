@@ -184,7 +184,7 @@ def buildsage(env, gccc):
     BLAS = env.options['BLAS']
     BLAS2 = env.options['BLAS2']
 
-    config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/libs/linbox/linbox.pyx',language="C++", libraries=['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS, BLAS2])
+    config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/libs/linbox/linbox.pyx',language="C++", libraries=['linboxsage', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS, BLAS2])
 
     config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/libs/singular/singular.pyx',language='C++', include_dirs=[real_sage_local(env,'include/singular')], libraries=['m', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx', 'gmp'])
 
@@ -296,6 +296,8 @@ def buildsage(env, gccc):
 
     config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/schemes/hyperelliptic_curves/hypellfrob.pyx',language = 'C++', include_dirs = [abs_sage_path(env,'devel/sage/libs/ntl/'), abs_sage_path(env,'sage/schemes/hyperelliptic_curves/hypellfrob/')], libraries = ['ntl','stdc++', 'gmp', 'zn_poly'])
 
+    config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/rings/polynomial/polynomial_integer_dense_flint.pyx', language = 'C++', include_dirs = [real_sage_local(env, 'include/FLINT')], libraries=["csage", "flint", "gmp", "gmpxx", "ntl"])
+
     config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/rings/polynomial/polynomial_integer_dense_ntl.pyx',language = 'C++', include_dirs = [abs_sage_path(env,'devel/sage/libs/ntl/')], libraries = ['ntl','stdc++', 'gmp'])
 
     config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/rings/polynomial/polynomial_modn_dense_ntl.pyx',language = 'C++', include_dirs = [abs_sage_path(env,'devel/sage/libs/ntl/')], libraries = ['ntl','stdc++', 'gmp'])
@@ -330,6 +332,8 @@ def buildsage(env, gccc):
     #config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/symbolics/symbolicmularithmetic.pyx',libraries = ['glite'])
 
     config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/rings/polynomial/pbori.pyx',language='C++', include_dirs = [real_sage_local(env,'include/cudd'),real_sage_local(env,'include/polybori'), real_sage_local(env,'include/polybori/groebner')], libraries=['polybori','pboriCudd','groebner'])
+
+    config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/finance/time_series.pyx',include_dirs=[real_sage_local(env,'lib/python2.5/site-packages/numpy/core/include/numpy')])
 
     ###################################################################
     #End standard configurations

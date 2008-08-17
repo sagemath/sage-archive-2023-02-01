@@ -22,7 +22,7 @@ from random import random
 cdef extern from *:
     double sqrt(double)
 
-def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None):
+def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None, height=False):
     """
     Graphs each component of G separately, placing them adjacent to
     each other. This is done because on a disconnected graph, the
@@ -38,7 +38,9 @@ def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None):
     EXAMPLE:
         sage: G = Graph(graphs.DodecahedralGraph(), implementation='networkx')
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
-        sage: N = G.plot()
+        sage: from sage.graphs.graph_fast import spring_layout_fast_split
+        sage: spring_layout_fast_split(G)
+        {0: [..., ...], ..., 502: [..., ...]}
 
     AUTHOR:
         Robert Bradshaw
@@ -48,7 +50,7 @@ def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None):
     left = 0
     buffer = 1/sqrt(len(G))
     for g in Gs:
-        cur_pos = spring_layout_fast(g, iterations, dim, vpos)
+        cur_pos = spring_layout_fast(g, iterations, dim, vpos, height)
         xmin = min([x[0] for x in cur_pos.values()])
         xmax = max([x[0] for x in cur_pos.values()])
         if len(g) > 1:
@@ -59,7 +61,7 @@ def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None):
         left += xmax - xmin + buffer
     return pos
 
-def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True):
+def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True, bint height=False):
     """
     Spring force model layout
 
@@ -69,6 +71,14 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     This kind of speed cannot be achieved by naive pyrexification of the
     function alone, especially if we require a function call (let alone
     an object creation) every time we want to add a pair of doubles.
+
+    EXAMPLE:
+        sage: G = Graph(graphs.DodecahedralGraph(), implementation='networkx')
+        sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
+        sage: from sage.graphs.graph_fast import spring_layout_fast
+        sage: spring_layout_fast(G)
+        {0: [..., ...], ..., 502: [..., ...]}
+
     """
     G = G.to_undirected()
     vlist = G.vertices() # this defines a consistant order
@@ -114,7 +124,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     elist[cur_edge] = -1
     elist[cur_edge+1] = -1
 
-    run_spring(iterations, dim, pos, elist, n)
+    run_spring(iterations, dim, pos, elist, n, height)
 
     # recenter
     cdef double* cen
@@ -154,7 +164,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     return vpos
 
 
-cdef run_spring(int iterations, int dim, double* pos, int* edges, int n):
+cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint height):
     """
     Find a locally optimal layout for this graph, according to the
     constraints that neighboring nodes want to be a fixed distance
@@ -179,6 +189,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n):
                       (smallest) vertex, terminated by -1, -1.
                       The first two entries represent the first edge, and so on.
         n          -- number of vertices in the graph
+        height     -- if True, do not update the last coordinate ever
 
     OUTPUT:
         Modifies contents of pos.
@@ -200,6 +211,11 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n):
     if disp is NULL:
             raise MemoryError, "error allocating scratch space for spring layout"
     delta = &disp[n*dim]
+
+    if height:
+        update_dim = dim-1
+    else:
+        update_dim = dim
 
     _sig_on
 
@@ -245,7 +261,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n):
 
           scale = t / (1 if square_dist < 0.01 else sqrt(square_dist))
 
-          for x from 0 <= x < dim:
+          for x from 0 <= x < update_dim:
               pos[i*dim+x] += disp_i[x] * scale
 
       t -= dt
@@ -279,6 +295,11 @@ def R(x):
     """
     A helper function for the graph6 format. Described in [McK]
 
+    EXAMPLE:
+        sage: from sage.graphs.graph_fast import R
+        sage: R('110111010110110010111000001100000001000000001')
+        'vUqwK@?G'
+
     REFERENCES:
     McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
     http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
@@ -297,6 +318,13 @@ def N(n):
     """
     A helper function for the graph6 format. Described in [McK]
 
+    EXAMPLE:
+        sage: from sage.graphs.graph_fast import N
+        sage: N(13)
+        'L'
+        sage: N(136)
+        '~?AG'
+
     REFERENCES:
     McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
     http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
@@ -312,6 +340,13 @@ def N(n):
 def N_inverse(s):
     """
     A helper function for the graph6 format. Described in [McK]
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_fast import N_inverse
+        sage: N_inverse('~??~?????_@?CG??B??@OG?C?G???GO??W@a???CO???OACC?OA?P@G??O??????G??C????c?G?CC?_?@???C_??_?C????PO?C_??AA?OOAHCA___?CC?A?CAOGO??????A??G?GR?C?_o`???g???A_C?OG??O?G_IA????_QO@EG???O??C?_?C@?G???@?_??AC?AO?a???O?????A?_Dw?H???__O@AAOAACd?_C??G?G@??GO?_???O@?_O??W??@P???AG??B?????G??GG???A??@?aC_G@A??O??_?A?????O@Z?_@M????GQ@_G@?C?')
+        (63, '?????_@?CG??B??@OG?C?G???GO??W@a???CO???OACC?OA?P@G??O??????G??C????c?G?CC?_?@???C_??_?C????PO?C_??AA?OOAHCA___?CC?A?CAOGO??????A??G?GR?C?_o`???g???A_C?OG??O?G_IA????_QO@EG???O??C?_?C@?G???@?_??AC?AO?a???O?????A?_Dw?H???__O@AAOAACd?_C??G?G@??GO?_???O@?_O??W??@P???AG??B?????G??GG???A??@?aC_G@A??O??_?A?????O@Z?_@M????GQ@_G@?C?')
+        sage: N_inverse('_???C?@AA?_?A?O?C??S??O?q_?P?CHD??@?C?GC???C??GG?C_??O?COG????I?J??Q??O?_@@??@??????')
+        (32, '???C?@AA?_?A?O?C??S??O?q_?P?CHD??@?C?GC???C??GG?C_??O?COG????I?J??Q??O?_@@??@??????')
 
     REFERENCES:
     McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
@@ -335,6 +370,14 @@ def R_inverse(s, n):
     REFERENCES:
     McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
     http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_fast import R_inverse
+        sage: R_inverse('?????_@?CG??B??@OG?C?G???GO??W@a???CO???OACC?OA?P@G??O??????G??C????c?G?CC?_?@???C_??_?C????PO?C_??AA?OOAHCA___?CC?A?CAOGO??????A??G?GR?C?_o`???g???A_C?OG??O?G_IA????_QO@EG???O??C?_?C@?G???@?_??AC?AO?a???O?????A?_Dw?H???__O@AAOAACd?_C??G?G@??GO?_???O@?_O??W??@P???AG??B?????G??GG???A??@?aC_G@A??O??_?A?????O@Z?_@M????GQ@_G@?C?', 63)
+        '0000000000000000000000000000001000000000010000000001000010000000000000000000110000000000000000010100000010000000000001000000000010000000000...10000000000000000000000000000000010000000001011011000000100000000001001110000000000000000000000000001000010010000001100000001000000001000000000100000000'
+        sage: R_inverse('???C?@AA?_?A?O?C??S??O?q_?P?CHD??@?C?GC???C??GG?C_??O?COG????I?J??Q??O?_@@??@??????', 32)
+        '0000000000000000000001000000000000010000100000100000001000000000000000100000000100000...010000000000000100010000001000000000000000000000000000001010000000001011000000000000010010000000000000010000000000100000000001000001000000000000000001000000000000000000000000000000000000'
+
     """
     l = []
     cdef int i
@@ -347,6 +390,13 @@ def R_inverse(s, n):
 def D_inverse(s, n):
     """
     A helper function for the dig6 format.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_fast import D_inverse
+        sage: D_inverse('?????_@?CG??B??@OG?C?G???GO??W@a???CO???OACC?OA?P@G??O??????G??C????c?G?CC?_?@???C_??_?C????PO?C_??AA?OOAHCA___?CC?A?CAOGO??????A??G?GR?C?_o`???g???A_C?OG??O?G_IA????_QO@EG???O??C?_?C@?G???@?_??AC?AO?a???O?????A?_Dw?H???__O@AAOAACd?_C??G?G@??GO?_???O@?_O??W??@P???AG??B?????G??GG???A??@?aC_G@A??O??_?A?????O@Z?_@M????GQ@_G@?C?', 63)
+        '0000000000000000000000000000001000000000010000000001000010000000000000000000110000000000000000010100000010000000000001000000000010000000000...10000000000000000000000000000000010000000001011011000000100000000001001110000000000000000000000000001000010010000001100000001000000001000000000100000000'
+        sage: D_inverse('???C?@AA?_?A?O?C??S??O?q_?P?CHD??@?C?GC???C??GG?C_??O?COG????I?J??Q??O?_@@??@??????', 32)
+        '0000000000000000000001000000000000010000100000100000001000000000000000100000000100000...010000000000000100010000001000000000000000000000000000001010000000001011000000000000010010000000000000010000000000100000000001000001000000000000000001000000000000000000000000000000000000'
 
     """
     l = []

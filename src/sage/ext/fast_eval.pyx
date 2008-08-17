@@ -52,6 +52,15 @@ Here we take sin of the first argument and add it to f:
     sage: (f+g).op_list()
     ['load 0', 'push 2.0', 'call pow(2)', 'push 1.0', 'add', 'call sqrt(1)', 'load 0', 'call sin(1)', 'add']
 
+TESTS:
+This used to segfault because of an assumption that assigning None to a
+variable would raise a TypeError:
+    sage: from sage.ext.fast_eval import fast_float_arg, fast_float
+    sage: fast_float_arg(0)+None
+    Traceback (most recent call last):
+    ...
+    TypeError
+
 AUTHOR:
     -- Robert Bradshaw (2008-10): Initial version
 """
@@ -1172,6 +1181,11 @@ cdef FastDoubleFunc binop(_left, _right, char type):
         right = _right
     except TypeError:
         right = fast_float(_right)
+
+    # In cython assigning None does NOT raise a TypeError above.
+    if left is None or right is None:
+        raise TypeError
+
     cdef FastDoubleFunc feval = PY_NEW(FastDoubleFunc)
     feval.nargs = max(left.nargs, right.nargs)
     feval.nops = left.nops + right.nops + 1
@@ -1305,6 +1319,9 @@ def fast_float(f, *vars):
         return SR(f)._fast_float_(*vars)
     except TypeError:
         pass
+
+    if f is None:
+        raise TypeError, "no way to make fast_float from None"
 
     return f
 

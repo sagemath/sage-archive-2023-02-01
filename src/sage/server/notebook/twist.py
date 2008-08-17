@@ -885,10 +885,10 @@ class SettingsPage(resource.PostableResource):
             if not error: #webbrowser may auto fill in "old password" even though the user may nto want to change her passwords
                 notebook.change_password(self.username, request.args['Newpass'][0])
                 redirect_to_logout = True
-
-        if 'Newemail' in request.args:
-            notebook.user(self.username).set_email(request.args['Newemail'][0])
-            redirect_to_home = True
+        if notebook.conf()['email']:
+            if 'Newemail' in request.args:
+                notebook.user(self.username).set_email(request.args['Newemail'][0])
+                redirect_to_home = True
 
         if error:
             return http.Response(stream=message(error, '/settings'))
@@ -960,6 +960,20 @@ Minutes: <select name="autosave">
         for i in range(1, 10, 2):
             s += '<option%s>%s</option>' % (' selected' if notebook.user(self.username)['autosave_interval']/60 == i else '', i)
         s += '</select></div></div>'
+        if notebook.conf()['email']:
+            email_section = """
+            <div class="section">
+          <h2>Change E-mail Address</h2>
+
+          <div>
+            <table style="float:right"><tr><td>Current e-mail:</td><td>%s</td></tr>
+            <tr><td></td><td>%s</td></tr>
+            <tr><td style="text-align:right">New e-mail:</td><td><input type="text" name="Newemail" class="c1" /></td></tr></table>
+            <div style="clear:both"></div>
+          </div>
+        </div>
+            """ % ('None' if notebook.user(self.username)._User__email == '' else notebook.user(self.username)._User__email, 'Not confirmed' if not notebook.user(self.username).is_email_confirmed() else 'Confirmed')
+        else: email_section = ''
         s += """
     <div class="section">
       <h2>Change Password</h2>
@@ -970,18 +984,9 @@ Minutes: <select name="autosave">
       </div>
     </div>
 
-    <div class="section">
-      <h2>Change E-mail Address</h2>
-
-      <div>
-        <table style="float:right"><tr><td>Current e-mail:</td><td>%s</td></tr>
-        <tr><td></td><td>%s</td></tr>
-        <tr><td style="text-align:right">New e-mail:</td><td><input type="text" name="Newemail" class="c1" /></td></tr></table>
-        <div style="clear:both"></div>
-      </div>
-    </div>
+    %s
     <div id="buttons">
-    <input type="submit" value="Save">""" % ('None' if notebook.user(self.username)._User__email == '' else notebook.user(self.username)._User__email, 'Not confirmed' if not notebook.user(self.username).is_email_confirmed() else 'Confirmed')
+    <input type="submit" value="Save">""" % email_section
         s += '<input type="button" value="Cancel" style="margin-left:5px" onClick="parent.location=\'/home/%s\'">' % self.username
         s += """
     </div>
@@ -1407,11 +1412,11 @@ class WorksheetsByUser(resource.Resource):
         self.username = username
 
     def render_list(self, ctx):
-        s = render_worksheet_list(ctx.args, pub=False, username=self.username)
+        s = render_worksheet_list(ctx.args, pub=False, username=self.user)
         return http.Response(stream = s)
 
     def render(self, ctx):
-        if self.user == self.username:
+        if self.user == self.username or user_type(self.username) == 'admin':
             return self.render_list(ctx)
         else:
             s = message("User '%s' does not have permission to view the home page of '%s'."%(self.username, self.user))
@@ -1423,13 +1428,13 @@ class WorksheetsByUser(resource.Resource):
 
         filename = self.user + '/' + name
         try:
-            return Worksheet(filename, self.username)
+            return Worksheet(filename, self.user)
         except KeyError:
             s = "The user '%s' has no worksheet '%s'."%(self.user, name)
-            return InvalidPage(msg = s, username = self.username)
+            return InvalidPage(msg = s, username = self.user)
         except RuntimeError:
             s = "You are not logged in or do not have access to the worksheet '%s'."%name
-            return InvalidPage(msg = s, username = self.username)
+            return InvalidPage(msg = s, username = self.user)
 
 
 
@@ -1730,7 +1735,6 @@ class Slider(resource.Resource):
 class Logout(resource.Resource):
     def render(self, ctx):
         # TODO -- actually log out.
-        notebook.save()
         s = message("<br>Thank you for using Sage.<br><br><a href='/'>Please login and use Sage again soon.</a><br>")
         return http.Response(stream=s)
 
@@ -1752,8 +1756,9 @@ class Images(resource.Resource):
 ####################################
 class RegConfirmation(resource.Resource):
     def render(self, request):
+        if not notebook.conf()['email']:
+            return http.Response(stream=message('The confirmation system is not active.'))
         key = request.args['key'][0]
-        global notebook
         invalid_confirm_key = """\
 <h1>Invalid confirmation key</h1>
 <p>You are reporting a confirmation key that has not been assigned by this
@@ -1898,7 +1903,9 @@ class RegistrationPage(resource.PostableResource):
         self.userdb = userdb
 
     def render(self, request):
-        input_boxes = ['username', 'password', 'retype_password', 'email']
+        input_boxes = ['username', 'password', 'retype_password']
+        if notebook.conf()['email']:
+            input_boxes.append('email')
         is_valid_dict = {'username': is_valid_username, 'password': is_valid_password,
                          'retype_password': do_passwords_match, 'email': is_valid_email}
         missing = [False] * len(input_boxes)
@@ -1932,7 +1939,7 @@ class RegistrationPage(resource.PostableResource):
                     missing[i] = True
 
             if set(missing) == set([True]):
-                return http.Response(stream=registration_page_template())
+                return http.Response(stream=registration_page_template(is_email=notebook.conf()['email']))
             elif set(missing) == set([False]):
                 for i, box in enumerate(input_boxes):
                     filled_in[box] = request.args[box][0]
@@ -1964,36 +1971,42 @@ class RegistrationPage(resource.PostableResource):
             return http.Response(stream=registration_page_template(error=errors, input=filled_in))
         else:
             try:
+                e = filled_in['email'] if notebook.conf()['email'] else ''
                 self.userdb.add_user(filled_in['username'], request.args['password'][0],
-                                     filled_in['email'])
+                                     e)
             except ValueError:
                 errors.append('username_taken')
                 return http.Response(stream=registration_page_template(error=errors, input=filled_in))
 
-            destaddr = filled_in['email']
-            from sage.server.notebook.smtpsend import send_mail
-            from sage.server.notebook.register import make_key, build_msg
-            # TODO: make this come from the server settings
-            key = make_key()
-            listenaddr = notebook.address
-            port = notebook.port
-            fromaddr = 'no-reply@%s' % listenaddr
-            body = build_msg(key, filled_in['username'], listenaddr, port,
-                             notebook.secure)
+            if notebook.conf()['email']:
+                destaddr = filled_in['email']
+                from sage.server.notebook.smtpsend import send_mail
+                from sage.server.notebook.register import make_key, build_msg
+                # TODO: make this come from the server settings
+                key = make_key()
+                listenaddr = notebook.address
+                port = notebook.port
+                fromaddr = 'no-reply@%s' % listenaddr
+                body = build_msg(key, filled_in['username'], listenaddr, port,
+                                 notebook.secure)
 
-            # Send a confirmation message to the user.
-            try:
-                send_mail(self, fromaddr, destaddr, "Sage Notebook Registration",body)
-                waiting[key] = filled_in['username']
-            except ValueError:
-                pass
+                # Send a confirmation message to the user.
+                try:
+                    send_mail(self, fromaddr, destaddr, "Sage Notebook Registration",body)
+                    waiting[key] = filled_in['username']
+                except ValueError:
+                    pass
 
             return http.Response(stream=login_page_template(notebook.get_accounts(),
-                                                            notebook.default_user(), welcome=filled_in['username']))
+                                                            notebook.default_user(), welcome=filled_in['username'],
+                                                            recover=notebook.conf()['email']))
 
 class ForgotPassPage(resource.Resource):
 
     def render(self, request):
+        if not notebook.conf()['email']:
+            return http.Response(stream=message('The account recovery system is not active.'))
+
         if request.args.has_key('username'):
             def error(msg):
                 return http.Response(stream=message(msg, '/forgotpass'))
@@ -2046,6 +2059,22 @@ class ForgotPassPage(resource.Resource):
             </html>"""
         return http.Response(stream=s)
 
+class ListOfUsers(resource.Resource):
+        def __init__(self, username):
+            self.username = username
+
+        def render(self, ctx):
+            if user_type(self.username) != 'admin':
+                s = message('You must an admin to manage other users.')
+            else:
+                s = """
+                <html><head><title>Users | Sage Notebook</title></head>
+                <body>
+                %s
+                </body></html>
+                """ % '<br/>'.join(['<a href="/home/%s/">%s</a>' % (i, i) for i in notebook.valid_login_names()])
+            return http.Response(stream = s)
+
 class InvalidPage(resource.Resource):
     addSlash = True
 
@@ -2075,7 +2104,6 @@ class RedirectLogin(resource.PostableResource):
 import sage.server.simple.twist
 
 class Toplevel(resource.PostableResource):
-    child_logout = Logout()
     child_login = RedirectLogin()
     child_simple = sage.server.simple.twist.SimpleServer()
 
@@ -2084,7 +2112,7 @@ class Toplevel(resource.PostableResource):
         self.username = username if username else 'guest'
 
     def render(self, ctx):
-        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user()))
+        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
 
     def userchildFactory(self, request, name):
         return InvalidPage(msg = "unauthorized request", username = self.username)
@@ -2102,7 +2130,7 @@ from sage.server.notebook.template import failed_login_template
 
 class LoginResourceClass(resource.Resource):
     def render(self, ctx):
-        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user()))
+        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
 
     def childFactory(self, request, name):
         return LoginResource
@@ -2121,6 +2149,7 @@ class AnonymousToplevel(Toplevel):
     child_javascript = Javascript()
     child_java = Java()
     child_slider = Slider()
+    child_logout = RedirectLogin()
 
     def userchildFactory(self, request, name):
         # This is called from Toplevel above
@@ -2136,7 +2165,7 @@ class AnonymousToplevel(Toplevel):
     #child_login = LoginResource
 
     def render(self, ctx):
-        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user()))
+        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
 
 class FailedToplevel(Toplevel):
     def __init__(self, info, problem, username=None):
@@ -2149,9 +2178,9 @@ class FailedToplevel(Toplevel):
         # worksheets and ratings, this gives no new information way.
         # If published pages were disabled, then this should be disabled too.
         if self.problem == 'username':
-            return http.Response(stream = login_page_template(notebook.get_accounts(), notebook.default_user(), is_username_error=True))
+            return http.Response(stream = login_page_template(notebook.get_accounts(), notebook.default_user(), is_username_error=True, recover=notebook.conf()['email']))
         else:
-            return http.Response(stream = login_page_template(notebook.get_accounts(), self.username, is_password_error=True))
+            return http.Response(stream = login_page_template(notebook.get_accounts(), self.username, is_password_error=True, recover=notebook.conf()['email']))
 
 
 class UserToplevel(Toplevel):
@@ -2191,6 +2220,7 @@ class UserToplevel(Toplevel):
     userchild_home = Worksheets
     userchild_live_history = LiveHistory
     userchild_new_worksheet = NewWorksheet
+    userchild_users = ListOfUsers
     userchild_notebook_settings = NotebookSettings
     userchild_settings = SettingsPage
     userchild_pub = PublicWorksheets
@@ -2223,12 +2253,6 @@ class UserToplevel(Toplevel):
 class AdminToplevel(UserToplevel):
     userchild_home = WorksheetsAdmin
     userchild_conf = NotebookConf
-
-    def render(self, ctx):
-        s = render_worksheet_list(ctx.args, pub=False, username=self.username)
-        return http.Response(responsecode.OK,
-                             {'set-cookie':set_cookie(self.cookie)},
-                             stream=s)
 
 
 

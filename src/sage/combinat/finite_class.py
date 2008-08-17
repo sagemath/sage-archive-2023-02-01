@@ -48,6 +48,15 @@ class FiniteCombinatorialClass_l(CombinatorialClass):
         """
         self.l = l
 
+    def object_class(self, x):
+        """
+        EXAMPLES:
+            sage: F = FiniteCombinatorialClass([1,2,3])
+            sage: F.object_class(1)
+            1
+        """
+        return x
+
     def __repr__(self):
         """
         TESTS:

@@ -120,6 +120,10 @@ from sage.parallel.all   import *
 
 from copy import copy, deepcopy
 
+# The code executed here uses a large amount of Sage components
+from sage.rings.qqbar import _init_qqbar
+_init_qqbar()
+
 
 ###########################################################
 #### WARNING:

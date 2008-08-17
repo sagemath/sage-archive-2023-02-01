@@ -59,9 +59,13 @@ This example illustrates generators for a free module over $\Z$.
 import sage.misc.defaults
 from sage.misc.latex import latex_variable_name
 import gens_py
-import parent
+cimport parent
 
 include '../ext/stdsage.pxi'
+
+cdef inline check_old_coerce(parent.Parent p):
+    if p._element_constructor is not None:
+        raise RuntimeError, "%s still using old coercion framework" % p
 
 def is_ParentWithGens(x):
     """
@@ -195,82 +199,26 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
 
     # First n generators, for n <= ngens:
     def _first_ngens(self, n):
+        check_old_coerce(self)
         v = self.gens()
         return v[:n]
 
     # Derived class *must* define ngens method.
     def ngens(self):
+        check_old_coerce(self)
         raise NotImplementedError, "Number of generators not known."
 
     # Derived class *must* define gen method.
     def gen(self, i=0):
+        check_old_coerce(self)
         raise NotImplementedError, "i-th generator not known."
-
-    def __getitem__(self, n):
-        return self.list()[n]
-
-    def __getslice__(self,  Py_ssize_t n,  Py_ssize_t m):
-        return self.list()[int(n):int(m)]
-
-    def __len__(self):
-        return len(self.list())
-
-    def list(self):
-        """
-        Return a list of all elements in this object, if possible (the
-        object must define an iterator).
-        """
-        if self._list != None:
-            return list(self._list)
-        else:
-            self._list = list(self.__iter__())
-        return list(self._list)
-
-    def objgens(self):
-        """
-        Return self and the generators of self as a tuple.
-
-        INPUT:
-            names -- tuple or string
-
-        OUTPUT:
-            self  -- this object
-            tuple -- self.gens()
-
-        EXAMPLES:
-            sage: R, vars = PolynomialRing(QQ,3, 'x').objgens()
-            sage: R
-            Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
-            sage: vars
-            (x0, x1, x2)
-        """
-        return self, self.gens()
-
-    def objgen(self):
-        """
-        Return self and the generator of self.
-
-        INPUT:
-            names -- tuple or string
-
-        OUTPUT:
-            self  -- this object
-            an object -- self.gen()
-
-        EXAMPLES:
-            sage: R, x = PolynomialRing(QQ,'x').objgen()
-            sage: R
-            Univariate Polynomial Ring in x over Rational Field
-            sage: x
-            x
-        """
-        return self, self.gen()
 
     def gens(self):
        """
        Return a tuple whose entries are the generators for this
        object, in order.
        """
+       check_old_coerce(self)
        cdef int i, n
        if self._gens != None:
            return self._gens
@@ -286,6 +234,8 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         r"""
         Return a dictionary whose entries are \code{{var_name:variable,...}}.
         """
+        if self._element_constructor is not None:
+            return parent.Parent.gens_dict(self)
         if self._gens_dict != None:
             return self._gens_dict
         else:
@@ -317,6 +267,9 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             ...
             ValueError: variable names cannot be changed after object creation.
         """
+        if self._element_constructor is not None:
+            parent.Parent._assign_names(self, names=None, normalize=True)
+            return
         if names is None: return
         if normalize:
             names = normalize_names(self.ngens(), names)
@@ -328,80 +281,14 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             raise TypeError, "names must be a tuple of strings"
         self._names = names
 
-    def inject_variables(self, scope=None, verbose=True):
-        """
-        Inject the generators of self with their names into the
-        namespace of the Python code from which this function is
-        called.  Thus, e.g., if the generators of self are labeled
-        'a', 'b', and 'c', then after calling this method the
-        variables a, b, and c in the current scope will be set
-        equal to the generators of self.
-
-        NOTE: If Foo is a constructor for a SAGE object with
-        generators, and Foo is defined in Pyrex, then it would
-        typically call inject_variables() on the object it
-        creates.  E.g., PolyomialRing(QQ, 'y') does this so that the
-        variable y is the generator of the polynomial ring.
-        """
-        v = self.variable_names()
-        g = self.gens()
-        if scope is None:
-            scope = globals()
-        if verbose:
-            print "Defining %s"%(', '.join(v))
-        cdef int i
-        for i from 0 <= i < len(v):
-            scope[v[i]] = g[i]
-
-    def injvar(self, scope=None, verbose=True):
-        """
-        This is a synonym for self.inject_variables(...)
-        <<<sage.structure.parent_gens.ParentWithGens.inject_variables>>>
-        """
-        return self.inject_variables(scope=scope, verbose=verbose)
-
-
     def __temporarily_change_names(self, names, latex_names):
         """
         This is used by the variable names context manager.
         """
+        check_old_coerce(self)
         old = self._names, self._latex_names
         (self._names, self._latex_names) = names, latex_names
         return old
-
-    def variable_names(self):
-        if self._names != None:
-            return self._names
-        raise ValueError, "variable names have not yet been set using self._assign_names(...)"
-
-    def latex_variable_names(self):
-        """
-        Returns the list of variable names suitable for latex output.
-
-        All '_SOMETHING' substrings are replaced by '_{SOMETHING}' recursively
-        so that subscripts of subscripts work.
-
-        EXAMPLES:
-            sage: R, x = PolynomialRing(QQ,'x',12).objgens()
-            sage: x
-            (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
-            sage: print R.latex_variable_names ()
-            ['x_{0}', 'x_{1}', 'x_{2}', 'x_{3}', 'x_{4}', 'x_{5}', 'x_{6}', 'x_{7}', 'x_{8}', 'x_{9}', 'x_{10}', 'x_{11}']
-            sage: f = x[0]^3 + 15/3 * x[1]^10
-            sage: print latex(f)
-            5 x_{1}^{10} + x_{0}^{3}
-        """
-        if self._latex_names != None:
-            return self._latex_names
-        # Compute the latex versions of the variable names.
-        self._latex_names = [latex_variable_name(x) for x in self.variable_names()]
-        return self._latex_names
-
-    def variable_name(self):
-        return self.variable_names()[0]
-
-    def latex_name(self):
-        return self.variable_name()
 
     #################################################################################
     # Give all objects with generators a dictionary, so that attribute setting
@@ -409,6 +296,8 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
     # i.e., just define __dict__ as an attribute and all this code gets generated.
     #################################################################################
     def __getstate__(self):
+        if self._element_constructor is not None:
+            return parent.Parent.__getstate__(self)
         d = []
         try:
             d = list(self.__dict__.copy().iteritems()) # so we can add elements
@@ -429,6 +318,8 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         return d
 
     def __setstate__(self,d):
+        if self._element_constructor is not None:
+            return parent.Parent.__setstate__(self)
         try:
             self.__dict__ = d
             self._generator_orders = d['_generator_orders']
@@ -445,17 +336,6 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
     #################################################################################
     # Morphisms of objects with generators
     #################################################################################
-
-    def _is_valid_homomorphism_(self, codomain, im_gens):
-        r"""
-        Return True if \code{im_gens} defines a valid homomorphism
-        from self to codomain; otherwise return False.
-
-        If determining whether or not a homomorphism is valid has not
-        been implemented for this ring, then a NotImplementedError exception
-        is raised.
-        """
-        raise NotImplementedError, "Verification of correctness of homomorphisms from %s not yet implmented."%self
 
     def hom(self, im_gens, codomain=None, check=True):
         r"""
@@ -519,6 +399,8 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             ...
             TypeError: Natural coercion morphism from Rational Field to Integer Ring not defined.
         """
+        if self._element_constructor is not None:
+            return parent.Parent.hom(self, im_gens, codomain, check)
         if isinstance(im_gens, parent.Parent):
             return self.Hom(im_gens).natural_map()
         if codomain is None:
@@ -530,6 +412,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
 
 cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
     def generator_orders(self):
+        check_old_coerce(self)
         if self._generator_orders != None:
             return self._generator_orders
         else:
@@ -549,6 +432,7 @@ cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
 
 cdef class ParentWithAdditiveAbelianGens(ParentWithGens):
     def generator_orders(self):
+        check_old_coerce(self)
         if self._generator_orders != None:
             return self._generator_orders
         else:

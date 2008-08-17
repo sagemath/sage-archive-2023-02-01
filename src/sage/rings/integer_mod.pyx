@@ -363,6 +363,31 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         """
         return '%s!%s'%(self.parent()._magma_init_(), self)
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: K = GF(7)
+            sage: sage_input(K(5), verify=True)
+            # Verified
+            GF(7)(5)
+            sage: sage_input(K(5) * polygen(K), verify=True)
+            # Verified
+            R.<x> = GF(7)[]
+            5*x
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: K(5)._sage_input_(SageInputBuilder(), False)
+            {call: {call: {atomic:GF}({atomic:7})}({atomic:5})}
+            sage: K(5)._sage_input_(SageInputBuilder(), True)
+            {atomic:5}
+        """
+        v = sib.int(self.lift())
+        if coerced:
+            return v
+        else:
+            return sib(self.parent())(v)
+
     def log(self, b=None):
         r"""
         Return an integer $x$ such that $b^x = a$, where $a$ is \code{self}.
@@ -959,7 +984,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
     def _latex_(self):
         return str(self)
 
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         return self.lift()
 
     def _rational_(self):
@@ -2404,6 +2429,9 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             Traceback (most recent call last):
             ...
             ArithmeticError: 0^0 is undefined.
+            sage: R = Integers(17^5)
+            sage: R(17)^5
+            0
         """
         cdef sage.rings.integer.Integer exp, base
         exp = sage.rings.integer_ring.Z(right)
@@ -2570,7 +2598,7 @@ cdef int_fast64_t mod_pow_int64(int_fast64_t base, int_fast64_t exp, int_fast64_
             if prod >= INTEGER_MOD_INT64_LIMIT: prod = prod % n
         exp = exp >> 1
 
-    if prod > n:
+    if prod >= n:
         prod = prod % n
     return prod
 
@@ -2848,7 +2876,7 @@ cdef class IntegerMod_hom(Morphism):
         Morphism.__init__(self, parent)
         self.zero = self._codomain(0)
         self.modulus = self._codomain._pyx_order
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         return IntegerMod(self.codomain(), x)
 
 cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
@@ -2872,7 +2900,7 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
         import sage.categories.homset
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(R, S))
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
         if PY_TYPE_CHECK(x, IntegerMod_int):
             return (<IntegerMod_int>self.zero)._new_c((<IntegerMod_int>x).ivalue % self.modulus.int32)
@@ -2904,7 +2932,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
         import sage.categories.homset
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(integer_ring.ZZ, R))
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
         cdef Py_ssize_t res
         if self.modulus.table is not None:
@@ -2941,7 +2969,7 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
         from sage.structure.parent import Set_PythonType
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), R))
 
-    cdef Element _call_c(self, x):
+    cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
         cdef long res = PyInt_AS_LONG(x)
         if PY_TYPE_CHECK(self.zero, IntegerMod_gmp):

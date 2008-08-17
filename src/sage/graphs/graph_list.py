@@ -16,7 +16,17 @@ AUTHOR:
 #*****************************************************************************
 
 def from_whatever(data):
-    # TODO : doctests
+    """
+    Returns a list of SAGE Graphs, given a list of whatever kind of data.
+
+    INPUT:
+        data -- can be a string, a list of strings, or a file stream, or whatever.
+
+    EXAMPLE:
+        sage: l = ['N@@?N@UGAGG?gGlKCMO',':P_`cBaC_ACd`C_@BC`ABDHaEH_@BF_@CHIK_@BCEHKL_BIKM_BFGHI']
+        sage: graphs_list.from_whatever(l)
+        [Graph on 15 vertices, Looped multi-graph on 17 vertices]
+    """
     from sage.graphs.graph import Graph
     if isinstance(data, file):
         if data.name[data.name.rindex('.'):] == '.g6':

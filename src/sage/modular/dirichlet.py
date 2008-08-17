@@ -706,8 +706,99 @@ class DirichletCharacter(MultiplicativeGroupElement):
             g += phi(c)*z
         return g
 
+    def jacobi_sum(self, char, check=True):
+        """
+        Return the Jacobi sum associated to these Dirichlet characters (i.e., J(self,char)).
 
+        EXAMPLES:
+            sage: D = DirichletGroup(13)
+            sage: e = D.0
+            sage: f = D[-2]
+            sage: e.jacobi_sum(f)
+            3*zeta156^26 + 2*zeta156^13 - 3
+            sage: f.jacobi_sum(e)
+            3*zeta156^26 + 2*zeta156^13 - 3
+            sage: p = 7
+            sage: DP = DirichletGroup(p)
+            sage: f = DP.0
+            sage: e.jacobi_sum(f)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Characters must be from the same Dirichlet Group.
+            sage: all_jacobi_sums = [(DP[i],DP[j],DP[i].jacobi_sum(DP[j])) \
+            ...                       for i in range(p-1) for j in range(p-1)[i:]]
+            ...
+            sage: for s in all_jacobi_sums:
+            ...       print s
+            ([1], [1], 5)
+            ([1], [zeta6], 0)
+            ([1], [zeta6 - 1], 0)
+            ([1], [-1], 0)
+            ([1], [-zeta6], 0)
+            ([1], [-zeta6 + 1], 0)
+            ([zeta6], [zeta6], -zeta42^7 + 3)
+            ([zeta6], [zeta6 - 1], 2*zeta42^7 + 1)
+            ([zeta6], [-1], -2*zeta42^7 - 1)
+            ([zeta6], [-zeta6], zeta42^7 - 3)
+            ([zeta6], [-zeta6 + 1], 1)
+            ([zeta6 - 1], [zeta6 - 1], -3*zeta42^7 + 2)
+            ([zeta6 - 1], [-1], 2*zeta42^7 + 1)
+            ([zeta6 - 1], [-zeta6], -1)
+            ([zeta6 - 1], [-zeta6 + 1], -zeta42^7 - 2)
+            ([-1], [-1], 1)
+            ([-1], [-zeta6], -2*zeta42^7 + 3)
+            ([-1], [-zeta6 + 1], 2*zeta42^7 - 3)
+            ([-zeta6], [-zeta6], 3*zeta42^7 - 1)
+            ([-zeta6], [-zeta6 + 1], -2*zeta42^7 + 3)
+            ([-zeta6 + 1], [-zeta6 + 1], zeta42^7 + 2)
 
+        Let's check that trivial sums are being calculated correctly:
+
+            sage: N = 13
+            sage: D = DirichletGroup(N)
+            sage: g = D(1)
+            sage: g.jacobi_sum(g)
+            11
+            sage: sum([g(x)*g(1-x) for x in IntegerModRing(N)])
+            11
+
+        Now let's take a look at a non-prime modulus.  One reason we don't
+        like non-prime moduli is that certain identities that are used in the
+        code are not valid for non-prime moduli:
+
+            sage: N = 9
+            sage: D = DirichletGroup(N)
+            sage: g = D(1)
+            sage: g.jacobi_sum(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: Characters must have prime moduli at this time -- use check=False to allow non-prime moduli
+            sage: g.jacobi_sum(g, check=False)
+            5
+            sage: sum([g(x)*g(1-x) for x in IntegerModRing(N)])
+            3
+
+        TODO: Implement Jacobi sums for characters with output in finite
+        fields GF(q) for q non-prime.
+        """
+        if check:
+            if self.parent() != char.parent():
+                raise NotImplementedError, "Characters must be from the same Dirichlet Group."
+            if not self.parent().modulus().is_prime():
+                raise ValueError, "Characters must have prime moduli at this time -- use check=False to allow non-prime moduli"
+        # If they are both trivial, return p
+        if self.is_trivial() and char.is_trivial():
+            return (self.parent()).order() - 1
+        # If they are inverses of each other, return -self(-1)
+        prod = self*char
+        if prod.is_trivial():
+            return -self(-1)
+        # If both are nontrivial, apply mult. formula:
+        elif not self.is_trivial() and not char.is_trivial():
+            return self.gauss_sum()*char.gauss_sum()/prod.gauss_sum()
+        # If exactly one is trivial, return 0
+        else:
+            return 0
 
     def is_even(self):
         r"""

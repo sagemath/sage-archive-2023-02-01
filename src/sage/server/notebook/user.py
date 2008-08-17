@@ -46,6 +46,7 @@ class User:
                     self.history = cPickle.load(open(history_file))
                 except:
                     print "Error loading history for user %s"%self.__username
+                    self.history = []
             else:
                 self.history = []
             return self.history
@@ -216,6 +217,8 @@ class User:
             sage: User('C', account_type='guest').account_type()
             'guest'
         """
+        if self.__username == 'admin':
+            return 'admin'
         return self.__account_type
 
     def is_admin(self):

@@ -56,7 +56,7 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         """
         self._combinatorial_class = sage.combinat.partition.Partitions()
         self._one = sage.combinat.partition.Partition_class([])
-        self._base = base
+        self._sf_base = base
         self._element_class = SymmetricFunctionAlgebraElement_orthotriang
         self._scalar = scalar
         self._prefix = prefix
@@ -80,7 +80,7 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
             -2*s[1, 1, 1] + s[2, 1]
         """
         if isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            x = self._base(x)
+            x = self._sf_base(x)
             return self._from_cache(x, self._base_cache, self._base_to_self_cache)
         else:
             raise TypeError
@@ -107,7 +107,7 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         else:
             self._self_to_base_cache[n] = {}
 
-        self._gram_schmidt(n, self._base, self._scalar, self._self_to_base_cache,\
+        self._gram_schmidt(n, self._sf_base, self._scalar, self._self_to_base_cache,\
                            leading_coeff=self._leading_coeff, upper_triangular=True)
         self._invert_morphism(n, self.base_ring(), self._self_to_base_cache, \
                               self._base_to_self_cache, to_other_function = self._to_base)
@@ -149,7 +149,7 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
             sage: s([1])*s([2,1]) #indirect doctest
             s[2, 1, 1] + s[2, 2] + s[3, 1]
         """
-        return self( self._base(left)*self._base(right) )
+        return self( self._sf_base(left)*self._sf_base(right) )
 
 
 class SymmetricFunctionAlgebraElement_orthotriang(sfa.SymmetricFunctionAlgebraElement_generic):

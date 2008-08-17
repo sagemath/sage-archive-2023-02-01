@@ -2040,6 +2040,137 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 U[i,n-1] = - U[i,n-1]
         return U
 
+    def BKZ(self, delta=None, fp="rr", block_size=10, prune=0, use_givens=False):
+        """
+        Block Korkin-Zolotarev reduction.
+
+        INPUT:
+            fp -- 'fp' -- double precision: NTL's FP or fpLLL's double
+                  'qd' -- quad doubles: NTL's QP
+                  'qd1' -- quad doubles: uses quad_float precision to
+                           compute Gram-Schmidt, but uses double
+                           precision in the search phase of the block
+                           reduction algorithm.  This seems adequate
+                           for most purposes, and is faster than 'qd',
+                           which uses quad_float precision uniformly
+                           throughout.
+                  'xd' -- extended exponent: NTL's XD
+                  'rr' -- arbitrary precision (default)
+            block_size -- specifies the size of the blocks in the
+                          reduction.  High values yield shorter
+                          vectors, but the running time increases
+                          exponentially with
+                          \code{block_size}. \code{block_size} should
+                          be between 2 and the number of rows of
+                          \code{self} (default: 10)
+            prune -- The optional parameter \code{prune} can be set to
+                     any positive number to invoke the Volume
+                     Heuristic from [Schnorr and Horner, Eurocrypt
+                     '95].  This can significantly reduce the running
+                     time, and hence allow much bigger block size, but
+                     the quality of the reduction is of course not as
+                     good in general.  Higher values of \code{prune}
+                     mean better quality, and slower running time.
+                     When \code{prune} == 0, pruning is disabled.
+                     Recommended usage: for \code{block_size} >= 30,
+                     set 10 <= \code{prune} <= 15.
+            use_givens -- use Given's orthogonalization. This is a bit
+                          slower, but generally much more stable, and
+                          is really the preferred orthogonalization
+                          strategy.  For a nice description of this,
+                          see Chapter 5 of [G. Golub and C. van Loan,
+                          Matrix Computations, 3rd edition, Johns
+                          Hopkins Univ. Press, 1996].
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,3,3,range(1,10))
+            sage: A.BKZ()
+            [ 0  0  0]
+            [ 2  1  0]
+            [-1  1  3]
+            sage: A = Matrix(ZZ,3,3,range(1,10))
+            sage: A.BKZ(use_givens=True)
+            [ 0  0  0]
+            [ 2  1  0]
+            [-1  1  3]
+
+            sage: A = Matrix(ZZ,3,3,range(1,10))
+            sage: A.BKZ(fp="fp")
+            [ 0  0  0]
+            [ 2  1  0]
+            [-1  1  3]
+        """
+        if delta is None:
+            delta = 0.99
+        elif delta <= 0.25:
+            raise TypeError, "delta must be > 0.25"
+        elif delta > 1:
+            raise TypeError, "delta must be <= 1"
+        delta = float(delta)
+
+        if fp is None:
+            fp = "rr"
+
+        if fp == "fp":
+            algorithm = "BKZ_FP"
+        elif fp == "qd":
+            algorithm = "BKZ_QP"
+        elif fp == "qd1":
+            algorithm = "BKZ_QP1"
+        elif fp == "xd":
+            algorithm = "BKZ_XD"
+        elif fp == "rr":
+            algorithm = "BKZ_RR"
+        else:
+            raise TypeError, "fp parameter not understood."
+
+        block_size = int(block_size)
+
+        if prune < 0:
+            raise TypeError, "prune must be >= 0"
+        prune = int(prune)
+
+        if get_verbose() >= 2:
+            verbose = True
+        else:
+            verbose = False
+
+        A = self._ntl_()
+
+        if algorithm == "BKZ_FP":
+            if not use_givens:
+                r = A.BKZ_FP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+            else:
+                r = A.G_BKZ_FP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+
+        elif algorithm == "BKZ_QP":
+            if not use_givens:
+                r = A.BKZ_QP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+            else:
+                r = A.G_BKZ_QP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+
+        elif algorithm == "BKZ_QP1":
+            if not use_givens:
+                r = A.BKZ_QP1(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+            else:
+                r = A.G_BKZ_QP1(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+
+        elif algorithm == "BKZ_XD":
+            if not use_givens:
+                r = A.BKZ_XD(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+            else:
+                r = A.G_BKZ_XD(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+
+        elif algorithm == "BKZ_RR":
+            if not use_givens:
+                r = A.BKZ_RR(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+            else:
+                r = A.G_BKZ_RR(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+
+        self.cache("rank",ZZ(r))
+        R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
+        return R
+
     def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red = False, use_givens = False):
         r"""
         Returns LLL reduced or approximated LLL reduced lattice R for
@@ -2106,21 +2237,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         We compute the extended GCD of a list of integers using LLL,
         this example is from the Magma handbook:
 
-        sage: Q = [ 67015143, 248934363018, 109210, 25590011055, 74631449, \
-                    10230248, 709487, 68965012139, 972065, 864972271 ]
-        sage: n = len(Q)
-        sage: S = 100
-        sage: X = Matrix(ZZ, n, n + 1)
-        sage: for i in xrange(n):
-        ...       X[i,i + 1] = 1
-        sage: for i in xrange(n):
-        ...       X[i,0] = S*Q[i]
-        sage: L = X.LLL()
-        sage: M = L.row(n-1).list()[1:]
-        sage: M
-        [-3, -1, 13, -1, -4, 2, 3, 4, 5, -1]
-        sage: add([Q[i]*M[i] for i in range(n)])
-        -1
+            sage: Q = [ 67015143, 248934363018, 109210, 25590011055, 74631449, \
+                        10230248, 709487, 68965012139, 972065, 864972271 ]
+            sage: n = len(Q)
+            sage: S = 100
+            sage: X = Matrix(ZZ, n, n + 1)
+            sage: for i in xrange(n):
+            ...       X[i,i + 1] = 1
+            sage: for i in xrange(n):
+            ...       X[i,0] = S*Q[i]
+            sage: L = X.LLL()
+            sage: M = L.row(n-1).list()[1:]
+            sage: M
+            [-3, -1, 13, -1, -4, 2, 3, 4, 5, -1]
+            sage: add([Q[i]*M[i] for i in range(n)])
+            -1
 
         ALGORITHM: Uses the NTL library by Victor Shoup or fpLLL
         library by Damien Stehle depending on the chosen algorithm.

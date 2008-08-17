@@ -1365,7 +1365,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: SD.set_edge_label(17, 15, 'v_k finite')
         sage: SD.set_edge_label(14, 15, 'v_k m.c.r.')
         sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
-        sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
+        sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True)
 
     NOTE:
         There is a function, called test_refine, that has the same signature as

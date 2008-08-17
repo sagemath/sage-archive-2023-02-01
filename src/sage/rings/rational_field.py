@@ -551,6 +551,19 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return self
 
+    def power_basis(self):
+        r"""
+        Return a power basis for this number field over its base field.
+
+        The power basis is always [1] for the rational field.  This method is
+        defined to make the rational field behave more like a number field.
+
+        EXAMPLES:
+            sage: QQ.power_basis()
+            [1]
+        """
+        return [ self.gen() ]
+
     def extension(self, poly, names, check=True):
         """
         EXAMPLES:
@@ -648,6 +661,14 @@ class RationalField(_uniq, number_field_base.NumberField):
             Rational Field
         """
         return 'RationalField()'
+
+    def _macaulay2_init_(self):
+        """
+        EXAMPLES:
+            sage: macaulay2(QQ)       #optional
+            QQ
+        """
+        return "QQ"
 
 
 QQ = RationalField()

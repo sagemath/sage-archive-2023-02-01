@@ -159,14 +159,16 @@ class FiniteFieldHomset(RingHomset_generic):
               To:   Finite Field in b of size 2^10
               Defn: a |--> b^7 + b^5
             sage: H[2:4]
-            [Ring morphism:
+            [
+            Ring morphism:
               From: Finite Field in a of size 2^5
               To:   Finite Field in b of size 2^10
               Defn: a |--> b^8 + b^6 + b^2,
-             Ring morphism:
-              From: Finite Field        in a of size 2^5
-              To:   Finite Field        in b of size 2^10
-              Defn: a |--> b^9 + b^7 + b^6 + b^5 + b^4]
+            Ring morphism:
+              From: Finite Field in a of size 2^5
+              To:   Finite Field in b of size 2^10
+              Defn: a |--> b^9 + b^7 + b^6 + b^5 + b^4
+            ]
         """
         return self.list()[n]
 

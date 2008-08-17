@@ -54,7 +54,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from math import ceil, floor, sqrt
 from sage.structure.element import AdditiveGroupElement, RingElement
 
 import sage.plot.all as plot
@@ -477,8 +476,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: Q = 5*E.1; Q
-            (-2739/1444 : 22161/54872 : 1)
+            sage: Q = 5*E(0,0); Q
+            (-2739/1444 : -77033/54872 : 1)
             sage: Q.is_divisible_by(4)
             False
             sage: Q.is_divisible_by(5)
@@ -584,6 +583,28 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             [(0 : 3*a + 2 : 1), (1 : 0 : 1)]
             sage: P.division_points(5)
             [(1 : 1 : 1)]
+
+        An example over a number field (see trac #3383):
+        sage: E = EllipticCurve('19a1')
+        sage: K.<t> = NumberField(x^9-3*x^8-4*x^7+16*x^6-3*x^5-21*x^4+5*x^3+7*x^2-7*x+1)
+        sage: EK = E.base_extend(K)
+        sage: E(0).division_points(3)
+        [(0 : 1 : 0), (5 : -10 : 1), (5 : 9 : 1)]
+        sage: EK(0).division_points(3)
+        [(0 : 1 : 0), (5 : 9 : 1), (5 : -10 : 1)]
+        sage: E(0).division_points(9)
+        [(0 : 1 : 0), (5 : -10 : 1), (5 : 9 : 1)]
+        sage: EK(0).division_points(9)
+        [(0 : 1 : 0),
+        (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : 30847/484*t^8 - 21789/121*t^7 - 34605/121*t^6 + 117164/121*t^5 - 10633/484*t^4 - 29437/22*t^3 + 39725/484*t^2 + 55428/121*t - 176909/484 : 1),
+        (5 : 9 : 1),
+        (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : 927/121*t^8 - 5209/242*t^7 - 8187/242*t^6 + 27975/242*t^5 - 1147/242*t^4 - 1729/11*t^3 + 1566/121*t^2 + 12873/242*t - 10871/242 : 1),
+        (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : -30847/484*t^8 + 21789/121*t^7 + 34605/121*t^6 - 117164/121*t^5 + 10633/484*t^4 + 29437/22*t^3 - 39725/484*t^2 - 55428/121*t + 176425/484 : 1),
+        (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : -35/484*t^8 + 133/242*t^7 - 445/242*t^6 + 799/242*t^5 - 373/484*t^4 - 113/22*t^3 + 2355/484*t^2 + 753/242*t - 1649/484 : 1),
+        (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : 35/484*t^8 - 133/242*t^7 + 445/242*t^6 - 799/242*t^5 + 373/484*t^4 + 113/22*t^3 - 2355/484*t^2 - 753/242*t + 1165/484 : 1),
+        (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : -927/121*t^8 + 5209/242*t^7 + 8187/242*t^6 - 27975/242*t^5 + 1147/242*t^4 + 1729/11*t^3 - 1566/121*t^2 - 12873/242*t + 10629/242 : 1),
+        (5 : -10 : 1)]
+
         """
         return self._division_points(m, poly_only=False)
 
@@ -708,6 +729,32 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         h = self.curve().pari_curve().ellheight([self[0], self[1]])
         return rings.RR(h)
 
+    def is_on_identity_component(self):
+        """
+        Returns True iff this point is on the identity component of
+        its curve (over an ordered field)
+
+        INPUT:
+            self -- a point on a curve over any ordered field (e.g. QQ)
+
+        OUTPUT:
+            True iff the point is on the identity component of the identity
+
+        EXAMPLES:
+            sage: E=EllipticCurve('5077a1')
+            sage: [E.lift_x(x).is_on_identity_component() for x in range(-3,5)]
+            [False, False, False, False, False, True, True, True]
+        """
+        if self.is_zero():       # trivial case
+            return True
+        E = self.curve()
+        if E.discriminant() < 0: # only one component
+            return True
+        gx =E.division_polynomial(2)
+        gxd = gx.derivative()
+        gxdd = gxd.derivative()
+        return ( gxd(self[0]) > 0 and gxdd(self[0]) > 0)
+
     def xy(self):
         """
         Return the x and y coordinates of this point, as a 2-tuple.
@@ -729,6 +776,151 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             return self[0], self[1]
         else:
             return self[0]/self[2], self[1]/self[2]
+
+    def elliptic_logarithm(self, precision=100):
+        """ Returns the elliptic logarithm of this point on an
+            elliptic curve defined over the reals
+
+        INPUT: - precision: a positive integer (default 100) setting
+        the number of bits of precision for the computation
+
+        ALGORITHM: See -[Co2] Cohen H., A Course in Computational
+                        Algebraic Number Theory GTM 138, Springer 1996
+
+        AUTHORS:
+            - Michael Mardaus (2008-07) }
+            - Tobias Nagel (2008-07)    } original version from [Co2]
+            - John Cremona (2008-07)    revision following eclib code
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: E.discriminant() > 0
+            True
+            sage: P = E([-1,1])
+            sage: P.is_on_identity_component ()
+            False
+            sage: P.elliptic_logarithm (96)
+            0.4793482501902193161295330101 + 0.9858688507758241022112038491*I
+            sage: Q=E([3,5])
+            sage: Q.is_on_identity_component()
+            True
+            sage: Q.elliptic_logarithm (96)
+            1.931128271542559442488585220
+
+            An example with negative discriminant, and a torsion point:
+            sage: E = EllipticCurve('11a1')
+            sage: E.discriminant() < 0
+            True
+            sage: P = E([16,-61])
+            sage: P.elliptic_logarithm (96)
+            0.2538418608559106843377589233
+            sage: E.period_lattice().basis()[0] / P.elliptic_logarithm (96)
+            5.000000000000000000000000000
+
+            sage: E = EllipticCurve([1, 0, 1, -85357462, 303528987048]) #18074g1
+            sage: P = E([4458713781401/835903744, -64466909836503771/24167649046528, 1])
+            sage: P.elliptic_logarithm(54)
+            NaN
+            sage: P.elliptic_logarithm(55)
+            0.2735052671206336
+            sage: P.elliptic_logarithm()  # 100 bits
+            0.27656204014107100870070982517
+
+        """
+        RR = rings.RealField(precision)
+        CC = rings.ComplexField(precision)
+        if self.is_zero():
+            return CC(0)
+
+        #Initialize
+
+        E = self.curve()
+        a1 = RR(E.a1())
+        a2 = RR(E.a2())
+        a3 = RR(E.a3())
+        b2 = RR(E.b2())
+        b4 = RR(E.b4())
+        disc = E.discriminant()
+        x = RR(self[0])
+        y = RR(self[1])
+        pol = E.division_polynomial(2)
+        real_roots = pol.roots(RR,multiplicities=False)
+
+        if disc < 0: #Connected Case
+            # Here we use formulae equivalent to those in Cohen, but better
+            # behaved when roots are close together
+
+            # For some curves (e.g. 3314b3) the default precision is not enough!
+            while len(real_roots)!=1:
+                precision*=2
+                RR=rings.RealField(precision)
+                real_roots = pol.roots(RR,multiplicities=False)
+            try:
+                assert len(real_roots) == 1
+            except:
+                raise ValueError, ' no or more than one real root despite disc < 0'
+            e1 = real_roots[0]
+            roots = pol.roots(rings.ComplexField(precision),multiplicities=False)
+            roots.remove(e1)
+            e2,e3 = roots
+            zz = (e1-e2).sqrt() # complex
+            beta = (e1-e2).abs()
+            a = 2*zz.abs()
+            b = 2*zz.real();
+            c = (x-e1+beta)/((x-e1).sqrt())
+            while (a - b)/a > 0.5**(precision-1):
+                a,b,c = (a + b)/2, (a*b).sqrt(), (c + (c**2 + b**2 - a**2).sqrt())/2
+            z = (a/c).arcsin()
+            w = 2*y+a1*x+a3
+            if w*((x-e1)*(x-e1)-beta*beta) >= 0:
+                z = RR.pi() - z
+            if w>0:
+                z = z + RR.pi()
+            z /= a
+            return z
+
+        else:                    #Disconnected Case, disc > 0
+            # For some curves (e.g. 2370i5) the default precision is not enough!
+            while len(real_roots)!=3:
+                precision*=2
+                RR=rings.RealField(precision)
+                real_roots = pol.roots(RR,multiplicities=False)
+
+            real_roots.sort() # increasing order
+            real_roots.reverse() # decreasing order e1>e2>e3
+            try:
+                assert len(real_roots) == 3
+            except:
+                raise ValueError, ' no or more than one real root despite disc < 0'
+            e1, e2, e3 = real_roots
+            w1, w2 = E.period_lattice().basis(precision)
+            a = (e1 - e3).sqrt()
+            b = (e1 - e2).sqrt()
+            on_egg = (x < e1)
+
+            # if P is on the "egg", replace it by P+T3
+            # where T3=(e3,y3) is a 2-torsion point on
+            # the egg coming from w2/2 on the lattice
+
+            if on_egg:
+                y3 = -(a1*e3+a3)/2
+                lam = (y-y3)/(x-e3)
+                x3 = lam*(lam+a1)-a2-x-e3
+                y = lam*(x-x3)-y-a1*x3-a3
+                x = x3
+            c = (x - e3).sqrt()
+            while (a - b)/a > 0.5**(precision-1):
+                a,b,c = (a + b)/2, (a*b).sqrt(), (c + (c**2 + b**2 - a**2).sqrt())/2
+
+            z = (a/c).arcsin()/a
+            if (2*y+a1*x+a3) > 0:
+                z = w1 - z
+            if on_egg:
+                z = z + w2/2
+            return z
+
+    ##############################  end  ################################
+
 
 class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
     def _magma_init_(self):

@@ -18,25 +18,6 @@ include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
-cdef extern from "NTL/LLL.h":
-    cdef long mat_ZZ_LLL_FP   "LLL_FP"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_LLL_FP_U "LLL_FP"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_LLL_QP   "LLL_QP"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_LLL_QP_U "LLL_QP"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_LLL_XD   "LLL_XD"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_LLL_XD_U "LLL_XD"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_LLL_RR   "LLL_RR"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_LLL_RR_U "LLL_RR"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
-
-    cdef long mat_ZZ_G_LLL_FP   "G_LLL_FP"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_G_LLL_FP_U "G_LLL_FP"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_G_LLL_QP   "G_LLL_QP"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_G_LLL_QP_U "G_LLL_QP"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_G_LLL_XD   "G_LLL_XD"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_G_LLL_XD_U "G_LLL_XD"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_G_LLL_RR   "G_LLL_RR"(mat_ZZ_c B, double delta, int deep, int check , int verbose)
-    cdef long mat_ZZ_G_LLL_RR_U "G_LLL_RR"(mat_ZZ_c B, mat_ZZ_c U, double delta, int deep, int check , int verbose)
-
 
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
@@ -441,23 +422,714 @@ cdef class ntl_mat_ZZ:
         _sig_off
         return r
 
+    def BKZ_FP(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
+        r"""
+        All BKZ methods are equivalent to the LLL routines,
+        except that Block Korkin-Zolotarev reduction is applied. We
+        describe here only the differences in the calling syntax.
+
+        * The optional parameter "BlockSize" specifies the size of the
+        blocks in the reduction. High values yield shorter vectors,
+        but the running time increases exponentially with BlockSize.
+        BlockSize should be between 2 and the number of rows of B.
+
+        * The optional parameter "prune" can be set to any positive
+        number to invoke the Volume Heuristic from [Schnorr and
+        Horner, Eurocrypt '95].  This can significantly reduce the
+        running time, and hence allow much bigger block size, but the
+        quality of the reduction is of course not as good in general.
+        Higher values of prune mean better quality, and slower running
+        time.  When prune == 0, pruning is disabled.  Recommended
+        usage: for BlockSize >= 30, set 10 <= prune <= 15.
+
+        * The QP1 variant uses quad_float precision to compute
+        Gram-Schmidt, but uses double precision in the search phase
+        of the block reduction algorithm.  This seems adequate for
+        most purposes, and is faster than QP, which uses quad_float
+        precision uniformly throughout.
+
+        INPUT:
+            U -- optional permutation matrix (see LLL, default: None)
+            delta -- reduction parameter (default: 0.99)
+            BlockSize -- see above (default: 10)
+            prune -- see above (default: 0)
+            verbose -- print verbose output (default: False)
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,5,5,range(25))
+            sage: a = A._ntl_()
+            sage: a.BKZ_FP(); a
+            2
+            [
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 1 2 3 4]
+            [5 3 1 -1 -3]
+            ]
+
+            sage: U = ntl.mat_ZZ(2,2) # note that the dimension doesn't matter
+            sage: r = a.BKZ_FP(U=U); U
+            [
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            ]
+        """
+        if U is None:
+            _sig_on
+            rank = mat_ZZ_BKZ_FP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+            _sig_on
+            rank = mat_ZZ_BKZ_FP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        else:
+            raise TypeError, "parameter U has wrong type."
+
+    def BKZ_QP(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
+        r"""
+        All BKZ methods are equivalent to the LLL routines,
+        except that Block Korkin-Zolotarev reduction is applied. We
+        describe here only the differences in the calling syntax.
+
+        * The optional parameter "BlockSize" specifies the size of the
+        blocks in the reduction. High values yield shorter vectors,
+        but the running time increases exponentially with BlockSize.
+        BlockSize should be between 2 and the number of rows of B.
+
+        * The optional parameter "prune" can be set to any positive
+        number to invoke the Volume Heuristic from [Schnorr and
+        Horner, Eurocrypt '95].  This can significantly reduce the
+        running time, and hence allow much bigger block size, but the
+        quality of the reduction is of course not as good in general.
+        Higher values of prune mean better quality, and slower running
+        time.  When prune == 0, pruning is disabled.  Recommended
+        usage: for BlockSize >= 30, set 10 <= prune <= 15.
+
+        * The QP1 variant uses quad_float precision to compute
+        Gram-Schmidt, but uses double precision in the search phase
+        of the block reduction algorithm.  This seems adequate for
+        most purposes, and is faster than QP, which uses quad_float
+        precision uniformly throughout.
+
+        INPUT:
+            U -- optional permutation matrix (see LLL, default: None)
+            delta -- reduction parameter (default: 0.99)
+            BlockSize -- see above (default: 10)
+            prune -- see above (default: 0)
+            verbose -- print verbose output (default: False)
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,5,5,range(25))
+            sage: a = A._ntl_()
+            sage: a.BKZ_QP(); a
+            2
+            [
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 1 2 3 4]
+            [5 3 1 -1 -3]
+            ]
+
+            sage: U = ntl.mat_ZZ(2,2) # note that the dimension doesn't matter
+            sage: r = a.BKZ_QP(U=U); U
+            [
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            ]
+        """
+        if U is None:
+            _sig_on
+            rank = mat_ZZ_BKZ_QP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+            _sig_on
+            rank = mat_ZZ_BKZ_QP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        else:
+            raise TypeError, "parameter U has wrong type."
+
+    def BKZ_QP1(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
+        r"""
+        All BKZ methods are equivalent to the LLL routines,
+        except that Block Korkin-Zolotarev reduction is applied. We
+        describe here only the differences in the calling syntax.
+
+        * The optional parameter "BlockSize" specifies the size of the
+        blocks in the reduction. High values yield shorter vectors,
+        but the running time increases exponentially with BlockSize.
+        BlockSize should be between 2 and the number of rows of B.
+
+        * The optional parameter "prune" can be set to any positive
+        number to invoke the Volume Heuristic from [Schnorr and
+        Horner, Eurocrypt '95].  This can significantly reduce the
+        running time, and hence allow much bigger block size, but the
+        quality of the reduction is of course not as good in general.
+        Higher values of prune mean better quality, and slower running
+        time.  When prune == 0, pruning is disabled.  Recommended
+        usage: for BlockSize >= 30, set 10 <= prune <= 15.
+
+        * The QP1 variant uses quad_float precision to compute
+        Gram-Schmidt, but uses double precision in the search phase
+        of the block reduction algorithm.  This seems adequate for
+        most purposes, and is faster than QP, which uses quad_float
+        precision uniformly throughout.
+
+        INPUT:
+            U -- optional permutation matrix (see LLL, default: None)
+            delta -- reduction parameter (default: 0.99)
+            BlockSize -- see above (default: 10)
+            prune -- see above (default: 0)
+            verbose -- print verbose output (default: False)
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,5,5,range(25))
+            sage: a = A._ntl_()
+            sage: a.BKZ_QP1(); a
+            2
+            [
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 1 2 3 4]
+            [5 3 1 -1 -3]
+            ]
+
+            sage: U = ntl.mat_ZZ(2,2) # note that the dimension doesn't matter
+            sage: r = a.BKZ_QP1(U=U); U
+            [
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            ]
+        """
+        if U is None:
+            _sig_on
+            rank = mat_ZZ_BKZ_QP1(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+            _sig_on
+            rank = mat_ZZ_BKZ_QP1_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        else:
+            raise TypeError, "parameter U has wrong type."
+
+    def BKZ_XD(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
+        r"""
+        All BKZ methods are equivalent to the LLL routines,
+        except that Block Korkin-Zolotarev reduction is applied. We
+        describe here only the differences in the calling syntax.
+
+        * The optional parameter "BlockSize" specifies the size of the
+        blocks in the reduction. High values yield shorter vectors,
+        but the running time increases exponentially with BlockSize.
+        BlockSize should be between 2 and the number of rows of B.
+
+        * The optional parameter "prune" can be set to any positive
+        number to invoke the Volume Heuristic from [Schnorr and
+        Horner, Eurocrypt '95].  This can significantly reduce the
+        running time, and hence allow much bigger block size, but the
+        quality of the reduction is of course not as good in general.
+        Higher values of prune mean better quality, and slower running
+        time.  When prune == 0, pruning is disabled.  Recommended
+        usage: for BlockSize >= 30, set 10 <= prune <= 15.
+
+        * The QP1 variant uses quad_float precision to compute
+        Gram-Schmidt, but uses double precision in the search phase
+        of the block reduction algorithm.  This seems adequate for
+        most purposes, and is faster than QP, which uses quad_float
+        precision uniformly throughout.
+
+        INPUT:
+            U -- optional permutation matrix (see LLL, default: None)
+            delta -- reduction parameter (default: 0.99)
+            BlockSize -- see above (default: 10)
+            prune -- see above (default: 0)
+            verbose -- print verbose output (default: False)
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,5,5,range(25))
+            sage: a = A._ntl_()
+            sage: a.BKZ_XD(); a
+            2
+            [
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 1 2 3 4]
+            [5 3 1 -1 -3]
+            ]
+
+            sage: U = ntl.mat_ZZ(2,2) # note that the dimension doesn't matter
+            sage: r = a.BKZ_XD(U=U); U
+            [
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            ]
+        """
+        if U is None:
+            _sig_on
+            rank = mat_ZZ_BKZ_XD(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+            _sig_on
+            rank = mat_ZZ_BKZ_XD_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        else:
+            raise TypeError, "parameter U has wrong type."
+
+    def BKZ_RR(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
+        r"""
+        All BKZ methods are equivalent to the LLL routines,
+        except that Block Korkin-Zolotarev reduction is applied. We
+        describe here only the differences in the calling syntax.
+
+        * The optional parameter "BlockSize" specifies the size of the
+        blocks in the reduction. High values yield shorter vectors,
+        but the running time increases exponentially with BlockSize.
+        BlockSize should be between 2 and the number of rows of B.
+
+        * The optional parameter "prune" can be set to any positive
+        number to invoke the Volume Heuristic from [Schnorr and
+        Horner, Eurocrypt '95].  This can significantly reduce the
+        running time, and hence allow much bigger block size, but the
+        quality of the reduction is of course not as good in general.
+        Higher values of prune mean better quality, and slower running
+        time.  When prune == 0, pruning is disabled.  Recommended
+        usage: for BlockSize >= 30, set 10 <= prune <= 15.
+
+        * The QP1 variant uses quad_float precision to compute
+        Gram-Schmidt, but uses double precision in the search phase
+        of the block reduction algorithm.  This seems adequate for
+        most purposes, and is faster than QP, which uses quad_float
+        precision uniformly throughout.
+
+        INPUT:
+            U -- optional permutation matrix (see LLL, default: None)
+            delta -- reduction parameter (default: 0.99)
+            BlockSize -- see above (default: 10)
+            prune -- see above (default: 0)
+            verbose -- print verbose output (default: False)
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,5,5,range(25))
+            sage: a = A._ntl_()
+            sage: a.BKZ_RR(); a
+            2
+            [
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 1 2 3 4]
+            [5 3 1 -1 -3]
+            ]
+
+            sage: U = ntl.mat_ZZ(2,2) # note that the dimension doesn't matter
+            sage: r = a.BKZ_RR(U=U); U
+            [
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            ]
+        """
+        if U is None:
+            _sig_on
+            rank = mat_ZZ_BKZ_RR(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+            _sig_on
+            rank = mat_ZZ_BKZ_RR_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        else:
+            raise TypeError, "parameter U has wrong type."
+
+    def G_BKZ_FP(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
+        r"""
+        All BKZ methods are equivalent to the LLL routines,
+        except that Block Korkin-Zolotarev reduction is applied. We
+        describe here only the differences in the calling syntax.
+
+        * The optional parameter "BlockSize" specifies the size of the
+        blocks in the reduction. High values yield shorter vectors,
+        but the running time increases exponentially with BlockSize.
+        BlockSize should be between 2 and the number of rows of B.
+
+        * The optional parameter "prune" can be set to any positive
+        number to invoke the Volume Heuristic from [Schnorr and
+        Horner, Eurocrypt '95].  This can significantly reduce the
+        running time, and hence allow much bigger block size, but the
+        quality of the reduction is of course not as good in general.
+        Higher values of prune mean better quality, and slower running
+        time.  When prune == 0, pruning is disabled.  Recommended
+        usage: for BlockSize >= 30, set 10 <= prune <= 15.
+
+        * The QP1 variant uses quad_float precision to compute
+        Gram-Schmidt, but uses double precision in the search phase
+        of the block reduction algorithm.  This seems adequate for
+        most purposes, and is faster than QP, which uses quad_float
+        precision uniformly throughout.
+
+        INPUT:
+            U -- optional permutation matrix (see LLL, default: None)
+            delta -- reduction parameter (default: 0.99)
+            BlockSize -- see above (default: 10)
+            prune -- see above (default: 0)
+            verbose -- print verbose output (default: False)
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,5,5,range(25))
+            sage: a = A._ntl_()
+            sage: a.G_BKZ_FP(); a
+            2
+            [
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 1 2 3 4]
+            [5 3 1 -1 -3]
+            ]
+
+            sage: U = ntl.mat_ZZ(2,2) # note that the dimension doesn't matter
+            sage: r = a.G_BKZ_FP(U=U); U
+            [
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            ]
+        """
+        if U is None:
+            _sig_on
+            rank = mat_ZZ_G_BKZ_FP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+            _sig_on
+            rank = mat_ZZ_G_BKZ_FP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        else:
+            raise TypeError, "parameter U has wrong type."
+
+    def G_BKZ_QP(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
+        r"""
+        All BKZ methods are equivalent to the LLL routines,
+        except that Block Korkin-Zolotarev reduction is applied. We
+        describe here only the differences in the calling syntax.
+
+        * The optional parameter "BlockSize" specifies the size of the
+        blocks in the reduction. High values yield shorter vectors,
+        but the running time increases exponentially with BlockSize.
+        BlockSize should be between 2 and the number of rows of B.
+
+        * The optional parameter "prune" can be set to any positive
+        number to invoke the Volume Heuristic from [Schnorr and
+        Horner, Eurocrypt '95].  This can significantly reduce the
+        running time, and hence allow much bigger block size, but the
+        quality of the reduction is of course not as good in general.
+        Higher values of prune mean better quality, and slower running
+        time.  When prune == 0, pruning is disabled.  Recommended
+        usage: for BlockSize >= 30, set 10 <= prune <= 15.
+
+        * The QP1 variant uses quad_float precision to compute
+        Gram-Schmidt, but uses double precision in the search phase
+        of the block reduction algorithm.  This seems adequate for
+        most purposes, and is faster than QP, which uses quad_float
+        precision uniformly throughout.
+
+        INPUT:
+            U -- optional permutation matrix (see LLL, default: None)
+            delta -- reduction parameter (default: 0.99)
+            BlockSize -- see above (default: 10)
+            prune -- see above (default: 0)
+            verbose -- print verbose output (default: False)
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,5,5,range(25))
+            sage: a = A._ntl_()
+            sage: a.G_BKZ_QP(); a
+            2
+            [
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 1 2 3 4]
+            [5 3 1 -1 -3]
+            ]
+
+            sage: U = ntl.mat_ZZ(2,2) # note that the dimension doesn't matter
+            sage: r = a.G_BKZ_QP(U=U); U
+            [
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            ]
+        """
+        if U is None:
+            _sig_on
+            rank = mat_ZZ_G_BKZ_QP(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+            _sig_on
+            rank = mat_ZZ_G_BKZ_QP_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        else:
+            raise TypeError, "parameter U has wrong type."
+
+    def G_BKZ_QP1(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
+        r"""
+        All BKZ methods are equivalent to the LLL routines,
+        except that Block Korkin-Zolotarev reduction is applied. We
+        describe here only the differences in the calling syntax.
+
+        * The optional parameter "BlockSize" specifies the size of the
+        blocks in the reduction. High values yield shorter vectors,
+        but the running time increases exponentially with BlockSize.
+        BlockSize should be between 2 and the number of rows of B.
+
+        * The optional parameter "prune" can be set to any positive
+        number to invoke the Volume Heuristic from [Schnorr and
+        Horner, Eurocrypt '95].  This can significantly reduce the
+        running time, and hence allow much bigger block size, but the
+        quality of the reduction is of course not as good in general.
+        Higher values of prune mean better quality, and slower running
+        time.  When prune == 0, pruning is disabled.  Recommended
+        usage: for BlockSize >= 30, set 10 <= prune <= 15.
+
+        * The QP1 variant uses quad_float precision to compute
+        Gram-Schmidt, but uses double precision in the search phase
+        of the block reduction algorithm.  This seems adequate for
+        most purposes, and is faster than QP, which uses quad_float
+        precision uniformly throughout.
+
+        INPUT:
+            U -- optional permutation matrix (see LLL, default: None)
+            delta -- reduction parameter (default: 0.99)
+            BlockSize -- see above (default: 10)
+            prune -- see above (default: 0)
+            verbose -- print verbose output (default: False)
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,5,5,range(25))
+            sage: a = A._ntl_()
+            sage: a.G_BKZ_QP1(); a
+            2
+            [
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 1 2 3 4]
+            [5 3 1 -1 -3]
+            ]
+
+            sage: U = ntl.mat_ZZ(2,2) # note that the dimension doesn't matter
+            sage: r = a.G_BKZ_QP1(U=U); U
+            [
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            ]
+        """
+        if U is None:
+            _sig_on
+            rank = mat_ZZ_G_BKZ_QP1(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+            _sig_on
+            rank = mat_ZZ_G_BKZ_QP1_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        else:
+            raise TypeError, "parameter U has wrong type."
+
+    def G_BKZ_XD(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
+        r"""
+        All BKZ methods are equivalent to the LLL routines,
+        except that Block Korkin-Zolotarev reduction is applied. We
+        describe here only the differences in the calling syntax.
+
+        * The optional parameter "BlockSize" specifies the size of the
+        blocks in the reduction. High values yield shorter vectors,
+        but the running time increases exponentially with BlockSize.
+        BlockSize should be between 2 and the number of rows of B.
+
+        * The optional parameter "prune" can be set to any positive
+        number to invoke the Volume Heuristic from [Schnorr and
+        Horner, Eurocrypt '95].  This can significantly reduce the
+        running time, and hence allow much bigger block size, but the
+        quality of the reduction is of course not as good in general.
+        Higher values of prune mean better quality, and slower running
+        time.  When prune == 0, pruning is disabled.  Recommended
+        usage: for BlockSize >= 30, set 10 <= prune <= 15.
+
+        * The QP1 variant uses quad_float precision to compute
+        Gram-Schmidt, but uses double precision in the search phase
+        of the block reduction algorithm.  This seems adequate for
+        most purposes, and is faster than QP, which uses quad_float
+        precision uniformly throughout.
+
+        INPUT:
+            U -- optional permutation matrix (see LLL, default: None)
+            delta -- reduction parameter (default: 0.99)
+            BlockSize -- see above (default: 10)
+            prune -- see above (default: 0)
+            verbose -- print verbose output (default: False)
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,5,5,range(25))
+            sage: a = A._ntl_()
+            sage: a.G_BKZ_XD(); a
+            2
+            [
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 1 2 3 4]
+            [5 3 1 -1 -3]
+            ]
+
+            sage: U = ntl.mat_ZZ(2,2) # note that the dimension doesn't matter
+            sage: r = a.G_BKZ_XD(U=U); U
+            [
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            ]
+        """
+        if U is None:
+            _sig_on
+            rank = mat_ZZ_G_BKZ_XD(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+            _sig_on
+            rank = mat_ZZ_G_BKZ_XD_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        else:
+            raise TypeError, "parameter U has wrong type."
+
+    def G_BKZ_RR(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
+        r"""
+        All BKZ methods are equivalent to the LLL routines,
+        except that Block Korkin-Zolotarev reduction is applied. We
+        describe here only the differences in the calling syntax.
+
+        * The optional parameter "BlockSize" specifies the size of the
+        blocks in the reduction. High values yield shorter vectors,
+        but the running time increases exponentially with BlockSize.
+        BlockSize should be between 2 and the number of rows of B.
+
+        * The optional parameter "prune" can be set to any positive
+        number to invoke the Volume Heuristic from [Schnorr and
+        Horner, Eurocrypt '95].  This can significantly reduce the
+        running time, and hence allow much bigger block size, but the
+        quality of the reduction is of course not as good in general.
+        Higher values of prune mean better quality, and slower running
+        time.  When prune == 0, pruning is disabled.  Recommended
+        usage: for BlockSize >= 30, set 10 <= prune <= 15.
+
+        * The QP1 variant uses quad_float precision to compute
+        Gram-Schmidt, but uses double precision in the search phase
+        of the block reduction algorithm.  This seems adequate for
+        most purposes, and is faster than QP, which uses quad_float
+        precision uniformly throughout.
+
+        INPUT:
+            U -- optional permutation matrix (see LLL, default: None)
+            delta -- reduction parameter (default: 0.99)
+            BlockSize -- see above (default: 10)
+            prune -- see above (default: 0)
+            verbose -- print verbose output (default: False)
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ,5,5,range(25))
+            sage: a = A._ntl_()
+            sage: a.G_BKZ_RR(); a
+            2
+            [
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 1 2 3 4]
+            [5 3 1 -1 -3]
+            ]
+
+            sage: U = ntl.mat_ZZ(2,2) # note that the dimension doesn't matter
+            sage: r = a.G_BKZ_RR(U=U); U
+            [
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            ]
+        """
+        if U is None:
+            _sig_on
+            rank = mat_ZZ_G_BKZ_RR(self.x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        elif PY_TYPE_CHECK(U, ntl_mat_ZZ):
+            _sig_on
+            rank = mat_ZZ_G_BKZ_RR_U(self.x, (<ntl_mat_ZZ>U).x, float(delta), int(BlockSize), int(prune), 0, int(verbose));
+            _sig_off
+            return rank
+        else:
+            raise TypeError, "parameter U has wrong type."
+
     def LLL(self, a=3, b=4, return_U=False, verbose=False):
         r"""
-        Performs LLL reduction of self (puts self in an LLL form).
+        Performs LLL reduction of self (puts \code{self} in an LLL form).
 
-        self is an m x n matrix, viewed as m rows of n-vectors.  m may
-        be less than, equal to, or greater than n, and the rows need
-        not be linearly independent. self is transformed into an
-        LLL-reduced basis, and the return value is the rank r of self
-        so as det2 (see below).  The first m-r rows of self are zero.
+        \code{self} is an $m x n$ matrix, viewed as $m$ rows of
+        $n$-vectors.  $m$ may be less than, equal to, or greater than $n$,
+        and the rows need not be linearly independent. self is
+        transformed into an LLL-reduced basis, and the return value is
+        the rank r of self so as det2 (see below).  The first $m-r$ rows
+        of self are zero.
 
         More specifically, elementary row transformations are
-        performed on self so that the non-zero rows of new-self form
-        an LLL-reduced basis for the lattice spanned by the rows of
-        old-self.  The default reduction parameter is $\delta=3/4$,
-        which means that the squared length of the first non-zero
-        basis vector is no more than $2^{r-1}$ times that of the
-        shortest vector in the lattice.
+        performed on \code{self} so that the non-zero rows of
+        new-\code{self} form an LLL-reduced basis for the lattice
+        spanned by the rows of old-\code{self}.  The default reduction
+        parameter is $\delta=3/4$, which means that the squared length
+        of the first non-zero basis vector is no more than $2^{r-1}$
+        times that of the shortest vector in the lattice.
 
         det2 is calculated as the \emph{square} of the determinant of
         the lattice---note that sqrt(det2) is in general an integer
@@ -465,8 +1137,9 @@ cdef class ntl_mat_ZZ:
 
         If return_U is True, a value U is returned which is the
         transformation matrix, so that U is a unimodular m x m matrix
-        with U * old-self = new-self.  Note that the first m-r rows of
-        U form a basis (as a lattice) for the kernel of old-B.
+        with U * old-\code{self} = new-\code{self}. Note that the
+        first m-r rows of U form a basis (as a lattice) for the kernel
+        of old-B.
 
         The parameters a and b allow an arbitrary reduction parameter
         $\delta=a/b$, where $1/4 < a/b \leq 1$, where a and b are positive
@@ -518,8 +1191,8 @@ cdef class ntl_mat_ZZ:
             [0 -1 -7 5]
             ]
 
-        WARNING: This method modifies self. So after applying this method your matrix
-        will be a vector of vectors.
+        WARNING: This method modifies \code{self}. So after applying
+        this method your matrix will be a vector of vectors.
         """
         cdef ZZ_c *det2
         cdef ntl_mat_ZZ U
@@ -537,17 +1210,18 @@ cdef class ntl_mat_ZZ:
 
     def LLL_FP(self, delta=0.75 , return_U=False, verbose=False):
         r"""
-        Performs approximate LLL reduction of self (puts self in an
-        LLL form) subject to the following conditions:
+        Performs approximate LLL reduction of \code{self} (puts
+        \code{self} in an LLL form) subject to the following
+        conditions:
 
         The precision is double.
 
         The return value is the rank of B.
 
-        Classical Gramm-Schmidt Orthogonalization is used:
+        Classical Gram-Schmidt Orthogonalization is used:
 
         This choice uses classical methods for computing the
-        Gramm-Schmidt othogonalization.  It is fast but prone to
+        Gram-Schmidt othogonalization.  It is fast but prone to
         stability problems.  This strategy was first proposed by
         Schnorr and Euchner [C. P. Schnorr and M. Euchner,
         Proc. Fundamentals of Computation Theory, LNCS 529, pp. 68-85,
@@ -604,7 +1278,7 @@ cdef class ntl_mat_ZZ:
             [0 -1 -7 5]
             ]
 
-        WARNING: This method modifies self. So after applying this
+        WARNING: This method modifies \code{self}. So after applying this
         method your matrix will be a vector of vectors.
         """
         cdef ntl_mat_ZZ U
@@ -622,8 +1296,13 @@ cdef class ntl_mat_ZZ:
 
     def LLL_QP(self, delta, return_U=False, verbose=False):
         r"""
-        Peforms the same reduction as self.LLL_FP using the same
-        calling conventions but with quad float precision.
+        Peforms the same reduction as \code{self.LLL_FP} using the
+        same calling conventions but with quad float precision.
+
+        EXAMPLE:
+            sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
+            sage: M.LLL_QP(delta=0.75)
+            2
         """
         cdef ntl_mat_ZZ U
         if return_U:
@@ -640,9 +1319,14 @@ cdef class ntl_mat_ZZ:
 
     def LLL_XD(self, delta, return_U=False, verbose=False):
         r"""
-        Peforms the same reduction as self.LLL_FP using the same
-        calling conventions but with extended exponent double
+        Peforms the same reduction as \code{self.LLL_FP} using the
+        same calling conventions but with extended exponent double
         precision.
+
+        EXAMPLE:
+            sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
+            sage: M.LLL_XD(delta=0.75)
+            2
         """
         cdef ntl_mat_ZZ U
         if return_U:
@@ -659,9 +1343,14 @@ cdef class ntl_mat_ZZ:
 
     def LLL_RR(self, delta, return_U=False, verbose=False):
         r"""
-        Peforms the same reduction as self.LLL_FP using the same
-        calling conventions but with arbitrary precision floating
+        Peforms the same reduction as \code{self.LLL_FP} using the
+        same calling conventions but with arbitrary precision floating
         point numbers.
+
+        EXAMPLE:
+            sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
+            sage: M.LLL_RR(delta=0.75)
+            2
         """
         cdef ntl_mat_ZZ U
         if return_U:

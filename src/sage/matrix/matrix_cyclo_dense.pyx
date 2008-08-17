@@ -1100,7 +1100,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         cache[p] = ans
         return ans
 
-    def echelon_form(self, algorithm='multimodular'):
+    def echelon_form(self, algorithm='multimodular', height_guess=None):
         """
         Find the echelon form of self, using the specified algorithm.
 
@@ -1157,7 +1157,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             return E
 
         if algorithm == 'multimodular':
-            E = self._echelon_form_multimodular()
+            E = self._echelon_form_multimodular(height_guess=height_guess)
         elif algorithm == 'classical':
             E = (self*self.denominator())._echelon_classical()
         else:

@@ -88,8 +88,7 @@ class HasseDiagram(DiGraph):
         return Levels
 
     def plot(self, label_elements=True, element_labels=None,
-            label_font_size=12,label_font_color='black',
-            vertex_size=300, vertex_colors=None):
+            label_font_size=12,label_font_color='black',**kwds):
         """
 	Returns a Graphics object corresponding to the Hasse diagram.
 
@@ -102,74 +101,32 @@ class HasseDiagram(DiGraph):
             sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
             sage: type(H.plot(label_elements=True))
             <class 'sage.plot.plot.Graphics'>
-        """
-        # If we have no elements: plot an empty poset (blank plot).
-        if self.order() == 0:
-            return networkx_plot(self.networkx_graph())
 
+            sage: from sage.combinat.posets.poset_examples import SymmetricGroupBruhatIntervalPoset
+            sage: P = SymmetricGroupBruhatIntervalPoset([0,1,2,3], [2,3,0,1])
+            sage: P.hasse_diagram().plot()
+        """
         # Set element_labels to default to the vertex set.
         if element_labels is None:
-            element_labels = dict(zip(self.vertices(),self.vertices()))
+            element_labels = range(self.num_verts())
 
         # Compute dictionary of heights.
         if self._pos is None:
             # Determine heights of vertices based on levels.
             levels = self.level_sets()
-            def sort_fcn(x,y):
-                if element_labels[x] > element_labels[y]:
-                    return 1
-                elif element_labels[x] < element_labels[y]:
-                    return -1
-                else:
-                    return 0
+            sort_fcn = lambda x,y: cmp(element_labels[x], element_labels[y])
             levels = [sorted(z,sort_fcn) for z in levels]
-            heights = dict([[i, levels[i]] for i in range(len(levels))])
+            heights = dict([[i, [element_labels[j] for j in levels[i]]] for i in range(len(levels))])
 
-
-            # Set positions for vertices based on height.
-            # (Code cripped from graph.plot().)
-            pos = {}
-            mmax = max([len(ccc) for ccc in heights.values()])
-            ymin = min(heights.keys())
-            ymax = max(heights.keys())
-            if ymin==ymax:
-                dist = 0.5
-            else:
-                dist = ((ymax-ymin)/(mmax+1.0))
-            for height in heights:
-                num_xes = len(heights[height])
-                if num_xes == 0: continue
-                j = (mmax - num_xes)/2.0
-                for k in range(num_xes):
-                    pos[heights[height][k]] = [dist*(j+k+1),height]
         else:
-            pos = self._pos
+            heights = None
 
         # Create the underlying graph.
         graph = self.to_undirected()
+        graph.relabel(element_labels)
 
-        # Set default vertex colors.
-        if vertex_colors is None:
-            vertex_colors = {'#FFFFFF':graph.vertices()}
+        G = graph.plot(heights=heights, **kwds)
 
-        # Create the networkx plot.
-        from sage.plot.plot import networkx_plot
-        G = networkx_plot(graph.networkx_graph(), pos=pos, \
-                vertex_size=vertex_size, vertex_labels=False, \
-                vertex_colors=vertex_colors)
-
-        # Add vertex labels to the graph.
-        if label_elements:
-            from sage.plot.plot import text, polygon, Graphics
-            K = Graphics()
-            for v in graph.vertices():
-                K += text(str(element_labels[v]), pos[v],
-                        rgbcolor=label_font_color, fontsize=label_font_size)
-            K.axes_range(xmin=G.xmin(), xmax=G.xmax(), ymin=G.ymin(), ymax=G.ymax())
-            G += K
-        G.axes(False)
-
-        # Return the graph
         return G
 
     def show(self, label_elements=True, element_labels=None,

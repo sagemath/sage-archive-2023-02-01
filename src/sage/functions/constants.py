@@ -1193,9 +1193,9 @@ class GoldenRatio(Constant):
         """
         EXAMPLES:
             sage: golden_ratio._algebraic_(QQbar)
-            [1.6180339887498946 .. 1.6180339887498950]
+            1.618033988749895?
             sage: QQbar(golden_ratio)
-            [1.6180339887498946 .. 1.6180339887498950]
+            1.618033988749895?
         """
         import sage.rings.qqbar
         return field(sage.rings.qqbar.get_AA_golden_ratio())

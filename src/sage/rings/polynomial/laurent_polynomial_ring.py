@@ -461,10 +461,10 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         EXAMPLES:
             sage: L.<x,y> = LaurentPolynomialRing(QQ)
             sage: L.coerce_map_from(QQ)
-            Composite morphism:
+            Composite map:
               From: Rational Field
               To:   Multivariate Laurent Polynomial Ring in x, y over Rational Field
-              Defn:   Coercion morphism:
+              Defn:   Call morphism:
                       From: Rational Field
                       To:   Multivariate Polynomial Ring in x, y over Rational Field
                     then

@@ -497,6 +497,67 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             args = tuple(args[0])
         return plane_curve.ProjectiveCurve_generic.__call__(self, *args, **kwds)
 
+    def is_x_coord(self, x):
+        """
+        Returns whether x is the x-coordinate of a point on this curve.
+
+        See also lift_x() to find the point(s) with a given
+        x_coordinate.  This function may be useful in cases where
+        testing an element of tha base field for being a square is
+        faster than finding its square root.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a'); E
+            Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: E.is_x_coord(1)
+            True
+            sage: E.is_x_coord(2)
+            True
+
+        There are no rational points with x-cordinate 3.
+            sage: E.is_x_coord(3)
+            False
+
+        However, there are such points in $E(\R)$:
+            sage: E.change_ring(RR).is_x_coord(3)
+            True
+
+        And of course it always works in $E(\C)$:
+            sage: E.change_ring(RR).is_x_coord(-3)
+            False
+            sage: E.change_ring(CC).is_x_coord(-3)
+            True
+
+        AUTHOR: John Cremona, 2008-08-07 (adapted from lift_x())
+
+        TEST:
+            sage: E=EllipticCurve('5077a1')
+            sage: [x for x in srange(-10,10) if E.is_x_coord (x)]
+            [-3, -2, -1, 0, 1, 2, 3, 4, 8]
+
+            sage: F=GF(32,'a')
+            sage: E=EllipticCurve(F,[1,0,0,0,1])
+            sage: set([P[0] for P in E.points() if P!=E(0)]) == set([x for x in F if E.is_x_coord(x)])
+            True
+
+        """
+        K = self.base_ring()
+        try:
+            x = K(x)
+        except TypeError:
+            raise TypeError, 'x must be coercible into the base ring of the curve'
+        a1, a2, a3, a4, a6 = self.ainvs()
+        fx = ((x + a2) * x + a4) * x + a6
+        if a1.is_zero() and a3.is_zero():
+            return fx.is_square()
+        b = (a1*x + a3)
+        if K.characteristic() == 2:
+            R = PolynomialRing(K, 'y')
+            F = R([-fx,b,1])
+            return len(F.roots())>0
+        D = b*b + 4*fx
+        return D.is_square()
+
     def lift_x(self, x, all=False):
         """
         Given the x-coordinate of a point on the curve, use the defining

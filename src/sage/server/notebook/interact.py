@@ -208,12 +208,13 @@ def html(s):
     """
     print "<html>%s</html>"%s
 
-def html_slider(id, callback, steps, default=0, margin=0):
+def html_slider(id, values, callback, steps, default=0, margin=0):
     """
     Return the HTML representation of a jQuery slider.
 
     INPUT:
         id      -- string -- the DOM id of the slider (better be unique)
+        values  -- 'null' or javascript string containing array of values on slider
         callback-- javascript that is executed whenever the slider is done moving
         steps   -- number of steps from minimum to maximum value.
         default -- (default: 0) the default position of the slider
@@ -224,24 +225,97 @@ def html_slider(id, callback, steps, default=0, margin=0):
     you should obtain a slider that when moved pops up a window showing its
     current position.
         sage: from sage.server.notebook.interact import html_slider, html
-        sage: html(html_slider('slider-007', 'alert(position)', steps=5, default=2, margin=5))
+        sage: html(html_slider('slider-007', 'null', 'alert(position)', steps=5, default=2, margin=5))
         <html>...</html>
     """
-    s = """<div id='%s' class='ui-slider-1' style='padding:0px;margin:%spx;'><span class='ui-slider-handle'></span></div>"""%(
-        id, int(margin))
+    s = """<table><tr><td>
+    	<div id='%s' class='ui-slider-3' style='padding:0px;margin:%spx;'><span class='ui-slider-handle'></span></div>
+    	</td>"""%(id, int(margin))
+    if values != "null":
+        s += "<td><font color='black' id='%s-lbl'></font></td>"%id
+    s += "</tr></table>"
 
     # We now generate javascript that gets run after the above div
     # gets inserted. This happens because of the setTimeout function
     # below which gets passed an anonymous function.
-    s += """<script>setTimeout(function() { $('#%s').slider({
-    stepping: 1, minValue: 0, maxValue: %s, startValue: %s,
-    change: function () { var position = Math.ceil($('#%s').slider('value')); %s; }
-});}, 1);</script>"""%(id, steps-1, default, id, callback)
+    s += """<script>(function(){ var values = %s; setTimeout(function() {
+    $('#%s').slider({
+    	stepping: 1, minValue: 0, maxValue: %s, startValue: %s,
+    	change: function () { var position = Math.ceil($('#%s').slider('value')); if(values!=null) $('#%s-lbl').text(values[position]); %s; },
+    	slide: function() { if(values!=null) $('#%s-lbl').text(values[Math.ceil($('#%s').slider('value'))]); }
+    });
+    if(values != null) $('#%s-lbl').text(values[Math.ceil($('#%s').slider('value'))]);
+    }, 1); })();</script>"""%(values, id, steps-1, default, id, id, callback, id, id, id, id)
     # change 'change' to 'slide' and it changes the slider every time it moves;
     # needs much more work to actually work, since server gets fludded by
     # requests.
 
     return s
+
+def html_rangeslider(id, values, callback, steps, default_l=0, default_r=1, margin=0):
+    """
+    Return the HTML representation of a jQuery range slider.
+
+    INPUT:
+        id      -- string -- the DOM id of the slider (better be unique)
+        values  -- 'null' or javascript string containing array of values on slider
+        callback-- javascript that is executed whenever the slider is done moving
+        steps   -- number of steps from minimum to maximum value.
+        default_l -- (default: 0) the default position of the left edge of the slider
+        default_r -- (default: 1) the default position of the right edge of the slider
+        margin  -- (default: 0) size of margin to insert around the slider
+
+    EXAMPLES:
+    We create a jQuery range slider. If you do the following in the notebook
+    you should obtain a slider that when moved pops up a window showing its
+    current position.
+        sage: from sage.server.notebook.interact import html_rangeslider, html
+        sage: html(html_rangeslider('slider-007', 'null', 'alert(pos[0]+", "+pos[1])', steps=5, default_l=2, default_r=3, margin=5))
+        <html>...</html>
+    """
+    s = """<table>
+    <tr><td><div id='%s' class='ui-slider-3' style='padding:0px;margin:%spx;'>
+    <span class='ui-slider-handle'></span><span class='ui-slider-handle'></span>
+    </div></td></tr>"""%(id, int(margin))
+    if values != "null":
+        s += "<tr><td><font color='black' id='%s-lbl'></font></td></tr>"%id
+    s += "</table>"
+
+    # We now generate javascript that gets run after the above div
+    # gets inserted. This happens because of the setTimeout function
+    # below which gets passed an anonymous function.
+    s += """<script>(function()
+    {
+        var values = %s;
+        var pos = [%s, %s];
+        var sel = '#%s';
+        var updatePos = function()
+        {
+            pos[0]=Math.ceil($(sel).slider('value', 0));
+            pos[1]=Math.ceil($(sel).slider('value', 1));
+            if(values!=null) $(sel+'-lbl').text("("+values[pos[0]]+", "+values[pos[1]]+")");
+        };
+        setTimeout(function()
+        {
+            $(sel).slider(
+            {
+                range: true,
+                stepping: 1,
+                minValue: 0,
+                maxValue: %s,
+                startValue: [%s, %s],
+                change: function(){ updatePos(); %s; },
+                slide: updatePos
+            });
+            updatePos();
+        }, 1);
+    })();</script>"""%(values, default_l, default_r, id, steps-1, default_l, default_r, callback)
+    # change 'change' to 'slide' and it changes the slider every time it moves;
+    # needs much more work to actually work, since server gets fludded by
+    # requests.
+
+    return s
+
 
 def html_color_selector(id, change, input_change, default='000000'):
     """
@@ -886,8 +960,92 @@ class Selector(InteractControl):
         return s
 
 
-class Slider(InteractControl):
-    def __init__(self, var, values, default_position, label=None):
+class SliderGeneric(InteractControl):
+    def __init__(self, var, values, default_value, label=None, display_value=True):
+        """
+        An abstract slider interact control that takes on the given list of
+        values.
+
+        INPUT:
+            var -- string; name of variable being interactd
+            values -- list; a list of the values that the slider will take on
+            default_value -- default valueoif slider.
+            label -- alternative label to the left of the slider,
+                     instead of the variable.
+            display_value -- boolean, whether to display the current value
+                             on the slider
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.SliderGeneric('x', [1..5], 2, 'alpha')
+            Abstract Slider Interact Control: alpha [1--|2|---5]
+        """
+        InteractControl.__init__(self, var, default_value, label=label)
+        self.__values = values
+        self.__display_value = display_value
+
+    def __repr__(self):
+        """
+        Return string representation of this slider control.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.SliderGeneric('x', [1..5], 2, 'alpha').__repr__()
+            'Abstract Slider Interact Control: alpha [1--|2|---5]'
+        """
+        return "Abstract Slider Interact Control: %s [%s--|%s|---%s]"%(
+            self.label(), self.__values[0],
+            self.default_value(), self.__values[-1])
+
+    def values(self):
+        """
+        Return list of values the slider acts on.
+
+        OUTPUT:
+            list
+
+        EXAMPLES:
+            sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha').values()
+            [1, 2, 3, 4, 5]
+        """
+        return self.__values
+
+    def display_value(self):
+        """
+        Returns whether to display the value on the slider.
+
+        OUTPUT:
+            boolean
+
+        EXAMPLES:
+            sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha').display_value()
+            True
+        """
+        return self.__display_value
+
+    def values_js(self):
+        """
+        Returns Javascript array representation of values or null if display_value is False
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha').values_js()
+            '["1","2","3","4","5"]'
+            sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha', False).values_js()
+            'null'
+        """
+        if self.__display_value == False:
+            return "null"
+        s = "["
+        for i in self.__values:
+            ie = str(i).replace("\\","\\\\").replace("\"","\\\"").replace("'","\\'")
+            s += "\"%s\","%ie
+        s = s[:-1] + ']'
+        return s
+
+
+class Slider(SliderGeneric):
+    def __init__(self, var, values, default_position, label=None, display_value=True):
         """
         A slider interact control that takes on the given list of
         values.
@@ -898,13 +1056,14 @@ class Slider(InteractControl):
             default_position -- int; default location that the slider is set to.
             label -- alternative label to the left of the slider,
                      instead of the variable.
+            display_value -- boolean, whether to display the current value right
+                             of the slider
 
         EXAMPLES:
             sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha')
             Slider Interact Control: alpha [1--|3|---5]
         """
-        InteractControl.__init__(self, var, values[default_position], label=label)
-        self.__values = values
+        SliderGeneric.__init__(self, var, values, values[default_position], label=label, display_value=display_value)
         self.__default_position = default_position
 
     def __repr__(self):
@@ -916,8 +1075,8 @@ class Slider(InteractControl):
             'Slider Interact Control: alpha [1--|3|---5]'
         """
         return "Slider Interact Control: %s [%s--|%s|---%s]"%(
-            self.label(), self.__values[0],
-            self.default_value(), self.__values[-1])
+            self.label(), self.values()[0],
+            self.default_value(), self.values()[-1])
 
     def default_position(self):
         """
@@ -959,7 +1118,7 @@ class Slider(InteractControl):
             sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha')._adaptor(2,globals())
             3
         """
-        v = self.__values
+        v = self.values()
         # We have to cast to int, since it comes back as a float that
         # is too big.
         return v[int(position)]
@@ -973,11 +1132,154 @@ class Slider(InteractControl):
 
         EXAMPLES:
             sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha').render()
-            '<div ...'
+            '<table>...<div ...var values = ["1","2","3","4","5"];...'
+
+            sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha', display_value=False).render()
+            '<table>...<div ...var values = null;...'
         """
+
         return html_slider('slider-%s-%s'%(self.var(), self.cell_id()),
-                           self.interact(), steps=len(self.__values),
+                           self.values_js(), self.interact(), steps=len(self.values()),
                            default=self.default_position())
+
+
+class RangeSlider(SliderGeneric):
+    def __init__(self, var, values, default_position, label=None, display_value=True):
+        """
+        A range slider interact control that takes on the given list of
+        values.
+
+        INPUT:
+            var -- string; name of variable being interactd
+            values -- list; a list of the values that the slider will take on
+            default_position -- (int,int); default location that the slider is set to.
+            label -- alternative label to the left of the slider,
+                     instead of the variable.
+            display_value -- boolean, whether to display the current value below
+                             the slider
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.RangeSlider('x', [1..5], (2,3), 'alpha')
+            Range Slider Interact Control: alpha [1--|3==4|---5]
+        """
+        SliderGeneric.__init__(self, var, values, (values[default_position[0]], values[default_position[1]]), label=label, display_value=display_value)
+        self.__default_position = default_position
+
+    def __repr__(self):
+        """
+        Return string representation of this slider control.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.RangeSlider('x', [1..5], (2,3), 'alpha').__repr__()
+            'Range Slider Interact Control: alpha [1--|3==4|---5]'
+        """
+        return "Range Slider Interact Control: %s [%s--|%s==%s|---%s]"%(
+            self.label(), self.values()[0],
+            self.default_value()[0], self.default_value()[1], self.values()[-1])
+
+    def default_position(self):
+        """
+        Return the default position (as an integer) of the slider.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.RangeSlider('x', [1..5], (2,3), 'alpha').default_position()
+            (2, 3)
+        """
+        return self.__default_position
+
+    def value_js(self):
+        """
+        Return javascript string that will give the
+        value of this control element.
+
+        OUTPUT:
+             string -- javascript
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.RangeSlider('x', [1..5], (2,3), 'alpha').value_js()
+            "pos[0]+' '+pos[1]"
+        """
+        return "pos[0]+' '+pos[1]"
+
+    def _adaptor(self, position, globs):
+        """
+        Adapt a user input, which is the slider position, to be an
+        element selected by this control.
+
+        INPUT:
+            position -- position of the slider
+            globs -- the globals interpreter variables (not used here).
+
+        OUTPUT:
+            object
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.RangeSlider('x', [1..5], (2,3), 'alpha')._adaptor("2 3",globals())
+            (3, 4)
+        """
+        v = self.values()
+        s = position.split(' ')
+        # use of int() here matches it's use in Slider._adaptor
+        return (v[int(s[0])], v[int(s[1])])
+
+    def render(self):
+        """
+        Render this control as an HTML string.
+
+        OUTPUT:
+             string -- html format
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.RangeSlider('x', [1..5], (2,3), 'alpha').render()
+            '<table>...<div ...var values = ["1","2","3","4","5"];...'
+
+            sage: sage.server.notebook.interact.RangeSlider('x', [1..5], (2,3), 'alpha', display_value=False).render()
+            '<table>...<div ...var values = null;...'
+        """
+
+        return html_rangeslider('slider-%s-%s'%(self.var(), self.cell_id()),
+                           self.values_js(), self.interact(), steps=len(self.values()),
+                           default_l=self.default_position()[0], default_r=self.default_position()[1])
+
+
+
+class TextControl(InteractControl):
+    def __init__(self, var, data):
+        """
+        A text field interact control
+
+        INPUT:
+            data -- the HTML value of the text field
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.TextControl('x', 'something')
+            Text Interact Control: something
+        """
+        InteractControl.__init__(self, var, data, label='')
+        self.__data = data
+
+    def __repr__(self):
+        """
+        Return string representation of this control.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.TextControl('x', 'something').__repr__()
+            'Text Interact Control: something'
+        """
+        return 'Text Interact Control: %s'%self.default_value()
+
+    def render(self):
+        """
+        Render this control as an HTML string.
+
+        OUTPUT:
+             string -- html format
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.TextControl('x', 'something').render()
+            '<div ...>something</div>'
+        """
+        return '<div style="color:black; padding-bottom:5px">%s</div>'%self.default_value()
 
 
 class InteractCanvas:
@@ -1069,8 +1371,13 @@ class InteractCanvas:
             sage: sage.server.notebook.interact.InteractCanvas([B], 3).render_controls()
             '<table>...'
         """
-        row = '<tr><td align=right><font color="black">%s&nbsp;</font></td><td>%s</td></tr>\n'
-        tbl_body = ''.join([row%(c.label(), c.render()) for c in self.__controls])
+        tbl_body = ''
+        for c in self.__controls:
+            if c.label() == '':
+                tbl_body += '<tr><td colspan=2>%s</td></tr>\n'%c.render()
+            else:
+                tbl_body += '<tr><td align=right><font color="black">%s&nbsp;</font></td><td>%s</td></tr>\n'%(
+                c.label(), c.render())
         return '<table>%s</table>'%tbl_body
 
     def wrap_in_outside_frame(self, inside):
@@ -1166,6 +1473,12 @@ def interact(f):
         ...     show(plot(sin(a*x+b), (x,0,6)), figsize=3)
         <html>...
 
+    Place a block of text among the controls:
+        sage: @interact
+        ... def _(t1=text_control("Factors an integer."), n="1"):
+        ...     print factor(Integer(n))
+        <html>...
+
     You do not have to use interact as a decorators; you can also
     simply write \code{interact(f)} where f is any Python function
     that you have defined, though this is frowned on.  E.g., f can
@@ -1177,15 +1490,19 @@ def interact(f):
     DEFAULTS:
     Defaults for the variables of the input function determine
     interactive controls.  The standard controls are \code{input_box},
-    \code{slider}, \code{checkbox}, \code{selector}, and
-    \code{input_grid}.  There is also a color selector (see defaults below).
+    \code{slider}, \code{range_slider}, \code{checkbox}, \code{selector},
+    \code{input_grid}.  There is also a color selector and text control
+    (see defaults below).
 
     \begin{itemize}
         \item u = input_box(default=None, label=None, type=None)
                          -- input box with given default; use type=str to
                             get input as an arbitrary string
         \item u = slider(vmin, vmax=None,step_size=1,default=None,label=None)
-                         -- slider with given list of possible values; vmin an be a list
+                         -- slider with given list of possible values; vmin can be a list
+        \item u = range_slider(vmin, vmax=None,step_size=1,default=None,label=None)
+                         -- range slider with given list of possible values;
+                            vmin can be a list
         \item u = checkbox(default=True, label=None)
                          -- a checkbox
         \item u = selector(values, label=None, nrows=None, ncols=None, buttons=False)
@@ -1194,7 +1511,8 @@ def interact(f):
         \item u = input_grid(nrows, ncols, default=None, label=None,
                              to_value=lambda x:x, width=4)
                          -- an editable grid of objects (a matrix or array)
-
+        \item u = text_control(value='')
+                         -- a block of text
     \end{itemize}
 
     You can create a color selector by setting the default value for a
@@ -1273,6 +1591,12 @@ def interact(f):
         ... def _(a = slider(1, 4, default=2, label='Multiplier'),
         ...       b = slider(0, 10, default=0, label='Phase Variable')):
         ...     show(plot(sin(a*x+b), (x,0,6)), figsize=4)
+        <html>...
+
+    An example where the range slider control is useful.
+        sage: @interact
+        ... def _(b = range_slider(-20, 20, 1, default=(-19,3), label='Range')):
+        ...     plot(sin(x)/x, b[0], b[1]).show(xmin=b[0],xmax=b[1])
         <html>...
 
     An example using checkboxes, obtained by making the default values bools.
@@ -1680,9 +2004,80 @@ class checkbox(input_box):
         """
         return "Interact checkbox labeled %r with default value %r"%(self.label(), self.default())
 
+class slider_generic(control):
+    def __init__(self, vmin, vmax=None, step_size=None, label=None, display_value=True):
+        control.__init__(self, label=label)
+        self.__display_value = display_value
+        if isinstance(vmin, list):
+            vals = vmin
+        else:
+            if vmax is None:
+                vmax = vmin
+                vmin = 0
 
-class slider(control):
-    def __init__(self, vmin, vmax=None, step_size=1, default=None, label=None):
+            #Compute step size; vmin and vmax are both defined here
+            #500 is the length of the slider (in px)
+            if step_size is None:
+                step_size = (vmax-vmin)/499.0
+            elif step_size <= 0:
+                raise ValueError, "invalid negative step size -- step size must be positive"
+
+            #Compute list of values
+            num_steps = int(math.ceil((vmax-vmin)/float(step_size)))
+            if num_steps <= 2:
+                vals = [vmin, vmax]
+            else:
+                vals = srange(vmin, vmax, step_size, include_endpoint=True)
+                if vals[-1] != vmax:
+                    try:
+                        if vals[-1] > vmax:
+                            vals[-1] = vmax
+                        else:
+                            vals.append(vmax)
+                    except (ValueError, TypeError):
+                        pass
+
+        #Is the list of values is small (len<=50), use the whole list.
+        #Otherwise, use part of the list.
+        if len(vals) == 0:
+            self.__values = [0]
+        elif(len(vals)<=500):
+            self.__values = vals
+        else:
+	    vlen = (len(vals)-1)/499.0
+	    self.__values = [vals[(int)(i*vlen)] for i in range(500)]
+
+    def values(self):
+        """
+        Returns list of values that this slider takes on, in order.
+
+        OUTPUT:
+            list -- list of values
+
+        WARNING: This is a reference to a mutable list.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.slider(1,10,1/2).values()
+            [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2, 10]
+        """
+        return self.__values
+
+    def display_value(self):
+        """
+        Returns whether to display the value on the slider.
+
+        OUTPUT:
+            boolean
+
+        EXAMPLES:
+            sage.server.notebook.interact.slider_generic(1,10,1/2).display_value()
+            True
+        """
+        return self.__display_value;
+
+
+class slider(slider_generic):
+    def __init__(self, vmin, vmax=None, step_size=None, default=None, label=None, display_value=True):
         r"""
         An interactive slider control, which can be used in conjunction
         with the interact command.
@@ -1697,6 +2092,8 @@ class slider(control):
             default -- object or None; default value is ``closest'' in vmin or range
                        to this default.
             label -- string
+            display_value -- boolean, whether to display the current value to the right
+                             of the slider
 
         EXAMPLES:
         We specify both vmin and vmax.  We make the default 3, but
@@ -1713,32 +2110,7 @@ class slider(control):
             sage: slider([1, 'x', 'abc', 2/3], None, None, 'x', 'alpha')
             Slider: alpha [1--|x|---2/3]
         """
-        control.__init__(self, label=label)
-        if isinstance(vmin, list):
-            self.__values = vmin
-        else:
-            if vmax is None:
-                vmax = vmin
-                vmin = 0
-            if step_size <= 0:
-                raise ValueError, "invalid negative step size -- step size must be positive"
-            else:
-                num_steps = int(math.ceil((vmax-vmin)/float(step_size)))
-                if num_steps <= 2:
-                    self.__values = [vmin, vmax]
-                else:
-                    self.__values = [vmin + i*step_size for i in range(num_steps)]
-                    if self.__values[-1] != vmax:
-                        try:
-                            if self.__values[-1] > vmax:
-                                self.__values[-1] = vmax
-                            else:
-                                self.__values.append(vmax)
-                        except (ValueError, TypeError):
-                            pass
-
-        if len(self.__values) == 0:
-            self.__values = [0]
+        slider_generic.__init__(self, vmin, vmax, step_size, label, display_value)
 
         # determine the best choice of index into the list of values
         # for the user-selected default.
@@ -1746,11 +2118,11 @@ class slider(control):
             self.__default = 0
         else:
             try:
-                i = self.__values.index(default)
+                i = self.values().index(default)
             except ValueError:
                 # here no index matches -- which is best?
                 try:
-                    v = [(abs(default - self.__values[j]), j) for j in range(len(self.__values))]
+                    v = [(abs(default - self.values()[j]), j) for j in range(len(self.values()))]
                     m = min(v)
                     i = m[1]
                 except TypeError: # abs not defined on everything, so give up
@@ -1766,23 +2138,9 @@ class slider(control):
             'Slider: alpha [2--|3|---5]'
         """
         return "Slider: %s [%s--|%s|---%s]"%(self.label(),
-                  self.__values[0],
-             self.__values[self.default_index()], self.__values[-1])
+                  self.values()[0],
+             self.values()[self.default_index()], self.values()[-1])
 
-    def values(self):
-        """
-        Returns list of values that this slider takes on, in order.
-
-        OUTPUT:
-            list -- list of values
-
-        WARNING: This is a reference to a mutable list.
-
-        EXAMPLES:
-            sage: sage.server.notebook.interact.slider(1,10,1/2).values()
-            [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2, 10]
-        """
-        return self.__values
 
     def default_index(self):
         """
@@ -1806,7 +2164,7 @@ class slider(control):
             var -- string; variable name
 
         EXAMPLES:
-            sage: S = slider(0,10, default=3, label='theta'); S
+            sage: S = slider(0, 10, 1, default=3, label='theta'); S
             Slider: theta [0--|3|---10]
             sage: S.render('x')
             Slider Interact Control: theta [0--|3|---10]
@@ -1814,7 +2172,108 @@ class slider(control):
             sage: slider(2, 5, 2/7, 3, 'alpha').render('x')
             Slider Interact Control: alpha [2--|20/7|---5]
         """
-        return Slider(var, self.__values, self.__default, label=self.label())
+        return Slider(var, self.values(), self.__default, label=self.label(), display_value=self.display_value())
+
+
+class range_slider(slider_generic):
+    def __init__(self, vmin, vmax=None, step_size=None, default=None, label=None, display_value=True):
+        r"""
+        An interactive range slider control, which can be used in conjunction
+        with the interact command.
+
+        \code{range_slider(vmin, vmax=None, step_size=1, default=None, label=None)}
+
+        INPUT:
+            vmin -- object or number
+            vmax -- object or None; if None then vmin must be a list, and the slider
+                    then varies over elements of the list.
+            step_size -- integer (default: 1)
+            default -- (object, object) or None; default range is ``closest'' in vmin or range
+                       to this default.
+            label -- string
+            display_value -- boolean, whether to display the current value below
+                             the slider
+
+        EXAMPLES:
+        We specify both vmin and vmax.  We make the default (3,4) but
+        since neither is one of 3/17-th spaced values between 2 and 5,
+        the closest values: 52/17 and 67/17, are instead chosen as the
+        default.
+            sage: range_slider(2, 5, 3/17, (3,4), 'alpha')
+            Range Slider: alpha [2--|52/17==67/17|---5]
+
+        Here we give a list:
+            sage: range_slider([1..10], None, None, (3,7), 'alpha')
+            Range Slider: alpha [1--|3==7|---10]
+        """
+        slider_generic.__init__(self, vmin, vmax, step_size, label, display_value)
+
+        # determine the best choice of index into the list of values
+        # for the user-selected default.
+        if default is None:
+            self.__default = (0, 1)
+        elif not isinstance(default,tuple) or len(default)!=2:
+            raise TypeError("default value must be None or a 2-tuple.")
+        else:
+            dlist = []
+            for i in [0, 1]:
+                try:
+                    d = self.values().index(default[i])
+                except ValueError:
+                    # here no index matches -- which is best?
+                    try:
+                        v = [(abs(default[i] - self.values()[j]), j) for j in range(len(self.values()))]
+                        m = min(v)
+                        d = m[1]
+                    except TypeError: # abs not defined on everything, so give up
+                        d = 0
+                dlist.append(d)
+            self.__default = (dlist[0], dlist[1])
+
+    def __repr__(self):
+        """
+        Return string representation of this slider.
+
+        EXAMPLES:
+            sage: range_slider(2, 5, 1/5, (3,4), 'alpha').__repr__()
+            'Range Slider: alpha [2--|3==4|---5]'
+        """
+        return "Range Slider: %s [%s--|%s==%s|---%s]"%(self.label(), self.values()[0],
+             self.values()[self.default_index()[0]],
+             self.values()[self.default_index()[1]], self.values()[-1])
+
+    def default_index(self):
+        """
+        Return default index into the list of values.
+
+        OUTPUT:
+            (int, int)
+
+        EXAMPLES:
+            sage: range_slider(2, 5, 1/2, (3,4), 'alpha').default_index()
+            (2, 4)
+        """
+        return self.__default
+
+    def render(self, var):
+        """
+        Render the interact control for the given function and
+        variable.
+
+        INPUT:
+            var -- string; variable name
+
+        EXAMPLES:
+            sage: S = range_slider(0, 10, 1, default=(3,7), label='theta'); S
+            Range Slider: theta [0--|3==7|---10]
+            sage: S.render('x')
+            Range Slider Interact Control: theta [0--|3==7|---10]
+
+            sage: range_slider(2, 5, 2/7, (3,4), 'alpha').render('x')
+            Range Slider Interact Control: alpha [2--|20/7==4|---5]
+        """
+        return RangeSlider(var, self.values(), self.__default, label=self.label(), display_value=self.display_value())
+
 
 class selector(control):
     def __init__(self, values, label=None, default=None,
@@ -1956,6 +2415,43 @@ class selector(control):
                         nrows=self.__nrows, ncols=self.__ncols, width=self.__width,
                         buttons=self.__buttons)
 
+class text_control(control):
+    def __init__(self, value=''):
+    	"""
+    	Text that can be inserted among other interact controls.
+
+        INPUT:
+            value -- HTML for the control
+
+        EXAMPLES:
+            sage: text_control('something')
+            Text field: something
+    	"""
+        self.__default = value
+        control.__init__(self, '')
+
+    def __repr__(self):
+        """
+        Return print representation of this control.
+
+        EXAMPLES:
+            sage: text_control('something')
+            Text field: something
+        """
+        return "Text field: %s"%self.__default
+
+    def render(self, var):
+        """
+        Return rendering of the text field
+
+        INPUT:
+            var -- a string (variable; one of the variable names input to f)
+
+        OUTPUT:
+            TextControl -- a TextControl instance
+        """
+        return TextControl(var, self.__default)
+
 
 def automatic_control(default):
     """
@@ -1976,16 +2472,16 @@ def automatic_control(default):
         Interact input box labeled None with default value 15
         sage: sage.server.notebook.interact.automatic_control(('start', 15))
         Interact input box labeled 'start' with default value 15
-        sage: sage.server.notebook.interact.automatic_control((1,100))
-        Slider: None [1.0--|1.0|---100.0]
-        sage: sage.server.notebook.interact.automatic_control(('alpha', (1,100)))
-        Slider: alpha [1.0--|1.0|---100.0]
-        sage: sage.server.notebook.interact.automatic_control((2,(1,100)))
-        Slider: None [1.0--|2.0|---100.0]
-        sage: sage.server.notebook.interact.automatic_control(('alpha label', (2,(1,100))))
-        Slider: alpha label [1.0--|2.0|---100.0]
-        sage: sage.server.notebook.interact.automatic_control((2, ('alpha label',(1,100))))
-        Slider: alpha label [1.0--|2.0|---100.0]
+        sage: sage.server.notebook.interact.automatic_control((1,250))
+        Slider: None [1.0--|1.0|---250.0]
+        sage: sage.server.notebook.interact.automatic_control(('alpha', (1,250)))
+        Slider: alpha [1.0--|1.0|---250.0]
+        sage: sage.server.notebook.interact.automatic_control((2,(0,250)))
+        Slider: None [0.0--|2.00400801603|---250]
+        sage: sage.server.notebook.interact.automatic_control(('alpha label', (2,(0,250))))
+        Slider: alpha label [0.0--|2.00400801603|---250]
+        sage: sage.server.notebook.interact.automatic_control((2, ('alpha label',(0,250))))
+        Slider: alpha label [0.0--|2.00400801603|---250]
         sage: C = sage.server.notebook.interact.automatic_control((1,52, 5)); C
         Slider: None [1--|1|---52]
         sage: C.values()
@@ -2028,9 +2524,7 @@ def automatic_control(default):
         C = input_box(default, label=label, type=Color)
     elif isinstance(default, tuple):
         if len(default) == 2:
-            # The default 99.0 below is a sort of "heuristic value" so there are 100 steps
-            C = slider(srange(default[0], default[1], (default[1]-default[0])/99.0,
-                              include_endpoint=True), default = default_value, label=label)
+            C = slider(default[0], default[1], default=default_value, label=label)
         elif len(default) == 3:
             C = slider(default[0], default[1], default[2], default=default_value, label=label)
         else:

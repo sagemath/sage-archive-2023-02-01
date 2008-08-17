@@ -289,7 +289,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         else:
             return ComplexDoubleElement(x, im)
 
-    cdef coerce_map_from_c(self, S):
+    cpdef coerce_map_from_c(self, S):
         from integer_ring import ZZ
         from rational_field import QQ
         import real_mpfr
@@ -1774,8 +1774,7 @@ cdef class FloatToCDF(Morphism):
             from sage.structure.parent import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
-    cdef Element _call_c(self, x):
-        # Override this _call_c rather than _call_c_impl because a may not be an Element
+    cpdef Element _call_(self, x):
         cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
         z._complex = gsl_complex_rect(PyFloat_AsDouble(x), 0)
         return z

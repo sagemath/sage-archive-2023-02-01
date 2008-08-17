@@ -867,6 +867,16 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         return self.__is_sparse
 
+    def is_finite(self):
+        """
+        EXAMPLES:
+            sage: MatrixSpace(GF(101), 10000).is_finite()
+            True
+            sage: MatrixSpace(QQ, 2).is_finite()
+            False
+        """
+        return self.base_ring().is_finite()
+
     def gen(self, n):
         """
         Return the n-th generator of this matrix space.

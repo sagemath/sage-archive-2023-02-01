@@ -57,7 +57,7 @@ def ComplexIntervalField(prec=53, names=None):
         Real Interval Field with 100 bits of precision
         sage: i = ComplexIntervalField(200).gen()
         sage: i^2
-        [-1.0000000000000000000000000000000000000000000000000000000000000 .. -1.0000000000000000000000000000000000000000000000000000000000000]
+        -1.0000000000000000000000000000000000000000000000000000000000000?
     """
     global cache
     if cache.has_key(prec):
@@ -79,16 +79,16 @@ class ComplexIntervalField_class(field.Field):
         Complex Interval Field with 53 bits of precision
         sage: Q = RationalField()
         sage: C(1/3)
-        [0.33333333333333331 .. 0.33333333333333338]
+        0.3333333333333334?
         sage: C(1/3, 2)
-        [0.33333333333333331 .. 0.33333333333333338] + [2.0000000000000000 .. 2.0000000000000000]*I
+        0.3333333333333334? + 2.0000000000000000?*I
 
     We can also coerce rational numbers and integers into C, but
     coercing a polynomial will raise an exception.
 
         sage: Q = RationalField()
         sage: C(1/3)
-        [0.33333333333333331 .. 0.33333333333333338]
+        0.3333333333333334?
         sage: S = PolynomialRing(Q, 'x')
         sage: C(S.gen())
         Traceback (most recent call last):
@@ -97,13 +97,13 @@ class ComplexIntervalField_class(field.Field):
 
     This illustrates precision.
         sage: CIF = ComplexIntervalField(10); CIF(1/3, 2/3)
-        [0.33300 .. 0.33350] + [0.66601 .. 0.66700]*I
+        0.334? + 0.667?*I
         sage: CIF
         Complex Interval Field with 10 bits of precision
         sage: CIF = ComplexIntervalField(100); CIF
         Complex Interval Field with 100 bits of precision
         sage: z = CIF(1/3, 2/3); z
-        [0.33333333333333333333333333333307 .. 0.33333333333333333333333333333347] + [0.66666666666666666666666666666614 .. 0.66666666666666666666666666666693]*I
+        0.333333333333333333333333333334? + 0.666666666666666666666666666667?*I
 
     We can load and save complex numbers and the complex field.
         sage: loads(z.dumps()) == z
@@ -172,13 +172,13 @@ class ComplexIntervalField_class(field.Field):
         """
         EXAMPLES:
             sage: CIF(2)
-            [2.0000000000000000 .. 2.0000000000000000]
+            2.0000000000000000?
             sage: CIF(CIF.0)
-            [1.0000000000000000 .. 1.0000000000000000]*I
+            1.0000000000000000?*I
             sage: CIF('1+I')
-            [1.0000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 1.0000000000000000]*I
+            1.0000000000000000? + 1.0000000000000000?*I
             sage: CIF(2,3)
-            [2.0000000000000000 .. 2.0000000000000000] + [3.0000000000000000 .. 3.0000000000000000]*I
+            2.0000000000000000? + 3.0000000000000000?*I
         """
         if im is None:
             if isinstance(x, complex_interval.ComplexIntervalFieldElement) and x.parent() is self:

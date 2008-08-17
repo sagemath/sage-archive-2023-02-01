@@ -67,7 +67,7 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
         out = {}
         fail = False
         while el != 0:
-            l = el.monomials()
+            l = el.support()
             l.sort()
             part2 = l[0]
             n = part2.size()
@@ -166,7 +166,7 @@ class kSchurFunctions_t(kSchurFunctions_generic):
 
         if isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
             x = self._s(x).restrict_parts(self.k)
-            for p in x.monomials():
+            for p in x.support():
                 self._s_cache(p.size())
             return self._change_by_triangularity(x, self._self_to_s_cache, True)
         else:

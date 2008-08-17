@@ -133,11 +133,12 @@ from sage.misc.randstate import current_randstate
 
 class GraphGenerators():
     r"""
-    A class consisting of constructors for several common graphs.
+    A class consisting of constructors for several common graphs, as well as
+    orderly generation of isomorphism class representatives.
 
-    A list of all graphs and graph structures in this database is available
-    via tab completion. Type "graphs." and then hit tab to see which graphs
-    are available.
+    A list of all graphs and graph structures (other than iso. class rep's) in
+    this database is available via tab completion. Type "graphs." and then hit
+    tab to see which graphs are available.
 
     The docstrings include educational information about each named graph
     with the hopes that this class can be used as a reference.
@@ -208,6 +209,125 @@ class GraphGenerators():
             - DegreeSequenceTree
             - DegreeSequenceExpected
     \end{verbatim}
+
+    ORDERLY GENERATION:
+    graphs(vertices, property=lambda x: True, augment='edges', size=None)
+
+    This syntax accesses the generator of isomorphism class representatives.
+    Iterates over distinct, exhaustive representatives.
+
+    INPUT:
+        vertices -- natural number
+        property -- any property to be tested on graphs before generation.
+            (Ignored if deg_seq is specified.)
+        augment -- choices:
+            'vertices' -- augments by adding a vertex, and edges incident
+                to that vertex.
+                In this case, all graphs on up to n=vertices are generated.
+                If for any graph G satisfying the property, every subgraph,
+                obtained from G by deleting one vertex and only edges incident
+                to that vertex, satisfies the property, then this will generate
+                all graphs with that property. If this does not hold, then all
+                the graphs generated will satisfy the property, but there will
+                be some missing.
+            'edges' -- augments a fixed number of vertices by adding one edge
+                In this case, all graphs on exactly n=vertices are generated.
+                If for any graph G satisfying the property, every subgraph,
+                obtained from G by deleting one edge but not the vertices
+                incident to that edge, satisfies the property, then this will
+                generate all graphs with that property. If this does not hold,
+                then all the graphs generated will satisfy the property, but
+                there will be some missing.
+        deg_seq -- a sequence of non-negative integers, or None. If specified,
+            the generated graphs will have these integers for degrees. In this
+            case property and size are both ignored.
+        loops -- whether to allow loops in the graph or not.
+
+    EXAMPLES:
+    Print graphs on 3 or less vertices.
+        sage: for G in graphs(3, augment='vertices'):
+        ...    print G
+        Graph on 0 vertices
+        Graph on 1 vertex
+        Graph on 2 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 2 vertices
+        Graph on 3 vertices
+
+    Print graphs on 3 vertices.
+        sage: for G in graphs(3):
+        ...    print G
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+
+    Generate all graphs with 5 vertices and 4 edges.
+        sage: L = graphs(5, size=4)
+        sage: len(list(L))
+        6
+
+    Generate all graphs with 5 vertices and up to 4 edges.
+        sage: L = list(graphs(5, lambda G: G.size() <= 4))
+        sage: len(L)
+        14
+        sage: graphs_list.show_graphs(L)    # long time
+
+    Generate all graphs with degree at most 2, up to 6 vertices.
+        sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
+        sage: L = list(graphs(6, property, augment='vertices'))
+        sage: len(L)
+        45
+
+    Generate all bipartite graphs on up to 7 vertices:
+    (see http://www.research.att.com/~njas/sequences/A033995)
+        sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
+        sage: [len([g for g in L if g.order() == i]) for i in [1..7]]
+        [1, 2, 3, 7, 13, 35, 88]
+
+    Generate all bipartite graphs on exactly 8 vertices:
+    (see http://www.research.att.com/~njas/sequences/A033995)
+        sage: L = list( graphs(8, lambda G: G.is_bipartite()) )
+        sage: len(L)
+        303
+
+    Generate graphs on the fly:
+    (see http://www.research.att.com/~njas/sequences/A000088)
+        sage: for i in range(0, 7):
+        ...    print len(list(graphs(i)))
+        1
+        1
+        2
+        4
+        11
+        34
+        156
+
+    Generate all simple graphs, allowing loops:
+    (see http://www.research.att.com/~njas/sequences/A000666)
+        sage: L = list(graphs(6,augment='vertices',loops=True))
+        sage: for i in [0..6]: print i, len([g for g in L if g.order() == i])
+        0 1
+        1 2
+        2 6
+        3 20
+        4 90
+        5 544
+        6 5096
+
+    Generate all graphs with a specified degree sequence:
+    (see http://www.research.att.com/~njas/sequences/A002851)
+        sage: for i in [4,6,8]:
+        ...    print i, len([g for g in graphs(i,deg_seq=[3]*i) if g.is_connected()])
+        4 1
+        6 2
+        8 5
+
+    REFERENCE:
+        Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
+        Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
     """
 
 ################################################################################
@@ -2185,6 +2305,8 @@ class GraphGenerators():
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
             sage: G.show()
+            sage: graphs.RandomGNP(4,1)
+            Complete graph: Graph on 4 vertices
 
         TIMINGS:
         The following timings compare the speed with fast==False and
@@ -2209,6 +2331,8 @@ class GraphGenerators():
         """
         if seed is None:
             seed = current_randstate().long_seed()
+        if p == 1:
+            return graphs.CompleteGraph(n)
         import networkx
         if fast:
             G = networkx.fast_gnp_random_graph(n, p, seed)
@@ -2646,7 +2770,8 @@ class GraphGenerators():
 #   Graph Iterators
 ################################################################################
 
-    def __call__(self, vertices, property=lambda x: True, augment='edges', size=None):
+    def __call__(self, vertices, property=lambda x: True, augment='edges',
+        size=None, deg_seq=None, loops=False):
         """
         Accesses the generator of isomorphism class representatives. Iterates
         over distinct, exhaustive representatives.
@@ -2654,6 +2779,7 @@ class GraphGenerators():
         INPUT:
             vertices -- natural number
             property -- any property to be tested on graphs before generation.
+                (Ignored if deg_seq is specified.)
             augment -- choices:
                 'vertices' -- augments by adding a vertex, and edges incident
                     to that vertex.
@@ -2672,6 +2798,10 @@ class GraphGenerators():
                     generate all graphs with that property. If this does not hold,
                     then all the graphs generated will satisfy the property, but
                     there will be some missing.
+            deg_seq -- a sequence of non-negative integers, or None. If specified,
+                the generated graphs will have these integers for degrees. In this
+                case property and size are both ignored.
+            loops -- whether to allow loops in the graph or not.
 
         EXAMPLES:
         Print graphs on 3 or less vertices.
@@ -2735,29 +2865,66 @@ class GraphGenerators():
             34
             156
 
+        Generate all simple graphs, allowing loops:
+        (see http://www.research.att.com/~njas/sequences/A000666)
+            sage: L = list(graphs(5,augment='vertices',loops=True))
+            sage: for i in [0..5]: print i, len([g for g in L if g.order() == i])
+            0 1
+            1 2
+            2 6
+            3 20
+            4 90
+            5 544
+
+        Generate all graphs with a specified degree sequence:
+        (see http://www.research.att.com/~njas/sequences/A002851)
+            sage: for i in [4,6,8]:
+            ...    print i, len([g for g in graphs(i,deg_seq=[3]*i) if g.is_connected()])
+            4 1
+            6 2
+            8 5
+            sage: for i in [4,6,8]: # this is slower...
+            ...    print i, len([g for g in graphs(i,augment='vertices',deg_seq=[3]*i) if g.is_connected()])
+            4 1
+            6 2
+            8 5
+
+            sage: print 10, len([g for g in graphs(10,deg_seq=[3]*10) if g.is_connected()]) # long time
+            10 19
+
         REFERENCE:
             Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
             Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
         """
         from sage.graphs.graph import Graph
-        if size is not None:
+        if deg_seq is not None:
+            if len(deg_seq) != vertices or sum(deg_seq)%2 or sum(deg_seq) > vertices*(vertices-1):
+                raise ValueError("Invalid degree sequence.")
+            deg_seq = sorted(deg_seq)
+            if augment == 'edges':
+                property = lambda x: all([deg_seq[i] >= d for i,d in enumerate(sorted(x.degree()))])
+                extra_property = lambda x: deg_seq == sorted(x.degree())
+            else:
+                property = lambda x: all([deg_seq[i] >= d for i,d in enumerate(sorted(x.degree() + [0]*(vertices-x.num_verts()) ))])
+                extra_property = lambda x: x.num_verts() == vertices and deg_seq == sorted(x.degree())
+        elif size is not None:
             extra_property = lambda x: x.size() == size
         else:
             extra_property = lambda x: True
         if augment == 'vertices':
-            g = Graph()
-            for gg in canaug_traverse_vert(g, [], vertices, property):
+            g = Graph(loops=loops)
+            for gg in canaug_traverse_vert(g, [], vertices, property, loops=loops):
                 if extra_property(gg):
                     yield gg
         elif augment == 'edges':
-            g = Graph(vertices)
+            g = Graph(vertices, loops=loops)
             gens = []
             for i in range(vertices-1):
                 gen = range(i)
                 gen.append(i+1); gen.append(i)
                 gen += range(i+2, vertices)
                 gens.append(gen)
-            for gg in canaug_traverse_edge(g, gens, property):
+            for gg in canaug_traverse_edge(g, gens, property, loops=loops):
                 if extra_property(gg):
                     yield gg
         else:
@@ -2823,7 +2990,8 @@ class GraphGenerators():
 
 class DiGraphGenerators():
     r"""
-    A class consisting of constructors for several common digraphs.
+    A class consisting of constructors for several common digraphs, including
+    orderly generation of isomorphism class representatives.
 
     A list of all graphs and graph structures in this database is available
     via tab completion. Type "digraphs." and then hit tab to see which graphs
@@ -2839,6 +3007,85 @@ class DiGraphGenerators():
             - RandomDirectedGNC
             - RandomDirectedGNR
     \end{verbatim}
+
+    ORDERLY GENERATION:
+    digraphs(vertices, property=lambda x: True, augment='edges', size=None)
+
+    Accesses the generator of isomorphism class representatives. Iterates
+    over distinct, exhaustive representatives.
+
+    INPUT:
+        vertices -- natural number
+        property -- any property to be tested on digraphs before generation.
+        augment -- choices:
+            'vertices' -- augments by adding a vertex, and edges incident
+                to that vertex.
+                In this case, all digraphs on up to n=vertices are generated.
+                If for any digraph G satisfying the property, every subgraph,
+                obtained from G by deleting one vertex and only edges incident
+                to that vertex, satisfies the property, then this will generate
+                all digraphs with that property. If this does not hold, then all
+                the digraphs generated will satisfy the property, but there will
+                be some missing.
+            'edges' -- augments a fixed number of vertices by adding one edge
+                In this case, all digraphs on exactly n=vertices are generated.
+                If for any graph G satisfying the property, every subgraph,
+                obtained from G by deleting one edge but not the vertices
+                incident to that edge, satisfies the property, then this will
+                generate all digraphs with that property. If this does not hold,
+                then all the digraphs generated will satisfy the property, but
+                there will be some missing.
+
+    EXAMPLES:
+    Print digraphs on 2 or less vertices.
+        sage: for D in digraphs(2, augment='vertices'):
+        ...    print D
+        ...
+        Digraph on 0 vertices
+        Digraph on 1 vertex
+        Digraph on 2 vertices
+        Digraph on 2 vertices
+        Digraph on 2 vertices
+
+    Print digraphs on 3 vertices.
+        sage: for D in digraphs(3):
+        ...    print D
+        Digraph on 3 vertices
+        Digraph on 3 vertices
+        ...
+        Digraph on 3 vertices
+        Digraph on 3 vertices
+
+    Generate all digraphs with 4 vertices and 3 edges.
+        sage: L = digraphs(4, size=3)
+        sage: len(list(L))
+        13
+
+    Generate all digraphs with 4 vertices and up to 3 edges.
+        sage: L = list(digraphs(4, lambda G: G.size() <= 3))
+        sage: len(L)
+        20
+        sage: graphs_list.show_graphs(L)    # long time
+
+    Generate all digraphs with degree at most 2, up to 5 vertices.
+        sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
+        sage: L = list(digraphs(5, property, augment='vertices'))
+        sage: len(L)
+        75
+
+    Generate digraphs on the fly:
+    (see http://www.research.att.com/~njas/sequences/A000273)
+        sage: for i in range(0, 5):
+        ...    print len(list(digraphs(i)))
+        1
+        1
+        3
+        16
+        218
+
+    REFERENCE:
+        Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
+        Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
     """
 
     def ButterflyGraph(self, n, vertices='strings'):
@@ -2987,6 +3234,35 @@ class DiGraphGenerators():
         import networkx
         return graph.DiGraph(networkx.gnc_graph(n, seed))
 
+    def RandomDirectedGNP(self, n, p):
+        r"""
+        Returns a random digraph on $n$ nodes.  Each edge is inserted
+        independently with probability $p$.
+
+        REFERENCES:
+            [1] P. Erdos and A. Renyi, On Random Graphs, Publ. Math. 6, 290 (1959).
+            [2] E. N. Gilbert, Random Graphs, Ann. Math. Stat., 30, 1141 (1959).
+
+        PLOTTING:
+        When plotting, this graph will use the default spring-layout
+        algorithm, unless a position dictionary is specified.
+
+        EXAMPLE:
+            sage: digraphs.RandomDirectedGNP(10, .2).num_verts()
+            10
+
+        """
+        from random import random
+        D = graph.DiGraph(n)
+        for i in xrange(n):
+            for j in xrange(i):
+                if random() < p:
+                    D.add_edge(i,j)
+            for j in xrange(i+1,n):
+                if random() < p:
+                    D.add_edge(i,j)
+        return D
+
     def RandomDirectedGNR(self, n, p, seed=None):
         """
         Returns a random GNR (growing network with redirection) digraph with n
@@ -3123,7 +3399,7 @@ class DiGraphGenerators():
         else:
             raise NotImplementedError()
 
-def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False):
+def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=False):
     """
     Main function for exhaustive generation. Recursive traversal of a
     canonically generated tree of isomorph free (di)graphs satisfying a given
@@ -3134,6 +3410,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False):
         aut_gens -- list of generators of Aut(g), in list notation.
         max_verts -- when to retreat.
         property -- check before traversing below g.
+        deg_seq -- specify a degree sequence to try to obtain.
 
     EXAMPLES:
         sage: from sage.graphs.graph_generators import canaug_traverse_vert
@@ -3182,6 +3459,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False):
     if not property(g):
         return
     yield g
+
     n = g.order()
     if n < max_verts:
 
@@ -3199,21 +3477,22 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False):
         # union-find C(g) under Aut(g)
         for gen in aut_gens:
             for i in xrange(len(children)):
-                if children[i] == -1:
-                    k = 0
-                    for j in xrange(possibilities):
-                        if (1 << j)&i:
-                            if dig and j >= n:
-                                k += (1 << (gen[j-n]+n))
-                            else:
-                                k += (1 << gen[j])
-                    while children[k] != -1:
-                        k = children[k]
-                    if i != k:
-                        # union i & k
-                        smaller, larger = sorted([i,k])
-                        children[larger] = smaller
-                        num_roots -= 1
+                k = 0
+                for j in xrange(possibilities):
+                    if (1 << j)&i:
+                        if dig and j >= n:
+                            k += (1 << (gen[j-n]+n))
+                        else:
+                            k += (1 << gen[j])
+                while children[k] != -1:
+                    k = children[k]
+                while children[i] != -1:
+                    i = children[i]
+                if i != k:
+                    # union i & k
+                    smaller, larger = sorted([i,k])
+                    children[larger] = smaller
+                    num_roots -= 1
 
         # find representatives of orbits of C(g)
         roots = []
@@ -3224,47 +3503,53 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False):
                 found_roots += 1
                 roots.append(i)
             i += 1
-
         for i in roots:
             # construct a z for each number in roots...
             z = g.copy()
             z.add_vertex(n)
-            if not property(z):
-                continue
-
+            edges = []
             if dig:
                 index = 0
-                while index < n:
+                while index < possibilities/2:
                     if (1 << index)&i:
-                        z.add_edge((index,n))
+                        edges.append((index,n))
                     index += 1
-                while index < 2*n:
+                while index < possibilities:
                     if (1 << index)&i:
-                        z.add_edge((n,index-n))
+                        edges.append((n,index-n))
                     index += 1
             else:
                 index = 0
                 while (1 << index) <= i:
                     if (1 << index)&i:
-                        z.add_edge((index,n))
+                        edges.append((index,n))
                     index += 1
+            z.add_edges(edges)
+            z_s = []
+            if property(z):
+                z_s.append(z)
+            if loops:
+                z = z.copy()
+                z.add_edge((n,n))
+                if property(z):
+                    z_s.append(z)
+            for z in z_s:
+                z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=(dig or loops))
+                cut_vert = 0
+                while canonical_relabeling[cut_vert] != n:
+                    cut_vert += 1
+                sub_verts = [v for v in z if v != cut_vert]
+                m_z = z.subgraph(sub_verts)
 
-            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=dig)
-            cut_vert = 0
-            while canonical_relabeling[cut_vert] != n:
-                cut_vert += 1
-            sub_verts = [v for v in z if v != cut_vert]
-            m_z = z.subgraph(sub_verts)
-
-            if m_z == g:
-                for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property, dig=dig):
-                    yield a
-            else:
-                for possibility in check_aut(z_aut_gens, cut_vert, n):
-                    if m_z.relabel(possibility, inplace=False) == g:
-                        for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property, dig=dig):
-                            yield a
-                        break
+                if m_z == g:
+                    for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property, dig=dig, loops=loops):
+                        yield a
+                else:
+                    for possibility in check_aut(z_aut_gens, cut_vert, n):
+                        if m_z.relabel(possibility, inplace=False) == g:
+                            for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property, dig=dig, loops=loops):
+                                yield a
+                            break
 
 def check_aut(aut_gens, cut_vert, n):
     """
@@ -3300,7 +3585,7 @@ def check_aut(aut_gens, cut_vert, n):
                 if new_perm[cut_vert] == n:
                     yield new_perm
 
-def canaug_traverse_edge(g, aut_gens, property, dig=False):
+def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False):
     """
     Main function for exhaustive generation. Recursive traversal of a
     canonically generated tree of isomorph free graphs satisfying a given
@@ -3360,18 +3645,23 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False):
         max_size = n*(n-1)
     else:
         max_size = (n*(n-1))>>1 # >> 1 is just / 2 (this is n choose 2)
+    if loops: max_size += n
     if g.size() < max_size:
         # build a list representing C(g) - the edge to be added
         # is one of max_size choices
-        num_roots = max_size
         if dig:
-            children = [[(j,i) for i in range(n)] for j in range(n)]
-            # note - loops are ignored (they are there for indexing)
+            children = [[(j,i) for i in xrange(n)] for j in xrange(n)]
         else:
-            children = [[(j-1,i) for i in range(j-1)] for j in range(1,n+1)]
+            children = [[(j,i) for i in xrange(j)] for j in xrange(n)]
         # union-find C(g) under Aut(g)
+        orbits = range(n)
         for gen in aut_gens:
             for iii in xrange(n):
+                if orbits[gen[iii]] != orbits[iii]:
+                    temp = orbits[gen[iii]]
+                    for jjj in xrange(n):
+                        if orbits[jjj] == temp:
+                            orbits[jjj] = orbits[iii]
                 if dig:
                     jjj_range = range(iii) + range(iii+1, n)
                 else:
@@ -3413,7 +3703,6 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False):
                             children[x][y] = (i, j)
                         else:
                             continue
-                        num_roots -= 1
         # find representatives of orbits of C(g)
         roots = []
         for i in range(n):
@@ -3424,6 +3713,12 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False):
             for j in j_range:
                 if children[i][j] == (i, j):
                     roots.append((i,j))
+        if loops:
+            seen = []
+            for i in xrange(n):
+                if orbits[i] not in seen:
+                    roots.append((i,i))
+                    seen.append(orbits[i])
         for i, j in roots:
             if g.has_edge(i, j):
                 continue
@@ -3432,7 +3727,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False):
             z.add_edge(i, j)
             if not property(z):
                 continue
-            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=dig)
+            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=(dig or loops))
             relabel_inverse = [0]*n
             for ii in xrange(n):
                 relabel_inverse[canonical_relabeling[ii]] = ii
@@ -3447,12 +3742,12 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False):
             m_z = z.copy()
             m_z.delete_edge(cut_edge)
             if m_z == g:
-                for a in canaug_traverse_edge(z, z_aut_gens, property, dig=dig):
+                for a in canaug_traverse_edge(z, z_aut_gens, property, dig=dig, loops=loops):
                     yield a
             else:
                 for possibility in check_aut_edge(z_aut_gens, cut_edge, i, j, n, dig=dig):
                     if m_z.relabel(possibility, inplace=False) == g:
-                        for a in canaug_traverse_edge(z, z_aut_gens, property, dig=dig):
+                        for a in canaug_traverse_edge(z, z_aut_gens, property, dig=dig, loops=loops):
                             yield a
                         break
 
@@ -3491,6 +3786,7 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
                     yield new_perm
                 if not dig and new_perm[cut_edge[0]] == j and new_perm[cut_edge[1]] == i:
                     yield new_perm
+
 
 # Easy access to the graph generators from the command line:
 graphs = GraphGenerators()

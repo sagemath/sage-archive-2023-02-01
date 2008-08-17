@@ -99,14 +99,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         weight = int(weight)
         if weight <= 1:
             raise ValueError, "Weight (=%s) Modular symbols of weight <= 1 not defined."%weight
-        if not isinstance(group, congroup.CongruenceSubgroup):
+        if not congroup.is_CongruenceSubgroup(group):
             raise TypeError, "group must be a congruence subgroup"
 
         sign = int(sign)
         if not isinstance(base_ring, rings.Ring) and base_ring.is_field():
             raise TypeError, "base_ring must be a commutative ring"
 
-        if character == None and isinstance(group, congroup.Gamma0):
+        if character == None and congroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
 
         space.ModularSymbolsSpace.__init__(self, group, weight,

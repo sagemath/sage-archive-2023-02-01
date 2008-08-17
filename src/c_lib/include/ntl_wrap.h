@@ -17,6 +17,7 @@
 #include <NTL/GF2EX.h>
 #include <NTL/mat_GF2E.h>
 #include <NTL/HNF.h>
+#include <NTL/LLL.h>
 #include <gmp.h>
 using namespace NTL;
 #endif

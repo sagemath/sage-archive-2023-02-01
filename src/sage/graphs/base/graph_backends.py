@@ -493,6 +493,9 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Initialize the backend with NetworkX graph N.
 
         DOCTEST:
+            sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
+            sage: G.iterator_edges([],True,True)
+            <generator object at ...>
         """
         if N is None:
             import networkx

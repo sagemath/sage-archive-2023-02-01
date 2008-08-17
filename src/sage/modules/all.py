@@ -15,6 +15,8 @@
 
 from free_module import FreeModule, VectorSpace, span, is_FreeModule
 
+from free_quadratic_module import FreeQuadraticModule, QuadraticSpace, InnerProductSpace, is_FreeQuadraticModule
+
 from free_module_element import is_FreeModuleElement, vector, free_module_element
 
 from free_module_homspace import is_FreeModuleHomspace

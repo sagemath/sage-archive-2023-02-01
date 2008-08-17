@@ -2711,11 +2711,27 @@ cdef class Matrix(sage.structure.element.Matrix):
         This is analogous to the situation for ring elements, e.g., for $\ZZ$ we have:
             sage: parent(~1)
             Rational Field
+
+        A matrix with 0 rows and 0 columns is invertible (see trac \#3734):
+            sage: M = MatrixSpace(RR,0,0)(0); M
+            []
+            sage: M.determinant()
+            1.00000000000000
+            sage: M.is_invertible()
+            True
+            sage: M.inverse()
+            []
+            sage: M.inverse() == M
+            True
+
+
         """
         if not self.base_ring().is_field():
             return ~self.matrix_over_field()
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
+        if self.nrows()==0:
+            return self
         A = self.augment(self.parent().identity_matrix())
         B = A.echelon_form()
         if B[self._nrows - 1,  self._ncols - 1] != 1:

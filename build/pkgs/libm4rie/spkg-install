@@ -12,7 +12,7 @@ $MAKE clean
 
 INCLUDES="-I$SAGE_LOCAL/include/"
 
-CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib -O3 -Wall -pedantic -g"
+CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib -O2 -Wall -pedantic -g"
 CPPFLAGS="$INCLUDES"
 
 if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then

@@ -649,6 +649,22 @@ class FreeModule_generic(module.Module):
             sage: M = ZZ^4
             sage: M([1,-1,0,1])
             (1, -1, 0, 1)
+
+            sage: N = M.submodule([[1,0,0,0], [0,1,1,0]])
+            sage: N([1,1,1,0])
+            (1, 1, 1, 0)
+            sage: N((3,-2,-2,0))
+            (3, -2, -2, 0)
+            sage: N((0,0,0,1))
+            Traceback (most recent call last):
+            ...
+            ValueError: element (= (0, 0, 0, 1)) is not in free module
+
+        Beware that using check=False can create invalid results:
+            sage: N((0,0,0,1), check=False)
+            (0, 0, 0, 1)
+            sage: N((0,0,0,1), check=False) in N
+            True
         """
         if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
             return self.zero_vector()
@@ -659,12 +675,14 @@ class FreeModule_generic(module.Module):
                 else:
                     return x
             x = x.list()
-        w = self._element_class(self, x, coerce, copy)
         if check:
             if isinstance(self, FreeModule_ambient):
-                return w
-            self.coordinates(w)
-        return w
+                return self._element_class(self, x, coerce, copy)
+            try:
+                self.coordinates(x)
+            except ArithmeticError:
+                raise ValueError, "element (= %s) is not in free module"%(x,)
+        return self._element_class(self, x, coerce, copy)
 
     def is_submodule(self, other):
         """

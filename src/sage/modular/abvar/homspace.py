@@ -734,7 +734,7 @@ class EndomorphismSubring(Homspace, Ring):
         NOTE: One knows that for modular abelian varieties, the
         endomorphism ring should be isomorphic to an order in a number
         field. However, the discriminant returned by this function
-        will be 2^(self.dimension()) times the discriminant of that
+        will be $2^n$ ($n = $self.dimension()) times the discriminant of that
         order, since the elements are represented as 2d x 2d matrices.
         Notice, for example, that the case of a one dimensional
         abelian variety, whose endomorphism ring must be ZZ, has

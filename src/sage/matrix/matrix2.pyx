@@ -4464,6 +4464,40 @@ cdef class Matrix(matrix1.Matrix):
             # try to return a complex result
             return self.change_ring(sage.rings.complex_field.ComplexField(prec))
 
+    def plot(self, *args, **kwds):
+        """
+        A plot of this matrix.
+
+        Each (ith, jth) matrix element is given a different color
+        value depending on its relative size compared to the other
+        elements in the matrix.
+
+        The tick marks drawn on the frame axes denote the (ith, jth)
+        element of the matrix.
+
+        This method just calls \code{matrix_plot}. \code{*args} and
+        \code{**kwds} are passed to \code{matrix_plot}.
+
+        EXAMPLES:
+
+        A matrix over ZZ colored with different grey levels:
+
+            sage: A = matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]])
+            sage: A.plot()
+
+        Here we make a random matrix over RR and use cmap='hsv'
+        to color the matrix elements different RGB colors:
+
+            sage: A = random_matrix(RDF, 50)
+            sage: A.plot(cmap='hsv')
+
+        Another random plot, but over GF(389):
+            sage: A = random_matrix(GF(389), 10)
+            sage: A.plot(cmap='Oranges')
+        """
+        from sage.plot.plot import MatrixPlotFactory
+        matrix_plot = MatrixPlotFactory()
+        return matrix_plot(self, *args, **kwds)
 
 def _dim_cmp(x,y):
     """

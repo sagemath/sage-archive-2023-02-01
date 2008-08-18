@@ -1479,7 +1479,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         cdef poly *_p
 
-        if l == 1 and (PY_TYPE_CHECK(x, tuple) or PY_TYPE_CHECK(x, list)):
+        if l == 1 and (PY_TYPE_CHECK(x[0], tuple) or PY_TYPE_CHECK(x[0], list)):
             x = x[0]
             l = len(x)
 

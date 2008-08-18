@@ -1494,7 +1494,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         S = self.parent().change_ring(R)
         return S(self)
 
-    def _mpoly_dict_recursive(self, vars=None, base_ring=None):
+    def _mpoly_dict_recursive(self, variables=None, base_ring=None):
         """
         Return a dict of coefficent entries suitable for construction of a MPolynomial_polydict
         with the given variables.
@@ -1511,20 +1511,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return {}
 
         var = self.parent().variable_name()
-        if vars is None:
-            vars = self.parent().variable_names_recursive()
-        if not var in vars:
+        if variables is None:
+            variables = self.parent().variable_names_recursive()
+        if not var in variables:
             x = base_ring(self) if base_ring else self
-            const_ix = ETuple((0,)*len(vars))
+            const_ix = ETuple((0,)*len(variables))
             return { const_ix: x }
 
-        prev_vars = vars[:list(vars).index(var)]
-        const_ix = ETuple((0,)*len(prev_vars))
+        prev_variables = variables[:list(variables).index(var)]
+        const_ix = ETuple((0,)*len(prev_variables))
         mpolys = None
 
-        if len(prev_vars) > 0:
+        if len(prev_variables) > 0:
             try:
-                mpolys = [a._mpoly_dict_recursive(prev_vars, base_ring) for a in self]
+                mpolys = [a._mpoly_dict_recursive(prev_variables, base_ring) for a in self]
             except AttributeError, msg:
                 pass
 
@@ -1535,7 +1535,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 mpolys = [{const_ix:a} if a else {} for a in self]
 
         D = {}
-        leftovers = (0,) * (len(vars) - len(prev_vars) - 1)
+        leftovers = (0,) * (len(variables) - len(prev_variables) - 1)
         for k in range(len(mpolys)):
             for i,a in mpolys[k].iteritems():
                 j = ETuple((k,) + leftovers)

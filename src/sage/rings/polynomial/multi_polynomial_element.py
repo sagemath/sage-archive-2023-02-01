@@ -383,10 +383,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         return gcd(self.coefficients(),integer=self.parent() is ZZ)
 
     def degrees(self):
-        """
-        Returns a list (precisely -- an \code{ETuple}) with the degree of
-        each variable in this polynomial.  The list of degrees is, of course,
-        ordered by the order of the generators.
+        r"""
+        Returns a tuple (precisely -- an \code{ETuple}) with the
+        degree of each variable in this polynomial.  The list of
+        degrees is, of course, ordered by the order of the generators.
 
         EXAMPLES:
             sage: R.<x,y,z>=PolynomialRing(ZZ)

@@ -2181,6 +2181,31 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if(r != currRing): rChangeCurrRing(r)
         return pLDeg(p,&l,r)
 
+    def degrees(self):
+        r"""
+        Returns a tuple with the maximl degree of each variable in
+        this polynomial.  The list of degrees is ordered by the order
+        of the generators.
+
+        EXAMPLE:
+            sage: R.<y0,y1,y2> = PolynomialRing(QQ,3)
+            sage: q = 3*y0*y1*y1*y2; q
+            3*y0*y1^2*y2
+            sage: q.degrees()
+            (1, 2, 1)
+            sage: (q + y0^5).degrees()
+            (5, 2, 1)
+        """
+        cdef poly *p = self._poly
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef int i
+        cdef list d = [0 for _ in range(r.N)]
+        while p:
+            for i from 0 <= i < r.N:
+                d[i] = max(d[i],p_GetExp(p, i+1, r))
+            p = pNext(p)
+        return tuple(d)
+
     def coefficient(self, degrees):
         """
         Return the coefficient of the variables with the degrees

@@ -53,6 +53,11 @@
 #include <iostream>
 #include "Python.h"
 
+void ginac_pyinit_Integer(PyObject*);
+void ginac_pyinit_Float(PyObject*);
+void ginac_pyinit_gcd(PyObject*);
+void ginac_pyinit_lcm(PyObject*);
+void ginac_pyinit_binomial(PyObject*);
 
 namespace GiNaC {
   enum Type {
@@ -134,6 +139,7 @@ namespace GiNaC {
     friend std::ostream& operator << (std::ostream& os, const Number_T& s);
     friend Number_T pow(const Number_T& base, const Number_T& exp);
     friend void coerce(Number_T& new_left, Number_T& new_right, const Number_T& left, const Number_T& right);
+    friend PyObject* to_pyobject(const Number_T& x);
   };
 
   std::ostream& operator << (std::ostream& os, const Number_T& s);

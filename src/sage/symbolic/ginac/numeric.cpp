@@ -68,6 +68,37 @@ namespace math {
 
 int DEBUG=1;
 
+static PyObject* pyfunc_Integer = 0;
+void ginac_pyinit_Integer(PyObject* f) {
+  Py_INCREF(f);
+  pyfunc_Integer = f;
+}
+
+static PyObject* pyfunc_Float = 0;
+void ginac_pyinit_Float(PyObject* f) {
+  Py_INCREF(f);
+  pyfunc_Float = f;
+}
+
+static PyObject* pyfunc_gcd = 0;
+void ginac_pyinit_gcd(PyObject* f) {
+  Py_INCREF(f);
+  pyfunc_gcd = f;
+}
+
+static PyObject* pyfunc_lcm = 0;
+void ginac_pyinit_lcm(PyObject* f) {
+  Py_INCREF(f);
+  pyfunc_lcm = f;
+}
+
+static PyObject* pyfunc_binomial = 0;
+void ginac_pyinit_binomial(PyObject* f) {
+  Py_INCREF(f);
+  pyfunc_binomial = f;
+}
+
+
 namespace GiNaC {
   void todo(const char* s) {
     if (DEBUG)
@@ -93,8 +124,8 @@ namespace GiNaC {
   }
 
   void verbose(const char* s) {
-    //    if (DEBUG)
-    //      std::cout << s << std::endl;
+    //if (DEBUG)
+    //  std::cout << s << std::endl;
   }
 
 long 
@@ -178,6 +209,29 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
       stub("operator << type not handled");
     }
   }
+
+  PyObject* to_pyobject(const Number_T& x) {
+    // Returns a New Reference
+    PyObject* o;
+    switch(x.t) {
+      case LONG:
+	if (!(o = PyObject_CallFunction(pyfunc_Integer, "l", x.v._long))) {
+	  py_error("Error coercing a long to an Integer");
+	}
+	return o;
+      case DOUBLE:
+	if (!(o = PyObject_CallFunction(pyfunc_Float, "d", x.v._double))) {
+	  py_error("Error coercing a long to an Integer");
+	}
+	return o;
+      case PYOBJECT:
+        Py_INCREF(x.v._pyobject);
+        return x.v._pyobject;
+      default:
+	stub("to_pyobject -- not able to do conversion to pyobject; everything else will be nonsense");
+	return 0;
+      }
+  }
   
   void coerce(Number_T& new_left, Number_T& new_right, const Number_T& left, const Number_T& right) {
     verbose("coerce");
@@ -187,6 +241,7 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
       new_right = right;
       return;
     }
+    PyObject* o;
     switch(left.t) {
     case LONG:
       switch(right.t) {
@@ -195,7 +250,13 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
 	new_right = right;
 	return;
       case PYOBJECT:
-	new_left = PyInt_FromLong(left);
+	verbose("About to coerce a Python long to an Integer");
+	if (!(o = PyObject_CallFunction(pyfunc_Integer, "l", left.v._long))) {
+	  py_error("Error coercing a long to an Integer");
+	}
+	new_left = o;
+	Py_DECREF(o);
+	//new_left = PyInt_FromLong(left);
 	new_right = right;
 	return;
       default:
@@ -215,16 +276,8 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
 	stub("** coerce not fully implemented -- left DOUBLE ** ");
       }
     case PYOBJECT:
-      switch(right.t) {
-      case LONG:
-	new_left = left;
-	new_right = PyInt_FromLong(right);
-	return;
-      case DOUBLE:
-	new_left = left;
-	new_right = PyFloat_FromDouble(right);
-	return;
-      }
+      new_right = to_pyobject(right);
+      return;
     }
     stub("** coerce not fully implemented yet **");
   }
@@ -254,13 +307,17 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
     verbose("Number_T::Number_T()");
     t = LONG;
     v._long = 0;
-    //t = PYOBJECT;
     //    v._pyobject = PyInt_FromLong(0);
+    // t = PYOBJECT;
+    // v._pyobject = Integer_Zero;
+    // Py_INCREF(v._pyobject);
   }
   Number_T::Number_T(const int& x) { 
     verbose("Number_T::Number_T(const int& x)");
     //t = PYOBJECT;
-    //v._pyobject = PyInt_FromLong(x);
+    //if (!(v._pyobject = PyObject_CallFunction(pyfunc_Integer, "i", x)))
+    //  py_error("Error creating int");
+    // v._pyobject = PyInt_FromLong(x);
     t = LONG;
     v._long = x;
   }
@@ -268,26 +325,39 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
     verbose("Number_T::Number_T(const long int& x)");
     t = LONG;
     v._long = x;
+
+    //t = PYOBJECT;
+    //if (!(v._pyobject = PyObject_CallFunction(pyfunc_Integer, "l", x)))
+    //  py_error("Error creating long int");
+
     //t = PYOBJECT;
     //v._pyobject = PyInt_FromLong(x);
   }
   Number_T::Number_T(const unsigned int& x) { 
     verbose("Number_T::Number_T(const unsigned int& x)");
     t = PYOBJECT;
-    v._pyobject = PyInt_FromLong(x);
+    if (!(v._pyobject = PyObject_CallFunction(pyfunc_Integer, "I", x)))
+      py_error("Error creating unsigned long int");
   }
   Number_T::Number_T(const unsigned long& x) { 
     verbose("Number_T::Number_T(const unsigned long& x)");
     t = PYOBJECT;
-    v._pyobject = PyInt_FromLong(x);
+    if (!(v._pyobject = PyObject_CallFunction(pyfunc_Integer, "k", x)))
+      py_error("Error creating unsigned long int");
   }
+
   Number_T::Number_T(const double& x) { 
     verbose("Number_T::Number_T(const double& x)");
     t = DOUBLE;
     v._double = x; 
+
+    //t = PYOBJECT;
+    //if (!(v._pyobject = PyObject_CallFunction(pyfunc_Float, "d", x)))
+    //  py_error("Error creating unsigned double");
     //t = PYOBJECT;
     //v._pyobject = PyFloat_FromDouble(x);
   }
+
   Number_T::Number_T(const Number_T& x) { 
     verbose("Number_T::Number_T(const Number_T& x)");
     t = x.t;
@@ -911,12 +981,16 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
     case LONG:
       return (v._long * b.v._long) / gcd_long(v._long, b.v._long);
     case PYOBJECT:
-      // TODO: deal with null return value
-      PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_lcm, b.v._pyobject);
-      if (!o) {
+      PyObject* o;
+      if (! (o = PyObject_CallFunctionObjArgs(pyfunc_gcd, v._pyobject, b.v._pyobject, NULL)) ) {
 	py_error("lcm()");
       }
       return o;
+      //PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_lcm, b.v._pyobject);
+      //if (!o) {
+      //py_error("lcm()");
+      //}
+      //return o;
     default:
       stub("lcm() type not handled");
     }
@@ -936,11 +1010,16 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
     case LONG:
       return gcd_long(v._long, b.v._long);
     case PYOBJECT:
-      PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_gcd, b.v._pyobject);
-      if (!o) {
+      PyObject* o;
+      if (! (o = PyObject_CallFunctionObjArgs(pyfunc_gcd, v._pyobject, b.v._pyobject, NULL)) ) {
 	py_error("gcd()");
       }
       return o;
+
+      //PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_gcd, b.v._pyobject);
+      //if (!o) {
+      //py_error("gcd()");
+      //}
     default:
       stub("gcd() type not handled");
     }
@@ -2073,10 +2152,19 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
    *  integer n and k and positive n this is the number of ways of choosing k
    *  objects from n distinct objects.  If n is negative, the formula
    *  binomial(n,k) == (-1)^k*binomial(k-n-1,k) is used to compute the result. */
-  const numeric binomial(const numeric &n, const numeric &k)
-  {
-    stub("binomial");
-    return (long) binomial((long)n.value, (long)k.value);
+  const numeric binomial(const numeric &n, const numeric &k) {
+    PyObject* nn = to_pyobject(n.value);
+    PyObject* kk = to_pyobject(k.value);
+    PyObject* b = PyObject_CallFunctionObjArgs(pyfunc_binomial, nn, kk, NULL);
+    if (!b) 
+      py_error("binomial");
+    Py_INCREF(b);
+    //std::cout << "n = " << n << ", k = " << k << ", b = " << Number_T(b) << "\n";
+    return b;
+
+    //std::cout << "binomial(" << n << "," << k << ")\n";
+    //stub("binomial");
+    //return (long) binomial((long)n.value, (long)k.value);
   }
 
 

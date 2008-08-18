@@ -137,27 +137,26 @@ sage: o = var("omega")
 sage: s = sympy.Symbol("x")
 sage: t1 = s + o
 sage: t2 = o + s
-sage: print type(t1)
+sage: type(t1)
 <class 'sage.calculus.calculus.SymbolicArithmetic'>
-sage: print type(t2)
+sage: type(t2)
 <class 'sage.calculus.calculus.SymbolicArithmetic'>
-sage: print t1, t2
-                                       x + omega
-                                       x + omega
+sage: t1, t2
+(x + omega, x + omega)
 sage: e=sympy.sin(var("y"))+sage.all.cos(Symbol("x"))
-sage: print type(e)
-<class 'sage.calculus.calculus.SymbolicArithmetic'>
-sage: print e
-                                    sin(y) + cos(x)
+sage: type(e)
+<class 'sympy.core.add.Add'>
+sage: e
+cos(x) + sin(y)
 sage: e=e._sage_()
-sage: print type(e)
+sage: type(e)
 <class 'sage.calculus.calculus.SymbolicArithmetic'>
-sage: print e
-                                sin(y) + cos(x)
+sage: e
+sin(y) + cos(x)
 sage: e = sage.all.cos(var("y")**3)**4+var("x")**2
 sage: e = e._sympy_()
-sage: print e
-    x**2 + cos(y**3)**4
+sage: e
+x**2 + cos(y**3)**4
 
 sage: a = sympy.Matrix([1, 2, 3])
 sage: a[1]

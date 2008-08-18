@@ -5103,7 +5103,15 @@ class SymbolicArithmetic(SymbolicOperation):
                              ops[1]._maxima_init_())
 
     def _sympy_(self):
-        """Converts any expression to SymPy."""
+        """
+        Converts any expression to SymPy.
+
+        EXAMPLE:
+            sage: x,y = var('x,y')
+            sage: import sympy
+            sage: sympy.sympify(x) # indirect doctest
+            x
+        """
 
         # Current implementation is a little fragile - it first converts the
         # expression to string, then preparses it, then gets rid of "Integer"

@@ -641,7 +641,7 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
 
         EXAMPLE:
             sage: import sympy
-            sage: bool(oo == sympy.oo)
+            sage: bool(oo == sympy.oo) # indirect doctest
             True
             sage: bool(SR(oo) == sympy.oo)
             True

@@ -322,12 +322,12 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         """
         return self._pbring.nVariables()
 
-    def gen(self, int i=0):
+    def gen(self, i=0):
         """
         Returns the i-th generator of self.
 
         INPUT:
-            i -- an integer
+            i -- an integer or a boolean monomial in one variable
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
@@ -335,12 +335,21 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             x
             sage: P.gen(2)
             z
+            sage: m = x.monomials()[0]
+            sage: P.gen(m)
+            x
 
         TESTS:
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='dp')
             sage: P.gen(0)
             x
         """
+        if PY_TYPE_CHECK(i, BooleanMonomial):
+            if len(i) == 1:
+                i = i.index()
+            else:
+                raise TypeError, "Boolean monomials must be in one variable only."
+        i = int(i)
         if i < 0 or i >= self._pbring.nVariables():
             raise ValueError, "Generator not defined."
         return new_BP_from_DD(self, self._pbring.variable(self.pbind[i]))

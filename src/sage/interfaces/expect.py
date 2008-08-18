@@ -1328,10 +1328,7 @@ class ExpectElement(RingElement):
             s = self.parent().get(self._name)
         if s.__contains__(self._name):
             if hasattr(self, '__custom_name'):
-                return s.replace(self._name, self.__dict__['__custom_name'])
-            if isinstance(self, sage.interfaces.singular.SingularElement):
-                if self.parent().eval('typeof(%s)'%(self._name)) == 'matrix':
-                    return self.parent().eval('pmat(%s,20)'%(self.name()))
+                s =  s.replace(self._name, self.__dict__['__custom_name'])
         return s
 
     def __getattr__(self, attrname):

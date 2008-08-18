@@ -844,9 +844,42 @@ class SingularElement(ExpectElement):
             raise AttributeError
         return SingularFunctionElement(self, attrname)
 
-    def __copy__(self):
+    def __repr__(self):
+        r"""
+        Return string representation of \code{self}.
+
+        EXAMPLE:
+            sage: r = singular.ring(0,'(x,y)','dp')
+            sage: singular(0)
+            0
+            sage: singular('x') # indirect doctest
+            x
+            sage: singular.matrix(2,2)
+            0,0,
+            0,0
+            sage: singular.matrix(2,2,"(25/47*x^2*y^4 + 63/127*x + 27)^3,y,0,1")
+            15625/103823*x^6*y.., y,
+            0,                    1
         """
-        Returns a copy of self.
+        try:
+            self._check_valid()
+        except ValueError:
+            return '(invalid object -- defined in terms of closed session)'
+        try:
+            if self._get_using_file:
+                s = self.parent().get_using_file(self._name)
+        except AttributeError:
+            s = self.parent().get(self._name)
+        if s.__contains__(self._name):
+            if hasattr(self, '__custom_name'):
+                s =  s.replace(self._name, self.__dict__['__custom_name'])
+            elif self.type() == 'matrix':
+                s = self.parent().eval('pmat(%s,20)'%(self.name()))
+        return s
+
+    def __copy__(self):
+        r"""
+        Returns a copy of \code{self}.
 
         EXAMPLES:
             sage: R=singular.ring(0,'(x,y)','dp')

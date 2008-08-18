@@ -860,6 +860,17 @@ class SingularElement(ExpectElement):
             sage: singular.matrix(2,2,"(25/47*x^2*y^4 + 63/127*x + 27)^3,y,0,1")
             15625/103823*x^6*y.., y,
             0,                    1
+
+            Note that the output is truncated
+
+            sage: M= singular.matrix(2,2,"(25/47*x^2*y^4 + 63/127*x + 27)^3,y,0,1")
+            sage: M.rename('T')
+            sage: M
+            T[1,1],y,
+            0,         1
+
+            if \code{self} has a custom name, it is used to print
+            the matrix, rather than abbreviating its contents
         """
         try:
             self._check_valid()

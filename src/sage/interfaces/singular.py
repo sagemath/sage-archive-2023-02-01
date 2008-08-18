@@ -950,10 +950,10 @@ class SingularElement(ExpectElement):
 	and ** for exponentiation.   This function is primarily
 	used internally.
 
-    The short=0 option \emph{must} be set for the parent ring or
-    this function will not work as expected.   This option is
-    set by default for rings created using \code{singular.ring}
-    or set using \code{ring_name.set_ring()}.
+        The short=0 option \emph{must} be set for the parent ring or
+        this function will not work as expected.  This option is set
+        by default for rings created using \code{singular.ring} or set
+        using \code{ring_name.set_ring()}.
 
 	EXAMPLES:
             sage: R = singular.ring(0,'(x,y)')

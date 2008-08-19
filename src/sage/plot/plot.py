@@ -902,6 +902,12 @@ class Graphics(SageObject):
         g.__aspect_ratio = max(self.__aspect_ratio, other.__aspect_ratio)
         return g
 
+    def add_primitive(self, primitive):
+        """
+        Adds a primitive to this graphics object.
+        """
+        self.__objects.append(primitive)
+
     def _arrow(self, xtail, ytail, xhead, yhead, options):
         """
         Add an arrow with given bounding box to this graphics object.
@@ -997,20 +1003,6 @@ class Graphics(SageObject):
         ymax = point[1] + r
         self.__objects.append(GraphicPrimitive_Disk(point, r, angle, options))
         self._extend_axes(xmin, xmax, ymin, ymax)
-
-    def _line(self, xdata, ydata, options):
-        """
-        Add a line to this graphics object.
-
-        (For internal use -- you should just use addition.)
-
-        INPUT:
-            xdata -- list of floats; the x coordinates of points in the data
-            ydata -- list of floats; the y coordinates of points in the data
-            options -- dictionary of options
-        """
-        self.__objects.append(GraphicPrimitive_Line(xdata, ydata, options))
-        self._extend_axes(*minmax_data(xdata, ydata))
 
 
     def _matrix_plot(self, xy_data_array, xrange, yrange, options):
@@ -1729,7 +1721,7 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
     Primitive class that initializes the arrow graphics type
 
     EXAMPLES:
-    We crate an arrow graphics object, then take the 0th entry
+    We create an arrow graphics object, then take the 0th entry
     in it to get the actual Arrow graphics primitive:
         sage: P = arrow((0,1), (2,3))[0]
         sage: type(P)
@@ -2644,56 +2636,9 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                     labels[v] = str(v)
                 NX.draw_networkx_labels(self.__nxg, self.__pos, labels=labels, ax=subplot)
 
-######################################################################
-#                                                                    #
-#    Graphics Primitives Factories -- construct GraphicPrimitives    #
-#                                                                    #
-######################################################################
-#
-# The current method of writing a new Graphic Primitive
-# involves writing a specific Factory for a given
-# primitive, for example, 'GraphicPrimitive_circle' for 'circle'.
-# This class should inherit from GraphicPrimitiveFactory,
-# which should define any general Graphic Primitive attributes.
-#
-# As of now, the Graphic Primitive Factories, have
-# only a __call__ method that deals with setting kwargs
-# and coercing data into a correct form to present to
-# one of the matplotlib functions.
-#
 
-class GraphicPrimitiveFactory:
-    def __init__(self):
-        # options for this specific graphics primitive.
-        self.reset()
-
-    def reset(self):
-        # First the default options for all graphics primitives
-        self.options = {'alpha':1,'thickness':1,'rgbcolor':(0,0,1)}
-        self._reset()
-
-    def _coerce(self, xdata, ydata):
-        return to_float_list(xdata), to_float_list(ydata)
-
-    def _graphic3d(self, *args, **kwds):
-        """
-        Return 3d version of this graphics primitive.
-
-        We call this if the user tries to create a graphic but gives
-        points (etc) in 3-space instead of in the plane.
-        """
-        raise NotImplementedError, "3d plotting of this primitive not yet implemented"
-
-
-#class GraphicPrimitiveFactory_points(GraphicPrimitiveFactory):
-#    def __call__(self, xdata, ydata, **kwds):
-#        options = dict(self.options)
-#        for k, v in kwds.iteritems():
-#            options[k] = v
-#        return self._from_xdata_ydata(xdata, ydata, options=options)
-
-# WARNING: The below GraphicPrimitiveFactory_from_point_list
-# class can potentially be very slow for large point sets.
+# WARNING: The below function xydata_from_point_list
+# can potentially be very slow for large point sets.
 #
 # It exists because it provides the following functionality:
 # Allows user to give as input to the function 'point'
@@ -2704,44 +2649,22 @@ class GraphicPrimitiveFactory:
 # x-values in one list and all the y-values in another list.
 # This is needed to be done because that is how the input is
 # taken in the matplotlib function 'scatter'.
-class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
-    def __call__(self, points, coerce=True, **kwds):
+def xydata_from_point_list(points):
+    if not isinstance(points, (list,tuple)) or \
+       (isinstance(points,(list,tuple)) and len(points) <= 3 \
+        and len(points) > 0 \
+        and not isinstance(points[0], (list,tuple))):
         try:
-            return points.plot(**kwds)
-        except AttributeError:
+            points = [[float(z) for z in points]]
+        except TypeError:
             pass
-        options = dict(self.options)
-        for k, v in kwds.iteritems():
-            options[k] = v
+    xdata = [float(z[0]) for z in points]
+    ydata = [float(z[1]) for z in points]
 
-        if not isinstance(points, (list,tuple)) or \
-           (isinstance(points,(list,tuple)) and len(points) <= 3 \
-            and len(points) > 0 \
-            and not isinstance(points[0], (list,tuple))):
-            try:
-                points = [[float(z) for z in points]]
-            except TypeError:
-                pass
+    return xdata, ydata
 
-        try:
-            if len(points) > 0 and len(points[0]) == 3:
-                return self._graphic3d()(points, coerce=coerce, **kwds)
-        except (AttributeError, TypeError):
-            pass
-        xdata = []
-        ydata = []
-        if coerce:
-            xdata = [float(z[0]) for z in points]
-            ydata = [float(z[1]) for z in points]
-        else:
-            xdata = [z[0] for z in points]
-            ydata = [z[1] for z in points]
-
-        return self._from_xdata_ydata(xdata, ydata, True, options=options)
-
-class ArrowFactory(GraphicPrimitiveFactory):
+def arrow(tailpoint, headpoint, **kwds):
     """
-
     An arrow from (xmin, ymin) to (xmax, ymax).
 
     EXAMPLES:
@@ -2762,42 +2685,26 @@ class ArrowFactory(GraphicPrimitiveFactory):
         1.0
         sage: a.xmax()
         5.0
-
     """
-    def __call__(self, tailpoint, headpoint, **kwds):
-        options = dict(self.options)
-        for k, v in kwds.iteritems():
-            options[k] = v
-        xtail = float(tailpoint[0])
-        ytail = float(tailpoint[1])
-        xhead = float(headpoint[0])
-        yhead = float(headpoint[1])
-        xmin = min(xtail, xhead)
-        xmax = max(xtail, xhead)
-        ymin = min(ytail, yhead)
-        ymax = max(ytail, yhead)
 
-        g = Graphics(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        g._arrow(xtail, ytail, xhead, yhead, options=options)
-        return g
+    options = {'width':0.02,'rgbcolor':(0, 0, 1)}
+    options.update(kwds)
 
-    def _reset(self):
-        self.options={'width':0.02,'rgbcolor':(0, 0, 1)}
+    #Get the x/y min/max data
+    xtail = float(tailpoint[0])
+    ytail = float(tailpoint[1])
+    xhead = float(headpoint[0])
+    yhead = float(headpoint[1])
+    xmin = min(xtail, xhead)
+    xmax = max(xtail, xhead)
+    ymin = min(ytail, yhead)
+    ymax = max(ytail, yhead)
 
-    def __repr__(self):
-        """
-        Returns a string representation of this ArrowFactory object.
+    g = Graphics(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+    g._arrow(xtail, ytail, xhead, yhead, options=options)
+    return g
 
-        TESTS:
-            sage: arrow
-            type arrow? for help and examples
-        """
-        return "type arrow? for help and examples"
-
-#an unique arrow instance
-arrow = ArrowFactory()
-
-class BarChartFactory(GraphicPrimitiveFactory):
+def bar_chart(datalist, **kwds):
     """
     A bar chart of (currently) one list of numerical data.
     Support for more datalists in progress.
@@ -2812,55 +2719,38 @@ class BarChartFactory(GraphicPrimitiveFactory):
     A bar_chart with negative values and red bars:
         sage: bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
     """
-    def __call__(self, datalist, **kwds):
-        options = dict(self.options)
-        for k, v in kwds.iteritems():
-            options[k] = v
-        dl = len(datalist)
-        #if dl > 1:
-        #    print "WARNING, currently only 1 data set allowed"
-        #    datalist = datalist[0]
-        if dl == 3:
-            datalist = datalist+[0]
-        #bardata = []
-        #cnt = 1
-        #for pnts in datalist:
-            #ind = [i+cnt/dl for i in range(len(pnts))]
-        ind = range(len(datalist))
-        xrange = (0, len(datalist))
-        yrange = (min(datalist), max(datalist))
-            #bardata.append([ind, pnts, xrange, yrange])
-            #cnt += 1
+    options = {'width':0.5,'rgbcolor':(0, 0, 1)}
+    options.update(kwds)
 
-        g = Graphics()
-        #TODO: improve below for multiple data sets!
-        #cnt = 1
-        #for ind, pnts, xrange, yrange in bardata:
-            #options={'rgbcolor':hue(cnt/dl),'width':0.5/dl}
-        #    g._bar_chart(ind, pnts, xrange, yrange, options=options)
-        #    cnt += 1
-        #else:
-        g._bar_chart(ind, datalist, xrange, yrange, options=options)
-        return g
+    dl = len(datalist)
+    #if dl > 1:
+    #    print "WARNING, currently only 1 data set allowed"
+    #    datalist = datalist[0]
+    if dl == 3:
+        datalist = datalist+[0]
+    #bardata = []
+    #cnt = 1
+    #for pnts in datalist:
+        #ind = [i+cnt/dl for i in range(len(pnts))]
+    ind = range(len(datalist))
+    xrange = (0, len(datalist))
+    yrange = (min(datalist), max(datalist))
+        #bardata.append([ind, pnts, xrange, yrange])
+        #cnt += 1
 
-    def _reset(self):
-        self.options={'width':0.5,'rgbcolor':(0, 0, 1)}
-
-    def __repr__(self):
-        """
-        Returns a string representation of this BarChartFactory object.
-
-        TESTS:
-            sage: bar_chart
-            type bar_chart? for help and examples
-        """
-        return "type bar_chart? for help and examples"
-
-#an unique bar_chart instance
-bar_chart = BarChartFactory()
+    g = Graphics()
+    #TODO: improve below for multiple data sets!
+    #cnt = 1
+    #for ind, pnts, xrange, yrange in bardata:
+        #options={'rgbcolor':hue(cnt/dl),'width':0.5/dl}
+    #    g._bar_chart(ind, pnts, xrange, yrange, options=options)
+    #    cnt += 1
+    #else:
+    g._bar_chart(ind, datalist, xrange, yrange, options=options)
+    return g
 
 
-class CircleFactory(GraphicPrimitiveFactory):
+def circle(point, radius, **kwds):
     """
     Return a circle at a point = $(x,y)$ with radius = $r$.
     Type \code{circle.options} to see all options
@@ -2905,35 +2795,17 @@ class CircleFactory(GraphicPrimitiveFactory):
         sage: p.ymin()
         2.0
     """
-    def __call__(self, point, radius, **kwds):
-        options = dict(self.options)
-        for k, v in kwds.iteritems():
-            options[k] = v
+    options={'alpha':1,'fill':False,'thickness':1,'rgbcolor':(0, 0, 1)}
+    for k, v in kwds.iteritems():
+        options[k] = v
 
-        r = float(radius)
-        point = (float(point[0]), float(point[1]))
-        g = Graphics(xmin=point[0]-r, xmax=point[0]+r, ymin=point[1]-r, ymax=point[1]+r)
-        g._circle(point[0], point[1], r, options)
-        return g
+    r = float(radius)
+    point = (float(point[0]), float(point[1]))
+    g = Graphics(xmin=point[0]-r, xmax=point[0]+r, ymin=point[1]-r, ymax=point[1]+r)
+    g._circle(point[0], point[1], r, options)
+    return g
 
-    def _reset(self):
-        self.options={'alpha':1,'fill':False,'thickness':1,'rgbcolor':(0, 0, 1)}
-
-    def __repr__(self):
-        """
-        Returns a string representation of this CircleFactory object.
-
-        TESTS:
-            sage: circle
-            type circle? for help and examples
-        """
-        return "type circle? for help and examples"
-
-
-#an unique circle instance
-circle = CircleFactory()
-
-class ContourPlotFactory(GraphicPrimitiveFactory):
+def contour_plot(f, xrange, yrange, **kwds):
     r"""
 
     \code{contour_plot} takes a function of two variables, $f(x,y)$
@@ -3005,39 +2877,21 @@ class ContourPlotFactory(GraphicPrimitiveFactory):
         sage: p.ymin()
         3.0
     """
-    def __call__(self, f, xrange, yrange, **kwds):
-        options = dict(self.options)
-        for k, v in kwds.iteritems():
-            options[k] = v
+    options = {'plot_points':25, 'fill':True, 'cmap':'gray', 'contours':None}
+    for k, v in kwds.iteritems():
+        options[k] = v
 
-        g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
-        g = g[0]
-        xy_data_array = [[g(x, y) for x in \
-                          sage.misc.misc.xsrange(xrange[0], xrange[1], xstep)]
-                          for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep)]
+    g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
+    g = g[0]
+    xy_data_array = [[g(x, y) for x in \
+                      sage.misc.misc.xsrange(xrange[0], xrange[1], xstep)]
+                      for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep)]
 
-        g = Graphics(xmin=float(xrange[0]), xmax=float(xrange[1]), ymin=float(yrange[0]), ymax=float(yrange[1]))
-        g._contour_plot(xy_data_array, xrange, yrange, options)
-        return g
+    g = Graphics(xmin=float(xrange[0]), xmax=float(xrange[1]), ymin=float(yrange[0]), ymax=float(yrange[1]))
+    g._contour_plot(xy_data_array, xrange, yrange, options)
+    return g
 
-    def _reset(self):
-        self.options={'plot_points':25, 'fill':True, 'cmap':'gray', 'contours':None}
-
-    def __repr__(self):
-        """
-        Returns a string representation of this ContourPlotFactory object.
-
-        TESTS:
-            sage: contour_plot
-            type contour_plot? for help and examples
-        """
-        return "type contour_plot? for help and examples"
-
-
-#unique contour_plot instance
-contour_plot = ContourPlotFactory()
-
-class ImplicitPlotFactory(ContourPlotFactory):
+def implicit_plot(f, xrange, yrange, **kwds):
     r"""
     \code{implicit_plot} takes a function of two variables, $f(x,y)$
     and plots the curve $f(x,y)=0$ over the specified
@@ -3079,31 +2933,11 @@ class ImplicitPlotFactory(ContourPlotFactory):
     (plot_points=200 looks even better, but it's about 16 times slower.)
         sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50).show(aspect_ratio=1)
     """
-    def _reset(self):
-        """
-        Sets the default options for this ImplicitPlotFactory object.
+    options = {'plot_points':25, 'fill':False, 'cmap':'gray', 'contours':(0.0,)}
+    options.update(kwds)
+    return contour_plot(f, xrange, yrange, **kwds)
 
-        TESTS:
-            sage: implicit_plot._reset()
-            sage: implicit_plot.options['contours']
-            (0.0,)
-        """
-        self.options={'plot_points':25, 'fill':False, 'cmap':'gray', 'contours':(0.0,)}
-
-    def __repr__(self):
-        """
-        Returns a string representation of this ImplicitPlotFactory object.
-
-        TESTS:
-            sage: implicit_plot
-            type implicit_plot? for help and examples
-        """
-        return "type implicit_plot? for help and examples"
-
-#unique implicit_plot instance
-implicit_plot = ImplicitPlotFactory()
-
-class LineFactory(GraphicPrimitiveFactory_from_point_list):
+def line(points, **kwds):
     r"""
     Create the line through the given list of points.
 
@@ -3203,45 +3037,26 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
     A line with no points or one point:
         sage: line([])
         sage: line([(1,1)])
+
+    TESTS:
+    We test to make sure that the x/y min/max data are set correctly.
+        sage: l = line([(100, 100), (120, 120)])
+        sage: l.xmin()
+        100.0
+        sage: l.xmax()
+        120.0
+
     """
-    def _reset(self):
-        self.options = {'alpha':1,'rgbcolor':(0,0,1),'thickness':1}
+    options = {'alpha':1,'rgbcolor':(0,0,1),'thickness':1}
+    options.update(kwds)
 
-    def __repr__(self):
-        """
-        Returns a string representation of this LineFactory object.
+    xdata, ydata = xydata_from_point_list(points)
+    g = Graphics(**minmax_data(xdata, ydata, dict=True))
+    g._Graphics__objects.append(GraphicPrimitive_Line(xdata, ydata, options))
+    return g
 
-        TESTS:
-            sage: line
-            type line? for help and examples
-        """
-        return "type line? for help and examples"
 
-    def _from_xdata_ydata(self, xdata, ydata, coerce, options):
-        """
-        TESTS:
-        We test to make sure that the x/y min/max data are set correctly.
-            sage: l = line([(100, 100), (120, 120)])
-            sage: l.xmin()
-            100.0
-            sage: l.xmax()
-            120.0
-        """
-        if coerce:
-            xdata, ydata = self._coerce(xdata, ydata)
-
-        g = Graphics(**minmax_data(xdata, ydata, dict=True))
-        g._Graphics__objects.append(GraphicPrimitive_Line(xdata, ydata, options))
-        return g
-
-    def _graphic3d(self):
-        from sage.plot.plot3d.shapes2 import line3d
-        return line3d
-
-# unique line instance
-line = LineFactory()
-
-class MatrixPlotFactory(GraphicPrimitiveFactory):
+def matrix_plot(mat, **kwds):
     r"""
     A plot of a given matrix or 2D array.
 
@@ -3267,49 +3082,34 @@ class MatrixPlotFactory(GraphicPrimitiveFactory):
         sage: matrix_plot(random_matrix(GF(389), 10), cmap='Oranges')
 
     """
-    def __call__(self, mat, **kwds):
-        from sage.matrix.all import is_Matrix
-        from matplotlib.numerix import array
-        if not is_Matrix(mat) or (isinstance(mat, (list, tuple)) and isinstance(mat[0], (list, tuple))):
-            raise TypeError, "mat must be of type Matrix or a two dimensional array"
-        options = dict(self.options)
-        for k, v in kwds.iteritems():
-            options[k] = v
-        if is_Matrix(mat):
-            xrange = (0, mat.ncols())
-            yrange = (0, mat.nrows())
-        else:
-            xrange = (0, len(mat[0]))
-            yrange = (0, len(mat))
-        xy_data_array = [array(r, dtype=float) for r in mat]
+    options = {'cmap':'gray'}
+    options.update(kwds)
 
-        g = Graphics()
-        g._matrix_plot(xy_data_array, xrange, yrange, options)
-        return g
+    from sage.matrix.all import is_Matrix
+    from matplotlib.numerix import array
+    if not is_Matrix(mat) or (isinstance(mat, (list, tuple)) and isinstance(mat[0], (list, tuple))):
+        raise TypeError, "mat must be of type Matrix or a two dimensional array"
 
-    def _reset(self):
-        self.options={'cmap':'gray'}
+    if is_Matrix(mat):
+        xrange = (0, mat.ncols())
+        yrange = (0, mat.nrows())
+    else:
+        xrange = (0, len(mat[0]))
+        yrange = (0, len(mat))
+    xy_data_array = [array(r, dtype=float) for r in mat]
 
-    def __repr__(self):
-        """
-        Returns a string representation of this MatrixPlotFactory object.
-
-        TESTS:
-            sage: matrix_plot
-            type matrix_plot? for help and examples
-        """
-        return "type matrix_plot? for help and examples"
+    g = Graphics()
+    g._matrix_plot(xy_data_array, xrange, yrange, options)
+    return g
 
 
-#unique matrix_plot instance
-matrix_plot = MatrixPlotFactory()
 
 
 # Below is the base class that is used to make 'plot_vector_field'.
 # Its implementation is motivated by 'PlotVectorField'.
 # TODO: make class similiar to this one to implement:
 # 'plot_gradient_field' and 'plot_hamiltonian_field'
-class PlotFieldFactory(GraphicPrimitiveFactory):
+def plot_vector_field((f, g), xrange, yrange, **kwds):
     r"""
 
     \code{plot_vector_field} takes two functions of two variables, $(f(x,y), g(x,y))$
@@ -3338,39 +3138,29 @@ class PlotFieldFactory(GraphicPrimitiveFactory):
         10.0
 
     """
-    def __call__(self, (f, g), xrange, yrange, **kwds):
-        options = dict(self.options)
-        for k, v in kwds.iteritems():
-            options[k] = v
-        z, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f,g], xrange, yrange, options['plot_points'])
-        f,g = z
+    options = {'plot_points':20, 'cmap':'gray'}
+    options.update(kwds)
 
-        xpos_array, ypos_array, xvec_array, yvec_array = [],[],[],[]
-        for x in sage.misc.misc.xsrange(xrange[0], xrange[1], xstep):
-            for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep):
-                xpos_array.append(x)
-                ypos_array.append(y)
-                xvec_array.append(f(x,y))
-                yvec_array.append(g(x,y))
+    z, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f,g], xrange, yrange, options['plot_points'])
+    f,g = z
 
-        import numpy
-        xvec_array = numpy.array(xvec_array, dtype=float)
-        yvec_array = numpy.array(yvec_array, dtype=float)
-        g = Graphics(xmin=xrange[0], xmax=xrange[1], ymin=yrange[0],  ymax=yrange[1])
-        g._plot_field(xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options)
-        return g
+    xpos_array, ypos_array, xvec_array, yvec_array = [],[],[],[]
+    for x in sage.misc.misc.xsrange(xrange[0], xrange[1], xstep):
+        for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep):
+            xpos_array.append(x)
+            ypos_array.append(y)
+            xvec_array.append(f(x,y))
+            yvec_array.append(g(x,y))
 
-    def _reset(self):
-        self.options={'plot_points':20, 'cmap':'gray'}
-
-    def _repr_(self):
-        return "type plot_vector_field? for help and examples"
-
-#unique plot_vector_field instance
-plot_vector_field = PlotFieldFactory()
+    import numpy
+    xvec_array = numpy.array(xvec_array, dtype=float)
+    yvec_array = numpy.array(yvec_array, dtype=float)
+    g = Graphics(xmin=xrange[0], xmax=xrange[1], ymin=yrange[0],  ymax=yrange[1])
+    g._plot_field(xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options)
+    return g
 
 
-class DiskFactory(GraphicPrimitiveFactory):
+def disk(point, radius, angle, **kwds):
     r"""
 
     A disk at a point = $(x,y)$ with radius = $r$
@@ -3397,40 +3187,22 @@ class DiskFactory(GraphicPrimitiveFactory):
         sage: d.xmax()
         6.0
     """
-    def __call__(self, point, radius, angle, **kwds):
-        options = dict(self.options)
-        for k, v in kwds.iteritems():
-            options[k] = v
+    options = {'alpha':1,'fill':True,'rgbcolor':(0,0,1),'thickness':0}
+    options.update(kwds)
 
-        r = float(radius)
-        point = (float(point[0]), float(point[1]))
-        angle = (float(angle[0]), float(angle[1]))
+    r = float(radius)
+    point = (float(point[0]), float(point[1]))
+    angle = (float(angle[0]), float(angle[1]))
 
-        xmin = point[0] - r
-        xmax = point[0] + r
-        ymin = point[1] - r
-        ymax = point[1] + r
-        g = Graphics(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        g._disk(point, r, angle, options)
-        return g
+    xmin = point[0] - r
+    xmax = point[0] + r
+    ymin = point[1] - r
+    ymax = point[1] + r
+    g = Graphics(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+    g._disk(point, r, angle, options)
+    return g
 
-    def _reset(self):
-        self.options={'alpha':1,'fill':True,'rgbcolor':(0,0,1),'thickness':0}
-
-    def __repr__(self):
-        """
-        Returns a string representation of this DiskFactory object.
-
-        TESTS:
-            sage: disk
-            type disk? for help and examples
-        """
-        return "type disk? for help and examples"
-
-#an unique disk instance
-disk = DiskFactory()
-
-class PointFactory(GraphicPrimitiveFactory_from_point_list):
+def point(points, **kwds):
     r"""
 
     A point of size `pointsize' defined by point = $(x,y)$.
@@ -3453,32 +3225,17 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
         3.0
 
     """
-    def _reset(self):
-        self.options = {'alpha':1,'pointsize':10,'faceted':False,'rgbcolor':(0,0,1)}
+    options = {'alpha':1,'pointsize':10,'faceted':False,'rgbcolor':(0,0,1)}
+    options.update(kwds)
 
-    def __repr__(self):
-        """
-        Returns a string representation of this PointFactory object.
+    xdata, ydata = xydata_from_point_list(points)
+    g = Graphics(**minmax_data(xdata, ydata, dict=True))
+    g._Graphics__objects.append(GraphicPrimitive_Point(xdata, ydata, options))
+    return g
 
-        TESTS:
-            sage: point
-            type point? for help and examples
-        """
-        return "type point? for help and examples"
-
-    def _from_xdata_ydata(self, xdata, ydata, coerce, options):
-        if coerce:
-            xdata, ydata = self._coerce(xdata, ydata)
-        g = Graphics(**minmax_data(xdata, ydata, dict=True))
-        g._Graphics__objects.append(GraphicPrimitive_Point(xdata, ydata, options))
-        return g
-
-# unique point instance
-point = PointFactory()
 points = point
 
-
-class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
+def polygon(points, **kwds):
     r"""
     Type \code{polygon.options} for a dictionary of the default
     options for polygons.  You can change this to change
@@ -3548,30 +3305,15 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
         -- David Joyner (2006-04-14): the long list of examples above.
 
     """
-    def _reset(self):
-        self.options={'alpha':1,'rgbcolor':(0,0,1),'thickness':0}
+    options = {'alpha':1,'rgbcolor':(0,0,1),'thickness':0}
+    options.update(kwds)
 
-    def __repr__(self):
-        """
-        Returns a string representation of this PolygonFactory object.
+    xdata, ydata = xydata_from_point_list(points)
+    g = Graphics(**minmax_data(xdata, ydata, dict=True))
+    g._Graphics__objects.append(GraphicPrimitive_Polygon(xdata, ydata, options))
+    return g
 
-        TESTS:
-            sage: polygon
-            Sage polygon; type polygon? for help and examples
-        """
-        return "Sage polygon; type polygon? for help and examples"
-
-    def _from_xdata_ydata(self, xdata, ydata, coerce, options):
-        if coerce:
-            xdata, ydata = self._coerce(xdata, ydata)
-        g = Graphics(**minmax_data(xdata, ydata, dict=True))
-        g._Graphics__objects.append(GraphicPrimitive_Polygon(xdata, ydata, options))
-        return g
-
-# unique polygon instance
-polygon = PolygonFactory()
-
-class PlotFactory(GraphicPrimitiveFactory):
+def plot(funcs, *args, **kwds):
     r"""
     Use plot by writing
 
@@ -3713,176 +3455,155 @@ class PlotFactory(GraphicPrimitiveFactory):
         sage: p[0].xdata[-1] == 1
         True
 
+    We check to make sure that the x/y min/max data get set correctly
+    when there are multiple functions.
+
+        sage: p = plot([sin(x), cos(x)], 100, 120)
+        sage: p.xmin()
+        100.0
+        sage: p.xmax()
+        120.0
     """
-    def _reset(self):
-        o = self.options
-        o['plot_points'] = 200
-        o['plot_division'] = 1000
-        o['max_bend'] = 0.1
-        o['rgbcolor'] = (0,0,1)
-
-    def __repr__(self):
-        """
-        Returns a string representation of this PlotFactory object.
-
-        TESTS:
-            sage: plot
-            type plot? for help and examples
-        """
-        return "type plot? for help and examples"
-
-    def __call__(self, funcs, *args, **kwds):
-        do_show = False
-        if kwds.has_key('show') and kwds['show']:
-            do_show = True
-            del kwds['show']
-        if hasattr(funcs, 'plot'):
-            G = funcs.plot(*args, **kwds)
-        # if we are using the generic plotting method
+    do_show = False
+    if kwds.has_key('show') and kwds['show']:
+        do_show = True
+        del kwds['show']
+    if hasattr(funcs, 'plot'):
+        G = funcs.plot(*args, **kwds)
+    # if we are using the generic plotting method
+    else:
+        n = len(args)
+        # if there are no extra args, pick some silly default
+        if n == 0:
+            G = _plot(funcs, (-1, 1), *args, **kwds)
+        # if there is one extra arg, then it had better be a tuple
+        elif n == 1:
+            G = _plot(funcs, *args, **kwds)
+        elif n == 2:
+        # if there are two extra args, then pull them out and pass them as a tuple
+            xmin = args[0]
+            xmax = args[1]
+            args = args[2:]
+            G = _plot(funcs, (xmin, xmax), *args, **kwds)
         else:
-            n = len(args)
-            # if there are no extra args, pick some silly default
-            if n == 0:
-                G = self._call(funcs, (-1, 1), *args, **kwds)
-            # if there is one extra arg, then it had better be a tuple
-            elif n == 1:
-                G = self._call(funcs, *args, **kwds)
-            elif n == 2:
-            # if there are two extra args, then pull them out and pass them as a tuple
-                xmin = args[0]
-                xmax = args[1]
-                args = args[2:]
-                G = self._call(funcs, (xmin, xmax), *args, **kwds)
-            else:
-                sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
-        if do_show:
-            G.show()
-        return G
+            sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
+    if do_show:
+        G.show()
+    return G
 
-    def _call(self, funcs, xrange, parametric=False,
+def _plot(funcs, xrange, parametric=False,
               polar=False, label='', randomize=True, **kwds):
-        options = dict(self.options)
-        """
-        TESTS:
-        We check to make sure that the x/y min/max data get set correctly
-        when there are multiple functions.
+    options = {'alpha':1,'thickness':1,'rgbcolor':(0,0,1),
+               'plot_points':200, 'plot_division':1000,
+               'max_bend': 0.1, 'rgbcolor': (0,0,1) }
 
-            sage: p = plot([sin(x), cos(x)], 100, 120)
-            sage: p.xmin()
-            100.0
-            sage: p.xmax()
-            120.0
-        """
-        if kwds.has_key('color') and not kwds.has_key('rgbcolor'):
-            kwds['rgbcolor'] = kwds['color']
-            del kwds['color']
-        for k, v in kwds.iteritems():
-            options[k] = v
+    if kwds.has_key('color') and not kwds.has_key('rgbcolor'):
+        kwds['rgbcolor'] = kwds['color']
+        del kwds['color']
 
-        #parametric_plot will be a list or tuple of two functions (f,g)
-        #and will plotted as (f(x), g(x)) for all x in the given range
-        if parametric:
-            if len(funcs) == 3:
-                raise ValueError, "use parametric_plot3d for parametric plots in 3d dimensions."
-            elif len(funcs) == 2:
-                # 2d
-                f,g = funcs
-            else:
-                raise ValueError, "parametric plots only implemented in 2 and 3 dimensions."
+    options.update(kwds)
 
-        #or we have only a single function to be plotted:
+    #parametric_plot will be a list or tuple of two functions (f,g)
+    #and will plotted as (f(x), g(x)) for all x in the given range
+    if parametric:
+        if len(funcs) == 3:
+            raise ValueError, "use parametric_plot3d for parametric plots in 3d dimensions."
+        elif len(funcs) == 2:
+            # 2d
+            f,g = funcs
         else:
-            f = funcs
+            raise ValueError, "parametric plots only implemented in 2 and 3 dimensions."
 
-        plot_points = int(options['plot_points'])
-        del options['plot_points']
-        x, data = var_and_list_of_values(xrange, plot_points)
-        data = list(data)
-        xmin = data[0]
-        xmax = data[-1]
+    #or we have only a single function to be plotted:
+    else:
+        f = funcs
 
-        #check to see if funcs is a list of functions that will
-        #be all plotted together.
-        if isinstance(funcs, (list, tuple)) and not parametric:
-            return reduce(operator.add, (plot(f, (xmin, xmax), polar=polar, **kwds) for f in funcs))
+    plot_points = int(options['plot_points'])
+    del options['plot_points']
+    x, data = var_and_list_of_values(xrange, plot_points)
+    data = list(data)
+    xmin = data[0]
+    xmax = data[-1]
 
-	if len(data) >= 2:
-	    delta = data[1]-data[0]
-	else:
-	    delta = 0
+    #check to see if funcs is a list of functions that will
+    #be all plotted together.
+    if isinstance(funcs, (list, tuple)) and not parametric:
+        return reduce(operator.add, (plot(f, (xmin, xmax), polar=polar, **kwds) for f in funcs))
 
-        random = current_randstate().python_random().random
-        exceptions = 0; msg=''
-        exception_indices = []
-        for i in range(len(data)):
-            xi = data[i]
-            # Slightly randomize the interior sample points if
-            # randomize is true
-            if i > 0 and i < plot_points-1:
-                if randomize:
-                    xi += delta*random()
-                if xi > xmax:
-                    xi = xmax
-            elif i == plot_points-1:
-                xi = xmax  # guarantee that we get the last point.
+    if len(data) >= 2:
+        delta = data[1]-data[0]
+    else:
+        delta = 0
 
+    random = current_randstate().python_random().random
+    exceptions = 0; msg=''
+    exception_indices = []
+    for i in range(len(data)):
+        xi = data[i]
+        # Slightly randomize the interior sample points if
+        # randomize is true
+        if i > 0 and i < plot_points-1:
+            if randomize:
+                xi += delta*random()
+            if xi > xmax:
+                xi = xmax
+        elif i == plot_points-1:
+            xi = xmax  # guarantee that we get the last point.
+
+        try:
+            data[i] = (float(xi), float(f(xi)))
+        except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+            exceptions += 1
+            exception_indices.append(i)
+
+        if str(data[i][1]) in ['nan', 'NaN']:
+            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+            exceptions += 1
+            exception_indices.append(i)
+
+    data = [data[i] for i in range(len(data)) if i not in exception_indices]
+
+    # adaptive refinement
+    i, j = 0, 0
+    max_bend = float(options['max_bend'])
+    del options['max_bend']
+    plot_division = int(options['plot_division'])
+    del options['plot_division']
+    while i < len(data) - 1:
+        if abs(data[i+1][1] - data[i][1]) > max_bend:
+            x = float((data[i+1][0] + data[i][0])/2)
             try:
-                data[i] = (float(xi), float(f(xi)))
-            except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+                y = float(f(x))
+                data.insert(i+1, (x, y))
+            except (ZeroDivisionError, TypeError, ValueError), msg:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 exceptions += 1
-                exception_indices.append(i)
+            j += 1
+            if j > plot_division:
+                break
+        else:
+            i += 1
 
-            if str(data[i][1]) in ['nan', 'NaN']:
-                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
-                exceptions += 1
-                exception_indices.append(i)
+    if (len(data) == 0 and exceptions > 0) or exceptions > 10:
+        sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
+        sage.misc.misc.verbose("Last error message: '%s'"%msg, level=0)
+    if parametric:
+        data = [(fdata, g(x)) for x, fdata in data]
+    if polar:
+        data = [(y*cos(x), y*sin(x)) for x, y in data]
+    G = line(data, **options)
 
-        data = [data[i] for i in range(len(data)) if i not in exception_indices]
+    # Label?
+    if label:
+        label = '  '+str(label)
+        G += text(label, data[-1], horizontal_alignment='left',
+                  vertical_alignment='center')
 
-        # adaptive refinement
-        i, j = 0, 0
-        max_bend = float(options['max_bend'])
-        del options['max_bend']
-        plot_division = int(options['plot_division'])
-        del options['plot_division']
-        while i < len(data) - 1:
-            if abs(data[i+1][1] - data[i][1]) > max_bend:
-                x = float((data[i+1][0] + data[i][0])/2)
-                try:
-                    y = float(f(x))
-                    data.insert(i+1, (x, y))
-                except (ZeroDivisionError, TypeError, ValueError), msg:
-                    sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
-                    exceptions += 1
-                j += 1
-                if j > plot_division:
-                    break
-            else:
-                i += 1
-
-        if (len(data) == 0 and exceptions > 0) or exceptions > 10:
-            sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
-            sage.misc.misc.verbose("Last error message: '%s'"%msg, level=0)
-        if parametric:
-            data = [(fdata, g(x)) for x, fdata in data]
-        if polar:
-            data = [(y*cos(x), y*sin(x)) for x, y in data]
-        G = line(data, coerce=False, **options)
-
-        # Label?
-        if label:
-            label = '  '+str(label)
-            G += text(label, data[-1], horizontal_alignment='left',
-                      vertical_alignment='center')
-
-        return G
-
-# unique plot instance
-plot = PlotFactory()
+    return G
 
 
-class TextFactory(GraphicPrimitiveFactory):
+def text(string, point, **kwds):
     r"""
     text(txt, point, **kwds):
 
@@ -3925,38 +3646,16 @@ class TextFactory(GraphicPrimitiveFactory):
         sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
         sage: t1 + t2   # render the sume
     """
-    def __call__(self, string, point, **kwds):
-        if len(point) == 3:
-            from sage.plot.plot3d.shapes2 import text3d
-            return text3d(string, point, **kwds)
-        options = dict(self.options)
-        for k, v in kwds.iteritems():
-            options[k] = v
-        return self._from_xdata_ydata(string, (float(point[0]), float(point[1])), options=options)
+    options = {'fontsize':10, 'rgbcolor':(0,0,1),
+               'horizontal_alignment':'center',
+               'vertical_alignment':'center',
+               'axis_coords':False}
+    options.update(kwds)
 
-    def _reset(self):
-        self.options = {'fontsize':10, 'rgbcolor':(0,0,1),
-                        'horizontal_alignment':'center',
-                        'vertical_alignment':'center',
-                        'axis_coords':False}
-
-    def __repr__(self):
-        """
-        Returns a string representation of this TextFactory object.
-
-        TESTS:
-            sage: text
-            type text? for help and examples
-        """
-        return "type text? for help and examples"
-
-    def _from_xdata_ydata(self, string, point, options):
-        g = Graphics()
-        g._text(string, point, options)
-        return g
-
-# unique text instance
-text = TextFactory()
+    point = tuple(float(i) for i in point)
+    g = Graphics()
+    g._text(string, point, options)
+    return g
 
 
 ########## misc functions ###################

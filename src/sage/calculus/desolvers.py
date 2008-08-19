@@ -35,8 +35,7 @@ Other functions for solving DEs are given in functions/elementary.py.
 ##########################################################################
 
 from sage.interfaces.maxima import MaximaElement, Maxima
-from sage.plot.plot import LineFactory
-line = LineFactory()
+from sage.plot.plot import line
 
 maxima = Maxima()
 

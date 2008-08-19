@@ -1,4 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 
 # Critical to get rid of old versions, since they will break the install, since
 # at some point one of the libraries accidently links against what's in SAGE_LOCAL,
@@ -7,8 +14,14 @@ rm "$SAGE_LOCAL"/lib/libgd.*
 
 cd src
 
+
 # needed to pick up zlib.h
-CFLAGS="-I$SAGE_LOCAL/include -I$SAGE_LOCAL/include/freetype2/"
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   CFLAGS=" -m64 $CFLAGS -fPIC -g -I\"$SAGE_LOCAL/include\" -I$SAGE_LOCAL/include/freetype2/"
+   LDFLAGS="-m64 -L$SAGE_LOCAL/lib"; export LDFLAGS
+else
+   CFLAGS="$CFLAGS -fPIC -g -I\"$SAGE_LOCAL/include\" -I$SAGE_LOCAL/include/freetype2/"
+fi
 export CFLAGS
 
 # We explicitly disable X support, since (1) X is not a SAGE dependency,

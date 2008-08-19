@@ -1,4 +1,9 @@
-
+= gd =
 
 * Get it from http://www.libgd.org/
+
+== Releases ==
+
+=== gd-2.0.33.p6 (Michael Abshoff, August 19th, 2008) ===
+ * Add 64 bit OSX build support
 

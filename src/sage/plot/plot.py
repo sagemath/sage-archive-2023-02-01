@@ -902,14 +902,14 @@ class Graphics(SageObject):
         g.__aspect_ratio = max(self.__aspect_ratio, other.__aspect_ratio)
         return g
 
-    def _arrow(self, xmin, ymin, xmax, ymax, options):
+    def _arrow(self, xtail, ytail, xhead, yhead, options):
         """
         Add an arrow with given bounding box to this graphics object.
 
         (For internal use -- you should just use addition.)
 
         INPUT:
-            xmin, ymin, xmax, ymax -- start and stop point of arrow
+            xtail, ytail, xhead, yhead -- start and stop point of arrow
             options -- dictionary
 
         EXAMPLES:
@@ -917,8 +917,8 @@ class Graphics(SageObject):
             sage: S = circle((0,0), 2)
             sage: S._arrow(0,0,5,5, {'width':0.2, 'rgbcolor':(0,1,0)}); S
         """
-        self.__objects.append(GraphicPrimitive_Arrow(xmin, ymin, xmax, ymax, options))
-        self._extend_axes(xmin, xmax, ymin, ymax)
+        self.__objects.append(GraphicPrimitive_Arrow(xtail, ytail, xhead, yhead, options))
+        self._extend_axes(xtail, xhead, ytail, yhead)
 
     def _bar_chart(self, ind, datalist, xrange, yrange, options):
         """
@@ -1737,7 +1737,7 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         sage: P
         Arrow from (0.0,1.0) to (2.0,3.0)
     """
-    def __init__(self, xmin, ymin, xmax, ymax, options):
+    def __init__(self, xtail, ytail, xhead, yhead, options):
         """
         Create an arrow graphics primitive.
 
@@ -1746,10 +1746,10 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
             sage: GraphicPrimitive_Arrow(0,0,2,3,{})
             Arrow from (0,0) to (2,3)
         """
-        self.xmin = xmin
-        self.xmax = xmax
-        self.ymin = ymin
-        self.ymax = ymax
+        self.xtail = float(xtail)
+        self.xhead = float(xhead)
+        self.ytail = float(ytail)
+        self.yhead = float(yhead)
         GraphicPrimitive.__init__(self, options)
 
     def _allowed_options(self):
@@ -1786,7 +1786,7 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         from sage.plot.plot3d.shapes2 import line3d
         options = self._plot3d_options()
         options.update(kwds)
-        return line3d([(self.xmin, self.ymin, 0), (self.xmax, self.ymax, 0)], arrow_head=True, **options)
+        return line3d([(self.xtail, self.ytail, 0), (self.xhead, self.yhead, 0)], arrow_head=True, **options)
 
     def _repr_(self):
         """
@@ -1797,7 +1797,7 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
             sage: GraphicPrimitive_Arrow(0,0,2,3,{})._repr_()
             'Arrow from (0,0) to (2,3)'
         """
-        return "Arrow from (%s,%s) to (%s,%s)"%(self.xmin, self.ymin, self.xmax, self.ymax)
+        return "Arrow from (%s,%s) to (%s,%s)"%(self.xtail, self.ytail, self.xhead, self.yhead)
 
     def _render_on_subplot(self, subplot):
         """
@@ -1812,7 +1812,8 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         options = self.options()
         width = float(options['width'])
         import matplotlib.patches as patches
-        p = patches.FancyArrow(float(self.xmin), float(self.ymin), float(self.xmax), float(self.ymax),
+        # the syntax is x, y, dx, dy
+        p = patches.FancyArrow(self.xtail, self.ytail, self.xhead-self.xtail, self.yhead-self.ytail,
                          width=width, length_includes_head=True)
         c = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(c)
@@ -2763,17 +2764,21 @@ class ArrowFactory(GraphicPrimitiveFactory):
         5.0
 
     """
-    def __call__(self, minpoint, maxpoint, **kwds):
+    def __call__(self, tailpoint, headpoint, **kwds):
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
-        xmin = float(minpoint[0])
-        ymin = float(minpoint[1])
-        xmax = float(maxpoint[0])
-        ymax = float(maxpoint[1])
+        xtail = float(tailpoint[0])
+        ytail = float(tailpoint[1])
+        xhead = float(headpoint[0])
+        yhead = float(headpoint[1])
+        xmin = min(xtail, xhead)
+        xmax = max(xtail, xhead)
+        ymin = min(ytail, yhead)
+        ymax = max(ytail, yhead)
 
         g = Graphics(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        g._arrow(xmin, ymin, xmax, ymax, options=options)
+        g._arrow(xtail, ytail, xhead, yhead, options=options)
         return g
 
     def _reset(self):

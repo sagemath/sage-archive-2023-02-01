@@ -1,11 +1,5 @@
---- src/makefile	2008-06-15 20:31:56.000000000 -0700
-+++ patches/makefile	2008-06-30 17:19:31.000000000 -0700
-@@ -1,4 +1,4 @@
--LIBDIR=$(PREFIX)/lib
-+IBDIR=$(PREFIX)/lib
- INCLUDEDIR=$(PREFIX)/include
- DOCDIR=$(PREFIX)/doc
- 
+--- makefile.orig	2008-08-18 17:52:36.000000000 -0700
++++ makefile	2008-08-18 17:53:45.000000000 -0700
 @@ -22,10 +22,10 @@
  
  CPP = $(FLINT_CPP) 
@@ -30,7 +24,14 @@
  
  QS: mpQS tinyQS
  
-@@ -97,7 +98,8 @@
+@@ -93,11 +94,15 @@
+ libflint.dylib: $(FLINTOBJ)
+ 	$(CC) -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
+ 
++libflint.dylib64: $(FLINTOBJ)
++	$(CC) -m64 -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
++
+ libflint.dll: $(FLINTOBJ)
  	$(CC) -fPIC -shared -o libflint.dll $(FLINTOBJ) $(LIBS)
  
  libflint.so: $(FLINTOBJ)

@@ -1,6 +1,9 @@
 Upstream maintainer: Bill Heart
 Website: www.flintlib.org
 
+=== flint-1.0.13.p0 (Michael Abshoff, August 18th, 2008) ===
+ * Add 64 bit OSX support
+
 === flint-1.0.13 (Michael Abshoff, July 21st, 2008) ===
  * Update FLINT to 1.0.13 release
 

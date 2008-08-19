@@ -36,6 +36,11 @@ else
    FLINT_TUNE=" -fPIC -funroll-loops  "
 fi
 
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   FLINT_TUNE=" -fPIC -m64 -funroll-loops"
+fi
+
 export FLINT_TUNE
 
 FLINT_GMP_INCLUDE_DIR="$SAGE_LOCAL"/include/
@@ -79,7 +84,11 @@ fi
 
 # OS X
 if [ $UNAME = "Darwin" ]; then
-    $MAKE libflint.dylib
+    if ["$SAGE64" = "yes" ]; then
+       $MAKE libflint.dylib64
+    else
+       $MAKE libflint.dylib
+    fi
     if [ ! -f libflint.dylib ]; then
         echo "Failed to build FLINT dylib."
         exit 1

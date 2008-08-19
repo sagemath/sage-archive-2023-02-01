@@ -3095,10 +3095,6 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         r"""
         Return a Groebner basis of this ideal.
 
-
-
-selection_size, maximum number of polynomials for parallel reductions
-
         INPUT:
             other_ordering_first -- possible values are \code{False} or an
                                     ordering code. In practice, many

@@ -13,7 +13,8 @@ AUTHORS:
     -- William Stein
     -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
               some \Singular features
-    -- Martin Albrecht
+    -- Martin Albrecht <malb@informatik.uni-bremen> (2008,2007):
+       refactoring, many Singular related functions
 
 EXAMPLES:
 
@@ -121,9 +122,10 @@ TESTS:
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#                               Sage
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2008 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -138,101 +140,28 @@ TESTS:
 #*****************************************************************************
 from __future__ import with_statement
 
-from sage.rings.ideal import Ideal_generic
 from sage.interfaces.all import singular as singular_default
 from sage.interfaces.all import macaulay2 as macaulay2_default
-singular = singular_default
+
+from sage.rings.ideal import Ideal_generic
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
-from sage.misc.sage_eval import sage_eval
+
+from sage.misc.cachefunc import CachedFunction
 from sage.misc.misc import prod
+from sage.misc.sage_eval import sage_eval
+
 import sage.rings.integer_ring
 import sage.rings.polynomial.toy_buchberger as toy_buchberger
 
-def is_MPolynomialIdeal(x):
-    r"""
-    Return \code{True} if the provided argument \var{x} is an ideal in
-    the multivariate polynomial ring.
-
-    INPUT:
-        x -- an arbitrary object
-
-    EXAMPLE:
-        sage: P.<x,y,z> = PolynomialRing(QQ)
-        sage: I = [x + 2*y + 2*z - 1, x^2 + 2*y^2 + 2*z^2 - x, 2*x*y + 2*y*z - y]
-
-    \SAGE distinguishes between a list of generators for an ideal and
-    the ideal itself. This distinction is inconsisten with \Singular
-    but matches \Magma's behavior.
-
-        sage: is_MPolynomialIdeal(I)
-        False
-
-        sage: I = Ideal(I)
-        sage: is_MPolynomialIdeal(I)
-        True
-    """
-    return isinstance(x, MPolynomialIdeal)
-
-class MPolynomialIdeal_magma_repr:
-    def _magma_(self, magma=None):
-        r"""
-        Returns a \MAGMA ideal matching this ideal if the base ring is
-        coercable to \MAGMA and \MAGMA is available.
-
-        INPUT:
-            magma -- \MAGMA instance or None (default instance)
-                     (default: None)
-
-        EXAMPLES:
-            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
-            sage: I = sage.rings.ideal.Cyclic(R,4)
-            sage: I._magma_() #optional MAGMA
-            Ideal of Polynomial ring of rank 10 over GF(127)
-            Graded Reverse Lexicographical Order
-            Variables: a, b, c, d, e, f, g, h, i, j
-            Basis:
-            [
-            a + b + c + d,
-            a*b + b*c + a*d + c*d,
-            a*b*c + a*b*d + a*c*d + b*c*d,
-            a*b*c*d + 126
-            ]
-        """
-        if magma == None:
-            import sage.interfaces.magma
-            magma = sage.interfaces.magma.magma
-        return magma.ideal(self.gens())
-
-    def _magma_groebner_basis(self, magma=None):
-        r"""
-        Computes a Groebner Basis for self using \MAGMA if available.
-
-        INPUT:
-            magma -- \MAGMA instance or None (default instance)
-                     (default: None)
-        EXAMPLES:
-            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
-            sage: I = sage.rings.ideal.Cyclic(R,6)
-            sage: gb = I.groebner_basis('magma:GroebnerBasis') #optional MAGMA, indirect doctest
-            sage: len(gb) #optional MAGMA
-            45
-        """
-        try:
-            return self.__magma_groebner_basis
-        except AttributeError:
-            pass
-        R = self.ring()
-        mgb = self._magma_(magma=magma).GroebnerBasis()
-        mgb = [str(mgb[i+1]) for i in range(len(mgb))]
-        if R.base_ring().degree() > 1:
-            a = str(R.base_ring().gen())
-            mgb = [e.replace("$.1",a) for e in mgb]
-        B = Sequence([R(e) for e in mgb], R, check=False, immutable=True)
-        self.__magma_groebner_basis = B
-        return B
-
 class RedSBContext:
+    """
+    Within this context all \Singular Groebner basis calculations are
+    reduced automatically.
+
+    AUTHOR:
+        -- Martin Albrecht
+    """
     def __init__(self, singular=singular_default):
         r"""
         Within this context all \Singular Groebner basis calculations
@@ -291,7 +220,7 @@ class RedSBContext:
             7*b+210*c^3-79*c^2+3*c,
             7*a-420*c^3+158*c^2+8*c-7
         """
-        self.o = singular.option("get")
+        self.o = self.singular.option("get")
         self.singular.option("redSB")
 
     def __exit__(self, typ, value, tb):
@@ -327,34 +256,183 @@ def redSB(func):
     wrapper.__doc__=func.__doc__
     return wrapper
 
-class MPolynomialIdeal_singular_repr:
+class cached(CachedFunction):
+    r"""
+    Specialised \code{CachedFunction} for the application in
+    multivariate polynomial ideals.
+
+    AUTHOR:
+        -- Martin Albrecht
     """
+    def __call__(self, *args, **kwds):
+        """
+        EXAMPLES:
+            sage: P = PolynomialRing(GF(32003),4,'x')
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: I.groebner_basis.clear_cache()
+            sage: gb = I.groebner_basis() # indirect doctest
+            sage: I.groebner_basis.cache
+            {(Multivariate Polynomial Ring in x0, x1, x2, x3 over Finite Field of size 32003,
+            (x0 + 2*x1 + 2*x2 + 2*x3 - 1,
+            x1^2 + 2*x0*x2 + 2*x1*x3 - x2,
+            2*x0*x1 + 2*x1*x2 + 2*x2*x3 - x1,
+            x0^2 + 2*x1^2 + 2*x2^2 + 2*x3^2 - x0),
+            (),
+            ()):
+            [x0 + 2*x1 + 2*x2 + 2*x3 - 1,
+            x2^2 + 2*x1*x3 - 13711*x2*x3 - 4568*x3^2 - 4572*x1 + 13715*x2 - 9145*x3,
+            x1*x2 - 2*x1*x3 - 9147*x2*x3 - 13719*x3^2 + 2286*x1 + 9144*x2 + 4573*x3,
+            x1^2 + 2*x1*x3 + 4573*x2*x3 - 9142*x3^2 - 9144*x1 - 4572*x2 + 13715*x3,
+            x2*x3^2 + 3557*x3^3 - 1778*x1*x3 - 3161*x2*x3 + 5926*x3^2 - 10075*x1 - 6124*x2 + 11853*x3, x1*x3^2 - 10668*x3^3 - 3556*x1*x3 - 10075*x2*x3 + 3556*x3^2 - 889*x1 - 11853*x2,
+            x3^4 + 12535*x3^3 + 7471*x1*x3 + 6188*x2*x3 + 10117*x3^2 + 10521*x1 + 11393*x2 + 11829*x3]}
+        """
+        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        k = self.gen_key(*args, **kwds)
+        if self.cache.has_key(k) and "nocache" not in kwds:
+            return self.cache[k]
+
+        w = self.f(self.instance, *args, **kwds)
+        if is_MPolynomialRing(self.instance.ring()):
+            self.cache[k] = w
+        return w
+
+    def clear_cache(self):
+        """
+        Clear the cache.
+
+        EXAMPLE:
+            sage: P = PolynomialRing(GF(32003),4,'x')
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: I.groebner_basis.clear_cache()
+            sage: I.groebner_basis.cache
+            {}
+            sage: gb = I.groebner_basis() # indirect doctest
+            sage: len(I.groebner_basis.cache)
+            1
+            sage: I.groebner_basis.clear_cache()
+            sage: len(I.groebner_basis.cache)
+            0
+        """
+        self.cache = {}
+
+    def gen_key(self, *args, **kwds):
+        """
+        Generate a key to the cache.
+
+        EXAMPLE:
+            sage: P = PolynomialRing(GF(32003),4,'x')
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: I.groebner_basis.gen_key()
+            (Multivariate Polynomial Ring in x0, x1, x2, x3 over Finite Field of size 32003,
+            (x0 + 2*x1 + 2*x2 + 2*x3 - 1,
+            x1^2 + 2*x0*x2 + 2*x1*x3 - x2,
+            2*x0*x1 + 2*x1*x2 + 2*x2*x3 - x1,
+            x0^2 + 2*x1^2 + 2*x2^2 + 2*x3^2 - x0),
+            (),
+            ())
+        """
+        r = (self.instance.ring(), tuple(sorted(self.instance.gens())), args, tuple(kwds.iteritems()))
+        return r
+
+    def is_in_cache(self, *args, **kwds):
+        """
+        Check whether key is already in cache.
+
+        EXAMPLE:
+            sage: P = PolynomialRing(GF(32003),3,'x')
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: I.groebner_basis.is_in_cache()
+            False
+            sage: gb = I.groebner_basis()
+            sage: I.groebner_basis.is_in_cache()
+            True
+        """
+        return self.gen_key(*args, **kwds) in self.cache
+
+def is_MPolynomialIdeal(x):
+    r"""
+    Return \code{True} if the provided argument \var{x} is an ideal in
+    the multivariate polynomial ring.
+
+    INPUT:
+        x -- an arbitrary object
+
+    EXAMPLE:
+        sage: P.<x,y,z> = PolynomialRing(QQ)
+        sage: I = [x + 2*y + 2*z - 1, x^2 + 2*y^2 + 2*z^2 - x, 2*x*y + 2*y*z - y]
+
+    \SAGE distinguishes between a list of generators for an ideal and
+    the ideal itself. This distinction is inconsisten with \Singular
+    but matches \Magma's behavior.
+
+        sage: is_MPolynomialIdeal(I)
+        False
+
+        sage: I = Ideal(I)
+        sage: is_MPolynomialIdeal(I)
+        True
+    """
+    return isinstance(x, MPolynomialIdeal)
+
+class MPolynomialIdeal_magma_repr:
+    def _magma_(self, magma=None):
+        r"""
+        Returns a \MAGMA ideal matching this ideal if the base ring is
+        coercable to \MAGMA and \MAGMA is available.
+
+        INPUT:
+            magma -- \MAGMA instance or None (default instance)
+                     (default: None)
+
+        EXAMPLES:
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
+            sage: I = sage.rings.ideal.Cyclic(R,4)
+            sage: I._magma_() #optional MAGMA
+            Ideal of Polynomial ring of rank 10 over GF(127)
+            Graded Reverse Lexicographical Order
+            Variables: a, b, c, d, e, f, g, h, i, j
+            Basis:
+            [
+            a + b + c + d,
+            a*b + b*c + a*d + c*d,
+            a*b*c + a*b*d + a*c*d + b*c*d,
+            a*b*c*d + 126
+            ]
+        """
+        if magma == None:
+            import sage.interfaces.magma
+            magma = sage.interfaces.magma.magma
+        return magma.ideal(self.gens())
+
+    def _groebner_basis_magma(self, magma=None):
+        r"""
+        Computes a Groebner Basis for self using \MAGMA if available.
+
+        INPUT:
+            magma -- \MAGMA instance or None (default instance)
+                     (default: None)
+        EXAMPLES:
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
+            sage: I = sage.rings.ideal.Cyclic(R,6)
+            sage: gb = I.groebner_basis('magma:GroebnerBasis') #optional MAGMA, indirect doctest
+            sage: len(gb) #optional MAGMA
+            45
+        """
+        R = self.ring()
+        mgb = self._magma_(magma=magma).GroebnerBasis()
+        mgb = [str(mgb[i+1]) for i in range(len(mgb))]
+        if R.base_ring().degree() > 1:
+            a = str(R.base_ring().gen())
+            mgb = [e.replace("$.1",a) for e in mgb]
+        B = Sequence([R(e) for e in mgb], R, check=False, immutable=True)
+        return B
+
+class MPolynomialIdeal_singular_repr:
+    r"""
     An ideal in a multivariate polynomial ring, which has an
     underlying \Singular ring associated to it.
     """
-    def __cmp__(self, other):
-        """
-        EXAMPLE:
-            sage: R = PolynomialRing(QQ,'x,y,z')
-            sage: I = R.ideal()
-            sage: I == R.ideal()
-            True
-
-            sage: R = PolynomialRing(QQ, names=[])
-            sage: R.ideal(0) == R.ideal(0)
-            True
-
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-            sage: I = (x^3 + y, y)*R
-            sage: J = (x^3 + y, y, y*x^3 + y^2)*R
-            sage: I == J
-            True
-        """
-        l = self.groebner_basis()
-        r = other.groebner_basis()
-        return cmp(r,l)
-
-    def _singular_(self, singular=None):
+    def _singular_(self, singular=singular_default):
         r"""
         Return \Singular ideal corresponding to this ideal.
 
@@ -366,8 +444,6 @@ class MPolynomialIdeal_singular_repr:
             x^3+y,
             y
         """
-        if singular is None:
-            singular = singular_default
         try:
             self.ring()._singular_(singular).set_ring()
             I = self.__singular
@@ -412,7 +488,7 @@ class MPolynomialIdeal_singular_repr:
         g = f.reduce(self.groebner_basis())
         return g.is_zero()
 
-    def plot(self):
+    def plot(self, singular=singular_default):
         """
         If you somehow manage to install surf, perhaps you can use
         this function to implicitly plot the real zero locus of this
@@ -628,7 +704,7 @@ class MPolynomialIdeal_singular_repr:
         """
         return [P for _,P in self.complete_primary_decomposition(algorithm)]
 
-    def triangular_decomposition(self, algorithm=None):
+    def triangular_decomposition(self, algorithm=None, singular=singular_default):
         r"""
         Decompose zero-dimensional ideal \code{self} into triangular sets.
 
@@ -766,7 +842,7 @@ class MPolynomialIdeal_singular_repr:
 
         return T
 
-    def dimension(self):
+    def dimension(self, singular=singular_default):
         """
         The dimension of the ring modulo this ideal.
 
@@ -784,10 +860,8 @@ class MPolynomialIdeal_singular_repr:
         try:
             return self.__dimension
         except AttributeError:
-            v = list(self.groebner_basis())
-            if len(v) == 0:
-                v = [0]
-            self.__dimension = Integer(singular(v,"ideal").dim())
+            v = self._groebner_basis_singular_raw()
+            self.__dimension = Integer(v.dim())
         return self.__dimension
 
     def vector_space_dimension(self):
@@ -817,7 +891,7 @@ class MPolynomialIdeal_singular_repr:
             return vdim
 
     @redSB
-    def _groebner_basis_using_singular(self, algorithm="groebner", *args, **kwds):
+    def _groebner_basis_singular(self, algorithm="groebner", *args, **kwds):
         r"""
         Return the reduced Groebner basis of this ideal. If the Groebner
         basis for this ideal has been calculated before the cached
@@ -852,7 +926,7 @@ class MPolynomialIdeal_singular_repr:
             + a*c*d + b*c*d, a*b*c*d - 1) of Multivariate Polynomial
             Ring in a, b, c, d over Rational Field
 
-            sage: I._groebner_basis_using_singular()
+            sage: I._groebner_basis_singular()
             [c^2*d^6 - c^2*d^2 - d^4 + 1, c^3*d^2 + c^2*d^3 - c - d,
             b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
             b^2 + 2*b*d + d^2, a + b + c + d]
@@ -863,37 +937,51 @@ class MPolynomialIdeal_singular_repr:
         method and the user usually doesn't need to bother with this
         one.
         """
+        R = self.ring()
+        S = self._groebner_basis_singular_raw(algorithm=algorithm, *args, **kwds)
+        S =  Sequence([R(S[i+1]) for i in range(len(S))], R, check=False, immutable=True)
+        return S
+
+    def _groebner_basis_singular_raw(self, algorithm="groebner", singular=singular_default, *args, **kwds):
+        r"""
+        Return a Grobner basis in \Singular format.
+
+        EXAMPLE:
+            sage: R.<a,b,c,d> = PolynomialRing(QQ, 4, order='lex')
+            sage: I = sage.rings.ideal.Cyclic(R,4)
+            sage: I._groebner_basis_singular() # indirect doctest
+            [c^2*d^6 - c^2*d^2 - d^4 + 1, c^3*d^2 + c^2*d^3 - c - d,
+            b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
+            b^2 + 2*b*d + d^2, a + b + c + d]
+        """
         try:
-            return self.__groebner_basis
+            return self.__gb_singular
         except AttributeError:
-
-            # singular options are preserved by @redSB so we don't
-            # need to do that here too
-            for o,v in kwds.iteritems():
-                if v:
-                    singular.option(o)
-                else:
-                    singular.option("no"+o)
-
-            if algorithm=="groebner":
-                S = self._singular_().groebner()
-            elif algorithm=="std":
-                S = self._singular_().std()
-            elif algorithm=="slimgb":
-                S = self._singular_().slimgb()
-            elif algorithm=="stdhilb":
-                S = self._singular_().stdhilb()
-            elif algorithm=="stdfglm":
-                S = self._singular_().stdfglm()
+            pass
+        # singular options are preserved by @redSB so we don't
+        # need to do that here too
+        for o,v in kwds.iteritems():
+            if v:
+                singular.option(o)
             else:
-                raise TypeError, "algorithm '%s' unknown"%algorithm
-            R = self.ring()
-            self.__singular_groebner_basis = S #remember this
-            self.__groebner_basis = Sequence([R(S[i+1]) for i in range(len(S))], R,
-                                             check=False, immutable=True)
-        return self.__groebner_basis
+                singular.option("no"+o)
 
-    def _groebner_basis_using_libsingular(self, algorithm="std"):
+        if algorithm=="groebner":
+            S = self._singular_().groebner()
+        elif algorithm=="std":
+            S = self._singular_().std()
+        elif algorithm=="slimgb":
+            S = self._singular_().slimgb()
+        elif algorithm=="stdhilb":
+            S = self._singular_().stdhilb()
+        elif algorithm=="stdfglm":
+            S = self._singular_().stdfglm()
+        else:
+            raise TypeError, "algorithm '%s' unknown"%algorithm
+        self.__gb_singular = S
+        return S
+
+    def _groebner_basis_libsingular(self, algorithm="std"):
         r"""
         Return the reduced Groebner basis of this ideal. If the Groebner
         basis for this ideal has been calculated before the cached
@@ -920,7 +1008,7 @@ class MPolynomialIdeal_singular_repr:
             + a*c*d + b*c*d, a*b*c*d - 1) of Multivariate Polynomial
             Ring in a, b, c, d over Rational Field
 
-            sage: I._groebner_basis_using_libsingular()
+            sage: I._groebner_basis_libsingular()
             [c^2*d^6 - c^2*d^2 - d^4 + 1, c^3*d^2 + c^2*d^3 - c - d,
             b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
             b^2 + 2*b*d + d^2, a + b + c + d]
@@ -929,17 +1017,13 @@ class MPolynomialIdeal_singular_repr:
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import std_libsingular, slimgb_libsingular
 
-        try:
-            return self.__groebner_basis
-        except AttributeError:
-            if algorithm=="std":
-                S = std_libsingular(self)
-            elif algorithm=="slimgb":
-                S = slimgb_libsingular(self)
-            else:
-                raise TypeError, "algorithm '%s' unknown"%algorithm
-            self.__groebner_basis = S
-        return self.__groebner_basis
+        if algorithm=="std":
+            S = std_libsingular(self)
+        elif algorithm=="slimgb":
+            S = slimgb_libsingular(self)
+        else:
+            raise TypeError, "algorithm '%s' unknown"%algorithm
+        return S
 
     def genus(self):
         """
@@ -1064,7 +1148,7 @@ class MPolynomialIdeal_singular_repr:
         return S.ideal(r)
 
     @redSB
-    def integral_closure(self, p=0, r=True):
+    def integral_closure(self, p=0, r=True, singular=singular_default):
         r"""
         Let $I$ = \code{self}.
 
@@ -1097,8 +1181,6 @@ class MPolynomialIdeal_singular_repr:
         ret = Sequence([ R(f) for f in Is.normalI(p,int(r))[1] ], R,
                        check=False, immutable=True)
         return ret
-
-
 
     def syzygy_module(self):
         r"""
@@ -1174,7 +1256,7 @@ class MPolynomialIdeal_singular_repr:
         ret = Sequence( ret, R, check=False, immutable=True)
         return ret
 
-    def basis_is_groebner(self):
+    def basis_is_groebner(self, singular=singular_default):
         r"""
         Returns \code{True} if the generators of \code{self}
         (\code{self.gens()}) form a Groebner basis.
@@ -1205,7 +1287,7 @@ class MPolynomialIdeal_singular_repr:
         result. So we may acutally use reduce to determine if self is
         a Groebner basis.
         """
-        singular = self._singular_().parent()
+        self.ring()._singular_().set_ring()
 
         F = singular( self.gens(), "module" )
         LTF = singular( [f.lt() for f in self.gens()] , "module" )
@@ -1220,7 +1302,7 @@ class MPolynomialIdeal_singular_repr:
         return True
 
     @redSB
-    def transformed_basis(self,algorithm="gwalk", other_ring=None):
+    def transformed_basis(self, algorithm="gwalk", other_ring=None, singular=singular_default):
         r"""
         Returns a lex or \var{other_ring} Groebner Basis for this
         ideal.
@@ -1273,7 +1355,7 @@ class MPolynomialIdeal_singular_repr:
         if self.basis_is_groebner():
             Is = self._singular_()
         else:
-            Is = self._singular_().groebner()
+            Is = self._groebner_basis_singular_raw()
 
         R = self.ring()
 
@@ -1322,11 +1404,7 @@ class MPolynomialIdeal_singular_repr:
         if not isinstance(variables, (list,tuple)):
             variables = (variables,)
 
-        try:
-            Is = self.__singular_groebner_basis
-        except AttributeError:
-            Is = self._singular_()
-
+        Is = self._groebner_basis_singular_raw()
         R = self.ring()
         return MPolynomialIdeal(R, [f.sage_poly(R) for f in Is.eliminate( prod(variables) ) ] )
 
@@ -1538,7 +1616,7 @@ class MPolynomialIdeal_singular_repr:
         fp = ZZ(len(hp)-1).factorial()
         return sum([ZZ(hp[i+1])*t**i for i in xrange(len(hp))])/fp
 
-    def hilbert_series(self):
+    def hilbert_series(self, singular=singular_default):
         r"""
         Return the Hilbert series of this ideal.
 
@@ -1580,9 +1658,6 @@ class MPolynomialIdeal_macaulay2_repr:
         sage: I                                 # optional
         Ideal (x*y - z^2, y^2 - w^2) of Multivariate Polynomial Ring in x, y, z, w over Integer Ring
     """
-    #def __init__(self, ring, gens, coerce=True):
-    #    MPolynomialIdeal.__init__(self, ring, gens, coerce=coerce)
-
     def _macaulay2_(self, macaulay2=None):
         """
         Return Macaulay2 ideal corresponding to this ideal.
@@ -1609,9 +1684,10 @@ class MPolynomialIdeal_macaulay2_repr:
         self.__macaulay2[macaulay2] = z
         return z
 
-    def _macaulay2_groebner_basis(self):
+    def _groebner_basis_macaulay2(self):
         r"""
-        Return the Groebner basis for this ideal, computed using Macaulay2.
+        Return the Groebner basis for this ideal, computed using
+        Macaulay2.
 
         ALGORITHM: Computed using Macaulay2.  A big advantage of
         Macaulay2 is that it can compute Groebner basis of ideals in
@@ -1633,21 +1709,17 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: I.groebner_basis() # optional -- requires macaulay2
             [361, y^2, x^3]
         """
-        try:
-            return self.__groebner_basis
-        except AttributeError:
-            I = self._macaulay2_()
-            G = str(I.gb().generators().external_string()).replace('\n','')
-            i = G.rfind('{{')
-            j = G.rfind('}}')
-            G = G[i+2:j].split(',')
-            L = self.ring().gens_dict()
-            B = [sage_eval(f, L) for f in G]
-            B = Sequence(B, self.ring(), check=False)
-            B.sort()
-            B.set_immutable()
-            self.__groebner_basis = B
-            return B
+        I = self._macaulay2_()
+        G = str(I.gb().generators().external_string()).replace('\n','')
+        i = G.rfind('{{')
+        j = G.rfind('}}')
+        G = G[i+2:j].split(',')
+        L = self.ring().gens_dict()
+        B = [sage_eval(f, L) for f in G]
+        B = Sequence(B, self.ring(), check=False)
+        B.sort()
+        B.set_immutable()
+        return B
 
     def _reduce_using_macaulay2(self, f):
         """
@@ -1687,6 +1759,62 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         Ideal_generic.__init__(self, ring, gens, coerce=coerce)
 
+    def __cmp__(self, other):
+        """
+        EXAMPLE:
+            sage: R = PolynomialRing(QQ,'x,y,z')
+            sage: I = R.ideal()
+            sage: I == R.ideal()
+            True
+
+            sage: R = PolynomialRing(QQ, names=[])
+            sage: R.ideal(0) == R.ideal(0)
+            True
+
+            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+            sage: I = (x^3 + y, y)*R
+            sage: J = (x^3 + y, y, y*x^3 + y^2)*R
+            sage: I == J
+            True
+
+            sage: R = PolynomialRing(QQ, 'x,y,z', order='degrevlex')
+            sage: S = PolynomialRing(QQ, 'x,y,z', order='invlex')
+            sage: I = R.ideal([R.0,R.1])
+            sage: J = S.ideal([S.0,S.1])
+            sage: I == J
+            True
+            sage: cmp(I,J)
+            0
+            sage: I.__cmp__(J)
+            0
+        """
+        # first check the type
+        if not isinstance(other, MPolynomialIdeal):
+            return 1
+
+        # the ideals may be defined w.r.t. to different term orders
+        # but are still the same.
+        R = self.ring()
+        S = other.ring()
+        if R is not S: # rings are unique
+            if type(R) == type(S) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
+                other = other.change_ring(R)
+            else:
+                return cmp((type(R), R.base_ring(), R.ngens()), (type(S), S.base_ring(), S.ngens()))
+
+        # now, check whether the GBs are cached already
+        if self.groebner_basis.is_in_cache() and other.groebner_basis.is_in_cache():
+            l = self.groebner_basis()
+            r = other.groebner_basis()
+        else: # use easy GB otherwise
+            try:
+                l = self.change_ring(R.change_ring(order="degrevlex")).groebner_basis()
+                r = other.change_ring(R.change_ring(order="degrevlex")).groebner_basis()
+            except AttributeError: # e.g. quotient rings
+                l = self.groebner_basis()
+                r = other.groebner_basis()
+        return cmp(l,r)
+
     def groebner_fan(self, is_groebner_basis=False, symmetry=None, verbose=False):
         r"""
         Return the Groebner fan of this ideal.
@@ -1713,7 +1841,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
                                         symmetry=symmetry, verbose=verbose)
 
-    def groebner_basis(self, algorithm=None, *args, **kwds):
+    @cached
+    def groebner_basis(self, algorithm='', *args, **kwds):
         r"""
         Return the reduced Groebner basis of this ideal. A Groeber basis
         $g_1,...,g_n$ for an ideal $I$ is a basis such that $<LT(g_i)>
@@ -1735,7 +1864,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         ALGORITHMS:
             \begin{description}
-            \item[None] autoselect (default)
+            \item[''] autoselect (default)
             \item['singular:groebner'] \Singular's \code{groebner} command
             \item['singular:std'] \Singular's \code{std} command
             \item['singular:stdhilb'] \Singular's \code{stdhib} command
@@ -1748,6 +1877,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             \item['macaulay2:gb'] Macaulay2's \code{gb} command (if available)
             \item['magma:GroebnerBasis'] \MAGMA's \code{Groebnerbasis} command (if available)
             \end{description}
+
+        If only a system is given -- e.g. 'magma' -- the default
+        algorithm is chosen for that system.
 
         NOTE: The \Singular and lib\Singular versions of the
         respective algorithms are identically, but the former calls an
@@ -1827,12 +1959,21 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         available), or toy implementation.
 
         """
-        if algorithm is None:
+        if algorithm.lower() == "magma":
+            algorithm = "magma:GroebnerBasis"
+        elif algorithm.lower() == "singular":
+            algorithm = "singular:groebner"
+        elif algorithm.lower() == "macaulay2":
+            algorithm = "macaulay2:gb"
+        elif algorithm.lower() == "toy":
+            algorithm = "toy:buchberger2"
+
+        if algorithm is '':
             if self.ring().base_ring() == sage.rings.integer_ring.ZZ:
-                gb = self._macaulay2_groebner_basis()
+                gb = self._groebner_basis_macaulay2()
             else:
                 try:
-                    gb = self._groebner_basis_using_singular("groebner", *args, **kwds)
+                    gb = self._groebner_basis_singular("groebner", *args, **kwds)
                 except TypeError: # conversion to Singular not supported
                     # we might want to print a warning here
                     if self.ring().term_order().is_global():
@@ -1840,13 +1981,13 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                     else:
                         raise TypeError, "Local/unknown orderings not supported by 'toy_buchberger' implementation."
         elif algorithm.startswith('singular:'):
-            gb = self._groebner_basis_using_singular(algorithm[9:])
+            gb = self._groebner_basis_singular(algorithm[9:])
         elif algorithm.startswith('libsingular:'):
-            gb = self._groebner_basis_using_libsingular(algorithm[len('libsingular:'):], *args, **kwds)
+            gb = self._groebner_basis_libsingular(algorithm[len('libsingular:'):], *args, **kwds)
         elif algorithm == 'macaulay2:gb':
-            gb = self._macaulay2_groebner_basis(*args, **kwds)
+            gb = self._groebner_basis_macaulay2(*args, **kwds)
         elif algorithm == 'magma:GroebnerBasis':
-            gb = self._magma_groebner_basis(*args, **kwds)
+            gb = self._groebner_basis_magma(*args, **kwds)
         elif algorithm == 'toy:buchberger':
             gb = toy_buchberger.buchberger(self, *args, **kwds)
         elif algorithm == 'toy:buchberger2':
@@ -1855,9 +1996,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             raise TypeError, "algorithm '%s' unknown"%algorithm
 
         if self.ring().base_ring().is_field():
-            return Sequence( [f*f.lc()**(-1) for f in gb], immutable=True, check=False)
-        else:
-            return gb
+            gb = Sequence( [f*f.lc()**(-1) for f in gb], immutable=True, check=False)
+        return gb
 
     def change_ring(self, P):
         r"""
@@ -1987,11 +2127,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 return False
         return True
 
-    def _libsingular_normal_basis(self):
-        """
+    def _normal_basis_libsingular(self):
+        r"""
         Returns the normal basis for a given groebner basis. It will use
         the Groebner Basis as computed by
-        self._groebner_basis_using_libsingular().
+        \code{MPolynomialIdeal._groebner_basis_libsingular()}.
 
         EXAMPLES:
             sage: R.<x,y,z> = PolynomialRing(QQ)
@@ -2001,11 +2141,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import kbase_libsingular
-        gb = self._groebner_basis_using_libsingular()
+        gb = self._groebner_basis_libsingular()
 
         return kbase_libsingular(self.ring().ideal(gb))
 
-    def normal_basis(self, algorithm='libsingular'):
+    def normal_basis(self, algorithm='libsingular', singular=singular_default):
         """
         Returns a vector space basis (consisting of monomials) of the quotient
         ring by the ideal, resp. of a free module by the module, in case it is
@@ -2026,7 +2166,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
 
         if algorithm == 'libsingular':
-            return self._libsingular_normal_basis()
+            return self._normal_basis_libsingular()
         else:
             gb = self.groebner_basis()
             return list(singular.kbase(self.ring().ideal(gb)))

@@ -1,0 +1,11 @@
+--- configure.orig	2008-08-18 18:11:21.000000000 -0700
++++ configure-OSX-64	2008-08-18 18:07:49.000000000 -0700
+@@ -96,7 +96,7 @@
+              SHAREDLIB=libz$shared_ext
+              SHAREDLIBV=libz.$VER$shared_ext
+              SHAREDLIBM=libz.$VER1$shared_ext
+-             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER"};;
++             LDSHARED=${LDSHARED-"$cc -m64 -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER"};;
+   *)             LDSHARED=${LDSHARED-"$cc -shared"};;
+   esac
+ else

@@ -2,9 +2,12 @@
 
 FIXME!
 
+
+=== zlib-1.2.3.p4 (Michael Abshoff, August 18th, 2008) ===
+ * handle 64 bit OSX build case
+
 === zlib-1.2.3.p3 (Michael Abshoff) ===
- * add "-g" to CFLAGS to get better backtraces and valgrind
-   stack traces.
+ * add "-g" to CFLAGS to get better backtraces and valgrind  stack traces.
 
 === zlib-1.2.3.p2 ===
  * first documented version

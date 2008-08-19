@@ -1,4 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 cd src/
 
@@ -8,7 +14,12 @@ unset AR
 # The -fPIC is needed otherwise builing libpng fails later
 # (at least on a Debian 64-bit opteron).
 
-CFLAGS="$CFLAGS -fPIC -g -I\"$SAGE_LOCAL/include\""
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   CFLAGS=" -m64 $CFLAGS -fPIC -g -I\"$SAGE_LOCAL/include\""
+   cp ../patches/configure-OSX-64 configure
+else
+   CFLAGS="$CFLAGS -fPIC -g -I\"$SAGE_LOCAL/include\""
+fi
 export CFLAGS
 
 ./configure --shared --prefix=$SAGE_LOCAL

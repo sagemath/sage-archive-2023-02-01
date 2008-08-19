@@ -4,6 +4,9 @@
 
 == Releases ==
 
+=== gd-2.0.35 (Michael Abshoff, August 19th, 2008) ===
+ * Upgrade to 2.0.35 release
+
 === gd-2.0.33.p6 (Michael Abshoff, August 19th, 2008) ===
  * Add 64 bit OSX build support
 

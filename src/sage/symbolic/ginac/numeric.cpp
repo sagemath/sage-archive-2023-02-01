@@ -626,7 +626,7 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
   }
   
   bool Number_T::operator==(const Number_T& right) const { 
-    verbose("operator==");
+    verbose3("operator==", *this, right);
     if (t != right.t) {
       Number_T a, b;
       coerce(a, b, *this, right);
@@ -642,6 +642,7 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
       if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result)== -1) {
 	py_error("==");
       }
+      verbose2("result =", result);
       return (result == 0);
     default:
       stub("operator== type not handled");
@@ -848,7 +849,7 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
   }
 
   bool Number_T::is_integer() const { 
-    verbose("is_integer");
+    verbose2("is_integer", *this);
     switch(t) {
     case DOUBLE:
       return false;
@@ -859,6 +860,7 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
       PyObject* o = PyObject_CallFunctionObjArgs(pyfunc_Integer, v._pyobject, NULL);
       bool ans = o;
       Py_DECREF(o);
+      verbose2("is_integer; ans --> ", ans);
       return ans;
     default:
       stub("is_integer() type not handled");
@@ -2423,7 +2425,8 @@ PyObject* s_denominator = PyString_FromString("denominator");  // todo: never fr
    *  where imag(x)>0. */
   const numeric sqrt(const numeric &x)
   {
-    stub("const numeric sqrt(const numeric &x)");
+    verbose("numeric sqrt(const numeric &x)");
+    return sqrt(x.value);
   }
 
 

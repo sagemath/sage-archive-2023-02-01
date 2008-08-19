@@ -1,3 +1,17 @@
+= Singular =
+
+== Patches ==
+
+ * assert.h
+ * kernel.Makefile.in
+ * fac_distrib.cc (should be in upstream past singular-3-0-4-4-20080711)
+
+== Releases ==
+
+=== singular-3-0-4-4-20080711.p0 (Michael Abshoff, August 19th, 2008) ===
+ * add 64 bit OSX support
+ * Fix mv-factoprization bug reported by Tom Boothby
+
 === singular-3-0-4-4-20080711 (Martin Albrecht, July 11th, 2008) ===
  * new upstream release
 

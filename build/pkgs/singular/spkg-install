@@ -43,6 +43,13 @@ else
     CXXFLAGS="$CXXFLAGS -O3 -g"
     CFLAGS="$CFLAGS -O3 -g"
   fi
+  if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+    echo "64 bit MacIntel"
+    CFLAGS="-O2 -g -m64 "; export CFLAGS
+    CXXFLAGS="-O2 -g -m64"; export CXXFLAGS
+    CPPFLAGS="-O2 -g -m64"; export CPPFLAGS
+    LDFLAGS="-m64 "; export LDFLAGS
+  fi
 fi
 
 CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
@@ -63,6 +70,7 @@ patch()
     # work-around patches
     cp patches/assert.h src/factory/
     cp patches/kernel.Makefile.in src/kernel/Makefile.in
+    cp patches/fac_distrib.cc src/factory/fac_distrib.cc
 }
 
 distclean()

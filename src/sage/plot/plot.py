@@ -1744,7 +1744,7 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         EXAMPLES:
             sage: from sage.plot.plot import GraphicPrimitive_Arrow
             sage: GraphicPrimitive_Arrow(0,0,2,3,{})
-            Arrow from (0,0) to (2,3)
+            Arrow from (0.0,0.0) to (2.0,3.0)
         """
         self.xtail = float(xtail)
         self.xhead = float(xhead)
@@ -1795,7 +1795,7 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         EXAMPLES:
             sage: from sage.plot.plot import GraphicPrimitive_Arrow
             sage: GraphicPrimitive_Arrow(0,0,2,3,{})._repr_()
-            'Arrow from (0,0) to (2,3)'
+            'Arrow from (0.0,0.0) to (2.0,3.0)'
         """
         return "Arrow from (%s,%s) to (%s,%s)"%(self.xtail, self.ytail, self.xhead, self.yhead)
 

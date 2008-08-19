@@ -44,11 +44,11 @@ cdef class NSymbolicRing(Ring):
         cdef GEx exp
 
         if isinstance(other, (int, long)):
-            GEx_construct_pyobject(exp, Integer(other))
-            #GEx_construct_long(&exp, other)
+            GEx_construct_long(&exp, other)
+            #GEx_construct_pyobject(exp, Integer(other))
         elif isinstance(other, float):
-            GEx_construct_pyobject(exp, other)
-            #GEx_construct_double(&exp, other)
+            GEx_construct_double(&exp, other)
+            #GEx_construct_pyobject(exp, other)
         elif isinstance(other, Integer):
             GEx_construct_pyobject(exp, other)
             #GEx_construct_long(&exp,mpz_get_si((<Integer>other).value))
@@ -111,3 +111,24 @@ pi = new_Expression_from_GEx(g_Pi)
 catalan = new_Expression_from_GEx(g_Catalan)
 euler = new_Expression_from_GEx(g_Euler)
 
+import sage.rings.integer
+ginac_pyinit_Integer(sage.rings.integer.Integer)
+
+import sage.rings.real_double
+ginac_pyinit_Float(sage.rings.real_double.RDF)
+
+import sage.rings.arith
+ginac_pyinit_gcd(sage.rings.arith.gcd)
+
+import sage.rings.arith
+def f(x,y):
+    print "x,y = ", (x,y)
+    ans = sage.rings.arith.lcm(x,y)
+    print "ans = ", ans
+    return ans
+
+#ginac_pyinit_lcm(f)
+ginac_pyinit_lcm(sage.rings.arith.lcm)
+
+import sage.rings.arith
+ginac_pyinit_binomial(sage.rings.arith.binomial)

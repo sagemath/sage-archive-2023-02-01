@@ -536,7 +536,7 @@ cdef class FastDoubleFunc:
         if self.stack == NULL:
             raise MemoryError
 
-    def __del__(self):
+    def __dealloc__(self):
         if self.ops:
             sage_free(self.ops)
         if self.stack:

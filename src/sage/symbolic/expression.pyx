@@ -185,25 +185,25 @@ cdef class Expression(CommutativeRingElement):
         _sig_off
         return new_Expression_from_GEx(e)
 
-    def asin(self):
+    def arcsin(self):
         _sig_on
         cdef GEx e = g_asin(self._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
 
-    def acos(self):
+    def arccos(self):
         _sig_on
         cdef GEx e = g_acos(self._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
 
-    def atan(self):
+    def arctan(self):
         _sig_on
         cdef GEx e = g_atan(self._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
 
-    def atan2(self, Expression x):
+    def arctan2(self, Expression x):
         _sig_on
         cdef GEx e = g_atan2(self._gobj, x._gobj)
         _sig_off
@@ -227,19 +227,19 @@ cdef class Expression(CommutativeRingElement):
         _sig_off
         return new_Expression_from_GEx(e)
 
-    def asinh(self):
+    def arcsinh(self):
         _sig_on
         cdef GEx e = g_asinh(self._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
 
-    def acosh(self):
+    def arccosh(self):
         _sig_on
         cdef GEx e = g_acosh(self._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
 
-    def atanh(self):
+    def arctanh(self):
         _sig_on
         cdef GEx e = g_atanh(self._gobj)
         _sig_off

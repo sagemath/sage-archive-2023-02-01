@@ -1,0 +1,62 @@
+#!/bin/sh
+###########################################
+## PolyBoRi
+###########################################
+
+WORKDIR=${PWD}/src
+GINACDIR=${WORKDIR}
+
+patch()
+{
+    true
+}
+
+build_ginac()
+{
+    cd ${GINACDIR}
+    PKG_CONFIG_PATH=${SAGE_LOCAL}/lib/pkgconfig ./configure --disable-static --prefix=${SAGE_LOCAL}
+    $MAKE
+    if [ $? -ne 0 ]; then
+        echo "Error building ginac."
+        exit 1
+    fi
+    cd ${WORKDIR}
+}
+
+install_ginac()
+{
+    cd ${GINACDIR}
+    $MAKE install
+    if [ $? -ne 0 ]; then
+        echo "Error installing ginac."
+        exit 1
+    fi
+    cd ${WORKDIR}
+}
+
+clean_ginac()
+{
+    true
+}
+
+patch
+
+
+cd src
+
+echo "Starting build..."
+echo "Running build_ginac..."
+build_ginac
+echo "Done build_ginac."
+
+echo "Installing ginac..."
+install_ginac
+echo "Done installing ginac."
+
+
+# TODO: Weird problem on Linux.  This is a stupid
+# workaround that has to be fixed in the official release.
+if [ ! -f "$SAGE_LOCAL"/lib/libginac.so ]; then
+     cd "$SAGE_LOCAL"/lib/
+     ln -s libginac libginac.so
+fi

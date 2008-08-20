@@ -31,29 +31,25 @@ cdef class NSymbolicRing(Ring):
         """
 
         EXAMPLES:
-        sage: from sage.symbolic.ring import NSR
-        sage: NSR._coerce_(int(5))
-        5
-        sage: NSR._coerce_(5)
-        5
-        sage: NSR._coerce_(float(5))
-        5.0
-        sage: NSR._coerce_(5.0)
-        5.0
+            sage: from sage.symbolic.ring import NSR
+            sage: NSR._coerce_(int(5))
+            5
+            sage: NSR._coerce_(5)
+            5
+            sage: NSR._coerce_(float(5))
+            5.0
+            sage: NSR._coerce_(5.0)
+            5.0
         """
         cdef GEx exp
 
-        if isinstance(other, (int, long)):
+        if isinstance(other, int):
             GEx_construct_long(&exp, other)
-            #GEx_construct_pyobject(exp, Integer(other))
         elif isinstance(other, float):
             GEx_construct_double(&exp, other)
-            #GEx_construct_pyobject(exp, other)
-        elif isinstance(other, Integer):
+        elif isinstance(other, (Integer, long, complex)):
             GEx_construct_pyobject(exp, other)
-            #GEx_construct_long(&exp,mpz_get_si((<Integer>other).value))
         elif isinstance(other, RealNumber):
-            #GEx_construct_double(&exp, float(other))
             GEx_construct_pyobject(exp, other)
         elif isinstance(other, RingElement):
             GEx_construct_pyobject(exp, other)
@@ -117,18 +113,5 @@ ginac_pyinit_Integer(sage.rings.integer.Integer)
 import sage.rings.real_double
 ginac_pyinit_Float(sage.rings.real_double.RDF)
 
-import sage.rings.arith
-ginac_pyinit_gcd(sage.rings.arith.gcd)
-
-import sage.rings.arith
-def f(x,y):
-    print "x,y = ", (x,y)
-    ans = sage.rings.arith.lcm(x,y)
-    print "ans = ", ans
-    return ans
-
-#ginac_pyinit_lcm(f)
-ginac_pyinit_lcm(sage.rings.arith.lcm)
-
-import sage.rings.arith
-ginac_pyinit_binomial(sage.rings.arith.binomial)
+from sage.rings.complex_double import CDF
+ginac_pyinit_I(CDF.gen())

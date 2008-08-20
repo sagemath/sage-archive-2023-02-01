@@ -1,9 +1,7 @@
 cdef extern from "ginac_wrap.h":
     void ginac_pyinit_Integer(object)
     void ginac_pyinit_Float(object)
-    void ginac_pyinit_gcd(object)
-    void ginac_pyinit_lcm(object)
-    void ginac_pyinit_binomial(object)
+    void ginac_pyinit_I(object)
 
     ctypedef struct GBasic "basic":
         unsigned int gethash()

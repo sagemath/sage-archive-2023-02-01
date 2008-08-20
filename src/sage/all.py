@@ -82,6 +82,8 @@ from sage.sets.all       import *
 from sage.probability.all import *
 from sage.interfaces.all import *
 from sage.functions.all  import *
+
+import sage.symbolic.pynac   # This must come before Calculus -- it initializes the Pynac library.
 from sage.calculus.all   import *
 from sage.server.all     import *
 from sage.dsage.all      import *

@@ -1170,7 +1170,7 @@ class Graphics(SageObject):
         z-coordinate.
 
         EXAMPLES:
-            sage: sum([plot(z*sin(x), 0, 10).plot3d(z) for z in range(6)])
+            sage: sum([plot(z*sin(x), 0, 10).plot3d(z) for z in range(6)]) #long
         """
         from sage.plot.plot3d.base import Graphics3dGroup
         g = Graphics3dGroup([g.plot3d(**kwds) for g in self.__objects])
@@ -1285,8 +1285,8 @@ class Graphics(SageObject):
         Add grid lines at specific positions (using iterators).
             sage: def maple_leaf(t):
             ...     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
-            sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, rgbcolor="red",plot_points=1000)
-            sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) ))
+            sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, rgbcolor="red",plot_points=1000) #long
+            sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) )) #long
 
         Add grid lines at specific positions (using functions).
             sage: y = x^5 + 4*x^4 - 10*x^3 - 40*x^2 + 9*x + 36
@@ -3372,11 +3372,19 @@ def plot(funcs, *args, **kwds):
 
     PLOT OPTIONS:
     The plot options are
-        plot_points -- the number of points to initially plot before
-                       doing adaptive refinement
-        plot_division -- the maximum number of subdivisions to
-                         introduce in adaptive refinement.
-        max_bend      -- parameter that affects adaptive refinement
+        plot_points -- (default: 200) the number of points to initially plot
+                       before the adaptive refinement.
+        adaptive_recursion -- (default: 5) how many levels of recursion to go
+                              before giving up when doing adaptive refinement.
+                              Setting this to 0 disables adaptive refinement.
+        adaptive_tolerance -- (default: 0.01) how large a difference should be
+                              before the adaptive refinement code considers it
+                              significant.  Use a smaller value for smoother
+                              plots and a larger value for coarser plots.  In
+                              general, adjust adaptive_recursion before
+                              adaptive_tolerance, and consult the code of
+                              adaptive_refinement for the details.
+
         xmin -- starting x value
         xmax -- ending x value
         color -- an rgb-tuple (r,g,b) with each of r,g,b between 0 and 1, or
@@ -3419,20 +3427,20 @@ def plot(funcs, *args, **kwds):
         Graphics object consisting of 1 graphics primitive
         sage: len(P)     # number of graphics primitives
         1
-        sage: len(P[0])  # how many points were computed
-        200
+        sage: len(P[0])  # how many points were computed (random)
+        6369
         sage: P          # render
 
         sage: P = plot(sin, (0,10), plot_points=10); print P
         Graphics object consisting of 1 graphics primitive
         sage: len(P[0])  # random output
-        80
+        32
         sage: P          # render
 
     We plot with randomize=False, which makes the initial sample
     points evenly spaced (hence always the same).  Adaptive plotting
-    might insert other points, however, unless plot_division=0.
-        sage: p=plot(1, (x,0,3), plot_points=4, randomize=False, plot_division=0)
+    might insert other points, however, unless adaptive_recursion=0.
+        sage: p=plot(1, (x,0,3), plot_points=4, randomize=False, adaptive_recursion=0)
         sage: list(p[0])
         [(0.0, 1.0), (1.0, 1.0), (2.0, 1.0), (3.0, 1.0)]
 
@@ -3446,18 +3454,31 @@ def plot(funcs, *args, **kwds):
         sage: plot([sin(n*x) for n in [1..4]], (0, pi))
 
 
-    The function $\sin(1/x)$ wiggles wildly near $0$, so the
-    first plot below won't look perfect.  Sage adapts to this
-    and plots extra points near the origin.
+    The function $\sin(1/x)$ wiggles wildly near $0$.  Sage adapts
+    to this and plots extra points near the origin.
         sage: plot(sin(1/x), (x, -1, 1))
-
-    With the \code{plot_points} option you can increase the number
-    of sample points, to obtain a more accurate plot.
-        sage: plot(sin(1/x), (x, -1, 1), plot_points=1000)
 
     Note that the independent variable may be omitted if there is no
     ambiguity:
-        sage: plot(sin(1/x), (-1, 1), plot_points=1000)
+        sage: plot(sin(1/x), (-1, 1))
+
+    The algorithm used to insert extra points is actually pretty simple. On
+    the picture drawn by the lines below:
+        sage: p = plot(x^2, (-0.5, 1.4)) + line([(0,0), (1,1)], rgbcolor='green')
+        sage: p += line([(0.5, 0.5), (0.5, 0.5^2)], rgbcolor='purple')
+        sage: p += point(((0, 0), (0.5, 0.5), (0.5, 0.5^2), (1, 1)), rgbcolor='red', pointsize=20)
+        sage: p += text('A', (-0.05, 0.1), rgbcolor='red')
+        sage: p += text('B', (1.01, 1.1), rgbcolor='red')
+        sage: p += text('C', (0.48, 0.57), rgbcolor='red')
+        sage: p += text('D', (0.53, 0.18), rgbcolor='red')
+        sage: p.show(axes=False, xmin=-0.5, xmax=1.4, ymin=0, ymax=2)
+
+    You have the function (in blue) and its approximation (in green) passing
+    through the points A and B. The algorithm finds the midpoint C of AB and
+    computes the distance between C and D. The point D is added to the curve if
+    it exceeds the (nonzero) adaptive_tolerance threshold. If D is added to
+    the curve, then the algorithm is applied recursively to the points A and D,
+    and D and B. It is repeated adaptive_recursion times (10, by default).
 
     The actual sample points are slightly randomized, so the above
     plots may look slightly different each time you draw them.
@@ -3487,7 +3508,7 @@ def plot(funcs, *args, **kwds):
         sage: set_verbose(0)
 
     To plot the negative real cube root, use something like the following.
-        sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1) )
+        sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1))
 
     TESTS:
     We do not randomize the endpoints:
@@ -3533,8 +3554,8 @@ def plot(funcs, *args, **kwds):
 def _plot(funcs, xrange, parametric=False,
               polar=False, label='', randomize=True, **kwds):
     options = {'alpha':1,'thickness':1,'rgbcolor':(0,0,1),
-               'plot_points':200, 'plot_division':1000,
-               'max_bend': 0.1, 'rgbcolor': (0,0,1) }
+               'plot_points':200, 'adaptive_tolerance':0.01,
+               'adaptive_recursion':5, 'rgbcolor': (0,0,1) }
 
     if kwds.has_key('color') and not kwds.has_key('rgbcolor'):
         kwds['rgbcolor'] = kwds['color']
@@ -3555,7 +3576,6 @@ def _plot(funcs, xrange, parametric=False,
 
     plot_points = int(options.pop('plot_points'))
     x, data = var_and_list_of_values(xrange, plot_points)
-    data = list(data)
     xmin = data[0]
     xmax = data[-1]
 
@@ -3564,10 +3584,7 @@ def _plot(funcs, xrange, parametric=False,
     if isinstance(funcs, (list, tuple)) and not parametric:
         return reduce(operator.add, (plot(f, (xmin, xmax), polar=polar, **kwds) for f in funcs))
 
-    if len(data) >= 2:
-        delta = data[1]-data[0]
-    else:
-        delta = 0
+    delta = float(xmin-xmax) / plot_points
 
     random = current_randstate().python_random().random
     exceptions = 0; msg=''
@@ -3576,13 +3593,8 @@ def _plot(funcs, xrange, parametric=False,
         xi = data[i]
         # Slightly randomize the interior sample points if
         # randomize is true
-        if i > 0 and i < plot_points-1:
-            if randomize:
-                xi += delta*random()
-            if xi > xmax:
-                xi = xmax
-        elif i == plot_points-1:
-            xi = xmax  # guarantee that we get the last point.
+        if randomize and i > 0 and i < plot_points-1:
+            xi += delta*(random() - 0.5)
 
         try:
             data[i] = (float(xi), float(f(xi)))
@@ -3592,6 +3604,39 @@ def _plot(funcs, xrange, parametric=False,
                 exception_indices.append(i)
         except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
             sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+
+            if i == 0:
+                for j in range(1, 99):
+                    xj = xi + delta*j/100.0
+                    try:
+                        data[i] = (float(xj), float(f(xj)))
+                        # nan != nan
+                        if data[i][1] != data[i][1]:
+                            continue
+                        break
+                    except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+                        pass
+                else:
+                    exceptions += 1
+                    exception_indices.append(i)
+            elif i == plot_points-1:
+                for j in range(1, 99):
+                    xj = xi - delta*j/100.0
+                    try:
+                        data[i] = (float(xj), float(f(xj)))
+                        # nan != nan
+                        if data[i][1] != data[i][1]:
+                            continue
+                        break
+                    except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+                        pass
+                else:
+                    exceptions += 1
+                    exception_indices.append(i)
+            else:
+                exceptions += 1
+                exception_indices.append(i)
+
             exceptions += 1
             exception_indices.append(i)
 
@@ -3600,24 +3645,16 @@ def _plot(funcs, xrange, parametric=False,
 
     # adaptive refinement
     i, j = 0, 0
-    max_bend = float(options['max_bend'])
-    del options['max_bend']
-    plot_division = int(options['plot_division'])
-    del options['plot_division']
+    adaptive_tolerance = delta * float(options.pop('adaptive_tolerance'))
+    adaptive_recursion = int(options.pop('adaptive_recursion'))
+
     while i < len(data) - 1:
-        if abs(data[i+1][1] - data[i][1]) > max_bend:
-            x = float((data[i+1][0] + data[i][0])/2)
-            try:
-                y = float(f(x))
-                data.insert(i+1, (x, y))
-            except (ZeroDivisionError, TypeError, ValueError), msg:
-                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
-                exceptions += 1
-            j += 1
-            if j > plot_division:
-                break
-        else:
+       for p in adaptive_refinement(f, data[i], data[i+1],
+                                     adaptive_tolerance=adaptive_tolerance,
+                                     adaptive_recursion=adaptive_recursion):
+            data.insert(i+1, p)
             i += 1
+       i += 1
 
     if (len(data) == 0 and exceptions > 0) or exceptions > 10:
         sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
@@ -4438,3 +4475,66 @@ def minmax_data(xdata, ydata, dict=False):
                 'ymin':ymin, 'ymax':ymax}
     else:
         return xmin, xmax, ymin, ymax
+
+def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5, level=0):
+    r"""
+    The adaptive refinement algorithm for plotting a function f. See the
+    docstring for plot or PlotFactory for a description of the algorithm.
+
+    INPUT:
+        f -- a function of one variable
+        p1, p2 -- two points to refine between
+        adaptive_recursion -- (default: 5) how many levels of recursion to go
+                              before giving up when doing adaptive refinement.
+                              Setting this to 0 disables adaptive refinement.
+        adaptive_tolerance -- (default: 0.01) how large a difference should be
+                              before the adaptive refinement code considers
+                              it significant.  See the documentation for
+                              plot() for more information.
+
+    OUTPUT:
+        list -- a list of points to insert between p1 and p2 to get
+                a better linear approximation between them
+
+    TESTS:
+        sage: from sage.plot.plot import adaptive_refinement
+        sage: adaptive_refinement(sin, (0,0), (pi,0), adaptive_tolerance=0.01, adaptive_recursion=0)
+        []
+        sage: adaptive_refinement(sin, (0,0), (pi,0), adaptive_tolerance=0.01)
+        [(0.125000000000000*pi, 0.38268343236508978), (0.187500000000000*pi, 0.55557023301960218), (0.250000000000000*pi, 0.707106781186547...), (0.312500000000000*pi, 0.83146961230254524), (0.375000000000000*pi, 0.92387953251128674), (0.437500000000000*pi, 0.98078528040323043), (0.500000000000000*pi, 1.0), (0.562500000000000*pi, 0.98078528040323043), (0.625000000000000*pi, 0.92387953251128674), (0.687500000000000*pi, 0.83146961230254546), (0.750000000000000*pi, 0.70710678118654757), (0.812500000000000*pi, 0.55557023301960218), (0.875000000000000*pi, 0.38268343236508989)]
+
+    This shows that lowering adaptive_tolerance and raising
+    adaptive_recursion both increase the number of subdivision points:
+
+        sage: x = var('x')
+        sage: f = sin(1/x)
+        sage: n1 = len(adaptive_refinement(f, (0,0), (pi,0), adaptive_tolerance=0.01)); n1
+        15
+        sage: n2 = len(adaptive_refinement(f, (0,0), (pi,0), adaptive_recursion=10, adaptive_tolerance=0.01)); n2
+        79
+        sage: n3 = len(adaptive_refinement(f, (0,0), (pi,0), adaptive_tolerance=0.001)); n3
+        26
+    """
+    if level >= adaptive_recursion:
+        return []
+    x = (p1[0] + p2[0])/2.0
+    try:
+        y = float(f(x))
+    except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+        sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x), 1)
+        # give up for this branch
+        return []
+
+    # this distance calculation is not perfect.
+    if abs((p1[1] + p2[1])/2.0 - y) > adaptive_tolerance:
+        return adaptive_refinement(f, p1, (x, y),
+                    adaptive_tolerance=adaptive_tolerance,
+                    adaptive_recursion=adaptive_recursion,
+                    level=level+1) \
+                    + [(x, y)] + \
+            adaptive_refinement(f, (x, y), p2,
+                    adaptive_tolerance=adaptive_tolerance,
+                    adaptive_recursion=adaptive_recursion,
+                    level=level+1)
+    else:
+        return []

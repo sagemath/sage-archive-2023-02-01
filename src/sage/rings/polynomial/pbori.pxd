@@ -77,3 +77,4 @@ cdef class VariableBlock_base:
 
 cdef class BooleVariable:
     cdef PBVar _pbvar
+

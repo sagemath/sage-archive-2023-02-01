@@ -374,27 +374,6 @@ class MPolynomialIdeal_singular_repr:
                 self.__singular = singular.ideal(gens)
         return self.__singular
 
-    def _contains_(self, f):
-        r"""
-        Returns \code{True} if \var{f} is in this ideal, \code{False}
-        otherwise.
-
-        EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-            sage: I = (x^3 + y, y)*R
-            sage: x in I # indirect doctest
-            False
-            sage: y in I
-            True
-            sage: x^3 + 2*y in I
-            True
-
-        NOTE: Requires computation of a Groebner basis, which can be a
-        very expensive operation.
-        """
-        g = f.reduce(self.groebner_basis())
-        return g.is_zero()
-
     def plot(self, singular=singular_default):
         """
         If you somehow manage to install surf, perhaps you can use
@@ -1968,6 +1947,27 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         gb = self.groebner_basis()
         return f.reduce(gb)
+
+    def _contains_(self, f):
+        r"""
+        Returns \code{True} if \var{f} is in this ideal, \code{False}
+        otherwise.
+
+        EXAMPLES:
+            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+            sage: I = (x^3 + y, y)*R
+            sage: x in I # indirect doctest
+            False
+            sage: y in I
+            True
+            sage: x^3 + 2*y in I
+            True
+
+        NOTE: Requires computation of a Groebner basis, which can be a
+        very expensive operation.
+        """
+        g = f.reduce(self.groebner_basis())
+        return g.is_zero()
 
     def homogenize(self, var='h'):
         """

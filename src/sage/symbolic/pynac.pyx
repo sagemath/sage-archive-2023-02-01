@@ -101,3 +101,54 @@ cdef public object py_imag(object x):
         return x  # assume is imag
 
 
+from sage.rings.rational cimport Rational
+cdef public bint py_is_rational(object x):
+    return PY_TYPE_CHECK_EXACT(x, Rational) or  PY_TYPE_CHECK_EXACT(x, Integer) or\
+           IS_INSTANCE(x, int) or IS_INSTANCE(x, long)
+
+
+cdef public bint py_is_integer(object x):
+    return PY_TYPE_CHECK_EXACT(x, Integer) or\
+           IS_INSTANCE(x, int) or IS_INSTANCE(x, long)
+
+
+#cdef public object py_Rational(object x):
+#    return Rational(x)
+
+
+#cdef public object py_Integer(object x):
+#    return Integer(x)
+
+cdef public bint py_is_real(object a):
+    return py_imag(a) == 0
+
+#################################################################
+# Factorial
+#################################################################
+from sage.rings.arith import factorial
+cdef public object py_factorial(object x):
+    return factorial(x)
+
+from sage.rings.arith import bernoulli
+cdef public object py_bernoulli(object x):
+    return bernoulli(x)
+
+cdef public object py_sin(object x):
+    try:
+        return x.sin()
+    except AttributeError:
+        return float(x).sin()
+
+cdef public object py_cos(object x):
+    try:
+        return x.cos()
+    except AttributeError:
+        return float(x).cos()
+
+from sage.rings.real_mpfr import RR
+
+cdef public object py_zeta(object x):
+    try:
+        return x.zeta()
+    except AttributeError:
+        return RR(x).zeta()

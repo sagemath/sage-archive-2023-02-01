@@ -2,7 +2,7 @@ import calculus
 from sage.symbolic.ring import var as new_var
 
 def var(s, ns=False):
-    """
+    r"""
     Create a symbolic variable with the name \emph{s}.
 
     INPUT:

@@ -208,9 +208,10 @@ Let's revisit some of the above examples and get some points to play
 with.  We'll start by finding a point on our ellipse.
 
 sage: p = qepcad(ellipse == 0, solution='any-point'); p
-{'y': [0.96850196850295267 .. 0.96850196850295279], 'x': [-1.4685019685029528 .. -1.4685019685029525]}
+{'y': 0.9685019685029527?, 'x': -1.468501968502953?}
 
-(Note that despite appearances, these are really exact numbers.)
+(Note that despite the decimal printing and the question marks, these
+are really exact numbers.)
 
 We can verify that this point is a solution.  To do so, we create
 a copy of ellipse as a polynomial over QQ (instead of a symbolic
@@ -223,7 +224,7 @@ True
 For cell-points, let's look at points \emph{not} on the ellipse.
 
 sage: pts = qepcad(ellipse != 0, solution='cell-points'); pts
-[{'y': 0, 'x': 4}, {'y': 1, 'x': [2.4685019685029523 .. 2.4685019685029528]}, {'y': -9, 'x': [2.4685019685029523 .. 2.4685019685029528]}, {'y': 9, 'x': 1/2}, {'y': -1, 'x': 1/2}, {'y': -5, 'x': 1/2}, {'y': 3, 'x': [-1.4685019685029528 .. -1.4685019685029525]}, {'y': -1, 'x': [-1.4685019685029528 .. -1.4685019685029525]}, {'y': 0, 'x': -3}]
+[{'y': 0, 'x': 4}, {'y': 1, 'x': 2.468501968502953?}, {'y': -9, 'x': 2.468501968502953?}, {'y': 9, 'x': 1/2}, {'y': -1, 'x': 1/2}, {'y': -5, 'x': 1/2}, {'y': 3, 'x': -1.468501968502953?}, {'y': -1, 'x': -1.468501968502953?}, {'y': 0, 'x': -3}]
 
 For the points here which are in full-dimensional cells, QEPCAD has the
 freedom to choose rational sample points, and it does so.
@@ -239,7 +240,7 @@ intersect the union of the circle and the ellipse exactly three times.
 sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F
 (X3 y)[(y^2 + x^2 - 3) (y^2 + 2 x y + y + 3 x^2 - x - 7) = 0]
 sage: pts = qepcad(F, solution='all-points'); pts
-[{'x': [1.7320508075688771 .. 1.7320508075688775]}, {'x': [1.7310549134625334 .. 1.7310549134625338]}, {'x': [0.67891138420800389 .. 0.67891138420800401]}, {'x': [-0.94177273774171678 .. -0.94177273774171665]}, {'x': [-1.4681935599288210 .. -1.4681935599288207]}, {'x': [-1.4685019685029528 .. -1.4685019685029525]}]
+[{'x': 1.732050807568878?}, {'x': 1.731054913462534?}, {'x': 0.6789113842080040?}, {'x': -0.9417727377417167?}, {'x': -1.4681935599288208?}, {'x': -1.468501968502953?}]
 
 Since $y$ is bound by the quantifier, the solutions only refer to $x$.
 
@@ -248,12 +249,12 @@ We can substitute one of these solutions into the original equation:
 sage: pt = pts[0]
 sage: pcombo = QQ['x,y'](circle * ellipse)
 sage: intersections = pcombo(y=polygen(AA, 'y'), **pt); intersections
-y^4 + [4.4641016151377543 .. 4.4641016151377553]*y^3 + [0.26794919243112269 .. 0.26794919243112276]*y^2
+y^4 + 4.464101615137755?*y^3 + 0.2679491924311228?*y^2
 
 and verify that it does have three roots:
 
 sage: intersections.roots()
-[([-4.4032490056009586 .. -4.4032490056009576], 1), ([-0.060852609536796533 .. -0.060852609536796525], 1), ([0.00000000000000000 .. 0.00000000000000000], 2)]
+[(-4.403249005600958?, 1), (-0.06085260953679653?, 1), (0, 2)]
 
 Let's check all six solutions.
 
@@ -407,9 +408,9 @@ One particularly useful thing we can get from a cell is its sample point,
 as \sage algebraic real numbers.
 
 sage: c.sample_point()
-(0, [1.7320508075688771 .. 1.7320508075688775])
+(0, 1.732050807568878?)
 sage: c.sample_point_dict()
-{'y': [1.7320508075688771 .. 1.7320508075688775], 'x': 0}
+{'y': 1.732050807568878?, 'x': 0}
 
 We've seen that we can get cells using the \method{cell} method.
 There are several QEPCAD commands that print lists of cells; we can
@@ -1010,8 +1011,8 @@ class Qepcad:
 
         EXAMPLES:
             sage: qe = qepcad(x^2 < 0, interact=True) # optional
-            sage: len(qe.trait_names()) # optional
-            95
+            sage: len(qe.trait_names()) # optional, random
+            97
             sage: 'd_cell' in qe.trait_names() # optional
             True
         """
@@ -1487,8 +1488,12 @@ def qepcad_version():
     Return a string containing the current QEPCAD version number.
 
     EXAMPLES:
-        sage: qepcad_version() # optional
+        sage: qepcad_version() # optional, random
         'Version B 1.48, 25 Oct 2007'
+
+    TESTS:
+        sage: qepcad_version() # optional
+        'Version B ..., ...'
     """
     banner = str(qepcad_banner())
     lines = banner.split('\n')
@@ -2038,7 +2043,7 @@ def _eval_qepcad_algebraic(text):
     EXAMPLES:
         sage: from sage.interfaces.qepcad import _eval_qepcad_algebraic
         sage: x = _eval_qepcad_algebraic('the unique root of 8 x^2 - 8 x - 29 between -47/32 and -1503/1024'); x
-        [-1.4685019685029528 .. -1.4685019685029525]
+        -1.468501968502953?
         sage: 8*x^2 - 8*x - 29 == 0
         True
     """
@@ -2396,9 +2401,9 @@ class QepcadCell:
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
             sage: v1 = qe.cell(2).sample_point()[0]; v1 # optional
-            [-0.61803398874989491 .. -0.61803398874989479]
+            -0.6180339887498948?
             sage: v2 = qe.cell(4).sample_point()[0]; v2 # optional
-            [1.6180339887498946 .. 1.6180339887498950]
+            1.618033988749895?
             sage: v1 + v2 == 1 # optional
             True
         """
@@ -2440,7 +2445,7 @@ class QepcadCell:
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
             sage: qe.cell(4).sample_point_dict() # optional
-            {'x': [1.6180339887498946 .. 1.6180339887498950]}
+            {'x': 1.618033988749895?}
         """
         points = self.sample_point()
         # from sage.calculus.calculus.var import var

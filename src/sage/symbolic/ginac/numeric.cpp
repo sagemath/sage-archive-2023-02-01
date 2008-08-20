@@ -71,14 +71,66 @@ extern "C" PyObject* py_gcd(PyObject* a, PyObject* b);
 extern "C" PyObject* py_lcm(PyObject* a, PyObject* b);
 extern "C" PyObject* py_real(PyObject* a);
 extern "C" PyObject* py_imag(PyObject* a);
+extern "C" PyObject* py_numer(PyObject* a);
+extern "C" PyObject* py_denom(PyObject* a);
 extern "C" bool      py_is_rational(PyObject* a);
 extern "C" bool      py_is_real(PyObject* a);
 extern "C" bool      py_is_integer(PyObject* a);
+extern "C" bool      py_is_prime(PyObject* n);
+extern "C" double    py_double(PyObject* n);
+extern "C" PyObject* py_int(PyObject* n);
+
 extern "C" PyObject* py_factorial(PyObject* a);
+extern "C" PyObject* py_fibonacci(PyObject* n);
+extern "C" PyObject* py_doublefactorial(PyObject* a);
 extern "C" PyObject* py_bernoulli(PyObject* n);
 extern "C" PyObject* py_sin(PyObject* n);
 extern "C" PyObject* py_cos(PyObject* n);
 extern "C" PyObject* py_zeta(PyObject* n);
+extern "C" PyObject* py_exp(PyObject* n);
+extern "C" PyObject* py_log(PyObject* n);
+extern "C" PyObject* py_tan(PyObject* n);
+extern "C" PyObject* py_asin(PyObject* n);
+extern "C" PyObject* py_acos(PyObject* n);
+extern "C" PyObject* py_atan(PyObject* n);
+extern "C" PyObject* py_atan2(PyObject* n, PyObject* y);
+extern "C" PyObject* py_sinh(PyObject* n);
+extern "C" PyObject* py_cosh(PyObject* n);
+extern "C" PyObject* py_tanh(PyObject* n);
+extern "C" PyObject* py_asinh(PyObject* n);
+extern "C" PyObject* py_acosh(PyObject* n);
+extern "C" PyObject* py_atanh(PyObject* n);
+extern "C" PyObject* py_li2(PyObject* n);
+extern "C" PyObject* py_lgamma(PyObject* n);
+extern "C" PyObject* py_tgamma(PyObject* n);
+extern "C" PyObject* py_psi(PyObject* n);
+extern "C" PyObject* py_psi2(PyObject* n, PyObject* b);
+extern "C" PyObject* py_isqrt(PyObject* n);
+extern "C" PyObject* py_sqrt(PyObject* n);
+extern "C" PyObject* py_abs(PyObject* n);
+extern "C" PyObject* py_mod(PyObject* n, PyObject* b);
+extern "C" PyObject* py_smod(PyObject* n, PyObject* b);
+extern "C" PyObject* py_irem(PyObject* n, PyObject* b);
+extern "C" PyObject* py_irem2(PyObject* n, PyObject* b); // also returns quotient
+extern "C" PyObject* py_iquo(PyObject* n, PyObject* b);
+extern "C" PyObject* py_iquo2(PyObject* n, PyObject* b); // also returns quotient
+
+extern "C" PyObject* py_eval_pi(long ndigits);
+extern "C" PyObject* py_eval_euler_gamma(long ndigits);
+extern "C" PyObject* py_eval_catalan(long ndigits);
+
+
+#define PY_RETURN(f)  PyObject *a = to_pyobject(*this);		 \
+  PyObject *ans = f(a);						 \
+  if (!ans) py_error("error calling function");			 \
+  Py_DECREF(a); return ans; 
+
+#define PY_RETURN2(f, b)  PyObject *aa = to_pyobject(*this);	 \
+  PyObject* bb = to_pyobject(b);				 \
+  PyObject *ans = f(aa, bb);					 \
+  if (!ans) py_error("error calling function");			 \
+  Py_DECREF(aa); Py_DECREF(bb); return ans; 
+
 
 //#define DEBUG
 //#define VERBOSE
@@ -90,7 +142,7 @@ extern "C" PyObject* py_zeta(PyObject* n);
 #define ASSERT(s, msg) if (!s) { std::cerr << "Failed assertion: " << msg << std::endl; }
 #else
 #define todo(s)
-#define stub(s) std::cerr << "Hit STUB: " << s << std::endl;
+#define stub(s) std::cerr << "** Hit STUB**: " << s << std::endl;
 #define fake(s)
 #endif
 
@@ -115,14 +167,14 @@ void ginac_error(const char* s) {
 }
 
 
-
 void py_error(const char* s) {
-  #ifdef DEBUG
+  //#ifdef DEBUG
     std::cerr << "PYTHON ERROR! " << s << std::endl;
-  #endif
+    //#endif
   if (PyErr_Occurred()) {
     PyErr_Print();
     PyErr_Clear();
+    throw std::overflow_error("division by zero");
     abort();
   }
 }
@@ -157,8 +209,6 @@ namespace GiNaC {
 PyObject* ZERO = PyInt_FromLong(0);   // todo: never freed
 PyObject* ONE  = PyInt_FromLong(1);   // todo: never freed
 PyObject* TWO  = PyInt_FromLong(2);   // todo: never freed
-PyObject* s_numerator = PyString_FromString("numerator");  // todo: never freed
-PyObject* s_denominator = PyString_FromString("denominator");  // todo: never freed
 
 std::ostream& operator << (std::ostream& os, const Number_T& s) {
   PyObject* o;
@@ -178,7 +228,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       }
       return os;
     default:
-      stub("operator << type not handled");
+      stub("operator <<: type not yet handled");
     }
   }
 
@@ -362,7 +412,8 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   }
 
   Number_T::Number_T(const char* s) { 
-    stub("Number_T(const char* s)");
+    // We should never use this. 
+    verbose("Number_T(const char* s)");
     t = DOUBLE;
     sscanf(s, "%f", &v._double); 
   }
@@ -515,13 +566,17 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   Number_T::operator double() const { 
     verbose("operator double");
+    float d;
     switch(t) {
     case DOUBLE:
       return v._double; 
     case LONG:
       return (double) v._long;
     case PYOBJECT:
-      PyFloat_AsDouble(v._pyobject);
+      d = PyFloat_AsDouble(v._pyobject);
+      if (d == -1 && PyErr_Occurred())
+	py_error("Error converting to a double.");
+      return d;
     default:
       stub("operator double() type not handled");
     }
@@ -529,6 +584,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   Number_T::operator int() const { 
     verbose("operator int");
+    long n;
     switch(t) {
     case DOUBLE:
       return (int) v._double; 
@@ -536,7 +592,12 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       todo("Need to check for overflow in   Number_T::operator int() const");
       return (int) v._long;
     case PYOBJECT:
-      return PyInt_AsLong(v._pyobject);
+      // TODO -- worry -- we are assuming long == int!
+      // Must rewrite with some sort of sizeof thing?
+      n = PyInt_AsLong(v._pyobject);
+      if (n == -1 && PyErr_Occurred())
+	py_error("Error converting to a long.");
+      return n;
     default:
       stub("operator int() type not handled");
     }
@@ -544,19 +605,19 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   Number_T::operator long int() const { 
     verbose("operator long int");
-    long int a;
+    long int n;
     switch(t) {
     case DOUBLE:
       return (long int) v._double; 
     case LONG:
       return (long int) v._long;
     case PYOBJECT:
-      a = PyInt_AsLong(v._pyobject);
-      if (a == -1 && PyErr_Occurred()) {
+      n = PyInt_AsLong(v._pyobject);
+      if (n == -1 && PyErr_Occurred()) {
 	PyErr_Print();
 	py_error("Overfloat converting to long int");
       }
-      return a;
+      return n;
     default:
       stub("operator long int() type not handled");
     }
@@ -720,6 +781,8 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   
   Number_T Number_T::inverse() const { 
     verbose("inverse");
+    PyObject* o;
+
     switch(t) {
     case DOUBLE:
       return 1/v._double; 
@@ -727,7 +790,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       return 1/v._long;
     case PYOBJECT:
       // TODO: handle errors
-      return PyNumber_Invert(v._pyobject);
+      if (!(o = PyNumber_Invert(v._pyobject))) 
+	py_error("inverting a number");
+      return o;
     default:
       stub("inverse() type not handled");
     }
@@ -760,13 +825,17 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   bool Number_T::is_zero() const { 
     verbose("is_zero");
+    int a;
     switch(t) {
     case DOUBLE:
       return v._double == 0; 
     case LONG:
       return v._long == 0; 
     case PYOBJECT:
-      return PyObject_Not(v._pyobject);
+      a = PyObject_Not(v._pyobject);
+      if (a==-1)
+	py_error("is_zero");
+      return a;
     default:
       stub("is_zero() type not handled");
     }
@@ -774,13 +843,17 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   bool Number_T::is_positive() const { 
     verbose("is_positive");
+    bool n;
     switch(t) {
     case DOUBLE:
       return v._double > 0; 
     case LONG:
       return v._long > 0; 
     case PYOBJECT:
-      return PyObject_Compare(v._pyobject, ZERO) > 0;
+      n = (PyObject_Compare(v._pyobject, ZERO) > 0);
+      if (PyErr_Occurred()) 
+	py_error("is_positive");
+      return n;
     default:
       stub("is_positive() type not handled");
     }
@@ -788,13 +861,17 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   bool Number_T::is_negative() const { 
     verbose("is_negative");
+    bool n;
     switch(t) {
     case DOUBLE:
       return v._double < 0; 
     case LONG:
       return v._long < 0; 
     case PYOBJECT:
-      return PyObject_Compare(v._pyobject, ZERO) < 0;
+      n = (PyObject_Compare(v._pyobject, ZERO) < 0);
+      if (PyErr_Occurred()) 
+	py_error("is_negative");
+      return n;
     default:
       stub("is_negative() type not handled");
     }
@@ -834,13 +911,17 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   bool Number_T::is_nonneg_integer() const { 
     verbose("is_nonneg_integer");
+    bool n;
     switch(t) {
     case DOUBLE:
       return false;
     case LONG:
       return (v._long >= 0);
     case PYOBJECT:
-      return (is_integer() && (PyObject_Compare(v._pyobject, ZERO) >= 0));
+      n = (is_integer() && (PyObject_Compare(v._pyobject, ZERO) >= 0));
+      if (PyErr_Occurred()) 
+	py_error("is_nonneg_integer");
+      return n;
     default:
       stub("is_nonneg_integer() type not handled");
     }
@@ -864,6 +945,8 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	return false;
       }
       ans = (PyObject_Compare(o, ZERO) == 0);
+      if (PyErr_Occurred()) 
+	py_error("is_even");
       Py_DECREF(o);
       return ans;
     default:
@@ -893,7 +976,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       stub("is_prime not implemented");
       return false;
     case PYOBJECT:
-      stub("is_prime not implemented for pyobjects");
+      return py_is_prime(v._pyobject);
     default:
       stub("is_prime() type not handled");
     }
@@ -929,6 +1012,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   Number_T Number_T::numer() const { 
     verbose2("numer -- in:", *this);
     Number_T ans;
+    PyObject* a;
 
     switch(t) {
 
@@ -938,18 +1022,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       break;
 
     case PYOBJECT:
-      if (PyInt_Check(v._pyobject)) {
-	ans = *this;
-	break;
-      } else {
-	PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_numerator, NULL);
-	if (!o) {
-	  verbose("call to numerator failed.");
-	  ans = *this;
-	} else {
-	  ans = o;
-	}
-      }
+      a = py_numer(v._pyobject);
+      if (!a) py_error("numer");
+      ans = a;
       break;
     default:
       stub("numer() type not handled");
@@ -962,6 +1037,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   Number_T Number_T::denom() const { 
     verbose2("denom -- in:", *this);
     Number_T ans;
+    PyObject* a;
 
     switch(t) {
     case DOUBLE:
@@ -970,19 +1046,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       break;
 
     case PYOBJECT:
-      if (PyInt_Check(v._pyobject)) {
-	ans = ONE;
-      } else {
-	//Py_INCREF(v._pyobject);  // is this right?
-	//Py_INCREF(s_denominator);
-	PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_denominator, NULL);
-	if (!o) {
-	  verbose("call to denom failed.");
-	  ans = ONE;
-	} else {
-	  ans = o;
-	}
-      }
+      a = py_denom(v._pyobject);
+      if (!a) py_error("denom");
+      ans = a;
       break;
 
     default:
@@ -993,122 +1059,146 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     return ans;
   }
   
+  Number_T Number_T::fibonacci() const {
+    PY_RETURN(py_fibonacci);
+  }
+
   Number_T Number_T::sin() const {
-    PyObject *a = to_pyobject(*this);
-    PyObject *ans = py_sin(a);
-    if (!ans) py_error("sin");
-    Py_DECREF(a);
-    return ans;
+    PY_RETURN(py_sin);
   }
 
   Number_T Number_T::cos() const {
-    PyObject *a = to_pyobject(*this);
-    PyObject *ans = py_cos(a);
-    if (!ans) py_error("cos");
-    Py_DECREF(a);
-    return ans;
+    PY_RETURN(py_cos);
   }
 
   Number_T Number_T::zeta() const {
-    PyObject *a = to_pyobject(*this);
-    PyObject *ans = py_zeta(a);
-    if (!ans) py_error("zeta");
-    Py_DECREF(a);
-    return ans;
+    PY_RETURN(py_zeta);
   }
 
-
-  /*  Number_T Number_T::lcm(Number_T b) const { 
-    verbose3("lcm: in -- ",*this,b);
-    Number_T ans;
-    if (t != b.t) {
-      Number_T a, c;
-      coerce(a, c, *this, b);
-      ans = a.lcm(c);
-      verbose2("lcm: out (coercion) -- ", ans);
-      return ans;
-    }
-
-    switch(t) {
-    case DOUBLE:
-      if (v._double == 0 && b.v._double==0)
-	ans = 0.0;
-      else
-	ans = 1.0;
-      break;
-
-    case LONG:
-      ans = (v._long * b.v._long) / gcd_long(v._long, b.v._long);
-      break;
-
-    case PYOBJECT:
-      PyObject* o;
-      Py_INCREF(v._pyobject);
-      Py_INCREF(b.v._pyobject);
-      if (! (o = PyObject_CallFunctionObjArgs(pyfunc_lcm, v._pyobject, b.v._pyobject, NULL)) ) {
-	py_error("lcm()");
-      }
-      ans = o;
-      break;
-      //PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_lcm, b.v._pyobject, NULL);
-      //if (!o) {
-      //py_error("lcm()");
-      //}
-      //return o;
-    default:
-      stub("lcm() type not handled");
-    }
-    verbose2("lcm: out -- ",ans);
+  Number_T Number_T::exp() const {
+    PY_RETURN(py_exp);
   }
-  */
-
-  /*  Number_T Number_T::gcd(Number_T b) const { 
-    verbose3("gcd: in -- ",*this,b);
-    Number_T ans;
-    if (t != b.t) {
-      Number_T a, c;
-      coerce(a, c, *this, b);
-      ans = a.gcd(c);
-      verbose2("gcd: out (coercion) -- ", ans);
-      return ans;
-    }
-    switch(t) {
-    case DOUBLE:
-      verbose("it is a double gcd");
-      if (v._double == 0 && b.v._double==0)  
-	ans = 0.0;
-      else
-	ans = 1.0;
-      break;
-
-    case LONG:
-      verbose("it is a long gcd");
-      ans = gcd_long(v._long, b.v._long);
-      break;
-
-    case PYOBJECT:
-      verbose("it is a pyobject gcd");
-      verbose3("gcd in from pyobjects", Number_T(v._pyobject), Number_T(b.v._pyobject));
-      PyObject* o;
-      Py_INCREF(v._pyobject);
-      Py_INCREF(b.v._pyobject);
-      if (! (o = PyObject_CallFunctionObjArgs(pyfunc_gcd, v._pyobject, b.v._pyobject, NULL)) ) {
-	py_error("gcd()");
-      }
-      ans = o;
-      //PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_gcd, b.v._pyobject, NULL);
-      //if (!o) {
-      //py_error("gcd()");
-      //}
-      break;
-
-    default:
-      stub("gcd() type not handled");
-    }
-    verbose2("gcd: out -- ",ans);
-  }
-  */
   
+  Number_T Number_T::log() const {
+    PY_RETURN(py_log);
+  }
+  
+  Number_T Number_T::tan() const {
+    PY_RETURN(py_tan);
+  }
+  
+  Number_T Number_T::asin() const {
+    PY_RETURN(py_asin);
+  }
+    
+  Number_T Number_T::acos() const {
+    PY_RETURN(py_acos);
+  }
+
+  Number_T Number_T::atan() const {
+    PY_RETURN(py_atan);
+  }
+
+  Number_T Number_T::atan(const Number_T& y) const {
+    PY_RETURN2(py_atan2, y);
+  }
+  
+  Number_T Number_T::sinh() const {
+    PY_RETURN(py_sinh);
+  }
+
+  Number_T Number_T::cosh() const {
+    PY_RETURN(py_cosh);
+  }
+
+  Number_T Number_T::tanh() const {
+    PY_RETURN(py_tanh);
+  }
+
+  Number_T Number_T::asinh() const {
+    PY_RETURN(py_asinh);
+  }
+
+  Number_T Number_T::acosh() const {
+    PY_RETURN(py_acosh);
+  }
+
+  Number_T Number_T::atanh() const {
+    PY_RETURN(py_atanh);
+  }
+
+  Number_T Number_T::Li2() const {
+    PY_RETURN(py_li2);
+  }
+
+  Number_T Number_T::lgamma() const {
+    PY_RETURN(py_lgamma);
+  }
+
+  Number_T Number_T::tgamma() const {
+    PY_RETURN(py_tgamma);
+  }
+  
+  Number_T Number_T::psi() const {
+    PY_RETURN(py_psi);
+  }
+
+  Number_T Number_T::psi(const Number_T& y) const {
+    PY_RETURN2(py_psi2, y);
+  }
+
+  Number_T Number_T::factorial() const {
+    PY_RETURN(py_factorial);
+  }
+  
+  Number_T Number_T::doublefactorial() const {
+    PY_RETURN(py_doublefactorial);
+  }
+
+  Number_T Number_T::isqrt() const {
+    PY_RETURN(py_isqrt);
+  }
+
+  Number_T Number_T::sqrt() const {
+    PY_RETURN(py_sqrt);
+  }
+  
+  Number_T Number_T::abs() const {
+    PY_RETURN(py_abs);
+  }
+
+  Number_T Number_T::mod(const Number_T &b) const {
+    PY_RETURN2(py_mod, b);
+  }
+
+  Number_T Number_T::smod(const Number_T &b) const {
+    PY_RETURN2(py_smod, b);
+  }
+
+  Number_T Number_T::irem(const Number_T &b) const {
+    PY_RETURN2(py_irem, b);
+  }
+
+  Number_T Number_T::irem(const Number_T &b, Number_T& q) const {
+    // TODO -- this will return a tuple, hence get nasty fast.
+    // *MUST* be fixed to unpack the tuple, etc., and put
+    // second output in q. (!!!!)
+    stub("irem(b,q)");
+    PY_RETURN2(py_irem2, b);
+  }
+
+  Number_T Number_T::iquo(const Number_T &b) const {
+    PY_RETURN2(py_iquo, b);
+  }
+  
+  Number_T Number_T::iquo(const Number_T &b, Number_T& q) const {
+    // TODO -- this will return a tuple, hence get nasty fast.
+    // *MUST* be fixed to unpack the tuple, etc., and put
+    // second output in q. (!!!!)
+    stub("iquo(b,q)");
+    PY_RETURN2(py_iquo2, b);
+  }
+
 
   ///////////////////////////////////////////////////////////////////////////////
   // class numeric
@@ -1954,7 +2044,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical exp(x). */
   const numeric exp(const numeric &x)
   {
-    return exp(x.value);
+    return x.value.exp();
   }
 
 
@@ -1968,7 +2058,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     if (x.is_zero())
       ginac_error("log(): logarithmic pole");
      //throw pole_error("log(): logarithmic pole",0);
-    return log(x.value);
+    return x.value.log();
   }
 
 
@@ -1986,7 +2076,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical cos(x). */
   const numeric cos(const numeric &x)
   {
-    return cos(x.value);
+    return x.value.cos();
   }
 
 
@@ -1995,7 +2085,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical tan(x). */
   const numeric tan(const numeric &x)
   {
-    return tan(x.value);
+    return x.value.tan();
   }
 	
 
@@ -2004,7 +2094,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical asin(x). */
   const numeric asin(const numeric &x)
   {
-    return asin(x.value);
+    return x.value.asin();
   }
 
 
@@ -2013,7 +2103,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical acos(x). */
   const numeric acos(const numeric &x)
   {
-    return acos(x.value);
+    return x.value.acos();
   }
 	
 
@@ -2029,7 +2119,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	abs(x.imag()).is_equal(*_num1_p))
       ginac_error("atan(): logarithmic pole");
     //throw pole_error("atan(): logarithmic pole",0);
-    return atan(x.value);
+    return x.value.atan();
   }
 
 
@@ -2042,7 +2132,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception pole_error("atan(): logarithmic pole",0) if y/x==+I or y/x==-I. */
   const numeric atan(const numeric &y, const numeric &x)
   {
-    stub("atan");
+    return x.value.atan(y.value);
   }
 
 
@@ -2051,7 +2141,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical sinh(x). */
   const numeric sinh(const numeric &x)
   {
-    stub("sinh");
+    return x.value.sinh();
   }
 
 
@@ -2060,7 +2150,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical cosh(x). */
   const numeric cosh(const numeric &x)
   {
-    stub("cosh");
+    return x.value.cosh();
   }
 
 
@@ -2069,7 +2159,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical tanh(x). */
   const numeric tanh(const numeric &x)
   {
-    stub("tanh");
+    return x.value.tanh();
   }
 	
 
@@ -2078,7 +2168,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical asinh(x). */
   const numeric asinh(const numeric &x)
   {
-    stub("asinh");
+    return x.value.sinh();
   }
 
 
@@ -2087,7 +2177,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical acosh(x). */
   const numeric acosh(const numeric &x)
   {
-    stub("acosh");
+    return x.value.cosh();
   }
 
 
@@ -2096,7 +2186,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical atanh(x). */
   const numeric atanh(const numeric &x)
   {
-    stub("atanh");
+    return x.value.atanh();
   }
 
 
@@ -2110,14 +2200,14 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical Li2(x). */
   const numeric Li2(const numeric &x)
   {
-    stub("Li2");
+    return x.value.Li2();
   }
 
 
   /** Evaluation of Riemann's Zeta function.  */
   const numeric zeta(const numeric &x)
   {
-    return 1;
+    return x.value.zeta();
   }
 
   class lanczos_coeffs
@@ -2164,12 +2254,12 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  read the comments in that file. */
   const numeric lgamma(const numeric &x)
   {
-    stub("lgamma");
+    return x.value.lgamma();
   }
 
   const numeric tgamma(const numeric &x)
   {
-    stub("tgamma");
+    return x.value.tgamma();
   }
 
 
@@ -2177,7 +2267,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  This is only a stub! */
   const numeric psi(const numeric &x)
   {
-    stub("psi");
+    return x.value.psi();
   }
 
 
@@ -2185,7 +2275,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  This is only a stub! */
   const numeric psi(const numeric &n, const numeric &x)
   {
-    stub("psi of two args");
+    return n.value.psi(x.value);
   }
 
 
@@ -2195,12 +2285,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception range_error (argument must be integer >= 0) */
   const numeric factorial(const numeric &n)
   {
-    verbose("factorial(n)");
-    PyObject *a = to_pyobject(n.value);
-    PyObject *ans = py_factorial(a);
-    if (!ans) py_error("factorial");
-    Py_DECREF(a);
-    return ans;
+    return n.value.factorial();
   }
 
 
@@ -2212,7 +2297,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception range_error (argument must be integer >= -1) */
   const numeric doublefactorial(const numeric &n)
   {
-    stub("double factorial");
+    return n.value.doublefactorial();
   }
 
 
@@ -2252,14 +2337,14 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception range_error (argument must be an integer) */
   const numeric fibonacci(const numeric &n)
   {
-    stub("fibonacci");
+    return n.value.fibonacci();
   }
 
 
   /** Absolute value. */
   const numeric abs(const numeric& x)
   {
-    return abs(x.value);
+    return x.value.abs();
   }
 
 
@@ -2272,8 +2357,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  integer, 0 otherwise. */
   const numeric mod(const numeric &a, const numeric &b)
   {
-    stub("mod");
-    //return a.value.mod(b.value);
+    return a.value.mod(b.value);
   }
 
 
@@ -2283,8 +2367,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return a mod b in the range [-iquo(abs(b)-1,2), iquo(abs(b),2)]. */
   const numeric smod(const numeric &a, const numeric &b)
   {
-    stub("smod");
-    //return a.value.smod(b.value);
+    return a.value.smod(b.value);
   }
 
 
@@ -2297,8 +2380,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception overflow_error (division by zero) if b is zero. */
   const numeric irem(const numeric &a, const numeric &b)
   {
-    stub("irem");
-    //return a.value.irem(b.value);
+    return a.value.irem(b.value);
   }
 
 
@@ -2312,7 +2394,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception overflow_error (division by zero) if b is zero. */
   const numeric irem(const numeric &a, const numeric &b, numeric &q)
   {
-    stub("irem");
+    // TODO -- need to compute q using irem2!!
+    stub("irem -- need to compute q!!!");
+    return a.value.irem(b.value);
   }
 
 
@@ -2323,7 +2407,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception overflow_error (division by zero) if b is zero. */
   const numeric iquo(const numeric &a, const numeric &b)
   {
-    stub("  const numeric iquo(const numeric &a, const numeric &b)");
+    return a.value.iquo(b.value);
   }
 
 
@@ -2336,7 +2420,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception overflow_error (division by zero) if b is zero. */
   const numeric iquo(const numeric &a, const numeric &b, numeric &r)
   {
-    stub("  const numeric iquo(const numeric &a, const numeric &b, numeric &r)");
+    // TODO -- need to compute r using iquo2!!
+    stub("irem -- need to compute r!!!");
+    return a.value.iquo(b.value);
   }
 
 
@@ -2380,36 +2466,41 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  where imag(x)>0. */
   const numeric sqrt(const numeric &x)
   {
-    verbose("numeric sqrt(const numeric &x)");
-    return sqrt(x.value);
+    return x.value.sqrt();
   }
 
 
   /** Integer numeric square root. */
   const numeric isqrt(const numeric &x)
   {
-    stub("const numeric isqrt(const numeric &x)");
+    return x.value.isqrt();
   }
 
 
   /** Floating point evaluation of Archimedes' constant Pi. */
   ex PiEvalf()
   { 
-    stub("ex PiEvalf");
+    PyObject* x = py_eval_pi(Digits);
+    if (!x) py_error("error getting digits of pi");
+    return x;
   }
 
 
   /** Floating point evaluation of Euler's constant gamma. */
   ex EulerEvalf()
   { 
-    stub("ex EulerEvalf");
+    PyObject* x = py_eval_euler_gamma(Digits);
+    if (!x) py_error("error getting digits of euler gamma");
+    return x;
   }
 
 
   /** Floating point evaluation of Catalan's constant. */
   ex CatalanEvalf()
   {
-    stub("ex CatalanEvalf");
+    PyObject* x = py_eval_catalan(Digits);
+    if (!x) py_error("error getting digits of catalan constant");
+    return x;
   }
 
 

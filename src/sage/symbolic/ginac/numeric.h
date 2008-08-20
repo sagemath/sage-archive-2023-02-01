@@ -93,7 +93,7 @@ namespace GiNaC {
     Number_T(const char* s);
     Number_T(PyObject* o);  // *STEALS a REFERENCE*
 
-    // Descructor
+    // Destructor
     ~Number_T();
     
     Number_T operator+(Number_T x) const;

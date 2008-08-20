@@ -407,11 +407,11 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: C.<i> = ComplexIntervalField(20)
             sage: a = i^2; a
-            -1.0000000?
+            -1
             sage: a.parent()
             Complex Interval Field with 20 bits of precision
             sage: a = (1+i)^7; a
-            8.0000000? - 8.0000000?*I
+            8 - 8*I
             sage: (1+i)^(1+i)
             0.27396? + 0.58370?*I
             sage: a.parent()
@@ -450,7 +450,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: i = ComplexIntervalField(100).0
             sage: z = 2 + 3*i
             sage: x = z.real(); x
-            2.0000000000000000000000000000000?
+            2
             sage: x.parent()
             Real Interval Field with 100 bits of precision
         """
@@ -467,7 +467,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: i = ComplexIntervalField(100).0
             sage: z = 2 + 3*i
             sage: x = z.imag(); x
-            3.0000000000000000000000000000000?
+            3
             sage: x.parent()
             Real Interval Field with 100 bits of precision
         """
@@ -611,7 +611,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: (RR('-0.001') - i).argument()
             -1.571796326461564?
             sage: CIF(2).argument()
-            0.?e-17
+            0
             sage: CIF(-2).argument()
             3.141592653589794?
 
@@ -718,7 +718,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: i = CIF.0
             sage: (1+i).conjugate()
-            1.0000000000000000? - 1.0000000000000000?*I
+            1 - 1*I
         """
         cdef ComplexIntervalFieldElement x
         x = self._new()
@@ -874,13 +874,15 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
         sage: ComplexIntervalFieldElement('2.3','1.1')
         2.300000000000000? + 1.1000000000000000?*I
         sage: ComplexIntervalFieldElement(10)
-        10.000000000000000?
+        10
         sage: ComplexIntervalFieldElement(10,10)
-        10.000000000000000? + 10.000000000000000?*I
+        10 + 10*I
         sage: ComplexIntervalFieldElement(1.000000000000000000000000000,2)
-        1.00000000000000000000000000000? + 2.00000000000000000000000000000?*I
+        1 + 2*I
         sage: ComplexIntervalFieldElement(1,2.000000000000000000000)
-        1.00000000000000000000000? + 2.00000000000000000000000?*I
+        1 + 2*I
+        sage: ComplexIntervalFieldElement(1.234567890123456789012345, 5.4321098654321987654321)
+        1.2345678901234567890123451? + 5.4321098654321987654321000?*I
     """
     if s_imag is None:
         s_imag = 0

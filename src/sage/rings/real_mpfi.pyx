@@ -36,6 +36,16 @@ preceding digit is possibly wrong by +/- 1.
 
     sage: RIF(sqrt(2))
     1.414213562373095?
+
+However, if the interval is precise (its lower bound is equal to its
+upper bound) and equal to a not-too-large integer, then we just print that
+integer.
+
+    sage: RIF(0)
+    0
+    sage: RIF(654321)
+    654321
+
     sage: RIF(123, 125)
     124.?
     sage: RIF(123, 126)
@@ -62,10 +72,10 @@ to be 1.
 Error digits also sometimes let us indicate that the interval is actually
 equal to a single floating-point number.
 
-    sage: RIF(124)
-    124.00000000000000?
-    sage: RIF(124).str(error_digits=1)
-    '124.00000000000000?0'
+    sage: RIF(54321/256)
+    212.19140625000000?
+    sage: RIF(54321/256).str(error_digits=1)
+    '212.19140625000000?0'
 
 In brackets style, intervals are printed with the left value rounded
 down and the right rounded up, which is conservative, but in some ways
@@ -239,9 +249,9 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         sage: RIF = RealIntervalField(); RIF
         Real Interval Field with 53 bits of precision
         sage: RIF(3)
-        3.0000000000000000?
+        3
         sage: RIF(RIF(3))
-        3.0000000000000000?
+        3
         sage: RIF(pi)
         3.141592653589794?
         sage: RIF(RealField(53)('1.5'))
@@ -249,9 +259,9 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         sage: RIF(-2/19)
         -0.10526315789473684?
         sage: RIF(-3939)
-        -3939.0000000000000?
+        -3939
         sage: RIF(-3939r)
-        -3939.0000000000000?
+        -3939
         sage: RIF('1.5')
         1.5000000000000000?
         sage: RIF(RQDF.pi())
@@ -262,7 +272,7 @@ cdef class RealIntervalField(sage.rings.ring.Field):
 
     The base must be explicitly specified as a named parameter:
         sage: RIF('101101', base=2)
-        45.000000000000000?
+        45
         sage: RIF('+infinity')
         [+infinity .. +infinity]
         sage: RIF('[1..3]').str(style='brackets')
@@ -323,9 +333,9 @@ cdef class RealIntervalField(sage.rings.ring.Field):
     Some examples with a real interval field of higher precision:
         sage: R = RealIntervalField(100)
         sage: R(3)
-        3.0000000000000000000000000000000?
+        3
         sage: R(R(3))
-        3.0000000000000000000000000000000?
+        3
         sage: R(pi)
         3.14159265358979323846264338328?
         sage: R(-2/19)
@@ -676,9 +686,9 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R = RealIntervalField()
             sage: R.zeta()
-            -1.0000000000000000?
+            -1
             sage: R.zeta(1)
-            1.0000000000000000?
+            1
             sage: R.zeta(5)
             Traceback (most recent call last):
             ...
@@ -950,6 +960,24 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         sage: RIF(pi, 22/7).str(style='question')
         '3.142?'
 
+        However, if the interval is precisely equal to some integer that's
+        not too large, we just return that integer.
+
+        sage: RIF(-42).str()
+        '-42'
+        sage: RIF(0).str()
+        '0'
+        sage: RIF(12^5).str(base=3)
+        '110122100000'
+
+        Very large integers, however, revert to the normal question-style
+        printing.
+
+        sage: RIF(3^7).str()
+        '2187'
+        sage: RIF(3^7 * 2^256).str()
+        '2.5323729916201052?e80'
+
         In brackets style, we print the lower and upper bounds of the
         interval within brackets:
 
@@ -1064,6 +1092,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             1.732050807568878?
             sage: RIF(3).sqrt()
             1.732050807568878?
+            sage: RIF(0, 3^-150)
+            1.?e-71
         """
         if base < 2 or base > 36:
             raise ValueError, "the base (=%s) must be between 2 and 36"%base
@@ -1220,6 +1250,16 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             14142.13562373095?
             141421.3562373095?
             1.414213562373095?e6
+            sage: RIF(3^33)
+            5559060566555523
+            sage: RIF(3^33 * 2)
+            1.1118121133111046?e16
+            sage: RIF(-pi^-512, 0)
+            -1.?e-254
+            sage: RealIntervalField(2)(3 * 2^18)
+            786432
+            sage: RealIntervalField(2)(3 * 2^19)
+            1.6?e6
         """
         if not(mpfr_number_p(&self.value.left) and mpfr_number_p(&self.value.right)):
             raise ValueError, "_str_question_style on NaN or infinity"
@@ -1236,6 +1276,44 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             # the human-readability will go way down after about 6
             # error digits; 1000 error digits is just silly.
             raise ValueError, "error_digits (=%s) must be between 0 and 1000"%error_digits
+
+        cdef mp_exp_t self_exp
+        cdef mpz_t self_zz
+        cdef int prec = (<RealIntervalField>self._parent).__prec
+        cdef char *zz_str
+        cdef size_t zz_str_maxlen
+
+        if mpfr_equal_p(&self.value.left, &self.value.right) \
+                and mpfr_integer_p(&self.value.left):
+            # This might be suitable for integer printing, but not if it's
+            # too big.  (We can represent 2^3000000 exactly in RIF, but we
+            # don't want to print this 903090 digit number; we'd rather
+            # just print 9.7049196389007116?e903089 .)
+
+            # Represent self as m*2^k, where m is an integer with
+            # self.prec() bits and k is an integer.  (So RIF(1) would have
+            # m = 2^52 and k=-52.)  Then, as a simple heuristic, we print
+            # as an integer if k<=0.  (As a special dispensation for tiny
+            # precisions, we also print as an integer if the number is
+            # less than a million (actually, less than 2^20); this
+            # will never affect "normal" uses, but it makes tiny examples
+            # with RealIntervalField(2) prettier.)
+
+            self_exp = mpfr_get_exp(&self.value.left)
+            if mpfr_zero_p(&self.value.left) or self_exp <= prec or self_exp <= 20:
+                mpz_init(self_zz)
+                mpfr_get_z(self_zz, &self.value.left, GMP_RNDN)
+                zz_str_maxlen = mpz_sizeinbase(self_zz, base) + 2
+                zz_str = <char *>PyMem_Malloc(zz_str_maxlen)
+                if zz_str == NULL:
+                    mpz_clear(self_zz)
+                    raise MemoryError, "Unable to allocate memory for integer representation of interval"
+                _sig_on
+                mpz_get_str(zz_str, base, self_zz)
+                _sig_off
+                v = PyString_FromString(zz_str)
+                PyMem_Free(zz_str)
+                return v
 
         # We want the endpoints represented as an integer mantissa
         # and an exponent, using the given base.  MPFR will do that for
@@ -1308,6 +1386,18 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         # exponents are sufficiently different, the simple code would
         # involve computing a huge power of base, and then dividing
         # by it to get -1, 0, or 1 (depending on the rounding).
+
+        # There's one complication first: if one of the endpoints is zero,
+        # we want to treat it as infinitely precise (otherwise, it defaults
+        # to a precision of 2^-self.prec(), so that RIF(0, 2^-1000)
+        # would print as 1.?e-17).  (If both endpoints are zero, then
+        # we can't get here; we already returned '0' in the integer
+        # case above.)
+
+        if mpfr_zero_p(&self.value.left):
+            lower_expo = upper_expo
+        if mpfr_zero_p(&self.value.right):
+            upper_expo = lower_expo
 
         cdef int expo_delta
 
@@ -1784,7 +1874,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealIntervalField()
             sage: R(-1.5) + R(2.5)
-            1.0000000000000000?
+            1
             sage: R('-1.3') + R('2.3')
             1.000000000000000?
             sage: (R(1, 2) + R(3, 4)).str(style='brackets')
@@ -1803,11 +1893,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: v = RIF(2); v
-            2.0000000000000000?
+            2
             sage: ~v
             0.50000000000000000?
             sage: v * ~v
-            1.0000000000000000?
+            1
             sage: v = RIF(1.5, 2.5); v.str(style='brackets')
             '[1.5000000000000000 .. 2.5000000000000000]'
             sage: (~v).str(style='brackets')
@@ -1829,7 +1919,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealIntervalField()
             sage: R(-1.5) - R(2.5)
-            -4.0000000000000000?
+            -4
             sage: R('-1.3') - R('2.7')
             -4.000000000000000?
             sage: (R(1, 2) - R(3, 4)).str(style='brackets')
@@ -1909,11 +1999,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: v = RIF(2); v
-            2.0000000000000000?
+            2
             sage: -v
-            -2.0000000000000000?
+            -2
             sage: v + -v
-            0.?e-17
+            0
             sage: v = RIF(1.5, 2.5); v.str(error_digits=3)
             '2.000?500'
             sage: (-v).str(style='brackets')
@@ -1972,7 +2062,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RIF(1.0) << 32
-            4.2949672960000000?e9
+            4294967296
         """
         if isinstance(x, RealIntervalFieldElement) and isinstance(y, (int,long, Integer)):
             return x._lshift_(y)
@@ -2688,7 +2778,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(4.0)
             sage: r.sqrt()
-            2.0000000000000000?
+            2
             sage: r.sqrt()^2 == r
             True
 
@@ -2708,7 +2798,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: r.sqrt()
             Traceback (most recent call last):
             ...
-            ValueError: self (=-2.0000000000000000?) is not >= 0
+            ValueError: self (=-2) is not >= 0
 
             sage: r = RIF(-2, 2)
             sage: r.sqrt()
@@ -2733,7 +2823,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: r.sqrt()
             Traceback (most recent call last):
             ...
-            ValueError: self (=-2.0000000000000000?) is not >= 0
+            ValueError: self (=-2) is not >= 0
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2836,7 +2926,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(16.0)
             sage: r.log2()
-            4.0000000000000000?
+            4
 
             sage: r = RIF(31.9); r.log2()
             4.995484518877507?
@@ -2888,7 +2978,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(0.0)
             sage: r.exp()
-            1.0000000000000000?
+            1
 
             sage: r = RIF(32.3)
             sage: a = r.exp(); a
@@ -2914,11 +3004,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(0.0)
             sage: r.exp2()
-            1.0000000000000000?
+            1
 
             sage: r = RIF(32.0)
             sage: r.exp2()
-            4.2949672960000000?e9
+            4294967296
 
             sage: r = RIF(-32.3)
             sage: r.exp2()
@@ -3499,9 +3589,11 @@ def RealInterval(s, upper=None, int base=10, int pad=0, min_prec=53):
         sage: RealInterval('2.3')
         2.300000000000000?
         sage: RealInterval(10)
-        10.000000000000000?
+        10
         sage: RealInterval('1.0000000000000000000000000000000000')
-        1.000000000000000000000000000000000000?
+        1
+        sage: RealInterval('1.2345678901234567890123456789012345')
+        1.23456789012345678901234567890123450?
         sage: RealInterval(29308290382930840239842390482, 3^20).str(style='brackets')
         '[3.48678440100000000000000000000e9 .. 2.93082903829308402398423904820e28]'
     """

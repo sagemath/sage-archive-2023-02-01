@@ -4858,7 +4858,7 @@ class SymbolicArithmetic(SymbolicOperation):
             sage: AA(-golden_ratio)
             -1.618033988749895?
             sage: QQbar((2*I)^(1/2))
-            1.0000000000000000? + 1.0000000000000000?*I
+            1 + 1*I
 
         TESTS:
             sage: AA(x*sin(0))

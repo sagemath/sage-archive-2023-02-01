@@ -57,7 +57,9 @@ def ComplexIntervalField(prec=53, names=None):
         Real Interval Field with 100 bits of precision
         sage: i = ComplexIntervalField(200).gen()
         sage: i^2
-        -1.0000000000000000000000000000000000000000000000000000000000000?
+        -1
+        sage: i^i
+        0.207879576350761908546955619834978770033877841631769608075136?
     """
     global cache
     if cache.has_key(prec):
@@ -81,7 +83,7 @@ class ComplexIntervalField_class(field.Field):
         sage: C(1/3)
         0.3333333333333334?
         sage: C(1/3, 2)
-        0.3333333333333334? + 2.0000000000000000?*I
+        0.3333333333333334? + 2*I
 
     We can also coerce rational numbers and integers into C, but
     coercing a polynomial will raise an exception.
@@ -172,13 +174,15 @@ class ComplexIntervalField_class(field.Field):
         """
         EXAMPLES:
             sage: CIF(2)
-            2.0000000000000000?
+            2
             sage: CIF(CIF.0)
-            1.0000000000000000?*I
+            1*I
             sage: CIF('1+I')
-            1.0000000000000000? + 1.0000000000000000?*I
+            1 + 1*I
             sage: CIF(2,3)
-            2.0000000000000000? + 3.0000000000000000?*I
+            2 + 3*I
+            sage: CIF(pi, e)
+            3.141592653589794? + 2.718281828459046?*I
         """
         if im is None:
             if isinstance(x, complex_interval.ComplexIntervalFieldElement) and x.parent() is self:

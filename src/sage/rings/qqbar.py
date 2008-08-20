@@ -130,7 +130,7 @@ We can coerce from symbolic expressions:
     sage: AA((-8)^(1/3))
     -2
     sage: QQbar((-4)^(1/4))
-    1.0000000000000000? + 1.0000000000000000?*I
+    1 + 1*I
     sage: AA((-4)^(1/4))
     Traceback (most recent call last):
     ...
@@ -366,9 +366,9 @@ Here are examples of all of these conversions.
     sage: convert_test_all(CC)
     [42.0000000000000, 3.14285714285714, 1.61803398874989, -13.0000000000000, 1.61818181818182, -2.64575131106459, 0.309016994374947 + 0.951056516295154*I]
     sage: convert_test_all(RIF)
-    [42.000000000000000?, 3.142857142857143?, 1.618033988749895?, -13.000000000000000?, 1.6181818181818183?, -2.645751311064591?, None]
+    [42, 3.142857142857143?, 1.618033988749895?, -13, 1.6181818181818183?, -2.645751311064591?, None]
     sage: convert_test_all(CIF)
-    [42.000000000000000?, 3.142857142857143?, 1.618033988749895?, -13.000000000000000?, 1.6181818181818183?, -2.645751311064591?, 0.3090169943749475? + 0.9510565162951536?*I]
+    [42, 3.142857142857143?, 1.618033988749895?, -13, 1.6181818181818183?, -2.645751311064591?, 0.3090169943749475? + 0.9510565162951536?*I]
     sage: convert_test_all(ZZ)
     [42, None, None, -13, None, None, None]
     sage: convert_test_all(QQ)
@@ -726,7 +726,7 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
             sage: p = (x-1)^7 * (x-2)
             sage: r = QQbar.polynomial_root(p, RIF(9/10, 11/10), multiplicity=7)
             sage: r; r == 1
-            1.0000000000000000?
+            1
             True
             sage: p = (x-phi)*(x-sqrt(QQbar(2)))
             sage: r = QQbar.polynomial_root(p, RIF(1, 3/2))
@@ -1253,7 +1253,7 @@ class AlgebraicGenerator(SageObject):
         sage: nf = NumberField(y^2 + 1, name='a', check=False)
         sage: root = ANRoot(x^2 + 1, CIF(0, 1))
         sage: x = AlgebraicGenerator(nf, root); x
-        Number Field in a with defining polynomial y^2 + 1 with a in 1.0000000000000000?*I
+        Number Field in a with defining polynomial y^2 + 1 with a in 1*I
         """
         self._field = field
         self._pari_field = None
@@ -2792,7 +2792,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
         EXAMPLES:
             sage: QQbar(3 + 4*I).conjugate()
-            3.0000000000000000? - 4.0000000000000000?*I
+            3 - 4*I
             sage: QQbar.zeta(7).conjugate()
             0.6234898018587335? - 0.7818314824680299?*I
             sage: QQbar.zeta(7) + QQbar.zeta(7).conjugate()
@@ -2878,7 +2878,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: a = QQbar.zeta(9) + I + QQbar.zeta(9).conjugate(); a
             1.532088886237957? + 1.000000000000000?*I
             sage: a.complex_exact(CIF)
-            1.532088886237957? + 1.0000000000000000?*I
+            1.532088886237957? + 1*I
         """
         rfld = field._real_field()
         re = self.real().real_exact(rfld)
@@ -3213,7 +3213,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: y.interval(RIF)
             2.000000000000000?
             sage: y.interval_exact(RIF)
-            2.0000000000000000?
+            2
             sage: z = 1 + AA(2).sqrt() / 2^200
             sage: z.interval(RIF)
             1.000000000000001?
@@ -4492,7 +4492,7 @@ class ANExtensionElement(ANDescr):
 
         EXAMPLES:
             sage: a = AA(sqrt(2)) + QQbar(I); a
-            1.414213562373095? + 1.0000000000000000?*I
+            1.414213562373095? + 1*I
             sage: p = a.minpoly(); p
             x^4 - 2*x^2 + 9
             sage: p(a)

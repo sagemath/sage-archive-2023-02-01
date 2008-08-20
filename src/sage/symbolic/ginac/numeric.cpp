@@ -66,6 +66,12 @@ namespace math {
 #include "tostring.h"
 #include "utils.h"
 
+extern "C" PyObject* py_binomial(PyObject* a, PyObject* b);
+extern "C" PyObject* py_gcd(PyObject* a, PyObject* b);
+extern "C" PyObject* py_lcm(PyObject* a, PyObject* b);
+extern "C" PyObject* py_real(PyObject* a);
+extern "C" PyObject* py_imag(PyObject* a);
+
 //#define DEBUG
 //#define VERBOSE
 
@@ -76,7 +82,7 @@ namespace math {
 #define ASSERT(s, msg) if (!s) { std::cerr << "Failed assertion: " << msg << std::endl; }
 #else
 #define todo(s)
-#define stub(s)
+#define stub(s) std::cerr << "Hit STUB: " << s << std::endl;
 #define fake(s)
 #endif
 
@@ -125,90 +131,24 @@ void ginac_pyinit_Float(PyObject* f) {
   pyfunc_Float = f;
 }
 
-static PyObject* pyfunc_gcd = 0;
-void ginac_pyinit_gcd(PyObject* f) {
-  Py_INCREF(f);
-  pyfunc_gcd = f;
-}
-
-static PyObject* pyfunc_lcm = 0;
-void ginac_pyinit_lcm(PyObject* f) {
-  Py_INCREF(f);
-  pyfunc_lcm = f;
-}
-
-static PyObject* pyfunc_binomial = 0;
-void ginac_pyinit_binomial(PyObject* f) {
-  Py_INCREF(f);
-  pyfunc_binomial = f;
-}
-
+  void ginac_pyinit_I(PyObject* z) {
+    Py_INCREF(z);
+    GiNaC::I = z;  // I is a global constant defined below.
+  }
 
 
 namespace GiNaC {
+ 
+  numeric I; 
 
-long 
-gcd_long ( long a, long b )
-{
-  long c;
-  while ( a != 0 ) {
-     c = a; a = b%a;  b = c;
-  }
-  return b;
-}
 
-/* returns ln(Gamma(xx)) for xx > 0 */
-double gammln(double xx)
-{
-   double x,y,tmp,ser;
-   static double cof[6]={76.18009172947146,-86.50532032941677,
-      24.01409824083091,-1.231739572450155,0.1208650973866179e-2,
-      -0.5395239384953e-5};
-   int j;
-
-   y=x=xx;
-   tmp=x+5.5;
-   tmp -= (x+0.5)*math::log(tmp);
-   ser = 1.000000000190015;
-   for (j=0;j<=5;j++) ser += cof[j]/++y;
-   return -tmp + math::log(2.5066282746310005*ser/x);
-}
-
-/* returns ln(n!) */
-double factln(int n)
-{
-   static double a[256];
-
-   if (n<0) 
-   {
-      printf("binomial: factln: negative factorial (%d) attempted.\n",n);
-   }
-   if (n<=1) return 0.0;
-   /* check if in range of table */
-   if (n<=255) return a[n] ? a[n] : (a[n] = gammln(n+1.0));
-   /* out of range of table */
-   else return gammln(n+1.0);
-}
-
-/* returns n choose k, as a double */
-double binomial(int n, int k)
-{
-  return math::floor(0.5 + math::exp(factln(n)-factln(k)-factln(n-k)));
-}
-
-  ///////////////////////////////////////////////////////////////////////////////
-  // class Number_T
-  ///////////////////////////////////////////////////////////////////////////////
-
-  ///////////////////////////////////////////////////////////////////////////////
-  // class Number_T
-  ///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// class Number_T
+///////////////////////////////////////////////////////////////////////////////
 
 PyObject* ZERO = PyInt_FromLong(0);   // todo: never freed
 PyObject* ONE  = PyInt_FromLong(1);   // todo: never freed
 PyObject* TWO  = PyInt_FromLong(2);   // todo: never freed
-PyObject* s_lcm = PyString_FromString("lcm");  // todo: never freed
-PyObject* s_gcd = PyString_FromString("gcd");  // todo: never freed
 PyObject* s_numerator = PyString_FromString("numerator");  // todo: never freed
 PyObject* s_denominator = PyString_FromString("denominator");  // todo: never freed
 
@@ -249,9 +189,11 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	return o;
 	//if (!(o = PyObject_CallFunction(pyfunc_Float, "d", x.v._double))) {
 	//  py_error("Error coercing a long to an Integer");
+
       case PYOBJECT:
         Py_INCREF(x.v._pyobject);
         return x.v._pyobject;
+
       default:
 	stub("to_pyobject -- not able to do conversion to pyobject; everything else will be nonsense");
 	return 0;
@@ -862,7 +804,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case LONG:
       return true;
     case PYOBJECT:
-      Py_INCREF(v._pyobject);  // is this right?
+      //Py_INCREF(v._pyobject);  // is this right?
       o = PyObject_CallFunctionObjArgs(pyfunc_Integer, v._pyobject, NULL);
       ans = o;
       Py_DECREF(o);
@@ -1027,8 +969,8 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       if (PyInt_Check(v._pyobject)) {
 	ans = ONE;
       } else {
-	Py_INCREF(v._pyobject);  // is this right?
-	Py_INCREF(s_denominator);
+	//Py_INCREF(v._pyobject);  // is this right?
+	//Py_INCREF(s_denominator);
 	PyObject* o = PyObject_CallMethodObjArgs(v._pyobject, s_denominator, NULL);
 	if (!o) {
 	  verbose("call to denom failed.");
@@ -1047,7 +989,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     return ans;
   }
   
-  Number_T Number_T::lcm(Number_T b) const { 
+  /*  Number_T Number_T::lcm(Number_T b) const { 
     verbose3("lcm: in -- ",*this,b);
     Number_T ans;
     if (t != b.t) {
@@ -1089,8 +1031,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     }
     verbose2("lcm: out -- ",ans);
   }
+  */
 
-  Number_T Number_T::gcd(Number_T b) const { 
+  /*  Number_T Number_T::gcd(Number_T b) const { 
     verbose3("gcd: in -- ",*this,b);
     Number_T ans;
     if (t != b.t) {
@@ -1135,7 +1078,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     }
     verbose2("gcd: out -- ",ans);
   }
-
+  */
   
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -1468,16 +1411,12 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   ex numeric::real_part() const
   {
-    if (is_real()) 
-      return *this;
-    stub("real_part of complex");
+    return real();
   }
 
   ex numeric::imag_part() const
   {
-    if (is_real())
-      return 0;
-    stub("imag_part of complex");
+    return imag_part();
   }
 
   // protected
@@ -1913,24 +1852,31 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     return (double)(value); //more to be done
   }
 
-  Number_T numeric::to_cl_N() const 
-  {
-    return value;
-  }
-
   /** Real part of a number. */
   const numeric numeric::real() const
   {
-    stub("numeric::real");
-    return value; //TODO
+    if (is_real()) 
+      return *this;
+    verbose("real_part(a)");
+    PyObject *a = to_pyobject(value);
+    PyObject *ans = py_real(a);
+    if (!ans) py_error("real_part");
+    Py_DECREF(a);
+    return ans;
   }
 
 
   /** Imaginary part of a number. */
   const numeric numeric::imag() const
   {
-    stub("numeric::imag");
-    return 0; //TODO
+    if (is_real())
+      return 0;
+    verbose("imag_part(a)");
+    PyObject *a = to_pyobject(value);
+    PyObject *ans = py_imag(a);
+    if (!ans) py_error("imag_part");
+    Py_DECREF(a);
+    return ans;
   }
 
 
@@ -1972,8 +1918,6 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   /** Imaginary unit.  This is not a constant but a numeric since we are
    *  natively handing complex numbers anyways, so in each expression containing
    *  an I it is automatically eval'ed away anyhow. */
-
-  const numeric I = 1; //TODO
 
 
   /** Exponential function.
@@ -2270,31 +2214,11 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  objects from n distinct objects.  If n is negative, the formula
    *  binomial(n,k) == (-1)^k*binomial(k-n-1,k) is used to compute the result. */
   const numeric binomial(const numeric &n, const numeric &k) {
-    // If either fails below then an error will be raised.
-    /*
-    long int nn = n, kk = k;
-    mpz_t rop;
-    mpz_init(rop);
-    mpz_bin_uiui(rop, nn, kk);
-    // Now make something from a GMP integer?
-    Number_T x = sage_integer(rop);
-    mpz_clear(rop);
-    return x;
-    */
-    PyObject* nn = to_pyobject(n.value);
-    PyObject* kk = to_pyobject(k.value);
-    Py_INCREF(nn);  // TODO --right?
-    Py_INCREF(kk);  // TODO --right?
-    PyObject* b = PyObject_CallFunctionObjArgs(pyfunc_binomial, nn, kk, NULL);
-    if (!b) 
-      py_error("binomial");
-    Py_DECREF(nn);
-    Py_DECREF(kk);
-    return b;
-
-    //std::cerr << "binomial(" << n << "," << k << ")\n";
-    //stub("binomial");
-    //return (long) binomial((long)n.value, (long)k.value);
+    PyObject *nn = to_pyobject(n.value), *kk = to_pyobject(k.value);
+    PyObject *ans = py_binomial(nn, kk);
+    if (!ans) py_error("binomial");
+    Py_DECREF(nn); Py_DECREF(kk);
+    return ans;
   }
 
 
@@ -2411,7 +2335,12 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  if they are not. */
   const numeric gcd(const numeric &a, const numeric &b)
   {
-    return a.value.gcd(b.value);
+    verbose("gcd(a,b)");
+    PyObject *aa = to_pyobject(a.value), *bb = to_pyobject(b.value);
+    PyObject *ans = py_gcd(aa, bb);
+    if (!ans) py_error("gcd");
+    Py_DECREF(aa); Py_DECREF(bb);
+    return ans;
   }
 
 
@@ -2421,7 +2350,12 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  two numbers if they are not. */
   const numeric lcm(const numeric &a, const numeric &b)
   {
-    return a.value.lcm(b.value);
+    verbose("lcm(a,b)");
+    PyObject *aa = to_pyobject(a.value), *bb = to_pyobject(b.value);
+    PyObject *ans = py_lcm(aa, bb);
+    if (!ans) py_error("lcm");
+    Py_DECREF(aa); Py_DECREF(bb);
+    return ans;
   }
 
 

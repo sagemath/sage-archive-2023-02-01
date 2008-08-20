@@ -55,9 +55,7 @@
 
 void ginac_pyinit_Integer(PyObject*);
 void ginac_pyinit_Float(PyObject*);
-void ginac_pyinit_gcd(PyObject*);
-void ginac_pyinit_lcm(PyObject*);
-void ginac_pyinit_binomial(PyObject*);
+void ginac_pyinit_I(PyObject*);
 
 namespace GiNaC {
   enum Type {
@@ -284,7 +282,6 @@ namespace GiNaC {
     int to_int() const;
     long to_long() const;
     double to_double() const;
-    Number_T to_cl_N() const;
     const numeric real() const;
     const numeric imag() const;
     const numeric numer() const;
@@ -311,7 +308,7 @@ namespace GiNaC {
 
   // global constants
 
-  extern const numeric I;
+  extern numeric I;
   extern _numeric_digits Digits;
 
   // global functions

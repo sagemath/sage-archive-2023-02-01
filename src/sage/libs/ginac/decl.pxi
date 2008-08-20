@@ -22,6 +22,7 @@ cdef extern from "ginac_wrap.h":
         int compare(GEx other)
         GEx expand(unsigned int opt)
         GEx collect(GEx s, bint dist)
+        bint is_zero()
 
     # Constants
     GEx g_Pi "Pi"

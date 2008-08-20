@@ -6,6 +6,9 @@ import ring
 
 from sage.structure.element cimport ModuleElement, RingElement, Element
 
+
+from sage.rings.rational import Rational  # Used for sqrt.
+
 cdef class Expression(CommutativeRingElement):
     def __dealloc__(self):
         GEx_destruct(&self._gobj)
@@ -50,6 +53,17 @@ cdef class Expression(CommutativeRingElement):
             e = g_ge(l._gobj, r._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
+
+    def __nonzero__(self):
+        # TODO: Problem -- if self is a symbolic equality then
+        # this is_zero isn't the right thing at all:
+        #  sage: bool(x == x+1)
+        #  True  # BAD
+        # Solution is to probably look something up in ginac manual.
+        _sig_on
+        cdef bint x = not self._gobj.is_zero()
+        _sig_off
+        return x
 
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
         """
@@ -162,10 +176,10 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(e)
 
     def sqrt(self):
-        _sig_on
-        cdef GEx e = g_sqrt(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        # do not use sqrt(...) since it doesn't seem to work
+        # and there is a remark in decl.pxi about it just being
+        # some broken alias.
+        return self**Rational((1,2))
 
     def sin(self):
         _sig_on

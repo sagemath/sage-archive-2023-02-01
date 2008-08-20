@@ -133,6 +133,9 @@ namespace GiNaC {
     Number_T denom() const;
     Number_T lcm(Number_T b) const;
     Number_T gcd(Number_T b) const;
+    Number_T sin() const;
+    Number_T cos() const;
+    Number_T zeta() const;
     
     friend std::ostream& operator << (std::ostream& os, const Number_T& s);
     friend Number_T pow(const Number_T& base, const Number_T& exp);

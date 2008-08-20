@@ -71,6 +71,14 @@ extern "C" PyObject* py_gcd(PyObject* a, PyObject* b);
 extern "C" PyObject* py_lcm(PyObject* a, PyObject* b);
 extern "C" PyObject* py_real(PyObject* a);
 extern "C" PyObject* py_imag(PyObject* a);
+extern "C" bool      py_is_rational(PyObject* a);
+extern "C" bool      py_is_real(PyObject* a);
+extern "C" bool      py_is_integer(PyObject* a);
+extern "C" PyObject* py_factorial(PyObject* a);
+extern "C" PyObject* py_bernoulli(PyObject* n);
+extern "C" PyObject* py_sin(PyObject* n);
+extern "C" PyObject* py_cos(PyObject* n);
+extern "C" PyObject* py_zeta(PyObject* n);
 
 //#define DEBUG
 //#define VERBOSE
@@ -362,9 +370,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   Number_T::Number_T(PyObject* o) {
     verbose("Number_T::Number_T(PyObject* o)");
     t = PYOBJECT;
-    if (!o) {
+    if (o==NULL) {
       // TODO: something bad happened -- an exception; figure out how to deal with this.
-      std::cerr << "ERROR IN Sage-GINAC; object SET TO ZERO";
+      std::cerr << "ERROR IN Pynac; object SET TO ZERO";
       v._pyobject = PyInt_FromLong(0);
       return;
     }
@@ -804,12 +812,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case LONG:
       return true;
     case PYOBJECT:
-      //Py_INCREF(v._pyobject);  // is this right?
-      o = PyObject_CallFunctionObjArgs(pyfunc_Integer, v._pyobject, NULL);
-      ans = o;
-      Py_DECREF(o);
-      verbose2("is_integer; ans --> ", ans);
-      return ans;
+      return py_is_integer(v._pyobject);
     default:
       stub("is_integer() type not handled");
     }
@@ -904,8 +907,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case LONG:
       return true;
     case PYOBJECT:
-      //TODO: stub("pyobject is_rational() -- faking true");
-      return true;
+      return py_is_rational(v._pyobject);
     default:
       stub("is_rational() type not handled");
     }
@@ -917,6 +919,8 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case DOUBLE:
     case LONG:
       return true;
+    case PYOBJECT:
+      return py_is_real(v._pyobject);
     default:
       stub("is_real() type not handled");
     }
@@ -989,6 +993,31 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     return ans;
   }
   
+  Number_T Number_T::sin() const {
+    PyObject *a = to_pyobject(*this);
+    PyObject *ans = py_sin(a);
+    if (!ans) py_error("sin");
+    Py_DECREF(a);
+    return ans;
+  }
+
+  Number_T Number_T::cos() const {
+    PyObject *a = to_pyobject(*this);
+    PyObject *ans = py_cos(a);
+    if (!ans) py_error("cos");
+    Py_DECREF(a);
+    return ans;
+  }
+
+  Number_T Number_T::zeta() const {
+    PyObject *a = to_pyobject(*this);
+    PyObject *ans = py_zeta(a);
+    if (!ans) py_error("zeta");
+    Py_DECREF(a);
+    return ans;
+  }
+
+
   /*  Number_T Number_T::lcm(Number_T b) const { 
     verbose3("lcm: in -- ",*this,b);
     Number_T ans;
@@ -1416,7 +1445,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   ex numeric::imag_part() const
   {
-    return imag_part();
+    return imag();
   }
 
   // protected
@@ -1948,7 +1977,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical sin(x). */
   const numeric sin(const numeric &x)
   {
-    return sin(x.value); 
+    return x.value.sin();
   }
 
 
@@ -2071,32 +2100,6 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   }
 
 
-  /*static cln::cl_N Li2_series(const ::cl_N &x,
-    const ::float_format_t &prec)
-    {
-    // Note: argument must be in the unit circle
-    // This is very inefficient unless we have fast floating point Bernoulli
-    // numbers implemented!
-    cln::cl_N c1 = -cln::log(1-x);
-    cln::cl_N c2 = c1;
-    // hard-wire the first two Bernoulli numbers
-    cln::cl_N acc = c1 - cln::square(c1)/4;
-    cln::cl_N aug;
-    cln::cl_F pisq = cln::square(cln::cl_pi(prec));  // pi^2
-    cln::cl_F piac = cln::cl_float(1, prec);  // accumulator: pi^(2*i)
-    unsigned i = 1;
-    c1 = cln::square(c1);
-    do {
-    c2 = c1 * c2;
-    piac = piac * pisq;
-    aug = c2 * (*(bernoulli(numeric(2*i)).clnptr())) / cln::factorial(2*i+1);
-    // aug = c2 * cln::cl_I(i%2 ? 1 : -1) / cln::cl_I(2*i+1) * cln::cl_zeta(2*i, prec) / piac / (cln::cl_I(1)<<(2*i-1));
-    acc = acc + aug;
-    ++i;
-    } while (acc != acc+aug);
-    return acc;
-    }*/
-
   /** Numeric evaluation of Dilogarithm within circle of convergence (unit
    *  circle) using a power series. */
 
@@ -2111,11 +2114,10 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   }
 
 
-  /** Numeric evaluation of Riemann's Zeta function.  Currently works only for
-   *  integer arguments. */
+  /** Evaluation of Riemann's Zeta function.  */
   const numeric zeta(const numeric &x)
   {
-    stub("zeta");
+    return 1;
   }
 
   class lanczos_coeffs
@@ -2193,7 +2195,12 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception range_error (argument must be integer >= 0) */
   const numeric factorial(const numeric &n)
   {
-    stub("factorial");
+    verbose("factorial(n)");
+    PyObject *a = to_pyobject(n.value);
+    PyObject *ans = py_factorial(a);
+    if (!ans) py_error("factorial");
+    Py_DECREF(a);
+    return ans;
   }
 
 
@@ -2227,9 +2234,13 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *
    *  @return the nth Bernoulli number (a rational number).
    *  @exception range_error (argument must be integer >= 0) */
-  const numeric bernoulli(const numeric &nn)
+  const numeric bernoulli(const numeric &n)
   {
-    stub("bernoulli");
+    PyObject* nn = to_pyobject(n.value);
+    PyObject* ans = py_bernoulli(nn);
+    if (!ans) py_error("bernoulli");
+    Py_DECREF(nn);
+    return ans;
   }
 
 

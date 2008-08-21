@@ -130,9 +130,9 @@ void add::print_add(const print_context & c, const char *openbrace, const char *
 	while (it != itend) {
 		coeff = ex_to<numeric>(it->coeff);
 		if (!first) {
-			if (coeff.csgn() == -1) c.s << '-'; else c.s << '+';
+			if (coeff.csgn() == -1) c.s << " - "; else c.s << " + ";
 		} else {
-			if (coeff.csgn() == -1) c.s << '-';
+			if (coeff.csgn() == -1) c.s << "-";
 			first = false;
 		}
 		if (!coeff.is_equal(*_num1_p) &&

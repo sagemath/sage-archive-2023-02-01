@@ -1264,8 +1264,11 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   {
     if (!denom)
       ginac_error("numeric::div(): division by zero");
-    // throw std::overflow_error("division by zero");
+    // TODO: BECAUSE of Floor divsion, this gives the wrong answer!!
+    // However, it gets called at ginac startup, so I don't yet
+    // know how to change it to make a Sage Rational. Argh.
     value = Number_T(numer) / Number_T(denom);
+    //std::cout << numer << ", " << denom << ", " << value << "\n";
     setflag(status_flags::evaluated | status_flags::expanded);
   }
 
@@ -1358,7 +1361,66 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   void numeric::print_numeric(const print_context & c, const char *par_open, const char *par_close, const char *imag_sym, const char *mul_sym, unsigned level) const
   {
-    c.s << value;
+    // TODO: This is stupid.  Should make it so value.real() and value.imag() are defined. 
+    Number_T r = real().value, i = imag().value;
+    
+    // TODO: all the calls to Number_T below may be very expensive?
+    if (i.is_zero()) {
+
+      // case 1, real:  x  or  -x
+      if ((precedence() <= level) && (!this->is_nonneg_integer())) {
+	c.s << par_open;
+	print_real_number(c, r);
+	c.s << par_close;
+      } else {
+	print_real_number(c, r);
+      }
+
+    } else {
+      if (r.is_zero()) {
+
+	// case 2, imaginary:  y*I  or  -y*I
+	if (i == Number_T(1))
+	  c.s << imag_sym;
+	else {
+	  if (precedence()<=level)
+	    c.s << par_open;
+	  if (i == Number_T(-1))
+	    c.s << "-" << imag_sym;
+	  else {
+	    print_real_number(c, i);
+	    c.s << mul_sym << imag_sym;
+	  }
+	  if (precedence()<=level)
+	    c.s << par_close;
+	}
+
+      } else {
+
+	// case 3, complex:  x+y*I  or  x-y*I  or  -x+y*I  or  -x-y*I
+	if (precedence() <= level)
+	  c.s << par_open;
+	print_real_number(c, r);
+	if (i < Number_T(0)) {
+	  if (i == Number_T(-1)) {
+	    c.s << "-" << imag_sym;
+	  } else {
+	    print_real_number(c, i);
+	    c.s << mul_sym << imag_sym;
+	  }
+	} else {
+	  if (i == Number_T(1)) {
+	    c.s << "+" << imag_sym;
+	  } else {
+	    c.s << "+";
+	    print_real_number(c, i);
+	    c.s << mul_sym << imag_sym;
+	  }
+	}
+	if (precedence() <= level)
+	  c.s << par_close;
+      }
+    }
   }
 
   void numeric::do_print(const print_context & c, unsigned level) const

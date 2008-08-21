@@ -1,5 +1,9 @@
 = maxima =
 
+
+== maxima-5.16.2 (Michael Abshoff, August 21st, 2008) ==
+ * Upgrade to upstream
+
 == maxima-5.13.0.p2 (Michael Abshoff) ==
  * due to fixing #1471 we need to tell maxima to use clisp.bin as
    clisp executable

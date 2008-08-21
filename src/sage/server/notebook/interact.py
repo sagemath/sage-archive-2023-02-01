@@ -924,7 +924,8 @@ class Selector(InteractControl):
         event = self.interact()
         if use_buttons:
         	#On selected buttons, border is set to inset, on unselected boxes - outset. This usually is default rendering.
-	       	event = '$("BUTTON", this.parentNode).css("border-style", "outset"); $(this).css("border-style", "inset"); %s'%event
+        	if len(vals) > 1:
+		       	event = '$("BUTTON", this.parentNode).css("border-style", "outset"); $(this).css("border-style", "inset"); %s'%event
         	s = '<table style="border:1px solid #dfdfdf;background-color:#efefef">'
         else:
             s = "<select onchange='%s;'>"%event
@@ -947,7 +948,7 @@ class Selector(InteractControl):
                 else:
                     lbl = lbls[i]
                 if use_buttons:
-                    s += "<button style='%s%s' value='%s' onclick='%s'>%s</button>\n"%('border-style:inset;' if i==default else 'border-style:outset;', style, i, event, lbl)
+                    s += "<button style='%s%s' value='%s' onclick='%s'>%s</button>\n"%('border-style:inset;' if i==default and len(vals)>1 else 'border-style:outset;', style, i, event, lbl)
                 else:
                     s += "<option value='%s' %s>%s</option>\n"%(i, 'selected' if i==default else '', lbl)
                 i += 1

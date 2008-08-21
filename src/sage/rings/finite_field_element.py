@@ -592,50 +592,6 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         """
         return cmp(self.__value, other.__value)
 
-    def vector(self, reverse=False):
-        """
-        Return a vector in self.parent().vector_space() matching
-        self. The most significant bit is to the right.
-
-        INPUT:
-            reverse -- reverse the order of the bits
-                       from little endian to big endian.
-
-        EXAMPLES:
-            sage: k.<a> = GF(2^16)
-            sage: e = a^2 + 1
-            sage: v = e.vector()
-            sage: v
-            (1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-            sage: k(v)
-            a^2 + 1
-
-            sage: k.<a> = GF(3^16)
-            sage: e = 2*a^2 + 1
-            sage: v = e.vector()
-            sage: v
-            (1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-            sage: k(v)
-            2*a^2 + 1
-
-            You can also compute the vector in the other order:
-
-            sage: e.vector(reverse=True)
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1)
-        """
-        k = self.parent()
-
-        v = self.polynomial().list()
-
-        ret = [v[i] for i in range(len(v))]
-
-        for i in range(k.degree() - len(ret)):
-            ret.append(0)
-
-        if reverse:
-            ret = list(reversed(ret))
-        return k.vector_space()(ret)
-
     def log(self, base):
         """
         Return $x$ such that $b^x = a$, where $x$ is $a$ and $b$

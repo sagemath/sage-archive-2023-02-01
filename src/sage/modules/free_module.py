@@ -3732,7 +3732,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         try:
             k = e.parent()
             if finite_field.is_FiniteField(k) and k.base_ring() == self.base_ring() and k.degree() == self.degree():
-                return self(e.vector())
+                return self(e._vector_())
         except AttributeError:
             pass
         return FreeModule_generic_field.__call__(self,e)

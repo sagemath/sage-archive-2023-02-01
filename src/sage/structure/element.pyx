@@ -2070,7 +2070,101 @@ cdef class FiniteFieldElement(FieldElement):
         """
         return self.minpoly(var)
 
+    def vector(self, reverse=False):
+        """
+        See \code{_vector_}.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^16)
+            sage: e = a^2 + 1
+            sage: e.vector() # random-ish error message
+            doctest:1: DeprecationWarning:The function vector is replaced by _vector_.
+            (1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        """
+        from sage.misc.misc import deprecation
+        deprecation("The function vector is replaced by _vector_.")
+        return self._vector_()
+
+    def _vector_(self, reverse=False):
+        """
+        Return a vector in self.parent().vector_space() matching
+        self. The most significant bit is to the right.
+
+        INPUT:
+            reverse -- reverse the order of the bits
+                       from little endian to big endian.
+
+        EXAMPLES:
+            sage: k.<a> = GF(2^16)
+            sage: e = a^2 + 1
+            sage: v = vector(e)
+            sage: v
+            (1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            sage: k(v)
+            a^2 + 1
+
+            sage: k.<a> = GF(3^16)
+            sage: e = 2*a^2 + 1
+            sage: v = vector(e)
+            sage: v
+            (1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            sage: k(v)
+            2*a^2 + 1
+
+        You can also compute the vector in the other order:
+
+            sage: e._vector_(reverse=True)
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1)
+        """
+        #vector(foo) might pass in ZZ
+        if PY_TYPE_CHECK(reverse, Parent):
+            raise TypeError, "Base field is fixed to prime subfield."
+
+        k = self.parent()
+
+        v = self.polynomial().list()
+
+        ret = [v[i] for i in range(len(v))]
+
+        for i in range(k.degree() - len(ret)):
+            ret.append(0)
+
+        if reverse:
+            ret = list(reversed(ret))
+        return k.vector_space()(ret)
+
     def matrix(self, reverse=False):
+        """
+        See \code{_matrix_}.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^16)
+            sage: e = a^2 + 1
+            sage: e.matrix() # random-ish error message
+            doctest:1: DeprecationWarning:The function matrix is replaced by _matrix_.
+            [1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0]
+            [0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+            [1 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0]
+            [0 1 0 1 0 0 0 0 0 0 0 0 0 0 1 1]
+            [0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
+            [0 0 0 1 0 1 0 0 0 0 0 0 0 0 1 0]
+            [0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 1]
+            [0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1]
+        """
+        from sage.misc.misc import deprecation
+        deprecation("The function matrix is replaced by _matrix_.")
+        return self._matrix_()
+
+
+    def _matrix_(self, reverse=False):
         """
         Return the matrix of right multiplication by the element on
         the power basis $1, x, x^2, \ldots, x^{d-1}$ for the field
@@ -2082,9 +2176,9 @@ cdef class FiniteFieldElement(FieldElement):
 
         EXAMPLE:
             sage: k.<a> = GF(2^4)
-            sage: a.vector(reverse=True), a.matrix(reverse=True) * a.vector(reverse=True)
+            sage: a._vector_(reverse=True), a._matrix_(reverse=True) * a._vector_(reverse=True)
             ((0, 0, 1, 0), (0, 1, 0, 0))
-            sage: a.vector(), a.matrix() * a.vector()
+            sage: vector(a), matrix(a) * vector(a)
             ((0, 1, 0, 0), (0, 0, 1, 0))
         """
         import sage.matrix.matrix_space
@@ -2102,7 +2196,7 @@ cdef class FiniteFieldElement(FieldElement):
             l = reversed(range(d))
 
         for i in l:
-            columns.append( (self * x).vector() )
+            columns.append( (self * x)._vector_() )
             x *= a
 
         k = K.base_ring()
@@ -2175,7 +2269,7 @@ cdef class FiniteFieldElement(FieldElement):
             X^2 + 18*X + 2
         """
         if algorithm == 'matrix':
-            return self.matrix().charpoly(var)
+            return self._matrix_().charpoly(var)
         elif algorithm == 'pari':
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             R = PolynomialRing(self.parent().prime_subfield(), var)

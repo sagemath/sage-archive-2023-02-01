@@ -1980,7 +1980,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         return hash(self.log_to_int())
 
-    def vector(FiniteField_givaroElement self, reverse=False):
+    def _vector_(FiniteField_givaroElement self, reverse=False):
         """
         Return a vector in self.parent().vector_space() matching
         self. The most significant bit is to the right.
@@ -1992,7 +1992,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         EXAMPLES:
             sage: k.<a> = GF(2^4)
             sage: e = a^2 + 1
-            sage: v = e.vector()
+            sage: v = vector(e)
             sage: v
             (1, 0, 1, 0)
             sage: k(v)
@@ -2000,17 +2000,20 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
             sage: k.<a> = GF(3^4)
             sage: e = 2*a^2 + 1
-            sage: v = e.vector()
+            sage: v = vector(e)
             sage: v
             (1, 0, 2, 0)
             sage: k(v)
             2*a^2 + 1
 
-            You can also compute the vector in the other order:
+        You can also compute the vector in the other order:
 
-            sage: e.vector(reverse=True)
+            sage: e._vector_(reverse=True)
             (0, 2, 0, 1)
         """
+        #vector(foo) might pass in ZZ
+        if PY_TYPE_CHECK(reverse, Parent):
+            raise TypeError, "Base field is fixed to prime subfield."
         cdef FiniteField_givaro k = <FiniteField_givaro>self._parent
 
         quo = k.log_to_int(self.element)

@@ -326,7 +326,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             (1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
             sage: k(v)
             a^19 + a^15 + a^14 + a^13 + a^11 + a^10 + a^9 + a^6 + a^5 + a^4 + 1
-            sage: k(v).vector() == v
+            sage: vector(k(v)) == v
             True
 
             sage: k(pari('Mod(1,2)*a^20'))
@@ -1328,7 +1328,7 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         """
         return hash(int(self)) # todo, come up with a faster version
 
-    def vector(FiniteField_ntl_gf2eElement self, reverse=False):
+    def _vector_(FiniteField_ntl_gf2eElement self, reverse=False):
         r"""
         Return a vector in \code{self.parent().vector_space()}
         matching \code{self}. The most significant bit is to the
@@ -1341,12 +1341,16 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         EXAMPLE:
             sage: k.<a> = GF(2^16)
             sage: e = a^14 + a^13 + 1
-            sage: e.vector() # little endian
+            sage: vector(e) # little endian
             (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0)
 
-            sage: e.vector(reverse=True) # big endian
+            sage: e._vector_(reverse=True) # big endian
             (0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         """
+        #vector(foo) might pass in ZZ
+        if PY_TYPE_CHECK(reverse, Parent):
+            raise TypeError, "Base field is fixed to prime subfield."
+
         cdef GF2X_c r = GF2E_rep(self.x)
         cdef int i
 

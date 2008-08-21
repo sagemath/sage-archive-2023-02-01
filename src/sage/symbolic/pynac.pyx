@@ -14,6 +14,22 @@ from sage.rings.integer cimport Integer
 cdef extern from "gmp.h":
     void mpz_bin_uiui(mpz_t, unsigned int, unsigned int)
 
+cdef public object py_binomial_int(int n, unsigned int k):
+    cdef bint sign
+    if n < 0:
+        n = -n + (k-1)
+        sign = k%2
+    else:
+        sign = 0
+    cdef Integer ans = PY_NEW(Integer)
+    # Compute the binomial coefficient using GMP.
+    mpz_bin_uiui(ans.value, n, k)
+    # Return the answer or the negative of it (only if k is odd and n is negative).
+    if sign:
+        return -ans
+    else:
+        return ans
+
 cdef public object py_binomial(object n, object k):
     # Keep track of the sign we should use.
     cdef bint sign
@@ -25,7 +41,6 @@ cdef public object py_binomial(object n, object k):
     # Convert n and k to unsigned ints.
     cdef unsigned int n_ = n, k_ = k
     cdef Integer ans = PY_NEW(Integer)
-    mpz_init(ans.value)
     # Compute the binomial coefficient using GMP.
     mpz_bin_uiui(ans.value, n_, k_)
     # Return the answer or the negative of it (only if k is odd and n is negative).

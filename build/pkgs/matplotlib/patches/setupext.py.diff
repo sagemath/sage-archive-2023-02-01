@@ -1,0 +1,22 @@
+--- src/setupext.py	2008-08-03 13:15:22.000000000 -0500
++++ patches/setupext.py	2008-08-19 23:58:03.000000000 -0500
+@@ -44,6 +44,9 @@
+ import os
+ import re
+ 
++### FOR SAGE
++sage_inc = os.environ['SAGE_LOCAL'] + '/include/'
++sage_lib = os.environ['SAGE_LOCAL'] + '/lib/'
+ 
+ basedir = {
+     'win32'  : ['win32_static',],
+@@ -328,7 +331,9 @@
+ 
+     module.include_dirs.extend(incdirs)
+     module.include_dirs.append('.')
++    module.include_dirs.append(sage_inc)    	
+     module.library_dirs.extend(libdirs)
++    module.library_dirs.extend([sage_lib])
+ 
+ def getoutput(s):
+     'get the output of a system command'

@@ -2,6 +2,9 @@
 
 == Changelog ==
 
+== matplotlib-0.98.3 (Jason Grout, 20 Aug 2008) ===
+ * updated to 0.98.3.  Deleted gcc 4.3 fix since it is merged in.
+
 === matplotlib-0.91.1.p5 (Michael Abshoff, May 18th, 2008) ===
  * add 64 bit OSX build support
 

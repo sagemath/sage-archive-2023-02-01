@@ -37,11 +37,9 @@ WIN32 - VISUAL STUDIO 7.1 (2003)
   http://matplotlib.sourceforge.net/win32_static_vs.tar.gz and
   see the README in that dir
 
-  > python setup.py build bdist_wininst
+  > python setup.py build --compiler=msvc bdist_wininst
 
 """
-
-
 
 import os
 import re
@@ -74,6 +72,7 @@ from textwrap import fill
 from distutils.core import Extension
 import glob
 import ConfigParser
+import cStringIO
 
 major, minor1, minor2, s, tmp = sys.version_info
 if major<2 or (major==2 and minor1<3):
@@ -83,6 +82,7 @@ else:
     True = True
     False = False
 
+BUILT_PNG       = False
 BUILT_AGG       = False
 BUILT_FT2FONT   = False
 BUILT_TTCONV    = False
@@ -92,14 +92,15 @@ BUILT_TKAGG     = False
 BUILT_WXAGG     = False
 BUILT_WINDOWING = False
 BUILT_CONTOUR   = False
+BUILT_DELAUNAY   = False
 BUILT_NXUTILS   = False
 BUILT_TRAITS = False
 BUILT_CONTOUR   = False
 BUILT_GDK       = False
+BUILT_PATH      = False
 
+AGG_VERSION = 'agg24'
 TCL_TK_CACHE = None
-
-AGG_VERSION = 'agg23'
 
 # for nonstandard installation/build with --prefix variable
 numpy_inc_dirs = []
@@ -110,7 +111,7 @@ options = {'display_status': True,
            'provide_pytz': 'auto',
            'provide_dateutil': 'auto',
            'provide_configobj': 'auto',
-           'provide_traits': 'auto',
+           'provide_traits': False,
            'build_agg': True,
            'build_gtk': 'auto',
            'build_gtkagg': 'auto',
@@ -145,7 +146,7 @@ if os.path.exists("setup.cfg"):
 
     try: options['provide_traits'] = config.getboolean("provide_packages",
                                                        "enthought.traits")
-    except: options['provide_traits'] = 'auto'
+    except: options['provide_traits'] = False
 
     try: options['build_gtk'] = config.getboolean("gui_support", "gtk")
     except: options['build_gtk'] = 'auto'
@@ -252,9 +253,6 @@ def get_pkgconfig(module,
 
     status, output = commands.getstatusoutput(
         "%s %s %s" % (pkg_config_exec, flags, packages))
-    #if packages.startswith('pygtk'):
-    #    print 'status', status, output
-    #    raise SystemExit
     if status == 0:
         for token in output.split():
             attr = _flags.get(token[:2], None)
@@ -337,7 +335,6 @@ def add_base_flags(module):
     module.library_dirs.extend(libdirs)
     module.library_dirs.extend([sage_lib])
 
-
 def getoutput(s):
     'get the output of a system command'
 
@@ -359,8 +356,13 @@ def check_for_qt():
         print_status("Qt", "no")
         return False
     else:
+        try:
+            qt_version = pyqtconfig.Configuration().qt_version
+            qt_version = convert_qt_version(qt_version)
+        except AttributeError:
+            qt_version = "<unknown>"
         print_status("Qt", "Qt: %s, PyQt: %s" %
-                     (convert_qt_version(pyqtconfig.Configuration().qt_version),
+                     (qt_version,
                       pyqtconfig.Configuration().pyqt_version_str))
         return True
 
@@ -464,9 +466,11 @@ def check_provide_configobj():
             return False
 
 def check_provide_traits():
-    if options['provide_traits'] is True:
-        print_status("enthought.traits", "matplotlib will provide")
-        return True
+    # Let's not install traits by default for now, unless it is specifically
+    # asked for in setup.cfg AND it is not already installed
+#    if options['provide_traits'] is True:
+#        print_status("enthought.traits", "matplotlib will provide")
+#        return True
     try:
         from enthought import traits
         try:
@@ -480,12 +484,16 @@ def check_provide_traits():
                 version = version.version
             except AttributeError:
                 version = version.__version__
-            if version.endswith('mpl'):
-                print_status("enthought.traits", "matplotlib will provide")
-                return True
-            else:
-                print_status("enthought.traits", version)
-                return False
+            # next 2 lines added temporarily while we figure out what to do
+            # with traits:
+            print_status("enthought.traits", version)
+            return False
+#            if version.endswith('mpl'):
+#                print_status("enthought.traits", "matplotlib will provide")
+#                return True
+#            else:
+#                print_status("enthought.traits", version)
+#                return False
     except ImportError:
         if options['provide_traits']:
             print_status("enthought.traits", "matplotlib will provide")
@@ -540,12 +548,16 @@ def check_for_pdftops():
         return False
 
 def check_for_numpy():
-    gotit = False
     try:
         import numpy
     except ImportError:
         print_status("numpy", "no")
-        print_message("You must install numpy to build matplotlib.")
+        print_message("You must install numpy 1.1 or later to build matplotlib.")
+        return False
+    nn = numpy.__version__.split('.')
+    if not (int(nn[0]) >= 1 and int(nn[1]) >= 1):
+        print_message(
+           'numpy 1.1 or later is required; you have %s' % numpy.__version__)
         return False
     module = Extension('test', [])
     add_numpy_flags(module)
@@ -554,31 +566,36 @@ def check_for_numpy():
     print_status("numpy", numpy.__version__)
     if not find_include_file(module.include_dirs, os.path.join("numpy", "arrayobject.h")):
         print_message("Could not find the headers for numpy.  You may need to install the development package.")
+        return False
     return True
 
 def add_numpy_flags(module):
     "Add the modules flags to build extensions which use numpy"
     import numpy
-    # TODO: Remove this try statement when it is no longer needed
-    try:
-        module.include_dirs.append(numpy.get_include())
-    except AttributeError:
-        module.include_dirs.append(numpy.get_numpy_include())
+    module.include_dirs.append(numpy.get_include())
+
+def add_png_flags(module):
+    try_pkgconfig(module, 'libpng', 'png')
+    add_base_flags(module)
+    add_numpy_flags(module)
+    module.libraries.append('z')
+    module.include_dirs.extend(['.'])
+    module.libraries.extend(std_libs)
 
 def add_agg_flags(module):
     'Add the module flags to build extensions which use agg'
 
     # before adding the freetype flags since -z comes later
-    try_pkgconfig(module, 'libpng', 'png')
-    module.libraries.append('z')
     add_base_flags(module)
-    module.include_dirs.extend(['src','swig', '%s/include'%AGG_VERSION, '.'])
+    add_numpy_flags(module)
+    module.include_dirs.extend(['src', '%s/include'%AGG_VERSION, '.'])
 
     # put these later for correct link order
     module.libraries.extend(std_libs)
 
 def add_ft2font_flags(module):
     'Add the module flags to ft2font extension'
+    add_numpy_flags(module)
     if not get_pkgconfig(module, 'freetype2'):
         module.libraries.extend(['freetype', 'z'])
         add_base_flags(module)
@@ -597,6 +614,7 @@ def add_ft2font_flags(module):
             if os.path.exists(p): module.library_dirs.append(p)
     else:
         add_base_flags(module)
+        module.libraries.append('z')
 
     if sys.platform == 'win32' and win32_compiler == 'mingw32':
         module.libraries.append('gw32c')
@@ -888,6 +906,105 @@ def query_tcltk():
     TCL_TK_CACHE = tcl_lib_dir, tk_lib_dir, str(Tkinter.TkVersion)[:3]
     return TCL_TK_CACHE
 
+def parse_tcl_config(tcl_lib_dir, tk_lib_dir):
+    # This is where they live on Ubuntu Hardy (at least)
+    tcl_config = os.path.join(tcl_lib_dir, "tclConfig.sh")
+    tk_config = os.path.join(tk_lib_dir, "tkConfig.sh")
+    if not (os.path.exists(tcl_config) and os.path.exists(tk_config)):
+        # This is where they live on RHEL4 (at least)
+        tcl_config = "/usr/lib/tclConfig.sh"
+        tk_config = "/usr/lib/tkConfig.sh"
+        if not (os.path.exists(tcl_config) and os.path.exists(tk_config)):
+            return None
+
+    # These files are shell scripts that set a bunch of
+    # environment variables.  To actually get at the
+    # values, we use ConfigParser, which supports almost
+    # the same format, but requires at least one section.
+    # So, we push a "[default]" section to a copy of the
+    # file in a StringIO object.
+    try:
+        tcl_vars_str = cStringIO.StringIO(
+            "[default]\n" + open(tcl_config, "r").read())
+        tk_vars_str = cStringIO.StringIO(
+            "[default]\n" + open(tk_config, "r").read())
+    except IOError:
+        # if we can't read the file, that's ok, we'll try
+        # to guess instead
+        return None
+
+    tcl_vars_str.seek(0)
+    tcl_vars = ConfigParser.RawConfigParser()
+    tk_vars_str.seek(0)
+    tk_vars = ConfigParser.RawConfigParser()
+    try:
+        tcl_vars.readfp(tcl_vars_str)
+        tk_vars.readfp(tk_vars_str)
+    except ConfigParser.ParsingError:
+        # if we can't read the file, that's ok, we'll try
+        # to guess instead
+        return None
+
+    try:
+        tcl_lib = tcl_vars.get("default", "TCL_LIB_SPEC")[1:-1].split()[0][2:]
+        tcl_inc = tcl_vars.get("default", "TCL_INCLUDE_SPEC")[3:-1]
+        tk_lib = tk_vars.get("default", "TK_LIB_SPEC")[1:-1].split()[0][2:]
+        if tk_vars.has_option("default", "TK_INCLUDE_SPEC"):
+            # On Ubuntu 8.04
+            tk_inc = tk_vars.get("default", "TK_INCLUDE_SPEC")[3:-1]
+        else:
+            # On RHEL4
+            tk_inc = tcl_inc
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        return None
+
+    if not os.path.exists(os.path.join(tk_inc, 'tk.h')):
+        return None
+
+    return tcl_lib, tcl_inc, tk_lib, tk_inc
+
+def guess_tcl_config(tcl_lib_dir, tk_lib_dir, tk_ver):
+    if not (os.path.exists(tcl_lib_dir) and os.path.exists(tk_lib_dir)):
+        return None
+
+    tcl_lib = os.path.normpath(os.path.join(tcl_lib_dir, '../'))
+    tk_lib = os.path.normpath(os.path.join(tk_lib_dir, '../'))
+
+    tcl_inc = os.path.normpath(os.path.join(tcl_lib_dir,
+                                                    '../../include/tcl' + tk_ver))
+    if not os.path.exists(tcl_inc):
+        tcl_inc = os.path.normpath(os.path.join(tcl_lib_dir,
+                                                '../../include'))
+
+    tk_inc = os.path.normpath(os.path.join(tk_lib_dir,
+                                           '../../include/tk' + tk_ver))
+    if not os.path.exists(tk_inc):
+        tk_inc = os.path.normpath(os.path.join(tk_lib_dir,
+                                                       '../../include'))
+
+    if not os.path.exists(os.path.join(tk_inc, 'tk.h')):
+        tk_inc = tcl_inc
+
+    if not os.path.exists(tcl_inc):
+        # this is a hack for suse linux, which is broken
+        if (sys.platform.startswith('linux') and
+            os.path.exists('/usr/include/tcl.h') and
+            os.path.exists('/usr/include/tk.h')):
+            tcl_inc = '/usr/include'
+            tk_inc = '/usr/include'
+
+    if not os.path.exists(os.path.join(tk_inc, 'tk.h')):
+        return None
+
+    return tcl_lib, tcl_inc, tk_lib, tk_inc
+
+def hardcoded_tcl_config():
+    tcl_inc = "/usr/local/include"
+    tk_inc = "/usr/local/include"
+    tcl_lib = "/usr/local/lib"
+    tk_lib = "/usr/local/lib"
+    return tcl_lib, tcl_inc, tk_lib, tk_inc
+
 def add_tk_flags(module):
     'Add the module flags to build extensions which use tk'
     message = None
@@ -910,9 +1027,9 @@ def add_tk_flags(module):
         # First test for a MacOSX/darwin framework install
         from os.path import join, exists
         framework_dirs = [
-            '/System/Library/Frameworks/',
+            join(os.getenv('HOME'), '/Library/Frameworks'),
             '/Library/Frameworks',
-            join(os.getenv('HOME'), '/Library/Frameworks')
+            '/System/Library/Frameworks/',
         ]
 
         # Find the directory that contains the Tcl.framework and Tk.framework
@@ -951,46 +1068,39 @@ def add_tk_flags(module):
 
     # you're still here? ok we'll try it this way...
     else:
+        success = False
+        # There are 3 methods to try, in decreasing order of "smartness"
+        #
+        #   1. Parse the tclConfig.sh and tkConfig.sh files that have
+        #      all the information we need
+        #
+        #   2. Guess the include and lib dirs based on the location of
+        #      Tkinter's 'tcl_library' and 'tk_library' variables.
+        #
+        #   3. Use some hardcoded locations that seem to work on a lot
+        #      of distros.
+
         # Query Tcl/Tk system for library paths and version string
-        tcl_lib_dir, tk_lib_dir, tk_ver = query_tcltk() # todo: try/except
-
-        # Process base directories to obtain include + lib dirs
-        if tcl_lib_dir != '' and tk_lib_dir != '':
-            tcl_lib = os.path.normpath(os.path.join(tcl_lib_dir, '../'))
-            tk_lib = os.path.normpath(os.path.join(tk_lib_dir, '../'))
-            tcl_inc = os.path.normpath(os.path.join(tcl_lib_dir,
-                                       '../../include/tcl' + tk_ver))
-            if not os.path.exists(tcl_inc):
-                tcl_inc = os.path.normpath(os.path.join(tcl_lib_dir,
-                                           '../../include'))
-            tk_inc = os.path.normpath(os.path.join(tk_lib_dir,
-                                      '../../include/tk' + tk_ver))
-            if not os.path.exists(tk_inc):
-                tk_inc = os.path.normpath(os.path.join(tk_lib_dir,
-                                          '../../include'))
-
-            if ((not os.path.exists(os.path.join(tk_inc,'tk.h'))) and
-                os.path.exists(os.path.join(tcl_inc,'tk.h'))):
-                tk_inc = tcl_inc
-
-            if not os.path.exists(tcl_inc):
-                # this is a hack for suse linux, which is broken
-                if (sys.platform.startswith('linux') and
-                    os.path.exists('/usr/include/tcl.h') and
-                    os.path.exists('/usr/include/tk.h')):
-                    tcl_inc = '/usr/include'
-                    tk_inc = '/usr/include'
+        try:
+            tcl_lib_dir, tk_lib_dir, tk_ver = query_tcltk()
+        except:
+            result = hardcoded_tcl_config()
         else:
-            message = """\
+            result = parse_tcl_config(tcl_lib_dir, tk_lib_dir)
+            if result is None:
+                message = """\
+Guessing the library and include directories for Tcl and Tk because the
+tclConfig.sh and tkConfig.sh could not be found and/or parsed."""
+                result = guess_tcl_config(tcl_lib_dir, tk_lib_dir, tk_ver)
+                if result is None:
+                    message = """\
 Using default library and include directories for Tcl and Tk because a
 Tk window failed to open.  You may need to define DISPLAY for Tk to work
 so that setup can determine where your libraries are located."""
-            tcl_inc = "/usr/local/include"
-            tk_inc = "/usr/local/include"
-            tcl_lib = "/usr/local/lib"
-            tk_lib = "/usr/local/lib"
-            tk_ver = ""
+                    result = hardcoded_tcl_config()
+
         # Add final versions of directories and libraries to module lists
+        tcl_lib, tcl_inc, tk_lib, tk_inc = result
         module.include_dirs.extend([tcl_inc, tk_inc])
         module.library_dirs.extend([tcl_lib, tk_lib])
         module.libraries.extend(['tk' + tk_ver, 'tcl' + tk_ver])
@@ -1059,6 +1169,7 @@ def build_gtkagg(ext_modules, packages):
     add_agg_flags(module)
     add_ft2font_flags(module)
     add_pygtk_flags(module)
+    add_numpy_flags(module)
 
     ext_modules.append(module)
     BUILT_GTKAGG = True
@@ -1101,6 +1212,25 @@ def build_wxagg(ext_modules, packages):
      ext_modules.append(module)
      BUILT_WXAGG = True
 
+def build_png(ext_modules, packages):
+    global BUILT_PNG
+    if BUILT_PNG: return # only build it if you you haven't already
+
+    deps = ['src/_png.cpp', 'src/mplutils.cpp']
+    deps.extend(glob.glob('CXX/*.cxx'))
+    deps.extend(glob.glob('CXX/*.c'))
+
+    module = Extension(
+        'matplotlib._png',
+        deps,
+        include_dirs=numpy_inc_dirs,
+        )
+
+    add_png_flags(module)
+    ext_modules.append(module)
+
+    BUILT_PNG = True
+
 
 def build_agg(ext_modules, packages):
     global BUILT_AGG
@@ -1109,13 +1239,10 @@ def build_agg(ext_modules, packages):
 
     agg = (
            'agg_trans_affine.cpp',
-           'agg_path_storage.cpp',
            'agg_bezier_arc.cpp',
            'agg_curves.cpp',
            'agg_vcgen_dash.cpp',
            'agg_vcgen_stroke.cpp',
-           #'agg_vcgen_markers_term.cpp',
-           'agg_rasterizer_scanline_aa.cpp',
            'agg_image_filters.cpp',
            )
 
@@ -1141,13 +1268,41 @@ def build_agg(ext_modules, packages):
 
     BUILT_AGG = True
 
+def build_path(ext_modules, packages):
+    global BUILT_PATH
+    if BUILT_PATH: return # only build it if you you haven't already
+
+    agg = (
+           'agg_curves.cpp',
+           'agg_bezier_arc.cpp',
+           'agg_trans_affine.cpp',
+           'agg_vcgen_stroke.cpp',
+           )
+
+    deps = ['%s/src/%s'%(AGG_VERSION, name) for name in agg]
+    deps.extend(glob.glob('CXX/*.cxx'))
+    deps.extend(glob.glob('CXX/*.c'))
+
+    temp_copy('src/_path.cpp', 'src/path.cpp')
+    deps.extend(['src/path.cpp'])
+    module = Extension(
+        'matplotlib._path',
+        deps,
+        include_dirs=numpy_inc_dirs,
+        )
+
+    add_numpy_flags(module)
+
+    add_agg_flags(module)
+    ext_modules.append(module)
+
+    BUILT_PATH = True
+
 def build_image(ext_modules, packages):
     global BUILT_IMAGE
     if BUILT_IMAGE: return # only build it if you you haven't already
 
     agg = ('agg_trans_affine.cpp',
-           'agg_path_storage.cpp',
-           'agg_rasterizer_scanline_aa.cpp',
            'agg_image_filters.cpp',
            'agg_bezier_arc.cpp',
            )
@@ -1170,46 +1325,6 @@ def build_image(ext_modules, packages):
 
     BUILT_IMAGE = True
 
-def build_swigagg(ext_modules, packages):
-    # setup the swig agg wrapper
-    deps = ['src/agg.cxx']
-    deps.extend(['%s/src/%s'%(AGG_VERSION, fname) for fname in
-                 (
-        'agg_trans_affine.cpp',
-        'agg_path_storage.cpp',
-        'agg_bezier_arc.cpp',
-        'agg_vcgen_dash.cpp',
-        'agg_vcgen_stroke.cpp',
-        'agg_rasterizer_scanline_aa.cpp',
-        'agg_curves.cpp',
-        )
-                 ])
-
-
-    agg = Extension('matplotlib._agg',
-                    deps,
-                    )
-
-    agg.include_dirs.extend(['%s/include'%AGG_VERSION, 'src', 'swig'])
-    agg.libraries.extend(std_libs)
-    ext_modules.append(agg)
-
-def build_transforms(ext_modules, packages):
-    cxx = glob.glob('CXX/*.cxx')
-    cxx.extend(glob.glob('CXX/*.c'))
-    temp_copy("src/_transforms.cpp","src/transforms.cpp")
-    module = Extension('matplotlib._transforms',
-                         ['src/transforms.cpp',
-                          'src/mplutils.cpp'] + cxx,
-                         libraries = std_libs,
-                         include_dirs = ['src', '.']+numpy_inc_dirs,
-                         )
-
-
-    add_numpy_flags(module)
-    add_base_flags(module)
-    ext_modules.append(module)
-
 
 def build_traits(ext_modules, packages):
     global BUILT_TRAITS
@@ -1228,6 +1343,22 @@ def build_traits(ext_modules, packages):
                      'enthought/traits/ui/tk',
                      ])
     BUILT_TRAITS = True
+
+def build_delaunay(ext_modules, packages):
+    global BUILT_DELAUNAY
+    if BUILT_DELAUNAY:
+        return # only build it if you you haven't already
+
+    sourcefiles=["_delaunay.cpp", "VoronoiDiagramGenerator.cpp",
+                 "delaunay_utils.cpp", "natneighbors.cpp"]
+    sourcefiles = [os.path.join('lib/matplotlib/delaunay',s) for s in sourcefiles]
+    delaunay = Extension('matplotlib._delaunay',sourcefiles,
+                         include_dirs=numpy_inc_dirs)
+    add_numpy_flags(delaunay)
+    add_base_flags(delaunay)
+    ext_modules.append(delaunay)
+    packages.extend(['matplotlib.delaunay'])
+    BUILT_DELAUNAY = True
 
 
 def build_contour(ext_modules, packages):
@@ -1280,10 +1411,3 @@ def build_gdk(ext_modules, packages):
 
     BUILT_GDK = True
 
-def build_subprocess(ext_modules, packages):
-    module = Extension(
-        'subprocess._subprocess',
-        ['src/_subprocess.c', ],
-        )
-    add_base_flags(module)
-    ext_modules.append(module)

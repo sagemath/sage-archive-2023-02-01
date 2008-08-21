@@ -3,13 +3,11 @@ A collection of utility functions and classes.  Many (but not all)
 from the Python Cookbook -- hence the name cbook
 """
 from __future__ import generators
-import re, os, errno, sys, StringIO, traceback, locale
+import re, os, errno, sys, StringIO, traceback, locale, threading, types
 import time, datetime
-import numpy as npy
-
-try: set
-except NameError:
-    from sets import Set as set
+import numpy as np
+import numpy.ma as ma
+from weakref import ref
 
 major, minor1, minor2, s, tmp = sys.version_info
 
@@ -47,7 +45,7 @@ class tostr(converter):
 class todatetime(converter):
     'convert to a datetime or None'
     def __init__(self, fmt='%Y-%m-%d', missing='Null', missingval=None):
-        'use a time.strptime format string for conversion'
+        'use a :func:`time.strptime` format string for conversion'
         converter.__init__(self, missing, missingval)
         self.fmt = fmt
 
@@ -61,7 +59,7 @@ class todatetime(converter):
 class todate(converter):
     'convert to a date or None'
     def __init__(self, fmt='%Y-%m-%d', missing='Null', missingval=None):
-        'use a time.strptime format string for conversion'
+        'use a :func:`time.strptime` format string for conversion'
         converter.__init__(self, missing, missingval)
         self.fmt = fmt
     def __call__(self, s):
@@ -91,7 +89,7 @@ class toint(converter):
 class CallbackRegistry:
     """
     Handle registering and disconnecting for a set of signals and
-    callbacks
+    callbacks::
 
        signals = 'eat', 'drink', 'be merry'
 
@@ -116,7 +114,7 @@ class CallbackRegistry:
 
     """
     def __init__(self, signals):
-        'signals is a sequence of valid signals'
+        '*signals* is a sequence of valid signals'
         self.signals = set(signals)
         # callbacks is a dict mapping the signal to a dictionary
         # mapping callback id to the callback function
@@ -124,7 +122,7 @@ class CallbackRegistry:
         self._cid = 0
 
     def _check_signal(self, s):
-        'make sure s is a valid signal or raise a ValueError'
+        'make sure *s* is a valid signal or raise a ValueError'
         if s not in self.signals:
             signals = list(self.signals)
             signals.sort()
@@ -132,7 +130,7 @@ class CallbackRegistry:
 
     def connect(self, s, func):
         """
-        register func to be called when a signal s is generated
+        register *func* to be called when a signal *s* is generated
         func will be called
         """
         self._check_signal(s)
@@ -142,7 +140,7 @@ class CallbackRegistry:
 
     def disconnect(self, cid):
         """
-        disconnect the callback registered with callback id cid
+        disconnect the callback registered with callback id *cid*
         """
         for eventname, callbackd in self.callbacks.items():
             try: del callbackd[cid]
@@ -151,14 +149,72 @@ class CallbackRegistry:
 
     def process(self, s, *args, **kwargs):
         """
-        process signal s.  All of the functions registered to receive
-        callbacks on s will be called with *args and **kwargs
+        process signal *s*.  All of the functions registered to receive
+        callbacks on *s* will be called with *\*args* and *\*\*kwargs*
         """
         self._check_signal(s)
         for func in self.callbacks[s].values():
             func(*args, **kwargs)
 
 
+class Scheduler(threading.Thread):
+    """
+    Base class for timeout and idle scheduling
+    """
+    idlelock = threading.Lock()
+    id = 0
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.id = Scheduler.id
+        self._stopped = False
+        Scheduler.id += 1
+        self._stopevent = threading.Event()
+
+    def stop(self):
+        if self._stopped: return
+        self._stopevent.set()
+        self.join()
+        self._stopped = True
+
+class Timeout(Scheduler):
+    """
+    Schedule recurring events with a wait time in seconds
+    """
+    def __init__(self, wait, func):
+        Scheduler.__init__(self)
+        self.wait = wait
+        self.func = func
+
+    def run(self):
+
+        while not self._stopevent.isSet():
+            self._stopevent.wait(self.wait)
+            Scheduler.idlelock.acquire()
+            b = self.func(self)
+            Scheduler.idlelock.release()
+            if not b: break
+
+class Idle(Scheduler):
+    """
+    Schedule callbacks when scheduler is idle
+    """
+    # the prototype impl is a bit of a poor man's idle handler.  It
+    # just implements a short wait time.  But it will provide a
+    # placeholder for a proper impl ater
+    waittime = 0.05
+    def __init__(self, func):
+        Scheduler.__init__(self)
+        self.func = func
+
+    def run(self):
+
+        while not self._stopevent.isSet():
+            self._stopevent.wait(Idle.waittime)
+            Scheduler.idlelock.acquire()
+            b = self.func(self)
+            Scheduler.idlelock.release()
+            if not b: break
 
 class silent_list(list):
     """
@@ -178,60 +234,75 @@ class silent_list(list):
 
 def strip_math(s):
     'remove latex formatting from mathtext'
-    remove = (r'\rm', '\cal', '\tt', '\it', '\\', '{', '}')
+    remove = (r'\mathdefault', r'\rm', r'\cal', r'\tt', r'\it', '\\', '{', '}')
     s = s[1:-1]
     for r in remove:  s = s.replace(r,'')
     return s
 
 class Bunch:
-   """
-   Often we want to just collect a bunch of stuff together, naming each
-   item of the bunch; a dictionary's OK for that, but a small do- nothing
-   class is even handier, and prettier to use.  Whenever you want to
-   group a few variables:
+    """
+    Often we want to just collect a bunch of stuff together, naming each
+    item of the bunch; a dictionary's OK for that, but a small do- nothing
+    class is even handier, and prettier to use.  Whenever you want to
+    group a few variables:
 
-     >>> point = Bunch(datum=2, squared=4, coord=12)
-     >>> point.datum
+      >>> point = Bunch(datum=2, squared=4, coord=12)
+      >>> point.datum
 
-     By: Alex Martelli
-     From: http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52308
-   """
-   def __init__(self, **kwds):
-      self.__dict__.update(kwds)
+      By: Alex Martelli
+      From: http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52308
+    """
+    def __init__(self, **kwds):
+        self.__dict__.update(kwds)
 
 
 def unique(x):
-   'Return a list of unique elements of x'
-   return dict([ (val, 1) for val in x]).keys()
+    'Return a list of unique elements of *x*'
+    return dict([ (val, 1) for val in x]).keys()
 
 def iterable(obj):
+    'return true if *obj* is iterable'
     try: len(obj)
     except: return 0
     return 1
 
 
 def is_string_like(obj):
+    'return true if *obj* looks like a string'
     if hasattr(obj, 'shape'): return 0
     try: obj + ''
     except (TypeError, ValueError): return 0
     return 1
 
+def is_sequence_of_strings(obj):
+    """
+    Returns true if *obj* is iterable and contains strings
+    """
+    if not iterable(obj): return False
+    if is_string_like(obj): return False
+    for o in obj:
+        if not is_string_like(o): return False
+    return True
+
 def is_writable_file_like(obj):
-    return hasattr(filename, 'write') and callable(filename.write)
+    'return true if *obj* looks like a file object with a *write* method'
+    return hasattr(obj, 'write') and callable(obj.write)
 
 def is_scalar(obj):
-    return is_string_like(obj) or not iterable(obj)
+    'return true if *obj* is not string like and is not iterable'
+    return not is_string_like(obj) and not iterable(obj)
 
 def is_numlike(obj):
+    'return true if *obj* looks like a number'
     try: obj+1
     except TypeError: return False
     else: return True
 
-def to_filehandle(fname, flag='r'):
+def to_filehandle(fname, flag='r', return_opened=False):
     """
-    fname can be a filename or a file handle.  Support for gzipped
-    files is automatic, if the filename ends in .gz.  flag is a
-    read/write flag for file
+    *fname* can be a filename or a file handle.  Support for gzipped
+    files is automatic, if the filename ends in .gz.  *flag* is a
+    read/write flag for :func:`file`
     """
     if is_string_like(fname):
         if fname.endswith('.gz'):
@@ -239,10 +310,14 @@ def to_filehandle(fname, flag='r'):
             fh = gzip.open(fname, flag)
         else:
             fh = file(fname, flag)
+        opened = True
     elif hasattr(fname, 'seek'):
         fh = fname
+        opened = False
     else:
         raise ValueError('fname must be a string or file handle')
+    if return_opened:
+        return fh, opened
     return fh
 
 def flatten(seq, scalarp=is_scalar):
@@ -264,55 +339,56 @@ def flatten(seq, scalarp=is_scalar):
         if scalarp(item): yield item
         else:
             for subitem in flatten(item, scalarp):
-               yield subitem
+                yield subitem
 
 
 
 class Sorter:
-   """
+    """
 
-   Sort by attribute or item
+    Sort by attribute or item
 
-   Example usage:
-   sort = Sorter()
+    Example usage::
 
-   list = [(1, 2), (4, 8), (0, 3)]
-   dict = [{'a': 3, 'b': 4}, {'a': 5, 'b': 2}, {'a': 0, 'b': 0},
-   {'a': 9, 'b': 9}]
+      sort = Sorter()
+
+      list = [(1, 2), (4, 8), (0, 3)]
+      dict = [{'a': 3, 'b': 4}, {'a': 5, 'b': 2}, {'a': 0, 'b': 0},
+              {'a': 9, 'b': 9}]
 
 
-   sort(list)       # default sort
-   sort(list, 1)    # sort by index 1
-   sort(dict, 'a')  # sort a list of dicts by key 'a'
+      sort(list)       # default sort
+      sort(list, 1)    # sort by index 1
+      sort(dict, 'a')  # sort a list of dicts by key 'a'
 
-   """
+    """
 
-   def _helper(self, data, aux, inplace):
-      aux.sort()
-      result = [data[i] for junk, i in aux]
-      if inplace: data[:] = result
-      return result
+    def _helper(self, data, aux, inplace):
+        aux.sort()
+        result = [data[i] for junk, i in aux]
+        if inplace: data[:] = result
+        return result
 
-   def byItem(self, data, itemindex=None, inplace=1):
-      if itemindex is None:
-         if inplace:
-            data.sort()
-            result = data
-         else:
-            result = data[:]
-            result.sort()
-         return result
-      else:
-         aux = [(data[i][itemindex], i) for i in range(len(data))]
-         return self._helper(data, aux, inplace)
+    def byItem(self, data, itemindex=None, inplace=1):
+        if itemindex is None:
+            if inplace:
+                data.sort()
+                result = data
+            else:
+                result = data[:]
+                result.sort()
+            return result
+        else:
+            aux = [(data[i][itemindex], i) for i in range(len(data))]
+            return self._helper(data, aux, inplace)
 
-   def byAttribute(self, data, attributename, inplace=1):
-      aux = [(getattr(data[i],attributename),i) for i in range(len(data))]
-      return self._helper(data, aux, inplace)
+    def byAttribute(self, data, attributename, inplace=1):
+        aux = [(getattr(data[i],attributename),i) for i in range(len(data))]
+        return self._helper(data, aux, inplace)
 
-   # a couple of handy synonyms
-   sort = byItem
-   __call__ = byItem
+    # a couple of handy synonyms
+    sort = byItem
+    __call__ = byItem
 
 
 
@@ -322,19 +398,19 @@ class Xlator(dict):
     """
     All-in-one multiple-string-substitution class
 
-    Example usage:
+    Example usage::
 
-    text = "Larry Wall is the creator of Perl"
-    adict = {
-    "Larry Wall" : "Guido van Rossum",
-    "creator" : "Benevolent Dictator for Life",
-    "Perl" : "Python",
-    }
+      text = "Larry Wall is the creator of Perl"
+      adict = {
+      "Larry Wall" : "Guido van Rossum",
+      "creator" : "Benevolent Dictator for Life",
+      "Perl" : "Python",
+      }
 
-    print multiple_replace(adict, text)
+      print multiple_replace(adict, text)
 
-    xlat = Xlator(adict)
-    print xlat.xlat(text)
+      xlat = Xlator(adict)
+      print xlat.xlat(text)
     """
 
     def _make_regex(self):
@@ -342,11 +418,11 @@ class Xlator(dict):
         return re.compile("|".join(map(re.escape, self.keys())))
 
     def __call__(self, match):
-        """ Handler invoked for each regex match """
+        """ Handler invoked for each regex *match* """
         return self[match.group(0)]
 
     def xlat(self, text):
-        """ Translate text, returns the modified text. """
+        """ Translate *text*, returns the modified text. """
         return self._make_regex().sub(self, text)
 
 
@@ -396,11 +472,11 @@ class Null:
 
 
 def mkdirs(newdir, mode=0777):
-   try: os.makedirs(newdir, mode)
-   except OSError, err:
-      # Reraise the error unless it's about an already existing directory
-      if err.errno != errno.EEXIST or not os.path.isdir(newdir):
-         raise
+    try: os.makedirs(newdir, mode)
+    except OSError, err:
+        # Reraise the error unless it's about an already existing directory
+        if err.errno != errno.EEXIST or not os.path.isdir(newdir):
+            raise
 
 
 class GetRealpathAndStat:
@@ -411,15 +487,18 @@ class GetRealpathAndStat:
         result = self._cache.get(path)
         if result is None:
             realpath = os.path.realpath(path)
-            stat = os.stat(realpath)
-            stat_key = (stat.st_ino, stat.st_dev)
+            if sys.platform == 'win32':
+                stat_key = realpath
+            else:
+                stat = os.stat(realpath)
+                stat_key = (stat.st_ino, stat.st_dev)
             result = realpath, stat_key
             self._cache[path] = result
         return result
 get_realpath_and_stat = GetRealpathAndStat()
 
 def dict_delall(d, keys):
-    'delete all of the keys from the dict d'
+    'delete all of the *keys* from the :class:`dict` *d*'
     for key in keys:
         try: del d[key]
         except KeyError: pass
@@ -454,65 +533,28 @@ class RingBuffer:
         return self.data
 
     def __get_item__(self, i):
-       return self.data[i % len(self.data)]
+        return self.data[i % len(self.data)]
 
-
-# use enumerate builtin if available, else use python version
-try:
-    import __builtin__
-    enumerate = __builtin__.enumerate
-except:
-    def enumerate(seq):
-        """Python equivalent to the enumerate builtin function
-        enumerate() is new in Python 2.3
-        """
-        for i in range(len(seq)):
-            yield i, seq[i]
-
-
-# use reversed builtin if available, else use python version
-try:
-    import __builtin__
-    reversed = __builtin__.reversed
-except:
-    def reversed(seq):
-        """Python equivalent to the enumerate builtin function
-        enumerate() is new in Python 2.3
-        """
-        for i in range(len(seq)-1,-1,-1):
-            yield seq[i]
-
-
-# use itertools.izip if available, else use python version
-try:
-    import itertools
-    izip = itertools.izip
-except:
-    def izip(*iterables):
-        """Python equivalent to itertools.izip
-        itertools module - new in Python 2.3
-        """
-        iterables = map(iter, iterables)
-        while iterables:
-            result = [i.next() for i in iterables]
-            yield tuple(result)
 
 
 def get_split_ind(seq, N):
-   """seq is a list of words.  Return the index into seq such that
-   len(' '.join(seq[:ind])<=N
-   """
+    """
+    *seq* is a list of words.  Return the index into seq such that::
 
-   sLen = 0
-   # todo: use Alex's xrange pattern from the cbook for efficiency
-   for (word, ind) in zip(seq, range(len(seq))):
-      sLen += len(word) + 1  # +1 to account for the len(' ')
-      if sLen>=N: return ind
-   return len(seq)
+        len(' '.join(seq[:ind])<=N
+
+    """
+
+    sLen = 0
+    # todo: use Alex's xrange pattern from the cbook for efficiency
+    for (word, ind) in zip(seq, range(len(seq))):
+        sLen += len(word) + 1  # +1 to account for the len(' ')
+        if sLen>=N: return ind
+    return len(seq)
 
 
 def wrap(prefix, text, cols):
-    'wrap text with prefix at length cols'
+    'wrap *text* with *prefix* at length *cols*'
     pad = ' '*len(prefix.expandtabs())
     available = cols - len(pad)
 
@@ -539,14 +581,13 @@ _find_dedent_regex = re.compile("(?:(?:\n\r?)|^)( *)\S")
 _dedent_regex = {}
 def dedent(s):
     """
-    Remove excess indentation from docstrings.
+    Remove excess indentation from docstring *s*.
 
-    Discards any leading blank lines, then removes up to
-    n whitespace characters from each line, where n is
-    the number of leading whitespace characters in the
-    first line. It differs from textwrap.dedent in its
-    deletion of leading blank lines and its use of the
-    first non-blank line to determine the indentation.
+    Discards any leading blank lines, then removes up to n whitespace
+    characters from each line, where n is the number of leading
+    whitespace characters in the first line. It differs from
+    textwrap.dedent in its deletion of leading blank lines and its use
+    of the first non-blank line to determine the indentation.
 
     It is also faster in most cases.
     """
@@ -581,6 +622,7 @@ def dedent(s):
 def listFiles(root, patterns='*', recurse=1, return_folders=0):
     """
     Recursively list files
+
     from Parmar and Martelli in the Python Cookbook
     """
     import os.path, fnmatch
@@ -610,8 +652,8 @@ def listFiles(root, patterns='*', recurse=1, return_folders=0):
 
 def get_recursive_filelist(args):
     """
-    Recurs all the files and dirs in args ignoring symbolic links and
-    return the files as a list of strings
+    Recurs all the files and dirs in *args* ignoring symbolic links
+    and return the files as a list of strings
     """
     files = []
 
@@ -628,26 +670,26 @@ def get_recursive_filelist(args):
 
 
 def pieces(seq, num=2):
-   "Break up the seq into num tuples"
-   start = 0
-   while 1:
-      item = seq[start:start+num]
-      if not len(item): break
-      yield item
-      start += num
+    "Break up the *seq* into *num* tuples"
+    start = 0
+    while 1:
+        item = seq[start:start+num]
+        if not len(item): break
+        yield item
+        start += num
 
 def exception_to_str(s = None):
 
-   sh = StringIO.StringIO()
-   if s is not None: print >>sh, s
-   traceback.print_exc(file=sh)
-   return sh.getvalue()
+    sh = StringIO.StringIO()
+    if s is not None: print >>sh, s
+    traceback.print_exc(file=sh)
+    return sh.getvalue()
 
 
 def allequal(seq):
     """
-    return true if all elements of seq compare equal.  If seq is 0 or
-    1 length, return True
+    Return *True* if all elements of *seq* compare equal.  If *seq* is
+    0 or 1 length, return *True*
     """
     if len(seq)<2: return True
     val = seq[0]
@@ -657,14 +699,20 @@ def allequal(seq):
     return True
 
 def alltrue(seq):
-    #return true if all elements of seq are true.  If seq is empty return false
+    """
+    Return *True* if all elements of *seq* evaluate to *True*.  If
+    *seq* is empty, return *False*.
+    """
     if not len(seq): return False
     for val in seq:
         if not val: return False
     return True
 
 def onetrue(seq):
-    #return true if one element of seq is true.  If seq is empty return false
+    """
+    Return *True* if one element of *seq* is *True*.  It *seq* is
+    empty, return *False*.
+    """
     if not len(seq): return False
     for val in seq:
         if val: return True
@@ -672,10 +720,11 @@ def onetrue(seq):
 
 def allpairs(x):
     """
-    return all possible pairs in sequence x
+    return all possible pairs in sequence *x*
 
-    Condensed by Alex Martelli from this thread on c.l.python
-    http://groups.google.com/groups?q=all+pairs+group:*python*&hl=en&lr=&ie=UTF-8&selm=mailman.4028.1096403649.5135.python-list%40python.org&rnum=1
+    Condensed by Alex Martelli from this thread_ on c.l.python
+
+    .. _thread: http://groups.google.com/groups?q=all+pairs+group:*python*&hl=en&lr=&ie=UTF-8&selm=mailman.4028.1096403649.5135.python-list%40python.org&rnum=1
     """
     return [ (s, f) for i, f in enumerate(x) for s in x[i+1:] ]
 
@@ -685,16 +734,20 @@ def allpairs(x):
 # python 2.2 dicts don't have pop--but we don't support 2.2 any more
 def popd(d, *args):
     """
-    Should behave like python2.3 pop method; d is a dict
+    Should behave like python2.3 :meth:`dict.pop` method; *d* is a
+    :class:`dict`::
 
-    # returns value for key and deletes item; raises a KeyError if key
-    # is not in dict
-    val = popd(d, key)
+      # returns value for key and deletes item; raises a KeyError if key
+      # is not in dict
+      val = popd(d, key)
 
-    # returns value for key if key exists, else default.  Delete key,
-    # val item if it exists.  Will not raise a KeyError
-    val = popd(d, key, default)
+      # returns value for key if key exists, else default.  Delete key,
+      # val item if it exists.  Will not raise a KeyError
+      val = popd(d, key, default)
+
     """
+    warnings.warn("Use native python dict.pop method", DeprecationWarning)
+    # warning added 2008/07/22
     if len(args)==1:
         key = args[0]
         val = d[key]
@@ -779,8 +832,8 @@ class Stack:
 
     def bubble(self, o):
         """
-        raise o to the top of the stack and return o.  o must be in
-        the stack
+        raise *o* to the top of the stack and return *o*.  *o* must be
+        in the stack
         """
 
         if o not in self._elements:
@@ -796,7 +849,7 @@ class Stack:
         return o
 
     def remove(self, o):
-        'remove element o from the stack'
+        'remove element *o* from the stack'
         if o not in self._elements:
             raise ValueError('Unknown element o')
         old = self._elements[:]
@@ -811,7 +864,7 @@ def popall(seq):
 
 def finddir(o, match, case=False):
     """
-    return all attributes of o which match string in match.  if case
+    return all attributes of *o* which match string in match.  if case
     is True require an exact case match.
     """
     if case:
@@ -822,7 +875,7 @@ def finddir(o, match, case=False):
     return [orig for name, orig in names if name.find(match)>=0]
 
 def reverse_dict(d):
-    'reverse the dictionary -- may lose data if values are not uniq!'
+    'reverse the dictionary -- may lose data if values are not unique!'
     return dict([(v,k) for k,v in d.items()])
 
 
@@ -843,18 +896,25 @@ def report_memory(i=0):  # argument may go away
 
 _safezip_msg = 'In safezip, len(args[0])=%d but len(args[%d])=%d'
 def safezip(*args):
-    'make sure args are equal len before zipping'
+    'make sure *args* are equal len before zipping'
     Nx = len(args[0])
     for i, arg in enumerate(args[1:]):
         if len(arg) != Nx:
             raise ValueError(_safezip_msg % (Nx, i+1, len(arg)))
     return zip(*args)
 
+def issubclass_safe(x, klass):
+    'return issubclass(x, klass) and return False on a TypeError'
+
+    try:
+        return issubclass(x, klass)
+    except TypeError:
+        return False
 
 class MemoryMonitor:
     def __init__(self, nmax=20000):
         self._nmax = nmax
-        self._mem = npy.zeros((self._nmax,), npy.int32)
+        self._mem = np.zeros((self._nmax,), np.int32)
         self.clear()
 
     def clear(self):
@@ -890,7 +950,7 @@ class MemoryMonitor:
             print "Warning: array size was too small for the number of calls."
 
     def xy(self, i0=0, isub=1):
-        x = npy.arange(i0, self._n, isub)
+        x = np.arange(i0, self._n, isub)
         return x, self._mem[i0:self._n:isub]
 
     def plot(self, i0=0, isub=1, fig=None):
@@ -905,12 +965,16 @@ class MemoryMonitor:
 
 def print_cycles(objects, outstream=sys.stdout, show_progress=False):
     """
-    objects:       A list of objects to find cycles in.  It is often useful
-                   to pass in gc.garbage to find the cycles that are
-                   preventing some objects from being garbage collected.
-    outstream:     The stream for output.
-    show_progress: If True, print the number of objects reached as they are
-                   found.
+    *objects*
+        A list of objects to find cycles in.  It is often useful to
+        pass in gc.garbage to find the cycles that are preventing some
+        objects from being garbage collected.
+
+    *outstream*
+        The stream for output.
+
+    *show_progress*
+        If True, print the number of objects reached as they are found.
     """
     import gc
     from types import FrameType
@@ -964,6 +1028,378 @@ def print_cycles(objects, outstream=sys.stdout, show_progress=False):
     for obj in objects:
         outstream.write("Examining: %r\n" % (obj,))
         recurse(obj, obj, { }, [])
+
+class Grouper(object):
+    """
+    This class provides a lightweight way to group arbitrary objects
+    together into disjoint sets when a full-blown graph data structure
+    would be overkill.
+
+    Objects can be joined using :meth:`join`, tested for connectedness
+    using :meth:`joined`, and all disjoint sets can be retreived by
+    using the object as an iterator.
+
+    The objects being joined must be hashable.
+
+    For example:
+
+    >>> g = grouper.Grouper()
+    >>> g.join('a', 'b')
+    >>> g.join('b', 'c')
+    >>> g.join('d', 'e')
+    >>> list(g)
+    [['a', 'b', 'c'], ['d', 'e']]
+    >>> g.joined('a', 'b')
+    True
+    >>> g.joined('a', 'c')
+    True
+    >>> g.joined('a', 'd')
+    False
+    """
+    def __init__(self, init=[]):
+        mapping = self._mapping = {}
+        for x in init:
+            mapping[ref(x)] = [ref(x)]
+
+    def __contains__(self, item):
+        return ref(item) in self._mapping
+
+    def clean(self):
+        """
+        Clean dead weak references from the dictionary
+        """
+        mapping = self._mapping
+        for key, val in mapping.items():
+            if key() is None:
+                del mapping[key]
+                val.remove(key)
+
+    def join(self, a, *args):
+        """
+        Join given arguments into the same set.  Accepts one or more
+        arguments.
+        """
+        mapping = self._mapping
+        set_a = mapping.setdefault(ref(a), [ref(a)])
+
+        for arg in args:
+            set_b = mapping.get(ref(arg))
+            if set_b is None:
+                set_a.append(ref(arg))
+                mapping[ref(arg)] = set_a
+            elif set_b is not set_a:
+                if len(set_b) > len(set_a):
+                    set_a, set_b = set_b, set_a
+                set_a.extend(set_b)
+                for elem in set_b:
+                    mapping[elem] = set_a
+
+        self.clean()
+
+    def joined(self, a, b):
+        """
+        Returns True if *a* and *b* are members of the same set.
+        """
+        self.clean()
+
+        mapping = self._mapping
+        try:
+            return mapping[ref(a)] is mapping[ref(b)]
+        except KeyError:
+            return False
+
+    def __iter__(self):
+        """
+        Iterate over each of the disjoint sets as a list.
+
+        The iterator is invalid if interleaved with calls to join().
+        """
+        self.clean()
+
+        class Token: pass
+        token = Token()
+
+        # Mark each group as we come across if by appending a token,
+        # and don't yield it twice
+        for group in self._mapping.itervalues():
+            if not group[-1] is token:
+                yield [x() for x in group]
+                group.append(token)
+
+        # Cleanup the tokens
+        for group in self._mapping.itervalues():
+            if group[-1] is token:
+                del group[-1]
+
+    def get_siblings(self, a):
+        """
+        Returns all of the items joined with *a*, including itself.
+        """
+        self.clean()
+
+        siblings = self._mapping.get(ref(a), [ref(a)])
+        return [x() for x in siblings]
+
+
+def simple_linear_interpolation(a, steps):
+    steps = np.floor(steps)
+    new_length = ((len(a) - 1) * steps) + 1
+    new_shape = list(a.shape)
+    new_shape[0] = new_length
+    result = np.zeros(new_shape, a.dtype)
+
+    result[0] = a[0]
+    a0 = a[0:-1]
+    a1 = a[1:  ]
+    delta = ((a1 - a0) / steps)
+
+    for i in range(1, int(steps)):
+        result[i::steps] = delta * i + a0
+    result[steps::steps] = a1
+
+    return result
+
+def less_simple_linear_interpolation( x, y, xi, extrap=False ):
+    """
+    This function provides simple (but somewhat less so than
+    simple_linear_interpolation) linear interpolation.
+    simple_linear_interpolation will give a list of point between a
+    start and an end, while this does true linear interpolation at an
+    arbitrary set of points.
+
+    This is very inefficient linear interpolation meant to be used
+    only for a small number of points in relatively non-intensive use
+    cases.
+    """
+    if is_scalar(xi): xi = [xi]
+
+    x = np.asarray(x)
+    y = np.asarray(y)
+    xi = np.asarray(xi)
+
+    s = list(y.shape)
+    s[0] = len(xi)
+    yi = np.tile( np.nan, s )
+
+    for ii,xx in enumerate(xi):
+        bb = x == xx
+        if np.any(bb):
+            jj, = np.nonzero(bb)
+            yi[ii] = y[jj[0]]
+        elif xx<x[0]:
+            if extrap:
+                yi[ii] = y[0]
+        elif xx>x[-1]:
+            if extrap:
+                yi[ii] = y[-1]
+        else:
+            jj, = np.nonzero(x<xx)
+            jj = max(jj)
+
+            yi[ii] = y[jj] + (xx-x[jj])/(x[jj+1]-x[jj]) * (y[jj+1]-y[jj])
+
+    return yi
+
+def recursive_remove(path):
+    if os.path.isdir(path):
+        for fname in glob.glob(os.path.join(path, '*')) + glob.glob(os.path.join(path, '.*')):
+            if os.path.isdir(fname):
+                recursive_remove(fname)
+                os.removedirs(fname)
+            else:
+                os.remove(fname)
+        #os.removedirs(path)
+    else:
+        os.remove(path)
+
+def delete_masked_points(*args):
+    """
+    Find all masked and/or non-finite points in a set of arguments,
+    and return the arguments with only the unmasked points remaining.
+
+    Arguments can be in any of 5 categories:
+
+    1) 1-D masked arrays
+    2) 1-D ndarrays
+    3) ndarrays with more than one dimension
+    4) other non-string iterables
+    5) anything else
+
+    The first argument must be in one of the first four categories;
+    any argument with a length differing from that of the first
+    argument (and hence anything in category 5) then will be
+    passed through unchanged.
+
+    Masks are obtained from all arguments of the correct length
+    in categories 1, 2, and 4; a point is bad if masked in a masked
+    array or if it is a nan or inf.  No attempt is made to
+    extract a mask from categories 2, 3, and 4 if :meth:`np.isfinite`
+    does not yield a Boolean array.
+
+    All input arguments that are not passed unchanged are returned
+    as ndarrays after removing the points or rows corresponding to
+    masks in any of the arguments.
+
+    A vastly simpler version of this function was originally
+    written as a helper for Axes.scatter().
+
+    """
+    if not len(args):
+        return ()
+    if (is_string_like(args[0]) or not iterable(args[0])):
+        raise ValueError("First argument must be a sequence")
+    nrecs = len(args[0])
+    margs = []
+    seqlist = [False] * len(args)
+    for i, x in enumerate(args):
+        if (not is_string_like(x)) and iterable(x) and len(x) == nrecs:
+            seqlist[i] = True
+            if ma.isMA(x):
+                if x.ndim > 1:
+                    raise ValueError("Masked arrays must be 1-D")
+            else:
+                x = np.asarray(x)
+        margs.append(x)
+    masks = []    # list of masks that are True where good
+    for i, x in enumerate(margs):
+        if seqlist[i]:
+            if x.ndim > 1:
+                continue  # Don't try to get nan locations unless 1-D.
+            if ma.isMA(x):
+                masks.append(~ma.getmaskarray(x))  # invert the mask
+                xd = x.data
+            else:
+                xd = x
+            try:
+                mask = np.isfinite(xd)
+                if isinstance(mask, np.ndarray):
+                    masks.append(mask)
+            except: #Fixme: put in tuple of possible exceptions?
+                pass
+    if len(masks):
+        mask = reduce(np.logical_and, masks)
+        igood = mask.nonzero()[0]
+        if len(igood) < nrecs:
+            for i, x in enumerate(margs):
+                if seqlist[i]:
+                    margs[i] = x.take(igood, axis=0)
+    for i, x in enumerate(margs):
+        if seqlist[i] and ma.isMA(x):
+            margs[i] = x.filled()
+    return margs
+
+def unmasked_index_ranges(mask, compressed = True):
+    '''
+    Find index ranges where *mask* is *False*.
+
+    *mask* will be flattened if it is not already 1-D.
+
+    Returns Nx2 :class:`numpy.ndarray` with each row the start and stop
+    indices for slices of the compressed :class:`numpy.ndarray`
+    corresponding to each of *N* uninterrupted runs of unmasked
+    values.  If optional argument *compressed* is *False*, it returns
+    the start and stop indices into the original :class:`numpy.ndarray`,
+    not the compressed :class:`numpy.ndarray`.  Returns *None* if there
+    are no unmasked values.
+
+    Example::
+
+      y = ma.array(np.arange(5), mask = [0,0,1,0,0])
+      ii = unmasked_index_ranges(ma.getmaskarray(y))
+      # returns array [[0,2,] [2,4,]]
+
+      y.compressed()[ii[1,0]:ii[1,1]]
+      # returns array [3,4,]
+
+      ii = unmasked_index_ranges(ma.getmaskarray(y), compressed=False)
+      # returns array [[0, 2], [3, 5]]
+
+      y.filled()[ii[1,0]:ii[1,1]]
+      # returns array [3,4,]
+
+    Prior to the transforms refactoring, this was used to support
+    masked arrays in Line2D.
+
+    '''
+    mask = mask.reshape(mask.size)
+    m = np.concatenate(((1,), mask, (1,)))
+    indices = np.arange(len(mask) + 1)
+    mdif = m[1:] - m[:-1]
+    i0 = np.compress(mdif == -1, indices)
+    i1 = np.compress(mdif == 1, indices)
+    assert len(i0) == len(i1)
+    if len(i1) == 0:
+        return None  # Maybe this should be np.zeros((0,2), dtype=int)
+    if not compressed:
+        return np.concatenate((i0[:, np.newaxis], i1[:, np.newaxis]), axis=1)
+    seglengths = i1 - i0
+    breakpoints = np.cumsum(seglengths)
+    ic0 = np.concatenate(((0,), breakpoints[:-1]))
+    ic1 = breakpoints
+    return np.concatenate((ic0[:, np.newaxis], ic1[:, np.newaxis]), axis=1)
+
+def isvector(X):
+    """
+    Like the Matlab (TM) function with the same name, returns true if
+    the supplied numpy array or matrix looks like a vector, meaning it
+    has a one non-singleton axis (i.e., it can have multiple axes, but
+    all must have length 1, except for one of them).
+
+    If you just want to see if the array has 1 axis, use X.ndim==1
+
+    """
+    return np.prod(X.shape)==np.max(X.shape)
+
+def vector_lengths( X, P=2., axis=None ):
+    """
+    Finds the length of a set of vectors in n dimensions.  This is
+    like the numpy norm function for vectors, but has the ability to
+    work over a particular axis of the supplied array or matrix.
+
+    Computes (sum((x_i)^P))^(1/P) for each {x_i} being the elements of X along
+    the given axis.  If *axis* is *None*, compute over all elements of X.
+    """
+    X = np.asarray(X)
+    return (np.sum(X**(P),axis=axis))**(1./P)
+
+def distances_along_curve( X ):
+    """
+    Computes the distance between a set of successive points in N dimensions.
+
+    where X is an MxN array or matrix.  The distances between successive rows
+    is computed.  Distance is the standard Euclidean distance.
+    """
+    X = np.diff( X, axis=0 )
+    return vector_lengths(X,axis=1)
+
+def path_length(X):
+    """
+    Computes the distance travelled along a polygonal curve in N dimensions.
+
+
+    where X is an MxN array or matrix.  Returns an array of length M consisting
+    of the distance along the curve at each point (i.e., the rows of X).
+    """
+    X = distances_along_curve(X)
+    return np.concatenate( (np.zeros(1), np.cumsum(X)) )
+
+def is_closed_polygon(X):
+    """
+    Tests whether first and last object in a sequence are the same.  These are
+    presumably coordinates on a polygonal curve, in which case this function
+    tests if that curve is closed.
+
+    """
+    return np.all(X[0] == X[-1])
+
+# a dict to cross-map linestyle arguments
+_linestyles = [('-', 'solid'),
+    ('--', 'dashed'),
+    ('-.', 'dashdot'),
+    (':',  'dotted')]
+
+ls_mapper = dict(_linestyles)
+ls_mapper.update([(ls[1], ls[0]) for ls in _linestyles])
 
 if __name__=='__main__':
     assert( allequal([1,1,1]) )

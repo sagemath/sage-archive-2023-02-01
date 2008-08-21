@@ -1,0 +1,11 @@
+--- src/setup.py	2008-08-03 13:15:22.000000000 -0500
++++ patches/setup.py-ia64	2008-08-20 00:12:13.000000000 -0500
+@@ -121,7 +121,7 @@
+ # the options can be True, False, or 'auto'. If True, try to build
+ # regardless of the lack of dependencies. If auto, silently skip
+ # when dependencies are missing.
+-if options['build_tkagg']:
++if False and options['build_tkagg']:
+     if check_for_tk() or (options['build_tkagg'] is True):
+         options['build_agg'] = 1
+         build_tkagg(ext_modules, packages)

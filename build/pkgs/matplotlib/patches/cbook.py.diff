@@ -1,0 +1,14 @@
+--- src/lib/matplotlib/cbook.py	2008-08-03 13:15:03.000000000 -0500
++++ patches/cbook.py	2008-08-20 01:16:22.000000000 -0500
+@@ -13,7 +13,10 @@
+ 
+ 
+ # on some systems, locale.getpreferredencoding returns None, which can break unicode
+-preferredencoding = locale.getpreferredencoding()
++try:
++    preferredencoding = locale.getpreferredencoding()
++except:
++    preferredencoding = None
+ 
+ def unicode_safe(s):
+     if preferredencoding is None: return unicode(s)

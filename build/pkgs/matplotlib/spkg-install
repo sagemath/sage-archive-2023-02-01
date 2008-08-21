@@ -12,7 +12,7 @@ if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
    LDFLAGS="-m64 "; export LDFLAGS
 fi
 
-# Used patched versions.  See SAGE.txt for why and what.
+# Use patched versions.  See SPKG.txt for why and what.
 $CP patches/setupext.py src
 $CP patches/cbook.py src/lib/matplotlib/cbook.py
 
@@ -36,6 +36,4 @@ rm -rf "$SAGE_LOCAL"/lib/python/site-packages/matplotlib
 
 # Finally install
 python setup.py install
-
-
 

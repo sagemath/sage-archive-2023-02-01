@@ -191,10 +191,11 @@ void ginac_pyinit_Float(PyObject* f) {
   pyfunc_Float = f;
 }
 
-  void ginac_pyinit_I(PyObject* z) {
-    Py_INCREF(z);
-    GiNaC::I = z;  // I is a global constant defined below.
-  }
+void ginac_pyinit_I(PyObject* z) {
+  Py_INCREF(z);
+  GiNaC::I = z;  // I is a global constant defined below.
+}
+
 
 
 namespace GiNaC {

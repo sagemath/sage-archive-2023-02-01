@@ -421,14 +421,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   Number_T::Number_T(PyObject* o) {
     verbose("Number_T::Number_T(PyObject* o)");
     t = PYOBJECT;
-    if (o==NULL) {
-      // TODO: something bad happened -- an exception; figure out how to deal with this.
-      std::cerr << "ERROR IN Pynac; object SET TO ZERO";
-      v._pyobject = PyInt_FromLong(0);
-      return;
-    }
-    // STEAL a reference
-    v._pyobject = o;
+    v._pyobject = o; // STEAL a reference
   }
   
   Number_T::~Number_T() {

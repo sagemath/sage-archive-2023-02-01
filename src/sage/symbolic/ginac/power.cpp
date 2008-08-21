@@ -20,6 +20,12 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+
+// ADDED FOR SAGE; this gets us nearly 20% speedup already for (x+y+z)^10.
+#include "Python.h"
+extern "C" PyObject* py_binomial_int(int n, unsigned int k);
+
+
 #include <vector>
 #include <iostream>
 #include <stdexcept>
@@ -859,7 +865,8 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 	// i.e. the number of unordered arrangements of m nonnegative integers
 	// which sum up to n.  It is frequently written as C_n(m) and directly
 	// related with binomial coefficients:
-	result.reserve(binomial(numeric(n+m-1), numeric(m-1)).to_int());
+	result.reserve(numeric(py_binomial_int(n+m-1, m-1)).to_int());
+	//result.reserve(binomial(numeric(n+m-1), numeric(m-1)).to_int());
 	intvector k(m-1);
 	intvector k_cum(m-1); // k_cum[l]:=sum(i=0,l,k[l]);
 	intvector upper_limit(m-1);
@@ -902,9 +909,10 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 		else
 			term.push_back(power(b,n-k_cum[m-2]));
 
-		numeric f = binomial(numeric(n),numeric(k[0]));
+
+		numeric f = py_binomial_int(n,k[0]);
 		for (l=1; l<m-1; ++l)
-			f *= binomial(numeric(n-k_cum[l-1]),numeric(k[l]));
+		  f *= py_binomial_int(n-k_cum[l-1], k[l]);
 
 		term.push_back(f);
 

@@ -1038,7 +1038,7 @@ class Graphics(SageObject):
         self.__ymax = yrange[1]
         self.__objects.append(GraphicPrimitive_PlotField(xpos_array, ypos_array, xvec_array, yvec_array, options))
 
-    def _point(self, xdata, ydata, options):
+    def _point(self, xdata, ydata, options, extend_axes=True):
         """
         Add a plot of a point or list of points to this graphics object.
 
@@ -1050,9 +1050,10 @@ class Graphics(SageObject):
             options -- dictionary of options
         """
         self.__objects.append(GraphicPrimitive_Point(xdata, ydata, options))
-        self._extend_axes(*minmax_data(xdata, ydata))
+        if extend_axes:
+            self._extend_axes(*minmax_data(xdata, ydata))
 
-    def _polygon(self, xdata, ydata, options):
+    def _polygon(self, xdata, ydata, options, extend_axes=True):
         """
         Add a plot of a polygon to this graphics object.
 
@@ -1064,11 +1065,12 @@ class Graphics(SageObject):
             options -- dictionary of options
         """
         self.__objects.append(GraphicPrimitive_Polygon(xdata, ydata, options))
-        self._extend_axes(*minmax_data(xdata, ydata))
+        if extend_axes:
+            self._extend_axes(*minmax_data(xdata, ydata))
 
     def _text(self, string, point, options):
         """
-        Add a countor plot to this graphics object.
+        Add a string of text to this graphics object.
 
         (For internal use -- you should just use addition.)
 
@@ -2330,7 +2332,8 @@ class GraphicPrimitive_Point(GraphicPrimitive):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: P = E(0,0)
-            sage: def get_points(n): return sum([point(i*P, pointsize=3) for i in range(-n,n) if i != 0 and (i*P)[0] < 3])
+            sage: def get_points(n):
+            ....:     return sum([point((i*P)[0:2], pointsize=3) for i in range(-n,n) if i != 0 and (i*P)[0] < 3])
             sage: sum([get_points(15*n).plot3d(z=n) for n in range(1,10)])
         """
         from sage.plot.plot3d.base import Graphics3dGroup
@@ -2637,27 +2640,35 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                 NX.draw_networkx_labels(self.__nxg, self.__pos, labels=labels, ax=subplot)
 
 
-# WARNING: The below function xydata_from_point_list
-# can potentially be very slow for large point sets.
-#
-# It exists because it provides the following functionality:
-# Allows user to give as input to the function 'point'
-# a list of (x,y) values at which to plot points, coloring
-# each one a different color if needed.  From this input list we then
-# loop through it, first coercing all the values the floats
-# and then forming two new list that consist of all then
-# x-values in one list and all the y-values in another list.
-# This is needed to be done because that is how the input is
-# taken in the matplotlib function 'scatter'.
+
 def xydata_from_point_list(points):
-    if not isinstance(points, (list,tuple)) or \
-       (isinstance(points,(list,tuple)) and len(points) <= 3 \
-        and len(points) > 0 \
-        and not isinstance(points[0], (list,tuple))):
+    r"""
+    Returns two lists (xdata, ydata), each coerced to a list of
+    floats, which correspond to the x-coordinates and the
+    y-coordinates of the points.
+
+    The points parameter can be a list of 2-tuples or some object that
+    yields a list of one or two numbers.
+
+    This function can potentially be very slow for large point sets.
+
+    """
+    if not isinstance(points, (list,tuple)):
         try:
             points = [[float(z) for z in points]]
         except TypeError:
             pass
+    elif len(points)==2 and not isinstance(points[0], (list,tuple)):
+        try:
+            points = [[float(z) for z in points]]
+        except TypeError:
+            pass
+
+    if len(points)>0 and len(list(points[0]))!=2:
+        print points
+        raise ValueError, "points must have 2 coordinates in a 2d line"
+
+
     xdata = [float(z[0]) for z in points]
     ydata = [float(z[1]) for z in points]
 
@@ -2796,8 +2807,7 @@ def circle(point, radius, **kwds):
         2.0
     """
     options={'alpha':1,'fill':False,'thickness':1,'rgbcolor':(0, 0, 1)}
-    for k, v in kwds.iteritems():
-        options[k] = v
+    options.update(kwds)
 
     r = float(radius)
     point = (float(point[0]), float(point[1]))
@@ -2878,8 +2888,7 @@ def contour_plot(f, xrange, yrange, **kwds):
         3.0
     """
     options = {'plot_points':25, 'fill':True, 'cmap':'gray', 'contours':None}
-    for k, v in kwds.iteritems():
-        options[k] = v
+    options.update(kwds)
 
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
     g = g[0]
@@ -2935,7 +2944,7 @@ def implicit_plot(f, xrange, yrange, **kwds):
     """
     options = {'plot_points':25, 'fill':False, 'cmap':'gray', 'contours':(0.0,)}
     options.update(kwds)
-    return contour_plot(f, xrange, yrange, **kwds)
+    return contour_plot(f, xrange, yrange, **options)
 
 def line(points, **kwds):
     r"""
@@ -3230,7 +3239,7 @@ def point(points, **kwds):
 
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics(**minmax_data(xdata, ydata, dict=True))
-    g._Graphics__objects.append(GraphicPrimitive_Point(xdata, ydata, options))
+    g._point(xdata, ydata, options, extend_axes=False)
     return g
 
 points = point
@@ -3310,7 +3319,7 @@ def polygon(points, **kwds):
 
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics(**minmax_data(xdata, ydata, dict=True))
-    g._Graphics__objects.append(GraphicPrimitive_Polygon(xdata, ydata, options))
+    g._polygon(xdata, ydata, options, extend_axes=False)
     return g
 
 def plot(funcs, *args, **kwds):
@@ -3464,10 +3473,7 @@ def plot(funcs, *args, **kwds):
         sage: p.xmax()
         120.0
     """
-    do_show = False
-    if kwds.has_key('show') and kwds['show']:
-        do_show = True
-        del kwds['show']
+    do_show = kwds.pop('show',False)
     if hasattr(funcs, 'plot'):
         G = funcs.plot(*args, **kwds)
     # if we are using the generic plotting method
@@ -3518,8 +3524,7 @@ def _plot(funcs, xrange, parametric=False,
     else:
         f = funcs
 
-    plot_points = int(options['plot_points'])
-    del options['plot_points']
+    plot_points = int(options.pop('plot_points'))
     x, data = var_and_list_of_values(xrange, plot_points)
     data = list(data)
     xmin = data[0]
@@ -3603,14 +3608,11 @@ def _plot(funcs, xrange, parametric=False,
     return G
 
 
-def text(string, point, **kwds):
+def text(string, (x,y), **kwds):
     r"""
-    text(txt, point, **kwds):
+    Returns a 2d text graphics object at the point $(x,y)$.
 
-    Returns a 2d or 3d text graphics object at the point $(x,y)$
-
-    Type \code{text.options} for a dictionary of options for 2d text.  The 3d options
-    are as for other 3d graphics objects (i.e., mainly just rgbcolor at present).
+    Type \code{text.options} for a dictionary of options for 2d text.
 
     2D OPTIONS:
         fontsize -- How big the text is
@@ -3622,26 +3624,17 @@ def text(string, point, **kwds):
                        (0,0) is the lower left and (1,1) upper right, irregardless
                        of the x and y range of plotted values.
 
-    3D OPTIONS:
-        rgbcolor -- the color of the text
-
     EXAMPLES:
-    Some 2d text:
+    Some text:
         sage: text("Sage is really neat!!",(2,12))
 
-    Some 2d text but guaranteed to be in the lower left no matter what:
+    The same text in larger font and colored red:
+        sage: text3d("Sage is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
+
+    Some text but guaranteed to be in the lower left no matter what:
         sage: text("Sage is really neat!!",(0,0), axis_coords=True, horizontal_alignment='left')
 
-    The same text, but in 3d:
-        sage: text("Sage is really neat!!",(2,12,1))
-
-    The same text in larger font and colored red:
-        sage: text("Sage is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
-
-    And in 3d in two places:
-        sage: text("Sage is...",(2,12,1), rgbcolor=(1,0,0)) + text("quite powerful!!",(4,10,0), rgbcolor=(0,0,1))
-
-    You can also align 2d text differently:
+    You can also align text differently:
         sage: t1 = text("Hello",(1,1), vertical_alignment="top")
         sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
         sage: t1 + t2   # render the sume
@@ -3652,7 +3645,7 @@ def text(string, point, **kwds):
                'axis_coords':False}
     options.update(kwds)
 
-    point = tuple(float(i) for i in point)
+    point = (float(x), float(y))
     g = Graphics()
     g._text(string, point, options)
     return g

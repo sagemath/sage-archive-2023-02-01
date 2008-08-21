@@ -145,9 +145,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             raise NotImplementedError
 
         G = plot.Graphics()
-        for P in self.points():
-            if not P.is_zero():
-                G += plot.point(P, *args, **kwds)
+        G += plot.points([P[0:2] for P in self.points() if not P.is_zero()], *args, **kwds)
+
         return G
 
     def _points_via_group_structure(self):

@@ -101,9 +101,9 @@ def find_maximum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
     EXAMPLES:
         sage: f = lambda x: x*cos(x)
         sage: find_maximum_on_interval(f, 0,5)
-        (0.561096338191, 0.8603335890...)
+        (0.561096338191..., 0.8603335890...)
         sage: find_maximum_on_interval(f, 0,5, tol=0.1, maxfun=10)
-        (0.561090323458, 0.857926501456)
+        (0.561090323458..., 0.857926501456...)
     """
     def g(z):
         r"""
@@ -137,14 +137,14 @@ def find_minimum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
     EXAMPLES:
         sage: f = lambda x: x*cos(x)
         sage: find_minimum_on_interval(f, 1, 5)
-        (-3.28837139559, 3.42561846957)
+        (-3.28837139559..., 3.4256184695...)
         sage: find_minimum_on_interval(f, 1, 5, tol=1e-3)
-        (-3.28837136189098, 3.42575079030572)
+        (-3.28837136189098..., 3.42575079030572...)
         sage: find_minimum_on_interval(f, 1, 5, tol=1e-2, maxfun=10)
-        (-3.28837084598, 3.42508402203)
+        (-3.28837084598..., 3.4250840220...)
         sage: show(plot(f, 0, 20))
         sage: find_minimum_on_interval(f, 1, 15)
-        (-9.47729425948, 9.52933441095)
+        (-9.4772942594..., 9.5293344109...)
 
     ALGORITHM: Uses scipy.optimize.fminbound which uses Brent's method.
 

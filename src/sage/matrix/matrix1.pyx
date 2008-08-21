@@ -274,7 +274,7 @@ cdef class Matrix(matrix0.Matrix):
         Type \code{numpy.typecodes} for a list of the possible typecodes:
             sage: import numpy
             sage: numpy.typecodes
-            {'All': '?bhilqpBHILQPfdgFDGSUVO', 'AllInteger': 'bBhHiIlLqQpP', 'AllFloat': 'fdgFDG', 'UnsignedInteger': 'BHILQP', 'Float': 'fdg', 'Character': 'S1', 'Complex': 'FDG', 'Integer': 'bhilqp'}
+            {'All': '?bhilqpBHILQPfdgFDGSUVO', 'AllInteger': 'bBhHiIlLqQpP', 'AllFloat': 'fdgFDG', 'UnsignedInteger': 'BHILQP', 'Float': 'fdg', 'Character': 'c', 'Complex': 'FDG', 'Integer': 'bhilqp'}
         """
         import numpy
         A = numpy.matrix(self.list(), dtype=dtype)

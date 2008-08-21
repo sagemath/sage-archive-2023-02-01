@@ -3136,7 +3136,7 @@ class SymbolicExpression(RingElement):
             sage: f.find_maximum_on_interval(0,5)
             (0.5610963381910451, 0.8603335890...)
             sage: f.find_maximum_on_interval(0,5, tol=0.1, maxfun=10)
-            (0.561090323458081..., 0.857926501456)
+            (0.561090323458081..., 0.857926501456...)
         """
         minval, x = (-self).find_minimum_on_interval(a, b, var=var, tol=tol, maxfun=maxfun)
         return -minval, x
@@ -3164,14 +3164,14 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: f = x*cos(x)
             sage: f.find_minimum_on_interval(1, 5)
-            (-3.2883713955908962, 3.42561846957)
+            (-3.2883713955908962, 3.4256184695...)
             sage: f.find_minimum_on_interval(1, 5, tol=1e-3)
             (-3.288371361890984, 3.42575079030572)
             sage: f.find_minimum_on_interval(1, 5, tol=1e-2, maxfun=10)
-            (-3.2883708459837844, 3.42508402203)
+            (-3.2883708459837844, 3.4250840220...)
             sage: show(f.plot(0, 20))
             sage: f.find_minimum_on_interval(1, 15)
-            (-9.4772942594797929, 9.52933441095)
+            (-9.4772942594797929, 9.5293344109...)
 
         ALGORITHM: Uses \module{scipy.optimize.fminbound} which uses Brent's method.
 

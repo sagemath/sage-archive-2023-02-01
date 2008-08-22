@@ -504,13 +504,14 @@ class PiecewisePolynomial:
         interval endpoints.
 
         EXAMPLES:
-            sage: x = PolynomialRing(QQ, 'x').0
+            sage: R.<x> = QQ['x']
             sage: f1 = x^0
             sage: f2 = 10*x - x^2
             sage: f3 = 3*x^4 - 156*x^3 + 3036*x^2 - 26208*x
             sage: f = Piecewise([[(0,3),f1],[(3,10),f2],[(10,20),f3]])
-            sage: f.critical_points()
-            [5.0, 12.000000000000171, 12.9999999999996, 14.000000000000229]
+            sage: expected = [5, 12, 13, 14]
+            sage: all(abs(e-a) < 0.001 for e,a in zip(expected, f.critical_points()))
+            True
         """
         maxima = sage.interfaces.all.maxima
         x = PolynomialRing(QQ,'x').gen()

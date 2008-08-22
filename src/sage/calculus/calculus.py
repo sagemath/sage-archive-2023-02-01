@@ -775,12 +775,14 @@ class SymbolicExpression(RingElement):
             sage: f = integral(sin(x^2)); f
             sqrt(pi)*((sqrt(2)*I + sqrt(2))*erf((sqrt(2)*I + sqrt(2))*x/2) + (sqrt(2)*I - sqrt(2))*erf((sqrt(2)*I - sqrt(2))*x/2))/8
             sage: print f
-                                                         (sqrt(2)  I + sqrt(2)) x
-                   sqrt( pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
-                                                                    2
-                                                               (sqrt(2)  I - sqrt(2)) x
-                                  + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
-                                                                          2
+                                                    (sqrt(2)  I + sqrt(2)) x
+             (sqrt( pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
+                                                               2
+                                                      (sqrt(2)  I - sqrt(2)) x
+                         + (sqrt(2)  I - sqrt(2)) erf(------------------------)))/8
+                                                                 2
+
+
         """
         if not self._has_been_simplified():
             self = self.simplify()
@@ -2178,7 +2180,7 @@ class SymbolicExpression(RingElement):
 
             sage: f = log(log(x))/log(x)
             sage: forget(); assume(x<-2); lim(f, x=0, taylor=True)
-            und
+            limit(log(log(x))/log(x), x, 0)
 
         Here ind means "indefinite but bounded":
             sage: lim(sin(1/x), x = 0)
@@ -2451,12 +2453,14 @@ class SymbolicExpression(RingElement):
                      x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                                  2                 Pi
             sage: print f.integral(x)
-                  z                                         (sqrt(2)  I + sqrt(2)) x
-               x y  + sqrt( pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
-                                                                       2
-                                                           (sqrt(2)  I - sqrt(2)) x
-                              + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
-                                                                      2
+                        z
+                     x y  + (sqrt( pi) ((sqrt(2)  I + sqrt(2))
+                 (sqrt(2)  I + sqrt(2)) x
+             erf(------------------------) + (sqrt(2)  I - sqrt(2))
+                            2
+                 (sqrt(2)  I - sqrt(2)) x
+             erf(------------------------)))/8
+                            2
 
         We integrate the above function in maple now:
             sage: g = maple(f); g                             # optional -- requires maple
@@ -2626,13 +2630,18 @@ class SymbolicExpression(RingElement):
         """
         try:
             v = self._maxima_().quad_qags(var(x),
-                                      a, b, desired_relative_error,
-                                      maximum_num_subintervals)
+                                      a, b, epsrel=desired_relative_error,
+                                      limit=maximum_num_subintervals)
         except TypeError, err:
             if "ERROR" in str(err):
                 raise ValueError, "Maxima (via quadpack) cannot compute the integral to that precision"
             else:
                 raise TypeError, err
+
+        #This is just a work around until there is a response to
+        #http://www.math.utexas.edu/pipermail/maxima/2008/012975.html
+        if 'quad_qags' in str(v):
+            raise ValueError, "Maxima (via quadpack) cannot compute the integral to that precision"
 
         return float(v[0]), float(v[1]), Integer(v[2]), Integer(v[3])
 

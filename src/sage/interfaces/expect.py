@@ -1091,7 +1091,14 @@ If this all works, you can then make calls like:
     def _object_class(self):
         return ExpectElement
 
-    def function_call(self, function, args=[]):
+    def function_call(self, function, args=[], kwds={}):
+        """
+        EXAMPLES:
+            sage: maxima.quad_qags(x, x, 0, 1, epsrel=1e-4)
+            [0.5,5.5511151231257...E-15,21,0]
+            sage: maxima.function_call('quad_qags', [x, x, 0, 1], {'epsrel':'1e-4'})
+            [0.5,5.5511151231257...E-15,21,0]
+        """
         if function == '':
             raise ValueError, "function name must be nonempty"
         if function[:2] == "__":
@@ -1101,10 +1108,14 @@ If this all works, you can then make calls like:
         for i in range(len(args)):
             if not isinstance(args[i], ExpectElement):
                 args[i] = self.new(args[i])
-        return self.new("%s(%s)"%(function, ",".join([s.name() for s in args])))
+        for key, value in kwds.iteritems():
+            kwds[key] = self.new(value)
 
-    def call(self, function_name, *args):
-        return self.function_call(function_name, args)
+        return self.new("%s(%s)"%(function, ",".join([s.name() for s in args]+
+                                                     ['%s=%s'%(key,value.name()) for key, value in kwds.items()])))
+
+    def call(self, function_name, *args, **kwds):
+        return self.function_call(function_name, args, kwds)
 
     def _contains(self, v1, v2):
         raise NotImplementedError
@@ -1156,8 +1167,8 @@ class ExpectFunction(SageObject):
     def __repr__(self):
         return "%s"%self._name
 
-    def __call__(self, *args):
-        return self._parent.function_call(self._name, list(args))
+    def __call__(self, *args, **kwds):
+        return self._parent.function_call(self._name, list(args), kwds)
 
 
 class FunctionElement(SageObject):
@@ -1171,8 +1182,8 @@ class FunctionElement(SageObject):
     def __repr__(self):
         return "%s"%self._name
 
-    def __call__(self, *args):
-        return self._obj.parent().function_call(self._name, [self._obj] + list(args))
+    def __call__(self, *args, **kwds):
+        return self._obj.parent().function_call(self._name, [self._obj] + list(args), kwds)
 
     def help(self):
         print self._sage_doc_()

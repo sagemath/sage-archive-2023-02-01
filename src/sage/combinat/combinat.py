@@ -1425,13 +1425,15 @@ def hurwitz_zeta(s,x,N):
     When $x = 1$, this coincides with Riemann's zeta function. The Dirichlet L-functions
     may be expressed as a linear combination of Hurwitz zeta functions.
 
+    Note that if you use floting point inputs, then the results may be slightly off.
+
     EXAMPLES:
         sage: hurwitz_zeta(3,1/2,6)
         8.41439000000000
-        sage: hurwitz_zeta(1.1,1/2,6)
+        sage: hurwitz_zeta(11/10,1/2,6)
         12.1041000000000
-        sage: hurwitz_zeta(1.1,1/2,50)
-        12.103813495683744469025853545548130581952676591199
+        sage: hurwitz_zeta(11/10,1/2,50)
+        12.103813495683755105709077412966680619033648618088
 
     REFERENCES:
         http://en.wikipedia.org/wiki/Hurwitz_zeta_function

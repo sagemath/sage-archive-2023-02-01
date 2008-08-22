@@ -624,7 +624,7 @@ class Maxima(Expect):
         if self._expect is None: return
         r = randrange(2147483647)
         s = marker + str(r+1)
-        cmd = '''sconc("%s",(%s+1));\n'''%(marker,r)
+        cmd = '''sconcat("%s",(%s+1));\n'''%(marker,r)
         self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)
@@ -919,7 +919,7 @@ class Maxima(Expect):
 
         EXAMPLES:
             sage: maxima.version()
-            '5.13.0'
+            '5.16.2'
         """
         return maxima_version()
 
@@ -1120,7 +1120,7 @@ class Maxima(Expect):
             sage: maxima.clear('x'); maxima.clear('f')
             sage: f = maxima.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"])
             sage: f
-            f(x)=x*%e^x*(?%at('diff(f(x),x,1),x=0))-f(0)*x*%e^x+f(0)*%e^x
+            f(x)=x*%e^x*('at('diff(f(x),x,1),x=0))-f(0)*x*%e^x+f(0)*%e^x
             sage: print f
                                                !
                                    x  d        !                  x          x
@@ -1571,8 +1571,8 @@ class MaximaElement(ExpectElement):
             0.52848223531423071361790491935415653021675547587292866196865279321015401702040079
         """
         from sage.rings.all import Integer
-        v = self.quad_qags(var, a, b, desired_relative_error,
-                           maximum_num_subintervals)
+        v = self.quad_qags(var, a, b, epsrel=desired_relative_error,
+                           limit=maximum_num_subintervals)
         return v[0], v[1], Integer(v[2]), Integer(v[3])
 
     def integral(self, var='x', min=None, max=None):

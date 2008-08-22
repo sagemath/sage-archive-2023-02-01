@@ -120,17 +120,38 @@ extern "C" PyObject* py_eval_euler_gamma(long ndigits);
 extern "C" PyObject* py_eval_catalan(long ndigits);
 
 
+// Call the Python function f on *this as input and return the result
+// as a PyObject*.
 #define PY_RETURN(f)  PyObject *a = to_pyobject(*this);		 \
   PyObject *ans = f(a);						 \
   if (!ans) py_error("error calling function");			 \
   Py_DECREF(a); return ans; 
 
+// Call the Python function f on *this and return the result
+// as a PyObject*.
 #define PY_RETURN2(f, b)  PyObject *aa = to_pyobject(*this);	 \
   PyObject* bb = to_pyobject(b);				 \
   PyObject *ans = f(aa, bb);					 \
   if (!ans) py_error("error calling function");			 \
   Py_DECREF(aa); Py_DECREF(bb); return ans; 
 
+// Call the Python functin f on *this and b, and get back
+// a 2-tuple (z,w).  Set c = w, where c should be a 
+// reference in the caller, and return z.  This is used
+// to return two inputs from a Python function call.  See
+// its usage in code below. 
+#define PY_RETURN3(f, b, c)						\
+  PyObject *aa = to_pyobject(*this);					\
+  PyObject* bb = to_pyobject(b);					\
+  PyObject *ans = f(aa, bb);						\
+  if (!ans) py_error("error calling function");				\
+  if (!PyTuple_CheckExact(ans) || PyTuple_GET_SIZE(ans) != 2) 		\
+    py_error("error calling function -- return not a 2-tuple.");	\
+  PyObject* z =  PyTuple_GET_ITEM(ans, 0); Py_INCREF(z);                \
+  PyObject* w =  PyTuple_GET_ITEM(ans, 1); Py_INCREF(w);          \
+  c = w;                                                         \
+  Py_DECREF(aa); Py_DECREF(bb); Py_DECREF(ans);                   \
+  return z; 
 
 //#define DEBUG
 //#define VERBOSE
@@ -174,7 +195,7 @@ void py_error(const char* s) {
   if (PyErr_Occurred()) {
     PyErr_Print();
     PyErr_Clear();
-    throw std::overflow_error("division by zero");
+    throw std::runtime_error("a Python error occured");
     abort();
   }
 }
@@ -408,6 +429,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       Py_INCREF(v._pyobject);
       return;
     default:
+      std::cerr << "type = " << t << "\n";
       stub("Number_T(const Number_T& x) type not handled");
     }
   }
@@ -831,6 +853,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	py_error("is_zero");
       return a;
     default:
+      std::cerr << "type = " << t << "\n";
       stub("is_zero() type not handled");
     }
   }
@@ -1185,12 +1208,8 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     PY_RETURN2(py_iquo, b);
   }
   
-  Number_T Number_T::iquo(const Number_T &b, Number_T& q) const {
-    // TODO -- this will return a tuple, hence get nasty fast.
-    // *MUST* be fixed to unpack the tuple, etc., and put
-    // second output in q. (!!!!)
-    stub("iquo(b,q)");
-    PY_RETURN2(py_iquo2, b);
+  Number_T Number_T::iquo(const Number_T &b, Number_T& r) const {
+    PY_RETURN3(py_iquo2, b, r);
   }
 
 
@@ -2476,9 +2495,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception overflow_error (division by zero) if b is zero. */
   const numeric iquo(const numeric &a, const numeric &b, numeric &r)
   {
-    // TODO -- need to compute r using iquo2!!
-    stub("irem -- need to compute r!!!");
-    return a.value.iquo(b.value);
+    return a.value.iquo(b.value, r.value);
   }
 
 

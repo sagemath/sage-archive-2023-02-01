@@ -14,7 +14,13 @@ cdef class NSymbolicRing(Ring):
     Symbolic Ring, parent object for all symbolic expressions.
     """
     def __init__(self):
-        pass
+        """
+        Initialize the New Symbolic Ring.
+
+        EXAMPLES:
+            sage: sage.symbolic.ring.NSymbolicRing()
+            New Symbolic Ring
+        """
 
     def _repr_(self):
         """
@@ -39,7 +45,17 @@ cdef class NSymbolicRing(Ring):
             sage: NSR._coerce_(float(5))
             5.0
             sage: NSR._coerce_(5.0)
-            5.0
+            5.00000000000000
+
+        An interval arithmetic number:
+            sage: NSR._coerce_(RIF(pi))
+            3.141592653589794?
+
+        A number modulo 7:
+            sage: a = NSR._coerce_(Mod(3,7)); a
+            3
+            sage: a^2
+            2
         """
         cdef GEx exp
 
@@ -58,11 +74,25 @@ cdef class NSymbolicRing(Ring):
         return new_Expression_from_GEx(exp)
 
     def __call__(self, other):
-#TODO:
+        """
+        INPUT:
+            other -- python object
+
+        EXAMPLES:
+            sage: from sage.symbolic.ring import NSR
+            sage: NSR(2/5)
+            2/5
+            sage: NSR.__call__(2/5)
+            2/5
+            sage: NSR.__call__('foo')
+            Traceback (most recent call last):
+            ...
+            TypeError: conversion not defined
+        """
         try:
             return self._coerce_(other)
         except TypeError:
-            raise TypeError, "conversion to %s from %s not defined."%(self, other.parent())
+            raise TypeError, "conversion not defined"
 
 
 NSR = NSymbolicRing()

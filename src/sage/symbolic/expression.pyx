@@ -1,3 +1,14 @@
+"""
+EXAMPLES:
+We mix Singular variables with symbolic variables:
+    sage: R.<u,v> = QQ[]
+    sage: var('a,b,c', ns=1)
+    (a, b, c)
+    sage: expand((u + v + a + b + c)^2)
+    2*a*c + 2*a*b + 2*b*c + a^2 + b^2 + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
+"""
+
+
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
@@ -15,26 +26,43 @@ cdef class Expression(CommutativeRingElement):
 
     def _repr_(self):
         """
+        EXAMPLES:
             sage: var("x y", ns=1)
             (x, y)
-            sage: x+y
-            x+y
+            sage: (x+y)._repr_()
+            'x + y'
         """
         return GEx_to_str(&self._gobj)
 
     def __hash__(self):
         """
+        EXAMPLES:
             sage: var("x y", ns=1)
             (x, y)
             sage: hash(x+y)
-            46142460
+            825815427
             sage: d = {x+y: 5}
             sage: d
-            {x+y: 5}
+            {x + y: 5}
         """
         return self._gobj.gethash()
 
     def __richcmp__(left, right, int op):
+        """
+        EXAMPLES:
+            sage: var('x, y', ns=1)
+            (x, y)
+            sage: x + 2/3 < y^2
+            x + 2/3 < y^2
+            sage: x^3 -y <= y + x
+            x^3 - y <= x + y
+            sage: x^3 -y == y + x
+            x^3 - y == x + y
+            sage: x^3 - y^10 >= y + x^10
+            -y^10 + x^3 >= x^10 + y
+            sage: x^2 > x
+            x^2 > x
+        """
         cdef Expression l = left
         cdef Expression r = right
         cdef GEx e
@@ -55,6 +83,13 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(e)
 
     def __nonzero__(self):
+        """
+        EXAMPLES:
+            sage: sage.symbolic.ring.NSR(0).__nonzero__()
+            False
+            sage: sage.symbolic.ring.NSR(1).__nonzero__()
+            True
+        """
         # TODO: Problem -- if self is a symbolic equality then
         # this is_zero isn't the right thing at all:
         #  sage: bool(x == x+1)
@@ -91,6 +126,7 @@ cdef class Expression(CommutativeRingElement):
 
     cdef RingElement _mul_c_impl(left, RingElement right):
         """
+        EXAMPLES:
             sage: var("x y", ns=1)
             (x, y)
             sage: x*y*y
@@ -116,9 +152,6 @@ cdef class Expression(CommutativeRingElement):
     cdef int _cmp_c_impl(left, Element right) except -2:
         return left._gobj.compare((<Expression>right)._gobj)
 
-    def _add_benchmark(self):
-        gadd(self._gobj, self._gobj)
-
     def __pow__(Expression self, exp, ignored):
         cdef Expression nexp = self._parent._coerce_c(exp)
         _sig_on
@@ -139,7 +172,22 @@ cdef class Expression(CommutativeRingElement):
         _sig_off
         return new_Expression_from_GEx(e)
 
-    def abs(self):
+    def __abs__(self):
+        """
+        EXAMPLES:
+            sage: var('x, y', ns=1); S = parent(x)
+            (x, y)
+
+        The absolute value of a symbolic expression
+            sage: abs(x^2+y^2)
+            abs(x^2 + y^2)
+
+        The absolute value of a number in the symbolic ring:
+            sage: abs(S(-5))
+            5
+            sage: type(abs(S(-5)))
+            <type 'sage.symbolic.expression.Expression'>
+        """
         _sig_on
         cdef GEx e = g_abs(self._gobj)
         _sig_off
@@ -182,18 +230,57 @@ cdef class Expression(CommutativeRingElement):
         return self**Rational((1,2))
 
     def sin(self):
+        """
+        EXAMPLES:
+            sage: var('x, y', ns=1); S = parent(x)
+            (x, y)
+            sage: sin(x^2 + y^2)
+            sin(x^2 + y^2)
+            sage: sin(sage.symbolic.ring.pi)
+            0
+            sage: sin(S(1))
+            sin(1)
+            sage: sin(S(RealField(150)(1)))
+            0.84147098480789650665250232163029899962256306
+        """
         _sig_on
         cdef GEx e = g_sin(self._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
 
     def cos(self):
+        """
+        EXAMPLES:
+            sage: var('x, y', ns=1); S = parent(x)
+            (x, y)
+            sage: cos(x^2 + y^2)
+            cos(x^2 + y^2)
+            sage: cos(sage.symbolic.ring.pi)
+            -1
+            sage: cos(S(1))
+            cos(1)
+            sage: cos(S(RealField(150)(1)))
+            0.54030230586813971740093660744297660373231042
+        """
         _sig_on
         cdef GEx e = g_cos(self._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
 
     def tan(self):
+        """
+        EXAMPLES:
+            sage: var('x, y', ns=1); S = parent(x)
+            (x, y)
+            sage: tan(x^2 + y^2)
+            tan(x^2 + y^2)
+            sage: tan(sage.symbolic.ring.pi/2)
+            tan(1/2*Pi)
+            sage: tan(S(1))
+            tan(1)
+            sage: tan(S(RealField(150)(1)))
+            1.5574077246549022305069748074583601730872508
+        """
         _sig_on
         cdef GEx e = g_tan(self._gobj)
         _sig_off
@@ -356,12 +443,34 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(e)
 
     def factorial(self):
+        """
+        EXAMPLES:
+            sage: var('x, y', ns=1); S = parent(x)
+            (x, y)
+            sage: S(5).factorial()
+            120
+            sage: x.factorial()
+            x!
+            sage: (x^2+y^3).factorial()
+            (y^3 + x^2)!
+        """
         _sig_on
         cdef GEx e = g_factorial(self._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
 
     def binomial(self, Expression k):
+        """
+        EXAMPLES:
+            sage: var('x, y', ns=1); S = parent(x)
+            (x, y)
+            sage: S(5).binomial(S(3))
+            10
+            sage: x.binomial(S(3))
+            (2*2^(-1)*x + 2^(-1)*x^3 - 3*2^(-1)*x^2)*3^(-1)
+            sage: x.binomial(y)
+            binomial(x,y)
+        """
         _sig_on
         cdef GEx e = g_binomial(self._gobj, k._gobj)
         _sig_off

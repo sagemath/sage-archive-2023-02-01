@@ -117,7 +117,7 @@ cdef public object py_imag(object x):
     except AttributeError:
         if isinstance(x, complex):
             return x.imag
-        return x  # assume is imag
+        return 0 # assume is real since it isn't of type complex and doesn't have an imag attribute.
 
 
 from sage.rings.rational cimport Rational
@@ -358,3 +358,10 @@ cdef public object py_eval_euler_gamma(long ndigits):
 cdef public object py_eval_catalan(long ndigits):
     return RealField(prec(ndigits)).catalan_constant()
 
+
+
+##################################################################
+# Constructors
+##################################################################
+cdef public object py_rational_long(long numer, long denom):
+    return Rational((numer, denom))

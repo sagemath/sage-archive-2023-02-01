@@ -1,4 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 # We need to delete the old path, so that there are no leftovers from the
 # previous installation, otherwise sympy could get broken (for example by

@@ -119,12 +119,6 @@ void add::print_add(const print_context & c, const char *openbrace, const char *
 	numeric coeff;
 	bool first = true;
 
-	// First print the overall numeric coefficient, if present
-	if (!overall_coeff.is_zero()) {
-		overall_coeff.print(c, 0);
-		first = false;
-	}
-
 	// Then proceed with the remaining factors
 	epvector::const_iterator it = seq.begin(), itend = seq.end();
 	while (it != itend) {
@@ -154,8 +148,26 @@ void add::print_add(const print_context & c, const char *openbrace, const char *
 		++it;
 	}
 
+	// Finally print the "overall" numeric coefficient, if present.
+	// This is just the constant coefficient. 
+	if (!(ex_to<numeric>(overall_coeff)).is_zero()) {
+	  if (first) {
+	    overall_coeff.print(c, 0);
+	  } else if (!first) {
+	    if ( (ex_to<numeric>(overall_coeff)).csgn() == -1) {
+	      c.s << " - ";
+	      (-overall_coeff).print(c, 0);
+	    } else {
+	      c.s << " + ";
+	      overall_coeff.print(c, 0);
+	    }
+	  }
+	}
+
 	if (precedence() <= level)
 		c.s << ')' << closebrace;
+
+
 }
 
 void add::do_print(const print_context & c, unsigned level) const

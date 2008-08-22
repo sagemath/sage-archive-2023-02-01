@@ -831,16 +831,26 @@ int basic::compare(const basic & other) const
 #ifdef GINAC_COMPARE_STATISTICS
 	compare_statistics.total_basic_compares++;
 #endif
-	const unsigned hash_this = gethash();
-	const unsigned hash_other = other.gethash();
-	if (hash_this<hash_other) return -1;
-	if (hash_this>hash_other) return 1;
+	const tinfo_t typeid_this = tinfo();
+	const tinfo_t typeid_other = other.tinfo();
+
+	if (typeid_this==typeid_other) {
+
+	  // SAGE: If we want orderings to make any sense, it only
+	  // makes sense to compare using the hashes when the types
+	  // are the same.  WARNING -- doing this *will* presumably
+	  // have negative performance implications.
+
+	  const unsigned hash_this = gethash();
+	  const unsigned hash_other = other.gethash();
+	  if (hash_this<hash_other) return -1;
+	  if (hash_this>hash_other) return 1;
+	}
+
 #ifdef GINAC_COMPARE_STATISTICS
 	compare_statistics.compare_same_hashvalue++;
 #endif
 
-	const tinfo_t typeid_this = tinfo();
-	const tinfo_t typeid_other = other.tinfo();
 	if (typeid_this==typeid_other) {
 		GINAC_ASSERT(typeid(*this)==typeid(other));
 // 		int cmpval = compare_same_type(other);

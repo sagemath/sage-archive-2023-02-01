@@ -97,6 +97,18 @@ DEFAULT_UNARCHIVE(power)
 
 // public
 
+unsigned power::calchash() const
+{
+  // SAGE -- we have to disable hashing in order to
+  // get internal sorting of poly vars (via PARI) 
+  // to work correctly on the linear part.  This makes
+  // the hashes fail, so the actual compare funtion
+  // is called.
+  hashvalue = -exponent.gethash();
+  setflag(status_flags::hash_calculated);
+  return hashvalue;
+}
+
 void power::print_power(const print_context & c, const char *powersymbol, const char *openbrace, const char *closebrace, unsigned level) const
 {
 	// Ordinary output of powers using '^' or '**'
@@ -762,7 +774,11 @@ int power::compare_same_type(const basic & other) const
 	if (cmpval)
 		return cmpval;
 	else
-		return exponent.compare(o.exponent);
+	  // SAGE -- I changed the sign below for consistency with standard
+	  // mathematics and all other math software (except mathematica).
+	  // This makes it so x^5 + x^2 prints correctly instead of 
+	  // as x^2 + x^5.   -- William Stein
+		return -exponent.compare(o.exponent);
 }
 
 unsigned power::return_type() const

@@ -828,11 +828,7 @@ class Factorization(SageObject):
             d2 = dict(other)
             s = {}
             for a in set(d1.keys()).union(set(d2.keys())):
-                s[a] = 0
-                if d1.has_key(a):
-                    s[a] += d1[a]
-                if d2.has_key(a):
-                    s[a] += d2[a]
+                s[a] = d1.get(a,0) + d2.get(a,0)
             return Factorization(list(s.iteritems()), unit=self.unit()*other.unit())
         else:
             return Factorization(list(self) + list(other), unit=self.unit()*other.unit())
@@ -950,5 +946,51 @@ class Factorization(SageObject):
             100
         """
         return self.value()
+
+    def gcd(self, other):
+        r"""
+        Return the gcd of two factorizations.
+
+        EXAMPLES:
+            sage: factor(-30).gcd(factor(-160))
+            2 * 5
+            sage: factor(gcd(-30,160))
+            2 * 5
+
+        """
+        if not isinstance(other, Factorization):
+            return self * Factorization([(other, 1)])
+        if self.is_commutative() and other.is_commutative():
+            d1 = dict(self)
+            d2 = dict(other)
+            s = {}
+            for a in set(d1.keys()).intersection(set(d2.keys())):
+                s[a] = min(d1[a],d2[a])
+            return Factorization(list(s.iteritems()), unit=self.base_ring()(1))
+        else:
+            raise NotImplementedError, "gcd is not implemented for non-commutative factorizations"
+
+    def lcm(self, other):
+        r"""
+        Return the lcm of two factorizations.
+
+        EXAMPLES:
+            sage: factor(-10).lcm(factor(-16))
+            2^4 * 5
+            sage: factor(lcm(-10,16))
+            2^4 * 5
+
+        """
+        if not isinstance(other, Factorization):
+            return self * Factorization([(other, 1)])
+        if self.is_commutative() and other.is_commutative():
+            d1 = dict(self)
+            d2 = dict(other)
+            s = {}
+            for a in set(d1.keys()).union(set(d2.keys())):
+                s[a] = max(d1.get(a,0),d2.get(a,0))
+            return Factorization(list(s.iteritems()), unit=self.base_ring()(1))
+        else:
+            raise NotImplementedError, "gcd is not implemented for non-commutative factorizations"
 
 

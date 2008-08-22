@@ -224,10 +224,26 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(e)
 
     def sqrt(self):
+        """
+        EXAMPLES:
+            sage: var('x, y', ns=1); S = parent(x)
+            (x, y)
+            sage: S(2).sqrt()
+            2^(1/2)
+            sage: (x^2+y^2).sqrt()
+            (x^2 + y^2)^(1/2)
+            sage: (x^2).sqrt()
+            (x^2)^(1/2)
+        """
         # do not use sqrt(...) since it doesn't seem to work
         # and there is a remark in decl.pxi about it just being
         # some broken alias.
-        return self**Rational((1,2))
+        #return self**Rational((1,2))
+        _sig_on
+        cdef GEx e = g_sqrt(self._gobj)
+        _sig_off
+        return new_Expression_from_GEx(e)
+
 
     def sin(self):
         """

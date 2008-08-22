@@ -338,7 +338,12 @@ cdef public object py_iquo(object x, object n):
     raise NotImplementedError
 
 cdef public object py_iquo2(object x, object n):
-    raise NotImplementedError
+    try:
+        q = x//n
+        r = x - q*n
+        return q, r
+    except (TypeError, ValueError):
+        return 0, 0
 
 
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 usage() {
-    echo "-----------------------------------------------------------"
-    echo "| SAGE: Software for Algebra and Geometry Experimentation |"
-    echo "-----------------------------------------------------------"
+    echo "----------------------------------------------------------------------"
+    cat "$SAGE_LOCAL/bin/sage-banner" | grep -i "version" | sed "s/\| //" | sed "s/ *\|//"
+    echo "----------------------------------------------------------------------"
     echo " Optional arguments:"
     echo "  -coverage <files>  -- give info about doctest coverage of files"
     echo "  -h            -- print this help message"
@@ -26,9 +26,9 @@ usage() {
 }
 
 usage_advanced() {
-    echo "-----------------------------------------------------------"
-    echo "| SAGE: Software for Algebra and Geometry Experimentation |"
-    echo "-----------------------------------------------------------"
+    echo "----------------------------------------------------------------------"
+    cat "$SAGE_LOCAL/bin/sage-banner" | grep -i "version" | sed "s/\| //" | sed "s/ *\|//"
+    echo "----------------------------------------------------------------------"
     echo "  no options below    -- start interactive session, passing options to ipython"
     echo "  filename.sage -- run the given file using SAGE"
     echo "  -b [branch]   -- switch to and build SAGE branch in devel/sage-branch"

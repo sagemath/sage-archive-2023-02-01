@@ -737,7 +737,7 @@ class Factorization(SageObject):
 
     def __add__(self, other):
         """
-        Return the sum of self and other.
+        Return the (unfactored) sum of self and other.
 
         EXAMPLES:
             sage: factor(-10) + 16
@@ -754,7 +754,7 @@ class Factorization(SageObject):
 
     def __sub__(self, other):
         """
-        Return the sum of self and other.
+        Return the (unfactored) difference of self and other.
 
         EXAMPLES:
             sage: factor(-10) + 16
@@ -882,6 +882,29 @@ class Factorization(SageObject):
         """
         return Factorization([(p,-e) for p,e in reversed(self)],
             cr=self._cr(), unit=self.unit()**(-1))
+
+    def __div__(self, other):
+        r"""
+        Return the quotient of two factorizations, which is obtained by
+        multiplying the first by the inverse of the second.
+
+        EXAMPLES:
+            sage: factor(-10) / factor(-16)
+            2^-3 * 5
+            sage: factor(-10) / factor(16)
+            -1 * 2^-3 * 5
+
+            sage: R.<x,y> = FreeAlgebra(QQ, 2)
+            sage: F = Factorization([(x,3), (y, 2), (x,1)]); F
+            x^3 * y^2 * x
+            sage: G = Factorization([(y, 1), (x,1)],1); G
+            y * x
+            sage: F / G
+            x^3 * y
+        """
+        if not isinstance(other, Factorization):
+            return self / Factorization([(other, 1)])
+        return self * other**-1
 
     def value(self):
         """

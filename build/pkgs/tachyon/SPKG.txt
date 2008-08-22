@@ -6,6 +6,9 @@ see below
 
 == Changelog ==
 
+=== tachyon-0.98beta.p6 (Andrzej Giniewicz, August 2nd, 2008) ===
+ * Workaround segfault on new GCC versions (#3710)
+
 === tachyon-0.98beta.p5 (Michael Abshoff, April 1st, 2008) ===
  * Debian amd64 fixes (Tim Abbott, #2761)
 

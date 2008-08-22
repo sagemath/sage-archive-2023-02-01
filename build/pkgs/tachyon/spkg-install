@@ -6,6 +6,8 @@ CUR=`pwd`
 
 cd unix
 
+cp ../../patches/Make-arch .
+
 finished()
 {
    if [ $? -ne 0 ]; then
@@ -31,6 +33,12 @@ if [ $UNAME = "Darwin" ]; then
 fi
 
 if [ $UNAME = "Linux" ]; then
+    GCCVERSION=`gcc -dumpversion'`
+    case $GCCVERSION in
+      4.2.4* | 4.3*)
+        export GCCFIX="-fno-crossjumping -fno-reorder-blocks";;
+      *);;
+    esac
     make linux-thr
     if [ $? -ne 0 ]; then
         echo "Maybe your system is 64-bit; trying again."

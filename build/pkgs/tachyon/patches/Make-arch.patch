@@ -1,0 +1,11 @@
+--- Make-arch	2008-08-02 03:36:26.000000000 +0200
++++ ../../../new/src/unix/Make-arch	2008-08-02 03:23:39.000000000 +0200
+@@ -1131,7 +1131,7 @@
+ 	$(MAKE) all \
+ 	"ARCH = linux-thr" \
+ 	"CC = gcc" \
+-	"CFLAGS = -m32 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DTHR -D_REENTRANT $(MISCFLAGS)" \
++	"CFLAGS = -m32 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DTHR -D_REENTRANT $(MISCFLAGS) $(GCCFIX)" \
+ 	"AR = ar" \
+ 	"ARFLAGS = r" \
+ 	"STRIP = strip" \

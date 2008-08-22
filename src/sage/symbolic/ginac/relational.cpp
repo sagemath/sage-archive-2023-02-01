@@ -82,6 +82,7 @@ DEFAULT_UNARCHIVE(relational)
 
 static void print_operator(const print_context & c, relational::operators o)
 {
+  c.s << " ";
 	switch (o) {
 	case relational::equal:
 		c.s << "==";
@@ -105,6 +106,7 @@ static void print_operator(const print_context & c, relational::operators o)
 		c.s << "(INVALID RELATIONAL OPERATOR)";
 		break;
 	}
+	c.s << " ";
 }
 
 void relational::do_print(const print_context & c, unsigned level) const

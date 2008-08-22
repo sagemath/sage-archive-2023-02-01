@@ -6,6 +6,10 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+if [ "$UNAME" = "" ]; then
+  UNAME=`uname`;
+fi
+
 BOEHM_GC=`cd $SAGE_ROOT/spkg/standard/; ./newest_version boehm_gc`
 if [ $? -ne 0 ]; then
     echo "Failed to find boehm_gc.  Please install the boehm_gc spkg with sage -i boehm_gc-7.1.p0"
@@ -16,6 +20,13 @@ if [ $? -ne 0 ]; then
     echo "Failed to find gmp. Please install the gdbm spkg with sage -i gdbm-1.8.3"
     exit 1
 fi
+
+patch() {
+  #work around patches, make sure for each new release that they are still needed
+  cp patches/Macaulay2.e.overflow.hpp src/Macaulay2/e/overflow.hpp
+}
+
+patch
 
 export RM="rm -f"
 set -e

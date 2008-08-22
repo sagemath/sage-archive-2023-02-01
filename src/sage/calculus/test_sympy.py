@@ -100,7 +100,7 @@ sage: from sympy.abc import x
 sage: e = sympify(1)/cos(x)**3; e
 cos(x)**(-3)
 sage: f = e.series(x, 0, 10); f
-1 + (3/2)*x**2 + (11/8)*x**4 + (241/240)*x**6 + (8651/13440)*x**8 + O(x**10)
+1 + 3*x**2/2 + 11*x**4/8 + 241*x**6/240 + 8651*x**8/13440 + O(x**10)
 
 And the pretty-printer:
 sage: pprint(e)

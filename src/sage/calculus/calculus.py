@@ -2506,6 +2506,11 @@ class SymbolicExpression(RingElement):
             sage: assume(a>0)
             sage: integrate(1/(x^3 *(a+b*x)^(1/3)), x)
             2*b^2*arctan((2*(b*x + a)^(1/3) + a^(1/3))/(sqrt(3)*a^(1/3)))/(3*sqrt(3)*a^(7/3)) - b^2*log((b*x + a)^(2/3) + a^(1/3)*(b*x + a)^(1/3) + a^(2/3))/(9*a^(7/3)) + 2*b^2*log((b*x + a)^(1/3) - a^(1/3))/(9*a^(7/3)) + (4*b^2*(b*x + a)^(5/3) - 7*a*b^2*(b*x + a)^(2/3))/(6*a^2*(b*x + a)^2 - 12*a^3*(b*x + a) + 6*a^4)
+
+        TESTS:
+        The following integral was broken prior to Maxima 5.15.0 - see \#3013
+            sage: integrate(sin(x)*cos(10*x)*log(x))
+            (9*integrate(cos(11*x)/x, x) - 11*integrate(cos(9*x)/x, x) - 9*log(x)*cos(11*x) + 11*log(x)*cos(9*x))/198
         """
 
         if v is None:

@@ -33,7 +33,7 @@ if [ $UNAME = "Darwin" ]; then
 fi
 
 if [ $UNAME = "Linux" ]; then
-    GCCVERSION=`gcc -dumpversion'`
+    GCCVERSION=`gcc -dumpversion`
     case $GCCVERSION in
       4.2.4* | 4.3*)
         export GCCFIX="-fno-crossjumping -fno-reorder-blocks";;

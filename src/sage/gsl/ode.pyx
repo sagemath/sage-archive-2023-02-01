@@ -242,8 +242,16 @@ class ode_solver(object):
          sage: f = T.interpolate_solution(i=2)
          sage: plot(f,0,12).show()
          sage: f = T.interpolate_solution()
-         sage: f(pi)                # slightly random precision
-         0.53794722843358245
+         sage: f(pi)
+         0.5379...
+
+         The solver attributes may also be set up using arguments to ode_solver.  The previous example can be rewritten as
+
+         sage: T = ode_solver(g_1,y_0=[0,1,1],scale_abs=[1e-4,1e-4,1e-5],error_rel=1e-4)
+         sage: T.ode_solve(t_span=[0,12],num_points=100)
+         sage: f = T.interpolate_solution()
+         sage: f(pi)
+         0.5379...
 
          Unfortunately because python functions are used, this solver is slow on system that require many function evaluations.
          It is possible to pass a compiled function by deriving from the class ode_sysem and overloading c_f and c_j with C functions that
@@ -284,17 +292,17 @@ class ode_solver(object):
    def __init__(self,function=None,jacobian=None,h = 1e-2,error_abs=1e-10,error_rel=1e-10, a=False,a_dydt=False,scale_abs=False,algorithm="rkf45",y_0=None,t_span=None,params = []):
       self.function = function
       self.jacobian = jacobian
-      self.h=1e-2
+      self.h = h
       self.error_abs = error_abs
-      self.error_rel = error_abs
-      self.a = False
-      self.a_dydt = False
-      self.scale_abs=False
-      self.algorithm = "rkf45"
-      self.y_0=None
-      self.t_span = None
-      self.params = []
-      self.solution=[]
+      self.error_rel = error_rel
+      self.a = a
+      self.a_dydt = a_dydt
+      self.scale_abs = scale_abs
+      self.algorithm = algorithm
+      self.y_0 = y_0
+      self.t_span = t_span
+      self.params = params
+      self.solution = []
 
    def __setattr__(self,name,value):
       if(hasattr(self,'solution')):

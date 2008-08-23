@@ -1,0 +1,21 @@
+#!/bin/sh
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src/
+
+# remove old copies
+
+rm -rf $SAGE_LOCAL/lib/python2.5/site-packages/Cython*
+rm -rf $SAGE_LOCAL/lib/python/site-packages/Cython*
+
+python setup.py install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing Cython"
+    exit 1
+fi

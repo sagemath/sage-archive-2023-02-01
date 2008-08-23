@@ -78,8 +78,11 @@ extern "C" bool      py_is_real(PyObject* a);
 extern "C" bool      py_is_integer(PyObject* a);
 extern "C" bool      py_is_prime(PyObject* n);
 extern "C" PyObject* py_int(PyObject* n);
+extern "C" PyObject* py_integer_from_long(long int x);
+extern "C" PyObject* py_integer_from_pythonint(PyObject* x);
 
 extern "C" PyObject* py_float(PyObject* a);
+extern "C" PyObject* py_RDF_from_double(double x);
 
 extern "C" PyObject* py_factorial(PyObject* a);
 extern "C" PyObject* py_fibonacci(PyObject* n);
@@ -191,22 +194,22 @@ void ginac_error(const char* s) {
 
 
 void py_error(const char* s) {
-  //#ifdef DEBUG
-    std::cerr << "PYTHON ERROR! " << s << std::endl;
-    //#endif
   if (PyErr_Occurred()) {
     PyErr_Print();
     PyErr_Clear();
-    throw std::runtime_error("a Python error occured");
+    //throw std::runtime_error("a Python error occured");
     abort();
   }
 }
 
-static PyObject* pyfunc_Integer = 0;
-void ginac_pyinit_Integer(PyObject* f) {
-  Py_INCREF(f);
-  pyfunc_Integer = f;
-}
+// The following variable gets changed to true once
+// this library has been imported by the Python
+// interpreter.  This is because the interpreter calls
+// ginac_pyinit_I below, which sets this to true.
+// Once this is done we can call all the py_* functions
+// defined in Cython modules, which is often much faster
+// than what we can do without those. 
+static bool initialized = false;
 
 static PyObject* pyfunc_Float = 0;
 void ginac_pyinit_Float(PyObject* f) {
@@ -215,11 +218,37 @@ void ginac_pyinit_Float(PyObject* f) {
 }
 
 void ginac_pyinit_I(PyObject* z) {
+  initialized = true;
   Py_INCREF(z);
   GiNaC::I = z;  // I is a global constant defined below.
 }
 
+static PyObject* pyfunc_Integer = 0;
+void ginac_pyinit_Integer(PyObject* f) {
+  Py_INCREF(f);
+  pyfunc_Integer = f;
+}
 
+PyObject* Integer(const long int& x) {
+  if (initialized) 
+    return py_integer_from_long(x);
+  
+  // Slow version since we can't call Cython-exported code yet.
+  PyObject* m = PyImport_ImportModule("sage.rings.integer");
+  if (!m)
+    py_error("Error importing sage.rings.integer");
+  PyObject* Integer = PyObject_GetAttrString(m, "Integer");
+  if (!Integer)
+    py_error("Error getting Integer attribute");
+  PyObject* ans = PyObject_CallFunction(Integer, "l", x);
+  Py_DECREF(m);
+  Py_DECREF(Integer);
+  return ans;
+}  
+
+PyObject* Rational(const long int& n, const long int& d) {
+  return PyNumber_Divide(Integer(n), Integer(d));
+}  
 
 namespace GiNaC {
  
@@ -242,6 +271,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case DOUBLE:
       return os << s.v._double;
     case PYOBJECT:
+      // TODO: maybe program around Python's braindead L suffix? PyLong_Check(s.v._pyobject) 
       o = PyObject_Repr(s.v._pyobject);
       if (!o) {
 	// TODO: get proper exception.
@@ -299,16 +329,17 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	new_right = right;
 	return;
       case PYOBJECT:
-	verbose("About to coerce a Python long to an Integer");
+	verbose("About to coerce a C long to an Integer");
 	if (!(o = PyObject_CallFunction(pyfunc_Integer, "l", left.v._long))) {
 	  py_error("Error coercing a long to an Integer");
 	}
 	new_left = o;
-	Py_DECREF(o);
+	//Py_DECREF(o);
 	//new_left = PyInt_FromLong(left);
 	new_right = right;
 	return;
       default:
+	std::cerr << "type = " << right.t << "\n";
 	stub("** coerce not fully implemented yet -- left LONG**");
       }
     case DOUBLE:
@@ -322,12 +353,14 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	new_right = right;
 	return;
       default:
+	std::cerr << "type = " << right.t << "\n";
 	stub("** coerce not fully implemented -- left DOUBLE ** ");
       }
     case PYOBJECT:
       new_right = to_pyobject(right);
       return;
     }
+    std::cerr << "type = " << left.t << "\n";
     stub("** coerce not fully implemented yet **");
   }
 
@@ -346,6 +379,12 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       // TODO: change to use GMP!
       return math::pow((double)base.v._long, (double)exp.v._long);
     case PYOBJECT:
+      if PyInt_Check(base.v._pyobject) {
+	  PyObject* o = Integer(PyInt_AsLong(base.v._pyobject));
+	  PyObject* r = PyNumber_Power(o, exp.v._pyobject, Py_None);
+	  Py_DECREF(o);
+	  return r;
+      }
       return PyNumber_Power(base.v._pyobject, exp.v._pyobject, Py_None);
     default:
       stub("pow Number_T");
@@ -354,8 +393,11 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   Number_T::Number_T()  { 
     verbose("Number_T::Number_T()");
-    //t = LONG;
-    //v._long = 0;
+
+    //v._pyobject = Integer(0);
+    //t = PYOBJECT;
+    // t = LONG;
+    // v._long = 0;
 
     t = PYOBJECT;
     if (!(v._pyobject = PyInt_FromLong(0)))
@@ -367,50 +409,60 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   Number_T::Number_T(const int& x) { 
     verbose("Number_T::Number_T(const int& x)");
-    t = PYOBJECT;
+    //v._pyobject = Integer(x);
+    //t = PYOBJECT;
+
     //if (!(v._pyobject = PyObject_CallFunction(pyfunc_Integer, "i", x)))
+    
+    t = PYOBJECT;
+    if (!(v._pyobject = PyInt_FromLong(x)))
+      py_error("Error creating int");
+
+    //t = LONG;
+    // v._long = x;
+  }
+  Number_T::Number_T(const long int& x) { 
+    verbose("Number_T::Number_T(const long int& x)");
+    t = PYOBJECT;
     if (!(v._pyobject = PyInt_FromLong(x)))
       py_error("Error creating int");
     //t = LONG;
     //v._long = x;
-  }
-  Number_T::Number_T(const long int& x) { 
-    verbose("Number_T::Number_T(const long int& x)");
-    //t = LONG;
-    //v._long = x;
-
-    t = PYOBJECT;
-    //if (!(v._pyobject = PyObject_CallFunction(pyfunc_Integer, "l", x)))
-    if (!(v._pyobject = PyInt_FromLong(x)))
-      py_error("Error creating long int");
-
+    //v._pyobject = Integer(x);
     //t = PYOBJECT;
-    //v._pyobject = PyInt_FromLong(x);
   }
 
   Number_T::Number_T(const unsigned int& x) { 
+    // TODO !!!! -- these won't work since Integer assumes
+    // input is signed!!!
     verbose("Number_T::Number_T(const unsigned int& x)");
+    v._pyobject = Integer(x);
     t = PYOBJECT;
-    if (!(v._pyobject = PyObject_CallFunction(pyfunc_Integer, "I", x)))
-      py_error("Error creating unsigned long int");
   }
 
   Number_T::Number_T(const unsigned long& x) { 
     verbose("Number_T::Number_T(const unsigned long& x)");
     t = PYOBJECT;
-    if (!(v._pyobject = PyObject_CallFunction(pyfunc_Integer, "k", x)))
-      py_error("Error creating unsigned long int");
+    v._pyobject = Integer(x);
   }
 
   Number_T::Number_T(const double& x) { 
     verbose("Number_T::Number_T(const double& x)");
+
+    t = PYOBJECT;
+    if (!(v._pyobject =  PyFloat_FromDouble(x)))
+      py_error("Error creating double");
+
+    //    if (!(v._pyobject = py_RDF_from_double(x)))
+
+
     //t = DOUBLE;
     //v._double = x; 
 
-    t = PYOBJECT;
     //if (!(v._pyobject = PyObject_CallFunction(pyfunc_Float, "d", x)))
-    if (!(v._pyobject =  PyFloat_FromDouble(x)))
-      py_error("Error creating double");
+
+    //if (!(v._pyobject =  PyFloat_FromDouble(x)))
+    //py_error("Error creating double");
 
     //t = PYOBJECT;
     //v._pyobject = PyFloat_FromDouble(x);
@@ -511,7 +563,24 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case LONG:
       return v._long / (long int)x;
     case PYOBJECT:
+      if (PyInt_Check(x.v._pyobject) && PyInt_Check(v._pyobject)) {
+	// This branch only happens at startup.  Otherwise,
+	// division of ints seems to never go through here, instead
+	// multiplying by the inverse or just formally making the 
+	// quotient.
+	// Creating a rational
+	PyObject* o = Rational(PyInt_AsLong(v._pyobject),  
+			PyInt_AsLong(x.v._pyobject));
+	// I don't 100% understand why I have to incref this.
+	// If I don't, Sage crashes on exit.  This might
+	// have something to do with the memory tricks that
+	// Ginac plays.  
+	Py_INCREF(o);
+	return o;
+      } 
+
       return PyNumber_Divide(v._pyobject, x.v._pyobject);
+
     default:
       stub("operator/() type not handled");
     }
@@ -538,7 +607,6 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   Number_T& Number_T::operator=(const Number_T& x) { 
     verbose("operator=");
-    t = x.t;
     switch(x.t) {
     case DOUBLE:
       v._double = x.v._double; 
@@ -560,6 +628,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       stub("operator= -- not able to do conversion! now total nonsense");
       break;
     };
+    t = x.t;
     return *this; 
   }
   
@@ -1294,15 +1363,12 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   {
     if (!denom)
       ginac_error("numeric::div(): division by zero");
-    // TODO: BECAUSE of Floor divsion, this gives the wrong answer!!
-    // However, it gets called at ginac startup, so I don't yet
-    // know how to change it to make a Sage Rational. Argh.
     value = Number_T(numer) / Number_T(denom);
-    //std::cout << numer << ", " << denom << ", " << value << "\n";
     setflag(status_flags::evaluated | status_flags::expanded);
   }
 
-  numeric::numeric(double d) : basic(&numeric::tinfo_static)
+  numeric::numeric(double d) : 
+    value(d), basic(&numeric::tinfo_static)
   {
     setflag(status_flags::evaluated | status_flags::expanded);
   }
@@ -1691,6 +1757,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception overflow_error (division by zero) */
   const numeric numeric::div(const numeric &other) const
   {
+    //todo -- delete
     if (other.is_zero()) 
       ginac_error("numeric::div(): division by zero");
     //throw std::overflow_error("numeric::div(): division by zero");

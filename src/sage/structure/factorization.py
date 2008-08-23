@@ -1000,7 +1000,7 @@ class Factorization(SageObject):
 
         """
         if not isinstance(other, Factorization):
-            return self * Factorization([(other, 1)])
+            raise NotImplementedError, "can't take gcd of factorization and non-factorization"
         if self.is_commutative() and other.is_commutative():
             d1 = dict(self)
             d2 = dict(other)
@@ -1023,7 +1023,7 @@ class Factorization(SageObject):
 
         """
         if not isinstance(other, Factorization):
-            return self * Factorization([(other, 1)])
+            raise NotImplementedError, "can't take lcm of factorization and non-factorization"
         if self.is_commutative() and other.is_commutative():
             d1 = dict(self)
             d2 = dict(other)
@@ -1032,7 +1032,7 @@ class Factorization(SageObject):
                 s[a] = max(d1.get(a,0),d2.get(a,0))
             return Factorization(list(s.iteritems()))
         else:
-            raise NotImplementedError, "gcd is not implemented for non-commutative factorizations"
+            raise NotImplementedError, "lcm is not implemented for non-commutative factorizations"
 
 
     def is_integral(self):

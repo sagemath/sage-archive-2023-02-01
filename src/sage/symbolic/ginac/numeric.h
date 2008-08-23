@@ -158,6 +158,8 @@ namespace GiNaC {
     Number_T factorial() const;
     Number_T doublefactorial() const;
     Number_T fibonacci() const;
+    Number_T evalf() const;
+    Number_T step() const;
     Number_T isqrt() const;
     Number_T sqrt() const;
     Number_T abs() const;

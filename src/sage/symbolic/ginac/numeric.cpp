@@ -77,11 +77,13 @@ extern "C" bool      py_is_rational(PyObject* a);
 extern "C" bool      py_is_real(PyObject* a);
 extern "C" bool      py_is_integer(PyObject* a);
 extern "C" bool      py_is_prime(PyObject* n);
-extern "C" double    py_double(PyObject* n);
 extern "C" PyObject* py_int(PyObject* n);
+
+extern "C" PyObject* py_float(PyObject* a);
 
 extern "C" PyObject* py_factorial(PyObject* a);
 extern "C" PyObject* py_fibonacci(PyObject* n);
+extern "C" PyObject* py_step(PyObject* n);
 extern "C" PyObject* py_doublefactorial(PyObject* a);
 extern "C" PyObject* py_bernoulli(PyObject* n);
 extern "C" PyObject* py_sin(PyObject* n);
@@ -582,7 +584,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   Number_T::operator double() const { 
     verbose("operator double");
-    float d;
+    double d;
     switch(t) {
     case DOUBLE:
       return v._double; 
@@ -594,6 +596,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	py_error("Error converting to a double.");
       return d;
     default:
+      std::cerr << "type = " << t << std::endl;
       stub("operator double() type not handled");
     }
   }
@@ -1076,6 +1079,14 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     return ans;
   }
   
+  Number_T Number_T::evalf() const {
+    PY_RETURN(py_float);
+  }
+
+  Number_T Number_T::step() const {
+    PY_RETURN(py_step);
+  }
+
   Number_T Number_T::fibonacci() const {
     PY_RETURN(py_fibonacci);
   }
@@ -1291,8 +1302,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     setflag(status_flags::evaluated | status_flags::expanded);
   }
 
-  numeric::numeric(double d) : basic(&numeric::tinfo_static), 
-			       value(d)
+  numeric::numeric(double d) : basic(&numeric::tinfo_static)
   {
     setflag(status_flags::evaluated | status_flags::expanded);
   }
@@ -1592,7 +1602,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  an ex-handle to a numeric. */
   ex numeric::evalf(int level) const
   {
-    stub("evalf");
+     return (numeric)(value.evalf());
   }
 
   ex numeric::conjugate() const
@@ -1834,7 +1844,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    */
   numeric numeric::step() const
   {
-    stub("step function");
+    return value.step();
   }
 
   /** Return the complex half-plane (left or right) in which the number lies.
@@ -2043,7 +2053,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   double numeric::to_double() const
   {
     GINAC_ASSERT(this->is_real());
-    return (double)(value); //more to be done
+    return (double)(value); 
   }
 
   /** Real part of a number. */

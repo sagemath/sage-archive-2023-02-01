@@ -286,6 +286,25 @@ class ComplexField_class(field.Field):
         return (AlgebraicClosureFunctor(), self._real_field())
 
 
+    def random_element(self, component_max=1):
+        r"""
+        Returns a uniformly distributed random number inside a square
+        centered on the origin (by default, the square [-1,1]x[-1,1]).
+
+        EXAMPLES:
+            sage: [CC.random_element() for _ in range(5)]
+            [-0.306077326077253 - 0.0759291930543202*I, -0.838081254900233 - 0.207006276657392*I, -0.757827933063776 - 0.530834220505783*I, 0.918013195263849 - 0.805114150788948*I, 0.116924427170636 + 0.203592757069680*I]
+            sage: CC6 = ComplexField(6)
+            sage: [CC6.random_element(2^-20) for _ in range(5)]
+            [-5.7e-7 + 5.4e-7*I, 8.6e-7 + 9.2e-7*I, -5.7e-7 + 6.9e-7*I, -1.2e-7 - 6.9e-7*I, 2.7e-7 + 8.3e-7*I]
+            sage: [CC6.random_element(pi^20) for _ in range(5)]
+            [-5.0e9*I, 2.8e9 - 5.1e9*I, 2.7e8 + 6.3e9*I, 2.7e8 - 6.4e9*I, 6.7e8 + 1.7e9*I]
+        """
+        size = self._real_field()(component_max)
+        re = self._real_field().random_element(-size, size)
+        im = self._real_field().random_element(-size, size)
+        return self(re, im)
+
     def pi(self):
         return self(self._real_field().pi())
 

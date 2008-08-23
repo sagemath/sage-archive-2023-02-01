@@ -2,6 +2,12 @@ include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
 
+#################################################################
+# Initialize the library
+#################################################################
+
+#initialize_ginac()
+
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr import RealNumber
 

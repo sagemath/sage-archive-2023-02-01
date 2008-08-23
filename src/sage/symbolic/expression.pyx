@@ -45,10 +45,25 @@ cdef class Expression(CommutativeRingElement):
             float -- double precision evaluation of self
 
         EXAMPLES:
-
+            sage: x = var('x', ns=1); SR = x.parent()
+            sage: float(SR(12))
+            12.0
+            sage: float(SR(2/3))
+            0.66666666666666663
+            sage: float(sqrt(SR(2)))
+            1.4142135623730951
+            sage: float(x^2 + 1)
+            Traceback (most recent call last):
+            ...
+            TypeError: float() argument must be a string or a number
+            sage: float(SR(RIF(2)))
+            Traceback (most recent call last):
+            ...
         """
         cdef bint success
+        _sig_on
         cdef double ans = GEx_to_double(self._gobj, &success)
+        _sig_off
         if not success:
             raise TypeError, "float() argument must be a string or a number"
         return ans
@@ -147,9 +162,12 @@ cdef class Expression(CommutativeRingElement):
 
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
         """
+        Add left and right.
+
+        EXAMPLES;
             sage.: var("x y", ns=1)
             (x, y)
-            sage.: x+y+y+x
+            sage.: x + y + y + x
             2*x+2*y
         """
         _sig_on
@@ -171,6 +189,8 @@ cdef class Expression(CommutativeRingElement):
 
     cdef RingElement _mul_c_impl(left, RingElement right):
         """
+        Multiply left and right.
+
         EXAMPLES:
             sage: var("x y", ns=1)
             (x, y)
@@ -184,6 +204,8 @@ cdef class Expression(CommutativeRingElement):
 
     cdef RingElement _div_c_impl(left, RingElement right):
         """
+        Divide left and right.
+
             sage: var("x y", ns=1)
             (x, y)
             sage: x/y/y
@@ -200,6 +222,10 @@ cdef class Expression(CommutativeRingElement):
         return left._gobj.compare((<Expression>right)._gobj)
 
     def cmp(self, right):
+        """
+        Return -1, 0, or 1, depending on whether self < right,
+        self == right, or self > right.
+        """
         cdef Expression r = self.coerce_in(right)
         return self._gobj.compare(r._gobj)
 
@@ -304,7 +330,21 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(e)
 
     def step(self):
+        """
+        Return the value of the Heaviside step function, which is 0 for
+        negative x, 1/2 for 0, and 1 for positive x.
 
+        EXAMPLES:
+            sage: x = var('x',ns=1); SR = x.parent()
+            sage: SR(1.5).step()
+            1
+            sage: SR(0).step()
+            1/2
+            sage: SR(-1/2).step()
+            0
+            sage: SR(float(-1)).step()
+            0
+        """
         _sig_on
         cdef GEx e = g_step(self._gobj)
         _sig_off
@@ -378,6 +418,8 @@ cdef class Expression(CommutativeRingElement):
 
     def cos(self):
         """
+        Return the cosine of self.
+
         EXAMPLES:
             sage: var('x, y', ns=1); S = parent(x)
             (x, y)
@@ -389,6 +431,10 @@ cdef class Expression(CommutativeRingElement):
             cos(1)
             sage: cos(S(RealField(150)(1)))
             0.54030230586813971740093660744297660373231042
+            sage: SR(RR(1)).cos()
+            0.540302305868140
+            sage: SR(float(1)).cos()
+            0.54030230586813977
         """
         _sig_on
         cdef GEx e = g_cos(self._gobj)

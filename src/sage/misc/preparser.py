@@ -586,6 +586,17 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     'ZZ = QQ[Integer(2)**(Integer(1)/Integer(3))]; (x,) = ZZ._first_ngens(Integer(1))'
     sage: QQ[2^(1/3)]
     Number Field in a with defining polynomial x^3 - 2
+
+    sage: preparse("a^b")
+    'a**b'
+    sage: preparse("a^^b")
+    'a^b'
+    sage: 8^1
+    8
+    sage: 8^^1
+    9
+    sage: 9^^1
+    8
     """
     try:
         # [1,2,..,n] notation
@@ -839,6 +850,13 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             continue
         #
         ####### END CALCULUS ########
+
+        # Since we use ^ for exponentiation (see below), we
+        # rewrite ^^ to ^ so that XOR is still accessible
+        elif line[i:i+2] == "^^" and not in_quote():
+            line = line[:i] + "^" + line[i+2:]
+            i += 1
+            continue
 
         # exponents can be either ^ or **
         elif line[i] == "^" and not in_quote():

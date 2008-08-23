@@ -263,12 +263,17 @@ def split_code(key):
 
 def class_to_int(k):
     """
-    Converts class id string into an integer.
+    Converts class id string into an integer.  Note that this is the
+    inverse of cremona_letter_code.
 
     EXAMPLES:
         sage: import sage.databases.cremona as cremona
         sage: cremona.class_to_int('ba')
         26
+        sage: cremona.class_to_int('cremona')
+        821863562
+        sage: cremona_letter_code(821863562)
+        'cremona'
     """
     kk = [string.ascii_lowercase.index(ch) for ch in list(k)]
     kk.reverse()

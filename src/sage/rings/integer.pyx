@@ -84,19 +84,16 @@ COERCIONS:
     9.3908230000000000000000000000000000000000000000000000000000e6
 
 """
-
 #*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@gmail.com>
+#       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006 Gonzalo Tornaria <tornaria@math.utexas.edu>
+#       Copyright (C) 2006 Didier Deshommes <dfdeshom@gmail.com>
+#       Copyright (C) 2007 David Harvey <dmharvey@math.harvard.edu>
+#       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
+#       Copyright (C) 2007,2008 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2007 David Roe <roed314@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 

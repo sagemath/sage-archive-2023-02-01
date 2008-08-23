@@ -1874,8 +1874,14 @@ unsigned function::register_new(function_options const & opt)
 		// we do not throw an exception here because this code is
 		// usually executed before main(), so the exception could not
 		// caught anyhow
-		std::cerr << "WARNING: function name " << opt.name
-		          << " already in use!" << std::endl;
+		//
+		// SAGE note: 
+		// We suppress this warning since we allow a user to create 
+		// functions with same name, but different number of args
+		// Sage SFunction class checks existence of a function before
+		// allocating a new one.
+		//std::cerr << "WARNING: function name " << opt.name
+		//          << " already in use!" << std::endl;
 	}
 	registered_functions().push_back(opt);
 	if (opt.use_remember) {

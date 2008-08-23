@@ -1342,10 +1342,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 return self, self
             return self
 
-        cdef Py_ssize_t nr, nc, n, i
-        cdef int nr = self._nrows
-        cdef int nc = self._ncols
-        cdef int i, j
+        cdef Py_ssize_t nr, nc, n, i, j
+        nr = self._nrows
+        nc = self._ncols
 
         cdef Matrix_integer_dense H_m
 

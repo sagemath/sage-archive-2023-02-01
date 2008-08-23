@@ -232,7 +232,7 @@ cdef class DenseGraph(CGraph):
             [2, 3]
 
         """
-        cdef int i, size, num_nbrs
+        cdef int i, num_nbrs
         if u < 0 or u >= self.num_verts:
             raise RuntimeError("First vertex (%d) is not a vertex of the graph."%u)
         if self.out_degrees[u] == 0:
@@ -291,7 +291,7 @@ cdef class DenseGraph(CGraph):
             [1]
 
         """
-        cdef int i, size, num_nbrs
+        cdef int i, num_nbrs
         if v < 0 or v >= self.num_verts:
             raise RuntimeError("First vertex (%d) is not a vertex of the graph."%v)
         if self.in_degrees[v] == 0:

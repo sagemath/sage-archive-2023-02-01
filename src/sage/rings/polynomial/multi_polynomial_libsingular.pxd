@@ -12,7 +12,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
     cpdef _homogenize(self, int var)
 
 cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
-    cdef object __weakref__
     cdef object __singular
     cdef object __macaulay2
     cdef object __m2_set_ring_cache

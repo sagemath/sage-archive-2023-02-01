@@ -6,8 +6,6 @@ from sage.structure.element cimport FiniteFieldElement, Element, RingElement, Mo
 cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement)
 
 cdef class FiniteField_ntl_gf2e(FiniteField):
-    cdef object __weakref__
-
     cdef GF2EContext_c F
     cdef object _polynomial
     cdef object _polynomial_ring

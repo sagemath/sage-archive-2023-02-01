@@ -8,7 +8,6 @@ from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.structure.element cimport MonoidElement
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
-    cdef object __weakref__
     cdef PBRing _pbring
     cdef Py_ssize_t* pbind
     cdef public _monom_monoid

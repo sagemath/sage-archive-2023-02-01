@@ -3834,7 +3834,7 @@ cdef class BinaryCodeClassifier:
         cdef BinaryCode m
         cdef codeword *ortho_basis, *B_can_lab, current, swap
         cdef codeword word, temp, gate, nonzero_gate, orbit, bwd, k_gate
-        cdef codeword *temp_basis, swap, *orbit_checks, orb_chx_size, orb_chx_shift, radix_gate
+        cdef codeword *temp_basis, *orbit_checks, orb_chx_size, orb_chx_shift, radix_gate
         cdef WordPermutation *gwp, *hwp, *can_lab, *can_lab_inv
         cdef WordPermutation **parent_generators
         cdef BinaryCode B_aug

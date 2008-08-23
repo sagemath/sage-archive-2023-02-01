@@ -104,8 +104,7 @@ cdef extern from "qd/fpu.h":
     void fpu_fix_end(unsigned int *old_cw)
 
 cdef class RealQuadDoubleField_class(Field):
-    # so it is possible to make weakrefs to this finite field
-    cdef object __weakref__
+    pass
     # round-to-double bit
 
 cdef class QuadDoubleElement(FieldElement):

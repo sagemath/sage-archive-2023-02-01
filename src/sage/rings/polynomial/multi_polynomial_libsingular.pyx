@@ -3289,7 +3289,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             (-2) * (c - d) * (b - d) * (b - c) * (-a + b) * (a - d) * (a - c)
             sage: F[0][0]
             c - d
-            sage: F.unit_part()
+            sage: F.unit()
             -2
 
         Factorization of multivariate polynomials over non-prime

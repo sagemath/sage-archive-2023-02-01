@@ -1,9 +1,17 @@
 r"""
 Factorizations
 
-The \code{Factorization} class derives from \code{list}, so it can
-print nicely and be manipulated like a list of prime-exponent pairs or
-easily turned into a list.  For example, we factor the integer $-45$:
+The \code{Factorization} class provides a structure for holding quite
+general lists of objects with integer multiplicities.  These may hold
+the results of an arithmetic or algebraic factorization, where the
+objects may be primes or irreducible polynomials and the
+multiplicities are the (non-zero) exponents in the factorization.  For
+other types of example, see below.
+
+\code{Factorization} class objects contain a \code{list}, so can be
+printed nicely and be manipulated like a list of prime-exponent pairs,
+or easily turned into a plain list.  For example, we factor the
+integer $-45$:
 
     sage: F = factor(-45)
 
@@ -19,17 +27,19 @@ There is an underlying list representation, \emph{which ignores the
 unit part} (!).
     sage: list(F)
     [(3, 2), (5, 1)]
+
+A \code{Factorization} is not actually a list:
     sage: isinstance(F, list)
     False
 
-We can access the \code{Factorization} F itself as if it were a list:
+However, we can access the \code{Factorization} F itself as if it were a list:
     sage: F[0]
     (3, 2)
     sage: F[1]
     (5, 1)
 
-To get at the unit part, use the \code{unit_part} function:
-    sage: F.unit_part()
+To get at the unit part, use the \code{unit} function:
+    sage: F.unit()
     -1
 
 All factorizations are immutable.  Thus if you write a function that
@@ -59,9 +69,9 @@ This more complicated example involving polynomials also illustrates
     sage: expand(F)
     -5*x^2 + 25*x - 30
 
-The underlying list is the list of pairs $(p_i, e_i)$, where $p_i$
-is prime and $e_i$ is an integer. The unit part is discarded by
-the list.
+The underlying list is the list of pairs $(p_i, e_i)$, where each
+$p_i$ is a 'prime' and each $e_i$ is an integer. The unit part
+is discarded by the list.
 
     sage: list(F)
     [(x - 3, 1), (x - 2, 1)]
@@ -79,6 +89,8 @@ factorization has three factors:
     -5*x^2 + 25*x - 30
     sage: F = f.factor(); F
     (-1) * 5 * (x - 3) * (x - 2)
+    sage: F.universe()
+    Univariate Polynomial Ring in x over Integer Ring
     sage: F.unit()
     -1
     sage: list(F)
@@ -107,6 +119,25 @@ Factorizations can involve fairly abstract mathematical objects:
     sage: type(F)
     <class 'sage.structure.factorization.Factorization'>
 
+
+    sage: K.<a> = NumberField(x^2 + 3); K
+    Number Field in a with defining polynomial x^2 + 3
+    sage: f = K.factor(15); f
+    (Fractional ideal (1/2*a - 3/2))^2 * (Fractional ideal (5))
+    sage: f.universe()
+    Monoid of ideals of Number Field in a with defining polynomial x^2 + 3
+    sage: f.unit()
+    Fractional ideal (1)
+    sage: g=K.factor(9); g
+    (Fractional ideal (1/2*a - 3/2))^4
+    sage: f.lcm(g)
+    (Fractional ideal (1/2*a - 3/2))^4 * (Fractional ideal (5))
+    sage: f.gcd(g)
+    (Fractional ideal (1/2*a - 3/2))^2
+    sage: f.is_integral()
+    True
+
+
 TESTS:
     sage: F = factor(-20); F
     -1 * 2^2 * 5
@@ -122,6 +153,8 @@ AUTHORS:
     -- William Stein (2008-01-17): wrote much of the documentation and fixed
                                    a couple of bugs.
     -- Nick Alexander (2008-01-19): added support for non-commuting factors.
+    -- John Cremona (2008-08-22): added division, lcm, gcd,
+                                  is_integral and universe functions
 """
 
 #*****************************************************************************
@@ -136,10 +169,13 @@ AUTHORS:
 
 import sage.misc.latex as latex
 from sage.structure.sage_object import SageObject
+from sage.structure.sequence import Sequence
 
 class Factorization(SageObject):
     """
     A formal factorization of an object.
+
+    NOTES:
 
     EXAMPLES:
         sage: N = 2006
@@ -238,12 +274,17 @@ class Factorization(SageObject):
                 except TypeError:
                     raise TypeError, "powers of factors must be integers"
 
+        try:
+            self.__universe = Sequence(t[0] for t in x).universe()
+        except TypeError:
+            self.__universe = None
+
         self.__x = [ (t[0],int(t[1])) for t in x]
         if unit is None:
             if len(x) > 0:
                 try:
-                    unit = self.base_ring()(1)
-                except AttributeError:
+                    unit = self.__universe(1)
+                except (AttributeError, TypeError):
                     unit = Integer(1)
             else:
                 unit = Integer(1)
@@ -417,24 +458,30 @@ class Factorization(SageObject):
         import copy
         return Factorization(copy.deepcopy(list(self), memo), cr=self.__cr, sort=False)
 
-    def base_ring(self):
-        """
+    def universe(self):
+        r"""
         Return the parent structure of my factors.
+
+        NOTE: This used to be called \code{base_ring}, but the
+        universe of a factorization need not be a ring.
 
         EXAMPLES:
             sage: F = factor(2006)
-            sage: F.base_ring()
+            sage: F.universe()
             Integer Ring
 
             sage: R.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: F = Factorization([(z, 2)], 3)
-            sage: (F*F^-1).base_ring()
-            Rational Field
+            sage: (F*F^-1).universe()
+            Free Algebra on 3 generators (x, y, z) over Rational Field
+
+            sage: F = ModularSymbols(11,4).factorization()
+            sage: F.universe()
         """
-        if len(self) > 0:
-            return self[0][0].parent()
-        else:
-            return self.unit().parent()
+        try:
+            return self.__universe
+        except AttributeError:
+            return None
 
     def is_commutative(self):
         """
@@ -453,10 +500,10 @@ class Factorization(SageObject):
             sage: F.is_commutative()
             False
             sage: (F*F^-1).is_commutative()
-            True
+            False
         """
         try:
-            return self.base_ring().is_commutative()
+            return self.universe().is_commutative()
         except:
             # This is not the mathematically correct default, but agrees with
             # history -- we've always assumed factored things commute
@@ -579,20 +626,8 @@ class Factorization(SageObject):
         self.__x.sort(_cmp)
 
     def unit(self):
-        """
-        Return the unit part of this factorization.
-
-        EXAMPLES:
-            sage: F = factor(-2006); F
-            -1 * 2 * 17 * 59
-            sage: F.unit()
-            -1
-        """
-        return self.__unit
-
-    def unit_part(self):
         r"""
-        Same as \code{self.unit()}.
+        Return the unit part of this factorization.
 
         EXAMPLES:
         We create a polynomial over the real double field and factor it:
@@ -601,8 +636,14 @@ class Factorization(SageObject):
             (-2.0) * (1.0*x^2 + 0.5)
 
         Note that the unit part of the factorization is $-2.0$.
-            sage: F.unit_part()
+            sage: F.unit()
             -2.0
+
+            sage: F = factor(-2006); F
+            -1 * 2 * 17 * 59
+            sage: F.unit()
+            -1
+
        """
         return self.__unit
 
@@ -672,7 +713,7 @@ class Factorization(SageObject):
             return repr(self.__unit)
         try:
             atomic = ((isinstance(self.__x[0][0], (int, long)) or \
-                       self.base_ring().is_atomic_repr()))
+                       self.universe().is_atomic_repr()))
         except AttributeError:
             atomic = False
         s = ''
@@ -713,7 +754,7 @@ class Factorization(SageObject):
             return latex.latex(self.__unit)
         try:
             atomic = ((isinstance(self.__x[0][0], (int, long)) or \
-                       self.base_ring().is_atomic_repr()))
+                       self.universe().is_atomic_repr()))
         except AttributeError:
             atomic = False
         s = ''
@@ -819,7 +860,7 @@ class Factorization(SageObject):
             sage: F*F
             x^3 * y^2 * x^4 * y^2 * x
             sage: -1 * F
-            -1 * x^4 * y^2
+            (-1) * x^3 * y^2 * x
         """
         if not isinstance(other, Factorization):
             return self * Factorization([(other, 1)])
@@ -966,7 +1007,7 @@ class Factorization(SageObject):
             s = {}
             for a in set(d1.keys()).intersection(set(d2.keys())):
                 s[a] = min(d1[a],d2[a])
-            return Factorization(list(s.iteritems()), unit=self.base_ring()(1))
+            return Factorization(list(s.iteritems()))
         else:
             raise NotImplementedError, "gcd is not implemented for non-commutative factorizations"
 
@@ -989,8 +1030,27 @@ class Factorization(SageObject):
             s = {}
             for a in set(d1.keys()).union(set(d2.keys())):
                 s[a] = max(d1.get(a,0),d2.get(a,0))
-            return Factorization(list(s.iteritems()), unit=self.base_ring()(1))
+            return Factorization(list(s.iteritems()))
         else:
             raise NotImplementedError, "gcd is not implemented for non-commutative factorizations"
+
+
+    def is_integral(self):
+        r"""
+        Return True iff all exponents of this Factorization are non-negative
+
+        EXAMPLES:
+            sage: F = factor(-10); F
+            -1 * 2 * 5
+            sage: F.is_integral()
+            True
+
+            sage: F = factor(-10) / factor(16); F
+            -1 * 2^-3 * 5
+            sage: F.is_integral()
+            False
+
+        """
+        return all([t[1] >=0 for t in self.__x])
 
 

@@ -186,8 +186,8 @@ class FractionFieldElement(field_element.FieldElement):
         denom = self.denominator()
         whole, numer = self.numerator().quo_rem(denom)
         factors = denom.factor()
-        if factors.unit_part != 1:
-            numer *= ~factors.unit_part()
+        if factors.unit() != 1:
+            numer *= ~factors.unit()
         if not self.parent().is_exact():
             # factors not grouped in this case
             # TODO: think about changing the factor code itself

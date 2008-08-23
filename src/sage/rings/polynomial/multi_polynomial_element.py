@@ -1329,7 +1329,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: K.<a> = NumberField(x^2 + 1)
             sage: R.<y, z> = PolynomialRing(K)
             sage: f = 2*y^2 + 2*z^2
-            sage: F = f.factor(); F.unit_part()
+            sage: F = f.factor(); F.unit()
             2
 
         If a polynomial is univariate, the appropriate univariate

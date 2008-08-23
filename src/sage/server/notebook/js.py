@@ -3679,7 +3679,7 @@ function encode64(input) {
     var enc1, enc2, enc3, enc4;
     var i = 0;
 
-    do {
+     while (i < input.length) {
         chr1 = input.charCodeAt(i++);
         chr2 = input.charCodeAt(i++);
         chr3 = input.charCodeAt(i++);
@@ -3697,7 +3697,7 @@ function encode64(input) {
 
         output = output + keyStr.charAt(enc1) + keyStr.charAt(enc2) +
             keyStr.charAt(enc3) + keyStr.charAt(enc4);
-    } while (i < input.length);
+    }
 
     return output;
 }
@@ -3718,7 +3718,7 @@ function decode64(input) {
     // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
     input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
-    do {
+    while (i < input.length) {
         enc1 = keyStr.indexOf(input.charAt(i++));
         enc2 = keyStr.indexOf(input.charAt(i++));
         enc3 = keyStr.indexOf(input.charAt(i++));
@@ -3736,7 +3736,7 @@ function decode64(input) {
         if (enc4 != 64) {
             output = output + String.fromCharCode(chr3);
         }
-    } while (i < input.length);
+    }
 
     return output;
 }

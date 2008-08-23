@@ -16,6 +16,28 @@ const symbol & get_symbol(const std::string & s)
         return directory.insert(std::make_pair(s, symbol(s))).first->second;
 }
 
+double GEx_to_double(ex& e, int* success) {
+  /*
+     Convert an expression to a double if possible.
+
+     INPUT:
+         e -- an expression
+         success -- pointer to int
+     OUTPUT:
+         double -- the answer,
+         *AND* sets success to true on success, and false on failure
+         if e is not coercible to a double
+  */
+  ex f = e.evalf();
+  if (is_a<numeric>(f)) {
+    *success = true;
+    return (ex_to<numeric>(f)).to_double();
+  } else {
+    *success = false;
+    return 0;
+  }
+}
+
 #define ASSIGN_WRAP(x,y) x = y
 
 #define ADD_WRAP(x,y) (x)+(y)

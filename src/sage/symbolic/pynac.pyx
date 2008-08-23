@@ -171,6 +171,9 @@ cdef public object py_denom(object n):
     except AttributeError:
         return 1
 
+cdef public object py_float(object n):
+    return float(n)
+
 #################################################################
 # SPECIAL FUNCTIONS
 #################################################################
@@ -184,6 +187,17 @@ cdef public object py_doublefactorial(object x):
 from sage.libs.pari.all import pari
 cdef public object py_fibonacci(object n):
     return Integer(pari(n).fibonacci())
+
+cdef public object py_step(object n):
+    """
+    Return step function of n.
+    """
+    cdef int c = cmp(n, 0)
+    if c < 0:
+        return ZERO
+    elif c > 0:
+        return ONE
+    return ONE_HALF
 
 from sage.rings.arith import bernoulli
 cdef public object py_bernoulli(object x):
@@ -370,3 +384,8 @@ cdef public object py_eval_catalan(long ndigits):
 ##################################################################
 cdef public object py_rational_long(long numer, long denom):
     return Rational((numer, denom))
+
+import ring
+ZERO = ring.NSR(0)
+ONE = ring.NSR(1)
+ONE_HALF = ring.NSR(Rational((1,2)))

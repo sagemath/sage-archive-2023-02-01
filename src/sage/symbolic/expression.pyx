@@ -5,7 +5,7 @@ We mix Singular variables with symbolic variables:
     sage: var('a,b,c', ns=1)
     (a, b, c)
     sage: expand((u + v + a + b + c)^2)
-    2*a*c + 2*a*b + 2*b*c + a^2 + b^2 + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
+    2*a*b + 2*a*c + 2*b*c + a^2 + b^2 + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
 """
 
 
@@ -26,6 +26,8 @@ cdef class Expression(CommutativeRingElement):
 
     def _repr_(self):
         """
+        Return string representation of this symbolic expression.
+
         EXAMPLES:
             sage: var("x y", ns=1)
             (x, y)
@@ -34,13 +36,40 @@ cdef class Expression(CommutativeRingElement):
         """
         return GEx_to_str(&self._gobj)
 
+    def __float__(self):
+        """
+        Return float conversion of self, assuming self is constant.
+        Otherwise, raise a TypeError.
+
+        OUTPUT:
+            float -- double precision evaluation of self
+
+        EXAMPLES:
+
+        """
+        cdef bint success
+        cdef double ans = GEx_to_double(self._gobj, &success)
+        if not success:
+            raise TypeError, "float() argument must be a string or a number"
+        return ans
+
     def __hash__(self):
         """
+        Return hash of this expression.
+
         EXAMPLES:
-            sage: var("x y", ns=1)
-            (x, y)
+            sage: var("x y", ns=1); S = x.parent()
+            sage: hash(x)
+            2013265920
+
+        The hash of an object in Python or its coerced version into
+        the symbolic ring is the same.
+            sage: hash(S(19/23))
+            4
+            sage: hash(19/23)
+            4
             sage: hash(x+y)
-            825815427
+            7352706
             sage: d = {x+y: 5}
             sage: d
             {x + y: 5}
@@ -49,6 +78,8 @@ cdef class Expression(CommutativeRingElement):
 
     def __richcmp__(left, right, int op):
         """
+        Create a formal symbolic inequality or equality.
+
         EXAMPLES:
             sage: var('x, y', ns=1)
             (x, y)
@@ -84,6 +115,8 @@ cdef class Expression(CommutativeRingElement):
 
     def __nonzero__(self):
         """
+        Return True if self is nonzero.
+
         EXAMPLES:
             sage: sage.symbolic.ring.NSR(0).__nonzero__()
             False
@@ -99,6 +132,18 @@ cdef class Expression(CommutativeRingElement):
         cdef bint x = not self._gobj.is_zero()
         _sig_off
         return x
+
+
+    cdef Expression coerce_in(self, z):
+        """
+        Quickly coerce z to be an Expression.
+        """
+        cdef Expression w
+        try:
+            w = z
+            return w
+        except TypeError:
+            return self._parent._coerce_c(z)
 
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
         """
@@ -150,30 +195,95 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(e)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
+        # TODO: this is never called, maybe, since I define
+        # richcmp above to make formal symbolic expressions?
         return left._gobj.compare((<Expression>right)._gobj)
 
+    def cmp(self, right):
+        cdef Expression r = self.coerce_in(right)
+        return self._gobj.compare(r._gobj)
+
     def __pow__(Expression self, exp, ignored):
-        cdef Expression nexp = self._parent._coerce_c(exp)
+        """
+        Return self raised to the power of exp.
+
+        INPUT:
+            self -- symbolic expression
+            exp -- something that coerces to a symbolic expressions
+
+        OUTPUT:
+            symbolic expression
+
+        EXAMPLES:
+            sage: var('x,y',ns=1); S=x.parent()
+            (x, y)
+            sage: x.__pow__(y)
+            x^y
+            sage: x^(3/5)
+            x^(3/5)
+            sage: x^sin(x)^cos(y)
+            x^(sin(x)^cos(y))
+        """
+        cdef Expression nexp = self.coerce_in(exp)
         _sig_on
         cdef GEx e = g_pow(self._gobj, nexp._gobj)
         _sig_off
         return new_Expression_from_GEx(e)
 
     def expand(Expression self):
+        """
+        Return expanded form of his expression, obtained by multiplying out
+        all products.
+
+        OUTPUT:
+            symbolic expression
+
+        EXAMPLES:
+            sage: var('x,y',ns=1)
+            (x, y)
+            sage: ((x + (2/3)*y)^3).expand()
+            4/3*x*y^2 + 2*x^2*y + x^3 + 8/27*y^3
+            sage: expand( (x*sin(x) - cos(y)/x)^2 )
+            sin(x)^2*x^2 + cos(y)^2*x^(-2) - 2*sin(x)*cos(y)
+            sage: f = (x-y)*(x+y); f
+            (x - y)*(x + y)
+            sage: f.expand()
+            x^2 - y^2
+        """
         _sig_on
         cdef GEx e = self._gobj.expand(0)
         _sig_off
         return new_Expression_from_GEx(e)
 
-    def collect(Expression self, Expression s):
-        #TODO convert second argument if necessary
+    def collect(Expression self, s):
+        """
+        INPUT:
+            s -- a symbol
+
+        OUTPUT:
+            expression
+
+        EXAMPLES:
+            sage: var('x,y,z',ns=1)
+            (x, y, z)
+            sage: f = 4*x*y + x*z + 20*y^2 + 21*y*z + 4*z^2 + x^2*y^2*z^2
+            sage: f.collect(x)
+            (4*y + z)*x + 21*y*z + x^2*y^2*z^2 + 20*y^2 + 4*z^2
+            sage: f.collect(y)
+            (4*x + 21*z)*y + x*z + (x^2*z^2 + 20)*y^2 + 4*z^2
+            sage: f.collect(z)
+            (x + 21*y)*z + 4*x*y + (x^2*y^2 + 4)*z^2 + 20*y^2
+        """
+        cdef Expression s0 = self.coerce_in(s)
         _sig_on
-        cdef GEx e = self._gobj.collect(s._gobj, False)
+        cdef GEx e = self._gobj.collect(s0._gobj, False)
         _sig_off
         return new_Expression_from_GEx(e)
 
     def __abs__(self):
         """
+        Return the absolute value of this expression.
+
         EXAMPLES:
             sage: var('x, y', ns=1); S = parent(x)
             (x, y)
@@ -194,6 +304,7 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(e)
 
     def step(self):
+
         _sig_on
         cdef GEx e = g_step(self._gobj)
         _sig_off
@@ -238,11 +349,12 @@ cdef class Expression(CommutativeRingElement):
         # do not use sqrt(...) since it doesn't seem to work
         # and there is a remark in decl.pxi about it just being
         # some broken alias.
-        #return self**Rational((1,2))
-        _sig_on
-        cdef GEx e = g_sqrt(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return self**Rational((1,2))
+
+        #_sig_on
+        #cdef GEx e = g_sqrt(self._gobj)
+        #_sig_off
+        #return new_Expression_from_GEx(e)
 
 
     def sin(self):
@@ -483,7 +595,7 @@ cdef class Expression(CommutativeRingElement):
             sage: S(5).binomial(S(3))
             10
             sage: x.binomial(S(3))
-            (2*2^(-1)*x + 2^(-1)*x^3 - 3*2^(-1)*x^2)*3^(-1)
+            (2*2^(-1)*x - 3*2^(-1)*x^2 + 2^(-1)*x^3)*3^(-1)
             sage: x.binomial(y)
             binomial(x,y)
         """
@@ -506,6 +618,5 @@ cdef Expression new_Expression_from_GEx(GEx juice):
     GEx_construct_ex(&nex._gobj, juice)
     nex._parent = ring.NSR
     return nex
-
 
 

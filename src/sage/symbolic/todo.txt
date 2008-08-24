@@ -46,16 +46,16 @@ sage: singular(a^3*x^10 + x^12 - a^15)
 
 done * switch everything to use except+.
 
+done * doctest all existing functions
+
+done * add copyright headers
+
 ------------------------------------------------------------------
 
 * Bug...
 sage: var('x',ns=1); k.<a> = GF(9); k(2)*x
 x
 with 9 replaced by 25 it works fine...
-
-* doctest all existing functions
-
-* add copyright headers
 
 * wrap pattern matching
 

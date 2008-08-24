@@ -1,3 +1,12 @@
+###############################################################################
+#   SAGE: Open Source Mathematical Software
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#       Copyright (C) 2008 Burcin Erocal
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version.  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+###############################################################################
+
 # NOTE: Because of the except+'s below, i.e., C++ exception handling,
 # we do *not* have to use _sig_on and _sig_off.
 

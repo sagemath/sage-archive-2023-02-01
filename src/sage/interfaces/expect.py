@@ -53,13 +53,18 @@ import quit
 
 import cleaner
 
+import os
+
 from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
 from sage.structure.element import RingElement
 BAD_SESSION = -2
 
 failed_to_start = []
 
-tmp_expect_interface_local='%s/tmp'%SAGE_TMP_INTERFACE
+#tmp_expect_interface_local='%s/tmp'%SAGE_TMP_INTERFACE
+
+def tmp_expect_interface_local():
+    return '%s/tmp'%SAGE_TMP_INTERFACE + str(os.getpid())
 
 ## On some platforms, e.g., windows, this can easily take 10 seconds!?!  Terrible.  And
 ## it should not be necessary or used anyways.
@@ -545,7 +550,7 @@ If this all works, you can then make calls like:
         try:
             return self.__local_tmpfile
         except AttributeError:
-            self.__local_tmpfile = tmp_expect_interface_local
+            self.__local_tmpfile = tmp_expect_interface_local()
             return self.__local_tmpfile
 
     def _remote_tmpdir(self):

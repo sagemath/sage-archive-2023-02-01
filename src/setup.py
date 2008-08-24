@@ -1004,6 +1004,11 @@ ext_modules = [ \
                  language = 'c',
                  libraries = ["ginac"]), \
 
+    Extension('sage.symbolic.function',
+                 sources = ['sage/symbolic/function.pyx'],
+                 language = 'c++',
+                 libraries = ["ginac"]), \
+
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',
                'sage/modular/modsym/p1list.pyx',

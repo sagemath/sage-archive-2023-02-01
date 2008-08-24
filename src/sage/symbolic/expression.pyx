@@ -17,6 +17,7 @@ We mix Singular variables with symbolic variables:
     2*a*b + 2*a*c + 2*b*c + a^2 + b^2 + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
 """
 
+include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
 
@@ -46,33 +47,6 @@ cdef class Expression(CommutativeRingElement):
             'x + y'
         """
         return GEx_to_str(&self._gobj)
-
-    def diff(self, symb, deg=1):
-        """
-        EXAMPLES:
-            sage: var("x y", ns=1)
-            (x, y)
-            sage: b = (x+y)^5
-            sage: b.diff(x, 2)
-            20*(x + y)^3
-
-            sage: from sage.symbolic.function import function as myfunc
-            sage: foo = myfunc('foo',2)
-            sage: foo(x^2,x^2).diff(x)
-            2*D[0](foo)(x^2,x^2)*x + 2*D[1](foo)(x^2,x^2)*x
-        """
-        if not isinstance(deg, (int, long, sage.rings.integer.Integer)) \
-                or deg < 1:
-            raise TypeError, "argument deg should be an integer >1."
-        if not isinstance(symb, Expression):
-            try:
-                symb = ring.NSR(symb)
-            except TypeError, err:
-                raise TypeError, "argument symb must be a symbol"
-        if not is_a_symbol((<Expression>symb)._gobj):
-            raise TypeError, "argument symb must be a symbol"
-        return new_Expression_from_GEx(self._gobj.diff(\
-                ex_to_symbol((<Expression>symb)._gobj), deg))
 
     def __float__(self):
         """
@@ -315,6 +289,37 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression nexp = self.coerce_in(exp)
         return new_Expression_from_GEx(g_pow(self._gobj, nexp._gobj))
 
+    def diff(self, symb, deg=1):
+        """
+        Return the deg-th (partial) derivative of self with respect to symb.
+
+        EXAMPLES:
+            sage: var("x y", ns=1)
+            (x, y)
+            sage: b = (x+y)^5
+            sage: b.diff(x, 2)
+            20*(x + y)^3
+
+            sage: from sage.symbolic.function import function as myfunc
+            sage: foo = myfunc('foo',2)
+            sage: foo(x^2,x^2).diff(x)
+            2*D[0](foo)(x^2,x^2)*x + 2*D[1](foo)(x^2,x^2)*x
+        """
+        if not isinstance(deg, (int, long, sage.rings.integer.Integer)) \
+                or deg < 1:
+            raise TypeError, "argument deg should be an integer >1."
+        if not isinstance(symb, Expression):
+            try:
+                symb = ring.NSR(symb)
+            except TypeError, err:
+                raise TypeError, "argument symb must be a symbol"
+        if not is_a_symbol((<Expression>symb)._gobj):
+            raise TypeError, "argument symb must be a symbol"
+        _sig_on
+        cdef GEx x = self._gobj.diff(ex_to_symbol((<Expression>symb)._gobj), deg)
+        _sig_off
+        return new_Expression_from_GEx(x)
+
     def expand(Expression self):
         """
         Return expanded form of his expression, obtained by multiplying out
@@ -335,7 +340,10 @@ cdef class Expression(CommutativeRingElement):
             sage: f.expand()
             x^2 - y^2
         """
-        return new_Expression_from_GEx(self._gobj.expand(0))
+        _sig_on
+        cdef GEx x = self._gobj.expand(0)
+        _sig_off
+        return new_Expression_from_GEx(x)
 
     def collect(Expression self, s):
         """
@@ -357,7 +365,10 @@ cdef class Expression(CommutativeRingElement):
             (x^2*y^2 + 4)*z^2 + (x + 21*y)*z + 4*x*y + 20*y^2
         """
         cdef Expression s0 = self.coerce_in(s)
-        return new_Expression_from_GEx(self._gobj.collect(s0._gobj, False))
+        _sig_on
+        cdef GEx x = self._gobj.collect(s0._gobj, False)
+        _sig_off
+        return new_Expression_from_GEx(x)
 
     def __abs__(self):
         """
@@ -817,7 +828,10 @@ cdef class Expression(CommutativeRingElement):
             0.00330022368532 - 0.418155449141*I
             sage: plot(lambda x: S(x).zeta(), -10,10).show(ymin=-3,ymax=3)
         """
-        return new_Expression_from_GEx(g_zeta(self._gobj))
+        _sig_on
+        cdef GEx x = g_zeta(self._gobj)
+        _sig_off
+        return new_Expression_from_GEx(x)
 
     def factorial(self):
         """
@@ -836,7 +850,10 @@ cdef class Expression(CommutativeRingElement):
             sage: (x^2+y^3).factorial()
             (x^2 + y^3)!
         """
-        return new_Expression_from_GEx(g_factorial(self._gobj))
+        _sig_on
+        cdef GEx x = g_factorial(self._gobj)
+        _sig_off
+        return new_Expression_from_GEx(x)
 
     def binomial(self, k):
         """
@@ -856,7 +873,10 @@ cdef class Expression(CommutativeRingElement):
             binomial(x,y)
         """
         cdef Expression nexp = self.coerce_in(k)
-        return new_Expression_from_GEx(g_binomial(self._gobj, nexp._gobj))
+        _sig_on
+        cdef GEx x = g_binomial(self._gobj, nexp._gobj)
+        _sig_off
+        return new_Expression_from_GEx(x)
 
     def Order(self):
         """
@@ -892,7 +912,10 @@ cdef class Expression(CommutativeRingElement):
             0.4980156681183560427136911175 - 0.1549498283018106851249551305*I
             sage: set_verbose(-1); plot(lambda x: S(x).gamma(), -6,4).show(ymin=-3,ymax=3)
         """
-        return new_Expression_from_GEx(g_tgamma(self._gobj))
+        _sig_on
+        cdef GEx x = g_tgamma(self._gobj)
+        _sig_off
+        return new_Expression_from_GEx(x)
 
     def lgamma(self):
         """
@@ -916,7 +939,10 @@ cdef class Expression(CommutativeRingElement):
             1.6487212707001282
             sage: plot(lambda x: (S(x).exp() - S(-x).exp())/2 - S(x).sinh(), -1, 1)
         """
-        return new_Expression_from_GEx(g_lgamma(self._gobj))
+        _sig_on
+        cdef GEx x = g_lgamma(self._gobj)
+        _sig_off
+        return new_Expression_from_GEx(x)
 
     # Functions to add later, maybe.  These were in Ginac mainly
     # implemented using a lot from cln, and I had to mostly delete

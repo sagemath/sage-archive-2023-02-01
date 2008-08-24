@@ -50,9 +50,13 @@ done * doctest all existing functions
 
 done * add copyright headers
 
+done * wrap differentiation
+
+done * integrate in burcin's new code
+
 ------------------------------------------------------------------
 
-* integrate in burcin's new code
+done * put _sig_on/ _sig_off back so control-c works.
 
 * Bug...
 sage: var('x',ns=1); k.<a> = GF(9); k(2)*x
@@ -72,8 +76,6 @@ NaN
 * wrap substituting expressions
 
 * wrap taylor series
-
-* wrap differentiation
 
 * implement isqrt, etc. and other stubs in pynac.pyx
 

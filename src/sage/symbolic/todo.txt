@@ -52,10 +52,20 @@ done * add copyright headers
 
 ------------------------------------------------------------------
 
+* integrate in burcin's new code
+
 * Bug...
 sage: var('x',ns=1); k.<a> = GF(9); k(2)*x
 x
 with 9 replaced by 25 it works fine...
+
+* BUG:
+sage: S(0.5).arccosh()
+1.12762596520638  # very wrong!
+Notes
+(1) sage: (0.5).arccosh()
+NaN
+(2) but however it seems the code in pynac.pyx isn't even called.
 
 * wrap pattern matching
 
@@ -68,8 +78,6 @@ with 9 replaced by 25 it works fine...
 * implement isqrt, etc. and other stubs in pynac.pyx
 
 * add doctest coverage to pynac.pyx
-
-* integrate in burcin's new code
 
 * optimize is_even in numeric.cpp
 

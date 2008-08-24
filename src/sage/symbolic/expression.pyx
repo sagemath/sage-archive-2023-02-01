@@ -21,6 +21,7 @@ include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
 
 import ring
+import sage.rings.integer
 
 from sage.structure.element cimport ModuleElement, RingElement, Element
 
@@ -45,6 +46,33 @@ cdef class Expression(CommutativeRingElement):
             'x + y'
         """
         return GEx_to_str(&self._gobj)
+
+    def diff(self, symb, deg=1):
+        """
+        EXAMPLES:
+            sage: var("x y", ns=1)
+            (x, y)
+            sage: b = (x+y)^5
+            sage: b.diff(x, 2)
+            20*(x + y)^3
+
+            sage: from sage.symbolic.function import function as myfunc
+            sage: foo = myfunc('foo',2)
+            sage: foo(x^2,x^2).diff(x)
+            2*D[0](foo)(x^2,x^2)*x + 2*D[1](foo)(x^2,x^2)*x
+        """
+        if not isinstance(deg, (int, long, sage.rings.integer.Integer)) \
+                or deg < 1:
+            raise TypeError, "argument deg should be an integer >1."
+        if not isinstance(symb, Expression):
+            try:
+                symb = ring.NSR(symb)
+            except TypeError, err:
+                raise TypeError, "argument symb must be a symbol"
+        if not is_a_symbol((<Expression>symb)._gobj):
+            raise TypeError, "argument symb must be a symbol"
+        return new_Expression_from_GEx(self._gobj.diff(\
+                ex_to_symbol((<Expression>symb)._gobj), deg))
 
     def __float__(self):
         """

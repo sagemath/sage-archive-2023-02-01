@@ -1018,6 +1018,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     bool ans;
     PyObject* o;
 
+    if (!is_integer()) 
+      return false;
+
     switch(t) {
     case DOUBLE:
       return false;
@@ -1026,13 +1029,12 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       o = PyNumber_Remainder(v._pyobject, TWO);
       if (!o) {
-	Py_DECREF(o);
 	return false;
       }
       ans = (PyObject_Compare(o, ZERO) == 0);
+      Py_DECREF(o);
       if (PyErr_Occurred()) 
 	py_error("is_even");
-      Py_DECREF(o);
       return ans;
     default:
       stub("is_even() type not handled");
@@ -1688,12 +1690,17 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   // protected
 
+  /** This method establishes a canonical order on all numbers.  For complex
+   *  numbers this is not possible in a mathematically consistent way but we need
+   *  to establish some order and it ought to be fast.  So we simply define it
+   *  to be compatible with our method csgn.
+   *
+   *  @return csgn(*this-other) */
   int numeric::compare_same_type(const basic &other) const
   {
     GINAC_ASSERT(is_exactly_a<numeric>(other));
     const numeric &o = static_cast<const numeric &>(other);
-	
-    return this->compare(o);
+    return (value - o.value).csgn();
   }
 
 
@@ -1918,23 +1925,10 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     return value.csgn();
   }
 
-
-  /** This method establishes a canonical order on all numbers.  For complex
-   *  numbers this is not possible in a mathematically consistent way but we need
-   *  to establish some order and it ought to be fast.  So we simply define it
-   *  to be compatible with our method csgn.
-   *
-   *  @return csgn(*this-other)
-   *  @see numeric::csgn() */
   int numeric::compare(const numeric &other) const
   {
-    if (value < other.value)
-      return -1;
-    else if (value > other.value)
-      return 1;
-    return 0;
+    return (*this-other).csgn();
   }
-
 
   bool numeric::is_equal(const numeric &other) const
   {

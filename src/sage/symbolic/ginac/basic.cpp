@@ -834,18 +834,17 @@ int basic::compare(const basic & other) const
 	const tinfo_t typeid_this = tinfo();
 	const tinfo_t typeid_other = other.tinfo();
 
-	if (typeid_this==typeid_other) {
-
-	  // SAGE: If we want orderings to make any sense, it only
-	  // makes sense to compare using the hashes when the types
-	  // are the same.  WARNING -- doing this *will* presumably
-	  // have negative performance implications.
-
+	// SAGE: If we want orderings to make any sense, it only
+	// makes sense to compare using the hashes when the types
+	// are the same.  WARNING -- doing this *will* presumably
+	// have negative performance implications.
+	/*	if (typeid_this==typeid_other) {
 	  const unsigned hash_this = gethash();
 	  const unsigned hash_other = other.gethash();
 	  if (hash_this<hash_other) return -1;
 	  if (hash_this>hash_other) return 1;
 	}
+	*/
 
 #ifdef GINAC_COMPARE_STATISTICS
 	compare_statistics.compare_same_hashvalue++;

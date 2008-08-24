@@ -206,12 +206,15 @@ static ex tgamma_series(const ex & arg,
 	return (tgamma(arg+m+_ex1)/ser_denom).series(rel, order, options);
 }
 
+static void tgamma_print_dflt(const ex & arg, const print_context & c)
+{  c.s << "gamma("; arg.print(c); c.s << ")"; }
 
 REGISTER_FUNCTION(tgamma, eval_func(tgamma_eval).
                           evalf_func(tgamma_evalf).
                           derivative_func(tgamma_deriv).
                           series_func(tgamma_series).
-                          latex_name("\\Gamma"));
+                          latex_name("\\Gamma").
+		          print_func<print_dflt>(tgamma_print_dflt));
 
 
 //////////

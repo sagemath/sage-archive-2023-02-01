@@ -73,6 +73,8 @@ extern "C" PyObject* py_real(PyObject* a);
 extern "C" PyObject* py_imag(PyObject* a);
 extern "C" PyObject* py_numer(PyObject* a);
 extern "C" PyObject* py_denom(PyObject* a);
+extern "C" PyObject* py_conjugate(PyObject* a);
+
 extern "C" bool      py_is_rational(PyObject* a);
 extern "C" bool      py_is_real(PyObject* a);
 extern "C" bool      py_is_integer(PyObject* a);
@@ -169,7 +171,7 @@ extern "C" PyObject* py_eval_catalan(long ndigits);
 #define ASSERT(s, msg) if (!s) { std::cerr << "Failed assertion: " << msg << std::endl; }
 #else
 #define todo(s)
-#define stub(s) std::cerr << "** Hit STUB**: " << s << std::endl;
+#define stub(s) { std::cerr << "** Hit STUB**: " << s << std::endl; }
 #define fake(s)
 #endif
 
@@ -1141,6 +1143,10 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     verbose2("denom -- out:", ans);
     return ans;
   }
+
+  Number_T Number_T::conjugate() const {
+    PY_RETURN(py_conjugate);
+  }
   
   Number_T Number_T::evalf() const {
     PY_RETURN(py_float);
@@ -1667,10 +1673,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   ex numeric::conjugate() const
   {
-    if (is_real()) 
-      return *this;
-
-    stub("conjugate of nonreal");
+    return (numeric) value.conjugate();
   }
 
   ex numeric::real_part() const

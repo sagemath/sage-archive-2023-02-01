@@ -134,6 +134,8 @@ namespace GiNaC {
     Number_T lcm(Number_T b) const;
     Number_T gcd(Number_T b) const;
 
+    Number_T conjugate() const;
+
     Number_T sin() const;
     Number_T cos() const;
     Number_T exp() const;

@@ -20,6 +20,9 @@ from sage.rings.rational import Rational  # Used for sqrt.
 
 cdef class Expression(CommutativeRingElement):
     def __dealloc__(self):
+        """
+        Delete memory occupied by this expression.
+        """
         GEx_destruct(&self._gobj)
 
     def _repr_(self):
@@ -315,15 +318,73 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(g_step(self._gobj))
 
     def csgn(self):
+        """
+        Return the sign of self, which is -1 if self < 0, 0 if self ==
+        0, and 1 if self > 0, or unevaluated when self is a nonconstant
+        symbolic expression.
+
+        It can be somewhat arbitrary when self is not real.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); SR = x.parent()
+            sage: SR(-2).csgn()
+            -1
+            sage: SR(0.0).csgn()
+            0
+            sage: SR(10).csgn()
+            1
+            sage: x.csgn()
+            csgn(x)
+            sage: SR(CDF.0).csgn()
+            1
+        """
         return new_Expression_from_GEx(g_csgn(self._gobj))
 
     def conjugate(self):
+        """
+        Return the complex cnjugate of self.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); SR = x.parent()
+            sage: SR(CDF.0).conjugate()
+            -I
+            sage: x.conjugate()
+            conjugate(x)
+            sage: SR(RDF(1.5)).conjugate()
+            1.5
+            sage: SR(float(1.5)).conjugate()
+            1.0
+        """
         return new_Expression_from_GEx(g_conjugate(self._gobj))
 
     def real_part(self):
+        """
+        Return the real part of self.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); SR = x.parent()
+            sage: x.real_part()
+            real_part(x)
+            sage: SR(CDF(2,3)).real_part()
+            2.0
+            sage: SR(CC(2,3)).real_part()
+            2.00000000000000
+        """
         return new_Expression_from_GEx(g_real_part(self._gobj))
 
     def imag_part(self):
+        """
+        Return the imaginary part of self.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); SR = x.parent()
+            sage: x.imag_part()
+            imag_part(x)
+            sage: SR(CC(2,3)).imag_part()
+            3.00000000000000
+            sage: SR(CDF(2,3)).imag_part()
+            3.0
+        """
         return new_Expression_from_GEx(g_imag_part(self._gobj))
 
     def sqrt(self):
@@ -395,6 +456,21 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(g_tan(self._gobj))
 
     def arcsin(self):
+        """
+        Return the arcsin of x, i.e., the number y between -pi and pi
+        such that sin(y) == x.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); SR = x.parent()
+            sage: x.arcsin()
+            asin(x)
+            sage: SR(0.5).arcsin()
+            0.523598775598299
+            sage: SR(0.999).arcsin()
+            1.52607123962616
+            sage: SR(-0.999).arcsin()
+            -1.52607123962616
+        """
         return new_Expression_from_GEx(g_asin(self._gobj))
 
     def arccos(self):

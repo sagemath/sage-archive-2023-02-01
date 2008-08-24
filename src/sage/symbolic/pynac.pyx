@@ -121,6 +121,15 @@ cdef public object py_imag(object x):
         return 0 # assume is real since it isn't of type complex and doesn't have an imag attribute.
 
 
+#################################################################
+# Conjugate
+#################################################################
+cdef public object py_conjugate(object x):
+    try:
+        return x.conjugate()
+    except AttributeError:
+        return x # assume is real since it doesn't have an imag attribute.
+
 from sage.rings.rational cimport Rational
 cdef public bint py_is_rational(object x):
     return PY_TYPE_CHECK_EXACT(x, Rational) or \

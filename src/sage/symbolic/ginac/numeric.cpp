@@ -188,11 +188,6 @@ extern "C" PyObject* py_eval_catalan(long ndigits);
 // Python Interface
 //////////////////////////////////////////////////////////////
 
-void ginac_error(const char* s) {
-  std::cerr << s << std::endl;
-  abort();
-}
-
 
 void py_error(const char* s) {
   if (PyErr_Occurred()) {
@@ -1361,7 +1356,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   numeric::numeric(long numer, long denom) : basic(&numeric::tinfo_static)
   {
     if (!denom)
-      ginac_error("numeric::div(): division by zero");
+      throw std::overflow_error("numeric::div(): division by zero");
     value = Number_T(numer) / Number_T(denom);
     setflag(status_flags::evaluated | status_flags::expanded);
   }
@@ -1758,8 +1753,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   {
     //todo -- delete
     if (other.is_zero()) 
-      ginac_error("numeric::div(): division by zero");
-    //throw std::overflow_error("numeric::div(): division by zero");
+      throw std::overflow_error("numeric::div(): division by zero");
     return value / other.value;
   }
 
@@ -1835,8 +1829,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     if (&other==_num1_p)
       return *this;
     if (other.value.is_zero())
-      ginac_error("division by zero");
-      //throw std::overflow_error("division by zero");
+      throw std::overflow_error("division by zero");
     return static_cast<const numeric &>((new numeric(value / other.value))->
 					setflag(status_flags::dynallocated));
   }
@@ -1899,8 +1892,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   const numeric numeric::inverse() const
   {
     if (value.is_zero())
-      ginac_error("numeric::inverse(): division by zero");
-      // throw std::overflow_error("numeric::inverse(): division by zero");
+      throw std::overflow_error("numeric::inverse(): division by zero");
     return numeric(value.inverse());
   }
 
@@ -2207,8 +2199,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   const numeric log(const numeric &x)
   {
     if (x.is_zero())
-      ginac_error("log(): logarithmic pole");
-     //throw pole_error("log(): logarithmic pole",0);
+      throw pole_error("log(): logarithmic pole",0);
     return x.value.log();
   }
 
@@ -2268,8 +2259,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     if (!x.is_real() &&
 	x.real().is_zero() &&
 	abs(x.imag()).is_equal(*_num1_p))
-      ginac_error("atan(): logarithmic pole");
-    //throw pole_error("atan(): logarithmic pole",0);
+      throw pole_error("atan(): logarithmic pole",0);
     return x.value.atan();
   }
 

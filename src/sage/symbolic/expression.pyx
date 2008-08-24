@@ -5,10 +5,9 @@ We mix Singular variables with symbolic variables:
     sage: var('a,b,c', ns=1)
     (a, b, c)
     sage: expand((u + v + a + b + c)^2)
-    2*a*b + 2*a*c + 2*b*c + a^2 + b^2 + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
+    2*a*c + 2*a*b + 2*b*c + a^2 + b^2 + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
 """
 
-include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
 
@@ -58,11 +57,10 @@ cdef class Expression(CommutativeRingElement):
             sage: float(SR(RIF(2)))
             Traceback (most recent call last):
             ...
+            TypeError: float() argument must be a string or a number
         """
         cdef bint success
-        _sig_on
         cdef double ans = GEx_to_double(self._gobj, &success)
-        _sig_off
         if not success:
             raise TypeError, "float() argument must be a string or a number"
         return ans
@@ -72,7 +70,7 @@ cdef class Expression(CommutativeRingElement):
         Return hash of this expression.
 
         EXAMPLES:
-            sage: var("x y", ns=1); S = x.parent()
+            sage: x, y = var("x y", ns=1); S = x.parent()
             sage: hash(x)
             2013265920
 
@@ -83,7 +81,7 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(19/23)
             4
             sage: hash(x+y)
-            7352706
+            -233442942
             sage: d = {x+y: 5}
             sage: d
             {x + y: 5}
@@ -104,7 +102,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x^3 -y == y + x
             x^3 - y == x + y
             sage: x^3 - y^10 >= y + x^10
-            -y^10 + x^3 >= x^10 + y
+            x^3 - y^10 >= x^10 + y
             sage: x^2 > x
             x^2 > x
         """
@@ -140,11 +138,7 @@ cdef class Expression(CommutativeRingElement):
         #  sage: bool(x == x+1)
         #  True  # BAD
         # Solution is to probably look something up in ginac manual.
-        _sig_on
-        cdef bint x = not self._gobj.is_zero()
-        _sig_off
-        return x
-
+        return not self._gobj.is_zero()
 
     cdef Expression coerce_in(self, z):
         """
@@ -236,10 +230,7 @@ cdef class Expression(CommutativeRingElement):
             x^(sin(x)^cos(y))
         """
         cdef Expression nexp = self.coerce_in(exp)
-        _sig_on
-        cdef GEx e = g_pow(self._gobj, nexp._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_pow(self._gobj, nexp._gobj))
 
     def expand(Expression self):
         """
@@ -255,16 +246,13 @@ cdef class Expression(CommutativeRingElement):
             sage: ((x + (2/3)*y)^3).expand()
             4/3*x*y^2 + 2*x^2*y + x^3 + 8/27*y^3
             sage: expand( (x*sin(x) - cos(y)/x)^2 )
-            sin(x)^2*x^2 + cos(y)^2*x^(-2) - 2*sin(x)*cos(y)
+            sin(x)^2*x^2 - 2*sin(x)*cos(y) + cos(y)^2*x^(-2)
             sage: f = (x-y)*(x+y); f
             (x - y)*(x + y)
             sage: f.expand()
             x^2 - y^2
         """
-        _sig_on
-        cdef GEx e = self._gobj.expand(0)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(self._gobj.expand(0))
 
     def collect(Expression self, s):
         """
@@ -279,17 +267,14 @@ cdef class Expression(CommutativeRingElement):
             (x, y, z)
             sage: f = 4*x*y + x*z + 20*y^2 + 21*y*z + 4*z^2 + x^2*y^2*z^2
             sage: f.collect(x)
-            (4*y + z)*x + 21*y*z + x^2*y^2*z^2 + 20*y^2 + 4*z^2
+            21*y*z + x^2*y^2*z^2 + (4*y + z)*x + 20*y^2 + 4*z^2
             sage: f.collect(y)
-            (4*x + 21*z)*y + x*z + (x^2*z^2 + 20)*y^2 + 4*z^2
+            x*z + (4*x + 21*z)*y + (x^2*z^2 + 20)*y^2 + 4*z^2
             sage: f.collect(z)
-            (x + 21*y)*z + 4*x*y + (x^2*y^2 + 4)*z^2 + 20*y^2
+            4*x*y + (x + 21*y)*z + (x^2*y^2 + 4)*z^2 + 20*y^2
         """
         cdef Expression s0 = self.coerce_in(s)
-        _sig_on
-        cdef GEx e = self._gobj.collect(s0._gobj, False)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(self._gobj.collect(s0._gobj, False))
 
     def __abs__(self):
         """
@@ -309,10 +294,7 @@ cdef class Expression(CommutativeRingElement):
             sage: type(abs(S(-5)))
             <type 'sage.symbolic.expression.Expression'>
         """
-        _sig_on
-        cdef GEx e = g_abs(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_abs(self._gobj))
 
     def step(self):
         """
@@ -330,34 +312,19 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(float(-1)).step()
             0
         """
-        _sig_on
-        cdef GEx e = g_step(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_step(self._gobj))
 
     def csgn(self):
-        _sig_on
-        cdef GEx e = g_csgn(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_csgn(self._gobj))
 
     def conjugate(self):
-        _sig_on
-        cdef GEx e = g_conjugate(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_conjugate(self._gobj))
 
     def real_part(self):
-        _sig_on
-        cdef GEx e = g_real_part(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_real_part(self._gobj))
 
     def imag_part(self):
-        _sig_on
-        cdef GEx e = g_imag_part(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_imag_part(self._gobj))
 
     def sqrt(self):
         """
@@ -365,22 +332,13 @@ cdef class Expression(CommutativeRingElement):
             sage: var('x, y', ns=1); S = parent(x)
             (x, y)
             sage: S(2).sqrt()
-            2^(1/2)
+            sqrt(2)
             sage: (x^2+y^2).sqrt()
-            (x^2 + y^2)^(1/2)
+            sqrt(x^2 + y^2)
             sage: (x^2).sqrt()
-            (x^2)^(1/2)
+            sqrt(x^2)
         """
-        # do not use sqrt(...) since it doesn't seem to work
-        # and there is a remark in decl.pxi about it just being
-        # some broken alias.
-        return self**Rational((1,2))
-
-        #_sig_on
-        #cdef GEx e = g_sqrt(self._gobj)
-        #_sig_off
-        #return new_Expression_from_GEx(e)
-
+        return new_Expression_from_GEx(g_sqrt(self._gobj))
 
     def sin(self):
         """
@@ -396,10 +354,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(S(RealField(150)(1)))
             0.84147098480789650665250232163029899962256306
         """
-        _sig_on
-        cdef GEx e = g_sin(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_sin(self._gobj))
 
     def cos(self):
         """
@@ -416,15 +371,12 @@ cdef class Expression(CommutativeRingElement):
             cos(1)
             sage: cos(S(RealField(150)(1)))
             0.54030230586813971740093660744297660373231042
-            sage: SR(RR(1)).cos()
+            sage: S(RR(1)).cos()
             0.540302305868140
-            sage: SR(float(1)).cos()
+            sage: S(float(1)).cos()
             0.54030230586813977
         """
-        _sig_on
-        cdef GEx e = g_cos(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_cos(self._gobj))
 
     def tan(self):
         """
@@ -440,169 +392,55 @@ cdef class Expression(CommutativeRingElement):
             sage: tan(S(RealField(150)(1)))
             1.5574077246549022305069748074583601730872508
         """
-        _sig_on
-        cdef GEx e = g_tan(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_tan(self._gobj))
 
     def arcsin(self):
-        _sig_on
-        cdef GEx e = g_asin(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_asin(self._gobj))
 
     def arccos(self):
-        _sig_on
-        cdef GEx e = g_acos(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_acos(self._gobj))
 
     def arctan(self):
-        _sig_on
-        cdef GEx e = g_atan(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_atan(self._gobj))
 
     def arctan2(self, Expression x):
-        _sig_on
-        cdef GEx e = g_atan2(self._gobj, x._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_atan2(self._gobj, x._gobj))
 
     def sinh(self):
-        _sig_on
-        cdef GEx e = g_sinh(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_sinh(self._gobj))
 
     def cosh(self):
-        _sig_on
-        cdef GEx e = g_cosh(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_cosh(self._gobj))
 
     def tanh(self):
-        _sig_on
-        cdef GEx e = g_tanh(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_tanh(self._gobj))
 
     def arcsinh(self):
-        _sig_on
-        cdef GEx e = g_asinh(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_asinh(self._gobj))
 
     def arccosh(self):
-        _sig_on
-        cdef GEx e = g_acosh(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_acosh(self._gobj))
 
     def arctanh(self):
-        _sig_on
-        cdef GEx e = g_atanh(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_atanh(self._gobj))
 
     def exp(self):
-        _sig_on
-        cdef GEx e = g_exp(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_exp(self._gobj))
 
     def log(self):
-        _sig_on
-        cdef GEx e = g_log(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def Li2(self):
-        _sig_on
-        cdef GEx e = g_Li2(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_log(self._gobj))
 
     def Li(self, Expression x):
-        _sig_on
-        cdef GEx e = g_Li(self._gobj, x._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def G(self, Expression y):
-        _sig_on
-        cdef GEx e = g_G(self._gobj, y._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def G2(self, Expression s, Expression y):
-        _sig_on
-        cdef GEx e = g_G2(self._gobj, s._gobj, y._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def S(self, Expression p, Expression x):
-        _sig_on
-        cdef GEx e = g_S(self._gobj, p._gobj, x._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def H(self, Expression x):
-        _sig_on
-        cdef GEx e = g_H(self._gobj, x._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_Li(self._gobj, x._gobj))
 
     def zeta(self):
-        _sig_on
-        cdef GEx e = g_zeta(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def zeta2(self, Expression s):
-        _sig_on
-        cdef GEx e = g_zeta2(self._gobj, s._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def zetaderiv(self, Expression x):
-        _sig_on
-        cdef GEx e = g_zetaderiv(self._gobj, x._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def tgamma(self):
-        _sig_on
-        cdef GEx e = g_tgamma(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def lgamma(self):
-        _sig_on
-        cdef GEx e = g_lgamma(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def beta(self, Expression y):
-        _sig_on
-        cdef GEx e = g_beta(self._gobj, y._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def psi(self):
-        _sig_on
-        cdef GEx e = g_psi(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
-
-    def psi2(self, Expression x):
-        _sig_on
-        cdef GEx e = g_psi2(self._gobj, x._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_zeta(self._gobj))
 
     def factorial(self):
         """
+        OUTPUT:
+            symbolic expression
+
         EXAMPLES:
             sage: var('x, y', ns=1); S = parent(x)
             (x, y)
@@ -611,35 +449,70 @@ cdef class Expression(CommutativeRingElement):
             sage: x.factorial()
             x!
             sage: (x^2+y^3).factorial()
-            (y^3 + x^2)!
+            (x^2 + y^3)!
         """
-        _sig_on
-        cdef GEx e = g_factorial(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_factorial(self._gobj))
 
     def binomial(self, Expression k):
         """
+        OUTPUT:
+            symbolic expression
+
         EXAMPLES:
             sage: var('x, y', ns=1); S = parent(x)
             (x, y)
             sage: S(5).binomial(S(3))
             10
             sage: x.binomial(S(3))
-            (2*2^(-1)*x - 3*2^(-1)*x^2 + 2^(-1)*x^3)*3^(-1)
+            1/6*x^3 - 1/2*x^2 + 1/3*x
             sage: x.binomial(y)
             binomial(x,y)
         """
-        _sig_on
-        cdef GEx e = g_binomial(self._gobj, k._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(g_binomial(self._gobj, k._gobj))
 
     def Order(self):
-        _sig_on
-        cdef GEx e = g_Order(self._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        """
+        Order, as in big oh notation.
+
+        OUTPUT:
+            symbolic expression
+
+        EXAMPLES:
+            sage: n = var('n', ns=1)
+            sage: (17*n^3).Order()
+            Order(n^3)
+        """
+        return new_Expression_from_GEx(g_Order(self._gobj))
+
+    def lgamma(self):
+       return new_Expression_from_GEx(g_lgamma(self._gobj))
+
+    # Functions to add later, maybe.  These were in Ginac mainly
+    # implemented using a lot from cln, and I had to mostly delete
+    # their implementations.   They are pretty specialized for
+    # physics apps, maybe.
+    #def Li2(self):
+    #    return new_Expression_from_GEx(g_Li2(self._gobj))
+    #def G(self, Expression y):
+    #    return new_Expression_from_GEx(g_G(self._gobj, y._gobj))
+    #def G2(self, Expression s, Expression y):
+    #    return new_Expression_from_GEx(g_G2(self._gobj, s._gobj, y._gobj))
+    #def S(self, Expression p, Expression x):
+    #return new_Expression_from_GEx(g_S(self._gobj, p._gobj, x._gobj))
+    #def H(self, Expression x):
+    #return new_Expression_from_GEx(g_H(self._gobj, x._gobj))
+    #def zeta2(self, Expression s):
+    #    return new_Expression_from_GEx(g_zeta2(self._gobj, s._gobj))
+    #def zetaderiv(self, Expression x):
+    #    return new_Expression_from_GEx(g_zetaderiv(self._gobj, x._gobj))
+    #def tgamma(self):
+    #    return new_Expression_from_GEx(g_tgamma(self._gobj))
+    #def beta(self, Expression y):
+    #    return new_Expression_from_GEx(g_beta(self._gobj, y._gobj))
+    #def psi(self):
+    #    return new_Expression_from_GEx(g_psi(self._gobj))
+    #def psi2(self, Expression x):
+    #    return new_Expression_from_GEx(g_psi2(self._gobj, x._gobj))
 
 
 

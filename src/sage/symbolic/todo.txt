@@ -44,13 +44,24 @@ sage: a^3*x^10 + x^12 - a^15
 sage: singular(a^3*x^10 + x^12 - a^15)
 -a^15+a^3*x^10+x^12
 
+done * switch everything to use except+.
+
+------------------------------------------------------------------
 
 * Bug...
-sage: k.<a> = GF(9); k(2)*x
+sage: var('x',ns=1); k.<a> = GF(9); k(2)*x
 x
+with 9 replaced by 25 it works fine...
 
-* switch everything to use except+.
+* doctest all existing functions
 
+* add copyright headers
+
+* implement isqrt, etc. and other stubs in pynac.pyx
+
+* add doctest coverage to pynac.pyx
+
+* integrate in burcin's new code
 
 * figure out how to check for true or false-ness of inequalities in ginac manual.
    sage: var('x,y,z,w',ns=1); P=x.parent();

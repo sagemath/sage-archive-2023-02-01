@@ -1,6 +1,7 @@
 cdef extern from "math.h":
     double sin(double)
     double cos(double)
+    double sqrt(double)
 
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
@@ -310,23 +311,11 @@ cdef public object py_atanh(object x):
         return RR(x).arctanh()
 
 
-cdef public object py_li2(object x):
-    raise NotImplementedError
-
 cdef public object py_lgamma(object x):
     try:
         return x.lngamma()
     except AttributeError:
         return RR(x).lngamma()
-
-cdef public object py_tgamma(object x):
-    raise NotImplementedError
-
-cdef public object py_psi(object x):
-    raise NotImplementedError
-
-cdef public object py_psi2(object x, object y):
-    raise NotImplementedError
 
 cdef public object py_isqrt(object x):
     raise NotImplementedError
@@ -336,8 +325,8 @@ cdef public object py_sqrt(object x):
         # TODO: worry about recursive call into symbolic system!
         # What if Integer's sqrt calls symbolic one and we go in circle?
         return x.sqrt()
-    except AttributeError:
-        return RR(x).sqrt()
+    except AttributeError, msg:
+        return sqrt(float(x))
 
 cdef public object py_abs(object x):
     return abs(x)
@@ -365,6 +354,18 @@ cdef public object py_iquo2(object x, object n):
     except (TypeError, ValueError):
         return 0, 0
 
+
+##################################################################
+# Not yet implemented
+##################################################################
+cdef public object py_li2(object x):
+    raise NotImplementedError
+cdef public object py_tgamma(object x):
+    raise NotImplementedError
+cdef public object py_psi(object x):
+    raise NotImplementedError
+cdef public object py_psi2(object x, object y):
+    raise NotImplementedError
 
 
 ##################################################################

@@ -1952,7 +1952,7 @@ def is_squarefree(n):
 #################################################################
 # Euler phi function
 #################################################################
-def euler_phi(n):
+class Euler_Phi:
     """
     Return the value of the Euler phi function on the integer n.  We
     defined this to be the number of positive integers <= n that are
@@ -1997,16 +1997,46 @@ def euler_phi(n):
        sage: len([i for i in range(21) if gcd(21,i) == 1]) == euler_phi(21)
        True
 
+    The phi function also has a special plotting method.
+
+        sage: P = plot(euler_phi, -3, 71)
+
     AUTHORS:
         - William Stein
         - Alex Clemesha (2006-01-10): some examples
     """
-    if n<=0:
-        return integer_ring.ZZ(0)
-    if n<=2:
-        return integer_ring.ZZ(1)
-    return integer_ring.ZZ(pari(n).phi())
-    #return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
+    def __repr__(self):
+        return "Number of positive integers <=n but relatively prime to n"
+
+    def __call__(self, n, k=1):
+        if n<=0:
+            return integer_ring.ZZ(0)
+        if n<=2:
+            return integer_ring.ZZ(1)
+        return integer_ring.ZZ(pari(n).phi())
+        #return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
+
+    def plot(self, xmin=1, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
+             **kwds):
+        """
+        Plot the Euler phi function.
+
+            INPUT:
+                xmin -- default: 1
+                xmax -- default: 50
+                pointsize -- default: 30
+                rgbcolor -- default: (0,0,1)
+                join -- default: True; whether to join the points.
+                **kwds -- passed on
+        """
+        v = [(n,euler_phi(n)) for n in range(xmin,xmax + 1)]
+        from sage.plot.all import list_plot
+        P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
+        if join:
+            P += list_plot(v, plotjoined=True, rgbcolor=(0.7,0.7,0.7), **kwds)
+        return P
+
+euler_phi = Euler_Phi()
 
 def crt(a,b,m,n):
     """

@@ -73,6 +73,7 @@ def dynkin_diagram(t):
 
     EXAMPLES:
         sage: dynkin_diagram(["A", 3])
+        doctest:1: DeprecationWarning: dynkin_diagram is deprecated, use DynkinDiagram instead!
         Dynkin diagram of type ['A', 3]
 
     """

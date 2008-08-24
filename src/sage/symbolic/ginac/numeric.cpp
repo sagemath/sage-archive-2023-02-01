@@ -129,8 +129,9 @@ extern "C" PyObject* py_eval_catalan(long ndigits);
 // as a PyObject*.
 #define PY_RETURN(f)  PyObject *a = to_pyobject(*this);		 \
   PyObject *ans = f(a);						 \
+  Py_DECREF(a);                                                  \
   if (!ans) py_error("error calling function");			 \
-  Py_DECREF(a); return ans; 
+  return ans; 
 
 // Call the Python function f on *this and return the result
 // as a PyObject*.
@@ -195,10 +196,7 @@ void ginac_error(const char* s) {
 
 void py_error(const char* s) {
   if (PyErr_Occurred()) {
-    PyErr_Print();
-    PyErr_Clear();
-    //throw std::runtime_error("a Python error occured");
-    abort();
+    throw std::runtime_error("");
   }
 }
 
@@ -497,6 +495,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   Number_T::Number_T(PyObject* o) {
     verbose("Number_T::Number_T(PyObject* o)");
+    if(! o) py_error("Error");
     t = PYOBJECT;
     v._pyobject = o; // STEAL a reference
   }

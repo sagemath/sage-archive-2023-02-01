@@ -43,20 +43,23 @@ sage: a^3*x^10 + x^12 - a^15
 -a^15 + a^3*x^10 + x^12
 sage: singular(a^3*x^10 + x^12 - a^15)
 -a^15+a^3*x^10+x^12
-
 done * switch everything to use except+.
-
 done * doctest all existing functions
-
 done * add copyright headers
-
 done * wrap differentiation
-
 done * integrate in burcin's new code
+done * put _sig_on/ _sig_off back so control-c works.
+done (?) * printing sums is still out of wack and non-deterministic
+done * implement isqrt, etc. and other stubs in pynac.pyx
 
 ------------------------------------------------------------------
 
-done * put _sig_on/ _sig_off back so control-c works.
+* get gcd to work
+sage: x,y= var('x,y',ns=1)
+sage: (x^2-y^2).gcd(x-y)
+boom!
+
+
 
 * Bug...
 sage: var('x',ns=1); k.<a> = GF(9); k(2)*x
@@ -77,14 +80,7 @@ NaN
 
 * wrap taylor series
 
-* implement isqrt, etc. and other stubs in pynac.pyx
-
-* add doctest coverage to pynac.pyx
-
 * optimize is_even in numeric.cpp
-
-
-* printing sums is still out of wack and non-deterministic
 
 * figure out how to check for true or false-ness of inequalities in ginac manual.
    sage: var('x,y,z,w',ns=1); P=x.parent();

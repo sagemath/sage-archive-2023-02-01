@@ -345,6 +345,15 @@ cdef class Expression(CommutativeRingElement):
         _sig_off
         return new_Expression_from_GEx(x)
 
+    def gcd(self, b):
+        """
+        """
+        cdef Expression r = self.coerce_in(b)
+        _sig_on
+        cdef GEx x = g_gcd(self._gobj, r._gobj)
+        _sig_off
+        return new_Expression_from_GEx(x)
+
     def collect(Expression self, s):
         """
         INPUT:
@@ -618,6 +627,44 @@ cdef class Expression(CommutativeRingElement):
             1/4*Pi
             sage: maxima.eval('atan2(1/2,1/2)')
             '%pi/4'
+
+        TESTS:
+        We compare a bunch of different evaluation points between
+        Sage and Maxima:
+            sage: S(-0.7).arctan2(S(-0.6))
+            -Pi + 0.862170054667226
+
+            sage: float(S(0.7).arctan2(0.6))
+            0.8621700546672264
+            sage: maxima('atan2(0.7,0.6)')
+            .8621700546672261
+            sage: float(S(0.7).arctan2(-0.6))
+            2.2794225989225669
+            sage: maxima('atan2(0.7,-0.6)')
+            2.279422598922567
+            sage: float(S(-0.7).arctan2(0.6))
+            -0.8621700546672264
+            sage: maxima('atan2(-0.7,0.6)')
+            -.8621700546672261
+            sage: float(S(-0.7).arctan2(-0.6))
+            -2.2794225989225669
+            sage: maxima('atan2(-0.7,-0.6)')
+            -2.279422598922567
+            sage: float(S(0).arctan2(-0.6))
+            3.1415926535897931
+            sage: maxima('atan2(0,-0.6)')
+            3.141592653589793
+            sage: float(S(0).arctan2(0.6))
+            0.0
+            sage: maxima('atan2(0,0.6)')
+            0.0
+            sage: S(0).arctan2(0)
+            0
+
+            sage: S(CDF(0,1)).arctan2(1)
+            arctan2(I, 1)
+            sage: S(1).arctan2(CDF(0,1))
+            arctan2(1, I)
         """
         cdef Expression nexp = self.coerce_in(x)
         return new_Expression_from_GEx(g_atan2(self._gobj, nexp._gobj))

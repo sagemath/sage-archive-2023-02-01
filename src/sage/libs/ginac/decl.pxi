@@ -38,6 +38,9 @@ cdef extern from "ginac_wrap.h":
         GEx diff(GSymbol s, int d)    except +
         bint is_zero()                except +
 
+    # Algorithms
+    GEx g_gcd "gcd"(GEx a, GEx b)
+
     # Constants
     GEx g_Pi "Pi"
     GEx g_Catalan "Catalan"

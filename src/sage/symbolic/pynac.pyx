@@ -149,18 +149,8 @@ cdef public bint py_is_integer(object x):
     return PY_TYPE_CHECK_EXACT(x, Integer) or\
            IS_INSTANCE(x, int) or IS_INSTANCE(x, long)
 
-
-#cdef public object py_Rational(object x):
-#    return Rational(x)
-
-
-#cdef public object py_Integer(object x):
-#    return Integer(x)
-
 cdef public bint py_is_real(object a):
     return py_imag(a) == 0
-
-
 
 import sage.rings.arith
 cdef public bint py_is_prime(object n):
@@ -206,7 +196,37 @@ cdef public object py_factorial(object x):
     return factorial(x)
 
 cdef public object py_doublefactorial(object x):
-    raise NotImplementedError #TODO!
+    n = Integer(x)
+    if n < -1:
+        raise ValueError, "argument must be >= -1"
+    from sage.misc.misc_c import prod  # fast balanced product
+    return prod([n - 2*i for i in range(n//2)])
+
+def doublefactorial(n):
+    """
+    The double factorial combinatorial function:
+        n!! == n * (n-2) * (n-4) * ... * ({1|2}) with 0!! == (-1)!! == 1.
+
+    INPUT:
+        n -- an integer > = 1
+
+    EXAMPLES:
+        sage: from sage.symbolic.pynac import doublefactorial
+        sage: doublefactorial(-1)
+        1
+        sage: doublefactorial(0)
+        1
+        sage: doublefactorial(1)
+        1
+        sage: doublefactorial(5)
+        15
+        sage: doublefactorial(20)
+        3715891200
+        sage: prod( [20,18,..,2] )
+        3715891200
+    """
+    return py_doublefactorial(n)
+
 
 from sage.libs.pari.all import pari
 cdef public object py_fibonacci(object n):
@@ -285,8 +305,23 @@ cdef public object py_atan(object x):
         return RR(x).arctan()
 
 cdef public object py_atan2(object x, object y):
-    raise NotImplementedError
-
+    pi = ring.pi
+    cdef int sgn_y = cmp(y, 0)
+    cdef int sgn_x = cmp(x, 0)
+    if sgn_y:
+        if sgn_x > 0:
+            return py_atan(abs(y/x)) * sgn_y
+        elif sgn_x == 0:
+            return pi/2 * sgn_y
+        else:
+            return (pi - py_atan(abs(y/x))) * sgn_y
+    else:
+        if sgn_x > 0:
+            return 0
+        elif x == 0:
+            raise ValueError, "arctan2(0,0) undefined"
+        else:
+            return pi
 
 cdef public object py_sinh(object x):
     try:
@@ -341,12 +376,11 @@ cdef public object py_lgamma(object x):
         return RR(x).lngamma()
 
 cdef public object py_isqrt(object x):
-    raise NotImplementedError
+    return Integer(x).isqrt()
 
 cdef public object py_sqrt(object x):
     try:
-        # TODO: worry about recursive call into symbolic system!
-        # What if Integer's sqrt calls symbolic one and we go in circle?
+        # WORRY: What if Integer's sqrt calls symbolic one and we go in circle?
         return x.sqrt()
     except AttributeError, msg:
         return sqrt(float(x))
@@ -357,17 +391,26 @@ cdef public object py_abs(object x):
 cdef public object py_mod(object x, object n):
     return x % n
 
-cdef public object py_smod(object x, object n):
-    raise NotImplementedError
+cdef public object py_smod(object a, object b):
+    # Modulus (in symmetric representation).
+    # Equivalent to Maple's mods.
+    # returns a mod b in the range [-iquo(abs(b)-1,2), iquo(abs(b),2)]
+    b = abs(b)
+    c = a % b
+    if c > b//2:
+        c -= b
+    print a, b, c
+    return c
+
+def smod(a, b):
+    return py_smod(a,b)
+
 
 cdef public object py_irem(object x, object n):
-    raise NotImplementedError
-
-cdef public object py_irem2(object x, object n):
-    raise NotImplementedError
+    return x % n
 
 cdef public object py_iquo(object x, object n):
-    raise NotImplementedError
+    return x//n
 
 cdef public object py_iquo2(object x, object n):
     try:
@@ -377,14 +420,23 @@ cdef public object py_iquo2(object x, object n):
     except (TypeError, ValueError):
         return 0, 0
 
+cdef public int py_int_length(object x) except -1:
+    # Size in binary notation.  For integers, this is the smallest n >= 0 such
+    # that -2^n <= x < 2^n. If x > 0, this is the unique n > 0 such that
+    # 2^(n-1) <= x < 2^n.  This returns 0 if x is not an integer.
+    print x, Integer(x).bits()
+    return Integer(x).bits()
+
 
 ##################################################################
 # Not yet implemented
 ##################################################################
 cdef public object py_li2(object x):
     raise NotImplementedError
+
 cdef public object py_psi(object x):
     raise NotImplementedError
+
 cdef public object py_psi2(object x, object y):
     raise NotImplementedError
 

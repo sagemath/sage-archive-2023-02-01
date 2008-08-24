@@ -45,6 +45,13 @@ sage: singular(a^3*x^10 + x^12 - a^15)
 -a^15+a^3*x^10+x^12
 
 
+* Bug...
+sage: k.<a> = GF(9); k(2)*x
+x
+
+* switch everything to use except+.
+
+
 * figure out how to check for true or false-ness of inequalities in ginac manual.
    sage: var('x,y,z,w',ns=1); P=x.parent();
    sage: bool(P(2)== P(2))

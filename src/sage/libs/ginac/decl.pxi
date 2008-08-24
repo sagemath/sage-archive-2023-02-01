@@ -46,17 +46,18 @@ cdef extern from "ginac_wrap.h":
     object GEx_to_str "_to_PyString<ex>"(GEx *s)
 
     # Arithmetic
-    GEx gadd "ADD_WRAP" (GEx left, GEx right)
-    GEx gsub "SUB_WRAP" (GEx left, GEx right)
-    GEx gmul "MUL_WRAP" (GEx left, GEx right)
-    GEx gdiv "DIV_WRAP" (GEx left, GEx right)
-    GEx g_lt "LT_WRAP" (GEx left, GEx right)
-    GEx g_eq "EQ_WRAP" (GEx left, GEx right)
-    GEx g_gt "GT_WRAP" (GEx left, GEx right)
-    GEx g_le "LE_WRAP" (GEx left, GEx right)
-    GEx g_ne "NE_WRAP" (GEx left, GEx right)
-    GEx g_ge "GE_WRAP" (GEx left, GEx right)
-    GEx g_pow "pow" (GEx left, GEx exp)
+    int ginac_error()
+    GEx gadd "ADD_WRAP" (GEx left, GEx right) except +
+    GEx gsub "SUB_WRAP" (GEx left, GEx right) except +
+    GEx gmul "MUL_WRAP" (GEx left, GEx right) except +
+    GEx gdiv "DIV_WRAP" (GEx left, GEx right) except +
+    GEx g_lt "LT_WRAP" (GEx left, GEx right) except +
+    GEx g_eq "EQ_WRAP" (GEx left, GEx right) except +
+    GEx g_gt "GT_WRAP" (GEx left, GEx right) except +
+    GEx g_le "LE_WRAP" (GEx left, GEx right) except +
+    GEx g_ne "NE_WRAP" (GEx left, GEx right) except +
+    GEx g_ge "GE_WRAP" (GEx left, GEx right) except +
+    GEx g_pow "pow" (GEx left, GEx exp) except +
 
     GSymbol get_symbol(char* s)
 
@@ -99,4 +100,5 @@ cdef extern from "ginac_wrap.h":
     GEx g_factorial "GiNaC::factorial" (GEx n)	# factorial function n!
     GEx g_binomial "GiNaC::binomial" (GEx n, GEx k)	# binomial coefficients
     GEx g_Order "GiNaC::Order" (GEx x)	        # order term function in truncated power series
+
 

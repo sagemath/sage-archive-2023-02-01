@@ -8,7 +8,6 @@ We mix Singular variables with symbolic variables:
     2*a*b + 2*a*c + 2*b*c + a^2 + b^2 + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
 """
 
-
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
@@ -112,7 +111,6 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression l = left
         cdef Expression r = right
         cdef GEx e
-        _sig_on
         if op == Py_LT:
             e = g_lt(l._gobj, r._gobj)
         elif op == Py_EQ:
@@ -125,7 +123,6 @@ cdef class Expression(CommutativeRingElement):
             e = g_ne(l._gobj, r._gobj)
         elif op == Py_GE:
             e = g_ge(l._gobj, r._gobj)
-        _sig_off
         return new_Expression_from_GEx(e)
 
     def __nonzero__(self):
@@ -170,10 +167,7 @@ cdef class Expression(CommutativeRingElement):
             sage.: x + y + y + x
             2*x+2*y
         """
-        _sig_on
-        cdef GEx e = gadd(left._gobj, (<Expression>right)._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(gadd(left._gobj, (<Expression>right)._gobj))
 
     cdef ModuleElement _sub_c_impl(left, ModuleElement right):
         """
@@ -182,10 +176,7 @@ cdef class Expression(CommutativeRingElement):
             sage.: x - x
             x-y
         """
-        _sig_on
-        cdef GEx e = gsub(left._gobj, (<Expression>right)._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(gsub(left._gobj, (<Expression>right)._gobj))
 
     cdef RingElement _mul_c_impl(left, RingElement right):
         """
@@ -197,10 +188,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x*y*y
             x*y^2
         """
-        _sig_on
-        cdef GEx e = gmul(left._gobj, (<Expression>right)._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(gmul(left._gobj, (<Expression>right)._gobj))
 
     cdef RingElement _div_c_impl(left, RingElement right):
         """
@@ -211,10 +199,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x/y/y
             x*y^(-2)
         """
-        _sig_on
-        cdef GEx e = gdiv(left._gobj, (<Expression>right)._gobj)
-        _sig_off
-        return new_Expression_from_GEx(e)
+        return new_Expression_from_GEx(gdiv(left._gobj, (<Expression>right)._gobj))
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         # TODO: this is never called, maybe, since I define

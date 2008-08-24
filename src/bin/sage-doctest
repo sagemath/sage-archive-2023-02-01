@@ -195,14 +195,17 @@ def extract_doc(file_name, module):
     s += "import sage.plot.plot; sage.plot.plot.DOCTEST_MODE=True\n"  # turn off image popup
     s += """
 def warning_function(f):
+    import warnings
+
     def doctest_showwarning(message, category, filename, lineno, file=f):
         try:
-            file.write(warnings.formatwarning(message, category, filename, lineno))
+            file.write(warnings.formatwarning(message, category, 'doctest', lineno))
         except IOError:
             pass # the file (probably stdout) is invalid
     return doctest_showwarning
 
 def change_warning_output(file):
+    import warnings
     warnings.showwarning = warning_function(file)
 """
 

@@ -5,7 +5,7 @@ We mix Singular variables with symbolic variables:
     sage: var('a,b,c', ns=1)
     (a, b, c)
     sage: expand((u + v + a + b + c)^2)
-    2*a*c + 2*a*b + 2*b*c + a^2 + b^2 + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
+    2*a*b + 2*a*c + 2*b*c + a^2 + b^2 + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
 """
 
 include "../ext/stdsage.pxi"
@@ -83,8 +83,8 @@ cdef class Expression(CommutativeRingElement):
             4
             sage: hash(19/23)
             4
-            sage: hash(x+y)
-            -233442942
+            sage: hash(x+y)   # random -- the hash for some expression is unfortunately random
+            1631713410
             sage: d = {x+y: 5}
             sage: d
             {x + y: 5}
@@ -109,8 +109,22 @@ cdef class Expression(CommutativeRingElement):
             sage: x^2 > x
             x^2 > x
         """
-        cdef Expression l = left
-        cdef Expression r = right
+        cdef Expression l, r
+        # We coerce left and right to be Expressions, but
+        # we do not know which is already an Expression.
+        # We know at least one is.
+        try:
+            l = left
+        except TypeError:
+            # if l = left failed, we can definitely use
+            # r=right to coerce in l.
+            r = right
+            l = r.coerce_in(left)
+        else:
+            # if l = left succeeded, we can certainly
+            # use l to coerce in right.
+            r = l.coerce_in(right)
+
         cdef GEx e
         if op == Py_LT:
             e = g_lt(l._gobj, r._gobj)
@@ -203,10 +217,39 @@ cdef class Expression(CommutativeRingElement):
         # richcmp above to make formal symbolic expressions?
         return left._gobj.compare((<Expression>right)._gobj)
 
-    def cmp(self, right):
+    def __cmp__(self, right):
         """
-        Return -1, 0, or 1, depending on whether self < right,
-        self == right, or self > right.
+        Compare self and right, returning -1, 0, or 1, depending on if
+        self < right, self == right, or self > right, respectively.
+
+        Use this instead of the operators <=, <, etc. to compare symbolic
+        expressions when you do not want to get a formal inequality back.
+
+        IMPORTANT: Both self and right *must* have the same type, or
+        this function won't be called.
+
+        EXAMPLES:
+            sage: x,y = var('x,y', ns=1); S = x.parent()
+            sage: x.__cmp__(y)
+            -1
+            sage: x < y
+            x < y
+            sage: cmp(x,y)
+            -1
+            sage: cmp(S(0.5), S(0.7))
+            -1
+            sage: S(0.5) < S(0.7)
+            0.500000000000000 < 0.700000000000000
+
+        This is confusing because 0.7 is not a symbolic expression:
+            sage: cmp(S(0.5), 0.7)
+            0
+            sage: cmp(sin(S(2)), sin(S(1)))
+            1
+            sage: float(sin(S(2)))
+            0.90929742682568171
+            sage: float(sin(S(1)))
+            0.8414709848078965
         """
         cdef Expression r = self.coerce_in(right)
         return self._gobj.compare(r._gobj)
@@ -249,7 +292,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ((x + (2/3)*y)^3).expand()
             4/3*x*y^2 + 2*x^2*y + x^3 + 8/27*y^3
             sage: expand( (x*sin(x) - cos(y)/x)^2 )
-            sin(x)^2*x^2 - 2*sin(x)*cos(y) + cos(y)^2*x^(-2)
+            -2*sin(x)*cos(y) + sin(x)^2*x^2 + cos(y)^2*x^(-2)
             sage: f = (x-y)*(x+y); f
             (x - y)*(x + y)
             sage: f.expand()
@@ -270,11 +313,11 @@ cdef class Expression(CommutativeRingElement):
             (x, y, z)
             sage: f = 4*x*y + x*z + 20*y^2 + 21*y*z + 4*z^2 + x^2*y^2*z^2
             sage: f.collect(x)
-            21*y*z + x^2*y^2*z^2 + (4*y + z)*x + 20*y^2 + 4*z^2
+            (4*y + z)*x + 21*y*z + x^2*y^2*z^2 + 20*y^2 + 4*z^2
             sage: f.collect(y)
-            x*z + (4*x + 21*z)*y + (x^2*z^2 + 20)*y^2 + 4*z^2
+            (x^2*z^2 + 20)*y^2 + (4*x + 21*z)*y + x*z + 4*z^2
             sage: f.collect(z)
-            4*x*y + (x + 21*y)*z + (x^2*y^2 + 4)*z^2 + 20*y^2
+            (x^2*y^2 + 4)*z^2 + (x + 21*y)*z + 4*x*y + 20*y^2
         """
         cdef Expression s0 = self.coerce_in(s)
         return new_Expression_from_GEx(self._gobj.collect(s0._gobj, False))
@@ -342,7 +385,7 @@ cdef class Expression(CommutativeRingElement):
 
     def conjugate(self):
         """
-        Return the complex cnjugate of self.
+        Return the complex conjugate of self.
 
         EXAMPLES:
             sage: x = var('x', ns=1); SR = x.parent()
@@ -353,7 +396,12 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(RDF(1.5)).conjugate()
             1.5
             sage: SR(float(1.5)).conjugate()
-            1.0
+            1.5
+            sage: I = SR(CDF.0)
+            sage: I.conjugate()
+            -I
+            sage: ( 1+I  + (2-3*I)*x).conjugate()
+            (2.0+3.0*I)*conjugate(x) + 1.0-I
         """
         return new_Expression_from_GEx(g_conjugate(self._gobj))
 
@@ -463,7 +511,7 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES:
             sage: x = var('x', ns=1); SR = x.parent()
             sage: x.arcsin()
-            asin(x)
+            arcsin(x)
             sage: SR(0.5).arcsin()
             0.523598775598299
             sage: SR(0.999).arcsin()
@@ -474,46 +522,270 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(g_asin(self._gobj))
 
     def arccos(self):
+        """
+        Return the arc cosine of self.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.arccos()
+            arccos(x)
+            sage: S(1).arccos()
+            0
+            sage: S(1/2).arccos()
+            1/3*Pi
+            sage: S(0.4).arccos()
+            1.15927948072741
+            sage: plot(lambda x: S(x).arccos(), -1,1)
+        """
         return new_Expression_from_GEx(g_acos(self._gobj))
 
     def arctan(self):
+        """
+        Return the arc tangent of self.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.arctan()
+            arctan(x)
+            sage: S(1).arctan()
+            1/4*Pi
+            sage: S(1/2).arctan()
+            arctan(1/2)
+            sage: S(0.5).arctan()
+            0.463647609000806
+            sage: plot(lambda x: S(x).arctan(), -20,20)
+        """
         return new_Expression_from_GEx(g_atan(self._gobj))
 
-    def arctan2(self, Expression x):
-        return new_Expression_from_GEx(g_atan2(self._gobj, x._gobj))
+    def arctan2(self, x):
+        """
+        Return the inverse of the 2-variable tan function on self and x.
+
+        EXAMPLES:
+            sage: var('x,y', ns=1); S = parent(x)
+            (x, y)
+            sage: x.arctan2(y)
+            arctan2(x, y)
+            sage: S(1/2).arctan2(1/2)
+            1/4*Pi
+            sage: maxima.eval('atan2(1/2,1/2)')
+            '%pi/4'
+        """
+        cdef Expression nexp = self.coerce_in(x)
+        return new_Expression_from_GEx(g_atan2(self._gobj, nexp._gobj))
 
     def sinh(self):
+        r"""
+        Return sinh of self.
+
+        We have $\sinh(x) = (e^{x} - e^{-x})/2$.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.sinh()
+            sinh(x)
+            sage: S(1).sinh()
+            sinh(1)
+            sage: S(0).sinh()
+            0
+            sage: S(1.0).sinh()
+            1.17520119364380
+            sage: maxima('sinh(1.0)')
+            1.175201193643801
+            sage: S(1.0000000000000000000000000).sinh()
+            1.1752011936438014568823819
+            sage: S(RIF(1)).sinh()
+            1.175201193643802?
+            sage: plot(lambda x: S(x).sinh(), -1, 1)
+        """
         return new_Expression_from_GEx(g_sinh(self._gobj))
 
     def cosh(self):
+        """
+        Return cosh of self.
+
+        We have $\sinh(x) = (e^{x} + e^{-x})/2$.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.cosh()
+            cosh(x)
+            sage: S(1).cosh()
+            cosh(1)
+            sage: S(0).cosh()
+            1
+            sage: S(1.0).cosh()
+            1.54308063481524
+            sage: maxima('cosh(1.0)')
+            1.543080634815244
+            sage: S(1.0000000000000000000000000).cosh()
+            1.5430806348152437784779056
+            sage: S(RIF(1)).cosh()
+            1.543080634815244?
+            sage: plot(lambda x: S(x).cosh(), -1, 1)
+        """
         return new_Expression_from_GEx(g_cosh(self._gobj))
 
     def tanh(self):
+        """
+        Return tanh of self.
+
+        We have $\tanh(x) = \sinh(x) / \cosh(x)$.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.tanh()
+            tanh(x)
+            sage: S(1).tanh()
+            tanh(1)
+            sage: S(0).tanh()
+            0
+            sage: S(1.0).tanh()
+            0.761594155955765
+            sage: maxima('tanh(1.0)')
+            .7615941559557649
+            sage: plot(lambda x: S(x).tanh(), -1, 1)
+        """
         return new_Expression_from_GEx(g_tanh(self._gobj))
 
     def arcsinh(self):
+        """
+        Return the inverse hyperbolic sine of self.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.arcsinh()
+            arcsinh(x)
+            sage: S(0).arcsinh()
+            0
+            sage: S(1).arcsinh()
+            arcsinh(1)
+            sage: S(1.0).arcsinh()
+            1.17520119364380
+            sage: maxima('sinh(1.0)')
+            1.175201193643801
+
+        Sage automatically applies certain identies:
+            sage: S(3/2).arcsinh().cosh()
+            sqrt(13/4)
+        """
         return new_Expression_from_GEx(g_asinh(self._gobj))
 
     def arccosh(self):
+        """
+        Return the inverse hyperbolic cosine of self.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.arccosh()
+            arccosh(x)
+            sage: S(0).arccosh()
+            (0.5*I)*Pi
+            sage: S(1/2).arccosh()
+            arccosh(1/2)
+            sage: S(0.5).arccosh()    # TODO -- BUG; somehow in pynac this is now BROKEN!! it works in ginsh
+            1.047197551196597746*I
+            sage: maxima('acosh(0.5)')
+            1.047197551196598*%i
+            sage: plot(lambda x: S(x).arccosh(), 0.01, 2)
+        """
         return new_Expression_from_GEx(g_acosh(self._gobj))
 
     def arctanh(self):
+        """
+        Return the inverse hyperbolic tangent of self.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.arctanh()
+            arctanh(x)
+            sage: S(0).arctanh()
+            0
+            sage: S(1/2).arctanh()
+            arctanh(1/2)
+            sage: S(0.5).arctanh()
+            0.549306144334055
+            sage: S(0.5).arctanh().tanh()
+            0.500000000000000
+            sage: maxima('atanh(0.5)')
+            .5493061443340549
+            sage: plot(lambda x: S(x).arctanh(), -0.95,0.95)
+        """
         return new_Expression_from_GEx(g_atanh(self._gobj))
 
     def exp(self):
+        """
+        Return exponential function of self, i.e., e to the
+        power of self.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.exp()
+            exp(x)
+            sage: S(0).exp()
+            1
+            sage: S(1/2).exp()
+            exp(1/2)
+            sage: S(0.5).exp()
+            1.64872127070013
+            sage: S(0.5).exp().log()
+            0.500000000000000
+            sage: math.exp(0.5)
+            1.6487212707001282
+            sage: plot(lambda x: S(x).exp(), -2,1)
+        """
         return new_Expression_from_GEx(g_exp(self._gobj))
 
     def log(self):
+        """
+        Return the logarithm of self.
+
+        EXAMPLES:
+            sage: x, y = var('x, y', ns=1); S = x.parent()
+            sage: x.log()
+            log(x)
+            sage: (x^y + y^x).log()
+            log(x^y + y^x)
+            sage: S(0).log()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: log_eval(): log(0)
+            sage: S(1).log()
+            0
+            sage: S(1/2).log()
+            log(1/2)
+            sage: S(0.5).log()
+            -0.693147180559945
+            sage: S(0.5).log().exp()
+            0.500000000000000
+            sage: math.log(0.5)
+            -0.69314718055994529
+            sage: plot(lambda x: S(x).log(), 0.1,10)
+        """
         return new_Expression_from_GEx(g_log(self._gobj))
 
-    def Li(self, Expression x):
-        return new_Expression_from_GEx(g_Li(self._gobj, x._gobj))
-
     def zeta(self):
+        """
+        EXAMPLES:
+            sage: x, y = var('x, y', ns=1); S = x.parent()
+            sage: (x/y).zeta()
+            zeta(x*y^(-1))
+            sage: S(2).zeta()
+            1/6*Pi^2
+            sage: S(3).zeta()
+            zeta(3)
+            sage: S(CDF(0,1)).zeta()
+            0.00330022368532-0.418155449141*I
+            sage: CDF(0,1).zeta()
+            0.00330022368532 - 0.418155449141*I
+            sage: plot(lambda x: S(x).zeta(), -10,10).show(ymin=-3,ymax=3)
+        """
         return new_Expression_from_GEx(g_zeta(self._gobj))
 
     def factorial(self):
         """
+        Return the factorial of self.
+
         OUTPUT:
             symbolic expression
 
@@ -529,8 +801,10 @@ cdef class Expression(CommutativeRingElement):
         """
         return new_Expression_from_GEx(g_factorial(self._gobj))
 
-    def binomial(self, Expression k):
+    def binomial(self, k):
         """
+        Return binomial coefficient "self choose k".
+
         OUTPUT:
             symbolic expression
 
@@ -544,7 +818,8 @@ cdef class Expression(CommutativeRingElement):
             sage: x.binomial(y)
             binomial(x,y)
         """
-        return new_Expression_from_GEx(g_binomial(self._gobj, k._gobj))
+        cdef Expression nexp = self.coerce_in(k)
+        return new_Expression_from_GEx(g_binomial(self._gobj, nexp._gobj))
 
     def Order(self):
         """
@@ -560,13 +835,62 @@ cdef class Expression(CommutativeRingElement):
         """
         return new_Expression_from_GEx(g_Order(self._gobj))
 
+    def gamma(self):
+        """
+        Return the Gamma function evaluated at self.
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.gamma()
+            gamma(x)
+            sage: S(2).gamma()
+            1
+            sage: S(10).gamma()
+            362880
+            sage: S(10.0).gamma()
+            362880.000000000
+            sage: S(CDF(1,1)).gamma()
+            0.498015668118-0.154949828302*I
+            sage: gp('gamma(1+I)')
+            0.4980156681183560427136911175 - 0.1549498283018106851249551305*I
+            sage: set_verbose(-1); plot(lambda x: S(x).gamma(), -6,4).show(ymin=-3,ymax=3)
+        """
+        return new_Expression_from_GEx(g_tgamma(self._gobj))
+
     def lgamma(self):
-       return new_Expression_from_GEx(g_lgamma(self._gobj))
+        """
+        Return the log-gamma function evaluated at self.
+        This is the logarithm of gamma of self, where
+        gamma is a complex function such that gamma(n)
+        equals factorial(n-1).
+
+        EXAMPLES:
+            sage: x = var('x', ns=1); S = x.parent()
+            sage: x.lgamma()
+            lgamma(x)
+            sage: S(2).lgamma()
+            0
+            sage: S(5).lgamma()
+            log(24)
+            sage: S(5-1).factorial().log()
+            log(24)
+            sage: set_verbose(-1); plot(lambda x: S(x).lgamma(), -7,8, plot_points=1000).show()
+            sage: math.exp(0.5)
+            1.6487212707001282
+            sage: plot(lambda x: (S(x).exp() - S(-x).exp())/2 - S(x).sinh(), -1, 1)
+        """
+        return new_Expression_from_GEx(g_lgamma(self._gobj))
 
     # Functions to add later, maybe.  These were in Ginac mainly
     # implemented using a lot from cln, and I had to mostly delete
     # their implementations.   They are pretty specialized for
     # physics apps, maybe.
+    # This doesn't work / isn't implemented yet / just segfaults.
+    #def Li(self, x):
+    #    """
+    #    """
+    #    cdef Expression nexp = self.coerce_in(x)
+    #    return new_Expression_from_GEx(g_Li(self._gobj, nexp._gobj))
     #def Li2(self):
     #    return new_Expression_from_GEx(g_Li2(self._gobj))
     #def G(self, Expression y):
@@ -581,8 +905,6 @@ cdef class Expression(CommutativeRingElement):
     #    return new_Expression_from_GEx(g_zeta2(self._gobj, s._gobj))
     #def zetaderiv(self, Expression x):
     #    return new_Expression_from_GEx(g_zetaderiv(self._gobj, x._gobj))
-    #def tgamma(self):
-    #    return new_Expression_from_GEx(g_tgamma(self._gobj))
     #def beta(self, Expression y):
     #    return new_Expression_from_GEx(g_beta(self._gobj, y._gobj))
     #def psi(self):

@@ -57,11 +57,24 @@ with 9 replaced by 25 it works fine...
 
 * add copyright headers
 
+* wrap pattern matching
+
+* wrap substituting expressions
+
+* wrap taylor series
+
+* wrap differentiation
+
 * implement isqrt, etc. and other stubs in pynac.pyx
 
 * add doctest coverage to pynac.pyx
 
 * integrate in burcin's new code
+
+* optimize is_even in numeric.cpp
+
+
+* printing sums is still out of wack and non-deterministic
 
 * figure out how to check for true or false-ness of inequalities in ginac manual.
    sage: var('x,y,z,w',ns=1); P=x.parent();
@@ -70,14 +83,6 @@ with 9 replaced by 25 it works fine...
 * need to be able to do this (from ginsh):
 > collect_common_factors(x/(x^2 + x));
 (1+x)^(-1)
-
-* wrap pattern matching
-
-* wrap substituting expressions
-
-* wrap taylor series
-
-* wrap differentiation
 
 * make it so "make install" actually works without manual intervention, especially on osx
 

@@ -320,6 +320,12 @@ cdef public object py_atanh(object x):
         return RR(x).arctanh()
 
 
+cdef public object py_tgamma(object x):
+    try:
+        return x.gamma()
+    except AttributeError:
+        return RR(x).gamma()
+
 cdef public object py_lgamma(object x):
     try:
         return x.lngamma()
@@ -368,8 +374,6 @@ cdef public object py_iquo2(object x, object n):
 # Not yet implemented
 ##################################################################
 cdef public object py_li2(object x):
-    raise NotImplementedError
-cdef public object py_tgamma(object x):
     raise NotImplementedError
 cdef public object py_psi(object x):
     raise NotImplementedError

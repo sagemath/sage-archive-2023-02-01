@@ -81,7 +81,7 @@ extern "C" bool      py_is_integer(PyObject* a);
 extern "C" bool      py_is_prime(PyObject* n);
 extern "C" PyObject* py_int(PyObject* n);
 extern "C" PyObject* py_integer_from_long(long int x);
-extern "C" PyObject* py_integer_from_pythonint(PyObject* x);
+extern "C" PyObject* py_integer_from_python_obj(PyObject* x);
 
 extern "C" PyObject* py_float(PyObject* a);
 extern "C" PyObject* py_RDF_from_double(double x);
@@ -118,9 +118,9 @@ extern "C" PyObject* py_abs(PyObject* n);
 extern "C" PyObject* py_mod(PyObject* n, PyObject* b);
 extern "C" PyObject* py_smod(PyObject* n, PyObject* b);
 extern "C" PyObject* py_irem(PyObject* n, PyObject* b);
-extern "C" PyObject* py_irem2(PyObject* n, PyObject* b); // also returns quotient
 extern "C" PyObject* py_iquo(PyObject* n, PyObject* b);
-extern "C" PyObject* py_iquo2(PyObject* n, PyObject* b); // also returns quotient
+extern "C" PyObject* py_iquo2(PyObject* n, PyObject* b);
+extern "C" int       py_int_length(PyObject* x);
 
 extern "C" PyObject* py_eval_pi(long ndigits);
 extern "C" PyObject* py_eval_euler_gamma(long ndigits);
@@ -166,12 +166,12 @@ extern "C" PyObject* py_eval_catalan(long ndigits);
 
 #ifdef DEBUG
 #define todo(s) std::cerr << "TODO: " << s << std::endl;
-#define stub(s) std::cerr << "Hit STUB: " << s << std::endl;
+#define stub(s) { std::cerr << "Hit STUB: " << s << std::endl; throw std::runtime_error("stub"); }
 #define fake(s) std::cerr << "fake: " << s << std::endl;
 #define ASSERT(s, msg) if (!s) { std::cerr << "Failed assertion: " << msg << std::endl; }
 #else
 #define todo(s)
-#define stub(s) { std::cerr << "** Hit STUB**: " << s << std::endl; }
+#define stub(s) { std::cerr << "** Hit STUB**: " << s << std::endl; throw std::runtime_error("stub"); }
 #define fake(s)
 #endif
 
@@ -335,7 +335,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	return;
       default:
 	std::cerr << "type = " << right.t << "\n";
-	stub("** coerce not fully implemented yet -- left LONG**");
+	stub("** invalid coercion -- left LONG**");
       }
     case DOUBLE:
       switch(right.t) {
@@ -349,14 +349,14 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	return;
       default:
 	std::cerr << "type = " << right.t << "\n";
-	stub("** coerce not fully implemented -- left DOUBLE ** ");
+	stub("** invalid coercion -- left DOUBLE ** ");
       }
     case PYOBJECT:
       new_right = to_pyobject(right);
       return;
     }
     std::cerr << "type = " << left.t << "\n";
-    stub("** coerce not fully implemented yet **");
+    stub("** invalid coercion **");
   }
 
 
@@ -382,7 +382,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       }
       return PyNumber_Power(base.v._pyobject, exp.v._pyobject, Py_None);
     default:
-      stub("pow Number_T");
+      stub("invalid type: pow Number_T");
     }
   }
 
@@ -479,7 +479,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       return;
     default:
       std::cerr << "type = " << t << "\n";
-      stub("Number_T(const Number_T& x) type not handled");
+      stub("invalid type: Number_T(const Number_T& x) type not handled");
     }
   }
 
@@ -523,7 +523,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       return PyNumber_Add(v._pyobject, x.v._pyobject);
     default:
-      stub("operator+() type not handled");
+      stub("invalid type: operator+() type not handled");
     }
   }
 
@@ -542,7 +542,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       return PyNumber_Multiply(v._pyobject, x.v._pyobject);
     default:
-      stub("operator*() type not handled");
+      stub("invalid type: operator*() type not handled");
     }
   }
 
@@ -559,26 +559,31 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case LONG:
       return v._long / (long int)x;
     case PYOBJECT:
-      if (PyInt_Check(x.v._pyobject) && PyInt_Check(v._pyobject)) {
-	// This branch only happens at startup.  Otherwise,
-	// division of ints seems to never go through here, instead
-	// multiplying by the inverse or just formally making the 
-	// quotient.
-	// Creating a rational
-	PyObject* o = Rational(PyInt_AsLong(v._pyobject),  
-			PyInt_AsLong(x.v._pyobject));
-	// I don't 100% understand why I have to incref this.
-	// If I don't, Sage crashes on exit.  This might
-	// have something to do with the memory tricks that
-	// Ginac plays.  
-	Py_INCREF(o);
-	return o;
-      } 
-
-      return PyNumber_Divide(v._pyobject, x.v._pyobject);
+	if (PyInt_Check(v._pyobject))  {
+	    if(PyInt_Check(x.v._pyobject)) {
+		// This branch happens at startup.
+		PyObject* o = Rational(PyInt_AS_LONG(v._pyobject),  
+				       PyInt_AS_LONG(x.v._pyobject));
+		// I don't 100% understand why I have to incref this, 
+		// but if I don't, Sage crashes on exit.
+		Py_INCREF(o);
+		return o;
+	    } else if (PyLong_Check(x.v._pyobject)) {
+		PyObject* d = py_integer_from_python_obj(x.v._pyobject);
+		PyObject* ans = PyNumber_Divide(v._pyobject, d);
+		Py_DECREF(d);
+		return ans;
+	    }
+	} else if (PyLong_Check(v._pyobject)) {
+	    PyObject* n = py_integer_from_python_obj(v._pyobject);
+	    PyObject* ans = PyNumber_Divide(n, x.v._pyobject);
+	    Py_DECREF(n);
+	    return ans;
+	}
+	return PyNumber_Divide(v._pyobject, x.v._pyobject);
 
     default:
-      stub("operator/() type not handled");
+	stub("invalid type: operator/() type not handled");
     }
   }
 
@@ -597,7 +602,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       return PyNumber_Subtract(v._pyobject, x.v._pyobject);
     default:
-      stub("operator-() type not handled");
+      stub("invalid type: operator-() type not handled");
     }
   }
 
@@ -621,7 +626,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       break;
       
     default:
-      stub("operator= -- not able to do conversion! now total nonsense");
+      stub("invalid type: operator= -- not able to do conversion! now total nonsense");
       break;
     };
     t = x.t;
@@ -643,7 +648,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       return PyNumber_Negative(v._pyobject);
     default:
-      stub("operator-() type not handled");
+      stub("invalid type: operator-() type not handled");
     }
   }
 
@@ -662,7 +667,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       return d;
     default:
       std::cerr << "type = " << t << std::endl;
-      stub("operator double() type not handled");
+      stub("invalid type: operator double() type not handled");
     }
   }
 
@@ -683,7 +688,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	py_error("Error converting to a long.");
       return n;
     default:
-      stub("operator int() type not handled");
+      stub("invalid type: operator int() type not handled");
     }
   }
 
@@ -703,7 +708,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       }
       return n;
     default:
-      stub("operator long int() type not handled");
+      stub("invalid type: operator long int() type not handled");
     }
   }
 
@@ -717,7 +722,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       return PyObject_Hash(v._pyobject);
     default:
-      stub("::hash() type not handled");
+      stub("invalid type: ::hash() type not handled");
     }
     //    return static_cast<unsigned>(v._double); 
   }
@@ -742,7 +747,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       verbose2("result =", result);
       return (result == 0);
     default:
-      stub("operator== type not handled");
+      stub("invalid type: operator== type not handled");
     }
   }
 
@@ -765,7 +770,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       }
       return (result != 0);
     default:
-      stub("operator!= type not handled");
+      stub("invalid type: operator!= type not handled");
     }
   }
 
@@ -788,7 +793,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       }
       return (result <= 0);
     default:
-      stub("operator<= type not handled");
+      stub("invalid type: operator<= type not handled");
     }
 
   }
@@ -812,7 +817,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       }
       return (result >= 0);
     default:
-      stub("operator!= type not handled");
+      stub("invalid type: operator!= type not handled");
     }
   }
 
@@ -836,7 +841,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       }
       return (result < 0);
     default:
-      stub("operator< type not handled");
+      stub("invalid type: operator< type not handled");
     }
   }
 
@@ -859,26 +864,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       }
       return (result > 0);
     default:
-      stub("operator> type not handled");
-    }
-  }
-  
-  Number_T Number_T::inverse() const { 
-    verbose("inverse");
-    PyObject* o;
-
-    switch(t) {
-    case DOUBLE:
-      return 1/v._double; 
-    case LONG:
-      return 1/v._long;
-    case PYOBJECT:
-      // TODO: handle errors
-      if (!(o = PyNumber_Invert(v._pyobject))) 
-	py_error("inverting a number");
-      return o;
-    default:
-      stub("inverse() type not handled");
+      stub("invalid type: operator> type not handled");
     }
   }
   
@@ -903,7 +889,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	py_error("csgn");
       return result;
     default:
-      stub("csgn() type not handled");
+      stub("invalid type: csgn() type not handled");
     }
   }
 
@@ -922,7 +908,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       return a;
     default:
       std::cerr << "type = " << t << "\n";
-      stub("is_zero() type not handled");
+      stub("invalid type: is_zero() type not handled");
     }
   }
 
@@ -940,7 +926,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	py_error("is_positive");
       return n;
     default:
-      stub("is_positive() type not handled");
+      stub("invalid type: is_positive() type not handled");
     }
   }
 
@@ -958,7 +944,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	py_error("is_negative");
       return n;
     default:
-      stub("is_negative() type not handled");
+      stub("invalid type: is_negative() type not handled");
     }
   }
 
@@ -976,7 +962,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       return py_is_integer(v._pyobject);
     default:
-      stub("is_integer() type not handled");
+      stub("invalid type: is_integer() type not handled");
     }
   }
 
@@ -990,7 +976,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       return (is_integer() && is_positive());
     default:
-      stub("is_pos_integer() type not handled");
+      stub("invalid type: is_pos_integer() type not handled");
     }
   }
 
@@ -1008,7 +994,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	py_error("is_nonneg_integer");
       return n;
     default:
-      stub("is_nonneg_integer() type not handled");
+      stub("invalid type: is_nonneg_integer() type not handled");
     }
   }
   
@@ -1037,7 +1023,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	py_error("is_even");
       return ans;
     default:
-      stub("is_even() type not handled");
+      stub("invalid type: is_even() type not handled");
     }
   }
 
@@ -1050,22 +1036,25 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       return !is_even();
     default:
-      stub("is_odd() type not handled");
+      stub("invalid type: is_odd() type not handled");
     }
   }
   
   bool Number_T::is_prime() const { 
     verbose("is_prime");
+    PyObject* a;
     switch(t) {
     case DOUBLE:
       return false;
     case LONG:
-      stub("is_prime not implemented");
-      return false;
+      a = to_pyobject(*this);
+      bool b = py_is_prime(a);
+      Py_DECREF(a);
+      return b;
     case PYOBJECT:
       return py_is_prime(v._pyobject);
     default:
-      stub("is_prime() type not handled");
+      stub("invalid type: is_prime() type not handled");
     }
   }
    
@@ -1079,7 +1068,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       return py_is_rational(v._pyobject);
     default:
-      stub("is_rational() type not handled");
+      stub("invalid type -- is_rational() type not handled");
     }
   }
 
@@ -1092,7 +1081,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       return py_is_real(v._pyobject);
     default:
-      stub("is_real() type not handled");
+      stub("invalid type -- is_real() type not handled");
     }
   }
 
@@ -1114,7 +1103,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       ans = a;
       break;
     default:
-      stub("numer() type not handled");
+      stub("invalid type -- numer() type not handled");
       ans = *this;
     }
     verbose2("numer -- out:", ans);
@@ -1139,7 +1128,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       break;
 
     default:
-      stub("denom() type not handled");
+      stub("invalid type -- denom() type not handled");
       ans = ONE;
     }
     verbose2("denom -- out:", ans);
@@ -1278,14 +1267,6 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     PY_RETURN2(py_irem, b);
   }
 
-  Number_T Number_T::irem(const Number_T &b, Number_T& q) const {
-    // TODO -- this will return a tuple, hence get nasty fast.
-    // *MUST* be fixed to unpack the tuple, etc., and put
-    // second output in q. (!!!!)
-    stub("irem(b,q)");
-    PY_RETURN2(py_irem2, b);
-  }
-
   Number_T Number_T::iquo(const Number_T &b) const {
     PY_RETURN2(py_iquo, b);
   }
@@ -1294,6 +1275,14 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     PY_RETURN3(py_iquo2, b, r);
   }
 
+  int Number_T::int_length() const {
+    PyObject* a = to_pyobject(*this);
+    int n = py_int_length(a);
+    Py_DECREF(a);
+    if (n == -1)
+      py_error("int_length");
+    return n;
+  }
 
   ///////////////////////////////////////////////////////////////////////////////
   // class numeric
@@ -1397,12 +1386,14 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   numeric::numeric(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
   {
+    // TODO -- implement this, since it will be needed for pickling. 
     stub("archiving");
     setflag(status_flags::evaluated | status_flags::expanded);
   }
 
   void numeric::archive(archive_node &n) const
   {
+    // TODO -- implement this, since it will be needed for pickling. 
     stub("archive");
     inherited::archive(n);
   }
@@ -1426,6 +1417,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @see numeric::print() */
   static void print_integer_csrc(const print_context & c, const Number_T & x)
   {
+    // TODO: not really needed?
     stub("print_integer_csrc");
   }
   /** Helper function to print real number in C++ source format.
@@ -1433,6 +1425,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @see numeric::print() */
   static void print_real_csrc(const print_context & c, const Number_T & x)
   {
+    // TODO: not really needed?
     stub("print_real_csrc");
   }
 
@@ -1532,6 +1525,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   void numeric::do_print_csrc(const print_csrc & c, unsigned level) const
   {
+    // TODO: not really needed?
     stub("print_csrc");
   }
 
@@ -1903,7 +1897,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   {
     if (value.is_zero())
       throw std::overflow_error("numeric::inverse(): division by zero");
-    return numeric(value.inverse());
+    return numeric(1)/value;
   }
 
   /** Return the step function of a numeric. The imaginary part of it is
@@ -2166,8 +2160,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  in two's complement if it is an integer, 0 otherwise. */    
   int numeric::int_length() const
   {
-    stub("int_length");
-    return 0;
+    return value.int_length();
   }
 
   //////////
@@ -2348,42 +2341,6 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     return x.value.zeta();
   }
 
-  class lanczos_coeffs
-  {
-  public:
-    lanczos_coeffs();
-    bool sufficiently_accurate(int digits);
-    int get_order() const { return current_vector->size(); }
-    Number_T calc_lanczos_A(const Number_T &) const;
-  private:
-    // coeffs[0] is used in case Digits <= 20.
-    // coeffs[1] is used in case Digits <= 50.
-    // coeffs[2] is used in case Digits <= 100.
-    // coeffs[3] is used in case Digits <= 200.
-    static std::vector<Number_T> *coeffs;
-    // Pointer to the vector that is currently in use.
-    std::vector<Number_T> *current_vector;
-  };
-
-  std::vector<Number_T>* lanczos_coeffs::coeffs = 0;
-
-  bool lanczos_coeffs::sufficiently_accurate(int digits) {
-    stub("sufficiently_accurate");
-  }
-
-  Number_T lanczos_coeffs::calc_lanczos_A(const Number_T &x) const
-  {
-    stub("calc_lanczos_A");
-  }
-
-  // The values in this function have been calculated using the program
-  // lanczos.cpp in the directory doc/examples. If you want to add more
-  // digits, be sure to read the comments in that file.
-  lanczos_coeffs::lanczos_coeffs()
-  {
-    stub("lanczos_coeffs");
-  }
-
 
   /** The Gamma function.
    *  Use the Lanczos approximation. If the coefficients used here are not
@@ -2401,16 +2358,14 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   }
 
 
-  /** The psi function (aka polygamma function).
-   *  This is only a stub! */
+  /** The psi function (aka polygamma function). */
   const numeric psi(const numeric &x)
   {
     return x.value.psi();
   }
 
 
-  /** The psi functions (aka polygamma functions).
-   *  This is only a stub! */
+  /** The psi functions (aka polygamma functions). */
   const numeric psi(const numeric &n, const numeric &x)
   {
     return n.value.psi(x.value);
@@ -2520,23 +2475,6 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   {
     return a.value.irem(b.value);
   }
-
-
-  /** Numeric integer remainder.
-   *  Equivalent to Maple's irem(a,b,'q') it obeyes the relation
-   *  irem(a,b,q) == a - q*b.  In general, mod(a,b) has the sign of b or is zero,
-   *  and irem(a,b) has the sign of a or is zero.
-   *
-   *  @return remainder of a/b and quotient stored in q if both are integer,
-   *  0 otherwise.
-   *  @exception overflow_error (division by zero) if b is zero. */
-  const numeric irem(const numeric &a, const numeric &b, numeric &q)
-  {
-    // TODO -- need to compute q using irem2!!
-    stub("irem -- need to compute q!!!");
-    return a.value.irem(b.value);
-  }
-
 
   /** Numeric integer quotient.
    *  Equivalent to Maple's iquo as far as sign conventions are concerned.

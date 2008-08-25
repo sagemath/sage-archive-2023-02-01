@@ -114,7 +114,6 @@ namespace GiNaC {
     bool operator>=(const Number_T& right) const;
     bool operator<(const Number_T& right) const;
     bool operator>(const Number_T& right) const;
-    Number_T inverse() const;
     int csgn() const;
 
     bool is_zero() const;
@@ -171,6 +170,8 @@ namespace GiNaC {
     Number_T irem(const Number_T &b, Number_T& q) const;
     Number_T iquo(const Number_T &b) const;
     Number_T iquo(const Number_T &b, Number_T& q) const;
+
+    int int_length() const;
     
     friend std::ostream& operator << (std::ostream& os, const Number_T& s);
     friend Number_T pow(const Number_T& base, const Number_T& exp);
@@ -383,7 +384,6 @@ namespace GiNaC {
   const numeric mod(const numeric &a, const numeric &b);
   const numeric smod(const numeric &a, const numeric &b);
   const numeric irem(const numeric &a, const numeric &b);
-  const numeric irem(const numeric &a, const numeric &b, numeric &q);
   const numeric iquo(const numeric &a, const numeric &b);
   const numeric iquo(const numeric &a, const numeric &b, numeric &r);
   const numeric gcd(const numeric &a, const numeric &b);

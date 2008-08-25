@@ -134,7 +134,7 @@ void pseries::print_series(const print_context & c, const char *openbrace, const
 
 		// print a sign, if needed
 		if (i != seq.begin())
-			c.s << '+';
+			c.s << " + ";
 
 		if (!is_order_function(i->rest)) {
 

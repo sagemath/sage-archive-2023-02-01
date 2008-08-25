@@ -413,26 +413,34 @@ def BinaryQF_reduced_representatives(D):
         2
         sage: QuadraticField(-13*4, 'a').class_number()
         2
+        sage: p=next_prime(2^20); p
+        1048583
+        sage: len(BinaryQF_reduced_representatives(-p))
+        689
+        sage: QuadraticField(-p, 'a').class_number()
+        689
     """
-    if not ( D < 0  and  D in ZZ  and ((D % ZZ(4) == 0) or (D % ZZ(4) == 1))):
+    D = ZZ(D)
+    if not ( D < 0 and (D % 4 in [0,1])):
         raise ValueError, "discriminant is not valid and positive definite"
 
     form_list = []
 
-    a = 1
-    while a*a <= -3*D:
+    from sage.misc.all import xsrange
+    for a in xsrange(1,1+(-3*D).isqrt()):
+        a4 = 4*a
         #Only iterate over b of the same parity as D
-        if (-a + D) % ZZ(2) == 0:
-            b = -a
-        else:
-            b = -a + 1
-        while b <= a:
-            if (b*b - D) % ZZ(4*a) == 0:
-                c = (b*b - D) // ZZ(4*a)
-                if (a < c and -a < b) or (a == c and b >= 0):
+        for b in xsrange(D%2,a+1,2):
+            t = b*b-D
+            if t % a4 == 0:
+                c = t // a4
+                if a < c:
                     form_list.append(BinaryQF([a,b,c]))
-            b += 2
-        a += 1
+                    if b>0 and a>b:
+                        form_list.append(BinaryQF([a,-b,c]))
+                else:
+                    if (a == c):
+                        form_list.append(BinaryQF([a,b,c]))
 
     form_list.sort()
     return form_list

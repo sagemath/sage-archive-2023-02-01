@@ -1043,12 +1043,13 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   bool Number_T::is_prime() const { 
     verbose("is_prime");
     PyObject* a;
+    bool b;
     switch(t) {
     case DOUBLE:
       return false;
     case LONG:
       a = Number_T_to_pyobject(*this);
-      bool b = py_is_prime(a);
+      b = py_is_prime(a);
       Py_DECREF(a);
       return b;
     case PYOBJECT:

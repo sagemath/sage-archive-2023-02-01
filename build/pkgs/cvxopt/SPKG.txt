@@ -1,0 +1,11 @@
+MAINTAINERS:
+   * William Stein
+   * Josh Kantor
+
+----------------------------
+
+Downloaded from
+   www.ee.ucla.edu/~vandenbe/cvxopt/
+
+Removed the examples and doc directory to save 0.5MB space.
+

@@ -1,0 +1,20 @@
+#!/usr/bin/env perl
+use File::Copy;
+#use File::Chdir;
+
+$ver_string = `sage_fortran --version`;
+if ($ver_string =~ m/G95/)
+{
+    print "Using g95";
+    copy("patches/setup_f95.py", "src/src/setup.py");
+}
+else
+{
+    print ("using gfortran");
+    copy("patches/setup_gfortran.py","src/src/setup.py");
+}
+
+chdir("src/src");
+#print `python setup.py install`;
+system('python setup.py install');
+exit 1 if $? >>8;

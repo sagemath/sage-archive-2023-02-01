@@ -46,6 +46,14 @@ cdef extern from "ginac_wrap.h":
         GEx tcoeff(GEx expr)          except +
         int degree(GEx expr)          except +
         int ldegree(GEx expr)         except +
+        GEx rhs()                     except +
+        GEx lhs()                     except +
+
+    # Numericals
+    bint is_a_numeric "is_a<numeric>" (GEx e)
+    # given a GEx that is known to be a numeric, return reference to
+    # the underlying PyObject*.
+    object py_object_from_numeric(GEx e)     except +
 
     # Algorithms
     GEx g_gcd "gcd"(GEx a, GEx b) except +
@@ -56,6 +64,22 @@ cdef extern from "ginac_wrap.h":
     # Series back to poly
     GEx series_to_poly(GEx e) except +
     bint is_a_series "is_a<pseries>" (GEx e)
+
+    # Relations
+    ctypedef enum operators "relational::operators":
+        equal, not_equal, less, less_or_equal, greater, greater_or_equal
+    bint is_negative(GEx x)                  except +
+    bint is_a_relational "is_a<relational>" (GEx e)
+    bint relational_to_bool(GEx e)
+    operators relational_operator(GEx e)
+    operators switch_operator(operators op)
+    GEx relational(GEx lhs, GEx rhs, operators o)
+    GEx g_lt "LT_WRAP" (GEx left, GEx right) except +
+    GEx g_eq "EQ_WRAP" (GEx left, GEx right) except +
+    GEx g_gt "GT_WRAP" (GEx left, GEx right) except +
+    GEx g_le "LE_WRAP" (GEx left, GEx right) except +
+    GEx g_ne "NE_WRAP" (GEx left, GEx right) except +
+    GEx g_ge "GE_WRAP" (GEx left, GEx right) except +
 
     # Constants
     GEx g_Pi "Pi"
@@ -87,12 +111,6 @@ cdef extern from "ginac_wrap.h":
     GEx gsub "SUB_WRAP" (GEx left, GEx right) except +
     GEx gmul "MUL_WRAP" (GEx left, GEx right) except +
     GEx gdiv "DIV_WRAP" (GEx left, GEx right) except +
-    GEx g_lt "LT_WRAP" (GEx left, GEx right) except +
-    GEx g_eq "EQ_WRAP" (GEx left, GEx right) except +
-    GEx g_gt "GT_WRAP" (GEx left, GEx right) except +
-    GEx g_le "LE_WRAP" (GEx left, GEx right) except +
-    GEx g_ne "NE_WRAP" (GEx left, GEx right) except +
-    GEx g_ge "GE_WRAP" (GEx left, GEx right) except +
     GEx g_pow "pow" (GEx left, GEx exp)      except +
 
     GSymbol get_symbol(char* s)              except +

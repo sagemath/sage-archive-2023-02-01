@@ -110,10 +110,13 @@ done * pretty serious todo -- all predefined constants in utils.cpp get made wro
 done * wrap taylor series
 done    * power series print wrong -- no spaces around operators
 
+done * figure out how to check for true or false-ness of inequalities in ginac manual.
+   sage: var('x,y,z,w',ns=1); P=x.parent();
+   sage: bool(P(2)== P(2))
 
-------------------------------------------------------------------
+done-ish * implement conversion to RealField, and more general coercions...
 
-* BUG:
+done * BUG:
 sage: S(0.5).arccosh()
 1.12762596520638  # very wrong!
 Notes
@@ -121,22 +124,16 @@ Notes
 NaN
 (2) but however it seems the code in pynac.pyx isn't even called.
 
+done * make it so "make install" actually works without manual intervention, especially on osx
 
-* implement conversion to RealField.  How?
+------------------------------------------------------------------
 
-* figure out how to check for true or false-ness of inequalities in ginac manual.
-   sage: var('x,y,z,w',ns=1); P=x.parent();
-   sage: bool(P(2)== P(2))
-
-* need to be able to do this (from ginsh):
-> collect_common_factors(x/(x^2 + x));
-(1+x)^(-1)
-
-* make it so "make install" actually works without manual intervention, especially on osx
 
 ******************************************************************************
 For PHASE II: LATER  (Hopefully Burcin)
 ******************************************************************************
+
+* genuine coercions to real field, etc.
 
 * optimize is_even in numeric.cpp
 
@@ -155,6 +152,11 @@ sage: f = expand((k(1)*x^5 + k(1)*x^2 + k(2))^7); f
 2 + 35*x^26 + 21*x^29 + 7*x^17 + 21*x^20 + 35*x^23 + x^14 + 7*x^32 + x^35
 sage: f * k(-1) * k(-1)
 2
+
+* need to be able to do this (from ginsh):
+> collect_common_factors(x/(x^2 + x));
+(1+x)^(-1)
+
 
 * Maybe change SAGE's Ginac to make a call to a cython gcd function, then use
 singular, since singular's gcd over QQ is much better than ginac's, I think,

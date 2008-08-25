@@ -157,6 +157,44 @@ double GEx_to_double(ex& e, int* success) {
   }
 }
 
+bool relational_to_bool(const ex& e) {
+    if (ex_to<relational>(e))
+	return 1;
+    else
+	return 0;
+}
+
+relational::operators relational_operator(const ex& e) {
+    // unsafe cast -- be damn sure the input is a relational.
+    return (ex_to<relational>(e)).the_operator();
+}
+
+relational::operators switch_operator(relational::operators o) {
+    switch(o) {
+    case relational::less:
+	return relational::greater;
+    case relational::less_or_equal:
+	return relational::greater_or_equal;
+    case relational::greater:
+	return relational::less;
+    case relational::greater_or_equal:
+	return relational::less_or_equal;
+    default:
+	return o;
+    }
+}
+
+bool is_negative(ex x) {
+    if (is_a<numeric>(x)) {
+	return (ex_to<numeric>(x)).is_negative();
+    }
+    return false;
+}
+
+PyObject* py_object_from_numeric(ex x) {
+    return (ex_to<numeric>(x)).to_pyobject();
+}
+
 #define ASSIGN_WRAP(x,y) x = y
 
 #define ADD_WRAP(x,y) (x)+(y)

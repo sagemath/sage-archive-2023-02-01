@@ -9,12 +9,76 @@
 
 """
 EXAMPLES:
+
+RELATIONAL EXPRESSIONS:
+
+We create a relational expression:
+    sage: x = var('x',ns=1); S = x.parent()
+    sage: eqn = (x-1)^2 <= x^2 - 2*x + 3
+    sage: eqn.subs(x == 5)
+    16 <= 18
+
+Notice that squaring the relation squares both sides.
+    sage: eqn^2
+    (x - 1)^4 <= (x^2 - 2*x + 3)^2
+    sage: eqn.expand()
+    x^2 - 2*x + 1 <= x^2 - 2*x + 3
+
+The can transform a true relational into a false one:
+    sage: eqn = S(-5) < S(-3); eqn
+    -5 < -3
+    sage: bool(eqn)
+    True
+    sage: eqn^2
+    25 < 9
+    sage: bool(eqn^2)
+    False
+
+We can do arithmetic with relationals:
+    sage: e = x+1 <= x-2
+    sage: e + 2
+    x + 3 <= x
+    sage: e - 1
+    x <= x - 3
+    sage: e*(-1)
+    -x - 1 >= -x + 2
+    sage: (-2)*e
+    -2*x - 2 >= -2*x + 4
+    sage: e*5
+    5*x + 5 <= 5*x - 10
+    sage: e/5
+    1/5*x + 1/5 <= 1/5*x - 2/5
+    sage: 5/e
+    5*(x + 1)^(-1) <= 5*(x - 2)^(-1)
+    sage: e/(-2)
+    -1/2*x - 1/2 >= -1/2*x + 1
+    sage: -2/e
+    -2*(x + 1)^(-1) >= -2*(x - 2)^(-1)
+
+We can even add together two relations, so long as the operators are the same:
+    sage: (x^3 + x <= x - 17)  + (-x <= x - 10)
+    x^3 <= 2*x - 27
+
+Here they aren't:
+    sage: (x^3 + x <= x - 17)  + (-x >= x - 10)
+    Traceback (most recent call last):
+    ...
+    TypeError: incompatible relations
+
+
+ANY SAGE ELEMENTS:
+
+You can work symbolically with any Sage datatype.  This can lead to nonsense
+if the data type is strange, e.g., an element of a finite field (at present).
+
 We mix Singular variables with symbolic variables:
     sage: R.<u,v> = QQ[]
     sage: var('a,b,c', ns=1)
     (a, b, c)
     sage: expand((u + v + a + b + c)^2)
     2*a*b + 2*a*c + 2*b*c + a^2 + b^2 + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
+
+
 """
 
 include "../ext/interrupt.pxi"
@@ -23,6 +87,7 @@ include "../ext/cdefs.pxi"
 
 import ring
 import sage.rings.integer
+import sage.rings.rational
 
 from sage.structure.element cimport ModuleElement, RingElement, Element
 
@@ -30,6 +95,26 @@ from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.rings.rational import Rational  # Used for sqrt.
 
 cdef class Expression(CommutativeRingElement):
+    cpdef object pyobject(self):
+        """
+        Get the underlying Python object corresponding to this
+        expression, assuming this expression is a single numerical
+        value.   Otherwise, a TypeError is raised.
+
+        EXAMPLES:
+            sage: var('x',ns=1); S = parent(x)
+            x
+            sage: b = -17/3
+            sage: a = S(b)
+            sage: a.pyobject()
+            -17/3
+            sage: a.pyobject() is b
+            True
+        """
+        if not is_a_numeric(self._gobj):
+            raise TypeError, "self must be a numeric expression"
+        return py_object_from_numeric(self._gobj)
+
     def __dealloc__(self):
         """
         Delete memory occupied by this expression.
@@ -47,6 +132,87 @@ cdef class Expression(CommutativeRingElement):
             'x + y'
         """
         return GEx_to_str(&self._gobj)
+
+    def _integer_(self):
+        """
+        EXAMPLES:
+            sage: var('x',ns=1); S = parent(x)
+            x
+            sage: f = x^3 + 17*x -3
+            sage: ZZ(f.coeff(x^3))
+            1
+            sage: ZZ(f.coeff(x))
+            17
+            sage: ZZ(f.coeff(x,0))
+            -3
+            sage: type(ZZ(f.coeff(x,0)))
+            <type 'sage.rings.integer.Integer'>
+
+        Coercion is done if necessary:
+            sage: f = x^3 + 17/1*x
+            sage: ZZ(f.coeff(x))
+            17
+            sage: type(ZZ(f.coeff(x)))
+            <type 'sage.rings.integer.Integer'>
+
+        If the symbolic expression is just a wrapper around an integer,
+        that very same integer is returned:
+            sage: n = 17; S(n)._integer_() is n
+            True
+        """
+        n = self.pyobject()
+        if isinstance(n, sage.rings.integer.Integer):
+            return n
+        return sage.rings.integer.Integer(n)
+
+    def _rational_(self):
+        """
+        EXAMPLES:
+            sage: var('x',ns=1); S = parent(x)
+            x
+            sage: f = x^3 + 17/1*x - 3/8
+            sage: QQ(f.coeff(x^2))
+            0
+            sage: QQ(f.coeff(x^3))
+            1
+            sage: a = QQ(f.coeff(x)); a
+            17
+            sage: type(a)
+            <type 'sage.rings.rational.Rational'>
+            sage: QQ(f.coeff(x,0))
+            -3/8
+
+        If the symbolic expression is just a wrapper around an integer,
+        that very same integer is returned:
+            sage: n = 17; S(n)._integer_() is n
+            True
+        """
+        n = self.pyobject()
+        if isinstance(n, sage.rings.rational.Rational):
+            return n
+        return sage.rings.rational.Rational(n)
+
+    def _mpfr_(self, R):
+        """
+        This is a very preliminary conversion to real numbers.  It
+        doesn't unwind expression, so is fairly useless.
+
+        EXAMPLES:
+            sage: var('x',ns=1); S = parent(x)
+            x
+            sage: RealField(200)(S(1/11))
+            0.090909090909090909090909090909090909090909090909090909090909
+
+        This illustrates that this function is not done yet:
+            sage: a = S(3).sin(); a
+            sin(3)
+            sage: RealField(200)(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be a numeric expression
+        """
+        # TODO: This is *not* good enough.
+        return R(self.pyobject())
 
     def __float__(self):
         """
@@ -151,21 +317,95 @@ cdef class Expression(CommutativeRingElement):
             e = g_ge(l._gobj, r._gobj)
         return new_Expression_from_GEx(e)
 
+    cpdef bint is_relational(self):
+        """
+        Return True if self is a relational expression.
+
+        EXAMPLES:
+            sage: x = var('x',ns=1); SR = x.parent()
+            sage: eqn = (x-1)^2 == x^2 - 2*x + 3
+            sage: eqn.is_relational()
+            True
+            sage: sin(x).is_relational()
+            False
+        """
+        return is_a_relational(self._gobj)
+
+    def lhs(self):
+        """
+        If self is a relational expression, return the left hand side
+        of the relation.  Otherwise, raise a ValueError.
+
+        EXAMPLES:
+            sage: x = var('x',ns=1); SR = x.parent()
+            sage: eqn = (x-1)^2 == x^2 - 2*x + 3
+            sage: eqn.lhs()
+            (x - 1)^2
+        """
+        if not self.is_relational():
+            raise ValueError, "self must be a relational expression"
+        return new_Expression_from_GEx(self._gobj.lhs())
+
+    def rhs(self):
+        """
+        If self is a relational expression, return the right hand side of the relation.  Otherwise,
+        raise a ValueError.
+
+        EXAMPLES:
+            sage: x = var('x',ns=1); SR = x.parent()
+            sage: eqn = (x-1)^2 <= x^2 - 2*x + 3
+            sage: eqn.rhs()
+            x^2 - 2*x + 3
+        """
+        if not self.is_relational():
+            raise ValueError, "self must be a relation"
+        return new_Expression_from_GEx(self._gobj.rhs())
+
     def __nonzero__(self):
         """
         Return True if self is nonzero.
 
         EXAMPLES:
-            sage: sage.symbolic.ring.NSR(0).__nonzero__()
+            sage: x = var('x',ns=1); SR = x.parent()
+            sage: SR(0).__nonzero__()
             False
-            sage: sage.symbolic.ring.NSR(1).__nonzero__()
+            sage: SR(1).__nonzero__()
+            True
+            sage: bool(abs(x))
+            True
+            sage: bool(x/x - 1)
+            False
+
+        A bunch of tests of nonzero (which is called by bool) for
+        symbolic relations:
+            sage: x = var('x',ns=1); SR = x.parent()
+            sage: bool((x-1)^2 == x^2 - 2*x + 1)
+            False
+            sage: bool(((x-1)^2 == x^2 - 2*x + 1).expand())
+            True
+            sage: bool(((x-1)^2 == x^2 - 2*x + 3).expand())
+            False
+            sage: bool(2 + x < 3 + x)
+            True
+            sage: bool(2 + x < 1 + x)
+            False
+            sage: bool(2 + x > 1 + x)
+            True
+            sage: bool(1 + x > 1 + x)
+            False
+            sage: bool(1 + x >= 1 + x)
+            True
+            sage: bool(1 + x < 1 + x)
+            False
+            sage: bool(1 + x <= 1 + x)
+            True
+            sage: bool(1 + x^2 != 1 + x*x)
+            False
+            sage: bool(1 + x^2 != 2 + x*x)
             True
         """
-        # TODO: Problem -- if self is a symbolic equality then
-        # this is_zero isn't the right thing at all:
-        #  sage: bool(x == x+1)
-        #  True  # BAD
-        # Solution is to probably look something up in ginac manual.
+        if self.is_relational():
+            return relational_to_bool(self._gobj)
         return not self._gobj.is_zero()
 
     cdef Expression coerce_in(self, z):
@@ -189,16 +429,55 @@ cdef class Expression(CommutativeRingElement):
             sage.: x + y + y + x
             2*x+2*y
         """
-        return new_Expression_from_GEx(gadd(left._gobj, (<Expression>right)._gobj))
+        cdef GEx x
+        cdef Expression _right = <Expression>right
+        if is_a_relational(left._gobj):
+            if is_a_relational(_right._gobj):
+                if relational_operator(left._gobj) != relational_operator(_right._gobj):
+                    raise TypeError, "incompatible relations"
+                x = relational(gadd(left._gobj.lhs(), _right._gobj.lhs()),
+                               gadd(left._gobj.rhs(), _right._gobj.rhs()),
+                               relational_operator(left._gobj))
+            else:
+                x = relational(gadd(left._gobj.lhs(), _right._gobj),
+                               gadd(left._gobj.rhs(), _right._gobj),
+                               relational_operator(left._gobj))
+        elif is_a_relational(_right._gobj):
+            x = relational(gadd(left._gobj, _right._gobj.lhs()),
+                           gadd(left._gobj, _right._gobj.rhs()),
+                           relational_operator(_right._gobj))
+        else:
+            x = gadd(left._gobj, _right._gobj)
+        return new_Expression_from_GEx(x)
 
     cdef ModuleElement _sub_c_impl(left, ModuleElement right):
         """
+        EXAMPLES:
             sage.: var("x y", ns=1)
             (x, y)
             sage.: x - x
             x-y
         """
-        return new_Expression_from_GEx(gsub(left._gobj, (<Expression>right)._gobj))
+        cdef GEx x
+        cdef Expression _right = <Expression>right
+        if is_a_relational(left._gobj):
+            if is_a_relational(_right._gobj):
+                if relational_operator(left._gobj) != relational_operator(_right._gobj):
+                    raise TypeError, "incompatible relations"
+                x = relational(gsub(left._gobj.lhs(), _right._gobj.lhs()),
+                               gsub(left._gobj.rhs(), _right._gobj.rhs()),
+                               relational_operator(left._gobj))
+            else:
+                x = relational(gsub(left._gobj.lhs(), _right._gobj),
+                               gsub(left._gobj.rhs(), _right._gobj),
+                               relational_operator(left._gobj))
+        elif is_a_relational(_right._gobj):
+            x = relational(gsub(left._gobj, _right._gobj.lhs()),
+                           gsub(left._gobj, _right._gobj.rhs()),
+                           relational_operator(_right._gobj))
+        else:
+            x = gsub(left._gobj, _right._gobj)
+        return new_Expression_from_GEx(x)
 
     cdef RingElement _mul_c_impl(left, RingElement right):
         """
@@ -210,18 +489,71 @@ cdef class Expression(CommutativeRingElement):
             sage: x*y*y
             x*y^2
         """
-        return new_Expression_from_GEx(gmul(left._gobj, (<Expression>right)._gobj))
+        cdef GEx x
+        cdef Expression _right = <Expression>right
+        cdef operators o
+        if is_a_relational(left._gobj):
+            if is_a_relational(_right._gobj):
+                if relational_operator(left._gobj) != relational_operator(_right._gobj):
+                    raise TypeError, "incompatible relations"
+                x = relational(gmul(left._gobj.lhs(), _right._gobj.lhs()),
+                               gmul(left._gobj.rhs(), _right._gobj.rhs()),
+                               relational_operator(left._gobj))
+            else:
+                o = relational_operator(left._gobj)
+                if is_negative(_right._gobj):
+                    o = switch_operator(o)
+                x = relational(gmul(left._gobj.lhs(), _right._gobj),
+                               gmul(left._gobj.rhs(), _right._gobj),
+                               o)
+        elif is_a_relational(_right._gobj):
+            o = relational_operator(_right._gobj)
+            if is_negative(left._gobj):
+                o = switch_operator(o)
+            x = relational(gmul(left._gobj, _right._gobj.lhs()),
+                           gmul(left._gobj, _right._gobj.rhs()),
+                           o)
+        else:
+            x = gmul(left._gobj, _right._gobj)
+        return new_Expression_from_GEx(x)
 
     cdef RingElement _div_c_impl(left, RingElement right):
         """
         Divide left and right.
 
+        EXAMPLES:
             sage: var("x y", ns=1)
             (x, y)
             sage: x/y/y
             x*y^(-2)
         """
-        return new_Expression_from_GEx(gdiv(left._gobj, (<Expression>right)._gobj))
+        cdef GEx x
+        cdef Expression _right = <Expression>right
+        cdef operators o
+        if is_a_relational(left._gobj):
+            if is_a_relational(_right._gobj):
+                if relational_operator(left._gobj) != relational_operator(_right._gobj):
+                    raise TypeError, "incompatible relations"
+                x = relational(gdiv(left._gobj.lhs(), _right._gobj.lhs()),
+                               gdiv(left._gobj.rhs(), _right._gobj.rhs()),
+                               relational_operator(left._gobj))
+            else:
+                o = relational_operator(left._gobj)
+                if is_negative(_right._gobj):
+                    o = switch_operator(o)
+                x = relational(gdiv(left._gobj.lhs(), _right._gobj),
+                               gdiv(left._gobj.rhs(), _right._gobj),
+                               o)
+        elif is_a_relational(_right._gobj):
+            o = relational_operator(_right._gobj)
+            if is_negative(left._gobj):
+                o = switch_operator(o)
+            x = relational(gdiv(left._gobj, _right._gobj.lhs()),
+                           gdiv(left._gobj, _right._gobj.rhs()),
+                           o)
+        else:
+            x = gdiv(left._gobj, _right._gobj)
+        return new_Expression_from_GEx(x)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         # TODO: this is never called, maybe, since I define
@@ -251,10 +583,8 @@ cdef class Expression(CommutativeRingElement):
             -1
             sage: S(0.5) < S(0.7)
             0.500000000000000 < 0.700000000000000
-
-        This is confusing because 0.7 is not a symbolic expression:
             sage: cmp(S(0.5), 0.7)
-            0
+            -1
             sage: cmp(sin(S(2)), sin(S(1)))
             1
             sage: float(sin(S(2)))
@@ -287,7 +617,14 @@ cdef class Expression(CommutativeRingElement):
             x^(sin(x)^cos(y))
         """
         cdef Expression nexp = self.coerce_in(exp)
-        return new_Expression_from_GEx(g_pow(self._gobj, nexp._gobj))
+        cdef GEx x
+        if is_a_relational(self._gobj):
+            x = relational(g_pow(self._gobj.lhs(), nexp._gobj),
+                           g_pow(self._gobj.rhs(), nexp._gobj),
+                           relational_operator(self._gobj))
+        else:
+            x = g_pow(self._gobj, nexp._gobj)
+        return new_Expression_from_GEx(x)
 
     def diff(self, symb, deg=1):
         """
@@ -1127,9 +1464,9 @@ cdef class Expression(CommutativeRingElement):
             sage: S(1).arcsinh()
             arcsinh(1)
             sage: S(1.0).arcsinh()
-            1.17520119364380
-            sage: maxima('sinh(1.0)')
-            1.175201193643801
+            0.881373587019543
+            sage: maxima('asinh(1.0)')
+            .8813735870195429
 
         Sage automatically applies certain identies:
             sage: S(3/2).arcsinh().cosh()
@@ -1149,11 +1486,10 @@ cdef class Expression(CommutativeRingElement):
             (0.5*I)*Pi
             sage: S(1/2).arccosh()
             arccosh(1/2)
-            sage: S(0.5).arccosh()    # TODO -- BUG; somehow in pynac this is now BROKEN!! it works in ginsh
-            1.047197551196597746*I
+            sage: S(CDF(1/2)).arccosh()
+            1.0471975512*I
             sage: maxima('acosh(0.5)')
             1.047197551196598*%i
-            sage: plot(lambda x: S(x).arccosh(), 0.01, 2)
         """
         return new_Expression_from_GEx(g_acosh(self._gobj))
 
@@ -1175,7 +1511,6 @@ cdef class Expression(CommutativeRingElement):
             0.500000000000000
             sage: maxima('atanh(0.5)')
             .5493061443340549
-            sage: plot(lambda x: S(x).arctanh(), -0.95,0.95)
         """
         return new_Expression_from_GEx(g_atanh(self._gobj))
 
@@ -1401,6 +1736,7 @@ cdef Expression new_Expression_from_GEx(GEx juice):
     GEx_construct_ex(&nex._gobj, juice)
     nex._parent = ring.NSR
     return nex
+
 
 
 

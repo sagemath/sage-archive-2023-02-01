@@ -44,7 +44,6 @@ AUTHORS:
 from sage.libs.pari.all import pari
 from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors)
 from sage.structure.sage_object import SageObject
-
 class BinaryQF(SageObject):
     """
     BinaryQF([a,b,c])
@@ -403,6 +402,9 @@ def BinaryQF_reduced_representatives(D):
         sage: BinaryQF_reduced_representatives(-16)
         [x^2 + 4*y^2, 2*x^2 + 2*y^2]
 
+        sage: BinaryQF_reduced_representatives(-63)
+        [x^2 + x*y + 16*y^2, 2*x^2 - x*y + 8*y^2, 2*x^2 + x*y + 8*y^2, 3*x^2 + 3*x*y + 6*y^2, 4*x^2 + x*y + 4*y^2]
+
         The number of inequivalent reduced binary forms with a fixed negative
         fundamental discriminant D is the class number of the quadratic field
         $Q(\sqrt{D})$.
@@ -415,24 +417,22 @@ def BinaryQF_reduced_representatives(D):
     if not ( D < 0  and  D in ZZ  and ((D % ZZ(4) == 0) or (D % ZZ(4) == 1))):
         raise ValueError, "discriminant is not valid and positive definite"
 
-    # Find the range of allowed b's
-    bmax = (-D / ZZ(3)).sqrt_approx().ceil()
-    b_range = range(-bmax, bmax+1)
-
-    # Find the set of all (possibly mutually equivalent) quadratic forms
     form_list = []
-    for b in b_range:
-        b_plus = abs(b)
-        tmp_num = b**2 - D
-        if (b**2 - D) % ZZ(4) == 0:
-            tmp_num_4 = tmp_num / ZZ(4)
-            # Look for |b| <= a <= c
-            b_divs__a = [a for a in divisors(tmp_num_4) if
-                         a <= tmp_num_4.sqrt() and
-                         b_plus <= a]
-            for a in b_divs__a:
-                c = tmp_num_4 / a
-                if (a != b_plus and c != b_plus) or (b >= 0):
-                    # Require b>0 if a = c
+
+    a = 1
+    while a*a <= -3*D:
+        #Only iterate over b of the same parity as D
+        if (-a + D) % ZZ(2) == 0:
+            b = -a
+        else:
+            b = -a + 1
+        while b <= a:
+            if (b*b - D) % ZZ(4*a) == 0:
+                c = (b*b - D) // ZZ(4*a)
+                if (a < c and -a < b) or (a == c and b >= 0):
                     form_list.append(BinaryQF([a,b,c]))
+            b += 2
+        a += 1
+
+    form_list.sort()
     return form_list

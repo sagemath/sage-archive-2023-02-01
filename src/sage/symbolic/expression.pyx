@@ -392,11 +392,50 @@ cdef class Expression(CommutativeRingElement):
             True
         """
         cdef Expression p = self.coerce_in(pattern)
-        return self._gobj.g_match(p._gobj)
+        return self._gobj.match(p._gobj)
 
     def has(self, pattern):
+        """
+        EXAMPLES:
+            sage: var('x,y,a', ns=1); S = x.parent(); w0 = S.wild(); w1 = S.wild()
+            (x, y, a)
+            sage: (x*sin(x + y + 2*a)).has(y)
+            True
+
+        Here "x+y" is not a subexpression of "x+y+2*a" (which has the
+        subexpressions "x", "y" and "2*a"):
+            sage: (x*sin(x + y + 2*a)).has(x+y)
+            False
+            sage: (x*sin(x + y + 2*a)).has(x + y + w0)
+            True
+
+        The following fails because "2*(x+y)" automatically gets converted to
+        "2*x+2*y" of which "x+y" is not a subexpression:
+            sage: (x*sin(2*(x+y) + 2*a)).has(x+y)
+            False
+
+        Although x^1==x and x^0==1, neither "x" nor "1" are actually of the
+        form "x^something":
+            sage: (x+1).has(x^w0)
+            False
+
+        Here is another possible pitfall, where the first expression
+        matches because the term "-x" has the form "(-1)*x" in GiNaC. To check
+        whether a polynomial contains a linear term you should use the
+        coeff() function instead.
+            sage: (4*x^2 - x + 3).has(w0*x)
+            True
+            sage: (4*x^2 + x + 3).has(w0*x)
+            False
+            sage: (4*x^2 + x + 3).has(x)
+            True
+            sage: (4*x^2 - x + 3).coeff(x,1)
+            -1
+            sage: (4*x^2 + x + 3).coeff(x,1)
+            1
+        """
         cdef Expression p = self.coerce_in(pattern)
-        return self._gobj.g_has(p._gobj)
+        return self._gobj.has(p._gobj)
 
     def subs(self, expr):
         """
@@ -440,10 +479,133 @@ cdef class Expression(CommutativeRingElement):
             x - 1
         """
         cdef Expression p = self.coerce_in(expr)
-        return new_Expression_from_GEx(self._gobj.g_subs(p._gobj))
+        return new_Expression_from_GEx(self._gobj.subs(p._gobj))
 
     ############################################################################
     # Polynomial functions
+    ############################################################################
+    def coeff(self, s, int n=1):
+        """
+        INPUT:
+            s -- expression
+            n -- integer
+        OUTPUT:
+            coefficient of s^n
+
+        EXAMPLES:
+            sage: var('x,y,a', ns=1)
+            (x, y, a)
+            sage: f = 100 + a*x + x^3*sin(x*y) + x*y + x/y + 2*sin(x*y)/x; f
+            2*sin(x*y)*x^(-1) + sin(x*y)*x^3 + a*x + x*y^(-1) + x*y + 100
+            sage: f.collect(x)
+            (y^(-1) + a + y)*x + 2*sin(x*y)*x^(-1) + sin(x*y)*x^3 + 100
+            sage: f.coeff(x,0)
+            100
+            sage: f.coeff(x,-1)
+            2*sin(x*y)
+            sage: f.coeff(x,1)
+            y^(-1) + a + y
+            sage: f.coeff(x,2)
+            0
+            sage: f.coeff(x,3)
+            sin(x*y)
+            sage: f.coeff(x^3)
+            sin(x*y)
+            sage: f.coeff(sin(x*y))
+            x^3 + 2*x^(-1)
+            sage: f.collect(sin(x*y))
+            (x^3 + 2*x^(-1))*sin(x*y) + a*x + x*y^(-1) + x*y + 100
+        """
+        cdef Expression ss = self.coerce_in(s)
+        return new_Expression_from_GEx(self._gobj.coeff(ss._gobj, n))
+
+    def leading_coeff(self, s):
+        """
+        Return the leading coefficient of s in self.
+
+        EXAMPLES:
+            sage: var('x,y,a', ns=1)
+            (x, y, a)
+            sage: f = 100 + a*x + x^3*sin(x*y) + x*y + x/y + 2*sin(x*y)/x; f
+            2*sin(x*y)*x^(-1) + sin(x*y)*x^3 + a*x + x*y^(-1) + x*y + 100
+            sage: f.leading_coeff(x)
+            sin(x*y)
+            sage: f.leading_coeff(y)
+            x
+            sage: f.leading_coeff(sin(x*y))
+            x^3 + 2*x^(-1)
+        """
+        cdef Expression ss = self.coerce_in(s)
+        return new_Expression_from_GEx(self._gobj.lcoeff(ss._gobj))
+
+    def trailing_coeff(self, s):
+        """
+        Return the trailing coefficient of s in self, i.e., the coefficient
+        of the smallest power of s in self.
+
+        EXAMPLES:
+            sage: var('x,y,a', ns=1)
+            (x, y, a)
+            sage: f = 100 + a*x + x^3*sin(x*y) + x*y + x/y + 2*sin(x*y)/x; f
+            2*sin(x*y)*x^(-1) + sin(x*y)*x^3 + a*x + x*y^(-1) + x*y + 100
+            sage: f.trailing_coeff(x)
+            2*sin(x*y)
+            sage: f.trailing_coeff(y)
+            x
+            sage: f.trailing_coeff(sin(x*y))
+            a*x + x*y^(-1) + x*y + 100
+        """
+        cdef Expression ss = self.coerce_in(s)
+        return new_Expression_from_GEx(self._gobj.tcoeff(ss._gobj))
+
+    def low_degree(self, s):
+        """
+        Return the exponent of the lowest nonpositive power of s in self.
+
+        OUTPUT:
+            an integer <= 0.
+
+        EXAMPLES:
+            sage: var('x,y,a', ns=1)
+            (x, y, a)
+            sage: f = 100 + a*x + x^3*sin(x*y) + x*y + x/y^10 + 2*sin(x*y)/x; f
+            2*sin(x*y)*x^(-1) + sin(x*y)*x^3 + a*x + x*y^(-10) + x*y + 100
+            sage: f.low_degree(x)
+            -1
+            sage: f.low_degree(y)
+            -10
+            sage: f.low_degree(sin(x*y))
+            0
+            sage: (x^3+y).low_degree(x)
+            0
+        """
+        cdef Expression ss = self.coerce_in(s)
+        return self._gobj.ldegree(ss._gobj)
+
+    def degree(self, s):
+        """
+        Return the exponent of the highest nonnegative power of s in self.
+
+        OUTPUT:
+           an integer >= 0.
+
+        EXAMPLES:
+            sage: var('x,y,a', ns=1)
+            (x, y, a)
+            sage: f = 100 + a*x + x^3*sin(x*y) + x*y + x/y^10 + 2*sin(x*y)/x; f
+            2*sin(x*y)*x^(-1) + sin(x*y)*x^3 + a*x + x*y^(-10) + x*y + 100
+            sage: f.degree(x)
+            3
+            sage: f.degree(y)
+            1
+            sage: f.degree(sin(x*y))
+            1
+            sage: (x^-3+y).degree(x)
+            0
+        """
+        cdef Expression ss = self.coerce_in(s)
+        return self._gobj.degree(ss._gobj)
+
     def gcd(self, b):
         """
         Return the gcd of self and b, which must be integer or polynomials over

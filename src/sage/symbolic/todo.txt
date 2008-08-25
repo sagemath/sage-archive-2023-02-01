@@ -61,6 +61,12 @@ sage: var('x',ns=1); k.<a> = GF(9); k(2)*x
 x
 with 9 replaced by 25 it works fine...
 
+done * wrap basic pattern matching
+
+done * wrap basic polynomial functions
+
+done * wrap substituting expressions
+
 ------------------------------------------------------------------
 
 * Change SAGE's Ginac to make a call to a cython gcd function, then use
@@ -75,10 +81,6 @@ Notes
 (1) sage: (0.5).arccosh()
 NaN
 (2) but however it seems the code in pynac.pyx isn't even called.
-
-* wrap pattern matching
-
-* wrap substituting expressions
 
 * wrap taylor series
 
@@ -107,6 +109,10 @@ sage: a.expand()*Mod(2,7)
 5 + (5)*x + (2)*x^3 + (4)*x^2
 sage: a.expand()*Mod(1,7)
 1000 + 300*x + x^3 + 30*x^2
+
+******************************************************************************
+For PHASE II: LATER
+******************************************************************************
 
 * Pickle anything!
 

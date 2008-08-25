@@ -1,0 +1,17 @@
+--- src/Macaulay2/e/overflow.hpp	2008-07-19 15:36:35.000000000 -0700
++++ patches/Macaulay2.e.overflow.hpp	2008-08-22 05:00:45.000000000 -0700
+@@ -7,6 +7,14 @@
+ 
+ // methods for detecting arithmetic overflows
+ 
++#if HAVE_STRING_H
++#include <string.h>
++#endif
++
++//#if HAVE_STDLIB_H
++#include <stdlib.h>
++//#endif
++
+ #include "exceptions.hpp"
+ #include <assert.h>
+ #include "config.h"

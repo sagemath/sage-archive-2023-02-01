@@ -10,14 +10,14 @@ if [ "$UNAME" = "" ]; then
   UNAME=`uname`;
 fi
 
-BOEHM_GC=`cd $SAGE_ROOT/spkg/standard/; ./newest_version boehm_gc`
-if [ $? -ne 0 ]; then
-    echo "Failed to find boehm_gc.  Please install the boehm_gc spkg with sage -i boehm_gc-7.1.p0"
+BOEHM_GC=`cd $SAGE_ROOT/spkg/installed/; ls -1 boehm_gc* 2> /dev/null`
+if [ "x$BOEHM_GC" = "x" ]; then
+    echo "Failed to find boehm_gc.  Please install the optinal boehm_gc.spkg via sage -optinal"
     exit 1
 fi
-GDBM=`cd $SAGE_ROOT/spkg/standard/; ./newest_version gdbm`
-if [ $? -ne 0 ]; then
-    echo "Failed to find gmp. Please install the gdbm spkg with sage -i gdbm-1.8.3"
+GDBM=`cd $SAGE_ROOT/spkg/installed/; ls -1 gdbm* 2> /dev/null`
+if [ "x$GBDM" = "x" ]; then
+    echo "Failed to find gdbm. Please install the optinal gdbm.spkg with sage -optional"
     exit 1
 fi
 

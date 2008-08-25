@@ -51,20 +51,22 @@ done * integrate in burcin's new code
 done * put _sig_on/ _sig_off back so control-c works.
 done (?) * printing sums is still out of wack and non-deterministic
 done * implement isqrt, etc. and other stubs in pynac.pyx
-
-------------------------------------------------------------------
-
-* get gcd to work
-sage: x,y= var('x,y',ns=1)
-sage: (x^2-y^2).gcd(x-y)
+done * BUG:
+get gcd to work
+sage: from sage.all import *; x,y= var('x,y',ns=1); (x**2-y**2).gcd(x-y)
 boom!
-
-
 
 * Bug...
 sage: var('x',ns=1); k.<a> = GF(9); k(2)*x
 x
 with 9 replaced by 25 it works fine...
+
+------------------------------------------------------------------
+
+* Change SAGE's Ginac to make a call to a cython gcd function, then use
+singular, since singular's gcd over QQ is much better than ginac's, I think,
+and ginac *only* does GCD over QQ.  Actually, just make everything in normal.cpp
+be implemented via Singular, probably...
 
 * BUG:
 sage: S(0.5).arccosh()

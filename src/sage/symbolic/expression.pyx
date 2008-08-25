@@ -345,8 +345,135 @@ cdef class Expression(CommutativeRingElement):
         _sig_off
         return new_Expression_from_GEx(x)
 
+    ############################################################################
+    # Pattern Matching
+    ############################################################################
+    def match(self, pattern):
+        """
+        See http://www.ginac.de/tutorial/Pattern-matching-and-advanced-substitutions.html
+
+        EXAMPLES:
+            sage: var('x,y,z,a,b,c,d,e,f',ns=1); S = parent(x)
+            (x, y, z, a, b, c, d, e, f)
+            sage: w0 = S.wild(0); w1 = S.wild(1); w2 = S.wild(2)
+            sage: ((x+y)^a).match((x+y)^a)
+            True
+            sage: ((x+y)^a).match((x+y)^b)
+            False
+            sage: ((x+y)^a).match(w0^w1)
+            True
+            sage: ((x+y)^a).match(w0^w0)
+            False
+            sage: ((x+y)^(x+y)).match(w0^w0)
+            True
+            sage: ((a+b)*(a+c)).match((a+w0)*(a+w1))
+            True
+            sage: ((a+b)*(a+c)).match((w0+b)*(w0+c))
+            True
+            sage: ((a+b)*(a+c)).match((w0+w1)*(w0+w2))    # surprising?
+            False
+            sage: (a*(x+y)+a*z+b).match(a*w0+w1)
+            True
+            sage: (a+b+c+d+e+f).match(c)
+            False
+            sage: (a+b+c+d+e+f).has(c)
+            True
+            sage: (a+b+c+d+e+f).match(c+w0)
+            True
+            sage: (a+b+c+d+e+f).match(c+e+w0)
+            True
+            sage: (a+b).match(a+b+w0)
+            True
+            sage: (a*b^2).match(a^w0*b^w1)
+            False
+            sage: (a*b^2).match(a*b^w1)
+            True
+            sage: (x*x.arctan2(x^2)).match(w0*w0.arctan2(w0^2))
+            True
+        """
+        cdef Expression p = self.coerce_in(pattern)
+        return self._gobj.g_match(p._gobj)
+
+    def has(self, pattern):
+        cdef Expression p = self.coerce_in(pattern)
+        return self._gobj.g_has(p._gobj)
+
+    def subs(self, expr):
+        """
+        EXAMPLES:
+            sage: var('x,y,z,a,b,c,d,e,f',ns=1); S = parent(x)
+            (x, y, z, a, b, c, d, e, f)
+            sage: w0 = S.wild(0); w1 = S.wild(1)
+            sage: (a^2 + b^2 + (x+y)^2).subs(w0^2 == w0^3)
+            (x + y)^3 + a^3 + b^3
+            sage: (a^4 + b^4 + (x+y)^4).subs(w0^2 == w0^3)
+            (x + y)^4 + a^4 + b^4
+            sage: (a^2 + b^4 + (x+y)^4).subs(w0^2 == w0^3)
+            (x + y)^4 + a^3 + b^4
+            sage: ((a+b+c)^2).subs(a+b==x)
+            (a + b + c)^2
+            sage: ((a+b+c)^2).subs(a+b+w0==x+w0)
+            (c + x)^2
+            sage: (a+2*b).subs(a+b==x)
+            a + 2*b
+            sage: (a+2*b).subs(a+b+w0 == x+w0)
+            a + 2*b
+            sage: (a+2*b).subs(a+w0*b == x)
+            x
+            sage: (a+2*b).subs(a+b+w0*b == x+w0*b)
+            a + 2*b
+            sage: (4*x^3-2*x^2+5*x-1).subs(x==a)
+            4*a^3 - 2*a^2 + 5*a - 1
+            sage: (4*x^3-2*x^2+5*x-1).subs(x^w0==a^w0)
+            4*a^3 - 2*a^2 + 5*x - 1
+            sage: (4*x^3-2*x^2+5*x-1).subs(x^w0==a^(2*w0)).subs(x==a)
+            4*a^6 - 2*a^4 + 5*a - 1
+            sage: sin(1+sin(x)).subs(sin(w0)==cos(w0))
+            cos(cos(x) + 1)
+            sage: (sin(x)^2 + cos(x)^2).subs(sin(w0)^2+cos(w0)^2==1)
+            1
+            sage: (1 + sin(x)^2 + cos(x)^2).subs(sin(w0)^2+cos(w0)^2==1)
+            sin(x)^2 + cos(x)^2 + 1
+            sage: (17*x + sin(x)^2 + cos(x)^2).subs(w1 + sin(w0)^2+cos(w0)^2 == w1 + 1)
+            17*x + 1
+            sage: ((x-1)*(sin(x)^2 + cos(x)^2)^2).subs(sin(w0)^2+cos(w0)^2 == 1)
+            x - 1
+        """
+        cdef Expression p = self.coerce_in(expr)
+        return new_Expression_from_GEx(self._gobj.g_subs(p._gobj))
+
+    ############################################################################
+    # Polynomial functions
     def gcd(self, b):
         """
+        Return the gcd of self and b, which must be integer or polynomials over
+        the rational numbers.
+
+        TODO: I tried the massive gcd from
+        http://trac.sagemath.org/sage_trac/ticket/694 on Ginac dies
+        after about 10 seconds.  Singular easily does that GCD now.
+        Since Ginac only handles poly gcd over QQ, we should change
+        ginac itself to use Singular.
+
+        EXAMPLES:
+            sage: var('x,y',ns=1); S = parent(x)
+            (x, y)
+            sage: S(10).gcd(S(15))
+            5
+            sage: (x^3 - 1).gcd(x-1)
+            x - 1
+            sage: (x^3 - 1).gcd(x^2+x+1)
+            x^2 + x + 1
+            sage: (x^3 - sage.symbolic.ring.pi).gcd(x-sage.symbolic.ring.pi)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: gcd: arguments must be polynomials over the rationals
+            sage: gcd(x^3 - y^3, x-y)
+            x - y
+            sage: gcd(x^100-y^100, x^10-y^10)
+            x^10 - y^10
+            sage: gcd(expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) ), expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3)) )
+            -1/7*x^5 + 17/7*y - 2/21
         """
         cdef Expression r = self.coerce_in(b)
         _sig_on

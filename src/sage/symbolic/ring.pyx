@@ -108,6 +108,9 @@ cdef class NSymbolicRing(Ring):
         except TypeError:
             raise TypeError, "conversion not defined"
 
+    def wild(self, unsigned int n=0):
+        return new_Expression_from_GEx(g_wild(n))
+
 
 NSR = NSymbolicRing()
 

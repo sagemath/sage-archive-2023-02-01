@@ -37,9 +37,15 @@ cdef extern from "ginac_wrap.h":
         GEx collect(GEx s, bint dist) except +
         GEx diff(GSymbol s, int d)    except +
         bint is_zero()                except +
+        bint g_match "match"(GEx pattern) except +
+        bint g_has "has"(GEx pattern) except +
+        GEx g_subs "subs"(GEx expr) except +
 
     # Algorithms
-    GEx g_gcd "gcd"(GEx a, GEx b)
+    GEx g_gcd "gcd"(GEx a, GEx b) except +
+
+    # Pattern matching wildcards
+    GEx g_wild "wild"(unsigned int label) except +
 
     # Constants
     GEx g_Pi "Pi"

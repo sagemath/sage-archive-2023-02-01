@@ -395,11 +395,11 @@ cdef public object py_smod(object a, object b):
     # Modulus (in symmetric representation).
     # Equivalent to Maple's mods.
     # returns a mod b in the range [-iquo(abs(b)-1,2), iquo(abs(b),2)]
+    a = Integer(a); b = Integer(b)
     b = abs(b)
     c = a % b
     if c > b//2:
         c -= b
-    print a, b, c
     return c
 
 def smod(a, b):
@@ -407,12 +407,13 @@ def smod(a, b):
 
 
 cdef public object py_irem(object x, object n):
-    return x % n
+    return Integer(x) % Integer(n)
 
 cdef public object py_iquo(object x, object n):
-    return x//n
+    return Integer(x)//Integer(n)
 
 cdef public object py_iquo2(object x, object n):
+    x = Integer(x); n = Integer(n)
     try:
         q = x//n
         r = x - q*n
@@ -424,7 +425,6 @@ cdef public int py_int_length(object x) except -1:
     # Size in binary notation.  For integers, this is the smallest n >= 0 such
     # that -2^n <= x < 2^n. If x > 0, this is the unique n > 0 such that
     # 2^(n-1) <= x < 2^n.  This returns 0 if x is not an integer.
-    print x, Integer(x).bits()
     return Integer(x).bits()
 
 

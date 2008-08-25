@@ -13,6 +13,12 @@ M2
 M2-emacs
 M2-help
 M2-load-libs
+HMMEd
+cluster
+ghmm-config
+probdist
+scluster
+smix_hmm
 Singular
 Singular-3-0-2
 TSingular

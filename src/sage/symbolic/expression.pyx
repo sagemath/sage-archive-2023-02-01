@@ -308,17 +308,99 @@ cdef class Expression(CommutativeRingElement):
         if not isinstance(deg, (int, long, sage.rings.integer.Integer)) \
                 or deg < 1:
             raise TypeError, "argument deg should be an integer >1."
-        if not isinstance(symb, Expression):
-            try:
-                symb = ring.NSR(symb)
-            except TypeError, err:
-                raise TypeError, "argument symb must be a symbol"
-        if not is_a_symbol((<Expression>symb)._gobj):
+        cdef Expression symbol = self.coerce_in(symb)
+        if not is_a_symbol(symbol._gobj):
             raise TypeError, "argument symb must be a symbol"
         _sig_on
-        cdef GEx x = self._gobj.diff(ex_to_symbol((<Expression>symb)._gobj), deg)
+        cdef GEx x = self._gobj.diff(ex_to_symbol(symbol._gobj), deg)
         _sig_off
         return new_Expression_from_GEx(x)
+
+    def series(self, symbol, int order):
+        r"""
+        Return the power series expansion of self in terms of the variable
+        symbol to the given order.
+
+        INPUT:
+            symbol -- a variable
+            order -- an integer
+
+        OUTPUT:
+            a power series --
+
+        To truncate the power series and obtain a normal expression, use the
+        truncate command.
+
+        EXAMPLES:
+        We expand a polynomial in $x$ about 0, about $1$, and also truncate
+        it back to a polynomial:
+            sage: var('x,y',ns=1)
+            (x, y)
+            sage: f = (x^3 - sin(y)*x^2 - 5*x + 3); f
+            -sin(y)*x^2 + x^3 - 5*x + 3
+            sage: g = f.series(x, 4); g
+            3 + (-5)*x + (-sin(y))*x^2 + 1*x^3
+            sage: g.truncate()
+            -sin(y)*x^2 + x^3 - 5*x + 3
+            sage: g = f.series(x==1, 4); g
+            (-sin(y) - 1) + (-2*sin(y) - 2)*(x - 1) + (-sin(y) + 3)*(x - 1)^2 + 1*(x - 1)^3
+            sage: h = g.truncate(); h
+            -sin(y) - 2*(x - 1)*(sin(y) + 1) + (x - 1)^2*(-sin(y) + 3) + (x - 1)^3 - 1
+            sage: h.expand()
+            -sin(y)*x^2 + x^3 - 5*x + 3
+
+        We computer another series expansion of an analytic function:
+            sage: f = sin(x)/x^2
+            sage: f.series(x,7)
+            1*x^(-1) + (-1/6)*x + 1/120*x^3 + (-1/5040)*x^5 + Order(x^7)
+            sage: f.series(x==1,3)
+            (sin(1)) + (-2*sin(1) + cos(1))*(x - 1) + (5/2*sin(1) - 2*cos(1))*(x - 1)^2 + Order((x - 1)^3)
+            sage: f.series(x==1,3).truncate().expand()
+            11/2*sin(1) - 3*cos(1) - 7*sin(1)*x + 5/2*sin(1)*x^2 + 5*cos(1)*x - 2*cos(1)*x^2
+
+        Following the Ginac tutorial, e use John Machin's amazing
+        formula $\pi = 16 \atan(1/5) - 4 \atan(1/239)$ to compute
+        digits of $\pi$. We expand the arcus tangent around 0 and insert
+        the fractions 1/5 and 1/239.
+            sage: x = var('x',ns=1)
+            sage: f = atan(x).series(x, 10); f
+            1*x + (-1/3)*x^3 + 1/5*x^5 + (-1/7)*x^7 + 1/9*x^9 + Order(x^10)
+            sage: float(16*f.subs(x==1/5) - 4*f.subs(x==1/239))
+            3.1415926824043994
+        """
+        cdef Expression symbol0 = self.coerce_in(symbol)
+        _sig_on
+        cdef GEx x = self._gobj.series(symbol0._gobj, order, 0)
+        _sig_off
+        return new_Expression_from_GEx(x)
+
+    def truncate(self):
+        """
+        Given a power series or expression, return the corresponding
+        expression without the big oh.
+
+        INPUT:
+            a series as output by the series command
+
+        OUTPUT:
+            expression
+
+        EXAMPLES:
+            sage: var('x,y',ns=1)
+            (x, y)
+            sage: f = sin(x)/x^2
+            sage: f.truncate()
+            sin(x)*x^(-2)
+            sage: f.series(x,7)
+            1*x^(-1) + (-1/6)*x + 1/120*x^3 + (-1/5040)*x^5 + Order(x^7)
+            sage: f.series(x,7).truncate()
+            -1/5040*x^5 + 1/120*x^3 + x^(-1) - 1/6*x
+            sage: f.series(x==1,3).truncate().expand()
+            11/2*sin(1) - 3*cos(1) - 7*sin(1)*x + 5/2*sin(1)*x^2 + 5*cos(1)*x - 2*cos(1)*x^2
+        """
+        if not is_a_series(self._gobj):
+            return self
+        return new_Expression_from_GEx(series_to_poly(self._gobj))
 
     def expand(Expression self):
         """
@@ -1319,5 +1401,6 @@ cdef Expression new_Expression_from_GEx(GEx juice):
     GEx_construct_ex(&nex._gobj, juice)
     nex._parent = ring.NSR
     return nex
+
 
 

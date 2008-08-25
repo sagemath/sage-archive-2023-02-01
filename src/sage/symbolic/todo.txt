@@ -67,86 +67,7 @@ done * wrap basic polynomial functions
 
 done * wrap substituting expressions
 
-------------------------------------------------------------------
-
-* Change SAGE's Ginac to make a call to a cython gcd function, then use
-singular, since singular's gcd over QQ is much better than ginac's, I think,
-and ginac *only* does GCD over QQ.  Actually, just make everything in normal.cpp
-be implemented via Singular, probably...
-
-* BUG:
-sage: S(0.5).arccosh()
-1.12762596520638  # very wrong!
-Notes
-(1) sage: (0.5).arccosh()
-NaN
-(2) but however it seems the code in pynac.pyx isn't even called.
-
-* wrap taylor series
-
-* optimize is_even in numeric.cpp
-
-* figure out how to check for true or false-ness of inequalities in ginac manual.
-   sage: var('x,y,z,w',ns=1); P=x.parent();
-   sage: bool(P(2)== P(2))
-
-* need to be able to do this (from ginsh):
-> collect_common_factors(x/(x^2 + x));
-(1+x)^(-1)
-
-* make it so "make install" actually works without manual intervention, especially on osx
-
-* pretty serious todo -- all predefined constants in utils.cpp get made wrong:
-    // TODO: BECAUSE of Floor divsion, this gives the wrong answer!!
-    // However, it gets called at ginac startup, so I don't yet
-    // know how to change it to make a Sage Rational. Argh.
-    value = Number_T(numer) / Number_T(denom);
-
-* Make it so these work the same way, i.e., in second case below the Mod(1,7)
-should also reduce.  Probably in some cases ginac just doesn't bother to do
-the multiply because Mod(1,7) == 1 is true.
-sage: a.expand()*Mod(2,7)
-5 + (5)*x + (2)*x^3 + (4)*x^2
-sage: a.expand()*Mod(1,7)
-1000 + 300*x + x^3 + 30*x^2
-
-******************************************************************************
-For PHASE II: LATER
-******************************************************************************
-
-* Pickle anything!
-
-* CRASH:
-sage: f = (Mod(2,7)*x^2 + Mod(2,7))^7
-------------------------------------------------------------
-Unhandled SIGBUS: A bus error occured in SAGE.
-
-It works fine with leading coefficient Mod(1,7)
-
-* Weird wrong answers:
-sage: k = GF(7)
-sage: f = expand((k(1)*x^5 + k(1)*x^2 + k(2))^7); f
-2 + 35*x^26 + 21*x^29 + 7*x^17 + 21*x^20 + 35*x^23 + x^14 + 7*x^32 + x^35
-sage: f * k(-1) * k(-1)
-2
-
-* Control-c --> SIGBUS:
-sage: R.<u,v> = QQ[]
-sage: var('a,b,c', ns=1)
-(a, b, c)
-sage: expand((u + v + a + b + c)^2)
-u^2 + 2*u*v + v^2 + a^2 + 2*b*a + (2*u + 2*v)*b + b^2 + 2*b*c + (2*u + 2*v)*a + c^2 + (2*u + 2*v)*c + 2*a*c
-sage: time z = expand((u + v + a + b + c)^10)
-CPU times: user 0.01 s, sys: 0.00 s, total: 0.01 s
-Wall time: 0.05 s
-sage: time z = expand((u + v + a + b + c)^100)
-^C^C^C
-------------------------------------------------------------
-Unhandled SIGBUS: A bus error occured in SAGE.
-
-
-
-* {{{id=27|
+done * {{{id=27|
 var('x,y',ns=1)
 S = x.parent()
 pi = sage.symbolic.ring.pi
@@ -166,3 +87,84 @@ time a = phi(25,4)
 PYTHON ERROR! error calling function
 }}}
 
+DONE * Control-c --> SIGBUS:
+sage: R.<u,v> = QQ[]
+sage: var('a,b,c', ns=1)
+(a, b, c)
+sage: expand((u + v + a + b + c)^2)
+u^2 + 2*u*v + v^2 + a^2 + 2*b*a + (2*u + 2*v)*b + b^2 + 2*b*c + (2*u + 2*v)*a + c^2 + (2*u + 2*v)*c + 2*a*c
+sage: time z = expand((u + v + a + b + c)^10)
+CPU times: user 0.01 s, sys: 0.00 s, total: 0.01 s
+Wall time: 0.05 s
+sage: time z = expand((u + v + a + b + c)^100)
+^C^C^C
+------------------------------------------------------------
+Unhandled SIGBUS: A bus error occured in SAGE.
+
+done * pretty serious todo -- all predefined constants in utils.cpp get made wrong:
+    // TODO: BECAUSE of Floor divsion, this gives the wrong answer!!
+    // However, it gets called at ginac startup, so I don't yet
+    // know how to change it to make a Sage Rational. Argh.
+    value = Number_T(numer) / Number_T(denom);
+
+done * wrap taylor series
+done    * power series print wrong -- no spaces around operators
+
+
+------------------------------------------------------------------
+
+* BUG:
+sage: S(0.5).arccosh()
+1.12762596520638  # very wrong!
+Notes
+(1) sage: (0.5).arccosh()
+NaN
+(2) but however it seems the code in pynac.pyx isn't even called.
+
+
+* implement conversion to RealField.  How?
+
+* figure out how to check for true or false-ness of inequalities in ginac manual.
+   sage: var('x,y,z,w',ns=1); P=x.parent();
+   sage: bool(P(2)== P(2))
+
+* need to be able to do this (from ginsh):
+> collect_common_factors(x/(x^2 + x));
+(1+x)^(-1)
+
+* make it so "make install" actually works without manual intervention, especially on osx
+
+******************************************************************************
+For PHASE II: LATER  (Hopefully Burcin)
+******************************************************************************
+
+* optimize is_even in numeric.cpp
+
+* Support pickle via the "archive" print mode.
+
+* CRASH:
+sage: f = (Mod(2,7)*x^2 + Mod(2,7))^7
+------------------------------------------------------------
+Unhandled SIGBUS: A bus error occured in SAGE.
+
+It works fine with leading coefficient Mod(1,7)
+
+* Weird wrong answers:
+sage: k = GF(7)
+sage: f = expand((k(1)*x^5 + k(1)*x^2 + k(2))^7); f
+2 + 35*x^26 + 21*x^29 + 7*x^17 + 21*x^20 + 35*x^23 + x^14 + 7*x^32 + x^35
+sage: f * k(-1) * k(-1)
+2
+
+* Maybe change SAGE's Ginac to make a call to a cython gcd function, then use
+singular, since singular's gcd over QQ is much better than ginac's, I think,
+and ginac *only* does GCD over QQ.  Actually, just make everything in normal.cpp
+be implemented via Singular, probably...
+
+* Make it so these work the same way, i.e., in second case below the Mod(1,7)
+should also reduce.  Probably in some cases ginac just doesn't bother to do
+the multiply because Mod(1,7) == 1 is true.
+sage: a.expand()*Mod(2,7)
+5 + (5)*x + (2)*x^3 + (4)*x^2
+sage: a.expand()*Mod(1,7)
+1000 + 300*x + x^3 + 30*x^2

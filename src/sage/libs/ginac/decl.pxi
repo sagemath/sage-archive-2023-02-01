@@ -36,21 +36,26 @@ cdef extern from "ginac_wrap.h":
         GEx expand(unsigned int opt)  except +
         GEx collect(GEx s, bint dist) except +
         GEx diff(GSymbol s, int d)    except +
+        GEx series(GEx s, int order, unsigned options) except +
         bint is_zero()                except +
-        bint match(GEx pattern) except +
-        bint has(GEx pattern) except +
-        GEx subs(GEx expr) except +
-        GEx coeff(GEx expr, int n) except +
-        GEx lcoeff(GEx expr) except +
-        GEx tcoeff(GEx expr) except +
-        int degree(GEx expr) except +
-        int ldegree(GEx expr) except +
+        bint match(GEx pattern)       except +
+        bint has(GEx pattern)         except +
+        GEx subs(GEx expr)            except +
+        GEx coeff(GEx expr, int n)    except +
+        GEx lcoeff(GEx expr)          except +
+        GEx tcoeff(GEx expr)          except +
+        int degree(GEx expr)          except +
+        int ldegree(GEx expr)         except +
 
     # Algorithms
     GEx g_gcd "gcd"(GEx a, GEx b) except +
 
     # Pattern matching wildcards
     GEx g_wild "wild"(unsigned int label) except +
+
+    # Series back to poly
+    GEx series_to_poly(GEx e) except +
+    bint is_a_series "is_a<pseries>" (GEx e)
 
     # Constants
     GEx g_Pi "Pi"

@@ -468,7 +468,7 @@ cdef public object py_integer_from_long(long x):
     mpz_init_set_si(z.value, x)
     return z
 
-cdef public object py_integer_from_pythonint(object x):
+cdef public object py_integer_from_python_obj(object x):
     return Integer(x)
 
 

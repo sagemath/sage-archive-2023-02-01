@@ -2,8 +2,6 @@ r"""
 
 Support for symbolic functions.
 
-
-
 """
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
@@ -16,20 +14,39 @@ from ring import NSR as SR
 
 cdef class SFunction:
     """
+    Return a formal symbolic function.
 
     EXAMPLES:
-        sage: from sage.symbolic.function import function as nfunction
-        sage: foo = nfunction("foo", 2)
-        sage: x,y,z = var("x y z", ns=1)
-        sage: foo(x,y) + foo(y,z)^2
-        foo(x,y) + foo(y,z)^2
-
+    We create a formal function of one variable, write down
+    an expression that involves first and second derivatives,
+    and extract off coefficients.
+        sage: from sage.symbolic.function import function
+        sage: var('r,kappa', ns=1)
+        (r, kappa)
+        sage: psi = function('psi', 1)(r); psi
+        psi(r)
+        sage: g = 1/r^2*(2*r*psi.diff(r,1) + r^2*psi.diff(r,2)); g
+        (2*psi(1,r)*r + psi(2,r)*r^2)*r^(-2)
+        sage: g.expand()
+        psi(2,r) + 2*psi(1,r)*r^(-1)
+        sage: g.coeff(psi.diff(r,2))
+        1
+        sage: g.coeff(psi.diff(r,1))
+        2*r^(-1)
     """
     cdef unsigned int serial
     cdef object name
     cdef int nargs
 
     def __init__(self, name, nargs=0):
+        """
+        EXAMPLES:
+            sage: from sage.symbolic.function import function as nfunction
+            sage: foo = nfunction("foo", 2)
+            sage: x,y,z = var("x y z", ns=1)
+            sage: foo(x,y) + foo(y,z)^2
+            foo(x,y) + foo(y,z)^2
+        """
         try:
             self.serial = find_function(name, nargs)
         except ValueError, err:
@@ -52,7 +69,6 @@ cdef class SFunction:
 
     def __call__(self, *args, coerce=True):
         """
-
         EXAMPLES:
             sage: from sage.symbolic.function import function as nfunction
             sage: foo = nfunction("foo", 2)

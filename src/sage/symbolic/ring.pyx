@@ -42,8 +42,8 @@ cdef class NSymbolicRing(Ring):
 
         EXAMPLES:
             sage: from sage.symbolic.ring import NSR
-            sage: NSR
-            New Symbolic Ring
+            sage: NSR._repr_()
+            'New Symbolic Ring'
         """
         return "New Symbolic Ring"
 
@@ -109,6 +109,27 @@ cdef class NSymbolicRing(Ring):
             raise TypeError, "conversion not defined"
 
     def wild(self, unsigned int n=0):
+        """
+        Return the n-th wild-card for pattern matching and substitution.
+
+        INPUT:
+            n -- a nonnegative integer
+
+        OUTPUT:
+            i-th wildcard expression
+
+        EXAMPLES:
+            sage: x,y = var('x,y',ns=1); SR = x.parent()
+            sage: w0 = SR.wild(0); w1 = SR.wild(1)
+            sage: pattern = sin(x)*w0*w1^2; pattern
+            sin(x)*$0*$1^2
+            sage: f = atan(sin(x)*3*x^2); f
+            arctan(3*sin(x)*x^2)
+            sage: f.has(pattern)
+            True
+            sage: f.subs(pattern == x^2)
+            arctan(x^2)
+        """
         return new_Expression_from_GEx(g_wild(n))
 
 

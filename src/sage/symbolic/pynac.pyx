@@ -402,10 +402,6 @@ cdef public object py_smod(object a, object b):
         c -= b
     return c
 
-def smod(a, b):
-    return py_smod(a,b)
-
-
 cdef public object py_irem(object x, object n):
     return Integer(x) % Integer(n)
 

@@ -16,7 +16,7 @@ if [ "x$BOEHM_GC" = "x" ]; then
     exit 1
 fi
 GDBM=`cd $SAGE_ROOT/spkg/installed/; ls -1 gdbm* 2> /dev/null`
-if [ "x$GBDM" = "x" ]; then
+if [ "x$GDBM" = "x" ]; then
     echo "Failed to find gdbm. Please install the optinal gdbm.spkg with sage -optional"
     exit 1
 fi

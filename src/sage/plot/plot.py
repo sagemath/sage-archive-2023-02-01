@@ -3593,15 +3593,15 @@ def _plot(funcs, xrange, parametric=False,
 
         try:
             data[i] = (float(xi), float(f(xi)))
+            if str(data[i][1]) in ['nan', 'NaN']:
+                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+                exceptions += 1
+                exception_indices.append(i)
         except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
             sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
             exceptions += 1
             exception_indices.append(i)
 
-        if str(data[i][1]) in ['nan', 'NaN']:
-            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
-            exceptions += 1
-            exception_indices.append(i)
 
     data = [data[i] for i in range(len(data)) if i not in exception_indices]
 

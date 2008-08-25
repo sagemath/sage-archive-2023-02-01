@@ -9,7 +9,7 @@ EXAMPLES:
     x^2 + 2*x*y  + 3*y^2
     sage: Q.discriminant()
     -8
-    sage: Q.reduce()
+    sage: Q.reduced_form()
     x^2 + 2*y^2
     sage: Q(1, 1)
     6
@@ -81,7 +81,6 @@ class BinaryQF(SageObject):
         self.a = ZZ(abc_triple[0])
         self.b = ZZ(abc_triple[1])
         self.c = ZZ(abc_triple[2])
-        self._reduced_form = None
 
     def __getitem__(self, n):
         """
@@ -269,7 +268,6 @@ class BinaryQF(SageObject):
         """
         return is_fundamental_discriminant(self.discriminant())
 
-
     def is_weakly_reduced(self):
         """
         Checks if the form $ax^2 + bxy + cy^2$  satisfies
@@ -289,8 +287,35 @@ class BinaryQF(SageObject):
             True
         """
         if self.discriminant() >= 0:
-            raise NotImplementedError, "only implemented for negative discriminant"
+            raise NotImplementedError, "only implemented for nagative discriminants"
         return (abs(self.b) <= self.a) and (self.a <= self.c)
+
+    def reduced_form(self):
+        """
+        EXAMPLES:
+            sage: a = BinaryQF([33,11,5])
+            sage: a.is_reduced()
+            False
+            sage: b = a.reduced_form(); b
+            5*x^2 - x*y + 27*y^2
+            sage: b.is_reduced()
+            True
+
+            sage: a = BinaryQF([15,0,15])
+            sage: a.is_reduced()
+            True
+            sage: b = a.reduced_form(); b
+            15*x^2 + 15*y^2
+            sage: b.is_reduced()
+            True
+        """
+        if self.discriminant() >= 0 or self.a < 0:
+            raise NotImplementedError, "only implemented for positive definite forms"
+        if not self.is_reduced():
+            v = list(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self.a,self.b,self.c)))
+            return BinaryQF(v)
+        else:
+            return self
 
     def reduce(self):
         """
@@ -298,15 +323,14 @@ class BinaryQF(SageObject):
             sage: a = BinaryQF([37,17,2])
             sage: a.is_reduced()
             False
-            sage: b = a.reduce(); b
+            sage: a.reduce(); a
             x^2 + x*y + 2*y^2
-            sage: b.is_reduced()
+            sage: a.is_reduced()
             True
         """
-        if self._reduced_form is None:
-            v = list(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self.a,self.b,self.c)))
-            self._reduced_form = BinaryQF(v)
-        return self._reduced_form
+        if not self.is_reduced():
+            red = self.reduced_form()
+            self.a, self.b, self.c = red.a, red.b, red.c
 
     def is_reduced(self):
         """
@@ -331,7 +355,8 @@ class BinaryQF(SageObject):
             sage: Q.is_reduced()
             True
         """
-        return self.reduce() == self
+        return (-self.a < self.b <= self.a < self.c) or \
+               (ZZ(0) <= self.b <= self.a == self.c)
 
     def complex_point(self):
         """

@@ -176,7 +176,7 @@ namespace GiNaC {
     friend std::ostream& operator << (std::ostream& os, const Number_T& s);
     friend Number_T pow(const Number_T& base, const Number_T& exp);
     friend void coerce(Number_T& new_left, Number_T& new_right, const Number_T& left, const Number_T& right);
-    friend PyObject* to_pyobject(const Number_T& x);
+    friend PyObject* Number_T_to_pyobject(const Number_T& x);
   };
 
   std::ostream& operator << (std::ostream& os, const Number_T& s);
@@ -321,6 +321,7 @@ namespace GiNaC {
     int to_int() const;
     long to_long() const;
     double to_double() const;
+    PyObject* to_pyobject() const;
     const numeric real() const;
     const numeric imag() const;
     const numeric numer() const;

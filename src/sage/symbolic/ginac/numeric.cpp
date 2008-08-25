@@ -129,7 +129,7 @@ extern "C" PyObject* py_eval_catalan(long ndigits);
 
 // Call the Python function f on *this as input and return the result
 // as a PyObject*.
-#define PY_RETURN(f)  PyObject *a = to_pyobject(*this);		 \
+#define PY_RETURN(f)  PyObject *a = Number_T_to_pyobject(*this);		 \
   PyObject *ans = f(a);						 \
   Py_DECREF(a);                                                  \
   if (!ans) py_error("error calling function");			 \
@@ -137,8 +137,8 @@ extern "C" PyObject* py_eval_catalan(long ndigits);
 
 // Call the Python function f on *this and return the result
 // as a PyObject*.
-#define PY_RETURN2(f, b)  PyObject *aa = to_pyobject(*this);	 \
-  PyObject* bb = to_pyobject(b);				 \
+#define PY_RETURN2(f, b)  PyObject *aa = Number_T_to_pyobject(*this);	 \
+  PyObject* bb = Number_T_to_pyobject(b);				 \
   PyObject *ans = f(aa, bb);					 \
   if (!ans) py_error("error calling function");			 \
   Py_DECREF(aa); Py_DECREF(bb); return ans; 
@@ -149,8 +149,8 @@ extern "C" PyObject* py_eval_catalan(long ndigits);
 // to return two inputs from a Python function call.  See
 // its usage in code below. 
 #define PY_RETURN3(f, b, c)						\
-  PyObject *aa = to_pyobject(*this);					\
-  PyObject* bb = to_pyobject(b);					\
+  PyObject *aa = Number_T_to_pyobject(*this);					\
+  PyObject* bb = Number_T_to_pyobject(b);					\
   PyObject *ans = f(aa, bb);						\
   if (!ans) py_error("error calling function");				\
   if (!PyTuple_CheckExact(ans) || PyTuple_GET_SIZE(ans) != 2) 		\
@@ -281,7 +281,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     }
   }
 
-  PyObject* to_pyobject(const Number_T& x) {
+  PyObject* Number_T_to_pyobject(const Number_T& x) {
     // Returns a New Reference
     PyObject* o;
     switch(x.t) {
@@ -302,7 +302,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
         return x.v._pyobject;
 
       default:
-	stub("to_pyobject -- not able to do conversion to pyobject; everything else will be nonsense");
+	stub("Number_T_to_pyobject -- not able to do conversion to pyobject; everything else will be nonsense");
 	return 0;
       }
   }
@@ -352,7 +352,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	stub("** invalid coercion -- left DOUBLE ** ");
       }
     case PYOBJECT:
-      new_right = to_pyobject(right);
+      new_right = Number_T_to_pyobject(right);
       return;
     }
     std::cerr << "type = " << left.t << "\n";
@@ -1047,7 +1047,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case DOUBLE:
       return false;
     case LONG:
-      a = to_pyobject(*this);
+      a = Number_T_to_pyobject(*this);
       bool b = py_is_prime(a);
       Py_DECREF(a);
       return b;
@@ -1276,7 +1276,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   }
 
   int Number_T::int_length() const {
-    PyObject* a = to_pyobject(*this);
+    PyObject* a = Number_T_to_pyobject(*this);
     int n = py_int_length(a);
     Py_DECREF(a);
     if (n == -1)
@@ -2096,6 +2096,17 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     return (long)(value);
   }
 
+  /* Return the underlying Python object corresponding to this
+     numeric.  If this numeric isn't implemented using a Python
+     object, the corresponding Python object is constructed on
+     the fly.
+
+     Returns a NEW REFERENCE.
+  */
+  PyObject* numeric::to_pyobject() const
+  {
+      return Number_T_to_pyobject(value);
+  }
 
   /** Converts numeric types to machine's double. You should check with is_real()
    *  if the number is really not complex before calling this method. */
@@ -2111,7 +2122,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     if (is_real()) 
       return *this;
     verbose("real_part(a)");
-    PyObject *a = to_pyobject(value);
+    PyObject *a = Number_T_to_pyobject(value);
     PyObject *ans = py_real(a);
     if (!ans) py_error("real_part");
     Py_DECREF(a);
@@ -2125,7 +2136,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     if (is_real())
       return 0;
     verbose("imag_part(a)");
-    PyObject *a = to_pyobject(value);
+    PyObject *a = Number_T_to_pyobject(value);
     PyObject *ans = py_imag(a);
     if (!ans) py_error("imag_part");
     Py_DECREF(a);
@@ -2299,7 +2310,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical asinh(x). */
   const numeric asinh(const numeric &x)
   {
-    return x.value.sinh();
+    return x.value.asinh();
   }
 
 
@@ -2308,7 +2319,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @return  arbitrary precision numerical acosh(x). */
   const numeric acosh(const numeric &x)
   {
-    return x.value.cosh();
+    return x.value.acosh();
   }
 
 
@@ -2399,7 +2410,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  objects from n distinct objects.  If n is negative, the formula
    *  binomial(n,k) == (-1)^k*binomial(k-n-1,k) is used to compute the result. */
   const numeric binomial(const numeric &n, const numeric &k) {
-    PyObject *nn = to_pyobject(n.value), *kk = to_pyobject(k.value);
+    PyObject *nn = Number_T_to_pyobject(n.value), *kk = Number_T_to_pyobject(k.value);
     PyObject *ans = py_binomial(nn, kk);
     if (!ans) py_error("binomial");
     Py_DECREF(nn); Py_DECREF(kk);
@@ -2414,7 +2425,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  @exception range_error (argument must be integer >= 0) */
   const numeric bernoulli(const numeric &n)
   {
-    PyObject* nn = to_pyobject(n.value);
+    PyObject* nn = Number_T_to_pyobject(n.value);
     PyObject* ans = py_bernoulli(nn);
     if (!ans) py_error("bernoulli");
     Py_DECREF(nn);
@@ -2507,7 +2518,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   const numeric gcd(const numeric &a, const numeric &b)
   {
     verbose("gcd(a,b)");
-    PyObject *aa = to_pyobject(a.value), *bb = to_pyobject(b.value);
+    PyObject *aa = Number_T_to_pyobject(a.value), *bb = Number_T_to_pyobject(b.value);
     PyObject *ans = py_gcd(aa, bb);
     if (!ans) py_error("gcd");
     Py_DECREF(aa); Py_DECREF(bb);
@@ -2522,7 +2533,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   const numeric lcm(const numeric &a, const numeric &b)
   {
     verbose("lcm(a,b)");
-    PyObject *aa = to_pyobject(a.value), *bb = to_pyobject(b.value);
+    PyObject *aa = Number_T_to_pyobject(a.value), *bb = Number_T_to_pyobject(b.value);
     PyObject *ans = py_lcm(aa, bb);
     if (!ans) py_error("lcm");
     Py_DECREF(aa); Py_DECREF(bb);

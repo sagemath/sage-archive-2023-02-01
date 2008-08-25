@@ -74,6 +74,7 @@ protected:
 public:
 	virtual ex lhs() const;
 	virtual ex rhs() const;
+	virtual operators the_operator() const;
 
 	// non-virtual functions in this class
 private:

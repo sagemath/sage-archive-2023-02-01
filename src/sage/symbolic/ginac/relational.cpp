@@ -313,6 +313,13 @@ ex relational::rhs() const
 	return rh;    
 }
 
+/** Operator of relational */
+relational::operators relational::the_operator() const
+{
+	return o;    
+}
+
+
 //////////
 // non-virtual functions in this class
 //////////

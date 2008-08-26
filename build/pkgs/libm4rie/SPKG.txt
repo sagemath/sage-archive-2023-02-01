@@ -21,6 +21,10 @@
 
 
 == Releases ==
+=== libm4ri-20080826 (Martin Albrecht, Aug 26th, 2008) ===
+
+ * new upstream release
+
 === libm4ri-20080601 (Martin Albrecht, June 1st, 2008) ===
 
  * new upstream release

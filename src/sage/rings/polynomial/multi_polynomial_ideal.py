@@ -147,7 +147,7 @@ from sage.rings.ideal import Ideal_generic
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 
-from sage.misc.cachefunc import CachedFunction
+from sage.misc.cachefunc import cached_method
 from sage.misc.misc import prod
 from sage.misc.sage_eval import sage_eval
 
@@ -255,99 +255,6 @@ def redSB(func):
             return func(*args, **kwds)
     wrapper.__doc__=func.__doc__
     return wrapper
-
-class cached(CachedFunction):
-    r"""
-    Specialised \code{CachedFunction} for the application in
-    multivariate polynomial ideals.
-
-    AUTHOR:
-        -- Martin Albrecht
-    """
-    def __call__(self, *args, **kwds):
-        """
-        EXAMPLES:
-            sage: P = PolynomialRing(GF(32003),4,'x')
-            sage: I = sage.rings.ideal.Katsura(P)
-            sage: I.groebner_basis.clear_cache()
-            sage: gb = I.groebner_basis() # indirect doctest
-            sage: I.groebner_basis.cache
-            {(Multivariate Polynomial Ring in x0, x1, x2, x3 over Finite Field of size 32003,
-            (x0 + 2*x1 + 2*x2 + 2*x3 - 1,
-            x1^2 + 2*x0*x2 + 2*x1*x3 - x2,
-            2*x0*x1 + 2*x1*x2 + 2*x2*x3 - x1,
-            x0^2 + 2*x1^2 + 2*x2^2 + 2*x3^2 - x0),
-            (),
-            ()):
-            [x0 + 2*x1 + 2*x2 + 2*x3 - 1,
-            x2^2 + 2*x1*x3 - 13711*x2*x3 - 4568*x3^2 - 4572*x1 + 13715*x2 - 9145*x3,
-            x1*x2 - 2*x1*x3 - 9147*x2*x3 - 13719*x3^2 + 2286*x1 + 9144*x2 + 4573*x3,
-            x1^2 + 2*x1*x3 + 4573*x2*x3 - 9142*x3^2 - 9144*x1 - 4572*x2 + 13715*x3,
-            x2*x3^2 + 3557*x3^3 - 1778*x1*x3 - 3161*x2*x3 + 5926*x3^2 - 10075*x1 - 6124*x2 + 11853*x3, x1*x3^2 - 10668*x3^3 - 3556*x1*x3 - 10075*x2*x3 + 3556*x3^2 - 889*x1 - 11853*x2,
-            x3^4 + 12535*x3^3 + 7471*x1*x3 + 6188*x2*x3 + 10117*x3^2 + 10521*x1 + 11393*x2 + 11829*x3]}
-        """
-        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
-        k = self.gen_key(*args, **kwds)
-        if self.cache.has_key(k) and "nocache" not in kwds:
-            return self.cache[k]
-
-        w = self.f(self.instance, *args, **kwds)
-        if is_MPolynomialRing(self.instance.ring()):
-            self.cache[k] = w
-        return w
-
-    def clear_cache(self):
-        """
-        Clear the cache.
-
-        EXAMPLE:
-            sage: P = PolynomialRing(GF(32003),4,'x')
-            sage: I = sage.rings.ideal.Katsura(P)
-            sage: I.groebner_basis.clear_cache()
-            sage: I.groebner_basis.cache
-            {}
-            sage: gb = I.groebner_basis() # indirect doctest
-            sage: len(I.groebner_basis.cache)
-            1
-            sage: I.groebner_basis.clear_cache()
-            sage: len(I.groebner_basis.cache)
-            0
-        """
-        self.cache = {}
-
-    def gen_key(self, *args, **kwds):
-        """
-        Generate a key to the cache.
-
-        EXAMPLE:
-            sage: P = PolynomialRing(GF(32003),4,'x')
-            sage: I = sage.rings.ideal.Katsura(P)
-            sage: I.groebner_basis.gen_key()
-            (Multivariate Polynomial Ring in x0, x1, x2, x3 over Finite Field of size 32003,
-            (x0 + 2*x1 + 2*x2 + 2*x3 - 1,
-            x1^2 + 2*x0*x2 + 2*x1*x3 - x2,
-            2*x0*x1 + 2*x1*x2 + 2*x2*x3 - x1,
-            x0^2 + 2*x1^2 + 2*x2^2 + 2*x3^2 - x0),
-            (),
-            ())
-        """
-        r = (self.instance.ring(), tuple(sorted(self.instance.gens())), args, tuple(kwds.iteritems()))
-        return r
-
-    def is_in_cache(self, *args, **kwds):
-        """
-        Check whether key is already in cache.
-
-        EXAMPLE:
-            sage: P = PolynomialRing(GF(32003),3,'x')
-            sage: I = sage.rings.ideal.Katsura(P)
-            sage: I.groebner_basis.is_in_cache()
-            False
-            sage: gb = I.groebner_basis()
-            sage: I.groebner_basis.is_in_cache()
-            True
-        """
-        return self.gen_key(*args, **kwds) in self.cache
 
 def is_MPolynomialIdeal(x):
     r"""
@@ -1841,7 +1748,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
                                         symmetry=symmetry, verbose=verbose)
 
-    @cached
+    @cached_method
     def groebner_basis(self, algorithm='', *args, **kwds):
         r"""
         Return the reduced Groebner basis of this ideal. A Groeber basis

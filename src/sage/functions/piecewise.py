@@ -70,6 +70,12 @@ AUTHOR: David Joyner (2006-04) -- initial version
         DJ (2008-07) - fixed a left multiplication bug reported by C. Boncelet
                        (by defining __rmul__ = __mul__).
 
+TESTS:
+    sage: R.<x> = QQ[]
+    sage: f = Piecewise([[(0,1),1*x^0]])
+    sage: 2*f
+    Piecewise defined function with 1 parts, [[(0, 1), 2]]
+
 """
 
 #*****************************************************************************

@@ -263,7 +263,66 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return self._richcmp(right, op)
 
     def __hash__(self):
-        return self._hash()
+        """
+        EXAMPLE:
+            sage: B = random_matrix(GF(127),3,3)
+            sage: B.set_immutable()
+            sage: {B:0} # indirect doctest
+            {[  9  75  94]
+             [  4  57 112]
+             [ 59  85  45]: 0}
+
+            sage: M = random_matrix(GF(7), 10, 10)
+            sage: M.set_immutable()
+            sage: hash(M)
+            143
+            sage: MZ = M.change_ring(ZZ)
+            sage: MZ.set_immutable()
+            sage: hash(MZ)
+            143
+            sage: MS = M.sparse_matrix()
+            sage: MS.set_immutable()
+            sage: hash(MS)
+            143
+
+        TEST:
+            sage: A = matrix(GF(2),2,0)
+            sage: hash(A)
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+            sage: A.set_immutable()
+            sage: hash(A)
+            0
+        """
+        if self.is_mutable():
+            raise TypeError("mutable matrices are unhashable")
+        x = self.fetch('hash')
+        if not x is None:
+            return x
+
+        cdef long _hash = 0
+        cdef mod_int *_matrix
+        cdef long n = 0
+        cdef Py_ssize_t i, j
+
+        if self._nrows == 0 or self._ncols == 0:
+            return 0
+
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            _matrix = self._matrix[i]
+            for j from 0 <= j < self._ncols:
+                _hash ^= (n * _matrix[j])
+                n+=1
+        _sig_off
+
+        if _hash == -1:
+            return -2
+
+        self.cache('hash', _hash)
+
+        return _hash
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         self._matrix[i][j] = (<IntegerMod_int> value).ivalue
@@ -1453,14 +1512,6 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         Return the requested matrix window.
 
         EXAMPLES:
-            sage: a = matrix(QQ,3,range(9))
-            sage: a.matrix_window()
-            Matrix window of size 3 x 3 at (0,0):
-            [0 1 2]
-            [3 4 5]
-            [6 7 8]
-            sage: type(a)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: a = matrix(GF(7),3,range(9)); a
             [0 1 2]
             [3 4 5]

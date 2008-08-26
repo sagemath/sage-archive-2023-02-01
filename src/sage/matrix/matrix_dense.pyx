@@ -71,6 +71,9 @@ cdef class Matrix_dense(matrix.Matrix):
         for i from 0 <= i < len(v):
             h = h ^ (i * hash(v[i]))
 
+        if h == -1:
+            h = -2
+
         self.cache('hash', h)
         return h
 

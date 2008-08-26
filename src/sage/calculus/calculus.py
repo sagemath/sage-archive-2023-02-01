@@ -3893,6 +3893,11 @@ class SymbolicExpression(RingElement):
 
     def _fast_float_(self, *vars):
         """
+        Returns an object which provides fast floating point evaluation of
+        self.
+
+        See sage.ext.fast_eval? for more information.
+
         EXAMPLES:
             sage: x,y,z = var('x,y,z')
             sage: f = 1 + sin(x)/x + sqrt(z^2+y^2)/cosh(x)
@@ -4065,6 +4070,17 @@ class SymbolicConstant(Symbolic_object):
                     return True
 
     def _fast_float_(self, *vars):
+        """
+        Returns an object which provides fast floating point evaluation of
+        self.
+
+        See sage.ext.fast_eval? for more information.
+
+        EXAMPLES:
+            sage: f = SR(2)._fast_float_()
+            sage: f(3)
+            2.0
+        """
         return fast_float.fast_float_constant(float(self))
 
     def _recursive_sub(self, kwds):
@@ -4678,13 +4694,27 @@ class SymbolicArithmetic(SymbolicOperation):
 
     def _fast_float_(self, *vars):
         """
+        Returns an object which provides fast floating point evaluation of
+        self.
+
+        See sage.ext.fast_eval? for more information.
+
         EXAMPLES:
             sage: x,y = var('x,y')
             sage: f = x*x-y
             sage: ff = f._fast_float_('x','y')
             sage: ff(2,3)
             1.0
+
+            sage: a = x + 2*y
+            sage: f = a._fast_float_()
+            sage: f(1,0)
+            1.0
+            sage: f(0,1)
+            2.0
         """
+        if vars == ():
+            vars = self.arguments()
         fops = [op._fast_float_(*vars) for op in self._operands]
         return self._operator(*fops)
 
@@ -5204,12 +5234,21 @@ class SymbolicVariable(SymbolicExpression):
             2.0
             sage: sqrt(2)._fast_float_()(2)
             1.4142135623730951
+
+            sage: f = x._fast_float_()
+            sage: f(1.2)
+            1.2
         """
+        #if no var
+        if vars == ():
+            return fast_float.fast_float_arg(0)
+
         if self._name in vars:
             return fast_float.fast_float_arg(list(vars).index(self._name))
         svars = [repr(x) for x in vars]
         if self._name in svars:
             return fast_float.fast_float_arg(list(svars).index(self._name))
+
         try:
             return fast_float.fast_float_constant(float(self))
         except TypeError:
@@ -5604,6 +5643,16 @@ class CallableSymbolicExpression(SymbolicExpression):
         return self._expr._maxima_init_()
 
     def _fast_float_(self, *vars):
+        """
+        EXAMPLES:
+            sage: a = var('a')
+            sage: g(x) = sin(x) + 2
+            sage: f = g._fast_float_()
+            sage: f(0)
+            2.0
+        """
+        if vars == ():
+            vars = self.arguments()
         return self._expr._fast_float_(*vars)
 
     def __float__(self):
@@ -6051,6 +6100,31 @@ class SymbolicComposition(SymbolicOperation):
         return float(f._approx_(float(g)))
 
     def _fast_float_(self, *vars):
+        """
+        Returns an object which provides fast floating point evaluation of
+        self.
+
+        See sage.ext.fast_eval? for more information.
+
+        EXAMPLES:
+            sage: f = sqrt(x)._fast_float_('x')
+            sage: f(2)
+            1.41421356237309...
+            sage: y = var('y')
+            sage: f = sqrt(x+y)._fast_float_('x', 'y')
+            sage: f(1,1)
+            1.41421356237309...
+
+            sage: f = sqrt(x+2*y)._fast_float_()
+            sage: f(2,0)
+            1.41421356237309...
+            sage: f(0,1)
+            1.41421356237309...
+
+        """
+        if vars == ():
+            vars = self.arguments()
+
         f = self._operands[0]
         g = self._operands[1]._fast_float_(*vars)
         try:
@@ -6606,7 +6680,21 @@ class Function_sin(PrimitiveFunction):
                 return math.sin(x)
         return SymbolicComposition(self, SR(x))
 
-    def _fast_float_(self):
+    def _fast_float_(self, *vars):
+        """
+        Returns an object which provides fast floating point evaluation of
+        self.
+
+        See sage.ext.fast_eval? for more information.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_eval import fast_float
+            sage: fast_float(sin)
+            <built-in function sin>
+            sage: sin._fast_float_()
+            <built-in function sin>
+
+        """
         return math.sin
 
 sin = Function_sin()
@@ -6632,7 +6720,21 @@ class Function_cos(PrimitiveFunction):
                 return math.cos(x)
         return SymbolicComposition(self, SR(x))
 
-    def _fast_float_(self):
+    def _fast_float_(self, *vars):
+        """
+        Returns an object which provides fast floating point evaluation of
+        self.
+
+        See sage.ext.fast_eval? for more information.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_eval import fast_float
+            sage: fast_float(cos)
+            <built-in function cos>
+            sage: cos._fast_float_()
+            <built-in function cos>
+
+        """
         return math.cos
 
 

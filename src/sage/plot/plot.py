@@ -116,9 +116,10 @@ Here is a pretty graph:
     sage: g.show(dpi=200, axes=False)
 
 Another graph:
-    sage: P = plot(lambda x: sin(x)/x, -4,4, rgbcolor=(0,0,1)) + \
-    ...    plot(lambda x: x*cos(x), -4,4, rgbcolor=(1,0,0)) + \
-    ...    plot(lambda x: tan(x),-4,4,rgbcolor=(0,1,0))
+    sage: x = var('x')
+    sage: P = plot(sin(x)/x, -4,4, rgbcolor=(0,0,1)) + \
+    ...       plot(x*cos(x), -4,4, rgbcolor=(1,0,0)) + \
+    ...       plot(tan(x),-4,4,rgbcolor=(0,1,0))
     ...
     sage: P.show(ymin=-pi,ymax=pi)
 
@@ -148,7 +149,7 @@ this is really a bad example:
     sage: g1 + g2    # show their sum
 
 An illustration of integration:
-    sage: f = lambda x: (x-3)*(x-5)*(x-7)+40
+    sage: f = (x-3)*(x-5)*(x-7)+40
     sage: P = line([(2,0),(2,f(2))], rgbcolor=(0,0,0))
     sage: P += line([(8,0),(8,f(8))], rgbcolor=(0,0,0))
     sage: P += polygon([(2,0),(2,f(2))] + [(x, f(x)) for x in [2,2.1,..,8]] + [(8,0),(2,0)],  rgbcolor=(0.8,0.8,0.8))
@@ -1299,7 +1300,7 @@ class Graphics(SageObject):
             ...     gridlinesstyle=dict(color="blue", linestyle=":"))
 
         Change the style of the horizontal or vertical grid lines separately.
-            sage: p = polar_plot(lambda x:2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
+            sage: p = polar_plot(2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
             sage: p.show(gridlines=True, \
             ...     hgridlinesstyle=dict(color="orange", linewidth=1.0), \
             ...     vgridlinesstyle=dict(color="blue", linestyle=":"))
@@ -1322,7 +1323,7 @@ class Graphics(SageObject):
             ...    gridlinesstyle=dict(marker='x',rgbcolor="black"))
 
         Grid lines can be added to contour plots.
-            sage: f = lambda x,y: sin(x^2 + y^2)*cos(x)*sin(y)
+            sage: f = sin(x^2 + y^2)*cos(x)*sin(y)
             sage: c = contour_plot(f, (-4, 4), (-4, 4), plot_points=100)
             sage: c.show(gridlines=True, gridlinesstyle={'linestyle':':','linewidth':1, 'rgbcolor':'red'})
 
@@ -2848,30 +2849,26 @@ def contour_plot(f, xrange, yrange, **kwds):
     EXAMPLES:
 
     Here we plot a simple function of two variables:
-        sage: f = lambda x,y: cos(x^2 + y^2)
-        sage: contour_plot(f, (-4, 4), (-4, 4))
+        sage: x,y = var('x,y')
+        sage: contour_plot(cos(x^2+y^2), (-4, 4), (-4, 4))
 
 
     Here we change the ranges and add some options:
-        sage: h = lambda x,y: (x^2)*cos(x*y)
-        sage: contour_plot(h, (-10, 5), (-5, 5), fill=False, plot_points=100)
+        sage: contour_plot((x^2)*cos(x*y), (-10, 5), (-5, 5), fill=False, plot_points=100)
 
 
     An even more complicated plot.
-        sage: f = lambda x,y: sin(x^2 + y^2)*cos(x)*sin(y)
-        sage: contour_plot(f, (-4, 4), (-4, 4),plot_points=100)
+        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (-4, 4), (-4, 4),plot_points=100)
 
     Some elliptic curves, but with symbolic endpoints.  In the first
     example, the plot is rotated 90 degrees because we switch the
     variables x,y.
-        sage: x, y = var('x,y')
         sage: contour_plot(y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
-        sage: contour_plot(lambda x,y: y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
         sage: contour_plot(y^2 + 1 - x^3 - x, (-pi,pi), (-pi,pi))
 
 
     We can play with the contour levels.
-        sage: f = lambda x,y: x^2 + y^2
+        sage: f = x^2 + y^2
         sage: contour_plot(f, (-2, 2), (-2, 2))
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=2)
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
@@ -3157,7 +3154,7 @@ def plot_vector_field((f, g), xrange, yrange, **kwds):
 
 
     TESTS:
-        sage: p = plot_vector_field((lambda x,y: .01*x,x+y), (10,20), (10,20))
+        sage: p = plot_vector_field((.01*x,x+y), (10,20), (10,20))
         sage: p.xmin()
         10.0
         sage: p.ymin()
@@ -3435,7 +3432,7 @@ def plot(funcs, *args, **kwds):
     We plot with randomize=False, which makes the initial sample
     points evenly spaced (hence always the same).  Adaptive plotting
     might insert other points, however, unless plot_division=0.
-        sage: p=plot(lambda x: 1, (x,0,3), plot_points=4, randomize=False, plot_division=0)
+        sage: p=plot(1, (x,0,3), plot_points=4, randomize=False, plot_division=0)
         sage: list(p[0])
         [(0.0, 1.0), (1.0, 1.0), (2.0, 1.0), (3.0, 1.0)]
 
@@ -3545,17 +3542,13 @@ def _plot(funcs, xrange, parametric=False,
 
     options.update(kwds)
 
+    if not is_fast_float(funcs):
+        funcs =  fast_float(funcs)
+
     #parametric_plot will be a list or tuple of two functions (f,g)
     #and will plotted as (f(x), g(x)) for all x in the given range
     if parametric:
-        if len(funcs) == 3:
-            raise ValueError, "use parametric_plot3d for parametric plots in 3d dimensions."
-        elif len(funcs) == 2:
-            # 2d
-            f,g = funcs
-        else:
-            raise ValueError, "parametric plots only implemented in 2 and 3 dimensions."
-
+        f, g = funcs
     #or we have only a single function to be plotted:
     else:
         f = funcs
@@ -3702,14 +3695,45 @@ def parametric_plot(funcs, tmin, tmax, **kwargs):
         tmax -- end value of t
         other options -- passed to plot.
 
-    EXAMPLE:
-    We draw a 2d parametric plot:
+    EXAMPLES:
+    We draw some 2d parametric plots:
         sage: t = var('t')
         sage: parametric_plot( (sin(t), sin(2*t)), 0, 2*pi, rgbcolor=hue(0.6) )
+        sage: parametric_plot((1, t), 0, 4)
+        sage: parametric_plot((t, t^2), -4, 4)
 
     We draw a 3d parametric plot:
         sage: parametric_plot3d( (5*cos(x), 5*sin(x), x), (-12, 12), plot_points=150, color="red")
+
+    TESTS:
+        sage: parametric_plot((x, t^2), -4, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: there cannot be more than one free variable in funcs
+
+        sage: parametric_plot((1, x+t), -4, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: there cannot be more than one free variable in funcs
+
     """
+    if len(funcs) == 3:
+        raise ValueError, "use parametric_plot3d for parametric plots in 3d dimensions."
+    elif len(funcs) != 2:
+        raise ValueError, "parametric plots only implemented in 2 and 3 dimensions."
+    else:
+        vars = []
+        f,g = funcs
+        if hasattr(f, 'variables'):
+            vars += list(f.variables())
+        if hasattr(g, 'variables'):
+            vars += list(g.variables())
+        vars = [str(v) for v in vars]
+
+        from sage.misc.misc import uniq
+        if len(uniq(vars)) > 1:
+            raise ValueError, "there cannot be more than one free variable in funcs"
+
     return plot(funcs, tmin, tmax, parametric=True, **kwargs)
 
 def polar_plot(funcs, xmin, xmax, **kwargs):
@@ -3719,13 +3743,13 @@ def polar_plot(funcs, xmin, xmax, **kwargs):
 
     EXAMPLES:
     Here is a blue 8-leaved petal:
-        sage: polar_plot(lambda x:sin(5*x)^2, 0, 2*pi, rgbcolor=hue(0.6))
+        sage: polar_plot(sin(5*x)^2, 0, 2*pi, rgbcolor=hue(0.6))
 
     A red figure-8:
-        sage: polar_plot(lambda x:abs(sqrt(1 - sin(x)^2)), 0, 2*pi, rgbcolor=hue(1.0))
+        sage: polar_plot(abs(sqrt(1 - sin(x)^2)), 0, 2*pi, rgbcolor=hue(1.0))
 
     A green limacon of Pascal:
-        sage: polar_plot(lambda x:2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
+        sage: polar_plot(2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
 
     """
     return plot(funcs, xmin, xmax, polar=True, **kwargs)

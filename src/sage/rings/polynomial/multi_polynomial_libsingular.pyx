@@ -34,6 +34,13 @@ TESTS:
     True
     sage: loads(dumps(x)) == x
     True
+
+    sage: Rt.<t> = PolynomialRing(QQ,1)
+    sage: p = 1+t
+    sage: R.<u,v> = PolynomialRing(QQ, 2)
+    sage: p(u/v)
+    (u + v)/v
+
 """
 
 include "sage/ext/stdsage.pxi"

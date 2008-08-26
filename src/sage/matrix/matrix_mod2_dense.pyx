@@ -269,10 +269,17 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         TEST:
             sage: A = matrix(GF(2),2,0)
+            sage: hash(A)
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
             sage: A.set_immutable()
             sage: hash(A)
             0
+
         """
+        if self.is_mutable():
+            raise TypeError("mutable matrices are unhashable")
         cdef unsigned long _hash = 0xDEADBEEF
         cdef unsigned long counter = 0
         cdef unsigned long i, j, truerow

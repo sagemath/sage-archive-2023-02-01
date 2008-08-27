@@ -18,26 +18,6 @@ TARGET="gap-4.4.10"  #NOTE: Be sure to also update patches/gap*
 # Indicate that Gap has somehow been updated, which invalidates all workspaces.
 touch "$SAGE_LOCAL/bin/gap_stamp"
 
-# If we're on an Itanium Linux box, we overwite configure.out with a slightly
-# modified version.  The modified version has all -O2's replaced by -O0.
-# See http://www.gap-system.org/Faq/Hardware-OS/hardware-os8.html
-
-# On the San Diego Super computer `uname -p` is unknown, but
-# uname -a includes ia64 in the output.  So this is a better
-# detection method.
-if [ `uname` = "Linux" ]; then
-   uname -a |grep ia64
-   if [ $? = 0 -o `uname -p` = "ia64" ]; then
-       cp patches/ia64-configure.out src/cnf/configure.out
-       echo "The file configure.out was patched for SAGE!" > src/cnf/configure.out.README
-
-       # This gets used below later as patches/gap.
-       cp patches/ia64-gap patches/gap
-   fi
-fi
-
-
-
 build()
 {
     CUR=`pwd`

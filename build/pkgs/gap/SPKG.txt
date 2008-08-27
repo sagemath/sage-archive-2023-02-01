@@ -1,5 +1,13 @@
 = gap =
 
+
+=== gap-4.4.10.p9 (William Stein, August 27th, 2008) ===
+ * Apply all the itanium patches to the src/ directory.
+   These are from http://www.gap-system.org/Faq/Hardware-OS/hardware-os8.html
+   and will be in *all* future versions of Gap (i.e., they come
+   from upstream).  They change about 10 files, so I didn't not
+   use our usual patches/* and copy protocol.
+
 === gap-4.4.10.p8 (Michael Abshoff, June 16th, 2008) ===
  * unset CC in spkg-install (work around for #2575)
 

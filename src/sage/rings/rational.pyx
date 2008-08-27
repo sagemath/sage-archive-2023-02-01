@@ -427,6 +427,24 @@ cdef class Rational(sage.structure.element.FieldElement):
             else:
                return "\\frac{%s}{%s}"%(self.numer(), self.denom())
 
+    def _sympy_(self):
+        """
+        Convert Sage Rational to SymPy Rational.
+
+        EXAMPLES:
+            sage: n = 1/2; n._sympy_()
+            1/2
+            sage: n = -1/5; n._sympy_()
+            -1/5
+            sage: from sympy import Symbol
+            sage: QQ(1)+Symbol('x')*QQ(2)
+            2*x + 1
+
+        """
+        import sympy
+        return sympy.Rational(int(self.numerator()), int(self.denominator()))
+
+
     def _mathml_(self):
         """
         Return mathml representation of this rational number.

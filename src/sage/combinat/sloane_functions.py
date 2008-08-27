@@ -148,6 +148,18 @@ class SloaneSequence(SageObject):
             return cmp(type(self), type(other))
         return cmp(repr(self), repr(other))
 
+    def _sage_src_(self):
+        """
+        Returns the source code for the class of self.
+
+        EXAMPLES:
+            sage: sloane.A000045._sage_src_()
+            'class A000045(...'
+        """
+        from sage.misc.sageinspect import sage_getsource
+        return sage_getsource(self.__class__)
+
+
     def __call__(self, n):
         """
         EXAMPLES:

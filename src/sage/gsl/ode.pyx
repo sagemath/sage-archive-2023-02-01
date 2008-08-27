@@ -247,7 +247,7 @@ class ode_solver(object):
 
          The solver attributes may also be set up using arguments to ode_solver.  The previous example can be rewritten as
 
-         sage: T = ode_solver(g_1,y_0=[0,1,1],scale_abs=[1e-4,1e-4,1e-5],error_rel=1e-4)
+         sage: T = ode_solver(g_1,y_0=[0,1,1],scale_abs=[1e-4,1e-4,1e-5],error_rel=1e-4, algorithm="rk8pd")
          sage: T.ode_solve(t_span=[0,12],num_points=100)
          sage: f = T.interpolate_solution()
          sage: f(pi)

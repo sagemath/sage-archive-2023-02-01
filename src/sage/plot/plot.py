@@ -2359,7 +2359,9 @@ class GraphicPrimitive_Point(GraphicPrimitive):
         a = float(options['alpha'])
         s = int(options['pointsize'])
         faceted = options['faceted'] #faceted=True colors the edge of point
-        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, faceted=faceted)
+        scatteroptions={}
+        if not faceted: scatteroptions['edgecolors'] = 'none'
+        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, **scatteroptions)
 
 class GraphicPrimitive_Polygon(GraphicPrimitive):
     """

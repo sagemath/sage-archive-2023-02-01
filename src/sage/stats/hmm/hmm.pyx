@@ -767,6 +767,41 @@ n
             [0.333333333333 0.666666666667]
             Initial probabilities: [0.5, 0.5]
 
+        We compare using a non-default number of steps and non-default log likelihood cutoff:
+            sage: h = hmm.DiscreteHiddenMarkovModel([[.1,.9],[.4,.6]], [[1/2]*2]*2, [1/2]*2)
+            sage: h.baum_welch([1,1,1,1,1,0,1,1,1,1,1,0,0])
+            sage: h
+            Discrete Hidden Markov Model with 2 States and 2 Emissions
+            Transition matrix:
+            [  0.643888431046   0.356111568954]
+            [0.00232031442167   0.997679685578]
+            Emission matrix:
+            [           0.0            1.0]
+            [0.296080269308 0.703919730692]
+            Initial probabilities: [1.0, 3.6620347292312443e-20]
+            sage: h = hmm.DiscreteHiddenMarkovModel([[.1,.9],[.4,.6]], [[1/2]*2]*2, [1/2]*2)
+            sage: h.baum_welch([1,1,1,1,1,0,1,1,1,1,1,0,0], nsteps=1)
+            sage: h
+            Discrete Hidden Markov Model with 2 States and 2 Emissions
+            Transition matrix:
+            [0.1 0.9]
+            [0.4 0.6]
+            Emission matrix:
+            [0.222426510432 0.777573489568]
+            [0.234678486789 0.765321513211]
+            Initial probabilities: [0.5, 0.5]
+            sage: h = hmm.DiscreteHiddenMarkovModel([[.1,.9],[.4,.6]], [[1/2]*2]*2, [1/2]*2)
+            sage: h.baum_welch([1,1,1,1,1,0,1,1,1,1,1,0,0], log_likelihood_cutoff=0.01)
+            sage: h
+            Discrete Hidden Markov Model with 2 States and 2 Emissions
+            Transition matrix:
+            [0.0999471960754  0.900052803925]
+            [ 0.399248483887  0.600751516113]
+            Emission matrix:
+            [0.209328925617 0.790671074383]
+            [ 0.24081056723  0.75918943277]
+            Initial probabilities: [0.50877982192958637, 0.49122017807041363]
+
         TESTS:
         We test training with non-default string symbols:
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.5,0.5]], [[0.5,0.5],[0.5,0.5]], [0.5,0.5], ['up','down'])
@@ -799,8 +834,16 @@ n
 
         cdef ghmm_dseq* d = malloc_ghmm_dseq(seqs)
 
-        if ghmm_dmodel_baum_welch(self.m, d):
-            raise RuntimeError, "error running Baum-Welch algorithm"
+        if nsteps or log_likelihood_cutoff:
+            if nsteps is None:
+                nsteps = GHMM_MAX_ITER_BW
+            if log_likelihood_cutoff is None:
+                log_likelihood_cutoff = GHMM_EPS_ITER_BW
+            if ghmm_dmodel_baum_welch_nstep(self.m, d, nsteps, log_likelihood_cutoff):
+                raise RuntimeError, "error running Baum-Welch algorithm"
+        else:
+            if ghmm_dmodel_baum_welch(self.m, d):
+                raise RuntimeError, "error running Baum-Welch algorithm"
 
         ghmm_dseq_free(&d)
 

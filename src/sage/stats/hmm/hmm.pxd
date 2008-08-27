@@ -12,6 +12,8 @@ cdef extern from "ghmm/ghmm.h":
     cdef int GHMM_kSilentStates
     cdef int GHMM_kHigherOrderEmissions
     cdef int GHMM_kDiscreteHMM
+    cdef int GHMM_EPS_ITER_BW
+    cdef int GHMM_MAX_ITER_BW
 
 cdef extern from "ghmm/model.h":
     ctypedef struct ghmm_dstate:
@@ -170,7 +172,8 @@ cdef extern from "ghmm/model.h":
 
     # Problem 3: Learning
     int ghmm_dmodel_baum_welch (ghmm_dmodel *m, ghmm_dseq *sq)
-
+    int ghmm_dmodel_baum_welch_nstep (ghmm_dmodel *m, ghmm_dseq *sq,
+                                int nsteps, double log_likelihood_cutoff)
 
 cdef class HiddenMarkovModel:
     cdef Matrix_real_double_dense A, B

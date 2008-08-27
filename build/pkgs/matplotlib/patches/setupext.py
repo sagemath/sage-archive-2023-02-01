@@ -50,7 +50,7 @@ sage_lib = os.environ['SAGE_LOCAL'] + '/lib/'
 
 basedir = {
     'win32'  : ['win32_static',],
-    'linux2' : ['/usr/local', '/usr'],
+    'linux2' : [sage_lib],
     'linux'  : ['/usr/local', '/usr',],
     'cygwin' : ['/usr/local', '/usr',],
     'darwin' : ['/sw/lib/freetype2', '/sw/lib/freetype219', '/usr/local',

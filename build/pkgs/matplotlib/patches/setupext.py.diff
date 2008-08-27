@@ -1,6 +1,6 @@
---- src/setupext.py	2008-08-03 13:15:22.000000000 -0500
-+++ patches/setupext.py	2008-08-19 23:58:03.000000000 -0500
-@@ -44,6 +44,9 @@
+--- setupext.py.orig	2008-08-27 02:46:42.000000000 -0700
++++ setupext.py	2008-08-27 02:45:53.000000000 -0700
+@@ -44,10 +44,13 @@
  import os
  import re
  
@@ -10,6 +10,11 @@
  
  basedir = {
      'win32'  : ['win32_static',],
+-    'linux2' : ['/usr/local', '/usr'],
++    'linux2' : [sage_lib],
+     'linux'  : ['/usr/local', '/usr',],
+     'cygwin' : ['/usr/local', '/usr',],
+     'darwin' : ['/sw/lib/freetype2', '/sw/lib/freetype219', '/usr/local',
 @@ -328,7 +331,9 @@
  
      module.include_dirs.extend(incdirs)

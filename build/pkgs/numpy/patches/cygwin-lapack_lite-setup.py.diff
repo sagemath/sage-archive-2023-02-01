@@ -1,0 +1,10 @@
+--- cygwin-lapack_lite-setup.py.orig	2008-08-27 03:06:17.000000000 -0700
++++ cygwin-lapack_lite-setup.py	2008-08-27 03:05:40.000000000 -0700
+@@ -28,6 +28,7 @@
+                                     'blas_lite.c', 'dlamch.c',
+                                     'f2c_lite.c','f2c.h'],
+                          extra_info = lapack_info
++                         extra_link_args = ['--shared']
+                          )
+ 
+     return config

@@ -1,0 +1,62 @@
+#!/usr/bin/env sh
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+
+export top_level=`pwd`
+
+export saclib=$top_level/src/saclib2.2.0
+export CC=cc
+
+echo "Building SACLIB 2.2..."
+
+cd $saclib/
+bin/sconf
+bin/mkproto
+bin/mkmake
+bin/mklib all
+cd $top_level
+
+
+export qe=$top_level/src/qesource
+
+echo "Building QEPCADB..."
+cd $qe
+make opt
+if [ $? -gt 0 ] ; then
+    echo "Error making QEPCADB"
+    exit 1
+fi
+
+
+echo "Copying QEPCADB..."
+cd $top_level
+cp ${qe}/extensions/sfext/sfexto.a \
+${qe}/extensions/lift2D/lift2Do.a \
+${qe}/extensions/newadj/newadjo.a \
+${qe}/extensions/adj2d/adj2do.a \
+${qe}/extensions/rend/rendo.a \
+${qe}/source/qepcad.a \
+${saclib}/lib/saclibo.a $SAGE_LOCAL/lib/
+
+cp ${qe}/source/qepcad $SAGE_LOCAL/bin/
+cp ${qe}/bin/qepcad.help $SAGE_LOCAL/bin/
+cp sage-qepcad $SAGE_LOCAL/bin/
+
+exit
+
+# CAD2D is not built until is fixed to compile under 64-bit
+# CAD2D *is* currently still patched for the ncurses bug, though
+#echo "Building QEPCADB (cad2d)..."
+#cd ${qe}/cad2d
+#make opt
+#
+#echo "Copying QEPCADB (cad2d)..."
+#cd $top_level
+#cp ${qe}/cad2d/cad2d.a $SAGE_LOCAL/lib/
+#cp ${qe}/cad2d/cad2d $SAGE_LOCAL/bin/
+#cp sage-cad2d $SAGE_LOCAL/bin/

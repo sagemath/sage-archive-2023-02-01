@@ -1,0 +1,11 @@
+--- orig/qesource/Makefile	2008-01-09 22:28:32.000000000 -0800
++++ qesource/Makefile	2008-01-09 22:28:38.000000000 -0800
+@@ -5,7 +5,7 @@
+ # This simply calls qepcad's make, and the master-make for the
+ # extensions.
+ ##################################################################
+-MAKE       =  gmake  # You must use gmake, but it may not be
++MAKE       =  make  # You must use gmake, but it may not be
+                      # called gmake on your system, so change this
+ 
+ CCo        =  g++

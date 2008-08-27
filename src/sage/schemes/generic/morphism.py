@@ -235,7 +235,7 @@ class SchemeMorphism_spec(SchemeMorphism):
 ############################################################################
 # Morphisms between schemes given on points
 # The _affine and _projective below refer to the CODOMAIN.
-# The domain can be either affine or projective irregardless
+# The domain can be either affine or projective regardless
 # of the class
 ############################################################################
 
@@ -243,10 +243,27 @@ class SchemeMorphism_on_points(SchemeMorphism):
     """
     A morphism of schemes determined by rational functions that define
     what the morphism does on points in the ambient space.
+
+    EXAMPLES:
+    An example involving the affine plane:
+        sage: R.<x,y> = QQ[]
+        sage: A2 = AffineSpace(R)
+        sage: H = A2.Hom(A2)
+        sage: f = H([x-y, x*y])
+        sage: f([0,1])
+        (-1, 0)
+
+    An example involving the projective line:
+        sage: R.<x,y> = QQ[]
+        sage: P1 = ProjectiveSpace(R)
+        sage: H = P1.Hom(P1)
+        sage: f = H([x^2+y^2,x*y])
+        sage: f([0,1])
+        (1 : 0)
     """
     def __call__(self, x):
-        if not isinstance(x, SchemeMorphism_coordinates):
-            raise TypeError, "x (=%s) must be a projective point given by coordinates"%x
+        dom = self.domain()
+        x = dom(x)
         P = [f(x._coords) for f in self.defining_polynomials()]
         return self.codomain()(P)
 

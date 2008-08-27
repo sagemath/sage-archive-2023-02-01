@@ -53,7 +53,7 @@ def EtaGroup(level):
         sage: EtaGroup(1/2)
         Traceback (most recent call last):
         ...
-        ValueError: Level (=1/2) must be a positive integer
+        TypeError: Level (=1/2) must be a positive integer
         sage: EtaGroup(0)
         Traceback (most recent call last):
         ...
@@ -71,7 +71,11 @@ class EtaGroup_class(AbelianGroup):
     r""" The group of eta products of a given level under multiplication."""
 
     def __init__(self, level):
-        if (not is_Integer(level)) or (level < 1):
+        try:
+            level = ZZ(level)
+        except TypeError:
+            raise TypeError, "Level (=%s) must be a positive integer" % level
+        if (level < 1):
             raise ValueError, "Level (=%s) must be a positive integer" % level
         self._N = level
 
@@ -82,11 +86,12 @@ class EtaGroup_class(AbelianGroup):
         return EtaGroupElement(self, dict)
 
     def level(self):
-        r''' Return the level of self.
+        r""" Return the level of self.
+
         EXAMPLES:
             sage: EtaGroup(10).level()
             10
-        '''
+        """
         return self._N
 
     def basis(self, reduce=True):
@@ -96,7 +101,6 @@ class EtaGroup_class(AbelianGroup):
         smallest possible degree.
 
         INPUT:
-            -- an integer $N$ (the level)
             -- a boolean (default True) indicating whether or not to apply
             LLL-reduction to the calculated basis
 
@@ -345,10 +349,12 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def level(self):
         r""" Return the level of this eta product.
+
         INPUT:
             -- (none)
         OUTPUT:
             -- (integer) the level of self
+
         EXAMPLES:
 
             sage: e = EtaProduct(3, {3:12, 1:-12})
@@ -443,9 +449,9 @@ class EtaGroupElement(MultiplicativeGroupElement):
         """
         return sum( [self.order_at_cusp(c) for c in AllCusps(self.level()) if self.order_at_cusp(c) > 0])
 
-    def plot(self):
-        r""" Returns an error as it's not clear what plotting an eta product means. """
-        raise NotImplementedError
+#     def plot(self):
+#         r""" Returns an error as it's not clear what plotting an eta product means. """
+#         raise NotImplementedError
 
     def r(self, d):
         r""" Return the exponent $r_d$ of $\eta(q^d)$ in self.
@@ -482,7 +488,17 @@ def num_cusps_of_width(N, d):
         sage: [num_cusps_of_width(18,d) for d in divisors(18)]
         [1, 1, 2, 2, 1, 1]
     """
-    assert ((N % d) == 0)
+    try:
+        N = ZZ(N)
+        d = ZZ(d)
+        assert N>0
+        assert d>0
+        assert ((N % d) == 0)
+    except TypeError:
+        raise TypeError, "N and d must be integers"
+    except AssertionError:
+        raise AssertionError, "N and d must be positive integers with d|N"
+
     return euler_phi(gcd(d, N/d))
 
 def AllCusps(N):
@@ -494,6 +510,13 @@ def AllCusps(N):
         sage: AllCusps(18)
         [(Inf), (c_{2}), (c_{3,1}), (c_{3,2}), (c_{6,1}), (c_{6,2}), (c_{9}), (0)]
     """
+    try:
+        N = ZZ(N)
+        assert N>0
+    except TypeError:
+        raise TypeError, "N must be an integer"
+    except AssertionError:
+        raise AssertionError, "N must be positive"
     c = []
     for d in divisors(N):
         n = num_cusps_of_width(N, d)
@@ -521,6 +544,13 @@ class CuspFamily(SageObject):
             sage: CuspFamily(16, 4, '1')
             (c_{4,1})
         """
+        try:
+            N = ZZ(N)
+            assert N>0
+        except TypeError:
+            raise TypeError, "N must be an integer"
+        except AssertionError:
+            raise AssertionError, "N must be positive"
         self._N = N
         self._width = width
         if (N % width):
@@ -544,7 +574,7 @@ class CuspFamily(SageObject):
 
     def level(self):
         r"""
-        The width of this cusp.
+        The level of this cusp.
 
         EXAMPLES:
             sage: e = CuspFamily(10, 1)
@@ -605,7 +635,7 @@ def qexp_eta(ps_ring, n):
         t = t*ps_ring( 1 - q**i)
     return t
 
-def eta_poly_relations(eta_elements, degree, labels=['x1','x2']):
+def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     r"""
     Find polynomial relations between eta products.
 
@@ -614,6 +644,8 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2']):
         implemented unless this list has precisely two elements.
         -- degree (integer): the maximal degree of polynomial to look for.
         -- labels (list of strings): labels to use for the polynomial returned.
+        -- verbose (boolean, default False): if True, prints
+           information as it goes.
 
     OUTPUTS:
         -- a list of polynomials which is a Groebner basis for the part of the
@@ -640,6 +672,12 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2']):
         sage: t = EtaProduct(26, {2:2,13:2,26:-2,1:-2})
         sage: u = EtaProduct(26, {2:4,13:2,26:-4,1:-2})
         sage: eta_poly_relations([t, u], 3)
+        sage: eta_poly_relations([t, u], 4)
+        [x1^3*x2 - 13*x1^3 - 4*x1^2*x2 - 4*x1*x2 - x2^2 + x2]
+
+    Use verbose=True to see the details of the computation:
+
+        sage: eta_poly_relations([t, u], 3, verbose=True)
         Trying to find a relation of degree 3
         Lowest order of a term at infinity = -12
         Highest possible degree of a term = 15
@@ -647,41 +685,44 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2']):
         No polynomial relation of order 3 valid for 28 terms
         Check: Trying all coefficients from q^-12 to q^20 inclusive
         No polynomial relation of order 3 valid for 33 terms
-        sage: eta_poly_relations([t,u], 4)
+
+        sage: eta_poly_relations([t, u], 4, verbose=True)
         Trying to find a relation of degree 4
         Lowest order of a term at infinity = -16
         Highest possible degree of a term = 20
         Trying all coefficients from q^-16 to q^20 inclusive
         Check: Trying all coefficients from q^-16 to q^25 inclusive
         [x1^3*x2 - 13*x1^3 - 4*x1^2*x2 - 4*x1*x2 - x2^2 + x2]
-
     """
     if len(eta_elements) > 2:
         raise NotImplementedError, "Don't know how to find relations between more than two elements"
 
     eta1, eta2 = eta_elements
 
-    print "Trying to find a relation of degree %s" % degree
+    if verbose: print "Trying to find a relation of degree %s" % degree
     inf = CuspFamily(eta1.level(), 1)
     loterm = -(min([0, eta1.order_at_cusp(inf)]) + min([0,eta2.order_at_cusp(inf)]))*degree
-    print "Lowest order of a term at infinity = %s" % -loterm
+    if verbose: print "Lowest order of a term at infinity = %s" % -loterm
 
     maxdeg = sum([eta1.degree(), eta2.degree()])*degree
-    print "Highest possible degree of a term = %s" % maxdeg
+    if verbose: print "Highest possible degree of a term = %s" % maxdeg
     m = loterm + maxdeg + 1
-    oldgrob = _eta_relations_helper(eta1, eta2, degree, m, labels)
-    print "Check:",
-    newgrob = _eta_relations_helper(eta1, eta2, degree, m+5, labels)
+    oldgrob = _eta_relations_helper(eta1, eta2, degree, m, labels, verbose)
+    if verbose: print "Check:",
+    newgrob = _eta_relations_helper(eta1, eta2, degree, m+5, labels, verbose)
     if oldgrob != newgrob:
-        raise ArithmeticError, "Answers different!"
+        if verbose:
+            raise ArithmeticError, "Answers different!"
+        else:
+            raise ArithmeticError, "Check: answers different!"
     return newgrob
 
-def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels):
+def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
     indices = [(i,j) for j in range(degree) for i in range(degree)]
     inf = CuspFamily(eta1.level(), 1)
 
     pole_at_infinity = -(min([0, eta1.order_at_cusp(inf)]) + min([0,eta2.order_at_cusp(inf)]))*degree
-    print "Trying all coefficients from q^%s to q^%s inclusive" % (-pole_at_infinity, -pole_at_infinity + qexp_terms - 1)
+    if verbose: print "Trying all coefficients from q^%s to q^%s inclusive" % (-pole_at_infinity, -pole_at_infinity + qexp_terms - 1)
 
     rows = []
     for j in xrange(qexp_terms):
@@ -693,7 +734,7 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels):
     M = matrix(rows)
     V = M.right_kernel()
     if V.dimension() == 0:
-        print "No polynomial relation of order %s valid for %s terms" % (degree, qexp_terms)
+        if verbose: print "No polynomial relation of order %s valid for %s terms" % (degree, qexp_terms)
         return None
     if V.dimension() >= 1:
         #print "Found relation: "

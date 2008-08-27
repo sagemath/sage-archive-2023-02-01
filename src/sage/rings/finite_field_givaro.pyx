@@ -358,15 +358,24 @@ cdef class FiniteField_givaro(FiniteField):
         else:
             return True
 
-    def random_element(FiniteField_givaro self):
+    def random_element(FiniteField_givaro self, *args, **kwds):
         """
         Return a random element of self.
 
+        INPUT:
+            *args -- ignored
+            **kwds -- ignored
+
         EXAMPLES:
             sage: k = GF(23**3, 'a')
-            sage: e = k.random_element()
+            sage: e = k.random_element(); e
+            9*a^2 + 10*a + 3
             sage: type(e)
             <type 'sage.rings.finite_field_givaro.FiniteField_givaroElement'>
+
+            sage: P.<x> = PowerSeriesRing(GF(3^3, 'a'))
+            sage: P.random_element(5)
+            a^2 + 2*a + 1 + (a + 1)*x + (a^2 + a + 1)*x^2 + (a^2 + 1)*x^3 + (2*a^2 + a)*x^4 + O(x^5)
         """
         cdef int seed = current_randstate().c_random()
         cdef int res

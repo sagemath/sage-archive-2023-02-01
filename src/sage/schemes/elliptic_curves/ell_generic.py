@@ -1829,7 +1829,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 #         self.__divpoly2[m] = f
 #         return f
 
-    def multiple_x_numerator(self, n, x=None, cache=None):
+    def _multiple_x_numerator(self, n, x=None, cache=None):
          r"""
          Returns the numerator of the x-coordinate of the nth multiple of
          a point, using torsion polynomials (division polynomials).
@@ -1839,12 +1839,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
          The result is adjusted to be correct for both even and odd n.
 
          WARNING: -- There may of course be cancellation between the
-         numerator and the denominator (multiple_x_denominator()). Be
-         careful. For more information on how to avoid cancellation,
-         see Chris Wuthrich's thesis.
+         numerator and the denominator (_multiple_x_denominator()). Be
+         careful. E.g. if a point on an elliptic curve with coefficients in
+         ZZ reduces to a singular point modulo a prime, then there will be cancellation, otherwise not, see Chris Wuthrich ``p-adic heights in families of elliptic curves''.
 
          SEE ALSO:
-           -- multiple_x_denominator()
+           -- _multiple_x_denominator()
 
          AUTHORS:
             -- David Harvey (2006-09-24)
@@ -1856,24 +1856,24 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
            sage: (35*P)[0]
            -804287518035141565236193151/1063198259901027900600665796
-           sage: E.multiple_x_numerator(35, x)
+           sage: E._multiple_x_numerator(35, x)
            -804287518035141565236193151
-           sage: E.multiple_x_denominator(35, x)
+           sage: E._multiple_x_denominator(35, x)
            1063198259901027900600665796
 
            sage: (36*P)[0]
            54202648602164057575419038802/15402543997324146892198790401
-           sage: E.multiple_x_numerator(36, x)
+           sage: E._multiple_x_numerator(36, x)
            54202648602164057575419038802
-           sage: E.multiple_x_denominator(36, x)
+           sage: E._multiple_x_denominator(36, x)
            15402543997324146892198790401
 
          An example where cancellation occurs:
            sage: E = EllipticCurve("88a1")
            sage: P = E([2,2])   # fixed choice of generator
-           sage: n = E.multiple_x_numerator(11, P[0]); n
+           sage: n = E._multiple_x_numerator(11, P[0]); n
            442446784738847563128068650529343492278651453440
-           sage: d = E.multiple_x_denominator(11, P[0]); d
+           sage: d = E._multiple_x_denominator(11, P[0]); d
            1427247692705959881058285969449495136382746624
            sage: n/d
            310
@@ -1902,7 +1902,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
              return x * cache[n]**2 - cache[-1] * cache[n-1] * cache[n+1]
 
 
-    def multiple_x_denominator(self, n, x=None, cache=None):
+    def _multiple_x_denominator(self, n, x=None, cache=None):
          r"""
          Returns the denominator of the x-coordinate of the nth multiple of
          a point, using torsion polynomials (division polynomials).
@@ -1912,14 +1912,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
          The result is adjusted to be correct for both even and odd n.
 
          SEE ALSO:
-           -- multiple_x_numerator()
+           -- _multiple_x_numerator()
 
          TODO: the numerator and denominator versions share a calculation,
          namely squaring $\psi_n$. Maybe would be good to offer a combined
          version to make this more efficient.
 
          EXAMPLES:
-            -- see multiple_x_numerator()
+            -- see _multiple_x_numerator()
 
          AUTHORS:
             -- David Harvey (2006-09-24)
@@ -2036,7 +2036,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         # the x-coordonate does not depend on the sign of m.  The work
         # here is done by functions defined earlier:
 
-        mx = self.multiple_x_numerator(m.abs(),x) / self.multiple_x_denominator(m.abs(),x)
+        mx = self._multiple_x_numerator(m.abs(),x) / self._multiple_x_denominator(m.abs(),x)
 
         if x_only:
             # Return it if the optional parameter x_only is set.

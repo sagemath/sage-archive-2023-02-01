@@ -592,7 +592,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             g = E.division_polynomial(m)
         else:
             # The poly g here is 0 at x(Q) iff x(m*Q) = x(P).
-            g = E.multiple_x_numerator(m) - P[0]*E.multiple_x_denominator(m)
+            g = E._multiple_x_numerator(m) - P[0]*E._multiple_x_denominator(m)
 
             # When 2*P=0, then -Q is a solution iff Q is.  For even m,
             # no 2-torsion point is a solution, so that g is the

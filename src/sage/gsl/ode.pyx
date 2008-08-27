@@ -257,7 +257,7 @@ class ode_solver(object):
          It is possible to pass a compiled function by deriving from the class ode_sysem and overloading c_f and c_j with C functions that
          specify the system. The following will work in notebook
 
-         %pyrex
+         %cython
          cimport sage.gsl.ode
          import sage.gsl.ode
          include 'gsl.pxi'
@@ -393,7 +393,7 @@ class ode_solver(object):
          T= gsl_odeiv_step_rk4imp
       elif self.algorithm == "bsimp":
          T = gsl_odeiv_step_bsimp
-         if self.jacobian==None:
+         if not type and self.jacobian==None:
             raise TypeError,"The jacobian must be provided for the implicit Burlisch-Stoer method"
       elif self.algorithm == "gear1":
          T = gsl_odeiv_step_gear1

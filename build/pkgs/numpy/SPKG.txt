@@ -57,9 +57,12 @@ Special Update/Build Instructions:
     Whenever numpy is updated it is necessary to make sure that scipy still builds ok.
 
 
-Changelog:
+== Changelog ==
 
-=== numpy-1.1.0 (Jason Grout, July 10, 2008) ===
+=== numpy-1.1.0.p0 (Michael Abshoff, August 27th, 2008) ===
+ * clean up patches directory
+
+=== numpy-1.1.0 (Jason Grout, July 10th, 2008) ===
  * update to numpy 1.1.0
 
 === numpy-20080104-1.0.4.p4 (Michael Abshoff, May 18th, 2008) ===

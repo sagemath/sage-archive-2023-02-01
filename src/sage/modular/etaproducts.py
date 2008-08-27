@@ -24,45 +24,241 @@ AUTHOR:
 
 from sage.structure.sage_object import SageObject
 from sage.rings.power_series_ring import PowerSeriesRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.arith import divisors, prime_divisors, is_square, euler_phi, gcd
-from sage.rings.all import IntegerRing
+from sage.rings.all import IntegerRing, is_Integer, RationalField
+from sage.groups.group import AbelianGroup
+from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.formal_sum import FormalSum
-from string import join
-import sage.misc.latex as latex
 from sage.rings.integer_mod import Mod
 from sage.rings.integer_mod_ring import IntegerModRing
 from sage.matrix.constructor import matrix
 from sage.modules.free_module import FreeModule
+from sage.misc.misc import union
+
+from string import join
+import weakref
 
 ZZ = IntegerRing()
+QQ = RationalField()
 
-class EtaProduct(SageObject):
+_cache = {}
+def EtaGroup(level):
+    r"""
+    Create the group of eta products of the given level.
 
-    def __init__(self, N, rdict):
+    EXAMPLES:
+        sage: EtaGroup(12)
+        Group of eta products on X_0(12)
+        sage: EtaGroup(1/2)
+        Traceback (most recent call last):
+        ...
+        ValueError: Level (=1/2) must be a positive integer
+        sage: EtaGroup(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Level (=0) must be a positive integer
+    """
+    if _cache.has_key(level):
+        G = _cache[level]()
+        if not G is None:
+            return G
+    G = EtaGroup_class(level)
+    _cache[level] = weakref.ref(G)
+    return G
+
+class EtaGroup_class(AbelianGroup):
+    r""" The group of eta products of a given level under multiplication."""
+
+    def __init__(self, level):
+        if (not is_Integer(level)) or (level < 1):
+            raise ValueError, "Level (=%s) must be a positive integer" % level
+        self._N = level
+
+    def _repr_(self):
+        return "Group of eta products on X_0(%s)" % self.level()
+
+    def __call__(self, dict):
+        return EtaGroupElement(self, dict)
+
+    def level(self):
+        r''' Return the level of self.
+        EXAMPLES:
+            sage: EtaGroup(10).level()
+            10
+        '''
+        return self._N
+
+    def basis(self, reduce=True):
         r"""
-        Create an EtaProduct object representing the function $\prod_{d | N}
-        \eta(q^d)^{r_d}$. Checks the critera of Ligozat to ensure that this
-        product really is the q-expansion of a meromorphic function on X_0(N).
+        Produce a basis for the free abelian group of eta-products of level N
+        (under multiplication), attempting to find basis vectors of the
+        smallest possible degree.
 
         INPUT:
-            -- (integer) N: a positive integer, the level.
-            -- rdict: a dictionary with keys divisors of N and values the
-               corresponding r_d. Divisors may be omitted (understood as zero).
+            -- an integer $N$ (the level)
+            -- a boolean (default True) indicating whether or not to apply
+            LLL-reduction to the calculated basis
+
+        EXAMPLE:
+            sage: EtaGroup(5).basis()
+            [Eta product of level 5 : (eta_1)^6 (eta_5)^-6]
+            sage: EtaGroup(12).basis()
+            [Eta product of level 12 : (eta_1)^2 (eta_2)^1 (eta_3)^2 (eta_4)^-1 (eta_6)^-7 (eta_12)^3,
+            Eta product of level 12 : (eta_1)^3 (eta_2)^-2 (eta_3)^-1 (eta_4)^1 (eta_6)^2 (eta_12)^-3,
+            Eta product of level 12 : (eta_1)^-2 (eta_2)^3 (eta_3)^6 (eta_4)^-1 (eta_6)^-9 (eta_12)^3,
+            Eta product of level 12 : (eta_1)^-1 (eta_2)^1 (eta_3)^3 (eta_4)^2 (eta_6)^-7 (eta_12)^2,
+            Eta product of level 12 : (eta_1)^6 (eta_2)^-9 (eta_3)^-2 (eta_4)^3 (eta_6)^3 (eta_12)^-1]
+            sage: EtaGroup(12).basis(reduce=False) # much bigger coefficients
+            [Eta product of level 12 : (eta_1)^15 (eta_2)^-24 (eta_3)^-29 (eta_4)^9 (eta_6)^24 (eta_12)^5,
+            Eta product of level 12 : (eta_1)^1 (eta_2)^9 (eta_3)^13 (eta_4)^-4 (eta_6)^-15 (eta_12)^-4,
+            Eta product of level 12 : (eta_1)^-8 (eta_2)^-2 (eta_6)^2 (eta_12)^8,
+            Eta product of level 12 : (eta_1)^-336 (eta_2)^576 (eta_3)^696 (eta_4)^-216 (eta_6)^-576 (eta_12)^-144,
+            Eta product of level 12 : (eta_2)^24 (eta_12)^-24]
+
+        ALGORITHM:
+            An eta product of level $N$ is uniquely determined by the integers
+            $r_d$ for $d | N$ with $d < N$, since $\sum_{d | N} r_d = 0$. The
+            valid $r_d$ are those that satisfy two congruences modulo 24, and
+            one congruence modulo 2 for every prime divisor of N. We beef up
+            the congruences modulo 2 to congruences modulo 24 by multiplying by
+            12. To calculate the kernel of the ensuing map $\mathbb{Z}^m \to
+            (\mathbb{Z}/24\mathbb{Z})^n$ we lift it arbitrarily to an integer
+            matrix and calculate its Smith normal form. This gives a basis for
+            the lattice.
+
+            This lattice typically contains ``large'' elements, so by default
+            we pass it to the reduce_basis() function which performs
+            LLL-reduction to give a more manageable basis.
+        """
+
+        N = self.level()
+        divs = divisors(N)[:-1]
+        s = len(divs)
+        primedivs = prime_divisors(N)
+
+        rows = []
+        for i in xrange(s):
+            # generate a row of relation matrix
+            row = [ Mod(divs[i], 24) - Mod(N, 24), Mod(N/divs[i], 24) - Mod(1, 24)]
+            for p in primedivs:
+                row.append( Mod(12*(N/divs[i]).valuation(p), 24))
+            rows.append(row)
+        M = matrix(IntegerModRing(24), rows)
+        Mlift = M.change_ring(ZZ)
+        # now we compute elementary factors of Mlift
+        S,U,V = Mlift.smith_form()
+        good_vects = []
+        for vect in U.rows():
+            nf = sum(vect*Mlift*V) # has only one nonzero entry, but hard to predict
+                    # which one it is!
+            good_vects.append((vect * 24/gcd(nf, 24)).list())
+        for v in good_vects:
+            v.append(-sum([r for r in v]))
+        dicts = []
+        for v in good_vects:
+            dicts.append({})
+            for i in xrange(s):
+                dicts[-1][divs[i]] = v[i]
+            dicts[-1][N] = v[-1]
+        if reduce:
+            return self.reduce_basis([ self(d) for d in dicts])
+        else:
+            return [self(d) for d in dicts]
+
+    def reduce_basis(self, long_etas):
+        r"""
+        Produce a more manageable basis via LLL-reduction.
+
+        INPUT:
+            -- a list of EtaGroupElement objects (which should all be of the same level)
 
         OUTPUT:
-            -- an EtaProduct object
+            -- a new list of EtaGroupElement objects having hopefully smaller norm
+
+        ALGORITHM:
+            We define the norm of an eta-product to be the $L^2$ norm of its
+            divisor (as an element of the free $\mathbb{Z}$-module with the cusps
+            as basis and the standard inner product). Applying LLL-reduction to
+            this gives a basis of hopefully more tractable elements. Of course we'd
+            like to use the $L^1$ norm as this is just twice the degree, which is a
+            much more natural invariant, but $L^2$ norm is easier to work with!
 
         EXAMPLES:
-            sage: EtaProduct(3, {3:12, 1:-12})
-            Eta product of level 3 : (eta_1)^-12 (eta_3)^12
-
-        NOTE:
-            -- The EtaProduct ``knows'' what modular curve it lives on. It is
-            possible for two EtaProducts with different $N$'s to be created with
-            the same dictionary, and these represent different objects
-            (although they will have the same $q$-expansion at the cusp $\infty$).
-
+            sage: EtaGroup(4).reduce_basis([ EtaProduct(4, {1:8,2:24,4:-32}), EtaProduct(4, {1:8, 4:-8})])
+            [Eta product of level 4 : (eta_1)^8 (eta_4)^-8,
+            Eta product of level 4 : (eta_1)^-8 (eta_2)^24 (eta_4)^-16]
         """
+        N = self.level()
+        cusps = AllCusps(N)
+        r = matrix(ZZ, [[et.order_at_cusp(c) for c in cusps] for et in long_etas])
+        V = FreeModule(ZZ, r.ncols())
+        A = V.submodule_with_basis([V(rw) for rw in r.rows()])
+        rred = r.LLL()
+        short_etas = []
+        for shortvect in rred.rows():
+            bv = A.coordinates(shortvect)
+            dict = {}
+            for d in divisors(N):
+                dict[d] = sum( [bv[i]*long_etas[i].r(d) for i in xrange(r.nrows())])
+            short_etas.append(self(dict))
+        return short_etas
+
+
+def EtaProduct(level, dict):
+    r"""
+    Create an EtaGroupElement object representing the function $\prod_{d | N}
+    \eta(q^d)^{r_d}$. Checks the critera of Ligozat to ensure that this
+    product really is the q-expansion of a meromorphic function on X_0(N).
+
+    INPUT:
+        -- (integer) level: the N such that this eta product is a function on X_0(N).
+        -- (dictionary) dict: a dictionary indexed by divisors of N such that
+        the coefficient of $\eta(q^d)$ is r[d]. Only nonzero coefficients need
+        be specified. If Ligozat's criteria are not satisfied, a ValueError
+        will be raised.
+
+    OUTPUT:
+        -- an EtaGroupElement object, whose parent is the EtaGroup of level N
+        and whose coefficients are the given dictionary.
+
+    NOTE:
+        -- The dictionary dict does not uniquely specify N. It is possible for
+        two EtaGroupElements with different $N$'s to be created with the same
+        dictionary, and these represent different objects (although they will
+        have the same $q$-expansion at the cusp $\infty$).
+
+     EXAMPLES:
+        sage: EtaProduct(3, {3:12, 1:-12})
+        Eta product of level 3 : (eta_1)^-12 (eta_3)^12
+        sage: EtaProduct(3, {3:6, 1:-6})
+        Traceback (most recent call last):
+        ...
+        ValueError: sum d r_d (=12) is not 0 mod 24
+        sage: EtaProduct(3, {4:6, 1:-6})
+        Traceback (most recent call last):
+        ...
+        ValueError: 4 does not divide 3
+    """
+    return EtaGroup(level)(dict)
+
+class EtaGroupElement(MultiplicativeGroupElement):
+
+    def __init__(self, parent, rdict):
+
+        MultiplicativeGroupElement.__init__(self, parent)
+
+        self._N = self.parent().level()
+        N = self._N
+
+        if isinstance(rdict, EtaGroupElement):
+            rdict = rdict._rdict
+            # Note: This is needed because the "x in G" test tries to call G(x)
+            # and see if it returns an error. So sometimes this will be getting
+            # called with rdict being an eta product, not a dictionary.
+
+        if rdict == 1:
+            rdict = {}
         # Check Ligozat criteria
         sumR = sumDR = sumNoverDr = 0
         prod = 1
@@ -71,8 +267,9 @@ class EtaProduct(SageObject):
             if N % d:
                 raise ValueError, "%s does not divide %s" % (d, N)
 
-        for d in divisors(N):
-            if not rdict.has_key(d) or rdict[d] == 0:
+        for d in rdict.keys():
+            if rdict[d] == 0:
+                rdict.pop(d)
                 continue
             sumR += rdict[d]
             sumDR += rdict[d]*d
@@ -80,17 +277,71 @@ class EtaProduct(SageObject):
             prod *= (N/d)**rdict[d]
 
         if sumR != 0:
-            raise ValueError, "sum r_d is not 0"
+            raise ValueError, "sum r_d (=%s) is not 0" % sumR
         if (sumDR % 24) != 0:
-            raise ValueError, "sum d r_d is not 0 mod 24"
+            raise ValueError, "sum d r_d (=%s) is not 0 mod 24" % sumDR
         if (sumNoverDr % 24) != 0:
-            raise ValueError, "sum (N/d) r_d is not 0 mod 24"
+            raise ValueError, "sum (N/d) r_d (=%s) is not 0 mod 24" % sumNoverDr
         if not is_square(prod):
-            raise ValueError, "product (N/d)^(r_d) is not a square"
+            raise ValueError, "product (N/d)^(r_d) (=%s) is not a square" % prod
 
-        self._N = N
         self._sumDR = sumDR # this is useful to have around
         self._rdict = rdict
+        self._keys = rdict.keys() # avoid factoring N every time
+
+    def _mul_(self, other):
+        r"""
+        Return the product of self and other.
+
+        EXAMPLES:
+            sage: eta1, eta2 = EtaGroup(4).basis()
+            sage: eta1 * eta2
+            Eta product of level 4 : (eta_2)^24 (eta_4)^-24
+        """
+        newdict = {}
+        for d in union(self._keys, other._keys):
+            newdict[d] = self.r(d) + other.r(d)
+        return EtaProduct(self.level(), newdict)
+
+    def _div_(self, other):
+        r"""
+        Return self * other^(-1).
+
+        EXAMPLES:
+            sage: eta1, eta2 = EtaGroup(4).basis()
+            sage: eta1 / eta2
+            Eta product of level 4 : (eta_1)^-16 (eta_2)^24 (eta_4)^-8
+            sage: (eta1 / eta2) * eta2 == eta1
+            True
+        """
+        newdict = {}
+        for d in union(self._keys, other._keys):
+            newdict[d] = self.r(d) - other.r(d)
+        return EtaProduct(self.level(), newdict)
+
+    def __cmp__(self, other):
+        return cmp(self._rdict, other._rdict)
+
+    def __eq__(self, other):
+        if not (other in self.parent()):
+            return False
+        return (self._rdict == other._rdict)
+
+    def _short_repr(self):
+        if self.degree() == 0:
+            return "1"
+        else:
+            return join(["(eta_%s)^%s" % (d,self.r(d)) for d in self._keys])
+
+    def _repr_(self):
+        r"""
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: EtaProduct(3, {3:12, 1:-12})
+            Eta product of level 3 : (eta_1)^-12 (eta_3)^12
+        """
+        return "Eta product of level %s : " % self.level() + self._short_repr()
 
     def level(self):
         r""" Return the level of this eta product.
@@ -109,16 +360,6 @@ class EtaProduct(SageObject):
             36
         """
         return self._N
-
-    def _repr_(self):
-        r"""
-        Return the string representation of self.
-
-        EXAMPLES:
-            sage: EtaProduct(3, {3:12, 1:-12})
-            Eta product of level 3 : (eta_1)^-12 (eta_3)^12
-        """
-        return "Eta product of level %s : " % self.level() + join(["(eta_%s)^%s" % (d, self.r(d)) for d in divisors(self.level()) if self.r(d) != 0])
 
     def qexp(self, n):
         r"""
@@ -143,9 +384,11 @@ class EtaProduct(SageObject):
         """
         R,q = PowerSeriesRing(ZZ, 'q').objgen()
         pr = R(1)
-        eta_n = max([ (n/d).floor() for d in divisors(self.level()) if self.r(d) != 0])
+        if self == self.parent()(1):
+            return pr
+        eta_n = max([ (n/d).floor() for d in self._keys if self.r(d) != 0])
         eta = qexp_eta(R, eta_n)
-        for d in divisors(self.level()):
+        for d in self._keys:
             if self.r(d) != 0:
                 pr *= eta(q**d)**self.r(d)
         return pr*q**(self._sumDR / ZZ(24))*( R(1).add_bigoh(n))
@@ -171,7 +414,7 @@ class EtaProduct(SageObject):
             raise TypeError, "Argument (=%s) should be a CuspFamily" % cusp
         if cusp.level() != self.level():
             raise ValueError, "Cusp not on right curve!"
-        return 1/ZZ(24)/gcd(cusp.width(), self.level()/cusp.width()) * sum( [ell*self.r(ell)/cusp.width() * (gcd(cusp.width(), self.level()/ell))**2  for ell in divisors(self.level())] )
+        return 1/ZZ(24)/gcd(cusp.width(), self.level()/cusp.width()) * sum( [ell*self.r(ell)/cusp.width() * (gcd(cusp.width(), self.level()/ell))**2  for ell in self._keys] )
 
     def divisor(self):
         r"""
@@ -214,10 +457,7 @@ class EtaProduct(SageObject):
             sage: e.r(4)
             0
         """
-        if self._rdict.has_key(d):
-            return self._rdict[d]
-        else:
-            return 0
+        return self._rdict.get(d, 0)
 
 #    def __call__(self, cusp):
 #        r""" Calculate the value of self at the given cusp. """
@@ -231,120 +471,6 @@ class EtaProduct(SageObject):
 #            for ell in divisors(self.level()):
 #                s *= 1/ZZ(cusp.width())*gcd(cusp.width(), self.level() / ell)**(self.r(ell) / ZZ(2))
 #            return s
-
-def basis_eta_products(N, reduce=True):
-    r"""
-    Produce a basis for the free abelian group of eta-products of level N (under multiplication),
-    attempting to find basis vectors of the smallest possible degree.
-
-    INPUT:
-        -- an integer $N$ (the level)
-        -- a boolean (default True) indicating whether or not to apply LLL-reduction to the calculated basis
-
-    EXAMPLE:
-        sage: basis_eta_products(5)
-        [Eta product of level 5 : (eta_1)^6 (eta_5)^-6]
-        sage: basis_eta_products(12)
-        [Eta product of level 12 : (eta_1)^2 (eta_2)^1 (eta_3)^2 (eta_4)^-1 (eta_6)^-7 (eta_12)^3,
-        Eta product of level 12 : (eta_1)^3 (eta_2)^-2 (eta_3)^-1 (eta_4)^1 (eta_6)^2 (eta_12)^-3,
-        Eta product of level 12 : (eta_1)^-2 (eta_2)^3 (eta_3)^6 (eta_4)^-1 (eta_6)^-9 (eta_12)^3,
-        Eta product of level 12 : (eta_1)^-1 (eta_2)^1 (eta_3)^3 (eta_4)^2 (eta_6)^-7 (eta_12)^2,
-        Eta product of level 12 : (eta_1)^6 (eta_2)^-9 (eta_3)^-2 (eta_4)^3 (eta_6)^3 (eta_12)^-1]
-        sage: basis_eta_products(12, reduce=False) # much bigger coefficients
-        [Eta product of level 12 : (eta_1)^15 (eta_2)^-24 (eta_3)^-29 (eta_4)^9 (eta_6)^24 (eta_12)^5,
-        Eta product of level 12 : (eta_1)^1 (eta_2)^9 (eta_3)^13 (eta_4)^-4 (eta_6)^-15 (eta_12)^-4,
-        Eta product of level 12 : (eta_1)^-8 (eta_2)^-2 (eta_6)^2 (eta_12)^8,
-        Eta product of level 12 : (eta_1)^-336 (eta_2)^576 (eta_3)^696 (eta_4)^-216 (eta_6)^-576 (eta_12)^-144,
-        Eta product of level 12 : (eta_2)^24 (eta_12)^-24]
-
-    ALGORITHM:
-        An eta product of level $N$ is uniquely determined by the integers
-        $r_d$ for $d | N$ with $d < N$, since $\sum_{d | N} r_d = 0$. The valid
-        $r_d$ are those that satisfy two congruences modulo 24, and one
-        congruence modulo 2 for every prime divisor of N. We beef up the
-        congruences modulo 2 to congruences modulo 24 by multiplying by 12. To
-        calculate the kernel of the ensuing map $\mathbb{Z}^m \to
-        (\mathbb{Z}/24\mathbb{Z})^n$ we lift it arbitrarily to an integer
-        matrix and calculate its Smith normal form. This gives a basis for the
-        lattice.
-
-        This lattice typically contains ``large'' elements, so by default we
-        pass it to the eta_lattice_reduce() function to give a more manageable
-        basis.
-    """
-
-    divs = divisors(N)[:-1]
-    s = len(divs)
-    primedivs = prime_divisors(N)
-
-    rows = []
-    for i in xrange(s):
-        # generate a row of relation matrix
-        row = [ Mod(divs[i], 24) - Mod(N, 24), Mod(N/divs[i], 24) - Mod(1, 24)]
-        for p in primedivs:
-            row.append( Mod(12*(N/divs[i]).valuation(p), 24))
-        rows.append(row)
-    M = matrix(IntegerModRing(24), rows)
-    Mlift = M.change_ring(ZZ)
-    # now we compute elementary factors of Mlift
-    S,U,V = Mlift.smith_form()
-    good_vects = []
-    for vect in U.rows():
-        nf = sum(vect*Mlift*V) # has only one nonzero entry, but hard to predict
-                    # which one it is!
-        good_vects.append((vect * 24/gcd(nf, 24)).list())
-    for v in good_vects:
-        v.append(-sum([r for r in v]))
-    dicts = []
-    for v in good_vects:
-        dicts.append({})
-        for i in xrange(s):
-            dicts[-1][divs[i]] = v[i]
-        dicts[-1][N] = v[-1]
-    if reduce:
-        return eta_lattice_reduce([EtaProduct(N, d) for d in dicts])
-    else:
-        return [EtaProduct(N, d) for d in dicts]
-
-
-def eta_lattice_reduce(EtaProducts):
-    r"""
-    Produce a more manageable basis via LLL-reduction.
-
-    INPUT:
-        -- a list of EtaProduct objects (which should all be of the same level)
-
-    OUTPUT:
-        -- a new list of EtaProduct objects having hopefully smaller norm
-
-    ALGORITHM:
-        We define the norm of an eta-product to be the $L^2$ norm of its
-        divisor (as an element of the free $\mathbb{Z}$-module with the cusps
-        as basis and the standard inner product). Applying LLL-reduction to
-        this gives a basis of hopefully more tractable elements. Of course we'd
-        like to use the $L^1$ norm as this is just twice the degree, which is a
-        much more natural invariant, but $L^2$ norm is easier to work with!
-
-    EXAMPLES:
-        sage: eta_lattice_reduce([ EtaProduct(4, {1:8,2:24,4:-32}), EtaProduct(4, {1:8, 4:-8})])
-        [Eta product of level 4 : (eta_1)^8 (eta_4)^-8,
-         Eta product of level 4 : (eta_1)^-8 (eta_2)^24 (eta_4)^-16]
-
-        """
-    cusps = AllCusps(EtaProducts[0].level())
-    r = matrix(ZZ, [[et.order_at_cusp(c) for c in cusps] for et in EtaProducts])
-    N = EtaProducts[0].level()
-    V = FreeModule(ZZ, r.ncols())
-    A = V.submodule_with_basis([V(rw) for rw in r.rows()])
-    rred = r.LLL()
-    short_etas = []
-    for shortvect in rred.rows():
-        bv = A.coordinates(shortvect)
-        dict = {}
-        for d in divisors(N):
-            dict[d] = sum( [bv[i]*EtaProducts[i].r(d) for i in xrange(r.nrows())])
-        short_etas.append(EtaProduct(N, dict))
-    return short_etas
 
 def num_cusps_of_width(N, d):
     r""" Return the number of cusps on $X_0(N)$ of width d.
@@ -478,3 +604,104 @@ def qexp_eta(ps_ring, n):
     for i in xrange(1,n):
         t = t*ps_ring( 1 - q**i)
     return t
+
+def eta_poly_relations(eta_elements, degree, labels=['x1','x2']):
+    r"""
+    Find polynomial relations between eta products.
+
+    INPUTS:
+        -- eta_elements (list): a list of EtaGroupElement objects. Not
+        implemented unless this list has precisely two elements.
+        -- degree (integer): the maximal degree of polynomial to look for.
+        -- labels (list of strings): labels to use for the polynomial returned.
+
+    OUTPUTS:
+        -- a list of polynomials which is a Groebner basis for the part of the
+        ideal of relations between eta_elements which is generated by elements
+        up to the given degree; or None, if no relations were found.
+
+    ALGORITHM:
+        -- An expression of the form $ \sum_{0 \le i,j \le d} a_{ij} x^i y^j $
+        is zero if and only if it vanishes at the cusp infinity to degree at
+        least $v = d(deg(x) + deg(y))$. For all terms up to $q^v$ in the
+        $q$-expansion of this expression to be zero is a system of v + k linear
+        equations in d**2 coefficients, where k is the number of nonzero
+        negative coefficients that can appear.
+
+        Solving these equations and calculating a basis for the solution space
+        gives us a set of polynomial relations, but this is generally far from
+        a minimal generating set for the ideal, so we calculate a Groebner
+        basis.
+
+        As a test, we calculate five extra terms of $q$-expansion and check
+        that this doesn't change the answer.
+
+    EXAMPLES:
+        sage: t = EtaProduct(26, {2:2,13:2,26:-2,1:-2})
+        sage: u = EtaProduct(26, {2:4,13:2,26:-4,1:-2})
+        sage: eta_poly_relations([t, u], 3)
+        Trying to find a relation of degree 3
+        Lowest order of a term at infinity = -12
+        Highest possible degree of a term = 15
+        Trying all coefficients from q^-12 to q^15 inclusive
+        No polynomial relation of order 3 valid for 28 terms
+        Check: Trying all coefficients from q^-12 to q^20 inclusive
+        No polynomial relation of order 3 valid for 33 terms
+        sage: eta_poly_relations([t,u], 4)
+        Trying to find a relation of degree 4
+        Lowest order of a term at infinity = -16
+        Highest possible degree of a term = 20
+        Trying all coefficients from q^-16 to q^20 inclusive
+        Check: Trying all coefficients from q^-16 to q^25 inclusive
+        [x1^3*x2 - 13*x1^3 - 4*x1^2*x2 - 4*x1*x2 - x2^2 + x2]
+
+    """
+    if len(eta_elements) > 2:
+        raise NotImplementedError, "Don't know how to find relations between more than two elements"
+
+    eta1, eta2 = eta_elements
+
+    print "Trying to find a relation of degree %s" % degree
+    inf = CuspFamily(eta1.level(), 1)
+    loterm = -(min([0, eta1.order_at_cusp(inf)]) + min([0,eta2.order_at_cusp(inf)]))*degree
+    print "Lowest order of a term at infinity = %s" % -loterm
+
+    maxdeg = sum([eta1.degree(), eta2.degree()])*degree
+    print "Highest possible degree of a term = %s" % maxdeg
+    m = loterm + maxdeg + 1
+    oldgrob = _eta_relations_helper(eta1, eta2, degree, m, labels)
+    print "Check:",
+    newgrob = _eta_relations_helper(eta1, eta2, degree, m+5, labels)
+    if oldgrob != newgrob:
+        raise ArithmeticError, "Answers different!"
+    return newgrob
+
+def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels):
+    indices = [(i,j) for j in range(degree) for i in range(degree)]
+    inf = CuspFamily(eta1.level(), 1)
+
+    pole_at_infinity = -(min([0, eta1.order_at_cusp(inf)]) + min([0,eta2.order_at_cusp(inf)]))*degree
+    print "Trying all coefficients from q^%s to q^%s inclusive" % (-pole_at_infinity, -pole_at_infinity + qexp_terms - 1)
+
+    rows = []
+    for j in xrange(qexp_terms):
+        rows.append([])
+    for i in indices:
+        func = (eta1**i[0]*eta2**i[1]).qexp(qexp_terms)
+        for j in xrange(qexp_terms):
+            rows[j].append(func[j - pole_at_infinity])
+    M = matrix(rows)
+    V = M.right_kernel()
+    if V.dimension() == 0:
+        print "No polynomial relation of order %s valid for %s terms" % (degree, qexp_terms)
+        return None
+    if V.dimension() >= 1:
+        #print "Found relation: "
+        R = PolynomialRing(QQ, 2, labels)
+        x,y = R.gens()
+        relations = []
+        for c in V.basis():
+            relations.append(sum( [ c[v] * x**indices[v][0] * y**indices[v][1] for v in xrange(len(indices))]))
+            #print relations[-1], " = 0"
+        id = R.ideal(relations)
+        return id.groebner_basis()

@@ -1013,6 +1013,18 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: for p in prime_range(10000):           #long time (~20s)
             ...       if p != 389:
             ...           G=E.change_ring(GF(p)).abelian_group()
+
+        This tests that the bug reported in trac \#3926 has been fixed:
+            sage: K.<i> = QuadraticField(-1)
+            sage: OK = K.ring_of_integers()
+            sage: P=K.factor(10007)[0][0]
+            sage: OKmodP = OK.residue_field(P)
+            sage: E = EllipticCurve([0,0,0,i,i+3])
+            sage: Emod = E.change_ring(OKmodP); Emod
+            Elliptic Curve defined by y^2  = x^3 + ibar*x + (ibar+3) over Residue field in ibar of Fractional ideal (10007)
+            sage: Emod.abelian_group() #random generators
+            (Multiplicative Abelian Group isomorphic to C50067594 x C2,
+            ((3152*ibar + 7679 : 7330*ibar + 7913 : 1), (8466*ibar + 1770 : 0 : 1)))
         """
         if not debug:
             # if we're in debug mode, always recalculate
@@ -1119,7 +1131,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     P1a = n1a*P1    # has order = n1b
                 if debug: print "n1a=",n1a
                 a = None
-                for m in (N//n1).divisors():
+                for m in n1b.divisors():
                     try:
                         a = generic.bsgs(m*P1a,m*Q,(0,(n1b//m)-1),operation='+')
                         break
@@ -1138,7 +1150,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         n2=m
                         if debug:
                             print "Adding second generator ",P2," of order ",n2
-                            print "Group order now ",n1*n2,"=",n1,"*",n2
+                            print "Subgroup order now ",n1*n2,"=",n1,"*",n2
                     else:     # we must merge P2 and Q:
                         oldn2=n2 # holds old value
                         P2,n2=generic.merge_points((P2,n2),(Q,m),operation='+');
@@ -1148,7 +1160,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                             if n2>oldn2:
                                 print "Replacing second generator by ",P2,
                                 print " of order ",n2, "  gaining index ",n2//oldn2
-                                print "Group order now ",n1*n2,"=",n1,"*",n2
+                                print "Subgroup order now ",n1*n2,"=",n1,"*",n2
             elif not Q1.is_zero(): # Q1 nonzero: n1 will increase
                 if debug:  print "Case 1: n1 may increase"
                 oldn1=n1
@@ -1164,7 +1176,19 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 if debug:
                     print "Replacing first  generator by ",P1," of order ",
                     print n1,", gaining index ",n1//oldn1
-                    print "Group order now ",n1*n2,"=",n1,"*",n2
+                    print "Subgroup order now ",n1*n2,"=",n1,"*",n2
+
+                # If we did not yet know the group order, we may now be
+                # able to determine it
+                if not group_order_known:
+                    M = n1*n2  # group order is a multiple of this
+                    c1 = (upper/M).floor()
+                    if c1 == (lower/M).ceil():
+                        group_order_known = True
+                        lower = upper = N = c1*M
+                        if debug:
+                            print "Group order now determined to be ",N
+
                 # Now replace P2 by a point of order n2 s.t. it and
                 # (n1//n2)*P1 are still a basis for n2-torsion:
                 if n2>1:
@@ -1203,7 +1227,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         raise ValueError
                 print "Generators: P1 = ",P1," of order ",n1,
                 print ", P2 = ",P2," of order ",n2
-                print "Group order now ",n1*n2,"=",n1,"*",n2
+                print "Subgroup order is now ",n1*n2,"=",n1,"*",n2
 
         # Finished: record group order, structure and generators
 

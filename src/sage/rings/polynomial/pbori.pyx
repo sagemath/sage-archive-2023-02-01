@@ -1015,7 +1015,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             magma = sage.interfaces.magma.magma
 
         R = self.cover_ring()._magma_(magma=magma)
-        vn = [x._magma_(magma=magma).name() for x in self.cover_ring().gens()]
+        vn = [x._magma_().name() for x in self.cover_ring().gens()]
         return "quo<%s | %s>"%(R.name(), ",".join([f._repr_with_changed_varnames(vn) for f in self.defining_ideal().gens()]))
 ###
 #

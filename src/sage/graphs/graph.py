@@ -5356,7 +5356,6 @@ class GenericGraph(SageObject):
         """
         if edge_style is None:
             edge_style={}
-        edge_style.setdefault('width', 0.02) # pretty default
         if talk:
             vertex_size = 500
             if partition is None:
@@ -5457,8 +5456,13 @@ class GenericGraph(SageObject):
         if self._directed:
             from sage.plot.plot import arrow
             P = Graphics()
+            from math import sqrt, pi
+            vertex_radius = sqrt(vertex_size/pi)
+            edge_style.setdefault('rgbcolor', (0,0,0))
+            edge_style.setdefault('arrowshorten', vertex_radius*2)
+            edge_style.setdefault('arrowsize', 10)
+
             if edge_colors is None:
-                edge_style.setdefault('rgbcolor', (0,0,0))
                 for u,v,_ in self.edge_iterator():
                     if u != v:
                         P += arrow((pos[u][0],pos[u][1]),(pos[v][0],pos[v][1]), **edge_style)

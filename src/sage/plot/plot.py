@@ -1754,13 +1754,17 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         EXAMPLES:
              sage: from sage.plot.plot import GraphicPrimitive_Arrow
              sage: list(sorted(GraphicPrimitive_Arrow(0,0,2,3,{})._allowed_options().iteritems()))
-             [('hue', 'The color given as a hue.'),
+             [('arrowshorten', 'The length in points to shorten the arrow.'),
+             ('arrowsize', 'The size of the arrowhead'),
+             ('hue', 'The color given as a hue.'),
              ('rgbcolor', 'The color as an rgb tuple.'),
-             ('width', 'How wide the entire arrow is.')]
+             ('width', 'The width of the shaft of the arrow, in points.')]
         """
-        return {'width':'How wide the entire arrow is.',
+        return {'width':'The width of the shaft of the arrow, in points.',
                 'rgbcolor':'The color as an rgb tuple.',
-                'hue':'The color given as a hue.'}
+                'hue':'The color given as a hue.',
+                'arrowshorten':'The length in points to shorten the arrow.',
+                'arrowsize':'The size of the arrowhead'}
 
     def _plot3d_options(self, options=None):
         if options == None:
@@ -1806,15 +1810,19 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         """
         options = self.options()
         width = float(options['width'])
-        import matplotlib.patches as patches
-        # the syntax is x, y, dx, dy
-        p = patches.FancyArrow(self.xtail, self.ytail, self.xhead-self.xtail, self.yhead-self.ytail,
-                         width=width, length_includes_head=True)
-        c = to_mpl_color(options['rgbcolor'])
-        p.set_edgecolor(c)
-        p.set_facecolor(c)
-        subplot.add_patch(p)
+        arrowshorten = float(options.get('arrowshorten',0))
+        arrowsize = float(options.get('arrowsize',10))
+        from matplotlib.arrow_line import ArrowLine
+        p = ArrowLine([self.xtail, self.xhead], [self.ytail, self.yhead],  lw=width, arrow='>', arrowsize=arrowsize, arrowshorten=arrowshorten)
 
+
+        c = to_mpl_color(options['rgbcolor'])
+        p._arrowedgecolor=(c)
+        p._arrowfacecolor=(c)
+        p.set_color(c)
+        p.set_solid_capstyle('butt')
+        p.set_solid_joinstyle('bevel')
+        subplot.add_line(p)
 
 #TODO: make bar_chart more general
 class GraphicPrimitive_BarChart(GraphicPrimitive):
@@ -2680,16 +2688,32 @@ def arrow(tailpoint, headpoint, **kwds):
     """
     An arrow from (xmin, ymin) to (xmax, ymax).
 
+    INPUT
+        width -- (default 2) the width of the arrow shaft, in points
+        rgbcolor -- (default (0,0,1)) the color of the arrow (as an rgb tuple)
+        hue -- the color of the arrow (as a number)
+        arrowsize -- the size of the arrowhead
+        arrowshorten -- the length in points to shorten the arrow
+
     EXAMPLES:
 
-    A straight, black arrow
+    A straight, blue arrow
        sage: arrow((1, 1), (3, 3))
 
     Make a red arrow:
        sage: arrow((-1, -1), (2, 3), rgbcolor=(1,0,0))
 
     You can change the width of an arrow:
-        sage: arrow((1, 1), (3, 3), width=0.05)
+        sage: arrow((1, 1), (3, 3), width=5, arrowsize=15)
+
+    A pretty circle of arrows:
+        sage: sum([arrow((0,0), (cos(x),sin(x)), hue=x/(2*pi)) for x in [0..2*pi,step=0.1]]).show(aspect_ratio=1)
+
+    If we want to draw the arrow between objects, for example, the
+    boundaries of two lines, we can use the arrowshorten option
+    to make the arrow shorter by a certain number of points.
+        sage: line([(0,0),(1,0)],thickness=10)+line([(0,1),(1,1)], thickness=10)+arrow((0.5,0),(0.5,1), arrowshorten=10,rgbcolor=(1,0,0))
+
 
     TESTS:
     We check to make sure the x/y min/max data is correct:
@@ -2700,7 +2724,7 @@ def arrow(tailpoint, headpoint, **kwds):
         5.0
     """
 
-    options = {'width':0.02,'rgbcolor':(0, 0, 1)}
+    options = {'width':2,'rgbcolor':(0, 0, 1)}
     options.update(kwds)
 
     #Get the x/y min/max data

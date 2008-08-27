@@ -4,6 +4,9 @@
 
 == Releases ==
 
+=== gd-2.0.35.p0 (Michael Abshoff, August 27th, 2008) ===
+ * Apply Ondrej Certik's build fix from #3792
+
 === gd-2.0.35 (Michael Abshoff, August 19th, 2008) ===
  * Upgrade to 2.0.35 release
 

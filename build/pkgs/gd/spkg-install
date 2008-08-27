@@ -26,7 +26,7 @@ export CFLAGS
 
 # We explicitly disable X support, since (1) X is not a SAGE dependency,
 # and (2) the gd build fails on a lot of OS X PPC machines when X is enabled.
-./configure --prefix="$SAGE_LOCAL" --without-jpeg --without-x --with-zlib="$SAGE_LOCAL" --with-freetype2="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --without-jpeg --without-x --with-zlib="$SAGE_LOCAL" --with-freetype="$SAGE_LOCAL"
 
 if [ $? -ne 0 ]; then
     echo "Error configuring gd."

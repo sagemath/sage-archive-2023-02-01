@@ -1,0 +1,181 @@
+--- gnu.py.orig	2008-08-27 03:18:34.000000000 -0700
++++ gnu.py	2008-08-27 03:18:03.000000000 -0700
+@@ -5,6 +5,7 @@
+ 
+ from numpy.distutils.cpuinfo import cpu
+ from numpy.distutils.fcompiler import FCompiler
++from numpy.distutils.ccompiler import simple_version_match
+ from numpy.distutils.exec_command import exec_command
+ from numpy.distutils.misc_util import msvc_runtime_library
+ 
+@@ -179,6 +180,9 @@
+ 
+     def get_flags_arch(self):
+         opt = []
++        # Note that sse flags and so on lead to gfortran code that segfaults, so disable arch flags
++        return opt
++
+         if sys.platform == 'darwin':
+             # Since Apple doesn't distribute a GNU Fortran compiler, we
+             # can't add -arch ppc or -arch i386, as only their version
+@@ -371,6 +375,160 @@
+             opt.remove('cc_dynamic')
+         return opt
+ 
++class Sage_FCompiler_1(Gnu95FCompiler):
++    compiler_type = 'gnu95'
++#    def matcher(pat,ignore,start):
++#        return 'GNU Fortran 95'
++#    version_match = matcher   
++#    version_match = simple_version_match(start='GNU Fortran 95')
++#    matcher=simple_version_match(start='GNU Fortran (GCC)')
++#    def version_match(pat,ignore,start):
++#        s=matcher(pat,ignore,start)
++#        print s
++#        return s
++    version_match = simple_version_match(start='GNU Fortran')
++
++    # 'gfortran --version' results:
++    # Debian: GNU Fortran 95 (GCC 4.0.3 20051023 (prerelease) (Debian 4.0.2-3))
++    # OS X: GNU Fortran 95 (GCC) 4.1.0
++    #       GNU Fortran 95 (GCC) 4.2.0 20060218 (experimental)
++#    for fc_exe in map(find_executable,['gfortran']):
++#        if os.path.isfile(fc_exe):
++#            break
++
++
++
++    executables = {
++        'version_cmd'  : ["sage_fortran","--version"],
++        'compiler_f77' : ["sage_fortran","-Wall","-ffixed-form","-fno-second-underscore"],
++        'compiler_f90' : ["sage_fortran","-Wall","-fno-second-underscore"],
++        'compiler_fix' : ["sage_fortran","-Wall","-ffixed-form","-fno-second-underscore"],
++        'linker_so'    : ["sage_fortran","-Wall","-shared"],
++        'archiver'     : ["ar", "-cr"],
++        'ranlib'       : ["ranlib"],
++        'linker_exe'   : ["sage_fortran","-Wall"]
++        }
++
++    # use -mno-cygwin flag for g77 when Python is not Cygwin-Python
++    if sys.platform == 'win32':
++        for key in ['version_cmd', 'compiler_f77', 'compiler_f90',
++                    'compiler_fix', 'linker_so', 'linker_exe']:
++            executables[key].append('-mno-cygwin')
++    
++    def find_executables(self):
++        pass
++	    
++    module_dir_switch = '-J'
++    module_include_switch = '-I'
++
++    g2c = 'gfortran'
++
++    def get_libraries(self):
++        opt = GnuFCompiler.get_libraries(self)
++        if sys.platform == 'darwin':
++            opt.remove('cc_dynamic')
++        return opt
++       
++
++
++
++class Sage_FCompiler(FCompiler):
++	
++#    s=os.environ['SAGE_LOCAL']+'/lib/gcc-lib/x86_64-unknown-linux-gnu/4.0.3'
++
++    compiler_type = 'g95'
++#    version_pattern = r'G95 \((GCC (?P<gccversion>[\d.]+)|.*?) \(g95!\) (?P<version>.*)\).*'
++#    version_pattern = r'G95 \((GCC (?P<gccversion>[\d.]+)|.*?) \(g95!\) (?P<version>.*)\).*'
++    # $ g95 --version
++    # G95 (GCC 4.0.3 (g95!) May 22 2006)
++#    G95 (GCC 4.0.3 (g95 0.91!) Jun  4 2007)    
++#    version_pattern = r'G95*'    
++    version_pattern = r'G95 \((GCC (?P<gccversion>[\d.]+)|.*?) \(g95 (?P<version>.*)!\) (?P<date>.*)\).*'
++    # $ g95 --version
++    # G95 (GCC 4.0.3 (g95 0.90!) Aug 22 2006)
++
++    suggested_f90_compiler = 'sage_fortran'
++    if os.uname()[0]=="Darwin":
++        link_command=["sage_fortran","-undefined", "dynamic_lookup", "-bundle"]
++    else:
++        link_command=["sage_fortran","-shared"]
++
++    executables = {
++        'version_cmd'  : ["sage_fortran", "--version"],
++        'compiler_f77' : ["sage_fortran", "-ffixed-form"],
++        'compiler_fix' : ["sage_fortran", "-ffixed-form"],
++        'compiler_f90' : ["sage_fortran"],
++        'linker_so'    : link_command,
++#        'linker_so'    : ["sage_fortran","-shared"],
++        'archiver'     : ["ar", "-cr"],
++#        'archiver'     : ["ar", "-cr", s+"/libf95.a"],
++        'ranlib'       : ["ranlib"],
++        'linker_exe'   : ["sage_fortran",""]
++        }
++    pic_flags = ['-fpic']
++    module_dir_switch = '-fmod='
++    module_include_switch = '-I'
++
++    def get_flags_linker_so(self):
++        opt = self.linker_so[1:]
++        if sys.platform=='darwin':
++            # MACOSX_DEPLOYMENT_TARGET must be at least 10.3. This is
++            # a reasonable default value even when building on 10.4 when using
++            # the official Python distribution and those derived from it (when
++            # not broken).
++            target = os.environ.get('MACOSX_DEPLOYMENT_TARGET', None)
++            if target is None or target == '':
++                target = '10.3'
++            major, minor = target.split('.')
++            if int(minor) < 3:
++                minor = '3'
++                warnings.warn('Environment variable '
++                    'MACOSX_DEPLOYMENT_TARGET reset to %s.%s' % (major, minor))
++            os.environ['MACOSX_DEPLOYMENT_TARGET'] = '%s.%s' % (major,
++                minor)
++
++#            opt.extend(['-undefined', 'dynamic_lookup', '-bundle'])
++#	    opt.remove('-shared')
++#        else:
++#            opt.append("-shared")
++        if sys.platform[:5]=='sunos':
++            # SunOS often has dynamically loaded symbols defined in the
++            # static library libg2c.a  The linker doesn't like this.  To
++            # ignore the problem, use the -mimpure-text flag.  It isn't
++            # the safest thing, but seems to work. 'man gcc' says:
++            # ".. Instead of using -mimpure-text, you should compile all
++            #  source code with -fpic or -fPIC."
++            opt.append('-mimpure-text')
++        return opt
++
++    def get_library_dirs(self):
++	SAGE_LOCAL=os.environ['SAGE_LOCAL']
++	GCC_LIB_DIR=SAGE_LOCAL+"/lib/"
++	if os.path.exists(GCC_LIB_DIR + "gcc-lib"):
++            GCC_LIB_DIR += "gcc-lib/"
++            GCC_LIB_DIR += os.listdir(GCC_LIB_DIR)[0] + "/"
++            GCC_LIB_DIR += os.listdir(GCC_LIB_DIR)[0] + "/"
++
++        return [GCC_LIB_DIR]
++
++    def get_libraries(self):
++	l=[]
++        if os.uname()[-1] == 'Power Macintosh':
++            l.append('SystemStubs')
++        else:
++            if os.uname()[0].startswith('Linux'):
++                l.append('f95')
++        return l
++
++    def get_flags(self):
++        return ['-fno-second-underscore']
++    def get_flags_opt(self):
++        return ['-O']
++    def get_flags_debug(self):
++        return ['-g']
++
++
++
+ if __name__ == '__main__':
+     from distutils import log
+     log.set_verbosity(2)

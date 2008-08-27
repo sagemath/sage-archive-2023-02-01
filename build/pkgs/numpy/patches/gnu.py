@@ -180,6 +180,9 @@ class GnuFCompiler(FCompiler):
 
     def get_flags_arch(self):
         opt = []
+        # Note that sse flags and so on lead to gfortran code that segfaults, so disable arch flags
+        return opt
+
         if sys.platform == 'darwin':
             # Since Apple doesn't distribute a GNU Fortran compiler, we
             # can't add -arch ppc or -arch i386, as only their version

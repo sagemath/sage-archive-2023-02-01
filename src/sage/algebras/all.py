@@ -35,6 +35,8 @@ from steenrod_algebra import SteenrodAlgebra
 from steenrod_algebra_element import Sq
 from steenrod_algebra_bases import steenrod_algebra_basis
 
+from group_algebra import GroupAlgebra, GroupAlgebraElement
+
 
 def is_R_algebra(Q, R):
     # TODO: do something nontrivial when morphisms are defined.

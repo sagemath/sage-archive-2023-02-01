@@ -1,0 +1,53 @@
+--- src/numpy/distutils/fcompiler/__init__.py	2007-11-07 14:05:14.000000000 -0800
++++ patches/__init__.py	2008-01-06 19:41:14.000000000 -0800
+@@ -683,10 +683,10 @@
+     # sys.platform mappings
+     ('win32', ('gnu','intelv','absoft','compaqv','intelev','gnu95','g95')),
+     ('cygwin.*', ('gnu','intelv','absoft','compaqv','intelev','gnu95','g95')),
+-    ('linux.*', ('gnu','intel','lahey','pg','absoft','nag','vast','compaq',
++    ('linux.*', ('sage_fortran','gnu','intel','lahey','pg','absoft','nag','vast','compaq',
+                 'intele','intelem','gnu95','g95')),
+-    ('darwin.*', ('nag', 'absoft', 'ibm', 'intel', 'gnu', 'gnu95', 'g95')),
+-    ('sunos.*', ('sun','gnu','gnu95','g95')),
++    ('darwin.*', ('sage_fortran','nag', 'absoft', 'ibm', 'intel', 'gnu', 'gnu95', 'g95')),
++    ('sunos.*', ('sage_fortran','sun','gnu','gnu95','g95')),
+     ('irix.*', ('mips','gnu','gnu95',)),
+     ('aix.*', ('ibm','gnu','gnu95',)),
+     # os.name mappings
+@@ -698,12 +698,25 @@
+ fcompiler_class = None
+ fcompiler_aliases = None
+ 
++if os.popen("sage_fortran --version").read().startswith('GNU Fortran'):
++    import gnu
++    cls=gnu.Sage_FCompiler_1
++#    cls = 'Sage_FCompiler_1'
++else:
++    import gnu
++    cls=gnu.Sage_FCompiler
++#    cls = 'Sage_FCompiler'
++#fcompiler_class_={'sage_fortran':('gnu',cls,"GNU Fortran (GCC)")}
++#fcompiler_aliases={}
++
++#fcompiler_class = {'sage_fortran':('gnu',cls,"GNU Fortran (GCC)"),		
++
+ def load_all_fcompiler_classes():
+     """Cache all the FCompiler classes found in modules in the
+     numpy.distutils.fcompiler package.
+     """
+     from glob import glob
+-    global fcompiler_class, fcompiler_aliases
++    global fcompiler_class, fcompiler_aliases,cls
+     if fcompiler_class is not None:
+         return
+     pys = os.path.join(os.path.dirname(__file__), '*.py')
+@@ -725,6 +738,9 @@
+                                          % (alias, klass.__name__,
+                                             fcompiler_aliases[alias][1].__name__))
+                     fcompiler_aliases[alias] = desc
++#    print fcompiler_aliases
++    fcompiler_class['sage_fortran']=('gnu',cls,"GNU Fortran (GCC)")
++#    print fcompiler_class
+ 
+ def _find_existing_fcompiler(compiler_types,
+                              osname=None, platform=None,

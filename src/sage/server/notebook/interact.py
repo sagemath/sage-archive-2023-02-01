@@ -1396,7 +1396,7 @@ class InteractCanvas:
         EXAMPLES:
             sage: B = sage.server.notebook.interact.InputBox('x',2)
             sage: sage.server.notebook.interact.InteractCanvas([B], 3).wrap_in_outside_frame('<!--inside-->')
-            "<div padding=6 id='div-interact-3'> ...</div>\n                 "
+            "<!--notruncate--><div padding=6 id='div-interact-3'> ...</div>\n                 "
         """
         return """<!--notruncate--><div padding=6 id='div-interact-%s'> <table width=800px height=400px bgcolor='#c5c5c5'
                  cellpadding=15><tr><td bgcolor='#f9f9f9' valign=top align=left>%s</td>
@@ -1422,7 +1422,7 @@ class InteractCanvas:
         EXAMPLES:
             sage: B = sage.server.notebook.interact.InputBox('x',2)
             sage: sage.server.notebook.interact.InteractCanvas([B], 3).render()
-            '<div padding=6 id=\'div-interact-3\'> ...</div>\n                 '
+            '<!--notruncate--><div padding=6 id=\'div-interact-3\'> ...</div>\n                 '
         """
         s = "%s%s"%(self.render_controls(), self.render_output())
         s = self.wrap_in_outside_frame(s)

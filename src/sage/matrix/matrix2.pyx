@@ -4489,14 +4489,13 @@ cdef class Matrix(matrix1.Matrix):
         to color the matrix elements different RGB colors:
 
             sage: A = random_matrix(RDF, 50)
-            sage: A.plot(cmap='hsv')
+            sage: plot(A, cmap='hsv')
 
         Another random plot, but over GF(389):
             sage: A = random_matrix(GF(389), 10)
             sage: A.plot(cmap='Oranges')
         """
-        from sage.plot.plot import MatrixPlotFactory
-        matrix_plot = MatrixPlotFactory()
+        from sage.plot.plot import matrix_plot
         return matrix_plot(self, *args, **kwds)
 
 def _dim_cmp(x,y):

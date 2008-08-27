@@ -1833,6 +1833,99 @@ class MaximaElement(ExpectElement):
         """
         return self.partfrac(var)
 
+    def _operation(self, operation, right):
+        """
+        Note that right's parent should already be Maxima since this should
+        be called after coercion has been performed.
+
+        If right is a MaximaFunction, then we convert self to a MaximaFunction
+        that takes no arguments, and let the MaximaFunction._operation code
+        handle everything from there.
+
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: f._operation("+", f)
+            2*cos(x)
+        """
+        P = self._check_valid()
+
+        if isinstance(right, MaximaFunction):
+            fself = P.function('', repr(self))
+            return fself._operation(operation, right)
+
+        try:
+            return P.new('%s %s %s'%(self._name, operation, right._name))
+        except Exception, msg:
+            raise TypeError, msg
+
+    def _add_(self, right):
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f + g
+            sin(x)+cos(x)
+            sage: f + 2
+            cos(x)+2
+            sage: 2 + f
+            cos(x)+2
+
+        """
+        return self._operation("+", right)
+
+    def _sub_(self, right):
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f - g
+            cos(x)-sin(x)
+            sage: f - 2
+            cos(x)-2
+            sage: 2 - f
+            2-cos(x)
+
+        """
+        return self._operation('-', right)
+
+    def _mul_(self, right):
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f*g
+            cos(x)*sin(x)
+            sage: 2*f
+            2*cos(x)
+        """
+        return self._operation('*', right)
+
+    def _div_(self, right):
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f/g
+            cos(x)/sin(x)
+            sage: f/2
+            cos(x)/2
+        """
+        return self._operation("/", right)
+
+    def __pow__(self, n):
+        """
+        EXAMPLES:
+            sage: a = maxima('2')
+            sage: a^(3/4)
+            2^(3/4)
+        """
+        P = self._check_valid()
+        if  P is not n.parent():
+            n = P(n)
+        return self._operation("^", n)
+
+
+
 
 class MaximaFunctionElement(FunctionElement):
     def _sage_doc_(self):
@@ -1870,6 +1963,36 @@ class MaximaFunction(MaximaElement):
         else:
             return self.__latex
 
+    def arguments(self, split=True):
+        """
+        Returns the arguments of self.
+
+        EXAMPLES:
+            sage: f = maxima.function('x,y','sin(x+y)')
+            sage: f.arguments()
+            ['x', 'y']
+            sage: f.arguments(split=False)
+            'x,y'
+            sage: f = maxima.function('', 'sin(x)')
+            sage: f.arguments()
+            []
+        """
+        if split:
+            return self.__args.split(',') if self.__args != '' else []
+        else:
+            return self.__args
+
+    def definition(self):
+        """
+        Returns the definition of self as a string.
+
+        EXAMPLES:
+            sage: f = maxima.function('x,y','sin(x+y)')
+            sage: f.definition()
+            'sin(x+y)'
+        """
+        return self.__defn
+
     def integrate(self, var):
         return self.integral(var)
 
@@ -1882,6 +2005,181 @@ class MaximaFunction(MaximaElement):
         else:
             args = self.__args + ',' + var
         return P.function(args, repr(f))
+
+    def _operation(self, operation, f=None):
+        """
+        This is a utility function which factors out much of the commonality
+        used in the arithmetic operations for MaximaFunctions.
+
+        INPUT:
+            operation -- A string representing the operation being performed.
+                         For example, '*', or '1/'.
+            f         -- The other operand.  If f is None, than the operation
+                         is assumed to be unary rather than binary.
+
+        EXAMPLES:
+            sage: f = maxima.function('x,y','sin(x+y)')
+            sage: f._operation("+", f)
+            2*sin(y+x)
+            sage: f._operation("+", 2)
+            sin(y+x)+2
+            sage: f._operation('-')
+            -sin(y+x)
+            sage: f._operation('1/')
+            1/sin(y+x)
+        """
+        P = self._check_valid()
+        if isinstance(f, MaximaFunction):
+            tmp = list(sorted(set(self.arguments() + f.arguments())))
+            args = ','.join(tmp)
+            defn = "(%s)%s(%s)"%(self.definition(), operation, f.definition())
+        elif f is None:
+            args = self.arguments(split=False)
+            defn = "%s(%s)"%(operation, self.definition())
+        else:
+            args = self.arguments(split=False)
+            defn = "(%s)%s(%s)"%(self.definition(), operation, repr(f))
+
+        return P.function(args,P.eval(defn))
+
+    def _add_(self, f):
+        """
+        MaximaFunction as left summand.
+
+        EXAMPLES:
+            sage: x,y = var('x,y')
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima.function('x','-cos(x)')
+            sage: f+g
+            sin(x)-cos(x)
+            sage: f+3
+            sin(x)+3
+
+            sage: (f+maxima.cos(x))(2)
+            sin(2)+cos(2)
+            sage: (f+maxima.cos(y)) # This is a function with only ONE argument!
+            cos(y)+sin(x)
+            sage: (f+maxima.cos(y))(2)
+            cos(y)+sin(2)
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = -maxima.cos(x)
+            sage: g+f
+            sin(x)-cos(x)
+            sage: (g+f)(2) # The sum IS a function
+            sin(2)-cos(2)
+            sage: 2+f
+            sin(x)+2
+        """
+        return self._operation("+", f)
+
+    def _sub_(self, f):
+        """
+        MaximaFunction as minuend.
+
+        EXAMPLES:
+            sage: x,y = var('x,y')
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = -maxima.cos(x) # not a function
+            sage: f-g
+            sin(x)+cos(x)
+            sage: (f-g)(2)
+            sin(2)+cos(2)
+            sage: (f-maxima.cos(y)) # This function only has the argument x!
+            sin(x)-cos(y)
+            sage: _(2)
+            sin(2)-cos(y)
+
+            sage: g-f
+            -sin(x)-cos(x)
+        """
+        return self._operation("-", f)
+
+    def _mul_(self, f):
+        """
+        MaximaFunction as left factor.
+
+        EXAMPLES:
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)') # not a function!
+            sage: f*g
+            -cos(x)*sin(x)
+            sage: _(2)
+            -cos(2)*sin(2)
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)')
+            sage: g*f
+            -cos(x)*sin(x)
+            sage: _(2)
+            -cos(2)*sin(2)
+            sage: 2*f
+            2*sin(x)
+        """
+        return self._operation("*", f)
+
+    def _div_(self, f):
+        """
+        MaximaFunction as dividend.
+
+        EXAMPLES:
+            sage: f=maxima.function('x','sin(x)')
+            sage: g=maxima('-cos(x)')
+            sage: f/g
+            -sin(x)/cos(x)
+            sage: _(2)
+            -sin(2)/cos(2)
+
+            sage: f=maxima.function('x','sin(x)')
+            sage: g=maxima('-cos(x)')
+            sage: g/f
+            -cos(x)/sin(x)
+            sage: _(2)
+            -cos(2)/sin(2)
+            sage: 2/f
+            2/sin(x)
+
+        """
+        return self._operation("/", f)
+
+    def __neg__(self):
+        """
+        Additive inverse of a MaximaFunction.
+
+        EXAMPLES:
+            sage: f=maxima.function('x','sin(x)')
+            sage: -f
+            -sin(x)
+        """
+        return self._operation('-')
+
+    def __inv__(self):
+        """
+        Multiplicative inverse of a MaximaFunction.
+
+        EXAMPLES:
+            sage: f = maxima.function('x','sin(x)')
+            sage: ~f
+            1/sin(x)
+        """
+        return self._operation('1/')
+
+    def __pow__(self,f):
+        """
+        MaximaFunction raised to some power.
+
+        EXAMPLES:
+            sage: f=maxima.function('x','sin(x)')
+            sage: g=maxima('-cos(x)')
+            sage: f^g
+            1/sin(x)^cos(x)
+
+            sage: f=maxima.function('x','sin(x)')
+            sage: g=maxima('-cos(x)') # not a function
+            sage: g^f
+            (-cos(x))^sin(x)
+        """
+        return self._operation("^", f)
 
 
 def is_MaximaElement(x):

@@ -120,7 +120,7 @@ def preparse_ipython(line, reset=True):
     # Nobody uses this logging stuff anymore, anyways, because
     # of the SAGE notebook.
     try:
-        return 'logstr(r"""%s""")'%t
+        return """logstr(%r)"""%t
     except UnboundLocalError:
         return 'logstr("")'
 

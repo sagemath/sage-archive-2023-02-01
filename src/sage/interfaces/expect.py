@@ -1601,7 +1601,7 @@ class ExpectElement(RingElement):
             2^(3/4)
         """
         P = self._check_valid()
-        if  P is not n.parent():
+        if not hasattr(n, 'parent') or P is not n.parent():
             n = P(n)
         return self._operation("^", n)
 

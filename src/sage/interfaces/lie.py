@@ -357,8 +357,8 @@ class LiE(Expect):
             sage: lie = LiE()
             sage: lie._trait_names_list is None
             True
-            sage: lie._read_info_files(use_disk_cache=False)
-            sage: lie._trait_names_list
+            sage: lie._read_info_files(use_disk_cache=False) #optional -- requires LiE
+            sage: lie._trait_names_list #optional
             ['history',
              'version',
              ...
@@ -531,8 +531,8 @@ class LiE(Expect):
             sage: f = open(filename, 'w')
             sage: f.write('x = 2\n')
             sage: f.close()
-            sage: lie.read(filename)
-            sage: lie.get('x')
+            sage: lie.read(filename)  #optional -- requires LiE
+            sage: lie.get('x')        #optional
             '2'
             sage: import os
             sage: os.unlink(filename)
@@ -735,7 +735,7 @@ class LiEElement(ExpectElement):
         """
         EXAMPLES:
             sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
-            sage: m.type()
+            sage: m.type() #optional
             'mat'
         """
         t = self.parent().eval('type(%s)'%self._name)
@@ -746,12 +746,12 @@ class LiEElement(ExpectElement):
         """
         EXAMPLES:
             sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
-            sage: matrix(m)
+            sage: matrix(m)  #optional
             [ 1  0  3  3]
             [12  4 -4  7]
             [-1  9  8  0]
             [ 3 -5 -2  9]
-            sage: matrix(RDF, m)
+            sage: matrix(RDF, m) #optional
             [ 1.0  0.0  3.0  3.0]
             [12.0  4.0 -4.0  7.0]
             [-1.0  9.0  8.0  0.0]
@@ -771,7 +771,7 @@ class LiEElement(ExpectElement):
         """
         EXAMPLES:
             sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
-            sage: m.sage()
+            sage: m.sage()  #optional
             [ 1  0  3  3]
             [12  4 -4  7]
             [-1  9  8  0]
@@ -899,7 +899,7 @@ def lie_version():
     """
     EXAMPLES:
         sage: from sage.interfaces.lie import lie_version
-        sage: lie_version()
+        sage: lie_version() #optional -- requires LiE
         '2.1'
     """
     f = open(SAGE_LOCAL + 'lib/lie/INFO.0')

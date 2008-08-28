@@ -356,11 +356,11 @@ A long complicated input expression:
 
 from __future__ import with_statement
 
-import os, re, sys
+import os, re, sys, subprocess
 import pexpect
 cygwin = os.uname()[0][:6]=="CYGWIN"
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, gc_disabled
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, gc_disabled, AsciiArtString
 from pexpect import EOF
 
 from random import randrange
@@ -677,22 +677,47 @@ class Maxima(Expect):
     ###########################################
     # Interactive help
     ###########################################
+    def _command_runner(self, command, s, redirect=True):
+        """
+        Run \code{command} in a new Maxima session and return its output
+        as an \code{AsciiArtString}.
+
+        If redirect is set to False, then the output of the command is not
+        returned as a string.  Instead, it behaves like os.system.  This is used
+        for interactive things like Maxima's demos.  See maxima.demo?
+
+        EXAMPLES:
+            sage: maxima._command_runner('describe', 'gcd')
+            -- Function: gcd (<p_1>, <p_2>, <x_1>, ...)
+            ...
+
+        """
+        cmd = 'maxima --very-quiet -r "%s(%s);" '%(command, s)
+        if sage.server.support.EMBEDDED_MODE:
+            cmd += '< /dev/null'
+
+        if redirect:
+            p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            res = AsciiArtString(p.stdout.read())
+            return res
+        else:
+            subprocess.Popen(cmd, shell=True)
+
+
     def help(self, s):
         """
         EXAMPLES:
-            sage: maxima.help('gcd') #not tested
+            sage: maxima.help('gcd')
             -- Function: gcd (<p_1>, <p_2>, <x_1>, ...)
             ...
         """
-        if sage.server.support.EMBEDDED_MODE:
-            os.system('maxima --very-quiet -r "describe(%s); "< /dev/null'%s)
-        else:
-            os.system('maxima --very-quiet -r "describe(%s);"'%s)
+        return self._command_runner("describe", s)
 
     def example(self, s):
         """
         EXAMPLES:
-            sage: maxima.example('arrays')  #not tested
+            sage: maxima.example('arrays')
             a[n]:=n*a[n-1]
                                             a  := n a
                                              n       n - 1
@@ -707,17 +732,14 @@ class Maxima(Expect):
                                                  done
 
         """
-        if sage.server.support.EMBEDDED_MODE:
-            os.system('maxima --very-quiet -r "example(%s);" < /dev/null'%s)
-        else:
-            os.system('maxima --very-quiet -r "example(%s);"'%s)
+        return self._command_runner("example", s)
 
     describe = help
 
     def demo(self, s):
         """
         EXAMPLES:
-            sage: maxima.demo('array') #not tested
+            sage: maxima.demo('array') # not tested
             batching /opt/sage/local/share/maxima/5.16.2/demo/array.dem
 
             At the _ prompt, type ';' followed by enter to get next demo
@@ -725,10 +747,7 @@ class Maxima(Expect):
             _
 
         """
-        if sage.server.support.EMBEDDED_MODE:
-            os.system('maxima --very-quiet -r "demo(%s);" < /dev/null'%s)
-        else:
-            os.system('maxima --very-quiet -r "demo(%s);"'%s)
+        return self._command_runner("demo", s, redirect=False)
 
     def completions(self, s, verbose=True):
         """
@@ -1911,7 +1930,7 @@ class MaximaFunctionElement(FunctionElement):
         """
         EXAMPLES:
             sage: m = maxima(4)
-            sage: m.gcd._sage_doc_() #not tested
+            sage: m.gcd._sage_doc_()
             -- Function: gcd (<p_1>, <p_2>, <x_1>, ...)
             ...
         """
@@ -1921,7 +1940,7 @@ class MaximaExpectFunction(ExpectFunction):
     def _sage_doc_(self):
         """
         EXAMPLES:
-            sage: maxima.gcd._sage_doc_() #not tested
+            sage: maxima.gcd._sage_doc_()
             -- Function: gcd (<p_1>, <p_2>, <x_1>, ...)
             ...
         """

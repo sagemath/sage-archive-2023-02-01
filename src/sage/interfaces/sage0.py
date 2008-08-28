@@ -107,6 +107,11 @@ class Sage(Expect):
                        server_tmpdir = None,
                        remote_cleaner = True,
                        **kwds):
+        """
+        EXAMPLES:
+            sage: sage0 == loads(dumps(sage0))
+            True
+        """
         if python:
             if server:
                 command = "sage -python -u"
@@ -154,9 +159,25 @@ class Sage(Expect):
         return float(s)
 
     def trait_names(self):
+        """
+        EXAMPLES:
+            sage: t = sage0.trait_names()
+            sage: len(t) > 100
+            True
+            sage: 'gcd' in t
+            True
+
+        """
         return eval(self.eval('globals().keys()'))
 
     def quit(self, verbose=False):
+        """
+        EXAMPLES:
+            sage: s = Sage()
+            sage: s.eval('2+2')
+            '4'
+            sage: s.quit()
+        """
         import signal
         if not self._expect is None:
             pid = self._expect.pid
@@ -189,14 +210,15 @@ class Sage(Expect):
                 pass
             self._expect = None
 
-    def _remote_tmpfile(self):
-        try:
-            return self.__remote_tmpfile
-        except AttributeError:
-            self.__remote_tmpfile = eval(self.eval('import sage.interfaces.expect as e; e.tmp'))
-            return self.__remote_tmpfile
-
     def __call__(self, x):
+        """
+        EXAMPLES:
+            sage: a = sage0(4)
+            sage: a.parent()
+            Sage
+            sage: a is sage0(a)
+            True
+        """
         if isinstance(x, SageElement) and x.parent() is self:
             return x
         if isinstance(x, str):
@@ -211,12 +233,31 @@ class Sage(Expect):
             return SageElement(self, 'loads(open("%s").read())'%self._remote_tmpfile())
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: sage0.__reduce__()
+            (<function reduce_load_Sage at 0x...>, ())
+
+        """
         return reduce_load_Sage, tuple([])
 
     def _quit_string(self):
+        """
+        EXAMPLES:
+            sage: sage0._quit_string()
+            'from sage.misc.misc import delete_tmpfiles; delete_tmpfiles()'
+        """
         return 'from sage.misc.misc import delete_tmpfiles; delete_tmpfiles()'
 
     def preparse(self, x):
+        """
+        Returns the preparsed version of the string s.
+
+        EXAMPLES:
+            sage: sage0.preparse('2+2')
+            'Integer(2)+Integer(2)'
+
+        """
         return sage.misc.preparser.preparse(x)
 
     def eval(self, line, strip=True):
@@ -230,6 +271,10 @@ class Sage(Expect):
         INPUT:
             line -- input line of code
             strip -- ignored
+
+        EXAMPLES:
+            sage: sage0.eval('2+2')
+            '4'
         """
         if self._preparse:
             line = self.preparse(line)
@@ -238,6 +283,11 @@ class Sage(Expect):
     def set(self, var, value):
         """
         Set the variable var to the given value.
+
+        EXAMPLES:
+            sage: sage0.set('x', '2')
+            sage: sage0.get('x')
+            '2'
         """
         cmd = '%s=%s'%(var,value)
         out = self.eval(cmd)
@@ -247,35 +297,99 @@ class Sage(Expect):
     def get(self, var):
         """
         Get the value of the variable var.
+
+        EXAMPLES:
+            sage: sage0.set('x', '2')
+            sage: sage0.get('x')
+            '2'
         """
         return self.eval('print %s'%var)
 
-    #def clear(self, var):
-    #    """
-    #    Clear the variable named var.
-    #    """
-    #    self.eval('del %s'%var)
+    def clear(self, var):
+        """
+        Clear the variable named var.
+
+        EXAMPLES:
+            sage: sage0.set('x', '2')
+            sage: sage0.get('x')
+            '2'
+            sage: sage0.clear('x')
+            sage: sage0.get('x')
+            "...NameError: name 'x' is not defined"
+
+        """
+        self.eval('del %s'%var)
 
     def _contains(self, v1, v2):
+        """
+        EXAMPLES:
+            sage: sage0._contains('2', 'QQ')
+            'True'
+        """
         return self.eval('%s in %s'%(v1,v2))
 
     def _is_true_string(self, t):
+        """
+        EXAMPLES:
+            sage: sage0._is_true_string('True')
+            True
+            sage: sage0._is_true_string(True)
+            False
+        """
         return t == "True"
 
     def console(self):
+        """
+        Spawn a new Sage command-line session.
+
+        EXAMPLES:
+            sage: sage0.console() #not tested
+            ----------------------------------------------------------------------
+            | SAGE Version ..., Release Date: ...                                |
+            | Type notebook() for the GUI, and license() for information.        |
+            ----------------------------------------------------------------------
+            ...
+        """
         sage0_console()
 
     def version(self):
-        return eval(sage0_version())
+        """
+        EXAMPLES:
+            sage: sage0.version()
+            'SAGE Version ..., Release Date: ...'
+            sage: sage0.version() == version()
+            True
+        """
+        return sage0_version()
 
     def _object_class(self):
+        """
+        EXAMPLES:
+            sage: sage0._object_class()
+            <class 'sage.interfaces.sage0.SageElement'>
+        """
         return SageElement
 
     def new(self, x):
+        """
+        EXAMPLES:
+           sage: sage0.new(2)
+           2
+           sage: _.parent()
+           Sage
+
+        """
         return SageElement(self, x)
 
 class SageElement(ExpectElement):
     def __getattr__(self, attrname):
+        """
+        EXAMPLES:
+            sage: m = sage0(4)
+            sage: four_gcd = m.gcd
+            sage: type(four_gcd)
+            <class 'sage.interfaces.sage0.SageFunction'>
+        """
         self._check_valid()
         return SageFunction(self, attrname)
 
@@ -300,6 +414,12 @@ class SageElement(ExpectElement):
 
 class SageFunction(FunctionElement):
     def __call__(self, *args, **kwds):
+        """
+        EXAMPLES:
+            sage: four_gcd = sage0(4).gcd
+            sage: four_gcd(6)
+            2
+        """
         P = self._obj.parent()
         args = [P(x) for x in args]
         args = ','.join([x.name() for x in args])
@@ -317,25 +437,67 @@ class SageFunction(FunctionElement):
         return z
 
     def __repr__(self):
-        return str(self.eval('%s.%s'%(self._obj._name, self._name)))
+        """
+        EXAMPLES:
+            sage: sage0(4).gcd
+            <built-in method gcd of sage.rings.integer.Integer object at 0x...>
+
+        """
+
+        return str(self._obj.parent().eval('%s.%s'%(self._obj._name, self._name)))
 
 
 
 sage0 = Sage()
 
 def reduce_load_Sage():
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.sage0 import reduce_load_Sage
+        sage: reduce_load_Sage()
+        Sage
+    """
     return sage0
 
 def reduce_load_element(s):
-    return sage0('loads(%s)'%s)
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.sage0 import reduce_load_element
+        sage: s = dumps(1/2)
+        sage: half = reduce_load_element(s); half
+        1/2
+        sage: half.parent()
+        Sage
+    """
+    import base64
+    s = base64.b32encode(s)
+    sage0.eval('import base64')
+    return sage0('loads(base64.b32decode("%s"))'%s)
 
 
 import os
 def sage0_console():
+    """
+    Spawn a new Sage command-line session.
+
+    EXAMPLES:
+        sage: sage0_console() #not tested
+        ----------------------------------------------------------------------
+        | SAGE Version ..., Release Date: ...                                |
+        | Type notebook() for the GUI, and license() for information.        |
+        ----------------------------------------------------------------------
+        ...
+    """
     os.system('sage')
 
 def sage0_version():
-    return sage0('version()')
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.sage0 import sage0_version
+        sage: sage0_version() == version()
+        True
+    """
+    return str(sage0('version()'))
 
 #def irun(filename):
 #    """

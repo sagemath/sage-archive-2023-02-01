@@ -385,14 +385,14 @@ class Maxima(Expect):
     """
     Interface to the Maxima interpreter.
     """
-    def __call__(self, x):
-        import sage.rings.all
-        return Expect.__call__(self, x)
-
     def __init__(self, script_subdirectory=None, logfile=None, server=None,
                  init_code = None):
         """
         Create an instance of the Maxima interpreter.
+
+        EXAMPLES:
+            sage: maxima == loads(dumps(maxima))
+            True
         """
         # TODO: Input and output prompts in maxima can be changed by
         # setting inchar and outchar..
@@ -427,36 +427,56 @@ class Maxima(Expect):
         self._display2d = False
 
 
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return MaximaExpectFunction(self, attrname)
+    def _function_class(self):
+        """
+        EXAMPLES:
+            sage: maxima._function_class()
+            <class 'sage.interfaces.maxima.MaximaExpectFunction'>
+        """
+        return MaximaExpectFunction
 
     def _start(self):
+        """
+        Starts the Maxima interpreter.
+
+        EXAMPLES:
+            sage: m = Maxima()
+            sage: m.is_running()
+            False
+            sage: m._start()
+            sage: m.is_running()
+            True
+        """
         Expect._start(self)
         self._eval_line('0;')
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: maxima.__reduce__()
+            (<function reduce_load_Maxima at 0x...>, ())
+
+        """
         return reduce_load_Maxima, tuple([])
 
     def _quit_string(self):
+        """
+        EXAMPLES:
+            sage: maxima._quit_string()
+            'quit();'
+        """
         return 'quit();'
 
     def _sendline(self, str):
         self._sendstr(str)
         os.write(self._expect.child_fd, os.linesep)
 
-    def _sendstr(self, str):
-        if self._expect is None:
-            self._start()
-        try:
-            os.write(self._expect.child_fd, str)
-        except OSError:
-            self._crash_msg()
-            self.quit()
-            self._sendstr(str)
-
     def _crash_msg(self):
+        """
+        EXAMPLES:
+            sage: maxima._crash_msg()
+            Maxima crashed -- automatically restarting.
+        """
         print "Maxima crashed -- automatically restarting."
 
     def _expect_expr(self, expr=None, timeout=None):
@@ -504,21 +524,6 @@ class Maxima(Expect):
                     break
             raise KeyboardInterrupt, msg
 
-    def _interrupt(self):
-        for i in range(15):
-            try:
-                self._sendstr('quit;\n'+chr(3))
-                self._expect_expr(timeout=2)
-            except pexpect.TIMEOUT:
-                pass
-            except pexpect.EOF:
-                self._crash_msg()
-                self.quit()
-            else:
-                return
-
-    def _before(self):
-        return self._expect.before
 
     def _batch(self, s, batchload=True):
         filename = '%s-%s'%(self._local_tmpfile(),randrange(2147483647))
@@ -672,51 +677,67 @@ class Maxima(Expect):
     ###########################################
     # Interactive help
     ###########################################
-
-    # This doesn't work because of how weird interaction is.
-    # System call method below is much more robust.
-    #def help(self, s):
-    #    return "Help on Maxima commands currently not implemented (see %s/devel/sage/interfaces/maxima.py if you want to try to implement it)."%SAGE_ROOT
-##         if self._expect is None:
-##             self._start()
-##         E = self._expect
-##         if E is None:
-##             raise RuntimError, "unable to start maxima"
-##         E.sendline('describe("%s");'%s)
-##         #old_timeout = E.timeout
-##         #E.timeout = 0.2
-##         E.expect("`all' or `none': ")
-##         E.sendline('all\n\n')
-##         E.sendline('all\n\n')
-##         #E.expect(self._prompt)
-##         E.expect('%o')
-##         print E.before
-##     # override the builtin describe command
-
     def help(self, s):
+        """
+        EXAMPLES:
+            sage: maxima.help('gcd') #not tested
+            -- Function: gcd (<p_1>, <p_2>, <x_1>, ...)
+            ...
+        """
         if sage.server.support.EMBEDDED_MODE:
-            os.system('maxima -r "describe(%s); "< /dev/null'%s)
+            os.system('maxima --very-quiet -r "describe(%s); "< /dev/null'%s)
         else:
-            os.system('maxima -r "describe(%s);"'%s)
+            os.system('maxima --very-quiet -r "describe(%s);"'%s)
 
     def example(self, s):
+        """
+        EXAMPLES:
+            sage: maxima.example('arrays')  #not tested
+            a[n]:=n*a[n-1]
+                                            a  := n a
+                                             n       n - 1
+            a[0]:1
+            a[5]
+                                                  120
+            a[n]:=n
+            a[6]
+                                                   6
+            a[4]
+                                                  24
+                                                 done
+
+        """
         if sage.server.support.EMBEDDED_MODE:
-            os.system('maxima -r "example(%s);" < /dev/null'%s)
+            os.system('maxima --very-quiet -r "example(%s);" < /dev/null'%s)
         else:
-            os.system('maxima -r "example(%s);"'%s)
+            os.system('maxima --very-quiet -r "example(%s);"'%s)
 
     describe = help
 
     def demo(self, s):
+        """
+        EXAMPLES:
+            sage: maxima.demo('array') #not tested
+            batching /opt/sage/local/share/maxima/5.16.2/demo/array.dem
+
+            At the _ prompt, type ';' followed by enter to get next demo
+                                          subscrmap : true
+            _
+
+        """
         if sage.server.support.EMBEDDED_MODE:
-            os.system('maxima -r "demo(%s);" < /dev/null'%s)
+            os.system('maxima --very-quiet -r "demo(%s);" < /dev/null'%s)
         else:
-            os.system('maxima -r "demo(%s);"'%s)
+            os.system('maxima --very-quiet -r "demo(%s);"'%s)
 
     def completions(self, s, verbose=True):
         """
         Return all commands that complete the command starting with the
-        string s.   This is like typing s[tab] in the maple interpreter.
+        string s.   This is like typing s[tab] in the Maxima interpreter.
+
+        EXAMPLES:
+            sage: maxima.completions('gc', verbose=False)
+            ['gc', 'gcd', 'gcdex', 'gcfactor', 'gcprint', 'gctime']
         """
         if verbose:
             print s,
@@ -727,6 +748,14 @@ class Maxima(Expect):
     def _commands(self, verbose=True):
         """
         Return list of all commands defined in Maxima.
+
+        EXAMPLES:
+            sage: maxima._commands(verbose=False)
+            ['a',
+             'abconvtest',
+             ...
+             'Z']
+
         """
         try:
             return self.__commands
@@ -739,7 +768,10 @@ class Maxima(Expect):
         Return all Maxima commands, which is useful for tab completion.
 
         EXAMPLES:
-           sage: len(maxima.trait_names(verbose=False))    # random output
+           sage: t = maxima.trait_names(verbose=False)
+           sage: 'gcd' in t
+           True
+           sage: len(t)    # random output
            1743
         """
         try:
@@ -772,6 +804,14 @@ class Maxima(Expect):
             <class 'sage.interfaces.maxima.MaximaElement'>
         """
         return MaximaElement
+
+    def _function_element_class(self):
+        """
+        EXAMPLES:
+            sage: maxima._function_element_class()
+            <class 'sage.interfaces.maxima.MaximaFunctionElement'>
+        """
+        return MaximaFunctionElement
 
     def _true_symbol(self):
         """
@@ -859,6 +899,11 @@ class Maxima(Expect):
         INPUT:
             var -- string
             value -- string
+
+        EXAMPLES:
+            sage: maxima.set('x', '2')
+            sage: maxima.get('x')
+            '2'
         """
         if not isinstance(value, str):
             raise TypeError
@@ -875,6 +920,12 @@ class Maxima(Expect):
     def get(self, var):
         """
         Get the string value of the variable var.
+
+        EXAMPLES:
+            sage: maxima.set('x', '2')
+            sage: maxima.get('x')
+            '2'
+
         """
         s = self._eval_line('%s;'%var)
         return s
@@ -882,6 +933,14 @@ class Maxima(Expect):
     def clear(self, var):
         """
         Clear the variable named var.
+
+        EXAMPLES:
+            sage: maxima.set('x', '2')
+            sage: maxima.get('x')
+            '2'
+            sage: maxima.clear('x')
+            sage: maxima.get('x')
+            'x'
         """
         try:
             self._eval_line('kill(%s)$'%var, reformat=False)
@@ -1171,35 +1230,34 @@ class Maxima(Expect):
                 vrs = vrs + vars[i]+"]"
         return self('linsolve(%s, %s)'%(eqs, vrs))
 
-##     def unit_quadratic_integer(self, n):
-##         r"""
-##         Finds a unit of the ring of integers of the quadratic number
-##         field $\Q(\sqrt{n})$, $n>1$, using the qunit maxima command.
+    def unit_quadratic_integer(self, n):
+        r"""
+        Finds a unit of the ring of integers of the quadratic number
+        field $\Q(\sqrt{n})$, $n>1$, using the qunit maxima command.
 
-##         EXAMPLE:
-##             sage: u = maxima.unit_quadratic_integer(101)
-##             sage: u.parent()
-##             Number Field in a with defining polynomial x^2 - 101
-##             sage: u
-##             a + 10
-##             sage: u = maxima.unit_quadratic_integer(13)
-##             sage: u
-##             5*a + 18
-##             sage: u.parent()
-##             Number Field in a with defining polynomial x^2 - 13
-##         """
-##         from sage.rings.all import QuadraticField, Integer
-##         # Take square-free part so sqrt(n) doesn't get simplified further by maxima
-##         # (The original version of this function would yield wrong answers if
-##         # n is not squarefree.)
-##         n = Integer(n).squarefree_part()
-##         if n < 1:
-##             raise ValueError, "n (=%s) must be >= 1"%n
-##         s = str(self('qunit(%s)'%n)).lower()
-##         r = re.compile('sqrt\(.*\)')
-##         s = r.sub('a', s)
-##         a = QuadraticField(n, 'a').gen()
-##         return eval(s)
+        EXAMPLES:
+            sage: u = maxima.unit_quadratic_integer(101); u
+            a + 10
+            sage: u.parent()
+            Number Field in a with defining polynomial x^2 - 101
+            sage: u = maxima.unit_quadratic_integer(13)
+            sage: u
+            5*a + 18
+            sage: u.parent()
+            Number Field in a with defining polynomial x^2 - 13
+        """
+        from sage.rings.all import QuadraticField, Integer
+        # Take square-free part so sqrt(n) doesn't get simplified further by maxima
+        # (The original version of this function would yield wrong answers if
+        # n is not squarefree.)
+        n = Integer(n).squarefree_part()
+        if n < 1:
+            raise ValueError, "n (=%s) must be >= 1"%n
+        s = repr(self('qunit(%s)'%n)).lower()
+        r = re.compile('sqrt\(.*\)')
+        s = r.sub('a', s)
+        a = QuadraticField(n, 'a').gen()
+        return eval(s)
 
     def plot_list(self, ptsx, ptsy, options=None):
         r"""
@@ -1272,11 +1330,6 @@ class Maxima(Expect):
 
 
 class MaximaElement(ExpectElement):
-    def __call__(self, x):
-        self._check_valid()
-        P = self.parent()
-        return P('%s(%s)'%(self.name(), x))
-
     def __str__(self):
         """
         Printing an object explicitly gives ASCII art:
@@ -1616,9 +1669,6 @@ class MaximaElement(ExpectElement):
 
     integrate = integral
 
-
-
-
     def __float__(self):
         """
         Return floating point version of this maxima element.
@@ -1661,19 +1711,6 @@ class MaximaElement(ExpectElement):
         P = self._check_valid()
         Q = P(other)
         return P('%s . %s'%(self.name(), Q.name()))
-
-
-    def __getattr__(self, attrname):
-        """
-        This is used to call a function on self.
-
-        EXAMPLES:
-            sage: maxima('%pi/2').sin()
-            1
-        """
-        if attrname[:1] == "_":
-            raise AttributeError
-        return MaximaFunctionElement(self, attrname)
 
     def __getitem__(self, n):
         r"""
@@ -1773,8 +1810,16 @@ class MaximaElement(ExpectElement):
         s = re.sub(r'(?<=[})\d]) +(?=\d)', '\cdot', s)
         return s
 
-    def trait_names(self):
-        return self.parent().trait_names()
+    def trait_names(self, verbose=False):
+        """
+        Return all Maxima commands, which is useful for tab completion.
+
+        EXAMPLES:
+            sage: m = maxima(2)
+            sage: 'gcd' in m.trait_names()
+            True
+        """
+        return self.parent().trait_names(verbose=False)
 
     def _matrix_(self, R):
         r"""
@@ -1859,108 +1904,87 @@ class MaximaElement(ExpectElement):
         except Exception, msg:
             raise TypeError, msg
 
-    def _add_(self, right):
-        """
-        EXAMPLES:
-            sage: f = maxima.cos(x)
-            sage: g = maxima.sin(x)
-            sage: f + g
-            sin(x)+cos(x)
-            sage: f + 2
-            cos(x)+2
-            sage: 2 + f
-            cos(x)+2
-
-        """
-        return self._operation("+", right)
-
-    def _sub_(self, right):
-        """
-        EXAMPLES:
-            sage: f = maxima.cos(x)
-            sage: g = maxima.sin(x)
-            sage: f - g
-            cos(x)-sin(x)
-            sage: f - 2
-            cos(x)-2
-            sage: 2 - f
-            2-cos(x)
-
-        """
-        return self._operation('-', right)
-
-    def _mul_(self, right):
-        """
-        EXAMPLES:
-            sage: f = maxima.cos(x)
-            sage: g = maxima.sin(x)
-            sage: f*g
-            cos(x)*sin(x)
-            sage: 2*f
-            2*cos(x)
-        """
-        return self._operation('*', right)
-
-    def _div_(self, right):
-        """
-        EXAMPLES:
-            sage: f = maxima.cos(x)
-            sage: g = maxima.sin(x)
-            sage: f/g
-            cos(x)/sin(x)
-            sage: f/2
-            cos(x)/2
-        """
-        return self._operation("/", right)
-
-    def __pow__(self, n):
-        """
-        EXAMPLES:
-            sage: a = maxima('2')
-            sage: a^(3/4)
-            2^(3/4)
-        """
-        P = self._check_valid()
-        if  P is not n.parent():
-            n = P(n)
-        return self._operation("^", n)
-
-
 
 
 class MaximaFunctionElement(FunctionElement):
     def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: m = maxima(4)
+            sage: m.gcd._sage_doc_() #not tested
+            -- Function: gcd (<p_1>, <p_2>, <x_1>, ...)
+            ...
+        """
         return self._obj.parent().help(self._name)
 
 class MaximaExpectFunction(ExpectFunction):
     def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: maxima.gcd._sage_doc_() #not tested
+            -- Function: gcd (<p_1>, <p_2>, <x_1>, ...)
+            ...
+        """
         M = self._parent
         return M.help(self._name)
 
 
 class MaximaFunction(MaximaElement):
     def __init__(self, parent, name, defn, args, latex):
+        """
+        EXAMPLES:
+            sage: f = maxima.function('x,y','sin(x+y)')
+            sage: f == loads(dumps(f))
+            True
+        """
         MaximaElement.__init__(self, parent, name, is_name=True)
         self.__defn = defn
         self.__args = args
         self.__latex = latex
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: f = maxima.function('x,y','sin(x+y)')
+            sage: f.__reduce__()
+            (<function reduce_load_Maxima_function at 0x...>,
+             (Maxima, 'sin(x+y)', 'x,y', None))
+
+        """
         return reduce_load_Maxima_function, (self.parent(), self.__defn, self.__args, self.__latex)
 
     def __call__(self, *x):
-        self._check_valid()
-        P = self.parent()
+        """
+        EXAMPLES:
+            sage: f = maxima.function('x,y','sin(x+y)')
+            sage: f(1,2)
+            sin(3)
+            sage: f(x,x)
+            sin(2*x)
+        """
+        P = self._check_valid()
         if len(x) == 1:
             x = '(%s)'%x
         return P('%s%s'%(self.name(), x))
 
     def __repr__(self):
-        return self.__defn
+        """
+        EXAMPLES:
+            sage: f = maxima.function('x,y','sin(x+y)')
+            sage: repr(f)
+            'sin(x+y)'
+        """
+        return self.definition()
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: f = maxima.function('x,y','sin(x+y)')
+            sage: latex(f)
+            \mbox{\rm sin(x+y)}
+        """
         if self.__latex is None:
-            return '\\mbox{\\rm %s}'%self.__defn
+            return r'\mbox{\rm %s}'%self.__defn
         else:
             return self.__latex
 
@@ -1994,18 +2018,30 @@ class MaximaFunction(MaximaElement):
         """
         return self.__defn
 
-    def integrate(self, var):
-        return self.integral(var)
-
     def integral(self, var):
-        self._check_valid()
-        P = self.parent()
-        f = P('integrate(%s(%s), %s)'%(self.name(), self.__args, var))
-        if var in self.__args.split(','):
-            args = self.__args
-        else:
-            args = self.__args + ',' + var
-        return P.function(args, repr(f))
+        """
+        Returns the integral of self with respect to the variable var.
+
+        Note that integrate is an alias of integral.
+
+        EXAMPLES:
+            sage: x,y = var('x,y')
+            sage: f = maxima.function('x','sin(x)')
+            sage: f.integral(x)
+            -cos(x)
+            sage: f.integral(y)
+            sin(x)*y
+        """
+        var = str(var)
+        P = self._check_valid()
+        f = P('integrate(%s(%s), %s)'%(self.name(), self.arguments(split=False), var))
+
+        args = self.arguments()
+        if var not in args:
+            args.append(var)
+        return P.function(",".join(args), repr(f))
+
+    integrate = integral
 
     def _operation(self, operation, f=None):
         r"""
@@ -2185,12 +2221,29 @@ class MaximaFunction(MaximaElement):
 
 
 def is_MaximaElement(x):
+    """
+    Returns True if x is of type MaximaElement.
+
+    EXAMPLES:
+        sage: from sage.interfaces.maxima import is_MaximaElement
+        sage: m = maxima(1)
+        sage: is_MaximaElement(m)
+        True
+        sage: is_MaximaElement(1)
+        False
+    """
     return isinstance(x, MaximaElement)
 
 # An instance
 maxima = Maxima(script_subdirectory=None)
 
 def reduce_load_Maxima():
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.maxima import reduce_load_Maxima
+        sage: reduce_load_Maxima()
+        Maxima
+    """
     return maxima
 
 def reduce_load_Maxima_function(parent, defn, args, latex):
@@ -2199,9 +2252,24 @@ def reduce_load_Maxima_function(parent, defn, args, latex):
 
 import os
 def maxima_console():
+    """
+    Spawn a new Maxima command-line session.
+
+    EXAMPLES:
+        sage: from sage.interfaces.maxima import maxima_console
+        sage: maxima_console()                    # not tested
+        Maxima 5.16.2 http://maxima.sourceforge.net
+        ...
+    """
     os.system('maxima')
 
 def maxima_version():
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.maxima import maxima_version
+        sage: maxima_version()
+        '5.16.2'
+    """
     return os.popen('maxima --version').read().split()[1]
 
 def __doctest_cleanup():

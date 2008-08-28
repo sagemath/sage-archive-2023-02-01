@@ -307,6 +307,11 @@ class LiE(Expect):
                  maxread=100000, script_subdirectory=None,
                  logfile=None,
                  server=None):
+        """
+        EXAMPLES:
+            sage: lie == loads(dumps(lie))
+            True
+        """
         Expect.__init__(self,
 
                         # The capitalized versionof this is used for printing.
@@ -339,15 +344,26 @@ class LiE(Expect):
                         # try to switch to outputing to a file.
                         eval_using_file_cutoff=1024)
 
-        self.__seq = 0
+        self._seq = 0
 
-        self.__trait_names_dict = None
-        self.__trait_names_list = None
-        self.__help_dict = None
+        self._trait_names_dict = None
+        self._trait_names_list = None
+        self._help_dict = None
 
-    def __read_info_files(self):
-        use_disk_cache = True
-
+    def _read_info_files(self, use_disk_cache=True):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.lie import LiE
+            sage: lie = LiE()
+            sage: lie._trait_names_list is None
+            True
+            sage: lie._read_info_files(use_disk_cache=False)
+            sage: lie._trait_names_list
+            ['history',
+             'version',
+             ...
+             'sort']
+        """
         import sage.misc.persist
         if use_disk_cache:
             try:
@@ -356,9 +372,9 @@ class LiE(Expect):
                 v = []
                 for key in trait_dict:
                     v += trait_dict[key]
-                self.__trait_names_list = v
-                self.__trait_names_dict = trait_dict
-                self.__help_dict = help_dict
+                self._trait_names_list = v
+                self._trait_names_dict = trait_dict
+                self._help_dict = help_dict
                 return
             except IOError:
                 pass
@@ -430,9 +446,9 @@ class LiE(Expect):
             l += commands[key]
 
         #Save the data
-        self.__trait_names_dict = commands
-        self.__trait_names_list = l
-        self.__help_dict = help
+        self._trait_names_dict = commands
+        self._trait_names_list = l
+        self._help_dict = help
 
         #Write them to file
         if use_disk_cache:
@@ -440,130 +456,187 @@ class LiE(Expect):
             sage.misc.persist.save(help, HELP_CACHE)
 
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: lie
+            LiE Interpreter
+        """
         return 'LiE Interpreter'
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: lie.__reduce__()
+            (<function reduce_load_lie at 0x...>, ())
+
+        """
         return reduce_load_lie, tuple([])
 
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return LiEFunction(self, attrname)
+    def _function_class(self):
+        """
+        EXAMPLES:
+            sage: lie._function_class()
+            <class 'sage.interfaces.lie.LiEFunction'>
+        """
+        return LiEFunction
 
     def _quit_string(self):
+        """
+        EXAMPLES:
+            sage: lie._quit_string()
+            'quit'
+        """
         return 'quit'
 
     def _read_in_file_command(self, filename):
+        """
+        EXAMPLES:
+            sage: lie._read_in_file_command('testfile')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
 
     def trait_names(self, type=None, verbose=False, use_disk_cache=True):
-        if self.__trait_names_dict is None:
-            self.__read_info_files()
+        """
+        EXAMPLES:
+            sage: lie.trait_names() #optional -- requires LiE
+            ['Cartan_type',
+             'cent_roots',
+             ...
+             'n_comp']
+
+        """
+        if self._trait_names_dict is None:
+            self._read_info_files()
         if type:
-            return self.__trait_names_dict[type]
+            return self._trait_names_dict[type]
         else:
-            return self.__trait_names_list
+            return self._trait_names_list
 
     def _an_element_impl(self):
+        """
+        EXAMPLES:
+            sage: lie._an_element_impl() #optional -- requires LiE
+            0
+        """
         return self(0)
 
     def read(self, filename):
-        # [[implement loading of the contents of filename into the system]]
+        """
+        EXAMPLES:
+            sage: filename = tmp_filename()
+            sage: f = open(filename, 'w')
+            sage: f.write('x = 2\n')
+            sage: f.close()
+            sage: lie.read(filename)
+            sage: lie.get('x')
+            '2'
+            sage: import os
+            sage: os.unlink(filename)
+        """
         self.eval('read %s'%filename)
 
-
-    def kill(self, var):
-        # [[send code that kills the variable with given name in the system.]]
-        pass
-
     def console(self):
-        # run the console command (defined below).
+        """
+        Spawn a new LiE command-line session.
+
+        EXAMPLES:
+            sage: lie.console()                    # not tested
+            LiE version 2.2.2 created on Sep 26 2007 at 18:13:19
+            Authors: Arjeh M. Cohen, Marc van Leeuwen, Bert Lisser.
+            Free source code distribution
+            ...
+
+        """
         lie_console()
 
     def version(self):
-        # run the version command (defined below)
-        pass
+        """
+        EXAMPLES:
+            sage: lie.version() #optional -- requires LiE
+            '2.1'
+        """
+        return lie_version()
 
     def _object_class(self):
+        """
+        EXAMPLES:
+            sage: lie._object_class()
+            <class 'sage.interfaces.lie.LiEElement'>
+
+        """
         return LiEElement
 
     def _true_symbol(self):
-        # return the string rep of truth, i.e., what the system outputs
-        # when you type 1==1.
+        """
+        EXAMPLES:
+            sage: lie._true_symbol()
+            '1'
+        """
         return '1'
 
     def _false_symbol(self):
-        # return the string rep of false, i.e., what the system outputs
-        # when you type 1==2.
+        """
+        EXAMPLES:
+            sage: lie._false_symbol()
+            '0'
+        """
         return '0'
 
     def _equality_symbol(self):
-        # return the symbol for checking equality, e.g., == or eq.
+        """
+        EXAMPLES:
+            sage: lie._equality_symbol()
+            '=='
+        """
         return '=='
 
     def help(self, command):
+        """
+        Returns a string of the LiE help for command.
+
+        EXAMPLES:
+            sage: lie.help('diagram') # optional -- requires LiE
+            'diagram(g)...'
+        """
         # return help on a given command.
-        if self.__help_dict is None:
-            self.__read_info_files()
+        if self._help_dict is None:
+            self._read_info_files()
         try:
-            return self.__help_dict[command]
+            return self._help_dict[command]
         except KeyError:
             return "Could not find help for " + command
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
-        #if line.find('\n') != -1:
-        #    raise ValueError, "line must not contain any newlines"
-        if allow_use_file and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
-            return self._eval_line_using_file(line, tmp)
-        try:
-            if self._expect is None:
-                self._start()
-            E = self._expect
-            try:
-                if len(line) >= 4096:
-                    raise RuntimeError, "Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters"%(self, len(line))
-                E.sendline(line)
-                if wait_for_prompt == False:
-                    return ''
+        """
+        EXAMPLES:
+            sage: lie._eval_line('2+2') #optional -- requires LiE
+            '     4'
+            sage: lie._eval_line('diagram(2)') #optional
+            Traceback (most recent call last):
+            ...
+            RuntimeError: An error occured running a LiE command:
+            Argument types do not match in call. Types are: diagram(bin).
+            Valid argument types are for instance: diagram(grp).
 
-            except OSError, msg:
-                raise RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self)
-
-            if len(line)>0:
-                try:
-                    if isinstance(wait_for_prompt, basestring):
-                        E.expect(wait_for_prompt)
-                    else:
-                        E.expect(self._prompt)
-                except pexpect.EOF, msg:
-                    try:
-                        if self._read_in_file_command(tmp) in line:
-                            raise pexpect.EOF, msg
-                    except NotImplementedError:
-                        pass
-                    if self._quit_string() in line:
-                        # we expect to get an EOF if we're quitting.
-                        return ''
-                    raise RuntimeError, "%s\n%s crashed executing %s"%(msg,
-                                                   self, line)
-                out = E.before
-            else:
-                out = '\n\r'
-        except KeyboardInterrupt:
-            self._keyboard_interrupt()
-            raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
-        i = out.find("\n")
-        j = out.rfind("\r")
-
+        """
+        out = Expect._eval_line(self, line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt)
+        #Check to see if an error has occured
         err = max( out.find("\n(in"), out.find('not defined'), out.find('Argument types')  )
         if err != -1:
-            raise RuntimeError, "An error occured running a LiE command:\n%s"%(out[i+1:j].replace('\r\n','\n'))
-
-        return out[i+1:j].replace('\r\n','\n')
+            raise RuntimeError, "An error occured running a LiE command:\n%s"%(out.replace('\r\n','\n'))
+        return out
 
 
     def eval(self, code, strip=True, **kwds):
+        """
+        EXAMPLES:
+            sage: lie.eval('2+2')  #optional -- requires LiE
+            '4'
+        """
         s = Expect.eval(self,code, strip=True, **kwds)
         #return s.strip()
         if len(s) > 0 and s.find("\n") != -1:
@@ -574,6 +647,11 @@ class LiE(Expect):
     def set(self, var, value):
         """
         Set the variable var to the given value.
+
+        EXAMPLES:
+            sage: lie.set('x', '2')  #optional -- requires LiE
+            sage: lie.get('x')       #optional
+            '2'
         """
         cmd = '%s=%s'%(var,value)
         out = self.eval(cmd)
@@ -584,81 +662,125 @@ class LiE(Expect):
     def get(self, var):
         """
         Get the value of the variable var.
+
+        EXAMPLES:
+            sage: lie.set('x', '2')  #optional -- requires LiE
+            sage: lie.get('x')       #optional
+            '2'
+
         """
         s = self.eval('%s'%var)
         return s
 
     def get_using_file(self, var):
+        """
+        EXAMPLES:
+            sage: lie.get_using_file('x')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
-    def function_call(self, function, args=[]):
-        if function == '':
-            raise ValueError, "function name must be nonempty"
-        if function[:2] == "__":
-            raise AttributeError
-        if not isinstance(args, list):
-            args = [args]
-        for i in range(len(args)):
-            if not isinstance(args[i], ExpectElement):
-                args[i] = self.new(args[i])
+    def function_call(self, function, args=[], kwds={}):
+        """
+        EXAMPLES:
+            sage: lie.function_call("diagram", args=['A4'])  #optional -- requires LiE
+            O---O---O---O
+            1   2   3   4
+            A4
+        """
         #Handle the functions that do not return a value that can
         #be assigned to a variable
+        for i in range(len(args)):
+            if not isinstance(args[i], LiEElement):
+                args[i] = self.new(args[i])
+        for key, value in kwds.iteritems():
+            kwds[key] = self.new(value)
+
+        #If function just prints something on the screen rather than
+        #returning an object, then we return an AsciiArtString rather
+        #than a LiEElement
         if function in ['diagram', 'setdefault', 'print_tab', 'type', 'factor', 'void', 'gcol']:
-            return AsciiArtString(self.eval("%s(%s)"%(function, ",".join([s.name() for s in args]))))
-        #Otherwise, create a new object
-        else:
-            return self.new("%s(%s)"%(function, ",".join([s.name() for s in args])))
+            cmd = "%s(%s)"%(function, ",".join([s.name() for s in args]))
+            return AsciiArtString(self.eval(cmd))
+
+        return Expect.function_call(self, function, args, kwds)
+
+    def _function_element_class(self):
+        """
+        EXAMPLES:
+            sage: lie._function_element_class()
+            <class 'sage.interfaces.lie.LiEFunctionElement'>
+        """
+        return LiEFunctionElement
 
 class LiEElement(ExpectElement):
-    """
-    Describe elements of your system here.
-    """
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return LiEFunctionElement(self, attrname)
-
     def trait_names(self):
-        # This is if your system doesn't really have types.  If you have types
-        # this function should only return the relevant methods that take self
-        # as their first argument.
+        """
+        Returns the possible tab completions for self.
+
+        EXAMPLES:
+            sage: a4 = lie('A4')   #optional -- requires LiE
+            sage: a4.trait_names() #optional
+            ['center',
+             'diagram',
+             ...
+             'n_comp']
+
+        """
         return self.parent().trait_names(type=self.type())
 
     def type(self):
+        """
+        EXAMPLES:
+            sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
+            sage: m.type()
+            'mat'
+        """
         t = self.parent().eval('type(%s)'%self._name)
         i = t.find(':')
         return t[i+1:].strip()
 
-
-    def _matrix_(self, R):
+    def _matrix_(self, R=None):
+        """
+        EXAMPLES:
+            sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
+            sage: matrix(m)
+            [ 1  0  3  3]
+            [12  4 -4  7]
+            [-1  9  8  0]
+            [ 3 -5 -2  9]
+            sage: matrix(RDF, m)
+            [ 1.0  0.0  3.0  3.0]
+            [12.0  4.0 -4.0  7.0]
+            [-1.0  9.0  8.0  0.0]
+            [ 3.0 -5.0 -2.0  9.0]
+        """
+        P = self._check_valid()
         if self.type() == 'mat':
-            return R( eval( str(self).replace('\n','').strip() ) )
+            m = self.sage()
+            if R is not None:
+                m = m.change_ring(R)
+            return m
         else:
             raise ValueError, "not a matrix"
 
-    def _vector_(self, R):
-        if self.type() == 'vec':
-            return R(eval(str(self)))
-        else:
-            raise ValueError, "not a vector"
 
-    def __cmp__(self, other):
-        P = self.parent()
-        if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
-                                 other.name())) == P._true_symbol():
-            return 0
-        elif P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
-            return -1
-        elif P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
-            return 1
-        else:
-            return -1  # everything is supposed to be comparable in Python, so we define
-                       # the comparison thus when no comparable in interfaced system.
+    def _sage_(self):
+        """
+        EXAMPLES:
+            sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
+            sage: m.sage()
+            [ 1  0  3  3]
+            [12  4 -4  7]
+            [-1  9  8  0]
+            [ 3 -5 -2  9]
 
-    def sage(self):
+        """
         t = self.type()
         if t == 'grp':
-            raise ValueError, "cannot convert Lie groups to native SAGE objects"
+            raise ValueError, "cannot convert Lie groups to native Sage objects"
         elif t == 'mat':
             import sage.matrix.constructor
             return  sage.matrix.constructor.matrix( eval( str(self).replace('\n','').strip())  )
@@ -703,35 +825,86 @@ class LiEElement(ExpectElement):
         elif t == 'vid':
             return None
         else:
-            return ExpectElement.sage(self)
+            return ExpectElement._sage_(self)
 
 
 class LiEFunctionElement(FunctionElement):
     def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: a4 = lie('A4')  # optional -- requires lie package
+            sage: a4.diagram._sage_doc_() #optional
+            'diagram(g)...'
+        """
         M = self._obj.parent()
         return M.help(self._name)
 
 
 class LiEFunction(ExpectFunction):
     def _sage_doc_(self):
+        """
+        Returns the help for self.
+
+        EXAMPLES:
+            sage: lie.diagram._sage_doc_() #optional -- requires LiE
+            'diagram(g)...'
+        """
         M = self._parent
         return M.help(self._name)
 
 
 
 def is_LiEElement(x):
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.lie import is_LiEElement
+        sage: l = lie(2) #optional -- requires LiE
+        sage: is_LiEElement(l) #optional -- requires LiE
+        True
+        sage: is_LiEElement(2)
+        False
+    """
     return isinstance(x, LiEElement)
 
 # An instance
 lie = LiE()
 
 def reduce_load_lie():
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.lie import reduce_load_lie
+        sage: reduce_load_lie()
+        LiE Interpreter
+    """
     return lie
 
 import os
 def lie_console():
+    """
+    Spawn a new LiE command-line session.
+
+    EXAMPLES:
+        sage: from sage.interfaces.lie import lie_console
+        sage: lie_console()                    # not tested
+        LiE version 2.2.2 created on Sep 26 2007 at 18:13:19
+        Authors: Arjeh M. Cohen, Marc van Leeuwen, Bert Lisser.
+        Free source code distribution
+        ...
+
+    """
     os.system('bash `which lie`')
 
 
 def lie_version():
-    raise NotImplementedError
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.lie import lie_version
+        sage: lie_version()
+        '2.1'
+    """
+    f = open(SAGE_LOCAL + 'lib/lie/INFO.0')
+    lines = f.readlines()
+    f.close()
+    i = lines.index('@version()\n')
+    return lines[i+1].split()[1]
+

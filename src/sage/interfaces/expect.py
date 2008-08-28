@@ -609,8 +609,6 @@ If this all works, you can then make calls like:
         return s
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
-        #if line.find('\n') != -1:
-        #    raise ValueError, "line must not contain any newlines"
         if allow_use_file and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
             return self._eval_line_using_file(line)
         try:
@@ -1094,7 +1092,32 @@ If this all works, you can then make calls like:
         return name
 
     def _object_class(self):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.expect import Expect
+            sage: Expect._object_class(maxima)
+            <class 'sage.interfaces.expect.ExpectElement'>
+
+        """
         return ExpectElement
+
+    def _function_class(self):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.expect import Expect
+            sage: Expect._function_class(maxima)
+            <class 'sage.interfaces.expect.ExpectFunction'>
+        """
+        return ExpectFunction
+
+    def _function_element_class(self):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.expect import Expect
+            sage: Expect._function_element_class(maxima)
+            <class 'sage.interfaces.expect.FunctionElement'>
+        """
+        return FunctionElement
 
     def function_call(self, function, args=[], kwds={}):
         """
@@ -1131,7 +1154,7 @@ If this all works, you can then make calls like:
     def __getattr__(self, attrname):
         if attrname[:1] == "_":
             raise AttributeError
-        return ExpectFunction(self, attrname)
+        return self._function_class()(self, attrname)
 
     def __cmp__(self, other):
         """
@@ -1263,13 +1286,14 @@ class ExpectElement(RingElement):
 
     def __cmp__(self, other):
         P = self.parent()
-        if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
+        if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
+                                 other.name())) == P._true_symbol():
+            return 0
+        elif P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1
         elif P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
             return 1
-        elif P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
-                                 other.name())) == P._true_symbol():
-            return 0
+
         # everything is supposed to be comparable in Python, so we define
         # the comparison thus when no comparable in interfaced system.
         if (hash(self) < hash(other)):
@@ -1348,15 +1372,22 @@ class ExpectElement(RingElement):
         return s
 
     def __getattr__(self, attrname):
-        self._check_valid()
+        P = self._check_valid()
         if attrname[:1] == "_":
             raise AttributeError
-        return FunctionElement(self, attrname)
+        return P._function_element_class()(self, attrname)
 
     def hasattr(self, attrname):
         """
         Returns whether the given attribute is already defined by this object,
         and in particular is not dynamically generated.
+
+        EXAMPLES:
+            sage: m = maxima('2')
+            sage: m.hasattr('integral')
+            True
+            sage: m.hasattr('gcd')
+            False
         """
         return not isinstance(getattr(self, attrname), FunctionElement)
 
@@ -1388,6 +1419,14 @@ class ExpectElement(RingElement):
             return P.new('%s[%s]'%(self._name, str(n)[1:-1]))
 
     def __int__(self):
+        """
+        EXAMPLES:
+            sage: int(maxima('1'))
+            1
+            sage: type(_)
+            <type 'int'>
+
+        """
         return int(repr(self))
 
     def bool(self):
@@ -1397,20 +1436,60 @@ class ExpectElement(RingElement):
         return P.eval(cmd) == t
 
     def __bool__(self):
+        """
+        EXAMPLES:
+            sage: bool(maxima('0'))
+            False
+            sage: bool(maxima('1'))
+            True
+        """
         return self.bool()
 
-
     def __long__(self):
+        """
+        EXAMPLES:
+            sage: m = maxima('1')
+            sage: long(m)
+            1L
+        """
         return long(repr(self))
 
-    def __float____(self):
+    def __float__(self):
+        """
+        EXAMPLES:
+            sage: m = maxima('1/2')
+            sage: m.__float__()
+            0.5
+            sage: float(m)
+            0.5
+        """
         return float(repr(self))
 
     def _integer_(self):
+        """
+        EXAMPLES:
+            sage: m = maxima('1')
+            sage: m._integer_()
+            1
+            sage: _.parent()
+            Integer Ring
+            sage: QQ(m)
+            1
+        """
         import sage.rings.all
         return sage.rings.all.Integer(repr(self))
 
     def _rational_(self):
+        """
+        EXAMPLES:
+            sage: m = maxima('1/2')
+            sage: m._rational_()
+            1/2
+            sage: _.parent()
+            Rational Field
+            sage: QQ(m)
+            1/2
+        """
         import sage.rings.all
         return sage.rings.all.Rational(repr(self))
 
@@ -1453,35 +1532,66 @@ class ExpectElement(RingElement):
         P = self._check_valid()
         return P.new('%s.%s'%(self._name, int(n)))
 
-    def _add_(self, right):
+    def _operation(self, operation, right):
         P = self._check_valid()
         try:
-            return P.new('%s + %s'%(self._name, right._name))
+            return P.new('%s %s %s'%(self._name, operation, right._name))
         except Exception, msg:
             raise TypeError, msg
+
+    def _add_(self, right):
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f + g
+            sin(x)+cos(x)
+            sage: f + 2
+            cos(x)+2
+            sage: 2 + f
+            cos(x)+2
+
+        """
+        return self._operation("+", right)
 
     def _sub_(self, right):
-        P = self._check_valid()
-        try:
-            return P.new('%s - %s'%(self._name, right._name))
-        except Exception, msg:
-            raise TypeError, msg
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f - g
+            cos(x)-sin(x)
+            sage: f - 2
+            cos(x)-2
+            sage: 2 - f
+            2-cos(x)
 
+        """
+        return self._operation('-', right)
 
     def _mul_(self, right):
-        P = self._check_valid()
-        try:
-            return P.new('%s * %s'%(self._name, right._name))
-        except Exception, msg:
-            raise TypeError,msg
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f*g
+            cos(x)*sin(x)
+            sage: 2*f
+            2*cos(x)
+        """
+        return self._operation('*', right)
 
     def _div_(self, right):
-        P = self._check_valid()
-        try:
-            return P.new('%s / %s'%(self._name, right._name))
-        except Exception, msg:
-            raise TypeError, msg
-
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f/g
+            cos(x)/sin(x)
+            sage: f/2
+            cos(x)/2
+        """
+        return self._operation("/", right)
 
     def __pow__(self, n):
         """
@@ -1491,13 +1601,9 @@ class ExpectElement(RingElement):
             2^(3/4)
         """
         P = self._check_valid()
-        if isinstance(n, ExpectElement):
-            if not P is n.parent():
-                n = P(n)
-            return P.new('%s ^ %s'%(self._name,n._name))
-        else:
-            z = P(n)
-            return P.new('%s ^ %s'%(self._name,z._name))
+        if  P is not n.parent():
+            n = P(n)
+        return self._operation("^", n)
 
 
 def reduce_load(parent, x):

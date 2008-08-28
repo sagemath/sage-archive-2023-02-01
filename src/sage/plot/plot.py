@@ -3430,7 +3430,7 @@ def plot(funcs, *args, **kwds):
         sage: len(P)     # number of graphics primitives
         1
         sage: len(P[0])  # how many points were computed (random)
-        6369
+        225
         sage: P          # render
 
         sage: P = plot(sin, (0,10), plot_points=10); print P
@@ -3586,7 +3586,7 @@ def _plot(funcs, xrange, parametric=False,
     if isinstance(funcs, (list, tuple)) and not parametric:
         return reduce(operator.add, (plot(f, (xmin, xmax), polar=polar, **kwds) for f in funcs))
 
-    delta = float(xmin-xmax) / plot_points
+    delta = float(xmax-xmin) / plot_points
 
     random = current_randstate().python_random().random
     exceptions = 0; msg=''

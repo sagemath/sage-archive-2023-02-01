@@ -2242,18 +2242,37 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve(GF(3),[1,2,3,4,5])
             sage: E.short_weierstrass_model(complete_cube=False)
             Elliptic Curve defined by y^2  = x^3 + x + 2 over Finite Field of size 3
+
+            This used to be different see trac #3973
+            sage: E.short_weierstrass_model()
+            Elliptic Curve defined by y^2  = x^3 + x + 2 over Finite Field of size 3
+
+            More tests in characteristic 3
+            sage: E = EllipticCurve(GF(3),[0,2,1,2,1])
             sage: E.short_weierstrass_model()
             Traceback (most recent call last):
             ...
-            ValueError: short_weierstrass_model(): no short model for Elliptic Curve defined by y^2 + x*y  = x^3 + 2*x^2 + x + 2 over Finite Field of size 3 (characteristic is 3)
+            ValueError: short_weierstrass_model(): no short model for Elliptic Curve defined by y^2 + y = x^3 + 2*x^2 + 2*x +1 over Finite Field of size 3 (characteristic is 3)
+            sage: E.short_weierstrass_model(complete_cube=False)
+            Elliptic Curve defined by y^2  = x^3 + 2*x^2 + 2*x + 2 over Finite Field of size 3
+            sage: E.short_weierstrass_model(complete_cube=False).is_isomorphic(E)
+            True
 
         """
         import constructor
         K = self.base_ring()
+
+        # any curve of the form y^2 = x^3 +.. is singular in characteristic 2
         if K.characteristic() == 2:
             raise ValueError, "short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
-        if K.characteristic() == 3 and complete_cube:
-            raise ValueError, "short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
+
+        # in characteristic 3 we can complete the square but we can only complete the cube if b2 is 0
+        if K.characteristic() == 3:
+            b2,b4,b6,_ = self.b_invariants()
+            if complete_cube and b2 != 0:
+                raise ValueError, "short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
+            else:
+                return constructor.EllipticCurve([0,b2,0,8*b4,16*b6])
 
         a1,a2,a3,_,_ = self.a_invariants()
         if complete_cube:

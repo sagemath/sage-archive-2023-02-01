@@ -2216,13 +2216,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         If complete_cube=True:
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve.
-        The characteristic must not be 2 or 3.
-        a,b = -27*c4, -54*c6
+        The characteristic must not be 2; in characteristic 3, it is
+        only possible if b2==0.
 
         If complete_cube=False:
         Return a model of the form $y^2 = x^3 + ax^2 + bx + c$ for this curve.
         The characteristic must not be 2.
-        a,b,c = b2, 8*b4, 16*b6
 
         EXAMPLES:
             sage: E = EllipticCurve([1,2,3,4,5])
@@ -2243,7 +2242,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.short_weierstrass_model(complete_cube=False)
             Elliptic Curve defined by y^2  = x^3 + x + 2 over Finite Field of size 3
 
-            This used to be different see trac #3973
+            This used to be different see trac \#3973
             sage: E.short_weierstrass_model()
             Elliptic Curve defined by y^2  = x^3 + x + 2 over Finite Field of size 3
 

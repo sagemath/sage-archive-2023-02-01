@@ -1834,12 +1834,13 @@ class MaximaElement(ExpectElement):
         return self.partfrac(var)
 
     def _operation(self, operation, right):
-        """
+        r"""
         Note that right's parent should already be Maxima since this should
         be called after coercion has been performed.
 
-        If right is a MaximaFunction, then we convert self to a MaximaFunction
-        that takes no arguments, and let the MaximaFunction._operation code
+        If right is a \code{MaximaFunction}, then we convert
+        \code{self} to a \code{MaximaFunction} that takes no
+        arguments, and let the \code{MaximaFunction._operation} code
         handle everything from there.
 
         EXAMPLES:
@@ -1964,8 +1965,8 @@ class MaximaFunction(MaximaElement):
             return self.__latex
 
     def arguments(self, split=True):
-        """
-        Returns the arguments of self.
+        r"""
+        Returns the arguments of this Maxima function.
 
         EXAMPLES:
             sage: f = maxima.function('x,y','sin(x+y)')
@@ -1984,7 +1985,7 @@ class MaximaFunction(MaximaElement):
 
     def definition(self):
         """
-        Returns the definition of self as a string.
+        Returns the definition of this Maxima function as a string.
 
         EXAMPLES:
             sage: f = maxima.function('x,y','sin(x+y)')
@@ -2007,15 +2008,16 @@ class MaximaFunction(MaximaElement):
         return P.function(args, repr(f))
 
     def _operation(self, operation, f=None):
-        """
-        This is a utility function which factors out much of the commonality
-        used in the arithmetic operations for MaximaFunctions.
+        r"""
+        This is a utility function which factors out much of the
+        commonality used in the arithmetic operations for
+        \code{MaximaFunctions}.
 
         INPUT:
             operation -- A string representing the operation being performed.
                          For example, '*', or '1/'.
-            f         -- The other operand.  If f is None, than the operation
-                         is assumed to be unary rather than binary.
+            f -- The other operand.  If f is \code{None}, than the
+                 operation is assumed to be unary rather than binary.
 
         EXAMPLES:
             sage: f = maxima.function('x,y','sin(x+y)')
@@ -2074,8 +2076,8 @@ class MaximaFunction(MaximaElement):
         return self._operation("+", f)
 
     def _sub_(self, f):
-        """
-        MaximaFunction as minuend.
+        r"""
+        \code{MaximaFunction} as minuend.
 
         EXAMPLES:
             sage: x,y = var('x,y')
@@ -2096,8 +2098,8 @@ class MaximaFunction(MaximaElement):
         return self._operation("-", f)
 
     def _mul_(self, f):
-        """
-        MaximaFunction as left factor.
+        r"""
+        \code{MaximaFunction} as left factor.
 
         EXAMPLES:
             sage: f = maxima.function('x','sin(x)')
@@ -2119,8 +2121,8 @@ class MaximaFunction(MaximaElement):
         return self._operation("*", f)
 
     def _div_(self, f):
-        """
-        MaximaFunction as dividend.
+        r"""
+        \code{MaximaFunction} as dividend.
 
         EXAMPLES:
             sage: f=maxima.function('x','sin(x)')
@@ -2143,8 +2145,8 @@ class MaximaFunction(MaximaElement):
         return self._operation("/", f)
 
     def __neg__(self):
-        """
-        Additive inverse of a MaximaFunction.
+        r"""
+        Additive inverse of a \code{MaximaFunction}.
 
         EXAMPLES:
             sage: f=maxima.function('x','sin(x)')
@@ -2154,8 +2156,8 @@ class MaximaFunction(MaximaElement):
         return self._operation('-')
 
     def __inv__(self):
-        """
-        Multiplicative inverse of a MaximaFunction.
+        r"""
+        Multiplicative inverse of a \code{MaximaFunction}.
 
         EXAMPLES:
             sage: f = maxima.function('x','sin(x)')
@@ -2165,8 +2167,8 @@ class MaximaFunction(MaximaElement):
         return self._operation('1/')
 
     def __pow__(self,f):
-        """
-        MaximaFunction raised to some power.
+        r"""
+        \code{MaximaFunction} raised to some power.
 
         EXAMPLES:
             sage: f=maxima.function('x','sin(x)')

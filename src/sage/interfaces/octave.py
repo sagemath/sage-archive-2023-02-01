@@ -243,7 +243,7 @@ class Octave(Expect):
         EXAMPLES:
             sage: o = Octave()
             sage: o._start()    #optional -- requires Octave
-            sage: o.quit(True)
+            sage: o.quit(True)  #optional
             Exiting spawned Octave process.
 
         """

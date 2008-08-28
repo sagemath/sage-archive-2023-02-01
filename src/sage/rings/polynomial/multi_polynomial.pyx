@@ -674,6 +674,30 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         return self._repr_with_changed_varnames(self.parent()._magma_gens())
 
+    def gradient(self):
+        r"""
+        Return a list of partial derivatives of this polynomial,
+        ordered by the variables of \code{self.parent()}.
+
+        EXAMPLE:
+           sage: P.<x,y,z> = PolynomialRing(ZZ,3)
+           sage: f = x*y + 1
+           sage: f.gradient()
+           [y, x, 0]
+        """
+        return [ self.derivative(var) for var in self.parent().gens() ]
+
+    def jacobian_ideal(self):
+        r"""
+        Return the Jacobian ideal of the polynomial self.
+
+        EXAMPLE:
+            sage: R.<x,y,z> = QQ[]
+            sage: f = x^3 + y^3 + z^3
+            sage: f.jacobian_ideal()
+            Ideal (3*x^2, 3*y^2, 3*z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field
+        """
+        return self.parent().ideal(self.gradient())
 
 
 cdef remove_from_tuple(e, int ind):

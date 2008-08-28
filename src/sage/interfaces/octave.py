@@ -145,12 +145,9 @@ EXAMPLES:
 #*****************************************************************************
 
 import os
-
 from expect import Expect, ExpectElement
-
 from sage.misc.misc import verbose
 
-#import sage.matrix.matrix_space
 
 class Octave(Expect):
     """
@@ -165,8 +162,14 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
         sage: octave.eval("c")                                 # optional random output
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
+
     """
     def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
+        """
+        EXAMPLES:
+            sage: octave == loads(dumps(octave))
+            True
+        """
         Expect.__init__(self,
                         name = 'octave',
                         prompt = '>',
@@ -181,15 +184,38 @@ class Octave(Expect):
                         eval_using_file_cutoff=100)
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: octave.__reduce__()
+            (<function reduce_load_Octave at 0x...>, ())
+        """
         return reduce_load_Octave, tuple([])
 
     def _read_in_file_command(self, filename):
+        """
+        EXAMPLES:
+            sage: filename = tmp_filename()
+            sage: octave._read_in_file_command(filename)
+            'source("...");'
+        """
         return 'source("%s");'%filename
 
     def _quit_string(self):
+        """
+        EXAMPLES:
+            sage: octave._quit_string()
+            'quit;'
+        """
         return 'quit;'
 
     def _install_hints(self):
+        """
+        Returns hints on how to install Octave.
+
+        EXAMPLES:
+            sage: print octave._install_hints()
+            You must get ...
+        """
         return """
         You must get the program "octave" in order to use Octave
         from SAGE.   You can read all about Octave at
@@ -209,12 +235,18 @@ class Octave(Expect):
              to extract it to usr/local/...   Make sure /usr/local/bin
              is in your PATH.  Then type "octave" and verify that
              octave starts up.
-           * Don't bother with fink -- if they have octave at all,
-             it's probably out of date.
-           * Darwin ports has octave as well.
+           * Darwin ports and fink have Octave as well.
         """
 
     def quit(self, verbose=False):
+        """
+        EXAMPLES:
+            sage: o = Octave()
+            sage: o._start()    #optional -- requires Octave
+            sage: o.quit(True)
+            Exiting spawned Octave process.
+
+        """
         # Don't bother, since it just hangs in some cases, and it
         # isn't necessary, since octave behaves well with respect
         # to signals.
@@ -224,30 +256,29 @@ class Octave(Expect):
         return
 
     def _start(self):
+        """
+        Starts the Octave process.
+
+        EXAMPLES:
+            sage: o = Octave()    #optioanl -- requires Octave
+            sage: o.is_running()  #optional
+            False
+            sage: o._start()      #optional
+            sage: o.is_running()  #optional
+            True
+        """
         Expect._start(self)
         self.eval("page_screen_output=0;")
         self.eval("format none;")
-        #self.eval('save_header_format_string="";')
-
-#    pdehaye/20070819: This is no obsolete, see Expect._get_tmpfile_from_server and Expect._send_tmpfile_to_server
-
-#    def get_via_file(self, var_name):
-#        t = self._temp_file(var_name)
-#        self.eval('save -text "%s" %s'%(t,var_name))
-#        r = open(t).read()
-#        os.unlink(t)
-#        return r
-
-#    def set_via_file(self, var_name, x):
-#        t = self._temp_file(var_name)
-#        open(t,'w').write(x)
-#        print 'load "%s" %s'%(t, var_name)
-#        self.eval('load "%s" %s'%(t, var_name))
-#        #os.unlink(t)
 
     def set(self, var, value):
         """
         Set the variable var to the given value.
+
+        EXAMPLES:
+            sage: octave.set('x', '2') #optonal -- requires Octave
+            sage: octave.get('x') #optional
+            ' 2'
         """
         cmd = '%s=%s;'%(var,value)
         out = self.eval(cmd)
@@ -257,18 +288,49 @@ class Octave(Expect):
     def get(self, var):
         """
         Get the value of the variable var.
+
+        EXAMPLES:
+            sage: octave.set('x', '2') #optonal -- requires Octave
+            sage: octave.get('x') #optional
+            ' 2'
         """
         s = self.eval('%s'%var)
         i = s.find('=')
         return s[i+1:]
 
-    #def clear(self, var):
-    #    """
-    #    Clear the variable named var.
-    #    """
-    #    self.eval('clear %s'%var)
+    def clear(self, var):
+        """
+        Clear the variable named var.
+
+        EXAMPLES:
+            sage: octave.set('x', '2') #optonal -- requires Octave
+            sage: octave.clear('x') #optional
+            sage: octave.get('x') #optional
+            "error: `x' undefined near line ... column 1"
+
+        """
+        self.eval('clear %s'%var)
 
     def console(self):
+        """
+        Spawn a new Octave command-line session.
+
+        This requires that the optional octave program be installed and in
+        your PATH, but no optional \sage packages need be installed.
+
+        EXAMPLES:
+            sage: octave_console()         # not tested
+            GNU Octave, version 2.1.73 (i386-apple-darwin8.5.3).
+            Copyright (C) 2006 John W. Eaton.
+            ...
+            octave:1> 2+3
+            ans = 5
+            octave:2> [ctl-d]
+
+        Pressing ctrl-d exits the octave console and returns you to SAGE.
+        octave, like SAGE, remembers its history from one session to
+        another.
+        """
         octave_console()
 
     def version(self):
@@ -383,6 +445,12 @@ class Octave(Expect):
         self.eval("plot(t,x)")
 
     def _object_class(self):
+        """
+        EXAMPLES:
+            sage: octave._object_class()
+            <class 'sage.interfaces.octave.OctaveElement'>
+
+        """
         return OctaveElement
 
 
@@ -417,12 +485,21 @@ class OctaveElement(ExpectElement):
 octave = Octave(script_subdirectory='user')
 
 def reduce_load_Octave():
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.octave import reduce_load_Octave
+        sage: reduce_load_Octave()
+        Octave
+
+    """
     return octave
 
 
 import os
 def octave_console():
     """
+    Spawn a new Octave command-line session.
+
     This requires that the optional octave program be installed and in
     your PATH, but no optional \sage packages need be installed.
 

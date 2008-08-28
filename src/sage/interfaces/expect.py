@@ -585,6 +585,21 @@ If this all works, you can then make calls like:
         if not (self.__remote_tmpfile is None):
             raise NotImplementedError
 
+    def read(self, filename):
+        """
+        EXAMPLES:
+            sage: filename = tmp_filename()
+            sage: f = open(filename, 'w')
+            sage: f.write('x = 2\n')
+            sage: f.close()
+            sage: octave.read(filename)  #optional -- requires Octave
+            sage: octave.get('x')        #optional
+            ' 2'
+            sage: import os
+            sage: os.unlink(filename)
+        """
+        self.eval(self._read_in_file_command(filename))
+
     def _read_in_file_command(self, filename):
         raise NotImplementedError
 

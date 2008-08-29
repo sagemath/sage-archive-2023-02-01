@@ -299,6 +299,11 @@ class Singular(Expect):
     """
     def __init__(self, maxread=1000, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
+        """
+        EXAMPLES:
+            sage: singular == loads(dumps(singular))
+            True
+        """
         prompt = '> '
         Expect.__init__(self,
                         name = 'singular',
@@ -317,27 +322,77 @@ class Singular(Expect):
         self.__to_clear = []   # list of variable names that need to be cleared.
 
     def _start(self, alt_message=None):
+        """
+        EXAMPLES:
+            sage: s = Singular()
+            sage: s.is_running()
+            False
+            sage: s._start()
+            sage: s.is_running()
+            True
+            sage: s.quit()
+        """
         self.__libs = []
         Expect._start(self, alt_message)
         # Load some standard libraries.
         self.lib('general')   # assumed loaded by misc/constants.py
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: singular.__reduce__()
+            (<function reduce_load_Singular at 0x...>, ())
+
+        """
         return reduce_load_Singular, ()
 
     def _equality_symbol(self):
+        """
+        EXAMPLES:
+            sage: singular._equality_symbol()
+            '=='
+        """
         return '=='
 
     def _true_symbol(self):
+        """
+        EXAMPLES:
+            sage: singular._true_symbol()
+            '1'
+        """
         return '1'
 
     def _false_symbol(self):
+        """
+        EXAMPLES:
+            sage: singular._false_symbol()
+            '0'
+        """
         return '0'
 
     def _quit_string(self):
+        """
+        EXAMPLES:
+            sage: singular._quit_string()
+            'quit'
+        """
         return 'quit'
 
     def _read_in_file_command(self, filename):
+        """
+        EXAMPLES:
+            sage: singular._read_in_file_command('test')
+            '< "test";'
+
+            sage: filename = tmp_filename()
+            sage: f = open(filename, 'w')
+            sage: f.write('int x = 2;\n')
+            sage: f.close()
+            sage: singular.read(filename)
+            sage: singular.get('x')
+            '2'
+
+        """
         return '< "%s";'%filename
 
 
@@ -441,6 +496,11 @@ class Singular(Expect):
     def set(self, type, name, value):
         """
         Set the variable with given name to the given value.
+
+        EXAMPLES:
+            sage: singular.set('int', 'x', '2')
+            sage: singular.get('x')
+            '2'
         """
         cmd = '%s %s=%s;'%(type, name, value)
         try:
@@ -451,12 +511,25 @@ class Singular(Expect):
     def get(self, var):
         """
         Get string representation of variable named var.
+
+        EXAMPLES:
+            sage: singular.set('int', 'x', '2')
+            sage: singular.get('x')
+            '2'
         """
         return self.eval('print(%s);'%var)
 
     def clear(self, var):
         """
         Clear the variable named var.
+
+        EXAMPLES:
+            sage: singular.set('int', 'x', '2')
+            sage: singular.get('x')
+            '2'
+            sage: singular.clear('x')
+            sage: singular.get('x')
+            '`x`'
         """
         # We add the variable to the list of vars to clear when we do an eval.
         # We queue up all the clears and do them at once to avoid synchronizing
@@ -466,13 +539,19 @@ class Singular(Expect):
         self.__to_clear.append(var)
 
     def _create(self, value, type='def'):
+        """
+        Creates a new variable in the Singular session and returns
+        the name of that variable.
+
+        EXAMPLES:
+            sage: singular._create('2', type='int')
+            'sage...'
+            sage: singular.get(_)
+            '2'
+        """
         name = self._next_var_name()
-        #self._last_name = name
         self.set(type, name, value)
         return name
-
-    #def _last_created_varname(self):
-    #    return self._last_name
 
     def __call__(self, x, type='def'):
         """
@@ -515,6 +594,19 @@ class Singular(Expect):
 
 
     def cputime(self, t=None):
+        r"""
+        Returns the amount of CPU time that the Singular session has used.
+        If \var{t} is not None, then it returns the difference between
+        the current CPU time and \var{t}.
+
+        EXAMPLES:
+            sage: t = singular.cputime()
+            sage: R = singular.ring(0, '(x0,x1,x2)', 'lp')
+            sage: I = singular.ideal([ 'x0*x1*x2 -x0^2*x2', 'x0^2*x1*x2-x0*x1^2*x2-x0*x1*x2^2', 'x0*x1-x0*x2-x1*x2'])
+            sage: gb = I.groebner()
+            sage: singular.cputime(t) #random
+            0.02
+        """
         if t:
             return float(self.eval('timer-%d'%(int(1000*t))))/1000.0
         else:
@@ -530,6 +622,10 @@ class Singular(Expect):
         Note that if the library was already loaded during this
         session it is not reloaded unless the optional reload
         argument is True (the default is False).
+
+        EXAMPLES:
+            sage: singular.lib('sing.lib')
+            sage: singular.lib('sing.lib', reload=True)
         """
         if lib[-4:] != ".lib":
             lib += ".lib"
@@ -592,6 +688,17 @@ class Singular(Expect):
         return self(",".join([g.name() for g in gens2]), 'ideal')
 
     def list(self, x):
+        r"""
+        Creates a list in Singular from a Sage list \var{x}.
+
+        EXAMPLES:
+            sage: singular.list([1,2])
+            [1]:
+               1
+            [2]:
+               2
+
+        """
         return self(x, 'list')
 
     def matrix(self, nrows, ncols, entries=None):
@@ -683,7 +790,7 @@ class Singular(Expect):
         if len(vars) > 2:
             s = '; '.join(['if(defined(%s)>0){kill %s;};'%(x,x)
                            for x in vars[1:-1].split(',')])
-            self.eval(s);
+            self.eval(s)
 
         if check and isinstance(char, (int, long, sage.rings.integer.Integer)):
             if char != 0:
@@ -695,12 +802,42 @@ class Singular(Expect):
         return R
 
     def string(self, x):
+        """
+        Creates a Singular string from a Sage string.  Note that
+        the Sage string has to be "double-quoted".
+
+        EXAMPLES:
+            sage: singular.string('"Sage"')
+            Sage
+
+        """
         return self(x, 'string')
 
     def set_ring(self, R):
+        """
+        Sets the current Singular ring to R.
+
+        EXAMPLES:
+            sage: R = singular.ring(7, '(a,b)', 'ds')
+            sage: S = singular.ring('real', '(a,b)', 'lp')
+            sage: singular.current_ring()
+            //   characteristic : 0 (real)
+            //   number of vars : 2
+            //        block   1 : ordering lp
+            //                  : names    a b
+            //        block   2 : ordering C
+            sage: singular.set_ring(R)
+            sage: singular.current_ring()
+            //   characteristic : 7
+            //   number of vars : 2
+            //        block   1 : ordering ds
+            //                  : names    a b
+            //        block   2 : ordering C
+        """
         if not isinstance(R, SingularElement):
             raise TypeError, "R must be a singular ring"
         self.eval("setring %s; short=0"%R.name(), allow_semicolon=True)
+
     setring = set_ring
 
     def current_ring_name(self):
@@ -753,55 +890,84 @@ class Singular(Expect):
     def trait_names(self):
         """
         Return a list of all Singular commands.
-        """
+
+        EXAMPLES:
+            sage: singular.trait_names()
+            ['headStand',
+             ...
+             'stdfglm']
+         """
         p = re.compile("// *([a-z0-9A-Z_]*).*") #compiles regular expression
         proclist = self.eval("listvar(proc)").splitlines()
         return [p.match(line).group(int(1)) for line in proclist]
 
     def console(self):
+        """
+        EXAMPLES:
+            sage: singular_console() #not tested
+                                 SINGULAR                             /  Development
+             A Computer Algebra System for Polynomial Computations   /   version 3-0-4
+                                                                   0<
+                 by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   Nov 2007
+            FB Mathematik der Universitaet, D-67653 Kaiserslautern    \
+
+        """
         singular_console()
 
     def version(self):
+        """
+        EXAMPLES:
+        """
         return singular_version()
 
-    def __getattr__(self, attrname):
-        if attrname.startswith("_"):
-            raise AttributeError
-        return SingularFunction(self, attrname)
+    def _function_class(self):
+        """
+        EXAMPLES:
+            sage: singular._function_class()
+            <class 'sage.interfaces.singular.SingularFunction'>
+        """
+        return SingularFunction
+
+    def _function_element_class(self):
+        """
+        EXAMPLES:
+            sage: singular._function_element_class()
+            <class 'sage.interfaces.singular.SingularFunctionElement'>
+        """
+        return SingularFunctionElement
 
     def option(self, cmd=None, val=None):
         """
         Access to Singular's options as follows:
 
-        Syntax:
-            option()
-        Return Type:
-            string
-        Purpose:
-            lists all defined options.
+        Syntax: option()
+                Returns a string of all defined options.
 
-        Syntax:
-            option( 'option_name' )
-        Return Type:
-            none
-        Purpose:
-            sets an option.
-        Note:
-            To disable an option, use the prefix no.
+        Syntax: option( 'option_name' )
+                Sets an option. Note to disable an option, use the prefix no.
 
-        Syntax:
-            option( 'get' )
-        Return Type:
-            intvec
-        Purpose:
-            dumps the state of all options to an intvec.
+        Syntax: option( 'get' )
+                Returns an intvec of the state of all options.
 
-        Syntax:
-            option( 'set', intvec_expression )
-        Type:
-            none
-        Purpose:
-            restores the state of all options from an intvec (produced by option(get)).
+        Syntax: option( 'set', intvec_expression )
+                Restores the state of all options from an intvec
+                (produced by option('get')).
+
+        EXAMPLES:
+            sage: singular.option()
+            //options: redefine loadLib usage prompt
+            sage: singular.option('get')
+            0,
+            10321
+            sage: old_options = _
+            sage: singular.option('noredefine')
+            sage: singular.option()
+            //options: loadLib usage prompt
+            sage: singular.option('set', old_options)
+            sage: singular.option('get')
+            0,
+            10321
+
         """
         if cmd is None:
             return SingularFunction(self,"option")()
@@ -827,6 +993,12 @@ class Singular(Expect):
 
 class SingularElement(ExpectElement):
     def __init__(self, parent, type, value, is_name=False):
+        """
+        EXAMPLES:
+            sage: a = singular(2)
+            sage: loads(dumps(a))
+            (invalid object -- defined in terms of closed session)
+        """
         RingElement.__init__(self, parent)
         if parent is None: return
         if not is_name:
@@ -838,11 +1010,6 @@ class SingularElement(ExpectElement):
         else:
             self._name = value
         self._session_number = parent._session_number
-
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return SingularFunctionElement(self, attrname)
 
     def __repr__(self):
         r"""
@@ -939,9 +1106,27 @@ class SingularElement(ExpectElement):
             return self.parent()(self.name())
 
     def __len__(self):
+        """
+        Returns the size of this Singular element.
+
+        EXAMPLES:
+            sage: R = singular.ring(0, '(x,y,z)', 'dp')
+            sage: A = singular.matrix(2,2)
+            sage: len(A)
+            4
+        """
         return int(self.size())
 
     def __reduce__(self):
+        """
+        Note that the result of the returned reduce_load is an invalid
+        Singular object.
+
+        EXAMPLES:
+            sage: singular(2).__reduce__()
+            (<function reduce_load at 0x...>, ())
+
+        """
         return reduce_load, ()  # default is an invalid object
 
     def __setitem__(self, n, value):
@@ -983,11 +1168,20 @@ class SingularElement(ExpectElement):
             P.eval('%s[%s] = %s'%(self.name(), n, value.name()))
 
     def __nonzero__(self):
+        """
+        Returns True if this Singular element is not zero.
+
+        EXAMPLES:
+            sage: singular(0).__nonzero__()
+            False
+            sage: singular(1).__nonzero__()
+            True
+        """
         P = self.parent()
         return P.eval('%s == 0'%self.name()) == '0'
 
     def sage_polystring(self):
-	"""
+	r"""
 	If this Singular element is a polynomial, return a string
 	representation of this polynomial that is suitable for
 	evaluation in Python.  Thus * is used for multiplication
@@ -1156,8 +1350,17 @@ class SingularElement(ExpectElement):
 
     def sage_matrix(self, R, sparse=True):
         """
-        Returns SAGE matrix for self
+        Returns Sage matrix for self
 
+        EXAMPLES:
+            sage: R = singular.ring(0, '(x,y,z)', 'dp')
+            sage: A = singular.matrix(2,2)
+            sage: A.sage_matrix(ZZ)
+            [0 0]
+            [0 0]
+            sage: A.sage_matrix(RDF)
+            [0.0 0.0]
+            [0.0 0.0]
         """
         from sage.matrix.constructor import Matrix
         nrows, ncols = int(self.nrows()),int(self.ncols())
@@ -1172,7 +1375,15 @@ class SingularElement(ExpectElement):
 
     def _sage_(self, R=None):
         """
-        Coerces self to SAGE.
+        Coerces self to Sage.
+
+        EXAMPLES:
+            sage: R = singular.ring(0, '(x,y,z)', 'dp')
+            sage: A = singular.matrix(2,2)
+            sage: A._sage_(ZZ)
+            [0 0]
+            [0 0]
+
         """
         if self.type()=='poly':
             return self.sage_poly(R)
@@ -1188,10 +1399,38 @@ class SingularElement(ExpectElement):
             raise NotImplementedError, "Coercion of this datatype not implemented yet"
 
     def set_ring(self):
+        """
+        Sets the current ring in Singular to be self.
+
+        EXAMPLES:
+            sage: R = singular.ring(7, '(a,b)', 'ds')
+            sage: S = singular.ring('real', '(a,b)', 'lp')
+            sage: singular.current_ring()
+            //   characteristic : 0 (real)
+            //   number of vars : 2
+            //        block   1 : ordering lp
+            //                  : names    a b
+            //        block   2 : ordering C
+            sage: R.set_ring()
+            sage: singular.current_ring()
+            //   characteristic : 7
+            //   number of vars : 2
+            //        block   1 : ordering ds
+            //                  : names    a b
+            //        block   2 : ordering C
+
+        """
         self.parent().set_ring(self)
 
 
     def sage_flattened_str_list(self):
+        """
+        EXAMPLES:
+            sage: R=singular.ring(0,'(x,y)','dp')
+            sage: RL = R.ringlist()
+            sage: RL.sage_flattened_str_list()
+            ['0', 'x', 'y', 'dp', '1,1', 'C', '0', '_[1]=0']
+        """
         s = str(self)
         c = '\[[0-9]*\]:'
         r = re.compile(c)
@@ -1235,6 +1474,17 @@ class SingularElement(ExpectElement):
         return [X.sage_structured_str_list() for X in self]
 
     def trait_names(self):
+        """
+        Returns the possible tab-completions for self.  In this case,
+        we just return all the tab completions for the Singular object.
+
+        EXAMPLES:
+            sage: R = singular.ring(0,'(x,y)','dp')
+            sage: R.trait_names()
+            ['headStand',
+             ...
+             'stdfglm']
+        """
         return self.parent().trait_names()
 
     def type(self):
@@ -1255,6 +1505,17 @@ class SingularElement(ExpectElement):
         return m.group(int(1))
 
     def __iter__(self):
+        """
+        EXAMPLES:
+            sage: R = singular.ring(0, '(x,y,z)', 'dp')
+            sage: A = singular.matrix(2,2)
+            sage: list(iter(A))
+            [[0], [0]]
+            sage: A[1,1] = 1; A[1,2] = 2
+            sage: A[2,1] = 3; A[2,2] = 4
+            sage: list(iter(A))
+            [[1,3], [2,4]]
+        """
         if self.type()=='matrix':
             l = self.ncols()
         else:
@@ -1263,6 +1524,13 @@ class SingularElement(ExpectElement):
             yield self[i]
 
     def _singular_(self):
+        """
+        EXAMPLES:
+            sage: R = singular.ring(0, '(x,y,z)', 'dp')
+            sage: A = singular.matrix(2,2)
+            sage: A._singular_() is A
+            True
+        """
         return self
 
     def attrib(self, name, value=None):
@@ -1307,17 +1575,48 @@ class SingularElement(ExpectElement):
             self.parent().eval('attrib(%s,"%s",%d)'%(self.name(),name,value))
 
 class SingularFunction(ExpectFunction):
-     def _sage_doc_(self):
-         return "The SAGE interface to the Singular help system is not implemented."
+    def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: singular.groebner._sage_doc_()
+            'The SAGE interface to the Singular help system is not implemented.'
+        """
+        return "The SAGE interface to the Singular help system is not implemented."
 
 class SingularFunctionElement(FunctionElement):
     def _sage_doc_(self):
-         return "The SAGE interface to the Singular help system is not implemented."
+        """
+        EXAMPLES:
+            sage: R = singular.ring(0, '(x,y,z)', 'dp')
+            sage: A = singular.matrix(2,2)
+            sage: A.nrows._sage_doc_()
+            'The SAGE interface to the Singular help system is not implemented.'
+        """
+        return "The SAGE interface to the Singular help system is not implemented."
 
 def is_SingularElement(x):
+    r"""
+    Returns True is x is of type \code{SingularElement}.
+
+    EXAMPLES:
+        sage: from sage.interfaces.singular import is_SingularElement
+        sage: is_SingularElement(singular(2))
+        True
+        sage: is_SingularElement(2)
+        False
+    """
     return isinstance(x, SingularElement)
 
 def reduce_load():
+    """
+    Note that this returns an invalid Singular object!
+
+    EXAMPLES:
+        sage: from sage.interfaces.singular import reduce_load
+        sage: reduce_load()
+        (invalid object -- defined in terms of closed session)
+
+    """
     return SingularElement(None, None, None)
 
 
@@ -1326,15 +1625,39 @@ def reduce_load():
 singular = Singular()
 
 def reduce_load_Singular():
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.singular import reduce_load_Singular
+        sage: reduce_load_Singular()
+        Singular
+    """
     return singular
 
 import os
 def singular_console():
+    """
+    Spawn a new Singular command-line session.
+
+    EXAMPLES:
+        sage: singular_console() #not tested
+                             SINGULAR                             /  Development
+         A Computer Algebra System for Polynomial Computations   /   version 3-0-4
+                                                               0<
+             by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   Nov 2007
+        FB Mathematik der Universitaet, D-67653 Kaiserslautern    \
+
+    """
     os.system('Singular')
 
 
 def singular_version():
-   return singular.eval('system("--version");')
+    """
+    Returns the version of Singular being used.
+
+    EXAMPLES:
+
+    """
+    return singular.eval('system("--version");')
 
 
 

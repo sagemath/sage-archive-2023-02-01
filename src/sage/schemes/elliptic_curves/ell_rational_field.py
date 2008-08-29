@@ -411,10 +411,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
             prec -- The precision of quantities calculated for the
-                    returned curve (in decimal digits).  if None, defaults
+                    returned curve (in decimal digits).  If None, defaults
                     to factor * the precision of the largest cached curve
                     (or 10 if none yet computed)
-            factor -- the factor to increase the precision over the
+            factor -- The factor by which to increase the precision over the
                       maximum previously computed precision.  Only used if
                       prec (which gives an explicit precision) is None.
 
@@ -429,44 +429,53 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [1, -2, -3, 2, -2, 6, -1, 0, 6, 4]
 
             sage: E = EllipticCurve(RationalField(), ['1/3', '2/3'])
-            sage: e = E.pari_curve()
+            sage: e = E.pari_curve(prec = 20)
+            sage: E._pari_curve.has_key(20)
+            True
             sage: e.type()
             't_VEC'
             sage: e[:5]
             [0, 0, 0, 1/3, 2/3]
+
+            This shows that the bug uncovered by trac \#3954 is fixed:
+            sage: E._pari_curve.has_key(20)
+            True
         """
-        if prec is None:
-            try:
+        try:
+            # if the PARI curve has already been computed to this
+            # precision, returned the cached copy
+            return self._pari_curve[prec]
+        except AttributeError:
+            # no PARI curves have been computed for this elliptic curve
+            self._pari_curve = {}
+            if prec is None:
+                prec = 10
+        except KeyError:
+            # PARI curves are cached for this elliptic curve, but they
+            # are not of the requested precision (or prec = None)
+            if prec is None:
                 L = self._pari_curve.keys()
                 L.sort()
                 if factor == 1:
                     return self._pari_curve[L[-1]]
                 else:
                     prec = int(factor * L[-1])
-                    self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
-                    return self._pari_curve[prec]
-            except AttributeError:
-                pass
-        try:
-            return self._pari_curve[prec]
-        except AttributeError:
-            prec = 10
-            self._pari_curve = {}
-        except KeyError:
-            pass
         self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
         return self._pari_curve[prec]
 
-    def pari_mincurve(self, prec = None):
+    def pari_mincurve(self, prec = None, factor = 1):
         """
         Return the PARI curve corresponding to a minimal model
         for this elliptic curve.
 
         INPUT:
-        prec -- The precision of quantities calculated for the
-                returned curve (in decimal digits).  if None, defaults
-                to the precision of the largest cached curve (or 10 if
-                none yet computed)
+            prec -- The precision of quantities calculated for the
+                    returned curve (in decimal digits).  If None, defaults
+                    to factor * the precision of the largest cached curve
+                    (or 10 if none yet computed)
+            factor -- The factor by which to increase the precision over the
+                      maximum previously computed precision.  Only used if
+                      prec (which gives an explicit precision) is None.
 
         EXAMPLES:
             sage: E = EllipticCurve(RationalField(), ['1/3', '2/3'])
@@ -478,20 +487,25 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: e.ellglobalred()
             [47232, [1, 0, 0, 0], 2]
         """
-        if prec is None:
-            try:
-                L = self._pari_mincurve.keys()
-                L.sort()
-                return self._pari_mincurve[L[len(L) - 1]]
-            except AttributeError:
-                pass
         try:
+            # if the PARI curve has already been computed to this
+            # precision, returned the cached copy
             return self._pari_mincurve[prec]
         except AttributeError:
-            prec = 10
+            # no PARI curves have been computed for this elliptic curve
             self._pari_mincurve = {}
+            if prec is None:
+                prec = 10
         except KeyError:
-            pass
+            # PARI curves are cached for this elliptic curve, but they
+            # are not of the requested precision (or prec = None)
+            if prec is None:
+                L = self._pari_mincurve.keys()
+                L.sort()
+                if factor == 1:
+                    return self._pari_mincurve[L[-1]]
+                else:
+                    prec = int(factor * L[-1])
         e = self.pari_curve(prec)
         mc, change = e.ellminimalmodel()
         self._pari_mincurve[prec] = mc

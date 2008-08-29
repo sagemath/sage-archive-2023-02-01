@@ -2157,13 +2157,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         F = self.global_integral_model()
         return F, self.isomorphism_to(F)
 
-    def integral_weierstrass_model(self):
+    def integral_short_weierstrass_model(self):
         r"""
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve with $a,b\in\Z$.
 
         EXAMPLES:
             sage: E = EllipticCurve('17a1')
-            sage: E.integral_weierstrass_model()
+            sage: E.integral_short_weierstrass_model()
             Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
         """
         F = self.minimal_model().short_weierstrass_model()
@@ -2173,6 +2173,27 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             A /= Integer(p**(4*e))
             B /= Integer(p**(6*e))
         return constructor.EllipticCurve([A,B])
+
+    # deprecated function replaced by integral_short_weierstrass_model, see trac 3974.
+    def integral_weierstrass_model(self):
+        r"""
+        Return a model of the form $y^2 = x^3 + a*x + b$ for this curve with $a,b\in\Z$.
+
+        Note that this function is deprecated, and that you should use
+        integral_short_weierstrass_model instead as this will be disappearing
+        in the near future.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('17a1')
+            sage: E.integral_weierstrass_model() #random
+            doctest:1: DeprecationWarning: integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!
+            Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
+
+        """
+        from sage.misc.misc import deprecation
+        deprecation("integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!")
+        return self.integral_short_weierstrass_model()
+
 
     def modular_degree(self, algorithm='sympow'):
         r"""

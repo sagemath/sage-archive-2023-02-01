@@ -707,7 +707,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             return self.__phi_bpr(prec=prec)
         if p < 4 and method == "mw":
             print "Warning: If this fails try again using method=\"approx\""
-        Ew = E.integral_weierstrass_model()
+        Ew = E.integral_short_weierstrass_model()
         adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
         modprecring = Integers(p**adjusted_prec)
         output_ring = Qp(p, prec)

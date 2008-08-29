@@ -681,7 +681,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                 return False
             return True
 
-    def galois_group(self, pari_group=False, use_kash=False):
+    def galois_group(self, pari_group=False, algorithm='pari'):
         r"""
         Return the Galois group of f as a permutation group.
 
@@ -695,15 +695,16 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                           Gap.  To get a permutation group from a PARI
                           group P, type PermutationGroup(P).
 
-            use_kash --   bool (default: False); if True use KASH's Galois
-                          command instead of using the PARI C library.
-                          An attempt is always made to use KASH if the
-                          degree of the polynomial is >= 12.
+            algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except
+                          when the degree is >= 12 when 'kash' is tried)
+                          NOTE: 'magma' also does not return a proven
+                          correct result.  Please see the Magma docs
+                          for how to get a proven result.
 
         ALGORITHM: The Galois group is computed using PARI in C
-        library mode, or possibly kash if available.
+        library mode, or possibly kash or magma.
 
-        \note{ The PARI documentation contains the following warning:
+        \note{The PARI documentation contains the following warning:
         The method used is that of resolvent polynomials and is
         sensitive to the current precision. The precision is updated
         internally but, in very rare cases, a wrong result may be
@@ -735,15 +736,22 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         not-so-thorough experiments PARI is faster than KASH.)
 
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: f.galois_group(use_kash=true)      # requires optional KASH
+            sage: f.galois_group(algorithm='kash')      # requires optional KASH
             Transitive group number 5 of degree 4
 
+            sage: f = x^4 - 17*x^3 - 2*x + 1
+            sage: f.galois_group(algorithm='magma')      # requires optional magma
+            Transitive group number 5 of degree 4
         """
         from sage.groups.all import PariGroup, PermutationGroup, TransitiveGroup
+
         if not self.is_irreducible():
             raise ValueError, "polynomial must be irreducible"
-        if self.degree() > 11 or use_kash:
-            # TODO -- maybe use KASH if available or print message that user should install KASH?
+
+        if self.degree() > 11 and algorithm=='pari':
+            algorithm = 'kash'
+
+        if algorithm == 'kash':
             try:
                 from sage.interfaces.all import kash
                 kash.eval('X := PolynomialRing(RationalField()).1')
@@ -752,8 +760,19 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                 d = int(kash.eval('%s.ext1'%G.name()))
                 n = int(kash.eval('%s.ext2'%G.name()))
                 return TransitiveGroup(d, n)
-            except RuntimeError:
-                raise NotImplementedError, "Sorry, computation of Galois groups of fields of degree bigger than 11 is not yet implemented.  Try installing the optional free (closed source) KASH package, which supports up to degree $23$."
+            except RuntimeError, msg:
+                raise NotImplementedError, str(msg) + "\nSorry, computation of Galois groups of fields of degree bigger than 11 is not yet implemented.  Try installing the optional free (closed source) KASH package, which supports larger degrees, or use algorithm='magma' if you have magma."
+        elif algorithm == 'magma':
+            from sage.interfaces.all import magma
+            X = magma(self).GaloisGroup()
+            try:
+                n, d = X.TransitiveGroupIdentification(nvals=2)
+                d = int(d)
+                n = int(n)
+            except RuntimeError, msg:
+                raise RuntimeError, str(msg) + "\nUnable to lookup description of Galois group as a transitive group.\n%s"%X
+            return TransitiveGroup(d, n)
+
         G = self.__poly.polgalois()
         H = PariGroup(G, self.degree())
         if pari_group:

@@ -451,8 +451,13 @@ class TransitiveGroup(PermutationGroup_generic):
             id = 'Group([()])'
         else:
             id = 'TransitiveGroup(%s,%s)'%(d,n)
-        PermutationGroup_generic.__init__(self, id,
+        try:
+            PermutationGroup_generic.__init__(self, id,
                                           from_group=True, check=False)
+        except RuntimeError:
+            from sage.misc.misc import verbose
+            verbose("Warning: Computing with TransitiveGroups requires the optional database_gap package. Please install it.", level=0)
+
         self._d = d
         self._n = n
 

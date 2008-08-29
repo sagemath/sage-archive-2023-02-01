@@ -1666,6 +1666,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
                  * 'pari' -- (default)  use the PARI c library
                  * 'kash' -- use KASH computer algebra system (requires
                              the optional kash package be installed)
+                 * 'magma' -- use Magma (requires magma be installed)
         verbose -- integer (default 0); pari's debug variable is set to this;
                    e.g., set to 4 or 8 to see lots of output during factorization.
     OUTPUT:
@@ -1704,8 +1705,11 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: f.value()
         -20
 
-        sage: factor(500, algorithm='kash')     # requires optional kash package
-        2^2 * 5^3
+        sage: factor(-500, algorithm='kash')     # requires optional kash package
+        -1 * 2^2 * 5^3
+
+        sage: factor(-500, algorithm='magma')     # requires optional magma
+        -1 * 2^2 * 5^3
 
         sage: factor(0)
         Traceback (most recent call last):
@@ -1771,9 +1775,12 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     if algorithm == 'pari':
         return factorization.Factorization(__factor_using_pari(n,
                                    int_=int_, debug_level=verbose, proof=proof), unit)
-    elif algorithm == 'kash':
-        from sage.interfaces.all import kash
-        F = kash.eval('Factorization(%s)'%n)
+    elif algorithm in ['kash', 'magma']:
+        if algorithm == 'kash':
+            from sage.interfaces.all import kash as I
+        else:
+            from sage.interfaces.all import magma as I
+        F = I.eval('Factorization(%s)'%n)
         i = F.rfind(']') + 1
         F = F[:i]
         F = F.replace("<","(").replace(">",")")

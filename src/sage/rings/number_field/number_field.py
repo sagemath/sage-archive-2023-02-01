@@ -2379,10 +2379,16 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return self.galois_group(pari_group=True).group().order() == self.degree()
 
-    def galois_group(self, pari_group = True, use_kash=False):
+    def galois_group(self, pari_group = True, algorithm='pari'):
         r"""
         Return the Galois group of the Galois closure of this number
         field as an abstract group.
+
+        INPUT:
+            pari_group -- bool (default: False); if True instead return
+                          the Galois group as a PARI group.
+            algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except
+                          when the degree is >= 12 when 'kash' is tried)
 
         For more (important!) documentation, so the documentation
         for Galois groups of polynomials over $\QQ$, e.g., by
@@ -2408,6 +2414,14 @@ class NumberField_generic(number_field_base.NumberField):
             sage: NumberField(x^3-2, 'a').galois_group(pari_group=False)  # optional database_gap package
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
+            sage: x = polygen(QQ)
+            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(pari_group=False)
+            Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
+            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(algorithm='magma')   # optional -- requires magma
+            Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
+
+
+
         EXPLICIT GALOIS GROUP:
         We compute the Galois group as an explicit group of
         automorphisms of the Galois closure of a field.
@@ -2429,15 +2443,15 @@ class NumberField_generic(number_field_base.NumberField):
             1/36*b1^4 + 1/18*b1
         """
         try:
-            return self.__galois_group[pari_group, use_kash]
+            return self.__galois_group[pari_group, algorithm]
         except KeyError:
             pass
         except AttributeError:
             self.__galois_group = {}
 
-        G = self.polynomial().galois_group(pari_group = pari_group, use_kash = use_kash)
+        G = self.polynomial().galois_group(pari_group = pari_group, algorithm = algorithm)
         H = GaloisGroup(G, self)
-        self.__galois_group[pari_group, use_kash] = H
+        self.__galois_group[pari_group, algorithm] = H
         return H
 
     def _normalize_prime_list(self, v):
@@ -5016,11 +5030,17 @@ class NumberField_relative(NumberField_generic):
         return order.relative_order_from_ring_generators(gens, **kwds)
 
 
-    def galois_group(self, pari_group = True, use_kash=False):
+    def galois_group(self, pari_group = True, algorithm='pari'):
         r"""
         Return the Galois group of the Galois closure of this number
         field as an abstract group.  Note that even though this is an
         extension $L/K$, the group will be computed as if it were $L/\QQ$.
+
+        INPUT:
+            pari_group -- bool (default: False); if True instead return
+                          the Galois group as a PARI group.
+            algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except
+                          when the degree is >= 12 when 'kash' is tried)
 
         For more (important!) documentation, so the documentation
         for Galois groups of polynomials over $\QQ$, e.g., by
@@ -5036,16 +5056,16 @@ class NumberField_relative(NumberField_generic):
             Galois group PARI group [240, -1, 22, "S(5)[x]2"] of degree 10 of the Number Field in b with defining polynomial t^5 + (-1)*t + a over its base field
         """
         try:
-            return self.__galois_group[pari_group, use_kash]
+            return self.__galois_group[pari_group, algorithm]
         except KeyError:
             pass
         except AttributeError:
             self.__galois_group = {}
 
         G = self.absolute_polynomial().galois_group(pari_group = pari_group,
-                                                    use_kash = use_kash)
+                                                    algorithm = algorithm)
         H = GaloisGroup(G, self)
-        self.__galois_group[pari_group, use_kash] = H
+        self.__galois_group[pari_group, algorithm] = H
         return H
 
 

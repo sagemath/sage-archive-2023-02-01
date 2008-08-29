@@ -58,6 +58,7 @@ EXAMPLES:
 
 from sage.rings.all import is_FiniteField, Integer, FiniteField
 from matrix_group import MatrixGroup_gap, MatrixGroup_gap_finite_field
+from matrix_group_element import MatrixGroupElement
 
 def SL(n, R, var='a'):
     r"""
@@ -136,6 +137,51 @@ class SpecialLinearGroup_generic(MatrixGroup_gap):
             Special Linear Group of degree 6 over Finite Field of size 5
         """
         return "Special Linear Group of degree %s over %s"%(self.degree(), self.base_ring())
+
+    def __call__(self, x):
+        """
+        Construct a new element in this group, i.e. try to coerce x
+        into self if at all possible.
+
+        EXAMPLES:
+            sage: G = SL(3, ZZ)
+            sage: x = [[1,0,1], [0,1,0], [0,0,1]]
+            sage: G(x)
+            [1 0 1]
+            [0 1 0]
+            [0 0 1]
+        """
+        if isinstance(x, MatrixGroupElement) and x.parent() is self:
+            return x
+        try:
+            m = self.matrix_space()(x)
+        except TypeError:
+            raise TypeError, "Cannot coerce %s to a %s-by-%s matrix over %s"%(x,self.degree(),self.degree(),self.base_ring())
+        if m.determinant() == self.base_ring()(1):
+            return MatrixGroupElement(m, self)
+        else:
+            raise TypeError, "%s does not have determinant 1"%(x)
+
+    def __contains__(self, x):
+        """
+        Return True if x is an element of self, False otherwise.
+
+        EXAMPLES:
+            sage: G = SL(2, GF(101))
+            sage: x = [[1,1], [0,1]]
+            sage: x in G
+            True
+
+            sage: G = SL(3, ZZ)
+            sage: x = [[1,0,1], [0,-1,0], [0,0,1]]
+            sage: x in G
+            False
+        """
+        try:
+            x = self(x)
+        except TypeError:
+            return False
+        return True
 
 
 

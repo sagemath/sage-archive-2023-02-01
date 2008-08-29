@@ -12,7 +12,7 @@ AUTHORS:
                    (returns isomorphic PermutationGroup).
 
 This class is designed for computing with matrix groups defined by a
-relatively (small) finite set of generating matrices.
+(relatively small) finite set of generating matrices.
 
 EXAMPLES:
     sage: F = GF(3)

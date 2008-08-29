@@ -1766,6 +1766,63 @@ cdef class TimeSeries:
             s.ymax(max(counts))
         return s
 
+    def plot_candlestick(self, int bins=30):
+        """
+        Return a candlestick plot of this time series with the given number
+        of bins.
+
+        A candlestick plot is a style of bar-chart used to view open, high,
+        low, and close stock data. At each bin, the line represents the
+        high / low range. The bar represents the open / close range. The
+        interval is colored blue if the open for that bin is less than the
+        close. If the close is less than the open, then that bin is colored
+        red instead.
+
+        INPUT:
+            bins -- positive integer (default: 30), the number of bins
+                    or candles
+
+        OUTPUT:
+            a candlestick plot
+
+        EXAMPLES:
+        Here we look at the candlestick plot for brownian motion:
+            sage: set_random_seed(0)
+            sage: v = finance.TimeSeries(1000)
+            sage: v.plot_candlestick(bins=20)
+        """
+        from sage.plot.plot import line, polygon, Graphics
+
+        cdef TimeSeries t = new_time_series(self._length)
+        cdef TimeSeries s
+        cdef int i, j, n
+        bin_size = int(t._length/bins)
+        rng      = t._length - bin_size
+
+        memcpy(t._values, self._values, sizeof(double)*self._length)
+        p = Graphics()
+
+        for i from 0 <= i < bins:
+            n = i*bin_size
+            s = new_time_series(bin_size)
+            for j from 0 <= j < bin_size:
+                s._values[j] = t._values[n + j]
+            low   = s.min()
+            high  = s.max()
+            open  = s._values[0]
+            close = s._values[bin_size-1]
+            left  = n + bin_size/3
+            mid   = n + bin_size/2
+            right = n + 2*bin_size/3
+
+            if open < close: rgbcolor='blue'
+            else: rgbcolor = 'red'
+
+            p += line([(mid, low), (mid, high)], rgbcolor=rgbcolor)
+            p += polygon([(left, open), (right, open), (right, close), (left, close)], rgbcolor=rgbcolor)
+
+        return p
+
     def numpy(self, copy=True):
         """
         Return version of this time series in numpy.

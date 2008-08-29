@@ -242,8 +242,8 @@ class Notebook(SageObject):
             sage: nb.user('admin')._User__password
             'aajfMKNH1hTm2'
         """
-        if '/' in username:
-            raise ValueError
+        if not isinstance(username, str) or '/' in username:
+            raise KeyError, "no user '%s'"%username
         try:
             return self.users()[username]
         except KeyError:

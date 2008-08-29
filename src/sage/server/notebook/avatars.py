@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 """
 #####################################################################
 # Copyright (C) 2007 Alex Clemesha <clemesha@gmail.com>
@@ -19,6 +19,39 @@ from twisted.web2 import iweb
 from twisted.python import log
 
 def user_type(avatarId):
+    """
+    Return the type of user specified by the given avatarId, which is
+    either a string or an instance of the FailedLogin class.
+
+    INPUT:
+        avatarId -- string or FailedLogin instance
+    OUTPUT:
+        string -- 'invalid_user', 'admin', 'user'
+
+    EXAMPLES:
+        sage: import sage.server.notebook.avatars as avatars
+        sage: avatars.user_type(avatars.FailedLogin('fake'))
+        'invalid_user'
+        sage: avatars.user_type('_sage_')
+        'invalid_user'
+        sage: avatars.user_type('pub')
+        'invalid_user'
+        sage: avatars.user_type('guest')
+        'invalid_user'
+        sage: avatars.user_type('admin')
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'NoneType' object has no attribute 'user_is_admin'
+        sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+        sage: nb.create_default_users('password')
+        Creating default users.
+        sage: sage.server.notebook.twist.notebook = nb
+        sage: avatars.user_type('admin')
+        'admin'
+        sage: nb.add_user('bob', 'an**d', 'bob@gmail.com', force=True)
+        sage: avatars.user_type('bob')
+        'user'
+    """
     if isinstance(avatarId, FailedLogin):
         if avatarId.failure_type == 'user':
             return 'invalid_user'
@@ -26,8 +59,19 @@ def user_type(avatarId):
             return 'invalid_password', avatarId.username
         else:
             raise ValueError, 'invalid failure type'
-    if twist.notebook.user_is_admin(avatarId):
+
+    # It is critically important that it be impossible to login as the
+    # pub, _sage_, or guest users.  This _sage_ user is a fake user that is used
+    # internally by the notebook for the doc browser and other tasks.
+    if avatarId in ['_sage_', 'guest', 'pub']:
+        return 'invalid_user'
+
+    # This only works once the notebook object in the twist
+    # module has been initialized, which happens only once
+    # the notebook starts running.
+    if isinstance(avatarId, str) and twist.notebook.user_is_admin(avatarId):
         return 'admin'
+
     return 'user'
 
 class FailedLogin:
@@ -110,7 +154,7 @@ class LoginSystem(object):
         """
         Return a given Avatar depending on the avatarID.
 
-        This approximatly boils down to, for a protected web site,
+        This approximately boils down to, for a protected web site,
         that given a username (avatarId, which could just be '()' for
         an anonymous user) returned from a login page,
         (which first went through a password check in requestAvatarId)
@@ -131,19 +175,21 @@ class LoginSystem(object):
                 rsrc = twist.AnonymousToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 
-            elif user_type(avatarId) == 'invalid_user':
+            T = user_type(avatarId)
+
+            if T == 'invalid_user':
                 rsrc = twist.FailedToplevel(avatarId, problem='username')
                 return (iweb.IResource, rsrc, self.logout)
 
-            elif user_type(avatarId)[0] == 'invalid_password':
+            elif T[0] == 'invalid_password':
                 rsrc = twist.FailedToplevel(avatarId, problem='password', username=user_type(avatarId)[1])
                 return (iweb.IResource, rsrc, self.logout)
 
-            elif user_type(avatarId) == 'user':
+            elif T == 'user':
                 rsrc = twist.UserToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 
-            elif user_type(avatarId) == 'admin':
+            elif T == 'admin':
                 rsrc = twist.AdminToplevel(self.cookie, avatarId)
                 return (iweb.IResource, rsrc, self.logout)
 

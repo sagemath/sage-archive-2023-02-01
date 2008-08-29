@@ -265,7 +265,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A = matrix(GF(2),2,2)
             sage: A.set_immutable()
             sage: hex(hash(A))
-            '0xdeadbeed'
+            '0xdeadbeed' # 64-bit
+            '-0x21524113' # 32-bit
 
         TEST:
             sage: A = matrix(GF(2),2,0)

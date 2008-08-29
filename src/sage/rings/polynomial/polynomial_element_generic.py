@@ -32,6 +32,8 @@ from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
 
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 from sage.libs.pari.all import pari, pari_gen
 from sage.structure.factorization import Factorization
 
@@ -673,13 +675,8 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: (x^2 - 1).is_irreducible()
             False
         """
-        try:
-            return self.__poly.polisirreducible()
-        except NotImplementedError:
-            F = self.__poly.factor()
-            if len(F) > 1 or F[0][1] > 1:
-                return False
-            return True
+        S = PolynomialRing(ZZ, self.variable_name())
+        return S(self.denominator()*self).is_irreducible()
 
     def galois_group(self, pari_group=False, algorithm='pari'):
         r"""

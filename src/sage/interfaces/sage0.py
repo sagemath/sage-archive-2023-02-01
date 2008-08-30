@@ -324,19 +324,9 @@ class Sage(Expect):
         """
         EXAMPLES:
             sage: sage0._contains('2', 'QQ')
-            'True'
-        """
-        return self.eval('%s in %s'%(v1,v2))
-
-    def _is_true_string(self, t):
-        """
-        EXAMPLES:
-            sage: sage0._is_true_string('True')
             True
-            sage: sage0._is_true_string(True)
-            False
         """
-        return t == "True"
+        return self.eval('%s in %s'%(v1,v2)) == "True"
 
     def console(self):
         """

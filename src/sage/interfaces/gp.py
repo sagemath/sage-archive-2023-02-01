@@ -132,6 +132,11 @@ class Gp(Expect):
                  server=None,
                  server_tmpdir=None,
                  init_list_length=1024):
+        """
+        EXAMPLES:
+            sage: gp == loads(dumps(gp))
+            True
+        """
         Expect.__init__(self,
                         name = 'pari',
                         prompt = '\\? ',
@@ -149,23 +154,81 @@ class Gp(Expect):
         self.__init_list_length = init_list_length
 
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: gp
+            GP/PARI interpreter
+        """
         return 'GP/PARI interpreter'
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: gp.__reduce__()
+            (<function reduce_load_GP at 0x...>, ())
+            sage: f, args = _
+            sage: f(*args)
+            GP/PARI interpreter
+        """
         return reduce_load_GP, tuple([])
 
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return GpFunction(self, attrname)
+    def _function_class(self):
+        """
+        Returns the GpFunction class.
+
+        EXAMPLES:
+            sage: gp._function_class()
+            <class 'sage.interfaces.gp.GpFunction'>
+            sage: type(gp.gcd)
+            <class 'sage.interfaces.gp.GpFunction'>
+        """
+        return GpFunction
 
     def _quit_string(self):
-        return "\\q"
+        """
+        Returns the string used to quit the GP interpreter.
+
+        EXAMPLES:
+            sage: gp._quit_string()
+            '\\q'
+
+            sage: g = Gp()
+            sage: a = g(2)
+            sage: g.is_running()
+            True
+            sage: g.quit()
+            sage: g.is_running()
+            False
+        """
+        return r"\q"
 
     def _read_in_file_command(self, filename):
+        """
+        Returns the string used to read filename into GP.
+
+        EXAMPLES:
+            sage: gp._read_in_file_command('test')
+            'read("test")'
+
+            sage: filename = tmp_filename()
+            sage: f = open(filename, 'w')
+            sage: f.write('x = 22;\n')
+            sage: f.close()
+            sage: gp.read(filename)
+            sage: gp.get('x').strip()
+            '22'
+        """
         return 'read("%s")'%filename
 
     def trait_names(self):
+        """
+        EXAMPLES:
+            sage: c = gp.trait_names()
+            sage: len(c) > 100
+            True
+            sage: 'gcd' in c
+            True
+        """
         try:
             b = self.__builtin
         except AttributeError:
@@ -176,6 +239,11 @@ class Gp(Expect):
     def get_precision(self):
         """
         Return the current PARI precision for real number computations.
+
+        EXAMPLES:
+            sage: gp.get_precision()
+            38
+
         """
         a = self.eval('\\p')
         i = a.find('=')
@@ -188,6 +256,15 @@ class Gp(Expect):
         """
         Sets the current PARI precision (in decimal digits) for real number computations,
         and returns the old one.
+
+        EXAMPLES:
+            sage: old_prec = gp.set_precision(53)
+            sage: gp.get_precision()
+            57
+            sage: gp.set_precision(old_prec)
+            57
+            sage: gp.get_precision()
+            38
         """
         old = self.get_precision()
         self.eval('\\p %s'%int(prec))
@@ -196,6 +273,11 @@ class Gp(Expect):
     set_real_precision = set_precision
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+        """
+        EXAMPLES:
+            sage: gp._eval_line('2+2')
+            '4'
+        """
         line = line.strip()
         if len(line) == 0:
             return ''
@@ -239,15 +321,14 @@ class Gp(Expect):
             return m - t
         return m
 
-    def read(self, filename):
-        s = self.eval('read("%s")'%filename)
-        if 'error' in s:
-            raise IOError, s
-
-
     def set(self, var, value):
         """
         Set the variable var to the given value.
+
+        EXAMPLES:
+            sage: gp.set('x', '2')
+            sage: gp.get('x')
+            '2'
         """
         cmd = '%s=%s;'%(var,value)
         out = self.eval(cmd)
@@ -258,10 +339,24 @@ class Gp(Expect):
     def get(self, var):
         """
         Get the value of the variable var.
+
+        EXAMPLES:
+            sage: gp.set('x', '2')
+            sage: gp.get('x')
+            '2'
         """
         return self.eval('print(%s)'%var)
 
     def kill(self, var):
+        """
+        EXAMPLES:
+            sage: gp.set('xx', '22')
+            sage: gp.get('xx')
+            '22'
+            sage: gp.kill('xx')
+            sage: gp.get('xx')
+            'xx'
+        """
         self.eval('kill(%s)'%var)
 
     #def xclear(self, var):
@@ -278,6 +373,16 @@ class Gp(Expect):
         # cases, also.
 
     def _next_var_name(self):
+        """
+        EXAMPLES:
+            sage: g = Gp()
+            sage: g._next_var_name()
+            'sage[1]'
+            sage: g(2)^2
+            4
+            sage: g._next_var_name()
+            'sage[5]'
+        """
         self.__seq += 1
         if self.__seq >= self.__var_store_len:
             if self.__var_store_len == 0:
@@ -305,27 +410,116 @@ class Gp(Expect):
         Expect.quit(self, verbose=verbose, timeout=timeout)
 
     def console(self):
+        """
+        Spawn a new GP command-line session.
+
+        EXAMPLES:
+            sage: gp.console() #not tested
+            GP/PARI CALCULATOR Version 2.3.3 (released)
+            amd64 running linux (x86-64/GMP-4.2.1 kernel) 64-bit version
+            compiled: Feb 22 2008, gcc-4.1.3 20070929 (prerelease) (Ubuntu 4.1.2-16ubuntu2)
+            (readline v5.2 enabled, extended help available)
+            ...
+
+        """
         gp_console()
 
     def version(self):
+        """
+        Returns the version of GP being used.
+
+        EXAMPLES:
+            sage: gp.version()
+            ((2, 3, 3), 'GP/PARI CALCULATOR Version 2.3.3 (released)')
+
+        """
         return gp_version()
 
     def _object_class(self):
+        """
+        Returns the GpElement class.
+
+        EXAMPLES:
+            sage: gp._object_class()
+            <class 'sage.interfaces.gp.GpElement'>
+            sage: type(gp(2))
+            <class 'sage.interfaces.gp.GpElement'>
+        """
         return GpElement
 
+    def _function_element_class(self):
+        """
+        Returns the GpFunctionElement class.
+
+        EXAMPLES:
+            sage: gp._function_element_class()
+            <class 'sage.interfaces.gp.GpFunctionElement'>
+
+            sage: type(gp(2).gcd)
+            <class 'sage.interfaces.gp.GpFunctionElement'>
+
+        """
+        return GpFunctionElement
+
     def _true_symbol(self):
+        """
+        Returns the symbol used for truth in GP.
+
+        EXAMPLES:
+            sage: gp._true_symbol()
+            '1'
+
+            sage: gp(2) == gp(2)
+            True
+        """
         return '1'
 
     def _false_symbol(self):
+        """
+        Returns the symbol used for falsity in GP.
+
+        EXAMPLES:
+            sage: gp._false_symbol()
+            '0'
+
+            sage: gp(2) == gp(3)
+            False
+        """
         return '0'
 
     def _equality_symbol(self):
+        """
+        Returns the symbol used for equality in GP.
+
+        EXAMPLES:
+            sage: gp._equality_symbol()
+            '=='
+
+            sage: gp(2) == gp(2)
+            True
+        """
         return '=='
 
     def help(self, command):
+        r"""
+        Returns GP's help for \code{command}.
+
+        EXAMPLES:
+            sage: gp.help('gcd')
+            'gcd(x,{y}): greatest common divisor of x and y.'
+
+        """
         return self.eval('?%s'%command).strip()
 
     def new_with_bits_prec(self, s, precision = 0):
+        r"""
+        Creates a GP object from s with \code{precision} bits
+        of precision.
+
+        EXAMPLES:
+            sage: gp.new_with_bits_prec(pi, 100)
+            3.1415926535897932384626433832795028842
+        """
         old_prec = self.get_real_precision()
         prec = int(precision/3.4) - 1
         if not precision:
@@ -366,24 +560,33 @@ class GpElement(ExpectElement):
     def __long__(self):
         """
         Return Python long.
+
+        EXAMPLES:
+            sage: long(gp(10))
+            10L
         """
         return long(str(self))
 
     def __float__(self):
         """
         Return Python float.
+
+        EXAMPLES:
+            sage: float(gp(10))
+            10.0
         """
         return float(pari(str(self)))
 
     def __bool__(self):
+        """
+        EXAMPLES:
+            sage: bool(gp(2))
+            True
+            sage: bool(gp(0))
+            False
+        """
         P = self._check_valid()
         return P.eval('%s == 0'%(self.name())) == '1'
-
-    def __getattr__(self, attrname):
-        self._check_valid()
-        if attrname[:1] == "_":
-            raise AttributeError
-        return GpFunctionElement(self, attrname)
 
     def _complex_mpfr_field_(self, CC):
         """
@@ -417,11 +620,30 @@ class GpElement(ExpectElement):
         return CDF(cc_val)
 
     def __len__(self):
+        """
+        EXAMPLES:
+            sage: len(gp([1,2,3]))
+            3
+        """
         return int(self.length())
 
     def __del__(self):
-        return  # clearing object is pointless, since it wastes time, and PARI/GP
-                # doesn't really free used memory anyways!
+        """
+        Note that clearing object is pointless since it wastes time and PARI/GP
+        doesn't really free used memory.
+
+        EXAMPLES:
+            sage: a = gp(2)
+            sage: a.__del__()
+            sage: a
+            2
+            sage: del a
+            sage: a
+            Traceback (most recent call last):
+            ...
+            NameError: name 'a' is not defined
+        """
+        return
 
     # This is tempting -- but the (la)tex output is very very
     # out of date, e.g., for matrices it uses \pmatrix (which
@@ -432,17 +654,34 @@ class GpElement(ExpectElement):
     #    return P.eval('printtex(%s)'%self.name())
 
     def trait_names(self):
+        """
+        EXAMPLES:
+            sage: 'gcd' in gp(2).trait_names()
+            True
+        """
         return self.parent().trait_names()
 
 
 class GpFunctionElement(FunctionElement):
     def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: gp(2).gcd._sage_doc_()
+            'gcd(x,{y}): greatest common divisor of x and y.'
+
+        """
         M = self._obj.parent()
         return M.help(self._name)
 
 
 class GpFunction(ExpectFunction):
     def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: gp.gcd._sage_doc_()
+            'gcd(x,{y}): greatest common divisor of x and y.'
+
+        """
         M = self._parent
         return M.help(self._name)
 
@@ -450,16 +689,45 @@ class GpFunction(ExpectFunction):
 
 
 def is_GpElement(x):
+    """
+    Returns True of x is a GpElement.
+
+    EXAMPLES:
+        sage: is_GpElement(gp(2))
+        True
+        sage: is_GpElement(2)
+        False
+    """
     return isinstance(x, GpElement)
 
 # An instance
 gp = Gp()
 
 def reduce_load_GP():
+    """
+    Returns the GP interface object defined in sage.interfaces.gp.
+
+    EXAMPLES:
+        sage: from sage.interfaces.gp import reduce_load_GP
+        sage: reduce_load_GP()
+        GP/PARI interpreter
+    """
     return gp
 
 import os
 def gp_console():
+    """
+    Spawn a new GP command-line session.
+
+    EXAMPLES:
+        sage: gp.console() #not tested
+        GP/PARI CALCULATOR Version 2.3.3 (released)
+        amd64 running linux (x86-64/GMP-4.2.1 kernel) 64-bit version
+        compiled: Feb 22 2008, gcc-4.1.3 20070929 (prerelease) (Ubuntu 4.1.2-16ubuntu2)
+        (readline v5.2 enabled, extended help available)
+        ...
+
+    """
     os.system('gp')
 
 

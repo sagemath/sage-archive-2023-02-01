@@ -190,7 +190,11 @@ class Gap(Expect):
                  server=None,
                  server_tmpdir=None,
                  logfile = None):
-
+        """
+        EXAMPLES:
+            sage: gap == loads(dumps(gap))
+            True
+        """
         self.__use_workspace_cache = use_workspace_cache
         cmd, self.__make_workspace = gap_command(use_workspace_cache, server is None)
         cmd += " -b -p -T"
@@ -217,27 +221,85 @@ class Gap(Expect):
         self.__seq = 0
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: gap.__reduce__()
+            (<function reduce_load_GAP at 0x...>, ())
+            sage: f, args = _
+            sage: f(*args)
+            Gap
+        """
         return reduce_load_GAP, tuple([])
 
     def _quit_string(self):
+        """
+        Returns the string used to quit GAP.
+
+        EXAMPLES:
+            sage: gap._quit_string()
+            'quit'
+
+            sage: g = Gap()
+            sage: a = g(2); g.is_running()
+            True
+            sage: g.quit()
+            sage: g.is_running()
+            False
+
+        """
         return 'quit'
 
     def _next_var_name(self):
+        """
+        Returns the next unused variable name.
+
+        EXAMPLES:
+            sage: g = Gap()
+            sage: g._next_var_name()
+            '$sage1'
+            sage: g(2)^2
+            4
+            sage: g._next_var_name()
+            '$sage5'
+
+        """
         if len(self._available_vars) != 0:
             v = self._available_vars[0]
             del self._available_vars[0]
             return v
-        #if self.__seq == 0:
-        #    self.eval('sage := [ ];')
         self.__seq += 1
         return '$sage%s'%self.__seq
 
     def _read_in_file_command(self, filename):
+        """
+        Returns the command use to read in a file in GAP.
+
+        EXAMPLES:
+            sage: gap._read_in_file_command('test')
+            'Read("test");'
+
+            sage: filename = tmp_filename()
+            sage: f = open(filename, 'w')
+            sage: f.write('xx := 22;\n')
+            sage: f.close()
+            sage: gap.read(filename)
+            sage: gap.get('xx').strip()
+            '22'
+
+        """
         return 'Read("%s");'%filename
 
-
-
     def _start(self):
+        """
+        EXAMPLES:
+            sage: g = Gap()
+            sage: g.is_running()
+            False
+            sage: g._start()
+            sage: g.is_running()
+            True
+            sage: g.quit()
+        """
         if self.__use_workspace_cache and not os.path.exists(WORKSPACE):
             gap_reset_workspace()
         global first_try
@@ -260,12 +322,28 @@ class Gap(Expect):
             self.eval('SaveWorkspace("%s");'%WORKSPACE)
 
     def _continuation_prompt(self):
+        """
+        Returns the continuation prompt in GAP.
+
+        EXAMPLES:
+            sage: gap._continuation_prompt()
+            '> '
+        """
         return '> '
 
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return GapFunction(self, attrname)
+    def _function_class(self):
+        """
+        Returns the GapFunction class.
+
+        EXAMPLES:
+            sage: gap._function_class()
+            <class 'sage.interfaces.gap.GapFunction'>
+
+            sage: type(gap.Order)
+            <class 'sage.interfaces.gap.GapFunction'>
+        """
+        return GapFunction
+
 
     def load_package(self, pkg, verbose=False):
         """
@@ -280,9 +358,22 @@ class Gap(Expect):
             raise RuntimeError, 'Error loading Gap package %s'%pkg
 
     def cputime(self, t=None):
-        if t:
-            s = self.cputime()
-            return s - t
+        r"""
+        Returns the amount of CPU time that the GAP session has used.
+        If \var{t} is not None, then it returns the difference between
+        the current CPU time and \var{t}.
+
+        EXAMPLES:
+            sage: t = gap.cputime()
+            sage: t  #random
+            0.13600000000000001
+            sage: gap.Order(gap.SymmetricGroup(5))
+            120
+            sage: gap.cputime(t)  #random
+            0.059999999999999998
+        """
+        if t is not None:
+            return self.cputime() - t
         else:
             self.eval('_r_ := Runtimes();')
             r = sum(eval(self.eval('[_r_.user_time, _r_.system_time, _r_.user_time_children, _r_.system_time_children]')))
@@ -301,6 +392,10 @@ class Gap(Expect):
             newlines -- bool (default: True); if False, remove all
                       backslash-newlines inserted by the GAP output formatter.
             strip -- ignored
+
+        EXAMPLES:
+            sage: gap.eval('2+2')
+            '4'
         """
         # newlines cause hang (i.e., error but no gap> prompt!)
         x = str(x).rstrip().replace('\n','')
@@ -317,6 +412,11 @@ class Gap(Expect):
     def help(self, s, pager=True):
         """
         Print help on a given topic.
+
+        EXAMPLES:
+            sage: print gap.help('SymmetricGroup', pager=False)
+            Basic Groups _____________________________________________ Group Libraries
+            ...
         """
         tmp_to_use = self._local_tmpfile()
         if self.is_remote():
@@ -341,17 +441,23 @@ class Gap(Expect):
     def set(self, var, value):
         """
         Set the variable var to the given value.
+
+        EXAMPLES:
+            sage: gap.set('x', '2')
+            sage: gap.get('x')
+            '2'
         """
         cmd = ('%s:=%s;;'%(var,value)).replace('\n','')
-        #out = self.eval(cmd)
         out = self._eval_line(cmd, allow_use_file=True)
-        #if out.lower().find('error') != -1:
-        #    raise TypeError, "Error executing code in GAP\nCODE:\n\t%s\nGAP ERROR:\n\t%s"%(cmd, out)
-
 
     def get(self, var, use_file=False):
         """
         Get the string representation of the variable var.
+
+        EXAMPLES:
+            sage: gap.set('x', '2')
+            sage: gap.get('x')
+            '2'
         """
         if use_file:
             tmp = self._local_tmpfile()
@@ -365,15 +471,21 @@ class Gap(Expect):
         else:
             return self.eval('Print(%s);'%var, newlines=False)
 
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return GapFunction(self, attrname)
-
     def _pre_interact(self):
+        """
+        EXAMPLES:
+            sage: gap._pre_interact()
+            sage: gap._post_interact()
+
+        """
         self._eval_line("$SAGE.StartInteract();")
 
     def _post_interact(self):
+        """
+        EXAMPLES:
+            sage: gap._pre_interact()
+            sage: gap._post_interact()
+        """
         self._eval_line("$SAGE.StopInteract();")
 
     def _execute_line(self, line, wait_for_prompt=True, expect_eof=False):
@@ -466,6 +578,11 @@ class Gap(Expect):
         return Expect._eval_line_using_file(self, line)
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+        """
+        EXAMPLES:
+            sage: gap._eval_line('2+2;')
+            '4'
+        """
         #if line.find('\n') != -1:
         #    raise ValueError, "line must not contain any newlines"
         try:
@@ -512,42 +629,134 @@ class Gap(Expect):
         except KeyboardInterrupt:
             self._keyboard_interrupt()
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
-#        i = out.find("\n")
-#        j = out.rfind("\r")
-#        return out[i+1:j].replace('\r\n','\n')
 
-    #def clear(self, var):
-        #"""
-        #Clear the variable named var.
-        #"""
-        #self.eval('Unbind(%s)'%var)
-        #self._available_vars.append(var)
+    def clear(self, var):
+        """
+        Clear the variable named var.
+
+        EXAMPLES:
+            sage: gap.set('x', '2')
+            sage: gap.get('x')
+            '2'
+            sage: gap.clear('x')
+            sage: gap.get('x')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Gap produced error output
+            Variable: 'x' must have a value
+            ...
+
+        """
+        self.eval('Unbind(%s)'%var)
+        self._available_vars.append(var)
 
     def _contains(self, v1, v2):
-        return self.eval('%s in %s'%(v1,v2))
+        """
+        EXAMPLES:
+            sage: Integers = gap('Integers')
+            sage: two = gap(2)
+            sage: gap._contains(two.name(), Integers.name())
+            True
 
-    def _is_true_string(self, t):
-        return t == "true"
+            sage: 2 in gap('Integers')
+            True
+
+        """
+        return self.eval('%s in %s'%(v1,v2)) == "true"
 
     def _true_symbol(self):
+        """
+        Returns the symbol for truth in GAP.
+
+        EXAMPLES:
+            sage: gap._true_symbol()
+            'true'
+            sage: gap(2) == gap(2)
+            True
+        """
         return "true"
 
     def _false_symbol(self):
+        """
+        Returns the symbol for falsity in GAP.
+
+        EXAMPLES:
+            sage: gap._false_symbol()
+            'false'
+            sage: gap(2) == gap(3)
+            False
+        """
         return "false"
 
     def _equality_symbol(self):
+        """
+        Returns the symbol for equality in GAP.
+
+        EXAMPLES:
+            sage: gap._equality_symbol()
+            '='
+            sage: gap(2) == gap(2)
+            True
+        """
         return "="
 
     def console(self):
+        """
+        Spawn a new GAP command-line session.
+
+        EXAMPLES:
+            sage: gap.console() #not tested
+            GAP4, Version: 4.4.10 of 02-Oct-2007, x86_64-unknown-linux-gnu-gcc
+            gap>
+
+        """
         gap_console()
 
     def version(self):
+        """
+        Returns the version of GAP being used.
+
+        EXAMPLES:
+            sage: gap.version()
+            '4.4.10'
+        """
         return gap_version()
 
     def _object_class(self):
+        """
+        Returns the GapElement class.
+
+        EXAMPLES:
+            sage: gap._object_class()
+            <class 'sage.interfaces.gap.GapElement'>
+            sage: type(gap(2))
+            <class 'sage.interfaces.gap.GapElement'>
+
+        """
         return GapElement
 
+    def _function_element_class(self):
+        """
+        Returns the GapFunctionElement class.
+
+        EXAMPLES:
+            sage: gap._function_element_class()
+            <class 'sage.interfaces.gap.GapFunctionElement'>
+            sage: type(gap.SymmetricGroup(4).Order)
+            <class 'sage.interfaces.gap.GapFunctionElement'>
+
+        """
+        return GapFunctionElement
+
     def trait_names(self):
+        """
+        EXAMPLES:
+            sage: c = gap.trait_names()
+            sage: len(c) > 100
+            True
+            sage: 'Order' in c
+            True
+        """
         try:
             return self.__trait_names
         except AttributeError:
@@ -605,12 +814,13 @@ if not os.path.exists(WORKSPACE) or os.path.getmtime(WORKSPACE) < os.path.getmti
     gap_reset_workspace(verbose=False)
 
 class GapElement(ExpectElement):
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return GapFunctionElement(self, attrname)
-
     def __getitem__(self, n):
+        """
+        EXAMPLES:
+            sage: a = gap([1,2,3])
+            sage: a[1]
+            1
+        """
         self._check_valid()
         if not isinstance(n, tuple):
             return self.parent().new('%s[%s]'%(self._name, n))
@@ -618,9 +828,24 @@ class GapElement(ExpectElement):
             return self.parent().new('%s%s'%(self._name, ''.join(['[%s]'%x for x in n])))
 
     def __reduce__(self):
+        """
+        Note that GAP elements cannot be pickled.
+
+        EXAMPLES:
+            sage: gap(2).__reduce__()
+            (<function reduce_load at 0x...>, ())
+            sage: f, args = _
+            sage: f(*args)
+            (invalid object -- defined in terms of closed session)
+        """
         return reduce_load, ()  # default is an invalid object
 
     def str(self, use_file=False):
+        """
+        EXAMPLES:
+            sage: print gap(2)
+            2
+        """
         if use_file:
             P = self._check_valid()
             return P.get(self.name(), use_file=True)
@@ -628,13 +853,28 @@ class GapElement(ExpectElement):
             return self.__repr__()
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: gap(2)
+            2
+        """
         s = ExpectElement.__repr__(self)
         if s.find('must have a value') != -1:
             raise RuntimeError, "An error occured creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._createu, s)
         return s
 
-    def __nonzero__(self):
-        return self.bool()
+    def bool(self):
+        """
+        EXAMPLES:
+            sage: bool(gap(2))
+            True
+            sage: gap(0).bool()
+            False
+            sage: gap('false').bool()
+            False
+        """
+        P = self._check_valid()
+        return self != P(0) and repr(self) != 'false'
 
     def __len__(self):
         """
@@ -664,8 +904,13 @@ class GapElement(ExpectElement):
             return int(self.Length())
 
     def _latex_(self):
-        self._check_valid()
-        P = self.parent()
+        r"""
+        EXAMPLES:
+            sage: s = gap("[[1,2], [3/4, 5/6]]")
+            sage: latex(s)
+            \left(\begin{array}{rr} 1&2\\ 3/4&\frac{5}{6}\\ \end{array}\right)
+        """
+        P = self._check_valid()
         try:
             s = P.eval('LaTeXObj(%s)'%self.name())
             s = s.replace('\\\\','\\').replace('"','')
@@ -679,6 +924,7 @@ class GapElement(ExpectElement):
         Return matrix over the (\sage) ring R determined by self, where self
         should be a Gap matrix.
 
+        EXAMPLES:
             sage: s = gap("(Z(7)^0)*[[1,2,3],[4,5,6]]"); s
             [ [ Z(7)^0, Z(7)^2, Z(7) ], [ Z(7)^4, Z(7)^5, Z(7)^3 ] ]
             sage: s._matrix_(GF(7))
@@ -709,6 +955,12 @@ class GapElement(ExpectElement):
         return M(entries)
 
     def trait_names(self):
+        """
+        EXAMPLES:
+            sage: s5 = gap.SymmetricGroup(5)
+            sage: 'Centralizer' in s5.trait_names()
+            True
+        """
         if '__trait_names' in self.__dict__:
             return self.__trait_names
         P = self.parent()
@@ -723,17 +975,38 @@ class GapElement(ExpectElement):
 
 class GapFunctionElement(FunctionElement):
     def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: print gap(4).SymmetricGroup._sage_doc_()
+            Basic Groups _____________________________________________ Group Libraries
+            ...
+        """
         M = self._obj.parent()
         return M.help(self._name, pager=False)
 
 
 class GapFunction(ExpectFunction):
     def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: print gap.SymmetricGroup._sage_doc_()
+            Basic Groups _____________________________________________ Group Libraries
+            ...
+        """
         M = self._parent
         return M.help(self._name, pager=False)
 
 
 def is_GapElement(x):
+    """
+    Returns True if x is a GapElement.
+
+    EXAMPLES:
+        sage: is_GapElement(gap(2))
+        True
+        sage: is_GapElement(2)
+        False
+    """
     return isinstance(x, GapElement)
 
 def gfq_gap_to_sage(x, F):
@@ -791,17 +1064,53 @@ def gfq_gap_to_sage(x, F):
 gap = Gap()
 
 def reduce_load_GAP():
+    """
+    Returns the GAP interface object definedin sage.interfaces.gap.
+
+    EXAMPLES:
+        sage: from sage.interfaces.gap import reduce_load_GAP
+        sage: reduce_load_GAP()
+        Gap
+    """
     return gap
 
 def reduce_load():
+    """
+    Returns an invalid GAP element.  Note that this is the object
+    returned when a GAP element is unpickled.
+
+    EXAMPLES:
+        sage: from sage.interfaces.gap import reduce_load
+        sage: reduce_load()
+        (invalid object -- defined in terms of closed session)
+        sage: loads(dumps(gap(2)))
+        (invalid object -- defined in terms of closed session)
+
+    """
     return GapElement(None, None)
 
 import os
 def gap_console(use_workspace_cache=True):
+    """
+    Spawn a new GAP command-line session.
+
+    EXAMPLES:
+        sage: gap.console() #not tested
+        GAP4, Version: 4.4.10 of 02-Oct-2007, x86_64-unknown-linux-gnu-gcc
+        gap>
+
+    """
     cmd, _ = gap_command(use_workspace_cache=use_workspace_cache)
     os.system(cmd)
 
 def gap_version():
+    """
+    Returns the version of GAP being used.
+
+    EXAMPLES:
+        sage: gap_version()
+        '4.4.10'
+    """
     return gap.eval('VERSION')[1:-1]
 
 

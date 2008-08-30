@@ -1163,9 +1163,6 @@ If this all works, you can then make calls like:
     def _contains(self, v1, v2):
         raise NotImplementedError
 
-    def _is_true_string(self, s):
-        raise NotImplementedError
-
     def __getattr__(self, attrname):
         if attrname[:1] == "_":
             raise AttributeError
@@ -1289,6 +1286,13 @@ class ExpectElement(RingElement):
         P = self.parent()
         return getattr(P, self.name())(*args)
 
+    def __contains__(self, x):
+        P = self._check_valid()
+        if not isinstance(x, ExpectElement) or x.parent() is not self.parent():
+            x = P.new(x)
+        return P._contains(x.name(), self.name())
+
+
     def _sage_doc_(self):
         return str(self)
 
@@ -1337,13 +1341,6 @@ class ExpectElement(RingElement):
         except AttributeError:
             raise ValueError, "The session in which this object was defined is no longer running."
         return P
-
-    def __contains__(self, x):
-        P = self._check_valid()
-        if not isinstance(x, ExpectElement) or x.parent() != self.parent():
-            x = P.new(x)
-        t = P._contains(x.name(), self.name())
-        return P._is_true_string(t)
 
     def __del__(self):
         try:
@@ -1450,12 +1447,12 @@ class ExpectElement(RingElement):
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         EXAMPLES:
-            sage: bool(maxima('0'))
+            sage: bool(maxima(0))
             False
-            sage: bool(maxima('1'))
+            sage: bool(maxima(1))
             True
         """
         return self.bool()

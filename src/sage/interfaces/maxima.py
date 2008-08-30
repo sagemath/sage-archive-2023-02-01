@@ -1365,6 +1365,17 @@ class MaximaElement(ExpectElement):
         """
         return self.display2d(onscreen=False)
 
+    def bool(self):
+        """
+        EXAMPLES:
+            sage: maxima(0).bool()
+            False
+            sage: maxima(1).bool()
+            True
+        """
+        P = self._check_valid()
+        return P.eval('is(%s = 0);'%self.name()) == P._false_symbol()
+
     def __cmp__(self, other):
         """
         EXAMPLES:

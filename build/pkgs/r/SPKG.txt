@@ -23,6 +23,9 @@
 
 == Changelog ==
 
+=== r-2.6.1.p18 (Michael Abshoff, August 30th, 2008) ===
+ * also disable aqua support on 32 bit Darwin
+
 === r-2.6.1.p17 (Michael Abshoff, May 29th, 2008) ===
  * Use rpy-1.0.1.p2
 

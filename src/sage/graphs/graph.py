@@ -5105,7 +5105,8 @@ class GenericGraph(SageObject):
             edge_labels=False, vertex_size=200, graph_border=False,
             vertex_colors=None, partition=None, edge_colors=None,
             scaling_term=0.05, iterations=50, loop_size=.1, talk=False,
-            color_by_label=False, heights=None, edge_style=None, save_pos=False):
+            color_by_label=False, heights=None, edge_style=None, save_pos=False,
+            tree_root=None, tree_orientation="down"):
         """
         Returns a graphics object representing the (di)graph.
 
@@ -5116,10 +5117,15 @@ class GenericGraph(SageObject):
                     on a circle
                 'spring' -- uses the traditional spring layout, using the
                     graph's current positions as initial positions
+                'tree' -- the (di)graph must be a tree. One can specify the root
+                    of the tree using the keyword tree_root, otherwise a root
+                    will be selected at random. Then the tree will be plotted in
+                    levels, depending on minimum distance for the root.
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edge labels. By default, False, but
-                if True, the result of str(l) is printed on the edge for each
-                label l. Labels equal to None are not printed.
+            edge_labels -- whether to print edge labels. By default, False,
+                but if True, the result of str(l) is printed on the edge for
+                each label l. Labels equal to None are not printed (to set edge
+                labels, see set_edge_label).
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
             vertex_colors -- optional dictionary to specify vertex colors: each
@@ -5145,6 +5151,13 @@ class GenericGraph(SageObject):
                 edge-drawing routine.  This currently only works for
                 directed graphs, since we pass off the undirected graph to
                 networkx
+            tree_root -- a vertex of the tree to be used as the root for
+                the layout="tree" option. If no root is specified, then one
+                is chosen at random. Ignored unless layout='tree'.
+            tree_orientation -- "up" or "down" (default is "down").
+                If "up" (resp., "down"), then the root of the tree will
+                appear on the bottom (resp., top) and the tree will grow
+                upwards (resp. downwards). Ignored unless layout='tree'.
             save_pos -- save position computed during plotting
 
         EXAMPLES:
@@ -5242,6 +5255,29 @@ class GenericGraph(SageObject):
              8: [0.44..., -0.72...],
              9: [0.05..., -0.19...]}
 
+            sage: T = list(graphs.trees(7))
+            sage: t = T[3]
+            sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
+
+            sage: T = list(graphs.trees(7))
+            sage: t = T[3]
+            sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
+            sage: t.set_edge_label(0,1,-7)
+            sage: t.set_edge_label(0,5,3)
+            sage: t.set_edge_label(0,5,99)
+            sage: t.set_edge_label(1,2,1000)
+            sage: t.set_edge_label(3,2,'spam')
+            sage: t.set_edge_label(2,6,3/2)
+            sage: t.set_edge_label(0,4,66)
+            sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}, edge_labels=True)
+
+            sage: T = list(graphs.trees(7))
+            sage: t = T[3]
+            sage: t.plot(layout='tree')
+
+            sage: t = DiGraph('JCC???@A??GO??CO??GO??')
+            sage: t.plot(layout='tree', tree_root=0, tree_orientation="up")
+
         """
         if edge_style is None:
             edge_style={}
@@ -5271,9 +5307,10 @@ class GenericGraph(SageObject):
                 vertex_colors['#b3e8ff'] = bdy_verts
             else:
                 vertex_colors={'#fec7b8': self.vertices()}
-        if pos is None and layout is None and heights is None:
-            if not self._pos is None:
-                pos = self._pos
+        if pos is None and layout is None:
+            if heights is None:
+                if not self._pos is None:
+                    pos = self._pos
         elif layout == 'circular':
             from math import sin, cos, pi
             n = self.order()
@@ -5283,7 +5320,38 @@ class GenericGraph(SageObject):
                 x = float(cos((pi/2) + ((2*pi)/n)*i))
                 y = float(sin((pi/2) + ((2*pi)/n)*i))
                 pos[verts[i]] = [x,y]
-        elif heights is not None and self.num_verts() > 0:
+        elif layout == 'tree':
+            if not self.is_tree():
+                raise RuntimeError("Cannot use tree layout on this graph: self.is_tree() returns False.")
+            verts = self.vertices()
+            if tree_root is None:
+                from sage.misc.prandom import randrange
+                root = verts[randrange(self.num_verts())]
+            else:
+                root = tree_root
+            # BFS search for heights
+            seen = [root]
+            queue = [root]
+            heights = [-1]*self.num_verts()
+            heights[verts.index(root)] = 0
+            while queue:
+                u = queue.pop(0)
+                for v in self.neighbors(u):
+                    if v not in seen:
+                        seen.append(v)
+                        queue.append(v)
+                        heights[verts.index(v)] = heights[verts.index(u)] + 1
+            if tree_orientation == 'down':
+                maxx = max(heights)
+                heights = [maxx - heights[i] for i in xrange(self.num_verts())]
+            heights_dict = {}
+            for v in self:
+                if not heights_dict.has_key(heights[verts.index(v)]):
+                    heights_dict[heights[verts.index(v)]] = [v]
+                else:
+                    heights_dict[heights[verts.index(v)]].append(v)
+            heights = heights_dict
+        if heights is not None and pos is None and self.num_verts() > 0:
             pos = {}
             mmax = max([len(ccc) for ccc in heights.values()])
             ymin = min(heights.keys())
@@ -5349,112 +5417,27 @@ class GenericGraph(SageObject):
         G.axes(False)
         return G
 
-    def show(self, pos=None, layout=None, vertex_labels=True,
-             edge_labels=False, vertex_size=200, graph_border=False,
-             vertex_colors=None, edge_colors=None, partition=None,
-             scaling_term=0.05, talk=False, iterations=50, loop_size=.1,
-             color_by_label=False, heights=None, edge_style=None, save_pos=False,
-             **kwds):
+    def show(self, **kwds):
         """
         Shows the (di)graph.
 
-        INPUT:
-            pos -- an optional positioning dictionary
-            layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed
-                    on a circle
-                'spring' -- uses the traditional spring layout, ignores the
-                    graphs current positions
-            vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edgeedge labels. By default, False,
-                but if True, the result of str(l) is printed on the edge for
-                each label l. Labels equal to None are not printed.
-            vertex_size -- size of vertices displayed
-            graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each
-                key is a color recognizable by matplotlib, and each corresponding
-                entry is a list of vertices. If a vertex is not listed, it looks
-                invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a
-                color recognized by matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will
-                show each cell in a different color. vertex_colors takes precedence.
-            scaling_term -- default is 0.05. if vertices are getting chopped off,
-                increase; if graph is too small, decrease. should be positive, but
-                values much bigger than 1/8 won't be useful unless the vertices
-                are huge
-            talk -- if true, prints large vertices with white backgrounds so that
-                labels are legible on slies
-            iterations -- how many iterations of the spring layout algorithm to
-                go through, if applicable
-            color_by_label -- if True, color edges by their labels
-            heights -- if specified, this is a dictionary from a set of
-                floating point heights to a set of vertices
-            edge_style -- options for the arrows of directed graphs
-            save_pos -- save position computed during plotting
+        For syntax and lengthy documentation, see G.plot?. Any options not used by
+        plot will be passed on to the Graphics.show method.
 
-        EXAMPLES:
-            sage: from math import sin, cos, pi
-            sage: P = graphs.PetersenGraph()
-            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
-            sage: pos_dict = {}
-            sage: for i in range(5):
-            ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: for i in range(10)[5:]:
-            ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: pl = P.plot(pos=pos_dict, vertex_colors=d)
-            sage: pl.show()
-
+        EXAMPLE:
             sage: C = graphs.CubeGraph(8)
             sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()
 
-            sage: G = graphs.HeawoodGraph()
-            sage: for u,v,l in G.edges():
-            ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
-            sage: G.plot(edge_labels=True).show()
-
-            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []}, implementation='networkx' )
-            sage: for u,v,l in D.edges():
-            ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
-            sage: D.plot(edge_labels=True, layout='circular').show()
-
-            sage: from sage.plot.plot import rainbow
-            sage: C = graphs.CubeGraph(5)
-            sage: R = rainbow(5)
-            sage: edge_colors = {}
-            sage: for i in range(5):
-            ...    edge_colors[R[i]] = []
-            sage: for u,v,l in C.edges():
-            ...    for i in range(5):
-            ...        if u[i] != v[i]:
-            ...            edge_colors[R[i]].append((u,v,l))
-            sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
-
-            sage: D = graphs.DodecahedralGraph()
-            sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
-            sage: D.show(partition=Pi)
-
-            sage: G = graphs.PetersenGraph()
-            sage: G.loops(True)
-            sage: G.add_edge(0,0)
-            sage: G.show()
-
         """
         kwds.setdefault('figsize', [4,4])
-        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels,
-                  edge_labels=edge_labels, vertex_size=vertex_size,
-                  vertex_colors=vertex_colors, edge_colors=edge_colors,
-                  graph_border=graph_border, partition=partition, talk=talk,
-                  scaling_term=scaling_term, iterations=iterations,
-                  color_by_label=color_by_label, loop_size=loop_size,
-                  heights=heights, edge_style=edge_style, save_pos=save_pos).show(**kwds)
+        import inspect
+        vars = inspect.getargspec(GenericGraph.plot)[0]
+        plot_kwds = {}
+        for kwd in vars:
+            if kwds.has_key(kwd):
+                plot_kwds[kwd] = kwds.pop(kwd)
+        self.plot(**plot_kwds).show(**kwds)
 
     def plot3d(self, bgcolor=(1,1,1), vertex_colors=None, vertex_size=0.06,
                      edge_colors=None, edge_size=0.02, edge_size2=0.0325,

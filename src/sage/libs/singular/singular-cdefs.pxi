@@ -545,8 +545,9 @@ cdef extern from "libsingular.h":
 
     number *nlGetDenom(number *n, ring *r)
 
+    # delete rational number
 
-
+    void nlDelete(number **n, ring *r)
 
     # i-th algebraic number paraemeter
 
@@ -600,9 +601,6 @@ cdef extern from "libsingular.h":
 
     void naNormalize(number *)
 
-
-
-
     # number to integer handle
 
     long SR_TO_INT(number *)
@@ -611,8 +609,8 @@ cdef extern from "libsingular.h":
 
     long SR_HDL(mpz_t )
 
-
-
+    # map Q -> Q(a)
+    number *naMap00(number *c)
 
     # ideal constructor
 

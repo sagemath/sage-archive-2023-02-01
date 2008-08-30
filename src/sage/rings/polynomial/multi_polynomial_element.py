@@ -67,10 +67,25 @@ def is_MPolynomial(x):
 
 class MPolynomial_element(MPolynomial):
     def __init__(self, parent, x):
+        """
+        EXAMPLE:
+            sage: K.<cuberoot2> = NumberField(x^3 - 2)
+            sage: L.<cuberoot3> = K.extension(x^3 - 3)
+            sage: S.<sqrt2> = L.extension(x^2 - 2)
+            sage: S
+            Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
+            sage: P.<x,y,z> = PolynomialRing(S) # indirect doctest
+        """
         CommutativeRingElement.__init__(self, parent)
         self.__element = x
 
     def _repr_(self):
+        """
+        EXAMPLE:
+            sage: P.<x,y,z> = PolynomialRing(QQbar)
+            sage: x + QQbar.random_element() # indirect doctest
+            x - 2
+        """
         return "%s"%self.__element
 
     ####################
@@ -83,21 +98,21 @@ class MPolynomial_element(MPolynomial):
         with the ith variable replaced by $a_i$.
 
         EXAMPLES:
-            sage: R.<x,y> = QQ[]
+            sage: R.<x,y> = CC[]
             sage: f = x^2 + y^2
             sage: f(1,2)
-            5
+            5.00000000000000
             sage: f((1,2))
-            5
+            5.00000000000000
 
-            sage: x = PolynomialRing(QQ,3,'x').gens()
+            sage: x = PolynomialRing(CC,3,'x').gens()
             sage: f = x[0] + x[1] - 2*x[1]*x[2]
             sage: f
-            -2*x1*x2 + x0 + x1
+            (-2.00000000000000)*x1*x2 + x0 + x1
             sage: f(1,2,0)
-            3
+            3.00000000000000
             sage: f(1,2,5)
-            -17
+            -17.0000000000000
 
         AUTHOR: David Kohel, 2005-09-27
         """
@@ -129,13 +144,13 @@ class MPolynomial_element(MPolynomial):
         self.parent().
 
         EXAMPLES:
-             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
+             sage: R.<x,y,z>=PolynomialRing(ZZ,3,order='lex')
              sage: x^1*y^2 > y^3*z^4
              True
              sage: x^3*y^2*z^4 < x^3*y^2*z^1
              False
 
-             sage: R.<x,y,z>=PolynomialRing(QQ,3,order='deglex')
+             sage: R.<x,y,z>=PolynomialRing(CC,3,order='deglex')
              sage: x^1*y^2*z^3 > x^3*y^2*z^0
              True
              sage: x^1*y^2*z^4 < x^1*y^1*z^5
@@ -157,7 +172,7 @@ class MPolynomial_element(MPolynomial):
     def _im_gens_(self, codomain, im_gens):
         """
         EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: R.<x,y> = PolynomialRing(QQbar, 2)
             sage: f = R.hom([y,x], R)
             sage: f(x^2 + 3*y^5)
             3*x^5 + y^2
@@ -216,10 +231,10 @@ class MPolynomial_element(MPolynomial):
     def _div_(self, right):
         r"""
         EXAMPLES:
-            sage: R.<x,y> = QQ['x,y']
+            sage: R.<x,y> = CC['x,y']
             sage: f = (x + y)/3
             sage: f.parent()
-            Multivariate Polynomial Ring in x, y over Rational Field
+            Multivariate Polynomial Ring in x, y over Complex Field with 53 bits of precision
 
         If we do the same over $\ZZ$ the result is the same as
         multiplying by 1/3 (i.e. base extension).
@@ -262,16 +277,14 @@ class MPolynomial_macaulay2_repr:
         Return corresponding Macaulay2 polynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = GF(7)[]
+            sage: R.<x,y> = ZZ[]
             sage: f = (x^3 + 2*y^2*x)^7; f
-            x^21 + 2*x^7*y^14
-            sage: macaulay2(R)                      # optional
-            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
-            sage: h = f._macaulay2_(); print h      # optional
-             21     7 14
-            x   + 2x y
+            x^21 + 14*x^19*y^2 + 84*x^17*y^4 + 280*x^15*y^6 + 560*x^13*y^8 + 672*x^11*y^10 + 448*x^9*y^12 + 128*x^7*y^14
+            sage: macaulay2(R)                      # optional, requires M2
+            ZZ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+            sage: h = f._macaulay2_()               # optional
             sage: R(h)                              # optional
-            x^21 + 2*x^7*y^14
+            x^21 + 14*x^19*y^2 + 84*x^17*y^4 + 280*x^15*y^6 + 560*x^13*y^8 + 672*x^11*y^10 + 448*x^9*y^12 + 128*x^7*y^14
             sage: R(h^20) == f^20                   # optional
             True
         """
@@ -292,7 +305,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def __init__(self, parent, x):
         """
         EXAMPLES:
-            sage: R, x = PolynomialRing(QQ, 10, 'x').objgens()
+            sage: R, x = PolynomialRing(ZZ, 10, 'x').objgens()
             sage: x
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             sage: loads(dumps(x)) == x
@@ -341,7 +354,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: K.<I>=QuadraticField(-1)
             sage: R.<x,y>=K[]
             sage: latex(-I*y+I*x^2)
-            I x^{2} + (-I) y
+            I x^{2} - I y
         """
         try:
             cmpfn = self.parent().term_order().compare_tuples
@@ -424,7 +437,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             integer
 
         EXAMPLE:
-            sage: R.<x,y> = QQ[]
+            sage: R.<x,y> = RR[]
             sage: f = y^2 - x^9 - x
             sage: f.degree(x)
             9
@@ -442,40 +455,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         return self.element().degree(x.element())
 
 
-    def newton_polytope(self):
-        """
-        Return the Newton polytope of this polynomial.
-
-        You should have the optional polymake package installed.
-
-        EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(QQ,2)
-            sage: f = 1 + x*y + x^3 + y^3
-            sage: P = f.newton_polytope()
-            sage: P
-            Convex hull of points [[1, 0, 0], [1, 0, 3], [1, 1, 1], [1, 3, 0]]
-            sage: P.facets()
-            [(0, 1, 0), (3, -1, -1), (0, 0, 1)]
-            sage: P.is_simple()
-            True
-        """
-        try:
-            return self.__newton_polytope
-        except AttributeError:
-            from sage.geometry.all import polymake
-            e = self.exponents()
-            a = [[1] + list(v) for v in e]
-            P = polymake.convex_hull(a)
-            self.__newton_polytope = P
-            return P
-
     def total_degree(self):
         """
         Return the total degree of self, which is the
         maximum degree of any monomial in self.
 
         EXAMPLES:
-            sage: R.<x,y,z> = QQ[]
+            sage: R.<x,y,z> = ZZ[]
             sage: f=2*x*y^3*z^2
             sage: f.total_degree()
             6
@@ -557,26 +543,26 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         return self.element().dict()
 
-    def __iter__(self):
-        """
-        Facilitates iterating over the monomials of self,
-        returning tuples of the form (coeff, mon) for each
-        non-zero monomial.
-
-        EXAMPLES:
-            sage: R = ZZ['t']
-            sage: P.<x,y,z> = PolynomialRing(R,3)
-            sage: f = 3*x^3*y + 16*x + 7
-            sage: [(c,m) for c,m in f]
-            [(3, x^3*y), (16, x), (7, 1)]
-            sage: f = P.random_element(10,10)
-            sage: sum(c*m for c,m in f) == f
-            True
-        """
-        exps = self.exponents()
-        parent = self.parent()
-        for exp in exps:
-            yield self.element()[exp], MPolynomial_polydict(parent, {exp: 1})
+    #def __iter__(self):
+    #    """
+    #    Facilitates iterating over the monomials of self,
+    #    returning tuples of the form (coeff, mon) for each
+    #    non-zero monomial.
+    #
+    #    EXAMPLES:
+    #        sage: R = ZZ['t']
+    #        sage: P.<x,y,z> = PolynomialRing(R,3)
+    #        sage: f = 3*x^3*y + 16*x + 7
+    #        sage: [(c,m) for c,m in f]
+    #        [(3, x^3*y), (16, x), (7, 1)]
+    #        sage: f = P.random_element(10,10)
+    #        sage: sum(c*m for c,m in f) == f
+    #        True
+    #    """
+    #    exps = self.exponents()
+    #    parent = self.parent()
+    #    for exp in exps:
+    #        yield self.element()[exp], MPolynomial_polydict(parent, {exp: 1})
 
     def __getitem__(self, x):
         """
@@ -585,7 +571,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                  ring x can also be an integer.
 
         EXAMPLES:
-            sage: R.<x, y> = PolynomialRing(QQ, 2)
+            sage: R.<x, y> = PolynomialRing(ZZ, 2)
             sage: f = -10*x^3*y + 17*x*y
             sage: f[3,1]
             -10
@@ -594,10 +580,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f[0,1]
             0
 
-            sage: R.<x> = PolynomialRing(GF(7),1); R
-            Multivariate Polynomial Ring in x over Finite Field of size 7
+            sage: R.<x> = PolynomialRing(QQbar,1); R
+            Multivariate Polynomial Ring in x over Algebraic Field
             sage: f = 5*x^2 + 3; f
-            -2*x^2 + 3
+            5*x^2 + 3
             sage: f[2]
             5
         """
@@ -695,7 +681,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Return the exponents of the monomials appearing in self.
 
         EXAMPLES:
-           sage: R.<a,b,c> = PolynomialRing(QQ, 3)
+           sage: R.<a,b,c> = PolynomialRing(ZZ, 3)
            sage: f = a^3 + b + 2*b^2
            sage: f.exponents()
            [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
@@ -754,7 +740,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Return True if self is a homogeneous polynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = QQ[]
+            sage: R.<x,y> = ZZ[]
             sage: (x+y).is_homogeneous()
             True
             sage: (x.parent()(0)).is_homogeneous()
@@ -930,7 +916,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Returns True if this multivariate polynomial is univariate and False otherwise.
 
         EXAMPLES:
-            sage: R.<x,y> = QQ[]
+            sage: R.<x,y> = ZZ[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.is_univariate()
             False
@@ -1090,7 +1076,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
              sage: (x^3*y^2*z^4 + x^3*y^2*z^1).lm()
              x^3*y^2*z^4
 
-             sage: R.<x,y,z>=PolynomialRing(QQ,3,order='deglex')
+             sage: R.<x,y,z>=PolynomialRing(CC,3,order='deglex')
              sage: (x^1*y^2*z^3 + x^3*y^2*z^0).lm()
              x*y^2*z^3
              sage: (x^1*y^2*z^4 + x^1*y^1*z^5).lm()
@@ -1245,7 +1231,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             self.derivative()
 
         EXAMPLES:
-            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: R.<t> = PowerSeriesRing(QQbar)
             sage: S.<x, y> = PolynomialRing(R)
             sage: f = (t^2 + O(t^3))*x^2*y^3 + (37*t^4 + O(t^5))*x^3
             sage: type(f)
@@ -1291,46 +1277,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
     def factor(self):
         r"""
-        Compute the irreducible factorization of this polynomial.
 
-        ALGORITHM: Use Singular or univariate factorization code.
+        Compute the irreducible factorization of this polynomial if it
+        is univariate.
 
-        EXAMPLES:
-            sage: R.<x, y> = QQ[]
-            sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
-            x^5 + 2*x^3*y^2 + x^4 + 2*x^2*y^2 + x^3 + 2*x*y^2
-            sage: F = f.factor()
-            sage: F
-            x * (x^2 + x + 1) * (x^2 + 2*y^2)
-
-        Next we factor the same polynomial, but over the finite field
-        of order $3$.
-
-            sage: R.<x, y> = GF(3)[]
-            sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
-            x^5 - x^3*y^2 + x^4 - x^2*y^2 + x^3 - x*y^2
-            sage: F = f.factor()
-            sage: F # order is somewhat random
-            (-1) * x * (-x + y) * (x + y) * (x - 1)^2
-
-        Next we factor a polynomial over a number field.
-            sage: p = var('p')
-            sage: K.<s> = NumberField(p^3-2)
-            sage: KXY.<x,y> = K[]
-            sage: factor(x^3 - 2*y^3)
-            (x + (-s)*y) * (x^2 + s*x*y + s^2*y^2)
-            sage: k = (x^3-2*y^3)^5*(x+s*y)^2*(2/3 + s^2)
-            sage: k.factor()
-            (s^2 + 2/3) * (x + s*y)^2 * (x + (-s)*y)^5 * (x^2 + s*x*y + s^2*y^2)^5
-
-        This shows that ticket \#2780 is fixed, i.e. that the unit part of
-        the factorization is set correctly:
-            sage: x = var('x')
-            sage: K.<a> = NumberField(x^2 + 1)
-            sage: R.<y, z> = PolynomialRing(K)
-            sage: f = 2*y^2 + 2*z^2
-            sage: F = f.factor(); F.unit()
-            2
+        ALGORITHM: Use univariate factorization code.
 
         If a polynomial is univariate, the appropriate univariate
         factorization code is called.
@@ -1373,7 +1324,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         ALGORITHM: Use Singular.
 
         EXAMPLE:
-            sage: A.<x,y> = PolynomialRing(QQ,2,order='degrevlex')
+            sage: A.<x,y> = PolynomialRing(CC,2,order='degrevlex')
             sage: I = A.ideal([x^10 + x^9*y^2, y^8 - x^2*y^7 ])
             sage: f = x*y^13 + y^12
             sage: M = f.lift(I)
@@ -1398,13 +1349,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         ALGORITHM: Use Singular.
 
         EXAMPLES:
-            sage: R.<x,y> = QQ[]
-            sage: f = (x^3 + 2*y^2*x)^2
-            sage: g = x^2*y^2
-            sage: f.gcd(g)
-            x^2
-
-        This also works correctly over ZZ:
             sage: R.<x,y> = ZZ[]
             sage: gcd(2*x,4*x)
             2*x
@@ -1413,24 +1357,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: gcd(9*x*y*(x^2-y^2), 15*x*y^2*(x^2+y^2))
             3*x*y
 
-        We compute a gcd over a finite field.
-            sage: F.<u> = GF(31^2)
-            sage: R.<x,y,z> = F[]
-            sage: p = x^3 + (1+u)*y^3 + z^3
-            sage: q = p^3 * (x - y + z*u)
-            sage: gcd(p,q)
-            x^3 + (u + 1)*y^3 + z^3
-            sage: gcd(p,q)  # yes, twice -- tests that singular ring is properly set.
-            x^3 + (u + 1)*y^3 + z^3
-
-        We compute a gcd over a number field:
-            sage: x = polygen(QQ)
-            sage: F.<u> = NumberField(x^3 - 2)
-            sage: R.<x,y,z> = F[]
-            sage: p = x^3 + (1+u)*y^3 + z^3
-            sage: q = p^3 * (x - y + z*u)
-            sage: gcd(p,q)
-            x^3 + (u + 1)*y^3 + z^3
         """
         if type(self) is not type(f) or self.parent() is not f.parent():
             self, f = canonical_coercion(self, f)
@@ -1452,6 +1378,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def quo_rem(self, right):
         """
         Returns quotient and remainder of self and right.
+
+        EXAMPLE:
+            sage: R.<x,y> = CC[]
+            sage: f = y*x^2 + x + 1
+            sage: f.quo_rem(x)
+            (x*y + 1.00000000000000, 1.00000000000000)
 
         ALGORITHM: Use Singular.
         """

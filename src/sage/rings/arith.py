@@ -1290,7 +1290,7 @@ def xgcd(a, b):
         sage: xgcd(y^2, a*y+b)
         (b^2/a^2, 1, ((-1)/a)*y + b/a^2)
         sage: xgcd((b+g)*y^2, (a+g)*y+b)
-        ((b^3 + g*b^2)/(a^2 + 2*g*a + 3), 1, ((-b - g)/(a + g))*y + (b^2 + g*b)/(a^2 + 2*g*a + 3))
+        ((b^3 + (g)*b^2)/(a^2 + (2*g)*a + 3), 1, ((-b + (-g))/(a + (g)))*y + (b^2 + (g)*b)/(a^2 + (2*g)*a + 3))
     """
     try:
         return a.xgcd(b)

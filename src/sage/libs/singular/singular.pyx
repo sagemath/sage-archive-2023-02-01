@@ -28,6 +28,7 @@ from sage.libs.pari.all import pari
 from sage.structure.parent_base cimport ParentWithBase
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 
+
 cdef class Conversion:
     """
     A work around class to export the contained methods/functions
@@ -66,7 +67,7 @@ cdef class Conversion:
         else: mpz_set(nom_z,&nom.z)
 
         mpq_set_num(_z,nom_z)
-        n_Delete(&nom,_ring)
+        nlDelete(&nom,_ring)
         mpz_clear(nom_z)
 
         denom = nlGetDenom(n, _ring)
@@ -76,7 +77,7 @@ cdef class Conversion:
         else: mpz_set(denom_z,&denom.z)
 
         mpq_set_den(_z, denom_z)
-        n_Delete(&denom,_ring)
+        nlDelete(&denom,_ring)
         mpz_clear(denom_z)
 
         z = Rational()
@@ -203,7 +204,44 @@ cdef class Conversion:
             z = napIter(z)
         return base(ret)
 
+    cdef public object si2sa_NF(self, number *n, ring *_ring, object base):
+        """
+        Convert a SINGULAR number field element to a SAGE absolute
+        number field element.
 
+        INPUT:
+            n -- SINGULAR representation
+            _ring -- SINGULAR ring
+            base -- SAGE QQ(a)
+
+        OUTPUT:
+            An Element in QQ(a).
+        """
+        cdef napoly *z
+        cdef number *c
+        cdef int e
+        cdef object a
+        cdef object ret
+
+        if naIsZero(n):
+            return base._zero_element
+        elif naIsOne(n):
+            return base._one_element
+        z = (<lnumber*>n).z
+
+        a = base.gen()
+        ret = base(0)
+
+        while z:
+            c = napGetCoeff(z)
+            coeff = self.si2sa_QQ(c, _ring)
+            e = napGetExp(z,1)
+            if e == 0:
+                ret = ret + coeff
+            elif coeff != 0:
+                ret = ret  + coeff * a**e
+            z = napIter(z)
+        return base(ret)
 
     cdef public number *sa2si_QQ(self, Rational r, ring *_ring):
         """
@@ -326,6 +364,43 @@ cdef class Conversion:
 
         return n1
 
+    cdef number *sa2si_NF(self, object elem, ring *_ring):
+        """
+        """
+        cdef int i
+        cdef number *n1, *n2, *a, *nlCoeff, *naCoeff, *apow1, *apow2
+
+        rChangeCurrRing(_ring)
+
+        elem = list(elem)
+
+        if len(elem) > 1:
+            n1 = naInit(0)
+            a = naPar(1)
+            apow1 = naInit(1)
+
+            for i from 0 <= i < len(elem):
+                nlCoeff = nlInit2gmp( mpq_numref((<Rational>elem[i]).value), mpq_denref((<Rational>elem[i]).value) )
+                naCoeff = naMap00(nlCoeff)
+                nlDelete(&nlCoeff, _ring)
+
+                # faster would be to assign the coefficient directly
+                n2 = naAdd( naMult(naCoeff, apow1),  n1)
+                naDelete(&n1, _ring);
+                naDelete(&naCoeff, _ring)
+                n1 = n2
+
+                apow2 = naMult(apow1, a)
+                naDelete(&apow1, _ring)
+                apow1 = apow2
+
+            naDelete(&apow1, _ring)
+            naDelete(&a, _ring)
+        else:
+            n1 = self.sa2si_QQ(elem[0], _ring)
+
+        return n1
+
     cdef public number *sa2si_ZZ(self, Integer d, ring *_ring):
         """
         """
@@ -353,6 +428,9 @@ cdef class Conversion:
         elif PY_TYPE_CHECK(base, FiniteField_ntl_gf2e):
             return self.si2sa_GFqNTLGF2E(n, _ring, base)
 
+        elif PY_TYPE_CHECK(base, NumberField) and base.is_absolute():
+            return self.si2sa_NF(n, _ring, base)
+
         else:
             raise ValueError, "cannot convert from SINGULAR number"
 
@@ -373,6 +451,8 @@ cdef class Conversion:
         elif PY_TYPE_CHECK(elem._parent, FiniteField_ntl_gf2e):
             return self.sa2si_GFqNTLGF2E(elem, _ring)
 
+        elif PY_TYPE_CHECK(elem._parent, NumberField) and elem._parent.is_absolute():
+            return self.sa2si_NF(elem, _ring)
         else:
             raise ValueError, "cannot convert to SINGULAR number"
 

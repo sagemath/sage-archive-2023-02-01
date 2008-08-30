@@ -3381,6 +3381,8 @@ class NumberField_absolute(NumberField_generic):
         """
         NumberField_generic.__init__(self, polynomial, name, latex_name, check)
         self._element_class = number_field_element.NumberFieldElement_absolute
+        self._zero_element = self(0)
+        self._one_element =  self(1)
 
     def _magma_convert_(self, magma):
         """
@@ -4304,7 +4306,8 @@ class NumberField_relative(NumberField_generic):
         v[0] = self._gen_relative()
         v = [self(x) for x in v]
         self.__gens = tuple(v)
-
+        self._zero_element = self(0)
+        self._one_element =  self(1)
 
     def change_names(self, names):
         r"""

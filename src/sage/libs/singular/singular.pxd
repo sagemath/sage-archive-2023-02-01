@@ -8,12 +8,14 @@ from sage.rings.finite_field_ntl_gf2e cimport FiniteField_ntl_gf2e,FiniteField_n
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
 
+from sage.rings.number_field.number_field_base cimport NumberField
 
 cdef class Conversion:
     cdef extern Rational si2sa_QQ(self, number (*),ring (*))
     cdef extern FiniteField_givaroElement si2sa_GFqGivaro(self, number *n, ring *_ring, FiniteField_givaro base)
     cdef extern FiniteField_ntl_gf2eElement si2sa_GFqNTLGF2E(self, number *n, ring *_ring, FiniteField_ntl_gf2e base)
     cdef extern object si2sa_GFqPari(self, number *n, ring *_ring, object base)
+    cdef extern object si2sa_NF(self, number *n, ring *_ring, object base)
 
     cdef extern number *sa2si_QQ(self, Rational ,ring (*))
     cdef extern number *sa2si_ZZ(self, Integer d, ring *_ring)
@@ -21,6 +23,8 @@ cdef class Conversion:
     cdef extern number *sa2si_GFqGivaro(self, int exp ,ring (*))
     cdef extern number *sa2si_GFqPari(self, object vector, ring *_ring)
     cdef extern number *sa2si_GFqNTLGF2E(self, FiniteField_ntl_gf2eElement elem, ring *_ring)
+
+    cdef extern number *sa2si_NF(self, object element, ring *_ring)
 
     cdef extern object si2sa(self, number *n, ring *_ring, object base)
     cdef extern number *sa2si(self, Element elem, ring * _ring)

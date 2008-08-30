@@ -72,52 +72,6 @@ class PolynomialRing_singular_repr:
             singular ring matching this ring
 
         EXAMPLES:
-            sage: r = PolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
-            sage: r._singular_()
-            //   characteristic : 2
-            //   1 parameter    : a
-            //   minpoly        : (a^8+a^4+a^3+a^2+1)
-            //   number of vars : 10
-            //        block   1 : ordering rp
-            //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
-            //        block   2 : ordering C
-            sage: r = PolynomialRing(GF(127),2,'x', order='invlex')
-            sage: r._singular_()
-            //   characteristic : 127
-            //   number of vars : 2
-            //        block   1 : ordering rp
-            //                  : names    x0 x1
-            //        block   2 : ordering C
-            sage: r = PolynomialRing(QQ,2,'x', order='invlex')
-            sage: r._singular_()
-            //   characteristic : 0
-            //   number of vars : 2
-            //        block   1 : ordering rp
-            //                  : names    x0 x1
-            //        block   2 : ordering C
-            sage: r = PolynomialRing(QQ,'x')
-            sage: r._singular_()
-            //   characteristic : 0
-            //   number of vars : 1
-            //        block   1 : ordering lp
-            //                  : names    x
-            //        block   2 : ordering C
-            sage: r = PolynomialRing(GF(127),'x')
-            sage: r._singular_()
-            //   characteristic : 127
-            //   number of vars : 1
-            //        block   1 : ordering lp
-            //                  : names    x
-            //        block   2 : ordering C
-            sage: r = PolynomialRing(GF(2**8,'a'),'y')
-            sage: r._singular_()
-            //   characteristic : 2
-            //   1 parameter    : a
-            //   minpoly        : (a^8+a^4+a^3+a^2+1)
-            //   number of vars : 1
-            //        block   1 : ordering lp
-            //                  : names    y
-            //        block   2 : ordering C
             sage: R.<x,y> = PolynomialRing(CC,'x',2)
             sage: R._singular_()
             //   characteristic : 0 (complex:15 digits, additional 0 digits)
@@ -136,14 +90,46 @@ class PolynomialRing_singular_repr:
             //        block   2 : ordering C
 
             sage: w = var('w')
-            sage: R.<x,y> = PolynomialRing(NumberField(w^2+1,'s'))
+            sage: R.<x> = PolynomialRing(NumberField(w^2+1,'s'))
             sage: R._singular_()
             //   characteristic : 0
             //   1 parameter    : s
             //   minpoly        : (s^2+1)
-            //   number of vars : 2
-            //        block   1 : ordering dp
-            //                  : names    x y
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
+            //        block   2 : ordering C
+
+            sage: r = PolynomialRing(GF(127),1,'x')
+            sage: r._singular_()
+            //   characteristic : 127
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
+            //        block   2 : ordering C
+
+            sage: r = PolynomialRing(QQ,1,'x')
+            sage: r._singular_()
+            //   characteristic : 0
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
+            //        block   2 : ordering C
+
+            sage: r = PolynomialRing(QQ,'x')
+            sage: r._singular_()
+            //   characteristic : 0
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
+            //        block   2 : ordering C
+
+            sage: r = PolynomialRing(GF(127),'x')
+            sage: r._singular_()
+            //   characteristic : 127
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
             //        block   2 : ordering C
 
         WARNING:

@@ -699,6 +699,54 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         return self.parent().ideal(self.gradient())
 
+    def newton_polytope(self):
+        """
+        Return the Newton polytope of this polynomial.
+
+        You should have the optional polymake package installed.
+
+        EXAMPLES:
+            sage: R.<x,y> = QQ[]
+            sage: f = 1 + x*y + x^3 + y^3
+            sage: P = f.newton_polytope()
+            sage: P
+            A Polyhedron with 4 vertices.
+            sage: P.is_simple()
+            True
+
+        TESTS:
+            sage: R.<x,y> = QQ[]
+            sage: R(0).newton_polytope()
+            A Polyhedron.
+            sage: R(1).newton_polytope()
+            A Polyhedron with 1 vertices.
+
+        """
+        from sage.geometry.polyhedra import Polyhedron
+        e = self.exponents()
+        P = Polyhedron(vertices = e)
+        return P
+
+    def __iter__(self):
+        """
+        Facilitates iterating over the monomials of self,
+        returning tuples of the form (coeff, mon) for each
+        non-zero monomial.
+
+        NOTE: This function creates the entire list upfront because
+              Cython doesn't (yet) support iterators.
+
+        EXAMPLES:
+            sage: P.<x,y,z> = PolynomialRing(QQ,3)
+            sage: f = 3*x^3*y + 16*x + 7
+            sage: [(c,m) for c,m in f]
+            [(3, x^3*y), (16, x), (7, 1)]
+            sage: f = P.random_element(12,14)
+            sage: sum(c*m for c,m in f) == f
+            True
+        """
+        L = zip(self.coefficients(), self.monomials())
+        return iter(L)
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

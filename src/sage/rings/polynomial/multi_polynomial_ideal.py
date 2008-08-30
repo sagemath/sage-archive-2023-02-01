@@ -89,7 +89,7 @@ We do a Groebner basis computation over a number field:
     Polynomial Ring in x, y, z over Cyclotomic Field of order 3 and degree 2
 
     sage: i.groebner_basis()
-    [x + (-zeta)*y + 1, y^3 + (2*zeta + 1)*y^2 + (zeta - 1)*y - 1/3*zeta - 2/3]
+    [x + (-zeta)*y + 1, y^3 + (2*zeta + 1)*y^2 + (zeta - 1)*y + (-1/3*zeta - 2/3)]
 
     sage: S = R.quotient(i); S
     Quotient of Multivariate Polynomial Ring in x, y, z over

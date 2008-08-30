@@ -1611,10 +1611,8 @@ class GraphGenerators():
         P = permutations([1,2,3,4])
         qpp = [0]+P[randint(0,23)]
         ppp = [0]+P[randint(0,23)]
-        def qcycle(i,s):
-            return ['q%s%s'%(i,(j+s)%5) for j in qpp]
-        def pcycle(i,s):
-            return ['p%s%s'%(i,(j+s)%5) for j in ppp]
+        qcycle = lambda i,s : ['q%s%s'%(i,(j+s)%5) for j in qpp]
+        pcycle = lambda i,s : ['p%s%s'%(i,(j+s)%5) for j in ppp]
         l = 0
         s = 0
         D = []

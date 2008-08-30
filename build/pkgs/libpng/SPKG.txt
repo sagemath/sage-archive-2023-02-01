@@ -6,6 +6,9 @@ http://www.libpng.org/pub/png/libpng.html
 
 == Changelog ==
 
+=== libpng-1.2.22.p8 (Michael Abshoff, August 29th, 2008) ===
+ * Do not delete libpng.dylib on OSX
+
 === libpng-1.2.22.p7 (Michael Abshoff, May 22nd, 2008) ===
  * on OSX: delete libtool files also to make graphviz compile on OSX
 

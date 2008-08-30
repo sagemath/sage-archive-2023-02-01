@@ -67,11 +67,16 @@ build()
     # shared extension modules, at least in Python 2.5.
     rm -f "$SAGE_LOCAL"/lib/libpython*
 
-    if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-        echo "64 bit OSX 10.5 build enabled"
-        OPT="-g -O3 -m64 -Wall -Wstrict-prototypes"; export OPT
-        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4 \
-        --with-gcc="gcc -m64" --disable-toolbox-glue
+    if [ `uname` = "Darwin" ]; then
+        if [ "$SAGE64" = "yes" ]; then
+            echo "64 bit OSX 10.5 build enabled"
+            OPT="-g -O3 -m64 -Wall -Wstrict-prototypes"; export OPT
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4 \
+            --with-gcc="gcc -m64" --disable-toolbox-glue
+        else
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4 \
+            --disable-toolbox-glue
+        fi
     else
         if [ `uname -m` = "ia64" -a "`uname`" = "Linux" ]; then
             echo "Setting special flags for Itanium"

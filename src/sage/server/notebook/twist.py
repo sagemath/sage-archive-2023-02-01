@@ -1428,7 +1428,7 @@ class WorksheetsByUser(resource.Resource):
 
         filename = self.user + '/' + name
         try:
-            return Worksheet(filename, self.user)
+            return Worksheet(filename, self.username)
         except KeyError:
             s = "The user '%s' has no worksheet '%s'."%(self.user, name)
             return InvalidPage(msg = s, username = self.user)

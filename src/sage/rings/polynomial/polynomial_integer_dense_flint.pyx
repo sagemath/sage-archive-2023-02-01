@@ -699,6 +699,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: r^-2
             1/(4*x^2 + 8*x + 4)
 
+            sage: x^(2^20)
+            x^1048576
+
         TESTS:
             sage: z = R(0)
             sage: z^0
@@ -726,9 +729,14 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             _sig_off
             return ~res
         else:
-            _sig_on
-            fmpz_poly_power(res.__poly, self.__poly, nn)
-            _sig_off
+            if self is self._parent.gen():
+                _sig_on
+                fmpz_poly_set_coeff_ui(res.__poly, exp, 1)
+                _sig_off
+            else:
+                _sig_on
+                fmpz_poly_power(res.__poly, self.__poly, nn)
+                _sig_off
             return res
 
     def __floordiv__(Polynomial_integer_dense_flint self, right):

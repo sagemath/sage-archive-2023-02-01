@@ -1031,6 +1031,17 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         mzd_row_swap(self._entries, row1, row2)
 
+    cdef swap_columns_c(self, Py_ssize_t col1, Py_ssize_t col2):
+        """
+        EXAMPLE:
+            sage: A = random_matrix(GF(2),3,3)
+            sage: A
+            [0 1 0]
+            [0 1 1]
+            [0 0 0]
+            sage: A.swap_columns(0,1); A
+        """
+        mzd_col_swap(self._entries, col1, col2)
 
     def _magma_init_(self):
         r"""

@@ -72,6 +72,8 @@ cdef extern from "m4ri/m4ri.h":
 
     cdef void mzd_row_swap(packedmatrix *, int, int)
 
+    cdef void mzd_col_swap(packedmatrix *, int, int)
+
     cdef void mzd_row_clear_offset(packedmatrix *m, int, int)
 
     cdef void mzd_row_add_offset(packedmatrix *m, int, int, int)
@@ -86,14 +88,20 @@ cdef extern from "m4ri/m4ri.h":
     # naiv cubic matrix multiply
     cdef packedmatrix *mzd_mul_naiv(packedmatrix *, packedmatrix *, packedmatrix *)
 
-    # matrix multiply using Gray codes (transposed)
+    # matrix multiply using Gray codes
     cdef packedmatrix *mzd_mul_m4rm(packedmatrix *, packedmatrix *, packedmatrix *, int k)
 
     # matrix multiply using Gray codes (transposed)
     cdef packedmatrix *mzd_mul_m4rm_t(packedmatrix *, packedmatrix *, packedmatrix *, int k)
 
+    # matrix multiply and addition using Gray codes: C = C + AB
+    cdef packedmatrix *mzd_addmul_m4rm(packedmatrix *, packedmatrix *, packedmatrix *, int k)
+
     # matrix multiplication via Strassen's formula
     cdef packedmatrix *mzd_mul_strassen(packedmatrix *, packedmatrix *, packedmatrix *, int cutoff)
+
+    # C = C + AB via Strassen's formula
+    cdef packedmatrix *mzd_addmul_strassen(packedmatrix *, packedmatrix *, packedmatrix *, int cutoff)
 
     # equality testing
     cdef int mzd_equal(packedmatrix *, packedmatrix *)

@@ -27,12 +27,26 @@ import operator
 import sage.rings.field_element as field_element
 import fraction_field
 import integer_ring
+from integer_ring import ZZ
+from rational_field import QQ
 
 import sage.misc.latex as latex
 from sage.misc.misc import prod
 from sage.misc.derivative import multi_derivative
 
 def is_FractionFieldElement(x):
+    """
+    Returns whether or not x is of type FractionFieldElement
+
+    EXAMPLES:
+        sage: R.<x> = ZZ[]
+        sage: is_FractionFieldElement(x/2)
+        False
+        sage: is_FractionFieldElement(2/x)
+        True
+        sage: is_FractionFieldElement(1/3)
+        False
+    """
     return isinstance(x, FractionFieldElement)
 
 class FractionFieldElement(field_element.FieldElement):
@@ -51,6 +65,18 @@ class FractionFieldElement(field_element.FieldElement):
 
     def __init__(self, parent, numerator, denominator=1,
                  coerce=True, reduce=True):
+        """
+        EXAMPLES:
+            sage: from sage.rings.fraction_field_element import FractionFieldElement
+            sage: K.<x> = Frac(ZZ['x'])
+            sage: FractionFieldElement(K, x, 4)
+            x/4
+            sage: FractionFieldElement(K, x, x, reduce=False)
+            x/x
+            sage: f = FractionFieldElement(K, 'hi', 1, coerce=False, reduce=False)
+            sage: f.numerator()
+            'hi'
+        """
         field_element.FieldElement.__init__(self, parent)
         if coerce:
             self.__numerator = parent.ring()(numerator)
@@ -67,6 +93,20 @@ class FractionFieldElement(field_element.FieldElement):
             raise ZeroDivisionError, "fraction field element division by zero"
 
     def reduce(self):
+        """
+        Divides out the gcd of the numerator and denominator.
+
+        Automatically called for exact rings, but because it may be
+        numerically unstable for inexact rings it must be called
+        manually in that case.
+
+        EXAMPLES:
+            sage: R.<x> = RealField(10)[]
+            sage: f = (x^2+2*x+1)/(x+1); f
+            (1.0*x^2 + 2.0*x + 1.0)/(1.0*x + 1.0)
+            sage: f.reduce(); f
+            1.0*x + 1.0
+        """
         try:
             g = self.__numerator.gcd(self.__denominator)
             if g != 1:
@@ -90,13 +130,37 @@ class FractionFieldElement(field_element.FieldElement):
             raise ArithmeticError, "unable to reduce because gcd algorithm not implemented on input"
 
     def copy(self):
+        """
+        EXAMPLES:
+            sage: R.<x,y> = ZZ[]
+            sage: f = x/y+1; f
+            (x + y)/y
+            sage: f.copy()
+            (x + y)/y
+        """
         return FractionFieldElement(self.parent(), self.__numerator,
                                     self.__denominator, coerce=False, reduce=False)
 
     def numerator(self):
+        """
+        EXAMPLES:
+            sage: R.<x,y> = ZZ[]
+            sage: f = x/y+1; f
+            (x + y)/y
+            sage: f.numerator()
+            x + y
+        """
         return self.__numerator
 
     def denominator(self):
+        """
+        EXAMPLES:
+            sage: R.<x,y> = ZZ[]
+            sage: f = x/y+1; f
+            (x + y)/y
+            sage: f.denominator()
+            y
+        """
         return self.__denominator
 
     def __hash__(self):
@@ -225,9 +289,30 @@ class FractionFieldElement(field_element.FieldElement):
         return self.__numerator(*x) / self.__denominator(*x)
 
     def _is_atomic(self):
+        """
+        EXAMPLES:
+            sage: K.<x> = Frac(ZZ['x'])
+            sage: x._is_atomic()
+            True
+            sage: f = 1/(x+1)
+            sage: f._is_atomic()
+            False
+        """
         return self.__numerator._is_atomic() and self.__denominator._is_atomic()
 
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: K.<x> = Frac(ZZ['x'])
+            sage: repr(x+1)
+            'x + 1'
+            sage: repr((x+1)/(x-1))
+            '(x + 1)/(x - 1)'
+            sage: repr(1/(x-1))
+            '1/(x - 1)'
+            sage: repr(1/x)
+            '1/x'
+        """
         if self.is_zero():
             return "0"
         s = "%s"%self.__numerator
@@ -285,6 +370,18 @@ class FractionFieldElement(field_element.FieldElement):
         return s
 
     def _add_(self, right):
+        """
+        EXAMPLES:
+            sage: K.<x,y> = Frac(ZZ['x,y'])
+            sage: x+y
+            x + y
+            sage: 1/x + 1/y
+            (x + y)/(x*y)
+            sage: 1/x + 1/(x*y)
+            (y + 1)/(x*y)
+            sage: Frac(CDF['x']).gen() + 3
+            1.0*x + 3.0
+        """
         if self.parent().is_exact():
             try:
                 gcd_denom = self.__denominator.gcd(right.__denominator)
@@ -308,6 +405,12 @@ class FractionFieldElement(field_element.FieldElement):
            self.__denominator*right.__denominator,  coerce=False, reduce=False)
 
     def _sub_(self, right):
+        """
+        EXAMPLES:
+            sage: K.<t> = Frac(GF(7)['t'])
+            sage: t - 1/t
+            (t^2 + 6)/t
+        """
         if self.parent().is_exact():
             try:
                 gcd_denom = self.__denominator.gcd(right.__denominator)
@@ -331,11 +434,27 @@ class FractionFieldElement(field_element.FieldElement):
            self.__denominator*right.__denominator,  coerce=False, reduce=False)
 
     def _mul_(self, right):
+        """
+        EXAMPLES:
+            sage: K.<t> = Frac(GF(7)['t'])
+            sage: a = t/(1+t)
+            sage: b = 3/t
+            sage: a*b
+            3/(t + 1)
+        """
         return FractionFieldElement(self.parent(),
            self.__numerator*right.__numerator,
            self.__denominator*right.__denominator, coerce=False, reduce=True)
 
     def _div_(self, right):
+        """
+        EXAMPLES:
+            sage: K.<x,y,z> = Frac(ZZ['x,y,z'])
+            sage: a = (x+1)*(x+y)/(z-3)
+            sage: b = (x+y)/(z-1)
+            sage: a/b
+            (x*z - x + z - 1)/(z - 3)
+        """
         return FractionFieldElement(self.parent(),
            self.__numerator*right.__denominator,
            self.__denominator*right.__numerator, coerce=False, reduce=True)
@@ -405,32 +524,63 @@ class FractionFieldElement(field_element.FieldElement):
                     self.__denominator**2
 
     def __int__(self):
+        """
+        EXAMPLES:
+            sage: K = Frac(ZZ['x'])
+            sage: int(K(-3))
+            -3
+            sage: K.<x> = Frac(RR['x'])
+            sage: x/x
+            1.00000000000000*x/(1.00000000000000*x)
+            sage: int(x/x)
+            1
+            sage: int(K(.5))
+            0
+        """
+        if self.__denominator != 1:
+            self.reduce()
         if self.__denominator == 1:
             return int(self.__numerator)
         else:
             raise TypeError, "denominator must equal 1"
 
-    def _integer_(self):
+    def _integer_(self, Z=ZZ):
+        """
+        EXAMPLES:
+            sage: K = Frac(ZZ['x'])
+            sage: K(5)._integer_()
+            5
+            sage: K.<x> = Frac(RR['x'])
+            sage: ZZ(2*x/x)
+            2
+        """
+        if self.__denominator != 1:
+            self.reduce()
         if self.__denominator == 1:
-            try:
-                return self.__numerator._integer_()
-            except AttributeError:
-                pass
+            return Z(self.__numerator)
         raise TypeError, "no way to coerce to an integer."
 
-    def _rational_(self):
-        Z = integer_ring.IntegerRing()
-        try:
-            return Z(self.__numerator) / Z(self.__denominator)
-        except AttributeError:
-            pass
-        raise TypeError, "coercion to rational not defined"
+    def _rational_(self, Q=QQ):
+        """
+        EXAMPLES:
+            sage: K.<x> = Frac(QQ['x'])
+            sage: K(1/2)._rational_()
+            1/2
+            sage: K(1/2 + x/x)._rational_()
+            3/2
+        """
+        return Q(self.__numerator) / Q(self.__denominator)
 
     def __long__(self):
-        if self.__denominator == 1:
-            return long(self.__numerator)
-        else:
-            raise TypeError, "denominator must equal 1"
+        """
+        EXAMPLES:
+            sage: K.<x> = Frac(QQ['x'])
+            sage: long(K(3))
+            3L
+            sage: long(K(3/5))
+            0L
+        """
+        return long(int(self))
 
     def __pow__(self, right):
         r"""
@@ -478,25 +628,59 @@ class FractionFieldElement(field_element.FieldElement):
                                         self.__numerator**right, coerce=False, reduce=False)
 
     def __neg__(self):
+        """
+        EXAMPLES:
+            sage: K.<t> = Frac(GF(5)['t'])
+            sage: f = (t^2+t)/(t+2); f
+            (t^2 + t)/(t + 2)
+            sage: -f
+            (4*t^2 + 4*t)/(t + 2)
+        """
         return FractionFieldElement(self.parent(), -self.__numerator, self.__denominator,
                                     coerce=False, reduce=False)
 
-    def __pos__(self):
-        return self
-
     def __abs__(self):
+        """
+        EXAMPLES:
+            sage: from sage.rings.fraction_field_element import FractionFieldElement
+            sage: abs(FractionFieldElement(QQ, -2, 3, coerce=False))
+            2/3
+        """
         return abs(self.__numerator)/abs(self.__denominator)
 
     def __invert__(self):
+        """
+        EXAMPLES:
+            sage: K.<t> = Frac(GF(7)['t'])
+            sage: f = (t^2+5)/(t-1)
+            sage: ~f
+            (t + 6)/(t^2 + 5)
+        """
         if self.is_zero():
             raise ZeroDivisionError, "Cannot invert 0"
         return FractionFieldElement(self.parent(),
            self.__denominator, self.__numerator, coerce=False, reduce=False)
 
     def __float__(self):
+        """
+        EXAMPLES:
+            sage: K.<x,y> = Frac(ZZ['x,y'])
+            sage: float(x/x + y/y)
+            2.0
+        """
         return float(self.__numerator) / float(self.__denominator)
 
     def __cmp__(self, other):
+        """
+        EXAMPLES:
+            sage: K.<t> = Frac(GF(7)['t'])
+            sage: t/t == 1
+            True
+            sage: t+1/t == (t^2+1)/t
+            True
+            sage: t == t/5
+            False
+        """
         return cmp(self.__numerator * other.__denominator, self.__denominator*other.__numerator)
 
     def valuation(self):

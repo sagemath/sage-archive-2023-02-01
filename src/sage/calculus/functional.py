@@ -371,6 +371,21 @@ def expand(x, *args, **kwds):
         sage: f*f                  # much faster, even if the degree is huge
         x^8 + 2*x^7 + 3*x^6 + 4*x^5 + 5*x^4 + 4*x^3 + 3*x^2 + 2*x + 1
 
+	TESTS:
+	    sage: t1 = (sqrt(3)-3)*(sqrt(3)+1)/6;
+	    sage: tt1 = -1/sqrt(3);
+	    sage: t2 = sqrt(3)/6;
+	    sage: float(t1)
+	    -0.57735026918962584
+	    sage: float(tt1)
+	    -0.57735026918962584
+	    sage: float(t2)
+	    0.28867513459481287
+	    sage: float(expand(t1 + t2))
+	    -0.288675134594812...
+	    sage: float(expand(tt1 + t2))
+	    -0.28867513459481292
+
     """
     try:
         return x.expand(*args, **kwds)

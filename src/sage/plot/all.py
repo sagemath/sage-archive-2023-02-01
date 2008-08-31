@@ -8,8 +8,6 @@ from plot import (Graphics, line, line2d, polygon, plot, point, points, point2d,
 
 from animate import Animation as animate
 
-from plot3dsoya_wrap import plot3dsoya
-
 from tachyon import Tachyon
 
 from misc import Color

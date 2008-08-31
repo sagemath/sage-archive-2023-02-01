@@ -8862,10 +8862,10 @@ class DiGraph(GenericGraph):
             ...               print "This should never happen."
 
         """
-        from sage.graphs.linearextensions import linearExtensions
+        from sage.graphs.linearextensions import LinearExtensions
         try:
-            return linearExtensions(self)
-        except:
+            return LinearExtensions(self).list()
+        except TypeError:
             raise TypeError('Digraph is not acyclic-- there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
 
     ### Visualization

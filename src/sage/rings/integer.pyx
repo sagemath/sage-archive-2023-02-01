@@ -351,6 +351,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: k = GF(2)
             sage: ZZ( (k(0),k(1)), 2)
             2
+
+            sage: t = pari(0*ZZ[x].0 + 3)
+            sage: t.type()
+            't_POL'
+            sage: ZZ(t)
+            3
         """
 
         # TODO: All the code below should somehow be in an external
@@ -399,8 +405,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     # pyrex to play games with refcount for the None object, which
                     # seems really stupid.
 
-                    s = hex(x)
-                    if mpz_set_str(self.value, s, 16) != 0:
+                    try:
+                        s = hex(x)
+                        base = 16
+                    except:
+                        s = str(x)
+                        base = 10
+
+                    if mpz_set_str(self.value, s, base) != 0:
                         raise TypeError, "Unable to coerce PARI %s to an Integer."%x
 
             elif PyString_Check(x):

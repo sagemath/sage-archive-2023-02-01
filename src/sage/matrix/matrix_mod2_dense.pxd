@@ -10,6 +10,9 @@ cdef extern from "m4ri/m4ri.h":
         int width
         int *rowswap
 
+    ctypedef struct permutation:
+        int *values
+        int size
 
     ctypedef int BIT
 
@@ -63,8 +66,16 @@ cdef extern from "m4ri/m4ri.h":
     # set BIT
     cdef void mzd_write_bit( packedmatrix *m, int row, int col, BIT value)
 
+    cdef void mzd_write_zeroed_bits(packedmatrix *m, int x, int y, int n, word values)
+
+    cdef void mzd_clear_bits(packedmatrix *m, int x, int y, int n)
+
     # get BIT
     cdef BIT mzd_read_bit( packedmatrix *m, int row, int col )
+
+    # get BITs (n<=64)
+    cdef word mzd_read_bits( packedmatrix *m, int row, int col, int n)
+
 
     ######################
     # Low-Level Arithmetic
@@ -77,6 +88,8 @@ cdef extern from "m4ri/m4ri.h":
     cdef void mzd_row_clear_offset(packedmatrix *m, int, int)
 
     cdef void mzd_row_add_offset(packedmatrix *m, int, int, int)
+
+    cdef permutation *mzd_col_block_rotate(packedmatrix *M, int ,int, int, int, permutation *)
 
     ############
     # Arithmetic
@@ -98,10 +111,10 @@ cdef extern from "m4ri/m4ri.h":
     cdef packedmatrix *mzd_addmul_m4rm(packedmatrix *, packedmatrix *, packedmatrix *, int k)
 
     # matrix multiplication via Strassen's formula
-    cdef packedmatrix *mzd_mul_strassen(packedmatrix *, packedmatrix *, packedmatrix *, int cutoff)
+    cdef packedmatrix *mzd_mul(packedmatrix *, packedmatrix *, packedmatrix *, int cutoff)
 
     # C = C + AB via Strassen's formula
-    cdef packedmatrix *mzd_addmul_strassen(packedmatrix *, packedmatrix *, packedmatrix *, int cutoff)
+    cdef packedmatrix *mzd_addmul(packedmatrix *, packedmatrix *, packedmatrix *, int cutoff)
 
     # equality testing
     cdef int mzd_equal(packedmatrix *, packedmatrix *)
@@ -133,4 +146,5 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):
     cdef object _zero
 
 
-    cdef Matrix_mod2_dense _multiply_m4rm_c(Matrix_mod2_dense self, Matrix_mod2_dense right, int k)
+    cpdef Matrix_mod2_dense _multiply_m4rm(Matrix_mod2_dense self, Matrix_mod2_dense right, int k)
+    cpdef Matrix_mod2_dense _multiply_strassen(Matrix_mod2_dense self, Matrix_mod2_dense right, int cutoff)

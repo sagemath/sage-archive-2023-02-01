@@ -63,7 +63,6 @@ usage_advanced() {
     echo "  -maxima <..>  -- run SAGE's Maxima with given arguments"
     echo "  -M2 <..>      -- run SAGE's Macaulay2 with given arguments"
     echo "  -min ...      -- do not populate global namespace (must be first option)"
-    echo "  -mpl          -- run with matplotlib support (requires optional matplotlib package)"
     echo "  -mwrank <..>  -- run SAGE's mwrank with given arguments"
     echo "  -np           -- run with no output prompts (useful for making doctests)"
     echo "  -optional     -- list all optional packages that can be downloaded"
@@ -734,16 +733,6 @@ if [ $1 = '-pkg_nc' -o $1 = "--pkg_nc" ]; then
    done
    exit $?
 fi
-
-if [ $1 = '-mpl' -o $1 = "--mpl" ]; then
-   sage_setup
-   shift
-   ipython  $LOGOPT -pylab -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND;"
-   exit $?
-fi
-
-
-
 
 if [ $1 = '-sdist' -o $1 = "--sdist" ]; then
    if [ $# -ne 2 ]; then

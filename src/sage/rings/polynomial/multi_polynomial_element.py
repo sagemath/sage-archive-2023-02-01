@@ -18,7 +18,7 @@ AUTHORS:
 
 EXAMPLES:
 We verify Lagrange's four squares identity:
-    sage: R.<a0,a1,a2,a3,b0,b1,b2,b3> = ZZ[]
+    sage: R.<a0,a1,a2,a3,b0,b1,b2,b3> = QQbar[]
     sage: (a0^2 + a1^2 + a2^2 + a3^2)*(b0^2 + b1^2 + b2^2 + b3^2) == (a0*b0 - a1*b1 - a2*b2 - a3*b3)^2 + (a0*b1 + a1*b0 + a2*b3 - a3*b2)^2 + (a0*b2 - a1*b3 + a2*b0 + a3*b1)^2 + (a0*b3 + a1*b2 - a2*b1 + a3*b0)^2
     True
 """
@@ -144,7 +144,7 @@ class MPolynomial_element(MPolynomial):
         self.parent().
 
         EXAMPLES:
-             sage: R.<x,y,z>=PolynomialRing(ZZ,3,order='lex')
+             sage: R.<x,y,z>=PolynomialRing(QQbar,3,order='lex')
              sage: x^1*y^2 > y^3*z^4
              True
              sage: x^3*y^2*z^4 < x^3*y^2*z^1
@@ -156,7 +156,7 @@ class MPolynomial_element(MPolynomial):
              sage: x^1*y^2*z^4 < x^1*y^1*z^5
              False
 
-             sage: R.<x,y,z>=PolynomialRing(ZZ,3,order='degrevlex')
+             sage: R.<x,y,z>=PolynomialRing(QQbar,3,order='degrevlex')
              sage: x^1*y^5*z^2 > x^4*y^1*z^3
              True
              sage: x^4*y^7*z^1 < x^4*y^2*z^3
@@ -206,7 +206,7 @@ class MPolynomial_element(MPolynomial):
             Note that it is not really possible to do a meaningful
             example since sage mpoly rings refuse to have
             non-commutative bases.
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = (x + y)
             sage: 3*f
             3*x + 3*y
@@ -221,7 +221,7 @@ class MPolynomial_element(MPolynomial):
             Note that it is not really possible to do a meaningful
             example since sage mpoly rings refuse to have
             non-commutative bases.
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = (x + y)
             sage: f*3
             3*x + 3*y
@@ -235,24 +235,6 @@ class MPolynomial_element(MPolynomial):
             sage: f = (x + y)/3
             sage: f.parent()
             Multivariate Polynomial Ring in x, y over Complex Field with 53 bits of precision
-
-        If we do the same over $\ZZ$ the result is the same as
-        multiplying by 1/3 (i.e. base extension).
-
-            sage: R.<x,y> = ZZ[]
-            sage: f = (x + y)/3
-            sage: f.parent()
-            Multivariate Polynomial Ring in x, y over Rational Field
-            sage: f = (x + y) * 1/3
-            sage: f.parent()
-            Multivariate Polynomial Ring in x, y over Rational Field
-
-        But we get a true fraction field if the denominator is not in
-        the fration field of the basering.
-
-            sage: f = x/y
-            sage: f.parent()
-            Fraction Field of Multivariate Polynomial Ring in x, y over Integer Ring
         """
         return self.parent().fraction_field()(self.__element, right.__element)
 
@@ -268,44 +250,44 @@ class MPolynomial_element(MPolynomial):
         return self.parent().change_ring(R)(self)
 
 
-class MPolynomial_macaulay2_repr:
-    """
-    Multivariate polynomials that are representable in Macaulay2.
-    """
-    def _macaulay2_(self, macaulay2=macaulay2):
-        """
-        Return corresponding Macaulay2 polynomial.
+#class MPolynomial_macaulay2_repr:
+#    """
+#    Multivariate polynomials that are representable in Macaulay2.
+#    """
+#    def _macaulay2_(self, macaulay2=macaulay2):
+#        """
+#        Return corresponding Macaulay2 polynomial.
+#
+#        EXAMPLES:
+#            sage: R.<x,y> = ZZ[]
+#            sage: f = (x^3 + 2*y^2*x)^7; f
+#            x^21 + 14*x^19*y^2 + 84*x^17*y^4 + 280*x^15*y^6 + 560*x^13*y^8 + 672*x^11*y^10 + 448*x^9*y^12 + 128*x^7*y^14
+#            sage: macaulay2(R)                      # optional, requires M2
+#            ZZ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+#            sage: h = f._macaulay2_()               # optional
+#            sage: R(h)                              # optional
+#            x^21 + 14*x^19*y^2 + 84*x^17*y^4 + 280*x^15*y^6 + 560*x^13*y^8 + 672*x^11*y^10 + 448*x^9*y^12 + 128*x^7*y^14
+#            sage: R(h^20) == f^20                   # optional
+#            True
+#        """
+#        try:
+#            if self.__macaulay2.parent() is macaulay2:
+#                return self.__macaulay2
+#        except AttributeError:
+#            pass
+#        self.parent()._macaulay2_set_ring(macaulay2)
+#        self.__macaulay2 = macaulay2(repr(self))
+#        return self.__macaulay2
+#
 
-        EXAMPLES:
-            sage: R.<x,y> = ZZ[]
-            sage: f = (x^3 + 2*y^2*x)^7; f
-            x^21 + 14*x^19*y^2 + 84*x^17*y^4 + 280*x^15*y^6 + 560*x^13*y^8 + 672*x^11*y^10 + 448*x^9*y^12 + 128*x^7*y^14
-            sage: macaulay2(R)                      # optional, requires M2
-            ZZ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
-            sage: h = f._macaulay2_()               # optional
-            sage: R(h)                              # optional
-            x^21 + 14*x^19*y^2 + 84*x^17*y^4 + 280*x^15*y^6 + 560*x^13*y^8 + 672*x^11*y^10 + 448*x^9*y^12 + 128*x^7*y^14
-            sage: R(h^20) == f^20                   # optional
-            True
-        """
-        try:
-            if self.__macaulay2.parent() is macaulay2:
-                return self.__macaulay2
-        except AttributeError:
-            pass
-        self.parent()._macaulay2_set_ring(macaulay2)
-        self.__macaulay2 = macaulay2(repr(self))
-        return self.__macaulay2
-
-
-class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr, MPolynomial_element):
+class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
     r"""
     Multivariate polynomials implemented in pure python using polydicts.
     """
     def __init__(self, parent, x):
         """
         EXAMPLES:
-            sage: R, x = PolynomialRing(ZZ, 10, 'x').objgens()
+            sage: R, x = PolynomialRing(QQbar, 10, 'x').objgens()
             sage: x
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             sage: loads(dumps(x)) == x
@@ -318,7 +300,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def __neg__(self):
         """
         EXAMPLES:
-            sage: R.<x,y>=ZZ[]
+            sage: R.<x,y>=QQbar[]
             sage: -x
             -x
             sage: -(y-1)
@@ -329,7 +311,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def _repr_(self):
         """
         EXAMPLES:
-            sage: R.<x,y>=ZZ[]
+            sage: R.<x,y>=QQbar[]
             sage: repr(-x^2-y+1)  # indirect doc-test
             '-x^2 - y + 1'
             sage: K.<I>=QuadraticField(-1)
@@ -348,9 +330,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def _latex_(self):
         """
         EXAMPLES:
-            sage: R.<x,y>=ZZ[]
+            sage: R.<x,y>=QQbar[]
             sage: latex(-x^2-y+1)
-            -x^{2} - y + 1
+            -x^{2} - y + \text{1}
             sage: K.<I>=QuadraticField(-1)
             sage: R.<x,y>=K[]
             sage: latex(-I*y+I*x^2)
@@ -367,7 +349,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def _repr_with_changed_varnames(self, varnames):
         """
         EXAMPLES:
-            sage: R.<x,y>=ZZ[]
+            sage: R.<x,y>=QQbar[]
             sage: f=-x^2-y+1
             sage: f._repr_with_changed_varnames(['jack','jill'])
             '-jack^2 - jill + 1'
@@ -380,21 +362,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         return self.element().poly_repr(varnames,
                                         atomic_coefficients=self.parent().base_ring().is_atomic_repr(), cmpfn=cmpfn)
 
-    def content(self):
-        """
-        Returns the content of this polynomial.  Here, we define content as
-        the gcd of the coefficients in the base ring.
-
-        EXAMPLES:
-            sage: R.<x,y>=ZZ[]
-            sage: f=4*x+6*y
-            sage: f.content()
-            2
-            sage: f.content().parent()
-            Integer Ring
-        """
-        return gcd(self.coefficients(),integer=self.parent() is ZZ)
-
     def degrees(self):
         r"""
         Returns a tuple (precisely -- an \code{ETuple}) with the
@@ -402,7 +369,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         degrees is, of course, ordered by the order of the generators.
 
         EXAMPLES:
-            sage: R.<x,y,z>=PolynomialRing(ZZ)
+            sage: R.<x,y,z>=PolynomialRing(QQbar)
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.degrees()
             (2, 2, 0)
@@ -411,7 +378,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             (2, 0, 2)
             sage: f.total_degree()  # this simply illustrates that total degree is not the sum of the degrees
             2
-            sage: R.<x,y,z,u>=PolynomialRing(ZZ)
+            sage: R.<x,y,z,u>=PolynomialRing(QQbar)
             sage: f=(1-x)*(1+y+z+x^3)^5
             sage: f.degrees()
             (16, 5, 5, 0)
@@ -461,7 +428,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         maximum degree of any monomial in self.
 
         EXAMPLES:
-            sage: R.<x,y,z> = ZZ[]
+            sage: R.<x,y,z> = QQbar[]
             sage: f=2*x*y^3*z^2
             sage: f.total_degree()
             6
@@ -503,14 +470,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         EXAMPLES:
         The parent of the return is a member of the base ring.
-            sage: R.<x,y>=ZZ[]
+            sage: R.<x,y>=QQbar[]
 
         The parent of the return is a member of the base ring.
             sage: f = 2 * x * y
             sage: c = f.monomial_coefficient(x*y); c
             2
             sage: c.parent()
-            Integer Ring
+            Algebraic Field
 
             sage: f = y^2 + y^2*x - x^9 - 7*x + 5*x*y
             sage: f.monomial_coefficient(y^2)
@@ -571,7 +538,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                  ring x can also be an integer.
 
         EXAMPLES:
-            sage: R.<x, y> = PolynomialRing(ZZ, 2)
+            sage: R.<x, y> = PolynomialRing(QQbar, 2)
             sage: f = -10*x^3*y + 17*x*y
             sage: f[3,1]
             -10
@@ -623,19 +590,19 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             For coefficients of specific monomials, look at \ref{monomial_coefficient}.
 
         EXAMPLES:
-            sage: R.<x, y> = ZZ[]
+            sage: R.<x, y> = QQbar[]
             sage: f = 2 * x * y
             sage: c = f.coefficient({x:1,y:1}); c
             2
             sage: c.parent()
-            Multivariate Polynomial Ring in x, y over Integer Ring
-            sage: c in PolynomialRing(IntegerRing(), 2, names = ['x','y'])
+            Multivariate Polynomial Ring in x, y over Algebraic Field
+            sage: c in PolynomialRing(QQbar, 2, names = ['x','y'])
             True
             sage: f = y^2 - x^9 - 7*x + 5*x*y
             sage: f.coefficient({y:1})
             5*x
             sage: f.coefficient({y:0})
-            -x^9 - 7*x
+            -x^9 + (-7)*x
             sage: f.coefficient({x:0,y:0})
             0
             sage: f=(1+y+y^2)*(1+x+x^2)
@@ -681,7 +648,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Return the exponents of the monomials appearing in self.
 
         EXAMPLES:
-           sage: R.<a,b,c> = PolynomialRing(ZZ, 3)
+           sage: R.<a,b,c> = PolynomialRing(QQbar, 3)
            sage: f = a^3 + b + 2*b^2
            sage: f.exponents()
            [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
@@ -704,7 +671,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Return True if self is a unit.
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: (x+y).is_unit()
             False
             sage: R(0).is_unit()
@@ -714,7 +681,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: R(-1 + x).is_unit()
             False
             sage: R(2).is_unit()
-            False
+            True
         """
         d = self.element().dict()
         k = d.keys()
@@ -740,7 +707,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Return True if self is a homogeneous polynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: (x+y).is_homogeneous()
             True
             sage: (x.parent()(0)).is_homogeneous()
@@ -770,12 +737,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             a multivariate polynomial
 
         EXAMPLES:
-            sage: P.<x,y> = ZZ[]
+            sage: P.<x,y> = QQbar[]
             sage: f = x^2 + y + 1 + 5*x*y^1
             sage: g = f.homogenize('z'); g # indirect doctest
             x^2 + 5*x*y + y*z + z^2
             sage: g.parent()
-            Multivariate Polynomial Ring in x, y, z over Integer Ring
+            Multivariate Polynomial Ring in x, y, z over Algebraic Field
 
         SEE: \code{self.homogenize}
         """
@@ -790,7 +757,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Returns True if self is a generator of it's parent.
 
         EXAMPLES:
-            sage: R.<x,y>=ZZ[]
+            sage: R.<x,y>=QQbar[]
             sage: x.is_generator()
             True
             sage: (x+y-y).is_generator()
@@ -807,19 +774,28 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
     def is_monomial(self):
         """
-        Returns True if self is a monomial.  Here, we define a monomial as a
-        product of variables with a coefficient (possibly not equal to 1).
+        Returns True if self is a monomial.  A monomial
+        is defined to be a product of generators with coefficient 1.
 
         EXAMPLES:
-            sage: R.<x,y>=ZZ[]
+            sage: R.<x,y>=QQbar[]
             sage: x.is_monomial()
             True
             sage: (x+2*y).is_monomial()
             False
             sage: (2*x).is_monomial()
+            False
+            sage: (x*y).is_monomial()
             True
         """
-        return len(self.element().dict().keys()) == 1
+        term = (len(self.element().dict().keys()) == 1)
+        if term:
+            if self.coefficients()[0] == 1:
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def subs(self, fixed=None, **kw):
         """
@@ -839,7 +815,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             new MPolynomial
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
             25*y^2 + y + 30
@@ -863,15 +839,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             list of MPolynomials representing Monomials
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.monomials()
             [x^2*y^2, x^2, y, 1]
 
-            sage: R.<fx,fy,gx,gy> = ZZ[]
+            sage: R.<fx,fy,gx,gy> = QQbar[]
             sage: F = ((fx*gy - fy*gx)^3)
             sage: F
-            -fy^3*gx^3 + 3*fx*fy^2*gx^2*gy - 3*fx^2*fy*gx*gy^2 + fx^3*gy^3
+            -fy^3*gx^3 + 3*fx*fy^2*gx^2*gy + (-3)*fx^2*fy*gx*gy^2 + fx^3*gy^3
             sage: F.monomials()
             [fy^3*gx^3, fx*fy^2*gx^2*gy, fx^2*fy*gx*gy^2, fx^3*gy^3]
             sage: F.coefficients()
@@ -896,7 +872,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Return the constant coefficient of this multivariate polynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.constant_coefficient()
             5
@@ -916,12 +892,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Returns True if this multivariate polynomial is univariate and False otherwise.
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.is_univariate()
             False
             sage: g = f.subs({x:10}); g
-            700*y^2 - 2*y + 305
+            700*y^2 + (-2)*y + 305
             sage: g.is_univariate()
             True
             sage: f = x^0
@@ -958,16 +934,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         base ring as the given MPolynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.univariate_polynomial()
             Traceback (most recent call last):
             ...
             TypeError: polynomial must involve at most one variable
             sage: g = f.subs({x:10}); g
-            700*y^2 - 2*y + 305
+            700*y^2 + (-2)*y + 305
             sage: g.univariate_polynomial ()
-            700*y^2 - 2*y + 305
+            700*y^2 + (-2)*y + 305
             sage: g.univariate_polynomial(PolynomialRing(QQ,'z'))
             700*z^2 - 2*z + 305
         """
@@ -976,7 +952,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         #construct ring if None
         if R is None:
-            R =  self.base_ring()[str(self.variables()[0])]
+            R = self.base_ring()[str(self.variables()[0])]
 
         monomial_coefficients = self._MPolynomial_element__element.dict()
 
@@ -1005,12 +981,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Returns the list of variables occuring in this polynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.variables()
             [x, y]
             sage: g = f.subs({x:10}); g
-            700*y^2 - 2*y + 305
+            700*y^2 + (-2)*y + 305
             sage: g.variables()
             [y]
         """
@@ -1021,7 +997,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Returns $i$-th variable occuring in this polynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.variable(0)
             x
@@ -1035,12 +1011,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Number of variables in this polynomial
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.nvariables ()
             2
             sage: g = f.subs({x:10}); g
-            700*y^2 - 2*y + 305
+            700*y^2 + (-2)*y + 305
             sage: g.nvariables ()
             1
         """
@@ -1051,7 +1027,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         True if polynomial is constant, and False otherwise.
 
         EXAMPLES:
-            sage: R.<x,y> = ZZ[]
+            sage: R.<x,y> = QQbar[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.is_constant()
             False
@@ -1082,7 +1058,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
              sage: (x^1*y^2*z^4 + x^1*y^1*z^5).lm()
              x*y^2*z^4
 
-             sage: R.<x,y,z>=PolynomialRing(ZZ,3,order='degrevlex')
+             sage: R.<x,y,z>=PolynomialRing(QQbar,3,order='degrevlex')
              sage: (x^1*y^5*z^2 + x^4*y^1*z^3).lm()
              x*y^5*z^2
              sage: (x^4*y^7*z^1 + x^4*y^2*z^3).lm()
@@ -1106,7 +1082,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         self.coefficient(self.lm())
 
         EXAMPLES:
-            sage: R.<x,y,z>=ZZ[]
+            sage: R.<x,y,z>=QQbar[]
             sage: f=3*x^2-y^2-x*y
             sage: f.lc()
             3
@@ -1128,11 +1104,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         parent ring.
 
         EXAMPLES:
-            sage: R.<x,y,z>=PolynomialRing(ZZ)
+            sage: R.<x,y,z>=PolynomialRing(QQbar)
             sage: f=3*x^2-y^2-x*y
             sage: f.lt()
             3*x^2
-            sage: R.<x,y,z>=PolynomialRing(ZZ,order="invlex")
+            sage: R.<x,y,z>=PolynomialRing(QQbar,order="invlex")
             sage: f=3*x^2-y^2-x*y
             sage: f.lt()
             -y^2
@@ -1184,21 +1160,21 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         return self._MPolynomial_element__element.dict()!={}
 
     def __floordiv__(self,right):
-        """
+        r"""
         Quotient of division of self by other.  This is denoted //.
 
         NOTES:
-            It's not clear to me that this is well-defined if self is not exactly
-            divisible by other.
+            It's not clear to me that this is well-defined if
+            \code{self} is not exactly divisible by other.
 
         EXAMPLES:
-            sage: R.<x,y>=ZZ[]
+            sage: R.<x,y>=QQbar[]
             sage: 2*x*y//y
             2*x
             sage: 2*x//y
             0
             sage: 2*x//4
-            0
+            1/2*x
             sage: type(0//y)
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
         """
@@ -1342,38 +1318,38 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             raise ArithmeticError, "f is not in I"
         return Sequence(M.list(), P, check=False, immutable=True)
 
-    def gcd(self, f):
-        """
-        Compute the greatest common divisor of this polynomial and f.
-
-        ALGORITHM: Use Singular.
-
-        EXAMPLES:
-            sage: R.<x,y> = ZZ[]
-            sage: gcd(2*x,4*x)
-            2*x
-            sage: gcd(2*x,4*x)
-            2*x
-            sage: gcd(9*x*y*(x^2-y^2), 15*x*y^2*(x^2+y^2))
-            3*x*y
-
-        """
-        if type(self) is not type(f) or self.parent() is not f.parent():
-            self, f = canonical_coercion(self, f)
-            return self.gcd(f)  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
-
-        # Singular ignores coefficents anyway, thus it is okay to work over Z here
-        # PARI uses the coefficents btw.
-        # TODO: This is slow
-
-        P = self.parent()
-        if P.base_ring() == ZZ:
-            res = self.parent()(self._singular_(force=True).gcd(f._singular_(force=True)))
-            coef = gcd(self.element().dict().values() + f.element().dict().values(),True)
-            return coef*res
-
-        P._singular_().set_ring()
-        return P(self._singular_().gcd(f._singular_()))
+    #def gcd(self, f):
+    #    """
+    #    Compute the greatest common divisor of this polynomial and f.
+    #
+    #    ALGORITHM: Use Singular.
+    #
+    #    EXAMPLES:
+    #        sage: R.<x,y> = CC[]
+    #        sage: gcd(2*x,4*x)
+    #        2*x
+    #        sage: gcd(2*x,4*x)
+    #        2*x
+    #        sage: gcd(9*x*y*(x^2-y^2), 15*x*y^2*(x^2+y^2))
+    #        3*x*y
+    #
+    #    """
+    #    if type(self) is not type(f) or self.parent() is not f.parent():
+    #        self, f = canonical_coercion(self, f)
+    #        return self.gcd(f)  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
+    #
+    #    # Singular ignores coefficents anyway, thus it is okay to work over Z here
+    #    # PARI uses the coefficents btw.
+    #    # TODO: This is slow
+    #
+    #    P = self.parent()
+    #    if P.base_ring() == ZZ:
+    #        res = self.parent()(self._singular_(force=True).gcd(f._singular_(force=True)))
+    #        coef = gcd(self.element().dict().values() + f.element().dict().values(),True)
+    #        return coef*res
+    #
+    #    P._singular_().set_ring()
+    #    return P(self._singular_().gcd(f._singular_()))
 
     def quo_rem(self, right):
         """
@@ -1403,20 +1379,20 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             I -- a list of polynomials or an ideal
 
         EXAMPLE:
-            sage: P.<x,y,z> = ZZ[]
+            sage: P.<x,y,z> = QQbar[]
             sage: f1 = -2 * x^2 + x^3
             sage: f2 = -2 * y + x* y
             sage: f3 = -x^2 + y^2
             sage: F = Ideal([f1,f2,f3])
             sage: g = x*y - 3*x*y^2
             sage: g.reduce(F)
-            6*y^2 - 2*y
+            (-6)*y^2 + 2*y
             sage: g.reduce(F.gens())
-            6*y^2 - 2*y
+            (-6)*y^2 + 2*y
 
             sage: f = 3*x
             sage: f.reduce([2*x,y])
-            x
+            0
         """
         from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
@@ -1426,58 +1402,35 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         if isinstance(I, MPolynomialIdeal):
             I = I.gens()
 
-        if not k.is_field() and not k is ZZ:
-            raise TypeError, "can only reduce polynomials over fields or over ZZ"
+        if not k.is_field():
+            raise TypeError, "Can only reduce polynomials over fields."
 
-        if k.is_field():
-            try:
-                fs = self._singular_()
-                Is = fs.parent().ideal(I)
-                return P(fs.reduce(Is,1))
-            except TypeError:
-                pass
+        try:
+            fs = self._singular_()
+            Is = fs.parent().ideal(I)
+            return P(fs.reduce(Is,1))
+        except TypeError:
+            pass
 
         lI = len(I)
         I = list(I)
         r = 0
         p = self
 
-        if k.is_field():
-            while p != 0:
-                for i in xrange(lI):
-                    gi = I[i]
-                    plm = p.lm()
-                    gilm = gi.lm()
-                    if P.monomial_divides(gilm, plm):
-                        quot = p.lc()/gi.lc() * P.monomial_quotient(plm, gilm)
-                        p -= quot*I[i]
-                        break
-                else:
-                    plt = p.lt()
-                    r += plt
-                    p -= plt
-        else:
-            if p.lc() < 0:
-                p = (-1)*p
-            while p != 0:
-                for i in xrange(lI):
-                    gi = I[i]
-                    plm = p.lm()
-                    gilm = gi.lm()
-                    plc = p.lc()
-                    gilc = gi.lc()
-                    if P.monomial_divides(gilm, plm):
-                        if gilc.abs() <= plc.abs():
-                            quot = plc//gilc * P.monomial_quotient(plm, gilm)
-                            p -= quot*I[i]
-                            break
-                else:
-                    plt = p.lt()
-                    r += plt
-                    p -= plt
+        while p != 0:
+            for i in xrange(lI):
+                gi = I[i]
+                plm = p.lm()
+                gilm = gi.lm()
+                if P.monomial_divides(gilm, plm):
+                    quot = p.lc()/gi.lc() * P.monomial_quotient(plm, gilm)
+                    p -= quot*I[i]
+                    break
+            else:
+                plt = p.lt()
+                r += plt
+                p -= plt
         return r
-
-
 
 ###############################################################
 # Useful for some geometry code.

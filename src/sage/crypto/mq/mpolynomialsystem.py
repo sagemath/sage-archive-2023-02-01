@@ -715,16 +715,15 @@ class MPolynomialSystem_generic(SageObject):
         EXAMPLE:
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
-            sage: F.variables()[:10]  # this output ordering depends on a hash and so might change if __hash__ changes
-            [s000, k101, k100, s003, x102, x103, s002, w103, w102, x100]        # 32-bit
-            [k101, k100, s003, x102, x103, s002, w103, w102, x100, x101]        # 64-bit
+            sage: F.variables()[:10]
+            [k003, k002, k001, k000, s003, s002, s001, s000, w103, w102]
         """
         V = set()
         for r in self._rounds:
             for f in r._gens:
                 for v in f.variables():
                     V.add(v)
-        return list(V)
+        return sorted(V)
 
 
     def nvariables(self):

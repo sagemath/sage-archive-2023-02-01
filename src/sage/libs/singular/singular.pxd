@@ -12,6 +12,7 @@ from sage.rings.number_field.number_field_base cimport NumberField
 
 cdef class Conversion:
     cdef extern Rational si2sa_QQ(self, number (*),ring (*))
+    cdef extern Integer si2sa_ZZ(self, number (*),ring (*))
     cdef extern FiniteField_givaroElement si2sa_GFqGivaro(self, number *n, ring *_ring, FiniteField_givaro base)
     cdef extern FiniteField_ntl_gf2eElement si2sa_GFqNTLGF2E(self, number *n, ring *_ring, FiniteField_ntl_gf2e base)
     cdef extern object si2sa_GFqPari(self, number *n, ring *_ring, object base)

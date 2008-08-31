@@ -21,6 +21,7 @@ cdef extern from "limits.h":
     long INT_MIN
 
 from sage.rings.rational_field import RationalField
+from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.finite_field_prime_modn import FiniteField_prime_modn
 from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
 from sage.libs.pari.all import pari
@@ -83,6 +84,59 @@ cdef class Conversion:
         z = Rational()
         z.set_from_mpq(_z)
         mpq_clear(_z)
+        return z
+
+
+    cdef public Integer si2sa_ZZ(self, number *n, ring *_ring):
+        r"""
+        Converts a \SINGULAR integer to a \SAGE integer number.
+
+        INPUT:
+            n -- number
+            _ring -- singular ring, used to check type of n
+
+        OUTPUT:
+            SAGE integer matching n
+        """
+        cdef number *nom
+        cdef number *denom
+        cdef mpz_t _z, _denom
+        cdef Integer z
+
+        mpz_init(_z)
+
+        ##  Immediate integers handles carry the tag 'SR_INT', i.e. the last bit is 1.
+        ##  This distuingishes immediate integers from other handles which  point  to
+        ##  structures aligned on 4 byte boundaries and therefor have last bit  zero.
+        ##  (The second bit is reserved as tag to allow extensions of  this  scheme.)
+        ##  Using immediates as pointers and dereferencing them gives address errors.
+        nom = nlGetNom(n, _ring)
+        mpz_init(_z)
+
+        if (SR_HDL(nom) & SR_INT):
+            mpz_set_si(_z, SR_TO_INT(nom))
+        else:
+            mpz_set(_z,&nom.z)
+
+        nlDelete(&nom,_ring)
+
+        denom = nlGetDenom(n, _ring)
+
+        mpz_init(_denom)
+
+        if (SR_HDL(denom) & SR_INT):
+            mpz_set_si(_denom, SR_TO_INT(denom))
+        else:
+            mpz_set(_denom,&denom.z)
+
+        mpz_fdiv_q(_z, _z, _denom)
+
+        mpz_clear(_denom)
+        nlDelete(&denom,_ring)
+
+        z = Integer()
+        z.set_from_mpz(_z)
+        mpz_clear(_z)
         return z
 
     cdef public FiniteField_givaroElement si2sa_GFqGivaro(self, number *n, ring *_ring, FiniteField_givaro base):
@@ -419,6 +473,9 @@ cdef class Conversion:
         elif PY_TYPE_CHECK(base, RationalField):
             return self.si2sa_QQ(n,_ring)
 
+        elif PY_TYPE_CHECK(base, IntegerRing_class):
+            return self.si2sa_ZZ(n,_ring)
+
         elif PY_TYPE_CHECK(base, FiniteField_givaro):
             return self.si2sa_GFqGivaro(n, _ring, base)
 
@@ -441,6 +498,9 @@ cdef class Conversion:
 
         elif PY_TYPE_CHECK(elem._parent, RationalField):
             return self.sa2si_QQ(elem, _ring)
+
+        elif PY_TYPE_CHECK(elem._parent, IntegerRing_class):
+            return self.sa2si_ZZ(elem, _ring)
 
         elif PY_TYPE_CHECK(elem._parent, FiniteField_givaro):
             return self.sa2si_GFqGivaro( (<FiniteField_givaro>elem._parent).objectptr.convert(i, (<FiniteField_givaroElement>elem).element ), _ring )

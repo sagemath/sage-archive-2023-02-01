@@ -78,15 +78,15 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
             sage: f = X([1]); f
             X[1]
             sage: type(f.expand())
-            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
             sage: f.expand()
             1
             sage: f = X([1,2])
             sage: type(f.expand())
-            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
             sage: f = X([1,3,2,4])
             sage: type(f.expand())
-            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
 
         """
         p = symmetrica.t_SCHUBERT_POLYNOM(self)

@@ -491,7 +491,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: p = P._coerce_(t)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce from <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'> to Boolean PolynomialRing in x, y
+            TypeError: cannot coerce from <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'> to Boolean PolynomialRing in x, y
 
         Test coercion from a ring that compares equal.
 

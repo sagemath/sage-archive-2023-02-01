@@ -748,6 +748,47 @@ cdef class MPolynomial(CommutativeRingElement):
         L = zip(self.coefficients(), self.monomials())
         return iter(L)
 
+    def content(self):
+        """
+        Returns the content of this polynomial.  Here, we define content as
+        the gcd of the coefficients in the base ring.
+
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+            sage: f=4*x+6*y
+            sage: f.content()
+            2
+            sage: f.content().parent()
+            Integer Ring
+        """
+        from sage.rings.arith import gcd
+        from sage.rings.all import ZZ
+
+        return gcd(self.coefficients(),integer=self.parent() is ZZ)
+
+    def is_generator(self):
+        r"""
+        Returns \code{True} if this polynomial is a generator of it's
+        parent.
+
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+            sage: x.is_generator()
+            True
+            sage: (x+y-y).is_generator()
+            True
+            sage: (x*y).is_generator()
+            False
+            sage: R.<x,y>=QQ[]
+            sage: x.is_generator()
+            True
+            sage: (x+y-y).is_generator()
+            True
+            sage: (x*y).is_generator()
+            False
+        """
+        return (self in self.parent().gens())
+
 cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]

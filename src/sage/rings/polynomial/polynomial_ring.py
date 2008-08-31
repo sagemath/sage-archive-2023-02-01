@@ -129,7 +129,7 @@ def is_PolynomialRing(x):
         sage: is_PolynomialRing(R)
         False
         sage: type(R)
-        <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain'>
+        <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
     """
     return isinstance(x, PolynomialRing_general)
 

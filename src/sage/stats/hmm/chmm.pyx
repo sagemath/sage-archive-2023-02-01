@@ -577,7 +577,7 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
 
         We compute weighted sum of log probabilities of two sequences:
             sage: m.log_likelihood([ ([1,0,1,1], 10),  ([1,0,1,20], 0.1)  ])
-            -72.225116741468781
+            -72.2251167414687...
 
         We verify that the above weight computation is right.
             sage: 10 * m.log_likelihood([1,0,1,1]) + 0.1 * m.log_likelihood([1,0,1,20])
@@ -704,8 +704,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             [1.0 0.0]
             [0.0 1.0]
             Emission parameters:
-            [(1.946539535984342, 0.70508296299241024), (2.0208156913293394, 0.70680033099099593)]
-            Initial probabilities: [0.28024729110782109, 0.71975270889217891]
+            [(1.946539535984342..., 0.70508296299241024), (2.02081569132933..., 0.70680033099099593)]
+            Initial probabilities: [0.28024729110782..., 0.71975270889217...]
 
         We train the same model, but waiting one of the lists more than the other.
             sage: m = hmm.GaussianHiddenMarkovModel([[1,0],[0,1]], [(0,1),(0,2)], [1/2,1/2])
@@ -716,8 +716,8 @@ cdef class GaussianHiddenMarkovModel(ContinuousHiddenMarkovModel):
             [1.0 0.0]
             [0.0 1.0]
             Emission parameters:
-            [(1.5851786151779879, 0.57264580740105153), (1.5945035666064733, 0.57928632238916189)]
-            Initial probabilities: [0.38546857052811945, 0.61453142947188055]
+            [(1.58517861517798..., 0.57264580740105153), (1.594503566606473..., 0.57928632238916189)]
+            Initial probabilities: [0.385468570528119..., 0.614531429471880...]
 
 
         Training sequences of length 0 are gracefully ignored:

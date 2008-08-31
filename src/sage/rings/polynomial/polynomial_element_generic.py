@@ -894,6 +894,43 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         """
         return self.discriminant()
 
+    def numerator(self):
+        """
+        Returns the numerator of self as a polynomial in ZZ[x].
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: (x/2).numerator()
+            x
+            sage: (x + 1/2).numerator()
+            2*x + 1
+            sage: (x^2/12 - 1/15).numerator()
+            5*x^2 - 4
+            sage: f = R.random_element(60)
+            sage: f.numerator() in ZZ['x']
+            True
+            sage: f.numerator() / f.denominator() == f
+            True
+        """
+        return ZZ[self.variable_name()](self.denominator() * self)
+
+    def denominator(self):
+        """
+        Returns the denominator of self as an element of ZZ.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: (x/2).denominator()
+            2
+            sage: (x/2 + 1/3).denominator()
+            6
+            sage: R.<x> = QQ[]
+            sage: f = R.random_element(50)
+            sage: f * f.denominator() in ZZ['x']
+            True
+        """
+        return integer.LCM_list([a.denominator() for a in self])
+
     def factor_mod(self, p):
         """
         Return the factorization of self modulo the prime p.

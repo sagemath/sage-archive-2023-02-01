@@ -381,6 +381,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError, "other (=%s) must be in the same ambient space as self"%other
         return A.subscheme(self.defining_ideal().intersection(other.defining_ideal()))
 
+    __add__ = union
 
     def intersection(self, other):
         """

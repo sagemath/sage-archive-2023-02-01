@@ -630,7 +630,7 @@ class Gap(Expect):
             self._keyboard_interrupt()
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
-    def clear(self, var):
+    def unbind(self, var):
         """
         Clear the variable named var.
 
@@ -638,7 +638,7 @@ class Gap(Expect):
             sage: gap.set('x', '2')
             sage: gap.get('x')
             '2'
-            sage: gap.clear('x')
+            sage: gap.unbind('x')
             sage: gap.get('x')
             Traceback (most recent call last):
             ...

@@ -577,16 +577,18 @@ class GpElement(ExpectElement):
         """
         return float(pari(str(self)))
 
-    def __bool__(self):
+    def bool(self):
         """
         EXAMPLES:
+            sage: gp(2).bool()
+            True
             sage: bool(gp(2))
             True
             sage: bool(gp(0))
             False
         """
         P = self._check_valid()
-        return P.eval('%s == 0'%(self.name())) == '1'
+        return P.eval('%s != 0'%(self.name())) == '1'
 
     def _complex_mpfr_field_(self, CC):
         """

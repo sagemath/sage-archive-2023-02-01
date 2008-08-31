@@ -977,7 +977,9 @@ class SymbolicEquation(SageObject):
 
             explicit_solution -- (default: False); if True, require
                 that all solutions returned be explicit (rather than
-                implicit) OUTPUT: A list of SymbolicEquations with the
+                implicit)
+
+        OUTPUT: A list of SymbolicEquations with the
                 variable to solve for on the left hand side.
 
         EXAMPLES:
@@ -991,6 +993,11 @@ class SymbolicEquation(SageObject):
             sage: S = solve(x^3 - 1 == 0, x, solution_dict=True)
             sage: S
             [{x: (sqrt(3)*I - 1)/2}, {x: (-sqrt(3)*I - 1)/2}, {x: 1}]
+            sage: z = 5
+            sage: solve(z^2 == sqrt(3),z)
+            Traceback (most recent call last):
+            ...
+            TypeError: 5 is not a valid variable.
 
         We illustrate finding multiplicities of solutions:
             sage: f = (x-1)^5*(x^2+1)
@@ -1000,7 +1007,7 @@ class SymbolicEquation(SageObject):
             ([x == -1*I, x == I, x == 1], [1, 1, 5])
         """
         if not self._op is operator.eq:
-            raise ValueError, "solving only implemented for equalities"
+            raise NotImplementedError, "solving only implemented for equalities"
         if x is None:
             v = self.variables()
             if len(v) == 0:
@@ -1009,6 +1016,10 @@ class SymbolicEquation(SageObject):
                 else:
                     return []
             x = v[0]
+
+        from sage.calculus.calculus import SymbolicVariable, SymbolicFunction, SymbolicFunctionEvaluation
+        if not isinstance(x,(SymbolicVariable,SymbolicFunction,SymbolicFunctionEvaluation)):
+            raise TypeError, "%s is not a valid variable."%x
 
         m = self._maxima_()
         P = m.parent()
@@ -1335,7 +1346,7 @@ def solve(f, *args, **kwds):
     INPUT:
         f -- equation or system of equations (given by a list or tuple)
         *args -- variables to solve for.
-	solution_dict = True -- return a list of dictionaries containing the solutions.
+    solution_dict = True -- return a list of dictionaries containing the solutions.
 
     EXAMPLES:
         sage: x, y = var('x, y')
@@ -1362,6 +1373,11 @@ def solve(f, *args, **kwds):
         -0.500 + 0.866*I , 1.27 + 0.341*I
         0.000 , -1.00
         0.000 , 1.00
+        sage: z = 5
+        sage: solve([8*z + y == 3, -z +7*y == 0],y,z)
+        Traceback (most recent call last):
+        ...
+        TypeError: 5 is not a valid variable.
 
     If \code{True} appears in the list of equations it is ignored, and if
     \code{False} appears in the list then no solutions are returned.  E.g.,
@@ -1380,36 +1396,48 @@ def solve(f, *args, **kwds):
         sage: var('s,i,b,m,g')
         (s, i, b, m, g)
         sage: sys = [ m*(1-s) - b*s*i, b*s*i-g*i ];
-        sage: solve(sys,s,i);
+        sage: solve(sys,s,i)
         [[s == 1, i == 0], [s == g/b, i == (b - g)*m/(b*g)]]
-        sage: solve(sys,[s,i]);
+        sage: solve(sys,(s,i))
         [[s == 1, i == 0], [s == g/b, i == (b - g)*m/(b*g)]]
-
+        sage: solve(sys,[s,i])
+        [[s == 1, i == 0], [s == g/b, i == (b - g)*m/(b*g)]]
     """
-    if isinstance(f, (list, tuple)):
-        f = [s for s in f if s is not True]
-        for s in f:
-            if s is False:
-                return []
-
-        m = maxima(list(f))
+    try:
+        return f.solve(*args,**kwds)
+    except AttributeError:
 
         try:
-            if isinstance(args[0],list):
-                s = m.solve(tuple(args[0]))
-            else:
-                s = m.solve(args)
+            variables = tuple(args[0])
+        except TypeError:
+            variables = args
+
+        from sage.calculus.calculus import SymbolicVariable, SymbolicFunction, SymbolicFunctionEvaluation
+        for v in variables:
+            if not isinstance(v,(SymbolicVariable,SymbolicFunction,SymbolicFunctionEvaluation)):
+                raise TypeError, "%s is not a valid variable."%v
+
+        try:
+            f = [s for s in f if s is not True]
+        except TypeError:
+            raise ValueError, "Unable to solve %s for %s"%(f, args)
+
+        if any(s is False for s in f):
+            return []
+
+        m = maxima(f)
+
+        try:
+            s = m.solve(variables)
         except:
             raise ValueError, "Unable to solve %s for %s"%(f, args)
         a = repr(s)
-	sol_list = string_to_list_of_solutions(a)
-	if 'solution_dict' in kwds and kwds['solution_dict']==True:
+        sol_list = string_to_list_of_solutions(a)
+        if 'solution_dict' in kwds and kwds['solution_dict']==True:
             sol_dict=[dict([[eq.left(),eq.right()] for eq in solution]) for solution in sol_list]
             return sol_dict
         else:
             return sol_list
-    else:
-        return f.solve(*args, **kwds)
 
 import sage.categories.all
 objs = sage.categories.all.Objects()

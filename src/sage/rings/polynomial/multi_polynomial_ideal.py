@@ -2,9 +2,9 @@
 r"""
 Ideals in multivariate polynomial rings.
 
-\SAGE has a powerful system to compute with multivariate polynomial
+\Sage has a powerful system to compute with multivariate polynomial
 rings. Most algorithms dealing with these ideals are centered the
-computation of \emph{Groebner base}. \SAGE makes use of \Singular to
+computation of \emph{Groebner basis}. \Sage makes use of \Singular to
 implement this functionality. \Singular is widely regarded as the best
 open-source system for Groebner basis calculation in multivariate
 polynomial rings over fields.
@@ -29,6 +29,7 @@ the \code{groebner_basis} method is \code{Sequence}, i.e. it is not an
     <class 'sage.structure.sequence.Sequence'>
 
 Groebner bases can be used to solve the ideal membership problem.
+
     sage: f,g,h = B
     sage: (2*x*f + g).reduce(B)
     0
@@ -44,6 +45,7 @@ Groebner bases can be used to solve the ideal membership problem.
 
 We compute a Groebner basis for cyclic 6, which is a standard
 benchmark and test ideal.
+
     sage: R.<x,y,z,t,u,v> = QQ['x,y,z,t,u,v']
     sage: I = sage.rings.ideal.Cyclic(R,6)
     sage: B = I.groebner_basis()
@@ -51,26 +53,29 @@ benchmark and test ideal.
     45
 
 We compute in a quotient of a polynomial ring over $\ZZ/17\ZZ$:
+
     sage: R.<x,y> = ZZ[]
-    sage: S.<a,b> = R.quotient((x^2 + y^2, 17)) # optional -- requires Macaulay2
-    sage: S                                     # optional
+    sage: S.<a,b> = R.quotient((x^2 + y^2, 17))
+    verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+    sage: S
     Quotient of Multivariate Polynomial Ring in x, y over Integer Ring
     by the ideal (x^2 + y^2, 17)
 
-    sage: a^2 + b^2 == 0                        # optional
+    sage: a^2 + b^2 == 0
     True
-    sage: a^3 - b^2                             # optional
-    -1*a*b^2 - b^2
-    sage: (a+b)^17                              # optional
+    sage: a^3 - b^2
+    a*b^2 - b^2
+    sage: (a+b)^17
     a*b^16 + b^17
-    sage: S(17) == 0                            # optional
+    sage: S(17) == 0
     True
 
 Working with a polynomial ring over $\ZZ$:
+
     sage: R.<x,y,z,w> = ZZ['x,y,z,w']
     sage: i = ideal(x^2 + y^2 - z^2 - w^2, x-y)
     sage: j = i^2
-    sage: j.groebner_basis()                    # optional
+    sage: j.groebner_basis('macaulay2')          # requires optional M2 package
     [x^2 - 2*x*y + y^2, 2*x*y^2 - 2*y^3 - x*z^2 + y*z^2 - x*w^2 +
     y*w^2, 4*y^4 - 4*y^2*z^2 + z^4 - 4*y^2*w^2 + 2*z^2*w^2 + w^4]
 
@@ -80,6 +85,7 @@ Working with a polynomial ring over $\ZZ$:
     True
 
 We do a Groebner basis computation over a number field:
+
     sage: K.<zeta> = CyclotomicField(3)
     sage: R.<x,y,z> = K[]; R
     Multivariate Polynomial Ring in x, y, z over Cyclotomic Field of order 3 and degree 2
@@ -101,16 +107,70 @@ We do a Groebner basis computation over a number field:
     sage: S.0^3 - zeta*S.1^3
     0
 
-Two examples from the Mathematica documentation (done in \SAGE):
+Two examples from the Mathematica documentation (done in \Sage):
+
     We compute a Groebner basis:
+
         sage: R.<x,y> = PolynomialRing(QQ, order='lex')
         sage: ideal(x^2 - 2*y^2, x*y - 3).groebner_basis()
         [y^4 - 9/2, x - 2/3*y^3]
 
     We show that three polynomials have no common root:
+
         sage: R.<x,y> = QQ[]
         sage: ideal(x+y, x^2 - 1, y^2 - 2*x).groebner_basis()
         [1]
+
+The next example shows how we can use Groebner bases over \ZZ to find
+the primes modulo which a system of equations has a solution, when the
+system has no solutions over the rationals.
+
+    We first form a certain ideal $I$ in $\ZZ[x, y, z]$, and note that
+    the Groebner basis of $I$ over \QQ contains 1, so there are no
+    solutions over \QQ or an algebraic closure of it (this is not
+    surprising as there are 4 equations in 3 unknowns).
+
+        sage: P.<x,y,z> = PolynomialRing(ZZ,order='lex')
+        sage: I = ideal(-y^2 - 3*y + z^2 + 3, -2*y*z + z^2 + 2*z + 1, \
+                        x*z + y*z + z^2, -3*x*y + 2*y*z + 6*z^2)
+        sage: I.change_ring(P.change_ring(QQ)).groebner_basis()
+        [1]
+
+    However, when we compute the Groebner basis of I (defined over
+    \ZZ), we note that there is a certain integer in the ideal which
+    is not 1.
+
+        sage: I.groebner_basis()
+        verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+        [x + y + z, y^2 + y + 23234, y*z + y + 26532, 2*y + 158864, z^2 + 17223, 2*z + 41856, 164878]
+
+    Now for each prime $p$ dividing this integer 164878, the
+    Groebner basis of I modulo $p$ will be non-trivial and will thus
+    give a solution of the original system modulo $p$.
+
+
+        sage: factor(164878)
+        2 * 7 * 11777
+
+        sage: I.change_ring(P.change_ring( GF(2) )).groebner_basis()
+        [z^2 + 1, y*z + y, y^2 + y, x + y + z]
+        sage: I.change_ring(P.change_ring( GF(7) )).groebner_basis()
+        [z - 2, y + 3, x - 1]
+        sage: I.change_ring(P.change_ring( GF(11777 ))).groebner_basis()
+        [z - 2626, y - 3007, x + 5633]
+
+    The Groebner basis modulo any product of the prime factors is also non-trivial.
+
+        sage: I.change_ring(P.change_ring( IntegerModRing(2*7) )).groebner_basis()
+        verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+        [x + y + z, y^2 + y + 8, y*z + y + 2, 2*y + 6, z^2 + 3, 2*z + 10]
+
+    Modulo any other prime the Groebner basis is trivial so there are
+    no other solutions. For example:
+
+        sage: I.change_ring( P.change_ring( GF(3) ) ).groebner_basis()
+        [1]
+
 
 TESTS:
     sage: x,y,z = QQ['x,y,z'].gens()
@@ -148,11 +208,12 @@ from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import prod
+from sage.misc.misc import prod, verbose
 from sage.misc.sage_eval import sage_eval
 
-import sage.rings.integer_ring
+from sage.rings.integer_ring import ZZ
 import sage.rings.polynomial.toy_buchberger as toy_buchberger
+import sage.rings.polynomial.toy_d_basis as toy_d_basis
 
 class RedSBContext:
     """
@@ -269,7 +330,7 @@ def is_MPolynomialIdeal(x):
         sage: P.<x,y,z> = PolynomialRing(QQ)
         sage: I = [x + 2*y + 2*z - 1, x^2 + 2*y^2 + 2*z^2 - x, 2*x*y + 2*y*z - y]
 
-    \SAGE distinguishes between a list of generators for an ideal and
+    \Sage distinguishes between a list of generators for an ideal and
     the ideal itself. This distinction is inconsisten with \Singular
     but matches \Magma's behavior.
 
@@ -1496,8 +1557,6 @@ class MPolynomialIdeal_singular_repr:
         if not self.is_homogeneous():
             raise TypeError, "Ideal must be homogeneous."
 
-        from sage.rings.integer_ring import IntegerRing
-        ZZ = IntegerRing()
         hp = self._singular_().hilbPoly()
         t = ZZ['t'].gen()
         fp = ZZ(len(hp)-1).factorial()
@@ -1526,8 +1585,6 @@ class MPolynomialIdeal_singular_repr:
         if not self.is_homogeneous():
             raise TypeError, "Ideal must be homogeneous."
 
-        from sage.rings.integer_ring import IntegerRing
-        ZZ = IntegerRing()
         gb = self.groebner_basis()
         t = ZZ['t'].gen()
         n = self.ring().ngens()
@@ -1540,9 +1597,9 @@ class MPolynomialIdeal_macaulay2_repr:
     Macaulay2 ring associated to it.
 
     EXAMPLES:
-        sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4) # optional
-        sage: I = ideal(x*y-z^2, y^2-w^2)       # optional
-        sage: I                                 # optional
+        sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
+        sage: I = ideal(x*y-z^2, y^2-w^2)
+        sage: I
         Ideal (x*y - z^2, y^2 - w^2) of Multivariate Polynomial Ring in x, y, z, w over Integer Ring
     """
     def _macaulay2_(self, macaulay2=None):
@@ -1583,17 +1640,17 @@ class MPolynomialIdeal_macaulay2_repr:
         EXAMPLE:
             sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
             sage: I = ideal(x*y-z^2, y^2-w^2)
-            sage: I.groebner_basis() # optional -- requires macaulay2, indirect doctest
+            sage: I.groebner_basis('macaulay2') # optional -- requires macaulay2, indirect doctest
             [y^2 - w^2, x*y - z^2, y*z^2 - x*w^2, z^4 - x^2*w^2]
 
         Groebner basis can be used to compute in $\Z/n\Z[x,\ldots]$.
 
             sage: R.<x,y,z> = ZZ[]
             sage: I = ideal([y^2*z - x^3 - 19*x*z, y^2, 19^2])
-            sage: I.groebner_basis() # optional -- requires macaulay2
+            sage: I.groebner_basis('macaulay2') # optional -- requires macaulay2
             [361, y^2, x^3 + 19*x*z]
             sage: I = ideal([y^2*z - x^3 - 19^2*x*z, y^2, 19^2])
-            sage: I.groebner_basis() # optional -- requires macaulay2
+            sage: I.groebner_basis('macaulay2') # optional -- requires macaulay2
             [361, y^2, x^3]
         """
         I = self._macaulay2_()
@@ -1656,6 +1713,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: R = PolynomialRing(QQ, names=[])
             sage: R.ideal(0) == R.ideal(0)
+            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
             True
 
             sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
@@ -1732,8 +1791,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
     def groebner_basis(self, algorithm='', *args, **kwds):
         r"""
         Return the reduced Groebner basis of this ideal. A Groeber basis
-        $g_1,...,g_n$ for an ideal $I$ is a basis such that $<LT(g_i)>
-        = LT(I)$, i.e. the leading term ideal of $I$ is spanned by the
+        $g_1,...,g_n$ for an ideal $I$ is a basis such that
+
+        $$<LT(g_i)> = LT(I)$$,
+
+        i.e. the leading term ideal of $I$ is spanned by the
         leading terms of $g_1,...,g_n$. Groebner bases are the key
         concept in computational ideal theory in multivariate
         polynomial rings which allows a variety of problems to be
@@ -1759,8 +1821,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             \item['singular:slimgb'] \Singular's \code{slimgb} command
             \item['libsingular:std'] lib\Singular's \code{std} command
             \item['libsingular:slimgb'] lib\Singular's \code{slimgb} command
-            \item['toy:buchberger'] \SAGE's toy/educational buchberger without strategy
-            \item['toy:buchberger2'] \SAGE's toy/educational buchberger with strategy
+            \item['toy:buchberger'] \Sage's toy/educational buchberger without strategy
+            \item['toy:buchberger2'] \Sage's toy/educational buchberger with strategy
+            \item['toy:d_basis'] \Sage's toy/educational d_basis algorithm
             \item['macaulay2:gb'] Macaulay2's \code{gb} command (if available)
             \item['magma:GroebnerBasis'] \MAGMA's \code{Groebnerbasis} command (if available)
             \end{description}
@@ -1826,16 +1889,29 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('magma:GroebnerBasis') # optional requires MAGMA
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
-            If Macaulay2 is installed, Groebner bases over $\ZZ$ can be computed.
+        Groebner bases over $\ZZ$ can be computed. However, the native
+        implementation is very slow. If available Macaulay2 is used,
+        which is an optional \Sage package.
 
             sage: P.<a,b,c> = PolynomialRing(ZZ,3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
-            sage: I.groebner_basis() #optional requires Macaulay2
-            [a + 2*b + 2*c - 1, 10*b*c + 12*c^2 - b - 4*c, 2*b^2 - 4*b*c - 6*c^2 + 2*c,
-             42*c^3 + b^2 + 2*b*c - 14*c^2 + b, 2*b*c^2 - 6*c^3 + b^2 + 5*b*c + 8*c^2 - b - 2*c,
+            sage: I.groebner_basis()
+            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            [b^3 - b*c^2 - 24*c^3 - b^2 - 6*b*c + 2*c^2 + 2*c,
+             2*b*c^2 + 36*c^3 - 9*b*c - 24*c^2 + 2*b + 4*c,
+             42*c^3 + b^2 + 2*b*c - 14*c^2 + b,
+             2*b^2 - 4*b*c - 6*c^2 + 2*c,
+             10*b*c + 12*c^2 - b - 4*c,
+             a + 2*b + 2*c - 1]
+
+            sage: I.groebner_basis('macaulay2') # requires optional M2 package
+            [a + 2*b + 2*c - 1, 10*b*c + 12*c^2 - b - 4*c,
+             2*b^2 - 4*b*c - 6*c^2 + 2*c,
+             42*c^3 + b^2 + 2*b*c - 14*c^2 + b,
+             2*b*c^2 - 6*c^3 + b^2 + 5*b*c + 8*c^2 - b - 2*c,
              b^3 + b*c^2 + 12*c^3 + b^2 + b*c - 4*c^2]
 
-            \SAGE also supports local orderings:
+        \Sage also supports local orderings:
 
             sage: P.<x,y,z> = PolynomialRing(QQ,3,order='negdegrevlex')
             sage: I = P * (  x*y*z + z^5, 2*x^2 + y^3 + z^7, 3*z^5 +y ^5 )
@@ -1844,8 +1920,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         ALGORITHM: Uses \Singular, \MAGMA (if available), Macaulay2 (if
         available), or toy implementation.
-
         """
+        from sage.rings.integer_mod_ring import is_IntegerModRing
+
         if algorithm.lower() == "magma":
             algorithm = "magma:GroebnerBasis"
         elif algorithm.lower() == "singular":
@@ -1856,14 +1933,32 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             algorithm = "toy:buchberger2"
 
         if algorithm is '':
-            if self.ring().base_ring() == sage.rings.integer_ring.ZZ:
-                gb = self._groebner_basis_macaulay2()
+            if self.ring().base_ring() is ZZ:
+                try:
+                    gb = self._groebner_basis_macaulay2()
+                except TypeError:
+                    verbose("Warning: falling back to very slow toy implementation.", level=0)
+                    gb = toy_d_basis.d_basis(self, *args, **kwds)
+            elif is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
+                try:
+                    gb = self._groebner_basis_macaulay2()
+                except TypeError:
+                    verbose("Warning: falling back to very slow toy implementation.", level=0)
+
+                    ch = self.ring().base_ring().characteristic()
+                    R = self.ring().change_ring(ZZ)
+                    I = R.ideal([R(f) for f in self.gens()+(ch,)])
+
+                    gb = toy_d_basis.d_basis(I, *args, **kwds)
+
+                    R = self.ring()
+                    gb = filter(lambda f: f,[R(f) for f in gb])
             else:
                 try:
                     gb = self._groebner_basis_singular("groebner", *args, **kwds)
-                except TypeError: # conversion to Singular not supported
-                    # we might want to print a warning here
+                except TypeError, msg: # conversion to Singular not supported
                     if self.ring().term_order().is_global():
+                        verbose("Warning: falling back to very slow toy implementation.", level=0)
                         gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
                     else:
                         raise TypeError, "Local/unknown orderings not supported by 'toy_buchberger' implementation."
@@ -1879,6 +1974,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             gb = toy_buchberger.buchberger(self, *args, **kwds)
         elif algorithm == 'toy:buchberger2':
             gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
+        elif algorithm == 'toy:d_basis':
+            gb = toy_d_basis.d_basis(self, *args, **kwds)
         else:
             raise TypeError, "algorithm '%s' unknown"%algorithm
 
@@ -1968,7 +2065,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         very expensive operation.
         """
         g = f.reduce(self.groebner_basis())
-        return g.is_zero()
+        return self.ring()(g).is_zero()
 
     def homogenize(self, var='h'):
         """

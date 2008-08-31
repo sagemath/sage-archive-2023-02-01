@@ -145,6 +145,8 @@ def free_m4ri():
     """
     m4ri_destroy_all_codes()
 
+
+
 cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
     Dense matrix over GF(2).
@@ -273,6 +275,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def __hash__(self):
         """
+        The has of a matrix is computed as $\oplus i*a_i$ where the $a_i$ are
+        the flattened entries in a matrix (by row, then by column).
+
         EXAMPLE:
             sage: B = random_matrix(GF(2),3,3)
             sage: B.set_immutable()
@@ -280,11 +285,17 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             {[0 1 0]
             [0 1 1]
             [0 0 0]: 0}
-            sage: A = matrix(GF(2),2,2)
-            sage: A.set_immutable()
-            sage: hex(hash(A))
-            '0xdeadbeed' # 64-bit
             '-0x21524113' # 32-bit
+            sage: M = random_matrix(GF(2), 123, 321)
+            sage: M.set_immutable()
+            sage: MZ = M.change_ring(ZZ)
+            sage: MZ.set_immutable()
+            sage: hash(M) == hash(MZ)
+            True
+            sage: MS = M.sparse_matrix()
+            sage: MS.set_immutable()
+            sage: hash(M) == hash(MS)
+            True
 
         TEST:
             sage: A = matrix(GF(2),2,0)
@@ -297,30 +308,90 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             0
 
         """
-        if self.is_mutable():
-            raise TypeError("mutable matrices are unhashable")
-        cdef unsigned long _hash = 0xDEADBEEF
-        cdef unsigned long counter = 0
-        cdef unsigned long i, j, truerow
-        cdef word mask = 1
-        mask = ~((mask<<(RADIX - self._ncols%RADIX))-1)
+        if not self._mutability._is_immutable:
+            raise TypeError, "mutable matrices are unhashable"
+
+        x = self.fetch('hash')
+        if not x is None:
+            return x
 
         if self._nrows == 0 or self._ncols == 0:
             return 0
 
+        cdef unsigned long i, j, truerow
+        cdef unsigned long start, shift
+        cdef word row_xor
+        cdef word end_mask = ~(((<word>1)<<(RADIX - self._ncols%RADIX))-1)
+        cdef word top_mask, bot_mask
+        cdef word cur
+        cdef word* row
+
+        # running_xor is the xor of all words in the matrix, as if the rows
+        # in the matrix were written out consecutively, without regard to
+        # word boundaries.
+        cdef word running_xor = 0
+        # running_parity is the number of extra words that must be xor'd.
+        cdef unsigned long running_parity = 0
+
+
         for i from 0 <= i < self._entries.nrows:
+
+            # All this shifting and masking is because the
+            # rows are word-aligned.
             truerow = self._entries.rowswap[i]
-            for j from 0 <= j < self._entries.width - 1:
-                _hash ^= self._entries.values[truerow + j]
-                counter += 1
-            _hash ^= self._entries.values[truerow + j] & mask
-            counter += 1
+            row = self._entries.values + truerow
+            start = (i*self._entries.ncols) >> 6
+            shift = (i*self._entries.ncols) & 0x3F
+            bot_mask = (~(<word>0)) << shift
+            top_mask = ~bot_mask
 
-        _hash = _hash ^ counter
+            if self._entries.width > 1:
+                row_xor = row[0]
+                running_parity ^= start & parity_mask(row[0] & bot_mask)
 
-        if _hash == -1:
-            return -2
-        return _hash
+                for j from 1 <= j < self._entries.width - 1:
+                    row_xor ^= row[j]
+                    cur = ((row[j-1] << (63-shift)) << 1) ^ (row[j] >> shift)
+                    running_parity ^= (start+j) & parity_mask(cur)
+
+                running_parity ^= (start+j) & parity_mask(row[j-1] & top_mask)
+
+            else:
+                j = 0
+                row_xor = 0
+
+            cur = row[j] & end_mask
+            row_xor ^= cur
+            running_parity ^= (start+j) & parity_mask(cur & bot_mask)
+            running_parity ^= (start+j+1) & parity_mask(cur & top_mask)
+
+            start = (i*self._entries.ncols) & (RADIX-1)
+            running_xor ^= (row_xor >> start) ^ ((row_xor << (RADIX-1-start)) << 1)
+
+        cdef unsigned long bit_is_set
+        cdef unsigned long h
+
+        # Now we assemble the running_parity and running_xor to get the hash.
+        # Viewing the flattened matrix as a list of a_i, the hash is the xor
+        # of the i for which a_i is non-zero. We split i into the lower RADIX
+        # bits and the rest, so i = i1 << RADIX + i0. Now two matching i0
+        # would cancel, so we only need the parity of how many of each
+        # possible i0 occur. This is stored in the bits of running_xor.
+        # Similarly, running_parity is the xor of the i1 needed. It's called
+        # parity because i1 is constant accross a word, and for each word
+        # the number of i1 to add is equal to the number of set bits in that
+        # word (but because two cancel, we only need keep track of the
+        # parity.
+        h = RADIX * running_parity
+        for i from 0 <= i < RADIX:
+            bit_is_set = (running_xor >> (RADIX-1-i)) & 1
+            h ^= (RADIX-1) & ~(bit_is_set-1) & i
+
+        if h == -1:
+            h = -2
+
+        self.cache('hash', h)
+        return h
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         mzd_write_bit(self._entries, i, j, int(value))
@@ -1331,6 +1402,39 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         data = [buf[i] for i in range(size)]
         gdFree(buf)
         return unpickle_matrix_mod2_dense_v1, (r,c, data, size)
+
+
+# Used for hashing
+cdef int i, k
+cdef unsigned long parity_table[256]
+for i from 0 <= i < 256:
+    parity_table[i] = 1 & ((i) ^ (i>>1) ^ (i>>2) ^ (i>>3) ^
+                           (i>>4) ^ (i>>5) ^ (i>>6) ^ (i>>7))
+
+# gmp's ULONG_PARITY may use special
+# assembly instructions, could be faster
+cpdef inline unsigned long parity(word a):
+    """
+    Returns the parity of the number of bits in a.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix_mod2_dense import parity
+        sage: parity(1)
+        1L
+        sage: parity(3)
+        0L
+        sage: parity(0x10000101011)
+        1L
+    """
+    if sizeof(word) == 8:
+        a ^= a >> 32
+    a ^= a >> 16
+    a ^= a >> 8
+    return parity_table[a & 0xFF]
+
+cdef inline unsigned long parity_mask(word a):
+    return -parity(a)
+
 
 def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     r"""

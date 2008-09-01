@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
@@ -8,6 +8,12 @@ fi
 
 if [ $UNAME = "CYGWIN" ]; then
     cp patches/makefile.dik.cygwin src/dik/makefile
+fi
+
+if [ $UNAME = "SunOS" ]; then
+    INSTALL=cp; export INSTALL
+else
+    INSTALL=`which install`: export INSTALL
 fi
 
 # remove the old dik binary since the has a name collision

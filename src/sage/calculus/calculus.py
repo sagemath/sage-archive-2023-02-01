@@ -2047,6 +2047,9 @@ class SymbolicExpression(RingElement):
             sage: f = x^2+y^2
             sage: f.gradient()
             (2*x, 2*y)
+            sage: g(x,y) = x^2+y^2
+            sage: g.gradient()
+            ((x, y) |--> 2*x, (x, y) |--> 2*y)
         """
 
         from sage.modules.free_module_element import vector
@@ -2064,7 +2067,10 @@ class SymbolicExpression(RingElement):
             sage: f.hessian()
             [2 0]
             [0 2]
-
+            sage: g(x,y) = x^2+y^2
+            sage: g.hessian()
+            [(x, y) |--> 2 (x, y) |--> 0]
+            [(x, y) |--> 0 (x, y) |--> 2]
         """
 
         from sage.matrix  import constructor
@@ -5485,6 +5491,18 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
             z = CallableSymbolicExpression(self, SR.zero_element())
             self.__zero_element = z
             return z
+
+    def is_field(self):
+	    """
+        Returns True, since the callable symbolic expression ring is (for the
+        most part) a field.
+
+        EXAMPLES:
+            sage: g(x,y) = x^2 + y^2
+            sage: g.parent().is_field()
+            True
+        """
+	    return True
 
     def _an_element_impl(self):
         """

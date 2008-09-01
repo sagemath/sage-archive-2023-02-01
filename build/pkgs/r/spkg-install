@@ -41,6 +41,11 @@ else
     OSXFW=""; export OSXFW
 fi
 
+if [ `uname` = "SunOS" ]; then
+    echo "Disabling libiconv support on Solaris"
+    SUN_FLAGS="--with-iconv=no"; export SUN_FLAGS
+fi
+
 # let's remove old install, even the wrongly installed ones
 rm -rf "$SAGE_LOCAL"/lib/r
 rm -rf "$SAGE_LOCAL"/lib/R
@@ -70,12 +75,12 @@ if [ `uname` = "Darwin" ]; then
     ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" $OSXFW
 else
      echo "Configuring R with ATLAS"
-    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas"
+    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" $SUN_FLAGS
 fi
 
 if [ $? -ne 0 ]; then
      echo "Configuring R with fallback options"
-    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL" $OSXFW
+    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL" $OSXFW $SUN_FLAGS
 fi
 
 if [ $? -ne 0 ]; then

@@ -1,0 +1,20 @@
+--- src.Singular.Makefile.in.orig	2008-09-01 03:05:31.785669000 -0400
++++ src.Singular.Makefile.in	2008-09-01 04:41:14.981441000 -0400
+@@ -123,10 +123,16 @@
+ 
+ ifeq ($(SINGUNAME),ix86-Win)
+ SO_SUFFIX = dll
+-LIBSINGULAR_FLAGS = --shared
++LIBSINGULAR_FLAGS = -shared
+ LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug  -lhtmlhelp
+ endif
+ 
++ifeq ($(SINGUNAME),ix86-SunOS)
++SO_SUFFIX  = so
++LIBSINGULAR_FLAGS = -shared
++LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
++endif
++
+ #
+ # End libSINGULAR
+ #

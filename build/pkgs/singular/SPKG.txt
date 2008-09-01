@@ -4,9 +4,13 @@
 
  * assert.h
  * kernel.Makefile.in
+ * src.Singular.Makefile.in
  * fac_distrib.cc (should be in upstream past singular-3-0-4-4-20080711)
 
 == Releases ==
+
+=== singular-3-0-4-4-20080711.p1 (Michael Abshoff, September 1st, 2008) ===
+ * Fix three Solaris issues: libsingular build options, tail POSIX issue and install missing on Solaris
 
 === singular-3-0-4-4-20080711.p0 (Michael Abshoff, August 19th, 2008) ===
  * add 64 bit OSX support

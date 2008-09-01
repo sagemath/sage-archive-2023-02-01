@@ -1,0 +1,747 @@
+################################################################
+###
+### Makefile for Singular
+###
+#################################################################
+
+SHELL		= /bin/sh
+
+##
+## version
+##
+SINGULAR_VERSION	= @SINGULAR_VERSION@
+SINGULAR		= @SINGULAR@
+SINGUNAME		= @SINGUNAME@
+EXEC_EXT		= @EXEC_EXT@
+HAVE_PLURAL             = @PLURAL@
+##
+## various paths
+##
+srcdir		= @srcdir@
+prefix 		= @prefix@
+exec_prefix 	= @exec_prefix@
+libdir 		= @libdir@
+# program executable goes here
+bindir		= @bindir@
+# includes are taken from here
+includedir	= @includedir@
+slibdir		= ${prefix}/LIB
+install_bindir  = ${install_prefix}/${SINGUNAME}
+install_slibdir = ${install_prefix}/LIB
+
+##
+## various programs
+##
+@SET_MAKE@
+CC		= @CC@
+LD              = @LD@
+CXX		= @CXX@
+LEX		= sh flexer.sh
+
+PERL		= @PERL@
+BISON		= bison
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= @INSTALL_PROGRAM@
+INSTALL_DATA	= @INSTALL_DATA@
+MKINSTALLDIRS   = ./mkinstalldirs
+LN_S		= @LN_S@
+
+##
+## compiler and linker options
+##
+PIPE		= @PIPE@
+CFLAGS		= @CFLAGS@ ${PIPE}
+CXXFLAGS	= @CXXFLAGS@ ${PIPE}
+CXXTEMPLFLAGS	= @CXXTEMPLFLAGS@
+ifneq ($(SINGUNAME),ix86-Win)
+CPPFLAGS	= -I${srcdir} -I../kernel @CPPFLAGS@
+else
+## Dirs after @CPPFLAGS@ are for PySingular
+CPPFLAGS	= -I${srcdir} -I../kernel @CPPFLAGS@
+## -I/usr/include/python2.4 -I/usr/local/include -I../modules/python
+endif
+DEFS		= -DNDEBUG -DOM_NDEBUG -D@SING_UNAME@ @DEFS@
+LDFLAGS2	= @LDFLAGS@
+ifneq ($(SINGUNAME),ix86-Win)
+LDFLAGS		= -L../kernel -lkernel @LDFLAGS@
+LDFLAGSG	= -L../kernel -lkernel-g @LDFLAGS@
+else
+## -L/usr/local/lib -L../modules/python --> PySingular
+LDFLAGS		= -L../kernel -L/bin -lkernel @LDFLAGS@ -L/usr/local/lib -L../modules/python
+LDFLAGSG	= -L../kernel -L/bin -lkernel-g @LDFLAGS@
+endif
+LD_DYN_FLAGS	= @LD_DYN_FLAGS@
+SFLAGS		= @SFLAGS@
+SLDFLAGS	= @SLDFLAGS@
+
+## For PYSingular
+ifneq ($(SINGUNAME),ix86-Win)
+WIN_LIBS        =
+else
+WIN_LIBS        =
+##../modules/python/libpython_module.a
+endif
+
+LD_LIBC	        = -lc
+STATIC_LDFLAGS	= @STATIC_LDFLAGS@
+# under cygwin, do not explicitly link against -lm, for it is the cygwin
+# lib -- if you really want to do this, use -lm as the _last_ thing on the
+# arguments to link
+ifneq ($(SINGUNAME),ix86-Win)
+LIBS		= -lm @NEED_LIBS@
+LIBSG		= -lm @NEED_LIBSG@
+else
+LIBS		= -lsingfac -lsingcf -lntl  -static -lreadline -lhtmlhelp -Xlinker -Bdynamic -lgmp -lomalloc_ndebug -lncurses
+## -lpython_module -lpython2.4 /usr/local/lib/libboost_python-gcc-d-1_32.dll
+LIBSG		= -lsingfac -lsingcf -lntl  -static -lreadline -lhtmlhelp -Xlinker -Bdynamic -lgmp -lncurses
+endif
+MP_LIBS		= @MP_LIBS@
+HAVE_MPSR       = @HAVE_MPSR@
+
+#
+# Handle libSINGULAR stuff
+#
+LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
+
+SO_SUFFIX = so
+#LIBSINGULAR_FLAGS = -export-dynamic
+LIBSINGULAR_LD = $(CXX)
+
+# correct suffix for dynamic linking
+ifeq ($(SINGUNAME),ix86Mac-darwin)
+SO_SUFFIX        = dylib
+LIBSINGULAR_FLAGS = -single_module
+LIBSINGULAR_LD = $(LD)
+endif
+
+ifeq ($(SINGUNAME),ppcMac-darwin)
+MACOSX_DEPLOYMENT_TARGET=10.4
+SO_SUFFIX        = dylib
+LIBSINGULAR_FLAGS = -single_module
+LIBSINGULAR_LD = $(LD)
+endif
+
+ifeq ($(SINGUNAME),ix86-Win)
+SO_SUFFIX = dll
+LIBSINGULAR_FLAGS = -shared
+LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug  -lhtmlhelp
+endif
+
+ifeq ($(SINGUNAME),ix86-SunOS)
+SO_SUFFIX  = so
+LIBSINGULAR_FLAGS = -shared
+LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
+endif
+
+#
+# End libSINGULAR
+#
+
+ifdef LD_STATIC
+LDFLAGS  := ${STATIC_LDFLAGS} ${LDFLAGS}
+SING_EXEC = Singular-static
+LIBS := ${MP_LIBS} ${LIBS}
+LIBSG := ${MP_LIBS} ${LIBSG}
+DL_KERNEL =
+GLIBC_DYN_FIX=
+else
+LDFLAGS  := ${LD_DYN_FLAGS} ${LDFLAGS}
+SING_EXEC = Singular
+DL_KERNEL	= @DL_KERNEL@
+GLIBC_DYN_FIX= @GLIBC_DYN_FIX@
+endif
+
+# CXXFLAGS =  -g -Wall -Wno-unused
+# CFLAGS =  -g -Wall -Wno-unused
+##
+## End configuration dependend stuff
+#################################################################
+
+###
+### file sets
+###
+
+# normal C++ source files
+CXXSOURCES=grammar.cc scanner.cc attrib.cc \
+    eigenval_ip.cc\
+    extra.cc fehelp.cc feOpt.cc \
+    ipassign.cc ipconv.cc ipid.cc iplib.cc \
+    ipprint.cc ipshell.cc \
+    lists.cc \
+    sdb.cc \
+    fglm.cc interpolation.cc\
+    silink.cc \
+    subexpr.cc \
+    janet.cc wrapper.cc\
+    libparse.cc sing_win.cc\
+    gms.cc pcv.cc maps_ip.cc\
+    walk.cc walk_ip.cc \
+    cntrlc.cc misc.cc \
+    calcSVD.cc
+
+# stuff for MP
+MPSR_SOURCES = mpsr_Put.cc mpsr_PutPoly.cc mpsr_GetPoly.cc mpsr_sl.cc\
+	mpsr_Get.cc mpsr_GetMisc.cc mpsr_Error.cc \
+
+
+# stuff for dbm
+DBMSR_SOURCES =  ndbm.cc sing_dbm.cc
+
+# normal C source files
+CSOURCES=
+
+# C++ sources which are used if part of the kernel are dynamically linked
+DL_KERNEL_SOURCES=slInit_Dynamic.cc
+
+# C++ sources which are used for dynamic libraries if part of the kernel is
+# dynamically linked
+DL_LIB_SOURCES=
+
+# C++ sources which are used if no parts of the kernel are dynamically linked
+STATIC_SOURCES=slInit_Static.cc
+
+# C++ sources for which both, shared and static object files are needed
+COMMON_SOURCES = $(MPSR_SOURCES) $(DBMSR_SOURCES)
+
+# special C++ source files (need extra compiling and/or linking), for which
+# dependencies should be generated
+ESOURCES=iparith.cc $(COMMON_SOURCES) \
+	$(DL_KERNEL_SOURCES) $(DL_LIB_SOURCES) $(STATIC_SOURCES)
+
+SOURCES=${CSOURCES} ${CXXSOURCES} \
+	grammar.y scanner.l libparse.l \
+	utils.cc utils.h \
+	tesths.cc mpsr_Tok.cc claptmpl.cc
+
+HEADERS=lists.h attrib.h \
+	mpsr_Tok.h \
+	ipconv.h \
+	subexpr.h ipid.h \
+	cntrlc.h ipprint.h sdb.h \
+	ipshell.h tok.h \
+	silink.h \
+	sing_dbm.h maps_ip.h interpolation.h \
+	mpsr.h mpsr_sl.h\
+	mpsr_Get.h janet.h\
+	mpsr_Put.h walk.h\
+	dbm_sl.h libparse.h \
+	gms.h pcv.h eigenval_ip.h \
+	distrib.h walk.h \
+        static.h \
+        omSingularConfig.h
+
+DISTFILES=${SOURCES} ${HEADERS} ${ESOURCES} \
+        Makefile.in configure.in configure \
+	mod2.h.in grammar.h testgh install-sh mkinstalldirs \
+	check_aso.pl
+
+OBJS := $(CXXSOURCES:.cc=.o) $(CSOURCES:.c=.o)
+
+ifeq ($(SINGUNAME),ix86-Win)
+OBJS := $(OBJS) Singular_res.o
+endif
+
+P_PROCS_MODULES = FieldZp FieldIndep FieldQ FieldGeneral
+
+ifeq ($(DL_KERNEL),1)
+OBJS 	:= $(OBJS) $(DL_KERNEL_SOURCES:.cc=.o)
+DBMSR_SO= dbmsr.so
+DL_LIBS := $(DBMSR_SO)
+ifeq ($(HAVE_MPSR), 1)
+MPSR_SO	=	mpsr.so
+DL_LIBS := 	$(DL_LIBS) $(MPSR_SO)
+endif
+else
+ifndef LD_STATIC
+LIBS := $(MP_LIBS) $(LIBS)
+endif
+OBJS := $(OBJS) $(STATIC_SOURCES:.cc=.o) $(COMMON_SOURCES:.cc=.o)
+DL_LIBS=
+endif
+
+#
+# Singular libraries which go into distribution
+# MAKE SURE THAT THIS IS UP_TO_DATE
+#
+
+SLIB0 = absfact.lib  arcpoint.lib  atkins.lib    aksaka.lib    ainvar.lib\
+	alexpoly.lib algebra.lib   brnoeth.lib   curvepar.lib  classify.lib \
+        compregb.lib \
+	control.lib  curvepar.lib   crypto.lib    deform.lib    elim.lib \
+        equising.lib \
+	finvar.lib   gmspoly.lib   gmssing.lib   general.lib   graphics.lib \
+	grwalk.lib   groups.lib    hnoether.lib  homolog.lib   hyperel.lib \
+	inout.lib    intprog.lib   kskernel.lib  latex.lib     linalg.lib \
+        lll.lib      makedbm.lib   matrix.lib \
+	modstd.lib   mondromy.lib  mprimdec.lib  mregular.lib  rootsmr.lib \
+	noether.lib  normal.lib    ntsolve.lib  \
+	poly.lib     presolve.lib  primdec.lib   primitiv.lib   qhmoduli.lib \
+	random.lib   realrad.lib   reesclos.lib  resolve.lib    resgraph.lib \
+	reszeta.lib \
+	ring.lib     rinvar.lib    sagbi.lib     sheafcoh.lib   sing.lib \
+	solve.lib    signcond.lib  spcurve.lib   spectrum.lib   standard.lib \
+	stratify.lib surf.lib      surfex.lib    teachstd.lib   toric.lib \
+	triang.lib   rootsur.lib  weierstr.lib  zeroset.lib
+
+
+PLIBS = central.lib dmod.lib gkdim.lib involut.lib ncalg.lib ncdecomp.lib nctools.lib perron.lib qmatrix.lib
+
+ifdef HAVE_PLURAL
+SLIBS = COPYING ${SLIB0} ${PLIBS} all.lib help.cnf
+else
+SLIBS = COPYING ${SLIB0} all.lib help.cnf
+endif
+
+SLIBS_FILES = $(addprefix LIB/,${SLIBS})
+
+GFTABLES = $(wildcard LIB/gftables/[1-9]*)
+
+##
+## Build Targets
+##
+.l.cc:
+	@if test -r scanner.cc; then \
+		touch scanner.cc ;\
+	else \
+	if test "x${LEX}" = x; then \
+		echo Error: no lex given, could not rebuilt scanner.cc;\
+                exit 1; \
+	fi
+	${LEX} -s -I -t $< > scanner.cc.lmp
+	cp scanner.cc.lmp scanner.cc
+
+.y.cc:
+	@if test -r grammar.cc; then \
+		touch grammar.cc ;\
+	else \
+	if test "x${BISON}" = x; then \
+		echo Error: no bison given, could not rebuilt grammar.cc;\
+                exit 1; \
+	fi;\
+	${BISON} -d -t -o grammar.cc $<;\
+	chmod +x testgh;\
+	./testgh;\
+	fi
+
+.cc.o:
+	${CXX} ${CXXFLAGS} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFS} -c $<
+.c.o:
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DEFS} -c $<
+
+%.dl_o : %.cc
+	${CXX} ${CXXFLAGS} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFS} ${SFLAGS} -c $< -o $@
+
+all:	$(SING_EXEC)
+
+Singular-static: version.h
+	sleep 1
+	echo "#define HAVE_STATIC" > static.h
+	(cd ../kernel;${MAKE} LD_STATIC=1 install-bindist;cd ..//Singular)
+	${MAKE} LD_STATIC=1 S_EXT="-static" Singular-static
+	echo "#undef HAVE_STATIC" > static.h
+
+Singular${S_EXT}: mod2.h Makefile version.h $(WIN_LIBS) scanner.cc  ${OBJS} \
+          iparith.o tesths.cc libparse.cc claptmpl.o mpsr_Tok.o $(DL_LIBS)
+	${CXX} ${CXXFLAGS} ${CPPFLAGS} ${CXXTEMPLFLAGS} ${DEFS} \
+	  -o Singular${S_EXT} \
+	  tesths.cc iparith.o mpsr_Tok.o claptmpl.o\
+	  ${OBJS} ${LDFLAGS} ${LIBS} ../kernel/mmalloc.o
+
+libsingular: mod2.h Makefile version.h $(WIN_LIBS) scanner.cc  ${OBJS} \
+         iparith.o libsingular-tesths.o libparse.cc claptmpl.o mpsr_Tok.o $(DL_LIBS)
+	$(LIBSINGULAR_LD) ${SLDFLAGS} ${LIBSINGULAR_FLAGS} -o libsingular.${SO_SUFFIX} \
+	libsingular-tesths.o iparith.o mpsr_Tok.o claptmpl.o \
+	${OBJS} -lkernel -L../kernel -L../factory -L../libfac -L${libdir} ${LIBSINGULAR_LIBS}
+
+libsingular.a: mod2.h Makefile version.h $(WIN_LIBS) scanner.cc  ${OBJS} \
+         iparith.o libsingular-tesths.o libparse.cc claptmpl.o mpsr_Tok.o
+	mkdir libsingular.tmp
+	(cd  libsingular.tmp; \
+	ar x ../../kernel/libkernel.a; \
+	ar x ../../$(SINGUNAME)/lib/libsingfac.a; \
+	ar x ../../$(SINGUNAME)/lib/libsingcf.a; \
+	ar x ../../$(SINGUNAME)/lib/libsingcf.a; \
+	ar x ../../$(SINGUNAME)/lib/libntl.a; \
+	ar x ../../$(SINGUNAME)/lib/libomalloc_ndebug.a; \
+	cd ..)
+	ar cr libsingular.a \
+	iparith.o mpsr_Tok.o claptmpl.o \
+	${OBJS} libsingular.tmp/*
+	rm -rf libsingular.tmp
+
+libsingular-tesths.o: tesths.cc
+	${CXX} ${CXXFLAGS} ${CPPFLAGS} ${CXXTEMPLFLAGS} ${DEFS} -DLIBSINGULAR \
+	  ${SLDFLAGS} -o libsingular-tesths.o \
+          -c tesths.cc
+
+../modules/python/libpython_module.a:
+	cd ../modules/python; scons
+
+%.static: version.h
+	${MAKE} DL_KERNEL=0 S_EXT=".static" $@
+
+iparith.o mpsr_Tok.o : iparith.inc mpsr_Tok.inc
+
+cntrlc.o cntrlc.og : feOptES.inc feOptTS.inc feOpt.inc
+
+claptmpl.o: claptmpl.cc mod2.h
+	${CXX} ${CXXFLAGS}  ${CPPFLAGS} ${DEFS} -c $<
+
+iparith.inc mpsr_Tok.inc: claptmpl.o iparith.cc \
+                          ipconv.cc tok.h mpsr_Tok.cc grammar.h mod2.h
+	${CXX} ${CXXFLAGS} ${CPPFLAGS} ${CXXTEMPLFLAGS} ${DEFS} -DGENTABLE \
+	     -o gentable claptmpl.o iparith.cc tesths.cc mpsr_Tok.cc \
+	     ${OBJS} ${LDFLAGS} ${LIBS} ../kernel/mmalloc.o
+	./gentable
+	/bin/rm -f gentable gentable.exe
+
+
+version.h: ${SOURCES} ${HEADERS} Makefile.in mod2.h.in \
+           configure.in
+	echo "#define feVersionId "  `date '+%Y%m%d%H'` >version.h
+	echo "#define CC \"" ${CC} ${CFLAGS} ${DEFS}"\"" >>version.h
+	echo "#define CXX \"" ${CXX} ${CXXFLAGS} ${DEFS} "\"" >>version.h
+
+libparse: libparse_main.o utils.o
+	${CXX}  ${CPPFLAGS} -DSTANDALONE_PARSER -o libparse libparse_main.o utils.o ../kernel/fegetopt.o ${LDFLAGS2} -lomalloc_ndebug
+
+libparse_main.o: libparse.cc
+	${CXX} ${CPPFLAGS} -c -o libparse_main.o libparse.cc  -DSTANDALONE_PARSER
+
+libparse.cc: libparse.l
+	@if test "x${LEX}" = x; then \
+		echo Error: no lex given, could not rebuilt libparse.cc;\
+                exit 1; \
+	fi
+	${LEX} -I -Pyylp -t libparse.l >libparse.cc.lmp
+	cp libparse.cc.lmp libparse.cc
+
+# Hmm compiling with -fomit-frame-pointer resulted in access violation
+# under cygwin
+ESingular: mod2.h feOpt.cc version.h emacs.cc \
+           feOptES.inc
+	${CXX} -O2 ${CPPFLAGS} ${DEFS} -DESINGULAR -DPROTO -o ESingular emacs.cc ../kernel/fegetopt.o \
+	${LDFLAGS} ${LIBS} ../kernel/mmalloc.o
+
+TSingular: mod2.h feOpt.cc version.h emacs.cc \
+           feOptTS.inc
+	${CXX} -O2 ${CPPFLAGS} ${DEFS} -DTSINGULAR -DPROTO -o TSingular emacs.cc ../kernel/fegetopt.o \
+	${LDFLAGS} ${LIBS} ../kernel/mmalloc.o
+
+feOpt.o: feOpt.inc feOptES.inc feOptTS.inc
+extra.o: feOpt.inc
+
+feOpt.inc: feOpt.cc mod2.h
+	$(CXX) -DGENERATE_OPTION_INDEX -I../kernel feOpt.cc -o feOpt
+	./feOpt
+	/bin/rm -f feOpt feOpt.exe
+
+feOptES.inc: feOpt.cc mod2.h
+	$(CXX) -DGENERATE_OPTION_INDEX  -DESINGULAR -I../kernel feOpt.cc -o feOpt
+	./feOpt
+	rm -f feOpt feOpt.exe
+
+feOptTS.inc: feOpt.cc mod2.h
+	$(CXX) -DGENERATE_OPTION_INDEX  -DTSINGULAR -I../kernel feOpt.cc -o feOpt
+	./feOpt
+	rm -f feOpt feOpt.exe
+
+mpsr.so: $(MPSR_SOURCES:.cc=.dl_o)
+	$(LD) ${SLDFLAGS} -o $@ $^ -L${libdir} ${MP_LIBS} ${GLIBC_DYN_FIX}
+
+dbmsr.so: $(DBMSR_SOURCES:.cc=.dl_o)
+	$(LD) ${SLDFLAGS} -o $@ $^ ${GLIBC_DYN_FIX}
+
+src: scanner.cc grammar.h grammar.cc libparse.cc
+
+mod2.h: stamp-h
+
+stamp-h : config.status mod2.h.in
+	CONFIG_FILES= CONFIG_HEADERS="mod2.h" ./config.status
+
+Makefile: Makefile.in config.status
+	CONFIG_FILES="Makefile" CONFIG_HEADERS= ./config.status
+
+config.status: configure
+	./config.status --recheck
+
+configure: configure.in
+	@echo "WARNING: You need to rerun autoconf. I am proceeding, for now."
+	@touch configure
+#	autoconf
+
+ifeq ($(SINGUNAME),ix86-Win)
+##
+## windows only targets
+##
+
+## resources
+Singular.rc: Singular.rc.in config.status
+	CONFIG_FILES="Singular.rc" CONFIG_HEADERS= ./config.status
+
+ESingular_res.o: Singular.rc
+	windres -DESINGULAR -i Singular.rc -o ESingular_res.o
+
+TSingular_res.o: Singular.rc
+	windres -DTSINGULAR -i Singular.rc -o TSingular_res.o
+
+Singular_res.o: Singular.rc
+	windres -DSINGULAR -i Singular.rc -o Singular_res.o
+
+## run
+run.o: run.c run.h
+	gcc -c -I. -O2 run.c -o run.o
+
+runTSingular : run.o TSingular_res.o
+	gcc -mwindows run.o TSingular_res.o -o runTSingular.exe
+#	gcc -mwindows -e _mainCRTStartup run.o TSingular_res.o -o runTSingular.exe
+
+runESingular : run.o ESingular_res.o
+	gcc -mwindows run.o ESingular_res.o -o runESingular.exe
+#	gcc -mwindows -e _mainCRTStartup run.o ESingular_res.o -o runESingular.exe
+
+RUN_SINGULARS=runESingular runTSingular
+
+endif
+
+##
+## install targets
+##
+install: all installbin installslib
+
+install-nolns: all installbin-nolns installslib-nolns
+
+installbin: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
+	${MKINSTALLDIRS} ${bindir}
+	${INSTALL_PROGRAM} ${SING_EXEC} ${SINGULAR}
+	-for file in *.so; do \
+	  ${INSTALL_PROGRAM} $$file ${bindir}; \
+	done
+	${INSTALL_PROGRAM} libparse ${RUN_SINGULARS} ${bindir}
+	${INSTALL_PROGRAM} ESingular TSingular ${DL_LIBS} ${bindir}
+	${INSTALL_PROGRAM} surfex ${bindir}
+	chmod a+x ${SINGULAR}
+	rm -f ${bindir}/${SING_EXEC}${EXEC_EXT}
+	cd ${bindir}; ${LN_S} ${SINGULAR} Singular${EXEC_EXT};
+
+installbin-nolns: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
+	${MKINSTALLDIRS} ${bindir}
+	${INSTALL_PROGRAM} ${SING_EXEC} ${SINGULAR}
+	-for file in *.so; do \
+	  ${INSTALL_PROGRAM} $$file ${bindir}; \
+	done
+	${INSTALL_PROGRAM} libparse ${RUN_SINGULARS} ${bindir}
+	${INSTALL_PROGRAM} ESingular TSingular ${DL_LIBS} ${bindir}
+	chmod a+x ${SINGULAR}
+	rm -f ${bindir}/${SING_EXEC}${EXEC_EXT}
+	${INSTALL_PROGRAM} ${SINGULAR} ${bindir}/Singular${EXEC_EXT};
+
+installslib: LIB
+	test -r ${slibdir} || ${LN_S} `pwd`/LIB ${slibdir}
+
+installslib-nolns: LIB
+	${MKINSTALLDIRS} ${slibdir}
+	for file in `pwd`/LIB/*.lib; do \
+	  ${INSTALL_DATA}  $$file ${slibdir}; \
+	done
+	${MKINSTALLDIRS} ${slibdir}/gftables
+	${INSTALL_DATA} `pwd`/LIB/gftables/* ${slibdir}/gftables/
+
+install-libsingular: libsingular
+	for file in *.$(SO_SUFFIX); do \
+	  ${INSTALL_PROGRAM}  $$file ${libdir}; \
+	done
+	${INSTALL_PROGRAM} libsingular.h ${includedir}
+
+
+
+uninstall: uninstallbin
+
+uninstallbin:
+	rm -f ${bindir}/Singular${EXEC_EXT}
+	rm -f ${SINGULAR}
+	-rmdir ${bindir}
+
+##
+## clean targest
+##
+mostlyclean:
+	-rm -f Singular Singular-static Singulara Singularg Singularp Singularb libparse feOpt*.inc
+	-rm -f *.o *.og core *.op *.ot Singulart *.od *.so* *.dl_o*
+	-rm -f ESingular* TSingular*
+
+clean: mostlyclean
+	-rm -f *.bak *.d *.dd depend
+	-rm -f ${slibdir}
+
+distclean: clean
+	-rm -f iparith.inc mpsr_Tok.inc stamp.h
+	-rm -f Singular* *.gprof *.bprof *~ .\#* version.h
+	rm -f plural_cmd.inc
+	-rm -f mod2.h Makefile TAGS* tags config.status config.cache config.log
+
+srcclean:
+	@echo "This command is intended for maintainers to use;"
+	@echo "Rebuilding the deleted files requires flex"
+	@echo "bison, perl"
+	-rm -f scanner.cc grammar.h grammar.cc libparse.cc
+
+maintainer-clean: distclean srcclean
+	@echo "This command is intended for maintainers to use;"
+	@echo "Rebuilding the deleted files requires flex"
+	@echo "bison, perl and autoconf"
+	-rm configure
+
+##
+## miscellanous targets
+##
+LIB/all.lib:	LIB/all.lib.tmpl
+	./make_alllib.sh LIB/all.lib.tmpl ${SLIB0} ${PLIBS}
+
+install-bindist: $(HEADERS) $(SOURCES) Makefile depend
+	echo "#define MAKE_DISTRIBUTION	" > distrib.h
+	sleep 1
+	${MAKE} ${SING_EXEC} ESingular TSingular libparse ${RUN_SINGULARS}
+	${MKINSTALLDIRS} ${install_bindir}
+	${INSTALL_PROGRAM} -s  ${SING_EXEC} ${install_bindir}/Singular
+	-${INSTALL_PROGRAM} *.so ${install_bindir}
+	${INSTALL_PROGRAM} -s  libparse ${RUN_SINGULARS} ESingular TSingular ${DL_LIBS} ${install_bindir}
+	${INSTALL_PROGRAM} surfex ${install_bindir}
+	echo "#undef MAKE_DISTRIBUTION " > distrib.h
+
+install-bindist-plural: install-bindist
+
+install-sharedist-plural: install-sharedist
+
+install-sharedist: ${SLIBS_FILES} LIB/gftables
+	${MKINSTALLDIRS} ${install_slibdir}
+	cp ${SLIBS_FILES} ${install_slibdir}
+	${MKINSTALLDIRS} ${install_slibdir}/gftables
+	cp ${GFTABLES} ${install_slibdir}/gftables
+	${MKINSTALLDIRS} ${install_slibdir}/surfex
+	cp -r LIB/surfex ${install_slibdir}
+	chmod -R +rX ${install_slibdir}/*
+
+tar:
+	tar cf Singular-${SINGULAR_VERSION}-src.tar ${DISTFILES}
+	gzip -f Singular-${SINGULAR_VERSION}-src.tar
+
+backup: tar
+	mcopy -o Singular-${SINGULAR_VERSION}-src.tar.gz a:
+
+TAGS:   ${SOURCES} ${ESOURCES} ${HEADERS}
+	etags ${SOURCES} ${ESOURCES} ${HEADERS} ../kernel/*.[ch] ../kernel/*.cc ../kernel/*.inc
+
+
+tags:
+	ctags *.y *.[lch] *.cc *.inc ../kernel/*.[ch] ../kernel/*.cc ../kernel/*.inc
+
+echoLIBS:
+	@echo ${SLIBS}
+
+##
+## Below here is stuff for developpers
+#################################################################
+
+
+##
+## .og files for having -O and -g object versions available at the same time
+##
+
+OBJG1 := $(CXXSOURCES:.cc=.og)
+OBJG2 := $(CSOURCES:.c=.og)
+
+OBJG=$(OBJG1) $(OBJG2)
+
+DL_TAILG=\"sog\"
+
+
+ifeq ($(DL_KERNEL),1)
+
+OBJG := $(OBJG) $(DL_KERNEL_SOURCES:.cc=.og)
+DL_LIBSG := $(MPSR_SO:%.so=%.sog) $(DBMSR_SO:%.so=%.sog)
+
+else
+
+OBJG := $(OBJG) $(STATIC_SOURCES:.cc=.og) $(COMMON_SOURCES:.cc=.og)
+DL_LIBSG=
+
+endif
+
+
+##
+## compiler and linker options for debug version
+##
+
+CCG		= ${CC}
+CXXG		= ${CXX}
+CXXM		= gcc -MM -MG -DGENERATE_DEPEND
+CCM		= gcc -MM -MG -DGENERATE_DEPEND
+
+CFLAGSG		= -g -Wall -Wno-unused ${PIPE}
+CXXFLAGSG	= -g -Wall -Wno-unused ${PIPE}
+CXXTEMPLFLAGSG	= -fno-implicit-templates
+DEFSG		= -D@SING_UNAME@ @DEFS@ -DDL_TAIL=$(DL_TAILG)
+
+##
+## Debug Targets
+##
+
+%.dl_og: %.cc
+	${CXXG} ${CXXFLAGSG} ${CXXTEMPLFLAGSG} ${CPPFLAGS} ${DEFSG} ${SFLAGS} -c $< -o $@
+
+mpsr.sog: $(MPSR_SOURCES:.cc=.dl_og)
+	${CXXG} ${CXXFLAGSG} ${SFLAGS} ${SLDFLAGS} ${LDFLAGS} -o $@ $^ ${MP_LIBS} ${GLIBC_DYN_FIX}
+
+dbmsr.sog: $(DBMSR_SOURCES:.cc=.dl_og)
+	${CXXG} ${CXXFLAGSG} ${SFLAGS} ${SLDFLAGS} ${LDFLAGS} -o $@ $^ ${MP_LIBS}
+
+claptmpl.og: claptmpl.cc mod2.h
+	$(CXXG)  ${CXXFLAGSG} ${CPPFLAGS} ${DEFSG} -c $< -o $@
+
+%.og: %.cc
+	$(CXXG) ${CXXFLAGSG} ${CXXTEMPLFLAGSG} ${CPPFLAGS} ${DEFSG} -c $< -o $@
+
+$(OBJG2) : %.og: %.c
+	$(CCG)  ${CFLAGSG} ${CPPFLAGS} ${DEFSG} -c $< -o $@
+
+Singularg${S_EXT}: scanner.cc  $(OBJG)  $(DL_LIBSG)\
+           iparith.og mpsr_Tok.og claptmpl.og tesths.cc version.h
+	$(CXXG) ${CXXFLAGSG} ${CXXTEMPLFLAGSG} ${CPPFLAGS} ${DEFSG} -o Singularg${S_EXT} \
+	tesths.cc iparith.og mpsr_Tok.og claptmpl.og $(OBJG) ${LDFLAGSG} ${LIBSG} -lomalloc ../kernel/mmalloc.og \
+	${LD_DYN_FLAGS} ${LD_LIBC}
+
+iparith.og: iparith.inc iparith.cc
+	$(CXXG)  ${CXXFLAGSG} ${CXXTEMPLFLAGSG} ${CPPFLAGS} ${DEFSG} -c iparith.cc -o iparith.og
+
+mpsr_Tok.og: iparith.inc mpsr_Tok.cc
+	$(CXXG) ${CXXFLAGSG} ${CPPFLAGS} ${CXXTEMPLFLAGSG} ${DEFSG} -c mpsr_Tok.cc -o mpsr_Tok.og
+
+installg: Singularg
+	${MKINSTALLDIRS} ${bindir}
+	${INSTALL_PROGRAM} Singularg ${bindir}
+
+ESingularg: mod2.h feOpt.cc version.h emacs.cc \
+           feOptES.inc
+	${CXXG} ${CXXFLAGSG} ${CPPFLAGS} -DESINGULAR -g ${DEFSG} -o ESingularg emacs.cc ../kernel/fegetopt.og ${LDFLAGS} ${LIBS} -lomalloc ../kernel/mmalloc.og
+
+##
+## dependencies
+##
+
+%.dd: %.cc mod2.h
+	echo $(@:.dd=.og) $(@:.dd=_d.cc) $(@:.dd=.dl_o) $(@:.dd=.dl_og)" " \\ > $@
+	$(CXXM) -DGENTABLE ${CPPFLAGS} ${DEFSG} $< >> $@
+
+%.d: %.c mod2.h
+	echo $(@:.d=.og) $(@:.dd=_d.c)" " \\ > $@
+	$(CCM) ${CPPFLAGS} ${DEFSG} $< >> $@
+
+depend:   $(CXXSOURCES:.cc=.dd) $(ESOURCES:.cc=.dd) $(CSOURCES:.c=.d) mod2.h claptmpl.dd
+	-cat *.dd >>depend
+
+ifeq (depend,$(wildcard depend))
+include depend
+endif
+
+

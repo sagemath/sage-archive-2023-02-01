@@ -70,6 +70,7 @@ patch()
     # work-around patches
     cp patches/assert.h src/factory/
     cp patches/kernel.Makefile.in src/kernel/Makefile.in
+    cp patches/src.Singular.Makefile.in src/Singular/Makefile.in
     cp patches/fac_distrib.cc src/factory/fac_distrib.cc
 }
 
@@ -180,7 +181,7 @@ create_singular_script()
     fi
 
     echo "#!/bin/sh" > Singular
-    echo "`/bin/ls Singular-* | tail -n 1` \$*" >> Singular
+    echo "`/bin/ls Singular-* | tail -1` \$*" >> Singular
     $CHMOD +x Singular
 
     # Lower case version is convenient.

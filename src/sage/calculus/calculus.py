@@ -5549,6 +5549,8 @@ class CallableSymbolicExpression(SymbolicExpression):
         (x, y) |--> z + 3*y + 2*x + a
         sage: f(1,2)
         z + a + 8
+        sage: f(y=2, a=-1)
+        z + 2*x + 5
     """
     def __init__(self, parent, expr):
         RingElement.__init__(self, parent)
@@ -5684,9 +5686,37 @@ class CallableSymbolicExpression(SymbolicExpression):
         return R(self._expr)
 
     # TODO: should len(args) == len(vars)?
-    def __call__(self, *args):
-        vars = self.args()
-        dct = dict( (vars[i], args[i]) for i in range(len(args)) )
+    def __call__(self, *args,**kwargs):
+        """
+        Calling a callable symbolic expression returns a symbolic expression with the
+        approriate arguments substituted.
+
+        EXAMPLES:
+            sage: var('a, x, y, z')
+            (a, x, y, z)
+            sage: f(x,y) = a + 2*x + 3*y + z
+            sage: f
+            (x, y) |--> z + 3*y + 2*x + a
+            sage: f(1,2)
+            z + a + 8
+            sage: f(y=2, a=-1)
+            z + 2*x + 5
+
+        Note that keyword arguments will override the regular arguments.
+            sage: f.args()
+            (x, y)
+            sage: f(1,2)
+            z + a + 8
+            sage: f(10,2)
+            z + a + 26
+            sage: f(10,2,x=1)
+            z + a + 8
+            sage: f(z=100)
+            3*y + 2*x + a + 100
+
+        """
+        dct = dict(zip(self.args(), args))
+        dct.update(kwargs)
         return self._expr.substitute(dct)
 
     def _repr_(self, simplify=True):

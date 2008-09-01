@@ -1,6 +1,6 @@
 import os
 
-CCFLAGS=["-O3 -ansi -Wno-long-long -Wreturn-type -g -fPIC"]
+CCFLAGS=["-O3 -Wno-long-long -Wreturn-type -g -fPIC"]
 CXXFLAGS=CCFLAGS+["-ftemplate-depth-100 -g -fPIC"]
 
 if os.environ.has_key('SAGE_DEBUG'):

@@ -4,7 +4,7 @@
 ###########################################
 
 BOOSTDIR=boost_1_34_1.cropped
-PBDIR=polybori-0.3
+PBDIR=polybori-0.5rc
 WORKDIR=${PWD}/src
 SCONS=scons
 

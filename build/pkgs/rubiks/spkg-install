@@ -13,7 +13,7 @@ fi
 if [ $UNAME = "SunOS" ]; then
     INSTALL=cp; export INSTALL
 else
-    INSTALL=`which install`: export INSTALL
+    INSTALL=`which install`; export INSTALL
 fi
 
 # remove the old dik binary since the has a name collision

@@ -285,7 +285,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             {[0 1 0]
             [0 1 1]
             [0 0 0]: 0}
-            '-0x21524113' # 32-bit
             sage: M = random_matrix(GF(2), 123, 321)
             sage: M.set_immutable()
             sage: MZ = M.change_ring(ZZ)

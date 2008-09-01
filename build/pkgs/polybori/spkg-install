@@ -18,6 +18,7 @@ fi
 
 cp patches/SConstruct src/${PBDIR}/SConstruct
 cp patches/PyPolyBoRi.py src/${PBDIR}/pyroot/polybori
+cp patches/m4ri.h src/${PBDIR}/M4RI/m4ri.h
 
 # workaround so will build on cygwin
 cp patches/cpu_stats.c src/${PBDIR}/Cudd/util/cpu_stats.c
@@ -52,12 +53,9 @@ install_polybori()
         echo "Error installing PolyBoRi."
         exit 1
     fi
-    if [ -e ${SAGE_LOCAL}/lib/python/site-packages/polybori ] ; then
-        rm  ${SAGE_LOCAL}/lib/python/site-packages/polybori
-    fi
-    # we used to link polybor into ../../../share/polybori/pyroot/polybori
-    # but that file is no longer there, so delete it for the people who update
-    rm -rf polybori
+    #if [ -e ${SAGE_LOCAL}/lib/python/site-packages/polybori ] ; then
+    #    rm  -rf ${SAGE_LOCAL}/lib/python/site-packages/polybori
+    #fi
     cd ${WORKDIR}
 }
 

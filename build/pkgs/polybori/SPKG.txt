@@ -1,3 +1,40 @@
+= M4RI =
+
+== Description ==
+
+The core of PolyBoRi is a C++ library, which provides high-level data
+types for Boolean polynomials and monomials, exponent vectors, as well
+as for the underlying polynomial rings and subsets of the powerset of
+the Boolean variables. As a unique approach, binary decision diagrams
+are used as internal storage type for polynomial structures. On top of
+this C++-library we provide a Python interface. This allows parsing of
+complex polynomial systems, as well as sophisticated and extendable
+strategies for Gröbner base computation. PolyBoRi features a powerful
+reference implementation for Gröbner basis computation.
+
+==Maintainers ==
+
+ * Tim Abbott
+ * Michael Abshoff
+ * Martin Albrecht
+ * Burcin Eröcal
+
+== Upstream Contact ==
+
+  * Author: The PolyBoRi Team
+  * Email:  brickenstein@mfo.de (Michael Brickenstein)
+            alexander.dreyer@itwm.fraunhofer.de (Alexander Dreyer)
+  * Website: http://polybori.sourceforge.net/
+
+== Dependencies ==
+
+None
+
+== Releases ==
+
+=== polybori-0.5rc.p0 (Martin Albrecht, September 1st, 2008) ===
+ * fixed build problems.
+
 === polybori-0.5rc (Tim Abbott, Jul 10, 2008) ===
  * update to PolyBoRi-0.5rc release.
  * Remove patches for problems fixed upstream.

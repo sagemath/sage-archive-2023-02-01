@@ -329,7 +329,7 @@ class MPolynomialPower(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
-            sage: isinstance(B.maple()[1], float)
+            sage: isinstance(B.maple()[1], float)  #optional -- requires Maple
             True
 
         """
@@ -426,7 +426,7 @@ class MPolynomialMult(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
-            sage: isinstance(B.maple()[1], float)
+            sage: isinstance(B.maple()[1], float)  #optional -- requires Maple
             True
 
         """
@@ -621,7 +621,7 @@ class MPolynomialMult2(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialMult2
             sage: B = MPolynomialMult2()
-            sage: isinstance(B.maple()[1], float)
+            sage: isinstance(B.maple()[1], float) # optional -- requires maple
             True
 
         """
@@ -961,7 +961,7 @@ class SquareInts(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
-            sage: isinstance(B.maple()[1], float)
+            sage: isinstance(B.maple()[1], float) # optional -- requires maple
             True
 
         """
@@ -1122,7 +1122,7 @@ class Factorial(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import Factorial
             sage: B = Factorial(10)
-            sage: isinstance(B.maple()[1], float)
+            sage: isinstance(B.maple()[1], float) # optional -- requires maple
             True
 
         """

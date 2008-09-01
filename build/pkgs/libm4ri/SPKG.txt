@@ -2,8 +2,7 @@
 
 == Description ==
 
- Library for matrix multiplication, reduction and inversion over
- GF(2).
+Library for matrix multiplication, reduction and inversion over GF(2).
 
 == Maintainers ==
 
@@ -19,28 +18,26 @@
 
  None
 
-
 == Releases ==
-=== libm4ri-20080901 (Martin Albrecht, Sep 1st, 2008) ===
 
+=== libm4ri-20080901 (Martin Albrecht, September 1st, 2008) ===
  * new upstream release
 
-=== libm4ri-20080826 (Martin Albrecht, Aug 26th, 2008) ===
+=== libm4ri-20080831 (Martin Albrecht, August 31th, 2008) ===
+ * new upstream release
 
+=== libm4ri-20080624 (Martin Albrecht, August 6th, 2008) ===
  * new upstream release
 
 === libm4ri-20080601 (Martin Albrecht, June 1st, 2008) ===
-
  * new upstream release
 
 === libm4ri-20080521 (Martin Albrecht, May 21th, 2008) ===
-
  *  new upstream release
 
 === libm4ri-20071224.p3 (Michael Abshoff, May 18th, 2008) ===
-
  * add 64 bit OSX build support
 
 === libm4ri-20071224.p2 ===
-
  * Details lost to history
+

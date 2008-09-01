@@ -665,28 +665,10 @@ class GpElement(ExpectElement):
 
 
 class GpFunctionElement(FunctionElement):
-    def _sage_doc_(self):
-        """
-        EXAMPLES:
-            sage: gp(2).gcd._sage_doc_()
-            'gcd(x,{y}): greatest common divisor of x and y.'
-
-        """
-        M = self._obj.parent()
-        return M.help(self._name)
-
+    pass
 
 class GpFunction(ExpectFunction):
-    def _sage_doc_(self):
-        """
-        EXAMPLES:
-            sage: gp.gcd._sage_doc_()
-            'gcd(x,{y}): greatest common divisor of x and y.'
-
-        """
-        M = self._parent
-        return M.help(self._name)
-
+    pass
 
 
 

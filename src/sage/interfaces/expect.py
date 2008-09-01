@@ -1193,7 +1193,7 @@ If this all works, you can then make calls like:
         raise NotImplementedError
 
     def help(self, s):
-        print 'No help on %s available'%s
+        return AsciiArtString('No help on %s available'%s)
 
 
 class ExpectFunction(SageObject):
@@ -1209,6 +1209,18 @@ class ExpectFunction(SageObject):
 
     def __call__(self, *args, **kwds):
         return self._parent.function_call(self._name, list(args), kwds)
+
+    def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: gp.gcd._sage_doc_()
+            'gcd(x,{y}): greatest common divisor of x and y.'
+
+        """
+        M = self._parent
+        return M.help(self._name)
+
+
 
 
 class FunctionElement(SageObject):
@@ -1229,7 +1241,15 @@ class FunctionElement(SageObject):
         print self._sage_doc_()
 
     def _sage_doc_(self):
-        return ''
+        """
+        EXAMPLES:
+            sage: gp(2).gcd._sage_doc_()
+            'gcd(x,{y}): greatest common divisor of x and y.'
+
+        """
+        M = self._obj.parent()
+        return M.help(self._name)
+
 
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
@@ -1294,6 +1314,11 @@ class ExpectElement(RingElement):
 
 
     def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: gp(2)._sage_doc_()
+            '2'
+        """
         return str(self)
 
     def __hash__(self):

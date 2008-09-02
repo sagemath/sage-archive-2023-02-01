@@ -1048,7 +1048,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Verify that \code{action} takes an element of R on the left and S
         on the right, raising an error if not.
 
-        This is used for consistancy checking in the coercion model.
+        This is used for consistency checking in the coercion model.
 
         EXAMPLES:
             sage: R.<x> = ZZ['x']

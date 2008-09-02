@@ -1896,7 +1896,7 @@ cdef class Vector(ModuleElement):
             return (<Vector>left)._dot_product_c(<Vector>right)
         # Always do this
         global coercion_model
-        return coercion_model.bin_op(left, right, imul)
+        return coercion_model.bin_op(left, right, operator.imul)
 
     cdef Element _dot_product_c(Vector left, Vector right):
         if left._degree != right._degree:

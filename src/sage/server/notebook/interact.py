@@ -2550,16 +2550,16 @@ def list_of_first_n(v,n):
 
     EXAMPLES:
         sage: sage.server.notebook.interact.list_of_first_n(Primes(), 10)
-        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
         sage: sage.server.notebook.interact.list_of_first_n((1..5), 10)
         [1, 2, 3, 4, 5]
         sage: sage.server.notebook.interact.list_of_first_n(QQ, 10)
-        [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3/2, -3/2]
+        [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3/2]
     """
     if not hasattr(v, 'next'):
         v = v.__iter__()
     w = []
-    while n >= 0:
+    while n > 0:
         try:
             w.append(v.next())
         except StopIteration:

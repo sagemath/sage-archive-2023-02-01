@@ -2554,7 +2554,7 @@ def list_of_first_n(v,n):
         sage: sage.server.notebook.interact.list_of_first_n((1..5), 10)
         [1, 2, 3, 4, 5]
         sage: sage.server.notebook.interact.list_of_first_n(QQ, 10)
-        [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3/2]
+        [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3]
     """
     if not hasattr(v, 'next'):
         v = v.__iter__()

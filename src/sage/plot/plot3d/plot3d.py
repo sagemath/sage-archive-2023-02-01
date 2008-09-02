@@ -128,6 +128,14 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
     Hill and valley (flat surface with a bump and a dent):
         sage: x, y = var('x y')
         sage: plot3d( 4*x*exp(-x^2-y^2), (x,-2,2), (y,-2,2))
+
+    TESTS:
+    Listing the same plot variable twice gives an error.
+        sage: x, y = var('x y')
+        sage: plot3d( 4*x*exp(-x^2-y^2), (x,-2,2), (x,-2,2))
+        Traceback (most recent call last):
+        ...
+        ValueError: Plot variables should be distinct, but both are x.
     """
     if len(urange) == 2:
         try:
@@ -140,6 +148,9 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
     else:
         u = urange[0]
         v = vrange[0]
+        if u is v:
+            raise ValueError, "Plot variables should be distinct, but both are %s."%u
+
         w = (u, v, f)
 
     if adaptive:

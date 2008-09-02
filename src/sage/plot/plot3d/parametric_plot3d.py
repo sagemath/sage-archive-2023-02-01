@@ -336,6 +336,13 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
         sage: fz = -u + (2*0.84*cosh(0.4*u)*sinh(0.4*u))/(0.4*((sqrt(0.84)*cosh(0.4*u))^2 + (0.4*sin(sqrt(0.84)*v))^2))
         sage: parametric_plot3d([fx, fy, fz], (u, -13.2, 13.2), (v, -37.4, 37.4), plot_points = [90,90], frame=False, color="green")
 
+    TESTS:
+
+        sage: u, v = var('u,v')
+        sage: plot3d(u^2-v^2, (u, -1, 1), (u, -1, 1))
+        Traceback (most recent call last):
+        ...
+        ValueError: Plot variables should be distinct, but both are u.
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above
@@ -366,6 +373,9 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
             plot_points = 75
         G = parametric_plot3d_curve(f, urange, plot_points, **kwds)
     else:
+        if urange[0] is vrange[0]:
+            raise ValueError, "Plot variables should be distinct, but both are %s."%urange[0]
+
         if plot_points == "automatic":
             plot_points = [40,40]
         G = parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds)

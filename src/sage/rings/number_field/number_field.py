@@ -112,6 +112,7 @@ import sage.structure.parent_gens
 
 from sage.structure.proof.proof import get_flag
 import maps
+from itertools import count, izip
 
 from sage.rings.integer_ring import IntegerRing
 
@@ -6322,3 +6323,46 @@ def put_natural_embedding_first(v):
             v[0] = phi
             return
 
+
+
+def refine_embedding(e, prec=None):
+    """
+    Given an embedding e: K->RR or CC, returns an equivalent embedding
+    with higher precision.
+
+    INPUT:
+        e -- an embedding of a number field into either RR or CC (with
+             some precision)
+        prec -- (default None) the desired precision; if None, current
+                precision is doubled.
+
+    EXAMPLES:
+        sage: from sage.rings.number_field.number_field import refine_embedding
+        sage: K = CyclotomicField(3)
+        sage: e10 = K.complex_embedding(10)
+        sage: e10.codomain().precision()
+        10
+        sage: e25 = refine_embedding(e10, prec=25)
+        sage: e25.codomain().precision()
+        25
+    """
+    K = e.domain()
+    RC = e.codomain()
+    prec_old = RC.precision()
+    if prec is None:
+        prec = 2*prec_old
+    elif prec_old >= prec:
+        return e
+
+    # We first compute all the embeddings at the new precision:
+    if sage.rings.real_mpfr.is_RealField(RC):
+        elist = K.real_embeddings(prec)
+    else:
+        elist = K.complex_embeddings(prec)
+
+    # Now we determine which is an extension of the old one; this
+    # relies on the fact that coercing a high-precision root into a
+    # field with lower precision will equal the lower-precision root!
+    old_root = e(K.gen())
+    diffs = [(RC(ee(K.gen()))-old_root).abs() for ee in elist]
+    return elist[min(izip(diffs,count()))[1]]

@@ -32,7 +32,7 @@ AUTHORS:
 
 import ell_point
 import formal_group
-import rational_torsion
+import ell_torsion
 from ell_generic import EllipticCurve_generic
 from ell_number_field import EllipticCurve_number_field
 
@@ -2001,9 +2001,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         else:
             return 1
 
-    def period_lattice(self):
+    def period_lattice(self, embedding=None):
         r"""
         Returns the period lattice of the elliptic curve.
+
+        INPUT:
+            embedding -- ignored (for compatibility with the
+            period_lattice function for elliptic_curve_number_field)
 
         EXAMPLES:
         sage: E = EllipticCurve('37a')
@@ -2366,6 +2370,45 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     label = cremona_label
 
+    def reduction(self,p):
+       """
+       Return the reduction of the elliptic curve at a prime of good reduction
+
+       NOTE: All is done in self.change_ring(GF(p)); all we do is
+       check that p is prime and does not divide the discriminant.
+
+       INPUT:
+            p -- a (positive) prime number
+
+       OUTPUT:
+            an elliptic curve over the finite field GF(p)
+
+       EXAMPLES:
+       sage: E = EllipticCurve('389a1')
+       sage: E.reduction(2)
+       Elliptic Curve defined by y^2 + y = x^3 + x^2 over Finite Field of size 2
+       sage: E.reduction(3)
+       Elliptic Curve defined by y^2 + y = x^3 + x^2 + x over Finite Field of size 3
+       sage: E.reduction(5)
+       Elliptic Curve defined by y^2 + y = x^3 + x^2 + 3*x over Finite Field of size 5
+       sage: E.reduction(38)
+       Traceback (most recent call last):
+       ...
+       AttributeError: p must be prime.
+       sage: E.reduction(389)
+       Traceback (most recent call last):
+       ...
+       AttributeError: The curve must have good reduction at p.
+
+       """
+       p = rings.Integer(p)
+       if not p.is_prime():
+           raise AttributeError, "p must be prime."
+       disc = self.discriminant()
+       if not disc.valuation(p) == 0:
+           raise AttributeError, "The curve must have good reduction at p."
+       return self.change_ring(rings.GF(p))
+
     def torsion_order(self):
         """
         Return the order of the torsion subgroup.
@@ -2387,6 +2430,39 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         except AttributeError:
             self.__torsion_order = self.torsion_subgroup().order()
             return self.__torsion_order
+
+    def _torsion_bound(self,number_of_places = 20):
+        r"""
+        Computes an upper bound on the order of the torsion group of
+        the elliptic curve by counting points modulo several primes of
+        good reduction.  Note that the upper bound returned by this
+        function is a multiple of the order of the torsion group.
+
+        INPUT:
+            number_of_places (default = 20) -- the number of places
+                                that will be used to find the bound
+
+        OUTPUT:
+            integer -- the upper bound
+
+        EXAMPLES:
+
+        """
+        E = self
+        bound = Integer(0)
+        k = 0
+        p = Integer(2)   # will run through odd primes
+        while k < number_of_places :
+            p = p.next_prime()
+            # check if the formal group at the place is torsion-free
+            # if so the torsion injects into the reduction
+            while not E.is_local_integral_model(p) or not E.is_good(p): p = p.next_prime()
+            bound = arith.gcd(bound,E.reduction(p).cardinality())
+            if bound == 1:
+                return bound
+            k += 1
+        return bound
+
 
     def torsion_subgroup(self, algorithm="pari"):
         """
@@ -2427,7 +2503,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__torsion_subgroup
         except AttributeError:
-            self.__torsion_subgroup = rational_torsion.EllipticCurveTorsionSubgroup(self, algorithm)
+            self.__torsion_subgroup = ell_torsion.EllipticCurveTorsionSubgroup(self, algorithm)
             self.__torsion_order = self.__torsion_subgroup.order()
             return self.__torsion_subgroup
 

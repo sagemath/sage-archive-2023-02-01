@@ -1,7 +1,7 @@
 r"""
 Elliptic curves over a general ring
 
-Elliptic curves are always represented by `Weierstass Models' with
+Elliptic curves are always represented by `Weierstrass Models' with
 five coefficients $[a_1,a_2,a_3,a_4,a_6]$ in standard notation.  In
 Magma, `Weierstrass Model' means a model with a1=a2=a3=0, which is
 called `Short Weierstrass Model' in Sage; these only exist in
@@ -43,12 +43,13 @@ AUTHORS:
 import math
 
 from sage.rings.all import PolynomialRing
-
+import sage.groups.generic as generic
 import sage.plot.all as plot
 
 import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field as number_field
+from sage.rings.number_field.all import is_NumberField
 from sage.rings.all import is_Infinite
 import sage.misc.misc as misc
 import sage.misc.latex as latex
@@ -149,7 +150,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         plane_curve.ProjectiveCurve_generic.__init__(self, PP, f)
         # TODO: cleanup, are these two point classes redundant?
         if K.is_field():
-            self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_field
+            if is_NumberField(K):
+                self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_number_field
+            else:
+                self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_field
         else:
             self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint
 
@@ -493,7 +497,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             R = self.base_ring()
             return self.point([R(0),R(1),R(0)], check=False)
         if isinstance(args[0],
-              (ell_point.EllipticCurvePoint_field, ell_point.EllipticCurvePoint)):
+              (ell_point.EllipticCurvePoint_field, \
+               ell_point.EllipticCurvePoint_number_field, \
+               ell_point.EllipticCurvePoint)):
             args = tuple(args[0])
         return plane_curve.ProjectiveCurve_generic.__call__(self, *args, **kwds)
 
@@ -2387,6 +2393,94 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.__formal_group
 
     formal = formal_group
+
+    def _p_primary_torsion_basis(self,p):
+        r"""
+        Find a basis for the $p$-primary part of the torsion subgroup of this elliptic curve.
+
+        INPUT :
+            $p$ -- a prime
+
+        OUTPUT : A list of 0, 1 or 2 pairs [T,k] where T is a generator
+            of order $p^k$.  That is, either [] or [[T1,k1]] or
+            [[T1,k1],[T2,k2]] with [], [T1], or [T1,T2] a basis and
+            p^k1 >= p^k2 >= 1 their orders.
+
+        WARNINGS: 1. Do not call this on a curve whose group is
+                 $p$-divisible (i.e., whose $p$-primary part is
+                 infinite)!
+
+                  2. The code uses division polynomials and will be
+                 slow for large $p$.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('11a1')
+            sage: E._p_primary_torsion_basis(5)
+            [[(5 : -6 : 1), 1]]
+            sage: K.<t>=NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
+            sage: EK=E.base_extend(K)
+            sage: EK._p_primary_torsion_basis(5)
+            [[(16 : 60 : 1), 1], [(t : 1/11*t^3 + 6/11*t^2 + 19/11*t + 48/11 : 1), 1]]
+            sage: EF=E.change_ring(GF(101))
+            sage: EF._p_primary_torsion_basis(5)
+            [[(0 : 13 : 1), 1], [(5 : 5 : 1), 1]]
+
+        """
+        p = rings.Integer(p)
+        if not p.is_prime():
+            raise ValueError, "p (=%s) should be prime"%p
+
+        # First find the p-torsion:
+        Ep = self(0).division_points(p)
+        p_rank = rings.Integer(len(Ep)).exact_log(p)
+        assert p_rank in [0,1,2]
+
+        if p_rank == 0:
+            return []
+
+        assert p_rank in [1,2]
+
+        if p_rank == 1:
+            P = Ep[0]
+            if P.is_zero(): P=Ep[1]
+            (P,k) = P._divide_out(p)
+            k += 1
+            # now P generates the p-power-torsion and has order p^k
+            return [[P,k]]
+
+        assert p_rank == 2
+        Epi = iter(Ep) # used to iterate through Ep
+        # Find P1,P2 which generate the p-torsion:
+        P1 = Epi.next()
+        while P1.is_zero(): P1 = Epi.next()
+        P2 = Epi.next()
+        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = Epi.next()
+
+        # Algorithm: we first keep dividing P1 and P2 by p until we no
+        # longer can.  If they stop at different orders p^k1, p^k2
+        # then we return [[P1,k1],[P2,k2]] (or in reverse order if
+        # k2>k1).  If they stop at the same order k, then we need to
+        # see if P1+a*P2 can be further divided for some a mod p; if
+        # so, replace P1 by P1+a*P2 and keep dividing it by p.
+
+        (P1,k1) = P1._divide_out(p)
+        k1 += 1
+        (P2,k2) = P2._divide_out(p)
+        k2 += 1
+        if k1>k2:
+            return [[P1,k1],[P2,k2]]
+        if k1<k2:
+            return [[P2,k2],[P1,k1]]
+        # Now k1==k2
+        for Q in generic.multiples(P2,p-1,P1+P2,operation='+'):
+            # Q runs through P1+a*P2 for a=1,2,...,p-1
+            (R,k) = Q._divide_out(p)
+            if k>0:
+                return [[R,k1+k],[P2,k2]]
+            else:
+                pass
+        # If we get here the structure is (p^k1,p^k1) and k2==k1
+        return [[P1,k1],[P2,k2]]
 
 
     def hyperelliptic_polynomials(self):

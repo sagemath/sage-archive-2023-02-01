@@ -1260,7 +1260,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def gens(self, verbose=False, rank1_search=10,
              algorithm='mwrank_shell',
              only_use_mwrank=True,
-             proof = None):
+             proof = None,
+             use_database = True):
         """
         Compute and return generators for the Mordell-Weil group E(Q)
         *modulo* torsion.
@@ -1290,8 +1291,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                        first use more naive, natively implemented methods.
             proof -- bool or None (default None, see proof.elliptic_curve or
                        sage.structure.proof).
+            use_database -- bool (default True) if True, attempts to
+                       find curve and gens in the (optional) database
         OUTPUT:
-            generators -- List of generators for the Mordell-Weil group.
+            generators -- List of generators for the Mordell-Weil
+                          group modulo torsion.
 
         IMPLEMENTATION: Uses Cremona's mwrank C library.
 
@@ -1302,14 +1306,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         A non-integral example:
             sage: E = EllipticCurve([-3/8,-2/3])
-            sage: E.gens()
+            sage: E.gens() # random (up to sign)
             [(10/9 : 29/54 : 1)]
 
         A non-minimal example:
             sage: E = EllipticCurve('389a1')
             sage: E1 = E.change_weierstrass_model([1/20,0,0,0]); E1
             Elliptic Curve defined by y^2 + 8000*y = x^3 + 400*x^2 - 320000*x over Rational Field
-            sage: E1.gens()
+            sage: E1.gens() # random (if database not used)
             [(-400 : 8000 : 1), (0 : -8000 : 1)]
         """
         if proof is None:
@@ -1317,11 +1321,27 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             proof = get_flag(proof, "elliptic_curve")
         else:
             proof = bool(proof)
+
+        # If the gens are already cached, return them:
         try:
             return list(self.__gens[proof])  # return copy so not changed
         except KeyError:
             if proof is False and self.__gens.has_key(True):
                 return self.__gens[True]
+
+        # If the optional extended database is installed and an
+        # isomorphic curve is in the database then its gens will be
+        # known:
+
+        if use_database:
+            try:
+                E = self.database_curve()
+                iso = E.isomorphism_to(self)
+                self.__gens[True] = [iso(P) for P in E.gens(use_database=False)]
+                return self.__gens[True]
+            except (RuntimeError, KeyError):  # curve or gens not in database
+                pass
+
         if self.conductor() > 10**7:
             only_use_mwrank = True
 
@@ -1333,7 +1353,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 if r == 0:
                     misc.verbose("Rank = 0, so done.")
                     self.__gens[True] = []
-                    self.__regulator[True] = R(1)
                     return self.__gens[True]
                 if r == 1 and rank1_search:
                     misc.verbose("Rank = 1, so using direct search.")
@@ -1344,10 +1363,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                         G = [P for P in G if P.order() == oo]
                         if len(G) > 0:
                             misc.verbose("Direct search succeeded.")
-                            G, _, reg = self.saturation(G, verbose=verbose)
+                            G, _, _ = self.saturation(G, verbose=verbose)
                             misc.verbose("Computed saturation.")
                             self.__gens[True] = G
-                            self.__regulator[True] = reg
                             return self.__gens[True]
                         h += 2
                     misc.verbose("Direct search FAILED.")
@@ -1362,7 +1380,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             G = C.gens()
             if proof is True and C.certain() is False:
                 del self.__mwrank_curve
-                raise RuntimeError, "Unable to compute the rank, hence generators, with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + \
+                raise RuntimeError, "Unable to compute the rank, hence generators, with certainty (lower bound=%s, generators found=%s).  This could be because Sha(E/Q)[2] is nontrivial."%(C.rank(),G) + \
                       "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again."
             else:
                 proof = C.certain()
@@ -1395,9 +1413,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 G.append(eval(X[k:j].replace(':',',')))
                 X = X[j:]
                 i = X.find('Generator ')
-            i = X.find('Regulator = ')
-            j = i + X[i:].find('\n')
-            self.__regulator[proof] = R(X[i+len('Regulator = '):j])
         ####
         self.__gens[proof] = [self.point(x, check=True) for x in G]
         self.__gens[proof].sort()
@@ -1444,19 +1459,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         return len(self.gens(proof = proof))
 
-    def regulator(self, use_database=True, verbose=None, proof=None):
+    def regulator(self, use_database=True, proof=None, precision=None):
         """
         Returns the regulator of this curve, which must be defined
         over Q.
 
         INPUT:
             use_database -- bool (default: False), if True, try to
-                  look up the regulator in the Cremona database.
-            verbose -- (default: None), if specified changes the
-                  verbosity of mwrank computations.
+                  look up the generators in the Cremona database.
             proof -- bool or None (default: None, see proof.[tab] or
                        sage.structure.proof).  Note that results from
                        databases are considered proof = True
+            precision -- int or None (default: None): the precision
+                         in bits of the result (default real precision
+                         if None)
 
         EXAMPLES:
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
@@ -1475,34 +1491,41 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (seconds)
             14.790527570131...
         """
+        if precision is None:
+            RR = rings.RealField()
+            precision = RR.precision()
+        else:
+            RR = rings.RealField(precision)
+
         if proof is None:
             from sage.structure.proof.proof import get_flag
             proof = get_flag(proof, "elliptic_curve")
         else:
             proof = bool(proof)
+
+        # We return a cached value if it exists and has sufficient precision:
         try:
-            return self.__regulator[proof]
-        except KeyError:
-            if proof is False and self.__regulator.has_key(True):
-                return self.__regulator[True]
-        if use_database:
-            try:
-                self.__regulator[True] = R(self.database_curve().db_extra[3])
-                return self.__regulator[True]
-            except (AttributeError, RuntimeError):
+            reg = self.__regulator[proof]
+            if reg.parent().precision() >= precision:
+                return RR(reg)
+            else: # Found regulator value but precision is too low
                 pass
-        G = self.gens(proof=proof)
-        try:  # in some cases self.gens() efficiently computes regulator.
-            return self.__regulator[proof]
         except KeyError:
             if proof is False and self.__regulator.has_key(True):
-                return self.__regulator[True]
-        C = self.mwrank_curve()
-        reg = R(C.regulator())
-        if proof is True and not C.certain():
-            raise RuntimeError, "Unable to compute the rank, hence regulator, with certainty (lower bound=%s)."%C.rank()
-        proof = C.certain()
-        self.__regulator[proof] = reg
+                reg = self.__regulator[True]
+                if reg.parent().precision() >= precision:
+                    return RR(reg)
+                else: # Found regulator value but precision is too low
+                    pass
+
+        # Next we find the gens, taking them from the database if they
+        # are there and use_database is True, else computing them:
+
+        G = self.gens(proof=proof, use_database=use_database)
+
+        # Finally compute the regulator of the generators found:
+
+        self.__regulator[proof] = self.regulator_of_points(G,precision=precision)
         return self.__regulator[proof]
 
     def height_pairing_matrix(self, points=None, precision=None):
@@ -1515,8 +1538,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         points -- either a list of points, which must be on this
                   curve, or (default) None, in which case self.gens()
                   will be used.
-        precision -- number of bit of precision of result
-                 (default: default RealField)
+        precision -- number of bits of precision of result
+                 (default: None, for default RealField precision)
 
         TODO: implement variable precision for heights of points
 
@@ -1529,11 +1552,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve('11a').height_pairing_matrix()
             []
             sage: E=EllipticCurve('5077a1')
-            sage: E.height_pairing_matrix([E.lift_x(x) for x in [-2,-7/4,1]])
-            [  1.36857250535393  -1.30957670708658 -0.634867157837156]
-            [ -1.30957670708658   2.71735939281229   1.09981843056673]
-            [-0.634867157837156   1.09981843056673  0.668205165651928]
-
+            sage: E.height_pairing_matrix([E.lift_x(x) for x in [-2,-7/4,1]], precision=100)
+            [  1.3685725053539301576677189587  -1.3095767070865762526921116660 -0.63486715783715585992297292250]
+            [ -1.3095767070865762526921116660   2.7173593928122929952451158897   1.0998184305667293436670206574]
+            [-0.63486715783715585992297292250   1.0998184305667293436670206574  0.66820516565192789038007958879]
         """
         if points is None:
             points = self.gens()
@@ -1556,6 +1578,67 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 mat[k,j]=mat[j,k]
         return mat
 
+    def regulator_of_points(self, points=[], precision=None):
+        """
+        Returns the regulator of the given points on this curve.
+
+        INPUT:
+
+            points -- a list of points on this curve (default: empty list)
+            precision -- int or None (default: None): the precision
+                         in bits of the result (default real precision
+                         if None)
+
+        TODO: implement variable precision for heights of points
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a1')
+            sage: P = E(0,0)
+            sage: Q = E(1,0)
+            sage: E.regulator_of_points([P,Q])
+            0.000000000000000
+            sage: 2*P==Q
+            True
+
+            sage: E = EllipticCurve('5077a1')
+            sage: points = [E.lift_x(x) for x in [-2,-7/4,1]]
+            sage: E.regulator_of_points(points)
+            0.417143558758384
+            sage: E.regulator_of_points(points,precision=100)
+            0.41714355875838396981711954462
+
+            sage: E = EllipticCurve('389a')
+            sage: E.regulator_of_points()
+            1.00000000000000
+            sage: points = [P,Q] = [E(-1,1),E(0,-1)]
+            sage: E.regulator_of_points(points)
+            0.152460177943144
+            sage: E.regulator_of_points(points, precision=100)
+            0.15246017794314375162432475705
+            sage: E.regulator_of_points(points, precision=200)
+            0.15246017794314375162432475704945582324372707748663081784028
+            sage: E.regulator_of_points(points, precision=300)
+            0.152460177943143751624324757049455823243727077486630817840280980046053225683562463604114816
+        """
+        for P in points:
+            assert P.curve() == self
+
+        if precision is None:
+            RR = rings.RealField()
+            precision = RR.precision()
+        else:
+            RR = rings.RealField(precision)
+        r = len(points)
+        M = matrix.MatrixSpace(RR, r)
+        mat = M()
+        for j in range(r):
+            mat[j,j] = points[j].height(precision=precision)
+        for j in range(r):
+            for k in range(j+1,r):
+                mat[j,k]=((points[j]+points[k]).height(precision=precision) - mat[j,j] - mat[k,k])/2
+                mat[k,j]=mat[j,k]
+        return mat.det()
+
 
     def saturation(self, points, verbose=False, max_prime=0, odd_primes_only=False):
         """
@@ -1575,7 +1658,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             saturation (list) -- points that form a basis for the saturation
             index (int) -- the index of the group generated by points
                            in their saturation
-            regulator (float) -- regulator of saturated points.
+            regulator (real with default precision) -- regulator of saturated points.
 
         IMPLEMENTATION:
             Uses Cremona's mwrank package.  With max_prime=0, we call
@@ -1975,7 +2058,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__tamagawa_product
         except AttributeError:
-            self.__tamagawa_product = self.pari_mincurve().ellglobalred()[2].python()
+            self.__tamagawa_product = Integer(self.pari_mincurve().ellglobalred()[2].python())
             return self.__tamagawa_product
 
     def real_components(self):
@@ -3782,9 +3865,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Returns the real height of this elliptic curve.
         This is used in integral_points()
 
-
         INPUT:
-
             precision -- (integer: default 53) bit precision of the
                field of real numbers in which the result will lie
 

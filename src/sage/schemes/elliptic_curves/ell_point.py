@@ -56,7 +56,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.element import AdditiveGroupElement, RingElement
-
+from sage.interfaces import gp
 import sage.plot.all as plot
 
 from sage.rings.padics.factory import Qp
@@ -976,7 +976,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         gxdd = gxd.derivative()
         return ( e(gxd(self[0])) > 0 and e(gxdd(self[0])) > 0)
 
-    def height(self):
+    def height(self, precision=None):
         """
         The Neron-Tate canonical height of the point.
 
@@ -985,6 +985,10 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         INPUT:
             self -- a point on a curve over QQ
+
+            precision -- int or None (default: None): the precision
+                         in bits of the result (default real precision
+                         if None)
 
         OUTPUT:
             the rational number 0 or a nonzero real field element
@@ -1022,12 +1026,30 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             Elliptic Curve defined by y^2 + 17*x*y - 120*y = x^3 - 60*x^2 over Rational Field
             sage: E([30, -90]).height()
             0
-        """
+
+            sage: E = EllipticCurve('389a1'); E
+            Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+            sage: [P,Q] = [E(-1,1),E(0,-1)]
+            sage: P.height(precision=100)
+            0.68666708330558658572355210295
+            sage: (3*Q).height(precision=100)/Q.height(precision=100)
+            9.0000000000000000000000000000
+            sage: _.parent()
+            Real Field with 100 bits of precision
+            """
         if self.has_finite_order():
             return rings.QQ(0)
+
+        if precision is None:
+            precision = rings.RealField().precision()
+        prec = (rings.RealField()(0.301029995663981)*precision).ceil() # decimal precision
+
+        # Note: we construct the pari_curve with the correct
+        # precision; then it is not necessary to pass the precision on
+        # to the height function.
         try:
-            h = self.curve().pari_curve().ellheight([self[0], self[1]])
-            return rings.RR(h)
+            h = self.curve().pari_curve(prec).ellheight([self[0], self[1]])
+            return rings.RealField(precision)(h)
         except AttributeError: "canonical height not yet implemented over general number fields."
 
     def elliptic_logarithm(self, embedding=None, precision=100):

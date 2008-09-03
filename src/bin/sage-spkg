@@ -112,9 +112,9 @@ if [ $INFO -ne 0 ]; then
     if [ ! -f "$PKG_SRC" ]; then
         echo "Package $PKG_NAME not found"
     fi
-    bunzip2 -c "$PKG_SRC" 2>/dev/null | tar Ofix - $PKG_NAME/SAGE.txt 2>/dev/null
+    bunzip2 -c "$PKG_SRC" 2>/dev/null | tar Ofx - $PKG_NAME/SAGE.txt 2>/dev/null
     if [ $? -ne 0 ]; then
-        tar Ofix  "$PKG_SRC" "$PKG_NAME/SAGE.txt" 2>/dev/null
+        tar Ofx  "$PKG_SRC" "$PKG_NAME/SAGE.txt" 2>/dev/null
     fi
     echo ""
     if [ $? -ne 0 ]; then
@@ -183,9 +183,9 @@ if [ -d "$PKG_NAME" ]; then
     rm -rf "$PKG_NAME"
 fi
 
-bunzip2 -c "$PKG_SRC" 2>/dev/null | tar fixv -  2>/dev/null
+bunzip2 -c "$PKG_SRC" 2>/dev/null | tar fxv -  2>/dev/null
 if [ ! -d "$PKG_NAME" ]; then
-    tar fixv "$PKG_SRC"
+    tar fxv "$PKG_SRC"
 fi
 echo "Finished extraction"
 
@@ -195,9 +195,9 @@ if [ ! -d "$PKG_NAME" ]; then
    echo "again."
    sage-download_package "$PKG_NAME"
    echo `pwd`
-   bunzip2 -c "$PKG_NAME.spkg"  | tar fixv -
+   bunzip2 -c "$PKG_NAME.spkg"  | tar fxv -
    if [ ! -d "$PKG_NAME.spkg" ]; then
-       tar fixv "$PKG_NAME.spkg"
+       tar fxv "$PKG_NAME.spkg"
    fi
    if [ ! -d "$PKG_NAME" ]; then
        echo "Second download resulted in a corrupted package."

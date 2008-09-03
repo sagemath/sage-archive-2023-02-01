@@ -21,13 +21,6 @@ if [ "x$GDBM" = "x" ]; then
     exit 1
 fi
 
-patch() {
-  #work around patches, make sure for each new release that they are still needed
-  cp patches/Macaulay2.e.overflow.hpp src/Macaulay2/e/overflow.hpp
-}
-
-patch
-
 export RM="rm -f"
 set -e
 cd src

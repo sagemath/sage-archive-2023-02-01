@@ -31,6 +31,10 @@ svn://macaulay2.math.uiuc.edu/Macaulay2/release-branches/1.1
 
 == Changelog ==
 
+=== Macaulay2-1.1-r7221 (Gary Furnish, August 31st 2008) ===
+ * Move to latest upstream
+ * Remove patches from 7210.p1
+
 === Macaulay2-1.1-r7210.p1 (Martin Albrecht, August 22nd 2008) ===
  * fixed spkg-install to define UNAME if it isn't defined
  * added patched overflow.hpp which includes needed standard headers

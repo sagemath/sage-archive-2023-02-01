@@ -13,7 +13,7 @@ PLOTTING:
 
         sage: G = graphs.WheelGraph(15)
         sage: P = G.plot()
-        sage: P.show()
+        sage: P.show() # long time
 
     If you create a graph in SAGE using the \code{Graph} command, then
     plot that graph, the positioning of nodes is determined using the
@@ -23,9 +23,9 @@ PLOTTING:
     positioning vs. the Petersen graph constructed by this database:
 
         sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9], 5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
-        sage: petersen_spring.show()
+        sage: petersen_spring.show() # long time
         sage: petersen_database = graphs.PetersenGraph()
-        sage: petersen_database.show()
+        sage: petersen_database.show() # long time
 
     For all the constructors in this database (except the octahedral,
     dodecahedral, random and empty graphs), the position dictionary
@@ -273,7 +273,13 @@ class GraphGenerators():
         sage: L = list(graphs(5, lambda G: G.size() <= 4))
         sage: len(L)
         14
-        sage: graphs_list.show_graphs(L)    # long time
+        sage: graphs_list.show_graphs(L) # long time
+
+    Generate all graphs with up to 5 vertices and up to 4 edges.
+        sage: L = list(graphs(5, lambda G: G.size() <= 4, augment='vertices'))
+        sage: len(L)
+        31
+        sage: graphs_list.show_graphs(L)              # long time
 
     Generate all graphs with degree at most 2, up to 6 vertices.
         sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
@@ -287,10 +293,14 @@ class GraphGenerators():
         sage: [len([g for g in L if g.order() == i]) for i in [1..7]]
         [1, 2, 3, 7, 13, 35, 88]
 
-    Generate all bipartite graphs on exactly 8 vertices:
-    (see http://www.research.att.com/~njas/sequences/A033995)
-        sage: L = list( graphs(8, lambda G: G.is_bipartite()) )
+    Generate all bipartite graphs on exactly 7 vertices:
+        sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
         sage: len(L)
+        88
+
+    Generate all bipartite graphs on exactly 8 vertices:
+        sage: L = list( graphs(8, lambda G: G.is_bipartite()) ) # long time
+        sage: len(L)                                            # long time
         303
 
     Generate graphs on the fly:
@@ -307,8 +317,8 @@ class GraphGenerators():
 
     Generate all simple graphs, allowing loops:
     (see http://www.research.att.com/~njas/sequences/A000666)
-        sage: L = list(graphs(6,augment='vertices',loops=True))
-        sage: for i in [0..6]: print i, len([g for g in L if g.order() == i])
+        sage: L = list(graphs(6,augment='vertices',loops=True))               # long time
+        sage: for i in [0..6]: print i, len([g for g in L if g.order() == i]) # long time
         0 1
         1 2
         2 6
@@ -324,6 +334,14 @@ class GraphGenerators():
         4 1
         6 2
         8 5
+        sage: for i in [4,6,8]:                                                                          # long time
+        ...    print i, len([g for g in graphs(i,augment='vertices',deg_seq=[3]*i) if g.is_connected()]) # long time
+        4 1
+        6 2
+        8 5
+
+        sage: print 10, len([g for g in graphs(10,deg_seq=[3]*10) if g.is_connected()]) # not tested
+        10 19
 
     REFERENCE:
         Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
@@ -360,7 +378,7 @@ class GraphGenerators():
         Construct and show a barbell graph
         Bar = 4, Bells = 9
             sage: g = graphs.BarbellGraph(9,4)
-            sage: g.show()
+            sage: g.show() # long time
 
         Create several barbell graphs in a SAGE graphics array
             sage: g = []
@@ -376,7 +394,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         pos_dict = {}
 
@@ -418,7 +436,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show a bull graph
             sage: g = graphs.BullGraph()
-            sage: g.show()
+            sage: g.show() # long time
         """
         pos_dict = {0:[0,0],1:[-1,1],2:[1,1],3:[-2,2],4:[2,2]}
         import networkx
@@ -449,7 +467,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show a circular ladder graph with 26 nodes
             sage: g = graphs.CircularLadderGraph(13)
-            sage: g.show()
+            sage: g.show() # long time
 
         Create several circular ladder graphs in a SAGE graphics array
             sage: g = []
@@ -465,7 +483,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         pos_dict = {}
         for i in range(n):
@@ -492,7 +510,7 @@ class GraphGenerators():
 
         EXAMPLES:
         Show a Claw graph
-            sage: (graphs.ClawGraph()).show()
+            sage: (graphs.ClawGraph()).show() # long time
 
         Inspect a Claw graph
             sage: G = graphs.ClawGraph()
@@ -534,8 +552,8 @@ class GraphGenerators():
             sage: n = networkx.cycle_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.CycleGraph(23)
-            sage: spring23.show()
-            sage: posdict23.show()
+            sage: spring23.show() # long time
+            sage: posdict23.show() # long time
 
         We next view many cycle graphs as a SAGE graphics array.
         First we use the \code{CycleGraph} constructor, which fills in
@@ -554,7 +572,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
 
         Compare to plotting with the spring-layout algorithm:
             sage: g = []
@@ -571,7 +589,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         pos_dict = {}
         for i in range(n):
@@ -601,7 +619,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show a diamond graph
             sage: g = graphs.DiamondGraph()
-            sage: g.show()
+            sage: g.show() # long time
         """
         pos_dict = {0:[0,1],1:[-1,0],2:[1,0],3:[0,-1]}
         import networkx
@@ -623,7 +641,7 @@ class GraphGenerators():
         Add one vertex to an empty graph and then show:
             sage: empty1 = graphs.EmptyGraph()
             sage: empty1.add_vertex()
-            sage: empty1.show()
+            sage: empty1.show() # long time
 
         Use for loops to build a graph from an empty graph:
             sage: empty2 = graphs.EmptyGraph()
@@ -636,7 +654,7 @@ class GraphGenerators():
             sage: for i in range(4)[1:]:
             ...    empty2.add_edge(4,i) # add edges {[1:4],[2:4],[3:4]}
             ...
-            sage: empty2.show()
+            sage: empty2.show() # long time
         """
         return graph.Graph(sparse=True)
 
@@ -661,7 +679,7 @@ class GraphGenerators():
         Construct and show a grid 2d graph
         Rows = 5, Columns = 7
             sage: g = graphs.Grid2dGraph(5,7)
-            sage: g.show()
+            sage: g.show() # long time
         """
         pos_dict = {}
         for i in range(n1):
@@ -687,12 +705,12 @@ class GraphGenerators():
 
         EXAMPLES:
             sage: G = graphs.GridGraph([2,3,4])
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
             sage: C = graphs.CubeGraph(4)
             sage: G = graphs.GridGraph([2,2,2,2])
-            sage: C.plot().show()  # or C.show()
-            sage: G.plot().show()  # or G.show()
+            sage: C.show()  # long time
+            sage: G.show()  # long time
 
 
         """
@@ -723,7 +741,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show a house graph
             sage: g = graphs.HouseGraph()
-            sage: g.show()
+            sage: g.show() # long time
         """
         pos_dict = {0:[-1,0],1:[1,0],2:[-1,1],3:[1,1],4:[0,2]}
         import networkx
@@ -753,7 +771,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show a house X graph
             sage: g = graphs.HouseXGraph()
-            sage: g.show()
+            sage: g.show() # long time
         """
         pos_dict = {0:[-1,0],1:[1,0],2:[-1,1],3:[1,1],4:[0,2]}
         import networkx
@@ -796,7 +814,7 @@ class GraphGenerators():
         EXAMPLE:
         Construct and show a Krackhardt kite graph
             sage: g = graphs.KrackhardtKiteGraph()
-            sage: g.show()
+            sage: g.show() # long time
         """
         pos_dict = {0:[-1,4],1:[1,4],2:[-2,3],3:[0,3],4:[2,3],5:[-1,2],6:[1,2],7:[0,1],8:[0,0],9:[0,-1]}
         import networkx
@@ -822,7 +840,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show a ladder graph with 14 nodes
             sage: g = graphs.LadderGraph(7)
-            sage: g.show()
+            sage: g.show() # long time
 
         Create several ladder graphs in a SAGE graphics array
             sage: g = []
@@ -838,7 +856,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         pos_dict = {}
         for i in range(n):
@@ -870,7 +888,7 @@ class GraphGenerators():
         Construct and show a lollipop graph
         Candy = 13, Stick = 4
             sage: g = graphs.LollipopGraph(13,4)
-            sage: g.show()
+            sage: g.show() # long time
 
         Create several lollipop graphs in a SAGE graphics array
             sage: g = []
@@ -886,7 +904,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         pos_dict = {}
 
@@ -935,19 +953,19 @@ class GraphGenerators():
         Show default drawing by size:
         'line': n < 11
             sage: p = graphs.PathGraph(10)
-            sage: p.show()
+            sage: p.show() # long time
 
         'circle': 10 < n < 41
             sage: q = graphs.PathGraph(25)
-            sage: q.show()
+            sage: q.show() # long time
 
         'line': n > 40
             sage: r = graphs.PathGraph(55)
-            sage: r.show()
+            sage: r.show() # long time
 
         Override the default drawing:
             sage: s = graphs.PathGraph(5,'circle')
-            sage: s.show()
+            sage: s.show() # long time
         """
         pos_dict = {}
 
@@ -1024,8 +1042,8 @@ class GraphGenerators():
             sage: n = networkx.star_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.StarGraph(23)
-            sage: spring23.show()
-            sage: posdict23.show()
+            sage: spring23.show() # long time
+            sage: posdict23.show() # long time
 
         View many star graphs as a SAGE Graphics Array
 
@@ -1043,7 +1061,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
 
         Compared to plotting with the spring-layout algorithm
             sage: g = []
@@ -1060,7 +1078,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         pos_dict = {}
         pos_dict[0] = [0,0]
@@ -1107,7 +1125,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
 
         Next, using the spring-layout algorithm:
             sage: import networkx
@@ -1125,14 +1143,14 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
 
         Compare the plotting:
             sage: n = networkx.wheel_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.WheelGraph(23)
-            sage: spring23.show()
-            sage: posdict23.show()
+            sage: spring23.show() # long time
+            sage: posdict23.show() # long time
         """
         pos_dict = {}
         pos_dict[0] = [0,0]
@@ -1168,7 +1186,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show a Tetrahedral graph
             sage: g = graphs.TetrahedralGraph()
-            sage: g.show()
+            sage: g.show() # long time
 
         The following example requires networkx:
             sage: import networkx as NX
@@ -1188,7 +1206,7 @@ class GraphGenerators():
             ...        n.append(g[i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         import networkx
         G = networkx.tetrahedral_graph()
@@ -1213,7 +1231,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show a Hexahedral graph
             sage: g = graphs.HexahedralGraph()
-            sage: g.show()
+            sage: g.show() # long time
 
         Create several hexahedral graphs in a SAGE graphics array. They will
         be drawn differently due to the use of the spring-layout algorithm.
@@ -1230,7 +1248,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         return graph.Graph({0:[1,3,4], 1:[2,5], 2:[3,6], 3:[7], 4:[5,7],\
                             5:[6], 6:[7]}, name="Hexahedron")
@@ -1256,7 +1274,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show an Octahedral graph
             sage: g = graphs.OctahedralGraph()
-            sage: g.show()
+            sage: g.show() # long time
 
         Create several octahedral graphs in a SAGE graphics array
         They will be drawn differently due to the use of the spring-layout algorithm
@@ -1273,7 +1291,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         import networkx
         G = networkx.octahedral_graph()
@@ -1300,7 +1318,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show an Octahedral graph
             sage: g = graphs.IcosahedralGraph()
-            sage: g.show()
+            sage: g.show() # long time
 
         Create several icosahedral graphs in a SAGE graphics array. They will
         be drawn differently due to the use of the spring-layout algorithm.
@@ -1317,7 +1335,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         import networkx
         G = networkx.icosahedral_graph()
@@ -1342,7 +1360,7 @@ class GraphGenerators():
         EXAMPLES:
         Construct and show a Dodecahdedral graph
             sage: g = graphs.DodecahedralGraph()
-            sage: g.show()
+            sage: g.show() # long time
 
         Create several dodecahedral graphs in a SAGE graphics array
         They will be drawn differently due to the use of the spring-layout algorithm
@@ -1359,7 +1377,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         import networkx
         G = networkx.dodecahedral_graph()
@@ -1411,7 +1429,7 @@ class GraphGenerators():
             sage: L = graphs.LCFGraph(20,[5,-5,9,-9],5)
             sage: D.is_isomorphic(L)
             True
-            sage: D.plot().show()  # or D.show()
+            sage: D.show()  # long time
 
         REFERENCE:
             [1] Harary, F. Graph Theory. Reading, MA: Addison-Wesley, 1994.
@@ -1459,7 +1477,7 @@ class GraphGenerators():
             'ShCGHC@?GGg@?@?Gp?K??C?CA?G?_G?Cc'
 
         Now show it:
-            sage: F.show()
+            sage: F.show() # long time
         """
         pos_dict = {}
         for i in range(15):
@@ -1501,7 +1519,7 @@ class GraphGenerators():
             Frucht graph: Graph on 12 vertices
             sage: FRUCHT.graph6_string()
             'KhCKM?_EGK?L'
-            sage: (graphs.FruchtGraph()).show()
+            sage: (graphs.FruchtGraph()).show() # long time
         """
         pos_dict = {}
         for i in range(7):
@@ -1545,7 +1563,7 @@ class GraphGenerators():
             Heawood graph: Graph on 14 vertices
             sage: H.graph6_string()
             'MhEGHC@AI?_PC@_G_'
-            sage: (graphs.HeawoodGraph()).show()
+            sage: (graphs.HeawoodGraph()).show() # long time
         """
         pos_dict = {}
         for i in range(14):
@@ -1668,7 +1686,7 @@ class GraphGenerators():
             Moebius-Kantor Graph: Graph on 16 vertices
             sage: MK.graph6_string()
             'OhCGKE?O@?ACAC@I?Q_AS'
-            sage: (graphs.MoebiusKantorGraph()).show()
+            sage: (graphs.MoebiusKantorGraph()).show() # long time
         """
         pos_dict = {}
         for i in range(8):
@@ -1691,9 +1709,9 @@ class GraphGenerators():
 
         EXAMPLES:
             sage: G = graphs.PappusGraph()
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
             sage: L = graphs.LCFGraph(18, [5,7,-7,7,-7,-5], 3)
-            sage: L.plot().show()  # or L.show()
+            sage: L.show()  # long time
             sage: G.is_isomorphic(L)
             True
 
@@ -1734,9 +1752,9 @@ class GraphGenerators():
         We compare below the Petersen graph with the default spring-layout
         versus a planned position dictionary of [x,y] tuples:
             sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9], 5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
-            sage: petersen_spring.show()
+            sage: petersen_spring.show() # long time
             sage: petersen_database = graphs.PetersenGraph()
-            sage: petersen_database.show()
+            sage: petersen_database.show() # long time
         """
         pos_dict = {}
         for i in range(5):
@@ -1768,7 +1786,7 @@ class GraphGenerators():
             Thomsen graph: Graph on 6 vertices
             sage: T.graph6_string()
             'EFz_'
-            sage: (graphs.ThomsenGraph()).show()
+            sage: (graphs.ThomsenGraph()).show() # long time
         """
         pos_dict = {0:[-1,1],1:[0,1],2:[1,1],3:[-1,0],4:[0,0],5:[1,0]}
         import networkx
@@ -1805,8 +1823,8 @@ class GraphGenerators():
             sage: n = networkx.cycle_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.CirculantGraph(23,2)
-            sage: spring23.show()
-            sage: posdict23.show()
+            sage: spring23.show() # long time
+            sage: posdict23.show() # long time
 
         We next view many cycle graphs as a SAGE graphics array.
         First we use the \code{CirculantGraph} constructor, which fills in
@@ -1825,7 +1843,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
 
         Compare to plotting with the spring-layout algorithm:
             sage: g = []
@@ -1842,7 +1860,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
 
             Passing a 1 into adjacency should give the cycle.
 
@@ -1922,7 +1940,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
 
         We compare to plotting with the spring-layout algorithm:
             sage: import networkx
@@ -1940,7 +1958,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
 
         Compare the constructors (results will vary)
             sage: import networkx
@@ -1958,8 +1976,8 @@ class GraphGenerators():
             sage: n = networkx.complete_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.CompleteGraph(23)
-            sage: spring23.show()
-            sage: posdict23.show()
+            sage: spring23.show() # long time
+            sage: posdict23.show() # long time
         """
         pos_dict = {}
         for i in range(n):
@@ -2019,8 +2037,8 @@ class GraphGenerators():
             sage: posdict_med = graphs.CompleteBipartiteGraph(11,17)
 
         Notice here how the spring-layout tends to center the nodes of n1
-            sage: spring_med.show()
-            sage: posdict_med.show()
+            sage: spring_med.show() # long time
+            sage: posdict_med.show() # long time
 
         View many complete bipartite graphs with a SAGE Graphics Array,
         with this constructor (i.e., the position dictionary filled):
@@ -2037,7 +2055,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
 
         We compare to plotting with the spring-layout algorithm:
             sage: g = []
@@ -2054,7 +2072,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
         """
         pos_dict = {}
         c1 = 1 # scaling factor for top row
@@ -2106,11 +2124,11 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show(figsize=[6,4])
+            sage: G.show(figsize=[6,4]) # long time
 
         Use the plot options to display larger n-cubes
             sage: g = graphs.CubeGraph(9)
-            sage: g.show(figsize=[12,12],vertex_labels=False, vertex_size=20)
+            sage: g.show(figsize=[12,12],vertex_labels=False, vertex_size=20) # long time
         """
         from sage.rings.integer import Integer
         # generate vertex labels:
@@ -2164,7 +2182,7 @@ class GraphGenerators():
         EXAMPLE:
         Plot a balanced tree of height 4 with r = 3
             sage: G = graphs.BalancedTree(3, 5)
-            sage: G.plot().show()   # or G.show()
+            sage: G.show()   # long time
 
         """
         import networkx
@@ -2208,7 +2226,7 @@ class GraphGenerators():
             [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
             sage: G.diameter()
             3
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
         PLOTTING:
             LCF Graphs are plotted as an n-cycle with edges in the middle, as
@@ -2286,7 +2304,7 @@ class GraphGenerators():
 
         We plot a random graph on 12 nodes with probability $p = .71$:
             sage: gnp = graphs.RandomGNP(12,.71)
-            sage: gnp.show()
+            sage: gnp.show() # long time
 
         We view many random graphs using a graphics array:
             sage: g = []
@@ -2302,7 +2320,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()
+            sage: G.show() # long time
             sage: graphs.RandomGNP(4,1)
             Complete graph: Graph on 4 vertices
 
@@ -2319,11 +2337,11 @@ class GraphGenerators():
             0.22401400000000038
 
             sage: t=cputime(); regular_dense = graphs.RandomGNP(389,.88)    # long time
-            sage: cputime(t)     # slightly random
+            sage: cputime(t)     # slightly random, long time
             0.87205499999999958
 
             sage: t=cputime(); fast_dense = graphs.RandomGNP(389,.88,fast=True)    # long time
-            sage: cputime(t)     # slightly random
+            sage: cputime(t)     # slightly random, long time
             0.90005700000000033
 
         """
@@ -2359,7 +2377,7 @@ class GraphGenerators():
 
         We plot a random graph on 12 nodes with m = 3.
             sage: ba = graphs.RandomBarabasiAlbert(12,3)
-            sage: ba.plot().show()  # or ba.show()
+            sage: ba.show()  # long time
 
         We view many random graphs using a graphics array:
             sage: g = []
@@ -2375,7 +2393,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()  # or G.show()
+            sage: G.show()  # long time
 
         """
         if seed is None:
@@ -2401,7 +2419,7 @@ class GraphGenerators():
 
         We plot a random graph on 12 nodes with m = 12.
             sage: gnm = graphs.RandomGNM(12, 12)
-            sage: gnm.plot().show()  # or gnm.show()
+            sage: gnm.show()  # long time
 
         We view many random graphs using a graphics array:
             sage: g = []
@@ -2417,7 +2435,7 @@ class GraphGenerators():
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage: G.show()  # or G.show()
+            sage: G.show()  # long time
 
         """
         if seed is None:
@@ -2453,7 +2471,7 @@ class GraphGenerators():
             [(0, 1), (0, 2), (0, 3), (0, 6), (1, 2), (2, 3), (2, 4), (3, 4), (3, 6), (4, 5), (5, 6)]
 
             sage: G = graphs.RandomNewmanWattsStrogatz(12, 2, .3)
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
         REFERENCE:
             [1] Newman, M.E.J., Watts, D.J. and Strogatz, S.H. Random graph
@@ -2498,7 +2516,7 @@ class GraphGenerators():
             [(0, 2), (0, 4), (1, 2), (1, 3), (2, 3), (3, 4), (3, 5), (3, 6), (3, 7), (4, 5), (4, 6)]
 
             sage: G = graphs.RandomHolmeKim(12, 3, .3)
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
         REFERENCE:
             [1] Holme, P. and Kim, B.J. Growing scale-free networks with
@@ -2530,7 +2548,7 @@ class GraphGenerators():
             [(0, 1), (1, 2)]
 
             sage: G = graphs.RandomLobster(9, .6, .3)
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
         """
         if seed is None:
@@ -2562,7 +2580,7 @@ class GraphGenerators():
 
             sage: G = graphs.RandomTreePowerlaw(15, 2)
             sage: if G:
-            ...    G.plot().show()  # or G.show() (random output)
+            ...    G.show()  # random output, long time
 
         """
         if seed is None:
@@ -2597,7 +2615,7 @@ class GraphGenerators():
 
             sage: G = graphs.RandomRegular(3, 20)
             sage: if G:
-            ...    G.plot().show()  # or G.show() (random output)
+            ...    G.show()  # random output, long time
 
         REFERENCES:
             [1] Kim, Jeong Han and Vu, Van H. Generating random regular graphs.
@@ -2630,7 +2648,7 @@ class GraphGenerators():
             sage: G = graphs.RandomShell([(10,20,0.8),(20,40,0.8)])
             sage: G.edges(labels=False)
             [(0, 3), (0, 7), (0, 8), (1, 2), (1, 5), (1, 8), (1, 9), (3, 6), (3, 11), (4, 6), (4, 7), (4, 8), (4, 21), (5, 8), (5, 9), (6, 9), (6, 10), (7, 8), (7, 9), (8, 18), (10, 11), (10, 13), (10, 19), (10, 22), (10, 26), (11, 18), (11, 26), (11, 28), (12, 13), (12, 14), (12, 28), (12, 29), (13, 16), (13, 21), (13, 29), (14, 18), (16, 20), (17, 18), (17, 26), (17, 28), (18, 19), (18, 22), (18, 27), (18, 28), (19, 23), (19, 25), (19, 28), (20, 22), (24, 26), (24, 27), (25, 27), (25, 29)]
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
         """
         if seed is None:
@@ -2660,16 +2678,16 @@ class GraphGenerators():
             sage: G = graphs.DegreeSequence([3,3,3,3])
             sage: G.edges(labels=False)
             [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
             sage: G = graphs.DegreeSequence([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
             sage: G = graphs.DegreeSequence([4,4,4,4,4,4,4,4])
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
             sage: G = graphs.DegreeSequence([1,2,3,4,3,4,3,2,3,2,1])
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
         REFERENCE:
             [1] Chartrand, G. and Lesniak, L. Graphs and Digraphs. Chapman and
@@ -2704,7 +2722,7 @@ class GraphGenerators():
             sage: G = graphs.DegreeSequenceConfigurationModel([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
             sage: G.edges(labels=False)
             [(0, 2), (0, 10), (0, 15), (1, 6), (1, 16), (1, 17), (2, 5), (2, 19), (3, 7), (3, 14), (3, 14), (4, 9), (4, 13), (4, 19), (5, 6), (5, 15), (6, 11), (7, 11), (7, 17), (8, 11), (8, 18), (8, 19), (9, 12), (9, 13), (10, 15), (10, 18), (12, 13), (12, 16), (14, 17), (16, 18)]
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
         REFERENCE:
             [1] Newman, M.E.J. The Structure and function of complex networks,
@@ -2729,7 +2747,7 @@ class GraphGenerators():
 
         EXAMPLE:
             sage: G = graphs.DegreeSequenceTree([3,1,3,3,1,1,1,2,1])
-            sage: G.plot().show()  # or G.show()
+            sage: G.show()  # long time
 
         """
         import networkx
@@ -2752,8 +2770,8 @@ class GraphGenerators():
         EXAMPLE:
             sage: G = graphs.DegreeSequenceExpected([1,2,3,2,3])
             sage: G.edges(labels=False)
-            [(1, 3), (2, 2), (3, 3)]
-            sage: G.plot().show()  # or G.show()
+            [(0, 2), (1, 1), (1, 3), (2, 2), (2, 4), (3, 3)]
+            sage: G.show()  # long time
 
         REFERENCE:
             [1] Chung, Fan and Lu, L. Connected components in random graphs
@@ -2761,6 +2779,8 @@ class GraphGenerators():
                 2002 pp. 125-145.
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed), loops=True)
 
@@ -2814,81 +2834,8 @@ class GraphGenerators():
             Graph on 2 vertices
             Graph on 3 vertices
 
-        Print graphs on 3 vertices.
-            sage: for G in graphs(3):
-            ...    print G
-            Graph on 3 vertices
-            Graph on 3 vertices
-            Graph on 3 vertices
-            Graph on 3 vertices
-
-        Generate all graphs with 5 vertices and 4 edges.
-            sage: L = graphs(5, size=4)
-            sage: len(list(L))
-            6
-
-        Generate all graphs with 5 vertices and up to 4 edges.
-            sage: L = list(graphs(5, lambda G: G.size() <= 4))
-            sage: len(L)
-            14
-            sage: graphs_list.show_graphs(L)    # long time
-
-        Generate all graphs with degree at most 2, up to 6 vertices.
-            sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
-            sage: L = list(graphs(6, property, augment='vertices'))
-            sage: len(L)
-            45
-
-        Generate all bipartite graphs on up to 7 vertices:
-        (see http://www.research.att.com/~njas/sequences/A033995)
-            sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
-            sage: [len([g for g in L if g.order() == i]) for i in [1..7]]
-            [1, 2, 3, 7, 13, 35, 88]
-
-        Generate all bipartite graphs on exactly 8 vertices:
-        (see http://www.research.att.com/~njas/sequences/A033995)
-            sage: L = list( graphs(8, lambda G: G.is_bipartite()) )
-            sage: len(L)
-            303
-
-        Generate graphs on the fly:
-        (see http://www.research.att.com/~njas/sequences/A000088)
-            sage: for i in range(0, 7):
-            ...    print len(list(graphs(i)))
-            1
-            1
-            2
-            4
-            11
-            34
-            156
-
-        Generate all simple graphs, allowing loops:
-        (see http://www.research.att.com/~njas/sequences/A000666)
-            sage: L = list(graphs(5,augment='vertices',loops=True))
-            sage: for i in [0..5]: print i, len([g for g in L if g.order() == i])
-            0 1
-            1 2
-            2 6
-            3 20
-            4 90
-            5 544
-
-        Generate all graphs with a specified degree sequence:
-        (see http://www.research.att.com/~njas/sequences/A002851)
-            sage: for i in [4,6,8]:
-            ...    print i, len([g for g in graphs(i,deg_seq=[3]*i) if g.is_connected()])
-            4 1
-            6 2
-            8 5
-            sage: for i in [4,6,8]: # this is slower...
-            ...    print i, len([g for g in graphs(i,augment='vertices',deg_seq=[3]*i) if g.is_connected()])
-            4 1
-            6 2
-            8 5
-
-            sage: print 10, len([g for g in graphs(10,deg_seq=[3]*10) if g.is_connected()]) # long time
-            10 19
+        For more examples, see the class level documentation, or type
+            sage: graphs? # not tested
 
         REFERENCE:
             Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
@@ -2944,7 +2891,7 @@ class GraphGenerators():
 
         EXAMPLES:
         Sloane A000055:
-            sage: for i in range(0, 10):
+            sage: for i in range(0, 7):
             ...    print len(list(graphs.trees(i)))
             1
             1
@@ -2953,6 +2900,8 @@ class GraphGenerators():
             2
             3
             6
+            sage: for i in range(7, 10):            # long time
+            ...    print len(list(graphs.trees(i))) # long time
             11
             23
             47
@@ -3063,7 +3012,7 @@ class DiGraphGenerators():
         sage: L = list(digraphs(4, lambda G: G.size() <= 3))
         sage: len(L)
         20
-        sage: graphs_list.show_graphs(L)    # long time
+        sage: graphs_list.show_graphs(L)  # long time
 
     Generate all digraphs with degree at most 2, up to 5 vertices.
         sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
@@ -3191,7 +3140,7 @@ class DiGraphGenerators():
             sage: D = digraphs.RandomDirectedGN(25)
             sage: D.edges(labels=False)
             [(1, 0), (2, 0), (3, 1), (4, 0), (5, 0), (6, 1), (7, 0), (8, 3), (9, 0), (10, 8), (11, 3), (12, 9), (13, 8), (14, 0), (15, 11), (16, 11), (17, 5), (18, 11), (19, 6), (20, 5), (21, 14), (22, 5), (23, 18), (24, 11)]
-            sage: D.plot().show()  # or D.show()
+            sage: D.show()  # long time
 
         REFERENCE:
             [1] Krapivsky, P.L. and Redner, S. Organization of Growing Random
@@ -3221,7 +3170,7 @@ class DiGraphGenerators():
             sage: D = digraphs.RandomDirectedGNC(25)
             sage: D.edges(labels=False)
             [(1, 0), (2, 0), (2, 1), (3, 0), (4, 0), (4, 1), (5, 0), (5, 1), (5, 2), (6, 0), (6, 1), (7, 0), (7, 1), (7, 4), (8, 0), (9, 0), (9, 8), (10, 0), (10, 1), (10, 2), (10, 5), (11, 0), (11, 8), (11, 9), (12, 0), (12, 8), (12, 9), (13, 0), (13, 1), (14, 0), (14, 8), (14, 9), (14, 12), (15, 0), (15, 8), (15, 9), (15, 12), (16, 0), (16, 1), (16, 4), (16, 7), (17, 0), (17, 8), (17, 9), (17, 12), (18, 0), (18, 8), (19, 0), (19, 1), (19, 4), (19, 7), (20, 0), (20, 1), (20, 4), (20, 7), (20, 16), (21, 0), (21, 8), (22, 0), (22, 1), (22, 4), (22, 7), (22, 19), (23, 0), (23, 8), (23, 9), (23, 12), (23, 14), (24, 0), (24, 8), (24, 9), (24, 12), (24, 15)]
-            sage: D.plot().show()  # or D.show()
+            sage: D.show()  # long time
 
         REFERENCE:
             [1] Krapivsky, P.L. and Redner, S. Network Growth by Copying,
@@ -3280,7 +3229,7 @@ class DiGraphGenerators():
             sage: D = digraphs.RandomDirectedGNR(25, .2)
             sage: D.edges(labels=False)
             [(1, 0), (2, 0), (2, 1), (3, 0), (4, 0), (4, 1), (5, 0), (5, 1), (5, 2), (6, 0), (6, 1), (7, 0), (7, 1), (7, 4), (8, 0), (9, 0), (9, 8), (10, 0), (10, 1), (10, 2), (10, 5), (11, 0), (11, 8), (11, 9), (12, 0), (12, 8), (12, 9), (13, 0), (13, 1), (14, 0), (14, 8), (14, 9), (14, 12), (15, 0), (15, 8), (15, 9), (15, 12), (16, 0), (16, 1), (16, 4), (16, 7), (17, 0), (17, 8), (17, 9), (17, 12), (18, 0), (18, 8), (19, 0), (19, 1), (19, 4), (19, 7), (20, 0), (20, 1), (20, 4), (20, 7), (20, 16), (21, 0), (21, 8), (22, 0), (22, 1), (22, 4), (22, 7), (22, 19), (23, 0), (23, 8), (23, 9), (23, 12), (23, 14), (24, 0), (24, 8), (24, 9), (24, 12), (24, 15)]
-            sage: D.plot().show()  # or D.show()
+            sage: D.show()  # long time
 
         REFERENCE:
             [1] Krapivsky, P.L. and Redner, S. Organization of Growing Random
@@ -3342,32 +3291,8 @@ class DiGraphGenerators():
             Digraph on 3 vertices
             Digraph on 3 vertices
 
-        Generate all digraphs with 4 vertices and 3 edges.
-            sage: L = digraphs(4, size=3)
-            sage: len(list(L))
-            13
-
-        Generate all digraphs with 4 vertices and up to 3 edges.
-            sage: L = list(digraphs(4, lambda G: G.size() <= 3))
-            sage: len(L)
-            20
-            sage: graphs_list.show_graphs(L)    # long time
-
-        Generate all digraphs with degree at most 2, up to 5 vertices.
-            sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
-            sage: L = list(digraphs(5, property, augment='vertices'))
-            sage: len(L)
-            75
-
-        Generate digraphs on the fly:
-        (see http://www.research.att.com/~njas/sequences/A000273)
-            sage: for i in range(0, 5):
-            ...    print len(list(digraphs(i)))
-            1
-            1
-            3
-            16
-            218
+        For more examples, see the class level documentation, or type
+            sage: digraphs? # not tested
 
         REFERENCE:
             Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
@@ -3439,17 +3364,6 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
         Digraph on 2 vertices
         Digraph on 2 vertices
         Digraph on 2 vertices
-
-    Generate all graphs with up to 5 vertices and up to 4 edges.
-        sage: L = list(graphs(5, lambda G: G.size() <= 4, augment='vertices'))
-        sage: len(L)
-        31
-        sage: graphs_list.show_graphs(L)              # long time
-
-    Generate all bipartite graphs on up to 7 vertices:
-        sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
-        sage: len(L)
-        150
 
     """
     from sage.graphs.graph_fast import binary
@@ -3620,17 +3534,6 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False):
         ...
         Digraph on 3 vertices
         Digraph on 3 vertices
-
-    Generate all graphs with 5 vertices and up to 4 edges.
-        sage: L = list(graphs(5, lambda G: G.size() <= 4))
-        sage: len(L)
-        14
-        sage: graphs_list.show_graphs(L)              # long time
-
-    Generate all bipartite graphs on 7 vertices:
-        sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
-        sage: len(L)
-        88
 
     """
     from sage.graphs.graph_fast import binary

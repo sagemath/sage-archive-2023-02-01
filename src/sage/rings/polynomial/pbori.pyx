@@ -3371,6 +3371,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         from polybori.gbcore import groebner_basis
         if "redsb" not in kwds:
             kwds["redsb"]=True
+        set_cring(self.ring())
         _sig_on
         gb = groebner_basis(self.gens(), **kwds)
         _sig_off

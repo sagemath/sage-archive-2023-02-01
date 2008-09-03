@@ -12,7 +12,7 @@ if [ ! -d $1 ]; then
 fi
 
 DIR=`basename $1`
-tar -jcf $DIR.spkg $DIR
+tar -cf - $DIR | bzip2 > $DIR.spkg
 
 if [ $? -ne 0 ]; then
    echo "Package creation failed."

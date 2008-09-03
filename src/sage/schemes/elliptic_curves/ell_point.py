@@ -932,7 +932,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         An example over a field with two real embeddings:
             sage: L.<a> = QuadraticField(2)
-            sage: E=EllipticCurve(L,[0,1,0,a,a]);
+            sage: E=EllipticCurve(L,[0,1,0,a,a])
             sage: P=E(-1,0)
             sage: [P.is_on_identity_component(e) for e in L.embeddings(RR)]
             [False, True]
@@ -943,7 +943,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: e = L.embeddings(RR)[0]
             sage: E1 = EllipticCurve(RR,[e(ai) for ai in E.ainvs()])
             sage: e1,e2,e3 = E1.two_division_polynomial().roots(RR,multiplicities=False)
-            sage: e1 <= e(P[0]) <= e2 < e3
+            sage: e1 < e2 < e3 and e(P[0]) < e3
             True
         """
         if self.is_zero():       # trivial case

@@ -28,11 +28,6 @@ sense.
     sage: Z('94803849083985934859834583945394')
     94803849083985934859834583945394
 
-TESTS:
-    sage: Z = IntegerRing()
-    sage: Z == loads(dumps(Z))
-    True
-
 """
 
 #*****************************************************************************
@@ -80,6 +75,8 @@ cimport integer
 cimport rational
 
 import ring
+
+cdef int number_of_integer_rings = 0
 
 def is_IntegerRing(x):
     """
@@ -170,18 +167,47 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sage: a = Z(-64)
         sage: int(a)
         -64
+
+    We can create integers from several types of objects.
+        sage: ZZ(17/1)
+        17
+        sage: ZZ(Mod(19,23))
+        19
+        sage: ZZ(2 + 3*5 + O(5^3))
+        17
     """
 
     def __init__(self):
         ParentWithGens.__init__(self, self, ('x',), normalize=False)
+        self._populate_coercion_lists_(element_constructor=integer.Integer,
+                                       init_no_parent=True,
+                                       convert_method_name='_integer_')
+
+    def __cinit__(self):
+        # This is here because very old pickled integers don't have unique parents.
+        global number_of_integer_rings
+        if type(self) is IntegerRing_class:
+            if number_of_integer_rings > 0:
+                self._populate_coercion_lists_(element_constructor=integer.Integer,
+                                               init_no_parent=True,
+                                               convert_method_name='_integer_')
+            number_of_integer_rings += 1
+
+    def __reduce__(self):
+        """
+        TESTS:
+            sage: loads(dumps(ZZ)) is ZZ
+            True
+        """
+        return IntegerRing, ()
 
     def __hash__(self):
         return 554590422
 
     def __richcmp__(left, right, int op):
-        return (<Parent>left)._richcmp(right, op)
+        return (<Parent>left)._richcmp_helper(right, op)
 
-    cdef int _cmp_c_impl(left, Parent right) except -2:
+    def _cmp_(left, right):
         if isinstance(right,IntegerRing_class):
             return 0
         if isinstance(right, sage.rings.rational_field.RationalField):
@@ -245,41 +271,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return K.order(K.gen())
 
         return PrincipalIdealDomain.__getitem__(self, x)
-
-    def __call__(self, x, base=0):
-        """
-        EXAMPLES:
-            sage: ZZ(17/1)
-            17
-            sage: ZZ(Mod(19,23))
-            19
-            sage: ZZ(2 + 3*5 + O(5^3))
-            17
-        """
-        if PY_TYPE_CHECK(x, integer.Integer):
-            return x
-        elif PY_TYPE_CHECK(x, rational.Rational):
-            return (<rational.Rational>x)._integer_c()
-
-        cdef integer.Integer y
-        y = PY_NEW(integer.Integer)
-        try:
-            y.__init__(x, base)
-            return y
-        except TypeError, msg:
-            try:
-                x = x.lift()
-                if PY_TYPE_CHECK(x, rational.Rational):
-                    return (<rational.Rational>x)._integer_c()
-                y.__init__(x, base)
-            except AttributeError:
-                pass
-        try:
-            return x.get_as_sage_int()
-        except AttributeError:
-            pass
-
-        raise TypeError, msg
 
     def range(self, start, end=None, step=None):
         """
@@ -377,25 +368,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         _sig_off
         return i
 
-    cdef _coerce_c_impl(self, x):
+    cpdef _coerce_map_from_(self, S):
         """
-        Return canonical coercion of x into the integers ZZ.
-
         x canonically coerces to the integers ZZ over only if x is an
         int, long or already an element of ZZ.
 
         EXAMPLES:
-            sage: k = GF(7)
-            sage: k._coerce_(2/3)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion of x
-            sage: k._coerce_(5)   # works since there's a natural hom ZZ --> GF(7).
+            sage: ZZ.coerce(int(5))
             5
-            sage: ZZ._coerce_(GF(7)(2))
+            sage: ZZ.coerce(GF(7)(2))
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion to an integer
+            TypeError: no cannonical coercion from Finite Field of size 7 to Integer Ring
 
         The rational number 3/1 = 3 does not canonically coerce into
         the integers, since there is no canonical coercion map from
@@ -405,19 +389,13 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             Rational Field
             sage: ZZ(a)
             3
-            sage: ZZ._coerce_(a)
+            sage: ZZ.coerce(a)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion to an integer
-        """
-        if isinstance(x, (int, long)):
-            return self(x)
-        raise TypeError, "no canonical coercion to an integer"
+            TypeError: no cannonical coercion from Rational Field to Integer Ring
 
 
-    cdef coerce_map_from_c_impl(self, S):
-        """
-        EXAMPLES:
+        TESTS:
             sage: f = ZZ.coerce_map_from(int); f
             Native morphism:
               From: Set of Python objects of type 'int'
@@ -436,7 +414,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         elif S is long:
             return sage.rings.integer.long_to_Z()
         else:
-            return PrincipalIdealDomain.coerce_map_from_c_impl(self, S)
+            None
 
 
     def is_subring(self, other):
@@ -556,7 +534,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
-            return im_gens[0] == codomain._coerce_(self.gen(0))
+            return im_gens[0] == codomain.coerce(self.gen(0))
         except TypeError:
             return False
 

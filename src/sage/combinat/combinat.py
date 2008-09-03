@@ -243,7 +243,7 @@ def bell_number(n):
         sage: bell_number(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: no coercion of this rational to integer
+        TypeError: no conversion of this rational to integer
     """
     ans=gap.eval("Bell(%s)"%ZZ(n))
     return ZZ(ans)
@@ -364,7 +364,7 @@ def fibonacci(n, algorithm="pari"):
         sage: fibonacci(1/2)
         Traceback (most recent call last):
         ...
-        TypeError: no coercion of this rational to integer
+        TypeError: no conversion of this rational to integer
     """
     n = ZZ(n)
     if algorithm == 'pari':

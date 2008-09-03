@@ -205,7 +205,7 @@ MAX_UNSIGNED_LONG = 2 * sys.maxint
 # and returning a pointer to the new block of memory, I think.
 
 from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport EuclideanDomainElement, ModuleElement
+from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
 from sage.structure.element import  bin_op
 
 import integer_ring
@@ -280,7 +280,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     # overhead can be significant. The difficulty is that then we can't
     # guarantee that the initialization will be performed exactly once.
 
-    def __new__(self, x=None, unsigned int base=0):
+    def __cinit__(self, x=None, unsigned int base=0):
         mpz_init(self.value)
         self._parent = <SageObject>the_integer_ring
 
@@ -372,6 +372,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer tmp
         cdef char* xs
 
+        cdef Element lift
+
         if x is None:
             if mpz_sgn(self.value) != 0:
                 mpz_set_si(self.value, 0)
@@ -434,7 +436,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # out of the NULL pointer. This really sucks. Perhaps we could
                 # make the function prototype have return type void*, but
                 # then how do we make Pyrex handle the reference counting?
-                set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))())
+                set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))(the_integer_ring))
 
             elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
                 b = the_integer_ring(base)
@@ -447,8 +449,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 import numpy
                 if isinstance(x, numpy.integer):
                     mpz_set_pylong(self.value, x.__long__())
-                else:
-                    raise TypeError, "unable to coerce element to an integer"
+                    return
+
+                elif PY_TYPE_CHECK(x, Element):
+                    try:
+                        lift = x.lift()
+                        if lift._parent != (<Element>x)._parent:
+                            tmp = the_integer_ring(lift)
+                            mpz_swap(tmp.value, self.value)
+                            return
+                    except AttributeError:
+                        pass
+
+                raise TypeError, "unable to coerce %s to an integer" % type(x)
 
 
     def __reduce__(self):

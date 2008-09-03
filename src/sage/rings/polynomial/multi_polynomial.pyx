@@ -118,7 +118,7 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             raise TypeError
 
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         """
         TESTS:
             sage: ZZ(RR['x,y'](0)) # indirect doctest

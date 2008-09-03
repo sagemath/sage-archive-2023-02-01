@@ -177,7 +177,7 @@ class Interval(ring_element.RingElement):
             raise ValueError, "Cannot coerce to int because there is no unique integer in the interval"
         return int(x)
 
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         """
         Used for coercion to the integers.
 

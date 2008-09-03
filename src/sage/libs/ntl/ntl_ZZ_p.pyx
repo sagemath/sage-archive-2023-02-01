@@ -416,7 +416,7 @@ cdef class ntl_ZZ_p:
         ZZ_p_modulus( &r.x, &self.x )
         return r
 
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         """
         Return a lift of self as a SAGE integer.
 
@@ -451,6 +451,6 @@ cdef class ntl_ZZ_p:
         cdef ZZ_c rep
         self.c.restore_c()
         rep = ZZ_p_rep(self.x)
-        return IntegerModRing(self.modulus().get_as_sage_int())((<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep))
+        return IntegerModRing(self.modulus()._integer_())((<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep))
 
     # todo: add wrapper for int_to_ZZ_p in wrap.cc?

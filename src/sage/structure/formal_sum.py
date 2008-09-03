@@ -127,7 +127,7 @@ class FormalSums_generic(Module):
             return action
 
     def _an_element_impl(self):
-        return FormalSum([(self.base_ring()._an_element(), 1)], check=False, reduce=False, parent=self)
+        return FormalSum([(self.base_ring().an_element(), 1)], check=False, reduce=False, parent=self)
 
 import weakref
 cache = {}

@@ -1062,7 +1062,7 @@ cdef class NumberFieldElement(FieldElement):
 #        else:
 #            return K(quotient)
 
-    def _integer_(self):
+    def _integer_(self, Z=None):
         """
         Returns a rational integer if this element is actually a rational integer.
 

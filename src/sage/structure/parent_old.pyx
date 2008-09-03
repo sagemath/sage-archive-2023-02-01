@@ -314,10 +314,14 @@ cdef class Parent(parent.Parent):
     #################################################################################
 
     def _coerce_(self, x):            # Call this from Python (do not override!)
+        if self._element_constructor is not None:
+            return self.coerce(x)
         check_old_coerce(self)
         return self._coerce_c(x)
 
     cpdef _coerce_c(self, x):          # DO NOT OVERRIDE THIS (call it)
+        if self._element_constructor is not None:
+            return self.coerce(x)
         check_old_coerce(self)
         try:
             P = x.parent()   # todo -- optimize
@@ -581,6 +585,8 @@ cdef class Parent(parent.Parent):
         if self._element_constructor is None:
             from sage.categories.morphism import CallMorphism
             from sage.categories.homset import Hom
+            if PY_TYPE_CHECK(S, type):
+                S = Set_PythonType(S)
             return CallMorphism(Hom(S, self))
         else:
             return parent.Parent._generic_convert_map(self, S)

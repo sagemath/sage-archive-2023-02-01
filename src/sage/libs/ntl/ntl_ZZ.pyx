@@ -116,7 +116,7 @@ cdef class ntl_ZZ:
         sage: loads(dumps(a))
         -7
         """
-        return unpickle_class_value, (ntl_ZZ, self.get_as_sage_int())
+        return unpickle_class_value, (ntl_ZZ, self._integer_())
 
     def __cmp__(self, other):
         """
@@ -238,7 +238,7 @@ cdef class ntl_ZZ:
             sage: type(ntl.ZZ(10^30).__int__())
             <type 'long'>
         """
-        return int(self.get_as_sage_int())
+        return int(self._integer_())
 
     cdef int get_as_int(ntl_ZZ self):
         r"""
@@ -264,22 +264,7 @@ cdef class ntl_ZZ:
         """
         return self.get_as_int()
 
-    def get_as_sage_int(self):
-        r"""
-        Gets the value as a sage int.
-
-        sage: n=ntl.ZZ(2983)
-        sage: type(n.get_as_sage_int())
-        <type 'sage.rings.integer.Integer'>
-
-        AUTHOR: Joel B. Mohler
-        """
-        cdef Integer ans = PY_NEW(Integer)
-        ZZ_to_mpz(&ans.value, &self.x)
-        return ans
-        #return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
-
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         r"""
         Gets the value as a sage int.
 
@@ -287,7 +272,7 @@ cdef class ntl_ZZ:
         sage: type(n._integer_())
         <type 'sage.rings.integer.Integer'>
 
-        Alias for get_as_sage_int
+        AUTHOR: Joel B. Mohler
         """
         cdef Integer ans = PY_NEW(Integer)
         ZZ_to_mpz(&ans.value, &self.x)

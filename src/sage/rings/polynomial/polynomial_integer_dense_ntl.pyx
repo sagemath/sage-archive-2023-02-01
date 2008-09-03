@@ -106,7 +106,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: R([1, 5/2, 2])
             Traceback (most recent call last):
             ...
-            TypeError: no coercion of this rational to integer
+            TypeError: no conversion of this rational to integer
 
         Construct from constant:
             sage: R(3)

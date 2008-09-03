@@ -851,8 +851,11 @@ class FreeModule_generic(module.Module):
             for a in c:
                 try:
                     b = R(a)
-                except TypeError:
+                except (TypeError):
                     return False
+                except NotImplementedError:
+                    from sage.rings.all import ZZ
+                    print "bad " + str((R, R._element_constructor, R is ZZ, type(R)))
         return True
 
     def __iter__(self):

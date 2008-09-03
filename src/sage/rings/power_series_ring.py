@@ -305,7 +305,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: no coercion of this rational to integer
+            TypeError: no conversion of this rational to integer
             sage: R([1,2,3])
             1 + 2*t + 3*t^2
             sage: S.<w> = PowerSeriesRing(QQ)

@@ -262,6 +262,8 @@ cdef class Parent(category_object.CategoryObject):
         \code{self._element_constructor_()} though faster pathways are
         possible if so desired.
         """
+        if self._element_constructor is None:
+            raise NotImplementedError
         cdef Py_ssize_t i
         R = parent_c(x)
         cdef bint no_extra_args = PyTuple_GET_SIZE(args) == 0 and PyDict_Size(kwds) == 0
@@ -375,6 +377,45 @@ cdef class Parent(category_object.CategoryObject):
             Yes
         """
         return True
+
+    def _richcmp_helper(left, right, int op):
+        """
+        Compare left and right.
+
+        EXAMPLES:
+            sage: ZZ < QQ
+            True
+        """
+        cdef int r
+
+        if not PY_TYPE_CHECK(right, Parent) or not PY_TYPE_CHECK(left, Parent):
+            # One is not a parent -- use arbitrary ordering
+            if (<PyObject*>left) < (<PyObject*>right):
+                r = -1
+            elif (<PyObject*>left) > (<PyObject*>right):
+                r = 1
+            else:
+                r = 0
+
+        else:
+            # Both are parents -- but need *not* have the same type.
+            if HAS_DICTIONARY(left):
+                r = left.__cmp__(right)
+            else:
+                r = left._cmp_(right)
+
+        if op == 0:  #<
+            return r  < 0
+        elif op == 2: #==
+            return r == 0
+        elif op == 4: #>
+            return r  > 0
+        elif op == 1: #<=
+            return r <= 0
+        elif op == 3: #!=
+            return r != 0
+        elif op == 5: #>=
+            return r >= 0
 
     def __len__(self):
         """
@@ -1198,7 +1239,6 @@ cdef class Parent(category_object.CategoryObject):
                 return self(x)
             except (TypeError, NameError, NotImplementedError, AttributeError, ValueError):
                 _record_exception()
-                pass
 
         raise NotImplementedError, "please implement _an_element_ for %s" % self
 
@@ -1284,7 +1324,6 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
             True
         """
         return not (self.is_finite() and len(self) == 0)
-
 
 
 import types

@@ -1507,7 +1507,7 @@ class ExpectElement(RingElement):
         """
         return float(repr(self))
 
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         """
         EXAMPLES:
             sage: m = maxima('1')

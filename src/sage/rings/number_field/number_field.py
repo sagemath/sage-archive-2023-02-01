@@ -566,7 +566,7 @@ def CyclotomicField(n, names=None):
         sage: CyclotomicField(3/2)
         Traceback (most recent call last):
         ...
-        TypeError: no coercion of this rational to integer
+        TypeError: no conversion of this rational to integer
 
     The degree must be positive.
         sage: CyclotomicField(0)

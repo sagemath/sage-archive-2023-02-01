@@ -183,7 +183,7 @@ class Valuation(CRE):
             return Valuation_point(self._low - right._low)
         return Valuation_sub(self, right)
 
-    def _integer_(self):
+    def _integer_(self, Z=None):
         self._fix()
         return Integer(self._low)
 

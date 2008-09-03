@@ -437,7 +437,7 @@ class Cusp(Element):
             raise TypeError, "cusp %s is not a rational number"%self
         return self.__a / self.__b
 
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         """
         Coerce to an integer.
 

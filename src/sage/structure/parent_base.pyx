@@ -101,8 +101,6 @@ cdef class ParentWithBase(parent_old.Parent):
         TEST CASES:
 
         sage: x, y, z, t, r,s = var('x,y,z,t,r,s')
-        sage: ZZ.base_extend_canonical(QQ)
-        Rational Field
         sage: ZZ[x].base_extend_canonical(QQ)
         Univariate Polynomial Ring in x over Rational Field
         sage: ZZ[x].base_extend_canonical(QQ[x])
@@ -188,8 +186,6 @@ cdef class ParentWithBase(parent_old.Parent):
 
         # Some tests for matrix spaces
 
-        sage: MatrixSpace(ZZ,2,2).base_extend_canonical(QQ)
-        Full MatrixSpace of 2 by 2 dense matrices over Rational Field
         sage: MatrixSpace(ZZ[x],2,2).base_extend_canonical(QQ)
         Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
         sage: MatrixSpace(ZZ[x],2,2).base_extend_canonical(QQ[x])
@@ -227,15 +223,11 @@ cdef class ParentWithBase(parent_old.Parent):
         ...
         TypeError: Ambiguous base extension
 
-        sage: MatrixSpace(ZZ,1,1).base_extend_canonical(ZZ[y])
-        Full MatrixSpace of 1 by 1 dense matrices over Univariate Polynomial Ring in y over Integer Ring
         sage: MatrixSpace(ZZ[x],1,1).base_extend_canonical(ZZ[y])
         Traceback (most recent call last):
         ...
         TypeError: Ambiguous base extension
 
-        sage: FreeModule(ZZ,1).base_extend_canonical(ZZ[y])
-        Ambient free module of rank 1 over the integral domain Univariate Polynomial Ring in y over Integer Ring
         sage: FreeModule(ZZ[x],1).base_extend_canonical(ZZ[y])
         Traceback (most recent call last):
         ...

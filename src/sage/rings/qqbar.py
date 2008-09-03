@@ -2728,7 +2728,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def _interval_fast(self, prec):
         return self.interval_fast(ComplexIntervalField(prec))
 
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         """
         Return \code{self} as an Integer.
 
@@ -2752,7 +2752,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: v._integer_()
             16
         """
-        return AA(self)._integer_()
+        return AA(self)._integer_(ZZ)
 
     def _rational_(self):
         """
@@ -3065,7 +3065,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         result_max = max(range.upper(), 1)
         return AlgebraicReal(ANRoot(poly, RIF(result_min, result_max)))
 
-    def _integer_(self):
+    def _integer_(self, Z=None):
         """
         Return \code{self} as an Integer.
 

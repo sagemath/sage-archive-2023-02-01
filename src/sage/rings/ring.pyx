@@ -34,12 +34,6 @@ cdef class Ring(ParentWithGens):
     """
     Generic ring class.
     """
-    def __call__(self, x):
-        """
-        Coerce x into the ring.
-        """
-        raise NotImplementedError
-
     def __iter__(self):
         raise NotImplementedError, "object does not support iteration"
 

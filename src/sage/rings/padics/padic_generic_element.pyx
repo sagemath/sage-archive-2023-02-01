@@ -196,7 +196,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             return self - (self // right) * right
 
-    def _integer_(self):
+    def _integer_(self, Z=None):
         return Integer(self.lift())
 
     #def _is_exact_zero(self):

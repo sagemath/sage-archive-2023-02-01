@@ -995,7 +995,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 ans._normalized = 0
         return ans
 
-    def _integer_(pAdicCappedRelativeElement self):
+    def _integer_(self, Z=None):
         r"""
         Converts self to an integer
 

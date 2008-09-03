@@ -197,12 +197,6 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
 ##                                       self._has_coerce_map_from,
 ##                                       self._names))
 
-    # First n generators, for n <= ngens:
-    def _first_ngens(self, n):
-        check_old_coerce(self)
-        v = self.gens()
-        return v[:n]
-
     # Derived class *must* define ngens method.
     def ngens(self):
         check_old_coerce(self)
@@ -218,7 +212,6 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
        Return a tuple whose entries are the generators for this
        object, in order.
        """
-       check_old_coerce(self)
        cdef int i, n
        if self._gens != None:
            return self._gens
@@ -229,21 +222,6 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
                v.append(self.gen(i))
            self._gens = tuple(v)
            return self._gens
-
-    def gens_dict(self):
-        r"""
-        Return a dictionary whose entries are \code{{var_name:variable,...}}.
-        """
-        if self._element_constructor is not None:
-            return parent.Parent.gens_dict(self)
-        if self._gens_dict != None:
-            return self._gens_dict
-        else:
-            v = {}
-            for x in self.gens():
-                v[str(x)] = x
-            self._gens_dict = v
-            return v
 
     def _assign_names(self, names=None, normalize=True):
         """
@@ -281,15 +259,6 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             raise TypeError, "names must be a tuple of strings"
         self._names = names
 
-    def __temporarily_change_names(self, names, latex_names):
-        """
-        This is used by the variable names context manager.
-        """
-        check_old_coerce(self)
-        old = self._names, self._latex_names
-        (self._names, self._latex_names) = names, latex_names
-        return old
-
     #################################################################################
     # Give all objects with generators a dictionary, so that attribute setting
     # works.   It would be nice if this functionality were standard in Pyrex,
@@ -317,9 +286,9 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
 
         return d
 
-    def __setstate__(self,d):
+    def __setstate__(self, d):
         if self._element_constructor is not None:
-            return parent.Parent.__setstate__(self)
+            return parent.Parent.__setstate__(self, d)
         try:
             self.__dict__ = d
             self._generator_orders = d['_generator_orders']

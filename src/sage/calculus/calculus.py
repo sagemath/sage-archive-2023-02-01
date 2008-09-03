@@ -1469,10 +1469,11 @@ class SymbolicExpression(RingElement):
     def __abs__(self):
         return abs_symbolic(self)
 
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         """
         EXAMPLES:
-
+            sage: ZZ(SR(-3))
+            -3
         """
         return Integer(repr(self))
 

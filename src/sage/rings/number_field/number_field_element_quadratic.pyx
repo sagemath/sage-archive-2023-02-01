@@ -756,7 +756,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return mpz_cmp_ui(self.a, 0) != 0 or mpz_cmp_ui(self.b, 0) != 0
 
 
-    def _integer_(self):
+    def _integer_(self, Z=None):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+163)

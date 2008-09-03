@@ -503,7 +503,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         except ValueError:
             raise TypeError, "cannot coerce to int"
 
-    def _integer_(self):
+    def _integer_(self, ZZ=None):
         return self.lift()
 
     def __long__(self):

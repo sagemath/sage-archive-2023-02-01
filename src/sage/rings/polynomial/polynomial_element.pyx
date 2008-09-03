@@ -677,7 +677,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             i -= 1
         return result
 
-    def _integer_(self):
+    def _integer_(self, ZZ):
         r"""
         EXAMPLES:
             sage: k = GF(47)
@@ -691,7 +691,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self.degree() > 0:
             raise TypeError, "cannot coerce nonconstant polynomial"
-        return sage.rings.integer.Integer(self[0])
+        return ZZ(self[0])
 
     def _rational_(self):
         r"""
@@ -2655,7 +2655,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.polynomial([12,5,7,3/2])
             Traceback (most recent call last):
             ...
-            TypeError: no coercion of this rational to integer
+            TypeError: no conversion of this rational to integer
         """
         return self._parent(*args, **kwds)
 

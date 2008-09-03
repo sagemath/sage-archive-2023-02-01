@@ -168,7 +168,8 @@ cdef class CategoryObject(sage_object.SageObject):
          """
          if HAS_DICTIONARY(self):
             try:
-                return self._gens_dict
+                if self._gens_dict is not None:
+                    return self._gens_dict
             except AttributeError:
                 pass
          v = {}
@@ -324,6 +325,14 @@ cdef class CategoryObject(sage_object.SageObject):
 
     def variable_name(self):
         return self.variable_names()[0]
+
+    def __temporarily_change_names(self, names, latex_names):
+        """
+        This is used by the variable names context manager.
+        """
+        old = self._names, self._latex_names
+        self._names, self._latex_names = names, latex_names
+        return old
 
     def inject_variables(self, scope=None, verbose=True):
         """

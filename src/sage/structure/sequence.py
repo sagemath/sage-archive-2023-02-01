@@ -137,7 +137,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         sage: v[3] = 2/3
         Traceback (most recent call last):
         ...
-        TypeError: no coercion of this rational to integer
+        TypeError: no conversion of this rational to integer
 
     Sequences can be used absolutely anywhere lists or tuples can be used:
         sage: isinstance(v, list)

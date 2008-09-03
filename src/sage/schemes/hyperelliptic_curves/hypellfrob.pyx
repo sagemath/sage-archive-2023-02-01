@@ -127,7 +127,7 @@ def hypellfrob(p, N, Q):
 
    R = Qp(p, N, print_mode="terse")
    prec = big_oh(p**N)
-   data = [[mm[j, i].get_as_sage_int() + prec for i from 0 <= i < 2*g] for j from 0 <= j < 2*g]
+   data = [[mm[j, i]._integer_() + prec for i from 0 <= i < 2*g] for j from 0 <= j < 2*g]
    return Matrix(R, data)
 
 

@@ -1284,7 +1284,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self    # since object is immutable.
 
-    def _integer_(self):
+    def _integer_(self, Z=None):
         """
         If this floating-point number is actually an integer, return
         that integer.  Otherwise, raise an exception.

@@ -48,6 +48,7 @@ from integer_ring import ZZ
 from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.structure.element import bin_op
 from sage.categories.morphism cimport Morphism
+from sage.categories.map cimport Map
 
 import sage.rings.real_mpfr
 
@@ -1581,15 +1582,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         QQ = self.parent()
         return QQ[var]([-self,1])
 
-    cdef integer.Integer _integer_c(self):
-        if not mpz_cmp_si(mpq_denref(self.value), 1) == 0:
-            raise TypeError, "no coercion of this rational to integer"
-        cdef integer.Integer n
-        n = PY_NEW(integer.Integer)
-        n.set_from_mpz(mpq_numref(self.value))
-        return n
-
-    def _integer_(self):
+    def _integer_(self, Z=None):
         """
         Return self coerced to an integer.  Of course this rational number
         have a denominator of 1.
@@ -1601,11 +1594,16 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (-4/17)._integer_()
             Traceback (most recent call last):
             ...
-            TypeError: no coercion of this rational to integer
+            TypeError: no conversion of this rational to integer
             sage: (-4/1)._integer_()
             -4
         """
-        return self._integer_c()
+        if not mpz_cmp_si(mpq_denref(self.value), 1) == 0:
+            raise TypeError, "no conversion of this rational to integer"
+        cdef integer.Integer n
+        n = PY_NEW(integer.Integer)
+        n.set_from_mpz(mpq_numref(self.value))
+        return n
 
     # TODO -- this should be deprecated
     def numer(self):
@@ -2263,6 +2261,52 @@ cdef class Z_to_Q(Morphism):
         """
         return "Natural"
 
+    def section(self):
+        """
+        EXAMPLES:
+            sage: QQ.coerce_map_from(ZZ).section()
+            Generic map:
+              From: Rational Field
+              To:   Integer Ring
+        """
+        return Q_to_Z(self._codomain, self._domain)
+
+cdef class Q_to_Z(Map):
+    """
+    TESTS:
+        sage: type(ZZ.convert_map_from(QQ))
+        <type 'sage.rings.rational.Q_to_Z'>
+    """
+    cpdef Element _call_(self, x):
+        """
+        A fast map from the rationals to the integers.
+
+        EXAMPLES:
+            sage: f = sage.rings.rational.Q_to_Z(QQ, ZZ)
+            sage: f(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+            sage: f(4/2)
+            2
+        """
+        if not mpz_cmp_si(mpq_denref((<Rational>x).value), 1) == 0:
+            raise TypeError, "no conversion of this rational to integer"
+        cdef integer.Integer n
+        n = <integer.Integer>PY_NEW(integer.Integer)
+        n.set_from_mpz(mpq_numref((<Rational>x).value))
+        return n
+
+    def section(self):
+        """
+        EXAMPLES:
+            sage: sage.rings.rational.Q_to_Z(QQ, ZZ).section()
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+        """
+        return Z_to_Q()
+
 cdef class int_to_Q(Morphism):
     def __init__(self):
         """
@@ -2278,6 +2322,14 @@ cdef class int_to_Q(Morphism):
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))
 
     cpdef Element _call_(self, a):
+        """
+        EXAMPLES:
+            sage: f = sage.rings.rational.int_to_Q()
+            sage: f(int(4))
+            4
+            sage: f(int(4^100))   # random garbage, not an int
+            14
+        """
         cdef Rational rat
         rat = <Rational> PY_NEW(Rational)
         mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)

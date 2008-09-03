@@ -196,20 +196,20 @@ class ode_solver(object):
          algorithm.
 
          sage: def f_1(t,y,params):
-         ...      return[y[1],-y[0]-params[0]*y[1]*(y[0]**2-1)]
+         ...      return[y[1],-y[0]-params[0]*y[1]*(y[0]**2-1.0)]
 
          sage: def j_1(t,y,params):
-         ...      return [ [0, 1.0],[-2.0*params[0]*y[0]*y[1]-1.0,-params[0]*(y[0]*y[0]-1.0)], [0,0] ]
+         ...      return [ [0.0, 1.0],[-2.0*params[0]*y[0]*y[1]-1.0,-params[0]*(y[0]*y[0]-1.0)], [0.0,0.0] ]
 
          sage: T=ode_solver()
          sage: T.algorithm="rk8pd"
          sage: T.function=f_1
          sage: T.jacobian=j_1
-         sage: T.ode_solve(y_0=[1,0],t_span=[0,100],params=[10],num_points=1000)
+         sage: T.ode_solve(y_0=[1,0],t_span=[0,100],params=[10.0],num_points=1000)
          sage: T.plot_solution(filename='sage.png')
 
          The solver line is equivalent to
-         sage: T.ode_solve(y_0=[1,0],t_span=[x/10.0 for x in range(1000)],params = [10])
+         sage: T.ode_solve(y_0=[1,0],t_span=[x/10.0 for x in range(1000)],params = [10.0])
 
 
          Lets try a system

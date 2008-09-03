@@ -394,7 +394,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
                 from sage.misc.sage_eval import sage_eval
                 return sage_eval(x, self.gens_dict())
             except NameError, e:
-                raise TypeError,"unable to convert string"
+                raise TypeError, "unable to convert string"
 
         elif is_Macaulay2Element(x):
             try:

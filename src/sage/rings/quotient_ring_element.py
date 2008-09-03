@@ -118,9 +118,9 @@ class QuotientRingElement(ring_element.RingElement):
     def __int__(self):
         return int(self.lift())
 
-    def _integer_(self):
+    def _integer_(self, Z=None):
         try:
-            return self.lift()._integer_()
+            return self.lift()._integer_(Z)
         except AttributeError:
             raise NotImplementedError
 

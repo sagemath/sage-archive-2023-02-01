@@ -5,6 +5,9 @@ didn't delete anything else.
 
 FIXME
 
+=== readline-5.2.p4 (Arnaud Bergeron, September 3rd, 2008) ===
+ * add a fix to find the dynamic library file on OpenBSD
+
 === readline-5.2.p3 (Michael Abshoff, May 18th, 2008) ===
  * add 64 bit OSX build support
 

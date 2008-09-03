@@ -6794,6 +6794,23 @@ class Graph(GenericGraph):
         sage: Graph(s, sparse=True)
         Looped multi-graph on 10 vertices
 
+        sage: G = Graph('G?????')
+        sage: G = Graph("G'?G?C")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The string seems corrupt: valid characters are
+        ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+        sage: G = Graph('G??????')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The string (G??????) seems corrupt: for n = 8, the string is too long.
+
+        sage: G = Graph(":I'AKGsaOs`cI]Gb~")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The string seems corrupt: valid characters are
+        ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+
     There are also list functions to take care of lists of graphs:
 
         sage: s = ':IgMoqoCUOqeb\n:I`AKGsaOs`cI]Gb~\n:I`EDOAEQ?PccSsge\N\n'
@@ -7026,7 +7043,10 @@ class Graph(GenericGraph):
                 edges = []
             else:
                 k = int(ceil(log(n,2)))
-                bits = ''.join([graph_fast.binary(ord(i)-63).zfill(6) for i in s])
+                ords = [ord(i) for i in s]
+                if any(o > 126 or o < 63 for o in ords):
+                    raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in xrange(63,127)]))
+                bits = ''.join([graph_fast.binary(o-63).zfill(6) for o in ords])
                 b = []
                 x = []
                 for i in xrange(int(floor(len(bits)/(k+1)))):
@@ -8152,6 +8172,24 @@ class DiGraph(GenericGraph):
         sage: D == E
         True
 
+    9. A dig6 string:
+    Sage automatically recognizes whether a string is in dig6 format, which
+    is a directed version of graph6:
+
+        sage: D = DiGraph('IRAaDCIIOWEOKcPWAo')
+        sage: D
+        Digraph on 10 vertices
+
+        sage: D = DiGraph('IRAaDCIIOEOKcPWAo')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The string (IRAaDCIIOEOKcPWAo) seems corrupt: for n = 10, the string is too short.
+
+        sage: D = DiGraph("IRAaDCI'OWEOKcPWAo")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The string seems corrupt: valid characters are
+        ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
     """
     _directed = True

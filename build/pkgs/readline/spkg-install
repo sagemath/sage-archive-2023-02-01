@@ -42,6 +42,8 @@ if [ $UNAME = "Darwin" ]; then
 elif [ $UNAME = "CYGWIN" ]; then
   # It is of course very lame that readline names the file .dll.a, but that's what it does.
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.dll.a
+elif [ "$UNAME" = "OpenBSD" ]; then
+  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.5.2
 else
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so
 fi

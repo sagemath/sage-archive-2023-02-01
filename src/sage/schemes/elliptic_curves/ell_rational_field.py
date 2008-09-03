@@ -1331,14 +1331,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         # If the optional extended database is installed and an
         # isomorphic curve is in the database then its gens will be
-        # known:
+        # known; if only the default database is installed, the rank
+        # will be known but not the gens.
 
         if use_database:
             try:
                 E = self.database_curve()
                 iso = E.isomorphism_to(self)
-                self.__gens[True] = [iso(P) for P in E.gens(use_database=False)]
-                return self.__gens[True]
+                try:
+                    self.__gens[True] = [iso(P) for P in E.__gens[True]]
+                    return self.__gens[True]
+                except KeyError: # database curve does not have the gens
+                    pass
             except (RuntimeError, KeyError):  # curve or gens not in database
                 pass
 

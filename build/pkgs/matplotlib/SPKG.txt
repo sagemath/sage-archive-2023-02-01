@@ -8,6 +8,9 @@ setupext.py by a version that adds some SAGE-specific paths so the build doesn't
 
 == Changelog ==
 
+== matplotlib-0.98.3.p1 (Jason Grout, 03 Sep 2008) ===
+ * Add an arrow_line.py file as a patch for "nice" arrows in matplotlib
+
 === matplotlib-0.98.3.p0 (Michael Abshoff, August 27th, 2008) ===
  * Merge Ondrej Certik's fix from #3792
 

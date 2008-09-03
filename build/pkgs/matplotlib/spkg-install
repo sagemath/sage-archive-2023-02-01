@@ -15,6 +15,7 @@ fi
 # Use patched versions.  See SPKG.txt for why and what.
 $CP patches/setupext.py src
 $CP patches/cbook.py src/lib/matplotlib/cbook.py
+$CP patches/arrow_line.py src/lib/matplotlib/arrow_line.py
 
 if [ `uname -m` = "ia64" ]; then
     echo "Work around a problem building tkgui on some Itanium Linux machines."

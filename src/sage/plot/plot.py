@@ -2355,13 +2355,28 @@ class GraphicPrimitive_Point(GraphicPrimitive):
         return self.xdata[i], self.ydata[i]
 
     def _render_on_subplot(self,subplot):
+        """
+        TESTS:
+        We check to make sure that #2076 is fixed by verifying all
+        the points are red.
+            sage: point(((1,1), (2,2), (3,3)), rgbcolor=hue(1), pointsize=30)
+        """
         options = self.options()
-        c = to_mpl_color(options['rgbcolor'])
+
+        #Convert the color to a hex string so that the scatter
+        #method does not interpret it as a list of 3 floating
+        #point color specifications when there are
+        #three points. This is mentioned in the matplotlib 0.98
+        #documentation and fixes #2076
+        from matplotlib.colors import rgb2hex
+        c = rgb2hex(to_mpl_color(options['rgbcolor']))
+
         a = float(options['alpha'])
         s = int(options['pointsize'])
         faceted = options['faceted'] #faceted=True colors the edge of point
         scatteroptions={}
         if not faceted: scatteroptions['edgecolors'] = 'none'
+
         subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, **scatteroptions)
 
 class GraphicPrimitive_Polygon(GraphicPrimitive):

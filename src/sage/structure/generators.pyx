@@ -132,8 +132,8 @@ cdef class Generators_list(Generators_finite):
             sage: list(gens)
             [2, 3]
         """
-        self._L = tuple(L)
-        Generators_finite.__init__(self, obj, len(self._L), None, category)
+        self._List = tuple(L)
+        Generators_finite.__init__(self, obj, len(self._List), None, category)
 
     cpdef get_from_index(self, i):
         """
@@ -144,9 +144,9 @@ cdef class Generators_list(Generators_finite):
             5
         """
         try:
-            return self._L[i]
+            return self._List[i]
         except IndexError:
-            raise IndexError, "No such generator: %s must be less than %s" % (i, len(self._L))
+            raise IndexError, "No such generator: %s must be less than %s" % (i, len(self._List))
 
     def __iter__(self):
         """
@@ -156,7 +156,7 @@ cdef class Generators_list(Generators_finite):
             sage: [x^2 for x in gens]
             [9, 16, 25]
         """
-        return iter(self._L)
+        return iter(self._List)
 
     cpdef list(self):
         """
@@ -168,23 +168,23 @@ cdef class Generators_list(Generators_finite):
             sage: gens.list()
             (1, 2, 3)
         """
-        return self._L
+        return self._List
 
     def __reduce__(self):
-        return make_list_gens, (self._obj, self._L, self._category)
+        return make_list_gens, (self._obj, self._List, self._category)
 
     def __cmp__(left, _right):
         cdef Generators_list right
         try:
             right = _right
             return cmp(left._n, right._n) or \
-                   cmp(left._L, right._L) or \
+                   cmp(left._List, right._List) or \
                    cmp(left._category, right._category)
         except TypeError:
             return cmp(type(left), type(right))
 
     def _repr_(self):
-        return repr(self._L)
+        return repr(self._List)
 
 def make_list_gens(*args):
     """

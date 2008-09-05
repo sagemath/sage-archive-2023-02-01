@@ -17,7 +17,7 @@ cdef class Generators_finite(Generators):
     cdef Py_ssize_t _n
 
 cdef class Generators_list(Generators_finite):
-    cdef _L
+    cdef _List
 
 cdef class Generators_naturals(Generators):
     pass

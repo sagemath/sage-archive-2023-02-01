@@ -3552,6 +3552,11 @@ def plot(funcs, *args, **kwds):
         100.0
         sage: p.xmax()
         120.0
+
+    We check to handle cases where the function gets evaluated at a point
+    which causes an 'inf' or '-inf' result to be produced.
+        sage: p = plot(1/x, 0, 1)
+        sage: p = plot(-1/x, 0, 1)
     """
     do_show = kwds.pop('show',False)
     if hasattr(funcs, 'plot'):
@@ -3624,7 +3629,7 @@ def _plot(funcs, xrange, parametric=False,
 
         try:
             data[i] = (float(xi), float(f(xi)))
-            if str(data[i][1]) in ['nan', 'NaN']:
+            if str(data[i][1]) in ['nan', 'NaN', 'inf', '-inf']:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 exceptions += 1
                 exception_indices.append(i)

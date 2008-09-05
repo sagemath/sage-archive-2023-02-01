@@ -894,6 +894,9 @@ class SymbolicExpression(RingElement):
 
         A plot involving the floor function:
             sage: plot(1.0 - x * floor(1/x), (x,0.00001,1.0))
+
+        A plot of a symbolic function with "no arguments":
+            sage: plot(2*sin, -4, 4)
         """
         from sage.plot.plot import plot
 
@@ -930,8 +933,15 @@ class SymbolicExpression(RingElement):
             else:
                 A = F.variables()
                 if len(A) == 0:
-                    y = float(F)
-                    f = lambda x: y
+                    #Here we handle the case where f is something
+                    #like 2*sin, which has takes arguments which
+                    #aren't explicitly given
+                    n = F.number_of_arguments()
+                    if n != 0:
+                        f = F._fast_float_()
+                    else:
+                        y = float(F)
+                        f = lambda x: y
                 else:
                     param = A[0]
                     try:
@@ -6738,12 +6748,12 @@ class Function_sin(PrimitiveFunction):
         EXAMPLES:
             sage: from sage.ext.fast_eval import fast_float
             sage: fast_float(sin)
-            <built-in function sin>
+            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
             sage: sin._fast_float_()
-            <built-in function sin>
+            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
 
         """
-        return math.sin
+        return fast_float.fast_float_func(math.sin, fast_float.fast_float_arg(0))
 
 sin = Function_sin()
 _syms['sin'] = sin
@@ -6778,12 +6788,12 @@ class Function_cos(PrimitiveFunction):
         EXAMPLES:
             sage: from sage.ext.fast_eval import fast_float
             sage: fast_float(cos)
-            <built-in function cos>
+            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
             sage: cos._fast_float_()
-            <built-in function cos>
+            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
 
         """
-        return math.cos
+        return fast_float.fast_float_func(math.sin, fast_float.fast_float_arg(0))
 
 
 cos = Function_cos()

@@ -59,7 +59,7 @@ cdef class ContinuousHiddenMarkovModel(HiddenMarkovModel):
         # Assign model identifier (the name) if specified
         if name is not None:
             name = str(name)
-            self.m.name = <char*> safe_malloc(len(name))
+            self.m.name = <char*> safe_malloc(len(name)+1)
             strcpy(self.m.name, name)
         else:
             self.m.name = NULL

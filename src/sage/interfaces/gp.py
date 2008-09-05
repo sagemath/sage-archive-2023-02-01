@@ -242,8 +242,8 @@ class Gp(Expect):
 
         EXAMPLES:
             sage: gp.get_precision()
-            38
-
+            28              # 32-bit
+            38              # 64-bit
         """
         a = self.eval('\\p')
         i = a.find('=')
@@ -264,7 +264,8 @@ class Gp(Expect):
             sage: gp.set_precision(old_prec)
             57
             sage: gp.get_precision()
-            38
+            28              # 32-bit
+            38              # 64-bit
         """
         old = self.get_precision()
         self.eval('\\p %s'%int(prec))
@@ -514,15 +515,36 @@ class Gp(Expect):
     def new_with_bits_prec(self, s, precision = 0):
         r"""
         Creates a GP object from s with \code{precision} bits
-        of precision.
+        of precision.  GP actually automatically increases this
+        precision to the nearest word (i.e. the next multiple of 32 on
+        a 32-bit machine, or the next multiple of 64 on a 64-bit
+        machine).
 
         EXAMPLES:
-            sage: gp.new_with_bits_prec(pi, 100)
-            3.1415926535897932384626433832795028842
+            sage: pi_def = gp(pi); pi_def
+            3.141592653589793238462643383                  # 32-bit
+            3.1415926535897932384626433832795028842        # 64-bit
+            sage: pi_def.precision()
+            28                                             # 32-bit
+            38                                             # 64-bit
+            sage: pi_150 = gp.new_with_bits_prec(pi, 150)
+            sage: new_prec = pi_150.precision(); new_prec
+            48                                             # 32-bit
+            57                                             # 64-bit
+            sage: old_prec = gp.get_precision()
+            sage: gp.set_precision(new_prec)
+            28                                             # 32-bit
+            38                                             # 64-bit
+            sage: pi_150
+            3.14159265358979323846264338327950288419716939937  # 32-bit
+            3.14159265358979323846264338327950288419716939937510582098  # 64-bit
+            sage: gp.set_precision(old_prec)
+            48                                             # 32-bit
+            57                                             # 64-bit
         """
-        old_prec = self.get_real_precision()
-        prec = int(precision/3.4) - 1
-        if not precision:
+        if precision:
+            old_prec = self.get_real_precision()
+            prec = int(precision/3.321928095)
             self.set_real_precision(prec)
             x = self(s)
             self.set_real_precision(old_prec)

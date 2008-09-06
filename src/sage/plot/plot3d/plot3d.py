@@ -135,7 +135,7 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
         sage: plot3d( 4*x*exp(-x^2-y^2), (x,-2,2), (x,-2,2))
         Traceback (most recent call last):
         ...
-        ValueError: Plot variables should be distinct, but both are x.
+        ValueError: plot variables should be distinct, but both are x.
     """
     if len(urange) == 2:
         try:

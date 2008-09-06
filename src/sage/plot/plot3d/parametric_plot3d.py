@@ -342,7 +342,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
         sage: plot3d(u^2-v^2, (u, -1, 1), (u, -1, 1))
         Traceback (most recent call last):
         ...
-        ValueError: Plot variables should be distinct, but both are u.
+        ValueError: plot variables should be distinct, but both are u.
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above

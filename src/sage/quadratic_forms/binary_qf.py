@@ -384,7 +384,9 @@ def BinaryQF_reduced_representatives(D):
     Returns a list of inequivalent reduced representatives for the equivalence
     classes of positive definite binary forms of discriminant D.
 
-    NOTE: The order of the representatives is unspecified but deterministic.
+    NOTE: A form $a x^2 + b xy + c y^2$ is reduced if $|b| \le a \le c$
+    and if $b \ge 0$ unless $|b| < a < c$. The list of representatives is
+    ordered lexicographically.
 
     WARNING: The representatives are not necessarily primitive, unless the
     discriminant is fundamental!
@@ -427,20 +429,20 @@ def BinaryQF_reduced_representatives(D):
     form_list = []
 
     from sage.misc.all import xsrange
-    for a in xsrange(1,1+(-3*D).isqrt()):
+    # Only iterate over positive a and over b of the same
+    # parity as D such that 4a^2 + D <= b^2 <= a^2
+    for a in xsrange(1,1+((-D)//3).isqrt()):
         a4 = 4*a
-        #Only iterate over b of the same parity as D
-        for b in xsrange(D%2,a+1,2):
+        s = D + a*a4
+        w = 1+(s-1).isqrt() if s > 0 else 0
+        if w%2 != D%2: w += 1
+        for b in xsrange(w,a+1,2):
             t = b*b-D
             if t % a4 == 0:
                 c = t // a4
-                if a < c:
-                    form_list.append(BinaryQF([a,b,c]))
-                    if b>0 and a>b:
-                        form_list.append(BinaryQF([a,-b,c]))
-                else:
-                    if (a == c):
-                        form_list.append(BinaryQF([a,b,c]))
+                if b>0 and a>b and c>a:
+                    form_list.append(BinaryQF([a,-b,c]))
+                form_list.append(BinaryQF([a,b,c]))
 
     form_list.sort()
     return form_list

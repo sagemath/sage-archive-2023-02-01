@@ -446,7 +446,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E[14].python().prec()
             64
             sage: [a.precision() for a in E]
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4]
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4] # 32-bit
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3] # 64-bit
         """
         try:
             # if the PARI curve has already been computed to this

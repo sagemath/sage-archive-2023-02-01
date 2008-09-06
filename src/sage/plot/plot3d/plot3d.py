@@ -149,7 +149,7 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
         u = urange[0]
         v = vrange[0]
         if u is v:
-            raise ValueError, "Plot variables should be distinct, but both are %s."%u
+            raise ValueError, "plot variables should be distinct, but both are %s."%(u,)
 
         w = (u, v, f)
 

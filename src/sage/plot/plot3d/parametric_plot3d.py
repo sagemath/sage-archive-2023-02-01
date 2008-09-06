@@ -374,7 +374,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
         G = parametric_plot3d_curve(f, urange, plot_points, **kwds)
     else:
         if urange[0] is vrange[0]:
-            raise ValueError, "Plot variables should be distinct, but both are %s."%urange[0]
+            raise ValueError, "plot variables should be distinct, but both are %s."%(urange[0],)
 
         if plot_points == "automatic":
             plot_points = [40,40]

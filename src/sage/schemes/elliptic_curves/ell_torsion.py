@@ -126,7 +126,7 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
             while G is None and loop < 3:
                 loop += 1
                 try:
-                    G = self.__E.pari_curve().elltors(flag) # pari_curve will return the curve of maximum known precision
+                    G = self.__E.pari_curve(prec = 400).elltors(flag) # pari_curve will return the curve of maximum known precision
                 except RuntimeError:
                     self.__E.pari_curve(factor = 2) # caches a curve of twice the precision
             if G is not None:

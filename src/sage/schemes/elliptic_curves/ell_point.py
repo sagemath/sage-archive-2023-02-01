@@ -1042,13 +1042,12 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         if precision is None:
             precision = rings.RealField().precision()
-        prec = (rings.RealField()(0.301029995663981)*precision).ceil() # decimal precision
 
         # Note: we construct the pari_curve with the correct
         # precision; then it is not necessary to pass the precision on
         # to the height function.
         try:
-            h = self.curve().pari_curve(prec).ellheight([self[0], self[1]])
+            h = self.curve().pari_curve(prec=precision).ellheight([self[0], self[1]])
             return rings.RealField(precision)(h)
         except AttributeError: "canonical height not yet implemented over general number fields."
 
@@ -1097,7 +1096,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P = E([16,-61])
             sage: P.elliptic_logarithm (precision=96)
             0.2538418608559106843377589233
-            sage: E.period_lattice().basis()[0] / P.elliptic_logarithm (precision=96)
+            sage: E.period_lattice().basis(prec=96)[0] / P.elliptic_logarithm (precision=96)
             5.000000000000000000000000000
 
             sage: E = EllipticCurve([1, 0, 1, -85357462, 303528987048]) #18074g1

@@ -214,7 +214,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         if ncols < 0:
             raise ArithmeticError, "ncols must be nonnegative"
 
-        if sage.misc.misc.is_64bit():
+        if sage.misc.misc.is_64_bit:
             if nrows >= 2**64 or ncols >= 2**64:
                 raise ValueError, "number of rows and columns must be less than 2^64"
         else:

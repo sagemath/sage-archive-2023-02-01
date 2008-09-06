@@ -1404,8 +1404,8 @@ class SR_generic(MPolynomialSystemGenerator):
 
         and a solution:
 
-            sage: s
-            {k000: 1, k001: 0, k002: 0, k003: 1}
+            sage: s # random -- maybe we need a better doctest here?
+            {k000: 1, k001: 0, k003: 1, k002: 0}
 
         This solution is not the only solution what we can learn from
         the Groebner basis of the system.

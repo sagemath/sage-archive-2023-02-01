@@ -4484,6 +4484,11 @@ cdef init_M4RI():
         M4RI_init = 1
 
 def free_m4ri():
-    m4ri_destroy_all_codes()
+    return
+    # The codes should be cleaned up via a _fini function when compiled with gcc or Sun Forte
+    # compiler. On OSX it seems that the linker picks the wrong m4ri_destroy_all_codes()
+    # since we have a static and a dynamic version - this is supposed to be fixed by #1611.
+    # This results in loads of double frees at exit.
+    # m4ri_destroy_all_codes()
 
 init_M4RI()

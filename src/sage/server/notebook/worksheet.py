@@ -1680,7 +1680,7 @@ class Worksheet:
         d = copy.copy(self.__dict__)
 
         # These attributes can take a while too and there is no need to cache them
-        for attr in ['html', 'user_view', 'notebook', 'conf']:
+        for attr in ['html', 'notebook', 'conf']:
             mangled = '_Worksheet__%s'%attr
             if d.has_key(mangled):
                 del d[mangled]

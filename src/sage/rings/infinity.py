@@ -7,12 +7,13 @@ The unsigned infinity ``ring'' is the set of two elements
         * A number less than infinity
 \end{verbatim}
 
-The rules for arithmetic are that the unsigned infinity ring does not canonically
-coerce to any other ring, and all other rings canonically coerce to
-the unsigned infinity ring, sending all elements to the single element
-``a number less than infinity'' of the unsigned infinity ring.
-Arithmetic and comparisons then takes place in the unsigned infinity ring,
-where all arithmetic operations that are well defined are defined.
+The rules for arithmetic are that the unsigned infinity ring does not
+canonically coerce to any other ring, and all other rings canonically
+coerce to the unsigned infinity ring, sending all elements to the
+single element ``a number less than infinity'' of the unsigned
+infinity ring. Arithmetic and comparisons then take place in the
+unsigned infinity ring, where all arithmetic operations that are
+well-defined are defined.
 
 The infinity ``ring'' is the set of five elements
 \begin{verbatim}
@@ -23,7 +24,22 @@ The infinity ``ring'' is the set of five elements
         * negative infinity
 \end{verbatim}
 
-The infinity ring coerces to the unsigned infinity ring, sending the infinite elements to infinity and the non-infinite elements to ``a number less than infinity.''  Any ordered ring coerces to the infinity ring in the obvious way.
+The infinity ring coerces to the unsigned infinity ring, sending the
+infinite elements to infinity and the non-infinite elements to ``a
+number less than infinity.''  Any ordered ring coerces to the infinity
+ring in the obvious way.
+
+Note: the shorthand oo is predefined in Sage to be the same as
++Infinity in the infinity ring.  It is considered equal to, but not
+the same as Infinity in the UnsignedInfinityRing:
+    sage: oo
+    +Infinity
+    sage: oo is InfinityRing.0
+    True
+    sage: oo is UnsignedInfinityRing.0
+    False
+    sage: oo == UnsignedInfinityRing.0
+    True
 
 EXAMPLES:
 We fetch the unsigned infinity ring and create some elements:
@@ -33,54 +49,65 @@ We fetch the unsigned infinity ring and create some elements:
     A number less than infinity
     sage: P.ngens()
     1
-    sage: oo = P.0; oo
+    sage: unsigned_oo = P.0; unsigned_oo
     Infinity
 
-We compare finite numbers with infinity.
-    sage: 5 < oo
+We compare finite numbers with infinity:
+    sage: 5 < unsigned_oo
     True
-    sage: 5 > oo
+    sage: 5 > unsigned_oo
     False
-    sage: oo < 5
+    sage: unsigned_oo < 5
     False
-    sage: oo > 5
+    sage: unsigned_oo > 5
     True
 
-We do arithmetic.
-    sage: oo + 5
+We do arithmetic:
+    sage: unsigned_oo + 5
     Infinity
+
+We make 1 / unsigned_oo return the integer 0 so that arithmetic of the
+following type works:
+    sage: (1/unsigned_oo) + 2
+    2
+    sage: 32/5 - (2.439/unsigned_oo)
+    32/5
 
 Note that many operations are not defined, since the result is
-not well defined.
-    sage: oo/0
+not well-defined:
+    sage: unsigned_oo/0
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand parent(s) for '/': 'The Unsigned Infinity Ring' and 'Integer Ring'
 
-What happened above is that 0 is canonically coerced to
-"a number less than infinity" in the unsigned infinity ring, and the quotient
-is then not well defined.
+What happened above is that 0 is canonically coerced to "a number less
+than infinity" in the unsigned infinity ring, and the quotient is then
+not well-defined.
 
-    sage: 0/oo
-    A number less than infinity
-    sage: oo * 0
+    sage: 0/unsigned_oo
+    0
+    sage: unsigned_oo * 0
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand parent(s) for '*': 'The Unsigned Infinity Ring' and 'Integer Ring'
-    sage: oo/oo
+    sage: unsigned_oo/unsigned_oo
     Traceback (most recent call last):
     ...
     TypeError: infinity 'ring' has no fraction field
 
-In the infinity ring, we can negate infinity, multiply positive numbers by infinity, etc.
+
+In the infinity ring, we can negate infinity, multiply positive
+numbers by infinity, etc.
     sage: P = InfinityRing; P
     The Infinity Ring
     sage: P(5)
     A positive finite number
-    sage: oo = P.0; oo
+
+The symbol oo is predefined as a shorthand for +Infinity:
+    sage: oo
     +Infinity
 
-We compare finite and infinite elements
+We compare finite and infinite elements:
     sage: 5 < oo
     True
     sage: P(-5) < P(5)
@@ -90,7 +117,7 @@ We compare finite and infinite elements
     sage: -oo < oo
     True
 
-We can do more arithmetic than in the unsigned infinity ring.
+We can do more arithmetic than in the unsigned infinity ring:
     sage: 2 * oo
     +Infinity
     sage: -2 * oo
@@ -98,11 +125,20 @@ We can do more arithmetic than in the unsigned infinity ring.
     sage: 1 - oo
     -Infinity
     sage: 1 / oo
-    Zero
+    0
     sage: -1 / oo
-    Zero
+    0
 
-If we try to subtract infinities or multiply infinity by zero we still get an error.
+We make 1 / oo and 1 / -oo return the integer 0 instead of the
+infinity ring Zero so that arithmetic of the following type
+works:
+    sage: (1/oo) + 2
+    2
+    sage: 32/5 - (2.439/-oo)
+    32/5
+
+If we try to subtract infinities or multiply infinity by zero we still
+get an error:
     sage: oo - oo
     Traceback (most recent call last):
     ...
@@ -129,7 +165,6 @@ for testing whether something is infinity), so make sure it
 is satisfied:
     sage: loads(dumps(infinity)) is infinity
     True
-
 """
 
 from sage.rings.ring_element import RingElement
@@ -140,6 +175,8 @@ from sage.structure.parent_gens import ParentWithGens
 #import sage.rings.real_mpfr
 import sage.rings.integer
 import sage.rings.rational
+
+from sage.rings.integer_ring import ZZ
 
 _obj = {}
 class _uniq0(object):
@@ -263,7 +300,7 @@ class LessThanInfinity(RingElement):
 
     def _div_(self, other):
         if isinstance(other, UnsignedInfinity):
-            return self
+            return ZZ(0)
         raise TypeError, "quotient of oo by number < oo not defined"
 
     def __cmp__(self, other):
@@ -427,6 +464,10 @@ class FiniteNumber(RingElement):
         return FiniteNumber(self.parent(), self.value)
 
     def _mul_(self, other):
+        if other.is_zero():
+            if isinstance(self, InfinityElement):
+                raise SignError, "cannot multiply infinity by zero"
+            return ZZ(0)
         if self.value < 0:
             if isinstance(other, InfinityElement):
                 return -other
@@ -438,7 +479,7 @@ class FiniteNumber(RingElement):
         if self.value == 0:
             if isinstance(other, InfinityElement):
                 raise SignError, "cannot multiply infinity by zero"
-            return FiniteNumber(self.parent(), 0)
+            return ZZ(0)
 
     def _div_(self, other):
         return self._mul_(other.__invert__())
@@ -525,9 +566,6 @@ class MinusInfinity(_uniq3, MinusInfinityElement):
     def _neg_(self):
         return self.parent().gen(0)
 
-    def __invert__(self):
-        return FiniteNumber(self.parent(), 0)
-
     def __abs__(self):
         return self.parent().gen(0)
 
@@ -601,9 +639,6 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
 
     def _neg_(self):
         return self.parent().gen(1)
-
-    def __invert__(self):
-        return FiniteNumber(self.parent(), 0)
 
     def __abs__(self):
         return self

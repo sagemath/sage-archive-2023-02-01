@@ -2704,7 +2704,9 @@ def is_InfinityElement(x):
     return IS_INSTANCE(x, InfinityElement)
 
 cdef class InfinityElement(RingElement):
-    pass
+    def __invert__(self):
+        from sage.rings.all import ZZ
+        return ZZ(0)
 
 cdef class PlusInfinityElement(InfinityElement):
     pass

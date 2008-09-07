@@ -316,7 +316,25 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
 
 class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projective_coordinates_field):
     def __init__(self, X, S, cat=None, check=True):
+        r"""
+        EXAMPLES:
+        The bug reported at trac \#1785 is fixed:
+            sage: K.<a> = NumberField(x^2 + x - (3^3-3))
+            sage: E = EllipticCurve('37a')
+            sage: X = E(K)
+            sage: X
+            Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in a with defining polynomial x^2 + x - 24
+            sage: P = X([3,a])
+            sage: P
+            (3 : a : 1)
+            sage: P in E
+            False
+            sage: P in E.base_extend(K)
+            True
+        """
         R = X.base_ring()
+        if R != S:
+            X = X.base_extend(S)
         Y = spec.Spec(S, R)
         HomsetWithBase.__init__(self, Y, X, cat=cat,
                                 check = check,

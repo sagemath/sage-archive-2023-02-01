@@ -168,7 +168,7 @@ class Sage(Expect):
             True
 
         """
-        return eval(self.eval('globals().keys()'))
+        return eval(self.eval('print repr(globals().keys())'))
 
     def quit(self, verbose=False):
         """

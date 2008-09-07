@@ -32,6 +32,12 @@ None
 
 == Releases ==
 
+=== polybori-0.5rc.p2 (Michael Abshoff, September 6th, 2008) ===
+ * Backport PolyBoRi 0.3.x fixes
+
+=== polybori-0.5rc.p1 (Martin Albrecht, September 1st, 2008) ===
+ * make PolyBoRi use the dynamic libm4ri
+
 === polybori-0.5rc.p0 (Martin Albrecht, September 1st, 2008) ===
  * fixed build problems.
 

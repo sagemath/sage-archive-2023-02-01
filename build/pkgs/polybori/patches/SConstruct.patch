@@ -1,12 +1,15 @@
---- src/polybori-0.3/SConstruct	2008-03-13 10:32:54.000000000 -0400
-+++ patches/SConstruct	2008-04-09 21:04:05.000000000 -0400
-@@ -102,7 +102,9 @@
- opts.Add('CCFLAGS', "C compiler flags", "-O3 -ansi", converter = Split)
- opts.Add('CXXFLAGS', "C++ compiler flags", "$CCFLAGS -ftemplate-depth-100",
+--- SConstruct.orig	2008-09-06 17:09:02.000000000 -0700
++++ SConstruct	2008-09-06 17:11:38.000000000 -0700
+@@ -118,7 +118,12 @@
+ opts.Add('CXXFLAGS', "C++ compiler flags",
+          "-std=c++98 -ftemplate-depth-100",
           converter = Split)
 -opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
 +#The following linker flags causes the build to fail on OSX 10.4. but works on 10.5
-+#opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
++# opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
++# Instead we add "-m64" in case we build on multiarch in  64 bit mode (OSX now, Solaris later)
++if os.environ['SAGE64'] == "yes":
++         opts.Add('LINKFLAGS', "Linker flags", ['-m64'], converter = Split)
 +#End modifications
  opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
  

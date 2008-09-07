@@ -2279,9 +2279,9 @@ class UserToplevel(Toplevel):
         # sign back in when she restarts her web browser
         # This works by setting an expiration date because without one the browser forgets the cookie.
         if 'remember' in request.args:
-            response.headers.setHeader("set-cookie", [http_headers.Cookie('nb_session', self.cookie, expires=(time.time() + 60 * 60 * 24 * 14))])
+            response.headers.setHeader("set-cookie", [http_headers.Cookie('nb_session', self.cookie, expires=(time.time() + 60 * 60 * 24 * 14)), http_headers.Cookie('cookie_test', self.cookie, expires=1)])
         else:
-            response.headers.setHeader("set-cookie", [http_headers.Cookie('nb_session', self.cookie)])
+            response.headers.setHeader("set-cookie", [http_headers.Cookie('nb_session', self.cookie), http_headers.Cookie('cookie_test', self.cookie, expires=1)])
         return response
 
 

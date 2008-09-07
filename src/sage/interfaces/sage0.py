@@ -124,7 +124,7 @@ class Sage(Expect):
             command = "sage"
             prompt = "sage: "
             if init_code is None:
-                init_code = ['import cPickle']
+                init_code = ['import cPickle', '%colors NoColor']
 
         Expect.__init__(self,
                         name = 'sage',

@@ -68,6 +68,20 @@ clean_polybori()
     rm -rf ${SAGE_LOCAL}/include/cudd
 }
 
+remove_dylib()
+{
+    # linking dynmic libraries causes segfaults at exit (see #2822)
+    if [ `uname` = "Darwin" ]; then
+        rm -f $SAGE_LOCAL/lib/libpolybori.dylib
+        rm -f $SAGE_LOCAL/lib/libpboriCudd.dylib
+        rm -f $SAGE_LOCAL/lib/libgroebner.dylib
+    else
+        rm -f $SAGE_LOCAL/lib/libpolybori.so
+        rm -f $SAGE_LOCAL/lib/libpboriCudd.so
+        rm -f $SAGE_LOCAL/lib/libgroebner.so
+    fi
+}
+
 patch
 
 cd src
@@ -89,3 +103,11 @@ echo "Done installing boost."
 echo "Installing PolyBoRi..."
 install_polybori
 echo "Done installing PolyBoRi."
+
+echo "Removing dynamic libraries..."
+remove_dylib
+echo "Done removing dynamic libraries."
+
+# force a rebuild of the PolyBoRi extension
+touch $SAGE_ROOT/devel/sage/sage/rings/polynomial/pbori.pyx
+

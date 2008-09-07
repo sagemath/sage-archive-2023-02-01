@@ -32,6 +32,10 @@ None
 
 == Releases ==
 
+=== polybori-0.5rc.p3 (Michael Abshoff, September 7th, 2008) ===
+ * Delete dynamic libs to force static linking
+ * touch pbori.pyx to force a rebuild of the extension
+
 === polybori-0.5rc.p2 (Michael Abshoff, September 6th, 2008) ===
  * Backport PolyBoRi 0.3.x fixes
 

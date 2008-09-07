@@ -387,6 +387,11 @@ cdef class pAdicPrinter_class(SageObject):
             7 * 52 + O(7^5)
             sage: print a.str('series')
             3*7 + 7^3 + O(7^5)
+            sage: K = Qp(7, print_mode="digits")
+            sage: repr(K(1/2))
+            '...3|3|3|3|3|3|3|3|3|3|3|3|3|3|3|3|3|3|3|4'
+            sage: repr(K(1/42))
+            '...5|5|5|5|5|5|5|5|5|5|5|5|5|5|5|5|5|5|5|.|6'
         """
         cdef Py_ssize_t i
         if elt._is_exact_zero():
@@ -428,10 +433,6 @@ cdef class pAdicPrinter_class(SageObject):
             if n > 0:
                 L += [self.alphabet[0]]*n
             elif n < 0:
-                print L
-                print n
-                print L[:n]
-                print L[n:]
                 L = L[:n] + ['.'] + L[n:]
             s = "".join(L)
             s = "..." + s

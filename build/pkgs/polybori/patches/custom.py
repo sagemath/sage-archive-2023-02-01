@@ -9,6 +9,11 @@ if os.environ.has_key('SAGE_DEBUG'):
     CXXFLAGS=[" -pg"] + CXXFLAGS
     LINKFLAGS=[" -pg"]
 
+if os.environ['SAGE64'] == "yes":
+    print "64 bit OSX build"
+    CCFLAGS=[" -m64"] + CCFLAGS
+    CXXFLAGS=[" -m64"] + CXXFLAGS
+    LINKFLAGS=[" -m64"]
 
 CPPPATH=[os.environ['BOOSTINCDIR']]
 PYPREFIX=os.environ['PYTHONHOME']

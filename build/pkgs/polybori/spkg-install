@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ###########################################
 ## PolyBoRi
 ###########################################
@@ -10,18 +10,18 @@ SCONS=scons
 
 patch()
 {
-cp patches/custom.py src/${PBDIR}
+    cp patches/custom.py src/${PBDIR}
 
-if [ $UNAME = "CYGWIN" ]; then
-    export PROGSUFFIX=.exe
-fi
+    if [ $UNAME = "CYGWIN" ]; then
+        export PROGSUFFIX=.exe
+    fi
 
-cp patches/SConstruct src/${PBDIR}/SConstruct
-cp patches/PyPolyBoRi.py src/${PBDIR}/pyroot/polybori
-cp patches/m4ri.h src/${PBDIR}/M4RI/m4ri.h
+    cp patches/SConstruct src/${PBDIR}/SConstruct
+    cp patches/PyPolyBoRi.py src/${PBDIR}/pyroot/polybori
+    cp patches/m4ri.h src/${PBDIR}/M4RI/m4ri.h
 
-# workaround so will build on cygwin
-cp patches/cpu_stats.c src/${PBDIR}/Cudd/util/cpu_stats.c
+    # workaround so will build on cygwin
+    cp patches/cpu_stats.c src/${PBDIR}/Cudd/util/cpu_stats.c
 }
 
 install_boost()
@@ -70,10 +70,14 @@ clean_polybori()
 
 patch
 
-
 cd src
 
 echo "Starting build..."
+
+echo "Removing old PolyBoRi install..."
+clean_polybori
+echo "Done Removing old PolyBoRi install."
+
 echo "Running build_polybori..."
 build_polybori
 echo "Done build_polybori."

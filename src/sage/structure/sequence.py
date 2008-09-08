@@ -4,12 +4,12 @@ Sequences
 A mutable sequence of elements with a common guaranteed category,
 which can be set immutable.
 
-Sequence derives from list, so have all the functionality of lists and
+Sequence derives from list, so has all the functionality of lists and
 can be used wherever lists are used.  When a sequence is created
 without explicitly given the common universe of the elements, the
-constructor coerces the first and second element to come
+constructor coerces the first and second element to some
 \emph{canonical} common parent, if possible, then the second and
-third, etc..  If this is possible, it then coerces everything into the
+third, etc.  If this is possible, it then coerces everything into the
 canonical parent at the end.  (Note that canonical coercion is very
 restrictive.)  The sequence then has a function \code{universe()}
 which returns either the common canonical parent (if the coercion
@@ -21,7 +21,7 @@ have a list $v$ and type
     sage: w.universe()
     Rational Field
 
-then since \code{w.universe()} is $\Q$ then you're guaranteed that all
+then since \code{w.universe()} is $\Q$, you're guaranteed that all
 elements of $w$ are rationals:
 
     sage: v[0].parent()
@@ -92,6 +92,10 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         immutable -- (default: True) whether or not this sequence is immutable
         cr -- (default: False) if True, then print a carriage return after each
                          comma when printing this sequence.
+        use_sage_types -- (default: False) if True, coerce the builtin
+            Python numerical types int, long, float, complex to the
+            corresponding Sage types (this makes functions like
+            vector() more flexible)
 
     OUTPUT:
         a sequence
@@ -100,6 +104,14 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         sage: v = Sequence(range(10))
         sage: v.universe()
         <type 'int'>
+        sage: v
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    We can request that the builtin Python numerical types be coerced
+    to Sage objects:
+        sage: v = Sequence(range(10), use_sage_types=True)
+        sage: v.universe()
+        Integer Ring
         sage: v
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -197,8 +209,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
 
     """
-    def __init__(self, x, universe=None, check=True,
-                 immutable=False, cr=False, cr_str=None):
+    def __init__(self, x, universe=None, check=True, immutable=False,
+                 cr=False, cr_str=None, use_sage_types=False):
         if not isinstance(x, (list, tuple)):
             x = list(x)
             #raise TypeError, "x must be a list or tuple"
@@ -225,6 +237,19 @@ class Sequence(sage.structure.sage_object.SageObject, list):
                 import sage.structure.element as coerce
                 y = x
                 x = list(x)   # make a copy, or we'd change the type of the elements of x, which would be bad.
+                if use_sage_types:
+                    # convert any Python builtin numerical types to Sage objects
+                    from sage.rings.integer_ring import ZZ
+                    from sage.rings.real_double import RDF
+                    from sage.rings.complex_double import CDF
+                    for i in range(len(x)):
+                        if isinstance(x[i], int) or isinstance(x[i], long):
+                            x[i] = ZZ(x[i])
+                        elif isinstance(x[i], float):
+                            x[i] = RDF(x[i])
+                        elif isinstance(x[i], complex):
+                            x[i] = CDF(x[i])
+                # start the pairwise coercion
                 for i in range(len(x)-1):
                     try:
                         x[i], x[i+1] = coerce.canonical_coercion(x[i],x[i+1])

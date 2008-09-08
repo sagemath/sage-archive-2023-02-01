@@ -168,11 +168,27 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     complex double field. The data in the array must be contiguous so columnwise slices of numpy matrices
     will rase an exception.
 
-    sage: import numpy
-    sage: x=numpy.random.randn(10)
-    sage: y=vector(x)
-    sage: v=numpy.random.randn(10)*numpy.complex(0,1)
-    sage: w=vector(v)
+        sage: import numpy
+        sage: x=numpy.random.randn(10)
+        sage: y=vector(x)
+        sage: v=numpy.random.randn(10)*numpy.complex(0,1)
+        sage: w=vector(v)
+
+    If any of the arguments to vector have Python type int, long,
+    real, or complex, they will first be coerced to the appropriate
+    Sage objects.  This fixes trac \#3847:
+        sage: v = vector([int(0)]); v
+        (0)
+        sage: v[0].parent()
+        Integer Ring
+        sage: v = vector(range(10)); v
+        (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+        sage: v[3].parent()
+        Integer Ring
+        sage: v = vector([float(23.4), int(2), complex(2+7*I), long(1)]); v
+        (23.4, 2.0, 2.0 + 7.0*I, 1.0)
+        sage: v[1].parent()
+        Complex Double Field
     """
     if hasattr(arg0, '_vector_'):
         if arg1 is None:
@@ -238,7 +254,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
 free_module_element = vector
 
 def prepare(v, R):
-    v = Sequence(v, universe=R)
+    v = Sequence(v, universe=R, use_sage_types=True)
     ring = v.universe()
     if not is_Ring(ring):
         raise TypeError, "unable to find a common ring for all elements"

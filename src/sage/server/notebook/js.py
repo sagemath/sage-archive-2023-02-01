@@ -75,6 +75,12 @@ def async_lib():
 var async_oblist = [null,null,null,null,null];
 var async_idstack= [0,1,2,3,4];
 
+//This boolean variable controls whether or not
+//AJAX requests are made asynchronously or not. It
+//gets passed in as the third parameter of
+//asyncObj.open.
+var async_bool = true;
+
 function getAsyncObject(handler) {
     var asyncObj;
     try {
@@ -141,11 +147,11 @@ function async_request(url, callback, postvars) {
     async_oblist[id] = [asyncObj,callback];
 
     if (postvars != null) {
-        asyncObj.open('POST',url,true);
+        asyncObj.open('POST',url,async_bool);
         asyncObj.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
         asyncObj.send(postvars);
     } else {
-        asyncObj.open('GET',url,true);
+        asyncObj.open('GET',url,async_bool);
         asyncObj.setRequestHeader('Content-Type',  "text/html");
         asyncObj.send(null);
     }
@@ -3443,6 +3449,11 @@ function evaluate_all() {
     var v = cell_id_list;
     var n = v.length;
     var i;
+
+    //We want all of these evaluate cell requests to be made
+    //synchronously so that they actually get evaluated in the
+    //correct order.
+    async_bool = false;
     for(i=0; i<n; i++) {
         var cell_input = get_cell(v[i]);
         var I = cell_input.value;
@@ -3450,6 +3461,7 @@ function evaluate_all() {
             evaluate_cell(v[i],0);
         }
     }
+    async_bool = true;
 }
 
 function hide_all() {

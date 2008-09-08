@@ -36,7 +36,6 @@ HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
 from sage.misc.misc import SAGE_EXTCODE, SAGE_LOCAL, walltime, tmp_filename, tmp_dir
-from sage.misc.remote_file import get_remote_file
 
 p = os.path.join
 css_path        = p(SAGE_EXTCODE, "notebook/css")
@@ -308,7 +307,7 @@ class UploadWorksheet(resource.PostableResource):
         dir = ''  # we will delete the directory below if it is used
         if url != '':
             # downloading a file from the internet
-            filename = get_remote_file(url, verbose=True)
+            filename = tmp_filename()+".sws"
         else:
             # uploading a file from the user's computer
             dir = tmp_dir()
@@ -321,32 +320,50 @@ class UploadWorksheet(resource.PostableResource):
             # TODO: Server blocking issues (?!)
             f.close()
 
-        try:
+
+        #We make a callback so that we can download a file remotely
+        #while allowing the server to still serve requests.
+        def callback(result):
             try:
-                W = notebook.import_worksheet(filename, self.username)
-            except IOError, msg:
-                print msg
-                raise ValueError, "Unfortunately, there was an error uploading the worksheet.  It could be an old unsupported format or worse.  If you desparately need its contents contact the Google group sage-support and post a link to your worksheet.  Alternatively, an sws file is just a bzip2'd tarball; take a look inside!"
-            finally:
-                # Clean up the temporarily uploaded filename.
-                os.unlink(filename)
-                # if a temp directory was created, we delete it now.
-                if dir:
-                    shutil.rmtree(dir)
+                try:
+                    W = notebook.import_worksheet(filename, self.username)
+                except IOError, msg:
+                    print msg
+                    raise ValueError, "Unfortunately, there was an error uploading the worksheet.  It could be an old unsupported format or worse.  If you desparately need its contents contact the Google group sage-support and post a link to your worksheet.  Alternatively, an sws file is just a bzip2'd tarball; take a look inside!"
+                finally:
+                    # Clean up the temporarily uploaded filename.
+                    os.unlink(filename)
+                    # if a temp directory was created, we delete it now.
+                    if dir:
+                        shutil.rmtree(dir)
 
-        except ValueError, msg:
-            s = "Error uploading worksheet '%s'."%msg
-            return http.Response(stream = message(s, '/'))
+            except ValueError, msg:
+                s = "Error uploading worksheet '%s'."%msg
+                return http.Response(stream = message(s, '/'))
 
-        # If the user requested in the form a specific title for
-        # the worksheet set it.
-        if ctx.args.has_key('nameField'):
-            new_name = ctx.args['nameField'][0].strip()
-            if new_name:
-                W.set_name(new_name)
+            # If the user requested in the form a specific title for
+            # the worksheet set it.
+            if ctx.args.has_key('nameField'):
+                new_name = ctx.args['nameField'][0].strip()
+                if new_name:
+                    W.set_name(new_name)
 
-        return http.RedirectResponse('/home/'+W.filename())
+            return http.RedirectResponse('/home/'+W.filename())
 
+        if url != '':
+            #We use the downloadPage function which returns a
+            #deferred which we are allowed to return to the server.
+            #The server waits until the download is finished and then runs
+            #the callback function specified.
+            from twisted.web.client import downloadPage
+            d = downloadPage(url, filename)
+            d.addCallback(callback)
+            return d
+        else:
+            #If we already have the file, then we
+            #can just return the result of callback which will
+            #give us the http.Response.
+            return callback(None)
 
 
 ############################
@@ -430,17 +447,31 @@ class Worksheet_do_upload_data(WorksheetResource, resource.PostableResource):
             name = os.path.split(url)[-1]
 
         dest = '%s/%s'%(self.worksheet.data_directory(), name)
+        response = http.RedirectResponse('/home/'+self.worksheet.filename() + '/datafile?name=%s'%name)
 
         if url != '':
-            tmp = get_remote_file(url, verbose=True)
-            shutil.move(tmp, dest)
+            #Here we use twisted's downloadPage function which
+            #returns a deferred object.  We return the deferred to the server,
+            #and it will wait until the download has finished while
+            #still serving other requests.  At the end of the deferred
+            #callback chain should be the response that we wanted to return.
+            from twisted.web.client import downloadPage
+
+            #The callback just returns the response
+            def callback(result):
+                return response
+
+            d = downloadPage(url, dest)
+            d.addCallback(callback)
+            return d
         elif newfield:
             open(dest,'w').close()
+            return response
         else:
             f = file(dest,'wb')
             f.write(ctx.files['fileField'][0][2].read())
             f.close()
-        return http.RedirectResponse('/home/'+self.worksheet.filename() + '/datafile?name=%s'%name)
+            return response
 
 
 ##############################################

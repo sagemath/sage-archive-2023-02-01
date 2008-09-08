@@ -98,7 +98,6 @@ REFERENCES:
 from sage.rings.finite_field import FiniteField as GF
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.pbori import BooleanPolynomialRing
 
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.constructor import Matrix, random_matrix
@@ -1212,6 +1211,8 @@ class SR_generic(MPolynomialSystemGenerator):
             names += self.varstrs("s", _n, r, e)
 
         names +=  self.varstrs("k", 0, r*c, e)
+
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
 
         if not self._gf2 or not self._polybori:
             return PolynomialRing(k, 2*n*r*c*e + (n+1)*r*c*e + n*r*e, names, order=self._order)

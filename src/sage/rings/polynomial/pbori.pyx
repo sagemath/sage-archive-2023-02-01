@@ -154,7 +154,6 @@ include "../../ext/cdefs.pxi"
 include '../../libs/polybori/decl.pxi'
 
 from sage.misc.randstate import current_randstate
-
 from sage.rings.integer import Integer
 from sage.rings.finite_field import FiniteField as GF
 

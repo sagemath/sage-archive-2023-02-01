@@ -60,7 +60,6 @@ from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.polydict import ETuple
-from sage.rings.polynomial.pbori import BooleanPolynomial
 
 # base ring imports
 from sage.rings.rational_field import RationalField
@@ -615,6 +614,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
                 return co.new_MP(self, _p)
+
+        from sage.rings.polynomial.pbori import BooleanPolynomial
 
         if PY_TYPE_CHECK(element, BooleanPolynomial) and \
                element.parent().ngens() == _ring.N and \

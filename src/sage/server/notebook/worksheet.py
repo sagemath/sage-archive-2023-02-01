@@ -488,8 +488,17 @@ class Worksheet:
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.name()
             'A Test Worksheet'
+            sage: W.set_name('Title<script>alert("Uh oh");</script>')
+            sage: W.name()
+            'Title&amp;lt;script&amp;gt;alert&#40;&amp;quot;Uh oh&amp;quot;&#41;;&amp;lt;/script&amp;gt;'
+
         """
-        return self.__name
+        name = self.__name
+        for chara, replacement in [('<', '&lt;'), ('>', '&gt;'), ('"', '&quot;'),
+                                   ('&', '&amp;'), ('\'', '&apos;'), ('(', '&#40;'),
+                                   (')', '&#41;'), ('{', '&#123;'), ('\'', '&#124;')]:
+            name = name.replace(chara, replacement)
+        return name
 
     def set_name(self, name):
         """

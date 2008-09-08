@@ -54,7 +54,6 @@ from __future__ import with_statement
 import random
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled, AsciiArtString
-from sage.misc.misc import verbose, UNAME, is_64bit
 from sage.structure.element import RingElement
 
 class Lisp(Expect):

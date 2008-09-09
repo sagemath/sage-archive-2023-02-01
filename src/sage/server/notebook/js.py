@@ -75,12 +75,6 @@ def async_lib():
 var async_oblist = [null,null,null,null,null];
 var async_idstack= [0,1,2,3,4];
 
-//This boolean variable controls whether or not
-//AJAX requests are made asynchronously or not. It
-//gets passed in as the third parameter of
-//asyncObj.open.
-var async_bool = true;
-
 function getAsyncObject(handler) {
     var asyncObj;
     try {
@@ -147,11 +141,11 @@ function async_request(url, callback, postvars) {
     async_oblist[id] = [asyncObj,callback];
 
     if (postvars != null) {
-        asyncObj.open('POST',url,async_bool);
+        asyncObj.open('POST',url,true);
         asyncObj.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
         asyncObj.send(postvars);
     } else {
-        asyncObj.open('GET',url,async_bool);
+        asyncObj.open('GET',url,true);
         asyncObj.setRequestHeader('Content-Type',  "text/html");
         asyncObj.send(null);
     }
@@ -333,6 +327,8 @@ var title_spinner = ['/ ', '\\ '];
 //var title_spinner = ['[-] ','[/] ','[|] ','[\\] '];
 var title_spinner_i = 0;
 
+var evaluating_all = false;
+var evaluating_all_cursor = 0;
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -2498,7 +2494,9 @@ function evaluate_cell_introspection(id, before, after) {
 
 function evaluate_cell_callback(status, response_text) {
     /*
-    Update the focus and possibly add a new cell.
+    Update the focus and possibly add a new cell.  If evaluate all
+    has been clicked, start evaluating the next cell (and don't
+    add a new cell).
 
     INPUT:
         response_text -- string that is of the form
@@ -2519,7 +2517,15 @@ function evaluate_cell_callback(status, response_text) {
         alert("You requested to evaluate a cell that, for some reason, the server is unaware of.");
         return;
     }
-    if (X[1] == 'append_new_cell') {
+
+    if (evaluating_all) {
+        if(evaluating_all_cursor >= cell_id_list.length) {
+            evaluating_all = false;
+        } else {
+            evaluate_cell(cell_id_list[evaluating_all_cursor], false);
+            evaluating_all_cursor++;
+        }
+    } else if (X[1] == 'append_new_cell') {
         // add a new cell to the very end
         append_new_cell(X[0],X[2]);
     } else if (X[1] == 'insert_cell') {
@@ -3444,24 +3450,21 @@ function interrupt_callback(status, response_text) {
 function evaluate_all() {
     /*
     Iterate through every input cell in the document, in order, and
-    evaluate it.
-    */
-    var v = cell_id_list;
-    var n = v.length;
-    var i;
+    evaluate it.  Previously, we just called evaluate on everything
+    all at once.  This is undesirable, since packets often arrive
+    out-of-order, so the cells get evaluated out-of-order.
 
-    //We want all of these evaluate cell requests to be made
-    //synchronously so that they actually get evaluated in the
-    //correct order.
-    async_bool = false;
-    for(i=0; i<n; i++) {
-        var cell_input = get_cell(v[i]);
-        var I = cell_input.value;
-        if (first_variable_name_in_string(I).length > 0) {
-            evaluate_cell(v[i],0);
-        }
-    }
-    async_bool = true;
+    Set the global variable evaluating_all = true.  Then, we kick off
+    evaluations by evaluating the first cell.  In cell_evaluate_callback,
+    we check to see if evaluating_all is set, and proceed from there.
+    This way, each cell is evaluated immediately after the server
+    acknowledges that it has received the previous request.
+
+    */
+
+    evaluating_all = true;
+    evaluating_all_cursor = 1; //start at 1 since we kick-off with zero
+    evaluate_cell(cell_id_list[0],false);
 }
 
 function hide_all() {

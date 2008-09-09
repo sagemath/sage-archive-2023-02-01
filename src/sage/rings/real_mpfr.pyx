@@ -13,6 +13,7 @@ AUTHORS:
       some, e.g., sech = 1/cosh, by their original mpfr version.
    -- Carl Witty (2008-02): define floating-point rank and associated
       functions; add some documentation
+   -- Robert Bradshaw (2009-09): decimal literals, optimizations
 
 This is a binding for the MPFR arbitrary-precision floating point
 library.
@@ -708,6 +709,9 @@ R = RealField()
 #
 #
 #*****************************************************************************
+
+cdef class RealLiteral(RealNumber)
+
 cdef class RealNumber(sage.structure.element.RingElement):
     """
     A floating point approximation to a real number using any specified
@@ -779,15 +783,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
     cdef _set(self, x, int base):
         # This should not be called except when the number is being created.
         # Real Numbers are supposed to be immutable.
-        cdef RealNumber _x, n, d
-        cdef Integer _ix
+        cdef RealNumber n, d
         cdef RealField parent
         cdef gen _gen
         cdef RealDoubleElement rd
         parent = self._parent
         if PY_TYPE_CHECK(x, RealNumber):
-            _x = x  # so we can get at x.value
-            mpfr_set(self.value, _x.value, parent.rnd)
+            if PY_TYPE_CHECK(x, RealLiteral):
+                s = (<RealLiteral>x).literal
+                base = (<RealLiteral>x).base
+                if mpfr_set_str(self.value, s, base, parent.rnd):
+                    self._set(s, base)
+            else:
+                mpfr_set(self.value, (<RealNumber>x).value, parent.rnd)
         elif PY_TYPE_CHECK(x, Integer):
             mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
         elif PY_TYPE_CHECK(x, Rational):
@@ -795,9 +803,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif PY_TYPE_CHECK(x, gen) and x.type() == "t_REAL":
             _gen = x
             self._set_from_GEN_REAL(_gen.g)
-        elif isinstance(x, (int, long)):
-            _ix = Integer(x)
-            mpfr_set_z(self.value, _ix.value, parent.rnd)
+        elif isinstance(x, int):
+            mpfr_set_si(self.value, x, parent.rnd)
+        elif isinstance(x, long):
+            x = Integer(x)
+            mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
         elif isinstance(x, float):
             mpfr_set_d(self.value, x, parent.rnd)
         elif PY_TYPE_CHECK(x, RealDoubleElement):
@@ -3662,10 +3672,46 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             prec = prec + 20
 
+cdef class RealLiteral(RealNumber):
+
+    cdef readonly literal
+    cdef readonly int base
+
+    def __init__(self, RealField parent, x=0, int base=10):
+        """
+        RealLiterals are created in preparsing and provide a way to allow
+        casting into higher precision rings.
+
+        EXAMPLES:
+            sage: RealField(200)(float(1.3))
+            1.3000000000000000444089209850062616169452667236328125000000
+            sage: RealField(200)(1.3)
+            1.3000000000000000000000000000000000000000000000000000000000
+            sage: 1.3 + 1.2
+            2.50000000000000
+        """
+        RealNumber.__init__(self, parent, x, base)
+        if PY_TYPE_CHECK(x, str):
+            self.base = base
+            self.literal = x
+
+    def __neg__(self):
+        """
+        EXAMPLES:
+            sage: RealField(300)(-1.2)
+            -1.20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: RealField(300)(-(-1.2))
+            1.20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        """
+        if self.literal is not None and self.literal[0] == '-':
+            return RealLiteral(self._parent, self.literal[1:], self.base)
+        else:
+            return RealLiteral(self._parent, '-'+self.literal, self.base)
+
 RR = RealField()
 
 
-def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
+def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     r"""
     Return the real number defined by the string s as an element of
     \code{RealField(prec=n)}, where n potentially has slightly more
@@ -3686,42 +3732,50 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
         10.0000000000000
         sage: RealNumber('1.0000000000000000000000000000000000')
         1.0000000000000000000000000000000000
+        sage: RealField(200)(1.2)
+        1.2000000000000000000000000000000000000000000000000000000000
     """
     if not isinstance(s, str):
         s = str(s)
 
-    if 'e' in s or 'E' in s:
-        #Figure out the exponent
-        index = max( s.find('e'), s.find('E') )
-        exponent = int(s[index+1:])
-        rest = s[:index]
+    if base == 10 and min_prec == 53 and len(s) <= 15:
+        R = RR
 
-        #Find the first nonzero entry in rest
-        sigfigs = 0
-        for i in range(len(rest)):
-            if rest[i] != '.' and rest[i] != '0':
-                sigfigs = len(rest) - i
-                break
-
-        if base == 10:
-            bits = int(3.32192*sigfigs)+1
-        else:
-            bits = int(math.log(base,2)*sigfigs)+1
     else:
-        #Find the first nonzero entry in s
-        sigfigs = 0
-        for i in range(len(s)):
-            if s[i] != '.' and s[i] != '0':
-                sigfigs = len(s) - i
-                break
 
-        if base == 10:
-            bits = int(3.32192*sigfigs)+1
+        if 'e' in s or 'E' in s:
+            #Figure out the exponent
+            index = max( s.find('e'), s.find('E') )
+            exponent = int(s[index+1:])
+            rest = s[:index]
+
+            #Find the first nonzero entry in rest
+            sigfigs = 0
+            for i in range(len(rest)):
+                if rest[i] != '.' and rest[i] != '0':
+                    sigfigs = len(rest) - i
+                    break
+
+            if base == 10:
+                bits = int(3.32192*sigfigs)+1
+            else:
+                bits = int(math.log(base,2)*sigfigs)+1
         else:
-            bits = int(math.log(base,2)*sigfigs)+1
+            #Find the first nonzero entry in s
+            sigfigs = 0
+            for i in range(len(s)):
+                if s[i] != '.' and s[i] != '0':
+                    sigfigs = len(s) - i
+                    break
 
-    R = RealField_constructor(prec=max(bits+pad, min_prec), rnd=rnd)
-    return RealNumber(R, s, base)
+            if base == 10:
+                bits = int(3.32192*sigfigs)+1
+            else:
+                bits = int(math.log(base,2)*sigfigs)+1
+
+        R = RealField_constructor(prec=max(bits+pad, min_prec), rnd=rnd)
+
+    return RealLiteral(R, s, base)
 
 
 # here because this imports the other two real fields

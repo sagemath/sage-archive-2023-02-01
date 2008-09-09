@@ -609,14 +609,6 @@ class Cell(Cell_generic):
         """
         return cmp(self.id(), right.id())
 
-    def __del__(self):
-        try:
-            dir = self._directory_name()
-        except AttributeError:
-            return
-        if os.path.exists(dir):
-            shutil.rmtree(dir, ignore_errors=True)
-
     def __repr__(self):
         """
         EXAMPLES:
@@ -1571,6 +1563,36 @@ class Cell(Cell_generic):
         dir = self.directory()
         D = os.listdir(dir)
         return D
+
+    def delete_files(self):
+        """
+        Deletes all of the files associated with this cell.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sage.server.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
+            sage: C.evaluate()
+            sage: W.check_comp(wait=9999)
+            ('d', Cell 0; in=plot(sin(x),0,5), out=
+            <BLANKLINE>
+            )
+            sage: C.files()
+            ['sage0.png']
+            sage: C.delete_files()
+            sage: C.files()
+            []
+
+        """
+        try:
+            dir = self._directory_name()
+        except AttributeError:
+            return
+        if os.path.exists(dir):
+            shutil.rmtree(dir, ignore_errors=True)
+
+
 
     def files_html(self, out):
         D = self.files()

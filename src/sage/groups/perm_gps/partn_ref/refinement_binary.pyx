@@ -60,6 +60,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
                 for j from 0 <= j < i:
                     bitset_clear(&self.basis[j])
                 memerr = 1
+                break
         if not memerr:
             for i from 0 <= i < 2*self.dimension+2:
                 try: bitset_init(&self.scratch_bitsets[i], self.degree)
@@ -69,6 +70,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
                     for j from 0 <= j < self.dimension:
                         bitset_clear(&self.basis[j])
                     memerr = 1
+                    break
         if not memerr:
             try: bitset_init(self.alpha_is_wd, self.nwords + self.degree)
             except MemoryError:
@@ -350,6 +352,7 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
                 for j from 0 <= j < i:
                     bitset_clear(&self.words[j])
                 memerr = 1
+                break
         if not memerr:
             for i from 0 <= i < 4*self.nwords:
                 try: bitset_init(&self.scratch_bitsets[i], self.degree)
@@ -359,17 +362,19 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
                     for j from 0 <= j < self.nwords:
                         bitset_clear(&self.words[j])
                     memerr = 1
-                try: bitset_init(&self.scratch_bitsets[4*self.nwords], self.nwords)
-                except MemoryError:
-                    for j from 0 <= j < 4*self.nwords:
-                        bitset_clear(&self.scratch_bitsets[j])
-                    for j from 0 <= j < self.nwords:
-                        bitset_clear(&self.words[j])
-                    memerr = 1
+                    break
+        if not memerr:
+            try: bitset_init(&self.scratch_bitsets[4*self.nwords], self.nwords)
+            except MemoryError:
+                for j from 0 <= j < 4*self.nwords:
+                    bitset_clear(&self.scratch_bitsets[j])
+                for j from 0 <= j < self.nwords:
+                    bitset_clear(&self.words[j])
+                memerr = 1
         if not memerr:
             try: bitset_init(self.alpha_is_wd, self.nwords + self.degree)
             except MemoryError:
-                for j from 0 <= j < 4*self.nwords:
+                for j from 0 <= j < 4*self.nwords + 1:
                     bitset_clear(&self.scratch_bitsets[j])
                 for j from 0 <= j < self.nwords:
                     bitset_clear(&self.words[j])

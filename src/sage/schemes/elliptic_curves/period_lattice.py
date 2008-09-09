@@ -279,7 +279,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         EXAMPLES:
             sage: EllipticCurve('389a1').period_lattice().sigma(CC(2,1))
-            2.609121635701083769 - 0.20086508082458695134*I
+            2.609121635701083769 - 0.20086508082458695...*I
         """
         if prec is None:
             prec = RealField().precision()

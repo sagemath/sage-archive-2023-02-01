@@ -109,7 +109,7 @@ remove_dylib
 echo "Done removing dynamic libraries."
 
 # force a rebuild of the PolyBoRi extension
-if [ -a $SAGE_ROOT/devel/sage/sage/rings/polynomial/pbori.pyx ]; then
+if [ -f $SAGE_ROOT/devel/sage/sage/rings/polynomial/pbori.pyx ]; then
     touch $SAGE_ROOT/devel/sage/sage/rings/polynomial/pbori.pyx
 fi
 

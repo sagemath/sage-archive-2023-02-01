@@ -1109,12 +1109,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Period lattice associated to Elliptic Curve defined by y^2  = x^3 + a*x + 2 over Number Field in a with defining polynomial x^2 - 2 with respect to the real embedding Ring morphism:
             From: Number Field in a with defining polynomial x^2 - 2
             To:   Real Field with 53 bits of precision
-            Defn: a |--> -1.41421356237310
+            Defn: a |--> -1.414213562373...
             sage: E.period_lattice(embs[1])
             Period lattice associated to Elliptic Curve defined by y^2  = x^3 + a*x + 2 over Number Field in a with defining polynomial x^2 - 2 with respect to the real embedding Ring morphism:
             From: Number Field in a with defining polynomial x^2 - 2
             To:   Real Field with 53 bits of precision
-            Defn: a |--> 1.41421356237309
+            Defn: a |--> 1.414213562373...
 
         Although the original embeddings have only the default
         precision, we can obtain the basis with higher precision

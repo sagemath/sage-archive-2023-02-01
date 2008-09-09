@@ -1498,7 +1498,7 @@ class Notebook(SageObject):
             v.append(k)
 
         s += ''.join(v)
-        if not v and typ != 'trash':
+        if not v and typ != 'trash' and not pub:
             s += """<tr><td colspan="5" style="padding:20px;text-align:center">Welcome to Sage! You can
 <a href="/new_worksheet">create a new worksheet</a>, view <a href="/pub/">published worksheets</a>, or read the <a href="/help" target="_new">documentation</a>.</td></tr>"""
         s += '</table>'

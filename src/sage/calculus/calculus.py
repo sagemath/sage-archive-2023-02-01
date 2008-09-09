@@ -897,6 +897,12 @@ class SymbolicExpression(RingElement):
 
         A plot of a symbolic function with "no arguments":
             sage: plot(2*sin, -4, 4)
+
+        TESTS:
+            sage: plot(1/cos,-1,1)
+
+            sage: f(x) = x*(1 - x)
+            sage: plot(f,0,1)
         """
         from sage.plot.plot import plot
 

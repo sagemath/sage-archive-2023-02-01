@@ -1940,7 +1940,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: PK.<y> = PolynomialRing(K)
             sage: L.<beta> = NumberField(y^3 + y + alpha)
             sage: latex((beta + zeta)^3)
-            3 \zeta_{12} \beta^{2} + \left(3 \zeta_{12}^{2} - 1\right) \beta + \left(-1\right) \alpha + \zeta_{12}^{3}
+            3 \zeta_{12} \beta^{2} + \left(3 \zeta_{12}^{2} - 1\right) \beta - \alpha + \zeta_{12}^{3}
         """
         K = self.number_field()
         R = K.base_field()[K.variable_name()]

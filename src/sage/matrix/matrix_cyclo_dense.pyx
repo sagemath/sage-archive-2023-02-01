@@ -748,14 +748,14 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A._charpoly_bound()
             2048
             sage: A.charpoly()
-            x^3 + (-12)*x^2 + (-18)*x
+            x^3 - 12*x^2 - 18*x
 
         An example from the above paper, where our bound is sharp:
             sage: B = Matrix(CyclotomicField(7), 5,5, [1,1,1,1,1,1,1,-1,-1,-1,1,-1,1,-1,-1,1,-1,-1,1,-1,1,-1,-1,-1,1])
             sage: B._charpoly_bound()
             81
             sage: B.charpoly()
-            x^5 + (-5)*x^4 + 40*x^2 + (-80)*x + 48
+            x^5 - 5*x^4 + 40*x^2 - 80*x + 48
         """
         cdef Py_ssize_t i, j
         cdef float alpha, delta
@@ -927,7 +927,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         TESTS:
         We test a degenerate case:
             sage: A = matrix(CyclotomicField(1),2,[1,2,3,4]); A.charpoly()
-            x^2 + (-5)*x - 2
+            x^2 - 5*x - 2
         """
         cdef Matrix_cyclo_dense A
         A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),

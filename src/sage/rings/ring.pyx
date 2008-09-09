@@ -1214,7 +1214,7 @@ cdef class PrincipalIdealDomain(IntegralDomain):
             sage: f = (x - a)*(x + a); g = (x - a)*(x^2 - 2)
             sage: print f; print g
             x^2 - 2
-            x^3 + (-a)*x^2 + (-2)*x + 2*a
+            x^3 - a*x^2 - 2*x + 2*a
             sage: f in R
             True
             sage: g in R

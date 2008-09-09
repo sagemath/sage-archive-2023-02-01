@@ -185,7 +185,7 @@ def ModularForms(group  = 1,
         sage: M = ModularForms(e, 2); M
         Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
         sage: f = M.T(2).charpoly('x'); f
-        x^3 + (-2*zeta6 - 2)*x^2 + (-2*zeta6)*x + 14*zeta6 - 7
+        x^3 + (-2*zeta6 - 2)*x^2 - 2*zeta6*x + 14*zeta6 - 7
         sage: f.factor()
         (x - 2*zeta6 - 1) * (x - zeta6 - 2) * (x + zeta6 + 1)
 

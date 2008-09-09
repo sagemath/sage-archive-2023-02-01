@@ -403,7 +403,7 @@ def cyclotomic_restriction(L,K):
         2
 
         sage: z(L.0)
-        (-zeta33^19)*x
+        -zeta33^19*x
         sage: z(L.0)(M.0)
         zeta132^11
 
@@ -431,7 +431,7 @@ def cyclotomic_restriction(L,K):
             sage: N = CyclotomicField(33)
             sage: g, n = sage.modular.modform.eisenstein_submodule.cyclotomic_restriction(L,N)
             sage: g(L.0)
-            (-zeta33^19)*x
+            -zeta33^19*x
             """
             return f(M(x))
         return g, euler_phi(M.zeta_order())//euler_phi(K.zeta_order())

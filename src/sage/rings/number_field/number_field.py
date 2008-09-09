@@ -25,7 +25,7 @@ This example follows one in the Magma reference manual:
     sage: L.<a> = K.extension(f); L
     Number Field in a with defining polynomial y^2 + y + 1 over its base field
     sage: KL.<b> = NumberField([x^4 - 420*x^2 + 40000, x^2 + x + 1]); KL
-    Number Field in b0 with defining polynomial x^4 + (-420)*x^2 + 40000 over its base field
+    Number Field in b0 with defining polynomial x^4 - 420*x^2 + 40000 over its base field
 
 We do some arithmetic in a tower of relative number fields:
     sage: K.<cuberoot2> = NumberField(x^3 - 2)
@@ -377,7 +377,7 @@ def NumberFieldTower(v, names, check=True):
         sage: a3^2
         -3
         sage: (a2+a3+a5+a7)^3
-        ((6*a5 + 6*a7)*a3 + 6*a7*a5 - 47)*a2 + (6*a7*a5 - 45)*a3 + (-41)*a5 - 37*a7
+        ((6*a5 + 6*a7)*a3 + 6*a7*a5 - 47)*a2 + (6*a7*a5 - 45)*a3 - 41*a5 - 37*a7
     """
     # there is an "all" option below -- we do not use it, since
     # I couldn't get it to work with PARI reliably, and it isn't
@@ -755,11 +755,11 @@ class NumberField_generic(number_field_base.NumberField):
             a
             sage: K.<a,b,c> = NumberField([x^2-2,x^2-3,x^2-5])
             sage: K.primitive_element()
-            a + (-1)*b + c
+            a - b + c
             sage: alpha = K.primitive_element(); alpha
-            a + (-1)*b + c
+            a - b + c
             sage: alpha.minpoly()
-            x^2 + (2*b - 2*c)*x + (-2*c)*b + 6
+            x^2 + (2*b - 2*c)*x - 2*c*b + 6
             sage: alpha.absolute_minpoly()
             x^8 - 40*x^6 + 352*x^4 - 960*x^2 + 576
         """
@@ -4294,11 +4294,11 @@ class NumberField_relative(NumberField_generic):
         EXAMPLES:
             sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
             sage: OK = K.maximal_order(); OK.basis()
-            [1, 1/2*a - 1/2*b, (-1/2*b)*a + 1/2, a]
+            [1, 1/2*a - 1/2*b, -1/2*b*a + 1/2, a]
             sage: charpoly(OK.1)
             x^2 + b*x + 1
             sage: charpoly(OK.2)
-            x^2 + (-1)*x + 1
+            x^2 - x + 1
             sage: O2 = K.order([3*a, 2*b])
             sage: O2.index_in(OK)
             144
@@ -4614,11 +4614,11 @@ class NumberField_relative(NumberField_generic):
             sage: to_V
             Isomorphism from Number Field in a with defining polynomial x^3 + 3 over its base field to Vector space of dimension 9 over Rational Field
             sage: c = (a+1)^5; c
-            7*a^2 + (-10)*a - 29
+            7*a^2 - 10*a - 29
             sage: to_V(c)
             (-29, -712/9, 19712/45, 0, -14/9, 364/45, 0, -4/9, 119/45)
             sage: from_V(to_V(c))
-            7*a^2 + (-10)*a - 29
+            7*a^2 - 10*a - 29
             sage: from_V(3*to_V(b))
             3*b
         """
@@ -4733,7 +4733,7 @@ class NumberField_relative(NumberField_generic):
             sage: K.number_of_roots_of_unity()
             24
             sage: K.roots_of_unity()[:5]
-            [(-b^3)*a, b^2*a + b^2, -b, (-1)*a, (-b^3)*a - b^3]
+            [-b^3*a, b^2*a + b^2, -b, -a, -b^3*a - b^3]
         """
         return self.absolute_field('a').number_of_roots_of_unity()
 
@@ -4744,7 +4744,7 @@ class NumberField_relative(NumberField_generic):
         EXAMPLES:
             sage: K.<a, b> = NumberField( [x^2 + x + 1, x^4 + 1] )
             sage: K.roots_of_unity()[:5]
-            [(-b^3)*a, b^2*a + b^2, -b, (-1)*a, (-b^3)*a - b^3]
+            [-b^3*a, b^2*a + b^2, -b, -a, -b^3*a - b^3]
         """
         abs = self.absolute_field('a')
         from_abs, _ = abs.structure()
@@ -5054,7 +5054,7 @@ class NumberField_relative(NumberField_generic):
             sage: R.<t> = PolynomialRing(K)
             sage: L = K.extension(t^5-t+a, 'b')
             sage: L.galois_group()
-            Galois group PARI group [240, -1, 22, "S(5)[x]2"] of degree 10 of the Number Field in b with defining polynomial t^5 + (-1)*t + a over its base field
+            Galois group PARI group [240, -1, 22, "S(5)[x]2"] of degree 10 of the Number Field in b with defining polynomial t^5 - t + a over its base field
         """
         try:
             return self.__galois_group[pari_group, algorithm]

@@ -137,7 +137,7 @@ sage: k.< a> = NumberField(x^2 - x -1)
 sage: R.< y> = k[]
 sage: f = y^4 - 3*y^2 + 1
 sage: f
-y^4 + (-3)*y^2 + 1
+y^4 - 3*y^2 + 1
 sage: factor(f)
 (y - a) * (y - a + 1) * (y + a - 1) * (y + a)
 

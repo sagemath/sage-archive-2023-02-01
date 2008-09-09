@@ -209,7 +209,7 @@ def ModularSymbols(group  = 1,
         sage: M = ModularSymbols(e, 2); M
         Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
         sage: f = M.T(2).charpoly('x'); f
-        x^4 + (-zeta6 - 1)*x^3 + (-8*zeta6)*x^2 + (10*zeta6 - 5)*x + 21*zeta6 - 21
+        x^4 + (-zeta6 - 1)*x^3 - 8*zeta6*x^2 + (10*zeta6 - 5)*x + 21*zeta6 - 21
         sage: f.factor()
         (x - 2*zeta6 - 1) * (x - zeta6 - 2) * (x + zeta6 + 1)^2
 

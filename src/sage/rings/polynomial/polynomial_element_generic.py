@@ -16,7 +16,7 @@ We test coercion in a particularly complicated situation:
     sage: a = m.charpoly()
     sage: R.<x> = WZ[]
     sage: R(a)
-    x^2 + ((-1)*z^2 - 1)*x
+    x^2 + (-z^2 - 1)*x
 """
 
 ################################################################################
@@ -234,12 +234,13 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<w> = PolynomialRing(CDF, sparse=True)
             sage: f = CDF(1,2) + w^5 - CDF(pi)*w + CDF(e)
             sage: f._repr()
-            '1.0*w^5 + (-3.14159265359)*w + 3.71828182846 + 2.0*I'
+            '1.0*w^5 - 3.14159265359*w + 3.71828182846 + 2.0*I'
             sage: f._repr(name='z')
-            '1.0*z^5 + (-3.14159265359)*z + 3.71828182846 + 2.0*I'
+            '1.0*z^5 - 3.14159265359*z + 3.71828182846 + 2.0*I'
 
         AUTHOR:
             -- David Harvey (2006-08-05), based on Polynomial._repr()
+            -- Francis Clarke (2008-09-08) improved for 'negative' coefficients
         """
         s = " "
         m = self.degree() + 1
@@ -252,8 +253,10 @@ class Polynomial_generic_sparse(Polynomial):
             if x != 0:
                 if n != m-1:
                     s += " + "
-                x = repr(x)
-                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
+                x = y = repr(x)
+                if y.find("-") == 0:
+                    y = y[1:]
+                if not atomic_repr and n > 0 and (y.find("+") != -1 or y.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:
                     var = "*%s^%s"%(name,n)
@@ -262,8 +265,7 @@ class Polynomial_generic_sparse(Polynomial):
                 else:
                     var = ""
                 s += "%s%s"%(x,var)
-        if atomic_repr:
-            s = s.replace(" + -", " - ")
+        s = s.replace(" + -", " - ")
         s = s.replace(" 1*"," ")
         s = s.replace(" -1*", " -")
         if s==" ":

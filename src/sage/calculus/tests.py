@@ -52,7 +52,7 @@ A polynomial over a symbolic base ring:
     sage: f
     1/(4*sqrt(2))*x + 1/sqrt(2)
     sage: -f
-    (-1/(4*sqrt(2)))*x - 1/sqrt(2)
+    -1/(4*sqrt(2))*x - 1/sqrt(2)
     sage: (-f).degree()
     1
 

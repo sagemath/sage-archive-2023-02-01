@@ -44,12 +44,12 @@ We create a polynomial ring over a quaternion algebra:
     sage: f
     w^3 + (i + j)*w + 1
     sage: f^2
-    w^6 + (2*i + 2*j)*w^4 + 2*w^3 + (-2)*w^2 + (2*i + 2*j)*w + 1
+    w^6 + (2*i + 2*j)*w^4 + 2*w^3 - 2*w^2 + (2*i + 2*j)*w + 1
     sage: f = w + i ; g = w + j
     sage: f * g
     w^2 + (i + j)*w + k
     sage: g * f
-    w^2 + (i + j)*w + -k
+    w^2 + (i + j)*w - k
 
 TESTS:
     sage: K.<x>=FractionField(QQ['x'])

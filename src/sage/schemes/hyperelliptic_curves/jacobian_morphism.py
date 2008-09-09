@@ -206,11 +206,11 @@ def cantor_composition_simple(D1,D2,f,genus):
         sage: Q = J(H.lift_x(F(0))); Q
         (x, y)
         sage: 2*P + 2*Q # indirect doctest
-        (x^2 + (-2)*x + 1, y + (-3/2*a)*x + 1/2*a)
+        (x^2 - 2*x + 1, y - 3/2*a*x + 1/2*a)
         sage: 2*(P + Q) # indirect doctest
-        (x^2 + (-2)*x + 1, y + (-3/2*a)*x + 1/2*a)
+        (x^2 - 2*x + 1, y - 3/2*a*x + 1/2*a)
         sage: 3*P # indirect doctest
-        (x^2 + (-25/32)*x + 49/32, y + (-45/256*a)*x - 315/256*a)
+        (x^2 - 25/32*x + 49/32, y - 45/256*a*x - 315/256*a)
     """
     a1, b1 = D1
     a2, b2 = D2

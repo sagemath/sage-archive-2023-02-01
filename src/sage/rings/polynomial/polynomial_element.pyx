@@ -166,7 +166,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = Z^3 + (x^2-2*x+1)*Z - 3; f
             Z^3 + (x^2 - 2*x + 1)*Z - 3
             sage: f*f
-            Z^6 + (2*x^2 - 4*x + 2)*Z^4 + (-6)*Z^3 + (x^4 - 4*x^3 + 6*x^2 - 4*x + 1)*Z^2 + (-6*x^2 + 12*x - 6)*Z + 9
+            Z^6 + (2*x^2 - 4*x + 2)*Z^4 - 6*Z^3 + (x^4 - 4*x^3 + 6*x^2 - 4*x + 1)*Z^2 + (-6*x^2 + 12*x - 6)*Z + 9
             sage: f^3 == f*f*f
             True
         """
@@ -1028,18 +1028,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
              name -- None or a string; used for printing the variable.
 
         EXAMPLES:
-            sage: R.<x> = QQ[]
-            sage: f = x^3 + x + 1
+            sage: S.<t> = QQ[]
+            sage: R.<x> = S[]
+            sage: f = (1 - t^3)*x^3 - t^2*x^2 - x + 1
             sage: f._repr()
-            'x^3 + x + 1'
-            sage: f._repr('theta')
-            'theta^3 + theta + 1'
-            sage: f._repr('sage math')
-            'sage math^3 + sage math + 1'
+            '(-t^3 + 1)*x^3 - t^2*x^2 - x + 1'
+            sage: f._repr('z')
+            '(-t^3 + 1)*z^3 - t^2*z^2 - z + 1'
         """
         s = " "
         m = self.degree() + 1
-        r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring().is_atomic_repr()
@@ -1049,8 +1047,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if x:
                 if n != m-1:
                     s += " + "
-                x = repr(x)
-                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
+                x = y = repr(x)
+                if y.find("-") == 0:
+                    y = y[1:]
+                if not atomic_repr and n > 0 and (y.find("+") != -1 or y.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:
                     var = "*%s^%s"%(name,n)
@@ -1059,7 +1059,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 else:
                     var = ""
                 s += "%s%s"%(x,var)
-        #if atomic_repr:
         s = s.replace(" + -", " - ")
         s = s.replace(" 1*"," ")
         s = s.replace(" -1*", " -")
@@ -1069,7 +1068,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _repr_(self):
         r"""
-        Return string representatin of this polynomial.
+        Return string representation of this polynomial.
 
         EXAMPLES:
             sage: x = polygen(QQ)
@@ -1088,18 +1087,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES:
         A fairly simple example over $\QQ$.
-            sage: x = polygen(QQ)
-            sage: latex(x^3+2/3*x^2 - 5/3)
-            x^{3} + \frac{2}{3} x^{2} - \frac{5}{3}
-
-        A $p$-adic example where the coefficients are $0$ to some precision.
-            sage: K = Qp(3,20)
-            sage: R.<x> = K[]
-            sage: f = K(0,-2)*x + K(0,-1)
-            sage: f
-            (O(3^-2))*x + (O(3^-1))
+            sage: C3.<omega> = CyclotomicField(3)
+            sage: R.<X> = C3[]
+            sage: f = X^3 - omega*X
             sage: latex(f)
-            \left(O(3^{-2})\right) x + O(3^{-1})
+            X^{3} - \omega X
 
         The following illustrates the fix of trac \#2586:
             sage: latex(ZZ['alpha']['b']([0, ZZ['alpha'].0]))
@@ -1108,17 +1100,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         s = " "
         coeffs = self.list()
         m = len(coeffs)
-        r = reversed(xrange(m))
         if name is None:
             name = self.parent().latex_variable_names()[0]
         atomic_repr = self.parent().base_ring().is_atomic_repr()
         for n in reversed(xrange(m)):
             x = coeffs[n]
-            x = latex(x)
+            x = y = latex(x)
             if x != '0':
                 if n != m-1:
                     s += " + "
-                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
+                if y.find("-") == 0:
+                    y = y[1:]
+                if not atomic_repr and n > 0 and (y.find("+") != -1 or y.find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if n > 1:
                     var = "|%s^{%s}"%(name,n)
@@ -1127,7 +1120,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 else:
                     var = ""
                 s += "%s %s"%(x,var)
-        #if atomic_repr:
         s = s.replace(" + -", " - ")
         s = s.replace(" 1 |"," ")
         s = s.replace(" -1 |", " -")
@@ -1907,14 +1899,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: K.<a> = NumberField(f)
             sage: S.<T> = K[]
             sage: ff = S(f); ff
-            T^6 + 10/7*T^5 + (-867/49)*T^4 + (-76/245)*T^3 + 3148/35*T^2 + (-25944/245)*T + 48771/1225
+            T^6 + 10/7*T^5 - 867/49*T^4 - 76/245*T^3 + 3148/35*T^2 - 25944/245*T + 48771/1225
             sage: F = ff.factor()
             sage: len(F)
             4
             sage: F[:2]
             [(T - a, 1), (T - 40085763200/924556084127*a^5 - 145475769880/924556084127*a^4 + 527617096480/924556084127*a^3 + 1289745809920/924556084127*a^2 - 3227142391585/924556084127*a - 401502691578/924556084127, 1)]
             sage: expand(F)
-            T^6 + 10/7*T^5 + (-867/49)*T^4 + (-76/245)*T^3 + 3148/35*T^2 + (-25944/245)*T + 48771/1225
+            T^6 + 10/7*T^5 - 867/49*T^4 - 76/245*T^3 + 3148/35*T^2 - 25944/245*T + 48771/1225
 
             sage: f = x^2 - 1/3 ; K.<a> = NumberField(f) ; A.<T> = K[] ; g = A(x^2-1)
             sage: g.factor()
@@ -3001,7 +2993,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = y^3 + x*y -3*x; f
             y^3 + x*y - 3*x
             sage: f.reverse()
-            (-3*x)*y^3 + x*y^2 + 1
+            -3*x*y^3 + x*y^2 + 1
         """
         v = list(self.list())
         v.reverse()

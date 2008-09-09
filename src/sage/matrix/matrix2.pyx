@@ -968,7 +968,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: K.<a> = NumberField(x^2 - 2)
             sage: m = matrix(K, [[a-1, 2], [a, a+1]])
             sage: m.charpoly('Z')
-            Z^2 + (-2*a)*Z - 2*a + 1
+            Z^2 - 2*a*Z - 2*a + 1
             sage: m.charpoly('a')(m) == 0
             True
 
@@ -977,7 +977,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: u = MatrixSpace(P,3)([[0,0,a],[1,0,b],[0,1,c]])
             sage: Q.<x> = PolynomialRing(P)
             sage: u.charpoly('x')
-            x^3 + (-c)*x^2 + (-b)*x - a
+            x^3 - c*x^2 - b*x - a
         """
         D = self.fetch('charpoly')
         if not D is None:
@@ -1004,7 +1004,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: K.<a> = NumberField(x^2 - 2)
             sage: m = matrix(K, [[a-1, 2], [a, a+1]])
             sage: m._charpoly_over_number_field('Z')
-            Z^2 + (-2*a)*Z - 2*a + 1
+            Z^2 - 2*a*Z - 2*a + 1
             sage: m._charpoly_over_number_field('a')(m) == 0
             True
             sage: m = matrix(K, [[0, a, 0], [-a, 0, 0], [0, 0, 0]])
@@ -1016,16 +1016,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: L.<b> = K.extension(x^3 - a)
             sage: m = matrix(L, [[b+a, 1], [a, b^2-2]])
             sage: m.charpoly('Z')
-            Z^2 + ((-1)*b^2 + (-1)*b - a + 2)*Z + a*b^2 + (-2)*b - 2*a
+            Z^2 + (-b^2 - b - a + 2)*Z + a*b^2 - 2*b - 2*a
             sage: m.charpoly('a')
-            a^2 + ((-1)*b^2 + (-1)*b - a + 2)*a + a*b^2 + (-2)*b - 2*a
+            a^2 + (-b^2 - b - a + 2)*a + a*b^2 - 2*b - 2*a
             sage: m.charpoly('a')(m) == 0
             True
 
             sage: M.<c> = L.extension(x^2 - a*x + b)
             sage: m = matrix(M, [[a+b+c, 0, b], [0, c, 1], [a-1, b^2+1, 2]])
             sage: f = m.charpoly('Z'); f
-            Z^3 + ((-2)*c + (-1)*b - a - 2)*Z^2 + ((b + 2*a + 4)*c + (-1)*b^2 + (-a + 2)*b + 2*a - 1)*Z + (b^2 + (a - 3)*b - 4*a + 1)*c + a*b^2 + 3*b + 2*a
+            Z^3 + (-2*c - b - a - 2)*Z^2 + ((b + 2*a + 4)*c - b^2 + (-a + 2)*b + 2*a - 1)*Z + (b^2 + (a - 3)*b - 4*a + 1)*c + a*b^2 + 3*b + 2*a
             sage: f(m) == 0
             True
             sage: f.base_ring() is M
@@ -1314,9 +1314,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: matrix(GF(7),3,range(9))._charpoly_hessenberg('Z')
             Z^3 + 2*Z^2 + 3*Z
             sage: matrix(QQ['x'],3,range(9))._charpoly_hessenberg('Z')
-            Z^3 + (-12)*Z^2 + (-18)*Z
+            Z^3 - 12*Z^2 - 18*Z
             sage: matrix(ZZ['ZZ'],3,range(9))._charpoly_hessenberg('Z')
-            Z^3 + (-12)*Z^2 + (-18)*Z
+            Z^3 - 12*Z^2 - 18*Z
         """
         if self._nrows != self._ncols:
             raise ArithmeticError, "charpoly not defined for non-square matrix."

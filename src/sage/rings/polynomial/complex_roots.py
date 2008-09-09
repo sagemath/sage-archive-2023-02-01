@@ -284,7 +284,7 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         sage: p = (x^2 + x - 1)
         sage: p = p * p(x*im)
         sage: p
-        (-1)*x^4 + (im - 1)*x^3 + im*x^2 + (-im - 1)*x + 1
+        -x^4 + (im - 1)*x^3 + im*x^2 + (-im - 1)*x + 1
 
     Two of the roots have a zero real component; two have a zero
     imaginary component.  These zero components will be found slightly

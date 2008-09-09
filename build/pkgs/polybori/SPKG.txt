@@ -1,4 +1,4 @@
-= M4RI =
+= PolyBoRi =
 
 == Description ==
 
@@ -31,6 +31,9 @@ reference implementation for Gröbner basis computation.
 None
 
 == Releases ==
+
+=== polybori-0.5rc.p4 (Michael Abshoff, September 9th, 2008) ===
+ * only force a rebuild of the PolyBoRi extension if the Sage library has been installed
 
 === polybori-0.5rc.p3 (Michael Abshoff, September 7th, 2008) ===
  * Delete dynamic libs to force static linking

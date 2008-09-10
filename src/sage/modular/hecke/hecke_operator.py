@@ -29,6 +29,7 @@ import sage.modules.module
 import sage.modules.free_module_morphism as free_module_morphism
 import sage.modular.dims as dims
 import sage.rings.arith as arith
+from   sage.rings.integer import Integer
 
 import algebra
 import morphism
@@ -356,11 +357,16 @@ class HeckeOperator(HeckeAlgebraElement):
             sage: M = ModularSymbols(11)
             sage: M.hecke_operator(2005)
             Hecke operator T_2005 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
+
+        We create a Hecke operator of large index (greater than 32 bits):
+            sage: M1 =  ModularSymbols(21,2)
+            sage: M1.hecke_operator(13^9)
+            Hecke operator T_10604499373 on Modular Symbols space of dimension 5 for Gamma_0(21) of weight 2 with sign 0 over Rational Field
         """
         HeckeAlgebraElement.__init__(self, parent)
-        if not isinstance(n, int):
+        if not isinstance(n, (int,long,Integer)):
             raise TypeError, "n must be an int"
-        self.__n = n
+        self.__n = int(n)
 
     def __cmp__(self, other):
         if not isinstance(other, HeckeOperator):

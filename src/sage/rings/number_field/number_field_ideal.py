@@ -1027,7 +1027,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             Basis matrix:
             []
 
-        We do an example with a split prime and show byother the quo and lift maps:
+        We do an example with a split prime and show both the quo and lift maps:
             sage: K.<i> = NumberField(x^2 + 1); O = K.maximal_order()
             sage: I = K.factor(5)[0][0]
             sage: Q,quo,lift = I._p_quotient(5)
@@ -1053,7 +1053,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         return quotient_char_p(self, p)
 
     def residue_field(self, names=None):
-        """
+        r"""
         Return the residue class field of this fractional ideal, which
         must be prime.
 
@@ -1082,6 +1082,30 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             36
             sage: FF(a)
             w
+
+        An example of reduction maps to the residue field: these are
+        defined on the whole valuation ring, i.e. the subring of the
+        number field consisting of elements with non-negative
+        valuation.  This shows that the issue raised in trac \#1951
+        has been fixed.
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: P1, P2 = [g[0] for g in K.factor(5)]; (P1,P2)
+            (Fractional ideal (-i - 2), Fractional ideal (2*i + 1))
+            sage: a = 1/(1+2*i)
+            sage: F1, F2 = [g.residue_field() for g in [P1,P2]]; (F1,F2)
+            (Residue field of Fractional ideal (-i - 2),
+            Residue field of Fractional ideal (2*i + 1))
+            sage: a.valuation(P1)
+            0
+            sage: F1(i/7)
+            4
+            sage: F1(a)
+            3
+            sage: a.valuation(P2)
+            -1
+            sage: F2(a)
+            Traceback (most recent call last):
+            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1) as it has negative valuation
         """
         if not self.is_prime():
             raise ValueError, "The ideal must be prime"

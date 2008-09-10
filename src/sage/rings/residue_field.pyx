@@ -393,8 +393,8 @@ class ReductionMap:
         """
         Apply this reduction map to an element that coerces into the number field.
 
-        If x doesn't map because the denominator is not coprime to the
-        prime ideal, then a ZeroDivisionError exception is raised.
+        If x doesn't map because it has negative valuation, then a
+        ZeroDivisionError exception is raised.
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^2 + 1)
@@ -406,11 +406,64 @@ class ReductionMap:
             sage: r(a/2)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: Cannot reduce field element 1/2*a modulo Fractional ideal (a + 1) as it has negative valuation
+
+        An example to show that the issue raised in trac \#1951
+        has been fixed.
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: P1, P2 = [g[0] for g in K.factor(5)]; (P1,P2)
+            (Fractional ideal (-i - 2), Fractional ideal (2*i + 1))
+            sage: a = 1/(1+2*i)
+            sage: F1, F2 = [g.residue_field() for g in [P1,P2]]; (F1,F2)
+            (Residue field of Fractional ideal (-i - 2),
+            Residue field of Fractional ideal (2*i + 1))
+            sage: a.valuation(P1)
+            0
+            sage: F1(i/7)
+            4
+            sage: F1(a)
+            3
+            sage: a.valuation(P2)
+            -1
+            sage: F2(a)
+            Traceback (most recent call last):
+            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1) as it has negative valuation
+
         """
-        # The reduction map is just x |--> F(to_vs(x) * (PB**(-1)))
+        # The reduction map is just x |--> F(to_vs(x) * (PB**(-1))) if
+        # either x is integral or the denominator of x is coprime to
+        # p; otherwise we work harder.
+
         x = self.__K(x)
-        return self.__F(self.__to_vs(x) * self.__PBinv)
+        p = self.__F.p
+        dx = x.denominator()
+        if x.is_integral() or dx.gcd(p.norm()) == 1:
+            return self.__F(self.__to_vs(x) * self.__PBinv)
+
+        # Now we do have to work harder...below this point we handle
+        # cases which failed before trac 1951 was fixed.
+        R = self.__K.ring_of_integers()
+        dx = R(dx)
+        nx = R(dx*x)
+        vnx = nx.valuation(p)
+        vdx = dx.valuation(p)
+        if vnx > vdx:
+            return self(0)
+        if vnx < vdx:
+            raise ZeroDivisionError, "Cannot reduce field element %s modulo %s as it has negative valuation"%(x,p)
+        a = self.__K.uniformizer(p,'negative') ** vnx
+        nx /= a
+        dx /= a
+        # Assertions for debugging!
+        # assert nx.valuation(p) == 0 and dx.valuation(p) == 0 and x == nx/dx
+        # assert nx.is_integral() and dx.is_integral()
+        # print "nx = ",nx,"; dx = ",dx, ": recursing"
+
+        # NB at this point nx and dx are in the ring of integers and
+        # both are p-units.  Recursion is now safe, since integral
+        # elements will not cause further recursion; and neither
+        # self(nx) nor self(dx) will be 0 since nx, dx are p-units.
+        return self(nx)/self(dx)
 
     def __repr__(self):
         """
@@ -792,6 +845,4 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
                 return self._structure[0](x)
             except:
                 raise TypeError
-
-
 

@@ -24,9 +24,15 @@ monogenic (i.e., 2 is an essential discriminant divisor):
     sage: F[2][0].residue_field()
     Residue field of Fractional ideal (3/2*a^2 - 5/2*a + 4)
 
+We can also form residue fields from ZZ:
+    sage: ZZ.residue_field(17)
+    Residue field of Integers modulo 17
+
 AUTHORS:
     -- David Roe (2007-10-3): initial version
     -- William Stein (2007-12): bug fixes
+    -- John Cremona (2008-9): extend reduction maps to the whole valuation ring
+                              add support for residue fields of ZZ
 
 TESTS:
     sage: K.<z> = CyclotomicField(7)
@@ -153,6 +159,21 @@ def ResidueField(p, names = None, check = True):
         k = residue_field_cache[key]()
         if k is not None:
             return k
+
+    if p.ring() is ZZ:
+        if check:
+            if not p.is_prime():
+                raise ValueError, "p (%s) must be prime"%p
+        K = QQ
+        p = p.gen()
+        k = ResidueFiniteField_prime_modn(p, names, im_gen = None, intp = p)
+        pi = ReductionMap(K, k, None, None)
+        lift = LiftingMap(K, k, None, None)
+        k._structure = (pi, lift)
+
+        residue_field_cache[key] = weakref.ref(k)
+        return k
+
     if check:
         if not is_NumberFieldIdeal(p):
             raise TypeError, "p must be a prime ideal in the ring of integers of a number field."
@@ -161,6 +182,7 @@ def ResidueField(p, names = None, check = True):
 
     if names is None:
         names = '%sbar'%(p.number_field().variable_name())
+
     # Should generalize to allowing residue fields of relative extensions to be extensions of finite fields.
     characteristic = p.smallest_integer()
 
@@ -238,6 +260,8 @@ class ResidueField_generic(Field):
             sage: K.<a> = NumberField(x^3-17)
             sage: P = K.ideal(29).factor()[0][0]
             sage: k = K.residue_field(P) # indirect doctest
+            sage: F = ZZ.residue_field(17)  # indirect doctest
+
         """
         self.p = p
         self.f = f
@@ -254,7 +278,12 @@ class ResidueField_generic(Field):
             sage: k = K.residue_field(P)
             sage: k
             Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)
+
+            sage: F = ZZ.residue_field(17); F
+            Residue field of Integers modulo 17
         """
+        if isinstance(self.p, Integer):
+            return "Residue field of Integers modulo %s"%self.p
         return "Residue field %sof %s"%('in %s '%self.gen() if self.degree() > 1 else '', self.p)
 
     def lift(self, x):
@@ -406,7 +435,7 @@ class ReductionMap:
             sage: r(a/2)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Cannot reduce field element 1/2*a modulo Fractional ideal (a + 1) as it has negative valuation
+            ZeroDivisionError: Cannot reduce field element 1/2*a modulo Fractional ideal (a + 1): it has negative valuation
 
         An example to show that the issue raised in trac \#1951
         has been fixed.
@@ -427,7 +456,7 @@ class ReductionMap:
             -1
             sage: F2(a)
             Traceback (most recent call last):
-            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1) as it has negative valuation
+            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1): it has negative valuation
 
         """
         # The reduction map is just x |--> F(to_vs(x) * (PB**(-1))) if
@@ -436,6 +465,14 @@ class ReductionMap:
 
         x = self.__K(x)
         p = self.__F.p
+
+        # Special code for residue fields of Q:
+        if self.__K is QQ:
+            try:
+                return self.__F(x)
+            except ZeroDivisionError:
+                raise ZeroDivisionError, "Cannot reduce rational %s modulo %s: it has negative valuation"%(x,p)
+
         dx = x.denominator()
         if x.is_integral() or dx.gcd(p.norm()) == 1:
             return self.__F(self.__to_vs(x) * self.__PBinv)
@@ -450,7 +487,7 @@ class ReductionMap:
         if vnx > vdx:
             return self(0)
         if vnx < vdx:
-            raise ZeroDivisionError, "Cannot reduce field element %s modulo %s as it has negative valuation"%(x,p)
+            raise ZeroDivisionError, "Cannot reduce field element %s modulo %s: it has negative valuation"%(x,p)
         a = self.__K.uniformizer(p,'negative') ** vnx
         nx /= a
         dx /= a
@@ -548,7 +585,10 @@ class LiftingMap:
             sage: F(a)
             abar
         """
-        # The lifting map is just x |--> to_order(x * PB)
+        if self.__K is QQ:
+            return QQ(x.lift())  # x.lift() is in ZZ
+
+        # Else the lifting map is just x |--> to_order(x * PB)
         x = self.__F(x)
         v = x.polynomial().padded_list(self.__F.degree())
         return self.__to_order(self.__PB.linear_combination_of_rows(v))
@@ -618,7 +658,7 @@ cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
             sage: P = K.ideal(29).factor()[0][0]
             sage: k =K.residue_field(P)
             sage: OK = K.maximal_order()
-            sage: k.coerce_map_from(OK)(OK(a)^7)
+            sage: k.coerce_map_from(OK)(OK(a)^7) # indirect doctest
             13*abar^2 + 7*abar + 21
         """
         #y = x.polynomial().change_ring(self.codomain().base_ring())(self.im_gen)  #polynomial should change to absolute_polynomial?

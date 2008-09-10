@@ -207,6 +207,32 @@ class NumberFieldIdeal(Ideal_generic):
         return [ K(R(x)) for x in convert_from_zk_basis(K, hnf) ]
 
     def __repr__(self):
+        """
+        Return the string representation of this number field ideal.
+
+        NOTE: Only the zero ideal actually has type NumberFieldIdeal;
+        all others have type NumberFieldFractionalIdeal.  So this
+        function will only ever be called on the zero ideal.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3-2)
+            sage: I = K.ideal(0); I
+            Ideal (0) of Number Field in a with defining polynomial x^3 - 2
+            sage: type(I)
+            <class 'sage.rings.number_field.number_field_ideal.NumberFieldIdeal'>
+            sage: I = K.ideal(1); I
+            Fractional ideal (1)
+            sage: type(I)
+            <class 'sage.rings.number_field.number_field_ideal.NumberFieldFractionalIdeal'>
+            sage: I = K.ideal(a); I
+            Fractional ideal (a)
+            sage: type(I)
+            <class 'sage.rings.number_field.number_field_ideal.NumberFieldFractionalIdeal'>
+            sage: I = K.ideal(1/a); I
+            Fractional ideal (1/2*a^2)
+            sage: type(I)
+            <class 'sage.rings.number_field.number_field_ideal.NumberFieldFractionalIdeal'>
+        """
         return "Ideal %s of %s"%(self._repr_short(), self.number_field())
 
     def _repr_short(self):
@@ -815,6 +841,19 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             raise ValueError, "gens must have a nonzero element (zero ideal is not a fractional ideal)"
 
     def __repr__(self):
+        """
+        Return the string representation of this number field fractional ideal.
+
+        NOTE: Only the zero ideal actually has type NumberFieldIdeal;
+        all others have type NumberFieldFractionalIdeal.
+
+        EXAMPLES:
+            sage: K.<a>=NumberField(x^2+5)
+            sage: I = K.ideal([2,1+a]); I
+            Fractional ideal (2, a + 1)
+            sage: type(I)
+            <class 'sage.rings.number_field.number_field_ideal.NumberFieldFractionalIdeal'>
+        """
         return "Fractional ideal %s"%self._repr_short()
 
     def divides(self, other):
@@ -1105,7 +1144,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             -1
             sage: F2(a)
             Traceback (most recent call last):
-            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1) as it has negative valuation
+            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1): it has negative valuation
         """
         if not self.is_prime():
             raise ValueError, "The ideal must be prime"
@@ -1152,10 +1191,17 @@ def is_NumberFieldFractionalIdeal(x):
     """
     return isinstance(x, NumberFieldFractionalIdeal)
 
-# TODO: The next two classes have no documentation!
-
 class QuotientMap:
+    """
+    Class to hold data needed by quotient maps from number field
+    orders to residue fields.  These are only partial maps: the exact
+    domain is the appropriate valuation ring.  For examples, see
+    residue_field().
+    """
     def __init__(self, K, M_OK_change, Q, I):
+        """
+        Initialize this QuotientMap.
+        """
         self.__M_OK_change = M_OK_change
         self.__Q = Q
         self.__K = K
@@ -1163,21 +1209,40 @@ class QuotientMap:
         self.__L, self.__from_L, self.__to_L = K.absolute_vector_space()
 
     def __call__(self, x):
+        """
+        Apply this QuotientMap to an element of the number field.
+
+        INPUT:
+            x -- an element of the field
+        """
         v = self.__to_L(x)
         w = v * self.__M_OK_change
         return self.__Q( list(w) )
 
     def __repr__(self):
+        """
+        Return a string representation of this QuotientMap.
+        """
         return "Partially defined quotient map from %s to an explicit vector space representation for the quotient of the ring of integers by (p,I) for the ideal I=%s."%(self.__K, self.__I)
 
 class LiftMap:
+    """
+    Class to hold data needed by lifting maps from residue fields to
+    number field orders.
+    """
     def __init__(self, OK, M_OK_map, Q, I):
+        """
+        Initialize this LiftMap.
+        """
         self.__I = I
         self.__OK = OK
         self.__Q = Q
         self.__M_OK_map = M_OK_map
 
     def __call__(self, x):
+        """
+        Apply this LiftMap to an element of the residue field.
+        """
         # This lifts to OK tensor F_p
         v = self.__Q.lift(x)
         # This lifts to ZZ^n (= OK)
@@ -1187,6 +1252,9 @@ class LiftMap:
         return self.__OK(z.list())
 
     def __repr__(self):
+        """
+        Return a string representation of this QuotientMap.
+        """
         return "Lifting map to %s from quotient of integers by %s"%(self.__OK, self.__I)
 
 def quotient_char_p(I, p):

@@ -735,6 +735,53 @@ class Ideal_pid(Ideal_principal):
 
         raise NotImplementedError
 
+    def residue_field(self):
+        """
+        Return the residue class field of this ideal, which must be prime.
+
+        TODO: Implement this for more general rings.  Currently only
+        defined for ZZ and for number field orders.
+
+        EXAMPLES:
+            sage: P = ZZ.ideal(61); P
+            Principal ideal (61) of Integer Ring
+            sage: F = P.residue_field(); F
+            Residue field of Integers modulo 61
+            sage: pi = F.reduction_map(); pi
+            Partially defined reduction map from Rational Field to Residue field of Integers modulo 61
+            sage: pi(123/234)
+            6
+            sage: pi(1/61)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot reduce rational 1/61 modulo 61: it has negative valuation
+            sage: lift = F.lift_map(); lift
+            Lifting map from Residue field of Integers modulo 61 to Rational Field
+            sage: lift(F(12345/67890))
+            33
+            sage: (12345/67890) % 61
+            33
+
+        TESTS:
+            sage: ZZ.ideal(96).residue_field()
+            Traceback (most recent call last):
+            ...
+            ValueError: The ideal (Principal ideal (96) of Integer Ring) is not prime
+
+            sage: R.<x>=QQ[]
+            sage: I=R.ideal(x^2+1)
+            sage: I.is_prime()
+            True
+            sage: I.residue_field()
+            Traceback (most recent call last):
+            NotImplementedError: residue_field() is only implemented for ZZ and rings of integers of number fields.
+        """
+        if not self.is_prime():
+            raise ValueError, "The ideal (%s) is not prime"%self
+        from sage.rings.integer_ring import ZZ
+        if self.ring() is ZZ:
+            return ZZ.residue_field(self, check = False)
+        raise NotImplementedError, "residue_field() is only implemented for ZZ and rings of integers of number fields."
 
 class Ideal_fractional(Ideal_generic):
     def __repr__(self):

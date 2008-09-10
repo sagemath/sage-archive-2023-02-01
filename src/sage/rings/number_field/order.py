@@ -529,7 +529,7 @@ class Order(IntegralDomain):
 
     def residue_field(self, prime, name = None, check = False):
         """
-        Return the residue field of this number field at a given prime, ie $O_K / p O_K$.
+        Return the residue field of this order at a given prime, ie $O/pO$.
 
         INPUT:
             prime -- a prime ideal of the maximal order in this number field.
@@ -546,9 +546,10 @@ class Order(IntegralDomain):
             sage: OK.residue_field(P)
             Residue field in abar of Fractional ideal (-2*a^2 + 1)
         """
-        import sage.rings.residue_field
-        return sage.rings.residue_field.ResidueField(prime)
-
+        if self.is_maximal():
+            return self.number_field().residue_field(prime, name, check)
+        else:
+            raise NotImplementedError, "Residue fields of non-maximal orders are not yet supported."
 
     def fraction_field(self):
         """

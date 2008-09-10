@@ -657,6 +657,61 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return self
         return sage.rings.integer_mod_ring.IntegerModRing(n)
 
+    def residue_field(self, prime, check = True):
+        """
+        Return the residue field of the integers modulo thegiven prime, ie $\Z/p\Z$.
+
+        INPUT:
+            prime -- a prime number
+            check -- (boolean, default True) whether or not to check the primality of prime.
+        OUTPUT:
+            The residue field at this prime.
+
+        EXAMPLES:
+            sage: F = ZZ.residue_field(61); F
+            Residue field of Integers modulo 61
+            sage: pi = F.reduction_map(); pi
+            Partially defined reduction map from Rational Field to Residue field of Integers modulo 61
+            sage: pi(123/234)
+            6
+            sage: pi(1/61)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot reduce rational 1/61 modulo 61: it has negative valuation
+            sage: lift = F.lift_map(); lift
+            Lifting map from Residue field of Integers modulo 61 to Rational Field
+            sage: lift(F(12345/67890))
+            33
+            sage: (12345/67890) % 61
+            33
+
+        Construction can be from a prime ideal instead of a prime:
+            sage: ZZ.residue_field(ZZ.ideal(97))
+            Residue field of Integers modulo 97
+
+        TESTS:
+            sage: ZZ.residue_field(ZZ.ideal(96))
+            Traceback (most recent call last):
+            ...
+            TypeError: Principal ideal (96) of Integer Ring is not prime
+            sage: ZZ.residue_field(96)
+            Traceback (most recent call last):
+            ...
+            TypeError: 96 is not prime
+        """
+        if isinstance(prime, sage.rings.integer.Integer):
+            p = self.ideal(prime)
+        elif sage.rings.ideal.is_Ideal(prime):
+            if not (prime.ring() is self):
+                raise TypeError, "%s is not an ideal of ZZ"%prime
+            p = prime
+        else:
+            raise TypeError, "%s is neither an ideal of ZZ nor an integer"%prime
+        if check and not p.is_prime():
+            raise TypeError, "%s is not prime"%prime
+        from sage.rings.residue_field import ResidueField
+        return ResidueField(p, names = None, check = check)
+
     def gens(self):
         """
 

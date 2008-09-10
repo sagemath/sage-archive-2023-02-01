@@ -119,6 +119,20 @@ from sage.rings.integer_ring import IntegerRing
 def proof_flag(t):
     """
     Used for easily determining the correct proof flag to use.
+
+    Returns t if t is not None, otherwise returns the system-wide
+    proof-flag for number fields (default: True).
+
+    EXAMPLES:
+        sage: from sage.rings.number_field.number_field import proof_flag
+        sage: proof_flag(True)
+        True
+        sage: proof_flag(False)
+        False
+        sage: proof_flag(None)
+        True
+        sage: proof_flag("banana")
+        'banana'
     """
     return get_flag(t, "number_field")
 
@@ -705,6 +719,9 @@ class NumberField_generic(number_field_base.NumberField):
         return morphism.NumberFieldHomset(self, codomain)
 
     def _set_structure(self, from_self, to_self, unsafe_force_change=False):
+        """
+        Internal function to set the structure fields of this number field.
+        """
         # Note -- never call this on a cached number field, since
         # that could eventually lead to problems.
         if unsafe_force_change:
@@ -876,6 +893,16 @@ class NumberField_generic(number_field_base.NumberField):
         return K, from_K, to_K
 
     def is_absolute(self):
+        """
+        Returns True if self is an absolute field.
+
+        This function will be implemented in the derived classes.
+
+        EXAMPLES:
+            sage: K = CyclotomicField(5)
+            sage: K.is_absolute()
+            True
+        """
         raise NotImplementedError
 
     def is_relative(self):
@@ -2456,6 +2483,19 @@ class NumberField_generic(number_field_base.NumberField):
         return H
 
     def _normalize_prime_list(self, v):
+        """
+        Internal function to convert into a list of primes either None
+        or a single prime or a list.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K._normalize_prime_list(None)
+            ()
+            sage: K._normalize_prime_list(3)
+            (3,)
+            sage: K._normalize_prime_list([3,5])
+            (3, 5)
+        """
         if v is None:
             v = []
         elif not isinstance(v, (list, tuple)):
@@ -2966,7 +3006,9 @@ class NumberField_generic(number_field_base.NumberField):
         Return the residue field of this number field at a given prime, ie $O_K / p O_K$.
 
         INPUT:
-            prime -- a prime ideal of the maximal order in this number field.
+            prime -- a prime ideal of the maximal order in this number
+                     field, or an element of the field which generates
+                     a principal prime ideal.
             names -- the name of the variable in the residue field
             check -- whether or not to check the primality of prime.
         OUTPUT:
@@ -2979,27 +3021,39 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.residue_field(P)
             Residue field in abar of Fractional ideal (-2*a^2 + 1)
 
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.residue_field(1+i)
+            Residue field of Fractional ideal (i + 1)
+
         TESTS:
             sage: L.<b> = NumberField(x^2 + 5)
             sage: L.residue_field(P)
             Traceback (most recent call last):
             ...
-            ValueError: prime must be a prime ideal of self
+            ValueError: Fractional ideal (-2*a^2 + 1) is not an ideal of Number Field in b with defining polynomial x^2 + 5
             sage: L.residue_field(2)
             Traceback (most recent call last):
             ...
-            ValueError: prime must be a prime ideal of self
+            ValueError: Fractional ideal (2) is not a prime ideal
 
             sage: L.residue_field(L.prime_above(5)^2)
             Traceback (most recent call last):
             ...
-            ValueError: p must be prime
+            ValueError: Fractional ideal (5) is not a prime ideal
         """
+        # This allows principal ideals to be specified using a generator:
+        try:
+            prime = self.ideal(prime)
+        except TypeError:
+            pass
+
         from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
         if not is_NumberFieldIdeal(prime) or prime.number_field() is not self:
-            raise ValueError, "prime must be a prime ideal of self"
+            raise ValueError, "%s is not an ideal of %s"%(prime,self)
+        if check and not prime.is_prime():
+            raise ValueError, "%s is not a prime ideal"%prime
         from sage.rings.residue_field import ResidueField
-        return ResidueField(prime, names = names, check = check)
+        return ResidueField(prime, names = names, check = False)
 
     def signature(self):
         """
@@ -3300,6 +3354,9 @@ class NumberField_generic(number_field_base.NumberField):
 class NumberField_absolute(NumberField_generic):
 
     def __init__(self, polynomial, name, latex_name=None, check=True):
+        """
+        Function to initialize an absolute number field.
+        """
         NumberField_generic.__init__(self, polynomial, name, latex_name, check)
         self._element_class = number_field_element.NumberFieldElement_absolute
 
@@ -3479,6 +3536,9 @@ class NumberField_absolute(NumberField_generic):
                                       both_maps=True, optimize=False)
 
     def _subfields_helper(self, degree=0, name=None, both_maps=True, optimize=False):
+        """
+        Internal function: common code for optimized_subfields() and subfields().
+        """
         if name is None:
             name = self.variable_names()
         name = sage.structure.parent_gens.normalize_names(1, name)[0]
@@ -4256,12 +4316,43 @@ class NumberField_relative(NumberField_generic):
         return False
 
     def gens(self):
+        """
+        Return the generators of this relative number field.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
+            Number Field in a with defining polynomial x^4 + 3 over its base field
+            sage: K.gens()
+            (a, b)
+        """
         return self.__gens
 
     def ngens(self):
+        """
+        Return the number of generators of this relative number field.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
+            Number Field in a with defining polynomial x^4 + 3 over its base field
+            sage: K.gens()
+            (a, b)
+            sage: K.ngens()
+            2
+        """
         return len(self.__gens)
 
     def gen(self, n=0):
+        """
+        Return the n'th generator of this relative number field.
+
+        EXAMPLES:
+            sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
+            Number Field in a with defining polynomial x^4 + 3 over its base field
+            sage: K.gens()
+            (a, b)
+            sage: K.gen(0)
+            a
+        """
         if n < 0 or n >= len(self.__gens):
             raise IndexError, "invalid generator %s"%n
         return self.__gens[n]
@@ -4269,9 +4360,13 @@ class NumberField_relative(NumberField_generic):
     def galois_closure(self, names=None):
         """
         Return the absolute number field $K$ that is the Galois
-        closure of self.
+        closure of this relatice number field.
 
         EXAMPLES:
+            sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
+            Number Field in a with defining polynomial x^4 + 3 over its base field
+            sage: K.galois_closure('c')
+            Number Field in c with defining polynomial x^16 + 144*x^14 + 8988*x^12 + 329616*x^10 + 7824006*x^8 + 113989680*x^6 + 1360354716*x^4 + 3470308272*x^2 + 9407642049
         """
         return self.absolute_field('a').galois_closure(names=names)
 
@@ -5298,6 +5393,20 @@ class NumberField_cyclotomic(NumberField_absolute):
         return NumberField_cyclotomic_v1, (self.__n, self.variable_name())
 
     def _magma_init_(self):
+        """
+        Function returning a string to create this cyclotomic field in Magma.
+
+        NOTE: The Magma generator name is also initialized to be the
+        same as for the Sage field.
+
+        EXAMPLES:
+            sage: K=CyclotomicField(7,'z')
+            sage: K._magma_init_()
+            'CyclotomicField(7); z:=CyclotomicField(7).1;'
+            sage: K=CyclotomicField(7,'zeta')
+            sage: K._magma_init_()
+            'CyclotomicField(7); zeta:=CyclotomicField(7).1;'
+        """
         return 'CyclotomicField(%s); %s:=CyclotomicField(%s).1;'%(self.__n, self.gen(), self.__n)
 
     def _repr_(self):
@@ -6314,6 +6423,29 @@ def NumberField_quadratic_v1(poly, name):
 
 
 def put_natural_embedding_first(v):
+    """
+    Helper function for embeddings() functions for number fields.
+
+    INPUT: a list of embeddings of a number field
+
+    OUTPUT: None.  The list is altered in-place, so that, if possible,
+            the first embedding has been switched with one of the
+            others, so that if there is an embedding which preserves
+            tha generator names then it appears first.
+
+    EXAMPLES:
+        sage: K.<a> = CyclotomicField(7)
+        sage: embs = K.embeddings(K)
+        sage: [e(a) for e in embs] # already sorted
+        [a, a^2, a^3, a^4, a^5, -a^5 - a^4 - a^3 - a^2 - a - 1]
+        sage: permuted_embs = [embs[i] for i in [1,2,3,4,5,0]]
+        sage: [e(a) for e in permuted_embs] # natural map is not first
+        [a^2, a^3, a^4, a^5, -a^5 - a^4 - a^3 - a^2 - a - 1, a]
+        sage: from sage.rings.number_field.number_field import put_natural_embedding_first
+        sage: put_natural_embedding_first(permuted_embs)
+        sage: [e(a) for e in permuted_embs] # now natural map is first
+        [a, a^3, a^4, a^5, -a^5 - a^4 - a^3 - a^2 - a - 1, a^2]
+    """
     for i in range(len(v)):
         phi = v[i]
         a = str(list(phi.domain().gens()))

@@ -1,5 +1,5 @@
 """
-Module for partition backtrack functions for binary linear codes.
+Partition backtrack functions for binary codes
 
 DOCTEST:
     sage: import sage.groups.perm_gps.partn_ref.refinement_binary
@@ -23,6 +23,7 @@ REFERENCE:
 #*****************************************************************************
 
 include '../../../misc/bitset.pxi'
+from sage.matrix.matrix import is_Matrix
 
 cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 
@@ -48,7 +49,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
             if self.basis is not NULL: sage_free(self.basis)
             if self.scratch_bitsets is not NULL: sage_free(self.scratch_bitsets)
             if self.alpha_is_wd is not NULL: sage_free(self.alpha_is_wd)
-            if self.word_ps is not NULL: sage_free(self.word_ps)
+            if self.word_ps is not NULL: PS_dealloc(self.word_ps)
             if self.alpha is not NULL: sage_free(self.alpha)
             if self.scratch is not NULL: sage_free(self.scratch)
             raise MemoryError
@@ -323,10 +324,16 @@ cdef int ith_word_linear(BinaryCodeStruct self, int i, bitset_s *word):
 
 cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
 
-    def __new__(self, matrix):
+    def __new__(self, arg):
         cdef int i,j
-        self.degree = matrix.ncols()
-        self.nwords = matrix.nrows()
+        if is_Matrix(arg):
+            self.degree = arg.ncols()
+            self.nwords = arg.nrows()
+        elif isinstance(arg, tuple):
+            assert len(arg) == 2
+            self.degree, self.nwords = arg
+        else:
+            raise NotImplementedError
 
         self.words = <bitset_s *> sage_malloc(self.nwords * sizeof(bitset_s))
         self.scratch_bitsets = <bitset_s *> sage_malloc((4*self.nwords+1) * sizeof(bitset_s))
@@ -340,7 +347,7 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
             if self.words is not NULL: sage_free(self.words)
             if self.scratch_bitsets is not NULL: sage_free(self.scratch_bitsets)
             if self.alpha_is_wd is not NULL: sage_free(self.alpha_is_wd)
-            if self.word_ps is not NULL: sage_free(self.word_ps)
+            if self.word_ps is not NULL: PS_dealloc(self.word_ps)
             if self.alpha is not NULL: sage_free(self.alpha)
             if self.scratch is not NULL: sage_free(self.scratch)
             raise MemoryError
@@ -389,8 +396,9 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
             for j from 0 <= j < self.nwords:
                 bitset_zero(&self.words[j])
 
-        for i,j in matrix.nonzero_positions():
-            bitset_set(&self.words[i], j)
+        if is_Matrix(arg):
+            for i,j in arg.nonzero_positions():
+                bitset_set(&self.words[i], j)
 
         self.output = NULL
         self.ith_word = &ith_word_nonlinear
@@ -565,8 +573,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, object S, int *cells_to_re
     word_ps.depth = col_ps.depth
     PS_clear(word_ps)
     bitset_zero(ctrb_is_wd)
-    for i from 0 <= i < ctrb_len:
-        ctrb[i] = cells_to_refine_by[i]
+    memcpy(ctrb, cells_to_refine_by, ctrb_len * sizeof(int))
     if BCS.first_time:
         BCS.first_time = 0
         ctrb[ctrb_len] = 0

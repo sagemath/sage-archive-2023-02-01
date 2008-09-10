@@ -1,6 +1,5 @@
 r"""
-Partition refinement algorithms for computing automorphism groups and canonical
-labels of various objects.
+Automorphism groups and canonical labels
 
 This module implements a general algorithm for computing automorphism groups and
 canonical labels of objects. The class of objects in question must be some kind

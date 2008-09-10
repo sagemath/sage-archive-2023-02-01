@@ -1,5 +1,5 @@
 """
-Module for graph-theoretic partition backtrack functions.
+Graph-theoretic partition backtrack functions
 
 DOCTEST:
     sage: import sage.groups.perm_gps.partn_ref.refinement_graphs

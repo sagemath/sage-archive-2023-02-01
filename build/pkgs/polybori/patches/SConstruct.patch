@@ -1,11 +1,11 @@
---- SConstruct.orig	2008-09-06 17:09:02.000000000 -0700
-+++ SConstruct	2008-09-06 17:11:38.000000000 -0700
+--- SConstruct.orig	2008-09-09 19:58:41.000000000 -0700
++++ SConstruct	2008-09-09 20:01:01.000000000 -0700
 @@ -118,7 +118,12 @@
  opts.Add('CXXFLAGS', "C++ compiler flags",
           "-std=c++98 -ftemplate-depth-100",
           converter = Split)
 -opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
-+#The following linker flags causes the build to fail on OSX 10.4. but works on 10.5
++#The following linker flags causes the build to fail on OSX 10.4, but works on 10.5
 +# opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
 +# Instead we add "-m64" in case we build on multiarch in  64 bit mode (OSX now, Solaris later)
 +if os.environ['SAGE64'] == "yes":
@@ -14,3 +14,17 @@
  opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
  
  opts.Add('PREFIX', 'installation prefix directory', '/usr/local')
+@@ -424,8 +429,11 @@
+ slib = env.SharedLibrary
+ if env['SHLIBVERSIONING']:
+     slib = VersionatedSharedLibrary
+-#if env['PLATFORM']=="darwin":
+-#    slib=env.LoadableModule
++# since "slib = VersionatedSharedLibrary" is broken on OSX 10.4 we use the 
++# following. We are currently not using shared libraries anyway due to
++# bugs in the deallocation of the various PolyBoRi libraries
++if env['PLATFORM']=="darwin":
++    slib=env.LoadableModule
+ 
+ 
+ libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))

@@ -2961,7 +2961,7 @@ class NumberField_generic(number_field_base.NumberField):
             self.__regulator = float(s) # sage.rings.real_mpfr.create_RealNumber(s)
         return self.__regulator
 
-    def residue_field(self, prime, names = None, check = False):
+    def residue_field(self, prime, names = None, check = True):
         """
         Return the residue field of this number field at a given prime, ie $O_K / p O_K$.
 
@@ -2998,8 +2998,8 @@ class NumberField_generic(number_field_base.NumberField):
         from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
         if not is_NumberFieldIdeal(prime) or prime.number_field() is not self:
             raise ValueError, "prime must be a prime ideal of self"
-        import sage.rings.residue_field
-        return sage.rings.residue_field.ResidueField(prime, names = names)
+        from sage.rings.residue_field import ResidueField
+        return ResidueField(prime, names = names, check = check)
 
     def signature(self):
         """

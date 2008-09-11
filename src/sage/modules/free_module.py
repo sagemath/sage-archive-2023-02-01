@@ -675,7 +675,7 @@ class FreeModule_generic(module.Module):
                 else:
                     return x
             x = x.list()
-        if check:
+        if check and self.base_ring().is_exact():
             if isinstance(self, FreeModule_ambient):
                 return self._element_class(self, x, coerce, copy)
             try:

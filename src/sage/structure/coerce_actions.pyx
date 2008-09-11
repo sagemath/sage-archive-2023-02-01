@@ -84,7 +84,7 @@ cdef class ModuleAction(Action):
                 self.extended_base = pushout(G, S)
                 # make sure the pushout actually gave correct a base extension of S
                 if self.extended_base.base() != pushout(G, S.base()):
-                    raise TypeError, "Actor must be coercable into base."
+                    raise TypeError, "Actor must be coercible into base."
                 else:
                     self.connecting = self.extended_base.base().coerce_map_from(G)
                     if self.connecting is None:
@@ -102,7 +102,7 @@ cdef class ModuleAction(Action):
         # At this point, we can assert it is safe to call _Xmul_c
         the_ring = G if self.connecting is None else self.connecting.codomain()
         the_set = S if self.extended_base is None else self.extended_base
-        assert the_ring is the_set.base(), "BUG in coersion model"
+        assert the_ring is the_set.base(), "BUG in coercion model"
 
         cdef RingElement g = G.an_element()
         cdef ModuleElement a = S.an_element()

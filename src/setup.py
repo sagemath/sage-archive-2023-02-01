@@ -341,6 +341,11 @@ matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
                                   ['sage/matrix/matrix_rational_dense.pyx'],
                                  libraries = ['gmp'])
 
+matrix_cyclo_dense = Extension('sage.matrix.matrix_cyclo_dense',
+                               ['sage/matrix/matrix_cyclo_dense.pyx'],
+                               language = "c++",
+                               libraries=['ntl', 'gmp'])
+
 matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
                                   ['sage/matrix/matrix_integer_sparse.pyx'],
                                   libraries = ['gmp'])
@@ -369,10 +374,6 @@ matrix_complex_double_dense=Extension('sage.matrix.matrix_complex_double_dense',
 
 solve = Extension('sage.matrix.solve',['sage/matrix/solve.pyx'],libraries = ['gsl', BLAS, BLAS2],define_macros =
    [('GSL_DISABLE_DEPRECATED','1')])
-
-matrix_cyclo_dense = Extension('sage.matrix.matrix_cyclo_dense',
-                               ['sage/matrix/matrix_cyclo_dense.pyx'],
-                               language = "c++")
 
 matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
                                    ['sage/matrix/matrix_rational_sparse.pyx'],

@@ -22,20 +22,12 @@ is an abstract base class.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-import math
-import random
-import weakref
-
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
-import sage.modules.free_module_morphism as free_module_morphism
 from   sage.modules.free_module_element  import is_FreeModuleElement
 import sage.misc.misc as misc
 import sage.modular.dims as dims
 import sage.modular.hecke.all as hecke
-import sage.modular.modsym.element
-import sage.structure.parent_gens as gens
 import sage.rings.arith as arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
 from   sage.structure.all import Sequence, SageObject
@@ -117,6 +109,14 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         return d
 
     def _hecke_operator_class(self):
+        """
+        Return the class to be used for instantiating Hecke operators
+        acting on self.
+
+        EXAMPLES:
+            sage: ModularSymbols(81,2)._hecke_operator_class()
+            <class 'sage.modular.modsym.hecke_operator.HeckeOperator'>
+        """
         return hecke_operator.HeckeOperator
 
     def compact_system_of_eigenvalues(self, v, names='alpha', nz=None):
@@ -853,7 +853,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         if not self.is_cuspidal():
             raise ValueError, "self must be cuspidal"
         K = self.base_ring()
-        if not (K == QQ or is_NumberField(K)):
+        if not is_NumberField(K):
             raise TypeError, "self must be over QQ or a number field."
         n = K.degree()
         if n == 1:

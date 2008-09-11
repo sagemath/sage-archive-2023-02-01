@@ -36,6 +36,8 @@ from apply cimport Apply
 cdef Apply PolyApply= Apply()
 
 from sage.rings.integer cimport Integer
+from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
+from sage.matrix.matrix_cyclo_dense cimport Matrix_cyclo_dense
 
 ctypedef long long llong
 
@@ -47,69 +49,6 @@ cdef int llong_prod_mod(int a, int b, int N):
     if c < 0:
         c = c + N
     return c
-
-def HeilbronnCremonaList(int p):
-    """
-    The Heilbronn matrices of determinant p, as defined by Cremona.
-    """
-    cdef int r, x1, x2, y1, y2, a, b, c, x3, y3, q
-    cdef object ans
-
-    if p == 2:
-        return [[1,0,0,2], [2,0,0,1], [2,1,0,1], [1,0,1,2]]
-
-    #if cremona.has_key(p):
-    #    return cremona[p]
-    assert sage.rings.arith.is_prime(p), "Input must be a pseudoprime."
-
-    ans = [[1,0,0,p]]
-    # WARNING: In C (which is what we're writing in below!), -p/2 means
-    # "round toward 0", but in Python it means "round down" (right now),
-    # and in Python 3.0 it'll mean "make a float".
-    _sig_on
-    for r from -p/2 <= r < p/2+1:
-        x1=p; x2=-r; y1=0; y2=1; a=-p; b=r; c=0; x3=0; y3=0; q=0
-        ans.append([x1,x2,y1,y2])
-        while b:
-            q = <int>roundf(<float>a / <float> b)
-            c = a - b*q
-            a = -b
-            b = c
-            x3 = q*x2 - x1
-            x1 = x2; x2 = x3; y3 = q*y2 - y1; y1 = y2; y2 = y3
-            ans.append([x1,x2, y1,y2])
-    _sig_off
-    return ans
-
-def HeilbronnMerelList(int n):
-    """
-    Set of Heilbronn matrices of determinant n, as defined by Merel.
-    """
-    cdef int a, q, d, b, c, bc
-    cdef object H
-
-    H = []
-    _sig_on
-    for a from 1 <= a <= n:
-        ## We have ad-bc=n so c=0 and ad=n, or b=(ad-n)/c
-        ## Must have ad - n >= 0, so d must be >= Ceiling(n/a).
-        q = n/a
-        if q*a == n:
-          d = q
-          for b from 0 <= b < a:
-              H.append([a,b,0,d])
-          for c from 1 <= c < d:
-              H.append([a,0,c,d])
-        for d from q+1 <= d <= n:
-            bc = a*d-n
-            ## Divisor c of bc must satisfy Floor(bc/c) lt a and c lt d.
-            ## c ge (bc div a + 1)  <=>  Floor(bc/c) lt a  (for integers)
-            ## c le d - 1           <=>  c lt d
-            for c from bc/a + 1 <= c < d:
-                if bc % c == 0:
-                    H.append([a,bc/c,c,d])
-    _sig_off
-    return H
 
 cdef struct list:
     int *v
@@ -159,21 +98,56 @@ cdef class Heilbronn:
         list_clear(self.list)
 
     def _initialize_list(self):
+        """
+        Initialize the list of matrices corresponding to self. (This
+        function is automatically called during initialization.)
+
+        NOTE: This function must be overridden by all derived classes!
+
+        EXAMPLES:
+            sage: H = sage.modular.modsym.heilbronn.Heilbronn()
+            sage: H._initialize_list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def __getitem__(self, int n):
+        """
+        Return the nth matrix in self.
+
+        EXAMPLES:
+            sage: H = HeilbronnCremona(11)
+            sage: H[17]
+            [-1, 0, 1, -11]
+            sage: H[98234]
+            Traceback (most recent call last):
+            ...
+            IndexError
+        """
         if n < 0 or n >= self.length:
             raise IndexError
         return [self.list.v[4*n], self.list.v[4*n+1], \
                 self.list.v[4*n+2], self.list.v[4*n+3]]
 
     def __len__(self):
+        """
+        Return the number of matrices in self.
+
+        EXAMPLES:
+            sage: HeilbronnCremona(2).__len__()
+            4
+        """
         return self.length
 
     def to_list(self):
         """
+        Return the list of Heilbronn matrices corresponding to self.
+        Each matrix is given as a list of four ints.
+
         EXAMPLES:
-            sage: H = sage.modular.modsym.heilbronn.HeilbronnCremona(2); H
+            sage: H = HeilbronnCremona(2); H
             The Cremona-Heilbronn matrices of determinant 2
             sage: H.to_list()
             [[1, 0, 0, 2], [2, 0, 0, 1], [2, 1, 0, 1], [1, 0, 1, 2]]
@@ -235,11 +209,6 @@ cdef class Heilbronn:
 
     def apply(self, int u, int v, int N):
         """
-        INPUT:
-            u, v, N -- integers
-        OUTPUT:
-            list
-
         Return a list of pairs ((c,d),m), which is obtained as follows:
           1) Compute the images (a,b) of the vector (u,v) (mod N) acted on by
              each of the HeilbronnCremona matrices in self.
@@ -248,6 +217,11 @@ cdef class Heilbronn:
           4) Create the list ((c,d),m), where m is the number of times
              that (c,d) appears in the list created in steps 1--3 above.
         Note that the pairs ((c,d),m) are sorted lexicographically by (c,d).
+
+        INPUT:
+            u, v, N -- integers
+        OUTPUT:
+            list
 
         EXAMPLES:
             sage: H = sage.modular.modsym.heilbronn.HeilbronnCremona(2); H
@@ -302,15 +276,63 @@ cdef class HeilbronnCremona(Heilbronn):
     cdef public int p
 
     def __init__(self, int p):
+        """
+        Create the list of Heilbronn-Cremona matrices of
+        determinant p.
+
+        EXAMPLES:
+            sage: H = HeilbronnCremona(3) ; H
+            The Cremona-Heilbronn matrices of determinant 3
+            sage: H.to_list()
+            [[1, 0, 0, 3],
+            [3, 1, 0, 1],
+            [1, 0, 1, 3],
+            [3, 0, 0, 1],
+            [3, -1, 0, 1],
+            [-1, 0, 1, -3]]
+        """
         if p <= 1 or not sage.rings.arith.is_prime(p):
             raise ValueError, "p must be >= 2 and prime"
         self.p = p
         self._initialize_list()
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: HeilbronnCremona(691).__repr__()
+            'The Cremona-Heilbronn matrices of determinant 691'
+        """
         return "The Cremona-Heilbronn matrices of determinant %s"%self.p
 
     def _initialize_list(self):
+        """
+        Initialize the list of matrices corresponding to self. (This
+        function is automatically called during initialization.)
+
+        EXAMPLES:
+            sage: H = HeilbronnCremona.__new__(HeilbronnCremona)
+            sage: H.p = 5
+            sage: H
+            The Cremona-Heilbronn matrices of determinant 5
+            sage: H.to_list()
+            []
+            sage: H._initialize_list()
+            sage: H.to_list()
+            [[1, 0, 0, 5],
+            [5, 2, 0, 1],
+            [2, 1, 1, 3],
+            [1, 0, 3, 5],
+            [5, 1, 0, 1],
+            [1, 0, 1, 5],
+            [5, 0, 0, 1],
+            [5, -1, 0, 1],
+            [-1, 0, 1, -5],
+            [5, -2, 0, 1],
+            [-2, 1, 1, -3],
+            [1, 0, -3, 5]]
+        """
         cdef int r, x1, x2, y1, y2, a, b, c, x3, y3, q, n, p
         cdef list *L
         list_init(&self.list)
@@ -346,11 +368,6 @@ cdef class HeilbronnCremona(Heilbronn):
         self.length = L.i/4
         _sig_off
 
-    def __getitem__(self, int n):
-        if n < 0 or n >= self.length:
-            raise IndexError
-        return [self.list.v[4*n], self.list.v[4*n+1], \
-                self.list.v[4*n+2], self.list.v[4*n+3]]
 
 
 
@@ -358,15 +375,67 @@ cdef class HeilbronnMerel(Heilbronn):
     cdef public int n
 
     def __init__(self, int n):
+        r"""
+        Initialize the list of Merel-Heilbronn matrices of determinant
+        $n$.
+
+        EXAMPLES:
+            sage: H = HeilbronnMerel(3) ; H
+            The Merel-Heilbronn matrices of determinant 3
+            sage: H.to_list()
+            [[1, 0, 0, 3],
+            [1, 0, 1, 3],
+            [1, 0, 2, 3],
+            [2, 1, 1, 2],
+            [3, 0, 0, 1],
+            [3, 1, 0, 1],
+            [3, 2, 0, 1]]
+        """
         if n <= 0:
             raise ValueError, "n (=%s) must be >= 1"%n
         self.n = n
         self._initialize_list()
 
     def __repr__(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: HeilbronnMerel(8).__repr__()
+            'The Merel-Heilbronn matrices of determinant 8'
+        """
         return "The Merel-Heilbronn matrices of determinant %s"%self.n
 
     def _initialize_list(self):
+        """
+        Initialize the list of matrices corresponding to self. (This
+        function is automatically called during initialization.)
+
+        EXAMPLES:
+            sage: H = HeilbronnMerel.__new__(HeilbronnMerel)
+            sage: H.n = 5
+            sage: H
+            The Merel-Heilbronn matrices of determinant 5
+            sage: H.to_list()
+            []
+            sage: H._initialize_list()
+            sage: H.to_list()
+            [[1, 0, 0, 5],
+            [1, 0, 1, 5],
+            [1, 0, 2, 5],
+            [1, 0, 3, 5],
+            [1, 0, 4, 5],
+            [2, 1, 1, 3],
+            [2, 1, 3, 4],
+            [3, 1, 1, 2],
+            [3, 2, 2, 3],
+            [4, 3, 1, 2],
+            [5, 0, 0, 1],
+            [5, 1, 0, 1],
+            [5, 2, 0, 1],
+            [5, 3, 0, 1],
+            [5, 4, 0, 1]]
+        """
         cdef int a, q, d, b, c, bc, n
         cdef list *L
         list_init(&self.list)
@@ -402,7 +471,6 @@ cdef class HeilbronnMerel(Heilbronn):
 #   GAMMA0 trivial character weight 2 case
 ############################################################################
 
-from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 
 def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
     """
@@ -507,7 +575,6 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
 #   Nontrivial character but weight 2.
 ############################################################################
 
-from sage.matrix.matrix_cyclo_dense cimport Matrix_cyclo_dense
 
 def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R):
     """
@@ -627,6 +694,20 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
         indices and x the Manin symbol (u,v), expressed in terms of
         the basis.
 
+    EXAMPLES:
+        sage: chi = DirichletGroup(29,QQ).0
+        sage: M = ModularSymbols(chi)
+        sage: R = M.manin_gens_to_basis()
+        sage: sage.modular.modsym.heilbronn.hecke_images_quad_character_weight2(2,1,29,[1,3,4],chi,R)
+        [ 0  0  0  0  0 -1]
+        [ 0  1  0  1  1  1]
+        [ 0 -2  0  2 -2 -1]
+        sage: x = M((2,1)) ; x.element()
+        (0, 0, 0, 0, 0, -1)
+        sage: M.T(3)(x).element()
+        (0, 1, 0, 1, 1, 1)
+        sage: M.T(4)(x).element()
+        (0, -2, 0, 2, -2, -1)
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
     from sage.rings.all import QQ
@@ -702,6 +783,20 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
         a dense matrix with rational entries whose columns are
         the images T_n(x) for n in indices and x the Manin
         symbol [X^i*Y^(k-2-i), (u,v)], expressed in terms of the basis.
+
+    EXAMPLES:
+        sage: M = ModularSymbols(15,6,sign=-1)
+        sage: R = M.manin_gens_to_basis()
+        sage: sage.modular.modsym.heilbronn.hecke_images_gamma0_weight_k(4,1,3,15,6,[1,11,12], R)
+        [       0        0      1/8     -1/8        0        0        0        0]
+        [-4435/22 -1483/22     -112 -4459/22  2151/22 -5140/11  4955/22  2340/11]
+        [ 1253/22  1981/22       -2  3177/22 -1867/22  6560/11 -7549/22  -612/11]
+        sage: x = M((3,4,1)) ; x.element()
+        (0, 0, 1/8, -1/8, 0, 0, 0, 0)
+        sage: M.T(11)(x).element()
+        (-4435/22, -1483/22, -112, -4459/22, 2151/22, -5140/11, 4955/22, 2340/11)
+        sage: M.T(12)(x).element()
+        (1253/22, 1981/22, -2, 3177/22, -1867/22, 6560/11, -7549/22, -612/11)
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
 

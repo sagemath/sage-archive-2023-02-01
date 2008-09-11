@@ -7,5 +7,5 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
     # Degree of base cyclotomic field
     cdef int _degree
-
+    cdef int _n
 

@@ -19,27 +19,18 @@ Manin symbols
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-from sage.misc.search import search
-
 import sage.matrix.all
-import sage.modular.congroup as congroup
 import sage.modular.cusps as cusps
 import sage.modular.modsym.p1list as p1list
 import sage.modular.modsym.g1list as g1list
 import sage.modular.modsym.ghlist as ghlist
 import sage.modular.modsym.modular_symbols
 import sage.rings.arith as arith
-import sage.rings.polynomial.polynomial_ring as polynomial_ring
 import sage.rings.all as rings
 
 from sage.structure.sage_object import SageObject
 
 from apply import apply_to_monomial
-
-R = rings.QQ['X']
-
-X = R([0,1])
 
 def is_ManinSymbol(x):
     return isinstance(x, ManinSymbol)

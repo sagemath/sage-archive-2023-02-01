@@ -1893,6 +1893,23 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             v -- a list of positive integer
         OUTPUT:
             matrix -- whose rows are the Hecke images
+
+        EXAMPLES:
+            sage: M = ModularSymbols(46,2,-1)
+            sage: M._hecke_images(1,[3,4,5,6])
+            [ 0  1 -2  2  0]
+            [ 2 -3  0  0  1]
+            [ 0 -2  2 -2  0]
+            [-5  3 -1  1  0]
+            sage: v = M.basis()[1]
+            sage: M.T(3)(v).element()
+            (0, 1, -2, 2, 0)
+            sage: M.T(4)(v).element()
+            (2, -3, 0, 0, 1)
+            sage: M.T(5)(v).element()
+            (0, -2, 2, -2, 0)
+            sage: M.T(6)(v).element()
+            (-5, 3, -1, 1, 0)
         """
         # Find basis vector for ambient space such that it is not in
         # the kernel of the dual space corresponding to self.

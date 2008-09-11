@@ -36,9 +36,10 @@ include "../ext/cdefs.pxi"
 include "../libs/ntl/decl.pxi"
 
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
-from matrix_space import MatrixSpace
 from constructor import matrix
-from sage.rings.rational_field import QQ, ZZ
+from matrix_space import MatrixSpace
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
 from sage.rings.arith import previous_prime, binomial
 from matrix cimport Matrix
 import matrix_dense
@@ -64,6 +65,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 echelon_primes_increment = 15
 echelon_verbose_level = 1
 
+from sage.rings.number_field.number_field import NumberField_quadratic
 from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
 
@@ -100,10 +102,11 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A[0,0]
             Traceback (most recent call last):
             ...
-            AttributeError: 'NoneType' object has no attribute 'column'
+            ValueError: matrix entries not yet initialized
         """
         Matrix.__init__(self, parent)
         self._degree = self._base_ring.degree()
+        self._n = int(self._base_ring._n())
 
     # This is not necessary, since we do not (yet) explicitly allocate
     # any memory.
@@ -128,6 +131,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A
             [                        1 -a^39 + a^29 - a^19 + a^9                    -a + 1]
             [                        a                    -2/3*a                      a^19]
+            sage: A == loads(dumps(A))
+            True
 
         TESTS:
         We call __init__ explicitly below.
@@ -153,6 +158,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             z = K(entries)
             entries = 0
 
+        self._n = int(self._base_ring._n())
         self._matrix = Matrix_rational_dense(MatrixSpace(QQ, self._nrows*self._ncols, self._degree),
                                             entries, copy=False, coerce=False).transpose()
         # This could also be made much faster.
@@ -161,27 +167,102 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 self.set_unsafe(i,i,z)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-        cdef Py_ssize_t k, c
+        """
+        Set the ij-th entry of self.
 
-        if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
-            # USE SLOW OLD GENERIC VERSION
-            vl = value.list()
-            c = i * self._ncols + j
-            for k from 0 <= k < self._degree:
-                self._matrix.set_unsafe(k, c, vl[k])
-            return
+        WARNING: This function does no bounds checking whatsoever, as
+        the name suggests. It also assumes certain facts about the
+        internal representation of cyclotomic fields. This is intended
+        for internal use only.
 
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(11) ; M = Matrix(K,2,range(4))
+            sage: M[0,1] = z ; M
+            [0 z]
+            [2 3]
+
+            sage: K.<z> = CyclotomicField(3) ; M = Matrix(K,2,range(4))
+            sage: M[1,1] = z+1 ; M
+            [    0     1]
+            [    2 z + 1]
+
+        TESTS:
+        Since separate code exists for each quadratic field, we need
+        doctests for each.
+            sage: K.<z> = CyclotomicField(4) ; M = Matrix(K,2,range(4))
+            sage: M[1,1] = z+1 ; M
+            [    0     1]
+            [    2 z + 1]
+            sage: K.<z> = CyclotomicField(6) ; M = Matrix(K,2,range(4))
+            sage: M[1,1] = z+1 ; M
+            [    0     1]
+            [    2 z + 1]
+        """
         # NEW FAST VERSION -- makes assumptions about how the
         # cyclotomic field is implemented.
+        cdef Py_ssize_t k, c
+        cdef NumberFieldElement v
+        cdef mpz_t numer, denom
 
         # The i,j entry is the (i * self._ncols + j)'th column.
-        cdef NumberFieldElement v = value
+        c = i * self._ncols + j
 
-        cdef mpz_t numer, denom
+        if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
+            # Must be coded differently, since elements of
+            # quadratic number fields are stored differently.
+            if self._n == 4:
+                mpz_set(mpq_numref(self._matrix._matrix[0][c]),
+                        (<NumberFieldElement_quadratic>value).a)
+                mpz_set(mpq_denref(self._matrix._matrix[0][c]),
+                        (<NumberFieldElement_quadratic>value).denom)
+                mpq_canonicalize(self._matrix._matrix[0][c])
+
+                mpz_set(mpq_numref(self._matrix._matrix[1][c]),
+                        (<NumberFieldElement_quadratic>value).b)
+                mpz_set(mpq_denref(self._matrix._matrix[1][c]),
+                        (<NumberFieldElement_quadratic>value).denom)
+                mpq_canonicalize(self._matrix._matrix[1][c])
+            elif self._n == 3:
+                mpz_set(mpq_numref(self._matrix._matrix[0][c]),
+                        (<NumberFieldElement_quadratic>value).a)
+                mpz_add(mpq_numref(self._matrix._matrix[0][c]),
+                        mpq_numref(self._matrix._matrix[0][c]),
+                        (<NumberFieldElement_quadratic>value).b)
+                mpz_set(mpq_denref(self._matrix._matrix[0][c]),
+                        (<NumberFieldElement_quadratic>value).denom)
+                mpq_canonicalize(self._matrix._matrix[0][c])
+
+                mpz_set(mpq_numref(self._matrix._matrix[1][c]),
+                        (<NumberFieldElement_quadratic>value).b)
+                mpz_mul_si(mpq_numref(self._matrix._matrix[1][c]),
+                           mpq_numref(self._matrix._matrix[1][c]), 2)
+                mpz_set(mpq_denref(self._matrix._matrix[1][c]),
+                        (<NumberFieldElement_quadratic>value).denom)
+                mpq_canonicalize(self._matrix._matrix[1][c])
+            else: # self._n is 6
+                mpz_set(mpq_numref(self._matrix._matrix[0][c]),
+                        (<NumberFieldElement_quadratic>value).a)
+                mpz_sub(mpq_numref(self._matrix._matrix[0][c]),
+                        mpq_numref(self._matrix._matrix[0][c]),
+                        (<NumberFieldElement_quadratic>value).b)
+                mpz_set(mpq_denref(self._matrix._matrix[0][c]),
+                        (<NumberFieldElement_quadratic>value).denom)
+                mpq_canonicalize(self._matrix._matrix[0][c])
+
+                mpz_set(mpq_numref(self._matrix._matrix[1][c]),
+                        (<NumberFieldElement_quadratic>value).b)
+                mpz_mul_si(mpq_numref(self._matrix._matrix[1][c]),
+                           mpq_numref(self._matrix._matrix[1][c]), 2)
+                mpz_set(mpq_denref(self._matrix._matrix[1][c]),
+                        (<NumberFieldElement_quadratic>value).denom)
+                mpq_canonicalize(self._matrix._matrix[1][c])
+            return
+
+        v = value
+
         mpz_init(numer)
         mpz_init(denom)
 
-        c = i * self._ncols + j
         v._ntl_denom_as_mpz(&denom)
         for k from 0 <= k < self._degree:
             v._ntl_coeff_as_mpz(&numer, k)
@@ -206,48 +287,93 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         This implicitly calls get_unsafe:
             sage: A[0,0]
             9939208341
+
+        TESTS:
+        Since separate code exists for each quadratic field, we need
+        doctests for each.
+            sage: K.<z> = CyclotomicField(3) ; M = Matrix(K,2,range(4))
+            sage: M[1,1] = z+1 ; M[1,1]
+            z + 1
+            sage: (M[1,1] - M[0,1])**3
+            1
+            sage: K.<z> = CyclotomicField(4) ; M = Matrix(K,2,range(4))
+            sage: M[1,1] = z+1 ; M[1,1]
+            z + 1
+            sage: (M[1,1] - M[0,1])**4
+            1
+            sage: K.<z> = CyclotomicField(6) ; M = Matrix(K,2,range(4))
+            sage: M[1,1] = z+1 ; M[1,1]
+            z + 1
+            sage: (M[1,1] - M[0,1])**6
+            1
         """
-        # REALLY SLOW
-        return self.base_ring()(self._matrix.column(i*self._ncols + j).list())
+        cdef Py_ssize_t k, c
+        cdef NumberFieldElement x
+        cdef NumberFieldElement_quadratic xq
+        cdef mpz_t denom, quo, tmp
+        cdef ZZ_c coeff
 
-# NEW FAST VERSION -- seg faults.
-# The following does get_unsafe maybe 25 times faster or more, but segfaults.
-# I don't need it now, but if you want to write this right, you might start
-# with this.
-##     if PY_TYPE_CHECK_EXACT(value, NumberFieldElement_quadratic):
-##         cdef Py_ssize_t k, c
-##         cdef NumberFieldElement x = self._base_ring(0)
-##         cdef mpz_t denom, quo, tmp
-##         cdef ZZ_c coeff
-##         ZZ_construct(&coeff)
+        if self._matrix is None:
+            raise ValueError, "matrix entries not yet initialized"
 
-##         mpz_init_set_ui(denom, 1)
-##         mpz_init(tmp)
+        c = i * self._ncols + j
+        mpz_init(tmp)
 
-##         c = i * self._ncols + j
+        if self._degree == 2:
+            xq = self._base_ring(0)
+            if self._n == 4:
+                mpz_mul(xq.a, mpq_numref(self._matrix._matrix[0][c]),
+                        mpq_denref(self._matrix._matrix[1][c]))
+                mpz_mul(xq.b, mpq_numref(self._matrix._matrix[1][c]),
+                        mpq_denref(self._matrix._matrix[0][c]))
+                mpz_mul(xq.denom, mpq_denref(self._matrix._matrix[0][c]),
+                        mpq_denref(self._matrix._matrix[1][c]))
+            else: # n is 3 or 6
+                mpz_mul(xq.a, mpq_numref(self._matrix._matrix[0][c]),
+                        mpq_denref(self._matrix._matrix[1][c]))
+                mpz_mul_si(xq.a, xq.a, 2)
+                mpz_mul(tmp, mpq_denref(self._matrix._matrix[0][c]),
+                        mpq_numref(self._matrix._matrix[1][c]))
+                if self._n == 3:
+                    mpz_sub(xq.a, xq.a, tmp)
+                else: # n == 6
+                    mpz_add(xq.a, xq.a, tmp)
 
-##         # Get the least common multiple of the denominators in
-##         # this column.
-##         for k from 0 <= k < self._degree:
-##             mpz_lcm(denom, denom, mpq_denref(self._matrix._matrix[k][c]))
+                mpz_mul(xq.b, mpq_denref(self._matrix._matrix[0][c]),
+                        mpq_numref(self._matrix._matrix[1][c]))
 
-##         for k from 0 <= k < self._degree:
-##             # set each entry of x to a*denom/b where a/b is the
-##             # k,c entry of _matrix.
-##             mpz_mul(tmp, mpq_numref(self._matrix._matrix[k][c]), denom)
-##             mpz_divexact(tmp, tmp, mpq_denref(self._matrix._matrix[k][c]))
-##             # Now set k-th entry of x's numerator to tmp
-##             mpz_to_ZZ(&coeff, &tmp)
-##             ZZX_SetCoeff(x.__numerator, k, coeff)
-##         # Set the denominator of x to denom.
-##         mpz_to_ZZ(&x.__denominator, &denom)
-##         mpz_clear(denom)
-##         mpz_clear(tmp)
-##         ZZ_destruct(&coeff)
+                mpz_mul(xq.denom, mpq_denref(self._matrix._matrix[0][c]),
+                        mpq_denref(self._matrix._matrix[1][c]))
+                mpz_mul_si(xq.denom, xq.denom, 2)
 
-##         return x
+            xq._reduce_c_()
+            return xq
 
+        x = self._base_ring(0)
+        ZZ_construct(&coeff)
+        mpz_init_set_ui(denom, 1)
 
+        # Get the least common multiple of the denominators in
+        # this column.
+        for k from 0 <= k < self._degree:
+            mpz_lcm(denom, denom, mpq_denref(self._matrix._matrix[k][c]))
+
+        for k from 0 <= k < self._degree:
+            # set each entry of x to a*denom/b where a/b is the
+            # k,c entry of _matrix.
+            mpz_mul(tmp, mpq_numref(self._matrix._matrix[k][c]), denom)
+            mpz_divexact(tmp, tmp, mpq_denref(self._matrix._matrix[k][c]))
+            # Now set k-th entry of x's numerator to tmp
+            mpz_to_ZZ(&coeff, &tmp)
+            ZZX_SetCoeff(x.__numerator, k, coeff)
+
+        # Set the denominator of x to denom.
+        mpz_to_ZZ(&x.__denominator, &denom)
+        mpz_clear(denom)
+        mpz_clear(tmp)
+        ZZ_destruct(&coeff)
+
+        return x
 
     def _pickle(self):
         """
@@ -1407,8 +1533,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 raise ValueError, "echelon form mod %s not defined"%p
 
             ech_ls.append(ech)
-
-
 
         # Now, just lift back to ZZ and return it.
 

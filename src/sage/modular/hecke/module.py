@@ -130,6 +130,16 @@ class HeckeModule_generic(sage.modules.module.Module):
         raise NotImplementedError
 
     def _hecke_operator_class(self):
+        """
+        Return the class to be used for instantiating Hecke operators
+        acting on self.
+
+        EXAMPLES:
+            sage: sage.modular.hecke.module.HeckeModule_generic(QQ,1)._hecke_operator_class()
+            <class 'sage.modular.hecke.hecke_operator.HeckeOperator'>
+            sage: ModularSymbols(1,12)._hecke_operator_class()
+            <class 'sage.modular.modsym.hecke_operator.HeckeOperator'>
+        """
         return hecke_operator.HeckeOperator
 
     def anemic_hecke_algebra(self):
@@ -143,7 +153,6 @@ class HeckeModule_generic(sage.modules.module.Module):
             False
             sage: A
             Anemic Hecke algebra acting on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
-
             sage: A.is_anemic()
             True
         """
@@ -322,8 +331,26 @@ class HeckeModule_free_module(HeckeModule_generic):
         """
         Return smallest integer i such that the i-th entries of the
         entries of a basis for the dual vector space are not all 0.
-        Then return the i-th basis vector for the ambient space of
-        modular symbols.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(31,2)
+            sage: M._eigen_nonzero()
+            0
+            sage: M.dual_free_module().basis()
+            [
+            (1, 0, 0, 0, 0),
+            (0, 1, 0, 0, 0),
+            (0, 0, 1, 0, 0),
+            (0, 0, 0, 1, 0),
+            (0, 0, 0, 0, 1)
+            ]
+            sage: M.cuspidal_submodule().minus_submodule()._eigen_nonzero()
+            1
+            sage: M.cuspidal_submodule().minus_submodule().dual_free_module().basis()
+            [
+            (0, 1, 0, 0, 0),
+            (0, 0, 1, 0, 0)
+            ]
         """
         try:
             return self.__eigen_nonzero

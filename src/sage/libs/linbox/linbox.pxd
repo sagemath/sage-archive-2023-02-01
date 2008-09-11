@@ -17,7 +17,7 @@ cdef class Linbox_modn_dense:
                                 size_t B_nr, size_t B_nc)
     cdef unsigned long rank(self) except -1
 
-    cdef mod_int det(self) except -1
+    cpdef mod_int det(self) except -1
 
 cdef class Linbox_modn_sparse:
     cdef c_vector_modint *rows

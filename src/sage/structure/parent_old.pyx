@@ -435,7 +435,7 @@ cdef class Parent(parent.Parent):
         check_old_coerce(self)
         return self._an_element_c_impl()
 
-    cpdef _an_element_c_impl(self):  # override this in SageX
+    cdef _an_element_c_impl(self):  # override this in SageX
         """
         Returns an element of self. Want it in sufficent generality
         that poorly-written functions won't work when they're not

@@ -642,8 +642,18 @@ class FreeModule_generic(module.Module):
         return C
 
     def __call__(self, x, coerce=True, copy=True, check=True):
-        """
-        Create an element of this free module.
+        r"""
+        Create an element of this free module from x.
+
+        The \code{coerce} and \code{copy} arguments are passed
+        on to the underlying element constructor. If \code{check}
+        is \code{True}, confirm that the element specified by x
+        does in fact lie in self.
+
+        NOTE: In the case of an inexact base ring (i.e. RDF), we don't
+        verify that the element is in the subspace, even when
+        \code{check=True}, to account for numerical instability
+        issues.
 
         EXAMPLE:
             sage: M = ZZ^4
@@ -665,6 +675,18 @@ class FreeModule_generic(module.Module):
             (0, 0, 0, 1)
             sage: N((0,0,0,1), check=False) in N
             True
+
+        Here is an example showing how the numerical instability causes
+        trouble:
+            sage: v = matrix(RDF, 3, range(9)).eigenspaces()[0][1].basis()[0]
+            sage: v.complex_vector()
+            (-0.440242867236, -0.567868371314, -0.695493875393)
+            sage: v.complex_vector().parent().echelonized_basis_matrix()[0] * v[0]
+            (-0.440242867236, -0.567868371314, -0.695493875393)
+            sage: v.complex_vector().parent().echelonized_basis_matrix()[0] * v[0] == v.complex_vector()
+            False
+            sage: v.complex_vector().parent().echelonized_basis_matrix()[0] * v[0] - v.complex_vector()
+            (0, -1.11022302463e-16, 0)
         """
         if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
             return self.zero_vector()

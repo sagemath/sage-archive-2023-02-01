@@ -13,6 +13,7 @@ AUTHOR:
                                        utility functions. Arrr!
                                      * Add [1,2,..,n] notation.
     -- Robert Bradshaw (2008-01-04): * Implicit multiplication (off by default)
+    -- Robert Bradshaw (2008-09-23): * Factor out constants.
 
 EXAMPLES:
 
@@ -178,6 +179,7 @@ import os, re
 import pdb
 
 implicit_mul_level = False
+numeric_literal_prefix = '_sage_const_'
 
 def implicit_multiplication(level=None):
     """
@@ -403,6 +405,81 @@ def parse_ellipsis(code, preparse_step=True):
                                                code[end_list:])
         ix = code.find('..')
     return code
+
+def extract_numeric_literals(code):
+    """
+    To eliminate the re-parsing and creation of numeric literals (e.g. during
+    every iteration of a loop) we wish to pull them out and assign them to
+    global variables.
+
+    This function takes a block of code and returns a new block of code
+    with literals replaced by variable names, as well as a dictionary of what
+    variables need to be created.
+
+    EXAMPLES:
+        sage: from sage.misc.preparser import extract_numeric_literals
+        sage: code, nums = extract_numeric_literals("1.2 + 5")
+        sage: print code
+        _sage_const_1p2  + _sage_const_5
+        sage: print nums
+        {'_sage_const_1p2': "RealNumber('1.2')", '_sage_const_5': 'Integer(5)'}
+
+        sage: extract_numeric_literals("[1, 1.1, 1e1, -1e-1, 1.]")[0]
+        '[_sage_const_1 , _sage_const_1p1 , _sage_const_1e1 , -_sage_const_1en1 , _sage_const_1p ]'
+
+        sage: extract_numeric_literals("[1.sqrt(), 1.2.sqrt(), 1r, 1.2r, R.1, (1..5)]")[0]
+        '[_sage_const_1 .sqrt(), _sage_const_1p2 .sqrt(), 1r, 1.2r, R.1, (_sage_const_1 .._sage_const_5 )]'
+    """
+    literals = {}
+    last = 0
+    new_code = []
+    dec_num = r"\b\d+\b"
+    hex_num = r"\b0x[0-9a-fA-F]\b"
+    # This is slightly annoying as floating point numbers may start
+    # with a decimal point, but if they do the \b will not match.
+    float_num = r"((\b\d+([.]\d*)?)|([.]\d+))([eE][-+]?\d+)?\b"
+    all_num = r"(%s)|(%s)|(%s)" % (float_num, dec_num, hex_num)
+    for m in re.finditer(all_num, code):
+        num, start, end = m.group(), m.start(), m.end()
+
+        # The Sage preparser does extra things with numbers, which we need to handle here.
+        if '.' in num:
+            if start > 0 and num[0] == '.':
+                if code[start-1] == '.':
+                    # handle Ellipsis
+                    start += 1
+                    num = num[1:]
+                elif re.match(r'[a-zA-Z\])]', code[start-1]):
+                    # handle R.0
+                    continue
+            elif end < len(code) and num[-1] == '.':
+                if re.match('[a-zA-Z]', code[end]):
+                    # handle 4.sqrt()
+                    end -= 1
+                    num = num[:-1]
+                elif re.match(r'\d', code[end]):
+                    # handle 4.0r
+                    continue
+        elif end < len(code) and code[end] == '.':
+            # \b does not match after the .
+            # two dots in a row would be an ellipsis
+            if end+1 == len(code) or code[end+1] != '.':
+                end += 1
+                num += '.'
+
+        if '.' in num or 'e' in num or 'E' in num:
+            num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
+            num_make = "RealNumber('%s')" % num
+        else:
+            num_name = numeric_literal_prefix + num
+            num_make = "Integer(%s)" % num
+        literals[num_name] = num_make
+        new_code.append(code[last:start])
+        new_code.append(num_name+' ')
+        last = end
+
+    new_code.append(code[last:])
+    return ''.join(new_code), literals
 
 def strip_prompts(line):
     r"""Get rid of leading sage: and >>> prompts so that pasting of examples from
@@ -922,7 +999,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 ######################################################
 
 def preparse_file(contents, attached={}, magic=True,
-                  do_time=False, ignore_prompts=False):
+                  do_time=False, ignore_prompts=False,
+                  numeric_literals=True):
     if not isinstance(contents, str):
         raise TypeError, "contents must be a string"
 
@@ -931,6 +1009,19 @@ def preparse_file(contents, attached={}, magic=True,
     # in order to avoid a recursive load that would result
     # in creating a massive file and crashing.
     loaded_files = []
+
+    if numeric_literals:
+        contents, literals = strip_string_literals(contents)
+        contents, nums = extract_numeric_literals(contents)
+        contents = contents % literals
+        if nums:
+            # Stick the assignments at the top, trying not to shift the lines down.
+            ix = contents.find('\n')
+            if ix == -1: ix = len(contents)
+            if not re.match(r"^ *(#.*)?$", contents[:ix]):
+                contents = "\n"+contents
+            assignments = ["%s = %s" % x for x in nums.items()]
+            contents = "; ".join(assignments) + contents
 
     F = []
     A = contents.splitlines()
@@ -1025,7 +1116,7 @@ def implicit_mul(code, level=5):
         code = re.sub(r'( *)time ', r'\1time %s' % no_mul_token, code)  # first word may be magic 'time'
         code = re.sub(r'\b(\d+(?:\.\d+)?(?:e\d+)?)([rR]\b)', r'\1%s\2' % no_mul_token, code)  # exclude such things as 10r
         code = re.sub(r'\b(\d+(?:\.\d+)?)e([-\d])', r'\1%se%s\2' % (no_mul_token, no_mul_token), code)  # exclude such things as 1e5
-        code = re_no_keyword(r'\b(\d+(?:\.\d+)?) *([a-zA-Z_(]\w*)\b', code)
+        code = re_no_keyword(r'\b((?:\d+(?:\.\d+)?)|(?:%s[0-9eEpn]*\b)) *([a-zA-Z_(]\w*)\b' % numeric_literal_prefix, code)
     if level >= 2:
         code = re.sub(r'(\%\(L\d+\))s', r'\1%ss%s' % (no_mul_token, no_mul_token), code) # literal strings
         code = re_no_keyword(r'(\)) *(\w+)', code)

@@ -535,6 +535,10 @@ cdef class Element(sage_object.SageObject):
         global coercion_model
         cdef int r
         if not have_same_parent(left, right):
+            if left is None:
+                return -1
+            elif right is None:
+                return 1
             try:
                 _left, _right = coercion_model.canonical_coercion(left, right)
                 if PY_IS_NUMERIC(_left):
@@ -565,6 +569,10 @@ cdef class Element(sage_object.SageObject):
         global coercion_model
         cdef int r
         if not have_same_parent(left, right):
+            if left is None:
+                return _rich_to_bool(op, -1)
+            elif right is None:
+                return _rich_to_bool(op, 1)
             try:
                 _left, _right = coercion_model.canonical_coercion(left, right)
                 if PY_IS_NUMERIC(_left):

@@ -34,12 +34,48 @@ Integer = sage.rings.integer.Integer
 InfinityElement = sage.structure.element.InfinityElement
 PlusInfinityElement = sage.structure.element.PlusInfinityElement
 MinusInfinityElement = sage.structure.element.MinusInfinityElement
+InfinityRing = sage.rings.infinity.InfinityRing
 ExtendedIntegerRing = sage.rings.extended_integer_ring.ExtendedIntegerRing
 IntegerPlusInfinity = sage.rings.extended_integer_ring.IntegerPlusInfinity
 IntegerMinusInfinity = sage.rings.extended_integer_ring.IntegerMinusInfinity
 SignError = sage.rings.infinity.SignError
 
 import sage.rings.number_field.number_field_base as number_field_base
+
+class Q_to_ExtendedQ(Morphism):
+    def __init__(self, ExtQQ=None):
+        """
+        EXAMPLES:
+            sage: from sage.rings.extended_rational_field import Q_to_ExtendedQ
+            sage: f = Q_to_ExtendedQ()
+            sage: loads(dumps(f))
+            Natural morphism:
+              From: Rational Field
+              To:   Extended Rational Field
+        """
+        import sage.categories.homset
+        if ExtQQ is None:
+            ExtQQ = ExtendedRationalField
+        Morphism.__init__(self, sage.categories.homset.Hom(QQ, ExtQQ))
+        self._repr_type_str = "Natural"
+
+    def _call_(self, x):
+        """
+        Returns the image of x under self.
+
+        EXAMPLES:
+            sage: from sage.rings.extended_rational_field import Q_to_ExtendedQ
+            sage: f = Q_to_ExtendedQ()
+            sage: f(QQ(2)) #indirect doctest
+            2
+            sage: type(_)
+            <class 'sage.rings.extended_rational_field.ExtendedRational'>
+            sage: f(2)  #indirect doctest
+            2
+        """
+        return ExtendedRational(x)
+
+
 
 _obj = {}
 class _uniq0(object):
@@ -75,7 +111,8 @@ class ExtendedRationalField_class(_uniq0, RationalField):
             True
         """
         ParentWithGens.__init__(self, self)
-        self._assign_names(('x'),normalize=False)
+        self._assign_names(('x'),normalize=False) # ???
+        self._populate_coercion_lists_(coerce_list=[Q_to_ExtendedQ(self)])
 
     def _repr_(self):
         """
@@ -93,7 +130,7 @@ class ExtendedRationalField_class(_uniq0, RationalField):
         """
         return "\\mathbf{Q}\\cup\\{\\pm\\infty\\}"
 
-    def __call__(self, x, base = 0):
+    def _element_constructor_(self, x, base = 0):
         """
         EXAMPLES:
             sage: E = ExtendedRationalField
@@ -119,46 +156,41 @@ class ExtendedRationalField_class(_uniq0, RationalField):
             raise TypeError, "cannot coerce unknown finite number into the extended rationals"
         return ExtendedRational(x, base)
 
-    def _coerce_impl(self, x):
-        """
-        Coerce x into the extended rational field.
-
-        EXAMPLES:
-            sage: E = ExtendedRationalField
-            sage: E._coerce_impl(int(2))
-            2
-            sage: E._coerce_impl(1/2)
-            1/2
-            sage: E._coerce_impl(oo)
-            +Infinity
-            sage: R.<x> = QQ[]
-            sage: E._coerce_impl(x)
-            Traceback (most recent call last):
-            ...
-            TypeError: no implicit coercion of element to the extended rational numbers
-        """
-        if isinstance(x, (int, long, sage.rings.integer.Integer, Rational)):
-            return self(x)
-        if isinstance(x, (sage.rings.infinity.PlusInfinity, sage.rings.infinity.MinusInfinity)):
-            return self(x)
-        raise TypeError, "no implicit coercion of element to the extended rational numbers"
-
-    def coerce_map_from_impl(self, S):
+    def _coerce_map_from_(self, S):
         """
         EXAMPLES:
             sage: E = ExtendedRationalField
             sage: E.coerce_map_from(ZZ) #indirect doctest
-            Call morphism:
+            Composite map:
               From: Integer Ring
               To:   Extended Rational Field
+              Defn:   Natural morphism:
+                      From: Integer Ring
+                      To:   Rational Field
+                    then
+                      Natural morphism:
+                      From: Rational Field
+                      To:   Extended Rational Field
             sage: E.coerce_map_from(QQ) #indirect doctest
             Natural morphism:
               From: Rational Field
               To:   Extended Rational Field
             sage: E.coerce_map_from(ExtendedIntegerRing)
-            Call morphism:
+            Conversion map:
               From: Extended Integer Ring
               To:   Extended Rational Field
+
+            sage: E.coerce(int(2))
+            2
+            sage: E.coerce(1/2)
+            1/2
+            sage: E.coerce(oo)
+            +Infinity
+            sage: R.<x> = QQ[]
+            sage: E.coerce(R(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: no cannonical coercion from Univariate Polynomial Ring in x over Rational Field to Extended Rational Field
 
         TESTS:
             sage: ExtendedRationalField(2)*ExtendedIntegerRing(2)
@@ -169,8 +201,8 @@ class ExtendedRationalField_class(_uniq0, RationalField):
         """
         if S is QQ:
             return Q_to_ExtendedQ()
-        else:
-            return field.Field.coerce_map_from_impl(self, S)
+        elif S == ExtendedIntegerRing or S == InfinityRing:
+            return self._generic_convert_map(S)
 
     def _is_valid_homomorphism(self, codomain, im_gens):
         """
@@ -1260,48 +1292,3 @@ class RationalMinusInfinity(_uniq2, MinusInfinityElement):
             1
         """
         return ExtendedIntegerRing(1)
-
-
-class Q_to_ExtendedQ(Morphism):
-    def __init__(self):
-        """
-        EXAMPLES:
-            sage: from sage.rings.extended_rational_field import Q_to_ExtendedQ
-            sage: f = Q_to_ExtendedQ()
-            sage: loads(dumps(f))
-            Natural morphism:
-              From: Rational Field
-              To:   Extended Rational Field
-        """
-        import sage.categories.homset
-        Morphism.__init__(self, sage.categories.homset.Hom(sage.rings.rational_field.QQ,ExtendedRationalField))
-
-    def _call_(self, x):
-        """
-        Returns the image of x under self.
-
-        EXAMPLES:
-            sage: from sage.rings.extended_rational_field import Q_to_ExtendedQ
-            sage: f = Q_to_ExtendedQ()
-            sage: f(QQ(2)) #indirect doctest
-            2
-            sage: type(_)
-            <class 'sage.rings.extended_rational_field.ExtendedRational'>
-            sage: f(2)  #indirect doctest
-            2
-        """
-        return ExtendedRational(x)
-
-    def _repr_type(self):
-        """
-        Returns the type of this morphism.
-
-        EXAMPLES:
-            sage: from sage.rings.extended_rational_field import Q_to_ExtendedQ
-            sage: f = Q_to_ExtendedQ()
-            sage: f #indirect doctest
-            Natural morphism:
-              From: Rational Field
-              To:   Extended Rational Field
-        """
-        return "Natural"

@@ -49,6 +49,7 @@ cdef class Map(Element):
     cdef _update_slots(self, _slots):
         self._domain = _slots['_domain']
         self._codomain = _slots['_codomain']
+        self._repr_type_str = _slots['_repr_type_str']
 
     def _test_update_slots(self, _slots):
         self._update_slots(_slots)
@@ -56,6 +57,7 @@ cdef class Map(Element):
     cdef _extra_slots(self, _slots):
         _slots['_domain'] = self._domain
         _slots['_codomain'] = self._codomain
+        _slots['_repr_type_str'] = self._repr_type_str
         return _slots
 
     def _test_extra_slots(self, _slots):

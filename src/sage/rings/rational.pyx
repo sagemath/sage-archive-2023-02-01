@@ -50,6 +50,8 @@ from sage.structure.element import bin_op
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
+import sage.structure.factorization
+
 import sage.rings.real_mpfr
 
 cimport sage.ext.arith
@@ -65,13 +67,13 @@ cdef extern from "mpz_pylong.h":
 
 cdef class Rational(sage.structure.element.FieldElement)
 
-cdef public void set_from_mpq(Rational self, mpq_t value):
+cdef public inline void set_from_mpq(Rational self, mpq_t value):
     mpq_set(self.value, value)
 
-cdef public void set_from_Rational(Rational self, Rational other):
+cdef public inline void set_from_Rational(Rational self, Rational other):
     mpq_set(self.value, other.value)
 
-cdef public void set_from_Integer(Rational self, integer.Integer other):
+cdef public inline void set_from_Integer(Rational self, integer.Integer other):
     mpq_set_z(self.value, other.value)
 
 cdef object Rational_mul_(Rational a, Rational b):
@@ -177,6 +179,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             56
             sage: a.__init__(pari('2/3')); a
             2/3
+            sage: a.__init__('-h/3ki', 32); a
+            -17/3730
+
+        NOTE: This is for demonstration purposes only, mutating rationals is
+              almost always the wrong thing to do.
         """
         if x is not None:
             self.__set_value(x, base)
@@ -225,20 +232,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         mpq_set_str(self.value, s, 32)
 
-    def __set_value(self, x, unsigned int base):
-        """
-        Set the value of this rational number.  This function
-        handles numerous cases.
-
-        INPUT:
-            x -- object
-            base -- positive integer
-
-        EXAMPLES:
-            sage: a = 3/5
-            sage: a.__set_value('-h/3ki', 32); a
-            -17/3730
-        """
+    cdef __set_value(self, x, unsigned int base):
         cdef int n
         cdef Rational temp_rational
         cdef integer.Integer a, b
@@ -1727,7 +1721,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             ...
             ArithmeticError: Prime factorization of 0 not defined.
         """
-        return sage.rings.rational_field.factor(self)
+        return self.numerator().factor() * \
+           sage.structure.factorization.Factorization([(p,-e) for p, e in self.denominator().factor()])
 
     def support(self):
         """

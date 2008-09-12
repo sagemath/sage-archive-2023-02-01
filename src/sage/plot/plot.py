@@ -2243,26 +2243,13 @@ class GraphicPrimitive_PlotField(GraphicPrimitive):
         GraphicPrimitive.__init__(self, options)
 
     def _allowed_options(self):
-        return {'plot_points':'How many points to use for plotting precision',
-                'cmap':"""The colormap, one of (autumn, bone, cool, copper,
-                gray, hot, hsv, jet, pink, prism, spring, summer, winter)"""}
+        return {'plot_points':'How many points to use for plotting precision'}
 
     def _repr_(self):
         return "PlotField defined by a %s x %s vector grid"%(len(self.xpos_array), len(self.ypos_array))
 
     def _render_on_subplot(self, subplot):
         options = self.options()
-        cmap = options['cmap']
-        #cm is the matplotlib color map module
-        from matplotlib import cm
-        try:
-            cmap = cm.__dict__[cmap]
-        except KeyError:
-            from matplotlib.colors import LinearSegmentedColormap as C
-            possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
-                                       isinstance(cm.__dict__[x], C)])
-            sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
-            raise RuntimeError, "Color map %s not known"%cmap
         subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array)
 
 class GraphicPrimitive_Disk(GraphicPrimitive):
@@ -3187,7 +3174,7 @@ def plot_vector_field((f, g), xrange, yrange, **kwds):
         10.0
 
     """
-    options = {'plot_points':20, 'cmap':'gray'}
+    options = {'plot_points':20}
     options.update(kwds)
 
     z, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f,g], xrange, yrange, options['plot_points'])

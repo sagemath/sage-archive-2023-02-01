@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 Hidden Markov Models
 
 AUTHOR: William Stein

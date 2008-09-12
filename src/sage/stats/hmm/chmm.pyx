@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Continuous Hidden Markov Models
 
 AUTHORS:

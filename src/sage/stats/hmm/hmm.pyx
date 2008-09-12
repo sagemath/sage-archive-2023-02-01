@@ -676,7 +676,7 @@ n
         EXAMPLES:
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[0.9,0.1],[0.1,0.9]], [0.5,0.5])
             sage: a.viterbi([1,0,0,1,0,0,1,1])
-            ([1, 0, 0, 1, 1, 0, 1, 1], -11.062453224772216)
+            ([1, 0, 0, 1, ..., 0, 1, 1], -11.06245322477221...)
 
         We predict the state sequence when the emissions are 3/4 and 'abc'.
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[0.9,0.1],[0.1,0.9]], [0.5,0.5], [3/4, 'abc'])
@@ -684,7 +684,7 @@ n
         Note that state 0 is common below, despite the model trying hard to
         switch to state 1:
             sage: a.viterbi([3/4, 'abc', 'abc'] + [3/4]*10)
-            ([0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], -25.299405845367794)
+            ([0, 1, 1, 0, 0, ..., 0, 0, 0, 0, 0, 0, 0], -25.299405845367794)
         """
         if len(seq) == 0:
             return [], 0.0
@@ -778,7 +778,7 @@ n
             Emission matrix:
             [           0.0            1.0]
             [0.296080269308 0.703919730692]
-            Initial probabilities: [1.0, 3.6620347292312443e-20]
+            Initial probabilities: [1.0, 3.662034729231...e-20]
             sage: h = hmm.DiscreteHiddenMarkovModel([[.1,.9],[.4,.6]], [[1/2]*2]*2, [1/2]*2)
             sage: h.baum_welch([1,1,1,1,1,0,1,1,1,1,1,0,0], nsteps=1)
             sage: h
@@ -800,7 +800,7 @@ n
             Emission matrix:
             [0.209328925617 0.790671074383]
             [ 0.24081056723  0.75918943277]
-            Initial probabilities: [0.50877982192958637, 0.49122017807041363]
+            Initial probabilities: [0.508779821929586..., 0.491220178070413...]
 
         TESTS:
         We test training with non-default string symbols:

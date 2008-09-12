@@ -2243,14 +2243,20 @@ class GraphicPrimitive_PlotField(GraphicPrimitive):
         GraphicPrimitive.__init__(self, options)
 
     def _allowed_options(self):
-        return {'plot_points':'How many points to use for plotting precision'}
+        return {'plot_points':'How many points to use for plotting precision',
+                'pivot': 'Where the arrow should be placed in relation to the point (tail, middle, tip)',
+                'headwidth': 'Head width as multiple of shaft width, default is 3',
+                'headlength': 'head length as multiple of shaft width, default is 5',
+                'headaxislength': 'head length at shaft intersection, default is 4.5'}
 
     def _repr_(self):
         return "PlotField defined by a %s x %s vector grid"%(len(self.xpos_array), len(self.ypos_array))
 
     def _render_on_subplot(self, subplot):
         options = self.options()
-        subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array)
+        quiver_options = options.copy()
+        quiver_options.pop('plot_points')
+        subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array, **quiver_options)
 
 class GraphicPrimitive_Disk(GraphicPrimitive):
     """
@@ -3195,6 +3201,32 @@ def plot_vector_field((f, g), xrange, yrange, **kwds):
     g._plot_field(xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options)
     return g
 
+def plot_slope_field(f, xrange, yrange, **kwds):
+    r"""
+
+    \code{plot_slope_field} takes a function of two variables, $f(x,y)$, and at various points (x_i,y_i), plots a line with slope $f(x_i,y_i)$
+
+    plot_slope_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))
+
+    EXAMPLES:
+    A logistic function modeling population growth.
+        sage: x,y = var('x y')
+        sage: capacity = 3 # thousand
+        sage: growth_rate = 0.7 # population increases by 70% per unit of time
+        sage: plot_slope_field(growth_rate*(1-y/capacity)*y, (x,0,5), (y,0,capacity*2)).show(aspect_ratio=1)
+
+    Plot a slope field involving sin and cos
+        sage: x,y = var('x y')
+        sage: plot_slope_field(sin(x+y)+cos(x+y), (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
+
+    """
+    from math import sqrt
+    slope_options = {'headaxislength': 0, 'headlength': 0, 'pivot': 'middle'}
+    slope_options.update(kwds)
+
+    from sage.calculus.calculus import sqrt
+    norm = sqrt((f**2+1))
+    return plot_vector_field((1/norm, f/norm), xrange, yrange, **slope_options)
 
 def disk(point, radius, angle, **kwds):
     r"""

@@ -21,8 +21,8 @@ Rationals, etc.:
 Note that the result will always be coerced to the field
 with the lowest precision:
     sage: RR = RealField (300)
-    sage: RQDF( 123.2) * RR (.543)
-    66.89760000000000624851281827432114309792736749325567465385058291
+    sage: RQDF(123.2) * RR (.543)
+    66.89760000000000154329882207093760371208190917968750000000000000
 
 Mixing of symbolic an quad double elements:
     sage: a = RQDF(2) / log(10); a

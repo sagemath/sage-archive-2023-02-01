@@ -532,7 +532,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a[2.7]
             Traceback (most recent call last):
             ...
-            TypeError: 'sage.rings.real_mpfr.RealNumber' object cannot be interpreted as an index
+            TypeError: 'sage.rings.real_mpfr.RealLiteral' object cannot be interpreted as an index
 
             sage: m=[(1, -2, -1, -1,9), (1, 8, 6, 2,2), (1, 1, -1, 1,4), (-1, 2, -2, -1,4)];M= matrix(m)
             sage: M

@@ -881,7 +881,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: for i in xrange(1, 1000):
             ...       assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
             sage: (-3.1415)._pari_().python()
-            -3.14150000000000018
+            -3.14150000000000000
         """
         cdef int sgn
         sgn = signe(g)

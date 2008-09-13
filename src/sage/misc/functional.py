@@ -802,7 +802,7 @@ def real(x):
         sage: real(a)
         2.50000000000000
         sage: type(real(a))
-        <type 'sage.rings.real_mpfr.RealNumber'>
+        <type 'sage.rings.real_mpfr.RealLiteral'>
     """
 
     #Try to all the .real() method

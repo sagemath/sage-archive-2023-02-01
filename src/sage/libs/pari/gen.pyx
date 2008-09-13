@@ -4406,7 +4406,7 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: e.elllseries(2.1)
-            0.4028380479566455155
+            0.4028380479566454783
             sage: e.elllseries(1)   # random, close to 0
             -3.241361318972148540775276458 E-29
             sage: e.elllseries(-2)
@@ -4414,7 +4414,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         The following example differs for the last digit on 32 vs. 64 bit systems
             sage: e.elllseries(2.1, A=1.1)
-            0.402838047956645515...
+	    0.402838047956645478...
         """
         t0GEN(s); t1GEN(A)
         _sig_on

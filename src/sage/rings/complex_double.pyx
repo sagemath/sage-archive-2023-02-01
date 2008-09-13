@@ -958,7 +958,8 @@ cdef class ComplexDoubleElement(FieldElement):
             0.0994254293726
 
             sage: log(abs(ComplexField(200)(1.1,0.1)))
-            0.099425429372582675602989386713555936556752871164033127857198
+	    0.099425429372582595066319157757531449594489450091985182495705
+
         """
         return RealDoubleElement(gsl_complex_logabs(self._complex))
 

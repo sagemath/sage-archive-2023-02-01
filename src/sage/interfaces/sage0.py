@@ -278,7 +278,7 @@ class Sage(Expect):
         """
         if self._preparse:
             line = self.preparse(line)
-        return Expect.eval(self, line)
+        return Expect.eval(self, line).strip()
 
     def set(self, var, value):
         """
@@ -303,7 +303,7 @@ class Sage(Expect):
             sage: sage0.get('x')
             '2'
         """
-        return self.eval('print %s'%var)
+        return self.eval('print %s'%var).strip()
 
     def clear(self, var):
         """

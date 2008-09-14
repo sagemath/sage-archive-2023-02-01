@@ -137,6 +137,14 @@ class Lisp(Expect):
                         return 'error evaluating "%s":\n%s'%(code,s)
             return '\n'.join(x)
 
+    def _an_element_impl(self):
+        """
+        EXAMPLES:
+            sage: lisp._an_element_impl()
+            0
+        """
+        return self(0)
+
     def set(self, var, value):
         """
         Set the variable var to the given value.

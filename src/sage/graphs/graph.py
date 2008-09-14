@@ -6281,6 +6281,10 @@ class GenericGraph(SageObject):
             sage: G.automorphism_group(edge_labels=True)
             Permutation Group with generators [(1,4)(2,3)]
 
+            sage: G = Graph({0 : {1 : 7}})
+            sage: G.automorphism_group(translation=True, edge_labels=True)
+            (Permutation Group with generators [(1,2)], {0: 2, 1: 1})
+
         You can also ask for just the order of the group:
             sage: G = graphs.PetersenGraph()
             sage: G.automorphism_group(return_group=False, order=True)
@@ -6309,10 +6313,11 @@ class GenericGraph(SageObject):
             translation_d = {}
             m = G.order()
             for v in self:
-                translation_d[v] = b[('o',v)]
                 if b[('o',v)] == m:
+                    translation_d[v] = self.order()
                     acting_vertices[v] = 0
                 else:
+                    translation_d[v] = b[('o',v)]
                     acting_vertices[v] = b[('o',v)]
             real_aut_gp = []
             n = self.order()
@@ -6339,10 +6344,11 @@ class GenericGraph(SageObject):
             translation_d = {}
             m = G.order()
             for v in self:
-                translation_d[v] = b[('o',v)]
                 if b[('o',v)] == m:
+                    translation_d[v] = self.order()
                     acting_vertices[v] = 0
                 else:
+                    translation_d[v] = b[('o',v)]
                     acting_vertices[v] = b[('o',v)]
             real_aut_gp = []
             n = self.order()

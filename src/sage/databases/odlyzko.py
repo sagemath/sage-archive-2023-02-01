@@ -27,8 +27,8 @@ PATH = "%s/data/"%misc.SAGE_ROOT
 
 def zeta_zeros():
     r"""
-    List of the first 10000 imaginary parts of nontrivial zeros of the Riemann
-    zeta function.  Andrew Odlyzko computed these to precision
+    List of the imaginary parts of the first 100,000 nontrivial zeros of the
+    Riemann zeta function.  Andrew Odlyzko computed these to precision
     within $3\cdot 10^{-9}$.
 
     \begin{seealso}

@@ -31,9 +31,24 @@ def zeta_zeros():
     Riemann zeta function.  Andrew Odlyzko computed these to precision
     within $3\cdot 10^{-9}$.
 
-    \begin{seealso}
-    See \seeurl{http://www.dtc.umn.edu/\~{}odlyzko/zeta_tables/}{}
-    \end{seealso}
+    In order to use \code{zeta_zeros()}, you will need to install the optional
+    Odlyzko database package: \code{sage -i database_odlyzko_zeta}.
+    You can see a list of all available optional packages with
+    \code{sage -optional}.
+
+    REFERENCES:
+        http://www.dtc.umn.edu/~odlyzko/zeta_tables/
+
+    EXAMPLES:
+
+    The following example prints the imaginary part of the 13th nontrivial
+    zero of the Riemann zeta function. Note that only the first 9 digits
+    after the decimal come from the database.  Subsequent digits are the
+    result of the inherent imprecision of a binary representation of decimal
+    numbers.
+        sage: zz = zeta_zeros() # optional
+        sage: zz[12]            # optional
+        59.347044003000001
     """
     path = "%s/odlyzko"%PATH
     file = "%s/zeros1"%path

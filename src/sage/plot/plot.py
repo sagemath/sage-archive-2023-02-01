@@ -2783,7 +2783,6 @@ def bar_chart(datalist, **kwds):
 def circle(point, radius, **kwds):
     """
     Return a circle at a point = $(x,y)$ with radius = $r$.
-    Type \code{circle.options} to see all options
 
     circle(center, radius, **kwds)
 
@@ -2982,10 +2981,6 @@ def line(points, **kwds):
 def line2d(points, **kwds):
     r"""
     Create the line through the given list of points.
-
-    Type \code{line.options} for a dictionary of the default options for
-    lines.  You can change this to change the defaults for all future
-    lines.  Use \code{line.reset()} to reset to the default options.
 
     INPUT:
         alpha -- How transparent the line is
@@ -3233,7 +3228,6 @@ def disk(point, radius, angle, **kwds):
 
     A disk at a point = $(x,y)$ with radius = $r$
     spanning (in radians) angle=$(rad1, rad2)$
-    Type \code{disk.options} to see all options
 
     EXAMPLES:
     Make some dangerous disks:
@@ -3293,8 +3287,7 @@ def point2d(points, **kwds):
     r"""
 
     A point of size `pointsize' defined by point = $(x,y)$.
-    Type \code{point.options} to see all options. point takes either
-    a single tuple of coordinates or a list of tuples.
+    Point takes either a single tuple of coordinates or a list of tuples.
 
     EXAMPLES:
         A purple point from a single tuple or coordinates:
@@ -3324,10 +3317,6 @@ points = point
 
 def polygon(points, **kwds):
     r"""
-    Type \code{polygon.options} for a dictionary of the default
-    options for polygons.  You can change this to change
-    the defaults for all future polygons.  Use \code{polygon.reset()}
-    to reset to the default options.
 
     EXAMPLES:
     We create a purple-ish polygon:
@@ -3409,11 +3398,6 @@ def plot(funcs, *args, **kwds):
     where $X$ is a \sage object (or list of \sage objects) that either is
     callable and returns numbers that can be coerced to floats, or has
     a plot method that returns a \class{GraphicPrimitive} object.
-
-    Type \code{plot.options} for a dictionary of the default
-    options for plots.  You can change this to change
-    the defaults for all future plots.  Use \code{plot.reset()}
-    to reset to the default options.
 
     PLOT OPTIONS:
     The plot options are
@@ -3727,8 +3711,6 @@ def _plot(funcs, xrange, parametric=False,
 def text(string, (x,y), **kwds):
     r"""
     Returns a 2d text graphics object at the point $(x,y)$.
-
-    Type \code{text.options} for a dictionary of options for 2d text.
 
     2D OPTIONS:
         fontsize -- How big the text is
@@ -4529,7 +4511,7 @@ def minmax_data(xdata, ydata, dict=False):
 def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5, level=0):
     r"""
     The adaptive refinement algorithm for plotting a function f. See the
-    docstring for plot or PlotFactory for a description of the algorithm.
+    docstring for plot for a description of the algorithm.
 
     INPUT:
         f -- a function of one variable

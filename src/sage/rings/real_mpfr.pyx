@@ -800,7 +800,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
         elif PY_TYPE_CHECK(x, Rational):
             mpfr_set_q(self.value, (<Rational>x).value, parent.rnd)
-        elif PY_TYPE_CHECK(x, gen) and x.type() == "t_REAL":
+        elif PY_TYPE_CHECK(x, gen) and typ((<gen>x).g) == t_REAL:
             _gen = x
             self._set_from_GEN_REAL(_gen.g)
         elif isinstance(x, int):

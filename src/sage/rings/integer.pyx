@@ -393,11 +393,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             elif PY_TYPE_CHECK(x, pari_gen):
 
-                if x.type() == 't_INT':
+                if typ((<pari_gen>x).g) == t_INT:
                     t_INT_to_ZZ(self.value, (<pari_gen>x).g)
 
                 else:
-                    if x.type() == 't_INTMOD':
+                    if typ((<pari_gen>x).g) == t_INTMOD:
                         x = x.lift()
                     # TODO: figure out how to convert to pari integer in base 16 ?
 

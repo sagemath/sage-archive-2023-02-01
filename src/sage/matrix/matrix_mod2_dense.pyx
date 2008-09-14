@@ -1400,6 +1400,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         data = [buf[i] for i in range(size)]
         gdFree(buf)
+        gdImageDestroy(im)
         return unpickle_matrix_mod2_dense_v1, (r,c, data, size)
 
 

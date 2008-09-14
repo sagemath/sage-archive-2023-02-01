@@ -5925,7 +5925,56 @@ cdef class gen(sage.structure.element.RingElement):
 
 
     def type(gen self):
-        return str(type_name(typ(self.g)))
+        """
+        Return the Pari type of self as a string.
+
+        NOTE: In Cython, it is much faster to simply
+        use typ(self.g) for checking Pari types.
+
+        EXAMPLES:
+            sage: pari(7).type()
+            't_INT'
+            sage: pari('x').type()
+            't_POL'
+        """
+        # The following original code leaks memory:
+ 	#        return str(type_name(typ(self.g)))
+ 	#
+ 	# This code is the usual workaround:
+ 	#        cdef char* s= <char*>type_name(typ(self.g))
+ 	#        t=str(s)
+ 	#        free(s)
+ 	#        return(t)
+        # However, it causes segfaults with t_INTs on some
+        # machines, and errors about freeing non-aligned
+        # pointers on others. So we settle for the following
+        # fast but ugly code. Note that should the list of
+        # valid Pari types ever be updated, this code would
+        # need to be updated accordingly.
+        #
+        cdef long t = typ(self.g)
+
+        if   t == t_INT:      return 't_INT'
+        elif t == t_REAL:     return 't_REAL'
+        elif t == t_INTMOD:   return 't_INTMOD'
+        elif t == t_FRAC:     return 't_FRAC'
+        elif t == t_COMPLEX:  return 't_COMPLEX'
+        elif t == t_PADIC:    return 't_PADIC'
+        elif t == t_QUAD:     return 't_QUAD'
+        elif t == t_POLMOD:   return 't_POLMOD'
+        elif t == t_POL:      return 't_POL'
+        elif t == t_SER:      return 't_SER'
+        elif t == t_RFRAC:    return 't_RFRAC'
+        elif t == t_QFR:      return 't_QFR'
+        elif t == t_QFI:      return 't_QFI'
+        elif t == t_VEC:      return 't_VEC'
+        elif t == t_COL:      return 't_COL'
+        elif t == t_MAT:      return 't_MAT'
+        elif t == t_LIST:     return 't_LIST'
+        elif t == t_STR:      return 't_STR'
+        elif t == t_VECSMALL: return 't_VECSMALL'
+        else:
+            raise TypeError, "Unknown Pari type: %s"%t
 
 
     def polinterpolate(self, ya, x):

@@ -68,18 +68,20 @@ if os.system(cmd):
 print "Building " + branch
 try:
     if os.environ["SAGE_PBUILD"] == "yes":
-	print "Copying clibsage"
-	cmd = 'cp -r sage/c_lib/libcsage.so %s/c_lib/'%branch
-
-	print cmd
-	if os.system(cmd):
-    		print "Error copying clibsage"
-    		sys.exit(1)
-        cmd = 'ln -snf "sage-%s" sage' % sys.argv[1]
-        print cmd
-        if os.system(cmd):
-            print "Error building SAGE"
-        cmd = 'sage -b'
+	echo 'Pbuild is currently broken -- defaulting to serial build.'
+        # print "Copying clibsage"
+	# cmd = 'cp -r sage/c_lib/libcsage.so %s/c_lib/'%branch
+	#
+	# print cmd
+	# if os.system(cmd):
+    	#	print "Error copying clibsage"
+    	#	sys.exit(1)
+        # cmd = 'ln -snf "sage-%s" sage' % sys.argv[1]
+        # print cmd
+        # if os.system(cmd):
+        #     print "Error building SAGE"
+        # cmd = 'sage -b'
+        cmd = 'sage -b %s'%sys.argv[1]
     else:
 	cmd = 'sage -b %s'%sys.argv[1]
 except:

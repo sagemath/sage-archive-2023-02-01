@@ -17,7 +17,7 @@ AUTHOR:
 ########################################################################
 
 __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
-               "generic_cmp", "is_64bit", "to_gmp_hex", "todo",
+               "generic_cmp", "to_gmp_hex", "todo",
                "typecheck", "prop", "strunc",
                "assert_attribute", "LOGFILE"]
 
@@ -362,7 +362,7 @@ def cmp_props(left, right, props):
         if c: return c
     return 0
 
-from sage.misc.misc_c import prod, running_total
+from sage.misc.misc_c import prod, running_total, is_64_bit, is_32_bit
 
 # alternative name for prod
 mul = prod
@@ -1428,105 +1428,6 @@ def graphics_filename(ext='png'):
         i += 1
     filename = 'sage%d.%s'%(i,ext)
     return filename
-
-#################################################################
-# 32/64-bit computer?
-#################################################################
-is_64_bit = sys.maxint >= 9223372036854775807
-is_32_bit = not is_64_bit
-
-#################################################################
-# conversions between various real precision models
-# (mostly useful for interfacing with gp and the pari library)
-#################################################################
-log10 = 3.32192809488736    # log in base 2 of 10
-log2  = 0.301029995663981   # log in base 10 of 2
-
-def prec_bits_to_dec(prec_bits):
-    r"""
-    Convert from precision expressed in bits to precision expressed in
-    decimal.
-
-    EXAMPLES:
-        sage: sage.misc.misc.prec_bits_to_dec(53)
-        15
-    """
-    return int(prec_bits*log2)
-
-def prec_dec_to_bits(prec_dec):
-    r"""
-    Convert from precision expressed in decimal to precision expressed
-    in bits.
-
-    EXAMPLES:
-        sage: sage.misc.misc.prec_dec_to_bits(15)
-        49
-    """
-    return int(prec_dec*log10)
-
-def prec_bits_to_words(prec_bits):
-    r"""
-    Convert from precision expressed in bits to pari real precision
-    expressed in words.  Note: this rounds up to the nearest word,
-    adjusts for the two codewords of a pari real, and is
-    architecture-dependent.
-
-    EXAMPLES:
-        sage: sage.misc.misc.prec_bits_to_words(70)
-        5   # 32-bit
-        4   # 64-bit
-    """
-    if is_64_bit:
-        wordsize = 64
-    else:
-        wordsize = 32
-    # increase prec_bits to the nearest multiple of wordsize
-    padded_bits = (prec_bits + wordsize - 1) & ~(wordsize - 1)
-    return padded_bits/wordsize + 2
-
-def prec_words_to_bits(prec_words):
-    r"""
-    Convert from pari real precision expressed in words to precision
-    expressed in bits.  Note: this adjusts for the two codewords of a
-    pari real, and is architecture-dependent.
-
-    EXAMPLES:
-        sage: sage.misc.misc.prec_words_to_bits(10)
-        256   # 32-bit
-        512   # 64-bit
-    """
-    if is_64_bit:
-        wordsize = 64
-    else:
-        wordsize = 32
-    # see user's guide to the pari library, page 10
-    return (prec_words - 2)*wordsize
-
-def prec_dec_to_words(prec_dec):
-    r"""
-    Convert from precision expressed in decimal to precision expressed in
-    words.  Note: this rounds up to the nearest word, adjusts for the
-    two codewords of a pari real, and is architecture-dependent.
-
-    EXAMPLES:
-        sage: sage.misc.misc.prec_dec_to_words(38)
-        6   # 32-bit
-        4   # 64-bit
-    """
-    return prec_bits_to_words(prec_dec_to_bits(prec_dec))
-
-def prec_words_to_dec(prec_words):
-    r"""
-    Convert from precision expressed in words to precision expressed in
-    decimal.  Note: this adjusts for the two codewords of a pari real,
-    and is architecture-dependent.
-
-    EXAMPLES:
-        sage: sage.misc.misc.prec_words_to_dec(5)
-        28   # 32-bit
-        57   # 64-bit
-    """
-    return prec_bits_to_dec(prec_words_to_bits(prec_words))
 
 
 #################################################################

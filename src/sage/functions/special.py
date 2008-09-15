@@ -3,7 +3,7 @@ Special Functions
 
 AUTHORS:
    -- David Joyner (2006-13-06), initial version
-   --          "   (2006-30-10), bug fixes to pari wrappers of Bessel
+   -- David Joyner (2006-30-10), bug fixes to pari wrappers of Bessel
                                  functions, hypergeometric_U
    -- William Stein (2008-02): Impose some sanity checks.
    -- David Joyner (2008-04-23), addition of elliptic integrals
@@ -373,18 +373,6 @@ def _init():
     maxima.eval('orthopoly_returns_intervals:false;')
     _done = True
 
-def _setup(prec):
-    from sage.libs.pari.all import pari
-    RR = RealField(prec)
-    a = pari.set_real_precision(int(prec/3.3)+1)    ## 3.3 < log(10,2)
-    return RR, a
-
-def _setup_CC(prec):
-    from sage.libs.pari.all import pari
-    CC = ComplexField(prec)
-    a = pari.set_real_precision(int(prec/3.3)+1)    ## 3.3 < log(10,2)
-    return CC, a
-
 def bessel_I(nu,z,algorithm = "pari",prec=53):
     r"""
     Implements the "I-Bessel function", or
@@ -443,10 +431,17 @@ def bessel_I(nu,z,algorithm = "pari",prec=53):
     """
     if algorithm=="pari":
         from sage.libs.pari.all import pari
-        R,a = _setup(prec)
-        b = R(pari(nu).besseli(z))
-        pari.set_real_precision(a)
-        return b
+        try:
+            R = RealField(prec)
+            nu = R(nu)
+            z = R(z)
+        except TypeError:
+            C = ComplexField(prec)
+            nu = C(nu)
+            z = C(z)
+            K = C
+        K = z.parent()
+        return K(pari(nu).besseli(z, precision=prec))
     elif algorithm=="scipy":
         if prec != 53:
             raise ValueError, "for the scipy algorithm the precision must be 53"
@@ -500,33 +495,33 @@ def bessel_J(nu,z,algorithm="pari",prec=53):
 
     EXAMPLES:
         sage: bessel_J(2,1.1)
-        0.13656415395665...
+        0.136564153956658
         sage: bessel_J(0,1.1)
-        0.71962201852751...
+        0.719622018527511
         sage: bessel_J(0,1)
-        0.76519768655796...
+        0.765197686557967
 
     We check consistency of PARI and Maxima:
         sage: n(bessel_J(3,10,"maxima"))
         0.0583793793051...
         sage: n(bessel_J(3,10,"pari"))
-        0.0583793793051...
+        0.0583793793051868
         sage: bessel_J(3,10,"scipy")
         0.0583793793052...
-
-
     """
     if algorithm=="pari":
         from sage.libs.pari.all import pari
-        nu = pari(nu)
-        z = pari(z)
-        if nu.imag() or z.imag():
-            K,a = _setup_CC(prec)
-        else:
-            K,a = _setup(prec)
-        b = K(nu.besselj(z))
-        pari.set_real_precision(a)
-        return b
+        try:
+            R = RealField(prec)
+            nu = R(nu)
+            z = R(z)
+        except TypeError:
+            C = ComplexField(prec)
+            nu = C(nu)
+            z = C(z)
+            K = C
+        K = z.parent()
+        return K(pari(nu).besselj(z, precision=prec))
     elif algorithm=="scipy":
         if prec != 53:
             raise ValueError, "for the scipy algorithm the precision must be 53"
@@ -548,11 +543,11 @@ def bessel_K(nu,z,algorithm="pari",prec=53):
     Implements the "K-Bessel function", or
     "modified Bessel function, 2nd kind", with
     index (or "order") nu and argument z. Defn:
-\begin{verbatim}
+    \begin{verbatim}
             pi*(bessel_I(-nu, z) - bessel_I(nu, z))
            ----------------------------------------
                         2*sin(pi*nu)
-\end{verbatim}
+    \end{verbatim}
 
     if nu is not an integer and by taking a limit
     otherwise.
@@ -584,10 +579,17 @@ def bessel_K(nu,z,algorithm="pari",prec=53):
         return sage_eval(ans)
     elif algorithm == 'pari':
         from sage.libs.pari.all import pari
-        RR,a = _setup(prec)
-        b = RR(pari(nu).besselk(z))
-        pari.set_real_precision(a)
-        return b
+        try:
+            R = RealField(prec)
+            nu = R(nu)
+            z = R(z)
+        except TypeError:
+            C = ComplexField(prec)
+            nu = C(nu)
+            z = C(z)
+            K = C
+        K = z.parent()
+        return K(pari(nu).besselk(z, precision=prec))
     else:
         raise ValueError, "unknown algorithm '%s'"%algorithm
 
@@ -749,19 +751,9 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         ans = ans.replace("j","*I")
         return sage_eval(ans)
     elif algorithm=='pari':
-        ## For commented out code below,
-        ##   f = lambda x: hypergeometric_U(1,1,x)
-        ##   P = plot(f,0.1,1)
-        ## seems to hang. I don't know why.
         from sage.libs.pari.all import pari
-        from sage.interfaces.gp import Gp,gp
-        R,a = _setup(prec)
-        #b = R(pari(alpha).hyperu(beta,x))
-        #pari.set_real_precision(a)
-        #return b
-        #above has weird bug
-        ans = gp.eval("hyperu(%s,%s,%s)"%(alpha,beta,x))
-        return R(ans)
+        R = RealField(prec)
+        return R(pari(R(alpha)).hyperu(R(beta), R(x), precision=prec))
     else:
         raise ValueError, "unknown algorithm '%s'"%algorithm
 

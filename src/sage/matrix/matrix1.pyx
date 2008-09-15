@@ -25,12 +25,14 @@ cdef class Matrix(matrix0.Matrix):
 
     def _pari_init_(self):
         """
+        Return a string defining a gp representation of self.
+
         EXAMPLES:
             sage: R.<x> = QQ['x']
             sage: a = matrix(R,2,[x+1,2/3,  x^2/2, 1+x^3]); a
             [  x + 1     2/3]
             [1/2*x^2 x^3 + 1]
-            sage: b = pari(a); b
+            sage: b = gp(a); b
             [x + 1, 2/3; 1/2*x^2, x^3 + 1]
             sage: a.determinant()
             x^4 + x^3 - 1/3*x^2 + x + 1
@@ -49,9 +51,52 @@ cdef class Matrix(matrix0.Matrix):
             v.append( ','.join(tmp))
         return 'Mat([%s])'%(';'.join(v))
 
+    def _pari_(self):
+        """
+        Return the Pari matrix corresponding to self.
+
+        EXAMPLES:
+            sage: R.<x> = QQ['x']
+            sage: a = matrix(R,2,[x+1,2/3,  x^2/2, 1+x^3]); a
+            [  x + 1     2/3]
+            [1/2*x^2 x^3 + 1]
+            sage: b = pari(a); b
+            [x + 1, 2/3; 1/2*x^2, x^3 + 1]
+            sage: a.determinant()
+            x^4 + x^3 - 1/3*x^2 + x + 1
+            sage: b.matdet()
+            x^4 + x^3 - 1/3*x^2 + x + 1
+
+        This function preserves precision for entries of inexact type
+        (e.g. reals):
+            sage: R = RealField(4)       # 4 bits of precision
+            sage: a = matrix(R, 2, [1, 2, 3, 1]); a
+            [1.0 2.0]
+            [3.0 1.0]
+            sage: b = pari(a); b
+            [1.000000000, 2.000000000; 3.000000000, 1.000000000] # 32-bit
+            [1.00000000000000, 2.00000000000000; 3.00000000000000, 1.00000000000000] # 64-bit
+            sage: b[0][0].precision()    # in words
+            3
+        """
+        from sage.libs.pari.gen import pari
+
+        w = self.list()
+        cdef Py_ssize_t nr, nc, i, j
+        nr = self._nrows
+        nc = self._ncols
+        v = []
+        for i from 0 <= i < nr:
+            tmp = []
+            for j from 0 <= j < nc:
+                tmp.append(w[i*nc + j])
+            v.append(tmp)
+        return pari(v).Col().Mat()
+
+
     def _gap_init_(self):
         """
-        Returns a string defining a gap representation of self
+        Returns a string defining a gap representation of self.
 
         EXAMPLES:
             sage: A = MatrixSpace(QQ,3,3)([0,1,2,3,4,5,6,7,8])

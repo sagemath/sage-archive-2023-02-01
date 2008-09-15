@@ -1106,20 +1106,17 @@ cdef class QuadDoubleElement(FieldElement):
 
         Note that x appears to have lower precision:
             sage: x
-            1.414213562373095048801688724              # 32-bit
-            1.4142135623730950488016887242096980786    # 64-bit
+            1.41421356237310
 
         In fact it doesn't.
-            sage: pari.set_real_precision(100)
-            28              # 32-bit
-            38               # 64-bit
+            sage: pari.set_real_precision(64)
+            15
             sage: x
-            1.4142135623730950488016887242096980785696718753769480731766797380000            # 32-bit
-            1.41421356237309504880168872420969807856967187537694807317667973800000000000000  # 64-bit
+            1.414213562373095048801688724209698078569671875376948073176679738
 
         Set the precision in PARI back.
-            sage: pari.set_real_precision(28)
-            100
+            sage: pari.set_real_precision(15)
+            64
         """
         return  sage.libs.pari.all.pari.new_with_bits_prec(repr(self), 212)
 

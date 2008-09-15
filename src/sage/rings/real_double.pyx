@@ -957,7 +957,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         EXAMPLES:
             sage: RDF(1.5)._pari_()
-            1.5000000000000000000
+            1.50000000000000
         """
         cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
         return P.double_to_gen_c(self._value)

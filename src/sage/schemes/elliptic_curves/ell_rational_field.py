@@ -41,7 +41,6 @@ import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field.number_field as number_field
 import sage.misc.misc as misc
-from sage.misc.misc import prec_bits_to_words
 from sage.misc.all import verbose
 import sage.functions.constants as constants
 import sage.modular.modform.constructor
@@ -99,6 +98,7 @@ IR = rings.RealIntervalField(20)
 
 _MAX_HEIGHT=21
 
+# complex multiplication dictionary:
 # CMJ is a dict of pairs (j,D) where j is a rational CM j-invariant
 # and D is the corresponding quadratic discriminant
 
@@ -480,9 +480,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     return self._pari_curve[L[-1]]
                 else:
                     prec = int(factor * L[-1])
-        prec_words = prec_bits_to_words(prec)
-        self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec_words)
+        self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
         return self._pari_curve[prec]
+
+    # This alias is defined so that pari(E) returns exactly the same
+    # as E.pari_curve().  Without it, pari(E) would call the default
+    # _pari_() as defined in sage.structure.sage_object.pyx, which
+    # in turn calls pari(s) where s=E._pari_init_(), as defined in
+    # ell_generic.py, which is just an ellinit() string of the form
+    # 'ellinit([a1,a2,a3,a4,a6])'.  This way gives better control over
+    # the precision of the returned pari curve: pari(E) will return a
+    # pari elliptic curve with the highest precision computed by any
+    # previous call to E.pari_curve(), or 53 bits by default if that
+    # function has not previously been called.
+
+    _pari_ = pari_curve
 
     def pari_mincurve(self, prec = None, factor = 1):
         """
@@ -592,7 +604,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
             p -- a prime number
-            early_abort -- bool (default: Falst); if True an early abort technique
+            early_abort -- bool (default: False); if True an early abort technique
                        is used and the computation is interrupted as soon
                        as a small divisor of the order is detected.
 
@@ -711,7 +723,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: type(e.aplist(13, python_ints=True)[0])
             <type 'int'>
         """
-        # How is this result dependant on the real precision in pari?  At all?
         e = self.pari_mincurve()
         v = e.ellaplist(n, python_ints=True)
         if python_ints:
@@ -745,7 +756,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [0, 1, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 8, 0]
         """
         n = int(n)
-        # How is this result dependent on the real precision in Pari?  At all?
         e = self.pari_mincurve()
         if n >= 2147483648:
             raise RuntimeError, "anlist: n (=%s) must be < 2147483648."%n
@@ -1521,8 +1531,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             0.0511114082399688
             sage: EllipticCurve('389a').regulator()
             0.152460177943144
-            sage: EllipticCurve('5077a').regulator()    # random low order bit
-            0.417143558758385
+            sage: EllipticCurve('5077a').regulator()
+            0.41714355875838...
             sage: EllipticCurve([1, -1, 0, -79, 289]).regulator()  # long time (seconds)
             1.50434488827528
             sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (seconds)
@@ -1578,8 +1588,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         precision -- number of bits of precision of result
                  (default: None, for default RealField precision)
 
-        TODO: implement variable precision for heights of points
-
         EXAMPLES:
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
             sage: E.height_pairing_matrix()
@@ -1590,9 +1598,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             []
             sage: E=EllipticCurve('5077a1')
             sage: E.height_pairing_matrix([E.lift_x(x) for x in [-2,-7/4,1]], precision=100)
-            [  1.3685725053539301576677189587  -1.3095767070865762526921116660 -0.63486715783715585992297292250]
-            [ -1.3095767070865762526921116660   2.7173593928122929952451158897   1.0998184305667293436670206574]
-            [-0.63486715783715585992297292250   1.0998184305667293436670206574  0.66820516565192789038007958879]
+            [  1.3685725053539301120518194471  -1.3095767070865761992624519454 -0.63486715783715592064475542573]
+            [ -1.3095767070865761992624519454   2.7173593928122930896610589220   1.0998184305667292139777571432]
+            [-0.63486715783715592064475542573   1.0998184305667292139777571432  0.66820516565192793503314205089]
         """
         if points is None:
             points = self.gens()
@@ -1608,10 +1616,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         M = matrix.MatrixSpace(RR, r)
         mat = M()
         for j in range(r):
-            mat[j,j] = points[j].height()
+            mat[j,j] = points[j].height(precision=precision)
         for j in range(r):
             for k in range(j+1,r):
-                mat[j,k]=((points[j]+points[k]).height() - mat[j,j] - mat[k,k])/2
+                mat[j,k]=((points[j]+points[k]).height(precision=precision) - mat[j,j] - mat[k,k])/2
                 mat[k,j]=mat[j,k]
         return mat
 
@@ -1625,8 +1633,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             precision -- int or None (default: None): the precision
                          in bits of the result (default real precision
                          if None)
-
-        TODO: implement variable precision for heights of points
 
         EXAMPLES:
             sage: E = EllipticCurve('37a1')
@@ -1653,27 +1659,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.regulator_of_points(points, precision=100)
             0.15246017794314375162432475705
             sage: E.regulator_of_points(points, precision=200)
-            0.15246017794314375162432475704945582324372707748663081784028
+            0.15246017794314375162432475704945679973023692439535675825460
             sage: E.regulator_of_points(points, precision=300)
-            0.152460177943143751624324757049455823243727077486630817840280980046053225683562463604114816
+            0.152460177943143751624324757049456799730236924395356758254603766562928311926162510557428969
         """
-        for P in points:
-            assert P.curve() == self
-
-        if precision is None:
-            RR = rings.RealField()
-            precision = RR.precision()
-        else:
-            RR = rings.RealField(precision)
-        r = len(points)
-        M = matrix.MatrixSpace(RR, r)
-        mat = M()
-        for j in range(r):
-            mat[j,j] = points[j].height(precision=precision)
-        for j in range(r):
-            for k in range(j+1,r):
-                mat[j,k]=((points[j]+points[k]).height(precision=precision) - mat[j,j] - mat[k,k])/2
-                mat[k,j]=mat[j,k]
+        if points is None:
+            points = []
+        mat = self.height_pairing_matrix(points=points, precision=precision)
         return mat.det()
 
 
@@ -1747,7 +1739,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         Return the Cremona-Prickett-Siksek height bound.  This is a
         floating point number B such that if P is a point on the curve,
-        then the naive logarithmetic height of P is off from the
+        then the naive logarithmic height of P differs from the
         canonical height by at most B.
 
         EXAMPLES:

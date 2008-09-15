@@ -452,8 +452,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: pari(e + pi)
-            5.859874482048838473822930855             # 32-bit
-            5.8598744820488384738229308546321653819   # 64-bit
+            5.85987448204884
         """
         return self.__op(self.__x._pari_(), self.__y._pari_())
 

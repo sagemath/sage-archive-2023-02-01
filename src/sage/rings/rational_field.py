@@ -115,7 +115,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         sage: L = E.lseries().at1(300)[0]; L
         0.253841860855911
         sage: O = E.period_lattice().omega(); O
-        1.26920930427955342
+        1.26920930427955
         sage: t = L/O; t
         0.200000000000000
         sage: QQ(RealField(45)(t))

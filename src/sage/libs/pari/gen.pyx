@@ -14,8 +14,7 @@ EXAMPLES:
     sage: pari('5! + 10/x')
     (120*x + 10)/x
     sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
-    85.18856819515268446242866615                # 32-bit
-    85.188568195152684462428666150825866897      # 64-bit
+    85.1885681951527
     sage: f = pari('x^3-1')
     sage: v = f.factor(); v
     [x - 1, 1; x^2 + x + 1, 1]
@@ -29,6 +28,98 @@ Arithmetic obeys the usual coercion rules.
     <type 'sage.libs.pari.gen.gen'>
     sage: type(1 + pari(1))
     <type 'sage.libs.pari.gen.gen'>
+
+GUIDE TO REAL PRECISION AND THE PARI LIBRARY
+
+The default real precision in communicating with the Pari library is
+the same as the default Sage real precision, which is 53 bits.
+Inexact Pari objects are therefore printed by default to 15 decimal
+digits (even if they are actually more precise).
+
+Default precision example (53 bits, 15 significant decimals):
+    sage: a = pari(1.23); a
+    1.23000000000000
+    sage: a.sin()
+    0.942488801931698
+
+Example with custom precision of 200 bits (60 significant decimals):
+    sage: R = RealField(200)
+    sage: a = pari(R(1.23)); a   # only 15 significant digits printed
+    1.23000000000000
+    sage: R(a)         # but the number is known to precision of 200 bits
+    1.2300000000000000000000000000000000000000000000000000000000
+    sage: a.sin()      # only 15 significant digits printed
+    0.942488801931698
+    sage: R(a.sin())   # but the number is known to precision of 200 bits
+    0.94248880193169751002382356538924454146128740562765030213504
+
+It is possible to change the number of printed decimals:
+    sage: R = RealField(200)    # 200 bits of precision in computations
+    sage: old_prec = pari.set_real_precision(60)  # 60 decimals printed
+    sage: a = pari(R(1.23)); a
+    1.23000000000000000000000000000000000000000000000000000000000
+    sage: a.sin()
+    0.942488801931697510023823565389244541461287405627650302135038
+    sage: pari.set_real_precision(old_prec)  # restore the default printing behavior
+    60
+
+Unless otherwise indicated in the docstring, most Pari functions that
+return inexact objects use the precision of their arguments to decide
+the precision of the computation.  However, if some of these arguments
+happen to be exact numbers (integers, rationals, etc.), an optional
+parameter indicates the precision (in bits) to which these arguments
+should be converted before the computation.  If this precision
+parameter is missing, the default precision of 53 bits is used.
+The following first converts 2 into a real with 53-bit precision:
+    sage: R = RealField()
+    sage: R(pari(2).sin())
+    0.909297426825682
+
+We can ask for a better precision using the optional parameter:
+    sage: R = RealField(150)
+    sage: R(pari(2).sin(precision=150))
+    0.90929742682568169539601986591174484270225497
+
+Warning regarding conversions Sage -> Pari -> Sage:
+Some care must be taken when juggling inexact types back and forth
+between Sage and Pari.  In theory, calling p=pari(s) creates a Pari
+object p with the same precision as s; in practice, the Pari library's
+precision is word-based, so it will go up to the next word.  For
+example, a default 53-bit Sage real s will be bumped up to 64 bits by
+adding bogus 11 bits.  The function p.python() returns a Sage object
+with exactly the same precision as the Pari object p.  So
+pari(s).python() is definitely not equal to s, since it has 64 bits of
+precision, including the bogus 11 bits.  The correct way of avoiding
+this is to coerce pari(s).python() back into a domain with the right
+precision.  This has to be done by the user (or by Sage functions that
+use Pari library functions in gen.pyx).  For instance, if we want to
+use the Pari library to compute sqrt(pi) with a precision of 100 bits:
+    sage: R = RealField(100)
+    sage: s = R(pi); s
+    3.1415926535897932384626433833
+    sage: p = pari(s).sqrt()
+    sage: x = p.python(); x  # wow, more digits than I expected!
+    1.7724538509055160272981674833410973484
+    sage: x.prec()           # has precision 'improved' from 100 to 128?
+    128
+    sage: x == RealField(128)(pi).sqrt()  # sadly, no!
+    False
+    sage: R(x)               # x should be brought back to precision 100
+    1.7724538509055160272981674833
+    sage: R(x) == s.sqrt()
+    True
+
+Elliptic curves and precision:
+If you are working with elliptic curves and want to compute with a
+precision other than the default 53 bits, you should use the precision
+parameter of ellinit():
+    sage: R = RealField(150)
+    sage: e = pari([0,0,0,-82,0]).ellinit(precision=150)
+    sage: eta1 = e.elleta()[0]
+    sage: R(eta1)
+    3.6054636014326520863839536934492002728802618
+
+Number fields and precision: TODO
 """
 
 import math
@@ -38,6 +129,7 @@ import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.parent cimport Parent
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.misc.misc_c import is_64_bit
 
 #include '../../ext/interrupt.pxi'
 include 'pari_err.pxi'
@@ -70,9 +162,167 @@ cdef pari_sp mytop, initial_bot, initial_top
 # keep track of the stack
 cdef pari_sp stack_avma
 
-# real precision
+# real precision in decimal digits: see documentation for
+# get_real_precision() and set_real_precision().  This variable is used
+# in gp to set the precision of input quantities (e.g. sqrt(2)), and for
+# determining the number of digits to be printed.  It is *not* used as
+# a "default precision" for internal computations, which always use
+# the actual precision of arguments together (where relevant) with a
+# "prec" parameter.  In ALL cases (for real computations) the prec
+# parameter is a WORD precision and NOT decimal precision.  Pari reals
+# with word precision w have bit precision (of the mantissa) equal to
+# 32*(w-2) or 64*(w-2).
+#
+# Hence the only relevance of this parameter in Sage is (1) for the
+# output format of components of objects of type
+# 'sage.libs.pari.gen.gen'; (2) for setting the precision of pari
+# variables created from strings (e.g. via sage: pari('1.2')).
+#
+# WARNING: Many pari library functions take a last parameter "prec"
+# which should be a words precision.  In many cases this is redundant
+# and is simply ignored.  In our wrapping of these functions we use
+# the variable prec here for convenience only.
 cdef unsigned long prec
-prec = GP_DATA.fmt.sigd
+
+#################################################################
+# conversions between various real precision models
+#################################################################
+
+def prec_bits_to_dec(int prec_in_bits):
+    r"""
+    Convert from precision expressed in bits to precision expressed in
+    decimal.
+
+    EXAMPLES:
+        sage: import sage.libs.pari.gen as gen
+        sage: gen.prec_bits_to_dec(53)
+        15
+        sage: [(32*n,gen.prec_bits_to_dec(32*n)) for n in range(1,9)]
+        [(32, 9),
+        (64, 19),
+        (96, 28),
+        (128, 38),
+        (160, 48),
+        (192, 57),
+        (224, 67),
+        (256, 77)]
+    """
+    log_2 = 0.301029995663981
+    return int(prec_in_bits*log_2)
+
+def prec_dec_to_bits(int prec_in_dec):
+    r"""
+    Convert from precision expressed in decimal to precision expressed
+    in bits.
+
+    EXAMPLES:
+        sage: import sage.libs.pari.gen as gen
+        sage: gen.prec_dec_to_bits(15)
+        49
+        sage: [(n,gen.prec_dec_to_bits(n)) for n in range(10,100,10)]
+        [(10, 33),
+        (20, 66),
+        (30, 99),
+        (40, 132),
+        (50, 166),
+        (60, 199),
+        (70, 232),
+        (80, 265),
+        (90, 298)]
+    """
+    log_10 = 3.32192809488736
+    return int(prec_in_dec*log_10)
+
+def prec_bits_to_words(int prec_in_bits=0):
+    r"""
+    Convert from precision expressed in bits to pari real precision
+    expressed in words.  Note: this rounds up to the nearest word,
+    adjusts for the two codewords of a pari real, and is
+    architecture-dependent.
+
+    EXAMPLES:
+        sage: import sage.libs.pari.gen as gen
+        sage: gen.prec_bits_to_words(70)
+        5   # 32-bit
+        4   # 64-bit
+
+        sage: [(32*n,gen.prec_bits_to_words(32*n)) for n in range(1,9)]
+        [(32, 3), (64, 4), (96, 5), (128, 6), (160, 7), (192, 8), (224, 9), (256, 10)] # 32-bit
+        [(32, 3), (64, 3), (96, 4), (128, 4), (160, 5), (192, 5), (224, 6), (256, 6)] # 64-bit
+    """
+    if not prec_in_bits:
+        return prec
+    cdef int wordsize
+    if is_64_bit:
+        wordsize = 64
+    else:
+        wordsize = 32
+    # increase prec_in_bits to the nearest multiple of wordsize
+    cdef int padded_bits
+    padded_bits = (prec_in_bits + wordsize - 1) & ~(wordsize - 1)
+    return int(padded_bits/wordsize + 2)
+
+pbw = prec_bits_to_words
+
+def prec_words_to_bits(int prec_in_words):
+    r"""
+    Convert from pari real precision expressed in words to precision
+    expressed in bits.  Note: this adjusts for the two codewords of a
+    pari real, and is architecture-dependent.
+
+    EXAMPLES:
+        sage: import sage.libs.pari.gen as gen
+        sage: gen.prec_words_to_bits(10)
+        256   # 32-bit
+        512   # 64-bit
+        sage: [(n,gen.prec_words_to_bits(n)) for n in range(3,10)]
+        [(3, 32), (4, 64), (5, 96), (6, 128), (7, 160), (8, 192), (9, 224)]  # 32-bit
+        [(3, 64), (4, 128), (5, 192), (6, 256), (7, 320), (8, 384), (9, 448)] # 64-bit
+    """
+    cdef int wordsize
+    if is_64_bit:
+        wordsize = 64
+    else:
+        wordsize = 32
+    # see user's guide to the pari library, page 10
+    return int((prec_in_words - 2)*wordsize)
+
+def prec_dec_to_words(int prec_in_dec):
+    r"""
+    Convert from precision expressed in decimal to precision expressed in
+    words.  Note: this rounds up to the nearest word, adjusts for the
+    two codewords of a pari real, and is architecture-dependent.
+
+    EXAMPLES:
+        sage: import sage.libs.pari.gen as gen
+        sage: gen.prec_dec_to_words(38)
+        6   # 32-bit
+        4   # 64-bit
+        sage: [(n,gen.prec_dec_to_words(n)) for n in range(10,90,10)]
+        [(10, 4), (20, 5), (30, 6), (40, 7), (50, 8), (60, 9), (70, 10), (80, 11)] # 32-bit
+        [(10, 3), (20, 4), (30, 4), (40, 5), (50, 5), (60, 6), (70, 6), (80, 7)] # 64-bit
+    """
+    return prec_bits_to_words(prec_dec_to_bits(prec_in_dec))
+
+def prec_words_to_dec(int prec_in_words):
+    r"""
+    Convert from precision expressed in words to precision expressed in
+    decimal.  Note: this adjusts for the two codewords of a pari real,
+    and is architecture-dependent.
+
+    EXAMPLES:
+        sage: import sage.libs.pari.gen as gen
+        sage: gen.prec_words_to_dec(5)
+        28   # 32-bit
+        57   # 64-bit
+        sage: [(n,gen.prec_words_to_dec(n)) for n in range(3,10)]
+        [(3, 9), (4, 19), (5, 28), (6, 38), (7, 48), (8, 57), (9, 67)] # 32-bit
+        [(3, 19), (4, 38), (5, 57), (6, 77), (7, 96), (8, 115), (9, 134)] # 64-bit
+    """
+    return prec_bits_to_dec(prec_words_to_bits(prec_in_words))
+
+###################################################################
+
 
 # Also a copy of PARI accessible from external pure python code.
 pari = pari_instance
@@ -306,6 +556,10 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(self)
         t1GEN(n)
         _sig_on
+        # Note: the prec parameter here has no effect when t0,t1 are
+        # real; the precision of the result is the minimum of the
+        # precisions of t0 and t1.  In any case the 3rd parameter to
+        # gpow should be a word-precision, not a decimal precision.
         return P.new_gen(gpow(t0, t1, prec))
 
     def __neg__(gen self):
@@ -934,40 +1188,47 @@ cdef class gen(sage.structure.element.RingElement):
             V.append(self.__getitem__(n))
         return V
 
-    def python(self, precision=0, bits_prec=None):
+    def python(self):
         """
         Return Python eval of self.
-        """
-        if not bits_prec is None:
-            precision = int(bits_prec * 3.4) + 1
-        import sage.libs.pari.gen_py
-        cdef long orig_prec
-        if precision:
-            orig_prec = P.get_real_precision()
-            P.set_real_precision(precision)
-            x = sage.libs.pari.gen_py.python(self)
-            P.set_real_precision(orig_prec)
-            return x
-        else:
-            return sage.libs.pari.gen_py.python(self)
 
-    def _sage_(self, precision=0):
-        """
-        Return SAGE version of self.
+        Note: is self is a real (type t_REAL) the result will be a
+        RealField element of the equivalent precision; if self is a
+        complex (type t_COMPLEX) the result will be a ComplexField
+        element of precision the minimum precision of the real and
+        imaginary parts.
         """
         import sage.libs.pari.gen_py
-        cdef long orig_prec
-        if precision:
-            orig_prec = P.get_real_precision()
-            P.set_real_precision(precision)
-            x = sage.libs.pari.gen_py.python(self)
-            P.set_real_precision(orig_prec)
-            return x
-        else:
-            return sage.libs.pari.gen_py.python(self)
+        return sage.libs.pari.gen_py.python(self)
 
-    def _eval_(gen self):
-        return self.python()
+#  This older version illustrates how irrelevant the real_precision
+#  global variable is in the pari library.  The output of this
+#  function when self is a t_REAL is completely independent of the
+#  precision parameter.  The new version above has no precision
+#  parameter at all: the caller can coerce into a lower-precision
+#  RealField if desired (or even in to a higher precision one, but
+#  that wil just pad with 0 bits).
+
+#     def python(self, precision=0, bits_prec=None):
+#         """
+#         Return Python eval of self.
+#         """
+#         if not bits_prec is None:
+#             precision = int(bits_prec * 3.4) + 1
+#         import sage.libs.pari.gen_py
+#         cdef long orig_prec
+#         if precision:
+#             orig_prec = P.get_real_precision()
+#             P.set_real_precision(precision)
+#             print "self.precision() = ",self.precision()
+#             x = sage.libs.pari.gen_py.python(self)
+#             print "x.prec() = ",x.prec()
+#             P.set_real_precision(orig_prec)
+#             return x
+#         else:
+#             return sage.libs.pari.gen_py.python(self)
+
+    _sage_ = _eval_ = python
 
     def __long__(gen self):
         """
@@ -991,7 +1252,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: g = pari(-1.0)^(1/5); g
-            0.8090169943749474241 + 0.5877852522924731292*I
+            0.809016994374947 + 0.587785252292473*I
             sage: g.__complex__()
             (0.80901699437494745+0.58778525229247314j)
             sage: complex(g)
@@ -1289,9 +1550,8 @@ cdef class gen(sage.structure.element.RingElement):
         OUTPUT:
             gen
         EXAMPLES:
-            sage: pari('1.5').Col()
-            [1.500000000000000000000000000]~               # 32-bit
-            [1.5000000000000000000000000000000000000]~     # 64-bit
+            sage: pari(1.5).Col()
+            [1.50000000000000]~
             sage: pari([1,2,3,4]).Col()
             [1, 2, 3, 4]~
             sage: pari('[1,2; 3,4]').Col()
@@ -1525,8 +1785,7 @@ cdef class gen(sage.structure.element.RingElement):
             gen -- binary quadratic form
         EXAMPLES:
             sage: pari(3).Qfb(7, 2)
-            Qfb(3, 7, 2, 0.E-250)               # 32-bit
-            Qfb(3, 7, 2, 0.E-693)               # 64-bit
+            Qfb(3, 7, 2, 0.E-19)
         """
         t0GEN(b); t1GEN(c); t2GEN(D)
         _sig_on
@@ -1605,7 +1864,7 @@ cdef class gen(sage.structure.element.RingElement):
     def Str(self):
         """
         Str(self): Return the print representation of self as a PARI
-        object is returned.
+        object.
 
         INPUT:
             self -- gen
@@ -1614,9 +1873,8 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: pari([1,2,['abc',1]]).Str()
             [1, 2, [abc, 1]]
-            sage: pari('[1,1, 1.54]').Str()
-            [1, 1, 1.540000000000000000000000000]        # 32-bit
-            [1, 1, 1.5400000000000000000000000000000000000]        # 64-bit
+            sage: pari([1,1, 1.54]).Str()
+            [1, 1, 1.54000000000000]
             sage: pari(1).Str()       # 1 is automatically converted to string rep
             1
             sage: x = pari('x')       # PARI variable "x"
@@ -2008,24 +2266,30 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ceil(gen x):
         """
-        Return the smallest integer >= x.
+        For real x: return the smallest integer >= x.
+        For rational functions: the quotient of numerator by denominator.
+        For lists: apply componentwise.
 
         INPUT:
            x -- gen
         OUTPUT:
-           gen -- integer
+           gen -- depends on type of x
         EXAMPLES:
             sage: pari(1.4).ceil()
             2
             sage: pari(-1.4).ceil()
             -1
-            sage: pari('x').ceil()
-            x
-            sage: pari('x^2+5*x+2.2').ceil()
-            x^2 + 5*x + 2.200000000000000000000000000             # 32-bit
-            x^2 + 5*x + 2.2000000000000000000000000000000000000   # 64-bit
-            sage: pari('3/4').ceil()
+            sage: pari(3/4).ceil()
             1
+            sage: pari(x).ceil()
+            x
+            sage: pari((x^2+x+1)/x).ceil()
+            x + 1
+
+        This may be unexpected: but it is correct, treating the
+        argument as a rational function in RR(x).
+            sage: pari(x^2+5*x+2.5).ceil()
+            x^2 + 5*x + 2.50000000000000
         """
         _sig_on
         return P.new_gen(gceil(x.g))
@@ -2159,11 +2423,9 @@ cdef class gen(sage.structure.element.RingElement):
             gen
         EXAMPLES:
             sage: pari('Mod(1+x,x^2-2)').conjvec()
-            [-0.4142135623730950488016887242, 2.414213562373095048801688724]~                         # 32-bit
-            [-0.41421356237309504880168872420969807857, 2.4142135623730950488016887242096980786]~     # 64-bit
+            [-0.414213562373095, 2.41421356237310]~
             sage: pari('Mod(x,x^3-3)').conjvec()
-            [1.442249570307408382321638311, -0.7211247851537041911608191554 + 1.249024766483406479413179544*I, -0.7211247851537041911608191554 - 1.249024766483406479413179544*I]~           # 32-bit
-            [1.4422495703074083823216383107801095884, -0.72112478515370419116081915539005479419 + 1.2490247664834064794131795437632536350*I, -0.72112478515370419116081915539005479419 - 1.2490247664834064794131795437632536350*I]~       # 64-bit
+            [1.44224957030741, -0.721124785153704 + 1.24902476648341*I, -0.721124785153704 - 1.24902476648341*I]~
         """
         _sig_on
         return P.new_gen(conjvec(x.g, prec))
@@ -2196,29 +2458,31 @@ cdef class gen(sage.structure.element.RingElement):
 
     def floor(gen x):
         """
-        floor(x): Return the floor of x, which is the largest integer <= x.
-        This function also works component-wise on polynomials, vectors, etc.
+        For real x: return the largest integer >= x.
+        For rational functions: the quotient of numerator by denominator.
+        For lists: apply componentwise.
 
         INPUT:
             x -- gen
         OUTPUT:
             gen
         EXAMPLES:
-            sage: pari('5/9').floor()
+            sage: pari(5/9).floor()
             0
-            sage: pari('11/9').floor()
+            sage: pari(11/9).floor()
             1
-            sage: pari('1.17').floor()
+            sage: pari(1.17).floor()
             1
-            sage: pari('x').floor()
-            x
-            sage: pari('x+1.5').floor()
-            x + 1.500000000000000000000000000             # 32-bit
-            x + 1.5000000000000000000000000000000000000   # 64-bit
-            sage: pari('[1.5,2.3,4.99]').floor()
+            sage: pari([1.5,2.3,4.99]).floor()
             [1, 2, 4]
-            sage: pari('[[1.1,2.2],[3.3,4.4]]').floor()
+            sage: pari([[1.1,2.2],[3.3,4.4]]).floor()
             [[1, 2], [3, 4]]
+            sage: pari(x).floor()
+            x
+            sage: pari((x^2+x+1)/x).floor()
+            x + 1
+            sage: pari(x^2+5*x+2.5).floor()
+            x^2 + 5*x + 2.50000000000000
 
             sage: pari('"hello world"').floor()
             Traceback (most recent call last):
@@ -2237,12 +2501,10 @@ cdef class gen(sage.structure.element.RingElement):
         OUTPUT:
             gen
         EXAMPLES:
-            sage: pari('1.7').frac()
-            0.7000000000000000000000000000            # 32-bit
-            0.70000000000000000000000000000000000000  # 64-bit
-            sage: pari('sqrt(2)').frac()
-            0.4142135623730950488016887242            # 32-bit
-            0.41421356237309504880168872420969807857  # 64-bit
+            sage: pari(1.75).frac()
+            0.750000000000000
+            sage: pari(sqrt(2)).frac()
+            0.414213562373095
             sage: pari('sqrt(-2)').frac()
             Traceback (most recent call last):
             ...
@@ -2263,9 +2525,8 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: pari('1+2*I').imag()
             2
-            sage: pari('sqrt(-2)').imag()
-            1.414213562373095048801688724              # 32-bit
-            1.4142135623730950488016887242096980786    # 64-bit
+            sage: pari(sqrt(-2)).imag()
+            1.41421356237310
             sage: pari('x+I').imag()
             1
             sage: pari('x+2*I').imag()
@@ -2442,7 +2703,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def round(gen x, estimate=False):
         """
-        round(x,estimat=False):  If x is a real number, returns x rounded
+        round(x,estimate=False):  If x is a real number, returns x rounded
         to the nearest integer (rounding up).  If the optional argument
         estimate is True, also returns the binary exponent e of the difference
         between the original and the rounded value (the "fractional part")
@@ -2476,8 +2737,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('(2.4*x^2 - 1.7)/x').round()
             (2*x^2 - 2)/x
             sage: pari('(2.4*x^2 - 1.7)/x').truncate()
-            2.400000000000000000000000000*x                # 32-bit
-            2.4000000000000000000000000000000000000*x      # 64-bit
+            2.40000000000000*x
         """
         cdef int n
         cdef long e
@@ -2520,8 +2780,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: x.type()
             't_COMPLEX'
             sage: x.simplify()
-            1.500000000000000000000000000                  # 32-bit
-            1.5000000000000000000000000000000000000        # 64-bit
+            1.50000000000000
             sage: y = x.simplify()
             sage: y.type()
             't_REAL'
@@ -2583,8 +2842,7 @@ cdef class gen(sage.structure.element.RingElement):
         Note that digits after the decimal point are ignored.
             sage: x = pari('1.234')
             sage: x
-            1.234000000000000000000000000              # 32-bit
-            1.2340000000000000000000000000000000000    # 64-bit
+            1.23400000000000
             sage: x.sizedigit()
             1
 
@@ -2621,7 +2879,7 @@ cdef class gen(sage.structure.element.RingElement):
             estimate -- (optional) bool, which is False by default
         OUTPUT:
             * if estimate == False, return a single gen.
-            * if estimate == True, return rounded verison of x and
+            * if estimate == True, return rounded version of x and
               error estimate in bits, both as gens.
         OUTPUT:
         EXAMPLES:
@@ -2746,7 +3004,7 @@ cdef class gen(sage.structure.element.RingElement):
     #          Examples, docs   -- William Stein
     ###########################################
 
-    def abs(gen self):
+    def abs(gen x):
         """
         Returns the absolute value of x (its modulus, if x is complex).
         Rational functions are not allowed.  Contrary to most transcendental
@@ -2756,8 +3014,7 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: x = pari("-27.1")
             sage: x.abs()
-            27.10000000000000000000000000               # 32-bit
-            27.100000000000000000000000000000000000     # 64-bit
+            27.1000000000000
 
         If x is a polynomial, returns -x if the leading coefficient is real
         and negative else returns x.  For a power series, the constant
@@ -2765,53 +3022,61 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: pari('x-1.2*x^2').abs()
-            1.200000000000000000000000000*x^2 - x              # 32-bit
-            1.2000000000000000000000000000000000000*x^2 - x    # 64-bit
+            1.20000000000000*x^2 - x
         """
         _sig_on
-        return P.new_gen(gabs(self.g, prec))
+        # the prec parameter here has no effect
+        return P.new_gen(gabs(x.g, prec))
 
-    def acos(gen x):
+    def acos(gen x, long precision=0):
         r"""
         The principal branch of $\cos^{-1}(x)$, so that $\Re(\acos(x))$
         belongs to $[0,Pi]$. If $x$ is real and $|x| > 1$,
         then $\acos(x)$ is complex.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
-            sage: pari('0.5').acos()
-            1.047197551196597746154214461               # 32-bit
-            1.0471975511965977461542144610931676281     # 64-bit
-            sage: pari('1.1').acos()
-            -0.4435682543851151891329110664*I             # 32-bit
-            -0.44356825438511518913291106635249808665*I   # 64-bit
-            sage: pari('1.1+I').acos()
-            0.8493430542452523259630143655 - 1.097709866825328614547942343*I                         # 32-bit
-            0.84934305424525232596301436546298780187 - 1.0977098668253286145479423425784723444*I     # 64-bit
+            sage: pari(0.5).acos()
+            1.04719755119660
+            sage: pari(1/2).acos()
+            1.04719755119660
+            sage: pari(1.1).acos()
+            -0.443568254385115*I
+            sage: C.<i> = ComplexField()
+            sage: pari(1.1+i).acos()
+            0.849343054245252 - 1.09770986682533*I
         """
         _sig_on
-        return P.new_gen(gacos(x.g, prec))
+        return P.new_gen(gacos(x.g, pbw(precision)))
 
-    def acosh(gen x):
+    def acosh(gen x, precision=0):
         r"""
         The principal branch of $\cosh^{-1}(x)$, so that
         $\Im(\acosh(x))$ belongs to $[0,Pi]$. If $x$ is real and $x <
         1$, then $\acosh(x)$ is complex.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(2).acosh()
-            1.316957896924816708625046347              # 32-bit
-            1.3169578969248167086250463473079684440    # 64-bit
+            1.31695789692482
             sage: pari(0).acosh()
-            1.570796326794896619231321692*I            # 32-bit
-            1.5707963267948966192313216916397514421*I  # 64-bit
-            sage: pari('I').acosh()
-            0.8813735870195430252326093250 + 1.570796326794896619231321692*I    # 32-bit
-            0.88137358701954302523260932497979230902 + 1.5707963267948966192313216916397514421*I   # 64-bit
+            1.57079632679490*I
+            sage: C.<i> = ComplexField()
+            sage: pari(i).acosh()
+            0.881373587019543 + 1.57079632679490*I
         """
         _sig_on
-        return P.new_gen(gach(x.g, prec))
+        return P.new_gen(gach(x.g, pbw(precision)))
 
-    def agm(gen x, y):
+    def agm(gen x, y, precision=0):
         r"""
         The arithmetic-geometric mean of x and y.  In the case of complex
         or negative numbers, the principal square root is always chosen.
@@ -2819,100 +3084,123 @@ cdef class gen(sage.structure.element.RingElement):
         AGM exists only if x/y is congruent to 1 modulo p (modulo 16 for p=2).
         x and y cannot both be vectors or matrices.
 
+        If any of $x$ or $y$ is an exact argument, it is first
+        converted to a real or complex number using the optional
+        parameter precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their two precisions is used in
+        the computation, and the parameter precision is ignored.
+
         EXAMPLES:
-            sage: pari('2').agm(2)
-            2.000000000000000000000000000             # 32-bit
-            2.0000000000000000000000000000000000000   # 64-bit
-            sage: pari('0').agm(1)
+            sage: pari(2).agm(2)
+            2.00000000000000
+            sage: pari(0).agm(1)
             0
-            sage: pari('1').agm(2)
-            1.456791031046906869186432383             # 32-bit
-            1.4567910310469068691864323832650819750   # 64-bit
-            sage: pari('1+I').agm(-3)
-            -0.9647317222908759112270275374 + 1.157002829526317260939086020*I                        # 32-bit
-            -0.96473172229087591122702753739366831917 + 1.1570028295263172609390860195427517825*I    # 64-bit
+            sage: pari(1).agm(2)
+            1.45679103104691
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).agm(-3)
+            -0.964731722290876 + 1.15700282952632*I
         """
         t0GEN(y)
         _sig_on
-        return P.new_gen(agm(x.g, t0, prec))
+        return P.new_gen(agm(x.g, t0, pbw(precision)))
 
-    def arg(gen x):
+    def arg(gen x, precision=0):
         r"""
         arg(x): argument of x,such that $-\pi < \arg(x) \leq \pi$.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
-            sage: pari('2+I').arg()
-            0.4636476090008061162142562315              # 32-bit
-	    0.46364760900080611621425623146121440203    # 64-bit
+            sage: C.<i> = ComplexField()
+            sage: pari(2+i).arg()
+            0.463647609000806
         """
         _sig_on
-        return P.new_gen(garg(x.g,prec))
+        return P.new_gen(garg(x.g, pbw(precision)))
 
-    def asin(gen x):
+    def asin(gen x, precision=0):
         r"""
         The principal branch of $\sin^{-1}(x)$, so that
         $\Re(\asin(x))$ belongs to $[-\pi/2,\pi/2]$. If $x$ is real
         and $|x| > 1$ then $\asin(x)$ is complex.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
-            sage: pari(pari('0.5').sin()).asin()
-            0.5000000000000000000000000000               # 32-bit
-            0.50000000000000000000000000000000000000     # 64-bit
+            sage: pari(pari(0.5).sin()).asin()
+            0.500000000000000
             sage: pari(2).asin()
-            1.570796326794896619231321692 + 1.316957896924816708625046347*I                      # 32-bit
-            1.5707963267948966192313216916397514421 + 1.3169578969248167086250463473079684440*I  # 64-bit
+            1.57079632679490 + 1.31695789692482*I
         """
         _sig_on
-        return P.new_gen(gasin(x.g, prec))
+        return P.new_gen(gasin(x.g, pbw(precision)))
 
-    def asinh(gen x):
+    def asinh(gen x, precision=0):
         r"""
         The principal branch of $\sinh^{-1}(x)$, so that $\Im(\asinh(x))$
         belongs to $[-\pi/2,\pi/2]$.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(2).asinh()
-            1.443635475178810342493276740                # 32-bit
-            1.4436354751788103424932767402731052694      # 64-bit
-            sage: pari('2+I').asinh()
-            1.528570919480998161272456185 + 0.4270785863924761254806468833*I      # 32-bit
-            1.5285709194809981612724561847936733933 + 0.42707858639247612548064688331895685930*I      # 64-bit
+            1.44363547517881
+            sage: C.<i> = ComplexField()
+            sage: pari(2+i).asinh()
+            1.52857091948100 + 0.427078586392476*I
         """
         _sig_on
-        return P.new_gen(gash(x.g, prec))
+        return P.new_gen(gash(x.g, pbw(precision)))
 
-    def atan(gen x):
+    def atan(gen x, precision=0):
         r"""
         The principal branch of $\tan^{-1}(x)$, so that $\Re(\atan(x))$
         belongs to $]-\pi/2, \pi/2[$.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(1).atan()
-            0.7853981633974483096156608458              # 32-bit
-            0.78539816339744830961566084581987572104    # 64-bit
-            sage: pari('1.5+I').atan()
-            1.107148717794090503017065460 + 0.2554128118829953416027570482*I                         # 32-bit
-            1.1071487177940905030170654601785370401 + 0.25541281188299534160275704815183096744*I     # 64-bit
+            0.785398163397448
+            sage: C.<i> = ComplexField()
+            sage: pari(1.5+i).atan()
+            1.10714871779409 + 0.255412811882995*I
         """
         _sig_on
-        return P.new_gen(gatan(x.g, prec))
+        return P.new_gen(gatan(x.g, pbw(precision)))
 
-    def atanh(gen x):
+    def atanh(gen x, precision=0):
         r"""
         The principal branch of $\tanh^{-1}(x)$, so that
         $\Im(\atanh(x))$ belongs to $]-\pi/2,\pi/2]$.  If $x$ is real
         and $|x| > 1$ then $\atanh(x)$ is complex.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(0).atanh()
-            0.E-250   # 32-bit
-            0.E-693   # 64-bit
+            0.E-19
             sage: pari(2).atanh()
-            0.5493061443340548456976226185 + 1.570796326794896619231321692*I           # 32-bit
-            0.54930614433405484569762261846126285232 + 1.5707963267948966192313216916397514421*I     # 64-bit
+            0.549306144334055 + 1.57079632679490*I
         """
         _sig_on
-        return P.new_gen(gath(x.g, prec))
+        return P.new_gen(gath(x.g, pbw(precision)))
 
     def bernfrac(gen x):
         r"""
@@ -2929,19 +3217,6 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return P.new_gen(bernfrac(x))
 
-    def fibonacci(gen x):
-        r"""
-        Return the Fibonacci number of index x.
-
-        EXAMPLES:
-            sage: pari(18).fibonacci()
-            2584
-            sage: [pari(n).fibonacci() for n in range(10)]
-            [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
-        """
-        _sig_on
-        return P.new_gen(fibo(long(x)))
-
     def bernreal(gen x):
         r"""
         The Bernoulli number $B_x$, as for the function bernfrac, but
@@ -2950,10 +3225,10 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: pari(18).bernreal()
-            54.97117794486215538847117794                  # 32-bit
-            54.971177944862155388471177944862155388        # 64-bit
+            54.9711779448622
         """
         _sig_on
+        # the argument prec has no effect
         return P.new_gen(bernreal(x, prec))
 
     def bernvec(gen x):
@@ -2976,33 +3251,43 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return P.new_gen(bernvec(x))
 
-    def besselh1(gen nu, x):
+    def besselh1(gen nu, x, precision=0):
         r"""
         The $H^1$-Bessel function of index $\nu$ and argument $x$.
 
+        If $nu$ or $x$ is an exact argument, it is first converted to
+        a real or complex number using the optional parameter
+        precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their precisions is used in the
+        computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(2).besselh1(3)
-            0.4860912605858910769078310941 - 0.1604003934849237296757682995*I                        # 32-bit
-            0.48609126058589107690783109411498403480 - 0.16040039348492372967576829953798091810*I    # 64-bit
+            0.486091260585891 - 0.160400393484924*I
         """
         t0GEN(x)
         _sig_on
-        return P.new_gen(hbessel1(nu.g, t0, prec))
+        return P.new_gen(hbessel1(nu.g, t0, pbw(precision)))
 
-    def besselh2(gen nu, x):
+    def besselh2(gen nu, x, precision=0):
         r"""
         The $H^2$-Bessel function of index $\nu$ and argument $x$.
 
+        If $nu$ or $x$ is an exact argument, it is first converted to
+        a real or complex number using the optional parameter
+        precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their precisions is used in the
+        computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(2).besselh2(3)
-            0.4860912605858910769078310941 + 0.1604003934849237296757682995*I                         # 32-bit
-            0.48609126058589107690783109411498403480 + 0.16040039348492372967576829953798091810*I     # 64-bit
+            0.486091260585891 + 0.160400393484924*I
         """
         t0GEN(x)
         _sig_on
-        return P.new_gen(hbessel2(nu.g, t0, prec))
+        return P.new_gen(hbessel2(nu.g, t0, pbw(precision)))
 
-    def besselj(gen nu, x):
+    def besselj(gen nu, x, precision=0):
         r"""
         Bessel J function (Bessel function of the first kind), with
         index $\nu$ and argument $x$.  If $x$ converts to a power
@@ -3010,16 +3295,21 @@ cdef class gen(sage.structure.element.RingElement):
         omitted (since it cannot be represented in PARI when $\nu$ is not
         integral).
 
+        If $nu$ or $x$ is an exact argument, it is first converted to
+        a real or complex number using the optional parameter
+        precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their precisions is used in the
+        computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(2).besselj(3)
-            0.4860912605858910769078310941            # 32-bit
-            0.48609126058589107690783109411498403480  # 64-bit
+            0.486091260585891
         """
         t0GEN(x)
         _sig_on
-        return P.new_gen(jbessel(nu.g, t0, prec))
+        return P.new_gen(jbessel(nu.g, t0, pbw(precision)))
 
-    def besseljh(gen nu, x):
+    def besseljh(gen nu, x, precision=0):
         """
         J-Bessel function of half integral index (Speherical Bessel
         function of the first kind).  More precisely, besseljh(n,x)
@@ -3027,16 +3317,22 @@ cdef class gen(sage.structure.element.RingElement):
         complex value.  In the current implementation (PARI, version
         2.2.11), this function is not very accurate when $x$ is small.
 
+        If $nu$ or $x$ is an exact argument, it is first converted to
+        a real or complex number using the optional parameter
+        precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their precisions is used in the
+        computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(2).besseljh(3)
-            0.4127100322097159934374967959      # 32-bit
-            0.41271003220971599343749679594186271499    # 64-bit
+            0.4127100324          # 32-bit
+            0.412710032209716     # 64-bit
         """
         t0GEN(x)
         _sig_on
-        return P.new_gen(jbesselh(nu.g, t0, prec))
+        return P.new_gen(jbesselh(nu.g, t0, pbw(precision)))
 
-    def besseli(gen nu, x):
+    def besseli(gen nu, x, precision=0):
         """
         Bessel I function (Bessel function of the second kind), with
         index $\nu$ and argument $x$.  If $x$ converts to a power
@@ -3044,23 +3340,34 @@ cdef class gen(sage.structure.element.RingElement):
         omitted (since it cannot be represented in PARI when $\nu$ is not
         integral).
 
+        If $nu$ or $x$ is an exact argument, it is first converted to
+        a real or complex number using the optional parameter
+        precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their precisions is used in the
+        computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(2).besseli(3)
-            2.245212440929951154625478386              # 32-bit
-            2.2452124409299511546254783856342650577    # 64-bit
-            sage: pari(2).besseli('3+I')
-            1.125394076139128134398383103 + 2.083138226706609118835787255*I      # 32-bit
-            1.1253940761391281343983831028963896470 + 2.0831382267066091188357872547036161842*I    # 64-bit
+            2.24521244092995
+            sage: C.<i> = ComplexField()
+            sage: pari(2).besseli(3+i)
+            1.12539407613913 + 2.08313822670661*I
         """
         t0GEN(x)
         _sig_on
-        return P.new_gen(ibessel(nu.g, t0, prec))
+        return P.new_gen(ibessel(nu.g, t0, pbw(precision)))
 
-    def besselk(gen nu, x, long flag=0):
+    def besselk(gen nu, x, long flag=0, precision=0):
         """
         nu.besselk(x, flag=0): K-Bessel function (modified Bessel
         function of the second kind) of index nu, which can be
         complex, and argument x.
+
+        If $nu$ or $x$ is an exact argument, it is first converted to
+        a real or complex number using the optional parameter
+        precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their precisions is used in the
+        computation, and the parameter precision is ignored.
 
         INPUT:
             nu -- a complex number
@@ -3068,118 +3375,128 @@ cdef class gen(sage.structure.element.RingElement):
             flag -- default: 0 or 1: use hyperu  (hyperu is much slower for
                     small x, and doesn't work for negative x).
 
-        WARNING/TODO -- with flag = 1 this function is incredibly slow
-        (on 64-bit Linux) as it is implemented using it from the C
-        library, but it shouldn't be (e.g., it's not slow via the GP
-        interface.)  Why?
-
         EXAMPLES:
-            sage: pari('2+I').besselk(3)
-            0.04559077184075505871203211094 + 0.02891929465820812820828883526*I     # 32-bit
-            0.045590771840755058712032110938791854704 + 0.028919294658208128208288835257608789842*I     # 64-bit
+            sage: C.<i> = ComplexField()
+            sage: pari(2+i).besselk(3)
+            0.0455907718407551 + 0.0289192946582081*I
 
-            sage: pari('2+I').besselk(-3)
-            -4.348708749867516799575863067 - 5.387448826971091267230878827*I        # 32-bit
-            -4.3487087498675167995758630674661864255 - 5.3874488269710912672308788273655523057*I  # 64-bit
+            sage: pari(2+i).besselk(-3)
+            -4.34870874986752 - 5.38744882697109*I
 
-            sage: pari('2+I').besselk(300, flag=1)   # long time
-            3.742246033197275082909500148 E-132 + 2.490710626415252262644383350 E-134*I      # 32-bit
-            3.7422460331972750829095001475885825717 E-132 + 2.4907106264152522626443833495225745762 E-134*I   # 64-bit
-
+            sage: pari(2+i).besselk(300, flag=1)
+            3.74224603319728 E-132 + 2.49071062641525 E-134*I
         """
         t0GEN(x)
         _sig_on
-        return P.new_gen(kbessel0(nu.g, t0, flag, prec))
+        return P.new_gen(kbessel0(nu.g, t0, flag, pbw(precision)))
 
-    def besseln(gen nu, x):
+    def besseln(gen nu, x, precision=0):
         """
         nu.besseln(x): Bessel N function (Spherical Bessel function of
         the second kind) of index nu and argument x.
 
+        If $nu$ or $x$ is an exact argument, it is first converted to
+        a real or complex number using the optional parameter
+        precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their precisions is used in the
+        computation, and the parameter precision is ignored.
+
         EXAMPLES:
-            sage: pari('2+I').besseln(3)
-            -0.2807755669582439141676487005 - 0.4867085332237257928816949747*I     # 32-bit
-            -0.28077556695824391416764870046044688871 - 0.48670853322372579288169497466916637395*I    # 64-bit
+            sage: C.<i> = ComplexField()
+            sage: pari(2+i).besseln(3)
+            -0.280775566958244 - 0.486708533223726*I
         """
         t0GEN(x)
         _sig_on
-        return P.new_gen(nbessel(nu.g, t0, prec))
+        return P.new_gen(nbessel(nu.g, t0, pbw(precision)))
 
-    def cos(gen self):
+    def cos(gen x, precision=0):
         """
         The cosine function.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
-            sage: x = pari('1.5')
-            sage: x.cos()
-            0.07073720166770291008818985142     # 32-bit
-	    0.070737201667702910088189851434268709084    # 64-bit
-            sage: pari('1+I').cos()
-            0.8337300251311490488838853943 - 0.9888977057628650963821295409*I   # 32-bit
-            0.83373002513114904888388539433509447980 - 0.98889770576286509638212954089268618864*I   # 64-bit
+            sage: pari(1.5).cos()
+            0.0707372016677029
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).cos()
+            0.833730025131149 - 0.988897705762865*I
             sage: pari('x+O(x^8)').cos()
             1 - 1/2*x^2 + 1/24*x^4 - 1/720*x^6 + 1/40320*x^8 + O(x^9)
         """
         _sig_on
-        return P.new_gen(gcos(self.g, prec))
+        return P.new_gen(gcos(x.g, pbw(precision)))
 
-    def cosh(gen self):
+    def cosh(gen x, precision=0):
         """
         The hyperbolic cosine function.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
-            sage: x = pari('1.5')
-            sage: x.cosh()
-            2.352409615243247325767667965               # 32-bit
-            2.3524096152432473257676679654416441702     # 64-bit
-            sage: pari('1+I').cosh()
-            0.8337300251311490488838853943 + 0.9888977057628650963821295409*I                       # 32-bit
-            0.83373002513114904888388539433509447980 + 0.98889770576286509638212954089268618864*I   # 64-bit
+            sage: pari(1.5).cosh()
+            2.35240961524325
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).cosh()
+            0.833730025131149 + 0.988897705762865*I
             sage: pari('x+O(x^8)').cosh()
             1 + 1/2*x^2 + 1/24*x^4 + 1/720*x^6 + O(x^8)
         """
         _sig_on
-        return P.new_gen(gch(self.g, prec))
+        return P.new_gen(gch(x.g, pbw(precision)))
 
-    def cotan(gen x):
+    def cotan(gen x, precision=0):
         """
         The cotangent of x.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(5).cotan()
-            -0.2958129155327455404277671681     # 32-bit
-            -0.29581291553274554042776716808248528607    # 64-bit
+            -0.295812915532746
 
-        On a 32-bit computer computing the cotangent of $\pi$ doesn't
-        raise an error, but instead just returns a very large number.
-        On a 64-bit computer it raises a RuntimeError.
+        Computing the cotangent of $\pi$ doesn't raise an error, but
+        instead just returns a very large (positive or negative)
+        number.
 
-            sage: pari('Pi').cotan()
-            1.980704062 E28                      # 32-bit
-	    Traceback (most recent call last):   # 64-bit
-            ...	                                 # 64-bit
-            PariError: division by zero (46)     # 64-bit
+            sage: x = RR(pi)
+            sage: pari(x).cotan()         # random
+            -8.17674825 E15
         """
         _sig_on
-        return P.new_gen(gcotan(x.g, prec))
+        return P.new_gen(gcotan(x.g, pbw(precision)))
 
-    def dilog(gen x):
+    def dilog(gen x, precision=0):
         r"""
         The principal branch of the dilogarithm of $x$, i.e. the analytic
         continuation of the power series $\log_2(x) = \sum_{n>=1} x^n/n^2$.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(1).dilog()
-            1.644934066848226436472415167              # 32-bit
-            1.6449340668482264364724151666460251892    # 64-bit
-            sage: pari('1+I').dilog()
-            0.6168502750680849136771556875 + 1.460362116753119547679775739*I    # 32-bit
-            0.61685027506808491367715568749225944595 + 1.4603621167531195476797757394917875976*I   # 64-bit
+            1.64493406684823
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).dilog()
+            0.616850275068085 + 1.46036211675312*I
         """
         _sig_on
-        return P.new_gen(dilog(x.g, prec))
+        return P.new_gen(dilog(x.g, pbw(precision)))
 
-    def eint1(gen x, long n=0):
+    def eint1(gen x, long n=0, precision=0):
         r"""
         x.eint1({n}): exponential integral E1(x):
         $$
@@ -3189,6 +3506,11 @@ cdef class gen(sage.structure.element.RingElement):
             [eint1(x), eint1(2*x), ..., eint1(n*x)].
         This is faster than repeatedly calling eint1(i*x).
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         REFERENCE: See page 262, Prop 5.6.12, of Cohen's book
         "A Course in Computational Algebraic Number Theory".
 
@@ -3197,24 +3519,28 @@ cdef class gen(sage.structure.element.RingElement):
         """
         _sig_on
         if n <= 0:
-            return P.new_gen(eint1(x.g, prec))
+            return P.new_gen(eint1(x.g, pbw(precision)))
         else:
-            return P.new_gen(veceint1(x.g, stoi(n), prec))
+            return P.new_gen(veceint1(x.g, stoi(n), pbw(precision)))
 
-    def erfc(gen x):
+    def erfc(gen x, precision=0):
         r"""
         Return the complementary error function:
              $$(2/\sqrt{\pi}) \int_{x}^{\infty} e^{-t^2} dt.$$
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(1).erfc()
-            0.1572992070502851306587793649                # 32-bit
-            0.15729920705028513065877936491739074070      # 64-bit
+            0.157299207050285
         """
         _sig_on
-        return P.new_gen(gerfc(x.g, prec))
+        return P.new_gen(gerfc(x.g, pbw(precision)))
 
-    def eta(gen x, flag=0):
+    def eta(gen x, flag=0, precision=0):
         r"""
         x.eta({flag=0}): if flag=0, $\eta$ function without the $q^{1/24}$;
         otherwise $\eta$ of the complex number $x$ in the upper half plane
@@ -3227,130 +3553,126 @@ cdef class gen(sage.structure.element.RingElement):
         series) with positive valuation, the result is
         $\prod_{n=1}^{\infty} (1-x^n)$.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
-            sage: pari('I').eta()
-            0.9981290699259585132799623222             # 32-bit
-            0.99812906992595851327996232224527387813   # 64-bit
+            sage: C.<i> = ComplexField()
+            sage: pari(i).eta()
+            0.998129069925959 + 0.E-21*I
         """
         _sig_on
         if flag == 1:
-            return P.new_gen(trueeta(x.g, prec))
-        return P.new_gen(eta(x.g, prec))
+            return P.new_gen(trueeta(x.g, pbw(precision)))
+        return P.new_gen(eta(x.g, pbw(precision)))
 
-    def exp(gen self):
+    def exp(gen self, precision=0):
         """
         x.exp(): exponential of x.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(0).exp()
-            1.000000000000000000000000000               # 32-bit
-            1.0000000000000000000000000000000000000     # 64-bit
+            1.00000000000000
             sage: pari(1).exp()
-            2.718281828459045235360287471               # 32-bit
-            2.7182818284590452353602874713526624978     # 64-bit
+            2.71828182845905
             sage: pari('x+O(x^8)').exp()
             1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + 1/5040*x^7 + O(x^8)
         """
         _sig_on
-        return P.new_gen(gexp(self.g, prec))
+        return P.new_gen(gexp(self.g, pbw(precision)))
 
     def gamma(gen s, precision=0):
         """
         s.gamma({precision}): Gamma function at s.
 
-        INPUT:
-            s -- gen (real or complex number
-            precision -- optional precisiion
-
-        OUTPUT:
-            gen -- value of the Gamma function at s.
+        If $s$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $s$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
 
         EXAMPLES:
             sage: pari(2).gamma()
-            1.000000000000000000000000000              # 32-bit
-            1.0000000000000000000000000000000000000    # 64-bit
+            1.00000000000000
             sage: pari(5).gamma()
-            24.00000000000000000000000000              # 32-bit
-            24.000000000000000000000000000000000000    # 64-bit
-            sage: pari('1+I').gamma()
-            0.4980156681183560427136911175 - 0.1549498283018106851249551305*I    # 32-bit
-            0.49801566811835604271369111746219809195 - 0.15494982830181068512495513048388660520*I    # 64-bit
+            24.0000000000000
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).gamma()
+            0.498015668118356 - 0.154949828301811*I
         """
-        if not precision: precision = prec
         _sig_on
-        return P.new_gen(ggamma(s.g, precision))
+        return P.new_gen(ggamma(s.g, pbw(precision)))
 
-    def gammah(gen s):
+    def gammah(gen s, precision=0):
         """
-        x.gammah(): Gamma function evaluated at the argument x+1/2,
-        for x an integer.
+        s.gammah(): Gamma function evaluated at the argument x+1/2.
+
+        If $s$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $s$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
 
         EXAMPLES:
             sage: pari(2).gammah()
-            1.329340388179137020473625613               # 32-bit
-            1.3293403881791370204736256125058588871     # 64-bit
+            1.32934038817914
             sage: pari(5).gammah()
-            52.34277778455352018114900849               # 32-bit
-            52.342777784553520181149008492418193679     # 64-bit
-            sage: pari('1+I').gammah()
-            0.5753151880634517207185443722 + 0.08821067754409390991246464371*I     # 32-bit
-            0.57531518806345172071854437217501119058 + 0.088210677544093909912464643706507454993*I     # 64-bit
+            52.3427777845535
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).gammah()
+            0.575315188063452 + 0.0882106775440939*I
         """
         _sig_on
-        return P.new_gen(ggamd(s.g, prec))
+        return P.new_gen(ggamd(s.g, pbw(precision)))
 
-    def hyperu(gen a, b, x):
+    def hyperu(gen a, b, x, precision=0):
         r"""
         a.hyperu(b,x): U-confluent hypergeometric function.
 
-        WARNING/TODO: This function is \emph{extremely slow} as
-        implemented when used from the C library.  If you use the GP
-        interpreter inteface it is vastly faster, so clearly this
-        issue could be fixed with a better understanding of GP/PARI.
-        Volunteers?
+        If $a$, $b$, or $x$ is an exact argument, it is first
+        converted to a real or complex number using the optional
+        parameter precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their precisions is used in the
+        computation, and the parameter precision is ignored.
 
         EXAMPLES:
-            sage: pari(1).hyperu(2,3)           # long time
-            0.3333333333333333333333333333              # 32-bit
-            0.33333333333333333333333333333333333333    # 64-bit
+            sage: pari(1).hyperu(2,3)
+            0.333333333333333
         """
         t0GEN(b)
         t1GEN(x)
         _sig_on
-        return P.new_gen(hyperu(a.g, t0, t1, prec))
-
+        return P.new_gen(hyperu(a.g, t0, t1, pbw(precision)))
 
     def incgam(gen s, x, y=None, precision=0):
         r"""
         s.incgam(x, {y}, {precision}): incomplete gamma function. y
         is optional and is the precomputed value of gamma(s).
 
-        NOTE: This function works for any complex input (unlike in
-        older version of PARI).
-
-        INPUT:
-            s, x, y -- gens
-            precision -- option precision
-
-        OUTPUT:
-            gen -- value of the incomplete Gamma function at s.
+        If $s$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $s$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
 
         EXAMPLES:
-            sage: pari('1+I').incgam('3-I')
-            -0.04582978599199457259586742326 + 0.04336968187266766812050474478*I        # 32-bit
-            -0.045829785991994572595867423261490338708 + 0.043369681872667668120504744775954724732*I    # 64-bit
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).incgam(3-i)
+            -0.0458297859919946 + 0.0433696818726677*I
         """
-        if not precision:
-            precision = prec
         t0GEN(x)
         _sig_on
         if y is None:
-            return P.new_gen(incgam(s.g, t0, precision))
+            return P.new_gen(incgam(s.g, t0, pbw(precision)))
         else:
             t1GEN(y)
-            return P.new_gen(incgam0(s.g, t0, t1, precision))
+            return P.new_gen(incgam0(s.g, t0, t1, pbw(precision)))
 
-    def incgamc(gen s, x):
+    def incgamc(gen s, x, precision=0):
         r"""
         s.incgamc(x): complementary incomplete gamma function.
 
@@ -3360,17 +3682,21 @@ cdef class gen(sage.structure.element.RingElement):
         function returns the value of the integral $\int_{0}^{x}
         e^{-t} t^{s-1} dt.$
 
+        If $s$ or $x$ is an exact argument, it is first converted to
+        a real or complex number using the optional parameter
+        precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their precisions is used in the
+        computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(1).incgamc(2)
-            0.8646647167633873081060005050               # 32-bit
-            0.86466471676338730810600050502751559659     # 64-bit
+            0.864664716763387
         """
         t0GEN(x)
         _sig_on
-        return P.new_gen(incgamc(s.g, t0, prec))
+        return P.new_gen(incgamc(s.g, t0, pbw(precision)))
 
-
-    def log(gen self):
+    def log(gen x, precision=0):
         r"""
         x.log(): natural logarithm of x.
 
@@ -3386,6 +3712,11 @@ cdef class gen(sage.structure.element.RingElement):
         bits provided that $s>2^{B/2}$.)  At low accuracies, this
         function computes $\log$ using the series expansion near $1$.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         Note that $p$-adic arguments can also be given as input,
         with the convention that $\log(p)=0$.  Hence, in
         particular, $\exp(\log(x))/x$ is not in general
@@ -3394,16 +3725,15 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: pari(5).log()
-            1.609437912434100374600759333                 # 32-bit
-            1.6094379124341003746007593332261876395       # 64-bit
-            sage: pari('I').log()
-            0.E-250 + 1.570796326794896619231321692*I             # 32-bit
-            0.E-693 + 1.5707963267948966192313216916397514421*I   # 64-bit
+            1.60943791243410
+            sage: C.<i> = ComplexField()
+            sage: pari(i).log()
+            0.E-19 + 1.57079632679490*I
         """
         _sig_on
-        return P.new_gen(glog(self.g, prec))
+        return P.new_gen(glog(x.g, pbw(precision)))
 
-    def lngamma(gen x):
+    def lngamma(gen x, precision=0):
         r"""
         x.lngamma(): logarithm of the gamma function of x.
 
@@ -3416,85 +3746,101 @@ cdef class gen(sage.structure.element.RingElement):
         The $p$-adic analogue of this function is unfortunately not
         implemented.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(100).lngamma()
-            359.1342053695753987760440105                # 32-bit
-            359.13420536957539877604401046028690961      # 64-bit
+            359.134205369575
         """
         _sig_on
-        return P.new_gen(glngamma(x.g,prec))
+        return P.new_gen(glngamma(x.g, pbw(precision)))
 
-    def polylog(gen x, long m, flag=0):
+    def polylog(gen x, long m, flag=0, precision=0):
         """
         x.polylog(m,{flag=0}): m-th polylogarithm of x. flag is
         optional, and can be 0: default, 1: D_m~-modified m-th polylog
         of x, 2: D_m-modified m-th polylog of x, 3: P_m-modified m-th
         polylog of x.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         TODO: Add more explanation, copied from the PARI manual.
 
         EXAMPLES:
             sage: pari(10).polylog(3)
-            5.641811414751341250600725771 - 8.328202076980270580884185850*I                          # 32-bit
-            5.6418114147513412506007257705287671110 - 8.3282020769802705808841858505904310076*I      # 64-bit
+            5.64181141475134 - 8.32820207698027*I
             sage: pari(10).polylog(3,0)
-            5.641811414751341250600725771 - 8.328202076980270580884185850*I                          # 32-bit
-            5.6418114147513412506007257705287671110 - 8.3282020769802705808841858505904310076*I      # 64-bit
+            5.64181141475134 - 8.32820207698027*I
             sage: pari(10).polylog(3,1)
-            0.5237784535024110488342571116              # 32-bit
-            0.52377845350241104883425711161605950842    # 64-bit
+            0.523778453502411
             sage: pari(10).polylog(3,2)
-            -0.4004590561634505605364328952             # 32-bit
-            -0.40045905616345056053643289522452400363   # 64-bit
+            -0.400459056163451
         """
         _sig_on
-        return P.new_gen(polylog0(m, x.g, flag, prec))
+        return P.new_gen(polylog0(m, x.g, flag, pbw(precision)))
 
-    def psi(gen x):
+    def psi(gen x, precision=0):
         r"""
         x.psi(): psi-function at x.
 
         Return the $\psi$-function of $x$, i.e., the logarithmic
         derivative $\Gamma'(x)/\Gamma(x)$.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(1).psi()
-            -0.5772156649015328606065120901              # 32-bit
-            -0.57721566490153286060651209008240243104    # 64-bit
+            -0.577215664901533
         """
         _sig_on
-        return P.new_gen(gpsi(x.g, prec))
+        return P.new_gen(gpsi(x.g, pbw(precision)))
 
-
-    def sin(gen x):
+    def sin(gen x, precision=0):
         """
         x.sin(): The sine of x.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(1).sin()
-            0.8414709848078965066525023216             # 32-bit
-            0.84147098480789650665250232163029899962   # 64-bit
-            sage: pari('1+I').sin()
-            1.298457581415977294826042366 + 0.6349639147847361082550822030*I                       # 32-bit
-            1.2984575814159772948260423658078156203 + 0.63496391478473610825508220299150978151*I   # 64-bit
+            0.841470984807897
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).sin()
+            1.29845758141598 + 0.634963914784736*I
         """
         _sig_on
-        return P.new_gen(gsin(x.g, prec))
+        return P.new_gen(gsin(x.g, pbw(precision)))
 
-    def sinh(gen self):
+    def sinh(gen x, precision=0):
         """
         The hyperbolic sine function.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(0).sinh()
-            0.E-250   # 32-bit
-            0.E-693   # 64-bit
-            sage: pari('1+I').sinh()
-            0.6349639147847361082550822030 + 1.298457581415977294826042366*I                         # 32-bit
-            0.63496391478473610825508220299150978151 + 1.2984575814159772948260423658078156203*I     # 64-bit
+            0.E-19
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).sinh()
+            0.634963914784736 + 1.29845758141598*I
         """
         _sig_on
-        return P.new_gen(gsh(self.g, prec))
+        return P.new_gen(gsh(x.g, pbw(precision)))
 
     def sqr(gen x):
         """
@@ -3524,16 +3870,19 @@ cdef class gen(sage.structure.element.RingElement):
         """
         x.sqrt({precision}): The square root of x.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(2).sqrt()
-            1.414213562373095048801688724               # 32-bit
-            1.4142135623730950488016887242096980786     # 64-bit
+            1.41421356237310
         """
-        if not precision: precision = prec
         _sig_on
-        return P.new_gen(gsqrt(x.g, precision))
+        return P.new_gen(gsqrt(x.g, pbw(precision)))
 
-    def sqrtn(gen x, n):
+    def sqrtn(gen x, n, precision=0):
         r"""
         x.sqrtn(n): return the principal branch of the n-th root
         of x, i.e., the one such that
@@ -3544,6 +3893,11 @@ cdef class gen(sage.structure.element.RingElement):
         second return value is 0.  If the argument is present and
         no square root exists, return 0 instead of raising an error.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         NOTE: intmods (modulo a prime) and $p$-adic numbers are
         allowed as arguments.
 
@@ -3552,59 +3906,68 @@ cdef class gen(sage.structure.element.RingElement):
             n -- integer
         OUTPUT:
             gen -- principal n-th root of x
-            gen -- z that gives the other roots
+            gen -- root of unity z that gives the other roots
 
         EXAMPLES:
             sage: s, z = pari(2).sqrtn(5)
             sage: z
-            0.3090169943749474241022934172 + 0.9510565162951535721164393334*I                         # 32-bit
-            0.30901699437494742410229341718281905886 + 0.95105651629515357211643933337938214340*I     # 64-bit
+            0.309016994374947 + 0.951056516295154*I
             sage: s
-            1.148698354997035006798626947               # 32-bit
-            1.1486983549970350067986269467779275894     # 64-bit
+            1.14869835499704
             sage: s^5
-            2.000000000000000000000000000               # 32-bit
-            2.0000000000000000000000000000000000000     # 64-bit
+            2.00000000000000
+            sage: z^5
+            1.00000000000000 + 5.42101086 E-19*I        # 32-bit
+            1.00000000000000 + 4.87890977618477 E-19*I  # 64-bit
             sage: (s*z)^5
-            2.000000000000000000000000000 - 1.396701498 E-250*I                      # 32-bit
-            2.0000000000000000000000000000000000000 - 1.0689317613194482765 E-693*I  # 64-bit
+            2.00000000000000 + 1.409462824 E-18*I       # 32-bit
+            2.00000000000000 + 7.58941520739853 E-19*I  # 64-bit
         """
-	# TODO: ???  lots of good examples in the PARI docs ???
+        # TODO: ???  lots of good examples in the PARI docs ???
         cdef GEN zetan
         t0GEN(n)
         _sig_on
-        ans = P.new_gen_noclear(gsqrtn(x.g, t0, &zetan, prec))
+        ans = P.new_gen_noclear(gsqrtn(x.g, t0, &zetan, pbw(precision)))
         return ans, P.new_gen(zetan)
 
-    def tan(gen x):
+    def tan(gen x, precision=0):
         """
         x.tan() -- tangent of x
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+
         EXAMPLES:
             sage: pari(2).tan()
-            -2.185039863261518991643306102                   # 32-bit
-            -2.1850398632615189916433061023136825434         # 64-bit
-            sage: pari('I').tan()
-            0.E-250 + 0.7615941559557648881194582826*I            # 32-bit
-            0.E-693 + 0.76159415595576488811945828260479359041*I  # 64-bit
+            -2.18503986326152
+            sage: C.<i> = ComplexField()
+            sage: pari(i).tan()
+            0.E-19 + 0.761594155955765*I
         """
         _sig_on
-        return P.new_gen(gtan(x.g, prec))
+        return P.new_gen(gtan(x.g, pbw(precision)))
 
-    def tanh(gen x):
+    def tanh(gen x, precision=0):
         """
         x.tanh() -- hyperbolic tangent of x
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
             sage: pari(1).tanh()
-            0.7615941559557648881194582826             # 32-bit
-            0.76159415595576488811945828260479359041   # 64-bit
-            sage: pari('I').tanh()
-            0.E-250 + 1.557407724654902230506974807*I              # 32-bit
-            -5.344658806597241382 E-694 + 1.5574077246549022305069748074583601731*I  # 64-bit
+            0.761594155955765
+            sage: C.<i> = ComplexField()
+            sage: pari(i).tanh()
+            0.E-19 + 1.55740772465490*I
         """
         _sig_on
-        return P.new_gen(gth(x.g, prec))
+        return P.new_gen(gth(x.g, pbw(precision)))
 
     def teichmuller(gen x):
         r"""
@@ -3620,32 +3983,41 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return P.new_gen(teich(x.g))
 
-    def theta(gen q, z):
+    def theta(gen q, z, precision=0):
         """
         q.theta(z): Jacobi sine theta-function.
 
+        If $q$ or $z$ is an exact argument, it is first converted to
+        a real or complex number using the optional parameter
+        precision (in bits).  If the arguments are inexact
+        (e.g. real), the smallest of their precisions is used in the
+        computation, and the parameter precision is ignored.
+
         EXAMPLES:
-            sage: pari('0.5').theta(2)
-            1.632025902952598833772353216               # 32-bit
-            1.6320259029525988337723532162682089972     # 64-bit
+            sage: pari(0.5).theta(2)
+            1.63202590295260
         """
         t0GEN(z)
         _sig_on
-        return P.new_gen(theta(q.g, t0, prec))
+        return P.new_gen(theta(q.g, t0, pbw(precision)))
 
-    def thetanullk(gen q, long k):
+    def thetanullk(gen q, long k, precision=0):
         """
         q.thetanullk(k): return the k-th derivative at z=0 of theta(q,z).
 
+        If $q$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $q$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         EXAMPLES:
-            sage: pari('0.5').thetanullk(1)
-            0.5489785325603405618549383537             # 32-bit
-            0.54897853256034056185493835370857284861   # 64-bit
+            sage: pari(0.5).thetanullk(1)
+            0.548978532560341
         """
         _sig_on
-        return P.new_gen(thetanullk(q.g, k, prec))
+        return P.new_gen(thetanullk(q.g, k, pbw(precision)))
 
-    def weber(gen x, flag=0):
+    def weber(gen x, flag=0, precision=0):
         r"""
         x.weber({flag=0}): One of Weber's f functions of x.
         flag is optional, and can be
@@ -3656,22 +4028,24 @@ cdef class gen(sage.structure.element.RingElement):
            2: function f2(x)=sqrt(2)*eta(2*x)/eta(x) such that
               $j=(f2^{24}+16)^3/f2^{24}$.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         TODO: Add further explanation from PARI manual.
 
         EXAMPLES:
-            sage: pari('I').weber()
-            1.189207115002721066717499971 - 6.98350749 E-251*I     # 32-bit
-            1.1892071150027210667174999705604759153 + 0.E-693*I    # 64-bit
-            sage: pari('I').weber(1)
-            1.090507732665257659207010656             # 32-bit
-            1.0905077326652576592070106557607079790   # 64-bit
-            sage: pari('I').weber(2)
-            1.090507732665257659207010656             # 32-bit
-            1.0905077326652576592070106557607079790   # 64-bit
+            sage: C.<i> = ComplexField()
+            sage: pari(i).weber()
+            1.18920711500272 + 0.E-19*I
+            sage: pari(i).weber(1)
+            1.09050773266526 + 0.E-19*I
+            sage: pari(i).weber(2)
+            1.09050773266526 + 0.E-19*I
         """
         _sig_on
-        return P.new_gen(weber0(x.g, flag, prec))
-
+        return P.new_gen(weber0(x.g, flag, pbw(precision)))
 
     def zeta(gen s, precision=0):
         """
@@ -3690,6 +4064,11 @@ cdef class gen(sage.structure.element.RingElement):
         $(1-p^{-k})\zeta(k)$ at negative integers $k$ such that
         $k\equiv 1\pmod{p-1}$ if $p$ is odd, and at odd $k$ if $p=2$.
 
+        If $x$ is an exact argument, it is first converted to a real
+        or complex number using the optional parameter precision (in
+        bits).  If $x$ is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
         INPUT:
             s -- gen (real, complex, or p-adic number)
 
@@ -3698,20 +4077,17 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: pari(2).zeta()
-            1.644934066848226436472415167             # 32-bit
-            1.6449340668482264364724151666460251892   # 64-bit
-            sage: pari('Pi^2/6')
-            1.644934066848226436472415167             # 32-bit
-            1.6449340668482264364724151666460251892   # 64-bit
+            1.64493406684823
+            sage: x = RR(pi)^2/6
+            sage: pari(x)
+            1.64493406684823
             sage: pari(3).zeta()
-            1.202056903159594285399738162             # 32-bit
-            1.2020569031595942853997381615114499908   # 64-bit
+            1.20205690315959
             sage: pari('1+5*7+2*7^2+O(7^3)').zeta()
             4*7^-2 + 5*7^-1 + O(7^0)
         """
-        if not precision: precision = prec
         _sig_on
-        return P.new_gen(gzeta(s.g, precision))
+        return P.new_gen(gzeta(s.g, pbw(precision)))
 
     ###########################################
     # 4: NUMBER THEORETICAL functions
@@ -3766,6 +4142,19 @@ cdef class gen(sage.structure.element.RingElement):
         """
         _sig_on
         return P.new_gen(pnqn(x.g))
+
+    def fibonacci(gen x):
+        r"""
+        Return the Fibonacci number of index x.
+
+        EXAMPLES:
+            sage: pari(18).fibonacci()
+            2584
+            sage: [pari(n).fibonacci() for n in range(10)]
+            [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+        """
+        _sig_on
+        return P.new_gen(fibo(long(x)))
 
 
     def gcd(gen x, y, long flag=0):
@@ -3900,10 +4289,64 @@ cdef class gen(sage.structure.element.RingElement):
     ##################################################
 
     def ellinit(self, int flag=0, precision=0):
-        if not precision:
-            precision = prec
+        """
+        Return the Pari elliptic curve object with Weierstrass
+        coefficients given by self, a list with 5 elements.
+
+        INPUT:
+            self -- a list of 5 coefficients
+            flag (optional, default: 0) -- if 0, ask for a Pari ell
+                   structure with 19 components; if 1, ask for a Pari
+                   sell structure with only the first 13 components
+            precision (optional, default: 0) -- the real precision to
+                   be used in the computation of the components of the
+                   Pari (s)ell structure; if 0, use the default 53
+                   bits.
+
+        NOTE: the parameter precision in ellinit() controls not only
+        the real precision of the resulting (s)ell structure, but also
+        the precision of most subsequent computations with this
+        elliptic curve.  You should therefore set it from the start to
+        the value you require.
+
+        OUTPUT:
+            gen -- either a Pari ell structure with 19 components (if
+                   flag=0), or a Pari sell structure with 13
+                   components (if flag=1)
+
+        EXAMPLES:
+        An elliptic curve with integer coefficients:
+            sage: e = pari([0,1,0,1,0]).ellinit(); e
+            [0, 1, 0, 1, 0, 4, 2, 0, -1, -32, 224, -48, 2048/3, [0.E-28, -0.500000000000000 - 0.866025403784439*I, -0.500000000000000 + 0.866025403784439*I]~, 3.37150070962519, 1.68575035481260 + 2.15651564749964*I, -0.687257278928726 + 7.57138254 E-30*I, -0.343628639464363 - 1.37139930484298*I, 7.27069403586288] # 32-bit
+            [0, 1, 0, 1, 0, 4, 2, 0, -1, -32, 224, -48, 2048/3, [0.E-38, -0.500000000000000 - 0.866025403784439*I, -0.500000000000000 + 0.866025403784439*I]~, 3.37150070962519, 1.68575035481260 + 2.15651564749964*I, -0.687257278928726 + 1.76284987179941 E-39*I, -0.343628639464363 - 1.37139930484298*I, 7.27069403586288] # 64-bit
+
+        Its inexact components have the default precision of 53 bits:
+            sage: RR(e[14])
+            3.37150070962519
+
+        We can compute this to higher precision:
+            sage: R = RealField(150)
+            sage: e = pari([0,1,0,1,0]).ellinit(precision=150)
+            sage: R(e[14])
+            3.3715007096251920857424073155981539790016018
+
+        Using flag=1 returns a short elliptic curve Pari object:
+            sage: pari([0,1,0,1,0]).ellinit(flag=1)
+            [0, 1, 0, 1, 0, 4, 2, 0, -1, -32, 224, -48, 2048/3]
+
+        The coefficients can be any ring elements that convert to
+        Pari:
+            sage: pari([0,1/2,0,-3/4,0]).ellinit(flag=1)
+            [0, 1/2, 0, -3/4, 0, 2, -3/2, 0, -9/16, 40, -116, 117/4, 256000/117]
+            sage: pari([0,0.5,0,-0.75,0]).ellinit(flag=1)
+            [0, 0.500000000000000, 0, -0.750000000000000, 0, 2.00000000000000, -1.50000000000000, 0, -0.562500000000000, 40.0000000000000, -116.000000000000, 29.2500000000000, 2188.03418803419]
+            sage: pari([0,I,0,1,0]).ellinit(flag=1)
+            [0, I, 0, 1, 0, 4*I, 2, 0, -1, -64, 352*I, -80, 16384/5]
+            sage: pari([0,x,0,2*x,1]).ellinit(flag=1)
+            [0, x, 0, 2*x, 1, 4*x, 4*x, 4, -4*x^2 + 4*x, 16*x^2 - 96*x, -64*x^3 + 576*x^2 - 864, 64*x^4 - 576*x^3 + 576*x^2 - 432, (256*x^6 - 4608*x^5 + 27648*x^4 - 55296*x^3)/(4*x^4 - 36*x^3 + 36*x^2 - 27)]
+        """
         _sig_on
-        return P.new_gen(ellinit0(self.g, flag, precision))
+        return P.new_gen(ellinit0(self.g, flag, pbw(precision)))
 
     def ellglobalred(self):
         """
@@ -4152,24 +4595,11 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
             sage: e.ellbil([1, 0], [-1, 1])
-            0.4181889844988605856298894582              # 32-bit
-            0.41818898449886058562988945821587638238    # 64-bit
+            0.418188984498861
         """
-##         Increasing the precision does not increase the precision
-##         result, since quantities related to the elliptic curve were
-##         computed to low precision.
-##             sage: set_real_precision(10)
-##             sage: e.ellbil([1, 0], [-1, 1])
-##             0.4181889844988605856298894585
-##         However, if we recompute the elliptic curve after increasing
-##         the precision, then the bilinear pairing will be computed to
-##         higher precision as well.
-##             sage: e = pari([0,1,1,-2,0]).ellinit()
-##             sage: e.ellbil([1, 0], [-1, 1])
-##             0.4181889844988605856298894582
-##             sage: set_real_precision(5)
         t0GEN(z0); t1GEN(z1)
         _sig_on
+        # the prec argument has no effect
         return self.new_gen(bilhell(self.g, t0, t1, prec))
 
     def ellchangecurve(self, ch):
@@ -4206,13 +4636,13 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: e = pari([0,0,0,-82,0]).ellinit()
             sage: e.elleta()
-            [3.605463601432652085915820564, 10.81639080429795625774746169*I] # 32-bit
-            [3.6054636014326520859158205642077267748, 10.816390804297956257747461692623180324*I] # 64-bit
+            [3.60546360143265, 10.8163908042980*I]
         """
         _sig_on
+        # the prec argument has no effect
         return self.new_gen(elleta(self.g, prec))
 
-    def ellheight(self, a, flag=2):
+    def ellheight(self, a, flag=2, precision=0):
         """
         e.ellheight(a, {flag=2}): return the global N\'eron-Tate height
         of the point a on the elliptic curve e.
@@ -4228,22 +4658,24 @@ cdef class gen(sage.structure.element.RingElement):
                  1 -- uses Tate's $4^n$ algorithm
                  2 -- uses Mestre's AGM algorithm (this is the default,
                       being faster than the other two)
+            precision (optional) -- the precision of the result, in bits.
+
+        Note that the precision argument is ignored when flag=1 or 2.
+        If you want higher precision while using one of these flags,
+        you should first call ellinit with the desired precision.
 
         EXAMPLES:
             sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
             sage: e.ellheight([1,0])
-            0.4767116593437395373794860589 # 32-bit
-            0.47671165934373953737948605888465305946 # 64-bit
+            0.476711659343740
             sage: e.ellheight([1,0], flag=0)
-            0.4767116593437395373794860589 # 32-bit
-            0.47671165934373953737948605888465305946 # 64-bit
+            0.476711659343740
             sage: e.ellheight([1,0], flag=1)
-            0.4767116593437395373794860589 # 32-bit
-            0.47671165934373953737948605888465305946 # 64-bit
+            0.476711659343740
         """
         t0GEN(a)
         _sig_on
-        return self.new_gen(ellheight0(self.g, t0, flag, prec))
+        return self.new_gen(ellheight0(self.g, t0, flag, pbw(precision)))
 
     def ellheightmatrix(self, x):
         """
@@ -4261,11 +4693,11 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
             sage: e.ellheightmatrix([[1,0], [-1,1]])
-            [0.4767116593437395373794860589, 0.4181889844988605856298894582; 0.4181889844988605856298894582, 0.6866670833055865857235521030] # 32-bit
-            [0.47671165934373953737948605888465305946, 0.41818898449886058562988945821587638238; 0.41818898449886058562988945821587638238, 0.68666708330558658572355210295409678906] # 64-bit
+            [0.476711659343740, 0.418188984498861; 0.418188984498861, 0.686667083305587]
         """
         t0GEN(x)
         _sig_on
+        # the argument prec has no effect
         return self.new_gen(mathell(self.g, t0, prec))
 
     def ellisoncurve(self, x):
@@ -4428,18 +4860,19 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: e.elllseries(2.1)
-            0.4028380479566454783
+            0.402838047956645
             sage: e.elllseries(1)   # random, close to 0
-            -3.241361318972148540775276458 E-29
+            1.822829333527862 E-19
             sage: e.elllseries(-2)
             0
 
         The following example differs for the last digit on 32 vs. 64 bit systems
             sage: e.elllseries(2.1, A=1.1)
-	    0.402838047956645478...
+            0.402838047956645
         """
         t0GEN(s); t1GEN(A)
         _sig_on
+        # the argument prec has no effect
         return self.new_gen(lseriesell(self.g, t0, t1, prec))
 
     def ellminimalmodel(self):
@@ -4509,9 +4942,9 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: e.ellordinate(0)
             [0, -1]
-            sage: e.ellordinate(I)
-            [0.5822035897217411772333894787 - 1.386060824641769718531183421*I, -1.582203589721741177233389479 + 1.386060824641769718531183421*I] # 32-bit
-            [0.58220358972174117723338947874993600727 - 1.3860608246417697185311834209833653345*I, -1.5822035897217411772333894787499360073 + 1.3860608246417697185311834209833653345*I] # 64-bit
+            sage: C.<i> = ComplexField()
+            sage: e.ellordinate(i)
+            [0.582203589721741 - 1.38606082464177*I, -1.58220358972174 + 1.38606082464177*I]
             sage: e.ellordinate(1+3*5^1+O(5^3))
             [4*5 + 5^2 + O(5^3), 4 + 3*5^2 + O(5^3)]
             sage: e.ellordinate('z+2*z^2+O(z^4)')
@@ -4519,6 +4952,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         t0GEN(x)
         _sig_on
+        # the prec argument has no effect
         return self.new_gen(ordell(self.g, t0, prec))
 
     def ellpointtoz(self, P):
@@ -4535,8 +4969,7 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: e = pari([0,0,0,1,0]).ellinit()
             sage: e.ellpointtoz([0,0])
-            1.854074677301371918433850347 # 32-bit
-            1.8540746773013719184338503471952600462 # 64-bit
+            1.85407467730137
 
             The point at infinity is sent to the complex number 0:
             sage: e.ellpointtoz([0])
@@ -4544,6 +4977,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         t0GEN(P)
         _sig_on
+        # the prec argument has no effect
         return self.new_gen(zell(self.g, t0, prec))
 
     def ellpow(self, z, n):
@@ -4608,9 +5042,16 @@ cdef class gen(sage.structure.element.RingElement):
         e.ellsigma(z, {flag=0}): return the value at the complex point z
         of the Weierstrass $\sigma$ function associated to the elliptic
         curve e.
+
+        EXAMPLES:
+            sage: e = pari([0,0,0,1,0]).ellinit()
+            sage: C.<i> = ComplexField()
+            sage: e.ellsigma(2+i)
+            1.43490215804166 + 1.80307856719256*I
         """
         t0GEN(z)
         _sig_on
+        # the prec argument has no effect
         return self.new_gen(ellsigma(self.g, t0, flag, prec))
 
     def ellsub(self, z0, z1):
@@ -4684,14 +5125,15 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: e = pari([0,0,0,1,0]).ellinit()
             sage: e.ellzeta(1)
-            1.064798412958827927449913418 + 3.491753745 E-251*I # 32-bit
-            1.0647984129588279274499134181598985072 - 8.016988209895862073 E-694*I # 64-bit
-            sage: e.ellzeta(I-1)
-            -0.3501226585230491632779704180 - 0.3501226585230491632779704180*I # 32-bit
-            -0.35012265852304916327797041802108326818 - 0.35012265852304916327797041802108326818*I # 64-bit
+            1.06479841295883 + 0.E-19*I                # 32-bit
+            1.06479841295883 - 5.42101086242752 E-20*I # 64-bit
+            sage: C.<i> = ComplexField()
+            sage: e.ellzeta(i-1)
+            -0.350122658523049 - 0.350122658523049*I
         """
         t0GEN(z)
         _sig_on
+        # the prec argument has no effect
         return self.new_gen(ellzeta(self.g, t0, prec))
 
     def ellztopoint(self, z):
@@ -4709,9 +5151,10 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: e = pari([0,0,0,1,0]).ellinit()
-            sage: e.ellztopoint(1+I)
-            [0.E-251 - 1.021522867956699099826892460*I, -0.1490728137010962128964506933 - 0.1490728137010962128964506933*I] # 32-bit
-            [0.E-694 - 1.0215228679566990998268924596833713669*I, -0.14907281370109621289645069325289375075 - 0.14907281370109621289645069325289375075*I] # 64-bit
+            sage: C.<i> = ComplexField()
+            sage: e.ellztopoint(1+i)
+            [0.E-19 - 1.02152286795670*I, -0.149072813701096 - 0.149072813701096*I] # 32-bit
+            [8.67655312026478 E-20 - 1.02152286795670*I, -0.149072813701096 - 0.149072813701096*I] # 64-bit
 
             Complex numbers belonging to the period lattice of e are of
             course sent to the point at infinity on e:
@@ -4720,6 +5163,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         t0GEN(z)
         _sig_on
+        # the prec argument has no effect
         return self.new_gen(pointell(self.g, t0, prec))
 
     def omega(self):
@@ -4729,8 +5173,7 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES:
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: e.omega()
-            [1.269209304279553421688794617, 0.6346046521397767108443973084 + 1.458816616938495229330889613*I]   # 32-bit
-            [1.2692093042795534216887946167545473052, 0.63460465213977671084439730837727365260 + 1.4588166169384952293308896129036752572*I]   # 64-bit
+            [1.26920930427955, 0.634604652139777 + 1.45881661693850*I]
         """
         return self[14:16]
 
@@ -5305,14 +5748,14 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(polresultant0(self.g, t0, self.get_var(var), flag))
 
-    def polroots(self, flag=0):
+    def polroots(self, flag=0, precision=0):
         """
         polroots(x,{flag=0}): complex roots of the polynomial x. flag
         is optional, and can be 0: default, uses Schonhage's method modified
         by Gourdon, or 1: uses a modified Newton method.
         """
         _sig_on
-        return self.new_gen(roots0(self.g, flag, prec))
+        return self.new_gen(roots0(self.g, flag, pbw(precision)))
 
     def polrootsmod(self, p, flag=0):
         t0GEN(p)
@@ -5472,7 +5915,7 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(adj(self.g)).Mat()
 
-    def qflll(self, long flag=0):
+    def qflll(self, long flag=0, precision=0):
         """
         qflll(x,{flag=0}): LLL reduction of the vectors forming the
         matrix x (gives the unimodular transformation matrix). The
@@ -5486,9 +5929,9 @@ cdef class gen(sage.structure.element.RingElement):
         polynomial coefficients.
         """
         _sig_on
-        return self.new_gen(qflll0(self.g,flag,0)).Mat()
+        return self.new_gen(qflll0(self.g,flag,pbw(precision))).Mat()
 
-    def qflllgram(self, long flag=0, long prec=0):
+    def qflllgram(self, long flag=0, precision=0):
         """
         qflllgram(x,{flag=0}): LLL reduction of the lattice whose gram
         matrix is x (gives the unimodular transformation matrix). flag
@@ -5499,7 +5942,7 @@ cdef class gen(sage.structure.element.RingElement):
         the coefficients are polynomials.
         """
         _sig_on
-        return self.new_gen(qflllgram0(self.g,flag,prec)).Mat()
+        return self.new_gen(qflllgram0(self.g,flag,pbw(precision))).Mat()
 
     def lllgram(self):
         return self.qflllgram(0)
@@ -6058,7 +6501,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def elleisnum(self, long k, int flag=0):
         """
-        om.elleisnum(k, {flag=0}, {prec}): om=[om1,om2] being a
+        om.elleisnum(k, {flag=0}): om=[om1,om2] being a
             2-component vector giving a basis of a lattice L and k an
             even positive integer, computes the numerical value of the
             Eisenstein series of weight k. When flag is non-zero and
@@ -6069,7 +6512,6 @@ cdef class gen(sage.structure.element.RingElement):
             om -- gen, 2-component vector giving a basis of a lattice L
             k  -- int (even positive)
             flag -- int (default 0)
-            pref -- precision
 
         OUTPUT:
             gen -- numerical value of E_k
@@ -6078,19 +6520,16 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: om = e.omega()
             sage: om
-            [2.490212560855055075321357792, 1.971737701551648204422407698*I]                       # 32-bit
-            [2.4902125608550550753213577919423024602, 1.9717377015516482044224076981513423349*I]   # 64-bit
+            [2.49021256085506, 1.97173770155165*I]
             sage: om.elleisnum(2)
-            -5.288649339654257621791534695              # 32-bit
-            -5.2886493396542576217915346952045657616    # 64-bit
+            -5.28864933965426
             sage: om.elleisnum(4)
-            112.0000000000000000000000000               # 32-bit
-            112.00000000000000000000000000000000000     # 64-bit
+            112.000000000000
             sage: om.elleisnum(100)
-            2.153142485760776361127070349 E50              # 32-bit
-            2.1531424857607763611270703492586704424 E50    # 64-bit
+            2.15314248576078 E50
         """
         _sig_on
+        # the argument prec has no effect
         return self.new_gen(elleisnum(self.g, k, flag, prec))
 
     def ellwp(self, z='z', long n=20, long flag=0):
@@ -6126,16 +6565,14 @@ cdef class gen(sage.structure.element.RingElement):
 
         Compute P(1).
             sage: E.ellwp(1)
-            13.96586952574849779469497770 + 1.465441833 E-249*I                       # 32-bit
-            13.965869525748497794694977695009324221 + 5.607702583566084181 E-693*I    # 64-bit
+            13.9658695257485 + 1.140149682... E-18*I
 
-        Compute P(1+I), where I = sqrt(-1).
-            sage: E.ellwp(pari("1+I"))
-            -1.115106825655550879209066492 + 2.334190523074698836184798794*I                       # 32-bit
-            -1.1151068256555508792090664916218413986 + 2.3341905230746988361847987936140321964*I   # 64-bit
-            sage: E.ellwp("1+I")
-            -1.115106825655550879209066492 + 2.334190523074698836184798794*I                       # 32-bit
-            -1.1151068256555508792090664916218413986 + 2.3341905230746988361847987936140321964*I   # 64-bit
+        Compute P(1+i), where i = sqrt(-1).
+            sage: C.<i> = ComplexField()
+            sage: E.ellwp(pari(1+i))
+            -1.11510682565555 + 2.33419052307470*I
+            sage: E.ellwp(1+i)
+            -1.11510682565555 + 2.33419052307470*I
 
         The series expansion, to the default 20 precision:
             sage: E.ellwp()
@@ -6146,19 +6583,18 @@ cdef class gen(sage.structure.element.RingElement):
             z^-2 + 31/15*z^2 + O(z^4)
 
         Next we use the version where the input is generators for a lattice:
-            sage: pari(['1.2692', '0.63 + 1.45*I']).ellwp(1)
-            13.96561469366894364802003736 + 0.0006448292728105361474541633318*I                        # 32-bit
-            13.965614693668943648020037358850990554 + 0.00064482927281053614745416280316868200698*I    # 64-bit
+            sage: pari([1.2692, 0.63 + 1.45*i]).ellwp(1)
+            13.9656146936689 + 0.000644829272810537*I
 
         With flag 1 compute the pair P(z) and P'(z):
             sage: E.ellwp(1, flag=1)
-            [13.96586952574849779469497770 + 1.465441833 E-249*I, 50.56193008800727525558465690 + 4.46944479 E-249*I]    # 32-bit
-            [13.965869525748497794694977695009324221 + 5.607702583566084181 E-693*I, 50.561930088007275255584656898892400699 + 1.7102908181111172423 E-692*I]   # 64-bit
+            [13.9658695257485 + 1.140149682 E-18*I, 50.5619300880073 + 1.040834085 E-17*I] # 32-bit
+            [13.9658695257485 + 1.14014968292839 E-18*I, 50.5619300880073 + 6.93889390390723 E-18*I] # 64-bit
 
         With flag=2, the computed pair is (x,y) on the curve instead of [P(z),P'(z)]:
             sage: E.ellwp(1, flag=2)
-            [14.29920285908183112802831103 + 1.465441833 E-249*I, 50.06193008800727525558465690 + 4.46944479 E-249*I]    # 32-bit
-            [14.299202859081831128028311028342657555 + 5.607702583566084181 E-693*I, 50.061930088007275255584656898892400699 + 1.7102908181111172423 E-692*I]   # 64-bit
+            [14.2992028590818 + 1.140149682 E-18*I, 50.0619300880073 + 1.040834085 E-17*I] # 32-bit
+            [14.2992028590818 + 1.14014968292839 E-18*I, 50.0619300880073 + 6.93889390390723 E-18*I] # 64-bit
         """
         t0GEN(z)
         if n < 0:
@@ -6241,7 +6677,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
               This design obviously involves some performance penalties
               over the way PARI works, but it scales much better and is
-              far more robus for large projects.
+              far more robust for large projects.
 
             * If you do not want prime numbers, put maxprime=2, but be
               careful because many PARI functions require this table.  If
@@ -6253,7 +6689,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             return  # pari already initialized.
 
         global initialized, num_primes, ZERO, ONE, TWO, avma, top, bot, \
-               initial_bot, initial_top
+               initial_bot, initial_top, prec
 
 
         #print "Initializing PARI (size=%s, maxprime=%s)"%(size,maxprime)
@@ -6267,6 +6703,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         _sig_off
 
         GP_DATA.fmt.prettyp = 0
+
+        # how do I get the following to work? seems to be a circular import
+        #from sage.rings.real_mpfr import RealField
+        #prec_bits = RealField().prec()
+        prec = prec_bits_to_words(53)
+        GP_DATA.fmt.sigd = prec_bits_to_dec(53)
 
         # Take control of SIGSEGV back from PARI.
         import signal
@@ -6355,25 +6797,39 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def set_real_precision(self, long n):
         """
-        Sets the PARI default real precision, both for creation of
-        new objects and for printing.  This is the number of digits
-        *IN DECIMAL* that real numbers are printed or computed to
-        by default.
+        Sets the PARI default real precision.
+
+        This is used both for creation of new objects from strings and
+        for printing.  It is the number of digits *IN DECIMAL* in
+        which real numbers are printed.  It also determines the
+        precision of objects created by parsing strings
+        (e.g. pari('1.2')), which is *not* the normal way of creating
+        new pari objects in Sage.  It has *no* effect on the precision
+        of computations within the pari library.
 
         Returns the previous PARI real precision.
         """
         cdef unsigned long k
-        global prec
 
         k = GP_DATA.fmt.sigd
         s = str(n)
         _sig_on
         sd_realprecision(s, 2)
-        prec = GP_DATA.fmt.sigd
         _sig_off
         return int(k)  # Python int
 
     def get_real_precision(self):
+        """
+        Returns the current PARI default real precision.
+
+        This is used both for creation of new objects from strings and
+        for printing.  It is the number of digits *IN DECIMAL* in
+        which real numbers are printed.  It also determines the
+        precision of objects created by parsing strings
+        (e.g. pari('1.2')), which is *not* the normal way of creating
+        new pari objects in Sage.  It has *no* effect on the precision
+        of computations within the pari library.
+        """
         return GP_DATA.fmt.sigd
 
     def set_series_precision(self, long n):
@@ -6498,13 +6954,13 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         EXAMPLES:
             sage: pari.double_to_gen(1)
-            1.0000000000000000000
+            1.00000000000000
             sage: pari.double_to_gen(1e30)
-            1.0000000000000000199 E30
+            1.00000000000000 E30
             sage: pari.double_to_gen(0)
             0.E-15
             sage: pari.double_to_gen(-sqrt(RDF(2)))
-            -1.4142135623730951455
+            -1.41421356237310
         """
         # Pari has an odd concept where it attempts to track the accuracy
         # of floating-point 0; a floating-point zero might be 0.0e-20
@@ -6590,6 +7046,47 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             [0, 1; 2, 3]
             sage: pari(x^2-3)
             x^2 - 3
+
+	    sage: a = pari(1); a, a.type()
+            (1, 't_INT')
+            sage: a = pari(1/2); a, a.type()
+            (1/2, 't_FRAC')
+            sage: a = pari(1/2); a, a.type()
+            (1/2, 't_FRAC')
+
+        Conversion from reals uses the real's own precision, here 53 bits (the default):
+            sage: a = pari(1.2); a, a.type(), a.precision()
+            (1.20000000000000, 't_REAL', 4) # 32-bit
+            (1.20000000000000, 't_REAL', 3) # 64-bit
+
+        We get the same answer if we use strings instead of reals:
+
+            sage: a = pari('1.2'); a, a.type(), a.precision()
+            (1.20000000000000, 't_REAL', 4) # 32-bit
+            (1.20000000000000, 't_REAL', 3) # 64-bit
+
+        Conversion from matrices is supported , but not from vectors; use
+        lists instead:
+
+            sage: a = pari(matrix(2,3,[1,2,3,4,5,6])); a, a.type()
+            ([1, 2, 3; 4, 5, 6], 't_MAT')
+
+            sage: v = vector([1.2,3.4,5.6])
+            sage: v.pari()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.modules.free_module_element.FreeModuleElement' object has no attribute 'pari'
+            sage: b = pari(list(v)); b,b.type()
+            ([1.20000000000000, 3.40000000000000, 5.60000000000000], 't_VEC')
+
+        Some more exotic examples:
+            sage: K.<a>=NumberField(x^3-2)
+            sage: pari(K)
+            [x^3 - 2, [1, 1], -108, 1, [[1, 1.25992104989487, 1.58740105196820; 1, -0.629960524947437 - 1.09112363597172*I, -0.793700525984100 + 1.37472963699860*I], [1, 1.25992104989487, 1.58740105196820; 1, -1.72108416091916, 0.581029111014503; 1, 0.461163111024285, -2.16843016298270], 0, [3, 0, 0; 0, 0, 6; 0, 6, 0], [6, 0, 0; 0, 6, 0; 0, 0, 3], [2, 0, 0; 0, 0, 1; 0, 1, 0], [2, [0, 0, 2; 1, 0, 0; 0, 1, 0]]], [1.25992104989487, -0.629960524947437 - 1.09112363597172*I], [1, x, x^2], [1, 0, 0; 0, 1, 0; 0, 0, 1], [1, 0, 0, 0, 0, 2, 0, 2, 0; 0, 1, 0, 1, 0, 0, 0, 0, 2; 0, 0, 1, 0, 1, 0, 1, 0, 0]]
+
+            sage: E = EllipticCurve('37a1')
+            sage: pari(E)
+            [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, [0.837565435283323, 0.269594436405445, -1.10715987168877]~, 2.99345864623196, 2.45138938198679*I, -0.471319277956811, -1.43545651866868*I, 7.33813274078958]
         """
         cdef int length, i
         cdef gen v
@@ -6636,33 +7133,33 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef _an_element_c_impl(self):  # override this in SageX
         return self.ZERO
 
-    def new_with_prec(self, s, long precision=0):
-        r"""
-        pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
-        with at least \code{precision} decimal \emph{digits} of precision.
-        """
-        global prec
-        cdef unsigned long old_prec
-        old_prec = prec
-        if not precision:
-            precision = prec
-        self.set_real_precision(precision)
-        x = self(s)
-        self.set_real_precision(old_prec)
-        return x
+# Commented out by John Cremona 2008-09-06 -- never used and confusing.
+#
+#     def new_with_prec(self, s, long precision=0):
+#         r"""
+#         pari.new_with_prec(self, s, precision) creates s as a PARI gen
+#         with at least \code{precision} decimal \emph{digits} of precision.
+#         """
+#         global prec
+#         cdef unsigned long old_prec
+#         old_prec = prec
+#         if not precision:
+#             precision = prec
+#         self.set_real_precision(precision)
+#         x = self(s)
+#         self.set_real_precision(old_prec)
+#         return x
 
-    def new_with_bits_prec(self, s, long precision=0):
+    def new_with_bits_prec(self, s, long precision):
         r"""
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
         with (at most) precision \emph{bits} of precision.
         """
-        global prec
-
         cdef unsigned long old_prec
-        old_prec = prec
-        precision = long(precision / 3.4)+1     # be safe, since log_2(10) = 3.3219280948873626
+        old_prec = GP_DATA.fmt.sigd
+        precision = prec_bits_to_dec(precision)
         if not precision:
-            precision = prec
+            precision = old_prec
         self.set_real_precision(precision)
         x = self(s)
         self.set_real_precision(old_prec)
@@ -6853,70 +7350,32 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             self.init_primes(max(2*num_primes,20*n))
             return self.nth_prime(n)
 
-    def euler(self):
+    def euler(self, precision=0):
         """
-        Return Euler's constant to the current real precision.
+        Return Euler's constant to the requested real precision (in bits).
 
         EXAMPLES:
             sage: pari.euler()
-            0.5772156649015328606065120901             # 32-bit
-            0.57721566490153286060651209008240243104   # 64-bit
-            sage: orig = pari.get_real_precision(); orig
-            28         # 32-bit
-            38         # 64-bit
-            sage: _ = pari.set_real_precision(50)
-            sage: pari.euler()
-            0.57721566490153286060651209008240243104215933593992
-
-        We restore precision to the default.
-            sage: pari.set_real_precision(orig)
-            50
-
-        Euler is returned to the original precision:
-            sage: pari.euler()
-            0.5772156649015328606065120901              # 32-bit
-            0.57721566490153286060651209008240243104    # 64-bit
+            0.577215664901533
+            sage: pari.euler(precision=100).python()
+            0.577215664901532860606512090082...
         """
-        if not precision:
-            precision = prec
         _sig_on
-        consteuler(precision)
-        return self.new_gen(geuler)
+        return self.new_gen(mpeuler(pbw(precision)))
 
-    def pi(self):
+    def pi(self, precision=0):
         """
-        Return the value of the constant pi = 3.1415 to the current
-        real precision.
+        Return the value of the constant pi to the requested real
+        precision (in bits).
 
         EXAMPLES:
             sage: pari.pi()
-            3.141592653589793238462643383             # 32-bit
-            3.1415926535897932384626433832795028842   # 64-bit
-            sage: orig_prec = pari.set_real_precision(5)
-            sage: pari.pi()
-            3.1416
-
-            sage: pari.get_real_precision()
-            5
-            sage: _ = pari.set_real_precision(40)
-            sage: pari.pi()
-            3.141592653589793238462643383279502884197
-
-
-        We restore precision to the default.
-            sage: _ = pari.set_real_precision(orig_prec)
-
-        Note that pi is now computed to the original precision:
-
-            sage: pari.pi()
-            3.141592653589793238462643383              # 32-bit
-            3.1415926535897932384626433832795028842    # 64-bit
+            3.14159265358979
+            sage: pari.pi(precision=100).python()
+            3.1415926535897932384626433832...
         """
-        if not precision:
-            precision = prec
         _sig_on
-        constpi(precision)
-        return self.new_gen(gpi)
+        return self.new_gen(mppi(pbw(precision)))
 
     def pollegendre(self, long n, v=-1):
         """

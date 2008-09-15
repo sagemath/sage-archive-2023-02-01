@@ -2751,16 +2751,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         For internal use only.
         """
-        K = self.base_ring()
-        oldprec = None
-        if is_RealField(K) or sage.rings.complex_field.is_ComplexField(K):
-            oldprec = pari.get_real_precision()
-            pari.set_real_precision(int(K.prec()*3.5)+1)
         vals = [x._pari_() for x in self.list()]
-        temp = pari(vals).Polrev(name)
-        if oldprec is not None:
-            pari.set_real_precision(oldprec)
-        return temp
+        return pari(vals).Polrev(name)
 
     def _pari_init_(self):
         return repr(self._pari_())
@@ -3400,10 +3392,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if algorithm == 'pari':
                 if not input_arbprec:
                     self = self.change_ring(CC if input_complex else RR)
-                n = pari.get_real_precision()
-                pari.set_real_precision(int(L.prec()/3.2) + 1)
-                ext_rts = pari(self).polroots()
-                pari.set_real_precision(n)
+                ext_rts = pari(self).polroots(precision = L.prec())
 
             if algorithm == 'numpy':
                 import numpy

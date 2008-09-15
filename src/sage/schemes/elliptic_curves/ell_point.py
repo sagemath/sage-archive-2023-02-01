@@ -1043,9 +1043,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if precision is None:
             precision = rings.RealField().precision()
 
-        # Note: we construct the pari_curve with the correct
-        # precision; then it is not necessary to pass the precision on
-        # to the height function.
         try:
             h = self.curve().pari_curve(prec=precision).ellheight([self[0], self[1]])
             return rings.RealField(precision)(h)
@@ -1126,7 +1123,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             if not rings.is_RealField(emb.codomain()):
                 raise NotImplementedError, "elliptic logarithm not yet implemented for complex embeddings."
             else:
-                # Get the precision of the supplied mebedding
+                # Get the precision of the supplied embedding
                 prec = emb.codomain().precision()
                 # if the precision parameter is greater, refine the embedding:
                 if precision > prec:

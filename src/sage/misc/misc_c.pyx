@@ -12,6 +12,7 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import sys
 
 include "../ext/stdsage.pxi"
 include "../ext/python_sequence.pxi"
@@ -471,4 +472,8 @@ def test_bitset(py_a, py_b, long n):
     bitset_clear(b)
     bitset_clear(r)
     bitset_clear(s)
-
+#################################################################
+# 32/64-bit computer?
+#################################################################
+is_64_bit = sys.maxint >= 9223372036854775807
+is_32_bit = not is_64_bit

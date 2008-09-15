@@ -20,7 +20,7 @@ class Sha(SageObject):
     # Functions related to the BSD conjecture.
     ########################################################################
 
-    def an_numerical(self, prec = 53,
+    def an_numerical(self, prec = None,
                          use_database=True, proof=None):
         """
         Return the numerical analytic order of Sha, which is
@@ -77,6 +77,8 @@ class Sha(SageObject):
             1.0000000000000000000000,
             1.0000000000000000000000000]
         """
+        if prec is None:
+            prec = RealField().precision()
         RR = RealField(prec)
         prec2 = prec+2
         RR2 = RealField(prec2)

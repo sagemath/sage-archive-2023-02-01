@@ -329,11 +329,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         Coerce the object using the \code{pari} function:
             sage: a = ComplexNumber(2,1)
             sage: pari(a)
-            2.000000000000000000 + 1.0000000000000000000*I
+            2.00000000000000 + 1.00000000000000*I
             sage: type(pari(a))
             <type 'sage.libs.pari.gen.gen'>
             sage: a._pari_()
-            2.000000000000000000 + 1.0000000000000000000*I
+            2.00000000000000 + 1.00000000000000*I
             sage: type(a._pari_())
             <type 'sage.libs.pari.gen.gen'>
         """

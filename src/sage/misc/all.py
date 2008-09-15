@@ -3,12 +3,13 @@ from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange
                   get_verbose_files, unset_verbose_files, get_verbose,
                   version, banner, add, union, uniq, powerset, subsets,
                   exists, forall,
-                  random_sublist, mul, prod, walltime, generic_cmp,
+                  random_sublist, mul, walltime, generic_cmp,
                   repr_lincomb, tmp_dir, tmp_filename,
                   pad_zeros,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
-                  is_32_bit, is_64_bit, newton_method_sizes,
-                  running_total)
+                  is_32_bit, is_64_bit, newton_method_sizes)
+
+from misc_c import (prod, running_total)
 
 from html import html
 

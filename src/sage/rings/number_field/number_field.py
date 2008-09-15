@@ -2597,6 +2597,10 @@ class NumberField_generic(number_field_base.NumberField):
             always be integral; however, it may only be only "almost"
             LLL-reduced when the precision is not sufficiently high.
 
+            If the following run-time error occurs:
+            "PariError: not a definite matrix in lllgram (42)"
+            try increasing the prec parameter,
+
         EXAMPLES:
             sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
             sage: F.maximal_order().basis()
@@ -2612,10 +2616,14 @@ class NumberField_generic(number_field_base.NumberField):
             sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
             sage: F.integral_basis()
             [1, alpha, alpha^2, 1/2*alpha^3 + 1/2*alpha^2]
-            sage: F.reduced_basis(prec=10)
-            [1, alpha, alpha^2 - 15*alpha + 8, alpha^3 - 16*alpha^2 + 471*alpha + 266719]
-            sage: F.reduced_basis(prec=300)
-            [1, alpha, alpha^2 - 15*alpha, alpha^3 - 16*alpha^2 + 469*alpha + 267109]
+            sage: F.reduced_basis(prec=64)
+            [1, alpha, alpha^2 - 15*alpha, alpha^3 - 16*alpha^2 + 469*alpha + 267109] # 32-bit
+            Traceback (most recent call last):                 # 64-bit
+            ...                                                # 64-bit
+            PariError: not a definite matrix in lllgram (42)   # 64-bit
+            sage: F.reduced_basis(prec=96)
+            [1, alpha, alpha^2 - 15*alpha + 1, alpha^3 - 16*alpha^2 + 469*alpha + 267109] # 32-bit
+            [1, alpha, alpha^2 - 15*alpha, alpha^3 - 16*alpha^2 + 469*alpha + 267109] # 64-bit
         """
         if self.is_totally_real():
             try:
@@ -2645,7 +2653,7 @@ class NumberField_generic(number_field_base.NumberField):
                                      for i in range(d)]
         else:
             M = self.Minkowski_embedding(self.integral_basis(), prec=prec)
-            T = sage.matrix.all.Matrix(d, pari(M).qflll()._sage_())
+            T = pari(M).qflll().python()
             self.__reduced_basis = [ self(v) for v in T.columns() ]
             if prec is None:
                 ## this is the default choice for Minkowski_embedding
@@ -2685,6 +2693,10 @@ class NumberField_generic(number_field_base.NumberField):
             (which is known to be integral for theoretical reasons).
             Thus the need for the prec flag above.
 
+            If the following run-time error occurs:
+            "PariError: not a definite matrix in lllgram (42)"
+            try increasing the prec parameter,
+
         EXAMPLES:
             sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
             sage: F.reduced_gram_matrix()
@@ -2705,12 +2717,11 @@ class NumberField_generic(number_field_base.NumberField):
             sage: var('x')
             x
             sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
-            sage: F.reduced_gram_matrix() # random low-order bits
-            [   3.99999999998249   0.000000000000000    1.99999999997817 -1.06846799999532e6]
-            [  0.000000000000000    46721.5393313587    11488.9100265019 -1.12285582008158e7]
-            [   1.99999999997817    11488.9100265019  5.56589153102570e8  8.06191790906345e9]
-            [-1.06846799999532e6 -1.12285582008158e7  8.06191790906345e9 5.87118790062408e12]
-
+            sage:  F.reduced_gram_matrix(prec=96) # random low-order bits
+            [   4.000000000000000000000000000   0.0000000000000000000000000000   -2.000000000000000000000000000 -1.068468000000000000000000000e6]
+            [  0.0000000000000000000000000000    46721.53933156321838165848335    11488.91002655172427512274967 -1.122855820086482896382180378e7]
+            [  -2.000000000000000000000000000    11488.91002655172427512274967  5.565891531050061176871307652e8  8.062986377098731743575164150e9]
+            [-1.068468000000000000000000000e6 -1.122855820086482896382180378e7  8.062986377098731743575164150e9 5.871187900649780478367763502e12]
         """
         if self.is_totally_real():
             try:
@@ -2734,9 +2745,9 @@ class NumberField_generic(number_field_base.NumberField):
                                                 [[(x*y).trace() for x in B]
                                                  for y in B])
         else:
-            M = self.Minkowski_embedding()
+            M = self.Minkowski_embedding(prec=prec)
             T = matrix(d, flatten([ a.vector().list()
-                                    for a in self.reduced_basis() ]))
+                                    for a in self.reduced_basis(prec=prec) ]))
             A = M*(T.transpose())
             self.__reduced_gram_matrix = A.transpose()*A
             if prec is None:
@@ -2988,17 +2999,19 @@ class NumberField_generic(number_field_base.NumberField):
 
         EXAMPLES:
             sage: NumberField(x^2-2, 'a').regulator()
-            0.88137358701954305
+            0.881373587019543
             sage: NumberField(x^4+x^3+x^2+x+1, 'a').regulator()
-            0.96242365011920694
+            0.962423650119207
         """
         proof = proof_flag(proof)
         try:
             return self.__regulator
         except AttributeError:
+            from sage.rings.all import RealField
+            R = RealField(53)
             k = self.pari_bnf(proof)
             s = str(k.getattr('reg'))
-            self.__regulator = float(s) # sage.rings.real_mpfr.create_RealNumber(s)
+            self.__regulator = R(s)
         return self.__regulator
 
     def residue_field(self, prime, names = None, check = True):
@@ -3336,6 +3349,9 @@ class NumberField_generic(number_field_base.NumberField):
         temp = self.pari_nf().nfrootsof1()
         n = ZZ(temp[0])
         z = self(temp[1])
+        primitives = [ z**k for k in range(1, n) if sage.rings.arith.gcd(k,n)==1 ]
+        primitives.sort(cmp=lambda z,w: len(str(z))-len(str(w)))
+        z = primitives[0]
         return [ z**k for k in range(1, n+1) ]
 
     def zeta_coefficients(self, n):

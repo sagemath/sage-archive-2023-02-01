@@ -771,9 +771,9 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: CDF(1,2)._pari_()
-            1.0000000000000000000 + 2.000000000000000000*I
+            1.00000000000000 + 2.00000000000000*I
             sage: pari(CDF(1,2))
-            1.0000000000000000000 + 2.000000000000000000*I
+            1.00000000000000 + 2.00000000000000*I
         """
         # The explicit declaration and assignment is necessary in
         # order to get access to the internal C structure of gen.pari.

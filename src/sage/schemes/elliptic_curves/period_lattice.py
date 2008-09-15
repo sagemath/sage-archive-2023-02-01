@@ -1,6 +1,5 @@
 from sage.modules.free_module import FreeModule_generic_pid
-from sage.rings.all import ZZ, QQ, RealField
-from sage.misc.misc import prec_bits_to_words
+from sage.rings.all import ZZ, QQ, RealField, ComplexField
 
 class PeriodLattice(FreeModule_generic_pid):
     """
@@ -111,8 +110,8 @@ class PeriodLattice_ell(PeriodLattice):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.period_lattice().basis()                 # machine-independent
-            (2.99345864623195963, 2.45138938198679006*I)
+            sage: E.period_lattice().basis()
+            (2.99345864623196, 2.45138938198679*I)
 
         This shows that the issue reported at trac \#3954 is fixed:
             sage: E = EllipticCurve('37a')
@@ -124,10 +123,9 @@ class PeriodLattice_ell(PeriodLattice):
         This shows that the issue reported at trac \#4064 is fixed:
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().basis(prec=30)[0].parent()
-            Real Field with 32 bits of precision # 32-bit
-            Real Field with 64 bits of precision # 64-bit
+            Real Field with 30 bits of precision
             sage: E.period_lattice().basis(prec=100)[0].parent()
-            Real Field with 128 bits of precision
+            Real Field with 100 bits of precision
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -135,22 +133,24 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L = E.period_lattice(emb)
             sage: L.basis(64)
             (3.81452977217854509, -1.90726488608927255 + 1.34047785962440202*I)
-
         """
         if prec is None:
             prec = RealField().precision()
         # When the field is Q we get the basis straight from pari:
+        R = RealField(prec)
+        C = ComplexField(prec)
         if self.real_embedding is None:
-            return tuple(self.E.pari_curve(prec).omega().python())
+            periods = self.E.pari_curve(prec).omega().python()
+            return (R(periods[0]), C(periods[1]))
 
         # Otherwise we refine the precision of the real embedding if
         # necessary, and then call pari:
         from sage.libs.pari.all import pari
         from sage.rings.number_field.number_field import refine_embedding
         self.real_embedding = refine_embedding(self.real_embedding,prec)
-        prec_words = prec_bits_to_words(prec)
-        E_pari = pari([self.real_embedding(ai) for ai in self.E.a_invariants()]).ellinit(precision=prec_words)
-        return tuple(E_pari.omega().python())
+        E_pari = pari([self.real_embedding(ai) for ai in self.E.a_invariants()]).ellinit(precision=prec)
+        periods = E_pari.omega().python()
+        return (R(periods[0]), C(periods[1]))
 
     def is_rectangular(self):
         r"""
@@ -159,14 +159,14 @@ class PeriodLattice_ell(PeriodLattice):
 
         EXAMPLES:
             sage: f = EllipticCurve('11a')
-            sage: f.period_lattice().basis()              # machine-independent
-            (1.26920930427955342, 0.634604652139776711 + 1.45881661693849523*I)
+            sage: f.period_lattice().basis()
+            (1.26920930427955, 0.634604652139777 + 1.45881661693850*I)
 
             sage: f.period_lattice().is_rectangular()
             False
             sage: f = EllipticCurve('37b')
-            sage: f.period_lattice().basis()              # machine-independent
-            (1.08852159290422917, 1.76761067023378948*I)
+            sage: f.period_lattice().basis()
+            (1.08852159290423, 1.76761067023379*I)
             sage: f.period_lattice().is_rectangular()
             True
 
@@ -186,8 +186,8 @@ class PeriodLattice_ell(PeriodLattice):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.period_lattice().real_period()  # machine-independent
-            2.99345864623195963
+            sage: E.period_lattice().real_period()
+            2.99345864623196
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -212,19 +212,19 @@ class PeriodLattice_ell(PeriodLattice):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.period_lattice().omega()  # machine-independent
-            5.98691729246391926
+            sage: E.period_lattice().omega()
+            5.98691729246392
 
         This is not a minimal model.
             sage: E = EllipticCurve([0,-432*6^2])
-            sage: E.period_lattice().omega()  # machine-independent
-            0.486109385710056430
+            sage: E.period_lattice().omega()
+            0.486109385710056
 
         If you were to plug the above omega into the BSD conjecture, you
         would get nonsense.   The following works though:
             sage: F = E.minimal_model()
-            sage: F.period_lattice().omega()  # machine-independent
-            0.972218771420112860
+            sage: F.period_lattice().omega()
+            0.972218771420113
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -245,8 +245,8 @@ class PeriodLattice_ell(PeriodLattice):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.period_lattice().complex_area()  # machine-independent
-            7.33813274078957674
+            sage: E.period_lattice().complex_area()
+            7.33813274078958
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -279,7 +279,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         EXAMPLES:
             sage: EllipticCurve('389a1').period_lattice().sigma(CC(2,1))
-            2.609121635701083769 - 0.20086508082458695...*I
+            2.60912163570108 - 0.200865080824587*I
         """
         if prec is None:
             prec = RealField().precision()

@@ -878,8 +878,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: rt2 = sqrt(pari('2.0'))
             sage: rt2
-            1.414213562373095048801688724              # 32-bit
-            1.4142135623730950488016887242096980786    # 64-bit
+            1.41421356237310
             sage: rt2.python()
             1.414213562373095048801688724              # 32-bit
             1.4142135623730950488016887242096980786    # 64-bit
@@ -1886,21 +1885,20 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RR(2.0)._pari_()
-            2.000000000000000000
+            2.00000000000000
 
         The current Pari precision affects the printing of this number, but
         Pari does maintain the same 250-bit number on both 32-bit and 64-bit
         platforms.
 
             sage: RealField(250).pi()._pari_()
-            3.141592653589793238462643383               # 32-bit
-            3.1415926535897932384626433832795028842     # 64-bit
+            3.14159265358979
             sage: RR(0.0)._pari_()
             0.E-19
             sage: RR(-1.234567)._pari_()
-            -1.2345670000000000000
+            -1.23456700000000
             sage: RR(2.0).sqrt()._pari_()
-            1.4142135623730951455
+            1.41421356237310
             sage: RR(2.0).sqrt()._pari_().python()
             1.41421356237309515
             sage: RR(2.0).sqrt()._pari_().python().prec()
@@ -3375,14 +3373,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Computing zeta using PARI is much more efficient in difficult cases.
         Here's how to compute zeta with at least a given precision:
 
-             sage: z = pari.new_with_bits_prec(2, 53).zeta(); z
-             1.644934066848226436472415167              # 32-bit
-             1.6449340668482264364724151666460251892    # 64-bit
+             sage: z = pari(2).zeta(precision=53); z
+             1.64493406684823
+             sage: pari(2).zeta(precision=128).python().prec()
+             128
+             sage: pari(2).zeta(precision=65).python().prec()
+             128                                                # 64-bit
+             96                                                 # 32-bit
 
-        Note that the number of bits of precision in the constructor only
-        effects the internal precision of the pari number, not the number
-        of digits that gets displayed.  To increase that you must
-        use \code{pari.set_real_precision}.
+        Note that the number of bits of precision in the constructor
+        only effects the internal precision of the pari number, which
+        is rounded up to the nearest multiple of 32 or 64.  To
+        increase the number of digits that gets displayed you must use
+        \code{pari.set_real_precision}.
 
              sage: type(z)
              <type 'sage.libs.pari.gen.gen'>

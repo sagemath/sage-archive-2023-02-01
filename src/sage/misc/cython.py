@@ -17,6 +17,7 @@ AUTHORS:
 import os, sys
 
 from misc import SPYX_TMP, SAGE_ROOT
+from sage.misc.misc import UNAME
 
 def cblas():
     if os.environ.has_key('SAGE_CBLAS'):
@@ -33,8 +34,14 @@ def cblas():
 # In case of ATLAS we need to link against cblas as well as atlas
 # In the other cases we just return the same library name as cblas()
 # which is fine for the linker
+#
+# We should be using the Accelerate FrameWork on OSX, but that requires
+# some magic due to distutils having ridden on the short bus :)
 def atlas():
-    return 'atlas'
+    if UNAME == "Darwin":
+        return 'blas'
+    else:
+        return 'atlas'
 
 include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
                 '%s/local/include/'%SAGE_ROOT,  \
@@ -149,7 +156,7 @@ def pyx_preparse(s):
         'rankntl',
         'gsl',
         '...blas',
-        'atlas',
+        ...,
         'ntl',
         'csage'],
         ['.../local/include/csage/',
@@ -171,7 +178,7 @@ def pyx_preparse(s):
         'pari',
         'm',
         'curvesntl', 'g0nntl', 'jcntl', 'rankntl',
-        'gsl', '...blas', 'atlas',
+        'gsl', '...blas', ...,
         'ntl',
         'csage']
         sage: libs[1:] == sage.misc.cython.standard_libs

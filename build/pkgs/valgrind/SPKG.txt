@@ -28,6 +28,11 @@ Valgrind is Open Source / Free Software, and is freely available under the GNU G
 
 == Changelog ==
 
+=== valgrind_3.3.1 (Michael Abshoff, September 15th, 2008)  ===
+ * update to 3.3.1 release
+ * stop build on Itanium boxen
+ * add custom suppression file for Sage
+
 === valgrind_3.3.0 ===
  * update to 3.3.0 release
  * create proper SPKG.txt

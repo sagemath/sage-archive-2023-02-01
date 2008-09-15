@@ -1,0 +1,35 @@
+
+{
+   zlib Decompression 1
+   Memcheck:Cond
+   fun:longest_match
+   fun:deflate_slow
+   fun:deflate
+   fun:PyZlib_compress
+}
+
+{
+   zlib Decompression 2
+   Memcheck:Cond
+   fun:longest_match
+   fun:deflate_slow
+   fun:deflate
+   fun:PyZlib_flush
+}
+
+{
+   Cyton initmodule 1
+   Memcheck:Leak
+   fun:malloc
+   fun:PyString_FromString
+   fun:*__Pyx_ImportType*
+}
+
+{
+   Cyton initmodule 2
+   Memcheck:Leak
+   fun:malloc
+   fun:PyCObject_FromVoidPtrAndDesc
+   fun:*__Pyx_ExportFunction*
+}
+

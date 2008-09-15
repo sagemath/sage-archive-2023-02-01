@@ -1,9 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-VALGRIND_VERSION="3.3.0"
+VALGRIND_VERSION="3.3.1"
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 if [ `uname` = "Linux" ]; then
     echo "Good - valgrind works on Linux"
+    if [ `uname -p` = "ia64" ]; then
+        echo "But it does not work on Itanium :("
+        exit 1
+    fi
 else
     echo "Valgring does not work on non-Linux yet"
     exit 1
@@ -31,4 +41,7 @@ if [ $? -ne 0 ]; then
     echo "error installing valgrind $VALGRIND_VERSION"
     exit 1
 fi
+
+echo "Adding Sage suppression file"
+cp patches/sage.supp $SAGE_LOCAL/lib/valgrind/
 

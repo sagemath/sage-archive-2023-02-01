@@ -43,5 +43,5 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Adding Sage suppression file"
-cp patches/sage.supp $SAGE_LOCAL/lib/valgrind/
+cp ../patches/sage.supp $SAGE_LOCAL/lib/valgrind/
 

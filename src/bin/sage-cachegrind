@@ -7,7 +7,19 @@ echo $PYTHONSTARTUP
 if [ ! -d "$HOME/.sage/valgrind" ]; then
     mkdir "$HOME/.sage/valgrind"
 fi
+
 LOG="$HOME"/.sage/valgrind/sage-cachegrind.%p
 echo "Log file is $LOG"
-valgrind --tool=cachegrind --trace-children=yes \
-         --log-file="$LOG"  python -i
+
+CACHEGRIND_FLAGS="--log-file=$LOG "; export CACHEGRIND_FLAGS
+if [ "$SAGE_CACHEGRIND_FLAGS" ]; then
+    echo "Overwriting cachegrind flags with:"
+    echo $SAGE_CACHEGRIND_FLAGS
+    CACHEGRIND_FLAGS=$SAGE_CACHEGRIND_FLAGS; export CACHEGRIND_FLAGS
+else
+    echo "Using default flags:"
+    echo $CACHEGRIND_FLAGS
+fi
+
+valgrind --tool=cachegrind $CACHEGRIND_FLAGS python -i
+

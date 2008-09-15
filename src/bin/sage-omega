@@ -7,7 +7,19 @@ echo $PYTHONSTARTUP
 if [ ! -d "$HOME/.sage/valgrind" ]; then
     mkdir "$HOME/.sage/valgrind"
 fi
+
 LOG="$HOME"/.sage/valgrind/sage-omega.%p
 echo "Log file is $LOG"
-valgrind --tool=exp-omega --trace-children=yes \
-         --log-file="$LOG"  python -i
+
+OMEGA_FLAGS="--log-file=$LOG "; export OMEGA_FLAGS
+if [ "$SAGE_OMEGA_FLAGS" ]; then
+    echo "Overwriting omega flags with:"
+    echo $SAGE_OMEGA_FLAGS
+    OMEGA_FLAGS=$SAGE_OMEGA_FLAGS; export OMEGA_FLAGS
+else
+    echo "Using default flags:"
+    echo $OMEGA_FLAGS
+fi
+
+valgrind --tool=exp-omega $OMEGA_FLAGS python -i
+

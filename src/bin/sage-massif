@@ -7,7 +7,19 @@ echo $PYTHONSTARTUP
 if [ ! -d "$HOME/.sage/valgrind" ]; then
     mkdir "$HOME/.sage/valgrind"
 fi
+
 LOG="$HOME"/.sage/valgrind/sage-massif.%p
 echo "Log file is $LOG"
-valgrind --tool=massif --trace-children=yes --depth=6 \
-         --log-file="$LOG"  python -i
+
+MASSIF_FLAGS="--log-file=$LOG --depth=6 "; export MASSIF_FLAGS
+if [ "$SAGE_MASSIF_FLAGS" ]; then
+    echo "Overwriting massif flags with:"
+    echo $SAGE_MASSIF_FLAGS
+    MASSIF_FLAGS=$SAGE_MASSIF_FLAGS; export MASSIF_FLAGS
+else
+    echo "Using default flags:"
+    echo $MASSIF_FLAGS
+fi
+
+valgrind --tool=massif $MASSIF_FLAGS python -i
+

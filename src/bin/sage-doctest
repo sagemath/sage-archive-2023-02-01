@@ -34,11 +34,41 @@ def delete_tmpfiles():
 
 ######################################################
 
-
 SAGE_ROOT=os.environ["SAGE_ROOT"]
 LD = os.environ["LD_LIBRARY_PATH"]
 os.environ["LD_LIBRARY_PATH"] = SAGE_ROOT + "/local/lib:" + LD
 os.environ["PYTHONPATH"]=SAGE_ROOT + "/local/lib/python/site-packages"
+
+######################################################
+
+# below we are attempting to get some custom flags for the valgrind modes
+try:
+    SAGE_MEMCHECK_FLAGS=os.environ['SAGE_MEMCHECK_FLAGS']
+    print SAGE_MEMCHECK_FLAGS
+except:
+    SAGE_MEMCHECK_FLAGS=" --leak-resolution=high --log-file=$HOME/.sage/valgrind/sage-memcheck.%p --leak-check=full --num-callers=25 --suppressions=$SAGE_LOCAL/lib/valgrind/sage.supp "
+
+try:
+    SAGE_MASSIF_FLAGS=os.environ['SAGE_MASSIF_FLAGS']
+except:
+    SAGE_MASSIF_FLAGS=" --depth=6 --log-file=$HOME/.sage/valgrind/sage-massif.%p "
+
+try:
+    SAGE_CALLGRIND_FLAGS=os.environ['SAGE_CALLGRIND_FLAGS']
+except:
+    SAGE_CALLGRIND_FLAGS = " --log-file=$HOME/.sage/valgrind/sage-callgrind.%p "
+
+try:
+    SAGE_CACHEGRIND_FLAGS=os.environ['SAGE_CACHEGRIND_FLAGS']
+except:
+    SAGE_CACHEGRIND_FLAGS=" --log-file=$HOME/.sage/valgrind/sage-cachegrind.%p "
+
+try:
+    SAGE_OMEGA_FLAGS=os.environ['SAGE_OMEGA_FLAGS']
+except:
+   SAGE_OMEGA_FLAGS = " --log-file=$HOME/.sage/valgrind/sage-omega.%p "
+
+######################################################
 
 PYTHON = SAGE_ROOT + "/local/bin/python"
 
@@ -349,13 +379,13 @@ def test_file(file):
             cmd = "gdb --args " + cmd
 
         if memcheck:
-            cmd= "valgrind --tool=memcheck --trace-children=yes --leak-resolution=high --log-file=$HOME/.sage/valgrind/sage-memcheck.%p --show-reachable=yes --leak-check=full " + cmd
+            cmd = "valgrind --tool=memcheck " + SAGE_MEMCHECK_FLAGS + cmd
         if massif:
-            cmd = "valgrind --tool=massif --trace-children=yes --depth=6 --log-file=$HOME/.sage/valgrind/sage-massif.%p " + cmd
+            cmd = "valgrind --tool=massif " + SAGE_MASSIF_FLAGS + cmd
         if cachegrind:
-            cmd = "valgrind --tool=cachegrind --trace-children=yes --log-file=$HOME/.sage/valgrind/sage-cachegrind.%p " + cmd
+            cmd = "valgrind --tool=cachegrind " +  SAGE_CACHEGRIND_FLAGS + cmd
         if omega:
-            cmd = "valgrind --tool=exp-omega --trace-children=yes --log-file=$HOME/.sage/valgrind/sage-omega.%p " + cmd
+            cmd = "valgrind --tool=exp-omega " + SAGE_OMEGA_FLAGS + cmd
 
         VALGRIND = '%s/valgrind/'%DOT_SAGE
         if not os.path.exists(VALGRIND):

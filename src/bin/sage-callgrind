@@ -7,7 +7,19 @@ echo $PYTHONSTARTUP
 if [ ! -d "$HOME/.sage/valgrind" ]; then
     mkdir "$HOME/.sage/valgrind"
 fi
+
 LOG="$HOME"/.sage/valgrind/sage-callgrind.%p
 echo "Log file is $LOG"
-valgrind --tool=callgrind --trace-children=yes \
-         --log-file="$LOG"  python -i
+
+CALLGRIND_FLAGS="--log-file=$LOG "; export CALLRGIND_FLAGS
+if [ "$SAGE_CALLGRIND_FLAGS" ]; then
+    echo "Overwriting callgrind flags with:"
+    echo $SAGE_CALLGRIND_FLAGS
+    CALLGRIND_FLAGS=$SAGE_CALLGRIND_FLAGS; export CALLGRIND_FLAGS
+ else
+    echo "Using default flags:"
+    echo $CALLGRIND_FLAGS
+fi
+
+valgrind --tool=callgrind $CALLGRIND_FLAGS python -i
+

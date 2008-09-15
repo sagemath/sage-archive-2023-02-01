@@ -211,6 +211,11 @@ ntl_mat_ZZ = Extension('sage.libs.ntl.ntl_mat_ZZ',
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
                  language='c++')
 
+ntl_mat_GF2 = Extension('sage.libs.ntl.ntl_mat_GF2',
+                 sources = ["sage/libs/ntl/ntl_mat_GF2.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language='c++')
+
 ntl_mat_GF2E = Extension('sage.libs.ntl.ntl_mat_GF2E',
                  sources = ["sage/libs/ntl/ntl_mat_GF2E.pyx"],
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
@@ -565,6 +570,7 @@ ext_modules = [ \
     ntl_GF2E,
     ntl_GF2EX,
     ntl_mat_ZZ,
+    ntl_mat_GF2,
     ntl_mat_GF2E,
 
     matrix,

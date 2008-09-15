@@ -15,6 +15,7 @@
 #include <NTL/GF2X.h>
 #include <NTL/GF2XFactoring.h>
 #include <NTL/GF2EX.h>
+#include <NTL/mat_GF2.h>
 #include <NTL/mat_GF2E.h>
 #include <NTL/HNF.h>
 #include <NTL/LLL.h>
@@ -315,17 +316,12 @@ EXTERN struct GF2EContext* GF2EContext_construct(void *mem, const struct GF2X *p
 struct mat_GF2E;
 #endif
 
-EXTERN void mat_GF2E_SetDims(struct mat_GF2E* mGF2E, long nrows, long ncols);
-EXTERN struct mat_GF2E* mat_GF2E_pow(const struct mat_GF2E* x, long e);
-EXTERN long mat_GF2E_nrows(const struct mat_GF2E* x);
-EXTERN long mat_GF2E_ncols(const struct mat_GF2E* x);
 EXTERN void mat_GF2E_setitem(struct mat_GF2E* x, int i, int j, const struct GF2E* z);
-EXTERN struct GF2E* mat_GF2E_getitem(const struct mat_GF2E* x, int i, int j);
-EXTERN struct GF2E* mat_GF2E_determinant(const struct mat_GF2E* x);
-EXTERN long mat_GF2E_gauss(struct mat_GF2E *x, long w);
-EXTERN struct mat_GF2E* mat_GF2E_transpose(const struct mat_GF2E* x);
 
+//////// mat_GF2 //////////
 
+#ifndef __cplusplus
+struct mat_GF2;
+#endif
 
-//EXTERN struct mat_GF2E* mat_GF2E_HNF(const struct mat_GF2E* A, const struct GF2E* D);
-//EXTERN struct GF2EX* mat_GF2E_charpoly(const struct mat_GF2E* A);
+EXTERN void mat_GF2_setitem(struct mat_GF2* x, int i, int j, const struct GF2* z);

@@ -987,6 +987,58 @@ cdef extern from "ntl_wrap.h":
     void vec_GF2E_conv_mat_GF2E "conv" (vec_GF2E_c out, mat_GF2E_c inp)
     void mat_GF2E_conv_vec_GF2E(mat_GF2E_c out, vec_GF2E_c inp)
 
+    #### vec_GF2_c
+    ctypedef struct vec_GF2_c "struct vec_GF2":
+        pass
+
+    vec_GF2_c* vec_GF2_new "New<vec_GF2>"()
+    vec_GF2_c* vec_GF2_construct "Construct<vec_GF2>"(void *mem)
+    void vec_GF2_destruct "Destruct<vec_GF2>"(vec_GF2_c *mem)
+    void vec_GF2_delete "Delete<vec_GF2>"(vec_GF2_c *mem)
+    void vec_GF2_from_str "_from_str<vec_GF2>"(vec_GF2_c* dest, char* s)
+    object vec_GF2_to_PyString "_to_PyString<vec_GF2>"(vec_GF2_c *x)
+
+
+    #### mat_GF2_c
+    ctypedef struct mat_GF2_c "struct mat_GF2":
+        void (*SetDims)(long nrows, long ncols)
+        long (*NumRows)()
+        long (*NumCols)()
+        GF2_c (*get "operator()") (long i, long j)
+
+    mat_GF2_c* mat_GF2_new "New<mat_GF2>"()
+    mat_GF2_c* mat_GF2_construct "Construct<mat_GF2>"(void *mem)
+    void mat_GF2_destruct "Destruct<mat_GF2>"(mat_GF2_c *mem)
+    void mat_GF2_delete "Delete<mat_GF2>"(mat_GF2_c *mem)
+    void mat_GF2_from_str "_from_str<mat_GF2>"(mat_GF2_c* dest, char* s)
+    object mat_GF2_to_PyString "_to_PyString<mat_GF2>"(mat_GF2_c *x)
+    int mat_GF2_equal "_equal<mat_GF2>"(mat_GF2_c x, mat_GF2_c y)
+    void mat_GF2_add "add"( mat_GF2_c x, mat_GF2_c a, mat_GF2_c b)
+    void mat_GF2_sub "sub"( mat_GF2_c x, mat_GF2_c a, mat_GF2_c b)
+    void mat_GF2_mul "mul"( mat_GF2_c x, mat_GF2_c a, mat_GF2_c b)
+    void mat_GF2_negate "negate"(mat_GF2_c x, mat_GF2_c a)
+    void mat_GF2_power "power"(mat_GF2_c t, mat_GF2_c x, long e)
+    GF2_c mat_GF2_determinant "determinant"(mat_GF2_c m)
+    void mat_GF2_transpose "transpose"(mat_GF2_c r, mat_GF2_c m)
+    long mat_GF2_IsZero "IsZero"(mat_GF2_c x)
+    void mat_GF2_setitem(mat_GF2_c* x, int i, int j, GF2_c* z)
+
+    long mat_GF2_gauss "gauss"(mat_GF2_c A, long w)
+    void mat_GF2_solve "solve"(GF2_c d, vec_GF2_c X, mat_GF2_c A, vec_GF2_c b)
+    void mat_GF2_inv "inv" (mat_GF2_c X, mat_GF2_c A)
+
+
+    long mat_GF2_IsIdent "IsIdent"(mat_GF2_c A, long n)
+    long mat_GF2_IsDiag "IsDiag"(mat_GF2_c A, long n, GF2_c d)
+
+
+    void mat_GF2_image "image"(mat_GF2_c X, mat_GF2_c A)
+    void mat_GF2_kernel "kernel" (mat_GF2_c X, mat_GF2_c A)
+
+    void vec_GF2_conv_mat_GF2 "conv" (vec_GF2_c out, mat_GF2_c inp)
+    void mat_GF2_conv_vec_GF2(mat_GF2_c out, vec_GF2_c inp)
+
+
 cdef extern from "ZZ_pylong.h":
     object ZZ_get_pylong(ZZ_c z)
     int ZZ_set_pylong(ZZ_c z, object ll)

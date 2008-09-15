@@ -937,6 +937,11 @@ void mat_GF2E_setitem(struct mat_GF2E* x, int i, int j, const struct GF2E* z)
   (*x)[i][j] = *z;
 }
 
+void mat_GF2_setitem(struct mat_GF2* x, int i, int j, const struct GF2* z)
+{
+  (*x)[i][j] = *z;
+}
+
 /**
  * ZZ_pContext
  */

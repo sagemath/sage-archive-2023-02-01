@@ -72,3 +72,5 @@ from sage.libs.ntl.ntl_GF2E import (
 from sage.libs.ntl.ntl_GF2EX import ntl_GF2EX as GF2EX
 
 from sage.libs.ntl.ntl_mat_GF2E import ntl_mat_GF2E as mat_GF2E
+
+from sage.libs.ntl.ntl_mat_GF2 import ntl_mat_GF2 as mat_GF2

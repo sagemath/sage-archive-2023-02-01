@@ -122,8 +122,13 @@ from integer cimport Integer
 from rational import Rational
 from rational cimport Rational
 
+from sage.categories.map cimport Map
+
+cdef ZZ, QQ, RDF
+from integer_ring import ZZ
+from rational_field import QQ
+from real_double import RDF
 from real_double cimport RealDoubleElement
-from real_double import is_RealDoubleElement, RDF
 
 from real_rqdf import QuadDoubleElement, RQDF
 
@@ -262,6 +267,8 @@ cdef class RealField(sage.rings.ring.Field):
         mpfr_set_d(rn.value, 1.0, self.rnd)
         self._one_element = rn
 
+        self._populate_coercion_lists_(convert_method_name='_mpfr_')
+
     cdef RealNumber _new(self):
         """
         Return a new real number with parent self.
@@ -323,7 +330,7 @@ cdef class RealField(sage.rings.ring.Field):
     def is_exact(self):
         return False
 
-    def __call__(self, x, base=10):
+    def _element_constructor_(self, x, base=10):
         """
         Coerce x into this real field.
 
@@ -353,33 +360,38 @@ cdef class RealField(sage.rings.ring.Field):
         z._set(x, base)
         return z
 
-    cdef _coerce_c_impl(self, x):
+    cpdef _coerce_map_from_(self, S):
         """
         Canonical coercion of x to this mpfr real field.
 
         The rings that canonically coerce to this mpfr real field are:
-             * this real field itself
-             * any other mpfr real field with precision that is as large as this one
+             * any mpfr real field with precision that is as large as this one
              * int, long, integer, and rational rings.
-             * real mathematical constants
-	     * the field of algebraic reals
+             * the field of algebraic reals
+             * floats and RDF if self.prec <= 53
+
+        TESTS:
+            sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealField(100)(1) - AA(1)
+            -5.00000000000000
+            sage: RR['x'].get_action(ZZ)
+            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Real Field with 53 bits of precision
         """
-        if isinstance(x, RealNumber):
-            P = x.parent()
-            if (<RealField> P).__prec >= self.__prec:
-                return self(x)
-            else:
-                raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        elif isinstance(x, (Integer, Rational)):
-            return self(x)
-        elif isinstance(x,QuadDoubleElement) and self.__prec <=212:
-            return self(x)
-        elif is_RealDoubleElement(x) and self.__prec <= 53:
-            return self(x)
-        import sage.rings.qqbar
-        if isinstance(x, sage.rings.qqbar.AlgebraicReal):
-            return self(x)
-        raise TypeError
+        if S is ZZ:
+            return ZZtoRR(ZZ, self)
+        elif S is QQ:
+            return QQtoRR(QQ, self)
+        elif (S is RDF or S is float) and self.__prec <= 53:
+            return double_toRR(S, self)
+        elif S is int:
+            return int_toRR(int, self)
+        elif isinstance(S, RealField) and S.prec() >= self.__prec:
+            return RRtoRR(S, self)
+        elif QQ.has_coerce_map_from(S):
+            return QQtoRR(QQ, self) * QQ.coerce_map_from(S)
+        from sage.rings.qqbar import AA
+        from sage.rings.real_rqdf import RQDF
+        if S == AA or (S == RQDF and self.__prec <= 212):
+            return self._generic_convert_map(S)
 
     def __cmp__(self, other):
         """
@@ -472,7 +484,7 @@ cdef class RealField(sage.rings.ring.Field):
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
-            s = codomain._coerce_(self(1))
+            s = codomain.coerce(self(1))
         except TypeError:
             return False
         return s == im_gens[0]
@@ -786,7 +798,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef RealNumber n, d
         cdef RealField parent
         cdef gen _gen
-        cdef RealDoubleElement rd
         parent = self._parent
         if PY_TYPE_CHECK(x, RealNumber):
             if PY_TYPE_CHECK(x, RealLiteral):
@@ -811,8 +822,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif isinstance(x, float):
             mpfr_set_d(self.value, x, parent.rnd)
         elif PY_TYPE_CHECK(x, RealDoubleElement):
-            rd = x
-            mpfr_set_d(self.value, rd._value, parent.rnd)
+            mpfr_set_d(self.value, (<RealDoubleElement>x)._value, parent.rnd)
         elif PY_TYPE_CHECK(x, QuadDoubleElement):
             qd = x
             self._set_from_qd(qd)
@@ -1888,7 +1898,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(0.0)._pari_()
             0.E-19
             sage: RR(-1.234567)._pari_()
-            -1.2345669999999999700
+            -1.2345670000000000000
             sage: RR(2.0).sqrt()._pari_()
             1.4142135623730951455
             sage: RR(2.0).sqrt()._pari_().python()
@@ -3708,7 +3718,7 @@ cdef class RealLiteral(RealNumber):
         else:
             return RealLiteral(self._parent, '-'+self.literal, self.base)
 
-RR = RealField()
+RR = RealField_constructor()
 
 
 def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
@@ -3734,6 +3744,8 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         1.0000000000000000000000000000000000
         sage: RealField(200)(1.2)
         1.2000000000000000000000000000000000000000000000000000000000
+        sage: (1.2).parent() is RR
+        True
     """
     if not isinstance(s, str):
         s = str(s)
@@ -3816,3 +3828,129 @@ def __create__RealField_version0(prec, sci_not, rnd):
 
 def __create__RealNumber_version0(parent, x, base=10):
     return RealNumber(parent, x, base=base)
+
+
+cdef inline RealNumber empty_RealNumber(RealField parent):
+    cdef RealNumber y = <RealNumber>PY_NEW(RealNumber)
+    y._parent = parent
+    mpfr_init2(y.value, parent.__prec)
+    y.init = 1
+    return y
+
+cdef class RRtoRR(Map):
+    cpdef Element _call_(self, x):
+        """
+        EXAMPLES:
+            sage: from sage.rings.real_mpfr import RRtoRR
+            sage: R10 = RealField(10)
+            sage: R100 = RealField(100)
+            sage: f = RRtoRR(R100, R10)
+            sage: a = R100(1.2)
+            sage: f(a)
+            1.2
+            sage: g = f.section()
+            sage: g
+            Generic map:
+              From: Real Field with 10 bits of precision
+              To:   Real Field with 100 bits of precision
+            sage: g(f(a))
+            1.1992187500000000000000000000
+            sage: b = R10(2).sqrt()
+            sage: f(g(b))
+            1.4
+            sage: f(g(b)) == b
+            True
+        """
+        cdef RealField parent = <RealField>self._codomain
+        cdef RealNumber y = empty_RealNumber(parent)
+        if PY_TYPE_CHECK_EXACT(x, RealLiteral):
+            mpfr_set_str(y.value, (<RealLiteral>x).literal, (<RealLiteral>x).base, parent.rnd)
+        else:
+            mpfr_set(y.value, (<RealNumber>x).value, parent.rnd)
+        return y
+
+    def section(self):
+        """
+        EXAMPLES:
+            sage: from sage.rings.real_mpfr import RRtoRR
+            sage: R10 = RealField(10)
+            sage: R100 = RealField(100)
+            sage: f = RRtoRR(R100, R10)
+            sage: f.section()
+            Generic map:
+              From: Real Field with 10 bits of precision
+              To:   Real Field with 100 bits of precision
+        """
+        return RRtoRR(self._codomain, self._domain)
+
+cdef class ZZtoRR(Map):
+    cpdef Element _call_(self, x):
+        """
+        EXAMPLES:
+            sage: from sage.rings.real_mpfr import ZZtoRR
+            sage: f = ZZtoRR(ZZ, RealField(20))
+            sage: f(123456789)
+            1.2346e8
+        """
+        cdef RealField parent = <RealField>self._codomain
+        cdef RealNumber y = empty_RealNumber(parent)
+        mpfr_set_z(y.value, (<Integer>x).value, parent.rnd)
+        return y
+
+cdef class QQtoRR(Map):
+    cpdef Element _call_(self, x):
+        """
+        EXAMPLES:
+            sage: from sage.rings.real_mpfr import QQtoRR
+            sage: f = QQtoRR(QQ, RealField(200))
+            sage: f(-1/3)
+            -0.33333333333333333333333333333333333333333333333333333333333
+        """
+        cdef RealField parent = <RealField>self._codomain
+        cdef RealNumber y = empty_RealNumber(parent)
+        mpfr_set_q(y.value, (<Rational>x).value, parent.rnd)
+        return y
+
+cdef class double_toRR(Map):
+    cpdef Element _call_(self, x):
+        """
+        Takes anything that can be converted to a double.
+
+        EXAMPLES:
+            sage: from sage.rings.real_mpfr import double_toRR
+            sage: f = double_toRR(RDF, RealField(22))
+            sage: f(RDF.pi())
+            3.14159
+            sage: f = double_toRR(RDF, RealField(200))
+            sage: f(RDF.pi())
+            3.1415926535897931159979634685441851615905761718750000000000
+        """
+        cdef RealField parent = <RealField>self._codomain
+        cdef RealNumber y = empty_RealNumber(parent)
+        mpfr_set_d(y.value, x, parent.rnd)
+        return y
+
+cdef class int_toRR(Map):
+    cpdef Element _call_(self, x):
+        """
+        Takes anything that can be converted to a long.
+
+        EXAMPLES:
+            sage: from sage.rings.real_mpfr import int_toRR
+            sage: f = int_toRR(int, RR)
+            sage: f(-10r)
+            -10.0000000000000
+            sage: f(2^75)
+            Traceback (most recent call last):
+            ...
+            OverflowError: long int too large to convert to int
+
+            sage: R.<x> = ZZ[]
+            sage: f = int_toRR(R, RR)
+            sage: f(x-x+1)
+            1.00000000000000
+        """
+        cdef RealField parent = <RealField>self._codomain
+        cdef RealNumber y = empty_RealNumber(parent)
+        mpfr_set_si(y.value, x, parent.rnd)
+        return y

@@ -3,11 +3,11 @@ from element cimport Element, RingElement, ModuleElement
 from parent cimport Parent
 
 from sage.categories.action cimport Action
-from sage.categories.morphism cimport Morphism
+from sage.categories.map cimport Map
 
 
 cdef class ModuleAction(Action):
-    cdef Morphism connecting
+    cdef Map connecting
     cdef extended_base
 
 cdef class LeftModuleAction(ModuleAction):

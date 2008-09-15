@@ -18,6 +18,7 @@ include "../ext/stdsage.pxi"
 import homset
 
 from sage.structure.element import generic_power
+from sage.structure.parent import Set_PythonType
 
 def unpickle_map(_class, parent, _dict, _slots):
     # should we use slots?
@@ -35,6 +36,8 @@ def is_Map(x):
 cdef class Map(Element):
     def __init__(self, parent, codomain=None):
         if codomain is not None:
+            if PY_TYPE_CHECK(parent, type):
+                parent = Set_PythonType(parent)
             parent = homset.Hom(parent, codomain)
         elif not isinstance(parent, homset.Homset):
             raise TypeError, "parent (=%s) must be a Homspace"%parent

@@ -70,9 +70,47 @@ cdef class RealDoubleField_class(Field):
         False
         sage: RDF == RealDoubleField()    # RDF is the shorthand
         True
+
+        sage: RDF(1)
+        1.0
+        sage: RDF(2/3)
+        0.666666666667
+
+    A TypeError is raised if the coercion doesn't make sense:
+        sage: RDF(QQ['x'].0)
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot coerce nonconstant polynomial to float
+        sage: RDF(QQ['x'](3))
+        3.0
+
+    One can convert back and forth between double precision real
+    numbers and higher-precision ones, though of course there may
+    be loss of precision:
+        sage: a = RealField(200)(2).sqrt(); a
+        1.4142135623730950488016887242096980785696718753769480731767
+        sage: b = RDF(a); b
+        1.41421356237
+        sage: a.parent()(b)
+        1.4142135623730951454746218587388284504413604736328125000000
+        sage: a.parent()(b) == b
+        True
+        sage: b == RR(a)
+        True
     """
     def __init__(self):
         Field.__init__(self, self)
+        self._populate_coercion_lists_(element_constructor=RealDoubleElement,
+                                       init_no_parent=True,
+                                       convert_method_name='_real_double_')
+
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: loads(dumps(RDF)) is RDF
+            True
+        """
+        return RealDoubleField, ()
 
     def is_exact(self):
         """
@@ -111,40 +149,6 @@ cdef class RealDoubleField_class(Field):
             return 0
         return cmp(type(self), type(x))
 
-    def __call__(self, x):
-        """
-        Create a real double using x.
-
-        EXAMPLES:
-            sage: RDF(1)
-            1.0
-            sage: RDF(2/3)
-            0.666666666667
-
-        A TypeError is raised if the coercion doesn't make sense:
-            sage: RDF(QQ['x'].0)
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot coerce nonconstant polynomial to float
-
-        One can convert back and forth between double precision real
-        numbers and higher-precision ones, though of course there may
-        be loss of precision:
-            sage: a = RealField(200)(2).sqrt(); a
-            1.4142135623730950488016887242096980785696718753769480731767
-            sage: b = RDF(a); b
-            1.41421356237
-            sage: a.parent()(b)
-            1.4142135623730951454746218587388284504413604736328125000000
-            sage: a.parent()(b) == b
-            True
-            sage: b == RR(a)
-            True
-        """
-        if hasattr(x, '_real_double_'):
-            return x._real_double_(self)
-        return RealDoubleElement(x)
-
     def construction(self):
         """
         Returns the functorial construction of self, namely, completion of
@@ -177,15 +181,7 @@ cdef class RealDoubleField_class(Field):
         from sage.rings.complex_double import CDF
         return CDF
 
-    cpdef coerce_map_from_c(self, S):
-        from integer_ring import ZZ
-        from rational_field import QQ
-        import real_mpfr
-        if S in [int, float, ZZ, QQ] or isinstance(S, real_mpfr.RealField) and S.prec() >= 53:
-            return ToRDF(S)
-        return Field.coerce_map_from_c(self, S)
-
-    cdef _coerce_c_impl(self, x):
+    cpdef _coerce_map_from_(self, S):
         """
         Canonical coercion of x to the real double field.
 
@@ -193,14 +189,14 @@ cdef class RealDoubleField_class(Field):
              * the real double field itself
              * int, long, integer, and rational rings
              * real mathematical constants
-             * the mpfr real field
+             * the mpfr real field with <= 53 bits of precision
 
         EXAMPLES:
-            sage: RDF._coerce_(5)
+            sage: RDF.coerce(5)
             5.0
-            sage: RDF._coerce_(9499294r)
+            sage: RDF.coerce(9499294r)
             9499294.0
-            sage: RDF._coerce_(61/3)
+            sage: RDF.coerce(61/3)
             20.3333333333
             sage: parent(RDF(3) + CDF(5))
             Complex Double Field
@@ -209,11 +205,13 @@ cdef class RealDoubleField_class(Field):
             sage: CDF.gen(0) + 5.0
             5.0 + 1.0*I
         """
-        if isinstance(x, (int, long, sage.rings.integer.Integer,
-                          sage.rings.rational.Rational)):
-            return self(x)
-        import real_mpfr
-        return self._coerce_try(x, [real_mpfr.RR])
+        from integer_ring import ZZ
+        from rational_field import QQ
+        from real_mpfr import RR, RealField
+        if S in [int, float, ZZ, QQ] or isinstance(S, RealField) and S.prec() >= 53:
+            return ToRDF(S)
+        elif RR.has_coerce_map_from(S):
+            return ToRDF(RR) * RR.coerce_map_from(S)
 
     def prec(self):
         """
@@ -224,7 +222,6 @@ cdef class RealDoubleField_class(Field):
             sage: RDF.prec()
             53
         """
-
         return 53
 
 

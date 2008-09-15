@@ -407,7 +407,7 @@ def lucas_number1(n,P,Q):
         sage: lucas_number1(5,2,1.5)
         Traceback (most recent call last):
         ...
-        TypeError: no implicit coercion of element to the rational numbers
+        TypeError: no cannonical coercion from Real Field with 53 bits of precision to Rational Field
 
     There was a conjecture that the sequence $L_n$ defined by
     $L_{n+2} = L_{n+1} + L_n$, $L_1=1$, $L_2=3$, has the property

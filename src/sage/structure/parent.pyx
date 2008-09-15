@@ -194,8 +194,8 @@ cdef class Parent(category_object.CategoryObject):
              ('_action_list', []),
              ('_coerce_from_hash', {...}),
              ('_coerce_from_list', []),
-             ('_convert_from_hash', {}),
-             ('_convert_from_list', []),
+             ('_convert_from_hash', {...}),
+             ('_convert_from_list', [...]),
              ('_element_init_pass_parent', False),
              ('_embedding', None),
              ('_initial_action_list', []),
@@ -612,7 +612,7 @@ cdef class Parent(category_object.CategoryObject):
                                   convert_method_name=None,
                                   element_constructor=None,
                                   init_no_parent=None,
-                                  unpickling=False):
+                                  bint unpickling=False):
         """
         This function allows one to specify coercions, actions, conversions
         and embeddings involving this parent.

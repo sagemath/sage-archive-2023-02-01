@@ -914,7 +914,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ...
             RuntimeError: ('BUG in coercion model, codomains must be identical', Natural morphism:
               From: Integer Ring
-              To:   Rational Field, Call morphism:
+              To:   Rational Field, Generic map:
               From: Rational Field
               To:   Real Field with 53 bits of precision)
         """
@@ -983,7 +983,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               To:   Rational Field, None)
             sage: cm.discover_coercion(RR, QQ)
             (None,
-             Call morphism:
+             Generic map:
               From: Rational Field
               To:   Real Field with 53 bits of precision)
 

@@ -38,6 +38,12 @@ export LDFLAGS
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 export CPPFLAGS
 
+# pymalloc screws with valgrind, so let's disable it
+if [ "$SAGE_VALGRIND" = "yes" ]; then
+    echo "Building Python without pymalloc"
+    EXTRAFLAGS="--without-pymalloc"; export EXTRAFLAGS
+fi
+
 # Program around weird bug in build process:
 #      Apparently if you have this:
 #         export DISTUTILS_DEBUG=1
@@ -121,6 +127,10 @@ if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
         exit 1
     fi
 fi
+
+# sleeping for three seconds so that parallel 'make install' catches up with the following test
+echo "Sleeping for three seconds before testing python"
+sleep 3
 
 # Make sure sufficient crypto support is available in the built python.  This is critical.
 python -c "import md5"

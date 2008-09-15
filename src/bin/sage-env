@@ -66,7 +66,6 @@ if [ "$SAGE_ROOT" = "" ]; then
 fi
 
 
-
 if [ 1 = 2 ]; then
     echo "The following enviroment variables can be set by the user"
     echo "AR          The archiver (e.g. ar, /usr/ccs/bin/ar or /usr/bin/ar)"
@@ -99,6 +98,12 @@ SAGE_PACKAGES="$SAGE_ROOT/spkg" && export SAGE_PACKAGES
 SAGE_LOCAL="$SAGE_ROOT/local"   && export SAGE_LOCAL
 SAGE_DATA="$SAGE_ROOT/data"     && export SAGE_DATA
 PATH="$SAGE_ROOT:$SAGE_LOCAL/bin:$PATH" && export PATH
+
+# We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
+# Since the user might do something crazy we do not do any checks, but hope for the best.
+if [ -f $SAGE_LOCAL/toolchain/toolchain-env ]; then
+  source $SAGE_LOCAL/toolchain/toolchain-env
+fi
 
 # For a framework Python build on OS X, Python's bin directory is not local/bin
 if [ `uname` = "Darwin" ]; then

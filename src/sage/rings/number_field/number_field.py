@@ -3376,6 +3376,29 @@ class NumberField_absolute(NumberField_generic):
         NumberField_generic.__init__(self, polynomial, name, latex_name, check)
         self._element_class = number_field_element.NumberFieldElement_absolute
 
+    def _magma_(self, magma):
+        """
+        Return Magma version of this number field.
+
+        EXAMPLES:
+            sage: R.<t> = PolynomialRing(RationalField())
+            sage: K.<a> = NumberField(t^2 + 1)
+            sage: L = magma(K)    # optional -- requires magma
+            sage: L               # optional
+            Number Field with defining polynomial t^2 + 1 over the Rational Field
+            sage: L.1             # optional
+            a
+            sage: L.1^2           # optional
+            -1
+        """
+        # Get magma version of defining polynomial of this number field
+        f = magma(self.defining_polynomial())
+        # Make number field from that polynomial
+        K = f.NumberField()
+        # Set variable name of the Magma version of this number field
+        K.AssignNames(self.variable_names())
+        return K
+
     def base_field(self):
         """
         Returns the base field of self, which is always QQ

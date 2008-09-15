@@ -859,6 +859,21 @@ class AbsoluteOrder(Order):
             raise TypeError, "Number fields don't match."
         return AbsoluteOrder(left._K, left._module_rep.intersection(right._module_rep), False)
 
+    def _magma_(self, magma):
+        """
+        Return Magma version of this absolute order.
+
+
+        """
+        # Get Magma version of the Magma number field that will
+        # contain the magma version of this order.
+        K = self.number_field()._magma_(magma)
+        O = K.MaximalOrder()
+        if self.is_maximal():
+            return O
+
+
+
     def discriminant(self):
         """
         Return the discriminant of this order.

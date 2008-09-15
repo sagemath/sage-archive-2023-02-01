@@ -417,21 +417,40 @@ class Magma(Expect):
             par = ' : ' + ','.join(['%s:=%s'%(a,self(b)) for a,b in params.items()])
 
         fun = "%s(%s%s)"%(function, ",".join([s.name() for s in args]), par)
+
+        return self._do_call(fun, nvals)
+
+    def _do_call(self, code, nvals):
         if nvals <= 0:
-            out = self.eval(fun)
+            out = self.eval(code)
             ans = None
         elif nvals == 1:
-            return self(fun)
+            return self(code)
         else:
             v = [self._next_var_name() for _ in range(nvals)]
             vars = ", ".join(v)
-            cmd = "%s := %s;"%(vars, fun)
+            cmd = "%s := %s;"%(vars, code)
             out = self.eval(cmd)
             ans = tuple([MagmaElement(self, x, is_name = True) for x in v])
 
         if out.lower().find("error") != -1:
             raise TypeError, "Error executing Magma code:\n%s"%out
         return ans
+
+    def bar_call(self, left, name, gens, nvals=1):
+        magma = self
+        # coerce each arg to be a Magma element
+        if isinstance(gens, (list, tuple)):
+            gens = [magma(z) for z in gens]
+            # make comma separated list of names (in Magma) of each of the gens
+            v = ', '.join([w.name() for w in gens])
+        else:
+            gens = magma(gens)
+            v = gens.name()
+        # construct the string that evaluates in Magma to define the subobject,
+        # and return it evaluated in Magma.
+        s = '%s< %s | %s >'%(name, left.name(), v)
+        return self._do_call(s, nvals)
 
     #def new(self, x):
     #    if isinstance(x, MagmaElement) and x.parent() == self:
@@ -671,22 +690,21 @@ class MagmaElement(ExpectElement):
 
     def _sage_(self):
         """
-        Return Sage version of this object.
-
-        Use the sage_eval method to call this.
+        Return Sage version of this object.  Use self.sage() to
+        get the Sage version.
 
         EXAMPLES:
         Enumerated Sets:
             sage: a = magma('{1,2/3,-5/9}')       # optional
-            sage: sage_eval(a)                    # optional
+            sage: a.sage()                        # optional
             {1, -5/9, 2/3}
-            sage: type(sage_eval(a))              # optional
+            sage: type(a.sage())                  # optional
             <class 'sage.sets.set.Set_object_enumerated'>
             sage: a = magma('{1,2/3,-5/9}'); a    # optional
             { -5/9, 2/3, 1 }
             sage: a.Type()                        # optional
             SetEnum
-            sage: b = sage_eval(a); b             # optional
+            sage: b = a.sage(); b             # optional
             {1, -5/9, 2/3}
             sage: type(b)                         # optional
             <class 'sage.sets.set.Set_object_enumerated'>
@@ -809,12 +827,6 @@ class MagmaElement(ExpectElement):
             return P('%s!%s'%(self.name(), x.name()))
         except (RuntimeError, TypeError):
             return self.evaluate(*args)
-
-    def x__iter__(self):
-        P = self._check_valid()
-        a = P('[x : x in %s]'%self.name())
-        for i in range(int(P.eval('#%s'%a.name()))):
-            yield a[i]
 
     def __iter__(self):
         P = self._check_valid()
@@ -989,6 +1001,69 @@ class MagmaElement(ExpectElement):
             return not self.parent()("%s eq 0"%self.name()).bool()
         except TypeError:
             return self.bool()
+
+    def sub(self, gens):
+        """
+        Return the sub-object of self with given gens.
+
+        INPUT:
+            gens -- object or list/tuple of generators
+
+        EXAMPLES:
+            sage: V = magma('VectorSpace(RationalField(),3)')       # optional -- requires magma
+            sage: W = V.sub([ [1,2,3], [1,1,2] ]); W                # optional
+            Vector space of degree 3, dimension 2 over Rational Field
+            Generators:
+            (1 2 3)
+            (1 1 2)
+            Echelonized basis:
+            (1 0 1)
+            (0 1 1)
+        """
+        return self.parent().bar_call(self, 'sub', gens)
+
+    def quo(self, gens):
+        """
+        Return the quotient of self by the given object or list of generators.
+
+        INPUT:
+            gens -- object or list/tuple of generators
+        OUTPUT:
+            magma element -- the quotient object
+            magma element -- mapping from self to the quotient object
+
+        EXAMPLES:
+            sage: V = magma('VectorSpace(RationalField(),3)')       # optional -- requires magma
+            sage: V.quo([[1,2,3], [1,1,2]])                         # optional
+            (Full Vector space of degree 1 over Rational Field, Mapping from: Full Vector space of degree 3 over Rational Field to Full Vector space of degree 1 over Rational Field)
+
+        We illustrate quotienting out by an object instead of a list of generators:
+            sage: W = V.sub([ [1,2,3], [1,1,2] ])                   # optional
+            sage: V.quo(W)                                          # optional
+            (Full Vector space of degree 1 over Rational Field, Mapping from: Full Vector space of degree 3 over Rational Field to Full Vector space of degree 1 over Rational Field)
+
+        """
+        return self.parent().bar_call(self, 'quo', gens, nvals=2)
+
+    def ideal(self, gens):
+        """
+        Return the ideal of self with given list of generators.
+
+        INPUT:
+            gens -- object or list/tuple of generators
+        OUTPUT:
+            magma element -- a Magma ideal
+
+        EXAMPLES:
+            sage: R = magma('PolynomialRing(RationalField())')        # optional -- requires magma
+            sage: R.assign_names(['x'])
+            sage: x = R.1                                             # optional
+            sage: R.ideal([x^2 - 1, x^3 - 1])                         # optional
+            Ideal of Univariate Polynomial Ring in x over Rational Field generated by x - 1
+        """
+        return self.parent().bar_call(self, 'ideal', gens, nvals=1)
+
+###########################################################################
 
 magma = Magma()
 

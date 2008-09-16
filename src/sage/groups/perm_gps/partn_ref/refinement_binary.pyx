@@ -22,7 +22,8 @@ REFERENCE:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../../../misc/bitset.pxi'
+include 'data_structures_pyx.pxi' # includes bitsets
+
 from sage.matrix.matrix import is_Matrix
 
 cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
@@ -95,7 +96,6 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 
         self.output = NULL
         self.ith_word = &ith_word_linear
-        self.first_time = 1
 
     def run(self, partition=None):
         """
@@ -238,6 +238,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
                 part[i][j] = partition[i][j]
             part[i][len(partition[i])] = -1
         part[len(partition)] = NULL
+        self.first_time = 1
 
         self.output = get_aut_gp_and_can_lab(self, part, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes, 1, 1, 1)
 
@@ -295,6 +296,58 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         if self.output is NULL:
             self.run()
         return [self.output.relabeling[i] for i from 0 <= i < self.degree]
+
+    def is_isomorphic(self, LinearBinaryCodeStruct other):
+        """
+        Calculate whether self is isomorphic to other.
+
+        EXAMPLES:
+            sage: from sage.groups.perm_gps.partn_ref.refinement_binary import LinearBinaryCodeStruct
+
+            sage: B = LinearBinaryCodeStruct(Matrix(GF(2), [[1,1,1,1,0,0],[0,0,1,1,1,1]]))
+            sage: C = LinearBinaryCodeStruct(Matrix(GF(2), [[1,1,1,0,0,1],[1,1,0,1,1,0]]))
+            sage: B.is_isomorphic(C)
+            [0, 1, 2, 5, 3, 4]
+
+        """
+        cdef int **part, i, j
+        cdef int *output, *ordering
+        partition = [range(self.degree)]
+        part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+        ordering = <int *> sage_malloc(self.degree * sizeof(int))
+        if part is NULL or ordering is NULL:
+            if part is not NULL: sage_free(part)
+            if ordering is not NULL: sage_free(ordering)
+            raise MemoryError
+        for i from 0 <= i < len(partition):
+            part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
+            if part[i] is NULL:
+                for j from 0 <= j < i:
+                    sage_free(part[j])
+                sage_free(part)
+                raise MemoryError
+            for j from 0 <= j < len(partition[i]):
+                part[i][j] = partition[i][j]
+            part[i][len(partition[i])] = -1
+        part[len(partition)] = NULL
+        for i from 0 <= i < self.degree:
+            ordering[i] = i
+        self.first_time = 1
+        other.first_time = 1
+
+        output = double_coset(self, other, part, ordering, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes)
+
+        for i from 0 <= i < len(partition):
+            sage_free(part[i])
+        sage_free(part)
+        sage_free(ordering)
+
+        if output is NULL:
+            return False
+        else:
+            output_py = [output[i] for i from 0 <= i < self.degree]
+            sage_free(output)
+            return output_py
 
     def __dealloc__(self):
         cdef int j
@@ -402,7 +455,6 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
 
         self.output = NULL
         self.ith_word = &ith_word_nonlinear
-        self.first_time = 1
 
     def __dealloc__(self):
         cdef int j
@@ -477,6 +529,7 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
                 part[i][j] = partition[i][j]
             part[i][len(partition[i])] = -1
         part[len(partition)] = NULL
+        self.first_time = 1
 
         self.output = get_aut_gp_and_can_lab(self, part, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes, 1, 1, 1)
 
@@ -534,6 +587,58 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         if self.output is NULL:
             self.run()
         return [self.output.relabeling[i] for i from 0 <= i < self.degree]
+
+    def is_isomorphic(self, NonlinearBinaryCodeStruct other):
+        """
+        Calculate whether self is isomorphic to other.
+
+        EXAMPLES:
+            sage: from sage.groups.perm_gps.partn_ref.refinement_binary import NonlinearBinaryCodeStruct
+
+            sage: B = NonlinearBinaryCodeStruct(Matrix(GF(2), [[1,1,1,1,0,0],[0,0,1,1,1,1]]))
+            sage: C = NonlinearBinaryCodeStruct(Matrix(GF(2), [[1,1,0,0,1,1],[1,1,1,1,0,0]]))
+            sage: B.is_isomorphic(C)
+            [2, 3, 0, 1, 4, 5]
+
+        """
+        cdef int **part, i, j
+        cdef int *output, *ordering
+        partition = [range(self.degree)]
+        part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+        ordering = <int *> sage_malloc(self.degree * sizeof(int))
+        if part is NULL or ordering is NULL:
+            if part is not NULL: sage_free(part)
+            if ordering is not NULL: sage_free(ordering)
+            raise MemoryError
+        for i from 0 <= i < len(partition):
+            part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
+            if part[i] is NULL:
+                for j from 0 <= j < i:
+                    sage_free(part[j])
+                sage_free(part)
+                raise MemoryError
+            for j from 0 <= j < len(partition[i]):
+                part[i][j] = partition[i][j]
+            part[i][len(partition[i])] = -1
+        part[len(partition)] = NULL
+        for i from 0 <= i < self.degree:
+            ordering[i] = i
+        self.first_time = 1
+        other.first_time = 1
+
+        output = double_coset(self, other, part, ordering, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes)
+
+        for i from 0 <= i < len(partition):
+            sage_free(part[i])
+        sage_free(part)
+        sage_free(ordering)
+
+        if output is NULL:
+            return False
+        else:
+            output_py = [output[i] for i from 0 <= i < self.degree]
+            sage_free(output)
+            return output_py
 
 cdef int ith_word_nonlinear(BinaryCodeStruct self, int i, bitset_s *word):
     cdef NonlinearBinaryCodeStruct NBCS = <NonlinearBinaryCodeStruct> self
@@ -606,6 +711,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, object S, int *cells_to_re
                 if necessary_to_split_cell:
                     invariant += 8
                     first_largest_subcell = sort_by_function(col_ps, current_cell, col_degrees, col_counts, col_output, BCS.nwords+1)
+                    invariant += col_degree(col_ps, BCS, i-1, ctrb[current_cell_against], word_ps)
                     invariant += first_largest_subcell
                     against_index = current_cell_against
                     while against_index < ctrb_len:
@@ -622,7 +728,6 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, object S, int *cells_to_re
                         r += 1
                         if r >= i:
                             break
-                    invariant += col_degree(col_ps, BCS, i-1, ctrb[current_cell_against], word_ps)
                     invariant += (i - current_cell)
                 current_cell = i
         else:
@@ -641,6 +746,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, object S, int *cells_to_re
                 if necessary_to_split_cell:
                     invariant += 64
                     first_largest_subcell = sort_by_function(word_ps, current_cell, word_degrees, word_counts, word_output, BCS.degree+1)
+                    invariant += word_degree(word_ps, BCS, i-1, ctrb[current_cell_against], col_ps)
                     invariant += first_largest_subcell
                     against_index = current_cell_against
                     while against_index < ctrb_len:
@@ -658,18 +764,17 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, object S, int *cells_to_re
                         r += 1
                         if r >= i:
                             break
-                    invariant += word_degree(word_ps, BCS, i-1, ctrb[current_cell_against], col_ps)
                     invariant += (i - current_cell)
                 current_cell = i
         current_cell_against += 1
     return invariant
 
-cdef int compare_linear_codes(int *gamma_1, int *gamma_2, object S):
+cdef int compare_linear_codes(int *gamma_1, int *gamma_2, object S1, object S2):
     """
-    Compare gamma_1(B) and gamma_2(B).
+    Compare gamma_1(S1) and gamma_2(S2).
 
-    Return return -1 if gamma_1(B) < gamma_2(B), 0 if gamma_1(B) == gamma_2(B),
-    1 if gamma_1(B) > gamma_2(B).  (Just like the python \code{cmp}) function.
+    Return return -1 if gamma_1(S1) < gamma_2(S2), 0 if gamma_1(S1) == gamma_2(S2),
+    1 if gamma_1(S1) > gamma_2(S2).  (Just like the python \code{cmp}) function.
 
     Abstractly, what this function does is relabel the basis of B by gamma_1 and
     gamma_2, run a row reduction on each, and verify that the matrices are the
@@ -680,29 +785,30 @@ cdef int compare_linear_codes(int *gamma_1, int *gamma_2, object S):
 
     INPUT:
     gamma_1, gamma_2 -- list permutations (inverse)
-    S -- a binary code struct object
+    S1, S2 -- binary code struct objects
 
     """
     cdef int i, piv_loc_1, piv_loc_2, cur_col, cur_row=0
     cdef bint is_pivot_1, is_pivot_2
-    cdef LinearBinaryCodeStruct BCS = <LinearBinaryCodeStruct> S
-    cdef bitset_s *basis_1 = BCS.scratch_bitsets                   # len = dim
-    cdef bitset_s *basis_2 = &BCS.scratch_bitsets[BCS.dimension]   # len = dim
-    cdef bitset_s *pivots  = &BCS.scratch_bitsets[2*BCS.dimension] # len 1
-    cdef bitset_s *temp  = &BCS.scratch_bitsets[2*BCS.dimension+1] # len 1
-    for i from 0 <= i < BCS.dimension:
-        bitset_copy(&basis_1[i], &BCS.basis[i])
-        bitset_copy(&basis_2[i], &BCS.basis[i])
+    cdef LinearBinaryCodeStruct BCS1 = <LinearBinaryCodeStruct> S1
+    cdef LinearBinaryCodeStruct BCS2 = <LinearBinaryCodeStruct> S2
+    cdef bitset_s *basis_1 = BCS1.scratch_bitsets                   # len = dim
+    cdef bitset_s *basis_2 = &BCS1.scratch_bitsets[BCS1.dimension]   # len = dim
+    cdef bitset_s *pivots  = &BCS1.scratch_bitsets[2*BCS1.dimension] # len 1
+    cdef bitset_s *temp  = &BCS1.scratch_bitsets[2*BCS1.dimension+1] # len 1
+    for i from 0 <= i < BCS1.dimension:
+        bitset_copy(&basis_1[i], &BCS1.basis[i])
+        bitset_copy(&basis_2[i], &BCS2.basis[i])
     bitset_zero(pivots)
-    for cur_col from 0 <= cur_col < BCS.degree:
+    for cur_col from 0 <= cur_col < BCS1.degree:
         is_pivot_1 = 0
         is_pivot_2 = 0
-        for i from cur_row <= i < BCS.dimension:
+        for i from cur_row <= i < BCS1.dimension:
             if bitset_check(&basis_1[i], gamma_1[cur_col]):
                 is_pivot_1 = 1
                 piv_loc_1 = i
                 break
-        for i from cur_row <= i < BCS.dimension:
+        for i from cur_row <= i < BCS1.dimension:
             if bitset_check(&basis_2[i], gamma_2[cur_col]):
                 is_pivot_2 = 1
                 piv_loc_2 = i
@@ -724,7 +830,7 @@ cdef int compare_linear_codes(int *gamma_1, int *gamma_2, object S):
                     bitset_xor(&basis_1[i], &basis_1[i], &basis_1[cur_row])
                 if bitset_check(&basis_2[i], gamma_2[cur_col]):
                     bitset_xor(&basis_2[i], &basis_2[i], &basis_2[cur_row])
-            for i from cur_row < i < BCS.dimension:
+            for i from cur_row < i < BCS1.dimension:
                 if bitset_check(&basis_1[i], gamma_1[cur_col]):
                     bitset_xor(&basis_1[i], &basis_1[i], &basis_1[cur_row])
                 if bitset_check(&basis_2[i], gamma_2[cur_col]):
@@ -736,34 +842,35 @@ cdef int compare_linear_codes(int *gamma_1, int *gamma_2, object S):
                     return <int>bitset_check(&basis_2[i], gamma_2[cur_col]) - <int>bitset_check(&basis_1[i], gamma_1[cur_col])
     return 0
 
-cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, object S):
+cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, object S1, object S2):
     """
-    Compare gamma_1(B) and gamma_2(B).
+    Compare gamma_1(S1) and gamma_2(S2).
 
-    Return return -1 if gamma_1(B) < gamma_2(B), 0 if gamma_1(B) == gamma_2(B),
-    1 if gamma_1(B) > gamma_2(B).  (Just like the python \code{cmp}) function.
+    Return return -1 if gamma_1(S1) < gamma_2(S2), 0 if gamma_1(S1) == gamma_2(S2),
+    1 if gamma_1(S1) > gamma_2(S2).  (Just like the python \code{cmp}) function.
 
     INPUT:
     gamma_1, gamma_2 -- list permutations (inverse)
-    S -- a binary code struct object
+    S1, S2 -- a binary code struct object
 
     """
     cdef int side=0, i, start, end, n_one_1, n_one_2, cur_col
     cdef int where_0, where_1
-    cdef NonlinearBinaryCodeStruct BCS = <NonlinearBinaryCodeStruct> S
-    cdef bitset_s *B_1_0 = BCS.scratch_bitsets                   # nwords of len degree
-    cdef bitset_s *B_1_1 = &BCS.scratch_bitsets[BCS.nwords]      # nwords of len degree
-    cdef bitset_s *B_2_0 = &BCS.scratch_bitsets[2*BCS.nwords]    # nwords of len degree
-    cdef bitset_s *B_2_1 = &BCS.scratch_bitsets[3*BCS.nwords]    # nwords of len degree
-    cdef bitset_s *dividers = &BCS.scratch_bitsets[4*BCS.nwords] # 1 of len nwords
+    cdef NonlinearBinaryCodeStruct BCS1 = <NonlinearBinaryCodeStruct> S1
+    cdef NonlinearBinaryCodeStruct BCS2 = <NonlinearBinaryCodeStruct> S2
+    cdef bitset_s *B_1_0 = BCS1.scratch_bitsets                   # nwords of len degree
+    cdef bitset_s *B_1_1 = &BCS1.scratch_bitsets[BCS1.nwords]      # nwords of len degree
+    cdef bitset_s *B_2_0 = &BCS1.scratch_bitsets[2*BCS1.nwords]    # nwords of len degree
+    cdef bitset_s *B_2_1 = &BCS1.scratch_bitsets[3*BCS1.nwords]    # nwords of len degree
+    cdef bitset_s *dividers = &BCS1.scratch_bitsets[4*BCS1.nwords] # 1 of len nwords
     cdef bitset_s *B_1_this, *B_1_other, *B_2_this, *B_2_other
-    for i from 0 <= i < BCS.nwords:
-        bitset_copy(&B_1_0[i], &BCS.words[i])
-        bitset_copy(&B_2_0[i], &BCS.words[i])
+    for i from 0 <= i < BCS1.nwords:
+        bitset_copy(&B_1_0[i], &BCS1.words[i])
+        bitset_copy(&B_2_0[i], &BCS2.words[i])
     bitset_zero(dividers)
-    bitset_set(dividers, BCS.nwords-1)
+    bitset_set(dividers, BCS1.nwords-1)
 
-    for cur_col from 0 <= cur_col < BCS.degree:
+    for cur_col from 0 <= cur_col < BCS1.degree:
         if side == 0:
             B_1_this  = B_1_0
             B_1_other = B_1_1
@@ -776,7 +883,7 @@ cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, object S):
             B_2_other = B_2_0
         side ^= 1
         start = 0
-        while start < BCS.nwords:
+        while start < BCS1.nwords:
             end = start
             while not bitset_check(dividers, end):
                 end += 1
@@ -960,7 +1067,7 @@ cdef inline int sort_by_function(PartitionStack *PS, int start, int *degrees, in
 def random_tests(t=10.0, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, density_range=(.1,.9)):
     """
     Tests to make sure that C(gamma(B)) == C(B) for random permutations gamma
-    and random codes B.
+    and random codes B, and that is_isomorphic returns an isomorphism.
 
     INPUT:
     t -- run tests for approximately this many seconds
@@ -977,7 +1084,8 @@ def random_tests(t=10.0, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
 
     For each code B (B2) generated, we uniformly generate perms_per_code random
     permutations and verify that the canonical labels of B and the image of B
-    under the generated permutation are equal.
+    under the generated permutation are equal, and check that the double coset
+    function returns an isomorphism.
 
     DOCTEST:
         sage: import sage.groups.perm_gps.partn_ref.refinement_binary
@@ -992,7 +1100,7 @@ def random_tests(t=10.0, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
     from sage.combinat.permutation import Permutations
     from sage.matrix.constructor import random_matrix, matrix
     from sage.rings.finite_field import FiniteField as GF
-    cdef int h, i, j, n, k, num_tests = 0, num_codes = 0, passed = 1
+    cdef int h, i, j, n, k, num_tests = 0, num_codes = 0
     cdef LinearBinaryCodeStruct B, C
     cdef NonlinearBinaryCodeStruct B_n, C_n
     t_0 = walltime()
@@ -1040,21 +1148,37 @@ def random_tests(t=10.0, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
                     B_n_M[j,B_n_relab[h]] = bitset_check(&B_n.words[j], h)
                     C_n_M[j,C_n_relab[h]] = bitset_check(&C_n.words[j], h)
             if B_M.row_space() != C_M.row_space():
-                print "B:"
+                print "can_lab error -- B:"
                 for j from 0 <= j < B.dimension:
                     print bitset_string(&B.basis[j])
                 print perm
                 return
             if sorted(B_n_M.rows()) != sorted(C_n_M.rows()):
-                print "B_n:"
+                print "can_lab error -- B_n:"
                 for j from 0 <= j < B_n.nwords:
                     print bitset_string(&B_n.words[j])
                 print perm
                 return
+            isom = B.is_isomorphic(C)
+            if not isom:
+                print "isom -- B:"
+                for j from 0 <= j < B.dimension:
+                    print bitset_string(&B.basis[j])
+                print perm
+                print isom
+                return
+            isom = B_n.is_isomorphic(C_n)
+            if not isom:
+                print "isom -- B_n:"
+                for j from 0 <= j < B_n.nwords:
+                    print bitset_string(&B_n.words[j])
+                print perm
+                print isom
+                return
 
-        num_tests += perms_per_code
+        num_tests += 4*perms_per_code
         num_codes += 2
-    if passed:
-        print "All passed: %d random tests on %d codes."%(num_tests, num_codes)
+
+    print "All passed: %d random tests on %d codes."%(num_tests, num_codes)
 
 

@@ -1,35 +1,18 @@
 r"""
-Automorphism groups and canonical labels
+Double cosets
 
-This module implements a general algorithm for computing automorphism groups and
-canonical labels of objects. The class of objects in question must be some kind
-of structure for which an automorphism is a permutation in $S_n$ for some $n$,
-which we call here the order of the object. It should be noted that the word
-"canonical" in the term canonical label is used loosely. Given an object $X$,
-the canonical label $C(X)$ is just an object for which $C(X) = C(Y)$ for any
-$Y$ such that $X \cong Y$.
-
-To understand the algorithm better, a few definitions will help. First one
-should note that throughout this module, $S_n$ is defined as the set of
-permutations of the set $[n] := \{0, 1, ..., n-1\}$. One speaks of
-ordered partitions $\Pi = (C_1, ..., C_k)$ of $[n]$. The $C_i$ are disjoint
-subsets of $[n]$ whose union is equal to $[n]$, and we call them cells. A
-partition $\Pi_1$ is said to be finer than another partition $\Pi_2$ if every
-cell of $\Pi_1$ is a subset of some cell of $\Pi_2$ (in this situation we also
-say that $\Pi_2$ is coarser than $\Pi_1$). A partition stack
-$\nu = (\Pi_0, ..., \Pi_k)$ is a sequence of partitions such that $\Pi_i$ is
-finer than $\Pi_{i-1}$ for each $i$ such that $1 \leq i \leq k$. Sometimes these
-are called nested partitions. The depth of $\nu$ is defined to be $k$ and the
-degree of $\nu$ is defined to be $n$. Partition stacks are implemented as
-\code{PartitionStack} (see automorphism_group_canonical_label.pxd for more
-information). Finally, we say that a permutation respects the partition $\Pi$ if
-its orbits form a partition which is finer than $\Pi$.
+This module implements a general algorithm for computing double coset problems
+for pairs of objects. The class of objects in question must be some kind
+of structure for which an isomorphism is a permutation in $S_n$ for some $n$,
+which we call here the order of the object. Given objects $X$ and $Y$,
+the program returns an isomorphism in list permutation form if $X \cong Y$, and
+a NULL pointer otherwise.
 
 In order to take advantage of the algorithms in this module for a specific kind
 of object, one must implement (in Cython) three functions which will be specific
 to the kind of objects in question. Pointers to these functions are passed to
-the main function of the module, which is \code{get_aut_gp_and_can_lab}. For
-specific examples of implementations of these functions, see any of the files in
+the main function of the module, which is \code{double_coset}. For specific
+examples of implementations of these functions, see any of the files in
 \code{sage.groups.perm_gps.partn_ref} beginning with "refinement." They are:
 
 A. \code{refine_and_return_invariant}:
@@ -58,11 +41,11 @@ B. \code{compare_structures}:
 
     Signature:
 
-    \code{int compare_structures(int *gamma_1, int *gamma_2, object S1, object S2)}
+    \code{int compare_structures(int *gamma_1, int *gamma_2, object S)}
 
     This function must implement a total ordering on the set of objects of fixed
-    order. Return -1 if \code{gamma_1(S1) < gamma_2(S2)}, 0 if
-    \code{gamma_1(S1) == gamma_2(S2)}, 1 if \code{gamma_1(S1) > gamma_2(S2)}.
+    order. Return -1 if \code{gamma_1(S) < gamma_2(S)}, 0 if
+    \code{gamma_1(S) == gamma_2(S)}, 1 if \code{gamma_1(S) > gamma_2(S)}.
 
 C. \code{all_children_are_equivalent}:
 
@@ -77,12 +60,16 @@ C. \code{all_children_are_equivalent}:
     as a consequence of Lemma 2.25 in [1].
 
 DOCTEST:
-    sage: import sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label
+    sage: import sage.groups.perm_gps.partn_ref.double_coset
 
 REFERENCE:
 
     [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
         Vol. 30 (1981), pp. 45-87.
+
+    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+        533-583.
 
 """
 
@@ -100,82 +87,31 @@ cdef inline int cmp(int a, int b):
     elif a == b: return 0
     else: return 1
 
+cdef inline bint stacks_are_equivalent(PartitionStack *PS1, PartitionStack *PS2):
+    cdef int i, j, depth = min(PS1.depth, PS2.depth)
+    for i from 0 <= i < PS1.degree:
+        j = cmp(PS1.levels[i], PS2.levels[i])
+        if j == 0: continue
+        if ( (j < 0 and PS1.levels[i] <= depth and PS2.levels[i] > depth)
+            or (j > 0 and PS2.levels[i] <= depth and PS1.levels[i] > depth) ):
+            return 0
+    return 1
+
 # Functions
 
-cdef bint all_children_are_equivalent_trivial(PartitionStack *PS, object S):
-    return 0
-
-cdef int refine_and_return_invariant_trivial(PartitionStack *PS, object S, int *cells_to_refine_by, int ctrb_len):
-    return 0
-
-cdef int compare_structures_trivial(int *gamma_1, int *gamma_2, object S1, object S2):
-    return 0
-
-def test_get_aut_gp_and_can_lab_trivially(int n=6, partition=[[0,1,2],[3,4],[5]],
-    canonical_label=True, base=False):
-    """
-    sage: tttt = sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label.test_get_aut_gp_and_can_lab_trivially
-    sage: tttt()
-    12
-    sage: tttt(canonical_label=False, base=False)
-    12
-    sage: tttt(canonical_label=False, base=True)
-    12
-    sage: tttt(canonical_label=True, base=True)
-    12
-    sage: tttt(n=0, partition=[])
-    1
-    sage: tttt(n=0, partition=[], canonical_label=False, base=False)
-    1
-    sage: tttt(n=0, partition=[], canonical_label=False, base=True)
-    1
-    sage: tttt(n=0, partition=[], canonical_label=True, base=True)
-    1
-
-    """
-    cdef int i, j
-    cdef aut_gp_and_can_lab_return *output
-    cdef Integer I = Integer(0)
-    cdef int **part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
-    for i from 0 <= i < len(partition):
-        part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
-        for j from 0 <= j < len(partition[i]):
-            part[i][j] = partition[i][j]
-        part[i][len(partition[i])] = -1
-    part[len(partition)] = NULL
-    output = get_aut_gp_and_can_lab([], part, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_structures_trivial, canonical_label, base, True)
-    mpz_set(I.value, output.order)
-    print I
-    for i from 0 <= i < len(partition):
-        sage_free(part[i])
-    sage_free(part)
-    mpz_clear(output.order)
-    sage_free(output.generators)
-    if base:
-        sage_free(output.base)
-    if canonical_label:
-        sage_free(output.relabeling)
-    sage_free(output)
-
-cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition, int n,
-    bint (*all_children_are_equivalent)(PartitionStack *PS, object S),
+cdef int *double_coset(object S1, object S2, int **partition1, int *ordering2,
+    int n, bint (*all_children_are_equivalent)(PartitionStack *PS, object S),
     int (*refine_and_return_invariant)\
          (PartitionStack *PS, object S, int *cells_to_refine_by, int ctrb_len),
-    int (*compare_structures)(int *gamma_1, int *gamma_2, object S1, object S2),
-    bint canonical_label, bint base, bint order):
+    int (*compare_structures)(int *gamma_1, int *gamma_2, object S1, object S2) ):
     """
-    Traverse the search space for subgroup/canonical label calculation.
+    Traverse the search space for double coset calculation.
 
     INPUT:
-    S -- pointer to the structure
-    partition -- array representing a partition of the points
-    len_partition -- length of the partition
+    S1, S2 -- pointers to the structures
+    partition1 -- array representing a partition of the points of S1
+    ordering2 -- an ordering of the points of S2 representing a second partition
     n -- the number of points (points are assumed to be 0,1,...,n-1)
-    canonical_label -- whether to search for canonical label - if True, return
-        the permutation taking S to its canonical label
-    base -- if True, return the base for which the given generating set is a
-        strong generating set
-    order -- if True, return the order of the automorphism group
     all_children_are_equivalent -- pointer to a function
         INPUT:
         PS -- pointer to a partition stack
@@ -199,25 +135,20 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
         int -- 0 if gamma_1(S1) = gamma_2(S2), otherwise -1 or 1 (see docs for cmp),
             such that the set of all structures is well-ordered
     OUTPUT:
-    pointer to a aut_gp_and_can_lab_return struct
+    If S1 and S2 are isomorphic, a pointer to an integer array representing an
+    isomorphism. Otherwise, a NULL pointer.
 
     """
-    cdef PartitionStack *current_ps, *first_ps, *label_ps
+    cdef PartitionStack *current_ps, *first_ps, *left_ps
     cdef int first_meets_current = -1
-    cdef int label_meets_current
     cdef int current_kids_are_same = 1
     cdef int first_kids_are_same
 
-    cdef int *current_indicators, *first_indicators, *label_indicators
-    cdef int first_and_current_indicator_same
-    cdef int label_and_current_indicator_same = -1
-    cdef int compared_current_and_label_indicators
+    cdef int *indicators
 
     cdef OrbitPartition *orbits_of_subgroup
-    cdef mpz_t subgroup_size
     cdef int subgroup_primary_orbit_size = 0
     cdef int minimal_in_primary_orbit
-    cdef int size_of_generator_array = 2*n*n
 
     cdef bitset_t *fixed_points_of_generators # i.e. fp
     cdef bitset_t *minimal_cell_reps_of_generators # i.e. mcr
@@ -229,38 +160,16 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
     cdef int *permutation, *id_perm, *cells_to_refine_by
     cdef int *vertices_determining_current_stack
 
+    cdef int *output
+
     cdef int i, j, k
     cdef bint discrete, automorphism, update_label
     cdef bint backtrack, new_vertex, narrow, mem_err = 0
 
-    cdef aut_gp_and_can_lab_return *output = <aut_gp_and_can_lab_return *> sage_malloc(sizeof(aut_gp_and_can_lab_return))
-    if output is NULL:
-        raise MemoryError
-
     if n == 0:
-        output.generators = NULL
-        output.num_gens = 0
-        output.relabeling = NULL
-        output.base = NULL
-        output.base_size = 0
-        mpz_init_set_si(output.order, 1)
-        return output
+        return NULL
 
-    # Allocate:
-    mpz_init_set_si(subgroup_size, 1)
-
-    output.generators = <int *> sage_malloc( size_of_generator_array * sizeof(int) )
-    output.num_gens = 0
-    if base:
-        output.base = <int *> sage_malloc( n * sizeof(int) )
-        output.base_size = 0
-
-    current_indicators = <int *> sage_malloc( n * sizeof(int) )
-    first_indicators = <int *> sage_malloc( n * sizeof(int) )
-
-    if canonical_label:
-        label_indicators = <int *> sage_malloc( n * sizeof(int) )
-        output.relabeling = <int *> sage_malloc( n * sizeof(int) )
+    indicators = <int *> sage_malloc(n * sizeof(int))
 
     fixed_points_of_generators = <bitset_t *> sage_malloc( len_of_fp_and_mcr * sizeof(bitset_t) )
     minimal_cell_reps_of_generators = <bitset_t *> sage_malloc( len_of_fp_and_mcr * sizeof(bitset_t) )
@@ -271,25 +180,14 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
     cells_to_refine_by = <int *> sage_malloc( n * sizeof(int) )
     vertices_determining_current_stack = <int *> sage_malloc( n * sizeof(int) )
 
+    output = <int *> sage_malloc( n * sizeof(int) )
+
     current_ps = PS_new(n, 0)
+    left_ps = PS_new(n, 0)
     orbits_of_subgroup = OP_new(n)
 
     # Check for allocation failures:
-    cdef bint succeeded = 1
-    if canonical_label:
-        if label_indicators is NULL or output.relabeling is NULL:
-            succeeded = 0
-            if label_indicators is not NULL:
-                sage_free(label_indicators)
-            if output.relabeling is not NULL:
-                sage_free(output.relabeling)
-    if base:
-        if output.base is NULL:
-            succeeded = 0
-    if not succeeded                              or \
-       output.generators                  is NULL or \
-       current_indicators                 is NULL or \
-       first_indicators                   is NULL or \
+    if indicators                         is NULL or \
        fixed_points_of_generators         is NULL or \
        minimal_cell_reps_of_generators    is NULL or \
        vertices_to_split                  is NULL or \
@@ -298,16 +196,10 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
        cells_to_refine_by                 is NULL or \
        vertices_determining_current_stack is NULL or \
        current_ps                         is NULL or \
-       orbits_of_subgroup                 is NULL:
-        if output.generators                  is not NULL:
-            sage_free(output.generators)
-        if base:
-            if output.base                        is not NULL:
-                sage_free(output.base)
-        if current_indicators                 is not NULL:
-            sage_free(current_indicators)
-        if first_indicators                   is not NULL:
-            sage_free(first_indicators)
+       orbits_of_subgroup                 is NULL or \
+       output                             is NULL:
+        if indicators                         is not NULL:
+            sage_free(indicators)
         if fixed_points_of_generators         is not NULL:
             sage_free(fixed_points_of_generators)
         if minimal_cell_reps_of_generators    is not NULL:
@@ -326,12 +218,12 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
             PS_dealloc(current_ps)
         if orbits_of_subgroup is not NULL:
             OP_dealloc(orbits_of_subgroup)
-        sage_free(output)
-        mpz_clear(subgroup_size)
+        if output is not NULL:
+            sage_free(output)
         raise MemoryError
 
     # Initialize bitsets, checking for allocation failures:
-    succeeded = 1
+    cdef bint succeeded = 1
     for i from 0 <= i < len_of_fp_and_mcr:
         try:
             bitset_init(fixed_points_of_generators[i], n)
@@ -373,14 +265,7 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
                 bitset_clear(fixed_points_of_generators[j])
                 bitset_clear(minimal_cell_reps_of_generators[j])
     if not succeeded:
-        sage_free(output.generators)
-        if base:
-            sage_free(output.base)
-        sage_free(current_indicators)
-        sage_free(first_indicators)
-        if canonical_label:
-            sage_free(output.relabeling)
-            sage_free(label_indicators)
+        sage_free(indicators)
         sage_free(fixed_points_of_generators)
         sage_free(minimal_cell_reps_of_generators)
         sage_free(vertices_to_split)
@@ -389,86 +274,114 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
         sage_free(cells_to_refine_by)
         sage_free(vertices_determining_current_stack)
         PS_dealloc(current_ps)
-        sage_free(output)
-        mpz_clear(subgroup_size)
+        PS_dealloc(left_ps)
+        OP_dealloc(orbits_of_subgroup)
         raise MemoryError
 
     bitset_zero(vertices_have_been_reduced)
 
-    # Copy data of partition to current_ps.
+    # set up the identity permutation
+    for i from 0 <= i < n:
+        id_perm[i] = i
+    if ordering2 is NULL:
+        ordering2 = id_perm
+
+    # Copy data of partition to left_ps, and
+    # ordering of that partition to current_ps.
     i = 0
     j = 0
-    while partition[i] is not NULL:
+    while partition1[i] is not NULL:
         k = 0
-        while partition[i][k] != -1:
-            current_ps.entries[j+k] = partition[i][k]
+        while partition1[i][k] != -1:
+            left_ps.entries[j+k] = partition1[i][k]
+            left_ps.levels[j+k] = n
+            current_ps.entries[j+k] = ordering2[j+k]
             current_ps.levels[j+k] = n
             k += 1
+        left_ps.levels[j+k-1] = 0
         current_ps.levels[j+k-1] = 0
         PS_move_min_to_front(current_ps, j, j+k-1)
         j += k
         i += 1
+    left_ps.levels[j-1] = -1
     current_ps.levels[j-1] = -1
+    left_ps.depth = 0
     current_ps.depth = 0
+    left_ps.degree = n
     current_ps.degree = n
 
     # default values of "infinity"
     for i from 0 <= i < n:
-        first_indicators[i] = -1
-    if canonical_label:
-        for i from 0 <= i < n:
-            label_indicators[i] = -1
+        indicators[i] = -1
 
-    # set up the identity permutation
-    for i from 0 <= i < n:
-        id_perm[i] = i
+    cdef bint possible = 1
+    cdef bint unknown = 1
 
     # Our first refinement needs to check every cell of the partition,
     # so cells_to_refine_by needs to be a list of pointers to each cell.
     j = 1
     cells_to_refine_by[0] = 0
     for i from 0 < i < n:
+        if left_ps.levels[i-1] == 0:
+            cells_to_refine_by[j] = i
+            j += 1
+
+    k = refine_and_return_invariant(left_ps, S1, cells_to_refine_by, j)
+
+    j = 1
+    cells_to_refine_by[0] = 0
+    for i from 0 < i < n:
         if current_ps.levels[i-1] == 0:
             cells_to_refine_by[j] = i
             j += 1
-    # Ignore the invariant this time, since we are
-    # creating the root of the search tree.
-    refine_and_return_invariant(current_ps, S, cells_to_refine_by, j)
-    PS_move_all_mins_to_front(current_ps)
+    j = refine_and_return_invariant(current_ps, S2, cells_to_refine_by, j)
+    if k != j:
+        possible = 0; unknown = 0
+    elif not stacks_are_equivalent(left_ps, current_ps):
+        possible = 0; unknown = 0
+    else:
+        PS_move_all_mins_to_front(current_ps)
 
+    first_ps = NULL
     # Refine down to a discrete partition
-    while not PS_is_discrete(current_ps):
-        if not all_children_are_equivalent(current_ps, S):
-            current_kids_are_same = current_ps.depth + 1
+    while not PS_is_discrete(left_ps) and possible:
+        k = PS_first_smallest(left_ps, vertices_to_split[left_ps.depth])
+        i = left_ps.depth
+        indicators[i] = split_point_and_refine(left_ps, k, S1, refine_and_return_invariant, cells_to_refine_by)
         vertices_determining_current_stack[current_ps.depth] = PS_first_smallest(current_ps, vertices_to_split[current_ps.depth])
         bitset_unset(vertices_have_been_reduced, current_ps.depth)
-        i = current_ps.depth
-        current_indicators[i] = split_point_and_refine(current_ps, vertices_determining_current_stack[i], S, refine_and_return_invariant, cells_to_refine_by)
-        PS_move_all_mins_to_front(current_ps)
-        first_indicators[i] = current_indicators[i]
-        if canonical_label:
-            label_indicators[i] = current_indicators[i]
-        if base:
-            output.base[i] = vertices_determining_current_stack[i]
-            output.base_size += 1
+        while 1:
+            j =  split_point_and_refine(current_ps, vertices_determining_current_stack[i], S2, refine_and_return_invariant, cells_to_refine_by)
+            if indicators[i] != j:
+                possible = 0
+            elif not stacks_are_equivalent(left_ps, current_ps):
+                possible = 0
+            else:
+                PS_move_all_mins_to_front(current_ps)
+            if not possible:
+                j = vertices_determining_current_stack[i] + 1
+                j = bitset_next(vertices_to_split[i], j)
+                if j == -1:
+                    break
+                else:
+                    possible = 1
+                    vertices_determining_current_stack[i] = j
+                    current_ps.depth -= 1 # reset for next refinement
+            else: break
+        if not all_children_are_equivalent(current_ps, S2):
+            current_kids_are_same = current_ps.depth + 1
 
-    first_meets_current = current_ps.depth
-    first_kids_are_same = current_ps.depth
-    first_and_current_indicator_same = current_ps.depth
-    first_ps = PS_copy(current_ps)
-    if canonical_label:
-        label_meets_current = current_ps.depth
-        label_and_current_indicator_same = current_ps.depth
-        compared_current_and_label_indicators = 0
-        label_ps = PS_copy(current_ps)
-    current_ps.depth -= 1
+    if possible:
+        if compare_structures(left_ps.entries, current_ps.entries, S1, S2) == 0:
+            unknown = 0
+        else:
+            first_meets_current = current_ps.depth
+            first_kids_are_same = current_ps.depth
+            first_ps = PS_copy(current_ps)
+            current_ps.depth -= 1
 
     # Main loop:
-    while current_ps.depth != -1:
-
-        # If necessary, update label_meets_current
-        if canonical_label and label_meets_current > current_ps.depth:
-            label_meets_current = current_ps.depth
+    while possible and unknown and current_ps.depth != -1:
 
         # I. Search for a new vertex to split, and update subgroup information
         new_vertex = 0
@@ -541,8 +454,7 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
                             j += 1
                     if j == subgroup_primary_orbit_size and first_kids_are_same == current_ps.depth+1:
                         first_kids_are_same = current_ps.depth
-                    # Update group size and backtrack.
-                    mpz_mul_si(subgroup_size, subgroup_size, subgroup_primary_orbit_size)
+                    # Backtrack.
                     subgroup_primary_orbit_size = 0
                     current_ps.depth -= 1
                     break
@@ -551,73 +463,53 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
 
         if current_kids_are_same > current_ps.depth + 1:
             current_kids_are_same = current_ps.depth + 1
-        if first_and_current_indicator_same > current_ps.depth:
-            first_and_current_indicator_same = current_ps.depth
-        if canonical_label and label_and_current_indicator_same >= current_ps.depth:
-            label_and_current_indicator_same = current_ps.depth
-            compared_current_and_label_indicators = 0
 
         # II. Refine down to a discrete partition, or until
         # we leave the part of the tree we are interested in
         discrete = 0
         while 1:
             i = current_ps.depth
-            current_indicators[i] = split_point_and_refine(current_ps, vertices_determining_current_stack[i], S, refine_and_return_invariant, cells_to_refine_by)
-            PS_move_all_mins_to_front(current_ps)
-            if first_and_current_indicator_same == i and current_indicators[i] == first_indicators[i]:
-                first_and_current_indicator_same += 1
-            if canonical_label:
-                if compared_current_and_label_indicators == 0:
-                    if label_indicators[i] == -1:
-                        compared_current_and_label_indicators = -1
+            while 1:
+                k = split_point_and_refine(current_ps, vertices_determining_current_stack[i], S2, refine_and_return_invariant, cells_to_refine_by)
+                PS_move_all_mins_to_front(current_ps)
+                if indicators[i] != k:
+                    possible = 0
+                elif not stacks_are_equivalent(left_ps, current_ps):
+                    possible = 0
+                if not possible:
+                    j = vertices_determining_current_stack[i] + 1
+                    j = bitset_next(vertices_to_split[i], j)
+                    if j == -1:
+                        break
                     else:
-                        compared_current_and_label_indicators = cmp(current_indicators[i], label_indicators[i])
-                if label_and_current_indicator_same == i and compared_current_and_label_indicators == 0:
-                    label_and_current_indicator_same += 1
-                if compared_current_and_label_indicators > 0:
-                    label_indicators[i] = current_indicators[i]
-            if first_and_current_indicator_same < current_ps.depth and (not canonical_label or compared_current_and_label_indicators < 0):
+                        possible = 1
+                        vertices_determining_current_stack[i] = j
+                        current_ps.depth -= 1 # reset for next refinement
+                else: break
+            if not possible:
                 break
             if PS_is_discrete(current_ps):
-                discrete = 1
                 break
             vertices_determining_current_stack[current_ps.depth] = PS_first_smallest(current_ps, vertices_to_split[current_ps.depth])
             bitset_unset(vertices_have_been_reduced, current_ps.depth)
-            if not all_children_are_equivalent(current_ps, S):
+            if not all_children_are_equivalent(current_ps, S2):
                 current_kids_are_same = current_ps.depth + 1
 
-        # III. Check for automorphisms and labels
+        # III. Check for automorphisms and isomorphisms
         automorphism = 0
-        backtrack = 1 - discrete
-        if discrete:
-            if current_ps.depth == first_and_current_indicator_same:
-                PS_get_perm_from(current_ps, first_ps, permutation)
-                if compare_structures(permutation, id_perm, S, S) == 0:
-                    automorphism = 1
-        if not automorphism:
-            if (not canonical_label) or (compared_current_and_label_indicators < 0):
-                backtrack = 1
+        if possible:
+            PS_get_perm_from(current_ps, first_ps, permutation)
+            if compare_structures(permutation, id_perm, S2, S2) == 0:
+                automorphism = 1
+        if not automorphism and possible:
+            # if we get here, discrete must be true
+            if current_ps.depth != left_ps.depth:
+                possible = 0
+            elif compare_structures(left_ps.entries, current_ps.entries, S1, S2) == 0:
+                unknown = 0
+                break # main loop
             else:
-                # if we get here, discrete must be true
-                update_label = 0
-                if (compared_current_and_label_indicators > 0) or (current_ps.depth < label_ps.depth):
-                    update_label = 1
-                else:
-                    i = compare_structures(current_ps.entries, label_ps.entries, S, S)
-                    if i > 0:
-                        update_label = 1
-                    elif i < 0:
-                        backtrack = 1
-                    else:
-                        PS_get_perm_from(current_ps, label_ps, permutation)
-                        automorphism = 1
-                if update_label:
-                    PS_copy_from_to(current_ps, label_ps)
-                    compared_current_and_label_indicators = 0
-                    label_meets_current = current_ps.depth
-                    label_and_current_indicator_same = current_ps.depth
-                    label_indicators[current_ps.depth] = -1
-                    backtrack = 1
+                possible = 0
         if automorphism:
             if index_in_fp_and_mcr < len_of_fp_and_mcr - 1:
                 index_in_fp_and_mcr += 1
@@ -638,31 +530,17 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
                         bitset_set(minimal_cell_reps_of_generators[index_in_fp_and_mcr], i)
                     else:
                         bitset_unset(minimal_cell_reps_of_generators[index_in_fp_and_mcr], i)
+            current_ps.depth = first_meets_current
             if OP_merge_list_perm(orbits_of_subgroup, permutation): # if permutation made orbits coarser
-                if n*output.num_gens == size_of_generator_array:
-                    # must double its size
-                    size_of_generator_array *= 2
-                    output.generators = <int *> sage_realloc( output.generators, size_of_generator_array )
-                    if output.generators is NULL:
-                        mem_err = True
-                        break # main loop
-                j = n*output.num_gens
-                for i from 0 <= i < n:
-                    output.generators[j + i] = permutation[i]
-                output.num_gens += 1
                 if orbits_of_subgroup.mcr[OP_find(orbits_of_subgroup, minimal_in_primary_orbit)] != minimal_in_primary_orbit:
-                    current_ps.depth = first_meets_current
                     continue # main loop
-            if canonical_label:
-                current_ps.depth = label_meets_current
-            else:
-                current_ps.depth = first_meets_current
             if bitset_check(vertices_have_been_reduced, current_ps.depth):
                 bitset_and(vertices_to_split[current_ps.depth], vertices_to_split[current_ps.depth], minimal_cell_reps_of_generators[index_in_fp_and_mcr])
             continue # main loop
-        if backtrack:
+        if not possible:
+            possible = 1
             i = current_ps.depth
-            current_ps.depth = min(max(first_kids_are_same - 1, label_and_current_indicator_same), current_kids_are_same - 1)
+            current_ps.depth = min(first_kids_are_same-1, current_kids_are_same-1)
             if i == current_kids_are_same:
                 continue # main loop
             if index_in_fp_and_mcr < len_of_fp_and_mcr - 1:
@@ -682,10 +560,12 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
 
     # End of main loop.
 
-    mpz_init_set(output.order, subgroup_size)
-    if canonical_label:
+    if possible and not unknown:
         for i from 0 <= i < n:
-            output.relabeling[label_ps.entries[i]] = i
+            output[left_ps.entries[i]] = current_ps.entries[i]
+    else:
+        sage_free(output)
+        output = NULL
 
     # Deallocate:
     for i from 0 <= i < len_of_fp_and_mcr:
@@ -694,11 +574,7 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
     for i from 0 <= i < n:
         bitset_clear(vertices_to_split[i])
     bitset_clear(vertices_have_been_reduced)
-    sage_free(current_indicators)
-    sage_free(first_indicators)
-    if canonical_label:
-        PS_dealloc(label_ps)
-        sage_free(label_indicators)
+    sage_free(indicators)
     sage_free(fixed_points_of_generators)
     sage_free(minimal_cell_reps_of_generators)
     sage_free(vertices_to_split)
@@ -707,30 +583,11 @@ cdef aut_gp_and_can_lab_return *get_aut_gp_and_can_lab(object S, int **partition
     sage_free(cells_to_refine_by)
     sage_free(vertices_determining_current_stack)
     PS_dealloc(current_ps)
-    PS_dealloc(first_ps)
+    PS_dealloc(left_ps)
     OP_dealloc(orbits_of_subgroup)
-    mpz_clear(subgroup_size)
-    if not mem_err:
-        return output
-    else:
-        mpz_clear(output.order)
-        sage_free(output.generators)
-        if base:
-            sage_free(output.base)
-        if canonical_label:
-            sage_free(output.relabeling)
-        sage_free(output)
-        output = NULL
-        raise MemoryError
+    if first_ps is not NULL: PS_dealloc(first_ps)
 
-
-
-
-
-
-
-
-
+    return output
 
 
 

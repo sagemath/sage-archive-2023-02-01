@@ -8,10 +8,11 @@
 
 include '../../../ext/cdefs.pxi'
 include '../../../ext/stdsage.pxi'
-include '../../../misc/bitset_pxd.pxi'
+include 'data_structures_pxd.pxi' # includes bitsets
 
 from sage.rings.integer cimport Integer
-from sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label cimport PartitionStack, PS_print, PS_new, PS_dealloc, PS_clear, PS_is_discrete, PS_move_min_to_front, PS_num_cells, get_aut_gp_and_can_lab, aut_gp_and_can_lab_return
+from sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label cimport get_aut_gp_and_can_lab, aut_gp_and_can_lab_return
+from double_coset cimport double_coset
 
 cdef class BinaryCodeStruct:
     cdef bitset_s *alpha_is_wd # single bitset of length nwords + degree
@@ -36,8 +37,8 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
 cdef int ith_word_nonlinear(BinaryCodeStruct, int, bitset_s *)
 
 cdef int refine_by_bip_degree(PartitionStack *, object, int *, int)
-cdef int compare_linear_codes(int *, int *, object)
-cdef int compare_nonlinear_codes(int *, int *, object)
+cdef int compare_linear_codes(int *, int *, object, object)
+cdef int compare_nonlinear_codes(int *, int *, object, object)
 cdef bint all_children_are_equivalent(PartitionStack *, object)
 cdef inline int word_degree(PartitionStack *, BinaryCodeStruct, int, int, PartitionStack *)
 cdef inline int col_degree(PartitionStack *, BinaryCodeStruct, int, int, PartitionStack *)

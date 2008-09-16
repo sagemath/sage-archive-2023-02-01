@@ -718,6 +718,9 @@ ext_modules = [ \
     Extension('sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label',
               sources = ['sage/groups/perm_gps/partn_ref/automorphism_group_canonical_label.pyx']), \
 
+    Extension('sage.groups.perm_gps.partn_ref.double_coset',
+              sources = ['sage/groups/perm_gps/partn_ref/double_coset.pyx']), \
+
     Extension('sage.groups.perm_gps.partn_ref.refinement_graphs',
               sources = ['sage/groups/perm_gps/partn_ref/refinement_graphs.pyx']), \
 

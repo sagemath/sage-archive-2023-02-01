@@ -18,6 +18,144 @@ REFERENCE:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include 'data_structures_pyx.pxi' # includes bitsets
+
+def isomorphic(G1, G2, partition, ordering2, dig, use_indicator_function, sparse=False):
+    """
+    Tests whether two graphs are isomorphic.
+
+    sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
+
+    sage: G = Graph(2)
+    sage: H = Graph(2)
+    sage: isomorphic(G, H, [[0,1]], [0,1], 0, 1)
+    [0, 1]
+    sage: isomorphic(G, H, [[0,1]], [0,1], 0, 1)
+    [0, 1]
+    sage: isomorphic(G, H, [[0],[1]], [0,1], 0, 1)
+    [0, 1]
+    sage: isomorphic(G, H, [[0],[1]], [1,0], 0, 1)
+    [1, 0]
+
+    sage: G = Graph(3)
+    sage: H = Graph(3)
+    sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
+    [0, 1, 2]
+    sage: G.add_edge(0,1)
+    sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
+    False
+    sage: H.add_edge(1,2)
+    sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
+    [1, 2, 0]
+
+    """
+    cdef int **part
+    cdef int *output, *ordering
+    cdef CGraph G
+    cdef GraphStruct GS1 = GraphStruct()
+    cdef GraphStruct GS2 = GraphStruct()
+    cdef GraphStruct GS
+    cdef int i, j, n = -1
+
+    from sage.graphs.graph import GenericGraph, Graph, DiGraph
+    for G_in in [G1, G2]:
+        if G_in is G1:
+            GS = GS1
+        else:
+            GS = GS2
+        if isinstance(G_in, GenericGraph):
+            if n == -1:
+                n = G_in.num_verts()
+            elif n != G_in.num_verts():
+                return False
+            G_in = G_in.copy()
+            if G_in.vertices() != range(n):
+                to = G_in.relabel(return_map=True)
+                frm = {}
+                for v in to.iterkeys():
+                    frm[to[v]] = v
+                partition = [[to[v] for v in cell] for cell in partition]
+            else:
+                to = range(n)
+                frm = to
+            if sparse:
+                G = SparseGraph(n)
+            else:
+                G = DenseGraph(n)
+            if G_in.is_directed():
+                for i from 0 <= i < n:
+                    for _,j,_ in G_in.outgoing_edge_iterator(i):
+                        G.add_arc(i,j)
+            else:
+                for i from 0 <= i < n:
+                    for _,j,_ in G_in.edge_iterator(i):
+                        if j <= i:
+                            G.add_arc(i,j)
+                            G.add_arc(j,i)
+        elif isinstance(G_in, CGraph):
+            G = <CGraph> G_in
+            if n == -1:
+                n = G.num_verts
+            elif n != G.num_verts:
+                return False
+            to = range(n)
+            frm = to
+        else:
+            raise TypeError("G must be a Sage graph.")
+        GS.G = G
+        GS.directed = 1 if dig else 0
+        GS.use_indicator = 1 if use_indicator_function else 0
+
+    if n == 0:
+        return {}
+
+    part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+    ordering = <int *> sage_malloc(n * sizeof(int))
+    if part is NULL or ordering is NULL:
+        if part is not NULL: sage_free(part)
+        if ordering is not NULL: sage_free(ordering)
+        raise MemoryError
+    for i from 0 <= i < len(partition):
+        part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
+        if part[i] is NULL:
+            for j from 0 <= j < i:
+                sage_free(part[j])
+            sage_free(part)
+            raise MemoryError
+        for j from 0 <= j < len(partition[i]):
+            part[i][j] = partition[i][j]
+        part[i][len(partition[i])] = -1
+    part[len(partition)] = NULL
+    for i from 0 <= i < n:
+        ordering[i] = ordering2[i]
+
+    GS1.scratch = <int *> sage_malloc((3*n+1) * sizeof(int))
+    GS2.scratch = <int *> sage_malloc((3*n+1) * sizeof(int))
+    if GS1.scratch is NULL or GS2.scratch is NULL:
+        if GS1.scratch is not NULL: sage_free(GS1.scratch)
+        if GS2.scratch is not NULL: sage_free(GS2.scratch)
+        for j from 0 <= j < len(partition):
+            sage_free(part[j])
+        sage_free(part)
+        raise MemoryError
+
+    output = double_coset(GS1, GS2, part, ordering, n, &all_children_are_equivalent, &refine_by_degree, &compare_graphs)
+
+    for i from 0 <= i < len(partition):
+        sage_free(part[i])
+    sage_free(part)
+    sage_free(ordering)
+    sage_free(GS1.scratch)
+    sage_free(GS2.scratch)
+
+    if output is NULL:
+        return False
+    else:
+        output_py = [output[i] for i from 0 <= i < n]
+        sage_free(output)
+        # TODO: figure out frm, to stuff to relabel for consistency with input
+        return output_py
+
 def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=False,
                     verbosity=0, use_indicator_function=True, sparse=False,
                     base=False, order=False):
@@ -200,6 +338,19 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: st(G, [range(G.num_verts())])[1] == st(H, [range(H.num_verts())])[1]
         True
 
+        sage: from sage.graphs.graph import graph_isom_equivalent_non_multi_graph
+        sage: G = Graph(multiedges=True, implementation='networkx')
+        sage: G.add_edge(('a', 'b'))
+        sage: G.add_edge(('a', 'b'))
+        sage: G.add_edge(('a', 'b'))
+        sage: G, Pi = graph_isom_equivalent_non_multi_graph(G, [['a','b']])
+        sage: s,b = st(G, Pi, lab=False, dict_rep=True)
+        sage: sorted(b.items())
+        [(('o', 'a'), 5), (('o', 'b'), 1), (('x', 0), 2), (('x', 1), 3), (('x', 2), 4)]
+
+        sage: st(Graph(':Dkw'), [range(5)], lab=False, dig=True)
+        [[4, 1, 2, 3, 0], [0, 2, 1, 3, 4]]
+
     """
     cdef CGraph G
     cdef int i, j, n
@@ -277,10 +428,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     if dict_rep:
         ddd = {}
         for v in frm.iterkeys():
-            if frm[v] != 0:
-                ddd[v] = frm[v]
-            else:
-                ddd[v] = n
+            ddd[frm[v]] = v if v != 0 else n
         return_tuple.append(ddd)
     if lab:
         if isinstance(G_in, GenericGraph):
@@ -348,6 +496,7 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
     cdef int current_cell, i, r
     cdef int first_largest_subcell
     cdef int invariant = 1
+    cdef int max_degree
     cdef int *degrees = GS.scratch # length 3n+1
     cdef bint necessary_to_split_cell
     cdef int against_index
@@ -358,10 +507,13 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
             invariant += 50
             i = current_cell
             necessary_to_split_cell = 0
+            max_degree = 0
             while 1:
                 degrees[i-current_cell] = degree(PS, G, i, cells_to_refine_by[current_cell_against], 0)
                 if degrees[i-current_cell] != degrees[0]:
                     necessary_to_split_cell = 1
+                if degrees[i-current_cell] > max_degree:
+                    max_degree = degrees[i-current_cell]
                 i += 1
                 if PS.levels[i-1] <= PS.depth:
                     break
@@ -369,7 +521,7 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
             if necessary_to_split_cell:
                 invariant += 10
                 first_largest_subcell = sort_by_function(PS, current_cell, degrees)
-                invariant += first_largest_subcell
+                invariant += first_largest_subcell + max_degree
                 against_index = current_cell_against
                 while against_index < ctrb_len:
                     if cells_to_refine_by[against_index] == current_cell:
@@ -385,7 +537,6 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
                     r += 1
                     if r >= i:
                         break
-                invariant += degree(PS, G, i-1, cells_to_refine_by[current_cell_against], 0)
                 invariant += (i - current_cell)
             current_cell = i
         if GS.directed:
@@ -396,10 +547,13 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
                 invariant += 20
                 i = current_cell
                 necessary_to_split_cell = 0
+                max_degree = 0
                 while 1:
                     degrees[i-current_cell] = degree(PS, G, i, cells_to_refine_by[current_cell_against], 1)
                     if degrees[i-current_cell] != degrees[0]:
                         necessary_to_split_cell = 1
+                    if degrees[i-current_cell] > max_degree:
+                        max_degree = degrees[i-current_cell]
                     i += 1
                     if PS.levels[i-1] <= PS.depth:
                         break
@@ -407,7 +561,7 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
                 if necessary_to_split_cell:
                     invariant += 7
                     first_largest_subcell = sort_by_function(PS, current_cell, degrees)
-                    invariant += first_largest_subcell
+                    invariant += first_largest_subcell + max_degree
                     against_index = current_cell_against
                     while against_index < ctrb_len:
                         if cells_to_refine_by[against_index] == current_cell:
@@ -425,7 +579,6 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
                         r += 1
                         if r >= i:
                             break
-                    invariant += degree(PS, G, i-1, cells_to_refine_by[current_cell_against], 1)
                     invariant += (i - current_cell)
                 current_cell = i
         current_cell_against += 1
@@ -434,28 +587,30 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
     else:
         return 0
 
-cdef int compare_graphs(int *gamma_1, int *gamma_2, object S):
+cdef int compare_graphs(int *gamma_1, int *gamma_2, object S1, object S2):
     r"""
-    Compare gamma_1(G) and gamma_2(G).
+    Compare gamma_1(S1) and gamma_2(S2).
 
-    Return return -1 if gamma_1(G) < gamma_2(G), 0 if gamma_1(G) ==
-    gamma_2(G), 1 if gamma_1(G) > gamma_2(G).  (Just like the python
+    Return return -1 if gamma_1(S1) < gamma_2(S2), 0 if gamma_1(S1) ==
+    gamma_2(S2), 1 if gamma_1(S1) > gamma_2(S2).  (Just like the python
     \code{cmp}) function.
 
     INPUT:
     gamma_1, gamma_2 -- list permutations (inverse)
-    S -- a graph struct object
+    S1, S2 -- graph struct objects
 
     """
     cdef int i, j
-    cdef GraphStruct GS = <GraphStruct> S
-    cdef CGraph G = GS.G
-    for i from 0 <= i < G.num_verts:
-        for j from 0 <= j < G.num_verts:
-            if G.has_arc_unsafe(gamma_1[i], gamma_1[j]):
-                if not G.has_arc_unsafe(gamma_2[i], gamma_2[j]):
+    cdef GraphStruct GS1 = <GraphStruct> S1
+    cdef GraphStruct GS2 = <GraphStruct> S2
+    cdef CGraph G1 = GS1.G
+    cdef CGraph G2 = GS2.G
+    for i from 0 <= i < G1.num_verts:
+        for j from 0 <= j < G1.num_verts:
+            if G1.has_arc_unsafe(gamma_1[i], gamma_1[j]):
+                if not G2.has_arc_unsafe(gamma_2[i], gamma_2[j]):
                     return 1
-            elif G.has_arc_unsafe(gamma_2[i], gamma_2[j]):
+            elif G2.has_arc_unsafe(gamma_2[i], gamma_2[j]):
                 return -1
     return 0
 
@@ -472,6 +627,8 @@ cdef bint all_children_are_equivalent(PartitionStack *PS, object S):
     S -- a graph struct object
     """
     cdef GraphStruct GS = <GraphStruct> S
+    if GS.directed:
+        return 0
     cdef CGraph G = GS.G
     cdef int i, n = PS.degree
     cdef bint in_cell = 0
@@ -622,7 +779,7 @@ def all_labeled_graphs(n):
 def random_tests(t=10.0, n_max=60, perms_per_graph=10):
     """
     Tests to make sure that C(gamma(G)) == C(G) for random permutations gamma
-    and random graphs G.
+    and random graphs G, and that isomorphic returns an isomorphism.
 
     INPUT:
     t -- run tests for approximately this many seconds
@@ -637,7 +794,8 @@ def random_tests(t=10.0, n_max=60, perms_per_graph=10):
 
     For each graph G generated, we uniformly generate perms_per_graph random
     permutations and verify that the canonical labels of G and the image of G
-    under the generated permutation are equal.
+    under the generated permutation are equal, and that the isomorphic function
+    returns an isomorphism.
 
     TESTS:
         sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
@@ -651,7 +809,7 @@ def random_tests(t=10.0, n_max=60, perms_per_graph=10):
     from sage.misc.prandom import random, randint
     from sage.graphs.graph_generators import GraphGenerators, DiGraphGenerators
     from sage.combinat.permutation import Permutations
-    cdef int i, j, num_tests = 0, num_graphs = 0, passed = 1
+    cdef int i, j, num_tests = 0, num_graphs = 0
     GG = GraphGenerators()
     DGG = DiGraphGenerators()
     t_0 = walltime()
@@ -663,16 +821,23 @@ def random_tests(t=10.0, n_max=60, perms_per_graph=10):
         G = GG.RandomGNP(n, p)
         H = G.copy()
         for i from 0 <= i < perms_per_graph:
+            G = H.copy()
             G1 = search_tree(G, [G.vertices()])[1]
             perm = list(S.random_element())
             perm = [perm[j]-1 for j from 0 <= j < n]
             G.relabel(perm)
             G2 = search_tree(G, [G.vertices()])[1]
             if G1 != G2:
-                print "FAILURE: graph6-"
+                print "search_tree FAILURE: graph6-"
                 print H.graph6_string()
                 print perm
-                passed = 0
+                return
+            isom = isomorphic(G, H, [range(n)], range(n), 0, 1)
+            if not isom or G.relabel(isom, inplace=False) != H:
+                print "isom FAILURE: graph6-"
+                print H.graph6_string()
+                print perm
+                return
 
         D = DGG.RandomDirectedGNP(n, p)
         D.loops(True)
@@ -681,19 +846,26 @@ def random_tests(t=10.0, n_max=60, perms_per_graph=10):
                 D.add_edge(i,i)
         E = D.copy()
         for i from 0 <= i < perms_per_graph:
+            D = E.copy()
             D1 = search_tree(D, [D.vertices()], dig=True)[1]
             perm = list(S.random_element())
             perm = [perm[j]-1 for j from 0 <= j < n]
             D.relabel(perm)
             D2 = search_tree(D, [D.vertices()], dig=True)[1]
             if D1 != D2:
-                print "FAILURE: dig6-"
+                print "search_tree FAILURE: dig6-"
                 print E.dig6_string()
                 print perm
-                passed = 0
-        num_tests += 2*perms_per_graph
+                return
+            isom = isomorphic(D, E, [range(n)], range(n), 1, 1)
+            if not isom or D.relabel(isom, inplace=False) != E:
+                print "isom FAILURE: dig6-"
+                print E.dig6_string()
+                print perm
+                print isom
+                return
+        num_tests += 4*perms_per_graph
         num_graphs += 2
-    if passed:
-        print "All passed: %d random tests on %d graphs."%(num_tests, num_graphs)
+    print "All passed: %d random tests on %d graphs."%(num_tests, num_graphs)
 
 

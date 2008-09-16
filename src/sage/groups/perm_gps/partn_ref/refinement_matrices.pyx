@@ -22,7 +22,8 @@ REFERENCE:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../../../misc/bitset.pxi'
+include 'data_structures_pyx.pxi' # includes bitsets
+
 from sage.misc.misc import uniq
 from sage.matrix.constructor import Matrix
 
@@ -127,6 +128,11 @@ cdef class MatrixStruct:
 
         """
         cdef int **part, i, j
+        cdef NonlinearBinaryCodeStruct S_temp
+        for i from 0 <= i < self.nsymbols:
+            S_temp = <NonlinearBinaryCodeStruct> self.symbol_structs[i]
+            S_temp.first_time = 1
+
         if partition is None:
             partition = [range(self.degree)]
         part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
@@ -195,6 +201,62 @@ cdef class MatrixStruct:
             self.run()
         return [self.output.relabeling[i] for i from 0 <= i < self.degree]
 
+    def is_isomorphic(self, MatrixStruct other):
+        """
+        Calculate whether self is isomorphic to other.
+
+        EXAMPLES:
+            sage: from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
+            sage: M = MatrixStruct(Matrix(GF(11), [[1,2,3,0,0,0],[0,0,0,1,2,3]]))
+            sage: N = MatrixStruct(Matrix(GF(11), [[0,1,0,2,0,3],[1,0,2,0,3,0]]))
+            sage: M.is_isomorphic(N)
+            [0, 2, 4, 1, 3, 5]
+
+        """
+
+        cdef int **part, i, j
+        cdef int *output, *ordering
+        cdef NonlinearBinaryCodeStruct S_temp
+        for i from 0 <= i < self.nsymbols:
+            S_temp = self.symbol_structs[i]
+            S_temp.first_time = 1
+            S_temp = other.symbol_structs[i]
+            S_temp.first_time = 1
+        partition = [range(self.degree)]
+        part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+        ordering = <int *> sage_malloc(self.degree * sizeof(int))
+        if part is NULL or ordering is NULL:
+            if part is not NULL: sage_free(part)
+            if ordering is not NULL: sage_free(ordering)
+            raise MemoryError
+        for i from 0 <= i < len(partition):
+            part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
+            if part[i] is NULL:
+                for j from 0 <= j < i:
+                    sage_free(part[j])
+                sage_free(part)
+                raise MemoryError
+            for j from 0 <= j < len(partition[i]):
+                part[i][j] = partition[i][j]
+            part[i][len(partition[i])] = -1
+        part[len(partition)] = NULL
+        for i from 0 <= i < self.degree:
+            ordering[i] = i
+
+        output = double_coset(self, other, part, ordering, self.degree, &all_matrix_children_are_equivalent, &refine_matrix, &compare_matrices)
+
+        for i from 0 <= i < len(partition):
+            sage_free(part[i])
+        sage_free(part)
+        sage_free(ordering)
+
+        if output is NULL:
+            return False
+        else:
+            output_py = [output[i] for i from 0 <= i < self.degree]
+            sage_free(output)
+            return output_py
+
 cdef int refine_matrix(PartitionStack *PS, object S, int *cells_to_refine_by, int ctrb_len):
     cdef MatrixStruct M = <MatrixStruct> S
     cdef int i, temp_inv, invariant = 1
@@ -209,16 +271,18 @@ cdef int refine_matrix(PartitionStack *PS, object S, int *cells_to_refine_by, in
             changed = 0
     return invariant
 
-cdef int compare_matrices(int *gamma_1, int *gamma_2, object S):
-    cdef MatrixStruct MS = <MatrixStruct> S
-    M = MS.matrix
+cdef int compare_matrices(int *gamma_1, int *gamma_2, object S1, object S2):
+    cdef MatrixStruct MS1 = <MatrixStruct> S1
+    cdef MatrixStruct MS2 = <MatrixStruct> S2
+    M1 = MS1.matrix
+    M2 = MS2.matrix
     cdef int i
-    M1 = Matrix(M.base_ring(), M.nrows(), M.ncols(), sparse=M.is_sparse())
-    M2 = Matrix(M.base_ring(), M.nrows(), M.ncols(), sparse=M.is_sparse())
-    for i from 0 <= i < M.ncols():
-        M1.set_column(i, M.column(gamma_1[i]))
-        M2.set_column(i, M.column(gamma_2[i]))
-    return cmp(sorted(M1.rows()), sorted(M2.rows()))
+    MM1 = Matrix(M1.base_ring(), M1.nrows(), M1.ncols(), sparse=M1.is_sparse())
+    MM2 = Matrix(M2.base_ring(), M2.nrows(), M2.ncols(), sparse=M2.is_sparse())
+    for i from 0 <= i < M1.ncols():
+        MM1.set_column(i, M1.column(gamma_1[i]))
+        MM2.set_column(i, M2.column(gamma_2[i]))
+    return cmp(sorted(MM1.rows()), sorted(MM2.rows()))
 
 cdef bint all_matrix_children_are_equivalent(PartitionStack *PS, object S):
     cdef MatrixStruct M = <MatrixStruct> S
@@ -230,7 +294,8 @@ cdef bint all_matrix_children_are_equivalent(PartitionStack *PS, object S):
 def random_tests(t=10.0, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_matrix=10, density_range=(.1,.9)):
     """
     Tests to make sure that C(gamma(M)) == C(M) for random permutations gamma
-    and random matrices M.
+    and random matrices M, and that M.is_isomorphic(gamma(M)) returns an
+    isomorphism.
 
     INPUT:
     t -- run tests for approximately this many seconds
@@ -247,7 +312,8 @@ def random_tests(t=10.0, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_
 
     For each matrix M generated, we uniformly generate perms_per_matrix random
     permutations and verify that the canonical labels of M and the image of M
-    under the generated permutation are equal.
+    under the generated permutation are equal, and that the isomorphism is
+    discovered by the double coset function.
 
     DOCTEST:
         sage: import sage.groups.perm_gps.partn_ref.refinement_matrices
@@ -263,7 +329,7 @@ def random_tests(t=10.0, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_
     from sage.matrix.constructor import random_matrix, matrix
     from sage.rings.finite_field import FiniteField as GF
     from sage.rings.arith import next_prime
-    cdef int h, i, j, nrows, k, num_tests = 0, num_matrices = 0, passed = 1
+    cdef int h, i, j, nrows, k, num_tests = 0, num_matrices = 0
     cdef MatrixStruct M, N
     t_0 = walltime()
     while walltime(t_0) < t:
@@ -300,15 +366,22 @@ def random_tests(t=10.0, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_
 
             if M_C != N_C:
                 print "M:"
-                print M
+                print M.matrix.str()
                 print "perm:"
                 print perm
                 return
 
+            isom = M.is_isomorphic(N)
+            if not isom:
+                print "isom FAILURE: M:"
+                print M.matrix.str()
+                print "isom FAILURE: N:"
+                print N.matrix.str()
+                return
+
         num_tests += perms_per_matrix
         num_matrices += 2
-    if passed:
-        print "All passed: %d random tests on %d matrices."%(num_tests, num_matrices)
+    print "All passed: %d random tests on %d matrices."%(num_tests, num_matrices)
 
 
 

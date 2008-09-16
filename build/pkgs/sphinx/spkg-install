@@ -9,6 +9,9 @@ fi
 #Remove old version
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Sphinx-*
 
+#Copy the patched file over
+cp patches/highlighting.py src/sphinx/
+
 #Install new version
 cd src
 

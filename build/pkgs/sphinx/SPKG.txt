@@ -1,0 +1,38 @@
+= Sphinx =
+
+== Description ==
+
+Sphinx is a tool that makes it easy to create intelligent and
+beautiful documentation for Python projects (or other documents
+consisting of multiple reStructuredText sources), written by Georg
+Brandl. It was originally created to translate the new Python
+documentation, but has now been cleaned up in the hope that it will be
+useful to many other projects.
+
+== License ==
+
+Modified BSD
+
+== SPKG Maintainers ==
+
+Mike Hansen <mhansen@gmail.com>
+
+== Upstream Contact ==
+
+Author:  Georg Brandl <georg at python org>
+Home Page: http://sphinx.pocoo.org/
+
+== Dependencies ==
+
+This depends on Jinja >= 1.1, Pygments>=0.8, and docutils>=0.4.
+
+== Special Update/Build Instructions ==
+
+A patch was added to support highlighting the "sage:" prompts.
+
+== Changelog ==
+
+=== svn 66476 (Mike Hansen, September 15th, 2008) ===
+ * Initial version.
+
+

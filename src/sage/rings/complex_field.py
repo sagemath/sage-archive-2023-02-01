@@ -23,17 +23,21 @@ import weakref
 import ring
 from sage.misc.sage_eval import sage_eval
 
+from sage.structure.parent import Parent
 from sage.structure.parent_gens import ParentWithGens
 
 NumberFieldElement_quadratic = None
 AlgebraicNumber_base = None
 AlgebraicNumber = None
 AlgebraicReal = None
+AA = None
+QQbar = None
 def late_import():
     global NumberFieldElement_quadratic
     global AlgebraicNumber_base
     global AlgebraicNumber
     global AlgebraicReal
+    global AA, QQbar
     if NumberFieldElement_quadratic is None:
         import sage.rings.number_field.number_field_element_quadratic as nfeq
         NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
@@ -41,6 +45,8 @@ def late_import():
         AlgebraicNumber_base = sage.rings.qqbar.AlgebraicNumber_base
         AlgebraicNumber = sage.rings.qqbar.AlgebraicNumber
         AlgebraicReal = sage.rings.qqbar.AlgebraicReal
+        AA = sage.rings.qqbar.AA
+        QQbar = sage.rings.qqbar.QQbar
 
 def is_ComplexField(x):
     return isinstance(x, ComplexField_class)
@@ -147,6 +153,8 @@ class ComplexField_class(field.Field):
     def __init__(self, prec=53):
         self._prec = int(prec)
         ParentWithGens.__init__(self, self._real_field(), ('I',), False)
+#        self._populate_coercion_lists_()
+        self._populate_coercion_lists_(coerce_list=[complex_number.RRtoCC(self._real_field(), self)])
 
     def __reduce__(self):
         return ComplexField, (self._prec, )
@@ -191,10 +199,19 @@ class ComplexField_class(field.Field):
             ...
             TypeError: unsupported operand parent(s) for '+': 'Complex Field with 53 bits of precision' and 'Number Field in I with defining polynomial x^2 + 1'
         """
-        if im is None:
-            if isinstance(x, complex_number.ComplexNumber) and x.parent() is self:
-                return x
-            elif isinstance(x, complex_double.ComplexDoubleElement):
+        # we leave this here to handle the imaginary parameter
+        if im is not None:
+            x = x, im
+        return Parent.__call__(self, x)
+
+    def _element_constructor_(self, x):
+        """
+        EXAMPLES:
+            sage: CC((1,2))
+            1.00000000000000 + 2.00000000000000*I
+        """
+        if not isinstance(x, (real_mpfr.RealNumber, tuple)):
+            if isinstance(x, complex_double.ComplexDoubleElement):
                 return complex_number.ComplexNumber(self, x.real(), x.imag())
             elif isinstance(x, str):
                 # TODO: this is probably not the best and most
@@ -211,13 +228,10 @@ class ComplexField_class(field.Field):
                 return x._complex_mpfr_field_( self )
             except AttributeError:
                 pass
-        return complex_number.ComplexNumber(self, x, im)
+        return complex_number.ComplexNumber(self, x)
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, S):
         """
-        Return the canonical coerce of x into this complex field, if it is defined,
-        otherwise raise a TypeError.
-
         The rings that canonicaly coerce to the MPFS complex field are:
            * this MPFR complex field, or any other of higher precision
            * anything that canonically coerces to the mpfr real field with this prec
@@ -226,16 +240,14 @@ class ComplexField_class(field.Field):
         sage: ComplexField(200)(1) + RealField(90)(1)
         2.0000000000000000000000000
         """
-        try:
-            K = x.parent()
-            if is_ComplexField(K) and K._prec >= self._prec:
-                return self(x)
-        except AttributeError:
-            pass
+        RR = self._real_field()
+        if RR.has_coerce_map_from(S):
+            return complex_number.RRtoCC(RR, self) * RR.coerce_map_from(S)
+        if is_ComplexField(S) and S._prec >= self._prec:
+            return self._generic_convert_map(S)
         late_import()
-        if isinstance(x, AlgebraicNumber_base):
-            return self(x)
-        return self._coerce_try(x, self._real_field())
+        if S == AA or S == QQbar:
+            return self._generic_convert_map(S)
 
     def _repr_(self):
         return "Complex Field with %s bits of precision"%self._prec
@@ -339,3 +351,4 @@ class ComplexField_class(field.Field):
 
     def scientific_notation(self, status=None):
         return self._real_field().scientific_notation(status)
+

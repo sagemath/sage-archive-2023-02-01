@@ -78,8 +78,9 @@ cimport sage.libs.pari.gen
 import sage.libs.pari.gen
 
 
-import  complex_number
+import complex_number
 
+cdef RR, CC, RDF
 import complex_field
 CC = complex_field.ComplexField()
 
@@ -135,6 +136,14 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             True
         """
         ParentWithGens.__init__(self, self, ('I',), normalize=False)
+        self._populate_coercion_lists_()
+
+    def __reduce__(self):
+        """
+        sage: loads(dumps(CDF)) is CDF
+        True
+        """
+        return ComplexDoubleField, ()
 
     cpdef bint is_exact(self) except -2:
         """
@@ -147,7 +156,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         return False
 
     def __richcmp__(left, right, int op):
-        return (<Parent>left)._richcmp(right, op)
+        return (<Parent>left)._richcmp_helper(right, op)
 
     cdef int _cmp_c_impl(left, Parent right) except -2:
         # There is only one CDF.
@@ -207,7 +216,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return "Complex Double Field"
 
-    def __cmp__(self, x):
+    def _cmp_(self, x):
         """
         EXAMPLES:
             sage: CDF == 5
@@ -259,45 +268,47 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: b == CC(a)
             True
         """
+        # We implement __call__ to gracefully accept the second argument.
+        if im is not None:
+            x = x, im
+        return Parent.__call__(self, x)
+
+    def _element_constructor_(self, x):
+        """
+        See \code{__call__}.
+
+        EXAMPLES:
+            sage: CDF((1,2))
+            1.0 + 2.0*I
+        """
         cdef pari_sp sp
-        if im is None:
-            if isinstance(x, ComplexDoubleElement):
-                return x
-            elif isinstance(x, (float, int, long)):
-                return ComplexDoubleElement(x, 0)
-            elif isinstance(x, complex):
-                return ComplexDoubleElement(x.real, x.imag)
-            elif isinstance(x, complex_number.ComplexNumber):
-                return ComplexDoubleElement(x.real(), x.imag())
-            elif isinstance(x, sage.libs.pari.gen.gen):
-                # It seems we should get a speed increase by
-                # using _new_from_gen_c instead; I wasn't
-                # able to get this to work.
-                return ComplexDoubleElement(x.real(), x.imag())
-            elif isinstance(x, tuple):
-                return ComplexDoubleElement(x[0], x[1])
-            elif isinstance(x, str):
-                t = cdf_parser.parse_expression(x)
-                if isinstance(t, float):
-                    return ComplexDoubleElement(t, 0)
-                else:
-                    return t
-            elif hasattr(x, '_complex_double_'):
-                return x._complex_double_(self)
+        if PY_TYPE_CHECK(x, ComplexDoubleElement):
+            return x
+        elif PY_TYPE_CHECK(x, tuple):
+            return ComplexDoubleElement(x[0], x[1])
+        elif isinstance(x, (float, int, long)):
+            return ComplexDoubleElement(x, 0)
+        elif isinstance(x, complex):
+            return ComplexDoubleElement(x.real, x.imag)
+        elif isinstance(x, complex_number.ComplexNumber):
+            return ComplexDoubleElement(x.real(), x.imag())
+        elif isinstance(x, sage.libs.pari.gen.gen):
+            # It seems we should get a speed increase by
+            # using _new_from_gen_c instead; I wasn't
+            # able to get this to work.
+            return ComplexDoubleElement(x.real(), x.imag())
+        elif isinstance(x, str):
+            t = cdf_parser.parse_expression(x)
+            if isinstance(t, float):
+                return ComplexDoubleElement(t, 0)
             else:
-                return ComplexDoubleElement(x, 0)
+                return t
+        elif hasattr(x, '_complex_double_'):
+            return x._complex_double_(self)
         else:
-            return ComplexDoubleElement(x, im)
+            return ComplexDoubleElement(x, 0)
 
-    cpdef coerce_map_from_c(self, S):
-        from integer_ring import ZZ
-        from rational_field import QQ
-        import real_mpfr
-        if S in [int, float, ZZ, QQ, RDF] or isinstance(S, real_mpfr.RealField) and S.prec() >= 53:
-            return FloatToCDF(S)
-        return sage.rings.ring.Field.coerce_map_from_c(self, S)
-
-    cdef _coerce_c_impl(self, x):
+    cpdef _coerce_map_from_(self, S):
         """
         Return the canonical coerce of x into the complex double
         field, if it is defined, otherwise raise a TypeError.
@@ -321,11 +332,26 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: parent(a)
             Symbolic Ring
 
-        sage: CDF(1) + RR(1)
-        2.0
+        TESTS:
+            sage: CDF(1) + RR(1)
+            2.0
+            sage: CDF.0 - CC(1) - long(1) - RR(1) - QQbar(1)
+            -4.0 + 1.0*I
         """
-        return self._coerce_try(x, [self.real_double_field(),
-                                    CC, RR])
+        from integer_ring import ZZ
+        from rational_field import QQ
+        from real_mpfr import RR, RealField
+        from complex_field import ComplexField, ComplexField_class
+        CC = ComplexField()
+        from complex_number import CCtoCDF
+        if S in [int, float, ZZ, QQ, RDF] or isinstance(S, RealField) and S.prec() >= 53:
+            return FloatToCDF(S)
+        elif RR.has_coerce_map_from(S):
+            return FloatToCDF(RR) * RR.coerce_map_from(S)
+        elif isinstance(S, ComplexField_class):
+            return CCtoCDF(S, self)
+        elif CC.has_coerce_map_from(S):
+            return CCtoCDF(CC, self) * CC.coerce_map_from(S)
 
     def prec(self):
         """
@@ -336,7 +362,6 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF.prec()
             53
         """
-
         return 53
 
 
@@ -1777,7 +1802,7 @@ cdef class FloatToCDF(Morphism):
         Morphism.__init__(self, Hom(R, CDF))
     cpdef Element _call_(self, x):
         cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
-        z._complex = gsl_complex_rect(PyFloat_AsDouble(x), 0)
+        z._complex = gsl_complex_rect(x, 0)
         return z
     def _repr_type(self):
         return "Native"

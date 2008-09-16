@@ -19,6 +19,10 @@ import math
 import operator
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
+from sage.categories.map cimport Map
+
+from complex_double cimport ComplexDoubleElement
+from real_mpfr cimport RealNumber
 
 import complex_field
 import sage.misc.misc
@@ -1360,3 +1364,54 @@ def create_ComplexNumber(s_real, s_imag=None, int pad=0, min_prec=53):
     C = complex_field.ComplexField(prec=max(bits+pad, min_prec))
 
     return ComplexNumber(C, s_real, s_imag)
+
+
+cdef class RRtoCC(Map):
+
+    cdef ComplexNumber _zero
+
+    def __init__(self, RR, CC):
+        """
+        EXAMPLES:
+            sage: from sage.rings.complex_number import RRtoCC
+            sage: RRtoCC(RR, CC)
+            Natural map:
+              From: Real Field with 53 bits of precision
+              To:   Complex Field with 53 bits of precision
+        """
+        Map.__init__(self, RR, CC)
+        self._zero = ComplexNumber(CC, 0)
+        self._repr_type_str = "Natural"
+
+    cpdef Element _call_(self, x):
+        """
+        EXAMPLES:
+            sage: from sage.rings.complex_number import RRtoCC
+            sage: f = RRtoCC(RealField(100), ComplexField(10))
+            sage: f(1/3)
+            0.33
+        """
+        cdef ComplexNumber z = self._zero._new()
+        mpfr_set(z.__re, (<RealNumber>x).value, rnd)
+        mpfr_set_ui(z.__im, 0, rnd)
+        return z
+
+
+cdef class CCtoCDF(Map):
+
+    cpdef Element _call_(self, x):
+        """
+        EXAMPLES:
+            sage: from sage.rings.complex_number import CCtoCDF
+            sage: f = CCtoCDF(CC, CDF)
+            sage: f(CC.0)
+            1.0*I
+            sage: f(exp(pi*CC.0/4))
+            0.707106781187 + 0.707106781187*I
+        """
+        cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+        z._complex.dat[0] = mpfr_get_d((<ComplexNumber>x).__re, GMP_RNDN)
+        z._complex.dat[1] = mpfr_get_d((<ComplexNumber>x).__im, GMP_RNDN)
+        return z
+
+

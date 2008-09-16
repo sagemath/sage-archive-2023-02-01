@@ -68,7 +68,7 @@ if os.system(cmd):
 print "Building " + branch
 try:
     if os.environ["SAGE_PBUILD"] == "yes":
-	echo 'Pbuild is currently broken -- defaulting to serial build.'
+	print "Pbuild is currently broken -- defaulting to serial build."
         # print "Copying clibsage"
 	# cmd = 'cp -r sage/c_lib/libcsage.so %s/c_lib/'%branch
 	#

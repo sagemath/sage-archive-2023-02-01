@@ -397,7 +397,7 @@ cdef class Ring(ParentWithGens):
         """
         raise NotImplementedError
 
-    def is_exact(self):
+    cpdef bint is_exact(self) except -2:
         """
         Return True if elements of this ring are represented exactly, i.e.,
         there is no precision loss when doing arithmetic.

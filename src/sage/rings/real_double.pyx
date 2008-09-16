@@ -112,7 +112,7 @@ cdef class RealDoubleField_class(Field):
         """
         return RealDoubleField, ()
 
-    def is_exact(self):
+    cpdef bint is_exact(self) except -2:
         """
         Returns False, because doubles are not exact.
 

@@ -19,10 +19,11 @@ cdef class Parent(category_object.CategoryObject):
     cdef public _initial_action_list
     cdef public _initial_convert_list
 
+    cpdef bint _richcmp_helper(left, right, int op) except -2
+    cpdef bint is_exact(self) except -2
+
     # Called from the __init__ method to set up coercion.
     cdef int init_coerce(self, bint warn=*) except -1
-
-    # New New Coercion support functionality
 
     # returns whether or not there is a Morphism from S to self
     cpdef bint has_coerce_map_from(self, S) except -2

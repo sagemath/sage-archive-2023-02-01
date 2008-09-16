@@ -160,7 +160,7 @@ cdef class RealQuadDoubleField_class(Field):
     def __dealloc__(self):
         pass
 
-    def is_exact(self):
+    cpdef bint is_exact(self) except -2:
         return False
 
     cdef _an_element_c_impl(self):  # override this in SageX

@@ -88,9 +88,6 @@ class FormalSums_generic(Module):
         elif R.has_coerce_map_from(self.base_ring()):
             return FormalSums(R)
 
-    def base_extend_canonical_sym(self, R):
-        return FormalSum(self.base_ring().base_extend_canonical_sym(R))
-
     def __cmp__(left, right):
         c = cmp(type(left), type(right))
         if c:

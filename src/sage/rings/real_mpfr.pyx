@@ -327,7 +327,7 @@ cdef class RealField(sage.rings.ring.Field):
         sib.cache(self, v, name)
         return v
 
-    def is_exact(self):
+    cpdef bint is_exact(self) except -2:
         return False
 
     def _element_constructor_(self, x, base=10):

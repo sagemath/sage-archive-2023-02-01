@@ -136,7 +136,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         ParentWithGens.__init__(self, self, ('I',), normalize=False)
 
-    def is_exact(self):
+    cpdef bint is_exact(self) except -2:
         """
         Returns whether or not this field is exact, which is always false.
 

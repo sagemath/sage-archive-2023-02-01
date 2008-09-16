@@ -18,10 +18,6 @@ cdef class Element(sage_object.SageObject):
     cdef _set_parent_c(self, Parent parent)
     cdef base_extend_c(self, Parent R)       # do *NOT* override, but OK to call directly
     cdef base_extend_c_impl(self, Parent R)  # OK to override, but do NOT call
-    cdef base_extend_recursive_c(self, Parent R) # DO NOT OVERRIDE
-    cdef base_extend_canonical_c(self, Parent R) # DO NOT OVERRIDE
-    cdef base_extend_canonical_sym_c(self, Parent R) # DO NOT OVERRIDE
-    cdef base_base_extend_canonical_sym_c(self, Parent R) # DO NOT OVERRIDE
     cdef _rich_to_bool(self, int op, int r)
 
 

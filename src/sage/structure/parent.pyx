@@ -395,7 +395,7 @@ cdef class Parent(category_object.CategoryObject):
         """
         return True
 
-    def _richcmp_helper(left, right, int op):
+    cpdef bint _richcmp_helper(left, right, int op) except -2:
         """
         Compare left and right.
 
@@ -1259,7 +1259,7 @@ cdef class Parent(category_object.CategoryObject):
 
         raise NotImplementedError, "please implement _an_element_ for %s" % self
 
-    def is_exact(self):
+    cpdef bint is_exact(self) except -2:
         """
         Return True if elements of this ring are represented exactly, i.e.,
         there is no precision loss when doing arithmetic.

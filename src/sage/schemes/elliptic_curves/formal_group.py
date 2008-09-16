@@ -351,7 +351,7 @@ class EllipticCurveFormalGroup(SageObject):
             sage: e = EllipticCurve([1, 2])
             sage: F = e.formal_group().group_law(5)
             sage: i = e.formal_group().inverse(5)
-            sage: Fx = F.base_base_extend(i.parent())
+            sage: Fx = F.base_extend(F.base_ring().base_extend(i.parent()))
             sage: Fx (i) (i.parent().gen())
             O(t^5)
         """
@@ -404,7 +404,7 @@ class EllipticCurveFormalGroup(SageObject):
             sage: F = e.formal_group().group_law(5); F
              t1 + O(t1^5) + (1 - 2*t1^4 + O(t1^5))*t2 + (-4*t1^3 + O(t1^5))*t2^2 + (-4*t1^2 - 30*t1^4 + O(t1^5))*t2^3 + (-2*t1 - 30*t1^3 + O(t1^5))*t2^4 + O(t2^5)
             sage: i = e.formal_group().inverse(5)
-            sage: Fx = F.base_base_extend(i.parent())
+            sage: Fx = F.base_extend(F.base_ring().base_extend(i.parent()))
             sage: Fx (i.parent().gen()) (i)
              O(t^5)
 

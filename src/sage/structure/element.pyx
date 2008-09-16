@@ -272,44 +272,6 @@ cdef class Element(sage_object.SageObject):
     def base_extend(self, R):
         return self.base_extend_c_impl(R)
 
-    def base_base_extend(self, R):
-        return self.base_extend_c_impl(self.base_ring().base_extend(R))
-
-    cdef base_extend_recursive_c(self, Parent R):
-        cdef Parent V
-        # Don't call _c function so we check for Parent
-        V = self._parent.base_extend_recursive(R)
-        return (<Parent>V)._coerce_c(self)
-
-    def base_extend_recursive(self, R):
-        return self.base_extend_recursive_c(R)
-
-    cdef base_extend_canonical_c(self, Parent R):
-        cdef Parent V
-        V = self._parent.base_extend_canonical(R)
-        return (<Parent>V)._coerce_c(self)
-
-    def base_extend_canonical(self, R):
-        return self.base_extend_canonical_c(R)
-
-    cdef base_extend_canonical_sym_c(self, Parent R):
-        cdef Parent V
-        # Don't call _c function so we check for Parent
-        V = self._parent.base_extend_canonical_sym(R)
-        return (<Parent>V)._coerce_c(self)
-
-    def base_extend_canonical_sym(self, R):
-        return self.base_extend_canonical_sym_c(R)
-
-    cdef base_base_extend_canonical_sym_c(self, Parent R):
-        cdef Parent V
-        # Don't call _c function so we check for Parent
-        V = self.base_ring().base_extend_canonical_sym(R)
-        return self.base_extend(V)
-
-    def base_base_extend_canonical_sym(self, R):
-        return self.base_base_extend_canonical_sym_c(R)
-
     def base_ring(self):
         """
         Returns the base ring of this element's parent (if that makes sense).

@@ -392,7 +392,7 @@ cdef class RealIntervalField(sage.rings.ring.Field):
     def _latex_(self):
         return "\\I \\R"
 
-    def is_exact(self):
+    cpdef bint is_exact(self) except -2:
         return False
 
     def __call__(self, x, y=None, int base=10):

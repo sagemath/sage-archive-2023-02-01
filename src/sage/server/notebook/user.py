@@ -1,6 +1,3 @@
-"""nodoctest
-"""
-
 import copy
 import crypt
 import cPickle

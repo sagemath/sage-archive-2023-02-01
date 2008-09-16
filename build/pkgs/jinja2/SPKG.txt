@@ -1,0 +1,35 @@
+= Jinja 1.2 =
+
+== Description ==
+
+Jinja is a sandboxed template engine written in pure Python. It
+provides a Django like non-XML syntax and compiles templates into
+executable python code. It's basically a combination of Django
+templates and python code.
+
+== License ==
+
+Modified BSD
+
+== SPKG Maintainers ==
+
+Mike Hansen <mhansen@gmail.com>
+
+== Upstream Contact ==
+
+Armin Ronacher <armin ronacher at active-4 com>
+http://jinja.pocoo.org/
+
+== Dependencies ==
+
+No special dependencies.
+
+== Special Update/Build Instructions ==
+
+No modifications.
+
+== Changelog ==
+
+=== 1.2 (Mike Hansen, September 15th, 2008) ===
+ * Initial version.
+

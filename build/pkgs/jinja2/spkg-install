@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+#Remove old version
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Jinja-1.2-*
+
+#Install new version
+cd src
+
+python setup.py install
+if [ $? -ne 0 ]; then
+   echo "Error installing PACKAGE_NAME."
+   exit 1
+fi

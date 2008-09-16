@@ -1,0 +1,37 @@
+= Pygments =
+
+== Description ==
+
+Pygments is a syntax highlighting package written in Python.
+
+It is a generic syntax highlighter for general use in all kinds of
+software such as forum systems, wikis or other applications that need
+to prettify source code.
+
+== License ==
+
+Modified BSD
+
+== SPKG Maintainers ==
+
+Mike Hansen <mhansen@gmail.com>
+
+== Upstream Contact ==
+
+Author:  Georg Brandl <georg at python org>
+Home Page: http://pygments.org
+
+== Dependencies ==
+
+None
+
+== Special Update/Build Instructions ==
+
+None
+
+== Changelog ==
+
+=== 0.11.1 (Mike Hansen, September 15th, 2008) ===
+ * Initial version.
+
+

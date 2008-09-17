@@ -3367,7 +3367,10 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
 
     """
     from sage.graphs.graph_fast import binary
-    from sage.graphs.graph_isom import search_tree
+    import sage.groups.perm_gps.partn_ref.refinement_graphs
+    from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+
+
     if not property(g):
         return
     yield g
@@ -3537,7 +3540,8 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False):
 
     """
     from sage.graphs.graph_fast import binary
-    from sage.graphs.graph_isom import search_tree
+    import sage.groups.perm_gps.partn_ref.refinement_graphs
+    from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
     if not property(g):
         return
     yield g

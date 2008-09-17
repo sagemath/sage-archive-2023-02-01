@@ -6296,7 +6296,9 @@ class GenericGraph(SageObject):
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
 
         """
-        from sage.graphs.graph_isom import search_tree, perm_group_elt
+        from sage.graphs.graph_isom import perm_group_elt
+        import sage.groups.perm_gps.partn_ref.refinement_graphs
+        from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
         dig = (self._directed or self.loops())
         if partition is None:
@@ -6504,52 +6506,49 @@ class GenericGraph(SageObject):
             True
 
         """
-        if certify:
-            if self._directed != other._directed:
-                return False, None
-            if self.order() != other.order():
-                return False, None
-            if self.size() != other.size():
-                return False, None
-            if self._directed:
-                if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
-                    return False, None
-                if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
-                    return False, None
-            else:
-                if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
-                    return False, None
-            b,a = self.canonical_label(certify=True, verbosity=verbosity, edge_labels=edge_labels)
-            d,c = other.canonical_label(certify=True, verbosity=verbosity, edge_labels=edge_labels)
-            if b == d:
-                map = {}
-                cc = c.items()
-                for vert in self.vertices():
-                    for aa,bb in cc:
-                        if bb == a[vert]:
-                            map[vert] = aa
-                            break
-                return True, map
-            else:
-                return False, None
+        possible = True
+        if self._directed != other._directed:
+            possible = False
+        if self.order() != other.order():
+            possible = False
+        if self.size() != other.size():
+            possible = False
+        if self._directed:
+            if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
+                possible = False
+            if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
+                possible = False
         else:
-            if self._directed != other._directed:
-                return False
-            if self.order() != other.order():
-                return False
-            if self.size() != other.size():
-                return False
-            if self._directed:
-                if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
-                    return False
-                if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
-                    return False
+            if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
+                possible = False
+        if not possible and certify:
+            return False, None
+        elif not possible:
+            return False
+        import sage.groups.perm_gps.partn_ref.refinement_graphs
+        from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic, search_tree
+        if edge_labels:
+            if sorted(self.edge_labels()) != sorted(other.edge_labels()):
+                return False, None if certify else False
             else:
-                if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
-                    return False
-            b = self.canonical_label(verbosity=verbosity, edge_labels=edge_labels)
-            d = other.canonical_label(verbosity=verbosity, edge_labels=edge_labels)
-            return b == d
+                G, partition = graph_isom_equivalent_non_edge_labeled_graph(self, [self.vertices()])
+                G2, partition2 = graph_isom_equivalent_non_edge_labeled_graph(other, [other.vertices()])
+        elif self.multiple_edges():
+            G, partition = graph_isom_equivalent_non_multi_graph(self, [self.vertices()])
+            G2, partition2 = graph_isom_equivalent_non_multi_graph(other, [other.vertices()])
+        else:
+            G = self; partition = [self.vertices()]
+            G2 = other; partition2 = [other.vertices()]
+        from sage.misc.flatten import flatten
+        isom = isomorphic(G, G2, partition, flatten(partition2, max_level=1), (self._directed or self.loops()), 1)
+        if not isom and certify:
+            return False, None
+        elif not isom:
+            return False
+        elif not certify:
+            return True
+        else:
+            return True, isom
 
     def canonical_label(self, partition=None, certify=False, verbosity=0, edge_labels=False):
         """
@@ -6604,7 +6603,9 @@ class GenericGraph(SageObject):
             Graph on 5 vertices
 
         """
-        from sage.graphs.graph_isom import search_tree
+        import sage.groups.perm_gps.partn_ref.refinement_graphs
+        from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+
         dig = (self.loops() or self._directed)
         if partition is None:
             partition = [self.vertices()]
@@ -9088,10 +9089,10 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition):
         sage: G.add_edge(2,3)
         sage: from sage.graphs.graph import graph_isom_equivalent_non_edge_labeled_graph
         sage: graph_isom_equivalent_non_edge_labeled_graph(G, [G.vertices()])
-        (Graph on 7 vertices,
-         [[('o', 0), ('o', 1), ('o', 2), ('o', 3)], [('x', 0)], [('x', 1)], [('x', 2)]])
+        (Graph on 7 vertices, [[('o', 0), ('o', 1), ('o', 2), ('o', 3)], [('x', 2)], [('x', 0)], [('x', 1)]])
 
     """
+    from sage.misc.misc import uniq
     if g.multiple_edges():
         if g._directed:
             G = DiGraph(loops=g.loops())
@@ -9112,24 +9113,27 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition):
                 if not seen_label:
                     label_list.append([l,1])
         g = G
-    edge_partition = []
     if g._directed:
         G = DiGraph(loops=g.loops())
     else:
         G = Graph(loops=g.loops(), implementation='networkx')
     G.add_vertices([('o', v) for v in g.vertices()]) # 'o' for original
     index = 0
-    for u,v,l in g.edge_iterator():
-        if len([a for a in edge_partition if a[0] == l]) == 0:
-            edge_partition.append([l, [index]])
+    edge_labels = sorted(g.edge_labels())
+    i = 1
+    while i < len(edge_labels):
+        if edge_labels[i] == edge_labels[i-1]:
+            edge_labels.pop(i)
         else:
-            i = 0
-            while edge_partition[i][0] != l:
-                i += 1
-            edge_partition[i][1].append(index)
-        G.add_edges([(('o',u), ('x', index)), (('x', index), ('o',v))]) # 'x' for extra
-        index += 1
-    new_partition = [[('o',v) for v in cell] for cell in partition] + [[('x',v) for v in a[1]] for a in edge_partition]
+            i += 1
+    edge_partition = [[] for _ in xrange(len(edge_labels))]
+    i = 0
+    for u,v,l in g.edge_iterator():
+        index = edge_labels.index(l)
+        edge_partition[index].append(i)
+        G.add_edges([(('o',u), ('x', i)), (('x', i), ('o',v))]) # 'x' for extra
+        i += 1
+    new_partition = [[('o',v) for v in cell] for cell in partition] + [[('x',v) for v in a] for a in edge_partition]
     return G, new_partition
 
 

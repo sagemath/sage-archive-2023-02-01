@@ -20,7 +20,7 @@ REFERENCE:
 
 include 'data_structures_pyx.pxi' # includes bitsets
 
-def isomorphic(G1, G2, partition, ordering2, dig, use_indicator_function, sparse=False):
+def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=False):
     """
     Tests whether two graphs are isomorphic.
 
@@ -29,24 +29,24 @@ def isomorphic(G1, G2, partition, ordering2, dig, use_indicator_function, sparse
     sage: G = Graph(2)
     sage: H = Graph(2)
     sage: isomorphic(G, H, [[0,1]], [0,1], 0, 1)
-    [0, 1]
+    {0: 0, 1: 1}
     sage: isomorphic(G, H, [[0,1]], [0,1], 0, 1)
-    [0, 1]
+    {0: 0, 1: 1}
     sage: isomorphic(G, H, [[0],[1]], [0,1], 0, 1)
-    [0, 1]
+    {0: 0, 1: 1}
     sage: isomorphic(G, H, [[0],[1]], [1,0], 0, 1)
-    [1, 0]
+    {0: 1, 1: 0}
 
     sage: G = Graph(3)
     sage: H = Graph(3)
     sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
-    [0, 1, 2]
+    {0: 0, 1: 1, 2: 2}
     sage: G.add_edge(0,1)
     sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
     False
     sage: H.add_edge(1,2)
     sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
-    [1, 2, 0]
+    {0: 1, 1: 2, 2: 0}
 
     """
     cdef int **part
@@ -61,8 +61,10 @@ def isomorphic(G1, G2, partition, ordering2, dig, use_indicator_function, sparse
     for G_in in [G1, G2]:
         if G_in is G1:
             GS = GS1
+            first=True
         else:
             GS = GS2
+            first=False
         if isinstance(G_in, GenericGraph):
             if n == -1:
                 n = G_in.num_verts()
@@ -74,7 +76,8 @@ def isomorphic(G1, G2, partition, ordering2, dig, use_indicator_function, sparse
                 frm = {}
                 for v in to.iterkeys():
                     frm[to[v]] = v
-                partition = [[to[v] for v in cell] for cell in partition]
+                if first:
+                    partition = [[to[v] for v in cell] for cell in partn]
             else:
                 to = range(n)
                 frm = to
@@ -102,6 +105,8 @@ def isomorphic(G1, G2, partition, ordering2, dig, use_indicator_function, sparse
             frm = to
         else:
             raise TypeError("G must be a Sage graph.")
+        if first: frm1=frm;to1=to
+        else: frm2=frm;to2=to
         GS.G = G
         GS.directed = 1 if dig else 0
         GS.use_indicator = 1 if use_indicator_function else 0
@@ -109,25 +114,25 @@ def isomorphic(G1, G2, partition, ordering2, dig, use_indicator_function, sparse
     if n == 0:
         return {}
 
-    part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+    part = <int **> sage_malloc((len(partn)+1) * sizeof(int *))
     ordering = <int *> sage_malloc(n * sizeof(int))
     if part is NULL or ordering is NULL:
         if part is not NULL: sage_free(part)
         if ordering is not NULL: sage_free(ordering)
         raise MemoryError
-    for i from 0 <= i < len(partition):
-        part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
+    for i from 0 <= i < len(partn):
+        part[i] = <int *> sage_malloc((len(partn[i])+1) * sizeof(int))
         if part[i] is NULL:
             for j from 0 <= j < i:
                 sage_free(part[j])
             sage_free(part)
             raise MemoryError
-        for j from 0 <= j < len(partition[i]):
-            part[i][j] = partition[i][j]
-        part[i][len(partition[i])] = -1
-    part[len(partition)] = NULL
+        for j from 0 <= j < len(partn[i]):
+            part[i][j] = to1[partn[i][j]]
+        part[i][len(partn[i])] = -1
+    part[len(partn)] = NULL
     for i from 0 <= i < n:
-        ordering[i] = ordering2[i]
+        ordering[i] = to2[ordering2[i]]
 
     GS1.scratch = <int *> sage_malloc((3*n+1) * sizeof(int))
     GS2.scratch = <int *> sage_malloc((3*n+1) * sizeof(int))
@@ -141,7 +146,7 @@ def isomorphic(G1, G2, partition, ordering2, dig, use_indicator_function, sparse
 
     output = double_coset(GS1, GS2, part, ordering, n, &all_children_are_equivalent, &refine_by_degree, &compare_graphs)
 
-    for i from 0 <= i < len(partition):
+    for i from 0 <= i < len(partn):
         sage_free(part[i])
     sage_free(part)
     sage_free(ordering)
@@ -151,9 +156,8 @@ def isomorphic(G1, G2, partition, ordering2, dig, use_indicator_function, sparse
     if output is NULL:
         return False
     else:
-        output_py = [output[i] for i from 0 <= i < n]
+        output_py = dict([[frm1[i], frm2[output[i]]] for i from 0 <= i < n])
         sage_free(output)
-        # TODO: figure out frm, to stuff to relabel for consistency with input
         return output_py
 
 def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=False,

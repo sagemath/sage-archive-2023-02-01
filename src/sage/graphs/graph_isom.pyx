@@ -1386,7 +1386,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         True
 
         sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree
+        sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         sage: from sage.graphs.base.sparse_graph import SparseGraph
         sage: from sage.graphs.base.dense_graph import DenseGraph
         sage: from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -2537,7 +2538,9 @@ def all_labeled_graphs(n):
 
     EXAMPLE:
         sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree, all_labeled_graphs
+        sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        sage: from sage.graphs.graph_isom import all_labeled_graphs
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in range(1,5):
@@ -2664,7 +2667,9 @@ def all_labeled_digraphs_with_loops(n):
 
     EXAMPLE:
         sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree, all_labeled_digraphs_with_loops
+        sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        sage: from sage.graphs.graph_isom import all_labeled_digraphs_with_loops
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in range(1,4):
@@ -2704,7 +2709,9 @@ def all_labeled_digraphs(n):
     """
     EXAMPLES:
         sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree, all_labeled_digraphs
+        sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        sage: from sage.graphs.graph_isom import all_labeled_digraphs
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in range(1,4):

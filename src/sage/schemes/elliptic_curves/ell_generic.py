@@ -2404,7 +2404,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         OUTPUT : A list of 0, 1 or 2 pairs [T,k] where T is a generator
             of order $p^k$.  That is, either [] or [[T1,k1]] or
             [[T1,k1],[T2,k2]] with [], [T1], or [T1,T2] a basis and
-            p^k1 >= p^k2 >= 1 their orders.
+            $p^k1 >= p^k2 >= 1$ their orders.
 
         WARNINGS: 1. Do not call this on a curve whose group is
                  $p$-divisible (i.e., whose $p$-primary part is

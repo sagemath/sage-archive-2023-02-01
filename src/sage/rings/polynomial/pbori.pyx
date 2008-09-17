@@ -131,14 +131,14 @@ For details on this interface see:
    \url{http://polybori.sourceforge.net/doc/tutorial/tutorial.html}.
 
 Note that due to this duality of this interface some functions do not
-obey \Sage's naming convention. For instance, \code{f.zerosIn} should
-be called \code{f.zeros_in} by \Sage's standards. However, \PolyBoRi
+obey \sage's naming convention. For instance, \code{f.zerosIn} should
+be called \code{f.zeros_in} by \sage's standards. However, \PolyBoRi
 expects the function \code{f.zerosIn}.
 
-Also, the interface provides functions for compatibility with \Sage
-accepting convenient \Sage datatypes which are slower than their
+Also, the interface provides functions for compatibility with \sage
+accepting convenient \sage datatypes which are slower than their
 native \PolyBoRi counterparts. For instance, sets of points can be
-represented as tuples of tuples (\Sage) or as \code{BooleSet}s
+represented as tuples of tuples (\sage) or as \code{BooleSet}s
 (\PolyBoRi) and naturally the second option is faster.
 
 
@@ -1043,7 +1043,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         return "quo<%s | %s>"%(R.name(), ",".join([f._repr_with_changed_varnames(vn) for f in self.defining_ideal().gens()]))
 
     def interpolation_polynomial(self, zeros, ones):
-        """
+        r"""
         Return the lexicographically minimal boolean polynomial for
         the given sets of points.
 

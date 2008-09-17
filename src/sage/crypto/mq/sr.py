@@ -1,8 +1,8 @@
 r"""
 Small Scale Variants of the AES (SR) Polynomial System Generator.
 
-\Sage support polynomial system generation for small scale (and full
-scale) AES variants over $GF(2)$ and $GF(2^e)$. Also, \Sage supports
+\sage support polynomial system generation for small scale (and full
+scale) AES variants over $GF(2)$ and $GF(2^e)$. Also, \sage supports
 both the specification of SR as given in paper [CMR05] and [CMR06] and
 a variant of SR* which is equivalent to AES.
 

@@ -54,3 +54,7 @@ check_error "Failed to make Maxima."
 make install
 check_error "Failed to install Maxima."
 
+if [ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]; then
+   echo "Deleting Maxima commandlist cache. It will be recreated at the next start of Sage"
+   rm -f "$DOT_SAGE"/maxima_commandlist_cache.sobj
+fi

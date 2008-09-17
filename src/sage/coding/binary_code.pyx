@@ -4021,7 +4021,7 @@ cdef class BinaryCodeClassifier:
                         else:
                             aut_B_aug = PermutationGroup([PermutationGroupElement([a+1 for a in g]) for g in aug_aut_gp_gens])
 #                        print 'aut_B_aug:', aut_B_aug
-                        H = aut_m.__interface[gap].Intersection2(aut_B_aug.__interface[gap])
+                        H = aut_m._gap_(gap).Intersection2(aut_B_aug._gap_(gap))
 #                        print 'H:', H
                         rt_transversal = list(gap('List(RightTransversal( %s,%s ));'\
                           %(str(aut_B_aug.__interface[gap]),str(H))))

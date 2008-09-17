@@ -37,9 +37,9 @@ The "Singmaster notation":
 
 AUTHOR:
     - David Joyner (2006-10-21): first version
-    -      "       (2007-05): changed faces, added legal and solve
-    -      "       (2007-06): added plotting functions
-    -      "       (2007-08): colors corrected, "solve" rewritten (again),typos fixed.
+    -              (2007-05): changed faces, added legal and solve
+    -              (2007-06): added plotting functions
+    -              (2007-08): colors corrected, "solve" rewritten (again),typos fixed.
     - Robert Miller (2007-08): editing, cleaned up display2d
     - Robert Bradshaw (2007-08): RubiksCube object, 3d plotting.
     - DJ (2007-09): rewrote docstring for CubeGroup's "solve".
@@ -779,7 +779,7 @@ class CubeGroup(PermutationGroup_generic):
             res = 1
         except TypeError:
             res = 0
-            g = self.group()([()])
+            g = self.group().identity()
 
         if mode != 'quiet':
             return res, g

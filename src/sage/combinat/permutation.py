@@ -159,6 +159,10 @@ def Permutation(l):
         5
         10
 
+    TESTS:
+        sage: Permutation([()])
+        [1]
+
     """
     if isinstance(l, Permutation_class):
         return l
@@ -176,7 +180,7 @@ def Permutation(l):
     elif isinstance(l, tuple) or \
          (isinstance(l, list) and len(l) > 0 and
          all(map(lambda x: isinstance(x, tuple), l))):
-        if len(l) >= 1:
+        if len(l) >= 1 and (isinstance(l[0],(int,Integer)) or len(l[0]) > 0):
             if isinstance(l[0], tuple):
                 n = max( map(max, l) )
                 return from_cycles(n, map(list, l))
@@ -184,6 +188,8 @@ def Permutation(l):
                 n = max(l)
                 l = [list(l)]
                 return from_cycles(n, l)
+        elif len(l) == 1:
+            return Permutation([1])
         else:
             raise ValueError, "cannot convert l (= %s) to a Permutation"%l
     # otherwise, it gets processed by CombinatorialObject's __init__.

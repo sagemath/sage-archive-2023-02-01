@@ -2138,7 +2138,7 @@ def pq_group_bitrade_generators(p, q):
 
             seenValues[x] = True
             cycle.append(x)
-        P.append(tuple(cycle))
+        P.append(tuple(map(Integer,cycle)))
 
     G = PermutationGroup([P, Q])
     assert G.order() == p*q

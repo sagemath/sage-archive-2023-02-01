@@ -207,7 +207,6 @@ def word_problem(words, g, verbose = False):
                  "PreImagesRepresentative") and may be faster.
 
     """
-    from sage.groups.perm_gps.all import PermutationGroup
     from sage.interfaces.all import gap
     G = g.parent()
     invs = G.invariants()
@@ -664,10 +663,8 @@ class AbelianGroup_class(group.AbelianGroup):
             Permutation Group with generators [(1,4)(2,5)(3,6), (1,2,3)(4,5,6)]
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        from sage.interfaces.all import gap
-        invs = self.invariants()
         s = 'Image(IsomorphismPermGroup(%s))'%self._gap_init_()
-        return PermutationGroup(s, from_group=True)
+        return PermutationGroup(gap_group=s)
 
 
     def is_commutative(self):

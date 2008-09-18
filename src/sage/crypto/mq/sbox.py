@@ -38,6 +38,7 @@ from sage.matrix.constructor import Matrix
 from sage.misc.functional import log as log_b
 from sage.misc.misc_c import prod as mul
 from sage.modules.free_module_element import vector
+from sage.rings.finite_field_element import is_FiniteFieldElement
 from sage.rings.finite_field import FiniteField as GF
 from sage.rings.ideal import FieldIdeal, Ideal
 from sage.rings.integer_ring import ZZ
@@ -51,20 +52,30 @@ class SBox(SageObject):
         $S$.
 
         INPUT:
-            S -- a finite iterable defining the S-box with integer
-                  elements
+            S -- a finite iterable defining the S-box with integer or
+                  finite field elements
             big_endian -- controls whether bits shall be ordered in
                           big endian order (default: True)
 
         EXAMPLE:
-            We construct a 3-bit S-box where e.g. the bits (0,0,1) are
-            mapped to (1,1,1).
+
+        We construct a 3-bit S-box where e.g. the bits (0,0,1) are
+        mapped to (1,1,1).
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3); S
             (7, 6, 0, 4, 2, 5, 1, 3)
 
             sage: S(0)
             7
+
+        Now we construct an SBox object for the 4-bit small scale AES
+        S-Box.
+
+            sage: sr = mq.SR(1,1,1,4, allow_zero_inversions=True)
+            sage: S = mq.SBox([sr.sub_byte(e) for e in list(sr.k)])
+            sage: S
+            (6, 5, 2, 9, 4, 7, 3, 12, 14, 15, 10, 0, 8, 1, 13, 11)
+
         """
         if "S" in kwargs:
             S = kwargs["S"]
@@ -74,6 +85,13 @@ class SBox(SageObject):
             S = args
         else:
             TypeError, "No lookup table provided."
+
+        _S = []
+        for e in S:
+            if is_FiniteFieldElement(e):
+                e = e.polynomial().change_ring(ZZ).subs( e.parent().characteristic() )
+            _S.append(e)
+        S = _S
 
         self._S = S
 

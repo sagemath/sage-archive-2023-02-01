@@ -41,9 +41,9 @@ We can do arithmetic with relationals:
     sage: e - 1
     x <= x - 3
     sage: e*(-1)
-    -x - 1 >= -x + 2
+    -x - 1 <= -x + 2
     sage: (-2)*e
-    -2*x - 2 >= -2*x + 4
+    -2*x - 2 <= -2*x + 4
     sage: e*5
     5*x + 5 <= 5*x - 10
     sage: e/5
@@ -51,9 +51,9 @@ We can do arithmetic with relationals:
     sage: 5/e
     5*(x + 1)^(-1) <= 5*(x - 2)^(-1)
     sage: e/(-2)
-    -1/2*x - 1/2 >= -1/2*x + 1
+    -1/2*x - 1/2 <= -1/2*x + 1
     sage: -2/e
-    -2*(x + 1)^(-1) >= -2*(x - 2)^(-1)
+    -2*(x + 1)^(-1) <= -2*(x - 2)^(-1)
 
 We can even add together two relations, so long as the operators are the same:
     sage: (x^3 + x <= x - 17)  + (-x <= x - 10)
@@ -182,9 +182,9 @@ cdef class Expression(CommutativeRingElement):
             sage: QQ(f.coeff(x,0))
             -3/8
 
-        If the symbolic expression is just a wrapper around an integer,
-        that very same integer is returned:
-            sage: n = 17; S(n)._integer_() is n
+        If the symbolic expression is just a wrapper around a rational,
+        that very same rational is returned:
+            sage: n = 17/1; S(n)._rational_() is n
             True
         """
         n = self.pyobject()
@@ -195,7 +195,7 @@ cdef class Expression(CommutativeRingElement):
     def _mpfr_(self, R):
         """
         This is a very preliminary conversion to real numbers.  It
-        doesn't unwind expression, so is fairly useless.
+        doesn't unwind an expression, so is fairly useless.
 
         EXAMPLES:
             sage: var('x',ns=1); S = parent(x)
@@ -268,6 +268,7 @@ cdef class Expression(CommutativeRingElement):
         """
         return self._gobj.gethash()
 
+    # Boilerplate code from sage/structure/element.pyx
     def __richcmp__(left, right, int op):
         """
         Create a formal symbolic inequality or equality.
@@ -286,21 +287,13 @@ cdef class Expression(CommutativeRingElement):
             sage: x^2 > x
             x^2 > x
         """
+        return (<Element>left)._richcmp(right, op)
+
+    cdef _richcmp_c_impl(left, Element right, int op):
         cdef Expression l, r
-        # We coerce left and right to be Expressions, but
-        # we do not know which is already an Expression.
-        # We know at least one is.
-        try:
-            l = left
-        except TypeError:
-            # if l = left failed, we can definitely use
-            # r=right to coerce in l.
-            r = right
-            l = r.coerce_in(left)
-        else:
-            # if l = left succeeded, we can certainly
-            # use l to coerce in right.
-            r = l.coerce_in(right)
+
+        l = left
+        r = right
 
         cdef GEx e
         if op == Py_LT:
@@ -424,10 +417,26 @@ cdef class Expression(CommutativeRingElement):
         Add left and right.
 
         EXAMPLES;
-            sage.: var("x y", ns=1)
+            sage: var("x y", ns=1)
             (x, y)
-            sage.: x + y + y + x
-            2*x+2*y
+            sage: x + y + y + x
+            2*x + 2*y
+
+            # adding relational expressions
+            sage: ( (x+y) > x ) + ( x > y )
+            2*x + y > x + y
+
+            sage: ( (x+y) > x ) + x
+            2*x + y > 2*x
+
+        TESTS:
+            sage: x + ( (x+y) > x )
+            2*x + y > 2*x
+
+            sage: ( x > y) + (y < x)
+            Traceback (most recent call last):
+            ...
+            TypeError: incompatible relations
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -453,10 +462,26 @@ cdef class Expression(CommutativeRingElement):
     cdef ModuleElement _sub_c_impl(left, ModuleElement right):
         """
         EXAMPLES:
-            sage.: var("x y", ns=1)
+            sage: var("x y", ns=1)
             (x, y)
-            sage.: x - x
-            x-y
+            sage: x - y
+            x - y
+
+            # subtracting relational expressions
+            sage: ( (x+y) > x ) - ( x > y )
+            y > x - y
+
+            sage: ( (x+y) > x ) - x
+            y > 0
+
+        TESTS:
+            sage: x - ( (x+y) > x )
+            -y > 0
+
+            sage: ( x > y) - (y < x)
+            Traceback (most recent call last):
+            ...
+            TypeError: incompatible relations
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -488,6 +513,25 @@ cdef class Expression(CommutativeRingElement):
             (x, y)
             sage: x*y*y
             x*y^2
+
+            # multiplying relational expressions
+            sage: ( (x+y) > x ) * ( x > y )
+            (x + y)*x > x*y
+
+            sage: ( (x+y) > x ) * x
+            (x + y)*x > x^2
+
+            sage: ( (x+y) > x ) * -1
+            -x - y > -x
+
+        TESTS:
+            sage: x * ( (x+y) > x )
+            (x + y)*x > x^2
+
+            sage: ( x > y) * (y < x)
+            Traceback (most recent call last):
+            ...
+            TypeError: incompatible relations
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -501,15 +545,11 @@ cdef class Expression(CommutativeRingElement):
                                relational_operator(left._gobj))
             else:
                 o = relational_operator(left._gobj)
-                if is_negative(_right._gobj):
-                    o = switch_operator(o)
                 x = relational(gmul(left._gobj.lhs(), _right._gobj),
                                gmul(left._gobj.rhs(), _right._gobj),
                                o)
         elif is_a_relational(_right._gobj):
             o = relational_operator(_right._gobj)
-            if is_negative(left._gobj):
-                o = switch_operator(o)
             x = relational(gmul(left._gobj, _right._gobj.lhs()),
                            gmul(left._gobj, _right._gobj.rhs()),
                            o)
@@ -526,6 +566,25 @@ cdef class Expression(CommutativeRingElement):
             (x, y)
             sage: x/y/y
             x*y^(-2)
+
+            # dividing relational expressions
+            sage: ( (x+y) > x ) / ( x > y )
+            (x + y)*x^(-1) > x*y^(-1)
+
+            sage: ( (x+y) > x ) / x
+            (x + y)*x^(-1) > 1
+
+            sage: ( (x+y) > x ) / -1
+            -x - y > -x
+
+        TESTS:
+            sage: x / ( (x+y) > x )
+            (x + y)^(-1)*x > 1
+
+            sage: ( x > y) / (y < x)
+            Traceback (most recent call last):
+            ...
+            TypeError: incompatible relations
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -539,15 +598,11 @@ cdef class Expression(CommutativeRingElement):
                                relational_operator(left._gobj))
             else:
                 o = relational_operator(left._gobj)
-                if is_negative(_right._gobj):
-                    o = switch_operator(o)
                 x = relational(gdiv(left._gobj.lhs(), _right._gobj),
                                gdiv(left._gobj.rhs(), _right._gobj),
                                o)
         elif is_a_relational(_right._gobj):
             o = relational_operator(_right._gobj)
-            if is_negative(left._gobj):
-                o = switch_operator(o)
             x = relational(gdiv(left._gobj, _right._gobj.lhs()),
                            gdiv(left._gobj, _right._gobj.rhs()),
                            o)
@@ -555,12 +610,8 @@ cdef class Expression(CommutativeRingElement):
             x = gdiv(left._gobj, _right._gobj)
         return new_Expression_from_GEx(x)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        # TODO: this is never called, maybe, since I define
-        # richcmp above to make formal symbolic expressions?
-        return left._gobj.compare((<Expression>right)._gobj)
-
-    def __cmp__(self, right):
+    # Boilerplate code from sage/structure/element.pyx
+    def __cmp__(left, right):
         """
         Compare self and right, returning -1, 0, or 1, depending on if
         self < right, self == right, or self > right, respectively.
@@ -592,8 +643,10 @@ cdef class Expression(CommutativeRingElement):
             sage: float(sin(S(1)))
             0.8414709848078965
         """
-        cdef Expression r = self.coerce_in(right)
-        return self._gobj.compare(r._gobj)
+        return (<Element>left)._cmp(right)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        return left._gobj.compare((<Expression>right)._gobj)
 
     def __pow__(Expression self, exp, ignored):
         """
@@ -695,9 +748,9 @@ cdef class Expression(CommutativeRingElement):
             sage: f.series(x==1,3).truncate().expand()
             11/2*sin(1) - 3*cos(1) - 7*sin(1)*x + 5/2*sin(1)*x^2 + 5*cos(1)*x - 2*cos(1)*x^2
 
-        Following the Ginac tutorial, e use John Machin's amazing
+        Following the GiNaC tutorial, we use John Machin's amazing
         formula $\pi = 16 \atan(1/5) - 4 \atan(1/239)$ to compute
-        digits of $\pi$. We expand the arcus tangent around 0 and insert
+        digits of $\pi$. We expand the arc tangent around 0 and insert
         the fractions 1/5 and 1/239.
             sage: x = var('x',ns=1)
             sage: f = atan(x).series(x, 10); f
@@ -741,7 +794,7 @@ cdef class Expression(CommutativeRingElement):
 
     def expand(Expression self):
         """
-        Return expanded form of his expression, obtained by multiplying out
+        Return expanded form of this expression, obtained by multiplying out
         all products.
 
         OUTPUT:
@@ -856,49 +909,169 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression p = self.coerce_in(pattern)
         return self._gobj.has(p._gobj)
 
-    def subs(self, expr):
+    def subs(self, in_dict=None, **kwds):
         """
         EXAMPLES:
             sage: var('x,y,z,a,b,c,d,e,f',ns=1); S = parent(x)
             (x, y, z, a, b, c, d, e, f)
             sage: w0 = S.wild(0); w1 = S.wild(1)
-            sage: (a^2 + b^2 + (x+y)^2).subs(w0^2 == w0^3)
+            sage: t = a^2 + b^2 + (x+y)^3
+
+            # substitute with keyword arguments
+            sage: t.subs(a=c)
+            (x + y)^3 + b^2 + c^2
+
+            sage: t.subs(w0 = w0^2)
+            (x^2 + y^2)^18 + a^16 + b^16
+
+            # substitute with a dictionary argument
+            sage: t.subs({a^2: c})
+            (x + y)^3 + b^2 + c
+
+            sage: t.subs({w0^2: w0^3})
             (x + y)^3 + a^3 + b^3
-            sage: (a^4 + b^4 + (x+y)^4).subs(w0^2 == w0^3)
-            (x + y)^4 + a^4 + b^4
-            sage: (a^2 + b^4 + (x+y)^4).subs(w0^2 == w0^3)
-            (x + y)^4 + a^3 + b^4
-            sage: ((a+b+c)^2).subs(a+b==x)
-            (a + b + c)^2
-            sage: ((a+b+c)^2).subs(a+b+w0==x+w0)
-            (c + x)^2
-            sage: (a+2*b).subs(a+b==x)
-            a + 2*b
-            sage: (a+2*b).subs(a+b+w0 == x+w0)
-            a + 2*b
-            sage: (a+2*b).subs(a+w0*b == x)
-            x
-            sage: (a+2*b).subs(a+b+w0*b == x+w0*b)
-            a + 2*b
-            sage: (4*x^3-2*x^2+5*x-1).subs(x==a)
-            4*a^3 - 2*a^2 + 5*a - 1
-            sage: (4*x^3-2*x^2+5*x-1).subs(x^w0==a^w0)
-            4*a^3 - 2*a^2 + 5*x - 1
-            sage: (4*x^3-2*x^2+5*x-1).subs(x^w0==a^(2*w0)).subs(x==a)
-            4*a^6 - 2*a^4 + 5*a - 1
-            sage: sin(1+sin(x)).subs(sin(w0)==cos(w0))
-            cos(cos(x) + 1)
-            sage: (sin(x)^2 + cos(x)^2).subs(sin(w0)^2+cos(w0)^2==1)
-            1
-            sage: (1 + sin(x)^2 + cos(x)^2).subs(sin(w0)^2+cos(w0)^2==1)
-            sin(x)^2 + cos(x)^2 + 1
-            sage: (17*x + sin(x)^2 + cos(x)^2).subs(w1 + sin(w0)^2+cos(w0)^2 == w1 + 1)
-            17*x + 1
-            sage: ((x-1)*(sin(x)^2 + cos(x)^2)^2).subs(sin(w0)^2+cos(w0)^2 == 1)
-            x - 1
+
+            # substitute with a relational expression
+            sage: t.subs(w0^2 == w0^3)
+            (x + y)^3 + a^3 + b^3
+
+        TESTS:
+            # no arguments returns error
+            sage: t.subs()
+            Traceback (most recent call last):
+            ...
+            TypeError: subs takes either a single keyword argument, or a dictionary, or a symbolic relational expression
+
+            # non keyword or dictionary argument returns error
+            sage: t.subs(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: subs takes either a single keyword argument, or a dictionary, or a symbolic relational expression
+
+            # only one keyword argument is accepted
+            sage: t.subs(a=b, b=c)
+            Traceback (most recent call last):
+            ...
+            ValueError: Only one substitution can be performed at a time!
+
+            # using keyword arguments with a dictionary is not allowed
+            sage: t.subs({a:b}, b=c)
+            Traceback (most recent call last):
+            ...
+            ValueError: Only one substitution can be performed at a time!
+
+            # dictionary can't have more than one item
+            sage: t.subs({a:b, b:c})
+            Traceback (most recent call last):
+            ...
+            ValueError: Only one substitution can be performed at a time!
+
         """
+        if kwds:
+            if in_dict or len(kwds) != 1:
+                raise ValueError, "Only one substitution can be performed at a time!"
+            t = kwds.popitem()
+        elif isinstance(in_dict, dict):
+            if len(in_dict) > 1:
+                raise ValueError, "Only one substitution can be performed at a time!"
+            elif len(in_dict) == 1:
+                t = in_dict.popitem()
+            else:
+                return self
+        elif isinstance(in_dict, Expression):
+            return self._subs_expr(in_dict)
+        else:
+            raise TypeError, "subs takes either a single keyword argument, or a dictionary, or a symbolic relational expression"
+
+        cdef Expression left
+        cdef Expression right = self.coerce_in(t[1])
+        if isinstance(t[0], str):
+            from sage.misc.sage_eval import sage_eval
+            left = self.coerce_in(sage_eval(t[0], locals=globals()))
+        else:
+            left = self.coerce_in(t[0])
+        return new_Expression_from_GEx(self._gobj.subs(\
+                g_eq(left._gobj, right._gobj)))
+
+    cpdef Expression _subs_expr(self, expr):
+        """
+        EXAMPLES:
+            sage: var('x,y,z,a,b,c,d,e,f',ns=1); S = parent(x)
+            (x, y, z, a, b, c, d, e, f)
+            sage: w0 = S.wild(0); w1 = S.wild(1)
+            sage: (a^2 + b^2 + (x+y)^2)._subs_expr(w0^2 == w0^3)
+            (x + y)^3 + a^3 + b^3
+            sage: (a^4 + b^4 + (x+y)^4)._subs_expr(w0^2 == w0^3)
+            (x + y)^4 + a^4 + b^4
+            sage: (a^2 + b^4 + (x+y)^4)._subs_expr(w0^2 == w0^3)
+            (x + y)^4 + a^3 + b^4
+            sage: ((a+b+c)^2)._subs_expr(a+b == x)
+            (a + b + c)^2
+            sage: ((a+b+c)^2)._subs_expr(a+b+w0 == x+w0)
+            (c + x)^2
+            sage: (a+2*b)._subs_expr(a+b == x)
+            a + 2*b
+            sage: (a+2*b)._subs_expr(a+b+w0 == x+w0)
+            a + 2*b
+            sage: (a+2*b)._subs_expr(a+w0*b == x)
+            x
+            sage: (a+2*b)._subs_expr(a+b+w0*b == x+w0*b)
+            a + 2*b
+            sage: (4*x^3-2*x^2+5*x-1)._subs_expr(x==a)
+            4*a^3 - 2*a^2 + 5*a - 1
+            sage: (4*x^3-2*x^2+5*x-1)._subs_expr(x^w0==a^w0)
+            4*a^3 - 2*a^2 + 5*x - 1
+            sage: (4*x^3-2*x^2+5*x-1)._subs_expr(x^w0==a^(2*w0))._subs_expr(x==a)
+            4*a^6 - 2*a^4 + 5*a - 1
+            sage: sin(1+sin(x))._subs_expr(sin(w0)==cos(w0))
+            cos(cos(x) + 1)
+            sage: (sin(x)^2 + cos(x)^2)._subs_expr(sin(w0)^2+cos(w0)^2==1)
+            1
+            sage: (1 + sin(x)^2 + cos(x)^2)._subs_expr(sin(w0)^2+cos(w0)^2==1)
+            sin(x)^2 + cos(x)^2 + 1
+            sage: (17*x + sin(x)^2 + cos(x)^2)._subs_expr(w1 + sin(w0)^2+cos(w0)^2 == w1 + 1)
+            17*x + 1
+            sage: ((x-1)*(sin(x)^2 + cos(x)^2)^2)._subs_expr(sin(w0)^2+cos(w0)^2 == 1)
+            x - 1
+            """
         cdef Expression p = self.coerce_in(expr)
         return new_Expression_from_GEx(self._gobj.subs(p._gobj))
+
+    def nargs(self):
+        """
+        Returns the number of arguments of this expression.
+
+        EXAMPLES:
+            sage: var('a,b,c,x,y',ns=1); S = parent(x)
+            (a, b, c, x, y)
+            sage: a.nargs()
+            0
+            sage: (a^2 + b^2 + (x+y)^2).nargs()
+            3
+            sage: (a^2).nargs()
+            2
+            sage: (a*b^2*c).nargs()
+            3
+        """
+        return self._gobj.nops()
+
+    def args(self):
+        """
+        Returns a list containing the arguments of this expression.
+
+        EXAMPLES:
+            sage: var('a,b,c,x,y',ns=1); S = parent(x)
+            (a, b, c, x, y)
+            sage: (a^2 + b^2 + (x+y)^2).args()
+            [(x + y)^2, a^2, b^2]
+            sage: (a^2).args()
+            [a, 2]
+            sage: (a*b^2*c).args()
+            [a, b^2, c]
+        """
+        return [new_Expression_from_GEx(self._gobj.op(i)) \
+                            for i from 0 <= i < self._gobj.nops()]
+
 
     ############################################################################
     # Polynomial functions

@@ -48,6 +48,8 @@ cdef extern from "ginac_wrap.h":
         int ldegree(GEx expr)         except +
         GEx rhs()                     except +
         GEx lhs()                     except +
+        int nops()                    except +
+        GEx op(int i)                 except +
 
     # Numericals
     bint is_a_numeric "is_a<numeric>" (GEx e)

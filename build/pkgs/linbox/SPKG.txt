@@ -24,6 +24,11 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6 (Clement Pernet, Sept 18th, 2008) ===
+ * Upgrade to 1.1.6 release upstream
+ * including the fixes of bugs related to cygwin (gcc-3.4, linking parameter
+ order,...)
+
 === linbox-1.1.6rc1 (Clement Pernet, Aug 12th, 2008) ===
  * Fix bug in Charpoly and revert to the "good" algorithm. See #3671
  * upstream linbox-1.1.6rc1

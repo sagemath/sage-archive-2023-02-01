@@ -22,6 +22,9 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
 == Changelog ==
 
+=== givaro-3.2.13rc1 (Clement Pernet, Sept 18th, 2008) ===
+ * Upgrade to givaro-3.2.13rc1
+
 === givaro-3.2.12rc0 (Clement Pernet, July 10th, 2008) ===
  * Upgrade to givaro-3.2.12rc0
 

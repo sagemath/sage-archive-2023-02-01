@@ -1787,8 +1787,7 @@ cdef class TimeSeries:
 
         EXAMPLES:
         Here we look at the candlestick plot for brownian motion:
-            sage: set_random_seed(0)
-            sage: v = finance.TimeSeries(1000)
+            sage: v = finance.TimeSeries(1000).randomize()
             sage: v.plot_candlestick(bins=20)
         """
         from sage.plot.plot import line, polygon, Graphics
@@ -1815,8 +1814,7 @@ cdef class TimeSeries:
             mid   = n + bin_size/2
             right = n + 2*bin_size/3
 
-            if open < close: rgbcolor='blue'
-            else: rgbcolor = 'red'
+            rgbcolor =  'blue' if open < close else 'red'
 
             p += line([(mid, low), (mid, high)], rgbcolor=rgbcolor)
             p += polygon([(left, open), (right, open), (right, close), (left, close)], rgbcolor=rgbcolor)

@@ -1333,18 +1333,7 @@ class LinearCode(module.Module):
             (1, 0, 1, 0, 0, 1, 1)
             True
         """
-        n = self.length()
-        k = self.dimension()
-        F = self.base_ring()
-        Cs,p = self.standard_form()
-        Gs = Cs.gen_mat()
-        V = VectorSpace(F,k)
-        MS = MatrixSpace(F,n,n)
-        ans = []
-        perm_mat = MS(p.matrix().rows())**(-1)
-        for v in V:
-            ans.append((v*Gs)*perm_mat)
-        return ans
+        return self.gen_mat().row_space().list()
 
     def minimum_distance(self):
         r"""

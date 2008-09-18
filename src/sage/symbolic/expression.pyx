@@ -1834,8 +1834,13 @@ cdef class Expression(CommutativeRingElement):
             362880.000000000
             sage: S(CDF(1,1)).gamma()
             0.498015668118-0.154949828302*I
-            sage: gp('gamma(1+I)')
+
+            sage: gp('gamma(1+I)') # 32-bit
             0.4980156681183560427136911175 - 0.1549498283018106851249551305*I
+
+            sage: gp('gamma(1+I)') # 64-bit
+            0.49801566811835604271369111746219809195 - 0.15494982830181068512495513048388660520*I
+
             sage: set_verbose(-1); plot(lambda x: S(x).gamma(), -6,4).show(ymin=-3,ymax=3)
         """
         _sig_on

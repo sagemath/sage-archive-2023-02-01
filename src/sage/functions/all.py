@@ -5,7 +5,8 @@ from transcendental import (exponential_integral_1,
                             gamma, gamma_inc, incomplete_gamma,
                             zeta, zeta_symmetric,
                             Li, Ei,
-                            prime_pi)
+                            prime_pi,
+                            dickman_rho)
 
 #from elementary import (cosine, sine, exponential,
 #                        ElementaryFunction,

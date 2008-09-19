@@ -26,7 +26,7 @@ from sage.gsl.integration import numerical_integral
 
 from sage.rings.all import (is_RealNumber, RealField,
                             is_ComplexNumber, ComplexField,
-                            ZZ, CDF, prime_range)
+                            ZZ, RR, RDF, CDF, prime_range)
 
 import sage.plot.all
 
@@ -377,3 +377,119 @@ class PrimePi:
 prime_pi = PrimePi()
 
 
+from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
+
+class DickmanRhoComputer:
+    r"""
+    Dickman's function is the continuous function satisfying the differential
+    equation
+
+        $$ x \rho'(x) + \rho(x-1) = 0 $$
+
+    with initial conditions $\rho(x)=1$ for $0 \le x \le 1$. It is useful
+    in estimating the frequency of smooth numbers as asymptotically
+
+        $$ \Psi(a, a^{1/s}) \sim a \rho(s) $$
+
+    where $\Psi(a,b)$ is the number of $b$-smooth numbers less than $a$.
+
+    ALGORITHM:
+        Dickmans's function is analytic on the interval $[n,n+1]$ for each
+        integer $n$. To evalute at $n+t, 0 \le t < 1$, a power series is
+        recursively computed about $n+1/2$ using the differential
+        equation stated above. As high precision arithmatic may be needed
+        for intermediate results the computed series are cached for later use.
+
+        Simple explicit formulas are used for the intervals [0,1] and [1,2].
+
+    EXAMPLES:
+        sage: dickman_rho(2)
+        0.306852819440055
+        sage: dickman_rho(10)
+        2.77017183772596e-11
+        sage: dickman_rho(10.00000000000000000000000000000000000000)
+        2.770171837725958988758121200634342326343e-11
+
+    AUTHOR:
+        Robert Bradshaw (2008-09)
+
+    REFERENCES:
+        G. Marsaglia, A. Zaman, J. Marsaglia. "Numerical Solutions to some
+            Classical Differential-Difference Equations." Mathematics of
+            Computation, Vol. 53, No. 187 (1989).
+    """
+    cur_prec = 0
+
+    def __call__(self, x):
+        """
+        EXAMPLES:
+            sage: [dickman_rho(n) for n in [1..10]]
+            [1.00000000000000, 0.306852819440055, 0.0486083882911316, 0.00491092564776083, 0.000354724700456040, 0.0000196496963539553, 8.74566995329392e-7, 3.23206930422610e-8, 1.01624828273784e-9, 2.77017183772596e-11]
+        """
+        if not is_RealNumber(x):
+            x = RR(x)
+        if x <= 0:
+            return x.parent()(0)
+        elif x <= 1:
+            return x.parent()(1)
+        elif x <= 2:
+            return 1 - x.log()
+        n = x.floor()
+        if self.cur_prec < x.parent().prec() or not self.f.has_key(n):
+            self.cur_prec = rel_prec = x.parent().prec()
+            # Go a bit beyond so we're not constantly re-computing.
+            max = 1.1*x + 10
+            abs_prec = (max*7/6 + max*max.log2()).ceil() + rel_prec
+            self.f = {}
+            self.compute_power_series(max.floor(), abs_prec, cache_ring=x.parent())
+        return self.f[n](2*(x-n-0.5))
+
+    def compute_power_series(self, n, abs_prec, cache_ring=None):
+        """
+        This function returns the power series about $n+1/2$ used to evaluate
+        Dickman's function. It is scaled such that the interval $[n,n+1]$
+        corresponds to x in $[-1,1]$.
+
+        INPUT:
+            n -- the lower endpoint of the interval for which this power series holds
+            abs_prec -- the absolute precision of the resulting power series
+            cache_ring -- for internal use, caches the power series at this precision.
+
+        EXAMPLES:
+            sage: f = dickman_rho.compute_power_series(2, 20); f
+            -9.9376e-8*x^11 + 3.7721e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
+            sage: f(-1), f(0), f(1)
+            (0.30685, 0.13032, 0.048608)
+            sage: dickman_rho(2), dickman_rho(2.5), dickman_rho(3)
+            (0.306852819440055, 0.130319561832251, 0.0486083882911316)
+        """
+        if n <= 1:
+            if n <= -1:
+                return PolynomialRealDense(RealField(abs_prec)['x'])
+            if n == 0:
+                return PolynomialRealDense(RealField(abs_prec)['x'], [1])
+            elif n == 1:
+                nterms = (RDF(abs_prec) * RDF(2).log()/RDF(3).log()).ceil()
+                R = RealField(abs_prec)
+                neg_three = ZZ(-3)
+                coeffs = [1 - R(1.5).log()] + [neg_three**-k/k for k in range(1, nterms)]
+                f = PolynomialRealDense(R['x'], coeffs)
+                if cache_ring is not None:
+                    self.f[n] = f.truncate_abs(f[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
+                return f
+        else:
+            f = self.compute_power_series(n-1, abs_prec + abs_prec.bits(), cache_ring)
+            # integrad = f / (2n+1 + x)
+            # We calculate this way because the most significant term is the constant term,
+            # and so we want to push the error accumulation and remainder out to the least
+            # significant terms.
+            integrand = f.reverse().quo_rem(PolynomialRealDense(f.parent(), [1, 2*n+1]))[0].reverse()
+            integrand = integrand.truncate_abs(RR(2)**-abs_prec)
+            iintegrand = integrand.integral()
+            ff = PolynomialRealDense(f.parent(), [f(1) + iintegrand(-1)]) - iintegrand
+            rel_prec = int(abs_prec + abs(RR(f[0])).log2())
+            if cache_ring is not None:
+                self.f[n] = ff.truncate_abs(ff[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
+            return ff.change_ring(RealField(rel_prec))
+
+dickman_rho = DickmanRhoComputer()

@@ -561,7 +561,7 @@ class PermutationGroup_plg(PermutationGroup_generic):
         """
         return self._n
 
-class PGL(PermutationGroup_generic):
+class PGL(PermutationGroup_plg):
     def __init__(self, n, q, name='a'):
         """
         The projective general linear groups over GF(q).

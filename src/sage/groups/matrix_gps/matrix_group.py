@@ -693,7 +693,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
         if method == "smaller":
             gap.eval("small:= SmallerDegreePermutationRepresentation( Image( iso ) );")
             C = gap("Image( small )")
-        return PermutationGroup(C, from_group = True)
+        return PermutationGroup(gap_group=C)
 
     def module_composition_factors(self, method=None):
         r"""

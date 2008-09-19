@@ -687,7 +687,7 @@ cdef class gen(sage.structure.element.RingElement):
             False
 
             sage: pari(2.5) > None
-            False
+            True
             sage: pari(3) == pari(3)
             True
             sage: pari('x^2 + 1') == pari('I-1')

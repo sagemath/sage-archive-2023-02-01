@@ -3,6 +3,14 @@
 ## PolyBoRi
 ###########################################
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+
+
 WORKDIR=${PWD}/src
 GINACDIR=${WORKDIR}
 
@@ -25,6 +33,7 @@ build_ginac()
 
 install_ginac()
 {
+    rm ${SAGE_LOCAL}/lib/*ginac*
     cd ${GINACDIR}
     $MAKE install
     if [ $? -ne 0 ]; then
@@ -59,4 +68,5 @@ echo "Done installing ginac."
 if [ ! -f "$SAGE_LOCAL"/lib/libginac.so ]; then
      cd "$SAGE_LOCAL"/lib/
      ln -s libginac libginac.so
+     ln -s libginac libginac.dylib
 fi

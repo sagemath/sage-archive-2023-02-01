@@ -84,10 +84,6 @@ build()
             --disable-toolbox-glue
         fi
     else
-        if [ `uname -m` = "ia64" -a "`uname`" = "Linux" ]; then
-            echo "Setting special flags for Itanium"
-            OPT="-g -O3 -Wall -Wstrict-prototypes"; export OPT
-        fi
         ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4
     fi
 

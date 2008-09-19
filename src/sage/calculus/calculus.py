@@ -1185,7 +1185,23 @@ class SymbolicExpression(RingElement):
         return self._sys_init_('maple')
 
     def _magma_init_(self):
-        return '"%s"'%self.str()
+        """
+        Return string representation in Magma of this symbolic expression.
+
+        Since Magma has no notation of symbolic calculus, this simply
+        returns something that evaluates in Magma to a a Magma string.
+
+        EXAMPLES:
+            sage: x = var('x')
+            sage: f = sin(cos(x^2) + log(x))
+            sage: f._magma_init_()
+            '"sin(cos(x^2) + log(x))"'
+            sage: magma(f)                         # optional -- requires magma
+            sin(cos(x^2) + log(x))
+            sage: magma(f).Type()                  # optional -- requires magma
+            MonStgElt
+        """
+        return '"%s"'%repr(self)
 
     def _kash_init_(self):
         return self._sys_init_('kash')

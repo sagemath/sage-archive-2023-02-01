@@ -61,6 +61,7 @@ TESTS:
     (-3024*beta1 + 1530)*beta0^2 + (-2320*beta1 + 5067)*beta0 - 3150*beta1 + 7592
 """
 
+
 # TODO:
 #   * relative over relative
 
@@ -3376,7 +3377,7 @@ class NumberField_absolute(NumberField_generic):
         NumberField_generic.__init__(self, polynomial, name, latex_name, check)
         self._element_class = number_field_element.NumberFieldElement_absolute
 
-    def _magma_(self, magma):
+    def _magma_coerce_(self, magma):
         """
         Return Magma version of this number field.
 

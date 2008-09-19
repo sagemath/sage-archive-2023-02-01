@@ -438,6 +438,41 @@ class Magma(Expect):
         return ans
 
     def bar_call(self, left, name, gens, nvals=1):
+        """
+        This is a wrapper around the Magma constructor
+
+           name<left | gens>
+
+        returning nvals.
+
+        INPUT:
+            left -- something coerceable to a magma object
+            name -- name of the constructor, e.g., sub, quo, ideal, etc.
+            gens -- if a list/tuple, each item is coerced to magma;
+                    otherwise gens itself is converted to magma
+            nvals -- positive integer; number of return values
+
+        OUTPUT:
+            a single magma object if nvals == 1; otherwise a tuple
+            of nvals magma objects.
+
+        EXAMPLES:
+        The bar_call function is used by the sub, quo, and ideal
+        methods of Magma elements.  Here we illustrate directly using
+        bar_call to create quotients:
+
+            sage: V = magma.RModule(ZZ,3)    # optional -- requires magma
+            sage: V                          # optional
+            RModule(IntegerRing(), 3)
+            sage: magma.bar_call(V, 'quo', [[1,2,3]], nvals=1)  # optional
+            RModule(IntegerRing(), 2)
+            sage: magma.bar_call(V, 'quo', [[1,2,3]], nvals=2)  # optional
+            (RModule(IntegerRing(), 2),
+             Mapping from: RModule(IntegerRing(), 3) to RModule(IntegerRing(), 2))
+            sage: magma.bar_call(V, 'quo', V, nvals=2)          # optional
+            (RModule(IntegerRing(), 0),
+             Mapping from: RModule(IntegerRing(), 3) to RModule(IntegerRing(), 0))
+        """
         magma = self
         # coerce each arg to be a Magma element
         if isinstance(gens, (list, tuple)):
@@ -452,14 +487,8 @@ class Magma(Expect):
         s = '%s< %s | %s >'%(name, left.name(), v)
         return self._do_call(s, nvals)
 
-    #def new(self, x):
-    #    if isinstance(x, MagmaElement) and x.parent() == self:
-    #        return x
-    #    return MagmaElement(self, x)
-
     def _object_class(self):
         return MagmaElement
-
 
     # Usually "Sequences" are what you want in MAGMA, not "lists".
     # It's very painful using the interface without this.
@@ -1042,6 +1071,14 @@ class MagmaElement(ExpectElement):
             sage: V.quo(W)                                          # optional
             (Full Vector space of degree 1 over Rational Field, Mapping from: Full Vector space of degree 3 over Rational Field to Full Vector space of degree 1 over Rational Field)
 
+        We quotient a ZZ module out by a submodule.
+            sage: V = magma.RModule(ZZ,3); V
+            RModule(IntegerRing(), 3)
+            sage: W, phi = V.quo([[1,2,3]])
+            sage: W
+            RModule(IntegerRing(), 2)
+            sage: phi
+            Mapping from: RModule(IntegerRing(), 3) to RModule(IntegerRing(), 2)
         """
         return self.parent().bar_call(self, 'quo', gens, nvals=2)
 

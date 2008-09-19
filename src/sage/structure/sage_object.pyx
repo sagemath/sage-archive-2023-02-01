@@ -308,14 +308,111 @@ cdef class SageObject:
     def _maxima_init_(self):
         return self._interface_init_()
 
-    def _magma_(self, G=None):
-        if G is None:
+
+    def _magma_(self, M=None):
+        """
+        Given a Magma interpreter M (or None for the default global
+        interpreter), return MagmaElement corresponding to self in M.
+        This properly keeps tracking of caching, and also checks for
+        validity of an element before returning it.  Note that the
+        Magma versions of cdef'd elements are not cached.
+
+        This should not be redefined in derived classes.  Instead,
+        derived classes should redefine _magma_coerce_.
+
+        INPUT:
+            M -- a Magma interpreter
+        OUTPUT:
+            a Magma object
+
+        EXAMPLES:
+            sage: n = -3/7
+            sage: m2 = Magma()
+            sage: n._magma_()                        # optional -- requires magma
+            -3/7
+            sage: n._magma_().parent()               # optional
+            Magma
+            sage: n._magma_().parent() is m2         # optional
+            False
+            sage: n._magma_().parent() is magma      # optional
+            True
+            sage: n._magma_(m2).parent() is m2       # optional
+            True
+
+        This example illustrates caching, which happens automatically
+        since K is a Python object:
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K._magma_() is K._magma_()        # optional
+            True
+            sage: magma2 = Magma()
+            sage: K._magma_() is K._magma_(magma2)  # optional
+            False
+        """
+        if M is None:
             import sage.interfaces.magma
-            G = sage.interfaces.magma.magma
-        return self._interface_(G)
+            M = sage.interfaces.magma.magma
+        c = self._interface_is_cached_()
+        if c:
+            try:
+                X = self.__interface[M]
+                X._check_valid()
+                return X
+            except (AttributeError, TypeError):
+                try:
+                    self.__interface = {}
+                except AttributeError:
+                    # do this because C-extension classes won't have
+                    # an __interface attribute.
+                    c = False
+                    pass
+            except (KeyError, ValueError):
+                pass
+        A = self._magma_coerce_(M)
+        if c:
+            self.__interface[M] = A
+        return A
 
     def _magma_init_(self):
+        """
+        Return an ascii string that evaluates to something equal to
+        self in Magma.  Use this for converting very simple things
+        (e.g., integers) from Sage to Magma.  For anything much more
+        complicated, use _magma_coerce_.
+
+        The default coercion for elements from Sage to Magma is to
+        call _magma_init_, which just calls the repr method of the
+        object.
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: n = -3/7
+            sage: n._magma_init_()
+            '-3/7'
+        """
         return self._interface_init_()
+
+    def _magma_coerce_(self, M):
+        """
+        Given a magma interpreter, this function should return a
+        MagmaElement in M.
+
+        One should usually redefine this function in the derived
+        class.  There is no need to worry about caching, which is done
+        automatically by the infrastructure in sage_object.
+
+        INPUT:
+            M -- a Magma interpreter
+        OUTPUT:
+            a Magma object
+
+        EXAMPLES:
+            sage: n = -3/7
+            sage: n._magma_coerce_(magma)       # optional -- requires magma
+            -3/7
+        """
+        return self._interface_(M)
 
     def _macaulay2_(self, G=None):
         if G is None:

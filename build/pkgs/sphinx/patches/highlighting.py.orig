@@ -144,15 +144,10 @@ class PygmentsBridge(object):
     def highlight_block(self, source, lang, linenos=False):
         if not pygments:
             return self.unhighlighted(source)
-        sage = False
         if lang in ('py', 'python'):
             if source.startswith('>>>'):
                 # interactive session
                 lexer = lexers['pycon']
-            elif source.startswith('sage:'):
-                lexer = lexers['pycon']
-                source = source.replace('sage:', '>>>')
-                sage = True
             else:
                 # maybe Python -- try parsing it
                 if self.try_parse(source):
@@ -175,25 +170,14 @@ class PygmentsBridge(object):
                 lexer.add_filter('raiseonerror')
         try:
             if self.dest == 'html':
-                hlsource = highlight(source, lexer, self.hfmter[bool(linenos)])
-                if sage:
-                    hlsource = hlsource.replace(r'&gt;&gt;&gt;', 'sage:')
-                    hlsource = hlsource.replace(r'>>>', 'sage:')
-                return hlsource
+                return highlight(source, lexer, self.hfmter[bool(linenos)])
             else:
                 hlsource = highlight(source, lexer, self.lfmter[bool(linenos)])
-                if sage:
-                    hlsource = hlsource.replace(r'>>>', 'sage:')
                 return hlsource.translate(tex_hl_escape_map)
         except ErrorToken:
             # this is most probably not the selected language,
             # so let it pass unhighlighted
-            uhlsource = self.unhighlighted(source)
-            if sage:
-                uhlsource = uhlsource.replace('@textgreater[]@textgreater[]@textgreater[]', '@PYGaO[sage: ]')
-                uhlsource = uhlsource.replace(r'&gt;&gt;&gt;', 'sage:')
-                uhlsource = uhlsource.replace(r'>>>', 'sage:')
-            return uhlsource
+            return self.unhighlighted(source)
 
     def get_stylesheet(self):
         if not pygments:

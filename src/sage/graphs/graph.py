@@ -6297,7 +6297,6 @@ class GenericGraph(SageObject):
 
         """
         from sage.graphs.graph_isom import perm_group_elt
-        import sage.groups.perm_gps.partn_ref.refinement_graphs
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
         dig = (self._directed or self.loops())

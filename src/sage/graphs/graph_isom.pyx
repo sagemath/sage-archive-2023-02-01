@@ -1385,8 +1385,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: Y0.is_isomorphic(HS)
         True
 
-        sage: import sage.graphs.graph_isom
-        sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         sage: from sage.graphs.base.sparse_graph import SparseGraph
         sage: from sage.graphs.base.dense_graph import DenseGraph
@@ -2537,8 +2535,6 @@ def all_labeled_graphs(n):
     in benchmarking the search algorithm.
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom
-        sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         sage: from sage.graphs.graph_isom import all_labeled_graphs
         sage: Glist = {}
@@ -2666,8 +2662,6 @@ def all_labeled_digraphs_with_loops(n):
     in benchmarking the search algorithm.
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom
-        sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         sage: from sage.graphs.graph_isom import all_labeled_digraphs_with_loops
         sage: Glist = {}
@@ -2708,8 +2702,6 @@ def all_labeled_digraphs_with_loops(n):
 def all_labeled_digraphs(n):
     """
     EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         sage: from sage.graphs.graph_isom import all_labeled_digraphs
         sage: Glist = {}
@@ -2804,7 +2796,6 @@ def orbit_partition(gamma, list_perm=False):
     $i \mapsto \var{gamma}[i]$.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import orbit_partition
         sage: G = graphs.PetersenGraph()
         sage: S = SymmetricGroup(10)

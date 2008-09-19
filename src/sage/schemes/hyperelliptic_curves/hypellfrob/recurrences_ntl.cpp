@@ -2,7 +2,7 @@
 
    recurrences_ntl.cpp:  recurrences solved via NTL polynomial arithmetic
 
-   This file is part of hypellfrob (version 2.1).
+   This file is part of hypellfrob (version 2.1.1).
 
    Copyright (C) 2007, 2008, David Harvey
 

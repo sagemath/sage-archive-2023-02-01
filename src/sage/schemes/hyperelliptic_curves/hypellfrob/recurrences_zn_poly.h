@@ -2,7 +2,7 @@
 
    recurrences_zn_poly.h:  header for recurrences_zn_poly.cpp
 
-   This file is part of hypellfrob (version 2.1).
+   This file is part of hypellfrob (version 2.1.1).
 
    Copyright (C) 2007, 2008, David Harvey
 
@@ -64,7 +64,7 @@ struct Shifter
    // precomputed info for performing middle product against a "kernel"
    // polynomial of degree 2d. The coefficients of "kernel" are
    // (a + k*b)^(-1) for -d <= k <= d.
-   zn_array_midmul_precomp1_t kernel_precomp;
+   zn_array_mulmid_precomp1_t kernel_precomp;
 
    // Scratch space for shift(), length d + 1
    ulong* scratch;

@@ -2,7 +2,7 @@
 
    recurrences_zn_poly.cpp:  recurrences solved via zn_poly arithmetic
 
-   This file is part of hypellfrob (version 2.1).
+   This file is part of hypellfrob (version 2.1.1).
 
    Copyright (C) 2007, 2008, David Harvey
 
@@ -34,7 +34,7 @@ namespace hypellfrob {
 
 Shifter::~Shifter()
 {
-   zn_array_midmul_precomp1_clear(kernel_precomp);
+   zn_array_mulmid_precomp1_clear(kernel_precomp);
    free(input_twist);
 }
 
@@ -49,7 +49,7 @@ Shifter::Shifter(ulong d, ulong a, ulong b, const zn_mod_t mod)
    scratch = output_twist + d + 1;
 
    ZZ modulus;
-   modulus = mod->n;
+   modulus = zn_mod_get (mod);
 
    // ------------------------ compute input_twist -------------------------
 
@@ -115,7 +115,7 @@ Shifter::Shifter(ulong d, ulong a, ulong b, const zn_mod_t mod)
       kernel[i] = zn_mod_mul(accum_inv[i], accum[i-1], mod);
 
    // precompute FFT of kernel
-   zn_array_midmul_precomp1_init(kernel_precomp, kernel, 2*d+1, d+1, mod);
+   zn_array_mulmid_precomp1_init(kernel_precomp, kernel, 2*d+1, d+1, mod);
 
    free(c);
 }
@@ -128,7 +128,7 @@ void Shifter::shift(ulong* output, const ulong* input)
       scratch[i] = zn_mod_mul(input[i], input_twist[i], mod);
 
    // do middle product
-   zn_array_midmul_precomp1_execute(output, scratch, kernel_precomp);
+   zn_array_mulmid_precomp1_execute(output, scratch, kernel_precomp);
 
    // multiply outputs pointwise by output_twist
    for (ulong i = 0; i <= d; i++)
@@ -142,13 +142,15 @@ void Shifter::shift(ulong* output, const ulong* input)
 */
 int check_params(ulong k, ulong u, const zn_mod_t mod)
 {
-   if (k >= mod->n || u >= mod->n)
+   ulong n = zn_mod_get (mod);
+
+   if (k >= n || u >= n)
       return 0;
 
    if (k <= 1)
       return 1;
 
-   if (k == mod->n - 1)
+   if (k == n - 1)
       return 0;
 
    ulong k2 = k / 2;
@@ -169,7 +171,7 @@ int check_params(ulong k, ulong u, const zn_mod_t mod)
 
    ZZ x, y;
    x = prod;
-   y = mod->n;
+   y = n;
    if (GCD(x, y) != 1)
       return 0;
 
@@ -225,8 +227,8 @@ LargeEvaluator::LargeEvaluator(int r, ulong k, ulong u,
                                const vector<vector<ulong> >& M1,
                                const zn_mod_t& mod) : M0(M0), M1(M1), mod(mod)
 {
-   assert(k < mod->n);
-   assert(u < mod->n);
+   assert(k < zn_mod_get(mod));
+   assert(u < zn_mod_get(mod));
    assert(r >= 1);
    assert(k >= 1);
 
@@ -349,6 +351,8 @@ void LargeEvaluator::evaluate(int half, vector<ulong_array>& output,
       }
    }
 
+   ulong n = zn_mod_get(mod);
+
    // Multiply to obtain P(H), P(H + u), ..., P(H + k2*u)
    // (except for the last one, in the second half, if k is even)
    // Store results directly in output array.
@@ -364,8 +368,8 @@ void LargeEvaluator::evaluate(int half, vector<ulong_array>& output,
          ZNP_MUL_WIDE(hi, lo, scratch[y*r + z].data[i],
                               output[z*r + x].data[offset + i + 1]);
          ZNP_ADD_WIDE(sum_hi, sum_lo, sum_hi, sum_lo, hi, lo);
-         if (sum_hi >= mod->n)
-            sum_hi -= mod->n;
+         if (sum_hi >= n)
+            sum_hi -= n;
       }
       output[y*r + x].data[offset + i] =
                            zn_mod_reduce_wide(sum_hi, sum_lo, mod);
@@ -432,9 +436,11 @@ int zn_poly_interval_products(vector<vector<vector<ulong> > >& output,
          return 0;    // too many failures, give up
    }
 
+   ulong n = zn_mod_get(mod);
+
    // shift M0 over to account for starting index
    vector<vector<ulong> > M0_shifted = M0;
-   ulong shift = target.front() % mod->n;
+   ulong shift = target.front() % n;
    for (int x = 0; x < r; x++)
    for (int y = 0; y < r; y++)
       M0_shifted[y][x] = zn_mod_add(M0[y][x],
@@ -502,7 +508,7 @@ int zn_poly_interval_products(vector<vector<vector<ulong> > >& output,
          else
          {
             // otherwise just multiply by the single matrix M(t1 + 1)
-            ulong e = (t1 + 1) % mod->n;
+            ulong e = (t1 + 1) % n;
 
             for (int x = 0; x < r; x++)
             for (int y = 0; y < r; y++)
@@ -523,8 +529,8 @@ int zn_poly_interval_products(vector<vector<vector<ulong> > >& output,
                ulong hi, lo;
                ZNP_MUL_WIDE(hi, lo, accum[y][z], temp1[z][x]);
                ZNP_ADD_WIDE(sum_hi, sum_lo, sum_hi, sum_lo, hi, lo);
-               if (sum_hi >= mod->n)
-                  sum_hi -= mod->n;
+               if (sum_hi >= n)
+                  sum_hi -= n;
             }
             temp2[y][x] = zn_mod_reduce_wide(sum_hi, sum_lo, mod);
          }

@@ -30,8 +30,11 @@ There are a large number of cimmunity resources. For more details see http://www
 
 == Changelog ==
 
+=== python-2.5.2.p7 (Robert Miller, International Talk Like a Pirate Day, 2009) ===
+ * 'oist th' fwrapv option on itanium, ya landlubber what deserves the black spot!
+
 === python-2.5.2.p6 (Michael Abshoff, September 14th, 2008) ===
- * disable pymalloc is SAGE_VALGRIND is set to "yesy"
+ * disable pymalloc if SAGE_VALGRIND is set to "yes"
  * since we now support parallel building of python sleep three seconds before testing for a working python
 
 === python-2.5.2.p5 (Michael Abshoff, August 30th, 2008) ===

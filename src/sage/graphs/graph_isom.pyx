@@ -40,8 +40,11 @@ REFERENCE:
     [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
         Vol. 30 (1981), pp. 45-87.
 
-NOTE:
-    Often we assume that G is a graph on vertices {0,1,...,n-1}.
+NOTES:
+    1. Often we assume that G is a graph on vertices {0,1,...,n-1}.
+    2. There is no s == loads(dumps(s)) type test since none of the classes
+        defined here are meant to be instantiated for longer than the algorithm
+        runs (i.e. pickling is not relevant here).
 """
 
 #*****************************************************************************
@@ -57,7 +60,9 @@ from sage.rings.integer cimport Integer
 
 cdef class OrbitPartition:
     """
-    TODO: documentation
+    An OrbitPartition is simply a partition which keeps track of the orbits of
+    the part of the automorphism group so far discovered. Essentially a
+    union-find datastructure.
 
     EXAMPLES:
         sage: from sage.graphs.graph_isom import OrbitPartition
@@ -115,6 +120,27 @@ cdef class OrbitPartition:
         sage_free(self.sizes)
 
     def find(self, x):
+        """
+        Returns an element of the cell which depends only on the cell.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import OrbitPartition
+            sage: K = OrbitPartition(20)
+
+        0 and 1 begin in different cells:
+            sage: K.find(0)
+            0
+            sage: K.find(1)
+            1
+
+        Now we put them in the same cell:
+            sage: K.union_find(0,1)
+            sage: K.find(0)
+            0
+            sage: K.find(1)
+            0
+
+        """
         return self._find(x)
 
     cdef int _find(self, int x):
@@ -124,6 +150,27 @@ cdef class OrbitPartition:
         return self.elements[x]
 
     def union_find(self, a, b):
+        """
+        Merges the cells containing a and b.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import OrbitPartition
+            sage: K = OrbitPartition(20)
+
+        0 and 1 begin in different cells:
+            sage: K.find(0)
+            0
+            sage: K.find(1)
+            1
+
+        Now we put them in the same cell:
+            sage: K.union_find(0,1)
+            sage: K.find(0)
+            0
+            sage: K.find(1)
+            0
+
+        """
         self._union_find(a, b)
 
     cdef int _union_find(self, int a, int b):
@@ -132,9 +179,6 @@ cdef class OrbitPartition:
         bRoot = self._find(b)
         self._union_roots(aRoot, bRoot)
         return aRoot != bRoot
-
-    def union_roots(self, a, b):
-        self._union_roots(a, b)
 
     cdef void _union_roots(self, int a, int b):
         if a < b:
@@ -145,6 +189,25 @@ cdef class OrbitPartition:
             self.sizes[a] += self.sizes[b]
 
     def is_finer_than(self, other, n):
+        """
+        Partition P is finer than partition Q if every cell of P is a subset of
+        a cell of Q.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import OrbitPartition
+            sage: K = OrbitPartition(20)
+            sage: K.find(7)
+            7
+            sage: K.union_find(7, 12)
+            sage: K.find(12)
+            7
+            sage: J = OrbitPartition(20)
+            sage: J.is_finer_than(K, 20)
+            True
+            sage: K.is_finer_than(J, 20)
+            False
+
+        """
         return self._is_finer_than(other, n) == 1
 
     cdef int _is_finer_than(self, OrbitPartition other, int n):
@@ -155,6 +218,23 @@ cdef class OrbitPartition:
         return 1
 
     def vee_with(self, other, n):
+        """
+        Merges the minimal number of cells such that other is finer than self.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import OrbitPartition
+            sage: K = OrbitPartition(20)
+            sage: K.union_find(7, 12)
+            sage: J = OrbitPartition(20)
+            sage: J.is_finer_than(K, 20)
+            True
+            sage: K.is_finer_than(J, 20)
+            False
+            sage: J.vee_with(K, 20)
+            sage: K.is_finer_than(J, 20)
+            True
+
+        """
         self._vee_with(other, n)
 
     cdef void _vee_with(self, OrbitPartition other, int n):
@@ -353,6 +433,42 @@ cdef class PartitionStack:
         sage_free(self.levels)
 
     def __repr__(self):
+        """
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P.set_k(1)
+            sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
+            0
+            sage: P.set_k(2)
+            sage: P.sort_by_function(0, [2,1,2,1], 10)
+            0
+            sage: P.set_k(3)
+            sage: P.sort_by_function(4, [2,1,2,1], 10)
+            4
+            sage: P.set_k(4)
+            sage: P.sort_by_function(0, [0,1], 10)
+            0
+            sage: P.set_k(5)
+            sage: P.sort_by_function(2, [1,0], 10)
+            2
+            sage: P.set_k(6)
+            sage: P.sort_by_function(4, [1,0], 10)
+            4
+            sage: P.set_k(7)
+            sage: P.sort_by_function(6, [1,0], 10)
+            6
+            sage: P
+            (5,9,7,1,6,2,8,0,4,3)
+            (5,9,7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2|8,0|4|3)
+            (5|9|7,1|6,2|8,0|4|3)
+            (5|9|7|1|6,2|8,0|4|3)
+            (5|9|7|1|6|2|8,0|4|3)
+            (5|9|7|1|6|2|8|0|4|3)
+
+        """
         k = 0
         s = ''
         while (k == 0 or self.levels[k-1] != -1) and k <= self.k:
@@ -361,6 +477,50 @@ cdef class PartitionStack:
         return s
 
     def repr_at_k(self, k):
+        """
+        Return the k-th line of the representation of self, i.e. the k-th
+        partition in the stack.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P.set_k(1)
+            sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
+            0
+            sage: P.set_k(2)
+            sage: P.sort_by_function(0, [2,1,2,1], 10)
+            0
+            sage: P.set_k(3)
+            sage: P.sort_by_function(4, [2,1,2,1], 10)
+            4
+            sage: P.set_k(4)
+            sage: P.sort_by_function(0, [0,1], 10)
+            0
+            sage: P.set_k(5)
+            sage: P.sort_by_function(2, [1,0], 10)
+            2
+            sage: P.set_k(6)
+            sage: P.sort_by_function(4, [1,0], 10)
+            4
+            sage: P.set_k(7)
+            sage: P.sort_by_function(6, [1,0], 10)
+            6
+            sage: P
+            (5,9,7,1,6,2,8,0,4,3)
+            (5,9,7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2|8,0|4|3)
+            (5|9|7,1|6,2|8,0|4|3)
+            (5|9|7|1|6,2|8,0|4|3)
+            (5|9|7|1|6|2|8,0|4|3)
+            (5|9|7|1|6|2|8|0|4|3)
+
+            sage: P.repr_at_k(0)
+            '(5,9,7,1,6,2,8,0,4,3)'
+            sage: P.repr_at_k(1)
+            '(5,9,7,1|6,2,8,0|4|3)'
+
+        """
         s = '('
         i = 0
         while i == 0 or self.levels[i-1] != -1:
@@ -374,10 +534,100 @@ cdef class PartitionStack:
         return s
 
     def set_k(self, k):
+        """
+        Sets self.k, the index of the finest partition.
+
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P.set_k(1)
+            sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
+            0
+            sage: P.set_k(2)
+            sage: P.sort_by_function(0, [2,1,2,1], 10)
+            0
+            sage: P.set_k(3)
+            sage: P.sort_by_function(4, [2,1,2,1], 10)
+            4
+            sage: P.set_k(4)
+            sage: P.sort_by_function(0, [0,1], 10)
+            0
+            sage: P.set_k(5)
+            sage: P.sort_by_function(2, [1,0], 10)
+            2
+            sage: P.set_k(6)
+            sage: P.sort_by_function(4, [1,0], 10)
+            4
+            sage: P.set_k(7)
+            sage: P.sort_by_function(6, [1,0], 10)
+            6
+            sage: P
+            (5,9,7,1,6,2,8,0,4,3)
+            (5,9,7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2|8,0|4|3)
+            (5|9|7,1|6,2|8,0|4|3)
+            (5|9|7|1|6,2|8,0|4|3)
+            (5|9|7|1|6|2|8,0|4|3)
+            (5|9|7|1|6|2|8|0|4|3)
+
+            sage: P.set_k(2)
+            sage: P
+            (5,9,7,1,6,2,8,0,4,3)
+            (5,9,7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2,8,0|4|3)
+
+        """
         self.k = k
 
     def is_discrete(self):
-        return self._is_discrete()
+        """
+        Returns whether the partition consists of only singletons.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P.set_k(1)
+            sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
+            0
+            sage: P.set_k(2)
+            sage: P.sort_by_function(0, [2,1,2,1], 10)
+            0
+            sage: P.set_k(3)
+            sage: P.sort_by_function(4, [2,1,2,1], 10)
+            4
+            sage: P.set_k(4)
+            sage: P.sort_by_function(0, [0,1], 10)
+            0
+            sage: P.set_k(5)
+            sage: P.sort_by_function(2, [1,0], 10)
+            2
+            sage: P.set_k(6)
+            sage: P.sort_by_function(4, [1,0], 10)
+            4
+            sage: P.set_k(7)
+            sage: P.sort_by_function(6, [1,0], 10)
+            6
+            sage: P
+            (5,9,7,1,6,2,8,0,4,3)
+            (5,9,7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2|8,0|4|3)
+            (5|9|7,1|6,2|8,0|4|3)
+            (5|9|7|1|6,2|8,0|4|3)
+            (5|9|7|1|6|2|8,0|4|3)
+            (5|9|7|1|6|2|8|0|4|3)
+            sage: P.is_discrete()
+            True
+            sage: P.set_k(2)
+            sage: P
+            (5,9,7,1,6,2,8,0,4,3)
+            (5,9,7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2,8,0|4|3)
+            sage: P.is_discrete()
+            False
+
+        """
+        return (self._is_discrete() == 1)
 
     cdef int _is_discrete(self):
         cdef int i = 0
@@ -389,6 +639,31 @@ cdef class PartitionStack:
         return 1
 
     def num_cells(self):
+        """
+        Return the number of cells in the finest partition.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P.set_k(1)
+            sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
+            0
+            sage: P
+            (1,9,7,5,0,2,8,6,4,3)
+            (1,9,7,5|0,2,8,6|4|3)
+            sage: P.num_cells()
+            4
+            sage: P.set_k(2)
+            sage: P.sort_by_function(0, [2,1,2,1], 10)
+            0
+            sage: P
+            (5,9,1,7,0,2,8,6,4,3)
+            (5,9,1,7|0,2,8,6|4|3)
+            (5,9|1,7|0,2,8,6|4|3)
+            sage: P.num_cells()
+            5
+
+        """
         return self._num_cells()
 
     cdef int _num_cells(self):
@@ -401,6 +676,46 @@ cdef class PartitionStack:
         return j
 
     def sat_225(self, n):
+        """
+        Whether the finest partition satisfies the hypotheses of Lemma 2.25 in
+        [1].
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P
+            (0,9,8,7,6,5,4,3,2,1)
+            sage: P.sat_225(10)
+            False
+            sage: P.set_k(1)
+            sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
+            0
+            sage: P
+            (1,9,7,5,0,2,8,6,4,3)
+            (1,9,7,5|0,2,8,6|4|3)
+            sage: P.sat_225(10)
+            False
+            sage: P.set_k(2)
+            sage: P.sort_by_function(0, [2,1,2,1], 10)
+            0
+            sage: P
+            (5,9,1,7,0,2,8,6,4,3)
+            (5,9,1,7|0,2,8,6|4|3)
+            (5,9|1,7|0,2,8,6|4|3)
+            sage: P.sat_225(10)
+            False
+            sage: P.set_k(3)
+            sage: P.sort_by_function(4, [2,1,2,1], 10)
+            4
+            sage: P
+            (5,9,1,7,2,6,0,8,4,3)
+            (5,9,1,7|2,6,0,8|4|3)
+            (5,9|1,7|2,6,0,8|4|3)
+            (5,9|1,7|2,6|0,8|4|3)
+            sage: P.sat_225(10)
+            True
+
+        """
         return self._sat_225(n) == 1
 
     cdef int _sat_225(self, int n):
@@ -437,6 +752,16 @@ cdef class PartitionStack:
         """
         Splits the cell in self(k) containing v, putting new cells in place
         in self(k).
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P
+            (0,9,8,7,6,5,4,3,2,1)
+            sage: P.split_vertex(2)
+            sage: P
+            (2|0,9,8,7,6,5,4,3,1)
+
         """
         self._split_vertex(v)
 
@@ -458,6 +783,20 @@ cdef class PartitionStack:
         return j
 
     def percolate(self, start, end):
+        """
+        Perform one round of bubble sort, moving the smallest element to the
+        front.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P
+            (0,9,8,7,6,5,4,3,2,1)
+            sage: P.percolate(2,7)
+            sage: P
+            (0,9,3,8,7,6,5,4,2,1)
+
+        """
         self._percolate(start, end)
 
     cdef void _percolate(self, int start, int end):
@@ -469,6 +808,25 @@ cdef class PartitionStack:
                 self.entries[i-1] = temp
 
     def sort_by_function(self, start, degrees, n):
+        """
+        Sort the cell starting at start using a counting sort, where degrees is
+        the function giving the sort. Result is the cell is subdivided into
+        cells which have elements all of the same 'degree,' in order.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P.set_k(1)
+            sage: P
+            (0,9,8,7,6,5,4,3,2,1)
+            (0,9,8,7,6,5,4,3,2,1)
+            sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
+            0
+            sage: P
+            (1,9,7,5,0,2,8,6,4,3)
+            (1,9,7,5|0,2,8,6|4|3)
+
+        """
         cdef int i
         cdef int *degs = <int *> sage_malloc( ( 3 * n + 1 ) * sizeof(int) )
         if not degs:
@@ -523,6 +881,30 @@ cdef class PartitionStack:
         return max_location
 
     def clear(self):
+        """
+        Merges all cells in the partition stack.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P.set_k(1)
+            sage: P
+            (0,9,8,7,6,5,4,3,2,1)
+            (0,9,8,7,6,5,4,3,2,1)
+            sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
+            0
+            sage: P
+            (1,9,7,5,0,2,8,6,4,3)
+            (1,9,7,5|0,2,8,6|4|3)
+            sage: P
+            (1,9,7,5,0,2,8,6,4,3)
+            (1,9,7,5|0,2,8,6|4|3)
+            sage: P.clear()
+            sage: P
+            (1,9,7,5,0,2,8,6,4,3)
+            (1,9,7,5,0,2,8,6,4,3)
+
+        """
         self._clear()
 
     cdef void _clear(self):
@@ -535,7 +917,70 @@ cdef class PartitionStack:
                 j = i + 1
             i+=1
 
-    def refine(self, CGraph G, alpha, n, dig, uif):
+    def refine(self, CGraph G, alpha, n, dig, uif, test=False):
+        """
+        Implementation of Algorithm 2.5 in [1].
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P.set_k(1)
+            sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
+            0
+            sage: P.set_k(2)
+            sage: P.sort_by_function(0, [2,1,2,1], 10)
+            0
+            sage: P.set_k(3)
+            sage: P.sort_by_function(4, [2,1,2,1], 10)
+            4
+            sage: P.set_k(4)
+            sage: P.sort_by_function(0, [0,1], 10)
+            0
+            sage: P.set_k(5)
+            sage: P.sort_by_function(2, [1,0], 10)
+            2
+            sage: P.set_k(6)
+            sage: P.sort_by_function(4, [1,0], 10)
+            4
+            sage: P.set_k(7)
+            sage: P.sort_by_function(6, [1,0], 10)
+            6
+            sage: P
+            (5,9,7,1,6,2,8,0,4,3)
+            (5,9,7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2,8,0|4|3)
+            (5,9|7,1|6,2|8,0|4|3)
+            (5|9|7,1|6,2|8,0|4|3)
+            (5|9|7|1|6,2|8,0|4|3)
+            (5|9|7|1|6|2|8,0|4|3)
+            (5|9|7|1|6|2|8|0|4|3)
+            sage: P.is_discrete()
+            1
+            sage: P.set_k(6)
+            sage: P.is_discrete()
+            0
+
+            sage: G = SparseGraph(10)
+            sage: for i,j,_ in graphs.PetersenGraph().edge_iterator():
+            ...    G.add_arc(i,j)
+            ...    G.add_arc(j,i)
+            sage: P = PartitionStack(10)
+            sage: P.set_k(1)
+            sage: P.split_vertex(0)
+            sage: P.refine(G, [0], 10, 0, 1)
+            sage: P
+            (0,2,3,6,7,8,9,1,4,5)
+            (0|2,3,6,7,8,9|1,4,5)
+            sage: P.set_k(2)
+            sage: P.split_vertex(1)
+            sage: P.refine(G, [7], 10, 0, 1)
+            sage: P
+            (0,3,7,8,9,2,6,1,4,5)
+            (0|3,7,8,9,2,6|1,4,5)
+            (0|3,7,8,9|2,6|1|4,5)
+
+        """
         cdef int *_alpha, i, j
         _alpha = <int *> sage_malloc( ( 4 * n + 1 )* sizeof(int) )
         if not _alpha:
@@ -543,7 +988,10 @@ cdef class PartitionStack:
         for i from 0 <= i < len(alpha):
             _alpha[i] = alpha[i]
         _alpha[len(alpha)] = -1
-        self._refine(_alpha, n, G, dig, uif)
+        if test:
+            self.test_refine(_alpha, n, G, dig, uif)
+        else:
+            self._refine(_alpha, n, G, dig, uif)
         sage_free(_alpha)
 
     cdef int test_refine(self, int *alpha, int n, CGraph g, int dig, int uif) except? -1:
@@ -575,10 +1023,9 @@ cdef class PartitionStack:
             cell = []
         #
         if dig:
-            G = DiGraph(loops=True)
+            G = DiGraph(n, loops=True)
         else:
-            G = Graph()
-        G.add_vertices(xrange(n))
+            G = Graph(n)
         for i from 0 <= i < n:
             for j from 0 <= j < n:
                 if g.has_arc_unsafe(i, j):
@@ -704,6 +1151,23 @@ cdef class PartitionStack:
             return 0
 
     def degree(self, CGraph G, v, W):
+        """
+        Returns the number of edges in G from self.entries[v] to a vertex in W.
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import PartitionStack
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: P = PartitionStack([range(9, -1, -1)])
+            sage: P
+            (0,9,8,7,6,5,4,3,2,1)
+            sage: G = SparseGraph(10)
+            sage: G.add_arc(2,9)
+            sage: G.add_arc(3,9)
+            sage: G.add_arc(4,9)
+            sage: P.degree(G, 1, 0)
+            3
+
+        """
         cdef int j
         j = self._degree(G, v, W)
         return j
@@ -790,6 +1254,45 @@ def _term_pnest_graph(G, PartitionStack nu):
     BDM's G(nu): returns the graph G, relabeled in the order found in
     nu[m], where m is the first index corresponding to a discrete partition.
     Assumes nu is a terminal partition nest in T(G, Pi).
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_isom import PartitionStack
+        sage: from sage.graphs.base.sparse_graph import SparseGraph
+        sage: P = PartitionStack([range(9, -1, -1)])
+        sage: P.set_k(1)
+        sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
+        0
+        sage: P.set_k(2)
+        sage: P.sort_by_function(0, [2,1,2,1], 10)
+        0
+        sage: P.set_k(3)
+        sage: P.sort_by_function(4, [2,1,2,1], 10)
+        4
+        sage: P.set_k(4)
+        sage: P.sort_by_function(0, [0,1], 10)
+        0
+        sage: P.set_k(5)
+        sage: P.sort_by_function(2, [1,0], 10)
+        2
+        sage: P.set_k(6)
+        sage: P.sort_by_function(4, [1,0], 10)
+        4
+        sage: P.set_k(7)
+        sage: P.sort_by_function(6, [1,0], 10)
+        6
+        sage: P
+        (5,9,7,1,6,2,8,0,4,3)
+        (5,9,7,1|6,2,8,0|4|3)
+        (5,9|7,1|6,2,8,0|4|3)
+        (5,9|7,1|6,2|8,0|4|3)
+        (5|9|7,1|6,2|8,0|4|3)
+        (5|9|7|1|6,2|8,0|4|3)
+        (5|9|7|1|6|2|8,0|4|3)
+        (5|9|7|1|6|2|8|0|4|3)
+        sage: from sage.graphs.graph_isom import _term_pnest_graph
+        sage: _term_pnest_graph(graphs.PetersenGraph(), P).edges(labels=False)
+        [(0, 2), (0, 6), (0, 7), (1, 2), (1, 4), (1, 8), (2, 5), (3, 4), (3, 5), (3, 7), (4, 6), (5, 9), (6, 9), (7, 8), (8, 9)]
+
     """
     cdef int i, j, n
     cdef CGraph M
@@ -848,7 +1351,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         order -- whether to return the order of the automorphism group
 
     STATE DIAGRAM:
-        sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
+        sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] }, implementation='networkx' )
         sage: SD.set_edge_label(1, 18, 'discrete')
         sage: SD.set_edge_label(4, 7, 'discrete')
         sage: SD.set_edge_label(2, 5, 'h = 0')
@@ -862,7 +1365,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: SD.set_edge_label(17, 15, 'v_k finite')
         sage: SD.set_edge_label(14, 15, 'v_k m.c.r.')
         sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
-        sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
+        sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True)
 
     NOTE:
         There is a function, called test_refine, that has the same signature as
@@ -875,15 +1378,14 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: HS = graphs.HoffmanSingletonGraph()
         sage: clqs = (HS.complement()).cliques()
         sage: alqs = [Set(c) for c in clqs if len(c) == 15]
-        sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0])
+        sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0], implementation='networkx')
         sage: Y0,Y1 = Y.connected_components_subgraphs()
         sage: Y0.is_isomorphic(Y1)
         True
         sage: Y0.is_isomorphic(HS)
         True
 
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         sage: from sage.graphs.base.sparse_graph import SparseGraph
         sage: from sage.graphs.base.dense_graph import DenseGraph
         sage: from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -899,8 +1401,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: a,b = search_tree(G, Pi)
         sage: asp,bsp = search_tree(GS, Pi)
         sage: ade,bde = search_tree(GD, Pi)
-        sage: bsg = Graph()
-        sage: bdg = Graph()
+        sage: bsg = Graph(implementation='networkx')
+        sage: bdg = Graph(implementation='networkx')
         sage: for i in range(20):
         ...    for j in range(20):
         ...        if bsp.has_arc(i,j):
@@ -1286,8 +1788,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: Graph('Fll^G').canonical_label()
         Graph on 7 vertices
 
-        sage: g = Graph()
-        sage: g.add_vertices(xrange(21))
+        sage: g = Graph(21)
         sage: g.automorphism_group(return_group=False, order=True)
         51090942171709440000
 
@@ -1665,8 +2166,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
             # TODO: investigate the following line
             if nu.k == -1: nu.k = 0 # not in BDM, broke at G = Graph({0:[], 1:[]}), Pi = [[0,1]], lab=False
 
-            if hb > nu.k: # update hb since we are backtracking (not in [1])
-                hb = nu.k # recall hb is the longest common ancestor of rho and nu
+            if lab:
+                if hb > nu.k: # update hb since we are backtracking (not in [1])
+                    hb = nu.k # recall hb is the longest common ancestor of rho and nu
 
             if j == hh: state = 13; continue
             # recall hh: the height of the oldest ancestor of zeta for which
@@ -1906,8 +2408,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
             index = 0
             nu.k -= 1
 
-            if hb > nu.k: # update hb since we are backtracking (not in [1]):
-                hb = nu.k # recall hb is the longest common ancestor of rho and nu
+            if lab:
+                if hb > nu.k: # update hb since we are backtracking (not in [1]):
+                    hb = nu.k # recall hb is the longest common ancestor of rho and nu
 
             state = 13
 
@@ -2032,8 +2535,8 @@ def all_labeled_graphs(n):
     in benchmarking the search algorithm.
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree, all_labeled_graphs
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        sage: from sage.graphs.graph_isom import all_labeled_graphs
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in range(1,5):
@@ -2075,8 +2578,7 @@ def all_labeled_graphs(n):
     m = len(TE)
     Glist= []
     for i in range(2**m):
-        G = Graph()
-        G.add_vertices(range(n))
+        G = Graph(n)
         b = Integer(i).binary()
         b = '0'*(m-len(b)) + b
         for i in range(m):
@@ -2089,6 +2591,12 @@ def kpow(listy, k):
     """
     Returns the subset of the power set of listy consisting of subsets of size
     k. Used in all_ordered_partitions.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_isom import kpow
+        sage: kpow(['a', 1, {}], 2)
+        [[1, 'a'], [{}, 'a'], ['a', 1], [{}, 1], ['a', {}], [1, {}]]
+
     """
     list = []
     if k > 1:
@@ -2105,6 +2613,35 @@ def all_ordered_partitions(listy):
     """
     Returns all ordered partitions of the set {0,1,...,n-1}. Used in
     benchmarking the search algorithm.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_isom import all_ordered_partitions
+        sage: all_ordered_partitions(['a', 1, {}])
+        [[['a'], [1], [{}]],
+         [['a'], [{}], [1]],
+         [['a'], [{}, 1]],
+         [['a'], [1, {}]],
+         [[1], ['a'], [{}]],
+         [[1], [{}], ['a']],
+         [[1], [{}, 'a']],
+         [[1], ['a', {}]],
+         [[{}], ['a'], [1]],
+         [[{}], [1], ['a']],
+         [[{}], [1, 'a']],
+         [[{}], ['a', 1]],
+         [[1, 'a'], [{}]],
+         [[{}, 'a'], [1]],
+         [['a', 1], [{}]],
+         [[{}, 1], ['a']],
+         [['a', {}], [1]],
+         [[1, {}], ['a']],
+         [[{}, 1, 'a']],
+         [[1, {}, 'a']],
+         [[{}, 'a', 1]],
+         [['a', {}, 1]],
+         [[1, 'a', {}]],
+         [['a', 1, {}]]]
+
     """
     LL = []
     for i in range(1,len(listy)+1):
@@ -2125,8 +2662,8 @@ def all_labeled_digraphs_with_loops(n):
     in benchmarking the search algorithm.
 
     EXAMPLE:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree, all_labeled_digraphs_with_loops
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        sage: from sage.graphs.graph_isom import all_labeled_digraphs_with_loops
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in range(1,4):
@@ -2153,8 +2690,7 @@ def all_labeled_digraphs_with_loops(n):
     m = len(TE)
     Glist= []
     for i in range(2**m):
-        G = DiGraph(loops=True)
-        G.add_vertices(range(n))
+        G = DiGraph(n, loops=True)
         b = Integer(i).binary()
         b = '0'*(m-len(b)) + b
         for j in range(m):
@@ -2166,8 +2702,8 @@ def all_labeled_digraphs_with_loops(n):
 def all_labeled_digraphs(n):
     """
     EXAMPLES:
-        sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree, all_labeled_digraphs
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        sage: from sage.graphs.graph_isom import all_labeled_digraphs
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in range(1,4):
@@ -2208,8 +2744,7 @@ def all_labeled_digraphs(n):
     m = len(TE)
     Glist= []
     for i in range(2**m):
-        G = DiGraph(loops=True)
-        G.add_vertices(range(n))
+        G = DiGraph(n, loops=True)
         b = Integer(i).binary()
         b = '0'*(m-len(b)) + b
         for j in range(m):
@@ -2223,6 +2758,14 @@ def perm_group_elt(lperm):
     Given a list permutation of the set {0, 1, ..., n-1},
     returns the corresponding PermutationGroupElement where
     we take 0 = n.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_isom import perm_group_elt
+        sage: perm_group_elt([0,2,1])
+        (1,2)
+        sage: perm_group_elt([1,2,0])
+        (1,2,3)
+
     """
     from sage.groups.perm_gps.permgroup_named import SymmetricGroup
     n = len(lperm)
@@ -2253,7 +2796,6 @@ def orbit_partition(gamma, list_perm=False):
     $i \mapsto \var{gamma}[i]$.
 
     EXAMPLES:
-        sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import orbit_partition
         sage: G = graphs.PetersenGraph()
         sage: S = SymmetricGroup(10)
@@ -2293,24 +2835,35 @@ def orbit_partition(gamma, list_perm=False):
                     i[j] = 0
         return l
 
-def number_of_graphs(n, j = None):
-    graph_list = []
-    n = int(n)
-    l = 2**((n*(n-1))/2)
-    print 'Computing canonical labels for %d labeled graphs.'%l
-    k = 0
-    l = l/10
-    if l > 100: l = 100
-    for g in all_labeled_graphs(n):
-        if k%l == 0:
-            print k
-        k += 1
-        g = g.canonical_label()
-        if g not in graph_list:
-            graph_list.append(g)
-    return len(graph_list)
-
 def verify_partition_refinement(G, initial_partition, terminal_partition):
+    """
+    Verify that the refinement is correct.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_isom import PartitionStack
+        sage: from sage.graphs.base.sparse_graph import SparseGraph
+        sage: G = SparseGraph(10)
+        sage: for i,j,_ in graphs.PetersenGraph().edge_iterator():
+        ...    G.add_arc(i,j)
+        ...    G.add_arc(j,i)
+        sage: P = PartitionStack(10)
+        sage: P.set_k(1)
+        sage: P.split_vertex(0)
+        sage: P.refine(G, [0], 10, 0, 1)
+        sage: P
+        (0,2,3,6,7,8,9,1,4,5)
+        (0|2,3,6,7,8,9|1,4,5)
+        sage: P.set_k(2)
+        sage: P.split_vertex(1)
+
+    Note that this line implicitly tests the function verify_partition_refinement:
+        sage: P.refine(G, [7], 10, 0, 1, test=True)
+        sage: P
+        (0,3,7,8,9,2,6,1,4,5)
+        (0|3,7,8,9,2,6|1,4,5)
+        (0|3,7,8,9|2,6|1|4,5)
+
+    """
     if not G.is_equitable(terminal_partition):
         raise RuntimeError("Resulting partition is not equitable!!!!!!!!!\n"+\
         str(initial_partition) + "\n" + \

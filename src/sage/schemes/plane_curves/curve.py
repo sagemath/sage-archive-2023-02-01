@@ -108,5 +108,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
         from constructor import Curve
         return Curve(AlgebraicScheme_subscheme.union(self, other))
 
+    __add__ = union
+
 class Curve_generic_projective(Curve_generic, AlgebraicScheme_subscheme_projective):
     pass

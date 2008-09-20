@@ -26,6 +26,8 @@ from sage.interfaces.all import gp
 from sage.misc.misc import prod
 from sage.rings.fraction_field_element import is_FractionFieldElement
 
+import sage.ext.arith as fast_arith
+
 import integer_ring
 import integer
 
@@ -145,19 +147,24 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
 
 algebraic_dependency = algdep
 
-def bernoulli(n, algorithm='pari'):
+def bernoulli(n, algorithm='default', num_threads=1):
     r"""
     Return the n-th Bernoulli number, as a rational number.
 
     INPUT:
         n -- an integer
         algorithm:
-            'pari' -- (default) use the PARI C library, which is
-                      by *far* the fastest.
+            'default' -- (default) use 'pari' for n <= 30000, and
+                         'bernmm' for n > 30000 (this is just a heuristic,
+                         and not guaranteed to be optimal on all hardware)
+            'pari' -- use the PARI C library
             'gap'  -- use GAP
             'gp'   -- use PARI/GP interpreter
             'magma' -- use MAGMA (optional)
             'python' -- use pure Python implementation
+            'bernmm' -- use bernmm package (a multimodular algorithm)
+        num_threads -- positive integer, number of threads to use
+                       (only used for bernmm algorithm)
 
     EXAMPLES:
         sage: bernoulli(12)
@@ -176,6 +183,10 @@ def bernoulli(n, algorithm='pari'):
         -691/2730
         sage: bernoulli(12, algorithm='python')
         -691/2730
+        sage: bernoulli(12, algorithm='bernmm')
+        -691/2730
+        sage: bernoulli(12, algorithm='bernmm', num_threads=4)
+        -691/2730
 
     \note{If $n>50000$ then algorithm = 'gp' is used instead of
     algorithm = 'pari', since the C-library interface to PARI
@@ -185,8 +196,13 @@ def bernoulli(n, algorithm='pari'):
     """
     from sage.rings.all import Integer, Rational
     n = Integer(n)
+
+    if algorithm == 'default':
+        algorithm = 'pari' if n <= 30000 else 'bernmm'
+
     if n > 50000 and algorithm == 'pari':
         algorithm = 'gp'
+
     if algorithm == 'pari':
         x = pari(n).bernfrac()         # Use the PARI C library
         return Rational(x)
@@ -205,6 +221,9 @@ def bernoulli(n, algorithm='pari'):
     elif algorithm == 'python':
         import sage.rings.bernoulli
         return sage.rings.bernoulli.bernoulli_python(n)
+    elif algorithm == 'bernmm':
+        import sage.rings.bernmm
+        return sage.rings.bernmm.bernmm_bern_rat(n, num_threads)
     else:
         raise ValueError, "invalid choice of algorithm"
 
@@ -969,7 +988,7 @@ def divisors(n):
     ans.sort()
     return ans
 
-def sigma(n, k=1):
+class Sigma:
     """
     Return the sum of the k-th powers of the divisors of n.
 
@@ -985,6 +1004,12 @@ def sigma(n, k=1):
         6
         sage: sigma(5,2)
         26
+
+    The sigma function also has a special plotting method.
+        sage: P = plot(sigma, 1, 100)
+
+    This method also works with k-th powers.
+        sage: P = plot(sigma, 1, 100, k=2)
 
     AUTHORS:
         -- William Stein: original implementation
@@ -1004,18 +1029,44 @@ def sigma(n, k=1):
         sage: sigma(factorial(41),1)
         229199532273029988767733858700732906511758707916800
     """
-    ZZ = integer_ring.ZZ
-    n = ZZ(n)
-    k = ZZ(k)
-    one = ZZ(1)
+    def __repr__(self):
+        return "Function that adds up (k-th powers of) the divisors of n"
 
-    if (k == ZZ(0)):
-        return prod([ expt+one for p, expt in factor(n) ])
-    elif (k == one):
-        return prod([ (p**(expt+one) - one) // (p - one) for p, expt in factor(n) ])
-    else:
-        return prod([ (p**((expt+one)*k)-one) // (p**k-one) for p,expt in factor(n) ])
+    def __call__(self, n, k=1):
+        ZZ = integer_ring.ZZ
+        n = ZZ(n)
+        k = ZZ(k)
+        one = ZZ(1)
 
+        if (k == ZZ(0)):
+            return prod([ expt+one for p, expt in factor(n) ])
+        elif (k == one):
+            return prod([ (p**(expt+one) - one) // (p - one) for p, expt in factor(n) ])
+        else:
+            return prod([ (p**((expt+one)*k)-one) // (p**k-one) for p,expt in factor(n) ])
+
+    def plot(self, xmin=1, xmax=50, k=1, pointsize=30, rgbcolor=(0,0,1), join=True,
+             **kwds):
+        """
+        Plot the sigma (sum of k-th powers of divisors) function.
+
+            INPUT:
+                xmin -- default: 1
+                xmax -- default: 50
+                k -- default: 1
+                pointsize -- default: 30
+                rgbcolor -- default: (0,0,1)
+                join -- default: True; whether to join the points.
+                **kwds -- passed on
+        """
+        v = [(n,sigma(n,k)) for n in range(xmin,xmax + 1)]
+        from sage.plot.all import list_plot
+        P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
+        if join:
+            P += list_plot(v, plotjoined=True, rgbcolor=(0.7,0.7,0.7), **kwds)
+        return P
+
+sigma = Sigma()
 
 def gcd(a, b=0, integer=False, **kwargs):
     """
@@ -1301,6 +1352,51 @@ def inverse_mod(a, m):
     except AttributeError:
         return integer.Integer(a).inverse_mod(m)
 
+#######################################################
+# Functions to find the fastest available commands
+# for gcd and inverse_mod
+#######################################################
+
+def get_gcd(order):
+    """
+    Return the fastest gcd function for integers of size
+    no larger than order.
+
+    EXAMPLES:
+        sage: sage.rings.arith.get_gcd(4000)
+        <built-in method gcd_int of sage.ext.arith.arith_int object at ...>
+        sage: sage.rings.arith.get_gcd(400000)
+        <built-in method gcd_longlong of sage.ext.arith.arith_llong object at ...>
+        sage: sage.rings.arith.get_gcd(4000000000)
+        <function gcd at ...>
+    """
+    if order <= 46340:   # todo: don't hard code
+        return fast_arith.arith_int().gcd_int
+    elif order <= 2147483647:   # todo: don't hard code
+        return fast_arith.arith_llong().gcd_longlong
+    else:
+        return gcd
+
+def get_inverse_mod(order):
+    """
+    Return the fastest inverse_mod function for integers of
+    size no larger than order.
+
+    EXAMPLES:
+        sage: sage.rings.arith.get_inverse_mod(6000)
+        <built-in method inverse_mod_int of sage.ext.arith.arith_int object at ...>
+        sage: sage.rings.arith.get_inverse_mod(600000)
+        <built-in method inverse_mod_longlong of sage.ext.arith.arith_llong object at ...>
+        sage: sage.rings.arith.get_inverse_mod(6000000000)
+        <function inverse_mod at ...>
+    """
+    if order <= 46340:   # todo: don't hard code
+        return fast_arith.arith_int().inverse_mod_int
+    elif order <= 2147483647:   # todo: don't hard code
+        return fast_arith.arith_llong().inverse_mod_longlong
+    else:
+        return inverse_mod
+
 # def sqrt_mod(a, m):
 #     """A square root of a modulo m."""
 
@@ -1585,8 +1681,14 @@ def __factor_using_pari(n, int_=False, debug_level=0, proof=None):
 
 def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     """
-    Returns the factorization of the integer n as a sorted list of
-    tuples (p,e).
+    Returns the factorization of n. The result depends on the type of n.
+
+    If n is an integer, factor returns the factorization of the
+    integer n as an object of type Factorization. If n is not an
+    integer, n.factor(proof=proof, **kwds) gets called. See n.factor??
+    for more documentation in this case.
+
+    What follows is a documentation for n integer.
 
     INPUT:
         n -- an nonzero integer
@@ -1596,6 +1698,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
                  * 'pari' -- (default)  use the PARI c library
                  * 'kash' -- use KASH computer algebra system (requires
                              the optional kash package be installed)
+                 * 'magma' -- use Magma (requires magma be installed)
         verbose -- integer (default 0); pari's debug variable is set to this;
                    e.g., set to 4 or 8 to see lots of output during factorization.
     OUTPUT:
@@ -1610,17 +1713,35 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         they aren't as optimized).  Thus you might consider using them
         instead for certain numbers.
 
-        The factorization prints in user-friendly format but the (p,e)
-        pairs can easily be accessed -- see examples
+        The factorization returned is an element of the class
+        Factorization; see Factorization?? for more details, and
+        examples below for usage.  A Factorization contains both the
+        unit factor (+1 or -1) and a sorted list of (prime, exponent)
+        pairs.
+
+        The factorization displays in pretty-print format but it is
+        easy to obtain access to the (prime,exponent) pairs and the
+        unit, to recover the number from its factorization, and even
+        to multiply two factorizations.  See examples below.
 
     EXAMPLES:
         sage: factor(500)
         2^2 * 5^3
         sage: factor(-20)
         -1 * 2^2 * 5
+        sage: f=factor(-20)
+        sage: list(f)
+        [(2, 2), (5, 1)]
+        sage: f.unit()
+        -1
+        sage: f.value()
+        -20
 
-        sage: factor(500, algorithm='kash')     # requires optional kash package
-        2^2 * 5^3
+        sage: factor(-500, algorithm='kash')     # requires optional kash package
+        -1 * 2^2 * 5^3
+
+        sage: factor(-500, algorithm='magma')     # requires optional magma
+        -1 * 2^2 * 5^3
 
         sage: factor(0)
         Traceback (most recent call last):
@@ -1630,8 +1751,8 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         1
         sage: factor(-1)
         -1
-        sage: factor(2004)
-        2^2 * 3 * 167
+        sage: factor(2^(2^7)+1)
+        59649589127497217 * 5704689200685129054721
 
     SAGE calls PARI's factor, which has proof False by default.  SAGE has
     a global proof flag, set to True by default (see sage.structure.proof,
@@ -1647,19 +1768,20 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
     To access the data in a factorization:
 
-        sage: factor(420)
+        sage: f = factor(420); f
         2^2 * 3 * 5 * 7
-        sage: [x for x in factor(420)]
+        sage: [x for x in f]
         [(2, 2), (3, 1), (5, 1), (7, 1)]
-        sage: [p for p,e in factor(420)]
+        sage: [p for p,e in f]
         [2, 3, 5, 7]
-        sage: [e for p,e in factor(420)]
+        sage: [e for p,e in f]
         [2, 1, 1, 1]
-        sage: [p^e for p,e in factor(420)]
+        sage: [p^e for p,e in f]
         [4, 3, 5, 7]
     """
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
+        # this happens for example if n = x**2 + y**2 + 2*x*y
         try:
             return n.factor(proof=proof, **kwds)
         except AttributeError:
@@ -1685,9 +1807,12 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     if algorithm == 'pari':
         return factorization.Factorization(__factor_using_pari(n,
                                    int_=int_, debug_level=verbose, proof=proof), unit)
-    elif algorithm == 'kash':
-        from sage.interfaces.all import kash
-        F = kash.eval('Factorization(%s)'%n)
+    elif algorithm in ['kash', 'magma']:
+        if algorithm == 'kash':
+            from sage.interfaces.all import kash as I
+        else:
+            from sage.interfaces.all import magma as I
+        F = I.eval('Factorization(%s)'%n)
         i = F.rfind(']') + 1
         F = F[:i]
         F = F.replace("<","(").replace(">",")")
@@ -1827,7 +1952,7 @@ def is_squarefree(n):
 #################################################################
 # Euler phi function
 #################################################################
-def euler_phi(n):
+class Euler_Phi:
     """
     Return the value of the Euler phi function on the integer n.  We
     defined this to be the number of positive integers <= n that are
@@ -1872,16 +1997,46 @@ def euler_phi(n):
        sage: len([i for i in range(21) if gcd(21,i) == 1]) == euler_phi(21)
        True
 
+    The phi function also has a special plotting method.
+
+        sage: P = plot(euler_phi, -3, 71)
+
     AUTHORS:
         - William Stein
         - Alex Clemesha (2006-01-10): some examples
     """
-    if n<=0:
-        return integer_ring.ZZ(0)
-    if n<=2:
-        return integer_ring.ZZ(1)
-    return integer_ring.ZZ(pari(n).phi())
-    #return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
+    def __repr__(self):
+        return "Number of positive integers <=n but relatively prime to n"
+
+    def __call__(self, n, k=1):
+        if n<=0:
+            return integer_ring.ZZ(0)
+        if n<=2:
+            return integer_ring.ZZ(1)
+        return integer_ring.ZZ(pari(n).phi())
+        #return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
+
+    def plot(self, xmin=1, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
+             **kwds):
+        """
+        Plot the Euler phi function.
+
+            INPUT:
+                xmin -- default: 1
+                xmax -- default: 50
+                pointsize -- default: 30
+                rgbcolor -- default: (0,0,1)
+                join -- default: True; whether to join the points.
+                **kwds -- passed on
+        """
+        v = [(n,euler_phi(n)) for n in range(xmin,xmax + 1)]
+        from sage.plot.all import list_plot
+        P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
+        if join:
+            P += list_plot(v, plotjoined=True, rgbcolor=(0.7,0.7,0.7), **kwds)
+        return P
+
+euler_phi = Euler_Phi()
 
 def crt(a,b,m,n):
     """
@@ -2023,6 +2178,142 @@ def binomial(x,m):
     if m < 0:
         return P(0)
     return misc.prod([x-i for i in xrange(m)]) / P(factorial(m))
+
+def multinomial(*ks):
+    r"""
+    Return the multinomial coefficient
+    $$
+	\binom{k_1 + \cdots + k_n}{k_1, \cdots, k_n}
+	    = \frac{\left(\sum_{i=1}^n k_i\right)!}{\prod_{i=1}^n k_i!}
+	    = \prod_{i=1}^n \binom{\sum_{j=1}^i k_j}{k_i}
+    $$
+
+    EXAMPLES:
+	sage: multinomial(0, 0, 2, 1, 0, 0)
+	3
+	sage: multinomial(3, 2)
+	10
+	sage: multinomial(2^30, 2, 1)
+	618970023101454657175683075
+
+    AUTHOR: Gabriel Ebner
+    """
+    s, c = 0, 1
+    for k in ks:
+	s += k
+	c *= binomial(s, k)
+    return c
+
+def binomial_coefficients(n):
+    r"""
+    Return a dictionary containing pairs $\{(k_1,k_2) : C_{k,n}\}$ where
+    $C_{k_n}$ are binomial coefficients and $n = k_1 + k_2$.
+
+    INPUT:
+        n -- an integer
+
+    OUTPUT:
+        dict
+
+    EXAMPLES:
+        sage: sorted(binomial_coefficients(3).items())
+        [((0, 3), 1), ((1, 2), 3), ((2, 1), 3), ((3, 0), 1)]
+
+    Notice the coefficients above are the same as below:
+        sage: R.<x,y> = QQ[]
+        sage: (x+y)^3
+        x^3 + 3*x^2*y + 3*x*y^2 + y^3
+
+    AUTHOR: Fredrik Johansson
+    """
+    d = {(0, n):1, (n, 0):1}
+    a = 1
+    for k in xrange(1, n//2+1):
+        a = (a * (n-k+1))//k
+        d[k, n-k] = d[n-k, k] = a
+    return d
+
+def multinomial_coefficients(m, n, _tuple=tuple, _zip=zip):
+    r"""
+    Return a dictionary containing pairs $\{(k_1,k_2,...,k_m) : C_{k,n}\}$
+    where $C_{k,n}$ are multinomial coefficients such that
+    $n = k_1 + k_2 + ...+ k_m$.
+
+    INPUT:
+        m -- integer
+        n -- integer
+        _tuple, _zip -- hacks for speed; don't set these as a user.
+
+    OUTPUT:
+        dict
+
+    EXAMPLES:
+        sage: sorted(multinomial_coefficients(2,5).items())
+        [((0, 5), 1), ((1, 4), 5), ((2, 3), 10), ((3, 2), 10), ((4, 1), 5), ((5, 0), 1)]
+
+    Notice that these are the coefficients of $(x+y)^5$:
+        sage: R.<x,y> = QQ[]
+        sage: (x+y)^5
+        x^5 + 5*x^4*y + 10*x^3*y^2 + 10*x^2*y^3 + 5*x*y^4 + y^5
+
+        sage: sorted(multinomial_coefficients(3,2).items())
+        [((0, 0, 2), 1), ((0, 1, 1), 2), ((0, 2, 0), 1), ((1, 0, 1), 2), ((1, 1, 0), 2), ((2, 0, 0), 1)]
+
+    ALGORITHM:
+    The algorithm we implement for computing the multinomial coefficients
+    is based on the following result:
+
+       Consider a polynomial and its $n$-th exponent:
+
+          $$ P(x) = \sum_{i=0}^m p_i x^k $$
+
+          $$ P(x)^n = \sum_{k=0}^{m n} a(n,k) x^k $$
+
+       We compute the coefficients $a(n,k)$ using the J.C.P. Miller
+       Pure Recurrence [see D.E.Knuth, Seminumerical Algorithms, The
+       art of Computer Programming v.2, Addison Wesley, Reading, 1981].
+       $$
+         a(n,k) = 1/(k p_0) \sum_{i=1}^m p_i ((n+1)i-k) a(n,k-i),
+       $$
+       where $a(n,0) = p_0^n$.
+
+    AUTHOR: Pearu Peterson
+    """
+    if m == 2:
+        return binomial_coefficients(n)
+    symbols = [(0,)*i + (1,) + (0,)*(m-i-1) for i in range(m)]
+    s0 = symbols[0]
+    p0 = [_tuple(aa-bb for aa,bb in _zip(s,s0)) for s in symbols]
+    r = {_tuple(aa*n for aa in s0):1}
+    r_get = r.get
+    r_update = r.update
+    l = [0] * (n*(m-1)+1)
+    l[0] = r.items()
+    for k in xrange(1, n*(m-1)+1):
+        d = {}
+        d_get = d.get
+        for i in xrange(1, min(m,k+1)):
+            nn = (n+1)*i-k
+            if not nn:
+                continue
+            t = p0[i]
+            for t2, c2 in l[k-i]:
+                tt = _tuple([aa+bb for aa,bb in _zip(t2,t)])
+                cc = nn * c2
+                b = d_get(tt)
+                if b is None:
+                    d[tt] = cc
+                else:
+                    cc = b + cc
+                    if cc:
+                        d[tt] = cc
+                    else:
+                        del d[tt]
+        r1 = [(t, c//k) for (t, c) in d.iteritems()]
+        l[k] = r1
+        r_update(r1)
+    return r
+
 
 def gaussian_binomial(n,k,q=None):
     r"""
@@ -2279,7 +2570,8 @@ class Moebius:
                         in seeing their order).
                 **kwds -- passed on
         """
-        v = self.range(xmin, xmax + 1)
+        values = self.range(xmin, xmax + 1)
+        v = [(n,values[n-xmin]) for n in range(xmin,xmax + 1)]
         from sage.plot.all import list_plot
         P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
         if join:

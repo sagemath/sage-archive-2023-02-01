@@ -116,7 +116,12 @@ def is_ComplexDoubleField(x):
 
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
-    The field of complex double precision numbers.
+    An approximation to the field of complex numbers using double
+    precision floating point numbers. Answers derived from
+    calculations in this approximation may differ from what they would
+    be if those calculations were performed in the true field of
+    complex numbers. This is due to the rounding errors inherent to
+    finite precision calculations.
 
     ALGORITHMS: Arithmetic is done using GSL (the GNU Scientific Library).
     """
@@ -284,7 +289,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         else:
             return ComplexDoubleElement(x, im)
 
-    cdef coerce_map_from_c(self, S):
+    cpdef coerce_map_from_c(self, S):
         from integer_ring import ZZ
         from rational_field import QQ
         import real_mpfr
@@ -395,6 +400,61 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         from sage.categories.pushout import AlgebraicClosureFunctor
         return (AlgebraicClosureFunctor(), self.real_double_field())
 
+    def zeta(self, n=2):
+        """
+        Return a primitive $n$-th root of unity in this CDF, for $n\ge1$.
+
+        INPUT:
+            n -- a positive integer (default: 2)
+
+        OUTPUT:
+            a complex n-th root of unity.
+        EXAMPLES:
+            sage: CDF.zeta(7)
+            0.623489801859 + 0.781831482468*I
+            sage: CDF.zeta(1)
+            1.0
+            sage: CDF.zeta()
+            -1.0
+            sage: CDF.zeta() == CDF.zeta(2)
+            True
+
+            sage: CDF.zeta(0.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a positive integer
+            sage: CDF.zeta(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a positive integer
+            sage: CDF.zeta(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a positive integer
+        """
+        from integer import Integer
+        try:
+           n = Integer(n)
+        except:
+           raise ValueError, "n must be a positive integer"
+
+        if n<1:
+           raise ValueError, "n must be a positive integer"
+
+        if n == 1:
+            x = self(1)
+        elif n == 2:
+            x = self(-1)
+        elif n >= 3:
+            # Use De Moivre
+            # e^(2*pi*i/n) = cos(2pi/n) + i *sin(2pi/n)
+            pi = RDF.pi()
+            z = 2*pi/n
+            x = CDF(z.cos(), z.sin())
+#         x._set_multiplicative_order( n ) # not implemented for CDF
+        return x
+
+
 cdef public api ComplexDoubleElement new_ComplexDoubleElement():
     """
     Creates a new (empty) ComplexDoubleElement.
@@ -417,7 +477,11 @@ def is_ComplexDoubleElement(x):
 
 cdef class ComplexDoubleElement(FieldElement):
     """
-    An element of a complex double field.
+    An approximation to a complex number using double precision
+    floating point numbers. Answers derived from calculations with
+    such approximations may differ from what they would be if those
+    calculations were performed with true complex numbers. This is due
+    to the rounding errors inherent to finite precision calculations.
     """
     def __new__(self, real=None, imag=None):
         self._parent = _CDF
@@ -894,7 +958,8 @@ cdef class ComplexDoubleElement(FieldElement):
             0.0994254293726
 
             sage: log(abs(ComplexField(200)(1.1,0.1)))
-            0.099425429372582675602989386713555936556752871164033127857198
+	    0.099425429372582595066319157757531449594489450091985182495705
+
         """
         return RealDoubleElement(gsl_complex_logabs(self._complex))
 
@@ -1710,8 +1775,7 @@ cdef class FloatToCDF(Morphism):
             from sage.structure.parent import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
-    cdef Element _call_c(self, x):
-        # Override this _call_c rather than _call_c_impl because a may not be an Element
+    cpdef Element _call_(self, x):
         cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
         z._complex = gsl_complex_rect(PyFloat_AsDouble(x), 0)
         return z
@@ -1768,6 +1832,3 @@ cdef cdf_parser = Parser(float, float,  {"I" : _CDF.gen(), "i" : _CDF.gen()})
 
 
 #####
-#(fset 'wrap
-#   [?\C-s ?F ?u ?n ?c ?\C-a ?\C-s ?g ?s ?l ?_ ?c ?o ?m ?p ?l ?e ?x ?_ ?\C-f ?\C-b ?\C-  ?\C-s ?  ?\C-b ?\M-w ?\C-a return ?\C-p ?  ?  ?  ?  ?d ?e ?f ?  ?\C-y ?( ?s ?e ?l ?f ?) ?: return ?r ?\" ?\" ?\" return ?\" ?\" ?\" return ?r ?e ?t ?u ?r ?n ?  ?n ?e ?w ?_ ?e ?l ?e ?m ?e ?n ?t ?( ?g backspace ?g ?s ?l ?_ ?c ?o ?m ?p ?l ?e ?x ?_ ?\C-y ?( ?s ?e ?l ?f ?. ?_ ?c ?o ?m ?p ?l ?e ?x ?) ?) ?\C-a ?\C-s ?F ?u ?n ?c ?\C-a ?\C-n ?\C-k ?\C-y ?\C-r ?r ?\" ?\" ?\C-f ?\C-f ?\C-f ?\C-f return ?\C-y return ?\C-p ?\M-q ?\C-n ?\C-n ?\C-a backspace ?\C-n ?\C-n ?\C-e return ?\C-n ?\C-n ?\C-n ?\C-n])
-#

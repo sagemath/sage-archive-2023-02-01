@@ -581,10 +581,7 @@ class Kash(Expect):
     #    self.eval('Unbind(%s)'%var)
 
     def _contains(self, v1, v2):
-        return self.eval('%s in %s'%(v1,v2))
-
-    def _is_true_string(self, t):
-        return t == "true"
+        return self.eval('%s in %s'%(v1,v2)) == "true"
 
     def _assign_symbol(self):
         return ":="

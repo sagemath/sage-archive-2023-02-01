@@ -692,6 +692,32 @@ cdef class CommutativeRing(Ring):
             self.__fraction_field = K
         return self.__fraction_field
 
+    def _pseudo_fraction_field(self):
+        r"""
+        This method is used by the coercion model to
+        determine if a / b should be treated as a * (1/b),
+        for example when dividing an element of $\Z[x]$ by
+        an element of $\Z$.
+
+        The default is to return the same value as
+        self.fraction_field(), but it may return some other
+        domain in which division is usually defined (for
+        example, $\Z/n\Z$ for possibly composite $n$.
+
+        EXAMPLES:
+            sage: ZZ._pseudo_fraction_field()
+            Rational Field
+            sage: ZZ['x']._pseudo_fraction_field()
+            Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+            sage: Integers(15)._pseudo_fraction_field()
+            Ring of integers modulo 15
+            sage: Integers(15).fraction_field()
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be an integral domain.
+        """
+        return self.fraction_field()
+
     def __pow__(self, n, _):
         """
         Return the free module of rank $n$ over this ring.
@@ -1188,7 +1214,7 @@ cdef class PrincipalIdealDomain(IntegralDomain):
             sage: f = (x - a)*(x + a); g = (x - a)*(x^2 - 2)
             sage: print f; print g
             x^2 - 2
-            x^3 + (-a)*x^2 + (-2)*x + 2*a
+            x^3 - a*x^2 - 2*x + 2*a
             sage: f in R
             True
             sage: g in R
@@ -1287,6 +1313,21 @@ cdef class Field(PrincipalIdealDomain):
             sage: F = NumberField(x^2 + 1, 'i')
             sage: F.fraction_field()
             Number Field in i with defining polynomial x^2 + 1
+        """
+        return self
+
+    def _pseudo_fraction_field(self):
+        """
+        The fraction field of self is always available as self.
+
+        EXAMPLES:
+            sage: QQ._pseudo_fraction_field()
+            Rational Field
+            sage: K = GF(5)
+            sage: K._pseudo_fraction_field()
+            Finite Field of size 5
+            sage: K._pseudo_fraction_field() is K
+            True
         """
         return self
 
@@ -1505,6 +1546,57 @@ cdef class FiniteField(Field):
         p = self.polynomial()
         return "ext< %s | %s >"%(B._magma_init_(),p._magma_init_())
 
+    def _macaulay2_init_(self):
+        """
+        Returns the string representation of self that Macaulay2 can
+        under stand.
+
+        EXAMPLES:
+            sage: GF(97,'a')._macaulay2_init_()
+            'GF 97'
+
+            sage: macaulay2(GF(97, 'a')) #optional
+            ZZ
+            --
+            97
+            sage: macaulay2(GF(49, 'a')) #optional
+            GF 49
+        """
+        return "GF %s"%(self.order())
+
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(GF(5), verify=True)
+            # Verified
+            GF(5)
+            sage: sage_input(GF(32, 'a'), verify=True)
+            # Verified
+            R.<x> = GF(2)[]
+            GF(2^5, 'a', x^5 + x^2 + 1)
+            sage: K = GF(125, 'b')
+            sage: sage_input((K, K), verify=True)
+            # Verified
+            R.<x> = GF(5)[]
+            GF_5_3 = GF(5^3, 'b', x^3 + 3*x + 3)
+            (GF_5_3, GF_5_3)
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: GF(81, 'a')._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:GF}({binop:** {atomic:3} {atomic:4}}, {atomic:'a'}, {binop:+ {binop:+ {binop:** {gen:x {constr_parent: {subscr: {call: {atomic:GF}({atomic:3})}[{atomic:'x'}]} with gens: ('x',)}} {atomic:4}} {binop:* {atomic:2} {binop:** {gen:x {constr_parent: {subscr: {call: {atomic:GF}({atomic:3})}[{atomic:'x'}]} with gens: ('x',)}} {atomic:3}}}} {atomic:2}})}
+        """
+        if self.degree() == 1:
+            v = sib.name('GF')(sib.int(self.characteristic()))
+            name = 'GF_%d' % self.characteristic()
+        else:
+            v = sib.name('GF')(sib.int(self.characteristic()) ** sib.int(self.degree()),
+                               self.variable_name(),
+                               self.modulus())
+            name = 'GF_%d_%d' % (self.characteristic(), self.degree())
+        sib.cache(self, v, name)
+        return v
+
     cdef int _cmp_c_impl(left, Parent right) except -2:
         """
         Compares this finite field with other.
@@ -1586,6 +1678,22 @@ cdef class FiniteField(Field):
             raise ValueError, "only one generator for finite fields."
 
         return (im_gens[0].charpoly())(self.gen(0)).is_zero()
+
+    def _Hom_(self, codomain, cat=None):
+        """
+        Return homset of homomorphisms from self to the finite field codomain.
+
+        The cat option is currently ignored.
+
+        EXAMPLES:
+            This function is implicitly called by the Hom method or function.
+            sage: K.<a> = GF(25); K
+            Finite Field in a of size 5^2
+            sage: K.Hom(K)
+            Automorphism group of Finite Field in a of size 5^2
+        """
+        from sage.rings.finite_field_morphism import FiniteFieldHomset
+        return FiniteFieldHomset(self, codomain)
 
     def gen(self):
         raise NotImplementedError

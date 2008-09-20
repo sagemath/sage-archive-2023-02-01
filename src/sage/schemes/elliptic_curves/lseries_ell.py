@@ -14,6 +14,7 @@ R = RealField()
 Q = RationalField()
 C = ComplexField()
 import sage.functions.constants as constants
+import sage.misc.all as misc
 
 class Lseries_ell(SageObject):
     """
@@ -618,6 +619,10 @@ class Lseries_ell(SageObject):
             sage: E = EllipticCurve(RationalField(), [1, 0, 0, 1/24624, 1/886464])
             sage: E.lseries().L_ratio()
             2
+
+            # See trac #3651:
+            sage: EllipticCurve([0,0,0,-193^2,0]).sha().an()
+            4
 
         WARNING: It's conceivable that machine floats are not large
         enough precision for the computation; if this could be the

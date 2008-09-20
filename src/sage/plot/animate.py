@@ -61,7 +61,7 @@ class Animation(SageObject):
 
     TESTS:
     This illustrates ticket \#2066 is fixed (setting axes ranges when an endpoint is 0):
-        sage: animate(plot(sin, -1,1), xmin=0, ymin=0)._Animation__xmin
+        sage: animate([plot(sin, -1,1)], xmin=0, ymin=0)._Animation__xmin
         0
     """
     def __init__(self, v,

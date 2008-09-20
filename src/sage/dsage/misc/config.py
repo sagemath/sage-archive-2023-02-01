@@ -24,7 +24,6 @@ Gets the different configuration options for the various components of DSAGE.
 
 import os
 import ConfigParser
-import uuid
 
 from sage.dsage.misc.constants import DSAGE_DIR
 
@@ -89,6 +88,7 @@ def get_conf(type, test=False):
         elif type == 'monitor':
             conf_file = os.path.join(DSAGE_DIR, 'worker.conf')
             config.read(conf_file)
+            import uuid
             if len(config.get('uuid', 'id')) != 36:
                 config.set('uuid', 'id', str(uuid.uuid1()))
                 f = open(conf_file, 'w')

@@ -2,10 +2,24 @@
 Dense univariate polynomials over Z, implemented using NTL.
 
 AUTHORS:
-    -- David Harvey: split off from polynomial_element_generic.py (2007-09)
-    -- David Harvey: rewrote to talk to NTL directly, instead of via ntl.pyx (2007-09);
-               a lot of this was based on Joel Mohler's recent rewrite of the NTL wrapper
 
+    -- David Harvey: split off from polynomial_element_generic.py
+               (2007-09)
+    -- David Harvey: rewrote to talk to NTL directly, instead of via
+               ntl.pyx (2007-09); a lot of this was based on Joel
+               Mohler's recent rewrite of the NTL wrapper
+
+\sage includes two implementations of dense univariate polynomials
+over Z; this file contains the implementation based on NTL, but there
+is also an implementation based on FLINT.
+
+The FLINT implementation is preferred (FLINT's arithmetic operations
+are generally faster), so it is the default; to use the NTL
+implementation, you can do:
+
+sage: K.<x> = PolynomialRing(ZZ, implementation='NTL')
+sage: K
+Univariate Polynomial Ring in x over Integer Ring (using NTL)
 """
 
 ################################################################################
@@ -25,7 +39,6 @@ from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer_ring cimport IntegerRing_class
 ZZ_sage = IntegerRing()
-
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
@@ -51,14 +64,14 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
     def __new__(self, parent=None, x=None, check=True, is_gen=False, construct=False):
         r"""
-        calls the underlying NTL constructor
+        This calls the underlying NTL constructor.
         """
         ZZX_construct(&self.__poly)
 
 
     def __dealloc__(self):
         r"""
-        calls the underlying NTL destructor
+        This calls the underlying NTL destructor.
         """
         ZZX_destruct(&self.__poly)
 
@@ -77,7 +90,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         r"""
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: x
             x
 
@@ -128,10 +141,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             x^2 + x + 1
 
         NTL polynomials are limited in size to slightly under the word length:
-            sage: ZZ['x']({2^3: 1})
+            sage: PolynomialRing(ZZ, 'x', implementation='NTL')({2^3: 1})
             x^8
-            sage: ZZ['x']({2^30: 1})               # 32-bit
-            sage: ZZ['x']({2^62: 1})               # 64-bit
+            sage: PolynomialRing(ZZ, 'x', implementation='NTL')({2^30: 1}) # 32-bit
+            sage: PolynomialRing(ZZ, 'x', implementation='NTL')({2^62: 1}) # 64-bit
             Traceback (most recent call last):
             ...
             OverflowError: Dense NTL integer polynomials have a maximum degree of 268435455    # 32-bit
@@ -221,7 +234,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         The content of the zero polynomial is zero.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: (2*x^2 - 4*x^4 + 14*x^7).content()
             2
             sage: (2*x^2 - 4*x^4 - 14*x^7).content()
@@ -245,7 +258,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Used for pickling.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: loads(dumps(x)) == x
             True
             sage: f = 2*x + 3
@@ -260,7 +273,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Returns coefficient of x^n, or zero if n is negative.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = 2*x^2 - 3
             sage: f[0]
             -3
@@ -285,7 +298,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
     def __getslice__(self, long i, long j):
         r"""
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = 1 + x + 2*x^2 + 3*x^3 + 4*x^4 + 5*x^5
             sage: f[2:4]
             3*x^3 + 2*x^2
@@ -306,7 +319,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Return string representatin of this polynomial.
 
         EXAMPLES:
-            sage: R.<x> = ZZ['x']
+            sage: R.<x> = PolynomialRing(ZZ, 'x', implementation='NTL')
             sage: (-x+1)^5
             -x^5 + 5*x^4 - 10*x^3 + 10*x^2 - 5*x + 1
         """
@@ -366,7 +379,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Returns self plus right.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = 2*x + 1
             sage: g = -3*x^2 + 6
             sage: f + g
@@ -383,7 +396,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Return self minus right.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = 2*x + 1
             sage: g = -3*x^2 + 6
             sage: f - g
@@ -400,7 +413,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Returns negative of self.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = 2*x - 1
             sage: -f
             -2*x + 1
@@ -422,13 +435,16 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         if right exactly divides self, otherwise it raises an exception.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = R(range(10)); g = R([-1, 0, 1])
             sage: q, r = f.quo_rem(g)
             sage: q, r
             (9*x^7 + 8*x^6 + 16*x^5 + 14*x^4 + 21*x^3 + 18*x^2 + 24*x + 20, 25*x + 20)
             sage: q*g + r == f
             True
+
+            sage: 0//(2*x)
+            0
 
             sage: f = x^2
             sage: f.quo_rem(0)
@@ -446,6 +462,15 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             ...
             ArithmeticError: division not exact in Z[x] (consider coercing to Q[x] first)
 
+        TESTS:
+            sage: z = R(0)
+            sage: z.quo_rem(1)
+            (0, 0)
+            sage: z.quo_rem(x)
+            (0, 0)
+            sage: z.quo_rem(2*x)
+            (0, 0)
+
         """
         if not isinstance(right, Polynomial_integer_dense_ntl):
             right = self.parent()(right)
@@ -456,6 +481,9 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
         if ZZX_IsZero(_right.__poly):
             raise ArithmeticError, "division by zero polynomial"
+
+        if ZZX_IsZero(self.__poly):
+            return self, self
 
         cdef ZZX_c *q, *r
         cdef Polynomial_integer_dense_ntl qq = self._new()
@@ -491,7 +519,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         coefficient need not be 1.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = (6*x + 47)*(7*x^2 - 2*x + 38)
             sage: g = (6*x + 47)*(3*x^3 + 2*x + 1)
             sage: f.gcd(g)
@@ -515,7 +543,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Return the LCM of self and right.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = (6*x + 47)*(7*x^2 - 2*x + 38)
             sage: g = (6*x + 47)*(3*x^3 + 2*x + 1)
             sage: h = f.lcm(g); h
@@ -541,7 +569,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         and right, as a constant polynomial.
 
         EXAMPLES:
-            sage: P.<x> = PolynomialRing(ZZ)
+            sage: P.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
             sage: g, u, v = F.xgcd(G)
             sage: g, u, v
@@ -595,7 +623,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Returns self multiplied by right.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: (x - 2)*(x^2 - 8*x + 16)
             x^3 - 10*x^2 + 32*x - 32
         """
@@ -610,7 +638,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Returns self multiplied by right, where right is a scalar (integer).
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: x*3
             3*x
             sage: (2*x^2 + 4)*3
@@ -629,7 +657,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Returns self multiplied by right, where right is a scalar (integer).
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: 3*x
             3*x
             sage: 3*(2*x^2 + 4)
@@ -645,17 +673,30 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
     def __floordiv__(self, right):
         """
-        todo: write a doctest for this as soon as someone figures out
-        what it's actually supposed to do
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
+            sage: f = R([9,6,1]) ; f
+            x^2 + 6*x + 9
+            sage: f // x
+            x + 6
+            sage: f // 3
+            2*x + 3
+            sage: g = x^3 ; g
+            x^3
+            sage: f // g
+            0
+            sage: g // f
+            x - 6
         """
         if is_Polynomial(right) and right.is_constant() and right[0] in ZZ:
             d = ZZ(right[0])
+            return self.parent()([c // d for c in self.list()], construct=True)
         elif (right in self.parent().base_ring()):
             d = ZZ(right)
+            return self.parent()([c // d for c in self.list()], construct=True)
         else:
-            return Polynomial.__floordiv__(self, right)
-        return self.parent()([c // d for c in self.list()], construct=True)
-
+            q, _ = self.quo_rem(right)
+            return q
 
     def _unsafe_mutate(self, long n, value):
         r"""
@@ -665,7 +706,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         to be immutable. (Shhhh don't tell anyone!)
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = 2*x^2 + 3; f
             2*x^2 + 3
             sage: f._unsafe_mutate(1, 42); f
@@ -686,7 +727,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
         EXAMPLE:
         We compute the roots of the characteristic polynomial of some Salem numbers:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
             sage: f.real_root_intervals()
             [((1/2, 3/4), 1), ((1, 3/2), 1)]
@@ -704,11 +745,11 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
     def degree(self):
         """
-        Return the degree of this polynomial.  The zero polynomial
-        has degree -1.
+        Return the degree of this polynomial. The zero polynomial has
+        degree -1.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: x.degree()
             1
             sage: (x^2).degree()
@@ -719,7 +760,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             -1
         """
         return ZZX_deg(self.__poly)
-
 
     def discriminant(self, proof=True):
         r"""
@@ -749,7 +789,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
     def _pari_(self, variable=None):
         """
         EXAMPLES:
-            sage: t = PolynomialRing(ZZ,"t").gen()
+            sage: t = PolynomialRing(ZZ,"t",implementation='NTL').gen()
             sage: f = t^3 + 3*t - 17
             sage: pari(f)
             t^3 + 3*t - 17
@@ -768,7 +808,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         This is a wrapper for the NTL function SquareFreeDecomp.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: p = 37 * (x-1)^2 * (x-2)^2 * (x-3)^3 * (x-4)
             sage: p.squarefree_decomposition()
             (37) * (x - 4) * (x^2 - 3*x + 2)^2 * (x - 3)^3
@@ -795,13 +835,32 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return Factorization(F, unit=c, sort=False)
 
     def _factor_pari(self):
+        """
+        Use pari to factor self.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
+            sage: f = R([9,6,1]) ; f
+            x^2 + 6*x + 9
+            sage: f.factor()
+            (x + 3)^2
+            sage: f._factor_pari()
+            (x + 3)^2
+        """
         return Polynomial.factor(self) # uses pari for integers over ZZ
 
     def _factor_ntl(self):
         """
-        There are ample doc-tests elsewhere that test this functionality.
+        Use NTL to factor self.
+
         AUTHOR:
             -- Joel B. Mohler
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
+            sage: f = R([9,6,1])
+            sage: f._factor_ntl()
+            (x + 3)^2
         """
         cdef Polynomial_integer_dense_ntl fac_py
         cdef ZZ_c content
@@ -864,7 +923,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             factorization of self reduced modulo p.
 
         EXAMPLES:
-            sage: R.<x> = ZZ['x']
+            sage: R.<x> = PolynomialRing(ZZ, 'x', implementation='NTL')
             sage: f = -3*x*(x-2)*(x-9) + x
             sage: f.factor_mod(3)
             x
@@ -903,7 +962,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             factorization of self reduced modulo p.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = x^2 + 1
             sage: f.factor_padic(5, 4)
             ((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) * ((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)))
@@ -927,11 +986,11 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         elements of self.
 
         EXAMPLES:
-            sage: x = PolynomialRing(ZZ,'x').0
+            sage: x = PolynomialRing(ZZ,'x',implementation='NTL').0
             sage: f = x^3 + 3*x - 17
             sage: f.list()
             [-17, 3, 0, 1]
-            sage: f = PolynomialRing(ZZ,'x')(0)
+            sage: f = PolynomialRing(ZZ,'x',implementation='NTL')(0)
             sage: f.list()
             []
         """
@@ -953,7 +1012,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             an element of the base ring of the polynomial ring
 
         EXAMPLES:
-            sage: x = PolynomialRing(ZZ,'x').0
+            sage: x = PolynomialRing(ZZ,'x',implementation='NTL').0
             sage: f = x^3 + x + 1;  g = x^3 - x - 1
             sage: r = f.resultant(g); r
             -8

@@ -328,7 +328,7 @@ class FreeAlgebra_generic(Algebra):
         # any ring that coerces to the base ring of this free algebra.
         return self._coerce_try(x, [self.base_ring()])
 
-    def coerce_map_from(self, S):
+    def coerce_map_from_impl(self, R):
         if R is self.__monoid:
             return True
 
@@ -340,7 +340,7 @@ class FreeAlgebra_generic(Algebra):
                 else:
                     return False
 
-        return Algebra.coerce_map_from(self, S)
+        return Algebra.coerce_map_from_impl(self, R)
 
     def gen(self,i):
         """

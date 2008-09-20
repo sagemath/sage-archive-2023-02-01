@@ -15,56 +15,122 @@ cdef class MPolynomial(CommutativeRingElement):
     # Some standard conversions
     ####################
     def __int__(self):
-        if self.degree() == 0:
+        """
+        TESTS:
+            sage: type(RR['x,y'])
+            <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain'>
+            sage: type(RR['x, y'](0))
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+
+            sage: int(RR['x,y'](0)) # indirect doctest
+            0
+            sage: int(RR['x,y'](10))
+            10
+            sage: int(RR['x,y'].gen())
+            Traceback (most recent call last):
+            ...
+            TypeError...
+        """
+        if self.degree() <= 0:
             return int(self.constant_coefficient())
         else:
             raise TypeError
 
     def __long__(self):
-        if self.degree() == 0:
+        """
+        TESTS:
+            sage: long(RR['x,y'](0)) # indirect doctest
+            0L
+        """
+        if self.degree() <= 0:
             return long(self.constant_coefficient())
         else:
             raise TypeError
 
     def __float__(self):
-        if self.degree() == 0:
+        """
+        TESTS:
+            sage: float(RR['x,y'](0)) # indirect doctest
+            0.0
+        """
+        if self.degree() <= 0:
             return float(self.constant_coefficient())
         else:
             raise TypeError
 
     def _mpfr_(self, R):
-        if self.degree() == 0:
+        """
+        TESTS:
+            sage: RR(RR['x,y'](0)) # indirect doctest
+            0.000000000000000
+        """
+        if self.degree() <= 0:
             return R(self.constant_coefficient())
         else:
             raise TypeError
 
     def _complex_mpfr_field_(self, R):
-        if self.degree() == 0:
+        """
+        TESTS:
+            sage: CC(RR['x,y'](0)) # indirect doctest
+            0
+        """
+        if self.degree() <= 0:
             return R(self.constant_coefficient())
         else:
             raise TypeError
 
     def _complex_double_(self, R):
-        if self.degree() == 0:
+        """
+        TESTS:
+            sage: CDF(RR['x,y'](0)) # indirect doctest
+            0
+        """
+        if self.degree() <= 0:
             return R(self.constant_coefficient())
         else:
             raise TypeError
 
     def _real_double_(self, R):
-        if self.degree() == 0:
+        """
+        TESTS:
+            sage: RR(RR['x,y'](0)) # indirect doctest
+            0.000000000000000
+        """
+        if self.degree() <= 0:
             return R(self.constant_coefficient())
         else:
             raise TypeError
 
     def _rational_(self):
-        if self.degree() == 0:
+        """
+        TESTS:
+            sage: QQ(RR['x,y'](0)) # indirect doctest
+            0
+            sage: QQ(RR['x,y'](0.5)) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError...
+        """
+        if self.degree() <= 0:
             from sage.rings.rational import Rational
             return Rational(repr(self))
         else:
             raise TypeError
 
     def _integer_(self):
-        if self.degree() == 0:
+        """
+        TESTS:
+            sage: ZZ(RR['x,y'](0)) # indirect doctest
+            0
+            sage: ZZ(RR['x,y'](0.0))
+            0
+            sage: ZZ(RR['x,y'](0.5))
+            Traceback (most recent call last):
+            ...
+            TypeError...
+        """
+        if self.degree() <= 0:
             from sage.rings.integer import Integer
             return Integer(repr(self))
         else:
@@ -596,6 +662,42 @@ cdef class MPolynomial(CommutativeRingElement):
         P = P.change_ring(R)
         return P(self)
 
+    def _magma_init_(self):
+        """
+        Returns the MAGMA representation of self.
+
+        EXAMPLES:
+            sage: R.<x,y> = GF(2)[]
+            sage: f = y*x^2 + x +1
+            sage: f._magma_init_() #optional
+            '_sage_[3]^2*_sage_[4] + _sage_[3] + 1'
+        """
+        return self._repr_with_changed_varnames(self.parent()._magma_gens())
+
+    def gradient(self):
+        r"""
+        Return a list of partial derivatives of this polynomial,
+        ordered by the variables of \code{self.parent()}.
+
+        EXAMPLE:
+           sage: P.<x,y,z> = PolynomialRing(ZZ,3)
+           sage: f = x*y + 1
+           sage: f.gradient()
+           [y, x, 0]
+        """
+        return [ self.derivative(var) for var in self.parent().gens() ]
+
+    def jacobian_ideal(self):
+        r"""
+        Return the Jacobian ideal of the polynomial self.
+
+        EXAMPLE:
+            sage: R.<x,y,z> = QQ[]
+            sage: f = x^3 + y^3 + z^3
+            sage: f.jacobian_ideal()
+            Ideal (3*x^2, 3*y^2, 3*z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field
+        """
+        return self.parent().ideal(self.gradient())
 
 
 cdef remove_from_tuple(e, int ind):

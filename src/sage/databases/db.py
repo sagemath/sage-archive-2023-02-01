@@ -92,10 +92,6 @@ Gallileus GmbH                   http://www.gallileus.info/
 
 import os, shutil, cPickle
 
-import transaction
-import BTrees.OOBTree
-from ZODB import FileStorage, DB
-
 import sage.databases.compressed_storage
 import sage.misc.misc
 
@@ -106,10 +102,6 @@ import logging
 logging.getLogger("ZODB.FileStorage").setLevel(10000000)
 logging.getLogger("ZODB.lock_file").setLevel(10000000)
 logging.getLogger("ZODB.Connection").setLevel(10000000)
-
-#import Globals, ZODB.FileStorage, ZODB.compressed_storage
-
-Storage = sage.databases.compressed_storage.CompressedStorage(FileStorage.FileStorage, 1024)
 
 DB_HOME = "%s/data/"%sage.misc.misc.SAGE_ROOT
 
@@ -133,6 +125,8 @@ class Database(_uniq):
             self._load_()
 
     def _load_(self):
+        import BTrees.OOBTree
+        from ZODB import FileStorage, DB
         name = self.name
         read_only = self.read_only
         thresh = self._thresh
@@ -155,10 +149,12 @@ class Database(_uniq):
 
     def begin(self):
         r"""Start a new database transaction"""
+        import transaction
         transaction.get().begin()
 
     def abort(self):
         r"""Abort the current database transaction, without committing"""
+        import transaction
         transaction.get().abort()
 
     def commit(self):
@@ -172,6 +168,7 @@ class Database(_uniq):
         if self.read_only:
             raise RuntimeError, "Cannot commit read only database."
         self._root._p_changed = 1
+        import transaction
         transaction.get().commit()
         #get_transaction().commit()
 
@@ -215,6 +212,8 @@ class Database(_uniq):
         compressed using whatever threshhold you use when creating
         the database object.
         """
+        import BTrees.OOBTree
+        from ZODB import FileStorage, DB
         if self.read_only:
             raise RuntimeError, "Cannot pack read only database."
         if thresh == None:
@@ -236,6 +235,7 @@ class Database(_uniq):
             root[k] = x
         _root._p_changed = 1
         #get_transaction().commit()
+        import transaction
         transaction.get().commit()
         shutil.move(rebuild_name, self._dbname)
         os.unlink(rebuild_name + ".tmp")
@@ -338,8 +338,9 @@ class Database(_uniq):
         """
         Delete every entry in the database.
         """
+        import BTrees.OOBTree
         del self._root["btree"]
-        self._root["btree"] = BTree.BTree()
+        self._root["btree"] = BTrees.OOBTree.OOBTree()
         self.root = self._root["btree"]
 
     def clone(self, new_name):

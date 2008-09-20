@@ -266,14 +266,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         return self.parent()(self.__poly - (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
     def __floordiv__(self, right):
-        if is_Polynomial(right) and right.is_constant() and \
-                         right[0] in self.parent().base_ring():
-            d = right[0]
-        elif (right in self.parent().base_ring()):
-            d = right
-        else:
-            return Polynomial.__floordiv__(self, right)
-        return self.parent()([c // d for c in self.list()], construct=True)
+        q, _ = self.quo_rem(right)
+        return q
 
 ##     def __copy__(self):
 ##         self.parent()._ntl_set_modulus()
@@ -1654,3 +1648,42 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
     #    self.parent()._ntl_set_modulus()
     #    F = [(self.parent()(f, construct=True), n) for f, n in M.ntl_ZZ_pX().factor(verbose)]
     #    return factorization.Factorization(F)
+
+    def is_primitive(self):
+        """
+        Identifies whether a polynomial is primitive.
+        A polynomial can only be primitive if it is irreducible.
+
+        EXAMPLES:
+            sage: R.<x> = GF(2)['x']
+            sage: f = x^4+x^3+x^2+x+1
+            sage: f.is_irreducible(), f.is_primitive()
+            (True, False)
+            sage: f = x^3+x+1
+            sage: f.is_irreducible(), f.is_primitive()
+            (True, True)
+            sage: R.<x> = GF(3)[]
+            sage: f = x^3-x+1
+            sage: f.is_irreducible(), f.is_primitive()
+            (True, True)
+            sage: f = x^2+1
+            sage: f.is_irreducible(), f.is_primitive()
+            (True, False)
+            sage: R.<x> = GF(5)[]
+            sage: f = x^2+x+1
+            sage: f.is_primitive()
+            False
+            sage: f = x^2-x+2
+            sage: f.is_primitive()
+            True
+        """
+        if not self.is_irreducible():
+            return False
+        p = self.parent().characteristic()
+        n = p ** self.degree() - 1
+        y = self.parent().quo(self).gen()
+        for d in n.prime_divisors():
+            if ( y ** (n//d) ) == 1:
+                return False
+        return True
+

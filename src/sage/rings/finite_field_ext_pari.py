@@ -374,8 +374,8 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k, a = FiniteField_ext_pari(5^2, 'a').objgen()
             sage: k(R(2/3))
             4
-	    sage: k(x^2)
-	    a + 3
+            sage: k(x^2)
+            a + 3
             sage: R.<x> = GF(5)[]
             sage: k(x^3-2*x+1)
             2*a + 4
@@ -480,7 +480,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             if x.is_constant():
                 return self(x.constant_coefficient())
             else:
-                return x(self.gen())
+                return x.change_ring(self)(self.gen())
 
         elif isinstance(x, str):
             x = x.replace(self.variable_name(),'a')

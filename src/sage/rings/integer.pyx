@@ -3,19 +3,31 @@ Elements of the ring $\Z$ of integers
 
 AUTHORS:
     -- William Stein (2005): initial version
-    -- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP conversion; hashing
-    -- Didier Deshommes <dfdeshom@gmail.com> (2006-03-06): numerous examples and docstrings
+
+    -- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP
+                                   conversion; hashing
+    -- Didier Deshommes <dfdeshom@gmail.com> (2006-03-06): numerous
+                                   examples and docstrings
     -- William Stein (2006-03-31): changes to reflect GMP bug fixes
     -- William Stein (2006-04-14): added GMP factorial method (since it's
                                    now very fast).
     -- David Harvey (2006-09-15): added nth_root, exact_log
     -- David Harvey (2006-09-16): attempt to optimise Integer constructor
     -- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
-    -- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01): optimized Integer constructor and pool
-    -- Pablo De Napoli (2007-04-01): multiplicative_order should return +infinity for non zero numbers
-    -- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with Kronecker extension)
-                                     Convert some methods to use GMP directly rather than pari, Integer() -> PY_NEW(Integer)
-    -- David Roe (2007-03-21): sped up valuation and is_square, added val_unit, is_power, is_power_of and divide_knowing_divisible_by
+    -- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01):
+                                   optimized Integer constructor and
+                                   pool
+    -- Pablo De Napoli (2007-04-01): multiplicative_order should
+                                   return +infinity for non zero
+                                   numbers
+    -- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol
+                                   (with Kronecker extension). Convert
+                                   some methods to use GMP directly
+                                   rather than pari, Integer() ->
+                                   PY_NEW(Integer)
+    -- David Roe (2007-03-21): sped up valuation and is_square, added
+                                   val_unit, is_power, is_power_of and
+                                   divide_knowing_divisible_by
     -- Robert Bradshaw (2008-03-26): gamma function, multifactorials
 
 EXAMPLES:
@@ -72,19 +84,16 @@ COERCIONS:
     9.3908230000000000000000000000000000000000000000000000000000e6
 
 """
-
 #*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@gmail.com>
+#       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006 Gonzalo Tornaria <tornaria@math.utexas.edu>
+#       Copyright (C) 2006 Didier Deshommes <dfdeshom@gmail.com>
+#       Copyright (C) 2007 David Harvey <dmharvey@math.harvard.edu>
+#       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
+#       Copyright (C) 2007,2008 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2007 David Roe <roed314@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -342,6 +351,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: k = GF(2)
             sage: ZZ( (k(0),k(1)), 2)
             2
+
+            sage: t = pari(0*ZZ[x].0 + 3)
+            sage: t.type()
+            't_POL'
+            sage: ZZ(t)
+            3
         """
 
         # TODO: All the code below should somehow be in an external
@@ -378,11 +393,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             elif PY_TYPE_CHECK(x, pari_gen):
 
-                if x.type() == 't_INT':
+                if typ((<pari_gen>x).g) == t_INT:
                     t_INT_to_ZZ(self.value, (<pari_gen>x).g)
 
                 else:
-                    if x.type() == 't_INTMOD':
+                    if typ((<pari_gen>x).g) == t_INTMOD:
                         x = x.lift()
                     # TODO: figure out how to convert to pari integer in base 16 ?
 
@@ -390,8 +405,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     # pyrex to play games with refcount for the None object, which
                     # seems really stupid.
 
-                    s = hex(x)
-                    if mpz_set_str(self.value, s, 16) != 0:
+                    try:
+                        s = hex(x)
+                        base = 16
+                    except:
+                        s = str(x)
+                        base = 10
+
+                    if mpz_set_str(self.value, s, base) != 0:
                         raise TypeError, "Unable to coerce PARI %s to an Integer."%x
 
             elif PyString_Check(x):
@@ -596,6 +617,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             -5
         """
         return self.str()
+
+    def _sympy_(self):
+        """
+        Convert Sage Integer() to SymPy Integer.
+
+        EXAMPLES:
+            sage: n = 5; n._sympy_()
+            5
+            sage: n = -5; n._sympy_()
+            -5
+        """
+        import sympy
+        return sympy.sympify(int(self))
 
     def _mathml_(self):
         """
@@ -1100,8 +1134,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a = Integer(321) ; b = Integer(10)
             sage: a // b
             32
+            sage: z = Integer(-231)
+            sage: z // 2
+            -116
+            sage: z = Integer(231)
+            sage: z // 2
+            115
+            sage: z // -2
+            -116
+            sage: z // 0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: other must be nonzero
         """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+            if not mpz_sgn((<Integer>y).value):
+                raise ZeroDivisionError, "other must be nonzero"
             return (<Integer>x)._floordiv(y)
         return bin_op(x, y, operator.floordiv)
 
@@ -1501,6 +1549,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ZeroDivisionError: Integer modulo by zero
             sage: -5 % 7
             2
+            sage: -5 % -7
+            -5
+            sage: 5 % -7
+            -2
          """
         cdef Integer _modulus, _self
         _modulus = integer(modulus)
@@ -1513,15 +1565,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         _sig_on
         mpz_mod(x.value, _self.value, _modulus.value)
+        # GMP always returns a non-negative integer, so we
+        # subtract if we got something positive.
+        if mpz_sgn(_modulus.value) == -1 and mpz_sgn(x.value):
+            mpz_add(x.value, x.value, _modulus.value)
         _sig_off
 
         return x
 
-
     def quo_rem(self, other):
         """
-        Returns the quotient and the remainder of
-        self divided by other.
+        Returns the quotient and the remainder of self divided by
+        other. Note that the remainder returned is always either
+        zero or of the same sign as other.
 
         INPUT:
             other -- the integer the divisor
@@ -1535,7 +1591,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.quo_rem(2)
             (115, 1)
             sage: z.quo_rem(-2)
-            (-115, 1)
+            (-116, -1)
             sage: z.quo_rem(0)
             Traceback (most recent call last):
             ...
@@ -1552,41 +1608,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r = PY_NEW(Integer)
 
         _sig_on
-        if mpz_sgn(_other.value) == 1:
-            mpz_fdiv_qr(q.value, r.value, _self.value, _other.value)
-        else:
-            mpz_cdiv_qr(q.value, r.value, _self.value, _other.value)
+        mpz_fdiv_qr(q.value, r.value, _self.value, _other.value)
         _sig_off
 
         return q, r
-
-    def div(self, other):
-        """
-        Returns the quotient of self divided by other.
-
-        INPUT:
-            other -- the integer the divisor
-
-        OUTPUT:
-            q   -- the quotient of self/other
-
-        EXAMPLES:
-            sage: z = Integer(-231)
-            sage: z.div(2)
-            -116
-            sage: z = Integer(231)
-            sage: z.div(2)
-            115
-            sage: z.div(-2)
-            -115
-            sage: z.div(0)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: other (=0) must be nonzero
-        """
-        q,_=self.quo_rem(other)
-        return q
-
 
     def powermod(self, exp, mod):
         """
@@ -2927,6 +2952,45 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return str(self)
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(1, verify=True)
+            # Verified
+            1
+            sage: sage_input(1, preparse=False)
+            ZZ(1)
+            sage: sage_input(-12435, verify=True)
+            # Verified
+            -12435
+            sage: sage_input(0, verify=True)
+            # Verified
+            0
+            sage: sage_input(-3^70, verify=True)
+            # Verified
+            -2503155504993241601315571986085849
+            sage: sage_input(-37, preparse=False)
+            -ZZ(37)
+            sage: sage_input(-37 * polygen(ZZ), preparse=False)
+            R = ZZ['x']
+            x = R.gen()
+            -37*x
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: (-314159)._sage_input_(SageInputBuilder(preparse=False), False)
+            {unop:- {call: {atomic:ZZ}({atomic:314159})}}
+            sage: (314159)._sage_input_(SageInputBuilder(preparse=False), True)
+            {atomic:314159}
+        """
+        if coerced or sib.preparse():
+            return sib.int(self)
+        else:
+            if self < 0:
+                return -sib.name('ZZ')(sib.int(-self))
+            else:
+                return sib.name('ZZ')(sib.int(self))
+
     def isqrt(self):
         r"""
         Returns the integer floor of the square root of self, or raises
@@ -3630,8 +3694,7 @@ cdef class int_to_Z(Morphism):
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
-    cdef Element _call_c(self, a):
-        # Override this _call_c rather than _call_c_impl because a is not an element
+    cpdef Element _call_(self, a):
         cdef Integer r
         r = <Integer>PY_NEW(Integer)
         mpz_set_si(r.value, PyInt_AS_LONG(a))
@@ -3656,7 +3719,7 @@ cdef class long_to_Z(Morphism):
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
-    cdef Element _call_c(self, a):
+    cpdef Element _call_(self, a):
         cdef Integer r
         r = <Integer>PY_NEW(Integer)
         mpz_set_pylong(r.value, a)

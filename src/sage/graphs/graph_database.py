@@ -258,6 +258,13 @@ def regexp(expr, item):
     Returns 1 if parameter `item` matches the regular expression parameter `expr`.
     Returns 0 otherwise (i.e.: no match).
 
+    EXAMPLE:
+        sage: from sage.graphs.graph_database import regexp
+        sage: regexp('abcdefg', 'abc')
+        False
+        sage: regexp('abc.*', 'abcd')
+        True
+
     REFERENCES:
         Gerhard Haring. [Online] Available: http://lists.initd.org/pipermail/pysqlite/2005-November/000253.html
     """
@@ -297,7 +304,7 @@ class GenericGraphQuery(GenericSQLQuery):
         sage: G = GraphDatabase()
         sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
         sage: param = (22,5)
-        sage: Q = GenericSQLQuery(G,q,param)
+        sage: Q = GenericGraphQuery(G,q,param)
         sage: Q.show()
         graph_id             graph6               num_vertices         num_edges
         --------------------------------------------------------------------------------
@@ -309,6 +316,30 @@ class GenericGraphQuery(GenericSQLQuery):
 
     """
     def __init__(self, database, query_string, param_tuple=None):
+        """
+        A query for a GraphDatabase.
+
+        INPUT:
+            database -- the GraphDatabase instance to query
+            query_string -- a string representing the SQL query
+            param_tuple -- a tuple of strings - what to replace question marks in
+                    query_string with (optional, but a good idea)
+
+        EXAMPLE:
+            sage: G = GraphDatabase()
+            sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
+            sage: param = (22,5)
+            sage: Q = GenericGraphQuery(G,q,param)
+            sage: Q.show()
+            graph_id             graph6               num_vertices         num_edges
+            --------------------------------------------------------------------------------
+            18                   D??                  5                    0
+            19                   D?C                  5                    1
+            20                   D?K                  5                    2
+            21                   D@O                  5                    2
+            22                   D?[                  5                    3
+
+        """
         if not isinstance(database, GraphDatabase):
             raise TypeError('%s is not a valid GraphDatabase'%database)
         GenericSQLQuery.__init__(self,database,query_string,param_tuple)
@@ -620,6 +651,17 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
                     min_vertex_cover_size=None, num_spanning_trees=None, \
                     induced_subgraphs=None, spectrum=None, min_eigenvalue=None, \
                     max_eigenvalue=None, eigenvalues_sd=None, energy=None):
+        """
+        EXAMPLE:
+            sage: G = GraphDatabase()
+            sage: Q = GraphQuery(G, num_vertices=4, aut_grp_size=4, display=['graph6','num_vertices','aut_grp_size'])
+            sage: Q.show()
+            graph6               num_vertices         aut_grp_size
+            ------------------------------------------------------------
+            C@                   4                    4
+            C^                   4                    4
+
+        """
 
         SQLQuery.__init__(self,database)
 
@@ -697,20 +739,20 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
             sage: G = GraphDatabase()
             sage: Q = GraphQuery(G, num_vertices=4, aut_grp_size=4, display=['graph6','num_vertices','aut_grp_size'])
             sage: Q.get_query_string()
-            ' SELECT graph_data.graph6, graph_data.num_vertices, aut_grp.aut_grp_size FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id WHERE graph_data.graph_id=graph_data.graph_id and aut_grp.aut_grp_size=4 and graph_data.num_vertices=4'
+            ' SELECT graph_data.graph6, graph_data.num_vertices, aut_grp.aut_grp_size FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id WHERE 1 and aut_grp.aut_grp_size=4 and graph_data.num_vertices=4'
             sage: R = GraphQuery(G, num_vertices=4, display=['graph6','num_vertices','degree_sequence'])
             sage: R.get_query_string()
-            ' SELECT graph_data.graph6, graph_data.num_vertices, degrees.degree_sequence FROM graph_data INNER JOIN degrees on graph_data.graph_id=degrees.graph_id WHERE graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices=4'
+            ' SELECT graph_data.graph6, graph_data.num_vertices, degrees.degree_sequence FROM graph_data INNER JOIN degrees on graph_data.graph_id=degrees.graph_id WHERE 1 and graph_data.num_vertices=4'
             sage: T = Q.intersect(R)
             sage: T.get_query_string()
-            ' SELECT graph_data.graph6, graph_data.num_vertices, aut_grp.aut_grp_size,graph_data.graph6, graph_data.num_vertices, degrees.degree_sequence FROM  graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on graph_data.graph_id=degrees.graph_id WHERE ( graph_data.graph_id=graph_data.graph_id and aut_grp.aut_grp_size=4 and graph_data.num_vertices=4 ) AND ( graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices=4 )'
+            ' SELECT graph_data.graph6, graph_data.num_vertices, aut_grp.aut_grp_size,graph_data.graph6, graph_data.num_vertices, degrees.degree_sequence FROM  graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on graph_data.graph_id=degrees.graph_id WHERE ( 1 and aut_grp.aut_grp_size=4 and graph_data.num_vertices=4 ) AND ( 1 and graph_data.num_vertices=4 )'
 
             sage: G = GraphDatabase()
             sage: more_than_one = GraphQuery(G, num_vertices=['>',1])
             sage: three = GraphQuery(G, num_vertices=3)
             sage: intersection = more_than_one.intersect(three)
             sage: intersection.get_query_string()
-            ' SELECT graph_data.graph6,graph_data.graph6 FROM graph_data WHERE ( graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices>1 ) AND ( graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices=3 )'
+            ' SELECT graph_data.graph6,graph_data.graph6 FROM graph_data WHERE ( 1 and graph_data.num_vertices>1 ) AND ( 1 and graph_data.num_vertices=3 )'
             sage: intersection.show()
             graph6               graph6
             ----------------------------------------
@@ -771,7 +813,7 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
             sage: three = GraphQuery(G, num_vertices=3)
             sage: union = more_than_one.union(three)
             sage: union.get_query_string()
-            ' SELECT graph_data.graph6,graph_data.graph6 FROM graph_data WHERE ( graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices>1 ) OR ( graph_data.graph_id=graph_data.graph_id and graph_data.num_vertices=3 )'
+            ' SELECT graph_data.graph6,graph_data.graph6 FROM graph_data WHERE ( 1 and graph_data.num_vertices>1 ) OR ( 1 and graph_data.num_vertices=3 )'
             sage: len(union.run_query())
             1251
             sage: len(more_than_one.run_query())
@@ -1109,6 +1151,17 @@ class GraphDatabase(GenericSQLDatabase):
     """
 
     def __init__(self):
+        """
+        EXAMPLE:
+            sage: G = GraphDatabase()
+            sage: Q = GraphQuery(G, num_vertices=4, aut_grp_size=4, display=['graph6','num_vertices','aut_grp_size'])
+            sage: Q.show()
+            graph6               num_vertices         aut_grp_size
+            ------------------------------------------------------------
+            C@                   4                    4
+            C^                   4                    4
+
+        """
         GenericSQLDatabase.__init__(self,dblocation)
 
     def display_all(self, query=None, layout='circular', graph6=None, num_vertices=None, \
@@ -2445,8 +2498,14 @@ def __query_string__(graph6=None, num_vertices=None, num_edges=None, num_cycles=
     and any other tables as necessary.
 
     Applies parameters specified in get_list, number_of and display functions.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_database import __query_string__
+        sage: __query_string__(graph6='IheA@GUAo')
+        "SELECT graph_data.graph6 FROM graph_data WHERE 1 and graph_data.graph6='I@OZCMgs?'"
+
     """
-    query = 'SELECT graph_data.graph6 FROM graph_data WHERE graph_data.graph_id=graph_data.graph_id and'
+    query = 'SELECT graph_data.graph6 FROM graph_data WHERE 1 and'
     if ( aut_grp_size != None or num_orbits != None or num_fixed_points != None or vertex_transitive != None or edge_transitive != None ):
         query = __aut_grp_string__(query=query, aut_grp_size=aut_grp_size, num_orbits=num_orbits, num_fixed_points=num_fixed_points, vertex_transitive=vertex_transitive, edge_transitive=edge_transitive)
     if ( degree_sequence != None or min_degree != None or max_degree != None or average_degree != None or degrees_sd != None or regular != None ):
@@ -2520,6 +2579,12 @@ def __aut_grp_string__(query=None, aut_grp_size=None, num_orbits=None, num_fixed
     properties specified in the aut_grp database table.
 
     Applies parameters specified in get_list, number_of and display functions.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_database import __aut_grp_string__
+        sage: __aut_grp_string__("SELECT graph_data.graph6 FROM graph_data WHERE 1 and graph_data.graph6='I@OZCMgs?'", aut_grp_size=1)
+        "SELECT graph_data.graph6 FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id WHERE 1 and graph_data.graph6='I@OZCMgs?' aut_grp.aut_grp_size=1 and"
+
     """
     r = query.split('WHERE',1)
     s = 'INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id WHERE'
@@ -2553,6 +2618,12 @@ def __degrees_string__(query=None, degree_sequence=None, min_degree=None, max_de
     properties specified in the degrees database table.
 
     Applies parameters specified in get_list, number_of and display functions.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_database import __degrees_string__
+        sage: __degrees_string__("SELECT graph_data.graph6 FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id WHERE 1 and graph_data.graph6='I@OZCMgs?' aut_grp.aut_grp_size=1 and", degree_sequence=90)
+        "SELECT graph_data.graph6 FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id WHERE 1 and graph_data.graph6='I@OZCMgs?' aut_grp.aut_grp_size=1 and degrees.degree_sequence=90 and"
+
     """
     r = query.split('WHERE',1)
     s = 'INNER JOIN degrees on degrees.graph_id=graph_data.graph_id WHERE'
@@ -2591,6 +2662,12 @@ def __misc_string__(query=None, vertex_connectivity=None, edge_connectivity=None
     properties specified in the misc database table.
 
     Applies parameters specified in get_list, number_of and display functions.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_database import __misc_string__
+        sage: __misc_string__("SELECT graph_data.graph6 FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id WHERE 1 and graph_data.graph6='I@OZCMgs?' aut_grp.aut_grp_size=1 and degrees.degree_sequence=90 and", vertex_connectivity=True)
+        "SELECT graph_data.graph6 FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id WHERE 1 and graph_data.graph6='I@OZCMgs?' aut_grp.aut_grp_size=1 and degrees.degree_sequence=90 and misc.vertex_connectivity=1 and"
+
     """
     r = query.split('WHERE',1)
     s = 'INNER JOIN misc on misc.graph_id=graph_data.graph_id WHERE'
@@ -2682,6 +2759,12 @@ def __spectrum_string__(query=None, spectrum=None, min_eigenvalue=None, max_eige
     properties specified in the spectrum database table.
 
     Applies parameters specified in get_list, number_of and display functions.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph_database import __spectrum_string__
+        sage: __spectrum_string__("SELECT graph_data.graph6 FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id WHERE 1 and graph_data.graph6='I@OZCMgs?' aut_grp.aut_grp_size=1 and degrees.degree_sequence=90 and misc.vertex_connectivity=1 and", min_eigenvalue=0)
+        "SELECT graph_data.graph6 FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE 1 and graph_data.graph6='I@OZCMgs?' aut_grp.aut_grp_size=1 and degrees.degree_sequence=90 and misc.vertex_connectivity=1 and spectrum.min_eigenvalue=0 and"
+
     """
     r = query.split('WHERE',1)
     s = 'INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE'
@@ -2712,16 +2795,6 @@ def __spectrum_string__(query=None, spectrum=None, min_eigenvalue=None, max_eige
 
     return query
 
-
-
-to_bool = {'0':"False", '1':"True"}
-from sage.misc.multireplace import multiple_replace
-
-def format(b, j):
-    try:
-        return multiple_replace(to_bool, str(b[13]))
-    except IndexError:
-        return "?"
 
 # A Full display_all query, for thorough doctesting
 """

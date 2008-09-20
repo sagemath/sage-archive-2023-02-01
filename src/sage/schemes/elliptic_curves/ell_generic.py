@@ -1,7 +1,7 @@
 r"""
 Elliptic curves over a general ring
 
-Elliptic curves are always represented by `Weierstass Models' with
+Elliptic curves are always represented by `Weierstrass Models' with
 five coefficients $[a_1,a_2,a_3,a_4,a_6]$ in standard notation.  In
 Magma, `Weierstrass Model' means a model with a1=a2=a3=0, which is
 called `Short Weierstrass Model' in Sage; these only exist in
@@ -43,12 +43,13 @@ AUTHORS:
 import math
 
 from sage.rings.all import PolynomialRing
-
+import sage.groups.generic as generic
 import sage.plot.all as plot
 
 import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field as number_field
+from sage.rings.number_field.all import is_NumberField
 from sage.rings.all import is_Infinite
 import sage.misc.misc as misc
 import sage.misc.latex as latex
@@ -149,7 +150,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         plane_curve.ProjectiveCurve_generic.__init__(self, PP, f)
         # TODO: cleanup, are these two point classes redundant?
         if K.is_field():
-            self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_field
+            if is_NumberField(K):
+                self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_number_field
+            else:
+                self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_field
         else:
             self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint
 
@@ -493,9 +497,72 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             R = self.base_ring()
             return self.point([R(0),R(1),R(0)], check=False)
         if isinstance(args[0],
-              (ell_point.EllipticCurvePoint_field, ell_point.EllipticCurvePoint)):
+              (ell_point.EllipticCurvePoint_field, \
+               ell_point.EllipticCurvePoint_number_field, \
+               ell_point.EllipticCurvePoint)):
             args = tuple(args[0])
         return plane_curve.ProjectiveCurve_generic.__call__(self, *args, **kwds)
+
+    def is_x_coord(self, x):
+        """
+        Returns whether x is the x-coordinate of a point on this curve.
+
+        See also lift_x() to find the point(s) with a given
+        x_coordinate.  This function may be useful in cases where
+        testing an element of tha base field for being a square is
+        faster than finding its square root.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a'); E
+            Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: E.is_x_coord(1)
+            True
+            sage: E.is_x_coord(2)
+            True
+
+        There are no rational points with x-cordinate 3.
+            sage: E.is_x_coord(3)
+            False
+
+        However, there are such points in $E(\R)$:
+            sage: E.change_ring(RR).is_x_coord(3)
+            True
+
+        And of course it always works in $E(\C)$:
+            sage: E.change_ring(RR).is_x_coord(-3)
+            False
+            sage: E.change_ring(CC).is_x_coord(-3)
+            True
+
+        AUTHOR: John Cremona, 2008-08-07 (adapted from lift_x())
+
+        TEST:
+            sage: E=EllipticCurve('5077a1')
+            sage: [x for x in srange(-10,10) if E.is_x_coord (x)]
+            [-3, -2, -1, 0, 1, 2, 3, 4, 8]
+
+            sage: F=GF(32,'a')
+            sage: E=EllipticCurve(F,[1,0,0,0,1])
+            sage: set([P[0] for P in E.points() if P!=E(0)]) == set([x for x in F if E.is_x_coord(x)])
+            True
+
+        """
+        K = self.base_ring()
+        try:
+            x = K(x)
+        except TypeError:
+            raise TypeError, 'x must be coercible into the base ring of the curve'
+        a1, a2, a3, a4, a6 = self.ainvs()
+        fx = ((x + a2) * x + a4) * x + a6
+        if a1.is_zero() and a3.is_zero():
+            return fx.is_square()
+        b = (a1*x + a3)
+        if K.characteristic() == 2:
+            R = PolynomialRing(K, 'y')
+            F = R([-fx,b,1])
+            return len(F.roots())>0
+        D = b*b + 4*fx
+        return D.is_square()
 
     def lift_x(self, x, all=False):
         """
@@ -583,11 +650,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             if K.characteristic() == 2:
                 R = PolynomialRing(K, 'y')
                 F = R([-f,b,1])
-                ys = F.roots()
+                ys = F.roots(multiplicities=False)
                 if all:
-                    return [self.point([x, y[0], one], check=False) for y in ys]
+                    return [self.point([x, y, one], check=False) for y in ys]
                 elif len(ys) > 0:
-                    return self.point([x, ys[0][0], one], check=False)
+                    return self.point([x, ys[0], one], check=False)
             elif D.is_square():
                 if all:
                     return [self.point([x, (-b+d)/2, one], check=False) for d in D.sqrt(all=True)]
@@ -1180,561 +1247,726 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             self.__j_invariant = c4**3 / self.discriminant()
             return self.__j_invariant
 
+#############################################################
+#
+# Explanation of the division (also known as torsion) polynomial
+# functions in Sage.
+#
+# The main user function division_polynomial() (also aliased as
+# torsion_polynomial()) is used to compute polynomials whose roots
+# determine the $m$-torsion points on the curve.  Three options are
+# available, which effect the result when $m$ is even and also the
+# parent ring of the returned value.  The function can return either a
+# polynomial or the evaluation of that polynomial at a point,
+# depending on the input.  Values are cached.
+#
+# The options are controlled by the value of the parameter
+# two_torsion_multiplicity, which may be 0, 1 or 2.  If it is 0 or 2,
+# then a univariate polynomial will be returned (or evaluated at the
+# parameter x if x is not None).  This is the polynomial whose roots
+# are the values of $x(P)$ at the nonzero points $P$ where $m*P=0$
+# (when two_torsion_multiplicity==2), or the points where $m*P=0$ but
+# $2*P\not=0$ (when two_torsion_multiplicity==0).
+#
+# If two_torsion_multiplicity==1, then a bivariate polynomial is
+# returned, which (as a function on the curve) has a simple zero at
+# each nonzero point $P$ such that $m*P=0$.  When $m$ is odd this is a
+# polynomial in $x$ alone, but is still returned as an element of a
+# polynomial ring in two variables; when $m$ is even it has a factor
+# $2y+a_1x+a_3$.  In thise case if the parameter x is not None then it
+# should be a tuple of length 2, or a point P on the curve, and the
+# returned value is the value of the bivariate polynomial at this
+# point.
+#
+# Comparison with Magma: Magma's function DivisionPolynomial(E,m)
+# returns a triple of univariate polynomials $f,g,h$ where $f$ is
+# \code{E.division_polynomial(m,two_torsion_multiplicity=2)}, $g$ is
+# \code{E.division_polynomial(m,two_torsion_multiplicity=0)} and $h$
+# is the quotient, so that $h=1$ when $m$ is odd.
 
-##     def pseudo_torsion_polynomial(self, n, x=None, cache=None):
-##         r"""
-##         Returns the n-th torsion polynomial (division polynomial), without
-##         the 2-torsion factor if n is even, as a polynomial in $x$.
+#############################################################
 
-##         These are the polynomials $g_n$ defined in Mazur/Tate (``The p-adic
-##         sigma function''), but with the sign flipped for even $n$, so that
-##         the leading coefficient is always positive.
+    def division_polynomial_0(self, n, x=None, cache=None):
+         r"""
+         Returns the $n$-th torsion (division) polynomial , without
+         the 2-torsion factor if $n$ is even, as a polynomial in $x$.
 
-##         The full torsion polynomials may be recovered as follows:
-##         \begin{itemize}
-##         \item $\psi_n = g_n$ for odd $n$.
-##         \item $\psi_n = (2y + a_1 x + a_3) g_n$ for even $n$.
-##         \end{itemize}
+         These are the polynomials $g_n$ defined in Mazur/Tate (``The p-adic
+         sigma function''), but with the sign flipped for even $n$, so that
+         the leading coefficient is always positive.
 
-##         Note that the $g_n$'s are always polynomials in $x$, whereas the
-##         $\psi_n$'s require the appearance of a $y$.
+         NOTE: This function is intended for internal use; users
+         should use division_polynomial().
 
-##         SEE ALSO:
-##             -- torsion_polynomial()
-##             -- multiple_x_numerator()
-##             -- multiple_x_denominator()
+         SEE ALSO:
+             -- multiple_x_numerator()
+             -- multiple_x_denominator()
+             -- division_polynomial()
 
-##         INPUT:
-##             n -- positive integer, or the special values -1 and -2 which
-##                  mean $B_6 = (2y + a_1 x + a_3)^2$ and $B_6^2$ respectively
-##                  (in the notation of Mazur/Tate).
-##             x -- optional ring element to use as the "x" variable. If x
-##                  is None, then a new polynomial ring will be constructed over
-##                  the base ring of the elliptic curve, and its generator will
-##                  be used as x. Note that x does not need to be a generator of
-##                  a polynomial ring; any ring element is ok. This permits fast
-##                  calculation of the torsion polynomial *evaluated* on any
-##                  element of a ring.
-##             cache -- optional dictionary, with integer keys. If the key m
-##                  is in cache, then cache[m] is assumed to be the value of
-##                  pseudo_torsion_polynomial(m) for the supplied x. New entries
-##                  will be added to the cache as they are computed.
+         INPUT:
+             n -- positive integer, or the special values -1 and -2 which
+                  mean $B_6 = (2y + a_1 x + a_3)^2$ and $B_6^2$ respectively
+                  (in the notation of Mazur/Tate).
+             x -- optional ring element to use as the "x" variable. If x
+                  is None, then a new polynomial ring will be constructed over
+                  the base ring of the elliptic curve, and its generator will
+                  be used as x. Note that x does not need to be a generator of
+                  a polynomial ring; any ring element is ok. This permits fast
+                  calculation of the torsion polynomial *evaluated* on any
+                  element of a ring.
+             cache -- optional dictionary, with integer keys. If the key m
+                  is in cache, then cache[m] is assumed to be the value of
+                  division_polynomial_0(m) for the supplied x. New entries
+                  will be added to the cache as they are computed.
 
-##         ALGORITHM:
-##             -- Recursion described in Mazur/Tate. The recursive formulae are
-##             evaluated $O((log n)^2)$ times.
+         ALGORITHM:
+             -- Recursion described in Mazur/Tate. The recursive formulae are
+             evaluated $O((log n)^2)$ times.
 
-##         TODO:
-##             -- for better unity of code, it might be good to make the regular
-##             torsion_polynomial() function use this as a subroutine.
+         AUTHORS:
+             -- David Harvey (2006-09-24): initial version
+             -- John Cremona (2008-08-26): unified division polynomial code
 
-##         AUTHORS:
-##             -- David Harvey (2006-09-24)
+         EXAMPLES:
+            sage: E = EllipticCurve("37a")
+            sage: E.division_polynomial_0(1)
+            1
+            sage: E.division_polynomial_0(2)
+            1
+            sage: E.division_polynomial_0(3)
+            3*x^4 - 6*x^2 + 3*x - 1
+            sage: E.division_polynomial_0(4)
+            2*x^6 - 10*x^4 + 10*x^3 - 10*x^2 + 2*x + 1
+            sage: E.division_polynomial_0(5)
+            5*x^12 - 62*x^10 + 95*x^9 - 105*x^8 - 60*x^7 + 285*x^6 - 174*x^5 - 5*x^4 - 5*x^3 + 35*x^2 - 15*x + 2
+            sage: E.division_polynomial_0(6)
+            3*x^16 - 72*x^14 + 168*x^13 - 364*x^12 + 1120*x^10 - 1144*x^9 + 300*x^8 - 540*x^7 + 1120*x^6 - 588*x^5 - 133*x^4 + 252*x^3 - 114*x^2 + 22*x - 1
+            sage: E.division_polynomial_0(7)
+            7*x^24 - 308*x^22 + 986*x^21 - 2954*x^20 + 28*x^19 + 17171*x^18 - 23142*x^17 + 511*x^16 - 5012*x^15 + 43804*x^14 - 7140*x^13 - 96950*x^12 + 111356*x^11 - 19516*x^10 - 49707*x^9 + 40054*x^8 - 124*x^7 - 18382*x^6 + 13342*x^5 - 4816*x^4 + 1099*x^3 - 210*x^2 + 35*x - 3
+            sage: E.division_polynomial_0(8)
+            4*x^30 - 292*x^28 + 1252*x^27 - 5436*x^26 + 2340*x^25 + 39834*x^24 - 79560*x^23 + 51432*x^22 - 142896*x^21 + 451596*x^20 - 212040*x^19 - 1005316*x^18 + 1726416*x^17 - 671160*x^16 - 954924*x^15 + 1119552*x^14 + 313308*x^13 - 1502818*x^12 + 1189908*x^11 - 160152*x^10 - 399176*x^9 + 386142*x^8 - 220128*x^7 + 99558*x^6 - 33528*x^5 + 6042*x^4 + 310*x^3 - 406*x^2 + 78*x - 5
 
-##         EXAMPLES:
-##            sage: E = EllipticCurve("37a")
-##            sage: E.pseudo_torsion_polynomial(1)
-##            1
-##            sage: E.pseudo_torsion_polynomial(2)
-##            1
-##            sage: E.pseudo_torsion_polynomial(3)
-##            3*x^4 - 6*x^2 + 3*x - 1
-##            sage: E.pseudo_torsion_polynomial(4)
-##            2*x^6 - 10*x^4 + 10*x^3 - 10*x^2 + 2*x + 1
-##            sage: E.pseudo_torsion_polynomial(5)
-##            5*x^12 - 62*x^10 + 95*x^9 - 105*x^8 - 60*x^7 + 285*x^6 - 174*x^5 - 5*x^4 - 5*x^3 + 35*x^2 - 15*x + 2
-##            sage: E.pseudo_torsion_polynomial(6)
-##            3*x^16 - 72*x^14 + 168*x^13 - 364*x^12 + 1120*x^10 - 1144*x^9 + 300*x^8 - 540*x^7 + 1120*x^6 - 588*x^5 - 133*x^4 + 252*x^3 - 114*x^2 + 22*x - 1
-##            sage: E.pseudo_torsion_polynomial(7)
-##            7*x^24 - 308*x^22 + 986*x^21 - 2954*x^20 + 28*x^19 + 17171*x^18 - 23142*x^17 + 511*x^16 - 5012*x^15 + 43804*x^14 - 7140*x^13 - 96950*x^12 + 111356*x^11 - 19516*x^10 - 49707*x^9 + 40054*x^8 - 124*x^7 - 18382*x^6 + 13342*x^5 - 4816*x^4 + 1099*x^3 - 210*x^2 + 35*x - 3
-##            sage: E.pseudo_torsion_polynomial(8)
-##            4*x^30 - 292*x^28 + 1252*x^27 - 5436*x^26 + 2340*x^25 + 39834*x^24 - 79560*x^23 + 51432*x^22 - 142896*x^21 + 451596*x^20 - 212040*x^19 - 1005316*x^18 + 1726416*x^17 - 671160*x^16 - 954924*x^15 + 1119552*x^14 + 313308*x^13 - 1502818*x^12 + 1189908*x^11 - 160152*x^10 - 399176*x^9 + 386142*x^8 - 220128*x^7 + 99558*x^6 - 33528*x^5 + 6042*x^4 + 310*x^3 - 406*x^2 + 78*x - 5
+            sage: E.division_polynomial_0(18) % E.division_polynomial_0(6) == 0
+            True
 
-##            sage: E.pseudo_torsion_polynomial(18) % E.pseudo_torsion_polynomial(6) == 0
-##            True
+           An example to illustrate the relationship with torsion points.
+            sage: F = GF(11)
+            sage: E = EllipticCurve(F, [0, 2]); E
+            Elliptic Curve defined by y^2  = x^3 + 2 over Finite Field of size 11
+            sage: f = E.division_polynomial_0(5); f
+            5*x^12 + x^9 + 8*x^6 + 4*x^3 + 7
+            sage: f.factor()
+            (5) * (x^2 + 5) * (x^2 + 2*x + 5) * (x^2 + 5*x + 7) * (x^2 + 7*x + 7) * (x^2 + 9*x + 5) * (x^2 + 10*x + 7)
 
-##           An example to illustrate the relationship with torsion points.
-##            sage: F = GF(11)
-##            sage: E = EllipticCurve(F, [0, 2]); E
-##            Elliptic Curve defined by y^2  = x^3 + 2 over Finite Field of size 11
-##            sage: f = E.pseudo_torsion_polynomial(5); f
-##            5*x^12 + x^9 + 8*x^6 + 4*x^3 + 7
-##            sage: f.factor()
-##            (5) * (x^2 + 5) * (x^2 + 2*x + 5) * (x^2 + 5*x + 7) * (x^2 + 7*x + 7) * (x^2 + 9*x + 5) * (x^2 + 10*x + 7)
+           This indicates that the x-coordinates of all the 5-torsion points
+           of $E$ are in $GF(11^2)$, and therefore the y-coordinates are in
+           $GF(11^4)$.
 
-##           This indicates that the x-coordinates of all the 5-torsion points
-##           of $E$ are in $GF(11^2)$, and therefore the y-coordinates are in
-##           $GF(11^4)$.
+            sage: K = GF(11^4, 'a')
+            sage: X = E.change_ring(K)
+            sage: f = X.division_polynomial_0(5)
+            sage: x_coords = f.roots(multiplicities=False); x_coords
+            [10*a^3 + 4*a^2 + 5*a + 6,
+             9*a^3 + 8*a^2 + 10*a + 8,
+             8*a^3 + a^2 + 4*a + 10,
+             8*a^3 + a^2 + 4*a + 8,
+             8*a^3 + a^2 + 4*a + 4,
+             6*a^3 + 9*a^2 + 3*a + 4,
+             5*a^3 + 2*a^2 + 8*a + 7,
+             3*a^3 + 10*a^2 + 7*a + 8,
+             3*a^3 + 10*a^2 + 7*a + 3,
+             3*a^3 + 10*a^2 + 7*a + 1,
+             2*a^3 + 3*a^2 + a + 7,
+             a^3 + 7*a^2 + 6*a]
 
-##            sage: K = GF(11^4, 'a')
-##            sage: X = E.change_ring(K)
-##            sage: f = X.pseudo_torsion_polynomial(5)
-##            sage: x_coords = [root for (root, _) in f.roots()]; x_coords
-##            [10*a^3 + 4*a^2 + 5*a + 6,
-##             9*a^3 + 8*a^2 + 10*a + 8,
-##             8*a^3 + a^2 + 4*a + 10,
-##             8*a^3 + a^2 + 4*a + 8,
-##             8*a^3 + a^2 + 4*a + 4,
-##             6*a^3 + 9*a^2 + 3*a + 4,
-##             5*a^3 + 2*a^2 + 8*a + 7,
-##             3*a^3 + 10*a^2 + 7*a + 8,
-##             3*a^3 + 10*a^2 + 7*a + 3,
-##             3*a^3 + 10*a^2 + 7*a + 1,
-##             2*a^3 + 3*a^2 + a + 7,
-##             a^3 + 7*a^2 + 6*a]
-
-##           Now we check that these are exactly the x coordinates of the
-##           5-torsion points of E.
-##            sage: for x in x_coords:
-##            ...       y = (x**3 + 2).square_root()
-##            ...       P = X([x, y])
-##            ...       assert P.order(disable_warning=True) == 5
-
-##           todo: need to show an example where the 2-torsion is missing
-
-##         """
-##         if cache is None:
-##             cache = {}
-##         else:
-##             try:
-##                 return cache[n]
-##             except KeyError:
-##                 pass
-
-##         if x is None:
-##             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
-
-##         b2, b4, b6, b8 = self.b_invariants()
-
-##         n = int(n)
-##         if n <= 4:
-##             if n == -1:
-##                 answer = 4*x**3 + b2*x**2 + 2*b4*x + b6
-##             elif n == -2:
-##                 answer = self.pseudo_torsion_polynomial(-1, x, cache) ** 2
-##             elif n == 1 or n == 2:
-##                 answer = x.parent()(1)
-##             elif n == 3:
-##                 answer = 3*x**4 + b2*x**3 + 3*b4*x**2 + 3*b6*x + b8
-##             elif n == 4:
-##                 answer = -self.pseudo_torsion_polynomial(-2, x, cache) + \
-##                          (6*x**2 + b2*x + b4) * \
-##                          self.pseudo_torsion_polynomial(3, x, cache)
-##             else:
-##                 raise ValueError, "n must be a positive integer (or -1 or -2)"
-##         else:
-##             if n % 2 == 0:
-##                 m = (n-2) // 2
-##                 g_mplus3 = self.pseudo_torsion_polynomial(m+3, x, cache)
-##                 g_mplus2 = self.pseudo_torsion_polynomial(m+2, x, cache)
-##                 g_mplus1 = self.pseudo_torsion_polynomial(m+1, x, cache)
-##                 g_m      = self.pseudo_torsion_polynomial(m,   x, cache)
-##                 g_mless1 = self.pseudo_torsion_polynomial(m-1, x, cache)
-##                 answer = g_mplus1 * \
-##                          (g_mplus3 * g_m**2 - g_mless1 * g_mplus2**2)
-##             else:
-##                 m = (n-1) // 2
-##                 g_mplus2 = self.pseudo_torsion_polynomial(m+2, x, cache)
-##                 g_mplus1 = self.pseudo_torsion_polynomial(m+1, x, cache)
-##                 g_m      = self.pseudo_torsion_polynomial(m,   x, cache)
-##                 g_mless1 = self.pseudo_torsion_polynomial(m-1, x, cache)
-##                 B6_sqr   = self.pseudo_torsion_polynomial(-2, x, cache)
-##                 if m % 2 == 0:
-##                     answer = B6_sqr * g_mplus2 * g_m**3 - \
-##                              g_mless1 * g_mplus1**3
-##                 else:
-##                     answer = g_mplus2 * g_m**3 - \
-##                              B6_sqr * g_mless1 * g_mplus1**3
-
-##         cache[n] = answer
-##         return answer
+           Now we check that these are exactly the x coordinates of the
+           5-torsion points of E.
+            sage: for x in x_coords:
+            ...       assert X.lift_x(x).order() == 5
 
 
-##     def multiple_x_numerator(self, n, x=None, cache=None):
-##         r"""
-##         Returns the numerator of the x-coordinate of the nth multiple of
-##         a point, using torsion polynomials (division polynomials).
+          The roots of the polynomial are the x-coordinates of the
+          points P such that m*P==0 but 2*P!=0:
 
-##         The inputs n, x, cache are as described in pseudo_torsion_polynomial().
+          sage: E=EllipticCurve('14a1')
+          sage: T=E.torsion_subgroup()
+          sage: [n*T.0 for n in range(6)]
+          [(0 : 1 : 0),
+          (9 : 23 : 1),
+          (2 : 2 : 1),
+          (1 : -1 : 1),
+          (2 : -5 : 1),
+          (9 : -33 : 1)]
+          sage: pol=E.division_polynomial_0(6)
+          sage: xlist=pol.roots(multiplicities=False); xlist
+          [9, 2, -1/3, -5]
+          sage: [E.lift_x(x, all=True) for x in xlist]
+          [[(9 : 23 : 1), (9 : -33 : 1)], [(2 : 2 : 1), (2 : -5 : 1)], [], []]
 
-##         The result is adjusted to be correct for both even and odd n.
-
-##         WARNING:
-##           -- There may of course be cancellation between the numerator and
-##           the denominator (multiple_x_denominator()). Be careful. For more
-##           information on how to avoid cancellation, see Christopher Wuthrich's
-##           thesis.
-
-##         SEE ALSO:
-##           -- multiple_x_denominator()
-
-##         AUTHORS:
-##            -- David Harvey (2006-09-24)
-
-##         EXAMPLES:
-##           sage: E = EllipticCurve("37a")
-##           sage: P = E.gens()[0]
-##           sage: x = P[0]
-
-##           sage: (35*P)[0]
-##           -804287518035141565236193151/1063198259901027900600665796
-##           sage: E.multiple_x_numerator(35, x)
-##           -804287518035141565236193151
-##           sage: E.multiple_x_denominator(35, x)
-##           1063198259901027900600665796
-
-##           sage: (36*P)[0]
-##           54202648602164057575419038802/15402543997324146892198790401
-##           sage: E.multiple_x_numerator(36, x)
-##           54202648602164057575419038802
-##           sage: E.multiple_x_denominator(36, x)
-##           15402543997324146892198790401
-
-##         An example where cancellation occurs:
-##           sage: E = EllipticCurve("88a1")
-##           sage: P = E([2,2])   # fixed choice of generator
-##           sage: n = E.multiple_x_numerator(11, P[0]); n
-##           442446784738847563128068650529343492278651453440
-##           sage: d = E.multiple_x_denominator(11, P[0]); d
-##           1427247692705959881058285969449495136382746624
-##           sage: n/d
-##           310
-##           sage: 11*P
-##           (310 : -5458 : 1)
-
-##         """
-##         if cache is None:
-##             cache = {}
-
-##         if x is None:
-##             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
-
-##         n = int(n)
-##         if n < 2:
-##             print "n must be at least 2"
-
-##         self.pseudo_torsion_polynomial( -2, x, cache)
-##         self.pseudo_torsion_polynomial(n-1, x, cache)
-##         self.pseudo_torsion_polynomial(n  , x, cache)
-##         self.pseudo_torsion_polynomial(n+1, x, cache)
-
-##         if n % 2 == 0:
-##             return x * cache[-1] * cache[n]**2 - cache[n-1] * cache[n+1]
-##         else:
-##             return x * cache[n]**2 - cache[-1] * cache[n-1] * cache[n+1]
+          NOTE: (1) the point of order 2 (and the identity) do not
+          appear; (2) the points with x=-1/3 and x=-5 are not
+          rational.
 
 
-##     def multiple_x_denominator(self, n, x=None, cache=None):
-##         r"""
-##         Returns the denominator of the x-coordinate of the nth multiple of
-##         a point, using torsion polynomials (division polynomials).
+         """
+         if cache is None:
+             cache = {}
+         else:
+             try:
+                 return cache[n]
+             except KeyError:
+                 pass
 
-##         The inputs n, x, cache are as described in pseudo_torsion_polynomial().
+         if x is None:
+             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
 
-##         The result is adjusted to be correct for both even and odd n.
+         b2, b4, b6, b8 = self.b_invariants()
 
-##         SEE ALSO:
-##           -- multiple_x_numerator()
+         n = int(n)
+         if n <= 4:
+             if n == -1:
+                 answer = 4*x**3 + b2*x**2 + 2*b4*x + b6
+             elif n == -2:
+                 answer = self.division_polynomial_0(-1, x, cache) ** 2
+             elif n == 1 or n == 2:
+                 answer = x.parent()(1)
+             elif n == 3:
+                 answer = 3*x**4 + b2*x**3 + 3*b4*x**2 + 3*b6*x + b8
+             elif n == 4:
+                 answer = -self.division_polynomial_0(-2, x, cache) + \
+                          (6*x**2 + b2*x + b4) * \
+                          self.division_polynomial_0(3, x, cache)
+             else:
+                 raise ValueError, "n must be a positive integer (or -1 or -2)"
+         else:
+             if n % 2 == 0:
+                 m = (n-2) // 2
+                 g_mplus3 = self.division_polynomial_0(m+3, x, cache)
+                 g_mplus2 = self.division_polynomial_0(m+2, x, cache)
+                 g_mplus1 = self.division_polynomial_0(m+1, x, cache)
+                 g_m      = self.division_polynomial_0(m,   x, cache)
+                 g_mless1 = self.division_polynomial_0(m-1, x, cache)
+                 answer = g_mplus1 * \
+                          (g_mplus3 * g_m**2 - g_mless1 * g_mplus2**2)
+             else:
+                 m = (n-1) // 2
+                 g_mplus2 = self.division_polynomial_0(m+2, x, cache)
+                 g_mplus1 = self.division_polynomial_0(m+1, x, cache)
+                 g_m      = self.division_polynomial_0(m,   x, cache)
+                 g_mless1 = self.division_polynomial_0(m-1, x, cache)
+                 B6_sqr   = self.division_polynomial_0(-2, x, cache)
+                 if m % 2 == 0:
+                     answer = B6_sqr * g_mplus2 * g_m**3 - \
+                              g_mless1 * g_mplus1**3
+                 else:
+                     answer = g_mplus2 * g_m**3 - \
+                              B6_sqr * g_mless1 * g_mplus1**3
 
-##         TODO: the numerator and denominator versions share a calculation,
-##         namely squaring $\psi_n$. Maybe would be good to offer a combined
-##         version to make this more efficient.
+         cache[n] = answer
+         return answer
 
-##         EXAMPLES:
-##            -- see multiple_x_numerator()
-
-##         AUTHORS:
-##            -- David Harvey (2006-09-24)
-
-##         """
-##         if cache is None:
-##             cache = {}
-
-##         if x is None:
-##             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
-
-##         n = int(n)
-##         if n < 2:
-##             print "n must be at least 2"
-
-##         self.pseudo_torsion_polynomial(-2, x, cache)
-##         self.pseudo_torsion_polynomial(n , x, cache)
-
-##         if n % 2 == 0:
-##             return cache[-1] * cache[n]**2
-##         else:
-##             return cache[n]**2
-
-
-    def torsion_polynomial(self, n, var='x', i=0):
-        """
-        Returns the n-th torsion polynomial (a.k.a., division polynomial).
+    def two_division_polynomial(self, x = None):
+        r"""
+        Returns the 2-division polynomial of this elliptic curve evaluated at x.
 
         INPUT:
-            n -- non-negative integer
-            var -- string; the indeterminate of the polynomial (default: x)
-            i -- integer, either 0 (default) or 1.
+             x -- optional ring element to use as the "x" variable. If x
+                  is None, then a new polynomial ring will be constructed over
+                  the base ring of the elliptic curve, and its generator will
+                  be used as x. Note that x does not need to be a generator of
+                  a polynomial ring; any ring element is ok. This permits fast
+                  calculation of the torsion polynomial *evaluated* on any
+                  element of a ring.
 
-        OUTPUT:
-            Polynomial -- n-th torsion polynomial, which is a polynomial over
-                          the base field of the elliptic curve.
+        EXAMPLES:
+            sage: E=EllipticCurve('5077a1')
+            sage: E.two_division_polynomial()
+            4*x^3 - 28*x + 25
+            sage: E=EllipticCurve(GF(3^2,'a'),[1,1,1,1,1])
+            sage: E.two_division_polynomial()
+            x^3 + 2*x^2 + 2
+            sage: E.two_division_polynomial().roots()
+            [(2, 1), (2*a, 1), (a + 2, 1)]
+        """
+        return self.division_polynomial_0(-1,x)
 
-        SEE ALSO: full_division_polynomial
+    def division_polynomial(self, m, x=None, two_torsion_multiplicity=2):
+        r"""
+        Returns the $m$-th division polynomial of this elliptic curve.
 
-        ALIASES: division_polynomial, torsion_polynomial
+        INPUT:
+             m -- positive integer.
+             x -- optional ring element to use as the "x" variable. If x
+                  is None, then a new polynomial ring will be constructed over
+                  the base ring of the elliptic curve, and its generator will
+                  be used as x. Note that x does not need to be a generator of
+                  a polynomial ring; any ring element is ok. This permits fast
+                  calculation of the torsion polynomial *evaluated* on any
+                  element of a ring.
+             two_torsion_multiplicity -- 0,1 or 2
+
+                  If 0: for even $m$ when x is None, a univariate
+                  polynomial over the base ring of the curve is
+                  returned, which omits factors whose roots are the
+                  $x$-coordinates of the $2$-torsion points.
+                  Similarly when $x$ is not none, the evaluation of
+                  such a polynomial at $x$ is returned.
+
+                  If 2: for even $m$ when x is None, a univariate
+                  polynomial over the base ring of the curve is
+                  returned, which includes a factor of degree 3 whose
+                  roots are the $x$-coordinates of the $2$-torsion
+                  points.  Similarly when $x$ is not none, the
+                  evaluation of such a polynomial at $x$ is returned.
+
+                  If 1: when x is None, a bivariate polynomial over
+                  the base ring of the curve is returned, which
+                  includes a factor 2*y+a1*x+a3 which has simple zeros
+                  at the $2$-torsion points.  When $x$ is not none, it
+                  should be a tuple of length 2, and the evaluation of
+                  such a polynomial at $x$ is returned.
 
         EXAMPLES:
             sage: E = EllipticCurve([0,0,1,-1,0])
             sage: E.division_polynomial(1)
             1
+            sage: E.division_polynomial(2, two_torsion_multiplicity=0)
+            1
+            sage: E.division_polynomial(2, two_torsion_multiplicity=1)
+            2*y + 1
+            sage: E.division_polynomial(2, two_torsion_multiplicity=2)
+            4*x^3 - 4*x + 1
             sage: E.division_polynomial(2)
             4*x^3 - 4*x + 1
-            sage: E.division_polynomial(3, 'z')
-            3*z^4 - 6*z^2 + 3*z - 1
+            sage: [E.division_polynomial(3, two_torsion_multiplicity=i) for i in range(3)]
+            [3*x^4 - 6*x^2 + 3*x - 1, 3*x^4 - 6*x^2 + 3*x - 1, 3*x^4 - 6*x^2 + 3*x - 1]
+            sage: [type(E.division_polynomial(3, two_torsion_multiplicity=i)) for i in range(3)]
+            [<class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>,
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>,
+            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>]
 
             sage: E = EllipticCurve([0, -1, 1, -10, -20])
-            sage: E.torsion_polynomial(0)
-            0
-            sage: E.torsion_polynomial(1)
-            1
-            sage: E.torsion_polynomial(2)
-            4*x^3 - 4*x^2 - 40*x - 79
-            sage: E.torsion_polynomial(3)
-            3*x^4 - 4*x^3 - 60*x^2 - 237*x - 21
-            sage: E.torsion_polynomial(4)
-            8*x^9 - 24*x^8 - 464*x^7 - 2758*x^6 + 6636*x^5 + 34356*x^4 + 53510*x^3 + 99714*x^2 + 351024*x + 459859
+            sage: R.<z>=PolynomialRing(QQ)
+            sage: E.division_polynomial(4,z,0)
+            2*z^6 - 4*z^5 - 100*z^4 - 790*z^3 - 210*z^2 - 1496*z - 5821
+            sage: E.division_polynomial(4,z)
+            8*z^9 - 24*z^8 - 464*z^7 - 2758*z^6 + 6636*z^5 + 34356*z^4 + 53510*z^3 + 99714*z^2 + 351024*z + 459859
 
-            sage: E = EllipticCurve([-4,0])
-            sage: E.torsion_polynomial(2)
-            4*x^3 - 16*x
-            sage: E.torsion_polynomial(5)
-            5*x^12 - 248*x^10 - 1680*x^8 + 19200*x^6 - 32000*x^4 + 51200*x^2 + 4096
-            sage: E.torsion_polynomial(6)
-            12*x^19 - 1200*x^17 - 18688*x^15 + 422912*x^13 - 2283520*x^11 + 9134080*x^9 - 27066368*x^7 + 19136512*x^5 + 19660800*x^3 - 3145728*x
+        This does not work, since when two_torsion_multiplicity is 1,
+        we compute a bivariate polynomial, and must evaluate at 2
+        tuple of length 2:
+            sage: E.division_polynomial(4,z,1)
+            Traceback (most recent call last):
+            ...
+            ValueError: x should be a tuple of length 2 (or None) when two_torsion_multiplicity is 1
+            sage: R.<z,w>=PolynomialRing(QQ,2)
+            sage: E.division_polynomial(4,(z,w),1).factor()
+            (2*w + 1) * (2*z^6 - 4*z^5 - 100*z^4 - 790*z^3 - 210*z^2 - 1496*z - 5821)
 
-        AUTHOR: David Kohel (kohel@maths.usyd.edu.au), 2005-04-25
+        We can also evaluate this bivariate polynomial at a point:
+            sage: P = E(5,5)
+            sage: E.division_polynomial(4,P,two_torsion_multiplicity=1)
+            -1771561
         """
-        n = int(n)
-        try:
-            return self.__torsion_polynomial[n]
-        except AttributeError:
-            self.__torsion_polynomial = {}
-        except KeyError:
-            pass
-        E = self; i=int(i)
-        if n < 0:
-            raise ValueError, "n must be a non-negative integer."
-        if i > 1 :
-            raise ValueError, "i must be 0 or 1."
 
-        R = rings.PolynomialRing(E.base_ring(), var)
-        if i == 1:
-            if n == 0:
-                f = E.torsion_polynomial(1)
-                E.__torsion_polynomial[n] = f
-                return f
-            else:
-                x = R.gen()
-                psi2 = E.torsion_polynomial(2)
-                if n%2 == 0:
-                    f = x * psi2 * (E.torsion_polynomial(n)//psi2)**2 - \
-                        E.torsion_polynomial(n+1) * E.torsion_polynomial(n-1)
-                    E.__torsion_polynomial[n] = f
-                    return f
-                else:
-                    f = x * E.torsion_polynomial(n)**2 - \
-                        (E.torsion_polynomial(n+1)//psi2) * E.torsion_polynomial(n-1)
-                    E.__torsion_polynomial[n] = f
-                    return f
+        if not two_torsion_multiplicity in [0,1,2]:
+            raise ValueError, "two_torsion_multiplicity must be 0,1 or 2"
 
-        else:
-
-            if n == 0: return R(0)
-            if n == 1: return R(1)
-            x = R.gen()
-            b2, b4, b6, b8 = E.b_invariants()
-            psi2 = 4*x**3 + b2*x**2 + 2*b4*x + b6
-            if n == 2:
-                f = psi2
-                E.__torsion_polynomial[n] = f; return f
-            if n == 3:
-                f = 3*x**4 + b2*x**3 + 3*b4*x**2 + 3*b6*x + b8
-                E.__torsion_polynomial[n] = f; return f
-            if n == 4:
-                f = psi2 * (2*x**6 + b2*x**5 + 5*b4*x**4 + 10*b6*x**3 \
-                    + 10*b8*x**2  + (b2*b8 - b4*b6)*x + b4*b8 - b6**2)
-                E.__torsion_polynomial[n] = f; return f
-            if n%2 == 0:
-                m = n//2
-                if m%2 == 0:
-                    f = E.torsion_polynomial(m) * ( \
-                        (E.torsion_polynomial(m+2)//psi2) * E.torsion_polynomial(m-1)**2 - \
-                        (E.torsion_polynomial(m-2)//psi2) * E.torsion_polynomial(m+1)**2)
-                    E.__torsion_polynomial[n] = f; return f
-                else:
-                    f = psi2 * E.torsion_polynomial(m)*( \
-                        E.torsion_polynomial(m+2) * (E.torsion_polynomial(m-1)//psi2)**2 - \
-                        E.torsion_polynomial(m-2) * (E.torsion_polynomial(m+1)//psi2)**2)
-                    E.__torsion_polynomial[n] = f; return f
-            else:
-                m = n//2
-                if m%2 == 0:
-                    f = psi2 * \
-                        E.torsion_polynomial(m+2) * (E.torsion_polynomial(m)//psi2)**3 - \
-                        E.torsion_polynomial(m-1) * E.torsion_polynomial(m+1)**3
-                    E.__torsion_polynomial[n] = f; return f
-                else:
-                    f = E.torsion_polynomial(m+2) * E.torsion_polynomial(m)**3 - psi2 * \
-                        E.torsion_polynomial(m-1)*(E.torsion_polynomial(m+1)//psi2)**3
-                    E.__torsion_polynomial[n] = f; return f
-
-    division_polynomial = torsion_polynomial
-
-    def full_division_polynomial(self, m, use_divpoly=True):
-        """
-        Return the $m$-th bivariate division polynomial in $x$ and
-        $y$.  When $m$ is odd this is exactly the same as the usual
-        $m$th division polynomial.
-
-        For the usual division polynomial only in $x$, see the
-        division_polynomial function.
-
-        INPUT:
-            self -- elliptic curve in short Weierstrass form
-            m    -- a positive integer
-            use_divpoly -- whether to call the division_polynomial
-                           function directly in case $m$ is odd.
-        OUTPUT:
-            a polynomial in two variables $x$, $y$.
-
-        NOTE: The result is cached.
-
-        REFERENCE: Exercise III.3.7 of Silverman AEC 1, 1986, page 105.
-
-        EXAMPLES:
-        We create a curve and compute the first two full division
-        polynomials.
-            sage: E = EllipticCurve([2,3])
-            sage: E.full_division_polynomial(1)
-            1
-            sage: E.full_division_polynomial(2)
-            2*y
-
-        Note that for odd input the full division polynomial is
-        just the usual division polynomial, but not for even input:
-            sage: E.division_polynomial(2)
-            4*x^3 + 8*x + 12
-            sage: E.full_division_polynomial(3)
-            3*x^4 + 12*x^2 + 36*x - 4
-            sage: E.division_polynomial(3)
-            3*x^4 + 12*x^2 + 36*x - 4
-            sage: E.full_division_polynomial(4)
-            4*y*x^6 + 40*y*x^4 + 240*y*x^3 - 80*y*x^2 - 96*y*x - 320*y
-            sage: E.full_division_polynomial(5)
-            5*x^12 + 124*x^10 + 1140*x^9 - 420*x^8 + 1440*x^7 - 4560*x^6 - 8352*x^5 - 36560*x^4 - 45120*x^3 - 10240*x^2 - 39360*x - 22976
-
-        TESTS:
-        We test that the full division polynomial as computed using
-        the recurrence agrees with the norml division polynomial for
-        a certain curve and all odd $n$ up to $23$:
-
-            sage: E = EllipticCurve([23,-105])
-            sage: for n in [1,3,..,23]:
-            ...       assert E.full_division_polynomial(n, use_divpoly=False) == E.division_polynomial(n)
-        """
         # Coerce the input m to be an integer
         m = rings.Integer(m)
 
-        # Check whether the corresponding poly is cached already
-        try:
-            return self.__divpoly2[m]
-        except AttributeError:
-            self.__divpoly2 = {}
-        except KeyError:
-            pass
-
-        # Get the invariants of the curve and make sure that the curve is
-        # in short Weierstrass form.
-        a0,a1,a2,A,B = self.a_invariants()
-        if a0 or a1 or a2:
-            raise NotImplementedError, "Full division polynomial only implemented for elliptic curves in short Weierstrass form"
-
-        # Define the polynomial ring that will contain the full
-        # division polynomial.  The one subtle point here is the
-        # term order use of the variable y first.  This is done
-        # so the natural reduction in the quotient ring mod y^2 - x^3 - A*x - B
-        # replaces all y^2's by polys in x.  WARNING: Be careful
-        # that the gens are in the order y, x!
-        R, (y,x) = PolynomialRing(self.base_ring(), 2, 'y,x', order='revlex').objgens()
-
-        # In case m is odd we can just use the usual division
-        # polynomial code.  Note however that we are careful to coerce
-        # into the multivariate polynomial ring, since the usual div
-        # poly code returns a polynomial in one variable.  If we did
-        # that here it would lead to all kinds of problems later.
-        if use_divpoly and m % 2 == 1:
-            return R(self.division_polynomial(m))
-
-        # Do each case of the recurrence, exactly as in
-        # Silverman's exercise in III.3.7 on page 105.
-        if m <= 1:
-            f = R(1)
-            self.__divpoly2[m] = f
-            return f
-        elif m == 2:
-            f = 2*y
-            self.__divpoly2[m] = f
-            return f
-        elif m == 3:
-            f = 3*x**4 + 6*A*x**2 + 12*B*x - A**2
-            self.__divpoly2[m] = f
-            return f
-        elif m == 4:
-            f = 4*y*(x**6 + 5*A*x**4 + 20*B*x**3 - 5*A**2*x**2 -
-                        4*A*B*x - 8*B**2 - A**3)
-            self.__divpoly2[m] = f
+        if two_torsion_multiplicity == 0:
+            try:
+                return self.__divpoly0[(m,x)]
+            except AttributeError:
+                self.__divpoly0 = {}
+            except KeyError:
+                pass
+            f = self.division_polynomial_0(m,x)
+            self.__divpoly0[(m,x)] = f
             return f
 
-        # Finally we do the general part of the recurrence which
-        # divides into even and odd cases.
-        # We define psi to just be this full_division_polynomial function
-        # evaluated at a given integer k.  This makes the code below
-        # more readable.
-        psi = lambda k: self.full_division_polynomial(k,use_divpoly=use_divpoly)
-        if m % 2 == 1:
-            n = m//2
-            ans = psi(n+2) * psi(n)**3 - psi(n-1) * psi(n+1)**3
-        elif m % 2 == 0:
-            n = m//2
-            ans = (psi(n)*(psi(n+2)*psi(n-1)**2 - psi(n-2)*psi(n+1)**2))/(2*y)
+        if two_torsion_multiplicity == 1:
+            try:
+                return self.__divpoly1[(m,x)]
+            except AttributeError:
+                self.__divpoly1 = {}
+            except KeyError:
+                pass
+            xy = x
+            R, (x,y) = PolynomialRing(self.base_ring(), 2, 'x,y').objgens()
+            a1,a2,a3,a4,a6 = self.a_invariants()
+            f = self.division_polynomial_0(m,x)
+            if m % 2 == 0:
+                f *= (2*y+a1*x+a3)
+            if xy is None:
+                self.__divpoly1[(m,(x,y))] = f
+                return f
+            else:
+                if isinstance(xy,tuple) and len(xy)==2 or isinstance(xy, ell_point.EllipticCurvePoint_field):
+                    fxy = f(xy[0],xy[1])
+                    self.__divpoly1[(m,xy)] = fxy
+                    return fxy
+                else:
+                    raise ValueError, "x should be a tuple of length 2 (or None) when two_torsion_multiplicity is 1"
 
-        # Create the affine quotient ring so that we can replace all y^2
-        # terms by polys in x.
-        Q = R.quotient(y**2 - x**3 - A*x - B)
+        if two_torsion_multiplicity == 2:
+            try:
+                return self.__divpoly2[(m,x)]
+            except AttributeError:
+                self.__divpoly2 = {}
+            except KeyError:
+                pass
+            f = self.division_polynomial_0(m,x)
+            if m%2 == 0:
+                f *= self.division_polynomial_0(-1,x)
+            self.__divpoly2[(m,x)] = f
+            return f
 
-        # Do the actual reduction and lift back to R.
-        f = Q(ans).lift()
+    torsion_polynomial = division_polynomial
 
-        # Cache the result and return it.
-        self.__divpoly2[m] = f
-        return f
+#     def torsion_polynomial_old(self, n, var='x', i=0):
+#         r"""
+#         Returns the n-th torsion polynomial (a.k.a., division polynomial).
+
+#         INPUT:
+#             n -- non-negative integer
+#             var -- string; the indeterminate of the polynomial (default: x)
+#             i -- integer, either 0 (default) or 1.
+
+#         OUTPUT:
+#             Polynomial -- n-th torsion polynomial, which is a polynomial over
+#                           the base field of the elliptic curve.
+
+#         SEE ALSO: _division_polynomial, full_division_polynomial
+
+#         EXAMPLES:
+#             sage: E = EllipticCurve([0,0,1,-1,0])
+#             sage: E.torsion_polynomial_old(1)
+#             1
+#             sage: E.torsion_polynomial_old(2)
+#             4*x^3 - 4*x + 1
+#             sage: E.torsion_polynomial_old(3, 'z')
+#             3*z^4 - 6*z^2 + 3*z - 1
+
+#             sage: E = EllipticCurve([0, -1, 1, -10, -20])
+#             sage: E.torsion_polynomial(0)
+#             0
+#             sage: E.torsion_polynomial(1)
+#             1
+#             sage: E.torsion_polynomial(2)
+#             4*x^3 - 4*x^2 - 40*x - 79
+#             sage: E.torsion_polynomial(3)
+#             3*x^4 - 4*x^3 - 60*x^2 - 237*x - 21
+#             sage: E.torsion_polynomial(4)
+#             8*x^9 - 24*x^8 - 464*x^7 - 2758*x^6 + 6636*x^5 + 34356*x^4 + 53510*x^3 + 99714*x^2 + 351024*x + 459859
+
+#             sage: E = EllipticCurve([-4,0])
+#             sage: E.torsion_polynomial(2)
+#             4*x^3 - 16*x
+#             sage: E.torsion_polynomial(5)
+#             5*x^12 - 248*x^10 - 1680*x^8 + 19200*x^6 - 32000*x^4 + 51200*x^2 + 4096
+#             sage: E.torsion_polynomial(6)
+#             12*x^19 - 1200*x^17 - 18688*x^15 + 422912*x^13 - 2283520*x^11 + 9134080*x^9 - 27066368*x^7 + 19136512*x^5 + 19660800*x^3 - 3145728*x
+
+#             Check for consistency with division_polynomial_0:
+#             sage: assert all([E.torsion_polynomial(2*m-1)==E.division_polynomial_0(2*m-1) for m in range(1,20)])
+#             sage: assert all([E.torsion_polynomial(2*m)==E.division_polynomial_0(2*m)*E.division_polynomial_0(-1) for m in range(1,20)])
+
+#         AUTHOR: David Kohel (kohel@maths.usyd.edu.au), 2005-04-25
+#         """
+#         n = int(n)
+#         try:
+#             return self.__torsion_polynomial[n]
+#         except AttributeError:
+#             self.__torsion_polynomial = {}
+#         except KeyError:
+#             pass
+#         E = self; i=int(i)
+#         if n < 0:
+#             raise ValueError, "n must be a non-negative integer."
+#         if i > 1 :
+#             raise ValueError, "i must be 0 or 1."
+
+#         R = rings.PolynomialRing(E.base_ring(), var)
+
+# # This is just an abbreviation to make the following code clearer:
+#         tp = lambda m: E.torsion_polynomial(m)
+
+#         if i == 1:
+#             if n == 0:
+#                 f = tp(1)
+#                 E.__torsion_polynomial[n] = f
+#                 return f
+#             else:
+#                 x = R.gen()
+#                 psi2 = tp(2)
+#                 if n%2 == 0:
+#                     f = x * psi2 * (tp(n)//psi2)**2 - tp(n+1) * tp(n-1)
+#                     E.__torsion_polynomial[n] = f
+#                     return f
+#                 else:
+#                     f = x * tp(n)**2 - (tp(n+1)//psi2) * tp(n-1)
+#                     E.__torsion_polynomial[n] = f
+#                     return f
+
+#         else:
+
+#             if n == 0: return R(0)
+#             if n == 1: return R(1)
+#             x = R.gen()
+#             b2, b4, b6, b8 = E.b_invariants()
+#             psi2 = 4*x**3 + b2*x**2 + 2*b4*x + b6
+#             if n == 2:
+#                 f = psi2
+#                 E.__torsion_polynomial[n] = f; return f
+#             if n == 3:
+#                 f = 3*x**4 + b2*x**3 + 3*b4*x**2 + 3*b6*x + b8
+#                 E.__torsion_polynomial[n] = f; return f
+#             if n == 4:
+#                 f = psi2 * (2*x**6 + b2*x**5 + 5*b4*x**4 + 10*b6*x**3 \
+#                     + 10*b8*x**2  + (b2*b8 - b4*b6)*x + b4*b8 - b6**2)
+#                 E.__torsion_polynomial[n] = f; return f
+#             if n%2 == 0:
+#                 m = n//2
+#                 if m%2 == 0:
+#                     f = tp(m) * \
+#                         ((tp(m+2)//psi2) * tp(m-1)**2 - \
+#                          (tp(m-2)//psi2) * tp(m+1)**2)
+#                     E.__torsion_polynomial[n] = f; return f
+#                 else:
+#                     f = psi2 * tp(m)*( \
+#                         tp(m+2) * (tp(m-1)//psi2)**2 - \
+#                         tp(m-2) * (tp(m+1)//psi2)**2)
+#                     E.__torsion_polynomial[n] = f; return f
+#             else:
+#                 m = n//2
+#                 if m%2 == 0:
+#                     f = psi2 * \
+#                         tp(m+2) * (tp(m)//psi2)**3 - \
+#                         tp(m-1) * tp(m+1)**3
+#                     E.__torsion_polynomial[n] = f; return f
+#                 else:
+#                     f = tp(m+2) * tp(m)**3 - psi2 * \
+#                         tp(m-1)*(tp(m+1)//psi2)**3
+#                     E.__torsion_polynomial[n] = f; return f
+
+#     def full_division_polynomial(self, m):
+#         """
+#         Return the $m$-th bivariate division polynomial in $x$ and
+#         $y$.  When $m$ is odd this is exactly the same as the usual
+#         $m$th division polynomial.
+
+#         For the usual division polynomial only in $x$, see the
+#         functions division_polynomial() and
+#         division_polynomial_0().
+
+#         INPUT:
+#             self -- elliptic curve
+#             m    -- a positive integer
+#         OUTPUT:
+#             a polynomial in two variables $x$, $y$.
+
+#         NOTE: The result is cached.
+
+#         EXAMPLES:
+#         We create a curve and compute the first two full division
+#         polynomials.
+#             sage: E = EllipticCurve([2,3])
+#             sage: E.full_division_polynomial(1)
+#             1
+#             sage: E.full_division_polynomial(2)
+#             2*y
+
+#         Note that for odd input the full division polynomial is
+#         just the usual division polynomial, but not for even input:
+#             sage: E.division_polynomial(2)
+#             4*x^3 + 8*x + 12
+#             sage: E.full_division_polynomial(3)
+#             3*x^4 + 12*x^2 + 36*x - 4
+#             sage: E.division_polynomial(3)
+#             3*x^4 + 12*x^2 + 36*x - 4
+#             sage: E.full_division_polynomial(4)
+#             4*x^6*y + 40*x^4*y + 240*x^3*y - 80*x^2*y - 96*x*y - 320*y
+#             sage: E.full_division_polynomial(5)
+#             5*x^12 + 124*x^10 + 1140*x^9 - 420*x^8 + 1440*x^7 - 4560*x^6 - 8352*x^5 - 36560*x^4 - 45120*x^3 - 10240*x^2 - 39360*x - 22976
+
+#         TESTS:
+#         We test that the full division polynomial as computed using
+#         the recurrence agrees with the normal division polynomial for
+#         a certain curve and all odd $n$ up to $23$:
+
+#             sage: E = EllipticCurve([23,-105])
+#             sage: for n in [1,3,..,23]:
+#             ...       assert E.full_division_polynomial(n) == E.division_polynomial(n)
+#         """
+#         # Coerce the input m to be an integer
+#         m = rings.Integer(m)
+
+#         # Check whether the corresponding poly is cached already
+#         try:
+#             return self.__divpoly2[m]
+#         except AttributeError:
+#             self.__divpoly2 = {}
+#         except KeyError:
+#             pass
+
+#         # Get the invariants of the curve
+#         a1,a2,a3,a4,a6 = self.a_invariants()
+
+#         # Define the polynomial ring that will contain the full
+#         # division polynomial.
+
+#         R, (x,y) = PolynomialRing(self.base_ring(), 2, 'x,y').objgens()
+
+#         # The function division_polynomial_0() gives the correct
+#         # result when m is odd, and all we do in this case is evaluate
+#         # this at the variable x in our bivariate polynomial ring.
+
+#         # For even m, we must multiply the result of
+#         # division_polynomial_0() by the full 2-torsion polynomial
+#         # which is 2*y+a1*x+a3
+
+#         f = self.division_polynomial_0(m,x)
+#         if m % 2 == 0:
+#             f *= (2*y+a1*x+a3)
+
+#         # Cache the result and return it.
+#         self.__divpoly2[m] = f
+#         return f
+
+    def _multiple_x_numerator(self, n, x=None, cache=None):
+         r"""
+         Returns the numerator of the x-coordinate of the nth multiple of
+         a point, using torsion polynomials (division polynomials).
+
+         The inputs n, x, cache are as described in division_polynomial_0().
+
+         The result is adjusted to be correct for both even and odd n.
+
+         WARNING: -- There may of course be cancellation between the
+         numerator and the denominator (_multiple_x_denominator()). Be
+         careful. E.g. if a point on an elliptic curve with coefficients in
+         ZZ reduces to a singular point modulo a prime, then there will be cancellation, otherwise not, see Chris Wuthrich ``p-adic heights in families of elliptic curves''.
+
+         SEE ALSO:
+           -- _multiple_x_denominator()
+
+         AUTHORS:
+            -- David Harvey (2006-09-24)
+
+         EXAMPLES:
+           sage: E = EllipticCurve("37a")
+           sage: P = E.gens()[0]
+           sage: x = P[0]
+
+           sage: (35*P)[0]
+           -804287518035141565236193151/1063198259901027900600665796
+           sage: E._multiple_x_numerator(35, x)
+           -804287518035141565236193151
+           sage: E._multiple_x_denominator(35, x)
+           1063198259901027900600665796
+
+           sage: (36*P)[0]
+           54202648602164057575419038802/15402543997324146892198790401
+           sage: E._multiple_x_numerator(36, x)
+           54202648602164057575419038802
+           sage: E._multiple_x_denominator(36, x)
+           15402543997324146892198790401
+
+         An example where cancellation occurs:
+           sage: E = EllipticCurve("88a1")
+           sage: P = E([2,2])   # fixed choice of generator
+           sage: n = E._multiple_x_numerator(11, P[0]); n
+           442446784738847563128068650529343492278651453440
+           sage: d = E._multiple_x_denominator(11, P[0]); d
+           1427247692705959881058285969449495136382746624
+           sage: n/d
+           310
+           sage: 11*P
+           (310 : -5458 : 1)
+
+         """
+         if cache is None:
+             cache = {}
+
+         if x is None:
+             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+
+         n = int(n)
+         if n < 2:
+             print "n must be at least 2"
+
+         self.division_polynomial_0( -2, x, cache)
+         self.division_polynomial_0(n-1, x, cache)
+         self.division_polynomial_0(n  , x, cache)
+         self.division_polynomial_0(n+1, x, cache)
+
+         if n % 2 == 0:
+             return x * cache[-1] * cache[n]**2 - cache[n-1] * cache[n+1]
+         else:
+             return x * cache[n]**2 - cache[-1] * cache[n-1] * cache[n+1]
+
+
+    def _multiple_x_denominator(self, n, x=None, cache=None):
+         r"""
+         Returns the denominator of the x-coordinate of the nth multiple of
+         a point, using torsion polynomials (division polynomials).
+
+         The inputs n, x, cache are as described in division_polynomial_0().
+
+         The result is adjusted to be correct for both even and odd n.
+
+         SEE ALSO:
+           -- _multiple_x_numerator()
+
+         TODO: the numerator and denominator versions share a calculation,
+         namely squaring $\psi_n$. Maybe would be good to offer a combined
+         version to make this more efficient.
+
+         EXAMPLES:
+            -- see _multiple_x_numerator()
+
+         AUTHORS:
+            -- David Harvey (2006-09-24)
+
+         """
+         if cache is None:
+             cache = {}
+
+         if x is None:
+             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+
+         n = int(n)
+         if n < 2:
+             print "n must be at least 2"
+
+         self.division_polynomial_0(-2, x, cache)
+         self.division_polynomial_0(n , x, cache)
+
+         if n % 2 == 0:
+             return cache[-1] * cache[n]**2
+         else:
+             return cache[n]**2
+
 
     def multiplication_by_m(self, m, x_only=False):
         """
-        Return the multiplication-by-m map from self to self as a rational
-        function.
+        Return the multiplication-by-m map from self to self as a pair
+        of rational functions in two variables x,y.
 
         INPUT:
             self -- an elliptic curve in short Weierstrass form
-            m -- a positive integer
+            m -- a nonzero integer
             x_only -- bool (default: False) if True, return only the x
                       coordinate of the map.
 
         OUTPUT:
             2-tuple -- (f(x), g(x,y)) where f and g are rational functions
-                       with the degree of y in g(x,y) at most 1.
+                       with the degree of y in g(x,y) exactly 1.
 
-        NOTE: The result is not cached.
+        NOTES: 1. The result is not cached.
+               2. m is allowed to be negative (but not 0).
 
         EXAMPLES:
         We create an elliptic curve.
@@ -1747,7 +1979,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         Multiplication by 2 is more complicated.
             sage: f = E.multiplication_by_m(2)
             sage: f
-            ((x^4 + 2*x^2 - 24*x + 1)/(4*x^3 - 4*x + 12), (2*x^6 - 10*x^4 + 120*x^3 - 10*x^2 + 24*x - 142)/(16*y*x^3 - 16*y*x + 48*y))
+            ((x^4 + 2*x^2 - 24*x + 1)/(4*x^3 - 4*x + 12), (8*x^6*y - 40*x^4*y + 480*x^3*y - 40*x^2*y + 96*x*y - 568*y)/(64*x^6 - 128*x^4 + 384*x^3 + 64*x^2 - 384*x + 576))
 
         Grab only the x-coordinate (less work):
             sage: E.multiplication_by_m(2, x_only=True)
@@ -1755,30 +1987,21 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         We check that it works on a point:
             sage: P = E([2,3])
-            sage: f[0].subs(x=2,y=3)
-            -23/36
-            sage: f[1].subs(x=2,y=3)
-            397/216
-            sage: 2*P
-            (-23/36 : 397/216 : 1)
+            sage: eval = lambda f,P: [fi(P[0],P[1]) for fi in f]
+            sage: assert E(eval(f,P)) == 2*P
 
         We do the same but with multiplication by 3:
             sage: f = E.multiplication_by_m(3)
-            sage: f[0].subs(x=2,y=3)
-            -10534/9025
-            sage: f[1].subs(x=2,y=3)
-            -1376361/857375
-            sage: 3*P
-            (-10534/9025 : -1376361/857375 : 1)
+            sage: assert E(eval(f,P)) == 3*P
 
         And the same with multiplication by 4:
             sage: f = E.multiplication_by_m(4)
-            sage: f[0].subs(x=2,y=3)
-            29084737/22695696
-            sage: f[1].subs(x=2,y=3)
-            -211407941663/108122295744
-            sage: 4*P
-            (29084737/22695696 : -211407941663/108122295744 : 1)
+            sage: assert E(eval(f,P)) == 4*P
+
+        And the same with multiplication by -1,-2,-3,-4:
+            sage: for m in [-1,-2,-3,-4]:
+            ...       f = E.multiplication_by_m(m)
+            ...       assert E(eval(f,P)) == m*P
 
         TESTS:
         Verify for this fairly random looking curve and point that
@@ -1789,57 +2012,49 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: for n in [1..10]:
             ...       f = E.multiplication_by_m(n)
             ...       Q = n*P
-            ...       assert f[0].subs(x=P[0],y=P[1]) == Q[0] and f[1].subs(x=P[0],y=P[1]) == Q[1]
+            ...       assert Q == E(eval(f,P))
+            ...       f = E.multiplication_by_m(-n)
+            ...       Q = -n*P
+            ...       assert Q == E(eval(f,P))
         """
-        # Define a function psi that returns the full bivariate division polynomial
-        # psi(k) for this elliptic curve.   We do this for simplicity of notation
-        # below.
-        psi = lambda k: self.full_division_polynomial(k)
-        psi_m = psi(m)
+        # Coerce the input m to be an integer
+        m = rings.Integer(m)
 
-        # Grab the multivariate polynomial ring that contains the full division
-        # polynomial.  NOTE the generators order y,x rather than x,y!
-        R, (y,x) = psi_m.parent().objgens()
+        if m==0:
+            raise ValueError, "m must be a non-zero integer"
+
+        R = PolynomialRing(self.base_ring(), 2, 'x,y')
+
+        # Kxy is the function field, containing the full division polynomial.
+        Kxy = R.fraction_field()
+        x,y = Kxy.gens()
 
         # Special case of multiplication by 1 is easy.
         if m == 1:
             return (x, y)
 
-        # Grab curve invariants and make sure the curve is in short Weierstrass form.
-        # (It would be desirable to extend this function to work with
-        # arbitrary models -- not just short ones.)
-        a0,a1,a2,A,B = self.a_invariants()
-        if a0 or a1 or a2:
-            raise NotImplementedError, "multiplication_by_m only implemented for elliptic curves in short Weierstrass form"
+        # Grab curve invariants
+        a1,a2,a3,a4,a6 = self.a_invariants()
 
-        # Form the affine coordinate ring, which we'll use only for getting
-        # rid of terms involving y^2.
-        Q = R.quotient(y**2 - x**3 - A*x - B)
-        def normalize(f):
-            return Q(f.numerator()).lift() / Q(f.denominator()).lift()
+        if m == -1:
+            return (x, -y-a1*x-a3)
 
-        # Write down the x coordinate using the formula in
-        # Silverman AEC Ex III.3.7, page 105.
-        phi_m = x*psi(m)**2 - psi(m+1)*psi(m-1)
-        x_coord = normalize(phi_m / psi_m**2)
+        # the x-coordonate does not depend on the sign of m.  The work
+        # here is done by functions defined earlier:
+
+        mx = self._multiple_x_numerator(m.abs(),x) / self._multiple_x_denominator(m.abs(),x)
+
         if x_only:
             # Return it if the optional parameter x_only is set.
-            return x_coord
+            return mx
 
-        if m == 2:
-            # The formula from Silverman III.3.7 given in the other
-            # case of the else is *wrong*.  I guess he made a mistake
-            # and ignored a special case.  In any case, the following
-            # formula from my elementary number theory book (which
-            # is from Lenstra's ECM paper, actually), is right.
-            lam = (3*x**2 + A)/(2*y)
-            y_coord = normalize(-lam*x_coord - (y - lam*x))
-        else:
-            # Silverman's formula, which works for m > 2 for
-            # the y coordinate.
-            omega_m = (psi(m+2)*psi(m-1)**2 - psi(m-2)*psi(m+1)**2)/(4*y)
-            y_coord = normalize(omega_m / psi_m**3)
-        return x_coord, y_coord
+        #  Consideration of the invariant differential
+        #  w=dx/(2*y+a1*x+a3) shows that m*w = d(mx)/(2*my+a1*mx+a3)
+        #  and hence 2*my+a1*mx+a3 = (1/m)*(2*y+a1*x+a3)*d(mx)/dx
+
+        my = ((2*y+a1*x+a3)*mx.derivative(x)/m - a1*mx-a3)/2
+
+        return mx, my
 
     def isomorphism_to(self, other):
         """
@@ -1966,14 +2181,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         if field==None:
             if self.base_ring() != other.base_ring():
                 return False
-            elif self.j_invariant() != other.j_invariant(): ## easy check
+            elif self.j_invariant() != other.j_invariant():  # easy check
                 return False
             else:
                 return wm.isomorphisms(self,other,True) != None
         else:
             E=self.base_extend(field)
             F=other.base_extend(field)
-            if E.j_invariant() != F.j_invariant(): ## easy check
+            if E.j_invariant() != F.j_invariant():  # easy check
                 return False
             else:
                 return wm.isomorphisms(E,other,F) != None
@@ -2007,13 +2222,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         If complete_cube=True:
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve.
-        The characteristic must not be 2 or 3.
-        a,b = -27*c4, -54*c6
+        The characteristic must not be 2; in characteristic 3, it is
+        only possible if b2==0.
 
         If complete_cube=False:
         Return a model of the form $y^2 = x^3 + ax^2 + bx + c$ for this curve.
         The characteristic must not be 2.
-        a,b,c = b2, 8*b4, 16*b6
 
         EXAMPLES:
             sage: E = EllipticCurve([1,2,3,4,5])
@@ -2033,18 +2247,37 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve(GF(3),[1,2,3,4,5])
             sage: E.short_weierstrass_model(complete_cube=False)
             Elliptic Curve defined by y^2  = x^3 + x + 2 over Finite Field of size 3
+
+            This used to be different see trac \#3973
+            sage: E.short_weierstrass_model()
+            Elliptic Curve defined by y^2  = x^3 + x + 2 over Finite Field of size 3
+
+            More tests in characteristic 3
+            sage: E = EllipticCurve(GF(3),[0,2,1,2,1])
             sage: E.short_weierstrass_model()
             Traceback (most recent call last):
             ...
-            ValueError: short_weierstrass_model(): no short model for Elliptic Curve defined by y^2 + x*y  = x^3 + 2*x^2 + x + 2 over Finite Field of size 3 (characteristic is 3)
+            ValueError: short_weierstrass_model(): no short model for Elliptic Curve defined by y^2 + y = x^3 + 2*x^2 + 2*x +1 over Finite Field of size 3 (characteristic is 3)
+            sage: E.short_weierstrass_model(complete_cube=False)
+            Elliptic Curve defined by y^2  = x^3 + 2*x^2 + 2*x + 2 over Finite Field of size 3
+            sage: E.short_weierstrass_model(complete_cube=False).is_isomorphic(E)
+            True
 
         """
         import constructor
         K = self.base_ring()
+
+        # any curve of the form y^2 = x^3 +.. is singular in characteristic 2
         if K.characteristic() == 2:
             raise ValueError, "short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
-        if K.characteristic() == 3 and complete_cube:
-            raise ValueError, "short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
+
+        # in characteristic 3 we can complete the square but we can only complete the cube if b2 is 0
+        if K.characteristic() == 3:
+            b2,b4,b6,_ = self.b_invariants()
+            if complete_cube and b2 != 0:
+                raise ValueError, "short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
+            else:
+                return constructor.EllipticCurve([0,b2,0,8*b4,16*b6])
 
         a1,a2,a3,_,_ = self.a_invariants()
         if complete_cube:
@@ -2065,9 +2298,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                 return constructor.EllipticCurve([0,b2,0,8*b4,16*b6])
 
 
-    ##############################################################################
+
     # Plotting
-    ##############################################################################
+
 
     def plot(self, xmin=None, xmax=None, **args):
         """
@@ -2160,6 +2393,94 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.__formal_group
 
     formal = formal_group
+
+    def _p_primary_torsion_basis(self,p):
+        r"""
+        Find a basis for the $p$-primary part of the torsion subgroup of this elliptic curve.
+
+        INPUT :
+            $p$ -- a prime
+
+        OUTPUT : A list of 0, 1 or 2 pairs [T,k] where T is a generator
+            of order $p^k$.  That is, either [] or [[T1,k1]] or
+            [[T1,k1],[T2,k2]] with [], [T1], or [T1,T2] a basis and
+            $p^k1 >= p^k2 >= 1$ their orders.
+
+        WARNINGS: 1. Do not call this on a curve whose group is
+                 $p$-divisible (i.e., whose $p$-primary part is
+                 infinite)!
+
+                  2. The code uses division polynomials and will be
+                 slow for large $p$.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('11a1')
+            sage: E._p_primary_torsion_basis(5)
+            [[(5 : -6 : 1), 1]]
+            sage: K.<t>=NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
+            sage: EK=E.base_extend(K)
+            sage: EK._p_primary_torsion_basis(5)
+            [[(16 : 60 : 1), 1], [(t : 1/11*t^3 + 6/11*t^2 + 19/11*t + 48/11 : 1), 1]]
+            sage: EF=E.change_ring(GF(101))
+            sage: EF._p_primary_torsion_basis(5)
+            [[(0 : 13 : 1), 1], [(5 : 5 : 1), 1]]
+
+        """
+        p = rings.Integer(p)
+        if not p.is_prime():
+            raise ValueError, "p (=%s) should be prime"%p
+
+        # First find the p-torsion:
+        Ep = self(0).division_points(p)
+        p_rank = rings.Integer(len(Ep)).exact_log(p)
+        assert p_rank in [0,1,2]
+
+        if p_rank == 0:
+            return []
+
+        assert p_rank in [1,2]
+
+        if p_rank == 1:
+            P = Ep[0]
+            if P.is_zero(): P=Ep[1]
+            (P,k) = P._divide_out(p)
+            k += 1
+            # now P generates the p-power-torsion and has order p^k
+            return [[P,k]]
+
+        assert p_rank == 2
+        Epi = iter(Ep) # used to iterate through Ep
+        # Find P1,P2 which generate the p-torsion:
+        P1 = Epi.next()
+        while P1.is_zero(): P1 = Epi.next()
+        P2 = Epi.next()
+        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = Epi.next()
+
+        # Algorithm: we first keep dividing P1 and P2 by p until we no
+        # longer can.  If they stop at different orders p^k1, p^k2
+        # then we return [[P1,k1],[P2,k2]] (or in reverse order if
+        # k2>k1).  If they stop at the same order k, then we need to
+        # see if P1+a*P2 can be further divided for some a mod p; if
+        # so, replace P1 by P1+a*P2 and keep dividing it by p.
+
+        (P1,k1) = P1._divide_out(p)
+        k1 += 1
+        (P2,k2) = P2._divide_out(p)
+        k2 += 1
+        if k1>k2:
+            return [[P1,k1],[P2,k2]]
+        if k1<k2:
+            return [[P2,k2],[P1,k1]]
+        # Now k1==k2
+        for Q in generic.multiples(P2,p-1,P1+P2,operation='+'):
+            # Q runs through P1+a*P2 for a=1,2,...,p-1
+            (R,k) = Q._divide_out(p)
+            if k>0:
+                return [[R,k1+k],[P2,k2]]
+            else:
+                pass
+        # If we get here the structure is (p^k1,p^k1) and k2==k1
+        return [[P1,k1],[P2,k2]]
 
 
     def hyperelliptic_polynomials(self):

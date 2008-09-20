@@ -276,13 +276,13 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: V.irreducible_components()
             [
             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-            w^5 - 2*z^3*v^2,
-            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-            x^2*z - v^3,
+            w,
             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
             x^2 - y^2 - z^2,
             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-            w
+            x^2*z - v^3,
+            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+            w^5 - 2*z^3*v^2
             ]
         """
         try:
@@ -381,6 +381,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError, "other (=%s) must be in the same ambient space as self"%other
         return A.subscheme(self.defining_ideal().intersection(other.defining_ideal()))
 
+    __add__ = union
 
     def intersection(self, other):
         """

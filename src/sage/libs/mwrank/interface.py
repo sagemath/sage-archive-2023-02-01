@@ -12,6 +12,7 @@ methods that are implemented using this module.
 """
 
 from sage.structure.sage_object import SageObject
+from sage.rings.integer_ring import IntegerRing
 
 def set_precision(n):
     """
@@ -69,10 +70,11 @@ class mwrank_EllipticCurve(SageObject):
             [0, 0, 0, 3, -4]
 
         The entries of the input list are coerced to \class{int}.
-        This has the effect that for float input, the integer parts of
-        the input coefficients are taken.
-            sage: e = mwrank_EllipticCurve([3, float(-4.8)]); e
-            y^2 = x^3 + 3*x - 4
+        If this is impossible then an error is raised:
+            sage: e = mwrank_EllipticCurve([3, -4.8]); e
+            Traceback (most recent call last):
+            ...
+            TypeError: ainvs must be a list of integers.
 
         When you enter a singular model you get an exception:
             sage: e = mwrank_EllipticCurve([0, 0])
@@ -93,7 +95,7 @@ class mwrank_EllipticCurve(SageObject):
 
         # Convert each entry to an int
         try:
-            a_int = [int(x) for x in ainvs]
+            a_int = [IntegerRing()(x) for x in ainvs]
         except (TypeError, ValueError):
             raise TypeError, "ainvs must be a list of integers."
         self.__ainvs = a_int

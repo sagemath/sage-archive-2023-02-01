@@ -154,6 +154,18 @@ cdef class Matrix(matrix0.Matrix):
             sage: B.Parent()                            # optional
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
 
+            sage: R.<x,y> = QQ[]
+            sage: A = MatrixSpace(R,2,2)([x+y,x-1,y+5,x*y])
+            sage: B = magma(A); B                       # optional
+            [x + y x - 1]
+            [y + 5   x*y]
+
+            sage: R.<x,y> = ZZ[]
+            sage: A = MatrixSpace(R,2,2)([x+y,x-1,y+5,x*y])
+            sage: B = magma(A); B                       # optional
+            [x + y x - 1]
+            [y + 5   x*y]
+
         We coerce a matrix over a cyclotomic field, where the
         generator must be named during the coercion.
             sage: K = CyclotomicField(9) ; z = K.0
@@ -212,6 +224,25 @@ cdef class Matrix(matrix0.Matrix):
 
         return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
 
+    def _macaulay2_(self, macaulay2=None):
+        """
+        EXAMPLES:
+            sage: m = matrix(ZZ, [[1,2],[3,4]])
+            sage: macaulay2(m)                  #optional
+            | 1 2 |
+            | 3 4 |
+
+            sage: R.<x,y> = QQ[]
+            sage: m = matrix([[x,y],[1+x,1+y]])
+            sage: macaulay2(m)                  #optional
+            | x   y   |
+            | x+1 y+1 |
+
+        """
+        base_ring = macaulay2(self.base_ring())
+        entries = map(list, self)
+        return macaulay2(entries).matrix()
+
     def numpy(self, dtype=None):
         """
         Return the Numpy matrix associated to this matrix.
@@ -243,7 +274,7 @@ cdef class Matrix(matrix0.Matrix):
         Type \code{numpy.typecodes} for a list of the possible typecodes:
             sage: import numpy
             sage: numpy.typecodes
-            {'All': '?bhilqpBHILQPfdgFDGSUVO', 'AllInteger': 'bBhHiIlLqQpP', 'AllFloat': 'fdgFDG', 'UnsignedInteger': 'BHILQP', 'Float': 'fdg', 'Character': 'S1', 'Complex': 'FDG', 'Integer': 'bhilqp'}
+            {'All': '?bhilqpBHILQPfdgFDGSUVO', 'AllInteger': 'bBhHiIlLqQpP', 'AllFloat': 'fdgFDG', 'UnsignedInteger': 'BHILQP', 'Float': 'fdg', 'Character': 'c', 'Complex': 'FDG', 'Integer': 'bhilqp'}
         """
         import numpy
         A = numpy.matrix(self.list(), dtype=dtype)

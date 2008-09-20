@@ -383,10 +383,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         return gcd(self.coefficients(),integer=self.parent() is ZZ)
 
     def degrees(self):
-        """
-        Returns a list (precisely -- an \code{ETuple}) with the degree of
-        each variable in this polynomial.  The list of degrees is, of course,
-        ordered by the order of the generators.
+        r"""
+        Returns a tuple (precisely -- an \code{ETuple}) with the
+        degree of each variable in this polynomial.  The list of
+        degrees is, of course, ordered by the order of the generators.
 
         EXAMPLES:
             sage: R.<x,y,z>=PolynomialRing(ZZ)
@@ -643,7 +643,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             2
             sage: c.parent()
             Multivariate Polynomial Ring in x, y over Integer Ring
-            sage: c in MPolynomialRing(IntegerRing(), 2, names = ['x','y'])
+            sage: c in PolynomialRing(IntegerRing(), 2, names = ['x','y'])
             True
             sage: f = y^2 - x^9 - 7*x + 5*x*y
             sage: f.coefficient({y:1})
@@ -969,8 +969,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         If this polynomial is not in at most one variable, then a
         ValueError exception is raised.  This is checked using the
         is_univariate() method.  The new Polynomial is over the same
-        base ring as the given MPolynomial and in the variable 'x' if
-        no ring 'ring' is provided.
+        base ring as the given MPolynomial.
 
         EXAMPLES:
             sage: R.<x,y> = ZZ[]
@@ -982,16 +981,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: g = f.subs({x:10}); g
             700*y^2 - 2*y + 305
             sage: g.univariate_polynomial ()
-            700*x^2 - 2*x + 305
+            700*y^2 - 2*y + 305
             sage: g.univariate_polynomial(PolynomialRing(QQ,'z'))
             700*z^2 - 2*z + 305
         """
         if not self.is_univariate():
             raise TypeError, "polynomial must involve at most one variable"
 
-        #construct ring if none
-        if R == None:
-            R =  self.base_ring()['x']
+        #construct ring if None
+        if R is None:
+            R =  self.base_ring()[str(self.variables()[0])]
 
         monomial_coefficients = self._MPolynomial_element__element.dict()
 
@@ -1294,7 +1293,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         r"""
         Compute the irreducible factorization of this polynomial.
 
-        ALGORITHM: Use Singular.
+        ALGORITHM: Use Singular or univariate factorization code.
 
         EXAMPLES:
             sage: R.<x, y> = QQ[]
@@ -1330,18 +1329,25 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: K.<a> = NumberField(x^2 + 1)
             sage: R.<y, z> = PolynomialRing(K)
             sage: f = 2*y^2 + 2*z^2
-            sage: F = f.factor(); F.unit_part()
+            sage: F = f.factor(); F.unit()
             2
+
+        If a polynomial is univariate, the appropriate univariate
+        factorization code is called.
+            sage: R.<z> = PolynomialRing(CC,1)
+            sage: f = z^4 - 6*z + 3
+            sage: f.factor()
+            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
         """
-        # I do not think this applied anymore.  Or at least it's
-        # more relevant to optimizing the NTL build.
-        #\note{Singular multi-variate polynomial factorization is very
-        #slow in \SAGE.  This \emph{not} a fault of Singular but of how
-        #the \SAGE NTL is built.  If you download and install a
-        #Singular binary from the Singular website it will not have
-        #this problem (you can use it with \SAGE by putting it in
-        #local/bin/).}
         R = self.parent()
+
+        # try to use univariate factoring first
+        try:
+            F = self.univariate_polynomial().factor()
+            return Factorization([(R(f),m) for f,m in F], unit=F.unit())
+        except TypeError:
+            pass
+
         R._singular_().set_ring()
         S = self._singular_().factorize()
         factors = S[1]
@@ -1456,33 +1462,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         R._singular_().set_ring()
         X = self._singular_().division(right._singular_())
         return R(X[1][1,1]), R(X[2][1])
-
-    def _magma_(self, magma=None):
-        """
-        Returns the MAGMA representation of self.
-
-        EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(GF(2),2)
-            sage: f = y*x^2 + x +1
-            sage: f._magma_() #optional
-            x^2*y + x + 1
-
-        """
-        if magma == None:
-            import sage.interfaces.magma
-            magma = sage.interfaces.magma.magma
-
-        try:
-            m = self.__magma
-            m._check_valid()
-            if not m.parent() is magma:
-                raise ValueError
-            return m
-        except (AttributeError,ValueError):
-            magma_gens = [e.name() for e in self.parent()._magma_().gens()]
-            f = self.element().poly_repr(magma_gens,atomic_coefficients=False)
-            self.__magma = magma(f)
-            return self.__magma
 
     def reduce(self, I):
         """

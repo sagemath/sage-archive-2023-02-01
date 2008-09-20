@@ -77,7 +77,7 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
 
     UNIQUENESS and IMMUTABILITY: In SAGE there is exactly one
     single-variate laurent polynomial ring over each base ring in each choice
-    of variable and sparsenes.  There is also exactly one multivariate
+    of variable and sparseness.  There is also exactly one multivariate
     laurent polynomial ring over each base ring for each choice of names of
     variables and term order.
 
@@ -461,10 +461,10 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         EXAMPLES:
             sage: L.<x,y> = LaurentPolynomialRing(QQ)
             sage: L.coerce_map_from(QQ)
-            Composite morphism:
+            Composite map:
               From: Rational Field
               To:   Multivariate Laurent Polynomial Ring in x, y over Rational Field
-              Defn:   Coercion morphism:
+              Defn:   Call morphism:
                       From: Rational Field
                       To:   Multivariate Polynomial Ring in x, y over Rational Field
                     then

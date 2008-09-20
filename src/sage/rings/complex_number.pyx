@@ -66,7 +66,11 @@ def is_ComplexNumber(x):
 
 cdef class ComplexNumber(sage.structure.element.FieldElement):
     """
-    A complex number.
+    A floating point approximation to a complex number using any specified
+    precision. Answers derived from calculations with such
+    approximations may differ from what they would be if those
+    calculations were performed with true complex numbers. This is due
+    to the rounding errors inherent to finite precision calculations.
 
     EXAMPLES:
         sage: I = CC.0
@@ -74,6 +78,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         sage: loads(b.dumps()) == b
         True
     """
+
     cdef ComplexNumber _new(self):
         """
         Quickly creates a new initialized complex number with the same parent as self.

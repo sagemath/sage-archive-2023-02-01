@@ -327,6 +327,8 @@ var title_spinner = ['/ ', '\\ '];
 //var title_spinner = ['[-] ','[/] ','[|] ','[\\] '];
 var title_spinner_i = 0;
 
+var evaluating_all = false;
+var evaluating_all_cursor = 0;
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -2492,7 +2494,9 @@ function evaluate_cell_introspection(id, before, after) {
 
 function evaluate_cell_callback(status, response_text) {
     /*
-    Update the focus and possibly add a new cell.
+    Update the focus and possibly add a new cell.  If evaluate all
+    has been clicked, start evaluating the next cell (and don't
+    add a new cell).
 
     INPUT:
         response_text -- string that is of the form
@@ -2513,7 +2517,15 @@ function evaluate_cell_callback(status, response_text) {
         alert("You requested to evaluate a cell that, for some reason, the server is unaware of.");
         return;
     }
-    if (X[1] == 'append_new_cell') {
+
+    if (evaluating_all) {
+        if(evaluating_all_cursor >= cell_id_list.length) {
+            evaluating_all = false;
+        } else {
+            evaluate_cell(cell_id_list[evaluating_all_cursor], false);
+            evaluating_all_cursor++;
+        }
+    } else if (X[1] == 'append_new_cell') {
         // add a new cell to the very end
         append_new_cell(X[0],X[2]);
     } else if (X[1] == 'insert_cell') {
@@ -2765,10 +2777,13 @@ function check_for_cell_update_callback(status, response_text) {
     var introspect_html = D[5];
     var j = id_of_cell_delta(id,1);
 
-    // Evaluate javascript
-    output_text = output_text.replace(/<script.*?>(.|\n|\r)*?<\/script>/gim, '&lt;script&gt;');
-    output_text_wrapped = eval_script_tags(output_text_wrapped);
-    output_html = eval_script_tags(output_html);
+    // Evaluate javascript, but *only* after the entire
+    // cell output has been loaded (hence the stat == 'd') below.
+    var cell_is_not_an_interact_update = ! get_element("cell-interact-" + id);
+    if (stat == 'd' && cell_is_not_an_interact_update) {
+        output_text_wrapped = eval_script_tags(output_text_wrapped);
+        output_html = eval_script_tags(output_html);
+    }
 
     // Set the latest output text got from the server.
     set_output_text(id, output_text, output_text_wrapped,
@@ -2902,7 +2917,9 @@ function set_output_text(id, text, wrapped_text, output_html,
             /* alert("Bug in notebook -- interact wrapped text is invalid" + wrapped_text); */
             return;
         }
+
         var new_interact_output = wrapped_text.slice(i+16,j);
+        new_interact_output = eval_script_tags(new_interact_output);
 
         // An error occured accessing the data for this cell.  Just force reload
         // of the cell, which will certainly define that data.
@@ -3433,18 +3450,21 @@ function interrupt_callback(status, response_text) {
 function evaluate_all() {
     /*
     Iterate through every input cell in the document, in order, and
-    evaluate it.
+    evaluate it.  Previously, we just called evaluate on everything
+    all at once.  This is undesirable, since packets often arrive
+    out-of-order, so the cells get evaluated out-of-order.
+
+    Set the global variable evaluating_all = true.  Then, we kick off
+    evaluations by evaluating the first cell.  In cell_evaluate_callback,
+    we check to see if evaluating_all is set, and proceed from there.
+    This way, each cell is evaluated immediately after the server
+    acknowledges that it has received the previous request.
+
     */
-    var v = cell_id_list;
-    var n = v.length;
-    var i;
-    for(i=0; i<n; i++) {
-        var cell_input = get_cell(v[i]);
-        var I = cell_input.value;
-        if (first_variable_name_in_string(I).length > 0) {
-            evaluate_cell(v[i],0);
-        }
-    }
+
+    evaluating_all = true;
+    evaluating_all_cursor = 1; //start at 1 since we kick-off with zero
+    evaluate_cell(cell_id_list[0],false);
 }
 
 function hide_all() {
@@ -3601,6 +3621,14 @@ function help() {
     "menubar=1,location=1,scrollbars=1,width=800,height=650,toolbar=1,  resizable=1");
 }
 
+function bugreport() {
+    /*
+    Popup the bug report window.
+    */
+    log = window.open ("http://spreadsheets.google.com/viewform?key=pCwvGVwSMxTzT6E2xNdo5fA","",
+    "menubar=1,location=1,scrollbars=1,width=800,height=650,toolbar=1,  resizable=1");
+}
+
 
 
 ///////////////////////////////////////////////////////////////////
@@ -3666,7 +3694,7 @@ function encode64(input) {
     var enc1, enc2, enc3, enc4;
     var i = 0;
 
-    do {
+     while (i < input.length) {
         chr1 = input.charCodeAt(i++);
         chr2 = input.charCodeAt(i++);
         chr3 = input.charCodeAt(i++);
@@ -3684,7 +3712,7 @@ function encode64(input) {
 
         output = output + keyStr.charAt(enc1) + keyStr.charAt(enc2) +
             keyStr.charAt(enc3) + keyStr.charAt(enc4);
-    } while (i < input.length);
+    }
 
     return output;
 }
@@ -3705,7 +3733,7 @@ function decode64(input) {
     // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
     input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
-    do {
+    while (i < input.length) {
         enc1 = keyStr.indexOf(input.charAt(i++));
         enc2 = keyStr.indexOf(input.charAt(i++));
         enc3 = keyStr.indexOf(input.charAt(i++));
@@ -3723,7 +3751,7 @@ function decode64(input) {
         if (enc4 != 64) {
             output = output + String.fromCharCode(chr3);
         }
-    } while (i < input.length);
+    }
 
     return output;
 }

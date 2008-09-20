@@ -451,6 +451,9 @@ cdef extern from "libsingular.h":
     # TRUE if p is square free
     int singclap_isSqrFree(poly *p)
 
+    # return determinant of i
+    poly *singclap_det(matrix *i)
+
     # normal form calculation of p with respect to i, q is quotient
     # ring.
 
@@ -670,6 +673,12 @@ cdef extern from "libsingular.h":
     # gauss-bareiss algorithm
 
     void smCallNewBareiss(ideal *, int, int, ideal *, intvec**)
+
+    # determinant
+    poly *smCallDet(ideal *)
+
+    # check which det algorithm to choose
+    int smCheckDet(ideal *, int, int)
 
     # get element at row i and column j
 

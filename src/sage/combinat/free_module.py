@@ -1,0 +1,1025 @@
+"""
+Free modules
+"""
+#*****************************************************************************
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from sage.structure.element import ModuleElement
+from sage.modules.free_module_element import vector
+from sage.misc.misc import repr_lincomb
+from sage.modules.module import Module
+from sage.rings.all import Ring, Integer
+import sage.structure.parent_base
+from sage.combinat.family import Family
+from sage.combinat.finite_class import FiniteCombinatorialClass
+from sage.combinat.combinat import CombinatorialClass
+
+class CombinatorialFreeModuleElement(ModuleElement):
+    def __init__(self, M, x):
+        """
+        Create a combinatorial module element x.  This should never
+        be called directly, but only through the parent combinatorial
+        module's __call__ method.
+
+        TESTS:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 3*B['c']; f
+            B['a'] + 3*B['c']
+            sage: f == loads(dumps(f))
+            True
+
+        """
+        ModuleElement.__init__(self, M)
+        self._monomial_coefficients = x
+
+    def __iter__(self):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 3*B['c']
+            sage: [i for i in sorted(f)]
+            [('a', 1), ('c', 3)]
+
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1]) + s([3])
+            sage: [i for i in sorted(a)]
+            [([2, 1], 1), ([3], 1)]
+
+        """
+        return self._monomial_coefficients.iteritems()
+
+    def __contains__(self, x):
+        """
+        Returns whether or not a combinatorial object x indexing a basis
+        element is in the support of self.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 3*B['c']
+            sage: 'a' in f
+            True
+            sage: 'b' in f
+            False
+
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1]) + s([3])
+            sage: Partition([2,1]) in a
+            True
+            sage: Partition([1,1,1]) in a
+            False
+        """
+        return x in self._monomial_coefficients and self._monomial_coefficients[x] != 0
+
+    def monomial_coefficients(self):
+        """
+        Return the internal dictionary which has the combinatorial
+        objects indexing the basis as keys and their corresponding
+        coefficients as values.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 3*B['c']
+            sage: d = f.monomial_coefficients()
+            sage: d['a']
+            1
+            sage: d['c']
+            3
+
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])+2*s([3,2])
+            sage: d = a.monomial_coefficients()
+            sage: type(d)
+            <type 'dict'>
+            sage: d[ Partition([2,1]) ]
+            1
+            sage: d[ Partition([3,2]) ]
+            2
+        """
+        return self._monomial_coefficients
+
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'], prefix='F')
+            sage: e = F.basis()
+            sage: e['a'] + 2*e['b']
+            F['a'] + 2*F['b']
+
+        """
+        v = self._monomial_coefficients.items()
+        v.sort()
+        prefix = self.parent().prefix()
+        mons = [ prefix + "[" + repr(m) + "]" for (m, _) in v ]
+        cffs = [ x for (_, x) in v ]
+        x = repr_lincomb(mons, cffs).replace("*1 "," ")
+        if x[len(x)-2:] == "*1":
+            return x[:len(x)-2]
+        else:
+            return x
+
+    def _latex_(self):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 3*B['c']
+            sage: latex(f)
+            B_{a} + 3B_{c}
+
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: a = 2 + QS3([2,1,3])
+            sage: latex(a) #indirect doctest
+            2[1,2,3] + [2,1,3]
+        """
+        v = self._monomial_coefficients.items()
+        v.sort()
+        prefix = self.parent().prefix()
+        if prefix == "":
+            mons = [ prefix + '[' + ",".join(map(str, m)) + ']' for (m, _) in v ]
+        else:
+            mons = [ prefix + '_{' + ",".join(map(str, m)) + '}' for (m, _) in v ]
+        cffs = [ x for (_, x) in v ]
+        x = repr_lincomb(mons, cffs, is_latex=True).replace("*1 "," ")
+        if x[len(x)-2:] == "*1":
+            return x[:len(x)-2]
+        else:
+            return x
+
+    def __cmp__(left, right):
+        """
+        The ordering is the one on the underlying sorted list of
+        (monomial,coefficients) pairs.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])
+            sage: b = s([1,1,1])
+            sage: cmp(a,b) #indirect doctest
+            1
+        """
+        nonzero = lambda mc: mc[1] != 0
+        v = filter(nonzero, left._monomial_coefficients.items())
+        v.sort()
+        w = filter(nonzero, right._monomial_coefficients.items())
+        w.sort()
+        return cmp(v, w)
+
+    def _add_(self, y):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: B['a'] + 3*B['c']
+            B['a'] + 3*B['c']
+
+            sage: s = SFASchur(QQ)
+            sage: s([2,1]) + s([5,4]) # indirect doctest
+            s[2, 1] + s[5, 4]
+            sage: a = s([2,1]) + 0
+            sage: len(a.monomial_coefficients())
+            1
+        """
+        A = self.parent()
+        BR = A.base_ring()
+        z_elt = dict(self._monomial_coefficients)
+        for m, c in y._monomial_coefficients.iteritems():
+            if z_elt.has_key(m):
+                cm = z_elt[m] + c
+                if cm == 0:
+                    del z_elt[m]
+                else:
+                    z_elt[m] = cm
+            else:
+                z_elt[m] = c
+
+
+        #Remove all entries that are equal to 0
+        del_list = []
+        zero = BR(0)
+        for m, c in z_elt.iteritems():
+            if c == zero:
+                del_list.append(m)
+        for m in del_list:
+            del z_elt[m]
+
+        return A._from_dict(z_elt)
+
+
+    def _neg_(self):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 3*B['c']
+            sage: -f
+            -B['a'] - 3*B['c']
+
+            sage: s = SFASchur(QQ)
+            sage: -s([2,1]) # indirect doctest
+            -s[2, 1]
+        """
+        return self.map_coefficients(lambda c: -c)
+
+
+    def _sub_(self, y):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: B['a'] - 3*B['c']
+            B['a'] - 3*B['c']
+
+            sage: s = SFASchur(QQ)
+            sage: s([2,1]) - s([5,4]) # indirect doctest
+            s[2, 1] - s[5, 4]
+        """
+        A = self.parent()
+        BR = A.base_ring()
+        z_elt = dict(self._monomial_coefficients)
+        for m, c in y._monomial_coefficients.iteritems():
+            if z_elt.has_key(m):
+                cm = z_elt[m] - c
+                if cm == 0:
+                    del z_elt[m]
+                else:
+                    z_elt[m] = cm
+            else:
+                z_elt[m] = -c
+
+        #Remove all entries that are equal to 0
+        zero = BR(0)
+        del_list = []
+        for m, c in z_elt.iteritems():
+            if c == zero:
+                del_list.append(m)
+        for m in del_list:
+            del z_elt[m]
+
+        return A._from_dict(z_elt)
+
+
+    def _coefficient_fast(self, m, default=None):
+        """
+        Returns the coefficient of m in self, where m is key
+        in self._monomial_coefficients.
+
+        EXAMPLES:
+            sage: p = Partition([2,1])
+            sage: q = Partition([1,1,1])
+            sage: s = SFASchur(QQ)
+            sage: a = s(p)
+            sage: a._coefficient_fast([2,1])
+            Traceback (most recent call last):
+            ...
+            TypeError: list objects are unhashable
+
+            sage: a._coefficient_fast(p)
+            1
+            sage: a._coefficient_fast(p, 2)
+            1
+            sage: a._coefficient_fast(q)
+            0
+            sage: a._coefficient_fast(q, 2)
+            2
+            sage: a[p]
+            1
+            sage: a[q]
+            0
+        """
+        if default is None:
+            default = self.base_ring()(0)
+        return self._monomial_coefficients.get(m, default)
+
+    __getitem__ = _coefficient_fast
+
+    def coefficient(self, m):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) - 2*s([2,1]) + s([1,1,1]) + s([1])
+            sage: z.coefficient([4])
+            1
+            sage: z.coefficient([2,1])
+            -2
+        """
+        # NT: coefficient_fast should be the default, just with appropriate assertions
+        # that can be turned on or off
+        p = self.parent()
+        if isinstance(m, p._combinatorial_class.object_class):
+            return self._monomial_coefficients.get(m, p.base_ring().zero_element())
+        if m in p._combinatorial_class:
+            return self._monomial_coefficients.get(p._combinatorial_class.object_class(m), p.base_ring().zero_element())
+        else:
+            raise TypeError, "you must specify an element of %s"%p._combinatorial_class
+
+
+    def is_zero(self):
+        """
+        Returns True if and only self == 0.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] - 3*B['c']
+            sage: f.is_zero()
+            False
+            sage: F(0).is_zero()
+            True
+
+            sage: s = SFASchur(QQ)
+            sage: s([2,1]).is_zero()
+            False
+            sage: s(0).is_zero()
+            True
+            sage: (s([2,1]) - s([2,1])).is_zero()
+            True
+        """
+        BR = self.parent().base_ring()
+        for v in self._monomial_coefficients.values():
+            if v != BR(0):
+                return False
+        return True
+
+    def __len__(self):
+        """
+        Returns the number of basis elements of self with
+        nonzero coefficients.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] - 3*B['c']
+            sage: len(f)
+            2
+
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
+            sage: len(z)
+            4
+        """
+        return self.length()
+
+    def length(self):
+        """
+        Returns the number of basis elements of self with
+        nonzero coefficients.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] - 3*B['c']
+            sage: f.length()
+            2
+
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
+            sage: z.length()
+            4
+        """
+        return len([mon for mon,coeff in self._monomial_coefficients.items() if coeff !=0 ])
+
+    def support(self):
+        """
+        Returns a list of the combinatorial objects indexing
+        the basis elements of self which non-zero coefficients.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] - 3*B['c']
+            sage: f.support()
+            ['a', 'c']
+
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
+            sage: z.support()
+            [[1], [1, 1, 1], [2, 1], [4]]
+        """
+        v = self._monomial_coefficients.items()
+        v.sort()
+        mons = [ m for (m, _) in v ]
+        return mons
+
+    def monomials(self):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 2*B['c']
+            sage: f.monomials()
+            [B['a'], B['c']]
+        """
+        P = self.parent()
+        one = P.base_ring()(1)
+        v = self._monomial_coefficients.items()
+        v.sort()
+        return [P._from_dict({key:one}) for key,value in v]
+
+    def terms(self):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 2*B['c']
+            sage: f.terms()
+            [B['a'], 2*B['c']]
+        """
+        P = self.parent()
+        v = self._monomial_coefficients.items()
+        v.sort()
+        return [P._from_dict({key:value}) for key,value in v]
+
+    def coefficients(self):
+        """
+        Returns a list of the coefficents appearing on the
+        basiselements in self.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] - 3*B['c']
+            sage: f.coefficients()
+            [1, -3]
+
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
+            sage: z.coefficients()
+            [1, 1, 1, 1]
+        """
+        v = self._monomial_coefficients.items()
+        v.sort()
+        cffs = [ c for (_, c) in v ]
+        return cffs
+
+    def _vector_(self, new_BR=None):
+        """
+        Returns a vector version of self. If new_BR is specified,
+        then in returns a vector over new_BR.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] - 3*B['c']
+            sage: vector(f)
+            (1, 0, -3)
+
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: a = 2*QS3([1,2,3])+4*QS3([3,2,1])
+            sage: a._vector_()
+            (2, 0, 0, 0, 0, 4)
+            sage: vector(a)
+            (2, 0, 0, 0, 0, 4)
+            sage: a._vector_(RDF)
+            (2.0, 0.0, 0.0, 0.0, 0.0, 4.0)
+        """
+        parent = self.parent()
+        if parent.get_order() is None:
+            cc = parent._combinatorial_class.list()
+            cc.sort()
+        else:
+            cc = parent.get_order()
+
+        if new_BR is None:
+            new_BR = parent.base_ring()
+
+        return vector(new_BR, [new_BR(self._monomial_coefficients.get(m, 0)) for m in cc])
+
+    def to_vector(self):
+        """
+        Returns a vector version of self.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] - 3*B['c']
+            sage: f.to_vector()
+            (1, 0, -3)
+
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: a = 2*QS3([1,2,3])+4*QS3([3,2,1])
+            sage: a.to_vector()
+            (2, 0, 0, 0, 0, 4)
+        """
+        return self._vector_()
+
+
+    def map_coefficients(self, f):
+        """
+        Returns a new element of self.parent() obtained
+        by applying the function f to all of the coefficients
+        of self.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] - 3*B['c']
+            sage: f.map_coefficients(lambda x: x+5)
+            6*B['a'] + 2*B['c']
+
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])+2*s([3,2])
+            sage: a.map_coefficients(lambda x: x*2)
+            2*s[2, 1] + 4*s[3, 2]
+        """
+        z_elt = {}
+        for m,c in self.monomial_coefficients().iteritems():
+            z_elt[m] = f(c)
+        return self.parent()._from_dict(z_elt)
+
+
+    def map_support(self, f):
+        """
+        Returns a new element of self.parent() obtained
+        by applying the function f to all of the combinatorial
+        objects indexing the basis elements.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])+2*s([3,2])
+            sage: a.map_support(lambda x: x.conjugate())
+            s[2, 1] + 2*s[2, 2, 1]
+        """
+        res = self.parent()(0)
+        z_elt = {}
+        for m,c in self.monomial_coefficients().iteritems():
+            z_elt[f(m)] = c
+        res._monomial_coefficients = z_elt
+        return res
+
+    def map_monomial(self, f):
+        """
+        Returns a new element of self.parent() obtained
+        by applying the function f to a monomial coefficient
+        (m,c) pair.  f returns a (new_m, new_c) pair.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: f = lambda m,c: (m.conjugate(), 2*c)
+            sage: a = s([2,1]) + s([1,1,1])
+            sage: a.map_monomial(f)
+            2*s[2, 1] + 2*s[3]
+        """
+        z_elt = {}
+        for m,c in self.monomial_coefficients().iteritems():
+            new_m, new_c = f(m,c)
+            z_elt[new_m] = new_c
+        return self.parent()._from_dict(z_elt)
+
+    map_mc = map_monomial
+
+    def _l_action(self, x):
+        """
+        Returns the action of a scalar on self when self is on the left (and the
+        scalar is on the right).
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: B['a']*1/2
+            1/2*B['a']
+
+        """
+        x = self.base_ring()(x)
+        return self.map_coefficients(lambda c: c*x)
+
+    def _r_action(self, x):
+        """
+        Returns the action of a scalar on self when self is on the right (and the
+        scalar is on the left).
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: 1/2*B['a']
+            1/2*B['a']
+
+        """
+        x = self.base_ring()(x)
+        return self.map_coefficients(lambda c: x*c)
+
+    def __div__(self, x):
+        """
+        Division by coefficients
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, [1,2,3])
+            sage: x = F._from_dict({1:2, 2:3})
+            sage: x/2
+            B[1] + 3/2*B[2]
+
+            sage: F = CombinatorialFreeModule(QQ, [1,2,3])
+            sage: B = F.basis()
+            sage: f = 2*B[2] + 4*B[3]
+            sage: f/2
+            B[2] + 2*B[3]
+
+        """
+        if self.base_ring().is_field():
+            x = self.base_ring()(x)
+            return self.map_coefficients(lambda c: c/x)
+        else:
+            return self.map_coefficients(lambda c: _divide_if_possible(c, x))
+
+def _divide_if_possible(x, y):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.free_module import _divide_if_possible
+        sage: _divide_if_possible(4, 2)
+        2
+        sage: _.parent()
+        Integer Ring
+
+        sage: _divide_if_possible(4, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: 4 is not divisible by 3
+    """
+    q, r = x.quo_rem(y)
+    if r != 0:
+        raise ValueError, "%s is not divisible by %s"%(x, y)
+    else:
+        return q
+
+
+class CombinatorialFreeModuleInterface(sage.structure.parent_base.ParentWithBase):
+    def __init__(self, R, element_class):
+        #Make sure R is a ring with unit element
+        if not isinstance(R, Ring):
+            raise TypeError, "Argument R must be a ring."
+        try:
+            # R._one_element?
+            z = R(Integer(1))
+        except:
+            raise ValueError, "R must have a unit element"
+
+        self._element_class = element_class
+        self._order = None
+
+        #Initialize the base structure
+        sage.structure.parent_base.ParentWithBase.__init__(self, R)
+
+    _prefix = ""
+    _name   = "CombinatorialModule -- change me"
+
+
+    # Should be an attribute?
+    def basis(self):
+        """
+        Returns the basis of self.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: F.basis()
+            Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
+
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: list(QS3.basis())
+            [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+
+        """
+        return Family(self._combinatorial_class, self.term)
+
+    def __call__(self, x):
+        """
+        Coerce x into self.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ,[0,1])
+            sage: F(0)
+            0
+            sage: F(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: do not know how to make x (= 1) an element of Free module generated by [0, 1] over Rational Field
+
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: QS3(2)
+            2*[1, 2, 3]
+            sage: QS3([2,3,1])
+            [2, 3, 1]
+        """
+        R = self.base_ring()
+        eclass = self._element_class
+
+        #Coerce ints to Integers
+        if isinstance(x, int):
+            x = Integer(x)
+
+        if hasattr(self, '_coerce_start'):
+            try:
+                return self._coerce_start(x)
+            except TypeError:
+                pass
+
+        #x is an element of the same type of combinatorial free module
+        if hasattr(x, 'parent') and x.parent().__class__ is self.__class__:
+            P = x.parent()
+            #same base ring
+            if P is self:
+                return x
+            #different base ring -- coerce the coefficients from into R
+            else:
+                return eclass(self, dict([ (e1,R(e2)) for e1,e2 in x._monomial_coefficients.items()]))
+        #x is an element of the basis combinatorial class
+        elif x in R:
+            if x == 0:
+                return self.zero()
+            else:
+                raise TypeError, "do not know how to make x (= %s) an element of %s"%(x, self)
+        elif isinstance(self._combinatorial_class.object_class, type) and isinstance(x, self._combinatorial_class.object_class):
+            return eclass(self, {x:R(1)})
+        elif x in self._combinatorial_class:
+            return eclass(self, {self._combinatorial_class.object_class(x):R(1)})
+        else:
+            if hasattr(self, '_coerce_end'):
+                try:
+                    return self._coerce_end(x)
+                except TypeError:
+                    pass
+            raise TypeError, "do not know how to make x (= %s) an element of self (=%s)"%(x,self)
+
+    def _an_element_impl(self):
+        """
+        Returns an element of self, namely the zero element.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
+            sage: F._an_element_impl()
+            0
+            sage: _.parent() is F
+            True
+        """
+        return self._element_class(self, {})
+
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: print QS3.__repr__()
+            Symmetric group algebra of order 3 over Rational Field
+        """
+        return self._name + " over %s"%self.base_ring()
+
+    def combinatorial_class(self):
+        """
+        Returns the combinatorial class that indexes the basis
+        elements.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
+            sage: F.combinatorial_class()
+            Combinatorial class with elements in ['a', 'b', 'c']
+
+            sage: s = SFASchur(QQ)
+            sage: s.combinatorial_class()
+            Partitions
+        """
+        return self._combinatorial_class
+
+    def dimension(self):
+        """
+        Returns the dimension of the combinatorial algebra (which is given
+        by the number of elements in the associated combinatorial class).
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
+            sage: F.dimension()
+            3
+
+            sage: s = SFASchur(QQ)
+            sage: s.dimension()
+            +Infinity
+        """
+        return self._combinatorial_class.count()
+
+    def set_order(self, order):
+        """
+        Sets the order of the elements of the combinatorial class.
+
+        If .set_order() has not been called, then the ordering is
+        the one used in the generation of the elements of self's
+        associated combinatorial class.
+
+        EXAMPLES:
+            sage: QS2 = SymmetricGroupAlgebra(QQ,2)
+            sage: b = list(QS2.basis().keys())
+            sage: b.reverse()
+            sage: QS2.set_order(b)
+            sage: QS2.get_order()
+            [[2, 1], [1, 2]]
+
+        """
+        self._order = order
+
+    def get_order(self):
+        """
+        Returns the order of the elements in the basis.
+
+        EXAMPLES:
+            sage: QS2 = SymmetricGroupAlgebra(QQ,2)
+            sage: QS2.get_order()
+            [[1, 2], [2, 1]]
+        """
+        if self._order is None:
+            self._order = self.combinatorial_class().list()
+        return self._order
+
+    def prefix(self):
+        """
+        Returns the prefix used when displaying elements of self.
+
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
+            sage: F.prefix()
+            'B'
+
+            sage: X = SchubertPolynomialRing(QQ)
+            sage: X.prefix()
+            'X'
+        """
+        return self._prefix
+
+    def __cmp__(self, other):
+        """
+        EXAMPLES:
+            sage: XQ = SchubertPolynomialRing(QQ)
+            sage: XZ = SchubertPolynomialRing(ZZ)
+            sage: XQ == XZ #indirect doctest
+            False
+            sage: XQ == XQ
+            True
+        """
+        if not isinstance(other, self.__class__):
+            return -1
+        c = cmp(self.base_ring(), other.base_ring())
+        if c: return c
+        return 0
+
+    def _apply_module_morphism(self, x, f):
+        """
+        Returns the image of x under the module morphism defined by
+        extending f by linearity.
+
+        INPUT:
+            -- x : a element of self
+            -- f : a function that takes in a combinatorial object
+                   indexing a basis element and returns an element
+                   of the target domain
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([3]) + s([2,1]) + s([1,1,1])
+            sage: b = 2*a
+            sage: f = lambda part: len(part)
+            sage: s._apply_module_morphism(a, f) #1+2+3
+            6
+            sage: s._apply_module_morphism(b, f) #2*(1+2+3)
+            12
+
+
+        """
+        res = 0
+        for m, c in x._monomial_coefficients.iteritems():
+            res += c*f(m)
+        return res
+
+
+    def _apply_module_endomorphism(self, a, f):
+        """
+        This takes in a function from the basis elements
+        to the elements of self and applies it linearly
+        to a. Note that _apply_module_endomorphism does not
+        require multiplication on self to be defined.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: f = lambda part: 2*s(part.conjugate())
+            sage: s._apply_module_endomorphism( s([2,1]) + s([1,1,1]), f)
+            2*s[2, 1] + 2*s[3]
+
+        """
+        mcs = a.monomial_coefficients()
+        base_ring = self.base_ring()
+        zero = base_ring(0)
+
+        z_elt = {}
+        for basis_element in mcs:
+            f_mcs = f(basis_element).monomial_coefficients()
+            for f_basis_element in f_mcs:
+                z_elt[ f_basis_element ] = z_elt.get(f_basis_element, zero) + mcs[basis_element]*f_mcs[f_basis_element]
+
+        return self._from_dict(z_elt)
+
+    def term(self, i):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
+            sage: F.term('a')
+            B['a']
+        """
+        return self._from_dict({i:self.base_ring().one_element()})
+
+    def zero(self):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
+            sage: F.zero()
+            0
+        """
+        # TODO: cache
+        return self._from_dict({})
+
+    def sum(self, operands):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, [1,2,3,4])
+            sage: F.sum(F.term(i) for i in [1,2,3])
+            B[1] + B[2] + B[3]
+        """
+        return sum(operands, self.zero())
+
+    def _from_dict(self, d, coerce=False):
+        """
+        Given a monomial coefficient dictionary d, return the element
+        of self with the dictionary.
+
+        EXAMPLES:
+            sage: e = SFAElementary(QQ)
+            sage: s = SFASchur(QQ)
+            sage: a = e([2,1]) + e([1,1,1]); a
+            e[1, 1, 1] + e[2, 1]
+            sage: s._from_dict(a.monomial_coefficients())
+            s[1, 1, 1] + s[2, 1]
+
+            sage: part = Partition([2,1])
+            sage: d = {part:1}
+            sage: a = s._from_dict(d,coerce=True); a
+            s[2, 1]
+            sage: a.coefficient(part).parent()
+            Rational Field
+        """
+        if coerce:
+            R = self.base_ring()
+            d = [ (m,R(c)) for m,c in d.iteritems() ]
+            d = dict(d)
+
+        return self._element_class(self, d)
+
+
+class CombinatorialFreeModule(CombinatorialFreeModuleInterface, Module):
+    r"""
+    EXAMPLES:
+        We construct a free module whose basis is indexed by the letters a,b,c:
+
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: F
+            Free module generated by ['a', 'b', 'c'] over Rational Field
+
+        Its basis is a family, indexed by a,b,c:
+        Caveat in family: the order of the indices is not preserved
+	    sage: e = F.basis()
+
+            sage: list(sorted(e.keys()))
+            ['a', 'b', 'c']
+            sage: list(sorted(e))
+            [B['a'], B['b'], B['c']]
+
+        Let us construct some elements, and compute with them:
+            sage: e['a']
+            B['a']
+            sage: 2*e['a']
+            2*B['a']
+            sage: e['a'] + 3*e['b']
+            B['a'] + 3*B['b']
+    """
+    def __init__(self, R, cc, element_class = CombinatorialFreeModuleElement, prefix="B"):
+        """
+        EXAMPLES:
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: F == loads(dumps(F))
+            True
+        """
+        self._name = "Free module generated by %s"%cc
+        if isinstance(cc, list):
+            cc = FiniteCombinatorialClass(cc)
+        if not isinstance(cc, CombinatorialClass):
+            raise TypeError, "cc = (%s) must be an instance of CombinatorialClass"%cc
+        self._combinatorial_class = cc
+        self._prefix = prefix
+        CombinatorialFreeModuleInterface.__init__(self, R, element_class)
+

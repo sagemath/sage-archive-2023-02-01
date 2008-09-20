@@ -17,6 +17,7 @@ AUTHORS:
 import os, sys
 
 from misc import SPYX_TMP, SAGE_ROOT
+from sage.misc.misc import UNAME
 
 def cblas():
     if os.environ.has_key('SAGE_CBLAS'):
@@ -33,17 +34,14 @@ def cblas():
 # In case of ATLAS we need to link against cblas as well as atlas
 # In the other cases we just return the same library name as cblas()
 # which is fine for the linker
+#
+# We should be using the Accelerate FrameWork on OSX, but that requires
+# some magic due to distutils having ridden on the short bus :)
 def atlas():
-    if os.environ.has_key('SAGE_CBLAS'):
-        return os.environ['SAGE_CBLAS']
-    elif os.path.exists('/usr/lib/libatlas.dylib') or \
-        os.path.exists('/usr/lib/libatlas.so'):
-        return 'atlas'
-    elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested
+    if UNAME == "Darwin":
         return 'blas'
     else:
-        # This is very slow  (?), but *guaranteed* to be available.
-        return 'gslcblas'
+        return 'atlas'
 
 include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
                 '%s/local/include/'%SAGE_ROOT,  \
@@ -59,21 +57,50 @@ standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'curvesntl', \
 offset = 0
 
 def parse_keywords(kwd, s):
+    """
+    Given a keyword kwd and a string s, return a list of all arguments
+    on the same line as that keyword in s, as well as a new copy of
+    s in which each occurrence of kwd is in a comment. If a comment
+    already occurs on the line containing kwd, no words after the #
+    are added to the list.
+
+    EXAMPLES:
+        sage: sage.misc.cython.parse_keywords('clib', " clib foo bar baz\n #cinclude bar\n")
+        (['foo', 'bar', 'baz'], ' #clib foo bar baz\n #cinclude bar\n')
+
+        sage: sage.misc.cython.parse_keywords('clib', "# qux clib foo bar baz\n #cinclude bar\n")
+        (['foo', 'bar', 'baz'], '# qux clib foo bar baz\n #cinclude bar\n')
+        sage: sage.misc.cython.parse_keywords('clib', "# clib foo bar # baz\n #cinclude bar\n")
+        (['foo', 'bar'], '# clib foo bar # baz\n #cinclude bar\n')
+    """
     j = 0
     v = []
     while True:
+        # see if kwd occurs
         i = s[j:].find(kwd)
         if i == -1: break
         j = i + j
-        s = s[:j] + '#' + s[j:]
-        j += len(kwd) + 1
+
+        # add a hash, if necessary
+        last_hash = s[:j].rfind('#')
+        last_newline = s[:j].rfind('\n')
+        if last_hash > last_newline:
+            j += len(kwd)
+        else:
+            s = s[:j] + '#' + s[j:]
+            j += len(kwd) + 1
+
+        # find all other words on this line
         k = s[j:].find('\n')
         if k == -1:
             k = len(s)
+
+        # add them to our list, until we find a comment
         for X in s[j:j+k].split():
             if X[0] == '#':   # skip rest of line
                 break
             v.append(X)
+
     return v, s
 
 def environ_parse(s):
@@ -93,6 +120,79 @@ def environ_parse(s):
     return environ_parse(s)
 
 def pyx_preparse(s):
+    r"""
+    Preparse a Pyx file
+      * include cdefs.pxi, interrupt.pxi, stdsage.pxi
+      * parse clang pragma (c or c++)
+      * parse clib pragma (additional libraries to link in)
+      * parse cinclude (additional include directories)
+
+    The pragmas:
+    \begin{description}
+      \item[clang] may be either c or c++ indicating whether a C or
+                   C++ compiler should be used
+
+      \item[clib] additional libraries to be linked in, the space
+                  separated list is split and passed to distutils.
+
+      \item[cinclude] additional directories to search for header
+                      files. The space separated list is split and
+                      passed to distutils.
+    \end{description}
+
+    EXAMPLE:
+        sage: from sage.misc.cython import pyx_preparse
+        sage: pyx_preparse("")
+        ('\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n\ninclude "cdefs.pxi"\n',
+        ['mpfr',
+        'gmp',
+        'gmpxx',
+        'stdc++',
+        'pari',
+        'm',
+        'curvesntl',
+        'g0nntl',
+        'jcntl',
+        'rankntl',
+        'gsl',
+        '...blas',
+        ...,
+        'ntl',
+        'csage'],
+        ['.../local/include/csage/',
+        '.../local/include/',
+        '.../local/include/python2.5/',
+        '.../devel/sage/sage/ext/',
+        '.../devel/sage/',
+        '.../devel/sage/sage/gsl/'],
+        'c',
+        [])
+        sage: s, libs, inc, lang, f = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
+        sage: lang
+        'c++'
+
+        sage: libs
+        ['foo', 'mpfr',
+        'gmp', 'gmpxx',
+        'stdc++',
+        'pari',
+        'm',
+        'curvesntl', 'g0nntl', 'jcntl', 'rankntl',
+        'gsl', '...blas', ...,
+        'ntl',
+        'csage']
+        sage: libs[1:] == sage.misc.cython.standard_libs
+        True
+
+        sage: inc
+        ['bar',
+        '.../local/include/csage/',
+        '.../local/include/',
+        '.../local/include/python2.5/',
+        '.../devel/sage/sage/ext/',
+        '.../devel/sage/',
+        '.../devel/sage/sage/gsl/']
+    """
     lang = parse_keywords('clang', s)
     if lang[0]:
         lang = lang[0][0]
@@ -106,14 +206,9 @@ def pyx_preparse(s):
 
     v, s = parse_keywords('cinclude', s)
     inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + include_dirs
-    s = """
-include "cdefs.pxi"
-""" + s
+    s = """\ninclude "cdefs.pxi"\n""" + s
     if lang != "c++": # has issues with init_csage()
-        s = """
-include "interrupt.pxi"  # ctrl-c interrupt block support
-include "stdsage.pxi"  # ctrl-c interrupt block support
-""" + s
+        s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n""" + s
     return s, libs, inc, lang, additional_source_files
 
 ################################################################
@@ -245,8 +340,8 @@ setup(ext_modules = ext_modules,
             target_c = target_c + "pp"
         cmd += " && cp '%s.c' '%s'"%(name, target_c)
         if annotate:
-            target_html = '%s/_%s.pyx.html'%(os.path.abspath(os.curdir), base)
-            cmd += " && cp '%s.pyx.html' '%s'"%(name, target_html)
+            target_html = '%s/_%s.html'%(os.path.abspath(os.curdir), base)
+            cmd += " && cp '%s.html' '%s'"%(name, target_html)
 
     if verbose:
         print cmd

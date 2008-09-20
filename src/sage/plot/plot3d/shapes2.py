@@ -264,17 +264,23 @@ def text3d(txt, (x,y,z), **kwds):
         (x,y,z) -- position
         **kwds -- standard 3d graphics options
 
-    This function is called implicitly when you use the text command with a 3d position.
-
     NOTE: There is no way to change the font size or opacity yet.
 
     EXAMPLES:
     We write the word SAGE in red at position (1,2,3):
-        sage: text("SAGE", (1,2,3), color=(0.5,0,0))
+        sage: text3d("SAGE", (1,2,3), color=(0.5,0,0))
 
     We draw a multicolor spiral of numbers:
-        sage: sum([text('%.1f'%n, (cos(n),sin(n),n), color=(n/2,1-n/2,0)) \
+        sage: sum([text3d('%.1f'%n, (cos(n),sin(n),n), color=(n/2,1-n/2,0)) \
                     for n in [0,0.2,..,8]])
+
+    Another example
+        sage: text3d("Sage is really neat!!",(2,12,1))
+
+    And in 3d in two places:
+        sage: text3d("Sage is...",(2,12,1), rgbcolor=(1,0,0)) + text3d("quite powerful!!",(4,10,0), rgbcolor=(0,0,1))
+
+
     """
     if not kwds.has_key('color') and not kwds.has_key('rgbcolor'):
         kwds['color'] = (0,0,0)

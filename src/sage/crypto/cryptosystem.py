@@ -10,9 +10,10 @@ Cryptosystems.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sage.structure.parent_old as parent_old
 from sage.sets.set import Set_generic
 
-class Cryptosystem(Set_generic):
+class Cryptosystem(parent_old.Parent, Set_generic):
       r"""
       A cryptosystem is a pair of maps
       $$

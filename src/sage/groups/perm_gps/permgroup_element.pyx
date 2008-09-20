@@ -90,6 +90,31 @@ def gap_format(x):
     x = str(x).replace(' ','').replace('\n','')
     return x.replace('),(',')(').replace('[','').replace(']','').replace(',)',')')
 
+def string_to_tuples(g):
+    """
+    EXAMPLES:
+        sage: from sage.groups.perm_gps.permgroup_element import string_to_tuples
+        sage: string_to_tuples('(1,2,3)')
+        [(1, 2, 3)]
+        sage: string_to_tuples('(1,2,3)(4,5)')
+        [(1, 2, 3), (4, 5)]
+        sage: string_to_tuples(' (1,2, 3) (4,5)')
+        [(1, 2, 3), (4, 5)]
+        sage: string_to_tuples('(1,2)(3)')
+        [(1, 2), (3,)]
+
+    """
+    from sage.misc.all import sage_eval
+
+    if not isinstance(g, str):
+        raise ValueError, "g (= %s) must be a string"%g
+    elif g == '()':
+        return []
+    g = g.replace('\n','').replace(' ', '').replace(')(', '),(').replace(')', ',)')
+    g = '[' + g + ']'
+    return sage_eval(g, preparse=False)
+
+
 cdef class PermutationGroupElement(MultiplicativeGroupElement):
     """
     An element of a permutation group.
@@ -229,42 +254,59 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: PermutationGroupElement([1,2,4,3,5])
             (3,4)
 
+        TESTS:
+            sage: PermutationGroupElement(())
+            ()
+            sage: PermutationGroupElement([()])
+            ()
+
         """
-        import sage.groups.perm_gps.permgroup_named
+        from sage.interfaces.gap import GapElement
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-        if check:
+
+        #Convert GAP elements to strings
+        if isinstance(g, GapElement):
+            g = str(g)
+        elif isinstance(g, PermutationGroupElement):
+            g = g.list()
+
+        #Convert all the string to tuples
+        if isinstance(g, str):
+            g = string_to_tuples(g)
+
+        if isinstance(g, tuple) and (len(g) == 0 or not isinstance(g[0], tuple)):
+            g = [g]
+
+        #Get the permutation in list notation
+        if PyList_CheckExact(g) and (len(g) == 0 or not PY_TYPE_CHECK(g[0], tuple)):
+            v = g if len(g) != 0 else [1]
+            self.__gap = 'PermList(%s)'%v
+        else:
+            from sage.combinat.permutation import Permutation
+            v = Permutation(g)._list
+            self.__gap = str(g)[1:-1].replace('), (',')(').replace(',)',')').strip(',')
+
+        if parent is None:
+            parent = SymmetricGroup(max(len(v),1))
+
+        if check and parent.__class__ != SymmetricGroup:
             if not (parent is None or isinstance(parent, PermutationGroup_generic)):
                 raise TypeError, 'parent must be a permutation group'
-            self.__gap = gap_format(g)
-            if not parent is None:
+            if parent is not None:
                 P = parent._gap_()
                 if not P.parent()(self.__gap) in P:
                     raise TypeError, 'permutation %s not in %s'%(self.__gap, parent)
-        else:
-            self.__gap = str(g)
-
-        if parent is None:
-            import sage.interfaces.gap
-            G = sage.interfaces.gap.gap
-            if isinstance(g, list) and not isinstance(g[0], tuple):
-                n = len(g)
-            else:
-                n = G(self.__gap).LargestMovedPoint()
-            parent = sage.groups.perm_gps.permgroup_named.SymmetricGroup(n)
 
         Element.__init__(self, parent)
 
-        self.n = parent.degree()
+        self.n = max(parent.degree(), 1)
+
         if self.perm is NULL:
             self.perm = <int *>sage_malloc(sizeof(int) * self.n)
         else:
             self.perm = <int *>sage_realloc(self.perm, sizeof(int) * self.n)
 
-        if PyList_CheckExact(g) and not PY_TYPE_CHECK(g[0], tuple):
-            v = g
-        else:
-            v = eval(gap.eval('ListPerm(%s)' % self.__gap))
 
         cdef int i, vn = len(v)
         assert(vn <= self.n)
@@ -376,10 +418,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 break
         if equal:
             return 0
-        r = right._gap_()
-        G = r.parent()
-        l = self._gap_(G)
-        return cmp(l,r)
+        return cmp(self.list(), right.list())
 
     def __call__(self, i):
         """

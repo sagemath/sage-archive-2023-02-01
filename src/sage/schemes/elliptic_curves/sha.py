@@ -1,6 +1,7 @@
 from sage.structure.sage_object import SageObject
 from sage.rings.all import (
     Integer,
+    RealField,
     RationalField,
     RIF)
 from sage.misc.functional import log
@@ -20,15 +21,15 @@ class Sha(SageObject):
     ########################################################################
 
     def an_numerical(self, prec = 53,
-                         use_database=False, proof=None):
+                         use_database=True, proof=None):
         """
         Return the numerical analytic order of Sha, which is
         a floating point number in all cases.
 
         INPUT:
-            prec -- integer (default: 53) bits precision -- just used
-                    for the L-series computation; not for regulator, etc.
-            use_database -- whether the rank and regulator should
+            prec -- integer (default: 53) bits precision -- used
+                    for the L-series computation, period,  regulator, etc.
+            use_database -- whether the rank and generators should
                     be looked up in the database if possible.
             proof -- bool or None (default: None, see proof.[tab] or
                            sage.structure.proof) proof option passed
@@ -36,6 +37,14 @@ class Sha(SageObject):
 
         NOTE: See also the an() command, which will return a
         provably correct integer when the rank is 0 or 1.
+
+        WARNING: If the curve's generators are not known, computing
+        them may be very time-consuming.  Also, computation of the
+        L-series derivative will be time-consuming for large rank and
+        large conductor, and the computation time for this may
+        increase substantially at greater precision.  However, use of
+        very low precision less than about 10 can cause the underlying
+        pari library functions to fail.
 
         EXAMPLES:
             sage: EllipticCurve('11a').sha().an_numerical()
@@ -53,22 +62,40 @@ class Sha(SageObject):
             sage: EllipticCurve([1, -1, 0, -79, 289]).sha().an_numerical()   # long time
             1.00000000000000
 
-    A rank 5 curve:
-            sage: EllipticCurve([0, 0, 1, -79, 342]).sha().an_numerical(prec=4, proof=False)          # long time -- about 30 seconds.
+        A rank 5 curve:
+            sage: EllipticCurve([0, 0, 1, -79, 342]).sha().an_numerical(prec=10, proof=False)          # long time -- about 30 seconds.
             1.0
+
+            # See trac #1115
+            sage: sha=EllipticCurve('37a1').sha()
+            sage: [sha.an_numerical(prec) for prec in xrange(30,100,10)]
+            [1.0000000,
+            1.0000000000,
+            1.0000000000000,
+            1.0000000000000000,
+            1.0000000000000000000,
+            1.0000000000000000000000,
+            1.0000000000000000000000000]
         """
+        RR = RealField(prec)
+        prec2 = prec+2
+        RR2 = RealField(prec2)
         try:
-            return self.__an_numerical
+            an = self.__an_numerical
+            if an.parent().precision() >= prec:
+                return RR(an)
+            else: # cached precision too low
+                pass
         except AttributeError:
             pass
         r = Integer(self.E.rank(use_database=use_database, proof=proof))
-        L = self.E.lseries().dokchitser(prec=prec)
-        Lr= L.derivative(1,r)
-        Om = self.E.period_lattice().omega()
-        Reg = self.E.regulator(use_database=use_database, proof=proof)
+        L = self.E.lseries().dokchitser(prec=prec2)
+        Lr= RR2(L.derivative(1,r))  # L.derivative() returns a Complex
+        Om = RR2(self.E.period_lattice().omega(prec2))
+        Reg = self.E.regulator(use_database=use_database, proof=proof, precision=prec2)
         T = self.E.torsion_order()
         cp = self.E.tamagawa_product()
-        Sha = Lr*T*T/(r.factorial()*Om*cp*Reg)
+        Sha = RR((Lr*T*T)/(r.factorial()*Om*cp*Reg))
         self.__an_numerical = Sha
         return Sha
 

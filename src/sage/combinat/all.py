@@ -4,7 +4,8 @@ from expnums import expnums
 from sage.combinat.crystals.all import *
 from sage.combinat.dlx import * #??
 
-#Combinatorial Algebra
+# Free modules and friends
+from free_module import CombinatorialFreeModule
 from combinatorial_algebra import CombinatorialAlgebra
 
 
@@ -83,4 +84,4 @@ from dlx import AllExactCovers, OneExactCover, DLXMatrix
 
 from multichoose_nk import MultichooseNK
 
-
+from family import Family, FiniteFamily, LazyFamily

@@ -26,7 +26,8 @@ AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 #*****************************************************************************
 
 include "sage/ext/python.pxi"
-include "sage/libs/singular/singular-cdefs.pxi"
+include "../ext/interrupt.pxi"
+include "../ext/cdefs.pxi"
 
 from sage.libs.singular.singular cimport Conversion
 
@@ -96,10 +97,10 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         swapped columns may inspected.
 
             sage: E.swapped_columns(), E.pivots()
-            ([0, 1], [0, 1])
+            ((0, 1), (0, 1))
 
             sage: A.swapped_columns(), A.pivots()
-            (None, [0, 1])
+            (None, (0, 1))
 
             Another approach is to row reduce as far as possible.
 
@@ -125,7 +126,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             self.cache('pivots', E.pivots())
         elif algorithm == "bareiss":
             l = E.swapped_columns()
-            self.cache('pivots', sorted(l))
+            self.cache('pivots', tuple(sorted(l)))
         elif algorithm == "row_reduction":
             pass
 
@@ -170,10 +171,10 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [0 2 x]
 
             sage: E.swapped_columns()
-            [2, 0, 1]
+            (2, 0, 1)
 
             sage: A.pivots()
-            [0, 1, 2]
+            (0, 1, 2)
 
         """
         self.check_mutability()
@@ -181,7 +182,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         if self._nrows == 0 or self._ncols == 0:
             self.cache('in_echelon_form_'+algorithm, True)
             self.cache('rank', 0)
-            self.cache('pivots', [])
+            self.cache('pivots', tuple())
             return
 
         x = self.fetch('in_echelon_form_'+algorithm)
@@ -194,69 +195,102 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         else:
             raise ValueError, "Unknown algorithm '%s'"%algorithm
 
-    def _echelonize_gauss_bareiss(self):
-        """
-        Transform self into a matrix in echelon form over the same
-        base ring as self using the fraction free Gauss-Bareiss
-        algorithm with column swaps.
-
-        The performed column swaps can be accessed via
-        self.swapped_columns().
-
-        ALGORITHM: Uses libSINGULAR or SINGULAR
-        """
-        cdef int r,c
-        cdef intvec *iv = NULL
-        cdef ideal *res = NULL
-        cdef matrix *i = NULL
-        cdef ideal *ii = NULL
+    cdef void _from_libsingular(self, ideal *m):
+        cdef Py_ssize_t r,c
         cdef R = self.base_ring()
-        cdef ring *_ring = NULL
-        cdef int *ivv = NULL
         cdef MPolynomial_libsingular p
 
+        # we are transposing here also
+        for r from 0 <= r < IDELEMS(m):
+            for c from 0 <= c < m.rank:
+                p = co.new_MP(R, pTakeOutComp1(&m.m[r], c+1))
+                self.set_unsafe(r,c,p)
+            for c from m.rank <= c < self._ncols:
+                self.set_unsafe(r,c,R._zero_element)
+
+        for r from IDELEMS(m) <= r < self._nrows:
+            for c from 0 <= c < self._ncols:
+                self.set_unsafe(r,c,R._zero_element)
+
+    cdef ideal *_to_libsingular(self, bint module):
+        cdef matrix *i = mpNew(self._ncols, self._nrows)
+        cdef R = self.base_ring()
+        cdef ring *_ring = (<MPolynomialRing_libsingular>R)._ring
+        cdef Py_ssize_t r,c
+        cdef MPolynomial_libsingular p
+        cdef ideal *ii
+        rChangeCurrRing(_ring)
+
+        # we are transposing here also
+        for r from 0 <= r < self._nrows:
+            for c from 0 <= c < self._ncols:
+                p = <MPolynomial_libsingular>self.get_unsafe(r,c)
+                i.m[self._nrows * c + r] = p_Copy(p._poly, _ring)
+
+        if module:
+            ii = idMatrix2Module(i) # kills i
+            return ii
+        else:
+            return <ideal*>i
+
+    def _echelonize_gauss_bareiss(self):
+        r"""
+        Transform this martrix into a matrix in upper triangular form
+        over the same base ring as \code{self} using the fraction free
+        Gauss-Bareiss algorithm with column swaps.
+
+        The performed column swaps can be accessed via
+        \code{self.swapped_columns()}.
+
+        EXAMPLE:
+            sage: R.<x,y> = QQ[]
+            sage: C = random_matrix(R,2,2,terms=2)
+            sage: C
+            [-6/5*x*y - y^2 -6*y^2 - 1/4*y]
+            [  -1/3*x*y - 3        x*y - x]
+            sage: E = C.echelon_form('bareiss')
+            sage: E
+            [ -1/3*x*y - 3                                                          x*y - x]
+            [            0 6/5*x^2*y^2 + 3*x*y^3 - 6/5*x^2*y - 11/12*x*y^2 + 18*y^2 + 3/4*y]
+            sage: E.swapped_columns()
+            (0, 1)
+
+        ALGORITHM: Uses libSINGULAR or \SINGULAR
+        """
+        cdef intvec *iv = NULL
+        cdef ideal *res = NULL
+        cdef ideal *ii = NULL
+        cdef int *ivv = NULL
+        cdef R = self.base_ring()
+        cdef ring *_ring = NULL
+
         x = self.fetch('in_echelon_form_bareiss')
-        if not x is None: return  # already known to be in echelon form
+        if not x is None:
+            return  # already known to be in echelon form
 
         if PY_TYPE_CHECK(self.base_ring(), MPolynomialRing_libsingular):
+            _ring = (<MPolynomialRing_libsingular>R)._ring
             self.check_mutability()
             self.clear_cache()
 
-            i = mpNew(self._ncols, self._nrows)
-            _ring = (<MPolynomialRing_libsingular>R)._ring
-            rChangeCurrRing(_ring)
-
-            # we are transposing here also
-            for r from 0 <= r < self._nrows:
-                for c from 0 <= c < self._ncols:
-                    p = <MPolynomial_libsingular>self.get_unsafe(r,c)
-                    i.m[self._nrows * c + r] = p_Copy(p._poly, _ring)
-
-            ii = idMatrix2Module(i) # kills i
+            ii = self._to_libsingular(True)
 
             # this is actually a sparse implementation
+            _sig_on
             smCallNewBareiss(ii,0,0,res,&iv)
+            _sig_off
 
             ivv = iv.ivGetVec()
             l = []
             for r from 0 <= r < iv.rows():
                 l.append(int(ivv[r]-1))
 
-            # clear matrix
-            for r from 0 <= r < self._nrows:
-                for c from 0 <= c < self._ncols:
-                    self.set_unsafe(r,c,R._zero_element)
-
-            # we are transposing here also
-            for r from 0 <= r < IDELEMS(res):
-                for c from 0 <= c < res.rank:
-                    p = co.new_MP(R, pTakeOutComp1(&res.m[r], c+1))
-                    self.set_unsafe(r,c,p)
+            self._from_libsingular(res)
 
             self.cache('in_echelon_form_bareiss',True)
             self.cache('rank', IDELEMS(res))
-            self.cache('pivots', range(IDELEMS(res)))
-            self.cache('swapped_columns', l)
+            self.cache('pivots', tuple(range(IDELEMS(res))))
+            self.cache('swapped_columns', tuple(l))
 
             id_Delete(&res,_ring)
             id_Delete(&ii, _ring)
@@ -289,13 +323,14 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
     def _echelonize_row_reduction(self):
         r"""
-        Transform self to a matrix in row reduced form as far as this
-        is possible, i.e. only perform division by constant elements.
+        Transform this matrix to a matrix in row reduced form as far
+        as this is possible, i.e. only perform division by constant
+        elements.
 
         EXAMPLES:
 
-            If all entries are constant, then this method performs the
-            same operations as self.echelon_form('default').
+        If all entries are constant, then this method performs the
+        same operations as \code{self.echelon_form('default')}.
 
             sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(127),4)
             sage: A = Matrix(P,4,4,[-14,0,45,-55,-61,-16,0,0,0,0,25,-62,-22,0,52,0]); A
@@ -309,7 +344,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             sage: E1 == E2
             True
 
-            If no entries are constant, nothing happens:
+        If no entries are constant, nothing happens:
 
             sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2),4)
             sage: A = Matrix(P,2,2,[x0,y0,x0,y0]); A
@@ -321,7 +356,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             sage: B == A
             True
 
-            A more interesting example:
+        A more interesting example:
 
             sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2),4)
             sage: l = [1, 1, 1, 1,     1, \
@@ -346,7 +381,8 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [                 0                  0                  0                  0              x1*y0]
             [                 0                  0                  0                  0 x0*y0 + x1*y1 + x0]
 
-            This is the same result as SINGULAR's rowred command returns.
+        This is the same result as \SINGULAR's \code{rowred} command
+        returns.
 
             sage: E = A._singular_().rowred()._sage_(P)
             sage: E == B
@@ -354,7 +390,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
 
         ALGORITHM: Gaussian elimination with division limited to
-        constant entries. Based on SINGULAR's rowred command.
+        constant entries. Based on \SINGULAR's \code{rowred} command.
 
         """
         from sage.matrix.constructor import matrix
@@ -401,7 +437,6 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         self.cache('in_echelon_form_row_reduction',True)
 
-
     def swapped_columns(self):
         """
         Return a tuple representing the column swaps during the last
@@ -416,4 +451,101 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         returned.
         """
         return self.fetch('swapped_columns')
+
+    def determinant(self, algorithm="hessenberg"):
+        r"""
+        Return the determinant of this matrix.
+
+        EXAMPLES:
+
+        We compute the determinant of the arbitrary 3x3 matrix:
+
+            sage: R = PolynomialRing(QQ,9,'x')
+            sage: A = matrix(R,3,R.gens())
+            sage: A
+            [x0 x1 x2]
+            [x3 x4 x5]
+            [x6 x7 x8]
+            sage: A.determinant()
+            -x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
+
+        We check if two implementations agree on the result:
+
+            sage: R.<x,y> = QQ[]
+            sage: C = random_matrix(R,2,2,terms=2)
+            sage: C
+            [-6/5*x*y - y^2 -6*y^2 - 1/4*y]
+            [  -1/3*x*y - 3        x*y - x]
+            sage: C.determinant()
+            -6/5*x^2*y^2 - 3*x*y^3 + 6/5*x^2*y + 11/12*x*y^2 - 18*y^2 - 3/4*y
+
+            sage: C.change_ring(R.change_ring(QQbar)).det()
+            (-6/5)*x^2*y^2 + (-3)*x*y^3 + 6/5*x^2*y + 11/12*x*y^2 + (-18)*y^2 + (-3/4)*y
+
+        Finally, we check whether the \Singular interface is working:
+
+            sage: R.<x,y> = RR[]
+            sage: C = random_matrix(R,2,2,terms=2)
+            sage: C
+            [-0.567690934805980*y^2 + 0.527063330456041*x   -0.674707208091499*y^2 + 0.811617365477302]
+            [   0.457864342548546*y^2 - 0.646443352568505     -0.775440837313686*y + 0.449759718421967]
+            sage: C.determinant()
+            0.308924372245579*y^4 + 0.440210733821338*y^3 - 0.408706430286172*x*y - 1.06309515603509*y^2 + 0.237051855096453*x + 0.524664650741965
+
+        ALGORITHM: Calls \Singular, libSingular or native
+        implementation.
+        """
+        if self._nrows != self._ncols:
+            raise ValueError, "self must be square"
+
+        d = self.fetch('det')
+        if not d is None:
+            return d
+
+        cdef Py_ssize_t i, n
+
+        # if charpoly known, then det is easy.
+        D = self.fetch('charpoly')
+        if not D is None:
+            c = D[D.keys()[0]][0]
+            if self._nrows % 2 != 0:
+                c = -c
+            d = self._coerce_element(c)
+            self.cache('det', d)
+            return d
+
+        n = self._ncols
+        R = self._base_ring
+
+        cdef matrix *m = NULL
+        cdef poly *p = NULL
+        cdef ring *_ring = NULL
+        cdef ideal *I = NULL
+
+        if PY_TYPE_CHECK(R, MPolynomialRing_libsingular) and R.base_ring().is_field():
+            _ring = (<MPolynomialRing_libsingular>R)._ring
+            m = <matrix*>self._to_libsingular(False)
+            if smCheckDet(<ideal*>m, self._nrows, True):
+                I = idMatrix2Module(m)
+                _sig_on
+                p = smCallDet(I)
+                _sig_off
+                id_Delete(&I, _ring)
+            else:
+                _sig_on
+                p = singclap_det(m)
+                _sig_off
+                id_Delete(<ideal**>&m, _ring)
+            d = co.new_MP(R, p)
+
+        elif can_convert_to_singular(self.base_ring()):
+            d = R(self._singular_().det())
+        else:
+            from sage.matrix.matrix2 import Matrix
+            d = Matrix.determinant(self)
+
+        self.cache('det', d)
+        return d
+
+
 

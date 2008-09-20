@@ -33,9 +33,10 @@ EXAMPLES:
 from ell_field import EllipticCurve_field
 import ell_point
 from sage.rings.ring import Ring
-from sage.rings.arith import lcm
+from sage.rings.arith import lcm, gcd
 from sage.misc.misc import prod
 import sage.databases.cremona
+import ell_torsion
 
 from gp_simon import simon_two_descent
 from constructor import EllipticCurve
@@ -58,7 +59,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
     """
     def __init__(self, x, y=None):
         """
-        Allow some ways to create an ellitpic curve over a number
+        Allow some ways to create an elliptic curve over a number
         field in addition to the generic ones:
 
         EXAMPLES:
@@ -91,7 +92,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             raise TypeError
 
         EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
-        self._point_class = ell_point.EllipticCurvePoint_field
+        self._point_class = ell_point.EllipticCurvePoint_number_field
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
@@ -102,7 +103,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         If the curve has 2-torsion, only the probable rank is returned.
 
         INPUT:
-            verbose -- integer, 0,1,2,3; (default: 0), the verbosity level
+            verbose -- 0, 1, 2, or 3 (default: 0), the verbosity level
             lim1    -- (default: 5) limite des points triviaux sur les quartiques
             lim3    -- (default: 50) limite des points sur les quartiques ELS
             limtriv -- (default: 10) limite des points triviaux sur la
@@ -166,6 +167,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: v = E.simon_two_descent(); v  # long time (about 10 seconds), points can vary
             (1, 3, [...])
         """
+
         x = PolynomialRing(self.base_ring(), 'x').gen(0)
         t = simon_two_descent(self,
                               verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
@@ -450,7 +452,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
         Returns a model of self that is minimal at all primes, and the conductor of self.
 
         Note that this only works for class number 1.
-
         INPUT:
             self -- an elliptic curve over a number field of class number
             proof -- whether to only use provably correct methods (default controled by
@@ -842,4 +843,300 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 a6 /= pi**6
                 verbose("Non-minimal equation, dividing out...\nNew model is %s"%([a1, a2, a3, a4, a6]), t, 1)
         return (C, p, vpd, fp, KS, cp)
+
+
+    def reduction(self,place):
+       """
+       Return the reduction of the elliptic curve at a place of good reduction
+
+       INPUT:
+            place -- a prime ideal in the base field of the curve
+
+       OUTPUT:
+            an elliptic curve over a finite field
+
+       EXAMPLES:
+           sage: K.<i> = QuadraticField(-1)
+           sage: EK = EllipticCurve([0,0,0,i,i+3])
+           sage: v = K.fractional_ideal(2*i+3)
+           sage: EK.reduction(v)
+           Elliptic Curve defined by y^2  = x^3 + 5*x + 8 over Residue field of Fractional ideal (2*i + 3)
+           sage: EK.reduction(K.ideal(1+i))
+           Traceback (most recent call last):
+           ...
+           AttributeError: The curve must have good reduction at the place.
+           sage: EK.reduction(K.ideal(2))
+           Traceback (most recent call last):
+           ...
+           AttributeError: The ideal must be prime.
+       """
+       K = self.base_field()
+       OK = K.ring_of_integers()
+       try:
+           place = K.ideal(place)
+       except TypeError:
+           raise TypeError, "The parameter must be an ideal of the base field of the elliptic curve"
+       if not place.is_prime():
+           raise AttributeError, "The ideal must be prime."
+       disc = self.discriminant()
+       if not K.ideal(disc).valuation(place) == 0:
+           raise AttributeError, "The curve must have good reduction at the place."
+       Fv = OK.residue_field(place)
+       return self.change_ring(Fv)
+
+    def _torsion_bound(self,number_of_places = 20):
+        r"""
+        Computes an upper bound on the order of the torsion group of
+        the elliptic curve by counting points modulo several primes of
+        good reduction.  Note that the upper bound returned by this
+        function is a multiple of the order of the torsion group.
+
+        INPUT:
+            number_of_places (default = 20) -- the number of places
+                                that will be used to find the bound
+
+        OUTPUT:
+            integer -- the upper bound
+
+        EXAMPLES:
+            sage: CDB=CremonaDatabase()
+            sage: [E._torsion_bound() for E in CDB.iter([14])]
+            [6, 6, 6, 6, 6, 6]
+            sage: [E.torsion_order() for E in CDB.iter([14])]
+            [6, 6, 2, 6, 2, 6]
+        """
+        E = self
+        bound = 0
+        k = 0
+        K = E.base_field()
+        OK = K.ring_of_integers()
+        disc = E.discriminant()
+        p = Integer(1)
+        # runs through primes, decomposes them into prime ideals
+        while k < number_of_places :
+            p = p.next_prime()
+            f = K.factor(p)
+            # runs through prime ideals above p
+            for qq in [a[0] for a in f]:
+                fqq = qq.residue_class_degree()
+                charqq = qq.smallest_integer()
+                # take only places with small residue field (so that the
+                # number of points will be small)
+                if fqq == 1 or charqq**fqq < 3*number_of_places:
+                    # check if the model is integral at the place
+                    if min([K.ideal(a).valuation(qq) for a in E.a_invariants()]) >= 0:
+                        eqq = qq.ramification_index()
+                        # check if the formal group at the place is torsion-free
+                        # if so the torsion injects into the reduction
+                        if eqq < charqq - 1 and disc.valuation(qq) == 0:
+                            Etilda = E.reduction(qq)
+                            Npp = Etilda.cardinality()
+                            bound = gcd(bound,Npp)
+                            if bound == 1:
+                                return bound
+                            k += 1
+        return bound
+
+    def torsion_subgroup(self):
+        """
+        Returns the torsion subgroup of this elliptic curve.
+
+        OUTPUT:
+            The EllipticCurveTorsionSubgroup instance associated to this elliptic curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a1')
+            sage: K.<t>=NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
+            sage: EK=E.base_extend(K)
+            sage: tor = EK.torsion_subgroup()
+            sage: tor
+            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C5 x C5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in t with defining polynomial x^4 + x^3 + 11*x^2 + 41*x + 101
+            sage: tor.gens()
+            ((16 : 60 : 1), (t : 1/11*t^3 + 6/11*t^2 + 19/11*t + 48/11 : 1))
+
+            sage: E = EllipticCurve('15a1')
+            sage: K.<t>=NumberField(x^2 + 2*x + 10)
+            sage: EK=E.base_extend(K)
+            sage: EK.torsion_subgroup()
+            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C4 x C4 associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + (-10)*x + (-10) over Number Field in t with defining polynomial x^2 + 2*x + 10
+
+            sage: E = EllipticCurve('19a1')
+            sage: K.<t>=NumberField(x^9-3*x^8-4*x^7+16*x^6-3*x^5-21*x^4+5*x^3+7*x^2-7*x+1)
+            sage: EK=E.base_extend(K)
+            sage: EK.torsion_subgroup()
+            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C9 associated to the Elliptic Curve defined by y^2 + y = x^3 + x^2 + (-9)*x + (-15) over Number Field in t with defining polynomial x^9 - 3*x^8 - 4*x^7 + 16*x^6 - 3*x^5 - 21*x^4 + 5*x^3 + 7*x^2 - 7*x + 1
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: EK = EllipticCurve([0,0,0,i,i+3])
+            sage: EK.torsion_subgroup ()
+            Torsion Subgroup isomorphic to Trivial Abelian Group associated to the Elliptic Curve defined by y^2  = x^3 + i*x + (i+3) over Number Field in i with defining polynomial x^2 + 1
+        """
+        try:
+            return self.__torsion_subgroup
+        except AttributeError:
+            self.__torsion_subgroup = ell_torsion.EllipticCurveTorsionSubgroup(self)
+            return self.__torsion_subgroup
+
+    def torsion_order(self):
+        """
+        Returns the order of the torsion subgroup of this elliptic curve.
+
+        OUTPUT:
+            An integer.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a1')
+            sage: K.<t> = NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
+            sage: EK = E.base_extend(K)
+            sage: EK.torsion_order()
+            25
+
+            sage: E = EllipticCurve('15a1')
+            sage: K.<t> = NumberField(x^2 + 2*x + 10)
+            sage: EK = E.base_extend(K)
+            sage: EK.torsion_order()
+            16
+
+            sage: E = EllipticCurve('19a1')
+            sage: K.<t> = NumberField(x^9-3*x^8-4*x^7+16*x^6-3*x^5-21*x^4+5*x^3+7*x^2-7*x+1)
+            sage: EK = E.base_extend(K)
+            sage: EK.torsion_order()
+            9
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: EK = EllipticCurve([0,0,0,i,i+3])
+            sage: EK.torsion_order()
+            1
+         """
+        try:
+            return self.__torsion_order
+        except AttributeError:
+            self.__torsion_order = self.torsion_subgroup().order()
+            return self.__torsion_order
+
+    def torsion_points(self):
+        """
+        Returns a list of the torsion points of this elliptic curve.
+
+        OUTPUT:
+            A sorted list of points.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a1')
+            sage: E.torsion_points()
+            [(0 : 1 : 0), (5 : -6 : 1), (5 : 5 : 1), (16 : -61 : 1), (16 : 60 : 1)]
+            sage: K.<t> = NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
+            sage: EK = E.base_extend(K)
+            sage: EK.torsion_points()
+            [(t : 1/11*t^3 + 6/11*t^2 + 19/11*t + 48/11 : 1),
+            (1/11*t^3 - 5/11*t^2 + 19/11*t - 40/11 : -6/11*t^3 - 3/11*t^2 - 26/11*t - 321/11 : 1),
+            (1/11*t^3 - 5/11*t^2 + 19/11*t - 40/11 : 6/11*t^3 + 3/11*t^2 + 26/11*t + 310/11 : 1),
+            (t : -1/11*t^3 - 6/11*t^2 - 19/11*t - 59/11 : 1),
+            (16 : 60 : 1),
+            (-3/55*t^3 - 7/55*t^2 - 2/55*t - 133/55 : 6/55*t^3 + 3/55*t^2 + 25/11*t + 156/55 : 1),
+            (14/121*t^3 - 15/121*t^2 + 90/121*t + 232/121 : 16/121*t^3 - 69/121*t^2 + 293/121*t - 46/121 : 1),
+            (-26/121*t^3 + 20/121*t^2 - 219/121*t - 995/121 : -15/121*t^3 - 156/121*t^2 + 232/121*t - 2887/121 : 1),
+            (10/121*t^3 + 49/121*t^2 + 168/121*t + 73/121 : -32/121*t^3 - 60/121*t^2 + 261/121*t + 686/121 : 1),
+            (5 : 5 : 1),
+            (-9/121*t^3 - 21/121*t^2 - 127/121*t - 377/121 : -7/121*t^3 + 24/121*t^2 + 197/121*t + 16/121 : 1),
+            (3/55*t^3 + 7/55*t^2 + 2/55*t + 78/55 : 7/55*t^3 - 24/55*t^2 + 9/11*t + 17/55 : 1),
+            (-5/121*t^3 + 36/121*t^2 - 84/121*t + 24/121 : -34/121*t^3 + 27/121*t^2 - 305/121*t - 829/121 : 1),
+            (5/121*t^3 - 14/121*t^2 - 158/121*t - 453/121 : 49/121*t^3 + 129/121*t^2 + 315/121*t + 86/121 : 1),
+            (5 : -6 : 1),
+            (5/121*t^3 - 14/121*t^2 - 158/121*t - 453/121 : -49/121*t^3 - 129/121*t^2 - 315/121*t - 207/121 : 1),
+            (-5/121*t^3 + 36/121*t^2 - 84/121*t + 24/121 : 34/121*t^3 - 27/121*t^2 + 305/121*t + 708/121 : 1),
+            (3/55*t^3 + 7/55*t^2 + 2/55*t + 78/55 : -7/55*t^3 + 24/55*t^2 - 9/11*t - 72/55 : 1),
+            (-9/121*t^3 - 21/121*t^2 - 127/121*t - 377/121 : 7/121*t^3 - 24/121*t^2 - 197/121*t - 137/121 : 1),
+            (16 : -61 : 1),
+            (10/121*t^3 + 49/121*t^2 + 168/121*t + 73/121 : 32/121*t^3 + 60/121*t^2 - 261/121*t - 807/121 : 1),
+            (-26/121*t^3 + 20/121*t^2 - 219/121*t - 995/121 : 15/121*t^3 + 156/121*t^2 - 232/121*t + 2766/121 : 1),
+            (14/121*t^3 - 15/121*t^2 + 90/121*t + 232/121 : -16/121*t^3 + 69/121*t^2 - 293/121*t - 75/121 : 1),
+            (-3/55*t^3 - 7/55*t^2 - 2/55*t - 133/55 : -6/55*t^3 - 3/55*t^2 - 25/11*t - 211/55 : 1),
+            (0 : 1 : 0)]
+
+            sage: E = EllipticCurve('15a1')
+            sage: K.<t> = NumberField(x^2 + 2*x + 10)
+            sage: EK = E.base_extend(K)
+            sage: EK.torsion_points()
+            [(t : t - 5 : 1),
+            (-1 : 0 : 1),
+            (t : -2*t + 4 : 1),
+            (8 : 18 : 1),
+            (1/2 : 5/4*t + 1/2 : 1),
+            (-2 : 3 : 1),
+            (-7 : 5*t + 8 : 1),
+            (3 : -2 : 1),
+            (-t - 2 : 2*t + 8 : 1),
+            (-13/4 : 9/8 : 1),
+            (-t - 2 : -t - 7 : 1),
+            (8 : -27 : 1),
+            (-7 : -5*t - 2 : 1),
+            (-2 : -2 : 1),
+            (1/2 : -5/4*t - 2 : 1),
+            (0 : 1 : 0)]
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: EK = EllipticCurve(K,[0,0,0,0,-1])
+            sage: EK.torsion_points ()
+            [(-2 : -3*i : 1),
+            (0 : -i : 1),
+            (1 : 0 : 1),
+            (0 : i : 1),
+            (-2 : 3*i : 1),
+            (0 : 1 : 0)]
+         """
+        T = self.torsion_subgroup() # make sure it is cached
+        return T.points()           # these are also cached in T
+
+    def period_lattice(self, real_embedding):
+        r"""
+        Returns the period lattice of the elliptic curve for the given real embedding of its base field.
+
+        NOTE:
+
+            Period lattices have not yet been implemented for non-real
+            complex embeddings.
+
+        EXAMPLES:
+        Define a field with two real embeddings:
+            sage: K.<a> = NumberField(x^2-2)
+            sage: E=EllipticCurve([0,0,0,a,2])
+            sage: embs=K.embeddings(RR); len(embs)
+            2
+
+        For each embedding we have a different period lattice:
+            sage: E.period_lattice(embs[0])
+            Period lattice associated to Elliptic Curve defined by y^2  = x^3 + a*x + 2 over Number Field in a with defining polynomial x^2 - 2 with respect to the real embedding Ring morphism:
+            From: Number Field in a with defining polynomial x^2 - 2
+            To:   Real Field with 53 bits of precision
+            Defn: a |--> -1.414213562373...
+            sage: E.period_lattice(embs[1])
+            Period lattice associated to Elliptic Curve defined by y^2  = x^3 + a*x + 2 over Number Field in a with defining polynomial x^2 - 2 with respect to the real embedding Ring morphism:
+            From: Number Field in a with defining polynomial x^2 - 2
+            To:   Real Field with 53 bits of precision
+            Defn: a |--> 1.414213562373...
+
+        Although the original embeddings have only the default
+        precision, we can obtain the basis with higher precision
+        later:
+            sage: L=E.period_lattice(embs[0])
+            sage: L.basis()
+            (4.13107185270501..., -2.06553592635250... + 0.988630424469107...*I)
+            sage: L.basis(prec=75)
+            (4.131071852705016774309696...,
+            -2.065535926352508387154848... + 0.9886304244691077723690104...*I)
+            sage: L.basis(prec=100)
+            (4.1310718527050167743096955262475367...,
+            -2.0655359263525083871548477631237683... + 0.98863042446910777236901069433960633...*I)
+
+        Once increased, the precision does not decrease
+            sage: L.basis(prec=10)
+            (4.13107185, -2.06553592 + 0.988630424*I) # 32-bit
+            (4.13107185270501677, -2.06553592635250838 + 0.988630424469107772*I) # 64-bit
+            sage: [CC(w) for w in L.basis()]
+            [4.13107185270..., -2.06553592635... + 0.988630424469...*I]
+        """
+        from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
+        return PeriodLattice_ell(self,real_embedding)
+
 

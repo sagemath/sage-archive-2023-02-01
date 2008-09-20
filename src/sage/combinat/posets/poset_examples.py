@@ -18,7 +18,7 @@ Some examples of posets and lattices.
 #*****************************************************************************
 
 from random import random
-from sage.combinat.permutation import Permutations
+from sage.combinat.permutation import Permutations, Permutation
 from sage.combinat.posets.posets import Poset
 from sage.combinat.posets.lattices import LatticePoset
 from sage.graphs.graph import DiGraph
@@ -212,6 +212,47 @@ def SymmetricGroupBruhatOrderPoset(n):
     if n < 10:
         element_labels = dict([[s,"".join(map(str,s))] for s in Permutations(n)])
     return Poset(dict([[s,s.bruhat_succ()] for s in Permutations(n)]),element_labels)
+
+def SymmetricGroupBruhatIntervalPoset(start, end):
+    """
+    The poset of permutations with respect to Bruhat order.
+
+    INPUT:
+        start -- list permutation
+        end -- list permutation (same n, of course)
+
+    NOTE:
+        Must have start <= end.
+
+    EXAMPLES:
+        sage: from sage.combinat.posets.poset_examples import SymmetricGroupBruhatIntervalPoset
+
+    Any interval is rank symmetric if and only if it avoids these permutations:
+        sage: P1 = SymmetricGroupBruhatIntervalPoset([0,1,2,3], [2,3,0,1])
+        sage: P2 = SymmetricGroupBruhatIntervalPoset([0,1,2,3], [3,1,2,0])
+        sage: ranks1 = [P1.rank(v) for v in P1]
+        sage: ranks2 = [P2.rank(v) for v in P2]
+        sage: [ranks1.count(i) for i in uniq(ranks1)]
+        [1, 3, 5, 4, 1]
+        sage: [ranks2.count(i) for i in uniq(ranks2)]
+        [1, 3, 5, 6, 4, 1]
+
+    """
+    start = Permutation(start)
+    end = Permutation(end)
+    if len(start) != len(end):
+        raise TypeError("Start (%s) and end (%s) must have same length."%(start, end))
+    if not start.bruhat_lequal(end):
+        raise TypeError("Must have start (%s) <= end (%s) in Bruhat order."%(start, end))
+    unseen = [start]
+    nodes = {}
+    while len(unseen) > 0:
+        perm = unseen.pop(0)
+        nodes[perm] = [succ_perm for succ_perm in perm.bruhat_succ_iterator() if succ_perm.bruhat_lequal(end)]
+        for succ_perm in nodes[perm]:
+            if not nodes.has_key(succ_perm):
+                unseen.append(succ_perm)
+    return Poset(nodes)
 
 def SymmetricGroupWeakOrderPoset(n,labels="permutations"):
     """

@@ -84,7 +84,7 @@ AUTHORS:
                 \item graph6 or sparse6 format:
 
                 sage: s = ':I`AKGsaOs`cI]Gb~'
-                sage: G = Graph(s); G
+                sage: G = Graph(s, sparse=True); G
                 Looped multi-graph on 10 vertices
                 sage: G.plot().show()    # or G.show()
 
@@ -260,7 +260,6 @@ AUTHORS:
 from sage.misc.prandom import random
 from sage.structure.sage_object import SageObject
 import sage.graphs.graph_fast as graph_fast
-from sage.graphs.base.all import SparseGraph, DenseGraph
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
@@ -459,6 +458,19 @@ class GenericGraph(SageObject):
             return repr(self)
 
     def _bit_vector(self):
+        """
+        Returns a string representing the edges of the (simple) graph for graph6 and dig6 strings.
+
+        EXAMPLE:
+            sage: G = graphs.PetersenGraph()
+            sage: G._bit_vector()
+            '101001100110000010000001001000010110000010110'
+            sage: len([a for a in G._bit_vector() if a == '1'])
+            15
+            sage: G.num_edges()
+            15
+
+        """
         vertices = self.vertices()
         n = len(vertices)
         if self._directed:
@@ -466,9 +478,8 @@ class GenericGraph(SageObject):
             bit = lambda x,y : x*n + y
         else:
             total_length = int(n*(n - 1))/int(2)
-            def bit(x,y):
-                a,b = sorted([x,y])
-                return int(b*(b-1))/int(2) + a
+            n_ch_2 = lambda b : int(b*(b-1))/int(2)
+            bit = lambda x,y : n_ch_2(max([x,y])) + min([x,y])
         bit_vector = set()
         for u,v,_ in self.edge_iterator():
             bit_vector.add(bit(vertices.index(u), vertices.index(v)))
@@ -493,6 +504,10 @@ class GenericGraph(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: To include a graph in LaTeX document, see function Graph.write_to_eps().
+            sage: G._latex_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: To include a graph in LaTeX document, see function Graph.write_to_eps().
 
         """
         raise NotImplementedError('To include a graph in LaTeX document, see function Graph.write_to_eps().')
@@ -511,6 +526,12 @@ class GenericGraph(SageObject):
             [1 1 0 0 0]
             [1 1 0 0 0]
             [1 1 0 0 0]
+            sage: G._matrix_()
+            [0 0 1 1 1]
+            [0 0 1 1 1]
+            [1 1 0 0 0]
+            [1 1 0 0 0]
+            [1 1 0 0 0]
             sage: factor(m.charpoly())
             x^3 * (x^2 - 6)
 
@@ -521,6 +542,15 @@ class GenericGraph(SageObject):
             return self.am().change_ring(R)
 
     def _repr_(self):
+        """
+        Return a string representation of self.
+
+        EXAMPLE:
+            sage: G = graphs.PetersenGraph()
+            sage: G._repr_()
+            'Petersen graph: Graph on 10 vertices'
+
+        """
         name = ""
         if self.loops():
             name += "looped "
@@ -540,15 +570,15 @@ class GenericGraph(SageObject):
 
     ### Formats
 
-    def copy(self):
+    def copy(self, implementation='networkx', sparse=True):
         """
         Creates a copy of the graph.
 
         EXAMPLES:
-            sage: g=Graph({0:[0,1,1,2]},loops=True,multiedges=True)
+            sage: g=Graph({0:[0,1,1,2]},loops=True,multiedges=True,implementation='networkx')
             sage: g==g.copy()
             True
-            sage: g=DiGraph({0:[0,1,1,2],1:[0,1]},loops=True,multiedges=True)
+            sage: g=DiGraph({0:[0,1,1,2],1:[0,1]},loops=True,multiedges=True,implementation='networkx')
             sage: g==g.copy()
             True
 
@@ -576,9 +606,9 @@ class GenericGraph(SageObject):
         """
         from copy import copy
         if self._directed:
-            G = DiGraph(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary))
+            G = DiGraph(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, sparse=sparse)
         else:
-            G = Graph(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary))
+            G = Graph(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, sparse=sparse)
         if hasattr(self, '_assoc'):
             G._assoc = {}
             for v in self._assoc:
@@ -606,6 +636,7 @@ class GenericGraph(SageObject):
             <class 'networkx.xgraph.XGraph'>
 
             sage: G = graphs.TetrahedralGraph()
+            sage: G = Graph(G, implementation='networkx')
             sage: N = G.networkx_graph()
             sage: G._backend._nxg is N
             False
@@ -782,14 +813,14 @@ class GenericGraph(SageObject):
         function.
 
         EXAMPLES:
-            sage: G = Graph()
+            sage: G = Graph(sparse=True)
             sage: G.add_edges([(0,1,1),(1,2,2),(0,2,3),(0,3,4)])
             sage: M = G.weighted_adjacency_matrix(); M
             [0 1 3 4]
             [1 0 2 0]
             [3 2 0 0]
             [4 0 0 0]
-            sage: H = Graph(data=M, format='weighted_adjacency_matrix')
+            sage: H = Graph(data=M, format='weighted_adjacency_matrix', sparse=True)
             sage: H == G
             True
 
@@ -829,7 +860,7 @@ class GenericGraph(SageObject):
             Tom Boothby
 
         EXAMPLES:
-            sage: G = Graph()
+            sage: G = Graph(sparse=True)
             sage: G.add_edges([(0,1,1),(1,2,2),(0,2,3),(0,3,4)])
             sage: M = G.kirchhoff_matrix(weighted=True); M
             [ 8 -1 -3 -4]
@@ -852,6 +883,11 @@ class GenericGraph(SageObject):
             [ 0  1 -1  0]
             [-1 -1  3 -1]
             [-1  0 -1  2]
+            sage: M = G.laplacian_matrix(boundary_first=True); M
+            [ 2  0 -1 -1]
+            [ 0  1 -1  0]
+            [-1 -1  3 -1]
+            [-1  0 -1  2]
 
         """
         from sage.matrix.constructor import matrix
@@ -869,6 +905,8 @@ class GenericGraph(SageObject):
         for i in range(len(A)):
             A[i][i] = S[i]
         return M.parent()(A)
+
+    laplacian_matrix = kirchhoff_matrix
 
     ### Attributes
 
@@ -894,10 +932,14 @@ class GenericGraph(SageObject):
             sage: G.set_boundary([0,1,2,3,4])
             sage: G.get_boundary()
             [0, 1, 2, 3, 4]
-
+            sage: G.set_boundary((1..4))
+            sage: G.get_boundary()
+            [1, 2, 3, 4]
         """
         if isinstance(boundary,list):
             self._boundary = boundary
+        else:
+            self._boundary = list(boundary)
 
     def set_embedding(self, embedding):
         """
@@ -1009,6 +1051,8 @@ class GenericGraph(SageObject):
             True
 
         """
+        if new is False:
+            self.remove_loops()
         return self._backend.loops(new)
 
     def multiple_edges(self, new=None):
@@ -1058,6 +1102,24 @@ class GenericGraph(SageObject):
         """
         Returns the position dictionary, a dictionary specifying the coordinates
         of each vertex.
+
+        EXAMPLES:
+        By default, the position of a graph is None:
+            sage: G = Graph()
+            sage: G.get_pos()
+            sage: G.get_pos() is None
+            True
+            sage: P = G.plot(save_pos=True)
+            sage: G.get_pos()
+            {}
+
+        Some of the named graphs come with a pre-specified positioning:
+            sage: G = graphs.PetersenGraph()
+            sage: G.get_pos()
+            {0: [..., ...],
+             ...
+             9: [..., ...]}
+
         """
         return self._pos
 
@@ -1065,6 +1127,22 @@ class GenericGraph(SageObject):
         """
         Sets the position dictionary, a dictionary specifying the
         coordinates of each vertex.
+
+        EXAMPLE:
+        Note that set_pos will allow you to do ridiculous things, which
+        will not blow up until plotting:
+            sage: G = graphs.PetersenGraph()
+            sage: G.get_pos()
+            {0: [..., ...],
+             ...
+             9: [..., ...]}
+
+            sage: G.set_pos('spam')
+            sage: P = G.plot()
+            Traceback (most recent call last):
+            ...
+            TypeError: string indices must be integers
+
         """
         self._pos = pos
 
@@ -1078,8 +1156,8 @@ class GenericGraph(SageObject):
         EXAMPLE:
         Here we have two graphs with different labels, but weighted is False
         for both, so we just check for the presence of edges:
-            sage: G = Graph({0:{1:'a'}})
-            sage: H = Graph({0:{1:'b'}})
+            sage: G = Graph({0:{1:'a'}}, implementation='networkx')
+            sage: H = Graph({0:{1:'b'}}, implementation='networkx')
             sage: G == H
             True
 
@@ -1274,7 +1352,7 @@ class GenericGraph(SageObject):
             15
 
         """
-        return self._backend.num_edges()
+        return self._backend.num_edges(self._directed)
 
     num_edges = size
 
@@ -1426,7 +1504,7 @@ class GenericGraph(SageObject):
                        updated if a circular planar embedding is found.
 
         EXAMPLES:
-            sage: g439 = Graph({1:[5,7], 2:[5,6], 3:[6,7], 4:[5,6,7]})
+            sage: g439 = Graph({1:[5,7], 2:[5,6], 3:[6,7], 4:[5,6,7]}, implementation='networkx')
             sage: g439.set_boundary([1,2,3,4])
             sage: g439.show(figsize=[2,2], vertex_labels=True, vertex_size=175)
             sage: g439.is_circular_planar()
@@ -2127,10 +2205,10 @@ class GenericGraph(SageObject):
         potentially be slow.
 
         EXAMPLES:
-            sage: G = Graph(); G.add_vertex(); G
+            sage: G = Graph(sparse=True); G.add_vertex(); G
             Graph on 1 vertex
 
-            sage: D = DiGraph(); D.add_vertex(); D
+            sage: D = DiGraph(sparse=True); D.add_vertex(); D
             Digraph on 1 vertex
 
         """
@@ -2143,7 +2221,7 @@ class GenericGraph(SageObject):
 
         EXAMPLES:
             sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7,8], 6: [8,9], 7: [9]}
-            sage: G = Graph(d)
+            sage: G = Graph(d, sparse=True)
             sage: G.add_vertices([10,11,12])
             sage: G.vertices()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -2152,9 +2230,7 @@ class GenericGraph(SageObject):
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
 
         """
-        for v in vertices:
-            if v not in self:
-                self.add_vertex(v)
+        self._backend.add_vertices(vertices)
 
     def delete_vertex(self, vertex, in_order=False):
         """
@@ -2166,10 +2242,10 @@ class GenericGraph(SageObject):
             the sorted list of vertices, i.e. G.vertices()[i]
 
         EXAMPLES:
-            sage: G = graphs.WheelGraph(9)
+            sage: G = Graph(graphs.WheelGraph(9), sparse=True)
             sage: G.delete_vertex(0); G.show()
 
-            sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]})
+            sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]}, implementation='networkx')
             sage: D.delete_vertex(0); D
             Digraph on 5 vertices
             sage: D.vertices()
@@ -2197,7 +2273,7 @@ class GenericGraph(SageObject):
         vertices.  Deleting a non-existant vertex will raise an exception.
 
         EXAMPLE:
-            sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]})
+            sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]}, implementation='networkx')
             sage: D.delete_vertices([1,2,3,4,5]); D
             Digraph on 1 vertex
             sage: D.vertices()
@@ -2208,8 +2284,7 @@ class GenericGraph(SageObject):
             NetworkXError: node 1 not in graph
 
         """
-        for v in vertices:
-            self.delete_vertex(v)
+        self._backend.del_vertices(vertices)
 
     def has_vertex(self, vertex):
         """
@@ -2222,7 +2297,7 @@ class GenericGraph(SageObject):
             bool -- True or False
 
         EXAMPLES:
-            sage: g = Graph({0:[1,2,3], 2:[5]}); g
+            sage: g = Graph({0:[1,2,3], 2:[4]}); g
             Graph on 5 vertices
             sage: 2 in g
             True
@@ -2512,10 +2587,10 @@ class GenericGraph(SageObject):
 
         EXAMPLE:
             sage: P = graphs.PetersenGraph()
-            sage: P.neighbors(3)
-            [8, 2, 4]
-            sage: P[4]
-            [0, 9, 3]
+            sage: sorted(P.neighbors(3))
+            [2, 4, 8]
+            sage: sorted(P[4])
+            [0, 3, 9]
 
         """
         return list(self.neighbor_iterator(vertex))
@@ -2540,23 +2615,32 @@ class GenericGraph(SageObject):
 
         WARNING:
         The following intuitive input results in nonintuitive output:
-            sage: G = Graph()
+            sage: G = Graph(implementation='networkx')
             sage: G.add_edge((1,2), 'label')
             sage: G.networkx_graph().adj           # random output order
             {'label': {(1, 2): None}, (1, 2): {'label': None}}
 
         Use one of these instead:
-            sage: G = Graph()
+            sage: G = Graph(implementation='networkx')
             sage: G.add_edge((1,2), label="label")
             sage: G.networkx_graph().adj           # random output order
             {1: {2: 'label'}, 2: {1: 'label'}}
 
-            sage: G = Graph()
+            sage: G = Graph(implementation='networkx')
             sage: G.add_edge(1,2,'label')
             sage: G.networkx_graph().adj           # random output order
             {1: {2: 'label'}, 2: {1: 'label'}}
 
         """
+        if label is None:
+            if v is None:
+                try:
+                    u, v, label = u
+                except:
+                    u, v = u
+                    label = None
+        if not self.loops() and u==v:
+            return
         self._backend.add_edge(u, v, label, self._directed)
 
     def add_edges(self, edges):
@@ -2565,17 +2649,16 @@ class GenericGraph(SageObject):
 
         EXAMPLE:
             sage: G = graphs.DodecahedralGraph()
-            sage: H = Graph()
+            sage: H = Graph(implementation='networkx')
             sage: H.add_edges( G.edge_iterator() ); H
             Graph on 20 vertices
             sage: G = graphs.DodecahedralGraph().to_directed()
-            sage: H = DiGraph()
+            sage: H = DiGraph(implementation='networkx')
             sage: H.add_edges( G.edge_iterator() ); H
             Digraph on 20 vertices
 
         """
-        for e in edges:
-            self.add_edge(e)
+        self._backend.add_edges(edges, self._directed)
 
     def delete_edge(self, u, v=None, label=None):
         r"""
@@ -2657,7 +2740,7 @@ class GenericGraph(SageObject):
         Deletes all edges from u and v.
 
         EXAMPLE:
-            sage: G = Graph(multiedges=True)
+            sage: G = Graph(multiedges=True, implementation='networkx')
             sage: G.add_edges([(0,1), (0,1), (0,1), (1,2), (2,3)])
             sage: G.edges()
             [(0, 1, None), (0, 1, None), (0, 1, None), (1, 2, None), (2, 3, None)]
@@ -2666,9 +2749,9 @@ class GenericGraph(SageObject):
             [(1, 2, None), (2, 3, None)]
 
             sage: D = DiGraph(multiedges=True)
-            sage: D.add_edges([(0,1), (0,1), (0,1), (1,0), (1,2), (2,3)])
+            sage: D.add_edges([(0,1,1), (0,1,2), (0,1,3), (1,0), (1,2), (2,3)])
             sage: D.edges()
-            [(0, 1, None), (0, 1, None), (0, 1, None), (1, 0, None), (1, 2, None), (2, 3, None)]
+            [(0, 1, 1), (0, 1, 2), (0, 1, 3), (1, 0, None), (1, 2, None), (2, 3, None)]
             sage: D.delete_multiedge( 0, 1 )
             sage: D.edges()
             [(1, 0, None), (1, 2, None), (2, 3, None)]
@@ -2693,7 +2776,7 @@ class GenericGraph(SageObject):
             l -- the new label
 
         EXAMPLES:
-            sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
+            sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] }, implementation='networkx')
             sage: SD.set_edge_label(1, 18, 'discrete')
             sage: SD.set_edge_label(4, 7, 'discrete')
             sage: SD.set_edge_label(2, 5, 'h = 0')
@@ -2720,7 +2803,7 @@ class GenericGraph(SageObject):
                  (11, 12, '(11,12)'),
                  (12, 13, '(12,13)')]
 
-            sage: g = Graph({0: [0,1,1,2]}, loops=True, multiedges=True)
+            sage: g = Graph({0: [0,1,1,2]}, loops=True, multiedges=True, implementation='networkx')
             sage: g.set_edge_label(0,0,'test')
             sage: g.edges()
             [(0, 0, 'test'), (0, 1, None), (0, 1, None), (0, 2, None)]
@@ -2730,7 +2813,7 @@ class GenericGraph(SageObject):
             ...
             RuntimeError: Cannot set edge label, since there are multiple edges from 0 to 0.
 
-            sage: dg = DiGraph({0 : [1], 1 : [0]})
+            sage: dg = DiGraph({0 : [1], 1 : [0]}, sparse=True)
             sage: dg.set_edge_label(0,1,5)
             sage: dg.set_edge_label(1,0,9)
             sage: dg.outgoing_edges(1)
@@ -2742,7 +2825,17 @@ class GenericGraph(SageObject):
             sage: dg.incoming_edges(0)
             [(1, 0, 9)]
 
+            sage: G = Graph({0:{1:1}}, implementation='c_graph')
+            sage: G.num_edges()
+            1
+            sage: G.set_edge_label(0,1,1)
+            sage: G.num_edges()
+            1
+
         """
+        if self.multiple_edges():
+            if len(self.edge_label(u, v)) > 1:
+                raise RuntimeError("Cannot set edge label, since there are multiple edges from %s to %s."%(u,v))
         self._backend.set_edge_label(u, v, l, self._directed)
 
     def has_edge(self, u, v=None, label=None):
@@ -2761,7 +2854,7 @@ class GenericGraph(SageObject):
             False
             sage: DiGraph().has_edge(9,2)
             False
-            sage: G = Graph()
+            sage: G = Graph(implementation='networkx')
             sage: G.add_edge(0,1,"label")
             sage: G.has_edge(0,1,"different label")
             False
@@ -2891,8 +2984,17 @@ class GenericGraph(SageObject):
             vertices = [vertices]
         else:
             vertices = [v for v in vertices if v in self]
-        return self._backend.iterator_edges(vertices, labels, \
-               (ignore_direction and self._directed))
+        if ignore_direction and self._directed:
+            for v in self._backend.iterator_out_edges(vertices, labels):
+                yield v
+            for v in self._backend.iterator_in_edges(vertices, labels):
+                yield v
+        elif self._directed:
+            for v in self._backend.iterator_out_edges(vertices, labels):
+                yield v
+        else:
+            for v in self._backend.iterator_edges(vertices, labels, self._directed):
+                yield v
 
     def edges_incident(self, vertices=None, labels=True):
         """
@@ -2925,22 +3027,22 @@ class GenericGraph(SageObject):
         edges, then a list of labels on the edge is returned.
 
         EXAMPLE:
-            sage: G = Graph({0 : {1 : 'edgelabel'}})
+            sage: G = Graph({0 : {1 : 'edgelabel'}}, implementation='networkx')
             sage: G.edges(labels=False)
             [(0, 1)]
             sage: G.edge_label( 0, 1 )
             'edgelabel'
-            sage: D = DiGraph({0 : {1 : 'edgelabel'}})
+            sage: D = DiGraph({0 : {1 : 'edgelabel'}}, implementation='networkx')
             sage: D.edges(labels=False)
             [(0, 1)]
             sage: D.edge_label( 0, 1 )
             'edgelabel'
 
             sage: G = Graph(multiedges=True)
-            sage: [G.add_edge(0,1,i) for i in range(6)]
-            [None, None, None, None, None, None]
-            sage: G.edge_label(0,1)
-            [0, 1, 2, 3, 4, 5]
+            sage: [G.add_edge(0,1,i) for i in range(1,6)]
+            [None, None, None, None, None]
+            sage: sorted(G.edge_label(0,1))
+            [1, 2, 3, 4, 5]
 
         """
         return self._backend.get_edge_label(u,v)
@@ -2950,10 +3052,10 @@ class GenericGraph(SageObject):
         Returns a list of edge labels.
 
         EXAMPLE:
-            sage: G = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}})
+            sage: G = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}, implementation='networkx')
             sage: G.edge_labels()
             ['x', 'z', 'a', 'out']
-            sage: G = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}})
+            sage: G = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}, implementation='networkx')
             sage: G.edge_labels()
             ['x', 'z', 'a', 'out']
 
@@ -2968,7 +3070,7 @@ class GenericGraph(SageObject):
         Removes all multiple edges, retaining one edge for each.
 
         EXAMPLE:
-            sage: G = Graph(multiedges=True)
+            sage: G = Graph(multiedges=True, implementation='networkx')
             sage: G.add_edges( [ (0,1), (0,1), (0,1), (0,1), (1,2) ] )
             sage: G.edges(labels=False)
             [(0, 1), (0, 1), (0, 1), (0, 1), (1, 2)]
@@ -2978,7 +3080,7 @@ class GenericGraph(SageObject):
             [(0, 1), (1, 2)]
 
             sage: D = DiGraph(multiedges=True)
-            sage: D.add_edges( [ (0,1), (0,1), (0,1), (0,1), (1,2) ] )
+            sage: D.add_edges( [ (0,1,1), (0,1,2), (0,1,3), (0,1,4), (1,2) ] )
             sage: D.edges(labels=False)
             [(0, 1), (0, 1), (0, 1), (0, 1), (1, 2)]
             sage: D.remove_multiple_edges()
@@ -2987,18 +3089,25 @@ class GenericGraph(SageObject):
 
         """
         if self.multiple_edges():
-            for v in self:
-                for u in self.neighbor_iterator(v):
-                    edges = self.edge_boundary([v], [u])
-                    if len(edges) > 1:
-                        self.delete_edges(edges[1:])
+            if self._directed:
+                for v in self:
+                    for u in self.predecessor_iterator(v):
+                        edges = self.edge_boundary([u], [v])
+                        if len(edges) > 1:
+                            self.delete_edges(edges[1:])
+            else:
+                for v in self:
+                    for u in self.neighbor_iterator(v):
+                        edges = self.edge_boundary([v], [u])
+                        if len(edges) > 1:
+                            self.delete_edges(edges[1:])
 
     def remove_loops(self, vertices=None):
         """
         Removes loops on vertices in vertices. If vertices is None, removes all loops.
 
         EXAMPLE
-            sage: G = Graph(loops=True)
+            sage: G = Graph(4, loops=True)
             sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
             sage: G.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
@@ -3008,7 +3117,7 @@ class GenericGraph(SageObject):
             sage: G.loops()
             True
 
-            sage: D = DiGraph(loops=True)
+            sage: D = DiGraph(4, loops=True)
             sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
             sage: D.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
@@ -3020,26 +3129,27 @@ class GenericGraph(SageObject):
 
         """
         if vertices is None:
-            vertices = self.vertices()
+            vertices = self
         for v in vertices:
-            self.delete_multiedge(v,v)
+            if self.has_edge(v,v):
+                self.delete_multiedge(v,v)
 
     def loop_edges(self):
         """
         Returns a list of all loops in the graph.
 
         EXAMPLE:
-            sage: G = Graph(loops=True)
+            sage: G = Graph(4, loops=True)
             sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
             sage: G.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
 
-            sage: D = DiGraph(loops=True)
+            sage: D = DiGraph(4, loops=True)
             sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
             sage: D.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
 
-            sage: G = Graph(loops=True, multiedges=True)
+            sage: G = Graph(4, loops=True, multiedges=True)
             sage: G.add_edges([(i,i) for i in range(4)])
             sage: G.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
@@ -3055,14 +3165,14 @@ class GenericGraph(SageObject):
         Returns the number of edges that are loops.
 
         EXAMPLE:
-            sage: G = Graph(loops=True)
+            sage: G = Graph(4, loops=True)
             sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
             sage: G.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
             sage: G.number_of_loops()
             4
 
-            sage: D = DiGraph(loops=True)
+            sage: D = DiGraph(4, loops=True)
             sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
             sage: D.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
@@ -3090,15 +3200,26 @@ class GenericGraph(SageObject):
             'Cycle graph'
             sage: G.get_vertex(0)
             'vertex0'
-            sage: G.clear()
-            sage: G.order(); G.size()
+            sage: H = G.copy(implementation='c_graph', sparse=True)
+            sage: H.clear()
+            sage: H.order(); H.size()
             0
             0
-            sage: len(G._pos)
+            sage: len(H._pos)
             0
-            sage: G.name()
+            sage: H.name()
             ''
-            sage: G.get_vertex(0)
+            sage: H.get_vertex(0)
+            sage: H = G.copy(implementation='networkx')
+            sage: H.clear()
+            sage: H.order(); H.size()
+            0
+            0
+            sage: len(H._pos)
+            0
+            sage: H.name()
+            ''
+            sage: H.get_vertex(0)
 
         """
         self.name('')
@@ -3222,9 +3343,9 @@ class GenericGraph(SageObject):
         else:
             vertices = [v for v in vertices if v in self]
         if labels:
-            filter = lambda v, self: (v, self._backend.degree(v))
+            filter = lambda v, self: (v, self._backend.degree(v, self._directed))
         else:
-            filter = lambda v, self: self._backend.degree(v)
+            filter = lambda v, self: self._backend.degree(v, self._directed)
         for v in vertices:
             yield filter(v, self)
 
@@ -3288,7 +3409,7 @@ class GenericGraph(SageObject):
 
         A more complicated example involving multiple edges and labels.
 
-            sage: G = Graph(multiedges=True)
+            sage: G = Graph(multiedges=True, implementation='networkx')
             sage: G.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
             sage: G.subgraph(edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
             [(0, 1, 'a'), (0, 1, 'b'), (0, 1, 'c'), (0, 2, 'd')]
@@ -3298,7 +3419,7 @@ class GenericGraph(SageObject):
             sage: J.vertices()
             [0, 1]
 
-            sage: D = DiGraph(multiedges=True)
+            sage: D = DiGraph(multiedges=True, implementation='networkx')
             sage: D.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
             sage: D.subgraph(edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
             [(0, 1, 'a'), (0, 1, 'b'), (0, 2, 'd')]
@@ -3345,7 +3466,6 @@ class GenericGraph(SageObject):
             G = self
         else:
             G = self.copy()
-        G.delete_vertices(vertices)
         if G._pos is not None:
             for v in vertices:
                 del G._pos[v]
@@ -3370,6 +3490,7 @@ class GenericGraph(SageObject):
                     if e not in edges_to_delete and not edge_property(e):
                         edges_to_delete.append(e)
             G.delete_edges(edges_to_delete)
+        G.delete_vertices(vertices)
         if not inplace:
             return G
 
@@ -3770,7 +3891,7 @@ class GenericGraph(SageObject):
             sage: S = graphs.StarGraph(19)
             sage: S.center()
             [0]
-            sage: G = Graph()
+            sage: G = Graph(sparse=True)
             sage: G.center()
             []
             sage: G.add_vertex()
@@ -3882,7 +4003,7 @@ class GenericGraph(SageObject):
             sage: S = graphs.StarGraph(19)
             sage: S.periphery()
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-            sage: G = Graph()
+            sage: G = Graph(sparse=True)
             sage: G.periphery()
             []
             sage: G.add_vertex()
@@ -3914,65 +4035,65 @@ class GenericGraph(SageObject):
 
         EXAMPLES:
             sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
-            sage: eg1.all_paths(0,6)
+            sage: sorted(eg1.all_paths(0,6))
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
             sage: eg2 = eg1.copy()
             sage: eg2.set_boundary([0,1,3])
-            sage: eg2.interior_paths(0,6)
+            sage: sorted(eg2.interior_paths(0,6))
             [[0, 2, 4, 5, 6]]
-            sage: eg2.all_paths(0,6)
+            sage: sorted(eg2.all_paths(0,6))
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
             sage: eg3 = graphs.PetersenGraph()
             sage: eg3.set_boundary([0,1,2,3,4])
-            sage: eg3.all_paths(1,4)
+            sage: sorted(eg3.all_paths(1,4))
             [[1, 0, 4],
+             [1, 0, 5, 7, 2, 3, 4],
+             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
+             [1, 0, 5, 7, 9, 4],
+             [1, 0, 5, 7, 9, 6, 8, 3, 4],
              [1, 0, 5, 8, 3, 2, 7, 9, 4],
              [1, 0, 5, 8, 3, 4],
              [1, 0, 5, 8, 6, 9, 4],
              [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
-             [1, 0, 5, 7, 9, 4],
-             [1, 0, 5, 7, 9, 6, 8, 3, 4],
-             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
-             [1, 0, 5, 7, 2, 3, 4],
+             [1, 2, 3, 4],
              [1, 2, 3, 8, 5, 0, 4],
              [1, 2, 3, 8, 5, 7, 9, 4],
              [1, 2, 3, 8, 6, 9, 4],
              [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
-             [1, 2, 3, 4],
-             [1, 2, 7, 9, 4],
-             [1, 2, 7, 9, 6, 8, 3, 4],
-             [1, 2, 7, 9, 6, 8, 5, 0, 4],
              [1, 2, 7, 5, 0, 4],
              [1, 2, 7, 5, 8, 3, 4],
              [1, 2, 7, 5, 8, 6, 9, 4],
-             [1, 6, 8, 3, 2, 7, 9, 4],
+             [1, 2, 7, 9, 4],
+             [1, 2, 7, 9, 6, 8, 3, 4],
+             [1, 2, 7, 9, 6, 8, 5, 0, 4],
              [1, 6, 8, 3, 2, 7, 5, 0, 4],
+             [1, 6, 8, 3, 2, 7, 9, 4],
              [1, 6, 8, 3, 4],
              [1, 6, 8, 5, 0, 4],
-             [1, 6, 8, 5, 7, 9, 4],
              [1, 6, 8, 5, 7, 2, 3, 4],
+             [1, 6, 8, 5, 7, 9, 4],
              [1, 6, 9, 4],
-             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
              [1, 6, 9, 7, 2, 3, 4],
+             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
              [1, 6, 9, 7, 5, 0, 4],
              [1, 6, 9, 7, 5, 8, 3, 4]]
-            sage: eg3.interior_paths(1,4)
+            sage: sorted(eg3.interior_paths(1,4))
             [[1, 6, 8, 5, 7, 9, 4], [1, 6, 9, 4]]
-            sage: dg = DiGraph({0:[1,3,4], 1:[3], 2:[0,3,4],4:[3]}, boundary=[4]);
-            sage: dg.all_paths(0,3)
+            sage: dg = DiGraph({0:[1,3,4], 1:[3], 2:[0,3,4],4:[3]}, boundary=[4])
+            sage: sorted(dg.all_paths(0,3))
             [[0, 1, 3], [0, 3], [0, 4, 3]]
-            sage: dg.interior_paths(0,3)
+            sage: sorted(dg.interior_paths(0,3))
             [[0, 1, 3], [0, 3]]
             sage: ug = dg.to_undirected()
-            sage: ug.all_paths(0,3)
+            sage: sorted(ug.all_paths(0,3))
             [[0, 1, 3], [0, 2, 3], [0, 2, 4, 3], [0, 3], [0, 4, 2, 3], [0, 4, 3]]
-            sage: ug.interior_paths(0,3)
+            sage: sorted(ug.interior_paths(0,3))
             [[0, 1, 3], [0, 2, 3], [0, 3]]
         """
         H = self.copy()
         for vertex in self.get_boundary():
             if (vertex != start and vertex != end):
-                H.delete_vertex(vertex)
+                H.delete_edges(H.edges_incident(vertex))
         return H.all_paths(start, end)
 
     def all_paths(self, start, end):
@@ -3985,43 +4106,43 @@ class GenericGraph(SageObject):
             sage: eg1.all_paths(0,6)
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
             sage: eg2 = graphs.PetersenGraph()
-            sage: eg2.all_paths(1,4)
+            sage: sorted(eg2.all_paths(1,4))
             [[1, 0, 4],
+             [1, 0, 5, 7, 2, 3, 4],
+             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
+             [1, 0, 5, 7, 9, 4],
+             [1, 0, 5, 7, 9, 6, 8, 3, 4],
              [1, 0, 5, 8, 3, 2, 7, 9, 4],
              [1, 0, 5, 8, 3, 4],
              [1, 0, 5, 8, 6, 9, 4],
              [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
-             [1, 0, 5, 7, 9, 4],
-             [1, 0, 5, 7, 9, 6, 8, 3, 4],
-             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
-             [1, 0, 5, 7, 2, 3, 4],
+             [1, 2, 3, 4],
              [1, 2, 3, 8, 5, 0, 4],
              [1, 2, 3, 8, 5, 7, 9, 4],
              [1, 2, 3, 8, 6, 9, 4],
              [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
-             [1, 2, 3, 4],
-             [1, 2, 7, 9, 4],
-             [1, 2, 7, 9, 6, 8, 3, 4],
-             [1, 2, 7, 9, 6, 8, 5, 0, 4],
              [1, 2, 7, 5, 0, 4],
              [1, 2, 7, 5, 8, 3, 4],
              [1, 2, 7, 5, 8, 6, 9, 4],
-             [1, 6, 8, 3, 2, 7, 9, 4],
+             [1, 2, 7, 9, 4],
+             [1, 2, 7, 9, 6, 8, 3, 4],
+             [1, 2, 7, 9, 6, 8, 5, 0, 4],
              [1, 6, 8, 3, 2, 7, 5, 0, 4],
+             [1, 6, 8, 3, 2, 7, 9, 4],
              [1, 6, 8, 3, 4],
              [1, 6, 8, 5, 0, 4],
-             [1, 6, 8, 5, 7, 9, 4],
              [1, 6, 8, 5, 7, 2, 3, 4],
+             [1, 6, 8, 5, 7, 9, 4],
              [1, 6, 9, 4],
-             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
              [1, 6, 9, 7, 2, 3, 4],
+             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
              [1, 6, 9, 7, 5, 0, 4],
              [1, 6, 9, 7, 5, 8, 3, 4]]
             sage: dg = DiGraph({0:[1,3], 1:[3], 2:[0,3]})
-            sage: dg.all_paths(0,3)
+            sage: sorted(dg.all_paths(0,3))
             [[0, 1, 3], [0, 3]]
             sage: ug = dg.to_undirected()
-            sage: ug.all_paths(0,3)
+            sage: sorted(ug.all_paths(0,3))
             [[0, 1, 3], [0, 2, 3], [0, 3]]
         """
         if self.is_directed():
@@ -4071,10 +4192,10 @@ class GenericGraph(SageObject):
             [4, 17, 16, 12, 13, 9]
             sage: D.shortest_path(5, 5)
             [5]
-            sage: D.delete_vertices([9,12,14])
+            sage: D.delete_edges(D.edges_incident(13))
             sage: D.shortest_path(13, 4)
             []
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True )
             sage: G.plot(edge_labels=True).show()
             sage: G.shortest_path(0, 3)
             [0, 4, 3]
@@ -4130,10 +4251,10 @@ class GenericGraph(SageObject):
             5
             sage: D.shortest_path_length(5, 5)
             0
-            sage: D.delete_vertices([9,12,14])
+            sage: D.delete_edges(D.edges_incident(13))
             sage: D.shortest_path_length(13, 4)
             +Infinity
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True )
             sage: G.plot(edge_labels=True).show()
             sage: G.shortest_path_length(0, 3)
             2
@@ -4173,7 +4294,7 @@ class GenericGraph(SageObject):
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 4: [0, 19, 3, 4], 5: [0, 19, 3, 4, 5], 6: [0, 1, 2, 6], 7: [0, 1, 8, 7], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 12: [0, 10, 11, 12], 13: [0, 10, 9, 13], 14: [0, 1, 8, 7, 14], 15: [0, 10, 11, 12, 16, 15], 16: [0, 10, 11, 12, 16], 17: [0, 19, 18, 17], 18: [0, 19, 18], 19: [0, 19]}
             sage: D.shortest_paths(0, cutoff=2)
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 18: [0, 19, 18], 19: [0, 19]}
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True )
             sage: G.plot(edge_labels=True).show()
             sage: G.shortest_paths(0, by_weight=True)
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 1, 2, 3], 4: [0, 4]}
@@ -4201,7 +4322,7 @@ class GenericGraph(SageObject):
             sage: D = graphs.DodecahedralGraph()
             sage: D.shortest_path_lengths(0)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 3, 7: 3, 8: 2, 9: 2, 10: 1, 11: 2, 12: 3, 13: 3, 14: 4, 15: 5, 16: 4, 17: 3, 18: 2, 19: 1}
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True )
             sage: G.plot(edge_labels=True).show()
             sage: G.shortest_path_lengths(0, by_weight=True)
             {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}
@@ -4246,7 +4367,7 @@ class GenericGraph(SageObject):
         pred[u][v] of v in the shortest path from u to v.
 
         EXAMPLE:
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True )
             sage: G.plot(edge_labels=True).show()
             sage: dist, pred = G.shortest_path_all_pairs()
             sage: dist
@@ -4260,7 +4381,7 @@ class GenericGraph(SageObject):
         follows. The predecessor of 3 is pred[0][3] == 2, the predecessor of 2
         is pred[0][2] == 1, and the predecessor of 1 is pred[0][1] == 0.
 
-            sage: G = Graph( { 0: {1:None}, 1: {2:None}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G = Graph( { 0: {1:None}, 1: {2:None}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True )
             sage: G.shortest_path_all_pairs(by_weight=False)
             ({0: {0: 0, 1: 1, 2: 2, 3: 2, 4: 1},
             1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 2},
@@ -4440,7 +4561,7 @@ class GenericGraph(SageObject):
         added.
 
         EXAMPLES:
-            sage: G = Graph()
+            sage: G = Graph(implementation='networkx')
             sage: G.add_vertices(range(10)); G
             Graph on 10 vertices
             sage: show(G)
@@ -4449,7 +4570,7 @@ class GenericGraph(SageObject):
             sage: G.add_cycle(range(10))
             sage: show(G)
 
-            sage: D = DiGraph()
+            sage: D = DiGraph(implementation='networkx')
             sage: D.add_cycle(range(4))
             sage: D.edges()
             [(0, 1, None), (1, 2, None), (2, 3, None), (3, 0, None)]
@@ -4470,7 +4591,7 @@ class GenericGraph(SageObject):
         added.
 
         EXAMPLES:
-            sage: G = Graph()
+            sage: G = Graph(implementation='networkx')
             sage: G.add_vertices(range(10)); G
             Graph on 10 vertices
             sage: show(G)
@@ -4479,7 +4600,7 @@ class GenericGraph(SageObject):
             sage: G.add_path(range(10))
             sage: show(G)
 
-            sage: D = DiGraph()
+            sage: D = DiGraph(sparse=True)
             sage: D.add_path(range(4))
             sage: D.edges()
             [(0, 1, None), (1, 2, None), (2, 3, None)]
@@ -4567,7 +4688,7 @@ class GenericGraph(SageObject):
             [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
             sage: h2.am()==h.am()
             True
-            sage: g = DiGraph([[1..4],lambda i,j: i<j])
+            sage: g = DiGraph([[1..4],lambda i,j: i<j], implementation='networkx')
             sage: h = g.line_graph()
             sage: h.vertices()
             [(1, 2, None),
@@ -4583,15 +4704,15 @@ class GenericGraph(SageObject):
              ((2, 3, None), (3, 4, None), None)]
         """
         if self._directed:
-            G=DiGraph()
+            G=DiGraph(implementation='networkx')
             G.add_vertices(self.edges(labels=labels))
             for v in self:
                 # Connect appropriate incident edges of the vertex v
                 G.add_edges([(e,f) for e in self.incoming_edge_iterator(v, labels=labels) \
-                             for f in self.edge_iterator(v, labels=labels)])
+                             for f in self.outgoing_edge_iterator(v, labels=labels)])
             return G
         else:
-            G=Graph()
+            G=Graph(implementation='networkx')
             # We must sort the edges' endpoints so that (1,2,None) is
             # seen as the same edge as (2,1,None).
             if labels:
@@ -4617,8 +4738,8 @@ class GenericGraph(SageObject):
         and multiple edges are removed).
 
         EXAMPLE:
-            sage: G = DiGraph(loops=True,multiedges=True)
-            sage: G.add_edges( [ (0,0), (1,1), (2,2), (2,3), (2,3), (3,2) ] )
+            sage: G = DiGraph(loops=True,multiedges=True,sparse=True)
+            sage: G.add_edges( [ (0,0), (1,1), (2,2), (2,3,1), (2,3,2), (3,2) ] )
             sage: G.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (2, 3), (3, 2)]
             sage: H=G.to_simple()
@@ -4666,7 +4787,7 @@ class GenericGraph(SageObject):
 
         If the vertices are already disjoint and verbose_relabel is
         True, then the vertices are not relabeled.
-            sage: G=Graph({'a': ['b']})
+            sage: G=Graph({'a': ['b']}, implementation='networkx')
             sage: G.name("Custom path")
             sage: G.name()
             'Custom path'
@@ -4720,7 +4841,7 @@ class GenericGraph(SageObject):
         if self._directed:
             G = DiGraph()
         else:
-            G = Graph()
+            G = Graph(implementation='networkx')
         G.add_vertices(self.vertices())
         G.add_vertices(other.vertices())
         G.add_edges(self.edges())
@@ -4756,7 +4877,7 @@ class GenericGraph(SageObject):
         if self._directed:
             G = DiGraph()
         else:
-            G = Graph()
+            G = Graph(implementation='networkx')
         verts = []
         for a in self.vertices():
             for b in other.vertices():
@@ -4800,7 +4921,7 @@ class GenericGraph(SageObject):
         if self._directed:
             G = DiGraph()
         else:
-            G = Graph()
+            G = Graph(implementation='networkx')
         verts = []
         for a in self.vertices():
             for b in other.vertices():
@@ -4845,7 +4966,7 @@ class GenericGraph(SageObject):
         if self._directed:
             G = DiGraph()
         else:
-            G = Graph()
+            G = Graph(implementation='networkx')
         verts = []
         for a in self.vertices():
             for b in other.vertices():
@@ -4891,7 +5012,7 @@ class GenericGraph(SageObject):
         if self._directed:
             G = DiGraph()
         else:
-            G = Graph()
+            G = Graph(implementation='networkx')
 
         verts = []
         for a in self.vertices():
@@ -4935,7 +5056,7 @@ class GenericGraph(SageObject):
         if self._directed:
             G = DiGraph()
         else:
-            G = Graph()
+            G = Graph(implementation='networkx')
         verts = []
         for a in self.vertices():
             for b in other.vertices():
@@ -4967,9 +5088,9 @@ class GenericGraph(SageObject):
             sage: g=graphs.PathGraph(4)
             sage: g.transitive_closure()==graphs.CompleteGraph(4)
             True
-            sage: g=DiGraph({0:[1,2], 1:[3], 2:[5,6]})
+            sage: g=DiGraph({0:[1,2], 1:[3], 2:[4,5]})
             sage: g.transitive_closure().edges(labels=False)
-            [(0, 1), (0, 2), (0, 3), (0, 5), (0, 6), (1, 3), (2, 5), (2, 6)]
+            [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 3), (2, 4), (2, 5)]
 
         """
         G = self.copy()
@@ -5003,7 +5124,7 @@ class GenericGraph(SageObject):
             sage: g=graphs.CompleteGraph(5)
             sage: edges = g.transitive_reduction().edges(); len(edges)
             4
-            sage: g=DiGraph({0:[1,2], 1:[2,3,5,6], 2:[5,6]})
+            sage: g=DiGraph({0:[1,2], 1:[2,3,4,5], 2:[4,5]})
             sage: g.transitive_reduction().size()
             5
 
@@ -5025,6 +5146,16 @@ class GenericGraph(SageObject):
         """
         Logic for coloring by label (factored out from plot() for use
         in 3d plots, etc)
+
+        EXAMPLE:
+            sage: G = AlternatingGroup(5).cayley_graph()
+            sage: G.num_edges()
+            120
+            sage: G._color_by_label()
+            {'#00ffff': [((1,4)(3,5), (1,5,4), (3,4,5)),
+             ...],
+             '#ff0000': [((1,4)(3,5), (1,5,4,2,3), (1,2,3,4,5)),
+             ...]}
         """
         from sage.plot.plot import rainbow
         edge_labels = []
@@ -5049,7 +5180,8 @@ class GenericGraph(SageObject):
             edge_labels=False, vertex_size=200, graph_border=False,
             vertex_colors=None, partition=None, edge_colors=None,
             scaling_term=0.05, iterations=50, loop_size=.1, talk=False,
-            color_by_label=False, heights=None, edge_style=None):
+            color_by_label=False, heights=None, edge_style=None, save_pos=False,
+            tree_root=None, tree_orientation="down"):
         """
         Returns a graphics object representing the (di)graph.
 
@@ -5060,10 +5192,15 @@ class GenericGraph(SageObject):
                     on a circle
                 'spring' -- uses the traditional spring layout, using the
                     graph's current positions as initial positions
+                'tree' -- the (di)graph must be a tree. One can specify the root
+                    of the tree using the keyword tree_root, otherwise a root
+                    will be selected at random. Then the tree will be plotted in
+                    levels, depending on minimum distance for the root.
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edge labels. By default, False, but
-                if True, the result of str(l) is printed on the edge for each
-                label l. Labels equal to None are not printed.
+            edge_labels -- whether to print edge labels. By default, False,
+                but if True, the result of str(l) is printed on the edge for
+                each label l. Labels equal to None are not printed (to set edge
+                labels, see set_edge_label).
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
             vertex_colors -- optional dictionary to specify vertex colors: each
@@ -5089,6 +5226,14 @@ class GenericGraph(SageObject):
                 edge-drawing routine.  This currently only works for
                 directed graphs, since we pass off the undirected graph to
                 networkx
+            tree_root -- a vertex of the tree to be used as the root for
+                the layout="tree" option. If no root is specified, then one
+                is chosen at random. Ignored unless layout='tree'.
+            tree_orientation -- "up" or "down" (default is "down").
+                If "up" (resp., "down"), then the root of the tree will
+                appear on the bottom (resp., top) and the tree will grow
+                upwards (resp. downwards). Ignored unless layout='tree'.
+            save_pos -- save position computed during plotting
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -5117,7 +5262,7 @@ class GenericGraph(SageObject):
             ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: G.plot(edge_labels=True).show()
 
-            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
+            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []}, implementation='networkx' )
             sage: for u,v,l in D.edges():
             ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.plot(edge_labels=True, layout='circular').show()
@@ -5147,10 +5292,6 @@ class GenericGraph(SageObject):
             sage: D.show()
             sage: D.show(edge_colors={(0,1,0):[(0,1,None),(1,2,None)],(0,0,0):[(2,3,None)]})
 
-            sage: from sage.graphs.bruhat_sn import *
-            sage: S = BruhatSn(5)
-            sage: S.to_directed().show(heights = S.lengths, vertex_labels=False, vertex_size=0, figsize=[10,10], edge_style={'width': 0.1, 'rgbcolor': (0,1,0)})
-
             sage: pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8], 3:[0.6, -0.8], 4:[0.8, 0.3]}
             sage: g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
             sage: g.plot(pos=pos, layout='spring', iterations=0)
@@ -5164,10 +5305,57 @@ class GenericGraph(SageObject):
             sage: P.axes()
             False
 
+            sage: G = graphs.PetersenGraph()
+            sage: G.get_pos()
+            {0: [6.12..., 1.0...],
+             1: [-0.95..., 0.30...],
+             2: [-0.58..., -0.80...],
+             3: [0.58..., -0.80...],
+             4: [0.95..., 0.30...],
+             5: [1.53..., 0.5...],
+             6: [-0.47..., 0.15...],
+             7: [-0.29..., -0.40...],
+             8: [0.29..., -0.40...],
+             9: [0.47..., 0.15...]}
+            sage: P = G.plot(save_pos=True, layout='spring')
+            sage: G.get_pos()
+            {0: [-0.39..., 0.06...],
+             1: [-0.26..., 0.94...],
+             2: [-0.29..., 0.43...],
+             3: [-0.40..., -0.70...],
+             4: [-0.88..., -0.46...],
+             5: [0.75..., -0.1...],
+             6: [0.32..., 0.28...],
+             7: [0.67..., 0.52...],
+             8: [0.44..., -0.72...],
+             9: [0.05..., -0.19...]}
+
+            sage: T = list(graphs.trees(7))
+            sage: t = T[3]
+            sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
+
+            sage: T = list(graphs.trees(7))
+            sage: t = T[3]
+            sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
+            sage: t.set_edge_label(0,1,-7)
+            sage: t.set_edge_label(0,5,3)
+            sage: t.set_edge_label(0,5,99)
+            sage: t.set_edge_label(1,2,1000)
+            sage: t.set_edge_label(3,2,'spam')
+            sage: t.set_edge_label(2,6,3/2)
+            sage: t.set_edge_label(0,4,66)
+            sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}, edge_labels=True)
+
+            sage: T = list(graphs.trees(7))
+            sage: t = T[3]
+            sage: t.plot(layout='tree')
+
+            sage: t = DiGraph('JCC???@A??GO??CO??GO??')
+            sage: t.plot(layout='tree', tree_root=0, tree_orientation="up")
+
         """
         if edge_style is None:
             edge_style={}
-        edge_style.setdefault('width', 0.02) # pretty default
         if talk:
             vertex_size = 500
             if partition is None:
@@ -5193,9 +5381,10 @@ class GenericGraph(SageObject):
                 vertex_colors['#b3e8ff'] = bdy_verts
             else:
                 vertex_colors={'#fec7b8': self.vertices()}
-        if pos is None and layout is None and heights is None:
-            if not self._pos is None:
-                pos = self._pos
+        if pos is None and layout is None:
+            if heights is None:
+                if not self._pos is None:
+                    pos = self._pos
         elif layout == 'circular':
             from math import sin, cos, pi
             n = self.order()
@@ -5205,7 +5394,38 @@ class GenericGraph(SageObject):
                 x = float(cos((pi/2) + ((2*pi)/n)*i))
                 y = float(sin((pi/2) + ((2*pi)/n)*i))
                 pos[verts[i]] = [x,y]
-        elif heights is not None:
+        elif layout == 'tree':
+            if not self.is_tree():
+                raise RuntimeError("Cannot use tree layout on this graph: self.is_tree() returns False.")
+            verts = self.vertices()
+            if tree_root is None:
+                from sage.misc.prandom import randrange
+                root = verts[randrange(self.num_verts())]
+            else:
+                root = tree_root
+            # BFS search for heights
+            seen = [root]
+            queue = [root]
+            heights = [-1]*self.num_verts()
+            heights[verts.index(root)] = 0
+            while queue:
+                u = queue.pop(0)
+                for v in self.neighbors(u):
+                    if v not in seen:
+                        seen.append(v)
+                        queue.append(v)
+                        heights[verts.index(v)] = heights[verts.index(u)] + 1
+            if tree_orientation == 'down':
+                maxx = max(heights)
+                heights = [maxx - heights[i] for i in xrange(self.num_verts())]
+            heights_dict = {}
+            for v in self:
+                if not heights_dict.has_key(heights[verts.index(v)]):
+                    heights_dict[heights[verts.index(v)]] = [v]
+                else:
+                    heights_dict[heights[verts.index(v)]].append(v)
+            heights = heights_dict
+        if heights is not None and pos is None and self.num_verts() > 0:
             pos = {}
             mmax = max([len(ccc) for ccc in heights.values()])
             ymin = min(heights.keys())
@@ -5216,9 +5436,9 @@ class GenericGraph(SageObject):
                 if num_xes == 0: continue
                 j = (mmax - num_xes)/2.0
                 for k in range(num_xes):
-                    pos[heights[height][k]] = [ dist * (j+k+1), height ]
-        if pos is None or layout == 'spring':
-            pos = graph_fast.spring_layout_fast(self, iterations=iterations, vpos=pos)
+                    pos[heights[height][k]] = [ dist * (j+k+1) + random()*(dist*0.03), height ]
+        if pos is None or layout == 'spring' or heights is not None:
+            pos = graph_fast.spring_layout_fast(self, iterations=iterations, vpos=pos, height=(heights is not None))
         else:
             for v in pos:
                 for a in range(len(pos[v])):
@@ -5231,11 +5451,18 @@ class GenericGraph(SageObject):
           vertex_size=vertex_size, vertex_colors=vertex_colors, \
           edge_colors=edge_colors, graph_border=graph_border, \
           scaling_term=scaling_term, draw_edges=(not self._directed))
+        if save_pos:
+            self.set_pos(pos)
         if self._directed:
             from sage.plot.plot import arrow
             P = Graphics()
+            from math import sqrt, pi
+            vertex_radius = sqrt(vertex_size/pi)
+            edge_style.setdefault('rgbcolor', (0,0,0))
+            edge_style.setdefault('arrowshorten', vertex_radius*2)
+            edge_style.setdefault('arrowsize', 10)
+
             if edge_colors is None:
-                edge_style.setdefault('rgbcolor', (0,0,0))
                 for u,v,_ in self.edge_iterator():
                     if u != v:
                         P += arrow((pos[u][0],pos[u][1]),(pos[v][0],pos[v][1]), **edge_style)
@@ -5269,110 +5496,27 @@ class GenericGraph(SageObject):
         G.axes(False)
         return G
 
-    def show(self, pos=None, layout=None, vertex_labels=True,
-             edge_labels=False, vertex_size=200, graph_border=False,
-             vertex_colors=None, edge_colors=None, partition=None,
-             scaling_term=0.05, talk=False, iterations=50, loop_size=.1,
-             color_by_label=False, heights=None, edge_style=None, **kwds):
+    def show(self, **kwds):
         """
         Shows the (di)graph.
 
-        INPUT:
-            pos -- an optional positioning dictionary
-            layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed
-                    on a circle
-                'spring' -- uses the traditional spring layout, ignores the
-                    graphs current positions
-            vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edgeedge labels. By default, False,
-                but if True, the result of str(l) is printed on the edge for
-                each label l. Labels equal to None are not printed.
-            vertex_size -- size of vertices displayed
-            graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each
-                key is a color recognizable by matplotlib, and each corresponding
-                entry is a list of vertices. If a vertex is not listed, it looks
-                invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a
-                color recognized by matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will
-                show each cell in a different color. vertex_colors takes precedence.
-            scaling_term -- default is 0.05. if vertices are getting chopped off,
-                increase; if graph is too small, decrease. should be positive, but
-                values much bigger than 1/8 won't be useful unless the vertices
-                are huge
-            talk -- if true, prints large vertices with white backgrounds so that
-                labels are legible on slies
-            iterations -- how many iterations of the spring layout algorithm to
-                go through, if applicable
-            color_by_label -- if True, color edges by their labels
-            heights -- if specified, this is a dictionary from a set of
-                floating point heights to a set of vertices
-            edge_style -- options for the arrows of directed graphs
+        For syntax and lengthy documentation, see G.plot?. Any options not used by
+        plot will be passed on to the Graphics.show method.
 
-        EXAMPLES:
-            sage: from math import sin, cos, pi
-            sage: P = graphs.PetersenGraph()
-            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
-            sage: pos_dict = {}
-            sage: for i in range(5):
-            ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: for i in range(10)[5:]:
-            ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: pl = P.plot(pos=pos_dict, vertex_colors=d)
-            sage: pl.show()
-
+        EXAMPLE:
             sage: C = graphs.CubeGraph(8)
             sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()
 
-            sage: G = graphs.HeawoodGraph()
-            sage: for u,v,l in G.edges():
-            ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
-            sage: G.plot(edge_labels=True).show()
-
-            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
-            sage: for u,v,l in D.edges():
-            ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
-            sage: D.plot(edge_labels=True, layout='circular').show()
-
-            sage: from sage.plot.plot import rainbow
-            sage: C = graphs.CubeGraph(5)
-            sage: R = rainbow(5)
-            sage: edge_colors = {}
-            sage: for i in range(5):
-            ...    edge_colors[R[i]] = []
-            sage: for u,v,l in C.edges():
-            ...    for i in range(5):
-            ...        if u[i] != v[i]:
-            ...            edge_colors[R[i]].append((u,v,l))
-            sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
-
-            sage: D = graphs.DodecahedralGraph()
-            sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
-            sage: D.show(partition=Pi)
-
-            sage: G = graphs.PetersenGraph()
-            sage: G.loops(True)
-            sage: G.add_edge(0,0)
-            sage: G.show()
-
         """
         kwds.setdefault('figsize', [4,4])
-        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels,
-                  edge_labels=edge_labels, vertex_size=vertex_size,
-                  vertex_colors=vertex_colors, edge_colors=edge_colors,
-                  graph_border=graph_border, partition=partition, talk=talk,
-                  scaling_term=scaling_term, iterations=iterations,
-                  color_by_label=color_by_label, loop_size=loop_size,
-                  heights=heights, edge_style=edge_style).show(**kwds)
+        import inspect
+        vars = inspect.getargspec(GenericGraph.plot)[0]
+        plot_kwds = {}
+        for kwd in vars:
+            if kwds.has_key(kwd):
+                plot_kwds[kwd] = kwds.pop(kwd)
+        self.plot(**plot_kwds).show(**kwds)
 
     def plot3d(self, bgcolor=(1,1,1), vertex_colors=None, vertex_size=0.06,
                      edge_colors=None, edge_size=0.02, edge_size2=0.0325,
@@ -5598,7 +5742,7 @@ class GenericGraph(SageObject):
             http://www.graphviz.org/doc/info/lang.html
 
         EXAMPLE:
-            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}})
+            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}}, implementation='networkx')
             sage: s = G.graphviz_string() # indirect doctest
             sage: s
             'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
@@ -5620,7 +5764,7 @@ class GenericGraph(SageObject):
         Returns a representation in the DOT language, ready to render in graphviz.
 
         EXAMPLES:
-            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}})
+            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}}, implementation='networkx')
             sage: s = G.graphviz_string()
             sage: s
             'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
@@ -5633,7 +5777,7 @@ class GenericGraph(SageObject):
         render in graphviz.
 
         EXAMPLES:
-            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}})
+            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}}, implementation='networkx')
             sage: G.graphviz_to_file_named(os.environ['SAGE_TESTDIR']+'/temp_graphviz')
             sage: open(os.environ['SAGE_TESTDIR']+'/temp_graphviz').read()
             'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
@@ -5799,7 +5943,7 @@ class GenericGraph(SageObject):
             True
 
         TESTS:
-            sage: P = graphs.PetersenGraph()
+            sage: P = Graph(graphs.PetersenGraph(), sparse=True)
             sage: P.delete_edge([0,1])
             sage: P.add_edge((4,5))
             sage: P.add_edge((2,6))
@@ -5880,9 +6024,9 @@ class GenericGraph(SageObject):
             sage: G.degree_to_cell('111', cell)
             0
 
-            sage: D = DiGraph({ 0:[1,2,3], 1:[3,4], 3:[4,6]})
+            sage: D = DiGraph({ 0:[1,2,3], 1:[3,4], 3:[4,5]})
             sage: cell = [0,1,2]
-            sage: D.degree_to_cell(6, cell)
+            sage: D.degree_to_cell(5, cell)
             (0, 0)
             sage: D.degree_to_cell(3, cell)
             (2, 0)
@@ -6035,8 +6179,10 @@ class GenericGraph(SageObject):
             perm_from[perm_to[v]] = v
         n = G.num_verts()
         if sparse:
+            from sage.graphs.base.sparse_graph import SparseGraph
             CG = SparseGraph(n)
         else:
+            from sage.graphs.base.dense_graph import DenseGraph
             CG = DenseGraph(n)
         for i in range(n):
             for j in range(n):
@@ -6088,17 +6234,17 @@ class GenericGraph(SageObject):
             sage: for g in L:
             ...    G = g.automorphism_group()
             ...    G.order(), G.gens()
-            (24, ((2,3), (1,2), (1,4)))
-            (4, ((2,3), (1,4)))
-            (2, ((1,2),))
-            (8, ((1,2), (1,4)(2,3)))
-            (6, ((1,2), (1,4)))
-            (6, ((2,3), (1,2)))
-            (2, ((1,4)(2,3),))
-            (2, ((1,2),))
-            (8, ((2,3), (1,4), (1,3)(2,4)))
-            (4, ((2,3), (1,4)))
-            (24, ((2,3), (1,2), (1,4)))
+            (24, [(2,3), (1,2), (1,4)])
+            (4, [(2,3), (1,4)])
+            (2, [(1,2)])
+            (8, [(1,2), (1,4)(2,3)])
+            (6, [(1,2), (1,4)])
+            (6, [(2,3), (1,2)])
+            (2, [(1,4)(2,3)])
+            (2, [(1,2)])
+            (8, [(2,3), (1,4), (1,3)(2,4)])
+            (4, [(2,3), (1,4)])
+            (24, [(2,3), (1,2), (1,4)])
 
             sage: C = graphs.CubeGraph(4)
             sage: G = C.automorphism_group()
@@ -6117,7 +6263,7 @@ class GenericGraph(SageObject):
             True
 
         Multigraphs:
-            sage: G = Graph(multiedges=True)
+            sage: G = Graph(multiedges=True, implementation='networkx')
             sage: G.add_edge(('a', 'b'))
             sage: G.add_edge(('a', 'b'))
             sage: G.add_edge(('a', 'b'))
@@ -6130,10 +6276,14 @@ class GenericGraph(SageObject):
             Permutation Group with generators [(1,2,3,4,5)]
 
         Edge labeled graphs:
-            sage: G = Graph()
+            sage: G = Graph(implementation='networkx')
             sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
             sage: G.automorphism_group(edge_labels=True)
             Permutation Group with generators [(1,4)(2,3)]
+
+            sage: G = Graph({0 : {1 : 7}})
+            sage: G.automorphism_group(translation=True, edge_labels=True)
+            (Permutation Group with generators [(1,2)], {0: 2, 1: 1})
 
         You can also ask for just the order of the group:
             sage: G = graphs.PetersenGraph()
@@ -6146,7 +6296,8 @@ class GenericGraph(SageObject):
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
 
         """
-        from sage.graphs.graph_isom import search_tree, perm_group_elt
+        from sage.graphs.graph_isom import perm_group_elt
+        from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
         dig = (self._directed or self.loops())
         if partition is None:
@@ -6163,10 +6314,11 @@ class GenericGraph(SageObject):
             translation_d = {}
             m = G.order()
             for v in self:
-                translation_d[v] = b[('o',v)]
                 if b[('o',v)] == m:
+                    translation_d[v] = self.order()
                     acting_vertices[v] = 0
                 else:
+                    translation_d[v] = b[('o',v)]
                     acting_vertices[v] = b[('o',v)]
             real_aut_gp = []
             n = self.order()
@@ -6193,10 +6345,11 @@ class GenericGraph(SageObject):
             translation_d = {}
             m = G.order()
             for v in self:
-                translation_d[v] = b[('o',v)]
                 if b[('o',v)] == m:
+                    translation_d[v] = self.order()
                     acting_vertices[v] = 0
                 else:
+                    translation_d[v] = b[('o',v)]
                     acting_vertices[v] = b[('o',v)]
             real_aut_gp = []
             n = self.order()
@@ -6253,6 +6406,42 @@ class GenericGraph(SageObject):
                  4: tuple(output)
                }[len(output)]
 
+    def is_vertex_transitive(self, partition=None, verbosity=0,
+                           edge_labels=False, order=False,
+                           return_group=True, orbits=False):
+        """
+        Returns whether the automorphism group of self is transitive within
+        the partition provided, by default the unit partition of the vertices
+        of self (thus by default tests for vertex transitivity in the usual
+        sense).
+
+        EXAMPLE:
+            sage: G = Graph({0:[1],1:[2]})
+            sage: G.is_vertex_transitive()
+            False
+            sage: P = graphs.PetersenGraph()
+            sage: P.is_vertex_transitive()
+            True
+            sage: D = graphs.DodecahedralGraph()
+            sage: D.is_vertex_transitive()
+            True
+            sage: R = graphs.RandomGNP(2000, .01)
+            sage: R.is_vertex_transitive()
+            False
+
+        """
+        if partition is None:
+            partition = [self.vertices()]
+        new_partition = self.automorphism_group(partition,
+                          verbosity=verbosity, edge_labels=edge_labels,
+                          order=False, return_group=False, orbits=True)
+        for cell in partition:
+            for new_cell in new_partition:
+                if cell[0] in new_cell:
+                    if any([c not in new_cell for c in cell[1:]]):
+                        return False
+        return True
+
     def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False):
         """
         Tests for isomorphism between self and other.
@@ -6290,11 +6479,11 @@ class GenericGraph(SageObject):
 
         Multigraphs:
             sage: G = Graph(multiedges=True)
-            sage: G.add_edge((0,1))
-            sage: G.add_edge((0,1))
-            sage: G.add_edge((0,1))
-            sage: G.add_edge((0,1))
-            sage: H = Graph(multiedges=True)
+            sage: G.add_edge((0,1,1))
+            sage: G.add_edge((0,1,2))
+            sage: G.add_edge((0,1,3))
+            sage: G.add_edge((0,1,4))
+            sage: H = Graph(multiedges=True, implementation='networkx')
             sage: H.add_edge((3,4))
             sage: H.add_edge((3,4))
             sage: H.add_edge((3,4))
@@ -6309,59 +6498,56 @@ class GenericGraph(SageObject):
             (True, {0: 1, 1: 0, 2: 2})
 
         Edge labeled graphs:
-            sage: G = Graph()
+            sage: G = Graph(implementation='networkx')
             sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
             sage: H = G.relabel([1,2,3,4,0], inplace=False)
             sage: G.is_isomorphic(H, edge_labels=True)
             True
 
         """
-        if certify:
-            if self._directed != other._directed:
-                return False, None
-            if self.order() != other.order():
-                return False, None
-            if self.size() != other.size():
-                return False, None
-            if self._directed:
-                if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
-                    return False, None
-                if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
-                    return False, None
-            else:
-                if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
-                    return False, None
-            b,a = self.canonical_label(certify=True, verbosity=verbosity, edge_labels=edge_labels)
-            d,c = other.canonical_label(certify=True, verbosity=verbosity, edge_labels=edge_labels)
-            if b == d:
-                map = {}
-                cc = c.items()
-                for vert in self.vertices():
-                    for aa,bb in cc:
-                        if bb == a[vert]:
-                            map[vert] = aa
-                            break
-                return True, map
-            else:
-                return False, None
+        possible = True
+        if self._directed != other._directed:
+            possible = False
+        if self.order() != other.order():
+            possible = False
+        if self.size() != other.size():
+            possible = False
+        if self._directed:
+            if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
+                possible = False
+            if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
+                possible = False
         else:
-            if self._directed != other._directed:
-                return False
-            if self.order() != other.order():
-                return False
-            if self.size() != other.size():
-                return False
-            if self._directed:
-                if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
-                    return False
-                if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
-                    return False
+            if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
+                possible = False
+        if not possible and certify:
+            return False, None
+        elif not possible:
+            return False
+        import sage.groups.perm_gps.partn_ref.refinement_graphs
+        from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic, search_tree
+        if edge_labels:
+            if sorted(self.edge_labels()) != sorted(other.edge_labels()):
+                return False, None if certify else False
             else:
-                if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
-                    return False
-            b = self.canonical_label(verbosity=verbosity, edge_labels=edge_labels)
-            d = other.canonical_label(verbosity=verbosity, edge_labels=edge_labels)
-            return b == d
+                G, partition = graph_isom_equivalent_non_edge_labeled_graph(self, [self.vertices()])
+                G2, partition2 = graph_isom_equivalent_non_edge_labeled_graph(other, [other.vertices()])
+        elif self.multiple_edges():
+            G, partition = graph_isom_equivalent_non_multi_graph(self, [self.vertices()])
+            G2, partition2 = graph_isom_equivalent_non_multi_graph(other, [other.vertices()])
+        else:
+            G = self; partition = [self.vertices()]
+            G2 = other; partition2 = [other.vertices()]
+        from sage.misc.flatten import flatten
+        isom = isomorphic(G, G2, partition, flatten(partition2, max_level=1), (self._directed or self.loops()), 1)
+        if not isom and certify:
+            return False, None
+        elif not isom:
+            return False
+        elif not certify:
+            return True
+        else:
+            return True, isom
 
     def canonical_label(self, partition=None, certify=False, verbosity=0, edge_labels=False):
         """
@@ -6410,13 +6596,15 @@ class GenericGraph(SageObject):
             [1 1 0 1 0 0 0 0 0 0]
 
         Edge labeled graphs:
-            sage: G = Graph()
+            sage: G = Graph(implementation='networkx')
             sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
             sage: G.canonical_label(edge_labels=True)
             Graph on 5 vertices
 
         """
-        from sage.graphs.graph_isom import search_tree
+        import sage.groups.perm_gps.partn_ref.refinement_graphs
+        from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+
         dig = (self.loops() or self._directed)
         if partition is None:
             partition = [self.vertices()]
@@ -6519,7 +6707,7 @@ class Graph(GenericGraph):
 
     1. A NetworkX XGraph:
         sage: import networkx
-        sage: g = networkx.XGraph({0:[1,2,3], 2:[5]})
+        sage: g = networkx.XGraph({0:[1,2,3], 2:[4]})
         sage: Graph(g)
         Graph on 5 vertices
 
@@ -6527,29 +6715,29 @@ class Graph(GenericGraph):
     NetworkX passed- the Sage graph becomes a wrapper for the NetworkX graph.
 
         sage: import networkx
-        sage: g = networkx.XGraph({0:[1,2,3], 2:[5]})
-        sage: G = Graph(g)
-        sage: H = Graph(g)
+        sage: g = networkx.XGraph({0:[1,2,3], 2:[4]})
+        sage: G = Graph(g, implementation='networkx')
+        sage: H = Graph(g, implementation='networkx')
         sage: G._backend._nxg is H._backend._nxg
         True
 
     2. A NetworkX graph:
         sage: import networkx
-        sage: g = networkx.Graph({0:[1,2,3], 2:[5]})
+        sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
         sage: DiGraph(g)
         Digraph on 5 vertices
 
     Note that in this case, we copy the networkX structure.
 
         sage: import networkx
-        sage: g = networkx.Graph({0:[1,2,3], 2:[5]})
-        sage: G = Graph(g)
-        sage: H = Graph(g)
+        sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
+        sage: G = Graph(g, implementation='networkx')
+        sage: H = Graph(g, implementation='networkx')
         sage: G._backend._nxg is H._backend._nxg
         False
 
     3. A dictionary of dictionaries:
-        sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
+        sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}, implementation='networkx'); g
         Graph on 5 vertices
 
     The labels ('x', 'z', 'a', 'out') are labels for edges. For example, 'out' is
@@ -6557,7 +6745,7 @@ class Graph(GenericGraph):
     labels share some common parent.
 
     4. A dictionary of lists:
-        sage: g = Graph({0:[1,2,3], 2:[5]}); g
+        sage: g = Graph({0:[1,2,3], 2:[4]}); g
         Graph on 5 vertices
 
     5. A list of vertices and a function describing adjacencies.  Note
@@ -6566,7 +6754,7 @@ class Graph(GenericGraph):
 
        Construct the Paley graph over GF(13).
 
-        sage: g=Graph([GF(13), lambda i,j: i!=j and (i-j).is_square()])
+        sage: g=Graph([GF(13), lambda i,j: i!=j and (i-j).is_square()], implementation='networkx')
         sage: g.vertices()
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         sage: g.adjacency_matrix()
@@ -6588,7 +6776,7 @@ class Graph(GenericGraph):
 
         sage: g=graphs.CompleteGraph(4)
         sage: line_graph=Graph([g.edges(labels=false), \
-                 lambda i,j: len(set(i).intersection(set(j)))>0])
+                 lambda i,j: len(set(i).intersection(set(j)))>0], implementation='networkx')
         sage: line_graph.vertices()
         [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
         sage: line_graph.adjacency_matrix()
@@ -6602,15 +6790,32 @@ class Graph(GenericGraph):
     6. A numpy matrix or ndarray:
         sage: import numpy
         sage: A = numpy.array([[0,1,1],[1,0,1],[1,1,0]])
-        sage: Graph(A)
+        sage: Graph(A, implementation='networkx')
         Graph on 3 vertices
 
     7. A graph6 or sparse6 string:
-    SAGE automatically recognizes whether a string is in graph6 or sage6 format:
+    Sage automatically recognizes whether a string is in graph6 or sparse6 format:
 
         sage: s = ':I`AKGsaOs`cI]Gb~'
-        sage: Graph(s)
+        sage: Graph(s, sparse=True)
         Looped multi-graph on 10 vertices
+
+        sage: G = Graph('G?????')
+        sage: G = Graph("G'?G?C")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The string seems corrupt: valid characters are
+        ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+        sage: G = Graph('G??????')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The string (G??????) seems corrupt: for n = 8, the string is too long.
+
+        sage: G = Graph(":I'AKGsaOs`cI]Gb~")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The string seems corrupt: valid characters are
+        ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
     There are also list functions to take care of lists of graphs:
 
@@ -6659,17 +6864,22 @@ class Graph(GenericGraph):
     def __init__(self, data=None, pos=None, loops=False, format=None,
                  boundary=[], weighted=False, implementation='networkx',
                  sparse=True, vertex_labels=True, **kwds):
+        """
+        TEST:
+            sage: G = Graph()
+            sage: loads(dumps(G)) == G
+            True
+
+        """
         if implementation == 'networkx':
             import networkx
             from sage.graphs.base.graph_backends import NetworkXGraphBackend
-            self._backend = NetworkXGraphBackend()
         elif implementation == 'c_graph':
-            if sparse:
-                from sage.graphs.base.graph_backends import SparseGraphBackend
-                self._backend = SparseGraphBackend()
-            else:
-                from sage.graphs.base.graph_backends import DenseGraphBackend
-                self._backend = DenseGraphBackend()
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            if kwds.get('multiedges', False) or weighted:
+                sparse = True
+            CGB = SparseGraphBackend if sparse else DenseGraphBackend
         else:
             raise NotImplementedError()
         from sage.structure.element import is_Matrix
@@ -6693,33 +6903,113 @@ class Graph(GenericGraph):
                     format = 'incidence_matrix'
             elif isinstance(data, Graph):
                 if implementation == 'networkx':
-                    self._backend._nxg = data.networkx_graph()
+                    self._backend = NetworkXGraphBackend(data.networkx_graph())
                 elif implementation == 'c_graph':
-                    pass
+                    if not sparse and data.multiple_edges():
+                        raise TypeError("Dense graphs do not support multiple edges.")
+                    self._backend = CGB(data.num_verts())
+                    if data.vertices() != range(data.num_verts()):
+                        verts = data.vertices()
+                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(data.num_verts())]), False)
+                    for u,v,l in data.edge_iterator():
+                        self._backend.add_edge(u,v,l,False)
                 self.loops(data.loops())
                 self.multiple_edges(data.multiple_edges())
                 self.name(data.name())
-            elif isinstance(data, networkx.XGraph):
-                if implementation == 'networkx':
-                    self._backend._nxg = data
-                else:
-                    pass
-            elif isinstance(data, networkx.Graph):
-                if implementation == 'networkx':
-                    self._backend._nxg = networkx.XGraph(data, selfloops=loops, **kwds)
-                else:
-                    pass
             elif isinstance(data,list) and len(data)>=2 and callable(data[1]):
                 if implementation == 'networkx':
                     # Pass XGraph a dict of lists describing the adjacencies
-                    self._backend._nxg = networkx.XGraph(dict([[i]+[[j for j in data[0] if data[1](i,j)]] for i in data[0]]), selfloops=loops, **kwds)
+                    self._backend = NetworkXGraphBackend(networkx.XGraph(dict([[i]+[[j for j in data[0] if data[1](i,j)]] for i in data[0]]), selfloops=loops, **kwds))
+                elif implementation == 'c_graph':
+                    self._backend = CGB(len(data[0]))
+                    if sorted(data[0]) != range(len(data[0])):
+                        verts = data[0]
+                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(len(data[0]))]), False)
+                    for u in xrange(len(data[0])):
+                        for v in xrange(u+1):
+                            uu,vv = data[0][u], data[0][v]
+                            if data[1](uu,vv):
+                                self.add_edge(uu,vv)
+                    self.loops(loops)
+            elif isinstance(data, dict):
+                if implementation == 'networkx':
+                    self._backend = NetworkXGraphBackend(networkx.XGraph(data, selfloops=loops, **kwds))
+                elif implementation == 'c_graph':
+                    keys = data.keys()
+                    for u in data:
+                        if isinstance(data[u], (list,dict)):
+                            for v in data[u]:
+                                if v not in keys:
+                                    keys.append(v)
+                        else:
+                            raise TypeError("Dict must be in NetworkX format. (was: %s)"%data)
+                    self._backend = CGB(len(keys))
+                    self.loops(loops)
+                    self.multiple_edges(kwds.get('multiedges', False))
+                    if sorted(keys) != range(len(keys)):
+                        verts = keys
+                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(len(keys))]), False)
+                    for u in data:
+                        if isinstance(data[u], dict):
+                            for v in data[u].keys():
+                                if data[u][v] is None and not self.has_edge(u,v):
+                                    self.add_edge(u, v)
+                                elif data[u][v] is not None and not self.has_edge(u,v,data[u][v]):
+                                    self.add_edge(u, v, data[u][v])
+                        elif isinstance(data[u], list):
+                            for v in data[u]:
+                                if not self.has_edge(u,v):
+                                    self.add_edge(u, v)
+            elif hasattr(data,'adj'):
+                import networkx
+                if isinstance(data, (networkx.Graph, networkx.XGraph)):
+                    if implementation == 'networkx':
+                        if isinstance(data, networkx.XGraph):
+                            self._backend = NetworkXGraphBackend(data)
+                        else:
+                            self._backend = NetworkXGraphBackend(networkx.XGraph(data, selfloops=loops, **kwds))
+                    elif implementation == 'c_graph':
+                        keys = data.adj.keys()
+                        for u in data:
+                            for v in data[u]:
+                                if v not in keys:
+                                    keys.append(v)
+                        if not sparse and isinstance(data, networkx.XGraph) and data.multiedges:
+                            raise TypeError("Dense graphs do not support multiple edges.")
+                        self._backend = CGB(data.order())
+                        self.loops(loops)
+                        self.multiple_edges(kwds.get('multiedges', False))
+                        if sorted(keys) != range(data.order()):
+                            self._backend.relabel(dict([[i, keys[i]] for i in xrange(len(keys))]), False)
+                        if isinstance(data, networkx.XGraph):
+                            for u,v,l in data.edges_iter():
+                                self.add_edge(u,v,l)
+                        else:
+                            for u,v in data.edges_iter():
+                                self.add_edge(u,v)
                 else:
-                    pass
+                    raise NotImplementedError()
             else:
                 if implementation == 'networkx':
-                    self._backend._nxg = networkx.XGraph(data, selfloops=loops, **kwds)
-                else:
-                    pass
+                    if isinstance(data, (int, Integer)):
+                        self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops=loops, **kwds))
+                        self.add_vertices(xrange(data))
+                    else:
+                        self._backend = NetworkXGraphBackend(networkx.XGraph(data, selfloops=loops, **kwds))
+                elif implementation == 'c_graph':
+                    if data is None:
+                        self._backend = CGB(0)
+                        self.loops(loops)
+                        self.multiple_edges(kwds.get('multiedges',False))
+                        self.name(kwds.get('name',''))
+                    elif isinstance(data, (int, Integer)):
+                        self._backend = CGB(data)
+                        self.loops(loops)
+                        self.multiple_edges(kwds.get('multiedges',False))
+                        self.name(kwds.get('name',''))
+                    else:
+                        raise NotImplementedError("Datatype not suppported for C graphs.")
+
         if format == 'graph6':
             if not isinstance(data, str):
                 raise ValueError, 'If input format is graph6, then data must be a string.'
@@ -6735,10 +7025,10 @@ class Graph(GenericGraph):
             elif len(m) < expected:
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short."%(ss,n))
             if implementation == 'networkx':
-                self._backend._nxg = networkx.XGraph()
+                self._backend = NetworkXGraphBackend(networkx.XGraph())
+                self.add_vertices(xrange(n))
             else:
-                pass
-            self.add_vertices(xrange(n))
+                self._backend = CGB(n)
             k = 0
             for i in xrange(n):
                 for j in xrange(i):
@@ -6755,37 +7045,45 @@ class Graph(GenericGraph):
                 n = len(data)
             s = data[:n]
             n, s = graph_fast.N_inverse(s[1:])
-            k = int(ceil(log(n,2)))
-            bits = ''.join([graph_fast.binary(ord(i)-63).zfill(6) for i in s])
-            b = []
-            x = []
-            for i in xrange(int(floor(len(bits)/(k+1)))):
-                b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
-                x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
-            v = 0
-            edges = []
-            for i in xrange(len(b)):
-                if b[i] == 1:
-                    v += 1
-                if x[i] > v:
-                    v = x[i]
-                else:
-                    if v < n:
-                        edges.append((x[i],v))
-            if implementation == 'networkx':
-                self._backend._nxg = networkx.XGraph(selfloops = True, multiedges = True)
+            if n == 0:
+                edges = []
             else:
-                pass
-            self.add_vertices(xrange(n))
-            self.loops(True)
+                k = int(ceil(log(n,2)))
+                ords = [ord(i) for i in s]
+                if any(o > 126 or o < 63 for o in ords):
+                    raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in xrange(63,127)]))
+                bits = ''.join([graph_fast.binary(o-63).zfill(6) for o in ords])
+                b = []
+                x = []
+                for i in xrange(int(floor(len(bits)/(k+1)))):
+                    b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
+                    x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
+                v = 0
+                edges = []
+                for i in xrange(len(b)):
+                    if b[i] == 1:
+                        v += 1
+                    if x[i] > v:
+                        v = x[i]
+                    else:
+                        if v < n:
+                            edges.append((x[i],v))
+            if implementation == 'networkx':
+                self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops = True, multiedges = True))
+                self.add_vertices(xrange(n))
+            else:
+                self._backend = CGB(n)
+                self.loops(True)
+                self.multiple_edges(True)
             for i,j in edges:
                 self.add_edge(i,j)
         elif format == 'adjacency_matrix':
             if implementation == 'networkx':
-                self._backend._nxg = networkx.XGraph(selfloops = loops, **kwds)
+                self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops = loops, **kwds))
+                self.add_vertices(xrange(data.nrows()))
             else:
-                pass
-            self.add_vertices(xrange(data.nrows()))
+                self._backend = CGB(data.nrows())
+                self.loops(loops)
             e = []
             for i,j in data.nonzero_positions():
                 if i < j and kwds.get('multiedges',False):
@@ -6800,10 +7098,11 @@ class Graph(GenericGraph):
         elif format == 'weighted_adjacency_matrix':
             self._weighted = True
             if implementation == 'networkx':
-                self._backend._nxg = networkx.XGraph(selfloops = loops, **kwds)
+                self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops = loops, **kwds))
+                self.add_vertices(xrange(data.nrows()))
             else:
-                pass
-            self.add_vertices(xrange(data.nrows()))
+                self._backend = CGB(data.nrows())
+                self.loops(loops)
             e = []
             for i,j in data.nonzero_positions():
                 if i < j:
@@ -6824,10 +7123,10 @@ class Graph(GenericGraph):
             if not b:
                 raise AttributeError, "Incidence Matrix must have one 1 and one -1 per column."
             if implementation == 'networkx':
-                self._backend._nxg = networkx.XGraph(selfloops = loops, **kwds)
+                self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops = loops, **kwds))
+                self.add_vertices(xrange(data.nrows()))
             else:
-                pass
-            self.add_vertices(xrange(data.nrows()))
+                self._backend = CGB(data.nrows())
             e = []
             for c in data.columns():
                 k = c.dict().keys()
@@ -6837,9 +7136,9 @@ class Graph(GenericGraph):
             from sage.rings.arith import lcm, prime_divisors, prange
             from sage.misc.misc import prod
             if implementation == 'networkx':
-                self._backend._nxg = networkx.XGraph(None, selfloops=loops, **kwds)
+                self._backend = NetworkXGraphBackend(networkx.XGraph(None, selfloops=loops, **kwds))
             else:
-                pass
+                raise NotImplementedError()
             curves = list(data)
             self.add_vertices( [curve.cremona_label() for curve in curves] )
             for i in range(self.order()):
@@ -6898,8 +7197,18 @@ class Graph(GenericGraph):
             sage: G.sparse6_string()
             ':Da@en'
 
+            sage: G = Graph()
+            sage: G.sparse6_string()
+            ':?'
+
+            sage: G = Graph(loops=True, multiedges=True)
+            sage: Graph(':?') == G
+            True
+
         """
         n = self.order()
+        if n == 0:
+            return ':?'
         if n > 262143:
             raise ValueError, 'sparse6 format supports graphs on 0 to 262143 vertices only.'
         else:
@@ -6909,19 +7218,7 @@ class Graph(GenericGraph):
             for i in range(len(edges)): # replace edge labels with natural numbers (by index in vertices)
                 edges[i] = (vertices.index(edges[i][0]),vertices.index(edges[i][1]))
             # order edges
-            def cmp(x, y):
-                if x[1] < y[1]:
-                    return -1
-                elif x[1] > y[1]:
-                    return 1
-                elif x[1] == y[1]:
-                    if x[0] < y[0]:
-                        return -1
-                    if x[0] > y[0]:
-                        return 1
-                    else:
-                        return 0
-            edges.sort(cmp)
+            edges.sort(compare_edges)
 
             # encode bit vector
             from math import ceil
@@ -6965,6 +7262,9 @@ class Graph(GenericGraph):
         """
         Since graph is undirected, returns False.
 
+        EXAMPLE:
+            sage: Graph().is_directed()
+            False
         """
         return False
 
@@ -7260,7 +7560,7 @@ class Graph(GenericGraph):
 
     ### Constructors
 
-    def to_directed(self):
+    def to_directed(self, implementation='networkx'):
         """
         Returns a directed version of the graph. A single edge becomes two
         edges, one in each direction.
@@ -7271,7 +7571,7 @@ class Graph(GenericGraph):
 
         """
         D = DiGraph(name=self.name(), pos=self._pos, boundary=self._boundary,
-                    multiedges=self.multiple_edges())
+                    multiedges=self.multiple_edges(), implementation=implementation)
         D.name(self.name())
         D.add_vertices(self.vertex_iterator())
         for u,v,l in self.edge_iterator():
@@ -7314,7 +7614,7 @@ class Graph(GenericGraph):
 
         EXAMPLE:
             sage: P = graphs.PetersenGraph()
-            sage: P.write_to_eps('sage.eps')
+            sage: P.write_to_eps(tmp_dir() + 'sage.eps')
         """
         from sage.graphs.print_graphs import print_graph_eps
         if self._pos is None:
@@ -7357,7 +7657,7 @@ class Graph(GenericGraph):
            http://www.graphviz.org/doc/info/lang.html
 
        EXAMPLE:
-           sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}})
+           sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}}, implementation='networkx')
            sage: s = G.graphviz_string()
            sage: s
            'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
@@ -7418,7 +7718,7 @@ class Graph(GenericGraph):
             sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
         """
         import networkx.cliques
-        return Graph(networkx.cliques.make_max_clique_graph(self.networkx_graph(copy=False), name=name, create_using=networkx.xgraph.XGraph()))
+        return Graph(networkx.cliques.make_max_clique_graph(self.networkx_graph(copy=False), name=name, create_using=networkx.xgraph.XGraph()), implementation='networkx')
 
     def cliques_get_clique_bipartite(self, **kwds):
         """
@@ -7770,7 +8070,7 @@ class DiGraph(GenericGraph):
     EXAMPLES:
     1. A NetworkX XDiGraph:
         sage: import networkx
-        sage: g = networkx.XDiGraph({0:[1,2,3], 2:[5]})
+        sage: g = networkx.XDiGraph({0:[1,2,3], 2:[4]})
         sage: DiGraph(g)
         Digraph on 5 vertices
 
@@ -7778,30 +8078,30 @@ class DiGraph(GenericGraph):
     NetworkX passed.  We do this for performance reasons.
 
         sage: import networkx
-        sage: g = networkx.XDiGraph({0:[1,2,3], 2:[5]})
-        sage: G = DiGraph(g)
-        sage: H = DiGraph(g)
+        sage: g = networkx.XDiGraph({0:[1,2,3], 2:[4]})
+        sage: G = DiGraph(g, implementation='networkx')
+        sage: H = DiGraph(g, implementation='networkx')
         sage: G._backend._nxg is H._backend._nxg
         True
 
     2. A NetworkX digraph:
         sage: import networkx
-        sage: g = networkx.DiGraph({0:[1,2,3], 2:[5]})
+        sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
         sage: DiGraph(g)
         Digraph on 5 vertices
 
     Note that in this case, we copy the networkX structure.
 
         sage: import networkx
-        sage: g = networkx.DiGraph({0:[1,2,3], 2:[5]})
-        sage: G = DiGraph(g)
-        sage: H = DiGraph(g)
+        sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
+        sage: G = DiGraph(g, implementation='networkx')
+        sage: H = DiGraph(g, implementation='networkx')
         sage: G._backend._nxg is H._backend._nxg
         False
 
 
     3. A dictionary of dictionaries:
-        sage: g = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
+        sage: g = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}, implementation='networkx'); g
         Digraph on 5 vertices
 
     The labels ('x', 'z', 'a', 'out') are labels for edges. For example, 'out' is
@@ -7809,7 +8109,7 @@ class DiGraph(GenericGraph):
     labels share some common parent.
 
     4. A dictionary of lists:
-        sage: g = DiGraph({0:[1,2,3], 2:[5]}); g
+        sage: g = DiGraph({0:[1,2,3], 2:[4]}); g
         Digraph on 5 vertices
 
     5. A list of vertices and a function describing adjacencies.  Note
@@ -7819,7 +8119,7 @@ class DiGraph(GenericGraph):
        We construct a graph on the integers 1 through 12 such that
        there is a directed edge from i to j if and only if i divides j.
 
-        sage: g=DiGraph([[1..12],lambda i,j: i!=j and i.divides(j)])
+        sage: g=DiGraph([[1..12],lambda i,j: i!=j and i.divides(j)], implementation='networkx')
         sage: g.vertices()
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         sage: g.adjacency_matrix()
@@ -7840,7 +8140,7 @@ class DiGraph(GenericGraph):
     6. A numpy matrix or ndarray:
         sage: import numpy
         sage: A = numpy.array([[0,1,0],[1,0,0],[1,1,0]])
-        sage: DiGraph(A)
+        sage: DiGraph(A, implementation='networkx')
         Digraph on 3 vertices
 
     7. A \sage matrix:
@@ -7870,23 +8170,54 @@ class DiGraph(GenericGraph):
         sage: DiGraph(M)
         Digraph on 6 vertices
 
+    8. A c_graph implemented DiGraph can be constructed from a networkx
+    implemented DiGraph if its vertex set is equal to range(n):
+
+        sage: D = DiGraph({0:[1],1:[2],2:[0]}, implementation="networkx")
+        sage: E = DiGraph(D,implementation="c_graph")
+        sage: D == E
+        True
+
+    9. A dig6 string:
+    Sage automatically recognizes whether a string is in dig6 format, which
+    is a directed version of graph6:
+
+        sage: D = DiGraph('IRAaDCIIOWEOKcPWAo')
+        sage: D
+        Digraph on 10 vertices
+
+        sage: D = DiGraph('IRAaDCIIOEOKcPWAo')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The string (IRAaDCIIOEOKcPWAo) seems corrupt: for n = 10, the string is too short.
+
+        sage: D = DiGraph("IRAaDCI'OWEOKcPWAo")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The string seems corrupt: valid characters are
+        ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+
     """
     _directed = True
 
     def __init__(self, data=None, pos=None, loops=False, format=None,
                  boundary=[], weighted=False, implementation='networkx',
                  sparse=True, vertex_labels=True, **kwds):
+        """
+        TEST:
+            sage: D = DiGraph()
+            sage: loads(dumps(D)) == D
+            True
+        """
         if implementation == 'networkx':
             import networkx
             from sage.graphs.base.graph_backends import NetworkXGraphBackend
-            self._backend = NetworkXGraphBackend()
         elif implementation == 'c_graph':
-            if sparse:
-                from sage.graphs.base.graph_backends import SparseGraphBackend
-                self._backend = SparseGraphBackend()
-            else:
-                from sage.graphs.base.graph_backends import DenseGraphBackend
-                self._backend = DenseGraphBackend()
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            if kwds.get('multiedges', False) or weighted:
+                sparse = True
+            CGB = SparseGraphBackend if sparse else DenseGraphBackend
         else:
             raise NotImplementedError()
         from sage.structure.element import is_Matrix
@@ -7899,39 +8230,125 @@ class DiGraph(GenericGraph):
                     format = 'incidence_matrix'
             elif isinstance(data, DiGraph):
                 if implementation == 'networkx':
-                    self._backend._nxg = data.networkx_graph()
+                    self._backend = NetworkXGraphBackend(data.networkx_graph())
+                    self.loops(data.loops())
+                    self.multiple_edges(data.multiple_edges())
+                    self.name(data.name())
+                elif implementation == 'c_graph':
+                    if not sparse and data.multiple_edges():
+                        raise TypeError("Dense graphs do not support multiple edges.")
+                    self._backend = CGB(data.num_verts())
+                    self.loops(data.loops())
+                    self.multiple_edges(data.multiple_edges())
+                    self.name(data.name())
+                    if data.vertices() != range(data.num_verts()):
+                        verts = data.vertices()
+                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(data.num_verts())]), False)
+                    for u,v,l in data.edge_iterator():
+                        self._backend.add_edge(u,v,l,True)
+            elif hasattr(data, 'adj'):
+                import networkx
+                if isinstance(data, (networkx.XGraph, networkx.Graph)) and not isinstance(data, (networkx.XDiGraph, networkx.DiGraph)):
+                    data = data.to_directed()
+                if isinstance(data, (networkx.XDiGraph, networkx.DiGraph)):
+                    if implementation == 'networkx':
+                        if isinstance(data, networkx.XDiGraph):
+                            self._backend = NetworkXGraphBackend(data)
+                        else:
+                            self._backend = NetworkXGraphBackend(networkx.XDiGraph(data, selfloops=loops, **kwds))
+                    elif implementation == 'c_graph':
+                        keys = data.adj.keys()
+                        for u in data:
+                            for v in data[u]:
+                                if v not in keys:
+                                    keys.append(v)
+                        if not sparse and isinstance(data, networkx.XDiGraph) and data.multiedges:
+                            raise TypeError("Dense graphs do not support multiple edges.")
+                        self._backend = CGB(data.order())
+                        self.loops(loops)
+                        self.multiple_edges(kwds.get('multiedges', False))
+                        if sorted(keys) != range(data.order()):
+                            self._backend.relabel(dict([[i, keys[i]] for i in xrange(len(keys))]), False)
+                        if isinstance(data, networkx.XDiGraph):
+                            for u,v,l in data.edges_iter():
+                                self.add_edge(u,v,l)
+                        else:
+                            for u,v in data.edges_iter():
+                                self.add_edge(u,v)
                 else:
-                    pass
-                self.loops(data.loops())
-                self.multiple_edges(data.multiple_edges())
-            elif isinstance(data, networkx.XDiGraph):
-                if implementation == 'networkx':
-                    self._backend._nxg = data
-                else:
-                    pass
-            elif isinstance(data, networkx.DiGraph):
-                if implementation == 'networkx':
-                    self._backend._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
-                else:
-                    pass
+                    raise NotImplementedError()
             elif isinstance(data, str):
                 format = 'dig6'
             elif isinstance(data,list) and len(data)>=2 and callable(data[1]):
                 if implementation == 'networkx':
                     # Pass XGraph a dict of lists describing the adjacencies
-                    self._backend._nxg = networkx.XDiGraph(dict([[i]+[[j for j in data[0] if data[1](i,j)]] for i in data[0]]), selfloops=loops, **kwds)
-                else:
-                    pass
+                    self._backend = NetworkXGraphBackend(networkx.XDiGraph(dict([[i]+[[j for j in data[0] if data[1](i,j)]] for i in data[0]]), selfloops=loops, **kwds))
+                elif implementation == 'c_graph':
+                    self._backend = CGB(len(data[0]))
+                    if sorted(data[0]) != range(len(data[0])):
+                        verts = data[0]
+                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(len(data[0]))]), False)
+                    for u in xrange(len(data[0])):
+                        for v in xrange(len(data[0])):
+                            uu,vv = data[0][u], data[0][v]
+                            if data[1](uu,vv):
+                                self.add_edge(uu,vv)
+                    self.loops(loops)
+            elif isinstance(data, dict):
+                if implementation == 'networkx':
+                    self._backend = NetworkXGraphBackend(networkx.XDiGraph(data, selfloops=loops, **kwds))
+                elif implementation == 'c_graph':
+                    keys = data.keys()
+                    for u in data:
+                        if isinstance(data[u], (list,dict)):
+                            for v in data[u]:
+                                if v not in keys:
+                                    keys.append(v)
+                        else:
+                            raise TypeError("Dict must be in NetworkX format. (was: %s)"%data)
+                    self._backend = CGB(len(keys))
+                    self.loops(loops)
+                    self.multiple_edges(kwds.get('multiedges', False))
+                    if sorted(keys) != range(len(keys)):
+                        verts = keys
+                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(len(keys))]), False)
+                    for u in data:
+                        if isinstance(data[u], dict):
+                            for v in data[u].keys():
+                                if data[u][v] is None and not self.has_edge(u,v):
+                                    self.add_edge(u, v)
+                                elif data[u][v] is not None and not self.has_edge(u,v,data[u][v]):
+                                    self.add_edge(u, v, data[u][v])
+                        elif isinstance(data[u], list):
+                            for v in data[u]:
+                                if not self.has_edge(u,v):
+                                    self.add_edge(u, v)
+            elif isinstance(data, (int, Integer)):
+                if implementation == 'networkx':
+                    self._backend = NetworkXGraphBackend(networkx.XDiGraph(selfloops=loops, **kwds))
+                    self.add_vertices(xrange(data))
+                elif implementation == 'c_graph':
+                    self._backend = CGB(data)
+                    self.loops(loops)
+                    self.multiple_edges(kwds.get('multiedges',False))
+                    self.name(kwds.get('name',''))
             else:
                 if implementation == 'networkx':
-                    self._backend._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
-                else:
-                    pass
+                    self._backend = NetworkXGraphBackend(networkx.XDiGraph(data, selfloops=loops, **kwds))
+                elif implementation == 'c_graph':
+                    if data is None:
+                        self._backend = CGB(0)
+                        self.loops(loops)
+                        self.multiple_edges(kwds.get('multiedges',False))
+                    else:
+                        raise NotImplementedError("Datatype not suppported for C graphs.")
         if format == 'adjacency_matrix':
             if implementation == 'networkx':
-                self._backend._nxg = networkx.XDiGraph(selfloops = loops, **kwds)
+                self._backend = NetworkXGraphBackend(networkx.XDiGraph(selfloops = loops, **kwds))
+                self.add_vertices(xrange(data.nrows()))
             else:
-                pass
+                self._backend = CGB(data.nrows())
+                self.loops(loops)
             e = []
             for i,j in data.nonzero_positions():
                 if i == j and loops and kwds.get('multiedges',False):
@@ -7946,10 +8363,11 @@ class DiGraph(GenericGraph):
         elif format == 'weighted_adjacency_matrix':
             self._weighted = True
             if implementation == 'networkx':
-                self._backend._nxg = networkx.XDiGraph(d, selfloops = loops, **kwds)
+                self._backend = NetworkXGraphBackend(networkx.XDiGraph(d, selfloops = loops, **kwds))
+                self.add_vertices(xrange(data.nrows()))
             else:
-                pass
-            self.add_vertices(xrange(data.nrows()))
+                self._backend = CGB(data.nrows())
+                self.loops(loops)
             e = []
             for i,j in data.nonzero_positions():
                 if i != j:
@@ -7970,10 +8388,10 @@ class DiGraph(GenericGraph):
             if not b:
                 raise AttributeError, "Incidence Matrix must have one 1 and one -1 per column."
             if implementation == 'networkx':
-                self._backend._nxg = networkx.XDiGraph(selfloops = loops, **kwds)
+                self._backend = NetworkXGraphBackend(networkx.XDiGraph(selfloops = loops, **kwds))
+                self.add_vertices(xrange(data.nrows()))
             else:
-                pass
-            self.add_vertices(xrange(data.nrows()))
+                self._backend = CGB(data.nrows())
             e = []
             for c in data.columns():
                 k = c.dict().keys()
@@ -7997,10 +8415,10 @@ class DiGraph(GenericGraph):
             elif len(m) < expected:
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short."%(ss,n))
             if implementation == 'networkx':
-                self._backend._nxg = networkx.XDiGraph()
+                self._backend = NetworkXGraphBackend(networkx.XDiGraph())
+                self.add_vertices(xrange(n))
             else:
-                pass
-            self.add_vertices(xrange(n))
+                self._backend = CGB(n)
             k = 0
             for i in range(n):
                 for j in range(n):
@@ -8019,7 +8437,13 @@ class DiGraph(GenericGraph):
         Returns the dig6 representation of the digraph as an ASCII string.
         Valid for single (no multiple edges) digraphs on 0 to 262143 vertices.
 
-        EXAMPLE: TODO
+        EXAMPLE:
+            sage: D = DiGraph()
+            sage: D.dig6_string()
+            '?'
+            sage: D.add_edge(0,1)
+            sage: D.dig6_string()
+            'AO'
 
         """
         n = self.order()
@@ -8036,6 +8460,9 @@ class DiGraph(GenericGraph):
         """
         Since digraph is directed, returns True.
 
+        EXAMPLE:
+            sage: DiGraph().is_directed()
+            True
         """
         return True
 
@@ -8082,7 +8509,7 @@ class DiGraph(GenericGraph):
         """
         return self.copy()
 
-    def to_undirected(self):
+    def to_undirected(self, implementation='networkx'):
         """
         Returns an undirected version of the graph. Every directed edge becomes an edge.
 
@@ -8096,7 +8523,7 @@ class DiGraph(GenericGraph):
 
         """
         G = Graph(name=self.name(), pos=self._pos, boundary=self._boundary,
-                  multiedges=self.multiple_edges())
+                  multiedges=self.multiple_edges(), loops=self.loops(), implementation=implementation)
         G.name(self.name())
         G.add_vertices(self.vertex_iterator())
         G.add_edges(self.edge_iterator())
@@ -8120,6 +8547,12 @@ class DiGraph(GenericGraph):
             (4, 0, None)
 
         """
+        if vertices is None:
+            vertices = self
+        elif vertices in self:
+            vertices = [vertices]
+        else:
+            vertices = [v for v in vertices if v in self]
         return self._backend.iterator_in_edges(vertices, labels)
 
     def incoming_edges(self, vertices=None, labels=True):
@@ -8151,6 +8584,12 @@ class DiGraph(GenericGraph):
             (0, 3, None)
 
         """
+        if vertices is None:
+            vertices = self
+        elif vertices in self:
+            vertices = [vertices]
+        else:
+            vertices = [v for v in vertices if v in self]
         return self._backend.iterator_out_edges(vertices, labels)
 
     def outgoing_edges(self, vertices=None, labels=True):
@@ -8382,7 +8821,7 @@ class DiGraph(GenericGraph):
             Reverse of (): Digraph on 6 vertices
 
         """
-        H = DiGraph(multiedges=self.multiple_edges(), loops=self.loops())
+        H = DiGraph(multiedges=self.multiple_edges(), loops=self.loops(), implementation='networkx')
         H.add_vertices(self)
         H.add_edges( [ (v,u,d) for (u,v,d) in self.edge_iterator() ] )
         name = self.name()
@@ -8471,10 +8910,10 @@ class DiGraph(GenericGraph):
             ...               print "This should never happen."
 
         """
-        from sage.graphs.linearextensions import linearExtensions
+        from sage.graphs.linearextensions import LinearExtensions
         try:
-            return linearExtensions(self)
-        except:
+            return LinearExtensions(self).list()
+        except TypeError:
             raise TypeError('Digraph is not acyclic-- there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
 
     ### Visualization
@@ -8487,7 +8926,7 @@ class DiGraph(GenericGraph):
            http://www.graphviz.org/doc/info/lang.html
 
        EXAMPLE:
-           sage: G = DiGraph({0:{1:None,2:None}, 1:{2:None}, 2:{3:'foo'}, 3:{}})
+           sage: G = DiGraph({0:{1:None,2:None}, 1:{2:None}, 2:{3:'foo'}, 3:{}}, implementation='networkx')
            sage: s = G.graphviz_string(); s
            'digraph {\n"0";"1";"2";"3";\n"0"->"1";"0"->"2";"1"->"2";"2"->"3"[label="foo"];\n}'
        """
@@ -8502,6 +8941,20 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_size=0.06,
                         pos3d=None,
                         iterations=50, **kwds):
+    """
+    Helper function for plotting graphs in 3d with Tachyon. Returns a plot containing
+    only the vertices, as well as the 3d position dictionary used for the plot.
+
+    EXAMPLE:
+        sage: G = graphs.TetrahedralGraph()
+        sage: from sage.graphs.graph import tachyon_vertex_plot
+        sage: T,p = tachyon_vertex_plot(G)
+        sage: type(T)
+        <class 'sage.plot.tachyon.Tachyon'>
+        sage: type(p)
+        <type 'dict'>
+
+    """
     from math import sqrt
     from sage.plot.tachyon import Tachyon
 
@@ -8577,9 +9030,9 @@ def graph_isom_equivalent_non_multi_graph(g, partition):
     EXAMPLE:
         sage: from sage.graphs.graph import graph_isom_equivalent_non_multi_graph
         sage: G = Graph(multiedges=True)
-        sage: G.add_edge((0,1))
-        sage: G.add_edge((0,1))
-        sage: G.add_edge((0,1))
+        sage: G.add_edge((0,1,1))
+        sage: G.add_edge((0,1,2))
+        sage: G.add_edge((0,1,3))
         sage: graph_isom_equivalent_non_multi_graph(G, [[0,1]])
         (Graph on 5 vertices, [[('o', 0), ('o', 1)], [('x', 0), ('x', 1), ('x', 2)]])
 
@@ -8587,7 +9040,7 @@ def graph_isom_equivalent_non_multi_graph(g, partition):
     if g._directed:
         G = DiGraph(loops=g.loops())
     else:
-        G = Graph(loops=g.loops())
+        G = Graph(loops=g.loops(), implementation='networkx')
     G.add_vertices([('o', v) for v in g.vertices()]) # 'o' for original
     if g._directed:
         edges_with_multiplicity = [[u,v] for u,v,_ in g.edge_iterator()]
@@ -8629,21 +9082,21 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition):
 
 
     EXAMPLE:
-        sage: G = Graph(multiedges=True)
+        sage: G = Graph(multiedges=True, implementation='networkx')
         sage: G.add_edges([(0,1,i) for i in range(10)])
         sage: G.add_edge(1,2,'string')
         sage: G.add_edge(2,3)
         sage: from sage.graphs.graph import graph_isom_equivalent_non_edge_labeled_graph
         sage: graph_isom_equivalent_non_edge_labeled_graph(G, [G.vertices()])
-        (Graph on 7 vertices,
-         [[('o', 0), ('o', 1), ('o', 2), ('o', 3)], [('x', 0)], [('x', 1)], [('x', 2)]])
+        (Graph on 7 vertices, [[('o', 0), ('o', 1), ('o', 2), ('o', 3)], [('x', 2)], [('x', 0)], [('x', 1)]])
 
     """
+    from sage.misc.misc import uniq
     if g.multiple_edges():
         if g._directed:
             G = DiGraph(loops=g.loops())
         else:
-            G = Graph(loops=g.loops())
+            G = Graph(loops=g.loops(), implementation='networkx')
         G.add_vertices(g.vertices())
         for u,v,l in g.edge_iterator():
             if not G.has_edge(u,v):
@@ -8659,27 +9112,59 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition):
                 if not seen_label:
                     label_list.append([l,1])
         g = G
-    edge_partition = []
     if g._directed:
         G = DiGraph(loops=g.loops())
     else:
-        G = Graph(loops=g.loops())
+        G = Graph(loops=g.loops(), implementation='networkx')
     G.add_vertices([('o', v) for v in g.vertices()]) # 'o' for original
     index = 0
-    for u,v,l in g.edge_iterator():
-        if len([a for a in edge_partition if a[0] == l]) == 0:
-            edge_partition.append([l, [index]])
+    edge_labels = sorted(g.edge_labels())
+    i = 1
+    while i < len(edge_labels):
+        if edge_labels[i] == edge_labels[i-1]:
+            edge_labels.pop(i)
         else:
-            i = 0
-            while edge_partition[i][0] != l:
-                i += 1
-            edge_partition[i][1].append(index)
-        G.add_edges([(('o',u), ('x', index)), (('x', index), ('o',v))]) # 'x' for extra
-        index += 1
-    new_partition = [[('o',v) for v in cell] for cell in partition] + [[('x',v) for v in a[1]] for a in edge_partition]
+            i += 1
+    edge_partition = [[] for _ in xrange(len(edge_labels))]
+    i = 0
+    for u,v,l in g.edge_iterator():
+        index = edge_labels.index(l)
+        edge_partition[index].append(i)
+        G.add_edges([(('o',u), ('x', i)), (('x', i), ('o',v))]) # 'x' for extra
+        i += 1
+    new_partition = [[('o',v) for v in cell] for cell in partition] + [[('x',v) for v in a] for a in edge_partition]
     return G, new_partition
 
 
 
+def compare_edges(x, y):
+    """
+    Compare edge x to edge y, return -1 if x < y, 1 if x > y, else 0.
+
+    EXAMPLE:
+        sage: G = graphs.PetersenGraph()
+        sage: E = G.edges()
+        sage: from sage.graphs.graph import compare_edges
+        sage: compare_edges(E[0], E[2])
+        -1
+        sage: compare_edges(E[0], E[1])
+        -1
+        sage: compare_edges(E[0], E[0])
+        0
+        sage: compare_edges(E[1], E[0])
+        1
+
+    """
+    if x[1] < y[1]:
+        return -1
+    elif x[1] > y[1]:
+        return 1
+    elif x[1] == y[1]:
+        if x[0] < y[0]:
+            return -1
+        if x[0] > y[0]:
+            return 1
+        else:
+            return 0
 
 

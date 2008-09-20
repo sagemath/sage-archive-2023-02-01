@@ -36,7 +36,6 @@ HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
 from sage.misc.misc import SAGE_EXTCODE, SAGE_LOCAL, walltime, tmp_filename, tmp_dir
-from sage.misc.remote_file import get_remote_file
 
 p = os.path.join
 css_path        = p(SAGE_EXTCODE, "notebook/css")
@@ -89,11 +88,10 @@ def notebook_save_check():
         last_save_time = t
 
 def notebook_idle_check():
-    notebook.quit_idle_worksheet_processes()
     global last_idle_time
     t = walltime()
     if t > last_idle_time + idle_interval:
-        notebook.save()
+        notebook.quit_idle_worksheet_processes()
         last_idle_time = t
 
 def notebook_updates():
@@ -309,7 +307,7 @@ class UploadWorksheet(resource.PostableResource):
         dir = ''  # we will delete the directory below if it is used
         if url != '':
             # downloading a file from the internet
-            filename = get_remote_file(url, verbose=True)
+            filename = tmp_filename()+".sws"
         else:
             # uploading a file from the user's computer
             dir = tmp_dir()
@@ -322,32 +320,50 @@ class UploadWorksheet(resource.PostableResource):
             # TODO: Server blocking issues (?!)
             f.close()
 
-        try:
+
+        #We make a callback so that we can download a file remotely
+        #while allowing the server to still serve requests.
+        def callback(result):
             try:
-                W = notebook.import_worksheet(filename, self.username)
-            except IOError, msg:
-                print msg
-                raise ValueError, "Unfortunately, there was an error uploading the worksheet.  It could be an old unsupported format or worse.  If you desparately need its contents contact the Google group sage-support and post a link to your worksheet.  Alternatively, an sws file is just a bzip2'd tarball; take a look inside!"
-            finally:
-                # Clean up the temporarily uploaded filename.
-                os.unlink(filename)
-                # if a temp directory was created, we delete it now.
-                if dir:
-                    shutil.rmtree(dir)
+                try:
+                    W = notebook.import_worksheet(filename, self.username)
+                except IOError, msg:
+                    print msg
+                    raise ValueError, "Unfortunately, there was an error uploading the worksheet.  It could be an old unsupported format or worse.  If you desparately need its contents contact the Google group sage-support and post a link to your worksheet.  Alternatively, an sws file is just a bzip2'd tarball; take a look inside!"
+                finally:
+                    # Clean up the temporarily uploaded filename.
+                    os.unlink(filename)
+                    # if a temp directory was created, we delete it now.
+                    if dir:
+                        shutil.rmtree(dir)
 
-        except ValueError, msg:
-            s = "Error uploading worksheet '%s'."%msg
-            return http.Response(stream = message(s, '/'))
+            except ValueError, msg:
+                s = "Error uploading worksheet '%s'."%msg
+                return http.Response(stream = message(s, '/'))
 
-        # If the user requested in the form a specific title for
-        # the worksheet set it.
-        if ctx.args.has_key('nameField'):
-            new_name = ctx.args['nameField'][0].strip()
-            if new_name:
-                W.set_name(new_name)
+            # If the user requested in the form a specific title for
+            # the worksheet set it.
+            if ctx.args.has_key('nameField'):
+                new_name = ctx.args['nameField'][0].strip()
+                if new_name:
+                    W.set_name(new_name)
 
-        return http.RedirectResponse('/home/'+W.filename())
+            return http.RedirectResponse('/home/'+W.filename())
 
+        if url != '':
+            #We use the downloadPage function which returns a
+            #deferred which we are allowed to return to the server.
+            #The server waits until the download is finished and then runs
+            #the callback function specified.
+            from twisted.web.client import downloadPage
+            d = downloadPage(url, filename)
+            d.addCallback(callback)
+            return d
+        else:
+            #If we already have the file, then we
+            #can just return the result of callback which will
+            #give us the http.Response.
+            return callback(None)
 
 
 ############################
@@ -431,17 +447,31 @@ class Worksheet_do_upload_data(WorksheetResource, resource.PostableResource):
             name = os.path.split(url)[-1]
 
         dest = '%s/%s'%(self.worksheet.data_directory(), name)
+        response = http.RedirectResponse('/home/'+self.worksheet.filename() + '/datafile?name=%s'%name)
 
         if url != '':
-            tmp = get_remote_file(url, verbose=True)
-            shutil.move(tmp, dest)
+            #Here we use twisted's downloadPage function which
+            #returns a deferred object.  We return the deferred to the server,
+            #and it will wait until the download has finished while
+            #still serving other requests.  At the end of the deferred
+            #callback chain should be the response that we wanted to return.
+            from twisted.web.client import downloadPage
+
+            #The callback just returns the response
+            def callback(result):
+                return response
+
+            d = downloadPage(url, dest)
+            d.addCallback(callback)
+            return d
         elif newfield:
             open(dest,'w').close()
+            return response
         else:
             f = file(dest,'wb')
             f.write(ctx.files['fileField'][0][2].read())
             f.close()
-        return http.RedirectResponse('/home/'+self.worksheet.filename() + '/datafile?name=%s'%name)
+            return response
 
 
 ##############################################
@@ -865,7 +895,13 @@ class SettingsPage(resource.PostableResource):
 
     def render(self, request):
         error = None
-        if 'Oldpass' in request.args or 'Newpass' in request.args or 'RetypePass' in request.args:
+        redirect_to_home = None
+        redirect_to_logout  = None
+        if 'autosave' in request.args:
+            notebook.user(self.username)['autosave_interval'] = int(request.args['autosave'][0]) * 60
+            redirect_to_home = True
+
+        if 'Newpass' in request.args or 'RetypePass' in request.args:
             if not 'Oldpass' in request.args:
                 error = 'Old password not given'
             elif not notebook.user(self.username).password_is(request.args['Oldpass'][0]):
@@ -877,47 +913,118 @@ class SettingsPage(resource.PostableResource):
             elif request.args['Newpass'][0] != request.args['RetypePass'][0]:
                 error = 'The passwords you entered do not match.'
 
-            if error:
-                return http.Response(stream=message(error, '/settings'))
+            if not error: #webbrowser may auto fill in "old password" even though the user may nto want to change her passwords
+                notebook.change_password(self.username, request.args['Newpass'][0])
+                redirect_to_logout = True
+        if notebook.conf()['email']:
+            if 'Newemail' in request.args:
+                notebook.user(self.username).set_email(request.args['Newemail'][0])
+                redirect_to_home = True
 
-            notebook.change_password(self.username, request.args['Newpass'][0])
+        if error:
+            return http.Response(stream=message(error, '/settings'))
+
+        if redirect_to_logout:
             return http.RedirectResponse('/logout')
 
-        if 'Newemail' in request.args:
-            notebook.user(self.username).set_email(request.args['Newemail'][0])
-            return http.RedirectResponse('/settings')
+        if redirect_to_home:
+            return http.RedirectResponse('/home/%s' % self.username)
 
-        else:
-            s = """<html><title>Account Settings</title><h1 align=center>Account Settings</h1>
-            <br>
-            <hr>
-            <br>
-            <form method="POST" action="/settings">
-            <br><br>
-            <table align=center><tr>
-            <td colspan=2><h2>Change Password</h2></td></tr><tr>
-            <td align=right>Old password:</td><td><input type="password" name="Oldpass" size="15" /></td></tr>
-            <tr><td align=right>New password:</td><td>
-                <input type="password" name="Newpass" size="15" />
-                </td></tr>
-            <tr><td align=right>Retype new password:</td><td>
-                <input type="password" name="RetypePass" size="15" />
-                </td></tr>
-          <tr><td></td><td></td></tr>
-            <tr><td></td><td align=left><input type="submit" value="Change password" /></td></tr>
-            <tr style="height:20px"><td colspan=2></td></tr>
-            <tr>
-            <td colspan=2><h2>Change E-mail Address</h2></td></tr><tr><tr>
-            <td align=right>Current e-mail:</td><td>%s</td></tr>
-            <tr><td align=right>New e-mail:</td><td>
-                <input type="text" name="Newemail" size="30" />
-                </td></tr><tr><td></td><td align=left><input type="submit" value="Change e-mail" /></td></tr>
-            </table> </form>
-            <br><br>
-            <div align=center><a href="../">Cancel</a></div>
-            <br>
+        s = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
-            </html>""" % notebook.user(self.username)._User__email
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Account Settings</title>
+<style type="text/css">
+/*<![CDATA[*/
+  @import url('/css/reset.css');
+
+  html {
+font-size:100.1%
+}
+
+  body {
+    font:100%/1.4 Arial, Helvetica, sans-serif;
+  }
+  h1 {
+    font-size:2em;
+    padding:0 5px;
+    background:#DCDCDC;
+    border-bottom:1px solid #CCC;
+  }
+  #buttons {
+    padding:5px;
+    background:#DCDCDC
+  }
+  h2 {
+    font-size:1.5em
+  }
+  .section {
+    padding:5px;
+    border-bottom:1px solid #CCC;
+  }
+  .section > div {
+    text-align:right;
+    max-width:350px;
+  }
+  td {padding-left:5px}
+/*]]>*/
+</style>
+<style type="text/css">
+/*<![CDATA[*/
+ input.c1 {width:200px}
+/*]]>*/
+</style>
+</head>
+
+<body>
+  <h1>Account Settings</h1>
+
+  <form method="post" action="/settings">
+
+    <div class="section">
+      <h2>Change Auto-Save Interval</h2>
+      <div>
+Minutes: <select name="autosave">
+      """
+        for i in range(1, 10, 2):
+            s += '<option%s>%s</option>' % (' selected' if notebook.user(self.username)['autosave_interval']/60 == i else '', i)
+        s += '</select></div></div>'
+        if notebook.conf()['email']:
+            email_section = """
+            <div class="section">
+          <h2>Change E-mail Address</h2>
+
+          <div>
+            <table style="float:right"><tr><td>Current e-mail:</td><td>%s</td></tr>
+            <tr><td></td><td>%s</td></tr>
+            <tr><td style="text-align:right">New e-mail:</td><td><input type="text" name="Newemail" class="c1" /></td></tr></table>
+            <div style="clear:both"></div>
+          </div>
+        </div>
+            """ % ('None' if notebook.user(self.username)._User__email == '' else notebook.user(self.username)._User__email, 'Not confirmed' if not notebook.user(self.username).is_email_confirmed() else 'Confirmed')
+        else: email_section = ''
+        s += """
+    <div class="section">
+      <h2>Change Password</h2>
+      <div id="passwd">
+        Old password: <input type="password" name="Oldpass" /><br />
+        New password: <input type="password" name="Newpass" /><br />
+        Retype new password: <input type="password" name="RetypePass" />
+      </div>
+    </div>
+
+    %s
+    <div id="buttons">
+    <input type="submit" value="Save">""" % email_section
+        s += '<input type="button" value="Cancel" style="margin-left:5px" onClick="parent.location=\'/home/%s\'">' % self.username
+        s += """
+    </div>
+  </form>
+</body>
+</html>
+"""
         return http.Response(stream=s)
 
 ########################################################
@@ -1101,10 +1208,52 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
 ########################################################
 
 class Worksheet_publish(WorksheetResource, resource.Resource):
+    """
+    This is a child resource of the Worksheet resource. It provides a frontend to
+    the mangement of worksheet publication. This mangement functionality includes
+    initializational of publication, re-publication, automated publication when
+    a worksheet saved, and ending of publication.
+    """
+    addSlash = True
+
     def render(self, ctx):
-        W = notebook.publish_worksheet(self.worksheet, self.username)
-        addr = '/home/' + W.filename()
-        return http.RedirectResponse(addr)
+        # Publishes worksheet and also sets worksheet to be published automatically when saved
+        if 'yes' in ctx.args and 'auto' in ctx.args:
+            notebook.publish_worksheet(self.worksheet, self.username)
+            self.worksheet.set_auto_publish()
+            return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        # Just publishes worksheet
+        elif 'yes' in ctx.args:
+            notebook.publish_worksheet(self.worksheet, self.username)
+            return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        # Stops publication of worksheet
+        elif 'stop' in ctx.args:
+            notebook.delete_worksheet(self.worksheet.published_version().filename())
+            return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        # Re-publishes worksheet
+        elif 're' in ctx.args:
+            W = notebook.publish_worksheet(self.worksheet, self.username)
+            return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        # Sets worksheet to be published automatically when saved
+        elif 'auto' in ctx.args:
+            self.worksheet.set_auto_publish()
+            return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        # Returns boolean of "Is this worksheet set to be published automatically when saved?"
+        elif 'is_auto' in ctx.args:
+            return http.Response(stream=str(self.worksheet.is_auto_publish()))
+        # Returns the publication page
+        else:
+            # Page for when worksheet already published
+            if self.worksheet.has_published_version():
+                addr = 'http%s://' % ('' if not notebook.secure else 's')
+                addr += notebook.address
+                addr += ':%s' % notebook.port
+                addr += '/home/' + self.worksheet.published_version().filename()
+                dtime = self.worksheet.published_version().date_edited()
+                return http.Response(stream=notebook.html_afterpublish_window(self.worksheet, self.username, addr, dtime))
+            # Page for when worksheet is not already published
+            else:
+                return http.Response(stream=notebook.html_beforepublish_window(self.worksheet, self.username))
 
 
 class Worksheet_rating_info(WorksheetResource, resource.Resource):
@@ -1294,11 +1443,11 @@ class WorksheetsByUser(resource.Resource):
         self.username = username
 
     def render_list(self, ctx):
-        s = render_worksheet_list(ctx.args, pub=False, username=self.username)
+        s = render_worksheet_list(ctx.args, pub=False, username=self.user)
         return http.Response(stream = s)
 
     def render(self, ctx):
-        if self.user == self.username:
+        if self.user == self.username or user_type(self.username) == 'admin':
             return self.render_list(ctx)
         else:
             s = message("User '%s' does not have permission to view the home page of '%s'."%(self.username, self.user))
@@ -1313,10 +1462,10 @@ class WorksheetsByUser(resource.Resource):
             return Worksheet(filename, self.username)
         except KeyError:
             s = "The user '%s' has no worksheet '%s'."%(self.user, name)
-            return InvalidPage(msg = s, username = self.username)
+            return InvalidPage(msg = s, username = self.user)
         except RuntimeError:
             s = "You are not logged in or do not have access to the worksheet '%s'."%name
-            return InvalidPage(msg = s, username = self.username)
+            return InvalidPage(msg = s, username = self.user)
 
 
 
@@ -1530,6 +1679,11 @@ class Main_css(resource.Resource):
         s = css.css()
         return http.Response(stream=s)
 
+class Reset_css(resource.Resource):
+    def render(self, ctx):
+        s = css.reset
+        return http.Response(stream=s)
+
 class CSS(resource.Resource):
     addSlash = True
 
@@ -1540,6 +1694,7 @@ class CSS(resource.Resource):
         return static.File(css_path + "/" + name)
 
 setattr(CSS, 'child_main.css', Main_css())
+setattr(CSS, 'child_reset.css', Reset_css())
 
 ############################
 
@@ -1611,7 +1766,6 @@ class Slider(resource.Resource):
 class Logout(resource.Resource):
     def render(self, ctx):
         # TODO -- actually log out.
-        notebook.save()
         s = message("<br>Thank you for using Sage.<br><br><a href='/'>Please login and use Sage again soon.</a><br>")
         return http.Response(stream=s)
 
@@ -1633,8 +1787,9 @@ class Images(resource.Resource):
 ####################################
 class RegConfirmation(resource.Resource):
     def render(self, request):
+        if not notebook.conf()['email']:
+            return http.Response(stream=message('The confirmation system is not active.'))
         key = request.args['key'][0]
-        global notebook
         invalid_confirm_key = """\
 <h1>Invalid confirmation key</h1>
 <p>You are reporting a confirmation key that has not been assigned by this
@@ -1644,6 +1799,8 @@ server. Please <a href="/register">register</a> with the server.</p>
         global waiting
         try:
             username = waiting[key]
+            user = notebook.user(username)
+            user.set_email_confirmation(True)
         except KeyError:
             return http.Response(stream=message(invalid_confirm_key, '/register'))
         success = """<h1>Hello, %s. Thank you for registering!</h1>""" % username
@@ -1654,53 +1811,206 @@ server. Please <a href="/register">register</a> with the server.</p>
 # Registration page
 ############################
 import re
-re_valid_username = re.compile('[a-z|A-Z|0-9|_|\-|.]*')
+re_valid_username = re.compile('[a-z|A-Z|0-9|_|.]*')
 def is_valid_username(username):
     r"""
-    Return True if and only if \var{username} is valid, i.e., contains
-    only alphabetic characters, numbers, and underscores.
+    Returns True if and only if \var{username} is valid, i.e., starts with a letter,
+    is between 4 and 32 characters long, and contains only letters, numbers,
+    underscores, and and one dot (.).
 
     EXAMPLES:
         sage: from sage.server.notebook.twist import is_valid_username
-        sage: is_valid_username('sage-devel')
+
+    \var{username} must start with a letter
+        sage: is_valid_username('mark10')
         True
-        sage: is_valid_username('sage_devel7')
-        True
-        sage: is_valid_username('a@b.c')
+        sage: is_valid_username('10mark')
         False
-        sage: is_valid_username('ab c')
+
+    \var{username} must be between 4 and 32 characters long
+        sage: is_valid_username('bob')
+        False
+        sage: is_valid_username('I_love_computer_science_and_maths') #33 characters long
+        False
+
+    \var{username} must not have more than one dot (.)
+        sage: is_valid_username('david.andrews')
+        True
+        sage: is_valid_username('david.m.andrews')
+        False
+        sage: is_valid_username('math125.TA.5')
+        False
+
+    \var{username} must not have any spaces
+        sage: is_valid_username('David Andrews')
+        False
+        sage: is_valid_username('David M. Andrews')
+        False
+
+        sage: is_valid_username('sarah_andrews')
+        True
+
+        sage: is_valid_username('TA-1')
+        False
+        sage: is_valid_username('math125-TA')
+        False
+
+        sage: is_valid_username('dandrews@sagemath.org')
         False
     """
+    import string
+
+    if not (len(username) > 3 and len(username) < 33):
+        return False
+    if not username[0] in string.letters:
+        return False
+    if '.' in username:
+        if username.count('.') > 1:
+            return False
+
     m = re_valid_username.match(username)
-    return len(username) > 0 and m.start() == 0 and m.end() == len(username)
+    return m.start() == 0 and m.end() == len(username)
+
+def is_valid_password(password, username):
+    r"""
+    Return True if and only if \var{password} is valid, i.e., is between 6 and
+    32 characters long, doesn't contain space(s), and doesn't contain \var{username}.
+
+    EXAMPLES:
+        sage: from sage.server.notebook.twist import is_valid_password
+        sage: is_valid_password('uip@un7!', None)
+        True
+        sage: is_valid_password('markusup89', None)
+        True
+        sage: is_valid_password('8u7', None)
+        False
+        sage: is_valid_password('fUmDagaz8LmtonAowjSe0Pvu9C5Gvr6eKcC6wsAT', None)
+        False
+        sage: is_valid_password('rrcF !u78!', None)
+        False
+        sage: is_valid_password('markusup89', 'markus')
+        False
+    """
+    import string
+    if len(password) < 6 or len(password) > 32 or ' ' in password:
+        return False
+    if username:
+        if string.lower(username) in string.lower(password):
+            return False
+    return True
+
+def do_passwords_match(pass1, pass2):
+    """
+    EXAMPLES:
+        sage: from sage.server.notebook.twist import do_passwords_match
+        sage: do_passwords_match('momcat', 'mothercat')
+        False
+        sage: do_passwords_match('mothercat', 'mothercat')
+        True
+    """
+    return pass1 == pass2
+
+def is_valid_email(email):
+    """
+    from http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/65215
+
+    EXAMPLES:
+        sage: from sage.server.notebook.twist import is_valid_email
+        sage: is_valid_email('joe@washinton.gov')
+        True
+        sage: is_valid_email('joe.washington.gov')
+        False
+    """
+    if len(email) > 7:
+        if re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+\.[a-zA-Z]{2,6}$", email) != None:
+            return True
+    return False
+
+from sage.server.notebook.template import registration_page_template
+from sage.server.notebook.template import login_page_template
 
 class RegistrationPage(resource.PostableResource):
     def __init__(self, userdb):
         self.userdb = userdb
 
     def render(self, request):
-        if request.args.has_key('email'):
-            if request.args['email'][0] is not None:
+        input_boxes = ['username', 'password', 'retype_password']
+        if notebook.conf()['email']:
+            input_boxes.append('email')
+        is_valid_dict = {'username': is_valid_username, 'password': is_valid_password,
+                         'retype_password': do_passwords_match, 'email': is_valid_email}
+        missing = [False] * len(input_boxes)
+        filled_in = {}
 
-                s = ''
-                try:
-                    username = request.args['username'][0]
-                    if not is_valid_username(username):
-                        s += "Usernames can only contain letters, numbers, dashes, periods and underscores."
-                except KeyError:
-                    s += "You must specify a username."
-                try:
-                    passwd  = request.args['password'][0]
-                except KeyError:
-                    s += "  You must specify a password."
+        is_error = False
+        errors = []
+
+        if set(input_boxes) <= set(request.args):
+            for i, box in enumerate(input_boxes):
+                filled_in[box] = request.args[box][0]
+                if box == 'retype_password':
+                    if not is_valid_dict[box](filled_in[box], filled_in['password']):
+                        is_error = True
+                        errors.append('passwords_dont_match')
+                elif box == 'password':
+                    if 'username' in filled_in:
+                        u = filled_in['username']
+                    else:
+                        u = None
+                    if not is_valid_dict[box](filled_in[box], u):
+                        is_error = True
+                        errors.append('password_invalid')
                 else:
-                    if len(passwd) == 0:
-                        s = "  Password must be nonempty."
-                if s:
-                    return http.Response(stream=message(s, '/register'))
+                    if not is_valid_dict[box](filled_in[box]):
+                        is_error = True
+                        errors.append(box + '_invalid')
+        else:
+            for i, box in enumerate(input_boxes):
+                if not box in request.args:
+                    missing[i] = True
 
+            if set(missing) == set([True]):
+                return http.Response(stream=registration_page_template(is_email=notebook.conf()['email']))
+            elif set(missing) == set([False]):
+                for i, box in enumerate(input_boxes):
+                    filled_in[box] = request.args[box][0]
+                    if box == 'retype_password':
+                        if not is_valid_dict[box](filled_in[box], filled_in['password']):
+                            is_error = True
+                            errors.append('passwords_dont_match')
+                    elif box == 'password':
+                        if 'username' in filled_in:
+                            u = filled_in['username']
+                        else:
+                            u = None
+                        if not is_valid_dict[box](filled_in[box], u):
+                            is_error = True
+                            errors.append('password_invalid')
+                    else:
+                        if not is_valid_dict[box](filled_in[box]):
+                            is_error = True
+                            errors.append(box + '_invalid')
+            else:
+                for i, value in enumerate(missing):
+                    if value:
+                        is_error = True
+                        errors.append(input_boxes[i] + '_missing')
+                    elif not value:
+                        filled_in[input_boxes[i]] = request.args[input_boxes[i]][0]
 
-                destaddr = """%s""" % request.args['email'][0]
+        if is_error:
+            return http.Response(stream=registration_page_template(error=errors, input=filled_in))
+        else:
+            try:
+                e = filled_in['email'] if notebook.conf()['email'] else ''
+                self.userdb.add_user(filled_in['username'], request.args['password'][0],
+                                     e)
+            except ValueError:
+                errors.append('username_taken')
+                return http.Response(stream=registration_page_template(error=errors, input=filled_in))
+
+            if notebook.conf()['email']:
+                destaddr = filled_in['email']
                 from sage.server.notebook.smtpsend import send_mail
                 from sage.server.notebook.register import make_key, build_msg
                 # TODO: make this come from the server settings
@@ -1708,65 +2018,93 @@ class RegistrationPage(resource.PostableResource):
                 listenaddr = notebook.address
                 port = notebook.port
                 fromaddr = 'no-reply@%s' % listenaddr
-                body = build_msg(key, username, listenaddr, port,
+                body = build_msg(key, filled_in['username'], listenaddr, port,
                                  notebook.secure)
 
                 # Send a confirmation message to the user.
                 try:
                     send_mail(self, fromaddr, destaddr, "Sage Notebook Registration",body)
+                    waiting[key] = filled_in['username']
                 except ValueError:
-                    # the email address is invalid
-                    s = message("Registration failed -- the email address '%s' is invalid."%destaddr,
-                                 '/register')
-                    return http.Response(stream=s)
+                    pass
 
-                # Store in memory that we are waiting for the user to respond
-                # to their invitation to join the Sage notebook.
-                waiting[key] = username
+            return http.Response(stream=login_page_template(notebook.get_accounts(),
+                                                            notebook.default_user(), welcome=filled_in['username'],
+                                                            recover=notebook.conf()['email']))
 
-            # Add the user to passwords.txt
+class ForgotPassPage(resource.Resource):
+
+    def render(self, request):
+        if not notebook.conf()['email']:
+            return http.Response(stream=message('The account recovery system is not active.'))
+
+        if request.args.has_key('username'):
+            def error(msg):
+                return http.Response(stream=message(msg, '/forgotpass'))
+
             try:
-                self.userdb.add_user(username, passwd, destaddr)
-                # now say that the user has been registered.
-                s = """
-                <html>
-                <h1>Registration information received</h1>
-                <p>Thank you for registering with the Sage notebook. A
-                confirmation message will be sent to %s.</p>
-                <br>
-                <p><a href="/">Click here to login with your new account.</a></p>
-                </html>
-                """%destaddr
+                import string
+                user = notebook.user(request.args[string.strip('username')][0])
+            except KeyError:
+                return error('Username is invalid.')
+
+            if not user.is_email_confirmed():
+                return error("The e-mail address hasn't been confirmed.")
+
+            from random import choice
+            import string
+            chara = string.letters + string.digits
+            old_pass = user.password()
+            password = ''.join([choice(chara) for i in range(8)])
+            user.set_password(password)
+
+            from sage.server.notebook.smtpsend import send_mail
+            from sage.server.notebook.register import build_password_msg
+            # TODO: make this come from the server settings
+
+            listenaddr = notebook.address
+            port = notebook.port
+            fromaddr = 'no-reply@%s' % listenaddr
+            body = build_password_msg(password, request.args[string.strip('username')][0], listenaddr, port, notebook.secure)
+            destaddr = user.get_email()
+            try:
+                send_mail(self, fromaddr, destaddr, "Sage Notebook Account Recovery",body)
             except ValueError:
-                s = """
-                <html>
-                <h1>Username is already taken, please choose another one.</h1>
-                </html>
-                """
+                # the email address is invalid
+                user.set_password(oldpass)
+                return error("The new password couldn't be sent."%destaddr)
+
+            return http.Response(stream=message("A new password has been sent to your e-mail address.", '/'))
         else:
-            s = """<html><h1 align=center>Sign up for the Sage Notebook.</h1>
+            s = """<html><h1 align=center>Account Recovery</h1>
             <br>
             <hr>
             <br>
-            <form method="POST" action="/register">
+            <form method="GET" action="/forgotpass">
             <br><br>
             <table align=center><tr>
             <td align=right>Username:</td><td><input type="text" name="username" size="15" /></td></tr>
-            <tr><td align=right>Password:</td><td>
-                <input type="password" name="password" size="15" />
-                </td></tr>
-            <tr><td align=right>Email
-                Address:</td> <td><input type="text" name="email" size="15" />
-                </td></tr>
-          <tr><td></td><td></td></tr>
-            <tr><td></td><td align=left><input type="submit" value="Register Now" /></td></tr>
+            <tr><td></td><td align=left><input type="submit" value="Submit" /><input type="button" value="Cancel" style="margin-left:5px" onClick="parent.location=\'/'"></td></tr>
             </table> </form>
-            <br><br>
-            <div align=center><a href="/">Cancel and return to the login page</a></div>
-            <br>
 
             </html>"""
         return http.Response(stream=s)
+
+class ListOfUsers(resource.Resource):
+        def __init__(self, username):
+            self.username = username
+
+        def render(self, ctx):
+            if user_type(self.username) != 'admin':
+                s = message('You must an admin to manage other users.')
+            else:
+                s = """
+                <html><head><title>Users | Sage Notebook</title></head>
+                <body>
+                %s
+                </body></html>
+                """ % '<br/>'.join(['<a href="/home/%s/">%s</a>' % (i, i) for i in notebook.valid_login_names()])
+            return http.Response(stream = s)
 
 class InvalidPage(resource.Resource):
     addSlash = True
@@ -1797,7 +2135,6 @@ class RedirectLogin(resource.PostableResource):
 import sage.server.simple.twist
 
 class Toplevel(resource.PostableResource):
-    child_logout = Logout()
     child_login = RedirectLogin()
     child_simple = sage.server.simple.twist.SimpleServer()
 
@@ -1806,7 +2143,7 @@ class Toplevel(resource.PostableResource):
         self.username = username if username else 'guest'
 
     def render(self, ctx):
-        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user()))
+        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
 
     def userchildFactory(self, request, name):
         return InvalidPage(msg = "unauthorized request", username = self.username)
@@ -1824,7 +2161,7 @@ from sage.server.notebook.template import failed_login_template
 
 class LoginResourceClass(resource.Resource):
     def render(self, ctx):
-        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user()))
+        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
 
     def childFactory(self, request, name):
         return LoginResource
@@ -1836,12 +2173,14 @@ class AnonymousToplevel(Toplevel):
     addSlash = True
     child_register = RegistrationPage(PasswordChecker())
     child_confirm = RegConfirmation()
+    child_forgotpass = ForgotPassPage()
 
     child_images = Images()
     child_css = CSS()
     child_javascript = Javascript()
     child_java = Java()
     child_slider = Slider()
+    child_logout = RedirectLogin()
 
     def userchildFactory(self, request, name):
         # This is called from Toplevel above
@@ -1857,24 +2196,22 @@ class AnonymousToplevel(Toplevel):
     #child_login = LoginResource
 
     def render(self, ctx):
-        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user()))
+        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
 
 class FailedToplevel(Toplevel):
-    def __init__(self, info, problem):
+    def __init__(self, info, problem, username=None):
         self.info = info
         self.problem= problem
+        self.username = username
 
     def render(self, ctx):
         # Since public access is allowed, which lists usernames in the published
         # worksheets and ratings, this gives no new information way.
         # If published pages were disabled, then this should be disabled too.
         if self.problem == 'username':
-            notebook.valid_login_names().sort()
-            valid_login_names = "<strong>Valid login names:</strong><br />" + ', <br />'.join(notebook.valid_login_names())
+            return http.Response(stream = login_page_template(notebook.get_accounts(), notebook.default_user(), is_username_error=True, recover=notebook.conf()['email']))
         else:
-            valid_login_names = ''
-        return http.Response(stream = failed_login_template(problem=self.problem,
-                                                            logins = valid_login_names))
+            return http.Response(stream = login_page_template(notebook.get_accounts(), self.username, is_password_error=True, recover=notebook.conf()['email']))
 
 
 class UserToplevel(Toplevel):
@@ -1888,6 +2225,8 @@ class UserToplevel(Toplevel):
 
     child_upload = Upload()
     child_logout = Logout()
+
+    child_confirm = RegConfirmation()
 
 
 
@@ -1912,6 +2251,7 @@ class UserToplevel(Toplevel):
     userchild_home = Worksheets
     userchild_live_history = LiveHistory
     userchild_new_worksheet = NewWorksheet
+    userchild_users = ListOfUsers
     userchild_notebook_settings = NotebookSettings
     userchild_settings = SettingsPage
     userchild_pub = PublicWorksheets
@@ -1945,12 +2285,6 @@ class AdminToplevel(UserToplevel):
     userchild_home = WorksheetsAdmin
     userchild_conf = NotebookConf
 
-    def render(self, ctx):
-        s = render_worksheet_list(ctx.args, pub=False, username=self.username)
-        return http.Response(responsecode.OK,
-                             {'set-cookie':set_cookie(self.cookie)},
-                             stream=s)
-
 
 
 def set_cookie(cookie):
@@ -1964,7 +2298,6 @@ def user_type(username):
         return 'guest'
     return U.account_type()
 
-
 def extract_title(html_page):
     h = html_page.lower()
     i = h.find('<title>')
@@ -1972,4 +2305,3 @@ def extract_title(html_page):
         return "Untitled"
     j = h.find('</title>')
     return h[i + len('<title>') : j]
-

@@ -89,7 +89,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         self.__sub = sub
         self.__domain = domain
         self.__hash = hash((domain, sub))
-        FreeModule_ambient_field.__init__(self, base_field, dimension, sparse, inner_product_matrix)
+        FreeModule_ambient_field.__init__(self, base_field, dimension, sparse)
         self.__quo_map = domain.Hom(self)(quotient_matrix)
         self.__lift_map = self.Hom(domain)(lift_matrix)
 
@@ -229,7 +229,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             sage: Q._coerce_impl((GF(17)^3)([1,2,3]))
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: Automatic coercion supported only for vectors or 0.
         """
         try:
             if x.parent() is self:

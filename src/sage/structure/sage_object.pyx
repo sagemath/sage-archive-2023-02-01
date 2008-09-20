@@ -55,7 +55,7 @@ cdef class SageObject:
         Real numbers are not Python classes, so rename is not supported:
             sage: a = 3.14
             sage: type(a)
-            <type 'sage.rings.real_mpfr.RealNumber'>
+            <type 'sage.rings.real_mpfr.RealLiteral'>
             sage: a.rename('pi')
             Traceback (most recent call last):
             ...
@@ -91,16 +91,6 @@ cdef class SageObject:
         if hasattr(self, '_repr_'):
             return self._repr_()
         return str(type(self))
-
-    def plot(self, *args, **kwds):
-        import sage.plot.plot
-        if len(args) == 0 and len(kwds) == 0:
-            return sage.plot.plot.text(repr(self), (0,0))
-        else:
-            try:
-                return sage.plot.plot.text(repr(self), *args, **kwds)
-            except TypeError:
-                return sage.plot.plot.text(repr(self), (0,0))
 
     def __hash__(self):
         return hash(self.__repr__())
@@ -524,6 +514,8 @@ def dumps(obj, compress=True):
         sage: loads(s)
         2/3
     """
+    if make_pickle_jar:
+        picklejar(obj)
     try:
         return obj.dumps(compress)
     except (AttributeError, RuntimeError, TypeError):
@@ -583,3 +575,88 @@ def loads(s, compress=True):
             return loads(s, compress=True)
 
 
+cdef bint make_pickle_jar = os.environ.has_key('SAGE_PICKLE_JAR')
+
+def picklejar(obj, dir=None):
+    """
+    Create pickled sobj of obj in dir, with name the absolute value of
+    the hash of the pickle of obj.  This is used in conjection with
+    sage.structure.sage_object.unpickle_all.
+
+    To use this to test the whole Sage library right now, set the
+    environment variable SAGE_PICKLE_JAR, which will make it so dumps
+    will by default call picklejar with the default dir.  Once you do
+    that and doctest Sage, you'll find that the given directory
+    contains a bunch of pickled objects along with corresponding txt
+    descriptions of them.  Use the
+    sage.structure.sage_object.unpickle_all to see if they unpickle
+    later.
+
+    INPUTS:
+        obj -- a pickleable object
+        dir -- a string or None; if None defaults to
+               SAGE_ROOT/tmp/pickle_jar-version
+
+    EXAMPLES:
+        sage: dir = tmp_dir()
+        sage: sage.structure.sage_object.picklejar(1,dir)
+        sage: len(os.listdir(dir))
+        2
+    """
+    if dir is None:
+        from sage.version import version
+        dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar-%s/'%version
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
+    s = comp.compress(cPickle.dumps(obj,protocol=2))
+
+    typ = str(type(obj))
+    name = ''.join([x if (x.isalnum() or x == '_') else '_' for x in typ])
+    base = '%s/%s'%(dir, name)
+    if os.path.exists(base):
+        i = 0
+        while os.path.exists(base + '-%s'%i):
+            i += 1
+        base += '-%s'%i
+
+    open(base + '.sobj', 'wb').write(s)
+    txt = "type(obj) = %s\n"%typ
+    import sage.version
+    txt += "version = %s\n"%sage.version.version
+    txt += "obj =\n'%s'\n"%obj
+
+    open(base + '.txt', 'w').write(txt)
+
+def unpickle_all(dir):
+    """
+    Unpickle all sobj's in the given directory, reporting failures as
+    they occur.  Also printed the number of successes and failure.
+
+    INPUT:
+        dir -- string; a directory
+
+    EXAMPLES:
+        sage: dir = tmp_dir()
+        sage: sage.structure.sage_object.picklejar('hello', dir)
+        sage: sage.structure.sage_object.unpickle_all(dir)
+        Successfully unpickled 1 objects.
+        Failed to unpickle 0 objects.
+    """
+    i = 0
+    j = 0
+    failed = []
+    for A in os.listdir(dir):
+        if A.endswith('.sobj'):
+            try:
+                load(dir + '/' + A)
+                i += 1
+            except Exception, msg:
+                j += 1
+                print "** failed: ", A
+                failed.append(A)
+
+    if len(failed) > 0:
+        print "Failed:\n%s"%('\n'.join(failed))
+    print "Successfully unpickled %s objects."%i
+    print "Failed to unpickle %s objects."%j

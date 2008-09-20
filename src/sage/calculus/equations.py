@@ -214,6 +214,21 @@ class SymbolicEquation(SageObject):
         return self._op(left, right)
 
 
+    def _maple_(self, maple=None):
+        """
+        Returns a Maple version of self.
+
+        EXAMPLES:
+            sage: eq = x == 2
+            sage: maple(eq)   #optional
+            x = 2
+        """
+        if maple is None:
+            from sage.interfaces.maple import maple
+        lhs = maple(self.lhs())
+        rhs = maple(self.rhs())
+        return maple("%s = %s"%(lhs.name(), rhs.name()))
+
     def __getitem__(self, i):
         """
         Return the ith part of this equation:
@@ -962,7 +977,9 @@ class SymbolicEquation(SageObject):
 
             explicit_solution -- (default: False); if True, require
                 that all solutions returned be explicit (rather than
-                implicit) OUTPUT: A list of SymbolicEquations with the
+                implicit)
+
+        OUTPUT: A list of SymbolicEquations with the
                 variable to solve for on the left hand side.
 
         EXAMPLES:
@@ -976,6 +993,11 @@ class SymbolicEquation(SageObject):
             sage: S = solve(x^3 - 1 == 0, x, solution_dict=True)
             sage: S
             [{x: (sqrt(3)*I - 1)/2}, {x: (-sqrt(3)*I - 1)/2}, {x: 1}]
+            sage: z = 5
+            sage: solve(z^2 == sqrt(3),z)
+            Traceback (most recent call last):
+            ...
+            TypeError: 5 is not a valid variable.
 
         We illustrate finding multiplicities of solutions:
             sage: f = (x-1)^5*(x^2+1)
@@ -985,7 +1007,7 @@ class SymbolicEquation(SageObject):
             ([x == -1*I, x == I, x == 1], [1, 1, 5])
         """
         if not self._op is operator.eq:
-            raise ValueError, "solving only implemented for equalities"
+            raise NotImplementedError, "solving only implemented for equalities"
         if x is None:
             v = self.variables()
             if len(v) == 0:
@@ -994,6 +1016,10 @@ class SymbolicEquation(SageObject):
                 else:
                     return []
             x = v[0]
+
+        from sage.calculus.calculus import SymbolicVariable, SymbolicFunction, SymbolicFunctionEvaluation
+        if not isinstance(x,(SymbolicVariable,SymbolicFunction,SymbolicFunctionEvaluation)):
+            raise TypeError, "%s is not a valid variable."%x
 
         m = self._maxima_()
         P = m.parent()
@@ -1045,6 +1071,133 @@ class SymbolicEquation(SageObject):
         else:
             raise ValueError, "side must be 'left', 'right', or None"
 
+class GenericDeclaration(SageObject):
+
+    def __init__(self, var, assumption):
+        """
+        This class represents generic assumptions, such as a variable being
+        an integer or a function being increasing. It passes such information
+        to maxima's declare (wrapped in a context so it is able to forget).
+
+        INPUT:
+            var        -- the variable about which assumptions are being made
+            assumption -- a maxima feature, either user defined or in the list
+                          given by maxima('features')
+
+        EXAMPLES:
+            sage: from sage.calculus.equations import GenericDeclaration
+            sage: decl = GenericDeclaration(x, 'integer')
+            sage: decl.assume()
+            sage: sin(x*pi)
+            0
+            sage: decl.forget()
+            sage: sin(x*pi)
+            sin(pi*x)
+
+        Here is the list of acceptable features:
+            sage: maxima('features')
+            [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+        """
+        self._var = var
+        self._assumption = assumption
+        self._context = None
+
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: from sage.calculus.equations import GenericDeclaration
+            sage: GenericDeclaration(x, 'foo')
+            x is foo
+        """
+        return "%s is %s" % (self._var, self._assumption)
+
+    def __cmp__(self, other):
+        """
+        TESTS:
+            sage: from sage.calculus.equations import GenericDeclaration as GDecl
+            sage: var('y')
+            y
+            sage: GDecl(x, 'integer') == GDecl(x, 'integer')
+            True
+            sage: GDecl(x, 'integer') == GDecl(x, 'rational')
+            False
+            sage: GDecl(x, 'integer') == GDecl(y, 'integer')
+            False
+        """
+        if isinstance(self, GenericDeclaration) and isinstance(other, GenericDeclaration):
+            return cmp( (self._var, self._assumption),
+                        (other._var, other._assumption) )
+        else:
+            return cmp(type(self), type(other))
+
+    def assume(self):
+        """
+        TEST:
+            sage: from sage.calculus.equations import GenericDeclaration
+            sage: decl = GenericDeclaration(x, 'even')
+            sage: decl.assume()
+            sage: cos(x*pi)
+            1
+            sage: decl.forget()
+        """
+        if self._context is None:
+            # We get the list here because features may be added with time.
+            valid_features = list(maxima("features"))
+            if self._assumption not in [repr(x).strip() for x in list(valid_features)]:
+                raise ValueError, "%s not a valid assumption, must be one of %s" % (self._assumption, valid_features)
+            cur = maxima.get("context")
+            self._context = maxima.newcontext(maxima._next_var_name())
+            maxima.eval("declare(%s, %s)" % (self._var._name, self._assumption))
+            maxima.set("context", cur)
+
+        if not self in _assumptions:
+            maxima.activate(self._context)
+            _assumptions.append(self)
+
+    def forget(self):
+        """
+        TEST:
+            sage: from sage.calculus.equations import GenericDeclaration
+            sage: decl = GenericDeclaration(x, 'odd')
+            sage: decl.assume()
+            sage: cos(x*pi)
+            -1
+            sage: decl.forget()
+            sage: cos(x*pi)
+            cos(pi*x)
+        """
+        try:
+            self = _assumptions.pop(_assumptions.index(self))
+        except ValueError:
+            pass
+        if self._context is not None:
+            maxima.deactivate(self._context)
+
+def preprocess_assumptions(args):
+    """
+    Turns a list of the form (var1, var2, ..., 'property') into a sequence
+    of declarations (var1 is property), (var2 is property), ...
+
+    EXAMPLES:
+        sage: from sage.calculus.equations import preprocess_assumptions
+        sage: preprocess_assumptions([x, 'integer', x > 4])
+        [x is integer, x > 4]
+        sage: var('x,y')
+        (x, y)
+        sage: preprocess_assumptions([x, y, 'integer', x > 4, y, 'even'])
+        [x is integer, y is integer, x > 4, y is even]
+    """
+    args = list(args)
+    last = None
+    for i, x in reversed(list(enumerate(args))):
+        if isinstance(x, str):
+            del args[i]
+            last = x
+        elif not hasattr(x, 'assume') and last is not None:
+            args[i] = GenericDeclaration(x, last)
+        else:
+            last = None
+    return args
 
 def assume(*args):
     """
@@ -1061,21 +1214,24 @@ def assume(*args):
         sage: bool(sqrt(x^2) == x)
         False
 
-    An integer constraint (todo: this needs to be made possible with
-    just the assume command!):
-        sage: sage.calculus.calculus.maxima.eval('declare(n,integer)')
-        'done'
+    An integer constraint:
         sage: var('n, P, r, r2')
         (n, P, r, r2)
+        sage: assume(n, 'integer')
         sage: c = P*e^(r*n)
         sage: d = P*(1+r2)^n
         sage: solve(c==d,r2)
         [r2 == e^r - 1]
+
+        sage: sin(n*pi)
+        0
+        sage: forget()
+        sage: sin(n*pi)
+        sin(pi*n)
     """
-    for x in args:
+    for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):
-            for y in x:
-                assume(y)
+            assume(*x)
         else:
             try:
                 x.assume()
@@ -1102,14 +1258,23 @@ def forget(*args):
         sage: forget(x>0, z==1)
         sage: assumptions()
         [y > 0]
+        sage: assume(y, 'even')
+        sage: assumptions()
+        [y > 0, y is even]
+        sage: cos(y*pi)
+        1
+        sage: forget()
+        sage: cos(y*pi)
+        cos(pi*y)
+        sage: assumptions()
+        []
     """
     if len(args) == 0:
         _forget_all()
         return
-    for x in args:
+    for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):
-            for y in x:
-                assume(y)
+            assume(*x)
         else:
             try:
                 x.forget()
@@ -1168,6 +1333,10 @@ def _forget_all():
     except TypeError:
         pass
     #maxima._eval_line('forget([%s]);'%(','.join([x._maxima_init_() for x in _assumptions])))
+    for x in _assumptions:
+        if isinstance(x, GenericDeclaration):
+            # these don't show up in facts()
+            x.forget()
     _assumptions = []
 
 def solve(f, *args, **kwds):
@@ -1177,7 +1346,7 @@ def solve(f, *args, **kwds):
     INPUT:
         f -- equation or system of equations (given by a list or tuple)
         *args -- variables to solve for.
-	solution_dict = True -- return a list of dictionaries containing the solutions.
+    solution_dict = True -- return a list of dictionaries containing the solutions.
 
     EXAMPLES:
         sage: x, y = var('x, y')
@@ -1204,6 +1373,11 @@ def solve(f, *args, **kwds):
         -0.500 + 0.866*I , 1.27 + 0.341*I
         0.000 , -1.00
         0.000 , 1.00
+        sage: z = 5
+        sage: solve([8*z + y == 3, -z +7*y == 0],y,z)
+        Traceback (most recent call last):
+        ...
+        TypeError: 5 is not a valid variable.
 
     If \code{True} appears in the list of equations it is ignored, and if
     \code{False} appears in the list then no solutions are returned.  E.g.,
@@ -1222,36 +1396,48 @@ def solve(f, *args, **kwds):
         sage: var('s,i,b,m,g')
         (s, i, b, m, g)
         sage: sys = [ m*(1-s) - b*s*i, b*s*i-g*i ];
-        sage: solve(sys,s,i);
+        sage: solve(sys,s,i)
         [[s == 1, i == 0], [s == g/b, i == (b - g)*m/(b*g)]]
-        sage: solve(sys,[s,i]);
+        sage: solve(sys,(s,i))
         [[s == 1, i == 0], [s == g/b, i == (b - g)*m/(b*g)]]
-
+        sage: solve(sys,[s,i])
+        [[s == 1, i == 0], [s == g/b, i == (b - g)*m/(b*g)]]
     """
-    if isinstance(f, (list, tuple)):
-        f = [s for s in f if s is not True]
-        for s in f:
-            if s is False:
-                return []
-
-        m = maxima(list(f))
+    try:
+        return f.solve(*args,**kwds)
+    except AttributeError:
 
         try:
-            if isinstance(args[0],list):
-                s = m.solve(tuple(args[0]))
-            else:
-                s = m.solve(args)
+            variables = tuple(args[0])
+        except TypeError:
+            variables = args
+
+        from sage.calculus.calculus import SymbolicVariable, SymbolicFunction, SymbolicFunctionEvaluation
+        for v in variables:
+            if not isinstance(v,(SymbolicVariable,SymbolicFunction,SymbolicFunctionEvaluation)):
+                raise TypeError, "%s is not a valid variable."%v
+
+        try:
+            f = [s for s in f if s is not True]
+        except TypeError:
+            raise ValueError, "Unable to solve %s for %s"%(f, args)
+
+        if any(s is False for s in f):
+            return []
+
+        m = maxima(f)
+
+        try:
+            s = m.solve(variables)
         except:
             raise ValueError, "Unable to solve %s for %s"%(f, args)
         a = repr(s)
-	sol_list = string_to_list_of_solutions(a)
-	if 'solution_dict' in kwds and kwds['solution_dict']==True:
+        sol_list = string_to_list_of_solutions(a)
+        if 'solution_dict' in kwds and kwds['solution_dict']==True:
             sol_dict=[dict([[eq.left(),eq.right()] for eq in solution]) for solution in sol_list]
             return sol_dict
         else:
             return sol_list
-    else:
-        return f.solve(*args, **kwds)
 
 import sage.categories.all
 objs = sage.categories.all.Objects()

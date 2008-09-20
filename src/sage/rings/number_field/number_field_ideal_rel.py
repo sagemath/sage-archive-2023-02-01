@@ -42,7 +42,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         sage: i = K.ideal([a+1]); i
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce -a1 to an integer
+        TypeError: Unable to coerce -a1 to a rational
     """
     def pari_rhnf(self):
         """

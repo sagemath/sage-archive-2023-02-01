@@ -213,9 +213,26 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             cache = order < 500
         if cache:
             self._precompute_table()
-
         self._zero_element = integer_mod.IntegerMod(self, 0)
         self._one_element = integer_mod.IntegerMod(self, 1)
+
+    def _macaulay2_init_(self):
+        """
+        EXAMPLES:
+            sage: macaulay2(Integers(7))  #optional
+            ZZ
+            --
+             7
+
+            sage: macaulay2(Integers(10)) #optional
+            Traceback (most recent call last):
+            ...
+            TypeError: Error evaluating Macaulay2 code.
+            IN:sage1=ZZ/10;
+            OUT:stdio:3:9:(1):[0]: ZZ/n not implemented yet for composite n
+
+        """
+        return "ZZ/%s"%self.order()
 
     def krull_dimension(self):
         """
@@ -330,6 +347,30 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             k = finite_field.FiniteField(self.order())
             self.__field = k
             return k
+
+    def _pseudo_fraction_field(self):
+        """
+        If self is composite, we may still want to do divison by
+        elements of self.
+
+        EXAMPLES:
+            sage: Integers(15).fraction_field()
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be an integral domain.
+            sage: Integers(15)._pseudo_fraction_field()
+            Ring of integers modulo 15
+            sage: R.<x> = Integers(15)[]
+            sage: (x+5)/2
+            8*x + 10
+
+
+        This should be very fast:
+            sage: R.<x> = Integers(next_prime(10^101)*next_prime(10^100))[]
+            sage: x / R.base_ring()(2)
+            500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000013365000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000401*x
+        """
+        return self
 
     def multiplicative_group_is_cyclic(self):
         """
@@ -513,7 +554,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: FF.factored_order()
             17
         """
-        if self.__factored_order != None:
+        if self.__factored_order is not None:
             return self.__factored_order
         self.__factored_order = factor(self.__order, int_=True)
         return self.__factored_order
@@ -674,6 +715,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         elif S is integer_ring.ZZ:
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
+            if isinstance(S, field.Field):
+                return None
             try:
                 return integer_mod.IntegerMod_to_IntegerMod(S, self)
             except TypeError:
@@ -767,6 +810,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R = IntegerModRing(17)
             sage: R.unit_gens()
             [3]
+            sage: IntegerModRing(next_prime(10^30)).unit_gens()
+            [5]
         """
         try:
             return self.__unit_gens

@@ -108,6 +108,15 @@ def FractionField(R, names=None):
     return R.fraction_field()
 
 def is_FractionField(x):
+    """
+    Tests whether or not x inherits from FractionField_generic.
+
+    EXAMPLES:
+        sage: is_FractionField(Frac(ZZ['x']))
+        True
+        sage: is_FractionField(QQ)
+        False
+    """
     return isinstance(x, FractionField_generic)
 
 class FractionField_generic(field.Field):
@@ -169,9 +178,19 @@ class FractionField_generic(field.Field):
         return self.ring().characteristic()
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: str(Frac(ZZ['x']))
+            'Fraction Field of Univariate Polynomial Ring in x over Integer Ring'
+        """
         return "Fraction Field of %s"%self.ring()
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: latex(Frac(GF(7)['x,y,z']))
+            \mbox{\rm Frac}(\mathbf{F}_{7}[x, y, z])
+        """
         return "\\mbox{\\rm Frac}(%s)"%latex.latex(self.ring())
 
     __magma = None
@@ -198,7 +217,6 @@ class FractionField_generic(field.Field):
             sage: magma(ZZ['x'].fraction_field()) #optional
             Univariate rational function field over Integer Ring
             Variables: x
-
         """
         if magma is None:
             import sage.interfaces.magma
@@ -226,7 +244,26 @@ class FractionField_generic(field.Field):
         """
         return self.__R
 
-    def __call__(self, x, y=1, coerce=True):
+    def __call__(self, x, y=None, check=True):
+        """
+        Try to create an element out of x. Optionally, a denominator can be provided as well.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: K = Frac(R)
+            sage: K(3)
+            3
+            sage: K(3,2)
+            3/2
+            sage: K(x,x^2-1)
+            x/(x^2 - 1)
+            sage: K(2/3)
+            2/3
+            sage: K(3/x)
+            3/x
+            sage: K(x + 1/2)
+            (2*x + 1)/2
+        """
         if isinstance(x, fraction_field_element.FractionFieldElement):
             if x.parent() is self:
                 return x
@@ -235,17 +272,30 @@ class FractionField_generic(field.Field):
             else:
                 R = self.ring()
                 return fraction_field_element.FractionFieldElement(self, R(x.numerator()), R(x.denominator()))
-        if coerce:
+        if check:
             R = self.ring()
-            x = R(x); y = R(y)
+            if y is None:
+                try:
+                    x, y = R(x), R(1)
+                except:
+                    if hasattr(x, 'numerator') and hasattr(x, 'denominator'):
+                        x, y = R(x.numerator()), R(x.denominator())
+                    else:
+                        raise
+            else:
+                x = R(x); y = R(y)
+        else:
+            if y is None:
+                y = R(1)
         return fraction_field_element.FractionFieldElement(self, x, y,
                                             coerce=False, reduce = self.is_exact())
 
     def is_exact(self):
         """
         EXAMPLES:
-            sage: Z.<z>=CC[]
-            sage: Z.is_exact()
+            sage: Frac(ZZ['x']).is_exact()
+            True
+            sage: Frac(CDF['x']).is_exact()
             False
         """
         try:
@@ -256,6 +306,17 @@ class FractionField_generic(field.Field):
         return r
 
     def construction(self):
+        """
+        EXAMPLES:
+            sage: Frac(ZZ['x']).construction()
+            (FractionField, Univariate Polynomial Ring in x over Integer Ring)
+            sage: K = Frac(GF(3)['t'])
+            sage: f, R = K.construction()
+            sage: f(R)
+            Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 3
+            sage: f(R) == K
+            True
+        """
         from sage.categories.pushout import FractionField
         return FractionField(), self.ring()
 
@@ -270,6 +331,18 @@ class FractionField_generic(field.Field):
            * any ring that canonically coerces to the ring R such that this
              fraction field is Frac(R)
 
+        EXAMPLES:
+            sage: K = Frac(QQ['x'])
+            sage: K.coerce(4)
+            4
+            sage: K.coerce(ZZ['x'].0)
+            x
+            sage: K.coerce(Frac(ZZ['x']).0)
+            x
+            sage: K.coerce(RR['x'].0)
+            Traceback (most recent call last):
+            ...
+            TypeError: no cannonical coercion from Univariate Polynomial Ring in x over Real Field with 53 bits of precision to Fraction Field of Univariate Polynomial Ring in x over Rational Field
         """
         try:
             P = x.parent()
@@ -287,6 +360,17 @@ class FractionField_generic(field.Field):
         return self._coerce_try(x, [self.ring()])
 
     def __cmp__(self, other):
+        """
+        EXAMPLES:
+            sage: Frac(ZZ['x']) == Frac(ZZ['x'])
+            True
+            sage: Frac(ZZ['x']) == Frac(QQ['x'])
+            False
+            sage: Frac(ZZ['x']) == Frac(ZZ['y'])
+            False
+            sage: Frac(ZZ['x']) == QQ['x']
+            False
+        """
         if not isinstance(other, FractionField_generic):
             return cmp(type(self), type(other))
         return cmp(self.ring(), other.ring())

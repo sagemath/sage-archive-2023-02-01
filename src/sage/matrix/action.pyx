@@ -84,7 +84,7 @@ cdef class MatrixMatrixAction(MatrixMulAction):
             raise TypeError, "incompatible dimensions %s, %s" % (self.G.ncols(),  self.S.nrows())
         return MatrixSpace(base, self.G.nrows(), self.S.ncols(), sparse = self.G.is_sparse() and self.S.is_sparse())
 
-    cdef Element _call_c_impl(self, Element g, Element s):
+    cpdef Element _call_(self, g, s):
         """
         EXAMPLES:
         Respects compatable subdivisions:
@@ -180,7 +180,7 @@ cdef class MatrixVectorAction(MatrixMulAction):
             raise TypeError, "incompatible dimensions %s, %s" % (self.G.ncols(),  self.S.degree())
         return FreeModule(base, self.G.nrows(), sparse = self.G.is_sparse())
 
-    cdef Element _call_c_impl(self, Element g, Element s):
+    cpdef Element _call_(self, g, s):
         cdef Matrix A = g #<Matrix>g
         cdef Vector v = s #<Vector>s
         if A._parent._base is not self._codomain._base:
@@ -222,7 +222,7 @@ cdef class VectorMatrixAction(MatrixMulAction):
             raise TypeError, "incompatible dimensions %s, %s" % (self.G.nrows(), self.S.degree())
         return FreeModule(base, self.G.ncols(), sparse = self.G.is_sparse())
 
-    cdef Element _call_c_impl(self, Element s, Element g):
+    cpdef Element _call_(self, s, g):
         cdef Matrix A = g #<Matrix>g
         cdef Vector v = s #<Vector>s
         if A._parent._base is not self._codomain._base:

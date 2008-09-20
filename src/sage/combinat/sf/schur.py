@@ -108,7 +108,7 @@ class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraEl
             s[3, 1]
         """
         conj = lambda part: part.conjugate()
-        return self.map_basis(conj)
+        return self.map_support(conj)
 
 
     def scalar(self, x):

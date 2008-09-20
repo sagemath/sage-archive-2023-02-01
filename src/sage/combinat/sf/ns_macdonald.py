@@ -1,6 +1,7 @@
 from sage.combinat.combinat import CombinatorialObject, CombinatorialClass
 import sage.combinat.word as word
 from sage.combinat.combination import Combinations
+from sage.combinat.permutation import Permutation
 from sage.rings.all import QQ, PolynomialRing, prod
 from sage.combinat.backtrack import GenericBacktracker
 import copy
@@ -170,14 +171,21 @@ class LatticeDiagram(CombinatorialObject):
 
 
 class AugmentedLatticeDiagramFilling(CombinatorialObject):
-    def __init__(self, l):
+    def __init__(self, l, pi=None):
         """
         EXAMPLES:
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a == loads(dumps(a))
             True
+            sage: pi = Permutation([2,3,1]).to_permutation_group_element()
+            sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]],pi)
+            sage: a == loads(dumps(a))
+            True
         """
-        self._list = [[i+1]+l[i] for i in range(len(l))]
+        if pi is None:
+            pi = [1]
+            pi = Permutation(pi).to_permutation_group_element()
+        self._list = [[pi(i+1)]+l[i] for i in range(len(l))]
 
     def __getitem__(self, i):
         """
@@ -320,12 +328,16 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             sage: a = AugmentedLatticeDiagramFilling([[1, 1, 1], [2, 3], [3]])
             sage: a.is_non_attacking()
             False
+            sage: a = AugmentedLatticeDiagramFilling([[2,2],[1]])
+            sage: a.is_non_attacking()
+            False
+            sage: pi = Permutation([2,1]).to_permutation_group_element()
+            sage: a = AugmentedLatticeDiagramFilling([[2,2],[1]],pi)
+            sage: a.is_non_attacking()
+            True
         """
         for a,b in self.attacking_boxes():
             if self[a] == self[b]:
-                return False
-        for i in range(1, len(self)+1):
-            if len(self[i]) > 1 and self[i,1] > i:
                 return False
         return True
 
@@ -526,7 +538,22 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
                 res *= (1-t)
         return res
 
-def NonattackingFillings(shape):
+    def permuted_filling(self, sigma):
+        """
+        EXAMPLES:
+            sage: pi=Permutation([2,1,4,3]).to_permutation_group_element()
+            sage: fill=[[2],[1,2,3],[],[3,1]]
+            sage: AugmentedLatticeDiagramFilling(fill).permuted_filling(pi)
+            [[2, 1], [1, 2, 1, 4], [4], [3, 4, 2]]
+        """
+        new_filling=[]
+        for col in self:
+            nc = [sigma(x) for x in col]
+            nc.pop(0)
+            new_filling.append(nc)
+        return AugmentedLatticeDiagramFilling(new_filling, sigma)
+
+def NonattackingFillings(shape, pi=None):
     """
     Returning the combinatorial class of nonattacking
     fillings of a given shape.
@@ -549,16 +576,17 @@ def NonattackingFillings(shape):
          [[1], [2, 2], [3, 3, 3]]]
 
     """
-    return NonattackingFillings_shape(shape)
+    return NonattackingFillings_shape(shape, pi)
 
 class NonattackingFillings_shape(CombinatorialClass):
-    def __init__(self, shape):
+    def __init__(self, shape, pi=None):
         """
         EXAMPLES:
             sage: n = NonattackingFillings([0,1,2])
             sage: n == loads(dumps(n))
             True
         """
+        self.pi=pi
         self._shape = LatticeDiagram(shape)
         self._name = "Nonattacking fillings of %s"%shape
 
@@ -572,7 +600,7 @@ class NonattackingFillings_shape(CombinatorialClass):
             Nonattacking fillings of [2, 1, 0]
 
         """
-        return NonattackingFillings(list(self._shape.flip()))
+        return NonattackingFillings(list(self._shape.flip()),self.pi)
 
     def iterator(self):
         """
@@ -607,15 +635,15 @@ class NonattackingFillings_shape(CombinatorialClass):
 
         """
         if sum(self._shape) == 0:
-            yield AugmentedLatticeDiagramFilling([ [] for s in self._shape ])
+            yield AugmentedLatticeDiagramFilling([ [] for s in self._shape ], self.pi)
             return
 
-        for z in NonattackingBacktracker(self._shape):
-            yield AugmentedLatticeDiagramFilling(z)
+        for z in NonattackingBacktracker(self._shape, self.pi):
+            yield AugmentedLatticeDiagramFilling(z , self.pi)
 
 
 class NonattackingBacktracker(GenericBacktracker):
-    def __init__(self, shape):
+    def __init__(self, shape, pi=None):
         """
         EXAMPLES:
             sage: from sage.combinat.sf.ns_macdonald import NonattackingBacktracker
@@ -628,6 +656,9 @@ class NonattackingBacktracker(GenericBacktracker):
         self._shape = shape
         self._n = sum(shape)
         self._initial_data = [ [None]*s for s in shape ]
+        if pi==None:
+            pi=Permutation([1]).to_permutation_group_element()
+        self.pi=pi
 
         #The ending position will be at the highest box
         #which is farthest right
@@ -666,9 +697,8 @@ class NonattackingBacktracker(GenericBacktracker):
         for k in range(1, len(self._shape)+1):
             #We check to make sure that k does not
             #violate any of the attacking conditions
-            if j == 1 and k > i:
+            if j==1 and any( self.pi(x)==k for x in range(i+1, len(self._shape)+1)):
                 continue
-
             if any( obj[ii-1][jj-1] == k for ii, jj in
                     self._shape.boxes_same_and_lower_right(i, j) if jj != 0):
                 continue
@@ -708,7 +738,7 @@ class NonattackingBacktracker(GenericBacktracker):
         raise ValueError, "we should never be here"
 
 
-def _check_muqt(mu, q, t):
+def _check_muqt(mu, q, t, pi=None):
     """
     EXAMPLES:
         sage: from sage.combinat.sf.ns_macdonald import _check_muqt
@@ -747,15 +777,15 @@ def _check_muqt(mu, q, t):
         P = q.parent()
     else:
         raise ValueError, "you must specify either both q and t or neither of them"
-    n = NonattackingFillings(mu)
+    n = NonattackingFillings(mu, pi)
     R = PolynomialRing(P, len(n._shape), 'x')
     x = R.gens()
     return P, q, t, n, R, x
 
-def E(mu, q=None, t=None):
+def E(mu, q=None, t=None, pi=None):
     """
     Returns the non-symmetric Mcadonald polynomial in type A corresponding to
-    a shape mu.
+    a shape mu, with basement permuted according to pi.
 
     Note that if both q and t are specifed, then they must have the same parent.
 
@@ -785,14 +815,14 @@ def E(mu, q=None, t=None):
         ((-t + 1)/(-q^2*t^2 + 1))*x0^2 + ((-q^2*t^3 + q^2*t^2 - q*t^2 + 2*q*t - q + t - 1)/(-q^3*t^3 + q^2*t^2 + q*t - 1))*x0*x1 + x1^2 + ((q*t^2 - 2*q*t + q)/(q^3*t^3 - q^2*t^2 - q*t + 1))*x0*x2 + ((-q*t + q)/(-q*t + 1))*x1*x2
 
     """
-    P, q, t, n, R, x = _check_muqt(mu, q, t)
+    P, q, t, n, R, x = _check_muqt(mu, q, t, pi)
     res = 0
     for a in n:
         weight = a.weight()
         res += q**a.maj()*t**a.coinv()*a.coeff(q,t)*prod( x[i]**weight[i] for i in range(len(weight)) )
     return res
 
-def E_integral(mu, q=None, t=None):
+def E_integral(mu, q=None, t=None, pi=None):
     """
     Returns the integral form for the non-symmetric Mcadonald polynomial
     in type A corresponding to a shape mu.
@@ -826,14 +856,14 @@ def E_integral(mu, q=None, t=None):
         (q^2*t^3 - q^2*t^2 - t + 1)*x0^2 + (q^4*t^3 - q^3*t^2 - q^2*t + q*t^2 - q*t + q - t + 1)*x0*x1 + (t^2 - 2*t + 1)*x1^2 + (q^4*t^3 - q^3*t^2 - q^2*t + q)*x0*x2 + (q^2*t^2 - q^2*t - q*t + q)*x1*x2
 
     """
-    P, q, t, n, R, x = _check_muqt(mu, q, t)
+    P, q, t, n, R, x = _check_muqt(mu, q, t, pi)
     res = 0
     for a in n:
         weight = a.weight()
         res += q**a.maj()*t**a.coinv()*a.coeff_integral(q,t)*prod( x[i]**weight[i] for i in range(len(weight)) )
     return res
 
-def Ht(mu, q=None, t=None):
+def Ht(mu, q=None, t=None, pi=None):
     """
     Returns the symmetric Macdonald polynomial using the
     Haiman, Haglund, and Loehr formula.
@@ -858,7 +888,7 @@ def Ht(mu, q=None, t=None):
         x0^2 + (q + 1)*x0*x1 + x1^2 + (q + 1)*x0*x2 + (q + 1)*x1*x2 + x2^2
 
     """
-    P, q, t, n, R, x = _check_muqt(mu, q, t)
+    P, q, t, n, R, x = _check_muqt(mu, q, t, pi)
     res = 0
     for a in n:
         weight = a.weight()

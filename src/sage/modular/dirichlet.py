@@ -51,7 +51,7 @@ import weakref
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 import sage.rings.all as rings
-import sage.modules.free_module
+import sage.modules.free_module as free_module
 import sage.modules.free_module_element
 import sage.structure.parent_gens as parent_gens
 import sage.rings.number_field.number_field as number_field
@@ -671,22 +671,20 @@ class DirichletCharacter(MultiplicativeGroupElement):
         EXAMPLES:
             sage: G = DirichletGroup(3)
             sage: e = G.0
-            sage: e.gauss_sum_numerical()
-            5.55111512312578e-16 + 1.73205080756888*I
             sage: abs(e.gauss_sum_numerical())
-            1.73205080756888
+            1.7320508075...
             sage: sqrt(3.0)
             1.73205080756888
             sage: e.gauss_sum_numerical(a=2)
-            -1.11022302462516e-15 - 1.73205080756888*I
+            -...e-15 - 1.7320508075...*I
             sage: e.gauss_sum_numerical(a=2, prec=100)
             4.7331654313260708324703713917e-30 - 1.7320508075688772935274463415*I
             sage: G = DirichletGroup(13)
             sage: e = G.0
             sage: e.gauss_sum_numerical()
-            -3.07497205899524 + 1.88269669261902*I
+            -3.07497205... + 1.8826966926...*I
             sage: abs(e.gauss_sum_numerical())
-            3.60555127546399
+            3.60555127546...
             sage: sqrt(13.0)
             3.60555127546399
         """
@@ -708,8 +706,99 @@ class DirichletCharacter(MultiplicativeGroupElement):
             g += phi(c)*z
         return g
 
+    def jacobi_sum(self, char, check=True):
+        """
+        Return the Jacobi sum associated to these Dirichlet characters (i.e., J(self,char)).
 
+        EXAMPLES:
+            sage: D = DirichletGroup(13)
+            sage: e = D.0
+            sage: f = D[-2]
+            sage: e.jacobi_sum(f)
+            3*zeta156^26 + 2*zeta156^13 - 3
+            sage: f.jacobi_sum(e)
+            3*zeta156^26 + 2*zeta156^13 - 3
+            sage: p = 7
+            sage: DP = DirichletGroup(p)
+            sage: f = DP.0
+            sage: e.jacobi_sum(f)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Characters must be from the same Dirichlet Group.
+            sage: all_jacobi_sums = [(DP[i],DP[j],DP[i].jacobi_sum(DP[j])) \
+            ...                       for i in range(p-1) for j in range(p-1)[i:]]
+            ...
+            sage: for s in all_jacobi_sums:
+            ...       print s
+            ([1], [1], 5)
+            ([1], [zeta6], 0)
+            ([1], [zeta6 - 1], 0)
+            ([1], [-1], 0)
+            ([1], [-zeta6], 0)
+            ([1], [-zeta6 + 1], 0)
+            ([zeta6], [zeta6], -zeta42^7 + 3)
+            ([zeta6], [zeta6 - 1], 2*zeta42^7 + 1)
+            ([zeta6], [-1], -2*zeta42^7 - 1)
+            ([zeta6], [-zeta6], zeta42^7 - 3)
+            ([zeta6], [-zeta6 + 1], 1)
+            ([zeta6 - 1], [zeta6 - 1], -3*zeta42^7 + 2)
+            ([zeta6 - 1], [-1], 2*zeta42^7 + 1)
+            ([zeta6 - 1], [-zeta6], -1)
+            ([zeta6 - 1], [-zeta6 + 1], -zeta42^7 - 2)
+            ([-1], [-1], 1)
+            ([-1], [-zeta6], -2*zeta42^7 + 3)
+            ([-1], [-zeta6 + 1], 2*zeta42^7 - 3)
+            ([-zeta6], [-zeta6], 3*zeta42^7 - 1)
+            ([-zeta6], [-zeta6 + 1], -2*zeta42^7 + 3)
+            ([-zeta6 + 1], [-zeta6 + 1], zeta42^7 + 2)
 
+        Let's check that trivial sums are being calculated correctly:
+
+            sage: N = 13
+            sage: D = DirichletGroup(N)
+            sage: g = D(1)
+            sage: g.jacobi_sum(g)
+            11
+            sage: sum([g(x)*g(1-x) for x in IntegerModRing(N)])
+            11
+
+        Now let's take a look at a non-prime modulus.  One reason we don't
+        like non-prime moduli is that certain identities that are used in the
+        code are not valid for non-prime moduli:
+
+            sage: N = 9
+            sage: D = DirichletGroup(N)
+            sage: g = D(1)
+            sage: g.jacobi_sum(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: Characters must have prime moduli at this time -- use check=False to allow non-prime moduli
+            sage: g.jacobi_sum(g, check=False)
+            5
+            sage: sum([g(x)*g(1-x) for x in IntegerModRing(N)])
+            3
+
+        TODO: Implement Jacobi sums for characters with output in finite
+        fields GF(q) for q non-prime.
+        """
+        if check:
+            if self.parent() != char.parent():
+                raise NotImplementedError, "Characters must be from the same Dirichlet Group."
+            if not self.parent().modulus().is_prime():
+                raise ValueError, "Characters must have prime moduli at this time -- use check=False to allow non-prime moduli"
+        # If they are both trivial, return p
+        if self.is_trivial() and char.is_trivial():
+            return (self.parent()).order() - 1
+        # If they are inverses of each other, return -self(-1)
+        prod = self*char
+        if prod.is_trivial():
+            return -self(-1)
+        # If both are nontrivial, apply mult. formula:
+        elif not self.is_trivial() and not char.is_trivial():
+            return self.gauss_sum()*char.gauss_sum()/prod.gauss_sum()
+        # If exactly one is trivial, return 0
+        else:
+            return 0
 
     def is_even(self):
         r"""
@@ -1005,6 +1094,19 @@ class DirichletCharacter(MultiplicativeGroupElement):
             [0, 1, 36, 0, 1, 36, 0, 0, 36, 0, 1, 36, 0, 1, 0, 0, 1, 36, 0, 1, 36]
             sage: e = DirichletGroup(21, base_ring=GF(3)).gen(0) ; e.values()
             [0, 1, 2, 0, 1, 2, 0, 0, 2, 0, 1, 2, 0, 1, 0, 0, 1, 2, 0, 1, 2]
+
+            sage: chi = DirichletGroup(100151, CyclotomicField(10)).0
+            sage: ls = chi.values() ; ls[0:10]
+            [0,
+            1,
+            -zeta10^3,
+            -zeta10,
+            -zeta10,
+            1,
+            zeta10^3 - zeta10^2 + zeta10 - 1,
+            zeta10,
+            zeta10^3 - zeta10^2 + zeta10 - 1,
+            zeta10^2]
         """
         try:
             return self.__values
@@ -1060,7 +1162,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             ########################
             # record character value on n
-            result_list[n.ivalue] = R_values[value.ivalue]
+            result_list[n] = R_values[value]
             # iterate:
             #   increase the exponent vector by 1,
             #   increase n accordingly, and increase value
@@ -1302,8 +1404,8 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             w.append(a)
         self._zeta_powers = w  # gives quickly the ith power of zeta
         self._zeta_dlog = v    # dictionary that computes log_{zeta}(power of zeta).
-        self._module = sage.modules.free_module.FreeModule(rings.IntegerModRing(zeta_order),
-                                                           len(self._integers.unit_gens()))
+        self._module = free_module.FreeModule(rings.IntegerModRing(zeta_order),
+                                              len(self._integers.unit_gens()))
 
     def change_ring(self, R, zeta=None, zeta_order=None):
         """

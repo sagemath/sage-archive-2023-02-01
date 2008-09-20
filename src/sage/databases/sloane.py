@@ -254,12 +254,64 @@ def parse_sequence(text):
     return [seqnum, description, [ZZ(n) for n in list]]
 
 def sloane_sequence(number):
+    """
+    Returns a list with the number, name, and values for the sequence
+    \code{number} in Sloane's online database of integer sequences.
+
+    EXAMPLES:
+        sage: sloane_sequence(22) #optional -- requires internet
+        Searching Sloane's online database...
+        [22,
+         'Number of centered hydrocarbons with n atoms.',
+         [0,
+          1,
+          0,
+          1,
+          ...
+          36201693122]]
+
+    """
     results = sloane_find('id:A%s'%number)
     if len(results) == 0:
         raise ValueError, "sequence '%s' not found"%number
     return results[0]
 
 def sloane_find(list, nresults = 30, verbose=True):
+    """
+    Searches Sloane's Online Encyclopedia of Integer Sequences for
+    a sequence containing the number provided in \code{list}.
+
+    INPUT:
+        list     -- (list) a list of integers to search Sloane's for
+        nresults -- (integer) the maximum number of results to return
+                    default: 30
+        verbose  -- (boolean) print a string to let the user know that
+                    it is working and not hanging.
+                    default: True
+
+    OUTPUT:
+        A list of matches in Sloane's database.  Each match consists of
+        a list of the sequence number, the name of the sequence, and
+        some initial terms of the sequence.
+
+    EXAMPLES:
+        sage: sloane_find([1,1,2,3,5,8,13,21], nresults=1) #optional -- requires internet
+        Searching Sloane's online database...
+        [[45,
+          'Fibonacci numbers: F(n) = F(n-1) + F(n-2), F(0) = 0, F(1) = 1, F(2) = 1, ...',
+          [0,
+           1,
+           1,
+           2,
+           3,
+           5,
+           8,
+           13,
+           21,
+           ...
+           39088169]]]
+
+    """
     liststr = re.sub(r'[\[\] ]', '', str(list))
     urlparams = urllib.urlencode({'q': liststr,
                                   'p': 1,

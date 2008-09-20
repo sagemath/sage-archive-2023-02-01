@@ -221,6 +221,10 @@ class Maple(Expect):
     def __init__(self, maxread=100, script_subdirectory="", server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the Maple interpreter.
+
+        EXAMPLES:
+            sage: maple == loads(dumps(maple))
+            True
         """
         Expect.__init__(self,
                         name = 'maple',
@@ -239,10 +243,16 @@ class Maple(Expect):
         # dumps you into the editor when an error occurs,
         # and I can find no way to turn it off!!
 
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return MapleFunction(self, attrname)
+    def _function_class(self):
+        """
+        EXAMPLES:
+            sage: maple._function_class()
+            <class 'sage.interfaces.maple.MapleFunction'>
+
+            sage: type(maple.diff)
+            <class 'sage.interfaces.maple.MapleFunction'>
+        """
+        return MapleFunction
 
     def _keyboard_interrupt(self):
         print "Interrupting %s..."%self
@@ -252,12 +262,49 @@ class Maple(Expect):
         raise RuntimeError, "Ctrl-c pressed while running %s"%self
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: maple.__reduce__()
+            (<function reduce_load_Maple at 0x...>, ())
+            sage: f, args = _
+            sage: f(*args)
+            Maple
+        """
         return reduce_load_Maple, tuple([])
 
     def _read_in_file_command(self, filename):
+        """
+        Returns the string used to read filename into Maple.
+
+        EXAMPLES:
+            sage: maple._read_in_file_command('test')
+            'read "test"'
+
+            sage: filename = tmp_filename()
+            sage: f = open(filename, 'w')
+            sage: f.write('xx := 22;\n')
+            sage: f.close()
+            sage: maple.read(filename)   #optional -- requires Maple
+            sage: maple.get('xx').strip() #optional
+            '22'
+
+        """
         return 'read "%s"'%filename
 
     def _quit_string(self):
+        """
+        EXAMPLES:
+            sage: maple._quit_string()
+            'quit'
+
+            sage: m = Maple()
+            sage: a = m(2)           #optional -- requires Maple
+            sage: m.is_running()     #optional
+            True
+            sage: m.quit()           #optional
+            sage: m.is_running()     #optional
+            False
+        """
         return 'quit'
 
     def _install_hints(self):
@@ -266,6 +313,10 @@ class Maple(Expect):
 
         AUTHOR:
             -- William Stein and Justin Walker (2006-02-12).
+
+        EXAMPLES:
+            sage: print maple._install_hints()
+            In order...
         """
         return """
 
@@ -293,9 +344,34 @@ connection to a server running Maple; for hints, type
 """
 
     def expect(self):
+        """
+        Returns the pexpect object for this Maple session.
+
+        EXAMPLES:
+            sage: m = Maple()
+            sage: m.expect() is None
+            True
+            sage: m._start() #optional -- requires Maple
+            sage: m.expect() #optional
+            <pexpect.spawn instance at 0x...>
+            sage: m.quit()   #optional
+
+        """
         return self._expect
 
     def console(self):
+        """
+        Spawn a new Maple command-line session.
+
+        EXAMPLES:
+            sage: maple.console() #not tested
+                |\^/|     Maple 11 (IBM INTEL LINUX)
+            ._|\|   |/|_. Copyright (c) Maplesoft, a division of Waterloo Maple Inc. 2007
+             \  MAPLE  /  All rights reserved. Maple is a trademark of
+             <____ ____>  Waterloo Maple Inc.
+                  |       Type ? for help.
+            >
+        """
         maple_console()
 
 ##     def killall(self):
@@ -321,6 +397,11 @@ connection to a server running Maple; for hints, type
         """
         Return all commands that complete the command starting with the
         string s.   This is like typing s[Ctrl-T] in the maple interpreter.
+
+        EXAMPLES:
+            sage: c = maple.completions('di')  #optional -- requires Maple
+            sage: 'dilog' in c                 #optional
+            True
         """
         bs = chr(8)*len(s)
         if self._expect is None:
@@ -342,7 +423,14 @@ connection to a server running Maple; for hints, type
 
     def _commands(self):
         """
-        Return list of all commands defined in maple.
+        Return list of all commands defined in Maple.
+
+        EXAMPLES:
+            sage: c = maple._commands() #optional -- requires Maple
+            sage: len(c) > 100          #optional
+            True
+            sage: 'dilog' in c          #optional
+            True
         """
         try:
             v = sum([self.completions(chr(65+n)) for n in range(26)], []) + \
@@ -357,6 +445,17 @@ connection to a server running Maple; for hints, type
         return v
 
     def trait_names(self, verbose=True, use_disk_cache=True):
+        """
+        Returns a list of all the commands defined in Maple and optionally
+        (per default) store them to disk.
+
+        EXAMPLES:
+            sage: c = maple.trait_names(use_disk_cache=False, verbose=False) #optional
+            sage: len(c) > 100  #optional
+            True
+            sage: 'dilog' in c  #optional
+            True
+        """
         try:
             return self.__trait_names
         except AttributeError:
@@ -379,6 +478,11 @@ connection to a server running Maple; for hints, type
             return v
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+        """
+        EXAMPLES:
+            sage: maple._eval_line('2+2')  #optional -- requires Maple
+            '4'
+        """
         line += ';'
         with gc_disabled():
             z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
@@ -400,6 +504,20 @@ connection to a server running Maple; for hints, type
         return z
 
     def cputime(self, t=None):
+        r"""
+        Returns the amount of CPU time that the Maple session has used.
+        If \var{t} is not None, then it returns the difference between
+        the current CPU time and \var{t}.
+
+        EXAMPLES:
+            sage: t = maple.cputime() #optional -- requires Maple
+            sage: t                   #optional, random
+            0.02
+            sage: maple.diff(x^2, x)  #optional
+            2*x
+            sage: maple.cputime(t)    #optional, random
+            0.0
+        """
         if t is None:
             return float(self('time()'))
         else:
@@ -408,6 +526,11 @@ connection to a server running Maple; for hints, type
     def set(self, var, value):
         """
         Set the variable var to the given value.
+
+        EXAMPLES:
+            sage: maple.set('xx', '2') #optional -- requires Maple
+            sage: maple.get('xx')      #optional
+            '2'
         """
         cmd = '%s:=%s:'%(var,value)
         out = self.eval(cmd)
@@ -417,36 +540,80 @@ connection to a server running Maple; for hints, type
     def get(self, var):
         """
         Get the value of the variable var.
+
+        EXAMPLES:
+            sage: maple.set('xx', '2') #optional -- requires Maple
+            sage: maple.get('xx')      #optional
+            '2'
         """
         s = self.eval('printf("%%q",%s)'%var)
         return s
 
-    def get_using_file(self, var):
-        """
-        Get the value of the variable var using a file.
-
-        (I would make this the default for values that are bigger than
-        a few thousand characters.  However, it's not at all obvious
-        how to figure out if the string representation of an object is
-        big ahead of time!  We assume it is for now, if the string
-        used to create the object was big.)
-        """
-        # pdehaye/ 20070819: This might be obsolete
-        s = self.eval('save %s, "%s"'%(var, self._remote_tmpfile()))
-        s = open(self._remote_tmpfile()).read().replace('\\\n','')
-        i = s.find('=')
-        return s[i+2:-2]
-
     def _object_class(self):
+        """
+        Returns the class of MapleElements.
+
+        EXAMPLES:
+            sage: maple._object_class()
+            <class 'sage.interfaces.maple.MapleElement'>
+
+            sage: m = maple(2)  #optional -- requires Maple
+            sage: type(m)       #optional
+            <class 'sage.interfaces.maple.MapleElement'>
+
+        """
         return MapleElement
 
+    def _function_element_class(self):
+        """
+        Returns the MapleFunctionElement class.
+
+        EXAMPLES:
+            sage: maple._function_element_class()
+            <class 'sage.interfaces.maple.MapleFunctionElement'>
+
+            sage: two = maple(2)  #optional -- requires Maple
+            sage: type(two.gcd)   #optional
+            <class 'sage.interfaces.maple.MapleFunctionElement'>
+
+        """
+        return MapleFunctionElement
+
     def _equality_symbol(self):
+        """
+        Returns the symbol used for equality testing in Maple.
+
+        EXAMPLES:
+            sage: maple._equality_symbol()
+            '='
+
+            sage: maple(2) == maple(2) #optional -- requires Maples
+            True
+        """
         return '='
 
     def _true_symbol(self):
+        """
+        Returns the symbol used for truth in Maple.
+
+        EXAMPLES:
+            sage: maple._true_symbol()
+            'true'
+
+            sage: maple(2) == maple(2) #optional -- requires Maples
+            True
+        """
         return 'true'
 
     def _assign_symbol(self):
+        """
+        Returns the symbol used for assignment in Maple.
+
+        EXAMPLES:
+            sage: maple._assign_symbol()
+            ':='
+
+        """
         return ":="
 
     def _source(self, s):
@@ -479,6 +646,11 @@ connection to a server running Maple; for hints, type
         INPUT:
             s -- a string representing the function whose source code you
                  want
+
+        EXAMPLES:
+            sage: maple.source('curry')  #not tested
+            p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
+
         """
         try:
             pager()(self._source(s))
@@ -486,6 +658,13 @@ connection to a server running Maple; for hints, type
             pager()('No source code could be found.')
 
     def _help(self, str):
+        r"""
+        Returns the Maple help on \var{str}.
+
+        EXAMPLES:
+            sage: maple._help('gcd')  #optional -- requires Maple
+            "gcd - greatest common divisor of polynomials...
+        """
         return os.popen('echo "?%s" | maple -q'%str).read()
 
     def help(self, str):
@@ -495,6 +674,11 @@ connection to a server running Maple; for hints, type
 
         INPUT:
             str -- a string to search for in the maple help system
+
+        EXAMPLES:
+            sage: maple.help('digamma') #not tested
+            Psi - the Digamma and Polygamma functions
+            ...
         """
         pager()(self._help(str))
 
@@ -527,17 +711,35 @@ connection to a server running Maple; for hints, type
 
     load = with_package
 
-    #def clear(self, var):
-    #    """
-    #    Clear the variable named var.
-    #    """
-        # Unfortunately MAPLE does not have a clear command.
-        # The next best thing is to set equal to the constant
-        # 0, so that memory will be freed.
-    #    self.eval("%s=0;"%var)
+    def clear(self, var):
+        """
+        Clear the variable named var.
+
+        Unfortunately, Maple does not have a clear command.
+        The next best thing is to set equal to the constant
+        0, so that memory will be freed.
+
+        EXAMPLES:
+            sage: maple.set('xx', '2')  #optional -- requires Maple
+            sage: maple.get('xx')       #optional
+            '2'
+            sage: maple.clear('xx')     #optional
+            sage: maple.get('xx')       #optional
+            '0'
+
+        """
+        self.set(var, '0')
 
 class MapleFunction(ExpectFunction):
     def _sage_doc_(self):
+        """
+        Returns the Maple help for this function.  This gets called
+        when doing "?" on self.
+
+        EXAMPLES:
+            sage: maple.gcd._sage_doc_()  #optional -- requires Maple
+            "gcd - greatest common divisor of polynomials...
+        """
         M = self._parent
         return M._help(self._name)
 
@@ -560,17 +762,28 @@ class MapleFunction(ExpectFunction):
 
 class MapleFunctionElement(FunctionElement):
     def _sage_doc_(self):
+        """
+        Returns the Maple help for this function.  This gets called
+        when doing "?" on self.
+
+        EXAMPLES:
+            sage: two = maple(2)  #optional -- requires Maple
+            sage: two.gcd._sage_doc_() #optional
+            "gcd - greatest common divisor of polynomials...
+
+        """
         return self._obj.parent()._help(self._name)
+
     def _sage_src_(self):
         """
         Returns the source code of self.
 
         EXAMPLES:
             sage: g = maple('gcd')                   #optional requires maple
-            sage: print g.curry._sage_src_().strip() #optional requires maple
+            sage: print g.curry._sage_src_().strip() #optional
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
-            sage: m = maple('2')                     #optional requires maple
-            sage: m.ZZZ._sage_src_()                 #optional requires maple
+            sage: m = maple('2')                     #optional
+            sage: m.ZZZ._sage_src_()                 #optional
             Traceback (most recent call last):
             ...
             Exception: no source code could be found
@@ -579,12 +792,17 @@ class MapleFunctionElement(FunctionElement):
         return self._obj.parent()._source(self._name)
 
 class MapleElement(ExpectElement):
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return MapleFunctionElement(self, attrname)
-
     def __float__(self):
+        """
+        Returns a floating point version of self.
+
+        EXAMPLES:
+            sage: float(maple(1/2))  #optional -- requires Maple
+            0.5
+            sage: type(_)            #optional
+            <type 'float'>
+
+        """
         M = self.parent()
         return float(maple.eval('evalf(%s)'%self.name()))
 
@@ -594,7 +812,8 @@ class MapleElement(ExpectElement):
         32-bit hashes, it will automatically convert the result of this to
         a 32-bit hash.
 
-        These examples are optional, and require Maple to be installed. You    don't need to install any Sage packages for this.
+        These examples are optional, and require Maple to be installed. You
+        don't need to install any Sage packages for this.
 
         EXAMPLES:
             sage: m = maple('x^2+y^2')
@@ -614,7 +833,8 @@ class MapleElement(ExpectElement):
         """
         Compare equality between self and other, using maple.
 
-        These examples are optional, and require Maple to be installed. You    don't need to install any Sage packages for this.
+        These examples are optional, and require Maple to be installed. You
+        don't need to install any Sage packages for this.
 
         EXAMPLES:
             sage: a = maple(5)
@@ -684,7 +904,8 @@ class MapleElement(ExpectElement):
 
     def _mul_(self, right):
         """
-        These examples are optional, and require Maple to be installed. You    don't need to install any Sage packages for this.
+        These examples are optional, and require Maple to be installed. You
+        don't need to install any Sage packages for this.
 
         EXAMPLES:
             sage: t = maple(5); u = maple(3)
@@ -710,13 +931,20 @@ class MapleElement(ExpectElement):
             raise TypeError,msg
 
     def trait_names(self):
+        """
+        EXAMPLES:
+            sage: a = maple(2) #optional -- requires Maple
+            sage: 'sin' in a.trait_names() #optional
+            True
+        """
         return self.parent().trait_names()
 
     def __repr__(self):
         """
         Return a string representation of self.
 
-        These examples are optional, and require Maple to be installed. You    don't need to install any Sage packages for this.
+        These examples are optional, and require Maple to be installed. You
+        don't need to install any Sage packages for this.
 
         EXAMPLES:
             sage: x = var('x')
@@ -750,15 +978,45 @@ class MapleElement(ExpectElement):
 maple = Maple(script_subdirectory='user')
 
 def reduce_load_Maple():
+    """
+    Returns the maple object created in sage.interfaces.maple.
+
+    EXAMPLES:
+        sage: from sage.interfaces.maple import reduce_load_Maple
+        sage: reduce_load_Maple()
+        Maple
+    """
     return maple
 
 
 import os
 def maple_console():
+    """
+    Spawn a new Maple command-line session.
+
+    EXAMPLES:
+        sage: maple_console() #not tested
+            |\^/|     Maple 11 (IBM INTEL LINUX)
+        ._|\|   |/|_. Copyright (c) Maplesoft, a division of Waterloo Maple Inc. 2007
+         \  MAPLE  /  All rights reserved. Maple is a trademark of
+         <____ ____>  Waterloo Maple Inc.
+              |       Type ? for help.
+        >
+    """
     os.system('maple')
 
 
 def __doctest_cleanup():
+    """
+    EXAMPLES:
+        sage: from sage.interfaces.maple import __doctest_cleanup
+        sage: m = maple(2)         #optional -- requires Maple
+        sage: maple.is_running()   #optional
+        True
+        sage: __doctest_cleanup()
+        sage: maple.is_running()
+        False
+    """
     import sage.interfaces.quit
     sage.interfaces.quit.expect_quitall()
 

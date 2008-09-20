@@ -166,7 +166,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = Z^3 + (x^2-2*x+1)*Z - 3; f
             Z^3 + (x^2 - 2*x + 1)*Z - 3
             sage: f*f
-            Z^6 + (2*x^2 - 4*x + 2)*Z^4 + (-6)*Z^3 + (x^4 - 4*x^3 + 6*x^2 - 4*x + 1)*Z^2 + (-6*x^2 + 12*x - 6)*Z + 9
+            Z^6 + (2*x^2 - 4*x + 2)*Z^4 - 6*Z^3 + (x^4 - 4*x^3 + 6*x^2 - 4*x + 1)*Z^2 + (-6*x^2 + 12*x - 6)*Z + 9
             sage: f^3 == f*f*f
             True
         """
@@ -1028,18 +1028,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
              name -- None or a string; used for printing the variable.
 
         EXAMPLES:
-            sage: R.<x> = QQ[]
-            sage: f = x^3 + x + 1
+            sage: S.<t> = QQ[]
+            sage: R.<x> = S[]
+            sage: f = (1 - t^3)*x^3 - t^2*x^2 - x + 1
             sage: f._repr()
-            'x^3 + x + 1'
-            sage: f._repr('theta')
-            'theta^3 + theta + 1'
-            sage: f._repr('sage math')
-            'sage math^3 + sage math + 1'
+            '(-t^3 + 1)*x^3 - t^2*x^2 - x + 1'
+            sage: f._repr('z')
+            '(-t^3 + 1)*z^3 - t^2*z^2 - z + 1'
         """
         s = " "
         m = self.degree() + 1
-        r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring().is_atomic_repr()
@@ -1049,8 +1047,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if x:
                 if n != m-1:
                     s += " + "
-                x = repr(x)
-                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
+                x = y = repr(x)
+                if y.find("-") == 0:
+                    y = y[1:]
+                if not atomic_repr and n > 0 and (y.find("+") != -1 or y.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:
                     var = "*%s^%s"%(name,n)
@@ -1059,7 +1059,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 else:
                     var = ""
                 s += "%s%s"%(x,var)
-        #if atomic_repr:
         s = s.replace(" + -", " - ")
         s = s.replace(" 1*"," ")
         s = s.replace(" -1*", " -")
@@ -1069,7 +1068,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _repr_(self):
         r"""
-        Return string representatin of this polynomial.
+        Return string representation of this polynomial.
 
         EXAMPLES:
             sage: x = polygen(QQ)
@@ -1088,18 +1087,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES:
         A fairly simple example over $\QQ$.
-            sage: x = polygen(QQ)
-            sage: latex(x^3+2/3*x^2 - 5/3)
-            x^{3} + \frac{2}{3} x^{2} - \frac{5}{3}
-
-        A $p$-adic example where the coefficients are $0$ to some precision.
-            sage: K = Qp(3,20)
-            sage: R.<x> = K[]
-            sage: f = K(0,-2)*x + K(0,-1)
-            sage: f
-            (O(3^-2))*x + (O(3^-1))
+            sage: C3.<omega> = CyclotomicField(3)
+            sage: R.<X> = C3[]
+            sage: f = X^3 - omega*X
             sage: latex(f)
-            \left(O(3^{-2})\right) x + O(3^{-1})
+            X^{3} - \omega X
 
         The following illustrates the fix of trac \#2586:
             sage: latex(ZZ['alpha']['b']([0, ZZ['alpha'].0]))
@@ -1108,17 +1100,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         s = " "
         coeffs = self.list()
         m = len(coeffs)
-        r = reversed(xrange(m))
         if name is None:
             name = self.parent().latex_variable_names()[0]
         atomic_repr = self.parent().base_ring().is_atomic_repr()
         for n in reversed(xrange(m)):
             x = coeffs[n]
-            x = latex(x)
+            x = y = latex(x)
             if x != '0':
                 if n != m-1:
                     s += " + "
-                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
+                if y.find("-") == 0:
+                    y = y[1:]
+                if not atomic_repr and n > 0 and (y.find("+") != -1 or y.find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if n > 1:
                     var = "|%s^{%s}"%(name,n)
@@ -1127,7 +1120,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 else:
                     var = ""
                 s += "%s %s"%(x,var)
-        #if atomic_repr:
         s = s.replace(" + -", " - ")
         s = s.replace(" 1 |"," ")
         s = s.replace(" -1 |", " -")
@@ -1136,6 +1128,71 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return "0"
         return s[1:].lstrip().rstrip()
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: K.<x> = ZZ[]
+            sage: sage_input(K(0), verify=True)
+            # Verified
+            ZZ['x'](0)
+            sage: sage_input(K(-54321), preparse=False, verify=True)
+            # Verified
+            ZZ['x'](-54321)
+            sage: sage_input(x, verify=True)
+            # Verified
+            R.<x> = ZZ[]
+            x
+            sage: sage_input(x, preparse=False)
+            R = ZZ['x']
+            x = R.gen()
+            x
+            sage: sage_input((3*x-2)^3, verify=True)
+            # Verified
+            R.<x> = ZZ[]
+            27*x^3 - 54*x^2 + 36*x - 8
+            sage: L.<y> = K[]
+            sage: sage_input(L(0), verify=True)
+            # Verified
+            ZZ['x']['y'](0)
+            sage: sage_input((x+y+1)^2, verify=True)
+            # Verified
+            R1.<x> = ZZ[]
+            R2.<y> = R1[]
+            y^2 + (2*x + 2)*y + (x^2 + 2*x + 1)
+            sage: sage_input(RR(pi) * polygen(RR), verify=True)
+            # Verified
+            R.<x> = RR[]
+            3.1415926535897931*x
+            sage: sage_input(polygen(GF(7)) + 12, verify=True)
+            # Verified
+            R.<x> = GF(7)[]
+            x + 5
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: K(0)._sage_input_(SageInputBuilder(), True)
+            {atomic:0}
+            sage: (x^2 - 1)._sage_input_(SageInputBuilder(), False)
+            {binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:ZZ}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}} {atomic:1}}
+        """
+        if self.degree() > 0:
+            gen = sib.gen(self.parent())
+            coeffs = self.list()
+            terms = []
+            for i in range(len(coeffs)-1, -1, -1):
+                if i > 0:
+                    if i > 1:
+                        gen_pow = gen**sib.int(i)
+                    else:
+                        gen_pow = gen
+                    terms.append(sib.prod((sib(coeffs[i], True), gen_pow), simplify=True))
+                else:
+                    terms.append(sib(coeffs[i], True))
+            return sib.sum(terms, simplify=True)
+        elif coerced:
+            return sib(self.constant_coefficient(), True)
+        else:
+            return sib(self.parent())(sib(self.constant_coefficient(), True))
 
     def __setitem__(self, n, value):
         """
@@ -1164,31 +1221,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Quotient of division of self by other.  This is denoted //.
 
-        If self = quotient * right + remainder, this function returns quotient.
+        If self = quotient * right + remainder, this function returns
+        quotient.
 
         EXAMPLES:
             sage: R.<x> = ZZ[]
             sage: f = x^3 + x + 1
             sage: g = f*(x^2-2) + x
-            sage: g.div(f)
-            x^2 - 2
             sage: g.__floordiv__(f)
             x^2 - 2
             sage: g//f
-            x^2 - 2
-        """
-        Q, _ = self.quo_rem(right)
-        return Q
-
-    def div(self,right):
-        """
-        Quotient of division of self by other.
-
-        EXAMPLES:
-            sage: R.<x> = ZZ[]
-            sage: f = x^3 + x + 1
-            sage: g = f*(x^2-2) + x
-            sage: g.div(f)
             x^2 - 2
         """
         Q, _ = self.quo_rem(right)
@@ -1444,7 +1486,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         S = self.parent().change_ring(R)
         return S(self)
 
-    def _mpoly_dict_recursive(self, vars=None, base_ring=None):
+    def _mpoly_dict_recursive(self, variables=None, base_ring=None):
         """
         Return a dict of coefficent entries suitable for construction of a MPolynomial_polydict
         with the given variables.
@@ -1461,20 +1503,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return {}
 
         var = self.parent().variable_name()
-        if vars is None:
-            vars = self.parent().variable_names_recursive()
-        if not var in vars:
+        if variables is None:
+            variables = self.parent().variable_names_recursive()
+        if not var in variables:
             x = base_ring(self) if base_ring else self
-            const_ix = ETuple((0,)*len(vars))
+            const_ix = ETuple((0,)*len(variables))
             return { const_ix: x }
 
-        prev_vars = vars[:list(vars).index(var)]
-        const_ix = ETuple((0,)*len(prev_vars))
+        prev_variables = variables[:list(variables).index(var)]
+        const_ix = ETuple((0,)*len(prev_variables))
         mpolys = None
 
-        if len(prev_vars) > 0:
+        if len(prev_variables) > 0:
             try:
-                mpolys = [a._mpoly_dict_recursive(prev_vars, base_ring) for a in self]
+                mpolys = [a._mpoly_dict_recursive(prev_variables, base_ring) for a in self]
             except AttributeError, msg:
                 pass
 
@@ -1485,7 +1527,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 mpolys = [{const_ix:a} if a else {} for a in self]
 
         D = {}
-        leftovers = (0,) * (len(vars) - len(prev_vars) - 1)
+        leftovers = (0,) * (len(variables) - len(prev_variables) - 1)
         for k in range(len(mpolys)):
             for i,a in mpolys[k].iteritems():
                 j = ETuple((k,) + leftovers)
@@ -1857,14 +1899,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: K.<a> = NumberField(f)
             sage: S.<T> = K[]
             sage: ff = S(f); ff
-            T^6 + 10/7*T^5 + (-867/49)*T^4 + (-76/245)*T^3 + 3148/35*T^2 + (-25944/245)*T + 48771/1225
+            T^6 + 10/7*T^5 - 867/49*T^4 - 76/245*T^3 + 3148/35*T^2 - 25944/245*T + 48771/1225
             sage: F = ff.factor()
             sage: len(F)
             4
             sage: F[:2]
             [(T - a, 1), (T - 40085763200/924556084127*a^5 - 145475769880/924556084127*a^4 + 527617096480/924556084127*a^3 + 1289745809920/924556084127*a^2 - 3227142391585/924556084127*a - 401502691578/924556084127, 1)]
             sage: expand(F)
-            T^6 + 10/7*T^5 + (-867/49)*T^4 + (-76/245)*T^3 + 3148/35*T^2 + (-25944/245)*T + 48771/1225
+            T^6 + 10/7*T^5 - 867/49*T^4 - 76/245*T^3 + 3148/35*T^2 - 25944/245*T + 48771/1225
 
             sage: f = x^2 - 1/3 ; K.<a> = NumberField(f) ; A.<T> = K[] ; g = A(x^2-1)
             sage: g.factor()
@@ -2951,7 +2993,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = y^3 + x*y -3*x; f
             y^3 + x*y - 3*x
             sage: f.reverse()
-            (-3*x)*y^3 + x*y^2 + 1
+            -3*x*y^3 + x*y^2 + 1
         """
         v = list(self.list())
         v.reverse()
@@ -3154,18 +3196,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots()
             []
             sage: f.roots(ring=RIF)
-            [([-0.618033988749894848204586834365642 .. -0.618033988749894848204586834365629], 1), ([1.61803398874989484820458683436561 .. 1.61803398874989484820458683436565], 1)]
+            [(-0.6180339887498948482045868343657?, 1), (1.6180339887498948482045868343657?, 1)]
             sage: f.roots(ring=RIF, multiplicities=False)
-            [[-0.618033988749894848204586834365642 .. -0.618033988749894848204586834365629], [1.61803398874989484820458683436561 .. 1.61803398874989484820458683436565]]
+            [-0.6180339887498948482045868343657?, 1.6180339887498948482045868343657?]
             sage: f.roots(ring=RealIntervalField(150))
-            [([-0.61803398874989484820458683436563811772030917980576286213544862277 .. -0.61803398874989484820458683436563811772030917980576286213544862260], 1), ([1.6180339887498948482045868343656381177203091798057628621354486226 .. 1.6180339887498948482045868343656381177203091798057628621354486230], 1)]
+            [(-0.6180339887498948482045868343656381177203091798057628621354486227?, 1), (1.618033988749894848204586834365638117720309179805762862135448623?, 1)]
             sage: f.roots(ring=AA)
-            [([-0.61803398874989491 .. -0.61803398874989479], 1), ([1.6180339887498946 .. 1.6180339887498950], 1)]
+            [(-0.6180339887498948?, 1), (1.618033988749895?, 1)]
             sage: f = f^2 * (x - 1)
             sage: f.roots(ring=RIF)
-            [([-0.618033988749894848204586834365642 .. -0.618033988749894848204586834365629], 2), ([0.999999999999999999999999999999987 .. 1.00000000000000000000000000000003], 1), ([1.61803398874989484820458683436561 .. 1.61803398874989484820458683436565], 2)]
+            [(-0.6180339887498948482045868343657?, 2), (1.0000000000000000000000000000000?, 1), (1.6180339887498948482045868343657?, 2)]
             sage: f.roots(ring=RIF, multiplicities=False)
-            [[-0.618033988749894848204586834365642 .. -0.618033988749894848204586834365629], [0.999999999999999999999999999999987 .. 1.00000000000000000000000000000003], [1.61803398874989484820458683436561 .. 1.61803398874989484820458683436565]]
+            [-0.6180339887498948482045868343657?, 1.0000000000000000000000000000000?, 1.6180339887498948482045868343657?]
 
         Examples using complex root isolation:
             sage: x = polygen(ZZ)
@@ -3173,18 +3215,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.roots()
             []
             sage: p.roots(ring=CIF)
-            [([1.1673039782614185 .. 1.16730397826141...], 1), ([0.18123244446987518 .. 0.18123244446987558] + [1.0839541013177103 .. 1.0839541013177110]*I, 1), ([0.181232444469875... .. 0.1812324444698755...] - [1.083954101317710... .. 1.0839541013177110]*I, 1), ([-0.76488443360058489 .. -0.76488443360058455] + [0.35247154603172609 .. 0.3524715460317264...]*I, 1), ([-0.76488443360058489 .. -0.76488443360058455] - [0.35247154603172609 .. 0.35247154603172643]*I, 1)]
+            [(1.167303978261419?, 1), (0.181232444469876? + 1.083954101317711?*I, 1), (0.181232444469876? - 1.083954101317711?*I, 1), (-0.764884433600585? + 0.352471546031727?*I, 1), (-0.764884433600585? - 0.352471546031727?*I, 1)]
             sage: p.roots(ring=ComplexIntervalField(200))
-            [([1.1673039782614186842560458998548421807205603715254890391400816 .. 1.1673039782614186842560458998548421807205603715254890391400829], 1), ([0.18123244446987538390180023778112063996871646618462304743773153 .. 0.18123244446987538390180023778112063996871646618462304743773341] + [1.0839541013177106684303444929807665742736402431551156543011306 .. 1.0839541013177106684303444929807665742736402431551156543011344]*I, 1), ([0.18123244446987538390180023778112063996871646618462304743773153 .. 0.18123244446987538390180023778112063996871646618462304743773341] - [1.0839541013177106684303444929807665742736402431551156543011306 .. 1.0839541013177106684303444929807665742736402431551156543011344]*I, 1), ([-0.76488443360058472602982318770854173032899665194736756700777... .. -0.76488443360058472602982318770854173032899665194736756700777...] + [0.35247154603172624931794709140258105439420648082424733283769... .. 0.35247154603172624931794709140258105439420648082424733283769...]*I, 1), ([-0.76488443360058472602982318770854173032899665194736756700777454 .. -0.764884433600584726029823187708541730328996651947367567007772...] - [0.35247154603172624931794709140258105439420648082424733283769... .. 0.352471546031726249317947091402581054394206480824247332837693...]*I, 1)]
+            [(1.167303978261418684256045899854842180720560371525489039140082?, 1), (0.18123244446987538390180023778112063996871646618462304743774? + 1.08395410131771066843034449298076657427364024315511565430114?*I, 1), (0.18123244446987538390180023778112063996871646618462304743774? - 1.08395410131771066843034449298076657427364024315511565430114?*I, 1), (-0.76488443360058472602982318770854173032899665194736756700778? + 0.35247154603172624931794709140258105439420648082424733283770?*I, 1), (-0.76488443360058472602982318770854173032899665194736756700778? - 0.35247154603172624931794709140258105439420648082424733283770?*I, 1)]
             sage: rts = p.roots(ring=QQbar); rts
-            [([1.1673039782614185 .. 1.1673039782614188], 1), ([0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I, 1), ([0.18123244446987538 .. 0.18123244446987541] - [1.0839541013177105 .. 1.0839541013177108]*I, 1), ([-0.76488443360058478 .. -0.76488443360058466] + [0.35247154603172620 .. 0.35247154603172626]*I, 1), ([-0.76488443360058478 .. -0.76488443360058466] - [0.35247154603172620 .. 0.35247154603172626]*I, 1)]
+            [(1.167303978261419?, 1), (0.1812324444698754? + 1.083954101317711?*I, 1), (0.1812324444698754? - 1.083954101317711?*I, 1), (-0.7648844336005847? + 0.3524715460317263?*I, 1), (-0.7648844336005847? - 0.3524715460317263?*I, 1)]
             sage: p.roots(ring=AA)
-            [([1.1673039782614185 .. 1.1673039782614188], 1)]
+            [(1.167303978261419?, 1)]
             sage: p = (x - rts[1][0])^2 * (3*x^2 + x + 1)
             sage: p.roots(ring=QQbar)
-            [([-0.16666666666666669 .. -0.16666666666666665] + [0.55277079839256659 .. 0.55277079839256671]*I, 1), ([-0.16666666666666669 .. -0.16666666666666665] - [0.55277079839256659 .. 0.55277079839256671]*I, 1), ([0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I, 2)]
+            [(-0.1666666666666667? + 0.5527707983925667?*I, 1), (-0.1666666666666667? - 0.5527707983925667?*I, 1), (0.1812324444698754? + 1.083954101317711?*I, 2)]
             sage: p.roots(ring=CIF)
-            [([-0.16666666666666672 .. -0.16666666666666662] + [0.55277079839256648 .. 0.55277079839256671]*I, 1), ([-0.16666666666666672 .. -0.16666666666666662] - [0.55277079839256648 .. 0.55277079839256671]*I, 1), ([0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I, 2)]
+            [(-0.1666666666666667? + 0.552770798392567?*I, 1), (-0.1666666666666667? - 0.552770798392567?*I, 1), (0.1812324444698754? + 1.083954101317711?*I, 2)]
 
         Note that coefficients in a number field with defining polynomial
         $x^2 + 1$ are considered to be Gaussian rationals (with the generator
@@ -3197,7 +3239,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-1.2146389322441... - 0.14142505258239...*I, 1), (-0.14142505258239... + 1.2146389322441...*I, 1), (0.14142505258239... - 1.2146389322441...*I, 1), (1.2146389322441... + 0.14142505258239...*I, 1)]
             sage: p = p^2 * (y^2 - 2)
             sage: p.roots(ring=CIF)
-            [([-1.41421356237309... .. -1.41421356237309...], 1), ([1.41421356237309... .. 1.41421356237309...], 1), ([-1.214638932244182... .. -1.21463893224418...] - [0.1414250525823937... .. 0.1414250525823939...]*I, 2), ([-0.141425052582393... .. -0.1414250525823937...] + [1.21463893224418... .. 1.214638932244182...]*I, 2), ([0.141425052582393... .. 0.141425052582393...] - [1.21463893224418... .. 1.21463893224418...]*I, 2), ([1.21463893224418... .. 1.21463893224418...] + [0.141425052582393... .. 0.141425052582393...]*I, 2)]
+            [(-1.4142135623730950?, 1), (1.414213562373095?, 1), (-1.214638932244183? - 0.141425052582394?*I, 2), (-0.141425052582394? + 1.214638932244183?*I, 2), (0.141425052582394? - 1.214638932244183?*I, 2), (1.214638932244183? + 0.141425052582394?*I, 2)]
 
         There are many combinations of floating-point input and output
         types that work.  (Note that some of them are quite pointless...
@@ -3235,13 +3277,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: rt3 = sqrt(AA(3))
             sage: x = polygen(AA)
             sage: f = (x - rt2) * (x - rt3); f
-            x^2 + [-3.1462643699419726 .. -3.1462643699419721]*x + [2.4494897427831778 .. 2.4494897427831784]
+                x^2 - 3.146264369941973?*x + 2.449489742783178?
             sage: rts = f.roots(); rts
-            [([1.4142135623730949 .. 1.4142135623730952], 1), ([1.7320508075688771 .. 1.7320508075688775], 1)]
-sage: rts[0][0] == rt2
+            [(1.414213562373095?, 1), (1.732050807568878?, 1)]
+            sage: rts[0][0] == rt2
             True
             sage: f.roots(ring=RealIntervalField(150))
-            [([1.4142135623730950488016887242096980785696718753769480731766797377 .. 1.4142135623730950488016887242096980785696718753769480731766797381], 1), ([1.7320508075688772935274463415058723669428052538103806280558069793 .. 1.7320508075688772935274463415058723669428052538103806280558069797], 1)]
+            [(1.414213562373095048801688724209698078569671875376948073176679738?, 1), (1.732050807568877293527446341505872366942805253810380628055806980?, 1)]
 
         Algorithms used:
 
@@ -3924,6 +3966,32 @@ sage: rts[0][0] == rt2
 
         return RR(sum([abs(i)**p for i in coeffs]))**(1/p)
 
+    def hamming_weight(self):
+        """
+        Returns the number of non-zero coefficients of self.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = x^3 - x
+            sage: f.hamming_weight()
+            2
+            sage: R(0).hamming_weight()
+            0
+            sage: f = (x+1)^100
+            sage: f.hamming_weight()
+            101
+            sage: S = GF(5)['y']
+            sage: S(f).hamming_weight()
+            5
+            sage: cyclotomic_polynomial(105).hamming_weight()
+            33
+        """
+        cdef long w = 0
+        for a in self.coeffs():
+            if a:
+                w += 1
+        return w
+
 # ----------------- inner functions -------------
 # Sagex can't handle function definitions inside other function
 
@@ -4327,7 +4395,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         return self._parent(self.__coeffs[:n], check=False)
 
-    def truncate_c(self, long n):
+    cdef truncate_c(self, long n):
         r"""
         Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.

@@ -37,6 +37,11 @@ def sage_timeit(stmt, globals, preparse=None,
         sage: from sage.misc.sage_timeit import sage_timeit
         sage: sage_timeit("a = 2\nb=131\nfactor(a^b-1)", globals(), number=10)
         '10 loops, best of 3: ... per loop'
+
+    Test to make sure that timeit behaves well with output:
+        sage: timeit("print 'Hi'", number=50)
+        50 loops, best of 3: ... per loop
+
     """
     number=int(number)
     repeat=int(repeat)
@@ -64,15 +69,25 @@ def sage_timeit(stmt, globals, preparse=None,
     exec code in globals, ns
     timer.inner = ns["inner"]
 
-    if number == 0:
-        # determine number so that 0.2 <= total time < 2.0
-        number = 1
-        for i in range(1, 5):
-            number *= 5
-            if timer.timeit(number) >= 0.2:
-                break
 
-    best = min(timer.repeat(repeat, number)) / number
+    try:
+        import sys
+        f = sys.stdout
+        sys.stdout = open('/dev/null', 'w')
+
+        if number == 0:
+            # determine number so that 0.2 <= total time < 2.0
+            number = 1
+            for i in range(1, 5):
+                number *= 5
+                if timer.timeit(number) >= 0.2:
+                    break
+
+        best = min(timer.repeat(repeat, number)) / number
+
+    finally:
+        sys.stdout.close()
+        sys.stdout = f
 
     if best > 0.0:
         order = min(-int(math.floor(math.log10(best)) // 3), 3)

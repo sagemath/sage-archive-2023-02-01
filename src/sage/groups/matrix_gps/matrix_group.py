@@ -7,9 +7,12 @@ AUTHORS:
                     methods; examples (2006-03-15)
    William Stein (2006-12) -- rewrite
    DJ (2007-12) -- Added invariant_generators (with M Albrecht, S King)
+   DJ (2008-08) -- Added module_composition_factors (interface to
+                   GAP's meataxe implementation) and as_permutation_group
+                   (returns isomorphic PermutationGroup).
 
 This class is designed for computing with matrix groups defined by a
-relatively (small) finite set of generating matrices.
+(relatively small) finite set of generating matrices.
 
 EXAMPLES:
     sage: F = GF(3)
@@ -451,6 +454,9 @@ class MatrixGroup_gap(MatrixGroup_generic):
         return list(v)
 
 class MatrixGroup_gap_finite_field(MatrixGroup_gap):
+    """
+    Python class for matrix groups over a finite field.
+    """
     def order(self):
         """
         EXAMPLES:
@@ -628,6 +634,118 @@ class MatrixGroup_gens(MatrixGroup_gap):
                 raise ValueError, "each generator must be an invertible matrix but one is not:\n%s"%x
         self._gensG = v
         MatrixGroup_gap.__init__(self, M.nrows(), M.base_ring())
+
+    def as_permutation_group(self, method =None):
+        r"""
+        This returns a permutation group representation for the group. In most cases
+        occurring in practice, this is a permutation group of minimal degree (the degree
+        begin determined from orbits under the group action). When these orbits are hard to
+        compute, the procedure can be time-consuming and the degree may not be minimal.
+        The "method=smaller" option tries return an isomorphic group of lower degree.
+
+        EXAMPLES:
+            sage: MS = MatrixSpace( GF(2), 5, 5)
+            sage: A = MS([[0,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0],[1,0,0,0,0]])
+            sage: G = MatrixGroup([A])
+            sage: G.as_permutation_group()
+            Permutation Group with generators [(1,2)]
+            sage: MS = MatrixSpace( GF(7), 12, 12)
+            sage: GG = gap("ImfMatrixGroup( 12, 3 )")
+            sage: GG.GeneratorsOfGroup().Length()
+            3
+            sage: g1 = MS(eval(str(GG.GeneratorsOfGroup()[1]).replace("\n","")))
+            sage: g2 = MS(eval(str(GG.GeneratorsOfGroup()[2]).replace("\n","")))
+            sage: g3 = MS(eval(str(GG.GeneratorsOfGroup()[3]).replace("\n","")))
+            sage: G = MatrixGroup([g1, g2, g3])
+            sage: G.order()
+            21499084800
+            sage: set_random_seed(0); current_randstate().set_seed_gap()
+            sage: G.as_permutation_group()
+            Permutation Group with generators [(2,3,5,11,20,38,14,26,43,66)(4,8,16,29,47,63,48,74,56,86)(6,13,24,41,22,27,45,69,98,67)(9,19,35,58,88,94,70,100,84,104)(17,32,52,36,60,75,108,133,101,128)(30,50,77,110,117,106,61,92,123,89)(33,55,83,81,72,103,115,137,112,119)(53,80), (2,4,9,20)(3,6,14,27)(8,17,33,56)(11,22,16,30)(13,19,36,61)(29,48,75,103)(32,53,81,92)(38,63,94,66)(43,67,74,106)(45,70,101,50)(47,72,104,128)(55,84,117,137)(58,89,83,115)(60,86,119,88)(77,108,80,112), (1,2)(3,7)(4,10)(5,12)(6,15)(8,18)(9,21)(11,23)(13,25)(14,28)(16,31)(17,34)(19,37)(20,39)(22,40)(24,42)(26,44)(27,46)(29,49)(30,51)(32,54)(33,57)(35,59)(36,62)(38,64)(41,65)(43,68)(45,71)(47,73)(48,76)(50,78)(52,79)(53,82)(55,85)(56,87)(58,90)(60,91)(61,93)(63,95)(66,96)(67,97)(69,99)(70,102)(72,105)(74,107)(75,109)(77,111)(80,113)(81,114)(83,116)(84,118)(86,120)(88,121)(89,122)(92,124)(94,125)(98,126)(100,127)(101,129)(103,130)(104,131)(106,132)(108,134)(110,135)(112,136)(115,138)(117,139)(119,140)(123,141)(128,142)(133,143)(137,144)]
+            sage: set_random_seed(3); current_randstate().set_seed_gap()
+            sage: G.as_permutation_group(method="smaller")
+            Permutation Group with generators [(1,2)(3,7,13,25,45,5,10,19,35,60)(8,16,30,41,69,11,22,40,31,54)(14,28,49,80,91,20,38,64,93,78)(17,33,57,26,48,23,43,72,36,63)(46,61)(52,73,55,76,94,67,58,70,89,81), (1,3,8,17)(2,5,11,23)(7,14)(10,20)(13,26,49,81)(16,31,55,72)(19,36,64,94)(22,41,70,57)(25,46,76,93)(28,38)(30,52,63,91)(33,58)(35,61,89,80)(40,67,48,78)(43,73)(45,69)(54,60), (1,4)(2,6)(3,9)(5,12)(7,15)(8,18)(10,21)(11,24)(13,27)(14,29)(16,32)(17,34)(19,37)(20,39)(22,42)(23,44)(25,47)(26,50)(28,51)(30,53)(31,56)(33,59)(35,62)(36,65)(38,66)(40,68)(41,71)(43,74)(45,75)(46,77)(48,79)(49,82)(52,83)(54,84)(55,85)(57,86)(58,87)(60,88)(61,90)(63,92)(64,95)(67,96)(69,97)(70,98)(72,99)(73,100)(76,101)(78,102)(80,103)(81,104)(89,105)(91,106)(93,107)(94,108)]
+
+        In this case, the "smaller" option returned an isomorphic group of
+        lower degree. The above example used GAP's library of irreducible maximal
+        finite ("imf") integer matrix groups to construct the MatrixGroup G
+        over GF(7). The section "Irreducible Maximal Finite Integral Matrix
+        Groups" in the GAP reference manual has more details.
+        """
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        F = self.base_ring()
+        if not(F.is_finite()):
+            raise NotImplementedError, "Base ring must be finite."
+        q = F.order()
+        gens = self.gens()
+        n = self.degree()
+        MS = MatrixSpace(F,n,n)
+        mats = [] # initializing list of mats by which the gens act on self
+        W = self.matrix_space().row_space()
+        for g in gens:
+            p = MS(g.matrix())
+            m = p.rows()
+            mats.append(m)
+        mats_str = str(gap([[list(r) for r in m] for m in mats]))
+        gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
+        gap.eval("iso:=IsomorphismPermGroup(Group("+mats_str+"))")
+        C = gap("Image( iso )")
+        if method == "smaller":
+            gap.eval("small:= SmallerDegreePermutationRepresentation( Image( iso ) );")
+            C = gap("Image( small )")
+        return PermutationGroup(gap_group=C)
+
+    def module_composition_factors(self, method=None):
+        r"""
+        Returns a list of triples consisting of [base field, dimension, irreducibility],
+        for each of the Meataxe composition factors modules. The method="verbose" option
+        returns more information, but in Meataxe notation.
+
+        EXAMPLES:
+            sage: F=GF(3);MS=MatrixSpace(F,4,4)
+            sage: M=MS(0)
+            sage: M[0,1]=1;M[1,2]=1;M[2,3]=1;M[3,0]=1
+            sage: G = MatrixGroup([M])
+            sage: G.module_composition_factors()
+            [[Finite Field of size 3, 1, True],
+             [Finite Field of size 3, 1, True],
+             [Finite Field of size 3, 2, True]]
+            sage: F = GF(7); MS = MatrixSpace(F,2,2)
+            sage: gens = [MS([[0,1],[-1,0]]),MS([[1,1],[2,3]])]
+            sage: G = MatrixGroup(gens)
+            sage: G.module_composition_factors()
+            [[Finite Field of size 7, 2, True]]
+
+        Type "G.module_composition_factors(method='verbose')" to get
+        a more verbose version.
+
+        For more on MeatAxe notation, see http://www.gap-system.org/Manuals/doc/htm/ref/CHAP067.htm
+        """
+        from sage.misc.sage_eval import sage_eval
+        F = self.base_ring()
+        if not(F.is_finite()):
+            raise NotImplementedError, "Base ring must be finite."
+        q = F.order()
+        gens = self.gens()
+        n = self.degree()
+        MS = MatrixSpace(F,n,n)
+        mats = [] # initializing list of mats by which the gens act on self
+        W = self.matrix_space().row_space()
+        for g in gens:
+            p = MS(g.matrix())
+            m = p.rows()
+            mats.append(m)
+        mats_str = str(gap([[list(r) for r in m] for m in mats]))
+        gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
+        gap.eval("MCFs := MTX.CompositionFactors( M )")
+        N = eval(gap.eval("Length(MCFs)"))
+        if method == "verbose":
+            print gap.eval('MCFs')+"\n"
+        L = []
+        for i in range(1,N+1):
+            gap.eval("MCF := MCFs[%s]"%i)
+            L = L + [[sage_eval(gap.eval("MCF.field")), eval(gap.eval("MCF.dimension")), sage_eval(gap.eval("MCF.IsIrreducible"))]]
+        return L
 
     def gens(self):
         """
@@ -811,7 +929,6 @@ class MatrixGroup_gens(MatrixGroup_gap):
 
 class MatrixGroup_gens_finite_field(MatrixGroup_gens, MatrixGroup_gap_finite_field):
     pass
-
 
 ##     def conjugacy_class_representatives_gap(self):
 ##         """

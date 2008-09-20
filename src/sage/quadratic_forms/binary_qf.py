@@ -9,7 +9,7 @@ EXAMPLES:
     x^2 + 2*x*y  + 3*y^2
     sage: Q.discriminant()
     -8
-    sage: Q.reduce()
+    sage: Q.reduced_form()
     x^2 + 2*y^2
     sage: Q(1, 1)
     6
@@ -44,7 +44,6 @@ AUTHORS:
 from sage.libs.pari.all import pari
 from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors)
 from sage.structure.sage_object import SageObject
-
 class BinaryQF(SageObject):
     """
     BinaryQF([a,b,c])
@@ -81,7 +80,6 @@ class BinaryQF(SageObject):
         self.a = ZZ(abc_triple[0])
         self.b = ZZ(abc_triple[1])
         self.c = ZZ(abc_triple[2])
-        self._reduced_form = None
 
     def __getitem__(self, n):
         """
@@ -269,7 +267,6 @@ class BinaryQF(SageObject):
         """
         return is_fundamental_discriminant(self.discriminant())
 
-
     def is_weakly_reduced(self):
         """
         Checks if the form $ax^2 + bxy + cy^2$  satisfies
@@ -289,8 +286,35 @@ class BinaryQF(SageObject):
             True
         """
         if self.discriminant() >= 0:
-            raise NotImplementedError, "only implemented for negative discriminant"
+            raise NotImplementedError, "only implemented for nagative discriminants"
         return (abs(self.b) <= self.a) and (self.a <= self.c)
+
+    def reduced_form(self):
+        """
+        EXAMPLES:
+            sage: a = BinaryQF([33,11,5])
+            sage: a.is_reduced()
+            False
+            sage: b = a.reduced_form(); b
+            5*x^2 - x*y + 27*y^2
+            sage: b.is_reduced()
+            True
+
+            sage: a = BinaryQF([15,0,15])
+            sage: a.is_reduced()
+            True
+            sage: b = a.reduced_form(); b
+            15*x^2 + 15*y^2
+            sage: b.is_reduced()
+            True
+        """
+        if self.discriminant() >= 0 or self.a < 0:
+            raise NotImplementedError, "only implemented for positive definite forms"
+        if not self.is_reduced():
+            v = list(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self.a,self.b,self.c)))
+            return BinaryQF(v)
+        else:
+            return self
 
     def reduce(self):
         """
@@ -298,15 +322,14 @@ class BinaryQF(SageObject):
             sage: a = BinaryQF([37,17,2])
             sage: a.is_reduced()
             False
-            sage: b = a.reduce(); b
+            sage: a.reduce(); a
             x^2 + x*y + 2*y^2
-            sage: b.is_reduced()
+            sage: a.is_reduced()
             True
         """
-        if self._reduced_form is None:
-            v = list(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self.a,self.b,self.c)))
-            self._reduced_form = BinaryQF(v)
-        return self._reduced_form
+        if not self.is_reduced():
+            red = self.reduced_form()
+            self.a, self.b, self.c = red.a, red.b, red.c
 
     def is_reduced(self):
         """
@@ -331,7 +354,8 @@ class BinaryQF(SageObject):
             sage: Q.is_reduced()
             True
         """
-        return self.reduce() == self
+        return (-self.a < self.b <= self.a < self.c) or \
+               (ZZ(0) <= self.b <= self.a == self.c)
 
     def complex_point(self):
         """
@@ -360,7 +384,9 @@ def BinaryQF_reduced_representatives(D):
     Returns a list of inequivalent reduced representatives for the equivalence
     classes of positive definite binary forms of discriminant D.
 
-    NOTE: The order of the representatives is unspecified but deterministic.
+    NOTE: A form $a x^2 + b xy + c y^2$ is reduced if $|b| \le a \le c$
+    and if $b \ge 0$ unless $|b| < a < c$. The list of representatives is
+    ordered lexicographically.
 
     WARNING: The representatives are not necessarily primitive, unless the
     discriminant is fundamental!
@@ -378,6 +404,9 @@ def BinaryQF_reduced_representatives(D):
         sage: BinaryQF_reduced_representatives(-16)
         [x^2 + 4*y^2, 2*x^2 + 2*y^2]
 
+        sage: BinaryQF_reduced_representatives(-63)
+        [x^2 + x*y + 16*y^2, 2*x^2 - x*y + 8*y^2, 2*x^2 + x*y + 8*y^2, 3*x^2 + 3*x*y + 6*y^2, 4*x^2 + x*y + 4*y^2]
+
         The number of inequivalent reduced binary forms with a fixed negative
         fundamental discriminant D is the class number of the quadratic field
         $Q(\sqrt{D})$.
@@ -386,28 +415,34 @@ def BinaryQF_reduced_representatives(D):
         2
         sage: QuadraticField(-13*4, 'a').class_number()
         2
+        sage: p=next_prime(2^20); p
+        1048583
+        sage: len(BinaryQF_reduced_representatives(-p))
+        689
+        sage: QuadraticField(-p, 'a').class_number()
+        689
     """
-    if not ( D < 0  and  D in ZZ  and ((D % ZZ(4) == 0) or (D % ZZ(4) == 1))):
+    D = ZZ(D)
+    if not ( D < 0 and (D % 4 in [0,1])):
         raise ValueError, "discriminant is not valid and positive definite"
 
-    # Find the range of allowed b's
-    bmax = (-D / ZZ(3)).sqrt_approx().ceil()
-    b_range = range(-bmax, bmax+1)
-
-    # Find the set of all (possibly mutually equivalent) quadratic forms
     form_list = []
-    for b in b_range:
-        b_plus = abs(b)
-        tmp_num = b**2 - D
-        if (b**2 - D) % ZZ(4) == 0:
-            tmp_num_4 = tmp_num / ZZ(4)
-            # Look for |b| <= a <= c
-            b_divs__a = [a for a in divisors(tmp_num_4) if
-                         a <= tmp_num_4.sqrt() and
-                         b_plus <= a]
-            for a in b_divs__a:
-                c = tmp_num_4 / a
-                if (a != b_plus and c != b_plus) or (b >= 0):
-                    # Require b>0 if a = c
-                    form_list.append(BinaryQF([a,b,c]))
+
+    from sage.misc.all import xsrange
+    # Only iterate over positive a and over b of the same
+    # parity as D such that 4a^2 + D <= b^2 <= a^2
+    for a in xsrange(1,1+((-D)//3).isqrt()):
+        a4 = 4*a
+        s = D + a*a4
+        w = 1+(s-1).isqrt() if s > 0 else 0
+        if w%2 != D%2: w += 1
+        for b in xsrange(w,a+1,2):
+            t = b*b-D
+            if t % a4 == 0:
+                c = t // a4
+                if b>0 and a>b and c>a:
+                    form_list.append(BinaryQF([a,-b,c]))
+                form_list.append(BinaryQF([a,b,c]))
+
+    form_list.sort()
     return form_list

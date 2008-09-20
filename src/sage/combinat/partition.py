@@ -322,9 +322,10 @@ class Partition_class(CombinatorialObject):
             [[3, 2, 1], [1, 1]]
             sage: p/[3,2,1]
             [[3, 2, 1], [3, 2, 1]]
-
+            sage: p/Partition([1,1])
+            [[3, 2, 1], [1, 1]]
         """
-        if not self.dominates(Partition_class(p)):
+        if not self.dominates(p):
             raise ValueError, "the partition must dominate p"
 
         return sage.combinat.skew_partition.SkewPartition([self[:], p])

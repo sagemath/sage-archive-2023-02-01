@@ -58,7 +58,12 @@ def is_RealDoubleField(x):
 
 cdef class RealDoubleField_class(Field):
     """
-    The field of real double precision numbers.
+    An approximation to the field of real numbers using double
+    precision floating point numbers. Answers derived from
+    calculations in this approximation may differ from what they would
+    be if those calculations were performed in the true field of
+    real numbers. This is due to the rounding errors inherent to
+    finite precision calculations.
 
     EXAMPLES:
         sage: RR == RDF
@@ -172,7 +177,7 @@ cdef class RealDoubleField_class(Field):
         from sage.rings.complex_double import CDF
         return CDF
 
-    cdef coerce_map_from_c(self, S):
+    cpdef coerce_map_from_c(self, S):
         from integer_ring import ZZ
         from rational_field import QQ
         import real_mpfr
@@ -387,6 +392,13 @@ cdef class RealDoubleField_class(Field):
         return self(0)/self(0)
 
 cdef class RealDoubleElement(FieldElement):
+    """
+    An approximation to a real number using double precision
+    floating point numbers. Answers derived from calculations with
+    such approximations may differ from what they would be if those
+    calculations were performed with true real numbers. This is due
+    to the rounding errors inherent to finite precision calculations.
+    """
     def __new__(self, x=None):
         (<Element>self)._parent = _RDF
 
@@ -1115,36 +1127,40 @@ cdef class RealDoubleElement(FieldElement):
     def nth_root(self, int n):
         """
         Returns the $n^{th}$ root of self.
+
+        INPUT:
+            n -- an integer
+        OUTPUT:
+            an real or complex double
+
+        The output is complex if self is negative
+        and n is even.
+
         EXAMPLES:
             sage: r = RDF(-125.0); r.nth_root(3)
             -5.0
             sage: r.nth_root(5)
             -2.6265278044
+            sage: RDF(-2).nth_root(5)^5
+            -2.0
+            sage: RDF(-1).nth_root(5)^5
+            -1.0
+            sage: RDF(3).nth_root(10)^10
+            3.0
+            sage: RDF(-1).nth_root(2)
+            6.12323399574e-17 + 1.0*I
+            sage: RDF(-1).nth_root(4)
+            0.707106781187 + 0.707106781187*I
         """
         if n == 0:
             return RealDoubleElement(float('nan'))
-        if self._value < 0 and GSL_IS_EVEN(n):
-            pass #return self._complex_double_().pow(1.0/n)
+        if self._value < 0:
+            if GSL_IS_EVEN(n):
+                return self._complex_double_(sage.rings.complex_double.CDF).nth_root(n)
+            else:
+                return - ( (-self).__pow__(float(1)/n) )
         else:
-            return RealDoubleElement(self.__nth_root(n))
-
-    cdef double __nth_root(RealDoubleElement self, int n):
-        cdef int m
-        cdef double x
-        cdef double x0
-        cdef double dx
-        cdef double dx0
-        m  = n-1
-        x  = ( m + self._value ) / n
-        x0 = 0
-        dx = abs(x - x0)
-        dx0= dx + 1
-        while dx < dx0:
-            x0= x
-            dx0 = dx
-            x = ( m*x + self._value / gsl_pow_int(x,m) ) / n
-            dx=abs(x - x0)
-        return x
+            return self.__pow__(float(1)/n)
 
     cdef RealDoubleElement __pow_float(self, double exponent):
         return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent))
@@ -1729,8 +1745,7 @@ cdef class ToRDF(Morphism):
             from sage.structure.parent import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, RDF))
-    cdef Element _call_c(self, x):
-        # Override this _call_c rather than _call_c_impl because a may not be an Element
+    cpdef Element _call_(self, x):
         cdef RealDoubleElement r = <RealDoubleElement>PY_NEW(RealDoubleElement)
         r._value = PyFloat_AsDouble(x)
         return r

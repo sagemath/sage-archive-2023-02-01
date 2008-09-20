@@ -6,6 +6,8 @@
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
+from c_graph import CGraphBackend
+
 cdef class DenseGraph(CGraph):
     """
     Implements compiled dense graphs, as an array of packed bits.
@@ -136,10 +138,8 @@ cdef class DenseGraph(CGraph):
             True
 
         """
-        if u < 0 or u >= self.num_verts:
-            raise RuntimeError("First vertex (%d) is not a vertex of the graph."%u)
-        if v < 0 or v >= self.num_verts:
-            raise RuntimeError("Second vertex (%d) is not a vertex of the graph."%v)
+        if u < 0 or u >= self.num_verts or v < 0 or v >= self.num_verts:
+            return False
         return self.has_arc_unsafe(u,v) == 1
 
     cdef int del_arc_unsafe(self, int u, int v):
@@ -232,7 +232,7 @@ cdef class DenseGraph(CGraph):
             [2, 3]
 
         """
-        cdef int i, size, num_nbrs
+        cdef int i, num_nbrs
         if u < 0 or u >= self.num_verts:
             raise RuntimeError("First vertex (%d) is not a vertex of the graph."%u)
         if self.out_degrees[u] == 0:
@@ -291,7 +291,7 @@ cdef class DenseGraph(CGraph):
             [1]
 
         """
-        cdef int i, size, num_nbrs
+        cdef int i, num_nbrs
         if v < 0 or v >= self.num_verts:
             raise RuntimeError("First vertex (%d) is not a vertex of the graph."%v)
         if self.in_degrees[v] == 0:
@@ -324,8 +324,7 @@ def random_stress():
     from sage.graphs.graph import DiGraph
     from sage.misc.misc import uniq
     Gnew = DenseGraph(num_verts)
-    Gold = DiGraph(loops=True)
-    Gold.add_vertices(xrange(num_verts))
+    Gold = DiGraph(num_verts, loops=True, implementation='networkx')
     for n from 0 <= n < 100:
         i = randint(0,num_verts-1)
         j = randint(0,num_verts-1)
@@ -343,3 +342,308 @@ def random_stress():
             raise RuntimeError( "NO" )
         if Gnew.in_degrees[i] != Gold.in_degree(i):
             raise RuntimeError( "NO" )
+
+
+class DenseGraphBackend(CGraphBackend):
+
+    def __init__(self, n):
+        """
+        Initialize a dense graph with n vertices.
+
+        EXAMPLE:
+            sage: import sage.graphs.base.dense_graph
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_edge(0,1,None,False)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(0, 1, None), (1, 0, None)]
+
+        """
+        self._cg = DenseGraph(n)
+
+    def add_edge(self, u, v, l, directed):
+        """
+        Adds the edge u,v to self.
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_edge(0,1,None,False)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(0, 1, None), (1, 0, None)]
+
+        """
+        if directed:
+            self._cg.add_arc(u, v)
+        else:
+            self._cg.add_arc(u, v)
+            self._cg.add_arc(v, u)
+
+    def add_edges(self, edges, directed):
+        """
+        Add edges from a list.
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(0, 1, None),
+             (1, 0, None),
+             (2, 3, None),
+             (3, 2, None),
+             (4, 5, None),
+             (5, 4, None),
+             (5, 6, None),
+             (6, 5, None)]
+
+        """
+        for e in edges:
+            u,v = e[:2]
+            self.add_edge(u,v,None,directed)
+
+    def add_vertex(self, name):
+        """
+        Adding vertices to dense graphs is not supported:
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_vertex(10)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Dense graphs do not support adding vertices.
+
+        """
+        raise NotImplementedError("Dense graphs do not support adding vertices.")
+
+    def add_vertices(self, vertices):
+        """
+        Adding vertices to dense graphs is not supported:
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_vertices([10,11,12])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Dense graphs do not support adding vertices.
+
+        """
+        raise NotImplementedError("Dense graphs do not support adding vertices.")
+
+    def del_edge(self, u, v, l, directed):
+        """
+        Delete edge u,v.
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(0, 1, None),
+             (1, 0, None),
+             (2, 3, None),
+             (3, 2, None),
+             (4, 5, None),
+             (5, 4, None),
+             (5, 6, None),
+             (6, 5, None)]
+            sage: D.del_edge(0,1,None,True)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(1, 0, None),
+             (2, 3, None),
+             (3, 2, None),
+             (4, 5, None),
+             (5, 4, None),
+             (5, 6, None),
+             (6, 5, None)]
+
+        """
+        if v is None:
+            u, v = u[:2]
+        if directed:
+            self._cg.del_arc(u, v)
+        else:
+            self._cg.del_arc(u, v)
+            self._cg.del_arc(v, u)
+
+    def del_vertex(self, v):
+        """
+        Adding vertices to dense graphs is not supported:
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.del_vertex(9)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Dense graphs do not support deleting vertices.
+
+        """
+        raise NotImplementedError("Dense graphs do not support deleting vertices.")
+
+    def del_vertices(self, vertices):
+        """
+        Adding vertices to dense graphs is not supported:
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.del_vertices([7,8])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Dense graphs do not support deleting vertices.
+
+        """
+        raise NotImplementedError("Dense graphs do not support deleting vertices.")
+
+    def get_edge_label(self, u, v):
+        """
+        Returns the edge label for u,v. Always None, since dense graphs don't
+        support edge labels.
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(0, 1, None),
+             (1, 0, None),
+             (2, 3, None),
+             (3, 2, None),
+             (4, 5, None),
+             (5, 4, None),
+             (5, 6, None),
+             (6, 5, None)]
+            sage: D.del_edge(0,1,None,True)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(1, 0, None),
+             (2, 3, None),
+             (3, 2, None),
+             (4, 5, None),
+             (5, 4, None),
+             (5, 6, None),
+             (6, 5, None)]
+            sage: D.get_edge_label(1,0)
+
+        """
+        if not self.has_edge(u, v, None):
+            raise RuntimeError("%s, %s not an edge of the graph."%(u, v))
+        return None
+
+    def has_edge(self, u, v, l):
+        """
+        Returns whether this graph has edge u,v.
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: D.has_edge(0,1,None)
+            True
+
+        """
+        return self._cg.has_arc(u, v)
+
+    def iterator_edges(self, vertices, labels, not_directed):
+        """
+        Iterate over the edges incident to a sequence of vertices.
+
+        INPUT:
+            vertices:     a list of vertex labels
+            labels:       boolean
+            not_directed: boolean
+
+        OUTPUT:
+            a generator which yields edges, with or without labels
+            depending on the labels parameter.
+
+        DOCTEST:
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: G.iterator_edges([],True,True)
+            <listiterator object at ...>
+        """
+        if not_directed and labels:
+            return iter([(v,u,None) for v in vertices for u in self._cg.out_neighbors(v)])
+        elif not_directed:
+            return iter([(v,u) for v in vertices for u in self._cg.out_neighbors(v)])
+        elif labels:
+            return iter([(v,u,None) for v in vertices for u in self._cg.out_neighbors(v) if u >= v or u not in vertices])
+        else:
+            return iter([(v,u) for v in vertices for u in self._cg.out_neighbors(v) if u >= v or u not in vertices])
+
+    def iterator_in_edges(self, vertices, labels):
+        """
+        Iterate over the incoming edges incident to a sequence of vertices.
+
+        INPUT:
+            vertices:     a list of vertex labels
+            labels:       boolean
+
+        OUTPUT:
+            a generator which yields edges, with or without labels
+            depending on the labels parameter.
+
+        DOCTEST:
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: G.iterator_in_edges([],True)
+            <listiterator object at ...>
+        """
+        if labels:
+            return iter([(u,v,None) for v in vertices for u in self._cg.in_neighbors(v)])
+        else:
+            return iter([(u,v) for v in vertices for u in self._cg.in_neighbors(v)])
+
+    def iterator_out_edges(self, vertices, labels):
+        """
+        Iterate over the outbound edges incident to a sequence of vertices.
+
+        INPUT:
+            vertices:     a list of vertex labels
+            labels:       boolean
+
+        OUTPUT:
+            a generator which yields edges, with or without labels
+            depending on the labels parameter.
+
+        DOCTEST:
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: G.iterator_out_edges([],True)
+            <listiterator object at ...>
+        """
+        if labels:
+            return iter([(v,u,None) for v in vertices for u in self._cg.out_neighbors(v)])
+        else:
+            return iter([(v,u) for v in vertices for u in self._cg.out_neighbors(v)])
+
+    def multiple_edges(self, new):
+        """
+        Get/set whether or not self allows multiple edges.
+
+        INPUT:
+            new: boolean or None
+
+        DOCTEST:
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: G.multiple_edges(True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Dense graphs do not support multiple edges.
+            sage: G.multiple_edges(None)
+            False
+        """
+        if new is None:
+            return False
+        if new:
+            raise NotImplementedError("Dense graphs do not support multiple edges.")
+
+    def set_edge_label(self, u, v, l, directed):
+        """
+        Label the edge (u,v) by l.
+
+        INPUT:
+            u,v:      vertices
+            l:        edge label
+            directed: boolean
+
+        DOCTEST:
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: G.set_edge_label(1,2,'a',True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Dense graphs do not support edge labels.
+        """
+        raise NotImplementedError("Dense graphs do not support edge labels.")
+
+

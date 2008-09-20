@@ -83,7 +83,6 @@ cdef extern from 'symmetrica/def.h':
         CHAR_AUG_PART = 38 # 170593 */ # internal use */
         INTEGERMATRIX =40 # AK 141293 */
         CYCLOTOMIC = 41 # MD */
-        CYCLOTOMIC = 41 # MD */
         MONOPOLY = 42 # MD */
         SQ_RADICAL = 43 # MD */
         BITVECTOR = 44

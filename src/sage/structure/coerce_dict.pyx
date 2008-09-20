@@ -21,18 +21,11 @@ cdef class TripleDict:
          types (tuple, list, etc.) map to the same item.
        - Comparison is done using the 'is' rather than '==' operator.
 
-    In addition, there is the following difference which (unlike the above
-    three) should probably be changed.
-
-       - Its size is fixed at creation time, so no load-adjusting parameters
-         are in place. One can re-size it by creating a new TripleDict
-         passing in self as a parameter.
-
     There are special cdef set/get methods for faster access.
     It is bare-bones in the sense that not all dictionary methods are
     implemented.
 
-    It is implemented as a list of lists (called buckets). The bucket
+    It is implemented as a list of lists (hereafter called buckets). The bucket
     is chosen according to a very simple hash based on the object pointer.
     and each bucket is of the form [k1, k2, k3, value, k1, k2, k3, value, ...]
     on which a linear search is performed.
@@ -102,7 +95,7 @@ cdef class TripleDict:
        -- Robert Bradshaw, 2007-08
     """
 
-    def __init__(self, size, data=None):
+    def __init__(self, size, data=None, threshold=0):
         """
         Create a special dict using triples for keys.
 
@@ -115,6 +108,7 @@ cdef class TripleDict:
             1
         """
         cdef int i
+        self.threshold = threshold
         self.buckets = [[] for i from 0 <= i <  size]
         if data is not None:
             for k, v in data.iteritems():
@@ -229,7 +223,7 @@ cdef class TripleDict:
         return self.get(k1, k2, k3)
 
     cdef get(self, k1, k2, k3):
-        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 + 503*<Py_ssize_t><void *>k3)
+        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 ^ 503*<Py_ssize_t><void *>k3)
         if h < 0: h = -h
         cdef Py_ssize_t i
         bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
@@ -257,7 +251,9 @@ cdef class TripleDict:
         self.set(k1, k2, k3, value)
 
     cdef set(self, k1, k2, k3, value):
-        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 + 503*<Py_ssize_t><void *>k3)
+        if self.threshold and len(self) > len(self.buckets) * self.threshold:
+            self.resize()
+        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 ^ 503*<Py_ssize_t><void *>k3)
         if h < 0: h = -h
         cdef Py_ssize_t i
         bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
@@ -284,7 +280,7 @@ cdef class TripleDict:
             k1, k2, k3 = k
         except (TypeError,ValueError):
             raise KeyError, k
-        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 + 503*<Py_ssize_t><void *>k3)
+        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 ^ 503*<Py_ssize_t><void *>k3)
         if h < 0: h = -h
         cdef Py_ssize_t i
         bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
@@ -296,16 +292,57 @@ cdef class TripleDict:
                 return
         raise KeyError, k
 
+    def resize(self, int buckets=0):
+        """
+        Changes the number of buckets of self, while preserving the contents.
+
+        If the number of buckes is 0 or not given, it resizes self to the
+        smallest prime that is at least twice as large as self.
+
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(8)
+            sage: for i in range(100): L[i,i,i] = None
+            sage: L.bucket_lens() # random
+            [50, 0, 0, 0, 50, 0, 0, 0]
+            sage: L.resize(7) # random
+            [15, 14, 14, 14, 14, 15, 14]
+            sage: L.resize()
+            sage: len(L.bucket_lens())
+            17
+        """
+        if buckets == 0:
+            from sage.rings.arith import next_prime
+            buckets = next_prime(2*len(self.buckets))
+        cdef TripleDict new = TripleDict(buckets, self)
+        self.buckets = new.buckets
+
     def iteritems(self):
         """
         EXAMPLES:
-            sage: from sage.structure.coerce_dict import TripleDict, TripleDictIter
+            sage: from sage.structure.coerce_dict import TripleDict
             sage: L = TripleDict(31)
             sage: L[1,2,3] = None
             sage: list(L.iteritems())
             [((1, 2, 3), None)]
         """
         return TripleDictIter(self)
+
+    def __reduce__(self):
+        """
+        Note that we don't expect equality as this class concerns itself with
+        object identy rather than object equality.
+
+        EXAMPLES:
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(31)
+            sage: L[1,2,3] = True
+            sage: loads(dumps(L)) == L
+            False
+            sage: list(loads(dumps(L)).iteritems())
+            [((1, 2, 3), True)]
+        """
+        return TripleDict, (len(self.buckets), dict(self.iteritems()), self.threshold)
 
 
 cdef class TripleDictIter:

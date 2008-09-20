@@ -37,7 +37,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
         circular -- if True, test for circular planarity
 
     EXAMPLE:
-        sage: G = graphs.DodecahedralGraph()
+        sage: G = Graph(graphs.DodecahedralGraph(), implementation='networkx')
         sage: from sage.graphs.planarity import is_planar
         sage: is_planar(G)
         True
@@ -82,7 +82,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
                 j = theGraph.G[j].link[1]
             if len(linked_list) > 0:
                 g_dict[to[i]] = linked_list
-        G = Graph(g_dict)
+        G = Graph(g_dict, implementation='networkx')
         gp_Free(&theGraph)
         if kuratowski:
             return (False, G)
@@ -108,12 +108,9 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
                 # Take counter-clockwise embedding if circular planar test
                 # Also, pos must be set after removing extra vertex and edges
 
-                # TODO and note to Robert:
                 # This is seperated out here for now because in the circular case,
                 # setting positions would have to come into play while the extra
                 # "wheel" or "star" is still part of the graph.
-                # I can explain if you call me or email or something.
-                # Emily
 
                 emb_dict = {}
                 #for i in range(theGraph.N):

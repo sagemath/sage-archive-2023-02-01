@@ -13,9 +13,6 @@ TESTS:
 import urllib
 from sage.structure.all import Sequence
 
-from time_series import TimeSeries
-
-
 class Day:
     def __init__(self, date, open, high, low, close, volume):
         """
@@ -164,6 +161,14 @@ class Stock:
         def get_data(exchange=''):
             """
             This function is used internally.
+
+            EXAMPLES:
+            This indirectly tests the use of get_data.
+                sage: finance.Stock('aapl').historical()[:2]    # optional -- requires internet
+                [
+                  2-Jan-90 8.81 9.38 8.75 9.31    6542800,
+                  3-Jan-90 9.50 9.50 9.38 9.38    7428400
+                ]
             """
             url = 'http://finance.google.com/finance/historical?q=%s%s&output=csv&startdate=%s'%(
                  exchange, symbol.upper(),startdate)
@@ -196,4 +201,5 @@ class Stock:
             sage: finance.Stock('vmw').close()                 # optional -- requires internet
             [57.7100, 56.9900, 55.5500, 57.3300, 65.9900 ...
         """
+        from time_series import TimeSeries
         return TimeSeries([x.close for x in self.historical(*args, **kwds)])

@@ -99,14 +99,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         weight = int(weight)
         if weight <= 1:
             raise ValueError, "Weight (=%s) Modular symbols of weight <= 1 not defined."%weight
-        if not isinstance(group, congroup.CongruenceSubgroup):
+        if not congroup.is_CongruenceSubgroup(group):
             raise TypeError, "group must be a congruence subgroup"
 
         sign = int(sign)
         if not isinstance(base_ring, rings.Ring) and base_ring.is_field():
             raise TypeError, "base_ring must be a commutative ring"
 
-        if character == None and isinstance(group, congroup.Gamma0):
+        if character == None and congroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
 
         space.ModularSymbolsSpace.__init__(self, group, weight,
@@ -746,7 +746,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             R -- list of lists [a,b,c,d] of length 4, which we view as elements of GL_2(Q).
 
         OUTPUT:
-            a matrix, which represents the operator
+            A matrix, which represents the operator
             $$
                x \mapsto \sum_{g in R} g.x
             $$
@@ -765,9 +765,51 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return M(rows)
 
     def _compute_atkin_lehner_matrix(self, d):
+        r"""
+        INPUT:
+            d -- integer that divides level
+
+        OUTPUT:
+            matrix
+
+        EXAMPLES:
+        An example at level 29:
+            sage: M = ModularSymbols((DirichletGroup(29,QQ).0), 2,1); M
+            Modular Symbols space of dimension 4 and level 29, weight 2, character [-1], sign 1, over Rational Field
+            sage: w = M._compute_atkin_lehner_matrix(29)
+            sage: w^2 == 1
+            True
+            sage: w.fcp()
+            (x - 1)^2 * (x + 1)^2
+
+        This doesn't work since the character has order > 2:
+            sage: M = ModularSymbols((DirichletGroup(13).0), 2,1); M
+            Modular Symbols space of dimension 0 and level 13, weight 2, character [zeta12], sign 1, over Cyclotomic Field of order 12 and degree 4
+            sage: M._compute_atkin_lehner_matrix(13)
+            Traceback (most recent call last):
+            ...
+            ValueError: Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)
+
+        Note that Atkin-Lehner does make sense on $\Gamma_1(13)$, but
+        doesn't commute with the Hecke operators:
+            sage: M = ModularSymbols(Gamma1(13),2)
+            sage: w = M.atkin_lehner_operator(13).matrix()
+            sage: t = M.T(2).matrix()
+            sage: t*w == w*t
+            False
+            sage: w^2 == 1
+            True
+        """
+        chi = self.character()
+        if chi is not None and chi.order() > 2:
+            raise ValueError, "Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)"
+
+        N = self.level()
         k = self.weight()
         R = self.base_ring()
-        N = self.level()
+        if N%d != 0:
+            raise ValueError, "d must divide N"
+
         g, x, y = arith.xgcd(d, -N//d)
         g = [d*x, y, N, d]
         A = self._action_on_modular_symbols(g)

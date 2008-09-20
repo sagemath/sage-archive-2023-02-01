@@ -1,10 +1,13 @@
 r"""
+Linear code constructions.
+
 AUTHOR:
     -- David Joyner (2007-05): initial version
     --    "         (2008-02): added cyclic codes, Hamming codes
     --    "         (2008-03): added BCH code, LinearCodeFromCheckmatrix,
                                ReedSolomonCode, WalshCode, DuadicCodeEvenPair,
                                DuadicCodeOddPair, QR codes (even and odd)
+    --    "         (2008-09)  fix for bug in BCHCode reported by F. Voloch
 
 This file contains contructions of error-correcting codes which are
 pure Python/SAGE and not obtained from wrapping GUAVA functions.
@@ -47,9 +50,12 @@ zeros of $C$.
 
  * BCHCode - A 'Bose-Chaudhuri-Hockenghem code' (or BCH code for short) is the
     largest possible cyclic code of length n over field F=GF(q), whose generator
-    polynomial has zeros (which contain the set) $Z = \{a^{b},a^{b+1}, ..., a^{b+delta-2}\}$,
-    where a is a primitive $n^{th}$ root of unity in the splitting field $GF(q^m)$,
-    b is an integer $0\leq b\leq n-delta+1$ and m is the multiplicative order of q modulo n.
+    polynomial has zeros (which contain the set)
+            $Z = \{a^i\ |\ i \in C_b\cup ... C_{b+delta-2}\}$,
+    where $a$ is a primitive $n^{th}$ root of unity in the splitting field $GF(q^m)$,
+    $b$ is an integer $0\leq b\leq n-delta+1$ and $m$ is the multiplicative order of
+    $q$ modulo $n$. The default here is $b=0$ (unlike Guava, wghich has default $b=1$).
+    Here $C_k$ are the cyclotomic codes (see \code{cyclotomic_cosets}).
 
  * BinaryGolayCode, ExtendedBinaryGolayCode, TernaryGolayCode, ExtendedTernaryGolayCode
    the well-known "extremal" Golay codes, http://en.wikipedia.org/wiki/Golay_code
@@ -190,6 +196,7 @@ def cyclotomic_cosets(q, n, t = None):
     ZZ/2ZZ.
 
     """
+    from sage.misc.misc import srange
     if not(t==None) and type(t)<>Integer:
         raise TypeError,  "Optional input %s must None or an integer."%t
     if q<2 or n<2:
@@ -197,7 +204,7 @@ def cyclotomic_cosets(q, n, t = None):
     if GCD(q,n) <> 1:
         raise TypeError,  "Inputs %s and %s must be relative prime."%(q,n)
     if t<>None and type(t)==Integer:
-        S = Set([t*q**i%n for i in range(n)])
+        S = Set([t*q**i%n for i in srange(n)])
         L = list(S)
         L.sort()
         return L
@@ -205,7 +212,7 @@ def cyclotomic_cosets(q, n, t = None):
     ccs_list = [[0]]
     for s in range(1,n):
         if not(s in ccs):
-            S = Set([s*q**i%n for i in range(n)])
+            S = Set([s*q**i%n for i in srange(n)])
             L = list(S)
             L.sort()
             ccs = ccs.union(S)
@@ -490,25 +497,36 @@ def BCHCode(n,delta,F,b=0):
         sage: C.minimum_distance()
         4
         sage: C = BCHCode(8,3,GF(3)); C
-        Linear code of length 8, dimension 3 over Finite Field of size 3
+        Linear code of length 8, dimension 5 over Finite Field of size 3
         sage: C.minimum_distance()
-        5
+        3
+        sage: C = BCHCode(26, 5, GF(5), b=1); C
+        Linear code of length 26, dimension 10 over Finite Field of size 5
 
     REFERENCES:
         [HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting Codes,
         Cambridge Univ. Press, 2003.
 
     """
+    from sage.misc.misc import srange
     q = F.order()
     R = IntegerModRing(n)
     m = R(q).multiplicative_order()
-    FF = GF(q**m,"a"); a = FF.gen()
-    x = PolynomialRing(FF,"x").gen()
-    L0 = [a**i for i in range(b,b+delta)]
-    L1 = [b.minpoly() for b in L0]
-    g = LCM(L1)
+    FF = GF(q**m,"z")
+    z = FF.gen()
+    e = z.multiplicative_order()/n
+    a = z**e # order n
+    P = PolynomialRing(F,"x")
+    x = P.gen()
+    cosets = Set([])
+    for i in srange(b,b+delta-1):
+        cosets = cosets.union(Set(cyclotomic_cosets(q, n, i)))
+    L0 = [a**j for j in cosets]
+    L1 = [P(ai.minpoly()) for ai in L0]
+    g = P(LCM(L1))
+    #print cosets, "\n", g, "\n", (x**n-1).factor(), "\n", L1, "\n", g.divides(x**n-1)
     if not(g.divides(x**n-1)):
-        ValueError, "BCH codes does not exist with the given input."
+        raise ValueError, "BCH codes does not exist with the given input."
     return CyclicCodeFromGeneratingPolynomial(n,g)
 
 
@@ -543,7 +561,7 @@ def BinaryGolayCode():
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1]]
     # MS = MatrixSpace(F,12,23)
     # V = VectorSpace(F,23)
-    V = span(F, B)
+    V = span(B, F)
     return LinearCodeFromVectorSpace(V)
 
 
@@ -773,7 +791,7 @@ def ExtendedBinaryGolayCode():
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0],\
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1],\
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1]]
-    V = span(GF(2), B)
+    V = span(B, GF(2))
     return LinearCodeFromVectorSpace(V)
     # C = BinaryGolayCode()
     # return C.extended_code()
@@ -834,7 +852,7 @@ def ExtendedTernaryGolayCode():
          [0, 0, 0, 1, 0, 0, 1, 1, 0, 2, 2, 2],\
          [0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 0, 1],\
          [0, 0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 1]]
-    V = span(GF(3), B)
+    V = span(B, GF(3))
     return LinearCodeFromVectorSpace(V)
     # C = TernaryGolayCode()
     # return C.extended_code()
@@ -1082,7 +1100,7 @@ def RandomLinearCode(n,k,F):
     for i in range(50):
         G = MS.random_element()
         if G.rank() == k:
-            V = span(F, G.rows())
+            V = span(G.rows(), F)
             return LinearCodeFromVectorSpace(V)  # may not be in standard form
     MS1 = MatrixSpace(F,k,k)
     MS2 = MatrixSpace(F,k,n-k)
@@ -1177,7 +1195,7 @@ def TernaryGolayCode():
          [0, 0, 0, 2, 0, 1, 2, 1, 1, 0, 0],\
          [0, 0, 0, 0, 2, 0, 1, 2, 1, 1, 0],\
          [0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 1]]
-    V = span(F, B)
+    V = span(B, F)
     return LinearCodeFromVectorSpace(V)
 
 def ToricCode(P,F):

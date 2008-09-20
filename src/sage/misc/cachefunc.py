@@ -45,30 +45,79 @@ class CachedFunction(object):
         self.cache = {}
         self.__doc__ = f.func_doc
         self.__name__ = f.func_name
-        self.instance = None
+        self.__module__ = f.__module__
 
     def __call__(self, *args, **kwds):
         """
         EXAMPLES:
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
-            sage: g.cache
+            sage: g.get_cache()
             {((5,), ()): 7}
             sage: a = g(10^5)
             sage: a == number_of_partitions(10^5)
             True
         """
-        k = (args, tuple(kwds))
-        if self.cache.has_key(k):
-            return self.cache[k]
-
-        #Handle the case where self.f is a method of a class
-        if self.instance is not None:
-            w = self.f(self.instance, *args, **kwds)
-        else:
-            w = self.f(*args, **kwds)
-        self.cache[k] = w
+        cache = self.get_cache()
+        k = self.get_key(*args, **kwds)
+        if cache.has_key(k):
+            return cache[k]
+        w = self.f(*args, **kwds)
+        cache[k] = w
         return w
+
+    def get_cache(self):
+        """
+        Returns the cache dictionary.
+
+        EXAMPLES:
+            sage: g = CachedFunction(number_of_partitions)
+            sage: a = g(5)
+            sage: g.get_cache()
+            {((5,), ()): 7}
+
+        """
+        return self.cache
+
+    def is_in_cache(self, *args, **kwds):
+        """
+        EXAMPLES:
+            sage: class Foo:
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       @cached_method
+            ...       def f(self, z):
+            ...           return self._x*z
+            ...
+            sage: a = Foo(2)
+            sage: a.f.is_in_cache(3)
+            False
+            sage: a.f(3)
+            6
+            sage: a.f.is_in_cache(3)
+            True
+        """
+        cache = self.get_cache()
+        return self.get_key(*args, **kwds) in cache
+
+    def get_key(self, *args, **kwds):
+        """
+        Returns the key in the cache to be used when args
+        and kwds are passed in as parameters.
+
+        EXAMPLES:
+            sage: class Foo:
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       @cached_method
+            ...       def f(self):
+            ...           return self._x^2
+            ...
+            sage: a = Foo(2)
+            sage: a.f.get_key()
+            ((), ())
+        """
+        return (args, tuple(sorted(kwds.items())))
 
     def __repr__(self):
         """
@@ -79,20 +128,97 @@ class CachedFunction(object):
         """
         return "Cached version of %s"%self.f
 
+    def clear_cache(self):
+        """
+        Clear the cache dictionary.
+
+        EXAMPLES:
+            sage: g = CachedFunction(number_of_partitions)
+            sage: a = g(5)
+            sage: g.get_cache()
+            {((5,), ()): 7}
+            sage: g.clear_cache()
+            sage: g.get_cache()
+            {}
+        """
+        cache = self.get_cache()
+        for key in cache.keys():
+            del cache[key]
+
+
+cached_function = CachedFunction
+
+class CachedMethod(CachedFunction):
+    def __init__(self, f):
+        """
+        EXAMPLES:
+            sage: class Foo:
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       @cached_method
+            ...       def f(self):
+            ...           return self._x^2
+            ...
+            sage: Foo.f._cache_name
+            '_cache__f'
+        """
+        self._cache_name = '_cache__' + f.__name__
+        CachedFunction.__init__(self, f)
+
+    def __call__(self, *args, **kwds):
+        """
+        EXAMPLES:
+            sage: class Foo:
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       @cached_method
+            ...       def f(self):
+            ...           return self._x^2
+            ...
+            sage: a = Foo(2)
+            sage: a.f()
+            4
+            sage: a.f() is a.f()
+            True
+            sage: b = Foo(3)
+            sage: b.f()
+            9
+        """
+        cache = self.get_cache()
+        key = self.get_key(*args, **kwds)
+        if cache.has_key(key):
+            return cache[key]
+        else:
+            cache[key] = self.f(self._instance, *args, **kwds)
+            return cache[key]
+
+    def get_cache(self):
+        """
+        Returns the cache dictionary.
+
+        EXAMPLES:
+            sage: class Foo:
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       @cached_method
+            ...       def f(self):
+            ...           return self._x^2
+            ...
+            sage: a = Foo(2)
+            sage: a.f()
+            4
+            sage: a.f.get_cache()
+            {((), ()): 4}
+
+        """
+        return self._instance.__dict__.setdefault(self._cache_name, {})
+
     def __get__(self, inst, cls=None):
         """
         This is needed to allow CachedFunction to decorate
         methods.
-
-        EXAMPLES:
-            sage: class Foo:
-            ...       @CachedFunction
-            ...       def f(self, x):
-            ...           return x^2
-            ...
-            sage: a = Foo()
-            sage: a.f(2)
-            4
         """
-        self.instance = inst
+        self._instance = inst
         return self
+
+cached_method = CachedMethod

@@ -718,6 +718,35 @@ cdef class BinaryCode:
         sage_free(self.words)
         sage_free(self.basis)
 
+    def __reduce__(self):
+        """
+        Method for pickling and unpickling BinaryCodes.
+
+        TESTS:
+            sage: from sage.coding.binary_code import *
+            sage: M = Matrix(GF(2), [[1,1,1,1]])
+            sage: B = BinaryCode(M)
+            sage: loads(dumps(B)) == B
+            True
+
+        """
+        return BinaryCode, (self.matrix(),)
+
+    def __cmp__(self, other):
+        """
+        Comparison of BinaryCodes.
+
+        TESTS:
+            sage: from sage.coding.binary_code import *
+            sage: M = Matrix(GF(2), [[1,1,1,1]])
+            sage: B = BinaryCode(M)
+            sage: C = BinaryCode(B.matrix())
+            sage: B == C
+            True
+
+        """
+        return cmp(self.matrix(), other.matrix())
+
     def matrix(self):
         """
         Returns the generator matrix of the BinaryCode, i.e. the code is the
@@ -870,6 +899,24 @@ cdef class BinaryCode:
         return s
 
     def _word(self, coords):
+        """
+        Considering coords as an integer in binary, think of the 0's and 1's as
+        coefficients of the basis given by self.matrix(). This function returns
+        a string representation of that word.
+
+        EXAMPLE:
+            sage: from sage.coding.binary_code import *
+            sage: M = Matrix(GF(2), [[1,1,1,1]])
+            sage: B = BinaryCode(M)
+            sage: B._word(0)
+            '0000'
+            sage: B._word(1)
+            '1111'
+
+        Note that behavior under input which does not represent a word in
+        the code is unspecified (gives nonsense).
+
+        """
         s = ''
         for j from 0 <= j < self.ncols:
             s += '%d'%self.is_one(coords,j)
@@ -1645,6 +1692,17 @@ cdef class PartitionStack:
         return s
 
     def _repr_at_k(self, k):
+        """
+        Gives a string representing the partition at level k:
+
+        EXAMPLE:
+            sage: from sage.coding.binary_code import *
+            sage: P = PartitionStack(2, 6); P
+            ({0,1,2,3})  ({0,1,2,3,4,5})
+            sage: P._repr_at_k(0)
+            '({0,1,2,3})  ({0,1,2,3,4,5})\n'
+
+        """
         s = '({'
         for j from 0 <= j < self.nwords:
             s += str(self.wd_ents[j])
@@ -3776,7 +3834,7 @@ cdef class BinaryCodeClassifier:
         cdef BinaryCode m
         cdef codeword *ortho_basis, *B_can_lab, current, swap
         cdef codeword word, temp, gate, nonzero_gate, orbit, bwd, k_gate
-        cdef codeword *temp_basis, swap, *orbit_checks, orb_chx_size, orb_chx_shift, radix_gate
+        cdef codeword *temp_basis, *orbit_checks, orb_chx_size, orb_chx_shift, radix_gate
         cdef WordPermutation *gwp, *hwp, *can_lab, *can_lab_inv
         cdef WordPermutation **parent_generators
         cdef BinaryCode B_aug
@@ -3963,7 +4021,7 @@ cdef class BinaryCodeClassifier:
                         else:
                             aut_B_aug = PermutationGroup([PermutationGroupElement([a+1 for a in g]) for g in aug_aut_gp_gens])
 #                        print 'aut_B_aug:', aut_B_aug
-                        H = aut_m.__interface[gap].Intersection2(aut_B_aug.__interface[gap])
+                        H = aut_m._gap_(gap).Intersection2(aut_B_aug._gap_(gap))
 #                        print 'H:', H
                         rt_transversal = list(gap('List(RightTransversal( %s,%s ));'\
                           %(str(aut_B_aug.__interface[gap]),str(H))))

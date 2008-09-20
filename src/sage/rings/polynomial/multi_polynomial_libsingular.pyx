@@ -34,6 +34,13 @@ TESTS:
     True
     sage: loads(dumps(x)) == x
     True
+
+    sage: Rt.<t> = PolynomialRing(QQ,1)
+    sage: p = 1+t
+    sage: R.<u,v> = PolynomialRing(QQ, 2)
+    sage: p(u/v)
+    (u + v)/v
+
 """
 
 include "sage/ext/stdsage.pxi"
@@ -53,7 +60,6 @@ from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.polydict import ETuple
-from sage.rings.polynomial.pbori import BooleanPolynomial
 
 # base ring imports
 from sage.rings.rational_field import RationalField
@@ -291,12 +297,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
 
         for i from 0 <= i < nblcks:
-            self._ring.order[i] = order_dict.get(order.blocks[i][0], ringorder_lp)
+            self._ring.order[i] = order_dict.get(order[i].singular_str(), ringorder_lp)
             self._ring.block0[i] = offset + 1
-            if order.blocks[i][1] == 0: # may be zero in some cases
+            if len(order[i]) == 0: # may be zero in some cases
                 self._ring.block1[i] = offset + n
             else:
-                self._ring.block1[i] = offset + order.blocks[i][1]
+                self._ring.block1[i] = offset + len(order[i])
             offset = self._ring.block1[i]
 
         self._ring.order[nblcks] = ringorder_C
@@ -609,6 +615,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     _p = p_Add_q(_p, mon, _ring)
                 return co.new_MP(self, _p)
 
+        from sage.rings.polynomial.pbori import BooleanPolynomial
+
         if PY_TYPE_CHECK(element, BooleanPolynomial) and \
                element.parent().ngens() == _ring.N and \
                element.parent().variable_names() == self.variable_names():
@@ -646,7 +654,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             return element._polynomial_(self)
 
         if is_Macaulay2Element(element):
-            return self(repr(element))
+            return self(element.external_string())
 
         try:
             return self(str(element))
@@ -657,6 +665,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         element = self.base_ring()(element)
         _p = p_NSet(co.sa2si(element,_ring), _ring)
         return co.new_MP(self,_p)
+
+    def _repr_(self):
+        """
+        EXAMPLE:
+            sage: P.<x,y> = QQ[]
+            sage: P # indirect doctest
+            Multivariate Polynomial Ring in x, y over Rational Field
+        """
+        varstr = ", ".join([ rRingVar(i,self._ring)  for i in range(self.__ngens) ])
+        return "Multivariate Polynomial Ring in %s over %s"%(varstr,self._base)
 
     def ngens(self):
         """
@@ -1469,7 +1487,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         cdef poly *_p
 
-        if l == 1 and (PY_TYPE_CHECK(x, tuple) or PY_TYPE_CHECK(x, list)):
+        if l == 1 and (PY_TYPE_CHECK(x[0], tuple) or PY_TYPE_CHECK(x[0], list)):
             x = x[0]
             l = len(x)
 
@@ -2113,24 +2131,21 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = 1 + x*y + x^3 + y^3
             sage: P = f.newton_polytope()
             sage: P
-            Convex hull of points [[1, 0, 0], [1, 0, 3], [1, 1, 1], [1, 3, 0]]
-            sage: P.facets()
-            [(0, 1, 0), (3, -1, -1), (0, 0, 1)]
+            A Polyhedron with 4 vertices.
             sage: P.is_simple()
             True
 
         TESTS:
             sage: R.<x,y> = QQ[]
             sage: R(0).newton_polytope()
-            Convex hull of points []
+            A Polyhedron.
             sage: R(1).newton_polytope()
-            Convex hull of points [[1, 0, 0]]
+            A Polyhedron with 1 vertices.
 
         """
-        from sage.geometry.all import polymake
+        from sage.geometry.polyhedra import Polyhedron
         e = self.exponents()
-        a = [[1] + list(v) for v in e]
-        P = polymake.convex_hull(a)
+        P = Polyhedron(vertices = e)
         return P
 
     def total_degree(self):
@@ -2173,6 +2188,31 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             return 0
         if(r != currRing): rChangeCurrRing(r)
         return pLDeg(p,&l,r)
+
+    def degrees(self):
+        r"""
+        Returns a tuple with the maximl degree of each variable in
+        this polynomial.  The list of degrees is ordered by the order
+        of the generators.
+
+        EXAMPLE:
+            sage: R.<y0,y1,y2> = PolynomialRing(QQ,3)
+            sage: q = 3*y0*y1*y1*y2; q
+            3*y0*y1^2*y2
+            sage: q.degrees()
+            (1, 2, 1)
+            sage: (q + y0^5).degrees()
+            (5, 2, 1)
+        """
+        cdef poly *p = self._poly
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef int i
+        cdef list d = [0 for _ in range(r.N)]
+        while p:
+            for i from 0 <= i < r.N:
+                d[i] = max(d[i],p_GetExp(p, i+1, r))
+            p = pNext(p)
+        return tuple(d)
 
     def coefficient(self, degrees):
         """
@@ -3257,7 +3297,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             (-2) * (c - d) * (b - d) * (b - c) * (-a + b) * (a - d) * (a - c)
             sage: F[0][0]
             c - d
-            sage: F.unit_part()
+            sage: F.unit()
             -2
 
         Factorization of multivariate polynomials over non-prime
@@ -3597,25 +3637,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             _sig_off
         return co.new_MP(parent, quo), co.new_MP(parent, rem)
 
-    def _magma_(self, magma=None):
-        """
-        Returns the MAGMA representation of self.
-
-        EXAMPLES:
-            sage: R.<x,y> = GF(2)[]
-            sage: f = y*x^2 + x +1
-            sage: f._magma_() #optional
-            x^2*y + x + 1
-        """
-        if magma is None:
-            # TODO: import this globally
-            import sage.interfaces.magma
-            magma = sage.interfaces.magma.magma
-
-        magma_gens = [e.name() for e in self.parent()._magma_().gens()]
-        f = self._repr_with_changed_varnames(magma_gens)
-        return magma(f)
-
     def _singular_init_(self, singular=singular_default, have_ring=False):
         r"""
         Return a \SINGULAR (as in the computer algebra system) string
@@ -3680,7 +3701,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return co.new_MP(self._parent, p_Minus_mm_Mult_qq(p_Copy(self._poly, r), m._poly, q._poly, r))
 
-    def _macaulay2_init_(self, macaulay2=macaulay2):
+    def _macaulay2_(self, macaulay2=macaulay2):
         """
         Return a Macaulay2 string representation of this polynomial.
 
@@ -3694,23 +3715,22 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = (x^3 + 2*y^2*x)^7; f
             x^21 + 2*x^7*y^14
 
-        Always call the Macaulay2 ring conversion on the parent polynomial
-        ring before converting a copy of elements to Macaulay2:
-            sage: macaulay2(R)                      # optional
-            ZZ/7 [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
-            sage: h = f._macaulay2_(); h            # optional
-            x^21+2*x^7*y^14
-            sage: k = (x+y)._macaulay2_init_(); k
-            'x + y'
-            sage: k = macaulay2(k)                  # optional
+            sage: h = macaulay2(f); h               # optional
+             21     7 14
+            x   + 2x y
+            sage: k = macaulay2(x+y); k             # optional
+            x + y
             sage: k + h                             # optional
-            x^21+2*x^7*y^14+x+y
+             21     7 14
+            x   + 2x y   + x + y
             sage: R(h)                              # optional
             x^21 + 2*x^7*y^14
             sage: R(h^20) == f^20                   # optional
             True
         """
-        return repr(self)
+        m2_parent = macaulay2(self.parent())
+        macaulay2.use(m2_parent)
+        return macaulay2(repr(self))
 
     def add_m_mul_q(self, MPolynomial_libsingular m, MPolynomial_libsingular q):
         r"""

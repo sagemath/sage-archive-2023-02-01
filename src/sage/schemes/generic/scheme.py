@@ -51,10 +51,18 @@ def is_Scheme(x):
 # the base defaults to Spec(Z) with the canonical morphism.
 
 class Scheme(ParentWithBase):
-    """
-    A scheme.
-    """
     def __init__(self,X):
+        """
+        A scheme.
+
+        TESTS:
+            sage: R.<x, y> = QQ[]
+            sage: I = (x^2 - y^2)*R
+            sage: RmodI = R.quotient(I)
+            sage: X = Spec(RmodI)
+            sage: X == loads(dumps(X))
+            True
+        """
         if spec.is_Spec(X):
             self._base_ring = X.coordinate_ring()
             ParentWithBase.__init__(self, self._base_ring)
@@ -63,19 +71,56 @@ class Scheme(ParentWithBase):
             ParentWithBase.__init__(self, self._base_scheme)
 
     def __cmp__(self, X):
+        """
+        EXAMPLES:
+            sage: X = Spec(QQ);  Y = Spec(QQ)
+            sage: X == Y
+            True
+            sage: X is Y
+            False
+        """
         if not isinstance(X, self.__class__):
             return -1
         return self._cmp_(X)
 
-    def __add__(self, other):
-        return self.union(other)
+    def union(self, X):
+        """
+        Return the disjoint union of the schemes self and X.
+
+        EXAMPLES:
+            sage: S = Spec(QQ)
+            sage: X = AffineSpace(1, QQ)
+            sage: S.union(X)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    __add__ = union
 
     def _point_morphism_class(self):
+        """
+        EXAMPLES:
+            sage: X = Spec(QQ)
+            sage: X._point_morphism_class()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def base_extend(self, Y):
         """
         Y is either a scheme in the same category as self or a ring.
+        EXAMPLES:
+            sage: X = Spec(QQ)
+            sage: X.base_scheme()
+            Spectrum of Integer Ring
+            sage: X.base_extend(QQ)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -135,8 +180,20 @@ class Scheme(ParentWithBase):
                     return self.point(S)
         return self.point(args)
 
-    def point_homset(self, R=None):
-        if R is None or R == self.base_ring():
+    def point_homset(self, S = None):
+        """
+        Return the set of S-valued points of this scheme.
+
+        EXAMPLES:
+            sage: P = ProjectiveSpace(ZZ, 3)
+            sage: P.point_homset(ZZ)
+            Set of Rational Points of Projective Space of dimension 3 over Integer Ring
+            sage: P.point_homset(QQ)
+            Set of Rational Points of Projective Space of dimension 3 over Rational Field
+            sage: P.point_homset(GF(11))
+            Set of Rational Points of Projective Space of dimension 3 over Finite Field of size 11
+        """
+        if S is None or S == self.base_ring():
             # optimize common case
             try:
                 return self.__ring_point_homset
@@ -144,22 +201,38 @@ class Scheme(ParentWithBase):
                 self.__ring_point_homset = self._homset_class(self,self.base_ring())
                 return self.__ring_point_homset
         try:
-            return self.__point_homset[R]
+            return self.__point_homset[S]
         except AttributeError:
             self.__point_homset = {}
         except KeyError:
             pass
-        H = self._homset_class(self,R)
-        self.__point_homset[R] = H
+        H = self._homset_class(self, S)
+        self.__point_homset[S] = H
         return H
 
     def point(self, v, check=True):
         return self._point_class(self, v, check=check)
 
     def _point_class(self):
+        """
+        EXAMPLES:
+            sage: X = Spec(QQ)
+            sage: X._point_class()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def _homset_class(self):
+        """
+        EXAMPLES:
+            sage: X = Spec(QQ)
+            sage: X._homset_class()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
 
@@ -179,6 +252,18 @@ class Scheme(ParentWithBase):
         return self.base_extend(Y)
 
     def base_ring(self):
+        """
+        Return the base ring of the scheme self.
+
+        EXAMPLES:
+            sage: A = AffineSpace(4, QQ)
+            sage: A.base_ring()
+            Rational Field
+
+            sage: X = Spec(QQ)
+            sage: X.base_ring()
+            Integer Ring
+        """
         try:
             return self._base_ring
         except AttributeError:
@@ -191,6 +276,18 @@ class Scheme(ParentWithBase):
             return self._base_ring
 
     def base_scheme(self):
+        """
+        Return the base scheme of the scheme self.
+
+        EXAMPLES:
+            sage: A = AffineSpace(4, QQ)
+            sage: A.base_scheme()
+            Spectrum of Rational Field
+
+            sage: X = Spec(QQ)
+            sage: X.base_scheme()
+            Spectrum of Integer Ring
+        """
         try:
             return self._base_scheme
         except AttributeError:
@@ -205,6 +302,25 @@ class Scheme(ParentWithBase):
             return self._base_scheme
 
     def base_morphism(self):
+        """
+        Return the structure morphism from the scheme self to its base
+        scheme.
+
+        EXAMPLES:
+            sage: A = AffineSpace(4, QQ)
+            sage: A.base_morphism()
+            Scheme morphism:
+              From: Affine Space of dimension 4 over Rational Field
+              To:   Spectrum of Rational Field
+              Defn: Structure map
+
+            sage: X = Spec(QQ)
+            sage: X.base_morphism()
+            Scheme morphism:
+              From: Spectrum of Rational Field
+              To:   Spectrum of Integer Ring
+              Defn: Structure map
+        """
         try:
             return self._base_morphism
         except AttributeError:
@@ -216,19 +332,30 @@ class Scheme(ParentWithBase):
                 self._base_morphism = self.Hom(spec.SpecZ, cat=SCH).natural_map()
             return self._base_morphism
 
-    def structure_morphism(self):
-        """
-        Same as self.base_morphism().
-        """
-        return self.base_morphism()
+    structure_morphism = base_morphism
 
     def category(self):
+        """
+        Return the category to which this scheme belongs.  This is the
+        category of all schemes of the base scheme of self.
+
+        EXAMPLES:
+            sage: ProjectiveSpace(4, QQ).category()
+            Category of schemes over Spectrum of Rational Field
+        """
         return Schemes(self.base_scheme())
 
     def coordinate_ring(self):
         """
         Return the coordinate ring of this scheme, if defined.  Otherwise raise
         a ValueError.
+
+        EXAMPLES:
+            sage: R.<x, y> = QQ[]
+            sage: I = (x^2 - y^2)*R
+            sage: X = Spec(R.quotient(I))
+            sage: X.coordinate_ring()
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 - y^2)
         """
         try:
             return self._coordinate_ring
@@ -238,10 +365,28 @@ class Scheme(ParentWithBase):
     def dimension(self):
         """
         Return the relative dimension of this scheme over its base.
+
+        EXAMPLES:
+            sage: R.<x, y> = QQ[]
+            sage: I = (x^2 - y^2)*R
+            sage: X = Spec(R.quotient(I))
+            sage: X.dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError # override in derived class
 
     def identity_morphism(self):
+        """
+        Return the identity morphism of the scheme self.
+
+        EXAMPLES:
+            sage: X = Spec(QQ)
+            sage: X.identity_morphism()
+            Scheme endomorphism of Spectrum of Rational Field
+              Defn: Identity map
+        """
         return morphism.SchemeMorphism_id(self)
 
     def hom(self, x, Y=None):
@@ -252,6 +397,12 @@ class Scheme(ParentWithBase):
         If Y is not given, try to determine Y from context.
 
         EXAMPLES:
+            sage: P = ProjectiveSpace(ZZ, 3)
+            sage: P.hom(Spec(ZZ))
+            Scheme morphism:
+              From: Projective Space of dimension 3 over Integer Ring
+              To:   Spectrum of Integer Ring
+              Defn: Structure map
         """
         if Y is None:
             if is_Scheme(x):
@@ -263,22 +414,24 @@ class Scheme(ParentWithBase):
     def _Hom_(self, Y, cat=None, check=True):
         """
         Return the set of scheme morphisms from self to Y.
+
+        EXAMPLES:
+            sage: P = ProjectiveSpace(ZZ, 3)
+            sage: S = Spec(ZZ)
+            sage: S._Hom_(P)
+            Set of points of Projective Space of dimension 3 over Integer Ring defined over Integer Ring
         """
         return homset.SchemeHomset(self, Y, cat=cat, check=check)
 
-    def point_set(self, S):
-        """
-        Return the set of S-valued points of this scheme.
-        """
-        return self.point_homset(S)
+    point_set = point_homset
 
     def count_points(self, n):
         r"""
         Count points over $\mathbf{F}_q, \ldots, \mathbf{F}_{q^n}$ on
         a scheme over a finite field $\mathbf{F}_q$.
 
-        NOTE: This is currently only implemented for curves over prime
-            order finite fields.
+        NOTE: This is currently only implemented for schemes over prime
+        order finite fields.
 
         EXAMPLES:
             sage: P.<x> = PolynomialRing(GF(3))

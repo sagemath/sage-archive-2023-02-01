@@ -104,6 +104,11 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             2/3
             sage: NumberFieldElement_quadratic(F, 2/3)
             2/3
+
+        This checks a bug when converting from lists:
+            sage: w = CyclotomicField(3)([1/2,1])
+            sage: w == w.__invert__().__invert__()
+            True
             """
         self.D = parent._D
         cdef Integer a, b, denom
@@ -155,6 +160,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
                     mpz_mul(self.denom, self.denom, gen.denom)
             else:
                 mpz_set_ui(self.denom, 1)
+            self._reduce_c_()
 
     cdef _new(self):
         """
@@ -1150,7 +1156,7 @@ cdef class Q_to_quadratic_field_element(Morphism):
         self.zero_element.D = K._D
 
 
-    cdef Element _call_c_impl(self, Element x):
+    cpdef Element _call_(self, x):
         cdef NumberFieldElement_quadratic y = self.zero_element._new()
         y.D = self.zero_element.D
         mpz_set(y.a, mpq_numref((<Rational>x).value))

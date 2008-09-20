@@ -44,12 +44,12 @@ We create a polynomial ring over a quaternion algebra:
     sage: f
     w^3 + (i + j)*w + 1
     sage: f^2
-    w^6 + (2*i + 2*j)*w^4 + 2*w^3 + (-2)*w^2 + (2*i + 2*j)*w + 1
+    w^6 + (2*i + 2*j)*w^4 + 2*w^3 - 2*w^2 + (2*i + 2*j)*w + 1
     sage: f = w + i ; g = w + j
     sage: f * g
     w^2 + (i + j)*w + k
     sage: g * f
-    w^2 + (i + j)*w + -k
+    w^2 + (i + j)*w - k
 
 TESTS:
     sage: K.<x>=FractionField(QQ['x'])
@@ -85,6 +85,7 @@ import sage.misc.defaults
 import sage.misc.latex as latex
 import sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
 import sage.rings.polynomial.polynomial_integer_dense_ntl as polynomial_integer_dense_ntl
+import sage.rings.polynomial.polynomial_integer_dense_flint as polynomial_integer_dense_flint
 import sage.rings.polynomial.polynomial_modn_dense_ntl as polynomial_modn_dense_ntl
 import sage.rings.polynomial.padics.polynomial_padic_flat
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
@@ -137,7 +138,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     """
     Univariate polynomial ring over a ring.
     """
-    def __init__(self, base_ring, name=None, sparse=False):
+    def __init__(self, base_ring, name=None, sparse=False, implementation=None):
         """
         EXAMPLES:
             sage: R.<x> = QQ['x']
@@ -148,7 +149,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True)
         self.__is_sparse = sparse
-        self.__set_polynomial_class()
+        self._implementation_names = (None,)
+        self._implementation_repr = ''
+        self.__set_polynomial_class(implementation)
         self.__generator = self([0,1], is_gen=True)
         self.__cyclopoly_cache = {}
         self._has_singular = False
@@ -212,6 +215,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return x
             elif P == self.base_ring():
                 return self([x])
+            elif self.base_ring().has_coerce_map_from(P):
+                return self([P(x)])
         if hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
         if is_SingularElement(x) and self._has_singular:
@@ -315,6 +320,20 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             P = x.parent()
             if is_PolynomialRing(P):
                 if P.variable_name() == self.variable_name():
+                    if P.base_ring() is self.base_ring() and \
+                            self.base_ring() is ZZ_sage:
+                        # We're trying to coerce from FLINT->NTL
+                        # or vice versa.  Only allow coercions from
+                        # NTL->FLINT, not vice versa.
+                        # Unfortunately this doesn't work, because
+                        # the parents for ZZ[x]-with-NTL and
+                        # ZZ[x]-with-FLINT are equal, and the coercion model
+                        # believes this means that both coercions are valid;
+                        # but we'll probably change that in the
+                        # coercion model, at which point this code will
+                        # become useful.
+                        if self._implementation_names == ('NTL',):
+                            raise TypeError, "no canonical coercion from FLINT to NTL polynomials"
                     if self.has_coerce_map_from(P.base_ring()):
                         return self(x)
                     else:
@@ -376,6 +395,39 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     def _gap_init_(self):
         return 'PolynomialRing(%s, ["%s"])'%(self.base_ring()._gap_init_(), self.variable_name())
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(GF(5)['x']['y'], verify=True)
+            # Verified
+            GF(5)['x']['y']
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: ZZ['z']._sage_input_(SageInputBuilder(), False)
+            {constr_parent: {subscr: {atomic:ZZ}[{atomic:'z'}]} with gens: ('z',)}
+        """
+        base = sib(self.base_ring())
+        sie = base[self.variable_name()]
+        gens_syntax = sib.empty_subscript(base)
+        return sib.parent_with_gens(self, sie, self.variable_names(), 'R',
+                                    gens_syntax=gens_syntax)
+
+    def _macaulay2_(self, m2=None):
+        """
+        EXAMPLES:
+            sage: R = QQ['x']
+            sage: macaulay2(R) #optional
+            QQ [x]
+        """
+        if m2 is None:
+            import sage.interfaces.macaulay2
+            m2 = sage.interfaces.macaulay2.macaulay2
+        base_ring = m2( self.base_ring() )
+        var = self.gen()
+        return m2("%s[symbol %s]"%(base_ring.name(), var))
+
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
             # all that is needed is that elements of the base ring
@@ -393,8 +445,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return cmp((left.base_ring(), left.variable_name()), (right.base_ring(), right.variable_name()))
 
     def _repr_(self):
-        s = "Univariate Polynomial Ring in %s over %s"%(
-                self.variable_name(), self.base_ring())
+        s = "Univariate Polynomial Ring in %s over %s%s"%(
+                self.variable_name(), self.base_ring(),
+                self._implementation_repr)
         if self.is_sparse():
             s = "Sparse " + s
         return s
@@ -408,7 +461,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return "%s[%s]"%(latex.latex(self.base_ring()), self.latex_variable_names()[0])
 
-    def __set_polynomial_class(self, cls=None):
+    def __set_polynomial_class(self, implementation):
         from sage.rings.padics.padic_ring_capped_relative import pAdicRingCappedRelative
         from sage.rings.padics.padic_field_capped_relative import pAdicFieldCappedRelative
         from sage.rings.padics.padic_ring_lazy import pAdicRingLazy
@@ -417,14 +470,19 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         from sage.rings.padics.padic_ring_fixed_mod import pAdicRingFixedMod
         import sage.rings.polynomial.polynomial_element as polynomial_element
 
-        if not (cls is None):
-            self.__polynomial_class = cls
-            return
         R = self.base_ring()
         if isinstance(R, rational_field.RationalField) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_rational_dense
         elif is_IntegerRing(R) and not self.is_sparse():
-            self.__polynomial_class = polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
+            if implementation == 'NTL':
+                self.__polynomial_class = polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
+                self._implementation_names = ('NTL',)
+                self._implementation_repr = ' (using NTL)'
+            elif implementation == 'FLINT' or implementation is None:
+                self.__polynomial_class = polynomial_integer_dense_flint.Polynomial_integer_dense_flint
+                self._implementation_names = (None, 'FLINT')
+            else:
+                raise ValueError, "Unknown implementation %s for ZZ[x]"
         elif isinstance(R, pAdicRingLazy):
             self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
         elif isinstance(R, pAdicFieldLazy):
@@ -910,10 +968,11 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
     """
     Univariate polynomial ring over a commutative ring.
     """
-    def __init__(self, base_ring, name=None, sparse=False):
+    def __init__(self, base_ring, name=None, sparse=False, implementation=None):
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
             raise TypeError, "Base ring must be a commutative ring."
-        PolynomialRing_general.__init__(self, base_ring, name=name, sparse=sparse)
+        PolynomialRing_general.__init__(self, base_ring, name=name,
+                                        sparse=sparse, implementation=implementation)
 
     def quotient_by_principal_ideal(self, f, names=None):
         """
@@ -929,8 +988,9 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
 
 
 class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain.IntegralDomain):
-    def __init__(self, base_ring, name="x", sparse=False):
-        PolynomialRing_commutative.__init__(self, base_ring, name, sparse)
+    def __init__(self, base_ring, name="x", sparse=False, implementation=None):
+        PolynomialRing_commutative.__init__(self, base_ring, name,
+                                            sparse, implementation)
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
                            PolynomialRing_singular_repr,

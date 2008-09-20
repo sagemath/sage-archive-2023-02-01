@@ -77,6 +77,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.plot.plot import line, Graphics, polygon
+from sage.plot.plot3d.shapes2 import line3d
 from sage.geometry.polyhedra import Polyhedron, ieq_to_vert, vert_to_ieq
 
 def prefix_check(str_list):
@@ -982,7 +983,7 @@ class GroebnerFan(SageObject):
                 raise RuntimeError
             for a_line in cone_lines:
                 all_lines.append(a_line)
-        return sum([line(a_line) for a_line in all_lines])
+        return sum([line3d(a_line) for a_line in all_lines])
 
     def _gfan_stats(self):
         """

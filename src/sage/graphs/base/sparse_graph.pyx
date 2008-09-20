@@ -6,6 +6,8 @@
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
+from c_graph import CGraphBackend
+
 cdef enum:
     BT_REORDERING_CONSTANT = 145533211
     # Since the binary tree will often see vertices coming in already sorted,
@@ -198,10 +200,8 @@ cdef class SparseGraph(CGraph):
             True
 
         """
-        if u < 0 or u >= self.num_verts:
-            raise RuntimeError("First vertex (%d) is not a vertex of the graph."%u)
-        if v < 0 or v >= self.num_verts:
-            raise RuntimeError("Second vertex (%d) is not a vertex of the graph."%v)
+        if u < 0 or u >= self.num_verts or v < 0 or v >= self.num_verts:
+            return False
         return self.has_arc_unsafe(u,v) == 1
 
     cdef int del_arc_unsafe(self, int u, int v):
@@ -378,7 +378,7 @@ cdef class SparseGraph(CGraph):
             [2, 3]
 
         """
-        cdef int i, size, num_nbrs
+        cdef int i, num_nbrs
         if u < 0 or u >= self.num_verts:
             raise RuntimeError("Vertex (%d) is not a vertex of the graph."%u)
         if self.out_degrees[u] == 0:
@@ -437,7 +437,7 @@ cdef class SparseGraph(CGraph):
             [1]
 
         """
-        cdef int i, size, num_nbrs
+        cdef int i, num_nbrs
         if v < 0 or v >= self.num_verts:
             raise RuntimeError("Vertex (%d) is not a vertex of the graph."%v)
         if self.in_degrees[v] == 0:
@@ -1014,8 +1014,10 @@ cdef class SparseGraph(CGraph):
             False
 
         """
-        if k <= 0:
+        if k < 0:
             raise RuntimeError("Input (%d) must be a positive integer."%k)
+        if k == 0:
+            return
         self.add_vertices_unsafe(k)
 
 
@@ -1037,7 +1039,7 @@ def random_stress():
     from random import randint
     from sage.graphs.graph import DiGraph
     from sage.misc.misc import uniq
-    Gold = DiGraph(multiedges=True, loops=True)
+    Gold = DiGraph(multiedges=True, loops=True, implementation='networkx')
     Gold.add_vertices(xrange(num_verts))
     for n from 0 <= n < 100:
         i = randint(0,num_verts-1)
@@ -1097,7 +1099,7 @@ def random_stress():
                 if Gold.has_edge(i,j,l) != Gnew.has_arc_label(i,j,l):
                     raise RuntimeError("NO:edges")
     Gnew = SparseGraph(num_verts)
-    Gold = DiGraph(loops=True)
+    Gold = DiGraph(loops=True, implementation='networkx')
     Gold.add_vertices(xrange(num_verts))
     for n from 0 <= n < 100:
         i = randint(0,num_verts-1)
@@ -1123,4 +1125,365 @@ def random_stress():
         for j from 0 <= j < num_verts:
             if Gnew.has_arc_unsafe(i,j) != Gold.has_edge(i,j):
                 raise RuntimeError( "NO" )
+
+
+class SparseGraphBackend(CGraphBackend):
+
+    def __init__(self, n):
+        """
+        Initialize a dense graph with n vertices.
+
+        EXAMPLE:
+            sage: import sage.graphs.base.sparse_graph
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edge(0,1,None,False)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(0, 1, None), (1, 0, None)]
+
+        """
+        self._cg = SparseGraph(n)
+
+    def add_edge(self, u, v, l, directed):
+        """
+        Adds the edge u,v to self.
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edge(0,1,None,False)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(0, 1, None), (1, 0, None)]
+
+        """
+        if not self.has_vertex(u) or not self.has_vertex(v):
+            n = self.num_verts()
+            if (u == n and v == n+1) or (v == n and u == n+1):
+                self._cg.add_vertices(2)
+            elif u == n or v == n:
+                self._cg.add_vertices(1)
+        if l is None:
+            if directed:
+                self._cg.add_arc(u, v)
+            else:
+                self._cg.add_arc(u, v)
+                self._cg.add_arc(v, u)
+        else:
+            if directed:
+                self._cg.add_arc_label(u, v, l)
+            else:
+                self._cg.add_arc_label(u, v, l)
+                self._cg.add_arc_label(v, u, l)
+
+    def add_edges(self, edges, directed):
+        """
+        Add edges from a list.
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(0, 1, None),
+             (1, 0, None),
+             (2, 3, None),
+             (3, 2, None),
+             (4, 5, None),
+             (5, 4, None),
+             (5, 6, None),
+             (6, 5, None)]
+
+        """
+        for e in edges:
+            try:
+                u,v,l = e
+            except:
+                u,v = e
+                l = None
+            self.add_edge(u,v,l,directed)
+
+    def add_vertex(self, name):
+        """
+        Add a labelled vertex to self.
+
+        INPUT:
+            name: vertex label
+
+        DOCTEST:
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_vertex(10)
+        """
+        if not self.has_vertex(name):
+            self._cg.add_vertices(1)
+
+    def add_vertices(self, vertices):
+        """
+        Add labelled vertices to self.
+
+        INPUT:
+            vertices: iterator of vertex labels
+
+        DOCTEST:
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(1)
+            sage: D.add_vertices([1,2,3])
+        """
+        i = 0
+        vertices = list(vertices)
+        while i < len(vertices):
+            if self.has_vertex(vertices[i]):
+                vertices.pop(i)
+            else:
+                i += 1
+        self._cg.add_vertices(len(list(vertices)))
+
+    def del_edge(self, u, v, l, directed):
+        """
+        Delete edge u,v.
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(0, 1, None),
+             (1, 0, None),
+             (2, 3, None),
+             (3, 2, None),
+             (4, 5, None),
+             (5, 4, None),
+             (5, 6, None),
+             (6, 5, None)]
+            sage: D.del_edge(0,1,None,True)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(1, 0, None),
+             (2, 3, None),
+             (3, 2, None),
+             (4, 5, None),
+             (5, 4, None),
+             (5, 6, None),
+             (6, 5, None)]
+
+        """
+        if v is None:
+            try:
+                u1,v,l = u[:3]
+                u = u1
+            except:
+                u, v = u[:2]
+                l = None
+        if l is None:
+            if directed:
+                self._cg.del_all_arcs(u, v)
+            else:
+                self._cg.del_all_arcs(u, v)
+                self._cg.del_all_arcs(v, u)
+        else:
+            if directed:
+                self._cg.del_arc_label(u, v, l)
+            else:
+                self._cg.del_arc_label(u, v, l)
+                self._cg.del_arc_label(v, u, l)
+
+    def del_vertex(self, v):
+        """
+        Delete a labelled vertex in self.
+
+        INPUT:
+            v: vertex label
+
+        DOCTEST:
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.del_vertex(0)
+        """
+        self._cg.del_vertex(v)
+
+    def del_vertices(self, vertices):
+        """
+        Delete labelled vertices in self.
+
+        INPUT:
+            vertices: iterator of vertex labels
+
+        DOCTEST:
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.del_vertices([1,2,3])
+        """
+        verts = sorted(vertices)
+        i = 0
+        while i < len(verts):
+            self.del_vertex(verts[i]-i)
+            i += 1
+
+    def get_edge_label(self, u, v):
+        """
+        Returns the edge label for u,v.
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edges([(0,1,1), (2,3,2), (4,5,3), (5,6,2)], False)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(0, 1, 1), (1, 0, 1), (2, 3, 2), (3, 2, 2), (4, 5, 3), (5, 4, 3), (5, 6, 2), (6, 5, 2)]
+            sage: D.del_edge(0,1,None,True)
+            sage: list(D.iterator_edges(range(9), True, True))
+            [(1, 0, 1), (2, 3, 2), (3, 2, 2), (4, 5, 3), (5, 4, 3), (5, 6, 2), (6, 5, 2)]
+            sage: D.get_edge_label(1,0)
+            1
+
+        """
+        if self.multiple_edges(None):
+            return self._cg.all_arcs(u, v)
+        if not self.has_edge(u, v, None):
+            raise RuntimeError("%s, %s not an edge of the graph."%(u,v))
+        l = self._cg.arc_label(u, v)
+        if l == 0: return None
+        return l
+
+    def has_edge(self, u, v, l):
+        """
+        Returns whether this graph has edge u,v.
+
+        EXAMPLE:
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: D.has_edge(0,1,None)
+            True
+
+        """
+        if l is None:
+            return self._cg.has_arc(u, v)
+        else:
+            return self._cg.has_arc_label(u, v, l)
+
+    def iterator_edges(self, vertices, labels, not_directed):
+        """
+        Iterate over the edges incident to a sequence of vertices.
+
+        INPUT:
+            vertices:     a list of vertex labels
+            labels:       boolean
+            not_directed: boolean
+
+        OUTPUT:
+            a generator which yields edges, with or without labels
+            depending on the labels parameter.
+
+        DOCTEST:
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.iterator_edges([],True,True)
+            <listiterator object at ...>
+        """
+        if not_directed and labels:
+            return iter([(v,u,l) for v in vertices for u in self._cg.out_neighbors(v) for l in self._cg.all_arcs(v, u)])
+        elif not_directed:
+            return iter([(v,u) for v in vertices for u in self._cg.out_neighbors(v) for l in self._cg.all_arcs(v, u)])
+        elif labels:
+            return iter([(v,u,l) for v in vertices for u in self._cg.out_neighbors(v) if u >= v or u not in vertices for l in self._cg.all_arcs(v, u)])
+        else:
+            return iter([(v,u) for v in vertices for u in self._cg.out_neighbors(v) if u >= v or u not in vertices for l in self._cg.all_arcs(v, u)])
+
+    def iterator_in_edges(self, vertices, labels):
+        """
+        Iterate over the incoming edges incident to a sequence of vertices.
+
+        INPUT:
+            vertices:     a list of vertex labels
+            labels:       boolean
+
+        OUTPUT:
+            a generator which yields edges, with or without labels
+            depending on the labels parameter.
+
+        DOCTEST:
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.iterator_in_edges([],True)
+            <listiterator object at ...>
+        """
+        if self.multiple_edges(None):
+            if labels:
+                return iter([(u,v,l) for v in vertices for u in self._cg.in_neighbors(v) for l in self.get_edge_label(u, v)])
+            else:
+                return iter([(u,v) for v in vertices for u in self._cg.in_neighbors(v) for l in self.get_edge_label(u, v)])
+        else:
+            if labels:
+                return iter([(u,v,self.get_edge_label(u, v)) for v in vertices for u in self._cg.in_neighbors(v)])
+            else:
+                return iter([(u,v) for v in vertices for u in self._cg.in_neighbors(v)])
+
+    def iterator_out_edges(self, vertices, labels):
+        """
+        Iterate over the outbound edges incident to a sequence of vertices.
+
+        INPUT:
+            vertices:     a list of vertex labels
+            labels:       boolean
+
+        OUTPUT:
+            a generator which yields edges, with or without labels
+            depending on the labels parameter.
+
+        DOCTEST:
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.iterator_out_edges([],True)
+            <listiterator object at ...>
+        """
+        if self.multiple_edges(None):
+            if labels:
+                return iter([(v,u,l) for v in vertices for u in self._cg.out_neighbors(v) for l in self.get_edge_label(v, u)])
+            else:
+                return iter([(v,u) for v in vertices for u in self._cg.out_neighbors(v) for l in self.get_edge_label(v, u)])
+        else:
+            if labels:
+                return iter([(v,u,self.get_edge_label(v, u)) for v in vertices for u in self._cg.out_neighbors(v)])
+            else:
+                return iter([(v,u) for v in vertices for u in self._cg.out_neighbors(v)])
+
+    def multiple_edges(self, new):
+        """
+        Get/set whether or not self allows multiple edges.
+
+        INPUT:
+            new: boolean or None
+
+        DOCTEST:
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.multiple_edges(True)
+            sage: G.multiple_edges(None)
+            True
+        """
+        if new is None:
+            return self._multiple_edges
+        if new:
+            self._multiple_edges = True
+        else:
+            self._multiple_edges = False
+
+    def set_edge_label(self, u, v, l, directed):
+        """
+        Label the edge (u,v) by l.
+
+        INPUT:
+            u,v:      vertices
+            l:        edge label
+            directed: boolean
+
+        DOCTEST:
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.set_edge_label(1,2,'a',True)
+        """
+        if not self.has_edge(u, v, None):
+            return
+        if self.multiple_edges(None):
+            if len(self.get_edge_label(u, v)) > 1:
+                raise RuntimeError("Cannot set edge label, since there are multiple edges from %s to %s."%(u,v))
+        # now we know there is exactly one edge from u to v
+        if directed:
+            ll = self.get_edge_label(u,v)
+            if ll is not None:
+                self._cg.del_arc_label(u, v, ll)
+            self._cg.add_arc_label(u, v, l)
+        else:
+            ll = self.get_edge_label(u,v)
+            if ll is not None:
+                self._cg.del_arc_label(u, v, ll)
+                self._cg.del_arc_label(v, u, ll)
+            self._cg.add_arc_label(u, v, l)
+            self._cg.add_arc_label(v, u, l)
+
+
 

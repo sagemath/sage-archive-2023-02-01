@@ -631,6 +631,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         EXAMPLES:
             sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
+            doctest:1: DeprecationWarning: MPolynomialRing is deprecated, use PolynomialRing instead!
             sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
             True
             sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)

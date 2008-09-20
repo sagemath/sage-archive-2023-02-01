@@ -121,7 +121,7 @@ fmpz_poly = Extension('sage.libs.flint.fmpz_poly',
                  sources = ["sage/libs/flint/fmpz_poly.pyx"],
                  libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
                  include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/'],
-                 extra_compile_args=["-std=c99"]
+                 extra_compile_args=["-std=c99", "-D_XPG6"]
                  )
 
 # NOTE: It is *very* important (for cygwin) that csage be the first library
@@ -308,7 +308,7 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
 linbox = Extension('sage.libs.linbox.linbox',
                    ['sage/libs/linbox/linbox.pyx'],
                    # For this to work on cygwin, linboxwrap *must* be before ntl.
-                   libraries = ['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS, BLAS2],
+                   libraries = ['linboxsage', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS, BLAS2],
                    language = 'c++')
 
 libsingular = Extension('sage.libs.singular.singular',
@@ -332,7 +332,7 @@ matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
 
 matrix_mod2_dense = Extension('sage.matrix.matrix_mod2_dense',
                               ['sage/matrix/matrix_mod2_dense.pyx'],
-                              libraries = ['gmp','m4ri'])
+                              libraries = ['gmp','m4ri', 'png', 'gd'])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
@@ -470,11 +470,66 @@ symmetrica = Extension('sage.libs.symmetrica.symmetrica',
                        include_dirs=debian_include_dirs + ['/usr/include/malloc/'],
                        libraries = ["symmetrica"])
 
-time_series = Extension('sage.finance.time_series',['sage/finance/time_series.pyx'])
+time_series = Extension('sage.finance.time_series',['sage/finance/time_series.pyx'],
+                        include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+
+markov_multifractal = Extension('sage.finance.markov_multifractal_cython',
+                                ['sage/finance/markov_multifractal_cython.pyx'])
+
+finance_fractal = Extension('sage.finance.fractal', ['sage/finance/fractal.pyx'])
+
+hmm = Extension('sage.stats.hmm.hmm', ['sage/stats/hmm/hmm.pyx'],
+                libraries = ['ghmm'])
+
+chmm = Extension('sage.stats.hmm.chmm', ['sage/stats/hmm/chmm.pyx'],
+                libraries = ['ghmm'])
 
 #####################################################
 
 ext_modules = [ \
+
+    Extension('sage.structure.sage_object',
+              sources = ['sage/structure/sage_object.pyx']), \
+
+    Extension('sage.structure.category_object',
+              sources = ['sage/structure/category_object.pyx']), \
+
+    Extension('sage.structure.parent',
+              sources = ['sage/structure/parent.pyx']), \
+
+    Extension('sage.structure.parent_old',
+              sources = ['sage/structure/parent_old.pyx']), \
+
+    Extension('sage.structure.parent_base',
+              sources = ['sage/structure/parent_base.pyx']), \
+
+    Extension('sage.structure.parent_gens',
+              sources = ['sage/structure/parent_gens.pyx']), \
+
+    Extension('sage.structure.generators',
+              sources = ['sage/structure/generators.pyx']), \
+
+    Extension('sage.structure.coerce',
+              sources = ['sage/structure/coerce.pyx']), \
+
+    Extension('sage.structure.coerce_actions',
+              sources = ['sage/structure/coerce_actions.pyx']), \
+
+    Extension('sage.structure.coerce_maps',
+              sources = ['sage/structure/coerce_maps.pyx']), \
+
+    Extension('sage.structure.coerce_dict',
+              sources = ['sage/structure/coerce_dict.pyx']), \
+
+    Extension('sage.structure.element',
+              sources = ['sage/structure/element.pyx']), \
+
+    Extension('sage.categories.map',
+              sources = ['sage/categories/map.pyx']), \
+
+    Extension('sage.categories.morphism',
+              sources = ['sage/categories/morphism.pyx']), \
+
     free_module_element,
 
     complex_double_vector,
@@ -586,6 +641,11 @@ ext_modules = [ \
 
     time_series,
 
+    markov_multifractal,
+    finance_fractal,
+
+    hmm, chmm,
+
     Extension('sage.media.channels',
               sources = ['sage/media/channels.pyx']), \
 
@@ -606,21 +666,9 @@ ext_modules = [ \
               sources = ['sage/ext/multi_modular.pyx'],
               libraries=['gmp']), \
 
-    Extension('sage.structure.coerce',
-              sources = ['sage/structure/coerce.pyx']), \
-
-    Extension('sage.structure.coerce_dict',
-              sources = ['sage/structure/coerce_dict.pyx']), \
-
     Extension('sage.modular.congroup_pyx',
               sources = ['sage/modular/congroup_pyx.pyx', \
                          'sage/ext/arith.pyx']), \
-
-    Extension('sage.structure.element',
-              sources = ['sage/structure/element.pyx']), \
-
-    Extension('sage.categories.morphism',
-              sources = ['sage/categories/morphism.pyx']), \
 
     Extension('sage.categories.functor',
               sources = ['sage/categories/functor.pyx']), \
@@ -663,6 +711,21 @@ ext_modules = [ \
 
     Extension('sage.groups.perm_gps.permgroup_element',
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']), \
+
+    Extension('sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label',
+              sources = ['sage/groups/perm_gps/partn_ref/automorphism_group_canonical_label.pyx']), \
+
+    Extension('sage.groups.perm_gps.partn_ref.double_coset',
+              sources = ['sage/groups/perm_gps/partn_ref/double_coset.pyx']), \
+
+    Extension('sage.groups.perm_gps.partn_ref.refinement_graphs',
+              sources = ['sage/groups/perm_gps/partn_ref/refinement_graphs.pyx']), \
+
+    Extension('sage.groups.perm_gps.partn_ref.refinement_binary',
+              sources = ['sage/groups/perm_gps/partn_ref/refinement_binary.pyx']), \
+
+    Extension('sage.groups.perm_gps.partn_ref.refinement_matrices',
+              sources = ['sage/groups/perm_gps/partn_ref/refinement_matrices.pyx']), \
 
     Extension('sage.structure.sage_object',
               sources = ['sage/structure/sage_object.pyx']), \
@@ -717,7 +780,7 @@ ext_modules = [ \
 
     Extension('sage.rings.integer',
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx'],
-              libraries=['ntl', 'gmp']), \
+              libraries=['ntl', 'gmp', 'pari']), \
 
     Extension('sage.misc.allocator',
               sources = ['sage/misc/allocator.pyx']), \
@@ -801,6 +864,15 @@ ext_modules = [ \
               language = 'c++',
               include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
 
+    Extension('sage.rings.bernmm',
+              sources = ['sage/rings/bernmm.pyx',
+                         'sage/rings/bernmm/bern_modp.cpp',
+                         'sage/rings/bernmm/bern_modp_util.cpp',
+                         'sage/rings/bernmm/bern_rat.cpp'],
+              libraries = ['gmp', 'ntl', 'stdc++', 'pthread'],
+              language = 'c++',
+              define_macros=[('USE_THREADS', '1')]), \
+
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
                  sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
                             'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp',
@@ -816,6 +888,12 @@ ext_modules = [ \
 
     Extension('sage.rings.polynomial.polynomial_element',
               sources = ['sage/rings/polynomial/polynomial_element.pyx']), \
+
+    Extension('sage.rings.polynomial.polynomial_integer_dense_flint',
+                 sources = ['sage/rings/polynomial/polynomial_integer_dense_flint.pyx'],
+                 language = 'c++',
+                 libraries = ["csage", "flint", "gmp", "gmpxx", "ntl"],
+                 include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/']),
 
     Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
                  sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],
@@ -1002,10 +1080,6 @@ ext_modules = [ \
               'sage/graphs/planarity/listcoll.c',
               'sage/graphs/planarity/planarity.c',
               'sage/graphs/planarity/stack.c']
-              ), \
-
-    Extension('sage.graphs.bruhat_sn',
-              ['sage/graphs/bruhat_sn.pyx']
               ), \
 
     Extension('sage.graphs.chrompoly',
@@ -1345,6 +1419,7 @@ code = setup(name        = 'sage',
 
                      'sage.finance',
 
+
                      'sage.functions',
 
                      'sage.geometry',
@@ -1360,6 +1435,7 @@ code = setup(name        = 'sage',
                      'sage.groups.abelian_gps',
                      'sage.groups.matrix_gps',
                      'sage.groups.perm_gps',
+                     'sage.groups.perm_gps.partn_ref',
 
                      'sage.interfaces',
 
@@ -1417,6 +1493,8 @@ code = setup(name        = 'sage',
 
                      'sage.stats',
 
+                     'sage.stats.hmm',
+
                      'sage.parallel',
 
                      'sage.schemes',
@@ -1467,6 +1545,7 @@ code = setup(name        = 'sage',
                      'sage/dsage/web/static/jquery.js',
                      'sage/dsage/web/static/jquery.tablesorter.pack.js',
                      'sage/dsage/web/static/jquery.history.js',
+                     'sage/dsage/web/static/jquery.form.js',
                      'sage/dsage/web/static/asc.gif',
                      'sage/dsage/web/static/desc.gif',
                      'sage/dsage/web/static/bg.gif',

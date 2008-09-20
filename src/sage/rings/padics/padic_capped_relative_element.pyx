@@ -5,6 +5,13 @@ AUTHOR:
     -- David Roe
     -- Genya Zaytman: documentation
     -- David Harvey: doctests
+
+TESTS:
+    sage: M = MatrixSpace(pAdicField(3,100),2)
+    sage: (M([1,0,0,90]) - (1+O(3^100)) * M(1)).left_kernel()
+    Vector space of degree 2 and dimension 1 over 3-adic Field with capped relative precision 100
+    Basis matrix:
+    [1 + O(3^100)            0]
 """
 
 #*****************************************************************************
@@ -1184,6 +1191,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return self.ordp >= mpz_get_si((<Integer>absprec).value)
 
     def __nonzero__(self):
+        self._normalize()
         return mpz_sgn(self.unit) > 0
 
     def is_equal_to(self, right, absprec=None):

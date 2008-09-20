@@ -35,8 +35,7 @@ Other functions for solving DEs are given in functions/elementary.py.
 ##########################################################################
 
 from sage.interfaces.maxima import MaximaElement, Maxima
-from sage.plot.plot import LineFactory
-line = LineFactory()
+from sage.plot.plot import line
 
 maxima = Maxima()
 
@@ -132,7 +131,7 @@ def desolve_laplace(de,vars,ics=None):
         sage: f = function('f', x)
         sage: de = lambda y: diff(y,x,x) - 2*diff(y,x) + y
         sage: desolve_laplace(de(f(x)),["x","f"])
-        "x*%e^x*(?%at('diff(f(x),x,1),x=0))-f(0)*x*%e^x+f(0)*%e^x"
+        "x*%e^x*('at('diff(f(x),x,1),x=0))-f(0)*x*%e^x+f(0)*%e^x"
         sage: desolve_laplace(de(f(x)),["x","f"],[0,1,2])
          'x*%e^x+%e^x'
 

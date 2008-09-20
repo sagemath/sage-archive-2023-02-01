@@ -10,7 +10,7 @@ from gfan import gfan,  Gfan
 from gp import gp, gp_console, gp_version, is_GpElement, Gp
 from gnuplot import gnuplot, gnuplot_console
 from kash import  kash, kash_console, kash_version, is_KashElement, Kash
-#from lisp import lisp, lisp_console, Lisp
+from lisp import lisp, lisp_console, Lisp
 from magma import magma, magma_console, magma_version, Magma, is_MagmaElement
 from magma_free import magma_free
 from macaulay2 import macaulay2, macaulay2_console, Macaulay2
@@ -21,6 +21,7 @@ from matlab import matlab, matlab_console, matlab_version, Matlab
 from mupad import mupad, mupad_console, Mupad  # NOT functional yet
 from mwrank import mwrank, Mwrank, mwrank_console
 from octave import octave, octave_console, octave_version, Octave
+from qepcad import qepcad, qepcad_console, qepcad_version, qepcad_formula
 from qsieve import qsieve
 from singular import singular, singular_console, singular_version, is_SingularElement, Singular
 from sage0 import sage0 as sage0, sage0_console, sage0_version, Sage

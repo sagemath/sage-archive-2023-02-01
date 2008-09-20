@@ -396,13 +396,13 @@ def pushout(R, S):
 #    print Ss
 
     if R_tower[-1][1] in Ss:
-      Rs, Ss = Ss, Rs
-      R_tower, S_tower = S_tower, R_tower
+        Rs, Ss = Ss, Rs
+        R_tower, S_tower = S_tower, R_tower
 
     # look for join
     if Ss[-1] in Rs:
         if Rs[-1] == Ss[-1]:
-            while Rs[-1] == Ss[-1]:
+            while Rs and Ss and Rs[-1] == Ss[-1]:
                 Rs.pop()
                 Z = Ss.pop()
         else:

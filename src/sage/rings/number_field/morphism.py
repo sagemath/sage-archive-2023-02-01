@@ -1,6 +1,7 @@
 from sage.rings.homset import RingHomset_generic
 from sage.rings.morphism import RingHomomorphism_im_gens, RingHomomorphism
 from sage.rings.integer import Integer
+from sage.rings.integer_mod_ring import Zmod
 from sage.structure.sequence import Sequence
 
 class NumberFieldHomset(RingHomset_generic):
@@ -96,6 +97,8 @@ class NumberFieldHomset(RingHomset_generic):
             Ring endomorphism of Number Field in b with defining polynomial x^6 + 3*x^5 + 6*x^4 + 3*x^3 + 9*x + 9
               Defn: b |--> -5/9*b^5 - b^4 - 2*b^3 + 2/3*b^2 - b - 5
             ]
+            sage: Hom(L, CyclotomicField(3)).list()
+            []
         """
         try:
             return self.__list
@@ -103,18 +106,19 @@ class NumberFieldHomset(RingHomset_generic):
             pass
         D = self.domain()
         C = self.codomain()
-        Dabs = D.absolute_field(D.variable_name())
-        from_Dabs, to_Dabs = Dabs.structure()
-        Cabs = C.absolute_field(C.variable_name())
-        from_Cabs, to_Cabs = Cabs.structure()
-        f = Dabs.polynomial()
-        g = Cabs['x'](f)
-        r = g.roots()
         v = []
-        for a, _ in r:
-            im = Dabs.hom([from_Cabs(a)])(to_Dabs(D.gen()))
-            v.append(self([im]))
-        v = Sequence(v, immutable=True, cr=True)
+        if Integer(D.absolute_degree()).divides(Integer(C.absolute_degree())):
+            Dabs = D.absolute_field(D.variable_name())
+            from_Dabs, to_Dabs = Dabs.structure()
+            Cabs = C.absolute_field(C.variable_name())
+            from_Cabs, to_Cabs = Cabs.structure()
+            f = Dabs.polynomial()
+            g = Cabs['x'](f)
+            r = g.roots()
+            for a, _ in r:
+                im = Dabs.hom([from_Cabs(a)])(to_Dabs(D.gen()))
+                v.append(self([im]))
+        v = Sequence(v, immutable=True, cr=v!=[])
         self.__list = v
         return v
 
@@ -226,7 +230,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
             ...
             Relative number field endomorphism of Number Field in a with defining polynomial x^2 + x + 1 over its base field
               Defn: a |--> a
-                    b |--> (-b)*a - b
+                    b |--> -b*a - b
             ]
         """
         try:
@@ -238,7 +242,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
         K = D.absolute_field('a')
         v = K.Hom(C).list()
         w = [self(phi) for phi in v]
-        w = Sequence(w, immutable=True, cr=True, universe=self)
+        w = Sequence(w, immutable=True, cr=w!=[], universe=self)
         self.__list = w
         return w
 
@@ -277,4 +281,81 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
 
     def __call__(self, x):
         return self.__abs_hom(self.__to_K(x))
+
+
+class CyclotomicFieldHomset(NumberFieldHomset):
+    """
+    Set of homomorphisms with domain a given cyclotomic field.
+    """
+    def __call__(self, im_gens, check=True):
+        """
+        EXAMPLES:
+            sage: End(CyclotomicField(16))
+            Automorphism group of Cyclotomic Field of order 16 and degree 8
+        """
+        if isinstance(im_gens, CyclotomicFieldHomomorphism_im_gens):
+            return self._coerce_impl(im_gens)
+        try:
+            return CyclotomicFieldHomomorphism_im_gens(self, im_gens, check=check)
+        except (NotImplementedError, ValueError), err:
+            try:
+                return self._coerce_impl(im_gens)
+            except TypeError:
+                raise TypeError, "images do not define a valid homomorphism"
+
+    def _coerce_impl(self, x):
+        if not isinstance(x, CyclotomicFieldHomomorphism_im_gens):
+            raise TypeError
+        if x.parent() is self:
+            return x
+        if x.parent() == self:
+            return CyclotomicFieldHomomorphism_im_gens(self, x.im_gens())
+        raise TypeError
+
+    def list(self):
+        """
+        Return a list of all the elements of self.
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(12)
+            sage: G = End(K); G
+            Automorphism group of Cyclotomic Field of order 12 and degree 4
+            sage: [g(z) for g in G]
+            [z, z^3 - z, -z, -z^3 + z]
+            sage: L.<a, b> = NumberField([x^2 + x + 1, x^4 + 1])
+            sage: L
+            Number Field in a with defining polynomial x^2 + x + 1 over its base field
+            sage: Hom(CyclotomicField(12), L)[3]
+            Ring morphism:
+              From: Cyclotomic Field of order 12 and degree 4
+              To:   Number Field in a with defining polynomial x^2 + x + 1 over its base field
+              Defn: zeta12 |--> -b^2*a
+            sage: list(Hom(CyclotomicField(5), K))
+            []
+        """
+        try:
+            return self.__list
+        except AttributeError:
+            pass
+        try:
+            D = self.domain()
+            C = self.codomain()
+            z = D.gen()
+            n = z.multiplicative_order()
+            if D == C:
+                w = z
+            else:
+                w = C.zeta(n)
+            v = [self([w**k]) for k in Zmod(n) if k.is_unit()]
+        except ValueError:
+            v =[]
+        v = Sequence(v, immutable=True, cr=v!=[])
+        self.__list = v
+        return v
+
+
+class CyclotomicFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
+    pass
+
+
 

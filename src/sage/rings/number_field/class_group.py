@@ -148,7 +148,7 @@ class FractionalIdealClass(MultiplicativeGroupElement):
     """
     def __init__(self, ideal, class_group):
         """
-        A fractional ideal class.
+        Returns the ideal class of this fractional ideal.
         """
         self.__ideal = ideal
         MultiplicativeGroupElement.__init__(self, class_group)
@@ -171,6 +171,22 @@ class FractionalIdealClass(MultiplicativeGroupElement):
         return self.parent()((self.__ideal * other.__ideal).reduce_equiv())
 
     def is_principal(self):
+        """
+        Returns True iff this ideal class is the trivial (principal) class
+
+        EXAMPLE:
+        sage: K.<w>=QuadraticField(-23)
+        sage: OK=K.ring_of_integers()
+        sage: C=OK.class_group()
+        sage: P2a,P2b=[P for P,e in (2*OK).factor()]
+        sage: c=C(P2a)
+        sage: c.is_principal()
+        False
+        sage: (c^2).is_principal()
+        False
+        sage: (c^3).is_principal()
+        True
+        """
         return self.__ideal.is_principal()
 
     def reduce(self):
@@ -190,14 +206,50 @@ class FractionalIdealClass(MultiplicativeGroupElement):
         """
         return self.parent()(self.__ideal.reduce_equiv())
 
-    #def multiplicative_order(self):
-    #    try:
-    #        return self.__multiplicative_order
-    #    except AttributeError:
+    def order(self):
+        """
+        Return the order of this ideal class in the class group.
+
+        EXAMPLE:
+            sage: K.<w>=QuadraticField(-23)
+            sage: OK=K.ring_of_integers()
+            sage: C=OK.class_group()
+            sage: h=C.order(); h
+            3
+            sage: P2a,P2b=[P for P,e in (2*OK).factor()]
+            sage: c=C(P2a); c
+            Fractional ideal class (2, 1/2*w - 1/2)
+            sage: c.order()
+            3
+
+            sage: k.<a> = NumberField(x^2 + 20072); G = k.class_group(); G
+            Class group of order 76 with structure C38 x C2 of Number Field in a with defining polynomial x^2 + 20072
+            sage: [c.order() for c in G.gens()]
+            [38, 2]
+
+        """
+        try:
+            return self.__multiplicative_order
+        except AttributeError:
+            from sage.groups.generic import order_from_multiple
+            self.__multiplicative_order = order_from_multiple(self,self.parent().order(),operation='*')
+            return self.__multiplicative_order
+
+    multiplicative_order = order
 
     def ideal(self):
         """
         Return a representative ideal in this ideal class.
+
+        EXAMPLE:
+        sage: K.<w>=QuadraticField(-23)
+        sage: OK=K.ring_of_integers()
+        sage: C=OK.class_group()
+        sage: P2a,P2b=[P for P,e in (2*OK).factor()]
+        sage: c=C(P2a); c
+        Fractional ideal class (2, 1/2*w - 1/2)
+        sage: c.ideal()
+        Fractional ideal (2, 1/2*w - 1/2)
         """
         return self.__ideal
 
@@ -205,5 +257,15 @@ class FractionalIdealClass(MultiplicativeGroupElement):
         """
         Return generators for a representative ideal in this
         ideal class.
+
+        EXAMPLE:
+        sage: K.<w>=QuadraticField(-23)
+        sage: OK=K.ring_of_integers()
+        sage: C=OK.class_group()
+        sage: P2a,P2b=[P for P,e in (2*OK).factor()]
+        sage: c=C(P2a); c
+        Fractional ideal class (2, 1/2*w - 1/2)
+        sage: c.gens()
+        (2, 1/2*w - 1/2)
         """
         return self.ideal().gens()

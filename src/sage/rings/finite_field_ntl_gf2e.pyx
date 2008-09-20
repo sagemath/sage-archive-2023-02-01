@@ -32,7 +32,6 @@ include "../ext/stdsage.pxi"
 
 from sage.structure.sage_object cimport SageObject
 
-
 from sage.structure.parent  cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
@@ -67,6 +66,7 @@ cdef object MPolynomial
 cdef object Polynomial
 cdef object FreeModuleElement
 cdef object GF
+cdef object GF2, GF2_0, GF2_1
 
 cdef void late_import():
     """
@@ -84,7 +84,8 @@ cdef void late_import():
            MPolynomial, \
            Polynomial, \
            FreeModuleElement, \
-           GF
+           GF, \
+           GF2, GF2_0, GF2_1
 
     if is_IntegerMod is not None:
         return
@@ -121,6 +122,9 @@ cdef void late_import():
 
     import sage.rings.finite_field
     GF = sage.rings.finite_field.FiniteField
+    GF2 = GF(2)
+    GF2_0 = GF2(0)
+    GF2_1 = GF2(1)
 
 cdef extern from "arpa/inet.h":
     unsigned int htonl(unsigned int)
@@ -162,9 +166,12 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             sage: k.<a> = GF(2^1024)
             sage: k.modulus()
             x^1024 + x^19 + x^6 + x + 1
+            sage: set_random_seed(0)
             sage: k.<a> = GF(2^17, modulus='random')
             sage: k.modulus()
             x^17 + x^16 + x^15 + x^10 + x^8 + x^6 + x^4 + x^3 + x^2 + x + 1
+            sage: k.modulus().is_irreducible()
+            True
         """
         self._zero_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._zero_element).x,0)
@@ -177,10 +184,8 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         cdef GF2_c c
         cdef GF2X_c ntl_tmp
 
-        GF2X_construct(&ntl_m)
-
         # we are calling late_import here because this constructor is
-        # called at least once before any arithmetic is perfored.
+        # called at least once before any arithmetic is performed.
         late_import()
 
         q = Integer(q)
@@ -337,7 +342,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             if e.parent() == self:
                 res.x = (<FiniteField_ntl_gf2eElement>e).x
                 return res
-            if e.parent() is GF(2) or e.parent() == GF(2):
+            if e.parent() is GF2 or e.parent() == GF2:
                 GF2E_conv_long(res.x,int(e))
                 return res
 
@@ -466,7 +471,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             sage: F.prime_subfield()
             Finite Field of size 2
         """
-        return GF(2)
+        return GF2
 
     def fetch_int(FiniteField_ntl_gf2e self, number):
         r"""
@@ -1108,6 +1113,104 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         for i from 0 <= i <= GF2X_deg(r):
             C.append(GF2_conv_to_long(GF2X_coeff(r,i)))
         return self._parent.polynomial_ring(name)(C)
+
+    def charpoly(self, var='x'):
+        r"""
+        Return the characteristic polynomial of self as a polynomial
+        in var over the prime subfield.
+
+        INPUT:
+            var -- string (default: 'x')
+        OUTPUT:
+            polynomial
+
+        EXAMPLES:
+            sage: k.<a> = GF(2^8)
+            sage: b = a^3 + a
+            sage: b.minpoly()
+            x^4 + x^3 + x^2 + x + 1
+            sage: b.charpoly()
+            x^8 + x^6 + x^4 + x^2 + 1
+            sage: b.charpoly().factor()
+            (x^4 + x^3 + x^2 + x + 1)^2
+            sage: b.charpoly('Z')
+            Z^8 + Z^6 + Z^4 + Z^2 + 1
+        """
+        f = self.minpoly(var)
+        cdef int d = f.degree(), n = self.parent().degree()
+        cdef int pow = n/d
+        return f if pow == 1 else f**pow
+
+
+    def minpoly(self, var='x'):
+        r"""
+        Return the minimal polynomial of self, which is the smallest
+        degree polynomial $f \in \mathbf{F}_{2}[x]$ such that
+        $f(self) = 0$.
+
+        INPUT:
+            var -- string (default: 'x')
+        OUTPUT:
+            polynomial
+
+        EXAMPLES:
+            sage: K.<a> = GF(2^100)
+            sage: f = a.minpoly(); f
+            x^100 + x^57 + x^56 + x^55 + x^52 + x^48 + x^47 + x^46 + x^45 + x^44 + x^43 + x^41 + x^37 + x^36 + x^35 + x^34 + x^31 + x^30 + x^27 + x^25 + x^24 + x^22 + x^20 + x^19 + x^16 + x^15 + x^11 + x^9 + x^8 + x^6 + x^5 + x^3 + 1
+            sage: f(a)
+            0
+            sage: g = K.random_element()
+            sage: g.minpoly()(g)
+            0
+        """
+        cdef GF2X_c r = GF2X_IrredPolyMod(GF2E_rep(self.x), GF2E_modulus())
+        cdef int i
+        C = []
+        for i from 0 <= i <= GF2X_deg(r):
+            C.append(GF2_conv_to_long(GF2X_coeff(r,i)))
+        return self._parent.polynomial_ring(var)(C)
+
+    def trace(self):
+        """
+        Return the trace of self.
+
+        EXAMPLES:
+            sage: K.<a> = GF(2^25)
+            sage: a.trace()
+            0
+            sage: a.charpoly()
+            x^25 + x^8 + x^6 + x^2 + 1
+            sage: parent(a.trace())
+            Finite Field of size 2
+
+            sage: b = a+1
+            sage: b.trace()
+            1
+            sage: b.charpoly()[1]
+            1
+        """
+        if GF2_IsOne(GF2E_trace(self.x)):
+            return GF2_1
+        else:
+            return GF2_0
+
+    def weight(self):
+        """
+        Returns the number of non-zero coefficients in the polynomial
+        representation of self.
+
+        EXAMPLES:
+            sage: K.<a> = GF(2^21)
+            sage: a.weight()
+            1
+            sage: (a^5+a^2+1).weight()
+            3
+            sage: b = 1/(a+1); b
+            a^20 + a^19 + a^18 + a^17 + a^16 + a^15 + a^14 + a^13 + a^12 + a^11 + a^10 + a^9 + a^8 + a^7 + a^6 + a^4 + a^3 + a^2
+            sage: b.weight()
+            18
+        """
+        return GF2X_weight(GF2E_rep(self.x))
 
     def _finite_field_ext_pari_element(FiniteField_ntl_gf2eElement self, k=None):
         r"""

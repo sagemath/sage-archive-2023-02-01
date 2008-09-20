@@ -16,7 +16,7 @@ We test coercion in a particularly complicated situation:
     sage: a = m.charpoly()
     sage: R.<x> = WZ[]
     sage: R(a)
-    x^2 + ((-1)*z^2 - 1)*x
+    x^2 + (-z^2 - 1)*x
 """
 
 ################################################################################
@@ -31,6 +31,8 @@ from sage.rings.polynomial.polynomial_element import Polynomial, Polynomial_gene
 from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
 
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
+
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.libs.pari.all import pari, pari_gen
 from sage.structure.factorization import Factorization
@@ -232,12 +234,13 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<w> = PolynomialRing(CDF, sparse=True)
             sage: f = CDF(1,2) + w^5 - CDF(pi)*w + CDF(e)
             sage: f._repr()
-            '1.0*w^5 + (-3.14159265359)*w + 3.71828182846 + 2.0*I'
+            '1.0*w^5 - 3.14159265359*w + 3.71828182846 + 2.0*I'
             sage: f._repr(name='z')
-            '1.0*z^5 + (-3.14159265359)*z + 3.71828182846 + 2.0*I'
+            '1.0*z^5 - 3.14159265359*z + 3.71828182846 + 2.0*I'
 
         AUTHOR:
             -- David Harvey (2006-08-05), based on Polynomial._repr()
+            -- Francis Clarke (2008-09-08) improved for 'negative' coefficients
         """
         s = " "
         m = self.degree() + 1
@@ -250,8 +253,10 @@ class Polynomial_generic_sparse(Polynomial):
             if x != 0:
                 if n != m-1:
                     s += " + "
-                x = repr(x)
-                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
+                x = y = repr(x)
+                if y.find("-") == 0:
+                    y = y[1:]
+                if not atomic_repr and n > 0 and (y.find("+") != -1 or y.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:
                     var = "*%s^%s"%(name,n)
@@ -260,8 +265,7 @@ class Polynomial_generic_sparse(Polynomial):
                 else:
                     var = ""
                 s += "%s%s"%(x,var)
-        if atomic_repr:
-            s = s.replace(" + -", " - ")
+        s = s.replace(" + -", " - ")
         s = s.replace(" 1*"," ")
         s = s.replace(" -1*", " -")
         if s==" ":
@@ -673,15 +677,10 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: (x^2 - 1).is_irreducible()
             False
         """
-        try:
-            return self.__poly.polisirreducible()
-        except NotImplementedError:
-            F = self.__poly.factor()
-            if len(F) > 1 or F[0][1] > 1:
-                return False
-            return True
+        S = PolynomialRing(ZZ, self.variable_name())
+        return S(self.denominator()*self).is_irreducible()
 
-    def galois_group(self, pari_group=False, use_kash=False):
+    def galois_group(self, pari_group=False, algorithm='pari'):
         r"""
         Return the Galois group of f as a permutation group.
 
@@ -695,15 +694,16 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                           Gap.  To get a permutation group from a PARI
                           group P, type PermutationGroup(P).
 
-            use_kash --   bool (default: False); if True use KASH's Galois
-                          command instead of using the PARI C library.
-                          An attempt is always made to use KASH if the
-                          degree of the polynomial is >= 12.
+            algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except
+                          when the degree is >= 12 when 'kash' is tried)
+                          NOTE: 'magma' also does not return a proven
+                          correct result.  Please see the Magma docs
+                          for how to get a proven result.
 
         ALGORITHM: The Galois group is computed using PARI in C
-        library mode, or possibly kash if available.
+        library mode, or possibly kash or magma.
 
-        \note{ The PARI documentation contains the following warning:
+        \note{The PARI documentation contains the following warning:
         The method used is that of resolvent polynomials and is
         sensitive to the current precision. The precision is updated
         internally but, in very rare cases, a wrong result may be
@@ -735,15 +735,22 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         not-so-thorough experiments PARI is faster than KASH.)
 
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: f.galois_group(use_kash=true)      # requires optional KASH
+            sage: f.galois_group(algorithm='kash')      # requires optional KASH
             Transitive group number 5 of degree 4
 
+            sage: f = x^4 - 17*x^3 - 2*x + 1
+            sage: f.galois_group(algorithm='magma')      # requires optional magma
+            Transitive group number 5 of degree 4
         """
         from sage.groups.all import PariGroup, PermutationGroup, TransitiveGroup
+
         if not self.is_irreducible():
             raise ValueError, "polynomial must be irreducible"
-        if self.degree() > 11 or use_kash:
-            # TODO -- maybe use KASH if available or print message that user should install KASH?
+
+        if self.degree() > 11 and algorithm=='pari':
+            algorithm = 'kash'
+
+        if algorithm == 'kash':
             try:
                 from sage.interfaces.all import kash
                 kash.eval('X := PolynomialRing(RationalField()).1')
@@ -752,8 +759,19 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                 d = int(kash.eval('%s.ext1'%G.name()))
                 n = int(kash.eval('%s.ext2'%G.name()))
                 return TransitiveGroup(d, n)
-            except RuntimeError:
-                raise NotImplementedError, "Sorry, computation of Galois groups of fields of degree bigger than 11 is not yet implemented.  Try installing the optional free (closed source) KASH package, which supports up to degree $23$."
+            except RuntimeError, msg:
+                raise NotImplementedError, str(msg) + "\nSorry, computation of Galois groups of fields of degree bigger than 11 is not yet implemented.  Try installing the optional free (closed source) KASH package, which supports larger degrees, or use algorithm='magma' if you have magma."
+        elif algorithm == 'magma':
+            from sage.interfaces.all import magma
+            X = magma(self).GaloisGroup()
+            try:
+                n, d = X.TransitiveGroupIdentification(nvals=2)
+                d = int(d)
+                n = int(n)
+            except RuntimeError, msg:
+                raise RuntimeError, str(msg) + "\nUnable to lookup description of Galois group as a transitive group.\n%s"%X
+            return TransitiveGroup(d, n)
+
         G = self.__poly.polgalois()
         H = PariGroup(G, self.degree())
         if pari_group:
@@ -877,6 +895,43 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             -7911
         """
         return self.discriminant()
+
+    def numerator(self):
+        """
+        Returns the numerator of self as a polynomial in ZZ[x].
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: (x/2).numerator()
+            x
+            sage: (x + 1/2).numerator()
+            2*x + 1
+            sage: (x^2/12 - 1/15).numerator()
+            5*x^2 - 4
+            sage: f = R.random_element(60)
+            sage: f.numerator() in ZZ['x']
+            True
+            sage: f.numerator() / f.denominator() == f
+            True
+        """
+        return ZZ[self.variable_name()](self.denominator() * self)
+
+    def denominator(self):
+        """
+        Returns the denominator of self as an element of ZZ.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: (x/2).denominator()
+            2
+            sage: (x/2 + 1/3).denominator()
+            6
+            sage: R.<x> = QQ[]
+            sage: f = R.random_element(50)
+            sage: f * f.denominator() in ZZ['x']
+            True
+        """
+        return integer.LCM_list([a.denominator() for a in self])
 
     def factor_mod(self, p):
         """

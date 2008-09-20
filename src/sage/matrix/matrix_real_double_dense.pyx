@@ -225,6 +225,11 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         return RealDoubleElement(gsl_matrix_get(self._matrix,i,j))
 
+    cdef set_unsafe_double(self, Py_ssize_t i, Py_ssize_t j, double value):
+        gsl_matrix_set(self._matrix,i,j,value)
+
+    cdef double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j):
+        return gsl_matrix_get(self._matrix,i,j)
 
     ########################################################################
     # LEVEL 2 functionality

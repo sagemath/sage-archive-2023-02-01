@@ -21,8 +21,8 @@ Rationals, etc.:
 Note that the result will always be coerced to the field
 with the lowest precision:
     sage: RR = RealField (300)
-    sage: RQDF( 123.2) * RR (.543)
-    66.89760000000000624851281827432114309792736749325567465385058291
+    sage: RQDF(123.2) * RR (.543)
+    66.89760000000000154329882207093760371208190917968750000000000000
 
 Mixing of symbolic an quad double elements:
     sage: a = RQDF(2) / log(10); a
@@ -148,9 +148,12 @@ cdef qd *qd_from_mpfr(mpfr_t rr):
 
 cdef class RealQuadDoubleField_class(Field):
     """
-    Real Quad Double Field
+    An approximation to a real number using quad double precision
+    floating point numbers. Answers derived from calculations with
+    such approximations may differ from what they would be if those
+    calculations were performed with true real numbers. This is due
+    to the rounding errors inherent to finite precision calculations.
     """
-
     def __init__(self):
         pass
 
@@ -419,7 +422,11 @@ cdef class RealQuadDoubleField_class(Field):
 
 cdef class QuadDoubleElement(FieldElement):
     """
-    A quad double real number.
+    A floating point approximation to a real number using quad
+   double precision. Answers derived from calculations with such
+   approximations may differ from what they would be if those
+   calculations were performed with true real numbers. This is due
+   to the rounding errors inherent to finite precision calculations.
     """
     cdef _new(self):
         cdef QuadDoubleElement q

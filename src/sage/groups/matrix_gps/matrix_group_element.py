@@ -51,7 +51,7 @@ matrix space and add them there:
 #*****************************************************************************
 
 from sage.groups.group import Group
-from sage.rings.all import IntegerRing, is_Ring, Integer
+from sage.rings.all import IntegerRing, is_Ring, Integer, Infinity
 from sage.interfaces.gap import gap
 import sage.structure.element as element
 from sage.matrix.matrix import Matrix
@@ -233,7 +233,8 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
     def order(self):
         """
         Return the order of this group element, which is the smallest
-        positive integer $n$ such that $g^n = 1$.
+        positive integer $n$ such that $g^n = 1$, or +Infinity if no
+        such integer exists.
 
         EXAMPLES:
             sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
@@ -242,11 +243,23 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
              [[[1, 1], [0, 1]], [[1, 0], [0, 2]]]
             sage: G.order()
             21
+
+            See trac \#1170
+            sage: gl=GL(2,ZZ); gl
+            General Linear Group of degree 2 over Integer Ring
+            sage: g=gl.gens()[2]; g
+            [1 1]
+            [0 1]
+            sage: g.order()
+            +Infinity
         """
         try:
             return self.__order
         except AttributeError:
-            self.__order = Integer(self._gap_().Order())
+            try:
+                self.__order = Integer(self._gap_().Order())
+            except TypeError:
+                self.__order = Infinity
             return self.__order
 
     def word_problem(self, words=None):

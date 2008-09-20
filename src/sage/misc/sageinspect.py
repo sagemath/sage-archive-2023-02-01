@@ -75,7 +75,7 @@ Test introspection of functions defined in Python and Cython files:
         '.../rational.pyx'
 
         sage: sage_getdoc(sage.rings.rational.make_rational).lstrip()
-        ''
+        "Make a rational number ...
 
         sage: sage_getsource(sage.rings.rational.make_rational, True)
         'def make_rational(s):...'

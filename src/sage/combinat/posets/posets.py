@@ -391,7 +391,7 @@ class FinitePoset(ParentWithBase):
 
     def plot(self, label_elements=True, element_labels=None,
             label_font_size=12,label_font_color='black',
-            vertex_size=300, vertex_colors=None):
+            vertex_size=300, vertex_colors=None,**kwds):
         """
 	Returns a Graphic object corresponding the Hasse diagram of the poset.
 	Optionally, it is labelled.
@@ -409,6 +409,11 @@ class FinitePoset(ParentWithBase):
             sage: elm_labs = {0:'a', 1:'b', 2:'c', 3:'d', 4:'e'}
             sage: D.plot(element_labels=elm_labs)
 
+            sage: P = Poset({})
+            sage: P.plot()
+
+            sage: P = Poset(DiGraph('E@ACA@?'))
+            sage: P.plot()
         """
         if label_elements and element_labels is None:
             element_labels = self._elements
@@ -416,7 +421,7 @@ class FinitePoset(ParentWithBase):
 			element_labels=element_labels,
 			label_font_size=label_font_size,
 			label_font_color=label_font_color,
-			vertex_size=vertex_size,vertex_colors=vertex_colors)
+			vertex_size=vertex_size,vertex_colors=vertex_colors,**kwds)
 
     def show(self, label_elements=True, element_labels=None,
             label_font_size=12,label_font_color='black',
@@ -703,11 +708,20 @@ class FinitePoset(ParentWithBase):
             sage: P.rank()
             3
             sage: Q = Poset([[1,2],[3],[],[]])
+
+            sage: P = SymmetricGroupBruhatOrderPoset(4)
+            sage: [(v,P.rank(v)) for v in P]
+            [(1234, 0),
+             (2134, 1),
+            ...
+             (4231, 5),
+             (4321, 6)]
+
         """
         if element is None:
             return len(self.level_sets())-1
         elif self.is_ranked():
-            return self.rank_function()(self._element_to_vertex(element))
+            return self.rank_function()(element)
         else:
             raise ValueError, "Poset is not ranked."
 

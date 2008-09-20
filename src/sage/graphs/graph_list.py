@@ -16,7 +16,17 @@ AUTHOR:
 #*****************************************************************************
 
 def from_whatever(data):
-    # TODO : doctests
+    """
+    Returns a list of SAGE Graphs, given a list of whatever kind of data.
+
+    INPUT:
+        data -- can be a string, a list of strings, or a file stream, or whatever.
+
+    EXAMPLE:
+        sage: l = ['N@@?N@UGAGG?gGlKCMO',':P_`cBaC_ACd`C_@BC`ABDHaEH_@BF_@CHIK_@BCEHKL_BIKM_BFGHI']
+        sage: graphs_list.from_whatever(l)
+        [Graph on 15 vertices, Looped multi-graph on 17 vertices]
+    """
     from sage.graphs.graph import Graph
     if isinstance(data, file):
         if data.name[data.name.rindex('.'):] == '.g6':
@@ -107,7 +117,7 @@ def from_sparse6(data):
         l = []
         for d in data:
             if not d == '':
-                l.append(Graph(d, format = 'sparse6'))
+                l.append(Graph(d, format = 'sparse6', sparse=True))
         return l
     elif isinstance(data,list):
         l = []
@@ -115,9 +125,9 @@ def from_sparse6(data):
             if isinstance(d, str):
                 nn = d.rfind('\n')
                 if nn == -1:
-                    l.append(Graph(d, format='sparse6'))
+                    l.append(Graph(d, format='sparse6', sparse=True))
                 elif len(d) == nn + 1:
-                    l.append(Graph(d[:nn], format='sparse6'))
+                    l.append(Graph(d[:nn], format='sparse6', sparse=True))
                 else:
                     l.append(from_sparse6(d))
             else:
@@ -127,7 +137,7 @@ def from_sparse6(data):
         strlist = data.readlines()
         l = []
         for s in strlist:
-            l.append(Graph(s[:s.rfind('\n')], format='sparse6'))
+            l.append(Graph(s[:s.rfind('\n')], format='sparse6', sparse=True))
         return l
 
 def to_graph6(list, file = None, output_list=False):

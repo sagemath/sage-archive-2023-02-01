@@ -1,3 +1,16 @@
+"""nodoctest
+
+Doctesting of this file is disabled because it fails in so many ways it is even funny.
+See http://trac.sagemath.org/sage_trac/ticket/3593 for two of the four ways I've
+seen it fail.
+
+When the dsage framework is rewritten to work more solidly then this can can be turned
+back on.  Hopefully for now the dsage unit tests will have to suffice.
+
+  -- William Stein; 2008-07-07
+"""
+
+
 ############################################################################
 #
 #   DSAGE: Distributed SAGE
@@ -26,9 +39,11 @@ import threading
 import time
 from getpass import getuser
 
-from twisted.cred.credentials import Anonymous
-from twisted.internet.threads import blockingCallFromThread
-from twisted.internet import reactor
+# This is a version of blockingCallFromThread that delays importing
+# twisted.internet until it is first used.
+def blockingCallFromThread(*args, **kwds):
+    from twisted.internet.threads import blockingCallFromThread
+    return blockingCallFromThread(*args, **kwds)
 
 from sage.dsage.database.job import Job, expand_job
 from sage.dsage.misc.misc import random_str
@@ -41,6 +56,7 @@ class DSageThread(threading.Thread):
     """
 
     def run(self):
+        from twisted.internet import reactor
         if not reactor.running:
             try:
                 reactor.run(installSignalHandlers=0)
@@ -197,6 +213,7 @@ class DSage(object):
             reactor.connectTCP(self.server, self.port, factory)
 
     def _login(self, *args, **kwargs):
+        from twisted.cred.credentials import Anonymous
         if self._testing:
             d = self.factory.login(Anonymous(), None)
         else:
@@ -359,6 +376,7 @@ class DSage(object):
             raise False
         return True
 
+
 class BlockingDSage(DSage):
     """
     This is the blocking version of the DSage interface.
@@ -395,10 +413,11 @@ class BlockingDSage(DSage):
             blockingCallFromThread(reactor, reactor.connectTLS, self.server,
                                    self.port, self.factory, cred)
         else:
-            blockingCallFromThread(reactor, reactor.connectTCP, self.server, self.port,
-                                   self.factory)
+            blockingCallFromThread(reactor, reactor.connectTCP, self.server,
+                                   self.port, self.factory)
 
     def _login(self, *args, **kwargs):
+        from twisted.cred.credentials import Anonymous
         if self._testing:
             d = self.factory.login(Anonymous(), None)
         else:
@@ -407,6 +426,202 @@ class BlockingDSage(DSage):
         d.addErrback(self._catch_failure)
 
         return d
+
+    def job_results_iter(self, jobs):
+        """
+        Returns an iterator that yields results of jobs as they come in.
+
+        INPUT:
+            jobs -- a list of tuples (x, j) where x is (args, kwds) and j is
+                    a job object
+
+        OUTPUT:
+            (x, job)
+
+        """
+
+        import time
+        out_list = []
+
+        while len(out_list) != len(jobs):
+            for x,j in jobs:
+                if j not in out_list:
+                    j.get_job()
+                    if j.status in ('completed', 'killed'):
+                        out_list.append(j)
+                        yield (x, j)
+                    time.sleep(0.2)
+
+    def block_on_jobs(self, jobs):
+        """
+        Blocks on a list of jobs until all the jobs are completed.
+
+        INPUT:
+            jobs -- a list of jobs which are not completed
+
+        OUTPUT:
+            jobs -- a list of completed jobs
+
+        EXAMPLE:
+            sage: from sage.server.misc import find_next_available_port
+            sage: port = find_next_available_port(8000)
+            sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+            Going into testing mode...
+            sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
+            sage: sleep(2.0)
+            sage: d = dsage.connect(port=port, ssl=False)
+            sage: sleep(1.0)
+            sage: d.is_connected()
+            True
+            sage: def f(n):
+            ...     return n*n
+            ...
+            sage: j = d.block_on_jobs(d.map(f, [25,12,25,32,12]))
+            sage: j # random
+            [625, 144, 625, 1024, 144]
+        """
+
+        out_list = []
+
+        while len(out_list) != len(jobs):
+            for j in jobs:
+                if j not in out_list:
+                    j.get_job()
+                    if j.status in ('completed', 'killed'):
+                        out_list.append(j)
+        return out_list
+
+    def map(self, f, *args):
+        """
+        Apply function to every item of iterable and return a list of the
+        results. If additional iterable arguments are passed, function must
+        take that many arguments and is applied to the items from all
+        iterables in parallel.
+
+        INPUT:
+            f -- a function
+            *args -- iterables containing the parameters to the function
+
+        EXAMPLE:
+            sage: from sage.server.misc import find_next_available_port
+            sage: port = find_next_available_port(8000)
+            sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+            Going into testing mode...
+            sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
+            sage: sleep(2.0)
+            sage: d = dsage.connect(port=port, ssl=False)
+            sage: sleep(1.0)
+            sage: d.is_connected()
+            True
+            sage: def f(n):
+            ...     return n*n
+            ...
+            sage: j = d.map(f, [25,12,25,32,12])
+            sage: j
+            [No output yet.,
+             No output yet.,
+             No output yet.,
+             No output yet.,
+             No output yet.]
+        """
+
+        from itertools import izip
+
+        jobs = [self.eval_function(f, (a, {}), job_name=f.__name__)
+                for a in izip(*args)]
+
+        return jobs
+
+    def parallel_iter(self, f, inputs):
+        """
+        dsage parallel iterator implementation.
+
+        INPUT:
+            f -- a Python function that can be pickled using
+                 the pickle_function command.
+            inputs -- a list of pickleable pairs (args, kwds), where args
+                 is a tuple and kwds is a dictionary.
+
+        OUTPUT:
+            iterator over 2-tuples (inputs[i], f(inputs[i])),
+            where the order may be completely random
+
+        EXAMPLE:
+            sage: from sage.server.misc import find_next_available_port
+            sage: port = find_next_available_port(8000)
+            sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+            Going into testing mode...
+            sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
+            sage: sleep(2.0)
+            sage: d = dsage.connect(port=port, ssl=False)
+            sage: sleep(1.0)
+            sage: d.is_connected()
+            True
+            sage: P = parallel(p_iter = d.parallel_iter)
+            sage: @P
+            ... def f(n,m):
+            ...     return n+m
+            ...
+            sage: list(f([(1,2), (5, 10/3)])) # random
+            [(((5, 10/3), {}), 25/3), (((1, 2), {}), 3)]
+        """
+
+        jobs = []
+        for x in inputs:
+            job = self.eval_function(f, x, job_name=f.__name__)
+            jobs.append((x, job))
+
+        return self.job_results_iter(jobs)
+
+    def eval_function(self, f, arguments, job_name=None):
+        """
+        Takes a function and it's arguments, pickles it, and creates a job
+        which executes the function with the arguments.
+
+        INPUT:
+            f -- function
+            arguments -- tuple(tuple, dict) --> *args, **kwds
+
+        OUTPUT:
+            job wrapper representing the function evaluated at input.
+
+        EXAMPLE:
+            sage: from sage.server.misc import find_next_available_port
+            sage: port = find_next_available_port(8000)
+            sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+            Going into testing mode...
+            sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
+            sage: sleep(2.0)
+            sage: d = dsage.connect(port=port, ssl=False)
+            sage: sleep(1.0)
+            sage: d.is_connected()
+            True
+            sage: def f(n):
+            ...     return n*n
+            ...
+            sage: j = d.eval_function(f, ((25,),{}), job_name='square')
+            sage: j.wait()
+            sage: j
+            625
+
+        """
+
+        from sage.misc.fpickle import pickle_function
+
+        p_f = pickle_function(f)
+
+        cmd = "f = unpickle_function(p_f)\n"
+        cmd += "ans = f(*args, **kwds)\n"
+        cmd += "print ans\n"
+        cmd += "DSAGE_RESULT = ans\n"
+
+        job = Job(code=cmd, name=job_name)
+        job.attach('p_f', p_f)
+        job.attach('args', arguments[0])
+        job.attach('kwds', arguments[1])
+        wrapped_job = BlockingJobWrapper(self._remoteobj, job)
+
+        return wrapped_job
 
     def eval(self, cmd, user_vars=None, job_name=None, timeout=600,
              load_files=[], priority=5, async=False):
@@ -479,6 +694,7 @@ class BlockingDSage(DSage):
         """
 
         self.is_connected()
+        from twisted.internet import reactor
         jdicts = blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                         'get_jobs_by_username',
                                         self.username, status)
@@ -504,7 +720,7 @@ class BlockingDSage(DSage):
         """
 
         self.is_connected()
-
+        from twisted.internet import reactor
         return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                          'get_cluster_speed')
 
@@ -514,7 +730,7 @@ class BlockingDSage(DSage):
         """
 
         self.is_connected()
-
+        from twisted.internet import reactor
         return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                          'get_worker_list')
 
@@ -524,7 +740,7 @@ class BlockingDSage(DSage):
         """
 
         self.is_connected()
-
+        from twisted.internet import reactor
         return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                          'get_client_list')
 
@@ -535,7 +751,7 @@ class BlockingDSage(DSage):
         """
 
         self.is_connected()
-
+        from twisted.internet import reactor
         return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                          'get_worker_count')
 
@@ -545,7 +761,7 @@ class BlockingDSage(DSage):
         """
 
         self.is_connected()
-
+        from twisted.internet import reactor
         return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                       'web_server_url')
 
@@ -562,10 +778,12 @@ class BlockingDSage(DSage):
         open_page(address, port, False)
 
     def server_log(self, n=50):
+        from twisted.internet import reactor
         return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                       'read_log', n, 'server')
 
     def worker_log(self, n=50):
+        from twisted.internet import reactor
         return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                       'read_log', n, 'worker')
 
@@ -773,6 +991,7 @@ class BlockingJobWrapper(JobWrapper):
     def __init__(self, remoteobj, job):
         self._update_job(job._reduce())
         self._remoteobj = remoteobj
+        from twisted.internet import reactor
         self.job_id = blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                            'submit_job', job._reduce())
 
@@ -796,6 +1015,7 @@ class BlockingJobWrapper(JobWrapper):
         if self.status == 'completed':
             return
 
+        from twisted.internet import reactor
         jdict = blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                         'get_job_by_id', self.job_id)
 
@@ -807,16 +1027,17 @@ class BlockingJobWrapper(JobWrapper):
     def rerun(self):
         """
         Resubmits the current job.
-
         """
-        self.job_id = blockingCallFromThread(reactor, self._remoteobj.callRemote,
+	from twisted.internet import reactor
+        self.job_id = blockingCallFromThread(reactor,
+                                             self._remoteobj.callRemote,
                                              'submit_job', self._jdict)
     def kill(self):
         """
         Kills the current job.
 
         """
-
+        from twisted.internet import reactor
         job_id = blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                            'kill_job', self.job_id)
         self.job_id = job_id

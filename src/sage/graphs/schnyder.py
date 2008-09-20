@@ -50,7 +50,7 @@ def _triangulate(g, comb_emb):
 
     EXAMPLES:
         sage: from sage.graphs.schnyder import _triangulate
-        sage: g = graphs.CycleGraph(4)
+        sage: g = Graph(graphs.CycleGraph(4), implementation='networkx')
         sage: g.is_planar(set_embedding=True)
         True
         sage: _triangulate(g, g._embedding)
@@ -143,7 +143,7 @@ def _normal_label(g, comb_emb, external_face):
 
     EXAMPLES:
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer
-        sage: g = graphs.CycleGraph(7)
+        sage: g = Graph(graphs.CycleGraph(7), implementation='networkx')
         sage: g.is_planar(set_embedding=True)
         True
         sage: faces = g.trace_faces(g._embedding)
@@ -340,7 +340,7 @@ def _realizer(g, x, example=False):
 
     EXAMPLES:
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer
-        sage: g = graphs.CycleGraph(7)
+        sage: g = Graph(graphs.CycleGraph(7), implementation='networkx')
         sage: g.is_planar(set_embedding=True)
         True
         sage: faces = g.trace_faces(g._embedding)
@@ -353,7 +353,7 @@ def _realizer(g, x, example=False):
 
     """
     normal_labeling, (v1, v2, v3) = x
-    realizer = DiGraph()
+    realizer = DiGraph(implementation='networkx')
 
     tree_nodes = {}
     for v in g:
@@ -420,7 +420,7 @@ def _compute_coordinates(g, x):
                     the roots of each tree)
     EXAMPLES:
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
-        sage: g = graphs.CycleGraph(7)
+        sage: g = Graph(graphs.CycleGraph(7), implementation='networkx')
         sage: g.is_planar(set_embedding=True)
         True
         sage: faces = g.trace_faces(g._embedding)
@@ -527,6 +527,29 @@ class TreeNode():
 
     """
     def __init__(self, parent = None, children = None, label = None):
+        """
+        INPUT:
+            parent -- the parent TreeNode of self
+            children -- a list of TreeNode children of self
+            label -- the associated realizer vertex label
+
+        EXAMPLE:
+            sage: from sage.graphs.schnyder import TreeNode
+            sage: tn = TreeNode(label=5)
+            sage: tn2 = TreeNode(label=2,parent=tn)
+            sage: tn3 = TreeNode(label=3)
+            sage: tn.append_child(tn3)
+            sage: tn.compute_number_of_descendants()
+            2
+            sage: tn.number_of_descendants
+            2
+            sage: tn3.number_of_descendants
+            1
+            sage: tn.compute_depth_of_self_and_children()
+            sage: tn3.depth
+            2
+
+        """
         if children is None:
             children = []
         self.parent = parent

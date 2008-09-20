@@ -127,6 +127,11 @@ def det_given_divisor(A, d, proof=True, stabilize=2):
         1125899772623531
         sage: matrix_integer_dense_hnf.det_given_divisor(a, 1, proof=True)
         1125899772623531
+
+    TESTS:
+        sage: m = diagonal_matrix(ZZ, 68, [2]*66 + [1,1])
+        sage: m.det()
+        73786976294838206464
     """
     p = max_det_prime(A.nrows())
     z_mod = []
@@ -134,7 +139,7 @@ def det_given_divisor(A, d, proof=True, stabilize=2):
     assert d != 0
     if proof:
         N = 1
-        B = (10**A.hadamard_bound()) // d + 1
+        B = (10**A.hadamard_bound()) + 1
         dd = d
         # bad verbose statement, since computing the log overflows!
         est = int(RR(B).log() / RR(p).log()) + 1

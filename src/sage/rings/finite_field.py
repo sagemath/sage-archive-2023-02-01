@@ -219,6 +219,12 @@ def FiniteField(order, name=None, modulus=None, names=None,
         Traceback (most recent call last):
         ...
         ValueError: order of finite field must be a prime power
+
+    Finite fields with random modulus are not cached:
+        sage: k.<a> = GF(2^17,modulus='random')
+        sage: n.<a> = GF(2^17,modulus='random')
+        sage: n is k
+        False
     """
     if not names is None: name = names
     order = int(order)
@@ -228,7 +234,7 @@ def FiniteField(order, name=None, modulus=None, names=None,
         elem_cache = order < 500
 
     key = (order, name, modulus, str([args, kwds]))
-    if cache.has_key(key):
+    if modulus != 'random' and cache.has_key(key):
         K = cache[key]()
         if not K is None:
             return K
@@ -259,7 +265,8 @@ def FiniteField(order, name=None, modulus=None, names=None,
                 from finite_field_ext_pari import FiniteField_ext_pari
                 K = FiniteField_ext_pari(order, name, modulus, *args, **kwds)
 
-    cache[key] = weakref.ref(K)
+    if modulus != 'random':
+        cache[key] = weakref.ref(K)
     return K
 
 

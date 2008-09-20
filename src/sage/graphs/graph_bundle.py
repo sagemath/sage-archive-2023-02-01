@@ -62,7 +62,7 @@ class GraphBundle(Graph):
 
         """
         if len(args) == 0:
-            Graph.__init__(self)
+            Graph.__init__(self, sparse=True)
             self.base = Graph()
             self.fiber = {}
             self.projection = {}
@@ -78,8 +78,8 @@ class GraphBundle(Graph):
                     self.projection = {}
                     partition = args[0]
                     args = args[1:]
-                    Graph.__init__(self, G)
-                    self.base = Graph()
+                    Graph.__init__(self, G, sparse=True)
+                    self.base = Graph(sparse=True)
                     base_size = len(partition)
                     self.base.add_vertices(xrange(base_size))
                     edge_list = []

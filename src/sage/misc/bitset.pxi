@@ -17,25 +17,6 @@
 
 # This is a .pxi file so that one can inline functions. Doctests in misc_c.
 
-include "../ext/stdsage.pxi"
-
-cdef extern from *:
-    void *memset(void *, int, size_t)
-    void *memcpy(void *, void *, size_t)
-    int memcmp(void *, void *, size_t)
-    size_t strlen(char *)
-
-    # constant literals
-    int index_shift "(sizeof(unsigned long)==8 ? 6 : 5)"
-    unsigned long offset_mask "(sizeof(unsigned long)==8 ? 0x3F : 0x1F)"
-
-cdef struct bitset_s:
-    long size
-    long limbs
-    unsigned long *bits
-
-ctypedef bitset_s bitset_t[1]
-
 #############################################################################
 # Bitset Initalization
 #############################################################################

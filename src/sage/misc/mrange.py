@@ -41,8 +41,8 @@ def _xmrange_iter( iter_list, typ=list ):
 
     if len(iter_list) == 0:
         return
-    curr_iters = [i.__iter__() for i in iter_list]
-    curr_elt = [iter.next() for iter in curr_iters[:-1]] + [None]
+    curr_iters = [iter(i) for i in iter_list]
+    curr_elt = [i.next() for i in curr_iters[:-1]] + [None]
     place = len(iter_list) - 1
     while True:
         try:

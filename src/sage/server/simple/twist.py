@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 This module provides a very simple API for interacting with a Sage session
 over http. It runs in as part of the notebook server.
 
@@ -9,7 +9,8 @@ NOTE:
 
 
 TESTS:
-Start the notebook:
+
+Start the notebook.
     sage: from sage.server.misc import find_next_available_port
     sage: port = find_next_available_port(9000, verbose=False)
     sage: from sage.server.notebook.notebook_object import test_notebook
@@ -24,6 +25,7 @@ Import urllib:
 
 
 Login to a new session:
+    sage: sleep(1)
     sage: login_page = get_url('http://localhost:%s/simple/login?username=admin&password=%s' % (port, passwd))
     sage: print login_page # random session id
     {
@@ -33,6 +35,7 @@ Login to a new session:
     sage: session = re.match(r'.*"session": "([^"]*)"', login_page, re.DOTALL).groups()[0]
 
 Run a command:
+    sage: sleep(0.5)
     sage: print get_url('http://localhost:%s/simple/compute?session=%s&code=2*2' % (port, session))
     {
     "status": "done",

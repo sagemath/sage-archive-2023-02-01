@@ -53,13 +53,18 @@ import quit
 
 import cleaner
 
+import os
+
 from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
 from sage.structure.element import RingElement
 BAD_SESSION = -2
 
 failed_to_start = []
 
-tmp_expect_interface_local='%s/tmp'%SAGE_TMP_INTERFACE
+#tmp_expect_interface_local='%s/tmp'%SAGE_TMP_INTERFACE
+
+def tmp_expect_interface_local():
+    return '%s/tmp'%SAGE_TMP_INTERFACE + str(os.getpid())
 
 ## On some platforms, e.g., windows, this can easily take 10 seconds!?!  Terrible.  And
 ## it should not be necessary or used anyways.
@@ -545,7 +550,7 @@ If this all works, you can then make calls like:
         try:
             return self.__local_tmpfile
         except AttributeError:
-            self.__local_tmpfile = tmp_expect_interface_local
+            self.__local_tmpfile = tmp_expect_interface_local()
             return self.__local_tmpfile
 
     def _remote_tmpdir(self):
@@ -580,6 +585,21 @@ If this all works, you can then make calls like:
         if not (self.__remote_tmpfile is None):
             raise NotImplementedError
 
+    def read(self, filename):
+        """
+        EXAMPLES:
+            sage: filename = tmp_filename()
+            sage: f = open(filename, 'w')
+            sage: f.write('x = 2\n')
+            sage: f.close()
+            sage: octave.read(filename)  #optional -- requires Octave
+            sage: octave.get('x')        #optional
+            ' 2'
+            sage: import os
+            sage: os.unlink(filename)
+        """
+        self.eval(self._read_in_file_command(filename))
+
     def _read_in_file_command(self, filename):
         raise NotImplementedError
 
@@ -604,8 +624,6 @@ If this all works, you can then make calls like:
         return s
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
-        #if line.find('\n') != -1:
-        #    raise ValueError, "line must not contain any newlines"
         if allow_use_file and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
             return self._eval_line_using_file(line)
         try:
@@ -926,8 +944,8 @@ If this all works, you can then make calls like:
     def execute(self, *args, **kwds):
         return self.eval(*args, **kwds)
 
-    #def __call__(self, x, globals=None):
-    def __call__(self, x):
+    def __call__(self, x, name=None):
+
         r"""
         Create a new object in self from x.
 
@@ -937,15 +955,12 @@ If this all works, you can then make calls like:
                       X.foo(y,z,...)
         calls foo(X, y, z, ...) and returns the corresponding object.
         """
-        #if not globals is None:
-        #    for k, x in globals.iteritems():
-        #        self.set(k,x)
         cls = self._object_class()
 
         if isinstance(x, cls) and x.parent() is self:
             return x
         if isinstance(x, basestring):
-            return cls(self, x)
+            return cls(self, x, name=name)
         try:
             return self._coerce_from_special_method(x)
         except TypeError:
@@ -956,7 +971,7 @@ If this all works, you can then make calls like:
             return self._coerce_impl(x, use_special=False)
         except TypeError, msg:
             try:
-                return cls(self, str(x))
+                return cls(self, str(x), name=name)
             except TypeError, msg2:
                 raise TypeError, msg
 
@@ -1086,19 +1101,47 @@ If this all works, you can then make calls like:
         self.__seq += 1
         return "sage%s"%self.__seq
 
-    def _create(self, value):
-        name = self._next_var_name()
-        #self._last_name = name
+    def _create(self, value, name=None):
+        name = self._next_var_name() if name is None else name
         self.set(name, value)
         return name
 
-    #def _last_created_varname(self):
-    #    return self._last_name
-
     def _object_class(self):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.expect import Expect
+            sage: Expect._object_class(maxima)
+            <class 'sage.interfaces.expect.ExpectElement'>
+
+        """
         return ExpectElement
 
-    def function_call(self, function, args=[]):
+    def _function_class(self):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.expect import Expect
+            sage: Expect._function_class(maxima)
+            <class 'sage.interfaces.expect.ExpectFunction'>
+        """
+        return ExpectFunction
+
+    def _function_element_class(self):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.expect import Expect
+            sage: Expect._function_element_class(maxima)
+            <class 'sage.interfaces.expect.FunctionElement'>
+        """
+        return FunctionElement
+
+    def function_call(self, function, args=[], kwds={}):
+        """
+        EXAMPLES:
+            sage: maxima.quad_qags(x, x, 0, 1, epsrel=1e-4)
+            [0.5,5.5511151231257...E-15,21,0]
+            sage: maxima.function_call('quad_qags', [x, x, 0, 1], {'epsrel':'1e-4'})
+            [0.5,5.5511151231257...E-15,21,0]
+        """
         if function == '':
             raise ValueError, "function name must be nonempty"
         if function[:2] == "__":
@@ -1108,21 +1151,22 @@ If this all works, you can then make calls like:
         for i in range(len(args)):
             if not isinstance(args[i], ExpectElement):
                 args[i] = self.new(args[i])
-        return self.new("%s(%s)"%(function, ",".join([s.name() for s in args])))
+        for key, value in kwds.iteritems():
+            kwds[key] = self.new(value)
 
-    def call(self, function_name, *args):
-        return self.function_call(function_name, args)
+        return self.new("%s(%s)"%(function, ",".join([s.name() for s in args]+
+                                                     ['%s=%s'%(key,value.name()) for key, value in kwds.items()])))
+
+    def call(self, function_name, *args, **kwds):
+        return self.function_call(function_name, args, kwds)
 
     def _contains(self, v1, v2):
-        raise NotImplementedError
-
-    def _is_true_string(self, s):
         raise NotImplementedError
 
     def __getattr__(self, attrname):
         if attrname[:1] == "_":
             raise AttributeError
-        return ExpectFunction(self, attrname)
+        return self._function_class()(self, attrname)
 
     def __cmp__(self, other):
         """
@@ -1149,7 +1193,7 @@ If this all works, you can then make calls like:
         raise NotImplementedError
 
     def help(self, s):
-        print 'No help on %s available'%s
+        return AsciiArtString('No help on %s available'%s)
 
 
 class ExpectFunction(SageObject):
@@ -1163,8 +1207,20 @@ class ExpectFunction(SageObject):
     def __repr__(self):
         return "%s"%self._name
 
-    def __call__(self, *args):
-        return self._parent.function_call(self._name, list(args))
+    def __call__(self, *args, **kwds):
+        return self._parent.function_call(self._name, list(args), kwds)
+
+    def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: gp.gcd._sage_doc_()
+            'gcd(x,{y}): greatest common divisor of x and y.'
+
+        """
+        M = self._parent
+        return M.help(self._name)
+
+
 
 
 class FunctionElement(SageObject):
@@ -1178,14 +1234,22 @@ class FunctionElement(SageObject):
     def __repr__(self):
         return "%s"%self._name
 
-    def __call__(self, *args):
-        return self._obj.parent().function_call(self._name, [self._obj] + list(args))
+    def __call__(self, *args, **kwds):
+        return self._obj.parent().function_call(self._name, [self._obj] + list(args), kwds)
 
     def help(self):
         print self._sage_doc_()
 
     def _sage_doc_(self):
-        return ''
+        """
+        EXAMPLES:
+            sage: gp(2).gcd._sage_doc_()
+            'gcd(x,{y}): greatest common divisor of x and y.'
+
+        """
+        M = self._obj.parent()
+        return M.help(self._name)
+
 
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
@@ -1196,7 +1260,7 @@ class ExpectElement(RingElement):
     """
     Expect element.
     """
-    def __init__(self, parent, value, is_name=False):
+    def __init__(self, parent, value, is_name=False, name=None):
         RingElement.__init__(self, parent)
         self._create = value
         if parent is None: return     # means "invalid element"
@@ -1211,7 +1275,7 @@ class ExpectElement(RingElement):
             self._name = value
         else:
             try:
-                self._name = parent._create(value)
+                self._name = parent._create(value, name=name)
             except (TypeError, KeyboardInterrupt, RuntimeError, ValueError), x:
                 self._session_number = -1
                 raise TypeError, x
@@ -1242,7 +1306,19 @@ class ExpectElement(RingElement):
         P = self.parent()
         return getattr(P, self.name())(*args)
 
+    def __contains__(self, x):
+        P = self._check_valid()
+        if not isinstance(x, ExpectElement) or x.parent() is not self.parent():
+            x = P.new(x)
+        return P._contains(x.name(), self.name())
+
+
     def _sage_doc_(self):
+        """
+        EXAMPLES:
+            sage: gp(2)._sage_doc_()
+            '2'
+        """
         return str(self)
 
     def __hash__(self):
@@ -1254,13 +1330,14 @@ class ExpectElement(RingElement):
 
     def __cmp__(self, other):
         P = self.parent()
-        if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
+        if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
+                                 other.name())) == P._true_symbol():
+            return 0
+        elif P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1
         elif P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
             return 1
-        elif P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
-                                 other.name())) == P._true_symbol():
-            return 0
+
         # everything is supposed to be comparable in Python, so we define
         # the comparison thus when no comparable in interfaced system.
         if (hash(self) < hash(other)):
@@ -1289,13 +1366,6 @@ class ExpectElement(RingElement):
         except AttributeError:
             raise ValueError, "The session in which this object was defined is no longer running."
         return P
-
-    def __contains__(self, x):
-        P = self._check_valid()
-        if not isinstance(x, ExpectElement) or x.parent() != self.parent():
-            x = P.new(x)
-        t = P._contains(x.name(), self.name())
-        return P._is_true_string(t)
 
     def __del__(self):
         try:
@@ -1330,20 +1400,31 @@ class ExpectElement(RingElement):
             return '(invalid object -- defined in terms of closed session)'
         try:
             if self._get_using_file:
-                return self.parent().get_using_file(self._name)
+                s = self.parent().get_using_file(self._name)
         except AttributeError:
-            return self.parent().get(self._name)
+            s = self.parent().get(self._name)
+        if s.__contains__(self._name):
+            if hasattr(self, '__custom_name'):
+                s =  s.replace(self._name, self.__dict__['__custom_name'])
+        return s
 
     def __getattr__(self, attrname):
-        self._check_valid()
+        P = self._check_valid()
         if attrname[:1] == "_":
             raise AttributeError
-        return FunctionElement(self, attrname)
+        return P._function_element_class()(self, attrname)
 
     def hasattr(self, attrname):
         """
         Returns whether the given attribute is already defined by this object,
         and in particular is not dynamically generated.
+
+        EXAMPLES:
+            sage: m = maxima('2')
+            sage: m.hasattr('integral')
+            True
+            sage: m.hasattr('gcd')
+            False
         """
         return not isinstance(getattr(self, attrname), FunctionElement)
 
@@ -1375,6 +1456,14 @@ class ExpectElement(RingElement):
             return P.new('%s[%s]'%(self._name, str(n)[1:-1]))
 
     def __int__(self):
+        """
+        EXAMPLES:
+            sage: int(maxima('1'))
+            1
+            sage: type(_)
+            <type 'int'>
+
+        """
         return int(repr(self))
 
     def bool(self):
@@ -1383,60 +1472,163 @@ class ExpectElement(RingElement):
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
 
-    def __bool__(self):
+    def __nonzero__(self):
+        """
+        EXAMPLES:
+            sage: bool(maxima(0))
+            False
+            sage: bool(maxima(1))
+            True
+        """
         return self.bool()
 
-
     def __long__(self):
+        """
+        EXAMPLES:
+            sage: m = maxima('1')
+            sage: long(m)
+            1L
+        """
         return long(repr(self))
 
-    def __float____(self):
+    def __float__(self):
+        """
+        EXAMPLES:
+            sage: m = maxima('1/2')
+            sage: m.__float__()
+            0.5
+            sage: float(m)
+            0.5
+        """
         return float(repr(self))
 
     def _integer_(self):
+        """
+        EXAMPLES:
+            sage: m = maxima('1')
+            sage: m._integer_()
+            1
+            sage: _.parent()
+            Integer Ring
+            sage: QQ(m)
+            1
+        """
         import sage.rings.all
         return sage.rings.all.Integer(repr(self))
 
     def _rational_(self):
+        """
+        EXAMPLES:
+            sage: m = maxima('1/2')
+            sage: m._rational_()
+            1/2
+            sage: _.parent()
+            Rational Field
+            sage: QQ(m)
+            1/2
+        """
         import sage.rings.all
         return sage.rings.all.Rational(repr(self))
 
-    def name(self):
+    def name(self, new_name=None):
+        """
+        Returns the name of self.  If new_name is passed in,
+        then this function returns a new object identitical
+        to self whose name is new_name.
+
+        Note that this can overwrite existing variables in
+        the system.
+
+        EXAMPLES:
+            sage: x = r([1,2,3]); x
+            [1] 1 2 3
+            sage: x.name()
+            'sage3'
+            sage: x = r([1,2,3]).name('x'); x
+            [1] 1 2 3
+            sage: x.name()
+            'x'
+
+            sage: s5 = gap.SymmetricGroup(5).name('s5')
+            sage: s5
+            SymmetricGroup( [ 1 .. 5 ] )
+            sage: s5.name()
+            's5'
+
+        """
+        if new_name is not None:
+            if not isinstance(new_name, str):
+                raise TypeError, "new_name must be a string"
+            p = self.parent()
+            p.set(new_name, self._name)
+            return p._object_class()(p, new_name, is_name=True)
+
         return self._name
 
     def gen(self, n):
         P = self._check_valid()
         return P.new('%s.%s'%(self._name, int(n)))
 
-    def _add_(self, right):
+    def _operation(self, operation, right):
         P = self._check_valid()
         try:
-            return P.new('%s + %s'%(self._name, right._name))
+            return P.new('%s %s %s'%(self._name, operation, right._name))
         except Exception, msg:
             raise TypeError, msg
+
+    def _add_(self, right):
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f + g
+            sin(x)+cos(x)
+            sage: f + 2
+            cos(x)+2
+            sage: 2 + f
+            cos(x)+2
+
+        """
+        return self._operation("+", right)
 
     def _sub_(self, right):
-        P = self._check_valid()
-        try:
-            return P.new('%s - %s'%(self._name, right._name))
-        except Exception, msg:
-            raise TypeError, msg
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f - g
+            cos(x)-sin(x)
+            sage: f - 2
+            cos(x)-2
+            sage: 2 - f
+            2-cos(x)
 
+        """
+        return self._operation('-', right)
 
     def _mul_(self, right):
-        P = self._check_valid()
-        try:
-            return P.new('%s * %s'%(self._name, right._name))
-        except Exception, msg:
-            raise TypeError,msg
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f*g
+            cos(x)*sin(x)
+            sage: 2*f
+            2*cos(x)
+        """
+        return self._operation('*', right)
 
     def _div_(self, right):
-        P = self._check_valid()
-        try:
-            return P.new('%s / %s'%(self._name, right._name))
-        except Exception, msg:
-            raise TypeError, msg
-
+        """
+        EXAMPLES:
+            sage: f = maxima.cos(x)
+            sage: g = maxima.sin(x)
+            sage: f/g
+            cos(x)/sin(x)
+            sage: f/2
+            cos(x)/2
+        """
+        return self._operation("/", right)
 
     def __pow__(self, n):
         """
@@ -1446,13 +1638,9 @@ class ExpectElement(RingElement):
             2^(3/4)
         """
         P = self._check_valid()
-        if isinstance(n, ExpectElement):
-            if not P is n.parent():
-                n = P(n)
-            return P.new('%s ^ %s'%(self._name,n._name))
-        else:
-            z = P(n)
-            return P.new('%s ^ %s'%(self._name,z._name))
+        if not hasattr(n, 'parent') or P is not n.parent():
+            n = P(n)
+        return self._operation("^", n)
 
 
 def reduce_load(parent, x):

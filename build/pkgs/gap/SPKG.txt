@@ -1,5 +1,7 @@
 = gap =
 
+=== gap-4.4.10.p10 (Michael Abshoff, September 20th, 2008) ===
+ * unset CXX in spkg-install (work around for #4161)
 
 === gap-4.4.10.p9 (William Stein, August 27th, 2008) ===
  * Apply all the itanium patches to the src/ directory.

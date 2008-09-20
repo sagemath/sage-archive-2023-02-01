@@ -12,6 +12,8 @@ fi
 
 echo "*WARNING*: Unsetting CC since that tends to break GAP building"
 unset CC
+echo "*WARNING*: Unsetting CXX since that tends to break GAP building"
+unset CXX
 
 TARGET="gap-4.4.10"  #NOTE: Be sure to also update patches/gap*
 

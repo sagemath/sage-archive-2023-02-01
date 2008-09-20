@@ -833,8 +833,9 @@ cdef class PartitionStack:
             raise MemoryError("Couldn't allocate...")
         for i from 0 <= i < len(degrees):
             degs[i] = degrees[i]
-        return self._sort_by_function(start, degs, n)
+        X = self._sort_by_function(start, degs, n)
         sage_free(degs)
+        return X
 
     cdef int _sort_by_function(self, int start, int *degrees, int n):
         cdef int i, j, m = 2*n, max, max_location

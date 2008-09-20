@@ -103,4 +103,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+if [ -f "$SAGE_ROOT"/devel/sage/sage/libs/linbox/linbox.pyx ]; then
+    echo "Touching extensions linked against LinBox"
+    touch "$SAGE_ROOT"/devel/sage/sage/libs/linbox/linbox.pyx
+fi
 

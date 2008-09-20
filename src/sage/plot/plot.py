@@ -2257,7 +2257,7 @@ class GraphicPrimitive_PlotField(GraphicPrimitive):
         options = self.options()
         quiver_options = options.copy()
         quiver_options.pop('plot_points')
-        subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array, **quiver_options)
+        subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array, angles='xy', **quiver_options)
 
 class GraphicPrimitive_Disk(GraphicPrimitive):
     """

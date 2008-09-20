@@ -45,3 +45,14 @@ if [ $? -ne 0 ]; then
     echo "Error installing givaro"
     exit 1
 fi
+
+if [ -f "$SAGE_ROOT"/devel/sage/sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx ]; then
+    echo "Touching extensions linked against Givaro"
+    touch "$SAGE_ROOT"/devel/sage/sage/rings/finite_field_givaro.pyx
+    touch "$SAGE_ROOT"/devel/sage/sage/libs/linbox/linbox.pyx
+    touch "$SAGE_ROOT"/devel/sage/sage/libs/singular/singular.pyx
+    touch "$SAGE_ROOT"/devel/sage/sage/matrix/matrix_mpolynomial_dense.pyx
+    touch "$SAGE_ROOT"/devel/sage/sage/rings/polynomial/multi_polynomial_libsingular.pyx
+    touch "$SAGE_ROOT"/devel/sage/sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx
+fi
+

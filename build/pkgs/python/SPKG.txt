@@ -30,7 +30,7 @@ There are a large number of cimmunity resources. For more details see http://www
 
 == Changelog ==
 
-=== python-2.5.2.p7 (Robert Miller, International Talk Like a Pirate Day, 2009) ===
+=== python-2.5.2.p7 (Robert Miller, International Talk Like a Pirate Day, 2008) ===
  * 'oist th' fwrapv option on itanium, ya landlubber what deserves the black spot!
 
 === python-2.5.2.p6 (Michael Abshoff, September 14th, 2008) ===

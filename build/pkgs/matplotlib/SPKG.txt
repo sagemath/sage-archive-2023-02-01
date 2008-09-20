@@ -8,6 +8,9 @@ setupext.py by a version that adds some SAGE-specific paths so the build doesn't
 
 == Changelog ==
 
+== matplotlib-0.98.3.p2 (Jason Grout, 20 Sep 2008) ===
+ * Update quiver.py to the SVN version 6115 to make the vector field plots respect aspect ratio.
+
 == matplotlib-0.98.3.p1 (Jason Grout, 03 Sep 2008) ===
  * Add an arrow_line.py file as a patch for "nice" arrows in matplotlib
 

@@ -27,27 +27,55 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #***********************************************************************************************
 
-include "../../ext/cdefs.pxi"
-include "../../ext/stdsage.pxi"
-
 from sage.rings.arith import binomial, gcd
-from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfi import RealIntervalField
+from sage.rings.all import ZZ
 
-# RIF = RealIntervalField()
+from sage.rings.integer import Integer
+from sage.rings.integer cimport Integer
 
-import math
+import numpy
 
 # Other global variables
-ZZx = PolynomialRing(IntegerRing(), 'x')
+ZZx = PolynomialRing(ZZ, 'x')
 # QQx = PolynomialRing(RationalField(), 'x')
 
-#***********************************************************************************************
-# Auxiliary routines:
-# Hermite constant, naive Newton-Raphson, and a specialized Lagrange multiplier solver.
-#***********************************************************************************************
+cdef extern from "math.h":
+    cdef long lrint(double x)
+    cdef double floor(double x)
+    cdef double ceil(double x)
+    cdef double fabs(double x)
+    cdef double round(double x)
+    cdef int abs(int x)
+
+
+# The following exposes the internal C structure of the numpy python
+# object extern class [object PyArrayObject] tells pyrex that this is
+# a compiled python class defined by the C struct PyArrayObject
+cdef extern from "arrayobject.h":
+    cdef enum:
+        NPY_OWNDATA = 0x0004 # bit mask so numpy does not free
+                             # array contents when its destroyed
+    ctypedef int npy_intp
+    ctypedef extern class numpy.ndarray [object PyArrayObject]:
+        cdef char *data
+        cdef int nd
+        cdef npy_intp *dimensions
+        cdef npy_intp *strides
+        cdef int flags
+    object PyArray_FromDims(int,int *,int)
+    object PyArray_FromDimsAndData(int,int*,int,double *)
+    void import_array()
+
+
+
+#*********************************************************************************
+# Auxiliary routine
+# Hermite constant, naive Newton-Raphson, and a specialized Lagrange
+# multiplier solver.
+#*********************************************************************************
 
 def hermite_constant(n):
     r"""
@@ -109,7 +137,7 @@ def hermite_constant(n):
 
     return gamma
 
-cdef eval_seq_as_poly(int *f, int n, double x):
+cdef double eval_seq_as_poly(int *f, int n, double x):
     r"""
     Evaluates the sequence a, thought of as a polynomial with
         $$ f[n]*x^n + f[n-1]*x^(n-1) + ... + f[0]. $$
@@ -123,7 +151,7 @@ cdef eval_seq_as_poly(int *f, int n, double x):
         s = s*x+f[i]
     return s
 
-cdef newton(int *f, int *df, int n, double x0, double eps):
+cdef double newton(int *f, int *df, int n, double x0, double eps):
     r"""
     Find the real root x of f (with derivative df) near x0
     with provable precision eps, i.e. |x-z| < eps where z is the actual
@@ -134,12 +162,12 @@ cdef newton(int *f, int *df, int n, double x0, double eps):
     guarantees are made as to the convergence; a naive Newton-Raphson
     method is used.
     """
-    cdef double x, rdx
+    cdef double x, rdx, dx, fx
 
     x = x0
     dx = eval_seq_as_poly(f,n,x)/eval_seq_as_poly(df,n-1,x)
     x -= dx
-    while abs(dx) > eps:
+    while fabs(dx) > eps:
         # In truly optimized code, one could tune by automatically
         # iterating a certain number of times based on the size of dx to
         # save on a few comparisons.
@@ -150,7 +178,7 @@ cdef newton(int *f, int *df, int n, double x0, double eps):
     # Small hack for improved performance elsewhere: if it is close to an
     # integer, give it full precision as an integer.
     rdx = round(x)
-    if abs(rdx-x) < eps:
+    if fabs(rdx-x) < eps:
         x = rdx
 
     # Now ensure that either f(x-eps) or f(x+eps) has opposite sign
@@ -163,8 +191,8 @@ cdef newton(int *f, int *df, int n, double x0, double eps):
         fx = eval_seq_as_poly(f,n,x)
     return x
 
-cdef newton_in_intervals(int *f, int *df, int n, double *beta,
-                         double eps, double *rts):
+cdef void newton_in_intervals(int *f, int *df, int n, double *beta,
+                              double eps, double *rts):
     r"""
     Find the real roots of f in the intervals specified by beta:
         (beta[0],beta[1]), (beta[1],beta[2]), ..., (beta[n-1], beta[n])
@@ -173,13 +201,14 @@ cdef newton_in_intervals(int *f, int *df, int n, double *beta,
     Note the derivative *df is passed but is recomputed--this is
     just a way to save a malloc and free for each call.
     """
+    cdef int i
 
     for i from 0 <= i < n:
         df[i] = f[i+1]*(i+1)
     for i from 0 <= i < n:
         rts[i] = newton(f, df, n, (beta[i]+beta[i+1])/2, eps)
 
-def lagrange_degree_3(n, an1, an2, an3):
+cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
     r"""
     Private function.  Solves the equations which arise in the Lagrange multiplier
     for degree 3: for each 1 <= r <= n-2, we solve
@@ -194,63 +223,83 @@ def lagrange_degree_3(n, an1, an2, an3):
         sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,6,1,2) # random low order bits
         [-5.887850847558445916683125710722, -5.887850847558445916682940422175]
     """
+    cdef double zmin, zmax, val
+    cdef double *roots_data
+    cdef long coeffs[7]
+    cdef int r, rsq, rcu
+    cdef int nr, nrsq, nrcu
+    cdef int s1, s1sq, s1cu, s1fo, s2, s2sq, s2cu, s3, s3sq
+    cdef int found_minmax
 
     # Newton's relations.
     s1 = -an1
     s2 = -(an1*s1 + 2*an2)
     s3 = -(an1*s2 + an2*s1 + 3*an3)
 
+    s1sq = s1*s1
+    s1cu = s1*s1sq
+    s1fo = s1*s1cu
+    s2sq = s2*s2
+    s2cu = s2*s2sq
+    s3sq = s3*s3
+
     z4minmax = []
 
     for r from 1 <= r <= n-2:
         nr = n-1-r
+        # common subexpressions
+        rsq = r*r
+        rcu = r*rsq
+        nrsq = nr*nr
+        nrcu = nr*nrsq
+
         # Note: coefficients of elimination polynomial are in reverse order
         # for numpy, i.e. the coefficient of x^i is p[n-i].
-        p = [
-             ## x^6
-             r**3*nr + r**3 + 2*r**2*nr**2 + 5*r**2*nr + 3*r**2 +
-             r*nr**3 + 5*r*nr**2 + 7*r*nr + 3*r + nr**3 + 3*nr**2 +
-             3*nr + 1,
 
-             ## x^5
-             -6*r**2*nr*s1 - 6*r**2*s1 - 6*r*nr**2*s1 - 18*r*nr*s1
-             - 12*r*s1 - 6*nr**2*s1 - 12*nr*s1 - 6*s1,
+        ## x^6
+        coeffs[0] = rcu*nr + rcu + 2*rsq*nrsq + 5*rsq*nr + 3*rsq + \
+                    r*nrcu + 5*r*nrsq + 7*r*nr + 3*r + nrcu + \
+                    3*nrsq + 3*nr + 1
 
-             ## x^4
-             -3*r**3*s2 - 3*r**2*nr*s2 + 3*r**2*s1**2 - 6*r**2*s2 -
-             3*r*nr**2*s2 + 15*r*nr*s1**2 - 6*r*nr*s2 + 18*r*s1**2 -
-             3*r*s2 - 3*nr**3*s2 + 3*nr**2*s1**2 - 6*nr**2*s2 +
-             18*nr*s1**2 - 3*nr*s2 + 15*s1**2,
+        ## x^5
+        coeffs[1] = -6*rsq*nr*s1 - 6*rsq*s1 - 6*r*nrsq*s1 - 18*r*nr*s1 - \
+                    12*r*s1 - 6*nrsq*s1 - 12*nr*s1 - 6*s1
 
-             ## x^3
-             -2*r**3*nr*s3 - 4*r**2*nr**2*s3 + 6*r**2*nr*s1*s2 -
-             6*r**2*nr*s3 + 12*r**2*s1*s2 - 2*r*nr**3*s3 +
-             6*r*nr**2*s1*s2 - 6*r*nr**2*s3 - 4*r*nr*s1**3 +
-             12*r*nr*s1*s2 - 4*r*nr*s3 - 12*r*s1**3 + 12*r*s1*s2 +
-             12*nr**2*s1*s2 - 12*nr*s1**3 + 12*nr*s1*s2 - 20*s1**3,
+        ## x^4
+        coeffs[2] = -3*rcu*s2 - 3*rsq*nr*s2 + 3*rsq*s1sq - 6*rsq*s2 - \
+                    3*r*nrsq*s2 + 15*r*nr*s1sq - 6*r*nr*s2 + 18*r*s1sq - \
+                    3*r*s2 - 3*nrcu*s2 + 3*nrsq*s1sq - 6*nrsq*s2 + \
+                    18*nr*s1sq - 3*nr*s2 + 15*s1sq
 
-             ## x^2
-             3*r**3*s2**2 + 6*r**2*nr*s1*s3 - 3*r**2*nr*s2**2 -
-             6*r**2*s1**2*s2 + 3*r**2*s2**2 + 6*r*nr**2*s1*s3 -
-             3*r*nr**2*s2**2 - 6*r*nr*s1**2*s2 + 12*r*nr*s1*s3 +
-             3*r*nr*s2**2 + 3*r*s1**4 - 18*r*s1**2*s2 +
-             3*nr**3*s2**2 - 6*nr**2*s1**2*s2 + 3*nr**2*s2**2 +
-             3*nr*s1**4 - 18*nr*s1**2*s2 + 15*s1**4,
+        ## x^3
+        coeffs[3] = -2*rcu*nr*s3 - 4*rsq*nrsq*s3 + 6*rsq*nr*s1*s2 - \
+                    6*rsq*nr*s3 + 12*rsq*s1*s2 - 2*r*nrcu*s3 + \
+                    6*r*nrsq*s1*s2 - 6*r*nrsq*s3 - 4*r*nr*s1cu + \
+                    12*r*nr*s1*s2 - 4*r*nr*s3 - 12*r*s1cu + 12*r*s1*s2 + \
+                    12*nrsq*s1*s2 - 12*nr*s1cu + 12*nr*s1*s2 - \
+                    20*s1cu
 
-             ## x^1
-             6*r**2*nr*s2*s3 - 6*r**2*s1*s2**2 + 6*r*nr**2*s2*s3 -
-             12*r*nr*s1**2*s3 - 6*r*nr*s1*s2**2 + 12*r*s1**3*s2 -
-             6*nr**2*s1*s2**2 + 12*nr*s1**3*s2 - 6*s1**5,
+        ## x^2
+        coeffs[4] = 3*rcu*s2sq + 6*rsq*nr*s1*s3 - 3*rsq*nr*s2sq - \
+                    6*rsq*s1sq*s2 + 3*rsq*s2sq + 6*r*nrsq*s1*s3 - \
+                    3*r*nrsq*s2sq - 6*r*nr*s1sq*s2 + 12*r*nr*s1*s3 + \
+                    3*r*nr*s2sq + 3*r*s1fo - 18*r*s1sq*s2 + \
+                    3*nrcu*s2sq - 6*nrsq*s1sq*s2 + 3*nrsq*s2sq + \
+                    3*nr*s1fo - 18*nr*s1sq*s2 + 15*s1fo
 
-             ## x^0
-             r**3*nr*s3**2 - r**3*s2**3 + 2*r**2*nr**2*s3**2 -
-             6*r**2*nr*s1*s2*s3 + r**2*nr*s2**3 + 3*r**2*s1**2*s2**2
-             + r*nr**3*s3**2 - 6*r*nr**2*s1*s2*s3 + r*nr**2*s2**3 +
-             4*r*nr*s1**3*s3 + 3*r*nr*s1**2*s2**2 - 3*r*s1**4*s2 -
-             nr**3*s2**3 + 3*nr**2*s1**2*s2**2 - 3*nr*s1**4*s2 +
-             s1**6
+        ## x^1
+        coeffs[5] = 6*rsq*nr*s2*s3 - 6*rsq*s1*s2sq + 6*r*nrsq*s2*s3 - \
+                    12*r*nr*s1sq*s3 - 6*r*nr*s1*s2sq + 12*r*s1cu*s2 - \
+                    6*nrsq*s1*s2sq + 12*nr*s1cu*s2 - 6*s1*s1fo
 
-            ]
+        ## x^0
+        coeffs[6] = rcu*nr*s3sq - rcu*s2cu + 2*rsq*nrsq*s3sq - \
+                    6*rsq*nr*s1*s2*s3 + rsq*nr*s2cu + 3*rsq*s1sq*s2sq + \
+                    r*nrcu*s3sq - 6*r*nrsq*s1*s2*s3 + r*nrsq*s2cu + \
+                    4*r*nr*s1cu*s3 + 3*r*nr*s1sq*s2sq - \
+                    3*r*s1fo*s2 - nrcu*s2cu + \
+                    3*nrsq*s1sq*s2sq - 3*nr*s1fo*s2 + \
+                    s1sq*s1fo
 
         # If any roots appear double, recompute with gcd.
         # Happens sufficiently often, so just do it each time?
@@ -265,20 +314,37 @@ def lagrange_degree_3(n, an1, an2, an3):
                     ## possible_double = True
         ## if possible_double:
 
-        f = ZZx(p)
-        df = ZZx([i*p[i] for i in range(1,7)])
-        f = f//gcd(f,df)
-        fcoeff = [int(c) for c in f.list()]
-        import numpy
+        ## f = ZZx(p)
+        ## df = ZZx([i*p[i] for i in range(1,7)])
+        ## f = f//gcd(f,df)
+        ## fcoeff = [int(c) for c in f.list()]
+        ## rts = numpy.roots(fcoeff)
+        ## rts = numpy.real([rts[i] for i in range(len(rts))
+        ##                   if numpy.isreal(rts[i])]).tolist()
+        ## if len(rts) > 0:
+        ##    z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
+
+        fcoeff = [ int(coeffs[i]) for i in range(7) ]
         rts = numpy.roots(fcoeff)
 
-        rts = numpy.real([rts[i] for i in range(len(rts)) if numpy.isreal(rts[i])]).tolist()
-        if len(rts) > 0:
-            z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
+        roots_data = <double *>((<ndarray>rts).data)
+        for i from 0 <= i < 7:
+            if not ((<double *>roots_data)[2*i+1]):
+                val = (<double *>roots_data)[2*i]
+                if found_minmax:
+                    if val < zmin:
+                        zmin = val
+                    if val > zmax:
+                        zmax = val
+                else:
+                    zmin = val
+                    zmax = val
+                    found_minmax = 1
 
-    return z4minmax
-
-cimport sage.rings.integer
+    if found_minmax:
+        return [zmin, zmax]
+    else:
+        return []
 
 cdef int __len_primes = 46
 cdef long primessq[46]
@@ -303,15 +369,17 @@ def int_has_small_square_divisor(sage.rings.integer.Integer d):
     """
 
     cdef int i
-    cdef long asq = 1
+    cdef Integer asq
 
+    asq = ZZ(1)
     for i from 0 <= i < __len_primes:
         while mpz_divisible_ui_p(d.value, primessq[i]):
             asq *= primessq[i]
             mpz_divexact_ui(d.value, d.value, primessq[i])
+
     return asq
 
-cdef eval_seq_as_poly_int(int *f, int n, int x):
+cdef int eval_seq_as_poly_int(int *f, int n, int x):
     r"""
     Evaluates the sequence a, thought of as a polynomial with
         $$ f[n]*x^n + f[n-1]*x^(n-1) + ... + f[0]. $$
@@ -328,12 +396,12 @@ eps_abs = 10.**(-12)
 phi = 0.618033988749895
 sqrt2 = 1.41421356237310
 
-cdef easy_is_irreducible(int *a, int n):
+cdef int easy_is_irreducible(int *a, int n):
     r"""
     Very often, polynomials have roots in {+/-1, +/-2, +/-phi, sqrt2}, so we rule
     these out quickly.  Returns 0 if reducible, 1 if inconclusive.
     """
-    cdef int s, t, st, sgn
+    cdef int s, t, st, sgn, i
 
     # Check if a has a root in {1,-1,2,-2}.
     if eval_seq_as_poly_int(a,n,1) == 0 or eval_seq_as_poly_int(a,n,-1) == 0 or eval_seq_as_poly_int(a,n,2) == 0 or eval_seq_as_poly_int(a,n,-2) == 0:
@@ -341,7 +409,7 @@ cdef easy_is_irreducible(int *a, int n):
 
     # Check if f has factors x^2-x-1, x^2+x-1, x^2-2, respectively.
     # Note we only call the ZZx constructor if we're almost certain to reject.
-    if abs(eval_seq_as_poly(a,n,-phi)) < eps_abs:
+    if fabs(eval_seq_as_poly(a,n,-phi)) < eps_abs:
         s = 2*a[n]
         t = 0
         for i from n > i >= 0:
@@ -350,7 +418,7 @@ cdef easy_is_irreducible(int *a, int n):
             t = st
         if s == 0 and t == 0:
             return 0
-    if abs(eval_seq_as_poly(a,n,phi)) < eps_abs:
+    if fabs(eval_seq_as_poly(a,n,phi)) < eps_abs:
         s = 2*a[n]
         t = 0
         for i from n > i >= 0:
@@ -359,7 +427,7 @@ cdef easy_is_irreducible(int *a, int n):
             t = st
         if s == 0 and t == 0:
             return 0
-    if abs(eval_seq_as_poly(a,n,sqrt2)) < eps_abs:
+    if fabs(eval_seq_as_poly(a,n,sqrt2)) < eps_abs:
         s = a[n]
         t = 0
         for i from n > i >= 0:
@@ -389,9 +457,9 @@ def easy_is_irreducible_py(f):
 
 
 
-#***********************************************************************************************
+#****************************************************************************
 # Main class and routine
-#***********************************************************************************************
+#****************************************************************************
 
 # Global precision to find roots; this should probably depend on the
 # architecture in some way.  Algorithm gives provably correct results
@@ -414,17 +482,7 @@ cdef class tr_data:
     further documentation.
     """
 
-    cdef int n, k
-    cdef double B
-    cdef double b_lower, b_upper, gamma
-
-    cdef int *a, *amax
-    cdef double *beta
-    cdef int *gnk
-
-    cdef int *df
-
-    def __init__(self, n, B, a=[]):
+    def __init__(self, int n, B, a=[]):
         r"""
         Initialization routine (constructor).
 
@@ -500,7 +558,7 @@ cdef class tr_data:
             self.b_upper = -1./n*(self.a[n-1] - (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
             if k < n-3:
                 bminmax = lagrange_degree_3(n,a[n-1],a[n-2],a[n-3])
-                if len(bminmax) > 0:
+                if bminmax:
                     self.b_lower = bminmax[0]
                     self.b_upper = bminmax[1]
 
@@ -533,43 +591,87 @@ cdef class tr_data:
         sage_free(self.beta)
         sage_free(self.gnk)
 
-    def incr(self, f_out, verbose=False, haltk=0, phc=False):
+    def increment(self, verbose=False, haltk=0, phc=False):
         r"""
-        This function 'increments' the totally real data to the next value
-        which satisfies the bounds essentially given by Rolle's theorem,
-        and returns the next polynomial in the sequence f_out.
+        This function 'increments' the totally real data to the next
+        value which satisfies the bounds essentially given by Rolle's
+        theorem, and returns the next polynomial as a sequence of
+        integers.
 
-        The default or usual case just increments the constant coefficient; then
-        inductively, if this is outside of the bounds we increment the next
-        higher coefficient, and so on.
+        The default or usual case just increments the constant
+        coefficient; then inductively, if this is outside of the
+        bounds we increment the next higher coefficient, and so on.
 
-        If there are no more coefficients to be had, returns the zero polynomial.
+        If there are no more coefficients to be had, returns the zero
+        polynomial.
 
         INPUT:
-        f_out -- an integer sequence, to be written with the
-            coefficients of the next polynomial
-        verbose -- boolean to print verbosely computational details
-        haltk -- integer, the level at which to halt the inductive
-            coefficient bounds
-        phc -- boolean, if PHCPACK is available, use it when k == n-5 to
-            compute an improved Lagrange multiplier bound
+            verbose -- boolean to print verbosely computational details
+            haltk -- integer, the level at which to halt the inductive
+                     coefficient bounds
+            phc -- boolean, if PHCPACK is available, use it when k == n-5 to
+                   compute an improved Lagrange multiplier bound
 
         OUTPUT:
-        the successor polynomial as a coefficient list.
+            The next polynomial, as a sequence of integers
 
         EXAMPLES:
-            sage: f = ntl.ZZX([1,2,3])
             sage: T = sage.rings.number_field.totallyreal_data.tr_data(2,100)
-            sage: T.incr(f); f
-            [-24 -1 3]
-            sage: T.incr(f); T.incr(f); f
-            [-22 -1 3]
+            sage: T.increment()
+            [-24, -1, 1]
+            sage: for i in range(19): _ = T.increment()
+            sage: T.increment()
+            [-3, -1, 1]
+            sage: T.increment()
+            [-25, 0, 1]
+        """
+        cdef int *f_out
+        cdef int i
+
+        f_out = <int *>sage_malloc(sizeof(int) * (self.n))
+        if f_out == NULL:
+            raise MemoryError, "unable to allocate coefficient list"
+
+        self.incr(f_out, verbose, haltk, phc)
+
+        g = [0] * (self.n) + [1]
+        for i from 0 <= i < (self.n):
+            g[i] = f_out[i]
+        sage_free(f_out)
+
+        return g
+
+    cdef void incr(self, int *f_out, int verbose, int haltk, int phc):
+        r"""
+        This function 'increments' the totally real data to the next
+        value which satisfies the bounds essentially given by Rolle's
+        theorem, and returns the next polynomial in the sequence
+        f_out.
+
+        The default or usual case just increments the constant
+        coefficient; then inductively, if this is outside of the
+        bounds we increment the next higher coefficient, and so on.
+
+        If there are no more coefficients to be had, returns the zero
+        polynomial.
+
+        INPUT:
+            f_out -- an integer sequence, to be written with the
+                     coefficients of the next polynomial
+            verbose -- boolean to print verbosely computational details
+            haltk -- integer, the level at which to halt the inductive
+                     coefficient bounds
+            phc -- boolean, if PHCPACK is available, use it when k == n-5 to
+                   compute an improved Lagrange multiplier bound
+
+        OUTPUT:
+            None. The return value is stored in the variable f_out.
         """
 
-        cdef int n, np1, k, i, j
+        cdef int n, np1, k, i, j, nk, kz
         cdef int *gnkm, *gnkm1
-        cdef double *betak
-        cdef int maxoutflag
+        cdef double *betak, bl, br, akmin, akmax, tmp_dbl
+        cdef bint maxoutflag
 
         n = self.n
         np1 = n+1
@@ -634,9 +736,9 @@ cdef class tr_data:
                     # improvements due to Smyth to get bounds on a[n-2].
                     bl = 1./2*(1-1./n)*(1.*self.a[n-1])**2 \
                          - 1./2*self.gamma*(1./n*self.B)**(1./(n-1))
-                    self.a[k] = math.ceil(bl)
+                    self.a[k] = lrint(ceil(bl))
                     br = 1./2*(1.*self.a[n-1])**2 - 0.88595*n
-                    self.amax[k] = math.floor(br)
+                    self.amax[k] = lrint(floor(br))
 
                     # If maximum is already greater than the minimum, break!
                     if self.a[k] > self.amax[k]:
@@ -680,7 +782,7 @@ cdef class tr_data:
                         print ""
 
                     for i from 0 <= i < n-k-1:
-                        if abs(self.beta[k*np1+i]
+                        if fabs(self.beta[k*np1+i]
                                  - self.beta[k*np1+(i+1)]) < 10*eps_global:
                             # This happens reasonably infrequently, so calling
                             # the Python routine should be sufficiently fast...
@@ -702,7 +804,7 @@ cdef class tr_data:
                     elif k == n-4:
                         # New bounds from Lagrange multiplier in degree 3.
                         bminmax = lagrange_degree_3(n,self.a[n-1],self.a[n-2],self.a[n-3])
-                        if len(bminmax) > 0:
+                        if bminmax:
                             self.b_lower = bminmax[0]
                             self.b_upper = bminmax[1]
                     elif k == n-5 and phc:
@@ -735,24 +837,27 @@ cdef class tr_data:
                     # a polynomial with all real roots.
                     betak = &self.beta[k*np1]
                     akmin = -eval_seq_as_poly(gnkm, n-k, betak[nk+1]) \
-                            -abs(eval_seq_as_poly(gnkm1, nk, betak[nk+1]))*eps_global
+                            -fabs(eval_seq_as_poly(gnkm1, nk, betak[nk+1]))*eps_global
                     for i from 1 <= i < (nk+1)/2+1:
                         # Use the fact that f(z) <= f(x)+|f'(x)|eps if |x-z| < eps
                         # for sufficiently small eps, f(z) = 0, and f''(z) < 0.
-                        akmin = max(akmin,
-                                    -eval_seq_as_poly(gnkm, n-k, betak[nk+1-2*i]) \
-                                    -abs(eval_seq_as_poly(gnkm1, nk, betak[nk+1-2*i]))*eps_global)
+                        tmp_dbl = -eval_seq_as_poly(gnkm, n-k, betak[nk+1-2*i]) \
+                                  -fabs(eval_seq_as_poly(gnkm1, nk, betak[nk+1-2*i]))*eps_global
+                        if tmp_dbl > akmin:
+                            akmin = tmp_dbl
+
 
                     akmax = -eval_seq_as_poly(gnkm, n-k, betak[nk]) \
-                            +abs(eval_seq_as_poly(gnkm1, n-(k+1), betak[nk]))*eps_global
+                            +fabs(eval_seq_as_poly(gnkm1, n-(k+1), betak[nk]))*eps_global
                     for i from 1 <= i < nk/2+1:
                         # Similar calculus statement here.
-                        akmax = min(akmax,
-                                    -eval_seq_as_poly(gnkm, n-k, betak[nk-2*i]) \
-                                    +abs(eval_seq_as_poly(gnkm1, nk, betak[nk-2*i]))*eps_global)
+                        tmp_dbl = -eval_seq_as_poly(gnkm, n-k, betak[nk-2*i]) \
+                                  +fabs(eval_seq_as_poly(gnkm1, nk, betak[nk-2*i]))*eps_global
+                        if tmp_dbl < akmax:
+                            akmax = tmp_dbl
 
-                    self.a[k] = math.ceil(akmin)
-                    self.amax[k] = math.floor(akmax)
+                    self.a[k] = lrint(ceil(akmin))
+                    self.amax[k] = lrint(floor(akmax))
 
                     if self.a[n-1] == 0 and (n-k)%2 == 1:
                         # Can replace alpha by -alpha, so if all
@@ -762,7 +867,8 @@ cdef class tr_data:
                         while kz > k and self.a[kz] == 0:
                             kz -= 2
                         if kz == k:
-                            self.a[k] = max(self.a[k],0)
+                            if self.a[k] < 0:
+                                self.a[k] = 0
                     if self.a[k] == 0 and self.a[k+1] == 0:
                         self.a[k] += 1
                     # Can't have constant coefficient zero!

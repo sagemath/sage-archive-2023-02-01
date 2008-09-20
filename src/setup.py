@@ -955,9 +955,14 @@ ext_modules = [ \
     Extension('sage.rings.number_field.number_field_base',
               sources = ['sage/rings/number_field/number_field_base.pyx']), \
 
+    Extension('sage.rings.number_field.totallyreal',
+              ['sage/rings/number_field/totallyreal.pyx'],
+              libraries = ['gmp', 'pari']), \
+
     Extension('sage.rings.number_field.totallyreal_data',
               ['sage/rings/number_field/totallyreal_data.pyx'],
-              libraries = ['gmp']), \
+              libraries = ['gmp'],
+              include_dirs = [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']), \
 
     Extension('sage.rings.morphism',
               sources = ['sage/rings/morphism.pyx']), \

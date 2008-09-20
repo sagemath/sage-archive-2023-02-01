@@ -4932,17 +4932,18 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari([-2,0,0,1]).Polrev().nfbasis_d()
             ([1, x, x^2], -108)
         """
-        cdef gen _p, d
+        cdef gen d
         cdef GEN g
-        if p != 0:
-            _p = self.pari(p)
-            g = _p.g
+
+        if p:
+            g = (<gen>self.pari(p)).g
         else:
             g = <GEN>NULL
-        d = self.pari(0)
+
         _sig_on
-        nfb = self.new_gen(nfbasis(self.g, &d.g, flag, g))
-        return nfb, d.__int__()
+        nfb = self.new_gen(nfbasis(self.g, &t0, flag, g))
+        d = self.new_gen(t0)
+        return nfb, d
 
     def nfdisc(self, long flag=0, p=0):
         """
@@ -6447,40 +6448,43 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return z
 
     cdef gen new_gen_from_int(self, int value):
-        cdef GEN z
-        cdef long sign = 0
+        _sig_on
+        return self.new_gen(stoi(value))
 
-        z = cgetg( 3, t_INT )
-        setlgefint( z, 3 )
-        if (value > 0):
-            sign = 1
-            z[2] = value
-        elif (value < 0):
-            sign = -1
-            z[2] = -value
-        setsigne( z, sign )
-        return _new_gen(z)
+    cdef gen new_t_POL_from_int_star(self, int *vals, int length, long varnum):
+        """
+        Note that degree + 1 = length, so that recognizing 0 is
+        easier.
+
+        varnum = 0 is the general choice (creates a variable in x).
+        """
+        cdef GEN z
+        cdef int i
+
+        _sig_on
+        z = cgetg( length + 2, t_POL )
+        setvarn(z, varnum)
+        if length != 0:
+            setsigne(z,1)
+            for i from 0 <= i < length:
+                __set_lvalue__(gel(z,i+2), stoi(vals[i]))
+        else:
+            ## polynomial is zero
+            setsigne(z,0)
+
+        return self.new_gen(z)
 
     cdef gen new_gen_from_padic(self, long ordp, long relprec,
                                 mpz_t prime, mpz_t p_pow, mpz_t unit):
         cdef GEN z
-
         _sig_on
-
         z = cgetg( 5, t_PADIC )
-
-        ## set z[1]
         setprecp( z, relprec )
         setvalp( z, ordp )
-
         z[2] = <long>self.new_GEN_from_mpz_t(prime)
-
         z[3] = <long>self.new_GEN_from_mpz_t(p_pow)
-
         z[4] = <long>self.new_GEN_from_mpz_t(unit)
-
         return self.new_gen(z)
-
 
     def double_to_gen(self, x):
         cdef double dx

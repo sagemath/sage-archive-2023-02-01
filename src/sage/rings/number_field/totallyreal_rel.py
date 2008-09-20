@@ -33,6 +33,8 @@ from sage.libs.pari.gen import pari
 
 import math, bisect, sys
 
+import numpy
+
 r"""
 ## This code needs optimization before any serious use.
 

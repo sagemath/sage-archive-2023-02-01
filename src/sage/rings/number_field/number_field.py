@@ -2484,7 +2484,7 @@ class NumberField_generic(number_field_base.NumberField):
 
     def _normalize_prime_list(self, v):
         """
-        Internal function to convert into a list of primes either None
+        Internal function to convert into a tuple of primes either None
         or a single prime or a list.
 
         EXAMPLES:
@@ -4360,7 +4360,7 @@ class NumberField_relative(NumberField_generic):
     def galois_closure(self, names=None):
         """
         Return the absolute number field $K$ that is the Galois
-        closure of this relatice number field.
+        closure of this relative number field.
 
         EXAMPLES:
             sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
@@ -6431,7 +6431,7 @@ def put_natural_embedding_first(v):
     OUTPUT: None.  The list is altered in-place, so that, if possible,
             the first embedding has been switched with one of the
             others, so that if there is an embedding which preserves
-            tha generator names then it appears first.
+            the generator names then it appears first.
 
     EXAMPLES:
         sage: K.<a> = CyclotomicField(7)

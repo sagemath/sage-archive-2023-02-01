@@ -659,7 +659,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def residue_field(self, prime, check = True):
         """
-        Return the residue field of the integers modulo thegiven prime, ie $\Z/p\Z$.
+        Return the residue field of the integers modulo the given prime, ie $\Z/p\Z$.
 
         INPUT:
             prime -- a prime number

@@ -493,13 +493,13 @@ class Line(PrimitiveObject):
 
 
 
-def point3d(v, size=1, **kwds):
+def point3d(v, size=5, **kwds):
     """
     Plot a point or list of points in 3d space.
 
     INPUT:
         v -- a point or list of points
-        size -- (default: 1) size of the point (or points)
+        size -- (default: 5) size of the point (or points)
         color -- a word that describes a color
         rgbcolor -- (r,g,b) with r, g, b between 0 and 1 that describes a color
         opacity -- (default: 1) if less than 1 then is transparent

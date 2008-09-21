@@ -254,6 +254,10 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     B_pari = pari(B)
     f_out = <int *>sage_malloc((n_int+1)*sizeof(int))
+    if f_out == NULL: raise MemoryError
+    for i from 0 <= i < n_int:
+        f_out[i] = 0
+    f_out[n_int] = 1
 
     if keep_fields:
         if type(keep_fields) == bool:
@@ -280,10 +284,6 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         phc_flag = 1
     else:
         phc_flag = 0
-
-    for i from 0 <= i < n_int:
-        f_out[i] = 0
-    f_out[n_int] = 1
 
     # Trivial case
     if n == 1:

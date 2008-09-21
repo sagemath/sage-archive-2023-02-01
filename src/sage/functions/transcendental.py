@@ -418,7 +418,7 @@ class DickmanRhoComputer:
             Classical Differential-Difference Equations." Mathematics of
             Computation, Vol. 53, No. 187 (1989).
     """
-    cur_prec = 0
+    _cur_prec = 0
 
     def __call__(self, x):
         """
@@ -428,23 +428,23 @@ class DickmanRhoComputer:
         """
         if not is_RealNumber(x):
             x = RR(x)
-        if x <= 0:
+        if x < 0:
             return x.parent()(0)
         elif x <= 1:
             return x.parent()(1)
         elif x <= 2:
             return 1 - x.log()
         n = x.floor()
-        if self.cur_prec < x.parent().prec() or not self.f.has_key(n):
-            self.cur_prec = rel_prec = x.parent().prec()
+        if self._cur_prec < x.parent().prec() or not self._f.has_key(n):
+            self._cur_prec = rel_prec = x.parent().prec()
             # Go a bit beyond so we're not constantly re-computing.
             max = 1.1*x + 10
             abs_prec = (max*7/6 + max*max.log2()).ceil() + rel_prec
-            self.f = {}
-            self.compute_power_series(max.floor(), abs_prec, cache_ring=x.parent())
-        return self.f[n](2*(x-n-0.5))
+            self._f = {}
+            self._compute_power_series(max.floor(), abs_prec, cache_ring=x.parent())
+        return self._f[n](2*(x-n-0.5))
 
-    def compute_power_series(self, n, abs_prec, cache_ring=None):
+    def power_series(self, n, abs_prec):
         """
         This function returns the power series about $n+1/2$ used to evaluate
         Dickman's function. It is scaled such that the interval $[n,n+1]$
@@ -453,15 +453,31 @@ class DickmanRhoComputer:
         INPUT:
             n -- the lower endpoint of the interval for which this power series holds
             abs_prec -- the absolute precision of the resulting power series
-            cache_ring -- for internal use, caches the power series at this precision.
 
         EXAMPLES:
-            sage: f = dickman_rho.compute_power_series(2, 20); f
+            sage: f = dickman_rho.power_series(2, 20); f
             -9.9376e-8*x^11 + 3.7721e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
             sage: f(-1), f(0), f(1)
             (0.30685, 0.13032, 0.048608)
             sage: dickman_rho(2), dickman_rho(2.5), dickman_rho(3)
             (0.306852819440055, 0.130319561832251, 0.0486083882911316)
+        """
+        return self._compute_power_series(n, abs_prec, cache_ring=None)
+
+    def _compute_power_series(self, n, abs_prec, cache_ring=None):
+        """
+        Compute the power series giving Dickman's function on [n, n+1],
+        by recursion in n.  For internal use; self.power_series()
+        is a wrapper around this intended for the user.
+
+        INPUT:
+            n -- the lower endpoint of the interval for which this power series holds
+            abs_prec -- the absolute precision of the resulting power series
+            cache_ring -- for internal use, caches the power series at this precision.
+
+        EXAMPLES:
+            sage: f = dickman_rho.power_series(2, 20); f # implicit doctest
+            -9.9376e-8*x^11 + 3.7721e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
         """
         if n <= 1:
             if n <= -1:
@@ -475,11 +491,11 @@ class DickmanRhoComputer:
                 coeffs = [1 - R(1.5).log()] + [neg_three**-k/k for k in range(1, nterms)]
                 f = PolynomialRealDense(R['x'], coeffs)
                 if cache_ring is not None:
-                    self.f[n] = f.truncate_abs(f[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
+                    self._f[n] = f.truncate_abs(f[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
                 return f
         else:
-            f = self.compute_power_series(n-1, abs_prec + abs_prec.bits(), cache_ring)
-            # integrad = f / (2n+1 + x)
+            f = self._compute_power_series(n-1, abs_prec + abs_prec.bits(), cache_ring)
+            # integrand = f / (2n+1 + x)
             # We calculate this way because the most significant term is the constant term,
             # and so we want to push the error accumulation and remainder out to the least
             # significant terms.
@@ -489,7 +505,7 @@ class DickmanRhoComputer:
             ff = PolynomialRealDense(f.parent(), [f(1) + iintegrand(-1)]) - iintegrand
             rel_prec = int(abs_prec + abs(RR(f[0])).log2())
             if cache_ring is not None:
-                self.f[n] = ff.truncate_abs(ff[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
+                self._f[n] = ff.truncate_abs(ff[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
             return ff.change_ring(RealField(rel_prec))
 
 dickman_rho = DickmanRhoComputer()

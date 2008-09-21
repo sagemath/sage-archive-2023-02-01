@@ -909,7 +909,8 @@ ext_modules = [ \
                  include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
 
     Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',
-                 sources = ['sage/rings/polynomial/polynomial_real_mpfr_dense.pyx']), \
+                 sources = ['sage/rings/polynomial/polynomial_real_mpfr_dense.pyx'],
+                 libraries = ['mpfr', 'gmp']), \
 
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']), \

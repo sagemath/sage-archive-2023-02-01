@@ -288,7 +288,7 @@ class Lisp(Expect):
 
         EXAMPLES:
             sage: lisp.version()
-            GNU CLISP ... (...) (built ...) (memory ...)
+            GNU CLISP ... (...) (built ...)
             ...
 
         """

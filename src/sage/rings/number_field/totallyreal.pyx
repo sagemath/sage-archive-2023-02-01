@@ -225,8 +225,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         103
     """
 
-    cdef pari_gen B_pari, d, d_poly, keepB, nf, tmp_pair, t2val, ngt2, ng
-    cdef pari_gen pari_tmp1, pari_tmp2
+    cdef pari_gen B_pari, d, d_poly, keepB, nf, t2val, ngt2, ng
     cdef int *f_out
     cdef int counts[4]
     cdef int i, n_int, j, skip_jp
@@ -251,6 +250,17 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     S = []
     lenS = 0
 
+    # This is just to quiet valgrind down
+    B_pari = P(0)
+    d = B_pari
+    d_poly = B_pari
+    keepB = B_pari
+    nf = B_pari
+    t2val = B_pari
+    ngt2 = B_pari
+    ng = B_pari
+    pari_tmp1 = B_pari
+
     dB = PY_NEW(Integer)
     dB_odlyzko = odlyzko_bound_totallyreal(n_int)
     mpz_set_d(dB.value, dB_odlyzko)
@@ -260,6 +270,10 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     B_pari = pari(B)
     f_out = <int *>sage_malloc((n_int+1)*sizeof(int))
+    if f_out == NULL: raise MemoryError
+    for i from 0 <= i < n_int:
+        f_out[i] = 0
+    f_out[n_int] = 1
 
     if keep_fields:
         if type(keep_fields) == bool:
@@ -286,10 +300,6 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         phc_flag = 1
     else:
         phc_flag = 0
-
-    for i from 0 <= i < n_int:
-        f_out[i] = 0
-    f_out[n_int] = 1
 
     if just_print:
         skip_jp = 0

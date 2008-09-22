@@ -4,7 +4,7 @@
 
 zn_poly is a C library for polynomial arithmetic in Z/nZ[x], where n is any modulus that fits into an unsigned long.
 
-Website: http://math.harvard.edu/~dmharvey/zn_poly/
+Website: http://cims.nyu.edu/~harvey/zn_poly/
 
 == License ==
 
@@ -23,6 +23,12 @@ GPL V2 or V3. Some of the code has been copied from other projects - see src/COP
  * gmp
 
 == Changelog ==
+
+=== zn_poly-0.9 (David Harvey and Timothy Abbott, September 19th, 2008) ===
+ * updated to zn_poly-0.9
+ * shared versioning filename issues
+ * re-enabled test suite (now only takes ~10 seconds)
+ * updated upstream URL
 
 === zn_poly-0.8.p1 (Michael Abshoff, June 9th, 2008) ===
  * Do not run the test suite per default any more (#3386)

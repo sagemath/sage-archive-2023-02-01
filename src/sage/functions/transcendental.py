@@ -17,6 +17,8 @@ Transcendental Functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sys
+
 import  sage.libs.pari.all
 from sage.libs.pari.all import pari, PariError
 import sage.rings.complex_field as complex_field
@@ -27,6 +29,8 @@ from sage.gsl.integration import numerical_integral
 from sage.rings.all import (is_RealNumber, RealField,
                             is_ComplexNumber, ComplexField,
                             ZZ, RR, RDF, CDF, prime_range)
+
+from sage.calculus.calculus import PrimitiveFunction, SymbolicComposition, SR
 
 import sage.plot.all
 
@@ -379,7 +383,7 @@ prime_pi = PrimePi()
 
 from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
 
-class DickmanRhoComputer:
+class DickmanRhoComputer(PrimitiveFunction):
     r"""
     Dickman's function is the continuous function satisfying the differential
     equation
@@ -409,6 +413,7 @@ class DickmanRhoComputer:
         2.77017183772596e-11
         sage: dickman_rho(10.00000000000000000000000000000000000000)
         2.770171837725958988758121200634342326343e-11
+        sage: plot(log(dickman_rho(x)), (x, 0, 15))
 
     AUTHOR:
         Robert Bradshaw (2008-09)
@@ -425,9 +430,14 @@ class DickmanRhoComputer:
         EXAMPLES:
             sage: [dickman_rho(n) for n in [1..10]]
             [1.00000000000000, 0.306852819440055, 0.0486083882911316, 0.00491092564776083, 0.000354724700456040, 0.0000196496963539553, 8.74566995329392e-7, 3.23206930422610e-8, 1.01624828273784e-9, 2.77017183772596e-11]
+            sage: dickman_rho(0)
+            1.00000000000000
         """
         if not is_RealNumber(x):
-            x = RR(x)
+            try:
+                x = RR(x)
+            except (TypeError, ValueError):
+                return SymbolicComposition(self, SR(x))
         if x < 0:
             return x.parent()(0)
         elif x <= 1:
@@ -439,8 +449,10 @@ class DickmanRhoComputer:
             self._cur_prec = rel_prec = x.parent().prec()
             # Go a bit beyond so we're not constantly re-computing.
             max = 1.1*x + 10
-            abs_prec = (max*7/6 + max*max.log2()).ceil() + rel_prec
+            abs_prec = (-self.approximate(max).log2() + rel_prec + 2*max.log2()).ceil()
             self._f = {}
+            if sys.getrecursionlimit() < max + 10:
+                sys.setrecursionlimit(int(max) + 10)
             self._compute_power_series(max.floor(), abs_prec, cache_ring=x.parent())
         return self._f[n](2*(x-n-0.5))
 
@@ -456,7 +468,7 @@ class DickmanRhoComputer:
 
         EXAMPLES:
             sage: f = dickman_rho.power_series(2, 20); f
-            -9.9376e-8*x^11 + 3.7721e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
+            -9.9376e-8*x^11 + 3.7722e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
             sage: f(-1), f(0), f(1)
             (0.30685, 0.13032, 0.048608)
             sage: dickman_rho(2), dickman_rho(2.5), dickman_rho(3)
@@ -476,8 +488,8 @@ class DickmanRhoComputer:
             cache_ring -- for internal use, caches the power series at this precision.
 
         EXAMPLES:
-            sage: f = dickman_rho.power_series(2, 20); f # implicit doctest
-            -9.9376e-8*x^11 + 3.7721e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
+            sage: f = dickman_rho.power_series(2, 20); f
+            -9.9376e-8*x^11 + 3.7722e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
         """
         if n <= 1:
             if n <= -1:
@@ -494,7 +506,7 @@ class DickmanRhoComputer:
                     self._f[n] = f.truncate_abs(f[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
                 return f
         else:
-            f = self._compute_power_series(n-1, abs_prec + abs_prec.bits(), cache_ring)
+            f = self._compute_power_series(n-1, abs_prec, cache_ring)
             # integrand = f / (2n+1 + x)
             # We calculate this way because the most significant term is the constant term,
             # and so we want to push the error accumulation and remainder out to the least
@@ -503,9 +515,46 @@ class DickmanRhoComputer:
             integrand = integrand.truncate_abs(RR(2)**-abs_prec)
             iintegrand = integrand.integral()
             ff = PolynomialRealDense(f.parent(), [f(1) + iintegrand(-1)]) - iintegrand
-            rel_prec = int(abs_prec + abs(RR(f[0])).log2())
+            i = 0
+            while abs(f[i]) < abs(f[i+1]):
+                i += 1
+            rel_prec = int(abs_prec + abs(RR(f[i])).log2())
             if cache_ring is not None:
                 self._f[n] = ff.truncate_abs(ff[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
             return ff.change_ring(RealField(rel_prec))
+
+    def approximate(self, x):
+        r"""
+        Approximate using de Bruijn's formula
+
+            $$ \rho(x) \sim \frac{exp(-x \xi + Ei(\xi))}{\sqrt{2\pi x}\xi} $$
+
+        which is asymptotically equal to Dickman's function, and is much
+        faster to compute.
+
+        REFERENCES:
+            N. De Bruijn, "The Asymptotic behavior of a function occuring in
+                the theory of primes." J. Indian Math Soc. v 15. (1951)
+
+        EXAMPLES:
+            sage: dickman_rho.approximate(10)
+            2.41739196365564e-11
+            sage: dickman_rho(10)
+            2.77017183772596e-11
+            sage: dickman_rho.approximate(1000)
+            4.32938809066403e-3464
+        """
+        log, exp, sqrt, pi = math.log, math.exp, math.sqrt, math.pi
+        x = float(x)
+        xi = log(x)
+        y = (exp(xi)-1.0)/xi - x
+        while abs(y) > 1e-12:
+            dydxi = (exp(xi)*(xi-1.0) + 1.0)/(xi*xi)
+            xi -= y/dydxi
+            y = (exp(xi)-1.0)/xi - x
+        return (-x*xi + RR(xi).eint()).exp() / (sqrt(2*pi*x)*xi)
+
+    def _repr_(self, simplify=False):
+        return "dickman_rho"
 
 dickman_rho = DickmanRhoComputer()

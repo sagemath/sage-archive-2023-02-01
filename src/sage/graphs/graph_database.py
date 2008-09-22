@@ -457,46 +457,35 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
 
         EXAMPLES:
             sage: G = GraphDatabase()
-            sage: Q = GraphQuery(G, num_vertices=4, aut_grp_size=4, display=['graph6','num_vertices','aut_grp_size'])
+            sage: Q = GraphQuery(G, display_cols=['graph6','num_vertices','aut_grp_size'], num_vertices=4, aut_grp_size=4)
             sage: Q.show()
             Graph6               Num Vertices         Aut Grp Size
             ------------------------------------------------------------
             C@                   4                    4
             C^                   4                    4
 
-            sage: R = GraphQuery(G, num_vertices=4, display=['graph6','num_vertices','degree_sequence'])
+            sage: R = GraphQuery(G, display_cols=['graph6','num_vertices','degree_sequence'], num_vertices=4)
             sage: R.show()
             Graph6               Num Vertices         Degree Sequence
             ------------------------------------------------------------
-            C?                   4                    [0,0,0,0]
-            C@                   4                    [1,1,0,0]
-            CB                   4                    [2,1,1,0]
-            CK                   4                    [1,1,1,1]
-            CF                   4                    [3,1,1,1]
-            CJ                   4                    [2,2,2,0]
-            CL                   4                    [2,2,1,1]
-            CN                   4                    [3,2,2,1]
-            C]                   4                    [2,2,2,2]
-            C^                   4                    [3,3,2,2]
-            C~                   4                    [3,3,3,3]
+            C?                   4                    [0, 0, 0, 0]
+            C@                   4                    [0, 0, 1, 1]
+            CB                   4                    [0, 1, 1, 2]
+            CK                   4                    [1, 1, 1, 1]
+            CF                   4                    [1, 1, 1, 3]
+            CJ                   4                    [0, 2, 2, 2]
+            CL                   4                    [1, 1, 2, 2]
+            CN                   4                    [1, 2, 2, 3]
+            C]                   4                    [2, 2, 2, 2]
+            C^                   4                    [2, 2, 3, 3]
+            C~                   4                    [3, 3, 3, 3]
 
         Show the pictures (in notebook mode only):
-            sage: S = GraphQuery(G, num_vertices=4, display=['graph6','aut_grp_size'])
+            sage: S = GraphQuery(G, display_cols=['graph6','aut_grp_size'], num_vertices=4)
             sage: S.show(with_picture=True)
-               Graph6               Aut Grp Size
-                ----------------------------------------
-                C?                   24
-                C@                   4
-                CB                   2
-                CK                   8
-                CF                   6
-                CJ                   6
-                CL                   2
-                CN                   2
-                C]                   8
-                C^                   4
-                C~                   24
-
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot display plot on command line.
 
         Note that pictures can be turned off:
             sage: S.show(with_picture=False)
@@ -515,35 +504,35 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
             C~                   24
 
 
-        Show your own query:
-            sage: (GenericGraphQuery(G, 'select degree_sequence from degrees where max_degree=2 and min_degree >= 1')).show()
-            Degree Sequence
+        Show your own query (note that the output is not reformatted for generic queries):
+            sage: (GenericGraphQuery('select degree_sequence from degrees where max_degree=2 and min_degree >= 1',G)).show()
+            degree_sequence
             --------------------
-            [2,1,1]
-            [2,2,2]
-            [2,2,1,1]
-            [2,2,2,2]
-            [2,1,1,1,1]
-            [2,2,2,1,1]
-            [2,2,2,1,1]
-            [2,2,2,2,2]
-            [2,2,1,1,1,1]
-            [2,2,1,1,1,1]
-            [2,2,2,2,1,1]
-            [2,2,2,2,1,1]
-            [2,2,2,2,1,1]
-            [2,2,2,2,2,2]
-            [2,2,2,2,2,2]
-            [2,1,1,1,1,1,1]
-            [2,2,2,1,1,1,1]
-            [2,2,2,1,1,1,1]
-            [2,2,2,1,1,1,1]
-            [2,2,2,2,2,1,1]
-            [2,2,2,2,2,1,1]
-            [2,2,2,2,2,1,1]
-            [2,2,2,2,2,1,1]
-            [2,2,2,2,2,2,2]
-            [2,2,2,2,2,2,2]
+            211
+            222
+            2211
+            2222
+            21111
+            22211
+            22211
+            22222
+            221111
+            221111
+            222211
+            222211
+            222211
+            222222
+            222222
+            2111111
+            2221111
+            2221111
+            2221111
+            2222211
+            2222211
+            2222211
+            2222211
+            2222222
+            2222222
         """
         relabel = {}
         for col in valid_kwds:
@@ -566,7 +555,8 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
 
         EXAMPLES:
             sage: Q = GraphQuery(display_cols=['graph6','num_vertices','degree_sequence'],num_edges=['<=',5],min_degree=1)
-            sage: L = Q.get_graphs_list()sage: L[0]
+            sage: L = Q.get_graphs_list()
+            sage: L[0]
             Graph on 2 vertices
             sage: len(L)
             35

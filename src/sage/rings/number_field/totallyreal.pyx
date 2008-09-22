@@ -102,8 +102,9 @@ cpdef double odlyzko_bound_totallyreal(int n):
         dB = 33.9508
     return dB
 
-def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False, \
-                                      phc=False, keep_fields=False, t_2=False):
+def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False,
+                                      phc=False, keep_fields=False, t_2=False,
+                                      just_print=False):
     r"""
     This function enumerates primitive totally real fields of degree
     $n>1$ with discriminant $d \leq B$; optionally one can specify the
@@ -124,9 +125,14 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     If t_2 = T, then keep only polynomials with t_2 norm >= T.
 
+    If just_print is not False, instead of creating a sorted list of
+    totally real number fileds, we simply write each totally real
+    field we find to the file whose filename is given by
+    just_print. In this case, we don't return anything.
+
     NOTE:
-    This is guaranteed to give all primitive such fields, and
-    seems in practice to give many imprimitive ones.
+        This is guaranteed to give all primitive such fields, and
+        seems in practice to give many imprimitive ones.
 
     INPUT:
         n -- integer, the degree
@@ -223,7 +229,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     cdef pari_gen pari_tmp1, pari_tmp2
     cdef int *f_out
     cdef int counts[4]
-    cdef int i, n_int, j
+    cdef int i, n_int, j, skip_jp
     cdef bint found, use_t2, phc_flag, verb_int, temp_bint
     cdef Py_ssize_t k0, ind, lenS
     cdef tr_data T
@@ -285,8 +291,15 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     else:
         phc_flag = 0
 
+    if just_print:
+        skip_jp = 0
+        jp_file = open(just_print, "w")
+    else:
+        skip_jp = 1
+
     # Trivial case
     if n == 1:
+        sage_free(f_out)
         if return_seqs:
             return [[0,0,0,0],[[1,[-1,1]]]]
         else:
@@ -335,27 +348,31 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
                         dng = [d, ng]
 
-                        # Check if K is contained in the list.
-                        found = 0
-                        ind = bisect.bisect_left(S, dng)
-                        while ind < lenS:
-                            if S[ind][0] != d:
-                                break
-                            if S[ind][1] == ng:
-                                if verb_int:
-                                    print "but is not new"
-                                found = 1
-                                break
-                            ind += 1
+                        if skip_jp:
+                            # Check if K is contained in the list.
+                            found = 0
+                            ind = bisect.bisect_left(S, dng)
+                            while ind < lenS:
+                                if S[ind][0] != d:
+                                    break
+                                if S[ind][1] == ng:
+                                    if verb_int:
+                                        print "but is not new"
+                                    found = 1
+                                    break
+                                ind += 1
 
-                        ngt2 = <pari_gen>(ng[n_int-1]**2-2*ng[n_int-2])
-                        if not found:
-                            temp_bint = ngt2 >= t2val
-                            if ((not use_t2) or temp_bint):
-                                if verb_int:
-                                    print "and is new!"
-                                S.insert(ind, dng)
-                                lenS += 1
+                            ngt2 = <pari_gen>(ng[n_int-1]**2-2*ng[n_int-2])
+                            if not found:
+                                temp_bint = ngt2 >= t2val
+                                if ((not use_t2) or temp_bint):
+                                    if verb_int:
+                                        print "and is new!"
+                                    S.insert(ind, dng)
+                                    lenS += 1
+                        else:
+                            if ((not use_t2) or ngt2 >= t2val):
+                                jp_file.write(str([d, ng.Vecrev()]) + "\n")
 
                     else:
                         if verb_int:
@@ -377,6 +394,18 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
             T.incr(f_out,verb_int,0,phc_flag)
         else:
             T.incr(f_out,0,0,phc_flag)
+
+    if not skip_jp:
+        if n_int == 2 and B >= 5 and ((not use_t2) or t2val <= 5):
+            jp_file.write(str([2,[-1,-1,1]]) + "\n")
+            if B >= 8 and B < 32:
+                jp_file.write(str([2,[-2,0,1]]) + "\n")
+        elif n_int == 3 and B >= 49 and ((not use_t2) or 5 >= t2val):
+            jp_file.write(str([3,[1,-2,-1,1]]) + "\n")
+        jp_file.close()
+        sage_free(f_out)
+        return
+
 
     # In the application of Smyth's theorem above (and easy
     # irreducibility test), we exclude finitely many possibilities
@@ -408,6 +437,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
             fsock.close()
         sys.stdout = saveout
 
+    sage_free(f_out)
     if return_seqs:
         return [[ counts[i] for i in range(4) ],
                 [[s[0],s[1].reverse().Vec()] for s in S]]

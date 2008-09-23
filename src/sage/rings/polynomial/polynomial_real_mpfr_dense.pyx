@@ -273,7 +273,7 @@ cdef class PolynomialRealDense(Polynomial):
             mpfr_neg(f._coeffs[i], self._coeffs[i], rnd)
         return f
 
-    cdef ModuleElement _add_c_impl(left, ModuleElement _right):
+    cpdef ModuleElement _add_(left, ModuleElement _right):
         """
         EXAMPLES:
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -305,7 +305,7 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cdef ModuleElement _sub_c_impl(left, ModuleElement _right):
+    cpdef ModuleElement _sub_(left, ModuleElement _right):
         """
         EXAMPLES:
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -335,10 +335,10 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement c):
-        return self._lmul_c_impl(c)
+    cpdef ModuleElement _rmul_(self, RingElement c):
+        return self._lmul_(c)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement c):
+    cpdef ModuleElement _lmul_(self, RingElement c):
         """
         EXAMPLES:
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -359,7 +359,7 @@ cdef class PolynomialRealDense(Polynomial):
             mpfr_mul(f._coeffs[i], self._coeffs[i], a.value, rnd)
         return f
 
-    cdef RingElement _mul_c_impl(left, RingElement _right):
+    cpdef RingElement _mul_(left, RingElement _right):
         """
         Here we use the naive O(n^2) algorithm, as asymptotically faster algorithms such
         as Karatsuba can have very inaccurate results due to intermediat rounding errors.

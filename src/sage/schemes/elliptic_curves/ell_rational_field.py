@@ -347,7 +347,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                                limited to small conductor until mwrank
                                gets integer factorization)
                    "gp" -- use the GP interpreter.
-                   "all" -- use both implementations, verify that the
+                   "generic" -- use the general number field implementation
+                   "all" -- use all four implementations, verify that the
                             results are the same (or raise an error),
                             and output the common value.
 
@@ -359,12 +360,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             3006
             sage: E.conductor(algorithm="gp")
             3006
+            sage: E.conductor(algorithm="generic")
+            3006
             sage: E.conductor(algorithm="all")
             3006
 
-        NOTE: The conductor computed using each algorithm is cached separately.
-        Thus calling E.conductor("pari"), then E.conductor("mwrank") and
-        getting the same result checks that both systems compute the same answer.
+        NOTE: The conductor computed using each algorithm is cached
+        separately.  Thus calling E.conductor("pari"), then
+        E.conductor("mwrank") and getting the same result checks that both
+        systems compute the same answer.
         """
 
         if algorithm == "pari":
@@ -391,13 +395,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     self.__conductor_mwrank = Integer(self.minimal_model().mwrank_curve().conductor())
             return self.__conductor_mwrank
 
+        elif algorithm == "generic":
+            try:
+                return self.__conductor_generic
+            except AttributeError:
+                self.__conductor_generic = sage.schemes.elliptic_curves.ell_number_field.EllipticCurve_number_field.conductor(self).gen()
+                return self.__conductor_generic
+
         elif algorithm == "all":
             N1 = self.conductor("pari")
             N2 = self.conductor("mwrank")
             N3 = self.conductor("gp")
-            if N1 != N2 or N2 != N3:
-                raise ArithmeticError, "Pari, mwrank and gp compute different conductors (%s,%s,%s) for %s"%(
-                    N1, N2, N3, self)
+            N4 = self.conductor("generic")
+            if N1 != N2 or N2 != N3 or N2 != N4:
+                raise ArithmeticError, "Pari, mwrank, gp and Sage compute different conductors (%s,%s,%s,%3) for %s"%(
+                    N1, N2, N3, N4, self)
             return N1
         else:
             raise RuntimeError, "algorithm '%s' is not known."%algorithm
@@ -2245,29 +2257,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             assert z.denominator() == 1, "bug in global_integral_model: %s" % ai
         return constructor.EllipticCurve(ai)
 
-    def integral_model(self):
-        r"""
-        Return a weierstrass model, $F$, of self with integral coefficients,
-        along with a morphism $\phi$ of points on self to points on $F$.
-
-        EXAMPLES:
-            sage: E = EllipticCurve([1/2,0,0,5,1/3])
-            sage: F, phi = E.integral_model()
-            sage: F
-            Elliptic Curve defined by y^2 + 3*x*y  = x^3 + 6480*x + 15552 over Rational Field
-            sage: phi
-            Generic morphism:
-              From: Abelian group of points on Elliptic Curve defined by y^2 + 1/2*x*y  = x^3 + 5*x + 1/3 over Rational Field
-              To:   Abelian group of points on Elliptic Curve defined by y^2 + 3*x*y  = x^3 + 6480*x + 15552 over Rational Field
-              Via:  (u,r,s,t) = (1/6, 0, 0, 0)
-            sage: P = E([4/9,41/27])
-            sage: phi(P)
-            (16 : 328 : 1)
-            sage: phi(P) in F
-            True
-        """
-        F = self.global_integral_model()
-        return F, self.isomorphism_to(F)
+    integral_model = global_integral_model
 
     def integral_short_weierstrass_model(self):
         r"""

@@ -1856,6 +1856,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         import sage.rings.integer_ring
         return sage.rings.integer_ring.factor(self, algorithm=algorithm, proof=proof)
 
+    def support(self):
+        """
+        Return a sorted list of the primes dividing this integer.
+
+        OUTPUT:
+            The sorted list of primes appearing in the factorization
+            of this rational with positive exponent.
+
+        EXAMPLES:
+            sage: factorial(10).support()
+            [2, 3, 5, 7]
+            sage: (-999).support()
+            [3, 37]
+
+        Trying to find the support of 0 gives an arithmetic error:
+            sage: 0.support()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Support of 0 not defined.
+        """
+        if self.is_zero():
+            raise ArithmeticError, "Support of 0 not defined."
+        return sage.rings.arith.prime_factors(self)
+
     def coprime_integers(self, m):
         """
         Return the positive integers $< m$ that are coprime to self.

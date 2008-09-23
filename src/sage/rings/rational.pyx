@@ -1731,6 +1731,29 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return sage.rings.rational_field.factor(self)
 
+    def support(self):
+        """
+        Return a sorted list of the primes where this rational number
+        has non-zero valuation.
+
+        OUTPUT:
+            The set of primes appearing in the factorization of
+            this rational with nonzero exponent, as a sorted list.
+
+        EXAMPLES:
+            sage: (-4/17).support()
+            [2, 17]
+
+        Trying to find the support of 0 gives an arithmetic error:
+            sage: (0/1).support()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Support of 0 not defined.
+        """
+        if self.is_zero():
+            raise ArithmeticError, "Support of 0 not defined."
+        return sage.rings.arith.prime_factors(self)
+
     def gamma(self, prec=None):
         """
         Return the gamma function evaluated at self. This value is exact for

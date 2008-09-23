@@ -387,6 +387,17 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return sage.rings.integer.Integer(1)
 
+    def class_number(self):
+        """
+        Return the class number of the field of rational numbers,
+        which is 1.
+
+        EXAMPLES:
+            sage: QQ.class_number()
+            1
+        """
+        return sage.rings.integer.Integer(1)
+
     def signature(self):
         """
         Return the signature of the rational field, which is (1,0),

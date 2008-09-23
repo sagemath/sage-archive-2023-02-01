@@ -61,7 +61,7 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     current_randstate().set_seed_gp(gp)
 
     K = E.base_ring()
-    F, transform = E.integral_model()
+    F = E.integral_model()
 
     if K != QQ:
         # Simon's program requires that this name be y.
@@ -96,7 +96,7 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     def _gp_mod(*args):
         return args[0]
     ans = sage_eval(v, {'Mod': _gp_mod, 'y': K.gen(0)})
-    inv_transform = ~transform
+    inv_transform = F.isomorphism_to(E)
     ans[2] = [inv_transform(F(P)) for P in ans[2]]
     return ans
 

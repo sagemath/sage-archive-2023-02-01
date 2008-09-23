@@ -1640,6 +1640,42 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError, "P must be prime"
         return Integer_sage(self.number_field()._pari_().elementval(self._pari_(), P._pari_prime))
 
+    def support(self):
+        """
+        Return the support of this number field element.
+
+        OUTPUT:
+            A sorted list of the primes ideals at which this number
+            field element has nonzero valuation.  An error is raised
+            if the element is zero.
+
+        EXAMPLES:
+            sage: x = ZZ['x'].gen()
+            sage: F.<t> = NumberField(x^3 - 2)
+
+            sage: P5s = F(5).support()
+            sage: P5s
+            [Fractional ideal (-t^2 - 1), Fractional ideal (t^2 - 2*t - 1)]
+            sage: all(5 in P5 for P5 in P5s)
+            True
+            sage: all(P5.is_prime() for P5 in P5s)
+            True
+            sage: [ P5.norm() for P5 in P5s ]
+            [5, 25]
+
+
+        TESTS:
+            It doesn't make sense to factor the ideal (0):
+
+            sage: F(0).support()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Support of 0 is not defined.
+        """
+        if self.is_zero():
+            raise ArithmeticError, "Support of 0 is not defined."
+        return self.number_field().primes_above(self)
+
     def _matrix_over_base(self, L):
         """
         Return the matrix of self over the base field L.

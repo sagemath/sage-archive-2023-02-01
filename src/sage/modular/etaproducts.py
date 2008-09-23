@@ -71,6 +71,16 @@ class EtaGroup_class(AbelianGroup):
     r""" The group of eta products of a given level under multiplication."""
 
     def __init__(self, level):
+        r"""
+        Create the group of eta products of a given level, which must be a
+        positive integer.
+
+        EXAMPLES:
+            sage: G = EtaGroup(12); G # implicit doctest
+            Group of eta products on X_0(12)
+            sage: G == loads(dumps(G))
+            True
+        """
         try:
             level = ZZ(level)
         except TypeError:
@@ -79,10 +89,45 @@ class EtaGroup_class(AbelianGroup):
             raise ValueError, "Level (=%s) must be a positive integer" % level
         self._N = level
 
+    def __cmp__(self, other):
+        r"""
+        Compare self to other. If other is not an EtaGroup, compare by type;
+        otherwise compare by level. EtaGroups of the same level compare as
+        identical.
+
+        EXAMPLE:
+            sage: EtaGroup(12) == 12
+            False
+            sage: EtaGroup(12) < EtaGroup(13)
+            True
+            sage: EtaGroup(12) == EtaGroup(12)
+            True
+        """
+        if not isinstance(other, EtaGroup_class):
+            return cmp(type(self), type(other))
+        else:
+            return cmp(self.level(), other.level())
+
     def _repr_(self):
+        r"""
+        String representation of self.
+
+        EXAMPLE:
+            sage: EtaGroup(12)._repr_()
+            'Group of eta products on X_0(12)'
+        """
         return "Group of eta products on X_0(%s)" % self.level()
 
     def __call__(self, dict):
+        r"""
+        Create an element of this group (an eta product object) with exponents
+        from the given dictionary. See the docstring for the EtaProduct() factory
+        function for how dict is used.
+
+        EXAMPLE:
+            sage: EtaGroup(2).__call__({1:24, 2:-24})
+            Eta product of level 2 : (eta_1)^24 (eta_2)^-24
+        """
         return EtaGroupElement(self, dict)
 
     def level(self):
@@ -249,7 +294,14 @@ def EtaProduct(level, dict):
 class EtaGroupElement(MultiplicativeGroupElement):
 
     def __init__(self, parent, rdict):
+        r"""
+        Create an eta product object. Usually called implicitly via
+        EtaGroup_class.__call__ or the EtaProduct factory function.
 
+        EXAMPLE:
+            sage: EtaGroupElement(EtaGroup(8), {1:24, 2:-24})
+            Eta product of level 8 : (eta_1)^24 (eta_2)^-24
+        """
         MultiplicativeGroupElement.__init__(self, parent)
 
         self._N = self.parent().level()
@@ -298,7 +350,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
         Return the product of self and other.
 
         EXAMPLES:
-            sage: eta1, eta2 = EtaGroup(4).basis()
+            sage: eta1, eta2 = EtaGroup(4).basis() # implicit doctest
             sage: eta1 * eta2
             Eta product of level 4 : (eta_2)^24 (eta_4)^-24
         """
@@ -324,14 +376,32 @@ class EtaGroupElement(MultiplicativeGroupElement):
         return EtaProduct(self.level(), newdict)
 
     def __cmp__(self, other):
-        return cmp(self._rdict, other._rdict)
+        r"""
+        Compare self to other. Eta products compare first according to their
+        levels, then according to their rdicts.
 
-    def __eq__(self, other):
-        if not (other in self.parent()):
-            return False
-        return (self._rdict == other._rdict)
+        EXAMPLES:
+            sage: EtaProduct(2, {2:24,1:-24}) == 1
+            False
+            sage: EtaProduct(2, {2:24, 1:-24}) < EtaProduct(4, {2:24, 1:-24})
+            True
+            sage: EtaProduct(2, {2:24, 1:-24}) == EtaProduct(4, {2:24, 1:-24})
+            False
+            sage: EtaProduct(2, {2:24, 1:-24}) < EtaProduct(4, {2:48, 1:-48})
+            True
+        """
+        if not isinstance(other, EtaGroupElement):
+            return cmp(type(self), type(other))
+        return (cmp(self.level(), other.level()) or cmp(self._rdict, other._rdict))
 
     def _short_repr(self):
+        r"""
+        A short string representation of self, which doesn't specify the level.
+
+        EXAMPLES:
+            sage: EtaProduct(3, {3:12, 1:-12})._short_repr()
+            '(eta_1)^-12 (eta_3)^12'
+        """
         if self.degree() == 0:
             return "1"
         else:
@@ -342,8 +412,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
         Return the string representation of self.
 
         EXAMPLES:
-            sage: EtaProduct(3, {3:12, 1:-12})
-            Eta product of level 3 : (eta_1)^-12 (eta_3)^12
+            sage: EtaProduct(3, {3:12, 1:-12})._repr_()
+            'Eta product of level 3 : (eta_1)^-12 (eta_3)^12'
         """
         return "Eta product of level %s : " % self.level() + self._short_repr()
 
@@ -596,8 +666,8 @@ class CuspFamily(SageObject):
         r"""
         Return a string representation of self.
         EXAMPLE:
-            sage: CuspFamily(16, 4, "1")
-            (c_{4,1})
+            sage: CuspFamily(16, 4, "1")._repr_()
+            '(c_{4,1})'
         """
         if self.width() == 1:
             return "(Inf)"
@@ -718,6 +788,25 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     return newgrob
 
 def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
+    r"""
+    Helper function used by eta_poly_relations. Finds a basis for the space of
+    linear relations between the first qexp_terms of the q-expansions of the
+    monomials eta1^i * eta2^j for 0 <= i,j < degree, and calculates a Grobner
+    basis for the ideal generated by these relations.
+
+    Liable to return meaningless results if qexp_terms isn't at least 1 + d*(m1,m2)
+    where mi = min(0, degree of the pole of eta_i at infinity), as then 1 will be
+    in the ideal.
+
+    EXAMPLE:
+        sage: from sage.modular.etaproducts import _eta_relations_helper
+        sage: r,s = EtaGroup(4).basis()
+        sage: _eta_relations_helper(r,s,4,100,['a','b'],False)
+        [a - b - 16]
+        sage: _eta_relations_helper(EtaProduct(26, {2:2,13:2,26:-2,1:-2}),EtaProduct(26, {2:4,13:2,26:-4,1:-2}),3,12,['a','b'],False) # not enough terms, will return rubbish
+        [1]
+    """
+
     indices = [(i,j) for j in range(degree) for i in range(degree)]
     inf = CuspFamily(eta1.level(), 1)
 

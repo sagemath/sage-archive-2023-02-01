@@ -3432,7 +3432,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def sha(self):
         """
         Return an object of class
-        'sage.schemes.elliptic_curves.sha.Sha' attached to this
+        'sage.schemes.elliptic_curves.sha_tate.Sha' attached to this
         elliptic curve.
 
         This can be used in functions related to bounding the order of
@@ -3442,14 +3442,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E=EllipticCurve('37a1')
             sage: S=E.sha()
             sage: S
-            <class 'sage.schemes.elliptic_curves.sha.Sha'>
+            <class 'sage.schemes.elliptic_curves.sha_tate.Sha'>
             sage: S.bound_kolyvagin()
             ([2], 1)
         """
         try:
             return self.__sha
         except AttributeError:
-            from sha import Sha
+            from sha_tate import Sha
             self.__sha = Sha(self)
             return self.__sha
 

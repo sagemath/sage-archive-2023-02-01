@@ -1,0 +1,53 @@
+--- allfaces.c.orig	2008-09-23 02:27:54.835449000 -0400
++++ allfaces.c	2008-09-23 02:28:19.364793000 -0400
+@@ -59,18 +59,18 @@
+ dd_boolean FaceEnum(dd_MatrixPtr M, dd_rowset R, dd_rowset S, dd_boolean rip, dd_colrange mindim)
+ {
+   dd_ErrorType err;
+-  dd_rowset LL, ImL, RR, SS, Lbasis;
++  dd_rowset LLL, ImL, RR, SSS, Lbasis;
+   dd_rowrange i,iprev=0;
+   dd_colrange j,dim;
+   dd_LPSolutionPtr lps=NULL;
+   dd_boolean success=dd_FALSE;
+ 
+-  set_initialize(&LL, M->rowsize);
++  set_initialize(&LLL, M->rowsize);
+   set_initialize(&RR, M->rowsize);
+-  set_initialize(&SS, M->rowsize);
+-  set_copy(LL, M->linset); /* rememer the linset. */
++  set_initialize(&SSS, M->rowsize);
++  set_copy(LLL, M->linset); /* rememer the linset. */
+   set_copy(RR, R); /* copy of R. */
+-  set_copy(SS, S); /* copy of S. */
++  set_copy(SSS, S); /* copy of S. */
+   if (dd_ExistsRestrictedFace(M, R, S, &err)){
+     set_uni(M->linset, M->linset, R);
+ 	dd_FindRelativeInterior(M, &ImL, &Lbasis, &lps, &err);
+@@ -96,10 +96,10 @@
+ 		  if (iprev) {
+ 		    set_delelem(RR,iprev);
+ 		    set_delelem(M->linset,iprev);
+-		    set_addelem(SS, iprev);
++		    set_addelem(SSS, iprev);
+ 		  }
+ 		  iprev=i;
+-		  FaceEnum(M, RR, SS, rip, mindim);
++		  FaceEnum(M, RR, SSS, rip, mindim);
+ 		}
+ 	  }
+ 	}
+@@ -107,10 +107,10 @@
+   success=dd_TRUE;
+ 
+ _L99:
+-  set_copy(M->linset, LL); /* restore the linset */
+-  set_free(LL);
++  set_copy(M->linset, LLL); /* restore the linset */
++  set_free(LLL);
+   set_free(RR);
+-  set_free(SS);
++  set_free(SSS);
+   return success;
+ }
+ 

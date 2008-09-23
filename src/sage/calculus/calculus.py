@@ -460,6 +460,8 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
             y0/y1 + x
             sage: x.subs(x=y0/y1)
             y0/y1
+            sage: x + long(1)
+            x + 1
         """
         if isinstance(x, CallableSymbolicExpression):
             return x._expr
@@ -493,6 +495,8 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
                             InfinityElement
                             )):
             return SymbolicConstant(x)
+        elif isinstance(x, long):
+            return SymbolicConstant(Integer(x))
         elif isinstance(x, complex):
             return evaled_symbolic_expression_from_maxima_string('%s+%%i*%s'%(x.real,x.imag))
 

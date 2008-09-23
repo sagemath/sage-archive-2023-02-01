@@ -306,6 +306,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.rst_transform(r, s, t)
 
+    def local_information(self, P=None, proof=None):
+        r"""
+        \code{local_information} has been renamed \code{local_data}
+        and is being deprecated.
+        """
+        raise DeprecationWarning, "local_information is deprecated; use local_data instead"
+        return self.local_data(P,proof)
+
     def local_data(self, P=None, proof = None):
         r"""
         Local data for this elliptic curve at a prime.

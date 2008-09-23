@@ -198,7 +198,7 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, -self.__f,
                                          self._prec, check=False)
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right_m):
+    cpdef ModuleElement _add_(self, ModuleElement right_m):
         """
         EXAMPLES:
             sage: R.<x> = PowerSeriesRing(ZZ)
@@ -213,7 +213,7 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f + right.__f, \
                                          self.common_prec_c(right), check=True)
 
-    cdef ModuleElement _iadd_c_impl(self, ModuleElement right_m):
+    cpdef ModuleElement _iadd_(self, ModuleElement right_m):
         """
         EXAMPLES:
             sage: R.<x> = PowerSeriesRing(ZZ)
@@ -238,7 +238,7 @@ cdef class PowerSeries_poly(PowerSeries):
             self._prec = right._prec
         return self
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right_m):
+    cpdef ModuleElement _sub_(self, ModuleElement right_m):
         """
         Return difference of two power series.
 
@@ -252,7 +252,7 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f - right.__f, \
                                          self.common_prec_c(right), check=True)
 
-    cdef RingElement _mul_c_impl(self, RingElement right_r):
+    cpdef RingElement _mul_(self, RingElement right_r):
         """
         Return the product of two power series.
 
@@ -267,7 +267,7 @@ cdef class PowerSeries_poly(PowerSeries):
                                 prec = prec,
                                 check = True)  # check, since truncation may be needed
 
-    cdef RingElement _imul_c_impl(self, RingElement right_r):
+    cpdef RingElement _imul_(self, RingElement right_r):
         """
         Return the product of two power series.
 
@@ -283,13 +283,13 @@ cdef class PowerSeries_poly(PowerSeries):
             self._prec = prec
         return self
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement c):
-        return PowerSeries_poly(self._parent, self.__f._rmul_c(c), self._prec, check=False)
+    cpdef ModuleElement _rmul_(self, RingElement c):
+        return PowerSeries_poly(self._parent, self.__f._rmul_(c), self._prec, check=False)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement c):
-        return PowerSeries_poly(self._parent, self.__f._lmul_c(c), self._prec, check=False)
+    cpdef ModuleElement _lmul_(self, RingElement c):
+        return PowerSeries_poly(self._parent, self.__f._lmul_(c), self._prec, check=False)
 
-    cdef ModuleElement _ilmul_c_impl(self, RingElement c):
+    cpdef ModuleElement _ilmul_(self, RingElement c):
 #        print "f", type(self.__f), self.__f
 #        print "c", type(c), c
 #        print "f*c", type(self.__f*c), self.__f*c

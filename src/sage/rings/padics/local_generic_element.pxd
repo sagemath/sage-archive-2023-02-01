@@ -3,5 +3,5 @@ cimport sage.structure.element
 from sage.structure.element cimport RingElement, ModuleElement, CommutativeRingElement
 
 cdef class LocalGenericElement(CommutativeRingElement):
-    cdef RingElement _div_c_impl(self, RingElement right)
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right)
+    cpdef RingElement _div_(self, RingElement right)
+    cpdef ModuleElement _sub_(self, ModuleElement right)

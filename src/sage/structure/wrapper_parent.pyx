@@ -174,27 +174,23 @@ cdef class WrapperElement(AlgebraElement):
         return (<Element>left.val)._cmp_c(right)
     cdef base_extend_c_impl(self, Parent R):
         return (<Element>self.val).base_extend_c(R)
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         return self.val + (<WrapperElement>right).val
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         return self.val - (<WrapperElement>right).val
-    cdef ModuleElement _neg_c_impl(self):
+    cpdef ModuleElement _neg_(self):
         return -self.val
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         return self.val * right
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         return left * self.val
     cdef RingElement coerce_to_base_ring(self, x):
         if PY_TYPE_CHECK(self.val, RingElement):
             return (<RingElement>self.val).coerce_to_base_ring(x)
         else:
             raise TypeError, "self is not actually a RingElement"
-    cdef ModuleElement _lmul_nonscalar_c_impl(left, right):
-        return left * right
-    cdef ModuleElement _rmul_nonscalar_c_impl(right, left):
-        return left * right
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         return self.val * (<WrapperElement>right).val
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         return self.val / (<WrapperElement>right).val
 

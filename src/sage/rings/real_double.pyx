@@ -612,7 +612,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = 1.0 / self._value
         return x
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         """
         Add two real numbers with the same parent.
 
@@ -624,7 +624,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value + (<RealDoubleElement>right)._value
         return x
 
-    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _iadd_(self, ModuleElement right):
         """
         EXAMPLES:
             sage: a = RDF(0.5)
@@ -635,7 +635,7 @@ cdef class RealDoubleElement(FieldElement):
         self._value += (<RealDoubleElement>right)._value
         return self
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Subtract two real numbers with the same parent.
 
@@ -647,7 +647,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value - (<RealDoubleElement>right)._value
         return x
 
-    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _isub_(self, ModuleElement right):
         """
         EXAMPLES:
             sage: a = RDF(0.5)
@@ -657,7 +657,7 @@ cdef class RealDoubleElement(FieldElement):
         self._value -= (<RealDoubleElement>right)._value
         return self
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         """
         Multiply two real numbers with the same parent.
 
@@ -669,7 +669,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value * (<RealDoubleElement>right)._value
         return x
 
-    cdef RingElement _imul_c_impl(self, RingElement right):
+    cpdef RingElement _imul_(self, RingElement right):
         """
         EXAMPLES:
             sage: a = RDF(2.5)
@@ -679,7 +679,7 @@ cdef class RealDoubleElement(FieldElement):
         self._value *= (<RealDoubleElement>right)._value
         return self
 
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         """
         EXAMPLES:
             sage: RDF('-1.5') / RDF('2.5')
@@ -691,7 +691,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value / (<RealDoubleElement>right)._value
         return x
 
-    cdef RingElement _idiv_c_impl(self, RingElement right):
+    cpdef RingElement _idiv_(self, RingElement right):
         """
         EXAMPLES:
             sage: a = RDF(1.5)

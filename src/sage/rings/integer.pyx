@@ -1022,30 +1022,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_to_ZZ(z, &self.value)
         _sig_off
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Integer x
         x = PY_NEW(Integer)
         mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
-    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _iadd_(self, ModuleElement right):
         # self and right are guaranteed to be Integers, self safe to mutate
         mpz_add(self.value, self.value, (<Integer>right).value)
         return self
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Integer x
         x = PY_NEW(Integer)
         mpz_sub(x.value, self.value, (<Integer>right).value)
         return x
 
-    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _isub_(self, ModuleElement right):
         mpz_sub(self.value, self.value, (<Integer>right).value)
         return self
 
-    cdef ModuleElement _neg_c_impl(self):
+    cpdef ModuleElement _neg_(self):
         cdef Integer x
         x = PY_NEW(Integer)
         mpz_neg(x.value, self.value)
@@ -1075,7 +1075,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return int(self)*s
         raise TypeError
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         # self and right are guaranteed to be Integers
         cdef Integer x
         x = PY_NEW(Integer)
@@ -1089,7 +1089,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
 
-    cdef RingElement _imul_c_impl(self, RingElement right):
+    cpdef RingElement _imul_(self, RingElement right):
         if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
             # We only use the signal handler (to enable ctrl-c out) when the
             # product might take a while to compute
@@ -1100,7 +1100,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul(self.value, self.value, (<Integer>right).value)
         return self
 
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         r"""
         Computes \frac{a}{b}
 
@@ -1934,7 +1934,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         _sig_off
         return t
 
-    cdef RingElement _valuation(Integer self, Integer p):
+    cpdef RingElement _valuation(Integer self, Integer p):
         r"""
         Return the p-adic valuation of self.
 

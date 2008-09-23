@@ -24,7 +24,7 @@ cdef class Integer(EuclideanDomainElement):
     cdef _floordiv(Integer self, Integer other)
 
     cdef _digits_naive(self,Integer base,digits)
-    cdef RingElement _valuation(Integer self, Integer p)
+    cpdef RingElement _valuation(Integer self, Integer p)
     cdef object _val_unit(Integer self, Integer p)
     cdef Integer _divide_knowing_divisible_by(Integer self, Integer right)
     cdef bint _is_power_of(Integer self, Integer n)

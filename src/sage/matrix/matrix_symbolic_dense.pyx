@@ -190,8 +190,8 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 2 functionality
-    # x * cdef _add_c_impl
-    #   * cdef _mul_c_impl
+    # x * cdef _add_
+    #   * cdef _mul_
     #   * cdef _cmp_c_impl
     # x * __neg__
     # x * __invert__
@@ -201,7 +201,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
     #   * _dict -- copy of the sparse dictionary of underlying elements
     ########################################################################
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         cdef Matrix_symbolic_dense M = self._new_c()
         M._maxima = self._maxima + (<Matrix_symbolic_dense>right)._maxima
         return M
@@ -329,7 +329,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         self.cache('_list', v)
         return v
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         """
         Multiply a scalar times a matrix efficiently.
 
@@ -345,7 +345,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
-    #  x * cdef _sub_c_impl
+    #  x * cdef _sub_
     #    * __deepcopy__
     #    * __invert__
     #  x * _multiply_classical
@@ -353,7 +353,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
     #    * Other functions (list them here):
     ########################################################################
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         cdef Matrix_symbolic_dense M = self._new_c()
         M._maxima = self._maxima - (<Matrix_symbolic_dense>right)._maxima
         return M

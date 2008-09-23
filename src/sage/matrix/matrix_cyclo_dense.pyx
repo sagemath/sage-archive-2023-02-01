@@ -421,10 +421,10 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 2 functionality
-    # x * cdef _add_c_impl
-    # x * cdef _sub_c_impl
-    #   * cdef _mul_c_impl
-    # x * cdef _lmul_c_impl    -- scalar multiplication
+    # x * cdef _add_
+    # x * cdef _sub_
+    #   * cdef _mul_
+    # x * cdef _lmul_    -- scalar multiplication
     # x * cdef _cmp_c_impl
     # x * __neg__
     #   * __invert__
@@ -434,7 +434,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         """
         Return the sum of two dense cyclotomic matrices.
 
@@ -460,7 +460,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = self._matrix + (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Return the difference of two dense cyclotomic matrices.
 
@@ -485,7 +485,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = self._matrix - (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         """
         Multiply a dense cyclotomic matrix by a scalar.
 
@@ -515,7 +515,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         if right.polynomial().degree() == 0:
             # multiplication by a rational number
-            A._matrix = self._matrix._lmul_c_impl(right)
+            A._matrix = self._matrix._lmul_(right)
         else:
             # Multiply by nontrivial element of the cyclotomic number field
             # We do this by finding the matrix of this element, then left
@@ -525,7 +525,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             A._matrix = T * self._matrix
         return A
 
-    cdef baseMatrix _matrix_times_matrix_c_impl(self, baseMatrix right):
+    cdef baseMatrix _matrix_times_matrix_(self, baseMatrix right):
         """
         Return the product of two cyclotomic dense matrices.
 

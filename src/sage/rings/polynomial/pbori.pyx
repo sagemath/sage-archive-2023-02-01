@@ -1826,7 +1826,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         return new_BMI_from_BooleanMonomial(self)
 
-    cdef MonoidElement _mul_c_impl(left, MonoidElement right):
+    cpdef MonoidElement _mul_(left, MonoidElement right):
         """
         Multiply self with another boolean monomial.
 
@@ -2115,7 +2115,7 @@ cdef class BooleanPolynomial(MPolynomial):
         R = self.parent().cover_ring()
         return R(self)._latex_()
 
-    cdef ModuleElement _add_c_impl(left, ModuleElement right):
+    cpdef ModuleElement _add_(left, ModuleElement right):
         """
         EXAMPLE:
            sage: B.<a,b,z> = BooleanPolynomialRing(3)
@@ -2129,7 +2129,7 @@ cdef class BooleanPolynomial(MPolynomial):
         p._pbpoly.iadd( (<BooleanPolynomial>right)._pbpoly )
         return p
 
-    cdef ModuleElement _sub_c_impl(left, ModuleElement right):
+    cpdef ModuleElement _sub_(left, ModuleElement right):
         """
         EXAMPLE:
            sage: B.<a,b,z> = BooleanPolynomialRing(3)
@@ -2138,9 +2138,9 @@ cdef class BooleanPolynomial(MPolynomial):
            sage: f - g
            a*z + z + 1
         """
-        return left._add_c_impl(right)
+        return left._add_(right)
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         """
         EXAMPLE:
            sage: B.<a,b,z> = BooleanPolynomialRing(3)
@@ -2154,7 +2154,7 @@ cdef class BooleanPolynomial(MPolynomial):
         else:
             return 0
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         """
         EXAMPLE:
            sage: B.<a,b,z> = BooleanPolynomialRing(3)
@@ -2163,9 +2163,9 @@ cdef class BooleanPolynomial(MPolynomial):
            sage: k(0)*f
            0
         """
-        return self._rmul_c_impl(right)
+        return self._rmul_(right)
 
-    cdef RingElement _mul_c_impl(left, RingElement right):
+    cpdef RingElement _mul_(left, RingElement right):
         """
         EXAMPLE:
            sage: B.<a,b,z> = BooleanPolynomialRing(3)

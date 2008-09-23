@@ -10,4 +10,3 @@ cdef class WrapperParent_model1(Parent):
 
 cdef class WrapperElement(AlgebraElement):
     cdef Element val
-    cdef RingElement coerce_to_base_ring(self, x)

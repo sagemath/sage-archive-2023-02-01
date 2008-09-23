@@ -1109,34 +1109,34 @@ cdef class Rational(sage.structure.element.FieldElement):
     ################################################################
     # Optimized arithmetic
     ################################################################
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
-    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _iadd_(self, ModuleElement right):
         mpq_add(self.value, self.value, (<Rational>right).value)
         return self
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
 
-    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _isub_(self, ModuleElement right):
         mpq_sub(self.value, self.value, (<Rational>right).value)
         return self
 
-    cdef ModuleElement _neg_c_impl(self):
+    cpdef ModuleElement _neg_(self):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         mpq_neg(x.value, self.value)
         return x
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
@@ -1150,7 +1150,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
-    cdef RingElement _imul_c_impl(self, RingElement right):
+    cpdef RingElement _imul_(self, RingElement right):
         if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
              mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
             # We only use the signal handler (to enable ctrl-c out) in case
@@ -1162,7 +1162,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_mul(self.value, self.value, (<Rational>right).value)
         return self
 
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         """
         EXAMPLES:
             sage: 2/3
@@ -1179,7 +1179,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_div(x.value, self.value, (<Rational>right).value)
         return x
 
-    cdef RingElement _idiv_c_impl(self, RingElement right):
+    cpdef RingElement _idiv_(self, RingElement right):
         if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
             raise ZeroDivisionError, "Rational division by zero"
         mpq_div(self.value, self.value, (<Rational>right).value)

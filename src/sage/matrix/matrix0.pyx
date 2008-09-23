@@ -2192,7 +2192,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     # Arithmetic
     ###################################################
-    cdef Vector _vector_times_matrix_c_impl(self, Vector v):
+    cdef Vector _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
 
@@ -2236,7 +2236,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 s += v[i]*self.row(i)
         return s
 
-    cdef Vector _matrix_times_vector_c_impl(self, Vector v):
+    cdef Vector _matrix_times_vector_(self, Vector v):
         """
         EXAMPLES:
             sage: v = FreeModule(ZZ,3,sparse=True)([1,2,3])
@@ -2329,7 +2329,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             MS = self.matrix_space(n, m)
             return MS(X).transpose()
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         """
         Add two matrices with the same parent.
         """
@@ -2341,7 +2341,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 A.set_unsafe(i,j, self.get_unsafe(i,j) + (<Matrix>right).get_unsafe(i,j))
         return A
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Subtract two matrices with the same parent.
 
@@ -2396,8 +2396,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         return self.change_ring(self._base_ring.quotient_ring(p))
 
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
-        # derived classes over a commutative base *just* overload _lmul_c_impl (!!)
+    cpdef ModuleElement _rmul_(self, RingElement left):
+        # derived classes over a commutative base *just* overload _lmul_ (!!)
         """
         EXAMPLES:
             sage: a = matrix(QQ['x'],2,range(6))
@@ -2422,19 +2422,19 @@ cdef class Matrix(sage.structure.element.Matrix):
             [     -x*y*x*y x*y*x + x*y^2 x*y*x - x*y^2]
         """
         if PY_TYPE_CHECK(self._base_ring, CommutativeRing):
-            return self._lmul_c_impl(left)
+            return self._lmul_(left)
         cdef Py_ssize_t r,c
-        cdef RingElement x
+        cpdef RingElement x
         x = self._base_ring(left)
         cdef Matrix ans
         ans = self._parent.zero_matrix()
         for r from 0 <= r < self._nrows:
             for c from 0 <= c < self._ncols:
-                ans.set_unsafe(r, c, x._mul_c(<RingElement>self.get_unsafe(r, c)))
+                ans.set_unsafe(r, c, x._mul_(<RingElement>self.get_unsafe(r, c)))
         return ans
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
-        # derived classes over a commutative base *just* overload this and not _rmul_c_impl
+    cpdef ModuleElement _lmul_(self, RingElement right):
+        # derived classes over a commutative base *just* overload this and not _rmul_
         """
         EXAMPLES:
         A simple example in which the base ring is commutative:
@@ -2464,16 +2464,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             [     -x*y*x*y x^2*y + y*x*y x^2*y - y*x*y]
         """
         cdef Py_ssize_t r,c
-        cdef RingElement x
+        cpdef RingElement x
         x = self._base_ring(right)
         cdef Matrix ans
         ans = self._parent.zero_matrix()
         for r from 0 <= r < self._nrows:
             for c from 0 <= c < self._ncols:
-                ans.set_unsafe(r, c, (<RingElement>self.get_unsafe(r, c))._mul_c(x))
+                ans.set_unsafe(r, c, (<RingElement>self.get_unsafe(r, c))._mul_(x))
         return ans
 
-    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
+    cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix right):
         r"""
         Return the product of two matrices.
 
@@ -2677,7 +2677,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 0 -1]
             [-2 -3]
         """
-        return self._lmul_c_impl(self._base_ring(-1))
+        return self._lmul_(self._base_ring(-1))
 
     def __invert__(self):
         r"""

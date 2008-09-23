@@ -104,8 +104,8 @@ cdef class ModuleAction(Action):
         the_set = S if self.extended_base is None else self.extended_base
         assert the_ring is the_set.base(), "BUG in coercion model"
 
-        cdef RingElement g = G.an_element()
-        cdef ModuleElement a = S.an_element()
+        cpdef RingElement g = G.an_element()
+        cpdef ModuleElement a = S.an_element()
         res = self.act(g, a)
 
         if parent_c(res) is not S and parent_c(res) is not self.extended_base:
@@ -180,7 +180,7 @@ cdef class LeftModuleAction(ModuleAction):
             g = self.connecting._call_(g)
         if self.extended_base is not None:
             a = self.extended_base(a)
-        return _rmul_c(<ModuleElement>a, <RingElement>g)  # a * g
+        return (<ModuleElement>a)._rmul_(<RingElement>g)  # a * g
 
 
 cdef class RightModuleAction(ModuleAction):
@@ -213,16 +213,16 @@ cdef class RightModuleAction(ModuleAction):
                 b = self.extended_base(0)
             if (<RefPyObject *>a).ob_refcnt == 1:
                 # This is a truely new object, mutate it
-                return _ilmul_c(<ModuleElement>a, <RingElement>g)  # a * g
+                return (<ModuleElement>a)._ilmul_(<RingElement>g)  # a * g
             else:
-                return _lmul_c(<ModuleElement>a, <RingElement>g)  # a * g
+                return (<ModuleElement>a)._lmul_(<RingElement>g)  # a * g
         else:
             # If we have few enough references to this object, then we know
             # it is safe to do a (mutating) inplace operation.
             if (<RefPyObject *>a).ob_refcnt < inplace_threshold + self.is_inplace:
-                return _ilmul_c(<ModuleElement>a, <RingElement>g)  # a * g
+                return (<ModuleElement>a)._ilmul_(<RingElement>g)  # a * g
             else:
-                return _lmul_c(<ModuleElement>a, <RingElement>g)  # a * g
+                return (<ModuleElement>a)._lmul_(<RingElement>g)  # a * g
 
 
 

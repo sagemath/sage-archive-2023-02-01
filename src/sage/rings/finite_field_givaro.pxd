@@ -84,10 +84,10 @@ cdef class FiniteField_givaro_iterator:
 cdef class FiniteField_givaroElement(FiniteFieldElement):
     cdef int element
     cdef object __multiplicative_order
-    cdef ModuleElement _add_c_impl(self, ModuleElement right)
-    cdef RingElement _mul_c_impl(self, RingElement right)
-    cdef RingElement _div_c_impl(self, RingElement right)
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right)
+    cpdef ModuleElement _add_(self, ModuleElement right)
+    cpdef RingElement _mul_(self, RingElement right)
+    cpdef RingElement _div_(self, RingElement right)
+    cpdef ModuleElement _sub_(self, ModuleElement right)
     cdef int _cmp_c_impl(left, Element right) except -2
     cdef FiniteField_givaroElement _new_c(self, int value)
 

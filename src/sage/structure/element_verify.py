@@ -27,7 +27,7 @@ def element_verify(file, module_element=False, ring_element=False, monoid_elemen
             msg("The following method *must* be in your file.")
             msg("def __richcmp__(left, right, int op)")
 
-        for x in ['ModuleElement _add_c(', 'ModuleElement _sub_c(', 'ModuleElement _neg_c(', 'ModuleElement _lmul_c(', 'ModuleElement _rmul_c(', 'Element _mul_c(', 'Element _div_c(', '_richcmp(self, right, int op)']:
+        for x in ['_richcmp(self, right, int op)']:
             if (' ' + x) in r:
                 msg("The following forbidden method is in your file but must *not* be.")
                 msg("             " + x)
@@ -37,17 +37,17 @@ def element_verify(file, module_element=False, ring_element=False, monoid_elemen
             msg("And be sure to also define 'def __richcmp__(left, right, int op)'")
 
         if module_element:
-            for x in ['_add_c_impl', '_sub_c_impl', '_neg_c_impl']:
+            for x in ['_add_', '_sub_', '_neg_c_impl']:
                 if not (('Element ' + x) in r):
                     msg("WARNING: You should define the cdef'd method '%s'"%x)
 
         if monoid_element or ring_element:
-            if not 'Element _mul_c_impl' in r:
-                msg("WARNING: You should define the cdef'd method '_mul_c_impl'")
+            if not 'Element _mul_' in r:
+                msg("WARNING: You should define the cdef'd method '_mul_'")
 
         if ring_element:
-            if not 'Element _div_c_impl' in r:
-                msg("WARNING: You should define the cdef'd method '_div_c_impl'")
+            if not 'Element _div_' in r:
+                msg("WARNING: You should define the cdef'd method '_div_'")
 
     else:
         # pure python class

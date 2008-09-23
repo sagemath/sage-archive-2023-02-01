@@ -267,9 +267,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 2 functionality
-    # x * cdef _add_c_impl
-    # x * cdef _mul_c_impl
-    # x * cdef _vector_times_matrix_c_impl
+    # x * cdef _add_
+    # x * cdef _mul_
+    # x * cdef _vector_times_matrix_
     # x * cdef _cmp_c_impl
     # x * __neg__
     #   * __invert__
@@ -279,7 +279,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         """
         EXAMPLES:
             sage: a = matrix(QQ,2,range(6))
@@ -296,7 +296,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             mpq_mul(M._entries[i], self._entries[i], _x.value)
         return M
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         """
         Add two dense matrices over QQ.
 
@@ -331,7 +331,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         _sig_off
         return M
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Subtract two dense matrices over QQ.
 
@@ -379,7 +379,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                         return 1
         return 0
 
-    cdef Vector _vector_times_matrix_c_impl(self, Vector v):
+    cdef Vector _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
 
@@ -477,7 +477,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
 
 
-    # cdef _mul_c_impl(self, Matrix right):
+    # cdef _mul_(self, Matrix right):
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
     # def __invert__(self):
     # def _multiply_classical(left, matrix.Matrix _right):
@@ -487,7 +487,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
-    # x * cdef _sub_c_impl
+    # x * cdef _sub_
     #   * __deepcopy__
     #   * __invert__
     #   * Matrix windows -- only if you need strassen for that base
@@ -793,7 +793,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         self.cache(key, g)
         return g
 
-    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
+    cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix right):
         return self._multiply_over_integers(right)
 
     def _multiply_over_integers(self, Matrix_rational_dense right, algorithm='default'):

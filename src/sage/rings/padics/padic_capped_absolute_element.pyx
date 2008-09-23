@@ -312,10 +312,10 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         return self._invert_c_impl()
 
-    cdef RingElement _invert_c_impl(self):
+    cpdef RingElement _invert_c_impl(self):
         return self.parent().fraction_field()(self).__invert__()
 
-    cdef ModuleElement _neg_c_impl(self):
+    cpdef ModuleElement _neg_(self):
         """
         Returns -x.
 
@@ -381,7 +381,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             _sig_off
         return ans
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement _right):
+    cpdef ModuleElement _add_(self, ModuleElement _right):
         """
         EXAMPLES:
             sage: R = ZpCA(13, 4)
@@ -402,7 +402,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             mpz_mod(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec)[0])
         return ans
 
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         return self * (~right)
 
     def __lshift__(pAdicCappedAbsoluteElement self, shift):
@@ -516,7 +516,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         else:
             return self
 
-    cdef RingElement _mul_c_impl(self, RingElement _right):
+    cpdef RingElement _mul_(self, RingElement _right):
         """
         EXAMPLES:
         sage: R = ZpCA(5)
@@ -547,7 +547,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_mod(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec)[0])
         return ans
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement _right):
+    cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
         EXAMPLES:
             sage: R = ZpCA(13, 4)

@@ -439,7 +439,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         """
         return self._invert_c_impl()
 
-    cdef RingElement _invert_c_impl(self):
+    cpdef RingElement _invert_c_impl(self):
         """
         Returns the inverse of self, as long as self is a unit.
 
@@ -611,7 +611,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             return ans
         return self._rshift_c(mpz_get_si((<Integer>shift).value))
 
-    cdef ModuleElement _neg_c_impl(self):
+    cpdef ModuleElement _neg_(self):
         """
         Returns -self.
 
@@ -657,7 +657,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         _sig_off
         return ans
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         """
         Returns self + right.
 
@@ -675,7 +675,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ZZ_pX_add(ans.value, self.value, (<pAdicZZpXFMElement>right).value)
         return ans
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         """
         Returns the product of self and right.
 
@@ -697,7 +697,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ZZ_pX_MulMod_pre(ans.value, self.value, (<pAdicZZpXFMElement>right).value, self.prime_pow.get_top_modulus()[0])
         return ans
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Returns the difference of self and right.
 
@@ -717,7 +717,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ZZ_pX_sub(ans.value, self.value, (<pAdicZZpXFMElement>right).value)
         return ans
 
-    cdef RingElement _div_c_impl(self, RingElement _right):
+    cpdef RingElement _div_(self, RingElement _right):
         """
         Returns the quotient of self by right.
         If right is not a unit, raises a ValueError.

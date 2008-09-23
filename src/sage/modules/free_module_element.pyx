@@ -83,6 +83,7 @@ import sage.misc.latex
 from sage.structure.sequence import Sequence
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector as element_Vector
+from sage.structure.element import canonical_coercion
 
 import sage.rings.arith
 
@@ -740,9 +741,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     cdef int _cmp_same_ambient_c(left, FreeModuleElement right):
         return cmp(left.list(copy=False), right.list(copy=False))
 
-    cdef ModuleElement _rmul_nonscalar_c_impl(left, right):
-        raise TypeError
-
     def degree(self):
         return self._degree
 
@@ -1031,7 +1029,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
         """
-        return self._pairwise_product_c(right)
+        if not PY_TYPE_CHECK(right, FreeModuleElement):
+            raise TypeError, "right must be a free module element"
+        if self._parent is not (<FreeModuleElement>right)._parent:
+            self, right = canonical_coercion(self, right)
+        return self._pairwise_product_(right)
 
     def element(self):
         return self
@@ -1269,7 +1271,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                 entries = list(entries)
         self._entries = entries
 
-    cdef ModuleElement _add_c_impl(left, ModuleElement right):
+    cpdef ModuleElement _add_(left, ModuleElement right):
         """
         Add left and right.
         """
@@ -1277,11 +1279,11 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(left._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = (<RingElement>left._entries[i])._add_c(<RingElement>
+            v[i] = (<RingElement>left._entries[i])._add_(<RingElement>
                                             ((<FreeModuleElement_generic_dense>right)._entries[i]))
         return left._new_c(v)
 
-    cdef ModuleElement _sub_c_impl(left, ModuleElement right):
+    cpdef ModuleElement _sub_(left, ModuleElement right):
         """
         Subtract right from left.
 
@@ -1297,11 +1299,11 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(left._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = (<RingElement>left._entries[i])._sub_c(<RingElement>
+            v[i] = (<RingElement>left._entries[i])._sub_(<RingElement>
                                             ((<FreeModuleElement_generic_dense>right)._entries[i]))
         return left._new_c(v)
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         """
         EXAMPLES:
             sage: V = ZZ['x']^5
@@ -1309,19 +1311,19 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             (5, 0, 0, 0, 0)
         """
         if left._parent is self._parent._base:
-            v = [left._mul_c(<RingElement>x) for x in self._entries]
+            v = [left._mul_(<RingElement>x) for x in self._entries]
         else:
             v = [left * x for x in self._entries]
         return self._new_c(v)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         if right._parent is self._parent._base:
-            v = [(<RingElement>x)._mul_c(right) for x in self._entries]
+            v = [(<RingElement>x)._mul_(right) for x in self._entries]
         else:
             v = [x * right for x in self._entries]
         return self._new_c(v)
 
-    cdef Element _dot_product_c_impl(left, element_Vector right):
+    cpdef Element _dot_product_(left, element_Vector right):
         """
         Return the dot product of left and right.
 
@@ -1337,7 +1339,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         return left.dot_product(right)
 
-    cdef element_Vector _pairwise_product_c_impl(left, element_Vector right):
+    cpdef element_Vector _pairwise_product_(left, element_Vector right):
         """
         EXAMPLES:
             sage: R.<x> = QQ[]
@@ -1354,7 +1356,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         n = PyList_Size(left._entries)
         v = [None]*n
         for i from 0 <= i < n:
-            v[i] = (<RingElement>left._entries[i])._mul_c((<FreeModuleElement_generic_dense>right)._entries[i])
+            v[i] = (<RingElement>left._entries[i])._mul_((<FreeModuleElement_generic_dense>right)._entries[i])
         return left._new_c(v)
 
     def __reduce__(self):
@@ -1589,7 +1591,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 entries = dict(entries)
         self._entries = entries
 
-    cdef ModuleElement _add_c_impl(left, ModuleElement right):
+    cpdef ModuleElement _add_(left, ModuleElement right):
         """
         Add left and right.
         """
@@ -1597,37 +1599,37 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
         for i, a in left._entries.iteritems():
             if e.has_key(i):
-                e[i] = (<RingElement>a)._add_c(<RingElement> e[i])
+                e[i] = (<RingElement>a)._add_(<RingElement> e[i])
             else:
                 e[i] = a
         return left._new_c(e)
 
-    cdef ModuleElement _sub_c_impl(left, ModuleElement right):
+    cpdef ModuleElement _sub_(left, ModuleElement right):
         cdef object v, e
         e = dict(left._entries)   # dict to make a copy
         for i, a in (<FreeModuleElement_generic_sparse>right)._entries.iteritems():
             if e.has_key(i):
-                e[i] = (<RingElement> e[i])._sub_c(<RingElement>a)
+                e[i] = (<RingElement> e[i])._sub_(<RingElement>a)
             else:
                 e[i] = -a
         return left._new_c(e)
 
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         cdef object v
         v = PyDict_New()
         for i, a in self._entries.iteritems():
-            v[i] = (<RingElement>a)._mul_c(right)
+            v[i] = (<RingElement>a)._mul_(right)
         return self._new_c(v)
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         cdef object v
         v = PyDict_New()
         for i, a in self._entries.iteritems():
-            v[i] = left._mul_c(a)
+            v[i] = left._mul_(a)
         return self._new_c(v)
 
-    cdef Element _dot_product_c_impl(left, element_Vector right):
+    cpdef Element _dot_product_(left, element_Vector right):
         """
         Return the dot product of left and right.
 
@@ -1643,16 +1645,16 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         z = left.base_ring()(0)
         for i, a in left._entries.iteritems():
             if e.has_key(i):
-                z += (<RingElement>a)._mul_c(<RingElement> e[i])
+                z += (<RingElement>a)._mul_(<RingElement> e[i])
         return z
 
-    cdef element_Vector _pairwise_product_c_impl(left, element_Vector right):
+    cpdef element_Vector _pairwise_product_(left, element_Vector right):
         # Component wise vector * vector multiplication.
         cdef object v, e
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
         for i, a in left._entries.iteritems():
             if e.has_key(i):
-                e[i] = (<RingElement>a)._mul_c(<RingElement> e[i])
+                e[i] = (<RingElement>a)._mul_(<RingElement> e[i])
             else:
                 e[i] = a
         return left._new_c(e)

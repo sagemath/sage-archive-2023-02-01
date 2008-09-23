@@ -32,9 +32,9 @@ cdef class NumberFieldElement(FieldElement):
     cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den)
     cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den)
     cdef void _reduce_c_(self)
-    cdef ModuleElement _add_c_impl(self, ModuleElement right)
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right)
-    cdef ModuleElement _neg_c_impl(self)
+    cpdef ModuleElement _add_(self, ModuleElement right)
+    cpdef ModuleElement _sub_(self, ModuleElement right)
+    cpdef ModuleElement _neg_(self)
 
     cdef bint is_rational_c(self)
 

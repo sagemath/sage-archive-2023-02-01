@@ -183,8 +183,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
     ########################################################################
     # LEVEL 2 functionality
-    # x  * cdef _add_c_impl
-    #    * cdef _mul_c_impl
+    # x  * cdef _add_
+    #    * cdef _mul_
     #    * cdef _cmp_c_impl
     #    * __neg__
     #    * __invert__
@@ -194,7 +194,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     # x  * _dict -- copy of the sparse dictionary of underlying elements
     ########################################################################
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement _other):
+    cpdef ModuleElement _add_(self, ModuleElement _other):
         """
         EXAMPLES:
             sage: a = matrix([[1,10],[3,4]],sparse=True); a

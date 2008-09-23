@@ -1649,7 +1649,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return ret
 
-    cdef ModuleElement _add_c_impl( left, ModuleElement right):
+    cpdef ModuleElement _add_( left, ModuleElement right):
         """
         Add left and right.
 
@@ -1675,7 +1675,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return co.new_MP((<MPolynomialRing_libsingular>left._parent),_p)
 
-    cdef ModuleElement _iadd_c_impl( left, ModuleElement right):
+    cpdef ModuleElement _iadd_( left, ModuleElement right):
         """
         Add left and right inplace.
 
@@ -1702,7 +1702,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         left._poly = _p
         return left
 
-    cdef ModuleElement _sub_c_impl( left, ModuleElement right):
+    cpdef ModuleElement _sub_( left, ModuleElement right):
         """
         Subtract left and right.
 
@@ -1727,7 +1727,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return co.new_MP((<MPolynomialRing_libsingular>left._parent),_p)
 
-    cdef ModuleElement _isub_c_impl( left, ModuleElement right):
+    cpdef ModuleElement _isub_( left, ModuleElement right):
         """
         Subtract left and right inplace.
 
@@ -1752,7 +1752,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         left._poly = _p
         return left
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         """
         Multiply self with a base ring element.
 
@@ -1779,11 +1779,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         n_Delete(&_n, _ring)
         return co.new_MP((<MPolynomialRing_libsingular>self._parent),_p)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         # all currently implemented rings are commutative
-        return self._rmul_c_impl(right)
+        return self._rmul_(right)
 
-    cdef RingElement  _mul_c_impl(left, RingElement right):
+    cpdef RingElement  _mul_(left, RingElement right):
         # all currently implemented rings are commutative
         """
         Multiply left and right.
@@ -1802,7 +1802,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         _p = pp_Mult_qq(left._poly, (<MPolynomial_libsingular>right)._poly, _ring)
         return co.new_MP(left._parent,_p)
 
-    cdef RingElement  _imul_c_impl(left, RingElement right):
+    cpdef RingElement  _imul_(left, RingElement right):
         # all currently implemented rings are commutative
         """
         Multiply left and right inplace.
@@ -1823,7 +1823,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         left._poly = _p
         return left
 
-    cdef RingElement _div_c_impl(left, RingElement right):
+    cpdef RingElement _div_(left, RingElement right):
         """
         Divide left by right
 

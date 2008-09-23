@@ -235,7 +235,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     # LEVEL 2 functionality
     #   * def _pickle
     #   * def _unpickle
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         if self._nrows == 0 or self._ncols == 0: return self
         cdef Matrix_real_double_dense M,_right,_left
         _right = right
@@ -253,7 +253,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         return M
 
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         EXAMPLES:
             sage: A = matrix(RDF,3,range(1,10))
@@ -311,7 +311,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     # def _pickle(self):                        #unsure how to implement
     # def _unpickle(self, data, int version):   # use version >= 0 #unsure how to implement
     ######################################################################
-    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
+    cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix right):
         cdef int result
         if self._ncols!=right._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of right"
@@ -382,7 +382,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
-    #    * cdef _sub_c_impl
+    #    * cdef _sub_
     #    * __deepcopy__
     #    * __invert__
     #    * Matrix windows -- only if you need strassen for that base
@@ -1072,7 +1072,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             return _result_matrix.transpose()
         return _result_matrix
 
-    cdef Vector _vector_times_matrix_c_impl(self,Vector v):
+    cdef Vector _vector_times_matrix_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:
             return self._row_ambient_module().zero_vector()
         cdef RealDoubleVectorSpaceElement v_,ans
@@ -1086,7 +1086,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
 
-    cdef Vector _matrix_times_vector_c_impl(self,Vector v):
+    cdef Vector _matrix_times_vector_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:
             return self._column_ambient_module().zero_vector()
 

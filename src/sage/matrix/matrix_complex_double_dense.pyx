@@ -190,7 +190,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
     # LEVEL 2 functionality
     #   * def _pickle
     #   * def _unpickle
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         if self._nrows == 0 or self._ncols == 0: return self
         cdef Matrix_complex_double_dense M,_right,_left
         _right = right
@@ -206,7 +206,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         return M
 
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right): #matrix.Matrix right):
+    cpdef ModuleElement _sub_(self, ModuleElement right): #matrix.Matrix right):
         if self._nrows == 0 or self._ncols == 0: return self
 
         cdef Matrix_complex_double_dense M,_right,_left
@@ -286,7 +286,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
-    #    * cdef _sub_c_impl
+    #    * cdef _sub_
     #    * __deepcopy__
     #    * __invert__
     #    * Matrix windows -- only if you need strassen for that base
@@ -814,7 +814,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         for i from 0 <= i < self._nrows*self._ncols*2:
             md[i] = <double> nd[i]
 
-    cdef Vector _matrix_times_vector_c_impl(self,Vector v):
+    cdef Vector _matrix_times_vector_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:
             return self._column_ambient_module().zero_vector()
 
@@ -832,7 +832,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         gsl_blas_zgemv(CblasNoTrans,a,self._matrix, v_.v,b,ans.v)
         return ans
 
-    cdef Vector _vector_times_matrix_c_impl(self,Vector v):
+    cdef Vector _vector_times_matrix_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:
             return self._row_ambient_module().zero_vector()
 

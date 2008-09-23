@@ -335,21 +335,21 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return sage.libs.pari.all.pari.complex(self.real()._pari_(), self.imag()._pari_())
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         cdef ComplexNumber x
         x = self._new()
         mpfr_add(x.__re, self.__re, (<ComplexNumber>right).__re, rnd)
         mpfr_add(x.__im, self.__im, (<ComplexNumber>right).__im, rnd)
         return x
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         cdef ComplexNumber x
         x = self._new()
         mpfr_sub(x.__re, self.__re, (<ComplexNumber>right).__re, rnd)
         mpfr_sub(x.__im, self.__im, (<ComplexNumber>right).__im, rnd)
         return x
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         cdef ComplexNumber x
         x = self._new()
         cdef mpfr_t t0, t1
@@ -420,7 +420,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(t1)
         return x
 
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         cdef ComplexNumber x
         x = self._new()
         cdef mpfr_t a, b, t0, t1, right_nm

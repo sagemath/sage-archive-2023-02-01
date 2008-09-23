@@ -302,7 +302,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             self._compute_polydict()
         return self._prod.dict()
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement _right):
+    cpdef ModuleElement _add_(self, ModuleElement _right):
         """
         Returns the Laurent polynomial self + right.
 
@@ -326,7 +326,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             ans._poly += right._poly
         return ans
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement _right):
+    cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
         Returns the Laurent polynomial self - right.
 
@@ -352,7 +352,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             ans._poly -= right._poly
         return ans
 
-    cdef ModuleElement _neg_c_impl(self):
+    cpdef ModuleElement _neg_(self):
         """
         Returns -self.
 
@@ -368,7 +368,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         ans._poly = -self._poly
         return ans
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         """
         Returns self * right where right is in self's base ring.
 
@@ -384,7 +384,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         ans._poly = self._poly * right
         return ans
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         """
         Returns left*self where left is in self's base ring.
 
@@ -400,7 +400,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         ans._poly = left * self._poly
         return ans
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         """
         Return self*right.
 

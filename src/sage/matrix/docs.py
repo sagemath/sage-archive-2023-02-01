@@ -156,7 +156,7 @@ functionality, except speed (always faster!) in any way):
           old objects still unpickle.
    * cdef _list -- list of underlying elements (need not be a copy)
    * cdef _dict -- sparse dictionary of underlying elements
-   * cdef _add_c_impl -- add two matrices with identical parents
+   * cdef _add_ -- add two matrices with identical parents
    * _matrix_times_matrix_c_impl -- multiply two matrices with compatible dimensions and
                                     identical base rings (both sparse or both dense)
    * cdef _cmp_c_impl -- compare two matrices with identical parents
@@ -171,7 +171,7 @@ by any internal algorithms and are not accessible to the user.
 *********** LEVEL 3  **********
 OPTIONAL:
 
-   * cdef _sub_c_impl
+   * cdef _sub_
    * __invert__
    * _multiply_classical
    * __deepcopy__

@@ -193,11 +193,11 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             return (~self)**(-n)
         return self.parent()(self.__poly**n, construct=True)
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
 ##        self._ntl_set_modulus()
         return self.parent()(self.__poly + (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         """
         EXAMPLES:
             sage: x = PolynomialRing(Integers(100), 'x').0
@@ -261,7 +261,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         return self.parent()(self.__poly.left_shift(n),
                              construct=True)
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
 ##        self._ntl_set_modulus()
         return self.parent()(self.__poly - (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
@@ -658,7 +658,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         v = [ zz_p_rep(zz_pX_GetCoeff(self.x, t)) for t from i <= t < j ]
         return Polynomial_dense_modn_ntl_zz(self._parent, v, check=False) << i
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement _right):
+    cpdef ModuleElement _add_(self, ModuleElement _right):
         """
         TESTS:
             sage: R.<x> = Integers(100)[]
@@ -674,7 +674,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: _sig_off
         return r
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement _right):
+    cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
         TESTS:
             sage: R.<x> = Integers(100)[]
@@ -690,7 +690,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: _sig_off
         return r
 
-    cdef RingElement _mul_c_impl(self, RingElement _right):
+    cpdef RingElement _mul_(self, RingElement _right):
         """
         TESTS:
             sage: R.<x> = Integers(100)[]
@@ -709,7 +709,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: _sig_off
         return r
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement c):
+    cpdef ModuleElement _rmul_(self, RingElement c):
         """
         TESTS:
             sage: R.<x> = Integers(100)[]
@@ -724,7 +724,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: _sig_off
         return r
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement c):
+    cpdef ModuleElement _lmul_(self, RingElement c):
         """
         TESTS:
             sage: R.<x> = Integers(100)[]
@@ -1178,7 +1178,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         v = [ self[t] for t from i <= t < j ]
         return Polynomial_dense_modn_ntl_ZZ(self._parent, v, check=False) << i
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement _right):
+    cpdef ModuleElement _add_(self, ModuleElement _right):
         """
         TESTS:
             sage: R.<x> = Integers(10^30)[]
@@ -1194,7 +1194,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: _sig_off
         return r
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement _right):
+    cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
         TESTS:
             sage: R.<x> = Integers(10^30)[]
@@ -1210,7 +1210,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: _sig_off
         return r
 
-    cdef RingElement _mul_c_impl(self, RingElement _right):
+    cpdef RingElement _mul_(self, RingElement _right):
         """
         TESTS:
             sage: R.<x> = Integers(10^30)[]
@@ -1229,7 +1229,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: _sig_off
         return r
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement c):
+    cpdef ModuleElement _rmul_(self, RingElement c):
         """
         TESTS:
             sage: R.<x> = Integers(10^30)[]
@@ -1245,14 +1245,14 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: _sig_off
         return r
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement c):
+    cpdef ModuleElement _lmul_(self, RingElement c):
         """
         TESTS:
             sage: R.<x> = Integers(10^30)[]
             sage: 3 * (x+5)
             3*x + 15
         """
-        return self._rmul_c_impl(c)
+        return self._rmul_(c)
 
     def __pow__(Polynomial_dense_modn_ntl_ZZ self, ee, dummy):
         """

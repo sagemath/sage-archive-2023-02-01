@@ -529,9 +529,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     ########################################################################
     # LEVEL 2 functionality
-    # x * cdef _add_c_impl
-    # x * cdef _sub_c_impl
-    # x * cdef _mul_c_impl
+    # x * cdef _add_
+    # x * cdef _sub_
+    # x * cdef _mul_
     # x * cdef _cmp_c_impl
     #   * __neg__
     #   * __invert__
@@ -541,7 +541,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    # cdef _mul_c_impl(self, Matrix right):
+    # cdef _mul_(self, Matrix right):
     # def __neg__(self):
     # def __invert__(self):
     # def __copy__(self):
@@ -668,7 +668,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         M._initialized = True
         return M
 
-    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
+    cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix right):
 
         #############
         # see the tune_multiplication function below.
@@ -681,7 +681,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
             return self._multiply_multi_modular(right)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         """
         EXAMPLES:
             sage: a = matrix(QQ,2,range(6))
@@ -700,7 +700,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         M._initialized = True
         return M
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         """
         Add two dense matrices over ZZ.
 
@@ -735,7 +735,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         M._initialized = True
         return M
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Subtract two dense matrices over ZZ.
 
@@ -798,7 +798,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return 0
 
 
-    cdef Vector _vector_times_matrix_c_impl(self, Vector v):
+    cdef Vector _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
 

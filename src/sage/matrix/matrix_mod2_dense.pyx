@@ -426,7 +426,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # LEVEL 2 functionality
     #   * def _pickle
     #   * def _unpickle
-    #   * cdef _mul_c_impl
+    #   * cdef _mul_
     #   * cdef _cmp_c_impl
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
@@ -434,7 +434,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         """
         Matrix addition.
 
@@ -469,7 +469,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         return A
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Matrix addition.
 
@@ -481,9 +481,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A - A == Matrix(GF(2),10,10,0)
             True
         """
-        return self._add_c_impl(right)
+        return self._add_(right)
 
-    cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
+    cdef Matrix _matrix_times_matrix_(self, Matrix right):
         """
         Matrix multiplication.
 

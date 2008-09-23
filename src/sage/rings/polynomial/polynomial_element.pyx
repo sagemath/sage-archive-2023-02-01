@@ -188,7 +188,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                   v[i] = z
           return v
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         cdef Py_ssize_t i, min
         x = self.list()
         y = right.list()
@@ -206,7 +206,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         low = [x[i] + y[i] for i from 0 <= i < min]
         return self.polynomial(low + high)
 
-    cdef ModuleElement _neg_c_impl(self):
+    cpdef ModuleElement _neg_(self):
         return self.polynomial([-x for x in self.list()])
 
     def plot(self, xmin=None, xmax=None, *args, **kwds):
@@ -244,7 +244,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return point(z, *args, **kwds)
         raise NotImplementedError, "plotting of polynomials over %s not implemented"%R
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement left):
+    cpdef ModuleElement _lmul_(self, RingElement left):
         """
         Multiply self on the left by a scalar.
 
@@ -263,7 +263,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(0)
         return self.parent()(left) * self
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _rmul_(self, RingElement right):
         """
         Multiply self on the right by a scalar.
 
@@ -842,7 +842,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise TypeError, "cannot coerce nonconstant polynomial to long"
         return long(self[0])
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         """
         EXAMPLES:
             sage: R.<x> = ZZ[]
@@ -4224,7 +4224,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         d = self.parent().base_ring()(right)
         return self.polynomial([c // d for c in self.__coeffs], check=False)
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs
         y = (<Polynomial_generic_dense>right).__coeffs
@@ -4244,7 +4244,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._parent(low + high, check=0)
 
-    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _iadd_(self, ModuleElement right):
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs
         y = (<Polynomial_generic_dense>right).__coeffs
@@ -4259,7 +4259,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             self.__normalize()
         return self
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs
         y = (<Polynomial_generic_dense>right).__coeffs
@@ -4279,7 +4279,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._parent(low + high, check=0)
 
-    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _isub_(self, ModuleElement right):
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs
         y = (<Polynomial_generic_dense>right).__coeffs
@@ -4294,7 +4294,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             self.__normalize()
         return self
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement c):
+    cpdef ModuleElement _rmul_(self, RingElement c):
         if len(self.__coeffs) == 0:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:
@@ -4305,7 +4305,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             (<Polynomial_generic_dense>res).__normalize()
         return res
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement c):
+    cpdef ModuleElement _lmul_(self, RingElement c):
         if len(self.__coeffs) == 0:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:
@@ -4316,7 +4316,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             (<Polynomial_generic_dense>res).__normalize()
         return res
 
-    cdef ModuleElement _ilmul_c_impl(self, RingElement c):
+    cpdef ModuleElement _ilmul_(self, RingElement c):
         if len(self.__coeffs) == 0:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:

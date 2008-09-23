@@ -440,7 +440,7 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = self.__u._parent(coeffs)
         self.__normalize()
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right_m):
+    cpdef ModuleElement _add_(self, ModuleElement right_m):
         """
         Add two power series with the same parent.
 
@@ -490,7 +490,7 @@ cdef class LaurentSeries(AlgebraElement):
         # 3. Add
         return LaurentSeries(self._parent, f1 + f2, m)
 
-    cdef ModuleElement _iadd_c_impl(self, ModuleElement right_m):
+    cpdef ModuleElement _iadd_(self, ModuleElement right_m):
         """
         EXAMPLES:
             sage: R.<t> = LaurentSeriesRing(QQ)
@@ -505,9 +505,9 @@ cdef class LaurentSeries(AlgebraElement):
             self.__u += right.__u
             return self
         else:
-            return self._add_c_impl(right)
+            return self._add_(right)
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right_m):
+    cpdef ModuleElement _sub_(self, ModuleElement right_m):
         """
         Subtract two power series with the same parent.
 
@@ -584,7 +584,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return LaurentSeries(self._parent, -self.__u, self.__n)
 
-    cdef RingElement _mul_c_impl(self, RingElement right_r):
+    cpdef RingElement _mul_(self, RingElement right_r):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -598,7 +598,7 @@ cdef class LaurentSeries(AlgebraElement):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cdef RingElement _imul_c_impl(self, RingElement right_r):
+    cpdef RingElement _imul_(self, RingElement right_r):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -612,13 +612,13 @@ cdef class LaurentSeries(AlgebraElement):
         self.__n += right.__n
         return self
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement c):
-        return LaurentSeries(self._parent, self.__u._rmul_c(c), self.__n)
+    cpdef ModuleElement _rmul_(self, RingElement c):
+        return LaurentSeries(self._parent, self.__u._rmul_(c), self.__n)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement c):
-        return LaurentSeries(self._parent, self.__u._lmul_c(c), self.__n)
+    cpdef ModuleElement _lmul_(self, RingElement c):
+        return LaurentSeries(self._parent, self.__u._lmul_(c), self.__n)
 
-    cdef ModuleElement _ilmul_c_impl(self, RingElement c):
+    cpdef ModuleElement _ilmul_(self, RingElement c):
         self.__u *= c
         return self
 
@@ -692,7 +692,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return LaurentSeries(self._parent, self.__u >> (n - self.__n), n)
 
-    cdef RingElement _div_c_impl(self, RingElement right_r):
+    cpdef RingElement _div_(self, RingElement right_r):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0

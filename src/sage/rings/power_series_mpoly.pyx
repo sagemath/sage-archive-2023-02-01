@@ -112,7 +112,7 @@ cdef class PowerSeries_mpoly(PowerSeries):
     def _mpoly(self):
         return self.__f
 
-    cdef RingElement _mul_c_impl(self, RingElement right_r):
+    cpdef RingElement _mul_(self, RingElement right_r):
         """
         Return the product of two power series.
         """
@@ -136,7 +136,7 @@ cdef class PowerSeries_mpoly(PowerSeries):
         return PowerSeries_mpoly(self._parent, -self.__f,
                                          self._prec, check=False)
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right_m):
+    cpdef ModuleElement _add_(self, ModuleElement right_m):
         """
         EXAMPLES:
         """
@@ -144,7 +144,7 @@ cdef class PowerSeries_mpoly(PowerSeries):
         return PowerSeries_mpoly(self._parent, self.__f + right.__f, \
                                          self.common_prec_c(right), check=True)
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right_m):
+    cpdef ModuleElement _sub_(self, ModuleElement right_m):
         """
         Return difference of two power series.
 
@@ -154,11 +154,11 @@ cdef class PowerSeries_mpoly(PowerSeries):
         return PowerSeries_mpoly(self._parent, self.__f - right.__f, \
                                          self.common_prec_c(right), check=True)
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement c):
-        return PowerSeries_mpoly(self._parent, self.__f._rmul_c(c), self._prec, check=False)
+    cpdef ModuleElement _rmul_(self, RingElement c):
+        return PowerSeries_mpoly(self._parent, self.__f._rmul_(c), self._prec, check=False)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement c):
-        return PowerSeries_mpoly(self._parent, self.__f._lmul_c(c), self._prec, check=False)
+    cpdef ModuleElement _lmul_(self, RingElement c):
+        return PowerSeries_mpoly(self._parent, self.__f._lmul_(c), self._prec, check=False)
 
 
 def make_powerseries_mpoly_v0(parent,  f, prec, is_gen):

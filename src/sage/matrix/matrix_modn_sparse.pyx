@@ -213,8 +213,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     # LEVEL 2 functionality
     #   * def _pickle
     #   * def _unpickle
-    #   * cdef _add_c_impl
-    #   * cdef _mul_c_impl
+    #   * cdef _add_
+    #   * cdef _mul_
     #   * cdef _cmp_c_impl
     #   * __neg__
     #   * __invert__
@@ -225,8 +225,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
-    # cdef ModuleElement _add_c_impl(self, ModuleElement right):
-    # cdef _mul_c_impl(self, Matrix right):
+    # cpdef ModuleElement _add_(self, ModuleElement right):
+    # cdef _mul_(self, Matrix right):
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
     # def __neg__(self):
     # def __invert__(self):
@@ -273,7 +273,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
-    #    * cdef _sub_c_impl
+    #    * cdef _sub_
     #    * __deepcopy__
     #    * __invert__
     #    * Matrix windows -- only if you need strassen for that base

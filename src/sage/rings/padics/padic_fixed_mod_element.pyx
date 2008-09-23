@@ -261,7 +261,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         """
         return self._invert_c_impl()
 
-    cdef RingElement _invert_c_impl(self):
+    cpdef RingElement _invert_c_impl(self):
         cdef pAdicFixedModElement ans
         if mpz_divisible_p(self.value, self.prime_pow.prime.value) != 0:
             raise ValueError, "cannot invert non-unit"
@@ -330,7 +330,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             return ans
         return self._rshift_c(mpz_get_si((<Integer>shift).value))
 
-    cdef ModuleElement _neg_c_impl(self):
+    cpdef ModuleElement _neg_(self):
         r"""
         Returns negative of self.
 
@@ -358,7 +358,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         _sig_off
         return ans
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         r"""
         Returns sum of self and right.
 
@@ -378,7 +378,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             mpz_sub(ans.value, ans.value, self.prime_pow.pow_mpz_t_top()[0])
         return ans
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         r"""
         Returns product of self and right.
 
@@ -395,7 +395,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         mpz_fdiv_r(ans.value, ans.value, self.prime_pow.pow_mpz_t_top()[0])
         return ans
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         r"""
         Returns difference of self and right.
 
@@ -415,7 +415,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             mpz_add(ans.value, ans.value, self.prime_pow.pow_mpz_t_top()[0])
         return ans
 
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         r"""
         Returns quotient of self and right. The latter must have
         valuation zero.

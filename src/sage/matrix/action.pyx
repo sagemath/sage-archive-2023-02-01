@@ -144,7 +144,7 @@ cdef class MatrixMatrixAction(MatrixMulAction):
                 B = B.dense_matrix()
             else:
                 A = A.dense_matrix()
-        prod = A._matrix_times_matrix_c_impl(B)
+        prod = A._matrix_times_matrix_(B)
         if A.subdivisions is not None or B.subdivisions is not None:
             Asubs = A.get_subdivisions()
             Bsubs = B.get_subdivisions()
@@ -192,7 +192,7 @@ cdef class MatrixVectorAction(MatrixMulAction):
                 v = v.sparse_vector()
             else:
                 v = v.dense_vector()
-        return A._matrix_times_vector_c_impl(v)
+        return A._matrix_times_vector_(v)
 
 
 cdef class VectorMatrixAction(MatrixMulAction):
@@ -234,5 +234,5 @@ cdef class VectorMatrixAction(MatrixMulAction):
                 v = v.sparse_vector()
             else:
                 v = v.dense_vector()
-        return (<Matrix>A)._vector_times_matrix_c_impl(v) # v * A
+        return (<Matrix>A)._vector_times_matrix_(v) # v * A
 

@@ -154,19 +154,19 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     # LEVEL 2 functionality
     #   * def _pickle
     #   * def _unpickle
-    #   * cdef _add_c_impl
-    #   * cdef _sub_c_impl
-    #   * cdef _mul_c_impl
+    #   * cdef _add_
+    #   * cdef _sub_
+    #   * cdef _mul_
     #   * cdef _cmp_c_impl
     #   * __neg__
     #   * __invert__
     #   * __copy__
     #   * _multiply_classical
-    #   * _matrix_times_matrix_c_impl
+    #   * _matrix_times_matrix_
     #   * _list -- list of underlying elements (need not be a copy)
     #   * x _dict -- sparse dictionary of underlying elements (need not be a copy)
 
-    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix _right):
+    cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix _right):
         cdef Matrix_rational_sparse right, ans
         right = _right
 
@@ -262,8 +262,8 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
-    # cdef ModuleElement _add_c_impl(self, ModuleElement right):
-    # cdef _mul_c_impl(self, Matrix right):
+    # cpdef ModuleElement _add_(self, ModuleElement right):
+    # cdef _mul_(self, Matrix right):
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
     # def __neg__(self):
     # def __invert__(self):
@@ -272,7 +272,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     # def _list(self):
 
 # TODO
-##     cdef ModuleElement _lmul_c_impl(self, RingElement right):
+##     cpdef ModuleElement _lmul_(self, RingElement right):
 ##         """
 ##         EXAMPLES:
 ##             sage: a = matrix(QQ,2,range(6))
@@ -305,7 +305,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
-    #    * cdef _sub_c_impl
+    #    * cdef _sub_
     #    * __deepcopy__
     #    * __invert__
     #    * Matrix windows -- only if you need strassen for that base

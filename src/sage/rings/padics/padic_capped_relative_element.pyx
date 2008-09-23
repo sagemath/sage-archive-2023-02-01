@@ -147,7 +147,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         """
         #print "x = %s, type = %s, absprec = %s, relprec = %s"%(x, type(x),absprec, relprec)
-        cdef RingElement ordp
+        cpdef RingElement ordp
         cdef mpz_t modulus, tmp2
         cdef GEN pari_tmp
         cdef Integer tmp
@@ -573,7 +573,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef ModuleElement _neg_c_impl(self):
+    cpdef ModuleElement _neg_(self):
         """
         EXAMPLES:
             sage: R = Zp(5, 20, 'capped-rel', 'val-unit')
@@ -759,9 +759,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         _sig_off
         return ans
 
-    # Once the code for _add_c_impl has stabilized, it may be worth getting rid of the extra function call for _sub_c_impl.
+    # Once the code for _add_ has stabilized, it may be worth getting rid of the extra function call for _sub_.
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement _right):
+    cpdef ModuleElement _add_(self, ModuleElement _right):
         """
         EXAMPLES:
             sage: R = Zp(19, 5, 'capped-rel','series')
@@ -869,14 +869,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             right = pAdicCappedRelativeElement(self.parent(), right)
         return self._floordiv_c_impl(right)
 
-    cdef RingElement _floordiv_c_impl(self, RingElement right):
+    cpdef RingElement _floordiv_c_impl(self, RingElement right):
         cdef pAdicCappedRelativeElement ans
         cdef long relprec, diff
         (<pAdicCappedRelativeElement>right)._normalize()
         self._normalize()
         # For fields, we define floor division as normal division and % as always 0
         if self.prime_pow.in_field == 1:
-            return self._div_c(right)
+            return self._div_(right)
         # We check to see if right is an exact or inexact zero.
         if mpz_sgn((<pAdicCappedRelativeElement>right).unit) == -1:
             raise ZeroDivisionError, "cannot divide by zero"
@@ -1008,7 +1008,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             raise ValueError, "Cannot form an integer out of a p-adic field element with negative valuation"
         return self.lift_c()
 
-    cdef RingElement _mul_c_impl(self, RingElement _right):
+    cpdef RingElement _mul_(self, RingElement _right):
         r"""
         sage: R = Zp(5)
         sage: a = R(2385,11); a
@@ -1040,7 +1040,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             ans._normalized = 1
         return ans
 
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         cdef pAdicCappedRelativeElement ans
         if mpz_sgn((<pAdicCappedRelativeElement>right).unit) == -1:
             raise ZeroDivisionError, "cannot divide by zero"

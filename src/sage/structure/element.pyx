@@ -58,19 +58,15 @@ followed by both arithmetic implementors and callers.
 
 A quick summary for the impatient:
 \begin{itemize}
- \item DO NOT OVERRIDE _add_c. EVER. THANKS.
- \item DO NOT CALL _add_c_impl DIRECTLY.
- \item To implement addition for a python class, override def _add_().
- \item To implement addition for a pyrex class, override cdef _add_c_impl().
+ \item To implement addition for any Element class, override def _add_().
  \item If you want to add x and y, whose parents you know are IDENTICAL,
-   you may call _add_(x, y) (from python or pyrex) or _add_c(x, y) (from
-   pyrex -- this will be faster). This will be the fastest way to guarantee
+   you may call _add_(x, y). This will be the fastest way to guarantee
    that the correct implementation gets called. Of course you can still
    always use "x + y".
 \end{itemize}
 
 Now in more detail. The aims of this system are to provide (1) an efficient
-calling protocol from both python and pyrex, (2) uniform coercion semantics
+calling protocol from both python and cython, (2) uniform coercion semantics
 across SAGE, (3) ease of use, (4) readability of code.
 
 We will take addition of RingElements as an example; all other operators
@@ -84,7 +80,7 @@ and classes are similar. There are four relevant functions.
    condition. It has a fast pathway to deal with the most common case
    where the arguments have the same parent. Otherwise, it uses the coercion
    module to work out how to make them have the same parent. After any
-   necessary coercions have been performed, it calls _add_c to dispatch to
+   necessary coercions have been performed, it calls _add_ to dispatch to
    the correct underlying addition implementation.
 
    Note that although this function is declared as def, it doesn't have the
@@ -92,30 +88,13 @@ and classes are similar. There are four relevant functions.
    or for __add__ itself). This is because python has optimised calling
    protocols for such special functions.
 
-{\bf cdef RingElement._add_c}
-
-   DO ***NOT*** OVERRIDE THIS FUNCTION.
-
-   The two arguments to this function MUST have the SAME PARENT.
-   Its return value MUST have the SAME PARENT as its arguments.
-
-   If you want to add two objects from pyrex, and you know that their
-   parents are the same object, you are encouraged to call this function
-   directly, instead of using "x + y".
-
-   This function dispatches to either _add_ or _add_c_impl as appropriate.
-   It takes necessary steps to decide whether a pyrex implementation of
-   _add_c_impl has been overridden by some python implementation of _add_.
-   The code is optimised in favour of reaching _add_c_impl as soon as
-   possible.
-
 {\bf def RingElement._add_}
 
    This is the function you should override to implement addition in a
    python subclass of RingElement.
 
    WARNING: if you override this in a *pyrex* class, it won't get called.
-   You should override _add_c_impl instead. It is especially important to
+   You should override _add_ instead. It is especially important to
    keep this in mind whenever you move a class down from python to pyrex.
 
    The two arguments to this function are guaranteed to have the
@@ -126,11 +105,11 @@ and classes are similar. There are four relevant functions.
    parents are the same object, you are encouraged to call this function
    directly, instead of using "x + y".
 
-   The default implementation of this function is to call _add_c_impl,
+   The default implementation of this function is to call _add_,
    so if no-one has defined a python implementation, the correct pyrex
    implementation will get called.
 
-{\bf cdef RingElement._add_c_impl}
+{\bf cpdef RingElement._add_}
 
    This is the function you should override to implement addition in a
    pyrex subclass of RingElement.
@@ -139,17 +118,9 @@ and classes are similar. There are four relevant functions.
    SAME PARENT. Its return value MUST have the SAME PARENT as its
    arguments.
 
-   DO ***NOT*** CALL THIS FUNCTION DIRECTLY.
-
-   (Exception: you know EXACTLY what you are doing, and you know exactly
-   which implementation you are trying to call; i.e. you're not trying to
-   write generic code. In particular, if you call this directly, your code
-   will not work correctly if you run it on a python class derived from
-   a pyrex class where someone has redefined _add_ in python.)
-
    The default implementation of this function is to raise a
    NotImplementedError, which will happen if no-one has supplied
-   implementations of either _add_ or _add_c_impl.
+   implementations of either _add_.
 
 
 For speed, there are also {\bf inplace} version of the arithmetic commands.
@@ -162,29 +133,13 @@ be accessible from the calling function after this operation.
    This is the function you should override to inplace implement addition
    in a python subclass of RingElement.
 
-   WARNING: if you override this in a *pyrex* class, it won't get called.
-   You should override _iadd_c_impl instead. It is especially important to
-   keep this in mind whenever you move a class down from python to pyrex.
-
    The two arguments to this function are guaranteed to have the
    SAME PARENT. Its return value MUST have the SAME PARENT as its
    arguments.
 
-   The default implementation of this function is to call _add_c_impl,
+   The default implementation of this function is to call _add_,
    so if no-one has defined a python implementation, the correct pyrex
    implementation will get called.
-
-{\bf cdef RingElement._iadd_c_impl}
-
-   This is the function you should override to inplace implement addition
-   in a pyrex subclass of RingElement.
-
-   The two arguments to this function are guaranteed to have the
-   SAME PARENT. Its return value MUST have the SAME PARENT as its
-   arguments.
-
-   The default implementation of this function is to call _add_c
-
 """
 
 
@@ -474,6 +429,9 @@ cdef class Element(sage_object.SageObject):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
               "in Python, and has the wrong precedence."
 
+    def __pos__(self):
+        return self
+
     def _coeff_repr(self, no_space=True):
         if self._is_atomic():
             s = repr(self)
@@ -718,67 +676,28 @@ cdef class ModuleElement(Element):
             # safely mutate it. NOTE the threshold is different by one
             # for __add__ and __iadd__.
             if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
-                return _iadd_c(<ModuleElement>left, <ModuleElement>right)
+                return (<ModuleElement>left)._iadd_(<ModuleElement>right)
             else:
-                return _add_c(<ModuleElement>left, <ModuleElement>right)
+                return (<ModuleElement>left)._add_(<ModuleElement>right)
 
         global coercion_model
         return coercion_model.bin_op(left, right, add)
 
-    cdef ModuleElement _add_c(left, ModuleElement right):
-        """
-        Addition dispatcher for ModuleElements.
-
-        DO NOT OVERRIDE THIS FUNCTION.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        if HAS_DICTIONARY(left):   # fast check
-            # TODO: this bit will be unnecessarily slow if someone derives
-            # from the pyrex class *without* overriding _add_, since then
-            # we'll be making an unnecessary python call to _add_, which will
-            # end up in _add_c_impl anyway. There must be a simple way to
-            # distinguish this situation. It's complicated because someone
-            # can even override it at the instance level (without overriding
-            # it in the class.)
-            return left._add_(right)
-        else:
-            # Must be a pure Pyrex class.
-            return left._add_c_impl(right)
-
-
-    cdef ModuleElement _add_c_impl(left, ModuleElement right):
-        """
-        Pyrex classes should override this function to implement addition.
-        DO NOT CALL THIS FUNCTION DIRECTLY.
-        See extensive documentation at the top of element.pyx.
-        """
+    cpdef ModuleElement _add_(left, ModuleElement right):
         raise TypeError, arith_error_message(left, right, add)
-
-
-    def _add_(ModuleElement left, ModuleElement right):
-        """
-        Python classes should override this function to implement addition.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        return left._add_c_impl(right)
 
     def __iadd__(ModuleElement self, right):
         if have_same_parent(self, right):
             if  (<RefPyObject *>self).ob_refcnt <= inplace_threshold:
-                return _iadd_c(<ModuleElement>self, <ModuleElement>right)
+                return self._iadd_(<ModuleElement>right)
             else:
-                return _add_c(<ModuleElement>self, <ModuleElement>right)
+                return self._add_(<ModuleElement>right)
         else:
             global coercion_model
             return coercion_model.bin_op(self, right, iadd)
 
-    def _iadd_(self, right):
-        return self._iadd_c_impl(right)
-
-    cdef ModuleElement _iadd_c_impl(self, ModuleElement right):
-        return self._add_c(right)
+    cpdef ModuleElement _iadd_(self, ModuleElement right):
+        return self._add_(right)
 
     ##################################################
     # Subtraction
@@ -791,65 +710,29 @@ cdef class ModuleElement(Element):
         """
         if have_same_parent(left, right):
             if  (<RefPyObject *>left).ob_refcnt < inplace_threshold:
-                return _isub_c(<ModuleElement>left, <ModuleElement>right)
+                return (<ModuleElement>left)._isub_(<ModuleElement>right)
             else:
-                return _sub_c(<ModuleElement>left, <ModuleElement>right)
+                return (<ModuleElement>left)._sub_(<ModuleElement>right)
         global coercion_model
         return coercion_model.bin_op(left, right, sub)
 
-    cdef ModuleElement _sub_c(left, ModuleElement right):
-        """
-        Subtraction dispatcher for ModuleElements.
-
-        DO NOT OVERRIDE THIS FUNCTION.
-
-        See extensive documentation at the top of element.pyx.
-        """
-
-        if HAS_DICTIONARY(left):   # fast check
-            return left._sub_(right)
-        else:
-            # Must be a pure Pyrex class.
-            return left._sub_c_impl(right)
-
-
-    cdef ModuleElement _sub_c_impl(left, ModuleElement right):
-        """
-        Pyrex classes should override this function to implement subtraction.
-
-        DO NOT CALL THIS FUNCTION DIRECTLY.
-
-        See extensive documentation at the top of element.pyx.
-        """
+    cpdef ModuleElement _sub_(left, ModuleElement right):
         # default implementation is to use the negation and addition
         # dispatchers:
-        return left._add_c(right._neg_c())
-
-
-    def _sub_(ModuleElement left, ModuleElement right):
-        """
-        Python classes should override this function to implement subtraction.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        return left._sub_c_impl(right)
-
+        return left._add_(-right)
 
     def __isub__(ModuleElement self, right):
         if have_same_parent(self, right):
             if  (<RefPyObject *>self).ob_refcnt <= inplace_threshold:
-                return _isub_c(<ModuleElement>self, <ModuleElement>right)
+                return self._isub_(<ModuleElement>right)
             else:
-                return _sub_c(<ModuleElement>self, <ModuleElement>right)
+                return self._sub_(<ModuleElement>right)
         else:
             global coercion_model
             return coercion_model.bin_op(self, right, isub)
 
-    def _isub_(self, right):
-        return self._isub_c_impl(right)
-
-    cdef ModuleElement _isub_c_impl(self, ModuleElement right):
-        return self._sub_c(right)
+    cpdef ModuleElement _isub_(self, ModuleElement right):
+        return self._sub_(right)
 
     ##################################################
     # Negation
@@ -857,48 +740,19 @@ cdef class ModuleElement(Element):
 
     def __neg__(self):
         """
-        Top-level negation operator for ModuleElements.
-        See extensive documentation at the top of element.pyx.
+        Top-level negation operator for ModuleElements, which
+        may choose to implement _neg_ rather than __neg__ for
+        consistancy.
         """
-        # We ASSUME that self is a ModuleElement. No type checks.
-        return (<ModuleElement>self)._neg_c()
+        return self._neg_()
 
-
-    cdef ModuleElement _neg_c(self):
-        """
-        Negation dispatcher for ModuleElements.
-        DO NOT OVERRIDE THIS FUNCTION.
-        See extensive documentation at the top of element.pyx.
-        """
-
-        if HAS_DICTIONARY(self):   # fast check
-            return self._neg_()
-        else:
-            # Must be a pure Pyrex class.
-            return self._neg_c_impl()
-
-
-    cdef ModuleElement _neg_c_impl(self):
-        """
-        Pyrex classes should override this function to implement negation.
-        DO NOT CALL THIS FUNCTION DIRECTLY.
-        See extensive documentation at the top of element.pyx.
-        """
+    cpdef ModuleElement _neg_(self):
         # default implementation is to try multiplying by -1.
         global coercion_model
         if self._parent._base is None:
             return coercion_model.bin_op(-1, self, mul)
         else:
             return coercion_model.bin_op(self._parent._base(-1), self, mul)
-
-
-    def _neg_(ModuleElement self):
-        """
-        Python classes should override this function to implement negation.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        return self._neg_c_impl()
 
     ##################################################
     # Module element multiplication (scalars, etc.)
@@ -917,89 +771,8 @@ cdef class ModuleElement(Element):
         global coercion_model
         return coercion_model.bin_op(left, right, imul)
 
-    cdef ModuleElement _multiply_by_scalar(self, right):
-        # self * right,  where right need not be a ring element in the base ring
-        # This does type checking and canonical coercion then calls _lmul_c_impl.
-        if PY_TYPE_CHECK(right, Element):
-            if (<Element>right)._parent is self._parent._base:
-                # No coercion needed
-                return self._lmul_c(right)
-            else:
-                # Otherwise we do an explicit canonical coercion.
-                try:
-                    return self._lmul_c( self._parent._base._coerce_c(right) )
-                except TypeError:
-                    # that failed -- try to base extend right then do the multiply:
-                    self = self.base_extend_recursive_c((<Element>right)._parent)
-                    return (<ModuleElement>self)._lmul_c(right)
-        else:
-            # right is not an element at all
-            return (<ModuleElement>self)._lmul_c(self._parent._base._coerce_c(right))
-
-    cdef ModuleElement _rmultiply_by_scalar(self, left):
-        # left * self, where left need not be a ring element in the base ring
-        # This does type checking and canonical coercion then calls _rmul_c_impl.
-        #
-        # INPUT:
-        #    self -- a module element
-        #    left -- a scalar
-        # OUTPUT:
-        #    left * self
-        #
-        if PY_TYPE_CHECK(left, Element):
-            if (<Element>left)._parent is self._parent._base:
-                # No coercion needed
-                return self._rmul_c(left)
-            else:
-                # Otherwise we do an explicit canonical coercion.
-                try:
-                    return self._rmul_c(self._parent._base._coerce_c(left))
-                except TypeError:
-                    # that failed -- try to base extend self then do the multiply:
-                    self = self.base_extend_recursive_c((<Element>left)._parent)
-                    return (<ModuleElement>self)._rmul_c(left)
-        else:
-            # now left is not an element at all.
-            return (<ModuleElement>self)._rmul_c(self._parent._base._coerce_c(left))
-
-    cdef ModuleElement _lmul_nonscalar_c(left, right):
-        # Compute the product left * right, where right is assumed to be a nonscalar (so no coercion)
-        # This is a last resort.
-        if HAS_DICTIONARY(left):
-            return left._lmul_nonscalar(right)
-        else:
-            return left._lmul_nonscalar_c_impl(right)
-
-    cdef ModuleElement _lmul_nonscalar_c_impl(left, right):
-        raise TypeError
-
-    def _lmul_nonscalar(left, right):
-        return left._lmul_nonscalar_c_impl(right)
-
-    cdef ModuleElement _rmul_nonscalar_c(right, left):
-        if HAS_DICTIONARY(right):
-            return right._rmul_nonscalar(left)
-        else:
-            return right._rmul_nonscalar_c_impl(left)
-
-    cdef ModuleElement _rmul_nonscalar_c_impl(right, left):
-        raise TypeError
-
-    def _rmul_nonscalar(right, left):
-        return right._rmul_nonscalar_c_impl(left)
-
-
     # rmul -- left * self
-    cdef ModuleElement _rmul_c(self, RingElement left):
-        """
-        DO NOT OVERRIDE THIS FUNCTION.  OK to call.
-        """
-        if HAS_DICTIONARY(self):
-            return self._rmul_(left)
-        else:
-            return self._rmul_c_impl(left)
-
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         """
         Default module left scalar multiplication, which is to try to
         canonically coerce the scalar to the integers and do that
@@ -1009,23 +782,10 @@ cdef class ModuleElement(Element):
         appropriate action.
         """
         raise NotImplementedError
-
-    def _rmul_(self, left):
-        return self._rmul_c_impl(left)
-
 
     # lmul -- self * right
 
-    cdef ModuleElement _lmul_c(self, RingElement right):
-        """
-        DO NOT OVERRIDE THIS FUNCTION.
-        """
-        if HAS_DICTIONARY(self):
-            return self._lmul_(right)
-        else:
-            return self._lmul_c_impl(right)
-
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         """
         Default module left scalar multiplication, which is to try to
         canonically coerce the scalar to the integers and do that
@@ -1036,14 +796,8 @@ cdef class ModuleElement(Element):
         """
         raise NotImplementedError
 
-    def _lmul_(self, right):
-        return self._lmul_c_impl(right)
-
-    def _ilmul_(self, right):
-        return self._ilmul_c_impl(right)
-
-    cdef ModuleElement _ilmul_c_impl(self, RingElement right):
-        return _lmul_c(self, right)
+    cpdef ModuleElement _ilmul_(self, RingElement right):
+        return self._lmul_(right)
 
     cdef RingElement coerce_to_base_ring(self, x):
         if PY_TYPE_CHECK(x, Element) and (<Element>x)._parent is self._parent._base:
@@ -1093,7 +847,7 @@ cdef class MonoidElement(Element):
         """
         global coercion_model
         if have_same_parent(left, right):
-            return (<MonoidElement>left)._mul_c(<MonoidElement>right)
+            return (<MonoidElement>left)._mul_(<MonoidElement>right)
         try:
             return coercion_model.bin_op(left, right, mul)
         except TypeError, msg:
@@ -1104,30 +858,12 @@ cdef class MonoidElement(Element):
             raise TypeError, msg
 
 
-
-
-    cdef MonoidElement _mul_c(left, MonoidElement right):
-        """
-        Multiplication dispatcher for RingElements.
-        DO NOT OVERRIDE THIS FUNCTION.
-        See extensive documentation at the top of element.pyx.
-        """
-        if HAS_DICTIONARY(left):   # fast check
-            return left._mul_(right)
-        else:
-            return left._mul_c_impl(right)
-
-
-    cdef MonoidElement _mul_c_impl(left, MonoidElement right):
+    cpdef MonoidElement _mul_(left, MonoidElement right):
         """
         Pyrex classes should override this function to implement multiplication.
-        DO NOT CALL THIS FUNCTION DIRECTLY.
         See extensive documentation at the top of element.pyx.
         """
         raise TypeError
-
-    def _mul_(left, right):
-        return left._mul_c_impl(right)
 
     #############################################################
     # Other generic functions that should be available to
@@ -1175,10 +911,10 @@ cdef class AdditiveGroupElement(ModuleElement):
     def __invert__(self):
         raise NotImplementedError, "multiplicative inverse not defined for additive group elements"
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
-        return self._lmul_c_impl(left)
+    cpdef ModuleElement _rmul_(self, RingElement left):
+        return self._lmul_(left)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         """
         Default module left scalar multiplication, which is to try to
         canonically coerce the scalar to the integers and do that
@@ -1214,31 +950,12 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         global coercion_model
         return coercion_model.bin_op(left, right, div)
 
-    cdef MultiplicativeGroupElement _div_c(self, MultiplicativeGroupElement right):
-        """
-        Multiplication dispatcher for MultiplicativeGroupElements.
-        DO NOT OVERRIDE THIS FUNCTION.
-        See extensive documentation at the top of element.pyx.
-        """
-        if HAS_DICTIONARY(self):   # fast check
-            return self._div_(right)
-        else:
-            return self._div_c_impl(right)
-
-    cdef MultiplicativeGroupElement _div_c_impl(self, MultiplicativeGroupElement right):
+    cpdef MultiplicativeGroupElement _div_(self, MultiplicativeGroupElement right):
         """
         Pyrex classes should override this function to implement division.
-        DO NOT CALL THIS FUNCTION DIRECTLY.
         See extensive documentation at the top of element.pyx.
         """
         return self * ~right
-
-    def _div_(MultiplicativeGroupElement self, MultiplicativeGroupElement right):
-        """
-        Python classes should override this function to implement division.
-        """
-        return self._div_c_impl(right)
-
 
     def __invert__(self):
         if self.is_one():
@@ -1261,11 +978,11 @@ cdef class RingElement(ModuleElement):
     # Multiplication
     ##################################
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         # We raise an error to invoke the default action of coercing into self
         raise NotImplementedError, "parents %s %s %s" % (parent_c(self), parent_c(right), parent_c(self) is parent_c(right))
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         # We raise an error to invoke the default action of coercing into self
         raise NotImplementedError
 
@@ -1385,55 +1102,31 @@ cdef class RingElement(ModuleElement):
         # Otherwise use the slower test via PY_TYPE_CHECK.)
         if have_same_parent(self, right):
             if  (<RefPyObject *>self).ob_refcnt < inplace_threshold:
-                return _imul_c(<RingElement>self, <RingElement>right)
+                return (<RingElement>self)._imul_(<RingElement>right)
             else:
-                return _mul_c(<RingElement>self, <RingElement>right)
+                return (<RingElement>self)._mul_(<RingElement>right)
         global coercion_model
         return coercion_model.bin_op(self, right, mul)
 
-    cdef RingElement _mul_c(self, RingElement right):
-        """
-        Multiplication dispatcher for RingElements.
-        DO NOT OVERRIDE THIS FUNCTION.
-        See extensive documentation at the top of element.pyx.
-        """
-        if HAS_DICTIONARY(self):   # fast check
-            return self._mul_(right)
-        else:
-            return self._mul_c_impl(right)
-
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         """
         Pyrex classes should override this function to implement multiplication.
-        DO NOT CALL THIS FUNCTION DIRECTLY.
         See extensive documentation at the top of element.pyx.
         """
         raise TypeError, arith_error_message(self, right, mul)
 
-    def _mul_(RingElement self, RingElement right):
-        """
-        Python classes should override this function to implement multiplication.
-        See extensive documentation at the top of element.pyx.
-        """
-        return self._mul_c_impl(right)
-
     def __imul__(left, right):
         if have_same_parent(left, right):
             if  (<RefPyObject *>left).ob_refcnt <= inplace_threshold:
-#                print "doing __imul__"
-                return _imul_c(<RingElement>left, <RingElement>right)
+                return (<RingElement>left)._imul_(<RingElement>right)
             else:
-#                print "doing __mul__"
-                return _mul_c(<RingElement>left, <RingElement>right)
+                return (<RingElement>left)._mul_(<RingElement>right)
 
         global coercion_model
         return coercion_model.bin_op(left, right, imul)
 
-    def _imul_(self, right):
-        return self._imul_c_impl(right)
-
-    cdef RingElement _imul_c_impl(RingElement self, RingElement right):
-        return _mul_c(self, right)
+    cpdef RingElement _imul_(RingElement self, RingElement right):
+        return self._mul_(right)
 
     def __pow__(self, n, dummy):
         """
@@ -1493,28 +1186,15 @@ cdef class RingElement(ModuleElement):
         """
         if have_same_parent(self, right):
             if  (<RefPyObject *>self).ob_refcnt < inplace_threshold:
-                return _idiv_c(<RingElement>self, <RingElement>right)
+                return (<RingElement>self)._idiv_(<RingElement>right)
             else:
-                return _div_c(<RingElement>self, <RingElement>right)
+                return (<RingElement>self)._div_(<RingElement>right)
         global coercion_model
         return coercion_model.bin_op(self, right, div)
 
-
-    cdef RingElement _div_c(self, RingElement right):
-        """
-        Multiplication dispatcher for RingElements.
-        DO NOT OVERRIDE THIS FUNCTION.
-        See extensive documentation at the top of element.pyx.
-        """
-        if HAS_DICTIONARY(self):   # fast check
-            return self._div_(right)
-        else:
-            return self._div_c_impl(right)
-
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         """
         Pyrex classes should override this function to implement division.
-        DO NOT CALL THIS FUNCTION DIRECTLY.
         See extensive documentation at the top of element.pyx.
         """
         try:
@@ -1525,12 +1205,6 @@ cdef class RingElement(ModuleElement):
             else:
                 raise TypeError, arith_error_message(self, right, div)
 
-    def _div_(RingElement self, RingElement right):
-        """
-        Python classes should override this function to implement division.
-        """
-        return self._div_c_impl(right)
-
     def __idiv__(self, right):
         """
         Top-level division operator for ring elements.
@@ -1538,20 +1212,14 @@ cdef class RingElement(ModuleElement):
         """
         if have_same_parent(self, right):
             if  (<RefPyObject *>self).ob_refcnt <= inplace_threshold:
-                return _idiv_c(<RingElement>self, <RingElement>right)
+                return (<RingElement>self)._idiv_(<RingElement>right)
             else:
-                return _div_c(<RingElement>self, <RingElement>right)
+                return (<RingElement>self)._div_(<RingElement>right)
         global coercion_model
         return coercion_model.bin_op(self, right, idiv)
 
-    def _idiv_(self, right):
-        return self._idiv_c_impl(right)
-
-    cdef RingElement _idiv_c_impl(RingElement self, RingElement right):
-        return _div_c(self, right)
-
-    def __pos__(self):
-        return self
+    cpdef RingElement _idiv_(RingElement self, RingElement right):
+        return self._div_(right)
 
     def __invert__(self):
         if self.is_one():
@@ -1732,7 +1400,7 @@ cdef class Vector(ModuleElement):
 
     def __imul__(left, right):
         if have_same_parent(left, right):
-            return (<Vector>left)._dot_product_c(<Vector>right)
+            return (<Vector>left)._dot_product_(<Vector>right)
         # Always do this
         global coercion_model
         return coercion_model.bin_op(left, right, imul)
@@ -1901,40 +1569,15 @@ cdef class Vector(ModuleElement):
 
         """
         if have_same_parent(left, right):
-            return (<Vector>left)._dot_product_c(<Vector>right)
+            return (<Vector>left)._dot_product_(<Vector>right)
         # Always do this
         global coercion_model
-        return coercion_model.bin_op(left, right, operator.imul)
+        return coercion_model.bin_op(left, right, mul)
 
-    cdef Element _dot_product_c(Vector left, Vector right):
-        if left._degree != right._degree:
-            raise TypeError, "incompatible degrees"
-        elif left._parent._base is not right._parent._base:
-            global coercion_model
-            left, right = coercion_model.canonical_coercion(left, right)
-        if HAS_DICTIONARY(left):
-            return left._dot_product(right)
-        else:
-            return left._dot_product_c_impl(right)
+    cpdef Element _dot_product_(Vector left, Vector right):
+        raise TypeError, arith_error_message(left, right, mul)
 
-    def _dot_product(left, right):
-        return left._dot_product_c_impl(right)
-
-    cdef Element _dot_product_c_impl(Vector left, Vector right):
-        raise TypeError,arith_error_message(left, right, operator.mul)
-
-    cdef Vector _pairwise_product_c(Vector left, Vector right):
-        if left._degree != right._degree:
-            raise TypeError, "incompatible degrees"
-        elif left._parent._base is not right._parent._base:
-            global coercion_model
-            left, right = coercion_model.canonical_coercion(left, right)
-        if HAS_DICTIONARY(left):
-            return left._pairwise_product(right)
-        else:
-            return left._pairwise_product_c_impl(right)
-
-    cdef Vector _pairwise_product_c_impl(Vector left, Vector right):
+    cpdef Vector _pairwise_product_(Vector left, Vector right):
         raise TypeError, "unsupported operation for '%s' and '%s'"%(parent_c(left), parent_c(right))
 
     def __div__(self, right):
@@ -1985,6 +1628,7 @@ def is_Vector(x):
     return IS_INSTANCE(x, Vector)
 
 cdef class Matrix(AlgebraElement):
+
     cdef bint is_sparse_c(self):
         raise NotImplementedError
 
@@ -1993,7 +1637,7 @@ cdef class Matrix(AlgebraElement):
 
     def __imul__(left, right):
         if have_same_parent(left, right):
-            return (<Matrix>left)._matrix_times_matrix_c_impl(<Matrix>right)
+            return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, imul)
@@ -2161,18 +1805,18 @@ cdef class Matrix(AlgebraElement):
 
         """
         if have_same_parent(left, right):
-            return (<Matrix>left)._matrix_times_matrix_c_impl(<Matrix>right)
+            return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, mul)
 
-    cdef Vector _vector_times_matrix_c_impl(matrix_right, Vector vector_left):
+    cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError
 
-    cdef Vector _matrix_times_vector_c_impl(matrix_left, Vector vector_right):
+    cdef Vector _matrix_times_vector_(matrix_left, Vector vector_right):
         raise TypeError
 
-    cdef Matrix _matrix_times_matrix_c_impl(left, Matrix right):
+    cdef Matrix _matrix_times_matrix_(left, Matrix right):
         raise TypeError
 
 

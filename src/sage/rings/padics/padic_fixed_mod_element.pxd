@@ -15,10 +15,10 @@ from sage.rings.padics.pow_computer cimport PowComputer_class
 cdef class pAdicFixedModElement(pAdicBaseGenericElement):
     cdef mpz_t value
     cdef pAdicFixedModElement _new_c(self)
-    cdef RingElement _invert_c_impl(self)
+    cpdef RingElement _invert_c_impl(self)
     cdef pAdicFixedModElement _lshift_c(pAdicFixedModElement self, long shift)
     cdef pAdicFixedModElement _rshift_c(pAdicFixedModElement self, long shift)
-    cdef ModuleElement _neg_c_impl(self)
+    cpdef ModuleElement _neg_(self)
     cdef Integer lift_c(pAdicFixedModElement self)
     cdef object teichmuller_list(pAdicFixedModElement self)
     cdef pAdicFixedModElement unit_part_c(pAdicFixedModElement self)

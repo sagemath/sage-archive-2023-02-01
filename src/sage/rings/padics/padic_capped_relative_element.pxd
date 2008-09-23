@@ -37,8 +37,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef int _set_from_Integer( pAdicCappedRelativeElement self, Integer x, absprec, relprec) except -1
     cdef int _set_from_Rational( pAdicCappedRelativeElement self, Rational x, absprec, relprec) except -1
 
-    cdef ModuleElement _neg_c_impl(self)
-    cdef RingElement _floordiv_c_impl(self, RingElement right)
+    cpdef ModuleElement _neg_(self)
+    cpdef RingElement _floordiv_c_impl(self, RingElement right)
     cdef pAdicCappedRelativeElement _lshift_c(pAdicCappedRelativeElement self, long shift)
     cdef pAdicCappedRelativeElement _rshift_c(pAdicCappedRelativeElement self, long shift)
     cdef pAdicCappedRelativeElement lift_to_precision_c(pAdicCappedRelativeElement self, long absprec)

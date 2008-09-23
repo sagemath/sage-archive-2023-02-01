@@ -196,7 +196,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         x._complex = gsl_vector_complex_get(self.v, i)
         return x
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         if self._degree == 0:
             return self
         cdef gsl_vector_complex *v, *w
@@ -211,7 +211,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         gsl_vector_add(&(v_imag.vector), &(w_imag.vector))
         return self._new_c(v)
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         if self._degree == 0:
             return self
         cdef gsl_vector_complex *v, *w
@@ -226,7 +226,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         gsl_vector_sub(&(v_imag.vector), &(w_imag.vector))
         return self._new_c(v)
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         if self._degree == 0:
             return self
         cdef gsl_vector_complex* v
@@ -234,7 +234,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         gsl_blas_zscal(<gsl_complex> (<ComplexDoubleElement>left)._complex, v)
         return self._new_c(v)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         if self._degree == 0:
             return self
         cdef gsl_vector_complex* v
@@ -390,7 +390,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         """
         return free_module_element.vector( [e.n(*args, **kwargs) for e in self] )
 
-    cdef Vector _pairwise_product_c_impl(self, Vector right):
+    cpdef Vector _pairwise_product_(self, Vector right):
         """
         Return the component-wise product of self and right.
 

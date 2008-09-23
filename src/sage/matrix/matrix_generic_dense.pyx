@@ -114,8 +114,8 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 2 functionality
-    #    * cdef _add_c_impl
-    #    * cdef _mul_c_impl
+    #    * cdef _add_
+    #    * cdef _mul_
     #    * cdef _cmp_c_impl
     #    * __neg__
     #    * __invert__
@@ -236,7 +236,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
-    #    * cdef _sub_c_impl
+    #    * cdef _sub_
     # x  * __deepcopy__
     #    * __invert__
     #    * _multiply_classical

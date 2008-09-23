@@ -179,7 +179,7 @@ cdef class gen(sage.structure.element.RingElement):
         import sage.libs.pari.gen_py
         return sage.libs.pari.gen_py.pari, (s,)
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         _sig_on
         return P.new_gen(gadd(self.g, (<gen>right).g))
 
@@ -207,7 +207,7 @@ cdef class gen(sage.structure.element.RingElement):
         mytop = avma
         return w
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         _sig_on
         return P.new_gen(gsub(self.g, (<gen> right).g))
 
@@ -235,7 +235,7 @@ cdef class gen(sage.structure.element.RingElement):
         mytop = avma
         return w
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         _sig_on
         return P.new_gen(gmul(self.g, (<gen>right).g))
 
@@ -263,7 +263,7 @@ cdef class gen(sage.structure.element.RingElement):
         mytop = avma
         return w
 
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         _sig_on
         return P.new_gen(gdiv(self.g, (<gen>right).g))
 

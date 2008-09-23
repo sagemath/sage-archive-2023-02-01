@@ -20,9 +20,9 @@ cdef class FiniteField_ntl_gf2e_iterator:
 
 cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
     cdef GF2E_c x
-    cdef ModuleElement _add_c_impl(self, ModuleElement right)
-    cdef RingElement _mul_c_impl(self, RingElement right)
-    cdef RingElement _div_c_impl(self, RingElement right)
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right)
+    cpdef ModuleElement _add_(self, ModuleElement right)
+    cpdef RingElement _mul_(self, RingElement right)
+    cpdef RingElement _div_(self, RingElement right)
+    cpdef ModuleElement _sub_(self, ModuleElement right)
     cdef int _cmp_c_impl(left, Element right) except -2
     cdef FiniteField_ntl_gf2eElement _new(FiniteField_ntl_gf2eElement self)

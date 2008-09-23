@@ -515,7 +515,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             raise TypeError, "left (=%s) must be a polynomial."%left
 
 
-    cdef MonoidElement _mul_c_impl(left, MonoidElement _right):
+    cpdef MonoidElement _mul_(left, MonoidElement _right):
         cdef PermutationGroupElement prod = left._new_c()
         cdef PermutationGroupElement right = <PermutationGroupElement>_right
         cdef int i

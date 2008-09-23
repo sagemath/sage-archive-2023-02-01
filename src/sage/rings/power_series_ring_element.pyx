@@ -872,7 +872,7 @@ cdef class PowerSeries(AlgebraElement):
                     v[k-n] = x
         return self._parent(v, self.prec()-n)
 
-    cdef RingElement _div_c_impl(self, RingElement denom_r):
+    cpdef RingElement _div_(self, RingElement denom_r):
         """
         EXAMPLES:
             sage: k.<t> = QQ[[]]

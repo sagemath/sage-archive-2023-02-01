@@ -438,7 +438,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_clear(gcd)
 
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement other_m):
+    cpdef ModuleElement _add_(self, ModuleElement other_m):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2-5)
@@ -494,7 +494,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement other_m):
+    cpdef ModuleElement _sub_(self, ModuleElement other_m):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2-13)
@@ -559,7 +559,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cdef RingElement _mul_c_impl(self, RingElement other_m):
+    cpdef RingElement _mul_(self, RingElement other_m):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+23)
@@ -616,7 +616,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement _c):
+    cpdef ModuleElement _rmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2+43)
@@ -632,7 +632,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement _c):
+    cpdef ModuleElement _lmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2+43)
@@ -648,7 +648,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cdef RingElement _div_c_impl(self, RingElement other):
+    cpdef RingElement _div_(self, RingElement other):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2-5)
@@ -1101,7 +1101,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return self._parent.number_field()
 
     # We must override these since the basering is now ZZ not QQ.
-    cdef ModuleElement _rmul_c_impl(self, RingElement _c):
+    cpdef ModuleElement _rmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2-27)
@@ -1120,7 +1120,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return res
 
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement _c):
+    cpdef ModuleElement _lmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2+43)

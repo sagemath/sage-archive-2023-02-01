@@ -374,7 +374,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             name = self.parent().latex_variable_names()[0]
         return self._repr(name, latex=True)
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement right):
         r"""
         Returns self plus right.
 
@@ -391,7 +391,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         r"""
         Return self minus right.
 
@@ -408,7 +408,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cdef ModuleElement _neg_c_impl(self):
+    cpdef ModuleElement _neg_(self):
         r"""
         Returns negative of self.
 
@@ -618,7 +618,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             return S(rr), ss, tt
 
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cpdef RingElement _mul_(self, RingElement right):
         r"""
         Returns self multiplied by right.
 
@@ -633,7 +633,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -652,7 +652,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement right):
+    cpdef ModuleElement _rmul_(self, RingElement right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 

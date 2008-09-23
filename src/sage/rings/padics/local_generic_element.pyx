@@ -11,10 +11,10 @@ import sage.libs.pari.gen
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
 
 cdef class LocalGenericElement(CommutativeRingElement):
-    #cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    #cpdef ModuleElement _add_(self, ModuleElement right):
     #    raise NotImplementedError
 
-    cdef RingElement _div_c_impl(self, RingElement right):
+    cpdef RingElement _div_(self, RingElement right):
         r"""
         Returns the quotient of self by right.
 
@@ -95,10 +95,10 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #def __mod__(self, right):
     #    raise NotImplementedError
 
-    #cdef RingElement _mul_c_impl(self, RingElement right):
+    #cpdef RingElement _mul_(self, RingElement right):
     #    raise NotImplementedError
 
-    #cdef _neg_c_impl(self):
+    #cdef _neg_(self):
     #    raise NotImplementedError
 
     def _pari_init_(self):
@@ -107,7 +107,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #def __pow__(self, right):
     #    raise NotImplementedError
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement right):
         r"""
         Returns the difference between self and right.
 

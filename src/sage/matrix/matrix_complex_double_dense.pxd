@@ -14,4 +14,4 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):
     cdef int _signum
     cdef int _LU_valid
     cdef _c_compute_LU(self)
-#    cdef ModuleElement _add_c_impl(self, ModuleElement right )
+#    cpdef ModuleElement _add_(self, ModuleElement right )

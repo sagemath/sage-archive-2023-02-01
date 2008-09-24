@@ -3601,10 +3601,15 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def reduce(self,I):
         r"""
-        Return the normal form of self w.r.t. I, i.e. return the
-        remainder of self with respect to the polynomials in I. If the
-        polynomial set/list I is not a Groebner basis the result is
-        not canonical.
+
+        Return the normal form of self w.r.t. \var{I}, i.e. return the
+        remainder of this polynomial with respect to the polynomials
+        in \var{I}. If the polynomial set/list \var{I} is not a
+        (strong) Groebner basis the result is not canonical.
+
+        A strong Groebner basis $G$ of $I$ implies that for every
+        leading term $t$ of $I$ there exists an element $g$ of $G$,
+        such that the leading term of $g$ divides $t$.
 
         INPUT:
             I -- a list/set of polynomials in self.parent(). If I is an ideal,

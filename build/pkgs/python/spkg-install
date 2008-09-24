@@ -99,7 +99,9 @@ build()
         exit 1
     fi
 
-    $MAKE -i install        # the "-i" is crucial, esp., in the case of a major upgrade
+    # running 'make install' in parallel is a bad, bad idea
+    MAKE=make; export MAKE
+    make -i install        # the "-i" is crucial, esp., in the case of a major upgrade
     if [ $? -ne 0 ]; then
         echo "Error installing Python."
         exit 1

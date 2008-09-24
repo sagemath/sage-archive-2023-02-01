@@ -202,9 +202,13 @@ class Expect(ParentWithBase):
         self._session_number = 0
         self.__init_code = init_code
         self.__max_startup_time = max_startup_time
+
+        #Handle the log file
         if isinstance(logfile, basestring):
             logfile = open(logfile,'w')
         self.__logfile = logfile
+
+
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
         ParentWithBase.__init__(self, self)
@@ -414,11 +418,6 @@ If this all works, you can then make calls like:
     def _start(self, alt_message=None, block_during_init=True):
         self.quit()  # in case one is already running
         global failed_to_start
-        #if self.__name in failed_to_start:
-        #    if alt_message:
-        #        raise RuntimeError, alt_message
-        #    else:
-        #        raise RuntimeError, 'Unable to start %s (%s failed to start during this SAGE session; not attempting to start again)\n%s'%(self.__name, self.__name, self._install_hints())
 
         self._session_number += 1
         current_path = os.path.abspath('.')
@@ -427,13 +426,19 @@ If this all works, you can then make calls like:
             os.makedirs(dir)
         os.chdir(dir)
 
+        #If the 'SAGE_PEXPECT_LOG' environment variable is set and
+        #the current logfile is None, then set the logfile to be one
+        #in .sage/pexpect_logs/
+        if self.__logfile is None and 'SAGE_PEXPECT_LOG' in os.environ:
+            from sage.misc.all import DOT_SAGE
+            logs = '%s/pexpect_logs'%DOT_SAGE
+            if not os.path.exists(logs):
+                os.mkdir(logs)
+
+            filename = '%s/%s-%s-%s-%s.log'%(logs, self.name(), os.getpid(), id(self), self._session_number)
+            self.__logfile = open(filename, 'w')
+
         cmd = self.__command
-##         try:
-##             cmd = _absolute(self.__command)
-##         except RuntimeError:
-##             failed_to_start.append(self.__name)
-##             raise RuntimeError, "%s\nCommand %s not available."%(
-##                  self._install_hints(), self.__name)
 
         if self.__verbose_start:
             print cmd

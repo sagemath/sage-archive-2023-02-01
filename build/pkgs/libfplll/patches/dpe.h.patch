@@ -1,15 +1,12 @@
---- src/src/dpe.h	2007-11-28 04:44:47.000000000 -0500
-+++ ../libfplll-2.1.6-20071129_dirt/src/src/dpe.h	2008-01-27 21:14:37.282113000 -0500
-@@ -65,8 +64,12 @@
- # define DPE_TRUNC trunc
- /* some versions of math.h do not include a prototype for round() */
- #ifndef round
-+#if defined (__sun)
-+#define round(a) ((fmod(a,1)<0.5)?floor(a):ceil(a))
-+#else
- double round(double);
- #endif
+--- dpe.h.orig	2008-09-24 01:36:07.000000000 -0700
++++ dpe.h	2008-09-24 01:35:41.000000000 -0700
+@@ -22,6 +22,9 @@
+ #include <stdlib.h> /* For abort */
+ #include <stdio.h>  /* For fprintf */
+ #include <math.h>   /* for round, floor, ceil */
++#if defined (__sun) /* for round on Solaris 10 */
++#include "tgmath.h"
 +#endif
- #ifndef trunc
- double trunc(double);
- #endif
+ #include <limits.h>
+ 
+ 

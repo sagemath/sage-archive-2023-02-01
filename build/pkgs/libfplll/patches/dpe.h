@@ -22,6 +22,9 @@ MA 02111-1307, USA. */
 #include <stdlib.h> /* For abort */
 #include <stdio.h>  /* For fprintf */
 #include <math.h>   /* for round, floor, ceil */
+#if defined (__sun) /* for round on Solaris 10 */
+#include "tgmath.h"
+#endif
 #include <limits.h>
 
 
@@ -65,11 +68,7 @@ MA 02111-1307, USA. */
 # define DPE_TRUNC trunc
 /* some versions of math.h do not include a prototype for round() */
 #ifndef round
-#if defined (__sun)
-#define round(a) ((fmod(a,1)<0.5)?floor(a):ceil(a))
-#else
 double round(double);
-#endif
 #endif
 #ifndef trunc
 double trunc(double);

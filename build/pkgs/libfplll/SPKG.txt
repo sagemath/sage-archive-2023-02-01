@@ -23,6 +23,9 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
 
 == Changelog ==
 
+=== libfplll-2.1.6-20071129.p5 (Michael Abshoff, September 24th, 2008) ===
+ * Fix Solaris 10 build with more elegant solution to the missing round() problem
+
 === libfplll-2.1.6-20071129.p4 (William Stein / Michael Abshoff, May 17th, 2008) ===
  * Cygwin -- compile fix (do same as on sun to fplll.h)
 

@@ -120,7 +120,7 @@ n
         A  -- square matrix of doubles; the state change probabilities
         B  -- matrix of doubles; emission probabilities
         pi -- list of floats; probabilities for each initial state
-        emission_state -- list of B.ncols() symbols (just used for printing)
+        emission_symbols -- list of B.ncols() symbols (just used for printing)
         name -- (optional) name of the model
         normalize -- (optional; default=True) whether or not to normalize
                      the model so the probabilities add to 1

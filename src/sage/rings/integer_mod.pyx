@@ -1421,6 +1421,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             if self.ivalue < 0:
                 self.ivalue = self.ivalue + self.__modulus.int32
             return
+        elif PY_TYPE_CHECK(value, IntegerMod_int):
+            self.ivalue = (<IntegerMod_int>value).ivalue % self.__modulus.int32
+            return
         cdef sage.rings.integer.Integer z
         if PY_TYPE_CHECK(value, sage.rings.integer.Integer):
             z = value

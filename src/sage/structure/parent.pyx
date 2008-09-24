@@ -58,6 +58,14 @@ cdef extern from *:
     Py_ssize_t PyDict_Size(object)
     Py_ssize_t PyTuple_GET_SIZE(object)
 
+    ctypedef class __builtin__.dict [object PyDictObject]:
+        cdef Py_ssize_t ma_fill
+        cdef Py_ssize_t ma_used
+
+    void* PyDict_GetItem(object, object)
+
+cdef inline Py_ssize_t PyDict_GET_SIZE(o):
+    return (<dict>o).ma_used
 
 ###############################################################################
 #   SAGE: System for Algebra and Geometry Experimentation
@@ -265,20 +273,29 @@ cdef class Parent(category_object.CategoryObject):
         if self._element_constructor is None:
             raise NotImplementedError
         cdef Py_ssize_t i
-        R = parent_c(x)
-        cdef bint no_extra_args = PyTuple_GET_SIZE(args) == 0 and PyDict_Size(kwds) == 0
+        cdef R = parent_c(x)
+        cdef bint no_extra_args = PyTuple_GET_SIZE(args) == 0 and PyDict_GET_SIZE(kwds) == 0
         if R is self and no_extra_args:
             return x
-        if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
+
+        # Here we inline the first part of convert_map_from for speed.
+        # (Yes, the virtual function overhead can matter.)
+        if self._convert_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
-        cdef map.Map mor = <map.Map>self.convert_map_from(R)
+        cdef map.Map mor
+        cdef PyObject* mor_ptr = PyDict_GetItem(self._convert_from_hash, R)
+        if mor_ptr != NULL:
+            mor = <map.Map>mor_ptr
+        else:
+            mor = <map.Map>self.convert_map_from(R)
+
         if mor is not None:
             try:
                 if no_extra_args:
                     return mor._call_(x)
                 else:
                     return mor._call_with_args(x, args, kwds)
-            except TypeError, msg:
+            except TypeError:
                 self._convert_from_hash.pop(mor.domain(), None)
                 for i from 0 <= i < len(self._convert_from_list):
                     if self._convert_from_list[i] is mor:

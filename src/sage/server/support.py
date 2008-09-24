@@ -212,6 +212,10 @@ def source_code(s, globs, system='sage'):
         return "No object %s"%s
 
     try:
+        try:
+            return obj._sage_src_()
+        except:
+            pass
         filename = sageinspect.sage_getfile(obj)
         lines, lineno = sageinspect.sage_getsourcelines(obj, is_binary=False)
         src = ''.join(lines)

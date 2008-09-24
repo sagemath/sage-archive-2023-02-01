@@ -1,0 +1,16 @@
+--- random.c.orig	2008-09-24 02:28:28.000000000 -0700
++++ random.c	2008-09-24 02:32:56.000000000 -0700
+@@ -19,7 +19,12 @@
+ 
+ #include "cvxopt.h"
+ 
+-#include <complex.h>
++/* work around Solaris 10 specific problem in complex.h */
++#if defined (__sun)
++#include "sun_complex.h"
++#else
++#include "complex.h"
++#endif
+ 
+ #include "misc.h"
+ #include "rngs/rngs.h"

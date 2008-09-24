@@ -9,3 +9,25 @@ Downloaded from
 
 Removed the examples and doc directory to save 0.5MB space.
 
+== Build Instructions ==
+
+Against policy we patch some files in src/src/C
+
+cholmod.c.patch
+cvxopt.h.patch
+random.c.patch
+
+Those patches files conditionally include a patches version of Sun's complex.h - see http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6549313
+
+sun_complex.h
+
+Depending on the Fortran compiler used we copy a different setup.py into the build directory:
+
+setup_f95.py
+setup_gfortran.py
+
+== Releases ==
+
+=== cvxopt-0.9.p7 (Michael Abshoff, September 24th, 2008) ===
+ * Work around Solaris 10 problem with complex.h
+

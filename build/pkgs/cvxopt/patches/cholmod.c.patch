@@ -1,0 +1,16 @@
+--- cholmod.c.orig	2008-09-24 02:28:01.000000000 -0700
++++ cholmod.c	2008-09-24 02:32:12.000000000 -0700
+@@ -22,7 +22,13 @@
+ #include "cvxopt.h"
+ #include "misc.h"
+ #include "cholmod.h"
++
++/* work around Solaris 10 specific problem in complex.h */
++#if defined (__sun)
++#include "sun_complex.h"
++#else
+ #include "complex.h"
++#endif
+ 
+ const int E_SIZE[] = { sizeof(int_t), sizeof(double), sizeof(complex) };
+ 

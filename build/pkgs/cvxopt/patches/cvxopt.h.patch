@@ -1,0 +1,17 @@
+--- cvxopt.h.orig	2008-09-24 02:28:15.000000000 -0700
++++ cvxopt.h	2008-09-24 02:32:41.000000000 -0700
+@@ -24,7 +24,14 @@
+ /* ANSI99 complex is disabled during build of CHOLMOD */
+ 
+ #ifndef NO_ANSI99_COMPLEX 
++
++/* work around Solaris 10 specific problem in complex.h */
++#if defined (__sun)
++#include "sun_complex.h"
++#else
+ #include "complex.h"
++#endif
++
+ #define MAT_BUFZ(O)  ((complex *)((matrix *)O)->buffer)
+ #endif
+ 

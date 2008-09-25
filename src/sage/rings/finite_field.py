@@ -124,8 +124,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import weakref
-
 from ring import is_FiniteField
 from sage.structure.parent_gens import normalize_names
 
@@ -234,10 +232,8 @@ def FiniteField(order, name=None, modulus=None, names=None,
         elem_cache = order < 500
 
     key = (order, name, modulus, str([args, kwds]))
-    if modulus != 'random' and cache.has_key(key):
-        K = cache[key]()
-        if not K is None:
-            return K
+    if (modulus != 'random' and cache.has_key(key)):
+        return cache[key]
     if arith.is_prime(order):
         from finite_field_prime_modn import FiniteField_prime_modn
         K = FiniteField_prime_modn(order,*args,**kwds)
@@ -266,7 +262,7 @@ def FiniteField(order, name=None, modulus=None, names=None,
                 K = FiniteField_ext_pari(order, name, modulus, *args, **kwds)
 
     if modulus != 'random':
-        cache[key] = weakref.ref(K)
+        cache[key] = K
     return K
 
 

@@ -2077,3 +2077,97 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         else:
             gb = self.groebner_basis()
             return list(singular.kbase(self.ring().ideal(gb)))
+
+    def plot(self, *args, **kwds):
+        """
+        Plot the real zero locus of this ideal (if principal).
+
+        INPUT:
+            self -- must be a principal ideal in 2 variables over QQ.
+            algorithm -- set this to 'surf' if you want 'surf' to plot
+                         the ideal (default: None)
+            *args -- optional tuples \code{(variable, minimum, maximum)}
+                     for plotting dimensions
+            **kwds -- optional keyword arguments passed on to
+                      \code{implicit_plot}
+
+        EXAMPLES:
+        Implicit plotting in 2-d:
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: I = R.ideal([y^3 - x^2])
+            sage: I.plot()                         # cusp
+
+            sage: I = R.ideal([y^2 - x^2 - 1])
+            sage: I.plot((x,-3, 3), (y, -2, 2))  # hyperbola
+
+            sage: I = R.ideal([y^2 + x^2*(1/4) - 1])
+            sage: I.plot()                         # ellipse
+
+            sage: I = R.ideal([y^2-(x^2-1)*(x-2)])
+            sage: I.plot()                         # elliptic curve
+
+            sage: f = ((x+3)^3 + 2*(x+3)^2 - y^2)*(x^3 - y^2)*((x-3)^3-2*(x-3)^2-y^2)
+            sage: I = R.ideal(f)
+            sage: I.plot()                         # the Singular logo
+
+        AUTHOR:
+            -- Martin Albrecht (2008-09)
+        """
+        from sage.rings.rational_field import QQ
+        from sage.rings.real_mpfr import RR
+        from sage.plot.plot import implicit_plot
+
+        if self.ring().base_ring() is not QQ:
+            raise TypeError, "Base ring must be rational field."
+        if not self.is_principal():
+            raise TypeError, "Ideal must be principal."
+
+
+        f = self.gens()[0]
+
+        variables = sorted(f.variables(), reverse=True)
+
+        if len(variables) == 2 and kwds.get('algorithm','') != 'surf':
+            V = [(variables[0], None, None), (variables[1], None, None)]
+
+            if len(args) > 2:
+                raise TypeError, "Expected up to 2 optional parameters but got %d."%len(args)
+
+            # first check whether user supplied boundaries
+            for e in args:
+                if not isinstance(e, (tuple, list)) or len(e) != 3:
+                    raise TypeError, "Optional parameter must be list or tuple or length 3."
+                v,mi,ma = e
+
+                if v not in variables:
+                    raise TypeError, "Optional parameter must contain variable of ideal generator."
+
+                vi = variables.index(v)
+                V[vi] = v,mi,ma
+
+            # now check whether we should find boundaries
+            for var_index in range(2):
+                if V[var_index][1] is None:
+                    v, mi, ma = variables[var_index], -10, 10
+                    for i in range(mi, ma):
+                        roots = f.subs({v:i}).univariate_polynomial().change_ring(RR).roots()
+                        if len(roots) > 0:
+                            mi = i - 1
+                            break
+
+                    for i in range(ma, mi, -1):
+                        roots = f.subs({v:i}).univariate_polynomial().change_ring(RR).roots()
+                        if len(roots) > 0:
+                            ma = i + 1
+                            break
+                    V[var_index] = variables[var_index], mi, ma
+
+            kwds.setdefault("plot_points",200)
+            return implicit_plot(f, V[0], V[1], **kwds)
+
+        elif len(variables) == 3 or kwds.get('algorithm','') == 'surf':
+            MPolynomialIdeal_singular_repr.plot(self, kwds.get("singular",singular_default))
+        else:
+            raise TypeError, "Ideal generator may not have either 2 or 3 variables."
+
+

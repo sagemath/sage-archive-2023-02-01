@@ -1412,15 +1412,11 @@ code = setup(name        = 'sage',
                      'sage.coding',
 
                      'sage.combinat',
-
                      'sage.combinat.crystals',
-
+                     'sage.combinat.designs',
                      'sage.combinat.sf',
-
                      'sage.combinat.root_system',
-
                      'sage.combinat.matrices',
-
                      'sage.combinat.posets',
 
                      'sage.crypto',

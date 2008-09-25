@@ -4,6 +4,9 @@ from expnums import expnums
 from sage.combinat.crystals.all import *
 from sage.combinat.dlx import * #??
 
+# block designs, etc
+from sage.combinat.designs.all import *
+
 # Free modules and friends
 from free_module import CombinatorialFreeModule
 from combinatorial_algebra import CombinatorialAlgebra

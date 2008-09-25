@@ -318,7 +318,7 @@ cdef class SageObject:
         Magma versions of cdef'd elements are not cached.
 
         This should not be redefined in derived classes.  Instead,
-        derived classes should redefine _magma_coerce_.
+        derived classes should redefine _magma_convert_.
 
         INPUT:
             M -- a Magma interpreter
@@ -367,7 +367,7 @@ cdef class SageObject:
                     pass
             except (KeyError, ValueError):
                 pass
-        A = self._magma_coerce_(M)
+        A = self._magma_convert_(M)
         if c:
             self.__interface[M] = A
         return A
@@ -377,7 +377,7 @@ cdef class SageObject:
         Return an ascii string that evaluates to something equal to
         self in Magma.  Use this for converting very simple things
         (e.g., integers) from Sage to Magma.  For anything much more
-        complicated, use _magma_coerce_.
+        complicated, use _magma_convert_.
 
         The default coercion for elements from Sage to Magma is to
         call _magma_init_, which just calls the repr method of the
@@ -393,7 +393,7 @@ cdef class SageObject:
         """
         return self._interface_init_()
 
-    def _magma_coerce_(self, M):
+    def _magma_convert_(self, M):
         """
         Given a magma interpreter, this function should return a
         MagmaElement in M.
@@ -409,7 +409,7 @@ cdef class SageObject:
 
         EXAMPLES:
             sage: n = -3/7
-            sage: n._magma_coerce_(magma)       # optional -- requires magma
+            sage: n._magma_convert_(magma)       # optional -- requires magma
             -3/7
         """
         return self._interface_(M)

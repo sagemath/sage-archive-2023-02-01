@@ -3377,7 +3377,7 @@ class NumberField_absolute(NumberField_generic):
         NumberField_generic.__init__(self, polynomial, name, latex_name, check)
         self._element_class = number_field_element.NumberFieldElement_absolute
 
-    def _magma_coerce_(self, magma):
+    def _magma_convert_(self, magma):
         """
         Return Magma version of this number field.
 

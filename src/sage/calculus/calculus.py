@@ -8208,8 +8208,34 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
             return '%s(%s)' % (self._f._name, args)
 
     def _latex_(self):
-        return "{\\rm %s}(%s)"%(self._f._name, ', '.join([x._latex_() for
-                                                       x in self._args]))
+        """
+        Return a latex version of the function
+
+        EXAMPLES:
+            sage: var("t,u")
+            (t, u)
+            sage: y=function('y',u)
+            sage: z=function('z',t,u)
+            sage: latex(y)
+            y\left(u\right)
+            sage: latex(diff(y,u))
+            {{d}\over{d\,u}}\,y\left(u\right)
+            sage: latex(diff(y,u,3))
+            {{d^3}\over{d\,u^3}}\,y\left(u\right)
+            sage: latex(diff(z,u))
+            {{d}\over{d\,u}}\,z\left(t , u\right)
+            sage: latex(diff(z,u,t,u,t))
+            {{d^4}\over{d\,t^2\,d\,u^2}}\,z\left(t , u\right)
+            sage: latex(integrate(y,u))
+            \int {y\left(u\right)}{\;du}
+        """
+        try:
+            return latex(self._maxima_())
+        except:
+            return "{\\rm %s}(%s)"%(self._f._name, ', '.join([x._latex_() for
+                                                              x in self._args]))
+
+
 
     def _maxima_init_(self):
         r"""

@@ -3985,6 +3985,8 @@ cdef class Matrix(matrix1.Matrix):
             sparse -- (default False) If sparse=True, return a sparse matrix.
             subdivide -- (default True) If subdivide=True, the subdivisions
                          for the Jordan blocks in the matrix are shown.
+	    transformation -- (default False) If transformation=True,
+            compute also the transformation matrix (see example below).
 
         EXAMPLES:
             sage: a = matrix(ZZ,4,[1, 0, 0, 0, 0, 1, 0, 0, 1, \
@@ -4084,6 +4086,7 @@ cdef class Matrix(matrix1.Matrix):
 
         if base_ring is None:
             mat = self
+            base_ring = self.base_ring()
         else:
             mat = self.change_ring(base_ring)
 

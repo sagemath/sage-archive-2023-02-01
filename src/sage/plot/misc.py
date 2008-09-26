@@ -165,6 +165,21 @@ class options(object):
             return func(*args, **options)
 
 
+        def defaults():
+            """
+            Return the default options.
+
+            EXAMPLES:
+                sage: from sage.plot.misc import options
+                sage: o = options(rgbcolor=(0,0,1))
+                sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))
+                sage: f = o(f)
+                sage: f.options['rgbcolor']=(1,1,1)
+                sage: f.defaults()
+                {'rgbcolor': (0, 0, 1)}
+            """
+            return copy(self.options)
+
         def reset():
             """
             Reset the options to the defaults.
@@ -191,6 +206,20 @@ class options(object):
 
         wrapper.options = copy(self.options)
         wrapper.reset = reset
+        wrapper.reset.__doc__ = """
+        Reset the options to the defaults.
+
+        Defaults:
+        %s
+        """%self.options
+
+        wrapper.defaults = defaults
+        wrapper.defaults.__doc__ = """
+        Return the default options.
+
+        Defaults:
+        %s
+        """%self.options
 
         return wrapper
 

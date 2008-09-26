@@ -59,6 +59,9 @@ Special Update/Build Instructions:
 
 == Changelog ==
 
+=== numpy-1.2.0 (Jason Grout, September 25th, 2008) ===
+ * update to numpy 1.2.0, rebase and update patches
+
 === numpy-1.1.0.p0 (Michael Abshoff, August 27th, 2008) ===
  * clean up patches directory
 

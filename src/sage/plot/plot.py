@@ -268,7 +268,7 @@ from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
 import sage.misc.misc
 
-from misc import rgbcolor, Color
+from misc import rgbcolor, Color, options, rename_keyword
 
 import operator
 
@@ -2693,7 +2693,8 @@ def xydata_from_point_list(points):
 
     return xdata, ydata
 
-def arrow(tailpoint, headpoint, **kwds):
+@options(width=2, rgbcolor=(0,0,1))
+def arrow(tailpoint, headpoint, **options):
     """
     An arrow from (xmin, ymin) to (xmax, ymax).
 
@@ -2732,10 +2733,6 @@ def arrow(tailpoint, headpoint, **kwds):
         sage: a.xmax()
         5.0
     """
-
-    options = {'width':2,'rgbcolor':(0, 0, 1)}
-    options.update(kwds)
-
     #Get the x/y min/max data
     xtail = float(tailpoint[0])
     ytail = float(tailpoint[1])
@@ -2750,7 +2747,8 @@ def arrow(tailpoint, headpoint, **kwds):
     g._arrow(xtail, ytail, xhead, yhead, options=options)
     return g
 
-def bar_chart(datalist, **kwds):
+@options(width=0.5, rgbcolor=(0,0,1))
+def bar_chart(datalist, **options):
     """
     A bar chart of (currently) one list of numerical data.
     Support for more datalists in progress.
@@ -2765,9 +2763,6 @@ def bar_chart(datalist, **kwds):
     A bar_chart with negative values and red bars:
         sage: bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
     """
-    options = {'width':0.5,'rgbcolor':(0, 0, 1)}
-    options.update(kwds)
-
     dl = len(datalist)
     #if dl > 1:
     #    print "WARNING, currently only 1 data set allowed"
@@ -2796,9 +2791,11 @@ def bar_chart(datalist, **kwds):
     return g
 
 
-def circle(point, radius, **kwds):
+@options(alpha=1, fill=False, thickness=1, rgbcolor=(0,0,1))
+def circle(center, radius, **options):
     """
     Return a circle at a point = $(x,y)$ with radius = $r$.
+    Type \code{circle.options} to see all options.
 
     circle(center, radius, **kwds)
 
@@ -2840,16 +2837,15 @@ def circle(point, radius, **kwds):
         sage: p.ymin()
         2.0
     """
-    options={'alpha':1,'fill':False,'thickness':1,'rgbcolor':(0, 0, 1)}
-    options.update(kwds)
-
     r = float(radius)
-    point = (float(point[0]), float(point[1]))
-    g = Graphics(xmin=point[0]-r, xmax=point[0]+r, ymin=point[1]-r, ymax=point[1]+r)
-    g._circle(point[0], point[1], r, options)
+    center = (float(center[0]), float(center[1]))
+    g = Graphics(xmin=center[0]-r, xmax=center[0]+r, ymin=center[1]-r, ymax=center[1]+r)
+    g._circle(center[0], center[1], r, options)
     return g
 
-def contour_plot(f, xrange, yrange, **kwds):
+
+@options(plot_points=25, fill=True, cmap='gray', contours=None)
+def contour_plot(f, xrange, yrange, **options):
     r"""
 
     \code{contour_plot} takes a function of two variables, $f(x,y)$
@@ -2917,9 +2913,6 @@ def contour_plot(f, xrange, yrange, **kwds):
         sage: p.ymin()
         3.0
     """
-    options = {'plot_points':25, 'fill':True, 'cmap':'gray', 'contours':None}
-    options.update(kwds)
-
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
     g = g[0]
     xy_data_array = [[g(x, y) for x in \
@@ -2930,7 +2923,8 @@ def contour_plot(f, xrange, yrange, **kwds):
     g._contour_plot(xy_data_array, xrange, yrange, options)
     return g
 
-def implicit_plot(f, xrange, yrange, **kwds):
+@options(contours=(0,0))
+def implicit_plot(f, xrange, yrange, **options):
     r"""
     \code{implicit_plot} takes a function of two variables, $f(x,y)$
     and plots the curve $f(x,y)=0$ over the specified
@@ -2972,8 +2966,6 @@ def implicit_plot(f, xrange, yrange, **kwds):
     (plot_points=200 looks even better, but it's about 16 times slower.)
         sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50).show(aspect_ratio=1)
     """
-    options = {'plot_points':25, 'fill':False, 'cmap':'gray', 'contours':(0.0,)}
-    options.update(kwds)
     return contour_plot(f, xrange, yrange, **options)
 
 def line(points, **kwds):
@@ -2994,9 +2986,14 @@ def line(points, **kwds):
         from sage.plot.plot3d.shapes2 import line3d
         return line3d(points, **kwds)
 
-def line2d(points, **kwds):
+@options(alpha=1, rgbcolor=(0,0,1), thickness=1)
+def line2d(points, **options):
     r"""
     Create the line through the given list of points.
+
+    Type \code{line2d.options} for a dictionary of the default options for
+    lines.  You can change this to change the defaults for all future
+    lines.  Use \code{line2d.reset()} to reset to the default options.
 
     INPUT:
         alpha -- How transparent the line is
@@ -3100,16 +3097,13 @@ def line2d(points, **kwds):
         120.0
 
     """
-    options = {'alpha':1,'rgbcolor':(0,0,1),'thickness':1}
-    options.update(kwds)
-
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics(**minmax_data(xdata, ydata, dict=True))
     g._Graphics__objects.append(GraphicPrimitive_Line(xdata, ydata, options))
     return g
 
-
-def matrix_plot(mat, **kwds):
+@options(cmap='gray')
+def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
 
@@ -3135,9 +3129,6 @@ def matrix_plot(mat, **kwds):
         sage: matrix_plot(random_matrix(GF(389), 10), cmap='Oranges')
 
     """
-    options = {'cmap':'gray'}
-    options.update(kwds)
-
     from sage.matrix.all import is_Matrix
     from matplotlib.numerix import array
     if not is_Matrix(mat) or (isinstance(mat, (list, tuple)) and isinstance(mat[0], (list, tuple))):
@@ -3162,7 +3153,8 @@ def matrix_plot(mat, **kwds):
 # Its implementation is motivated by 'PlotVectorField'.
 # TODO: make class similiar to this one to implement:
 # 'plot_gradient_field' and 'plot_hamiltonian_field'
-def plot_vector_field((f, g), xrange, yrange, **kwds):
+@options(plot_points=20)
+def plot_vector_field((f, g), xrange, yrange, **options):
     r"""
 
     \code{plot_vector_field} takes two functions of two variables, $(f(x,y), g(x,y))$
@@ -3191,9 +3183,6 @@ def plot_vector_field((f, g), xrange, yrange, **kwds):
         10.0
 
     """
-    options = {'plot_points':20}
-    options.update(kwds)
-
     z, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f,g], xrange, yrange, options['plot_points'])
     f,g = z
 
@@ -3239,11 +3228,13 @@ def plot_slope_field(f, xrange, yrange, **kwds):
     norm = sqrt((f**2+1))
     return plot_vector_field((1/norm, f/norm), xrange, yrange, **slope_options)
 
-def disk(point, radius, angle, **kwds):
+@options(alpha=1, fill=True, rgbcolor=(0,0,1), thickness=0)
+def disk(point, radius, angle, **options):
     r"""
-
     A disk at a point = $(x,y)$ with radius = $r$
     spanning (in radians) angle=$(rad1, rad2)$
+
+    Type \code{disk.options} to see all options.
 
     EXAMPLES:
     Make some dangerous disks:
@@ -3265,9 +3256,6 @@ def disk(point, radius, angle, **kwds):
         sage: d.xmax()
         6.0
     """
-    options = {'alpha':1,'fill':True,'rgbcolor':(0,0,1),'thickness':0}
-    options.update(kwds)
-
     r = float(radius)
     point = (float(point[0]), float(point[1]))
     angle = (float(angle[0]), float(angle[1]))
@@ -3298,12 +3286,13 @@ def point(points, **kwds):
         from sage.plot.plot3d.shapes2 import point3d
         return point3d(points, **kwds)
 
-
-def point2d(points, **kwds):
+@options(alpha=1, pointsize=10, faceted=False, rgbcolor=(0,0,1))
+def point2d(points, **options):
     r"""
-
     A point of size `pointsize' defined by point = $(x,y)$.
     Point takes either a single tuple of coordinates or a list of tuples.
+
+    Type \code{point.options} to see all options.
 
     EXAMPLES:
         A purple point from a single tuple or coordinates:
@@ -3321,9 +3310,6 @@ def point2d(points, **kwds):
         3.0
 
     """
-    options = {'alpha':1,'pointsize':10,'faceted':False,'rgbcolor':(0,0,1)}
-    options.update(kwds)
-
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics(**minmax_data(xdata, ydata, dict=True))
     g._point(xdata, ydata, options, extend_axes=False)
@@ -3331,8 +3317,15 @@ def point2d(points, **kwds):
 
 points = point
 
-def polygon(points, **kwds):
+@options(alpha=1, rgbcolor=(0,0,1), thickness=0)
+def polygon(points, **options):
     r"""
+    Returns a polygon defined by \code{points}.
+
+    Type \code{polygon.options} for a dictionary of the default
+    options for polygons.  You can change this to change
+    the defaults for all future polygons.  Use \code{polygon.reset()}
+    to reset to the default options.
 
     EXAMPLES:
     We create a purple-ish polygon:
@@ -3397,14 +3390,16 @@ def polygon(points, **kwds):
         -- David Joyner (2006-04-14): the long list of examples above.
 
     """
-    options = {'alpha':1,'rgbcolor':(0,0,1),'thickness':0}
-    options.update(kwds)
-
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics(**minmax_data(xdata, ydata, dict=True))
     g._polygon(xdata, ydata, options, extend_axes=False)
     return g
 
+
+
+@rename_keyword(color='rgbcolor')
+@options(alpha=1, thickness=1, rgbcolor=(0,0,1), plot_points=200,
+         adaptive_tolerance=0.01, adaptive_recursion=5, __original_opts=True)
 def plot(funcs, *args, **kwds):
     r"""
     Use plot by writing
@@ -3414,6 +3409,11 @@ def plot(funcs, *args, **kwds):
     where $X$ is a \sage object (or list of \sage objects) that either is
     callable and returns numbers that can be coerced to floats, or has
     a plot method that returns a \class{GraphicPrimitive} object.
+
+    Type \code{plot.options} for a dictionary of the default
+    options for plots.  You can change this to change
+    the defaults for all future plots.  Use \code{plot.reset()}
+    to reset to the default options.
 
     PLOT OPTIONS:
     The plot options are
@@ -3577,9 +3577,10 @@ def plot(funcs, *args, **kwds):
         sage: p = plot(1/x, 0, 1)
         sage: p = plot(-1/x, 0, 1)
     """
+    original_opts = kwds.pop('__original_opts', {})
     do_show = kwds.pop('show',False)
     if hasattr(funcs, 'plot'):
-        G = funcs.plot(*args, **kwds)
+        G = funcs.plot(*args, **original_opts)
     # if we are using the generic plotting method
     else:
         n = len(args)
@@ -3602,17 +3603,7 @@ def plot(funcs, *args, **kwds):
     return G
 
 def _plot(funcs, xrange, parametric=False,
-              polar=False, label='', randomize=True, **kwds):
-    options = {'alpha':1,'thickness':1,'rgbcolor':(0,0,1),
-               'plot_points':200, 'adaptive_tolerance':0.01,
-               'adaptive_recursion':5, 'rgbcolor': (0,0,1) }
-
-    if kwds.has_key('color') and not kwds.has_key('rgbcolor'):
-        kwds['rgbcolor'] = kwds['color']
-        del kwds['color']
-
-    options.update(kwds)
-
+              polar=False, label='', randomize=True, **options):
     if not is_fast_float(funcs):
         funcs =  fast_float(funcs)
 
@@ -3632,7 +3623,7 @@ def _plot(funcs, xrange, parametric=False,
     #check to see if funcs is a list of functions that will
     #be all plotted together.
     if isinstance(funcs, (list, tuple)) and not parametric:
-        return reduce(operator.add, (plot(f, (xmin, xmax), polar=polar, **kwds) for f in funcs))
+        return reduce(operator.add, (plot(f, (xmin, xmax), polar=polar, **options) for f in funcs))
 
     delta = float(xmax-xmin) / plot_points
 
@@ -3724,9 +3715,13 @@ def _plot(funcs, xrange, parametric=False,
     return G
 
 
-def text(string, (x,y), **kwds):
+@options(fontsize=10, rgbcolor=(0,0,1), horizontal_alignment='center',
+         vertical_alignment='center', axis_coords=False)
+def text(string, (x,y), **options):
     r"""
     Returns a 2d text graphics object at the point $(x,y)$.
+
+    Type \code{text.options} for a dictionary of options for 2d text.
 
     2D OPTIONS:
         fontsize -- How big the text is
@@ -3753,12 +3748,6 @@ def text(string, (x,y), **kwds):
         sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
         sage: t1 + t2   # render the sume
     """
-    options = {'fontsize':10, 'rgbcolor':(0,0,1),
-               'horizontal_alignment':'center',
-               'vertical_alignment':'center',
-               'axis_coords':False}
-    options.update(kwds)
-
     point = (float(x), float(y))
     g = Graphics()
     g._text(string, point, options)

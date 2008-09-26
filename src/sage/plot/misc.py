@@ -1,3 +1,7 @@
+from functools import wraps
+from copy import copy
+
+
 def ensure_subs(f):
     if not hasattr(f, 'subs'):
         from sage.calculus.all import SR
@@ -112,3 +116,100 @@ class Color:
                 h = '0' + h
             s += h
         return s
+
+class options(object):
+    def __init__(self, **options):
+        """
+        A decorator for functions which allows for default options to be
+        set and reset by the end user.  Additionally, if one needs to, one
+        can get at the original keyword arguments passed into the
+        decorator.
+
+        TESTS:
+            sage: from sage.plot.misc import options
+            sage: o = options(rgbcolor=(0,0,1))
+            sage: o.options
+            {'rgbcolor': (0, 0, 1)}
+            sage: o = options(rgbcolor=(0,0,1), __original_opts=True)
+            sage: o.original_opts
+            True
+            sage: loads(dumps(o)).options
+            {'rgbcolor': (0, 0, 1)}
+        """
+        self.options = options
+        self.original_opts = options.pop('__original_opts', False)
+
+    def __call__(self, func):
+        """
+        EXAMPLES:
+            sage: from sage.plot.misc import options
+            sage: o = options(rgbcolor=(0,0,1))
+            sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))
+            sage: f1 = o(f)
+            sage: f1()
+            () [('rgbcolor', (0, 0, 1))]
+            sage: f1(rgbcolor=1)
+            () [('rgbcolor', 1)]
+            sage: o = options(rgbcolor=(0,0,1), __original_opts=True)
+            sage: f2 = o(f)
+            sage: f2(alpha=1)
+            () [('__original_opts', {'alpha': 1}), ('alpha', 1), ('rgbcolor', (0, 0, 1))]
+
+        """
+        @wraps(func)
+        def wrapper(*args, **kwds):
+            options = copy(wrapper.options)
+            if self.original_opts:
+                options['__original_opts'] = kwds
+            options.update(kwds)
+            return func(*args, **options)
+
+
+        def reset():
+            wrapper.options = copy(self.options)
+
+        wrapper.options = copy(self.options)
+        wrapper.reset = reset
+
+        return wrapper
+
+class rename_keyword(object):
+    def __init__(self, **renames):
+        """
+        A decorator which renames keyword arguments.
+
+        EXAMPLES:
+            sage: from sage.plot.misc import rename_keyword
+            sage: r = rename_keyword(color='rgbcolor')
+            sage: r.renames
+            {'color': 'rgbcolor'}
+            sage: loads(dumps(r)).renames
+            {'color': 'rgbcolor'}
+
+        """
+        self.renames = renames
+
+    def __call__(self, func):
+        """
+        EXAMPLES:
+            sage: from sage.plot.misc import rename_keyword
+            sage: r = rename_keyword(color='rgbcolor')
+            sage: def f(*args, **kwds): print args, kwds
+            sage: f = r(f)
+            sage: f()
+            () {}
+            sage: f(alpha=1)
+            () {'alpha': 1}
+            sage: f(rgbcolor=1)
+            () {'rgbcolor': 1}
+            sage: f(color=1)
+            () {'rgbcolor': 1}
+        """
+        @wraps(func)
+        def wrapper(*args, **kwds):
+            for old_name, new_name in self.renames.items():
+                if kwds.has_key(old_name) and not kwds.has_key(new_name):
+                    kwds[new_name] = kwds[old_name]
+                    del kwds[old_name]
+            return func(*args, **kwds)
+        return wrapper

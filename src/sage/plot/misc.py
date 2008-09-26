@@ -166,6 +166,27 @@ class options(object):
 
 
         def reset():
+            """
+            Reset the options to the defaults.
+
+            EXAMPLES:
+                sage: from sage.plot.misc import options
+                sage: o = options(rgbcolor=(0,0,1))
+                sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))
+                sage: f = o(f)
+                sage: f.options
+                {'rgbcolor': (0, 0, 1)}
+                sage: f.options['rgbcolor']=(1,1,1)
+                sage: f.options
+                {'rgbcolor': (1, 1, 1)}
+                sage: f()
+                () [('rgbcolor', (1, 1, 1))]
+                sage: f.reset()
+                sage: f.options
+                {'rgbcolor': (0, 0, 1)}
+                sage: f()
+                () [('rgbcolor', (0, 0, 1))]
+            """
             wrapper.options = copy(self.options)
 
         wrapper.options = copy(self.options)

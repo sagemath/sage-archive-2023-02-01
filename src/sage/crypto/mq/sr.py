@@ -250,6 +250,44 @@ class SR_generic(MPolynomialSystemGenerator):
         if self._gf2:
             self._polybori = kwargs.get("polybori",False)
 
+    def new_generator(self, **kwds):
+        r"""
+        Return a new \code{SR} instance equal to this instance except
+        for the parameters passed explicitly to this function.
+
+        INPUT:
+            **kwds -- see the \code{SR} constructor for accepted parameters
+
+        EXAMPLE:
+            sage: sr = mq.SR(2,1,1,4); sr
+            SR(2,1,1,4)
+            sage: sr.ring().base_ring()
+            Finite Field in a of size 2^4
+
+            sage: sr2 = sr.new_generator(gf2=True); sr2
+            SR(2,1,1,4)
+            sage: sr2.ring().base_ring()
+            Finite Field of size 2
+        """
+        kwds.setdefault("n", self._n)
+        kwds.setdefault("r", self._r)
+        kwds.setdefault("c", self._c)
+        kwds.setdefault("e", self._e)
+        kwds.setdefault("star", self._star)
+        kwds.setdefault("postfix", self._postfix)
+        kwds.setdefault("order", self._order)
+        kwds.setdefault("allow_zero_inversions", self._allow_zero_inversions)
+        kwds.setdefault("aes_mode", self._aes_mode)
+        kwds.setdefault("gf2", self._gf2)
+
+        try:
+            polybori = self._polybori
+        except AttributeError:
+            polybori = False
+
+        kwds.setdefault("polybori", polybori)
+        return SR(**kwds)
+
     def __getattr__(self, attr):
         """
         EXAMPLE:
@@ -1382,8 +1420,8 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def polynomial_system(self, P=None, K=None):
         """
-        Return a MPolynomialSystem for self for a given plaintext-key
-        pair.
+        Return a polynomial system for this small scale AES variant
+        for a given plaintext-key pair.
 
         If none are provided a random pair will be generated.
 
@@ -1431,7 +1469,10 @@ class SR_generic(MPolynomialSystemGenerator):
             if d is None:
                 data.append(self.random_element("vector"))
             elif isinstance(d, (tuple, list)):
-                data.append( self.phi(self.state_array(d)) )
+                try:
+                    data.append( self.phi(self.state_array(d)) )
+                except ValueError: # GF2 vectors maybe?
+                    data.append( self.vector(d) )
             elif self.is_state_array(d):
                 data.append( self.phi(d) )
             elif self.is_vector(d):

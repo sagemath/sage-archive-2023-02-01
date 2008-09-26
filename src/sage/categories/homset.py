@@ -187,6 +187,7 @@ def End(X, cat=None):
         sage: G = SymmetricGroup(3)
         sage: S = End(G); S
         Set of Morphisms from SymmetricGroup(3) to SymmetricGroup(3) in Category of groups
+        sage: from sage.categories.homset import is_Endset
         sage: is_Endset(S)
         True
         sage: S.domain()

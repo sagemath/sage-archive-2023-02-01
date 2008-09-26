@@ -1248,6 +1248,7 @@ def is_Field(x):
     Return True if x is a field.
 
     EXAMPLES:
+        sage: from sage.rings.ring import is_Field
         sage: is_Field(QQ)
         True
         sage: is_Field(ZZ)
@@ -2009,6 +2010,7 @@ def is_FiniteField(x):
     Return True if x is of type finite field, and False otherwise.
 
     EXAMPLES:
+        sage: from sage.rings.ring import is_FiniteField
         sage: is_FiniteField(GF(9,'a'))
         True
         sage: is_FiniteField(GF(next_prime(10^10)))
@@ -2080,6 +2082,7 @@ def is_Ring(x):
     Return true if x is a ring.
 
     EXAMPLES:
+        sage: from sage.rings.ring import is_Ring
         sage: is_Ring(ZZ)
         True
     """

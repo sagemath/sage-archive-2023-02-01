@@ -73,6 +73,7 @@ def is_ParentWithGens(x):
     from sage.structure.parent.ParentWithGens and False otherwise.
 
     EXAMPLES:
+        sage: from sage.structure.parent_gens import is_ParentWithGens
         sage: is_ParentWithGens(QQ['x'])
         True
         sage: is_ParentWithGens(CC)
@@ -90,6 +91,7 @@ def is_ParentWithAdditiveAbelianGens(x):
     otherwise.
 
     EXAMPLES:
+        sage: from sage.structure.parent_gens import is_ParentWithAdditiveAbelianGens
         sage: is_ParentWithAdditiveAbelianGens(QQ)
         False
         sage: is_ParentWithAdditiveAbelianGens(QQ^3)
@@ -105,6 +107,7 @@ def is_ParentWithMultiplicativeAbelianGens(x):
     otherwise.
 
     EXAMPLES:
+        sage: from sage.structure.parent_gens import is_ParentWithMultiplicativeAbelianGens
         sage: is_ParentWithMultiplicativeAbelianGens(QQ)
         False
         sage: is_ParentWithMultiplicativeAbelianGens(DirichletGroup(11))

@@ -129,6 +129,7 @@ def is_SymbolicEquation(x):
 
     EXAMPLES:
     The following two examples are symbolic equations:
+        sage: from sage.calculus.equations import is_SymbolicEquation
         sage: is_SymbolicEquation(sin(x) == x)
         True
         sage: is_SymbolicEquation(sin(x) < x)

@@ -140,6 +140,7 @@ def is_IntegerMod(x):
     Return \code{True} if and only if x is an integer modulo $n$.
 
     EXAMPLES:
+        sage: from sage.rings.integer_mod import is_IntegerMod
         sage: is_IntegerMod(5)
         False
         sage: is_IntegerMod(Mod(5,10))

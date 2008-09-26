@@ -82,6 +82,7 @@ class MatrixGroup_generic(Group):
 def is_MatrixGroup(x):
     """
     EXAMPLES:
+        sage: from sage.groups.matrix_gps.matrix_group import is_MatrixGroup
         sage: is_MatrixGroup(MatrixSpace(QQ,3))
         False
         sage: is_MatrixGroup(Mat(QQ,3))

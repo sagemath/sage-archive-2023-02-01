@@ -67,6 +67,7 @@ def is_ModularFormsSpace(x):
     Return True if x is a $\code{ModularFormsSpace}$.
 
     EXAMPLES:
+        sage: from sage.modular.modform.space import is_ModularFormsSpace
         sage: is_ModularFormsSpace(ModularForms(11,2))
         True
         sage: is_ModularFormsSpace(CuspForms(11,2))

@@ -40,12 +40,13 @@ def is_FiniteFieldElement(x):
     Returns if x is a finite field element.
 
     EXAMPLE:
+        sage: from sage.rings.finite_field_element import is_FiniteFieldElement
         sage: is_FiniteFieldElement(1)
-            False
+        False
         sage: is_FiniteFieldElement(IntegerRing())
-            False
+        False
         sage: is_FiniteFieldElement(GF(5)(2))
-            True
+        True
 
     """
     return isinstance(x, element.Element) and ring.is_FiniteField(x.parent())

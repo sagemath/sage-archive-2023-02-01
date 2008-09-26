@@ -96,6 +96,7 @@ def is_Parent(x):
     sage.structure.parent.Parent and False otherwise.
 
     EXAMPLES:
+        sage: from sage.structure.parent import is_Parent
         sage: is_Parent(2/3)
         False
         sage: is_Parent(ZZ)

@@ -110,6 +110,7 @@ def is_IntegerModRing(x):
     Return True if x is an integer modulo ring.
 
     EXAMPLES:
+        sage: from sage.rings.integer_mod_ring import is_IntegerModRing
         sage: R = IntegerModRing(17)
         sage: is_IntegerModRing(R)
         True

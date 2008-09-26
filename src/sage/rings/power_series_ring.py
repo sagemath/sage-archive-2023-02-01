@@ -178,6 +178,7 @@ def is_PowerSeriesRing(R):
     Return True if R is a power series ring.
 
     EXAMPLES:
+        sage: from sage.rings.power_series_ring import is_PowerSeriesRing
         sage: is_PowerSeriesRing(10)
         False
         sage: is_PowerSeriesRing(QQ[['x']])

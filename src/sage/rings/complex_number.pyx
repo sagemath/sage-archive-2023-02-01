@@ -46,6 +46,7 @@ def is_ComplexNumber(x):
     \code{ComplexNumber} type.
 
     EXAMPLES:
+        sage: from sage.rings.complex_number import is_ComplexNumber
         sage: a = ComplexNumber(1,2); a
         1.00000000000000 + 2.00000000000000*I
         sage: is_ComplexNumber(a)

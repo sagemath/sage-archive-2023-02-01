@@ -89,6 +89,7 @@ def is_MatrixSpace(x):
     returns false if self is not an instance of MatrixSpace
 
     EXAMPLES:
+        sage: from sage.matrix.matrix_space import is_MatrixSpace
 	sage: MS = MatrixSpace(QQ,2)
 	sage: A = MS.random_element()
 	sage: is_MatrixSpace(MS)

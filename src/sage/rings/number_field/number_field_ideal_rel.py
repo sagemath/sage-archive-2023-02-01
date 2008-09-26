@@ -172,6 +172,8 @@ def is_NumberFieldFractionalIdeal_rel(x):
     Return True if x is a fractional ideal of a relative number field.
 
     EXAMPLES:
+        sage: from sage.rings.number_field.number_field_ideal_rel import is_NumberFieldFractionalIdeal_rel
+        sage: from sage.rings.number_field.number_field_ideal import is_NumberFieldFractionalIdeal
         sage: is_NumberFieldFractionalIdeal_rel(2/3)
         False
         sage: is_NumberFieldFractionalIdeal_rel(ideal(5))

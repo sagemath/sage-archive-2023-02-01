@@ -75,6 +75,7 @@ def is_Polynomial(f):
         f -- an object
 
     EXAMPLES:
+        sage: from sage.rings.polynomial.polynomial_element import is_Polynomial
         sage: R.<x> = ZZ[]
         sage: is_Polynomial(x^3 + x + 1)
         True

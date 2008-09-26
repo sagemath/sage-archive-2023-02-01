@@ -21,11 +21,12 @@ from sage.rings.ring import Algebra
 
 def is_Algebra(x):
     r"""
-    Return true if x is an Algebra
+    Return True if x is an Algebra
 
     EXAMPLES:
-    sage: R.<x,y> = FreeAlgebra(QQ,2)
-    sage: is_Algebra(R)
-    True
+        sage: from sage.algebras.algebra import is_Algebra
+        sage: R.<x,y> = FreeAlgebra(QQ,2)
+        sage: is_Algebra(R)
+        True
     """
     return isinstance(x, Algebra)

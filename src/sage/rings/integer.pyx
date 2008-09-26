@@ -229,6 +229,7 @@ def is_Integer(x):
     Return true if x is of the SAGE integer type.
 
     EXAMPLES:
+        sage: from sage.rings.integer import is_Integer
         sage: is_Integer(2)
         True
         sage: is_Integer(2/1)

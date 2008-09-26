@@ -167,6 +167,7 @@ def is_Ideal(x):
     A simple example involving the ring of integers. Note that SAGE does
     not interpret rings objects themselves as ideals. However, one can
     still explicitly construct these ideals:
+        sage: from sage.rings.ideal import is_Ideal
         sage: R = ZZ
         sage: is_Ideal(R)
         False

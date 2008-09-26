@@ -264,7 +264,8 @@ def is_MPolynomialIdeal(x):
     INPUT:
         x -- an arbitrary object
 
-    EXAMPLE:
+    EXAMPLES:
+        sage: from sage.rings.polynomial.all import is_MPolynomialIdeal
         sage: P.<x,y,z> = PolynomialRing(QQ)
         sage: I = [x + 2*y + 2*z - 1, x^2 + 2*y^2 + 2*z^2 - x, 2*x*y + 2*y*z - y]
 

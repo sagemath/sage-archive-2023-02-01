@@ -34,6 +34,7 @@ def is_LaurentPolynomialRing(R):
     Returns True if and only if R is a Laurent polynomial ring.
 
     EXAMPLES:
+        sage: from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing
         sage: P = PolynomialRing(QQ,2,'x')
         sage: is_LaurentPolynomialRing(P)
         False

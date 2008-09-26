@@ -15,6 +15,7 @@ import point
 def is_Spec(X):
     """
     EXAMPLES:
+        sage: from sage.schemes.generic.spec import is_Spec
         sage: is_Spec(QQ^3)
         False
         sage: X = Spec(QQ); X

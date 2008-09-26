@@ -471,6 +471,7 @@ def QuadraticField(D, names, check=True):
         Number Field in a with defining polynomial x^2 - 9
 
     Quadratic number fields derive from general number fields.
+        sage: from sage.rings.number_field.number_field import is_NumberField
         sage: type(K)
         <class 'sage.rings.number_field.number_field.NumberField_quadratic'>
         sage: is_NumberField(K)
@@ -489,6 +490,7 @@ def is_AbsoluteNumberField(x):
     Return True if x is an absolute number field.
 
     EXAMPLES:
+        sage: from sage.rings.number_field.number_field import is_AbsoluteNumberField
         sage: is_AbsoluteNumberField(NumberField(x^2+1,'a'))
         True
         sage: is_AbsoluteNumberField(NumberField([x^3 + 17, x^2+1],'a'))
@@ -505,6 +507,7 @@ def is_QuadraticField(x):
     Return True if x is of the quadratic \emph{number} field type.
 
     EXAMPLES:
+        sage: from sage.rings.number_field.number_field import is_QuadraticField
         sage: is_QuadraticField(QuadraticField(5,'a'))
         True
         sage: is_QuadraticField(NumberField(x^2 - 5, 'b'))
@@ -524,6 +527,7 @@ def is_RelativeNumberField(x):
     Return True if x is a relative number field.
 
     EXAMPLES:
+        sage: from sage.rings.number_field.number_field import is_RelativeNumberField
         sage: is_RelativeNumberField(NumberField(x^2+1,'a'))
         False
         sage: k.<a> = NumberField(x^3 - 2)
@@ -623,6 +627,7 @@ def is_CyclotomicField(x):
     cyclotomic field.
 
     EXAMPLES:
+        sage: from sage.rings.number_field.number_field import is_CyclotomicField
         sage: is_CyclotomicField(NumberField(x^2 + 1,'zeta4'))
         False
         sage: is_CyclotomicField(CyclotomicField(4))

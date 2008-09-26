@@ -72,6 +72,7 @@ def is_FreeMonoid(x):
     Return True if $x$ is a free monoid.
 
     EXAMPLES:
+        sage: from sage.monoids.free_monoid import is_FreeMonoid
         sage: is_FreeMonoid(5)
         False
         sage: is_FreeMonoid(FreeMonoid(7,'a'))

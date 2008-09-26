@@ -427,6 +427,7 @@ def is_FreeModule(M):
     Return True if M inherits from from FreeModule_generic.
 
     EXAMPLES:
+        sage: from sage.modules.free_module import is_FreeModule
         sage: V = ZZ^3
         sage: is_FreeModule(V)
         True

@@ -288,6 +288,7 @@ def is_Graphics(x):
     Return True if $x$ is a Graphics object.
 
     EXAMPLES:
+        sage: from sage.plot.plot import is_Graphics
         sage: is_Graphics(1)
         False
         sage: is_Graphics(disk((0.0, 0.0), 1, (0, pi/2)))

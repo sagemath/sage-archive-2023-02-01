@@ -1002,6 +1002,7 @@ def is_GapElement(x):
     Returns True if x is a GapElement.
 
     EXAMPLES:
+        sage: from sage.interfaces.gap import is_GapElement
         sage: is_GapElement(gap(2))
         True
         sage: is_GapElement(2)

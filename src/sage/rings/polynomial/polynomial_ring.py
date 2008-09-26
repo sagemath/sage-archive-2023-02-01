@@ -104,6 +104,8 @@ def is_PolynomialRing(x):
     polynomial ring in one variable).
 
     EXAMPLES:
+        sage: from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        sage: from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
         sage: is_PolynomialRing(2)
         False
 

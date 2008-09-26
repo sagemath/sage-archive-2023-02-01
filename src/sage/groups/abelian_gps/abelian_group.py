@@ -311,6 +311,7 @@ def is_AbelianGroup(x):
     Return True if $x$ is an abelian group.
 
     EXAMPLES:
+        sage: from sage.groups.abelian_gps.abelian_group import is_AbelianGroup
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
         Multiplicative Abelian Group isomorphic to C5 x C5 x C7 x C8 x C9
         sage: is_AbelianGroup(F)

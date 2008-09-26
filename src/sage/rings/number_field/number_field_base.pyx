@@ -12,6 +12,7 @@ def is_NumberField(x):
     Return True if x is of number field type.
 
     EXAMPLES:
+        sage: from sage.rings.number_field.number_field_base import is_NumberField
         sage: is_NumberField(NumberField(x^2+1,'a'))
         True
         sage: is_NumberField(QuadraticField(-97,'theta'))

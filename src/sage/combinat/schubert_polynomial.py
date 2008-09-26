@@ -47,6 +47,7 @@ def is_SchubertPolynomial(x):
     Returns True if x is a Schubert polynomial and False otherwise.
 
     EXAMPLES:
+        sage: from sage.combinat.schubert_polynomial import is_SchubertPolynomial
         sage: X = SchubertPolynomialRing(ZZ)
         sage: a = 1
         sage: is_SchubertPolynomial(a)

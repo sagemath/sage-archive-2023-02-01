@@ -67,6 +67,7 @@ def is_Module(x):
     Return True if x is a module.
 
     EXAMPLES:
+        sage: from sage.modules.module import is_Module
         sage: M = FreeModule(RationalField(),30)
         sage: is_Module(M)
         True
@@ -80,6 +81,7 @@ def is_VectorSpace(x):
     Return True if x is a vector space.
 
     EXAMPLES:
+        sage: from sage.modules.module import is_Module, is_VectorSpace
         sage: M = FreeModule(RationalField(),30)
         sage: is_VectorSpace(M)
         True

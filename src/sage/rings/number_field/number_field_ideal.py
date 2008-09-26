@@ -799,6 +799,7 @@ def is_NumberFieldIdeal(x):
     Return True if x is an ideal of a number field.
 
     EXAMPLES:
+        sage: from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
         sage: is_NumberFieldIdeal(2/3)
         False
         sage: is_NumberFieldIdeal(ideal(5))
@@ -1175,6 +1176,7 @@ def is_NumberFieldFractionalIdeal(x):
     Return True if x is a fractional ideal of a number field.
 
     EXAMPLES:
+        sage: from sage.rings.number_field.number_field_ideal import is_NumberFieldFractionalIdeal
         sage: is_NumberFieldFractionalIdeal(2/3)
         False
         sage: is_NumberFieldFractionalIdeal(ideal(5))

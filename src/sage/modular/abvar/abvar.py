@@ -55,6 +55,7 @@ def is_ModularAbelianVariety(x):
         x -- object
 
     EXAMPLES:
+        sage: from sage.modular.abvar.abvar import is_ModularAbelianVariety
         sage: is_ModularAbelianVariety(5)
         False
         sage: is_ModularAbelianVariety(J0(37))

@@ -90,6 +90,7 @@ def is_DualAbelianGroup(x):
     Return True if $x$ is the dual group of an abelian group.
 
     EXAMPLES:
+        sage: from sage.groups.abelian_gps.dual_abelian_group import is_DualAbelianGroup
         sage: F = AbelianGroup(5,[3,5,7,8,9],names = list("abcde"))
         sage: Fd = DualAbelianGroup(F)
         sage: is_DualAbelianGroup(Fd)

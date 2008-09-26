@@ -243,6 +243,7 @@ def is_FreeQuadraticModule(M):
     Returns True if M is a free quadratic module.
 
     EXAMPLES:
+        sage: from sage.modules.free_quadratic_module import is_FreeQuadraticModule
         sage: U = FreeModule(QQ,3)
         sage: is_FreeQuadraticModule(U)
         False

@@ -699,6 +699,7 @@ def is_GpElement(x):
     Returns True of x is a GpElement.
 
     EXAMPLES:
+        sage: from sage.interfaces.gp import is_GpElement
         sage: is_GpElement(gp(2))
         True
         sage: is_GpElement(2)

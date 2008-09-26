@@ -112,6 +112,7 @@ def is_FractionField(x):
     Tests whether or not x inherits from FractionField_generic.
 
     EXAMPLES:
+        sage: from sage.rings.fraction_field import is_FractionField
         sage: is_FractionField(Frac(ZZ['x']))
         True
         sage: is_FractionField(QQ)

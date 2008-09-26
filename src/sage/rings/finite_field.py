@@ -271,6 +271,7 @@ def is_PrimeFiniteField(x):
     Returns True if x is a prime finite field.
 
     EXAMPLES:
+        sage: from sage.rings.finite_field import is_PrimeFiniteField
         sage: is_PrimeFiniteField(QQ)
         False
         sage: is_PrimeFiniteField(GF(7))

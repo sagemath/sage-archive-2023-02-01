@@ -43,6 +43,7 @@ def is_AlgebraicScheme(x):
     EXAMPLES:
     Affine space is itself not an algebraic scheme, though the closed subscheme
     defined by no equations is.
+        sage: from sage.schemes.generic.algebraic_scheme import is_AlgebraicScheme
         sage: is_AlgebraicScheme(AffineSpace(10, QQ))
         False
         sage: V = AffineSpace(10, QQ).subscheme([]); V

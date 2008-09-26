@@ -108,10 +108,11 @@ def EnumeratedSet(X):
 
 def is_Set(x):
     """
-    Returns true if $x$ is a SAGE Set (not to be confused with
+    Returns true if $x$ is a Sage Set (not to be confused with
     a Python 2.4 set).
 
     EXAMPLES:
+        sage: from sage.sets.set import is_Set
         sage: is_Set([1,2,3])
         False
         sage: is_Set(set([1,2,3]))

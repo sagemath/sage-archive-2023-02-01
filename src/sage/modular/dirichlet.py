@@ -1377,6 +1377,7 @@ def is_DirichletGroup(x):
     Returns True if x is a Dirichlet group.
 
     EXAMPLES:
+        sage: from sage.modular.dirichlet import is_DirichletGroup
         sage: is_DirichletGroup(DirichletGroup(11))
         True
         sage: is_DirichletGroup(11)

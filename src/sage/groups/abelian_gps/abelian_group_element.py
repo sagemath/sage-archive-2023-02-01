@@ -60,6 +60,7 @@ def is_AbelianGroupElement(x):
     EXAMPLES:
     Though the integer 3 is in the integers, and the integers have an abelian
     group structure, 3 is not an AbelianGroupElement:
+         sage: from sage.groups.abelian_gps.abelian_group_element import is_AbelianGroupElement
          sage: is_AbelianGroupElement(3)
          False
          sage: F = AbelianGroup(5, [3,4,5,8,7], 'abcde')

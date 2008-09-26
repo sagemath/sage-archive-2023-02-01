@@ -35,6 +35,7 @@ cdef class Functor(SageObject):
         Category of rings
         sage: F.codomain()
         Category of abelian groups
+        sage: from sage.categories.functor import is_Functor
         sage: is_Functor(F)
         True
         sage: I = IdentityFunctor(abgrps)

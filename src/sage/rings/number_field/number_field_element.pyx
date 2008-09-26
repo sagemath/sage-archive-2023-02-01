@@ -69,6 +69,7 @@ def is_NumberFieldElement(x):
     element of a number field.
 
     EXAMPLES:
+        sage: from sage.rings.number_field.number_field_element import is_NumberFieldElement
         sage: is_NumberFieldElement(2)
         False
         sage: k.<a> = NumberField(x^7 + 17*x + 1)

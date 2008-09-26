@@ -38,6 +38,7 @@ def is_Scheme(x):
     Return True if $x$ is a scheme.
 
     EXAMPLES:
+        sage: from sage.schemes.generic.scheme import is_Scheme
         sage: is_Scheme(5)
         False
         sage: X = Spec(QQ)
@@ -501,6 +502,7 @@ def is_AffineScheme(x):
     Return True if $x$ is an affine scheme.
 
     EXAMPLES:
+        sage: from sage.schemes.generic.scheme import is_AffineScheme
         sage: is_AffineScheme(5)
         False
         sage: E = Spec(QQ)

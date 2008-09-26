@@ -1843,6 +1843,7 @@ def is_RElement(x):
         bool
 
     EXAMPLES:
+        sage: from sage.interfaces.r import is_RElement
         sage: is_RElement(2)
         False
         sage: is_RElement(r(2))

@@ -85,6 +85,7 @@ import sage.schemes.plane_curves.projective_curve as plane_curve
 def is_EllipticCurve(x):
     """
     EXAMPLES:
+        sage: from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
         sage: E = EllipticCurve([1,2,3/4,7,19])
         sage: is_EllipticCurve(E)
         True

@@ -47,6 +47,7 @@ def is_NumberFieldOrder(R):
     Return True if R an order in a number field or R is the ring ZZ of integers.
 
     EXAMPLES:
+        sage: from sage.rings.number_field.order import is_NumberFieldOrder
         sage: is_NumberFieldOrder(NumberField(x^2+1,'a').maximal_order())
         True
         sage: is_NumberFieldOrder(ZZ)

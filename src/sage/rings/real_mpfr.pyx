@@ -3815,6 +3815,7 @@ def is_RealNumber(x):
     element of the MPFR real field with some precision.
 
     EXAMPLES:
+        sage: from sage.rings.real_mpfr import is_RealNumber
         sage: is_RealNumber(2.5)
         True
         sage: is_RealNumber(float(2.3))

@@ -41,6 +41,7 @@ def is_AffineSpace(x):
     $\A^n_R$, where $R$ is a ring and $n\geq 0$ is an integer.
 
     EXAMPLES:
+        sage: from sage.schemes.generic.affine_space import is_AffineSpace
         sage: is_AffineSpace(AffineSpace(5, names='x'))
         True
         sage: is_AffineSpace(AffineSpace(5, GF(9,'alpha'), names='x'))

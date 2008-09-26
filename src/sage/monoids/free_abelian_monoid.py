@@ -95,6 +95,7 @@ def is_FreeAbelianMonoid(x):
     Return True if $x$ is a free abelian monoid.
 
     EXAMPLES:
+        sage: from sage.monoids.free_abelian_monoid import is_FreeAbelianMonoid
         sage: is_FreeAbelianMonoid(5)
         False
         sage: is_FreeAbelianMonoid(FreeAbelianMonoid(7,'a'))

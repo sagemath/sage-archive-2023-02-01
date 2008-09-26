@@ -5433,6 +5433,14 @@ class NumberField_cyclotomic(NumberField_absolute):
         return NumberField_cyclotomic_v1, (self.__n, self.variable_name())
 
     def _magma_init_(self):
+        # TODO: I really don't like this on multiple levels.
+        # (1) it kills a global symbol self.gen()
+        # (2) it abuses how conversion works and throws in an extra define.
+        # (3) a cyclo field in a funny generator wouldn't get converted to
+        #     one with the right name via this.
+        # (4) One should define _magma_convert_ instead of _magma_init_
+        #     in this case, probably.
+        #    -- William
         """
         Function returning a string to create this cyclotomic field in Magma.
 

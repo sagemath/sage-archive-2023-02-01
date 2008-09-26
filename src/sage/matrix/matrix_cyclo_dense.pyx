@@ -347,6 +347,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 mpz_mul_si(xq.denom, xq.denom, 2)
 
             xq._reduce_c_()
+            mpz_clear(tmp)
             return xq
 
         x = self._base_ring(0)

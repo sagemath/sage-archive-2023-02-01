@@ -139,6 +139,19 @@ def QuotientRing(R, I, names=None):
     return QuotientRing_generic(R, I, names)
 
 def is_QuotientRing(x):
+    """
+    Tests whether or not x inherits from QuotientRing_generic.
+
+    EXAMPLES:
+        sage: from sage.rings.quotient_ring import is_QuotientRing
+        sage: R.<x> = PolynomialRing(ZZ,'x')
+        sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+        sage: S = R.quotient_ring(I)
+        sage: is_QuotientRing(S)
+        True
+        sage: is_QuotientRing(R)
+        False
+    """
     return isinstance(x, QuotientRing_generic)
 
 class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.parent_gens.ParentWithGens):
@@ -177,19 +190,45 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         INPUT:
             R -- a commutative ring
             I -- an ideal
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: R.quotient_ring(x^2 + y^2)
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
         """
         self.__R = R
         self.__I = I
         sage.structure.parent_gens.ParentWithGens.__init__(self, R.base_ring(), names)
 
     def construction(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ,'x')
+            sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+            sage: R.quotient_ring(I).construction()
+            (QuotientFunctor, Univariate Polynomial Ring in x over Integer Ring)
+        """
         from sage.categories.pushout import QuotientFunctor
         return QuotientFunctor(self.__I), self.__R
 
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ,'x')
+            sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+            sage: R.quotient_ring(I)._repr_()
+            'Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)'
+        """
         return "Quotient of %s by the ideal %s"%(self.cover_ring(), self.defining_ideal()._repr_short())
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ,'x')
+            sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+            sage: R.quotient_ring(I)._latex_()
+            '\\mathbf{Z}[x]/\\left(x^{2} + 3x + 4, x^{2} + 1\\right)\\mathbf{Z}[x]'
+        """
         return "%s/%s"%(latex.latex(self.cover_ring()), latex.latex(self.defining_ideal()))
 
     def cover(self):
@@ -374,6 +413,17 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         return self.__R
 
     def ideal(self, *gens, **kwds):
+        """
+        Return the ideal of self with the given generators.
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: S = R.quotient_ring(x^2+y^2)
+            sage: S.ideal()
+            Ideal (0) of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+            sage: S.ideal(x+y+1)
+            Ideal (xbar + ybar + 1) of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+        """
         if len(gens) == 1:
             gens = gens[0]
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
@@ -390,6 +440,15 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 
     def __call__(self, x, coerce=True):
+        """
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: S = R.quotient_ring(x^2+y^2)
+            sage: S(x)
+            xbar
+            sage: S(x^2 + y^2)
+            0
+        """
         if isinstance(x, quotient_ring_element.QuotientRingElement):
             if x.parent() is self:
                 return x
@@ -432,6 +491,20 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         r"""
         Only quotients by the \emph{same} ring and same ideal (with
         the same generators!!) are considered equal.
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: S = R.quotient_ring(x^2 + y^2)
+            sage: S == R.quotient_ring(x^2 + y^2)
+            True
+
+        The ideals $(x^2 + y^2)$ and $(-x^2-y^2)$ are equal, but
+        since the generators are different, the corresponding
+        quotient rings are not equal:
+            sage: R.ideal(x^2+y^2) == R.ideal(-x^2 - y^2)
+            True
+            sage: R.quotient_ring(x^2 + y^2) == R.quotient_ring(-x^2 - y^2)
+            False
         """
         if not isinstance(other, QuotientRing_generic):
             return cmp(type(self), type(other))
@@ -508,8 +581,19 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             singular -- Singular instance (default: the default Singular instance)
 
         \note{This method also sets the current ring in Singular to self}
-        """
 
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: S = R.quotient_ring(x^2+y^2)
+            sage: S._singular_()
+            //   characteristic : 0
+            //   number of vars : 2
+            //        block   1 : ordering dp
+            //                  : names    x y
+            //        block   2 : ordering C
+            // quotient ring from ideal
+            _[1]=x2+y2
+        """
         try:
             Q = self.__singular
             if not (Q.parent() is singular):
@@ -526,6 +610,14 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
         See self._singular_
 
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: S = R.quotient_ring(x^2+y^2)
+            sage: T = S._singular_init_()
+            sage: parent(S)
+            <class 'sage.rings.quotient_ring.QuotientRing_generic'>
+            sage: parent(T)
+            Singular
         """
         self.__R._singular_().set_ring()
         self.__singular = singular("%s"%self.__I._singular_().name(),"qring")

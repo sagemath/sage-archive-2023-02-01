@@ -13,10 +13,20 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   CFLAGS="-O3 -g -m64 -fPIC -L."; export CFLAGS
+   LDFLAGS="-m64 "; export LDFLAGS
+   cp patches/makemakefile.py src/makemakefile.py
+else
+   CFLAGS="-fPIC -O3 -L."; export CFLAGS
+   LDFLAGS=""; export LDFLAGS
+fi
+
 cd src
 
 ./configure --gmp-prefix="$SAGE_LOCAL" --ntl-prefix="$SAGE_LOCAL" \
-            --prefix="$SAGE_LOCAL" --cflags="-fPIC -O3"
+            --prefix="$SAGE_LOCAL" --cflags="$CFLAGS" --ldflags="$LDFLAGS"
 
 # optionally run tuning program, only takes 1 minute or so
 make tune
@@ -44,7 +54,11 @@ fi
 
 # OS X
 if [ $UNAME = "Darwin" ]; then
-    $MAKE libzn_poly.dylib
+    if [ "$SAGE64" = "yes" ]; then
+      $MAKE libzn_poly.dylib64
+    else
+      $MAKE libzn_poly.dylib
+    fi
     if [ ! -f libzn_poly.dylib ]; then
         echo "Failed to build zn_poly dylib."
         exit 1

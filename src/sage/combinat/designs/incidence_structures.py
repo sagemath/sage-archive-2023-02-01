@@ -162,7 +162,7 @@ class IncidenceStructure(object):
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: G = BD.automorphism_group(); G
             Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
-            sage: BD = BlockDesign(4,[[0],[0,1],[1,2],[3,3]])
+            sage: BD = BlockDesign(4,[[0],[0,1],[1,2],[3,3]],test=False)
             sage: G = BD.automorphism_group(); G
             Permutation Group with generators []
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
@@ -255,13 +255,14 @@ class IncidenceStructure(object):
 
     def dual_block_design(self):
         """
-        Wraps GAP Design's DualBlockDesign (see [1])
+        Wraps GAP Design's DualBlockDesign (see [1]).
+        The dual of a block design may not be a block design.
 
         REQUIRES: GAP's Design package.
 
         EXAMPLES:
-            sage: from sage.combinat.designs.block_design import BlockDesign
-           sage: D = BlockDesign(4, [[0,2],[1,2,3],[2,3]])
+           sage: from sage.combinat.designs.block_design import BlockDesign
+           sage: D = BlockDesign(4, [[0,2],[1,2,3],[2,3]], test=False)
            sage: D
            BlockDesign<v=4, blocks=[[0, 2], [2, 3], [1, 2, 3]]>
            sage: D.dual_block_design()          # requires optional gap package
@@ -288,7 +289,7 @@ class IncidenceStructure(object):
         gB = []
         for b in gblcks:
            gB.append([x-1 for x in b])
-        return BlockDesign(v, gB)
+        return BlockDesign(v, gB, test=False)
 
     def incidence_matrix(self):
         '''
@@ -391,7 +392,7 @@ class IncidenceStructure(object):
         r = int(b*k/v)
         if not(b == len(self.blocks())):
             return False
-        if not(v.divides(b*k)):
+        if not(ZZ(v).divides(b*k)):
             return False
         A = self.incidence_matrix()
         #k = sum(A.columns()[0])

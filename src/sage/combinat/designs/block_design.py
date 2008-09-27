@@ -246,7 +246,7 @@ def HadamardDesign(n):
     # A is the incidence matrix of the block design
     return IncidenceStructureFromMatrix(A,name="HadamardDesign")
 
-def BlockDesign(max_pt, blks, name=None):
+def BlockDesign(max_pt, blks, name=None, test=True):
     """
     Returns an instance of the IncidenceStructure class. Requires each
     B in blks to be contained in range(max_pt). Does not test if
@@ -261,10 +261,13 @@ def BlockDesign(max_pt, blks, name=None):
     if nm == None:
         nm = "BlockDesign"
     BD = IncidenceStructure( range(max_pt), blks, inc_mat=None, name=nm )
-    #if BD.is_block_design():
-    #    return BD
-    #else:
-    #    raise TypeError("parameters are not those of a block design.")
-    return BD
+    if not(test):
+        return BD
+    else:
+        pars = BD.parameters()
+        if BD.is_block_design(pars[0],pars[1],pars[2],pars[3]):
+            return BD
+        else:
+            raise TypeError("parameters are not those of a block design.")
 
 

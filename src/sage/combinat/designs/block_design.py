@@ -258,7 +258,7 @@ def BlockDesign(max_pt, blks, name=None, test=True):
 
     """
     nm = name
-    if nm == None:
+    if nm == None and test:
         nm = "BlockDesign"
     BD = IncidenceStructure( range(max_pt), blks, inc_mat=None, name=nm )
     if not(test):

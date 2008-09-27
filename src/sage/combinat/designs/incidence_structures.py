@@ -264,14 +264,14 @@ class IncidenceStructure(object):
            sage: from sage.combinat.designs.block_design import BlockDesign
            sage: D = BlockDesign(4, [[0,2],[1,2,3],[2,3]], test=False)
            sage: D
-           BlockDesign<v=4, blocks=[[0, 2], [2, 3], [1, 2, 3]]>
+           IncidenceStructure<v=4, blocks=[[0, 2], [2, 3], [1, 2, 3]]>
            sage: D.dual_block_design()          # requires optional gap package
-           BlockDesign<v=3, blocks=[[0], [1], [1, 2], [0, 1, 2]]>
+           IncidenceStructure<v=3, blocks=[[0], [1], [1, 2], [0, 1, 2]]>
            sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="FanoPlane")
            sage: BD
            FanoPlane<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
            sage: BD.dual_block_design()         # requires optional gap package
-           BlockDesign<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+           IncidenceStructure<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
         REFERENCE:
           Soicher, Leonard, Design package manual, available at
@@ -289,7 +289,7 @@ class IncidenceStructure(object):
         gB = []
         for b in gblcks:
            gB.append([x-1 for x in b])
-        return BlockDesign(v, gB, test=False)
+        return BlockDesign(v, gB, name=None, test=False)
 
     def incidence_matrix(self):
         '''

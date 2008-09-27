@@ -740,7 +740,7 @@ class Maxima(Expect):
         """
         EXAMPLES:
             sage: maxima.demo('array') # not tested
-            batching /opt/sage/local/share/maxima/5.16.2/demo/array.dem
+            batching /opt/sage/local/share/maxima/5.16.3/demo/array.dem
 
             At the _ prompt, type ';' followed by enter to get next demo
                                           subscrmap : true
@@ -997,7 +997,7 @@ class Maxima(Expect):
 
         EXAMPLES:
             sage: maxima.version()
-            '5.16.2'
+            '5.16.3'
         """
         return maxima_version()
 
@@ -2288,7 +2288,7 @@ def maxima_console():
     EXAMPLES:
         sage: from sage.interfaces.maxima import maxima_console
         sage: maxima_console()                    # not tested
-        Maxima 5.16.2 http://maxima.sourceforge.net
+        Maxima 5.16.3 http://maxima.sourceforge.net
         ...
     """
     os.system('maxima')
@@ -2298,7 +2298,7 @@ def maxima_version():
     EXAMPLES:
         sage: from sage.interfaces.maxima import maxima_version
         sage: maxima_version()
-        '5.16.2'
+        '5.16.3'
     """
     return os.popen('maxima --version').read().split()[1]
 

@@ -30,6 +30,9 @@ The MPFR team can be contact via the MPFR mailing list: mpfr@loria.fr
 
 == Changelog ==
 
+=== mpfr-2.3.2 (Michael Abshoff, September 27th, 2008) ===
+ * update to the official MPFR 2.3.2 release
+
 === mpfr-2.3.1 (Michael Abshoff, Jan. 29th, 2008) ===
  * update to the official MPFR 2.3.1 release
  * remove workaround patches

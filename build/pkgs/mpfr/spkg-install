@@ -6,6 +6,11 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+echo "Deleting old libraries"
+rm -f "$SAGE_LOCAL"/lib/libmpfr.*
+echo "Deleting old headers"
+rm -f "$SAGE_LOCAL"/include/*mpfr*
+
 build()
 {
     if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then

@@ -59,6 +59,9 @@ Special Update/Build Instructions:
 
 == Changelog ==
 
+=== numpy-1.2.0.p0 (Michael Abshoff, September 27th, 2008) ===
+ * quiet a couple deprecation warnings in arrayobject.c and numpytest.py. These changes need to be reverted once we update to scipy 0.7. We also need to fix some API issues in our code once those fixes are reverted - see #4205.
+
 === numpy-1.2.0 (Jason Grout, September 25th, 2008) ===
  * update to numpy 1.2.0, rebase and update patches
 

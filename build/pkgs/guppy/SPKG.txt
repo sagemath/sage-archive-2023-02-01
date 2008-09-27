@@ -1,0 +1,33 @@
+= guppy =
+
+== Description ==
+
+Guppy-PE is a library and programming environment for Python, currently providing in particular the Heapy subsystem, which supports object and heap memory sizing, profiling and debugging. It also includes a prototypical specification language, the Guppy Specificaion Language (GSL), which can be used to formally specify aspects of Python programs and generate tests and documentation from a common source.
+
+Website: http://pypi.python.org/pypi/guppy/0.1.8
+
+== License ==
+
+ * MIT
+
+== SPKG Maintainers ==
+
+ * Michael Abshoff
+
+== Upstream Contact ==
+
+Provide information for upstream contact.
+
+== Dependencies ==
+
+ * Python
+
+== Special Update/Build Instructions ==
+
+None.
+
+== Changelog ==
+
+=== guppy-0.1.8 (Michael Abshoff, September 27th, 2008) ===
+ * Inital version. This is the latest upstream release
+

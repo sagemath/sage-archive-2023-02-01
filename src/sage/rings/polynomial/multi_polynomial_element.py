@@ -943,7 +943,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: g = f.subs({x:10}); g
             700*y^2 + (-2)*y + 305
             sage: g.univariate_polynomial ()
-            700*y^2 + (-2)*y + 305
+            700*y^2 - 2*y + 305
             sage: g.univariate_polynomial(PolynomialRing(QQ,'z'))
             700*z^2 - 2*z + 305
         """

@@ -184,27 +184,27 @@ def zeta_symmetric(s):
         sage: zeta_symmetric(1-0.7)
         0.497580414651127
         sage: RR = RealField(200)
-        sage: zeta_symmetric(RR('0.7'))
+        sage: zeta_symmetric(RR(0.7))
         0.49758041465112690357779107525638385212657443284080589766062
-        sage: I = CC.0
-        sage: zeta_symmetric(RR('0.5') + I*RR('14.0'))
-        0.000201294444235258 + 4.74338450462408e-20*I
-        sage: zeta_symmetric(RR('0.5') + I*RR('14.1'))
-        0.0000489893483255687 + 1.18584612615602e-20*I
-        sage: zeta_symmetric(RR('0.5') + I*RR('14.2'))
-        -0.0000868931282620101 - 2.03287907341032e-20*I
+        sage: C.<i> = ComplexField()
+        sage: zeta_symmetric(0.5 + i*14.0)
+        0.000201294444235258 + 1.49077798716757e-19*I
+        sage: zeta_symmetric(0.5 + i*14.1)
+        0.0000489893483255687 + 4.40457132572236e-20*I
+        sage: zeta_symmetric(0.5 + i*14.2)
+        -0.0000868931282620101 + 7.11507675693612e-20*I
 
     REFERENCE:
       I copied the definition of xi from
         \url{http://www.math.ubc.ca/~pugh/RiemannZeta/RiemannZetaLong.html}
     """
     if not (is_ComplexNumber(s) or is_RealNumber(s)):
-        s = RealField()(s)
-
-    if s == 1:  # deal with poles, hopefully
-        return s.parent()(1/2)
+        s = ComplexField()(s)
 
     R = s.parent()
+    if s == 1:  # deal with poles, hopefully
+        return R(0.5)
+
     return (s/2 + 1).gamma()   *    (s-1)   * (R.pi()**(-s/2))  *  s.zeta()
 
 

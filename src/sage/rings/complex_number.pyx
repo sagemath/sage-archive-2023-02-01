@@ -460,7 +460,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __rdiv__(self, left):
         r"""
-        Reutrns the quotient of left with self, that is:
+        Returns the quotient of left with self, that is:
 
             left/self
 
@@ -499,19 +499,30 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         if isinstance(right, (int, long, integer.Integer)):
             return sage.rings.ring_element.RingElement.__pow__(self, right)
+
         try:
-            P = self.parent()
-            right = P(right)
-            z = self._pari_()
-            w = P(right)._pari_()
-            m = z**w
-            return P(m)
+            return (self.log()*right).exp()
         except TypeError:
-            try:
-                self = right.parent()(self)
-                return self**right
-            except AttributeError:
-                raise TypeError
+            pass
+
+        try:
+            self = right.parent()(self)
+            return self**right
+        except AttributeError:
+            raise TypeError
+
+
+    def __nonzero__(self):
+        """
+        Return True if self is not zero.  This is an internal
+        function; use self.is_zero() instead.
+
+        EXAMPLES:
+            sage: z = 1 + CC(I)
+            sage: z.is_zero()
+            False
+        """
+        return not (mpfr_zero_p(self.__re) and mpfr_zero_p(self.__im))
 
     def prec(self):
         """
@@ -651,7 +662,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def __int__(self):
         r"""
         Method for converting self to type int. Called by the \code{int}
-        funtion. Note that calling this method returns an error since, in
+        function. Note that calling this method returns an error since, in
         general, complex numbers cannot be coerced into integers.
 
         EXAMPLES:
@@ -670,7 +681,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def __long__(self):
         r"""
         Method for converting self to type long. Called by the \code{long}
-        funtion. Note that calling this method returns an error since, in
+        function. Note that calling this method returns an error since, in
         general, complex numbers cannot be coerced into integers.
 
         EXAMPLES:
@@ -689,7 +700,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def __float__(self):
         r"""
         Method for converting self to type float. Called by the \code{float}
-        funtion. Note that calling this method returns an error since, in
+        function. Note that calling this method returns an error since, in
         general, complex numbers cannot be coerced into floats.
 
         EXAMPLES:
@@ -748,8 +759,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def multiplicative_order(self):
         """
-        Return the multiplicative order of this complex number, if known, or raise
-        a NotImplementedError.
+        Return the multiplicative order of this complex number, if
+        known, or raise a NotImplementedError.
 
         EXAMPLES:
             sage: C.<i> = ComplexField()
@@ -849,7 +860,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: ComplexField(100)(1,1).coth()
             0.86801414289592494863584920892 - 0.21762156185440268136513424361*I
         """
-        return 1/self.tanh()
+        return ~(self.tanh())
+
+    def csc(self):
+        """
+        EXAMPLES:
+            sage: ComplexField(100)(1,1).csc()
+            0.62151801717042842123490780586 - 0.30393100162842645033448560451*I
+        """
+        return ~(self.sin())
 
     def csch(self):
         """
@@ -857,7 +876,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: ComplexField(100)(1,1).csch()
             0.30393100162842645033448560451 - 0.62151801717042842123490780586*I
         """
-        return 1/self.sinh()
+        return ~(self.sinh())
+
+    def sec(self):
+        """
+        EXAMPLES:
+            sage: ComplexField(100)(1,1).sec()
+            0.49833703055518678521380589177 + 0.59108384172104504805039169297*I
+        """
+        return ~(self.cos())
 
     def sech(self):
         """
@@ -865,8 +892,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: ComplexField(100)(1,1).sech()
             0.49833703055518678521380589177 - 0.59108384172104504805039169297*I
         """
-        return 1/self.cosh()
-
+        return ~(self.cosh())
 
     def cotan(self):
         """
@@ -880,7 +906,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+i).cotan()
             0.21762156185440268136513424360523807352075436916785404091068124239 - 0.86801414289592494863584920891627388827343874994609327121115071646*I
         """
-        return self._parent(self._pari_().cotan())
+        return ~(self.tan())
 
     def cos(self):
         """
@@ -888,7 +914,23 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).cos()
             0.833730025131149 - 0.988897705762865*I
         """
-        return self._parent(self._pari_().cos())
+        # write self = a + i*b, then
+        # cos(self) = cosh(b)*cos(a) - i*sinh(b)*sin(a)
+        cdef ComplexNumber z
+        z = self._new()
+        cdef mpfr_t ch, sh
+        mpfr_init2(ch, self._prec)
+        mpfr_cosh(ch, self.__im, rnd)
+        mpfr_init2(sh, self._prec)
+        mpfr_sinh(sh, self.__im, rnd)
+        mpfr_neg(sh, sh, rnd)
+        mpfr_sin_cos(z.__im, z.__re, self.__re, rnd)
+        mpfr_mul(z.__re, z.__re, ch, rnd)
+        mpfr_mul(z.__im, z.__im, sh, rnd)
+        mpfr_clear(sh)
+        mpfr_clear(ch)
+        return z
+
 
     def cosh(self):
         """
@@ -896,7 +938,22 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).cosh()
             0.833730025131149 + 0.988897705762865*I
         """
-        return self._parent(self._pari_().cosh())
+        # write self = a + i*b, then
+        # cosh(self) = cosh(a)*cos(b) + i*sinh(a)*sin(b)
+        cdef ComplexNumber z
+        z = self._new()
+        cdef mpfr_t ch, sh
+        mpfr_init2(ch, self._prec)
+        mpfr_cosh(ch, self.__re, rnd)
+        mpfr_init2(sh, self._prec)
+        mpfr_sinh(sh, self.__re, rnd)
+        mpfr_sin_cos(z.__im, z.__re, self.__im, rnd)
+        mpfr_mul(z.__re, z.__re, ch, rnd)
+        mpfr_mul(z.__im, z.__im, sh, rnd)
+        mpfr_clear(sh)
+        mpfr_clear(ch)
+        return z
+
 
 
     def eta(self, omit_frac=False):
@@ -936,12 +993,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         The optional argument allows us to omit the fractional part:
             sage: z = 1 + i
             sage: z.eta(omit_frac=True)
-            0.998129069925959 - 8.12769318938911e-22*I              # 32-bit
-            0.998129069925959 - 8.12769318781740e-22*I              # 64-bit
+            0.998129069925959 - 8.12769318...e-22*I
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
-	    0.998129069925958 + 4.58475021379830e-19*I              # 32-bit
-            0.998129069925958 + 4.58475021314468e-19*I              # 64-bit
-
+            0.998129069925958 + 4.59099857829247e-19*I
 
         We illustrate what happens when $z$ is not in the
         upper half plane.
@@ -967,7 +1021,21 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).sin()
             1.29845758141598 + 0.634963914784736*I
         """
-        return self._parent(self._pari_().sin())
+        # write self = a + i*b, then
+        # sin(self) = cosh(b)*sin(a) + i*sinh(b)*cos(a)
+        cdef ComplexNumber z
+        z = self._new()
+        cdef mpfr_t ch, sh
+        mpfr_init2(ch, self._prec)
+        mpfr_cosh(ch, self.__im, rnd)
+        mpfr_init2(sh, self._prec)
+        mpfr_sinh(sh, self.__im, rnd)
+        mpfr_sin_cos(z.__re, z.__im, self.__re, rnd)
+        mpfr_mul(z.__re, z.__re, ch, rnd)
+        mpfr_mul(z.__im, z.__im, sh, rnd)
+        mpfr_clear(sh)
+        mpfr_clear(ch)
+        return z
 
     def sinh(self):
         """
@@ -975,7 +1043,21 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).sinh()
             0.634963914784736 + 1.29845758141598*I
         """
-        return self._parent(self._pari_().sinh())
+        # write self = a + i*b, then
+        # sinh(self) = sinh(a)*cos(b) + i*cosh(a)*sin(b)
+        cdef ComplexNumber z
+        z = self._new()
+        cdef mpfr_t ch, sh
+        mpfr_init2(ch, self._prec)
+        mpfr_cosh(ch, self.__re, rnd)
+        mpfr_init2(sh, self._prec)
+        mpfr_sinh(sh, self.__re, rnd)
+        mpfr_sin_cos(z.__im, z.__re, self.__im, rnd)
+        mpfr_mul(z.__re, z.__re, sh, rnd)
+        mpfr_mul(z.__im, z.__im, ch, rnd)
+        mpfr_clear(sh)
+        mpfr_clear(ch)
+        return z
 
     def tan(self):
         """
@@ -983,7 +1065,35 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).tan()
             0.271752585319512 + 1.08392332733869*I
         """
-        return self._parent(self._pari_().tan())
+        # write self = a + i*b, then
+        # tan(self) = [cos(a)*sin(a) + i*cosh(b)*sinh(b)]/[sinh^2(b)+cos^2(a)]
+        cdef ComplexNumber z
+        z = self._new()
+        cdef mpfr_t ch, sh, c, s, a, b
+        mpfr_init2(ch, self._prec)
+        mpfr_cosh(ch, self.__im, rnd)
+        mpfr_init2(sh, self._prec)
+        mpfr_sinh(sh, self.__im, rnd)
+        mpfr_init2(c, self._prec)
+        mpfr_init2(s, self._prec)
+        mpfr_sin_cos(s, c, self.__re, rnd)
+        mpfr_init2(a, self._prec)
+        mpfr_init2(b, self._prec)
+        mpfr_sqr(a, sh, rnd)
+        mpfr_sqr(b, c, rnd)
+        mpfr_add(a, a, b, rnd)
+        mpfr_mul(z.__re, c, s, rnd)
+        mpfr_div(z.__re, z.__re, a, rnd)
+        mpfr_mul(z.__im, ch, sh, rnd)
+        mpfr_div(z.__im, z.__im, a, rnd)
+        mpfr_clear(sh)
+        mpfr_clear(ch)
+        mpfr_clear(c)
+        mpfr_clear(s)
+        mpfr_clear(b)
+        mpfr_clear(a)
+        return z
+
 
     def tanh(self):
         """
@@ -991,7 +1101,34 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).tanh()
             1.08392332733869 + 0.271752585319512*I
         """
-        return self._parent(self._pari_().tanh())
+        # write self = a + i*b, then
+        # tanh(self) = [cosh(a)*sinh(a) + i*cos(b)*sin(b)]/[sinh^2(a)+cos^2(b)]
+        cdef ComplexNumber z
+        z = self._new()
+        cdef mpfr_t ch, sh, c, s, a, b
+        mpfr_init2(ch, self._prec)
+        mpfr_cosh(ch, self.__re, rnd)
+        mpfr_init2(sh, self._prec)
+        mpfr_sinh(sh, self.__re, rnd)
+        mpfr_init2(c, self._prec)
+        mpfr_init2(s, self._prec)
+        mpfr_sin_cos(s, c, self.__im, rnd)
+        mpfr_init2(a, self._prec)
+        mpfr_init2(b, self._prec)
+        mpfr_sqr(a, sh, rnd)
+        mpfr_sqr(b, c, rnd)
+        mpfr_add(a, a, b, rnd)
+        mpfr_mul(z.__im, c, s, rnd)
+        mpfr_div(z.__im, z.__im, a, rnd)
+        mpfr_mul(z.__re, ch, sh, rnd)
+        mpfr_div(z.__re, z.__re, a, rnd)
+        mpfr_clear(sh)
+        mpfr_clear(ch)
+        mpfr_clear(c)
+        mpfr_clear(s)
+        mpfr_clear(b)
+        mpfr_clear(a)
+        return z
 
     # Other special functions
     def agm(self, right):
@@ -1022,7 +1159,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (RR('-0.001') - i).argument()
             -1.57179632646156
         """
-        return self._parent._real_field()(self._pari_().arg())
+        cdef real_mpfr.RealNumber x
+        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+        mpfr_atan2(<mpfr_t> x.value, self.__im, self.__re, rnd)
+        return x
+
 
     def arg(self):
         """
@@ -1052,6 +1193,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_neg(i, self.__im, rnd)
         mpfr_set(x.__re, self.__re, rnd)
         mpfr_set(x.__im, i, rnd)
+        mpfr_clear(i)
         return x
 
     def dilog(self):
@@ -1081,7 +1223,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self._parent(self._pari_().dilog())
 
-    def exp(self):
+    def exp(ComplexNumber self):
         """
         Compute exp(z).
 
@@ -1091,7 +1233,18 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z.exp()
             1.46869393991588515713896759732660426132695673662900872279767567631093696585951213872272450 + 2.28735528717884239120817190670050180895558625666835568093865811410364716018934540926734485*I
         """
-        return self._parent(self._pari_().exp())
+        # write self = a + i*b, then
+        # exp(self) = exp(a)*(cos(b) + i*sin(b))
+        cdef ComplexNumber z
+        z = self._new()
+        cdef mpfr_t r
+        mpfr_init2(r, self._prec)
+        mpfr_exp(r, self.__re, rnd)
+        mpfr_sin_cos(z.__im, z.__re, self.__im, rnd)
+        mpfr_mul(z.__re, z.__re, r, rnd)
+        mpfr_mul(z.__im, z.__im, r, rnd)
+        mpfr_clear(r)
+        return z
 
     def gamma(self):
         """
@@ -1174,7 +1327,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         else:
             return infinity.infinity
 
-    def sqrt(self, all=False, **kwds):
+    def sqrt(self, all=False):
         """
         The square root function.
 
@@ -1194,13 +1347,43 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: i.sqrt()
             0.70710678118654752440084436210484903928483593768847403658834 + 0.70710678118654752440084436210484903928483593768847403658834*I
         """
-        z = self._parent(self._pari_().sqrt())
-        if all:
-            if z.is_zero():
-                return [z]
-            else:
-                return [z, -z]
-        return z
+        if self.is_zero():
+            return [self] if all else self
+
+        cdef ComplexNumber z
+        z = self._new()
+
+        cdef mpfr_t r, a, t
+        # t is arg(z)/2
+        mpfr_init2(t, self._prec)
+        mpfr_atan2(t, self.__im, self.__re, rnd)
+        mpfr_div_ui(t, t, long(2), rnd)
+
+        # r is sqrt(abs(z))
+        mpfr_init2(a, self._prec)
+        mpfr_init2(r, self._prec)
+        mpfr_sqr(a, self.__re, rnd)
+        mpfr_sqr(r, self.__im, rnd)
+        mpfr_add(r, a, r, rnd)
+        mpfr_sqrt(r, r, rnd)
+        mpfr_sqrt(r, r, rnd)
+
+        mpfr_sin_cos(z.__im, z.__re, t, rnd)
+        if not self.is_real():
+            mpfr_mul(z.__re, z.__re, r, rnd)
+            mpfr_mul(z.__im, z.__im, r, rnd)
+        elif mpfr_sgn(self.__re) > 0:
+            # if self is positive real, so should be sqrt(self)
+            mpfr_set_ui(z.__im, long(0), rnd)
+            mpfr_mul(z.__re, z.__re, r, rnd)
+        else:
+            # if self is negative real, sqrt(self) should be pure imaginary
+            mpfr_set_ui(z.__re, long(0), rnd)
+            mpfr_mul(z.__im, z.__im, r, rnd)
+        mpfr_clear(r)
+        mpfr_clear(t)
+        mpfr_clear(a)
+        return [z, -z] if all else z
 
     def nth_root(self, n, all=False):
         """
@@ -1218,18 +1401,44 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             [3.00000000000000, -1.50000000000000 + 2.59807621135332*I, -1.50000000000000 - 2.59807621135332*I]
             sage: a = ComplexField(20)(2,1)
             sage: [r^7 for r in a.nth_root(7, all=True)]
-            [2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I]
+            [2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0001*I, 2.0000 + 1.0001*I]
         """
-        if not self:
+        if self.is_zero():
             return [self] if all else self
+
+        cdef ComplexNumber z
+        z = self._new()
+
+        cdef real_mpfr.RealNumber arg, rho
+        cdef mpfr_t r
+        rho = abs(self)
         arg = self.argument() / n
-        abs = self.abs().nth_root(n)
-        z = ComplexNumber(self._parent, abs * arg.cos(), abs*arg.sin())
-        if all:
-            zeta = self._parent.zeta(n)
-            return [z * zeta**k for k in range(n)]
-        else:
+        mpfr_init2(r, self._prec)
+        mpfr_root(r, <mpfr_t> rho.value, n, rnd)
+
+        mpfr_sin_cos(z.__im, z.__re, <mpfr_t> arg.value, rnd)
+        mpfr_mul(z.__re, z.__re, r, rnd)
+        mpfr_mul(z.__im, z.__im, r, rnd)
+
+        if not all:
+            mpfr_clear(r)
             return z
+
+        R = self._parent._real_field()
+        cdef real_mpfr.RealNumber theta
+        theta = R.pi()*2/n
+        zlist = [z]
+        for k in range(1, n):
+            z = self._new()
+            arg += theta
+            mpfr_sin_cos(z.__im, z.__re, <mpfr_t> arg.value, rnd)
+            mpfr_mul(z.__re, z.__re, r, rnd)
+            mpfr_mul(z.__im, z.__im, r, rnd)
+            zlist.append(z)
+
+        mpfr_clear(r)
+        return zlist
+
 
     def is_square(self):
         """
@@ -1246,6 +1455,30 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             True
         """
         return True
+
+    def is_real(self):
+        """
+        Return True if self is real, i.e. has imaginary part zero.
+
+        EXAMPLES:
+            sage: CC(1.23).is_real()
+            True
+            sage: CC(1+i).is_real()
+            False
+        """
+        return (mpfr_zero_p(self.__im) <> 0)
+
+    def is_imaginary(self):
+        """
+        Return True if self is imaginary, i.e. has real part zero.
+
+        EXAMPLES:
+            sage: CC(1.23*i).is_imaginary()
+            True
+            sage: CC(1+i).is_imaginary()
+            False
+        """
+        return (mpfr_zero_p(self.__re) <> 0)
 
     def zeta(self):
         """

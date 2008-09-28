@@ -62,10 +62,13 @@ cdef extern from "mpfr.h":
     int mpfr_add (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_sub (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_mul (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
+    int mpfr_mul_ui (mpfr_t rop, mpfr_t op1, unsigned long int op2, mp_rnd_t rnd)
     int mpfr_div (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
-    int mpfr_mul_2exp (mpfr_t rop, mpfr_t op1, unsigned long int op2,mp_rnd_t rnd)
+    int mpfr_div_ui (mpfr_t rop, mpfr_t op1, unsigned long int op2, mp_rnd_t rnd)
+    int mpfr_mul_2exp (mpfr_t rop, mpfr_t op1, unsigned long int op2, mp_rnd_t rnd)
     int mpfr_div_2exp(mpfr_t rop, mpfr_t op1, unsigned long int op2,mp_rnd_t rnd)
     int mpfr_mul_2si (mpfr_t top, mpfr_t op1, long int opt2, mp_rnd_t rnd)
+    int mpfr_sqr (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
 
     # constants
     int mpfr_const_log2 (mpfr_t rop, mp_rnd_t rnd)
@@ -102,6 +105,7 @@ cdef extern from "mpfr.h":
     int mpfr_acos (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
     int mpfr_asin (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
     int mpfr_atan (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
+    int mpfr_atan2 (mpfr_t rop, mpfr_t y, mpfr_t x, mp_rnd_t rnd)
 
     int mpfr_cosh (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
     int mpfr_sinh (mpfr_ptr, mpfr_srcptr, mp_rnd_t)

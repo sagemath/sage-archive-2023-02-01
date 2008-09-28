@@ -1092,7 +1092,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             True
             sage: P = E([16,-61])
             sage: P.elliptic_logarithm (precision=96)
-            0.2538418608559106843377589233
+            0.2538418608559106843377589234
             sage: E.period_lattice().basis(prec=96)[0] / P.elliptic_logarithm (precision=96)
             5.000000000000000000000000000
 
@@ -1101,10 +1101,9 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.elliptic_logarithm(precision=54)
             NaN
             sage: P.elliptic_logarithm(precision=55)
-            0.2735052671206336
+            0.2735052644156991
             sage: P.elliptic_logarithm()  # 100 bits
-            0.27656204014107100870070982517
-
+            0.27656204014107100870071052662
         """
         from sage.rings.number_field.number_field import refine_embedding
 

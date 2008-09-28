@@ -2586,8 +2586,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.2971115
             sage: b = R(-1)
             sage: b^(1/2)
-            1.0000000*I                    # 32-bit
-            -1.0842022e-19 + 1.0000000*I   # 64-bit
+            -8.7055157e-10 + 1.0000000*I
 
         We raise a real number to a symbolic object:
             sage: x, y = var('x,y')

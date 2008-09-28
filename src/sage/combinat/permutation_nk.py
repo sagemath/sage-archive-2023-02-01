@@ -39,6 +39,8 @@ class PermutationsNK(CombinatorialClass):
             sage: from sage.combinat.permutation_nk import PermutationsNK
             sage: PermutationsNK(3,2).count()
             6
+            sage: PermutationsNK(5,4).count()
+            120
         """
         n, k = self._n, self._k
         return factorial(n)/factorial(n-k)
@@ -51,6 +53,10 @@ class PermutationsNK(CombinatorialClass):
             sage: from sage.combinat.permutation_nk import PermutationsNK
             sage: [ p for p in PermutationsNK(3,2)]
             [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
+            sage: len(PermutationsNK(5,4).list())
+            120
+            sage: [1, 2, 2, 0] in PermutationsNK(5,4).list()
+            False
         """
         n, k = self._n, self._k
         if k == 0:
@@ -63,17 +69,17 @@ class PermutationsNK(CombinatorialClass):
 
         range_n = range(n)
         available = range(n)
-        dll = DoublyLinkedList(range_n)
+        available = DoublyLinkedList(range_n)
 
 
         L = range(k)
         L[-1] = 'begin'
         for i in range(k-1):
-            dll.hide(i)
+            available.hide(i)
 
         finished = False
         while not finished:
-            L[-1] = dll.next_value[L[-1]]
+            L[-1] = available.next_value[L[-1]]
             if L[-1] != 'end':
                 yield L[:]
                 continue
@@ -81,17 +87,16 @@ class PermutationsNK(CombinatorialClass):
             finished = True
             for i in reversed(range(k-1)):
                 value = L[i]
-                dll.unhide(value)
-                value = dll.next_value[value]
+                available.unhide(value)
+                value = available.next_value[value]
                 if value != 'end':
                     L[i] = value
-                    dll.hide(value)
+                    available.hide(value)
                     value = 'begin'
-                    for j in reversed(range(i+1, k-1)):
-                        value = dll.next_value[value]
-                        L[j] = value
-                        dll.hide(value)
-                    L[-1] = dll.next_value[value]
+                    for i in range(i+1, k-1):
+                        L[i] = value = available.next_value[value]
+                        available.hide(value)
+                    L[-1] = available.next_value[value]
                     yield L[:]
                     finished = False
                     break

@@ -34,37 +34,6 @@ from sage.rings.arith import binomial, integer_floor
 
 ###  utility functions  -------------------------------------------------------
 
-def block_cmp(b1, b2):
-    """
-    Auxiliary comparison function to sort blocks which are sorted lists.
-    It compares two blocks first by length then by lexicographic order.
-    It returns -1 if b1 is "smaller" than b2; 0 if they are equal; and
-    +1 otherwise.
-
-    EXAMPLES:
-        sage: from sage.combinat.designs.incidence_structures import block_cmp
-        sage: L1 = [1,2,3,4]
-        sage: L2 = [5,6,7]
-        sage: L1<L2
-        True
-        sage: block_cmp(L1, L2)
-        1
-        sage: block_cmp(L2, L1)
-        -1
-
-    """
-    if len(b1) < len(b2):
-        return -1
-    elif len(b1) == len(b2):
-        if b1 < b2:
-            return -1
-        elif b1 == b2:
-            return 0
-        else:
-            return 1
-    else:
-        return 1
-
 def IncidenceStructureFromMatrix(M, name=None):
     """
     M must be a (0,1)-matrix. Creates a set of "points" from the rows
@@ -97,7 +66,7 @@ class IncidenceStructure(object):
     This the base class for block designs.
 
     """
-    def __init__(self, pts, blks, inc_mat=None, name=None):
+    def __init__(self, pts, blks, inc_mat=None, name=None, test=True):
         """
         The parameters are a pair pts, blks, both of which are a list
         (blks is a list of lists). If each B in blks is contained in pts
@@ -108,27 +77,31 @@ class IncidenceStructure(object):
         Optional keywords are:
             "inc_mat" (for giving the (0,1)-incidence matrix), and
             "name" (a string, such as "Fano plane").
+            "test" (True or False) - if True then each block must be a list of pts.
 
         EXAMPLES:
             sage: IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            IncidenceStructure<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
         REFERENCES:
             E. Assmus, J. Key, Designs and their codes, CUP, 1992.
 
         """
-        from sage.combinat.designs.incidence_structures import block_cmp
         bs = []
         self.pnts = pts
         v, blocks = len(pts), blks
         for block in blocks:
-            for x in block:
-                if v <= x or x < 0:
-                    raise ValueError('Point %s is not in the base set.'%x)
-            y = block[:]
-            y.sort()
-            bs.append(y)
-        bs.sort(block_cmp)
+            if test:
+                for x in block:
+                    if not(x in self.pnts):
+                        raise ValueError('Point %s is not in the base set.'%x)
+            try:
+                y = block[:]
+                y.sort()
+                bs.append(y)
+            except:
+                bs.append(block)
+        bs.sort(cmp)
         self.v = v
         self.blcks = bs
         self.name = name
@@ -142,13 +115,16 @@ class IncidenceStructure(object):
             sage: from sage.combinat.designs.block_design import BlockDesign
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: print BD
-            BlockDesign<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+            BlockDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+            sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: print BD
+            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
         """
         if self.name:
-            repr = '%s<v=%d, blocks=%s>'%(self.name, self.v, self.blcks)
+            repr = '%s<points=%s, blocks=%s>'%(self.name, self.pnts, self.blcks)
         else:
-            repr = 'IncidenceStructure<v=%d, blocks=%s>'%( self.v, self.blcks)
+            repr = 'IncidenceStructure<points=%s, blocks=%s>'%( self.pnts, self.blcks)
         return repr
 
     def automorphism_group(self):
@@ -224,8 +200,8 @@ class IncidenceStructure(object):
         EXAMPLES:
             sage: from sage.combinat.designs.block_design import BlockDesign
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.blocks()
-            [[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]
+            sage: BD.block_sizes()
+            [3, 3, 3, 3, 3, 3, 3]
 
         """
         bs = []
@@ -253,25 +229,31 @@ class IncidenceStructure(object):
            gB.append([x+1 for x in b])
         return "BlockDesign("+str(v)+","+str(gB)+")"
 
-    def dual_block_design(self):
+    def dual_incidence_structure(self, method=None):
         """
         Wraps GAP Design's DualBlockDesign (see [1]).
         The dual of a block design may not be a block design.
 
-        REQUIRES: GAP's Design package.
+        Also can be called with \code{dual_design}.
+
+        REQUIRES: method="gap" option requires GAP's Design package.
 
         EXAMPLES:
            sage: from sage.combinat.designs.block_design import BlockDesign
            sage: D = BlockDesign(4, [[0,2],[1,2,3],[2,3]], test=False)
            sage: D
-           IncidenceStructure<v=4, blocks=[[0, 2], [2, 3], [1, 2, 3]]>
-           sage: D.dual_block_design()          # requires optional gap package
-           IncidenceStructure<v=3, blocks=[[0], [1], [1, 2], [0, 1, 2]]>
+           IncidenceStructure<points=[0, 1, 2, 3], blocks=[[0, 2], [1, 2, 3], [2, 3]]>
+           sage: D.dual_design()
+           IncidenceStructure<points=[[0, 2], [1, 2, 3], [2, 3]], blocks=[0, 1, 2, 3]>
+           sage: D.dual_design(method="gap")
+           IncidenceStructure<points=[0, 1, 2], blocks=[[0], [0, 1, 2], [1], [1, 2]]>
            sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="FanoPlane")
            sage: BD
-           FanoPlane<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
-           sage: BD.dual_block_design()         # requires optional gap package
-           IncidenceStructure<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+           FanoPlane<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+           sage: BD.dual_design(method="gap")         # requires optional gap package
+           IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+           sage: BD.dual_incidence_structure()
+           IncidenceStructure<points=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]], blocks=[0, 1, 2, 3, 4, 5, 6]>
 
         REFERENCE:
           Soicher, Leonard, Design package manual, available at
@@ -281,18 +263,26 @@ class IncidenceStructure(object):
         from sage.sets.set import Set
         from sage.misc.flatten import flatten
         from sage.combinat.designs.block_design import BlockDesign
-        gap.eval('LoadPackage("design")')
-        gD = self._gap_()
-        gap.eval("DD:=DualBlockDesign("+gD+")")
-        v = eval(gap.eval("DD.v"))
-        gblcks = eval(gap.eval("DD.blocks"))
-        gB = []
-        for b in gblcks:
-           gB.append([x-1 for x in b])
-        return BlockDesign(v, gB, name=None, test=False)
+        from sage.misc.functional import transpose
+        if method=="gap":
+            gap.eval('LoadPackage("design")')
+            gD = self._gap_()
+            gap.eval("DD:=DualBlockDesign("+gD+")")
+            v = eval(gap.eval("DD.v"))
+            gblcks = eval(gap.eval("DD.blocks"))
+            gB = []
+            for b in gblcks:
+                gB.append([x-1 for x in b])
+            return BlockDesign(v, gB, name=None, test=False)
+        pts = self.blocks()
+        M = transpose(self.incidence_matrix())
+        blks = self.points()
+        return IncidenceStructure(pts, blks, M, name=None, test=False)
+
+    dual_design = dual_incidence_structure  # to preserve standard terminology
 
     def incidence_matrix(self):
-        '''
+        """
         Return the incidence matrix A of the design.
         A is a (v x b) matrix defined by:
             A[i,j] = 1   if i is in block B_j
@@ -311,7 +301,7 @@ class IncidenceStructure(object):
             [0 0 1 1 0 0 1]
             [0 0 1 0 1 1 0]
 
-        '''
+        """
         if self._incidence_matrix!=None:
             return self._incidence_matrix
         else:

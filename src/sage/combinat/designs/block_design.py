@@ -29,7 +29,8 @@ REFERENCES:
       Peter Dobcsanyi, John P. Morgan, Leonard H. Soicher)
 
 This is a significantly modified form of the module block_design.py (version 0.6)
-written by Peter Dobcsanyi <peter@designtheory.org>.
+written by Peter Dobcsanyi <peter@designtheory.org>. Thanks go to Robert
+Miller for lots of good design suggestions.
 
 Copyright 2007-2008 by Peter Dobcsanyi <peter@designtheory.org>,
 and David Joyner <wdjoyner@gmail.com>.
@@ -90,7 +91,7 @@ def tdesign_params(t, v, k, L):
     Note t must be given.
 
     EXAMPLES:
-        sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="FanoPlane")
+        sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
         sage: from sage.combinat.designs.block_design import tdesign_params
         sage: tdesign_params(2,7,3,1)
         (2, 7, 7, 3, 3, 1)
@@ -116,9 +117,9 @@ def ProjectiveGeometryDesign(n, d, F, method=None):
 
     EXAMPLES:
         sage: ProjectiveGeometryDesign(2, 1, GF(2))
-        ProjectiveGeometryDesign<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+        ProjectiveGeometryDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
         sage: ProjectiveGeometryDesign(2, 1, GF(2), method="gap")      # requires optional gap package
-        ProjectiveGeometryDesign<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+        ProjectiveGeometryDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
 
     """
@@ -203,7 +204,7 @@ def WittDesign(n):
         sage: BD.parameters()      # requires optional gap package
         (2, 9, 3, 1)
         sage: BD                   # requires optional gap package
-        WittDesign<v=9, blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
+        WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
         sage: BD = WittDesign(12)  # requires optional gap package
         sage: BD.parameters(t=5)   # requires optional gap package
         (5, 12, 6, 1)
@@ -229,7 +230,7 @@ def HadamardDesign(n):
 
     EXAMPLES:
         sage: HadamardDesign(7)
-        HadamardDesign<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+        HadamardDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
     REFERENCES:
         [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes
@@ -254,13 +255,14 @@ def BlockDesign(max_pt, blks, name=None, test=True):
 
     EXAMPLES:
         sage: BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="Fano plane")
-        Fano plane<v=7, blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+        Fano plane<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
     """
     nm = name
+    tst = test
     if nm == None and test:
         nm = "BlockDesign"
-    BD = IncidenceStructure( range(max_pt), blks, inc_mat=None, name=nm )
+    BD = BlockDesign_generic( range(max_pt), blks, name=nm, test=tst )
     if not(test):
         return BD
     else:
@@ -270,4 +272,11 @@ def BlockDesign(max_pt, blks, name=None, test=True):
         else:
             raise TypeError("parameters are not those of a block design.")
 
-
+BlockDesign_generic = IncidenceStructure
+"""
+Possibly in the future there will be methods which apply to block designs and not
+incidence structures. None have been implemented yet though. The class name
+BlockDesign_generic is reserved in the name space in case more specialized
+methods are implemented later. In that case, BlockDesign_generic should
+inherit from IncidenceStructure.
+"""

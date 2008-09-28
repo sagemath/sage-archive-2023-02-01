@@ -273,7 +273,7 @@ class IncidenceStructure(object):
             gB = []
             for b in gblcks:
                 gB.append([x-1 for x in b])
-            return BlockDesign(v, gB, name=None, test=False)
+            return IncidenceStructure(range(v), gB, name=None, test=False)
         pts = self.blocks()
         M = transpose(self.incidence_matrix())
         blks = self.points()

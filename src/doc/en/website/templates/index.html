@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+
+{%- block sidebar2 %}
+{% endblock %}
+
+{% block body %}
+  <h1>{{ docstitle|e }}</h1>
+  {% block tables %}
+  <p><strong>Manuals:</strong></p>
+  <table class="contentstable" align="center" cellspacing="20">
+    <tr valign="top">
+      <td width="50%">
+        <p class="biglink"><a class="biglink" href="tutorial/">Tutorial</a><br>
+        <span class="linkdescr">This tutorial is the best way to
+        become familiar with Sage in only a few hours. </span></p>
+      </td>
+      <td width="50%">
+        <p class="biglink"><a class="biglink" href="constructions">Constructions</a><br>
+        <span class="linkdescr">This document collects the answers to
+  some questions along the line "How do I construct ... in Sage?"</span></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="50%">
+        <p class="biglink"><a class="biglink" href="developer/">Developers' Guide</a><br>
+
+        <span class="linkdescr">This document describes how to write
+        programs using Sage, how to modify and extend the core Sage
+        libraries, and how to modify Sage's documentation. It also
+        discusses how to share your new and modified code with other
+        Sage users.  </span>
+
+        </p>
+
+      </td>
+      <td width="50%">
+        <p class="biglink"><a class="biglink" href="reference/">Reference Manual</a><br>
+        <span class="linkdescr">
+        This is the manual for the Sage mathematical software
+      system. The reference manual contains many examples that
+      illustrate the usage of Sage. It consists primarily of
+      documentation that has been automatically generated from the
+      Sage source code.  The examples are all tested with each release
+      of Sage, and should produce exactly the same output as in this
+      manual, except for line breaks.
+        </span>
+
+        </p>
+      </td>
+    </tr>
+  </table>
+
+  <p><strong>Other Documents:</strong></p>
+  <table class="contentstable" align="center" cellspacing="20">
+    <tr valign="top">
+      <td width="50%">
+        <p class="biglink"><a class="biglink" href="a_tour_of_sage/">A Tour of Sage</a><br>
+        <span class="linkdescr">
+        This is a tour of Sage that closely follows the tour of Mathematica
+        that is at the beginning of the Mathematica Book.
+        </span>
+        </p>
+      </td>
+      <td width="50%">
+        <p class="biglink"><a class="biglink" href="installation/">Installation Guide</a><br>
+        <span class="linkdescr">This is a brief explanation of the installation of Sage.</span></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="50%">
+        <p class="biglink"><a class="biglink" href="numerical_sage">Numerical Sage</a><br>
+
+        <span class="linkdescr">This document is designed to introduce
+        the reader to the tools in Sage that are useful for doing
+        numerical computation.  It is currently a bit outdated, but
+        work is being done to bring it up to date.</span></p>
+      </td>
+      <td width="50%">
+        <p class="biglink"><a class="biglink" href="bordeaux_2008">
+        Three Lectures about Explicit Methods in Number Theory Using
+  Sage</a><br>
+
+        <span class="linkdescr">This document is about using the
+        mathematical software Sage to do computations with number
+        fields and modular forms.  It assumes no prior knowledge about
+        Sage, but assumes a graduate level background in algebraic
+        number theory.</span></p>
+
+      </td></tr>
+    </table>
+
+  {% endblock %}
+{% endblock %}

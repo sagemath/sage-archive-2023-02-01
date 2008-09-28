@@ -47,7 +47,7 @@ from sage.server.notebook.template import template
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
-from sage.misc.misc import SAGE_EXTCODE, SAGE_LOCAL, walltime, tmp_filename, tmp_dir
+from sage.misc.misc import SAGE_EXTCODE, SAGE_LOCAL, SAGE_DOC, walltime, tmp_filename, tmp_dir
 
 p = os.path.join
 css_path        = p(SAGE_EXTCODE, "notebook/css")
@@ -130,8 +130,6 @@ def message(msg, cont=None):
 ############################
 # Create a Sage worksheet from a latex2html'd file
 ############################
-from docHTMLProcessor import DocHTMLProcessor
-
 doc_worksheet_number = 0
 def doc_worksheet():
     global doc_worksheet_number
@@ -157,20 +155,28 @@ class WorksheetFile(resource.Resource):
     def render(self, ctx=None):
         # Create a live Sage worksheet out of self.path and render it.
         doc_page_html = open(self.docpath).read()
-        directory = os.path.split(self.docpath)[0]
-        doc_page, css_href = DocHTMLProcessor().process_doc_html(DOC,
-                               directory, doc_page_html)
-        # The empty hideall cell below is specifically because for some mysterious
-        # reason if we don't put it there, then the first cell -- when evaluated,
-        # causes a jump to the bottom of the worksheet.  With the hideall there,
-        # verything works perfectly.
-        doc_page = extract_title(doc_page_html) + '\nsystem:sage\n{{{%hideall\n}}}\n' + doc_page
-        if css_href:
-            css_href = DOC + directory + css_href
+        from docHTMLProcessor import SphinxHTMLProcessor
+        doc_page = SphinxHTMLProcessor().process_doc_html(doc_page_html)
+
+        title = extract_title(doc_page_html).replace('&mdash;','--')
+        doc_page = title + '\nsystem:sage\n\n' + doc_page
+
         W = doc_worksheet()
         W.edit_save(doc_page)
+
+        #FIXME: For some reason, an extra cell gets added
+        #so we remove it here.
+        cells = W.cell_list()
+        cells.pop()
+
         s = notebook.html(worksheet_filename = W.filename(),
                           username = self.username)
+
+        #Hack to add in the needed CSS to get it to display nicely
+        css_tag = lambda path: r'<link rel=stylesheet href="%s" type="text/css">'%path
+        main_css = css_tag('/css/main.css')
+        s = s.replace(main_css,css_tag('_static/default.css')+"\n"+main_css )
+
         return http.Response(stream=s)
 
     def childFactory(self, request, name):
@@ -184,7 +190,7 @@ class WorksheetFile(resource.Resource):
 # The documentation browsers
 ############################
 
-DOC = os.path.abspath(os.environ['SAGE_ROOT'] + '/doc/')
+DOC = os.path.abspath(SAGE_DOC + '/output/html/en/')
 
 class DocStatic(resource.Resource):
     addSlash = True
@@ -2328,4 +2334,4 @@ def extract_title(html_page):
     if i == -1:
         return "Untitled"
     j = h.find('</title>')
-    return h[i + len('<title>') : j]
+    return html_page[i + len('<title>') : j]

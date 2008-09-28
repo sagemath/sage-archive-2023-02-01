@@ -279,6 +279,36 @@ class AllBuilder(object):
                 documents.append(os.path.join(lang, document))
         return documents
 
+class WebsiteBuilder(DocBuilder):
+    def html(self):
+        """
+        After we've finished building the website index page, we copy
+        everything one directory up.
+        """
+        DocBuilder.html(self)
+        html_output_dir = self._output_dir('html')
+        copytree(html_output_dir,
+                 os.path.realpath(os.path.join(html_output_dir, '..')))
+
+    def clean(self):
+        """
+        When we clean the output for the website index, we need to
+        remove all of the HTML that were placed in the parent
+        directory.
+        """
+        html_output_dir = self._output_dir('html')
+        parent_dir = os.path.realpath(os.path.join(html_output_dir, '..'))
+        for filename in os.listdir(html_output_dir):
+            parent_filename = os.path.join(parent_dir, filename)
+            if not os.path.exists(parent_filename):
+                continue
+            if os.path.isdir(parent_filename):
+                shutil.rmtree(parent_filename, ignore_errors=True)
+            else:
+                os.unlink(parent_filename)
+
+        DocBuilder.clean(self)
+
 class ReferenceBuilder(DocBuilder):
     """
     This the class used to build the reference manual.  It is
@@ -583,6 +613,8 @@ def get_builder(name):
         return AllBuilder()
     elif name.endswith('reference'):
         return ReferenceBuilder(name)
+    elif name.endswith('website'):
+        return WebsiteBuilder(name)
     else:
         return DocBuilder(name)
 

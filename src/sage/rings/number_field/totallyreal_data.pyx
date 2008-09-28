@@ -12,7 +12,7 @@ AUTHORS:
         * Initial version.
 """
 
-#**************************************************************************************
+#***********************************************************************************************
 #       Copyright (C) 2007 William Stein and John Voight
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -25,7 +25,7 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#**************************************************************************************
+#***********************************************************************************************
 
 from sage.rings.arith import binomial, gcd
 from sage.rings.rational_field import RationalField
@@ -516,35 +516,21 @@ cdef class tr_data:
 
         # Declare the coefficients of the polynomials (and max such).
         self.a = <int*>sage_malloc(sizeof(int)*(n+1))
-        if self.a == NULL: raise MemoryError
         self.amax = <int*>sage_malloc(sizeof(int)*(n+1))
-        if self.amax == NULL: raise MemoryError
-        # df is memory set aside for the derivative, as
-        # used in Newton iteration above.
-        self.df = <int*>sage_malloc(sizeof(int)*(n+1))
-        if self.df == NULL: raise MemoryError
-
-        for i from 0 <= i < n+1:
-            self.a[i] = 0
-            self.amax[i] = 0
-            self.df[i] = 0
 
         # beta is an array of arrays (of length n) which list the
         # roots of the derivatives.
         self.beta = <double*>sage_malloc(sizeof(double)*n*(n+1))
-        if self.beta == NULL: raise MemoryError
         # gnk is the collection of (normalized) derivatives.
         self.gnk = <int*>sage_malloc(sizeof(int)*(n+1)*n)
-        if self.gnk == NULL: raise MemoryError
 
-        for i from 0 <= i < (n+1)*n:
-            self.beta[i] = <double>0
-            self.gnk[i] = 0
-
+        # df is memory set aside for the derivative, as
+        # used in Newton iteration above.
+        self.df = <int*>sage_malloc(sizeof(int)*(n+1))
 
         # Initialize variables.
         if a == []:
-            # No starting input, all polynomials will be found; initialize to zero.
+            # No starting input, all polynomials will be found; initalize to zero.
             a = [0]*n + [1]
             for i from 0 <= i < n+1:
                 self.a[i] = a[i]
@@ -645,8 +631,6 @@ cdef class tr_data:
         f_out = <int *>sage_malloc(sizeof(int) * (self.n))
         if f_out == NULL:
             raise MemoryError, "unable to allocate coefficient list"
-        for i from 0 <= i < self.n:
-            f_out[i] = 0
 
         self.incr(f_out, verbose, haltk, phc)
 

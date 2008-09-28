@@ -325,7 +325,7 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
         ##    z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
 
         fcoeff = [ int(coeffs[i]) for i in range(7) ]
-        rts = numpy.roots(fcoeff)
+        rts = numpy.roots(fcoeff).astype("complex128")
 
         roots_data = <double *>((<ndarray>rts).data)
         for i from 0 <= i < 6:

@@ -3118,6 +3118,10 @@ class SymbolicExpression(RingElement):
         More examples:
             sage: (sin(x) + exp(x)).find_root(-10, 10)
             -0.588532743981862...
+            sage: sin.find_root(-1,1)
+            0.0
+            sage: (1/tan).find_root(3,3.5)
+            3.1415926535...
 
         An example with a square root:
             sage: f = 1 + x + sqrt(x+2); f.find_root(-2,10)
@@ -3149,24 +3153,32 @@ class SymbolicExpression(RingElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: root finding currently only implemented in 1 dimension.
+
+        TESTS:
+
+        Test the special case that failed for the first attempt to fix #3980.
+            sage: t = var('t')
+            sage: find_root(1/t - x,0,2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: root finding currently only implemented in 1 dimension.
         """
         a = float(a); b = float(b)
-        if var is None:
-            w = self.variables()
-            if len(w) > 1:
-                raise NotImplementedError, "root finding currently only implemented in 1 dimension."
-            if len(w) == 0:
-                if bool(self == 0):
-                    return a
-                else:
-                    raise RuntimeError, "no zero in the interval, since constant expression is not 0."
-            var = repr(w[0])
-
-        f = self._fast_float_(var)
-        if a > b:
-            a, b = b, a
-        return sage.numerical.optimize.find_root(f, a=a,b=b, xtol=xtol, rtol=rtol,
-                                                 maxiter=maxiter, full_output=full_output)
+        if self.number_of_arguments() == 0:
+            if bool(self == 0):
+                return a
+            else:
+                raise RuntimeError, "no zero in the interval, since constant expression is not 0."
+        elif self.number_of_arguments() == 1:
+            x = SR.var('x') # var is shadowed in the args
+            f = (fast_float.fast_float(self(x),x) if var is None else
+                fast_float.fast_float(self,var))
+            if a > b:
+                a, b = b, a
+            return sage.numerical.optimize.find_root(f, a=a,b=b, xtol=xtol,
+                rtol=rtol,maxiter=maxiter, full_output=full_output)
+        else:
+            raise NotImplementedError, "root finding currently only implemented in 1 dimension."
 
     def find_maximum_on_interval(self, a, b, var=None, tol=1.48e-08, maxfun=500):
         r"""

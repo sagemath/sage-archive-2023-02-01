@@ -164,6 +164,10 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: vector(vector([1,2,3]), GF(3))
         (1, 2, 0)
 
+    Here we illustrate the creation of sparse vectors by using a dictionary:
+        sage: vector({1:1.1, 3:3.14})
+        (0.000000000000000, 1.10000000000000, 0.000000000000000, 3.14000000000000)
+
     Any 1 dimensional numpy array of type float or complex may be passed to vector. The result
     will vector in the appropriate dimensional vector space over the real double field or the
     complex double field. The data in the array must be contiguous so columnwise slices of numpy matrices
@@ -262,15 +266,20 @@ def prepare(v, R):
     return v, ring
 
 def prepare_dict(w, R):
+    """
+    EXAMPLES:
+        sage: from sage.modules.free_module_element import prepare_dict
+        sage: prepare_dict({3:1 , 5:3}, QQ)
+        ([0, 0, 0, 1, 0, 3], Rational Field)
+        sage: prepare_dict({},QQ)
+        ([], Rational Field)
+    """
     Z = w.items()
     cdef Py_ssize_t n
-    n = len(Z)
-    X = [None]*n
-    cdef Py_ssize_t i
-    i = 0
-    for _, x in Z:
-        X[i] = x
-        i = i + 1
+    n = max([-1]+[key for key,value in Z])+1
+    X = [0]*n
+    for key, value in Z:
+        X[key] = value
     return prepare(X, R)
 
 cdef class FreeModuleElement(element_Vector):   # abstract base class

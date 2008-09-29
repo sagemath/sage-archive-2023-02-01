@@ -2196,7 +2196,9 @@ class AnonymousToplevel(Toplevel):
     #child_login = LoginResource
 
     def render(self, ctx):
-        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
+        response = http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
+        response.headers.setHeader("set-cookie", [http_headers.Cookie('cookie_test', 'cookie_test')])
+        return response
 
 class FailedToplevel(Toplevel):
     def __init__(self, info, problem, username=None):
@@ -2210,8 +2212,10 @@ class FailedToplevel(Toplevel):
         # If published pages were disabled, then this should be disabled too.
         if self.problem == 'username':
             return http.Response(stream = login_page_template(notebook.get_accounts(), notebook.default_user(), is_username_error=True, recover=notebook.conf()['email']))
-        else:
+        elif self.problem == 'password':
             return http.Response(stream = login_page_template(notebook.get_accounts(), self.username, is_password_error=True, recover=notebook.conf()['email']))
+        else:
+            return http.Response(stream = message("Please enable cookies and try again."))
 
 
 class UserToplevel(Toplevel):

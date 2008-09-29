@@ -533,14 +533,14 @@ class GenericSQLQuery(SageObject):
             sage: param = (22,5)
             sage: Q = GenericSQLQuery(G,q,param)
             sage: print Q
-            Query for sql database: /Users/ekirkm/sage/data//graphs/graphs.db
+            Query for sql database: ...graphs.db
             Query string: select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)
             Parameter tuple: (22, 5)
 
             sage: r = 'select graph6 from graph_data where num_vertices<=3'
             sage: R = GenericSQLQuery(G,r)
             sage: print R
-            Query for sql database: /Users/ekirkm/sage/data//graphs/graphs.db
+            Query for sql database: ...graphs.db
             Query string: select graph6 from graph_data where num_vertices<=3
         """
         if not self.__query_string__: return 'Empty query on %s.'%self.__database__.__dblocation__
@@ -1034,7 +1034,7 @@ class SQLQuery(GenericSQLQuery):
             211                  F??G_                7
             sage: R = Q.copy()
             sage: print R
-            Query for sql database: /Users/ekirkm/sage/data//graphs/graphs.db
+            Query for sql database: ...graphs.db
             Query string: SELECT graph_data.graph_id, graph_data.graph6, graph_data.num_vertices FROM graph_data WHERE graph_data.num_edges < ?
             Parameter tuple: (3,)
 

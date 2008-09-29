@@ -290,7 +290,7 @@ class Animation(SageObject):
             outfile += '.gif'
         outfile = os.path.abspath(outfile)
         d = self.png()
-        cmd = 'cd "%s"; convert -delay %s -loop %s *.png "%s"'%(d, int(delay), int(iterations), outfile)
+        cmd = 'cd "%s"; sage-native-execute convert -delay %s -loop %s *.png "%s"'%(d, int(delay), int(iterations), outfile)
         os.system(cmd)
 
     def show(self, delay=20, iterations=0):

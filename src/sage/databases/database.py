@@ -78,6 +78,15 @@ def regexp(expr, item):
 
     REFERENCES:
         Gerhard Haring. [Online] Available: http://lists.initd.org/pipermail/pysqlite/2005-November/000253.html
+
+    EXAMPLE:
+        sage: from sage.databases.database import regexp
+        sage: regexp('.s.*','cs')
+        True
+        sage: regexp('.s.*','ccs')
+        False
+        sage: regexp('.s.*','cscccc')
+        True
     """
     r = re.compile(expr)
     return r.match(item) is not None
@@ -85,6 +94,18 @@ def regexp(expr, item):
 def verify_type(type):
     """
     Verify that the specified type is one of the allowed strings.
+
+    EXAMPLES:
+        sage: from sage.databases.database import verify_type
+        sage: verify_type('INT')
+        True
+        sage: verify_type('int')
+        True
+        sage: verify_type('float')
+        Traceback (most recent call last):
+        ...
+        TypeError: float is not a legal type.
+
     """
     types = ['INTEGER','INT','BOOLEAN','REAL','TEXT','BOOL','BLOB']
     if type.upper() not in types:
@@ -97,6 +118,19 @@ def verify_column(col_dict):
     default values filled in.
 
     * {'primary_key':False, 'index':False, 'sql':'REAL'}
+
+    EXAMPLES:
+        sage: from sage.databases.database import verify_column
+        sage: col = {'sql':'BOOLEAN'}
+        sage: verify_column(col)
+        {'index': False, 'primary_key': False, 'sql': 'BOOLEAN'}
+        sage: col = {'primary_key':True, 'sql':'INTEGER'}
+        sage: verify_column(col)
+        {'index': False, 'primary_key': True, 'sql': 'INTEGER'}
+        sage: verify_column({})
+        Traceback (most recent call last):
+        ...
+        ValueError: SQL type must be declared, e.g. {'sql':'REAL'}.
 
     """
     d = {}
@@ -111,6 +145,30 @@ def verify_column(col_dict):
 def verify_operator(operator):
     """
     Checks that the provided operator is one of the allowed strings.
+    Legal operators inclue the following strings:
+        - '='
+        - '<='
+        - '>='
+        - '<'
+        - '>'
+        - '<>'
+        - 'like'
+        - 'regexp'
+        - 'is null'
+        - 'is not null'
+
+    EXAMPLES:
+        sage: from sage.databases.database import verify_operator
+        sage: verify_operator('<=')
+        True
+        sage: verify_operator('regexp')
+        True
+        sage: verify_operator('is null')
+        True
+        sage: verify_operator('not_an_operator')
+        Traceback (most recent call last):
+        ...
+        TypeError: not_an_operator is not a legal operator.
     """
     binaries = ['=','<=','>=','like','<','>','<>','regexp']
     unaries = ['is null','is not null']
@@ -134,6 +192,13 @@ def construct_skeleton(connection):
 
     An example skeleton of a database with one table, that table with one column:
         {'table1':{'col1':{'primary_key':False, 'index':True, 'sql':'REAL'}}}
+
+    EXAMPLE:
+        sage: G = SQLDatabase(GraphDatabase().__dblocation__)
+        sage: con = G.get_connection()
+        sage: from sage.databases.database import construct_skeleton
+        sage: construct_skeleton(con).keys()
+        [u'aut_grp', u'degrees', u'spectrum', u'misc', u'graph_data']
     """
     skeleton = {}
     cur = connection.cursor()
@@ -150,21 +215,76 @@ def construct_skeleton(connection):
     return skeleton
 
 def skel_to_col_attr_list(table_dict):
+    """
+    Returns a list of tuples representing the column attributes for a table.
+    Each tuple represents one column and has values:
+    (column_title <String>, sql_data_type <String>, primary_key <Boolean>)
+
+    EXAMPLE:
+        sage: from sage.databases.database import skel_to_col_attr_list, construct_skeleton
+        sage: G = SQLDatabase(GraphDatabase().__dblocation__)
+        sage: con = G.get_connection()
+        sage: table_dict = construct_skeleton(con)['graph_data']
+        sage: skel_to_col_attr_list(table_dict)
+        [(u'perfect', u'BOOLEAN', False),
+         (u'planar', u'BOOLEAN', False),
+         (u'graph_id', u'INTEGER', False),
+         (u'complement_graph6', u'TEXT', False),
+         (u'num_edges', u'INTEGER', False),
+         (u'num_cycles', u'INTEGER', False),
+         (u'graph6', u'TEXT', False),
+         (u'num_hamiltonian_cycles', u'INTEGER', False),
+         (u'lovasz_number', u'REAL', False),
+         (u'eulerian', u'BOOLEAN', False),
+         (u'num_vertices', u'INTEGER', False)]
+
+    """
     s = []
     for col in table_dict:
         s.append((col, table_dict[col]['sql'], table_dict[col]['primary_key']))
     return s
 
 def new_table_set_col_attr(connection, table_name, table_skeleton):
+    """
+    Adds indices to the database wherever they are specified in the
+    table_skeleton.  Note that an error will occur if adding an index
+    on an already-indexed column.  We also remark that this is called
+    automatically when creating a new table, so it is unlikely that a
+    user will call this method directly.
+
+    EXAMPLE:
+        sage: S = SQLDatabase()
+        sage: table_skeleton = {
+        ...         'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
+        ...         'vertices':{'sql':'INTEGER'},
+        ...         'edges':{'sql':'INTEGER'}
+        ...         }
+        sage: S.create_table('graph',table_skeleton)
+        sage: diff_skeleton = {
+        ...         'vertices':{'sql':'INTEGER', 'index':True},
+        ...         'edges':{'sql':'INTEGER', 'index':True}
+        ...         }
+        sage: from sage.databases.database import new_table_set_col_attr, construct_skeleton
+        sage: new_table_set_col_attr(S.get_connection(),'graph',diff_skeleton)
+        sage: construct_skeleton(S.get_connection())
+        {u'graph': {u'edges': {'index': True,
+                               'primary_key': False,
+                               'sql': u'INTEGER'},
+                    u'graph6': {'index': True, 'primary_key': True, 'sql': u'TEXT'},
+                    u'vertices': {'index': True,
+                                  'primary_key': False,
+                                  'sql': u'INTEGER'}}}
+    """
     statement = ''
     for col in table_skeleton:
         if table_skeleton[col].has_key('index'):
             if table_skeleton[col]['index']:
                 statement += 'CREATE INDEX %s ON %s (%s);\n'%(col, table_name, col)
-        else:
-            table_skeleton[col]['index'] = False
+            else:
+                table_skeleton[col]['index'] = False
     if (statement != ''):
         connection.executescript(statement)
+
 
 def _apply_format(func, x, html, id=None):
     """
@@ -176,6 +296,15 @@ def _apply_format(func, x, html, id=None):
         x -- the data to reformat
         html -- whether the output display is in the notebook
         id -- if the function needs an additional identifier of the data
+
+    EXAMPLES:
+        sage: from sage.databases.database import _apply_format
+        sage: def f(lower=''):
+        ...     return lower.capitalize()
+        sage: _apply_format(f,'capitalize me',False)
+        'Capitalize me'
+        sage: _apply_format(f,'capitalize me',True)
+        '<td bgcolor=white align=center> Capitalize me </td>'
     """
     if id is not None:
         func_str = str(func(x,id))
@@ -188,10 +317,10 @@ def _apply_format(func, x, html, id=None):
 
 def _apply_plot(func, x, fig_num, figsize=[1,1], with_label=True,**kwds):
     """
-    Draws a representative plot in the database output.  Allows passing
-    of plot keywords.  data x is assumed to be an identifer for the
-    object's plotting function.  For an example of use, see the
-    GenericSQLQuery show function.
+    Saves a representative plot to be drawn in the database output.
+    Allows passing of plot keywords.  Data x is assumed to be an
+    identifer for the object's plotting function.  For an example of
+    use, see the GenericSQLQuery show function.
 
     INPUT:
         func -- the function that plots the object
@@ -199,6 +328,14 @@ def _apply_plot(func, x, fig_num, figsize=[1,1], with_label=True,**kwds):
         fig_num -- integer used to save plot data
         with_label -- whether or not to print data x with picture
         **kwds -- plotting keywords are allowed
+
+    EXAMPLES:
+        sage: from sage.databases.database import _apply_plot
+        sage: def p(graph6):
+        ...     g = Graph(str(graph6))
+        ...     return g.plot(layout='circular', vertex_size=30, vertex_labels=False)
+        sage: _apply_plot(p, 'C?', 0)
+        '<td bgcolor=white align=center>C?<br><img src="cell://0.png"></td>'
     """
     p = func(x)
     p.save('%d.png'%fig_num, figsize=figsize)
@@ -345,12 +482,13 @@ class GenericSQLQuery(SageObject):
         and unions.
 
         Of course, we can save the database to file:
-            sage: D.save('simon.db')
+            sage: replace_with_your_own_filepath = tmp_dir()
+            sage: D.save(replace_with_your_own_filepath + 'simon.db')
 
         Now the database's hard link is to this file, and not the temporary db
         file. For example, let's say we open the same file with another class
         instance. We can load the file as an immutable database:
-            sage: E = GenericSQLDatabase('simon.db')
+            sage: E = GenericSQLDatabase(replace_with_your_own_filepath + 'simon.db')
             sage: E.show('simon')
             edges                graph6               vertices
             ------------------------------------------------------------
@@ -385,6 +523,26 @@ class GenericSQLQuery(SageObject):
         self.__database__ = database
 
     def __repr__(self):
+        """
+        Overrides the print output to display useful info regarding the
+        query.
+
+        EXAMPLES:
+            sage: G = GraphDatabase()
+            sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
+            sage: param = (22,5)
+            sage: Q = GenericSQLQuery(G,q,param)
+            sage: print Q
+            Query for sql database: /Users/ekirkm/sage/data//graphs/graphs.db
+            Query string: select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)
+            Parameter tuple: (22, 5)
+
+            sage: r = 'select graph6 from graph_data where num_vertices<=3'
+            sage: R = GenericSQLQuery(G,r)
+            sage: print R
+            Query for sql database: /Users/ekirkm/sage/data//graphs/graphs.db
+            Query string: select graph6 from graph_data where num_vertices<=3
+        """
         if not self.__query_string__: return 'Empty query on %s.'%self.__database__.__dblocation__
         s = "Query for sql database: "
         s += self.__database__.__dblocation__ + "\n"
@@ -398,14 +556,42 @@ class GenericSQLQuery(SageObject):
     def get_query_string(self):
         """
         Returns a copy of the query string.
+
+        EXAMPLES:
+            sage: G = GraphDatabase()
+            sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
+            sage: param = (22,5)
+            sage: Q = GenericSQLQuery(G,q,param)
+            sage: Q.get_query_string()
+            'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
+            sage: r = 'select graph6 from graph_data where num_vertices<=3'
+            sage: R = GenericSQLQuery(G,r)
+            sage: R.get_query_string()
+            'select graph6 from graph_data where num_vertices<=3'
         """
         from copy import copy
         return copy(self.__query_string__)
 
     def copy(self):
         """
-        Returns a copy of the database, whose underlying file is also a copy
-        of the original file.
+        Returns a copy of the query.
+
+        EXAMPLES:
+            sage: G = GraphDatabase()
+            sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
+            sage: param = (22,5)
+            sage: Q = GenericSQLQuery(G,q,param)
+            sage: R = Q.copy()
+            sage: R.get_query_string()
+            'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
+            sage: R.show()
+            graph_id             graph6               num_vertices         num_edges
+            --------------------------------------------------------------------------------
+            18                   D??                  5                    0
+            19                   D?C                  5                    1
+            20                   D?K                  5                    2
+            21                   D@O                  5                    2
+            22                   D?[                  5                    3
         """
         return GenericSQLQuery(self.__database__, self.__query_string__, self.__param_tuple__)
 
@@ -493,9 +679,12 @@ class GenericSQLQuery(SageObject):
         sage: D = GraphDatabase()
         sage: from sage.graphs.graph_database import valid_kwds, data_to_degseq
         sage: relabel = {}
+        sage: D = GraphDatabase()
+        sage: from sage.graphs.graph_database import valid_kwds, data_to_degseq
+        sage: relabel = {}
         sage: for col in valid_kwds:
-        ....: relabel[col] = ' '.join([word.capitalize() for word in col.split('_')])
-        ....:
+        ...     relabel[col] = ' '.join([word.capitalize() for word in col.split('_')])
+
         sage: q = GraphQuery(display_cols=['graph6','degree_sequence'], num_vertices=4)
         sage: GenericSQLQuery.show(q, format_cols={'degree_sequence': (lambda x,y: data_to_degseq(x,y))}, relabel_cols=relabel,id_col='graph6')
         Graph6               Degree Sequence
@@ -727,12 +916,13 @@ class SQLQuery(GenericSQLQuery):
         and unions.
 
         Of course, we can save the database to file:
-            sage: D.save('simon.db')
+            sage: replace_with_your_own_filepath = tmp_dir()
+            sage: D.save(replace_with_your_own_filepath + 'simon.db')
 
         Now the database's hard link is to this file, and not the temporary db
         file. For example, let's say we open the same file with another class
         instance. We can load the file as an immutable database:
-            sage: E = GenericSQLDatabase('simon.db')
+            sage: E = GenericSQLDatabase(replace_with_your_own_filepath + 'simon.db')
             sage: E.show('simon')
             edges                graph6               vertices
             ------------------------------------------------------------
@@ -759,7 +949,6 @@ class SQLQuery(GenericSQLQuery):
             Traceback (most recent call last):
             ...
             AttributeError: 'GenericSQLDatabase' object has no attribute 'drop_table'
-
 
         """
         self.__database__ = database
@@ -815,6 +1004,65 @@ class SQLQuery(GenericSQLQuery):
         """
         Returns a copy of itself.
 
+        EXAMPLES:
+            sage: G = GraphDatabase()
+            sage: Q = SQLQuery(G, {'table_name':'graph_data', 'display_cols':['graph_id','graph6','num_vertices'],'expression':['num_edges','<',3]})
+            sage: Q.show()
+            graph_id             graph6               num_vertices
+            ------------------------------------------------------------
+            0                    @                    1
+            1                    A?                   2
+            3                    B?                   3
+            7                    C?                   4
+            18                   D??                  5
+            52                   E???                 6
+            208                  F????                7
+            2                    A_                   2
+            4                    BG                   3
+            8                    C@                   4
+            19                   D?C                  5
+            53                   E??G                 6
+            209                  F???G                7
+            5                    BW                   3
+            9                    CB                   4
+            10                   CK                   4
+            20                   D?K                  5
+            21                   D@O                  5
+            54                   E??W                 6
+            55                   E?C_                 6
+            210                  F???W                7
+            211                  F??G_                7
+            sage: R = Q.copy()
+            sage: print R
+            Query for sql database: /Users/ekirkm/sage/data//graphs/graphs.db
+            Query string: SELECT graph_data.graph_id, graph_data.graph6, graph_data.num_vertices FROM graph_data WHERE graph_data.num_edges < ?
+            Parameter tuple: (3,)
+
+            sage: R.show()
+            graph_id             graph6               num_vertices
+            ------------------------------------------------------------
+            0                    @                    1
+            1                    A?                   2
+            3                    B?                   3
+            7                    C?                   4
+            18                   D??                  5
+            52                   E???                 6
+            208                  F????                7
+            2                    A_                   2
+            4                    BG                   3
+            8                    C@                   4
+            19                   D?C                  5
+            53                   E??G                 6
+            209                  F???G                7
+            5                    BW                   3
+            9                    CB                   4
+            10                   CK                   4
+            20                   D?K                  5
+            21                   D@O                  5
+            54                   E??W                 6
+            55                   E?C_                 6
+            210                  F???W                7
+            211                  F??G_                7
         """
         d = SQLQuery(self.__database__)
         d.__query_dict__ = self.__query_dict__
@@ -1225,12 +1473,13 @@ class GenericSQLDatabase(SageObject):
         and unions.
 
         Of course, we can save the database to file:
-            sage: D.save('simon.db')
+            sage: replace_with_your_own_filepath = tmp_dir()
+            sage: D.save(replace_with_your_own_filepath + 'simon.db')
 
         Now the database's hard link is to this file, and not the temporary db
         file. For example, let's say we open the same file with another class
         instance. We can load the file as an immutable database:
-            sage: E = GenericSQLDatabase('simon.db')
+            sage: E = GenericSQLDatabase(replace_with_your_own_filepath + 'simon.db')
             sage: E.show('simon')
             edges                graph6               vertices
             ------------------------------------------------------------
@@ -1272,6 +1521,18 @@ class GenericSQLDatabase(SageObject):
         self.__skeleton__ = construct_skeleton(self.__connection__)
 
     def __repr__(self):
+        """
+        Overrides the print output to display useful info regarding the
+        database.
+
+        EXAMPLE:
+            sage: replace_with_filepath = tmp_dir() + 'test.db'
+            sage: SD = SQLDatabase(replace_with_filepath)
+            sage: SD.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}})
+            sage: print SD
+            table simon:
+               column n: index: True; primary_key: False; sql: INTEGER;
+        """
         s = ''
         for table in self.__skeleton__:
             s += 'table ' + table + ':\n'
@@ -1360,9 +1621,9 @@ class GenericSQLDatabase(SageObject):
             sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}})
             sage: for n in range(20):
             ...     MonicPolys.add_row('simon', (n,))
-            ...
-            sage: MonicPolys.save(tmp_dir() + 'sage.db')
-            sage: N = GenericSQLDatabase('sage.db')
+            sage: tmp = tmp_dir() # replace with your own file path
+            sage: MonicPolys.save(tmp+'sage.db')
+            sage: N = GenericSQLDatabase(tmp+'sage.db')
             sage: N.show('simon')
             n
             --------------------
@@ -1386,7 +1647,6 @@ class GenericSQLDatabase(SageObject):
             17
             18
             19
-
         """
         try:
             self.__connection__.execute('commit')
@@ -1447,10 +1707,11 @@ class GenericSQLDatabase(SageObject):
         EXAMPLE:
             sage: D = SQLDatabase()
             sage: D.create_table('simon', {'wolf':{'sql':'BOOLEAN'}, 'tag':{'sql':'INTEGER'}})
-            sage: D.query({'table_name':'simon', 'display_cols':['tag'], 'expression':['wolf','=',1]})
-            Query for sql database: /Users/ekirkman/.sage//temp/william_steins_macbook.local/15733//tmp_3.db
-            Query string: SELECT simon.tag FROM simon WHERE simon.wolf = ?
-            Parameter tuple: (1,)
+            sage: q = D.query({'table_name':'simon', 'display_cols':['tag'], 'expression':['wolf','=',1]})
+            sage: q.get_query_string()
+            'SELECT simon.tag FROM simon WHERE simon.wolf = ?'
+            sage: q.__param_tuple__
+            (1,)
         """
         return SQLQuery(self, query_dict)
 
@@ -1462,10 +1723,11 @@ class GenericSQLDatabase(SageObject):
         EXAMPLE:
             sage: D = SQLDatabase()
             sage: D.create_table('simon', {'wolf':{'sql':'BOOLEAN'}, 'tag':{'sql':'INTEGER'}})
-            sage: D.generic_query(query_string='select tag from simon where wolf=?',param_tuple=(1,))
-            Query for sql database: /Users/ekirkman/.sage//temp/william_steins_macbook.local/15733//tmp_4.db
-            Query string: select tag from simon where wolf=?
-            Parameter tuple: (1,)
+            sage: q = D.generic_query(query_string='select tag from simon where wolf=?',param_tuple=(1,))
+            sage: q.get_query_string()
+            'select tag from simon where wolf=?'
+            sage: q.__param_tuple__
+            (1,)
         """
         return GenericSQLQuery(self, query_string, param_tuple)
 
@@ -1520,157 +1782,158 @@ class GenericSQLDatabase(SageObject):
 
 
 class SQLDatabase(GenericSQLDatabase):
-    r"""
-    A SQL Database object corresponding to a database file.
-
-    INPUT:
-        filename -- a string
-        skeleton -- a triple-indexed dictionary
-                outer key - table name
-                    inner key - column name
-                        inner inner key - one of the following:
-                primary_key - boolean, whether column has been set as primary key
-                index - boolean, whether column has been set as index
-                sql - one of 'TEXT', 'BOOLEAN', 'INTEGER', 'REAL', or other
-                    user defined type
-
-    TUTORIAL:
-    The SQLDatabase class is for interactively building databases intended for
-    queries. This may sound redundant, but it is important. If you want a
-    database intended for quick lookup of entries in very large tables, much
-    like a hash table (such as a Python dictionary), a SQLDatabase may not be
-    what you are looking for. The strength of SQLDatabases is in queries,
-    searches through the database with complicated criteria.
-
-    The class GenericSQLDatabase is for developers to provide a static
-    database. The class does not support modification, and is meant to be a
-    base class for specific classes of databases, such as the graph database.
-
-    For example, we create a new database for storing isomorphism classes of
-    simple graphs:
-        sage: D = SQLDatabase()
-
-    In order to generate representatives for the classes, we will import a
-    function which generates all labeled graphs (noting that this is not the
-    optimal way):
-        sage: from sage.graphs.graph_isom import all_labeled_graphs
-
-    We will need a table in the database in which to store the graphs, and we
-    specify its structure with a Python dictionary, each of whose keys is the
-    name of a column:
-        sage: table_skeleton = {
-        ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-        ... 'vertices':{'sql':'INTEGER'},
-        ... 'edges':{'sql':'INTEGER'}
-        ... }
-
-    Then we create the table:
-        sage: D.create_table('simon', table_skeleton)
-        sage: D.show('simon')
-        edges                graph6               vertices
-        ------------------------------------------------------------
-
-    Now that we have the table, we will begin to populate the table with
-    rows. First, add the graph on zero vertices.
-        sage: G = Graph()
-
-        sage: D.add_row('simon',(0, G.graph6_string(), 0))
-
-        sage: D.show('simon')
-        edges                graph6               vertices
-        ------------------------------------------------------------
-        0                    ?                    0
-
-    Next, add the graph on one vertex.
-        sage: G.add_vertex()
-        sage: D.add_row('simon',(0, G.graph6_string(), 1))
-        sage: D.show('simon')
-        edges                graph6               vertices
-        ------------------------------------------------------------
-        0                    ?                    0
-        0                    @                    1
-
-    Say we want a database of graphs on four or less vertices:
-        sage: labels = {}
-        sage: for i in range(2, 5):
-        ...       labels[i] = []
-        ...       for g in all_labeled_graphs(i):
-        ...           g = g.canonical_label()
-        ...           if g not in labels[i]:
-        ...               labels[i].append(g)
-        ...               D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
-        ...
-        sage: D.show('simon')
-        edges                graph6               vertices
-        ------------------------------------------------------------
-        0                    ?                    0
-        0                    @                    1
-        0                    A?                   2
-        1                    A_                   2
-        0                    B?                   3
-        1                    BG                   3
-        2                    BW                   3
-        3                    Bw                   3
-        0                    C?                   4
-        1                    C@                   4
-        2                    CB                   4
-        3                    CF                   4
-        3                    CJ                   4
-        2                    CK                   4
-        3                    CL                   4
-        4                    CN                   4
-        4                    C]                   4
-        5                    C^                   4
-        6                    C~                   4
-
-    We can then query the database-- let's ask for all the graphs on four
-    vertices with three edges. We do so by creating two queries and asking for
-    rows that satisfy them both:
-        sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['vertices','=',4]})
-        sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['edges','=',3]})
-        sage: Q = Q.intersect(Q2)
-        sage: Q.run_query()
-        [(u'CF', u'CF'), (u'CJ', u'CJ'), (u'CL', u'CL')]
-
-    NOTE - The values of display_cols are always concatenated in intersections
-    and unions.
-
-    Of course, we can save the database to file:
-        sage: D.save(tmp_dir() + 'simon.db')
-
-    Now the database's hard link is to this file, and not the temporary db
-    file. For example, let's say we open the same file with another class
-    instance. We can load the file as an immutable database:
-        sage: E = GenericSQLDatabase('simon.db')
-        sage: E.show('simon')
-        edges                graph6               vertices
-        ------------------------------------------------------------
-        0                    ?                    0
-        0                    @                    1
-        0                    A?                   2
-        1                    A_                   2
-        0                    B?                   3
-        1                    BG                   3
-        2                    BW                   3
-        3                    Bw                   3
-        0                    C?                   4
-        1                    C@                   4
-        2                    CB                   4
-        3                    CF                   4
-        3                    CJ                   4
-        2                    CK                   4
-        3                    CL                   4
-        4                    CN                   4
-        4                    C]                   4
-        5                    C^                   4
-        6                    C~                   4
-        sage: E.drop_table('simon')
-        Traceback (most recent call last):
-        ...
-        AttributeError: 'GenericSQLDatabase' object has no attribute 'drop_table'
-    """
 
     def __init__(self, filename=None, skeleton=None):
+        r"""
+        A SQL Database object corresponding to a database file.
+
+        INPUT:
+            filename -- a string
+            skeleton -- a triple-indexed dictionary
+                    outer key - table name
+                        inner key - column name
+                            inner inner key - one of the following:
+                    primary_key - boolean, whether column has been set as primary key
+                    index - boolean, whether column has been set as index
+                    sql - one of 'TEXT', 'BOOLEAN', 'INTEGER', 'REAL', or other
+                        user defined type
+
+        TUTORIAL:
+        The SQLDatabase class is for interactively building databases intended for
+        queries. This may sound redundant, but it is important. If you want a
+        database intended for quick lookup of entries in very large tables, much
+        like a hash table (such as a Python dictionary), a SQLDatabase may not be
+        what you are looking for. The strength of SQLDatabases is in queries,
+        searches through the database with complicated criteria.
+
+        The class GenericSQLDatabase is for developers to provide a static
+        database. The class does not support modification, and is meant to be a
+        base class for specific classes of databases, such as the graph database.
+
+        For example, we create a new database for storing isomorphism classes of
+        simple graphs:
+            sage: D = SQLDatabase()
+
+        In order to generate representatives for the classes, we will import a
+        function which generates all labeled graphs (noting that this is not the
+        optimal way):
+            sage: from sage.graphs.graph_isom import all_labeled_graphs
+
+        We will need a table in the database in which to store the graphs, and we
+        specify its structure with a Python dictionary, each of whose keys is the
+        name of a column:
+            sage: table_skeleton = {
+            ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
+            ... 'vertices':{'sql':'INTEGER'},
+            ... 'edges':{'sql':'INTEGER'}
+            ... }
+
+        Then we create the table:
+            sage: D.create_table('simon', table_skeleton)
+            sage: D.show('simon')
+            edges                graph6               vertices
+            ------------------------------------------------------------
+
+        Now that we have the table, we will begin to populate the table with
+        rows. First, add the graph on zero vertices.
+            sage: G = Graph()
+
+            sage: D.add_row('simon',(0, G.graph6_string(), 0))
+
+            sage: D.show('simon')
+            edges                graph6               vertices
+            ------------------------------------------------------------
+            0                    ?                    0
+
+        Next, add the graph on one vertex.
+            sage: G.add_vertex()
+            sage: D.add_row('simon',(0, G.graph6_string(), 1))
+            sage: D.show('simon')
+            edges                graph6               vertices
+            ------------------------------------------------------------
+            0                    ?                    0
+            0                    @                    1
+
+        Say we want a database of graphs on four or less vertices:
+            sage: labels = {}
+            sage: for i in range(2, 5):
+            ...       labels[i] = []
+            ...       for g in all_labeled_graphs(i):
+            ...           g = g.canonical_label()
+            ...           if g not in labels[i]:
+            ...               labels[i].append(g)
+            ...               D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
+            ...
+            sage: D.show('simon')
+            edges                graph6               vertices
+            ------------------------------------------------------------
+            0                    ?                    0
+            0                    @                    1
+            0                    A?                   2
+            1                    A_                   2
+            0                    B?                   3
+            1                    BG                   3
+            2                    BW                   3
+            3                    Bw                   3
+            0                    C?                   4
+            1                    C@                   4
+            2                    CB                   4
+            3                    CF                   4
+            3                    CJ                   4
+            2                    CK                   4
+            3                    CL                   4
+            4                    CN                   4
+            4                    C]                   4
+            5                    C^                   4
+            6                    C~                   4
+
+        We can then query the database-- let's ask for all the graphs on four
+        vertices with three edges. We do so by creating two queries and asking for
+        rows that satisfy them both:
+            sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['vertices','=',4]})
+            sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['edges','=',3]})
+            sage: Q = Q.intersect(Q2)
+            sage: Q.run_query()
+            [(u'CF', u'CF'), (u'CJ', u'CJ'), (u'CL', u'CL')]
+
+        NOTE - The values of display_cols are always concatenated in intersections
+        and unions.
+
+        Of course, we can save the database to file:
+            sage: replace_with_your_own_filepath = tmp_dir()
+            sage: D.save(replace_with_your_own_filepath + 'simon.db')
+
+        Now the database's hard link is to this file, and not the temporary db
+        file. For example, let's say we open the same file with another class
+        instance. We can load the file as an immutable database:
+            sage: E = GenericSQLDatabase(replace_with_your_own_filepath + 'simon.db')
+            sage: E.show('simon')
+            edges                graph6               vertices
+            ------------------------------------------------------------
+            0                    ?                    0
+            0                    @                    1
+            0                    A?                   2
+            1                    A_                   2
+            0                    B?                   3
+            1                    BG                   3
+            2                    BW                   3
+            3                    Bw                   3
+            0                    C?                   4
+            1                    C@                   4
+            2                    CB                   4
+            3                    CF                   4
+            3                    CJ                   4
+            2                    CK                   4
+            3                    CL                   4
+            4                    CN                   4
+            4                    C]                   4
+            5                    C^                   4
+            6                    C~                   4
+            sage: E.drop_table('simon')
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'GenericSQLDatabase' object has no attribute 'drop_table'
+        """
         if filename is None:
             filename = tmp_filename() + '.db'
         elif (filename[-3:] != '.db'):
@@ -1707,6 +1970,15 @@ class SQLDatabase(GenericSQLDatabase):
 
         Recommended for more advanced users only.
 
+        EXAMPLE:
+            sage: DB = SQLDatabase()
+            sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB.add_row('simon',(0,1))
+            sage: DB.add_rows('simon',[(0,0),(1,1),(1,2)])
+            sage: DB.add_rows('simon',[(0,0),(4,0),(5,1)], ['b2','a1'])
+            sage: cur = DB.get_cursor()
+            sage: (cur.execute('select * from simon')).fetchall()
+            [(0, 1), (0, 0), (1, 1), (1, 2), (0, 0), (0, 4), (1, 5)]
         """
         return self.__connection__.cursor()
 
@@ -1719,6 +1991,25 @@ class SQLDatabase(GenericSQLDatabase):
 
         Recommended for more advanced users only.
 
+        EXAMPLE:
+            sage: D = SQLDatabase()
+            sage: con = D.get_connection()
+            sage: t = con.execute('create table simon(n INTEGER, n2 INTEGER)')
+            sage: for n in range(10):
+            ...     t = con.execute('insert into simon values(%d,%d)'%(n,n^2))
+            sage: D.show('simon')
+            n                    n2
+            ----------------------------------------
+            0                    0
+            1                    1
+            2                    4
+            3                    9
+            4                    16
+            5                    25
+            6                    36
+            7                    49
+            8                    64
+            9                    81
         """
         return self.__connection__
 
@@ -2269,10 +2560,9 @@ class SQLDatabase(GenericSQLDatabase):
             {'simon': {'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
         """
 
-        # WORD ON THE STREET IS THAT SQLITE IS RETARDED ABOUT
-        # *ALTER TABLE* COMMANDS... SO MEANWHILE WE ACCOMPLISH THIS
-        # BY CREATING A TEMPORARY TABLE.  SUGGESTIONS FOR SPEEDUP ARE
-        # WELCOME.  (OR JUST SEND A PATCH...)
+        # To get around sqlite's problems with *alter table* commands, we
+        # have set up the creation of a temporary database in this method.
+        # Please feel free to improve on this by sending a patch or suggestion.
 
         if not self.__skeleton__.has_key(table_name):
             raise ValueError("Database has no table %s."%table_name)
@@ -2369,10 +2659,9 @@ class SQLDatabase(GenericSQLDatabase):
             {'simon': {'n2': {'index': True, 'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': False, 'primary_key': False, 'sql': 'INTEGER'}}}
 
         """
-        # WORD ON THE STREET IS THAT SQLITE IS RETARDED ABOUT
-        # *ALTER TABLE* COMMANDS... SO MEANWHILE WE ACCOMPLISH THIS
-        # BY CREATING A TEMPORARY TABLE.  SUGGESTIONS FOR SPEEDUP ARE
-        # WELCOME.  (OR JUST SEND A PATCH...)
+        # To get around sqlite's problems with *alter table* commands, we
+        # have set up the creation of a temporary database in this method.
+        # Please feel free to improve on this by sending a patch or suggestion.
 
         if not self.__skeleton__.has_key(table_name):
             raise ValueError("Database has no table %s."%table_name)
@@ -2570,7 +2859,35 @@ class SQLDatabase(GenericSQLDatabase):
         Cleans the extra hard disk space used up by a database that has
         recently shrunk.
 
-        No doctest is intentional.
+        EXAMPLE:
+            sage: DB = SQLDatabase()
+            sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB.add_row('simon',(0,1))
+            sage: DB.add_data('simon',[(0,0),(1,1),(1,2)])
+            sage: DB.add_data('simon',[(0,0),(4,0),(5,1)], ['b2','a1'])
+            sage: DB.show('simon')
+            a1                   b2
+            ----------------------------------------
+            0                    1
+            0                    0
+            1                    1
+            1                    2
+            0                    0
+            0                    4
+            1                    5
+            sage: DB.drop_column('simon','b2')
+            sage: DB.commit()
+            sage: DB.vacuum()
+            sage: DB.show('simon')
+            a1
+            --------------------
+            0
+            0
+            1
+            1
+            0
+            0
+            1
         """
         self.__connection__.execute('vacuum')
 
@@ -2578,7 +2895,35 @@ class SQLDatabase(GenericSQLDatabase):
         """
         Commits changes to file.
 
-        No doctest is intentional.
+        EXAMPLE:
+            sage: DB = SQLDatabase()
+            sage: DB.create_table('simon',{'a1':{'sql':'bool','primary_key':False}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB.add_row('simon',(0,1))
+            sage: DB.add_data('simon',[(0,0),(1,1),(1,2)])
+            sage: DB.add_data('simon',[(0,0),(4,0),(5,1)], ['b2','a1'])
+            sage: DB.show('simon')
+            a1                   b2
+            ----------------------------------------
+            0                    1
+            0                    0
+            1                    1
+            1                    2
+            0                    0
+            0                    4
+            1                    5
+            sage: DB.drop_column('simon','b2')
+            sage: DB.commit()
+            sage: DB.vacuum()
+            sage: DB.show('simon')
+            a1
+            --------------------
+            0
+            0
+            1
+            1
+            0
+            0
+            1
         """
         try:
             self.__connection__.execute('commit')

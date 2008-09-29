@@ -34,6 +34,14 @@ REFERENCES:
 
 """
 
+################################################################################
+#           Copyright (C) 2007 Emily A. Kirkman
+#
+#
+# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
+#                         http://www.gnu.org/licenses/
+################################################################################
+
 import graph
 import re
 import os
@@ -618,10 +626,142 @@ class GraphDatabase(GenericSQLDatabase):
         REFERENCES:
             -- Data provided by Jason Grout (Brigham Young University).
                [Online] Available: http://math.byu.edu/~grout/graphs/
+
+		EXAMPLE:
+			sage: G = GraphDatabase()
+			sage: G.get_skeleton()
+			{u'aut_grp': {u'aut_grp_size': {'index': True,
+											'primary_key': False,
+											'sql': u'INTEGER'},
+						  u'edge_transitive': {'index': True,
+											   'primary_key': False,
+											   'sql': u'BOOLEAN'},
+						  u'graph_id': {'index': False,
+										'primary_key': False,
+										'sql': u'INTEGER'},
+						  u'num_fixed_points': {'index': True,
+												'primary_key': False,
+												'sql': u'INTEGER'},
+						  u'num_orbits': {'index': True,
+										  'primary_key': False,
+										  'sql': u'INTEGER'},
+						  u'vertex_transitive': {'index': True,
+												 'primary_key': False,
+												 'sql': u'BOOLEAN'}},
+			 u'degrees': {u'average_degree': {'index': True,
+											  'primary_key': False,
+											  'sql': u'REAL'},
+						  u'degree_sequence': {'index': False,
+											   'primary_key': False,
+											   'sql': u'INTEGER'},
+						  u'degrees_sd': {'index': True,
+										  'primary_key': False,
+										  'sql': u'REAL'},
+						  u'graph_id': {'index': False,
+										'primary_key': False,
+										'sql': u'INTEGER'},
+						  u'max_degree': {'index': True,
+										  'primary_key': False,
+										  'sql': u'INTEGER'},
+						  u'min_degree': {'index': True,
+										  'primary_key': False,
+										  'sql': u'INTEGER'},
+						  u'regular': {'index': True,
+									   'primary_key': False,
+									   'sql': u'BOOLEAN'}},
+			 u'graph_data': {u'complement_graph6': {'index': True,
+													'primary_key': False,
+													'sql': u'TEXT'},
+							 u'eulerian': {'index': True,
+										   'primary_key': False,
+										   'sql': u'BOOLEAN'},
+							 u'graph6': {'index': True,
+										 'primary_key': False,
+										 'sql': u'TEXT'},
+							 u'graph_id': {'index': True,
+										   'primary_key': False,
+										   'sql': u'INTEGER'},
+							 u'lovasz_number': {'index': True,
+												'primary_key': False,
+												'sql': u'REAL'},
+							 u'num_cycles': {'index': True,
+											 'primary_key': False,
+											 'sql': u'INTEGER'},
+							 u'num_edges': {'index': True,
+											'primary_key': False,
+											'sql': u'INTEGER'},
+							 u'num_hamiltonian_cycles': {'index': True,
+														 'primary_key': False,
+														 'sql': u'INTEGER'},
+							 u'num_vertices': {'index': True,
+											   'primary_key': False,
+											   'sql': u'INTEGER'},
+							 u'perfect': {'index': True,
+										  'primary_key': False,
+										  'sql': u'BOOLEAN'},
+							 u'planar': {'index': True,
+										 'primary_key': False,
+										 'sql': u'BOOLEAN'}},
+			 u'misc': {u'clique_number': {'index': True,
+										  'primary_key': False,
+										  'sql': u'INTEGER'},
+					   u'diameter': {'index': True,
+									 'primary_key': False,
+									 'sql': u'INTEGER'},
+					   u'edge_connectivity': {'index': True,
+											  'primary_key': False,
+											  'sql': u'BOOLEAN'},
+					   u'girth': {'index': True, 'primary_key': False, 'sql': u'INTEGER'},
+					   u'graph_id': {'index': False,
+									 'primary_key': False,
+									 'sql': u'INTEGER'},
+					   u'independence_number': {'index': True,
+												'primary_key': False,
+												'sql': u'INTEGER'},
+					   u'induced_subgraphs': {'index': True,
+											  'primary_key': False,
+											  'sql': u'TEXT'},
+					   u'min_vertex_cover_size': {'index': True,
+												  'primary_key': False,
+												  'sql': u'INTEGER'},
+					   u'num_components': {'index': True,
+										   'primary_key': False,
+										   'sql': u'INTEGER'},
+					   u'num_cut_vertices': {'index': True,
+											 'primary_key': False,
+											 'sql': u'INTEGER'},
+					   u'num_spanning_trees': {'index': True,
+											   'primary_key': False,
+											   'sql': u'INTEGER'},
+					   u'radius': {'index': True,
+								   'primary_key': False,
+								   'sql': u'INTEGER'},
+					   u'vertex_connectivity': {'index': True,
+												'primary_key': False,
+												'sql': u'BOOLEAN'}},
+			 u'spectrum': {u'eigenvalues_sd': {'index': True,
+											   'primary_key': False,
+											   'sql': u'REAL'},
+						   u'energy': {'index': True,
+									   'primary_key': False,
+									   'sql': u'REAL'},
+						   u'graph_id': {'index': False,
+										 'primary_key': False,
+										 'sql': u'INTEGER'},
+						   u'max_eigenvalue': {'index': True,
+											   'primary_key': False,
+											   'sql': u'REAL'},
+						   u'min_eigenvalue': {'index': True,
+											   'primary_key': False,
+											   'sql': u'REAL'},
+						   u'spectrum': {'index': False,
+										 'primary_key': False,
+										 'sql': u'TEXT'}}}
+
         """
         GenericSQLDatabase.__init__(self,dblocation)
 
-    def __gen_interact_func(self, display, **kwds):
+    def _gen_interact_func(self, display, **kwds):
         """
         Generates and returns a function to interact with GraphQuery
         parameters and results.  This is a helper method for the
@@ -631,6 +771,13 @@ class GraphDatabase(GenericSQLDatabase):
             sage: D = GraphDatabase()
             sage: D.interactive_query(display_cols=['graph6','num_vertices','degree_sequence'],num_edges=['<=',5],max_degree=3)
             <html>...</html>
+
+			sage: G = GraphDatabase()
+			sage: f = G._gen_interact_func(display=['graph6'], num_vertices=3)
+			sage: type(f)
+			<type 'function'>
+			sage: interact(f)
+			<html>...
         """
         from sage.server.notebook.interact import input_grid
         arg=['%s=%s'%(word,kwds[word]) for word in kwds]
@@ -786,5 +933,5 @@ class GraphDatabase(GenericSQLDatabase):
         """
         from sage.server.notebook.interact import interact
         print '<html><h1>Interactive Graph Query</h1></html>'
-        f = self.__gen_interact_func(display=display_cols,**kwds)
+        f = self._gen_interact_func(display=display_cols,**kwds)
         interact(f)

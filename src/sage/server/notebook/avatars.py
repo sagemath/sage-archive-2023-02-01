@@ -190,8 +190,8 @@ class LoginSystem(object):
                 rsrc = twist.FailedToplevel(avatarId, problem='password', username=user_type(avatarId)[1])
                 return (iweb.IResource, rsrc, self.logout)
 
-            elif T[0] == 'cookies_disabled':
-                rsrc = twist.FailedToplevel(avatarId, problem='cookies', username=user_type(avatarId)[1])
+            elif T == 'cookies_disabled':
+                rsrc = twist.FailedToplevel(avatarId, problem='cookies_disabled')
                 return (iweb.IResource, rsrc, self.logout)
 
             elif T == 'user':

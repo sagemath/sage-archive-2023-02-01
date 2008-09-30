@@ -23,6 +23,9 @@
 
 == Changelog ==
 
+=== r-2.6.1.p20 (Michael Abshoff, September 30th, 2008) ===
+ * set CPPFLAGS so that Sage's readline is picked up
+
 === r-2.6.1.p19 (Michael Abshoff, September 1st, 2008) ===
  * Disabled libiconv support on Solaris
 

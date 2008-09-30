@@ -14,10 +14,8 @@ fi
 
 CUR=`pwd`
 
-if [ "$SAGE_LOCAL" = "" ]; then
-    echo "SAGE_LOCAL undefined ... exiting";
-    exit 1
-fi
+# set CPPFLAGS so that Sage's readline is picked up
+CPPFLAGS=-I"$SAGE_LOCAL"/inlcude; export CPPFLAGS
 
 # Hack to get around dumb hardcoding.
 cp patches/R.sh.in src/src/scripts/

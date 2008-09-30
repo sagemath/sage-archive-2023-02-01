@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
@@ -7,9 +7,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 cp patches/dpe.h src/src/dpe.h
-cp patches/llldiff.h src/src/llldiff.h
-cp patches/fplll.h src/src/fplll.h
-cp patches/main.cpp src/src/main.cpp
 
 cd src
 

@@ -2,12 +2,12 @@
 
 == Description ==
 
-fpLLL-2.1  contains different implementations of the floating-point LLL reduction algorithm, offering different speed/guarantees ratios. It contains a 'wrapper' choosing the estimated best sequence of variants in order to provide a guaranteed output as fast as possible. In the case of the wrapper, the succession of variants is oblivious to the user.
+fpLLL-3.0.7  contains different implementations of the floating-point LLL reduction algorithm, offering different speed/guarantees ratios. It contains a 'wrapper' choosing the estimated best sequence of variants in order to provide a guaranteed output as fast as possible. In the case of the wrapper, the succession of variants is oblivious to the user.
 
 Website: http://perso.ens-lyon.fr/damien.stehle/english.html
 
 == License ==
- * GPL
+ * LGPL V2+
 
 == SPKG Maintainers ==
  * Martin Albrecht
@@ -22,6 +22,10 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
  * mpfr
 
 == Changelog ==
+
+=== libfplll-3.0.7 (Michael Abshoff, September 30th, 2008) ===
+ * update to latest upstream. The license has changed from GPL V2+ to LGPL V2.1+
+ * remove all workarounds but the dpe.h once for Solaris. The three other fixes have been upstreamed
 
 === libfplll-2.1.6-20071129.p5 (Michael Abshoff, September 24th, 2008) ===
  * Fix Solaris 10 build with more elegant solution to the missing round() problem

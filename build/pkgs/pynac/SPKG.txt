@@ -6,16 +6,16 @@ A modified version of GiNaC that replaces the dependency on CLN by Python.
 
 == License ==
 
-GPL 2+
+GPL V2+
 
 == SPKG Maintainers ==
 
-Burcin Erocal - burcin@erocal.org
+ * Burcin Erocal - burcin@erocal.org
 
 == Upstream Contact ==
 
-Burcin Erocal - burcin@erocal.org
-William Stein - wstein@gmail.com
+ * Burcin Erocal - burcin@erocal.org
+ * William Stein - wstein@gmail.com
 
 == Dependencies ==
 
@@ -25,22 +25,22 @@ Python
 
 If build fails trying to run autoheader, run
 
-autoreconf -i --force
+   autoreconf -i --force
 
 in the src directory.
 
 == Changelog ==
 
-=== pynac-0.1.p0 (Burcin Erocal & Michael Abshoff) ===
-* Change library name, include file location to reflect the package name
-and not conflict with ginac
-* Change library version numbers to reflect package version
-* Fix build problems where autoheader was run
+=== pynac-0.1.p0 (Burcin Erocal, Michael Abshoff, September 20th, 2008) ===
+ * Change library name, include file location to reflect the package name and not conflict with ginac
+ * Change library version numbers to reflect package version
+ * Fix build problems where autoheader was run
 
 === pynac-0.1 (William Stein) ===
+
 Summary of changes from GiNaC:
-* GiNaC::numeric was replaced completely to rely on Python and Sage types
-instead of CLN.
-* Use Pari via Sage to compute numerical values for special functions.
-* Printing order is consistent between different runs.
-* Inverse trig functions print with "arc" instead of "a"
+ * GiNaC::numeric was replaced completely to rely on Python and Sage types instead of CLN.
+ * Use Pari via Sage to compute numerical values for special functions.
+ * Printing order is consistent between different runs.
+ * Inverse trig functions print with "arc" instead of "a"
+

@@ -117,10 +117,10 @@ def ProjectiveGeometryDesign(n, d, F, method=None):
 
     EXAMPLES:
         sage: ProjectiveGeometryDesign(2, 1, GF(2))
-        ProjectiveGeometryDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
-        sage: ProjectiveGeometryDesign(2, 1, GF(2), method="gap")      # requires optional gap package
-        ProjectiveGeometryDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
-
+        Incidence structure with 7 points and 7 blocks
+        sage: BD = ProjectiveGeometryDesign(2, 1, GF(2), method="gap")      # requires optional gap package
+        sage: BD.is_block_design()                                     # requires optional gap package
+        (True, [2, 7, 3, 1])
 
     """
     q = F.order()
@@ -152,9 +152,18 @@ def ProjectiveGeometryDesign(n, d, F, method=None):
 def AffineGeometryDesign(n, d, F):
     """
     Input: n is the Euclidian dimension, so the number of points is
-             v = |GF(q)^n|
-           d is the dimension of the (affine) subspaces of P = GF(q)^n
+             $v = |F^n|$ (F = GF(q), some q)
+           d is the dimension of the (affine) subspaces of $P = GF(q)^n$
              which make up the blocks.
+
+    $AG_{n,d} (F)$, as it is sometimes denoted, is a
+    $2$-$(v, k, \lambda)$ design of points and $d$-flats
+    (cosets of dimension n) in the affine geometry $AG_n (F)$,
+    where
+    \[
+    v = q^n,\  k = q^d ,
+    \lambda =\frac{(q^{n-1}-1)\dots(q^{n+1-d}-1)}{(q^{n-1}-1)\dots(q-1)}.
+    \]
 
     Wraps some functions used in GAP Design's PGPointFlatBlockDesign.
     Does *not* require GAP's Design.
@@ -163,13 +172,13 @@ def AffineGeometryDesign(n, d, F):
         sage: BD = AffineGeometryDesign(3, 1, GF(2))
         sage: BD.parameters()
         (2, 8, 2, 2)
-        sage: BD.is_block_design(2,8,2,2)
-        True
+        sage: BD.is_block_design()
+        (True, [2, 8, 2, 2])
         sage: BD = AffineGeometryDesign(3, 2, GF(2))
         sage: BD.parameters()
         (2, 8, 4, 12)
-        sage: BD.is_block_design(2,8,4,12)
-        True
+        sage: BD.is_block_design()
+        (True, [3, 8, 4, 4])
 
     """
     q = F.order()
@@ -204,6 +213,8 @@ def WittDesign(n):
         sage: BD.parameters()      # requires optional gap package
         (2, 9, 3, 1)
         sage: BD                   # requires optional gap package
+        Incidence structure with 9 points and 12 blocks
+        sage: print BD             # requires optional gap package
         WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
         sage: BD = WittDesign(12)  # requires optional gap package
         sage: BD.parameters(t=5)   # requires optional gap package
@@ -218,7 +229,7 @@ def WittDesign(n):
     gB = []
     for b in gblcks:
        gB.append([x-1 for x in b])
-    return BlockDesign(v, gB, name="WittDesign")
+    return BlockDesign(v, gB, name="WittDesign", test=True)
 
 def HadamardDesign(n):
     """
@@ -230,6 +241,8 @@ def HadamardDesign(n):
 
     EXAMPLES:
         sage: HadamardDesign(7)
+        Incidence structure with 7 points and 7 blocks
+        sage: print HadamardDesign(7)
         HadamardDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
     REFERENCES:
@@ -255,6 +268,8 @@ def BlockDesign(max_pt, blks, name=None, test=True):
 
     EXAMPLES:
         sage: BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="Fano plane")
+        Incidence structure with 7 points and 7 blocks
+        sage: print BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="Fano plane")
         Fano plane<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
     """
@@ -267,16 +282,17 @@ def BlockDesign(max_pt, blks, name=None, test=True):
         return BD
     else:
         pars = BD.parameters()
-        if BD.is_block_design(pars[0],pars[1],pars[2],pars[3]):
+        if BD.block_design_checker(pars[0],pars[1],pars[2],pars[3]):
             return BD
         else:
             raise TypeError("parameters are not those of a block design.")
 
 BlockDesign_generic = IncidenceStructure
 """
-Possibly in the future there will be methods which apply to block designs and not
-incidence structures. None have been implemented yet though. The class name
-BlockDesign_generic is reserved in the name space in case more specialized
-methods are implemented later. In that case, BlockDesign_generic should
-inherit from IncidenceStructure.
+    Possibly in the future there will be methods which apply to
+    block designs and not incidence structures. None have been
+    implemented yet though. The class name BlockDesign_generic
+    is reserved in the name space in case more specialized
+    methods are implemented later. In that case, BlockDesign_generic
+    should inherit from IncidenceStructure.
 """

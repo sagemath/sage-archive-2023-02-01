@@ -19,10 +19,28 @@ William Stein - wstein@gmail.com
 
 == Dependencies ==
 
+Python
 
 == Special Update/Build Instructions ==
 
+If build fails trying to run autoheader, run
+
+autoreconf -i --force
+
+in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.p0 (Burcin Erocal & Michael Abshoff) ===
+* Change library name, include file location to reflect the package name
+and not conflict with ginac
+* Change library version numbers to reflect package version
+* Fix build problems where autoheader was run
+
 === pynac-0.1 (William Stein) ===
+Summary of changes from GiNaC:
+* GiNaC::numeric was replaced completely to rely on Python and Sage types
+instead of CLN.
+* Use Pari via Sage to compute numerical values for special functions.
+* Printing order is consistent between different runs.
+* Inverse trig functions print with "arc" instead of "a"

@@ -1,6 +1,6 @@
-#!/bin/sh
+##!/usr/bin/env bash
 ###########################################
-## PolyBoRi
+## pynac
 ###########################################
 
 if [ "$SAGE_LOCAL" = "" ]; then
@@ -12,38 +12,41 @@ fi
 
 
 WORKDIR=${PWD}/src
-GINACDIR=${WORKDIR}
+PYNACDIR=${WORKDIR}
 
 patch()
 {
     true
 }
 
-build_ginac()
+build_pynac()
 {
-    cd ${GINACDIR}
-    PKG_CONFIG_PATH=${SAGE_LOCAL}/lib/pkgconfig ./configure --disable-static --prefix=${SAGE_LOCAL}
-    $MAKE
+    cd ${PYNACDIR}
+    CPPFLAGS=-I"$SAGE_LOCAL"/include/python2.5 PKG_CONFIG_PATH=${SAGE_LOCAL}/lib/pkgconfig ./configure --disable-static --prefix=${SAGE_LOCAL}
+    CPPFLAGS=-I"$SAGE_LOCAL"/include/python2.5 $MAKE
     if [ $? -ne 0 ]; then
-        echo "Error building ginac."
+        echo "Error building pynac."
         exit 1
     fi
     cd ${WORKDIR}
 }
 
-install_ginac()
+install_pynac()
 {
     rm ${SAGE_LOCAL}/lib/*ginac*
-    cd ${GINACDIR}
+    rm ${SAGE_LOCAL}/lib/*pynac*
+    rm -rf ${SAGE_LOCAL}/include/ginac
+    rm -rf ${SAGE_LOCAL}/include/pynac
+    cd ${PYNACDIR}
     $MAKE install
     if [ $? -ne 0 ]; then
-        echo "Error installing ginac."
+        echo "Error installing pynac."
         exit 1
     fi
     cd ${WORKDIR}
 }
 
-clean_ginac()
+clean_pynac()
 {
     true
 }
@@ -54,19 +57,10 @@ patch
 cd src
 
 echo "Starting build..."
-echo "Running build_ginac..."
-build_ginac
-echo "Done build_ginac."
+echo "Running build_pynac..."
+build_pynac
+echo "Done build_pynac."
 
-echo "Installing ginac..."
-install_ginac
-echo "Done installing ginac."
-
-
-# TODO: Weird problem on Linux.  This is a stupid
-# workaround that has to be fixed in the official release.
-if [ ! -f "$SAGE_LOCAL"/lib/libginac.so ]; then
-     cd "$SAGE_LOCAL"/lib/
-     ln -s libginac libginac.so
-     ln -s libginac libginac.dylib
-fi
+echo "Installing pynac..."
+install_pynac
+echo "Done installing pynac."

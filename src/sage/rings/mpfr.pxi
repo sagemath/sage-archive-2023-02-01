@@ -60,6 +60,7 @@ cdef extern from "mpfr.h":
 
     # Arithmetic
     int mpfr_add (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
+    int mpfr_add_ui (mpfr_t rop, mpfr_t op1, unsigned long int op2, mp_rnd_t rnd)
     int mpfr_sub (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_mul (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_mul_ui (mpfr_t rop, mpfr_t op1, unsigned long int op2, mp_rnd_t rnd)
@@ -118,6 +119,8 @@ cdef extern from "mpfr.h":
     int mpfr_atanh (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
     int mpfr_acosh (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
     int mpfr_asinh (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
+
+    int mpfr_hypot (mpfr_t rop, mpfr_t x, mpfr_t y, mp_rnd_t rnd)
 
     int mpfr_agm (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_gamma (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)

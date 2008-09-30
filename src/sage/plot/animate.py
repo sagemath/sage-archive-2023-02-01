@@ -291,7 +291,16 @@ class Animation(SageObject):
         outfile = os.path.abspath(outfile)
         d = self.png()
         cmd = 'cd "%s"; sage-native-execute convert -delay %s -loop %s *.png "%s"'%(d, int(delay), int(iterations), outfile)
-        os.system(cmd)
+        from subprocess import check_call, CalledProcessError
+        try:
+            check_call(cmd, shell=True)
+        except (CalledProcessError, OSError):
+            print ""
+            print "Error: ImageMagick does not appear to be installed. Saving an"
+            print "animation to a GIF file or displaying an animation requires"
+            print "ImageMagick, so please install it and try again."
+            print ""
+            print "See www.imagemagick.org, for example."
 
     def show(self, delay=20, iterations=0):
         """

@@ -56,7 +56,7 @@ class Animation(SageObject):
         ...       v.append(L)
         ...
         sage: a = animate(v, xmin=0, ymin=0)
-        sage: a.show()
+        sage: a.show() # optional -- requires convert command
         sage: show(L)
 
     TESTS:

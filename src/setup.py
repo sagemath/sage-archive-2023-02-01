@@ -774,6 +774,9 @@ ext_modules = [ \
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
               libraries = ['mpfr', 'pari', 'gmp']), \
 
+    Extension('sage.rings.real_lazy',
+              sources = ['sage/rings/real_lazy.pyx']), \
+
     Extension('sage.rings.real_mpfi',
               sources = ['sage/rings/real_mpfi.pyx'],
               libraries = ['mpfi', 'mpfr', 'gmp']), \

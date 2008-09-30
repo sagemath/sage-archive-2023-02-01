@@ -371,8 +371,8 @@ cdef class RealField(sage.rings.ring.Field):
              * floats and RDF if self.prec <= 53
 
         TESTS:
-            sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealField(100)(1) - AA(1)
-            -5.00000000000000
+            sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
+            -6.00000000000000
             sage: RR['x'].get_action(ZZ)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Real Field with 53 bits of precision
         """
@@ -390,8 +390,10 @@ cdef class RealField(sage.rings.ring.Field):
             return QQtoRR(QQ, self) * QQ.coerce_map_from(S)
         from sage.rings.qqbar import AA
         from sage.rings.real_rqdf import RQDF
-        if S == AA or (S == RQDF and self.__prec <= 212):
+        from sage.rings.real_lazy import RLF
+        if S == AA or S is RLF or (S == RQDF and self.__prec <= 212):
             return self._generic_convert_map(S)
+        return self._coerce_map_via([RLF], S)
 
     def __cmp__(self, other):
         """

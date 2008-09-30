@@ -32,12 +32,14 @@ AlgebraicNumber = None
 AlgebraicReal = None
 AA = None
 QQbar = None
+CLF = RLF = None
 def late_import():
     global NumberFieldElement_quadratic
     global AlgebraicNumber_base
     global AlgebraicNumber
     global AlgebraicReal
     global AA, QQbar
+    global CLF, RLF
     if NumberFieldElement_quadratic is None:
         import sage.rings.number_field.number_field_element_quadratic as nfeq
         NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
@@ -47,6 +49,7 @@ def late_import():
         AlgebraicReal = sage.rings.qqbar.AlgebraicReal
         AA = sage.rings.qqbar.AA
         QQbar = sage.rings.qqbar.QQbar
+        from real_lazy import CLF, RLF
 
 def is_ComplexField(x):
     return isinstance(x, ComplexField_class)
@@ -237,8 +240,12 @@ class ComplexField_class(field.Field):
            * anything that canonically coerces to the mpfr real field with this prec
 
         EXAMPLES:
-        sage: ComplexField(200)(1) + RealField(90)(1)
-        2.0000000000000000000000000
+            sage: ComplexField(200)(1) + RealField(90)(1)
+            2.0000000000000000000000000
+            sage: parent(ComplexField(200)(1) + RealField(90)(1))
+            Complex Field with 90 bits of precision
+            sage: CC.0 + RLF(1/3)
+            0.333333333333333 + 1.00000000000000*I
         """
         RR = self._real_field()
         if RR.has_coerce_map_from(S):
@@ -246,8 +253,9 @@ class ComplexField_class(field.Field):
         if is_ComplexField(S) and S._prec >= self._prec:
             return self._generic_convert_map(S)
         late_import()
-        if S == AA or S == QQbar:
+        if S == AA or S == QQbar or S is CLF or S is RLF:
             return self._generic_convert_map(S)
+        return self._coerce_map_via([CLF], S)
 
     def _repr_(self):
         return "Complex Field with %s bits of precision"%self._prec

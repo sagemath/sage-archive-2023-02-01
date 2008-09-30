@@ -340,11 +340,12 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         from integer_ring import ZZ
         from rational_field import QQ
+        from real_lazy import RLF
         from real_mpfr import RR, RealField
         from complex_field import ComplexField, ComplexField_class
         CC = ComplexField()
         from complex_number import CCtoCDF
-        if S in [int, float, ZZ, QQ, RDF] or isinstance(S, RealField) and S.prec() >= 53:
+        if S in [int, float, ZZ, QQ, RDF, RLF] or isinstance(S, RealField) and S.prec() >= 53:
             return FloatToCDF(S)
         elif RR.has_coerce_map_from(S):
             return FloatToCDF(RR) * RR.coerce_map_from(S)

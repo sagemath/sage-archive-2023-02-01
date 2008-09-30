@@ -526,6 +526,27 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
             return True
         return False
 
+    def completion(self, p, prec, extras = {}):
+        """
+        EXAMPLES:
+            sage: AA.completion(infinity, 500)
+            Real Field with 500 bits of precision
+            sage: AA.completion(infinity, prec=53, extras={'type':'RDF'})
+            Real Double Field
+            sage: AA.completion(infinity, 53) is RR
+            True
+            sage: AA.completion(7, 10)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if p == infinity.Infinity:
+            from sage.rings.real_mpfr import create_RealField
+            return create_RealField(prec, **extras)
+        else:
+            raise NotImplementedError
+
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
             return im_gens[0] == codomain._coerce_(self.gen(0))
@@ -657,6 +678,26 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         if is_SymbolicExpressionRing(from_par):
             return True
         return False
+
+    def completion(self, p, prec, extras = {}):
+        """
+        EXAMPLES:
+            sage: QQbar.completion(infinity, 500)
+            Complex Field with 500 bits of precision
+            sage: QQbar.completion(infinity, prec=53, extras={'type':'RDF'})
+            Complex Double Field
+            sage: QQbar.completion(infinity, 53) is CC
+            True
+            sage: QQbar.completion(3, 20)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if p == infinity.Infinity:
+            from sage.rings.real_mpfr import create_RealField
+            return create_RealField(prec, **extras).complex_field()
+        else:
+            raise NotImplementedError
 
     def gens(self):
         return(QQbar_I, )

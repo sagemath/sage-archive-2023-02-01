@@ -84,6 +84,8 @@ Reals = RealField
 
 from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
 
+from real_lazy import RealLazyField, RLF, ComplexLazyField, CLF
+
 # Quad double
 from real_rqdf import RealQuadDoubleField, RQDF, QuadDoubleElement
 

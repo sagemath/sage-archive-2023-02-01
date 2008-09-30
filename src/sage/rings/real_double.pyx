@@ -169,14 +169,26 @@ cdef class RealDoubleField_class(Field):
                                   {'type': 'RDF'}),
                sage.rings.rational_field.QQ)
 
+    def complex_field(self):
+        """
+        Returns the complex field with the same precision as self,
+        ie, the complex double field.
+
+        EXAMPLES:
+            sage: RDF.complex_field()
+            Complex Double Field
+        """
+        from sage.rings.complex_double import CDF
+        return CDF
+
     def algebraic_closure(self):
         """
         Returns the algebraic closure of self,
         ie, the complex double field.
 
         EXAMPLES:
-        sage: RDF.algebraic_closure()
-        Complex Double Field
+            sage: RDF.algebraic_closure()
+            Complex Double Field
         """
         from sage.rings.complex_double import CDF
         return CDF
@@ -204,11 +216,14 @@ cdef class RealDoubleField_class(Field):
             Complex Double Field
             sage: CDF.gen(0) + 5.0
             5.0 + 1.0*I
+            sage: RLF(2/3) + RDF(1)
+            1.66666666667
         """
         from integer_ring import ZZ
         from rational_field import QQ
+        from real_lazy import RLF
         from real_mpfr import RR, RealField
-        if S in [int, float, ZZ, QQ] or isinstance(S, RealField) and S.prec() >= 53:
+        if S in [int, float, ZZ, QQ, RLF] or isinstance(S, RealField) and S.prec() >= 53:
             return ToRDF(S)
         elif RR.has_coerce_map_from(S):
             return ToRDF(RR) * RR.coerce_map_from(S)

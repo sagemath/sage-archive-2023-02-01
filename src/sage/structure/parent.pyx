@@ -762,6 +762,59 @@ cdef class Parent(category_object.CategoryObject):
         else:
             return coerce_maps.DefaultConvertMap_unique(S, self)
 
+    def _coerce_map_via(self, v, S):
+        """
+        This attempts to construct a morphism from S to self by passing through
+        one of the items in v (tried in order).
+
+        S may appear in the list, in which case algorithm will never progress
+        beyond that point.
+
+        This is similar in spirit to the old {{{_coerce_try}}}, and useful when
+        defining _coerce_map_from_
+
+        INPUT:
+            v -- A list (iterator) of parents with coercions into self. There
+                 MUST be maps provided from each item in the list to self.
+            S -- the starting parent
+
+        EXAMPLES:
+            sage: CDF._coerce_map_via([ZZ, RR, CC], int)
+            Composite map:
+              From: Set of Python objects of type 'int'
+              To:   Complex Double Field
+              Defn:   Native morphism:
+                      From: Set of Python objects of type 'int'
+                      To:   Integer Ring
+                    then
+                      Native morphism:
+                      From: Integer Ring
+                      To:   Complex Double Field
+
+            sage: CDF._coerce_map_via([ZZ, RR, CC], QQ)
+            Composite map:
+              From: Rational Field
+              To:   Complex Double Field
+              Defn:   Generic map:
+                      From: Rational Field
+                      To:   Real Field with 53 bits of precision
+                    then
+                      Native morphism:
+                      From: Real Field with 53 bits of precision
+                      To:   Complex Double Field
+
+            sage: CDF._coerce_map_via([ZZ, RR, CC], CC)
+            Generic map:
+              From: Complex Field with 53 bits of precision
+              To:   Complex Double Field
+        """
+        cdef Parent R
+        for R in v:
+            if R is S:
+                return self.coerce_map_from(R)
+            if R.has_coerce_map_from(S):
+                return self.coerce_map_from(R) * R.coerce_map_from(S)
+
     cpdef bint has_coerce_map_from(self, S) except -2:
         """
         Return True if there is a natural map from S to self.

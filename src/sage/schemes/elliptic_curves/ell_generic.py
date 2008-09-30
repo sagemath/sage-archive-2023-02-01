@@ -2501,6 +2501,32 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         a1, a2, a3, a4, a6 = self.ainvs()
         return R([a6, a4, a2, 1]), R([a3, a1])
 
+    def pari_curve(self, prec=53):
+        """
+        Return the PARI curve corresponding to this elliptic curve.
+
+        The result is cached.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([RR(0), RR(0), RR(1), RR(-1), RR(0)])
+            sage: e = E.pari_curve()
+            sage: type(e)
+            <type 'sage.libs.pari.gen.gen'>
+            sage: e.type()
+            't_VEC'
+            sage: e.disc()
+            37.0000000000000
+        """
+        try:
+            return self._pari_curve
+        except AttributeError:
+            pass
+
+        from sage.libs.pari.all import pari
+        self._pari_curve = pari(self.a_invariants()).ellinit(precision=prec)
+        return self._pari_curve
+
+
 
 def Hasse_bounds(q, genus=1):
     """

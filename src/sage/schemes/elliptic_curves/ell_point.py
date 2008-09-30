@@ -841,12 +841,13 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         E = self.curve()
 
         # Special code for curves over Q, calling pari
+        from sage.libs.pari.gen import PariError
         try:
             n = int(E.pari_curve().ellorder([self[0], self[1]]))
             if n == 0: n = oo
             self._order = n
             return n
-        except AttributeError:
+        except PariError:
             pass
 
         # Get the torsion order if known, else a bound on (multiple
@@ -1048,7 +1049,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             return rings.RealField(precision)(h)
         except AttributeError: "canonical height not yet implemented over general number fields."
 
-    def elliptic_logarithm(self, embedding=None, precision=100):
+    def elliptic_logarithm(self, embedding=None, precision=100, algorithm='pari'):
         """
         Returns the elliptic logarithm of this elliptic curve point.
 
@@ -1062,6 +1063,9 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             embedding: an embedding of the base field into RR
             precision: a positive integer (default 100) setting the
                        number of bits of precision for the computation
+            algorithm: either 'pari' (default) to use Pari's
+                       ellpointtoz, or 'sage' for a native
+                       implementation (currently not very accurate)
 
         ALGORITHM: See -[Co2] Cohen H., A Course in Computational
                         Algebraic Number Theory GTM 138, Springer 1996
@@ -1079,14 +1083,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.is_on_identity_component ()
             False
             sage: P.elliptic_logarithm (precision=96)
-            0.4793482501902193161295330101 + 0.9858688507758241022112038491*I
+            0.4793482501902193161295330101 + 0.985868850775824102211203849...*I
             sage: Q=E([3,5])
             sage: Q.is_on_identity_component()
             True
             sage: Q.elliptic_logarithm (precision=96)
             1.931128271542559442488585220
 
-            An example with negative discriminant, and a torsion point:
+        An example with negative discriminant, and a torsion point:
             sage: E = EllipticCurve('11a1')
             sage: E.discriminant() < 0
             True
@@ -1096,14 +1100,25 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: E.period_lattice().basis(prec=96)[0] / P.elliptic_logarithm (precision=96)
             5.000000000000000000000000000
 
+        A larger example, illustrating some precision issues.  The
+        default algorithm uses Pari and makes sure the result has the
+        requested precision.  Note that Pari may complain if the
+        requested precision is too low:
             sage: E = EllipticCurve([1, 0, 1, -85357462, 303528987048]) #18074g1
             sage: P = E([4458713781401/835903744, -64466909836503771/24167649046528, 1])
-            sage: P.elliptic_logarithm(precision=54)
-            NaN
-            sage: P.elliptic_logarithm(precision=55)
-            0.2735052644156991
+            sage: P.elliptic_logarithm(precision=64)
+            Traceback (most recent call last):
+            ...
+            PariError: precision too low (18)
+            sage: P.elliptic_logarithm(precision=65)
+            0.2765620401410706146
             sage: P.elliptic_logarithm()  # 100 bits
-            0.27656204014107100870071052662
+            0.27656204014107061464076203097
+
+        Note that the native algorithm 'sage' has trouble with
+        precision in this example:
+            sage: P.elliptic_logarithm(algorithm='sage')  # 100 bits
+            0.2765620401410710087007...
         """
         from sage.rings.number_field.number_field import refine_embedding
 
@@ -1137,13 +1152,36 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         #Initialize
 
+        if algorithm == 'pari':
+            from sage.libs.pari.all import pari
+            from sage.libs.pari.gen import prec_words_to_bits
+            E = self.curve()
+            ai = [emb(a) for a in E.a_invariants()]
+            ER = EllipticCurve(ai) # defined over RR
+            E_pari = ER.pari_curve(prec=precision)
+            pt_pari = [pari(emb(self[0])), pari(emb(self[1]))]
+            log_pari = E_pari.ellpointtoz(pt_pari, precision=precision)
+            while prec_words_to_bits(log_pari.precision()) < precision:
+                working_prec = 2*precision
+                emb = K.embeddings(rings.RealField(working_prec))[0]
+                ai = [emb(a) for a in E.a_invariants()]
+                ER = EllipticCurve(ai) # defined over RR
+                E_pari = ER.pari_curve(prec=working_prec)
+                pt_pari = [pari(emb(self[0])), pari(emb(self[1]))]
+                log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
+            C = rings.ComplexField(precision)
+            return C(log_pari)
+
+        if algorithm <> 'sage':
+            raise ValueError, "algorithm must be either 'pari' or 'sage'"
+
         E = self.curve()
-        connected = emb(E.discriminant()) < 0
         ai = [emb(a) for a in E.a_invariants()]
         ER = EllipticCurve(ai) # defined over RR
         real_roots = ER.two_division_polynomial().roots(RR,multiplicities=False)
         xP, yP = self[0], self[1]
         wP = 2*yP+E.a1()*xP+E.a3()
+        connected = emb(E.discriminant()) < 0
 
         if connected: #Connected Case
             # Here we use formulae equivalent to those in Cohen, but better

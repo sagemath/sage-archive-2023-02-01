@@ -4955,7 +4955,7 @@ cdef class gen(sage.structure.element.RingElement):
         # the prec argument has no effect
         return self.new_gen(ordell(self.g, t0, prec))
 
-    def ellpointtoz(self, P):
+    def ellpointtoz(self, P, long precision=0):
         """
         e.ellpointtoz(P): return the complex number (in the fundamental
         parallelogram) corresponding to the point P on the elliptic curve e,
@@ -4977,8 +4977,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         t0GEN(P)
         _sig_on
-        # the prec argument has no effect
-        return self.new_gen(zell(self.g, t0, prec))
+        return self.new_gen(zell(self.g, t0, pbw(precision)))
 
     def ellpow(self, z, n):
         """

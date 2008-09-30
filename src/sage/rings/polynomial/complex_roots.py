@@ -278,7 +278,7 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         [3.87259191484932e-121, -3.87259191484932e-121]
         sage: rts = complex_roots(p)
         sage: [ComplexIntervalField(10)(rt[0] - 1) for rt in rts]
-        [0, 7.8887?e-31*I, 7.8887?e-31, -7.8886?e-31*I, -7.8886?e-31]
+        [0, 7.8887?e-31*I, 7.8887?e-31, -7.8887?e-31*I, -7.8887?e-31]
 
     We can get roots either as intervals, or as elements of QQbar or AA.
         sage: p = (x^2 + x - 1)
@@ -300,7 +300,7 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         sage: rts = complex_roots(p); type(rts[0][0]), sorted(map(smash, rts))
         (<type 'sage.rings.complex_interval.ComplexIntervalFieldElement'>, [-1.618033988749895?, -0.618033988749895?*I, 1.618033988749895?*I, 0.618033988749895?])
         sage: rts = complex_roots(p, retval='algebraic'); type(rts[0][0]), sorted(map(smash, rts))
-        (<class 'sage.rings.qqbar.AlgebraicNumber'>, [-1.618033988749895?, -0.6180339887498948?*I, 1.618033988749895?*I, 0.618033988749895?])
+        (<class 'sage.rings.qqbar.AlgebraicNumber'>, [-1.618033988749895?, -0.618033988749895?*I, 1.618033988749895?*I, 0.618033988749895?])
         sage: rts = complex_roots(p, retval='algebraic_real'); type(rts[0][0]), rts
         (<class 'sage.rings.qqbar.AlgebraicReal'>, [(-1.618033988749895?, 1), (0.618033988749895?, 1)])
     """

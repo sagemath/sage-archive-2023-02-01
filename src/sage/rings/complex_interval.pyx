@@ -605,7 +605,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: (1+i).argument()
             0.785398163397449?
             sage: i.argument()
-            1.5707963267948967?
+            1.570796326794897?
             sage: (-i).argument()
             -1.570796326794897?
             sage: (RR('-0.001') - i).argument()
@@ -872,7 +872,7 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
         sage: ComplexIntervalFieldElement('2.3')
         2.300000000000000?
         sage: ComplexIntervalFieldElement('2.3','1.1')
-        2.300000000000000? + 1.1000000000000000?*I
+        2.300000000000000? + 1.100000000000000?*I
         sage: ComplexIntervalFieldElement(10)
         10
         sage: ComplexIntervalFieldElement(10,10)
@@ -882,7 +882,7 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
         sage: ComplexIntervalFieldElement(1,2.000000000000000000000)
         1 + 2*I
         sage: ComplexIntervalFieldElement(1.234567890123456789012345, 5.4321098654321987654321)
-        1.2345678901234567890123451? + 5.4321098654321987654321000?*I
+        1.2345678901234567890123450? + 5.4321098654321987654321000?*I
     """
     if s_imag is None:
         s_imag = 0

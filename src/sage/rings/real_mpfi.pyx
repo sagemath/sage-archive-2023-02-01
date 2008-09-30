@@ -257,7 +257,7 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         sage: RIF(RealField(53)('1.5'))
         1.5000000000000000?
         sage: RIF(-2/19)
-        -0.10526315789473684?
+        -0.1052631578947369?
         sage: RIF(-3939)
         -3939
         sage: RIF(-3939r)
@@ -1260,6 +1260,15 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             786432
             sage: RealIntervalField(2)(3 * 2^19)
             1.6?e6
+            sage: v = RIF(AA(2-sqrt(3)))
+            sage: v
+            0.2679491924311227?
+            sage: v.str(error_digits=1)
+            '0.26794919243112273?4'
+            sage: v.str(style='brackets')
+            '[0.26794919243112269 .. 0.26794919243112276]'
+            sage: -v
+            -0.2679491924311227?
         """
         if not(mpfr_number_p(&self.value.left) and mpfr_number_p(&self.value.right)):
             raise ValueError, "_str_question_style on NaN or infinity"
@@ -1335,7 +1344,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         _sig_on
         lower_s = mpfr_get_str(<char*>0, &lower_expo, base, 0,
-                                &self.value.left, GMP_RNDN)
+                                &self.value.left, GMP_RNDD)
         upper_s = mpfr_get_str(<char*>0, &upper_expo, base, 0,
                                 &self.value.right, GMP_RNDU)
         _sig_off
@@ -2948,12 +2957,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: r = RIF(16.0); r.log10()
-            1.2041199826559247?
+            1.204119982655925?
             sage: r.log() / log(10.0)
             1.204119982655925?
 
             sage: r = RIF(39.9); r.log10()
-            1.6009728956867483?
+            1.600972895686749?
 
             sage: r = RIF(0.0)
             sage: r.log10()
@@ -2982,7 +2991,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
             sage: r = RIF(32.3)
             sage: a = r.exp(); a
-            1.0658884727486448?e14
+            1.065888472748645?e14
             sage: a.log()
             32.30000000000000?
 
@@ -3012,7 +3021,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
             sage: r = RIF(-32.3)
             sage: r.exp2()
-            1.891172482530208?e-10
+            1.891172482530207?e-10
         """
         cdef RealIntervalFieldElement x
         x = self._new()

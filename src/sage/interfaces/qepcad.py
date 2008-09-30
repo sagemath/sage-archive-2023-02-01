@@ -240,7 +240,7 @@ intersect the union of the circle and the ellipse exactly three times.
 sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F
 (X3 y)[(y^2 + x^2 - 3) (y^2 + 2 x y + y + 3 x^2 - x - 7) = 0]
 sage: pts = qepcad(F, solution='all-points'); pts
-[{'x': 1.732050807568878?}, {'x': 1.731054913462534?}, {'x': 0.6789113842080040?}, {'x': -0.9417727377417167?}, {'x': -1.4681935599288208?}, {'x': -1.468501968502953?}]
+[{'x': 1.732050807568878?}, {'x': 1.731054913462534?}, {'x': 0.678911384208004?}, {'x': -0.9417727377417167?}, {'x': -1.468193559928821?}, {'x': -1.468501968502953?}]
 
 Since $y$ is bound by the quantifier, the solutions only refer to $x$.
 
@@ -249,7 +249,7 @@ We can substitute one of these solutions into the original equation:
 sage: pt = pts[0]
 sage: pcombo = QQ['x,y'](circle * ellipse)
 sage: intersections = pcombo(y=polygen(AA, 'y'), **pt); intersections
-y^4 + 4.464101615137755?*y^3 + 0.2679491924311228?*y^2
+y^4 + 4.464101615137755?*y^3 + 0.2679491924311227?*y^2
 
 and verify that it does have three roots:
 
@@ -2401,7 +2401,7 @@ class QepcadCell:
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
             sage: v1 = qe.cell(2).sample_point()[0]; v1 # optional
-            -0.6180339887498948?
+            -0.618033988749895?
             sage: v2 = qe.cell(4).sample_point()[0]; v2 # optional
             1.618033988749895?
             sage: v1 + v2 == 1 # optional

@@ -141,7 +141,7 @@ Note the different behavior in taking roots: for AA we prefer real roots if they
     sage: AA(-1)^(1/3)
     -1
     sage: QQbar(-1)^(1/3)
-    0.500000000000000? + 0.8660254037844387?*I
+    0.500000000000000? + 0.866025403784439?*I
 
 We can explicitly coerce from QQ[I].  (Technically, this is not quite
 kosher, since QQ[I] doesn't come with an embedding; we don't know
@@ -245,7 +245,7 @@ view QQbar as AA[I].)
     sage: (r+I).norm().minpoly()
     x^2 - 10*x + 13
     sage: r = AA.polynomial_root(x^2 - x - 1, RIF(-1, 0)); r
-    -0.6180339887498948?
+    -0.618033988749895?
     sage: r.abs().minpoly()
     x^2 + x - 1
 
@@ -366,9 +366,9 @@ Here are examples of all of these conversions.
     sage: convert_test_all(CC)
     [42.0000000000000, 3.14285714285714, 1.61803398874989, -13.0000000000000, 1.61818181818182, -2.64575131106459, 0.309016994374947 + 0.951056516295154*I]
     sage: convert_test_all(RIF)
-    [42, 3.142857142857143?, 1.618033988749895?, -13, 1.6181818181818183?, -2.645751311064591?, None]
+    [42, 3.142857142857143?, 1.618033988749895?, -13, 1.618181818181819?, -2.645751311064591?, None]
     sage: convert_test_all(CIF)
-    [42, 3.142857142857143?, 1.618033988749895?, -13, 1.6181818181818183?, -2.645751311064591?, 0.3090169943749475? + 0.9510565162951536?*I]
+    [42, 3.142857142857143?, 1.618033988749895?, -13, 1.618181818181819?, -2.645751311064591?, 0.3090169943749474? + 0.9510565162951536?*I]
     sage: convert_test_all(ZZ)
     [42, None, None, -13, None, None, None]
     sage: convert_test_all(QQ)
@@ -725,13 +725,13 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
             sage: QQbar.zeta(2)
             -1
             sage: QQbar.zeta(3)
-            -0.500000000000000? + 0.8660254037844387?*I
+            -0.500000000000000? + 0.866025403784439?*I
             sage: QQbar.zeta(4)
             1*I
             sage: QQbar.zeta()
             1*I
             sage: QQbar.zeta(5)
-            0.3090169943749475? + 0.9510565162951536?*I
+            0.3090169943749474? + 0.9510565162951536?*I
             sage: QQbar.zeta(314159)
             0.9999999997999997? + 0.00002000001689195824?*I
         """
@@ -1098,7 +1098,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         sage: qqI = QQbar.zeta(4); qqI
         1*I
         sage: z3 = QQbar.zeta(3); z3
-        -0.500000000000000? + 0.8660254037844387?*I
+        -0.500000000000000? + 0.866025403784439?*I
         sage: rt2b = rt3 + rt2 - rt3; rt2b
         1.414213562373095?
         sage: rt2c = z3 + rt2 - z3; rt2c
@@ -2315,7 +2315,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: (sqrt(QQbar(2)) + sqrt(QQbar(19)))._exact_field()
             Number Field in a with defining polynomial y^4 - 20*y^2 + 81 with a in 3.789313782671036?
             sage: (QQbar(7)^(3/5))._exact_field()
-            Number Field in a with defining polynomial y^5 - 7 with a in 1.4757731615945521?
+            Number Field in a with defining polynomial y^5 - 7 with a in 1.475773161594552?
         """
 
         sd = self._descr
@@ -2335,7 +2335,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: (sqrt(QQbar(2)) + sqrt(QQbar(19)))._exact_value()
             1/9*a^3 + a^2 - 11/9*a - 10 where a^4 - 20*a^2 + 81 = 0 and a in 3.789313782671036?
             sage: (QQbar(7)^(3/5))._exact_value()
-            a^3 where a^5 - 7 = 0 and a in 1.4757731615945521?
+            a^3 where a^5 - 7 = 0 and a in 1.475773161594552?
         """
         sd = self._descr
         if sd.is_exact():
@@ -2517,7 +2517,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
         EXAMPLES:
             sage: x = QQbar.zeta(3); x
-            -0.500000000000000? + 0.8660254037844387?*I
+            -0.500000000000000? + 0.866025403784439?*I
             sage: cmp(QQbar(-1), x)
             -1
             sage: cmp(QQbar(-1/2), x)
@@ -2837,7 +2837,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar.zeta(7).conjugate()
             0.6234898018587335? - 0.7818314824680299?*I
             sage: QQbar.zeta(7) + QQbar.zeta(7).conjugate()
-            1.2469796037174671? + 0.?e-18*I
+            1.246979603717467? + 0.?e-18*I
         """
         return AlgebraicNumber(self._descr.conjugate(self))
 
@@ -3680,7 +3680,7 @@ class ANRootOfUnity(ANDescr):
         """
         EXAMPLES:
             sage: a = QQbar.zeta(7) * 2; a
-            1.2469796037174671? + 1.563662964936060?*I
+            1.246979603717467? + 1.563662964936060?*I
             sage: a.minpoly()
             x^6 + 2*x^5 + 4*x^4 + 8*x^3 + 16*x^2 + 32*x + 64
             sage: a.minpoly()(a)

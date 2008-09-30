@@ -17,6 +17,9 @@ CUR=`pwd`
 # set CPPFLAGS so that Sage's readline is picked up
 CPPFLAGS=-I"$SAGE_LOCAL"/inlcude; export CPPFLAGS
 
+# copy an R file that has corrected R includes, i.e. <foo.h> vs. "foo.h"
+cp patches/sys-std.c src/src/unix/sys-std.c
+
 # Hack to get around dumb hardcoding.
 cp patches/R.sh.in src/src/scripts/
 

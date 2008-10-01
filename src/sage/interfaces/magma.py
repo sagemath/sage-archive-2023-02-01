@@ -1072,12 +1072,12 @@ class MagmaElement(ExpectElement):
             (Full Vector space of degree 1 over Rational Field, Mapping from: Full Vector space of degree 3 over Rational Field to Full Vector space of degree 1 over Rational Field)
 
         We quotient a ZZ module out by a submodule.
-            sage: V = magma.RModule(ZZ,3); V
+            sage: V = magma.RModule(ZZ,3); V # optional -- requires Magma
             RModule(IntegerRing(), 3)
-            sage: W, phi = V.quo([[1,2,3]])
-            sage: W
+            sage: W, phi = V.quo([[1,2,3]])  # optional
+            sage: W                          # optional
             RModule(IntegerRing(), 2)
-            sage: phi
+            sage: phi                        # optional
             Mapping from: RModule(IntegerRing(), 3) to RModule(IntegerRing(), 2)
         """
         return self.parent().bar_call(self, 'quo', gens, nvals=2)

@@ -1832,7 +1832,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 + 2)
-            sage: magma((2/3)*a^2 - 17/3)
+            sage: magma((2/3)*a^2 - 17/3) # optional -- requires magma
             1/3*(2*a^2 - 17)
         """
         K = magma(self.parent())

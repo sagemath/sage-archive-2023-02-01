@@ -25,6 +25,17 @@ const symbol & get_symbol(const std::string & s)
         return directory.insert(std::make_pair(s, symbol(s))).first->second;
 }
 
+void list_symbols(const ex& e, std::set<ex, ex_is_less> &s)
+{
+    if (is_a<symbol>(e)) {
+        s.insert(e);
+    } else {
+        for (size_t i=0; i<e.nops(); i++)
+            list_symbols(e.op(i), s);
+    }
+}
+
+
 ex g_function_evalv(unsigned serial, exvector& vec)
 {
     return ex(function(serial, vec));

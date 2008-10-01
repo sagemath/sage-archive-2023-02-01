@@ -89,11 +89,13 @@ cdef extern from "ginac_wrap.h":
     GEx g_Euler "Euler"
 
     # Destructor and constructor
-    void GEx_destruct "Destruct<ex>"(GEx *mem)                                 except +
-    GEx* GEx_construct_symbol "Construct_p<ex, symbol>" (void *mem, GSymbol m) except +
-    GEx* GEx_construct_ex "Construct_p<ex, ex>" (void *mem, GEx m)             except +
-    GEx* GEx_construct_long "Construct_p<ex, long>" (void *mem, long n)        except +
-    GEx* GEx_construct_double "Construct_p<ex, double>" (void *mem, double d)  except +
+    void GEx_destruct "Destruct<ex>"(GEx *mem) except +
+    GEx* GEx_construct_symbol "Construct_p<ex, symbol>" \
+            (void *mem, GSymbol m) except +
+    GEx* GEx_construct_ex "Construct_p<ex, ex>" (void *mem, GEx m) except +
+    GEx* GEx_construct_long "Construct_p<ex, long>" (void *mem, long n) except +
+    GEx* GEx_construct_double "Construct_p<ex, double>" \
+            (void *mem, double d) except +
 
     GEx* GEx_construct_pyobject "ASSIGN_WRAP" (GEx mem, object n)
 
@@ -106,6 +108,17 @@ cdef extern from "ginac_wrap.h":
 
     ctypedef struct GExVector "exvector":
         void push_back(GEx)
+
+    ctypedef struct GExSetIter "std::set<ex, ex_is_less>::const_iterator":
+        void inc "operator++" ()
+        GEx obj "operator*" ()
+        bint is_not_equal "operator!=" (GExSetIter i)
+
+    ctypedef struct GExSet "std::set<ex, ex_is_less>":
+        GExSetIter begin()
+        GExSetIter end()
+
+    void g_list_symbols "list_symbols" (GEx e, GExSet s)
 
     # Arithmetic
     int ginac_error()

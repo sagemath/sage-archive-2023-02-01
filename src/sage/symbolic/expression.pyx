@@ -1037,6 +1037,31 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression p = self.coerce_in(expr)
         return new_Expression_from_GEx(self._gobj.subs(p._gobj))
 
+    def variables(self):
+        """
+        Return sorted list of variables that occur in this expression.
+
+        EXAMPLES:
+            sage: (x,y,z) = var('x,y,z', ns=1)
+            sage: (x+y).variables()
+            [x, y]
+            sage: (2*x).variables()
+            [x]
+            sage: (x^y).variables()
+            [x, y]
+            sage: sin(x+y^z).variables()
+            [x, y, z]
+
+        """
+        cdef GExSet sym_set
+        g_list_symbols(self._gobj, sym_set)
+        res = []
+        cdef GExSetIter itr = sym_set.begin()
+        while itr.is_not_equal(sym_set.end()):
+            res.append(new_Expression_from_GEx(itr.obj()))
+            itr.inc()
+        return res
+
     def nargs(self):
         """
         Returns the number of arguments of this expression.
@@ -1914,7 +1939,3 @@ cdef Expression new_Expression_from_GEx(GEx juice):
     GEx_construct_ex(&nex._gobj, juice)
     nex._parent = ring.NSR
     return nex
-
-
-
-

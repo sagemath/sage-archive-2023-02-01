@@ -330,7 +330,7 @@ cdef int get_new_prec(R, int depth) except -1:
 
 cdef class LazyFieldElement(FieldElement):
 
-    cdef ModuleElement _add_c_impl(left, ModuleElement right):
+    cpdef ModuleElement _add_(left, ModuleElement right):
         """
         EXAMPLES:
             sage: RLF(5) + RLF(1/2)
@@ -343,7 +343,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, add)
 
-    cdef ModuleElement _sub_c_impl(left, ModuleElement right):
+    cpdef ModuleElement _sub_(left, ModuleElement right):
         """
         EXAMPLES:
             sage: CLF(5)-2
@@ -356,7 +356,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, sub)
 
-    cdef RingElement _mul_c_impl(left, RingElement right):
+    cpdef RingElement _mul_(left, RingElement right):
         """
         EXAMPLES:
             sage: CLF(10) * RLF(5)
@@ -369,7 +369,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, mul)
 
-    cdef RingElement _div_c_impl(left, RingElement right):
+    cpdef RingElement _div_(left, RingElement right):
         """
         EXAMPLES:
             sage: a = RLF(1) / RLF(6); a

@@ -1001,6 +1001,12 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 def preparse_file(contents, attached={}, magic=True,
                   do_time=False, ignore_prompts=False,
                   numeric_literals=True):
+    """
+    TESTS:
+        sage: from sage.misc.preparser import preparse_file
+        sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
+        sage: _ = preparse_file(lots_of_numbers)
+    """
     if not isinstance(contents, str):
         raise TypeError, "contents must be a string"
 
@@ -1021,7 +1027,11 @@ def preparse_file(contents, attached={}, magic=True,
             if not re.match(r"^ *(#.*)?$", contents[:ix]):
                 contents = "\n"+contents
             assignments = ["%s = %s" % x for x in nums.items()]
-            contents = "; ".join(assignments) + contents
+            # the preparser recurses on semicolons, so we only attempt to preserve line numbers if there are a few
+            if len(assignments) < 500:
+                contents = "; ".join(assignments) + contents
+            else:
+                contents = "\n".join(assignments) + "\n\n" + contents
 
     F = []
     A = contents.splitlines()

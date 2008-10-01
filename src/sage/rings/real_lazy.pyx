@@ -886,7 +886,8 @@ cdef class LazyUnop(LazyFieldElement):
         """
         EXAMPLES:
             sage: hash(RLF(sin(1)))
-            -1524677126
+            -1524677126          # 32-bit
+            -2924022902101686790 # 64-bit
         """
         return hash(self._op(hash(self._arg)))
 

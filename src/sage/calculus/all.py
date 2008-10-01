@@ -61,6 +61,7 @@ def symbolic_expression(x):
         2*x^2 + 3
         sage: type(a)
         <class 'sage.calculus.calculus.SymbolicPolynomial'>
+        sage: from sage.calculus.calculus import is_SymbolicExpression
         sage: is_SymbolicExpression(a)
         True
         sage: a in SR

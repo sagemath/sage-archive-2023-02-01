@@ -992,22 +992,22 @@ ext_modules = [ \
     Extension('sage.symbolic.ring',
                  sources = ['sage/symbolic/ring.pyx'],
                  language = 'c++',
-                 libraries = ["ginac"]), \
+                 libraries = ["pynac"]), \
 
     Extension('sage.symbolic.expression',
                  sources = ['sage/symbolic/expression.pyx'],
                  language = 'c++',
-                 libraries = ["ginac"]), \
+                 libraries = ["pynac"]), \
 
     Extension('sage.symbolic.pynac',
                  sources = ['sage/symbolic/pynac.pyx'],
                  language = 'c',
-                 libraries = ["ginac"]), \
+                 libraries = ["pynac"]), \
 
     Extension('sage.symbolic.function',
                  sources = ['sage/symbolic/function.pyx'],
                  language = 'c++',
-                 libraries = ["ginac"]), \
+                 libraries = ["pynac"]), \
 
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',

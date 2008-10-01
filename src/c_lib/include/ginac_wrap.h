@@ -8,7 +8,7 @@
 *******************************************************************************/
 
 #include "ccobject.h"
-#include <ginac/ginac.h>
+#include <pynac/ginac.h>
 
 #include <string>
 

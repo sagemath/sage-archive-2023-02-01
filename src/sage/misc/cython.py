@@ -274,8 +274,12 @@ def cython(filename, verbose=False, compile_message=False,
     # We will use this only to make some convenient symbolic links.
     abs_base = os.path.split(os.path.abspath(filename))[0]
 
-    cmd = 'cd "%s"; ln -sf "%s"/* .'%(build_dir, abs_base)
-    os.system(cmd)
+    # bad things happen if the current directory is devel/sage-*
+    if not os.path.exists("%s/sage" % abs_base) and not os.path.exists("%s/c_lib" % abs_base):
+        cmd = 'cd "%s"; ln -sf "%s"/* .'%(build_dir, abs_base)
+        os.system(cmd)
+        if os.path.exists("%s/setup.py" % build_dir):
+            os.unlink("%s/setup.py" % build_dir)
 
     if compile_message:
         print "Compiling %s..."%filename
@@ -529,18 +533,18 @@ def cython_create_local_so(filename):
 
     EXAMPLE:
         sage: f = file('hello.spyx', 'w')
-        sage: s = \"""def hello():
-        ....:         print 'hello'
-        ....: \"""
+        sage: s = "def hello():\n  print 'hello'\n"
         sage: f.write(s)
         sage: f.close()
         sage: cython_create_local_so('hello.spyx')
         Compiling hello.spyx...
-        sage: ls hello*
-        hello.so hello.spyx
+        sage: sys.path.append('.')
         sage: import hello
         sage: hello.hello()
         hello
+
+        sage: os.unlink('hello.spyx')
+        sage: os.unlink('hello.so')
 
     AUTHORS:
         -- David Fu (2008-04-09): initial version

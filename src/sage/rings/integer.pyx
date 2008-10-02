@@ -29,6 +29,7 @@ AUTHORS:
                                    val_unit, is_power, is_power_of and
                                    divide_knowing_divisible_by
     -- Robert Bradshaw (2008-03-26): gamma function, multifactorials
+    -- Robert Bradshaw (2008-10-02): bounded squarefree part
 
 EXAMPLES:
    Add 2 integers:
@@ -3066,7 +3067,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             n *= p
         return n * F.unit()
 
-    def squarefree_part(self):
+    def squarefree_part(self, long bound=-1):
         r"""
         Return the square free part of $x$ (=self), i.e., the unique
         integer $z$ that $x = z y^2$, with $y^2$ a perfect square and
@@ -3094,15 +3095,55 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             -2
             sage: squarefree_part(-4)
             -1
+
+            sage: a = 8 * 5^6 * 101^2
+            sage: a.squarefree_part(bound=2).factor()
+            2 * 5^6 * 101^2
+            sage: a.squarefree_part(bound=5).factor()
+            2 * 101^2
+            sage: a.squarefree_part(bound=1000)
+            2
+            sage: a = 7^3 * next_prime(2^100)^2 * next_prime(2^200)
+            sage: a / a.squarefree_part(bound=1000)
+            49
+
         """
-        if self.is_zero():
+        cdef Integer z
+        cdef long even_part, p, p2
+        cdef char switch_p
+        if mpz_cmp_ui(self.value, 0) == 0:
             return self
-        F = self.factor()
-        n = one
-        for p, e in F:
-            if e % 2 != 0:
-                n = n * p
-        return n * F.unit()
+        if 0 <= bound < 2:
+            return self
+        elif 2 <= bound <= 10000:
+            z = <Integer>PY_NEW(Integer)
+            even_part = mpz_scan1(self.value, 0)
+            mpz_fdiv_q_2exp(z.value, self.value, even_part ^ (even_part&1))
+            _sig_on
+            if bound >= 3:
+                while mpz_divisible_ui_p(z.value, 9):
+                    mpz_divexact_ui(z.value, z.value, 9)
+            if bound >= 5:
+                while mpz_divisible_ui_p(z.value, 25):
+                    mpz_divexact_ui(z.value, z.value, 25)
+            for p from 7 <= p <= bound by 2:
+                switch_p = p % 30
+                if switch_p in [1, 7, 11, 13, 17, 19, 23, 29]:
+                    p2 = p*p
+                    while mpz_divisible_ui_p(z.value, p2):
+                        mpz_divexact_ui(z.value, z.value, p2)
+            _sig_off
+            return z
+        else:
+            if bound == -1:
+                F = self.factor()
+            else:
+                F = self._factor_trial_division(bound)
+            n = one
+            for pp, e in F:
+                if e % 2 != 0:
+                    n = n * pp
+            return n * F.unit()
 
     def next_probable_prime(self):
         """

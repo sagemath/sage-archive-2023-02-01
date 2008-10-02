@@ -248,7 +248,7 @@ import re
 
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_MPolynomial, is_MPolynomialRing, is_FractionFieldElement,
-                            is_RealNumber, is_ComplexNumber, RR,
+                            is_RealNumber, is_ComplexNumber, RR, is_NumberFieldElement,
                             Integer, Rational, CC, QQ, CDF, ZZ,
                             QuadDoubleElement,
                             PolynomialRing, ComplexField,
@@ -458,6 +458,9 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
         Used for implicit coercion.
 
         EXAMPLES:
+            sage: K.<a> = QuadraticField(-3)
+            sage: a + sin(x)
+            sin(x) + sqrt(3)*I
             sage: x=var('x'); y0,y1=PolynomialRing(ZZ,2,'y').gens()
             sage: x+y0/y1
             y0/y1 + x
@@ -483,6 +486,8 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
                 return SymbolicPolynomial(x.numerator()) / SymbolicPolynomial(x.denominator())
             else:
                 raise TypeError, "Basering is Symbolic Ring, please coerce in the other direction."
+        elif is_NumberFieldElement(x):
+            return x._symbolic_(self)
         elif isinstance(x, (RealNumber,
                             RealDoubleElement,
                             RealIntervalFieldElement,
@@ -602,6 +607,15 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
             1.93930000000000
         """
         return False
+
+    def pi(self):
+        """
+        EXAMPLES:
+            sage: SR.pi() is pi
+            True
+        """
+        from sage.functions.constants import pi
+        return pi
 
 # Define the unique symbolic expression ring.
 SR = SymbolicExpressionRing_class()
@@ -4356,6 +4370,14 @@ class SymbolicConstant(Symbolic_object):
         """
         right = self.parent()(right)
         return SymbolicArithmetic([self, right], operator.pow)
+
+    def sqrt(self):
+        """
+        EXAMPLES:
+            sage: SR(-1).sqrt()
+            I
+        """
+        return SymbolicComposition(sqrt, self)
 
 
 class SymbolicPolynomial(Symbolic_object):
@@ -9012,6 +9034,8 @@ SR_parser = Parser(make_int      = lambda x: SymbolicConstant(Integer(x)),
                    make_function = _find_func)
 
 def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
+    # from sage.functions.constants import I # can't import this at the top, but need it now
+    # _syms['i'] = _syms['I'] = I
     parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression
     if syms is None:
         return parse_func(s)

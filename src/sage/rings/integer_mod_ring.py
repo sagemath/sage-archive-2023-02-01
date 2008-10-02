@@ -733,9 +733,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             try:
                 return integer_mod.IntegerMod_to_IntegerMod(S, self)
             except TypeError:
-                return None
-        else:
-            return quotient_ring.QuotientRing_generic.coerce_map_from_impl(self, S)
+                pass
+        return quotient_ring.QuotientRing_generic.coerce_map_from_impl(self, S)
 
     def __cmp__(self, other):
         """

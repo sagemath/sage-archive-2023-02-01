@@ -59,7 +59,7 @@ from sage.modules.free_module_element import vector
 
 from sage.libs.all import pari_gen
 from sage.libs.pari.gen import PariError
-from sage.structure.element cimport Element
+from sage.structure.element cimport Element, generic_power_c
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
@@ -771,7 +771,12 @@ cdef class NumberFieldElement(FieldElement):
         elif len(roots) > 0:
             return roots[0][0]
         else:
-            raise ValueError, "%s not a square in %s"%(self, self._parent)
+            try:
+                # This is what integers, rationals do...
+                from sage.calculus.calculus import SR, sqrt
+                return sqrt(SR(self))
+            except TypeError:
+                raise ValueError, "%s not a square in %s"%(self, self._parent)
 
     def nth_root(self, n, all=False):
         r"""
@@ -799,6 +804,19 @@ cdef class NumberFieldElement(FieldElement):
         else:
             raise ValueError, "%s not a %s-th root in %s"%(self, n, self._parent)
 
+    def __pow__(base, exp, dummy):
+        """
+
+        """
+        if not PY_TYPE_CHECK(base, NumberFieldElement):
+            from sage.calculus.calculus import SR
+            return base**SR(exp)
+        else:
+            if PY_TYPE_CHECK(exp, Integer) or PY_TYPE_CHECK_EXACT(exp, int) or exp in ZZ:
+                return generic_power_c(base, exp, None)
+            else:
+                from sage.calculus.calculus import SR
+                return SR(base)**exp
 
     cdef void _reduce_c_(self):
         """
@@ -1129,6 +1147,111 @@ cdef class NumberFieldElement(FieldElement):
         num = PY_NEW(Integer)
         ZZX_getitem_as_mpz(&num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
+
+    def _symbolic_(self, SR):
+        """
+        If an embedding into CC is specified, then a representation of this
+        element can be made in the symbolic ring (assuming roots of the minimal
+        polynomial can be found symbolically).
+
+        EXAMPLES:
+            sage: K.<a> = QuadraticField(2)
+            sage: SR(a)
+            sqrt(2)
+            sage: SR(3*a-5)
+            3*sqrt(2) - 5
+            sage: K.<a> = QuadraticField(2, embedding=-1.4)
+            sage: SR(a)
+            -sqrt(2)
+            sage: K.<a> = NumberField(x^2 - 2)
+            sage: SR(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: An embedding into RR or CC must be specified.
+
+        Now a more compicated example:
+            sage: K.<a> = NumberField(x^3 + x - 1, embedding=0.68)
+            sage: b = SR(a); b
+            (sqrt(31)/(6*sqrt(3)) + 1/2)^(1/3) - 1/(3*(sqrt(31)/(6*sqrt(3)) + 1/2)^(1/3))
+            sage: (b^3 + b - 1).simplify_radical()
+            0
+
+        Make sure we got the right one:
+            sage: CC(a)
+            0.682327803828019
+            sage: CC(b)
+            0.682327803828019
+
+        Special case for cyclotomic fields:
+            sage: K.<zeta> = CyclotomicField(19)
+            sage: SR(zeta)
+            e^(2*I*pi/19)
+            sage: SR(zeta^5 + 2)
+            e^(10*I*pi/19) + 2
+
+        For degree greater than 5, sometimes Galois theory prevents a
+        closed-form solution:
+            sage: K.<a> = NumberField(x^5-x+1, embedding=-1)
+            sage: SR(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to solve by radicals.
+
+            sage: K.<a> = NumberField(x^6-x^3-1, embedding=1)
+            sage: SR(a)
+            (sqrt(5) + 1)^(1/3)/2^(1/3)
+        """
+        if self.__symbolic is None:
+
+            K = self._parent.fraction_field()
+
+            gen = K.gen()
+            if not self is gen:
+                try:
+                    # share the hard work...
+                    gen_image = gen._symbolic_(SR)
+                    self.__symbolic = self.polynomial()(gen_image)
+                    return self.__symbolic
+                except TypeError:
+                    pass # we may still be able to do this particular element...
+
+            embedding = K.specified_complex_embedding()
+            if embedding is None:
+                raise TypeError, "An embedding into RR or CC must be specified."
+
+            if isinstance(K, number_field.NumberField_cyclotomic):
+                # solution by radicals may be difficult, but we have a closed form
+                from sage.calculus.calculus import exp
+                from sage.rings.complex_field import ComplexField
+                from sage.rings.real_mpfr import RR
+                CC = ComplexField(53)
+                two_pi_i = 2 * SR.pi()*SR(-1).sqrt()
+                k = ( K._n()*CC(K.gen()).log() / CC(two_pi_i) ).real().round() # n ln z / (2 pi i)
+                gen_image = exp(k*two_pi_i/K._n())
+                if self is gen:
+                    self.__symbolic = gen_image
+                else:
+                    self.__symbolic = self.polynomial()(gen_image)
+            else:
+                # try to solve the minpoly and choose the closest root
+                poly = self.minpoly()
+                roots = []
+                var = SR(poly.variable_name())
+                for soln in SR(poly).solve(var):
+                    if soln.lhs() == var:
+                        roots.append(soln.rhs())
+                if len(roots) != poly.degree():
+                    raise TypeError, "Unable to solve by radicals."
+                from number_field_morphisms import closest_root
+                from sage.rings.complex_field import ComplexField
+                gen_image = closest_root(roots, self, ambient_field=ComplexField(53))
+                if gen_image is not None:
+                    self.__symbolic = gen_image
+                else:
+                    # should be rare, e.g. if there is insufficient precision
+                    raise TypeError, "Unable to determine which root in SR is this element."
+
+        return self.__symbolic
 
     def galois_conjugates(self, K):
         r"""

@@ -906,6 +906,9 @@ ext_modules = [
               libraries=['gmp'],
               language = 'c++'),
 
+    Extension('sage.rings.number_field.number_field_morphisms',
+              sources = ['sage/rings/number_field/number_field_morphisms.pyx']),
+
     Extension('sage.rings.number_field.totallyreal',
               sources = ['sage/rings/number_field/totallyreal.pyx'],
               libraries = ['gmp', 'pari']),

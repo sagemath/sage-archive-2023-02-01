@@ -171,13 +171,25 @@ class ComplexField_class(field.Field):
 
     precision = prec
 
+    def to_prec(self, prec):
+        """
+        Returns the complex field to the specified precision.
+
+        EXAMPLES:
+            sage: CC.to_prec(10)
+            Complex Field with 10 bits of precision
+            sage: CC.to_prec(100)
+            Complex Field with 100 bits of precision
+        """
+        return ComplexField(prec)
+
 
     # very useful to cache this.
     def _real_field(self):
         try:
             return self.__real_field
         except AttributeError:
-            self.__real_field = real_mpfr.RealField(self._prec)
+            self.__real_field = real_mpfr.RealField_constructor(self._prec)
             return self.__real_field
 
     def __cmp__(self, other):
@@ -247,15 +259,19 @@ class ComplexField_class(field.Field):
             Complex Field with 90 bits of precision
             sage: CC.0 + RLF(1/3)
             0.333333333333333 + 1.00000000000000*I
+            sage: ComplexField(20).has_coerce_map_from(CDF)
+            True
+            sage: ComplexField(200).has_coerce_map_from(CDF)
+            False
         """
         RR = self._real_field()
         if RR.has_coerce_map_from(S):
             return complex_number.RRtoCC(RR, self) * RR.coerce_map_from(S)
         if is_ComplexField(S) and S._prec >= self._prec:
-            return True
+            return self._generic_convert_map(S)
         late_import()
         if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
-            return True
+            return self._generic_convert_map(S)
         return self._coerce_map_via([CLF], S)
 
     def _repr_(self):

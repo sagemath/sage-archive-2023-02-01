@@ -456,27 +456,32 @@ class QuotientFunctor(ConstructionFunctor):
             raise TypeError, "Trivial quotient intersection."
         return QuotientFunctor(gcd)
 
-
 class AlgebraicExtensionFunctor(ConstructionFunctor):
-    def __init__(self, poly, name, elt=None):
+
+    rank = 3
+
+    def __init__(self, poly, name, elt=None, embedding=None):
         Functor.__init__(self, Rings(), Rings())
         self.poly = poly
         self.name = name
         self.elt = elt
-        self.rank = 3
+        self.embedding = embedding
     def __call__(self, R):
-        return R.extension(self.poly, self.name)
+        return R.extension(self.poly, self.name, embedding=self.embedding)
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
         if c == 0:
             c = cmp(self.poly, other.poly)
+        if c == 0:
+            c = cmp(self.embedding, other.embedding)
         return c
 
-
 class AlgebraicClosureFunctor(ConstructionFunctor):
+
+    rank = 3
+
     def __init__(self):
         Functor.__init__(self, Rings(), Rings())
-        self.rank = 3
     def __call__(self, R):
         return R.algebraic_closure()
     def merge(self, other):
@@ -587,9 +592,6 @@ def pushout(R, S):
         return S
     elif S in Rs:
         return R
-
-#    print Rs
-#    print Ss
 
     if R_tower[-1][1] in Ss:
         Rs, Ss = Ss, Rs

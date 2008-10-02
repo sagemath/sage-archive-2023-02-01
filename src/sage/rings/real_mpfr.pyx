@@ -537,6 +537,22 @@ cdef class RealField(sage.rings.ring.Field):
     def prec(self):
         return self.__prec
 
+    def to_prec(self, prec):
+        """
+        Returns the real field that is identical to self, except at the specified precision.
+
+        EXAMPLES:
+            sage: RR.to_prec(212)
+            Real Field with 212 bits of precision
+            sage: R = RealField(30, rnd="RNDZ")
+            sage: R.to_prec(300)
+            Real Field with 300 bits of precision and rounding RNDZ
+        """
+        if prec == self.__prec:
+            return self
+        else:
+            return RealField_constructor(prec, self.sci_not, _rounding_modes[self.rnd])
+
     # int mpfr_const_pi (mpfr_t rop, mp_rnd_t rnd)
     def pi(self):
         """
@@ -3806,6 +3822,9 @@ def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
     elif type == "Interval":
         from real_mpfi import RealIntervalField
         return RealIntervalField(prec, sci_not)
+    elif type == "RLF":
+        from real_lazy import RLF
+        return RLF
     else:
         return RealField_constructor(prec, sci_not, rnd)
 

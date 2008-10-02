@@ -856,7 +856,7 @@ cdef class CommutativeRing(Ring):
         """
         return self.quotient(I, names=names)
 
-    def extension(self, poly, name=None, names=None):
+    def extension(self, poly, name=None, names=None, embedding=None):
         """
         Algebraically extends self by taking the quotient self[x] / (f(x)).
 
@@ -874,6 +874,8 @@ cdef class CommutativeRing(Ring):
             name = names
         elif name is None:
             name = str(poly.parent().gen(0))
+        if embedding is not None:
+            raise NotImplementedError
         R = self[str(name)]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)

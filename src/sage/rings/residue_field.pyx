@@ -266,7 +266,24 @@ class ResidueField_generic(Field):
         self.p = p
         self.f = f
         if self.f is not None:
-            ParentWithBase.__init__(self, GF(intp), coerce_from = [f])
+            ParentWithBase.__init__(self, GF(intp), coerce_from = [f, self._generic_convert_map(self.base_ring())])
+
+    def coerce_map_from_impl(self, R):
+        """
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2+1)
+            sage: P = K.ideal(-3*i-2)
+            sage: OK = K.maximal_order()
+            sage: F = OK.residue_field(P)
+            sage: F.has_coerce_map_from(GF(13))
+            True
+            sage: GF(13).has_coerce_map_from(F)
+            False
+        """
+        if R == self.base_ring():
+            return self._generic_convert_map(R)
+        else:
+            return super(ResidueField_generic, self).coerce_map_from_impl(R)
 
     def __repr__(self):
         """
@@ -365,6 +382,9 @@ class ResidueField_generic(Field):
             except AttributeError:
                 return -1
         return cmp(type(self), type(x))
+
+    def __hash__(self):
+        return 1 + hash(self.ideal())
 
 class ReductionMap:
     """
@@ -797,6 +817,7 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
             <class 'sage.rings.residue_field.ResidueFiniteField_ext_pari'>
         """
         FiniteField_ext_pari.__init__(self, q, name, g)
+        self.p = p
         self.f = NFResidueFieldHomomorphism(self, p, GF(q, name = name, modulus = g).gen(0))
         ResidueField_generic.__init__(self, p, self.f, intp)
 
@@ -862,6 +883,7 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
             sage: k = K.residue_field(P)
         """
         FiniteField_givaro.__init__(self, q, name, g)
+        self.p = p
         self.f = NFResidueFieldHomomorphism(self, p, GF(q, name = name, modulus = g).gen(0))
         ResidueField_generic.__init__(self, p, self.f, intp)
 

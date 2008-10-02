@@ -238,6 +238,24 @@ cdef class RealDoubleField_class(Field):
         """
         return 53
 
+    def to_prec(self, prec):
+        """
+        Returns the real field to the specified precision. As doubles have
+        fixed precision, this will only return a real double field if prec
+        is exactly 53.
+
+        EXAMPLES:
+            sage: RDF.to_prec(52)
+            Real Field with 52 bits of precision
+            sage: RDF.to_prec(53)
+            Real Double Field
+        """
+        if prec == 53:
+            return self
+        else:
+            from real_mpfr import RealField_constructor
+            return RealField_constructor(prec)
+
 
     def gen(self, n=0):
         """

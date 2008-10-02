@@ -351,7 +351,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         EXAMPLES
             sage: K.<i> = NumberField(x^2+1)
-            sage: E = EllipticCurve([1 + i  ,0  ,1  ,0  ,0  ])
+            sage: E = EllipticCurve([1 + i, 0, 1, 0, 0])
             sage: E.local_data()
             [Local data at Fractional ideal (-3*i - 2):
             Reduction type: bad split multiplicative
@@ -725,7 +725,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EllipticCurve([i, i - 1, i + 1, 24*i + 15, 14*i + 35]).conductor()
             Fractional ideal (21*i - 3)
             sage: K.<a>=NumberField(x^2-x+3)
-            sage: EllipticCurve([1 + a  ,-1 + a  ,1 + a  ,-11 + a  ,5 -9*a  ]).conductor()
+            sage: EllipticCurve([1 + a , -1 + a , 1 + a , -11 + a , 5 -9*a  ]).conductor()
             Fractional ideal (-6*a)
 
             A not so well known curve with everywhere good reduction:

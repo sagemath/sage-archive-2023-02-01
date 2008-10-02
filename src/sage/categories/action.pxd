@@ -1,5 +1,6 @@
 from sage.structure.element cimport Element
 from morphism cimport Morphism
+from map cimport Map
 from functor cimport Functor
 
 cdef class Action(Functor):
@@ -12,12 +13,12 @@ cdef class Action(Functor):
 
 cdef class InverseAction(Action):
     cdef Action _action
-    cdef Morphism S_precomposition
+    cdef Map S_precomposition
 
 cdef class PrecomposedAction(Action):
     cdef Action _action
-    cdef Morphism left_precomposition
-    cdef Morphism right_precomposition
+    cdef Map left_precomposition
+    cdef Map right_precomposition
 
 cdef class ActionEndomorphism(Morphism):
     cdef Action _action

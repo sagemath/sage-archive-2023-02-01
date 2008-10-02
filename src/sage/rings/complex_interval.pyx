@@ -784,12 +784,12 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 of all square roots.
 
         EXAMPLES:
-            sage: a = CIF(-1).sqrt()^2; a
-            -1.000000000000000? + 0.?e-15*I
+            sage: CIF(-1).sqrt()^2
+            -1
             sage: sqrt(CIF(2))
             1.414213562373095?
             sage: sqrt(CIF(-1))
-            0.?e-15 + 0.9999999999999999?*I
+            1*I
             sage: sqrt(CIF(2-I))^2
             2.00000000000000? - 1.00000000000000?*I
             sage: CC(-2-I).sqrt()^2
@@ -804,9 +804,15 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         if self.is_zero():
             return [self] if all else self
-        theta = self.argument()/2
-        rho = abs(self).sqrt()
-        x = ComplexIntervalFieldElement(self._parent, rho*theta.cos(), rho*theta.sin())
+        if mpfi_is_zero(self.__im) and not mpfi_has_zero(self.__re):
+            if mpfr_sgn(&self.__re.left) > 0:
+                x = ComplexIntervalFieldElement(self._parent, self.real().sqrt(), 0)
+            else:
+                x = ComplexIntervalFieldElement(self._parent, 0, (-self.real()).sqrt())
+        else:
+            theta = self.argument()/2
+            rho = abs(self).sqrt()
+            x = ComplexIntervalFieldElement(self._parent, rho*theta.cos(), rho*theta.sin())
         if all:
             return [x, -x]
         else:

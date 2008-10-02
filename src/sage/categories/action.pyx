@@ -28,6 +28,7 @@ AUTHORS:
 
 from functor cimport Functor
 from morphism cimport Morphism
+from map cimport Map
 
 import homset
 import sage.structure.element
@@ -171,7 +172,7 @@ cdef class InverseAction(Action):
 
 cdef class PrecomposedAction(Action):
 
-    def __init__(self, Action action, Morphism left_precomposition, Morphism right_precomposition):
+    def __init__(self, Action action, Map left_precomposition, Map right_precomposition):
         left = action.left_domain()
         right = action.right_domain()
         if left_precomposition is not None:

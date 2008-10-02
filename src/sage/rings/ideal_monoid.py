@@ -32,7 +32,7 @@ class IdealMonoid_c(Monoid_class):
     def _coerce_impl(self, x):
         R = self.__R
         if isinstance(x, ideal.Ideal_generic):
-            x = [R._coerce_impl(y) for y in x.gens()]
+            x = [R.coerce(y) for y in x.gens()]
             return R.ideal(x)
         else:
             return R.ideal(R._coerce_(x))

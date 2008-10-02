@@ -312,8 +312,7 @@ cdef class TripleDict:
             17
         """
         if buckets == 0:
-            from sage.rings.arith import next_prime
-            buckets = next_prime(2*len(self.buckets))
+            buckets = next_odd_prime(2*len(self.buckets))
         cdef TripleDict new = TripleDict(buckets, self)
         self.buckets = new.buckets
 
@@ -392,3 +391,16 @@ cdef class TripleDictIter:
 
 
 
+cdef long next_odd_prime(long n):
+    if n % 2 == 0:
+        n -= 1
+    cdef long k
+    while n > 0:
+        n += 2
+        k = 3
+        while k*k <= n:
+            if n % k == 0:
+                break
+            k += 2
+        if k*k > n:
+            return n

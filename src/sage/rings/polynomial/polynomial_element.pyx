@@ -2122,7 +2122,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
 
         elif is_NumberField(R):
-            if (R.defining_polynomial().denominator() == 1):
+
+            if R.degree() == 1:
+
+                factors = self.change_ring(QQ).factor()
+                return Factorization([(self._parent(p), e) for p, e in factors], R(factors.unit()))
+
+            if R.defining_polynomial().denominator() == 1:
 
                 if (self.leading_coefficient() == 1):
                     unit = None
@@ -3539,6 +3545,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         will be a fuzzy line with a horizontal tangent at $x=1$,
         $y=0$.  If the fuzziness extends up and down by about j, then
         it will extend left and right by about cube_root(j).
+
+        TESTS:
+            sage: K.<zeta> = CyclotomicField(2)
+            sage: R.<x> = K[]
+            sage: factor(x^3-1)
+            (x - 1) * (x^2 + x + 1)
         """
         seq = []
 
@@ -3701,6 +3713,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     return [a for a in K if not self(a)]
 
             raise NotImplementedError, "root finding for this polynomial not implemented"
+
         for fac in rts:
             g = fac[0]
             if g.degree() == 1:

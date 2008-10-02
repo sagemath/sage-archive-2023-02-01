@@ -593,7 +593,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return sage.rings.rational_field.Q
 
-    def extension(self, poly, names=None):
+    def extension(self, poly, names=None, embedding=None):
         """
         Returns the order in the number field defined by poly generated
         (as a ring) by a root of poly.
@@ -604,6 +604,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ.extension([x^2 + 1, x^2 + 2], 'a,b')
             Relative Order in Number Field in a with defining polynomial x^2 + 1 over its base field
         """
+        if embedding is not None:
+            raise NotImplementedError
         from sage.rings.number_field.order import EquationOrder
         return EquationOrder(poly, names)
 

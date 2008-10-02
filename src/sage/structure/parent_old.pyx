@@ -579,13 +579,13 @@ cdef class Parent(parent.Parent):
         if self._element_constructor is None:
             return self.coerce_map_from_c(S)
         else:
-            return None
+            return parent.Parent._coerce_map_from_(self, S)
 
     cpdef _get_action_(self, other, op, bint self_on_left):
         if self._element_constructor is None:
             return self.get_action_c(other, op, self_on_left)
         else:
-            return None
+            return parent.Parent._get_action_(self, other, op, self_on_left)
 
     cpdef _an_element_(self):
         if self._element_constructor is None:

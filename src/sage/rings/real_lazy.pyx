@@ -30,6 +30,7 @@ include "../ext/stdsage.pxi"
 from sage.categories.morphism cimport Morphism
 from sage.rings.ring cimport Field
 import sage.rings.infinity
+from sage.rings.integer import Integer
 
 from sage.rings.rational_field import QQ
 cdef _QQx = None
@@ -163,6 +164,34 @@ cdef class RealLazyField_class(LazyField):
         else:
             return RealIntervalField(prec)
 
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely,
+        the completion of the ratinals at infinity to infinite
+        precision.
+
+        EXAMPLES:
+            sage: c, S = RLF.construction(); S
+            Rational Field
+            sage: RLF == c(S)
+            True
+        """
+        from sage.categories.pushout import CompletionFunctor
+        return CompletionFunctor(sage.rings.infinity.Infinity,
+                                 sage.rings.infinity.Infinity,
+                                 {'type': 'RLF'}), QQ
+
+    def algebraic_closure(self):
+        """
+        Returns the algebraic closure of self,
+        ie, the complex double field.
+
+        EXAMPLES:
+            sage: RLF.algebraic_closure()
+            Complex Lazy Field
+        """
+        return CLF
+
     def _latex_(self):
         r"""
         EXAMPLES:
@@ -170,6 +199,17 @@ cdef class RealLazyField_class(LazyField):
             \mathbf{R}
         """
         return "\\mathbf{R}"
+
+    def gen(self, i=0):
+        """
+        EXAMPLES:
+            sage: RLF.gen()
+            1
+        """
+        if i == 0:
+            return self(Integer(1))
+        else:
+            raise ValueError, "RLF has only one generator."
 
     def __repr__(self):
         """
@@ -223,7 +263,7 @@ cdef class ComplexLazyField_class(LazyField):
     EXAMPLES:
         sage: a = CLF(-1).sqrt()
         sage: a
-        0.?e-15 + 0.9999999999999999?*I
+        1*I
         sage: CDF(a)
         1.0*I
         sage: ComplexField(200)(a)
@@ -262,6 +302,34 @@ cdef class ComplexLazyField_class(LazyField):
             return CIF
         else:
             return ComplexIntervalField(prec)
+
+    def gen(self, i=0):
+        """
+        EXAMPLES:
+            sage: CLF.gen()
+            1*I
+            sage: ComplexField(100)(CLF.gen())
+            1.0000000000000000000000000000*I
+        """
+        if i == 0:
+            from sage.rings.complex_double import CDF
+            return LazyAlgebraic(self, [1, 0, 1], CDF.gen())
+        else:
+            raise ValueError, "CLF has only one generator."
+
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely,
+        algebraic closure of the real lazy field.
+
+        EXAMPLES:
+            sage: c, S = CLF.construction(); S
+            Real Lazy Field
+            sage: CLF == c(S)
+            True
+        """
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        return (AlgebraicClosureFunctor(), RLF)
 
     def _latex_(self):
         r"""

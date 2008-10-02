@@ -20,6 +20,7 @@ cdef class NumberFieldElement(FieldElement):
     cdef object __multiplicative_order
     cdef object __pari
     cdef object __matrix
+    cdef object __symbolic
 
     cdef _new(self)
 

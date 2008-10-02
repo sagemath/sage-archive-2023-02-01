@@ -5,6 +5,7 @@ AUTHORS:
    -- William Stein (2004, 2005): initial version
    -- Steven Sivek (2006-05-12): added support for relative extensions
    -- William Stein (2007-09-04): major rewrite and documentation
+   -- Robert Bradshaw (2008-10): specified embeddings into ambient fields
 
 NOTE:
 
@@ -82,6 +83,7 @@ TESTS:
 
 from __future__ import with_statement
 from sage.structure.parent_gens import localvars
+from sage.categories.map import Map
 
 # There will be one running instance of GP for all
 # number field calculations that use the interpreter.
@@ -98,6 +100,7 @@ import sage.rings.real_mpfr
 import sage.rings.real_mpfi
 import sage.rings.complex_double
 import sage.rings.real_double
+import sage.rings.real_lazy
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name, latex_varify
@@ -113,6 +116,7 @@ import sage.structure.parent_gens
 
 from sage.structure.proof.proof import get_flag
 import maps
+import number_field_morphisms
 from itertools import count, izip
 
 from sage.rings.integer_ring import IntegerRing
@@ -185,9 +189,13 @@ QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
 RIF = sage.rings.real_mpfi.RealIntervalField()
 CIF = sage.rings.complex_interval_field.ComplexIntervalField()
+from sage.rings.real_double import RDF
+from sage.rings.complex_double import CDF
+from sage.rings.real_lazy import RLF, CLF
+
 
 _nf_cache = {}
-def NumberField(polynomial, name=None, check=True, names=None, cache=True):
+def NumberField(polynomial, name=None, check=True, names=None, cache=True, embedding=None):
     r"""
     Return \emph{the} number field defined by the given irreducible
     polynomial and with variable with the given name.  If check is
@@ -200,6 +208,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True):
         name -- a string (default: 'a'), the name of the generator
         check -- bool (default: True); do type checking and
                  irreducibility checking.
+        embedding -- image of the generator in an ambient field (default: None)
 
     EXAMPLES:
         sage: z = QQ['z'].0
@@ -250,6 +259,62 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True):
         sage: m
         Number Field in a with defining polynomial y^2 + 3
 
+    One can also define number fields with specified embeddings, may be used for
+    arithmatic and deduce relations with other number fields which would not be
+    valid for an abstract number field:
+        sage: K.<a> = NumberField(x^3-2, embedding=1.2)
+        sage: RR.coerce_map_from(K)
+        Composite map:
+          From: Number Field in a with defining polynomial x^3 - 2
+          To:   Real Field with 53 bits of precision
+          Defn:   Generic morphism:
+                  From: Number Field in a with defining polynomial x^3 - 2
+                  To:   Real Lazy Field
+                  Defn: a -> 1.259921049894873?
+                then
+                  Conversion via _mpfr_ method map:
+                  From: Real Lazy Field
+                  To:   Real Field with 53 bits of precision
+        sage: RR(a)
+        1.25992104989487
+        sage: 1.1 + a
+        2.35992104989487
+        sage: b = 1/(a+1); b
+        1/3*a^2 - 1/3*a + 1/3
+        sage: RR(b)
+        0.442493334024442
+        sage: L.<b> = NumberField(x^6-2, embedding=1.1)
+        sage: L(a)
+        b^2
+        sage: a + b
+        b^2 + b
+
+    Note that the image only needs to be specified to enough precision to
+    distinguish roots, and is exactly computed to any needed precision:
+        sage: RealField(200)(a)
+        1.2599210498948731647672106072782283505702514647015079800820
+
+    One can embed into any other field:
+        sage: K.<a> = NumberField(x^3-2, embedding=CC.gen()-0.6)
+        sage: CC(a)
+        -0.629960524947436 + 1.09112363597172*I
+        sage: L = Qp(5)
+        sage: f = polygen(L)^3 - 2
+        sage: K.<a> = NumberField(x^3-2, embedding=f.roots()[0][0])
+        sage: a + L(1)
+        4 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + 4*5^12 + 4*5^14 + 4*5^15 + 3*5^16 + 5^17 + 5^18 + 2*5^19 + O(5^20)
+
+    The \code{QuadraticField} and \code{CyclotomicField} constructors create an
+    embedding by default unless otherwise specified.
+        sage: K.<zeta> = CyclotomicField(15)
+        sage: CC(zeta)
+        0.913545457642601 + 0.406736643075800*I
+        sage: L.<sqrtn3> = QuadraticField(-3)
+        sage: K(sqrtn3)
+        2*zeta^5 + 1
+        sage: sqrtn3 + zeta
+        2*zeta^5 + zeta + 1
+
     An example involving a variable name that defines a function in
     PARI:
         sage: theta = polygen(QQ, 'theta')
@@ -291,7 +356,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True):
     polynomial = Q(polynomial)
 
     if cache:
-        key = (polynomial, name)
+        key = (polynomial, name, embedding)
         if _nf_cache.has_key(key):
             K = _nf_cache[key]()
             if not K is None: return K
@@ -303,16 +368,16 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True):
         return S
 
     if polynomial.degree() == 2:
-        K = NumberField_quadratic(polynomial, name, check)
+        K = NumberField_quadratic(polynomial, name, check, embedding)
     else:
-        K = NumberField_absolute(polynomial, name, None, check)
+        K = NumberField_absolute(polynomial, name, None, check, embedding)
 
     if cache:
         _nf_cache[key] = weakref.ref(K)
     return K
 
 
-def NumberFieldTower(v, names, check=True):
+def NumberFieldTower(v, names, check=True, embeddings=None):
     """
     Return the tower of number fields defined by the polynomials or
     number fields in the list v.
@@ -404,6 +469,9 @@ def NumberFieldTower(v, names, check=True):
         if len(v) > 1:
             names = ['%s%s'%(names[0], i) for i in range(len(v))]
 
+    if embeddings is None:
+        embeddings = [None] * len(v)
+
     if not isinstance(v, (list, tuple)):
         raise TypeError, "v must be a list or tuple"
     if len(v) == 0:
@@ -416,9 +484,9 @@ def NumberFieldTower(v, names, check=True):
         #    F = f.factor()
         #    return [NumberField(F[i][0], names='%s%s'%(names[0],str(i))) for i in range(len(F))]
         #else:
-        return NumberField(v[0], names=names)
+        return NumberField(v[0], names=names, embedding=embeddings[0])
     f = v[0]
-    w = NumberFieldTower(v[1:], names=names[1:])
+    w = NumberFieldTower(v[1:], names=names[1:], embeddings=embeddings[1:])
     if isinstance(f, polynomial_element.Polynomial):
         var = f.variable_name()
     else:
@@ -442,11 +510,11 @@ def NumberFieldTower(v, names, check=True):
     #            i += 1
     #    return z
     #else:
-    return w.extension(f, name, check=check)
+    return w.extension(f, name, check=check, embedding=embeddings[0])
 
 
-def QuadraticField(D, names, check=True):
-    """
+def QuadraticField(D, names, check=True, embedding=True):
+    r"""
     Return a quadratic field obtained by adjoining a square root of
     $D$ to the rational numbers, where $D$ is not a perfect square.
 
@@ -454,15 +522,20 @@ def QuadraticField(D, names, check=True):
         D -- a rational number
         name -- variable name
         check -- bool (default: True)
+        embedding -- bool or square root of D in an ambient field (default: True)
 
     OUTPUT:
-        A number field defined by a quadratic polynomial.
+        A number field defined by a quadratic polynomial. Unless otherwise
+        specified, it has an embedding into $\RR$ or $\CC$ by sending the
+        generator to the positive root.
 
     EXAMPLES:
         sage: QuadraticField(3, 'a')
         Number Field in a with defining polynomial x^2 - 3
         sage: K.<theta> = QuadraticField(3); K
         Number Field in theta with defining polynomial x^2 - 3
+        sage: RR(theta)
+        1.73205080756888
         sage: QuadraticField(9, 'a')
         Traceback (most recent call last):
         ...
@@ -483,7 +556,12 @@ def QuadraticField(D, names, check=True):
             raise ValueError, "D must not be a perfect square."
     R = QQ['x']
     f = R([-D, 0, 1])
-    return NumberField(f, names, check=False)
+    if embedding is True:
+        if D > 0:
+            embedding = RLF(D).sqrt()
+        else:
+            embedding = CLF(D).sqrt()
+    return NumberField(f, names, check=False, embedding=embedding)
 
 def is_AbsoluteNumberField(x):
     """
@@ -541,13 +619,14 @@ def is_RelativeNumberField(x):
     return isinstance(x, NumberField_relative)
 
 _cyclo_cache = {}
-def CyclotomicField(n, names=None):
+def CyclotomicField(n, names=None, embedding=True):
     r"""
     Return the n-th cyclotomic field, where n is a positive integer.
 
     INPUT:
         n -- a positive integer
         names -- name of generator (optional -- defaults to zetan).
+        embedding -- bool or n-th root of unity in an ambient field (default True)
 
     EXAMPLES:
     We create the $7$th cyclotomic field $\QQ(\zeta_7)$ with the
@@ -556,6 +635,11 @@ def CyclotomicField(n, names=None):
         Cyclotomic Field of order 7 and degree 6
         sage: k.gen()
         zeta7
+
+    The default embedding sends the generator to the complex primative $n$-th
+    root of unitiy of least argument.
+        sage: CC(k.gen())
+        0.623489801858734 + 0.781831482468030*I
 
     Cyclotomic fields are of a special type.
         sage: type(k)
@@ -583,6 +667,13 @@ def CyclotomicField(n, names=None):
         sage: CyclotomicField(1)
         Cyclotomic Field of order 1 and degree 1
 
+    Due to their default embedding into $\CC$, cyclotomic number fields are
+    all compatable.
+        sage: cf30 = CyclotomicField(30)
+        sage: cf5 = CyclotomicField(5)
+        sage: cf3 = CyclotomicField(3)
+        sage: cf30.gen() + cf5.gen() + cf3.gen()
+        zeta30^6 + zeta30^5 + zeta30 - 1
         sage: cf6 = CyclotomicField(6) ; z6 = cf6.0
         sage: cf3 = CyclotomicField(3) ; z3 = cf3.0
         sage: cf3(z6)
@@ -611,11 +702,13 @@ def CyclotomicField(n, names=None):
     if names is None:
         names = "zeta%s"%n
     names = sage.structure.parent_gens.normalize_names(1, names)
-    key = (n, names)
+    if embedding is True:
+        embedding = (2 * CLF.pi() * CLF.gen() / n).exp()
+    key = (n, names, embedding)
     if _cyclo_cache.has_key(key):
         K = _cyclo_cache[key]()
         if not K is None: return K
-    K = NumberField_cyclotomic(n, names)
+    K = NumberField_cyclotomic(n, names, embedding=embedding)
     _cyclo_cache[key] = weakref.ref(K)
     return K
 
@@ -654,7 +747,7 @@ class NumberField_generic(number_field_base.NumberField):
         True
     """
     def __init__(self, polynomial, name,
-                 latex_name=None, check=True):
+                 latex_name=None, check=True, embedding=None):
         """
         Create a number field.
 
@@ -706,6 +799,8 @@ class NumberField_generic(number_field_base.NumberField):
         self.__polynomial = polynomial
         self.__pari_bnf_certified = False
         self._integral_basis_dict = {}
+        embedding = number_field_morphisms.create_embedding_from_approx(self, embedding)
+        self._populate_coercion_lists_(embedding=embedding)
 
     def _Hom_(self, codomain, cat=None):
         """
@@ -767,6 +862,33 @@ class NumberField_generic(number_field_base.NumberField):
             f = self.hom(self)
             self._set_structure(f,f)
             return f, f
+
+    def completion(self, p, prec, extras={}):
+        """
+        Returns the completion of self at $p$ to the specified precision.
+        Only implemented at archimedean places, and then only if an embedding
+        has been fixed.
+
+        EXAMPLES:
+            sage: K.<a> = QuadraticField(2)
+            sage: K.completion(infinity, 100)
+            Real Field with 100 bits of precision
+            sage: K.<zeta> = CyclotomicField(12)
+            sage: K.completion(infinity, 53, extras={'type': 'RDF'})
+            Complex Double Field
+            sage: zeta + 1.5                            # implicit test
+            2.36602540378444 + 0.500000000000000*I
+        """
+        if p == infinity.infinity:
+            gen_image = self.gen_embedding()
+            if gen_image is not None:
+                if gen_image in RDF:
+                    return QQ.completion(p, prec, extras)
+                elif gen_image in CDF:
+                    return QQ.completion(p, prec, extras).algebraic_closure()
+            raise ValueError, "No embedding into the complex numbers has been specified."
+        else:
+            raise NotImplementedError
 
     def primitive_element(self):
         r"""
@@ -1091,6 +1213,86 @@ class NumberField_generic(number_field_base.NumberField):
             K = sage.rings.real_mpfr.RealField(prec)
         return self.embeddings(K)
 
+    def specified_complex_embedding(self):
+        r"""
+        Returns the embedding of this field into the complex numbers
+        has been specified.
+
+        Fields created with the \code{QuadraticField} or \code{CyclotomicField}
+        constructors come with an implicit embedding. To get one of these
+        fields without the embedding, use the generic \code{NumberField}
+        constructor.
+
+        EXAMPLES:
+            sage: QuadraticField(-1, 'I').specified_complex_embedding()
+            Generic morphism:
+              From: Number Field in I with defining polynomial x^2 + 1
+              To:   Complex Lazy Field
+              Defn: I -> 1*I
+
+            sage: QuadraticField(3, 'a').specified_complex_embedding()
+            Generic morphism:
+              From: Number Field in a with defining polynomial x^2 - 3
+              To:   Real Lazy Field
+              Defn: a -> 1.732050807568878?
+
+            sage: CyclotomicField(13).specified_complex_embedding()
+            Generic morphism:
+              From: Cyclotomic Field of order 13 and degree 12
+              To:   Complex Lazy Field
+              Defn: zeta13 -> 0.885456025653210? + 0.464723172043769?*I
+
+        Most fields don't implicitly have embeddings unless explicitly specified:
+            sage: NumberField(x^2-2, 'a').specified_complex_embedding() is None
+            True
+            sage: NumberField(x^3-x+5, 'a').specified_complex_embedding() is None
+            True
+            sage: NumberField(x^3-x+5, 'a', embedding=2).specified_complex_embedding()
+            Generic morphism:
+              From: Number Field in a with defining polynomial x^3 - x + 5
+              To:   Real Lazy Field
+              Defn: a -> -1.904160859134921?
+            sage: NumberField(x^3-x+5, 'a', embedding=CDF.0).specified_complex_embedding()
+            Generic morphism:
+              From: Number Field in a with defining polynomial x^3 - x + 5
+              To:   Complex Lazy Field
+              Defn: a -> 0.952080429567461? + 1.311248044077123?*I
+
+        This function only returns complex embeddings:
+            sage: K.<a> = NumberField(x^2-2, embedding=Qp(7)(2).sqrt())
+            sage: K.specified_complex_embedding() is None
+            True
+            sage: K.gen_embedding()
+            3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 + 6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 + 4*7^18 + 6*7^19 + O(7^20)
+            sage: K.coerce_embedding()
+            Generic morphism:
+              From: Number Field in a with defining polynomial x^2 - 2
+              To:   7-adic Field with capped relative precision 20
+              Defn: a -> 3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 + 6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 + 4*7^18 + 6*7^19 + O(7^20)
+        """
+        embedding = self.coerce_embedding()
+        if embedding is not None:
+            from sage.rings.real_mpfr import mpfr_prec_min
+            from sage.rings.complex_field import ComplexField
+            if ComplexField(mpfr_prec_min()).has_coerce_map_from(embedding.codomain()):
+                return embedding
+
+    def gen_embedding(self):
+        """
+        If an embedding has been specified, return the image of the generator
+        under that embedding. Otherwise return None.
+
+        EXAMPLES:
+            sage: QuadraticField(-7, 'a').gen_embedding()
+            2.645751311064591?*I
+            sage: NumberField(x^2+7, 'a').gen_embedding() # None
+        """
+        embedding = self.coerce_embedding()
+        if embedding is None:
+            return None
+        else:
+            return embedding(self.gen())
+
     def latex_variable_name(self, name=None):
         """
         Return the latex representation of the variable name for
@@ -1141,7 +1343,7 @@ class NumberField_generic(number_field_base.NumberField):
         return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
                               self.polynomial()._latex_(self.latex_variable_name()))
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
         Coerce x into this number field.
 
@@ -1261,7 +1463,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K._coerce_non_number_field_element_in(f)
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
         """
         if isinstance(x, (int, long, rational.Rational,
                               integer.Integer, pari_gen,
@@ -1275,9 +1477,9 @@ class NumberField_generic(number_field_base.NumberField):
             return self._element_class(self, x._rational_())
         except (TypeError, AttributeError), msg:
             pass
-        raise TypeError
+        raise TypeError, type(x)
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, R):
         """
         Canonical coercion of x into self.
 
@@ -1286,37 +1488,58 @@ class NumberField_generic(number_field_base.NumberField):
 
         EXAMPLES:
             sage: S.<y> = NumberField(x^3 + x + 1)
-            sage: S._coerce_impl(int(4))
+            sage: S.coerce(int(4))
             4
-            sage: S._coerce_impl(long(7))
+            sage: S.coerce(long(7))
             7
-            sage: S._coerce_impl(-Integer(2))
+            sage: S.coerce(-Integer(2))
             -2
-            sage: z = S._coerce_impl(-7/8); z, type(z)
+            sage: z = S.coerce(-7/8); z, type(z)
             (-7/8, <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>)
-            sage: S._coerce_impl(y) is y
+            sage: S.coerce(y) is y
             True
+
+        Fields with embeddings into an ambient field coerce natrually.
+            sage: CyclotomicField(15).coerce(CyclotomicField(5).0 - 17/3)
+            zeta15^3 - 17/3
+            sage: K.<a> = CyclotomicField(16)
+            sage: K(CyclotomicField(4).0)
+            a^4
 
         There are situations for which one might imagine canonical
         coercion could make sense (at least after fixing choices), but
         which aren't yet implemented:
             sage: K.<a> = QuadraticField(2)
-            sage: K._coerce_impl(sqrt(2))
+            sage: K.coerce(sqrt(2))
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: no cannonical coercion from Symbolic Ring to Number Field in a with defining polynomial x^2 - 2
+
+        TESTS:
+            sage: K.<a> = NumberField(polygen(QQ)^3-2)
+            sage: type(K.coerce_map_from(QQ))
+            <type 'sage.structure.coerce_maps.DefaultConvertMap_unique'>
+
+        Make sure we still get our optimized morphisms for special fields:
+            sage: K.<a> = NumberField(polygen(QQ)^2-2)
+            sage: type(K.coerce_map_from(QQ))
+            <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
         """
-        if isinstance(x, (rational.Rational, integer.Integer, int, long)):
-            return self._element_class(self, x)
-        elif isinstance(x, number_field_element.NumberFieldElement):
-            from sage.rings.number_field.order import is_NumberFieldOrder
-            if x.parent() is self:
-                return x
-            elif is_NumberFieldOrder(x.parent()) and x.parent().number_field() is self:
-                return self._element_class(self, x.polynomial())
-            elif x.parent() == self:
-                return self._element_class(self, x.list())
-        raise TypeError
+        if R in [int, long, ZZ, QQ, self.base()]:
+            return self._generic_convert_map(R)
+        from sage.rings.number_field.order import is_NumberFieldOrder
+        if is_NumberFieldOrder(R) and R.number_field().has_coerce_map_from(self):
+            return self._generic_convert_map(R)
+        if is_NumberField(R) and R != QQ:
+            if R.coerce_embedding() is not None:
+                if self.coerce_embedding() is not None:
+                    try:
+                        from sage.categories.pushout import pushout
+                        ambient_field = pushout(R.coerce_embedding().codomain(), self.coerce_embedding().codomain())
+                        if ambient_field is not None:
+                            return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
+                    except (TypeError, ValueError):
+                        pass
 
     def category(self):
         """
@@ -1397,13 +1620,27 @@ class NumberField_generic(number_field_base.NumberField):
             False
             sage: NumberField(x^3 + x + 5, 'a') == NumberField(x^3 + x + 5, 'b')
             False
+            sage: QuadraticField(2, 'a', embedding=2) == QuadraticField(2, 'a', embedding=-2)
+            False
         """
         if not isinstance(other, NumberField_generic):
             return cmp(type(self), type(other))
         c = cmp(self.variable_name(), other.variable_name())
         if c: return c
         # compare coefficients so that the polynomial variable does not count
-        return cmp(list(self.__polynomial), list(other.__polynomial))
+        c = cmp(list(self.__polynomial), list(other.__polynomial))
+        if c: return c
+        # Now we compare the embeddings (if any).
+        f, g = self.coerce_embedding(), other.coerce_embedding()
+        if f is None and g is None:
+            return 0
+        elif f is None:
+            return -1
+        elif g is None:
+            return 1
+        else:
+            return cmp(self.coerce_embedding()(self.gen()),
+                       other.coerce_embedding()(other.gen()))
 
     def _ideal_class_(self):
         """
@@ -2277,7 +2514,7 @@ class NumberField_generic(number_field_base.NumberField):
         R = self.polynomial().parent()
         return [self(QQ['x'](R(g))) for g in B]
 
-    def extension(self, poly, name=None, names=None, check=True):
+    def extension(self, poly, name=None, names=None, check=True, embedding=None):
         """
         Return the relative extension of this field by a given polynomial.
 
@@ -2317,7 +2554,7 @@ class NumberField_generic(number_field_base.NumberField):
             name = name[0]
         if name is None:
             raise TypeError, "the variable name must be specified."
-        return NumberField_relative(self, poly, str(name), check=check)
+        return NumberField_relative(self, poly, str(name), check=check, embedding=embedding)
 
     def factor(self, n):
         r"""
@@ -3407,11 +3644,11 @@ class NumberField_generic(number_field_base.NumberField):
 
 class NumberField_absolute(NumberField_generic):
 
-    def __init__(self, polynomial, name, latex_name=None, check=True):
+    def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None):
         """
         Function to initialize an absolute number field.
         """
-        NumberField_generic.__init__(self, polynomial, name, latex_name, check)
+        NumberField_generic.__init__(self, polynomial, name, latex_name, check, embedding)
         self._element_class = number_field_element.NumberFieldElement_absolute
         self._zero_element = self(0)
         self._one_element =  self(1)
@@ -3483,7 +3720,7 @@ class NumberField_absolute(NumberField_generic):
             sage: print L == K
             True
         """
-        return NumberField_absolute_v1, (self.polynomial(), self.variable_name(), self.latex_variable_name())
+        return NumberField_absolute_v1, (self.polynomial(), self.variable_name(), self.latex_variable_name(), self.gen_embedding())
 
     def optimized_representation(self, names=None, both_maps=True):
         """
@@ -4222,7 +4459,7 @@ class NumberField_relative(NumberField_generic):
         Number Field in b with defining polynomial x^2 + x + a over its base field
     """
     def __init__(self, base, polynomial, name,
-                 latex_name=None, names=None, check=True):
+                 latex_name=None, names=None, check=True, embedding=None):
         r"""
         INPUT:
             base -- the base field
@@ -4332,7 +4569,7 @@ class NumberField_relative(NumberField_generic):
         self._assign_names(tuple(names), normalize=False)
 
         NumberField_generic.__init__(self, self.absolute_polynomial(), name=None,
-                                     latex_name=latex_name, check=False)
+                                     latex_name=latex_name, check=False, embedding=embedding)
 
         v[0] = self._gen_relative()
         v = [self(x) for x in v]
@@ -4503,7 +4740,7 @@ class NumberField_relative(NumberField_generic):
             True
         """
         return NumberField_relative_v1, (self.__base_field, self.polynomial(), self.variable_name(),
-                                          self.latex_variable_name())
+                                          self.latex_variable_name(), self.gen_embedding())
 
     def _repr_(self):
         """
@@ -4558,7 +4795,7 @@ class NumberField_relative(NumberField_generic):
         return "( %s )[%s]/(%s)"%(latex(self.base_field()), self.latex_variable_name(),
                               self.polynomial()._latex_(self.latex_variable_name()))
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
         Coerce x into this relative number field.
 
@@ -4616,7 +4853,7 @@ class NumberField_relative(NumberField_generic):
 
         return self._element_class(self, x)
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, R):
         """
         Canonical implicit coercion of x into self.
 
@@ -4626,23 +4863,21 @@ class NumberField_relative(NumberField_generic):
         EXAMPLES:
             sage: k.<a> = NumberField([x^5 + 2, x^7 + 3])
             sage: b = k(k.base_field().gen())
-            sage: b = k._coerce_impl(k.base_field().gen())
+            sage: b = k.coerce(k.base_field().gen())
             sage: b^7
             -3
-            sage: k._coerce_impl(2/3)
+            sage: k.coerce(2/3)
             2/3
             sage: c = a + b  # this works
         """
-        if isinstance(x, number_field_element.NumberFieldElement):
-            from sage.rings.number_field.order import is_NumberFieldOrder
-            if x.parent() is self:
-                return x
-            elif is_NumberFieldOrder(x.parent()) and x.parent().number_field() is self:
-                return self._element_class(self, x.polynomial())
-            else:
-                return self.__base_inclusion(x)
-
-        return self.__base_inclusion(self.base_field()._coerce_impl(x))
+        if R in [int, long, ZZ, QQ, self.base_field()]:
+            return self._generic_convert_map(R)
+        from sage.rings.number_field.order import is_NumberFieldOrder
+        if is_NumberFieldOrder(R) and R.number_field() is self:
+            return self._generic_convert_map(R)
+        mor = self.base_field().coerce_map_from(R)
+        if mor is not None:
+            return self.coerce_map_from(self.base_field()) * mor
 
     def __base_inclusion(self, element):
         """
@@ -4672,7 +4907,7 @@ class NumberField_relative(NumberField_generic):
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         # Write element in terms of the absolute base field
-        element = self.base_field()._coerce_impl(element)
+        element = self.base_field().coerce(element)
         element = to_abs_base(element)
         # Obtain the polynomial in y corresponding to element in terms of the absolute base
         f = element.polynomial('y')
@@ -5417,7 +5652,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         sage: type(cf3(z1))
         <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
     """
-    def __init__(self, n, names):
+    def __init__(self, n, names, embedding=None):
         """
         A cyclomotic field, i.e., a field obtained by adjoining an
         n-th root of unity to the rational numbers.
@@ -5432,12 +5667,12 @@ class NumberField_cyclotomic(NumberField_absolute):
             latex_name = "\\zeta_{%s}"%n
         else:
             latex_name = None
+        self.__n = n = integer.Integer(n)
         NumberField_absolute.__init__(self, f,
                                       name= names,
                                       latex_name=latex_name,
-                                      check=False)
-        n = integer.Integer(n)
-        self.__n = n
+                                      check=False,
+                                      embedding = embedding)
         if n%2:
             self.__zeta_order = 2*n
         else:
@@ -5469,7 +5704,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: L == K
             True
         """
-        return NumberField_cyclotomic_v1, (self.__n, self.variable_name())
+        return NumberField_cyclotomic_v1, (self.__n, self.variable_name(), self.gen_embedding())
 
     def _magma_init_(self, magma):
         """
@@ -5546,7 +5781,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         else:
             return NumberField_generic._latex_(self)
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
         Create an element of this cyclotomic field from $x$.
 
@@ -5582,7 +5817,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             if isinstance(x.parent(), NumberField_cyclotomic):
                 return self._coerce_from_other_cyclotomic_field(x)
             else:
-                return NumberField_absolute.__call__(self, x)
+                return NumberField_absolute._element_constructor_(self, x)
         elif sage.interfaces.gap.is_GapElement(x):
             return self._coerce_from_gap(x)
         elif isinstance(x,str):
@@ -5765,26 +6000,6 @@ class NumberField_cyclotomic(NumberField_absolute):
             return s
         else:
             return self(s)
-
-    def _coerce_impl(self, x):
-        """
-        Canonical implicit coercion of x into self.
-
-        Elements of other compatible cyclotomic fields coerce in, as
-        do elements of the rings that coerce to all number fields
-        (e.g., integers, rationals).
-
-        EXAMPLES:
-            sage: CyclotomicField(15)._coerce_impl(CyclotomicField(5).0 - 17/3)
-            zeta15^3 - 17/3
-            sage: K.<a> = CyclotomicField(16)
-            sage: K(CyclotomicField(4).0)
-            a^4
-        """
-        if isinstance(x, number_field_element.NumberFieldElement) and \
-                isinstance(x.parent(), NumberField_cyclotomic):
-            return self._coerce_from_other_cyclotomic_field(x, only_canonical=True)
-        return NumberField_generic._coerce_impl(self, x)
 
     def _Hom_(self, codomain, cat=None):
         """
@@ -6237,7 +6452,7 @@ class NumberField_quadratic(NumberField_absolute):
         sage: QuadraticField(-4, 'b')
         Number Field in b with defining polynomial x^2 + 4
     """
-    def __init__(self, polynomial, name=None, check=True):
+    def __init__(self, polynomial, name=None, check=True, embedding=None):
         """
         Create a quadratic number field.
 
@@ -6249,23 +6464,18 @@ class NumberField_quadratic(NumberField_absolute):
             sage: k.<a> = QuadraticField(4, check=False); k
             Number Field in a with defining polynomial x^2 - 4
         """
-        NumberField_absolute.__init__(self, polynomial, name=name, check=check)
+        NumberField_absolute.__init__(self, polynomial, name=name, check=check, embedding=embedding)
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
         # set the generator
         Dpoly = b*b - 4*a*c
-        D = Dpoly.numer() * Dpoly.denom()
-        # this could be done extremely quickly in cython
-        for p in sage.rings.arith.primes(100):
-            p2 = p*p
-            while D % p2 == 0:
-                D //= p2
+        D = (Dpoly.numer() * Dpoly.denom()).squarefree_part(bound=10000)
         self._D = D
         parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
         self._NumberField_generic__gen = self._element_class(self, parts)
 
 
-    def coerce_map_from_impl(self, S):
+    def _coerce_map_from_(self, K):
         """
         EXAMPLES:
             sage: K.<a> = QuadraticField(-3)
@@ -6278,10 +6488,10 @@ class NumberField_quadratic(NumberField_absolute):
             sage: parent(f(3/5)) is K
             True
         """
-        if S is QQ:
+        if K is QQ:
             return number_field_element_quadratic.Q_to_quadratic_field_element(self)
         else:
-            return NumberField_absolute.coerce_map_from_impl(self, S)
+            return NumberField_absolute._coerce_map_from_(self, K)
 
 
 
@@ -6331,7 +6541,7 @@ class NumberField_quadratic(NumberField_absolute):
             sage: L == K
             True
         """
-        return NumberField_quadratic_v1, (self.polynomial(), self.variable_name())
+        return NumberField_quadratic_v1, (self.polynomial(), self.variable_name(), self.gen_embedding())
 
 
     def is_galois(self):
@@ -6462,7 +6672,7 @@ def is_fundamental_discriminant(D):
 ###################
 
 
-def NumberField_absolute_v1(poly, name, latex_name):
+def NumberField_absolute_v1(poly, name, latex_name, canonical_embedding=None):
     """
     This is used in pickling generic number fields.
 
@@ -6472,11 +6682,11 @@ def NumberField_absolute_v1(poly, name, latex_name):
         sage: NumberField_generic_v1(x^2 + 1, 'i', 'i')
         Number Field in i with defining polynomial x^2 + 1
     """
-    return NumberField_absolute(poly, name, latex_name, check=False)
+    return NumberField_absolute(poly, name, latex_name, check=False, embedding=canonical_embedding)
 
 NumberField_generic_v1 = NumberField_absolute_v1  # for historical reasons only (so old objects unpickle)
 
-def NumberField_relative_v1(base_field, poly, name, latex_name):
+def NumberField_relative_v1(base_field, poly, name, latex_name, canonical_embedding=None):
     """
     This is used in pickling relative fields.
 
@@ -6486,11 +6696,11 @@ def NumberField_relative_v1(base_field, poly, name, latex_name):
         sage: NumberField_relative_v1(CyclotomicField(3), x^2 + 7, 'a', 'a')
         Number Field in a with defining polynomial x^2 + 7 over its base field
     """
-    return NumberField_relative(base_field, poly, name, latex_name, check=False)
+    return NumberField_relative(base_field, poly, name, latex_name, check=False, embedding=canonical_embedding)
 
 NumberField_extension_v1 = NumberField_relative_v1  # historical reasons only
 
-def NumberField_cyclotomic_v1(zeta_order, name):
+def NumberField_cyclotomic_v1(zeta_order, name, canonical_embedding=None):
     """
     This is used in pickling cyclotomic fields.
 
@@ -6501,9 +6711,9 @@ def NumberField_cyclotomic_v1(zeta_order, name):
         sage: NumberField_cyclotomic_v1(5,'a').variable_name()
         'a'
     """
-    return NumberField_cyclotomic(zeta_order, name)
+    return NumberField_cyclotomic(zeta_order, name, embedding=canonical_embedding)
 
-def NumberField_quadratic_v1(poly, name):
+def NumberField_quadratic_v1(poly, name, canonical_embedding=None):
     """
     This is used in pickling quadratic fields.
 
@@ -6513,7 +6723,7 @@ def NumberField_quadratic_v1(poly, name):
         sage: NumberField_quadratic_v1(x^2 - 2, 'd')
         Number Field in d with defining polynomial x^2 - 2
     """
-    return NumberField_quadratic(poly, name, check=False)
+    return NumberField_quadratic(poly, name, check=False, embedding=canonical_embedding)
 
 
 def put_natural_embedding_first(v):

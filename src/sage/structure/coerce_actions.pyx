@@ -68,7 +68,7 @@ cdef class ModuleAction(Action):
         Action.__init__(self, G, S, not PY_TYPE_CHECK(self, RightModuleAction), operator.mul)
         if not isinstance(G, Parent):
             # only let Parents act
-            raise TypeError
+            raise TypeError, "Actor must be a parent."
         if S.base() is S:
             # The right thing to do is a normal multiplication
             raise TypeError

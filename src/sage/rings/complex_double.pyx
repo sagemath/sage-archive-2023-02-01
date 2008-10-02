@@ -337,6 +337,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             2.0
             sage: CDF.0 - CC(1) - long(1) - RR(1) - QQbar(1)
             -4.0 + 1.0*I
+            sage: CDF.has_coerce_map_from(ComplexField(20))
+            False
         """
         from integer_ring import ZZ
         from rational_field import QQ
@@ -349,7 +351,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             return FloatToCDF(S)
         elif RR.has_coerce_map_from(S):
             return FloatToCDF(RR) * RR.coerce_map_from(S)
-        elif isinstance(S, ComplexField_class):
+        elif isinstance(S, ComplexField_class) and S.prec() >= 53:
             return CCtoCDF(S, self)
         elif CC.has_coerce_map_from(S):
             return CCtoCDF(CC, self) * CC.coerce_map_from(S)
@@ -364,6 +366,24 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             53
         """
         return 53
+
+    def to_prec(self, prec):
+        """
+        Returns the complex field to the specified precision. As doubles have
+        fixed precision, this will only return a complex double field if prec
+        is exactly 53.
+
+        EXAMPLES:
+            sage: CDF.to_prec(53)
+            Complex Double Field
+            sage: CDF.to_prec(250)
+            Complex Field with 250 bits of precision
+        """
+        if prec == 53:
+            return self
+        else:
+            from complex_field import ComplexField
+            return ComplexField(prec)
 
 
     def gen(self, n=0):

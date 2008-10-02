@@ -323,7 +323,7 @@ cdef class Parent(category_object.CategoryObject):
         try:
             x2 = self(x)
             return bool(x2 == x)
-        except TypeError:
+        except (TypeError, ValueError):
             return False
 
     cpdef coerce(self, x):
@@ -1047,7 +1047,9 @@ cdef class Parent(category_object.CategoryObject):
         Override this method to provide additional conversions beyond those
         given in convert_list.
 
-        This function is called after coercions are attempted.
+        This function is called after coercions are attempted. If there is a
+        coercion morphism in the opposite direction, one should consider
+        adding a section method to that.
 
         This MUST return a Map from S to self, or None. If None is returned
         then a generic map will be provided.
@@ -1544,6 +1546,8 @@ cdef bint _register_pair(x, y) except -1:
         xp = type(x) if PY_TYPE_CHECK(x, Parent) else parent_c(x)
         yp = type(y) if PY_TYPE_CHECK(y, Parent) else parent_c(y)
         #print xp, yp
+#        if str(y) != "Complex Double Field":
+#            raise Exception, "Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp)
         raise NotImplementedError, "Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp)
     _coerce_test_list.append(both)
     return 0

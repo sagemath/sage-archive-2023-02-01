@@ -38,8 +38,9 @@ from orthogonal_polys import (chebyshev_T,
 from functions import FunctionRing, sin, cos, airy_ai, airy_bi, var
 
 from constants import (pi, e, NaN, golden_ratio, log2, euler_gamma, catalan,
-                       khinchin, twinprime, merten, brun, I)
+                       khinchin, twinprime, merten, brun)
 
+from constants import I
 i = I  # alias
 
 from spike_function import spike_function

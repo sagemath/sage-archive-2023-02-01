@@ -1121,13 +1121,11 @@ cdef class RingElement(ModuleElement):
 
         TESTS:
             sage: 2r**(SR(2)-1-1r)
+            1
+            sage: 2r**(SR(1/2))
             Traceback (most recent call last):
             ...
             NotImplementedError: non-integral exponents not supported
-            sage: 2r**(Integer(SR(2)-1-1r))
-            1
-
-
         """
         if dummy is not None:
             raise RuntimeError, "__pow__ dummy argument not used"

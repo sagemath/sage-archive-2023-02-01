@@ -3892,6 +3892,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: W = V.submodule_with_basis([[1,1,0],[0,2,1]])
             sage: W._echelonized_basis(V,W.basis())
             [(1, 0, -1/2), (0, 1, 1/2)]
+            sage: V = SR^3
+            sage: W = V.submodule_with_basis([[1,0,1]])
+            sage: W._echelonized_basis(V,W.basis())
+            [(1, 0, 1)]
+
         """
         # Return the first rank rows (i.e., the nonzero rows).
         d = self._denominator(basis)

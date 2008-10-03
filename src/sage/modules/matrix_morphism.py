@@ -287,7 +287,7 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
 
     def kernel(self):
         """
-        Compute the kernel of this matrix.
+        Compute the kernel of this morphism.
 
         EXAMPLES:
             sage: V = VectorSpace(QQ,3)
@@ -302,6 +302,10 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
             [ 1 -2  1]
+            sage: hom(CC^2, CC^2, 1).kernel()
+            Vector space of degree 2 and dimension 0 over Complex Field with 53 bits of precision
+            Basis matrix:
+            []
         """
         V = self.matrix().kernel()
         D = self.domain()
@@ -314,6 +318,22 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
         return self.domain().submodule(V, check=False)
 
     def image(self):
+        """
+        Compute the image of this morphism.
+
+        EXAMPLES:
+            sage: V = VectorSpace(QQ,3)
+            sage: phi = V.Hom(V)(range(9))
+            sage: phi.image()
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1]
+            [ 0  1  2]
+            sage: hom(GF(7)^3, GF(7)^2, 0).image()
+            Vector space of degree 2 and dimension 0 over Finite Field of size 7
+            Basis matrix:
+            []
+        """
         V = self.matrix().image()
         D = self.codomain()
         if not D.is_ambient():

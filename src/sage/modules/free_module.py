@@ -3771,6 +3771,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             raise TypeError, "ambient (=%s) must be ambient."%ambient
         if not isinstance(basis, (list, tuple)):
             raise TypeError, "basis (=%s) must be a list"%basis
+        basis = list(basis) # make it a list rather than a tuple
         if check:
             V = ambient.vector_space()
             basis = [V(x) for x in basis]

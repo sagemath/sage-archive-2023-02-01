@@ -35,6 +35,7 @@ cdef extern from "mpfr.h":
     void mpfr_init (mpfr_t x)
     void mpfr_init2 (mpfr_t x, mp_prec_t prec)
     void mpfr_clear (mpfr_t x)
+    void mpfr_swap (mpfr_t x, mpfr_t y)
 
     mp_prec_t mpfr_get_prec (mpfr_t x)
 
@@ -79,6 +80,7 @@ cdef extern from "mpfr.h":
 
     # Special functions
     int mpfr_sqrt (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_hypot (mpfr_t rop, mpfr_t x, mpfr_t y, mp_rnd_t rnd)
     #int mpfr_sqrt_ui _PROTO ((mpfr_ptr, unsigned long, mp_rnd_t));
     int mpfr_cbrt (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_root (mpfr_t rop, mpfr_t op, unsigned long int k, mp_rnd_t rnd)
@@ -179,6 +181,7 @@ cdef extern from "mpfr.h":
     int mpfr_neg (mpfr_ptr rop, mpfr_srcptr op, mp_rnd_t rnd)
     # int mpfr_eq (mpfr_srcptr rop, mpfr_srcptr op, unsigned long i)
     int mpfr_cmp (mpfr_t op1, mpfr_t op2)
+    int mpfr_cmpabs (mpfr_t op1, mpfr_t op2)
     bint mpfr_greater_p (mpfr_t op1, mpfr_t op2)
     bint mpfr_greaterequal_p (mpfr_t op1, mpfr_t op2)
     bint mpfr_less_p (mpfr_t op1, mpfr_t op2)

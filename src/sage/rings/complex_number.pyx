@@ -1338,61 +1338,70 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def sqrt(self, all=False):
         """
-        The square root function.
+        The square root function, taking the branch cut to be the negative real axis.
 
         INPUT:
             all -- bool (default: False); if True, return a list
                 of all square roots.
 
         EXAMPLES:
-            sage: C, i = ComplexField(30).objgen()
+            sage: C.<i> = ComplexField(30)
             sage: i.sqrt()
             0.70710678 + 0.70710678*I
             sage: (1+i).sqrt()
             1.0986841 + 0.45508986*I
             sage: (C(-1)).sqrt()
             1.0000000*I
+            sage: (1 + 1e-100*i).sqrt()^2
+            1.0000000 + 1.0000000e-100*I
             sage: i = ComplexField(200).0
             sage: i.sqrt()
             0.70710678118654752440084436210484903928483593768847403658834 + 0.70710678118654752440084436210484903928483593768847403658834*I
         """
-        if self.is_zero():
-            return [self] if all else self
-
-        cdef ComplexNumber z
-        z = self._new()
-
-        cdef mpfr_t r, a, t
-        # t is arg(z)/2
-        mpfr_init2(t, self._prec)
-        mpfr_atan2(t, self.__im, self.__re, rnd)
-        mpfr_div_ui(t, t, 2, rnd)
-
-        # r is sqrt(abs(z))
-        mpfr_init2(a, self._prec)
-        mpfr_init2(r, self._prec)
-        mpfr_sqr(a, self.__re, rnd)
-        mpfr_sqr(r, self.__im, rnd)
-        mpfr_add(r, a, r, rnd)
-        mpfr_sqrt(r, r, rnd)
-        mpfr_sqrt(r, r, rnd)
-
-        mpfr_sin_cos(z.__im, z.__re, t, rnd)
-        if not self.is_real():
-            mpfr_mul(z.__re, z.__re, r, rnd)
-            mpfr_mul(z.__im, z.__im, r, rnd)
-        elif mpfr_sgn(self.__re) > 0:
-            # if self is positive real, so should be sqrt(self)
-            mpfr_set_ui(z.__im, 0, rnd)
-            mpfr_mul(z.__re, z.__re, r, rnd)
+        cdef ComplexNumber z = self._new()
+        if mpfr_zero_p(self.__im):
+            if mpfr_sgn(self.__re) >= 0:
+                mpfr_set_ui(z.__im, 0, rnd)
+                mpfr_sqrt(z.__re, self.__re, rnd)
+            else:
+                mpfr_set_ui(z.__re, 0, rnd)
+                mpfr_neg(z.__im, self.__re, rnd)
+                mpfr_sqrt(z.__im, z.__im, rnd)
+            if all:
+                return [z, -z] if z else [z]
+            else:
+                return z
+        # self = x + yi = (a+bi)^2
+        # expand, substitute, solve
+        # a^2 = (x + sqrt(x^2+y^2))/2
+        cdef bint avoid_branch = mpfr_sgn(self.__re) < 0 and mpfr_cmpabs(self.__im, self.__re) < 0
+        cdef mpfr_t a2
+        mpfr_init2(a2, self._prec)
+        mpfr_hypot(a2, self.__re, self.__im, rnd)
+        if avoid_branch:
+            # x + sqrt(x^2+y^2) numerically unstable for x near negative real axis
+            # so we compute sqrt of (-z) and shift by i at the end
+            mpfr_sub(a2, a2, self.__re, rnd)
         else:
-            # if self is negative real, sqrt(self) should be pure imaginary
-            mpfr_set_ui(z.__re, 0, rnd)
-            mpfr_mul(z.__im, z.__im, r, rnd)
-        mpfr_clear(r)
-        mpfr_clear(t)
-        mpfr_clear(a)
-        return [z, -z] if all else z
+            mpfr_add(a2, a2, self.__re, rnd)
+        mpfr_mul_2si(a2, a2, -1, rnd)
+        # a = sqrt(a2)
+        mpfr_sqrt(z.__re, a2, rnd)
+        # b = y/(2a)
+        mpfr_div(z.__im, self.__im, z.__re, rnd)
+        mpfr_mul_2si(z.__im, z.__im, -1, rnd)
+        mpfr_clear(a2)
+        if avoid_branch:
+            mpfr_swap(z.__re, z.__im)
+            # Note that y (hence b) was never negated, so we have z=i*sqrt(self).
+            # if we were below the branch cut, we want the other branch
+            if mpfr_sgn(self.__im) < 0:
+                mpfr_neg(z.__re, z.__re, rnd)
+                mpfr_neg(z.__im, z.__im, rnd)
+        if all:
+            return [z, -z]
+        else:
+            return z
 
     def nth_root(self, n, all=False):
         """

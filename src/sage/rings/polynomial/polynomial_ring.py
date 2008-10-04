@@ -1095,6 +1095,17 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         return self.__modulus
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
+        """
+        EXAMPLES:
+        This shows that the issue at trac \#4106 is fixed:
+            sage: x = var('x')
+            sage: R = IntegerModRing(4)
+            sage: S = PolynomialRing(R, x)
+            sage: S(x)
+            x
+        """
+        if hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
         if self.__modulus < ZZ_sage(polynomial_modn_dense_ntl.zz_p_max):
             return polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_zz(self, x, check, is_gen, construct=construct)
         else:

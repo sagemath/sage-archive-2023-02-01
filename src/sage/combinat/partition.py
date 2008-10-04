@@ -597,6 +597,10 @@ class Partition_class(CombinatorialObject):
             True
             sage: p.dominates([3,3])
             False
+            sage: p.dominates([4])
+            False
+            sage: Partition([4]).dominates(p)
+            False
             sage: Partition([]).dominates([1])
             False
             sage: Partition([]).dominates([])
@@ -616,7 +620,7 @@ class Partition_class(CombinatorialObject):
             sum2 += p2[i]
             if sum2 > sum1:
                 return False
-        return True
+        return bool(sum(p1) >= sum(p2))
 
     def boxes(self):
         """

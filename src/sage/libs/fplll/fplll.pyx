@@ -78,6 +78,13 @@ cdef class FP_LLL:
         ZZ_mat_delete(self._lattice)
 
     def __repr__(self):
+        """
+        EXAMPLE:
+            sage: from sage.libs.fplll.fplll import FP_LLL
+            sage: A = random_matrix(ZZ,10,10)
+            sage: FP_LLL(A) # indirect doctest
+            fpLLL wrapper acting on a 10 x 10 matrix
+        """
         return "fpLLL wrapper acting on a %d x %d matrix"%(self._lattice.GetNumRows(),self._lattice.GetNumCols())
 
     def _sage_(self):
@@ -146,32 +153,34 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: W = random_matrix(ZZ,10,10)
-            sage: W # result random
-            [ -3  -1  -1  -2  -1   7  -1   1  -1  -2]
-            [  1   4  -1  -1  -1  -1  -1   3   1   1]
-            [ -4  -1   1   1  -3  -2  -5   1   4  -1]
-            [  1   1  -1  -1  -1  -2   3  -2  -1   1]
-            [  4  -1 -12   1  -1   2   1  -2  -2   1]
-            [ -2   2  -1  -2   6  -5   5   1  -1  -1]
-            [ -1  -1  -1  -2  -2  -4   9   1   3   1]
-            [  2  -2   1  -1  -1  -1   1  -1 -22  -1]
-            [ -1   1   1  -1  -1 -49  20   2 -16   2]
-            [  1  30   1  -1   1  -1  -8  -3  -1  -1]
-            sage: F = FP_LLL(W)
+            sage: A = random_matrix(ZZ,10,10); A
+            [   -8     2     0     0     1    -1     2     1   -95    -1]
+            [   -2   -12     0     0     1    -1     1    -1    -2    -1]
+            [    4    -4    -6     5     0     0    -2     0     1    -4]
+            [   -6     1    -1     1     1    -1     1    -1    -3     1]
+            [    1     0     0    -3     2    -2     0    -2     1     0]
+            [   -1     1     0     0     1    -1     4    -1     1    -1]
+            [   14     1    -5     4    -1     0     2     4     1     1]
+            [   -2    -1     0     4    -3     1    -5     0    -2    -1]
+            [   -9    -1    -1     3     2     1    -1     1    -2     1]
+            [   -1     2    -7     1     0     2     3 -1955   -22    -1]
+            sage: F = FP_LLL(A)
             sage: F.wrapper()
-            sage: W = F._sage_()
-            sage: W # result depending on random input
-            [ 1  1 -1 -1 -1 -2  3 -2 -1  1]
-            [ 1  4 -1 -1 -1 -1 -1  3  1  1]
-            [-3  0  0  0 -4 -4 -2 -1  3  0]
-            [ 4 -2 -2  2 -4 -4 -2 -1  0 -2]
-            [-2  0 -2 -3 -2  5  2 -1 -2 -1]
-            [-1 -1 -4 -2  1 -2  2  1 -2 -5]
-            [-2 -2  0 -1 -1 -2  6  3  4  0]
-            [ 0  2 -4 -2  6  3  1 -4  2 -3]
-            [ 1 -5 -3  5  0 -1  1  1 -3  6]
-            [-5  5 -1  6 -2  2  2 -3  1 -3]
+            sage: L = F._sage_(); L
+            [   1    0    0   -3    2   -2    0   -2    1    0]
+            [  -1    1    0    0    1   -1    4   -1    1   -1]
+            [  -2    0    0    1    0   -2   -1   -3    0   -2]
+            [  -2   -2    0   -1    3    0   -2    0    2    0]
+            [   1    1    1    2    3   -2   -2    0    3    1]
+            [  -4    1   -1    0    1    1    2    2   -3    3]
+            [   1   -3   -7    2    3   -1    0    0   -1   -1]
+            [   1   -9    1    3    1   -3    1   -1   -1    0]
+            [   8    5   19    3   27    6   -3    8  -25  -22]
+            [ 172  -25   57  248  261  793   76 -839  -41  376]
+            sage: L.is_LLL_reduced()
+            True
+            sage: L.echelon_form() == A.echelon_form()
+            True
         """
         self._check_precision(precision)
         self._check_eta(eta)
@@ -207,35 +216,35 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: P = random_matrix(ZZ,10,10)
-            sage: P # result random
-            [   10     1     1    22     1    -1     3    -1 -3974    -2]
-            [   -3     3    -3    -1     4    -1     4    -1     1     1]
-            [    1    10     2     2    -1    -3    -2    -2   -12     2]
-            [   -7    -1   -14    -3    17    -5    -9    -1   -82     1]
-            [  -11     1     5     1    -1    -1     1     3    -4     1]
-            [    8    -1    -2    -2     1    -6     3    -1     2    -1]
-            [    1    -1    -1    -3    22     3     1     1     1    -2]
-            [    1    -2    -1    32    -1    -1     2     1     1    -1]
-            [    2    -5    -2    -1     2    -1    -7    -2   -10    -1]
-            [   -4    -3    -2 -1188     2     1    -1    50     1     1]
-            sage: F = FP_LLL(P)
+            sage: A = random_matrix(ZZ,10,10); A
+            [   -8     2     0     0     1    -1     2     1   -95    -1]
+            [   -2   -12     0     0     1    -1     1    -1    -2    -1]
+            [    4    -4    -6     5     0     0    -2     0     1    -4]
+            [   -6     1    -1     1     1    -1     1    -1    -3     1]
+            [    1     0     0    -3     2    -2     0    -2     1     0]
+            [   -1     1     0     0     1    -1     4    -1     1    -1]
+            [   14     1    -5     4    -1     0     2     4     1     1]
+            [   -2    -1     0     4    -3     1    -5     0    -2    -1]
+            [   -9    -1    -1     3     2     1    -1     1    -2     1]
+            [   -1     2    -7     1     0     2     3 -1955   -22    -1]
+
+            sage: F = FP_LLL(A)
             sage: F.proved()
-            sage: P = F._sage_()
-            sage: P # result depending on random input
-            [  -3    3   -3   -1    4   -1    4   -1    1    1]
-            [  -3    0    3   -1    0   -7    4    2   -2    0]
-            [  -8    1    2    2   -1    6   -3    1   -2    1]
-            [  -1   -2   -5   -2    6   -2   -3   -3   -9    0]
-            [   2   12    7    4   -7   -1    1    1   -3    2]
-            [   2   -2   10   -1   12   -1    4    7    7   -3]
-            [   1   -6   -4    0   -2   10   17   13   -7   -2]
-            [  -2    1   -4   31    3   -2    6    0    2    0]
-            [   0   17  -15  -11    0   -4  -14   37    6  -13]
-            [ -18   31    5   -4  -14    9   12  -33   -3 -152]
-
-
-
+            sage: L = F._sage_(); L
+            [   1    0    0   -3    2   -2    0   -2    1    0]
+            [  -1    1    0    0    1   -1    4   -1    1   -1]
+            [  -2    0    0    1    0   -2   -1   -3    0   -2]
+            [  -2   -2    0   -1    3    0   -2    0    2    0]
+            [   1    1    1    2    3   -2   -2    0    3    1]
+            [  -4    1   -1    0    1    1    2    2   -3    3]
+            [   1   -3   -7    2    3   -1    0    0   -1   -1]
+            [   1   -9    1    3    1   -3    1   -1   -1    0]
+            [   8    5   19    3   27    6   -3    8  -25  -22]
+            [ 172  -25   57  248  261  793   76 -839  -41  376]
+            sage: L.is_LLL_reduced()
+            True
+            sage: L.echelon_form() == A.echelon_form()
+            True
         """
         self._check_precision(precision)
         self._check_eta(eta)
@@ -288,32 +297,14 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: F = random_matrix(ZZ,10,10)
-            sage: F # result random
-            [ -1 -20   1  12   2   2   4   1   1  -1]
-            [  1  -2  -9   1   2   3  -1  -4 -60  -1]
-            [ -4 -15  -8   1   3   2 -60  -1  -2   6]
-            [ -5  -7  -1  -2   1   1   1   6   3   1]
-            [  5  -6  -2  -1  -2   1   2  -4  -3  -1]
-            [  3   1   3  -1  10  -2   1  -1  -2  -1]
-            [  4   2 -15   3   1  -9 -12   1  -1  -1]
-            [  1   4  16  -1   3   1  -1  -2  -1 -75]
-            [-56   1  -1  -1   1   1  -4   3   1   2]
-            [  2  -9  -4  -1  -1  -3   4   7  -2   3]
-            sage: f = FP_LLL(F)
+            sage: A = random_matrix(ZZ,10,10,x=-(10^5),y=10^5)
+            sage: f = FP_LLL(A)
             sage: f.fast()
-            sage: F = f._sage_()
-            sage: F # result depending on random input
-            [  2   4  -1   2   0  -5   1   5  -2   3]
-            [  5  -6  -2  -1  -2   1   2  -4  -3  -1]
-            [ -5  -7  -1  -2   1   1   1   6   3   1]
-            [  3   1   3  -1  10  -2   1  -1  -2  -1]
-            [ -1  -7   4  15   3   0   1  -1   1  -1]
-            [  2  -2 -14   1   1  -4 -13  -4   1  -4]
-            [-24  -7  -7   0   2  -8   6 -10 -20   2]
-            [  3   1   0  -2  -5  22 -13  11 -25  -5]
-            [  7  -6  12 -12  -2 -16 -18 -12   9  20]
-            [  8  -7  17  -9  -9 -30 -12  15   5 -41]
+            sage: L = f._sage_()
+            sage: L.is_LLL_reduced(eta=0.51,delta=0.99)
+            True
+            sage: L.echelon_form() == A.echelon_form()
+            True
         """
         self._check_precision(precision)
         self._check_eta(eta)
@@ -350,34 +341,36 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: FE = random_matrix(ZZ,10,10)
-            sage: FE # result random
-            [  -4    3    2   -1    1   -1    6    2   -4  -15]
-            [   1   -1    6    4   -1    4   -6   -1    2    2]
-            [   1   -1   -1   -7    1    1   -3   -2    1    5]
-            [ 232   -2   -1   -1   -4   -1   -6    1    1    1]
-            [  -6    4    1   -1   -1   -1    4    3   -2   -2]
-            [  -2   -1   -2   -2    6   -2   -2    1    4   -1]
-            [  20   -1  -61    1   -2    1    1    2    1    3]
-            [   9   -2   -2   -9   -2  -37   11    1   -1    1]
-            [  -1   -8    1 -108    1    8    1   -1  -35   -5]
-            [  -1   -1   48    2    1    1    8    4    7   -4]
+            sage: A = random_matrix(ZZ,10,10); A
+            [   -8     2     0     0     1    -1     2     1   -95    -1]
+            [   -2   -12     0     0     1    -1     1    -1    -2    -1]
+            [    4    -4    -6     5     0     0    -2     0     1    -4]
+            [   -6     1    -1     1     1    -1     1    -1    -3     1]
+            [    1     0     0    -3     2    -2     0    -2     1     0]
+            [   -1     1     0     0     1    -1     4    -1     1    -1]
+            [   14     1    -5     4    -1     0     2     4     1     1]
+            [   -2    -1     0     4    -3     1    -5     0    -2    -1]
+            [   -9    -1    -1     3     2     1    -1     1    -2     1]
+            [   -1     2    -7     1     0     2     3 -1955   -22    -1]
 
-            sage: F = FP_LLL(FE)
+            sage: F = FP_LLL(A)
             sage: F.fast_early_red()
-            sage: FE = F._sage_()
-            sage: FE # result depending on random input
-            [ -2  -1  -2  -2   6  -2  -2   1   4  -1]
-            [  1  -1  -1  -7   1   1  -3  -2   1   5]
-            [ -6   4   1  -1  -1  -1   4   3  -2  -2]
-            [ -5   3   7   3  -2   3  -2   2   0   0]
-            [  3  -2   0  -7   3   1  -1  -3  -1  -8]
-            [  2   6  -1  -1   1   6   4  12  11   1]
-            [  2  12  -9  -4 -12  -8 -13   8   1  -5]
-            [  6 -17   4  -6   0  -2  -3  16 -13   1]
-            [ -6   1 -17  -2   6  26   3  -1  -3  -5]
-            [ 32  45  11  10  37  -8 -10  17 -35  12]
+            sage: L = F._sage_(); L
+            [   1    0    0   -3    2   -2    0   -2    1    0]
+            [  -1    1    0    0    1   -1    4   -1    1   -1]
+            [  -2    0    0    1    0   -2   -1   -3    0   -2]
+            [  -2   -2    0   -1    3    0   -2    0    2    0]
+            [   1    1    1    2    3   -2   -2    0    3    1]
+            [  -4    1   -1    0    1    1    2    2   -3    3]
+            [   1   -3   -7    2    3   -1    0    0   -1   -1]
+            [   1   -9    1    3    1   -3    1   -1   -1    0]
+            [   8    5   19    3   27    6   -3    8  -25  -22]
+            [ 172  -25   57  248  261  793   76 -839  -41  376]
 
+            sage: L.is_LLL_reduced(eta=0.51,delta=0.99)
+            True
+            sage: L.echelon_form() == A.echelon_form()
+            True
          """
         self._check_precision(precision)
         self._check_eta(eta)
@@ -409,32 +402,35 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: H = random_matrix(ZZ,10,10)
-            sage: H # result random
-            [  2   1  -1  -6  -3  -8  -4  -4   1   3]
-            [ -2   3  -1  -1  -2   1   1  -1   5 -11]
-            [ -1  -1   1  -1  -2  -3   1   2  -7  -1]
-            [-22  -1  -1  13   5  -3   1   1   2   1]
-            [  4  -1  -6   3  -1   2  59   1   1  -1]
-            [ -2  -1  -2  -1  -1  20   6   1  -2  -1]
-            [ -1   2  -1  -1  -2   1  -3  -2   2  -1]
-            [ -1  -3  -1 -10   1  -1  -1 -35   1  -1]
-            [  5  -2  -1   1 -44  -1  -4  -1  -1   3]
-            [ -1  -1  -4  -1  -1   3  -1 -15   1   1]
-            sage: F = FP_LLL(H)
+            sage: A = random_matrix(ZZ,10,10); A
+            [   -8     2     0     0     1    -1     2     1   -95    -1]
+            [   -2   -12     0     0     1    -1     1    -1    -2    -1]
+            [    4    -4    -6     5     0     0    -2     0     1    -4]
+            [   -6     1    -1     1     1    -1     1    -1    -3     1]
+            [    1     0     0    -3     2    -2     0    -2     1     0]
+            [   -1     1     0     0     1    -1     4    -1     1    -1]
+            [   14     1    -5     4    -1     0     2     4     1     1]
+            [   -2    -1     0     4    -3     1    -5     0    -2    -1]
+            [   -9    -1    -1     3     2     1    -1     1    -2     1]
+            [   -1     2    -7     1     0     2     3 -1955   -22    -1]
+            sage: F = FP_LLL(A)
             sage: F.heuristic()
-            sage: H = F._sage_()
-            sage: H # result depending on random input
-            [ -1   2  -1  -1  -2   1  -3  -2   2  -1]
-            [ -2   1   0  -2  -4  -2  -2   0  -5  -2]
-            [  3  -1   0  -5  -1  -9  -1  -2  -1   4]
-            [ -1   1   0   0   0   0   4   1   3 -10]
-            [ -1  -1   7  -3   4   2  -2  -4  -3   3]
-            [  0  -3  -3   0   1   2   2 -13  -1   2]
-            [  1  -2  -2  -6  -2  11   5  -1  -3   3]
-            [-15  -3  -4  -2   3  -7   7  -5   7   3]
-            [  6  19  13   8  -8   2   9   1  -3   2]
-            [  4  -6  17  12 -21   3   2  -1   6  -2]
+            sage: L = F._sage_(); L
+            [   1    0    0   -3    2   -2    0   -2    1    0]
+            [  -1    1    0    0    1   -1    4   -1    1   -1]
+            [  -2    0    0    1    0   -2   -1   -3    0   -2]
+            [  -2   -2    0   -1    3    0   -2    0    2    0]
+            [   1    1    1    2    3   -2   -2    0    3    1]
+            [  -4    1   -1    0    1    1    2    2   -3    3]
+            [   1   -3   -7    2    3   -1    0    0   -1   -1]
+            [   1   -9    1    3    1   -3    1   -1   -1    0]
+            [   8    5   19    3   27    6   -3    8  -25  -22]
+            [ 172  -25   57  248  261  793   76 -839  -41  376]
+
+            sage: L.is_LLL_reduced(eta=0.51,delta=0.99)
+            True
+            sage: L.echelon_form() == A.echelon_form()
+            True
         """
         self._check_precision(precision)
         self._check_eta(eta)
@@ -490,33 +486,36 @@ cdef class FP_LLL:
 
         EXAMPLE:
             sage: from sage.libs.fplll.fplll import FP_LLL
-            sage: HE = random_matrix(ZZ,10,10)
-            sage: HE # result random
-            [ 11   1  -1   3  -4  -1   1   7   8   2]
-            [  5  -1  -1   3  -1  37   1  -4   6   1]
-            [ -1   3  -1  -4   1  -1  -1   1   3   1]
-            [  3  -1   1   1   1  -2   1   6   1  -5]
-            [ -2 -12  10  -3  -1  10   1   1   1  -6]
-            [  1   1  -1   1  -3   1  -1  -5   1   2]
-            [ -3  11   1  -2  -2   3   6  -1  -1  -9]
-            [ 11  10   1  -1   1  -1   3   2   1   7]
-            [ -1   1  30  -1   2   1  -1   2  -2  -1]
-            [ -5   3   3  -2   1   1   1 -77  -1  -1]
+            sage: A = random_matrix(ZZ,10,10); A
+            [   -8     2     0     0     1    -1     2     1   -95    -1]
+            [   -2   -12     0     0     1    -1     1    -1    -2    -1]
+            [    4    -4    -6     5     0     0    -2     0     1    -4]
+            [   -6     1    -1     1     1    -1     1    -1    -3     1]
+            [    1     0     0    -3     2    -2     0    -2     1     0]
+            [   -1     1     0     0     1    -1     4    -1     1    -1]
+            [   14     1    -5     4    -1     0     2     4     1     1]
+            [   -2    -1     0     4    -3     1    -5     0    -2    -1]
+            [   -9    -1    -1     3     2     1    -1     1    -2     1]
+            [   -1     2    -7     1     0     2     3 -1955   -22    -1]
 
-            sage: F = FP_LLL(HE)
+            sage: F = FP_LLL(A)
             sage: F.heuristic_early_red()
-            sage: HE = F._sage_()
-            sage: HE # result depending on random input
-            [  4   0   0   2  -2  -1   0   1   2  -3]
-            [ -1   3  -1  -4   1  -1  -1   1   3   1]
-            [ -1  -1   1  -1   3  -1   1   5  -1  -2]
-            [  4  -2   0   3  -1   2   2   4   1   7]
-            [  4   9   2  -2   3  -1   2  -4  -5   2]
-            [ -7   0  -1   1  -4   7   6   6   3  -1]
-            [  5   0  11  -7   1   7   2  -1   1  -6]
-            [ -2   5  17   5  -3  -7  -5   0   3   5]
-            [  1   6   8   6   8   9 -12   4   6  -2]
-            [  0  -2  -4   3  12  -8  16 -11  13   0]
+            sage: L = F._sage_(); L
+            [   1    0    0   -3    2   -2    0   -2    1    0]
+            [  -1    1    0    0    1   -1    4   -1    1   -1]
+            [  -2    0    0    1    0   -2   -1   -3    0   -2]
+            [  -2   -2    0   -1    3    0   -2    0    2    0]
+            [   1    1    1    2    3   -2   -2    0    3    1]
+            [  -4    1   -1    0    1    1    2    2   -3    3]
+            [   1   -3   -7    2    3   -1    0    0   -1   -1]
+            [   1   -9    1    3    1   -3    1   -1   -1    0]
+            [   8    5   19    3   27    6   -3    8  -25  -22]
+            [ 172  -25   57  248  261  793   76 -839  -41  376]
+
+            sage: L.is_LLL_reduced(eta=0.51,delta=0.99)
+            True
+            sage: L.echelon_form() == A.echelon_form()
+            True
         """
         self._check_precision(precision)
         self._check_eta(eta)
@@ -550,13 +549,39 @@ cdef class FP_LLL:
            heuristic_early_red_mpfr_delete(pmpfr)
 
 def gen_intrel(int d, int b):
-    """
-    Return a (d+1 x d)-dimensional knapsack-type random lattice,
-    where the x_i's are random b bits integers.
+    r"""
+    Return a $(d+1 x d)$-dimensional knapsack-type random lattice,
+    where the $x_i$s are random $b$ bits integers.
 
     INPUT:
         d -- dimension
         b -- bitsize of entries
+
+    EXAMPLE:
+        sage: from sage.libs.fplll.fplll import gen_intrel
+        sage: A = gen_intrel(10,10); A
+        [116   1   0   0   0   0   0   0   0   0   0]
+        [331   0   1   0   0   0   0   0   0   0   0]
+        [303   0   0   1   0   0   0   0   0   0   0]
+        [963   0   0   0   1   0   0   0   0   0   0]
+        [456   0   0   0   0   1   0   0   0   0   0]
+        [225   0   0   0   0   0   1   0   0   0   0]
+        [827   0   0   0   0   0   0   1   0   0   0]
+        [381   0   0   0   0   0   0   0   1   0   0]
+        [ 99   0   0   0   0   0   0   0   0   1   0]
+        [649   0   0   0   0   0   0   0   0   0   1]
+
+        sage: A.LLL()
+        [ 1  1  1  0  0  0  0 -1  1  0  0]
+        [ 1  0  1  0  0 -1  1  0  0 -1  0]
+        [ 0  0  1  1  0 -1  0 -1  0  0  1]
+        [ 0 -1  0 -1 -1  1  0  1  0  1  0]
+        [-1 -1  0 -1  0 -1  1  0  0  0  1]
+        [ 0  1 -1  0  0 -1  1  1 -1  0  0]
+        [ 0  0  0  0 -1  1  1  0  1 -1  0]
+        [ 1 -1 -1  0  0 -1 -1  0  1  1  1]
+        [-1  0  0 -1 -1  0 -1  1  2 -1  0]
+        [-1 -1  0  0  1  0  2  0  0  0 -2]
     """
     cdef ZZ_mat *A = ZZ_mat_new(d,d+1)
     A.gen_intrel(b)
@@ -566,14 +591,40 @@ def gen_intrel(int d, int b):
     return B
 
 def gen_simdioph(int d, int b, int b2):
-    """
-    Return a d-dimensional simultaneous diophantine approximation
-    random lattice, where the d $x_i$'s are random b bits integers.
+    r"""
+    Return a $d$-dimensional simultaneous diophantine approximation
+    random lattice, where the $d$ $x_i$s are random $b$ bits integers.
 
     INPUT:
         d -- dimension
         b -- bitsize of entries
         b2 -- bitsize of entries
+
+    EXAMPLE:
+        sage: from sage.libs.fplll.fplll import gen_simdioph
+        sage: A = gen_simdioph(10,10,3); A
+        [   8  395  975  566  213  694  254  629  303  597]
+        [   0 1024    0    0    0    0    0    0    0    0]
+        [   0    0 1024    0    0    0    0    0    0    0]
+        [   0    0    0 1024    0    0    0    0    0    0]
+        [   0    0    0    0 1024    0    0    0    0    0]
+        [   0    0    0    0    0 1024    0    0    0    0]
+        [   0    0    0    0    0    0 1024    0    0    0]
+        [   0    0    0    0    0    0    0 1024    0    0]
+        [   0    0    0    0    0    0    0    0 1024    0]
+        [   0    0    0    0    0    0    0    0    0 1024]
+
+        sage: A.LLL()
+        [ 192  264 -152  272   -8  272  -48 -264  104   -8]
+        [-128 -176 -240  160 -336  160   32  176  272 -336]
+        [ -24 -161  147  350  385  -34  262  161  115  257]
+        [ 520   75 -113  -74 -491   54  126  -75  239 -107]
+        [-376 -133  255   22  229  150  350  133   95 -411]
+        [-168 -103    5  402 -377 -238 -214  103 -219 -249]
+        [-352   28  108 -328 -156  184   88  -28  -20  356]
+        [ 120 -219  289  298  123  170 -286  219  449 -261]
+        [ 160 -292   44   56  164  568  -40  292  -84 -348]
+        [ 192  264 -152  272   -8  272  -48  760  104   -8]
     """
     cdef ZZ_mat *A = ZZ_mat_new(d,d)
     A.gen_simdioph(b, b2)
@@ -583,14 +634,40 @@ def gen_simdioph(int d, int b, int b2):
     return B
 
 def gen_uniform(int nr, int nc, int b):
-    """
-    Return a (nr x nc) matrix where the entries are random b bits
+    r"""
+    Return a (nr x nc) matrix where the entries are random $b$ bits
     integers.
 
     INPUT:
         nr -- row dimension
         nc -- column dimension
         b-- bitsize of entries
+
+    EXAMPLE:
+        sage: from sage.libs.fplll.fplll import gen_uniform
+        sage: A = gen_uniform(10,10,12); A
+        [ 980 3534  533 3303 2491 2960 1475 3998  105  162]
+        [1766 3683 2782  668 2356 2149 1887 2327  976 1151]
+        [1573  438 1480  887 1490  634 3820 3379 4074 2669]
+        [ 215 2054 2388 3214 2459  250 2921 1395 3626  434]
+        [ 638 4011 3626 1864  633 1072 3651 2339 2926 1004]
+        [3731  439 1087 1088 2627 3446 2669 1419  563 2079]
+        [1868 3196 3712 4016 1451 2589 3327  712  647 1057]
+        [2068 2761 3479 2552  197 1258 1544 1116 3090 3667]
+        [1394  529 1683 1781 1779 3032   80 2712  639 3047]
+        [3695 3888 3139  851 2111 3375  208 3766 3925 1465]
+
+        sage: A.LLL()
+        [  200 -1144  -365   755  1404  -218  -937   321  -718   790]
+        [  623   813   873  -595  -422   604  -207  1265 -1418  1360]
+        [ -928  -816   479  1951  -319 -1295   827   333  1232   643]
+        [-1802 -1904  -952   425  -141   697   300  1608  -501  -767]
+        [ -572 -2010  -734   358 -1981  1101  -870    64   381  1106]
+        [  853  -223   767  1382  -529  -780  -500  1507 -2455 -1190]
+        [-1016 -1755  1297 -2210  -276  -114   712   -63   370   222]
+        [ -430  1471   339  -513  1361  2715  2076  -646 -1406   -60]
+        [-3390   748    62   775   935  1697  -306  -618    88  -452]
+        [  713 -1115  1887  -563   733  2443   816   972   876 -2074]
     """
     cdef ZZ_mat *A = ZZ_mat_new(nr,nc)
     A.gen_uniform(b)
@@ -620,6 +697,32 @@ def gen_ntrulike(int d, int b, int q):
         d -- dimension
         b -- bitsize of entries
         q -- see above
+
+    EXAMPLE:
+        sage: from sage.libs.fplll.fplll import gen_ntrulike
+        sage: A = gen_ntrulike(5,10,12); A
+        [  1   0   0   0   0 320 351 920 714  66]
+        [  0   1   0   0   0 351 920 714  66 320]
+        [  0   0   1   0   0 920 714  66 320 351]
+        [  0   0   0   1   0 714  66 320 351 920]
+        [  0   0   0   0   1  66 320 351 920 714]
+        [  0   0   0   0   0  12   0   0   0   0]
+        [  0   0   0   0   0   0  12   0   0   0]
+        [  0   0   0   0   0   0   0  12   0   0]
+        [  0   0   0   0   0   0   0   0  12   0]
+        [  0   0   0   0   0   0   0   0   0  12]
+
+        sage: A.LLL()
+        [-1 -1  0  0  0  1  1 -2  0 -2]
+        [-1  0  0  0 -1 -2  1  1 -2  0]
+        [ 0 -1 -1  0  0  1 -2  0 -2  1]
+        [ 0  0  1  1  0  2  0  2 -1 -1]
+        [ 0  0  0  1  1  0  2 -1 -1  2]
+        [-2 -1 -2  1  1  1  0  1  1  0]
+        [-1 -2  1  1 -2  0  1  0  1  1]
+        [ 2 -1 -1  2  1 -1  0 -1  0 -1]
+        [-1 -1  2  1  2 -1 -1  0 -1  0]
+        [ 1 -2 -1 -2  1  0  1  1  0  1]
     """
     cdef ZZ_mat *A = ZZ_mat_new(2*d,2*d)
     A.gen_ntrulike(b, q)
@@ -629,13 +732,39 @@ def gen_ntrulike(int d, int b, int q):
     return B
 
 def gen_ntrulike2(int d, int b, int q):
-    """
-    Like gen_ntrulike but with the q vectors coming first.
+    r"""
+    Like \code{gen_ntrulike} but with the $q$ vectors coming first.
 
     INPUT:
         d -- dimension
         b -- bitsize of entries
         q -- see gen_ntrulike
+
+    EXAMPLE:
+        sage: from sage.libs.fplll.fplll import gen_ntrulike2
+        sage: A = gen_ntrulike2(5,10,12); A
+        [ 12   0   0   0   0   0   0   0   0   0]
+        [  0  12   0   0   0   0   0   0   0   0]
+        [  0   0  12   0   0   0   0   0   0   0]
+        [  0   0   0  12   0   0   0   0   0   0]
+        [  0   0   0   0  12   0   0   0   0   0]
+        [902 947 306  40 908   1   0   0   0   0]
+        [947 306  40 908 902   0   1   0   0   0]
+        [306  40 908 902 947   0   0   1   0   0]
+        [ 40 908 902 947 306   0   0   0   1   0]
+        [908 902 947 306  40   0   0   0   0   1]
+
+        sage: A.LLL()
+        [ 1  0  0  2 -3 -2  1  1  0  0]
+        [-1  0 -2  1  2  2  1 -2 -1  0]
+        [ 0  2 -1 -2  1  0 -2 -1  2  1]
+        [ 0  3  0  1  3  1  0 -1  1  0]
+        [ 2 -1  0 -2  1  1 -2 -1  0  2]
+        [ 0 -1  0 -1 -1  1  4 -1 -1  0]
+        [ 2  1  1  1 -1 -3 -2 -1 -1 -1]
+        [-1  0 -1  0 -1  4 -1 -1  0  1]
+        [ 0  1 -2  1  1 -1  0  1 -3 -2]
+        [-2  1  1  0  1 -3 -2 -1  0  1]
     """
     cdef ZZ_mat *A = ZZ_mat_new(2*d,2*d)
     A.gen_ntrulike2(b,q)
@@ -645,14 +774,40 @@ def gen_ntrulike2(int d, int b, int q):
     return B
 
 def gen_ajtai(int d, float alpha):
-    """
-    Return Ajtai-like (d x d)-matrix of fp parameter alpha.  The
-    matrix is lower-triangular, Bii is ~2^((d-i+1)^alpha) and Bij is
-    ~Bjj/2 for j<i.
+    r"""
+    Return Ajtai-like $(d x d)$-matrix of floating point parameter
+    $\alpha$.  The matrix is lower-triangular, $B_{imi}$ is
+    $~2^{(d-i+1)^\alpha}$ and $B_{i,j}$ is $~B_{j,j}/2$ for $j<i$q.
 
     INPUT:
         d -- dimension
         alpha -- see above
+
+    EXAMPLE:
+        sage: from sage.libs.fplll.fplll import gen_ajtai
+        sage: A = gen_ajtai(10, 0.7); A
+        [117   0   0   0   0   0   0   0   0   0]
+        [ 11  55   0   0   0   0   0   0   0   0]
+        [ 47  21 104   0   0   0   0   0   0   0]
+        [  3  22  16  95   0   0   0   0   0   0]
+        [  8  21   3  28  55   0   0   0   0   0]
+        [ 33  15  30  37   8  52   0   0   0   0]
+        [ 35  21  41  31  23  10  21   0   0   0]
+        [  9  20  34  23  18  13   9  63   0   0]
+        [ 11  14  38  16  26  23   3  11   9   0]
+        [ 15  21  35  37  12   6   2  10   1  17]
+
+        sage: A.LLL()
+        [  4   7  -3  21 -14 -17  -1  -1  -8  17]
+        [-20   0  -6   6 -11  -4 -19  10   1  17]
+        [-22  -1   8 -21  18 -29   3  11   9   0]
+        [ 31   8  20   2 -12  -4 -27 -22 -18   0]
+        [ -2   6  -4   7  -8 -10   6  52  -9   0]
+        [  3  -7  35 -12 -29  23   3  11   9   0]
+        [-16  -6 -16  37   2  11  -1  -9   7 -34]
+        [ 11  55   0   0   0   0   0   0   0   0]
+        [ 11  14  38  16  26  23   3  11   9   0]
+        [ 13 -28  -1   7 -11  11 -12   3  54   0]
     """
     cdef ZZ_mat *A = ZZ_mat_new(d,d)
     A.gen_ajtai(alpha)

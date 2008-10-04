@@ -2387,6 +2387,52 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         verbose("LLL finished", tm)
         return R
 
+    def is_LLL_reduced(self, delta=None, eta=None):
+        r"""
+        Return \code{True} if this lattice is $(\delta, \eta)$-LLL
+        reduced. See \code{self.LLL} for a definition of LLL
+        reduction.
+
+        INPUT:
+            delta -- parameter as described above (default: 3/4)
+            eta -- parameter as described above (default: 0.501)
+
+        EXAMPLE:
+            sage: A = random_matrix(ZZ, 10, 10)
+            sage: L = A.LLL()
+            sage: A.is_LLL_reduced()
+            False
+            sage: L.is_LLL_reduced()
+            True
+        """
+        if eta is None:
+            eta = 0.501
+        if delta is None:
+            delta = ZZ(3)/ZZ(4)
+
+        if delta <= ZZ(1)/ZZ(4):
+            raise TypeError, "delta must be > 1/4"
+        elif delta > 1:
+            raise TypeError, "delta must be <= 1"
+
+        if eta < 0.5:
+            raise TypeError, "eta must be >= 0.5"
+
+        # this is pretty slow
+        G, mu = self.gram_schmidt()
+
+        #For any $i>j$, we have $|mu_{i, j}| <= \eta$
+        for e in mu.list():
+            if e > eta:
+                return False
+
+        #For any $i<d$, we have $\delta |b_i^*|^2 <= |b_{i+1}^* + mu_{i+1, i} b_{i+1}^* |^2$
+        norms = [G[i].norm()**2 for i in range(G.nrows())]
+        for i in xrange(1,self.nrows()):
+            if norms[i] < (delta - mu[i,i-1]**2) * norms[i-1]:
+                return False
+        return True
+
     def prod_of_row_sums(self, cols):
         """
         Return the product of the sums of the entries in the submatrix

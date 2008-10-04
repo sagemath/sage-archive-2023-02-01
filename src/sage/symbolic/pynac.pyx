@@ -1,6 +1,7 @@
 ###############################################################################
 #   SAGE: Open Source Mathematical Software
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
@@ -13,10 +14,86 @@ cdef extern from "math.h":
 
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
+include "../libs/ginac/decl.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr import RR, RealField
 from sage.rings.all import CC
+
+from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
+
+import constants
+import ring
+
+#################################################################
+# Symbolic function helpers
+#################################################################
+
+cdef extern from *:
+    object exvector_to_PyTuple(GExVector seq)
+    GEx pyExpression_to_ex(object res) except *
+    object ex_to_pyExpression(GEx juice)
+
+cdef public object ex_to_pyExpression(GEx juice):
+    """
+    Convert given GiNaC::ex object to a python Expression class.
+
+    Used to pass parameters to custom power and series functions.
+    """
+    cdef Expression nex
+    nex = <Expression>PY_NEW(Expression)
+    GEx_construct_ex(&nex._gobj, juice)
+    nex._parent = ring.NSR
+    return nex
+
+cdef public object exvector_to_PyTuple(GExVector seq):
+    """
+    Converts arguments list given to a function to a PyTuple.
+
+    Used to pass arguments to python functions assigned to be custom
+    evaluation, derivative, etc. functions of symbolic functions.
+    """
+
+    return tuple([new_Expression_from_GEx(seq.at(i)) \
+            for i from 0 <= i < seq.size()])
+
+cdef public GEx pyExpression_to_ex(object res) except *:
+    """
+    Converts an Expression object to a GiNaC::ex.
+
+    Used to pass returen values of custom python evaluation, derivation
+    functions back to C++ level.
+    """
+    if res is None:
+        raise TypeError, "eval function returned None, expected return value of type sage.symbolic.expression.Expression"
+    try:
+        t = ring.NSR._coerce_c(res)
+    except TypeError, err:
+        raise TypeError, "eval function did not return a symbolic expression or an element that can be coerced into a symbolic expression"
+    return (<Expression>t)._gobj
+
+cdef int GINAC_FN_SERIAL = 0
+
+cdef set_ginac_fn_serial():
+    """
+    Initialize the GINAC_FN_SERIAL variable to the number of functions
+    defined by GiNaC. This allows us to prevent collisions with C++ level
+    special functions when a user asks to construct a symbolic function
+    with the same name.
+    """
+    global GINAC_FN_SERIAL
+    GINAC_FN_SERIAL = g_registered_functions().size()
+
+def get_ginac_serial():
+    """
+    Returns the number of C++ level functions defined by GiNaC.
+
+    EXAMPLES:
+        sage: from sage.symbolic.pynac import get_ginac_serial
+        sage: get_ginac_serial() >= 40
+        True
+    """
+    return GINAC_FN_SERIAL
 
 #################################################################
 # Binomial Coefficients
@@ -24,6 +101,65 @@ from sage.rings.all import CC
 
 cdef extern from "gmp.h":
     void mpz_bin_uiui(mpz_t, unsigned int, unsigned int)
+
+# We declare the functions defined below as extern here, to prevent Cython
+# from generating separate declarations for them which confuse g++
+cdef extern from *:
+    object py_binomial_int(int n, unsigned int k)
+    object py_binomial(object n, object k)
+    object py_gcd(object n, object k)
+    object py_lcm(object n, object k)
+    object py_real(object x)
+    object py_imag(object x)
+    object py_conjugate(object x)
+    bint py_is_rational(object x)
+    bint py_is_integer(object x)
+    bint py_is_real(object x)
+    bint py_is_prime(object x)
+    object py_numer(object x)
+    object py_denom(object x)
+    object py_float(object x)
+    object py_RDF_from_double(double x)
+    object py_factorial(object x)
+    object py_doublefactorial(object x)
+    object py_fibonacci(object x)
+    object py_step(object x)
+    object py_bernoulli(object x)
+    object py_sin(object x)
+    object py_cos(object x)
+    object py_zeta(object x)
+    object py_exp(object x)
+    object py_log(object x)
+    object py_tan(object x)
+    object py_asin(object x)
+    object py_acos(object x)
+    object py_atan(object x)
+    object py_atan2(object x, object y)
+    object py_sinh(object x)
+    object py_cosh(object x)
+    object py_tanh(object x)
+    object py_asinh(object x)
+    object py_acosh(object x)
+    object py_atanh(object x)
+    object py_tgamma(object x)
+    object py_lgamma(object x)
+    object py_isqrt(object x)
+    object py_sqrt(object x)
+    object py_abs(object x)
+    object py_mod(object x, object y)
+    object py_smod(object x, object y)
+    object py_irem(object x, object y)
+    object py_iquo(object x, object y)
+    object py_iquo2(object x, object y)
+    int py_int_length(object x) except -1
+    object py_li2(object x)
+    object py_psi(object x)
+    object py_psi2(object x, object y)
+    object py_eval_pi(long int)
+    object py_eval_euler_gamma(long int)
+    object py_eval_catalan(long int)
+    object py_integer_from_long(long int)
+    object py_integer_from_python_obj(object x)
 
 cdef public object py_binomial_int(int n, unsigned int k):
     cdef bint sign
@@ -305,7 +441,7 @@ cdef public object py_atan(object x):
         return RR(x).arctan()
 
 cdef public object py_atan2(object x, object y):
-    pi = ring.pi
+    pi = constants.pi
     cdef int sgn_y = cmp(y, 0)
     cdef int sgn_x = cmp(x, 0)
     if sgn_y:
@@ -468,10 +604,20 @@ cdef public object py_integer_from_python_obj(object x):
     return Integer(x)
 
 
-import ring
 ZERO = ring.NSR(0)
 ONE = ring.NSR(1)
 ONE_HALF = ring.NSR(Rational((1,2)))
 
 
+import sage.rings.integer
+ginac_pyinit_Integer(sage.rings.integer.Integer)
+
+import sage.rings.real_double
+ginac_pyinit_Float(sage.rings.real_double.RDF)
+
+from sage.rings.complex_double import CDF
+ginac_pyinit_I(CDF.gen())
+
+
+set_ginac_fn_serial()
 

@@ -1,3 +1,12 @@
+###############################################################################
+#   SAGE: Open Source Mathematical Software
+#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version.  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+###############################################################################
+
 r"""
 
 Support for symbolic functions.
@@ -11,6 +20,8 @@ include "../libs/ginac/decl.pxi"
 
 from expression cimport new_Expression_from_GEx, Expression
 from ring import NSR as SR
+
+from pynac import get_ginac_serial
 
 cdef class SFunction:
     """
@@ -26,9 +37,9 @@ cdef class SFunction:
         sage: psi = function('psi', 1)(r); psi
         psi(r)
         sage: g = 1/r^2*(2*r*psi.diff(r,1) + r^2*psi.diff(r,2)); g
-        (2*psi(1,r)*r + psi(2,r)*r^2)*r^(-2)
+        (2*D[0](psi)(r)*r + D[0,0](psi)(r)*r^2)*r^(-2)
         sage: g.expand()
-        psi(2,r) + 2*psi(1,r)*r^(-1)
+        D[0,0](psi)(r) + 2*D[0](psi)(r)*r^(-1)
         sage: g.coeff(psi.diff(r,2))
         1
         sage: g.coeff(psi.diff(r,1))
@@ -38,7 +49,18 @@ cdef class SFunction:
     cdef object name
     cdef int nargs
 
-    def __init__(self, name, nargs=0):
+    cdef object eval_f
+    cdef object evalf_f
+    cdef object conjugate_f
+    cdef object real_part_f
+    cdef object imag_part_f
+    cdef object derivative_f
+    cdef object power_f
+    cdef object series_f
+
+    def __init__(self, name, nargs=0, eval_func=None, evalf_func=None,
+            conjugate_func=None, real_part_func=None, imag_part_func=None,
+            derivative_func=None, power_func=None, series_func=None):
         """
         EXAMPLES:
             sage: from sage.symbolic.function import function as nfunction
@@ -46,11 +68,133 @@ cdef class SFunction:
             sage: x,y,z = var("x y z", ns=1)
             sage: foo(x,y) + foo(y,z)^2
             foo(x,y) + foo(y,z)^2
+
+            sage: def ev(x): return 2*x
+            sage: foo = nfunction("foo", 1, eval_func=ev)
+            sage: foo(x)
+            2*x
+            sage: foo = nfunction("foo", 1, eval_func=lambda x: 5)
+            sage: foo(x)
+            5
+
+            sage: foo = nfunction("foo", 1, evalf_func=lambda x: 5)
+            sage: foo(x)
+            foo(x)
+            sage: foo(x).n()
+            5
+
+            sage: foo = nfunction("foo", 1, conjugate_func=ev)
+            sage: foo(x).conjugate()
+            2*x
+
+            sage: def deriv(*args,**kwds): print args, kwds; return args[kwds['diff_param']]^2
+            sage: foo = nfunction("foo", 2, derivative_func=deriv)
+            sage: foo(x,y).diff(y)
+            (x, y) {'diff_param': 1}
+            y^2
+
+            sage: def pow(x, power_param=None): print x, power_param; return x*power_param
+            sage: foo = nfunction("foo", 1, power_func=pow)
+            sage: foo(y)^(x+y)
+            y x + y
+            (x + y)*y
+
+            sage: def expand(*args, **kwds): print args, kwds; return sum(args[0]^i for i in range(kwds['order']))
+            sage: foo = nfunction("foo", 1, series_func=expand)
+            sage: foo(y).series(y, 5)
+            (y,) {'var': y, 'options': 0, 'at': 0, 'order': 5}
+            y^4 + y^3 + y^2 + y + 1
+
+
+        TESTS:
+            # eval_func raises exception
+            sage: def ef(x): raise RuntimeError, "foo"
+            sage: bar = nfunction("bar", 1, eval_func=ef)
+            sage: bar(x)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: foo
+
+            # eval_func returns None
+            sage: def ef(x): pass
+            sage: bar = nfunction("bar", 1, eval_func=ef)
+            sage: bar(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: eval function returned None, expected return value of type sage.symbolic.expression.Expression
+
+            # eval_func returns non coercable
+            sage: def ef(x): return ZZ
+            sage: bar = nfunction("bar", 1, eval_func=ef)
+            sage: bar(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: eval function did not return a symbolic expression or an element that can be coerced into a symbolic expression
+
+            # eval_func is not callable
+            sage: bar = nfunction("bar", 1, eval_func=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: eval_func parameter must be callable
+
         """
+        cdef GFunctionOpt opt
+        serial = -1
         try:
             self.serial = find_function(name, nargs)
         except ValueError, err:
-            self.serial = g_register_new(g_function_options_args(name, nargs))
+            pass
+
+        opt = g_function_options_args(name, nargs)
+        opt.set_python_func()
+        if eval_func:
+            if not callable(eval_func):
+                raise ValueError, "eval_func parameter must be callable"
+            self.eval_f = eval_func
+            opt.eval_func(eval_func)
+        if evalf_func:
+            if not callable(evalf_func):
+                raise ValueError, "evalf_func parameter must be callable"
+            self.evalf_f = evalf_func
+            opt.evalf_func(evalf_func)
+        if conjugate_func:
+            if not callable(conjugate_func):
+                raise ValueError, "conjugate_func parameter must be callable"
+            self.conjugate_f = conjugate_func
+            opt.conjugate_func(conjugate_func)
+        if real_part_func:
+            if not callable(real_part_func):
+                raise ValueError, "real_part_func parameter must be callable"
+            self.real_part_f = real_part_func
+            opt.real_part_func(real_part_func)
+        if imag_part_func:
+            if not callable(imag_part_func):
+                raise ValueError, "imag_part_func parameter must be callable"
+            self.imag_part_f = imag_part_func
+            opt.imag_part_func(imag_part_func)
+        if derivative_func:
+            if not callable(derivative_func):
+                raise ValueError, "derivative_func parameter must be callable"
+            self.derivative_f = derivative_func
+            opt.derivative_func(derivative_func)
+        if power_func:
+            if not callable(power_func):
+                raise ValueError, "power_func parameter must be callable"
+            self.power_f = power_func
+            opt.power_func(power_func)
+        if series_func:
+            if not callable(series_func):
+                raise ValueError, "series_func parameter must be callable"
+            self.series_f = series_func
+            opt.series_func(series_func)
+
+
+        if serial is -1 or serial < get_ginac_serial():
+            self.serial = g_register_new(opt)
+        else:
+            self.serial = serial
+
+        g_foptions_assign(g_registered_functions().index(self.serial), opt)
 
         self.name = name
         if nargs:
@@ -87,19 +231,28 @@ cdef class SFunction:
             sage: bar(x,y)
             bar(x,y)
 
+        TESTS:
+            # test coercion
+            sage: bar(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce arguments:
+
         """
         cdef GExVector vec
         if self.nargs > 0 and len(args) != self.nargs:
             raise ValueError, "Symbolic function %s expects %s arguments, got %s."%(self.name, self.nargs, len(args))
 
         if coerce:
-            args = map(SR, args)
+            try:
+                args = map(SR._coerce_, args)
+            except TypeError, err:
+                raise TypeError, "cannot coerce arguments: %s"%(err)
 
         if self.nargs == 0:
             for i from 0 <= i < len(args):
                 vec.push_back((<Expression>args[i])._gobj)
-            exp = new_Expression_from_GEx(g_function_evalv(self.serial, vec))
-            return exp
+            return new_Expression_from_GEx(g_function_evalv(self.serial, vec))
 
         elif self.nargs == 1:
             return new_Expression_from_GEx(g_function_eval1(self.serial,

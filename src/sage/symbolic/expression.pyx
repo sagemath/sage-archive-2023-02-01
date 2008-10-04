@@ -1,7 +1,7 @@
 ###############################################################################
 #   SAGE: Open Source Mathematical Software
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
-#       Copyright (C) 2008 Burcin Erocal
+#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
@@ -1097,6 +1097,13 @@ cdef class Expression(CommutativeRingElement):
         return [new_Expression_from_GEx(self._gobj.op(i)) \
                             for i from 0 <= i < self._gobj.nops()]
 
+    def n(self, prec=None, digits=None):
+        """
+        Return a numerical approximation of self.
+
+        """
+        # TODO: prec and digits parameters
+        return new_Expression_from_GEx(self._gobj.evalf(0))
 
     ############################################################################
     # Polynomial functions
@@ -1243,7 +1250,7 @@ cdef class Expression(CommutativeRingElement):
             x - 1
             sage: (x^3 - 1).gcd(x^2+x+1)
             x^2 + x + 1
-            sage: (x^3 - sage.symbolic.ring.pi).gcd(x-sage.symbolic.ring.pi)
+            sage: (x^3 - sage.symbolic.constants.pi).gcd(x-sage.symbolic.constants.pi)
             Traceback (most recent call last):
             ...
             RuntimeError: gcd: arguments must be polynomials over the rationals
@@ -1366,7 +1373,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ( 1+I  + (2-3*I)*x).conjugate()
             (2.0+3.0*I)*conjugate(x) + 1.0-I
         """
-        return new_Expression_from_GEx(g_conjugate(self._gobj))
+        return new_Expression_from_GEx(self._gobj.conjugate())
 
     def real_part(self):
         """
@@ -1381,7 +1388,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(CC(2,3)).real_part()
             2.00000000000000
         """
-        return new_Expression_from_GEx(g_real_part(self._gobj))
+        return new_Expression_from_GEx(self._gobj.real_part())
 
     def imag_part(self):
         """
@@ -1396,7 +1403,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(CDF(2,3)).imag_part()
             3.0
         """
-        return new_Expression_from_GEx(g_imag_part(self._gobj))
+        return new_Expression_from_GEx(self._gobj.imag_part())
 
     def sqrt(self):
         """
@@ -1419,7 +1426,7 @@ cdef class Expression(CommutativeRingElement):
             (x, y)
             sage: sin(x^2 + y^2)
             sin(x^2 + y^2)
-            sage: sin(sage.symbolic.ring.pi)
+            sage: sin(sage.symbolic.constants.pi)
             0
             sage: sin(S(1))
             sin(1)
@@ -1437,7 +1444,7 @@ cdef class Expression(CommutativeRingElement):
             (x, y)
             sage: cos(x^2 + y^2)
             cos(x^2 + y^2)
-            sage: cos(sage.symbolic.ring.pi)
+            sage: cos(sage.symbolic.constants.pi)
             -1
             sage: cos(S(1))
             cos(1)
@@ -1457,7 +1464,7 @@ cdef class Expression(CommutativeRingElement):
             (x, y)
             sage: tan(x^2 + y^2)
             tan(x^2 + y^2)
-            sage: tan(sage.symbolic.ring.pi/2)
+            sage: tan(sage.symbolic.constants.pi/2)
             tan(1/2*Pi)
             sage: tan(S(1))
             tan(1)

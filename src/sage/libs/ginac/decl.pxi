@@ -50,6 +50,11 @@ cdef extern from "ginac_wrap.h":
         GEx lhs()                     except +
         int nops()                    except +
         GEx op(int i)                 except +
+        GEx eval(int level)           except +
+        GEx evalf(int level)          except +
+        GEx conjugate()               except +
+        GEx real_part()               except +
+        GEx imag_part()               except +
 
     # Numericals
     bint is_a_numeric "is_a<numeric>" (GEx e)
@@ -108,6 +113,8 @@ cdef extern from "ginac_wrap.h":
 
     ctypedef struct GExVector "exvector":
         void push_back(GEx)
+        int size()
+        GEx at(int i)
 
     ctypedef struct GExSetIter "std::set<ex, ex_is_less>::const_iterator":
         void inc "operator++" ()
@@ -174,32 +181,49 @@ cdef extern from "ginac_wrap.h":
     ctypedef struct GFunction "function":
         pass
 
-    GEx g_function_evalv(unsigned int serial, GExVector)
-    GEx g_function_eval0(unsigned int serial)
-    GEx g_function_eval1(unsigned int serial, GEx)
-    GEx g_function_eval2(unsigned int serial, GEx, GEx)
-    GEx g_function_eval3(unsigned int serial, GEx, GEx, GEx)
-    GEx g_function_eval4(unsigned int serial, GEx, GEx, GEx, GEx)
-    GEx g_function_eval5(unsigned int serial, GEx, GEx, GEx, GEx, GEx)
-    GEx g_function_eval6(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx)
-    GEx g_function_eval7(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx, GEx)
+    GEx g_function_evalv(unsigned int serial, GExVector) except +
+    GEx g_function_eval0(unsigned int serial) except +
+    GEx g_function_eval1(unsigned int serial, GEx) except +
+    GEx g_function_eval2(unsigned int serial, GEx, GEx) except +
+    GEx g_function_eval3(unsigned int serial, GEx, GEx, GEx) except +
+    GEx g_function_eval4(unsigned int serial, GEx, GEx, GEx, GEx) except +
+    GEx g_function_eval5(unsigned int serial, GEx, GEx, GEx, GEx, GEx) except +
+    GEx g_function_eval6(unsigned int serial, GEx, GEx, GEx, GEx, GEx, \
+            GEx) except +
+    GEx g_function_eval7(unsigned int serial, GEx, GEx, GEx, GEx, GEx, \
+            GEx, GEx) except +
     GEx g_function_eval8(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx)
+            GEx, GEx) except +
     GEx g_function_eval9(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx)
+            GEx, GEx, GEx) except +
     GEx g_function_eval10(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx, GEx)
+            GEx, GEx, GEx, GEx) except +
     GEx g_function_eval11(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx, GEx, GEx)
+            GEx, GEx, GEx, GEx, GEx) except +
     GEx g_function_eval12(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx, GEx, GEx, GEx)
+            GEx, GEx, GEx, GEx, GEx, GEx) except +
     GEx g_function_eval13(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx, GEx, GEx, GEx, GEx)
+            GEx, GEx, GEx, GEx, GEx, GEx, GEx) except +
     GEx g_function_eval14(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx,
-            GEx, GEx, GEx, GEx, GEx, GEx, GEx, GEx)
+            GEx, GEx, GEx, GEx, GEx, GEx, GEx, GEx) except +
 
     ctypedef struct GFunctionOpt "function_options":
-        pass
+        void set_python_func()
+        GFunctionOpt eval_func(object f)
+        GFunctionOpt evalf_func(object f)
+        GFunctionOpt conjugate_func(object f)
+        GFunctionOpt real_part_func(object f)
+        GFunctionOpt imag_part_func(object f)
+        GFunctionOpt derivative_func(object f)
+        GFunctionOpt power_func(object f)
+        GFunctionOpt series_func(object f)
+        GFunctionOpt print_func(object f)
+
+    ctypedef struct GFunctionOptVector "vector<function_options>":
+        int size()
+        GFunctionOpt index "operator[]" (int ind)
+
+    void g_foptions_assign "ASSIGN_WRAP" (GFunctionOpt, GFunctionOpt)
 
     GFunctionOpt g_function_options "GiNaC::function_options" \
             (char *m)
@@ -209,5 +233,8 @@ cdef extern from "ginac_wrap.h":
 
     unsigned find_function "GiNaC::function::find_function" (char* name,
             unsigned nargs) except +ValueError
+
+    GFunctionOptVector g_registered_functions \
+            "GiNaC::function::registered_functions" ()
 
     unsigned cos_serial "cos_SERIAL::serial"

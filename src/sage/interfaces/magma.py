@@ -240,9 +240,30 @@ class Magma(Expect):
         return 'load "%s";'%filename
 
     def _post_process_from_file(self, s):
+        """
+        Used internally in the Magma interface to post-process the
+        result of evaluating a string using a file.  For Magma what
+        this does is delete the first output line, since that is a
+        verbose output line that Magma displays about loading a file.
+
+        INPUT:
+            s -- a string
+        OUTPUT:
+            a string
+
+        EXAMPLES:
+            sage: magma._post_process_from_file("Loading ...\nHello")
+            'Hello'
+            sage: magma._post_process_from_file("Hello")
+            ''
+        """
         if not isinstance(s, str):
             raise RuntimeError, "Error evaluating object in %s:\n%s"%(self,s)
+        # Chop off the annoying "Loading ... " message that Magma
+        # always outputs no matter what.
         i = s.find('\n')
+        if i == -1: # special case -- command produced no output, so no \n
+            return ''
         return s[i+1:]
 
     def _continuation_prompt(self):
@@ -271,6 +292,17 @@ class Magma(Expect):
         INPUT:
             x -- string of code
             strip -- ignored
+
+        EXAMPLES:
+        We evaluate a string that involves assigning to a variable
+        and printing.
+           sage: magma.eval("a := 10;print 2+a;")
+           '12'
+
+        We evaluate a large input line (note that no weird
+        output appears and that this works quickly).
+            sage: magma.eval("a := %s;"%(10^10000))
+            ''
         """
         x = str(x).rstrip()
         if len(x) == 0 or x[len(x) - 1] != ';':

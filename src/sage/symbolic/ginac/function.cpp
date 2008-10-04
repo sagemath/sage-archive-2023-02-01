@@ -38,12 +38,18 @@
 #include "symmetry.h"
 #include "print.h"
 #include "power.h"
+#include "relational.h"
 #include "archive.h"
 #include "inifcns.h"
 #include "tostring.h"
 #include "utils.h"
 #include "remember.h"
 
+extern "C" {
+	PyObject* exvector_to_PyTuple(GiNaC::exvector seq);
+	GiNaC::ex pyExpression_to_ex(PyObject* s);
+	PyObject* ex_to_pyExpression(GiNaC::ex e);
+}
 namespace GiNaC {
 
 //////////
@@ -91,6 +97,7 @@ void function_options::initialize()
 	series_use_exvector_args = false;
 	print_use_exvector_args = false;
 	use_remember = false;
+	python_func = false;
 	functions_with_same_name = 1;
 	symtree = 0;
 }
@@ -845,6 +852,48 @@ function_options& function_options::series_func(series_funcp_exvector s)
 	return *this;
 }
 
+function_options& function_options::eval_func(PyObject* e)
+{
+	eval_f = eval_funcp(e);
+	return *this;
+}
+function_options& function_options::evalf_func(PyObject* ef)
+{
+	evalf_f = evalf_funcp(ef);
+	return *this;
+}
+function_options& function_options::conjugate_func(PyObject* c)
+{
+	conjugate_f = conjugate_funcp(c);
+	return *this;
+}
+function_options& function_options::real_part_func(PyObject* c)
+{
+	real_part_f = real_part_funcp(c);
+	return *this;
+}
+function_options& function_options::imag_part_func(PyObject* c)
+{
+	imag_part_f = imag_part_funcp(c);
+	return *this;
+}
+
+function_options& function_options::derivative_func(PyObject* d)
+{
+	derivative_f = derivative_funcp(d);
+	return *this;
+}
+function_options& function_options::power_func(PyObject* d)
+{
+	power_f = power_funcp(d);
+	return *this;
+}
+function_options& function_options::series_func(PyObject* s)
+{
+	series_f = series_funcp(s);
+	return *this;
+}
+
 function_options & function_options::set_return_type(unsigned rt, tinfo_t rtt)
 {
 	use_return_type = true;
@@ -1221,7 +1270,25 @@ ex function::eval(int level) const
 		return eval_result;
 	}
 	current_serial = serial;
-	if (opt.eval_use_exvector_args)
+
+	if (opt.python_func && PyCallable_Check((PyObject*)opt.eval_f)) {
+		// convert seq to a PyTuple of Expressions
+		PyObject* args = exvector_to_PyTuple(seq);
+		// call opt.eval_f with this list
+		PyObject* pyresult = PyObject_Call((PyObject*)opt.eval_f, 
+				args, NULL);
+		Py_DECREF(args);
+		if (!pyresult) { 
+			throw(std::runtime_error("function::eval(): python function raised exception"));
+		}
+		// convert output Expression to an ex
+		eval_result = pyExpression_to_ex(pyresult);
+		Py_DECREF(pyresult);
+		if (PyErr_Occurred()) { 
+			throw(std::runtime_error("function::eval(): python function (Expression_to_ex) raised exception"));
+		}
+	}
+	else if (opt.eval_use_exvector_args)
 		eval_result = ((eval_funcp_exvector)(opt.eval_f))(seq);
 	else
 	switch (opt.nparams) {
@@ -1304,6 +1371,24 @@ ex function::evalf(int level) const
 		return function(serial,eseq).hold();
 	}
 	current_serial = serial;
+	if (opt.python_func && PyCallable_Check((PyObject*)opt.evalf_f)) {
+		// convert seq to a PyTuple of Expressions
+		PyObject* args = exvector_to_PyTuple(seq);
+		// call opt.evalf_f with this list
+		PyObject* pyresult = PyObject_Call((PyObject*)opt.evalf_f, 
+				args, NULL);
+		Py_DECREF(args);
+		if (!pyresult) { 
+			throw(std::runtime_error("function::evalf(): python function raised exception"));
+		}
+		// convert output Expression to an ex
+		ex result = pyExpression_to_ex(pyresult);
+		Py_DECREF(pyresult);
+		if (PyErr_Occurred()) { 
+			throw(std::runtime_error("function::evalf(): python function (pyExpression_to_ex) raised exception"));
+		}
+		return result;
+	}
 	if (opt.evalf_use_exvector_args)
 		return ((evalf_funcp_exvector)(opt.evalf_f))(seq);
 	switch (opt.nparams) {
@@ -1379,6 +1464,31 @@ ex function::series(const relational & r, int order, unsigned options) const
 	}
 	ex res;
 	current_serial = serial;
+	if (opt.python_func && PyCallable_Check((PyObject*)opt.series_f)) {
+		// convert seq to a PyTuple of Expressions
+		PyObject* args = exvector_to_PyTuple(seq);
+		// create a dictionary {'order': order, 'options':options}
+		PyObject* kwds = Py_BuildValue("{s:i,s:I}","order",order,"options",options);
+		// add variable to expand for as a keyword argument
+		PyDict_SetItemString(kwds, "var", ex_to_pyExpression(r.lhs()));
+		// add the point of expansion as a keyword argument
+		PyDict_SetItemString(kwds, "at", ex_to_pyExpression(r.rhs()));
+		// call opt.series_f with this list
+		PyObject* pyresult = PyObject_Call((PyObject*)opt.series_f, 
+				args, kwds);
+		Py_DECREF(args);
+		Py_DECREF(kwds);
+		if (!pyresult) { 
+			throw(std::runtime_error("function::series(): python function raised exception"));
+		}
+		// convert output Expression to an ex
+		ex result = pyExpression_to_ex(pyresult);
+		Py_DECREF(pyresult);
+		if (PyErr_Occurred()) { 
+			throw(std::runtime_error("function::series(): python function (pyExpression_to_ex) raised exception"));
+		}
+		return result;
+	}
 	if (opt.series_use_exvector_args) {
 		try {
 			res = ((series_funcp_exvector)(opt.series_f))(seq, r, order, options);
@@ -1503,6 +1613,24 @@ ex function::conjugate() const
 		return exprseq::conjugate();
 	}
 
+	if (opt.python_func && PyCallable_Check((PyObject*)opt.conjugate_f)) {
+		// convert seq to a PyTuple of Expressions
+		PyObject* args = exvector_to_PyTuple(seq);
+		// call opt.conjugate_f with this list
+		PyObject* pyresult = PyObject_Call((PyObject*)opt.conjugate_f, 
+				args, NULL);
+		Py_DECREF(args);
+		if (!pyresult) { 
+			throw(std::runtime_error("function::conjugate(): python function raised exception"));
+		}
+		// convert output Expression to an ex
+		ex result = pyExpression_to_ex(pyresult);
+		Py_DECREF(pyresult);
+		if (PyErr_Occurred()) { 
+			throw(std::runtime_error("function::conjugate(): python function (pyExpression_to_ex) raised exception"));
+		}
+		return result;
+	}
 	if (opt.conjugate_use_exvector_args) {
 		return ((conjugate_funcp_exvector)(opt.conjugate_f))(seq);
 	}
@@ -1552,6 +1680,24 @@ ex function::real_part() const
 	if (opt.real_part_f==0)
 		return basic::real_part();
 
+	if (opt.python_func && PyCallable_Check((PyObject*)opt.real_part_f)) {
+		// convert seq to a PyTuple of Expressions
+		PyObject* args = exvector_to_PyTuple(seq);
+		// call opt.real_part_f with this list
+		PyObject* pyresult = PyObject_Call((PyObject*)opt.real_part_f, 
+				args, NULL);
+		Py_DECREF(args);
+		if (!pyresult) { 
+			throw(std::runtime_error("function::real_part(): python function raised exception"));
+		}
+		// convert output Expression to an ex
+		ex result = pyExpression_to_ex(pyresult);
+		Py_DECREF(pyresult);
+		if (PyErr_Occurred()) { 
+			throw(std::runtime_error("function::real_part(): python function (pyExpression_to_ex) raised exception"));
+		}
+		return result;
+	}
 	if (opt.real_part_use_exvector_args)
 		return ((real_part_funcp_exvector)(opt.real_part_f))(seq);
 
@@ -1600,6 +1746,24 @@ ex function::imag_part() const
 	if (opt.imag_part_f==0)
 		return basic::imag_part();
 
+	if (opt.python_func && PyCallable_Check((PyObject*)opt.imag_part_f)) {
+		// convert seq to a PyTuple of Expressions
+		PyObject* args = exvector_to_PyTuple(seq);
+		// call opt.imag_part_f with this list
+		PyObject* pyresult = PyObject_Call((PyObject*)opt.imag_part_f, 
+				args, NULL);
+		Py_DECREF(args);
+		if (!pyresult) { 
+			throw(std::runtime_error("function::imag_part(): python function raised exception"));
+		}
+		// convert output Expression to an ex
+		ex result = pyExpression_to_ex(pyresult);
+		Py_DECREF(pyresult);
+		if (PyErr_Occurred()) { 
+			throw(std::runtime_error("function::imag_part(): python function (pyExpression_to_ex) raised exception"));
+		}
+		return result;
+	}
 	if (opt.imag_part_use_exvector_args)
 		return ((imag_part_funcp_exvector)(opt.imag_part_f))(seq);
 
@@ -1757,6 +1921,27 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		return fderivative(serial, diff_param, seq);
 
 	current_serial = serial;
+	if (opt.python_func && PyCallable_Check((PyObject*)opt.derivative_f)) {
+		// convert seq to a PyTuple of Expressions
+		PyObject* args = exvector_to_PyTuple(seq);
+		// create a dictionary {'diff_param': diff_param}
+		PyObject* kwds = Py_BuildValue("{s:I}","diff_param",diff_param);
+		// call opt.derivative_f with this list
+		PyObject* pyresult = PyObject_Call((PyObject*)opt.derivative_f, 
+				args, kwds);
+		Py_DECREF(args);
+		Py_DECREF(kwds);
+		if (!pyresult) { 
+			throw(std::runtime_error("function::pderivative(): python function raised exception"));
+		}
+		// convert output Expression to an ex
+		ex result = pyExpression_to_ex(pyresult);
+		Py_DECREF(pyresult);
+		if (PyErr_Occurred()) { 
+			throw(std::runtime_error("function::pderivative(): python function (pyExpression_to_ex) raised exception"));
+		}
+		return result;
+	}
 	if (opt.derivative_use_exvector_args)
 		return ((derivative_funcp_exvector)(opt.derivative_f))(seq, diff_param);
 	switch (opt.nparams) {
@@ -1806,6 +1991,28 @@ ex function::power(const ex & power_param) const // power of function
 	                                               status_flags::evaluated);
 
 	current_serial = serial;
+	if (opt.python_func && PyCallable_Check((PyObject*)opt.power_f)) {
+		// convert seq to a PyTuple of Expressions
+		PyObject* args = exvector_to_PyTuple(seq);
+		// create a dictionary {'power_param': power_param}
+		PyObject* kwds = PyDict_New();
+		PyDict_SetItemString(kwds, "power_param", ex_to_pyExpression(power_param));
+		// call opt.power_f with this list
+		PyObject* pyresult = PyObject_Call((PyObject*)opt.power_f, 
+				args, kwds);
+		Py_DECREF(args);
+		Py_DECREF(kwds);
+		if (!pyresult) { 
+			throw(std::runtime_error("function::power(): python function raised exception"));
+		}
+		// convert output Expression to an ex
+		ex result = pyExpression_to_ex(pyresult);
+		Py_DECREF(pyresult);
+		if (PyErr_Occurred()) { 
+			throw(std::runtime_error("function::power(): python function (pyExpression_to_ex) raised exception"));
+		}
+		return result;
+	}
 	if (opt.power_use_exvector_args)
 		return ((power_funcp_exvector)(opt.power_f))(seq,  power_param);
 	switch (opt.nparams) {

@@ -544,6 +544,16 @@ public:
 		return *this;
 	}
 
+	// python function calls
+	function_options & eval_func(PyObject* e);
+	function_options & evalf_func(PyObject* e);
+	function_options & conjugate_func(PyObject* e);
+	function_options & real_part_func(PyObject* e);
+	function_options & imag_part_func(PyObject* e);
+	function_options & derivative_func(PyObject* e);
+	function_options & power_func(PyObject* e);
+	function_options & series_func(PyObject* e);
+
 	function_options & set_return_type(unsigned rt, tinfo_t rtt=NULL);
 	function_options & do_not_evalf_params();
 	function_options & remember(unsigned size, unsigned assoc_size=0,
@@ -553,6 +563,8 @@ public:
 
 	std::string get_name() const { return name; }
 	unsigned get_nparams() const { return nparams; }
+
+	void set_python_func() { python_func = true; }
 
 protected:
 	bool has_derivative() const { return derivative_f != NULL; }
@@ -595,6 +607,8 @@ protected:
 	bool power_use_exvector_args;
 	bool series_use_exvector_args;
 	bool print_use_exvector_args;
+
+	bool python_func;
 
 	unsigned functions_with_same_name;
 
@@ -675,10 +689,10 @@ protected:
 	// non-virtual functions in this class
 protected:
 	ex pderivative(unsigned diff_param) const; // partial differentiation
-	static std::vector<function_options> & registered_functions();
 	bool lookup_remember_table(ex & result) const;
 	void store_remember_table(ex const & result) const;
 public:
+	static std::vector<function_options> & registered_functions();
 	ex power(const ex & exp) const;
 	static unsigned register_new(function_options const & opt);
 	static unsigned current_serial;

@@ -458,9 +458,6 @@ class Kash(Expect):
     def _object_class(self):
         return KashElement
 
-    def _continuation_prompt(self):
-        return '%'
-
     def eval(self, x, newlines=False, strip=True):
         r"""
         Send the code in the string s to the Kash interpreter and return

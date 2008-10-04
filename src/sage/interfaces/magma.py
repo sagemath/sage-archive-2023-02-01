@@ -234,9 +234,47 @@ class Magma(Expect):
         self.__seq = 0
 
     def __reduce__(self):
+        """
+        Used to pickle a magma interface instance.
+
+        Unpickling results in the default magma interpreter; this is a
+        choice, and perhaps not the most logical one!  It means that
+        if you make two distinct magma interfaces, pickle both, then
+        unpickle them, you get back exactly the same one.  We illustrate
+        this behavior below.
+
+        OUTPUT:
+            function, empty tuple
+
+        EXAMPLES:
+            sage: loads(dumps(magma)) is magma
+            True
+
+        Unpickling always gives the default global magma interpreter:
+            sage: m1 = Magma(); m2 = Magma()
+            sage: m1 is m2
+            False
+            sage: loads(dumps(m1)) is loads(dumps(m2))
+            True
+            sage: loads(dumps(m1)) is magma
+            True
+        """
         return reduce_load_Magma, tuple([])
 
     def _read_in_file_command(self, filename):
+        """
+        Return the command in Magma that reads in the contents
+        of the given file.
+
+        INPUT:
+            filename -- string
+        OUTPUT:
+            string -- a magma command
+
+        EXAMPLES:
+            sage: magma._read_in_file_command('file.m')
+            'load "file.m";'
+        """
         return 'load "%s";'%filename
 
     def _post_process_from_file(self, s):
@@ -266,10 +304,30 @@ class Magma(Expect):
             return ''
         return s[i+1:]
 
-    def _continuation_prompt(self):
-        return self._prompt
-
     def __getattr__(self, attrname):
+        """
+        Return a formal wrapper around a Magma function, or raise an
+        AttributeError if attrname starts with an underscore.
+
+        INPUT:
+            attrname -- a string
+        OUTPUT:
+            MagmaFunction instance
+
+        EXAMPLES:
+            sage: g = magma.__getattr__('EllipticCurve')
+            sage: g
+            EllipticCurve
+            sage: type(g)
+            <class 'sage.interfaces.magma.MagmaFunction'>
+
+        In fact, __getattr__ is called implicitly in the following case:
+            sage: f = magma.EllipticCurve
+            sage: type(f)
+            <class 'sage.interfaces.magma.MagmaFunction'>
+            sage: f
+            EllipticCurve
+        """
         if attrname[:1] == "_":
             raise AttributeError
         return MagmaFunction(self, attrname)
@@ -277,6 +335,9 @@ class Magma(Expect):
     def chdir(self, dir):
         """
         Change the Magma interpreters current working directory.
+
+        INPUT:
+            dir -- a string
 
         EXAMPLES:
             sage: magma.eval('System("pwd")')   # optional and random
@@ -289,19 +350,24 @@ class Magma(Expect):
 
     def eval(self, x, strip=True):
         """
+        Evaluate the given block x of code in Magma and return the
+        output as a string.
+
         INPUT:
             x -- string of code
             strip -- ignored
+        OUTPUT:
+            string
 
         EXAMPLES:
         We evaluate a string that involves assigning to a variable
         and printing.
-           sage: magma.eval("a := 10;print 2+a;")
+           sage: magma.eval("a := 10;print 2+a;")      # optional
            '12'
 
         We evaluate a large input line (note that no weird
         output appears and that this works quickly).
-            sage: magma.eval("a := %s;"%(10^10000))
+            sage: magma.eval("a := %s;"%(10^10000))    # optional
             ''
         """
         x = str(x).rstrip()
@@ -309,10 +375,19 @@ class Magma(Expect):
             x += ';'
         ans = Expect.eval(self, x).replace('\\\n','')
         if 'Runtime error' in ans or 'User error' in ans:
-            raise RuntimeError, "Error evaluation Magma code.\nIN:%s\nOUT:%s"%(x, ans)
+            raise RuntimeError, "Error evaluating Magma code.\nIN:%s\nOUT:%s"%(x, ans)
         return ans
 
     def _start(self):
+        """
+        Initialize a Magma interface instance.  This involves (1)
+        setting up an obfuscated prompt, and (2) attaching the
+        MAGMA_SPEC file (see sage.interfaces.magma.MAGMA_SPEC).
+
+        EXAMPLES:
+        This is not too exciting:
+            sage: magma._start()          # optional
+        """
         self._change_prompt('>')
         Expect._start(self)
         self.eval('SetPrompt("%s"); SetLineEditor(false); SetColumns(0);'%PROMPT)
@@ -326,7 +401,16 @@ class Magma(Expect):
 
     def set(self, var, value):
         """
-        Set the variable var to the given value.
+        Set the variable var to the given value in the Magma interpreter.
+
+        INPUT:
+            var -- string; a variable name
+            value -- string; what to set var equal to
+
+        EXAMPLES:
+            sage: magma.set('abc', '2 + 3/5')       # optional
+            sage: magma('abc')                      # optional
+            13/5
         """
         out = self.eval("%s := %s"%(var, value))
         if out.lower().find("error") != -1:
@@ -335,19 +419,64 @@ class Magma(Expect):
     def get(self, var):
         """
         Get the value of the variable var.
+
+        INPUT:
+            var -- string; name of a variable defined in the Magma session
+        OUTPUT:
+            string -- string representation of the value of the variable.
+
+        EXAMPLES:
+            sage: magma.set('abc', '2 + 3/5')     # optional
+            sage: magma.get('abc')                # optional
+            '13/5'
         """
         return self.eval("%s"%var)
 
     def objgens(self, value, gens):
+        """
+        Create a new object with given value and gens.
+
+        INPUT:
+            value -- something coercible to an element of this Magma interface
+            gens -- string; command separated list of variable names
+        OUTPUT:
+            new Magma element that is equal to value with given gens
+
+        EXAMPLES:
+            sage: R = magma.objgens('PolynomialRing(Rationals(),2)', 'alpha,beta')    # optional
+            sage: R.gens()          # optional
+            [alpha, beta]
+
+        Because of how Magma works you can use this to change the variable
+        names of the generators of an object:
+            sage: S = magma.objgens(R, 'X,Y')          # optional
+            sage: R                                    # optional
+            Polynomial ring of rank 2 over Rational Field
+            Lexicographical Order
+            Variables: X, Y
+            sage: S                                    # optional
+            Polynomial ring of rank 2 over Rational Field
+            Lexicographical Order
+            Variables: X, Y
+        """
         var = self._next_var_name()
         value = self(value)
-        out = self.eval("_z<%s> := %s; %s := _z"%(gens, value.name(), var))
+        out = self.eval("_zsage_<%s> := %s; %s := _zsage_"%(gens, value.name(), var))
         if out.lower().find("error") != -1:
             raise TypeError, "Error executing Magma code:\n%s"%out
         return self(var)
 
     def __call__(self, x, gens=None):
         """
+        Coerce x into this Magma interpreter interface.
+
+        INPUT:
+            x -- object
+            gens -- string; names of generators of self, separated by commas
+
+        OUTPUT:
+            MagmaElement
+
         EXAMPLES:
             sage: magma(EllipticCurve('37a'))                   # optional
             Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
@@ -359,13 +488,21 @@ class Magma(Expect):
             Polynomial ring of rank 3 over Rational Field
             Lexicographical Order
             Variables: x, y, z
+
+        We test a coercion between different Magma instances:
+            sage: m = Magma()
+            sage: n = Magma()
+            sage: a = n(m(2))
+            sage: a.parent() is n
+            True
+            sage: a.parent() is m
+            False
         """
         if gens is None:
             if isinstance(x, bool):
                 return Expect.__call__(self, str(x).lower())
             return Expect.__call__(self, x)
         return self.objgens(x, gens)
-
 
     #def clear(self, var):
     #    """
@@ -375,6 +512,30 @@ class Magma(Expect):
     #    self.eval("%s:=0"%var)
 
     def cputime(self, t=None):
+        """
+        Return the CPU time in seconds that has elapsed since this
+        Magma session started.  This is a floating point number,
+        computed by Magma.
+
+        If t is given, then instead return the floating point time
+        from when t seconds had elapsed.  This is useful for computing
+        elapsed times between two points in a running program.
+
+        INPUT:
+            t -- float (default: None); if not None, return cputime since t
+
+        OUTPUT:
+            float -- seconds
+
+        EXAMPLES:
+            sage: type(magma.cputime())         # optional
+            <type 'float'>
+            sage: magma.cputime()                # optional and random
+            1.9399999999999999
+            sage: t = magma.cputime()            # optional
+            sage: magma.cputime(t)               # optional and random
+            0.02
+        """
         if t:
             return float(self.eval('Cputime(%s)'%t))
         else:
@@ -383,6 +544,14 @@ class Magma(Expect):
     def chdir(self, dir):
         """
         Change to the given directory.
+
+        INPUT:
+            dir -- string; name of a directory
+
+        EXAMPLES:
+            sage: magma.chdir('/')                 # optional
+            sage: magma.eval('System("pwd")')      # optional
+            '/'
         """
         magma.eval('ChangeDirectory("%s")'%dir)
 
@@ -396,19 +565,44 @@ class Magma(Expect):
         reloaded whenever it is changed.  Note that functions and
         procedures defined in the file are \emph{not} available.
         For only those, use \code{magma.load(filename)}.
+
+        INPUT:
+            filename -- a string
+
+        EXAMPLES:
+        Attaching a file that exists is fine:
+            sage: magma.attach('%s/data/extcode/magma/sage/basic.m'%SAGE_ROOT)
+
+        Attaching a file that doesn't exist raises an exception:
+            sage: magma.attach('%s/data/extcode/magma/sage/basic2.m'%SAGE_ROOT)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Error evaluating Magma code...
         """
-        return self.eval('Attach("%s")'%filename)
+        self.eval('Attach("%s")'%filename)
 
     Attach = attach
 
     def attach_spec(self, filename):
         r"""
-        Attach the given spec file to the running instance of MAGMA.
+        Attach the given spec file to the running instance of Magma.
 
-        This attaches numerous files to the running MAGMA (see the
-        MAGMA documentation for more details).
+        This can attach numerous other files to the running Magma (see the
+        Magma documentation for more details).
+
+        INPUT:
+            filename -- a string
+
+        EXAMPLES:
+            sage: magma.attach_spec('%s/data/extcode/magma/spec'%SAGE_ROOT)
+            sage: magma.attach_spec('%s/data/extcode/magma/spec2'%SAGE_ROOT)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Can't open package spec file /home/wstein/sage/data/extcode/magma/spec2 for reading (No such file or directory)
         """
-        return self.eval('AttachSpec("%s")'%filename)
+        s = self.eval('AttachSpec("%s")'%filename)
+        if s:
+            raise RuntimeError, s.strip()
 
     AttachSpec = attach_spec
 
@@ -419,11 +613,44 @@ class Magma(Expect):
 
         Loading a file in MAGMA makes all the functions and procedures
         in the file available. The file should not contain any
-        intrinsics (or you'll get errors).
+        intrinsics (or you'll get errors).  It also runs code in the
+        file, which can produce output.
+
+        INPUT:
+            filename -- string
+        OUTPUT:
+            output printed when loading the file
+
+        EXAMPLES:
+            sage: open(SAGE_TMP + 'a.m','w').write('function f(n) return n^2; end function;\nprint "hi";')
+            sage: print magma.load(SAGE_TMP + 'a.m')
+            Loading "/home/wstein/.sage//temp/one/.../a.m"
+            hi
+            sage: magma('f(12)')
+            144
         """
         return self.eval('load "%s"'%filename)
 
     def _next_var_name(self):
+        """
+        Return the next available variable name in Magma.
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: m = Magma()
+            sage: m._next_var_name()
+            '_sage_[1]'
+            sage: m._next_var_name()
+            '_sage_[2]'
+            sage: a = m(3/8); a
+            3/8
+            sage: a.name()
+            '_sage_[3]'
+            sage: m._next_var_name()
+            '_sage_[4]'
+        """
         if self.__seq == 0:
             self.eval('_sage_ := [* *];')
         else:
@@ -437,10 +664,43 @@ class Magma(Expect):
         return '_sage_[%s]'%self.__seq
 
     def function_call(self, function, args=[], params={}, nvals=1):
+        """
+        Return result of evaluating a Magma function with given
+        input, parameters, and asking for nvals as output.
+
+        INPUT:
+            function -- string, a Magma function name
+            args -- list of objects coercible into this magma interface
+            params -- Magma parameters, passed in aftera  colon
+            nvals -- number of return values from the function to ask Magma for
+        OUTPUT:
+            MagmaElement or tuple of nvals MagmaElement's
+
+        EXAMPLES:
+            sage: magma.function_call('Factorization', 100)
+            [ <2, 2>, <5, 2> ]
+            sage: magma.function_call('NextPrime', 100, {'Proof':False})
+            101
+            sage: magma.function_call('PolynomialRing', [QQ,2])
+            Polynomial ring of rank 2 over Rational Field
+            Lexicographical Order
+            Variables: $.1, $.2
+
+        Next, we illustrate multiple return values:
+            sage: magma.function_call('IsSquare', 100)
+            true
+            sage: magma.function_call('IsSquare', 100, nvals=2)
+            (true, 10)
+            sage: magma.function_call('IsSquare', 100, nvals=3)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Error evaluating Magma code...
+            Runtime error in :=: Expected to assign 3 value(s) but only computed 2 value(s)
+        """
         if not isinstance(args, list):
             args = [args]
         for i in range(len(args)):
-            if not isinstance(args[i], ExpectElement):
+            if not isinstance(args[i], MagmaElement) or args[i].parent() is not self:
                 args[i] = self(args[i])
         nvals = int(nvals)
         if len(params) == 0:

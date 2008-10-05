@@ -1858,6 +1858,27 @@ class SymbolicExpression(RingElement):
             sage: R = ComplexField(100)[x,y]
             sage: R(f)
             2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950488016887242 + 1.0000000000000000000000000000*I
+
+        This shows that the issue at trac \#4246 is fixed (attempting to
+        coerce an expression containing at least one variable that's
+        not in $R$ raises an error):
+            sage: var('x y')
+            (x, y)
+            sage: S = PolynomialRing(Integers(4), 1, 'x')
+            sage: S(x)
+            x
+            sage: S(y)
+            Traceback (most recent call last):
+            ...
+            TypeError: y is not a variable of Multivariate Polynomial Ring in x over Ring of integers modulo 4
+            sage: S(x+y)
+            Traceback (most recent call last):
+            ...
+            TypeError: y is not a variable of Multivariate Polynomial Ring in x over Ring of integers modulo 4
+            sage: (x+y)._polynomial_(S)
+            Traceback (most recent call last):
+            ...
+            TypeError: y is not a variable of Multivariate Polynomial Ring in x over Ring of integers modulo 4
         """
         vars = self.variables()
         B = R.base_ring()
@@ -1870,9 +1891,13 @@ class SymbolicExpression(RingElement):
         sub = []
         for v in vars:
             r = repr(v)
+            not_found_v = True
             for g in G:
                 if repr(g) == r:
                     sub.append((v,g))
+                    not_found_v = False
+            if not_found_v:
+                raise TypeError, "%s is not a variable of %s" %(v, R)
         if len(sub) == 0:
             try:
                 return R(B(self))

@@ -3746,8 +3746,12 @@ def text(string, (x,y), **options):
     You can also align text differently:
         sage: t1 = text("Hello",(1,1), vertical_alignment="top")
         sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
-        sage: t1 + t2   # render the sume
+        sage: t1 + t2   # render the sum
+
+    You can save text as part of pdf output:
+        sage: text("sage", (0,0), rgbcolor=(0,0,0)).save(SAGE_TMP + 'a.pdf')
     """
+    options['rgbcolor'] = to_mpl_color(options['rgbcolor'])
     point = (float(x), float(y))
     g = Graphics()
     g._text(string, point, options)

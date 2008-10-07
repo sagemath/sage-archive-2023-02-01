@@ -1422,6 +1422,8 @@ code = setup(name        = 'sage',
                      'sage.combinat.matrices',
                      'sage.combinat.posets',
 
+                     'sage.combinat.species',
+
                      'sage.crypto',
 
              'sage.crypto.mq',

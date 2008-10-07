@@ -1137,6 +1137,22 @@ class Partition_class(CombinatorialObject):
 
         return size
 
+    def aut(self):
+        r"""
+        Returns a factor for the number of permutations with cycle type self.
+        self.aut() returns $1^{j_1}j_1! \cdots n^{j_n}j_n!$ where $j_k$ is the number
+        of parts in self equal to k.
+
+        The number of permutations having $p$ as a cycle type is given
+        by $$ \frac{n!}{1^{j_1}j_1! \cdots n^{j_n}j_n!} $$.
+
+        EXAMPLES:
+            sage: Partition([2,1]).aut()
+            2
+        """
+        m = self.to_exp()
+        return prod([(i+1)**m[i]*factorial(m[i]) for i in range(len(m)) if m[i] > 0])
+
     def content(self, i, j):
         r"""
         Returns the content statistic of the given cell, which is simply

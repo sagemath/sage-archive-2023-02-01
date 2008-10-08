@@ -3879,6 +3879,26 @@ cdef class CCuddNavigator:
     def terminalOne(self):
         return self._pbnav.isTerminated()
 
+    def __richcmp__(self, CCuddNavigator other, int op):
+        """
+        sage: R.<x,y>=BooleanPolynomialRing(2)
+        sage: p = R(0)
+        sage: p.navigation() == p.navigation()
+        True
+        sage: p.navigation() != p.navigation()
+        False
+        sage: p.navigation() == x.navigation()
+        False
+        """
+        cdef bint equal = (<CCuddNavigator>self)._pbnav.is_equal((<CCuddNavigator>other)._pbnav)
+
+        if op == 2: # ==
+            return equal
+        elif op == 3: # !=
+            return not equal
+        else:
+            return NotImplemented
+
 cdef class BooleanPolynomialVector:
     def __init__(self):
         # This is used by PolyBoRi python code

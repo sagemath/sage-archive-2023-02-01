@@ -19,6 +19,7 @@ cdef extern from "pb_wrap.h":
         int (* value "operator*")()
         bint (* isConstant)()
         bint (* isTerminated)()
+        bint (* is_equal "operator==")(PBNavigator right)
 
     # non-allocating versions
     PBNavigator* PBNavigator_construct \

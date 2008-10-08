@@ -268,6 +268,11 @@ class SR_generic(MPolynomialSystemGenerator):
             SR(2,1,1,4)
             sage: sr2.ring().base_ring()
             Finite Field of size 2
+            sage: sr3 = sr2.new_generator(correct_only=True)
+            sage: len(sr2.inversion_polynomials_single_sbox())
+            20
+            sage: len(sr3.inversion_polynomials_single_sbox())
+            19
         """
         kwds.setdefault("n", self._n)
         kwds.setdefault("r", self._r)
@@ -284,8 +289,20 @@ class SR_generic(MPolynomialSystemGenerator):
             polybori = self._polybori
         except AttributeError:
             polybori = False
-
         kwds.setdefault("polybori", polybori)
+
+        try:
+            correct_only = self._correct_only
+        except AttributeError:
+            correct_only = False
+        kwds.setdefault("correct_only", correct_only)
+
+        try:
+            biaffine_only = self._biaffine_only
+        except AttributeError:
+            biaffine_only = False
+        kwds.setdefault("biaffine_only", biaffine_only)
+
         return SR(**kwds)
 
     def __getattr__(self, attr):

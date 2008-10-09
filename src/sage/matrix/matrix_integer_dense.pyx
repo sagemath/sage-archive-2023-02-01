@@ -3765,6 +3765,32 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 ##             mpz_set(M._entries[k + i], A._entries[i])
 ##         return M
 
+    def _singular_(self, singular=None):
+        r"""
+        Return \Singular representation of this integer matrix.
+
+        INPUT:
+            singular -- \Singular interface instance (default: None)
+
+        EXAMPLE:
+            sage: A = random_matrix(ZZ,3,3)
+            sage: As = singular(A); As
+            -8     2     0
+            0     1    -1
+            2     1   -95
+            sage: As.type()
+            'intmat'
+        """
+        if singular is None:
+            from sage.interfaces.singular import singular as singular_default
+            singular = singular_default
+
+        name = singular._next_var_name()
+        values = str(self.list())[1:-1]
+        singular.eval("intmat %s[%d][%d] = %s"%(name, self.nrows(), self.ncols(), values))
+
+        from sage.interfaces.singular import SingularElement
+        return SingularElement(singular, 'foobar', name, True)
 
     #####################################################################################
 

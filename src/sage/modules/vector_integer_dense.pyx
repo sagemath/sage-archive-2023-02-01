@@ -295,7 +295,33 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         """
         return vector( [e.n(*args, **kwargs) for e in self] )
 
+    def _singular_(self, singular=None):
+        r"""
+        Return \Singular representation of this integer vector.
 
+        INPUT:
+            singular -- \Singular interface instance (default: None)
+
+        EXAMPLE:
+            sage: A = random_matrix(ZZ,1,3)
+            sage: v = A.row(0)
+            sage: vs = singular(v); vs
+            -8,
+            2,
+            0
+            sage: vs.type()
+            'intvec'
+        """
+        if singular is None:
+            from sage.interfaces.singular import singular as singular_default
+            singular = singular_default
+
+        name = singular._next_var_name()
+        values = str(self.list())[1:-1]
+        singular.eval("intvec %s = %s"%(name, values))
+
+        from sage.interfaces.singular import SingularElement
+        return SingularElement(singular, 'foobar', name, True)
 
 def unpickle_v0(parent, entries, degree):
     # If you think you want to change this function, don't.

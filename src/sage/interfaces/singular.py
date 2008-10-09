@@ -1383,18 +1383,39 @@ class SingularElement(ExpectElement):
             sage: A._sage_(ZZ)
             [0 0]
             [0 0]
-
+            sage: A = random_matrix(ZZ,3,3); A
+            [ -8   2   0]
+            [  0   1  -1]
+            [  2   1 -95]
+            sage: As = singular(A); As
+            -8     2     0
+             0     1    -1
+             2     1   -95
+            sage: As._sage_()
+            [ -8   2   0]
+            [  0   1  -1]
+            [  2   1 -95]
         """
-        if self.type()=='poly':
+        typ = self.type()
+        if typ=='poly':
             return self.sage_poly(R)
-        elif self.type() == 'module':
+        elif typ == 'module':
             return self.sage_matrix(R,sparse=True)
-        elif self.type() == 'matrix':
+        elif typ == 'matrix':
             return self.sage_matrix(R,sparse=False)
-        elif self.type() == 'list':
+        elif typ == 'list':
             return [ f._sage_(R) for f in self ]
-        elif self.type() == 'intvec':
-            return tuple([sage.rings.integer.Integer(str(e)) for e in self])
+        elif typ == 'intvec':
+            from sage.modules.free_module_element import vector
+            return vector([sage.rings.integer.Integer(str(e)) for e in self])
+        elif typ == 'intmat':
+            from sage.matrix.constructor import matrix
+            from sage.rings.integer_ring import ZZ
+            A =  matrix(ZZ, int(self.nrows()), int(self.ncols()))
+            for i in xrange(A.nrows()):
+                for j in xrange(A.ncols()):
+                    A[i,j] = sage.rings.integer.Integer(str(self[i+1,j+1]))
+            return A
         else:
             raise NotImplementedError, "Coercion of this datatype not implemented yet"
 

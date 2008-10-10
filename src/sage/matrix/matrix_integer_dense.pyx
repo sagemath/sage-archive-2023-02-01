@@ -2180,7 +2180,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         (a) For any $i>j$, we have $|mu_{i, j}| <= \eta$,
         (b) For any $i<d$, we have
-        $\delta |b_i^*|^2 <= |b_{i + 1}^* + mu_{i + 1, i} b_{i + 1}^* |^2$,
+        $\delta |b_i^*|^2 <= |b_{i + 1}^* + mu_{i + 1, i} b_i^* |^2$,
 
         where $mu_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>$ and $b_i^*$ is
         the $i$-th vector of the Gram-Schmidt orthogonalisation of
@@ -2423,10 +2423,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         #For any $i>j$, we have $|mu_{i, j}| <= \eta$
         for e in mu.list():
-            if e > eta:
+            if e.abs() > eta:
                 return False
 
-        #For any $i<d$, we have $\delta |b_i^*|^2 <= |b_{i+1}^* + mu_{i+1, i} b_{i+1}^* |^2$
+        #For any $i<d$, we have $\delta |b_i^*|^2 <= |b_{i+1}^* + mu_{i+1, i} b_i^* |^2$
         norms = [G[i].norm()**2 for i in range(G.nrows())]
         for i in xrange(1,self.nrows()):
             if norms[i] < (delta - mu[i,i-1]**2) * norms[i-1]:

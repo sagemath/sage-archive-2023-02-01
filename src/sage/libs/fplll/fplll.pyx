@@ -166,7 +166,7 @@ cdef class FP_LLL:
             [   -1     2    -7     1     0     2     3 -1955   -22    -1]
             sage: F = FP_LLL(A)
             sage: F.wrapper()
-            sage: L = F._sage_(); L
+            sage: L = F._sage_(); L     # random output
             [   1    0    0   -3    2   -2    0   -2    1    0]
             [  -1    1    0    0    1   -1    4   -1    1   -1]
             [  -2    0    0    1    0   -2   -1   -3    0   -2]
@@ -500,7 +500,7 @@ cdef class FP_LLL:
 
             sage: F = FP_LLL(A)
             sage: F.heuristic_early_red()
-            sage: L = F._sage_(); L
+            sage: L = F._sage_(); L    # random output
             [   1    0    0   -3    2   -2    0   -2    1    0]
             [  -1    1    0    0    1   -1    4   -1    1   -1]
             [  -2    0    0    1    0   -2   -1   -3    0   -2]
@@ -571,7 +571,7 @@ def gen_intrel(int d, int b):
         [ 99   0   0   0   0   0   0   0   0   1   0]
         [649   0   0   0   0   0   0   0   0   0   1]
 
-        sage: A.LLL()
+        sage: L = A.LLL(); L    # random output
         [ 1  1  1  0  0  0  0 -1  1  0  0]
         [ 1  0  1  0  0 -1  1  0  0 -1  0]
         [ 0  0  1  1  0 -1  0 -1  0  0  1]
@@ -582,6 +582,10 @@ def gen_intrel(int d, int b):
         [ 1 -1 -1  0  0 -1 -1  0  1  1  1]
         [-1  0  0 -1 -1  0 -1  1  2 -1  0]
         [-1 -1  0  0  1  0  2  0  0  0 -2]
+        sage: L.is_LLL_reduced()
+        True
+        sage: L.echelon_form() == A.echelon_form()
+        True
     """
     cdef ZZ_mat *A = ZZ_mat_new(d,d+1)
     A.gen_intrel(b)
@@ -614,7 +618,7 @@ def gen_simdioph(int d, int b, int b2):
         [   0    0    0    0    0    0    0    0 1024    0]
         [   0    0    0    0    0    0    0    0    0 1024]
 
-        sage: A.LLL()
+        sage: L = A.LLL(); L     # random output
         [ 192  264 -152  272   -8  272  -48 -264  104   -8]
         [-128 -176 -240  160 -336  160   32  176  272 -336]
         [ -24 -161  147  350  385  -34  262  161  115  257]
@@ -625,6 +629,10 @@ def gen_simdioph(int d, int b, int b2):
         [ 120 -219  289  298  123  170 -286  219  449 -261]
         [ 160 -292   44   56  164  568  -40  292  -84 -348]
         [ 192  264 -152  272   -8  272  -48  760  104   -8]
+        sage: L.is_LLL_reduced()
+        True
+        sage: L.echelon_form() == A.echelon_form()
+        True
     """
     cdef ZZ_mat *A = ZZ_mat_new(d,d)
     A.gen_simdioph(b, b2)
@@ -657,7 +665,7 @@ def gen_uniform(int nr, int nc, int b):
         [1394  529 1683 1781 1779 3032   80 2712  639 3047]
         [3695 3888 3139  851 2111 3375  208 3766 3925 1465]
 
-        sage: A.LLL()
+        sage: L = A.LLL(); L     # random output
         [  200 -1144  -365   755  1404  -218  -937   321  -718   790]
         [  623   813   873  -595  -422   604  -207  1265 -1418  1360]
         [ -928  -816   479  1951  -319 -1295   827   333  1232   643]
@@ -668,6 +676,10 @@ def gen_uniform(int nr, int nc, int b):
         [ -430  1471   339  -513  1361  2715  2076  -646 -1406   -60]
         [-3390   748    62   775   935  1697  -306  -618    88  -452]
         [  713 -1115  1887  -563   733  2443   816   972   876 -2074]
+        sage: L.is_LLL_reduced()
+        True
+        sage: L.echelon_form() == A.echelon_form()
+        True
     """
     cdef ZZ_mat *A = ZZ_mat_new(nr,nc)
     A.gen_uniform(b)
@@ -712,7 +724,7 @@ def gen_ntrulike(int d, int b, int q):
         [  0   0   0   0   0   0   0   0  12   0]
         [  0   0   0   0   0   0   0   0   0  12]
 
-        sage: A.LLL()
+        sage: L = A.LLL(); L     # random output
         [-1 -1  0  0  0  1  1 -2  0 -2]
         [-1  0  0  0 -1 -2  1  1 -2  0]
         [ 0 -1 -1  0  0  1 -2  0 -2  1]
@@ -723,6 +735,10 @@ def gen_ntrulike(int d, int b, int q):
         [ 2 -1 -1  2  1 -1  0 -1  0 -1]
         [-1 -1  2  1  2 -1 -1  0 -1  0]
         [ 1 -2 -1 -2  1  0  1  1  0  1]
+        sage: L.is_LLL_reduced()
+        True
+        sage: L.echelon_form() == A.echelon_form()
+        True
     """
     cdef ZZ_mat *A = ZZ_mat_new(2*d,2*d)
     A.gen_ntrulike(b, q)
@@ -754,7 +770,7 @@ def gen_ntrulike2(int d, int b, int q):
         [ 40 908 902 947 306   0   0   0   1   0]
         [908 902 947 306  40   0   0   0   0   1]
 
-        sage: A.LLL()
+        sage: L = A.LLL(); L    # random output
         [ 1  0  0  2 -3 -2  1  1  0  0]
         [-1  0 -2  1  2  2  1 -2 -1  0]
         [ 0  2 -1 -2  1  0 -2 -1  2  1]
@@ -765,6 +781,10 @@ def gen_ntrulike2(int d, int b, int q):
         [-1  0 -1  0 -1  4 -1 -1  0  1]
         [ 0  1 -2  1  1 -1  0  1 -3 -2]
         [-2  1  1  0  1 -3 -2 -1  0  1]
+        sage: L.is_LLL_reduced()
+        True
+        sage: L.echelon_form() == A.echelon_form()
+        True
     """
     cdef ZZ_mat *A = ZZ_mat_new(2*d,2*d)
     A.gen_ntrulike2(b,q)
@@ -797,7 +817,7 @@ def gen_ajtai(int d, float alpha):
         [ 11  14  38  16  26  23   3  11   9   0]
         [ 15  21  35  37  12   6   2  10   1  17]
 
-        sage: A.LLL()
+        sage: L = A.LLL(); L    # random output
         [  4   7  -3  21 -14 -17  -1  -1  -8  17]
         [-20   0  -6   6 -11  -4 -19  10   1  17]
         [-22  -1   8 -21  18 -29   3  11   9   0]
@@ -808,6 +828,10 @@ def gen_ajtai(int d, float alpha):
         [ 11  55   0   0   0   0   0   0   0   0]
         [ 11  14  38  16  26  23   3  11   9   0]
         [ 13 -28  -1   7 -11  11 -12   3  54   0]
+        sage: L.is_LLL_reduced()
+        True
+        sage: L.echelon_form() == A.echelon_form()
+        True
     """
     cdef ZZ_mat *A = ZZ_mat_new(d,d)
     A.gen_ajtai(alpha)

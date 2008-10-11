@@ -492,10 +492,10 @@ class Magma(Expect):
         We test a coercion between different Magma instances:
             sage: m = Magma()
             sage: n = Magma()
-            sage: a = n(m(2))
-            sage: a.parent() is n
+            sage: a = n(m(2))           # optional
+            sage: a.parent() is n       # optional
             True
-            sage: a.parent() is m
+            sage: a.parent() is m       # optional
             False
         """
         if gens is None:
@@ -571,10 +571,10 @@ class Magma(Expect):
 
         EXAMPLES:
         Attaching a file that exists is fine:
-            sage: magma.attach('%s/data/extcode/magma/sage/basic.m'%SAGE_ROOT)
+            sage: magma.attach('%s/data/extcode/magma/sage/basic.m'%SAGE_ROOT)    # optional
 
         Attaching a file that doesn't exist raises an exception:
-            sage: magma.attach('%s/data/extcode/magma/sage/basic2.m'%SAGE_ROOT)
+            sage: magma.attach('%s/data/extcode/magma/sage/basic2.m'%SAGE_ROOT)     # optional
             Traceback (most recent call last):
             ...
             RuntimeError: Error evaluating Magma code...
@@ -594,8 +594,8 @@ class Magma(Expect):
             filename -- a string
 
         EXAMPLES:
-            sage: magma.attach_spec('%s/data/extcode/magma/spec'%SAGE_ROOT)
-            sage: magma.attach_spec('%s/data/extcode/magma/spec2'%SAGE_ROOT)
+            sage: magma.attach_spec('%s/data/extcode/magma/spec'%SAGE_ROOT)    # optional
+            sage: magma.attach_spec('%s/data/extcode/magma/spec2'%SAGE_ROOT)# optional
             Traceback (most recent call last):
             ...
             RuntimeError: Can't open package spec file /home/wstein/sage/data/extcode/magma/spec2 for reading (No such file or directory)
@@ -623,10 +623,10 @@ class Magma(Expect):
 
         EXAMPLES:
             sage: open(SAGE_TMP + 'a.m','w').write('function f(n) return n^2; end function;\nprint "hi";')
-            sage: print magma.load(SAGE_TMP + 'a.m')
+            sage: print magma.load(SAGE_TMP + 'a.m')      # optional
             Loading "/home/wstein/.sage//temp/one/.../a.m"
             hi
-            sage: magma('f(12)')
+            sage: magma('f(12)')       # optional
             144
         """
         return self.eval('load "%s"'%filename)
@@ -640,15 +640,15 @@ class Magma(Expect):
 
         EXAMPLES:
             sage: m = Magma()
-            sage: m._next_var_name()
+            sage: m._next_var_name()     # optional
             '_sage_[1]'
-            sage: m._next_var_name()
+            sage: m._next_var_name()     # optional
             '_sage_[2]'
-            sage: a = m(3/8); a
+            sage: a = m(3/8); a          # optional
             3/8
-            sage: a.name()
+            sage: a.name()               # optional
             '_sage_[3]'
-            sage: m._next_var_name()
+            sage: m._next_var_name()     # optional
             '_sage_[4]'
         """
         if self.__seq == 0:
@@ -677,21 +677,21 @@ class Magma(Expect):
             MagmaElement or tuple of nvals MagmaElement's
 
         EXAMPLES:
-            sage: magma.function_call('Factorization', 100)
+            sage: magma.function_call('Factorization', 100)    # optional
             [ <2, 2>, <5, 2> ]
-            sage: magma.function_call('NextPrime', 100, {'Proof':False})
+            sage: magma.function_call('NextPrime', 100, {'Proof':False})    # optional
             101
-            sage: magma.function_call('PolynomialRing', [QQ,2])
+            sage: magma.function_call('PolynomialRing', [QQ,2])      # optional
             Polynomial ring of rank 2 over Rational Field
             Lexicographical Order
             Variables: $.1, $.2
 
         Next, we illustrate multiple return values:
-            sage: magma.function_call('IsSquare', 100)
+            sage: magma.function_call('IsSquare', 100)         # optional
             true
-            sage: magma.function_call('IsSquare', 100, nvals=2)
+            sage: magma.function_call('IsSquare', 100, nvals=2)     # optional
             (true, 10)
-            sage: magma.function_call('IsSquare', 100, nvals=3)
+            sage: magma.function_call('IsSquare', 100, nvals=3)     # optional
             Traceback (most recent call last):
             ...
             RuntimeError: Error evaluating Magma code...
@@ -975,7 +975,7 @@ class Magma(Expect):
 
         EXAMPLES:
             sage: magma.set_verbose("Groebner", 2)      # optional
-            sage: magma.get_verbose("Groebner")
+            sage: magma.get_verbose("Groebner")         # optional
             2
         """
         self.SetVerbose(type,level)
@@ -993,7 +993,7 @@ class Magma(Expect):
         naming convention.
 
             sage: magma.SetVerbose("Groebner", 2)      # optional
-            sage: magma.GetVerbose("Groebner")
+            sage: magma.GetVerbose("Groebner")         # optional
             2
         """
         if level < 0:
@@ -1009,8 +1009,8 @@ class Magma(Expect):
             type -- string (e.g. 'Groebner'), see Magma documentation
 
         EXAMPLES:
-            sage: magma.set_verbose("Groebner", 2)
-            sage: magma.get_verbose("Groebner")
+            sage: magma.set_verbose("Groebner", 2)        # optional
+            sage: magma.get_verbose("Groebner")           # optional
             2
         """
         return self.GetVerbose(type)
@@ -1028,7 +1028,7 @@ class Magma(Expect):
 
         EXAMPLES:
             sage: magma.SetVerbose("Groebner", 2)      # optional
-            sage: magma.GetVerbose("Groebner")
+            sage: magma.GetVerbose("Groebner")         # optional
             2
         """
         return int(self.eval('GetVerbose("%s")'%type))
@@ -1393,11 +1393,11 @@ class MagmaElement(ExpectElement):
             value -- something coercible to a MagmaElement
 
         EXAMPLES:
-            sage: V = magma("VectorSpace(RationalField(),2)")
-            sage: V.set_magma_attribute('M',10)
-            sage: V.get_magma_attribute('M')
+            sage: V = magma("VectorSpace(RationalField(),2)")   # optional
+            sage: V.set_magma_attribute('M',10)                 # optional
+            sage: V.get_magma_attribute('M')                    # optional
             10
-            sage: V.M
+            sage: V.M                                           # optional
             10
         """
         P = self.parent()   # instance of Magma that contains this element.
@@ -1414,11 +1414,11 @@ class MagmaElement(ExpectElement):
             MagmaElement
 
         EXAMPLES:
-            sage: V = magma("VectorSpace(RationalField(),10)")
-            sage: V.set_magma_attribute('M','"hello"')
-            sage: V.get_magma_attribute('M')
+            sage: V = magma("VectorSpace(RationalField(),10)")   # optional
+            sage: V.set_magma_attribute('M','"hello"')           # optional
+            sage: V.get_magma_attribute('M')                     # optional
             hello
-            sage: V.M
+            sage: V.M                                            # optional
             hello
         """
         P = self.parent()

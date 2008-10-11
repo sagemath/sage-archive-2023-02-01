@@ -1037,7 +1037,15 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             9.0000000000000000000000000000
             sage: _.parent()
             Real Field with 100 bits of precision
-            """
+
+        Unfortunately, canonical height isn't implemented in general.
+            sage: E = EllipticCurve('5077a1').change_ring(QuadraticField(-3,'a'))
+            sage: P = E([-2,3,1])
+            sage: P.height()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: canonical height not yet implemented over general number fields.
+        """
         if self.has_finite_order():
             return rings.QQ(0)
 
@@ -1047,7 +1055,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         try:
             h = self.curve().pari_curve(prec=precision).ellheight([self[0], self[1]])
             return rings.RealField(precision)(h)
-        except AttributeError: "canonical height not yet implemented over general number fields."
+        except AttributeError:
+            raise NotImplementedError, "canonical height not yet implemented over general number fields."
 
     def elliptic_logarithm(self, embedding=None, precision=100, algorithm='pari'):
         """

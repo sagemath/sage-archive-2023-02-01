@@ -742,6 +742,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         The a-invariants of this elliptic curve.
 
+        OUTPUT:
+            list -- a new list
+
         EXAMPLES:
             sage: E = EllipticCurve([1,2,3,4,5])
             sage: E.a_invariants()
@@ -754,8 +757,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve([GF(7)(3),5])
             sage: E.a_invariants()
             [0, 0, 0, 3, 5]
+
+        We check that a new list is returned:
+            sage: E = EllipticCurve([1,0,0,0,1])
+            sage: E.a_invariants()[0] = 100000000
+            sage: E
+            Elliptic Curve defined by y^2 + x*y  = x^3 +1 over Rational Field
         """
-        return self.__ainvs
+        return list(self.__ainvs)
 
     ainvs = a_invariants
 

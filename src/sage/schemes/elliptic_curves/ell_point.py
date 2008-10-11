@@ -1055,7 +1055,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         try:
             h = self.curve().pari_curve(prec=precision).ellheight([self[0], self[1]])
             return rings.RealField(precision)(h)
-        except AttributeError:
+        except:
             raise NotImplementedError, "canonical height not yet implemented over general number fields."
 
     def elliptic_logarithm(self, embedding=None, precision=100, algorithm='pari'):

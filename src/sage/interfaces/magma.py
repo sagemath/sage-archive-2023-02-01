@@ -814,15 +814,82 @@ class Magma(Expect):
 
 
     def console(self):
+        """
+        Run a command line Magma session.  This session is
+        completely separate from this Magma interface.
+
+        EXAMPLES:
+            sage: magma.console()             # not tested
+            Magma V2.14-9     Sat Oct 11 2008 06:36:41 on one      [Seed = 1157408761]
+            Type ? for help.  Type <Ctrl>-D to quit.
+            >
+            Total time: 2.820 seconds, Total memory usage: 3.95MB
+        """
         magma_console()
 
     def version(self):
+        """
+        Return the version of Magma that you have in your PATH
+        on your computer.
+
+        OUTPUT:
+            numbers -- 3-tuple: major, minor, etc.
+            string -- version as a string
+
+        EXAMPLES:
+            sage: magma.version()       # optional and random
+            ((2, 14, 9), 'V2.14-9')
+        """
         return magma_version()
 
     def help(self, s):
+        """
+        Return Magma help on string s.
+
+        This returns what typing ?s would return in Magma.
+
+        INPUT:
+            s -- string
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: magma.help("NextPrime")       # optional
+            ===============================================================================
+            PATH: /magma/ring-field-algebra/integer/prime/next-previous/NextPrime
+            KIND: Intrinsic
+            ===============================================================================
+            NextPrime(n) : RngIntElt -> RngIntElt
+            NextPrime(n: parameter) : RngIntElt -> RngIntElt
+            ...
+        """
         print self.eval('? %s'%s)
 
     def trait_names(self, verbose=True, use_disk_cache=True):
+        """
+        Return a list of all Magma commands.
+
+        This is used as a hook to enable custom command completion.
+
+        Magma doesn't provide any fast way to make a list of all
+        commands, which is why caching is done by default.  Note that
+        an adverse impact of caching is that *new* commands are not
+        picked up, e.g., user defined variables or functions.
+
+        INPUT:
+            verbose -- bool (default: True); whether to verbosely
+                       output status info the first time the
+                       command list is built
+            use_disk_cache -- bool (default: True); use cached
+                       command list, which is saved to disk.
+
+        OUTPUT:
+            list of strings
+
+        EXAMPLES:
+            sage: len(magma.trait_names(verbose=False))    # optional and random output
+            7261
+        """
         try:
             return self.__trait_names
         except AttributeError:
@@ -900,26 +967,34 @@ class Magma(Expect):
     def set_verbose(self, type, level):
         """
         Set the verbosity level for a given algorithm, class, etc. in
-        MAGMA.
+        Magma.
 
         INPUT:
             type -- string (e.g. 'Groebner')
             level -- integer >= 0
 
+        EXAMPLES:
+            sage: magma.set_verbose("Groebner", 2)      # optional
+            sage: magma.get_verbose("Groebner")
+            2
         """
         self.SetVerbose(type,level)
 
     def SetVerbose(self, type, level):
         """
         Set the verbosity level for a given algorithm class etc. in
-        MAGMA.
+        Magma.
 
         INPUT:
-            type -- string (e.g. 'Groebner'), see MAGMA documentation
+            type -- string (e.g. 'Groebner'), see Magma documentation
             level -- integer >= 0
 
-        NOTE: This method is provided to be consistent with the MAGMA
+        NOTE: This method is provided to be consistent with the Magma
         naming convention.
+
+            sage: magma.SetVerbose("Groebner", 2)      # optional
+            sage: magma.GetVerbose("Groebner")
+            2
         """
         if level < 0:
             raise TypeError, "level must be >= 0"
@@ -928,23 +1003,33 @@ class Magma(Expect):
     def get_verbose(self, type):
         """
         Get the verbosity level of a given algorithm class etc. in
-        MAGMA.
+        Magma.
 
         INPUT:
-            type -- string (e.g. 'Groebner'), see MAGMA documentation
+            type -- string (e.g. 'Groebner'), see Magma documentation
+
+        EXAMPLES:
+            sage: magma.set_verbose("Groebner", 2)
+            sage: magma.get_verbose("Groebner")
+            2
         """
         return self.GetVerbose(type)
 
     def GetVerbose(self, type):
         """
         Get the verbosity level of a given algorithm class etc. in
-        MAGMA.
+        Magma.
 
         INPUT:
-            type -- string (e.g. 'Groebner'), see MAGMA documentation
+            type -- string (e.g. 'Groebner'), see Magma documentation
 
-        NOTE: This method is provided to be consistent with the MAGMA
+        NOTE: This method is provided to be consistent with the Magma
         naming convention.
+
+        EXAMPLES:
+            sage: magma.SetVerbose("Groebner", 2)      # optional
+            sage: magma.GetVerbose("Groebner")
+            2
         """
         return int(self.eval('GetVerbose("%s")'%type))
 
@@ -1001,6 +1086,20 @@ class MagmaFunction(ExpectFunction):
 
 
 def is_MagmaElement(x):
+    """
+    Return True if x is of type MagmaElement, and False otherwise.
+
+    INPUT:
+        x -- any object
+    OUTPUT:
+        bool
+
+    EXAMPLES:
+        sage: is_MagmaElement(2)
+        False
+        sage: is_MagmaElement(magma(2))                    # optional
+        True
+    """
     return isinstance(x, MagmaElement)
 
 class MagmaElement(ExpectElement):
@@ -1090,15 +1189,23 @@ class MagmaElement(ExpectElement):
         """
         Return generators for self.
 
-        If self is named X is MAGMA, this function evaluates X.1, X.2,
-        etc., in MAGMA until an error occurs.  It then returns a SAGE
+        If self is named X is Magma, this function evaluates X.1, X.2,
+        etc., in Magma until an error occurs.  It then returns a SAGE
         list of the resulting X.i.  Note -- I don't think there is a
-        MAGMA command that returns the list of valid X.i.  There are
+        Magma command that returns the list of valid X.i.  There are
         numerous ad hoc functions for various classes but nothing
-        systematic.  This function gets around that problem.
+        systematic.  This function gets around that problem.  Again,
+        this is something that should probably be reported to the
+        Magma group and fixed there.
 
         AUTHOR:
             * William Stein -- 2006-07-02
+
+        EXAMPLES:
+            sage: magma("VectorSpace(RationalField(),3)").gens()         # optional
+            [(1 0 0), (0 1 0), (0 0 1)]
+            sage: magma("AbelianGroup(EllipticCurve([1..5]))").gens()    # optional
+            [$.1]
         """
         try:
             return self.__gens
@@ -1118,15 +1225,34 @@ class MagmaElement(ExpectElement):
         return G
 
     def evaluate(self, *args):
+        """
+        Evalute self at the inputs.
+
+        INPUT:
+            *args -- import arguments
+        OUTPUT:
+            self(*args)
+
+        EXAMPLES:
+            sage: f = magma('Factorization')            # optional
+            sage: f.evaluate(15)                        # optional
+            [ <3, 1>, <5, 1> ]
+            sage: f(15)                                 # optional
+            [ <3, 1>, <5, 1> ]
+            sage: f = magma('GCD')                      # optional
+            sage: f.evaluate(15,20)                     # optional
+            5
+        """
         P = self._check_valid()
         v = [P(a) for a in args]
         names = ','.join([str(x) for x in v])
         return P('%s(%s)'%(self.name(), names))
+
     eval = evaluate
 
     def __call__(self, *args):
         """
-        Coerce something into the object (using the MAGMA ! notation).
+        Coerce something into the object (using the Magma ! notation).
 
         For function calls, use self.eval(...).
 
@@ -1261,20 +1387,81 @@ class MagmaElement(ExpectElement):
         return s
 
     def set_magma_attribute(self, attrname, value):
-        P = self.parent()   # instance of MAGMA that contains this element.
+        """
+        INPUTS:
+            attrname -- string
+            value -- something coercible to a MagmaElement
+
+        EXAMPLES:
+            sage: V = magma("VectorSpace(RationalField(),2)")
+            sage: V.set_magma_attribute('M',10)
+            sage: V.get_magma_attribute('M')
+            10
+            sage: V.M
+            10
+        """
+        P = self.parent()   # instance of Magma that contains this element.
         if not (isinstance(value, MagmaElement) and value.parent() is P):
             value = P(value)
         P.eval('%s`%s := %s'%(self.name(), attrname, value.name()))
 
     def get_magma_attribute(self, attrname):
+        """
+        Return value of a given Magma attribute.  This is like self`attrname
+        in Magma.
+
+        OUTPUT:
+            MagmaElement
+
+        EXAMPLES:
+            sage: V = magma("VectorSpace(RationalField(),10)")
+            sage: V.set_magma_attribute('M','"hello"')
+            sage: V.get_magma_attribute('M')
+            hello
+            sage: V.M
+            hello
+        """
         P = self.parent()
         return P('%s`%s'%(self.name(), attrname))
 
     def list_attributes(self):
+        """
+        Return the attributes of self, obtained by calling the
+        ListAttributes function in Magma.
+
+        OUTPUT:
+            list of strings
+
+        EXAMPLES:
+        We observe that vector spaces in Magma have numerous funny and
+        mysterious attributes.
+            sage: V = magma("VectorSpace(RationalField(),2)")        # optional
+            sage: V.list_attributes()                                # optional
+            ['Coroots', 'Roots', 'decomp', 'ssbasis', 'M', 'StrLocalData', 'eisen', 'weights', 'RootDatum', 'T', 'p']
+        """
         return magma.eval('ListAttributes(Type(%s))'%\
                           self.name()).split()
 
     def trait_names(self):
+        """
+        Return all Magma functions that have this Magma element as
+        first input.  This is used for tab completion.
+
+        NOTE: This function can unfortunately be slow if there are a
+        very large number of functions, e.g., when self is an integer.
+        (This could be fixed by the addition of an appropriate
+        function to the Magma kernel, which is something that can only
+        be done by the Magma developers.)
+
+
+        OUTPUT:
+            list -- sorted list of distinct strings
+
+        EXAMPLES:
+            sage: v = magma('2/3').trait_names()       # optional
+            sage: type(v[0])                           # optional
+            <type 'str'>
+        """
         M = self.methods()
         N = []
         for x in M:
@@ -1286,12 +1473,19 @@ class MagmaElement(ExpectElement):
 
     def methods(self, any=False):
         """
-        Return all MAGMA intrinsics that can take self as the first
-        argument.
+        Return signatures of all Magma intrinsics that can take self
+        as the first argument, as strings.
 
         INPUT:
             any -- (bool: default is False) if True, also include
                    signatures with <Any> as first argument.
+        OUTPUT:
+            list of strings
+
+        EXAMPLES:
+            sage: v = magma('2/3').methods()          # optional
+            sage: v[0]                                # optional
+            "'*'..."
         """
         t = str(self.Type())
         X = self.parent().eval('ListSignatures(%s)'%self.Type()).split('\n')
@@ -1397,11 +1591,42 @@ class MagmaElement(ExpectElement):
 magma = Magma()
 
 def reduce_load_Magma():
+    """
+    Used in unpickling a Magma interface.
+
+    This functions just returns the global default Magma interface.
+
+    EXAMPLES:
+        sage: sage.interfaces.magma.reduce_load_Magma()
+        Magma
+    """
     return magma
 
 def magma_console():
+    """
+    Run a command line Magma session.
+
+    EXAMPLES:
+        sage: magma_console()             # not tested
+        Magma V2.14-9     Sat Oct 11 2008 06:36:41 on one      [Seed = 1157408761]
+        Type ? for help.  Type <Ctrl>-D to quit.
+        >
+        Total time: 2.820 seconds, Total memory usage: 3.95MB
+    """
     console('magma')
 
 def magma_version():
+    """
+    Return the version of Magma that you have in your PATH
+    on your computer.
+
+    OUTPUT:
+        numbers -- 3-tuple: major, minor, etc.
+        string -- version as a string
+
+    EXAMPLES:
+        sage: magma_version()       # optional and random
+        ((2, 14, 9), 'V2.14-9')
+    """
     t = tuple([int(n) for n in magma.eval('GetVersion()').split()])
     return t, 'V%s.%s-%s'%t

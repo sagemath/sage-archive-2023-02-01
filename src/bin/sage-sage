@@ -48,6 +48,7 @@ usage_advanced() {
     echo "  -gdb          -- run SAGE under the control of gdb"
     echo "  -gdb-ipython  -- run SAGE's Ipython under the control of gdb"
     echo "  -gp <..>      -- run SAGE's GP (Pari) with given arguments"
+    echo "  -combinat <...> -- run sage-combinat patch management script"
     echo "  -f [packages] -- force build of the given SAGE package (even if already installed)"
     echo "  -grep <string>-- grep through all the SAGE library code for string"
     echo "  -grepdoc <string>-- grep through all the SAGE documentation for string"
@@ -262,6 +263,13 @@ if [ $1 = '-axiom' -o $1 = '--axiom' ]; then
     cd "$CUR"
     shift
    axiom "$@"
+    exit $?
+fi
+
+if [ $1 = '-combinat' -o $1 = '--combinat' ]; then
+    cd "$CUR"
+    shift
+    sage-combinat "$@"
     exit $?
 fi
 

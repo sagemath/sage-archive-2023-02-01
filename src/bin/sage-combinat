@@ -1,0 +1,233 @@
+#!/usr/bin/env python
+
+import os
+import re
+from re import split
+from sys import argv, stderr
+from subprocess import *
+from optparse import OptionParser
+import ConfigParser
+
+##############################################################################
+# Configuration file handling
+
+config_file = os.path.expanduser('~/.sage-combinat.cfg')
+config = ConfigParser.SafeConfigParser([])
+config.read([config_file])
+if config.has_option("sage", "command"):
+    sage = config.get("sage", "command")
+else:
+    sage = "sage"
+
+##############################################################################
+# Command line option handling
+
+usage = r"""usage: %prog [options] command
+list of commands:
+ config     show current configuration (sage command, path, version, ...)
+ install    install the sage-combinat patches
+ update     update to the latest sage-combinat patches
+ upgrade    upgrade sage and update to the latest sage-combinat patches
+"""
+parser = OptionParser(usage=usage)
+parser.add_option("-b", "--branch", dest="branch",
+                  help="Use sage-BRANCH instead of sage-combinat",
+                  metavar="BRANCH", default = "combinat", type="string")
+
+def set_sage_command(option, opt, value, parser):
+    global sage
+    if sage == value:
+        return
+    setattr(parser.values, option.dest, value)
+    if not config.has_section("sage"):
+        config.add_section("sage")
+    config.set("sage", "command", value)
+    try:
+        config.write(open(config_file, "w"))
+    except IOError, e:
+        print >> stderr, "Warning: could not write configuration file: "+str(e)
+
+parser.add_option("--sage", action = "callback", callback = set_sage_command,
+                  help="Specify and store the sage command line",
+                  metavar="/opt/bin/sage", default = sage, type="string")
+parser.add_option("-f", "--force", action="store_true", dest="force",
+                  help="Proceed even with local changes in patch directory")
+parser.set_defaults(verbose=True)
+parser.add_option("-v", action="store_true", dest="verbose",
+                  help="Print status messages to stdout")
+parser.add_option("-q", "--quiet",
+                  action="store_false", dest="verbose",
+                  help="Don't print status messages to stdout")
+parser.add_option("-s", "--server", dest="server",
+                  help="Set the URL for the sage-combinat server",
+                  default="http://sage.math.washington.edu:2144", type="string")
+
+(options, args) = parser.parse_args()
+
+##############################################################################
+# Utilities
+
+def info(mesg):
+    global options
+    if options.verbose:
+        print >> stderr, mesg
+
+def error(s):
+    print >> stderr, "Error: "+s
+    parser.print_help()
+    exit(0)
+
+def system(command):
+    info("  "+command)
+    ret = os.system(command)
+    if not ret == 0:
+        print >> stderr, "Abort"
+        exit(ret)
+
+def get_sage_root():
+    r"""
+    Returns the root directory of the sage installation (e.g. /opt/sage)
+    """
+    global sage
+    # Looking up for sage and sage root directory
+    try:
+        sage_root = Popen(["echo 'echo ROOT${SAGE_ROOT}ROOT' | "+sage+" -sh"], stdout=PIPE, shell=True).communicate()[0]
+    except OSError, e:
+        error("Could not start sage"+str(e))
+    return split("ROOT", sage_root)[1]
+
+def get_sage_version():
+    global sage
+    # Looking up for sage and sage root directory
+    try:
+        sage_version = Popen([sage+" --version"], stdout=PIPE, shell=True).communicate()[0]
+    except OSError, e:
+        error("Could not start sage"+str(e))
+    return re.search('(\d+\.\d+\.\d+)',sage_version).group()
+
+def cd_to_combinat():
+    global sage_combinat_root
+    info("Switching to sage combinat root directory: %s"%sage_combinat_root)
+    os.chdir(sage_combinat_root)
+
+def status():
+    #assert(os.getcwd() == sage_combinat_root)
+    return Popen([hg+" status"], stdout=PIPE, shell=True).communicate()[0]
+
+def patches_status():
+    #assert(os.getcwd() == sage_combinat_root)
+    return Popen(["cd .hg/patches; hg status"], stdout=PIPE, shell=True).communicate()[0]
+
+def check_for_no_diff():
+    if not status() == "":
+        info("There are local modifications; aborting")
+        info(status().rstrip())
+        exit(1)
+    if not patches_status() == "":
+        info("There are uncommited patches:")
+        info(patches_status().rstrip())
+        if not options.force:
+            info("Use -f to force proceeding")
+            exit(1)
+
+def qselect_backward_compatibility_patches():
+    global sage_version
+    r"""
+    Selects the appropriate guards for this version of sage
+    e.g. if we are running sage 3.0.2, then we want to apply all
+    the patches which are guarded by 3_0_3, 3_0_4, ...
+    """
+    #assert(os.getcwd() == sage_combinat_root)
+    sage_version_as_list = [int(s) for s in re.split("\.", sage_version)]
+    # How to only unselect only certain guards?
+    system(hg+" qselect -n")
+    guards = Popen([hg+" qselect -s"], stdout=PIPE, shell=True).communicate()[0]
+    for guard in re.compile("^\+\d+_\d+_\d+$", re.MULTILINE).findall(guards):
+        guard = re.sub("^\+","", guard)
+        guard_as_list = [int(s) for s in re.split("_", guard)]
+        if guard_as_list > sage_version_as_list:
+            system(hg+" qselect "+guard)
+        else:
+            info("Skipping backward compatibility patches for sage "+re.sub("_",".",guard))
+
+##############################################################################
+
+sage         = options.sage
+hg           = sage+" -hg"
+sage_root    = get_sage_root()
+sage_version = get_sage_version()
+
+##############################################################################
+
+
+if len(args) == 0:
+    error("command required")
+
+branch = options.branch
+
+sage_combinat_root = os.path.join(sage_root, "devel", "sage-"+branch)
+sage_combinat_hg = os.path.join(sage_root, "devel", "sage-"+branch, ".hg")
+
+if args[0] == "config":
+    info("sage command: "+sage)
+    info("sage root: "+sage_root)
+    info("sage version: "+sage_version)
+    info("sage-combinat branch: "+branch)
+    info("sage-combinat root: "+sage_combinat_root)
+    info("sage-combinat config file: "+config_file)
+    info("sage-combinat server: "+options.server)
+
+elif args[0] == "install":
+    if os.path.exists(sage_combinat_root):
+        error("%s branch already exists"%branch)
+    info("Creating sage-%s branch:"%branch)
+    system(sage+" -b main") # This makes sure we are cloning the main branch!!!
+    system(sage+" -clone %s"%branch)
+    info("Done")
+    assert(os.path.exists(sage_combinat_hg))
+    cd_to_combinat()
+    check_for_no_diff()
+    info("Uploading sage-combinat patches into .hg/patches:")
+    system("cd .hg/; "+hg+" clone %s patches"%options.server)
+    qselect_backward_compatibility_patches()
+    info("Applying all the patches")
+    system(hg+" qpush -a")
+    info("Switching to %s branch and rebuilding"%branch)
+    system(sage+" -b %s"%branch)
+    info("Finished installation of Sage-combinat patches!")
+
+elif args[0] == "upgrade":
+    cd_to_combinat()
+    check_for_no_diff()
+    info("Upgrading sage")
+    system(sage+" -upgrade")
+    # Update Sage's version to apply the appropriate patches!
+    # (we assume sage's root has not changed)
+    sage_version = get_sage_version()
+    info("Unapplying all the patches")
+    system(hg+" qpop -a")
+    info("Pulling the new version of Sage from the local main repository")
+    system(hg+" pull -u ../sage-main")
+    info("Pulling the new version of the patches from the patch server")
+    system("(cd .hg/patches ; "+hg+" pull -u %s)"%options.server)
+    qselect_backward_compatibility_patches()
+    info("Applying all the patches")
+    system(hg+" qpush -a")
+    info("Rebuild")
+    system(sage+" -b %s"%branch)
+
+elif args[0] == "update":
+    cd_to_combinat()
+    check_for_no_diff()
+    info("Unapplying all the patches")
+    system(hg+" qpop -a")
+    info("Pulling the new version of the patches from the patch server")
+    system("(cd .hg/patches ; "+hg+" pull -u %s)"%options.server)
+    qselect_backward_compatibility_patches()
+    info("Applying all the patches")
+    system(hg+" qpush -a")
+    info("Rebuild")
+    system(sage+" -b %s"%branch)
+
+else:
+    error("unknown command "+args[0])

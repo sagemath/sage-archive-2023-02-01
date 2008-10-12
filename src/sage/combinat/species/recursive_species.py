@@ -364,9 +364,6 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
         if self.__class__ is not CombinatorialSpecies:
             raise TypeError, "only undefined combinatorial species can be set"
 
-        self._structures = x._structures
-        self._isotypes = x._isotypes
-
         self._reference = x
 
 

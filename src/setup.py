@@ -470,6 +470,8 @@ dwt = Extension('sage.gsl.dwt',['sage/gsl/dwt.pyx'],
 
 sagex_ds = Extension('sage.misc.sagex_ds', ['sage/misc/sagex_ds.pyx'])
 
+citation = Extension('sage.misc.citation', ['sage/misc/citation.pyx'])
+
 symmetrica = Extension('sage.libs.symmetrica.symmetrica',
                        sources = ["sage/libs/symmetrica/%s"%s for s in \
                                   ["symmetrica.pyx"]],
@@ -643,6 +645,8 @@ ext_modules = [ \
     complex_number,
 
     sagex_ds,
+
+    citation,
 
     symmetrica,
 

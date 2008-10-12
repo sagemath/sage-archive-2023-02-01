@@ -17,7 +17,8 @@ whichexe() {
 #        echo /usr/local/bin/$1
 #        return;
 #    fi;
-    echo `which $1`
+#    echo `which $1`
+    echo $1
 }
 
 FILE="Makefile.new"

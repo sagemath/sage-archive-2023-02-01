@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PYTHONSTARTUP=$SAGE_ROOT/local/bin/sage-gdb-pythonstartup
+PYTHONSTARTUP=$SAGE_ROOT/local/bin/sage-ipython
 export PYTHONSTARTUP
 echo $PYTHONSTARTUP
 gdb -x $SAGE_ROOT/local/bin/sage-gdb-commands -args python -i

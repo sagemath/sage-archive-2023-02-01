@@ -1,7 +1,0 @@
-from sage.all import *
-import os, sys
-sys.argv = ['', '-rc', os.environ['IPYTHONRC'], \
-                '-c', os.environ['SAGE_STARTUP_COMMAND'] + '; banner()']
-import IPython
-IPython.Shell.IPShell().mainloop(sys_exit=1, banner='')
-

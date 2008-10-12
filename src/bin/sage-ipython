@@ -40,4 +40,4 @@ def sage_system(self, cmd):
 
 sage.IP.system = new.instancemethod(sage_system, sage.IP, IPython.iplib.InteractiveShell)
 
-sage.mainloop(banner='')
+sage.mainloop(sys_exit=1, banner='')

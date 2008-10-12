@@ -96,6 +96,7 @@ if [ "$UNAME" = "Darwin" ]; then
     cp sage/local/bin/sage-README-osx.txt README.txt
     cd "$CUR"/tmp/
     echo "Creating dmg"
+    DYLD_LIBRARY_PATH=$SAGE_ORIG_DYLD_LIBRARY_PATH; export DYLD_LIBRARY_PATH
     hdiutil create -srcfolder "$TARGET" -format UDBZ "$TARGET".dmg
 else
     echo "Creating tar.gz"

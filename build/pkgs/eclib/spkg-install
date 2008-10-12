@@ -6,6 +6,13 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+if [ "$MAKE" == gmake ]; then
+   echo "using gmake"
+else
+   echo "Disabling parallel make for now"
+   MAKE=make; export $MAKE
+fi
+
 CUR=`pwd`
 
 echo "Deleting old versions of cremona libraries, which"

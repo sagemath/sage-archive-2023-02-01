@@ -39,8 +39,11 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20080310.p7 (Michael Abshoff, October 12th, 2008) ===
+ * Work around paralle make issue (#4228)
+
 === eclib-20080310.p6 (John Cremona, September 24th, 2008) ===
- * Apply Arnaud Bergeron's patch to use ${MAKE}instead of make.
+ * Apply Arnaud Bergeron's patch to use ${MAKE} instead of make.
  * Include ecnf in PROGS in src/g0n/Makefile
 
 === eclib-20080310.p5 (John Cremona, July 6th, 2008) ===

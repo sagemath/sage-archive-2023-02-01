@@ -598,7 +598,7 @@ class Magma(Expect):
             sage: magma.attach_spec('%s/data/extcode/magma/spec2'%SAGE_ROOT)# optional
             Traceback (most recent call last):
             ...
-            RuntimeError: Can't open package spec file /home/wstein/sage/data/extcode/magma/spec2 for reading (No such file or directory)
+            RuntimeError: Can't open package spec file .../data/extcode/magma/spec2 for reading (No such file or directory)
         """
         s = self.eval('AttachSpec("%s")'%filename)
         if s:
@@ -624,7 +624,7 @@ class Magma(Expect):
         EXAMPLES:
             sage: open(SAGE_TMP + 'a.m','w').write('function f(n) return n^2; end function;\nprint "hi";')
             sage: print magma.load(SAGE_TMP + 'a.m')      # optional
-            Loading "/home/wstein/.sage//temp/one/.../a.m"
+            Loading ".../.sage//temp/.../a.m"
             hi
             sage: magma('f(12)')       # optional
             144
@@ -1095,6 +1095,7 @@ def is_MagmaElement(x):
         bool
 
     EXAMPLES:
+        sage: from sage.interfaces.magma import is_MagmaElement
         sage: is_MagmaElement(2)
         False
         sage: is_MagmaElement(magma(2))                    # optional

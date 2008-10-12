@@ -24,4 +24,5 @@ jsMath
 
 == Changelog ==
 
+* 2007-10-11: Updated to install to a directory in $SAGE_ROOT/local
 * 2007-02-08: Initial version.

@@ -1,10 +1,29 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 export top_level=`pwd`
+export install_dir="$SAGE_ROOT/local/notebook/javascript/jsmath"
+mkdir -p $install_dir
+if [ $? -ne 0 ]; then
+   echo "Error making installation directory:"
+   echo $install_dir
+   exit 1
+fi
 
-echo "Extracting and installing jsMath Image Fonts to:"
-cd $SAGE_ROOT/data/extcode/notebook/javascript/jsmath/
-echo `pwd`
-tar -xjf $top_level/src/jsMath-fonts-1.3.tar.bz2
+echo "Installing jsMath Image Fonts to:"
+echo $install_dir
+
+cd $install_dir
+tar xjf $top_level/src/jsMath-fonts-1.3.tar.bz2
+
+if [ $? -ne 0 ]; then
+   echo "Error extracting jsMath Image Fonts."
+   exit 1
+fi
 
 echo "Finished installing jsMath Image Fonts."

@@ -1338,7 +1338,29 @@ class SymbolicExpression(RingElement):
 
     n = numerical_approx
 
-    def minpoly(self, bits=None, degree=None, epsilon=0):
+    def minpoly(self, *args, **kwds):
+        """
+        Return the minimal polynomial of self, if possible.
+
+        EXAMPLES:
+            sage: sqrt(2).minpoly()
+            x^2 - 2
+            sage: a = sqrt(2) + sqrt(-1)
+            sage: a.minpoly()
+            x^4 - 2*x^2 + 9
+            sage: sin(pi/7).minpoly()
+            x^6 - 7/4*x^4 + 7/8*x^2 - 7/64
+
+        NOTE: Failure of this function does not prove self is
+              not algebraic.
+        """
+        from sage.rings.all import QQbar
+        try:
+            return QQbar(self).minpoly()
+        except TypeError, ValueError:
+            return self.minpoly_numeric(*args, **kwds)
+
+    def minpoly_numeric(self, bits=None, degree=None, epsilon=0):
         r"""
         Return the minimal polynomial of self, if possible.
 
@@ -1372,23 +1394,19 @@ class SymbolicExpression(RingElement):
             $f(\code{self}) < \var{epsilon}$. Otherwise raise an error.
 
 
-        NOTE: Failure of this function does not prove self is
-              not algebraic.
-
-
         EXAMPLES:
 
         First some simple examples:
-            sage: sqrt(2).minpoly()
+            sage: sqrt(2).minpoly_numeric()
             x^2 - 2
             sage: a = 2^(1/3)
-            sage: a.minpoly()
+            sage: a.minpoly_numeric()
             x^3 - 2
-            sage: (sqrt(2)-3^(1/3)).minpoly()
+            sage: (sqrt(2)-3^(1/3)).minpoly_numeric()
             x^6 - 6*x^4 + 6*x^3 + 12*x^2 + 36*x + 1
 
         Sometimes it fails.
-            sage: sin(1).minpoly()
+            sage: sin(1).minpoly_numeric()
             Traceback (most recent call last):
             ...
             ValueError: Could not find minimal polynomial (1000 bits, degree 24).
@@ -1403,7 +1421,7 @@ class SymbolicExpression(RingElement):
             0
 
         Here we verify it gives the same result as the abstract number field.
-            sage: (sqrt(2) + sqrt(3) + sqrt(6)).minpoly()
+            sage: (sqrt(2) + sqrt(3) + sqrt(6)).minpoly_numeric()
             x^4 - 22*x^2 - 48*x - 23
             sage: K.<a,b> = NumberField([x^2-2, x^2-3])
             sage: (a+b+a*b).absolute_minpoly()
@@ -1418,29 +1436,29 @@ class SymbolicExpression(RingElement):
         but maxima is unable to see that.
 
             sage: a = sin(pi/5)
-            sage: a.minpoly()
+            sage: a.minpoly_numeric()
             Traceback (most recent call last):
             ...
             NotImplementedError: Could not prove minimal polynomial x^4 - 5/4*x^2 + 5/16 (epsilon 0.00000000000000e-1)
-            sage: f = a.minpoly(epsilon=1e-100); f
+            sage: f = a.minpoly_numeric(epsilon=1e-100); f
             x^4 - 5/4*x^2 + 5/16
             sage: f(a).numerical_approx(100)
             0.00000000000000000000000000000
 
         The degree must be high enough (default tops out at 24).
             sage: a = sqrt(3) + sqrt(2)
-            sage: a.minpoly(bits=100, degree=3)
+            sage: a.minpoly_numeric(bits=100, degree=3)
             Traceback (most recent call last):
             ...
             ValueError: Could not find minimal polynomial (100 bits, degree 3).
-            sage: a.minpoly(bits=100, degree=10)
+            sage: a.minpoly_numeric(bits=100, degree=10)
             x^4 - 10*x^2 + 1
 
         Here we solve a cubic and then recover it from its complicated radical expansion.
             sage: f = x^3 - x + 1
             sage: a = f.solve(x)[0].rhs(); a
             (sqrt(3)*I/2 - 1/2)/(3*(sqrt(23)/(6*sqrt(3)) - 1/2)^(1/3)) + (sqrt(23)/(6*sqrt(3)) - 1/2)^(1/3)*(-sqrt(3)*I/2 - 1/2)
-            sage: a.minpoly()
+            sage: a.minpoly_numeric()
             x^3 - x + 1
         """
         bits_list = [bits] if bits else [100,200,500,1000]
@@ -6457,10 +6475,44 @@ class SymbolicComposition(SymbolicOperation):
         # We try to avoid simplifying, because maxima's simplify command
         # can change the value of a radical expression (by changing which
         # root is selected).
-        f = self._operands[0]
-        g = self._operands[1]
+        func = self._operands[0]
+        operand = self._operands[1]
         try:
-            return field(f(g._algebraic_(field)))
+            QQbar = field.algebraic_closure()
+            # Note that comparing functions themselves goes via maxima, and is SLOW
+            func_name = repr(func)
+            if func_name == 'exp':
+                rat_arg = (operand.imag()/(2*self.parent().pi()))._rational_()
+                if rat_arg == 0:
+                    # here we will either try and simplify, or return
+                    raise ValueError, "Unable to represent as an algebraic number."
+                real = operand.real()
+                if real:
+                    mag = exp(operand.real())._algebraic_(QQbar)
+                else:
+                    mag = 1
+                res = mag * QQbar.zeta(rat_arg.denom())**rat_arg.numer()
+            elif func_name in ['sin', 'cos', 'tan']:
+                exp_ia = exp(SR(-1).sqrt()*operand)._algebraic_(QQbar)
+                if func_name == 'sin':
+                    res = (exp_ia - ~exp_ia)/(2*QQbar.zeta(4))
+                elif func_name == 'cos':
+                    res = (exp_ia + ~exp_ia)/2
+                else:
+                    res = -QQbar.zeta(4)*(exp_ia - ~exp_ia)/(exp_ia + ~exp_ia)
+            elif func_name in ['sinh', 'cosh', 'tahn']:
+                exp_a = exp(operand)._algebraic_(QQbar)
+                if func_name == 'sinh':
+                    res = (exp_a - ~exp_a)/2
+                elif func_name == 'cosh':
+                    res = (exp_a + ~exp_a)/2
+                else:
+                    res = (exp_a - ~exp_a) / (exp_a + ~exp_a)
+            elif func_name in reciprocal_trig_functions:
+                res = ~reciprocal_trig_functions[func_name](operand)._algebraic_(QQbar)
+            else:
+                res = func(operand._algebraic_(field))
+            return field(res)
         except (TypeError, ValueError):
             if self._has_been_simplified():
                 raise
@@ -7930,6 +7982,8 @@ class Function_csch(PrimitiveFunction):
 
 csch = Function_csch()
 _syms['csch'] = csch
+
+reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, 'csch': sinh, 'coth': tanh}
 
 #############
 # log

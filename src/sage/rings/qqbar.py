@@ -546,6 +546,13 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         else:
             raise NotImplementedError
 
+    def algebraic_closure(self):
+        """
+        EXAMPLES:
+            sage: AA.algebraic_closure()
+            Algebraic Field
+        """
+        return QQbar
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -698,6 +705,14 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
             return create_RealField(prec, **extras).complex_field()
         else:
             raise NotImplementedError
+
+    def algebraic_closure(self):
+        """
+        EXAMPLES:
+            sage: QQbar.algebraic_closure()
+            Algebraic Field
+        """
+        return self
 
     def gens(self):
         return(QQbar_I, )

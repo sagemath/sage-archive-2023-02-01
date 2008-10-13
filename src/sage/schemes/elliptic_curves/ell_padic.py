@@ -42,7 +42,7 @@ def init():
 def padic_height(E, p, point, prec=20):
     """
     INPUT:
-        E -- five-tuple of integers that define a weierstrass equation
+        E -- five-tuple of integers that define a Weierstrass equation
         p -- a prime number
         point -- point on E
         prec -- precision parameter

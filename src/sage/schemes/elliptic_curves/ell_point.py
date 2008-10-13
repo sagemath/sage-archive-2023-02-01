@@ -5,12 +5,6 @@ EXAMPLES:
     sage: K = Qp(5)
     sage: E = EllipticCurve([K(1), K(1)])
 
-    #sage: P = E([K(0), K(1), K(1)])
-    #sage: P
-    #(0 : 1 : 1)
-    #sage: P + P
-    #(4 + 3*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + 3*5^9 + 3*5^10 + 3*5^11 + 3*5^12 + 3*5^13 + 3*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 3*5^18 + 3*5^19 + O(5^20) : 2 + 3*5^2 + 3*5^4 + 3*5^6 + 3*5^8 + 3*5^10 + 3*5^12 + 3*5^14 + 3*5^16 + 3*5^18 + O(5^20) : 1)
-
 Arithmetic with a point over an extension of a finite field:
     sage: k.<a> = GF(5^2)
     sage: E = EllipticCurve(k,[1,0]); E
@@ -166,18 +160,26 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
     """
     def __init__(self, curve, v, check=True):
         """
-        Constructor for a point on an elliptic curve
+        Constructor for a point on an elliptic curve.
 
         INPUT:
             curve -- an elliptic curve
             v -- data determining a point (another point, the integer
                  0, or a tuple of coordinates)
 
+        EXAMPLE:
+        sage: E = EllipticCurve('43a')
+        sage: P = E([2, -4, 2]); P
+        (1 : -2 : 1)
+        sage: P = E(0); P
+        (0 : 1 : 0)
+        sage: P=E(2, -4, 2); P
+        (1 : -2 : 1)
         """
         point_homset = curve.point_homset()
         AdditiveGroupElement.__init__(self, point_homset)
         if check:
-            # mostly from  SchemeMorphism_projective_coordinates_field
+            # mostly from SchemeMorphism_projective_coordinates_field
             d = point_homset.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
@@ -213,25 +215,43 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def _repr_(self):
         """
-        Return a string representation of this point
+        Return a string representation of this point.
+
+        EXAMPLE:
+        sage: E = EllipticCurve('39a')
+        sage: P = E([-2, 1, 1])
+        sage: P._repr_()
+        '(-2 : 1 : 1)'
         """
         return self.codomain().ambient_space()._repr_generic_point(self._coords)
 
     def _latex_(self):
         """
-        Return a latex representation of this point
+        Return a LaTeX representation of this point.
+
+        EXAMPLE:
+        sage: E = EllipticCurve('40a')
+        sage: P = E([3, 0])
+        sage: P._latex_()
+        '\\left(3 : 0 : 1\\right)'
         """
         return self.codomain().ambient_space()._latex_generic_point(self._coords)
 
     def __getitem__(self, n):
         """
-        Return the n'th coordinate of this point
+        Return the n'th coordinate of this point.
+
+        EXAMPLE:
+        sage: E = EllipticCurve('42a')
+        sage: P = E([-17, -51, 17])
+        sage: [P[i] for i in [2,1,0]]
+        [1, -3, -1]
         """
         return self._coords[n]
 
     def __iter__(self):
         """
-        Return the coordinates of this point as a list
+        Return the coordinates of this point as a list.
 
         EXAMPLE:
             sage: E = EllipticCurve('37a')
@@ -242,13 +262,27 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def __tuple__(self):
         """
-        Return the coordinates of this point as a tuple
+        Return the coordinates of this point as a tuple.
+
+        EXAMPLE:
+        sage: E = EllipticCurve('44a')
+        sage: P = E([1, -2, 1])
+        sage: P.__tuple__()
+        (1, -2, 1)
         """
-        return self._coords
+        return tuple(self._coords) # Warning: _coords is a list!
 
     def __cmp__(self, other):
         """
-        Comparison function for points to allow sorting and equality testing
+        Comparison function for points to allow sorting and equality testing.
+
+        EXAMPLES:
+        sage: E = EllipticCurve('45a')
+        sage: P = E([2, -1, 1])
+        sage: P == E(0)
+        False
+        sage: P+P == E(0)
+        True
         """
         if not isinstance(other, EllipticCurvePoint_field):
             try:
@@ -259,7 +293,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def scheme(self):
         """
-        Return the scheme of this point, i.e. the curve it is on.
+        Return the scheme of this point, i.e., the curve it is on.
         This is synonymous with curve() which is perhaps more
         intuitive.
 
@@ -340,6 +374,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             Traceback (most recent call last):
             ...
             NotImplementedError: Computation of order of a point not implemented over general fields.
+            sage: E(0).order() == 1
+            True
         """
         if self.is_zero():
             return rings.Integer(1)
@@ -453,6 +489,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: P = E([-1,1]); Q = E([0,0])
             sage: P + Q
             (1 : 0 : 1)
+            sage: P._add_(Q) == P + Q
+            True
         """
         # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic Number Theory"
         if self.is_zero():
@@ -488,6 +526,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: P = E([-1,1]); Q = E([0,0])
             sage: P - Q
             (4 : 8 : 1)
+            sage: P - Q == P._sub_(Q)
+            True
             sage: (P - Q) + Q
             (-1 : 1 : 1)
             sage: P
@@ -769,7 +809,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
     Most of the functionality is derived from the parent class
     EllipticCurvePoint_field.  In addition we have support for the
-    order of a point, and heights (curently only implemented over QQ).
+    order of a point, and heights (currently only implemented over QQ).
 
     EXAMPLES:
         sage: E = EllipticCurve('37a')
@@ -1285,6 +1325,12 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         """
         Return a string representation of self that MAGMA can
         understand.
+
+        EXAMPLE:
+        sage: E = EllipticCurve(GF(17), [1,-1])
+        sage: P = E([13, 4])
+        sage: P._magma_init_()
+        'EllipticCurve([GF(17)!1,GF(17)!16])![13,4]'
         """
         E = self.curve()._magma_().name()
         x,y = map(lambda x: x._magma_().name(), self.xy())
@@ -1292,7 +1338,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
     def discrete_log(self, Q, ord=None):
         """
-        Returns discrete log of Q with respect to self, i.e. an
+        Returns discrete log of Q with respect to self, i.e., an
         integer m with 0<=m<order(self) such that m*self==Q, if one
         exists; otherwise raise an error.  The order of self is
         computed if not supplied

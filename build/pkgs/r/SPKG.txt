@@ -23,6 +23,9 @@
 
 == Changelog ==
 
+=== r-2.6.1.p21 (Michael Abshoff, October 12th, 2008) ===
+ * work around java infinite hang issue on OSX 10.5 (#4219)
+
 === r-2.6.1.p20 (Michael Abshoff, September 30th, 2008) ===
  * set CPPFLAGS so that Sage's readline is picked up
 

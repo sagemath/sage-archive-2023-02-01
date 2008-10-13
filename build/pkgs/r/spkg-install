@@ -12,6 +12,12 @@ if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
    LDFLAGS="-m64 "; export LDFLAGS
 fi
 
+if [ `uname` = "Darwin" ]; then
+   echo "Copying fake java and javac compiler on OSX"
+   cp patches/java "$SAGE_LOCAL"/bin
+   cp patches/javac "$SAGE_LOCAL"/bin
+fi
+
 CUR=`pwd`
 
 # set CPPFLAGS so that Sage's readline is picked up
@@ -127,4 +133,11 @@ if [ ! -f "$SAGE_ROOT"/spkg/installed/"$RPY_VER" ]; then
     echo "Error installing rpy."
     exit 1
 fi
+
+if [ `uname` = "Darwin" ]; then
+    echo "Copying fake java and javac compiler on OSX"
+    rm -f "$SAGE_LOCAL"/bin/java
+    rm -f "$SAGE_LOCAL"/bin/javac
+fi
+
 

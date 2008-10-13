@@ -38,6 +38,10 @@ SAGE_ROOT=os.environ["SAGE_ROOT"]
 LD = os.environ["LD_LIBRARY_PATH"]
 os.environ["LD_LIBRARY_PATH"] = SAGE_ROOT + "/local/lib:" + LD
 os.environ["PYTHONPATH"]=SAGE_ROOT + "/local/lib/python/site-packages"
+if os.environ.has_key('SAGE_PATH'):
+    print 'SAGE_PATH:',os.environ['SAGE_PATH']
+    os.environ["PYTHONPATH"]= os.environ["PYTHONPATH"]+ ':'+os.environ['SAGE_PATH']
+
 
 ######################################################
 

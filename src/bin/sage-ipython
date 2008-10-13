@@ -5,25 +5,31 @@ SAGE IPython startup script.
 
 """
 
+import os
+import sys
+
+sys.argv = ['-c', os.environ['SAGE_LOCAL'] + '/bin/sage-startup']
+
 __SAGE_AUTOINJECT__ = True
 
 import IPython
 from IPython.CrashHandler import CrashHandler
 
-sage = IPython.Shell.start()
+ipy_sage = IPython.Shell.start()
 
-sageCH = CrashHandler(sage.IP, 'Sage', 'sage-support', \
+sageCH = CrashHandler(ipy_sage.IP, 'Sage', 'sage-support', \
                       'sage-support@googlegroups.com', \
                       'http://trac.sagemath.org/sage_trac', \
 		      'Sage_crash_report.txt', \
                       show_crash_traceback=False)
 
-sage.IP.set_crash_handler(sageCH)
+ipy_sage.IP.set_crash_handler(sageCH)
 
 import new
 import os
 
-old_system = sage.IP.system
+old_system = ipy_sage.IP.system
+
 
 
 sage_commands = os.listdir(os.environ['SAGE_ROOT']+"/local/bin/")
@@ -38,6 +44,6 @@ def sage_system(self, cmd):
             libraries += 'DYLD_LIBRARY_PATH=$$SAGE_ORIG_DYLD_LIBRARY_PATH;'
         old_system(libraries+cmd)
 
-sage.IP.system = new.instancemethod(sage_system, sage.IP, IPython.iplib.InteractiveShell)
+ipy_sage.IP.system = new.instancemethod(sage_system, ipy_sage.IP, IPython.iplib.InteractiveShell)
 
-sage.mainloop(sys_exit=1, banner='')
+ipy_sage.mainloop(sys_exit=1, banner='')

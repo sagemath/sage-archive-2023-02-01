@@ -186,25 +186,7 @@ sage_setup() {
 #   very confused about what branch they are using.
 ########################################################
 
-SAGE_STARTUP="
-import sage.misc.misc; print \
-sage.misc.misc.branch_current_hg_notice(sage.misc.misc.branch_current_hg()); \
-from sage.misc.interpreter import preparser; preparser(True);\
-import sage.all_cmdline; sage.all_cmdline._init_cmdline(globals());\
-from sage.all import Integer, RealNumber;\
-import os; os.chdir(\"$CUR\");\
-import sage.misc.interpreter;\
-from sage.misc.interpreter import attached_files\
-"
 
-if [ "$SAGE_IMPORTALL" != "no" ]; then
-   SAGE_STARTUP_COMMAND="$SAGE_STARTUP"";from sage.all_cmdline import *"
-else
-   SAGE_STARTUP_COMMAND="$SAGE_STARTUP"
-fi
-
-SAGE_STARTUP_COMMAND="$SAGE_STARTUP_COMMAND"";_=sage.misc.interpreter.load_startup_file(\"$SAGE_STARTUP_FILE\")"
-export SAGE_STARTUP_COMMAND
 
 if [ $# -gt 0 ]; then
     if [ $1 = "-np" ]; then
@@ -215,7 +197,7 @@ fi
 
 sage() {
     sage_setup
-    sage-ipython "$@" -i -c "$SAGE_STARTUP_COMMAND;"
+    sage-ipython "$@" -i
 }
 
 if [ $# -eq 0 ]; then

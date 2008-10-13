@@ -2,6 +2,7 @@
 
 PYTHONSTARTUP=$SAGE_ROOT/local/bin/sage-ipython
 export PYTHONSTARTUP
+export SAGE_CLEAN="True"
 echo $PYTHONSTARTUP
 gdb -x $SAGE_ROOT/local/bin/sage-gdb-commands -args python -i
 

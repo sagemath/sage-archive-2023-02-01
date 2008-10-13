@@ -1,0 +1,18 @@
+import os
+if not os.environ.has_key('SAGE_CLEAN'):
+	import sage.misc.misc
+	from sage.misc.interpreter import preparser
+	preparser(True)
+	import sage.all_cmdline
+	sage.all_cmdline._init_cmdline(globals())
+	from sage.all import Integer, RealNumber
+	os.chdir(os.environ["CUR"])
+	import sage.misc.interpreter
+	from sage.misc.interpreter import attached_files
+
+	print sage.misc.misc.branch_current_hg_notice(sage.misc.misc.branch_current_hg())
+	if not os.environ.has_key('SAGE_IMPORTALL') or \
+		os.environ['SAGE_IMPORTALL'] != "no":
+		from sage.all_cmdline import *
+
+  	_=sage.misc.interpreter.load_startup_file(os.environ["SAGE_STARTUP_FILE"])

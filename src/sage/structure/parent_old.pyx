@@ -26,6 +26,7 @@ This came up in some subtle bug once.
 cimport sage_object
 import operator
 from parent import Set_PythonType, Set_PythonType_class
+from coerce import py_scalar_parent
 
 include '../ext/python_object.pxi'
 include '../ext/python_bool.pxi'
@@ -86,6 +87,22 @@ cdef class Parent(parent.Parent):
 #        return self.coerce_map_from_c(S)
 
     cpdef coerce_map_from_c(self, S):
+        """
+        EXAMPLES:
+          Check to make sure that we handle coerce maps from Python native types
+          correctly.
+            sage: QQ['q,t'].coerce_map_from(int)
+            Composite map:
+              From: Set of Python objects of type 'int'
+              To:   Multivariate Polynomial Ring in q, t over Rational Field
+              Defn:   Native morphism:
+                      From: Set of Python objects of type 'int'
+                      To:   Integer Ring
+                    then
+                      Call morphism:
+                      From: Integer Ring
+                      To:   Multivariate Polynomial Ring in q, t over Rational Field
+        """
         check_old_coerce(self)
         if S is self:
             from sage.categories.homset import Hom
@@ -105,6 +122,7 @@ cdef class Parent(parent.Parent):
             return ret
         except KeyError:
             pass
+
         if HAS_DICTIONARY(self):
             mor = self.coerce_map_from_impl(S)
         else:
@@ -117,8 +135,17 @@ cdef class Parent(parent.Parent):
             mor = None
         elif mor is not None and not isinstance(mor, sage.categories.map.Map):
             raise TypeError, "coerce_map_from_impl must return a boolean, None, or an explicit Map"
+
+        if mor is None and isinstance(S, type):
+            #Convert Python types to native Sage types
+            sage_type = py_scalar_parent(S)
+            mor = self.coerce_map_from_c(sage_type)
+            if mor is not None:
+                mor = mor * sage_type.coerce_map_from(S)
+
         if mor is not None:
             self._coerce_from_hash[S] = mor # TODO: if this is None, could it be non-None in the future?
+
         return mor
 
     def coerce_map_from_impl(self, S):

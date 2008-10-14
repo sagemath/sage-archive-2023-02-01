@@ -547,7 +547,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         EXAMPLES:
             sage: complex(CLF(-1)^(1/4))
-            (0.70710678118654757+0.70710678118654746j)
+            (0.707106781186547...+0.707106781186547...j)
         """
         try:
             return self.eval(complex)

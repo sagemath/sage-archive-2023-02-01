@@ -20,9 +20,24 @@ class EllipticCurveFormalGroup(SageObject):
     The formal group associated to an elliptic curve.
     """
     def __init__(self, E):
+        """
+        EXAMPLE:
+        sage: E = EllipticCurve('11a')
+        sage: F = E.formal_group(); F
+        Formal Group associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+        sage: F == loads(dumps(F))
+        True
+        """
         self.__E = E
 
     def _repr_(self):
+        """
+        EXAMPLE:
+        sage: E = EllipticCurve('43a')
+        sage: F = E.formal_group()
+        sage: F._repr_()
+        'Formal Group associated to the Elliptic Curve defined by y^2 + y = x^3 + x^2 over Rational Field'
+        """
         return "Formal Group associated to the %s"%self.__E
 
     def curve(self):
@@ -42,7 +57,7 @@ class EllipticCurveFormalGroup(SageObject):
         The formal group power series w.
 
         INPUT:
-            prec -- integer
+            prec -- integer (default 20)
 
         OUTPUT:
             a power series with given precision
@@ -175,18 +190,17 @@ class EllipticCurveFormalGroup(SageObject):
         parameter $t = -x/y$ at infinity.
 
         INPUT:
-            prec -- integer
+            prec -- integer (default 20)
 
         OUTPUT:
-            a laurent series with given precision
+            a Laurent series with given precision
 
         DETAILS:
             Return the formal series
             $$
                    x(t) = t^{-2} - a_1 t^{-1} - a_2 - a_3 t - \cdots
             $$
-            to precision $O(t^prec)$ of page 113 of [Silverman
-            AEC1].
+            to precision $O(t^prec)$ of page 113 of [Silverman AEC1].
 
         WARNING:
             The resulting series will have precision prec, but its
@@ -208,18 +222,17 @@ class EllipticCurveFormalGroup(SageObject):
         parameter $t = -x/y$ at infinity.
 
         INPUT:
-            prec -- integer
+            prec -- integer (default 20)
 
         OUTPUT:
-            a laurent series with given precision
+            a Laurent series with given precision
 
         DETAILS:
             Return the formal series
             $$
                    y(t) = - t^{-3} + a_1 t^{-2} + a_2 t + a_3 + \cdots
             $$
-            to precision $O(t^prec)$ of page 113 of [Silverman
-            AEC1].
+            to precision $O(t^prec)$ of page 113 of [Silverman AEC1].
 
             The result is cached, and a cached version is returned if
             possible.
@@ -253,7 +266,7 @@ class EllipticCurveFormalGroup(SageObject):
         the usual invariant differential $dx/(2y + a_1 x + a_3)$.
 
         INPUT:
-           prec -- nonnegative integer, answer will be returned $O(t^{\var{prec}})$
+           prec -- nonnegative integer (default 20), answer will be returned $O(t^{\var{prec}})$
 
         OUTPUT:
             a power series with given precision
@@ -263,8 +276,7 @@ class EllipticCurveFormalGroup(SageObject):
             $$
                    f(t) = 1 + a_1 t + ({a_1}^2 + a_2) t^2 + \cdots
             $$
-            to precision $O(t^prec)$ of page 113 of [Silverman
-            AEC1].
+            to precision $O(t^prec)$ of page 113 of [Silverman AEC1].
 
             The result is cached, and a cached version is returned if
             possible.
@@ -308,7 +320,7 @@ class EllipticCurveFormalGroup(SageObject):
         terms before $t^p$ may work in characteristic $p$.
 
         INPUT:
-           prec -- nonnegative integer
+           prec -- nonnegative integer (default 20)
 
         OUTPUT:
             a power series with given precision
@@ -327,7 +339,7 @@ class EllipticCurveFormalGroup(SageObject):
         The formal group inverse law i(t), which satisfies F(t, i(t)) = 0.
 
         INPUT:
-            prec -- integer
+            prec -- integer (default 20)
 
         OUTPUT:
             a power series with given precision
@@ -376,7 +388,7 @@ class EllipticCurveFormalGroup(SageObject):
         The formal group law.
 
         INPUT:
-            prec -- integer
+            prec -- integer (default 10)
 
         OUTPUT:
             a power series with given precision in ZZ[[ ZZ[['t1']], 't2']]
@@ -418,8 +430,7 @@ class EllipticCurveFormalGroup(SageObject):
         t1 = R1.gen().add_bigoh(prec)
         t2 = R2.gen().add_bigoh(prec)
 
-        def fix_prec(F, final_prec):
-            return R2([ c + O(t1**final_prec) for c in F ]) + O(t2 ** final_prec)
+        fix_prec = lambda F, final_prec: R2([ c + O(t1**final_prec) for c in F ]) + O(t2**final_prec)
 
         try:
             pr, F = self.__group_law
@@ -430,8 +441,7 @@ class EllipticCurveFormalGroup(SageObject):
             return fix_prec(F, prec)
 
         w = self.w(prec)
-        def tsum(n):
-            return sum([t2**m * t1**(n-m-1) for m in range(n)])
+        tsum = lambda n: sum([t2**m * t1**(n-m-1) for m in range(n)])
         lam = sum([tsum(n)*w[n] for n in range(3,prec)])
         w1 = R1(w, prec)
         nu = w1 - lam*t1 + O(t1**prec)
@@ -453,7 +463,7 @@ class EllipticCurveFormalGroup(SageObject):
         The formal 'multiplication by n' endomorphism $[n]$.
 
         INPUT:
-            prec -- integer
+            prec -- integer (default 10)
 
         OUTPUT:
             a power series with given precision
@@ -504,12 +514,12 @@ class EllipticCurveFormalGroup(SageObject):
             # -- dmharvey
 
             # Create a "formal point" on the original curve E.
-            # Our anwer only needs prec-1 coefficients (since lowest term
+            # Our answer only needs prec-1 coefficients (since lowest term
             # is t^1), and x(t) = t^(-2) + ... and y(t) = t^(-3) + ...,
             # so we only need x(t) mod t^(prec-3) and y(t) mod t^(prec-4)
             x = self.x(prec-3)
             y = self.y(prec-4)
-            R = x.parent()    # the laurent series ring over the base ring
+            R = x.parent()    # the Laurent series ring over the base ring
             X = self.curve().change_ring(R)
             P = X(x, y)
 
@@ -545,6 +555,13 @@ class EllipticCurveFormalGroup(SageObject):
         return R(g.add_bigoh(orig_prec))
 
     def sigma(self, prec=10):
+        """
+        EXAMPLE:
+        sage: E = EllipticCurve('14a')
+        sage: F = E.formal_group()
+        sage: F.sigma(5)
+        t + 1/2*t^2 + (1/2*c + 1/3)*t^3 + (3/4*c + 3/4)*t^4 + O(t^5)
+        """
         a1,a2,a3,a4,a6 = self.curve().ainvs()
 
         k = self.curve().base_ring()

@@ -11,6 +11,9 @@ import ConfigParser
 ##############################################################################
 # Configuration file handling
 
+# TODO: this is probably not needed anymore with sage 3.1.3
+# where this script can be called via sage -combinat ...
+
 config_file = os.path.expanduser('~/.sage-combinat.cfg')
 config = ConfigParser.SafeConfigParser([])
 config.read([config_file])
@@ -28,7 +31,8 @@ list of commands:
  install    install the sage-combinat patches
  update     update to the latest sage-combinat patches
  upgrade    upgrade sage and update to the latest sage-combinat patches
-"""
+ status     show changed files in the working directory and in the patch queue
+ qselect    choose appropriate guards for the current version of sage"""
 parser = OptionParser(usage=usage)
 parser.add_option("-b", "--branch", dest="branch",
                   help="Use sage-BRANCH instead of sage-combinat",
@@ -51,7 +55,7 @@ parser.add_option("--sage", action = "callback", callback = set_sage_command,
                   help="Specify and store the sage command line",
                   metavar="/opt/bin/sage", default = sage, type="string")
 parser.add_option("-f", "--force", action="store_true", dest="force",
-                  help="Proceed even with local changes in patch directory")
+                  help="Force proceeding")
 parser.set_defaults(verbose=True)
 parser.add_option("-v", action="store_true", dest="verbose",
                   help="Print status messages to stdout")
@@ -60,6 +64,7 @@ parser.add_option("-q", "--quiet",
                   help="Don't print status messages to stdout")
 parser.add_option("-s", "--server", dest="server",
                   help="Set the URL for the sage-combinat server",
+                  metavar="http://sage.math.washington.edu:2144",
                   default="http://sage.math.washington.edu:2144", type="string")
 
 (options, args) = parser.parse_args()
@@ -89,7 +94,9 @@ def get_sage_root():
     Returns the root directory of the sage installation (e.g. /opt/sage)
     """
     global sage
-    # Looking up for sage and sage root directory
+    if os.environ.has_key("SAGE_ROOT"):
+        return os.environ["SAGE_ROOT"]
+    # Query the environment variable via sage -sh
     try:
         sage_root = Popen(["echo 'echo ROOT${SAGE_ROOT}ROOT' | "+sage+" -sh"], stdout=PIPE, shell=True).communicate()[0]
     except OSError, e:
@@ -110,24 +117,64 @@ def cd_to_combinat():
     info("Switching to sage combinat root directory: %s"%sage_combinat_root)
     os.chdir(sage_combinat_root)
 
-def status():
-    #assert(os.getcwd() == sage_combinat_root)
-    return Popen([hg+" status"], stdout=PIPE, shell=True).communicate()[0]
+# TODO: organize this as in sage.misc.sg
 
-def patches_status():
-    #assert(os.getcwd() == sage_combinat_root)
-    return Popen(["cd .hg/patches; hg status"], stdout=PIPE, shell=True).communicate()[0]
+def hg_query(command, dir):
+    r"""
+    Runs hg in the directory dir, and returns its output as a string
+    """
+    return Popen(["cd %s && %s %s"%(dir,hg,command)], stdout=PIPE, shell=True).communicate()[0].rstrip()
 
-def check_for_no_diff():
-    if not status() == "":
-        info("There are local modifications; aborting")
-        info(status().rstrip())
+def hg_status():
+    global sage_combinat_root
+    return hg_query("status", sage_combinat_root)
+
+def hg_qstatus():
+    global sage_combinat_patch_queue
+    return hg_query("status", sage_combinat_patch_queue)
+
+def hg_qtop():
+    global sage_combinat_root
+    return hg_query("qtop", sage_combinat_root)
+
+def hg_series():
+    global sage_combinat_root
+    return hg_query("qseries", sage_combinat_root)
+
+def hg_all_patches():
+    return split("\r\n|\r|\n",hg_series())
+
+def hg_qnext():
+    global sage_combinat_root
+    return hg_query("qnext", sage_combinat_root)
+
+def hg_all_guards():
+    return split("\r\n|\r|\n",
+                 hg_query("qselect -s", sage_combinat_root))
+
+def hg_active_guards():
+    # hg qselect -v returns all the active guards, one per line
+    # the first line is always "active guards" or "no active guards"
+    return split("\r\n|\r|\n",
+                 hg_query("qselect -v", sage_combinat_root))[1:]
+
+def hg_are_all_patch_applied():
+    return hg_qnext() == "All patches applied"
+
+def hg_are_no_patch_applied():
+    return hg_qtop() == "No patches applied"
+
+def check_for_no_diff(check_patch_queue=True):
+    if hg_status() != "":
+        info("There are local changes; aborting")
+        info("Please qrefresh or discard your changes before proceeding")
+        info(hg_status())
         exit(1)
-    if not patches_status() == "":
+    if check_patch_queue and hg_qstatus() != "":
         info("There are uncommited patches:")
-        info(patches_status().rstrip())
+        info(hg_qstatus())
         if not options.force:
-            info("Use -f to force proceeding")
+            info("Use option --force to proceed anyway")
             exit(1)
 
 def qselect_backward_compatibility_patches():
@@ -137,18 +184,81 @@ def qselect_backward_compatibility_patches():
     e.g. if we are running sage 3.0.2, then we want to apply all
     the patches which are guarded by 3_0_3, 3_0_4, ...
     """
-    #assert(os.getcwd() == sage_combinat_root)
+
+    # FIXME: how to change the guards on a one by one basis
+
+    active_non_version_guards = filter(lambda guard: re.match("^(sage_)?\d+_\d+_\d+$", guard) is None,
+                                       hg_active_guards())
+    info("Active guards: %s"%" ".join(active_non_version_guards))
+
     sage_version_as_list = [int(s) for s in re.split("\.", sage_version)]
-    # How to only unselect only certain guards?
-    system(hg+" qselect -n")
-    guards = Popen([hg+" qselect -s"], stdout=PIPE, shell=True).communicate()[0]
-    for guard in re.compile("^\+\d+_\d+_\d+$", re.MULTILINE).findall(guards):
-        guard = re.sub("^\+","", guard)
+    def is_newversion_guard(guard):
+        """
+        Returns true if this is a guard of the form a_b_c with a.b.c > sage_version
+        """
+        if not re.match("^\+(sage_)?\d+_\d+_\d+$",guard):
+            return False
+        guard = re.sub("^\+(sage_)?","", guard)
         guard_as_list = [int(s) for s in re.split("_", guard)]
         if guard_as_list > sage_version_as_list:
-            system(hg+" qselect "+guard)
+            info("Keep backward compatibility patches for sage "+re.sub("_",".",guard))
+            return True
         else:
-            info("Skipping backward compatibility patches for sage "+re.sub("_",".",guard))
+            info("Skip backward compatibility patches for sage "+re.sub("_",".",guard))
+            return False
+
+    newversion_guards = map(lambda guard: guard[1:], # get rid of leading "+"
+                            filter(is_newversion_guard, hg_all_guards()))
+
+    info("Updating guards")
+    system(hg+" qselect -q -n")
+    system(hg+" qselect "+
+           " ".join(active_non_version_guards +
+                    newversion_guards))
+
+def update(update_from_sage_main = False):
+    r"""
+    High level operation to update the sage-combinat patches:
+     - pop all patches
+     - update the patch queue
+     - push back the patches
+     - rebuild
+    """
+    cd_to_combinat()
+    check_for_no_diff()
+
+    info("Storing top applied patch")
+    if hg_are_all_patch_applied() or hg_are_no_patch_applied():
+        qtop = "-a"
+    else:
+        qtop = hg_qtop()
+
+    info("Unapplying all the patches")
+    system(hg+" qpop -a")
+
+    if update_from_sage_main:
+        info("Pulling the new version of Sage from the local main repository")
+        system(hg+" pull -u ../sage-main")
+
+    info("Pulling the new version of the patches from the patch server")
+    system("(cd .hg/patches ; "+hg+" pull -u %s)"%options.server)
+    qselect_backward_compatibility_patches()
+
+    # Revert to the formerly applied top patch.
+    # If this was the topmost patch, or if this patch does not
+    # exist anymore, then apply all patches
+    if qtop in hg_all_patches():
+        # Revert up to the formerly applied top patch.
+        system(hg+" qpush %s"%qtop)
+        info("Reapplying the patches up to %s"%qtop)
+    else:
+        if qtop != "-a":
+            info("Warning: the former top patch %s does not exist anymore"%qtop)
+        info("Applying all patches")
+        system(hg+" qpush -a")
+
+    info("Rebuilding")
+    system(sage+" -b %s"%branch)
 
 ##############################################################################
 
@@ -166,27 +276,39 @@ if len(args) == 0:
 branch = options.branch
 
 sage_combinat_root = os.path.join(sage_root, "devel", "sage-"+branch)
-sage_combinat_hg = os.path.join(sage_root, "devel", "sage-"+branch, ".hg")
+sage_combinat_hg = os.path.join(sage_combinat_root, ".hg")
+sage_combinat_patch_queue = os.path.join(sage_combinat_hg, "patches")
 
 if args[0] == "config":
-    info("sage command: "+sage)
-    info("sage root: "+sage_root)
-    info("sage version: "+sage_version)
-    info("sage-combinat branch: "+branch)
-    info("sage-combinat root: "+sage_combinat_root)
-    info("sage-combinat config file: "+config_file)
-    info("sage-combinat server: "+options.server)
+    info("sage command:                "+sage)
+    info("sage version:                "+sage_version)
+    info("sage-combinat branch:        "+branch)
+    info("sage-combinat server:        "+options.server)
+    info("sage-combinat config file:   "+config_file)
+    info("")
+    info("sage root:                   "+sage_root)
+    info("sage-combinat root:          "+sage_combinat_root)
+    info("sage-combinat hg repository: "+sage_combinat_hg)
+    info("sage-combinat patch queue:   "+sage_combinat_patch_queue)
 
 elif args[0] == "install":
     if os.path.exists(sage_combinat_root):
-        error("%s branch already exists"%branch)
-    info("Creating sage-%s branch:"%branch)
-    system(sage+" -b main") # This makes sure we are cloning the main branch!!!
-    system(sage+" -clone %s"%branch)
-    info("Done")
+        if os.path.exists(sage_combinat_patch_queue):
+            error("sage-combinat apparently already installed in %s"%sage_combinat_hg)
+        else:
+            info("Detected a partial (broken?) installation of sage-combinat in %s"%sage_combinat_root)
+            if not options.force:
+                info("Use option --force proceed anyway and try to fix it")
+                exit(1)
+    else:
+        info("Creating sage-%s branch:"%branch)
+        system(sage+" -b main") # This makes sure we are cloning the main branch!!!
+        system(sage+" -clone %s"%branch)
+        info("Done")
     assert(os.path.exists(sage_combinat_hg))
+    assert(not os.path.exists(sage_combinat_patch_queue))
     cd_to_combinat()
-    check_for_no_diff()
+    check_for_no_diff(check_patch_queue=False)
     info("Uploading sage-combinat patches into .hg/patches:")
     system("cd .hg/; "+hg+" clone %s patches"%options.server)
     qselect_backward_compatibility_patches()
@@ -196,6 +318,9 @@ elif args[0] == "install":
     system(sage+" -b %s"%branch)
     info("Finished installation of Sage-combinat patches!")
 
+elif args[0] == "update":
+    update()
+
 elif args[0] == "upgrade":
     cd_to_combinat()
     check_for_no_diff()
@@ -204,30 +329,18 @@ elif args[0] == "upgrade":
     # Update Sage's version to apply the appropriate patches!
     # (we assume sage's root has not changed)
     sage_version = get_sage_version()
-    info("Unapplying all the patches")
-    system(hg+" qpop -a")
-    info("Pulling the new version of Sage from the local main repository")
-    system(hg+" pull -u ../sage-main")
-    info("Pulling the new version of the patches from the patch server")
-    system("(cd .hg/patches ; "+hg+" pull -u %s)"%options.server)
-    qselect_backward_compatibility_patches()
-    info("Applying all the patches")
-    system(hg+" qpush -a")
-    info("Rebuild")
-    system(sage+" -b %s"%branch)
+    update(update_from_sage_main = True)
 
-elif args[0] == "update":
-    cd_to_combinat()
-    check_for_no_diff()
-    info("Unapplying all the patches")
-    system(hg+" qpop -a")
-    info("Pulling the new version of the patches from the patch server")
-    system("(cd .hg/patches ; "+hg+" pull -u %s)"%options.server)
+elif args[0] == "status":
+    info("Top patch applied: %s"%hg_qtop())
+    info("Are all patches applied: %s "%str(hg_are_all_patch_applied()))
+    info("Changed files in the sage-combinat directory:")
+    info(hg_status())
+    info("Changed files in the sage-combinat patch directory:")
+    info(hg_qstatus())
+
+elif args[0] == "qselect":
     qselect_backward_compatibility_patches()
-    info("Applying all the patches")
-    system(hg+" qpush -a")
-    info("Rebuild")
-    system(sage+" -b %s"%branch)
 
 else:
     error("unknown command "+args[0])

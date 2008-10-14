@@ -44,7 +44,9 @@ def get_systems(cmd):
     """
     Returns a list of the systems used in running the command
     cmd.  Note that the results can sometimes include systems
-    that did not actually contribute to the computation.
+    that did not actually contribute to the computation. Due
+    to caching and the inability to follow all C calls, it
+    could miss some dependancies as well.
 
     INPUT:
        cmd -- a string to run
@@ -60,6 +62,9 @@ def get_systems(cmd):
 
     """
     import cProfile, pstats, re
+
+    if not isinstance(cmd, basestring):
+        raise TypeError, "command must be a string"
 
     cmd = preparse(cmd)
 

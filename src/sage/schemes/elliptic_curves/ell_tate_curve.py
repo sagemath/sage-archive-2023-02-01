@@ -45,6 +45,8 @@ class TateCurve(SageObject):
         sage: e = EllipticCurve('130a1')
         sage: eq = e.tate_curve(5); eq
         5-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
+        sage: eq == loads(dumps(eq))
+        True
     """
     def __init__(self,E,p):
         """
@@ -52,6 +54,11 @@ class TateCurve(SageObject):
             E -- an elliptic curve
             p -- a prime where E has multiplicative reduction,
                  i. e. such that j(E) has negative valuation
+
+        EXAMPLES:
+        sage: e = EllipticCurve('130a1')
+        sage: eq = e.tate_curve(2); eq
+        2-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
         """
         self._p = ZZ(p)
         self._E = E
@@ -65,10 +72,17 @@ class TateCurve(SageObject):
     def _repr_(self):
         """
         Return print representation.
+
+        EXAMPLES:
+        sage: e = EllipticCurve('130a1')
+        sage: eq = e.tate_curve(2)
+        sage: eq._repr_()
+        '2-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field'
         """
         s = "%s-adic Tate curve associated to the %s"%(self._p, self._E)
         return s
 
+    # is the name of this function a typo?
     def originial_curve(self):
         """
         Returns the elliptic curve the Tate curve was constructed from.
@@ -122,11 +136,9 @@ class TateCurve(SageObject):
         self._q = qE
         return qE
 
-    def __sk(self,k,prec):
-        return sum( [n**k*self._q**n/(1-self._q**n) for n in range(1,prec+1)] )
+    __sk = lambda e,k,prec: sum( [n**k*e._q**n/(1-e._q**n) for n in range(1,prec+1)] )
 
-    def __delta(self,prec):
-        return self._q* prod([(1-self._q**n)**24 for n in range(1,prec+1) ] )
+    __delta = lambda e,prec: e._q* prod([(1-e._q**n)**24 for n in range(1,prec+1) ] )
 
     def curve(self,prec=20):
         """
@@ -416,10 +428,9 @@ class TateCurve(SageObject):
 
 
 
-    def __padic_sigma_square(self,u,prec=20):
-        return (u-1)**2/u* prod([((1-self._q**n*u)*(1-self._q**n/u)/(1-self._q**n)**2)**2 for n in range(1,prec+1)])
+    __padic_sigma_square = lambda e,u,prec: (u-1)**2/u* prod([((1-e._q**n*u)*(1-e._q**n/u)/(1-e._q**n)**2)**2 for n in range(1,prec+1)])
 
-    # the follwoing functions are rather functions of the global curve than the local curve
+    # the following functions are rather functions of the global curve than the local curve
     # we use the same names as for elliptic curves over rationals.
 
     def padic_height(self,prec=20):
@@ -447,6 +458,7 @@ class TateCurve(SageObject):
         # we will have to do it properly with David Harvey's _multiply_point(E, R, Q)
         n = LCM(self._E.tamagawa_numbers()) * (p-1)
 
+        # this function is a closure, I don't see how to doctest it (PZ)
         def _height(P,check=True):
             if check:
                 assert P.curve() == self._E, "the point P must lie on the curve from which the height function was created"

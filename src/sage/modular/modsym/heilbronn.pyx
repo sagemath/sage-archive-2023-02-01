@@ -782,7 +782,7 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
     OUTPUT:
         a dense matrix with rational entries whose columns are
         the images T_n(x) for n in indices and x the Manin
-        symbol [X^i*Y^(k-2-i), (u,v)], expressed in terms of the basis.
+        symbol [$X^i*Y^(k-2-i), (u,v)$], expressed in terms of the basis.
 
     EXAMPLES:
         sage: M = ModularSymbols(15,6,sign=-1)

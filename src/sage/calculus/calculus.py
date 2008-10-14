@@ -3156,7 +3156,7 @@ class SymbolicExpression(RingElement):
 
         TESTS:
 
-        Test the special case that failed for the first attempt to fix #3980.
+        Test the special case that failed for the first attempt to fix \#3980.
             sage: t = var('t')
             sage: find_root(1/t - x,0,2)
             Traceback (most recent call last):

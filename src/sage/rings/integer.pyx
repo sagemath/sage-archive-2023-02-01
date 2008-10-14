@@ -1,4 +1,4 @@
-r"""
+"""
 Elements of the ring $\Z$ of integers
 
 AUTHORS:
@@ -1116,7 +1116,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cpdef RingElement _div_(self, RingElement right):
         r"""
-        Computes \frac{a}{b}
+        Computes $\frac{a}{b}$
 
         EXAMPLES:
             sage: a = Integer(3) ; b = Integer(4)

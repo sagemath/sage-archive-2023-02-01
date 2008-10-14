@@ -121,13 +121,13 @@ Two examples from the Mathematica documentation (done in \Sage):
         sage: ideal(x+y, x^2 - 1, y^2 - 2*x).groebner_basis()
         [1]
 
-The next example shows how we can use Groebner bases over \ZZ to find
+The next example shows how we can use Groebner bases over $\ZZ$ to find
 the primes modulo which a system of equations has a solution, when the
 system has no solutions over the rationals.
 
     We first form a certain ideal $I$ in $\ZZ[x, y, z]$, and note that
-    the Groebner basis of $I$ over \QQ contains 1, so there are no
-    solutions over \QQ or an algebraic closure of it (this is not
+    the Groebner basis of $I$ over $\QQ$ contains 1, so there are no
+    solutions over $\QQ$ or an algebraic closure of it (this is not
     surprising as there are 4 equations in 3 unknowns).
 
         sage: P.<x,y,z> = PolynomialRing(ZZ,order='lex')
@@ -137,7 +137,7 @@ system has no solutions over the rationals.
         [1]
 
     However, when we compute the Groebner basis of I (defined over
-    \ZZ), we note that there is a certain integer in the ideal which
+    $\ZZ$), we note that there is a certain integer in the ideal which
     is not 1.
 
         sage: I.groebner_basis()

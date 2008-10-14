@@ -2356,9 +2356,9 @@ class GraphicPrimitive_Point(GraphicPrimitive):
         return self.xdata[i], self.ydata[i]
 
     def _render_on_subplot(self,subplot):
-        """
+        r"""
         TESTS:
-        We check to make sure that #2076 is fixed by verifying all
+        We check to make sure that \#2076 is fixed by verifying all
         the points are red.
             sage: point(((1,1), (2,2), (3,3)), rgbcolor=hue(1), pointsize=30)
         """
@@ -2368,7 +2368,7 @@ class GraphicPrimitive_Point(GraphicPrimitive):
         #method does not interpret it as a list of 3 floating
         #point color specifications when there are
         #three points. This is mentioned in the matplotlib 0.98
-        #documentation and fixes #2076
+        #documentation and fixes \#2076
         from matplotlib.colors import rgb2hex
         c = rgb2hex(to_mpl_color(options['rgbcolor']))
 

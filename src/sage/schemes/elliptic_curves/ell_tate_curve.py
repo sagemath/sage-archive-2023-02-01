@@ -53,7 +53,7 @@ class TateCurve(SageObject):
         INPUT:
             E -- an elliptic curve
             p -- a prime where E has multiplicative reduction,
-                 i. e. such that j(E) has negative valuation
+                 i.e., such that j(E) has negative valuation
 
         EXAMPLES:
         sage: e = EllipticCurve('130a1')
@@ -82,14 +82,13 @@ class TateCurve(SageObject):
         s = "%s-adic Tate curve associated to the %s"%(self._p, self._E)
         return s
 
-    # is the name of this function a typo?
-    def originial_curve(self):
+    def original_curve(self):
         """
         Returns the elliptic curve the Tate curve was constructed from.
 
         EXAMPLES:
             sage: eq = EllipticCurve('130a1').tate_curve(5)
-            sage: eq.originial_curve()
+            sage: eq.original_curve()
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
         """
         return self._E
@@ -100,7 +99,7 @@ class TateCurve(SageObject):
 
         EXAMPLES:
             sage: eq = EllipticCurve('130a1').tate_curve(5)
-            sage: eq.originial_curve()
+            sage: eq.original_curve()
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
             sage: eq.prime()
             5
@@ -175,7 +174,7 @@ class TateCurve(SageObject):
     def _Csquare(self,prec=20):
         """
         Returns the square of the constant C such that the canonical Neron differential $\omega$
-        and the canoncial differential $\frac{du}{u}$ on $\QQ^{\times}/q^{\ZZ}$ are linked by
+        and the canonical differential $\frac{du}{u}$ on $\QQ^{\times}/q^{\ZZ}$ are linked by
         $\omega = C \frac{du}{u}$. This constant is only a square in $\QQ_p$ if the curve has split
         multiplicative reduction.
 
@@ -252,7 +251,7 @@ class TateCurve(SageObject):
 
         precn = (prec/q.valuation()).floor() + 4
 
-        # formulas in Silverman II (Advanced Topics in the Arithmetic of Elliptic curves, p. 425
+        # formulas in Silverman II (Advanced Topics in the Arithmetic of Elliptic curves, p. 425)
 
         xx = un/(1-un)**2 + sum( [q**n*un/(1-q**n*un)**2 + q**n/un/(1-q**n/un)**2-2*q**n/(1-q**n)**2 for n in range(1,precn) ])
 
@@ -262,7 +261,7 @@ class TateCurve(SageObject):
 
 
 
-    # From here on all function need  that the curve has split multiplicative reduction.
+    # From here on all function need that the curve has split multiplicative reduction.
 
     def L_invariant(self,prec=20):
         r"""
@@ -294,7 +293,7 @@ class TateCurve(SageObject):
 
         More precisely, if $E$ has coordinates $x$ and $y$ and the Tate curve
         has coordinates $X$, $Y$ with $Y^2 + XY = X^3 + s_4 X +s_6$ then
-        $X = u^2 x +r$ and $Y = u^3 y +s u^2 x +t$
+        $X = u^2 x +r$ and $Y = u^3 y +s u^2 x +t$.
 
         EXAMPLES:
             sage: eq = EllipticCurve('130a1').tate_curve(5)
@@ -323,7 +322,7 @@ class TateCurve(SageObject):
 
         More precisely, if $E$ has coordinates $x$ and $y$ and the Tate curve
         has coordinates $X$, $Y$ with $Y^2 + XY = X^3 + s_4 X +s_6$ then
-        $x = u^2 X +r$ and $y = u^3 Y +s u^2 X +t$
+        $x = u^2 X +r$ and $y = u^3 Y +s u^2 X +t$.
 
         EXAMPLES:
             sage: eq = EllipticCurve('130a1').tate_curve(5)
@@ -339,7 +338,7 @@ class TateCurve(SageObject):
     def lift(self,P, prec = 20):
         """
         Given a point $P$ in the formal group of the elliptic curve $E$ with split multiplicative reduction,
-        this produces an element u in $\QQ_p^{\times}$ mapped to the point $P$ by the Tate parametrisation.
+        this produces an element $u$ in $\QQ_p^{\times}$ mapped to the point $P$ by the Tate parametrisation.
         The algorithm return the unique such element in $1+p\ZZ_p$.
 
         EXAMPLES:

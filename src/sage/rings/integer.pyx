@@ -243,6 +243,12 @@ def is_Integer(x):
     """
     return PY_TYPE_CHECK(x, Integer)
 
+cdef inline Integer as_Integer(x):
+    if PY_TYPE_CHECK(x, Integer):
+        return <Integer>x
+    else:
+        return Integer(x)
+
 cdef class IntegerWrapper(Integer):
     """Python classes have problems inheriting from Integer directly, but
     they don't have issues with inheriting from IntegerWrapper."""
@@ -2119,19 +2125,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n._lcm(150)
             300
         """
-        cdef mpz_t x
-
-        mpz_init(x)
-
-        _sig_on
-        mpz_lcm(x, self.value, n.value)
-        _sig_off
-
-
         cdef Integer z
         z = PY_NEW(Integer)
-        mpz_set(z.value,x)
-        mpz_clear(x)
+        _sig_on
+        mpz_lcm(z.value, self.value, n.value)
+        _sig_off
         return z
 
     def denominator(self):
@@ -3478,26 +3476,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             ZeroDivisionError: Inverse does not exist.
         """
-        cdef mpz_t x
-        cdef object ans
         cdef int r
-        cdef Integer m
-        m = Integer(n)
-
-        if m == one:
+        cdef Integer m = as_Integer(n)
+        cdef Integer ans = <Integer>PY_NEW(Integer)
+        if mpz_cmp_ui(m.value, 1) == 0:
             return zero
-
-        mpz_init(x)
-
         _sig_on
-        r = mpz_invert(x, self.value, m.value)
+        r = mpz_invert(ans.value, self.value, m.value)
         _sig_off
-
         if r == 0:
             raise ZeroDivisionError, "Inverse does not exist."
-        ans = PY_NEW(Integer)
-        set_mpz(ans,x)
-        mpz_clear(x)
         return ans
 
     def gcd(self, n):
@@ -3516,21 +3504,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: gcd(21,2^6)
             1
         """
-        cdef mpz_t g
-        cdef object g0
-        cdef Integer _n = Integer(n)
-
-        mpz_init(g)
-
-
+        cdef Integer m = as_Integer(n)
+        cdef Integer g = <Integer>PY_NEW(Integer)
         _sig_on
-        mpz_gcd(g, self.value, _n.value)
+        mpz_gcd(g.value, self.value, m.value)
         _sig_off
-
-        g0 = PY_NEW(Integer)
-        set_mpz(g0,g)
-        mpz_clear(g)
-        return g0
+        return g
 
     def crt(self, y, m, n):
         """
@@ -3579,7 +3558,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 ONE = Integer(1)
 Py_INCREF(ONE)
 
-def LCM_list(v):
+cpdef LCM_list(v):
     """
     Return the LCM of a list v of integers.  Element of v is
     converted to a SAGE integer if it isn't one already.
@@ -3605,39 +3584,27 @@ def LCM_list(v):
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
     """
-    cdef int i, n
-    cdef mpz_t z
-    cdef Integer w
+    cdef int i, n = len(v)
+    cdef Integer z = <Integer>PY_NEW(Integer)
 
-    n = len(v)
+    for i from 0 <= i < n:
+        if not isinstance(v[i], Integer):
+            if not isinstance(v, list):
+                v = list(v)
+            v[i] = Integer(v[i])
 
     if n == 0:
         return one
+    elif n == 1:
+        return v[0]
 
-    try:
-        w = v[0]
-        mpz_init_set(z, w.value)
+    _sig_on
+    mpz_lcm(z.value, (<Integer>v[0]).value, (<Integer>v[1]).value)
+    for i from 2 <= i < n:
+        mpz_lcm(z.value, z.value, (<Integer>v[i]).value)
+    _sig_off
 
-        _sig_on
-        for i from 1 <= i < n:
-            w = v[i]
-            mpz_lcm(z, z, w.value)
-        _sig_off
-    except TypeError:
-        w = Integer(v[0])
-        mpz_init_set(z, w.value)
-
-        _sig_on
-        for i from 1 <= i < n:
-            w = Integer(v[i])
-            mpz_lcm(z, z, w.value)
-        _sig_off
-
-
-    w = PY_NEW(Integer)
-    mpz_set(w.value, z)
-    mpz_clear(z)
-    return w
+    return z
 
 
 
@@ -3667,45 +3634,29 @@ def GCD_list(v):
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
     """
-    cdef int i, n
-    cdef mpz_t z
-    cdef Integer w
+    cdef int i, n = len(v)
+    cdef Integer z = <Integer>PY_NEW(Integer)
 
-    n = len(v)
+    for i from 0 <= i < n:
+        if not isinstance(v[i], Integer):
+            if not isinstance(v, list):
+                v = list(v)
+            v[i] = Integer(v[i])
 
     if n == 0:
         return one
+    elif n == 1:
+        return v[0]
 
-    try:
-        w = v[0]
-        mpz_init_set(z, w.value)
+    _sig_on
+    mpz_gcd(z.value, (<Integer>v[0]).value, (<Integer>v[1]).value)
+    for i from 2 <= i < n:
+        if mpz_cmp_ui(z.value, 1):
+            break
+        mpz_gcd(z.value, z.value, (<Integer>v[i]).value)
+    _sig_off
 
-        _sig_on
-        for i from 1 <= i < n:
-            w = v[i]
-            mpz_gcd(z, z, w.value)
-            if mpz_cmp_si(z, 1) == 0:
-                _sig_off
-                return one
-        _sig_off
-    except TypeError:
-        w = Integer(v[0])
-        mpz_init_set(z, w.value)
-
-        _sig_on
-        for i from 1 <= i < n:
-            w = Integer(v[i])
-            mpz_gcd(z, z, w.value)
-            if mpz_cmp_si(z, 1) == 0:
-                _sig_off
-                return one
-        _sig_off
-
-
-    w = PY_NEW(Integer)
-    mpz_set(w.value, z)
-    mpz_clear(z)
-    return w
+    return z
 
 def make_integer(s):
     """

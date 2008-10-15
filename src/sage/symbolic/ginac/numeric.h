@@ -115,6 +115,7 @@ namespace GiNaC {
     bool operator<(const Number_T& right) const;
     bool operator>(const Number_T& right) const;
     int csgn() const;
+    int get_parent_char() const;
 
     bool is_zero() const;
     bool is_positive() const;
@@ -318,6 +319,8 @@ namespace GiNaC {
     bool operator<=(const numeric &other) const;
     bool operator>(const numeric &other) const;
     bool operator>=(const numeric &other) const;
+    bool is_parent_pos_char() const;
+    int get_parent_char() const;
     int to_int() const;
     long to_long() const;
     double to_double() const;

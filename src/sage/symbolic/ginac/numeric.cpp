@@ -126,6 +126,7 @@ extern "C" PyObject* py_eval_pi(long ndigits);
 extern "C" PyObject* py_eval_euler_gamma(long ndigits);
 extern "C" PyObject* py_eval_catalan(long ndigits);
 
+extern "C" int py_get_parent_char(PyObject* o);
 
 // Call the Python function f on *this as input and return the result
 // as a PyObject*.
@@ -559,6 +560,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case LONG:
       return v._long / (long int)x;
     case PYOBJECT:
+	if (PyObject_Compare(x.v._pyobject, ONE) == 0) {
+	    return *this;
+	}
 	if (PyInt_Check(v._pyobject))  {
 	    if(PyInt_Check(x.v._pyobject)) {
 		// This branch happens at startup.
@@ -1083,6 +1087,20 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       return py_is_real(v._pyobject);
     default:
       stub("invalid type -- is_real() type not handled");
+    }
+  }
+
+  int Number_T::get_parent_char() const {
+    verbose("is_parent_pos_char");
+    switch(t) {
+    case DOUBLE:
+      return 0;
+    case LONG:
+      return 0;
+    case PYOBJECT:
+      return py_get_parent_char(v._pyobject);
+    default:
+      stub("invalid type -- is_parent_pos_char() type not handled");
     }
   }
 
@@ -2010,6 +2028,17 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     return value.is_real();
   }
 
+  /** True if the parent of the object has positive characteristic. */
+  bool numeric::is_parent_pos_char() const
+  {
+    return value.get_parent_char() > 0;
+  }
+
+  /** Returns the characteristic of the parent of this object. */
+  int numeric::get_parent_char() const
+  {
+    return value.get_parent_char();
+  }
 
   bool numeric::operator==(const numeric &other) const
   {

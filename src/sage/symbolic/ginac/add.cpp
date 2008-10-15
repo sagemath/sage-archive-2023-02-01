@@ -130,7 +130,7 @@ void add::print_add(const print_context & c, const char *openbrace, const char *
 			first = false;
 		}
 		if (!coeff.is_equal(*_num1_p) &&
-		    !coeff.is_equal(*_num_1_p)) {
+		   (!coeff.is_equal(*_num_1_p) || coeff.is_parent_pos_char())) {
 			if (coeff.is_rational()) {
 				if (coeff.is_negative())
 					(-coeff).print(c);

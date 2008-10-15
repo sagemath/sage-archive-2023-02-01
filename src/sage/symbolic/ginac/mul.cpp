@@ -132,7 +132,7 @@ void mul::print_overall_coeff(const print_context & c, const char *mul_sym) cons
 	if (coeff.csgn() == -1)
 		c.s << '-';
 	if (!coeff.is_equal(*_num1_p) &&
-		!coeff.is_equal(*_num_1_p)) {
+		(!coeff.is_equal(*_num_1_p) || coeff.is_parent_pos_char())) {
 		if (coeff.is_rational()) {
 			if (coeff.is_negative())
 				(-coeff).print(c);
@@ -431,7 +431,8 @@ ex mul::eval(int level) const
 	} else if (seq_size==0) {
 		// *(;c) -> c
 		return overall_coeff;
-	} else if (seq_size==1 && overall_coeff.is_equal(_ex1)) {
+	} else if (seq_size==1 && overall_coeff.is_equal(_ex1) && \
+			!ex_to<numeric>(overall_coeff).is_parent_pos_char()) {
 		// *(x;1) -> x
 		return recombine_pair_to_ex(*(seq.begin()));
 	} else if ((seq_size==1) &&

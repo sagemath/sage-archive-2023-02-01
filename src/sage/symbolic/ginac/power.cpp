@@ -409,7 +409,9 @@ ex power::eval(int level) const
 	}
 	
 	// ^(x,0) -> 1  (0^0 also handled here)
-	if (eexponent.is_zero()) {
+	if (eexponent.is_zero() && 
+		!(is_exactly_a<numeric>(ebasis) && 
+			ex_to<numeric>(ebasis).is_parent_pos_char())) {
 		if (ebasis.is_zero())
 			throw (std::domain_error("power::eval(): pow(0,0) is undefined"));
 		else

@@ -130,6 +130,14 @@ cdef class Expression(CommutativeRingElement):
             (x, y)
             sage: (x+y)._repr_()
             'x + y'
+
+        TESTS:
+            # printing of modular number equal to -1 as coefficient
+            sage: k.<a> = GF(9); k(2)*x
+            (2)*x
+
+            sage: (x+1)*Mod(6,7)
+            (6)*x + 6
         """
         return GEx_to_str(&self._gobj)
 
@@ -532,6 +540,11 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: incompatible relations
+
+            sage: a = 1000 + 300*x + x^3 + 30*x^2
+            sage: a*Mod(1,7)
+            x^3 + (2)*x^2 + (6)*x + 6
+
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -668,6 +681,13 @@ cdef class Expression(CommutativeRingElement):
             x^(3/5)
             sage: x^sin(x)^cos(y)
             x^(sin(x)^cos(y))
+
+        TESTS:
+            sage: (Mod(2,7)*x^2 + Mod(2,7))^7
+            ((2)*x^2 + 2)^7
+            sage: k = GF(7)
+            sage: f = expand((k(1)*x^5 + k(1)*x^2 + k(2))^7); f
+            x^35 + x^14 + 2
         """
         cdef Expression nexp = self.coerce_in(exp)
         cdef GEx x
@@ -735,7 +755,7 @@ cdef class Expression(CommutativeRingElement):
             sage: g = f.series(x==1, 4); g
             (-sin(y) - 1) + (-2*sin(y) - 2)*(x - 1) + (-sin(y) + 3)*(x - 1)^2 + 1*(x - 1)^3
             sage: h = g.truncate(); h
-            -sin(y) - 2*(x - 1)*(sin(y) + 1) + (x - 1)^2*(-sin(y) + 3) + (x - 1)^3 - 1
+            -sin(y) - (sin(y) - 3)*(x - 1)^2 - 2*(x - 1)*(sin(y) + 1) + (x - 1)^3 - 1
             sage: h.expand()
             -sin(y)*x^2 + x^3 - 5*x + 3
 

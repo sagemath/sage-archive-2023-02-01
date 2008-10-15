@@ -96,6 +96,21 @@ def get_ginac_serial():
     return GINAC_FN_SERIAL
 
 #################################################################
+# Modular helpers
+#################################################################
+
+from sage.structure.element cimport Element
+
+cdef extern from *:
+    int py_get_parent_char(object o) except *
+
+cdef public int py_get_parent_char(object o) except *:
+    if isinstance(o, Element):
+        return (<Element>o)._parent.characteristic()
+    else:
+        return 0
+
+#################################################################
 # Binomial Coefficients
 #################################################################
 

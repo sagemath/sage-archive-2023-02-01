@@ -56,7 +56,7 @@ get gcd to work
 sage: from sage.all import *; x,y= var('x,y',ns=1); (x**2-y**2).gcd(x-y)
 boom!
 
-* Bug...
+done * Bug...
 sage: var('x',ns=1); k.<a> = GF(9); k(2)*x
 x
 with 9 replaced by 25 it works fine...
@@ -139,14 +139,14 @@ For PHASE II: LATER  (Hopefully Burcin)
 
 * Support pickle via the "archive" print mode.
 
-* CRASH:
+done * CRASH:
 sage: f = (Mod(2,7)*x^2 + Mod(2,7))^7
 ------------------------------------------------------------
 Unhandled SIGBUS: A bus error occured in SAGE.
 
 It works fine with leading coefficient Mod(1,7)
 
-* Weird wrong answers:
+done * Weird wrong answers:
 sage: k = GF(7)
 sage: f = expand((k(1)*x^5 + k(1)*x^2 + k(2))^7); f
 2 + 35*x^26 + 21*x^29 + 7*x^17 + 21*x^20 + 35*x^23 + x^14 + 7*x^32 + x^35
@@ -163,7 +163,7 @@ singular, since singular's gcd over QQ is much better than ginac's, I think,
 and ginac *only* does GCD over QQ.  Actually, just make everything in normal.cpp
 be implemented via Singular, probably...
 
-* Make it so these work the same way, i.e., in second case below the Mod(1,7)
+done * Make it so these work the same way, i.e., in second case below the Mod(1,7)
 should also reduce.  Probably in some cases ginac just doesn't bother to do
 the multiply because Mod(1,7) == 1 is true.
 sage: a.expand()*Mod(2,7)

@@ -56,6 +56,7 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.arith import lcm
 import sage.rings.polynomial.polynomial_ring
 
+from sage.libs.ntl.ntl_ZZX_decl cimport *, vec_pair_ZZX_long_c
 
 cdef class Polynomial_integer_dense_ntl(Polynomial):
     r"""

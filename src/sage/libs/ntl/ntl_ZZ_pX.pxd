@@ -1,6 +1,6 @@
-include "decl.pxi"
 include "../../ext/cdefs.pxi"
 
+from ntl_ZZ_pX_decl cimport *, ZZ_pX_c, ZZ_pX_Modulus_c
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 
 cdef class ntl_ZZ_pX:

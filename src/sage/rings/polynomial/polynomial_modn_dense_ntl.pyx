@@ -34,6 +34,11 @@ from sage.interfaces.all import singular as singular_default
 
 from sage.structure.element import generic_power, canonical_coercion, bin_op
 
+from sage.libs.ntl.ntl_ZZ_p_decl cimport *, ZZ_p_c
+from sage.libs.ntl.ntl_lzz_p_decl cimport *, zz_p_c
+from sage.libs.ntl.ntl_lzz_pX_decl cimport *, zz_pX_c, zz_pX_Modulus_c
+from sage.libs.ntl.ntl_ZZ_pX_decl cimport *, ZZ_pX_c, ZZ_pX_Modulus_c
+
 def make_element(parent, args):
     return parent(*args)
 
@@ -739,7 +744,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: _sig_off
         return r
 
-    def __pow__(Polynomial_dense_modn_ntl_zz self, ee, dummy):
+    def __pow__(Polynomial_dense_modn_ntl_zz self, ee, modulus):
         """
         TESTS:
             sage: R.<x> = Integers(100)[]
@@ -761,14 +766,30 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             if e == 0:
                 raise ArithmeticError, "0^0 is undefined."
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        cdef zz_pX_Modulus_c *mod
+
         self.c.restore_c()
-        if zz_pX_IsX(self.x):
-            zz_pX_LeftShift(r.x, self.x, e-1)
+
+        if modulus is None:
+            if zz_pX_IsX(self.x):
+                zz_pX_LeftShift(r.x, self.x, e-1)
+            else:
+                do_sig = zz_pX_deg(self.x) *e > 1000
+                if do_sig: _sig_on
+                zz_pX_power(r.x, self.x, e)
+                if do_sig: _sig_off
         else:
-            do_sig = zz_pX_deg(self.x) *e > 1000
+            if not PY_TYPE_CHECK(modulus, Polynomial_dense_modn_ntl_zz):
+                modulus = self.parent()._coerce_(modulus)
+            zz_pX_Modulus_construct(mod)
+            zz_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_zz>modulus).x)
+
+            do_sig = zz_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: _sig_on
-            zz_pX_power(r.x, self.x, e)
+            zz_pX_PowerMod_long_pre(r.x, self.x, e, mod[0])
             if do_sig: _sig_off
+            zz_pX_Modulus_destruct(mod)
+
         if recip:
             return ~r
         else:
@@ -1254,7 +1275,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         return self._rmul_(c)
 
-    def __pow__(Polynomial_dense_modn_ntl_ZZ self, ee, dummy):
+    def __pow__(Polynomial_dense_modn_ntl_ZZ self, ee, modulus):
         """
         TESTS:
             sage: R.<x> = Integers(10^30)[]
@@ -1272,14 +1293,29 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             if e == 0:
                 raise ArithmeticError, "0^0 is undefined."
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
+        cdef ZZ_pX_Modulus_c *mod
+
         self.c.restore_c()
-        if ZZ_pX_IsX(self.x):
-            ZZ_pX_LeftShift(r.x, self.x, e - 1)
+
+        if modulus is None:
+            if ZZ_pX_IsX(self.x):
+                ZZ_pX_LeftShift(r.x, self.x, e - 1)
+            else:
+                do_sig = ZZ_pX_deg(self.x) * e * self.c.p_bits > 1e5
+                if do_sig: _sig_on
+                ZZ_pX_power(r.x, self.x, e)
+                if do_sig: _sig_off
         else:
+            if not PY_TYPE_CHECK(modulus, Polynomial_dense_modn_ntl_ZZ):
+                modulus = self.parent()._coerce_(modulus)
+            ZZ_pX_Modulus_construct(mod)
+            ZZ_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_ZZ>modulus).x)
+
             do_sig = ZZ_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: _sig_on
-            ZZ_pX_power(r.x, self.x, e)
+            ZZ_pX_PowerMod_long_pre(r.x, self.x, e, mod[0])
             if do_sig: _sig_off
+            ZZ_pX_Modulus_destruct(mod)
         if recip:
             return ~r
         else:

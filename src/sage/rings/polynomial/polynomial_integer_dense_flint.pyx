@@ -39,6 +39,8 @@ from sage.structure.factorization import Factorization
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.arith import lcm
 
+from sage.libs.ntl.ntl_ZZX_decl cimport *, vec_pair_ZZX_long_c
+
 cdef extern from "limits.h":
     long LONG_MAX
 

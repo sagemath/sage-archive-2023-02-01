@@ -15,8 +15,8 @@
 
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
+include "decl.pxi"
 include 'misc.pxi'
-include 'decl.pxi'
 
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ import unpickle_class_value

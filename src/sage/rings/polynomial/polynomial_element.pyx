@@ -2585,7 +2585,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Returns \code{self.list()}.
 
-        (It potentially slightly faster better to use
+        (It is potentially slightly faster to use
         \code{self.list()} directly.)
 
         EXAMPLES:

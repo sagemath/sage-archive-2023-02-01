@@ -21,6 +21,7 @@ which occur commonly in a 1st semester differential equations course.
 
 AUTHORS: David Joyner (3-2006)     -- Initial version of functions
          Marshall Hampton (7-2007) -- Creation of Python module and testing
+         Robert Bradshaw (10-2008) -- Some interface cleanup.
 
 Other functions for solving DEs are given in functions/elementary.py.
 
@@ -34,40 +35,92 @@ Other functions for solving DEs are given in functions/elementary.py.
 #                  http://www.gnu.org/licenses/
 ##########################################################################
 
+from sage.calculus.equations import SymbolicEquation
 from sage.interfaces.maxima import MaximaElement, Maxima
 from sage.plot.plot import line
 
 maxima = Maxima()
 
-def desolve(de,vars):
+def desolve(de, dvar, ics=None, ivar=None):
     """
     Solves a 1st or 2nd order linear ODE via maxima. Initials conditions
     are not given.
 
     INPUT:
-        de    -- a lambda expression representing the ODE
-                 (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
-        vars  -- a list of strings representing the variables
-                 (eg, vars = ["x","y"], if x is the independent
-                  variable and y is the dependent variable)
+        de    -- an expression or equation representing the ODE
+        dvar  -- the dependent variable (hereafter called y)
+        ics   -- (optional) the initial or boundary conditions
+                    for a first-order equation, specify the initial x and y
+                    for a second-order equation, specify the initial x, y, and dy/dx
+                    for a second-order boundary solution, specify initial and final x and y
+        ivar  -- (optional) the independent variable  (hereafter called x),
+                    which must be specified if there is more than one
+                    independent variable in the equation.
 
     EXAMPLES:
-        sage: from sage.calculus.desolvers import desolve
-        sage: t = var('t')
-        sage: x = function('x', t)
-        sage: de = lambda y: diff(y,t) + y - 1
-        sage: desolve(de(x(t)),[x,t])
-        '%e^-t*(%e^t+%c)'
+        sage: x = var('x')
+        sage: y = function('y', x)
+        sage: desolve(diff(y,x) + y - 1, y)
+        e^(-x)*(e^x + c)
+        sage: f = desolve(diff(y,x) + y - 1, y, ics=[10,2]); f
+        e^(-x)*(e^x + e^10)
+        sage: plot(f)
+
+    We can also solve second-order differential equations.
+        sage: x = var('x')
+        sage: y = function('y', x)
+        sage: de = diff(y,x,2) - y == x
+        sage: desolve(de, y)
+        k1*e^x + k2*e^(-x) - x
+        sage: f = desolve(de, y, [10,2,1]); f
+        (e^10*y(10) + 8*e^10)*e^(-x)/2 + (y(10) + 12)*e^(x - 10)/2 - x
+        sage: f(10).expand()
+        y(10)
+        sage: diff(f,x)(10).expand()
+        1
 
     AUTHOR: David Joyner (1-2006)
+            Robert Bradshaw (10-2008)
     """
-    #maxima("depends("+vars[1]+","+vars[0]+");")
-    #maxima("de:"+de+";")
-    #cmd = "ode2("+de+","+vars[1]+","+vars[0]+");"
-    #return maxima.eval(cmd)
+    if isinstance(de, SymbolicEquation):
+        de = de.lhs() - de.rhs()
+    # for backwards compatability
+    if isinstance(dvar, list):
+        dvar, ivar = dvar
+    elif ivar is None:
+        ivars = de.variables()
+        ivars = [t for t in ivars if t != dvar]
+        if len(ivars) != 1:
+            raise ValueError, "Unable to determine independent variable, please specify."
+        ivar = ivars[0]
     de0 = de._maxima_()
-    soln = de0.ode2(vars[0],vars[1])
-    return soln.rhs()._maxima_init_()
+    soln = de0.ode2(dvar, ivar)
+    if str(soln).strip() == 'false':
+        raise NotImplementedError, "Maxima was unable to solve this system."
+    def to_eqns(lhs, exprs):
+        eqns = []
+        for lhs, expr in zip(lhs, exprs):
+            if isinstance(expr, SymbolicEquation):
+                eqns.append(expr)
+            else:
+                if lhs == dvar and len(exprs) == 2:
+                    ivar_ic = exprs[0] # figure this out...
+                    lhs = lhs._f(ivar_ic)
+                eqns.append(lhs == expr)
+        return eqns
+    if ics is not None:
+        if len(ics) == 2:
+            ics = to_eqns([ivar, dvar], ics)
+            soln = soln.ic1(ics[0], ics[1])
+        if len(ics) == 3:
+            ics = to_eqns([ivar, dvar, dvar.derivative(ivar)], ics)
+            soln = soln.ic2(*ics)
+        if len(ics) == 4:
+            ics = to_eqns([ivar, dvar, ivar, dvar], ics)
+            soln = soln.bc(*ics)
+    if soln.lhs() == dvar:
+        soln = soln.rhs()
+    return soln.sage()
 
 #def desolve_laplace2(de,vars,ics=None):
 ##     """
@@ -152,7 +205,67 @@ def desolve_laplace(de,vars,ics=None):
     cmd = "desolve("+de._repr_()+","+vars[1]+"("+vars[0]+"));"
     return maxima(cmd).rhs()._maxima_init_()
 
-def desolve_system(des,vars,ics=None):
+def desolve_system(des, vars, ics=None, ivar=None):
+    """
+    Solves any size system of 1st order odes using maxima. Initials conditions
+    are optional.
+
+    INPUT:
+        des   -- list of ODEs
+        vars  -- list of dependent variables
+        ics   -- (optional) list of initial values for ivar and vars
+        ivar  -- (optional) the independent variable, which must be specified
+                    if there is more than one independent variable in the equation.
+
+    EXAMPLES:
+        sage: t = var('t')
+        sage: x = function('x', t)
+        sage: y = function('y', t)
+        sage: de1 = diff(x,t) + y - 1 == 0
+        sage: de2 = diff(y,t) - x + 1 == 0
+        sage: desolve_system([de1, de2], [x,y])
+        [x(t) == (1 - y(0))*sin(t) + (x(0) - 1)*cos(t) + 1,
+         y(t) == (x(0) - 1)*sin(t) + (y(0) - 1)*cos(t) + 1]
+
+    Now we give some initial conditions:
+        sage: sol = desolve_system([de1, de2], [x,y], ics=[0,1,2]); sol
+        [x(t) == 1 - sin(t), y(t) == cos(t) + 1]
+        sage: solnx, solny = sol[0].rhs(), sol[1].rhs()
+        sage: plot([solnx,solny],0,1)
+        sage: parametric_plot((solnx,solny),0,1)
+
+    AUTHOR: Robert Bradshaw (10-2008)
+    """
+    ivars = set([])
+    for i, de in enumerate(des):
+        if not isinstance(de, SymbolicEquation):
+            des[i] = de == 0
+        ivars = ivars.union(set(de.variables()))
+    if ivar is None:
+        ivars = ivars - set(vars)
+        if len(ivars) != 1:
+            raise ValueError, "Unable to determine independent variable, please specify."
+        ivar = list(ivars)[0]
+    dvars = [v._maxima_() for v in vars]
+    if ics is not None:
+        ivar_ic = ics[0]
+        for dvar, ic in zip(dvars, ics[1:]):
+            dvar.atvalue(ivar==ivar_ic, ic)
+    soln = dvars[0].parent().desolve(des, dvars)
+    if str(soln).strip() == 'false':
+        raise NotImplementedError, "Maxima was unable to solve this system."
+    soln = list(soln)
+    for i, sol in enumerate(soln):
+        soln[i] = sol.sage()
+    if ics is not None:
+        ivar_ic = ics[0]
+        for dvar, ic in zip(dvars, ics[:1]):
+            dvar.atvalue(ivar==ivar_ic, dvar)
+    return soln
+
+
+def desolve_system_strings(des,vars,ics=None):
+
     """
     Solves any size system of 1st order odes using maxima. Initials conditions
     are optional.
@@ -162,7 +275,7 @@ def desolve_system(des,vars,ics=None):
         de    -- a list of strings representing the ODEs in maxima notation
                  (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
         vars  -- a list of strings representing the variables
-                 (eg, vars = ["t","x","y"], where t is the independent variable
+                 (eg, vars = ["s","x","y"], where s is the independent variable
                   and x,y the dependent variables)
         ics   -- a list of numbers representing initial conditions
                  (eg, x(0)=1, y(0)=2 is ics = [0,1,2])
@@ -173,23 +286,23 @@ def desolve_system(des,vars,ics=None):
         automatically imposed.
 
     EXAMPLES:
-        sage: from sage.calculus.desolvers import desolve_system
-        sage: t = var('t')
-        sage: x = function('x', t)
-        sage: y = function('y', t)
-        sage: de1 = lambda z: diff(z[0],t) + z[1] - 1
-        sage: de2 = lambda z: diff(z[1],t) - z[0] + 1
-        sage: des = [de1([x(t),y(t)]),de2([x(t),y(t)])]
-        sage: vars = ["t","x","y"]
-        sage: desolve_system(des,vars)
-        ['(1-y(0))*sin(t)+(x(0)-1)*cos(t)+1', '(x(0)-1)*sin(t)+(y(0)-1)*cos(t)+1']
+        sage: from sage.calculus.desolvers import desolve_system_strings
+        sage: s = var('s')
+        sage: x = function('x', s)
+        sage: y = function('y', s)
+        sage: de1 = lambda z: diff(z[0],s) + z[1] - 1
+        sage: de2 = lambda z: diff(z[1],s) - z[0] + 1
+        sage: des = [de1([x(s),y(s)]),de2([x(s),y(s)])]
+        sage: vars = ["s","x","y"]
+        sage: desolve_system_strings(des,vars)
+        ['(1-y(0))*sin(s)+(x(0)-1)*cos(s)+1', '(x(0)-1)*sin(s)+(y(0)-1)*cos(s)+1']
         sage: ics = [0,1,-1]
-        sage: soln = desolve_system(des,vars,ics); soln
-        ['2*sin(t)+1', '1-2*cos(t)']
-        sage: solnx = lambda s: RR(eval(soln[0].replace("t","s")))
+        sage: soln = desolve_system_strings(des,vars,ics); soln
+        ['2*sin(s)+1', '1-2*cos(s)']
+        sage: solnx = lambda s: RR(eval(soln[0].replace("s","s")))
         sage: solnx(3)
         1.28224001611973
-        sage: solny = lambda s: RR(eval(soln[1].replace("t","s")))
+        sage: solny = lambda s: RR(eval(soln[1].replace("s","s")))
         sage: P1 = plot([solnx,solny],0,1)
         sage: P2 = parametric_plot((solnx,solny),0,1)
 

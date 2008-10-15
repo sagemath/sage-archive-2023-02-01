@@ -1,7 +1,7 @@
 import os
 if not os.environ.has_key('SAGE_CLEAN'):
 	import sage.misc.misc
-	from sage.misc.interpreter import preparser
+	from sage.misc.interpreter import preparser, _ip
 	preparser(True)
 	import sage.all_cmdline
 	sage.all_cmdline._init_cmdline(globals())
@@ -15,4 +15,6 @@ if not os.environ.has_key('SAGE_CLEAN'):
 		os.environ['SAGE_IMPORTALL'] != "no":
 		from sage.all_cmdline import *
 
-  	_=sage.misc.interpreter.load_startup_file(os.environ["SAGE_STARTUP_FILE"])
+	startup_file = os.environ.get('SAGE_STARTUP_FILE', '')
+	if os.path.exists(startup_file):
+		_ip.options.autoexec.append('load %s'%startup_file)

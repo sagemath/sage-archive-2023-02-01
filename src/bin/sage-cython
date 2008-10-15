@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+
+import os, sys
+args = sys.argv[1:]
+
+SAGE_ROOT = os.environ['SAGE_ROOT']
+pyx_file = os.path.abspath(args[-1])
+include_sage_flags = False
+
+if pyx_file.endswith('.spyx'):
+    spyx_file = pyx_file
+    pyx_file = pyx_file[:-5] + '.pyx'
+    args[-1] = pyx_file
+    f = open(pyx_file, 'w')
+    f.write("include 'sage/ext/stdsage.pxi'\ninclude 'sage/ext/cdefs.pxi'\ninclude 'sage/ext/interrupt.pxi'\n\n")
+    f.write(open(spyx_file).read())
+    f.close()
+    include_sage_flags = True
+
+if pyx_file.startswith("%s/devel/"%SAGE_ROOT):
+    include_sage_flags = True
+
+if '-sage' in args:
+    include_sage_flags = True
+    args.remove('-sage')
+elif '-no-sage' in args:
+    include_sage_flags = False
+    args.remove('-no-sage')
+
+if include_sage_flags:
+    args = ['--embed-positions', '-I%s/devel/sage/' % SAGE_ROOT] + args
+
+args.insert(0, 'sage-cython')
+os.execlp('cython', *args)

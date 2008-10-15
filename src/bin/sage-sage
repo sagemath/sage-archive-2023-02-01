@@ -811,7 +811,7 @@ fi
 if [ $1 = "-cython" -o $1 = '--cython' -o $1 = '-pyrex' -o $1 = "--pyrex" ]; then
     shift
     cd "$CUR"
-    cython "$@"
+    sage-cython "$@"
     exit $?
 fi
 

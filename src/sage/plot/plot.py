@@ -4167,6 +4167,12 @@ class GraphicsArray(SageObject):
             axes -- (default: True)
             fontsize -- positive integer
             frame -- (default: False) draw a frame around the image
+
+        EXAMPLES:
+        This draws a graphics array with four trig plots and no axes
+        in any of the plots.
+            sage: G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
+            sage: G.show(axes=False)
         """
         if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
         if DOCTEST_MODE:
@@ -4178,7 +4184,7 @@ class GraphicsArray(SageObject):
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self._render(filename, dpi=dpi, figsize=self._figsize, **args)
+        self._render(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.browser(), filename))
 

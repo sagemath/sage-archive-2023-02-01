@@ -31,6 +31,13 @@ in the src directory.
 
 == Changelog ==
 
+
+=== pynac-0.1.1 (Burcin Erocal, October 15th, 2008) ===
+ * Allow python functions to provide custom evaluation, derivative, series
+expansion, etc. functionality of symbolic functions
+ * Change names of more files to prevent clashing with a ginac installation.
+ * Fix several bugs when working with modular coefficients.
+
 === pynac-0.1.p0 (Burcin Erocal, Michael Abshoff, September 20th, 2008) ===
  * Change library name, include file location to reflect the package name and not conflict with ginac
  * Change library version numbers to reflect package version

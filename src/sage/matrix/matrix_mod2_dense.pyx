@@ -1403,7 +1403,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         gdImageDestroy(im)
         return unpickle_matrix_mod2_dense_v1, (r,c, data, size)
 
-
 # Used for hashing
 cdef int i, k
 cdef unsigned long parity_table[256]
@@ -1564,9 +1563,6 @@ def to_png(Matrix_mod2_dense A, filename):
     gdImagePng(im, out)
     gdImageDestroy(im)
     fclose(out)
-
-
-
 
 # This is basically test code, do not call it will break Sage's
 # assumptions about matrices (malb).

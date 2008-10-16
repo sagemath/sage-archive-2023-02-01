@@ -24,6 +24,7 @@ from sage.rings.integer cimport Integer
 from ntl_ZZ import unpickle_class_value
 from ntl_GF2 cimport ntl_GF2
 
+
 ##############################################################################
 #
 # ntl_GF2X: Polynomials over GF(2) via NTL
@@ -123,7 +124,7 @@ cdef class ntl_GF2X:
         from sage.rings.finite_field_givaro import FiniteField_givaroElement
         from sage.rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2eElement
         from sage.rings.ring import FiniteField
-        from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_p
+        from sage.rings.polynomial.polynomial_gf2x import Polynomial_GF2X
 
         cdef long _x
 
@@ -141,8 +142,8 @@ cdef class ntl_GF2X:
         if PY_TYPE_CHECK(x, Integer):
             #binary repr, reversed, and "["..."]" added
             x="["+x.binary()[::-1].replace(""," ")+"]"
-        elif PY_TYPE_CHECK(x, Polynomial_dense_mod_p):
-                x=x.ntl_ZZ_pX()
+        elif PY_TYPE_CHECK(x, Polynomial_GF2X):
+            x = x.list() # this is slow but cimport leads to circular imports
         elif PY_TYPE_CHECK(x, FiniteField):
             if x.characteristic() == 2:
                 x= list(x.modulus())

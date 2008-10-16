@@ -917,6 +917,12 @@ ext_modules = [ \
                  language = 'c++',
                  include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
 
+    Extension('sage.rings.polynomial.polynomial_gf2x',
+                 sources = ['sage/rings/polynomial/polynomial_gf2x.pyx'],
+                 libraries = ['ntl', 'stdc++', 'gmp'],
+                 language = 'c++',
+                 include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
+
     Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',
                  sources = ['sage/rings/polynomial/polynomial_real_mpfr_dense.pyx'],
                  libraries = ['mpfr', 'gmp']), \

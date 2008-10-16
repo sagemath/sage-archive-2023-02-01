@@ -1135,7 +1135,11 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                 raise TypeError,"Unable to coerce string"
         elif hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
-        return polynomial_modn_dense_ntl.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
+        if self.modulus() == 2:
+            import sage.rings.polynomial.polynomial_gf2x as polynomial_gf2x
+            return polynomial_gf2x.Polynomial_GF2X(self, x, check, is_gen,construct=construct)
+        else:
+            return polynomial_modn_dense_ntl.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
 
 
 def polygen(ring_or_element, name="x"):

@@ -986,7 +986,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return RingElement.__div__(self, right)
 
 
-    def __pow__(self, right, dummy):
+    def __pow__(self, right, modulus):
         """
         EXAMPLES:
             sage: R.<x> = ZZ[]
@@ -997,18 +997,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^3 - 3*x^2 + 3*x - 1
         """
         if self.degree() <= 0:
-            return self.parent()(self[0]**right)
-        if right < 0:
-            return (~self)**(-right)
-        if (<Polynomial>self)._is_gen:   # special case x**n should be faster!
+            r = self.parent()(self[0]**right)
+        elif right < 0:
+            r = (~self)**(-right)
+        elif (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
             if P.is_sparse():
                 v = {right:R(1)}
             else:
                 v = [R(0)]*right + [R(1)]
-            return self.parent()(v, check=False)
-        return generic_power(self, right)
+            r = self.parent()(v, check=False)
+        else:
+            r = generic_power(self, right)
+        if modulus:
+            return r % modulus
+        else:
+            return r
 
     def _pow(self, right):
         # TODO: fit __pow__ into the arithmetic structure
@@ -1016,7 +1021,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(self[0]**right)
         if right < 0:
             return (~self)**(-right)
-        if (<Polynomial>self)._is_gen:   # special case x**n should be faster!
+        if (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
             v = [0]*right + [1]
             return self.parent()(v, check=True)
         return generic_power(self, right)
@@ -2188,6 +2193,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pari.set_real_precision(n)  # restore precision
         return Factorization(F, unit)
 
+    def lcm(self, other):
+        """
+        Let f and g be two polynomials.  Then this function
+        returns the monic least common multiple of f and g.
+        """
+        f = self*other
+        g = self.gcd(other)
+        q = f//g
+        return ~(q.leading_coefficient())*q
+
     def _lcm(self, other):
         """
         Let f and g be two polynomials.  Then this function
@@ -2197,6 +2212,44 @@ cdef class Polynomial(CommutativeAlgebraElement):
         g = self.gcd(other)
         q = f//g
         return ~(q.leading_coefficient())*q  # make monic  (~ is inverse in python)
+
+    def is_primitive(self):
+        """
+        Identifies whether a polynomial is primitive.
+        A polynomial can only be primitive if it is irreducible.
+
+        EXAMPLES:
+            sage: R.<x> = GF(2)['x']
+            sage: f = x^4+x^3+x^2+x+1
+            sage: f.is_irreducible(), f.is_primitive()
+            (True, False)
+            sage: f = x^3+x+1
+            sage: f.is_irreducible(), f.is_primitive()
+            (True, True)
+            sage: R.<x> = GF(3)[]
+            sage: f = x^3-x+1
+            sage: f.is_irreducible(), f.is_primitive()
+            (True, True)
+            sage: f = x^2+1
+            sage: f.is_irreducible(), f.is_primitive()
+            (True, False)
+            sage: R.<x> = GF(5)[]
+            sage: f = x^2+x+1
+            sage: f.is_primitive()
+            False
+            sage: f = x^2-x+2
+            sage: f.is_primitive()
+            True
+        """
+        if not self.is_irreducible():
+            return False
+        p = self.parent().characteristic()
+        n = p ** self.degree() - 1
+        y = self.parent().quo(self).gen()
+        for d in n.prime_divisors():
+            if ( y ** (n//d) ) == 1:
+                return False
+        return True
 
     def is_constant(self):
         """

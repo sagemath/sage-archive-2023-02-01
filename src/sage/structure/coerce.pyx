@@ -1025,8 +1025,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 Z = pushout(R, S)
                 coerce_R = Z.coerce_map_from(R)
                 coerce_S = Z.coerce_map_from(S)
-                if coerce_R is not None and coerce_S is not None:
-                    return coerce_R, coerce_S
+                if coerce_R is None:
+                    raise TypeError, "No coercion from %s to pushout %s" % (R, Z)
+                if coerce_S is None:
+                    raise TypeError, "No coercion from %s to pushout %s" % (S, Z)
+                return coerce_R, coerce_S
             except:
                 self._record_exception()
 

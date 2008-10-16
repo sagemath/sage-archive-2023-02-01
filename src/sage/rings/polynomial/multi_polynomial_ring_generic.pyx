@@ -68,14 +68,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         Returns a functor F and basering R such that F(R) == self.
 
-        In the multi-variate case, R is a polynomial ring with one
-        less variable, and F knows to adjoin the variable in the
-        correct way.
-
         EXAMPLES:
             sage: S = ZZ['x,y']
             sage: F, R = S.construction(); R
-            Univariate Polynomial Ring in x over Integer Ring
+            Integer Ring
+            sage: F
+            MPoly[x,y]
             sage: F(R) == S
             True
             sage: F(R) == ZZ['x']['y']
@@ -83,12 +81,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.categories.pushout import PolynomialFunctor
-        vars = self.variable_names()
-        if len(vars) == 1:
-            return PolynomialFunctor(vars[0], False), self.base_ring()
-        else:
-            return PolynomialFunctor(vars[-1], True), PolynomialRing(self.base_ring(), vars[:-1])
+        from sage.categories.pushout import MultiPolynomialFunctor
+        return MultiPolynomialFunctor(self.variable_names(), self.term_order()), self.base_ring()
 
     def completion(self, p, prec=20, extras=None):
         try:

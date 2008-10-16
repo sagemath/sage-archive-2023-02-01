@@ -207,9 +207,19 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: R.quotient_ring(I).construction()
             (QuotientFunctor, Univariate Polynomial Ring in x over Integer Ring)
+
+        TESTS:
+            sage: F, R = Integers(5).construction()
+            sage: F(R)
+            Ring of integers modulo 5
+            sage: F, R = GF(5).construction()
+            sage: F(R)
+            Finite Field of size 5
         """
         from sage.categories.pushout import QuotientFunctor
-        return QuotientFunctor(self.__I), self.__R
+        # Is there a better generic way to distinguish between things like Z/pZ as a field and Z/pZ as a ring?
+        from sage.rings.field import Field
+        return QuotientFunctor(self.__I, as_field=isinstance(self, Field)), self.__R
 
     def _repr_(self):
         """

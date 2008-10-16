@@ -4,6 +4,7 @@ from category_types import *
 # TODO, think through the rankings, and override pushout where necessary.
 
 class ConstructionFunctor(Functor):
+
     def __mul__(self, other):
         if not isinstance(self, ConstructionFunctor) and not isinstance(other, ConstructionFunctor):
             raise TypeError, "Non-constructive product"
@@ -39,28 +40,57 @@ class ConstructionFunctor(Functor):
     def commutes(self, other):
         return False
 
-class CompositeConstructionFunctor(ConstructionFunctor):
-    def __init__(self, first, second):
-        Functor.__init__(self, first.domain(), second.codomain())
-        self._first = first
-        self._second = second
+    def expand(self):
+        return [self]
+
+
+class CompositConstructionFunctor(ConstructionFunctor):
+
+    def __init__(self, *args):
+        self.all = []
+        for c in args:
+            if isinstance(c, list):
+                self.all += c
+            elif isinstance(c, CompositConstructionFunctor):
+                self.all += c.all
+            else:
+                self.all.append(c)
+        Functor.__init__(self, self.all[0].domain(), self.all[-1].codomain())
 
     def __call__(self, R):
-        return self._second(self._first(R))
+        for c in self.all:
+            R = c(R)
+        return R
 
     def __cmp__(self, other):
-        c = cmp(self._first, other._first)
-        if c == 0:
-            c = cmp(self._second, other._second)
-        return c
+        if isinstance(other, CompositConstructionFunctor):
+            return cmp(self.all, other.all)
+        else:
+            return cmp(type(self), type(other))
+
+    def __mul__(self, other):
+        if isinstance(self, CompositConstructionFunctor):
+            all = self.all + [other]
+        else:
+            all = [self] + other.all
+        return CompositConstructionFunctor(*all)
 
     def __str__(self):
-        return "%s(%s)" % (self._second, self._first)
+        s = "..."
+        for c in self.all:
+            s = "%s(%s)" % (c,s)
+        return s
+
+    def expand(self):
+        return self.all
+
 
 class IdentityConstructionFunctor(ConstructionFunctor):
+
+    rank = -100
+
     def __init__(self):
         Functor.__init__(self, Sets(), Sets())
-        self.rank = -100
     def __call__(self, R):
         return R
     def __mul__(self, other):
@@ -69,37 +99,178 @@ class IdentityConstructionFunctor(ConstructionFunctor):
         else:
             return self
 
+
+
+
 class PolynomialFunctor(ConstructionFunctor):
+
+    rank = 9
+
     def __init__(self, var, multi_variate=False):
         Functor.__init__(self, Rings(), Rings())
         self.var = var
         self.multi_variate = multi_variate
-        self.rank = 9
+
     def __call__(self, R):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
-        if self.multi_variate and (is_MPolynomialRing(R) or is_PolynomialRing(R)):
-            return PolynomialRing(R.base_ring(), (list(R.variable_names()) + [self.var]))
-        else:
-            return PolynomialRing(R, self.var)
+        return PolynomialRing(R, self.var)
+
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
         if c == 0:
             c = cmp(self.var, other.var)
+        elif isinstance(other, MultiPolynomialFunctor):
+            return -cmp(other, self)
         return c
-    def merge(self, other):
-        if self == other:
-            return PolynomialFunctor(self.var, (self.multi_variate or other.multi_variate))
-        elif isinstance(other, LaurentPolynomialFunctor) and self.var == other.var:
-            return LaurentPolynomialFunctor(self.var, (self.multi_variate or other.multi_variate))
 
+    def merge(self, other):
+        if isinstance(other, MultiPolynomialFunctor):
+            return other.merge(self)
+        elif self == other:
+            return self
         else:
             return None
-#    def __str__(self):
-#        return "Poly(%s)" % self.var
+
+    def __str__(self):
+        return "Poly[%s]" % self.var
+
+class MultiPolynomialFunctor(ConstructionFunctor):
+    """
+    A constructor for multivariate polynomial rings.
+    """
+
+    rank = 9
+
+    def __init__(self, vars, term_order):
+        """
+        EXAMPLES:
+            sage: F = sage.categories.pushout.MultiPolynomialFunctor(['x','y'], None)
+            sage: F
+            MPoly[x,y]
+            sage: F(ZZ)
+            Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: F(CC)
+            Multivariate Polynomial Ring in x, y over Complex Field with 53 bits of precision
+        """
+        Functor.__init__(self, Rings(), Rings())
+        self.vars = vars
+        self.term_order = term_order
+
+    def __call__(self, R):
+        """
+        EXAMPLES:
+            sage: R.<x,y,z> = QQ[]
+            sage: F = R.construction()[0]; F
+            MPoly[x,y,z]
+            sage: type(F)
+            <class 'sage.categories.pushout.MultiPolynomialFunctor'>
+            sage: F(ZZ)
+            Multivariate Polynomial Ring in x, y, z over Integer Ring
+            sage: F(RR)
+            Multivariate Polynomial Ring in x, y, z over Real Field with 53 bits of precision
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        return PolynomialRing(R, self.vars)
+
+    def __cmp__(self, other):
+        """
+        EXAMPLES:
+            sage: F = ZZ['x,y,z'].construction()[0]
+            sage: G = QQ['x,y,z'].construction()[0]
+            sage: F == G
+            True
+            sage: G = ZZ['x,y'].construction()[0]
+            sage: F == G
+            False
+        """
+        c = cmp(type(self), type(other))
+        if c == 0:
+            c = cmp(self.vars, other.vars) or cmp(self.term_order, other.term_order)
+        elif isinstance(other, PolynomialFunctor):
+            c = cmp(self.vars, (other.var,))
+        return c
+
+    def __mul__(self, other):
+        """
+        If two MPoly functors are given in a row, form a single MPoly functor
+        with all of the variables.
+
+        EXAMPLES:
+            sage: F = sage.categories.pushout.MultiPolynomialFunctor(['x','y'], None)
+            sage: G = sage.categories.pushout.MultiPolynomialFunctor(['t'], None)
+            sage: G*F
+            MPoly[x,y,t]
+        """
+        if isinstance(other, MultiPolynomialFunctor):
+            if self.term_order != other.term_order:
+                raise TypeError, "Incompatible term orders (%s,%s)." % (self.term_order, other.term_order)
+            if set(self.vars).intersection(other.vars):
+                raise TypeError, "Overlaping variables (%s,%s)" % (self.vars, other.vars)
+            return MultiPolynomialFunctor(other.vars + self.vars, self.term_order)
+        elif isinstance(other, CompositConstructionFunctor) \
+              and isinstance(other.all[-1], MultiPolynomialFunctor):
+            return CompositConstructionFunctor(other.all[:-1], self * other.all[-1])
+        else:
+            return CompositConstructionFunctor(other, self)
+
+    def merge(self, other):
+        """
+        EXAMPLES:
+            sage: F = sage.categories.pushout.MultiPolynomialFunctor(['x','y'], None)
+            sage: G = sage.categories.pushout.MultiPolynomialFunctor(['t'], None)
+            sage: F.merge(G) is None
+            True
+            sage: F.merge(F)
+            MPoly[x,y]
+        """
+        if self == other:
+            return self
+        else:
+            return None
+
+    def expand(self):
+        """
+        EXAMPLES:
+            sage: F = QQ['x,y,z,t'].construction()[0]; F
+            MPoly[x,y,z,t]
+            sage: F.expand()
+            [MPoly[t], MPoly[z], MPoly[y], MPoly[x]]
+
+        Now an actual use case:
+            sage: R.<x,y,z> = ZZ[]
+            sage: S.<z,t> = QQ[]
+            sage: x+t
+            x + t
+            sage: parent(x+t)
+            Multivariate Polynomial Ring in x, y, z, t over Rational Field
+            sage: T.<y,s> = QQ[]
+            sage: x + s
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '+': 'Multivariate Polynomial Ring in x, y, z over Integer Ring' and 'Multivariate Polynomial Ring in y, s over Rational Field'
+            sage: R = PolynomialRing(ZZ, 'x', 500)
+            sage: S = PolynomialRing(GF(5), 'x', 200)
+            sage: R.gen(0) + S.gen(0)
+            2*x0
+        """
+        if len(self.vars) <= 1:
+            return [self]
+        else:
+            return [MultiPolynomialFunctor((x,), self.term_order) for x in reversed(self.vars)]
+
+    def __str__(self):
+        """
+        EXAMPLES:
+            sage: QQ['x,y,z,t'].construction()[0]
+            MPoly[x,y,z,t]
+        """
+        return "MPoly[%s]" % ','.join(self.vars)
+
 
 class MatrixFunctor(ConstructionFunctor):
+
+    rank = 10
+
     def __init__(self, nrows, ncols, is_sparse=False):
 #        if nrows == ncols:
 #            Functor.__init__(self, Rings(), RingModules()) # takes a basering
@@ -109,7 +280,6 @@ class MatrixFunctor(ConstructionFunctor):
         self.nrows = nrows
         self.ncols = ncols
         self.is_sparse = is_sparse
-        self.rank = 10
     def __call__(self, R):
         from sage.matrix.matrix_space import MatrixSpace
         return MatrixSpace(R, self.nrows, self.ncols, sparse=self.is_sparse)
@@ -125,11 +295,13 @@ class MatrixFunctor(ConstructionFunctor):
             return MatrixFunctor(self.nrows, self.ncols, self.is_sparse and other.is_sparse)
 
 class LaurentPolynomialFunctor(ConstructionFunctor):
+
+    rank = 9
+
     def __init__(self, var, multi_variate=False):
         Functor.__init__(self, Rings(), Rings())
         self.var = var
         self.multi_variate = multi_variate
-        self.rank = 9
     def __call__(self, R):
         from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, is_LaurentPolynomialRing
         if self.multi_variate and is_LaurentPolynomialRing(R):
@@ -149,6 +321,9 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
 
 
 class VectorFunctor(ConstructionFunctor):
+
+    rank = 10 # ranking of functor, not rank of module
+
     def __init__(self, n, is_sparse=False, inner_product_matrix=None):
 #        if nrows == ncols:
 #            Functor.__init__(self, Rings(), RingModules()) # takes a basering
@@ -158,7 +333,6 @@ class VectorFunctor(ConstructionFunctor):
         self.n = n
         self.is_sparse = is_sparse
         self.inner_product_matrix = inner_product_matrix
-        self.rank = 10 # ranking of functor, not rank of module
     def __call__(self, R):
         from sage.modules.free_module import FreeModule
         return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix)
@@ -173,10 +347,11 @@ class VectorFunctor(ConstructionFunctor):
         else:
             return VectorFunctor(self.n, self.is_sparse and other.is_sparse)
 
+
 class SubspaceFunctor(ConstructionFunctor):
+    rank = 11 # ranking of functor, not rank of module
     def __init__(self, basis):
         self.basis = basis
-        self.rank = 11 # ranking of functor, not rank of module
     def __call__(self, ambient):
         return ambient.span_of_basis(self.basis)
     def __cmp__(self, other):
@@ -192,17 +367,22 @@ class SubspaceFunctor(ConstructionFunctor):
 
 
 class FractionField(ConstructionFunctor):
+
+    rank = 5
+
     def __init__(self):
         Functor.__init__(self, Rings(), Fields())
-        self.rank = 5
     def __call__(self, R):
         return R.fraction_field()
 
+
 class LocalizationFunctor(ConstructionFunctor):
+
+    rank = 6
+
     def __init__(self, t):
         Functor.__init__(self, Rings(), Rings())
         self.t = t
-        self.rank = 6
     def __call__(self, R):
         return R.localize(t)
     def __cmp__(self, other):
@@ -211,13 +391,16 @@ class LocalizationFunctor(ConstructionFunctor):
             c = cmp(self.t, other.t)
         return c
 
+
 class CompletionFunctor(ConstructionFunctor):
+
+    rank = 4
+
     def __init__(self, p, prec, extras=None):
         Functor.__init__(self, Rings(), Rings())
         self.p = p
         self.prec = prec
         self.extras = extras
-        self.rank = 4
     def __call__(self, R):
         return R.completion(self.p, self.prec, self.extras)
     def __cmp__(self, other):
@@ -238,16 +421,23 @@ class CompletionFunctor(ConstructionFunctor):
         else:
             return None
 
+
 class QuotientFunctor(ConstructionFunctor):
-    def __init__(self, I):
+
+    rank = 7
+
+    def __init__(self, I, as_field=False):
         Functor.__init__(self, Rings(), Rings()) # much more general...
         self.I = I
-        self.rank = 7
+        self.as_field = as_field
     def __call__(self, R):
         I = self.I
         if I.ring() != R:
             I.base_extend(R)
-        return R.quo(I)
+        Q = R.quo(I)
+        if self.as_field and hasattr(Q, 'field'):
+            Q = Q.field()
+        return Q
     def __cmp__(self, other):
         c = cmp(type(self), type(other))
         if c == 0:
@@ -267,6 +457,7 @@ class QuotientFunctor(ConstructionFunctor):
             raise TypeError, "Trivial quotient intersection."
         return QuotientFunctor(gcd)
 
+
 class AlgebraicExtensionFunctor(ConstructionFunctor):
     def __init__(self, poly, name, elt=None):
         Functor.__init__(self, Rings(), Rings())
@@ -282,6 +473,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             c = cmp(self.poly, other.poly)
         return c
 
+
 class AlgebraicClosureFunctor(ConstructionFunctor):
     def __init__(self):
         Functor.__init__(self, Rings(), Rings())
@@ -292,10 +484,15 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
         # Algebraic Closure subsumes Algebraic Extension
         return self
 
+
 def BlackBoxConstructionFunctor(ConstructionFunctor):
+
+    rank = 100
+
     def __init__(self, box):
+        if not callable(box):
+            raise TypeError, "input must be callable"
         self.box = box
-        self.rank = 100
     def __call__(self, R):
         return box(R)
     def __cmp__(self, other):
@@ -431,22 +628,23 @@ def pushout(R, S):
     Rc = [c[0] for c in R_tower[1:len(Rs)+1]]
     Sc = [c[0] for c in S_tower[1:len(Ss)+1]]
 
+    Rc = sum([c.expand() for c in Rc], [])
+    Sc = sum([c.expand() for c in Sc], [])
+
+    all = IdentityConstructionFunctor()
+
     while len(Rc) > 0 or len(Sc) > 0:
         # print Z
         # if we are out of functors in either tower, there is no ambiguity
         if len(Sc) == 0:
-            c = Rc.pop()
-            Z = c(Z)
+            all = Rc.pop() * all
         elif len(Rc) == 0:
-            c = Sc.pop()
-            Z = c(Z)
+            all = Sc.pop() * all
         # if one of the functors has lower rank, do it first
         elif Rc[-1].rank < Sc[-1].rank:
-            c = Rc.pop()
-            Z = c(Z)
+            all = Rc.pop() * all
         elif Sc[-1].rank < Rc[-1].rank:
-            c = Sc.pop()
-            Z = c(Z)
+            all = Sc.pop() * all
         else:
             # the ranks are the same, so things are a bit subtler
             if Rc[-1] == Sc[-1]:
@@ -457,7 +655,7 @@ def pushout(R, S):
                 cS = Sc.pop()
                 c = cR.merge(cS) or cS.merge(cR)
                 if c:
-                    Z = c(Z)
+                    all = c * all
                 else:
                     raise TypeError, "Incompatable Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS)
             else:
@@ -469,28 +667,24 @@ def pushout(R, S):
                     if Sc[-1] in Rc:
                         raise TypeError, "Ambiguous Base Extension"
                     else:
-                        c = Sc.pop()
-                        Z = c(Z)
+                        all = Sc.pop() * all
                 elif Sc[-1] in Rc:
-                    c = Rc.pop();
-                    Z = c(Z)
+                    all = Rc.pop() * all
                 # If, perchance, the two functors commute, then we may do them in any order.
                 elif Rc[-1].commutes(Sc[-1]):
-                    c = Rc.pop()
-                    Z = c(Z)
-                    c = Sc.pop()
-                    Z = c(Z)
+                    all = Sc.pop() * Rc.pop() * all
                 else:
                     # try and merge (default merge is failure for unequal functors)
                     cR = Rc.pop()
                     cS = Sc.pop()
                     c = cR.merge(cS) or cS.merge(cR)
                     if c is not None:
-                        Z = c(Z)
+                        all = c * all
                     else:
                         # Otherwise, we cannot proceed.
                         raise TypeError, "Ambiguous Base Extension"
-    return Z
+
+    return all(Z)
 
 
 

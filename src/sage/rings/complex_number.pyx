@@ -142,7 +142,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             mpfr_set(self.__re, <mpfr_t> rr.value, rnd)
             mpfr_set(self.__im, <mpfr_t> ii.value, rnd)
         except TypeError:
-            raise TypeError, "unable to coerce to a ComplexNumber"
+            raise TypeError, "unable to coerce to a ComplexNumber: %s" % type(real)
 
 
     def  __dealloc__(self):

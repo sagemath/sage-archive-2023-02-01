@@ -118,18 +118,6 @@ cdef bint guess_pass_parent(parent, element_constructor):
 cdef object all_parents = [] #weakref.WeakKeyDictionary()
 
 
-## def make_parent_v0(_class, _dict, has_coerce_map_from):
-##     """
-##     This should work for any Python class deriving from this, as long
-##     as it doesn't implement some screwy __new__() method.
-##     """
-##     cdef Parent new_object
-##     new_object = _class.__new__(_class)
-##     if not _dict is None:
-##         new_object.__dict__ = _dict
-##     new_object._has_coerce_map_from = has_coerce_map_from
-##     return new_object
-
 cdef class Parent(category_object.CategoryObject):
     """
     Parents are the SAGE/mathematical analogues of container objects
@@ -732,9 +720,7 @@ cdef class Parent(category_object.CategoryObject):
         Returns the default conversion map based on the data provided to
         \code{_populate_coercion_lists_()}.
 
-        This called by the default \code{_coerce_map_from_()} when \code{has_coerce_map_from()}
-        returns \code{True} and can be useful for implementing one own's
-        \code{_coerce_map_from_()}.
+        This called when \code{_coerce_map_from_()} returns \code{True}.
 
         If a \code{convert_method_name} is provided, it creates a \code{NamedConvertMap}, otherwise
         it creates a \code{DefaultConvertMap} or \code{DefaultConvertMap_unique} depending
@@ -812,8 +798,9 @@ cdef class Parent(category_object.CategoryObject):
         for R in v:
             if R is S:
                 return self.coerce_map_from(R)
-            if R.has_coerce_map_from(S):
-                return self.coerce_map_from(R) * R.coerce_map_from(S)
+            connecting = R.coerce_map_from(S)
+            if connecting is not None:
+                return self.coerce_map_from(R) * connecting
 
     cpdef bint has_coerce_map_from(self, S) except -2:
         """
@@ -836,50 +823,18 @@ cdef class Parent(category_object.CategoryObject):
             if unique_parent_warnings:
                 print "Warning: non-unique parents %s"%(type(S))
             return True
-        if self._coerce_from_hash is None:
-            self.init_coerce()
-        if self._coerce_from_hash.has_key(S):
-            return self._coerce_from_hash[S] is not None
-        if PY_TYPE_CHECK(S, Parent):
-            if (<Parent>S)._embedding is not None and (<Parent>S)._embedding.codomain() is self:
-                return True
-        return self._has_coerce_map_from_(S)
-
-    cpdef bint _has_coerce_map_from_(self, S) except -2:
-        """
-        Override this method to specify coercions beyond those
-        specified in coerce_list.
-
-        EXAMPLES:
-            sage: R.<x> = ZZ[]
-            sage: S.<y> = R[]
-            sage: S._has_coerce_map_from_(ZZ)
-            True
-        """
-        # We first check (using some cython trickery) to see if coerce_map_from_ has been overridden.
-        # If it has, then we can just (by default) call it and see if it returns None or not.
-        # Otherwise the default would call this function again, so we we return False by default
-        # (so that no canonical coercions exist)
-        if HAS_DICTIONARY(self):
-            method = (<object>self)._coerce_map_from_
-            if PyCFunction_Check(method) and \
-                (<PyMethodDescrObject *>(<object>Parent).coerce_map_from).d_method.ml_meth == PyCFunction_GET_FUNCTION(method):
-                return False
-        elif Parent._coerce_map_from_ == self._coerce_map_from_:
-            return False
-        # At this point we are guaranteed coerce_map_from is actually implemented
         return self.coerce_map_from(S) is not None
 
     cpdef _coerce_map_from_(self, S):
         """
-        Override this method to specify coercions beyond those
-        specified in coerce_list.
+        Override this method to specify coercions beyond those specified
+        in coerce_list.
 
-        This method must return a Map object going from S to self,
-        or None if no such coercion exists.
+        If no such coercion exists, return None or False. Otherwise, it may
+        return either an actual Map to use for the coercion, a callable
+        (in which case it will be wrapped in a Map), or True (in which case
+        a generic map will be provided).
         """
-        if self.has_coerce_map_from(S):
-            return self._generic_convert_map(S)
         return None
 
     cpdef coerce_map_from(self, S):
@@ -960,26 +915,40 @@ cdef class Parent(category_object.CategoryObject):
         if PY_TYPE_CHECK(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:
                 return (<Parent>S)._embedding
-            connecting = self._coerce_map_from_((<Parent>S)._embedding.codomain())
+            connecting = self.coerce_map_from((<Parent>S)._embedding.codomain())
             if connecting is not None:
                 return (<Parent>S)._embedding.post_compose(connecting)
 
-        cdef map.Map mor = self._coerce_map_from_(S)
-        if mor is not None:
+        cdef map.Map mor
+        user_provided_mor = self._coerce_map_from_(S)
+
+        if user_provided_mor is False:
+            user_provided_mor = None
+
+        elif user_provided_mor is not None:
+
             from sage.categories.map import Map
-            from coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap
-            if not PY_TYPE_CHECK(mor, Map):
-                raise TypeError, "_coerce_map_from_ must return None or an explicit Map"
-            elif (PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap) or
+            from coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap, CallableConvertMap
+
+            if user_provided_mor is True:
+                mor = self._generic_convert_map(S)
+            elif PY_TYPE_CHECK(user_provided_mor, Map):
+                mor = <map.Map>user_provided_mor
+            elif callable(user_provided_mor):
+                mor = CallableConvertMap(user_provided_mor)
+            else:
+                raise TypeError, "_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor))
+
+            if (PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap) or
                   PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap_unique) or
                   PY_TYPE_CHECK_EXACT(mor, NamedConvertMap)) and not mor._force_use:
                 # If there is something better in the list, try to return that instead
-                # This is so, for example, has_coerce_map_from can return True but still
+                # This is so, for example, _coerce_map_from_ can return True but still
                 # take advantage of the _populate_coercion_lists_ data.
                 best_mor = mor
             else:
                 return mor
-        from sage.categories.map import Map
+
         from sage.categories.homset import Hom
 
         cdef int num_paths = 1 # this is the number of paths we find before settling on the best (the one with lowest coerce_cost).
@@ -1036,6 +1005,7 @@ cdef class Parent(category_object.CategoryObject):
             return mor
 
     cdef discover_convert_map_from(self, S):
+
         cdef map.Map mor = self.coerce_map_from(S)
         if mor is not None:
             return mor
@@ -1050,9 +1020,17 @@ cdef class Parent(category_object.CategoryObject):
         except NotImplementedError:
             pass
 
-        mor = self._convert_map_from_(S)
-        if mor is not None:
-            return mor
+
+        user_provided_mor = self._convert_map_from_(S)
+
+        if user_provided_mor is not None:
+            if PY_TYPE_CHECK(user_provided_mor, map.Map):
+                return user_provided_mor
+            elif callable(user_provided_mor):
+                from coerce_maps import CallableConvertMap
+                return CallableConvertMap(user_provided_mor)
+            else:
+                raise TypeError, "_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor))
 
         if not PY_TYPE_CHECK(S, type) and not PY_TYPE_CHECK(S, Parent):
             # Sequences is used as a category and a "Parent"

@@ -154,6 +154,9 @@ cdef class NamedConvertMap(Map):
         return e
 
 
+# Perhaps this could be a method, extracting (<PyMethodDescrObject *>(<object>Parent).coerce_map_from).d_method.ml_meth and/or PyCFunction_GET_FUNCTION(method)
+# and constructing a CCallableConvertMap_class if it is bound ot the codomain.
+
 cdef class CallableConvertMap(Map):
     cdef bint _parent_as_first_arg
     cdef _func

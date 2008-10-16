@@ -27,7 +27,6 @@ cdef class Parent(category_object.CategoryObject):
 
     # returns whether or not there is a Morphism from S to self
     cpdef bint has_coerce_map_from(self, S) except -2
-    cpdef bint _has_coerce_map_from_(self, S) except -2
 
     # returns a Morphism from S to self, or None
     cpdef coerce_map_from(self, S)

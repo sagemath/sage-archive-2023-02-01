@@ -47,6 +47,9 @@ def is_ParentWithBase(x):
     return bool(PY_TYPE_CHECK(x, ParentWithBase))
 
 cdef class ParentWithBase(parent_old.Parent):
+    """
+    This class is being deprecated, see parent.Parent for the new model.
+    """
     def __init__(self, base, coerce_from=[], actions=[], embeddings=[]):
         # TODO: SymbolicExpressionRing has base RR, which makes this bad
 #        print type(self), "base", base, coerce_from

@@ -32,14 +32,14 @@ AlgebraicNumber = None
 AlgebraicReal = None
 AA = None
 QQbar = None
-CLF = RLF = None
+CDF = CLF = RLF = None
 def late_import():
     global NumberFieldElement_quadratic
     global AlgebraicNumber_base
     global AlgebraicNumber
     global AlgebraicReal
     global AA, QQbar
-    global CLF, RLF
+    global CLF, RLF, CDF
     if NumberFieldElement_quadratic is None:
         import sage.rings.number_field.number_field_element_quadratic as nfeq
         NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
@@ -50,6 +50,7 @@ def late_import():
         AA = sage.rings.qqbar.AA
         QQbar = sage.rings.qqbar.QQbar
         from real_lazy import CLF, RLF
+        from complex_double import CDF
 
 def is_ComplexField(x):
     return isinstance(x, ComplexField_class)
@@ -114,7 +115,7 @@ class ComplexField_class(field.Field):
         sage: C(S.gen())
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce to a ComplexNumber
+        TypeError: unable to coerce to a ComplexNumber: <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>
 
     This illustrates precision.
         sage: CC = ComplexField(10); CC(1/3, 2/3)
@@ -251,10 +252,10 @@ class ComplexField_class(field.Field):
         if RR.has_coerce_map_from(S):
             return complex_number.RRtoCC(RR, self) * RR.coerce_map_from(S)
         if is_ComplexField(S) and S._prec >= self._prec:
-            return self._generic_convert_map(S)
+            return True
         late_import()
-        if S == AA or S == QQbar or S is CLF or S is RLF:
-            return self._generic_convert_map(S)
+        if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
+            return True
         return self._coerce_map_via([CLF], S)
 
     def _repr_(self):

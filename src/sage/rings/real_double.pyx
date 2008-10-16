@@ -223,8 +223,9 @@ cdef class RealDoubleField_class(Field):
         from real_mpfr import RR, RealField
         if S in [int, float, ZZ, QQ, RLF] or isinstance(S, RealField) and S.prec() >= 53:
             return ToRDF(S)
-        elif RR.has_coerce_map_from(S):
-            return ToRDF(RR) * RR.coerce_map_from(S)
+        connecting = RR.coerce_map_from(S)
+        if connecting is not None:
+            return ToRDF(RR) * connecting
 
     def prec(self):
         """

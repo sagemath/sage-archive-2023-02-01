@@ -23,6 +23,7 @@ from   sage.structure.sage_object import SageObject, load
 from   sage.misc.misc       import (alarm, cancel_alarm,
                                     tmp_dir, pad_zeros, cputime)
 from   sage.misc.package   import is_package_installed
+from   sage.version        import version
 # Sage Notebook
 import css          # style
 import js           # javascript
@@ -1387,13 +1388,14 @@ class Notebook(SageObject):
         return s
 
     def html_banner(self):
+        ver=version
         s = """
         <div class="banner">
-        <table width="100%"><tr><td>
+        <table width="100%%"><tr><td>
         <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="Sage"> Notebook</a></td><td><span class="ping" id="ping">Searching for Sage server...</span></td>
-        </tr></table>
+        </tr><tr><td style="font-size:xx-small; text-indent:13px; color:black">Version %s</td><td></td></tr></table>
         </div>
-        """
+        """%ver
         return s
 
     def html_search(self, search, typ):

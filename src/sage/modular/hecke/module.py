@@ -519,6 +519,22 @@ class HeckeModule_free_module(HeckeModule_generic):
             self.__basis = self.gens()
         return self.__basis
 
+    def coordinate_vector(self, x):
+        """
+        Write x as a vector with respect to the basis given by
+        self.basis().
+
+        EXAMPLES:
+            sage: S = ModularSymbols(11,2).cuspidal_submodule()
+            sage: S.0
+            (1,8)
+            sage: S.basis()
+            ((1,8), (1,9))
+            sage: S.coordinate_vector(S.0)
+            (1, 0)
+        """
+        return self.free_module().coordinate_vector(x.element())
+
     def decomposition(self, bound=None, anemic=True, height_guess=1,
                       proof=None):
         """
@@ -911,6 +927,25 @@ class HeckeModule_free_module(HeckeModule_generic):
            ModularSymbols self -- Hecke equivariant space of
                                   modular symbols
            int n -- an integer at least 1.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(11,2)
+            sage: T = M.hecke_operator(3) ; T
+            Hecke operator T_3 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
+            sage: T.matrix()
+            [ 4  0 -1]
+            [ 0 -1  0]
+            [ 0  0 -1]
+            sage: T(M.0)
+            4*(1,0) - (1,9)
+            sage: S = M.cuspidal_submodule()
+            sage: T = S.hecke_operator(3) ; T
+            Hecke operator T_3 on Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
+            sage: T.matrix()
+            [-1  0]
+            [ 0 -1]
+            sage: T(S.0)
+            -(1,8)
         """
         return self.hecke_algebra().hecke_operator(n)
 

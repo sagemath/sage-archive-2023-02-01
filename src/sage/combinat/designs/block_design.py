@@ -41,49 +41,13 @@ TODO: Implement DerivedDesign, ComplementaryDesign, Hadamard3Design
 
 import types
 from sage.matrix.matrix_space import MatrixSpace
+from sage.modules.free_module import VectorSpace
 from sage.rings.integer_ring import ZZ
 from sage.rings.arith import binomial, integer_floor
 from sage.rings.finite_field import FiniteField
 from sage.combinat.designs.incidence_structures import IncidenceStructure, IncidenceStructureFromMatrix
 
 ###  utility functions  -------------------------------------------------------
-
-def subspaces_of_vs(F,n,k):
-    """
-    Computes the subsppaces of F^n of dimension k (k<=n),
-    if F is a finite field.
-
-    EXAMPLES:
-        sage: F = GF(2); n = 2; k = 1
-        sage: from sage.combinat.designs.block_design import subspaces_of_vs
-        sage: subspaces_of_vs(F,n,k)
-        [Vector space of degree 2 and dimension 1 over Finite Field of size 2
-        Basis matrix:
-        [0 1],
-         Vector space of degree 2 and dimension 1 over Finite Field of size 2
-        Basis matrix:
-        [1 0],
-         Vector space of degree 2 and dimension 1 over Finite Field of size 2
-        Basis matrix:
-        [1 1]]
-
-    """
-    from sage.interfaces.gap import gap, GapElement
-    from sage.interfaces.gap import gfq_gap_to_sage
-    q = F.order()
-    V = gap("GaloisField(%s)^%s"%(q,n))
-    S = V.Subspaces(k).AsSet()
-    MS = MatrixSpace(F,k,n)
-    L = []
-    for s in S:
-        B = s.Basis()
-        rows = []
-        for b in B:
-            r = [gfq_gap_to_sage(b[i],F) for i in range(1,n+1)]
-            rows.append(r)
-        M = MS(rows)
-        L.append(M.row_space())
-    return L
 
 def tdesign_params(t, v, k, L):
     """
@@ -124,12 +88,12 @@ def ProjectiveGeometryDesign(n, d, F, method=None):
 
     """
     q = F.order()
-    from sage.combinat.designs.block_design import subspaces_of_vs
     from sage.interfaces.gap import gap, GapElement
     from sage.sets.set import Set
     if method == None:
-        points = subspaces_of_vs(F,n+1,1)
-        flats = subspaces_of_vs(F,n+1,d+1)
+        V = VectorSpace(F, n+1)
+        points = list(V.subspaces(1))
+        flats = list(V.subspaces(d+1))
         blcks = []
         for p in points:
             b = []

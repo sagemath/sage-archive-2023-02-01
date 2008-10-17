@@ -2720,6 +2720,70 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return self.submodule(gens, check=check, already_echelonized=already_echelonized)
 
+    def subspaces(self, dim):
+        """
+        Iterate over all subspaces of dimension dim.
+
+        INPUT:
+            dim -- int, dimension of subspaces to be generated
+
+        EXAMPLE:
+            sage: V = VectorSpace(GF(3), 5)
+            sage: len(list(V.subspaces(0)))
+            1
+            sage: len(list(V.subspaces(1)))
+            121
+            sage: len(list(V.subspaces(2)))
+            1210
+            sage: len(list(V.subspaces(3)))
+            1210
+            sage: len(list(V.subspaces(4)))
+            121
+            sage: len(list(V.subspaces(5)))
+            1
+
+            sage: V = VectorSpace(GF(3), 5)
+            sage: V = V.subspace([V([1,1,0,0,0]),V([0,0,1,1,0])])
+            sage: list(V.subspaces(1))
+            [Vector space of degree 5 and dimension 1 over Finite Field of size 3
+            Basis matrix:
+            [1 1 0 0 0],
+             Vector space of degree 5 and dimension 1 over Finite Field of size 3
+            Basis matrix:
+            [1 1 1 1 0],
+             Vector space of degree 5 and dimension 1 over Finite Field of size 3
+            Basis matrix:
+            [1 1 2 2 0],
+             Vector space of degree 5 and dimension 1 over Finite Field of size 3
+            Basis matrix:
+            [0 0 1 1 0]]
+
+        """
+        if not self.base_ring().is_finite():
+            raise RuntimeError("Base ring must be finite.")
+        # First, we select which columns will be pivots:
+        from sage.combinat.subset import Subsets
+        BASE = self.basis_matrix()
+        for pivots in Subsets(range(self.dimension()), dim):
+            MAT = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), dim,
+                self.dimension(), sparse = self.is_sparse())()
+            free_positions = []
+            for i in range(dim):
+                MAT[i, pivots[i]] = 1
+                for j in range(pivots[i]+1,self.dimension()):
+                    if j not in pivots:
+                        free_positions.append((i,j))
+            # Next, we fill in those entries that are not
+            # determined by the echelon form alone:
+            num_free_pos = len(free_positions)
+            ENTS = VectorSpace(self.base_ring(), num_free_pos)
+            for v in ENTS:
+                for k in range(num_free_pos):
+                    MAT[free_positions[k]] = v[k]
+                # Finally, we have to multiply by the basis matrix
+                # to take corresponding linear combinations of the basis
+                yield self.subspace((MAT*BASE).rows())
+
     def subspace_with_basis(self, gens, check=True, already_echelonized=False):
         """
         Same as \code{self.submodule_with_basis(...)}.

@@ -2071,7 +2071,7 @@ cdef class FiniteFieldElement(FieldElement):
         return self.minpoly(var)
 
     def vector(self, reverse=False):
-        """
+        r"""
         See \code{_vector_}.
 
         EXAMPLE:
@@ -2134,7 +2134,7 @@ cdef class FiniteFieldElement(FieldElement):
         return k.vector_space()(ret)
 
     def matrix(self, reverse=False):
-        """
+        r"""
         See \code{_matrix_}.
 
         EXAMPLE:

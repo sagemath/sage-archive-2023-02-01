@@ -1,5 +1,5 @@
 r"""
-SAGE version and banner info
+Sage version and banner info
 """
 
 #*****************************************************************************
@@ -20,7 +20,7 @@ SAGE version and banner info
 
 def version(clone = False):
     """
-    Return the version of SAGE.
+    Return the version of Sage.
 
     INPUT:
        nothing
@@ -29,15 +29,15 @@ def version(clone = False):
 
     EXAMPLES:
        sage: version()
-       'SAGE Version ..., Release Date: ...'
+       'Sage Version ..., Release Date: ...'
        sage: version(clone=True)
-       ('SAGE Version ..., Release Date: ...',
+       ('Sage Version ..., Release Date: ...',
         'Mercurial clone branch: ...')
     """
     import os
     branch = os.popen("ls -l $SAGE_ROOT/devel/sage").read().split()[-1][5:]
     import sage.version
-    v = 'SAGE Version %s, Release Date: %s'%(sage.version.version, sage.version.date)
+    v = 'Sage Version %s, Release Date: %s'%(sage.version.version, sage.version.date)
     if clone:
         return v,"Mercurial clone branch: %s"%branch
     return v

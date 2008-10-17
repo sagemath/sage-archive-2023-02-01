@@ -335,7 +335,7 @@ class Sage(Expect):
         EXAMPLES:
             sage: sage0.console() #not tested
             ----------------------------------------------------------------------
-            | SAGE Version ..., Release Date: ...                                |
+            | Sage Version ..., Release Date: ...                                |
             | Type notebook() for the GUI, and license() for information.        |
             ----------------------------------------------------------------------
             ...
@@ -346,7 +346,7 @@ class Sage(Expect):
         """
         EXAMPLES:
             sage: sage0.version()
-            'SAGE Version ..., Release Date: ...'
+            'Sage Version ..., Release Date: ...'
             sage: sage0.version() == version()
             True
         """
@@ -473,7 +473,7 @@ def sage0_console():
     EXAMPLES:
         sage: sage0_console() #not tested
         ----------------------------------------------------------------------
-        | SAGE Version ..., Release Date: ...                                |
+        | Sage Version ..., Release Date: ...                                |
         | Type notebook() for the GUI, and license() for information.        |
         ----------------------------------------------------------------------
         ...

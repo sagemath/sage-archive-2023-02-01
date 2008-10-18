@@ -1503,7 +1503,7 @@ class EmptyTrash(resource.Resource):
             sage: E = sage.server.notebook.twist.EmptyTrash('sage'); E
             <sage.server.notebook.twist.EmptyTrash object at ...>
             sage: E.render(None)
-            <twisted.web2.http.Response code=200, streamlen=603>
+            <twisted.web2.http.Response code=200, streamlen=...>
 
         Finally we verify that the trashed worksheet is gone:
             sage: n.worksheet_names()

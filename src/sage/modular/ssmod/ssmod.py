@@ -580,7 +580,38 @@ def supersingular_j(FF):
     return FF(j_invss)
 
 class SupersingularModule(hecke.HeckeModule_free_module):
+    r"""
+    The module of supersingular points in a given characteristic, with
+    given level structure.
+
+    The characteristic must not divide the level.
+
+    NOTE: Currently, only level 1 is implemented.
+
+    EXAMPLES:
+        sage: S = SupersingularModule(17)
+        sage: S
+        Module of supersingular points on X_0(1)/F_17 over Integer Ring
+        sage: S = SupersingularModule(16)
+        Traceback (most recent call last):
+        ...
+        ValueError: the argument prime must be a prime number
+        sage: S = SupersingularModule(prime=17, level=34)
+        Traceback (most recent call last):
+        ...
+        ValueError: the argument level must be coprime to the argument prime
+        sage: S = SupersingularModule(prime=17, level=5)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: supersingular modules of level > 1 not yet implemented
+    """
     def __init__(self, prime=2, level=1, base_ring=rings.IntegerRing()):
+        if not prime.is_prime():
+            raise ValueError, "the argument prime must be a prime number"
+        if prime.divides(level):
+            raise ValueError, "the argument level must be coprime to the argument prime"
+        if level != 1:
+            raise NotImplementedError, "supersingular modules of level > 1 not yet implemented"
         self.__prime = prime
         self.__finite_field = rings.FiniteField(prime**2,'a')
         self.__level = level
@@ -594,9 +625,8 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
     def dimension(self):
         r"""
-        This function returns the dimension of the space of modular
-        forms of weight 2 and level equal to the level associated to
-        self.
+        Return the dimension of the space of modular forms of weight 2
+        and level equal to the level associated to self.
 
         INPUT:
             self -- SupersingularModule object

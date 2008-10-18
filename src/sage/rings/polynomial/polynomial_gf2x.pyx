@@ -122,7 +122,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
 
         cdef GF2X_c _f = (<Polynomial_GF2X>self).x
         cdef GF2X_c _g = (<Polynomial_GF2X>g).x
-        cdef GF2X_c gpow, tt
+        cdef GF2X_c gpow, g2, tt
         GF2X_conv_long(gpow, 1)
 
         maxlength = GF2X_NumBits(_f)
@@ -138,10 +138,30 @@ cdef class Polynomial_GF2X(Polynomial_template):
         G = <Matrix_mod2_dense>Matrix(GF(2), k, n)
 
         # first compute g^j mod h, 2 <= j < k
-        for j in range(0, k):
+        # first deal with j=0
+        for i from 0 <= i < GF2X_NumBits(gpow):
+            mzd_write_bit(G._entries, 0, i, GF2_conv_to_long(GF2X_coeff(gpow, i)))
+        # precompute g^2
+        GF2X_SqrMod_pre(g2, _g, modulus)
+        gpow = _g
+        for j in range(1, k, 2):
+            if j > 1:
+                GF2X_MulMod_pre(gpow, gpow, g2, modulus) # gpow = g^j
             for i from 0 <= i < GF2X_NumBits(gpow):
                 mzd_write_bit(G._entries, j, i, GF2_conv_to_long(GF2X_coeff(gpow, i)))
-            #gpow = (gpow * g) % h # we'll need g^k below
+            # we now process 2j, 4j, 8j, ... by squaring each time
+            if 2*j < k:
+                tt = gpow
+                jj = j
+                while 2*jj < k:
+                   GF2X_SqrMod_pre(tt, tt, modulus)
+                   jj = 2*jj
+                   for i from 0 <= i < GF2X_NumBits(tt):
+                       mzd_write_bit(G._entries, jj, i, GF2_conv_to_long(GF2X_coeff(tt, i)))
+        # we need that gpow = g^k at the end
+        if k % 2 == 1: # k is odd, last j is k-2
+            GF2X_MulMod_pre(gpow, gpow, g2, modulus)
+        else:          # k is even, last j is k-1
             GF2X_MulMod_pre(gpow, gpow, _g, modulus)
         verbose("G %d x %d %5.3f s"%(G.nrows(), G.ncols(),cputime(t)),level=1)
 

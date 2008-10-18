@@ -119,3 +119,4 @@ version.py
 sage/rings/complex_double.h
 sage/rings/complex_double_api.h
 sage/misc/allocator.h
+sage/symbolic/pynac.h

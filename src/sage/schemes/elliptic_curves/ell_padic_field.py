@@ -24,6 +24,7 @@ from ell_field import EllipticCurve_field
 import ell_point
 from sage.rings.all import PowerSeriesRing, PolynomialRing, IntegerModRing, ZZ, QQ
 from sage.misc.functional import ceil, log
+from sage.libs.pari.all import pari
 
 # Elliptic curves are very different than genus > 1 hyperelliptic curves,
 # there is an "is a" relationship here, and common implementation with regard
@@ -38,6 +39,15 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
     Elliptic curve over a padic field.
     """
     def __init__(self, x, y=None):
+        """
+        Constructor from [a1,a2,a3,a4,a6] or [a4,a6].
+        EXAMPLES:
+        sage: Qp=pAdicField(17)
+        sage: E=EllipticCurve(Qp,[2,3]); E
+        Elliptic Curve defined by y^2  = x^3 + (2+O(17^20))*x + (3+O(17^20)) over 17-adic Field with capped relative precision 20
+        sage: E == loads(dumps(E))
+        True
+        """
         if y is None:
             if isinstance(x, list):
                 ainvs = x
@@ -59,18 +69,36 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
         self._genus = 1
 
     def _pari_(self):
+        """
+        Convert the elliptic curve to Pari. It requires the p-adic j-valuation
+        to be negative, i.e., the j-valuation must not be a p-adic integer.
+        EXAMPLES:
+        sage: Qp=pAdicField(5, prec=3)
+        sage: E=EllipticCurve(Qp,[3, 4])
+        sage: E._pari_()
+        [O(5^3), O(5^3), O(5^3), 3 + O(5^3), 4 + O(5^3), O(5^3), 1 + 5 + O(5^3), 1 + 3*5 + O(5^3), 1 + 3*5 + 4*5^2 + O(5^3), 1 + 5 + 4*5^2 + O(5^3), 4 + 3*5 + 5^2 + O(5^3), 2*5 + 4*5^2 + O(5^3), 3*5^-1 + O(5), [4 + 4*5 + 4*5^2 + O(5^3)], 1 + 2*5 + 4*5^2 + O(5^3), 1 + 5 + 4*5^2 + O(5^3), 2*5 + 4*5^2 + O(5^3), 3 + 3*5 + 3*5^2 + O(5^3), 0]
+        sage: E.j_invariant()
+        3*5^-1 + O(5)
+        sage: E=EllipticCurve(Qp,[1, 1])
+        sage: E.j_invariant() # the j-invariant is a p-adic integer
+        2 + 4*5^2 + O(5^3)
+        sage: E._pari_()
+        Traceback (most recent call last):
+        ...
+        PariError:  (8)
+        """
         try:
             return self.__pari
         except AttributeError:
             pass
         F = self.base_ring()
-        self.__pari = pari('ellinit(%s,%s,%s,%s,%s)'%tuple([b._pari_() for b in self.ainvs()]))
+        self.__pari = pari('ellinit([%s,%s,%s,%s,%s])'%tuple([b._pari_() for b in self.ainvs()]))
         return self.__pari
 
 
     def frobenius(self, P=None):
         """
-        Returns the forbenius as a function on the group of points of
+        Returns the Frobenius as a function on the group of points of
         this elliptic curve.
 
         EXAMPLE:
@@ -96,6 +124,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
             f = x*x*x + a2*x*x + a4*x + a6
             h = (f(x**p) - f**p)
 
+            # internal function: I don't know how to doctest it...
             def _frob(P):
                 x0 = P[0]
                 y0 = P[1]

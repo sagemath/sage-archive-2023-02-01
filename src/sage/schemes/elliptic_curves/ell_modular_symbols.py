@@ -147,7 +147,7 @@ class ModularSymbol(SageObject):
 
     def elliptic_curve(self):
         """
-        Return the elliptic curve of this modular symbol
+        Return the elliptic curve of this modular symbol.
         EXAMPLES:
             sage: E=EllipticCurve('11a1')
             sage: import sage.schemes.elliptic_curves.ell_modular_symbols
@@ -171,14 +171,30 @@ class ModularSymbol(SageObject):
         return c
 
     def __call__(self, r):
+        """
+        EXAMPLE:
+        sage: L = EllipticCurve('37a').padic_lseries(5)
+        sage: L.modular_symbol(1/5)
+        1/2
+        """
         # this next line takes most of the time
         w = self._ambient_modsym.modular_symbol([zero, oo, Cusps(r)], check=False)
 
         return (self._e).dot_product(w.element())
 
-
-
     def _repr_(self):
+        """
+        String representation of modular symbols.
+
+        EXAMPLES:
+        sage: import sage.schemes.elliptic_curves.ell_modular_symbols
+        sage: E=EllipticCurve('37a')
+        sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.modular_symbol_space(E,-1,GF(17))
+        sage: loads(M.dumps()) == M
+        True
+        sage: M._repr_()
+        'Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(37) of weight 2 with sign -1 over Finite Field of size 17'
+        """
         return "Modular symbol with sign %s over %s attached to %s"%(
             self.sign(), self.base_ring(), self.elliptic_curve())
 

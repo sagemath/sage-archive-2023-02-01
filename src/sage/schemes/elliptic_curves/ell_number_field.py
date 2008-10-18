@@ -104,14 +104,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         INPUT:
             verbose -- 0, 1, 2, or 3 (default: 0), the verbosity level
-            lim1    -- (default: 5) limite des points triviaux sur les quartiques
-            lim3    -- (default: 50) limite des points sur les quartiques ELS
-            limtriv -- (default: 10) limite des points triviaux sur la
-                                     courbe elliptique
+            lim1    -- (default: 5) limit on trivial points on quartics
+            lim3    -- (default: 50) limit on points on ELS quartics
+            limtriv -- (default: 10) limit on trivial points on elliptic curve
             maxprob -- (default: 20)
-            limbigprime -- (default: 30)  to distinguish between small and large prime
-                                          numbers. Use probabilistic tests for large
-                                          primes. If 0, don't use probabilistic tests.
+            limbigprime -- (default: 30) to distinguish between small and large
+                                         prime numbers. Use probabilistic tests
+                                         for large primes. If 0, don't use
+                                         probabilistic tests.
 
         OUTPUT:
             integer -- "probably" the rank of self
@@ -126,6 +126,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         EXAMPLES:
             sage: K.<a> = NumberField(x^2 + 23, 'a')
             sage: E = EllipticCurve(K, '37')
+            sage: E == loads(dumps(E))
+            True
             sage: E.simon_two_descent()
             (2, 2, [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)])
 
@@ -180,7 +182,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
     def is_local_integral_model(self,*P):
         r"""
         Tests if self is integral at the prime ideal $P$, or at all the
-        primes if P is a list or tuple
+        primes if P is a list or tuple.
 
         EXAMPLES:
             sage: K.<i> = NumberField(x^2+1)

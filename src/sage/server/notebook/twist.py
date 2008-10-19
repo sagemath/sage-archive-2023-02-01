@@ -36,6 +36,7 @@ import bz2
 
 from twisted.web2 import server, http, resource, channel
 from twisted.web2 import static, http_headers, responsecode
+from twisted.web2.filter import gzip
 
 import css, js, keyboards
 
@@ -112,7 +113,12 @@ def notebook_updates():
 ######################################################################################
 # RESOURCES
 ######################################################################################
-
+def gzip_handler(request):
+    """
+    Add gzip compression to the request if it makes sense.
+    """
+    if request.host not in ('localhost', '127.0.0.1'):
+        request.addResponseFilter(gzip.gzipfilter, atEnd=True)
 
 ############################
 # An error message
@@ -186,6 +192,7 @@ class DocStatic(resource.Resource):
         return static.File('%s/index.html'%DOC)
 
     def childFactory(self, request, name):
+        gzip_handler(request)
         return static.File('%s/%s'%(DOC,name))
 
 class DocLive(resource.Resource):
@@ -198,6 +205,7 @@ class DocLive(resource.Resource):
         return http.Response(stream=message('nothing to see.'))
 
     def childFactory(self, request, name):
+        gzip_handler(request)
         return WorksheetFile('%s/%s'%(DOC,name), username = self.username)
 
 class Doc(resource.Resource):
@@ -213,6 +221,7 @@ class Doc(resource.Resource):
 
     def childFactory(self, request, name):
         if name == "live":
+            gzip_handler(request)
             return DocLive(username = self.username)
 
 
@@ -1638,11 +1647,13 @@ class LiveHistory(resource.Resource):
 class Main_css(resource.Resource):
     def render(self, ctx):
         s = css.css()
+        gzip_handler(ctx)
         return http.Response(stream=s)
 
 class Reset_css(resource.Resource):
     def render(self, ctx):
         s = css.reset
+        gzip_handler(ctx)
         return http.Response(stream=s)
 
 class CSS(resource.Resource):
@@ -1652,6 +1663,7 @@ class CSS(resource.Resource):
         return static.File(css_path)
 
     def childFactory(self, request, name):
+        gzip_handler(request)
         return static.File(css_path + "/" + name)
 
 setattr(CSS, 'child_main.css', Main_css())
@@ -1666,19 +1678,23 @@ setattr(CSS, 'child_reset.css', Reset_css())
 
 class Main_js(resource.Resource):
     def render(self, ctx):
+        gzip_handler(ctx)
         s = js.javascript()
         return http.Response(stream=s)
+
 
 class Keyboard_js_specific(resource.Resource):
     def __init__(self, browser_os):
         self.s = keyboards.get_keyboard(browser_os)
 
     def render(self, ctx):
+        gzip_handler(ctx)
         return http.Response(stream = self.s)
 
 
 class Keyboard_js(resource.Resource):
     def childFactory(self, request, browser_os):
+        gzip_handler(request)
         return Keyboard_js_specific(browser_os)
 
 class Javascript(resource.Resource):
@@ -1689,6 +1705,7 @@ class Javascript(resource.Resource):
         return static.File(javascript_path)
 
     def childFactory(self, request, name):
+        gzip_handler(request)
         return static.File(javascript_path + "/" + name)
 
 setattr(Javascript, 'child_main.js', Main_js())
@@ -1701,6 +1718,7 @@ class JavascriptLocal(resource.Resource):
         return static.File(javascript_local_path)
 
     def childFactory(self, request, name):
+        gzip_handler(request)
         return static.File(javascript_local_path + "/" + name)
 
 
@@ -1716,6 +1734,7 @@ class Java(resource.Resource):
         return static.File(java_path)
 
     def childFactory(self, request, name):
+        gzip_handler(request)
         return static.File(java_path + "/" + name)
 
 ############################

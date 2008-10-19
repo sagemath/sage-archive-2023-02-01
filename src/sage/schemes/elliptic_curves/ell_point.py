@@ -1330,10 +1330,10 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         sage: E = EllipticCurve(GF(17), [1,-1])
         sage: P = E([13, 4])
         sage: P._magma_init_()
-        'EllipticCurve([GF(17)!1,GF(17)!16])![13,4]'
+        'EllipticCurve([GF(17)|GF(17)!0,GF(17)!0,GF(17)!0,GF(17)!1,GF(17)!16])![13,4]'
         """
-        E = self.curve()._magma_().name()
-        x,y = map(lambda x: x._magma_().name(), self.xy())
+        E = self.curve()._magma_init_()
+        x,y = self.xy()
         return "%s![%s,%s]"%(E,x,y)
 
     def discrete_log(self, Q, ord=None):

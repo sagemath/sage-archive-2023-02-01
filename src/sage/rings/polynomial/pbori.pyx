@@ -3254,7 +3254,7 @@ cdef class BooleanPolynomial(MPolynomial):
             I = I.gens()
         g = GroebnerStrategy()
         for p in I:
-            g.addGenerator(p)
+            g.addAsYouWish(p)
         return red_tail(g, g.nf(self))
 
 cdef class BooleanPolynomialIterator:
@@ -3390,7 +3390,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         if kwds.get("deg_bound", False) is False:
             g = GroebnerStrategy()
             for p in gb:
-                g.addGenerator(p)
+                g.addAsYouWish(p)
             g.optRedTail=True
             self.__gb = g
         return Sequence(gb, self.ring(), check=False, immutable=True)

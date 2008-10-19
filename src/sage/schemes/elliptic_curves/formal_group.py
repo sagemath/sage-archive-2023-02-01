@@ -30,6 +30,21 @@ class EllipticCurveFormalGroup(SageObject):
         """
         self.__E = E
 
+    def __cmp__(self, other):
+        """
+        Compare self and other.
+
+        TESTS:
+            sage: E = EllipticCurve('35a')
+            sage: F1 = E.formal_group()
+            sage: F2 = E.formal_group()
+            sage: F1 == F2
+            True
+        """
+        c = cmp(type(self), type(other))
+        if c: return c
+        return cmp(self.__E, other.__E)
+
     def _repr_(self):
         """
         EXAMPLE:

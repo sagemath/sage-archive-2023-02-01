@@ -858,7 +858,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return l
 
-    def digits(self, base=2, digits=None, padto=0):
+    def digits(self, base=10, digits=None, padto=0):
         r"""
         Return a list of digits for self in the given base in little
         endian order.
@@ -866,15 +866,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         The return is unspecified if self is a negative number and the digits are given.
 
         INPUT:
-            base -- integer (default: 2)
+            base -- integer (default: 10)
             digits -- optional indexable object as source for the digits
             padto -- the minimal length of the returned list, sufficient number of
                      zeros are added to make the list minimum that length  (default: 0)
 
         EXAMPLE:
-            sage: 5.digits()
-            [1, 0, 1]
-            sage: 5.digits(digits=["zero","one"])
+            sage: 17.digits()
+            [7, 1]
+            sage: 5.digits(base=2, digits=["zero","one"])
             ['one', 'zero', 'one']
             sage: 5.digits(3)
             [2, 1]
@@ -971,7 +971,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             else:
                 _base = Integer(base)
 
-            #    It turns out that it is much faster to use simple divison for small numbers.  Some
+            #    It turns out that it is much faster to use simple division for small numbers.  Some
             # benchmarking helps to define what "small" means in this case.  Here's a very simplistic
             # interpretation of what the benchmark told me, but I think it actually should cut off
             # depending on some ratio of bit-size of self to bit-size of base.

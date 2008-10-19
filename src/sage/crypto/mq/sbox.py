@@ -161,7 +161,7 @@ class SBox(SageObject):
             swp = lambda x: list(reversed(x))
         else:
             swp = lambda x: x
-        return swp(self._rpad( map(self._F,ZZ(x).digits()), n ))
+        return swp(self._rpad( map(self._F,ZZ(x).digits(2)), n ))
 
     def from_bits(self, x, n=None):
         r"""

@@ -440,7 +440,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
         and pad it with 512-56=456 1s
 
-            sage: Kdigits = K.digits()
+            sage: Kdigits = K.digits(2)
             sage: M = [0]*Kbits + [1]*(Nbits-Kbits)
             sage: for i in range(len(Kdigits)): M[i] = Kdigits[i]
 

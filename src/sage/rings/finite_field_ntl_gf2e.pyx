@@ -488,7 +488,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             a^43 + a^15 + 1
             sage: k.fetch_int(33793)
             a^15 + a^10 + 1
-            sage: 33793.digits() # little endian
+            sage: 33793.digits(2) # little endian
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
         """
         cdef FiniteField_ntl_gf2eElement a = self._new()

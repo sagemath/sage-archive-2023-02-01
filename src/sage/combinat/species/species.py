@@ -390,7 +390,7 @@ class GenericCombinatorialSpecies(SageObject):
         n = Integer(n)
         if n <= 0:
             raise ValueError, "only positive exponents are currently supported"
-        digits = n.digits()
+        digits = n.digits(2)
         squares = [self]
         for i in range(len(digits)-1):
             squares.append(squares[-1]*squares[-1])

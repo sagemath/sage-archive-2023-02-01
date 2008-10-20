@@ -62,7 +62,7 @@ if ' ' in DOT_SAGE:
         DOT_SAGE="/home/.sage"
     else:
         print "Your home directory has a space in it.  This"
-        print "will probably break some functionality of SAGE.  E.g.,"
+        print "will probably break some functionality of Sage.  E.g.,"
         print "the GAP interface will not work.  A workaround"
         print "is to set the environment variable HOME to a"
         print "directory with no spaces that you have write"
@@ -102,7 +102,7 @@ if not os.path.exists(SAGE_TMP):
         os.makedirs(SAGE_TMP)
     except OSError, msg:
         print msg
-        raise OSError, " ** Error trying to create the SAGE tmp directory in your home directory.  A possible cause of this might be that you built or upgraded SAGE after typing 'su'.  You probably need to delete the directory $HOME/.sage."
+        raise OSError, " ** Error trying to create the Sage tmp directory in your home directory.  A possible cause of this might be that you built or upgraded Sage after typing 'su'.  You probably need to delete the directory $HOME/.sage."
 
 SAGE_DATA = '%s/data/'%SAGE_ROOT
 SAGE_EXTCODE = '%s/data/extcode/'%SAGE_ROOT
@@ -141,10 +141,10 @@ def to_gmp_hex(n):
 
 def cputime(t=0):
     """
-    Return the time in CPU second since SAGE started, or with optional
+    Return the time in CPU second since Sage started, or with optional
     argument t, return the time since time t.  This is how much
-    time SAGE has spent using the CPU.  It does not count time
-    spent by subprocesses spawned by SAGE (e.g., Gap, Singular, etc.).
+    time Sage has spent using the CPU.  It does not count time
+    spent by subprocesses spawned by Sage (e.g., Gap, Singular, etc.).
 
     This is done via a call to resource.getrusage, so it avoids the
     wraparound problems in time.clock() on Cygwin.
@@ -223,8 +223,8 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
     EXAMPLE:
         sage: set_verbose(1)
         sage: t = cputime()
-        sage: t = verbose("This is SAGE.", t, level=1, caller_name="william")       # not tested
-        VERBOSE1 (william): This is SAGE. (time = 0.0)
+        sage: t = verbose("This is Sage.", t, level=1, caller_name="william")       # not tested
+        VERBOSE1 (william): This is Sage. (time = 0.0)
         sage: set_verbose(0)
     """
     if level>LEVEL:
@@ -270,7 +270,7 @@ def todo(mesg=""):
 
 def set_verbose(level, files='all'):
     """
-    Set the global SAGE verbosity level.
+    Set the global Sage verbosity level.
 
     INPUT:
         int level: an integer between 0 and 2, inclusive.
@@ -282,11 +282,11 @@ def set_verbose(level, files='all'):
 
     EXAMPLES:
         sage: set_verbose(2)
-        sage: verbose("This is SAGE.", level=1)  # not tested
-        VERBOSE1 (?): This is SAGE.
-        sage: verbose("This is SAGE.", level=2)  # not tested
-        VERBOSE2 (?): This is SAGE.
-        sage: verbose("This is SAGE.", level=3)  # not tested
+        sage: verbose("This is Sage.", level=1)  # not tested
+        VERBOSE1 (?): This is Sage.
+        sage: verbose("This is Sage.", level=2)  # not tested
+        VERBOSE2 (?): This is Sage.
+        sage: verbose("This is Sage.", level=3)  # not tested
         [no output]
         sage: set_verbose(0)
     """
@@ -322,7 +322,7 @@ def unset_verbose_files(file_name):
 
 def get_verbose():
     """
-    Return the global SAGE verbosity level.
+    Return the global Sage verbosity level.
 
     INPUT:
         int level: an integer between 0 and 2, inclusive.
@@ -620,7 +620,7 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
     Return list of numbers \code{a, a+step, ..., a+k*step},
     where \code{a+k*step < b} and \code{a+(k+1)*step > b}.
 
-    This is the best way to get an iterator over SAGE integers as
+    This is the best way to get an iterator over Sage integers as
     opposed to Python int's.  It also allows you to specify step sizes
     to iterate.  It is potentially much slower than the Python range
     statement, depending on your application.
@@ -642,7 +642,7 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
 
     NOTE: This function is called \code{srange} to distinguish
     it from the builtin Python \code{range} command.  The s
-    at the beginning of the name stands for ``SAGE''.
+    at the beginning of the name stands for ``Sage''.
 
     SEE ALSO: xsrange -- iterator version
 
@@ -1467,12 +1467,12 @@ def getitem(v, n):
     (This is not needed anymore -- classes should define an __index__ method.)
 
     Thus, e.g., \code{getitem(v,n)} will work even if $v$ is a Python
-    list and $n$ is a SAGE integer.
+    list and $n$ is a Sage integer.
 
     EXAMPLES:
         sage: v = [1,2,3]
 
-    The following used to fail in SAGE <= 1.3.7.  Now it works fine:
+    The following used to fail in Sage <= 1.3.7.  Now it works fine:
         sage: v[ZZ(1)]
         2
 
@@ -1516,7 +1516,7 @@ def branch_current_hg_notice(branch):
     script.
 
     INPUT:
-        string -- a representation of the name of the SAGE library branch.
+        string -- a representation of the name of the Sage library branch.
 
     OUTPUT:
         string
@@ -1527,7 +1527,7 @@ def branch_current_hg_notice(branch):
         branch = branch[:-1]
     if branch == 'main':
         return ''
-    notice = 'Loading SAGE library. Current Mercurial branch is: '
+    notice = 'Loading Sage library. Current Mercurial branch is: '
     return notice + branch
 
 

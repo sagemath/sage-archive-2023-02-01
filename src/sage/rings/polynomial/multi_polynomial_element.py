@@ -1393,6 +1393,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f = 3*x
             sage: f.reduce([2*x,y])
             0
+
+            sage: k.<w> = CyclotomicField(3)
+            sage: A.<y9,y12,y13,y15> = PolynomialRing(k)
+            sage: J = [ y9 + y12]
+            sage: f = y9 - y12; f.reduce(J)
+            -2*y12
+            sage: f = y13*y15; f.reduce(J)
+            y13*y15
+            sage: f = y13*y15 + y9 - y12; f.reduce(J)
+            y13*y15 - 2*y12
         """
         from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
@@ -1408,7 +1418,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         try:
             fs = self._singular_()
             Is = fs.parent().ideal(I)
-            return P(fs.reduce(Is,1))
+            return P(fs.reduce(Is))
         except TypeError:
             pass
 

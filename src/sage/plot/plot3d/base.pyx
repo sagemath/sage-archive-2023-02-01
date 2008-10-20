@@ -321,17 +321,14 @@ end_scene""" % (
                                                labels = False)  # no tachyon text implemented yet
 
     def _box_for_aspect_ratio(self, aspect_ratio, box_min, box_max):
-        # Lengths of new box
-        new_box = [box_max[i] - box_min[i] for i in range(3)]
-
-        # Find a box around self so that when self gets rescaled into the
+        # 1. Find a box around self so that when self gets rescaled into the
         # box defined by box_min, box_max, it has the right aspect ratio
         a_min, a_max = self._safe_bounding_box()
 
         if aspect_ratio == "automatic":
             return a_min, a_max
 
-        longest_side = 0; longest_length = 0
+        longest_side = 0; longest_length = a_max[0] - a_min[0]
         shortest_side = 0; shortest_length = a_max[0] - a_min[0]
 
         for i in range(3):
@@ -353,17 +350,16 @@ end_scene""" % (
         long_box_side = box_max[longest_side] - box_min[longest_side]
         sc = [1.0,1.0,1.0]
         for i in range(3):
-            if i != longest_side:
-                # compute the length we want:
-                new_length = longest_length / aspect_ratio[i]
-                # change the side length by a_min and a_max so
-                # that a_max[i] - a_min[i] = new_length
+            # compute the length we want:
+            new_length = longest_length / aspect_ratio[i]
+            # change the side length by a_min and a_max so
+            # that a_max[i] - a_min[i] = new_length
 
-                # We have to take into account the ratio of the sides after transforming
-                # to the bounding box.
-                z = long_box_side / (box_max[i] - box_min[i])
-                w = new_length / ((a_max[i] - a_min[i]) * z)
-                sc[i] = w
+            # We have to take into account the ratio of the
+            # sides after transforming to the bounding box.
+            z = long_box_side / (box_max[i] - box_min[i])
+            w = new_length / ((a_max[i] - a_min[i]) * z)
+            sc[i] = w
 
         w = min(sc)
         sc = [z/w for z in sc]

@@ -68,6 +68,23 @@ class TateCurve(SageObject):
         if E.j_invariant().valuation(p) >= 0:
             raise ValueError, "The elliptic curve must have multiplicative reduction at %s"%p
 
+    def __cmp__(self, other):
+        """
+        Compare self and other.
+
+        TESTS:
+            sage: E = EllipticCurve('35a')
+            sage: eq5 = E.tate_curve(5)
+            sage: eq7 = E.tate_curve(7)
+            sage: eq7 == eq7
+            True
+            sage: eq7 == eq5
+            False
+        """
+        c = cmp(type(self), type(other))
+        if c: return c
+        return cmp((self._E, self._p), (other._E, other._p))
+
 
     def _repr_(self):
         """

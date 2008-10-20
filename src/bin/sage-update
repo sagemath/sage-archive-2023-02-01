@@ -25,7 +25,7 @@ PKG_SERVER=os.environ['SAGE_SERVER']
 if PKG_SERVER[-9:] != '/packages':
      PKG_SERVER += '/packages'
 
-print "Using SAGE Server %s"%PKG_SERVER
+print "Using Sage Server %s"%PKG_SERVER
 
 cur = 0
 def reporthook(block, size, total):

@@ -4,7 +4,7 @@ import os, sys, socket
 
 print open(os.environ['SAGE_ROOT'] + '/local/bin/sage-banner').read()
 
-print "Please wait while the SAGE Notebook server starts..."
+print "Please wait while the Sage Notebook server starts..."
 
 from sage.server.notebook.all import notebook
 

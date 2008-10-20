@@ -19,15 +19,15 @@ if [ -d $SAGE_ROOT/examples ]; then
    "$SAGE_ROOT"/examples/test_all | tee -a "$SAGE_TEST_LOG"
 fi
 
-echo "Testing SAGE documentation"
+echo "Testing Sage documentation"
 
-echo "Testing SAGE tutorial"
+echo "Testing Sage tutorial"
 sage -t "$@" "$SAGE_ROOT"/devel/doc/tut/tut.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
 
-echo "Testing SAGE programming guide"
+echo "Testing Sage developer's guide"
 sage -t "$@" "$SAGE_ROOT"/devel/doc/prog/prog.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
 
-echo "Testing SAGE constructions guide"
+echo "Testing Sage constructions guide"
 sage -t "$@" "$SAGE_ROOT"/devel/doc/const/const.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
 
 # Run SAGE library doctests, which end with a summary report.

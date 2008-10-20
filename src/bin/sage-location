@@ -65,7 +65,7 @@ if __name__ ==  '__main__':
     # in the python libs directory, so they are rebuilt.
     t, R = install_moved()
     if t:
-        print "The SAGE install tree may have moved."
+        print "The Sage install tree may have moved."
         print "Regenerating Python.pyo and .pyc files that hardcode the install PATH (please wait at most a few minutes)..."
         print "Please do not interrupt this."
 	update_library_files(R)

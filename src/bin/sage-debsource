@@ -63,7 +63,7 @@ do_package() {
   fi
 
   # Add a changelog entry updating to the current version number.
-  (cd $dir && dch -v "$sver" "Build with new SAGE spkg $dir.spkg")
+  (cd $dir && dch -v "$sver" "Build with new Sage spkg $dir.spkg")
 
   # Build an unsigned package, ignoring version control subdirs in the source.
   echo "Creating source package"

@@ -270,7 +270,7 @@ if [ $? -eq 0 ]; then
    echo "PACKAGE NAME: $PKG_NAME" > "$PKG_NAME"
    echo "INSTALL DATE: `date`" >> "$PKG_NAME"
    echo "UNAME: `uname -a`" >> "$PKG_NAME"
-   echo "SAGE VERSION: `grep SAGE $SAGE_LOCAL/bin/sage-banner`" >> "$PKG_NAME"
+   echo "Sage VERSION: `grep Sage $SAGE_LOCAL/bin/sage-banner`" >> "$PKG_NAME"
    echo "Successfully installed $PKG_NAME"
 
    cd $BASEDIR
@@ -330,7 +330,7 @@ else
 fi
 
 
-echo "Making SAGE/Python scripts relocatable..."
+echo "Making Sage/Python scripts relocatable..."
 
 cd "$SAGE_LOCAL"/bin
 ./sage-make_relative

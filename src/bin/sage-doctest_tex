@@ -76,7 +76,7 @@ def initialize_sage():
         pass
         #print "Starting SAGE"
     else:
-        print "Restarting SAGE"
+        print "Restarting Sage"
     E = pexpect.spawn(SAGE)
     E.timeout = TIMEOUT
     E.setmaxread = 10000  # faster
@@ -239,7 +239,7 @@ if __name__ ==  '__main__':
     print ''
     if len(sys.argv) == 1:
         print "Usage: %s [--verbose or -v] <filename.tex> [start number] [stop number]"%(sys.argv[0])
-        print "Test the documentation in a .tex or .sage file using SAGE (via a pseudo-tty)."
+        print "Test the documentation in a .tex or .sage file using Sage (via a pseudo-tty)."
         sys.exit(1)
     else:
         verbose = False

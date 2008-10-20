@@ -21,5 +21,5 @@ echo "This script will run the unit tests for DSage"
 trial --temp-directory="$SAGE_TESTDIR/dsage-trial"  sage.dsage
 
 if [ $? != 0 ]; then
-    echo "However, an ERROR occurred in the Distributed SAGE unit tests."
+    echo "However, an ERROR occurred in the Distributed Sage unit tests."
 fi

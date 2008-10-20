@@ -6,7 +6,7 @@ build() {
       chmod +x ./install
       echo ""
       echo "----------------------------------------------------------"
-      echo "sage: Building and installing modified SAGE library files."
+      echo "sage: Building and installing modified Sage library files."
       echo ""
 
       ## install c_lib

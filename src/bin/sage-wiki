@@ -4,7 +4,7 @@ import os, sys, socket
 
 print open(os.environ['SAGE_ROOT'] + '/local/bin/sage-banner').read()
 
-print "Please wait while the SAGE Moin Moin Wiki server starts..."
+print "Please wait while the Sage Moin Moin Wiki server starts..."
 
 from sage.server.wiki.all import wiki
 

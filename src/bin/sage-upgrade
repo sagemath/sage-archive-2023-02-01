@@ -16,7 +16,7 @@ cd $SAGE_ROOT/spkg/
 ./install
 
 if [ $? -ne 0 ]; then
-    echo "Error installing SAGE!"
+    echo "Error installing Sage!"
     exit 1
 fi
 

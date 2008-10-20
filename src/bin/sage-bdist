@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ########################################################
-# Build SAGE *binary* distribution
+# Build Sage *binary* distribution
 # This script should be called by the sage-sage script
 #
 # Released under the GNU GPL -- (c) William Stein
@@ -82,7 +82,7 @@ if [ -d $PKGDIR ]; then
    cp  install README.txt gen_html $TMP/$PKGDIR/
    cd $TMP/$PKGDIR/standard/
    for F in `/bin/ls *.spkg`; do
-       echo "Placeholder spkg file so this binary version of SAGE knows this package version used when installing SAGE." > $F
+       echo "Placeholder spkg file so this binary version of Sage knows this package version used when installing Sage." > $F
    done
 fi
 

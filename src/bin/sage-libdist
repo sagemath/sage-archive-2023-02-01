@@ -87,10 +87,10 @@ import os, sys
 SAGE_ROOT=os.path.abspath('.')
 os.environ['PATH'] = os.environ['PATH'] + ':%s/local/bin/'%SAGE_ROOT
 
-print "Checking prerequisites for installing the SAGE library..."
+print "Checking prerequisites for installing the Sage library..."
 
 if sys.version_info[:2] < (2, 4):
-    print "SAGE requires Python 2.4 or newer"
+    print "Sage requires Python 2.4 or newer"
     sys.exit(1)
 
 print "matplotlib..."
@@ -144,27 +144,27 @@ except ImportError, msg:
 
 print "gap..."
 if os.system('which gap 2>/dev/null 1>/dev/null'):
-    print 'WARNING: Much of SAGE will not work without GAP installed.'
+    print 'WARNING: Much of Sage will not work without GAP installed.'
     print 'Make sure the "gap" command is available.'
     sys.exit(1)
 
 print "maxima..."
 if os.system('which maxima 2>/dev/null 1>/dev/null'):
-    print 'WARNING: Much of SAGE will not work without Maxima installed.'
+    print 'WARNING: Much of Sage will not work without Maxima installed.'
     print 'Make sure the "maxima" command is available.'
     sys.exit(1)
 
 print "flex..."
 if os.system('which flex 2>/dev/null 1>/dev/null'):
-    print 'The Singular component of SAGE requires flex to build. Please install.'
-    print 'You must use the SAGE version of Singular (the standard version'
+    print 'The Singular component of Sage requires flex to build. Please install.'
+    print 'You must use the Sage version of Singular (the standard version'
     print 'is missing important patches, etc.).'
     sys.exit(1)
 
 print "bison..."
 if os.system('which bison 2>/dev/null 1>/dev/null'):
-    print 'The Singular component of SAGE requires bison to build. Please install.'
-    print 'You must use the SAGE version of Singular (the standard version'
+    print 'The Singular component of Sage requires bison to build. Please install.'
+    print 'You must use the Sage version of Singular (the standard version'
     print 'is missing important patches, etc.).'
     sys.exit(1)
 
@@ -231,7 +231,7 @@ readme = open('%s/README.txt'%r).read()
 readme = """
 This is the readme for sage-libdist, which is the
 distribution of
-   SAGE: Software for Algebra and Geometry Experimentation
+   Sage: Software for Algebra and Geometry Experimentation
 
 INSTRUCTIONS:
    1. Make sure you have the following installed on your
@@ -246,15 +246,15 @@ INSTRUCTIONS:
 
    3. Wait about 10 minutes.
 
-   4. To run SAGE run the shell script "sage" in the
+   4. To run Sage run the shell script "sage" in the
       current directory (you can copy this elsewhere).
 
    5. It is highly recommended that you obtain the following
       programs for your platform and install them:
               gap, singular, maxima
 
-The following is the usual SAGE readme file.  It is for
-the monolithic tarball install of SAGE.
+The following is the usual Sage readme file.  It is for
+the monolithic tarball install of Sage.
 """ + readme
 
 open('%s/README.txt'%r,'w').write(readme)

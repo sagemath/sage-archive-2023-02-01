@@ -2,7 +2,7 @@
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <directory>"
-    echo "Create a SAGE package from the contents of the directory."
+    echo "Create a Sage package from the contents of the directory."
     exit 1
 fi
 

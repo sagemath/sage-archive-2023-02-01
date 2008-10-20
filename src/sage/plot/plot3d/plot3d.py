@@ -248,7 +248,7 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
             if max_z == min_z:
                 span = 0
             else:
-                span = len(texture) / (max_z - min_z)    # max to avoid dividing by 0
+                span = (len(texture)-1) / (max_z - min_z)    # max to avoid dividing by 0
             parts = P.partition(lambda x,y,z: int((z-min_z)*span))
         all = []
         for k, G in parts.iteritems():

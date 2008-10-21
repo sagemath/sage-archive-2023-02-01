@@ -1068,18 +1068,15 @@ class Sigma:
 
 sigma = Sigma()
 
-def gcd(a, b=0, integer=False, **kwargs):
+def gcd(a, b=None, **kwargs):
     """
-    The greatest common divisor of a and b.
+    The greatest common divisor of a and b, or if a is a list and b is
+    omitted the greatest common divisor of all elements of a.
 
     INPUT:
-        a -- number
-        b -- number (optional)
-        integer -- (default: False); if True, do an integer GCD
+        a,b -- two elements of a ring with gcd
     or
-        v -- vector
-        integer -- (default: False); if True, do an integer GCD
-            NOTE -- this is *vastly* faster than doing the generic GCD
+        a -- a list or tuple of elements of a ring with gcd
 
     Additional keyword arguments are passed to the respectively called
     methods.
@@ -1096,36 +1093,30 @@ def gcd(a, b=0, integer=False, **kwargs):
         sage: GCD(srange(0,10000,10))  # fast  !!
         10
     """
-    if integer:
-        if isinstance(a,(list,tuple)):
+    from sage.structure.sequence import Sequence
+    if b is None:
+        U = Sequence(a).universe()
+    else:
+        U = Sequence((a,b)).universe()
+    if U is type(int(0)):
+        U = integer_ring.ZZ
+    if b is None:
+        if U is integer_ring.ZZ:
             return sage.rings.integer.GCD_list(a)
-        else:
-            return integer_ring.ZZ(a).gcd(\
-                integer_ring.ZZ(b))
-    if isinstance(a,(list,tuple)):
         return __GCD_list(a)
-    if not isinstance(a, RingElement):
-        a = integer_ring.ZZ(a)
-    return a.gcd(b, **kwargs)
+    return U(a).gcd(U(b))
 
 GCD = gcd
 
-def lcm(a, b=None, integer=False):
+def lcm(a, b=None):
     """
     The least common multiple of a and b, or if a is a list and b is
     omitted the least common multiple of all elements of a.
 
-    NOTE: Use integer=True to make this vastly faster if you are
-    working with lists of integers.
-
     INPUT:
-        a -- number
-        b -- number (optional)
-        integer -- (default: False); if True, do an integer LCM
+        a,b -- two elements of a ring with lcm
     or
-        a -- vector
-        integer -- (default: False); if True, do an integer LCM
-            NOTE -- this is *vastly* faster than doing the generic LCM
+        a -- a list or tuple of elements of a ring with lcm
 
     EXAMPLES:
         sage: LCM(97,100)
@@ -1136,21 +1127,22 @@ def lcm(a, b=None, integer=False):
         15
         sage: LCM([1,2,3,4,5])
         60
-        sage: v = LCM(range(1,10000),integer=True)   # *very* fast!
+        sage: v = LCM(range(1,10000))   # *very* fast!
         sage: len(str(v))
         4349
     """
-    if integer:
-        if isinstance(a,(list,tuple)):
+    from sage.structure.sequence import Sequence
+    if b is None:
+        U = Sequence(a).universe()
+    else:
+        U = Sequence((a,b)).universe()
+    if U is type(int(0)):
+        U = integer_ring.ZZ
+    if b is None:
+        if U is integer_ring.ZZ:
             return sage.rings.integer.LCM_list(a)
-        else:
-            return integer_ring.ZZ(a).lcm(\
-                integer_ring.ZZ(b))
-    if isinstance(a, (list,tuple)):
         return __LCM_list(a)
-    if not isinstance(a, RingElement):
-        a = integer_ring.ZZ(a)
-    return a.lcm(b)
+    return U(a).lcm(U(b))
 
 LCM = lcm
 
@@ -1181,7 +1173,7 @@ def __LCM_list(v):
     except AttributeError:
         l = integer_ring.ZZ(1)
     for vi in v:
-        l = LCM(vi,l)
+        l = vi.lcm(l)
         if l==0:
             return l
     return l
@@ -1252,7 +1244,7 @@ def __GCD_list(v):
     except AttributeError:
         g = integer_ring.ZZ(0)
     for vi in v:
-        g = GCD(g, vi)
+        g = vi.gcd(g)
         if g == 1: return g
     return g
 

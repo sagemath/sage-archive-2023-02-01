@@ -325,11 +325,8 @@ class VectorFunctor(ConstructionFunctor):
     rank = 10 # ranking of functor, not rank of module
 
     def __init__(self, n, is_sparse=False, inner_product_matrix=None):
-#        if nrows == ncols:
-#            Functor.__init__(self, Rings(), RingModules()) # takes a basering
-#        else:
-#            Functor.__init__(self, Rings(), MatrixAlgebras()) # takes a basering
-        Functor.__init__(self, Rings(), Rings())
+#        Functor.__init__(self, Rings(), FreeModules()) # takes a basering
+        Functor.__init__(self, Objects(), Objects())
         self.n = n
         self.is_sparse = is_sparse
         self.inner_product_matrix = inner_product_matrix
@@ -351,6 +348,8 @@ class VectorFunctor(ConstructionFunctor):
 class SubspaceFunctor(ConstructionFunctor):
     rank = 11 # ranking of functor, not rank of module
     def __init__(self, basis):
+#        Functor.__init__(self, FreeModules(), FreeModules()) # takes a basering
+        Functor.__init__(self, Objects(), Objects())
         self.basis = basis
     def __call__(self, ambient):
         return ambient.span_of_basis(self.basis)

@@ -3598,6 +3598,12 @@ def plot(funcs, *args, **kwds):
             G = _plot(funcs, (xmin, xmax), *args, **kwds)
         else:
             sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
+    if kwds.has_key('xmin') and kwds.has_key('xmax'):
+        xmin = kwds['xmin']
+        xmax = kwds['xmax']
+        del kwds['xmin']
+        del kwds['xmax']
+        G = _plot(funcs, (xmin, xmax), *args, **kwds)
     if do_show:
         G.show()
     return G

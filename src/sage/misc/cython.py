@@ -302,10 +302,10 @@ def cython(filename, verbose=False, compile_message=False,
         global sequence_number
         if not sequence_number.has_key(base):
             sequence_number[base] = 0
-            name = '%s_%s'%(base, sequence_number[base])
+        name = '%s_%s'%(base, sequence_number[base])
 
-            # increment the sequence number so will use a different one next time.
-            sequence_number[base] += 1
+        # increment the sequence number so will use a different one next time.
+        sequence_number[base] += 1
 
     additional_source_files = ",".join(["'"+os.path.abspath(os.curdir)+"/"+fname+"'" \
                                         for fname in additional_source_files])

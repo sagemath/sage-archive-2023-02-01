@@ -3596,7 +3596,7 @@ cpdef LCM_list(v):
     if n == 0:
         return one
     elif n == 1:
-        return v[0]
+        return v[0].abs()
 
     _sig_on
     mpz_lcm(z.value, (<Integer>v[0]).value, (<Integer>v[1]).value)
@@ -3628,6 +3628,10 @@ def GCD_list(v):
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
 
+        See trac #3118: this returned 2 in 3.2.alpha0
+        sage: sage.rings.integer.GCD_list([2,2,3])
+        1
+
     The inputs are converted to SAGE integers.
         sage: w = GCD_list([int(3), int(9), '30']); w
         3
@@ -3646,12 +3650,12 @@ def GCD_list(v):
     if n == 0:
         return one
     elif n == 1:
-        return v[0]
+        return v[0].abs()
 
     _sig_on
     mpz_gcd(z.value, (<Integer>v[0]).value, (<Integer>v[1]).value)
     for i from 2 <= i < n:
-        if mpz_cmp_ui(z.value, 1):
+        if mpz_cmp_ui(z.value, 1) == 0:
             break
         mpz_gcd(z.value, z.value, (<Integer>v[i]).value)
     _sig_off

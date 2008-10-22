@@ -368,7 +368,7 @@ class Partition_class(CombinatorialObject):
         res = []
         for i in self:
             g = gcd(i, k)
-            res.extend( [ZZ(i/g)]*g )
+            res.extend( [ZZ(i//g)]*int(g) )
         res.sort(reverse=True)
         return Partition_class( res )
 

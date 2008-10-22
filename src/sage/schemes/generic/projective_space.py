@@ -456,7 +456,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
             for ai in R:
                 P[i]=ai
                 for tup in S[i-1]:
-                    if gcd([ai]+tup,True)==1:
+                    if gcd([ai]+tup)==1:
                         for j in range(i):
                             P[j]=tup[j]
                         pts.append(self(P))

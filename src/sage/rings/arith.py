@@ -1095,15 +1095,16 @@ def gcd(a, b=None, **kwargs):
     """
     from sage.structure.sequence import Sequence
     if b is None:
-        U = Sequence(a).universe()
+        seq = Sequence(a)
     else:
-        U = Sequence((a,b)).universe()
+        seq = Sequence((a,b))
+    U = seq.universe()
     if U is type(int(0)):
         U = integer_ring.ZZ
     if b is None:
         if U is integer_ring.ZZ:
             return sage.rings.integer.GCD_list(a)
-        return __GCD_list(a)
+        return __GCD_sequence(seq)
     return U(a).gcd(U(b))
 
 GCD = gcd
@@ -1133,21 +1134,32 @@ def lcm(a, b=None):
     """
     from sage.structure.sequence import Sequence
     if b is None:
-        U = Sequence(a).universe()
+        seq = Sequence(a)
     else:
-        U = Sequence((a,b)).universe()
+        seq = Sequence((a,b))
+    U = seq.universe()
     if U is type(int(0)):
         U = integer_ring.ZZ
     if b is None:
         if U is integer_ring.ZZ:
             return sage.rings.integer.LCM_list(a)
-        return __LCM_list(a)
+        return __LCM_sequence(seq)
     return U(a).lcm(U(b))
 
 LCM = lcm
 
-def __LCM_list(v):
+def __LCM_sequence(v):
     """
+    Internal function returning the lcm of the elements of a sequence
+
+    INPUT:
+        v -- A sequence (possibly empty)
+
+    OUTPUT:
+        The lcm of the elements of the sequence as an element of the
+        sequence's universe, or the integer 1 if the sequence is
+        empty.
+
     EXAMPLES:
         sage: l = ()
         sage: lcm(l)
@@ -1161,20 +1173,25 @@ def __LCM_list(v):
         sage: lcm(range(1,100))
         69720375229712477164533808935312303556800
 
-        Note that the following example does not work in QQ[] as of 2.11:
+        Note that the following example did not work in QQ[] as of
+        2.11, but does in 3.1.4; the answer is different, though
+        equivalent:
         sage: R.<X>=ZZ[]
         sage: lcm((2*X+4,2*X^2,2))
         2*X^3 + 4*X^2
+        sage: R.<X>=QQ[]
+        sage: lcm((2*X+4,2*X^2,2))
+        4*X^3 + 8*X^2
     """
     if len(v) == 0:
         return integer_ring.ZZ(1)
     try:
-        l = v[0].parent()(1)
-    except AttributeError:
+        l = v.universe()(1)
+    except ValueError:
         l = integer_ring.ZZ(1)
     for vi in v:
         l = vi.lcm(l)
-        if l==0:
+        if l.is_zero():
             return l
     return l
 
@@ -1204,26 +1221,18 @@ def xlcm(m,n):
     n=l//m;
     return (l,m,n)
 
-## def GCD_python(a, b=0):
-##     """This function should behave exactly the same as GCD,
-##     but is implemented in pure python."""
-##     if isinstance(a,list):
-##         return __GCD_list(a)
-##     if a == 0:
-##         return abs(b)
-##     if b == 0:
-##         return abs(a)
-##     if a < 0:
-##         a = -a
-##     if b < 0:
-##         b = -b
-##     while b != 0:
-##         c = a % b
-##         a = b; b = c
-##     return a
-
-def __GCD_list(v):
+def __GCD_sequence(v):
     """
+    Internal function returning the gcd of the elements of a sequence
+
+    INPUT:
+        v -- A sequence (possibly empty)
+
+    OUTPUT:
+        The gcd of the elements of the sequence as an element of the
+        sequence's universe, or the integer 0 if the sequence is
+        empty.
+
     EXAMPLES:
         sage: l = ()
         sage: gcd(l)
@@ -1240,7 +1249,7 @@ def __GCD_list(v):
     if len(v) == 0:
         return integer_ring.ZZ(0)
     try:
-        g = v[0].parent()(0)
+        g = v.universe()(0)
     except AttributeError:
         g = integer_ring.ZZ(0)
     for vi in v:

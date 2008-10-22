@@ -3789,7 +3789,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         res = co.new_MP((<MPolynomialRing_libsingular>self._parent), _res)
 
         if PY_TYPE_CHECK(self._parent._base, IntegerRing_class):
-            coef = gcd(self.coefficients() + right.coefficients())
+            coef = sage.rings.integer.GCD_list(self.coefficients() + right.coefficients())
             return coef*res
 
         return res

@@ -161,7 +161,6 @@ def bernoulli(n, algorithm='default', num_threads=1):
             'gap'  -- use GAP
             'gp'   -- use PARI/GP interpreter
             'magma' -- use MAGMA (optional)
-            'python' -- use pure Python implementation
             'bernmm' -- use bernmm package (a multimodular algorithm)
         num_threads -- positive integer, number of threads to use
                        (only used for bernmm algorithm)
@@ -181,13 +180,20 @@ def bernoulli(n, algorithm='default', num_threads=1):
         -691/2730
         sage: bernoulli(12, algorithm='pari')
         -691/2730
-        sage: bernoulli(12, algorithm='python')
-        -691/2730
         sage: bernoulli(12, algorithm='bernmm')
         -691/2730
         sage: bernoulli(12, algorithm='bernmm', num_threads=4)
         -691/2730
 
+    TESTS:
+        sage: algs = ['gap','gp','pari','bernmm'] #long time
+	sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in range(2,2255)] #long time
+        sage: union([len(union(x))==1 for x in vals]) #long time
+	[True]
+	sage: algs = ['gp','pari','bernmm'] #long time
+	sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in range(2256,5000)] #long time
+        sage: union([len(union(x))==1 for x in vals]) #long time
+	[True]
     \note{If $n>50000$ then algorithm = 'gp' is used instead of
     algorithm = 'pari', since the C-library interface to PARI
     is limited in memory for individual operations.}
@@ -218,9 +224,6 @@ def bernoulli(n, algorithm='default', num_threads=1):
         import sage.interfaces.gp
         x = sage.interfaces.gp.gp('bernfrac(%s)'%n)
         return Rational(x)
-    elif algorithm == 'python':
-        import sage.rings.bernoulli
-        return sage.rings.bernoulli.bernoulli_python(n)
     elif algorithm == 'bernmm':
         import sage.rings.bernmm
         return sage.rings.bernmm.bernmm_bern_rat(n, num_threads)

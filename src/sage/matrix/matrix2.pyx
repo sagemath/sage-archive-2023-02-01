@@ -3358,7 +3358,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
                       Py_ssize_t nrows=-1, Py_ssize_t ncols=-1,
-                      check = False):
+                      check = True):
         """
         Return the requested matrix window.
 
@@ -3371,10 +3371,16 @@ cdef class Matrix(matrix1.Matrix):
             [6 7 8]
 
         We test the optional check flag.
-            sage: matrix([1]).matrix_window(0,1,1,1)
+            sage: matrix([1]).matrix_window(0,1,1,1, check=False)
             Matrix window of size 1 x 1 at (0,1):
             [1]
-            sage: matrix([1]).matrix_window(0,1,1,1,check=True)
+            sage: matrix([1]).matrix_window(0,1,1,1)
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix window index out of range
+
+        Another test of bounds checking:
+            sage: matrix([1]).matrix_window(1,1,1,1)
             Traceback (most recent call last):
             ...
             IndexError: matrix window index out of range
@@ -3389,8 +3395,8 @@ cdef class Matrix(matrix1.Matrix):
             nrows = self._nrows - row
         if ncols == -1:
             ncols = self._ncols - col
-        if check and (row < 0 or col < 0 or row + nrows >= self._nrows or \
-           col + ncols >= self._ncols):
+        if check and (row < 0 or col < 0 or row + nrows > self._nrows or \
+           col + ncols > self._ncols):
             raise IndexError, "matrix window index out of range"
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
 

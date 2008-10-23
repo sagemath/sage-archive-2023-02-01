@@ -3357,7 +3357,8 @@ cdef class Matrix(matrix1.Matrix):
         verbose('done with strassen', tm)
 
     def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
-                      Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
+                      Py_ssize_t nrows=-1, Py_ssize_t ncols=-1,
+                      check = False):
         """
         Return the requested matrix window.
 
@@ -3368,16 +3369,29 @@ cdef class Matrix(matrix1.Matrix):
             [0 1 2]
             [3 4 5]
             [6 7 8]
+
+        We test the optional check flag.
+            sage: matrix([1]).matrix_window(0,1,1,1)
+            Matrix window of size 1 x 1 at (0,1):
+            [1]
+            sage: matrix([1]).matrix_window(0,1,1,1,check=True)
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix window index out of range
         """
-        return self.matrix_window_c(row, col, nrows, ncols)
+        return self.matrix_window_c(row, col, nrows, ncols, check)
 
     cdef matrix_window_c(self, Py_ssize_t row, Py_ssize_t col,
-                         Py_ssize_t nrows, Py_ssize_t ncols):
+                         Py_ssize_t nrows, Py_ssize_t ncols,
+                         bint check):
         import matrix_window
         if nrows == -1:
             nrows = self._nrows - row
         if ncols == -1:
             ncols = self._ncols - col
+        if check and (row < 0 or col < 0 or row + nrows >= self._nrows or \
+           col + ncols >= self._ncols):
+            raise IndexError, "matrix window index out of range"
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
 
     def set_block(self, row, col, block):
@@ -3393,11 +3407,17 @@ cdef class Matrix(matrix1.Matrix):
             [  0 100   1]
             [3/2 200 5/2]
             [  3 7/2   4]
+
+        We test that an exception is raised when the block is out of bounds:
+            sage: matrix([1]).set_block(0,1,matrix([1]))
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix window index out of range
         """
         self.check_mutability()
         if block.base_ring() is not self.base_ring():
             block = block.change_ring(self.base_ring())
-        window = self.matrix_window(row, col, block.nrows(), block.ncols())
+        window = self.matrix_window(row, col, block.nrows(), block.ncols(), check=True)
         window.set(block.matrix_window())
 
     def subdivide(self, row_lines=None, col_lines=None):

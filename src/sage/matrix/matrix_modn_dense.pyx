@@ -1507,7 +1507,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return 100
 
     cdef matrix_window_c(self, Py_ssize_t row, Py_ssize_t col,
-                        Py_ssize_t nrows, Py_ssize_t ncols):
+                         Py_ssize_t nrows, Py_ssize_t ncols,
+                         bint check):
         """
         Return the requested matrix window.
 
@@ -1518,10 +1519,22 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [6 0 1]
             sage: type(a)
             <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
+
+        We test the optional check flag.
+            sage: matrix(GF(7),[1]).matrix_window(0,1,1,1)
+            Matrix window of size 1 x 1 at (0,1):
+            [1]
+            sage: matrix(GF(7),[1]).matrix_window(0,1,1,1,check=True)
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix window index out of range
         """
         if nrows == -1:
             nrows = self._nrows - row
             ncols = self._ncols - col
+        if check and (row < 0 or col < 0 or row + nrows >= self._nrows or \
+           col + ncols >= self._ncols):
+            raise IndexError, "matrix window index out of range"
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
 
     def _magma_init_(self):

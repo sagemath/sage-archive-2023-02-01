@@ -248,10 +248,13 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         import copy
         return self.__class__(self._parent, copy.deepcopy(self._entries), copy = False, coerce=False)
 
-    def matrix_window_c(self, int row=0, int col=0, int nrows=-1, int ncols=-1):
+    def matrix_window_c(self, int row=0, int col=0, int nrows=-1, int ncols=-1, bint check=0):
         if nrows == -1:
             nrows = self._nrows
             ncols = self._ncols
+        if check and (row < 0 or col < 0 or row + nrows >= self._nrows or \
+           col + ncols >= self._ncols):
+            raise IndexError, "matrix window index out of range"
         return MatrixWindow(self, row, col, nrows, ncols)
 
 

@@ -1,7 +1,7 @@
 r"""
 Linear Codes
 
-VERSION: 0.11
+VERSION: 1.0
 
 Let $ F$ be a finite field (we denote the finite field with $q$ elements
 $GF(q)$ by $\FF_q$). A subspace of $ F^n$ (with the standard basis)
@@ -32,8 +32,8 @@ This file contains
 \item
 LinearCode class definition; LinearCodeFromVectorspace conversion function,
 \item
-The spectrum (weight distribution), minimum distance
-programs (calling Steve Linton's C programs), characteristic_function,
+The spectrum (weight distribution), covering_radius, minimum distance
+programs (calling Steve Linton's or CJ Tjhal's C programs), characteristic_function,
 and several implementations of the Duursma zeta function
 (sd_zeta_polynomial, zeta_polynomial, zeta_function, chinen_polynomial,
 for example),
@@ -47,7 +47,8 @@ gen_mat, list, check_mat, decode, dual_code, extended_code,  shortened, puncture
 genus, binomial_moment, and divisor methods for LinearCode,
 \item
 Boolean-valued functions such as "==", is_self_dual, is_self_orthogonal,
-is_subcode, is_permutation_automorphism,
+is_subcode, is_permutation_automorphism, is_permutation_equivalent (which
+interfaces with Robert Miller's partition refinement code),
 \item
 permutation methods: automorphism_group_binary_code,
 is_permutation_automorphism, (permutation_automorphism_group is deprecated),
@@ -131,6 +132,11 @@ and a new function, LinearCodeFromVectorSpace.
                  Fixed a bug in permutation_automorphism_group which caused it to crash.
     -- dj (2008-03): fixed bugs in spectrum and zeta_polynomial (which misbehaved over
                  non-prime base rings.
+    -- dj (2008-10): use CJ Tjhal's MinimumWeight if char = 2 or 3 for min_dist;
+                     add is_permutation_equivalent and improve permutation_automorphism_group
+                     using an interface with Robert Miller's code; added interface with
+                     Leon's code for the spectrum method.
+
 
 TESTS:
    sage: MS = MatrixSpace(GF(2),4,7)
@@ -178,7 +184,54 @@ VectorSpace = fm.VectorSpace
 def hamming_weight(v):
     return len(v.nonzero_positions())
 
-def wtdist(Gmat, F):
+def code2leon(C,output):
+    r"""
+    This is the Python/Sage translation of the GuavaToLeon command in Guava's
+    codefun.gi file. It takes a code and outputs a file which represents a code
+    readable by Leon's wtdist C program.
+
+    INPUT: C -- a linear code (over GF(p), p<11)
+           output = a string name
+    OUTPUT: A file output.txt in Sage's tmp director.
+
+    EXAMPLES:
+        sage: C = HammingCode(3,GF(2)); C
+        Linear code of length 7, dimension 4 over Finite Field of size 2
+        sage: foo = sage.coding.linear_code.code2leon(C,"output")
+        sage: print open("output").read()
+        LIBRARY code;
+        code=seq(2,4,7,seq(
+        1,0,0,1,0,1,0,
+        0,1,0,1,0,1,1,
+        0,0,1,1,0,0,1,
+        0,0,0,0,1,1,1
+        ));
+        FINISH;
+        sage: open("output").close()
+
+    This gets added to SAGE_ROOT.
+    """
+    F = C.base_ring()
+    n = C.length()
+    k = C.dimension()
+    p = F.order()  # must be prine and <11
+    s = "LIBRARY code;\n"+"code=seq(%s,%s,%s,seq(\n"%(p,k,n)
+    Gr = [str(r) for r in C.gen_mat().rows()]
+    for r in Gr:
+        r1 = r.replace("(","")
+        r2 = r1 # r2 = r1.replace(",","")
+        r3 = r2.replace(")",",\n")
+        r4 = r3.replace(" ","")
+        s = s+r4
+    s = s[:-2]+"\n"
+    s = s+"));\n"
+    s = s+"FINISH;"
+    f = open(output,"w")
+    f.write(s)
+    f.close()
+    return f
+
+def wtdist_gap(Gmat, F):
     r"""
     INPUT:
         Gmat -- a string representing a GAP generator matrix G of a
@@ -191,7 +244,7 @@ def wtdist(Gmat, F):
     EXAMPLES:
         sage: Gstr = 'Z(2)*[[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]]'
         sage: F = GF(2)
-    	sage: sage.coding.linear_code.wtdist(Gstr, F)
+    	sage: sage.coding.linear_code.wtdist_gap(Gstr, F)
     	[1, 0, 0, 7, 7, 0, 0, 1]
 
     Here Gstr is a generator matrix of the Hamming [7,4,3] binary code.
@@ -216,7 +269,7 @@ def wtdist(Gmat, F):
     v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)] # because GAP returns vectors in compressed form
     return v
 
-def min_wt_vec(Gmat,F):
+def min_wt_vec_gap(Gmat,F):
     r"""
     Uses C programs written by Steve Linton in the kernel of GAP, so
     is fairly fast.
@@ -230,7 +283,7 @@ def min_wt_vec(Gmat,F):
 
     EXAMPLES:
         sage: Gstr = "Z(2)*[[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]]"
-    	sage: sage.coding.linear_code.min_wt_vec(Gstr,GF(2))
+    	sage: sage.coding.linear_code.min_wt_vec_gap(Gstr,GF(2))
     	(0, 0, 1, 0, 1, 1, 0)
 
     Here Gstr is a generator matrix of the Hamming [7,4,3] binary code.
@@ -905,6 +958,36 @@ class LinearCode(module.Module):
         Cperp = self.dual_code()
         return Cperp.gen_mat()
 
+    def covering_radius(self):
+        r"""
+        Wraps Guava's CoveringRadius command.
+
+        The {\bf covering radius} of a linear code C is the smallest number r with the
+        property that each element v of the ambient vector space of C has at
+        most a distance r to the code C. So for each vector v there must be
+        an element c of C with $d(v,c) \leq  r$. A binary linear code
+        with reasonable small covering radius is often referred to as a {\bf covering code}.
+
+        For example, if C is a perfect code, the covering radius is equal to t, the
+        number of errors the code can correct, where d = 2t+1, with d the
+        minimum distance of C
+
+        EXAMPLES:
+            sage: C = HammingCode(5,GF(2))
+            sage: C.covering_radius()
+            1
+
+        """
+        F = self.base_ring()
+        G = self.gen_mat()
+        gapG = gap(G)
+        C = gapG.GeneratorMatCode(gap(F))
+        r = C.CoveringRadius()
+        try:
+            return ZZ(r)
+        except:
+            raise ValueError("Sorry, the covering radius of this code cannot be computed by Guava.")
+
     def decode(self, right):
         r"""
         Wraps GUAVA's Decodeword. Hamming codes have a special
@@ -1233,6 +1316,45 @@ class LinearCode(module.Module):
                 return False
         return True
 
+    def is_permutation_equivalent(self,other,method=None):
+        """
+        Returns true if self and other are permutation equivalent codes
+        and false otherwise. The method="verbose" option also
+        returns a permutation (if true) sending self to other.
+        Uses Robert Miller's double coset partition refinement work.
+
+        EXAMPLES:
+            sage: P.<x> = PolynomialRing(GF(2),"x")
+            sage: g = x^3+x+1
+            sage: C1 = CyclicCodeFromGeneratingPolynomial(7,g); C1
+            Linear code of length 7, dimension 4 over Finite Field of size 2
+            sage: C2 = HammingCode(3,GF(2)); C2
+            Linear code of length 7, dimension 4 over Finite Field of size 2
+            sage: C1.is_permutation_equivalent(C2)
+            True
+            sage: C1.is_permutation_equivalent(C2,method="verbose")
+            (True, (4,6,5,7))
+
+        """
+        from sage.groups.perm_gps.partn_ref.refinement_binary import NonlinearBinaryCodeStruct
+        F = self.base_ring()
+        q = F.order()
+        G = self.gen_mat()
+        n = len(G.columns())
+        k = len(G.rows())
+        MS = MatrixSpace(F,q**k,n)
+        CW1 = MS(self.list())
+        CW2 = MS(other.list())
+        B1 = NonlinearBinaryCodeStruct(CW1)
+        B2 = NonlinearBinaryCodeStruct(CW2)
+        ans = B1.is_isomorphic(B2)
+        if ans!=False:
+            if method=="verbose":
+                Sn = SymmetricGroup(n)
+                return True, Sn([i+1 for i in ans])**(-1)
+            return True
+        return False
+
     def is_self_dual(self):
         """
         A code C is self-dual if C == C.dual_code() is True.
@@ -1338,7 +1460,10 @@ class LinearCode(module.Module):
 
     def minimum_distance(self):
         r"""
-        Uses a GAP kernel function (in C) written by Steve Linton.
+        If q is not 2 or 3 then this uses a GAP kernel function (in C) written
+        by Steve Linton. If q is 2 or 3 then this uses a very fast program
+        written in C written by CJ Tjhal (this is much faster, except in some
+        small examples).
 
         EXAMPLES:
             sage: MS = MatrixSpace(GF(3),4,7)
@@ -1346,18 +1471,27 @@ class LinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C.minimum_distance()
             3
+            sage: C = HammingCode(2,GF(4,"a")); C
+            Linear code of length 5, dimension 3 over Finite Field in a of size 2^2
+            sage: C.minimum_distance()
+            3
+
         """
         #sage: C.minimum_distance_upper_bound()  # optional (net connection)
         #5
         #    sage: C.minimum_distance_why()          # optional (net connection)
         #    Ub(10,5) = 5 follows by the Griesmer bound.
-
         F = self.base_ring()
         q = F.order()
         G = self.gen_mat()
         gapG = gap(G)
+        if q == 2 or q == 3:
+            C = gapG.GeneratorMatCode(gap(F))
+            d = C.MinimumWeight()
+            #print "Running Guava's MinimumWeight ...\n"
+            return ZZ(d)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
-        return hamming_weight(min_wt_vec(Gstr,F))
+        return hamming_weight(min_wt_vec_gap(Gstr,F))
 
     def module_composition_factors(self,gp):
         r"""
@@ -1390,16 +1524,21 @@ class LinearCode(module.Module):
         gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
         print gap("MTX.CompositionFactors( M )")
 
-    def permutation_automorphism_group(self,mode=None):
+    def permutation_automorphism_group(self,method="partition"):
         r"""
         If $C$ is an $[n,k,d]$ code over $F$, this function computes
         the subgroup $Aut(C) \subset S_n$ of all permutation
-        automorphisms of $C$.  If mode="verbose" then
-        code-theoretic data is printed out at several stages
-        of the computation.
+        automorphisms of $C$. The binary case always uses the (default) partition
+        refinement method of Robert Miller.
 
-        Combines an idea of mine with an improvement suggested by Cary
-        Huffman.
+        Options:
+           If method="gap" then GAP's MatrixAutomorphism function (written by
+            Thomas Breuer) is used. The implementation combines an idea of mine
+            with an improvement suggested by Cary Huffman.
+           If method="gap+verbose" then code-theoretic data is printed out at
+            several stages of the computation.
+           If method="partition" then the (default) partition refinement method
+            of Robert Miller is used.
 
         EXAMPLES:
             sage: MS = MatrixSpace(GF(2),4,8)
@@ -1429,6 +1568,19 @@ class LinearCode(module.Module):
             sage: G.order()
             244823040
 
+        In the non-binary case:
+
+            sage: C = HammingCode(2,GF(3)); C
+            Linear code of length 4, dimension 2 over Finite Field of size 3
+            sage: C.permutation_automorphism_group(method="partition")
+            Permutation Group with generators [(1,2,3)]
+            sage: C = HammingCode(2,GF(4,"z")); C
+            Linear code of length 5, dimension 3 over Finite Field in z of size 2^2
+            sage: C.permutation_automorphism_group(method="partition")
+            Permutation Group with generators [(1,2)(3,4), (1,3)(2,4)]
+            sage: C.permutation_automorphism_group(method="gap")
+            Permutation Group with generators [(1,2)(3,4), (1,3)(2,4)]
+
         """
         F = self.base_ring()
         q = F.order()
@@ -1438,40 +1590,60 @@ class LinearCode(module.Module):
                 return self.automorphism_group_binary_code()
         G = self.gen_mat()
         n = len(G.columns())
-        Gp = gap("SymmetricGroup(%s)"%n)               # initializing G in gap
-        Sn = SymmetricGroup(n)
+        k = len(G.rows())
         wts = self.spectrum()                                            # bottleneck 1
-        Gstr = str(gap(G))
-        gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
-        gap.eval("eltsC:=Elements(C)")
         nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
-        if mode=="verbose":
-            print "\n Minimum distance: %s \n Weight distribution: \n %s"%(nonzerowts[1],wts)
-        stop = 0                                          # only stop if all gens are autos
-        for i in range(1,len(nonzerowts)):
-            if stop == 1:
-                break
-            wt = nonzerowts[i]
-            if mode=="verbose":
-                size = Gp.Size()
-                print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
-            gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
-            gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            #        for each i until stop = 1)
-            A = gap("MatrixAutomorphisms(matCwt)")
-            #print "A = ",A, "\n Gp = ", Gp, "\n strGp = ", str(Gp)
-            G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
-            Gp = G2
-            if Gp.Size()==1:
-                return PermutationGroup([()])
-            autgp_gens = Gp.GeneratorsOfGroup()
-            gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
-            stop = 1                         # get ready to stop
-            for x in gens:                   # if one of these gens is not an auto then don't stop
-                if not(self.is_permutation_automorphism(x)):
-                    stop = 0
+        Sn = SymmetricGroup(n)
+        if method=="gap":
+            Gp = gap("SymmetricGroup(%s)"%n)               # initializing G in gap
+            Gstr = str(gap(G))
+            gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
+            gap.eval("eltsC:=Elements(C)")
+            if method=="gap+verbose":
+                print "\n Minimum distance: %s \n Weight distribution: \n %s"%(nonzerowts[1],wts)
+            stop = 0                                          # only stop if all gens are autos
+            for i in range(1,len(nonzerowts)):
+                if stop == 1:
                     break
-        G = PermutationGroup(gens)
-        return G
+                wt = nonzerowts[i]
+                if method=="gap+verbose":
+                    size = Gp.Size()
+                    print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
+                gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
+                gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            #        for each i until stop = 1)
+                A = gap("MatrixAutomorphisms(matCwt)")
+                #print "A = ",A, "\n Gp = ", Gp, "\n strGp = ", str(Gp)
+                G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
+                Gp = G2
+                if Gp.Size()==1:
+                    return PermutationGroup([()])
+                autgp_gens = Gp.GeneratorsOfGroup()
+                gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
+                stop = 1                         # get ready to stop
+                for x in gens:                   # if one of these gens is not an auto then don't stop
+                    if not(self.is_permutation_automorphism(x)):
+                        stop = 0
+                        break
+            G = PermutationGroup(gens)
+            return G
+        if method=="partition":
+            from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
+            stop = 0                                          # only stop if all gens are autos
+            for i in range(1,len(nonzerowts)):
+                if stop == 1:
+                    break
+                wt = nonzerowts[i]
+                Cwt = [c for c in self if hamming_weight(c)==wt] # ridiculously slow!!
+                MS = MatrixSpace(F,len(Cwt),n)
+                Cwords_wt = MS(Cwt)
+                M = MatrixStruct(Cwords_wt)
+                autgp = M.automorphism_group()
+                if autgp[0] == []:
+                    return PermutationGroup([()])
+                L = [[j+1 for j in autgp[0][i]] for i in range(len(autgp[0]))]
+                G = PermutationGroup([Sn(x) for x in L])
+                return G
+        raise NotImplementedError("The only methods implemented currently are 'gap', 'gap+verbose', and 'partition'.")
 
     def permuted_code(self,p):
         r"""
@@ -1658,14 +1830,12 @@ class LinearCode(module.Module):
                 c0 = C.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
         v = ZZ(C.sd_duursma_data(i)[0])
         m = ZZ(C.sd_duursma_data(i)[1])
-        #print m,v,d,d0,c0
         if m<0 or v<0:
             raise ValueError("This case not implemented.")
         PR = PolynomialRing(QQ,"T")
         T = PR.gen()
         if i == 1:
             coefs = PR(c0*(1+3*T+2*T**2)**m*(2*T**2+2*T+1)**v).list()
-            #print coefs, len(coefs)
             qc = [coefs[j]/binomial(4*m+2*v,m+j) for j in range(2*m+2*v+1)]
             q = PR(qc)
         if i == 2:
@@ -1755,13 +1925,19 @@ class LinearCode(module.Module):
         Gs = Cdpd.gen_mat()
         return LinearCode(Gs)
 
-    def spectrum(self):
+    def spectrum(self, method="gap"):
         r"""
-        Uses a GAP kernel function (in C) written by Steve Linton.
+        The default method (gap) uses a GAP kernel function (in C) written by Steve Linton.
+
+        WARNING:
+           The optional method (leon) may create a stack smashing error and a
+           traceback but should return the correct answer. It appears to run
+           much faster than the "gap" method in some ("small") examples
+           and much slower than the "gap" method in other ("larger") examples.
 
         EXAMPLES:
             sage: MS = MatrixSpace(GF(2),4,7)
-            sage: G = MS([[1,1,1,0,0,0,0], [ 1, 0, 0, 1, 1, 0, 0], [ 0, 1, 0,1, 0, 1, 0], [1, 1, 0, 1, 0, 0, 1]])
+            sage: G = MS([[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.spectrum()
             [1, 0, 0, 7, 7, 0, 0, 1]
@@ -1770,13 +1946,70 @@ class LinearCode(module.Module):
             Linear code of length 5, dimension 3 over Finite Field in z of size 2^2
             sage: C.spectrum()
             [1, 0, 0, 30, 15, 18]
+            sage: C = HammingCode(3,GF(2)); C
+            Linear code of length 7, dimension 4 over Finite Field of size 2
+            sage: C.spectrum(method="leon")
+            [1, 0, 0, 7, 7, 0, 0, 1]
+            sage: C = HammingCode(3,GF(3)); C
+            Linear code of length 13, dimension 10 over Finite Field of size 3
+            sage: C.spectrum(method="leon")
+            [1, 0, 0, 104, 468, 1404, 4056, 8424, 11934, 13442, 11232, 5616, 2080, 288]
+            sage: C = HammingCode(2,GF(5)); C
+            Linear code of length 6, dimension 4 over Finite Field of size 5
+            sage: C.spectrum(method="leon")
+            [1, 0, 0, 80, 120, 264, 160]
+            sage: C = HammingCode(2,GF(7)); C
+            Linear code of length 8, dimension 6 over Finite Field of size 7
+            sage: C.spectrum(method="leon")
+            [1, 0, 0, 336, 1680, 9072, 26544, 45744, 34272]
 
         """
+        from sage.misc.misc import SAGE_TMP, SAGE_ROOT, tmp_filename
+        import commands
+        n = self.length()
         F = self.base_ring()
         G = self.gen_mat()
-        Gstr = G._gap_init_()
-        spec = wtdist(Gstr,F)
-        return spec
+        if method=="gap":
+            Gstr = G._gap_init_()
+            spec = wtdist_gap(Gstr,F)
+            return spec
+        if method=="leon":
+            if not(F.order() in [2,3,5,7]):
+                raise NotImplementedError("The method 'leon' is only implemented for q = 2,3,5,7.")
+            wts = []
+            code2leon(self,"incode")
+            rt = SAGE_ROOT
+            tmp = SAGE_TMP
+            tmp_file = tmp_filename()
+            #tmp = rt+"/tmp/"
+            pth = rt+"/local/lib/gap-4.4.10/pkg/guava3.4/bin/"
+            a = commands.getoutput(pth+"wtdist "+rt+"/incode::code > "+tmp_file)
+            f = open(tmp_file)
+            lines = f.readlines()
+            f.close()
+            s = 0
+            for L in lines:  # find the line where the numbers start
+                s = s+1
+                if len(L)>2 and L[-2] == "-":
+                    break
+            #print lines,"\n",lines[s:],"\n",s
+            for L in lines[s:]:
+                N = len(L)
+                for m in range(1,N):
+                    if L[-m]==" ":
+                        break
+                if " " in L[-m:]:
+                    fs = L[-m:].replace(" ","")
+                if " " in L[:N-m]:
+                    ws = L[:N-m].replace(" ","")
+                wts.append([eval(ws),eval(fs)])
+            Wts = [0]*(n+1)
+            #print wts, Wts
+            for x in wts:
+                if x[0] in range(n+2) and len(x)==2:
+                    Wts[x[0]]=x[1]
+            return Wts
+        raise NotImplementedError("The only methods implemented currently are 'gap' and 'leon'.")
 
     def standard_form(self):
         r"""

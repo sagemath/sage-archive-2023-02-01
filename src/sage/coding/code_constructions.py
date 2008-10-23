@@ -8,6 +8,8 @@ AUTHOR:
                                ReedSolomonCode, WalshCode, DuadicCodeEvenPair,
                                DuadicCodeOddPair, QR codes (even and odd)
     --    "         (2008-09)  fix for bug in BCHCode reported by F. Voloch
+    --    "         (2008-10)  small docstring changes to WalshCode
+                               and walsh_matrix
 
 This file contains contructions of error-correcting codes which are
 pure Python/SAGE and not obtained from wrapping GUAVA functions.
@@ -54,7 +56,7 @@ zeros of $C$.
             $Z = \{a^i\ |\ i \in C_b\cup ... C_{b+delta-2}\}$,
     where $a$ is a primitive $n^{th}$ root of unity in the splitting field $GF(q^m)$,
     $b$ is an integer $0\leq b\leq n-delta+1$ and $m$ is the multiplicative order of
-    $q$ modulo $n$. The default here is $b=0$ (unlike Guava, wghich has default $b=1$).
+    $q$ modulo $n$. The default here is $b=0$ (unlike Guava, which has default $b=1$).
     Here $C_k$ are the cyclotomic codes (see \code{cyclotomic_cosets}).
 
  * BinaryGolayCode, ExtendedBinaryGolayCode, TernaryGolayCode, ExtendedTernaryGolayCode
@@ -442,8 +444,10 @@ def walsh_matrix(m0):
          [0 1 0 1 0 1 0 1]
          sage: C = LinearCode(walsh_matrix(4)); C
          Linear code of length 16, dimension 4 over Finite Field of size 2
-         sage: C.minimum_distance()
-         8
+         sage: C.spectrum()
+         [1, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    This last code has minimum distance 8.
 
     REFERENCES:
          http://en.wikipedia.org/wiki/Hadamard_matrix
@@ -1273,8 +1277,11 @@ def WalshCode(m):
     EXAMPLES:
          sage: C = WalshCode(4); C
          Linear code of length 16, dimension 4 over Finite Field of size 2
-         sage: C.minimum_distance()
-         8
+         sage: C = WalshCode(3); C
+         Linear code of length 8, dimension 3 over Finite Field of size 2
+         sage: C.spectrum()
+         [1, 0, 0, 0, 7, 0, 0, 0, 0]
+
 
     REFERENCES:
         http://en.wikipedia.org/wiki/Hadamard_matrix

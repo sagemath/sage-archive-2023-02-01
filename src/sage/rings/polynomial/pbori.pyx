@@ -806,7 +806,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         if degree > nvars:
             raise ValueError, "Given degree should be less than or equal to number of variables (%s)"%(nvars)
 
-        if Integer(terms-1).bits() > nvars:
+        if Integer(terms-1).nbits() > nvars:
             raise ValueError, "Cannot generate random polynomial with %s terms using %s variables"%(terms, nvars)
 
         tot_terms=0

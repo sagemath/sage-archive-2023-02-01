@@ -506,7 +506,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             from sage.misc.functional import log
             n = int(log(number,2))/8 + 1
         elif PY_TYPE_CHECK(number, Integer):
-            n = int(number.bits())/8 + 1
+            n = int(number.nbits())/8 + 1
         else:
             raise TypeError, "number %s is not an integer"%number
 

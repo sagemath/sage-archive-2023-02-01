@@ -32,6 +32,8 @@ import css, js, keyboards
 
 import notebook as _notebook
 
+import sage.server.notebook.template as template
+
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
@@ -1926,88 +1928,95 @@ def is_valid_email(email):
             return True
     return False
 
-from sage.server.notebook.template import registration_page_template
-from sage.server.notebook.template import login_page_template
-
 class RegistrationPage(resource.PostableResource):
     def __init__(self, userdb):
         self.userdb = userdb
 
     def render(self, request):
         input_boxes = ['username', 'password', 'retype_password']
-        if notebook.conf()['email']:
-            input_boxes.append('email')
         is_valid_dict = {'username': is_valid_username, 'password': is_valid_password,
                          'retype_password': do_passwords_match, 'email': is_valid_email}
+
         missing = [False] * len(input_boxes)
         filled_in = {}
+        template_dict = {}
 
-        is_error = False
-        errors = []
+        def errors_found():
+            for key, value in filled_in.iteritems():
+                template_dict[key] = value
+            minus = 1 if 'email' in template_dict else 0
+            size = len(template_dict) - minus
+            count = 0
+            boxes = []
+            if size == 1:
+                return ('',)
+            for i in template_dict:
+                if '_' in i:
+                    count += 1
+            plural = True if count > 1 else False
+            template_dict['error'] = 'Es ' if plural else 'E '
+
+        if notebook.conf()['email']:
+            template_dict['email'] = True
 
         if set(input_boxes) <= set(request.args):
             for i, box in enumerate(input_boxes):
                 filled_in[box] = request.args[box][0]
                 if box == 'retype_password':
                     if not is_valid_dict[box](filled_in[box], filled_in['password']):
-                        is_error = True
-                        errors.append('passwords_dont_match')
+                        template_dict['passwords_dont_match'] = True
                 elif box == 'password':
                     if 'username' in filled_in:
                         u = filled_in['username']
                     else:
                         u = None
                     if not is_valid_dict[box](filled_in[box], u):
-                        is_error = True
-                        errors.append('password_invalid')
+                        template_dict['password_invalid'] = True
                 else:
                     if not is_valid_dict[box](filled_in[box]):
-                        is_error = True
-                        errors.append(box + '_invalid')
+                        template_dict[box + '_invalid'] = True
         else:
             for i, box in enumerate(input_boxes):
                 if not box in request.args:
                     missing[i] = True
 
             if set(missing) == set([True]):
-                return http.Response(stream=registration_page_template(is_email=notebook.conf()['email']))
+                return http.Response(stream=template.registration(**template_dict))
             elif set(missing) == set([False]):
                 for i, box in enumerate(input_boxes):
                     filled_in[box] = request.args[box][0]
                     if box == 'retype_password':
                         if not is_valid_dict[box](filled_in[box], filled_in['password']):
-                            is_error = True
-                            errors.append('passwords_dont_match')
+                            template_dict['passwords_dont_match'] = True
                     elif box == 'password':
                         if 'username' in filled_in:
                             u = filled_in['username']
                         else:
                             u = None
                         if not is_valid_dict[box](filled_in[box], u):
-                            is_error = True
-                            errors.append('password_invalid')
+                            template_dict['password_invalid'] = True
                     else:
                         if not is_valid_dict[box](filled_in[box]):
-                            is_error = True
-                            errors.append(box + '_invalid')
+                            template_dict[box + '_invalid'] = True
             else:
                 for i, value in enumerate(missing):
                     if value:
-                        is_error = True
-                        errors.append(input_boxes[i] + '_missing')
+                        template_dict[input_boxes[i] + '_missing'] = True
                     elif not value:
                         filled_in[input_boxes[i]] = request.args[input_boxes[i]][0]
 
-        if is_error:
-            return http.Response(stream=registration_page_template(error=errors, input=filled_in))
+        if template_dict and set(template_dict) != set(['email']):
+            errors_found()
+            return http.Response(stream=template.registration(**template_dict))
         else:
             try:
                 e = filled_in['email'] if notebook.conf()['email'] else ''
                 self.userdb.add_user(filled_in['username'], request.args['password'][0],
                                      e)
             except ValueError:
-                errors.append('username_taken')
-                return http.Response(stream=registration_page_template(error=errors, input=filled_in))
+                template_dict['username_taken'] = True
+                errors_found()
+                return http.Response(stream=template.registration(**template_dict))
 
             if notebook.conf()['email']:
                 destaddr = filled_in['email']
@@ -2028,9 +2037,9 @@ class RegistrationPage(resource.PostableResource):
                 except ValueError:
                     pass
 
-            return http.Response(stream=login_page_template(notebook.get_accounts(),
-                                                            notebook.default_user(), welcome=filled_in['username'],
-                                                            recover=notebook.conf()['email']))
+            return http.Response(stream=template.login(accounts=notebook.get_accounts(),
+                                                            default_user=notebook.default_user(), welcome=filled_in['username'],
+                                                            recovery=notebook.conf()['email']))
 
 class ForgotPassPage(resource.Resource):
 
@@ -2143,7 +2152,7 @@ class Toplevel(resource.PostableResource):
         self.username = username if username else 'guest'
 
     def render(self, ctx):
-        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
+        return http.Response(stream = template.login(accounts = notebook.get_accounts(), default_user = notebook.default_user(), recovery=notebook.conf()['email']))
 
     def userchildFactory(self, request, name):
         return InvalidPage(msg = "unauthorized request", username = self.username)
@@ -2153,15 +2162,9 @@ class Toplevel(resource.PostableResource):
 
 setattr(Toplevel, 'child_favicon.ico', static.File(image_path + '/favicon.ico'))
 
-
-
-from sage.server.notebook.template import login_page_template
-
-from sage.server.notebook.template import failed_login_template
-
 class LoginResourceClass(resource.Resource):
     def render(self, ctx):
-        return http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
+        return http.Response(stream =  template.login(accounts=notebook.get_accounts(), default_user=notebook.default_user(), recovery=notebook.conf()['email']))
 
     def childFactory(self, request, name):
         return LoginResource
@@ -2196,7 +2199,7 @@ class AnonymousToplevel(Toplevel):
     #child_login = LoginResource
 
     def render(self, ctx):
-        response = http.Response(stream =  login_page_template(notebook.get_accounts(), notebook.default_user(), recover=notebook.conf()['email']))
+        response = http.Response(stream =  template.login(accounts=notebook.get_accounts(), default_user=notebook.default_user(), recovery=notebook.conf()['email']))
         response.headers.setHeader("set-cookie", [http_headers.Cookie('cookie_test', 'cookie_test')])
         return response
 
@@ -2211,9 +2214,9 @@ class FailedToplevel(Toplevel):
         # worksheets and ratings, this gives no new information way.
         # If published pages were disabled, then this should be disabled too.
         if self.problem == 'username':
-            return http.Response(stream = login_page_template(notebook.get_accounts(), notebook.default_user(), is_username_error=True, recover=notebook.conf()['email']))
+            return http.Response(stream = template.login(accounts=notebook.get_accounts(), default_user='', username_error=True, recovery=notebook.conf()['email']))
         elif self.problem == 'password':
-            return http.Response(stream = login_page_template(notebook.get_accounts(), self.username, is_password_error=True, recover=notebook.conf()['email']))
+            return http.Response(stream = template.login(accounts=notebook.get_accounts(), default_user=self.username, password_error=True, recovery=notebook.conf()['email']))
         else:
             return http.Response(stream = message("Please enable cookies and try again."))
 

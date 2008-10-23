@@ -11,101 +11,27 @@
 """
 HTML templating for the notebook
 
-AUTHOR:
+AUTHORS:
     -- Bobby Moretti
+    -- Timothy Clemans
 """
 
-from string import Template
-from sage.misc.misc import SAGE_EXTCODE
+from jinja import Environment, FileSystemLoader
+from jinja.exceptions import TemplateNotFound
+from os.path import join, exists, getmtime
+from sage.misc.misc import SAGE_ROOT
 
-import os
-
-pjoin = os.path.join
-path = pjoin(SAGE_EXTCODE, "notebook/templates")
-
+env = Environment(loader=FileSystemLoader(SAGE_ROOT+"/devel/sage/sage/server/notebook/templates"))
 
 class PageTemplate:
     def __init__(self, filename):
-        file = open(filename, 'r')
-        self.__template = Template(file.read())
-        file.close()
+        self.__template = env.get_template(filename)
 
     def __call__(self, **kwds):
-        return self.__template.substitute(kwds)
+        return str(self.__template.render(kwds))
 
 # Define variables for each template
 G = globals()
-templates = ['login', 'yes_no', 'failed_login', 'register']
+templates = ['login', 'yes_no', 'registration']
 for name in templates:
-    G[name + '_template'] =  PageTemplate(pjoin(path, '%s.template'%name))
-
-def login_page_template(accounts, default_user, is_username_error=False, is_password_error=False, welcome=None, recover=False):
-    if accounts:
-        reg = "<a href='/register'><b>Sign up for a new SAGE Notebook account</b></a>"
-    else:
-        reg = ""
-    if recover:
-        forgot_pass = "<a href='/forgotpass'><b>Forgot password</b></a>"
-    else:
-        forgot_pass = ''
-    if is_username_error:
-        u_e = '<tr><td align=right><span style="color:red">Error:</span></td><td>Username is not in the system</td></tr>'
-    else:
-        u_e = ''
-    if is_password_error:
-        p_e = '<tr><td align=right><span style="color:red">Error:</span></td><td>Wrong password</td></tr>'
-    else:
-        p_e = ''
-    if welcome:
-        welcome = '<h2>Congratulations %s! You can now sign into the Sage Notebook.</h2>' % welcome
-    else:
-        welcome = ''
-    return login_template(register = reg, default=default_user, username_error=u_e, password_error=p_e, welcome=welcome, forgot_pass=forgot_pass)
-
-def registration_page_template(is_email=False, error=None, input=None):
-    keywords = dict([(i, '') for i in ['error', 'username', 'username_error', 'password_error', 'confirm_pass_error', 'email', 'email_error']])
-    def error_html(msg):
-        return '<p><span class="error">Error:</span> ' + msg + '</p>'
-
-    if error:
-        error_msgs = {'error_msg': '<h2 class="error_found">Error%s found</h2>' % 's' if len(error) > 1 else '',
-                      'username_taken': error_html("Username taken"),
-                      'username_invalid': error_html("Invalid username"),
-                      'username_missing': error_html("No username given"),
-                      'password_invalid': error_html("Bad password"),
-                      'password_missing': error_html("No password given"),
-                      'passwords_dont_match': error_html("Passwords didn't match"),
-                      'retype_password_missing': error_html("Passwords didn't match"),
-                      'email_missing': error_html('No email address given'),
-                      'email_invalid': error_html('Invalid email address')}
-
-        keywords['error'] = error_msgs['error_msg']
-
-        for i in error:
-            if i != 'passwords_dont_match' and i != 'retype_password_missing':
-                keywords[i.split('_')[0] + '_error'] = error_msgs[i]
-            else:
-                keywords['confirm_pass_error'] = error_msgs[i]
-
-    file = open(pjoin(path, 'register.template'), 'r')
-    if input:
-        if 'password' in input:
-            del input['password']
-        if 'retype_password' in input:
-            del input['retype_password']
-        keywords.update(input)
-
-    if is_email:
-        e_box = """<li><h2>Enter your e-mail address</h2>
-<p>Your e-mail address is required for account confirmation and recovery. You will be emailed a confirmation link right after you successfully sign up.</p>
-<input type="text" name="email" value="%s" class="entry" />
-%s
-</li>""" % (keywords['email'], keywords['email_error'])
-    else:
-        e_box = ''
-    keywords['email_box'] = e_box
-    del keywords['email']
-    del keywords['email_error']
-    template = Template(file.read()).substitute(keywords)
-    file.close()
-    return template
+    G[name] =  PageTemplate('%s.html'%name)

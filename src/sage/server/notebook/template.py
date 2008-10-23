@@ -32,6 +32,6 @@ class PageTemplate:
 
 # Define variables for each template
 G = globals()
-templates = ['login', 'yes_no', 'registration']
+templates = ['login', 'yes_no', 'registration', 'account_settings']
 for name in templates:
     G[name] =  PageTemplate('%s.html'%name)

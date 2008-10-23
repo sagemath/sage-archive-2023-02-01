@@ -915,7 +915,7 @@ class SettingsPage(resource.PostableResource):
             elif request.args['Newpass'][0] != request.args['RetypePass'][0]:
                 error = 'The passwords you entered do not match.'
 
-            if not error: #webbrowser may auto fill in "old password" even though the user may nto want to change her passwords
+            if not error: #webbrowser may auto fill in "old password" even though the user may not want to change her password
                 notebook.change_password(self.username, request.args['Newpass'][0])
                 redirect_to_logout = True
         if notebook.conf()['email']:
@@ -932,102 +932,13 @@ class SettingsPage(resource.PostableResource):
         if redirect_to_home:
             return http.RedirectResponse('/home/%s' % self.username)
 
-        s = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <title>Account Settings</title>
-<style type="text/css">
-/*<![CDATA[*/
-  @import url('/css/reset.css');
-
-  html {
-font-size:100.1%
-}
-
-  body {
-    font:100%/1.4 Arial, Helvetica, sans-serif;
-  }
-  h1 {
-    font-size:2em;
-    padding:0 5px;
-    background:#DCDCDC;
-    border-bottom:1px solid #CCC;
-  }
-  #buttons {
-    padding:5px;
-    background:#DCDCDC
-  }
-  h2 {
-    font-size:1.5em
-  }
-  .section {
-    padding:5px;
-    border-bottom:1px solid #CCC;
-  }
-  .section > div {
-    text-align:right;
-    max-width:350px;
-  }
-  td {padding-left:5px}
-/*]]>*/
-</style>
-<style type="text/css">
-/*<![CDATA[*/
- input.c1 {width:200px}
-/*]]>*/
-</style>
-</head>
-
-<body>
-  <h1>Account Settings</h1>
-
-  <form method="post" action="/settings">
-
-    <div class="section">
-      <h2>Change Auto-Save Interval</h2>
-      <div>
-Minutes: <select name="autosave">
-      """
-        for i in range(1, 10, 2):
-            s += '<option%s>%s</option>' % (' selected' if notebook.user(self.username)['autosave_interval']/60 == i else '', i)
-        s += '</select></div></div>'
-        if notebook.conf()['email']:
-            email_section = """
-            <div class="section">
-          <h2>Change E-mail Address</h2>
-
-          <div>
-            <table style="float:right"><tr><td>Current e-mail:</td><td>%s</td></tr>
-            <tr><td></td><td>%s</td></tr>
-            <tr><td style="text-align:right">New e-mail:</td><td><input type="text" name="Newemail" class="c1" /></td></tr></table>
-            <div style="clear:both"></div>
-          </div>
-        </div>
-            """ % ('None' if notebook.user(self.username)._User__email == '' else notebook.user(self.username)._User__email, 'Not confirmed' if not notebook.user(self.username).is_email_confirmed() else 'Confirmed')
-        else: email_section = ''
-        s += """
-    <div class="section">
-      <h2>Change Password</h2>
-      <div id="passwd">
-        Old password: <input type="password" name="Oldpass" /><br />
-        New password: <input type="password" name="Newpass" /><br />
-        Retype new password: <input type="password" name="RetypePass" />
-      </div>
-    </div>
-
-    %s
-    <div id="buttons">
-    <input type="submit" value="Save">""" % email_section
-        s += '<input type="button" value="Cancel" style="margin-left:5px" onClick="parent.location=\'/home/%s\'">' % self.username
-        s += """
-    </div>
-  </form>
-</body>
-</html>
-"""
-        return http.Response(stream=s)
+        template_dict = {}
+        template_dict['autosave_intervals'] = ((i, ' selected') if notebook.user(self.username)['autosave_interval']/60 == i else (i, '') for i in range(1, 10, 2))
+        template_dict['email'] = notebook.conf()['email']
+        if template_dict['email']:
+            template_dict['email_address'] = 'None' if not notebook.user(self.username)._User__email else notebook.user(self.username)._User__email
+            template_dict['email_confirmed'] = 'Not confirmed' if not notebook.user(self.username).is_email_confirmed() else 'Confirmed'
+        return http.Response(stream=template.account_settings(**template_dict))
 
 ########################################################
 # Set output type of a cell

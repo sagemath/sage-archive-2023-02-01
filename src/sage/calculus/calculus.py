@@ -2076,11 +2076,14 @@ class SymbolicExpression(RingElement):
     differentiate = derivative
     diff = derivative
 
-    def gradient(self):
+    def gradient(self, variables=None):
         r"""
         Compute the gradient of a symbolic function.
+
         This function returns a vector whose components are the
-        derivatives of the original function.
+        derivatives of the original function with respect to the
+        arguments of the original function.  Alternatively, you can
+        specify the variables as a list.
 
         EXAMPLES:
             sage: x,y = var('x y')
@@ -2090,10 +2093,17 @@ class SymbolicExpression(RingElement):
             sage: g(x,y) = x^2+y^2
             sage: g.gradient()
             ((x, y) |--> 2*x, (x, y) |--> 2*y)
+            sage: n = var('n')
+            sage: f(x,y) = x^n+y^n
+            sage: f.gradient()
+            ((x, y) |--> n*x^(n - 1), (x, y) |--> n*y^(n - 1))
+            sage: f.gradient([y,x])
+            ((x, y) |--> n*y^(n - 1), (x, y) |--> n*x^(n - 1))
         """
-
+        if variables is None:
+            variables = self.arguments()
         from sage.modules.free_module_element import vector
-        l=[self.derivative(x) for x in self.variables()]
+        l=[self.derivative(x) for x in variables]
         return vector(l)
 
     def hessian(self):

@@ -42,6 +42,22 @@ def sage_timeit(stmt, globals, preparse=None,
         sage: timeit("print 'Hi'", number=50)
         50 loops, best of 3: ... per loop
 
+
+    Make sure that garbage collection is renabled after an exception
+    occurs in timeit.
+
+    TESTS:
+        sage: def f(): raise ValueError
+        sage: import gc
+        sage: gc.isenabled()
+        True
+        sage: timeit("f()")
+        Traceback (most recent call last):
+        ...
+        ValueError
+        sage: gc.isenabled()
+        True
+
     """
     number=int(number)
     repeat=int(repeat)
@@ -88,6 +104,8 @@ def sage_timeit(stmt, globals, preparse=None,
     finally:
         sys.stdout.close()
         sys.stdout = f
+        import gc
+        gc.enable()
 
     if best > 0.0:
         order = min(-int(math.floor(math.log10(best)) // 3), 3)

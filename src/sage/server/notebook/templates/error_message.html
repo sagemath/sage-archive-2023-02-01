@@ -1,0 +1,14 @@
+{% extends "base_authenticated.html" %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<br><a class="usercontrol" href="/">Home</a>
+<hr class="usercontrol">
+<br/><br/>
+{{ msg }}
+<br/><br/>
+{% if cont %}
+<center><a class="boldusercontrol" href="{{ cont }}"><font size=+1>Continue</font></a></center>
+{% endif %}
+{% endblock %}

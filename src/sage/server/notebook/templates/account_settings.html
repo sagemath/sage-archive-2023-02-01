@@ -3,7 +3,7 @@
 {% block title %}Account Settings{% endblock %}
 {% block css %}account_settings{% endblock %}
 
-{% block content %}
+{% block body %}
 <h1>Account Settings</h1>
 
   <form method="post" action="/settings">
@@ -11,7 +11,6 @@
     <div class="section">
       <h2>Change Auto-Save Interval</h2>
       <div>
-	  {{ autosave }}
 	Minutes:
 	<select name="autosave">
         {% for i, selected in autosave_intervals %}

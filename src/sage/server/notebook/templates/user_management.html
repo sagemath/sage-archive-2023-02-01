@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}User Management{% endblock %}
+{% block css %}user_management{% endblock %}
+
+{% block body %}
+<h1>User Management</h1>
+<p>Click on a user to see and edit his/her worksheets.</p>
+{% for user in users %}
+<a href="/home/{{ user }}/">{{ user }}</a><br />
+{% endfor %}
+
+{% endblock %}
+

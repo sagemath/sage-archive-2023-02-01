@@ -109,24 +109,7 @@ def notebook_updates():
 # An error message
 ############################
 def message(msg, cont=None):
-    s = notebook.html_banner()
-    s += '<br><a class="usercontrol" href="/">Home</a>'
-    s += '<hr class="usercontrol">'
-    s += '<br>'*2
-    s += msg
-    s += '<br>'*2
-    if cont:
-        s += '<center><a class="boldusercontrol" href="%s"><font size=+1>Continue</font></a></center>'%cont
-    return """
-        <html>
-        <head>
-           <link rel=stylesheet href="/css/main.css">
-           <title>The Sage Notebook</title>
-        </head>
-        <body>
-        %s
-        </body>
-    """%s
+    return template.error_message(msg=msg, cont=cont)
 
 ############################
 # Create a Sage worksheet from a latex2html'd file
@@ -1996,18 +1979,7 @@ class ForgotPassPage(resource.Resource):
 
             return http.Response(stream=message("A new password has been sent to your e-mail address.", '/'))
         else:
-            s = """<html><h1 align=center>Account Recovery</h1>
-            <br>
-            <hr>
-            <br>
-            <form method="GET" action="/forgotpass">
-            <br><br>
-            <table align=center><tr>
-            <td align=right>Username:</td><td><input type="text" name="username" size="15" /></td></tr>
-            <tr><td></td><td align=left><input type="submit" value="Submit" /><input type="button" value="Cancel" style="margin-left:5px" onClick="parent.location=\'/'"></td></tr>
-            </table> </form>
-
-            </html>"""
+            s = template.account_recovery()
         return http.Response(stream=s)
 
 class ListOfUsers(resource.Resource):
@@ -2018,12 +1990,7 @@ class ListOfUsers(resource.Resource):
             if user_type(self.username) != 'admin':
                 s = message('You must an admin to manage other users.')
             else:
-                s = """
-                <html><head><title>Users | Sage Notebook</title></head>
-                <body>
-                %s
-                </body></html>
-                """ % '<br/>'.join(['<a href="/home/%s/">%s</a>' % (i, i) for i in notebook.valid_login_names()])
+                s = template.user_management(users=notebook.valid_login_names())
             return http.Response(stream = s)
 
 class InvalidPage(resource.Resource):

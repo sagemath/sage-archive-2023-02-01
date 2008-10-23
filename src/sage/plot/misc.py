@@ -117,6 +117,63 @@ class Color:
             s += h
         return s
 
+class suboptions(object):
+    def __init__(self, name, **options):
+        """
+        A decorator for functions which collects all keywords
+        starting with name_ and collects them into a dictionary
+        which will be passed on to the wrapped function as a
+        dictionary called name_options.
+
+        The keyword arguments passed into the constructor are taken
+        to be default for the name_options dictionary.
+
+        EXAMPLES:
+            sage: from sage.plot.misc import suboptions
+            sage: s = suboptions('arrow', size=2)
+            sage: s.name
+            'arrow_'
+            sage: s.options
+            {'size': 2}
+        """
+        self.name = name + "_"
+        self.options = options
+
+    def __call__(self, func):
+        """
+        Returns a wrapper around func
+
+        EXAMPLES:
+            sage: from sage.plot.misc import suboptions
+            sage: def f(*args, **kwds): print list(sorted(kwds.items()))
+            sage: f = suboptions('arrow', size=2)(f)
+            sage: f(size=2)
+            [('arrow_options', {'size': 2}), ('size', 2)]
+            sage: f(arrow_size=3)
+            [('arrow_options', {'size': 3})]
+            sage: f(arrow_options={'size':4})
+            [('arrow_options', {'size': 4})]
+            sage: f(arrow_options={'size':4}, arrow_size=5)
+            [('arrow_options', {'size': 5})]
+
+        """
+        @wraps(func)
+        def wrapper(*args, **kwds):
+            suboptions = copy(self.options)
+            suboptions.update(kwds.pop(self.name+"options", {}))
+
+            #Collect all the relevant keywords in kwds
+            #and put them in suboptions
+            for key, value in kwds.items():
+                if key.startswith(self.name):
+                    suboptions[key[len(self.name):]] = value
+                    del kwds[key]
+
+            kwds[self.name + "options"] = suboptions
+
+            return func(*args, **kwds)
+        return wrapper
+
 class options(object):
     def __init__(self, **options):
         """

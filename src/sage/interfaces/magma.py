@@ -236,6 +236,7 @@ class Magma(Expect):
         # local user startup configuration is not read.
 
         self.__seq = 0
+        self.__available_var = []
 
     def __reduce__(self):
         """
@@ -508,12 +509,43 @@ class Magma(Expect):
             return Expect.__call__(self, x)
         return self.objgens(x, gens)
 
-    #def clear(self, var):
-    #    """
-    #    Clear the variable named var.
-    #    """
-        #self.eval("delete %s"%var)
-    #    self.eval("%s:=0"%var)
+    def clear(self, var):
+        """
+        Clear the variable named var and make it available
+        to be used again.
+
+        INPUT:
+            var -- a string
+
+
+        EXAMPLES:
+            sage: magma = Magma()      # optional
+            sage: magma.clear('foo')   # optional -- this sets foo to 0 in magma.
+            sage: magma.eval('foo')    # optional
+            '0'
+
+        Because we cleared foo, it is set to be used as a variable
+        name in the future:
+            sage: a = magma('10')      # optional
+            sage: a.name()             # optional
+            'foo'
+
+        The following tests that the whole variable clearing and
+        freeing system is working correctly.
+            sage: magma = Magma()      # optional
+            sage: a = magma('100')     # optional
+            sage: a.name()             # optional
+            '_sage_[1]'
+            sage: del a                # optional
+            sage: b = magma('257')     # optional
+            sage: b.name()             # optional
+            '_sage_[1]'
+            sage: del b                # optional
+            sage: magma('_sage_[1]')   # optional
+            0
+        """
+        self.__available_var.append(var)
+        self.eval("%s:=0"%var)
 
     def cputime(self, t=None):
         """
@@ -664,8 +696,13 @@ class Magma(Expect):
                 # this exception could happen if the MAGMA process
                 # was interrupted during startup / initialization.
                 self.eval('_sage_ := [* 0 : i in [1..%s] *];'%self.__seq)
-        self.__seq += 1
-        return '_sage_[%s]'%self.__seq
+        if len(self.__available_var) > 0:
+            n = self.__available_var[0]
+            del self.__available_var[0]
+            return n
+        else:
+            self.__seq += 1
+            return '_sage_[%s]'%self.__seq
 
     def function_call(self, function, args=[], params={}, nvals=1):
         """

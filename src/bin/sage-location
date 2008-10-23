@@ -16,7 +16,7 @@ def install_moved():
     O = open(location_file)
     R = O.read().strip()
     O.close()
-    if os.path.abspath(R) != os.path.abspath(SAGE_ROOT):  # really different
+    if os.path.realpath(R) != os.path.realpath(SAGE_ROOT):  # really different
         return True, R  # it moved
     return False, ''
 

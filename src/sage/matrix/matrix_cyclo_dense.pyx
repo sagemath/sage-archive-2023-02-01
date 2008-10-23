@@ -36,38 +36,36 @@ include "../ext/cdefs.pxi"
 include "../libs/ntl/decl.pxi"
 
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
+
 from constructor import matrix
 from matrix_space import MatrixSpace
-from sage.rings.rational_field import QQ
-from sage.rings.integer_ring import ZZ
-from sage.rings.arith import previous_prime, binomial
 from matrix cimport Matrix
 import matrix_dense
 from matrix_integer_dense import _lift_crt
 from matrix_modn_dense import _matrix_from_rows_of_matrices
-from sage.misc.misc import verbose
-import math
-
-from sage.rings.integer cimport Integer
-from sage.rings.rational cimport Rational
-
 from sage.structure.element cimport Matrix as baseMatrix
-
 from misc import matrix_integer_dense_rational_reconstruction
-
 from sage.ext.multi_modular import MAX_MODULUS
 
-from sage.structure.proof.proof import get_flag as get_proof_flag
-
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.arith import previous_prime, binomial
+from sage.rings.all import RealNumber
+from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.number_field.number_field import NumberField_quadratic
+from sage.rings.number_field.number_field_element cimport NumberFieldElement
+from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
+
+from sage.structure.proof.proof import get_flag as get_proof_flag
+from sage.misc.misc import verbose
+import math
 
 # parameters for tuning
 echelon_primes_increment = 15
 echelon_verbose_level = 1
 
-from sage.rings.number_field.number_field import NumberField_quadratic
-from sage.rings.number_field.number_field_element cimport NumberFieldElement
-from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
 
 cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     ########################################################################
@@ -911,13 +909,14 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     def _charpoly_bound(self):
         """
         Determine a bound for the coefficients of the characteristic
-        polynomial of self. We use the bound in Lemma 2.1 of:
+        polynomial of self. We use the bound in Lemma 2.2 of:
 
           Dumas, J-G. "Bounds on the coefficients of characteristic
           and minimal polynomials." J. Inequal. Pure Appl. Math. 8
           (2007), no. 2.
 
-        This bound only applies for self._nrows >= 4.
+        This bound only applies for self._nrows >= 4, so in all
+        smaller cases, we just use a naive bound.
 
         EXAMPLES:
             sage: A = Matrix(CyclotomicField(7),3,3,range(9))
@@ -926,41 +925,57 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A.charpoly()
             x^3 - 12*x^2 - 18*x
 
-        An example from the above paper, where our bound is sharp:
+        An example from the above paper, where the bound is sharp:
             sage: B = Matrix(CyclotomicField(7), 5,5, [1,1,1,1,1,1,1,-1,-1,-1,1,-1,1,-1,-1,1,-1,-1,1,-1,1,-1,-1,-1,1])
             sage: B._charpoly_bound()
-            81
+            80
             sage: B.charpoly()
             x^5 - 5*x^4 + 40*x^2 - 80*x + 48
         """
-        cdef Py_ssize_t i, j
-        cdef float alpha, delta
+        cdef Py_ssize_t i
 
         # should we even bother with this check, or just say in
         # the docstring that we assume it's square?
         if self._nrows != self._ncols:
             raise ValueError, "self must be square"
 
-        # This is an approximation to 2^(5/6*log_2(5) - 2/3*log_2(6))
-        alpha = 1.15799718800731
-        # This is 2*e^(1-(2(7\gamma-4))/(13(3-2\gamma))), where \gamma
-        # is Euler's constant.
-        delta = 5.418236
+        if self.is_zero():
+            return 1
 
         B = self.coefficient_bound()
 
-        # this bound is only valid for n >= 4, use naive bounds
-        # in other cases.
         # TODO: should charpoly just hardcode the return value for
         # self.nrows() < 4?
-        if self._nrows > 3:
-            return ZZ(int(math.ceil((alpha * self._nrows * B**2)**(self._nrows/2.0))))
-        elif self._nrows == 3:
-            return max(6*B**2, 4*B**3)
-        elif self._nrows == 2:
-            return 2*B**2
-        else:
-            return B
+
+        # this bound is only valid for n >= 4, use naive bounds
+        # in other cases.
+        if self._nrows <= 3:
+            return max(1, 3*B, 6*B**2, 4*B**3)
+
+        # This is an approximation to 2^(5/6*log_2(5) - 2/3*log_2(6))
+        alpha = RealNumber('1.15799718800731')
+        # This is 2*e^(1-(2(7\gamma-4))/(13(3-2\gamma))), where \gamma
+        # is Euler's constant.
+        delta = RealNumber('5.418236')
+        # This is an approximation to 1/2. :)
+        half = RealNumber('0.5')
+
+        D = (((1+2*delta*self._nrows*(B**2)).sqrt()-1)/(delta*B**2)).ceil()
+
+        # TODO: we don't check anything about overflows anywhere here;
+        # should we?
+
+        # i = 0 case
+        M = ((self._nrows * B**2)**(self._nrows * half)).ceil()
+
+        for i from 1 <= i < D:
+            val = binomial(self._nrows, i) * \
+                  (((self._nrows-i)*B**2)**((self._nrows-i)*half)).ceil()
+            if val > M:
+                M = val
+
+        return M
+
 
     def charpoly(self, var='x', algorithm="multimodular", proof=None):
         r"""
@@ -1371,6 +1386,11 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             []
             sage: A.pivots()
             []
+
+            sage: A = matrix(CyclotomicField(13), 2, 3, [5, 1, 2, 46307, 46307*4, 46307])
+            sage: A._echelon_form_multimodular()
+            [   1    0 7/19]
+            [   0    1 3/19]
         """
         cdef int i
         cdef Matrix_cyclo_dense res
@@ -1419,23 +1439,36 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                     if piv_ls > max_pivots:
                         mod_p_ech_ls = [mod_p_ech]
                         max_pivots = piv_ls
+                        # add this to the list of primes
+                        prod = p
+                        found = 1
                     elif piv_ls == max_pivots:
                         mod_p_ech_ls.append(mod_p_ech)
+                        # add this to the list of primes
+                        prod *= p
+                        found += 1
+                    else:
+                        # this means that the rank profile mod this
+                        # prime is worse than those that came befroe,
+                        # so we just loop
+                        p = previous_prime(p)
+                        continue
 
-                    # add this to the list of primes
-                    found += 1
-                    prod *= p
                 p = previous_prime(p)
 
             if found > num_primes:
                 num_primes = found
 
-            verbose("computed echelon form mod %s primes"%num_primes, level=echelon_verbose_level)
-            verbose("current product of primes used: %s"%prod, level=echelon_verbose_level)
+            verbose("computed echelon form mod %s primes"%num_primes,
+                    level=echelon_verbose_level)
+            verbose("current product of primes used: %s"%prod,
+                    level=echelon_verbose_level)
 
             # Use CRT to lift back to ZZ
             mat_over_ZZ = matrix(ZZ, self._base_ring.degree(), self._nrows * self._ncols)
             _lift_crt(mat_over_ZZ, mod_p_ech_ls)
+            # note: saving the CRT intermediate MultiModularBasis does
+            # not seem to affect the runtime at all
 
             # Attempt to use rational reconstruction to find
             # our echelon form
@@ -1450,7 +1483,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 # rational reconstruction failed. In this case, add
                 # on a few more primes, and try again.
 
-                # TODO: can we reuse the _lift_crt computation?
                 num_primes += echelon_primes_increment
                 verbose("rational reconstruction failed, trying with %s primes"%num_primes, level=echelon_verbose_level)
                 continue
@@ -1460,10 +1492,9 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             if ((res * res.denominator()).coefficient_bound() *
                 self.coefficient_bound() * self.ncols()) > prod:
                 # In this case, we don't know the result to sufficient
-                # "precision" (here precision is just the modulus, prod)
-                # to guarantee its correctness, so loop.
+                # "precision" (here precision is just the modulus,
+                # prod) to guarantee its correctness, so loop.
 
-                # TODO: can we reuse the _lift_crt computation?
                 num_primes += echelon_primes_increment
                 verbose("height not sufficient to determine echelon form", level=echelon_verbose_level)
                 continue
@@ -1471,7 +1502,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             verbose("found echelon form with %s primes, whose product is %s"%(num_primes, prod), level=echelon_verbose_level)
             self.cache('pivots', max_pivots)
             return res
-
 
     def _echelon_form_one_prime(self, p):
         """

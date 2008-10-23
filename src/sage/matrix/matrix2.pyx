@@ -3356,9 +3356,9 @@ cdef class Matrix(matrix1.Matrix):
         self._set_pivots(pivots)
         verbose('done with strassen', tm)
 
-    def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
+    cpdef matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
                       Py_ssize_t nrows=-1, Py_ssize_t ncols=-1,
-                      check = True):
+                      bint check=1):
         """
         Return the requested matrix window.
 
@@ -3385,11 +3385,6 @@ cdef class Matrix(matrix1.Matrix):
             ...
             IndexError: matrix window index out of range
         """
-        return self.matrix_window_c(row, col, nrows, ncols, check)
-
-    cdef matrix_window_c(self, Py_ssize_t row, Py_ssize_t col,
-                         Py_ssize_t nrows, Py_ssize_t ncols,
-                         bint check):
         import matrix_window
         if nrows == -1:
             nrows = self._nrows - row

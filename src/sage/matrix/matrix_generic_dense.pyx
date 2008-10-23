@@ -20,7 +20,6 @@ cimport matrix_dense
 import matrix_dense
 
 cimport matrix
-cimport matrix_window
 
 cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     r"""

@@ -1506,9 +1506,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         # TODO: lots of testing
         return 100
 
-    cdef matrix_window_c(self, Py_ssize_t row, Py_ssize_t col,
-                         Py_ssize_t nrows, Py_ssize_t ncols,
-                         bint check):
+    cpdef matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
+                       Py_ssize_t nrows=-1, Py_ssize_t ncols=-1,
+                       bint check=1):
         """
         Return the requested matrix window.
 

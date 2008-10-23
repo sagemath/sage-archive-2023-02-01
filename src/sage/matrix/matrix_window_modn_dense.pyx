@@ -19,14 +19,14 @@ from sage.matrix.matrix_modn_dense cimport Matrix_modn_dense
 
 cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
 
-    cdef new_empty_window(self, Py_ssize_t nrows, Py_ssize_t ncols):
+    cpdef new_empty_window(self, Py_ssize_t nrows, Py_ssize_t ncols):
 # the current code is all python, goes through inits, and possibly creates a parent...
 # can we get away with something faster?
 #       a = MatrixWindow_modn_dense.__new__(self._parent, )?
        a = self._matrix.new_matrix(nrows, ncols)
        return self.new_matrix_window(a, 0, 0, nrows, ncols)
 
-    cdef set_to(MatrixWindow_modn_dense self, MatrixWindow A):
+    cpdef set_to(MatrixWindow_modn_dense self, MatrixWindow A):
         """
         Change self, making it equal A.
         """
@@ -40,14 +40,14 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
         for i from 0 <= i < self._nrows:
             memcpy(self_rows[i+self._row] + self._col, A_rows[i+A._row] + A._col, self._ncols * sizeof(mod_int))
 
-    cdef set_to_zero(MatrixWindow_modn_dense self):
+    cpdef set_to_zero(MatrixWindow_modn_dense self):
         cdef Py_ssize_t i, j
         cdef mod_int** rows
         rows = ( <Matrix_modn_dense> self._matrix )._matrix
         for i from self._row <= i < self._row + self._nrows:
             memset(rows[i] + self._col, 0, self._ncols * sizeof(mod_int))
 
-    cdef add(self, MatrixWindow A):
+    cpdef add(self, MatrixWindow A):
         cdef Py_ssize_t i, j
         cdef mod_int k, p
         cdef mod_int* self_row
@@ -62,7 +62,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                 k = self_row[j] + A_row[j]
                 self_row[j] = k - (k >= p) * p
 
-    cdef subtract(self, MatrixWindow A):
+    cpdef subtract(self, MatrixWindow A):
         cdef Py_ssize_t i, j
         cdef mod_int k, p
         cdef mod_int* self_row
@@ -77,7 +77,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                 k = p + self_row[j] - A_row[j]
                 self_row[j] = k - (k >= p) * p
 
-    cdef set_to_sum(self, MatrixWindow A, MatrixWindow B):
+    cpdef set_to_sum(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j
         cdef mod_int k, p
         cdef mod_int* self_row
@@ -96,7 +96,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                 k = A_row[j] + B_row[j]
                 self_row[j] = k - (k >= p) * p
 
-    cdef set_to_diff(self, MatrixWindow A, MatrixWindow B):
+    cpdef set_to_diff(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j
         cdef mod_int k, p
         cdef mod_int* self_row
@@ -115,7 +115,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                 k = p + A_row[j] - B_row[j]
                 self_row[j] = k - (k >= p) * p
 
-    cdef set_to_prod(self, MatrixWindow A, MatrixWindow B):
+    cpdef set_to_prod(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j, k, gather, top, A_ncols
         cdef mod_int p, s
         cdef mod_int* self_row
@@ -163,7 +163,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                     for j from 0 <= j < B._ncols:
                         self_row[j] %= p
 
-    cdef add_prod(self, MatrixWindow A, MatrixWindow B):
+    cpdef add_prod(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j, k, gather, top, A_ncols
         cdef mod_int p, s
         cdef mod_int* self_row
@@ -207,7 +207,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                         self_row[j] %= p
 
 
-    cdef subtract_prod(self, MatrixWindow A, MatrixWindow B):
+    cpdef subtract_prod(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j, k, gather, top, A_ncols
         cdef mod_int p, s, p2
         cdef mod_int* self_row
@@ -252,7 +252,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                         self_row[j] %= p
 
 
-    cdef bint element_is_zero(self, Py_ssize_t i, Py_ssize_t j):
+    cpdef bint element_is_zero(self, Py_ssize_t i, Py_ssize_t j):
         return (<Matrix_modn_dense>self._matrix)._matrix[i+self._row][j+self._col] == 0
 
 

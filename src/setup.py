@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 DEVEL = False
 
-import distutils.sysconfig, os, sys
+import distutils.sysconfig, os, sys, time
 # from distutils.core import setup, Extension
 
 # TODO: Is this what we want here?
@@ -1234,6 +1234,10 @@ def process_cython_file(deps, f, m):
     INPUT:
         f -- file name
         m -- Extension module description (i.e., object of type Extension).
+
+    OUTPUT:
+        string -- command that must be run to cython the input file
+        outfile -- the name of the resulting file
     """
     # This is a cython file, so process accordingly.
     pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
@@ -1243,16 +1247,12 @@ def process_cython_file(deps, f, m):
     outfile = f[:-4] + ".c"
     if m.language == 'c++':
         outfile += 'pp'
-
     if need_to_cython(deps, f, outfile):
         # Insert the -o parameter to specify the output file (particularly for c++)
         cmd = "python2.5 `which cython` --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
-        print cmd
-        ret = os.system(cmd)
-        if ret != 0:
-            print "sage: Error running cython."
-            sys.exit(1)
-    return [outfile]
+    else:
+        cmd = ''
+    return cmd, outfile
 
 def hash_of_cython_file_timestamps():
     h = 0
@@ -1280,19 +1280,140 @@ if H != H_old:
 else:
     do_cython = False
 
+
 def cython(deps, ext_modules):
+    """
+    Run cython to produce C/C++ files for the given extension modules.
+
+    INPUT:
+        deps -- a list of files that this file depends on
+        ext_modules -- list of extension modules
+
+    OUTPUT:
+        cython is run; if any cython fails then this function
+        terminates setup.py with an exit code of 1
+    """
+    command_list = []
     for m in ext_modules:
         m.extra_compile_args += extra_compile_args
-#        m.extra_link_args += extra_link_args
         new_sources = []
         for i in range(len(m.sources)):
             f = m.sources[i]
-#            s = open(f).read()
             if f[-4:] == ".pyx":
-                new_sources += process_cython_file(deps, f, m)
+                cmd, outfile = process_cython_file(deps, f, m)
+                if cmd:
+                    command_list.append(cmd)
+                new_sources.append(outfile)
             else:
                 new_sources.append(f)
         m.sources = new_sources
+    command_list = sorted(list(set(command_list)))
+    execute_list_of_commands(command_list)
+
+def execute_list_of_commands_in_serial(command_list):
+    """
+    INPUT:
+        command_list -- a list of commands (strings) to run at the shell using os.system
+
+    OUTPUT:
+        the given list of commands are all executed in serial
+    """
+    for cmd in command_list:
+        print cmd
+        r = os.system(cmd)
+        if r != 0:
+            print "Error running command."
+            sys.exit(r)
+
+def run_command(cmd):
+    """
+    INPUT:
+        cmd -- a string; a command to run
+
+    OUTPUT:
+        prints cmd to the console and then runs os.system
+    """
+    print cmd
+    return os.system(cmd)
+
+def execute_list_of_commands_in_parallel(command_list, ncpus):
+    """
+    INPUT:
+        command_list -- a list of strings (commands)
+        ncpus -- integer; number of cpus to use
+
+    OUTPUT:
+        executes the given list of commands, possibly in parallel,
+        using ncpus cpus.  terminates setup.py with an exit code of 1
+        if an error occurs in any subcommand.
+
+    WARNING: commands are run roughly in order, but of course successive
+    commands may be run at the same time.
+    """
+    print "Execute %s commands (using %s cpus)"%(len(command_list), min(len(command_list),ncpus))
+    from processing import Pool
+    p = Pool(ncpus)
+    for r in p.imap(run_command, command_list):
+        if r:
+            sys.exit(1)
+
+def number_of_cpus():
+    """
+    Try to determine the number of cpu's on this system.
+    If successful return that number.  Otherwise return 0
+    to indicate failure.
+
+    OUTPUT:
+        int
+    """
+    try:
+        if hasattr(os, "sysconf"):
+            if os.sysconf_names.has_key("SC_NPROCESSORS_ONLN"): # Linux and Unix
+                n = os.sysconf("SC_NPROCESSORS_ONLN")
+                if isinstance(n, int) and n > 0:
+                    return n
+        else:  # MacOS X
+            return int(os.popen2("sysctl -n hw.ncpu")[1].read())
+    except:
+        return 0
+
+def execute_list_of_commands(command_list):
+    """
+    INPUT:
+        command_list -- a list of strings (commands)
+    OUTPUT:
+        runs the given list of commands using os.system; on machines
+        with more than 1 cpu the commands are run in parallel.
+    """
+    t = time.time()
+    if not os.environ.has_key('MAKE'):
+        ncpus = 1
+    else:
+        MAKE = os.environ['MAKE']
+        z = [w[2:] for w in MAKE.split() if w.startswith('-j')]
+        if len(z) == 0:  # no command line option
+            ncpus = 1
+        else:
+            # Determine number of cpus from command line argument.
+            # Also, use the OS to cap the number of cpus, in case
+            # user annoyingly makes a typo and asks to use 10000
+            # cpus at once.
+            try:
+                ncpus = int(z[0])
+                n = 2*number_of_cpus()
+                if n:  # prevent dumb typos.
+                    ncpus = min(ncpus, n)
+            except ValueError:
+                ncpus = 1
+
+    if ncpus > 1:
+        # parallel version
+        execute_list_of_commands_in_parallel(command_list, ncpus)
+    else:
+        # non-parallel version
+        execute_list_of_commands_in_serial(command_list)
+    print "Time to execute %s commands: %s seconds"%(len(command_list), time.time() - t)
+
 
 def search_all_includes(filename):
     """
@@ -1419,11 +1540,10 @@ def create_deps(ext_modules):
 if not sdist and do_cython:
     import resource
     print "Updating Cython code...."
-    u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
+    t = time.time()
     deps = create_deps(ext_modules)
     cython(deps, ext_modules)
-    uu,ss = resource.getrusage(resource.RUSAGE_SELF)[:2]
-    print "Finished updating Cython code (time = %s seconds)"%(uu+ss-u-s)
+    print "Finished compiling Cython code (time = %s seconds)"%(time.time() - t)
 
 code = setup(name        = 'sage',
 

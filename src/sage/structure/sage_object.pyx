@@ -683,7 +683,7 @@ def picklejar(obj, dir=None):
     To use this to test the whole Sage library right now, set the
     environment variable SAGE_PICKLE_JAR, which will make it so dumps
     will by default call picklejar with the default dir.  Once you do
-    that and doctest Sage, you'll find that the given directory
+    that and doctest Sage, you'll find that the SAGE_ROOT/tmp/
     contains a bunch of pickled objects along with corresponding txt
     descriptions of them.  Use the
     sage.structure.sage_object.unpickle_all to see if they unpickle
@@ -721,7 +721,7 @@ def picklejar(obj, dir=None):
     txt = "type(obj) = %s\n"%typ
     import sage.version
     txt += "version = %s\n"%sage.version.version
-    txt += "obj =\n'%s'\n"%obj
+    txt += "obj =\n'%s'\n"%str(obj)
 
     open(base + '.txt', 'w').write(txt)
 
@@ -731,7 +731,8 @@ def unpickle_all(dir):
     they occur.  Also printed the number of successes and failure.
 
     INPUT:
-        dir -- string; a directory
+        dir -- string; a directory or name of a .tar.bz2 file that
+               decompresses to give a directo pickirectory.
 
     EXAMPLES:
         sage: dir = tmp_dir()
@@ -739,10 +740,29 @@ def unpickle_all(dir):
         sage: sage.structure.sage_object.unpickle_all(dir)
         Successfully unpickled 1 objects.
         Failed to unpickle 0 objects.
+
+    We unpickle the standard pickle jar. This doctest tests that
+    all "standard pickles" unpickle.  Every so often the standard pickle jar
+    should be updated by running the doctest suite with the environment variable
+    SAGE_PICKLE_JAR set, then copying the files from SAGE_ROOT/tmp/pickle_jar*
+    into the standard pickle jar.
+        sage: std = os.environ['SAGE_DATA'] + '/extcode/pickle_jar/pickle_jar.tar.bz2'
+        sage: sage.structure.sage_object.unpickle_all(std)
+        Successfully unpickled ... objects.
+        Failed to unpickle 0 objects.
     """
     i = 0
     j = 0
     failed = []
+    if dir.endswith('.tar.bz2'):
+        # create a temporary directory
+        from sage.misc.all import tmp_dir
+        T = tmp_dir()
+        # extract tarball to it
+        os.system('cd "%s"; bunzip2 -c "%s" | tar fx - '%(T, os.path.abspath(dir)))
+        # Now use the directory in the tarball instead of dir
+        dir = T + "/" + os.listdir(T)[0]
+
     for A in os.listdir(dir):
         if A.endswith('.sobj'):
             try:

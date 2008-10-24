@@ -51,6 +51,7 @@ import weakref
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 import sage.rings.all as rings
+from   sage.rings.arith import binomial, bernoulli
 import sage.modules.free_module as free_module
 import sage.modules.free_module_element
 import sage.structure.parent_gens as parent_gens
@@ -396,9 +397,20 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         return ~self
 
-    def bernoulli(self, k):
+    def bernoulli(self, k, algorithm='recurrence', cache=True, **opts):
         r"""
         Returns the generalized Bernoulli number $B_{k,eps}$.
+
+        INPUT:
+            k -- an integer
+            algorithm -- string (default: 'recurrence'); either
+                         'recurrence' or 'definition'.  The
+                         'recurrence' algorithm expresses generalized
+                         Bernoulli numbers in terms of classical
+                         Bernoulli numbers using a recurrence formula
+                         and is usually optimal.  In this case **opts
+                         is passed onto the bernoulli function.
+            cache -- if True, cache answers
 
         Let eps be this character (not necessarily primitive), and
         let $k \geq 0$ be an integer weight.  This function computes
@@ -410,51 +422,70 @@ class DirichletCharacter(MultiplicativeGroupElement):
         $$
         where $N$ is the modulus of $\eps$.
 
+        The default algorithm is the recurrence on page 656 of Cohen's
+        GTM 'Number Theory and Diophantine Equations', section 9.
+
         EXAMPLES:
             sage: G = DirichletGroup(13)
             sage: e = G.0
             sage: e.bernoulli(5)
             7430/13*zeta12^3 - 34750/13*zeta12^2 - 11380/13*zeta12 + 9110/13
+            sage: eps = DirichletGroup(9).0
+            sage: eps.bernoulli(3)
+            10*zeta6 + 4
+            sage: eps.bernoulli(3, algorithm="definition")
+            10*zeta6 + 4
         """
-        try:
-            self.__bernoulli
-        except AttributeError:
-            self.__bernoulli = {}
-        if self.__bernoulli.has_key(k):
-            return self.__bernoulli[k]
+        if cache:
+            try:
+                self.__bernoulli
+            except AttributeError:
+                self.__bernoulli = {}
+            if self.__bernoulli.has_key(k):
+                return self.__bernoulli[k]
         N = self.modulus()
         K = self.base_ring()
 
         if N != 1 and self(-1) != K((-1)**k):
-            return K(0)
+            ans = K(0)
+            if cache:
+                self.__bernoulli[k] = ans
+            return ans
 
-        # TODO: The following is very slow, since poly rings over a
-        # very slow field are very slow... (this could change as SAGE
-        # evolves).
-        if False:
-            R = rings.PowerSeriesRing(K, "t")
+        if algorithm == "recurrence":
+            # The following code is pretty fast, at least compared to
+            # the other algorithm below.  That said, I'm sure it could
+            # be sped up by a factor of 10 or more in many cases,
+            # especially since we end up computing all the bernoulli
+            # numbers up to k, which should be done with power series
+            # instead of calls to the bernoulli function.  Likewise
+            # computing all binomial coefficients can be done much
+            # more efficiently.
+            v = self.values()
+            def S(n):
+                return sum(v[r] * r**n for r in range(1, N))
+            ber = sum(binomial(k,j) * bernoulli(j, **opts) *
+                                N**(j-1) * S(k-j) for j in range(k+1))
+
+        elif algorithm == "definition":
+            # This is better since it computes the same thing, but requires
+            # no arith in a poly ring over a number field.
+            prec = k+2
+            R = rings.PowerSeriesRing(rings.QQ, 't')
             t = R.gen()
-            prec = k+2   # todo: fix this
-            F = sum([(self(a) * t * (a*t).exp(prec)) / ((N*t).exp(prec) - 1) \
-                     for a in range(1,N)])
-            self.__bernoulli[k] = F[k]*arith.factorial(k)
-            return self.__bernoulli[k]
+            # g(t) = t/(e^{Nt}-1)
+            g = t/((N*t).exp(prec) - 1)
 
+            # h(n) = g(t)*e^{nt}
+            h = [0] + [g * ((n*t).exp(prec)) for n in range(1,N+1)]
+            ber = sum([self(a)*h[a][k] for a in range(1,N+1)]) * arith.factorial(k)
 
-        # This is better since it computes the same thing, but requires
-        # no arith in a poly ring over a number field.
-        prec = k+2
-        R = rings.PowerSeriesRing(rings.QQ, 't')
-        t = R.gen()
-        # g(t) = t/(e^{Nt}-1)
-        g = t/((N*t).exp(prec) - 1)
+        else:
+            raise ValueError, "algorithm = '%s' unknown"%algorithm
 
-        # h(n) = g(t)*e^{nt}
-        h = [0] + [g * ((n*t).exp(prec)) for n in range(1,N+1)]
-        ber = sum([self(a)*h[a][k] for a in range(1,N+1)]) * arith.factorial(k)
-
-        self.__bernoulli[k] = ber
-        return self.__bernoulli[k]
+        if cache:
+            self.__bernoulli[k] = ber
+        return ber
 
     def conductor(self):
         """

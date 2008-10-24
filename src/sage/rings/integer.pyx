@@ -2292,20 +2292,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: gamma(5)
             24
             sage: gamma(0)
-            -Infinity
+            Infinity
             sage: gamma(-1)
-            +Infinity
+            Infinity
             sage: gamma(-2^150)
-            -Infinity
+            Infinity
         """
         if mpz_sgn(self.value) > 0:
             return (self-ONE).factorial()
         else:
-            from sage.rings.infinity import infinity
-            if mpz_even_p(self.value):
-                return -infinity
-            else:
-                return infinity
+            from sage.rings.infinity import unsigned_infinity
+            return unsigned_infinity
 
     def floor(self):
         """

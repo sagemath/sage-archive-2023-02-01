@@ -14,7 +14,8 @@ half-planes are also referred to as inequalities, and abbreviated
 ieq, and the hyperplanes are also referred to as linearities.
 
 AUTHOR:
-    -- Marshall Hampton: first version 2008
+    -- Marshall Hampton: first version and bugfixes, 2008
+    -- Arnaud Bergeron: improvements to triangulation and rendering, 2008
 """
 
 ########################################################################
@@ -25,15 +26,22 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-
-from sage.misc.all import SAGE_TMP, tmp_filename
-from sage.rings.all import Integer, QQ
 from sage.structure.sage_object import SageObject
+from sage.misc.all import SAGE_TMP, tmp_filename
+from sage.misc.functional import norm
+from random import randint
+from sage.rings.all import Integer, QQ, ZZ
 from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RR
+from sage.rings.real_double import RDF
+from sage.modules.free_module_element import vector
+from sage.matrix.constructor import matrix
+from sage.plot.plot3d.shapes2 import point3d
 from sage.plot.plot import line
-from random import randint
-#from sage.plot.plot3d.platonic import * # needed in future for render_solid
+from sage.combinat.combinat import permutations
+from sage.groups.perm_gps.permgroup_named import AlternatingGroup
+from sage.misc.package import is_package_installed
+from sage.graphs.graph import Graph
 
 import os
 from subprocess import Popen, PIPE
@@ -47,7 +55,7 @@ def mink_sum(polyhedra_list, verbose = False):
         sage: poly_spam = Polyhedron([[3,4,5,2],[1,0,0,1],[0,0,0,0],[0,4,3,2],[-3,-3,-3,-3]])
         sage: poly_eggs = Polyhedron([[5,4,5,4],[-4,5,-4,5],[4,-5,4,-5],[0,0,0,0]])
         sage: poly_spam_and_eggs = mink_sum([poly_spam,poly_spam,poly_eggs])
-        sage: len(poly_spam_and_eggs.vertices())
+        sage: poly_spam_and_eggs.n_vertices()
         12
     """
     answer = Polyhedron()
@@ -56,7 +64,7 @@ def mink_sum(polyhedra_list, verbose = False):
         for vertex2 in polyhedra_list[1].vertices():
             temp_vertex_list.append([vertex1[i]+vertex2[i] for i in range(len(vertex1))])
     answer._vertices = temp_vertex_list
-    answer.remove_redundant_vertices()
+    answer._remove_redundant_vertices()
     if verbose:
 	print 'Another pair of polytopes computed, sum has ' + str(len(answer._vertices)) + ' vertices'
     if len(polyhedra_list) == 2:
@@ -82,6 +90,11 @@ class Polyhedron(SageObject):
 	    sage: p = Polyhedron(vertices = [[1.1, 2.2], [3.3, 4.4]], cdd_type = 'real')
 	    sage: len(p.ieqs())
 	    2
+
+        NOTE:
+             Although the option cdd_type = 'real' allows numerical data to be used, its use is
+        discouraged - the results can depend upon the tolerance setting of cddlib, whose
+        default is rather large since cddlib was designed with rational and integer data in mind.
         """
 	self._cdd_type = cdd_type
         self._vertices = vertices
@@ -89,7 +102,7 @@ class Polyhedron(SageObject):
         self._linearities = linearities
         self._rays = rays
 	if self._vertices != []:
-	    self.remove_redundant_vertices(cdd_type = self._cdd_type)
+	    self._remove_redundant_vertices(cdd_type = self._cdd_type)
 
     def _repr_(self):
         """
@@ -125,6 +138,27 @@ class Polyhedron(SageObject):
         desc += '.'
         return desc
 
+    def show(self, fill = False, **kwds):
+        """
+        Returns a wireframe or solid rendering if possible.
+        Only works currently in dimensions 2,3, and 4.
+
+        EXAMPLES:
+            sage: p = polytopes.n_cube(4)
+            sage: p_show = p.show()
+            sage: p_show.bounding_box()
+            ((-1.0, -1.0, -1.0), (1.0, 1.0, 1.0))
+        """
+        if self.ambient_dim() == 2 or self.ambient_dim() == 4:
+            return self.render_wireframe()
+        if self.ambient_dim() == 3:
+            if fill == False:
+                return self.render_wireframe()
+            else:
+                return self.render_solid()
+        else:
+            raise TypeError,"only polytopes in dimensions 2 to 4 are shown"
+
     def dim(self):
         """
         Returns the dimension of the polyhedron.
@@ -145,20 +179,40 @@ class Polyhedron(SageObject):
                 self._dim = 0
             return self._dim
 
+    def ambient_dim(self):
+        """
+        Returns the ambient dimension of the polyhedron.
+
+        EXAMPLES:
+            sage: standard_simplex = Polyhedron(vertices = [[1,0,0,0],[0,0,0,1],[0,1,0,0],[0,0,1,0]])
+            sage: standard_simplex.ambient_dim()
+            4
+        """
+        try:
+            return self._ambient_dim
+        except AttributeError:
+            if self.vertices() != []:
+                self._ambient_dim = len(self.vertices()[0])
+            elif self.ieqs() != []:
+                self._ambient_dim = len(self.ieqs()[0]) - 1
+            else:
+                self._ambient_dim = 0
+            return self._ambient_dim
+
     def is_simple(self):
         """
         Tests for simplicity of a polytope.
 
         EXAMPLES:
             sage: p = Polyhedron([[0,0,0],[1,0,0],[0,1,0],[0,0,1]])
-            sage: p.remove_redundant_vertices()
+            sage: p._remove_redundant_vertices()
             sage: p.is_simple()
             True
             sage: p = Polyhedron([[0,0,0],[4,4,0],[4,0,0],[0,4,0],[2,2,2]])
             sage: p.is_simple()
             False
         """
-        self.remove_redundant_vertices()
+        self._remove_redundant_vertices()
         d = self.dim()
         for edge_data in self.vertex_adjacencies():
             if len(edge_data[1]) != d:
@@ -170,15 +224,57 @@ class Polyhedron(SageObject):
         Addition of two polyhedra is defined as their Minkowski sum.
 
         EXAMPLES:
-            sage: four_cube = n_cube(4)
+            sage: four_cube = polytopes.n_cube(4)
             sage: four_simplex = Polyhedron(vertices = [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
             sage: unholy_union = four_cube + four_simplex
             sage: unholy_union.dim()
             4
         """
-        if not isinstance(other, Polyhedron):
-            raise TypeError, "other (=%s) must be a Polyhedron"%other
-        return mink_sum([self,other])
+        if isinstance(other,Polyhedron):
+            return mink_sum([self,other])
+        else:
+            # assume it is a vector and try to add vertices
+            try:
+                if len(other) != self.dim():
+                    raise TypeError, "other (=%s) must be the same dimension"%other
+                new_vertices = [list(vector(x) + vector(other)) for x in self.vertices()]
+                return Polyhedron(vertices = new_vertices)
+
+            except:
+                raise TypeError, "other (=%s) must be a Polyhedron or a vector of dimension "%other + str(self.dim())
+
+    def __mul__(self, other):
+        """
+        Multiplication by another polyhedron returns the product polytope.
+        Multiplication by a scalar returns the polytope dilated by that scalar.
+
+        EXAMPLES:
+            sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in srange(4)])
+            sage: p2 = p*2
+            sage: p2.vertices()[1]
+            [2, 2, 2]
+        """
+        if isinstance(other,Polyhedron):
+            new_vertices = [x+y for x in self.vertices() for y in other.vertices()]
+            return Polyhedron(vertices = new_vertices)
+        try:
+            new_vertices = [[other*vi for vi in vertex] for vertex in self.vertices()]
+            return Polyhedron(vertices = new_vertices)
+        except:
+            raise TypeError, "other (=%s) must be a Polyhedron or a scalar"%other
+
+    def __rmul__(self,other):
+        """
+        Multiplication by another polyhedron returns the product polytope.
+        Multiplication by a scalar returns the polytope dilated by that scalar.
+
+        EXAMPLES:
+            sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in srange(4)])
+            sage: p2 = 3*p + p
+            sage: p2.vertices()[1]
+            [4, 4, 4]
+        """
+        return self.__mul__(other)
 
     def vertices(self, force_from_ieqs = False):
         """
@@ -198,17 +294,47 @@ class Polyhedron(SageObject):
             self._linearities = temp_poly_object._linearities
             self._linearities_checked = True
             self._checked_rays = True
-            self.n_vertices = len(self._vertices)
+            self._n_vertices = len(self._vertices)
             return self._vertices
         return self._vertices
+
+    def n_vertices(self):
+        """
+        Returns the number of vertices in the polyhedron.
+
+        EXAMPLES:
+            sage: p = Polyhedron(vertices = [[t,t^2,t^3,randint(0,10)] for t in range(6)])
+            sage: p.n_vertices()
+            6
+        """
+        try:
+            return self._n_vertices
+        except AttributeError:
+            self._n_vertices = len(self.vertices())
+            return self._n_vertices
+
+    def n_facets(self):
+        """
+        Returns the number of facets in the polyhedron.
+
+        EXAMPLES:
+            sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in range(6)])
+            sage: p.n_facets()
+            8
+        """
+        try:
+            return self._n_facets
+        except AttributeError:
+            self._n_facets = len(self.ieqs())
+            return self._n_facets
 
     def ieqs(self, force_from_vertices = False):
         """
         Return the inequalities (half-planes) defining the polyhedron.
 
         EXAMPLES:
-            sage: permuto4 = Polyhedron(vertices = permutations([1,2,3,4,5]))
-            sage: ieqs = permuto4.ieqs()
+            sage: permuta4 = Polyhedron(vertices = permutations([1,2,3,4,5]))
+            sage: ieqs = permuta4.ieqs()
             sage: ieqs[0]
             [-1, 0, 0, 0, 1, 0]
             sage: ieqs[-1]
@@ -230,8 +356,8 @@ class Polyhedron(SageObject):
         Returns a list of vertex indices and their adjacent vertices.
 
         EXAMPLES:
-            sage: permuto3 = Polyhedron(vertices = permutations([1,2,3,4]))
-            sage: permuto3.vertex_adjacencies()[0:3]
+            sage: permuta3 = Polyhedron(vertices = permutations([1,2,3,4]))
+            sage: permuta3.vertex_adjacencies()[0:3]
             [[3, [5, 1, 9]], [5, [3, 4, 11]], [16, [22, 10, 17]]]
         """
         try:
@@ -261,8 +387,8 @@ class Polyhedron(SageObject):
         Returns a list of face indices and the indices of faces adjacent to them.
 
         EXMAPLES:
-            sage: permuto3 = Polyhedron(vertices = permutations([1,2,3,4]))
-            sage: permuto3.facial_adjacencies()[0:3]
+            sage: permuta3 = Polyhedron(vertices = permutations([1,2,3,4]))
+            sage: permuta3.facial_adjacencies()[0:3]
             [[0, [1, 2, 3, 8, 12, 13, 14]],
             [1, [0, 2, 9, 13, 14]],
             [2, [0, 1, 3, 4, 5, 9, 14]]]
@@ -304,7 +430,7 @@ class Polyhedron(SageObject):
             self._linearities_checked = True
             return self._linearities
 
-    def remove_redundant_vertices(self, cdd_type = 'rational'):
+    def _remove_redundant_vertices(self, cdd_type = 'rational'):
         """
         Removes vertices from the description of the polyhedron which
         do not affect the convex hull.  Now done automatically when a
@@ -314,7 +440,7 @@ class Polyhedron(SageObject):
             sage: a_triangle = Polyhedron([[0,0,0],[4,0,0],[0,4,0],[1,1,0]])
             sage: a_triangle.vertices()
             [[0, 0, 0], [4, 0, 0], [0, 4, 0]]
-            sage: a_triangle.remove_redundant_vertices()
+            sage: a_triangle._remove_redundant_vertices()
             sage: a_triangle.vertices()
             [[0, 0, 0], [4, 0, 0], [0, 4, 0]]
         """
@@ -369,55 +495,130 @@ class Polyhedron(SageObject):
             dummy_ieqs = self.ieqs(force_from_vertices = True) # force computation of facial incidences
             return self._facial_incidences
 
-    def triangulated_facial_incidences(self):
+    def vertex_adjacency_matrix(self):
         """
-        WARNING: EXPERIMENTAL
-        Returns a list of the form [face_index, [v_i_0, v_i_1,,v_i_2]]
-        where the face_index refers to the original defining inequality.
-        For a given face, the collection of triangles formed by each
-        triple of v_i should triangulate that face.
-        This is computed by randomly lifting each face up a dimension; this does not always work!
-
-        NOTE:
-            The doctest below is very weak, since it does not have to create a triangulation.
+        Returns the binary matrix of vertex adjacencies.
 
         EXAMPLES:
-            sage: p = Polyhedron(vertices = [[5,0,0],[0,5,0],[5,5,0],[2,2,5]])
-            sage: len(p.triangulated_facial_incidences())
-            4
+            sage: polytopes.n_simplex(4).vertex_adjacency_matrix()
+            [0 1 1 1 1]
+            [1 0 1 1 1]
+            [1 1 0 1 1]
+            [1 1 1 0 1]
+            [1 1 1 1 0]
+        """
+        m = []
+        v_adjs = [x for x in self.vertex_adjacencies()]
+        v_adjs.sort()
+        for va in v_adjs:
+            temp = []
+            for j in range(self.n_vertices()):
+                if j in va[1]:
+                    temp.append(1)
+                else:
+                    temp.append(0)
+            m.append(temp)
+        return matrix(ZZ,m)
+
+    def graph(self):
+        """
+        Returns a graph in which the vertices correspond to vertices of the polyhedron,
+        and edges to edges.
+
+        EXAMPLES:
+            sage: g3 = polytopes.n_cube(3).graph()
+            sage: g3.automorphism_group()
+            Permutation Group with generators [(1,2)(5,6), (2,4)(3,5),
+            (1,8)(2,3)(4,5)(6,7)]
+            sage: s4 = polytopes.n_simplex(4).graph()
+            sage: s4.is_eulerian()
+            True
+        """
+        return Graph(self.vertex_adjacency_matrix(), loops=True)
+
+    def polar(self):
+        """
+        Returns the polar (dual) polytope.  The original vertices are
+        translated so that their barycenter is at the origin, and then
+        the vertices are used as the coefficients in the polar inequalities.
+
+        EXAMPLES:
+            sage: p24 = polytopes.twenty_four_cell()
+            sage: dual_24 = p24.polar()
+            sage: dual_dual_24 = dual_24.polar() #dual of the dual should bring us back to the original in this case
+            sage: p24.vertices()[0] in dual_dual_24.vertices()
+            True
+        """
+        old_verts = [x for x in self.vertices()]
+        old_verts_center = sum([vector(x) for x in old_verts])/self.n_vertices()
+        old_verts = [vector(x) - old_verts_center for x in old_verts]
+        old_verts = [list(x) for x in old_verts]
+        return Polyhedron(ieqs = [[1] + x for x in old_verts])
+
+    def triangulated_facial_incidences(self):
+        """
+        Returns a list of the form [face_index, [v_i_0, v_i_1,...,v_i_{n-1}]]
+        where the face_index refers to the original defining inequality.
+        For a given face, the collection of triangles formed by each
+        list of v_i should triangulate that face.
+
+        In dimensions greater than 3, this is computed by randomly lifting each
+        face up a dimension; this does not always work!  Work is being done on this.
+
+        EXAMPLES:
+            If the figure is already composed of triangles, then all is well
+            sage: Polyhedron(vertices = [[5,0,0],[0,5,0],[5,5,0],[2,2,5]]).triangulated_facial_incidences()
+            [[0, [0, 2, 3]], [1, [0, 1, 2]], [2, [1, 2, 3]], [3, [0, 1, 3]]]
+
+ 	    Otherwise some faces get split up to triangles
+ 	    sage: Polyhedron(vertices = [[2,0,0],[4,1,0],[0,5,0],[5,5,0],[1,1,0],[0,0,1]]).triangulated_facial_incidences()
+            [[0, [0, 1, 5]], [1, [0, 4, 5]], [2, [2, 4, 5]], [3, [2, 3, 5]], [4, [1, 3, 5]], [5, [0, 4, 1]], [5, [4, 1, 2]], [5, [1, 2, 3]]]
+
         """
         try:
             return self._triangulated_facial_incidences
         except AttributeError:
             t_fac_incs = []
             for a_face in self.facial_incidences():
-                lifted_verts = []
                 vert_number = len(a_face[1])
-                if vert_number == 3:
+                if vert_number == self.dim():
                     t_fac_incs.append(a_face)
-                else:
+                elif self.dim() >= 4:
+                    lifted_verts = []
                     for vert_index in a_face[1]:
-                        lifted_verts.append(self.vertices()[vert_index] + [randint(0,vert_index + vert_number*2)])
+                        lifted_verts.append(self.vertices()[vert_index] + [randint(-vert_index,500+vert_index + vert_number**2)])
                     temp_poly = Polyhedron(vertices = lifted_verts)
                     for t_face in temp_poly.facial_incidences():
-                        if len(t_face[1]) != 3:
-                            print a_face
-                            print t_face
-                            print temp_poly.ieqs()
-                            print temp_poly.vertices()
-                            print temp_poly.facial_incidences()
-                            print temp_poly.linearities()
+                        if len(t_face[1]) != self.dim():
+                            print 'Failed for face: ' + str(a_face)
+                            print 'Attempted simplicial face: ' + str(t_face)
+                            print 'Attempted lifted vertices: ' + str(lifted_verts)
                             raise RuntimeError, "triangulation failed"
                         normal_fdir = temp_poly.ieqs()[t_face[0]][-1]
                         if normal_fdir >= 0:
                             t_fac_verts = [temp_poly.vertices()[i] for i in t_face[1]]
-                            proj_verts = [q[0:3] for q in t_fac_verts]
+                            proj_verts = [q[0:self.dim()] for q in t_fac_verts]
                             t_fac_incs.append([a_face[0], [self.vertices().index(q) for q in proj_verts]])
+                else:
+                    vs = a_face[1]
+ 		    adj = dict([a[0], filter(lambda p: p in a_face[1], a[1])] for a in filter(lambda va: va[0] in a_face[1], self.vertex_adjacencies()))
+ 		    t = vs[0]
+                    vs.remove(t)
+                    ts = adj[t]
+                    for v in ts:
+                        vs.remove(v)
+                    t_fac_incs.append([a_face[0], [t] + ts])
+                    while vs:
+                        t = ts[0]
+                        ts = ts[1:]
+                        for v in adj[t]:
+                            if v in vs:
+                                vs.remove(v)
+                                ts.append(v)
+                                t_fac_incs.append([a_face[0], [t] + ts])
+                                break
         self._triangulated_facial_incidences = t_fac_incs
         return t_fac_incs
-
-    #def face_lattice(self):
-    #    return "Not implemented yet"
 
     def render_wireframe(self):
         """
@@ -430,26 +631,103 @@ class Polyhedron(SageObject):
             sage: p_wireframe._Graphics__objects
             [Line defined by 2 points, Line defined by 2 points, Line defined by 2 points]
         """
-        if self.ieqs() == self.vertices() == []: return Graphics()
-        edges = []
-        verts = self.vertices()
-        for adj in self.vertex_adjacencies():
-            for vert in adj[1]:
-                if vert > adj[0]:
-                    edges.append([verts[adj[0]],verts[vert]])
-        return sum([line(an_edge) for an_edge in edges])
+        if self.dim() > 4:
+            print "Dimension is too large for wireframe"
+            return NotImplementedError
+        if self.dim() < 4:
+            if self.ieqs() == self.vertices() == []:
+                return Graphics()
+            edges = []
+            verts = self.vertices()
+            for adj in self.vertex_adjacencies():
+                for vert in adj[1]:
+                    if vert > adj[0]:
+                        edges.append([verts[adj[0]],verts[vert]])
+            return sum([line(an_edge) for an_edge in edges])
+        # Now we must be in 4 dimensions, so return Schlegel diagram from the first face.
+        v = self.vertices()
+        f0 = (self.facial_incidences()[0])[1]
+        vcenter = [sum([v[f0[i]][j]/len(f0) for i in range(len(f0))]) for j in range(len(v[0]))] # compute center of face
+        spcenter = [vi/norm(vector(vcenter)) for vi in vcenter] # normalize to unit sphere
+        spverts = [[vi/norm(vector(vp)) for vi in vp] for vp in v] # normalize vertices to unit sphere
+        polediff = matrix(RDF,vector([0.0,0.0,0.0,1.0])-vector(spcenter)).transpose()
+        denom = RDF((polediff.transpose()*polediff)[0][0])
+        house = matrix(RDF,[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]) - 2*polediff*polediff.transpose()/denom #Householder reflector
+        spverts = [house*vector(RDF,x) for x in spverts] # reflect so face center is at "north pole"
+        spverts = [list(x) for x in spverts]
+        proj_verts = [[x[0]/(1-x[3]),x[1]/(1-x[3]),x[2]/(1-x[3])] for x in spverts] # stereographically project
+        hlines = point3d([0,0,0], pointsize = 0.01, rgbcolor = (1,1,1)) # workaround due to bug in line not giving a bounding box
+        for an_edge in self.vertex_adjacencies():
+            for j in an_edge[1]:
+                hlines += line([proj_verts[an_edge[0]],proj_verts[j]])
+        return hlines
 
-    # Work in progress; needs better triangulation code.
-    #def render_solid(self):
-    #    """
-    #    Returns solid 3d rendering of a 3d polytope.
-    #    """
-    #    tri_faces = self.triangulated_facial_incidences()
-    #    try:
-    #        return index_face_set([q[1] for q in tri_faces], self.vertices(), enclosed = True)
-    #    except:
-    #        print tri_faces
-    #        print [q[1] for q in tri_faces], self.vertices()
+    def render_solid(self, rgbcolor = (1,0,0), **kwds):
+        """
+        Returns solid 3d rendering of a 3d polytope.
+
+        EXAMPLES:
+            sage: p = polytopes.n_cube(3)
+            sage: p_solid = p.render_solid(opacity = .7)
+            sage: type(p_solid)
+            <type 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
+        """
+        if self.ambient_dim() != 3:
+            raise TypeError, "render_solid currently only works on polytopes in 3D"
+        tri_faces = self.triangulated_facial_incidences()
+        from sage.plot.plot3d.index_face_set import IndexFaceSet
+        return IndexFaceSet([q[1] for q in tri_faces], self.vertices(), enclosed = True, rgbcolor = rgbcolor, **kwds)
+
+    def lrs_volume(self, verbose = False):
+        """
+        Computes the volume of a polytope using David Avis's lrs program.
+
+        OUTPUT:
+            the volume, cast to RDF (although lrs seems to output a rational
+        value this must be an approximation in some cases).
+
+        EXAMPLES:
+            sage: polytopes.n_cube(3).lrs_volume() #optional, needs lrs package installed
+            8.0
+            sage: (polytopes.n_cube(3)*2).lrs_volume() #optional, needs lrs package installed
+            64.0
+            sage: polytopes.twenty_four_cell().lrs_volume() #optional, needs lrs package installed
+            2.0
+            """
+        if is_package_installed('lrs') != True:
+            print 'You must install the optional lrs package for this function to work'
+            return False
+        vertices = self.vertices()
+        cdd_type = self._cdd_type
+        v_dim = len(vertices[0])
+        v_sage = type(vertices[0][0])
+        in_str = 'V-representation\nbegin\n'
+        in_str += str(len(vertices)) + ' ' + str(v_dim + 1) + ' ' + cdd_type + '\n'
+        for vert in vertices:
+            in_str += '1 '
+            for numb in vert:
+                in_str += str(numb) + ' '
+            in_str += '\n'
+        in_str += 'end\n'
+        in_str += 'volume'
+        in_filename = tmp_filename()
+        in_file = file(in_filename,'w')
+        in_file.write(in_str)
+        in_file.close()
+        if verbose: print in_str
+        lrs_procs = Popen(['lrs',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
+        ans, err = lrs_procs.communicate()
+        ans_lines = ans.splitlines()
+        if verbose:
+            print ans
+        for a_line in ans_lines:
+            if 'Volume=' in a_line:
+                volume = a_line.split('Volume=')[1]
+                volume = RDF(QQ(volume))
+                break
+        return volume
+
+
 
 def cdd_convert(a_str,a_type = Rational):
     """
@@ -623,9 +901,9 @@ def vert_to_ieq(vertices, rays = [], cdd_type = 'rational', verbose = False):
             ieq_index += 1
             if linearity_indices.count(ieq_index) == 0:
                 pre = a_line.split(':')[0]
-                pre = cdd_convert(pre,a_type = cast)[0] - 1 # subtract to make indexing pythonic
+                pre = cdd_convert(pre)[0] - 1 # subtract to make indexing pythonic
                 post = a_line.split(':')[1]
-                post = cdd_convert(post,a_type = cast)
+                post = cdd_convert(post)
                 post = [vert_index - 1 for vert_index in post] # subtract to make indexing pythonic
                 incidences.append([pre,post])
     # add facial adjacencies, skipping linearities
@@ -637,9 +915,9 @@ def vert_to_ieq(vertices, rays = [], cdd_type = 'rational', verbose = False):
             ieq_index += 1
             if linearity_indices.count(ieq_index) == 0:
                 pre = a_line.split(':')[0]
-                pre = cdd_convert(pre,a_type = cast)[0] - 1 # subtract to make indexing pythonic
+                pre = cdd_convert(pre)[0] - 1 # subtract to make indexing pythonic
                 post = a_line.split(':')[1]
-                post = cdd_convert(post,a_type = cast)
+                post = cdd_convert(post)
                 post = [face_index - 1 for face_index in post] # subtract to make indexing pythonic
                 adjacencies.append([pre,post])
     poly_obj = Polyhedron(vertices = vertices, cdd_type = cdd_type)
@@ -744,7 +1022,7 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
         a_line = ans_lines[index]
         if a_line.find('end') != -1: break
         if a_line.find('begin') == -1 and a_line.find('r') == -1 and a_line.find('i') == -1:
-            ray_or_vertex = cdd_convert(a_line, a_type = cast)
+            ray_or_vertex = cdd_convert(a_line)
             if ray_or_vertex[0] == 1:
                 verts.append(ray_or_vertex[1:])
             elif ray_or_vertex[0] == 0:
@@ -757,9 +1035,9 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
         if a_line.find('end') != -1: break
         if a_line.find(':') != -1:
             pre = a_line.split(':')[0]
-            pre = cdd_convert(pre,a_type = cast)[0] - 1 # subtract to make indexing pythonic
+            pre = cdd_convert(pre)[0] - 1 # subtract to make indexing pythonic
             post = a_line.split(':')[1]
-            post = cdd_convert(post,a_type = cast)
+            post = cdd_convert(post)
             post = [face_index - 1 for face_index in post] # subtract to make indexing pythonic
             incidences.append([pre,post])
     # read the vertex-vertex adjacencies (edges)
@@ -768,9 +1046,9 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
         if a_line.find('end') != -1: break
         if a_line.find(':') != -1:
             pre = a_line.split(':')[0]
-            pre = cdd_convert(pre,a_type = cast)[0] - 1 # subtract to make indexing pythonic
+            pre = cdd_convert(pre)[0] - 1 # subtract to make indexing pythonic
             post = a_line.split(':')[1]
-            post = cdd_convert(post,a_type = cast)
+            post = cdd_convert(post)
             post = [vert_index - 1 for vert_index in post] # subtract to make indexing pythonic
             adjacencies.append([pre,post])
     poly_obj = Polyhedron()
@@ -782,29 +1060,330 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
     poly_obj._rays = rays
     return poly_obj
 
-def n_cube(dim_n):
+def orthonormal_1(dim_n=5):
     """
-    Returns a cube in dimension dim_n.
+    A matrix of rational approximations to orthonormal vectors to (1,...,1).
+
+    INPUT:
+        dim_n - the dimension of the vectors
+
+    OUTPUT:
+        a matrix over QQ whose rows are close to an orthonormal basis to the
+        subspace normal to (1,...,1).
 
     EXAMPLES:
-        sage: four_cube = n_cube(4)
-        sage: four_cube.is_simple()
-        True
+        sage: from sage.geometry.polyhedra import orthonormal_1
+        sage: m = orthonormal_1(5)
+        sage: m
+        [ 70711/100000   -7071/10000             0             0             0]
+        [    1633/4000     1633/4000 -81649/100000             0             0]
+        [   7217/25000    7217/25000    7217/25000  -43301/50000             0]
+        [ 22361/100000  22361/100000  22361/100000  22361/100000  -44721/50000]
     """
-    if dim_n == 1:
-        verts = [[1],[-1]]
-        ieqs = [[1,-1],[1,1]]
-        return Polyhedron(vertices = verts, ieqs = ieqs)
-    pre_cube = n_cube(dim_n-1)
-    pre_verts = pre_cube._vertices
-    verts = [[1] + vert for vert in pre_verts] + [[-1] + vert for vert in pre_verts]
-    ieqs = []
-    for index in range(1,dim_n+1):
-        temp = [1] + [0]*(dim_n-1)
-        temp.insert(index,1)
-        ieqs.append([q for q in temp])
-        temp = [1] + [0]*(dim_n-1)
-        temp.insert(index,-1)
-        ieqs.append([q for q in temp])
-    return Polyhedron(vertices = verts, ieqs = ieqs)
+    pb = []
+    for i in range(0,dim_n-1):
+        pb.append([1.0/(i+1)]*(i+1) + [-1] + [0]*(dim_n-i-2))
+    m = matrix(RDF,pb)
+    new_m = []
+    for i in range(0,dim_n-1):
+        new_m.append([RDF(100000*q/norm(m[i])).ceil()/100000 for q in m[i]])
+    return matrix(QQ,new_m)
 
+def project_1(fpoint):
+    """
+    Takes a ndim-dimensional point and projects it onto the plane perpendicular
+    to (1,1,...,1).
+
+    INPUT:
+        fpoint -- a list of ndim numbers
+
+    EXAMPLES:
+        sage: from sage.geometry.polyhedra import project_1
+        sage: project_1([1,1,1,1,2])
+        [1/100000, 1/100000, 1/50000, -559/625]
+    """
+    dim_n = len(fpoint)
+    p_basis = [list(q) for q in orthonormal_1(dim_n)]
+    out_v = []
+    for v in p_basis:
+        out_v.append(sum([fpoint[ind]*v[ind] for ind in range(dim_n)]))
+    return out_v
+
+def _pfunc(i,j,perm):
+    """
+    An internal utility function for constructing the Birkhoff polytopes.
+
+    EXAMPLES:
+        sage: from sage.geometry.polyhedra import _pfunc
+        sage: _pfunc(1,2,permutations(3)[0])
+        0
+    """
+    if perm[i-1] == j:
+        return 1
+    else:
+        return 0
+
+class Polytopes():
+    """
+    A class of constructors for commonly used, famous, or interesting polytopes.
+    """
+
+    def Birkhoff_polytope(self, n):
+        """
+        Returns the Birkhoff polytope with n! vertices.  Each vertex
+        is a (flattened) n by n permutation matrix.
+
+        INPUT:
+            n -- a positive integer giving the size of the permutation matrices.
+
+        EXAMPLES:
+            sage: b3 = polytopes.Birkhoff_polytope(3)
+            sage: b3.n_vertices()
+            6
+        """
+        perms = permutations(range(1,n+1))
+        verts = []
+        for p in perms:
+            verts = verts + [[_pfunc(i,j,p) for j in range(1,n+1) for i in range(1,n+1)]]
+        return Polyhedron(vertices = verts)
+
+    def n_simplex(self, dim_n):
+        """
+        Returns a rational approximation to a regular simplex in dimension dim_n.
+
+        INPUT:
+            dim_n -- The dimension of the cross-polytope, a positive integer.
+
+        OUTPUT:
+            A Polyhedron object of the dim_n-dimensional simplex.
+
+        EXAMPLES:
+            sage: s5 = polytopes.n_simplex(5)
+            sage: s5.dim()
+            5
+        """
+        verts = permutations([0 for i in range(dim_n)] + [1])
+        verts = [project_1(x) for x in verts]
+        return Polyhedron(vertices = verts)
+
+    def icosahedron(self):
+        """
+        Returns an icosahedron with edge length 1.  The vertices are
+        rational, so a rational approximation of the golden ratio
+        is used.
+
+        OUTPUT:
+            A Polyhedron object of a rational approximation to the regular 3D icosahedrone.
+
+        EXAMPLES:
+            sage: ico = polytopes.icosahedron()
+            sage: sum([len(x[1]) for x in ico.vertex_adjacencies()])/2
+            30
+        """
+        g = QQ(1618033)/1000000 # Golden ratio approximation
+        r12 = QQ(1)/2
+        verts = [i([0,r12,g/2]) for i in AlternatingGroup(3)]
+        verts = verts + [i([0,r12,-g/2]) for i in AlternatingGroup(3)]
+        verts = verts + [i([0,-r12,g/2]) for i in AlternatingGroup(3)]
+        verts = verts + [i([0,-r12,-g/2]) for i in AlternatingGroup(3)]
+        return Polyhedron(vertices = verts)
+
+
+    def twenty_four_cell(self):
+        """
+        Returns the standard 24-cell polytope.
+
+        OUTPUT:
+            A Polyhedron object of the 4-dimensional 24-cell, a regular polytope.
+            The coordinates of this polytope are exact.
+
+        EXAMPLES:
+            sage: p24 = polytopes.twenty_four_cell()
+            sage: len(p24.vertex_adjacencies()[0][1])
+            8
+        """
+        verts = []
+        q12 = QQ(1)/2
+        base = [q12,q12,q12,q12]
+        for i in range(2):
+            for j in range(2):
+                for k in range(2):
+                    for l in range(2):
+                        verts.append([x for x in base])
+                        base[3] = base[3]*(-1)
+                    base[2] = base[2]*(-1)
+                base[1] = base[1]*(-1)
+            base[0] = base[0]*(-1)
+        verts = verts + permutations([0,0,0,1])
+        verts = verts + permutations([0,0,0,-1])
+        return Polyhedron(vertices = verts)
+
+    def six_hundred_cell(self):
+        """
+        Returns the standard 600-cell polytope.
+
+        OUTPUT:
+            A Polyhedron object of the 4-dimensional 600-cell, a regular polytope.
+            In many ways this is an analogue of the icosahedron.
+            The coordinates of this polytope are rational approximations of the true
+            coordinates of the 600-cell, some of which involve the (irrational) golden
+            ratio.
+
+        EXAMPLES:
+            sage: p600 = polytopes.six_hundred_cell() # long time
+            sage: len(p600.vertex_adjacencies()) # long time
+            120
+        """
+        verts = []
+        q12 = QQ(1)/2
+        base = [q12,q12,q12,q12]
+        for i in range(2):
+            for j in range(2):
+                for k in range(2):
+                    for l in range(2):
+                        verts.append([x for x in base])
+                        base[3] = base[3]*(-1)
+                    base[2] = base[2]*(-1)
+                base[1] = base[1]*(-1)
+            base[0] = base[0]*(-1)
+        for x in permutations([0,0,0,1]):
+            verts.append(x)
+        for x in permutations([0,0,0,-1]):
+            verts.append(x)
+        g = QQ(1618033)/1000000 # Golden ratio approximation
+        verts = verts + [i([q12,g/2,1/(g*2),0]) for i in AlternatingGroup(4)]
+        verts = verts + [i([q12,g/2,-1/(g*2),0]) for i in AlternatingGroup(4)]
+        verts = verts + [i([q12,-g/2,1/(g*2),0]) for i in AlternatingGroup(4)]
+        verts = verts + [i([q12,-g/2,-1/(g*2),0]) for i in AlternatingGroup(4)]
+        verts = verts + [i([-q12,g/2,1/(g*2),0]) for i in AlternatingGroup(4)]
+        verts = verts + [i([-q12,g/2,-1/(g*2),0]) for i in AlternatingGroup(4)]
+        verts = verts + [i([-q12,-g/2,1/(g*2),0]) for i in AlternatingGroup(4)]
+        verts = verts + [i([-q12,-g/2,-1/(g*2),0]) for i in AlternatingGroup(4)]
+        return Polyhedron(vertices = verts)
+
+    def cyclic_polytope(self, dim_n, points_n):
+        """
+        Returns a cyclic polytope in dimension=dim_n and with points_n number
+        of points.
+
+        INPUT:
+            dim_n -- a positive integer, the dimension of the polytope.
+            points_n -- the number of vertices.
+
+        OUTPUT:
+            A cyclic polytope of dim_n with points_n vertices on the moment
+            curve (t,t^2,...,t^n), as Polyhedron object.
+
+        EXAMPLES:
+            sage: c = polytopes.cyclic_polytope(4,10)
+            sage: len(c.ieqs())
+            35
+        """
+        verts = [[t**i for i in range(1,dim_n+1)] for t in range(points_n)]
+        return Polyhedron(vertices = verts)
+
+    def hypersimplex(self, dim_n, k, project = True):
+        """
+        The hypersimplex in dimension dim_n with d choose k vertices,
+        projected into (dim_n - 1) dimensions.
+
+        INPUT:
+            n -- the numbers (1,...,n) are permuted
+            project -- optional, default = True.  If false the polyhedron is
+        left in dimension n.
+
+        OUTPUT:
+            A Polyhedron object representing the hypersimplex.
+
+        EXAMPLES:
+            sage: h_4_2 = polytopes.hypersimplex(4,2) # combinatorially equivalent to octahedron
+            sage: union([len(x[1]) for x in h_4_2.facial_adjacencies()])
+            [3]
+        """
+        vert0 = [0]*(dim_n-k) + [1]*k
+        verts = permutations(vert0)
+        if project:
+            verts = [project_1(x) for x in verts]
+        return Polyhedron(vertices = verts)
+
+    def permutahedron(self, n, project = True):
+        """
+        The standard permutahedron of (1,...,n) projected into n-1 dimensions.
+
+        INPUT:
+            n -- the numbers (1,...,n) are permuted
+            project -- optional, default = True.  If false the polyhedron is
+        left in dimension n.
+
+        OUTPUT:
+            A Polyhedron object representing the permutahedron.
+
+        EXAMPLES:
+            sage: perm4 = polytopes.permutahedron(4)
+            sage: len(perm4.ieqs())
+            14
+            sage: union([len(x[1]) for x in perm4.facial_adjacencies()]) # two kinds of faces
+            [4, 6]
+        """
+        verts = range(1,n+1)
+        verts = permutations(verts)
+        if project:
+            verts = [project_1(x) for x in verts]
+        p = Polyhedron(vertices = verts)
+        return p
+
+    def n_cube(self, dim_n):
+        """
+        Returns a cube in dimension dim_n.
+
+        INPUT:
+            dim_n -- The dimension of the cube, a positive integer.
+
+        OUTPUT:
+            A Polyhedron object of the dim_n-dimensional cube, with exact coordinates.
+
+        EXAMPLES:
+            sage: four_cube = polytopes.n_cube(4)
+            sage: four_cube.is_simple()
+            True
+        """
+        if dim_n == 1:
+            verts = [[1],[-1]]
+            ieqs = [[1,-1],[1,1]]
+            return Polyhedron(vertices = verts, ieqs = ieqs)
+        pre_cube = polytopes.n_cube(dim_n-1)
+        pre_verts = pre_cube._vertices
+        verts = [[1] + vert for vert in pre_verts] + [[-1] + vert for vert in pre_verts]
+        ieqs = []
+        for index in range(1,dim_n+1):
+            temp = [1] + [0]*(dim_n-1)
+            temp.insert(index,1)
+            ieqs.append([q for q in temp])
+            temp = [1] + [0]*(dim_n-1)
+            temp.insert(index,-1)
+            ieqs.append([q for q in temp])
+        return Polyhedron(vertices = verts, ieqs = ieqs)
+
+    def cross_polytope(self, dim_n):
+        """
+        Returns a cross-polytope in dimension dim_n.  These are
+        the generalization of the octahedron.
+
+        INPUT:
+            dim_n -- The dimension of the cross-polytope, a positive integer.
+
+        OUTPUT:
+            A Polyhedron object of the dim_n-dimensional cross-polytope, with exact coordinates.
+
+        EXAMPLES:
+            sage: four_cross = polytopes.cross_polytope(4)
+            sage: four_cross.is_simple()
+            False
+            sage: four_cross.n_vertices()
+            8
+        """
+        verts = permutations([0 for i in range(dim_n-1)] + [1])
+        verts = verts + permutations([0 for i in range(dim_n-1)] + [-1])
+        return Polyhedron(vertices = verts)
+
+polytopes = Polytopes()

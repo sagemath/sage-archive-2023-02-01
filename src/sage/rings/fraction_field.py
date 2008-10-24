@@ -401,3 +401,20 @@ class FractionField_generic(field.Field):
         one = self.__R.one_element()
         r = self._element_class(self, x, one, coerce=False, reduce=False)
         return r
+
+    def random_element(self, *args, **kwds):
+        """
+        Returns a random element in this fraction field.
+
+        EXAMPLES:
+            sage: F = ZZ['x'].fraction_field()
+            sage: F.random_element()
+            (2*x - 8)/(-x^2 + x)
+
+            sage: F.random_element(degree=5)
+            (-12*x^5 - 2*x^4 - x^3 - 95*x^2 + x + 2)/(-x^5 + x^4 - x^3 + x^2)
+        """
+        return self._element_class(self, self.__R.random_element(*args, **kwds),
+                self.__R.random_element(*args, **kwds),
+                coerce = False, reduce=True)
+

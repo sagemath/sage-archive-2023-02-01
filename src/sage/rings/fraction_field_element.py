@@ -25,7 +25,6 @@ AUTHOR: William Stein (input from David Joyner, David Kohel, and Joe Wetherell)
 import operator
 
 import sage.rings.field_element as field_element
-import fraction_field
 import integer_ring
 from integer_ring import ZZ
 from rational_field import QQ
@@ -330,16 +329,26 @@ class FractionFieldElement(field_element.FieldElement):
         Return a latex representation of this rational function.
 
         EXAMPLES:
-            sage: R = PolynomialRing(QQ, 'x').fraction_field()
-            sage: x = R.gen()
+            sage: R = PolynomialRing(QQ, 'x')
+            sage: F = R.fraction_field()
+            sage: x = F.gen()
             sage: a = x^2 / 1
             sage: latex(a)
             x^{2}
             sage: latex(x^2/(x^2+1))
             \frac{x^{2}}{x^{2} + 1}
             sage: a = 1/x
-            sage: a._FractionFieldElement__numerator = R(0)
             sage: latex(a)
+            \frac{1}{x}
+
+        TESTS:
+            sage: from sage.rings.fraction_field_element import FractionFieldElement
+            sage: z = FractionFieldElement(F, 0, R.gen(), coerce=False)
+            sage: z.numerator() == 0
+            True
+            sage: z.denominator() == R.gen()
+            True
+            sage: latex(z)
             0
         """
         if self.is_zero():
@@ -699,3 +708,21 @@ class FractionFieldElement(field_element.FieldElement):
         """
         return self.__numerator.valuation() - self.__denominator.valuation()
 
+    def is_zero(self):
+        """
+        Returns True if this element is equal to zero.
+
+        EXAMPLES:
+            sage: F = ZZ['x,y'].fraction_field()
+            sage: x,y = F.gens()
+            sage: t = F(0)/x
+            sage: t.is_zero()
+            True
+            sage: u = 1/x - 1/x
+            sage: u.is_zero()
+            True
+            sage: u.parent() is F
+            True
+
+        """
+        return self.__numerator.is_zero()

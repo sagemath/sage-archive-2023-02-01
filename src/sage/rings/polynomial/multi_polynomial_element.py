@@ -232,11 +232,12 @@ class MPolynomial_element(MPolynomial):
         r"""
         EXAMPLES:
             sage: R.<x,y> = CC['x,y']
-            sage: f = (x + y)/3
+            sage: f = (x + y)/x; f
+            (x + y)/x
             sage: f.parent()
-            Multivariate Polynomial Ring in x, y over Complex Field with 53 bits of precision
+            Fraction Field of Multivariate Polynomial Ring in x, y over Complex Field with 53 bits of precision
         """
-        return self.parent().fraction_field()(self.__element, right.__element)
+        return self.parent().fraction_field()(self, right, coerce=False)
 
     def __rpow__(self, n):
         if not isinstance(n, (int, long, sage.rings.integer.Integer)):

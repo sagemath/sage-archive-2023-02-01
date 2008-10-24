@@ -35,6 +35,7 @@ TESTS:
 ######################################################################
 
 import sage.rings.finite_field
+import sage.rings.fraction_field
 import sage.rings.number_field as number_field
 
 from sage.interfaces.all import singular as singular_default

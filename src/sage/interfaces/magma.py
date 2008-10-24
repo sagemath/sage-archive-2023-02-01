@@ -212,6 +212,10 @@ class Magma(Expect):
                            will be read by MAGMA.  If False (the default),
                            then MAGMA is started with the -n option which
                            supresses user configuration files.
+
+        EXAMPLES:
+            sage: Magma(maxread=1000, logfile=tmp_filename())
+            Magma
         """
         #command = 'magma -b '
         command = 'magma'
@@ -713,6 +717,38 @@ class Magma(Expect):
         return self._do_call(fun, nvals)
 
     def _do_call(self, code, nvals):
+        """
+        Evaluate the given code expression assuming that it outputs
+        nvals distinct values.  Return the resulting values as a tuple
+        if nvals >= 2.
+
+        INPUT:
+            code -- a string; code to evaluate
+            nvals -- an integer; number of return values
+
+        OUTPUT:
+            nvals distinct values
+
+        EXAMPLES:
+            sage: magma._do_call('SetVerbose("Groebner",2)', 0)     # optional
+            sage: magma._do_call('Factorization(-5)', 1)            # optional
+            [ <5, 1> ]
+
+        Here we get two outputs, as a tuple.
+            sage: magma._do_call('Factorization(-5)', 2)            # optional
+            ([ <5, 1> ], -1)
+
+        You can also do this:
+            sage: F, sign = magma._do_call('Factorization(-5)', 2)  # optional
+            sage: F                                                 # optional
+            [ <5, 1> ]
+            sage: sign                                              # optional
+            -1
+
+        An expression that has one value.
+            sage: magma._do_call('3^5', 1)                          # optional
+            243
+        """
         if nvals <= 0:
             out = self.eval(code)
             ans = None
@@ -780,38 +816,105 @@ class Magma(Expect):
         return self._do_call(s, nvals)
 
     def _object_class(self):
+        """
+        Return the Python class of elements of the Magma interface.
+
+        OUTPUT:
+            a Python class
+
+        EXAMPLES:
+            sage: magma._object_class()
+            <class 'sage.interfaces.magma.MagmaElement'>
+        """
         return MagmaElement
 
     # Usually "Sequences" are what you want in MAGMA, not "lists".
     # It's very painful using the interface without this.
     def _left_list_delim(self):
+        """
+        Return the left sequence delimiter in Magma.  Despite the name
+        in this function, this is really the least painful choice.
+
+        EXAMPLES:
+            sage: magma._left_list_delim()
+            '['
+        """
         #return "[*"
         return "["
 
     def _right_list_delim(self):
+        """
+        Return the right sequence delimiter in Magma.  Despite the name
+        in this function, this is really the least painful choice.
+
+        EXAMPLES:
+            sage: magma._right_list_delim()
+            ']'
+        """
         #return "*]"
         return "]"
 
     def _assign_symbol(self):
+        """
+        Returns the assignment symbol in Magma.
+
+        EXAMPLES:
+            sage: magma._assign_symbol()
+            ':='
+        """
         return ":="
 
     def _equality_symbol(self):
+        """
+        Returns the equality testing logical symbol in Magma.
+
+        EXAMPLES:
+            sage: magma._equality_symbol()
+            'eq'
+        """
         return 'eq'
 
     def _lessthan_symbol(self):
+        """
+        Returns the less than testing logical symbol in Magma.
+
+        EXAMPLES:
+            sage: magma._lessthan_symbol()
+            ' lt '
+        """
         return ' lt '
 
     def _greaterthan_symbol(self):
+        """
+        Returns the greater than testing logical symbol in Magma.
+
+        EXAMPLES:
+            sage: magma._greaterthan_symbol()
+            ' gt '
+        """
         return ' gt '
 
     # For efficiency purposes, you should definitely override these
     # in your derived class.
     def _true_symbol(self):
+        """
+        Returns the string representation of "truth" in Magma.
+
+        EXAMPLES:
+            sage: magma._true_symbol()
+            'true'
+        """
         return 'true'
 
     def _false_symbol(self):
-        return 'false'
+        """
+        Returns the string representation of "false" in Magma.
 
+        EXAMPLES:
+            sage: magma._false_symbol()
+            'false'
+        """
+        return 'false'
 
     def console(self):
         """
@@ -1035,6 +1138,32 @@ class Magma(Expect):
 
 class MagmaFunctionElement(FunctionElement):
     def __call__(self, *args, **kwds):
+        """
+        Return the result of calling this Magma function at given
+        inputs.
+
+        Use the optional nvals keyword argument to specify that there
+        are multiple return values.
+
+        EXAMPLES:
+        We create a MagmaFunctionElement:
+            sage: n = magma(-15)                        # optional
+            sage: f = n.Factorisation                   # optional
+            sage: type(f)                               # optional
+            <class 'sage.interfaces.magma.MagmaFunctionElement'>
+            sage: f()                                   # optional
+            [ <3, 1>, <5, 1> ]
+
+        We verify that the nvals argument works.
+            sage: f(nvals=2)                            # optional
+            ([ <3, 1>, <5, 1> ], -1)
+
+        This illustrates the more conventional way of calling a method
+        on an object.  It's equivalent to the above, but done in all
+        in one step.
+            sage: n.Factorization(nvals = 2)            # optional
+            ([ <3, 1>, <5, 1> ], -1)
+        """
         nvals = 1
         if len(kwds) > 0:
             if kwds.has_key('nvals'):
@@ -1047,6 +1176,22 @@ class MagmaFunctionElement(FunctionElement):
                                nvals = nvals)
 
     def _sage_doc_(self):
+        """
+        Return the docstring for this function of an element.
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: n = magma(-15)             # optional
+            sage: f = n.Factorisation        # optional
+            sage: print f._sage_doc_()       # optional
+            (<RngIntElt> n) -> RngIntEltFact, RngIntElt, SeqEnum
+            ...
+            sage: print n.Factorisation._sage_doc_()    # optional
+            (<RngIntElt> n) -> RngIntEltFact, RngIntElt, SeqEnum
+            ...
+        """
         M = self._obj.parent()
         t = str(self._obj.Type())
         s = M.eval(self._name)
@@ -1062,12 +1207,66 @@ class MagmaFunctionElement(FunctionElement):
         return s
 
     def __repr__(self):
+        """
+        Return string representation of this partially evaluated
+        function.
+
+        This is basically the docstring (as returned by _sage_doc_)
+        unless self._name is the name of an attribute of the object,
+        in which case this returns the value of that attribute.
+
+        EXAMPLES:
+            sage: magma(-15).Factorisation           # optional
+            Partially evaluated Magma function or intrinsic 'Factorisation'
+            ...
+
+        We create a vector space, set its M attribute to a number,
+        then display/get the attribute as a string.
+            sage: V = magma('VectorSpace(RationalField(),2)')    # optional
+            sage: V.set_magma_attribute('M', 290398)             # optional
+            sage: V.M                                            # optional
+            290398
+            sage: type(V.M)                                      # optional
+            <class 'sage.interfaces.magma.MagmaFunctionElement'>
+            sage: type(V.M.__repr__())                           # optional
+            <type 'str'>
+
+        Displaying a non-attribute function works as above.
+            sage: V.Dimension                                    # optional
+            Partially evaluated Magma function or intrinsic 'Dimension'
+            ...
+        """
         M = self._obj.parent()
-        return M.eval('%s`%s'%(self._obj.name(), self._name))
+        try:
+            return M.eval('%s`%s'%(self._obj.name(), self._name))
+        except RuntimeError:
+            return "Partially evaluated Magma function or intrinsic '%s'\n\nSignature:\n\n%s"%(
+                self._name, self._sage_doc_())
 
 
 class MagmaFunction(ExpectFunction):
     def __call__(self, *args, **kwds):
+        """
+        Return the result of calling this Magma function at given
+        inputs.
+
+        Use the optional nvals keyword argument to specify that there
+        are multiple return values.
+
+        EXAMPLES:
+        We create a MagmaFunction:
+            sage: f = magma.Factorisation                   # optional
+            sage: type(f)                                   # optional
+            <class 'sage.interfaces.magma.MagmaFunction'>
+            sage: f(-15)                                    # optional
+            [ <3, 1>, <5, 1> ]
+
+        We verify that the nvals argument works.
+            sage: f(-15, nvals=2)                           # optional
+            ([ <3, 1>, <5, 1> ], -1)
+            sage: f.__call__(-15, nvals=2)                  # optional
+            ([ <3, 1>, <5, 1> ], -1)
+        """
         nvals = 1
         if len(kwds) > 0:
             if kwds.has_key('nvals'):
@@ -1079,6 +1278,20 @@ class MagmaFunction(ExpectFunction):
                                params = kwds,
                                nvals = nvals)
     def _sage_doc_(self):
+        """
+        Return docstring about this function.
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: f = magma.Factorisation
+            sage: type(f)
+            <class 'sage.interfaces.magma.MagmaFunction'>
+            sage: print f._sage_doc_()                          # optional
+            Intrinsic 'Factorisation'
+            ...
+        """
         M = self._parent
         s = M.eval(self._name)
         s = sage.misc.misc.word_wrap(s, 80)
@@ -1105,6 +1318,26 @@ def is_MagmaElement(x):
 
 class MagmaElement(ExpectElement):
     def __getattr__(self, attrname):
+        """
+        INPUT:
+            attrname -- string
+        OUTPUT:
+            a Magma function partially evaluated with self as the first input.
+
+        NOTE: If the input attrname starts with an underscore, an AttributeError
+        is raised so that the actual Python _ method/value can be accessed.
+
+        EXAMPLES:
+            sage: n = magma(-15)                                     # optional
+            sage: type(n)                                            # optional
+            <class 'sage.interfaces.magma.MagmaElement'>
+            sage: f = n.__getattr__('Factorization')                 # optional
+            sage: type(f)                                            # optional
+            <class 'sage.interfaces.magma.MagmaFunctionElement'>
+            sage: f                                                  # optional
+            Partially evaluated Magma function or intrinsic 'Factorization'
+            ...
+        """
         if attrname[:1] == "_":
             raise AttributeError
         return MagmaFunctionElement(self, attrname)
@@ -1118,6 +1351,8 @@ class MagmaElement(ExpectElement):
         Enumerated Sets:
             sage: a = magma('{1,2/3,-5/9}')       # optional
             sage: a.sage()                        # optional
+            {1, -5/9, 2/3}
+            sage: a._sage_()                      # optional
             {1, -5/9, 2/3}
             sage: type(a.sage())                  # optional
             <class 'sage.sets.set.Set_object_enumerated'>
@@ -1277,20 +1512,66 @@ class MagmaElement(ExpectElement):
             return self.evaluate(*args)
 
     def __iter__(self):
+        """
+        Return iterator over this Magma element.
+
+        OUTPUT:
+             generator object
+
+        WARNING: Internally this constructs the list of elements in
+        self in Magma, which is not a lazy operation.  This is because
+        Magma doesn't have a notion of lazy iterators, unfortunately.
+
+        EXAMPLES:
+            sage: V = magma('VectorSpace(GF(3),2)')             # optional
+            sage: V                                             # optional
+            Full Vector space of degree 2 over GF(3)
+            sage: w = V.__iter__(); w                           # optional
+            <generator object at ...>
+            sage: w.next()                                      # optional
+            (0 0)
+            sage: w.next()                                      # optional
+            (1 0)
+            sage: list(w)                                       # optional
+            [(2 0), (0 1), (1 1), (2 1), (0 2), (1 2), (2 2)]
+        """
         P = self._check_valid()
-        i = 1
-        while True:
-            try:
-                yield self[i]
-            except (TypeError, RuntimeError):
-                return
-            i += 1
+        z = P('[_a : _a in %s]'%self.name())
+        for i in range(1,len(z)+1):
+            yield z[i]
 
     def __len__(self):
+        r"""
+        Return cardinality of this Magma element.
+
+        This is the same as \code{#self} in Magma.
+
+        EXAMPLES:
+            sage: V = magma('VectorSpace(GF(3),2)')           # optional
+            sage: V                                           # optional
+            Full Vector space of degree 2 over GF(3)
+            sage: len(V)                                      # optional
+            9
+            sage: V.__len__()                                 # optional
+            9
+        """
         P = self._check_valid()
         return int(P.eval('#%s'%self.name()))
 
     def _polynomial_(self, R):
+        """
+        Try to convert self into a polynomial in the univariate polynomial ring R.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = magma(x^2 + 2/3*x + 5)                 # optional
+            sage: f                                          # optional
+            x^2 + 2/3*x + 5
+            sage: f.Type()                                   # optional
+            RngUPolElt
+            sage: f._polynomial_(R)                          # optional
+            x^2 + 2/3*x + 5
+        """
         return R(list(self.Eltseq()))
 
     def _latex_(self):
@@ -1319,6 +1600,8 @@ class MagmaElement(ExpectElement):
         EXAMPLES:
             sage: latex(magma('-2/3'))                            # optional
             \frac{-2}{3}
+            sage: magma('-2/3')._latex_()                         # optional
+            '\\frac{-2}{3}'
 
             sage: magma.eval('R<x> := PolynomialRing(RationalField()); f := (x-17/2)^3;')     # optional
             ''
@@ -1513,10 +1796,40 @@ class MagmaElement(ExpectElement):
         return self.parent()('%s div %s'%(self.name(), x.name()))
 
     def __nonzero__(self):
+        """
+        Return True if self is nonzero according to Magma.  If Magma can't
+        decide, i.e., raising an error then also return True.
+
+        EXAMPLES:
+        We define a Magma vector space.
+            sage: V = magma('VectorSpace(GF(3),2)'); V            # optional
+            Full Vector space of degree 2 over GF(3)
+
+        The first generator is nonzero.
+            sage: V.gen(1).__nonzero__()                          # optional
+            True
+
+        The zero element is zero.
+            sage: V(0).__nonzero__()                              # optional
+            False
+
+        The space itself is nonzero (the default -- in Magma no
+        comparison to 0 is possible).
+            sage: V.__nonzero__()                                 # optional
+            True
+
+        We can also call bool which is the opposite of __nonzero__.
+            sage: bool(V(0))                                      # optional
+            False
+            sage: bool(V.gen(1))                                  # optional
+            True
+            sage: bool(V)                                         # optional
+            True
+        """
         try:
             return not self.parent()("%s eq 0"%self.name()).bool()
         except TypeError:
-            return self.bool()
+            return True
 
     def sub(self, gens):
         """

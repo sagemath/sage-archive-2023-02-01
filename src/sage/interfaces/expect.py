@@ -1087,10 +1087,15 @@ If this all works, you can then make calls like:
         return self.eval(var)
 
     def get_using_file(self, var):
-        """
-        Return the string representation of the variable var in self
-        using a file.  Use this if var has a huge string
-        representation.  It'll be way faster.
+        r"""
+        Return the string representation of the variable var in self,
+        possibly using a file.  Use this if var has a huge string
+        representation, since it may be way faster.
+
+        WARNING: In fact unless a special derived class implements
+        this, it will \emph{not} be any faster.  This is the case for
+        this class if you're reading it through introspection and
+        seeing this.
         """
         return self.get(var)
 

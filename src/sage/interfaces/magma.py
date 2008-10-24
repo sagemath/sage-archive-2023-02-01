@@ -1393,10 +1393,10 @@ class MagmaElement(ExpectElement):
             [1 2 3]
             [4 5 6]
         """
-        P = self._check_valid()
-        cmd = "Sage(%s)"%self.name()
-        s = str(P.eval(cmd))
-        return sage.misc.sage_eval.sage_eval(s)
+        z, preparse = self.Sage(nvals = 2)
+        s = str(z)
+        preparse =  str(preparse) == 'true'
+        return sage.misc.sage_eval.sage_eval(s, preparse=preparse)
 
     def AssignNames(self, names):
         """

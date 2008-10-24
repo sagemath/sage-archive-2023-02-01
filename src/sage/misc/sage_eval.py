@@ -20,6 +20,16 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
     globals equal to everything included in the scope of
     \code{from sage.all import *}.).
 
+    INPUT:
+        source -- a string or object with a _sage_ method
+        locals -- evaluate in namespace of sage.all plus the
+                  locals dictionary
+        cmds   -- string; sequence of commands to be run before
+                  source is evaluated.
+        preparse -- (default: True) if True, preparse the
+                  string expression.
+
+
     EXAMPLES:
     This example illustrates that preparsing is applied.
         sage: eval('2^3')

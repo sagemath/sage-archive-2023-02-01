@@ -128,6 +128,23 @@ def message(msg, cont=None):
     template_dict = {'msg': msg, 'cont': cont}
     return template('error_message.html', **template_dict)
 
+def HTMLResponse(*args, **kwds):
+    """
+    Returns an HTMLResponse object whose 'Content-Type' header has been set
+    to 'text/html; charset=utf-8
+
+    EXAMPLES:
+        sage: from sage.server.notebook.twist import HTMLResponse
+        sage: response = HTMLResponse(stream='<html><head><title>Test</title></head><body>Test</body></html>')
+        sage: response.headers
+        <Headers: Raw: {'content-type': ['text/html; charset=utf-8']} Parsed: {'content-type': <RecalcNeeded>}>
+
+    """
+    response = http.Response(*args, **kwds)
+    response.headers.addRawHeader('Content-Type', 'text/html; charset=utf-8')
+    return response
+
+
 ############################
 # Create a Sage worksheet from a latex2html'd file
 ############################
@@ -178,7 +195,7 @@ class WorksheetFile(resource.Resource):
         main_css = css_tag('/css/main.css')
         s = s.replace(main_css,css_tag('_static/default.css')+"\n"+main_css )
 
-        return http.Response(stream=s)
+        return HTMLResponse(stream=s)
 
     def childFactory(self, request, name):
         path = self.docpath + '/' + name
@@ -209,7 +226,7 @@ class DocLive(resource.Resource):
         self.username = username
 
     def render(self, ctx):
-        return http.Response(stream=message('nothing to see.'))
+        return HTMLResponse(stream=message('nothing to see.'))
 
     def childFactory(self, request, name):
         gzip_handler(request)
@@ -224,7 +241,7 @@ class Doc(resource.Resource):
 
     def render(self, ctx):
         s = notebook.html_doc(username = self.username)
-        return http.Response(stream=s)
+        return HTMLResponse(stream=s)
 
     def childFactory(self, request, name):
         if name == "live":
@@ -244,7 +261,7 @@ class SageTex(resource.Resource):
 
     def render(self, ctx):
         s = notebook.html_doc(username = self.username)
-        return http.Response(stream=s)
+        return HTMLResponse(stream=s)
 
     def childFactory(self, request, name):
         return WorksheetFile('%s/%s'%(SAGETEX_PATH,name),
@@ -284,7 +301,7 @@ class Source(resource.Resource):
             else:
                 src = open(filename).read()
             src = escape(src)
-            return http.Response(stream = template('source_code.html', src_filename=self.path, src=src, username=self.username))
+            return HTMLResponse(stream = template('source_code.html', src_filename=self.path, src=src, username=self.username))
         else:
             return static.File(filename)
 
@@ -316,7 +333,7 @@ class Upload(resource.Resource):
         self.username = username
 
     def render(self, ctx):
-        return http.Response(stream = template('upload.html', username=self.username))
+        return HTMLResponse(stream = template('upload.html', username=self.username))
 
 class UploadWorksheet(resource.PostableResource):
     def __init__(self, username):
@@ -359,7 +376,7 @@ class UploadWorksheet(resource.PostableResource):
 
             except ValueError, msg:
                 s = "Error uploading worksheet '%s'."%msg
-                return http.Response(stream = message(s, '/'))
+                return HTMLRespone(stream = message(s, '/'))
 
             # If the user requested in the form a specific title for
             # the worksheet set it.
@@ -382,7 +399,7 @@ class UploadWorksheet(resource.PostableResource):
         else:
             #If we already have the file, then we
             #can just return the result of callback which will
-            #give us the http.Response.
+            #give us the HTMLResponse.
             return callback(None)
 
 
@@ -435,14 +452,14 @@ class Worksheet_link_datafile(WorksheetResource, resource.Resource):
         target_ws =  notebook.get_worksheet_with_filename(target_worksheet_filename)
         target = os.path.abspath(target_ws.data_directory() + '/' + data_filename)
         if target_ws.owner() != self.username and not target_ws.user_is_collaborator(self.username):
-            return http.Response(stream=message("illegal link attempt!"))
+            return HTMLResponse(stream=message("illegal link attempt!"))
         os.system('ln "%s" "%s"'%(src, target))
         return http.RedirectResponse('/home/'+target_ws.filename() + '/datafile?name=%s'%data_filename)
 
 
 class Worksheet_upload_data(WorksheetResource, resource.Resource):
     def render(self, ctx):
-        return http.Response(stream = notebook.html_upload_data_window(self.worksheet, self.username))
+        return HTMLResponse(stream = notebook.html_upload_data_window(self.worksheet, self.username))
 
 class Worksheet_do_upload_data(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
@@ -506,10 +523,10 @@ class Worksheet_datafile(WorksheetResource, resource.Resource):
             if ctx.args['action'][0] == 'delete':
                 path = '%s/%s'%(self.worksheet.data_directory(), filename)
                 os.unlink(path)
-                return http.Response(stream = message("Successfully deleted '%s'"%filename,
+                return HTMLResponse(stream = message("Successfully deleted '%s'"%filename,
                                                       '/home/' + self.worksheet.filename()))
         s = notebook.html_download_or_delete_datafile(self.worksheet, self.username, filename)
-        return http.Response(stream=s)
+        return HTMLResponse(stream=s)
 
 ##############################################
 # Returns an object in the datafile directory
@@ -522,7 +539,7 @@ class Worksheet_data(WorksheetResource, resource.Resource):
         if os.path.exists(dir):
             return static.File(dir)
         else:
-            return http.Response(stream = message("No data files",'..'))
+            return HTMLResponse(stream = message("No data files",'..'))
 
     def childFactory(self, request, name):
         dir = os.path.abspath(self.worksheet.data_directory())
@@ -535,7 +552,7 @@ class CellData(resource.Resource):
         self.number = number
 
     def render(self, ctx):
-        return http.Response(stream = message("No data file (%s)"%self.number,'..'))
+        return HTMLResponse(stream = message("No data file (%s)"%self.number,'..'))
 
     def childFactory(self, request, name):
         dir = self.worksheet.directory()
@@ -578,11 +595,11 @@ class Worksheet_cells(WorksheetResource, resource.Resource):
 ##     def render(self, ctx):
 ##         from sage.server.notebook.template import yes_no_template
 ##         lt = yes_no_template(mesg=self.mesg)
-##         return http.Response(stream = lt)
+##         return HTMLResponse(stream = lt)
 
 ##         s = '%s<br>'%self.mesg
 ##         s += '<a href="yes">Yes</a> or <a href="no">No</a>'
-##         return http.Response(stream = message(s))
+##         return HTMLResponse(stream = message(s))
 
 ##     def childFactory(self, request, op):
 ##         if op == 'yes':
@@ -599,7 +616,7 @@ class Worksheet_alive(WorksheetResource, resource.Resource):
     def render(self, ctx):
         #self.worksheet.ping(self.username)
         self.worksheet.ping(username=None)  # None so doesn't save a revision
-        return http.Response(stream = '')
+        return HTMLResponse(stream = '')
 
 ########################################################
 # Worksheet configuration.
@@ -610,11 +627,11 @@ class Worksheet_conf(WorksheetResource, resource.Resource):
         s = str(conf)
         # TODO: This should be a form that allows for configuring all options
         # of a given worksheet, saves the result,
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 class TrivialResource(resource.Resource):
     def render(self, ctx):
-        return http.Response(stream="success")
+        return HTMLResponse(stream="success")
 
 class Worksheet_system(WorksheetResource, resource.Resource):
     def childFactory(self, request, system):
@@ -640,7 +657,7 @@ class Worksheet_introspect(WorksheetResource, resource.PostableResource):
         try:
             id = int(ctx.args['id'][0])
         except (KeyError,TypeError):
-            return http.Response(stream = 'Error in introspection -- invalid cell id.')
+            return HTMLResponse(stream = 'Error in introspection -- invalid cell id.')
         try:
             before_cursor = ctx.args['before_cursor'][0]
         except KeyError:
@@ -651,7 +668,7 @@ class Worksheet_introspect(WorksheetResource, resource.PostableResource):
             after_cursor = ''
         C = self.worksheet.get_cell_with_id(id)
         C.evaluate(introspect=[before_cursor, after_cursor])
-        return http.Response(stream = encode_list([C.next_id(),'introspect',id]))
+        return HTMLResponse(stream = encode_list([C.next_id(),'introspect',id]))
 
 ########################################################
 # Edit the entire worksheet
@@ -664,7 +681,7 @@ class Worksheet_edit(WorksheetResource, resource.Resource):
     def render(self, ctx):
         self.worksheet.save_snapshot(self.username)
         s = notebook.html_edit_window(self.worksheet, self.username)
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 ########################################################
 # Plain text log view of worksheet
@@ -676,7 +693,7 @@ class Worksheet_text(WorksheetResource, resource.Resource):
     """
     def render(self, ctx):
         s = notebook.html_plain_text_window(self.worksheet, self.username)
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 ########################################################
 # Copy a worksheet
@@ -692,7 +709,7 @@ class Worksheet_copy(WorksheetResource, resource.PostableResource):
 class Worksheet_edit_published_page(WorksheetResource, resource.Resource):
     def render(self, ctx):
         if user_type(self.username) == 'guest':
-            return http.Response(stream = message(
+            return HTMLResponse(stream = message(
                 'You must <a href="/">login first</a> in order to edit this worksheet.'))
         ws = self.worksheet.worksheet_that_was_published()
         if ws.owner() == self.username:
@@ -725,7 +742,7 @@ class Worksheet_save_snapshot(WorksheetResource, resource.PostableResource):
     """
     def render(self, ctx):
         self.worksheet.save_snapshot(self.username)
-        return http.Response(stream="saved")
+        return HTMLResponse(stream="saved")
 
 class Worksheet_save_and_quit(WorksheetResource, resource.PostableResource):
     """
@@ -734,7 +751,7 @@ class Worksheet_save_and_quit(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         self.worksheet.save_snapshot(self.username)
         self.worksheet.quit()
-        return http.Response(stream="saved")
+        return HTMLResponse(stream="saved")
 
 class Worksheet_discard_and_quit(WorksheetResource, resource.PostableResource):
     """
@@ -743,12 +760,12 @@ class Worksheet_discard_and_quit(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         self.worksheet.revert_to_last_saved_state()
         self.worksheet.quit()
-        return http.Response(stream="saved")
+        return HTMLResponse(stream="saved")
 
 class Worksheet_revert_to_last_saved_state(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         self.worksheet.revert_to_last_saved_state()
-        return http.Response(stream="reverted")
+        return HTMLResponse(stream="reverted")
 
 class Worksheet_save_and_close(WorksheetResource, resource.PostableResource):
     """
@@ -757,7 +774,7 @@ class Worksheet_save_and_close(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         self.worksheet.save_snapshot(self.username)
         self.worksheet.quit()
-        return http.Response(stream="saved")
+        return HTMLResponse(stream="saved")
 
 ########################################################
 # Collaborate with others
@@ -765,7 +782,7 @@ class Worksheet_save_and_close(WorksheetResource, resource.PostableResource):
 class Worksheet_share(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.html_share(self.worksheet, self.username)
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 class Worksheet_invite_collab(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
@@ -841,7 +858,7 @@ class Worksheet_revisions(WorksheetResource, resource.PostableResource):
                 return worksheet_revision_publish(self.worksheet, rev, self.username)
             else:
                 s = message('Error')
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 
 ########################################################
@@ -870,7 +887,7 @@ class Worksheet_input_settings(WorksheetResource, resource.PostableResource):
             return http.RedirectResponse('/home/'+ self.worksheet.filename())
         else:
             s = 'You must be the owner of this worksheet to configure it.'
-            return http.Response(stream = message(s))
+            return HTMLResponse(stream = message(s))
 
 class Worksheet_settings(WorksheetResource, resource.Resource):
     def render(self, ctx):
@@ -878,7 +895,7 @@ class Worksheet_settings(WorksheetResource, resource.Resource):
             s = message('You must be the owner of this worksheet to configure it.')
         else:
             s = notebook.html_worksheet_settings(self.worksheet, self.username)
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 class ProcessUserSettings(resource.PostableResource):
     def render(self, ctx):
@@ -892,7 +909,7 @@ class ProcessUserSettings(resource.PostableResource):
 #
 #    def render(self, ctx):
 #        s = notebook.html_user_settings(self.username)
-#        return http.Response(stream = s)
+#        return HTMLResponse(stream = s)
 
 class ProcessNotebookSettings(resource.PostableResource):
     def render(self, ctx):
@@ -909,7 +926,7 @@ class NotebookSettings(resource.Resource):
             s = message('You must an admin to configure the notebook.')
         else:
             s = notebook.html_notebook_settings()
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 class SettingsPage(resource.PostableResource):
     def __init__(self, username):
@@ -944,7 +961,7 @@ class SettingsPage(resource.PostableResource):
                 redirect_to_home = True
 
         if error:
-            return http.Response(stream=message(error, '/settings'))
+            return HTMLResponse(stream=message(error, '/settings'))
 
         if redirect_to_logout:
             return http.RedirectResponse('/logout')
@@ -958,7 +975,7 @@ class SettingsPage(resource.PostableResource):
         if template_dict['email']:
             template_dict['email_address'] = 'None' if not notebook.user(self.username)._User__email else notebook.user(self.username)._User__email
             template_dict['email_confirmed'] = 'Not confirmed' if not notebook.user(self.username).is_email_confirmed() else 'Confirmed'
-        return http.Response(stream=template('account_settings.html', **template_dict))
+        return HTMLResponse(stream=template('account_settings.html', **template_dict))
 
 ########################################################
 # Set output type of a cell
@@ -975,7 +992,7 @@ class Worksheet_set_cell_output_type(WorksheetResource, resource.PostableResourc
         typ = ctx.args['type'][0]
         W = self.worksheet
         W.get_cell_with_id(id).set_cell_output_type(typ)
-        return http.Response(stream = '')
+        return HTMLResponse(stream = '')
 
 ########################################################
 # The new cell command: /home/worksheet/new_cell?id=number
@@ -993,7 +1010,7 @@ class Worksheet_new_cell_before(WorksheetResource, resource.PostableResource):
 
         cell = self.worksheet.new_cell_before(id, input=input)
         s = encode_list([cell.id(), cell.html(div_wrap=False), id])
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 class Worksheet_new_text_cell_before(WorksheetResource, resource.PostableResource):
     """
@@ -1008,7 +1025,7 @@ class Worksheet_new_text_cell_before(WorksheetResource, resource.PostableResourc
 
         cell = self.worksheet.new_text_cell_before(id, input=input)
         s = encode_list([cell.id(), cell.html(editing=True), id])
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 
 class Worksheet_new_cell_after(WorksheetResource, resource.PostableResource):
@@ -1023,7 +1040,7 @@ class Worksheet_new_cell_after(WorksheetResource, resource.PostableResource):
             input = ctx.args['input'][0]
         cell = self.worksheet.new_cell_after(id, input=input)
         s = encode_list([cell.id(), cell.html(div_wrap=False), id])
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 class Worksheet_new_text_cell_after(WorksheetResource, resource.PostableResource):
     """
@@ -1038,7 +1055,7 @@ class Worksheet_new_text_cell_after(WorksheetResource, resource.PostableResource
 
         cell = self.worksheet.new_text_cell_after(id, input=input)
         s = encode_list([cell.id(), cell.html(editing=True), id])
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 
 ########################################################
@@ -1062,7 +1079,7 @@ class Worksheet_delete_cell(WorksheetResource, resource.PostableResource):
         else:
             prev_id = W.delete_cell_with_id(id)
             s = encode_list(['delete', id, prev_id, W.cell_id_list()])
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 
 ############################
@@ -1113,7 +1130,7 @@ class Worksheet_cell_update(WorksheetResource, resource.PostableResource):
         # There may be more computations left to do, so start one if there is one.
         worksheet.start_next_comp()
 
-        return http.Response(stream=msg)
+        return HTMLResponse(stream=msg)
 
 
 class Worksheet_eval(WorksheetResource, resource.PostableResource):
@@ -1149,10 +1166,10 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
 
         if ctx.args.has_key('save_only') and ctx.args['save_only'][0] == '1':
             notebook_updates()
-            return http.Response(stream='')
+            return HTMLResponse(stream='')
         elif ctx.args.has_key('text_only') and ctx.args['text_only'][0] == '1':
             notebook_updates()
-            return http.Response(stream=encode_list([str(id), cell.html()]))
+            return HTMLResponse(stream=encode_list([str(id), cell.html()]))
         else:
             newcell = int(ctx.args['newcell'][0])  # whether to insert a new cell or not
 
@@ -1168,7 +1185,7 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
             s = encode_list([cell.next_id(), 'no_new_cell', str(id)])
 
         notebook_updates()
-        return http.Response(stream=s)
+        return HTMLResponse(stream=s)
 
 
 ########################################################
@@ -1209,7 +1226,7 @@ class Worksheet_publish(WorksheetResource, resource.Resource):
             return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
         # Returns boolean of "Is this worksheet set to be published automatically when saved?"
         elif 'is_auto' in ctx.args:
-            return http.Response(stream=str(self.worksheet.is_auto_publish()))
+            return HTMLResponse(stream=str(self.worksheet.is_auto_publish()))
         # Returns the publication page
         else:
             # Page for when worksheet already published
@@ -1219,16 +1236,16 @@ class Worksheet_publish(WorksheetResource, resource.Resource):
                 addr += ':%s' % notebook.port
                 addr += '/home/' + self.worksheet.published_version().filename()
                 dtime = self.worksheet.published_version().date_edited()
-                return http.Response(stream=notebook.html_afterpublish_window(self.worksheet, self.username, addr, dtime))
+                return HTMLResponse(stream=notebook.html_afterpublish_window(self.worksheet, self.username, addr, dtime))
             # Page for when worksheet is not already published
             else:
-                return http.Response(stream=notebook.html_beforepublish_window(self.worksheet, self.username))
+                return HTMLResponse(stream=notebook.html_beforepublish_window(self.worksheet, self.username))
 
 
 class Worksheet_rating_info(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = self.worksheet.html_ratings_info()
-        return http.Response(stream=message('''
+        return HTMLResponse(stream=message('''
         <h2 align=center>Ratings for %s</h2>
         <h3 align=center><a href='/home/%s'>Go to the worksheet.</a>
         <br><br>
@@ -1244,18 +1261,18 @@ class Worksheet_rate(WorksheetResource, resource.Resource):
     def render(self, ctx):
         ret = '/home/' + self.worksheet.filename()
         #if self.worksheet.is_rater(self.username):
-        #    return http.Response(stream=message("You have already rated the worksheet <i><b>%s</b></i>."%self.worksheet.name(), ret))
+        #    return HTMLResponse(stream=message("You have already rated the worksheet <i><b>%s</b></i>."%self.worksheet.name(), ret))
         if user_type(self.username) == "guest":
-            return http.Response(stream = message(
+            return HTMLResponse(stream = message(
                 'You must <a href="/">login first</a> in order to rate this worksheet.', ret))
 
         rating = int(ctx.args['rating'][0])
         if rating < 0 or rating >= 5:
-            return http.Response(stream = message(
+            return HTMLResponse(stream = message(
                 "Gees -- You can't fool the rating system that easily!", ret))
         comment = ctx.args['comment'][0]
         self.worksheet.rate(rating, comment, self.username)
-        return http.Response(stream=message("""
+        return HTMLResponse(stream=message("""
         Thank you for rating the worksheet <b><i>%s</i></b>!
         You can <a href="rating_info">see all ratings of this worksheet.</a>
         """%self.worksheet.name(), '/pub/'))
@@ -1273,7 +1290,7 @@ class Worksheet_download(WorksheetResource, resource.Resource):
         try:
             notebook.export_worksheet(worksheet_name, filename)
         except KeyError:
-            return http.Response(stream=message('No such worksheet.'))
+            return HTMLResponse(stream=message('No such worksheet.'))
         r = open(filename, 'rb').read()
         os.unlink(filename)
         return static.Data(r, 'application/sage')
@@ -1282,40 +1299,40 @@ class Worksheet_download(WorksheetResource, resource.Resource):
 class Worksheet_rename(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         self.worksheet.set_name(ctx.args['name'][0])
-        return http.Response(stream='done')
+        return HTMLResponse(stream='done')
 
 class Worksheet_restart_sage(WorksheetResource, resource.Resource):
     def render(self, ctx):
         # TODO -- this must not block long (!)
         self.worksheet.restart_sage()
-        return http.Response(stream='done')
+        return HTMLResponse(stream='done')
 
 class Worksheet_quit_sage(WorksheetResource, resource.Resource):
     def render(self, ctx):
         # TODO -- this must not block long (!)
         self.worksheet.quit()
-        return http.Response(stream='done')
+        return HTMLResponse(stream='done')
 
 class Worksheet_interrupt(WorksheetResource, resource.Resource):
     def render(self, ctx):
         # TODO -- this must not block long (!)
         s = self.worksheet.interrupt()
-        return http.Response(stream='ok' if s else 'failed')
+        return HTMLResponse(stream='ok' if s else 'failed')
 
 class Worksheet_plain(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.plain_text_worksheet_html(self.name)
-        return http.Response(stream=s)
+        return HTMLResponse(stream=s)
 
 class Worksheet_hide_all(WorksheetResource, resource.Resource):
     def render(self, ctx):
         self.worksheet.hide_all()
-        return http.Response(stream='success')
+        return HTMLResponse(stream='success')
 
 class Worksheet_show_all(WorksheetResource, resource.Resource):
     def render(self, ctx):
         self.worksheet.show_all()
-        return http.Response(stream='success')
+        return HTMLResponse(stream='success')
 
 
 # Delete all the output of cells in a worksheet.
@@ -1324,13 +1341,13 @@ class Worksheet_delete_all_output(WorksheetResource, resource.Resource):
         try:
             self.worksheet.delete_all_output(self.username)
         except ValueError:
-            return http.Response(stream='fail')
-        return http.Response(stream='success')
+            return HTMLResponse(stream='fail')
+        return HTMLResponse(stream='success')
 
 class Worksheet_print(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.worksheet_html(self.name, do_print=True)
-        return http.Response(stream=s)
+        return HTMLResponse(stream=s)
 
 
 class NotImplementedWorksheetOp(resource.Resource):
@@ -1339,7 +1356,7 @@ class NotImplementedWorksheetOp(resource.Resource):
         self.ws = ws
 
     def render(self, ctx):
-        return http.Response(stream = message(
+        return HTMLResponse(stream = message(
             'The worksheet operation "%s" is not defined.'%self.op,
             '/home/'+self.ws.filename()))
 
@@ -1350,7 +1367,7 @@ class Worksheet(WorksheetResource, resource.Resource):
     def render(self, ctx):
         self.worksheet.sage()
         s = notebook.html(worksheet_filename = self.name,  username=self.username)
-        return http.Response(stream=s)
+        return HTMLResponse(stream=s)
 
     def childFactory(self, request, op):
         notebook_updates()
@@ -1424,7 +1441,7 @@ class WorksheetsByUser(resource.Resource):
 
     def render_list(self, ctx):
         s = render_worksheet_list(ctx.args, pub=False, username=self.user)
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
     def render(self, ctx):
         if self.user == self.username or user_type(self.username) == 'admin':
@@ -1434,7 +1451,7 @@ class WorksheetsByUser(resource.Resource):
                 s = message("User '%s' does not have permission to view the home page of '%s'."%(self.username, self.user))
             else:
                 return http.RedirectResponse('/')
-            return http.Response(stream = s)
+            return HTMLResponse(stream = s)
 
     def childFactory(self, request, name):
         if name == "trash":
@@ -1501,7 +1518,7 @@ class EmptyTrash(resource.Resource):
             sage: n.delete()
         """
         notebook.empty_trash(self.username)
-        return http.Response(stream = message("Trash emptied."))
+        return HTMLResponse(stream = message("Trash emptied."))
 
 class SendWorksheetToFolder(resource.PostableResource):
     def __init__(self, username):
@@ -1513,7 +1530,7 @@ class SendWorksheetToFolder(resource.PostableResource):
     def render(self, ctx):
         X = notebook.user(self.username)
         if user_type(self.username) == 'guest':
-            return http.Response(stream = message("You are not authorized to move '%s'"%W.name()))
+            return HTMLResponse(stream = message("You are not authorized to move '%s'"%W.name()))
 
         def send_worksheet_to_folder(filename):
             W = notebook.get_worksheet_with_filename(filename)
@@ -1532,7 +1549,7 @@ class SendWorksheetToFolder(resource.PostableResource):
         for F in filenames:
             send_worksheet_to_folder(F)
 
-        return http.Response(stream = '')
+        return HTMLResponse(stream = '')
 
 class SendWorksheetToTrash(SendWorksheetToFolder):
     def action(self, W):
@@ -1568,7 +1585,7 @@ class PublicWorksheets(resource.Resource):
 
     def render(self, ctx):
         s = render_worksheet_list(ctx.args, pub=True, username=self.username)
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
     def childFactory(self, request, name):
         return Worksheet('pub/' + name, username=self.username)
@@ -1592,7 +1609,7 @@ class Worksheets(resource.Resource):
         self.username = username
 
     def render(self, ctx):
-        return http.Response(stream = message("Please request a specific worksheet"))
+        return HTMLResponse(stream = message("Please request a specific worksheet"))
 
     def childFactory(self, request, name):
         return WorksheetsByUser(name, username=self.username)
@@ -1613,7 +1630,7 @@ class WorksheetsAdmin(Worksheets):
 class NotebookConf(Worksheets):
     def render(self, ctx):
         s = '<html>' + notebook.conf().html_conf_form('submit') + '</html>'
-        return http.Response(stream = s)
+        return HTMLResponse(stream = s)
 
 
 
@@ -1626,7 +1643,7 @@ class AddWorksheet(resource.Resource):
         name = ctx.args['name'][0]
         W = notebook.create_new_worksheet(name)
         v = notebook.worksheet_list_html(W.name())
-        return http.Response(stream = encode_list([v, W.name()]))
+        return HTMLResponse(stream = encode_list([v, W.name()]))
 
 
 ############################
@@ -1638,7 +1655,7 @@ class Help(resource.Resource):
 
     def render(self, ctx):
         from tutorial import notebook_help
-        return http.Response(stream=template('docs.html', username=self.username, notebook_help=notebook_help))
+        return HTMLResponse(stream=template('docs.html', username=self.username, notebook_help=notebook_help))
 
 
 ############################
@@ -1653,7 +1670,7 @@ class History(resource.Resource):
         t = template('history.html', username=self.username,
                      text = notebook.user_history_text(self.username),
                      actions=False)
-        return http.Response(stream=t)
+        return HTMLResponse(stream=t)
 
 class LiveHistory(resource.Resource):
     def __init__(self, username):
@@ -1766,7 +1783,7 @@ class Logout(resource.Resource):
     def render(self, ctx):
         # TODO -- actually log out.
         s = message("<br>Thank you for using Sage.<br><br><a href='/'>Please login and use Sage again soon.</a><br>")
-        return http.Response(stream=s)
+        return HTMLResponse(stream=s)
 
 ############################
 # Image resource
@@ -1787,7 +1804,7 @@ class Images(resource.Resource):
 class RegConfirmation(resource.Resource):
     def render(self, request):
         if not notebook.conf()['email']:
-            return http.Response(stream=message('The confirmation system is not active.'))
+            return HTMLResponse(stream=message('The confirmation system is not active.'))
         key = request.args['key'][0]
         invalid_confirm_key = """\
 <h1>Invalid confirmation key</h1>
@@ -1801,10 +1818,10 @@ server. Please <a href="/register">register</a> with the server.</p>
             user = notebook.user(username)
             user.set_email_confirmation(True)
         except KeyError:
-            return http.Response(stream=message(invalid_confirm_key, '/register'))
+            return HTMLResponse(stream=message(invalid_confirm_key, '/register'))
         success = """<h1>Email address confirmed for user %s</h1>""" % username
         del waiting[key]
-        return http.Response(stream=message(success))
+        return HTMLResponse(stream=message(success))
 
 ############################
 # Registration page
@@ -2002,7 +2019,7 @@ class RegistrationPage(resource.PostableResource):
                     missing[i] = True
 
             if set(missing) == set([True]):
-                return http.Response(stream=template('registration.html', **template_dict))
+                return HTMLResponse(stream=template('registration.html', **template_dict))
             elif set(missing) == set([False]):
                 for i, box in enumerate(input_boxes):
                     filled_in[box] = request.args[box][0]
@@ -2028,7 +2045,7 @@ class RegistrationPage(resource.PostableResource):
 
         if template_dict and set(template_dict) != set(['email']):
             errors_found()
-            return http.Response(stream=template('registration.html', **template_dict))
+            return HTMLResponse(stream=template('registration.html', **template_dict))
         else:
             try:
                 e = filled_in['email'] if notebook.conf()['email'] else ''
@@ -2037,7 +2054,7 @@ class RegistrationPage(resource.PostableResource):
             except ValueError:
                 template_dict['username_taken'] = True
                 errors_found()
-                return http.Response(stream=template('registration.html', **template_dict))
+                return HTMLResponse(stream=template('registration.html', **template_dict))
 
             if notebook.conf()['email']:
                 destaddr = filled_in['email']
@@ -2062,17 +2079,17 @@ class RegistrationPage(resource.PostableResource):
                              'default_user': notebook.default_user(),
                              'welcome': filled_in['username'],
                              'recovery': notebook.conf()['email']}
-            return http.Response(stream=template('login.html', **template_dict))
+            return HTMLResponse(stream=template('login.html', **template_dict))
 
 class ForgotPassPage(resource.Resource):
 
     def render(self, request):
         if not notebook.conf()['email']:
-            return http.Response(stream=message('The account recovery system is not active.'))
+            return HTMLResponse(stream=message('The account recovery system is not active.'))
 
         if request.args.has_key('username'):
             def error(msg):
-                return http.Response(stream=message(msg, '/forgotpass'))
+                return HTMLResponse(stream=message(msg, '/forgotpass'))
 
             try:
                 import string
@@ -2106,10 +2123,10 @@ class ForgotPassPage(resource.Resource):
                 user.set_password(oldpass)
                 return error("The new password couldn't be sent."%destaddr)
 
-            return http.Response(stream=message("A new password has been sent to your e-mail address.", '/'))
+            return HTMLResponse(stream=message("A new password has been sent to your e-mail address.", '/'))
         else:
             s = template('account_recovery.html')
-        return http.Response(stream=s)
+        return HTMLResponse(stream=s)
 
 class ListOfUsers(resource.Resource):
         def __init__(self, username):
@@ -2120,7 +2137,7 @@ class ListOfUsers(resource.Resource):
                 s = message('You must an admin to manage other users.')
             else:
                 s = template('user_management.html', {'users':notebook.valid_login_names()})
-            return http.Response(stream = s)
+            return HTMLResponse(stream = s)
 
 class InvalidPage(resource.Resource):
     addSlash = True
@@ -2136,7 +2153,7 @@ class InvalidPage(resource.Resource):
             s = "This is an invalid page."
             if self.username == 'guest':
                 s += ' You might have to login to view this page.'
-        return http.Response(stream = message(s, '/'))
+        return HTMLResponse(stream = message(s, '/'))
 
     def childFactory(self, request, name):
         return InvalidPage(msg = self.msg, username = self.username)
@@ -2162,7 +2179,7 @@ class Toplevel(resource.PostableResource):
         template_dict = {'accounts': notebook.get_accounts(),
                          'default_user': notebook.default_user(),
                          'recovery': notebook.conf()['email']}
-        return http.Response(stream=template('login.html', **template_dict))
+        return HTMLResponse(stream=template('login.html', **template_dict))
 
     def userchildFactory(self, request, name):
         return InvalidPage(msg = "unauthorized request", username = self.username)
@@ -2177,7 +2194,7 @@ class LoginResourceClass(resource.Resource):
         template_dict = {'accounts': notebook.get_accounts(),
                          'default_user': notebook.default_user(),
                          'recovery': notebook.conf()['email']}
-        return http.Response(stream=template('login.html', **template_dict))
+        return HTMLResponse(stream=template('login.html', **template_dict))
 
     def childFactory(self, request, name):
         return LoginResource
@@ -2215,7 +2232,7 @@ class AnonymousToplevel(Toplevel):
         template_dict = {'accounts': notebook.get_accounts(),
                          'default_user': notebook.default_user(),
                          'recovery': notebook.conf()['email']}
-        response = http.Response(stream=template('login.html', **template_dict))
+        response = HTMLResponse(stream=template('login.html', **template_dict))
         response.headers.setHeader("set-cookie", [http_headers.Cookie('cookie_test', 'cookie_test')])
         return response
 
@@ -2234,15 +2251,15 @@ class FailedToplevel(Toplevel):
                              'default_user': notebook.default_user(),
                              'username_error': True,
                              'recovery': notebook.conf()['email']}
-            return http.Response(stream=template('login.html', **template_dict))
+            return HTMLResponse(stream=template('login.html', **template_dict))
         elif self.problem == 'password':
             template_dict = {'accounts': notebook.get_accounts(),
                              'default_user': self.username,
                              'password_error': True,
                              'recovery': notebook.conf()['email']}
-            return http.Response(stream=template('login.html', **template_dict))
+            return HTMLResponse(stream=template('login.html', **template_dict))
         else:
-            return http.Response(stream = message("Please enable cookies and try again."))
+            return HTMLResponse(stream = message("Please enable cookies and try again."))
 
 
 class UserToplevel(Toplevel):

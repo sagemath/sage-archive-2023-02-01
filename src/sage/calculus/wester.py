@@ -231,8 +231,8 @@ sage: print a
                        sqrt(99983) - sqrt(13) sqrt(7691)
 sage: print bool(a==0)
 True
-sage: float(a)    # random low order bits
-1.13686837722e-13
+sage: float(a)
+1.1368683772...e-13
 sage: print 13*7691
 99983
 
@@ -258,8 +258,12 @@ sage: # Yes, in that the thing is clearly not equal to 0!
 sage: f = log(tan(x/2 + pi/4)) - arcsin(tan(x))
 sage: bool(f == 0)
 False
-sage: [float(f(i/10)) for i in range(1,5)]           # random low order bits
-[-0.00033670040754082975, -0.0027778004096620235, -0.0098909940914040928, -0.025411145508414501]
+sage: [float(f(i/10)) for i in range(1,5)]
+<BLANKLINE>
+[-0.00033670040754082975,
+ -0.0027778004096620235,
+ -0.0098909940914040928,
+ -0.025411145508414501]
 
 sage: # (YES) Numerically, the expression Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0 and its derivative at x=0 are zero.
 sage: g = f.derivative()
@@ -303,7 +307,7 @@ sage: print f
                                                                 - 2 sqrt(r) - 1
 sage: bool(f == 0)
 False
-sage: [float(f(i)) for i in [0.1,0.3,0.5]]     # random low-order bits
+sage: [float(f(i)) for i in [0.1,0.3,0.5]]
 [0.0, 0.0, -2.2204460492503131e-16]
 
 

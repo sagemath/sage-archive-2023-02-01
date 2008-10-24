@@ -5799,8 +5799,8 @@ class GenericGraph(SageObject):
             sage: P = graphs.PetersenGraph()
             sage: P.spectrum()
             [-2.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0]
-            sage: P.spectrum(laplacian=True)   # random low-order bits (at least for first eigenvalue)
-            [-1.41325497305e-16, 2.0, 2.0, 2.0, 2.0, 2.0, 5.0, 5.0, 5.0, 5.0]
+            sage: P.spectrum(laplacian=True)
+            [...e-16, 2.0, 2.0, 2.0, 2.0, 2.0, 5.0, 5.0, 5.0, 5.0]
 
             sage: D = P.to_directed()
             sage: D.delete_edge(7,9)

@@ -117,7 +117,7 @@ EXAMPLES:
         5*sin(2)
         sage: f(pi)
         0
-        sage: float(f(pi))             # random low order bits
+        sage: float(f(pi))
         6.1232339957367663e-16
 
     Another example:
@@ -2646,7 +2646,7 @@ class SymbolicExpression(RingElement):
 
         We can also use the \code{numerical_integral} function, which calls
         the GSL C library.
-            sage: numerical_integral(f, 0, 1)       # random low-order bits
+            sage: numerical_integral(f, 0, 1)
             (0.52848223225314706, 6.8392846084921134e-07)
 
         Note that in exotic cases where floating point evaluation of
@@ -7492,8 +7492,8 @@ class Function_tanh(PrimitiveFunction):
         tanh(pi)
         sage: tanh(3.1415)
         0.996271386633702
-        sage: float(tanh(pi))       # random low-order bits
-        0.99627207622074987
+        sage: float(tanh(pi))
+        0.996272076220749...
         sage: tan(3.1415/4)
         0.999953674278156
         sage: tanh(pi/4)
@@ -7530,7 +7530,7 @@ class Function_sinh(PrimitiveFunction):
         sinh(pi)
         sage: sinh(3.1415)
         11.5476653707437
-        sage: float(sinh(pi))              # random low-order bits
+        sage: float(sinh(pi))
         11.548739357257748
         sage: RR(sinh(pi))
         11.5487393572577
@@ -7557,7 +7557,7 @@ class Function_cosh(PrimitiveFunction):
         cosh(pi)
         sage: cosh(3.1415)
         11.5908832931176
-        sage: float(cosh(pi))       # random low order bits
+        sage: float(cosh(pi))
         11.591953275521519
         sage: RR(cosh(1/2))
         1.12762596520638
@@ -7611,7 +7611,7 @@ class Function_sech(PrimitiveFunction):
         sech(pi)
         sage: sech(3.1415)
         0.0862747018248192
-        sage: float(sech(pi))    # random low order bits
+        sage: float(sech(pi))
         0.086266738334054432
         sage: RR(sech(pi))
         0.0862667383340544
@@ -7639,7 +7639,7 @@ class Function_csch(PrimitiveFunction):
         csch(pi)
         sage: csch(3.1415)
         0.0865975907592133
-        sage: float(csch(pi))           # random low-order bits
+        sage: float(csch(pi))
         0.086589537530046945
         sage: RR(csch(pi))
         0.0865895375300470
@@ -8014,7 +8014,7 @@ class Function_exp(PrimitiveFunction):
         x*e^x^2
         sage: exp(2.5)
         12.1824939607035
-        sage: exp(float(2.5))         # random low order bits
+        sage: exp(float(2.5))
         12.182493960703473
         sage: exp(RDF('2.5'))
         12.1824939607

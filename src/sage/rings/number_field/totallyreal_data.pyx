@@ -218,9 +218,9 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
     We use a precomputed elimination ideal.
 
     EXAMPLES:
-        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,0,1,2) # random low order bits
+        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,0,1,2) # random
         [-1.000000000000000000000000467750, -0.9999999999999999999999994624949]
-        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,6,1,2) # random low order bits
+        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,6,1,2) # random
         [-5.887850847558445916683125710722, -5.887850847558445916682940422175]
     """
     cdef double zmin, zmax, val

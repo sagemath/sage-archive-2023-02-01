@@ -49,13 +49,13 @@ class Sha(SageObject):
         EXAMPLES:
             sage: EllipticCurve('11a').sha().an_numerical()
             1.00000000000000
-            sage: EllipticCurve('37a').sha().an_numerical()
+            sage: EllipticCurve('37a').sha().an_numerical() # long time
             1.00000000000000
-            sage: EllipticCurve('389a').sha().an_numerical()    # random low order bits
+            sage: EllipticCurve('389a').sha().an_numerical() # long time
             1.00000000000000
             sage: EllipticCurve('66b3').sha().an_numerical()
             4.00000000000000
-            sage: EllipticCurve('5077a').sha().an_numerical()   # random low bit
+            sage: EllipticCurve('5077a').sha().an_numerical() # long time
             1.00000000000000
 
         A rank 4 curve:
@@ -63,12 +63,12 @@ class Sha(SageObject):
             1.00000000000000
 
         A rank 5 curve:
-            sage: EllipticCurve([0, 0, 1, -79, 342]).sha().an_numerical(prec=10, proof=False)          # long time -- about 30 seconds.
+            sage: EllipticCurve([0, 0, 1, -79, 342]).sha().an_numerical(prec=10, proof=False) # long time -- about 30 seconds.
             1.0
 
             # See trac #1115
             sage: sha=EllipticCurve('37a1').sha()
-            sage: [sha.an_numerical(prec) for prec in xrange(30,100,10)]
+            sage: [sha.an_numerical(prec) for prec in xrange(30,100,10)] # long time
             [1.0000000,
             1.0000000000,
             1.0000000000000,

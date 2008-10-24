@@ -319,8 +319,8 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             (6.0, -2.0 + 2.0*I, -2.0, -2.0 - 2.0*I)
             sage: v.fft(direction='backward')
             (1.5, -0.5 - 0.5*I, -0.5, -0.5 + 0.5*I)
-            sage: v.fft(direction='backward').fft()     # random low order bits
-            (0, 1.0 - 5.74627151417e-18*I, 2.0, 3.0 + 5.74627151417e-18*I)
+            sage: v.fft(direction='backward').fft()
+            (0, 1.0..., 2.0, 3.0...)
         """
         if not self.v:
             return self

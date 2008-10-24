@@ -309,9 +309,10 @@ class IndexedSequence(SageObject):
             sage: J = range(5)
             sage: A = [exp(-2*pi*i*I/5) for i in J]
             sage: s = IndexedSequence(A,J)
-            sage: s.dct()    # discrete cosine   (random low bits)
-            Indexed sequence: [2.50000000000000 - 0.000000000000000111022302462516*I, 2.50000000000000 - 0.000000000000000111022302462516*I, 2.50000000000000 - 0.000000000000000111022302462516*I, 2.50000000000000 - 0.000000000000000111022302462516*I, 2.50000000000000 - 0.000000000000000111022302462516*I]
-               indexed by [0, 1, 2, 3, 4]
+            sage: s.dct()
+            <BLANKLINE>
+            Indexed sequence: [e^(2*I*pi/5)*cos(8*pi/5) + e^(4*I*pi/5)*cos(6*pi/5) + e^(-(4*I*pi/5))*cos(4*pi/5) + e^(-(2*I*pi/5))*cos(2*pi/5) + 1, e^(2*I*pi/5)*cos(8*pi/5) + e^(4*I*pi/5)*cos(6*pi/5) + e^(-(4*I*pi/5))*cos(4*pi/5) + e^(-(2*I*pi/5))*cos(2*pi/5) + 1, e^(2*I*pi/5)*cos(8*pi/5) + e^(4*I*pi/5)*cos(6*pi/5) + e^(-(4*I*pi/5))*cos(4*pi/5) + e^(-(2*I*pi/5))*cos(2*pi/5) + 1, e^(2*I*pi/5)*cos(8*pi/5) + e^(4*I*pi/5)*cos(6*pi/5) + e^(-(4*I*pi/5))*cos(4*pi/5) + e^(-(2*I*pi/5))*cos(2*pi/5) + 1, e^(2*I*pi/5)*cos(8*pi/5) + e^(4*I*pi/5)*cos(6*pi/5) + e^(-(4*I*pi/5))*cos(4*pi/5) + e^(-(2*I*pi/5))*cos(2*pi/5) + 1]
+                indexed by [0, 1, 2, 3, 4]
         """
         F = self.base_ring()   ## elements must be coercible into RR
         J = self.index_object()   ## must be = range(N)

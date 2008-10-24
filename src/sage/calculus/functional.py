@@ -245,8 +245,13 @@ def integral(f, *args, **kwds):
         sage: g = integral(f, x)
         sage: h = f - diff(g, x)
 
-        sage: [float(h(i)) for i in range(5)]     # random low-order bits
-        [0.0, -1.1102230246251565e-16, -8.3266726846886741e-17, -4.163336342344337e-17, -6.9388939039072284e-17]
+        sage: [float(h(i)) for i in range(5)]
+        <BLANKLINE>
+        [0.0,
+         -1.1102230246251565e-16,
+         -5.5511151231257827e-17,
+         -5.5511151231257827e-17,
+         -6.9388939039072284e-17]
         sage: bool(h == 0)
         True
     """

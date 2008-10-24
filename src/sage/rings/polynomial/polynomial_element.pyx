@@ -3223,18 +3223,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: i = CDF.0
             sage: f = x^3 + 2*i; f
             1.0*x^3 + 2.0*I
-            sage: f.roots()  # random low-order bits
-            [(-1.09112363597 - 0.629960524947*I, 1), (6.66133814775e-16 + 1.25992104989*I, 1), (1.09112363597 - 0.629960524947*I, 1)]
-            sage: f.roots(multiplicities=False)   # random low-order bits
-            [-1.09112363597 - 0.629960524947*I, 6.66133814775e-16 + 1.25992104989*I, 1.09112363597 - 0.629960524947*I]
-            sage: [f(z) for z in f.roots(multiplicities=False)]  # random low-order bits
-            [-3.10862446895e-15 - 4.4408920985e-16*I, -3.17226455498e-15 + 3.99680288865e-15*I, -5.55111512313e-16 - 8.881784197e-16*I]
+            sage: f.roots()
+            [(-1.09112363597 - 0.629960524947*I, 1),
+             (...e-1... + 1.25992104989*I, 1),
+             (1.09112363597 - 0.629960524947*I, 1)]
+            sage: f.roots(multiplicities=False)
+            [-1.09112363597 - 0.629960524947*I,
+             ...e-1... + 1.25992104989*I,
+             1.09112363597 - 0.629960524947*I]
+            sage: [f(z) for z in f.roots(multiplicities=False)]
+            [...e-1...,
+             ...e-1...,
+             ...e-1...]
             sage: f = i*x^3 + 2; f
             1.0*I*x^3 + 2.0
-            sage: f.roots()     # random low-order bits
-            [(-1.09112363597 + 0.629960524947*I, 1), (6.66133814775e-16 - 1.25992104989*I, 1), (1.09112363597 + 0.629960524947*I, 1)]
-            sage: f(f.roots()[0][0])         # random low-order bits
-            -4.4408920985e-16 - 3.10862446895e-15*I
+            sage: f.roots()
+            [(-1.09112363597 + 0.629960524947*I, 1),
+             (...e-1... - 1.25992104989*I, 1),
+             (1.09112363597 + 0.629960524947*I, 1)]
+            sage: f(f.roots()[0][0]) # -2.56337823492e-15 - 6.66133814775e-15*I
+            ...e-1...
 
         Examples using real root isolation:
             sage: x = polygen(ZZ)

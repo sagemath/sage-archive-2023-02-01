@@ -60,10 +60,10 @@ class NumericalEigenforms(SageObject):
         [0.61803398875, -2.2360679775, 1.2360679775],
         [3.0, 4.0, 6.0]
         ]
-        sage: n.systems_of_abs(7)   # random low order bits
+        sage: n.systems_of_abs(7)
         [
-        [0.61803398874989446, 2.2360679774997911, 1.2360679774997889],
-        [1.6180339887498947, 2.2360679774997894, 3.2360679774997894],
+        [0.6180339887..., 2.236067977..., 1.236067977...],
+        [1.6180339887..., 2.236067977..., 3.236067977...],
         [3.0, 4.0, 6.0]
         ]
         sage: n.eigenvalues([2,3,5])
@@ -168,7 +168,7 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES:
             sage: n = numerical_eigenforms(61)
-            sage: n._eigenvectors() # random low-order bits
+            sage: n._eigenvectors() # random order
             [              1.0    0.289473640239    0.176788851952    0.336707726757  2.4182243084e-16]
             [                0  -0.0702748344418    0.491416161212    0.155925712173    0.707106781187]
             [                0    0.413171180356    0.141163094698   0.0923242547901    0.707106781187]
@@ -282,7 +282,7 @@ class NumericalEigenforms(SageObject):
         Return all eigendata for self._easy_vector().
 
         EXAMPLES:
-            sage: numerical_eigenforms(61)._eigendata() # random low-order bits
+            sage: numerical_eigenforms(61)._eigendata() # random order
             ((1.0, 0.668205013164, 0.219198805797, 0.49263343893, 0.707106781187), (1.0, 1.49654668896, 4.5620686498, 2.02990686579, 1.41421356237), [0, 1], (1.0, 1.0))
         """
         try:
@@ -299,7 +299,7 @@ class NumericalEigenforms(SageObject):
 
             EXAMPLES:
                 sage: n = numerical_eigenforms(61) # indirect doctest
-                sage: n._eigendata() # random low-order bits
+                sage: n._eigendata() # random order
                 ((1.0, 0.668205013164, 0.219198805797, 0.49263343893, 0.707106781187), (1.0, 1.49654668896, 4.5620686498, 2.02990686579, 1.41421356237), [0, 1], (1.0, 1.0))
             """
             return y.element() * B
@@ -327,9 +327,9 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES:
             sage: n = numerical_eigenforms(11,4)
-            sage: n.ap(2)  # random low order bits
+            sage: n.ap(2) # random order
             [9.0, 9.0, 2.73205080757, -0.732050807569]
-            sage: n.ap(3)  # random low order bits
+            sage: n.ap(3) # random order
             [28.0, 28.0, -7.92820323028, 5.92820323028]
             sage: m = n.modular_symbols()
             sage: x = polygen(QQ, 'x')
@@ -365,8 +365,8 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES:
             sage: n = numerical_eigenforms(1,12)
-            sage: n.eigenvalues([3,5,13])            # random low-order bits
-            [[177148.0, 252.0], [48828126.0, 4830.0], [1.79216039404e+12, -577737.99999]]
+            sage: n.eigenvalues([3,5,13])
+            [[177148.0, 252.0], [48828126.0, 4830.0], [1.79216039404e+12, -577737.999...]]
         """
         primes = [Integer(p) for p in primes]
         for p in primes:
@@ -381,8 +381,8 @@ class NumericalEigenforms(SageObject):
 
             EXAMPLES:
                 sage: n = numerical_eigenforms(1,12)  # indirect doctest
-                sage: n.eigenvalues([3,5,13])     # random low-order bits
-                [[177148.0, 252.0], [48828126.0, 4830.0], [1.79216039404e+12, -577737.99999]]
+                sage: n.eigenvalues([3,5,13])
+                [[177148.0, 252.0], [48828126.0, 4830.0], [1.79216039404e+12, -577737.999...]]
             """
             return y.element() * B
 
@@ -400,12 +400,12 @@ class NumericalEigenforms(SageObject):
         up to bound.
 
         EXAMPLES:
-            sage: numerical_eigenforms(61).systems_of_eigenvalues(10) # random low-order bits
+            sage: numerical_eigenforms(61).systems_of_eigenvalues(10)
             [
-            [-1.48119430409 - 1.96762449532e-16*I, 0.806063433525 - 3.26296061512e-17*I, 3.15632517466 - 9.48824660168e-16*I, 0.675130870567 - 1.11836177094e-15*I],
-            [-1.0 + 4.41816383071e-16*I, -2.0 + 2.0333467033e-15*I, -3.0 + 7.16977409442e-16*I, 1.0 - 1.36105818506e-15*I],
-            [0.311107817466 - 4.2761561946e-16*I, 2.90321192591 + 1.61443450942e-16*I, -2.52542756084 - 3.16669464906e-15*I, -3.21431974338 - 3.59709554755e-15*I],
-            [2.17008648663 - 3.97506148776e-15*I, -1.70927535944 - 1.01117101811e-15*I, -1.63089761382 - 3.60715393447e-14*I, -0.460811127189 - 3.93805017121e-14*I],
+            [-1.48119430409..., 0.806063433525..., 3.15632517466..., 0.675130870567...],
+            [-1.0..., -2.0..., -3.0..., 1.0...],
+            [0.311107817466..., 2.90321192591..., -2.52542756084..., -3.21431974338...],
+            [2.17008648663..., -1.70927535944..., -1.63089761382..., -0.460811127189...],
             [3.0, 4.0, 6.0, 8.0]
             ]
         """
@@ -426,7 +426,7 @@ class NumericalEigenforms(SageObject):
         self for primes up to bound.
 
         EXAMPLES:
-            sage: numerical_eigenforms(61).systems_of_abs(10) # random low-order bits
+            sage: numerical_eigenforms(61).systems_of_abs(10)
             [
             [0.311107817466, 2.90321192591, 2.52542756084, 3.21431974338],
             [1.0, 2.0, 3.0, 1.0],

@@ -3225,24 +3225,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1.0*x^3 + 2.0*I
             sage: f.roots()
             [(-1.09112363597 - 0.629960524947*I, 1),
-             (...e-1... + 1.25992104989*I, 1),
+             (... + 1.25992104989*I, 1),
              (1.09112363597 - 0.629960524947*I, 1)]
             sage: f.roots(multiplicities=False)
             [-1.09112363597 - 0.629960524947*I,
-             ...e-1... + 1.25992104989*I,
+             ... + 1.25992104989r*I,
              1.09112363597 - 0.629960524947*I]
-            sage: [f(z) for z in f.roots(multiplicities=False)]
-            [...e-1...,
-             ...e-1...,
-             ...e-1...]
+            sage: [f(z) for z in f.roots(multiplicities=False)] # random, too close to 0
+            [-2.56337823492e-15 - 6.66133814775e-15*I,
+             3.96533069372e-16 + 1.99840144433e-15*I,
+             4.19092485179e-17 - 8.881784197e-16*I]
             sage: f = i*x^3 + 2; f
             1.0*I*x^3 + 2.0
             sage: f.roots()
             [(-1.09112363597 + 0.629960524947*I, 1),
-             (...e-1... - 1.25992104989*I, 1),
+             (... - 1.25992104989*I, 1),
              (1.09112363597 + 0.629960524947*I, 1)]
-            sage: f(f.roots()[0][0]) # -2.56337823492e-15 - 6.66133814775e-15*I
-            ...e-1...
+            sage: f(f.roots()[0][0]) # random, too close to 0
+            -2.56337823492e-15 - 6.66133814775e-15*I
 
         Examples using real root isolation:
             sage: x = polygen(ZZ)

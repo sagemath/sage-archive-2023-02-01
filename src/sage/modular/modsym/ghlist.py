@@ -27,11 +27,9 @@ class GHlist:
     def __init__(self, group):
         self.__group = group
         N = group.level()
-        #v = [group._reduce_coset(u,v) for u in xrange(N) for v in xrange(N) \
-        #        if arith.GCD(arith.GCD(u,v),N) == 1]
-        v = group._coset_reduction_data_first_coord()
+        v = group._coset_reduction_data()[0]
         N = group.level()
-        coset_reps = set([a for a, _, _ in v if arith.GCD(a,N) == 1])
+        coset_reps = set([a for a, b, _ in v if b == 1])
         w = [group._reduce_coset(x*u, x*v) for x in coset_reps for u,v in p1list.P1List(N).list()]
         w = list(set(w))
         w.sort()

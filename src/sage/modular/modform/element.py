@@ -75,6 +75,13 @@ class ModularForm_abstract(ModuleElement):
     class.
     """
     def group(self):
+        """
+        Return the group for which self is a modular form.
+
+        EXAMPLES:
+            sage: ModularForms(Gamma1(11), 2).gen(0).group()
+            Congruence Subgroup Gamma1(11)
+        """
         return self.parent().group()
 
     def weight(self):
@@ -128,9 +135,9 @@ class ModularForm_abstract(ModuleElement):
             ...
             ArithmeticError: Modular forms must be in the same ambient space.
         """
-        if not isinstance(other, ModularFormElement):
+        if not isinstance(other, ModularForm_abstract):
             raise TypeError, "Second argument must be a modular form."
-        if self.ambient_module() != other.ambient_module():
+        if (self.weight() != other.weight()) or (self.level() != other.level()):
             raise ArithmeticError, "Modular forms must be in the same ambient space."
 
     def __call__(self, x, prec=None):
@@ -232,7 +239,18 @@ class ModularForm_abstract(ModuleElement):
         Compute the coefficients of $q^n$ of the power series of self,
         for $n$ in the list $X$.  The results are not cached.  (Use
         coefficients for cached results).
+
+        EXAMPLES:
+            sage: f = ModularForms(18,2).1
+            sage: f.q_expansion(20)
+            q + 8*q^7 + 4*q^10 + 14*q^13 - 4*q^16 + 20*q^19 + O(q^20)
+            sage: f._compute([10,17])
+            [4, 0]
+            sage: f._compute([])
+            []
         """
+        if not isinstance(X, list) or len(X) == 0:
+            return []
         bound = max(X)
         q_exp = self.q_expansion(bound+1)
         return [q_exp[i] for i in X]
@@ -258,6 +276,13 @@ class ModularForm_abstract(ModuleElement):
             -9*zeta10^3 + 1]
             sage: f.coefficients([2,3])
             [4*zeta10 + 1,
+            -9*zeta10^3 + 1]
+
+        Running this twice once revealed a bug, so we test it:
+            sage: f.coefficients([0,1,2,3])
+            [15/11*zeta10^3 - 9/11*zeta10^2 - 26/11*zeta10 - 10/11,
+            1,
+            4*zeta10 + 1,
             -9*zeta10^3 + 1]
         """
         try:
@@ -440,7 +465,7 @@ class ModularForm_abstract(ModuleElement):
 class Newform(ModularForm_abstract):
     def __init__(self, parent, component, names, check=True):
         r"""
-        TODO
+        Initialize a Newform object.
 
         INPUT:
             parent -- An ambient cuspidal space of modular forms for
@@ -455,6 +480,8 @@ class Newform(ModularForm_abstract):
                      inputs.
 
         EXAMPLES:
+            sage: sage.modular.modform.element.Newform(CuspForms(11,2), ModularSymbols(11,2,sign=1).cuspidal_subspace(), 'a')
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
         """
         if check:
             if not space.is_ModularFormsSpace(parent):
@@ -469,7 +496,7 @@ class Newform(ModularForm_abstract):
                 raise ValueError, "component must be cuspidal"
             if not component.is_simple():
                 raise ValueError, "component must be simple"
-        extension_field = component.eigenvalue(1).parent()
+        extension_field = component.eigenvalue(1,name=names).parent()
         if extension_field.degree() != 1 and rings.is_NumberField(extension_field):
             extension_field = extension_field.change_names(names)
         self.__name = names
@@ -478,15 +505,40 @@ class Newform(ModularForm_abstract):
         self.__hecke_eigenvalue_field = extension_field
 
     def _name(self):
+        """
+        Return the name of the generator of the Hecke eigenvalue field
+        of self. Note that a name exists even when this field is QQ.
+
+        EXAMPLES:
+            sage: [ f._name() for f in Newforms(38,4,names='a') ]
+            ['a0', 'a1', 'a2']
+        """
         return self.__name
 
     def _compute_q_expansion(self, prec):
         """
-        Return the q-expansion of self.
+        Return the q-expansion of self to precision prec.
+
+        EXAMPLES:
+            sage: forms = Newforms(31, 6, names='a')
+            sage: forms[0]._compute_q_expansion(10)
+            q + a0*q^2 + (5/704*a0^4 + 43/704*a0^3 - 61/88*a0^2 - 197/44*a0 + 717/88)*q^3 + (a0^2 - 32)*q^4 + (-31/352*a0^4 - 249/352*a0^3 + 111/22*a0^2 + 218/11*a0 - 2879/44)*q^5 + (-1/352*a0^4 - 79/352*a0^3 - 67/44*a0^2 + 13/22*a0 - 425/44)*q^6 + (17/88*a0^4 + 133/88*a0^3 - 405/44*a0^2 - 1005/22*a0 - 35/11)*q^7 + (a0^3 - 64*a0)*q^8 + (39/352*a0^4 + 441/352*a0^3 - 93/44*a0^2 - 441/22*a0 - 5293/44)*q^9 + O(q^10)
+            sage: forms[0]._compute_q_expansion(15)
+            q + a0*q^2 + (5/704*a0^4 + 43/704*a0^3 - 61/88*a0^2 - 197/44*a0 + 717/88)*q^3 + (a0^2 - 32)*q^4 + (-31/352*a0^4 - 249/352*a0^3 + 111/22*a0^2 + 218/11*a0 - 2879/44)*q^5 + (-1/352*a0^4 - 79/352*a0^3 - 67/44*a0^2 + 13/22*a0 - 425/44)*q^6 + (17/88*a0^4 + 133/88*a0^3 - 405/44*a0^2 - 1005/22*a0 - 35/11)*q^7 + (a0^3 - 64*a0)*q^8 + (39/352*a0^4 + 441/352*a0^3 - 93/44*a0^2 - 441/22*a0 - 5293/44)*q^9 + (15/176*a0^4 - 135/176*a0^3 - 185/11*a0^2 + 311/11*a0 + 2635/22)*q^10 + (-291/704*a0^4 - 3629/704*a0^3 + 1139/88*a0^2 + 10295/44*a0 - 21067/88)*q^11 + (-75/176*a0^4 - 645/176*a0^3 + 475/22*a0^2 + 1503/11*a0 - 5651/22)*q^12 + (207/704*a0^4 + 2977/704*a0^3 + 581/88*a0^2 - 3307/44*a0 - 35753/88)*q^13 + (-5/22*a0^4 + 39/11*a0^3 + 763/22*a0^2 - 2296/11*a0 - 2890/11)*q^14 + O(q^15)
         """
         return self.modular_symbols(1).q_eigenform(prec, names=self._name())
 
     def __eq__(self, other):
+        """
+        Return True if self equals other, and False otherwise.
+
+        EXAMPLES:
+            sage: f1, f2 = Newforms(17,4,names='a')
+            sage: f1.__eq__(f1)
+            True
+            sage: f1.__eq__(f2)
+            False
+        """
         try:
             self._ensure_is_compatible(other)
         except:
@@ -503,6 +555,18 @@ class Newform(ModularForm_abstract):
                 return False
 
     def __cmp__(self, other):
+        """
+        Compare self with other.
+
+        EXAMPLES:
+            sage: f1, f2 = Newforms(19,4,names='a')
+            sage: f1.__cmp__(f1)
+            0
+            sage: f1.__cmp__(f2)
+            -1
+            sage: f2.__cmp__(f1)
+            -1
+        """
         try:
             self._ensure_is_compatible(other)
         except:
@@ -519,6 +583,15 @@ class Newform(ModularForm_abstract):
                 return -1
 
     def abelian_variety(self):
+        """
+        Return the abelian variety associated to self.
+
+        EXAMPLES:
+            sage: Newforms(14,2)[0]
+            q - q^2 - 2*q^3 + q^4 + O(q^6)
+            sage: Newforms(14,2)[0].abelian_variety()
+            Newform abelian subvariety 14a of dimension 1 of J0(14)
+        """
         try:
             return self.__abelian_variety
         except AttributeError:
@@ -530,6 +603,15 @@ class Newform(ModularForm_abstract):
         r"""
         Return the field generated over the rationals by the
         coefficients of this newform.
+
+        EXAMPLES:
+            sage: ls = Newforms(35, 2, names='a') ; ls
+            [q + q^3 - 2*q^4 - q^5 + O(q^6),
+            q + a1*q^2 + (-a1 - 1)*q^3 + (-a1 + 2)*q^4 + q^5 + O(q^6)]
+            sage: ls[0].hecke_eigenvalue_field()
+            Rational Field
+            sage: ls[1].hecke_eigenvalue_field()
+            Number Field in a1 with defining polynomial x^2 + x - 4
         """
         return self.__hecke_eigenvalue_field
 
@@ -538,51 +620,96 @@ class Newform(ModularForm_abstract):
         Compute the coefficients of $q^n$ of the power series of self,
         for $n$ in the list $X$.  The results are not cached.  (Use
         coefficients for cached results).
+
+        EXAMPLES:
+            sage: f = Newforms(39,4,names='a')[1] ; f
+            q + a1*q^2 - 3*q^3 + (2*a1 + 5)*q^4 + (-2*a1 + 14)*q^5 + O(q^6)
+            sage: f._compute([2,3,7])
+            [alpha, -3, -2*alpha + 2]
+            sage: f._compute([])
+            []
         """
         M = self.modular_symbols(1)
         return [M.eigenvalue(x) for x in X]
 
     def element(self):
         """
-        Find an element of the ambient space of modular forms
-        which represents this newform.
+        Find an element of the ambient space of modular forms which
+        represents this newform.
 
-        NOTE: This can be quite expensive.
+        NOTE: This can be quite expensive. Also, the polynomial
+        defining the field of Hecke eigenvalues should be considered
+        random, since it is generated by a random sum of Hecke
+        operators. (The field itself is not random, of course.)
+
+        EXAMPLES:
+            sage: ls = Newforms(38,4,names='a')
+            sage: ls[0]
+            q - 2*q^2 - 2*q^3 + 4*q^4 - 9*q^5 + O(q^6)
+            sage: ls # random
+            [q - 2*q^2 - 2*q^3 + 4*q^4 - 9*q^5 + O(q^6),
+            q - 2*q^2 + (-a1 - 2)*q^3 + 4*q^4 + (2*a1 + 10)*q^5 + O(q^6),
+            q + 2*q^2 + (1/2*a2 - 1)*q^3 + 4*q^4 + (-3/2*a2 + 12)*q^5 + O(q^6)]
+            sage: type(ls[0])
+            <class 'sage.modular.modform.element.Newform'>
+            sage: ls[2][3].minpoly()
+            x^2 - 9*x + 2
+            sage: ls2 = [ x.element() for x in ls ]
+            sage: ls2 # random
+            [q - 2*q^2 - 2*q^3 + 4*q^4 - 9*q^5 + O(q^6),
+            q - 2*q^2 + (-a1 - 2)*q^3 + 4*q^4 + (2*a1 + 10)*q^5 + O(q^6),
+            q + 2*q^2 + (1/2*a2 - 1)*q^3 + 4*q^4 + (-3/2*a2 + 12)*q^5 + O(q^6)]
+            sage: type(ls2[0])
+            <class 'sage.modular.modform.element.ModularFormElement'>
+            sage: ls2[2][3].minpoly()
+            x^2 - 9*x + 2
         """
-        B = self.parent().basis()
-        prec = self.parent().sturm_bound()
-        terms = self.modular_symbols(1).q_eigenform(prec)
-        R = rings.PowerSeriesRing(rings.QQ, 'q')
-
-        number_field = self.base_field()
-        degree = number_field.degree()
-
-        if degree == 1:
-            return self.parent()(terms)
-        else:
-            S = terms.parent()
-            res = S.zero_element()
-            alpha = S.base_ring().gen(0)
-
-            ls = [0] * degree
-
-            for i in range(degree):
-                ls[i] = self.parent()(R([0] + [ rings.QQ(terms[d][i]) for d in range(1,prec) ]).add_bigoh(prec))
-
-            return sum([ ls[i] * alpha**i for i in range(degree) ])
-
+        S = self.parent()
+        return S(self.q_expansion(S.sturm_bound()))
 
     def modular_symbols(self, sign=0):
         """
         Return the subspace with the specified sign of the space of
         modular symbols corresponding to this newform.
+
+        EXAMPLES:
+            sage: f = Newforms(18,4)[0]
+            sage: f.modular_symbols()
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 18 for Gamma_0(18) of weight 4 with sign 0 over Rational Field
+            sage: f.modular_symbols(1)
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 11 for Gamma_0(18) of weight 4 with sign 1 over Rational Field
         """
         return self.__modsym_space.modular_symbols_of_sign(sign)
 
     def _defining_modular_symbols(self):
+        """
+        Return the modular symbols space corresponding to self.
+
+        EXAMPLES:
+            sage: Newforms(43,2,names='a')
+            [q - 2*q^2 - 2*q^3 + 2*q^4 - 4*q^5 + O(q^6),
+            q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6)]
+            sage: [ x._defining_modular_symbols() for x in Newforms(43,2,names='a') ]
+            [Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field,
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field]
+            sage: ModularSymbols(43,2,sign=1).cuspidal_subspace().new_subspace().decomposition()
+            [
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field,
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field
+            ]
+        """
         return self.__modsym_space
 
     def number(self):
+        """
+        Return the index of this space in the list of simple, new,
+        cuspidal subspaces of the full space of modular symbols for
+        this weight and level.
+
+        EXAMPLES:
+            sage: Newforms(43, 2, names='a')[1].number()
+            1
+        """
         return self._defining_modular_symbols().ambient().cuspidal_subspace().new_subspace().decomposition().index(self._defining_modular_symbols())
 
     def __nonzero__(self):
@@ -590,6 +717,8 @@ class Newform(ModularForm_abstract):
         Return True, as newforms are never zero.
 
         EXAMPLES:
+            sage: Newforms(14,2)[0].__nonzero__()
+            True
         """
         return True
 

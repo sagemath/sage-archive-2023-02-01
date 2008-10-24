@@ -11,16 +11,16 @@ Hecke Operators on $q$-expansions.
 #########################################################################
 
 from sage.modular.dirichlet import DirichletGroup, is_DirichletCharacter
-from sage.rings.all import (divisors, infinity, gcd, Integer,
-                            is_PowerSeries)
+from sage.rings.all import (divisors, gcd, ZZ, Integer, is_PowerSeries)
 from sage.matrix.all import matrix, MatrixSpace
+from element import is_ModularFormElement
 
 def hecke_operator_on_qexp(f, n, k, eps = None,
                            prec=None, check=True, _return_list=False):
     r"""
     Given the $q$-expansion $f$ of a modular form with character
-    $\varepsilon$, this function computes the Hecke operator $T_{n,k}$
-    of weight $k$ on $f$.
+    $\varepsilon$, this function computes the image of $f$ under the
+    Hecke operator $T_{n,k}$ of weight $k$.
 
     EXAMPLES:
         sage: M = ModularForms(1,12)
@@ -45,10 +45,12 @@ def hecke_operator_on_qexp(f, n, k, eps = None,
         -6048*q + 145152*q^2 - 1524096*q^3 + O(q^4)
     """
     if eps is None:
-        eps = DirichletGroup(1).gen(0)
-    if not check:
-        if not is_PowerSeries(f):
-            raise TypeError, "f (=%s) must be a power series"%f
+        # Need to have base_ring=ZZ to work over finite fields, since
+        # ZZ can coerce to GF(p), but QQ can't.
+        eps = DirichletGroup(1, base_ring=ZZ).gen(0)
+    if check:
+        if not (is_PowerSeries(f) or is_ModularFormElement(f)):
+            raise TypeError, "f (=%s) must be a power series or modular form"%f
         if not is_DirichletCharacter(eps):
             raise TypeError, "eps (=%s) must be a Dirichlet character"%eps
         k = Integer(k)
@@ -56,11 +58,10 @@ def hecke_operator_on_qexp(f, n, k, eps = None,
     v = []
 
     if prec is None:
-        ## always want at least three coeffs, but not too many, unless requested
+        # always want at least three coeffs, but not too many, unless
+        # requested
         pr = max(f.prec(), f.parent().prec(), (n+1)*3)
         pr = min(pr, 100*(n+1))
-        if pr is infinity:
-            raise ValueError, "f must have finite precision."
         prec = pr // n + 1
 
     if f.prec() < prec:

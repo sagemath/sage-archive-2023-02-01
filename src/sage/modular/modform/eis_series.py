@@ -18,11 +18,11 @@ from sage.rings.all import ComplexField, RealField, Integer
 
 from sage.functions.constants import pi
 
-from sage.rings.all import (bernoulli, CyclotomicField,
-                            prime_range, QQ, Integer, divisors,
+from sage.rings.all import (bernoulli, CyclotomicField, prime_range,
+                            is_FiniteField, ZZ, QQ, Integer, divisors,
                             LCM, is_squarefree)
 
-def eisenstein_series_qexp(k, prec=10, K=QQ):
+def eisenstein_series_qexp(k, prec=10, K=QQ, var='q'):
     r"""
     Return the $q$-expansion of the normalized weight $k$ Eisenstein
     series to precision prec in the ring $K$.  (The normalization
@@ -35,9 +35,10 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
     multiplicative.
 
     INPUT:
-        k -- even positive integer
-        prec -- nonnegative integer
-        K -- a ring in which -(2*k)/B_k is invertible
+        k -- an even positive integer
+        prec -- (default: 10) a nonnegative integer
+        K -- (default: QQ) a ring in which -(2*k)/B_k is invertible
+        var -- (default: 'q') variable name to use for q-expansion
 
     EXAMPLES:
         sage: eisenstein_series_qexp(2,5)
@@ -46,6 +47,8 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
         O(q^0)
         sage: eisenstein_series_qexp(2,5,GF(7))
         2 + q + 3*q^2 + 4*q^3 + O(q^5)
+        sage: eisenstein_series_qexp(2,5,GF(7),var='T')
+        2 + T + 3*T^2 + 4*T^3 + O(T^5)
 
     AUTHORS:
         -- William Stein: original implementation
@@ -58,7 +61,7 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
     if prec < 0:
         raise ValueError, "prec (=%s) must be an even nonnegative integer"%prec
     if (prec == 0):
-        R = K[['q']]
+        R = K[[var]]
         return R(0).add_bigoh(0)
 
     one = Integer(1)
@@ -90,7 +93,7 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
             term *= mult
 
     val[0] = a0
-    R = K[['q']]
+    R = K[[var]]
     return R(val, prec=prec, check=False)
 
 ######################################################################

@@ -355,6 +355,18 @@ def Newform(identifier, group=None, weight=2, base_ring=rings.QQ, names=None):
 
 
 def parse_label(s):
+    """
+    Given a string s corresponding to a newform label, return the
+    corresponding group and index.
+
+    EXAMPLES:
+        sage: sage.modular.modform.constructor.parse_label('11a')
+        (Congruence Subgroup Gamma0(11), 0)
+        sage: sage.modular.modform.constructor.parse_label('11aG1')
+        (Congruence Subgroup Gamma1(11), 0)
+        sage: sage.modular.modform.constructor.parse_label('11wG1')
+        (Congruence Subgroup Gamma1(11), 22)
+    """
     m = re.match(r'(\d+)([a-z]+)((?:G.*)?)$', s)
     if not m:
         raise ValueError, "Invalid label: %s" % s

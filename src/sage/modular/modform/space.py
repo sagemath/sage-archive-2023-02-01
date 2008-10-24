@@ -339,6 +339,10 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         Return the base extension of self to base_ring.
 
         EXAMPLES:
+            sage: M = ModularForms(11,2) ; M
+            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+            sage: M.base_extend(CyclotomicField(5))
+            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Cyclotomic Field of order 5 and degree 4
         """
         return sage.modular.modform.constructor.ModularForms(self.group(), self.weight(), base_ring, prec=self.prec())
 
@@ -1570,7 +1574,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
     def newforms(self, names=None):
         """
-        Return all cusp forms in the cuspidal subspace of self.
+        Return all newforms in the cuspidal subspace of self.
+
+        EXAMPLES:
+            sage: CuspForms(18,4).newforms()
+            [q + 2*q^2 + 4*q^4 - 6*q^5 + O(q^6)]
+            sage: CuspForms(32,4).newforms()
+            [q - 8*q^3 - 10*q^5 + O(q^6), q + 22*q^5 + O(q^6), q + 8*q^3 - 10*q^5 + O(q^6)]
         """
         M = self.modular_symbols(sign=1)
         factors = M.cuspidal_subspace().new_subspace().decomposition()

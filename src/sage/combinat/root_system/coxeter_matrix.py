@@ -33,7 +33,7 @@ def coxeter_matrix_as_function(t):
         [2 2 3 1]
     """
     a = CartanType(t).dynkin_diagram()
-    scalarproducts_to_order = { 0: 2,  1: 3,  2: 4,  3: 7
+    scalarproducts_to_order = { 0: 2,  1: 3,  2: 4,  3: 6
                                 # 4 should be infinity
                                 }
 
@@ -81,8 +81,8 @@ def coxeter_matrix(t):
         [2 2 3 1]
 
         sage: coxeter_matrix(['G', 2])
-        [1 7]
-        [7 1]
+        [1 6]
+        [6 1]
 
     """
     ct = CartanType(t)

@@ -1583,3 +1583,73 @@ def deprecation(message):
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
     warn(message, DeprecationWarning, stacklevel=3)
+
+
+#############################################
+# Operators
+#############################################
+class AttrCallObject(object):
+    def __init__(self, name, args, kwds):
+        """
+        TESTS:
+            sage: f = attrcall('r_core', 3)
+            sage: loads(dumps(f))
+            *.r_core(3)
+        """
+        self.name = name
+        self.args = args
+        self.kwds = kwds
+
+    def __call__(self, x):
+        """
+        Gets the self.name method from x, calls it with self.args and
+        self.kwds, and returns the result.
+
+        EXAMPLES:
+            sage: f = attrcall('r_core', 3)
+            sage: f(Partition([4,2]))
+            [4, 2]
+        """
+        return getattr(x, self.name)(*self.args, **self.kwds)
+
+    def __repr__(self):
+        """
+        Returns a string representation of this object.
+        The star in the output represents the object passed into self.
+
+        EXAMPLES:
+            sage: attrcall('r_core', 3)
+            *.r_core(3)
+            sage: attrcall('hooks', flatten=True)
+            *.hooks(flatten=True)
+            sage: attrcall('hooks', 3, flatten=True)
+            *.hooks(3, flatten=True)
+
+        """
+        s =  "*.%s(%s"%(self.name, ", ".join(map(repr, self.args)))
+        if self.kwds:
+            if len(self.args) > 0:
+                s += ", "
+            s += ", ".join("%s=%s"%keyvalue for keyvalue in self.kwds.items())
+        s += ")"
+        return s
+
+
+def attrcall(name, *args, **kwds):
+    """
+    Returns a callable which takes in an object, gets the method
+    named name from that object, and calls it with the specified
+    arguments and keywords.
+
+    INPUT:
+        name -- a string of the name of the method you want to call
+        args, kwds -- arguments and keywords to be passed to the
+                      methdod
+
+    EXAMPLES:
+        sage: f = attrcall('r_core', 3); f
+        *.r_core(3)
+        sage: [f(p) for p in Partitions(5)]
+        [[2], [1, 1], [1, 1], [3, 1, 1], [2], [2], [1, 1]]
+    """
+    return AttrCallObject(name, args, kwds)

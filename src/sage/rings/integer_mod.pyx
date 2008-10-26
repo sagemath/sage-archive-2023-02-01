@@ -2728,8 +2728,8 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
         Siguna M\"uller. `On the Computation of Square Roots in Finite Fields'
             Designs, Codes and Cryptography, Volume 31,  Issue 3 (March 2004)
 
-        A. Oliver L. Atkin. `Probabilistic primality testing' (Section 4)
-            In P. Flajolet and P. Zimmermann, editors, Analysis of Algorithms Seminar I. INRIA Research Report XXX, 1992.
+        A. Oliver L. Atkin. `Probabilistic primality testing' (Chapter 30, Section 4)
+            In Ph. Flajolet and P. Zimmermann, editors, Algorithms Seminar, 1991-1992. INRIA Research Report 1779, 1992, \url{http://www.inria.fr/rrrt/rr-1779.html}.
             Summary by F. Morain.
             \url{http://citeseer.ist.psu.edu/atkin92probabilistic.html}
 

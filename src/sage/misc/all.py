@@ -164,7 +164,7 @@ from prandom import *
 ##########################################################################
 def benchmark(n=-1):
     """
-    Run a well-chosen range of SAGE commands and record the time it
+    Run a well-chosen range of Sage commands and record the time it
     takes for each to run.
 
     INPUT:

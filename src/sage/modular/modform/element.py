@@ -137,7 +137,7 @@ class ModularForm_abstract(ModuleElement):
         """
         if not isinstance(other, ModularForm_abstract):
             raise TypeError, "Second argument must be a modular form."
-        if (self.weight() != other.weight()) or (self.level() != other.level()):
+        if self.parent().ambient_space() != other.parent().ambient_space():
             raise ArithmeticError, "Modular forms must be in the same ambient space."
 
     def __call__(self, x, prec=None):

@@ -461,11 +461,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
             # instead of calls to the bernoulli function.  Likewise
             # computing all binomial coefficients can be done much
             # more efficiently.
-            v = self.values()
-            def S(n):
-                return sum(v[r] * r**n for r in range(1, N))
-            ber = sum(binomial(k,j) * bernoulli(j, **opts) *
-                                N**(j-1) * S(k-j) for j in range(k+1))
+            if self.modulus() == 1:
+                ber = K(bernoulli(k))
+            else:
+                v = self.values()
+                def S(n):
+                    return sum(v[r] * r**n for r in range(1, N))
+                ber = K(sum(binomial(k,j) * bernoulli(j, **opts) *
+                                    N**(j-1) * S(k-j) for j in range(k+1)))
 
         elif algorithm == "definition":
             # This is better since it computes the same thing, but requires

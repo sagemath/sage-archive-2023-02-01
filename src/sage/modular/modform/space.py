@@ -1581,13 +1581,21 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             [q + 2*q^2 + 4*q^4 - 6*q^5 + O(q^6)]
             sage: CuspForms(32,4).newforms()
             [q - 8*q^3 - 10*q^5 + O(q^6), q + 22*q^5 + O(q^6), q + 8*q^3 - 10*q^5 + O(q^6)]
+            sage: CuspForms(23).newforms('b')
+            [q + b0*q^2 + (-2*b0 - 1)*q^3 + (-b0 - 1)*q^4 + 2*b0*q^5 + O(q^6)]
+            sage: CuspForms(23).newforms()
+            Traceback (most recent call last):
+            ...
+            ValueError: Please specify a name to be used when generating names for generators of Hecke eigenvalue fields corresponding to the newforms.
         """
         M = self.modular_symbols(sign=1)
         factors = M.cuspidal_subspace().new_subspace().decomposition()
         large_dims = [ X.dimension() for X in factors if X.dimension() != 1 ]
         if len(large_dims) > 0 and names is None:
             raise ValueError, "Please specify a name to be used when generating names for generators of Hecke eigenvalue fields corresponding to the newforms."
-        else:
+        elif names is None:
+            # In this case, we don't need a variable name, so insert
+            # something to get passed along below
             names = 'a'
         return [ element.Newform(self, factors[i], names=(names+str(i)) )
                  for i in range(len(factors)) ]

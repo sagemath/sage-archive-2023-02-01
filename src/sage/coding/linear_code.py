@@ -1952,16 +1952,23 @@ class LinearCode(module.Module):
             [1, 0, 0, 7, 7, 0, 0, 1]
             sage: C = HammingCode(3,GF(3)); C
             Linear code of length 13, dimension 10 over Finite Field of size 3
-            sage: C.spectrum(method="leon")
-            [1, 0, 0, 104, 468, 1404, 4056, 8424, 11934, 13442, 11232, 5616, 2080, 288]
+            sage: C.spectrum() == C.spectrum(method="leon")
+            True
+            #[1, 0, 0, 104, 468, 1404, 4056, 8424, 11934, 13442, 11232, 5616, 2080, 288]
             sage: C = HammingCode(2,GF(5)); C
             Linear code of length 6, dimension 4 over Finite Field of size 5
-            sage: C.spectrum(method="leon")
-            [1, 0, 0, 80, 120, 264, 160]
+            sage: C.spectrum() == C.spectrum(method="leon")
+            True
+            #[1, 0, 0, 80, 120, 264, 160]
             sage: C = HammingCode(2,GF(7)); C
             Linear code of length 8, dimension 6 over Finite Field of size 7
-            sage: C.spectrum(method="leon")
-            [1, 0, 0, 336, 1680, 9072, 26544, 45744, 34272]
+            sage: C.spectrum() == C.spectrum(method="leon")
+            True
+            #[1, 0, 0, 336, 1680, 9072, 26544, 45744, 34272]
+
+        NOTE:
+          The GAP command DirectoriesPackageLibrary tells the location of the latest
+          version of the Guava libraries, so gives us the location of the Guava binaries too.
 
         """
         from sage.misc.misc import SAGE_TMP, SAGE_ROOT, tmp_filename
@@ -1979,10 +1986,12 @@ class LinearCode(module.Module):
             wts = []
             code2leon(self,"incode")
             rt = SAGE_ROOT
-            tmp = SAGE_TMP
+            #tmp = SAGE_TMP
             tmp_file = tmp_filename()
-            #tmp = rt+"/tmp/"
-            pth = rt+"/local/lib/gap-4.4.10/pkg/guava3.4/bin/"
+            #print tmp_file
+            #pth = rt+"/local/lib/gap-4.4.10/pkg/guava3.4/bin/"
+            spth = gap.eval('DirectoriesPackageLibrary( "guava" )')
+            pth = spth[7:][:-8]+"bin/"
             a = commands.getoutput(pth+"wtdist "+rt+"/incode::code > "+tmp_file)
             f = open(tmp_file)
             lines = f.readlines()
@@ -1992,7 +2001,6 @@ class LinearCode(module.Module):
                 s = s+1
                 if len(L)>2 and L[-2] == "-":
                     break
-            #print lines,"\n",lines[s:],"\n",s
             for L in lines[s:]:
                 N = len(L)
                 for m in range(1,N):
@@ -2004,10 +2012,12 @@ class LinearCode(module.Module):
                     ws = L[:N-m].replace(" ","")
                 wts.append([eval(ws),eval(fs)])
             Wts = [0]*(n+1)
-            #print wts, Wts
             for x in wts:
-                if x[0] in range(n+2) and len(x)==2:
-                    Wts[x[0]]=x[1]
+                i = int(x[0])
+                w = int(x[1])
+                if len(x)==2 and (i in range(n+1)):
+                    Wts[i] = w
+            #print wts, Wts
             return Wts
         raise NotImplementedError("The only methods implemented currently are 'gap' and 'leon'.")
 

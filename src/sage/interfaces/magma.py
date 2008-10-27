@@ -1581,7 +1581,7 @@ class MagmaElement(ExpectElement):
         r"""
         Return cardinality of this Magma element.
 
-        This is the same as \code{#self} in Magma.
+        This is the same as \code{\#self} in Magma.
 
         EXAMPLES:
             sage: V = magma('VectorSpace(GF(3),2)')           # optional

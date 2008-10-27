@@ -3609,7 +3609,7 @@ cpdef LCM_list(v):
 
 
 def GCD_list(v):
-    """
+    r"""
     Return the GCD of a list v of integers.  Element of v is
     converted to a SAGE integer if it isn't one already.
 
@@ -3628,7 +3628,7 @@ def GCD_list(v):
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
 
-        See trac #3118: this returned 2 in 3.2.alpha0
+    Check that the bug reported in trac \#3118 has been fixed:
         sage: sage.rings.integer.GCD_list([2,2,3])
         1
 

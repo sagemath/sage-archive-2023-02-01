@@ -1019,6 +1019,10 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             x^3
             sage: Matrix(CyclotomicField(13),3).charpoly()[2].parent()
             Cyclotomic Field of order 13 and degree 12
+
+        TESTS:
+            sage: Matrix(CyclotomicField(10),0).charpoly()
+            1
         """
         key = 'charpoly-%s-%s'%(algorithm,proof)
         f = self.fetch(key)

@@ -1087,6 +1087,11 @@ If this all works, you can then make calls like:
         return self.eval(var)
 
     def get_using_file(self, var):
+        """
+        Return the string representation of the variable var in self
+        using a file.  Use this if var has a huge string
+        representation.  It'll be way faster.
+        """
         return self.get(var)
 
     def clear(self, var):
@@ -1415,6 +1420,23 @@ class ExpectElement(RingElement):
         if attrname[:1] == "_":
             raise AttributeError
         return P._function_element_class()(self, attrname)
+
+    def get_using_file(self):
+        """
+        Return this element's string representation using a file.  Use
+        this if self has a huge string representation.  It'll be way
+        faster.
+
+        EXAMPLES:
+            sage: a = maxima(str(2^1000))
+            sage: a.get_using_file()
+            '10715086071862673209484250490600018105614048117055336074437503883703510511249361224931983788156958581275946729175531468251871452856923140435984577574698574803934567774824230985421074605062371141877954182153046474983581941267398767559165543946077062914571196477686542167660429831652624386837205668069376'
+        """
+        try:
+            self._check_valid()
+        except ValueError:
+            return '(invalid object -- defined in terms of closed session)'
+        return self.parent().get_using_file(self._name)
 
     def hasattr(self, attrname):
         """

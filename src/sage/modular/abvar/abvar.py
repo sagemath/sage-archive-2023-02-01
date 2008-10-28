@@ -3069,15 +3069,15 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         class that matters:
             sage: D = (J0(11)*J1(11)).decomposition(); D
             [
-            Simple abelian subvariety 11a(1,11) of dimension 1 of J0(11) x J1(11),
-            Simple abelian subvariety 11aG1(1,11) of dimension 1 of J0(11) x J1(11)
+            Simple abelian subvariety 11aG1(1,11) of dimension 1 of J0(11) x J1(11),
+            Simple abelian subvariety 11a(1,11) of dimension 1 of J0(11) x J1(11)
             ]
             sage: D[0]._complement_shares_no_factors_with_same_label()
             True
             sage: D[0].newform_label()
-            '11a'
-            sage: D[1].newform_label()
             '11aG1'
+            sage: D[1].newform_label()
+            '11a'
         """
         try:
             return self.__complement_shares

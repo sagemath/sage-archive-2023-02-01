@@ -1485,6 +1485,18 @@ def dimension_eis(X, k=2):
     else:
         raise TypeError
 
+def dimension_modular_forms_H(X, k=2):
+    r""" Dimension of the space of modular forms for a congruence subgroup of type GammaH. Called by
+    dimension_modular_forms.
+
+    EXAMPLE:
+        sage: from sage.modular.dims import dimension_modular_forms_H
+        sage: dimension_modular_forms_H(GammaH(11, [10]))
+        10
+        sage: dimension_modular_forms_H(GammaH(11, [10]), 4)
+        20
+    """
+    return dimension_cusp_forms_H(X, k) + dimension_eis_H(X, k)
 
 def dimension_modular_forms(X, k=2):
     r"""
@@ -1503,7 +1515,8 @@ def dimension_modular_forms(X, k=2):
         1
         sage: dimension_modular_forms(Gamma1(13),2)
         13
-
+        sage: dimension_modular_forms(GammaH(11, [10]), 2)
+        10
         sage: e = DirichletGroup(20).1
         sage: dimension_modular_forms(e,3)
         9
@@ -1521,9 +1534,12 @@ def dimension_modular_forms(X, k=2):
         raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character."
     if k == 0:
         return 1
-    if congroup.is_GammaH(X):
+    if congroup.is_Gamma0(X) or congroup.is_Gamma1(X) or isinstance(X, dirichlet.DirichletCharacter):
+    	return dimension_cusp_forms(X, k) + dimension_eis(X, k)
+    elif congroup.is_GammaH(X):
         return dimension_modular_forms_H(X, k)
-    return dimension_cusp_forms(X, k) + dimension_eis(X, k)
+    else:
+        raise NotImplementedError, "Computation of dimensions for congruence subgroups other than Gamma0, Gamma1 or GammaH not implemented"
 
 def sturm_bound(level, weight=2):
     r"""

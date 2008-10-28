@@ -200,7 +200,9 @@ class GroupAlgebra(Algebra):
             self.group(), an element of self.base_ring(), or an element
             of self.group().
             -- check (boolean): whether or not to check that the given elements
-            really do lie in self.group().
+	    really do lie in self.group(). Chiefly provided to speed up
+	    arithmetic operations with elements that have already been checked
+	    to lie in the group.
 
         OUTPUT:
             -- a GroupAlgebraElement instance whose parent is self.
@@ -227,7 +229,11 @@ class GroupAlgebra(Algebra):
             Traceback (most recent call last):
             ...
             TypeError: 0.770000000000000 is not an element of group General Linear Group of degree 2 over Finite Field of size 7
-            sage: OG(FormalSum([ (1, G(2)), (2, RR(0.77)) ]), check=False)
+
+        Ordering of elements in output unpredictable as sort order of such wildly
+        dissimliar elements is subject to change between platforms and versions
+        (see trac ticket \#4373).
+            sage: OG(FormalSum([ (1, G(2)), (2, RR(0.77)) ]), check=False) # random
             [2 0]
             [0 2] + 2*0.770000000000000
             sage: OG(OG.base_ring().gens()[1])

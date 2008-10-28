@@ -1366,14 +1366,12 @@ def number_of_cpus():
     OUTPUT:
         int
     """
+    if hasattr(os, "sysconf") and os.sysconf_names.has_key("SC_NPROCESSORS_ONLN"): # Linux and Unix
+        n = os.sysconf("SC_NPROCESSORS_ONLN")
+        if isinstance(n, int) and n > 0:
+            return n
     try:
-        if hasattr(os, "sysconf"):
-            if os.sysconf_names.has_key("SC_NPROCESSORS_ONLN"): # Linux and Unix
-                n = os.sysconf("SC_NPROCESSORS_ONLN")
-                if isinstance(n, int) and n > 0:
-                    return n
-        else:  # MacOS X
-            return int(os.popen2("sysctl -n hw.ncpu")[1].read())
+        return int(os.popen2("sysctl -n hw.ncpu")[1].read().strip())
     except:
         return 0
 

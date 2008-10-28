@@ -24,7 +24,7 @@ fi
 export CFLAGS
 export CPPFLAGS
 
-./configure --prefix=$SAGE_LOCAL --includedir=$SAGE_LOCAL/include/m4ri
+./configure --prefix=$SAGE_LOCAL --includedir=$SAGE_LOCAL/include/
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4ri"

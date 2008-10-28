@@ -161,6 +161,7 @@ include "../ext/python.pxi"
 
 import operator
 import sys
+import traceback
 
 cdef MethodType
 from types import MethodType
@@ -2505,9 +2506,28 @@ def set_coercion_model(cm):
     coercion_model = cm
 
 def coercion_traceback(dump=True):
+    r"""
+    This function is very helpful in debugging coercion errors. It prints
+    the tracebacks of all the errors caught in the coercion detection. Note
+    that failure is cached, so some errors may be omitted the second time
+    around (as it remembers not to retry failed paths for speed reasons.
+
+    EXAMPLES:
+        sage: 1 + 1/5
+        6/5
+        sage: coercion_traceback()  # Should be empty, as all went well.
+        sage: 1/5 + GF(5).gen()
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand parent(s) for '+': 'Rational Field' and 'Finite Field of size 5'
+        sage: coercion_traceback()
+        Traceback (most recent call last):
+        ...
+        TypeError: no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 5'
+    """
     if dump:
-        for e in coercion_model.exception_stack():
-            print e
+        for exc_info in coercion_model.exception_stack():
+            print ''.join(traceback.format_exception(*exc_info))
     else:
         return coercion_model.exception_stack()
 

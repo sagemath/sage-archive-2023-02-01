@@ -82,7 +82,7 @@ from sage.categories.morphism import IdentityMorphism
 from sage.categories.action import InverseAction, PrecomposedAction
 from parent import Set_PythonType
 
-import sys, traceback
+import sys
 
 from coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 
@@ -272,7 +272,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             []
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
-            ['Traceback (most recent call last):...TypeError: just a test\n']
+            [(<type 'exceptions.TypeError'>,  TypeError('just a test',),  <traceback object at ...>)]
 
             The function _test_exception_stack is executing the following code:
             try:
@@ -283,7 +283,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if not self._exceptions_cleared:
             self._exception_stack = []
             self._exceptions_cleared = True
-        self._exception_stack.append(traceback.format_exc(sys.exc_info()[2]))
+        self._exception_stack.append(sys.exc_info())
 
     def _test_exception_stack(self):
         """
@@ -297,7 +297,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             []
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
-            ['Traceback (most recent call last):...TypeError: just a test\n']
+            [(<type 'exceptions.TypeError'>,  TypeError('just a test',),  <traceback object at ...>)]
         """
         try:
             raise TypeError, "just a test"
@@ -305,14 +305,15 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             self._record_exception()
 
     def exception_stack(self):
-        """
+        r"""
         Returns the list of exceptions that were caught in the course of
         executing the last binary operation. Useful for diagnosis when
         user-defined maps or actions raise exceptions that are caught in
         the course of coercion detection.
 
         If all went well, this should be the empty list. If things aren't
-        happening as you expect, this is a good place to check.
+        happening as you expect, this is a good place to check. See also
+        \code{coercion_traceback}.
 
         EXAMPLES:
             sage: cm = sage.structure.element.get_coercion_model()
@@ -326,11 +327,19 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             TypeError: unsupported operand parent(s) for '+': 'Rational Field' and 'Finite Field of size 3'
 
         Now see what the actual problem was:
-            sage: for e in cm.exception_stack(): print e
+            sage: import traceback
+            sage: cm.exception_stack()
+            [(<type 'exceptions.TypeError'>, TypeError("BUG: the base_extend method must be defined for 'Monoid of ideals of Integer Ring' (class '<class 'sage.rings.ideal_monoid.IdealMonoid_c'>')",), <traceback object at ...>), (<type 'exceptions.TypeError'>,  TypeError("no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'",),  <traceback object at ...>)]
+            sage: print ''.join(sum([traceback.format_exception(*info) for info in cm.exception_stack()], []))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'
 
+        This is typically accessed via the \code{coercion_traceback} function.
+            sage: coercion_traceback()
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'
         """
         if not self._exceptions_cleared:
             self._exception_stack = []

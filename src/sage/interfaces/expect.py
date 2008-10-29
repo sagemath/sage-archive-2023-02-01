@@ -162,9 +162,9 @@ class Expect(ParentWithBase):
             command = name
         if not server is None:
             if ulimit:
-                command = 'ssh -t %s "ulimit %s; %s"'%(server, ulimit, command)
+                command = 'sage-native-execute ssh -t %s "ulimit %s; %s"'%(server, ulimit, command)
             else:
-                command = "ssh -t %s %s"%(server, command)
+                command = "sage-native-execute ssh -t %s %s"%(server, command)
             self.__is_remote = True
 #            eval_using_file_cutoff = 0  # don't allow this!
             if verbose_start:
@@ -443,7 +443,7 @@ If this all works, you can then make calls like:
 
         try:
             if self.__remote_cleaner and self._server:
-                c = 'ssh %s "nohup sage -cleaner"  &'%self._server
+                c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &'%self._server
                 os.system(c)
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
             if self._do_cleaner():

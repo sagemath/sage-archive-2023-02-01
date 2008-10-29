@@ -25,12 +25,14 @@ import sage.groups.group as group
 
 import sage.rings.arith as arith
 from sage.rings.integer_mod_ring import IntegerModRing
-from sage.rings.all import QQ, ZZ, divisors
+from sage.rings.all import QQ, ZZ, divisors, euler_phi
 from sage.matrix.matrix_space import MatrixSpace
 
 from congroup_element import CongruenceSubgroupElement
 import cusps
 from sage.sets.set import Set
+
+from sage.misc.misc import ellipsis_range
 
 import sage.modular.modsym.p1list
 
@@ -296,9 +298,9 @@ class CongruenceSubgroup(group.Group):
         """
         return self.__level
 
-    def __cmp__(self, right):
+    def __cmp__(self, other):
         """
-        Compare self to right.
+        Compare self to other.
 
         NOTE: This function must be overridden by all subclasses.
 
@@ -478,10 +480,11 @@ class CongruenceSubgroup(group.Group):
 
     def reduce_cusp(self, c):
         r"""
-        Given a cusp $c \in \mathbb{P}^1(\mathbb{Q})$, return the unique
-        reduced cusp equivalent to c under the action of self, where a reduced
-        cusp is an element r/s with r,s coprime integers, s as small as
-        possible, and r as small as possible for that s.
+        Given a cusp $c \in \mathbb{P}^1(\mathbb{Q})$, return the
+        unique reduced cusp equivalent to c under the action of self,
+        where a reduced cusp is an element r/s with r,s coprime
+        integers, s as small as possible, and r as small as possible
+        for that s.
 
         NOTE: This function should be overridden by all subclasses.
 
@@ -493,36 +496,39 @@ class CongruenceSubgroup(group.Group):
         """
         raise NotImplementedError
 
-    def cusps(self, bdmap=False):
+    def cusps(self, algorithm='default'):
         r"""
         Return a set of inequivalent cusps for self, i.e. a set of
         representatives for the orbits of self on $\mathbb{P}^1(\mathbb{Q})$.
         These should be returned in a reduced form.
 
         INPUTS:
-            (bool) -- whether to directly calculate the cusps, or to calculate
-            them as a by-product of computing the boundary map on the
-            associated space of modular symbols. The latter is slower, but is
-            older and presumably better-tested code.
+            algorithm -- which algorithm to use to compute the cusps
+                         of self. 'default' finds representatives for
+                         a known complete set of cusps. 'modsym' computes
+                         the boundary map on the space of weight two
+                         modular symbols associated to self, which
+                         finds the cusps for self in the process.
 
         EXAMPLES:
             sage: Gamma0(36).cusps()
             {1/6, 1/4, 1/3, 1/2, 1/9, 0, 1/18, 5/12, Infinity, 1/12, 2/3, 5/6}
-            sage: Gamma0(36).cusps(True) == Gamma0(36).cusps(False)
+            sage: Gamma0(36).cusps(algorithm='modsym') == Gamma0(36).cusps()
             True
             sage: GammaH(36, [19,29]).cusps() == Gamma0(36).cusps()
             True
             sage: Gamma0(1).cusps()
             {Infinity}
         """
-        # special case for SL2Z as modular symbols space is zero
-        if bdmap == True:
-            # special case for SL2Z as modular symbols space is zero
-            if self == SL2Z:
-                return Set([cusps.Cusp(1,0)])
+        if is_SL2Z(self):
+            return Set([cusps.Cusp(1,0)])
+
+        if algorithm == 'default':
+            return self._find_cusps()
+        elif algorithm == 'modsym':
             return Set([self.reduce_cusp(c) for c in self.modular_symbols().cusps()])
         else:
-            return self._find_cusps()
+            raise ValueError, "unknown algorithm: %s"%algorithm
 
     def _find_cusps(self):
         r"""
@@ -596,7 +602,7 @@ def GammaH(level, H):
     r"""
     Return the congruence subgroup $\Gamma_H(N)$, which is the subgroup of
     $SL_2(\Z)$ consisting of matrices of the form $\begin{pmatrix} a & b \\
-    c & d \end{pmatrix$ with $N | c$ and $a, b \in H$, for $H$ a specified
+    c & d \end{pmatrix}$ with $N | c$ and $a, b \in H$, for $H$ a specified
     subgroup of $(\Z/N\Z)^\times$.
 
     INPUT:
@@ -753,10 +759,12 @@ class GammaH_class(CongruenceSubgroup):
 
     def __cmp__(self, other):
         """
-        Compare self to right. The ordering on congruence subgroups is first by
-        level, then by the set of elements of H. Note that Gamma1 and Gamma0
-        groups are treated as instances of GammaH for the purposes of
-        comparison.
+        Compare self to other.
+
+        The ordering on congruence subgroups of the form GammaH(N) for
+        some H is first by level and then by the subgroup H. In
+        particular, this means that we have Gamma1(N) < GammaH(N) <
+        Gamma0(N) for every nontrivial subgroup H.
 
         EXAMPLES:
             sage: G = GammaH(86, [9])
@@ -1106,10 +1114,10 @@ class GammaH_class(CongruenceSubgroup):
 
     def reduce_cusp(self, c):
         r"""
-        Compute a minimal representative for the given cusp c. Returns a cusp
-        c' which is equivalent to the given cusp, and is in lowest terms with
-        minimal positive denominator, and minimal positive numerator for that
-        denominator.
+        Compute a minimal representative for the given cusp c. Returns
+        a cusp c' which is equivalent to the given cusp, and is in
+        lowest terms with minimal positive denominator, and minimal
+        positive numerator for that denominator.
 
         Two cusps $u1/v1$ and $u2/v2$ are equivalent modulo $\Gamma_H(N)$
         if and only if
@@ -1250,42 +1258,46 @@ class GammaH_class(CongruenceSubgroup):
 
     def _find_cusps(self):
         r"""
-	    Return a set of inequivalent cusps for self, i.e. a set of
-        representatives for the orbits of self on $\mathbb{P}^1(\mathbb{Q})$.
-        These are returned in a reduced form; see self.reduce_cusp for the
-        definition of reduced.
+        Return a set of inequivalent cusps for self, i.e. a set of
+        representatives for the orbits of self on
+        $\mathbb{P}^1(\mathbb{Q})$.  These are returned in a reduced
+        form; see self.reduce_cusp for the definition of reduced.
 
         ALGORITHM:
-            Lemma 3.2 in Cremona's 1997 book shows that for the action of
-            Gamma1(N) on "signed projective space" $\Q^2 / (\Q_{\ge 0}^+)$, we
-            have $u_1/v_1 \sim u_2 / v_2$ if and only if $v_1 = v_2 \bmod N$
-            and $u_1 = u_2 \bmod gcd(v_1, N)$. It follows that every orbit has
-            a representative $u/v$ with $v \le N$ and $0 \le u \le gcd(v, N)$.
-            We iterate through all pairs $(u,v)$ satisfying this.
+            Lemma 3.2 in Cremona's 1997 book shows that for the action
+            of Gamma1(N) on "signed projective space"
+            $\Q^2 / (\Q_{\geq 0}^+)$, we have $u_1/v_1 \sim u_2 / v_2$
+            if and only if $v_1 = v_2 \bmod N$ and $u_1 = u_2 \bmod
+            gcd(v_1, N)$. It follows that every orbit has a
+            representative $u/v$ with $v \le N$ and $0 \le u \le
+            gcd(v, N)$.  We iterate through all pairs $(u,v)$
+            satisfying this.
 
-            Having found a set containing at least one of every equivalence
-            class modulo Gamma1(N), we can be sure of picking up every class
-            modulo GammaH(N) since this contains Gamma1(N); and the reduce_cusp
-            call does the checking to make sure we don't get too many
-            duplicates.
+            Having found a set containing at least one of every
+            equivalence class modulo Gamma1(N), we can be sure of
+            picking up every class modulo GammaH(N) since this
+            contains Gamma1(N); and the reduce_cusp call does the
+            checking to make sure we don't get any duplicates.
 
         EXAMPLES:
             sage: Gamma1(5)._find_cusps()
             {0, Infinity, 1/2, 2/5}
             sage: Gamma1(35)._find_cusps()
             {3/35, 9/10, 9/14, 11/35, 3/14, 9/35, 3/10, 11/14, 8/35, 4/7, 8/15, Infinity, 13/14, 16/35, 13/35, 0, 4/15, 1/13, 2/35, 1/11, 1/10, 1/17, 1/16, 1/15, 1/14, 1/7, 1/6, 1/5, 1/4, 1/3, 1/2, 6/35, 1/9, 1/8, 6/7, 3/5, 3/7, 7/10, 4/35, 2/5, 17/35, 2/7, 5/7, 1/12, 4/5, 5/14, 12/35, 2/15}
-            sage: Gamma1(24)._find_cusps() == Gamma1(24).cusps(bdmap=True)
+            sage: Gamma1(24)._find_cusps() == Gamma1(24).cusps(algorithm='modsym')
             True
-            sage: GammaH(24, [13,17])._find_cusps() == GammaH(24,[13,17]).cusps(bdmap=True)
+            sage: GammaH(24, [13,17])._find_cusps() == GammaH(24,[13,17]).cusps(algorithm='modsym')
             True
         """
 
         s = []
-        N=self.level()
+        N = self.level()
+
         for d in xrange(1, 1+N):
-            w = arith.gcd(d, N)
-            for a in xrange(1,(w==1 and 2) or w):
-                if arith.gcd([a, d, w]) != 1:
+            w = N.gcd(d)
+            M = int(w) if w > 1 else 2
+            for a in xrange(1,M):
+                if arith.gcd(a, w) != 1:
                     continue
                 while arith.gcd(a, d) != 1:
                     a += w
@@ -1376,6 +1388,45 @@ class Gamma0_class(GammaH_class):
         """
         GammaH_class.__init__(self, level, [int(x) for x in IntegerModRing(level).unit_gens()])
 
+    def __cmp__(self, other):
+        """
+        Compare self to other.
+
+        The ordering on congruence subgroups of the form GammaH(N) for
+        some H is first by level and then by the subgroup H. In
+        particular, this means that we have Gamma1(N) < GammaH(N) <
+        Gamma0(N) for every nontrivial subgroup H.
+
+        EXAMPLES:
+            sage: G = Gamma0(86)
+            sage: G.__cmp__(G)
+            0
+            sage: G.__cmp__(GammaH(86, [11])) is not 0
+            True
+            sage: Gamma1(17) < Gamma0(17)
+            True
+            sage: Gamma0(1) == SL2Z
+            True
+            sage: Gamma0(11) == GammaH(11, [2])
+            True
+        """
+        if not is_CongruenceSubgroup(other):
+            return cmp(type(self), type(other))
+
+        c = cmp(self.level(), other.level())
+        if c: return c
+
+        # Since Gamma0(N) is GammaH(N) for H all of (Z/N)^\times,
+        # we know how to compare it to any other GammaH without having
+        # to look at self._list_of_elements_in_H().
+        if is_GammaH(other):
+            if is_Gamma0(other):
+                return 0
+            else:
+                H = other._list_of_elements_in_H()
+                return cmp(len(H), euler_phi(self.level()))
+        return cmp(type(self), type(other))
+
     def _repr_(self):
         """
         Return the string representation of self.
@@ -1441,12 +1492,20 @@ class Gamma0_class(GammaH_class):
             sage: G._list_of_elements_in_H()
             [1]
         """
+        try:
+            return self.__list_of_elements_in_H
+        except AttributeError:
+            pass
+
         N = self.level()
         if N != 1:
             gcd = arith.gcd
-            return [ x for x in range(1, N) if gcd(x, N) == 1 ]
+            H = [ x for x in range(1, N) if gcd(x, N) == 1 ]
         else:
-            return [1]
+            H = [1]
+
+        self.__list_of_elements_in_H = H
+        return H
 
     def is_even(self):
         """
@@ -1607,7 +1666,7 @@ class Gamma0_class(GammaH_class):
 
     def _find_cusps(self):
         r"""
-	    Return a set of inequivalent cusps for self, i.e. a set of
+        Return a set of inequivalent cusps for self, i.e. a set of
         representatives for the orbits of self on $\mathbb{P}^1(\mathbb{Q})$.
         These are returned in a reduced form; see self.reduce_cusp for the
         definition of reduced.
@@ -1623,7 +1682,7 @@ class Gamma0_class(GammaH_class):
             {1/6, 1/5, 1/3, 1/2, 11/30, 1/9, 2/3, 1/30, Infinity, 5/6, 1/45, 0, 1/18, 1/10, 1/15, 2/15}
             sage: Gamma0(1).cusps()
             {Infinity}
-            sage: Gamma0(180).cusps() == Gamma0(180).cusps(bdmap=True)
+            sage: Gamma0(180).cusps() == Gamma0(180).cusps(algorithm='modsym')
             True
         """
         N = self.level()
@@ -1741,9 +1800,10 @@ class SL2Z_class(Gamma0_class):
         return right.level() == 1
 
     def reduce_cusp(self, c):
-        r""" Return the unique reduced cusp equivalent to c under the action of
-        self. Always returns Infinity, since there is only one equivalence
-        class of cusps for $SL_2(Z)$.
+        r"""
+        Return the unique reduced cusp equivalent to c under the
+        action of self. Always returns Infinity, since there is only
+        one equivalence class of cusps for $SL_2(Z)$.
 
         EXAMPLES:
             sage: SL2Z.reduce_cusp(Cusps(-1/4))
@@ -1814,6 +1874,47 @@ class Gamma1_class(GammaH_class):
             True
         """
         GammaH_class.__init__(self, level, [])
+
+    def __cmp__(self, other):
+        """
+        Compare self to other.
+
+        The ordering on congruence subgroups of the form GammaH(N) for
+        some H is first by level and then by the subgroup H. In
+        particular, this means that we have Gamma1(N) < GammaH(N) <
+        Gamma0(N) for every nontrivial subgroup H.
+
+        EXAMPLES:
+            sage: G = Gamma1(86)
+            sage: G.__cmp__(G)
+            0
+            sage: G.__cmp__(GammaH(86, [11])) is not 0
+            True
+            sage: Gamma1(12) < Gamma0(12)
+            True
+            sage: Gamma1(10) < Gamma1(12)
+            True
+            sage: Gamma1(11) == GammaH(11, [])
+            True
+            sage: Gamma1(1) == SL2Z
+            True
+        """
+        if not is_CongruenceSubgroup(other):
+            return cmp(type(self), type(other))
+
+        c = cmp(self.level(), other.level())
+        if c: return c
+
+        # Since Gamma1(N) is GammaH(N) for H all of (Z/N)^\times,
+        # we know how to compare it to any other GammaH without having
+        # to look at self._list_of_elements_in_H().
+        if is_GammaH(other):
+            if is_Gamma1(other):
+                return 0
+            else:
+                H = other._generators_for_H()
+                return cmp(0,len(H))
+        return cmp(type(self), type(other))
 
     def _repr_(self):
         """

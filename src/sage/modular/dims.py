@@ -46,6 +46,10 @@ from sage.rings.rational_field import frac
 import dirichlet
 Z = ZZ  # useful abbreviation.
 
+##########################################################################
+# Helper functions for calculating dimensions of spaces of modular forms
+##########################################################################
+
 def mu0(n):
     r"""
     Return value of the combinatorial function
@@ -353,10 +357,12 @@ def idxG1(N):
     """
     return phi(N)*idxG0(N)
 
-#    Formula of Cohen-Oesterle for dim S_k(Gamma_1(N),eps).  REF:
-#    Springer Lecture notes in math, volume 627, pages 69--78.  The
-#    functions CO_delta and CO_nu, which were first written by Kevin
-#    Buzzard, are used only by the function CohenOesterle.
+##########################################################################
+# Formula of Cohen-Oesterle for dim S_k(Gamma_1(N),eps).  REF:
+# Springer Lecture notes in math, volume 627, pages 69--78.  The
+# functions CO_delta and CO_nu, which were first written by Kevin
+# Buzzard, are used only by the function CohenOesterle.
+##########################################################################
 
 def CO_delta(r,p,N,eps):
     r"""
@@ -494,6 +500,43 @@ def CohenOesterle(eps, k):
     return K(frac(-1,2) * mul([_lambda(r,valuation(f,p),p) for p, r in facN]) + \
                gamma_k * mul([CO_delta(r,p,N,eps)         for p, r in facN]) + \
                 mu_k    * mul([CO_nu(r,p,N,eps)            for p, r in facN]))
+
+def mumu(N):
+    """
+    Return 0 if any cube divides $N$.  Otherwise return $(-2)^v$ where
+    $v$ is the number of primes that exactly divide $N$.
+
+    This is similar to the Moebius function.
+
+    INPUT:
+        N -- an integer at least 1
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.mumu(27)
+        0
+        sage: sage.modular.dims.mumu(6*25)
+        4
+        sage: sage.modular.dims.mumu(7*9*25)
+        -2
+        sage: sage.modular.dims.mumu(9*25)
+        1
+    """
+    if N < 1:
+        raise ValueError, "N must be at least 1"
+    p = 1
+    for _,r in factor(N):
+        if r > 2:
+            return Z(0)
+        elif r == 1:
+            p *= -2
+    return Z(p)
+
+##########################################################################
+# Dimension formulas for spaces of modular forms for the congruence
+# subgroups Gamma0 and Gamma1
+##########################################################################
 
 def dimension_cusp_forms_eps(eps, k=2):
     r"""
@@ -654,43 +697,10 @@ def dimension_cusp_forms_gamma1(N,k=2):
         raise NotImplementedError, "computation of dimensions of spaces of weight 1 modular forms not implemented in general."
     return Z(S1(N,k))
 
-
-def mumu(N):
-    """
-    Return 0 if any cube divides $N$.  Otherwise return $(-2)^v$ where
-    $v$ is the number of primes that exactly divide $N$.
-
-    This is similar to the Moebius function.
-
-    INPUT:
-        N -- an integer at least 1
-    OUTPUT:
-        Integer
-
-    EXAMPLES:
-        sage: sage.modular.dims.mumu(27)
-        0
-        sage: sage.modular.dims.mumu(6*25)
-        4
-        sage: sage.modular.dims.mumu(7*9*25)
-        -2
-        sage: sage.modular.dims.mumu(9*25)
-        1
-    """
-    if N < 1:
-        raise ValueError, "N must be at least 1"
-    p = 1
-    for _,r in factor(N):
-        if r > 2:
-            return Z(0)
-        elif r == 1:
-            p *= -2
-    return Z(p)
-
 def dimension_new_cusp_forms_gamma0(N, k=2, p=0):
     r"""
-    Dimension of the $p$-new subspace of $S_k(\Gamma_0(N))$.
-    If $p=0$, dimension of the new subspace.
+    Dimension of the $p$-new subspace of $S_k(\Gamma_0(N))$. If $p=0$,
+    dimension of the new subspace.
 
     INPUT:
         N -- a positive integer
@@ -759,8 +769,8 @@ def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
 def dimension_new_cusp_forms_group(group, k=2, p=0):
     """
     Return the dimension of the new space of cusp forms for the
-    congruence subgroup group.  If $p$ is given, return the
-    $p$-new subspace.
+    congruence subgroup group. If $p$ is given, return the $p$-new
+    subspace.
 
     INPUT:
         group -- a congruence subgroup
@@ -793,9 +803,7 @@ def dimension_new_cusp_forms_group(group, k=2, p=0):
     elif congroup.is_GammaH(group):
         return dimension_new_cusp_forms_H(group, k, p)
     else:
-        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
-        Gamma0 and Gamma1 is not yet implemented."
-
+        raise NotImplementedError, "Computation of dimensions for congruence subgroups other than Gamma0, Gamma1 or GammaH not implemented"
 
 def dimension_new_cusp_forms_eps(eps, k=2, p=0):
     r"""
@@ -856,7 +864,6 @@ def dimension_new_cusp_forms_eps(eps, k=2, p=0):
     elif k == 1:
         raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
 
-
     N = eps.modulus()
     if p == 0 or N%p != 0 or valuation(eps.conductor(),p) == valuation(N,p):
         D = [eps.conductor()*d for d in divisors(N//eps.conductor())]
@@ -864,8 +871,6 @@ def dimension_new_cusp_forms_eps(eps, k=2, p=0):
     eps_p = eps.restrict(N//p)
     old = dimension_cusp_forms(eps_p, k)
     return dimension_cusp_forms(eps, k) - 2*old
-
-
 
 
 ######################################################################
@@ -1393,8 +1398,7 @@ def dimension_cusp_forms(X, k=2):
     elif not congroup.is_CongruenceSubgroup(X):
         raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character"
     else:
-        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
-        Gamma0, Gamma1, and GammaH is not yet implemented."
+        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides Gamma0, Gamma1, and GammaH is not yet implemented."
 
 def dimension_eis(X, k=2):
     """
@@ -1480,23 +1484,9 @@ def dimension_eis(X, k=2):
     elif congroup.is_GammaH(X):
         return dimension_eis_H(X, k)
     elif congroup.is_CongruenceSubgroup(X):
-        raise NotImplementedError, "Computation of dimensions for congruence subgroups besides " + \
-              "Gamma0 and Gamma1 is not yet implemented."
+        raise NotImplementedError, "Computation of dimensions for congruence subgroups other than Gamma0, Gamma1 or GammaH not implemented"
     else:
         raise TypeError
-
-def dimension_modular_forms_H(X, k=2):
-    r""" Dimension of the space of modular forms for a congruence subgroup of type GammaH. Called by
-    dimension_modular_forms.
-
-    EXAMPLE:
-        sage: from sage.modular.dims import dimension_modular_forms_H
-        sage: dimension_modular_forms_H(GammaH(11, [10]))
-        10
-        sage: dimension_modular_forms_H(GammaH(11, [10]), 4)
-        20
-    """
-    return dimension_cusp_forms_H(X, k) + dimension_eis_H(X, k)
 
 def dimension_modular_forms(X, k=2):
     r"""
@@ -1517,6 +1507,10 @@ def dimension_modular_forms(X, k=2):
         13
         sage: dimension_modular_forms(GammaH(11, [10]), 2)
         10
+        sage: dimension_modular_forms(GammaH(11, [10]))
+        10
+        sage: dimension_modular_forms(GammaH(11, [10]), 4)
+        20
         sage: e = DirichletGroup(20).1
         sage: dimension_modular_forms(e,3)
         9
@@ -1534,10 +1528,8 @@ def dimension_modular_forms(X, k=2):
         raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character."
     if k == 0:
         return 1
-    if congroup.is_Gamma0(X) or congroup.is_Gamma1(X) or isinstance(X, dirichlet.DirichletCharacter):
+    if congroup.is_Gamma0(X) or congroup.is_Gamma1(X) or isinstance(X, dirichlet.DirichletCharacter) or congroup.is_GammaH(X):
     	return dimension_cusp_forms(X, k) + dimension_eis(X, k)
-    elif congroup.is_GammaH(X):
-        return dimension_modular_forms_H(X, k)
     else:
         raise NotImplementedError, "Computation of dimensions for congruence subgroups other than Gamma0, Gamma1 or GammaH not implemented"
 
@@ -1593,24 +1585,23 @@ def sturm_bound(level, weight=2):
 
     REFERENCES:
     See the Agashe-Stein appendix to Lario and Schoof, \emph{Some
-    computations with Hecke rings and deformation rings},
-    Experimental Math., 11 (2002), no. 2, 303-311.  This result
-    originated in the paper Sturm, \emph{On the congruence of
-    modular forms}, Springer LNM 1240, 275--280, 1987.
+    computations with Hecke rings and deformation rings}, Experimental
+    Math., 11 (2002), no. 2, 303-311.  This result originated in the
+    paper Sturm, \emph{On the congruence of modular forms}, Springer
+    LNM 1240, 275--280, 1987.
 
     REMARK:
-    Kevin Buzzard pointed out to me (William Stein) in Fall 2002
-    that the above bound is fine for $\Gamma_1(N)$ with character,
-    as one sees by taking a power of $f$.  More precisely, if $f
-    \con 0 \pmod{p}$ for first $s$ coefficients, then $f^r \con 0
-    \pmod{p}$ for first $sr$ coefficents.  Since the weight of
-    $f^r$ is $r\cdot k(f)$, it follows that if $s \geq b$, where
-    $b$ is the Sturm bound for $\Gamma_0(N)$ at weight $k(f)$, then
-    $f^r$ has valuation large enough to be forced to be $0$ at
-    $r*k(f)$ by Sturm bound (which is valid if we choose $r$
-    correctly).  Thus $f \con 0 \pmod{p}$.  Conclusion: For
-    $\Gamma_1(N)$ with fixed character, the Sturm bound is
-    \emph{exactly} the same as for $\Gamma_0(N)$.
+    Kevin Buzzard pointed out to me (William Stein) in Fall 2002 that
+    the above bound is fine for $\Gamma_1(N)$ with character, as one
+    sees by taking a power of $f$.  More precisely, if $f \con 0
+    \pmod{p}$ for first $s$ coefficients, then $f^r \con 0 \pmod{p}$
+    for first $sr$ coefficents.  Since the weight of $f^r$ is $r\cdot
+    k(f)$, it follows that if $s \geq b$, where $b$ is the Sturm bound
+    for $\Gamma_0(N)$ at weight $k(f)$, then $f^r$ has valuation large
+    enough to be forced to be $0$ at $r*k(f)$ by Sturm bound (which is
+    valid if we choose $r$ correctly).  Thus $f \con 0 \pmod{p}$.
+    Conclusion: For $\Gamma_1(N)$ with fixed character, the Sturm
+    bound is \emph{exactly} the same as for $\Gamma_0(N)$.
 
     A key point is that we are finding $\Z[\eps]$ generators for the
     Hecke algebra here, not $\Z$-generators.  So if one wants

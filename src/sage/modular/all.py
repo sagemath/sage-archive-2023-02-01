@@ -25,5 +25,4 @@ from buzzard import buzzard_tpslopes
 
 from etaproducts import *
 
-from abvar.all import *
 

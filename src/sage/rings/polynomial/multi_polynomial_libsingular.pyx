@@ -3697,7 +3697,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             i+=1
 
         #the second parameter would be qring!
-        res = kNF(_I, NULL, p_Copy(self._poly, r))
+        res = kNF(_I, NULL, self._poly)
+        id_Delete(&_I,r)
         return co.new_MP(parent,res)
 
     def gcd(self, right, algorithm=None):

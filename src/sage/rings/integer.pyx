@@ -1474,6 +1474,100 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             return guess - 1
 
+    def log(self, m=None, prec=None):
+        r"""
+        Returns symbolic log by default, unless the logarithm is exact (for
+        an integer base).  When precision is given, the RealField approximation
+        to that bit precision is used.
+
+        This function is provided primarily so that Sage integers may be
+        treated in the same manner as real numbers when convenient.  Direct
+        use of exact_log is probably best for arithmetic log computation.
+
+        INPUT:
+            m -- default: natural log base e
+            prec -- integer (default: None): if None, returns symbolic, else
+            to given bits of precision as in RealField
+
+        EXAMPLES:
+           sage: Integer(124).log(5)
+           log(124)/log(5)
+           sage: Integer(124).log(5,100)
+           2.9950093311241087454822446806
+           sage: Integer(125).log(5)
+           3
+           sage: Integer(125).log(5,prec=53)
+           3.00000000000000
+           sage: log(Integer(125))
+           log(125)
+
+        For extremely large numbers, this works:
+           sage: x = 3^100000
+           sage: log(x,3)
+           100000
+
+        Do NOT try log(x) here, at least not with current Maxima
+        symbolic backend; it may take a very, very long time.
+        But approximations work well - up to the given precision,
+        of course.
+           sage: x.log(3,53) # default precision for RealField
+           100000.000000000
+           sage: (x+1).log(3,53)
+           100000.000000000
+           sage: (x+1).log(3,1000)
+           100000.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+        We can use non-integer bases, with default e:
+           sage: x.log(2.5,prec=53)
+           119897.784671579
+        """
+        if mpz_sgn(self.value) <= 0:
+            raise ValueError, "self must be positive"
+        if m <= 0 and m != None:
+            raise ValueError, "m must be positive"
+        if prec:
+            from sage.rings.real_mpfr import RealField
+            if m is None:
+                return RealField(prec)(self).log()
+            return RealField(prec)(self).log(m)
+        if type(m)==Integer and type(self)==Integer and m**(self.exact_log(m))==self:
+            return self.exact_log(m)
+        from sage.calculus.calculus import SymbolicComposition
+        from sage.calculus.calculus import SR
+        from sage.calculus.calculus import function_log
+        if m is None:
+            return SymbolicComposition(function_log,SR(self))
+        return SymbolicComposition(function_log,SR(self))/SymbolicComposition(function_log,SR(m))
+
+    def exp(self, prec=None):
+        r"""
+        Returns the exponential function of self as a real number.
+
+        This function is provided only so that Sage integers may be treated
+        in the same manner as real numbers when convenient.
+
+        INPUT:
+            prec -- integer (default: None): if None, returns symbolic, else
+            to given bits of precision as in RealField
+
+        EXAMPLES:
+           sage: Integer(8).exp()
+           e^8
+           sage: Integer(8).exp(prec=100)
+           2980.9579870417282747435920995
+           sage: exp(Integer(8))
+           e^8
+
+        For even fairly large numbers, this may not be useful.
+           sage: y=Integer(145^145)
+           sage: y.exp()
+           e^25024207011349079210459585279553675697932183658421565260323592409432707306554163224876110094014450895759296242775250476115682350821522931225499163750010280453185147546962559031653355159703678703793369785727108337766011928747055351280379806937944746847277089168867282654496776717056860661614337004721164703369140625
+           sage: y.exp(prec=53) # default RealField precision
+           +infinity
+        """
+        from sage.calculus.calculus import exp
+        return exp(self,prec)
+
     def prime_to_m_part(self, m):
         """
         Returns the prime-to-m part of self, i.e., the largest divisor

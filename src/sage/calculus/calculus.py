@@ -7667,8 +7667,8 @@ class Function_log(PrimitiveFunction):
     EXAMPLES:
         sage: log(e^2)
         2
-        sage: log(1024, 2) # the following is ugly (for now)
-        log(1024)/log(2)
+        sage: log(1024, 2)
+        10
         sage: log(10, 4)
         log(10)/log(4)
 
@@ -7728,7 +7728,7 @@ def log(x, base=None):
         sage: log(e^2)
         2
         sage: log(1024, 2); RDF(log(1024, 2))
-        log(1024)/log(2)
+        10
         10.0
         sage: log(10, 4); RDF(log(10, 4))
         log(10)/log(4)
@@ -8038,6 +8038,10 @@ class Function_sqrt(PrimitiveFunction):
 sqrt = Function_sqrt()
 _syms['sqrt'] = sqrt
 
+##############################
+# exponential
+##############################
+
 class Function_exp(PrimitiveFunction):
     r"""
     The exponential function, $\exp(x) = e^x$.
@@ -8047,6 +8051,8 @@ class Function_exp(PrimitiveFunction):
         e^-1
         sage: exp(2)
         e^2
+        sage: exp(2,prec=100)
+        7.3890560989306502272304274606
         sage: exp(x^2 + log(x))
         x*e^x^2
         sage: exp(2.5)
@@ -8065,8 +8071,14 @@ class Function_exp(PrimitiveFunction):
     def _latex_(self):
         return "\\exp"
 
-    def __call__(self, x):
-        # if x is an integer or rational, never call the sqrt method
+    def __call__(self, x, prec=None):
+        """
+        INPUT:
+            x -- a number
+            prec -- integer (default: None): if None, returns an exact
+                 exponential; otherwise returns a numerical exponential
+                 if necessary, to the given bits of precision.
+        """
         if isinstance(x, float):
             return self._approx_(x)
         if not isinstance(x, (Integer, Rational)):
@@ -8074,8 +8086,9 @@ class Function_exp(PrimitiveFunction):
                 return x.exp()
             except AttributeError:
                 pass
+        if prec:
+            return RealField(prec)(x).exp()
         return SymbolicComposition(self, SR(x))
-
 
     def _approx_(self, x):
         return math.exp(x)

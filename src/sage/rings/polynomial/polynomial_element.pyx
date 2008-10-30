@@ -2869,9 +2869,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if G is None:
             import sage.interfaces.magma
             G = sage.interfaces.magma.magma
-        self.parent()._magma_(G)  # defines the variable name
-        f = G(self._magma_init_())
-        return f
+        z = G(self.parent())   # makes sure the indeterminate var name is defined
+        return G(self._magma_init_())
 
     def _gap_init_(self):
         return repr(self)

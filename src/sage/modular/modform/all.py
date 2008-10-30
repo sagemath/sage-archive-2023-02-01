@@ -20,8 +20,8 @@ from j_invariant import j_invariant_qexp
 
 from vm_basis import victor_miller_basis, delta_qexp
 
-from hecke_operator_on_qexp import (hecke_operator_on_qexp,
-                                    hecke_operator_on_basis)
+from hecke_operator_on_qexp import hecke_operator_on_qexp, hecke_operator_on_basis
+
 from numerical import NumericalEigenforms as numerical_eigenforms
 
 from element import is_ModularFormElement, delta_lseries

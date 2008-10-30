@@ -182,7 +182,7 @@ def __find_eisen_chars(character, k):
     #
     #  (1) cond(chi)*cond(psi) divides the level, and
     #
-    #  (2) chi == eps*psi, where eps is the nebentypus character of self.
+    #  (2) chi*psi == eps, where eps is the nebentypus character of self.
     #
     # See [Miyake, Modular Forms] Lemma 7.1.1.
 

@@ -1238,11 +1238,29 @@ class EisensteinSeries(ModularFormElement):
         EXAMPLES:
             sage: EisensteinForms(DirichletGroup(17).0,99).eisenstein_series()[1].character()
             [zeta16]
+
+            sage: chi = DirichletGroup(7)[4]
+            sage: E = EisensteinForms(chi).eisenstein_series() ; E
+            [
+            -1/7*zeta6 - 2/7 + q + (2*zeta6 - 1)*q^2 + (-3*zeta6 + 1)*q^3 + (-2*zeta6 - 1)*q^4 + (5*zeta6 - 4)*q^5 + O(q^6),
+            q + (zeta6 + 1)*q^2 + (-zeta6 + 3)*q^3 + (zeta6 + 2)*q^4 + (zeta6 + 4)*q^5 + O(q^6)
+            ]
+            sage: E[0].character() == chi
+            True
+            sage: E[1].character() == chi
+            True
+
+        TESTS:
+            sage: [ [ f.character() == chi for f in EisensteinForms(chi).eisenstein_series() ] for chi in DirichletGroup(17) ]
+            [[True], [], [True, True], [], [True, True], [], [True, True], [], [True, True], [], [True, True], [], [True, True], [], [True, True], []]
+
+            sage: [ [ f.character() == chi for f in EisensteinForms(chi).eisenstein_series() ] for chi in DirichletGroup(16) ]
+            [[True, True, True, True, True], [], [True, True], [], [True, True, True, True], [], [True, True], []]
         """
         try:
             return self.__character
         except AttributeError:
-            self.__character = self.__chi * (~self.__psi)
+            self.__character = self.__chi * self.__psi
         return self.__character
 
     def new_level(self):

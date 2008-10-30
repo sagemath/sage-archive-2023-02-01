@@ -103,8 +103,6 @@ cdef class Conversion:
         cdef mpz_t _z, _denom
         cdef Integer z
 
-        mpz_init(_z)
-
         ##  Immediate integers handles carry the tag 'SR_INT', i.e. the last bit is 1.
         ##  This distuingishes immediate integers from other handles which  point  to
         ##  structures aligned on 4 byte boundaries and therefor have last bit  zero.

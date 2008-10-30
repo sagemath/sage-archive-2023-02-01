@@ -1548,7 +1548,7 @@ class FreeModule_generic(module.Module):
 
         return self._element_class(self, 0)
 
-    def _magma_init_(self):
+    def _magma_convert_(self, magma):
         """
         EXAMPLES:
             sage: magma(FreeModule(Integers(8), 2))             # optional
@@ -1558,7 +1558,7 @@ class FreeModule_generic(module.Module):
             Full Vector space of degree 9 over Rational Field
 
             sage: magma(FreeModule(QQ['x'], 2))                 # optional
-            Full RSpace of degree 2 over Univariate Polynomial Ring over Rational Field
+            Full RSpace of degree 2 over Univariate Polynomial Ring in x over Rational Field
 
             sage: A = MatrixSpace(ZZ,2)([[1,0],[0,-1]])
             sage: M = FreeModule(ZZ,2,inner_product_matrix=A)
@@ -1568,14 +1568,13 @@ class FreeModule_generic(module.Module):
             [ 1  0]
             [ 0 -1]
         """
-        K = self.base_ring()._magma_init_()
+        K = magma(self.base_ring())
         if not self._inner_product_is_dot_product():
-            s = "RSpace(%s, %s, %s)"%(K, self.__rank,
-                self.inner_product_matrix()._magma_init_())
+            M = magma(self.inner_product_matrix())
+            s = "RSpace(%s, %s, %s)"%(K.name(), self.__rank, M.name())
+            return magma(s)
         else:
-            s = "RSpace(%s, %s)"%(K, self.__rank)
-
-        return s
+            return magma("RSpace(%s, %s)"%(K.name(), self.__rank))
 
     def _macaulay2_(self, macaulay2=None):
         """

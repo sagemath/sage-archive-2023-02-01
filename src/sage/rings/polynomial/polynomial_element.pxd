@@ -12,7 +12,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cpdef ModuleElement _neg_(self)
     cdef char _is_gen
     cdef CompiledPolynomialFunction _compiled
-    cdef truncate_c(self, long n)
+    cpdef Polynomial truncate(self, long n)
     cdef long _hash_c(self)
 
     # UNSAFE, only call from an inplace operator
@@ -20,7 +20,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef _inplace_truncate(self, long n)
 
 cdef class Polynomial_generic_dense(Polynomial):
-    cdef object __coeffs # a python list
+    cdef list __coeffs
     cdef void __normalize(self)
 #    cdef _dict_to_list(self, x, zero)
 

@@ -44,7 +44,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         self.__f = f
         if check and not (prec is infinity):
-            self.__f = self.__f.truncate_c(prec)
+            self.__f = self.__f.truncate(prec)
         PowerSeries.__init__(self, parent, prec, is_gen)
 
     def __hash__(self):
@@ -339,7 +339,7 @@ cdef class PowerSeries_poly(PowerSeries):
         if prec is infinity:
             return self.__f
         else:
-            return self.__f.truncate_c(prec)
+            return self.__f.truncate(prec)
 
     cdef _inplace_truncate(self, long prec):
         self.__f = self.__f._inplace_truncate(prec)
@@ -351,7 +351,7 @@ cdef class PowerSeries_poly(PowerSeries):
         Returns the power series of degree $ < n$ which is equivalent to self
         modulo $x^n$.
         """
-        return PowerSeries_poly(self._parent, self.__f.truncate_c(prec), self._prec if self._prec < prec else infinity, check=False)
+        return PowerSeries_poly(self._parent, self.__f.truncate(prec), self._prec if self._prec < prec else infinity, check=False)
 
     def copy(self):
         return PowerSeries_poly(self._parent, self.__f, self._prec, check=False)

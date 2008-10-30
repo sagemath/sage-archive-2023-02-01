@@ -3928,7 +3928,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __rshift__(self, k):
         return self.shift(-k)
 
-    def truncate(self, long n):
+    cpdef Polynomial truncate(self, long n):
         r"""
         Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.
@@ -3944,13 +3944,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.truncate(0)
             0
         """
-        return self._parent(self[:n], check=False)
-
-    cdef truncate_c(self, long n):
-        return self.truncate(n)
+        return <Polynomial>self._parent(self[:n], check=False)
 
     cdef _inplace_truncate(self, long prec):
-        return self.truncate_c(prec)
+        return self.truncate(prec)
 
     def is_squarefree(self):
         """
@@ -4458,7 +4455,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             else:
                 return self.polynomial(self.__coeffs[-int(n):], check=False)
 
-    def truncate(self, long n):
+    cpdef Polynomial truncate(self, long n):
         r"""
         Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.
@@ -4479,17 +4476,10 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
         """
-        return self.truncate_c(n)
-
-    cdef truncate_c(self, long n):
-        r"""
-        Returns the polynomial of degree $ < n$ which is equivalent to self
-        modulo $x^n$.
-        """
         if n < len(self.__coeffs):
             while n > 0 and not self.__coeffs[n-1]:
                 n -= 1
-        return self._parent(self.__coeffs[:n], check=False)
+        return <Polynomial>self._parent(self.__coeffs[:n], check=False)
 
     cdef _inplace_truncate(self, long n):
         if n < len(self.__coeffs):

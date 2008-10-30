@@ -1030,7 +1030,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         return zz_pX_deg(self.x)
 
-    def truncate(self, long n):
+    cpdef Polynomial truncate(self, long n):
         """
         Returns this polynomial mod $x^n$.
 
@@ -1548,7 +1548,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         return ZZ_pX_deg(self.x)
 
-    def truncate(self, long n):
+    cpdef Polynomial truncate(self, long n):
         """
         Returns this polynomial mod $x^n$.
 

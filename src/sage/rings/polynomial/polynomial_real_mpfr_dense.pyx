@@ -160,7 +160,7 @@ cdef class PolynomialRealDense(Polynomial):
         """
         return self._degree
 
-    cpdef truncate(self, Py_ssize_t n):
+    cpdef Polynomial truncate(self, long n):
         r"""
         Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.

@@ -2098,6 +2098,32 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     cdef number_field(self):
         return self._number_field
 
+    cpdef RingElement _div_(self, RingElement other):
+        """
+        Implement division, checking that the result has the
+        right parent. It's not so crucial what the parent actually
+        is, but it is crucial that the returned value really is an
+        element of its supposed parent! This fixes trac #4190.
+
+        EXAMPLES:
+            sage: K = NumberField(x^3 - 17, 'a')
+            sage: OK = K.ring_of_integers()
+            sage: a = OK(K.gen())
+            sage: (17/a) in OK
+            True
+            sage: (17/a).parent() is K
+            True
+            sage: (17/(2*a)).parent() is K
+            True
+            sage: (17/(2*a)) in OK
+            False
+            sage: (17/(2*a)).parent() is K
+            True
+        """
+        cdef NumberFieldElement_absolute x
+        x = NumberFieldElement_absolute._div_(self, other)
+        return self._parent.number_field()(x)
+
 cdef class OrderElement_relative(NumberFieldElement_relative):
     """
     Element of an order in a relative number field.
@@ -2138,6 +2164,32 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
         x.__fld_numerator = self.__fld_numerator
         x.__fld_denominator = self.__fld_denominator
         return x
+
+    cpdef RingElement _div_(self, RingElement other):
+        """
+        Implement division, checking that the result has the
+        right parent. It's not so crucial what the parent actually
+        is, but it is crucial that the returned value really is an
+        element of its supposed parent. This fixes trac #4190.
+
+        EXAMPLES:
+            sage: K1.<a> = NumberField(x^3 - 17)
+            sage: R.<y> = K1[]
+            sage: K2 = K1.extension(y^2 - a, 'b')
+            sage: b= K2.gen()
+            sage: OK2 = K2.order(b) # (not maximal)
+            sage: b == OK2(b) # not implemented (#4193)
+            True
+            sage: (17/b).parent() is K2
+            True
+            sage: (17/b) in OK2 # not implemented (#4193)
+            True
+            sage: (17/b^7) in OK2
+            False
+        """
+        cdef NumberFieldElement_relative x
+        x = NumberFieldElement_relative._div_(self, other)
+        return self._parent.number_field()(x)
 
 class CoordinateFunction:
     def __init__(self, NumberFieldElement alpha, W, to_V):

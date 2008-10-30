@@ -1138,7 +1138,31 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         res._reduce_c_()
         return res
 
+    cpdef RingElement _div_(self, RingElement other):
+        """
+        Implement division, checking that the result has the
+        right parent. It's not so crucial what the parent actually
+        is, but it is crucial that the returned value really is an
+        element of its supposed parent! This fixes trac #4190.
 
+        EXAMPLES:
+            sage: K = NumberField(x^2 - 17, 'a')
+            sage: OK = K.ring_of_integers()
+            sage: a = OK(K.gen())
+            sage: (17/a).parent() is K
+            True
+            sage: 17/a in OK
+            True
+            sage: (17/(2*a)).parent() is OK
+            False
+            sage: (17/(2*a)) in OK
+            False
+            sage: (17/(2*a)).parent() is K
+            True
+        """
+        cdef NumberFieldElement_quadratic x
+        x = NumberFieldElement_quadratic._div_(self, other)
+        return self._parent.number_field()(x)
 
 cdef class Q_to_quadratic_field_element(Morphism):
     """

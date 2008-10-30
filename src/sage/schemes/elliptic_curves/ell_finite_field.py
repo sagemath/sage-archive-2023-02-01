@@ -97,10 +97,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Return a Magma command that creates this curve.
 
         EXAMPLES:
-            sage: EllipticCurve(GF(41),[2,5])._magma_init_() # optional -- requires Magma
+            sage: E =  EllipticCurve(GF(41),[2,5]) # optional -- requires Magma
+            sage: E._magma_init_()                 # optional -- requires Magma
             'EllipticCurve([GF(41)|GF(41)!0,GF(41)!0,GF(41)!0,GF(41)!2,GF(41)!5])'
-            sage: magma(E) # optional -- requires Magma
-            Elliptic Curve defined by y^2 = x^3 + 2*x + 5 over GF(41)
        """
         k = self.base_ring()
         kmn = k._magma_init_()

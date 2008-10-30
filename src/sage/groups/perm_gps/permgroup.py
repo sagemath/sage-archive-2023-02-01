@@ -790,6 +790,9 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.order()
             12
         """
+        G = self
+        if G.gens()==[] or G.gens()==[G(1)]:
+            return Integer(0)
         return Integer(self._gap_().Size())
 
     def random_element(self):

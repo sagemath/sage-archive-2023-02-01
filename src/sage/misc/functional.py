@@ -829,6 +829,10 @@ def round(x, ndigits=0):
         sage: round(b)
         5
 
+    The result is always a double floating point:
+        sage: round(sqrt(Integer('1'*500)))
+        inf
+
 
     IMPLEMENTATION: If ndigits is specified, it calls Python's builtin round function,
     and converts the result to a real double field element. Otherwise, it tries the
@@ -840,11 +844,19 @@ def round(x, ndigits=0):
     initializing it.  To access the builtin version do
     \code{import __builtin__; __builtin__.round}.
     """
-    if ndigits:
-        return RealDoubleElement(__builtin__.round(x, ndigits))
-    else:
-        try: return x.round()
-        except AttributeError: return RealDoubleElement(__builtin__.round(x, 0))
+    try:
+        if ndigits:
+            return RealDoubleElement(__builtin__.round(x, ndigits))
+        else:
+            try:
+                return x.round()
+            except AttributeError:
+                return RealDoubleElement(__builtin__.round(x, 0))
+    except ArithmeticError:
+        if not isinstance(x, RealDoubleElement):
+            return round(RDF(x), ndigits)
+        else:
+            raise
 
 def quotient(x, y, *args, **kwds):
     """

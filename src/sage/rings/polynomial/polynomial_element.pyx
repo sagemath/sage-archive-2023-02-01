@@ -2843,7 +2843,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return 'Polynomial(%s, [%s])'%(self.base_ring()._magma_init_(), ','.join([a._magma_init_() for a in self.list()]))
 
-    def _magma_(self, G=None):
+    def _magma_convert_(self, G):
         """
         Return the Magma version of this polynomial.
 
@@ -2866,9 +2866,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f
             y^3 - 17*y + 5
         """
-        if G is None:
-            import sage.interfaces.magma
-            G = sage.interfaces.magma.magma
         z = G(self.parent())   # makes sure the indeterminate var name is defined
         return G(self._magma_init_())
 

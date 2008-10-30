@@ -1541,6 +1541,20 @@ cdef class FiniteField(Field):
         p = self.polynomial()
         return "ext< %s | %s >"%(B._magma_init_(),p._magma_init_())
 
+    def _magma_convert_(self, magma):
+        """
+        Convert self to Magma.
+
+        EXAMPLES:
+            sage: magma(GF(9,'a'))           # optional -- requires magma
+            Finite field of size 3^2
+            sage: magma(GF(9,'a')).1         # optional -- requires magma
+            a
+        """
+        K = magma(self._magma_init_())
+        K.assign_names([self.variable_name()])
+        return K
+
     def _macaulay2_init_(self):
         """
         Returns the string representation of self that Macaulay2 can

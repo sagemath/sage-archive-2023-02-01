@@ -21,6 +21,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sage.misc.misc
+
 def coefficients_to_power_sums(n, m, a):
     r"""
     Takes the list a, representing a list of initial coefficients of
@@ -55,7 +57,7 @@ def coefficients_to_power_sums(n, m, a):
 import os, math
 import sage.combinat.combinat
 
-def __lagrange_bounds_phc(n, m, a, tmpfile='/tmp/phc_tr'):
+def __lagrange_bounds_phc(n, m, a, tmpfile=None):
     r"""
     This function determines the bounds on the roots in
     the enumeration of totally real fields via Lagrange multipliers.
@@ -83,14 +85,15 @@ def __lagrange_bounds_phc(n, m, a, tmpfile='/tmp/phc_tr'):
     - John Voight (2007-09-19)
 
     EXAMPLES:
-        sage: __lagrange_bounds_phc(3,5,[8,1,2,0,1],tmpfile='phc') # optional
-        /usr/local/bin/phc
+        sage: from sage.rings.number_field.totallyreal_phc import __lagrange_bounds_phc
+        sage: __lagrange_bounds_phc(3,5,[8,1,2,0,1]) # optional
         []
-        sage: __lagrange_bounds_phc(3,2,[8,1,2,0,1],tmpfile='phc') # optional
-        /usr/local/bin/phc
-        [-1.3333333333333299, 1.72983526722515e-16]
-        sage: __lagrange_bounds_phc(3,1,[8,1,2,0,1],tmpfile='phc') # optional
-        /usr/local/bin/phc
+        sage: x, y = __lagrange_bounds_phc(3,2,[8,1,2,0,1]) # optional
+	sage: x # optional
+        -1.3333333333333299
+	sage: y < 0.00000001 # optional
+	True
+        sage: __lagrange_bounds_phc(3,1,[8,1,2,0,1]) # optional
         []
     """
 
@@ -98,11 +101,13 @@ def __lagrange_bounds_phc(n, m, a, tmpfile='/tmp/phc_tr'):
     S = coefficients_to_power_sums(n,m,a)
 
     # Look for phc.
-    find_phc = os.system('which phc')
-    if find_phc != 0:
+    find_phc = os.popen2('which phc')[1].readlines()
+    if find_phc == []:
         raise RuntimeError, "PHCpack not installed."
 
     # Initialization.
+    if tmpfile is None:
+        tmpfile = sage.misc.misc.tmp_filename()
     f = open(tmpfile + '.phc', 'w')
     f.close()
     x = [0]*m
@@ -114,7 +119,7 @@ def __lagrange_bounds_phc(n, m, a, tmpfile='/tmp/phc_tr'):
     # then there are at most m-1 distinct values amongst the x_i.
     # Therefore we must solve the implied equations for each partition of n-1
     # into m-1 parts.
-    for P in sage.combinat.combinat.partitions_list(n-1,m-1):
+    for P in sage.combinat.partition.Partitions(n-1,length=m-1):
         f = open(tmpfile, 'w')
         # First line: number of variables/equations
         f.write('%d'%m + '\n')

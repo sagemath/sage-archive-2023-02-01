@@ -3591,6 +3591,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.heegner_index(-95)          # long time (1 second)
             2.00000?
 
+        This tests doing direct computation of the Mordell-Weil group.
+            sage: EllipticCurve('675b').heegner_index(-11)
+            3.0000?
+
         Current discriminants -3 and -4 are not supported:
             sage: E.heegner_index(-3)
             Traceback (most recent call last):
@@ -3635,7 +3639,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if c > _MAX_HEIGHT or F is self:
             misc.verbose("Doing direct computation of MW group.")
-            reg = F.regulator(verbose=verbose)
+            reg = F.regulator()
             return self.__adjust_heegner_index(ht/IR(reg))
 
         # Do naive search to eliminate possibility that Heegner point

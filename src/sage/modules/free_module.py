@@ -1569,9 +1569,9 @@ class FreeModule_generic(module.Module):
             [ 0 -1]
         """
         K = self.base_ring()._magma_init_()
-        if self._inner_product_matrix:
+        if not self._inner_product_is_dot_product():
             s = "RSpace(%s, %s, %s)"%(K, self.__rank,
-                self._inner_product_matrix._magma_init_())
+                self.inner_product_matrix()._magma_init_())
         else:
             s = "RSpace(%s, %s)"%(K, self.__rank)
 

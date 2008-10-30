@@ -4443,17 +4443,39 @@ cdef class Polynomial_generic_dense(Polynomial):
         r"""
         Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.
+
+        EXAMPLES:
+            sage: S.<q> = QQ['t']['q']
+            sage: f = (1+q^10+q^11+q^12).truncate(11); f
+            q^10 + 1
+            sage: f = (1+q^10+q^100).truncate(50); f
+            q^10 + 1
+            sage: f.degree()
+            10
+            sage: f = (1+q^10+q^100).truncate(500); f
+            q^100 + q^10 + 1
+
+        TESTS:
+        Make sure we're not actually testing a specalized implementation.
+            sage: type(f)
+            <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
         """
-        return self._parent(self.__coeffs[:n], check=False)
+        return self.truncate_c(n)
 
     cdef truncate_c(self, long n):
         r"""
         Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.
         """
+        if n < len(self.__coeffs):
+            while n > 0 and not self.__coeffs[n-1]:
+                n -= 1
         return self._parent(self.__coeffs[:n], check=False)
 
     cdef _inplace_truncate(self, long n):
+        if n < len(self.__coeffs):
+            while n > 0 and not self.__coeffs[n]:
+                n -= 1
         self.__coeffs = self.__coeffs[:n]
         return self
 

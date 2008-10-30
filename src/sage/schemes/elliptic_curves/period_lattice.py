@@ -235,6 +235,44 @@ class PeriodLattice_ell(PeriodLattice):
         """
         return self.real_period(prec) * self.n_components
 
+    def basis_matrix(self, prec=None):
+        r"""
+        Return the basis matrix of this period lattice.
+
+        INPUT:
+            prec -- real precision in bits (default real precision if None)
+
+        OUTPUT:
+            A $2\times2$ real matrix whose rows are the lattice basis
+            vectors after identifying $\C$ with $\R^2$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.period_lattice().basis_matrix()
+            [ 2.99345864623196 0.000000000000000]
+            [0.000000000000000  2.45138938198679]
+
+            sage: K.<a> = NumberField(x^3-2)
+            sage: emb = K.embeddings(RealField())[0]
+            sage: E = EllipticCurve([0,1,0,a,a])
+            sage: L = E.period_lattice(emb)
+            sage: L.basis_matrix(64)
+            [ 3.81452977217854509 0.000000000000000000]
+            [-1.90726488608927255  1.34047785962440202]
+
+            See \#4388:
+            sage: EllipticCurve('11a1').period_lattice().basis_matrix()
+            [ 1.26920930427955 0.000000000000000]
+            [0.634604652139777  1.45881661693850]
+           sage: EllipticCurve('389a1').period_lattice().basis_matrix()
+           [ 2.49021256085505 0.000000000000000]
+           [0.000000000000000  1.97173770155165]
+
+        """
+        w1,w2 = self.basis(prec)
+        from sage.matrix.all import Matrix
+        return Matrix([[w1,0],[w2.real(), w2.imag()]])
+
     def complex_area(self, prec=None):
         """
         Return the area of a fundamental domain for the period lattice

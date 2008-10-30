@@ -177,7 +177,7 @@ def PermutationGroup(gens=None, gap_group=None):
         sage: H = PermutationGroup(G); H          # requires optional database_gap
         Transitive group number 3 of degree 4
         sage: H.gens()                            # requires optional database_gap
-        ((1,2,3,4), (1,3))
+        [(1,2,3,4), (1,3)]
 
     We can also create permutation groups whose generators are
     Gap permutation objects.

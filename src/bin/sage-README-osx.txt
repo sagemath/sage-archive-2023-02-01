@@ -1,4 +1,4 @@
-This is SAGE -- open source mathematical software.
+This is Sage -- open source mathematical software.
 
          http://www.sagemath.org
 
@@ -22,7 +22,7 @@ This is SAGE -- open source mathematical software.
      "Enable:" drop down.  Change the "Applications" drop down
      to "Utilities".  On the left, scroll and select "Terminal".
      Click "Open", then in the next dialog select "Update".
-5) SAGE should pop up in a window.
+5) Sage should pop up in a window.
 6) For the graphical notebook, type
      notebook()
    You might have to open Firefox or Safari (your choice)

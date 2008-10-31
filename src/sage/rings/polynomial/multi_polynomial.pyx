@@ -710,7 +710,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f = 1 + x*y + x^3 + y^3
             sage: P = f.newton_polytope()
             sage: P
-            A Polyhedron with 4 vertices.
+            A Polyhedron with 3 vertices.
             sage: P.is_simple()
             True
 
@@ -719,7 +719,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: R(0).newton_polytope()
             A Polyhedron.
             sage: R(1).newton_polytope()
-            A Polyhedron with 1 vertices.
+            A Polyhedron with 1 vertex.
 
         """
         from sage.geometry.polyhedra import Polyhedron

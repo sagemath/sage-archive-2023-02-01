@@ -457,9 +457,9 @@ cdef class Element(sage_object.SageObject):
         global coercion_model
         cdef int r
         if not have_same_parent(left, right):
-            if left is None:
+            if left is None or left is Ellipsis:
                 return -1
-            elif right is None:
+            elif right is None or right is Ellipsis:
                 return 1
             try:
                 _left, _right = coercion_model.canonical_coercion(left, right)
@@ -491,9 +491,9 @@ cdef class Element(sage_object.SageObject):
         global coercion_model
         cdef int r
         if not have_same_parent(left, right):
-            if left is None:
+            if left is None or left is Ellipsis:
                 return _rich_to_bool(op, -1)
-            elif right is None:
+            elif right is None or right is Ellipsis:
                 return _rich_to_bool(op, 1)
             try:
                 _left, _right = coercion_model.canonical_coercion(left, right)

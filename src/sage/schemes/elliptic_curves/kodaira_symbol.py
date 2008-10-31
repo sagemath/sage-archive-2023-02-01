@@ -23,21 +23,57 @@ from sage.rings.integer import Integer
 import weakref
 
 class KodairaSymbol_class(SageObject):
+    r"""
+    Class to hold a Kodaira symbol of an elliptic curve over a $p$-adic local field.
+
+    The standard notation for Kodaira Symbols is as a string which is
+    one of Im, II, III, IV, I*m, II*, III*, IV* where m denotes a
+    non-negative integer.  These have been encoded by single integers
+    by different people.  For convenience we give here the conversion
+    table between strings, the pari coding and the eclib encoding.
+
+    Kodaira Symbol        Eclib coding   Pari Coding
+
+    I0                    0              1
+    I*0                   1             -1
+    Im  (m>0)             10*m           m+4
+    I*m (m>0)             10*m+1        -(m+4)
+    II, III, IV           2, 3, 4        2,  3,  4
+    II*. III*, IV*        7, 6, 5       -2, -3, -4
+
+    """
     def __init__(self, symbol):
+        r"""
+        Constructor for Kodaira Symbol class.
+
+        INPUT: symbol -- string or integer.  The string should be a
+           standard string representation (e.g. 'III*') of a Kodaira
+           symbol, which will be parsed.  Alternatively, use the Pari
+           encoding of Kodaira symbols as integers.
+
+        EXAMPLES:
+
+        """
         if not isinstance(symbol, str):
             n = Integer(symbol)
             self._n = None
+            if n == 0:
+                raise ValueError, "Kodaira Symbol code number must be nonzero."
             if n == 1:
                 self._n = 0
+                self._roman = 1
                 self._str = 'I0'
                 self._latex = '$I_0$'
             elif n == 2:
+                self._roman = 2
                 self._str = 'II'
                 self._latex = '$II$'
             elif n == 3:
+                self._roman = 3
                 self._str = 'III'
                 self._latex = '$III$'
             elif n == 4:
+                self._roman = 4
                 self._str = 'IV'
                 self._latex = '$IV$'
             elif n > 4:
@@ -46,19 +82,24 @@ class KodairaSymbol_class(SageObject):
                 self._str = 'I' + nu.str()
                 self._latex = '$I_{' + nu.str() + '}$'
             elif n == -1:
+                self._roman = 1
                 self._str = 'I0*'
                 self._latex = '$I_0^{*}$'
             elif n == -2:
+                self._roman = 2
                 self._str = 'II*'
                 self._latex = '$II^{*}$'
             elif n == -3:
+                self._roman = 3
                 self._str = 'III*'
                 self._latex = '$III^{*}$'
             elif n == -4:
+                self._roman = 4
                 self._str = 'IV*'
                 self._latex = '$IV^{*}$'
             elif n < -4:
                 nu = -n - 4
+                self._roman = 1
                 self._n = nu
                 self._str = 'I' + nu.str() +'*'
                 self._latex = '$I_' + nu.str() + '^{*}$'
@@ -66,7 +107,7 @@ class KodairaSymbol_class(SageObject):
             self._pari = n
             return
         elif len(symbol) == 0:
-            raise TypeError, "symbol must be a nonemptystring"
+            raise TypeError, "symbol must be a nonempty string"
         if symbol[0] == "I":
             symbol = symbol[1:]
         starred = False
@@ -74,7 +115,8 @@ class KodairaSymbol_class(SageObject):
             starred = True
             symbol = symbol[:-1]
         self._starred = starred
-        if symbol in ["I", "II", "V"]:
+        if symbol in ["I", "II", "V"]:    # NB we have already stripped off the leading 'I'
+            self._roman = ["I", "II", "V"].index(symbol) + 2   # =2, 3 or 4
             self._n = None
             if starred:
                 sign = -1
@@ -91,6 +133,7 @@ class KodairaSymbol_class(SageObject):
             elif symbol == "V":
                 self._pari = 4 * sign
         elif symbol == "n":
+            self._roman = 1
             self._pari = None
             self._n = "generic"
             if starred:
@@ -100,6 +143,7 @@ class KodairaSymbol_class(SageObject):
                 self._str = "In"
                 self._str = "$I_n$"
         elif symbol.isdigit():
+            self._roman = 1
             self._n = Integer(symbol)
             if starred:
                 if self._n == 0:
@@ -132,6 +176,24 @@ class KodairaSymbol_class(SageObject):
         else:
             return cmp(type(self), type(other))
 
+    def pari_code(self):
+        """
+        Return the Pari encoding of this Kodaira Symbol.
+
+        EXAMPLES:
+            sage: KodairaSymbol('I0').pari_code()
+            1
+            sage: KodairaSymbol('I10').pari_code()
+            14
+            sage: KodairaSymbol('I10*').pari_code()
+            -14
+            sage: [KodairaSymbol(s).pari_code() for s in ['II','III','IV']]
+            [2, 3, 4]
+            sage: [KodairaSymbol(s).pari_code() for s in ['II*','III*','IV*']]
+            [-2, -3, -4]
+        """
+        return self._pari
+
 _ks_cache = {}
 def KodairaSymbol(symbol):
     """
@@ -151,7 +213,16 @@ def KodairaSymbol(symbol):
               -4 = "IV*"
               -4-n = "I_n^*"
     OUTPUT:
-    KodairaSymbol -- the corresponding Kodaira symbol.
+        KodairaSymbol -- the corresponding Kodaira symbol.
+
+    EXAMPLES:
+        sage: KS = KodairaSymbol
+        sage: [KS(n) for n in range(1,10)]
+        [I0, II, III, IV, I1, I2, I3, I4, I5]
+        sage: [KS(-n) for n in range(1,10)]
+        [I0*, II*, III*, IV*, I1*, I2*, I3*, I4*, I5*]
+        sage: all([KS(str(KS(n)))==KS(n) for n in range(-10,10) if n!=0])
+        True
     """
     if _ks_cache.has_key(symbol):
         ks = _ks_cache[symbol]()

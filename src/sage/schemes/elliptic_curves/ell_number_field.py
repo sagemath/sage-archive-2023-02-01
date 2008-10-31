@@ -318,7 +318,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def local_data(self, P=None, proof = None):
         r"""
-        Local data for this elliptic curve at a prime.
+        Local data for this elliptic curve at the prime $P$.
 
         If a prime $P$ of the base field is specified, computes local
         reduction data at the prime ideal $P$ and a local minimal model.
@@ -352,19 +352,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve([1 + i  ,0  ,1  ,0  ,0  ])
             sage: E.local_data()
-            [Local data at Fractional ideal (-3*i - 2) of Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1:
+            [Local data at Fractional ideal (-3*i - 2):
+            Reduction type: bad split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
             Minimal discriminant valuation: 2
             Conductor exponent: 1
             Kodaira Symbol: I2
-            Tamagawa Number: 2, Local data at Fractional ideal (2*i + 1) of Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1:
+            Tamagawa Number: 2, Local data at Fractional ideal (2*i + 1):
+            Reduction type: bad non-split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
             Minimal discriminant valuation: 1
             Conductor exponent: 1
             Kodaira Symbol: I1
             Tamagawa Number: 1]
             sage: E.local_data(K.ideal(3))
-            Local data at Fractional ideal (3) of Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1:
+            Local data at Fractional ideal (3):
+            Reduction type: good
             Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
             Minimal discriminant valuation: 0
             Conductor exponent: 0
@@ -374,7 +377,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         An example raised in \#3897:
             sage: E = EllipticCurve([1,1])
             sage: E.local_data(3)
-            Local data at Principal ideal (3) of Integer Ring of Elliptic Curve defined by y^2  = x^3 + x +1 over Rational Field:
+            Local data at Principal ideal (3) of Integer Ring:
+            Reduction type: good
             Local minimal model: Elliptic Curve defined by y^2  = x^3 + x +1 over Rational Field
             Minimal discriminant valuation: 0
             Conductor exponent: 0
@@ -396,12 +400,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
         return self._get_local_data(P,proof)
 
     def _get_local_data(self, P, proof):
-        """
-        Internal function to create data for this elliptic curve at a prime.
+        r"""
+        Internal function to create data for this elliptic curve at the prime $P$.
 
         This function handles the caching of local data.  It is called
         by local_data() which is the user interface and which parses
-        the input parameters P and proof.
+        the input parameters $P$ and proof.
         """
         try:
             return self._local_data[P]
@@ -414,25 +418,25 @@ class EllipticCurve_number_field(EllipticCurve_field):
         return self._local_data[P]
 
     def local_minimal_model(self, P, proof = None):
-        """
-        Returns a model which is integral at all primes and minimal at P
+        r"""
+        Returns a model which is integral at all primes and minimal at $P$.
 
         The model is not required to be integral on input.
-        If P is principal, uses a generator as uniformizer, so it will not affect
+        If $P$ is principal, uses a generator as uniformizer, so it will not affect
         integrality or minimality at other primes.
-        If P is not principal, the minimal model returned will preserve integrality
+        If $P$ is not principal, the minimal model returned will preserve integrality
         at other primes, but not minimality.
 
         INPUT:
-            self -- an elliptic curve over a number field.
-            P    -- a prime ideal of the base field of self.
+            $P$ -- a prime ideal of the base field of self, or a field
+                 element generating such an ideal.
             proof -- whether to only use provably correct methods (default controled by
                      global proof module).  Note that the proof module is number_field,
                      not elliptic_curves, since the functions that actually need the flag
                      are in number fields.
 
         OUTPUT:
-            Emin -- a model (integral and) minimal at P
+            Emin -- a model of the curve (integral and) minimal at $P$.
 
         EXAMPLES:
             sage: K.<a>=NumberField(x^2-5)
@@ -448,13 +452,167 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.local_data(P, proof).minimal_model()
 
-    def tamagawa_number(self, P, proof = None):
-        """
-        Returns the Tamagawa number of this elliptic curve at the prime P.
+    def has_good_reduction(self, P):
+        r"""
+        Return True if this elliptic curve has good reduction at the prime $P$.
 
         INPUT:
-            self -- an elliptic curve over a number field.
-            P -- a prime ideal of the base field of self, or a field
+            $P$ -- a prime ideal of the base field of self, or a field
+                 element generating such an ideal.
+
+        OUTPUT:
+            True if the curve has good reduction at $P$, else False.
+
+        REMARK:
+            This requires determining a local integral minimal model;
+            we do not just check that the discriminant of the current
+            model has valuation zero.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.has_good_reduction(p)) for p in prime_range(15)]
+            [(2, False), (3, True), (5, True), (7, False), (11, True), (13, True)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.has_good_reduction(p)) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), True),
+            (Fractional ideal (2*a + 1), False)]
+        """
+        return self.local_data(P).has_good_reduction()
+
+    def has_bad_reduction(self, P):
+        r"""
+        Return True if this elliptic curve has bad reduction at the prime $P$.
+
+        INPUT:
+            $P$ -- a prime ideal of the base field of self, or a field
+                 element generating such an ideal.
+
+        OUTPUT:
+            True if the curve has bad reduction at $P$, else False.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.has_bad_reduction(p)) for p in prime_range(15)]
+            [(2, True), (3, False), (5, False), (7, True), (11, False), (13, False)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.has_bad_reduction(p)) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), False),
+            (Fractional ideal (2*a + 1), True)]
+        """
+        return self.local_data(P).has_bad_reduction()
+
+    def has_multiplicative_reduction(self, P):
+        r"""
+        Return True if this elliptic curve has (bad) multiplicative reduction at the prime $P$.
+
+        See also has_split_multiplicative_reduction() and
+                 has_nonsplit_multiplicative_reduction().
+
+        INPUT:
+            $P$ -- a prime ideal of the base field of self, or a field
+                 element generating such an ideal.
+
+        OUTPUT:
+            True if the curve has multiplicative reduction at $P$, else False.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.has_multiplicative_reduction(p)) for p in prime_range(15)]
+            [(2, True), (3, False), (5, False), (7, True), (11, False), (13, False)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.has_multiplicative_reduction(p)) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), False), (Fractional ideal (2*a + 1), False)]
+        """
+        return self.local_data(P).has_multiplicative_reduction()
+
+    def has_split_multiplicative_reduction(self, P):
+        r"""
+        Return True if this elliptic curve has (bad) split multiplicative reduction at the place.
+
+        INPUT:
+            $P$ -- a prime ideal of the base field of self, or a field
+                 element generating such an ideal.
+
+        OUTPUT:
+            True if the curve has split multiplicative reduction at $P$, else False.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.has_split_multiplicative_reduction(p)) for p in prime_range(15)]
+            [(2, False), (3, False), (5, False), (7, True), (11, False), (13, False)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.has_split_multiplicative_reduction(p)) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), False), (Fractional ideal (2*a + 1), False)]
+        """
+        return self.local_data(P).has_split_multiplicative_reduction()
+
+    def has_nonsplit_multiplicative_reduction(self, P):
+        r"""
+        Return True if this elliptic curve has (bad) non-split multiplicative reduction at the prime $P$.
+
+        INPUT:
+            $P$ -- a prime ideal of the base field of self, or a field
+                 element generating such an ideal.
+
+        OUTPUT:
+            True if the curve has non-split multiplicative reduction at $P$, else False.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.has_nonsplit_multiplicative_reduction(p)) for p in prime_range(15)]
+            [(2, True), (3, False), (5, False), (7, False), (11, False), (13, False)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.has_nonsplit_multiplicative_reduction(p)) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), False), (Fractional ideal (2*a + 1), False)]
+        """
+        return self.local_data(P).has_nonsplit_multiplicative_reduction()
+
+    def has_additive_reduction(self, P):
+        r"""
+        Return True if this elliptic curve has (bad) additive reduction at the prime $P$.
+
+        INPUT:
+            $P$ -- a prime ideal of the base field of self, or a field
+                 element generating such an ideal.
+
+        OUTPUT:
+            True if the curve has additive reduction at $P$, else False.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('27a1')
+            sage: [(p,E.has_additive_reduction(p)) for p in prime_range(15)]
+            [(2, False), (3, True), (5, False), (7, False), (11, False), (13, False)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.has_additive_reduction(p)) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), False),
+            (Fractional ideal (2*a + 1), True)]
+        """
+        return self.local_data(P).has_additive_reduction()
+
+    def tamagawa_number(self, P, proof = None):
+        r"""
+        Returns the Tamagawa number of this elliptic curve at the prime $P$.
+
+        INPUT:
+            $P$ -- a prime ideal of the base field of self, or a field
                  element generating such an ideal.
             proof -- whether to only use provably correct methods
                      (default controled by global proof module).  Note
@@ -482,13 +640,45 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.local_data(P, proof).tamagawa_number()
 
-    def kodaira_symbol(self, P, proof = None):
-        """
-        Returns the Kodaira Symbol of this elliptic curve at the prime P.
+    def tamagawa_exponent(self, P, proof = None):
+        r"""
+        Returns the Tamagawa index of this elliptic curve at the prime $P$.
 
         INPUT:
-            self -- an elliptic curve over a number field.
-            P -- a prime ideal of the base field of self, or a field
+            $P$ -- a prime ideal of the base field of self, or a field
+                 element generating such an ideal.
+            proof -- whether to only use provably correct methods
+                     (default controled by global proof module).  Note
+                     that the proof module is number_field, not
+                     elliptic_curves, since the functions that
+                     actually need the flag are in number fields.
+
+        OUTPUT:
+            i -- (positive integer) the Tamagawa index of the curve at P.
+
+        EXAMPLES:
+            sage: K.<a>=NumberField(x^2-5)
+            sage: E=EllipticCurve([20, 225, 750, 625*a + 6875, 31250*a + 46875])
+            sage: [E.tamagawa_exponent(P) for P in E.discriminant().support()]
+            [1, 1, 1, 1]
+            sage: K.<a> = QuadraticField(-11)
+            sage: E = EllipticCurve('11a1').change_ring(K)
+            sage: [E.tamagawa_exponent(P) for P in K(11).support()]
+            [10]
+        """
+        if proof is None:
+            import sage.structure.proof.proof
+            # We use the "number_field" flag because the actual proof dependence is in Pari's number field functions.
+            proof = sage.structure.proof.proof.get_flag(None, "number_field")
+
+        return self.local_data(P, proof).tamagawa_exponent()
+
+    def kodaira_symbol(self, P, proof = None):
+        r"""
+        Returns the Kodaira Symbol of this elliptic curve at the prime $P$.
+
+        INPUT:
+            $P$ -- a prime ideal of the base field of self, or a field
                  element generating such an ideal.
             proof -- whether to only use provably correct methods
                      (default controled by global proof module).  Note

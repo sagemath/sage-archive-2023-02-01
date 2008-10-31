@@ -39,7 +39,7 @@ class EllipticCurveLocalData(SageObject):
     or prime ideal.
     """
 
-    def __init__(self, E, P, proof=None):
+    def __init__(self, E, P, proof=None, algorithm="pari"):
         """
         Initializes the reduction data for the elliptic curve E at the prime P.
 
@@ -52,29 +52,36 @@ class EllipticCurveLocalData(SageObject):
                      that the proof module is number_field, not
                      elliptic_curves, since the functions that
                      actually need the flag are in number fields.
+            algorithm -- str, (default: "pari")
+                   (ignored unless E.base_field() is QQ)
+                   "pari"   -- use the PARI C-library ellglobalred
+                               implementation of Tate's algorithm over QQ.
+                   "generic" -- use the general number field implementation.
 
         EXAMPLES:
-            This function is not normally called directly, but will be
-            called by
+            This function is not normally called directly by the user.
 
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve('14a1')
             sage: EllipticCurveLocalData(E,2)
-            Local data at Principal ideal (2) of Integer Ring of Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field:
+            Local data at Principal ideal (2) of Integer Ring:
+            Reduction type: bad non-split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field
             Minimal discriminant valuation: 6
             Conductor exponent: 1
             Kodaira Symbol: I6
             Tamagawa Number: 2
             sage: EllipticCurveLocalData(E,3)
-            Local data at Principal ideal (3) of Integer Ring of Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field:
+            Local data at Principal ideal (3) of Integer Ring:
+            Reduction type: good
             Local minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field
             Minimal discriminant valuation: 0
             Conductor exponent: 0
             Kodaira Symbol: I0
             Tamagawa Number: 1
             sage: EllipticCurveLocalData(E,7)
-            Local data at Principal ideal (7) of Integer Ring of Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field:
+            Local data at Principal ideal (7) of Integer Ring:
+            Reduction type: bad split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field
             Minimal discriminant valuation: 3
             Conductor exponent: 1
@@ -84,8 +91,30 @@ class EllipticCurveLocalData(SageObject):
         self._curve = E
         K = E.base_field()
         self._prime = check_prime(K,P) # error handling done in that function
-        self._Emin, ch, self._val_disc, self._fp, self._KS, self._cp = self._tate(proof)
+        self._reduction_type = None
 
+        if algorithm=="pari" and K is QQ:
+            p = self._prime.gen()
+            Eint = E.integral_model()
+            data = Eint.pari_curve().elllocalred(p)
+            self._fp = data[0].python()
+            self._KS = KodairaSymbol(data[1].python())
+            self._cp = data[3].python()
+            # We use a global minimal model since we can:
+            self._Emin = Eint.minimal_model()
+            self._val_disc = self._Emin.discriminant().valuation(p)
+            if self._fp>0:
+                self._reduction_type = Eint.ap(p) # = 0,-1 or +1
+        else:
+            p = self._prime
+            self._Emin, ch, self._val_disc, self._fp, self._KS, self._cp, self._split = self._tate(proof)
+            if self._fp>0:
+                if self._Emin.c4().valuation(p)>0:
+                    self._reduction_type = 0
+                elif self._split:
+                    self._reduction_type = +1
+                else:
+                    self._reduction_type = -1
 
     def __repr__(self):
         """
@@ -95,13 +124,16 @@ class EllipticCurveLocalData(SageObject):
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve('14a1')
             sage: EllipticCurveLocalData(E,2).__repr__()
-            'Local data at Principal ideal (2) of Integer Ring of Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field:\nLocal minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field\nMinimal discriminant valuation: 6\nConductor exponent: 1\nKodaira Symbol: I6\nTamagawa Number: 2'
+            'Local data at Principal ideal (2) of Integer Ring:\nReduction type: bad non-split multiplicative\nLocal minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field\nMinimal discriminant valuation: 6\nConductor exponent: 1\nKodaira Symbol: I6\nTamagawa Number: 2'
             sage: EllipticCurveLocalData(E,3).__repr__()
-            'Local data at Principal ideal (3) of Integer Ring of Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field:\nLocal minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field\nMinimal discriminant valuation: 0\nConductor exponent: 0\nKodaira Symbol: I0\nTamagawa Number: 1'
+            'Local data at Principal ideal (3) of Integer Ring:\nReduction type: good\nLocal minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field\nMinimal discriminant valuation: 0\nConductor exponent: 0\nKodaira Symbol: I0\nTamagawa Number: 1'
             sage: EllipticCurveLocalData(E,7).__repr__()
-            'Local data at Principal ideal (7) of Integer Ring of Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field:\nLocal minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field\nMinimal discriminant valuation: 3\nConductor exponent: 1\nKodaira Symbol: I3\nTamagawa Number: 3'
+            'Local data at Principal ideal (7) of Integer Ring:\nReduction type: bad split multiplicative\nLocal minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field\nMinimal discriminant valuation: 3\nConductor exponent: 1\nKodaira Symbol: I3\nTamagawa Number: 3'
         """
-        return "Local data at %s of %s:\nLocal minimal model: %s\nMinimal discriminant valuation: %s\nConductor exponent: %s\nKodaira Symbol: %s\nTamagawa Number: %s"%(self._prime,self._curve,self._Emin,self._val_disc,self._fp,self._KS,self._cp)
+        red_type = "good"
+        if not self._reduction_type is None:
+            red_type = ["bad non-split multiplicative","bad additive","bad split multiplicative"][1+self._reduction_type]
+        return "Local data at %s:\nReduction type: %s\nLocal minimal model: %s\nMinimal discriminant valuation: %s\nConductor exponent: %s\nKodaira Symbol: %s\nTamagawa Number: %s"%(self._prime,red_type,self._Emin,self._val_disc,self._fp,self._KS,self._cp)
 
     def minimal_model(self):
         """
@@ -176,6 +208,173 @@ class EllipticCurveLocalData(SageObject):
             3
         """
         return self._cp
+
+    def tamagawa_exponent(self):
+        r"""
+        Return the Tamagawa index from this local reduction data.
+
+        This is the exponent of $E(K_v)/E^0(K_v)$; in most cases it is
+        the same as the Tamagawa index.
+
+        EXAMPLES:
+            sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
+            sage: E = EllipticCurve('816a1')
+            sage: data = EllipticCurveLocalData(E,2)
+            sage: data.kodaira_symbol()
+            I2*
+            sage: data.tamagawa_number()
+            4
+            sage: data.tamagawa_exponent()
+            2
+
+            sage: E = EllipticCurve('200c4')
+            sage: data = EllipticCurveLocalData(E,5)
+            sage: data.kodaira_symbol()
+            I4*
+            sage: data.tamagawa_number()
+            4
+            sage: data.tamagawa_exponent()
+            2
+        """
+        cp = self._cp
+        if not cp==4:
+            return cp
+        ks = self._KS
+        if ks._roman==1 and ks._n%2==0 and ks._starred:
+            return 2
+        return 4
+
+    def bad_reduction_type(self):
+        r"""
+        Return the type of bad reduction.
+
+        OUTPUT:
+            +1 for split multiplcative reduction
+            -1 for non-split multiplcative reduction
+            0  for additive reduction
+            None for good reduction
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.local_data(p).bad_reduction_type()) for p in prime_range(15)]
+            [(2, -1), (3, None), (5, None), (7, 1), (11, None), (13, None)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.local_data(p).bad_reduction_type()) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), None), (Fractional ideal (2*a + 1), 0)]
+       """
+        return self._reduction_type
+
+    def has_good_reduction(self):
+        r"""
+        Return True if there is good reduction.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.local_data(p).has_good_reduction()) for p in prime_range(15)]
+            [(2, False), (3, True), (5, True), (7, False), (11, True), (13, True)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.local_data(p).has_good_reduction()) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), True),
+            (Fractional ideal (2*a + 1), False)]
+        """
+        return self._reduction_type is None
+
+    def has_bad_reduction(self):
+        r"""
+        Return True if there is bad reduction.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.local_data(p).has_bad_reduction()) for p in prime_range(15)]
+            [(2, True), (3, False), (5, False), (7, True), (11, False), (13, False)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.local_data(p).has_bad_reduction()) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), False),
+            (Fractional ideal (2*a + 1), True)]
+        """
+        return not self._reduction_type is None
+
+    def has_multiplicative_reduction(self):
+        r"""
+        Return True if there is multiplicative reduction.
+
+        See also has_split_multiplicative_reduction() and
+                 has_nonsplit_multiplicative_reduction().
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.local_data(p).has_multiplicative_reduction()) for p in prime_range(15)]
+            [(2, True), (3, False), (5, False), (7, True), (11, False), (13, False)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.local_data(p).has_multiplicative_reduction()) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), False), (Fractional ideal (2*a + 1), False)]
+        """
+        return self._reduction_type in (-1,+1)
+
+    def has_split_multiplicative_reduction(self):
+        r"""
+        Return True if there is split multiplicative  reduction.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.local_data(p).has_split_multiplicative_reduction()) for p in prime_range(15)]
+            [(2, False), (3, False), (5, False), (7, True), (11, False), (13, False)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.local_data(p).has_split_multiplicative_reduction()) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), False),
+            (Fractional ideal (2*a + 1), False)]
+        """
+        return self._reduction_type == +1
+
+    def has_nonsplit_multiplicative_reduction(self):
+        r"""
+        Return True if there is non-split multiplicative  reduction.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('14a1')
+            sage: [(p,E.local_data(p).has_nonsplit_multiplicative_reduction()) for p in prime_range(15)]
+            [(2, True), (3, False), (5, False), (7, False), (11, False), (13, False)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.local_data(p).has_nonsplit_multiplicative_reduction()) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), False), (Fractional ideal (2*a + 1), False)]
+        """
+        return self._reduction_type == -1
+
+    def has_additive_reduction(self):
+        r"""
+        Return True if there is additive reduction.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('27a1')
+            sage: [(p,E.local_data(p).has_additive_reduction()) for p in prime_range(15)]
+            [(2, False), (3, True), (5, False), (7, False), (11, False), (13, False)]
+
+            sage: K.<a>=NumberField(x^3-2)
+            sage: P17a, P17b = [P for P,e in K.factor(17)]
+            sage: E = EllipticCurve([0,0,0,0,2*a+1])
+            sage: [(p,E.local_data(p).has_additive_reduction()) for p in [P17a,P17b]]
+            [(Fractional ideal (4*a^2 - 2*a + 1), False),
+            (Fractional ideal (2*a + 1), True)]
+        """
+        return self._reduction_type == 0
 
     def _tate(self, proof = None):
         """
@@ -260,6 +459,8 @@ class EllipticCurveLocalData(SageObject):
                     A[i] *= pie**i
             verbose("P-integral model is %s, with valuations %s"%([A[i] for i in indices], [pval(A[i]) for i in indices]), t, 1)
 
+        split = None # only relevant for multiplicative reduction
+
         (a1, a2, a3, a4, a6) = (A[1], A[2], A[3], A[4], A[6])
         while True:
             C = EllipticCurve([a1, a2, a3, a4, a6]);
@@ -314,11 +515,14 @@ class EllipticCurveLocalData(SageObject):
                 raise RuntimeError, "p does not divide a6 after first transform!"
 
             # Now we test for Types In, II, III, IV
-            # Do we not have to update the c invariants?
+            # NB the c invariants never change.
+
             if not pdiv(c4):
-                ## Type In (n = val_disc)
+                # Multiplcative reduction: Type In (n = val_disc)
+                split = False
                 if _pquadroots(1, a1, -a2):
                     cp = val_disc
+                    split = True
                 elif Integer(2).divides(val_disc):
                     cp = 2
                 else:
@@ -326,6 +530,9 @@ class EllipticCurveLocalData(SageObject):
                 KS = KodairaSymbol("I%s"%val_disc)
                 fp = 1
                 break #return
+
+            # Additive reduction
+
             if pval(a6) < 2:
                 ## Type II
                 KS = KodairaSymbol("II")
@@ -511,7 +718,7 @@ class EllipticCurveLocalData(SageObject):
                 a6 /= pi**6
                 verbose("Non-minimal equation, dividing out...\nNew model is %s"%([a1, a2, a3, a4, a6]), t, 1)
         C = C._tidy_model()
-        return (C, p, val_disc, fp, KS, cp)
+        return (C, p, val_disc, fp, KS, cp, split)
 
 
 def check_prime(K,P):

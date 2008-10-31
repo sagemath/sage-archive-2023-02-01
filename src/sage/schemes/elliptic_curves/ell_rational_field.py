@@ -257,6 +257,31 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__gens[True] = [self.point(x, check=True) for x in gens]
         self.__gens[True].sort()
 
+    def is_p_integral(self, p):
+        r"""
+        Returns True if this elliptic curve has $p$-integral coefficients.
+
+        INPUT:
+            p -- a prime integer
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1]); E
+            Elliptic Curve defined by y^2  = x^3 + x +1 over Rational Field
+            sage: E.is_p_integral(2)
+            True
+            sage: E2=E.change_weierstrass_model(2,0,0,0); E2
+            Elliptic Curve defined by y^2  = x^3 + 1/16*x + 1/64 over Rational Field
+            sage: E2.is_p_integral(2)
+            False
+            sage: E2.is_p_integral(3)
+            True
+         """
+        if not arith.is_prime(p):
+            raise ArithmeticError, "p must be prime"
+        if self.is_integral():
+            return True
+        return bool(misc.mul([x.valuation(p) >= 0 for x in self.ainvs()]))
+
     def is_integral(self):
         """
         Returns True if this elliptic curve has integral coefficients (in Z)
@@ -2013,6 +2038,33 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         return self.ainvs() == self.minimal_model().ainvs()
 
+    def is_p_minimal(self, p):
+        """
+        Tests if curve curve is p-minimal at a given prime p.
+
+        INPUT: p - a prime
+        OUTPUT: True - if curve is p-minimal
+                False - if curve isn't p-minimal
+
+        EXAMPLES:
+            sage: E = EllipticCurve('441a2')
+            sage: E.is_p_minimal(7)
+            True
+
+            sage: E = EllipticCurve([0,0,0,0,(2*5*11)**10])
+            sage: [E.is_p_minimal(p) for p in prime_range(2,24)]
+            [False, True, False, True, False, True, True, True, True]
+        """
+        if not p.is_prime():
+            raise ValueError,"p must be prime"
+        if not self.is_p_integral(p):
+            return False
+        if p > 3:
+            return ((self.discriminant().valuation(p) < 12) or (self.c4().valuation(p) < 4))
+        # else p = 2,3
+        Emin = self.minimal_model()
+        return self.discriminant().valuation(p) == Emin.discriminant().valuation(p)
+
 #    Duplicate!
 #
 #    def is_integral(self):
@@ -2035,6 +2087,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.kodaira_type(2)
             IV
         """
+        return self.local_data(p).kodaira_symbol()
+
+    kodaira_symbol = kodaira_type
+
+    def kodaira_type_old(self, p):
+        """
+        Local Kodaira type of the elliptic curve at $p$.
+
+        INPUT:
+           -- p, an integral prime
+        OUTPUT:
+           -- the kodaira type of this elliptic curve at p, as a KodairaSymbol.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('124a')
+            sage: E.kodaira_type_old(2)
+            IV
+        """
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
         try:
@@ -2050,8 +2120,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return self.__kodaira_type[p]
 
     def tamagawa_number(self, p):
-        """
+        r"""
         The Tamagawa number of the elliptic curve at $p$.
+
+        This is the order of the component group $E(\Q_p)/E^0(\Q_p)$.
 
         EXAMPLES:
             sage: E = EllipticCurve('11a')
@@ -2061,13 +2133,65 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.tamagawa_number(37)
             3
         """
+        return self.local_data(p).tamagawa_number()
+
+    def tamagawa_number_old(self, p):
+        r"""
+        The Tamagawa number of the elliptic curve at $p$.
+
+        This is the order of the component group $E(\Q_p)/E^0(\Q_p)$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a')
+            sage: E.tamagawa_number_old(11)
+            5
+            sage: E = EllipticCurve('37b')
+            sage: E.tamagawa_number_old(37)
+            3
+        """
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
         try:
             return self.__tamagawa_number[p]
         except (AttributeError, KeyError):
-            self.kodaira_type(p)
+            self.kodaira_type_old(p)
             return self.__tamagawa_number[p]
+
+    def tamagawa_exponent(self, p):
+        """
+        The Tamagawa index of the elliptic curve at $p$.
+
+        This is the index of the component group $E(\Q_p)/E^0(\Q_p)$.
+        It equals the Tamagawa number (as the component group is
+        cyclic) except for types $I_m^*$ ($m$ even) when the group can
+        be $C_2\times C_2$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('816a1')
+            sage: E.tamagawa_number(2)
+            4
+            sage: E.tamagawa_exponent(2)
+            2
+            sage: E.kodaira_symbol(2)
+            I2*
+
+            sage: E = EllipticCurve('200c4')
+            sage: E.kodaira_symbol(5)
+            I4*
+            sage: E.tamagawa_number(5)
+            4
+            sage: E.tamagawa_exponent(5)
+            2
+        """
+        if not arith.is_prime(p):
+            raise ArithmeticError, "p must be prime"
+        cp = self.tamagawa_number(p)
+        if not cp==4:
+            return cp
+        ks = self.kodaira_type(p)
+        if ks._roman==1 and ks._n%2==0 and ks._starred:
+            return 2
+        return 4
 
     def tamagawa_numbers(self):
         """
@@ -2692,7 +2816,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         except AttributeError:
             self.__root_number = int(self.pari_mincurve().ellrootno())
         return self.__root_number
-
 
     def has_cm(self):
         """

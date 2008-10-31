@@ -32,3 +32,5 @@ from cm import ( cm_j_invariants,
 import monsky_washnitzer
 
 from ec_database import elliptic_curves
+
+from kodaira_symbol import KodairaSymbol

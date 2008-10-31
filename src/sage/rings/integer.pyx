@@ -1240,6 +1240,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         TESTS:
             sage: complex(0,1)^2
             (-1+0j)
+            sage: R.<t> = QQ[]
+            sage: 2^t
+            Traceback (most recent call last):
+            ...
+            TypeError: non-integral exponents not supported
         """
         if modulus is not None:
             #raise RuntimeError, "__pow__ dummy argument ignored"

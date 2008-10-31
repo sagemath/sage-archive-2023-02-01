@@ -67,6 +67,8 @@ from sage.misc.derivative import multi_derivative
 
 import polynomial_fateman
 
+from sage.rings.integer cimport Integer
+
 def is_Polynomial(f):
     """
     Return True if f is of type univariate polynomial.
@@ -989,13 +991,31 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __pow__(self, right, modulus):
         """
         EXAMPLES:
-            sage: R.<x> = ZZ[]
+            sage: R.<x> = QQ[]
             sage: f = x - 1
             sage: f._pow(3)
             x^3 - 3*x^2 + 3*x - 1
             sage: f^3
             x^3 - 3*x^2 + 3*x - 1
+
+        TESTS:
+            sage: x^(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: non-integral exponents not supported
+
+            sage: x^x
+            Traceback (most recent call last):
+            ...
+            TypeError: non-integral exponents not supported
         """
+        if not PY_TYPE_CHECK_EXACT(right, Integer) or \
+                PY_TYPE_CHECK_EXACT(right, int):
+                    try:
+                        right = Integer(right)
+                    except TypeError:
+                        raise TypeError, "non-integral exponents not supported"
+
         if self.degree() <= 0:
             r = self.parent()(self[0]**right)
         elif right < 0:

@@ -258,9 +258,32 @@ cdef class Map(Element):
         raise NotImplementedError, type(self)
 
     def __pow__(Map self, n, dummy):
+        """
+        TESTS:
+            sage: R.<x> = ZZ['x']
+            sage: phi = R.hom([x+1]); phi
+            Ring endomorphism of Univariate Polynomial Ring in x over Integer Ring
+              Defn: x |--> x + 1
+
+            sage: phi^0
+            Identity endomorphism of Univariate Polynomial Ring in x over Integer Ring
+
+            sage: phi^2
+            Composite map:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Univariate Polynomial Ring in x over Integer Ring
+              Defn:   Ring endomorphism of Univariate Polynomial Ring in x over Integer Ring
+                      Defn: x |--> x + 1
+                    then
+                      Ring endomorphism of Univariate Polynomial Ring in x over Integer Ring
+                      Defn: x |--> x + 1
+
+        """
         if self._domain is not self._codomain:
             raise TypeError, "self must be an endomorphism."
-        # todo -- what about the case n=0 -- need to specify the identity map somehow.
+        if n == 0:
+            from sage.categories.morphism import IdentityMorphism
+            return IdentityMorphism(self._parent)
         return generic_power(self, n)
 
     def section(self):

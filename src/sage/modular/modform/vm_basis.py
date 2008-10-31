@@ -104,6 +104,9 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
     if e == 2: e += 12
     n = (k-e) // 12
 
+    if n == 0 and cusp_only:
+        return Sequence([])
+
     # If prec is less than or equal to the dimension of the space of
     # cusp forms, which is just n, then we know the answer, and we
     # simply return it.

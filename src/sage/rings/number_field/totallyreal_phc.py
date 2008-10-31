@@ -134,13 +134,13 @@ def __lagrange_bounds_phc(n, m, a, tmpfile=None):
         os.popen('phc -b ' + tmpfile + ' ' + tmpfile + '.phc')
         f = open(tmpfile + '.phc', 'r')
         f_str = f.read()
-        pos = f_str.find('real regular')
+        pos = f_str.find('= real ')
         crits = []
         while pos <> -1:
             posl = f_str.rfind('xn', 0, pos)
             f_str_split = f_str[posl:pos].split()
             crits += [float(f_str_split[2])]
-            pos = f_str.find('real regular', pos+1)
+            pos = f_str.find('= real ', pos+1)
 
         if len(crits) > 0:
             output_data += [[P, min(crits), max(crits)]]

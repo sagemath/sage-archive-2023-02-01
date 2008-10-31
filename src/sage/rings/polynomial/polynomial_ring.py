@@ -88,6 +88,8 @@ import sage.rings.polynomial.polynomial_integer_dense_ntl as polynomial_integer_
 import sage.rings.polynomial.polynomial_integer_dense_flint as polynomial_integer_dense_flint
 import sage.rings.polynomial.polynomial_modn_dense_ntl as polynomial_modn_dense_ntl
 import sage.rings.polynomial.padics.polynomial_padic_flat
+from sage.rings.real_mpfr import is_RealField
+from polynomial_real_mpfr_dense import PolynomialRealDense
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
 
@@ -464,6 +466,26 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return "%s[%s]"%(latex.latex(self.base_ring()), self.latex_variable_names()[0])
 
     def __set_polynomial_class(self, implementation):
+        """
+        These may change over time, however we test them here to make sure *this* method is
+        working as expected.
+
+        TESTS:
+            sage: type(ZZ['x'].0)
+            <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
+            sage: type(QQ['x'].0)
+            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>
+            sage: type(RR['x'].0)
+            <type 'sage.rings.polynomial.polynomial_real_mpfr_dense.PolynomialRealDense'>
+            sage: type(Integers(4)['x'].0)
+            <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_zz'>
+            sage: type(Integers(5*2^100)['x'].0)
+            <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ'>
+            sage: type(CC['x'].0)
+            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            sage: type(CC['t']['x'].0)
+            <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
+        """
         from sage.rings.padics.padic_ring_capped_relative import pAdicRingCappedRelative
         from sage.rings.padics.padic_field_capped_relative import pAdicFieldCappedRelative
         from sage.rings.padics.padic_ring_lazy import pAdicRingLazy
@@ -497,6 +519,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self.__polynomial_class = sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat # Fix
         elif isinstance(R, pAdicRingFixedMod):
             self.__polynomial_class = sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat # Fix
+        elif is_RealField(R):
+            self.__polynomial_class = PolynomialRealDense
         elif isinstance(R, field.Field):
             if self.__is_sparse:
                 self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse_field

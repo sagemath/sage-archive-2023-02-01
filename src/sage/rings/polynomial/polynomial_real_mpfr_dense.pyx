@@ -8,11 +8,13 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from sage.structure.element import parent
+from sage.structure.element import parent, canonical_coercion, bin_op, gcd
 
 # import the mpfr stuff from RealNumber becase it's included, not cimported
 from sage.rings.real_mpfr cimport mpfr_t, mp_rnd_t
 from sage.rings.real_mpfr cimport *
+
+from sage.libs.all import pari_gen
 
 cdef extern from "mpfr.h":
     int mpfr_mul_ui (mpfr_t rop, mpfr_t op1, unsigned long int op2, mp_rnd_t rnd)
@@ -35,7 +37,7 @@ cdef class PolynomialRealDense(Polynomial):
         """
         self._coeffs = NULL
 
-    def __init__(self, Parent parent, x=0, bint is_gen=False):
+    def __init__(self, Parent parent, x=0, check=None, bint is_gen=False, construct=None):
         """
         EXAMPLES:
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -48,7 +50,7 @@ cdef class PolynomialRealDense(Polynomial):
         cdef int prec = self._base_ring.__prec
         cdef mp_rnd_t rnd = self._base_ring.rnd
         if is_gen:
-            x = [1, 0]
+            x = [0, 1]
         elif isinstance(x, (int, float, Integer, Rational, RealNumber)):
             x = [x]
         elif isinstance(x, dict):
@@ -57,6 +59,8 @@ cdef class PolynomialRealDense(Polynomial):
             for i, a in x.items():
                 coeffs[i] = a
             x = coeffs
+        elif isinstance(x, pari_gen):
+            x = [self._base_ring(w) for w in x.Vecrev()]
         elif not isinstance(x, list):
             try:
                 x = list(x)
@@ -116,7 +120,7 @@ cdef class PolynomialRealDense(Polynomial):
                 self._coeffs = <mpfr_t*>sage_realloc(self._coeffs, sizeof(mpfr_t) * (i+1))
             self._degree = i
 
-    def __getitem__(self, Py_ssize_t i):
+    def __getitem__(self, ix):
         """
         EXAMPLES:
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -128,8 +132,30 @@ cdef class PolynomialRealDense(Polynomial):
             3.00000000000000
             sage: f[5]
             0.000000000000000
+
+        Test slices:
+            sage: R.<x> = RealField(10)[]
+            sage: f = (x+1)^5; f
+            1.0*x^5 + 5.0*x^4 + 10.*x^3 + 10.*x^2 + 5.0*x + 1.0
+            sage: f[:3]
+            10.*x^2 + 5.0*x + 1.0
+            sage: f[3:]
+            1.0*x^5 + 5.0*x^4 + 10.*x^3
+            sage: f[1:4]
+            10.*x^3 + 10.*x^2 + 5.0*x
+
         """
+        if isinstance(ix, slice):
+            if ix.stop is None:
+                chopped = self
+            else:
+                chopped = self.truncate(ix.stop)
+            if ix.start is None:
+                return chopped
+            else:
+                return (chopped >> ix.start) << ix.start
         cdef RealNumber r = <RealNumber>RealNumber(self._base_ring)
+        cdef Py_ssize_t i = ix
         if 0 <= i <= self._degree:
             mpfr_set(r.value, self._coeffs[i], self._base_ring.rnd)
         else:
@@ -230,7 +256,9 @@ cdef class PolynomialRealDense(Polynomial):
         cdef Py_ssize_t i
         cdef Py_ssize_t nn = 0 if n < 0 else n
         cdef PolynomialRealDense f
-        if self._degree < -n:
+        if n == 0:
+            return self
+        elif self._degree < -n:
             return self._new(-1)
         else:
             f = self._new(self._degree + n)
@@ -494,6 +522,49 @@ cdef class PolynomialRealDense(Polynomial):
         _sig_off
         r._normalize()
         return q, r * leading
+
+    def gcd(self, other):
+        """
+        Returns the gcd of self and other as a monic polynomial. Due to the
+        inherit instability of division in this inexact ring, the results may
+        not be entirely stable.
+
+        EXAMPLES:
+            sage: R.<x> = RR[]
+            sage: (x^3).gcd(x^5+1)
+            1.00000000000000
+            sage: (x^3).gcd(x^5+x^2)
+            1.00000000000000*x^2
+            sage: f = (x+3)^2 * (x-1)
+            sage: g = (x+3)^5
+            sage: f.gcd(g)
+            1.00000000000000*x^2 + 6.00000000000000*x + 9.00000000000000
+
+        Unless the division is exact (i.e. no rounding occurs) the returned gcd is
+        almost certain to be 1.
+            sage: f = (x+RR.pi())^2 * (x-1)
+            sage: g = (x+RR.pi())^5
+            sage: f.gcd(g)
+            1.00000000000000
+
+        """
+        # When #4301 gets in, use the generic gcd there.
+        if parent(self) != parent(other):
+            return bin_op(self, other, gcd)
+        aval = self.valuation()
+        a = self >> aval
+        bval = other.valuation()
+        b = other >> bval
+        if b.degree() > a.degree():
+            a, b = b, a
+        while b: # this will be exactly zero when the previous b is degree 0
+            q, r = a.quo_rem(b)
+            a, b = b, r
+        if a.degree() == 0:
+            # make sure gcd of "relatively prime" things is exactly 1
+            return self._parent(1) << min(aval, bval)
+        else:
+            return a * ~a[a.degree()] << min(aval, bval)
 
     def __call__(self, xx):
         """

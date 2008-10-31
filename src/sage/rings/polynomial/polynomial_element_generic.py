@@ -561,7 +561,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
 class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_generic_field):
     """
     EXAMPLES:
-        sage: R.<x> = PolynomialRing(RR, sparse=True)
+        sage: R.<x> = PolynomialRing(Frac(RR['t']), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
         <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>

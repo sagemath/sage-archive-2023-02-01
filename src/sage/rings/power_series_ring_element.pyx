@@ -1170,7 +1170,7 @@ cdef class PowerSeries(AlgebraElement):
             ...
             ValueError: Square root does not live in this ring.
             sage: (2+t.change_ring(RR)).square_root()
-            1.41421356237309 + 0.353553390593274*t - 0.0441941738241591*t^2 + 0.0110485434560399*t^3 - 0.00345266983001242*t^4 + O(t^5)
+            1.41421356237309 + 0.353553390593274*t - 0.0441941738241592*t^2 + 0.0110485434560398*t^3 - 0.00345266983001244*t^4 + O(t^5)
             sage: t.square_root()
             Traceback (most recent call last):
             ...

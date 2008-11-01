@@ -4,7 +4,7 @@ The Steenrod algebra
 AUTHORS:
     - John H. Palmieri (2008-07-30: version 0.9)
 
-This package defines the mod $p$ Steenrod algebra $\mathcal{A}_p$,
+This module defines the mod $p$ Steenrod algebra $\mathcal{A}_p$,
 some of its properties, and ways to define elements of it.
 
 From a topological point of view, $\mathcal{A}_p$ is the algebra of
@@ -35,7 +35,7 @@ of the \emph{Serre-Cartan} basis for $\mathcal{A}_p$.
 The mod $p$ Steenrod algebra has the structure of a Hopf algebra, and
 Milnor [Mil] has a beautiful description of the dual, leading to a
 construction of the \emph{Milnor basis} for $\mathcal{A}_p$.  In this
-package, elements in the Steenrod algebra are represented, by default,
+module, elements in the Steenrod algebra are represented, by default,
 using the Milnor basis.
 
 See the documentation for \code{SteenrodAlgebra} for many more details
@@ -170,7 +170,7 @@ class SteenrodAlgebra_generic(Algebra):
 
 
     def gen(self, i=0):
-        """
+        r"""
         The ith generator of the Steenrod algebra.
 
         INPUT:
@@ -181,7 +181,7 @@ class SteenrodAlgebra_generic(Algebra):
 
 
         The $i$th generator is $Sq(2^i)$ at the prime 2; when $p$ is
-        odd, the 0th generator is beta = Q(0), and for $i>0$, the
+        odd, the 0th generator is $\beta = Q(0)$, and for $i>0$, the
         $i$th generator is $P(p^{i-1})$.
 
         EXAMPLES:
@@ -715,7 +715,7 @@ def SteenrodAlgebra(p=2, basis='milnor'):
     documentation for the function 'steenrod_algebra_basis' for full
     descriptions of each of the implemented bases.
 
-    This package implements the following bases at all primes:
+    This module implements the following bases at all primes:
 
         * 'milnor': Milnor basis.
 
@@ -752,7 +752,7 @@ def SteenrodAlgebra(p=2, basis='milnor'):
         Sq^{2} Sq^{1} + Sq^{3}
         sage: adem5 = SteenrodAlgebra(5, 'serre-cartan')
         sage: adem5.P(0,2)
-        P^{10} P^{2} + 4 P^{11} P^{1} + 4 P^{12}
+        P^{10} P^{2} + 4 P^{11} P^{1} + P^{12}
 
     You can get a list of basis elements in a given dimension:
         sage: A3 = SteenrodAlgebra(3, 'milnor')

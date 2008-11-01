@@ -6,9 +6,9 @@ We call a finite set of multivariate polynomials an MPolynomialSystem.
 Furthermore we assume that these multivariate polynomials have a
 common solution if interpreted as equations where the left hand side
 is the polynomial and the right hand side is equal to zero. Or in
-other terms: The set of multivariate polynomials have common roots. In
-many other computer algebra systems this class could be called Ideal
-but -- strictly speaking -- an ideal is a very distinct object form its
+other words: The set of multivariate polynomials have common roots. In
+many other computer algebra systems, this class could be called Ideal
+but -- strictly speaking -- an ideal is a very distinct object from its
 generators and thus this is not an Ideal in \SAGE.
 
 The main purpose of this class is to manipulate an MPolynomialSystem
@@ -48,7 +48,7 @@ from sage.interfaces.magma import magma
 
 def is_MPolynomialSystem(F):
     """
-    Return True if F is an MPolynomialSystem
+    Return True if F is an MPolynomialSystem.
 
     EXAMPLE:
        sage: P.<x,y> = PolynomialRing(QQ)
@@ -62,7 +62,7 @@ def is_MPolynomialSystem(F):
 
 def is_MPolynomialRoundSystem(F):
     """
-    Return True if F is an MPolynomialRoundSystem
+    Return True if F is an MPolynomialRoundSystem.
 
     EXAMPLE:
        sage: P.<x,y> = PolynomialRing(QQ)
@@ -104,18 +104,18 @@ def MPolynomialSystem(arg1, arg2=None):
         sage: P.<a,b,c,d> = PolynomialRing(GF(127),4)
         sage: I = sage.rings.ideal.Katsura(P)
 
-        If a list of MPolynomialRoundSystems is provided those form
+        If a list of MPolynomialRoundSystems is provided, those form
         the rounds.
 
         sage: mq.MPolynomialSystem(I.ring(), [mq.MPolynomialRoundSystem(I.ring(),I.gens())])
         Polynomial System with 4 Polynomials in 4 Variables
 
-        If an ideal is provided the generators are used.
+        If an ideal is provided, the generators are used.
 
         sage: mq.MPolynomialSystem(I)
         Polynomial System with 4 Polynomials in 4 Variables
 
-        If a list of polynomials is provided the system has only one
+        If a list of polynomials is provided, the system has only one
         round.
 
         sage: mq.MPolynomialSystem(I.ring(), I.gens())
@@ -245,7 +245,7 @@ class MPolynomialRoundSystem_generic(SageObject):
 
     def variables(self):
         """
-        Return unordered list of variables apprearing in polynomials
+        Return unordered list of variables appearing in polynomials
         in self.
 
         EXAMPLE:
@@ -438,25 +438,25 @@ class MPolynomialSystem_generic(SageObject):
 
         INPUT:
             arg1 -- a multivariate polynomial ring or an ideal
-            arg2 -- an iterable object of rounds, preferable MPolynomialRoundSystem,
+            arg2 -- an iterable object of rounds, preferably MPolynomialRoundSystem,
                       or polynomials (default:None)
 
         EXAMPLES:
             sage: P.<a,b,c,d> = PolynomialRing(GF(127),4)
             sage: I = sage.rings.ideal.Katsura(P)
 
-            If a list of MPolynomialRoundSystems is provided those
+            If a list of MPolynomialRoundSystems is provided, those
             form the rounds.
 
             sage: mq.MPolynomialSystem(I.ring(), [mq.MPolynomialRoundSystem(I.ring(),I.gens())])
             Polynomial System with 4 Polynomials in 4 Variables
 
-            If an ideal is provided the generators are used.
+            If an ideal is provided, the generators are used.
 
             sage: mq.MPolynomialSystem(I)
             Polynomial System with 4 Polynomials in 4 Variables
 
-            If a list of polynomials is provided the system has only
+            If a list of polynomials is provided, the system has only
             one round.
 
             sage: mq.MPolynomialSystem(I.ring(), I.gens())
@@ -484,7 +484,7 @@ class MPolynomialSystem_generic(SageObject):
 
     def __copy__(self):
 	"""
-	Return a copy of self. While this is not a deep copy only
+	Return a copy of self. While this is not a deep copy, only
 	mutable members of this system are copied.
 
 	EXAMPLE:
@@ -528,7 +528,7 @@ class MPolynomialSystem_generic(SageObject):
 
     def ngens(self):
         """
-        Return number polynomials in self
+        Return number polynomials in self.
 
         EXAMPLE:
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
@@ -540,7 +540,7 @@ class MPolynomialSystem_generic(SageObject):
 
     def gens(self):
         """
-        Return list of polynomials in self
+        Return list of polynomials in self.
 
         EXAMPLE:
             sage: sr = mq.SR(allow_zero_inversions=True)
@@ -633,7 +633,7 @@ class MPolynomialSystem_generic(SageObject):
 
     def ideal(self):
         """
-        Return SAGE ideal spanned by self.gens()
+        Return Sage ideal spanned by self.gens()
 
         EXAMPLE:
         These computations use pseudo-random numbers, so we set the
@@ -740,7 +740,7 @@ class MPolynomialSystem_generic(SageObject):
 
     def coefficient_matrix(self, sparse=True):
         """
-        Return tuple (A,v) where A is the coefficent matrix of self
+        Return tuple (A,v) where A is the coefficient matrix of self
         and v the matching monomial vector. Monomials are order w.r.t.
         the term ordering of self.ring() in reverse order.
 
@@ -932,7 +932,7 @@ class MPolynomialSystem_generic(SageObject):
     def __contains__(self, element):
         r"""
 	Return \code{True} if element is in \code{self} or
-	\code{False} else. This method does not return an answer for
+	\code{False} otherwise. This method does not return an answer for
 	the ideal spanned by the generators of this system but
 	literately whether a polynomial is in the list of generators.
 

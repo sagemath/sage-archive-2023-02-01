@@ -3,7 +3,7 @@ Small Scale Variants of the AES (SR) Polynomial System Generator.
 
 \sage support polynomial system generation for small scale (and full
 scale) AES variants over $GF(2)$ and $GF(2^e)$. Also, \sage supports
-both the specification of SR as given in paper [CMR05] and [CMR06] and
+both the specification of SR as given in the papers [CMR05] and [CMR06] and
 a variant of SR* which is equivalent to AES.
 
 AUTHORS:
@@ -126,7 +126,7 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
         star -- determines if SR* or SR should be constructed
                 (default: False)
         aes_mode -- as the SR key schedule specification differs
-                    slightly from the AES key schedule this parameter
+                    slightly from the AES key schedule, this parameter
                     controls which schedule to use (default: True)
         gf2 -- generate polynomial systems over $\GF(2)$ rather than
                over $\GF(2^n)$ (default: False)
@@ -136,7 +136,7 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
                  variables
         postfix -- a string which is appended after the variable name
                    (default: '')
-        allow_zero_inversions -- a boolean to controll whether zero
+        allow_zero_inversions -- a boolean to control whether zero
                                  inversions raise an exception
                                  (default: False)
         correct_only -- only include correct inversion polynomials
@@ -317,7 +317,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def base_ring(self):
         r"""
-        Return the base field of self as determined through
+        Return the base field of self as determined by
         \code{self.e}.
 
         EXAMPLE:
@@ -383,7 +383,7 @@ class SR_generic(MPolynomialSystemGenerator):
         A \code{ZeroDivision} exception is raised if an attempt is
         made to perform an inversion on the zero element. This can be
         disabled by passing \code{allow_zero_inversion=True} to the
-        constructor. A zero inversion will result in an inconsisten
+        constructor. A zero inversion will result in an inconsistent
         equation system.
 
         INPUT:
@@ -480,7 +480,7 @@ class SR_generic(MPolynomialSystemGenerator):
         Perform the \code{ShiftRows} operation on \var{d}.
 
         INPUT:
-            d -- state arrary or something coercable to an state array
+            d -- state array or something coercable to a state array
 
         EXAMPLES:
             sage: sr = mq.SR(10, 4, 4, 4)
@@ -507,7 +507,7 @@ class SR_generic(MPolynomialSystemGenerator):
         Perform the \code{MixColumns} operation on \var{d}.
 
         INPUT:
-            d -- state arrary or something coercable to an state array
+            d -- state array or something coercable to a state array
 
         EXAMPLES:
             sage: sr = mq.SR(10, 4, 4, 4)
@@ -551,8 +551,8 @@ class SR_generic(MPolynomialSystemGenerator):
         \var{key}.
 
         INPUT:
-            d -- state arrary or something coercable to an state array
-            key -- state arrary or something coercable to an state
+            d -- state array or something coercable to a state array
+            key -- state array or something coercable to a state
                    array
 
         EXAMPLE:
@@ -1048,7 +1048,7 @@ class SR_generic(MPolynomialSystemGenerator):
         """
         Return a format string which is understood by print et al.
 
-        If a numberical value is omitted the default value of self is
+        If a numerical value is omitted, the default value of self is
         used. The numerical values (n, rc, e) are used to determine the
         width of the respective fields in the format string.
 
@@ -1110,7 +1110,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def vars(self, name, nr, rc=None, e=None):
         """
-        Return a list ofvariables in self.
+        Return a list of variables in self.
 
         INPUT:
             name -- variable name
@@ -1860,7 +1860,7 @@ class SR_gf2(SR_generic):
 
     def phi(self, l, diffusion_matrix=False):
         r"""
-        Given a list/matrix of elements in $GF(2^n)$ return a matching
+        Given a list/matrix of elements in $GF(2^n)$, return a matching
         list/matrix of elements in $GF(2)$.
 
         INPUT:
@@ -2063,7 +2063,7 @@ class SR_gf2(SR_generic):
 
     def _mul_matrix(self, x):
         """
-        Given an element $x$ in self.base_ring() return a matrix which
+        Given an element $x$ in self.base_ring(), return a matrix which
         performs the same operation on a when interpreted over
         $GF(2)^e$ as $x$ over $GF(2^e)$.
 

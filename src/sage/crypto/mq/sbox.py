@@ -20,8 +20,8 @@ We consider  the S-box of the block cipher PRESENT:
     5
 
 Note that by default bits are interpreted in big endian order. This is
-not consistent with the rest of \SAGE which has a strong bias towards
-little endian but is consistend with most cryptographic literature.
+not consistent with the rest of \SAGE, which has a strong bias towards
+little endian, but is consistent with most cryptographic literature.
 
     sage: S([0,0,0,1])
     [0, 1, 0, 1]
@@ -96,7 +96,7 @@ class SBox(SageObject):
 
     def __len__(self):
         """
-        Return the lenght of input bit strings.
+        Return the length of input bit strings.
 
         EXAMPLE:
             sage: len(mq.SBox(7,6,0,4,2,5,1,3))
@@ -175,7 +175,7 @@ class SBox(SageObject):
 
     def _rpad(self,x, n=None):
         r"""
-        right pads x such that \code{len(x)} is $n$
+        Right pads x such that \code{len(x)} is $n$.
 
         EXAMPLE:
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
@@ -188,9 +188,9 @@ class SBox(SageObject):
 
     def __call__(self, X):
         r"""
-        Apply subsitution to X.
+        Apply substitution to X.
 
-        If X is a list it is interpreted as sequence of bits depending
+        If X is a list, it is interpreted as a sequence of bits depending
         on the bit order of this S-box.
 
         INPUT:
@@ -262,7 +262,7 @@ class SBox(SageObject):
 
     def difference_distribution_matrix(self):
         """
-        Return difference distribition matrix $A$ for this S-box.
+        Return difference distribution matrix $A$ for this S-box.
 
         The rows of $A$ encode the differences $\Delta I$ of the input
         and the columns encode the difference $\Delta O$ for the
@@ -323,7 +323,7 @@ class SBox(SageObject):
         r"""
         Return the difference probability of the difference with the
         highest probability in the range between 0.0 and 1.0
-        indicationg 0\% or 100\% respectively.
+        indicating 0\% or 100\% respectively.
 
         EXAMPLE:
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
@@ -494,7 +494,7 @@ class SBox(SageObject):
             X -- input variables
             Y -- output variables
             degree -- integer > 0 (default: 2)
-            groebner -- calucalate a reduced Groebner basis of the
+            groebner -- calculate a reduced Groebner basis of the
                         spanning polynomials to obtain more
                         polynomials (default: False)
 
@@ -612,7 +612,7 @@ class SBox(SageObject):
 
     def interpolation_polynomial(self, k=None):
         r"""
-        Return an univariate polynomial over an extension field
+        Return a univariate polynomial over an extension field
         representing this S-box.
 
         If $m$ is the input length of this S-box then the extension
@@ -624,7 +624,7 @@ class SBox(SageObject):
         INPUT:
             k -- an instance of GF($2^m$) (default: None)
 
-        EXAMPE:
+        EXAMPLE:
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: f = S.interpolation_polynomial()
             sage: f

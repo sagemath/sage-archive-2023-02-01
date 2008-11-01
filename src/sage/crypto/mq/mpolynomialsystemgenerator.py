@@ -36,7 +36,7 @@ class MPolynomialSystemGenerator(SageObject):
 
     def varstrs(self, name, round):
         """
-        Return a list of variable names given a name 'name' and and
+        Return a list of variable names given a name 'name' and an
         index 'round'.
 
         This function is typically used by self._vars.
@@ -49,7 +49,7 @@ class MPolynomialSystemGenerator(SageObject):
 
     def vars(self, name, round):
         """
-        Return a list of variables given a name 'name' and and
+        Return a list of variables given a name 'name' and an
         index 'round'.
 
         INPUT:

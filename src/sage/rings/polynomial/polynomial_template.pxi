@@ -464,7 +464,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return Integer(celement_len(&self.x, (<Polynomial_template>self)._parent)-1)
 
-    def truncate(self, n):
+    cpdef Polynomial truncate(self, long n):
         """
         Returns this polynomial mod $x^n$.
 

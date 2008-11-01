@@ -194,6 +194,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
 	sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in range(2256,5000)] #long time
         sage: union([len(union(x))==1 for x in vals]) #long time
 	[True]
+
     \note{If $n>50000$ then algorithm = 'gp' is used instead of
     algorithm = 'pari', since the C-library interface to PARI
     is limited in memory for individual operations.}

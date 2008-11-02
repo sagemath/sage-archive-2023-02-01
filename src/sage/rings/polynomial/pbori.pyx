@@ -46,11 +46,11 @@ ring $$R = \F_2[a,b,c,d,e].$$
     sage: I1 = ideal([a*b + c*d + 1, a*c*e + d*e, a*b*e + c*e, b*c + c*d*e + 1])
     sage: for f in I1.groebner_basis():
     ...     f
-    d^4*e^2 + d^4*e + d^3*e + d^2*e^2 + d^2*e + d*e + e
-    c*e + d^3*e^2 + d^3*e + d^2*e^2 + d*e
-    b*e + d*e^2 + d*e + e
-    b*c + d^3*e^2 + d^3*e + d^2*e^2 + d*e + e + 1
     a + c^2*d + c + d^2*e
+    b*c + d^3*e^2 + d^3*e + d^2*e^2 + d*e + e + 1
+    b*e + d*e^2 + d*e + e
+    c*e + d^3*e^2 + d^3*e + d^2*e^2 + d*e
+    d^4*e^2 + d^4*e + d^3*e + d^2*e^2 + d^2*e + d*e + e
 
 If one wants to solve this system over the algebraic closure of $\F_2$
 then this Groebner basis was the one to consider. If one wants
@@ -60,11 +60,11 @@ ideal to force the solutions in $\F_2$.
     sage: J = I1 + sage.rings.ideal.FieldIdeal(P)
     sage: for f in J.groebner_basis():
     ...     f
-    e
-    d^2 + d
-    c + 1
-    b + 1
     a + d + 1
+    b + 1
+    c + 1
+    d^2 + d
+    e
 
 So the solutions over $\F_2$ are $\{e=0, d=1, c=1, b=1, a=0\}$ and $\{e=0,
 d=0, c=1, b=1, a=1\}$.
@@ -79,10 +79,10 @@ ideals $J$ satisfying $I \subset J \subset P$).
     sage: I2 = ideal([Q(f) for f in I1.gens()])
     sage: for f in I2.groebner_basis():
     ...     f
-    ebar
-    cbar + 1
-    bbar + 1
     abar + dbar + 1
+    bbar + 1
+    cbar + 1
+    ebar
 
 This quotient ring is exactly what \PolyBoRi handles well.
 

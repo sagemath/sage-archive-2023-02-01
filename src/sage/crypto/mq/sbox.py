@@ -527,9 +527,9 @@ class SBox(SageObject):
 
             sage: P.<y0,y1,y2,x0,x1,x2> = PolynomialRing(GF(2),6,order='lex')
             sage: S.polynomials([x0,x1,x2],[y0,y1,y2], groebner=True)
-            [y2 + x0 + x1*x2 + x1 + x2 + 1,
+            [y0 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + 1,
              y1 + x0*x2 + x1 + 1,
-             y0 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + 1]
+             y2 + x0 + x1*x2 + x1 + x2 + 1]
 
         REFERENCES: A. Biryukov and C. D. Canniere, Block Ciphers and
         Systems of Quadratic Equations, Fast Software Encryption 2003, LNCS

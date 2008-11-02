@@ -99,13 +99,13 @@ of the original system modulo $p$.
     101 * 103 * 27173681
 
     sage: I.change_ring( P.change_ring( GF(101) ) ).groebner_basis()
-    [z - 33, y + 48, x + 19]
+    [x + 19, y + 48, z - 33]
 
     sage: I.change_ring( P.change_ring( GF(103) ) ).groebner_basis()
-    [z - 18, y + 8, x + 39]
+    [x + 39, y + 8, z - 18]
 
     sage: I.change_ring( P.change_ring( GF(27173681) ) ).groebner_basis()
-    [z + 10380032, y + 3186055, x - 536027]
+    [x - 536027, y + 3186055, z + 10380032]
 
 Of course, modulo any other prime the Groebner basis is trivial so
 there are no other solutions. For example:

@@ -56,7 +56,7 @@ We compute in a quotient of a polynomial ring over $\ZZ/17\ZZ$:
 
     sage: R.<x,y> = ZZ[]
     sage: S.<a,b> = R.quotient((x^2 + y^2, 17))
-    verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+    ...
     sage: S
     Quotient of Multivariate Polynomial Ring in x, y over Integer Ring
     by the ideal (x^2 + y^2, 17)
@@ -76,8 +76,9 @@ Working with a polynomial ring over $\ZZ$:
     sage: i = ideal(x^2 + y^2 - z^2 - w^2, x-y)
     sage: j = i^2
     sage: j.groebner_basis('macaulay2')          # requires optional M2 package
-    [x^2 - 2*x*y + y^2, 2*x*y^2 - 2*y^3 - x*z^2 + y*z^2 - x*w^2 +
-    y*w^2, 4*y^4 - 4*y^2*z^2 + z^4 - 4*y^2*w^2 + 2*z^2*w^2 + w^4]
+    [4*y^4 - 4*y^2*z^2 + z^4 - 4*y^2*w^2 + 2*z^2*w^2 + w^4,
+     2*x*y^2 - 2*y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2,
+     x^2 - 2*x*y + y^2]
 
     sage: y^2 - 2*x*y + x^2 in j                # optional
     True
@@ -95,7 +96,7 @@ We do a Groebner basis computation over a number field:
     Polynomial Ring in x, y, z over Cyclotomic Field of order 3 and degree 2
 
     sage: i.groebner_basis()
-    [x + (-zeta)*y + 1, y^3 + (2*zeta + 1)*y^2 + (zeta - 1)*y + (-1/3*zeta - 2/3)]
+    [y^3 + (2*zeta + 1)*y^2 + (zeta - 1)*y + (-1/3*zeta - 2/3), x + (-zeta)*y + 1]
 
     sage: S = R.quotient(i); S
     Quotient of Multivariate Polynomial Ring in x, y, z over
@@ -113,7 +114,7 @@ Two examples from the Mathematica documentation (done in \Sage):
 
         sage: R.<x,y> = PolynomialRing(QQ, order='lex')
         sage: ideal(x^2 - 2*y^2, x*y - 3).groebner_basis()
-        [y^4 - 9/2, x - 2/3*y^3]
+         [x - 2/3*y^3, y^4 - 9/2]
 
     We show that three polynomials have no common root:
 
@@ -141,7 +142,7 @@ system has no solutions over the rationals.
     is not 1.
 
         sage: I.groebner_basis()
-        verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+        ...
         [x + y + z, y^2 + y + 23234, y*z + y + 26532, 2*y + 158864, z^2 + 17223, 2*z + 41856, 164878]
 
     Now for each prime $p$ dividing this integer 164878, the
@@ -153,11 +154,11 @@ system has no solutions over the rationals.
         2 * 7 * 11777
 
         sage: I.change_ring(P.change_ring( GF(2) )).groebner_basis()
-        [z^2 + 1, y*z + y, y^2 + y, x + y + z]
+        [x + y + z, y^2 + y, y*z + y, z^2 + 1]
         sage: I.change_ring(P.change_ring( GF(7) )).groebner_basis()
-        [z - 2, y + 3, x - 1]
+        [x - 1, y + 3, z - 2]
         sage: I.change_ring(P.change_ring( GF(11777 ))).groebner_basis()
-        [z - 2626, y - 3007, x + 5633]
+        [x + 5633, y - 3007, z - 2626]
 
     The Groebner basis modulo any product of the prime factors is also non-trivial.
 
@@ -679,63 +680,61 @@ class MPolynomialIdeal_singular_repr:
             sage: I = sage.rings.ideal.Cyclic(P)
             sage: GB = Ideal(I.groebner_basis('singular:stdfglm'))
             sage: GB.triangular_decomposition('singular:triangLfak')
-	    [Ideal (a - 1, b - 1, c - 1, d^2 + 3*d + 1, e + d + 3)
-              of Multivariate Polynomial Ring in e, d, c, b, a
+            [Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
+              1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
+              566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
+              178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
+              + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
+              232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
+              69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
+              55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
+              1042*a^12 - 127116*a^7 + 128103*a^2, a - 1) of
+              Multivariate Polynomial Ring in e, d, c, b, a over
+              Rational Field,
+             Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
+              1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
+              566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
+              178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
+              + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
+              232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
+              69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
+              55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
+              1042*a^12 - 127116*a^7 + 128103*a^2, a^2 + 3*a + 1) of
+              Multivariate Polynomial Ring in e, d, c, b, a over
+              Rational Field,
+             Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
+              1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
+              566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
+              178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
+              + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
+              232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
+              69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
+              55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
+              1042*a^12 - 127116*a^7 + 128103*a^2, a^4 - 4*a^3 + 6*a^2
+              + a + 1) of Multivariate Polynomial Ring in e, d, c, b,
+              a over Rational Field,
+             Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
+              1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
+              566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
+              178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
+              + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
+              232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
+              69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
+              55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
+              1042*a^12 - 127116*a^7 + 128103*a^2, a^4 + a^3 + a^2 + a
+              + 1) of Multivariate Polynomial Ring in e, d, c, b, a
               over Rational Field,
-             Ideal (a - 1, b - 1, c^2 + 3*c + 1, d + c + 3, e - 1)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a - 1, b^2 + 3*b + 1, c + b + 3, d - 1, e - 1)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a - 1, b^4 + b^3 + b^2 + b + 1, c - b^2, d - b^3,
-              e + b^3 + b^2 + b + 1)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a^2 + 3*a + 1, b - 1, c - 1, d - 1, e + a + 3)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a^2 + 3*a + 1, b + a + 3, c - 1, d - 1, e - 1)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a^4 - 4*a^3 + 6*a^2 + a + 1,
-              11*b^2 - 6*b*a^3 + 26*b*a^2 - 41*b*a + 4*b + 8*a^3
-              - 31*a^2 + 40*a + 24,
-              11*c + 3*a^3 - 13*a^2 + 26*a - 2, 11*d + 3*a^3 - 13*a^2
-              + 26*a - 2, 11*e + 11*b - 6*a^3 + 26*a^2 - 41*a + 4)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a^4 + a^3 + a^2 + a	+ 1, b - 1, c + a^3 + a^2 + a + 1,
-              d - a^3, e - a^2)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a^4 + a^3 + a^2 + a + 1, b - a, c - a, d^2 + 3*d*a + a^2,
-              e + d + 3*a)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a^4 + a^3 + a^2 + a + 1, b - a, c^2 + 3*c*a + a^2,
-              d + c + 3*a, e - a)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a^4 + a^3 + a^2 + a + 1, b^2 + 3*b*a + a^2, c + b + 3*a,
-              d - a, e - a)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a^4 + a^3 + a^2 + a + 1,
-              b^3 + b^2*a + b^2 + b*a^2 + b*a + b + a^3 + a^2 + a + 1,
-              c + b^2*a^3 + b^2*a^2 + b^2*a + b^2, d - b^2*a^2
-              - b^2*a - b^2 - b*a^2 - b*a - a^2,
-              e - b^2*a^3 + b*a^2 + b*a + b + a^2 + a)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field,
-             Ideal (a^4 + a^3 + 6*a^2 - 4*a + 1,
-              11*b^2 - 6*b*a^3 - 10*b*a^2 - 39*b*a - 2*b
-              - 16*a^3 - 23*a^2 - 104*a + 24,
-              11*c + 3*a^3 + 5*a^2 + 25*a + 1,
-              11*d + 3*a^3 + 5*a^2 + 25*a + 1,
-              11*e + 11*b - 6*a^3 - 10*a^2 - 39*a - 2)
-              of Multivariate Polynomial Ring in e, d, c, b, a
-              over Rational Field]
+             Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
+              1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
+              566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
+              178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
+              + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
+              232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
+              69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
+              55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
+              1042*a^12 - 127116*a^7 + 128103*a^2, a^4 + a^3 + 6*a^2 -
+              4*a + 1) of Multivariate Polynomial Ring in e, d, c, b,
+              a over Rational Field]
             """
 
         P = self.ring()
@@ -1071,7 +1070,7 @@ class MPolynomialIdeal_singular_repr:
 
         That the radical is correct is clear from the Groebner basis.
             sage: I.groebner_basis()
-            [x^2, y^3]
+            [y^3, x^2]
 
         This is the example from the \Singular manual:
             sage: p = z^2 + 1; q = z^3 + 2
@@ -1426,12 +1425,14 @@ class MPolynomialIdeal_singular_repr:
             sage: P.<x, y> = PolynomialRing(K, 2, order='lex')
             sage: I = Ideal([ x^8 + y + 2, y^6 + x*y^5 + x^2 ])
             sage: I = Ideal(I.groebner_basis()); I
-            Ideal (y^48 + y^41 - y^40 + y^37 - y^36 - y^33 + y^32 - y^29 + y^28 -
-            y^25 + y^24 + y^2 + y + 1, x - y^47 - y^45 + y^44 - y^43 + y^41 - y^39 -
-            y^38 - y^37 - y^36 + y^35 - y^34 - y^33 + y^32 - y^31 + y^30 + y^28 +
-            y^27 + y^26 + y^25 - y^23 + y^22 + y^21 - y^19 - y^18 - y^16 + y^15 +
-            y^13 + y^12 - y^10 + y^9 + y^8 + y^7 - y^6 + y^4 + y^3 + y^2 + y - 1) of
-            Multivariate Polynomial Ring in x, y over Finite Field in w of size 3^3
+            Ideal (x - y^47 - y^45 + y^44 - y^43 + y^41 - y^39 - y^38
+            - y^37 - y^36 + y^35 - y^34 - y^33 + y^32 - y^31 + y^30 +
+            y^28 + y^27 + y^26 + y^25 - y^23 + y^22 + y^21 - y^19 -
+            y^18 - y^16 + y^15 + y^13 + y^12 - y^10 + y^9 + y^8 + y^7
+            - y^6 + y^4 + y^3 + y^2 + y - 1, y^48 + y^41 - y^40 + y^37
+            - y^36 - y^33 + y^32 - y^29 + y^28 - y^25 + y^24 + y^2 + y
+            + 1) of Multivariate Polynomial Ring in x, y over Finite
+            Field in w of size 3^3
 
             sage: V = I.variety(); V
             [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
@@ -1451,7 +1452,7 @@ class MPolynomialIdeal_singular_repr:
             sage: K.<x, y> = PolynomialRing(QQ, 2, order='lex')
             sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
             sage: I = Ideal(I.groebner_basis()); I
-            Ideal (y^4 - 2*y^3 + 4*y^2 - 4*y + 1, x + y^3 - 2*y^2 + 4*y - 4)
+            Ideal (x + y^3 - 2*y^2 + 4*y - 4, y^4 - 2*y^3 + 4*y^2 - 4*y + 1)
             of Multivariate Polynomial Ring in x, y over Rational Field
 
         These two curves have one rational intersection:
@@ -1641,27 +1642,26 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
             sage: I = ideal(x*y-z^2, y^2-w^2)
             sage: I.groebner_basis('macaulay2') # optional -- requires macaulay2, indirect doctest
-            [y^2 - w^2, x*y - z^2, y*z^2 - x*w^2, z^4 - x^2*w^2]
+            [z^4 - x^2*w^2, y*z^2 - x*w^2, x*y - z^2, y^2 - w^2]
 
         Groebner basis can be used to compute in $\Z/n\Z[x,\ldots]$.
 
             sage: R.<x,y,z> = ZZ[]
             sage: I = ideal([y^2*z - x^3 - 19*x*z, y^2, 19^2])
             sage: I.groebner_basis('macaulay2') # optional -- requires macaulay2
-            [361, y^2, x^3 + 19*x*z]
+            [x^3 + 19*x*z, y^2, 361]
             sage: I = ideal([y^2*z - x^3 - 19^2*x*z, y^2, 19^2])
             sage: I.groebner_basis('macaulay2') # optional -- requires macaulay2
-            [361, y^2, x^3]
+            [x^3, y^2, 361]
         """
         I = self._macaulay2_()
         G = str(I.gb().generators().external_string()).replace('\n','')
         i = G.rfind('{{')
         j = G.rfind('}}')
         G = G[i+2:j].split(',')
-        L = self.ring().gens_dict()
-        B = [sage_eval(f, L) for f in G]
+        R = self.ring()
+        B = [R(f) for f in G]
         B = Sequence(B, self.ring(), check=False)
-        B.sort()
         B.set_immutable()
         return B
 
@@ -1844,46 +1844,48 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis()
-            [c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c, b + 30*c^3 - 79/7*c^2 + 3/7*c, a - 60*c^3 + 158/7*c^2 + 8/7*c - 1]
+            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('singular:groebner')
-            [c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c, b + 30*c^3 - 79/7*c^2 + 3/7*c, a - 60*c^3 + 158/7*c^2 + 8/7*c - 1]
+            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('singular:std')
-            [c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c, b + 30*c^3 - 79/7*c^2 + 3/7*c, a - 60*c^3 + 158/7*c^2 + 8/7*c - 1]
+            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('singular:stdhilb')
-            [c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c, b + 30*c^3 - 79/7*c^2 + 3/7*c, a - 60*c^3 + 158/7*c^2 + 8/7*c - 1]
+            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('singular:stdfglm')
-            [c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c, b + 30*c^3 - 79/7*c^2 + 3/7*c, a - 60*c^3 + 158/7*c^2 + 8/7*c - 1]
+            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('singular:slimgb')
-            [c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c, b + 30*c^3 - 79/7*c^2 + 3/7*c, a - 60*c^3 + 158/7*c^2 + 8/7*c - 1]
+            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         Note that toy:buchberger does not return the reduced Groebner basis,
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('toy:buchberger')
-            [a + 2*b + 2*c - 1, b^2 + 4/3*b*c - 1/3*b + c^2 - 1/3*c,
-            a*b + b*c - 1/2*b, b + 30*c^3 - 79/7*c^2 + 3/7*c,
-            a^2 - a + 2*b^2 + 2*c^2, b*c - 1/10*b + 6/5*c^2 - 2/5*c,
-            c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+            [a^2 - a + 2*b^2 + 2*c^2,
+             a*b + b*c - 1/2*b, a + 2*b + 2*c - 1,
+             b^2 + 4/3*b*c - 1/3*b + c^2 - 1/3*c,
+             b*c - 1/10*b + 6/5*c^2 - 2/5*c,
+             b + 30*c^3 - 79/7*c^2 + 3/7*c,
+             c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         but that toy:buchberger2 does.
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('toy:buchberger2')
-            [b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c, a - 60*c^3 + 158/7*c^2 + 8/7*c - 1]
+            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('macaulay2:gb') # optional requires Macaulay2
-            [84*c^4 - 40*c^3 + c^2 + c, 7*b + 210*c^3 - 79*c^2 + 3*c, 7*a - 420*c^3 + 158*c^2 + 8*c - 7]
+            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('magma:GroebnerBasis') # optional requires MAGMA
@@ -1896,7 +1898,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P.<a,b,c> = PolynomialRing(ZZ,3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
             sage: I.groebner_basis()
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            ...
             [b^3 - b*c^2 - 24*c^3 - b^2 - 6*b*c + 2*c^2 + 2*c,
              2*b*c^2 + 36*c^3 - 9*b*c - 24*c^2 + 2*b + 4*c,
              42*c^3 + b^2 + 2*b*c - 14*c^2 + b,
@@ -1905,11 +1907,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
              a + 2*b + 2*c - 1]
 
             sage: I.groebner_basis('macaulay2') # requires optional M2 package
-            [a + 2*b + 2*c - 1, 10*b*c + 12*c^2 - b - 4*c,
-             2*b^2 - 4*b*c - 6*c^2 + 2*c,
-             42*c^3 + b^2 + 2*b*c - 14*c^2 + b,
+            [b^3 + b*c^2 + 12*c^3 + b^2 + b*c - 4*c^2,
              2*b*c^2 - 6*c^3 + b^2 + 5*b*c + 8*c^2 - b - 2*c,
-             b^3 + b*c^2 + 12*c^3 + b^2 + b*c - 4*c^2]
+             42*c^3 + b^2 + 2*b*c - 14*c^2 + b,
+             2*b^2 - 4*b*c - 6*c^2 + 2*c, 10*b*c + 12*c^2 - b - 4*c,
+             a + 2*b + 2*c - 1]
 
         \Sage also supports local orderings:
 
@@ -1979,6 +1981,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         else:
             raise TypeError, "algorithm '%s' unknown"%algorithm
 
+        gb = sorted(gb, reverse=True)
         if self.ring().base_ring().is_field():
             gb = Sequence( [f*f.lc()**(-1) for f in gb], immutable=True, check=False)
         return gb
@@ -1999,7 +2002,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
            Multivariate Polynomial Ring in x, y, z over Rational Field
 
            sage: I.groebner_basis()
-           [z^3 - 1, y^2 + y*z + z^2, x + y + z]
+           [x + y + z, y^2 + y*z + z^2, z^3 - 1]
 
            sage: Q.<x,y,z> = P.change_ring(order='degrevlex'); Q
            Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -2011,7 +2014,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
            Multivariate Polynomial Ring in x, y, z over Rational Field
 
            sage: J.groebner_basis()
-           [x + y + z, y^2 + y*z + z^2, z^3 - 1]
+           [z^3 - 1, y^2 + y*z + z^2, x + y + z]
         """
         return P.ideal([P(f) for f in self.gens()])
 

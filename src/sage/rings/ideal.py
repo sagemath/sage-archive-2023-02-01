@@ -818,7 +818,7 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
         Ideal (x + y + z, x*y + x*z + y*z, x*y*z - 1) of Multivariate Polynomial
         Ring in x, y, z over Rational Field
         sage: I.groebner_basis()
-        [z^3 - 1, y^2 + y*z + z^2, x + y + z]
+        [x + y + z, y^2 + y*z + z^2, z^3 - 1]
 
     We compute a Groebner basis for cyclic 6, which is a standard
     benchmark and test ideal:

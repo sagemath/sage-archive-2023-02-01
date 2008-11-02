@@ -245,7 +245,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             sage: I = X.defining_ideal(); I
             Ideal (x*z^2, y^2*z, x*y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field
             sage: I.groebner_basis()
-            [x*z^2, y^2*z, x*y^2]
+            [x*y^2, y^2*z,  x*z^2]
             sage: X.dimension()
             0
             sage: X.base_ring()

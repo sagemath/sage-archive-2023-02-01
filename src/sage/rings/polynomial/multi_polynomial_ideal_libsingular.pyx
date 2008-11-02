@@ -8,8 +8,8 @@ EXAMPLES:
     sage: x,y,z = QQ['x,y,z'].gens()
     sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)
     sage: I.groebner_basis('libsingular:std')
-    [x^3 + y^3 + z^2 - 1, x^2*y^3 - y^4 + x^2*z^2 - z^3 - x^2 + 1, y^6
-    + x*y^4 + 2*y^3*z^2 + x*z^3 + z^4 - 2*y^3 - 2*z^2 - x + 1]
+    [y^6 + x*y^4 + 2*y^3*z^2 + x*z^3 + z^4 - 2*y^3 - 2*z^2 - x + 1,
+    x^2*y^3 - y^4 + x^2*z^2 - z^3 - x^2 + 1, x^3 + y^3 + z^2 - 1]
 
 We compute a Groebner basis for cyclic 6, which is a standard
 benchmark and test ideal.
@@ -24,7 +24,7 @@ Two examples from the Mathematica documentation (done in SAGE):
     We compute a Groebner basis:
         sage: R.<x,y> = PolynomialRing(QQ, order='lex')
         sage: ideal(x^2 - 2*y^2, x*y - 3).groebner_basis('libsingular:slimgb')
-        [y^4 - 9/2, x - 2/3*y^3]
+        [x - 2/3*y^3, y^4 - 9/2]
 
     We show that three polynomials have no common root:
         sage: R.<x,y> = QQ[]

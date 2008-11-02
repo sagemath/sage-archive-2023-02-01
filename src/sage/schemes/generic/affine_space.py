@@ -347,7 +347,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: I = X.defining_ideal(); I
             Ideal (x, y^2, x*y^2) of Multivariate Polynomial Ring in x, y over Rational Field
             sage: I.groebner_basis()
-            [x, y^2]
+            [y^2, x]
             sage: X.dimension()
             0
             sage: X.base_ring()

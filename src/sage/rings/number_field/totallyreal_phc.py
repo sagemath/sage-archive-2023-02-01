@@ -101,7 +101,10 @@ def __lagrange_bounds_phc(n, m, a, tmpfile=None):
     S = coefficients_to_power_sums(n,m,a)
 
     # Look for phc.
-    find_phc = os.popen2('which phc')[1].readlines()
+    fi, fo = os.popen2('which phc')
+    find_phc = fo.readlines()
+    fi.close()
+    fo.close()
     if find_phc == []:
         raise RuntimeError, "PHCpack not installed."
 

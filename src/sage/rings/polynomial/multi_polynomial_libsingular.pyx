@@ -50,8 +50,13 @@ TESTS:
 
 """
 
+
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
+
+cdef extern from "dlfcn.h":
+    cdef long RTLD_LAZY
+    cdef long RTLD_GLOBAL
 
 import os
 import re
@@ -137,7 +142,7 @@ cdef init_singular():
     for extension in ["so", "dylib", "dll"]:
         lib = os.environ['SAGE_LOCAL']+"/lib/libsingular."+extension
         if os.path.exists(lib):
-            handle = dlopen(lib, 256+1)
+            handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
             break
 
     if handle == NULL:

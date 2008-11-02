@@ -243,6 +243,12 @@ def Ei(z):
         sage: Ei(3+I)
         7.823134676 + 6.09751978399*I
 
+    The branch cut for this function is along the positive real axis:
+        sage: Ei(3 + 0.1*I)
+        9.91152770287 + 0.668898200718*I
+        sage: Ei(3 - 0.1*I)
+        9.91152770287 + 5.61428710646*I
+
     ALGORITHM: Uses scipy's special.exp1 function.
     """
     import scipy.special, math

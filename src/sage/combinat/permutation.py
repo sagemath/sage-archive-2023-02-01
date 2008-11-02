@@ -253,6 +253,21 @@ class Permutation_class(CombinatorialObject):
         else:
             raise ValueError, "permutation_options['display'] should be one of 'list', 'cycle', or 'singleton'"
 
+    def _gap_(self, gap):
+        """
+        Returns a GAP version of this permutation.
+
+        EXAMPLES:
+            sage: gap(Permutation([1,2,3]))
+            ()
+            sage: gap(Permutation((1,2,3)))
+            (1,2,3)
+            sage: type(_)
+            <class 'sage.interfaces.gap.GapElement'>
+
+        """
+        return self.to_permutation_group_element()._gap_(gap)
+
     def cycle_string(self, singletons=False):
         """
         Returns a string of the permutation in cycle notation.

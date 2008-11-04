@@ -3,6 +3,13 @@
 
 == Changelog ==
 
+=== mercurial-1.01.p2 (William Stein, Nov 3, 2008) ===
+ * Added custom hgmerge script for OS X. For some reason no script at all was
+   copied over, which lead to (1) hg merge silently failing painfully for most
+   users, and (2) for users that run install_scripts, they would get a fork
+   bomb, since hgmerge would call sage -hgmerge which would call hgmerge
+   ad infintum.
+
 === mercurial-1.01.p1 (Michael Abshoff, August 15th, 2008) ===
  * Disable inotify extenion since it is broken on Itanium
 

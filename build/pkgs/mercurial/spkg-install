@@ -40,6 +40,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+if [ `umame` = "Darwin" ]; then
+   echo "Copying custom hgmerge script over to $SAGE_LOCAL/bin/"
+   $CP patches/hgmerge-osx "$SAGE_LOCAL"/bin/hgmerge
+fi
+
 echo "Deleting dead links"
 cd $SAGE_LOCAL/lib
 rm -rf python/python2.5 python/python

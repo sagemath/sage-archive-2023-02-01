@@ -480,7 +480,7 @@ class CongruenceSubgroup(group.Group):
 
     def reduce_cusp(self, c):
         r"""
-        Given a cusp $c \in \mathbb{P}^1(\mathbb{Q})$, return the
+        Given a cusp $c \in \mathbf{P}^1(\mathbf{Q})$, return the
         unique reduced cusp equivalent to c under the action of self,
         where a reduced cusp is an element r/s with r,s coprime
         integers, s as small as possible, and r as small as possible
@@ -499,7 +499,7 @@ class CongruenceSubgroup(group.Group):
     def cusps(self, algorithm='default'):
         r"""
         Return a set of inequivalent cusps for self, i.e. a set of
-        representatives for the orbits of self on $\mathbb{P}^1(\mathbb{Q})$.
+        representatives for the orbits of self on $\mathbf{P}^1(\mathbf{Q})$.
         These should be returned in a reduced form.
 
         INPUTS:
@@ -1260,7 +1260,7 @@ class GammaH_class(CongruenceSubgroup):
         r"""
         Return a set of inequivalent cusps for self, i.e. a set of
         representatives for the orbits of self on
-        $\mathbb{P}^1(\mathbb{Q})$.  These are returned in a reduced
+        $\mathbf{P}^1(\mathbf{Q})$.  These are returned in a reduced
         form; see self.reduce_cusp for the definition of reduced.
 
         ALGORITHM:
@@ -1667,7 +1667,7 @@ class Gamma0_class(GammaH_class):
     def _find_cusps(self):
         r"""
         Return a set of inequivalent cusps for self, i.e. a set of
-        representatives for the orbits of self on $\mathbb{P}^1(\mathbb{Q})$.
+        representatives for the orbits of self on $\mathbf{P}^1(\mathbf{Q})$.
         These are returned in a reduced form; see self.reduce_cusp for the
         definition of reduced.
 

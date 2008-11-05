@@ -609,15 +609,22 @@ class GenericGraph(SageObject):
             G = DiGraph(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, sparse=sparse)
         else:
             G = Graph(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, sparse=sparse)
-        if hasattr(self, '_assoc'):
-            G._assoc = {}
-            for v in self._assoc:
-                try:
-                    G._assoc[v] = self._assoc[v].copy()
-                except:
-                    G._assoc[v] = copy(self._assoc[v])
-        if hasattr(self, '_embedding'):
-            G._embedding = self._embedding
+
+        attributes_to_copy = ('_assoc', '_embedding')
+        for attr in attributes_to_copy:
+            if hasattr(self, attr):
+                copy_attr = {}
+                old_attr = getattr(self, attr)
+                if isinstance(old_attr, dict):
+                    for v,value in old_attr.iteritems():
+                        try:
+                            copy_attr[v] = value.copy()
+                        except AttributeError:
+                            copy_attr[v] = copy(value)
+                    setattr(G, attr, copy_attr)
+                else:
+                    setattr(G, attr, copy(old_attr))
+
         G._weighted = self._weighted
         return G
 
@@ -1574,7 +1581,6 @@ class GenericGraph(SageObject):
 
             if hasattr(graph,'_embedding'):
                 # strip the embedding to fit original graph
-                graph._embedding.pop(extra)
                 for u,v in extra_edges:
                     graph._embedding[u].pop(graph._embedding[u].index(v))
                     graph._embedding[v].pop(graph._embedding[v].index(u))
@@ -2261,10 +2267,26 @@ class GenericGraph(SageObject):
             sage: G.delete_vertex(0, in_order=True)
             sage: G.vertices()
             [(0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
-
+            sage: G = graphs.PathGraph(5)
+            sage: G.set_vertices({0: 'no delete', 1: 'delete'})
+            sage: G.set_boundary([1,2])
+            sage: G.delete_vertex(1)
+            sage: G.get_vertices()
+            {0: 'no delete', 2: None, 3: None, 4: None}
+            sage: G.get_boundary()
+            [2]
+            sage: G.get_pos()
+            {0: [0, 0], 2: [2, 0], 3: [3, 0], 4: [4, 0]}
         """
         if in_order:
             vertex = self.vertices()[vertex]
+
+        attributes_to_update = ('_pos', '_assoc', '_embedding')
+        for attr in attributes_to_update:
+            if hasattr(self, attr) and getattr(self, attr) is not None:
+                getattr(self, attr).pop(vertex, None)
+        self._boundary = [v for v in self._boundary if v != vertex]
+
         self._backend.del_vertex(vertex)
 
     def delete_vertices(self, vertices):
@@ -2284,6 +2306,15 @@ class GenericGraph(SageObject):
             NetworkXError: node 1 not in graph
 
         """
+        attributes_to_update = ('_pos', '_assoc', '_embedding')
+        for attr in attributes_to_update:
+            if hasattr(self, attr) and getattr(self, attr) is not None:
+                attr_dict = getattr(self, attr)
+                for vertex in vertices:
+                    attr_dict.pop(vertex, None)
+
+        self._boundary = [v for v in self._boundary if v not in vertices]
+
         self._backend.del_vertices(vertices)
 
     def has_vertex(self, vertex):
@@ -2369,13 +2400,10 @@ class GenericGraph(SageObject):
             Flower Snark: Graph on 20 vertices
 
         """
-        try:
-            for v in vertex_dict:
-                self._assoc[v] = vertex_dict[v]
-        except:
+        if hasattr(self, '_assoc') is False:
             self._assoc = {}
-            for v in vertex_dict:
-                self._assoc[v] = vertex_dict[v]
+
+        self._assoc.update(vertex_dict)
 
     def set_vertex(self, vertex, object):
         """
@@ -2394,11 +2422,10 @@ class GenericGraph(SageObject):
             Flower Snark: Graph on 20 vertices
 
         """
-        try:
-            self._assoc[vertex] = object
-        except:
+        if hasattr(self, '_assoc') is False:
             self._assoc = {}
-            self._assoc[vertex] = object
+
+        self._assoc[vertex] = object
 
     def get_vertex(self, vertex):
         """
@@ -2419,10 +2446,10 @@ class GenericGraph(SageObject):
             Flower Snark: Graph on 20 vertices
 
         """
-        try:
-            return self._assoc[vertex]
-        except:
+        if hasattr(self, '_assoc') is False:
             return None
+
+        return self._assoc.get(vertex, None)
 
     def get_vertices(self, verts=None):
         """
@@ -2442,12 +2469,15 @@ class GenericGraph(SageObject):
         """
         if verts is None:
             verts = self.vertices()
+
+        if hasattr(self, '_assoc') is False:
+            return dict.fromkeys(verts, None)
+
         output = {}
+
         for v in verts:
-            try:
-                output[v] = self._assoc[v]
-            except:
-                output[v] = None
+            output[v] = self._assoc.get(v, None)
+
         return output
 
     def loop_vertices(self):
@@ -3224,9 +3254,6 @@ class GenericGraph(SageObject):
         """
         self.name('')
         self.delete_vertices(self.vertices())
-        self._pos=[]
-        self._boundary=[]
-        self._assoc=None
 
     ### Degree functions
 
@@ -3466,9 +3493,6 @@ class GenericGraph(SageObject):
             G = self
         else:
             G = self.copy()
-        if G._pos is not None:
-            for v in vertices:
-                del G._pos[v]
         G.name("Subgraph of (%s)"%self.name())
         if edges is None and edge_property is not None:
             G.delete_edges([e for e in self.edge_iterator() if not edge_property(e)])
@@ -5952,6 +5976,18 @@ class GenericGraph(SageObject):
             sage: P.delete_vertices([0,1])
             sage: P.relabel()
 
+            The attributes are properly updated too
+            sage: G = graphs.PathGraph(5)
+            sage: G.set_vertices({0: 'before', 1: 'delete', 2: 'after'})
+            sage: G.set_boundary([1,2,3])
+            sage: G.delete_vertex(1)
+            sage: G.relabel()
+            sage: G.get_vertices()
+            {0: 'before', 1: 'after', 2: None, 3: None}
+            sage: G.get_boundary()
+            [1, 2]
+            sage: G.get_pos()
+            {0: [0, 0], 1: [2, 0], 2: [3, 0], 3: [4, 0]}
         """
         if perm is None:
             verts = self.vertices() # vertices() returns a sorted list:
@@ -5989,27 +6025,18 @@ class GenericGraph(SageObject):
                 except TypeError:
                     raise ValueError, "perm dictionary must be of the format {a:a1, b:b1, ...} where a,b,... are vertices and a1,b1,... are hashable"
         self._backend.relabel(perm, self._directed)
-        if self._pos:
-            new_pos = {}
-            for v in perm.iterkeys():
-                try:
-                    new_pos[perm[v]] = self._pos[v]
-                except KeyError:
-                    pass
-                    # since we allow position dicts to specify
-                    # positions for only some of the vertices...
-            self._pos = new_pos
+
+        attributes_to_update = ('_pos', '_assoc', '_embedding')
+        for attr in attributes_to_update:
+            if hasattr(self, attr) and getattr(self, attr) is not None:
+                new_attr = {}
+                for v,value in getattr(self, attr).iteritems():
+                    new_attr[perm[v]] = value
+
+                setattr(self, attr, new_attr)
+
         self._boundary = [perm[v] for v in self._boundary]
-        if hasattr(self, '_assoc'):
-            new_assoc = {}
-            for v in self._assoc:
-                new_assoc[perm[v]] = self._assoc[v]
-            self._assoc = new_assoc
-        if hasattr(self, '_embedding'):
-            new_embedding = {}
-            for v in self._embedding:
-                new_embedding[perm[v]] = self._embedding[v]
-            self._embedding = new_embedding
+
         if return_map:
             return perm
 
@@ -7585,7 +7612,7 @@ class Graph(GenericGraph):
             D.add_edge(u,v,l)
             D.add_edge(v,u,l)
         if hasattr(self, '_embedding'):
-            D._embedding = self._embedding
+            D._embedding = self._embedding.copy()
         D._weighted = self._weighted
         return D
 
@@ -8535,7 +8562,7 @@ class DiGraph(GenericGraph):
         G.add_vertices(self.vertex_iterator())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):
-            G._embedding = self._embedding
+            G._embedding = self._embedding.copy()
         G._weighted = self._weighted
         return G
 

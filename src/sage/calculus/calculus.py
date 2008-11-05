@@ -118,7 +118,7 @@ EXAMPLES:
         sage: f(pi)
         0
         sage: float(f(pi))
-        6.1232339957367663e-16
+        6.123...e-16
 
     Another example:
         sage: f = integrate(1/sqrt(9+x^2), x); f
@@ -7531,7 +7531,7 @@ class Function_sinh(PrimitiveFunction):
         sage: sinh(3.1415)
         11.5476653707437
         sage: float(sinh(pi))
-        11.548739357257748
+        11.54873935725774...
         sage: RR(sinh(pi))
         11.5487393572577
     """
@@ -7640,7 +7640,7 @@ class Function_csch(PrimitiveFunction):
         sage: csch(3.1415)
         0.0865975907592133
         sage: float(csch(pi))
-        0.086589537530046945
+        0.0865895375300469...
         sage: RR(csch(pi))
         0.0865895375300470
     """

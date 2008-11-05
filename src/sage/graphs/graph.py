@@ -6477,6 +6477,10 @@ class GenericGraph(SageObject):
             ...    position_E[b[vert]] = position_D[vert]
             sage: GraphicsArray([D.plot(pos=position_D), E.plot(pos=position_E)]).show()
 
+            sage: g=graphs.HeawoodGraph()
+            sage: g.is_isomorphic(g)
+            True
+
         Multigraphs:
             sage: G = Graph(multiedges=True)
             sage: G.add_edge((0,1,1))

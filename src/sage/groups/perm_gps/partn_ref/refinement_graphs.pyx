@@ -58,8 +58,9 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     cdef int i, j, n = -1
 
     from sage.graphs.graph import GenericGraph, Graph, DiGraph
+    which_G = 1
     for G_in in [G1, G2]:
-        if G_in is G1:
+        if which_G == 1:
             GS = GS1
             first=True
         else:
@@ -110,6 +111,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
         GS.G = G
         GS.directed = 1 if dig else 0
         GS.use_indicator = 1 if use_indicator_function else 0
+        which_G += 1
 
     if n == 0:
         return {}

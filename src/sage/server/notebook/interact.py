@@ -757,7 +757,7 @@ class InputGrid(InteractControl):
         for i in range(self.__rows):
             table += "<tr>"
             for j in range(self.__columns):
-                table += "<td><input type='text' value='%s' size='%s' onchange='%s'></input></td>"%(self.__default_value_grid[i][j], self.__width, self.interact())
+                table += "<td><input type='text' value='%r' size='%s' onchange='%s'></input></td>"%(self.__default_value_grid[i][j], self.__width, self.interact())
             table += "</tr>"
         table += "</table>"
 

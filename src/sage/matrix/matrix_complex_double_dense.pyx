@@ -887,17 +887,16 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             [-0.392540507864  0.824163383692  0.408248290464]
             [-0.560772154092  0.137360563949 -0.816496580928]
             [ -0.72900380032 -0.549442255795  0.408248290464]
-            sage: U*S*V.transpose()
-            <BLANKLINE>
-            [...e-1...               1.0               2.0]
+            sage: U*S*V.transpose() # slightly random output (due to computer architecture)
+            [              0.0               1.0               2.0]
             [              3.0               4.0               5.0]
             sage: m = matrix(CDF,3,2,range(6)); m
             [  0 1.0]
             [2.0 3.0]
             [4.0 5.0]
             sage: U,S,V = m.SVD()
-            sage: U*S*V.transpose()
-            [...e-1...                1.0]
+            sage: U*S*V.transpose() # slightly random output (due to computer architecture)
+            [               0.0                1.0]
             [               2.0                3.0]
             [               4.0                5.0]
 

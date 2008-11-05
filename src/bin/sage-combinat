@@ -110,7 +110,12 @@ def get_sage_version():
         sage_version = Popen([sage+" --version"], stdout=PIPE, shell=True).communicate()[0]
     except OSError, e:
         error("Could not start sage"+str(e))
-    return re.search('(\d+\.\d+\.\d+)',sage_version).group()
+    try:
+        version = re.search('(\d+\.\d+\.\d+)',sage_version).group()
+    except AttributeError:
+        version = re.search('(\d+\.\d+\.)',sage_version).group() + '0'
+    return version
+
 
 def cd_to_combinat():
     global sage_combinat_root

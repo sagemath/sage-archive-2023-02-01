@@ -41,6 +41,90 @@ Basic arithmetic with c-integers.
 
 # The int definitions
 
+include "../ext/gmp.pxi"
+include "../ext/stdsage.pxi"
+include "../libs/pari/decl.pxi"
+
+from sage.rings.integer_ring import ZZ
+from sage.libs.pari.gen import pari
+from sage.libs.pari.gen cimport gen as pari_gen
+from sage.rings.integer cimport Integer
+
+cdef extern from "convert.h":
+    cdef void t_INT_to_ZZ(mpz_t value, long *g)
+
+cpdef prime_range(start, stop=None, leave_pari=False):
+    r"""
+    List of all primes between start and stop-1, inclusive.  If the
+    second argument is omitted, returns the primes up to the first
+    argument.
+
+    Use this function when both start and stop are not too large,
+    since in all cases this function makes a table of primes up to
+    stop. If both are large, use the primes iterator function instead.
+
+    INPUT:
+        start -- lower bound
+        stop -- upper bound
+        leave_pari -- (default: False) if True, return a list of Pari
+                      integers instead of Sage integers.
+
+    EXAMPLES:
+        sage: prime_range(10)
+        [2, 3, 5, 7]
+        sage: prime_range(7)
+        [2, 3, 5]
+        sage: prime_range(2000,2020)
+        [2003, 2011, 2017]
+        sage: prime_range(2,2)
+        []
+        sage: prime_range(2,3)
+        [2]
+        sage: prime_range(5,10)
+        [5, 7]
+        sage: type(prime_range(8)[0])
+        <type 'sage.rings.integer.Integer'>
+
+    TESTS:
+        sage: len(prime_range(25000,2500000))
+        180310
+        sage: prime_range(8,leave_pari=True)
+        [2, 3, 5, 7]
+        sage: type(prime_range(7,leave_pari=True)[0])
+        <type 'sage.libs.pari.gen.gen'>
+        sage: prime_range(2,2,leave_pari=True)
+        []
+        sage: prime_range(2,3,leave_pari=True)
+        [2]
+        sage: prime_range(5,10,leave_pari=True)
+        [5, 7]
+    """
+    cdef Integer tmp
+    cdef Py_ssize_t ind, n, m
+    cdef pari_gen v
+
+    if stop is None:
+        # In this case, "start" is really stop
+        v = <pari_gen>pari.primes_up_to_n(int(start-1))
+        m = 0
+    else:
+        if stop <= start:
+            return []
+        v = <pari_gen>pari.primes_up_to_n(int(stop-1))
+        m = int(ZZ(pari(start-1).primepi()))
+    n = lg(v.g) - 1
+
+    if leave_pari:
+        return v[m:]
+
+    res = [0] * (n-m)
+    for ind from m <= ind < n:
+        tmp = PY_NEW(Integer)
+        t_INT_to_ZZ(tmp.value, <GEN>(v.g[ind+1]))
+        res[ind-m] = tmp
+
+    return res
+
 cdef class arith_int:
     cdef public int abs_int(self, int x) except -1:
         if x < 0:

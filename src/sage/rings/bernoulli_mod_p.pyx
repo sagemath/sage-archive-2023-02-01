@@ -17,10 +17,10 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cimport sage.ext.arith
-import sage.ext.arith
-cdef sage.ext.arith.arith_int arith_int
-arith_int  = sage.ext.arith.arith_int()
+cimport sage.rings.fast_arith
+import sage.rings.fast_arith
+cdef sage.rings.fast_arith.arith_int arith_int
+arith_int  = sage.rings.fast_arith.arith_int()
 
 ctypedef long long llong
 

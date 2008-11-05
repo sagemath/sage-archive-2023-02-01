@@ -1,7 +1,0 @@
-cdef extern int (mpz_crt(mpz_t ,mpz_t ,mpz_t ,mpz_t ,mpz_t ))
-cdef extern int (mpz_vec(mpz_t (*(*)),int (*),int ))
-cdef extern int (mpzvec_to_intmod(int (*(*)),mpz_t (*),int ,int ))
-cdef extern int (intmodvec_to_mpz(mpz_t (*(*)),int (*),int ))
-cdef extern int (allocate_mpz_zero_array(mpz_t (*(*)),int ))
-cdef extern int (mpzvec_clear(mpz_t (*),int ))
-cdef extern int (mpz_height_vec(mpz_t ,mpz_t (*),int ))

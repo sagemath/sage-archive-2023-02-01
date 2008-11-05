@@ -29,6 +29,7 @@ import sage.misc.misc as misc
 import sage.modular.dims as dims
 import sage.modular.hecke.all as hecke
 import sage.rings.arith as arith
+import sage.rings.fast_arith as fast_arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
 from   sage.structure.all import Sequence, SageObject
 import sage.modular.modsym.ambient
@@ -98,7 +99,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             return d
         # distinguish using Hecke operators, if possible.
         try:
-            for p in arith.prime_range(self.hecke_bound()):
+            for p in fast_arith.prime_range(self.hecke_bound()):
                 ap = self.hecke_matrix(p).trace()
                 bp = other.hecke_matrix(p).trace()
                 c = cmp(ap, bp)

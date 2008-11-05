@@ -7139,7 +7139,8 @@ class Graph(GenericGraph):
                 e.append((k[0],k[1]))
             self.add_edges(e)
         elif format == 'elliptic_curve_congruence':
-            from sage.rings.arith import lcm, prime_divisors, prange
+            from sage.rings.arith import lcm, prime_divisors
+            from sage.rings.fast_arith import prime_range
             from sage.misc.misc import prod
             if implementation == 'networkx':
                 self._backend = NetworkXGraphBackend(networkx.XGraph(None, selfloops=loops, **kwds))
@@ -7158,7 +7159,7 @@ class Graph(GenericGraph):
                     lim = prod([(j^(MN.ord(j)) + j^(MN.ord(j)-1)) for j in p_MN])
                     a_E = E.anlist(lim)
                     a_F = F.anlist(lim)
-                    l_list = [p for p in prange(lim) if p not in p_MN ]
+                    l_list = [p for p in prime_range(lim) if p not in p_MN ]
                     p_edges = l_list
                     for l in l_list:
                         n = a_E[l] - a_F[l]

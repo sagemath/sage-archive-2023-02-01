@@ -406,7 +406,7 @@ class DickmanRhoComputer(PrimitiveFunction):
         Dickmans's function is analytic on the interval $[n,n+1]$ for each
         integer $n$. To evalute at $n+t, 0 \le t < 1$, a power series is
         recursively computed about $n+1/2$ using the differential
-        equation stated above. As high precision arithmatic may be needed
+        equation stated above. As high precision arithmetic may be needed
         for intermediate results the computed series are cached for later use.
 
         Simple explicit formulas are used for the intervals [0,1] and [1,2].

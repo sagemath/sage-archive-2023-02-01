@@ -7356,7 +7356,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         global num_primes
 
         if n <= 0:
-            raise ArithmeticError, "nth prime meaningless for negative n (=%s)"%n
+            raise ValueError, "nth prime meaningless for non-positive n (=%s)"%n
         cdef GEN g
         _sig_on
         g = prime(n)

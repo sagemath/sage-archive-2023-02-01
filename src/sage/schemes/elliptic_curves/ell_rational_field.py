@@ -3312,7 +3312,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             []
         """
         v = self.aplist(max(B, 3))
-        P = arith.prime_range(max(B,3)+1)
+        P = rings.prime_range(max(B,3)+1)
         N = self.conductor()
         return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]==0 and N%P[i] != 0] + \
                       [P[i] for i in range(2,len(v)) if v[i] == 0 and N%P[i] != 0]
@@ -3343,7 +3343,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             []
         """
         v = self.aplist(max(B, 3) )
-        P = arith.prime_range(max(B,3) +1)
+        P = rings.prime_range(max(B,3) +1)
         return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]!=0] +\
                [P[i] for i in range(2,len(v)) if v[i] != 0]
 
@@ -3783,7 +3783,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         P = [x for x in P if x.order() == oo]
         if len(P) == 0:
             # We've eliminated the possibility of a divisor up to p.
-            return arith.prime_range(3,p), D
+            return rings.prime_range(3,p), D
         else:
             return _bound(P)
 

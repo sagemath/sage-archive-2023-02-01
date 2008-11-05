@@ -6,10 +6,10 @@ import random
 
 import sage.rings.arith
 
-cimport sage.ext.arith
-import sage.ext.arith
-cdef sage.ext.arith.arith_int arith_int
-arith_int  = sage.ext.arith.arith_int()
+cimport sage.rings.fast_arith
+import sage.rings.fast_arith
+cdef sage.rings.fast_arith.arith_int arith_int
+arith_int  = sage.rings.fast_arith.arith_int()
 from sage.matrix.matrix_integer_2x2 cimport Matrix_integer_2x2
 
 include "../ext/cdefs.pxi"

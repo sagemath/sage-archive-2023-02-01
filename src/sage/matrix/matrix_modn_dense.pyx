@@ -92,10 +92,10 @@ cdef extern from *:
     void* memcpy(void* dst, void* src, long n)
 
 import sage.ext.multi_modular
-cimport sage.ext.arith
-import sage.ext.arith
-cdef sage.ext.arith.arith_int ArithIntObj
-ArithIntObj  = sage.ext.arith.arith_int()
+cimport sage.rings.fast_arith
+import sage.rings.fast_arith
+cdef sage.rings.fast_arith.arith_int ArithIntObj
+ArithIntObj  = sage.rings.fast_arith.arith_int()
 
 MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
 
@@ -134,7 +134,7 @@ from sage.rings.integer cimport Integer
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 
 ################
-from sage.ext.arith cimport arith_int
+from sage.rings.fast_arith cimport arith_int
 cdef arith_int ai
 ai = arith_int()
 ################

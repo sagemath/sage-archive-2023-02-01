@@ -666,20 +666,16 @@ ext_modules = [ \
     Extension('sage.ext.fast_eval',
               sources = ['sage/ext/fast_eval.pyx']), \
 
-    Extension('sage.ext.arith',
-              sources = ['sage/ext/arith.pyx']), \
-
-    Extension('sage.ext.arith_gmp',
-              sources = ['sage/ext/arith_gmp.pyx'],
-              libraries=['gmp']), \
+    Extension('sage.rings.fast_arith',
+              sources = ['sage/rings/fast_arith.pyx'],
+              libraries=['gmp','pari','csage']), \
 
     Extension('sage.ext.multi_modular',
               sources = ['sage/ext/multi_modular.pyx'],
               libraries=['gmp']), \
 
     Extension('sage.modular.congroup_pyx',
-              sources = ['sage/modular/congroup_pyx.pyx', \
-                         'sage/ext/arith.pyx']), \
+              sources = ['sage/modular/congroup_pyx.pyx']), \
 
     Extension('sage.categories.functor',
               sources = ['sage/categories/functor.pyx']), \
@@ -793,7 +789,7 @@ ext_modules = [ \
               sources = ['sage/rings/residue_field.pyx']), \
 
     Extension('sage.rings.integer',
-              sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx'],
+              sources = ['sage/rings/integer.pyx'],
               libraries=['ntl', 'gmp', 'pari']), \
 
     Extension('sage.misc.allocator',
@@ -873,7 +869,7 @@ ext_modules = [ \
               libraries=['gmp','stdc++']), \
 
     Extension('sage.rings.bernoulli_mod_p',
-              sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
+              sources = ['sage/rings/bernoulli_mod_p.pyx'],
               libraries=['ntl','stdc++'],
               language = 'c++',
               include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
@@ -945,7 +941,6 @@ ext_modules = [ \
 
     Extension('sage.rings.rational',
               sources = ['sage/rings/rational.pyx',
-                         'sage/ext/arith.pyx', \
                          'sage/rings/integer.pyx'],
               libraries=['ntl', 'gmp']), \
 
@@ -1029,8 +1024,7 @@ ext_modules = [ \
 
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',
-               'sage/modular/modsym/p1list.pyx',
-               'sage/ext/arith.pyx'],
+               'sage/modular/modsym/p1list.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
               include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/'],
               extra_compile_args=["-std=c99"]), \
@@ -1042,8 +1036,7 @@ ext_modules = [ \
               extra_compile_args=["-std=c99"]), \
 
     Extension('sage.modular.modsym.p1list',
-              ['sage/modular/modsym/p1list.pyx',
-               'sage/ext/arith.pyx'],
+              ['sage/modular/modsym/p1list.pyx'],
               libraries = ['gmp']), \
 
     Extension('sage.structure.mutability',

@@ -715,7 +715,7 @@ cdef class FastDoubleFunc:
         return L
 
     ###################################################################
-    #   Basic Arithmatic
+    #   Basic Arithmetic
     ###################################################################
 
     def __add__(left, right):

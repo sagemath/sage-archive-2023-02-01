@@ -66,7 +66,7 @@ import operator
 
 from sage.rings.integer import Integer
 
-from sage.ext.arith cimport arith_llong
+from sage.rings.fast_arith cimport arith_llong
 cdef arith_llong arith = arith_llong()
 cdef extern from *:
     long long LONG_LONG_MAX

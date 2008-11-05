@@ -255,7 +255,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self._pyx_order.precompute_table(self)
 
     def list_of_elements_of_multiplicative_group(self):
-        import sage.ext.arith as a
+        import fast_arith as a
         if self.__order <= 46340:   # todo: don't hard code
             gcd = a.arith_int().gcd_int
         elif self.__order <= 2147483647:   # todo: don't hard code

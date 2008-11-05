@@ -54,11 +54,11 @@ import sage.structure.factorization
 
 import sage.rings.real_mpfr
 
-cimport sage.ext.arith
-import  sage.ext.arith
+cimport sage.rings.fast_arith
+import  sage.rings.fast_arith
 
-cdef sage.ext.arith.arith_int ai
-ai = sage.ext.arith.arith_int()
+cdef sage.rings.fast_arith.arith_int ai
+ai = sage.rings.fast_arith.arith_int()
 
 cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)

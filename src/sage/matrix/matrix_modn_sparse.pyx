@@ -88,7 +88,7 @@ from sage.structure.element import is_Vector
 
 ################
 # TODO: change this to use extern cdef's methods.
-from sage.ext.arith cimport arith_int
+from sage.rings.fast_arith cimport arith_int
 cdef arith_int ai
 ai = arith_int()
 ################

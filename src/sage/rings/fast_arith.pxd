@@ -1,4 +1,4 @@
-include "cdefs.pxi"
+include "../ext/cdefs.pxi"
 
 cdef class arith_int:
     cdef int abs_int(self, int x) except -1

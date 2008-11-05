@@ -88,7 +88,7 @@ import sage.matrix.matrix_space as matrix_space
 
 ################
 # Used for modular HNF
-from sage.ext.arith cimport arith_int
+from sage.rings.fast_arith cimport arith_int
 cdef arith_int ai
 ai = arith_int()
 ################

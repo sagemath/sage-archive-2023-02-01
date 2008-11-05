@@ -8,12 +8,12 @@ List of Elements of $P^1(\Z/N\Z)$
 
 from sage.misc.search import search
 
-cimport sage.ext.arith
-import sage.ext.arith
-cdef sage.ext.arith.arith_int arith_int
-cdef sage.ext.arith.arith_llong arith_llong
-arith_int  = sage.ext.arith.arith_int()
-arith_llong = sage.ext.arith.arith_llong()
+cimport sage.rings.fast_arith
+import sage.rings.fast_arith
+cdef sage.rings.fast_arith.arith_int arith_int
+cdef sage.rings.fast_arith.arith_llong arith_llong
+arith_int  = sage.rings.fast_arith.arith_int()
+arith_llong = sage.rings.fast_arith.arith_llong()
 
 ctypedef long long llong
 

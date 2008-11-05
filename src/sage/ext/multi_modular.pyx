@@ -22,7 +22,7 @@ from sage.rings.arith import next_prime # should I just use probable primes?
 
 # should I have mod_int versions of these functions?
 # c_inverse_mod_longlong modular inverse used exactly once in _refresh_precomputations
-from sage.ext.arith cimport arith_llong
+from sage.rings.fast_arith cimport arith_llong
 cdef arith_llong ai
 ai = arith_llong()
 

@@ -245,7 +245,7 @@ def integral(f, *args, **kwds):
         sage: g = integral(f, x)
         sage: h = f - diff(g, x)
 
-        sage: [float(h(i)) for i in range(5)]
+        sage: [float(h(i)) for i in range(5)] #random
         <BLANKLINE>
         [0.0,
          -1.1102230246251565e-16,

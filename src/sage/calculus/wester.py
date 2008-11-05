@@ -262,8 +262,8 @@ sage: [float(f(i/10)) for i in range(1,5)]
 <BLANKLINE>
 [-0.00033670040754082975,
  -0.0027778004096620235,
- -0.0098909940914040928,
- -0.025411145508414501]
+ -0.00989099409140...,
+ -0.025411145508414...]
 
 sage: # (YES) Numerically, the expression Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0 and its derivative at x=0 are zero.
 sage: g = f.derivative()

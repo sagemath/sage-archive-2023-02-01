@@ -543,6 +543,24 @@ cdef class gen(sage.structure.element.RingElement):
 
     #################################################################
 
+    def _add_one(gen self):
+        """
+        Return self + 1.
+
+        OUTPUT:
+            pari gen
+
+        EXAMPLES:
+            sage: n = pari(5)
+            sage: n._add_one()
+            6
+            sage: n = pari('x^3')
+            sage: n._add_one()
+            x^3 + 1
+        """
+        _sig_on
+        return P.new_gen(gaddsg(1, self.g))
+
     def _mod(gen self, gen other):
         _sig_on
         return P.new_gen(gmod(self.g, other.g))
@@ -6318,7 +6336,7 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return P.new_gen(gnorm(self.g))
 
-    def nextprime(gen self):
+    def nextprime(gen self, bint add_one=0):
         """
         nextprime(x): smallest pseudoprime >= x
 
@@ -6328,6 +6346,9 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(2^100).nextprime()
             1267650600228229401496703205653
         """
+        if add_one:
+            _sig_on
+            return P.new_gen(gnextprime(gaddsg(1,self.g)))
         #NOTE: This is much faster than MAGMA's NextPrime with Proof := False.
         _sig_on
         return P.new_gen(gnextprime(self.g))

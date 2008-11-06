@@ -795,8 +795,11 @@ def next_prime(n, proof=None):
         sage: next_prime(2004)
         2011
     """
-    n = integer_ring.ZZ(n)
-    return n.next_prime(proof=proof)
+    try:
+        return n.next_prime(proof)
+    except AttributeError:
+        n = integer_ring.ZZ(n)
+        return n.next_prime(proof)
 
 def previous_prime(n):
     """

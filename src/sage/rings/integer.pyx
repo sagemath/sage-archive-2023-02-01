@@ -224,6 +224,12 @@ set_zero_one_elements()
 cdef zero = the_integer_ring._zero_element
 cdef one = the_integer_ring._one_element
 
+# The documentation for the ispseudoprime function in the pari
+# manual states that its result is always prime up to this 10^13.
+cdef mpz_t PARI_PSEUDOPRIME_LIMIT
+mpz_init(PARI_PSEUDOPRIME_LIMIT)
+mpz_set_str(PARI_PSEUDOPRIME_LIMIT, "10000000000000", 10)
+
 def is_Integer(x):
     """
     Return true if x is of the SAGE integer type.
@@ -2859,7 +2865,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 144168.next_probable_prime()
             144169
         """
-        return Integer( (self._pari_()+1).nextprime())
+        return Integer( self._pari_().nextprime(True) )
 
     def next_prime(self, proof=None):
         r"""
@@ -2882,15 +2888,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(1001).next_prime()
             1009
         """
+        if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
+            return Integer( self._pari_().nextprime(True) )
         if proof is None:
             from sage.structure.proof.proof import get_flag
             proof = get_flag(proof, "arithmetic")
-        if self < 2:   # negatives are not prime.
-            return integer_ring.ZZ(2)
-        if self == 2:
-            return integer_ring.ZZ(3)
         if not proof:
-            return Integer( (self._pari_()+1).nextprime())
+            return Integer( self._pari_().nextprime(True) )
         n = self
         if n % 2 == 0:
             n += 1

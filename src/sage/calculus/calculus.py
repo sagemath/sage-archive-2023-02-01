@@ -7969,10 +7969,42 @@ class Function_sqrt(PrimitiveFunction):
         return "\\sqrt"
 
     def _do_sqrt(self, x, prec=None, extend=True, all=False):
-        if prec and x >= 0:
-            return RealField(prec)(x).sqrt(all=all)
+        """
+        Used internally to compute the square root of x.
+
+        INPUT:
+            x -- a number
+            prec -- None (default) or a positive integer (bits of precision)
+                    If not None, then compute the square root numerically
+                    to prec bits of precision.
+            extend -- bool (default: True); this is a place holder,
+                    and is always ignored since in the symbolic ring
+                    everything has a square root.
+            extend -- bool (default: True); whether to extend the
+                    base ring to find roots.  The extend parameter
+                    is ignored if prec is a positive integer.
+            all  -- bool (default: False); whether to return a list
+                    of all the square roots of x.
+
+        EXAMPLES:
+            sage: sqrt._do_sqrt(3)
+            sqrt(3)
+            sage: sqrt._do_sqrt(3,prec=10)
+            1.7
+            sage: sqrt._do_sqrt(3,prec=100)
+            1.7320508075688772935274463415
+            sage: sqrt._do_sqrt(3,all=True)
+            [sqrt(3), -sqrt(3)]
+
+        Note that the extend parameter is ignored in the symbolic ring:
+            sage: sqrt._do_sqrt(3,extend=False)
+            sqrt(3)
+        """
         if prec:
-            return ComplexField(prec)(x).sqrt(all=all)
+            if x >= 0:
+                 return RealField(prec)(x).sqrt(all=all)
+            else:
+                 return ComplexField(prec)(x).sqrt(all=all)
         z = SymbolicComposition(self, SR(x))
         if all:
             return [z, -z]
@@ -7985,10 +8017,10 @@ class Function_sqrt(PrimitiveFunction):
             prec -- integer (default: None): if None, returns an exact
                  square root; otherwise returns a numerical square
                  root if necessary, to the given bits of precision.
-            extend -- bool (default: True); if True, return a square
-                 root in an extension ring, if necessary. Otherwise,
-                 raise a ValueError if the square is not in the base
-                 ring.
+            extend -- bool (default: True); this is a place holder,
+                 and is always ignored or passed to the sqrt function
+                 for x, since in the symbolic ring everything has a
+                 square root.
             all -- bool (default: False); if True, return all square
                  roots of self, instead of just one.
         """

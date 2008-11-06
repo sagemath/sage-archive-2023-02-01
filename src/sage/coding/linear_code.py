@@ -167,6 +167,7 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import IntegerRing
+from sage.rings.integer import Integer
 from sage.combinat.set_partition import SetPartitions
 
 ZZ = IntegerRing()
@@ -1138,7 +1139,7 @@ class LinearCode(module.Module):
         q = F.order()
         q0 = F0.order()
         a = log(q,q0)  # test if F/F0 is a field extension
-        if not(a.integer_part() == a):
+        if not isinstance(a, Integer):
             raise ValueError,"Base field must be an extension of given field %s"%F0
         n = len(G.columns())
         k = len(G.rows())

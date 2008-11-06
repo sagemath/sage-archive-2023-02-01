@@ -813,6 +813,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: x = 25/9
             sage: x.sqrt()
             5/3
+            sage: sqrt(x)
+            5/3
             sage: x = 64/4
             sage: x.sqrt()
             4
@@ -859,12 +861,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         if mpq_sgn(self.value) < 0:
             if not extend:
                 raise ValueError, "square root of negative number not rational"
-            if prec:
-                from sage.rings.complex_field import ComplexField
-                K = ComplexField(prec)
-                return K(self).sqrt(all=all)
             from sage.calculus.calculus import sqrt
-            return sqrt(self, all=all)
+            return sqrt._do_sqrt(self, prec=prec, all=all)
 
         cdef Rational z = <Rational> PY_NEW(Rational)
         cdef mpz_t tmp
@@ -885,12 +883,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         if non_square:
             if not extend:
                 raise ValueError, "square root of %s not a rational number"%self
-            if prec:
-                from sage.rings.real_mpfr import RealField
-                K = RealField(prec)
-                return K(self).sqrt(all=all)
             from sage.calculus.calculus import sqrt
-            return sqrt(self, all=all)
+            return sqrt._do_sqrt(self, prec=prec, all=all)
+
+        if prec:
+            from sage.calculus.calculus import sqrt
+            return sqrt._do_sqrt(self, prec=prec, all=all)
+
         if all:
             return [z, -z]
         return z

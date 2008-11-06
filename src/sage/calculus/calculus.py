@@ -249,7 +249,7 @@ import re
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_MPolynomial, is_MPolynomialRing, is_FractionFieldElement,
                             is_RealNumber, is_ComplexNumber, RR,
-                            Integer, Rational, CC, QQ, CDF,
+                            Integer, Rational, CC, QQ, CDF, ZZ,
                             QuadDoubleElement,
                             PolynomialRing, ComplexField,
                             algdep, Integer, RealNumber, RealIntervalField)
@@ -6814,6 +6814,193 @@ class Function_floor(PrimitiveFunction):
 floor = Function_floor()
 _syms['floor'] = floor   # spelled ceiling in maxima
 
+class Function_gamma(PrimitiveFunction):
+    r"""
+    The Gamma function.
+
+    EXAMPLES:
+        sage: gamma(CDF(0.5,14))
+        -4.05370307804e-10 - 5.77329983455e-10*I
+        sage: gamma(CDF(I))
+        -0.154949828302 - 0.498015668118*I
+        sage: gamma(11) == factorial(10)
+        True
+        sage: gamma(6)
+        120
+        sage: gamma(1/2)
+        sqrt(pi)
+        sage: gamma(-1)
+        Infinity
+        sage: gamma(I)
+        gamma(I)
+        sage: gamma(x/2)(x=5)
+        3*sqrt(pi)/4
+
+    TESTS:
+    We verify that we can convert this function to Maxima and convert
+    back to Sage.
+        sage: z = var('z')
+        sage: maxima(gamma(z)).sage()
+        gamma(z)
+
+    """
+    def _repr_(self, simplify=True):
+        """
+        EXAMPLES:
+            sage: gamma
+            gamma
+        """
+        return "gamma"
+
+    def _latex_(self):
+        """
+        Returns the LaTeX version of this function.
+
+        EXAMPLES:
+            sage: latex(gamma)
+            \Gamma
+            sage: latex(gamma(x+1))
+            \Gamma \left( x + 1 \right)
+
+        """
+        return "\\Gamma"
+
+    def __call__(self, x):
+        """
+        EXAMPLES:
+            sage: gamma(6)
+            120
+            sage: gamma(float(6))
+            120.000000000000
+            sage: gamma(x)
+            gamma(x)
+        """
+        try:
+            return x.gamma()
+        except AttributeError:
+            if isinstance(x, float):
+                return RR(x).gamma()
+        return SymbolicComposition(self, SR(x))
+
+gamma = Function_gamma()
+_syms['gamma'] = gamma
+
+class Function_factorial(PrimitiveFunction):
+    r"""
+    Returns the factorial of $n$.
+
+    INPUT:
+        n -- an integer, or symbolic expression
+        algorithm -- string (default: 'gmp')
+             'gmp' -- use the GMP C-library factorial function
+             'pari' -- use PARI's factorial function
+             This option has no effect if n is a symbolic expression.
+
+    OUTPUT:
+        an integer or symbolic expression
+
+    EXAMPLES:
+        sage: x = var('x')
+        sage: factorial(0)
+        1
+        sage: factorial(4)
+        24
+        sage: factorial(10)
+        3628800
+        sage: factorial(6) == 6*5*4*3*2
+        True
+        sage: f = factorial(x + factorial(x)); f
+        factorial(factorial(x) + x)
+        sage: f(x=3)
+        362880
+
+        sage: factorial(-32)
+        Traceback (most recent call last):
+        ...
+        ValueError: factorial -- must be nonnegative
+
+    TESTS:
+    We verify that we can convert this function to Maxima and bring
+    it back into Sage.
+
+        sage: z = var('z')
+        sage: factorial._maxima_init_()
+        'factorial'
+        sage: maxima(factorial(z))
+        z!
+        sage: _.sage()
+        factorial(z)
+
+    """
+    def _repr_(self, simplify=True):
+        """
+        EXAMPLES:
+            sage: factorial
+            factorial
+        """
+        return "factorial"
+
+    def _latex_(self):
+        """
+        Returns the LaTeX version of this function.
+
+        EXAMPLES:
+            sage: latex(factorial)
+            !
+        """
+        return "!"
+
+    def _latex_composition(self, n):
+        r"""
+        Returns the LaTeX code when this function is applied
+        to an object.
+
+        EXAMPLES:
+            sage: latex(factorial(x))
+            x!
+            sage: latex(factorial(2*x))
+            \left({2 x}\right)!
+            sage: latex(factorial(sin(x)))
+            \sin \left( x \right)!
+        """
+        if isinstance(n, (SymbolicVariable, SymbolicConstant, SymbolicComposition)):
+            return latex(n) + "!"
+        else:
+            return "\\left(" + latex(n) + "\\right)!"
+
+    def _approx_(self, n):
+        """
+        Returns a floating point approximation of n!.
+
+        EXAMPLES:
+            sage: factorial._approx_(3.14)
+            7.173269190187...
+        """
+        return gamma(n + 1)
+
+    def __call__(self, n, **kwds):
+        """
+        This first tries to call the factorial function
+        in sage.rings.arith, and if that fails, it returns
+        a SymbolicComposition.
+
+        EXAMPLES:
+            sage: factorial(4)
+            24
+            sage: factorial(x)
+            factorial(x)
+        """
+        from sage.rings.arith import factorial
+        try:
+            return factorial(n, **kwds)
+        except (TypeError, ValueError), err:
+            if 'nonnegative' in str(err):
+                raise
+
+        return SymbolicComposition(self, SR(n))
+
+factorial = Function_factorial()
+_syms['factorial'] = factorial
 
 class Function_sin(PrimitiveFunction):
     """

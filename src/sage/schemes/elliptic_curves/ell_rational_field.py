@@ -2174,7 +2174,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         s = C(s)
         N = self.conductor()
         pi = R(constants.pi)
-        Gamma = transcendental.gamma
+        from sage.calculus.calculus import gamma as Gamma
         Gamma_inc = transcendental.gamma_inc
         a = self.anlist(prec)
         eps = self.root_number()

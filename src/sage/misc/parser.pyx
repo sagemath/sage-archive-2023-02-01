@@ -149,8 +149,8 @@ cdef class Tokenizer:
             ['NAME(a)', 'NAME(a1)', 'NAME(_a_24)']
 
         Anything else is an error:
-            sage: Tokenizer("&@!~").test()
-            ['ERROR', 'ERROR', 'ERROR', 'ERROR']
+            sage: Tokenizer("&@~").test()
+            ['ERROR', 'ERROR', 'ERROR']
 
         No attempt for correctness is made at this stage:
             sage: Tokenizer(") )( 5e5e5").test()
@@ -255,7 +255,7 @@ cdef class Tokenizer:
             return '^'
 
         # simple tokens
-        if strchr("+-*/^()=<>,[]{}", s[pos]):
+        if strchr("+-*/^()=<>,[]{}!", s[pos]):
             type = s[pos]
             self.pos += 1
             return type
@@ -802,7 +802,7 @@ cdef class Parser:
             tokens.backtrack()
             return self.p_power(tokens)
 
-# power ::=  atom ^ factor | atom
+# power ::=  atom ^ factor | atom | atom!
     cpdef p_power(self, Tokenizer tokens):
         """
         Parses a power. Note that exponentiation groups right to left.
@@ -817,12 +817,22 @@ cdef class Parser:
             t^2
             sage: p.p_power(Tokenizer("2^3^2")) == 2^9
             True
+
+            sage: p = Parser(make_var=var)
+            sage: p.p_factor(Tokenizer('x!'))
+            factorial(x)
+            sage: p.p_factor(Tokenizer('(x^2)!'))
+            factorial(x^2)
+
         """
         operand1 = self.p_atom(tokens)
         cdef int token = tokens.next()
         if token == '^':
             operand2 = self.p_factor(tokens)
             return operand1 ** operand2
+        elif token == "!":
+            from sage.calculus.calculus import factorial
+            return factorial(operand1)
         else:
             tokens.backtrack()
             return operand1

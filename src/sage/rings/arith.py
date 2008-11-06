@@ -3034,7 +3034,7 @@ def falling_factorial(x, a):
     """
     if isinstance(a, (integer.Integer, int, long)) and a >= 0:
         return misc.prod([(x - i) for i in range(a)])
-    from sage.functions.transcendental import gamma
+    from sage.calculus.calculus import gamma
     return gamma(x+1) / gamma(x-a+1)
 
 def rising_factorial(x, a):
@@ -3090,7 +3090,7 @@ def rising_factorial(x, a):
     """
     if isinstance(a, (integer.Integer, int, long)) and a >= 0:
         return misc.prod([(x + i) for i in range(a)])
-    from sage.functions.transcendental import gamma
+    from sage.calculus.calculus import gamma
     return gamma(x+a) / gamma(x)
 
 

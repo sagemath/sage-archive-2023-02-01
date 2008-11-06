@@ -92,23 +92,6 @@ def exponential_integral_1(x, n=0):
     else:
         return [float(z) for z in pari(x).eint1(n)]
 
-def gamma(s):
-    """
-    Gamma function at s.
-
-    EXAMPLES:
-        sage: gamma(CDF(0.5,14))
-        -4.05370307804e-10 - 5.77329983455e-10*I
-        sage: gamma(I)
-        -0.154949828301811 - 0.498015668118356*I
-        sage: gamma(6)
-        120
-    """
-    try:
-        return s.gamma()
-    except AttributeError:
-        return CC(s).gamma()
-
 def gamma_inc(s, t):
     """
     Incomplete Gamma function Gamma(s,t).

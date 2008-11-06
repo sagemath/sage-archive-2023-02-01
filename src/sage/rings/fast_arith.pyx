@@ -98,6 +98,10 @@ cpdef prime_range(start, stop=None, leave_pari=False):
         [2]
         sage: prime_range(5,10,leave_pari=True)
         [5, 7]
+
+    AUTHORS:
+      - William Stein (original version)
+      - Craig Citro (rewrote for massive speedup)
     """
     cdef Integer tmp
     cdef Py_ssize_t ind, n, m

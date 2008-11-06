@@ -4252,9 +4252,9 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return P.new_gen(phi(n.g))
 
-    def primepi(gen x):
+    def primepi(gen self):
         """
-        Return the number of primes $\leq x$.
+        Return the number of primes less than or equal to self.
 
         EXAMPLES:
             sage: pari(7).primepi()
@@ -4265,9 +4265,15 @@ cdef class gen(sage.structure.element.RingElement):
             168
             sage: pari(100000).primepi()
             9592
+            sage: pari(0).primepi()
+            0
+            sage: pari(-15).primepi()
+            0
         """
         _sig_on
-        return P.new_gen(primepi(x.g))
+        if signe(self.g) != 1:
+            return P(0)
+        return P.new_gen(primepi(self.g))
 
     def sumdiv(gen n):
         """

@@ -503,7 +503,7 @@ class MathematicaElement(ExpectElement):
     def _latex_(self):
         z = self.parent().eval('TeXForm[%s]'%self.name())
         i = z.find('=')
-        return z[i+1:]
+        return z[i+1:].strip()
 
     def __repr__(self):
         P = self._check_valid()
@@ -514,23 +514,29 @@ class MathematicaElement(ExpectElement):
         return P.get(self._name, ascii_art=True)
 
     def show(self, filename=None, ImageSize=600):
-        """
-        Show a mathematica plot in the Sage notebook.
+        r"""
+        Show a mathematica expression or plot in the Sage notebook.
 
         EXAMPLES::
 
             sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
             sage: show(P)                                        # optional - mathematica
             sage: P.show(ImageSize=800)                          # optional - mathematica
+            sage: Q = mathematica('Sin[x Cos[y]]/Sqrt[1-x^2]')   # optional - mathematica
+            sage: show(Q)                                        # optional - mathematica
+            <html><div class="math">\frac{\sin (x \cos (y))}{\sqrt{1-x^2}}</div></html>
         """
         P = self._check_valid()
-        if filename is None:
-            filename = graphics_filename()
-        orig_dir = P.eval('Directory[]').strip()
-        P.chdir(os.path.abspath("."))
-        s = 'Export["%s", %s, ImageSize->%s]'%(filename, self.name(), ImageSize)
-        P.eval(s)
-        P.chdir(orig_dir)
+        if P.eval('InputForm[%s]' % self.name()).strip().startswith('Graphics['):
+            if filename is None:
+                filename = graphics_filename()
+            orig_dir = P.eval('Directory[]').strip()
+            P.chdir(os.path.abspath("."))
+            s = 'Export["%s", %s, ImageSize->%s]'%(filename, self.name(), ImageSize)
+            P.eval(s)
+            P.chdir(orig_dir)
+        else:
+            print '<html><div class="math">%s</div></html>' % self._latex_()
 
     def str(self):
         return str(self)

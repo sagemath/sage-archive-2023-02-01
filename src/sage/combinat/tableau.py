@@ -95,11 +95,7 @@ class Tableau_class(CombinatorialObject):
         """
         import output
         m = max(len(self), len(self[0]))
-        array = [[None for _ in range(m)] for _ in range(m)]
-        for i in range(len(self)):
-            for j in range(len(self[i])):
-                array[i][j] = self[i][j]
-        return output.tex_from_array(array)
+        return output.tex_from_array(self)
 
     def __div__(self, t):
         """

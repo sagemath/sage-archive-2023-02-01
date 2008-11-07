@@ -4,14 +4,14 @@ def tex_from_array(a):
     """
     EXAMPLES:
         sage: from sage.combinat.output import tex_from_array
-        sage: print tex_from_array([[1,2],[3,4]])
-        {\def\lr#1#2#3{\multicolumn{1}{#1@{\hspace{.6ex}}c@{\hspace{.6ex}}#2}{\raisebox{-.3ex}{$#3$}}}
-        \raisebox{-.6ex}{$\begin{array}[b]{cc}
-        \cline{1-1}\cline{2-2}%
-        \lr{|}{|}{1}&\lr{|}{|}{2}\\ %
-        \cline{1-1}\cline{2-2}%
-        \lr{|}{|}{3}&\lr{|}{|}{4}\\ %
-        \cline{1-1}\cline{2-2}%
+        sage: print tex_from_array([[1,2,3],[4,5]])
+        {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+        \raisebox{-.6ex}{$\begin{array}[b]{ccc}
+        \cline{1-1}\cline{2-2}\cline{3-3}
+        \lr{1}&\lr{2}&\lr{3}\\
+        \cline{1-1}\cline{2-2}\cline{3-3}
+        \lr{4}&\lr{5}\\
+        \cline{1-1}\cline{2-2}
         \end{array}$}
         }
     """

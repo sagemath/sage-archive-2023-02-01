@@ -698,19 +698,18 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
     def _latex_(self):
         r"""
         EXAMPLES:
-            sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
-            sage: t = T(rows=[[1,2],[3,4]])
+            sage: T = CrystalOfTableaux(['A',3], shape = [4,2])
+            sage: t = T(rows=[[1,1,2,3],[2,3]])
             sage: latex(t) # indirect doctest
-            {\def\lr#1#2#3{\multicolumn{1}{#1@{\hspace{.6ex}}c@{\hspace{.6ex}}#2}{\raisebox{-.3ex}{$#3$}}}
-            \raisebox{-.6ex}{$\begin{array}[b]{cc}
-            \cline{1-1}\cline{2-2}%
-            \lr{|}{|}{1}&\lr{|}{|}{2}\\ %
-            \cline{1-1}\cline{2-2}%
-            \lr{|}{|}{3}&\lr{|}{|}{4}\\ %
-            \cline{1-1}\cline{2-2}%
+            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{cccc}
+            \cline{1-1}\cline{2-2}\cline{3-3}\cline{4-4}
+            \lr{1}&\lr{1}&\lr{2}&\lr{3}\\
+            \cline{1-1}\cline{2-2}\cline{3-3}\cline{4-4}
+            \lr{2}&\lr{3}\\
+            \cline{1-1}\cline{2-2}
             \end{array}$}
             }
-
         """
         return latex(self.to_tableau())
 

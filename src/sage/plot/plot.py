@@ -2923,7 +2923,7 @@ def contour_plot(f, xrange, yrange, **options):
     g._contour_plot(xy_data_array, xrange, yrange, options)
     return g
 
-@options(contours=(0,0))
+@options(contours=(0,0), fill=False)
 def implicit_plot(f, xrange, yrange, **options):
     r"""
     \code{implicit_plot} takes a function of two variables, $f(x,y)$
@@ -2939,6 +2939,7 @@ def implicit_plot(f, xrange, yrange, **options):
     The following inputs must all be passed in as named parameters:
         plot_points  -- integer (default: 25); number of points to plot
                         in each direction of the grid
+        fill         -- boolean (default: False); if True, fill the region $f(x,y)<0$.
 
 
     EXAMPLES:

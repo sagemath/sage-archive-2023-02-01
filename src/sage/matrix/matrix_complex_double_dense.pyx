@@ -716,10 +716,8 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             sage: m = I*m
             sage: n = m.numpy()
             sage: import numpy
-            sage: numpy.linalg.eig(n)
-            <BLANKLINE>
-            (array([  0.00000000e+00-0.37228132j,  -...e-1...+5.37228132j]),
-             array([[ 0.82456484 +0.00000000e+00j,  0.41597356 +...e-17j],
+            sage: numpy.linalg.eig(n)       # random low bits
+            (array([  0.00000000e+00-0.37228132j,  -8.03393810e-17+5.37228132j]), array([[ 0.82456484 +0.00000000e+00j,  0.41597356 +8.77187320e-17j],
                    [-0.56576746 -0.00000000e+00j,  0.90937671 +0.00000000e+00j]]))
 
         TESTS:
@@ -887,16 +885,16 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             [-0.392540507864  0.824163383692  0.408248290464]
             [-0.560772154092  0.137360563949 -0.816496580928]
             [ -0.72900380032 -0.549442255795  0.408248290464]
-            sage: U*S*V.transpose() # slightly random output (due to computer architecture)
-            [              0.0               1.0               2.0]
+            sage: U*S*V.transpose()           # random low bits
+            [7.62194127257e-17               1.0               2.0]
             [              3.0               4.0               5.0]
             sage: m = matrix(CDF,3,2,range(6)); m
             [  0 1.0]
             [2.0 3.0]
             [4.0 5.0]
             sage: U,S,V = m.SVD()
-            sage: U*S*V.transpose() # slightly random output (due to computer architecture)
-            [               0.0                1.0]
+            sage: U*S*V.transpose()   # random low order bits
+            [-8.13151629364e-19                1.0]
             [               2.0                3.0]
             [               4.0                5.0]
 

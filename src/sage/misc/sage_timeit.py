@@ -6,13 +6,23 @@ This is an implemention of nice timeit functionality, like the
 command.
 
 AUTHOR:
-    -- William Stein, based on code copied from Fernand Perez's Ipython
+    -- William Stein, based on code by Fernando Perez included in Ipython
 """
 
 import timeit as timeit_, time, math, preparser, interpreter
 
-def sage_timeit(stmt, globals, preparse=None,
-                   number = 0, repeat = 3, precision = 3):
+class SageTimeitResult():
+    r"""
+    I represent the statistics of a timeit() command.  I print as a string so
+    that I can be easily returned to a user.
+    """
+    def __init__(self, stats):
+        self.stats = stats
+
+    def __repr__(self):
+        return "%d loops, best of %d: %.*g %s per loop" % self.stats
+
+def sage_timeit(stmt, globals, preparse=None, number = 0, repeat = 3, precision = 3):
     """
     INPUT:
         stmt -- a text string which may
@@ -111,9 +121,5 @@ def sage_timeit(stmt, globals, preparse=None,
         order = min(-int(math.floor(math.log10(best)) // 3), 3)
     else:
         order = 3
-    return "%d loops, best of %d: %.*g %s per loop" % (number, repeat,
-                                                      precision,
-                                                      best * scaling[order],
-                                                      units[order])
-
-
+    stats = (number, repeat, precision, best * scaling[order], units[order])
+    return SageTimeitResult(stats)

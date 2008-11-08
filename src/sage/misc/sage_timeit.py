@@ -46,7 +46,7 @@ def sage_timeit(stmt, globals, preparse=None, number = 0, repeat = 3, precision 
     The input expression can contain newlines:
         sage: from sage.misc.sage_timeit import sage_timeit
         sage: sage_timeit("a = 2\nb=131\nfactor(a^b-1)", globals(), number=10)
-        '10 loops, best of 3: ... per loop'
+        10 loops, best of 3: ... per loop
 
     Test to make sure that timeit behaves well with output:
         sage: timeit("print 'Hi'", number=50)

@@ -76,17 +76,40 @@ except:
 
 PYTHON = SAGE_ROOT + "/local/bin/python"
 
-def test_code():
+def test_code(filename):
+    dict = { 'DIR'             : repr('%s/local/bin' % SAGE_ROOT),
+             'FILENAME'        : repr(filename),
+             'OUTPUT_FILENAME' : repr(filename + '.timeit.sobj'),
+             'TIMEIT'          : do_timeit, # global
+             'VERBOSE'         : verbose }
     return """
 if __name__ ==  '__main__':
-    import doctest, sys
-    s = doctest.testmod(sys.modules[__name__],
-                   optionflags=doctest.NORMALIZE_WHITESPACE
-                              |doctest.ELLIPSIS,
-                   verbose=%s,
-                   globs=globals())
+    verbose = %(VERBOSE)s
+    do_timeit = %(TIMEIT)s
+    output_filename = %(OUTPUT_FILENAME)s
+
+    import sys
+    sys.path = sys.path + [%(DIR)s]
+    import sagedoctest
+
+    # execfile(%(FILENAME)s)
+    m = sys.modules[__name__]
+    m.__file__ = %(FILENAME)s
+
+    # configure special sage doc test runner
+    runner = sagedoctest.SageDocTestRunner(checker=None, verbose=verbose, optionflags=0)
+    runner._collect_timeit_stats = do_timeit
+    runner._reset_random_seed = True
+
+    runner = sagedoctest.testmod_returning_runner(m,
+                   # filename=%(FILENAME)s,
+                   verbose=verbose,
+                   globs=globals(),
+                   runner=runner)
+    runner.save_timeit_stats_to_file_named(output_filename)
     quit_sage(verbose=False)
-"""%verbose
+    sys.exit(runner.failures)
+""" % dict
 
 ALARM = """
 import signal
@@ -278,8 +301,7 @@ def change_warning_output(file):
     #    s += test_code()
     #    s += '    __doctest_cleanup()\n'
     #else:
-    s += test_code()
-    s += '    sys.exit(s[0])'
+    s += test_code(os.path.abspath(file_name))
 
 
     # Allow for "sage:" instead of the traditional Python ">>>".
@@ -467,6 +489,7 @@ if __name__ ==  '__main__':
         optional   = has_opt('optional')
         long_time  = has_opt('long')
         verbose    = has_opt('verbose')
+        do_timeit     = has_opt('timeit')
         gdb        = has_opt('gdb')
         memcheck   = has_opt('memcheck') or has_opt('valgrind')
         massif     = has_opt('massif')
@@ -482,6 +505,3 @@ if __name__ ==  '__main__':
             test_file(argv[1])
         except KeyboardInterrupt:
             sys.exit(1)
-
-
-

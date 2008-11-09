@@ -1358,11 +1358,26 @@ cdef class PowerSeries(AlgebraElement):
            sage: (t + O(t^2)).exp(0)
            O(t^0)
 
+		 Check for non-zero constant term (fixes \#4477):
+           sage: (1 + t + O(t^2)).exp()
+           Traceback (most recent call last):
+           ...
+           ArithmeticError: exponential of the input does not belong to the ring
+           sage: (1.23 + t + O(t^5)).exp()
+           3.42122953628967 + 3.42122953628967*t + 1.71061476814484*t^2
+           + 0.570204922714945*t^3 + 0.142551230678736*t^4 + O(t^5)
+
         """
         if prec is None:
             prec = self._parent.default_prec()
-        if not self[0].is_zero():
-            raise ValueError, "constant term must to zero"
+        if self[0]:
+            try:
+                C = self[0].exp()
+                if C.parent()!=self.base_ring():
+                    raise ArithmeticError
+            except (AttributeError, ArithmeticError):
+                raise ArithmeticError, "exponential of the input does not belong to the ring"
+            return C*self.derivative().solve_linear_de(prec)
         return self.derivative().solve_linear_de(prec)
 
 

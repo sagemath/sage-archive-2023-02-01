@@ -31,16 +31,14 @@ from sage.rings.arith import binomial, gcd
 from sage.rings.rational_field import RationalField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfi import RealIntervalField
-from sage.rings.all import ZZ
+from sage.rings.real_mpfr import RealField
+from sage.rings.integer_ring import ZZ
 
 from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
 
-import numpy
-
 # Other global variables
 ZZx = PolynomialRing(ZZ, 'x')
-# QQx = PolynomialRing(RationalField(), 'x')
 
 cdef extern from "math.h":
     cdef long lrint(double x)
@@ -49,26 +47,6 @@ cdef extern from "math.h":
     cdef double fabs(double x)
     cdef double round(double x)
     cdef int abs(int x)
-
-
-# The following exposes the internal C structure of the numpy python
-# object extern class [object PyArrayObject] tells pyrex that this is
-# a compiled python class defined by the C struct PyArrayObject
-cdef extern from "arrayobject.h":
-    cdef enum:
-        NPY_OWNDATA = 0x0004 # bit mask so numpy does not free
-                             # array contents when its destroyed
-    ctypedef int npy_intp
-    ctypedef extern class numpy.ndarray [object PyArrayObject]:
-        cdef char *data
-        cdef int nd
-        cdef npy_intp *dimensions
-        cdef npy_intp *strides
-        cdef int flags
-    object PyArray_FromDims(int,int *,int)
-    object PyArray_FromDimsAndData(int,int*,int,double *)
-    void import_array()
-
 
 
 #*********************************************************************************
@@ -218,10 +196,11 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
     We use a precomputed elimination ideal.
 
     EXAMPLES:
-        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,0,1,2) # random
-        [-1.000000000000000000000000467750, -0.9999999999999999999999994624949]
+        sage: ls = sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,0,1,2)
+        sage: [RealField(10)(x) for x in ls]
+        [-1.0, -1.0]
         sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,6,1,2) # random
-        [-5.887850847558445916683125710722, -5.887850847558445916682940422175]
+        [-5.8878, -5.8878]
     """
     cdef double zmin, zmax, val
     cdef double *roots_data
@@ -230,6 +209,8 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
     cdef int nr, nrsq, nrcu
     cdef int s1, s1sq, s1cu, s1fo, s2, s2sq, s2cu, s3, s3sq
     cdef int found_minmax = 0
+
+    RRx = PolynomialRing(RealField(20),'x')
 
     # Newton's relations.
     s1 = -an1
@@ -253,20 +234,17 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
         nrsq = nr*nr
         nrcu = nr*nrsq
 
-        # Note: coefficients of elimination polynomial are in reverse order
-        # for numpy, i.e. the coefficient of x^i is p[n-i].
-
         ## x^6
-        coeffs[0] = rcu*nr + rcu + 2*rsq*nrsq + 5*rsq*nr + 3*rsq + \
+        coeffs[6] = rcu*nr + rcu + 2*rsq*nrsq + 5*rsq*nr + 3*rsq + \
                     r*nrcu + 5*r*nrsq + 7*r*nr + 3*r + nrcu + \
                     3*nrsq + 3*nr + 1
 
         ## x^5
-        coeffs[1] = -6*rsq*nr*s1 - 6*rsq*s1 - 6*r*nrsq*s1 - 18*r*nr*s1 - \
+        coeffs[5] = -6*rsq*nr*s1 - 6*rsq*s1 - 6*r*nrsq*s1 - 18*r*nr*s1 - \
                     12*r*s1 - 6*nrsq*s1 - 12*nr*s1 - 6*s1
 
         ## x^4
-        coeffs[2] = -3*rcu*s2 - 3*rsq*nr*s2 + 3*rsq*s1sq - 6*rsq*s2 - \
+        coeffs[4] = -3*rcu*s2 - 3*rsq*nr*s2 + 3*rsq*s1sq - 6*rsq*s2 - \
                     3*r*nrsq*s2 + 15*r*nr*s1sq - 6*r*nr*s2 + 18*r*s1sq - \
                     3*r*s2 - 3*nrcu*s2 + 3*nrsq*s1sq - 6*nrsq*s2 + \
                     18*nr*s1sq - 3*nr*s2 + 15*s1sq
@@ -280,7 +258,7 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
                     20*s1cu
 
         ## x^2
-        coeffs[4] = 3*rcu*s2sq + 6*rsq*nr*s1*s3 - 3*rsq*nr*s2sq - \
+        coeffs[2] = 3*rcu*s2sq + 6*rsq*nr*s1*s3 - 3*rsq*nr*s2sq - \
                     6*rsq*s1sq*s2 + 3*rsq*s2sq + 6*r*nrsq*s1*s3 - \
                     3*r*nrsq*s2sq - 6*r*nr*s1sq*s2 + 12*r*nr*s1*s3 + \
                     3*r*nr*s2sq + 3*r*s1fo - 18*r*s1sq*s2 + \
@@ -288,12 +266,12 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
                     3*nr*s1fo - 18*nr*s1sq*s2 + 15*s1fo
 
         ## x^1
-        coeffs[5] = 6*rsq*nr*s2*s3 - 6*rsq*s1*s2sq + 6*r*nrsq*s2*s3 - \
+        coeffs[1] = 6*rsq*nr*s2*s3 - 6*rsq*s1*s2sq + 6*r*nrsq*s2*s3 - \
                     12*r*nr*s1sq*s3 - 6*r*nr*s1*s2sq + 12*r*s1cu*s2 - \
                     6*nrsq*s1*s2sq + 12*nr*s1cu*s2 - 6*s1*s1fo
 
         ## x^0
-        coeffs[6] = rcu*nr*s3sq - rcu*s2cu + 2*rsq*nrsq*s3sq - \
+        coeffs[0] = rcu*nr*s3sq - rcu*s2cu + 2*rsq*nrsq*s3sq - \
                     6*rsq*nr*s1*s2*s3 + rsq*nr*s2cu + 3*rsq*s1sq*s2sq + \
                     r*nrcu*s3sq - 6*r*nrsq*s1*s2*s3 + r*nrsq*s2cu + \
                     4*r*nr*s1cu*s3 + 3*r*nr*s1sq*s2sq - \
@@ -301,50 +279,20 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
                     3*nrsq*s1sq*s2sq - 3*nr*s1fo*s2 + \
                     s1sq*s1fo
 
-        # If any roots appear double, recompute with gcd.
-        # Happens sufficiently often, so just do it each time?
-        ## p.reverse()
-        ## rts = numpy.roots(p)
-        ## p.reverse()
-        ## possible_double = False
-        ## rlen = len(rts)
-        ## for i in range(rlen):
-            ## for j in range(i+1,rlen):
-                ## if numpy.abs(rts[i]-rts[j]) < 10.**(-4):
-                    ## possible_double = True
-        ## if possible_double:
-
-        ## f = ZZx(p)
-        ## df = ZZx([i*p[i] for i in range(1,7)])
-        ## f = f//gcd(f,df)
-        ## fcoeff = [int(c) for c in f.list()]
-        ## rts = numpy.roots(fcoeff)
-        ## rts = numpy.real([rts[i] for i in range(len(rts))
-        ##                   if numpy.isreal(rts[i])]).tolist()
-        ## if len(rts) > 0:
-        ##    z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
 
         fcoeff = [ int(coeffs[i]) for i in range(7) ]
-        rts = numpy.roots(fcoeff).astype("complex128")
+        f = ZZx(fcoeff)
+        df = ZZx([i*coeffs[i] for i in range(1,7)])
+        f = f//gcd(f,df)
+        fcoeff = [int(c) for c in f.list()]
 
-        roots_data = <double *>((<ndarray>rts).data)
-        for i from 0 <= i < 6:
-            if not ((<double *>roots_data)[2*i+1]):
-                val = (<double *>roots_data)[2*i]
-                if found_minmax:
-                    if val < zmin:
-                        zmin = val
-                    if val > zmax:
-                        zmax = val
-                else:
-                    zmin = val
-                    zmax = val
-                    found_minmax = 1
+        rts = RRx(fcoeff).roots()
 
-    if found_minmax:
-        return [zmin, zmax]
-    else:
-        return []
+        if len(rts) > 0:
+            rts = [rts[i][0] for i in range(len(rts))]
+            z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
+
+    return z4minmax
 
 cdef int __len_primes = 46
 cdef long primessq[46]

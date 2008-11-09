@@ -33,58 +33,6 @@ from sage.libs.pari.gen import pari
 
 import math, bisect, sys
 
-import numpy
-
-r"""
-## This code needs optimization before any serious use.
-
-def integral_elements_with_trace(F, C):
-    if C[0] == C[1]:
-        C = [C[0]-0.5, C[1]+0.5]
-
-    print F, C
-
-    d = F.degree()
-    Z_F = F.maximal_order()
-    Foo = F.real_embeddings()
-    B = Z_F.reduced_basis
-
-    L = numpy.array([ [v(b) for b in B] for v in Foo])
-    Linv = numpy.linalg.inv(L)
-    V = [ [[0]*i + [C[0]] + [0]*(d-1-i), [0]*i + [C[1]] + [0]*(d-1-i) ] for i in range(d) ]
-    V = sum(V, [])
-    V = numpy.matrix(Linv)*(numpy.matrix(V).transpose())
-    j = 0
-    while j < 2*d:
-        for i in range(d):
-            if V[i,j] < V[i,j+1]:
-                V[i,j] = math.floor(V[i,j])
-                V[i,j+1] = math.ceil(V[i,j+1])
-            else:
-                V[i,j] = math.ceil(V[i,j])
-                V[i,j+1] = math.floor(V[i,j+1])
-        j += 2
-    M = [[int(V[i,j]) for j in range(V.shape[1])] for i in range(V.shape[0])]
-
-    M = (matrix(IntegerRing(),d,2*d, M).transpose()).columns()
-    i = 0
-    while i < len(M):
-        j = i+1
-        while j < len(M):
-            if M[i] == M[j]:
-                M.pop(j)
-            else:
-                j += 1
-        i += 1
-
-    P = LatticePolytope(matrix(M).transpose())
-    S = []
-    for p in P.points().transpose():
-        theta = sum([ p.list()[i]*B[i] for i in range(d)])
-        if theta.trace() >= C[0] and theta.trace() <= C[1] and prod([ v(theta) > 0 for v in Foo]):
-            S.append(theta)
-    return S
-"""
 
 def integral_elements_in_box(K, C):
     r"""
@@ -331,6 +279,8 @@ class tr_data_rel:
         OUTPUT:
         the successor polynomial as a coefficient list.
         """
+
+        import numpy
 
         m = self.m
         n = self.n

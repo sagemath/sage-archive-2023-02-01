@@ -53,6 +53,10 @@ AUTHOR:
 # Standard python imports
 import cPickle, os, types
 
+# We want the caller's locals, but locals() is emulated in Cython
+import __builtin__
+cdef caller_locals = __builtin__.locals
+
 # Sage imports
 from misc import embedded
 from sage.structure.sage_object import load, save
@@ -83,7 +87,7 @@ def init(state=None):
         sage: show_identifiers()
         []
     """
-    if state is None: state = locals()  # use locals() by default
+    if state is None: state = caller_locals()  # use locals() by default
     global state_at_init
     # Make a *copy* of the state dict, since it is mutable
     state_at_init = dict(state)
@@ -175,7 +179,7 @@ def show_identifiers(hidden=False):
         sage: show_identifiers(hidden=True)        # random output
         ['__', '_i', '_6', '_4', '_3', '_1', '_ii', '__doc__', '__builtins__', '___', '_9', '__name__', '_', 'a', '_i12', '_i14', 'factor', '__file__', '_hello', '_i13', '_i11', '_i10', '_i15', '_i5', '_13', '_10', '_iii', '_i9', '_i8', '_i7', '_i6', '_i4', '_i3', '_i2', '_i1', '_init_cmdline', '_14']
     """
-    state = locals()  # get the callers locals() -- it's the *callers* since we're using cython.
+    state = caller_locals()
     return [x for x, v in state.iteritems() if _is_new_var(x, v, hidden)]
 
 def save_session(name='sage_session', verbose=False):
@@ -218,7 +222,7 @@ def save_session(name='sage_session', verbose=False):
     Clean up the session file we just wrote to disk.
         sage: os.unlink('session.sobj')
     """
-    state = locals()
+    state = caller_locals()
     # This dict D will contain the session -- as a dict -- that we will save to disk.
     D = {}
     # We iterate only over the new variables that were defined in this
@@ -278,7 +282,7 @@ def load_session(name='sage_session', verbose=False):
         NameError: name 'f' is not defined
         sage: os.unlink('session.sobj')
     """
-    state = locals()
+    state = caller_locals()
 
     if embedded():
         if not os.path.exists(name):

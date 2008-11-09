@@ -63,7 +63,7 @@ class SymbolicLogic:
                                 the order they were found
         OUTPUT:
             returns a list containing a list of tokens, a dictionary of
-            varaiable/value pairs (where the value is 'True' or 'False')
+            variable/value pairs (where the value is 'True' or 'False')
             and a list of the variable names in the order they were found
 
         EXAMPLES:

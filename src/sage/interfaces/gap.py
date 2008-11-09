@@ -260,7 +260,7 @@ class Gap(Expect):
             sage: g(2)^2
             4
             sage: g._next_var_name()
-            '$sage5'
+            '$sage...'
 
         """
         if len(self._available_vars) != 0:

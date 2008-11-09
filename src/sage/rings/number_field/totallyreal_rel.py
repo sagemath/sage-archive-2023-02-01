@@ -179,13 +179,6 @@ class tr_data_rel:
 
         Z_Fbasis = self.Z_F.basis()
 
-        from sage.matrix.constructor import matrix
-        M = matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in Z_Fbasis] for y in Z_Fbasis])
-        T = pari(M).qflllgram()
-
-##        self.Z_F.reduced_basis = [sum([T[i][j].__int__()*Z_Fbasis[j] for j in range(self.d)]) for i in range(self.d)]
-##        self.Z_F.T = pari(matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in self.Z_F.reduced_basis] for y in self.Z_F.reduced_basis]))
-
         # Initialize variables.
         if a == []:
             # No starting input, all polynomials will be found; initalize to zero.
@@ -215,7 +208,7 @@ class tr_data_rel:
             br = max([1./m*(am1**2).trace() + \
                             self.gamma*(1./(m**d)*self.B/self.dF)**(1./(self.n-d)) for am1 in anm1s])
             br = math.floor(br)
-            T2s = self.F.integral_elements_with_trace([bl,br])
+            T2s = self.F._positive_integral_elements_with_trace([bl,br])
             self.trace_elts.append([bl,br,T2s])
 
         elif len(a) <= m+1:
@@ -362,7 +355,7 @@ class tr_data_rel:
                                     T2s.append(theta)
                             break
                     if not trace_elts_found:
-                        T2s = self.F.integral_elements_with_trace([bl,br])
+                        T2s = self.F._positive_integral_elements_with_trace([bl,br])
                         self.trace_elts.append([bl,br,T2s])
 
                     # Now ensure that T2 satisfies the correct parity condition

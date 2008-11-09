@@ -2747,10 +2747,10 @@ class NumberField_generic(number_field_base.NumberField):
             x
             sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
             sage: F.reduced_gram_matrix(prec=128)
-            [   4.0000000000000000000000000000000000000   0.00000000000000000000000000000000000000    1.9999999999999999999999999999999999037 -1.0684680000000000000000000000000000000e6]
-            [  0.00000000000000000000000000000000000000    46721.539331563218381658483353092335550    11488.910026551724275122749703614966768 -1.1228558200864828963821803781091898982e7]
-            [   1.9999999999999999999999999999999999037    11488.910026551724275122749703614966768  5.5658915310500611768713076521847709187e8  8.0619179090987317435751641503958312826e9]
-            [-1.0684680000000000000000000000000000000e6 -1.1228558200864828963821803781091898982e7  8.0619179090987317435751641503958312826e9 5.8711879006497804783677635022079228656e12]
+            [   4.0000000000000000000000000000000000000   0.00000000000000000000000000000000000000 -2.1369320000000000000000000000000000000e6 -3.3122478000000000000000000000000000000e7]
+            [  0.00000000000000000000000000000000000000    46721.539331563218381658483353092335550 -2.2467769057394530109094755223395819322e7 -3.4807276041138450473611629088647496430e8]
+            [-2.1369320000000000000000000000000000000e6 -2.2467769057394530109094755223395819322e7 7.0704243186034907491782135494859351061e12 1.1256636615786237006027526953641297995e14]
+            [-3.3122478000000000000000000000000000000e7 -3.4807276041138450473611629088647496430e8 1.1256636615786237006027526953641297995e14 1.7923838231014970520503146603069479547e15]
         """
         if self.is_totally_real():
             try:
@@ -2792,10 +2792,11 @@ class NumberField_generic(number_field_base.NumberField):
     # Supplementary algorithm to enumerate lattice points
     #******************************************************
 
-    def integral_elements_with_trace(self, C):
+    def _positive_integral_elements_with_trace(self, C):
+
         r"""
-        Find all integral elements in self with trace in the
-        interval C.
+        Find all totally positive integral elements in self whose
+        trace is between C[0] and C[1], inclusive.
 
         NOTE: This is currently only implemented in the case
         that self is totally real, since it requires exact
@@ -2803,14 +2804,21 @@ class NumberField_generic(number_field_base.NumberField):
 
         EXAMPLES:
             sage: K.<alpha> = NumberField(ZZ['x'].0^2-2)
-            sage: K.integral_elements_with_trace([0,5])
-            [alpha + 2, 2, 1]
+            sage: K._positive_integral_elements_with_trace([0,5])
+            [alpha + 2, -alpha + 2, 2, 1]
             sage: L.<beta> = NumberField(ZZ['x'].0^2+1)
-            sage: L.integral_elements_with_trace([5,11])
+            sage: L._positive_integral_elements_with_trace([5,11])
             Traceback (most recent call last):
             ...
             NotImplementedError: exact computation of LLL reduction only implemented in the totally real case
+            sage: L._positive_integral_elements_with_trace([-5,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: bounds must be positive
         """
+        if C[0] < 0:
+            raise ValueError, "bounds must be positive"
+
         if not self.is_totally_real():
             raise NotImplementedError, "exact computation of LLL reduction only implemented in the totally real case"
 
@@ -2822,6 +2830,8 @@ class NumberField_generic(number_field_base.NumberField):
         S = []
         for p in P:
             theta = sum([ p.list()[i]*B[i] for i in range(self.degree())])
+            if theta.trace() < 0:
+                theta *= -1
             if theta.trace() >= C[0] and theta.trace() <= C[1]:
                 inbounds = True
                 for v in self.real_embeddings():
@@ -3470,7 +3480,7 @@ class NumberField_absolute(NumberField_generic):
             sage: Z = var('Z')
             sage: K.<w> = NumberField(Z^3 + Z + 1)
             sage: L = loads(dumps(K))
-            sage: print L
+            sage: L
             Number Field in w with defining polynomial Z^3 + Z + 1
             sage: print L == K
             True
@@ -5392,7 +5402,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         sage: z6 = cf6.0
         sage: FF = Frac( cf12['x'] )
         sage: x = FF.0
-        sage: print z6*x^3/(z6 + x)
+        sage: z6*x^3/(z6 + x)
         zeta12^2*x^3/(x + zeta12^2)
 
         sage: cf6 = CyclotomicField(6) ; z6 = cf6.gen(0)
@@ -5456,9 +5466,9 @@ class NumberField_cyclotomic(NumberField_absolute):
         TESTS:
             sage: K.<zeta7> = CyclotomicField(7)
             sage: L = loads(dumps(K))
-            sage: print L
+            sage: L
             Cyclotomic Field of order 7 and degree 6
-            sage: print L == K
+            sage: L == K
             True
         """
         return NumberField_cyclotomic_v1, (self.__n, self.variable_name())
@@ -6324,9 +6334,9 @@ class NumberField_quadratic(NumberField_absolute):
         TESTS:
             sage: K.<z7> = QuadraticField(7)
             sage: L = loads(dumps(K))
-            sage: print L
+            sage: L
             Number Field in z7 with defining polynomial x^2 - 7
-            sage: print L == K
+            sage: L == K
             True
         """
         return NumberField_quadratic_v1, (self.polynomial(), self.variable_name())

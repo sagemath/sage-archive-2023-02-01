@@ -1058,7 +1058,15 @@ def preparse_file(contents, attached={}, magic=True,
                 continue
             loaded_files.append(name_load)
             if name_load[-3:] == '.py':
-                _ip.magic('run -i "%s"'%name_load)
+                import IPython.ipapi
+                # This is a dangerous hack, actually, since it means
+                # that if the input file is:
+                #     load a.sage
+                #     load b.py
+                # Then b.py will be loaded while the file is being *parsed*,
+                # and *before* a.sage is loaded.  That would be very confusing.
+                # This is now Trac ticket #4474.
+                IPython.ipapi.get().magic('run -i "%s"'%name_load)
                 L = ''
             elif name_load[-5:] == '.sage':
                 try:

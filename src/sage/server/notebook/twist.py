@@ -1346,7 +1346,10 @@ class WorksheetsByUser(resource.Resource):
         if self.user == self.username or user_type(self.username) == 'admin':
             return self.render_list(ctx)
         else:
-            s = message("User '%s' does not have permission to view the home page of '%s'."%(self.username, self.user))
+            if not self.username == 'guest':
+                s = message("User '%s' does not have permission to view the home page of '%s'."%(self.username, self.user))
+            else:
+                return http.RedirectResponse('/')
             return http.Response(stream = s)
 
     def childFactory(self, request, name):

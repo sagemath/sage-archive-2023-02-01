@@ -884,12 +884,12 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [-0.392540507864  0.824163383692  0.408248290464]
             [-0.560772154092  0.137360563949 -0.816496580928]
             [ -0.72900380032 -0.549442255795  0.408248290464]
-            sage: U*U.transpose()
+            sage: U*U.transpose()            # random low bits
             [              1.0 2.13506512817e-16]
             [2.13506512817e-16               1.0]
             sage: max((U*U.transpose()-identity_matrix(2)).list())<1e-15
             True
-            sage: V*V.transpose()
+            sage: V*V.transpose()            # random low bits
             [               1.0  2.02230810223e-16 -2.11947972194e-16]
             [ 2.02230810223e-16                1.0  7.09339271349e-17]
             [-2.11947972194e-16  7.09339271349e-17                1.0]

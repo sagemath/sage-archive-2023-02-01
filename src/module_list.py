@@ -722,22 +722,20 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.modules.complex_double_vector',
-              sources = ['sage/modules/complex_double_vector.pyx'],
-              libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')],
-              include_dirs = numpy_include_dirs),
-
     Extension('sage.modules.free_module_element',
               sources = ['sage/modules/free_module_element.pyx']),
 
     Extension('sage.modules.module',
               sources = ['sage/modules/module.pyx']),
 
-    Extension('sage.modules.real_double_vector',
-              sources = ['sage/modules/real_double_vector.pyx'],
-              libraries = ['gsl', BLAS, BLAS2, 'pari','gmp'],
-              define_macros = [('GSL_DISABLE_DEPRECATED','1')],
+    Extension('sage.modules.vector_complex_double_dense',
+              ['sage/modules/vector_complex_double_dense.pyx'],
+              libraries = [BLAS, BLAS2],
+              include_dirs = numpy_include_dirs),
+
+    Extension('sage.modules.vector_double_dense',
+              ['sage/modules/vector_double_dense.pyx'],
+              libraries = [BLAS, BLAS2],
               include_dirs = numpy_include_dirs),
 
     Extension('sage.modules.vector_integer_dense',
@@ -750,6 +748,11 @@ ext_modules = [
     Extension('sage.modules.vector_rational_dense',
               sources = ['sage/modules/vector_rational_dense.pyx'],
               libraries = ['gmp']),
+
+    Extension('sage.modules.vector_real_double_dense',
+              ['sage/modules/vector_real_double_dense.pyx'],
+              libraries = [BLAS, BLAS2],
+              include_dirs = numpy_include_dirs),
 
     # Extension('sage.modules.vector_rational_sparse',
     #           sources = ['sage/modules/vector_rational_sparse.pyx'],

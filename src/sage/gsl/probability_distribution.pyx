@@ -20,7 +20,6 @@ import sage.plot.plot
 #include 'gsl.pxi'
 #cimport sage.rings.real_double
 import sage.rings.real_double
-#from sage.modules.real_double_vector import
 import random
 import integration
 from sage.modules.free_module_element import vector

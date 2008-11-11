@@ -235,17 +235,15 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     if isinstance(v,ndarray):
         if len(v.shape)==1:
             if str(v.dtype).count('float')==1:
-                if v.flags.c_contiguous==True:
-                    V=VectorSpace(RDF,v.shape[0])
-                    _v=V.zero_vector()
-                    _v._replace_self_with_numpy(v)
-                    return _v
+                V=VectorSpace(RDF,v.shape[0])
+                import vector_real_double_dense
+                _v=vector_real_double_dense.Vector_real_double_dense(V, v)
+                return _v
             if str(v.dtype).count('complex')==1:
-                if v.flags.c_contiguous==True:
-                    V=VectorSpace(CDF,v.shape[0])
-                    _v=V.zero_vector()
-                    _v._replace_self_with_numpy(v)
-                    return _v
+                V=VectorSpace(CDF,v.shape[0])
+                import vector_complex_double_dense
+                _v=vector_complex_double_dense.Vector_complex_double_dense(V, v)
+                return _v
 
     else:
         if sparse is None:

@@ -47,21 +47,11 @@ cdef extern from "math.h":
 cdef extern from "string.h":
     void* memcpy(void* dst, void* src, size_t len)
 
-cdef extern from "numpy/arrayobject.h":
-    cdef enum:
-        NPY_OWNDATA = 0x0004 #bit mask so numpy does not free array contents when its destroyed
-    object PyArray_FromDimsAndData(int,int*,int,double *)
-    ctypedef int intp
-    void import_array()
-    ctypedef extern class numpy.ndarray [object PyArrayObject]:
-        cdef int nd
-        cdef int flags
-        cdef intp *dimensions
-        cdef char* data
+cimport sage.ext.numpy as cnumpy
 
 from sage.rings.integer import Integer
 from sage.rings.real_double import RDF
-from sage.modules.real_double_vector cimport RealDoubleVectorSpaceElement
+from sage.modules.vector_real_double_dense cimport Vector_real_double_dense
 
 max_print = 10
 digits = 4
@@ -103,29 +93,40 @@ cdef class TimeSeries:
                    [ 3.,  4.]])
             sage: finance.TimeSeries(v)
             [1.0000, 2.0000, 3.0000, 4.0000]
+            sage: finance.TimeSeries(v[:,0])
+            [1.0000, 3.0000]
+            sage: u = numpy.array([[1,2],[3,4]])
+            sage: finance.TimeSeries(u)
+            [1.0000, 2.0000, 3.0000, 4.0000]
         """
-        cdef RealDoubleVectorSpaceElement z
-        cdef ndarray np
+        cdef Vector_real_double_dense z
+        cdef cnumpy.ndarray np
+        cdef double *np_data
+        cdef unsigned int j
         if isinstance(values, (int, long, Integer)):
             values = [0.0]*values
-        elif PY_TYPE_CHECK(values, ndarray):
-            np = values
+        elif PY_TYPE_CHECK(values, Vector_real_double_dense) or PY_TYPE_CHECK(values, cnumpy.ndarray):
+            if PY_TYPE_CHECK(values, Vector_real_double_dense):
+                np  = values._vector_numpy
+            else:
+                np = values
+
             if np.nd != 1:
-                np = values.reshape([values.size])
+                np = np.reshape([np.size])
+
+            # Make the array be the correct type and have a C array
+            # for a data structure.  If the array already is the
+            # correct type and has a C array, nothing is done, so this
+            # should be fast in the common case.
+            np = np.astype('double')
+            np = cnumpy.PyArray_GETCONTIGUOUS(np)
+            np_data = <double*> cnumpy.PyArray_DATA(np)
             self._length = np.dimensions[0]
             self._values = <double*> sage_malloc(sizeof(double) * self._length)
             if self._values == NULL:
                 raise MemoryError
-            memcpy(self._values, np.data, sizeof(double)*self._length)
-            return
-        elif PY_TYPE_CHECK(values, RealDoubleVectorSpaceElement):
-            # Fast constructor from real double vector.
-            z = values
-            self._length = z.v.size
-            self._values = <double*> sage_malloc(sizeof(double) * self._length)
-            if self._values == NULL:
-                raise MemoryError
-            memcpy(self._values, z.v.data, sizeof(double)*self._length)
+
+            memcpy(self._values, np_data, sizeof(double)*self._length)
             return
         else:
             values = [float(x) for x in values]
@@ -217,8 +218,8 @@ cdef class TimeSeries:
             (1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0)
         """
         V = RDF**self._length
-        cdef RealDoubleVectorSpaceElement x = RealDoubleVectorSpaceElement(V, 0)
-        memcpy(x.v.data, self._values, sizeof(double)*self._length)
+        # A copy of the numpy array is made in the vector constructor
+        cdef Vector_real_double_dense x = Vector_real_double_dense(V, self.numpy(copy=False))
         return x
 
     def __repr__(self):
@@ -1856,13 +1857,15 @@ cdef class TimeSeries:
             sage: v
             [20.0000, -3.0000, 4.5000, -2.0000]
         """
-        import_array() #This must be called before using the numpy C/api or you will get segfault
+        cnumpy.import_array() #This must be called before using the numpy C/api or you will get segfault
         cdef int dims[1]
         dims[0] = self._length
-        cdef ndarray n = PyArray_FromDimsAndData(1, dims, 12, self._values)
+        cdef cnumpy.ndarray n = cnumpy.PyArray_SimpleNewFromData(1, dims, cnumpy.NPY_DOUBLE, self._values)
         if copy:
             return n.copy()
         else:
+#            Py_INCREF(self)
+#            n.base = self
             return n
 
     def randomize(self, distribution='uniform', loc=0, scale=1, **kwds):

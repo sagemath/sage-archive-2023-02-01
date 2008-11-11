@@ -145,9 +145,14 @@ from sage.misc.all import numerator, denominator, prod
 
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
-from sage.modules.real_double_vector cimport RealDoubleVectorSpaceElement
+from sage.modules.vector_real_double_dense cimport Vector_real_double_dense
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber
+
+cimport numpy
+
+# TODO: Just for the fabs function below
+from math import fabs
 
 # We need to put x86-family CPUs in round-to-double mode.
 # To do this, we call fpu_fix_start/fpu_fix_end from the quad-double package.
@@ -164,7 +169,6 @@ cdef extern from "qd/fpu.h":
 
 include "../../ext/cdefs.pxi"
 include "../../ext/gmp.pxi"
-include "../../gsl/gsl.pxi"
 
 from sage.libs.mpfr cimport *
 
@@ -1260,7 +1264,8 @@ def intvec_to_doublevec(Vector_integer_dense b, long err):
 
     vs = FreeModule(RDF, len(b))
 
-    cdef RealDoubleVectorSpaceElement db = vs(0)
+    cdef Vector_real_double_dense db = vs(0)
+    cdef numpy.ndarray[double, ndim=1] dbv = db._vector_numpy
 
     cdef long max_exp = -10000
     cdef long cur_exp
@@ -1282,7 +1287,7 @@ def intvec_to_doublevec(Vector_integer_dense b, long err):
         # 0.5 <= d < 1; b._entries[i] ~= d*2^cur_exp
         new_exp = cur_exp + delta
         if new_exp >= -100:
-            db.v.data[i] = ldexp(d, new_exp)
+            dbv[i] = ldexp(d, new_exp)
 #            db[i] = ldexp(d, new_exp)
 
     # The true value can be off by an ulp because mpz_get_d_2exp truncates.
@@ -1329,7 +1334,7 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         (3, 3)
     """
 
-    def __init__(self, RealDoubleVectorSpaceElement coeffs, Rational lower, Rational upper, int lsign, int usign, double neg_err, double pos_err, int scale_log2, int level, RealIntervalFieldElement slope_err):
+    def __init__(self, Vector_real_double_dense coeffs, Rational lower, Rational upper, int lsign, int usign, double neg_err, double pos_err, int scale_log2, int level, RealIntervalFieldElement slope_err):
         """
         Initialize an interval_bernstein_polynomial_integer.
 
@@ -1357,21 +1362,22 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
             '<IBP: ((0.5, -0.3, -0.1) + [-0.02 .. 0.17]) * 2^3 over [-3/7 .. 4/7]; usign -1; level 2; slope_err 1.0000000000000000?e-30>'
         """
         assert(len(coeffs) > 0)
+        cdef numpy.ndarray[double, ndim=1] coeffs_data = coeffs._vector_numpy
         self.coeffs = coeffs
         self.lower = lower
         self.upper = upper
         self.lsign = lsign
         if self.lsign == 0:
-            if coeffs.v.data[0] > -neg_err:
+            if coeffs_data[0] > -neg_err:
                 self.lsign = 1
-            if coeffs.v.data[0] < -pos_err:
+            if coeffs_data[0] < -pos_err:
                 self.lsign = -1
         self.usign = usign
         cdef int n = len(coeffs)
         if self.usign == 0:
-            if coeffs.v.data[n-1] > -neg_err:
+            if coeffs_data[n-1] > -neg_err:
                 self.usign = 1
-            if coeffs.v.data[n-1] < -pos_err:
+            if coeffs_data[n-1] < -pos_err:
                 self.usign = -1
         self.neg_err = neg_err
         self.pos_err = pos_err
@@ -1401,10 +1407,10 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         s = "<IBP: %s" % base
         if self.lower != 0 or self.upper != 1:
             s += " over [%s .. %s]" % (self.lower, self.upper)
-        if self.coeffs.v.data[0] <= -self.neg_err and self.coeffs.v.data[0] >= -self.pos_err and self.lsign != 0:
+        if self.coeffs.get_unsafe(0) <= -self.neg_err and self.coeffs.get_unsafe(0) >= -self.pos_err and self.lsign != 0:
             s += "; lsign %d" % self.lsign
         cdef int n = len(self.coeffs)
-        if self.coeffs.v.data[n-1] <= -self.neg_err and self.coeffs.v.data[n-1] >= -self.pos_err and self.usign != 0:
+        if self.coeffs.get_unsafe(n-1) <= -self.neg_err and self.coeffs.get_unsafe(n-1) >= -self.pos_err and self.usign != 0:
             s += "; usign %d" % self.usign
         if self.level != 0:
             s += "; level %d" % self.level
@@ -1442,8 +1448,7 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         bounds on this number.
 
         """
-
-        cdef double* cd = self.coeffs.v.data
+        cdef numpy.ndarray[double, ndim=1] cd = self.coeffs._vector_numpy
 
         cdef int count_maybe_pos
         cdef int count_maybe_neg
@@ -1545,14 +1550,14 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
             '<IBP: (0.176569270623, -0.265568030479, -0.780203813281, -0.396666666667, 0.99) + [-0.1 .. 0.01] over [7/39 .. 1]>'
         """
         (c1_, c2_, err_inc) = de_casteljau_doublevec(self.coeffs, mid)
-        cdef RealDoubleVectorSpaceElement c1 = c1_
-        cdef RealDoubleVectorSpaceElement c2 = c2_
-
+        cdef Vector_real_double_dense c1 = c1_
+        cdef Vector_real_double_dense c2 = c2_
+        cdef numpy.ndarray[double, ndim=1] c2data = c2._vector_numpy
         cdef int sign = 0
 
-        if c2.v.data[0] > -self.neg_err:
+        if c2data[0] > -self.neg_err:
             sign = 1
-        if c2.v.data[0] < -self.pos_err:
+        if c2data[0] < -self.pos_err:
             sign = -1
 
         if msign == 0:
@@ -1656,7 +1661,7 @@ cdef Integer ZZ_2_31 = ZZ(2) ** 31
 cdef Integer ZZ_2_32 = ZZ(2) ** 32
 cdef RealIntervalFieldElement zero_RIF = RIF(0)
 
-def de_casteljau_doublevec(RealDoubleVectorSpaceElement c, Rational x):
+def de_casteljau_doublevec(Vector_real_double_dense c, Rational x):
     """
     Given a polynomial in Bernstein form with floating-point coefficients
     over the region [0 .. 1], and a split point x, use de Casteljau's
@@ -1687,18 +1692,16 @@ def de_casteljau_doublevec(RealDoubleVectorSpaceElement c, Rational x):
     """
     vs = c.parent()
 
-    cdef RealDoubleVectorSpaceElement c1, c2
+    cdef Vector_real_double_dense c1, c2
 
-    c1 = RealDoubleVectorSpaceElement(vs, 0)
+    c1 = Vector_real_double_dense(vs, 0)
     c2 = c.__copy__()
-
-    assert(c1.v.stride == 1 and c2.v.stride == 1)
 
     cdef unsigned int cwf
     fpu_fix_start(&cwf)
 
-    cdef double* c1d = c1.v.data
-    cdef double* c2d = c2.v.data
+    cdef numpy.ndarray[double, ndim=1] c1d = c1._vector_numpy
+    cdef numpy.ndarray[double, ndim=1] c2d = c2._vector_numpy
 
     cdef double half = 0.5
 
@@ -1744,7 +1747,7 @@ def de_casteljau_doublevec(RealDoubleVectorSpaceElement c, Rational x):
 
     return (c1, c2, extra_err)
 
-def max_abs_doublevec(RealDoubleVectorSpaceElement c):
+def max_abs_doublevec(Vector_real_double_dense c):
     """
     Given a floating-point vector, return the maximum of the
     absolute values of its elements.
@@ -1754,9 +1757,7 @@ def max_abs_doublevec(RealDoubleVectorSpaceElement c):
         sage: max_abs_doublevec(vector(RDF, [0.1, -0.767, 0.3, 0.693]))
         0.76700000000000002
     """
-    assert(c.v.stride == 1)
-
-    cdef double* cd = c.v.data
+    cdef numpy.ndarray[double, ndim=1] cd = c._vector_numpy
 
     cdef double m = 0
     cdef double a
@@ -4478,7 +4479,7 @@ def min_max_diff_intvec(Vector_integer_dense b):
 
     return (min_diff, max_diff)
 
-def min_max_diff_doublevec(RealDoubleVectorSpaceElement c):
+def min_max_diff_doublevec(Vector_real_double_dense c):
     """
     Given a floating-point vector b = (b0, ..., bn), compute the
     minimum and maximum values of b_{j+1} - b_j.
@@ -4488,9 +4489,7 @@ def min_max_diff_doublevec(RealDoubleVectorSpaceElement c):
         sage: min_max_diff_doublevec(vector(RDF, [1, 7, -2]))
         (-9.0, 6.0)
     """
-    assert(c.v.stride == 1)
-
-    cdef double* cd = c.v.data
+    cdef numpy.ndarray[double, ndim=1] cd = c._vector_numpy
 
     l = len(c)
     assert(l > 1)

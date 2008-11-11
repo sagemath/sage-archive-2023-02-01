@@ -74,7 +74,7 @@ True
 sage: # (YES) Standard deviation of the sample (1, 2, 3, 4, 5).
 sage: v = vector(RDF, 5, [1,2,3,4,5])
 sage: v.standard_deviation()
-1.5811388300841898
+1.58113883008
 
 sage: # (NO) Hypothesis testing with t-distribution.
 sage: # (NO) Hypothesis testing with chi^2 distribution

@@ -91,8 +91,6 @@ import sage.rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.parent_gens as gens
-import sage.modules.real_double_vector
-import sage.modules.complex_double_vector
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 

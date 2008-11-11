@@ -21,7 +21,7 @@ from fractal import (stationary_gaussian_simulation,
 ##         sage: finance.TimeSeries([pi, 3, 18.2])
 ##         [3.1416, 3.0000, 18.2000]
 ##     """
-##     # A dirty trick to avoid importing time_series (hence real_double_vector)
+##     # A dirty trick to avoid importing time_series (hence vector_real_double_dense)
 ##     # every time sage starts up, but to make sure that the finance.TimeSeries
 ##     # function is VERY fast.  The first time this function is called it is
 ##     # immediately replaced by the fast compiled version in the time_series

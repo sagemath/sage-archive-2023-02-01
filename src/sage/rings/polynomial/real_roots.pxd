@@ -3,7 +3,7 @@ from sage.rings.rational cimport Rational
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
-from sage.modules.real_double_vector cimport RealDoubleVectorSpaceElement
+from sage.modules.vector_real_double_dense cimport Vector_real_double_dense
 
 from real_mpfi import RealIntervalFieldElement
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
@@ -36,7 +36,7 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
     cdef void _count_variations(self)
 
 cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
-    cdef RealDoubleVectorSpaceElement coeffs
+    cdef Vector_real_double_dense coeffs
 
     cdef double neg_err
     cdef double pos_err

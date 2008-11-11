@@ -270,7 +270,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Set the (i,j) entry to value without any bounds checking, etc.
+        Get the (i,j) entry without any bounds checking, etc.
         """
         # We assume that Py_ssize_t is the same as cnumpy.npy_intp
         return self._sage_dtype(cnumpy.PyArray_GETITEM(self._matrix_numpy,

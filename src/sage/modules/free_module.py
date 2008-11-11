@@ -79,23 +79,23 @@ and verify that the element types are correct:
     sage: V.0
     (1.0, 0.0, 0.0)
     sage: type(V.0)
-    <type 'sage.modules.real_double_vector.RealDoubleVectorSpaceElement'>
+    <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
     sage: W = V.span([V.0]); W
     Vector space of degree 3 and dimension 1 over Real Double Field
     Basis matrix:
     [1.0 0.0 0.0]
     sage: type(W.0)
-    <type 'sage.modules.real_double_vector.RealDoubleVectorSpaceElement'>
+    <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
     sage: V = FreeModule(CDF, 3); V
     Vector space of dimension 3 over Complex Double Field
     sage: type(V.0)
-    <type 'sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement'>
+    <type 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
     sage: W = V.span_of_basis([CDF.0 * V.1]); W
     Vector space of degree 3 and dimension 1 over Complex Double Field
     User basis matrix:
     [    0 1.0*I     0]
     sage: type(W.0)
-    <type 'sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement'>
+    <type 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
 
 Basis vectors are immutable:
     sage: A = span([[1,2,3], [4,5,6]], ZZ)
@@ -5299,8 +5299,8 @@ def element_class(R, is_sparse):
         sage: sage.modules.free_module.element_class(P, is_sparse=False)
         <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
     """
-    import sage.modules.real_double_vector
-    import sage.modules.complex_double_vector
+    import sage.modules.vector_real_double_dense
+    import sage.modules.vector_complex_double_dense
 
     if sage.rings.integer_ring.is_IntegerRing(R) and not is_sparse:
         from vector_integer_dense import Vector_integer_dense
@@ -5315,9 +5315,9 @@ def element_class(R, is_sparse):
         else:
             return free_module_element.FreeModuleElement_generic_dense
     elif sage.rings.real_double.is_RealDoubleField(R) and not is_sparse:
-        return sage.modules.real_double_vector.RealDoubleVectorSpaceElement
+        return sage.modules.vector_real_double_dense.Vector_real_double_dense
     elif sage.rings.complex_double.is_ComplexDoubleField(R) and not is_sparse:
-        return sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement
+        return sage.modules.vector_complex_double_dense.Vector_complex_double_dense
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse

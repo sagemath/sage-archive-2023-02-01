@@ -2,23 +2,90 @@
 
 import os
 
-SAGE_ROOT = os.environ['SAGE_ROOT']
+SAGE_ROOT     = os.environ['SAGE_ROOT']
 
 location_file = '%s/local/lib/sage-current-location.txt'%SAGE_ROOT
+flags_file    = '%s/local/lib/sage-flags.txt'%SAGE_ROOT
 
 def install_moved():
+    """
+    Check whether or not this install of Sage moved.  If it hasn't
+    moved make sure the location and processor flags files are
+    written.
+    """
+    # Write the flags file if it isn't there.
+    if not os.path.exists(flags_file):
+        write_flags_file()
+
     if not os.path.exists(location_file):
+        # Write the location file since it isn't there.
         O = open(location_file,'w')
         O.write(SAGE_ROOT)
         O.close()
         return False, ''   # first time -- so no need to update; this was during the build.
 
+    # The install moved and we had written the flags and location files.
     O = open(location_file)
     R = O.read().strip()
     O.close()
     if os.path.realpath(R) != os.path.realpath(SAGE_ROOT):  # really different
         return True, R  # it moved
     return False, ''
+
+
+def get_flags_info():
+    """
+    Return a space-separated string that lists the flags supported by
+    this CPU from /proc/cpuinfo.
+    """
+    try:
+        r = open('/proc/cpuinfo').read()
+        i = r.find('flags')
+        r = r[i:]
+        i = r.find(':')
+        r = r[i+1:]
+        i = r.find('\n')
+        r = r[:i]
+        return r
+    except IOError:
+        # On a system without /proc/cpuinfo, so don't bother In
+        # particular, for non Linux systems I have no clue how to get
+        # the processor flags, and we so far have never ever had any
+        # problem with processor flags on such machines.  So we don't
+        # bother.
+        return ''
+
+def write_flags_file():
+    """
+    Write the flags file to disk.
+    """
+    # Just record the flags
+    open(flags_file,'w').write(get_flags_info())
+
+def check_processor_flags():
+    """
+    Make sure all processor flags from the build machine are on this machine.
+    If the sage-flags.txt file is missing, don't bother to do this check.
+    """
+    if not os.path.exists(flags_file): return
+    # We check that the processor flags of the original build are a
+    # subset of the new machine.  If not, we print a massive warning.
+    X = set(open(flags_file).read().split())
+    Y = set(get_flags_info().split())
+    if not X.issubset(Y):
+        print ""
+        print "*"*70
+        print "WARNING!  This Sage install was built on a machine that supports"
+        print "instructions that are not available on this computer.  Sage will"
+        print "likely fail with ILLEGAL INSTRUCTION errors! The following processor"
+        print "flags were on the build machine but are not on this computer:\n"
+        for a in X:
+            if a not in Y:
+                print a,
+        print ""
+        print ""
+        print "Email http://groups.google.com/group/sage-support for help."
+        print "*"*70
 
 def update_library_files(R):
     LIB = '%s/local/lib/'%os.path.abspath(SAGE_ROOT)
@@ -63,11 +130,14 @@ def __mysig(a,b):
 if __name__ ==  '__main__':
     # Check if SAGE has moved, and if so delete all .pyo and .pyc files
     # in the python libs directory, so they are rebuilt.
+    check_processor_flags()
     t, R = install_moved()
     if t:
-        print "The Sage install tree may have moved."
-        print "Regenerating Python.pyo and .pyc files that hardcode the install PATH (please wait at most a few minutes)..."
-        print "Please do not interrupt this."
+        print "The SAGE install tree may have moved."
+
+        print "Regenerating Python.pyo and .pyc files that hardcode the install PATH (please wait at"
+        print "most a few minutes)..."
+        print "Do not interrupt this."
 	update_library_files(R)
         update_hardcoded_files(SAGE_ROOT + '/local/lib/python/')
 

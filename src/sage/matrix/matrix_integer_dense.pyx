@@ -2654,7 +2654,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             algorithm --
                 'padic' -- (the default) uses a p-adic / multimodular
                            algorithm that relies on code in IML and linbox
-                'linbox' -- calls linbox det
+                'linbox' -- calls linbox det (you *must* set proof=False
+                            to use this!)
                 'ntl' -- calls NTL's det function
             proof -- bool or None; if None use proof.linear_algebra(); only
                      relevant for the padic algorithm.
@@ -2694,6 +2695,25 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: D2 = A.determinant(algorithm='ntl')
             sage: D1 == D2
             True
+
+        Next we try the Linbox det. Note that we must have proof=False.
+            sage: A = matrix(ZZ,4,[1,2,5,3,4,1,6,7,8,10,3,2,14,5,6,8])
+            sage: A.determinant(algorithm='linbox')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: you must pass the proof=False option to the determinant command to use Linbox's det algorithm
+            sage: A.determinant(algorithm='linbox',proof=False)
+            -843
+            sage: A._clear_cache()
+            sage: A.determinant()
+            -843
+
+        A bigger example:
+            sage: A = random_matrix(ZZ,30)
+            sage: d = A.determinant()
+            sage: A._clear_cache()
+            sage: A.determinant(algorithm='linbox',proof=False) == d
+            True
         """
         d = self.fetch('det')
         if not d is None:
@@ -2712,6 +2732,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             import matrix_integer_dense_hnf
             return matrix_integer_dense_hnf.det_padic(self, proof=proof, stabilize=stabilize)
         elif algorithm == 'linbox':
+            if proof:
+                raise RuntimeError, "you must pass the proof=False option to the determinant command to use Linbox's det algorithm"
             d = self._det_linbox()
         elif algorithm == 'ntl':
             d = self._det_ntl()

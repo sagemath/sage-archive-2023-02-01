@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+echo "Testing that Sage starts..."
+sage -c "print 'Yes, Sage starts.'"
+
+if [ $? -ne 0 ]; then
+    echo "Sage failed to startup."
+    exit 1
+fi

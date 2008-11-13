@@ -4,8 +4,14 @@
 # Build Sage *binary* distribution
 # This script should be called by the sage-sage script
 #
-# Released under the GNU GPL -- (c) William Stein
+# Released under the GNU GPL-v2+ -- (c) William Stein
 ########################################################
+
+sage -c "print 'Sage works!'"
+if [ $? -ne 0 ]; then
+    echo "Sage doesn't even start.  Refusing to make a binary."
+    exit 1
+fi
 
 PKGDIR=spkg
 

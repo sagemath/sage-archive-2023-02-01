@@ -126,7 +126,7 @@ if [ -d $SAGE_ROOT/examples ]; then
    cd ..
    rm -rf examples-$SAGE_VERSION
    cp -r examples examples-$SAGE_VERSION
-   sage -pkg examples-$SAGE_VERSION
+   "$SAGE_ROOT"/sage -pkg examples-$SAGE_VERSION
    if [ $? -ne 0 ]; then
        echo "Error building examples package"
        exit 1

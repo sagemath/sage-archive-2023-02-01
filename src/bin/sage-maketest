@@ -22,16 +22,16 @@ fi
 echo "Testing Sage documentation"
 
 echo "Testing Sage tutorial"
-sage -t "$@" "$SAGE_ROOT"/devel/doc/tut/tut.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
+"$SAGE_ROOT"/sage -t "$@" "$SAGE_ROOT"/devel/doc/tut/tut.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
 
 echo "Testing Sage developer's guide"
-sage -t "$@" "$SAGE_ROOT"/devel/doc/prog/prog.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
+"$SAGE_ROOT"/sage -t "$@" "$SAGE_ROOT"/devel/doc/prog/prog.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
 
 echo "Testing Sage constructions guide"
-sage -t "$@" "$SAGE_ROOT"/devel/doc/const/const.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
+"$SAGE_ROOT"/sage -t "$@" "$SAGE_ROOT"/devel/doc/const/const.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
 
 # Run SAGE library doctests, which end with a summary report.
-sage -t "$@" "$SAGE_ROOT"/devel/sage/sage 2>&1 | tee -a "$SAGE_TEST_LOG"
+"$SAGE_ROOT"/sage -t "$@" "$SAGE_ROOT"/devel/sage/sage 2>&1 | tee -a "$SAGE_TEST_LOG"
 
 # Print the small summary report for dsage unit tests, if necessary.
 # TODO -- skip this for now.

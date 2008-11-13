@@ -156,7 +156,7 @@ class NumberFieldIdeal(Ideal_generic):
         AUTHOR: John Cremona  2008-10-31
             Uses linear algebra.  The change-of-basis matrix is
             cached.  Provides simpler implementations for
-            _contains_(), is_integral() and amllest_integer().
+            _contains_(), is_integral() and smallest_integer().
 
         EXAMPLES:
             sage: K.<i> = QuadraticField(-1)

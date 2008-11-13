@@ -855,8 +855,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Note that if self is m-by-n, then the dimensions of the
         matrices that this returns are (m,m), (m,n), and (n, n).
 
-
-
         EXAMPLES:
             sage: m = matrix(RDF,4,range(16))
             sage: U,S,V = m.SVD()
@@ -906,9 +904,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [-8.13151629364e-19                1.0]
             [               2.0                3.0]
             [               4.0                5.0]
-            sage: max((U*S*V.transpose()-m).list())<1e-15 # check
-            True
 
+	Due to numerical noise issues on Intel Macs, the following fails if 1e-14
+	is changed to 1e-15:
+            sage: max((U*S*V.transpose()-m).list())<1e-14 # check
+            True
 
         TESTS:
             sage: m = matrix(RDF, 3, 0, []); m

@@ -678,6 +678,8 @@ fi
 if [ $1 = '-c' ]; then
    cd "$CUR"
    shift
+   SAGE_BANNER="no"
+   sage_setup
    sage-eval "$@"
    exit $?
 fi

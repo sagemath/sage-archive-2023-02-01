@@ -1473,8 +1473,19 @@ def compile_cmd(f, m):
     if f.endswith('.pyx'):
         # process cython file
         pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
+        retval = os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
+        # we could do this more elegantly -- load the files, use
+        # os.path.exists to check that they exist, etc. ... but the
+        # *vast* majority of the time, the copy just works. so this is
+        # just specializing for the most common use case.
+        if retval:
+            dirname, filename = os.path.split(pyx_inst_file)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+            retval = os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
+            if retval:
+                raise OSError, "cannot copy %s to %s"%(f,pyx_inst_file)
         print "%s --> %s"%(f, pyx_inst_file)
-        os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
         outfile = f[:-4]
         if m.language == 'c++':
             outfile += ".cpp"

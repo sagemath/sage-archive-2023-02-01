@@ -196,6 +196,9 @@ def implicit_multiplication(level=None):
       sage: preparse('2x')
       'Integer(2)x'
     """
+    from sage.plot.plot import EMBEDDED_MODE
+    if EMBEDDED_MODE:
+        raise NotImplementedError, "Implicit multiplication not implemented for the notebook."
     global implicit_mul_level
     if level is None:
         return implicit_mul_level

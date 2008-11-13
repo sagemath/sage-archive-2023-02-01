@@ -1581,6 +1581,28 @@ class SymbolicExpression(RingElement):
         right = self.parent()(right)
         return SymbolicArithmetic([self, right], operator.pow)
 
+    def sqrt(self, *args, **kwds):
+        """
+        EXAMPLES:
+            sage: x.sqrt()
+            sqrt(x)
+            sage: SR(4).sqrt(all=True)
+            [2, -2]
+            sage: SR(0).sqrt(all=True)
+            [0]
+        """
+        return sqrt._do_sqrt(self, *args, **kwds)
+
+    def exp(self):
+        """
+        EXAMPLES:
+            sage: x.exp()
+            e^x
+            sage: (pi*I).exp()
+            -1
+        """
+        return SymbolicComposition(exp, self)
+
     def variables(self):
         r"""
         Return sorted list of variables that occur in the simplified
@@ -8336,7 +8358,10 @@ class Function_sqrt(PrimitiveFunction):
                  return ComplexField(prec)(x).sqrt(all=all)
         z = SymbolicComposition(self, SR(x))
         if all:
-            return [z, -z]
+            if z:
+                return [z, -z]
+            else:
+                return [z]
         return z
 
     def __call__(self, x, *args, **kwds):

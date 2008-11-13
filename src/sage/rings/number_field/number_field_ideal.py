@@ -139,6 +139,52 @@ class NumberFieldIdeal(Ideal_generic):
             return cmp(type(self), type(other))
         return cmp(self.pari_hnf(), other.pari_hnf())
 
+    def coordinates(self, x):
+        r"""
+        Returns the coordinate vector of $x$ with respect to this ideal.
+
+        INPUT:
+            $x$ -- an element of the number field (or ring of integers) of this ideal.
+
+        OUTPUT:
+            A vector of length $n$ (the degree of the field) giving
+            the coordinates of $x$ with respect to the integral basis
+            of the ideal.  In general this will be a vector of
+            rationals; it will consist of integers if and only if $x$
+            is in the ideal.
+
+        AUTHOR: John Cremona  2008-10-31
+            Uses linear algebra.  The change-of-basis matrix is
+            cached.  Provides simpler implementations for
+            _contains_(), is_integral() and amllest_integer().
+
+        EXAMPLES:
+            sage: K.<i> = QuadraticField(-1)
+            sage: I = K.ideal(7+3*i)
+            sage: Ibasis = I.integral_basis(); Ibasis
+            [58, i + 41]
+            sage: a = 23-14*i
+            sage: acoords = I.coordinates(a); acoords
+            (597/58, -14)
+            sage: sum([Ibasis[j]*acoords[j] for j in range(2)]) == a
+            True
+            sage: b = 123+456*i
+            sage: bcoords = I.coordinates(b); bcoords
+            (-18573/58, 456)
+            sage: sum([Ibasis[j]*bcoords[j] for j in range(2)]) == b
+            True
+       """
+        K = self.number_field()
+        V, from_V, to_V = K.absolute_vector_space()
+
+        try:
+            M = self.__basis_matrix_inverse
+        except AttributeError:
+            from sage.matrix.constructor import Matrix
+            self.__basis_matrix_inverse = Matrix([to_V(b) for b in self.integral_basis()]).inverse()
+            M = self.__basis_matrix_inverse
+        return to_V(K(x))*M
+
     def _contains_(self, x):
         """
         Return True if x is an element of this ideal.
@@ -178,10 +224,12 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I   # random sign in output
             Fractional ideal (-2*a^2 - 1)
         """
-        # For now, $x \in I$ if and only if $\langle x \rangle + I = I$.
-        # Is there a better way to do this?
-        x_ideal = self.number_field().ideal(x)
-        return self + x_ideal == self
+        # The first method does not work for ideals in relative extensions
+        try:
+            return self.coordinates(self.number_field()(x)).denominator() == 1
+        except NotImplementedError:
+            x_ideal = self.number_field().ideal(x)
+            return self + x_ideal == self
 
     def __elements_from_hnf(self, hnf):
         """
@@ -567,7 +615,7 @@ class NumberFieldIdeal(Ideal_generic):
             return self.__is_integral
         except AttributeError:
             one = self.number_field().ideal(1)
-            self.__is_integral = (self+one == one)
+            self.__is_integral = all([a in one for a in self.integral_basis()])
             return self.__is_integral
 
     def is_maximal(self):
@@ -700,7 +748,7 @@ class NumberFieldIdeal(Ideal_generic):
     def smallest_integer(self):
         r"""
         Return the smallest nonnegative integer in $I \cap \mathbb{Z}$,
-        where $I$ is this ideal.  If $I = 0$, raise a ValueError.
+        where $I$ is this ideal.  If $I = 0$, returns $0$.
 
         EXAMPLE:
             sage: R.<x> = PolynomialRing(QQ)
@@ -708,33 +756,57 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I = K.ideal([4,a])/7
             sage: I.smallest_integer()
             2
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: P1, P2 = [P for P,e in K.factor(13)]
+            sage: all([(P1^i*P2^j).smallest_integer() == 13^max(i,j,0) for i in range(-3,3) for j in range(-3,3)])
+            True
+            sage: I = K.ideal(0)
+            sage: I.smallest_integer()
+            0
+
+            # See trac\# 4392:
+            sage: K.<a>=QuadraticField(-5)
+            sage: I=K.ideal(7)
+            sage: I.smallest_integer()
+            7
+
+            sage: K.<z> = CyclotomicField(13)
+            sage: a = K([-8, -4, -4, -6, 3, -4, 8, 0, 7, 4, 1, 2])
+            sage: I = K.ideal(a)
+            sage: I.smallest_integer()
+            146196692151
+            sage: I.norm()
+            1315770229359
+            sage: I.norm() / I.smallest_integer()
+            9
         """
         try:
             return self.__smallest_integer
         except AttributeError:
-            if self.is_prime():
-                self.__smallest_integer = ZZ(self._pari_prime.getattr('p'))
-                return self.__smallest_integer
-            if self.is_zero():
-                self.__smallest_integer = ZZ(0)
-                return self.__smallest_integer
-            if self.is_integral():
-                factors = self.factor()
-                bound = prod([ p.smallest_integer()**e for (p,e) in factors ])
-                plist = [ p.smallest_integer() for (p,e) in factors ]
-                plist.sort()
-                indices = filter(lambda(i): i==0 or plist[i] != plist[i-1],
-                                 range(0,len(plist)))
-                plist = [ plist[i] for i in indices ] ## unique list of primes
-                for p in plist:
-                    while bound % p == 0 and (self/(bound/p)).is_integral():
-                        bound /= p
-                self.smallest_integer = ZZ(bound)
-                return self.__smallest_integer
-            I,d = self.integral_split() ## self = I/d
-            n = I.smallest_integer()    ## n/d in self
-            self.__smallest_integer =  n / arith.gcd(ZZ(n),ZZ(d))
+            pass
+
+        if self.is_zero():
+            self.__smallest_integer = ZZ(0)
             return self.__smallest_integer
+
+        if self.is_prime():
+            self.__smallest_integer = ZZ(self._pari_prime.getattr('p'))
+            return self.__smallest_integer
+
+
+#   New code by John Cremona, 2008-10-30, using the new coordinates()
+#   function instead of factorization.
+#
+#   Idea: We write 1 as a Q-linear combination of the Z-basis of self,
+#         and return the denominator of this vector.
+#
+#   Note: It seems that in practice for integral ideals the first
+#         element of the integral basis is the smallest integer, but
+#         we cannot rely on this.
+
+        self.__smallest_integer =  self.coordinates(1).denominator()
+        return self.__smallest_integer
 
     def valuation(self, p):
         r"""

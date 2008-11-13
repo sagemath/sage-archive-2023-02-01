@@ -57,3 +57,22 @@ gp_InitGraph() - given N, this function allocates within a graph structure
 gp_AddEdge() - allows the addition of a single edge to a previously created
                 and initialized graph.
                 Example: if (gp_AddEdge(theGraph, u, 0, v, 0) != OK) error
+
+
+We can find the original distribution at:
+
+http://www.cs.brown.edu/sites/jgaa/volume08.html (http://www.cs.brown.edu/sites/jgaa/accepted/2004/BoyerMyrvold2004.8.3/planarity.zip)
+
+A Dr. Dobbs article that gives a brief overview of the software is at http://www.ddj.com/architect/184406070
+
+The following was in the NOTICE file of the distributed version with
+the paper.
+
+Planar Graph Embedder and Non-Planar Subgraph Isolator
+Copyright 1999-2005 by John M. Boyer
+
+This Work includes a reference implementation for the following journal paper:
+
+John M. Boyer and Wendy J. Myrvold, On the Cutting Edge: Simplified O(n)
+Planarity by Edge Addition.  Journal of Graph Algorithms and Applications,
+Vol. 8, No. 3, pp. 241-273, 2004.

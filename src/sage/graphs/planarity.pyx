@@ -41,8 +41,18 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
         sage: from sage.graphs.planarity import is_planar
         sage: is_planar(G)
         True
-
+        sage: Graph('@').is_planar()
+        True
     """
+    # First take care of a trivial case.  We ignore the set_pos,
+    # set_embedding, and circular arguments.
+    if g.size() == 0:
+        if kuratowski:
+            return (True, None)
+        else:
+            return True
+
+
     # create to and from mappings to relabel vertices to the set {0,...,n-1}
     cdef int i
     listto = g.vertices()
@@ -108,7 +118,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
                 # Take counter-clockwise embedding if circular planar test
                 # Also, pos must be set after removing extra vertex and edges
 
-                # This is seperated out here for now because in the circular case,
+                # This is separated out here for now because in the circular case,
                 # setting positions would have to come into play while the extra
                 # "wheel" or "star" is still part of the graph.
 

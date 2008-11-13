@@ -24,16 +24,20 @@ cdef extern from "planarity/graph.h":
 
 def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=False):
     """
-    Calls Boyer's planarity algorithm to determine whether g is planar.  Returns
-    a tuple, first entry is a boolean (whether or not the graph is planar) and
-    second entry is either a Kuratowski subgraph/minor (if False) or None (if True).
-    Also, will set an _embedding attribute for the graph g if set_embedding is set
-    to True.
+    Calls Boyer's planarity algorithm to determine whether g is
+    planar.  If kuratowski is False, returns True if g is planar,
+    False otherwise.  If kuratowski is True, returns a tuple, first
+    entry is a boolean (whether or not the graph is planar) and second
+    entry is a Kuratowski subgraph/minor (if not planar) or None (if
+    planar).  Also, will set an _embedding attribute for the graph g
+    if set_embedding is set to True.
 
     INPUT:
+        kuratowski -- If True, return a tuple of a boolean and either None
+        or a Kuratowski subgraph or minor
         set_pos -- if True, uses Schnyder's algorithm to determine positions
         set_embedding -- if True, records the combinatorial embedding returned
-    (see g.get_embedding())
+        (see g.get_embedding())
         circular -- if True, test for circular planarity
 
     EXAMPLE:
@@ -69,9 +73,19 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
     cdef int status
     status = gp_InitGraph(theGraph, g.order())
     if status != OK:
-        raise RuntimeError("status does not equal ok.")
+        raise RuntimeError("gp_InitGraph status is not ok.")
     for u, v, _ in g.edge_iterator():
-        gp_AddEdge(theGraph, u, 0, v, 0)
+        status = gp_AddEdge(theGraph, u, 0, v, 0)
+        if status == NOTOK:
+            raise RuntimeError("gp_AddEdge status is not ok.")
+        elif status == NONPLANAR:
+            # We now know that the graph is nonplanar.
+            if not kuratowski:
+                return False
+            # With just the current edges, we have a nonplanar graph,
+            # so to isolate a kuratowski subgraph, just keep going.
+            break
+
     status = gp_Embed(theGraph, EMBEDFLAGS_PLANAR)
     gp_SortVertices(theGraph)
 

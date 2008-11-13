@@ -17,6 +17,8 @@ Copyright 2005 John M. Boyer
 #ifndef _LISTCOLL_H
 #define _LISTCOLL_H
 
+#include <string.h>
+
 typedef struct
 {
         int prev, next;

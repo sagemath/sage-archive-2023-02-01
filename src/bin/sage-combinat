@@ -110,10 +110,12 @@ def get_sage_version():
         sage_version = Popen([sage+" --version"], stdout=PIPE, shell=True).communicate()[0]
     except OSError, e:
         error("Could not start sage"+str(e))
-    try:
-        version = re.search('(\d+\.\d+\.\d+)',sage_version).group()
-    except AttributeError:
-        version = re.search('(\d+\.\d+\.)',sage_version).group() + '0'
+
+    match = re.search('(\d+\.)*(\d+)',sage_version)
+    if match is None:
+        error("Cannot determine Sage version number from"+sage_version)
+    else:
+        version = match.group()
     return version
 
 
@@ -192,8 +194,7 @@ def qselect_backward_compatibility_patches():
 
     # FIXME: how to change the guards on a one by one basis
 
-    active_non_version_guards = filter(lambda guard: re.match("^(sage_)?\d+_\d+_\d+$", guard) is None,
-                                       hg_active_guards())
+    active_non_version_guards = filter(lambda guard: re.match("^(sage_)?(\d+_)*(\d+)$", guard) is None, hg_active_guards())
     info("Active guards: %s"%" ".join(active_non_version_guards))
 
     sage_version_as_list = [int(s) for s in re.split("\.", sage_version)]
@@ -201,7 +202,7 @@ def qselect_backward_compatibility_patches():
         """
         Returns true if this is a guard of the form a_b_c with a.b.c > sage_version
         """
-        if not re.match("^\+(sage_)?\d+_\d+_\d+$",guard):
+        if not re.match("^\+(sage_)?(\d+_)*(\d+)$",guard):
             return False
         guard = re.sub("^\+(sage_)?","", guard)
         guard_as_list = [int(s) for s in re.split("_", guard)]

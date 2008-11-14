@@ -1,39 +1,23 @@
 #!/usr/bin/env python
-DEVEL = False
 
-import distutils.sysconfig, os, sys, time
-# from distutils.core import setup, Extension
-
-# TODO: Is this what we want here?
+import os, sys, time
 from distutils.core import setup
 from distutils.extension import Extension
-#from Cython.Distutils import build_ext
 
-## Choose cblas library -- note -- make sure to update sage/misc/cython.py
-## if you change this!!
-if os.environ.has_key('SAGE_BLAS'):
-    BLAS=os.environ['SAGE_BLAS']
-    BLAS2=os.environ['SAGE_BLAS']
-elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):
-    BLAS='cblas'
-    BLAS2='atlas'
-elif os.path.exists('/usr/lib/libcblas.dylib') or \
-     os.path.exists('/usr/lib/libcblas.so'):
-    BLAS='cblas'
-    BLAS2='atlas'
-elif os.path.exists('/usr/lib/libblas.dll.a'):
-    BLAS='gslcblas'
-    BLAS2='gslcblas'
-else:
-    # This is very slow  (?), but *guaranteed* to be available.
-    BLAS='gslcblas'
-    BLAS2='gslcblas'
+#########################################################
+### Configuration
+#########################################################
+
 if len(sys.argv) > 1 and sys.argv[1] == "sdist":
     sdist = True
 else:
     sdist = False
 
-#NO_WARN = True
+# comment these four lines out to turn on warnings from gcc
+import distutils.sysconfig
+NO_WARN = True
+if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
+    extra_compile_args = ['-w']
 
 if not os.environ.has_key('SAGE_ROOT'):
     print "    ERROR: The environment variable SAGE_ROOT must be defined."
@@ -42,7 +26,6 @@ else:
     SAGE_ROOT  = os.environ['SAGE_ROOT']
     SAGE_LOCAL = SAGE_ROOT + '/local/'
     SAGE_DEVEL = SAGE_ROOT + '/devel/'
-
 
 if not os.environ.has_key('SAGE_VERSION'):
     SAGE_VERSION=0
@@ -60,8 +43,6 @@ if not os.path.exists(SITE_PACKAGES):
         if not os.path.exists(SITE_PACKAGES):
             raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
 
-SITE_PACKAGES_REL=SITE_PACKAGES[len(SAGE_LOCAL)+5:]
-
 if not os.path.exists('build/sage'):
     os.makedirs('build/sage')
 
@@ -71,1136 +52,18 @@ if not os.path.islink(sage_link) or not os.path.exists(sage_link):
     os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
 
 include_dirs = ['%s/include'%SAGE_LOCAL, \
-        '%s/include/csage'%SAGE_LOCAL, \
-        ## this is included, but doesn't actually exist
-        ## '%s/include/python'%SAGE_LOCAL, \
+                '%s/include/csage'%SAGE_LOCAL, \
+                ## this is included, but doesn't actually exist
+                ## '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
-
-if os.environ.has_key('SAGE_DEBIAN'):
-    debian_include_dirs=["/usr/include","/usr/include/numpy","/usr/include/FLINT","/usr/include/givaro", "/usr/include/gsl","/usr/include/fplll","/usr/include/eclib","/usr/include/gmp++","/usr/include/linbox","/usr/include/NTL","/usr/include/pari","/usr/include/qd","/usr/include/singular","/usr/include/singular/singular","/usr/include/symmetrica","/usr/include/polybori","/usr/include/cudd","/usr/include/polybori/groebner","/usr/include/zn_poly"]
-    include_dirs = include_dirs + debian_include_dirs
-else:
-    debian_include_dirs=[]
-
-#####################################################
-
-fmpz_poly = Extension('sage.libs.flint.fmpz_poly',
-                 sources = ["sage/libs/flint/fmpz_poly.pyx"],
-                 libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
-                 include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/'],
-                 extra_compile_args=["-std=c99", "-D_XPG6"]
-                 )
-
-# NOTE: It is *very* important (for cygwin) that csage be the first library
-# listed below for ntl.
-ntl_ZZ = Extension('sage.libs.ntl.ntl_ZZ',
-                 sources = ["sage/libs/ntl/ntl_ZZ.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_ZZX = Extension('sage.libs.ntl.ntl_ZZX',
-                 sources = ["sage/libs/ntl/ntl_ZZX.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_ZZ_pContext = Extension('sage.libs.ntl.ntl_ZZ_pContext',
-                 sources = ["sage/libs/ntl/ntl_ZZ_pContext.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_ZZ_p = Extension('sage.libs.ntl.ntl_ZZ_p',
-                 sources = ["sage/libs/ntl/ntl_ZZ_p.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_ZZ_pX = Extension('sage.libs.ntl.ntl_ZZ_pX',
-                 sources = ["sage/libs/ntl/ntl_ZZ_pX.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_ZZ_pEContext = Extension('sage.libs.ntl.ntl_ZZ_pEContext',
-                 sources = ["sage/libs/ntl/ntl_ZZ_pEContext.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_ZZ_pE = Extension('sage.libs.ntl.ntl_ZZ_pE',
-                 sources = ["sage/libs/ntl/ntl_ZZ_pE.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_ZZ_pEX = Extension('sage.libs.ntl.ntl_ZZ_pEX',
-                 sources = ["sage/libs/ntl/ntl_ZZ_pEX.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_lzz_pContext = Extension('sage.libs.ntl.ntl_lzz_pContext',
-                 sources = ["sage/libs/ntl/ntl_lzz_pContext.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_lzz_p = Extension('sage.libs.ntl.ntl_lzz_p',
-                 sources = ["sage/libs/ntl/ntl_lzz_p.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_lzz_pX = Extension('sage.libs.ntl.ntl_lzz_pX',
-                 sources = ["sage/libs/ntl/ntl_lzz_pX.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_GF2 = Extension('sage.libs.ntl.ntl_GF2',
-                 sources = ["sage/libs/ntl/ntl_GF2.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "stdc++"],
-                 language='c++')
-
-ntl_GF2X = Extension('sage.libs.ntl.ntl_GF2X',
-                 sources = ["sage/libs/ntl/ntl_GF2X.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_GF2EContext = Extension('sage.libs.ntl.ntl_GF2EContext',
-                 sources = ["sage/libs/ntl/ntl_GF2EContext.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_GF2E = Extension('sage.libs.ntl.ntl_GF2E',
-                 sources = ["sage/libs/ntl/ntl_GF2E.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_GF2EX = Extension('sage.libs.ntl.ntl_GF2EX',
-                 sources = ["sage/libs/ntl/ntl_GF2EX.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_mat_ZZ = Extension('sage.libs.ntl.ntl_mat_ZZ',
-                 sources = ["sage/libs/ntl/ntl_mat_ZZ.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_mat_GF2 = Extension('sage.libs.ntl.ntl_mat_GF2',
-                 sources = ["sage/libs/ntl/ntl_mat_GF2.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_mat_GF2E = Extension('sage.libs.ntl.ntl_mat_GF2E',
-                 sources = ["sage/libs/ntl/ntl_mat_GF2E.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language='c++')
-
-ntl_GF2EContext = Extension('sage.libs.ntl.ntl_GF2EContext',
-                 sources = ["sage/libs/ntl/ntl_GF2EContext.pyx"],
-                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-                 language = "c++")
-
-mwrank =  Extension("sage.libs.mwrank.mwrank",
-                    sources = ["sage/libs/mwrank/mwrank.pyx",
-                         "sage/libs/mwrank/wrap.cc"],
-                    define_macros = [("NTL_ALL",None)],
-                    depends = ["sage/libs/mwrank/wrap.h"],
-                    libraries = ["curvesntl", "g0nntl", "jcntl", "rankntl",
-                                 "ntl", "gmp", "gmpxx", "stdc++", "m", "pari"])
-
-pari = Extension('sage.libs.pari.gen',
-                 sources = ["sage/libs/pari/gen.pyx"],
-                 libraries = ['pari', 'gmp'])
-
-cremona_mat = Extension('sage.libs.cremona.mat',
-                       sources = ["sage/libs/cremona/mat.pyx"],
-                       libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl', 'gmp', 'm', 'stdc++', ],
-                       language='c++',
-                       define_macros = [("NTL_ALL",None)]
-                       )
-
-cremona_homspace = Extension('sage.libs.cremona.homspace',
-                       sources = ["sage/libs/cremona/homspace.pyx"],
-                       libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl', 'gmp', 'm', 'stdc++', 'pari', 'curvesntl'],
-                       language='c++',
-                       define_macros = [("NTL_ALL",None)]
-                       )
-
-cremona_newforms = Extension('sage.libs.cremona.newforms',
-                       sources = ["sage/libs/cremona/newforms.pyx"],
-                       libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl', 'gmp', 'm', 'stdc++', 'pari', 'curvesntl'],
-                       language='c++',
-                       define_macros = [("NTL_ALL",None)]
-                       )
-
-
-finite_field_givaro = Extension('sage.rings.finite_field_givaro',
-                       sources = ["sage/rings/finite_field_givaro.pyx"],
-                       libraries = ['givaro', 'gmpxx', 'gmp', 'm', 'stdc++', ],   # this order is needed to compile under windows.
-                       language='c++'
-                       )
-finite_field_ntl_gf2e = Extension('sage.rings.finite_field_ntl_gf2e',
-             sources = ['sage/rings/finite_field_ntl_gf2e.pyx'],
-             libraries = ['ntl', 'gmp'],
-             language = 'c++')
-
-qd = Extension('sage.rings.real_rqdf',
-                       sources = ["sage/rings/real_rqdf.pyx"],
-                       libraries = ['qd', 'm', 'stdc++','gmp','mpfr' ],
-                       language='c++'
-                       )
-
-matrix = Extension('sage.matrix.matrix', ['sage/matrix/matrix.pyx'])
-
-matrix_action = Extension('sage.matrix.action', ['sage/matrix/action.pyx'])
-
-matrix_misc = Extension('sage.matrix.misc', ['sage/matrix/misc.pyx'],
-                        libraries=['mpfr','gmp'])
-
-matrix_dense = Extension('sage.matrix.matrix_dense',
-                         ['sage/matrix/matrix_dense.pyx'])
-
-matrix_sparse = Extension('sage.matrix.matrix_sparse',
-                          ['sage/matrix/matrix_sparse.pyx'])
-
-matrix_generic_dense = Extension('sage.matrix.matrix_generic_dense',
-                                 ['sage/matrix/matrix_generic_dense.pyx'])
-
-matrix_generic_sparse = Extension('sage.matrix.matrix_generic_sparse',
-                                  ['sage/matrix/matrix_generic_sparse.pyx'])
-
-matrix_domain_dense = Extension('sage.matrix.matrix_domain_dense',
-                                ['sage/matrix/matrix_domain_dense.pyx'])
-
-matrix_domain_sparse = Extension('sage.matrix.matrix_domain_sparse',
-              ['sage/matrix/matrix_domain_sparse.pyx'])
-
-matrix_pid_dense = Extension('sage.matrix.matrix_pid_dense',
-                       ['sage/matrix/matrix_pid_dense.pyx'])
-
-matrix_pid_sparse = Extension('sage.matrix.matrix_pid_sparse',
-                       ['sage/matrix/matrix_pid_sparse.pyx'])
-
-
-matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
-                                 ['sage/matrix/matrix_integer_2x2.pyx'],
-                                 libraries = ['gmp'])
-
-linbox = Extension('sage.libs.linbox.linbox',
-                   ['sage/libs/linbox/linbox.pyx'],
-                   # For this to work on cygwin, linboxwrap *must* be before ntl.
-                   libraries = ['linboxsage', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS, BLAS2],
-                   language = 'c++')
-
-libsingular = Extension('sage.libs.singular.singular',
-                        sources = ['sage/libs/singular/singular.pyx'],
-                        libraries = ['m', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
-                        language="c++",
-                        include_dirs=debian_include_dirs + [SAGE_ROOT +'/local/include/singular']
-                        )
-
-fplll = Extension('sage.libs.fplll.fplll',
-                        sources = ['sage/libs/fplll/fplll.pyx'],
-                        libraries = ['gmp', 'mpfr', 'stdc++', 'fplll'],
-                        language="c++",
-                        include_dirs=debian_include_dirs + [SAGE_ROOT +'/local/include/fplll']
-                        )
-
-
-matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
-                              ['sage/matrix/matrix_modn_dense.pyx'],
-                              libraries = ['gmp'])
-
-matrix_mod2_dense = Extension('sage.matrix.matrix_mod2_dense',
-                              ['sage/matrix/matrix_mod2_dense.pyx'],
-                              libraries = ['gmp','m4ri', 'png', 'gd'])
-
-matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
-                               ['sage/matrix/matrix_modn_sparse.pyx'])
-
-matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
-                                  ['sage/matrix/matrix_rational_dense.pyx'],
-                                 libraries = ['gmp'])
-
-matrix_cyclo_dense = Extension('sage.matrix.matrix_cyclo_dense',
-                               ['sage/matrix/matrix_cyclo_dense.pyx'],
-                               language = "c++",
-                               libraries=['ntl', 'gmp'])
-
-matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
-                                  ['sage/matrix/matrix_integer_sparse.pyx'],
-                                  libraries = ['gmp'])
-
-matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
-                                   ['sage/matrix/matrix_rational_sparse.pyx'],
-                                   libraries = ['gmp'])
-
-# TODO -- change to use BLAS at some point.
-matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
-                                 ['sage/matrix/matrix_integer_dense.pyx'],
-                                 libraries = ['iml', 'gmp', 'm', BLAS, BLAS2])
-                                 # order matters for cygwin!!
-
-
-matrix_double_dense = Extension('sage.matrix.matrix_double_dense',
-                                ['sage/matrix/matrix_double_dense.pyx'],
-                                libraries=[BLAS, BLAS2],
-                                include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
-
-matrix_real_double_dense = Extension('sage.matrix.matrix_real_double_dense',
-                                     ['sage/matrix/matrix_real_double_dense.pyx'],
-                                     libraries=[BLAS, BLAS2],
-                                     include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
-
-matrix_change_ring = Extension('sage.matrix.change_ring',
-                               ['sage/matrix/change_ring.pyx'],
-                               libraries=[BLAS, BLAS2, 'gmp'],
-                               include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
-
-matrix_complex_double_dense = Extension('sage.matrix.matrix_complex_double_dense',
-                                        ['sage/matrix/matrix_complex_double_dense.pyx'],
-                                        libraries=[BLAS, BLAS2],
-                                        include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
-
-matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
-                                   ['sage/matrix/matrix_rational_sparse.pyx'],
-                                   libraries = ['gmp'])
-
-matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
-                                ['sage/matrix/matrix_cyclo_sparse.pyx'])
-
-
-matrix_mpolynomial_dense = Extension('sage.matrix.matrix_mpolynomial_dense',
-                                     ['sage/matrix/matrix_mpolynomial_dense.pyx'],
-                                     libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
-                                     language="c++",
-                                     include_dirs=debian_include_dirs + [SAGE_ROOT +'/local/include/singular'])
-
-matrix_symbolic_dense = Extension('sage.matrix.matrix_symbolic_dense',
-                                   ['sage/matrix/matrix_symbolic_dense.pyx'])
-
-#matrix_padic_capped_relative_dense = Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
-#                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx'])
-
-complex_number = Extension('sage.rings.complex_number',
-                           ['sage/rings/complex_number.pyx'],
-                           libraries = ['mpfr', 'gmp'])
-
-free_module_element = Extension('sage.modules.free_module_element',
-                                ['sage/modules/free_module_element.pyx'])
-
-################ GSL wrapping ######################
-gsl_probability = Extension('sage.gsl.probability_distribution',
-                            ['sage/gsl/probability_distribution.pyx'],
-                            libraries=['gsl', BLAS, BLAS2],
-                            define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-
-gsl_integration = Extension('sage.gsl.integration',
-                            ['sage/gsl/integration.pyx'],
-                            define_macros=[('GSL_DISABLE_DEPRECATED','1')],
-                            libraries=['gsl',BLAS, BLAS2])
-
-gsl_fft = Extension('sage.gsl.fft',
-                    ['sage/gsl/fft.pyx'],
-                    libraries = ['gsl', BLAS, BLAS2],
-                    define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-
-gsl_interpolation = Extension('sage.gsl.interpolation',
-                              ['sage/gsl/interpolation.pyx'],
-                              libraries = ['gsl', BLAS, BLAS2],
-                              define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-
-gsl_callback = Extension('sage.gsl.callback',
-                         ['sage/gsl/callback.pyx'],
-                         libraries = ['gsl', BLAS, BLAS2],
-                         define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-
-real_double = Extension('sage.rings.real_double',
-                        ['sage/rings/real_double.pyx'],
-                        libraries = ['gsl', 'gmp', BLAS, BLAS2],
-                        define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-
-complex_double = Extension('sage.rings.complex_double',
-                           ['sage/rings/complex_double.pyx'],
-                           libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'])
-
-real_double_vector = Extension('sage.modules.real_double_vector',
-                               ['sage/modules/real_double_vector.pyx'],
-                               libraries = ['gsl', BLAS, BLAS2, 'pari','gmp'],
-                               define_macros = [('GSL_DISABLE_DEPRECATED','1')],
-                               include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
-
-complex_double_vector = Extension('sage.modules.complex_double_vector',
-                                  ['sage/modules/complex_double_vector.pyx'],
-                                  libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'],
-                                  define_macros=[('GSL_DISABLE_DEPRECATED','1')],
-                                  include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
-
-
-vector_integer_dense = Extension('sage.modules.vector_integer_dense',
-                                 ['sage/modules/vector_integer_dense.pyx'],
-                                 libraries = ['gmp'])
-
-vector_modn_dense = Extension('sage.modules.vector_modn_dense',
-                              ['sage/modules/vector_modn_dense.pyx'])
-
-vector_rational_sparse = Extension('sage.modules.vector_rational_sparse',
-                                   ['sage/modules/vector_rational_sparse.pyx'],
-                                   libraries = ['gmp'])
-
-vector_rational_dense = Extension('sage.modules.vector_rational_dense',
-                                  ['sage/modules/vector_rational_dense.pyx'],
-                                  libraries = ['gmp'])
-
-gsl_array = Extension('sage.gsl.gsl_array',
-                      ['sage/gsl/gsl_array.pyx'],
-                      libraries=['gsl', BLAS, BLAS2],
-                      define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-
-gsl_ode = Extension('sage.gsl.ode',
-                    ['sage/gsl/ode.pyx'],
-                    libraries=['gsl',BLAS, BLAS2],
-                    define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-
-
-dwt = Extension('sage.gsl.dwt',
-                ['sage/gsl/dwt.pyx'],
-                libraries=['gsl',BLAS],
-                define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-
-
-sagex_ds = Extension('sage.misc.sagex_ds',
-                     ['sage/misc/sagex_ds.pyx'])
-
-citation = Extension('sage.misc.citation',
-                     ['sage/misc/citation.pyx'])
-
-symmetrica = Extension('sage.libs.symmetrica.symmetrica',
-                       sources = ["sage/libs/symmetrica/%s"%s for s in ["symmetrica.pyx"]],
-                       include_dirs=debian_include_dirs + ['/usr/include/malloc/'],
-                       libraries = ["symmetrica"])
-
-time_series = Extension('sage.finance.time_series',
-                        ['sage/finance/time_series.pyx'],
-                        include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
-
-markov_multifractal = Extension('sage.finance.markov_multifractal_cython',
-                                ['sage/finance/markov_multifractal_cython.pyx'])
-
-finance_fractal = Extension('sage.finance.fractal',
-                            ['sage/finance/fractal.pyx'])
-
-
-hmm = Extension('sage.stats.hmm.hmm',
-                ['sage/stats/hmm/hmm.pyx'],
-                libraries = ['ghmm'],
-                include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
-
-chmm = Extension('sage.stats.hmm.chmm',
-                 ['sage/stats/hmm/chmm.pyx'],
-                 libraries = ['ghmm'],
-                 include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
-
-#####################################################
-
-ext_modules = [ \
-
-    Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx']), \
-
-    Extension('sage.structure.category_object',
-              sources = ['sage/structure/category_object.pyx']), \
-
-    Extension('sage.structure.parent',
-              sources = ['sage/structure/parent.pyx']), \
-
-    Extension('sage.structure.parent_old',
-              sources = ['sage/structure/parent_old.pyx']), \
-
-    Extension('sage.structure.parent_base',
-              sources = ['sage/structure/parent_base.pyx']), \
-
-    Extension('sage.structure.parent_gens',
-              sources = ['sage/structure/parent_gens.pyx']), \
-
-    Extension('sage.structure.generators',
-              sources = ['sage/structure/generators.pyx']), \
-
-    Extension('sage.structure.coerce',
-              sources = ['sage/structure/coerce.pyx']), \
-
-    Extension('sage.structure.coerce_actions',
-              sources = ['sage/structure/coerce_actions.pyx']), \
-
-    Extension('sage.structure.coerce_maps',
-              sources = ['sage/structure/coerce_maps.pyx']), \
-
-    Extension('sage.structure.coerce_dict',
-              sources = ['sage/structure/coerce_dict.pyx']), \
-
-    Extension('sage.structure.element',
-              sources = ['sage/structure/element.pyx']), \
-
-    Extension('sage.categories.map',
-              sources = ['sage/categories/map.pyx']), \
-
-    Extension('sage.categories.morphism',
-              sources = ['sage/categories/morphism.pyx']), \
-
-    free_module_element,
-
-    complex_double_vector,
-    real_double_vector,
-
-    vector_integer_dense,
-    vector_modn_dense,
-    vector_rational_dense,
-
-    #vector_rational_sparse,
-
-    pari,
-
-    mwrank,
-
-    fmpz_poly,
-
-    ntl_ZZ,
-    ntl_ZZX,
-    ntl_ZZ_pContext,
-    ntl_ZZ_p,
-    ntl_ZZ_pX,
-    ntl_ZZ_pEContext,
-    ntl_ZZ_pE,
-    ntl_ZZ_pEX,
-    ntl_lzz_pContext,
-    ntl_lzz_p,
-    ntl_lzz_pX,
-    ntl_GF2,
-    ntl_GF2X,
-    ntl_GF2EContext,
-    ntl_GF2E,
-    ntl_GF2EX,
-    ntl_mat_ZZ,
-    ntl_mat_GF2,
-    ntl_mat_GF2E,
-
-    matrix,
-
-    matrix_action,
-    matrix_misc,
-
-    matrix_dense,
-    matrix_generic_dense,
-
-    matrix_sparse,
-    matrix_generic_sparse,
-
-    matrix_integer_dense,
-    matrix_rational_dense,
-    matrix_rational_sparse,
-
-    matrix_cyclo_dense,
-
-    matrix_integer_2x2,
-    matrix_double_dense,
-    matrix_integer_sparse,
-    matrix_real_double_dense,
-    matrix_change_ring,
-    matrix_complex_double_dense,
-    linbox,
-    matrix_modn_dense,
-    matrix_modn_sparse,
-    matrix_mod2_dense,
-    matrix_mpolynomial_dense,
-    matrix_symbolic_dense,
-
-    cremona_mat,
-    cremona_homspace,
-    cremona_newforms,
-
-    finite_field_givaro,
-    finite_field_ntl_gf2e,
-
-    libsingular,
-
-    fplll,
-
-    dwt,
-
-    gsl_array,
-    gsl_ode,
-    gsl_fft,
-    gsl_interpolation,
-    gsl_callback,
-    gsl_probability,
-    gsl_integration,
-    real_double,
-    complex_double,
-    qd,
-
-    complex_number,
-
-    sagex_ds,
-
-    citation,
-
-    symmetrica,
-
-    time_series,
-
-    markov_multifractal,
-    finance_fractal,
-
-    hmm,
-    chmm,
-
-    Extension('sage.media.channels',
-              sources = ['sage/media/channels.pyx']),
-
-    Extension('sage.ext.sig',
-              sources = ['sage/ext/sig.pyx']),
-
-    Extension('sage.ext.fast_eval',
-              sources = ['sage/ext/fast_eval.pyx']),
-
-    Extension('sage.rings.fast_arith',
-              sources = ['sage/rings/fast_arith.pyx'],
-              libraries=['gmp','pari','csage']),
-
-    Extension('sage.ext.multi_modular',
-              sources = ['sage/ext/multi_modular.pyx'],
-              libraries=['gmp']),
-
-    Extension('sage.modular.congroup_pyx',
-              sources = ['sage/modular/congroup_pyx.pyx']), \
-
-    Extension('sage.categories.functor',
-              sources = ['sage/categories/functor.pyx']), \
-
-    Extension('sage.categories.action',
-              sources = ['sage/categories/action.pyx']), \
-
-    Extension('sage.modules.module',
-              sources = ['sage/modules/module.pyx']), \
-
-    Extension('sage.rings.ring',
-              sources = ['sage/rings/ring.pyx']), \
-
-    Extension('sage.rings.polynomial.cyclotomic',
-              sources = ['sage/rings/polynomial/cyclotomic.pyx']
-              ),
-
-    Extension('sage.rings.polynomial.multi_polynomial',
-              sources = ['sage/rings/polynomial/multi_polynomial.pyx']
-              ),
-
-    Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
-              sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']
-              ),
-
-    Extension('sage.rings.polynomial.multi_polynomial_libsingular',
-              sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-              libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
-              language="c++",
-              include_dirs=debian_include_dirs + [SAGE_ROOT +'/local/include/singular']), \
-
-    Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
-              sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
-              libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
-              language="c++",
-              include_dirs=debian_include_dirs + [SAGE_ROOT +'/local/include/singular']), \
-
-    Extension('sage.groups.group',
-              sources = ['sage/groups/group.pyx']), \
-
-    Extension('sage.groups.perm_gps.permgroup_element',
-              sources = ['sage/groups/perm_gps/permgroup_element.pyx']), \
-
-    Extension('sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label',
-              sources = ['sage/groups/perm_gps/partn_ref/automorphism_group_canonical_label.pyx']), \
-
-    Extension('sage.groups.perm_gps.partn_ref.double_coset',
-              sources = ['sage/groups/perm_gps/partn_ref/double_coset.pyx']), \
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_graphs',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_graphs.pyx']), \
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_binary',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_binary.pyx']), \
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_matrices',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_matrices.pyx']), \
-
-    Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx']), \
-
-    Extension('sage.structure.parent',
-              sources = ['sage/structure/parent.pyx']), \
-
-    Extension('sage.structure.parent_base',
-              sources = ['sage/structure/parent_base.pyx']), \
-
-    Extension('sage.structure.parent_gens',
-              sources = ['sage/structure/parent_gens.pyx']), \
-
-    Extension('sage.ext.interactive_constructors_c',
-              sources = ['sage/ext/interactive_constructors_c.pyx']), \
-
-    Extension('sage.misc.derivative',
-              sources = ['sage/misc/derivative.pyx']), \
-
-    Extension('sage.misc.cython_c',
-              sources = ['sage/misc/cython_c.pyx']), \
-
-    Extension('sage.misc.misc_c',
-              sources = ['sage/misc/misc_c.pyx']), \
-
-    Extension('sage.misc.session',
-              sources = ['sage/misc/session.pyx']), \
-
-    Extension('sage.misc.parser',
-              ['sage/misc/parser.pyx']), \
-
-    Extension('sage.misc.refcount',
-              sources = ['sage/misc/refcount.pyx']), \
-
-    Extension('sage.misc.randstate',
-              sources = ['sage/misc/randstate.pyx']), \
-
-    Extension('sage.rings.real_mpfr',
-              sources = ['sage/rings/real_mpfr.pyx'],
-              libraries = ['mpfr', 'pari', 'gmp']), \
-
-    Extension('sage.rings.real_lazy',
-              sources = ['sage/rings/real_lazy.pyx']), \
-
-    Extension('sage.rings.real_mpfi',
-              sources = ['sage/rings/real_mpfi.pyx'],
-              libraries = ['mpfi', 'mpfr', 'gmp']), \
-
-    Extension('sage.rings.complex_interval',
-              sources = ['sage/rings/complex_interval.pyx'],
-              libraries = ['mpfi', 'mpfr', 'gmp']), \
-
-    Extension('sage.rings.residue_field',
-              sources = ['sage/rings/residue_field.pyx']), \
-
-    Extension('sage.rings.integer',
-              sources = ['sage/rings/integer.pyx'],
-              libraries=['ntl', 'gmp', 'pari']), \
-
-    Extension('sage.misc.allocator',
-              sources = ['sage/misc/allocator.pyx']), \
-
-    Extension('sage.rings.integer_ring',
-              sources = ['sage/rings/integer_ring.pyx'],
-              libraries=['ntl', 'gmp']), \
-
-    Extension('sage.libs.libecm',
-              sources = ['sage/libs/libecm.pyx'],
-              libraries = ['ecm', 'gmp']), \
-
-    Extension('sage.rings.padics.pow_computer',
-              sources = ['sage/rings/padics/pow_computer.pyx'],
-              libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-              language='c++'), \
-
-    Extension('sage.rings.padics.pow_computer_ext',
-              sources = ['sage/rings/padics/pow_computer_ext.pyx'],
-              libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
-              language='c++'), \
-
-    Extension('sage.rings.padics.local_generic_element',
-              sources = ['sage/rings/padics/local_generic_element.pyx']),
-
-    Extension('sage.rings.padics.padic_generic_element',
-              sources = ['sage/rings/padics/padic_generic_element.pyx']),
-
-    Extension('sage.rings.padics.padic_base_generic_element',
-              sources = ['sage/rings/padics/padic_base_generic_element.pyx']),
-
-    Extension('sage.rings.padics.padic_fixed_mod_element',
-              sources = ['sage/rings/padics/padic_fixed_mod_element.pyx'],
-              libraries=['gmp']),
-
-    Extension('sage.rings.padics.padic_capped_absolute_element',
-              sources = ['sage/rings/padics/padic_capped_absolute_element.pyx'],
-              libraries=['gmp']),
-
-    Extension('sage.rings.padics.padic_capped_relative_element',
-              sources = ['sage/rings/padics/padic_capped_relative_element.pyx'],
-              libraries=['gmp', 'csage']),
-
-    Extension('sage.rings.padics.padic_ext_element',
-              sources = ['sage/rings/padics/padic_ext_element.pyx'],
-              libraries=['gmp', 'ntl', 'csage', 'gmpxx', 'm', 'stdc++'],
-              language='c++'),
-
-    Extension('sage.rings.padics.padic_ZZ_pX_element',
-              sources = ['sage/rings/padics/padic_ZZ_pX_element.pyx'],
-              libraries=['gmp', 'ntl', 'csage', 'gmpxx', 'm', 'stdc++'],
-              language='c++'),
-
-    Extension('sage.rings.padics.padic_ZZ_pX_FM_element',
-              sources = ['sage/rings/padics/padic_ZZ_pX_FM_element.pyx'],
-              libraries=['gmp', 'ntl', 'csage', 'gmpxx', 'm', 'stdc++'],
-              language='c++'),
-
-    Extension('sage.rings.padics.padic_ZZ_pX_CR_element',
-              sources = ['sage/rings/padics/padic_ZZ_pX_CR_element.pyx'],
-              libraries=['gmp','ntl','csage','gmpxx','m','stdc++'],
-              language='c++'),
-
-    Extension('sage.rings.padics.padic_ZZ_pX_CA_element',
-              sources = ['sage/rings/padics/padic_ZZ_pX_CA_element.pyx'],
-              libraries = ['gmp','ntl','csage','gmpxx','m','stdc++'],
-              language='c++'),
-
-    Extension('sage.rings.padics.padic_printing',
-              sources = ['sage/rings/padics/padic_printing.pyx'],
-              libraries=['gmp', 'ntl', 'csage', 'gmpxx', 'm', 'stdc++'],
-              language='c++'),
-
-    Extension('sage.rings.padics.rigid_functions',
-              sources = ['sage/rings/padics/rigid_functions.pyx']),
-
-    #Extension('sage.rings.padics.morphism',
-    #          sources = ['sage/rings/padics/morphism.pyx'],
-    #          libraries=['gmp', 'ntl', 'csage', 'gmpxx', 'm', 'stdc++'],
-    #          language='c++'),
-
-    Extension('sage.rings.memory', \
-              sources = ['sage/rings/memory.pyx'], \
-              libraries=['gmp','stdc++']), \
-
-    Extension('sage.rings.bernoulli_mod_p',
-              sources = ['sage/rings/bernoulli_mod_p.pyx'],
-              libraries=['ntl','stdc++'],
-              language = 'c++',
-              include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
-
-    Extension('sage.rings.bernmm',
-              sources = ['sage/rings/bernmm.pyx',
-                         'sage/rings/bernmm/bern_modp.cpp',
-                         'sage/rings/bernmm/bern_modp_util.cpp',
-                         'sage/rings/bernmm/bern_rat.cpp'],
-              libraries = ['gmp', 'ntl', 'stdc++', 'pthread'],
-              depends = ['sage/rings/bernmm/bern_modp.h',
-                         'sage/rings/bernmm/bern_modp_util.h',
-                         'sage/rings/bernmm/bern_rat.h'],
-              language = 'c++',
-              define_macros=[('USE_THREADS', '1')]), \
-
-    Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
-              sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.cpp',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.cpp'],
-              libraries = ['ntl', 'stdc++', 'gmp', 'zn_poly'],
-              depends = ['sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.h',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.h',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.h'],
-              language = 'c++',
-              include_dirs=debian_include_dirs + ['sage/libs/ntl/', 'sage/schemes/hyperelliptic_curves/hypellfrob/']), \
-
-    Extension('sage.rings.polynomial.polynomial_compiled',
-               sources = ['sage/rings/polynomial/polynomial_compiled.pyx']), \
-
-    Extension('sage.rings.polynomial.polynomial_element',
-              sources = ['sage/rings/polynomial/polynomial_element.pyx']), \
-
-    Extension('sage.rings.polynomial.polynomial_integer_dense_flint',
-                 sources = ['sage/rings/polynomial/polynomial_integer_dense_flint.pyx'],
-                 language = 'c++',
-                 libraries = ["csage", "flint", "gmp", "gmpxx", "ntl"],
-                 include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/']),
-
-    Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
-                 sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],
-                 libraries = ['ntl', 'stdc++', 'gmp'],
-                 language = 'c++',
-                 include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
-
-    Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
-                 sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx'],
-                 libraries = ['ntl', 'stdc++', 'gmp'],
-                 language = 'c++',
-                 include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
-
-    Extension('sage.rings.polynomial.polynomial_gf2x',
-                 sources = ['sage/rings/polynomial/polynomial_gf2x.pyx'],
-                 libraries = ['ntl', 'stdc++', 'gmp'],
-                 language = 'c++',
-                 include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
-
-    Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',
-                 sources = ['sage/rings/polynomial/polynomial_real_mpfr_dense.pyx'],
-                 libraries = ['mpfr', 'gmp']), \
-
-    Extension('sage.rings.power_series_ring_element',
-              sources = ['sage/rings/power_series_ring_element.pyx']), \
-
-    Extension('sage.rings.power_series_poly',
-              sources = ['sage/rings/power_series_poly.pyx']), \
-
-    Extension('sage.rings.power_series_mpoly',
-              sources = ['sage/rings/power_series_mpoly.pyx']), \
-
-    Extension('sage.rings.laurent_series_ring_element',
-              sources = ['sage/rings/laurent_series_ring_element.pyx']), \
-
-    Extension('sage.rings.rational',
-              sources = ['sage/rings/rational.pyx'],
-              libraries=['ntl', 'gmp']), \
-
-    Extension('sage.rings.sparse_poly',
-              sources = ['sage/rings/sparse_poly.pyx'],
-              libraries=['gmp']), \
-
-    Extension('sage.rings.polynomial.polydict',
-              sources = ['sage/rings/polynomial/polydict.pyx']), \
-
-    Extension('sage.rings.polynomial.real_roots',
-              sources = ['sage/rings/polynomial/real_roots.pyx'],
-              libraries=['mpfr', 'qd']), \
-
-    Extension('sage.rings.polynomial.laurent_polynomial',
-              sources = ['sage/rings/polynomial/laurent_polynomial.pyx']), \
-
-
-    Extension('sage.rings.number_field.number_field_element',
-              sources = ['sage/rings/number_field/number_field_element.pyx'],
-              libraries=['ntl','gmp'],
-              language = 'c++'), \
-
-    Extension('sage.rings.number_field.number_field_element_quadratic',
-              sources = ['sage/rings/number_field/number_field_element_quadratic.pyx'],
-              libraries=['gmp'],
-              language = 'c++'), \
-                    # Needs c++ because it has c++ members in class struct
-
-    Extension('sage.rings.number_field.number_field_base',
-              sources = ['sage/rings/number_field/number_field_base.pyx']), \
-
-    Extension('sage.rings.number_field.totallyreal',
-              ['sage/rings/number_field/totallyreal.pyx'],
-              libraries = ['gmp', 'pari']), \
-
-    Extension('sage.rings.number_field.totallyreal_data',
-              ['sage/rings/number_field/totallyreal_data.pyx'],
-              libraries = ['gmp'],
-              include_dirs = [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']), \
-
-    Extension('sage.rings.morphism',
-              sources = ['sage/rings/morphism.pyx']), \
-
-    Extension('sage.structure.wrapper_parent',
-              sources = ['sage/structure/wrapper_parent.pyx']), \
-
-    Extension('sage.misc.search',
-              ['sage/misc/search.pyx']), \
-
-    Extension('sage.misc.reset',
-              ['sage/misc/reset.pyx']), \
-
-    Extension('sage.calculus.var',
-              ['sage/calculus/var.pyx']), \
-
-    Extension('sage.symbolic.ring',
-                 sources = ['sage/symbolic/ring.pyx'],
-                 language = 'c++',
-                 libraries = ["pynac"]), \
-
-    Extension('sage.symbolic.expression',
-                 sources = ['sage/symbolic/expression.pyx'],
-                 language = 'c++',
-                 libraries = ["pynac"]), \
-
-    Extension('sage.symbolic.pynac',
-                 sources = ['sage/symbolic/pynac.pyx'],
-                 language = 'c++',
-                 libraries = ["pynac"]), \
-
-    Extension('sage.symbolic.constants',
-                 sources = ['sage/symbolic/constants.pyx'],
-                  language = 'c++',
-                  libraries = ["pynac"]), \
-
-    Extension('sage.symbolic.function',
-                 sources = ['sage/symbolic/function.pyx'],
-                 language = 'c++',
-                 libraries = ["pynac"]), \
-
-    Extension('sage.modular.modsym.heilbronn',
-              ['sage/modular/modsym/heilbronn.pyx'],
-              libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/'],
-              extra_compile_args=["-std=c99"]), \
-
-    Extension('sage.modular.modsym.apply',
-              ['sage/modular/modsym/apply.pyx'],
-              libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/'],
-              extra_compile_args=["-std=c99"]), \
-
-    Extension('sage.modular.modsym.p1list',
-              ['sage/modular/modsym/p1list.pyx'],
-              libraries = ['gmp']), \
-
-    Extension('sage.structure.mutability',
-              ['sage/structure/mutability.pyx']
-              ), \
-
-    Extension('sage.matrix.matrix0',
-              ['sage/matrix/matrix0.pyx']
-              ), \
-
-    Extension('sage.matrix.matrix1',
-              ['sage/matrix/matrix1.pyx']
-              ), \
-
-    Extension('sage.matrix.matrix2',
-              ['sage/matrix/matrix2.pyx']
-              ), \
-
-    Extension('sage.matrix.matrix',
-              ['sage/matrix/matrix.pyx']
-              ), \
-
-    Extension('sage.matrix.matrix_window',
-              ['sage/matrix/matrix_window.pyx']
-              ), \
-
-    Extension('sage.matrix.matrix_window_modn_dense',
-              ['sage/matrix/matrix_window_modn_dense.pyx']
-              ), \
-
-    Extension('sage.matrix.strassen',
-              ['sage/matrix/strassen.pyx']
-              ), \
-
-    Extension('sage.rings.integer_mod',
-              ['sage/rings/integer_mod.pyx'],
-              libraries = ['gmp']
-              ), \
-
-    Extension('sage.combinat.expnums',
-              ['sage/combinat/expnums.pyx'],
-              libraries = ['gmp']
-              ), \
-
-    Extension('sage.combinat.partitions',
-              ['sage/combinat/partitions.pyx',
-               'sage/combinat/partitions_c.cc'],
-              libraries = ['qd', 'gmp', 'mpfr'],
-              depends = ['sage/combinat/partitions_c.h'],
-              language='c++'
-              ), \
-
-    Extension('sage.combinat.matrices.dancing_links',
-              ['sage/combinat/matrices/dancing_links.pyx'],
-              libraries = ["stdc++"],
-              language='c++'
-              ), \
-
-    Extension('sage.graphs.base.c_graph',
-              ['sage/graphs/base/c_graph.pyx']
-              ), \
-
-    Extension('sage.graphs.base.sparse_graph',
-              ['sage/graphs/base/sparse_graph.pyx']
-              ), \
-
-    Extension('sage.graphs.base.dense_graph',
-              ['sage/graphs/base/dense_graph.pyx']
-              ), \
-
-    Extension('sage.graphs.graph_fast',
-              ['sage/graphs/graph_fast.pyx'],
-              libraries = ['gmp']
-              ), \
-
-    Extension('sage.graphs.graph_isom',
-              ['sage/graphs/graph_isom.pyx']
-              ), \
-
-    Extension('sage.graphs.planarity',
-              ['sage/graphs/planarity.pyx',
-              'sage/graphs/planarity/graphEmbed.c',
-              'sage/graphs/planarity/graphIO.c',
-              'sage/graphs/planarity/graphIsolator.c',
-              'sage/graphs/planarity/graphNonplanar.c',
-              'sage/graphs/planarity/graphPreprocess.c',
-              'sage/graphs/planarity/graphStructure.c',
-              'sage/graphs/planarity/graphTests.c',
-              'sage/graphs/planarity/listcoll.c',
-              'sage/graphs/planarity/planarity.c',
-              'sage/graphs/planarity/stack.c'],
-              depends = ['sage/graphs/planarity/appconst.h',
-                         'sage/graphs/planarity/graph.h',
-                         'sage/graphs/planarity/listcoll.h',
-                         'sage/graphs/planarity/platformTime.h',
-                         'sage/graphs/planarity/stack.h']
-              ), \
-
-    Extension('sage.graphs.chrompoly',
-              ['sage/graphs/chrompoly.pyx']
-              ), \
-
-    Extension('sage.coding.binary_code',
-              ['sage/coding/binary_code.pyx']
-              ), \
-
-
-    Extension('sage.plot.plot3d.base',
-              ['sage/plot/plot3d/base.pyx']
-              ), \
-    Extension('sage.plot.plot3d.transform',
-              ['sage/plot/plot3d/transform.pyx']
-              ), \
-    Extension('sage.plot.plot3d.index_face_set',
-              ['sage/plot/plot3d/index_face_set.pyx']
-              ), \
-    Extension('sage.plot.plot3d.parametric_surface',
-              ['sage/plot/plot3d/parametric_surface.pyx']
-              ), \
-
-    Extension('sage.plot.plot3d.shapes',
-              ['sage/plot/plot3d/shapes.pyx']
-              ), \
-
-    Extension('sage.rings.polynomial.pbori',
-              sources = ['sage/rings/polynomial/pbori.pyx'],
-              libraries=['polybori','pboriCudd','groebner'],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/cudd',
-                            SAGE_ROOT+'/local/include/polybori',
-                            SAGE_ROOT+'/local/include/polybori/groebner'],
-              language = 'c++'), \
-
-    Extension('sage.misc.sage_timeit_class',
-              ['sage/misc/sage_timeit_class.pyx']
-              ), \
-
-    Extension('sage.misc.fpickle',
-              ['sage/misc/fpickle.pyx']
-              ), \
-    ]
-
-
-#mpc = Extension('sage.rings.mpc',
-#              sources = ['sage/rings/mpc.pyx', 'sage/rings/ring.pyx'],
-#              libraries = ['mpc', 'mpfr', 'gmp'])
-
 
 extra_compile_args = [ ]
 
-#if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
-#    extra_compile_args = ['-w']
 
+DEVEL = False
 if DEVEL:
     extra_compile_args.append('-ggdb')
-    #ext_modules.append(hanke)
-    #ext_modules.append(mpc)
 
-for m in ext_modules:
-    m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
-    if os.environ.has_key('SAGE_DEBIAN'):
-        m.library_dirs += ['/usr/lib','/usr/lib/eclib','/usr/lib/singular','/usr/lib/R/lib','%s/lib' % SAGE_LOCAL]
-    else:
-        m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 
 ######################################################################
@@ -1210,37 +73,22 @@ for m in ext_modules:
 # checking that we need.
 ######################################################################
 
-def hash_of_cython_file_timestamps():
-    h = 0
-    extensions = set(['.pyx', '.pxd', '.pxi'])
-    def hash_of_dir(dir):
-        h = 0
-        for f in os.listdir(dir):
-            z = dir + '/' + f
-            if os.path.isdir(z):
-                h += hash_of_dir(z)
-            elif f[-4:] in extensions and f[0] != '.':
-                h += hash(os.path.getmtime(z))
-        return h
-    return hash_of_dir('sage')
 
-CYTHON_HASH_FILE='.cython_hash'
-H = str(hash_of_cython_file_timestamps() + hash(os.path.getmtime('setup.py')))
-if not os.path.exists(CYTHON_HASH_FILE):
-    H_old = H + 'x'
-else:
-    H_old = open(CYTHON_HASH_FILE).read()
+from module_list import ext_modules
 
-if H != H_old:
-    do_cython = True
-else:
-    do_cython = False
+for m in ext_modules:
+    m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
+    if os.environ.has_key('SAGE_DEBIAN'):
+        m.library_dirs += ['/usr/lib','/usr/lib/eclib','/usr/lib/singular','/usr/lib/R/lib','%s/lib' % SAGE_LOCAL]
+    else:
+        m.library_dirs += ['%s/lib' % SAGE_LOCAL]
+
+
 
 
 #############################################
 ###### Parallel Cython execution
 #############################################
-
 
 def execute_list_of_commands_in_serial(command_list):
     """
@@ -1275,8 +123,8 @@ def execute_list_of_commands_in_parallel(command_list, ncpus):
         ncpus -- integer; number of cpus to use
 
     OUTPUT:
-        executes the given list of commands, possibly in parallel,
-        using ncpus cpus.  terminates setup.py with an exit code of 1
+        Executes the given list of commands, possibly in parallel,
+        using ncpus cpus.  Terminates setup.py with an exit code of 1
         if an error occurs in any subcommand.
 
     WARNING: commands are run roughly in order, but of course successive
@@ -1344,111 +192,153 @@ def execute_list_of_commands(command_list):
         execute_list_of_commands_in_serial(command_list)
     print "Time to execute %s commands: %s seconds"%(len(command_list), time.time() - t)
 
-#############################################
-###### replace with rob's code
-#############################################
-
-def module_path(path):
-    # get the absolute path
-    s = os.path.realpath(path)
-    # get rid of extraneous stuff
-    s = s[len(os.path.realpath(SAGE_ROOT)):]
-    n = s.find('/', 12)
-    s = s[n+1:]
-    return s
-
-def search_all_includes(filename):
-    """
-    Returns a list of all files that get included by f.
-    """
-    # Now we look inside the file to see what it cimports or include.
-    S = open(filename).readlines()
-    # Take the lines that begin with cimport (it won't hurt to
-    # have extra lines)
-    C = [x.strip() for x in S if 'cimport' in x]
-    this_deps = []
-    for A in C:
-        # Deduce the full module name.
-        # The only allowed forms of cimport/include are:
-        #        cimport a.b.c.d
-        #        from a.b.c.d cimport e
-        # Also, the cimport can be both have no dots (current directory) or absolute.
-        # The multiple imports with parens, e.g.,
-        #        import (a.b.c.d, e.f.g)
-        # of Python are not allowed in Cython.
-        # In both cases, the module name is the second word if we split on whitespace.
-        try:
-            A = A.strip().split()[1]
-        except IndexError:
-            # illegal statement or not really a cimport (e.g., cimport could
-            # be in a comment or something)
-            continue
-        if A[0] == '"':
-            A = A[1:-1]
-
-        # Now convert A to a filename, e.g., a/b/c/d
-        if '.' in A:
-            # It is an absolute cimport.
-            A = A.replace('.','/') + '.pxd'
-        else:
-            # It is a relative cimport.
-            A =  os.path.split(filename)[0] + '/' + A + '.pxd'
-        # Check to see if a/b/c/d.pxd exists and is newer than filename.
-        # If so, we have to regenerate outfile.  If not, we're safe.
-        if os.path.exists(A):
-            this_deps.append(module_path(A))
-
-    # OK, next we move on to include pxi files.
-    I = [x for x in S if 'include' in x]
-    # The syntax for include is like this:
-    #       include "../a/b/c.pxi"
-    # I.e., it's a quoted *relative* path to a pxi file.
-    for A in I:
-        try:
-            A = A.strip().split()[1]
-        except IndexError:
-            # Illegal include statement or not really an include
-            # (e.g., include could easily be in a comment or
-            # something).  No reason to crash setup.py!
-            continue
-        # Strip the quotes from either side of the pxi filename.
-        A = A.strip('"').strip("'")
-        # Now take filename (the input argument to this function)
-        # and strip off the last part of the path and stick
-        # A onto it to get the filename of the pxi file relative
-        # where setup.py is being run.
-        R = A # save the relative filename in case it is absolute
-        A = os.path.split(filename)[0] + '/' + A
-        if not os.path.exists(A):
-            # A is an "absolute" path -- that is, absolute to the base of the sage tree
-            A = R # restore
-        if os.path.exists(A):
-            this_deps.append(module_path(A))
-    return this_deps
 
 #############################################
-###### NEW CODE (Gonzalo and Craig)
+###### Dependency checking
 #############################################
 
-# The print statements in the code below are in the file on purpose,
-# because they're incredibly useful for debugging.
 
-__mtime_cache = {}
-__recursive_mtime_cache = {}
+# matches any dependency
+import re
+dep_regex = re.compile(r'^ *(?:cimport +(\S+))|(?:from +(\S+) *cimport)|(?:include *[\'"]([^\'"]+)[\'"])', re.M)
 
-def mtime_or_zero(f):
+class DependencyTree:
     """
-    Return mtime of file, defaulting to 0 for an inexistent file.
-    Computed values are cached in global dictionary '__mtime_cache'
+    This class stores all the information about the dependencies of a set of
+    Cython files. It uses a lot of caching so information only needs to be
+    looked up once per build.
     """
-    try:
-        return __mtime_cache[f]
-    except KeyError:
-        pass
-    try:
-        return __mtime_cache.setdefault(f, os.path.getmtime(f))
-    except os.error:
-        return __mtime_cache.setdefault(f, 0)
+    def __init__(self):
+        self._last_parse = {}
+        self._timestamps = {}
+        self._deps = {}
+        self._deps_all = {}
+        self.root = "%s/devel/sage/" % SAGE_ROOT
+
+    def __getstate__(self):
+        """
+        Used for pickling.
+
+        Timestamps and deep dependencies may change between builds,
+        so we don't want to save those.
+        """
+        state = dict(self.__dict__)
+        state['_timestamps'] = {}
+        state['_deps_all'] = {}
+        return state
+
+    def __setstate__(self, state):
+        """
+        Used for unpickling.
+        """
+        self.__dict__.update(state)
+        self._timestamps = {}
+        self._deps_all = {}
+        self.root = "%s/devel/sage/" % SAGE_ROOT
+
+    def timestamp(self, filename):
+        """
+        Look up the last modified time of a file, with caching.
+        """
+        if filename not in self._timestamps:
+            try:
+                self._timestamps[filename] = os.path.getmtime(filename)
+            except OSError:
+                self._timestamps[filename] = 0
+        return self._timestamps[filename]
+
+    def parse_deps(self, filename, verify=True):
+        """
+        Open a Cython file and extract all of its dependencies.
+
+        INPUT:
+            filename -- the file to parse
+            verify   -- only return existing files (default True)
+
+        OUTPUT:
+            list of dependency files
+        """
+        # only parse cython files
+        if filename[-4:] not in ('.pyx', '.pxd', '.pxi'):
+            return []
+
+        dirname = os.path.split(filename)[0]
+        deps = set()
+        if filename.endswith('.pyx'):
+            pxd_file = filename[:-4] + '.pxd'
+            if os.path.exists(pxd_file):
+                deps.add(pxd_file)
+
+        f = open(filename)
+        for m in dep_regex.finditer(open(filename).read()):
+            groups = m.groups()
+            module = groups[0] or groups[1] # cimport or from ... cimport
+            if module is not None:
+                if '.' in module:
+                    path = module.replace('.', '/') + '.pxd'
+                else:
+                    path = "%s/%s.pxd" % (dirname, module)
+            else:
+                path = '%s/%s'%(dirname, groups[2])
+                if not os.path.exists(path):
+                    path = groups[2]
+            deps.add(os.path.normpath(path))
+        f.close()
+        return list(deps)
+
+    def immediate_deps(self, filename):
+        """
+        Returns a list of files directly referenced by this file.
+        """
+        if (filename not in self._deps
+                or self.timestamp(filename) < self._last_parse[filename]):
+            self._deps[filename] = self.parse_deps(filename)
+            self._last_parse[filename] = self.timestamp(filename)
+        return self._deps[filename]
+
+    def all_deps(self, filename, path=None):
+        """
+        Returns all files directly or indirectly referenced by this file.
+
+        A recursive algorithm is used here to maximize caching, but it is
+        still robust for circular cimports (via the path parameter).
+        """
+        if filename not in self._deps_all:
+            circular = False
+            deps = set([filename])
+            if path is None:
+                path = set([filename])
+            else:
+                path.add(filename)
+            for f in self.immediate_deps(filename):
+                if f not in path:
+                    deps.update(self.all_deps(f, path))
+                else:
+                    circular = True
+            path.remove(filename)
+            if circular:
+                return deps # Don't cache, as this may be incomplete
+            else:
+                self._deps_all[filename] = deps
+        return self._deps_all[filename]
+
+    def newest_dep(self, filename):
+        """
+        Returns the most recently modified file that filename depends on,
+        along with its timestamp.
+        """
+        nfile = filename
+        ntime = self.timestamp(filename)
+        for f in self.all_deps(filename):
+            if self.timestamp(f) > ntime:
+                nfile = f
+                ntime = self.timestamp(f)
+        return nfile, ntime
+
+
+#############################################
+###### Build code
+#############################################
 
 def process_filename(f, m):
     base, ext = os.path.splitext(f)
@@ -1460,15 +350,11 @@ def process_filename(f, m):
     else:
         return f
 
-def compile_time(f, m):
-    """
-    Return the time file f was last built as part of module m
-    """
-    return mtime_or_zero("%s/%s"%(SITE_PACKAGES,f))
-
 def compile_cmd(f, m):
     """
-    Command line to compile file f as part of module m
+    Given a .pyx file f, which is a part of module m, copy the
+    file to SITE_PACKAGES, and return a string which will call
+    Cython on it.
     """
     if f.endswith('.pyx'):
         # process cython file
@@ -1499,49 +385,7 @@ def compile_cmd(f, m):
 
     return cmd #"NEED TO COMPILE file " + f + " in module " + m.name
 
-def implicit_deps(f):
-    """
-    List of implicit dependencies for file f in module m
-    E.g. .pxd file corresponding to a .pyx
-    """
-    if f.endswith('.pyx'):
-        name = f[:-4] + '.pxd'
-        if os.path.exists(name):
-            return [name]
-    return []
-
-def implicit_deps_mtime(f):
-    """
-    Modification time of implicit dependencies in f
-    (e.g. .pxd file corresponding to a .pyx)
-    """
-    deps = implicit_deps(f)
-    if len(deps) == 0:
-        return 0
-    return max(map(mtime_or_zero, deps))
-
-def recursive_mtime(f):
-    """
-    Recursively compute last modification time of file f and included files.
-    The computed values are cached in global dictionary '__recursive_mtime_cache'
-    """
-    #print "recursive_mtime(", f, ")"
-    try:
-        return __recursive_mtime_cache[f]
-    except KeyError:
-        pass
-    last_mod = mtime_or_zero(f)
-    deps = implicit_deps(f) + search_all_includes(f)
-    for d in deps:
-        #print "deps = ", deps
-        mod = recursive_mtime(d)
-        #print "    includes: ", d, " (mod=", mod, ")"
-        if mod > last_mod:
-            #print "included file ", d, "(", mod, ")  is newer than ", f, "(", last_mod, ")"
-            last_mod = mod
-    return __recursive_mtime_cache.setdefault(f, last_mod)
-
-def compile_command_list(ext_modules):
+def compile_command_list(ext_modules, deps):
     """
     Computes a list of commands needed to compile and link the
     extension modules given in 'ext_modules'
@@ -1551,50 +395,59 @@ def compile_command_list(ext_modules):
     queue_compile_low = []
 
     for m in ext_modules:
-        #link = False
-        #t = link_time(m)
-
         new_sources = []
-
         for f in m.sources:
-            mod = recursive_mtime(f)
-            built = compile_time(f, m)
             if f.endswith('.pyx'):
-                if built < mod:
-                    #print "built file for ", f, " is older (", built, ")"
-                    #print "COMPILE ", f, " in ", m
+                dep_file, dep_time = deps.newest_dep(f)
+                dest_file = "%s/%s"%(SITE_PACKAGES, f)
+                dest_time = deps.timestamp(dest_file)
+                if dest_time < dep_time:
                     cmd = compile_cmd(f, m)
-                    if built < mtime_or_zero(f):
+                    if dep_file == f:
+                        print "Building modified file %s."%f
                         queue_compile_high.append(cmd)
-                    elif built < implicit_deps_mtime(f):
+                    elif dep_file == (f[:-4] + '.pxd'):
+                        print "Building %s because it depends on %s."%(f, dep_file)
                         queue_compile_med.append(cmd)
                     else:
+                        print "Building %s because it depends on %s."%(f, dep_file)
                         queue_compile_low.append(cmd)
             new_sources.append(process_filename(f, m))
         m.sources = new_sources
-    #print "# files checked     = ", len(__recursive_mtime_cache.keys())
-    return queue_compile_high, queue_compile_med, queue_compile_low
+    print "# compile high = ", len(queue_compile_high)
+    print queue_compile_high
+    print "# compile med =  ", len(queue_compile_med)
+    print queue_compile_med
+    print "# compile low =  ", len(queue_compile_low)
+    print queue_compile_low
+    return queue_compile_high + queue_compile_med + queue_compile_low
 
 
-do_cython = True
+import cPickle as pickle
+CYTHON_DEPS_FILE='.cython_deps'
 
-
-if not sdist and do_cython:
-    import resource
+if not sdist:
     print "Updating Cython code...."
     t = time.time()
-    hi, med, lo = compile_command_list(ext_modules)
-    #print "# compile high = ", len(hi)
-    #print hi
-    #print "# compile med = ", len(med)
-    #print med
-    #print "# compile low = ", len(lo)
-    #print lo
-    execute_list_of_commands(hi + med + lo)
+    try:
+        f = open(CYTHON_DEPS_FILE)
+        deps = pickle.load(open(CYTHON_DEPS_FILE))
+        f.close()
+    except:
+        deps = DependencyTree()
+    queue = compile_command_list(ext_modules, deps)
+    execute_list_of_commands(queue)
+    f = open(CYTHON_DEPS_FILE, 'w')
+    pickle.dump(deps, f)
+    f.close()
     print "Finished compiling Cython code (time = %s seconds)"%(time.time() - t)
 
 
-code = setup(name        = 'sage',
+#########################################################
+### Distutils
+#########################################################
+
+code = setup(name = 'sage',
 
       version     =  SAGE_VERSION,
 
@@ -1612,6 +465,8 @@ code = setup(name        = 'sage',
 
                      'sage.algebras',
 
+                     'sage.calculus',
+
                      'sage.catalogue',
 
                      'sage.categories',
@@ -1625,21 +480,16 @@ code = setup(name        = 'sage',
                      'sage.combinat.root_system',
                      'sage.combinat.matrices',
                      'sage.combinat.posets',
-
                      'sage.combinat.species',
 
                      'sage.crypto',
-
                      'sage.crypto.mq',
 
                      'sage.databases',
 
                      'sage.ext',
 
-                     'sage.calculus',
-
                      'sage.finance',
-
 
                      'sage.functions',
 
@@ -1676,7 +526,6 @@ code = setup(name        = 'sage',
                      'sage.logic',
 
                      'sage.matrix',
-#                     'sage.matrix.padics',
                      'sage.media',
                      'sage.misc',
 
@@ -1778,7 +627,3 @@ code = setup(name        = 'sage',
       ext_modules = ext_modules,
       include_dirs = include_dirs)
 
-
-# *Only* write the hash file out if the build
-# succeeded with no errors.
-open(CYTHON_HASH_FILE,'w').write(H)

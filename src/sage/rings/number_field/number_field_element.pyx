@@ -1838,7 +1838,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             var = self.number_field().variable_name()
         f = self.polynomial()._pari_()
         gp = self.number_field().polynomial()
-        if gp.name() != 'x':
+        if gp.variable_name() != 'x':
             gp = gp.change_variable_name('x')
         g = gp._pari_()
         gv = str(gp.parent().gen())

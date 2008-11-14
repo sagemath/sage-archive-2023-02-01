@@ -280,7 +280,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 ##         f.__poly = self.__poly.copy()
 ##         return f
 
-    def degree(self):
+    def degree(self, gen=None):
         """
         Return the degree of this polynomial.  The zero polynomial
         has degree -1.

@@ -198,10 +198,11 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f._derivative(x)
             3*x^2*y^4
         """
-        if var is not None and var is not self.parent().gen():
+        P = self.parent()
+        if var is not None and var is not P.gen():
             # call _derivative() recursively on coefficients
-            return self.polynomial(dict([(n, c._derivative(var)) \
-                                         for (n, c) in self.__coeffs.iteritems()]))
+            return P(dict([(n, c._derivative(var)) \
+                                     for (n, c) in self.__coeffs.iteritems()]))
 
         # compute formal derivative with respect to generator
         d = {}
@@ -209,7 +210,7 @@ class Polynomial_generic_sparse(Polynomial):
             d[n-1] = n*c
         if d.has_key(-1):
             del d[-1]
-        return self.polynomial(d)
+        return P(d)
 
     def _dict_unsafe(self):
         """
@@ -377,7 +378,7 @@ class Polynomial_generic_sparse(Polynomial):
     #    else:
     #        return self.__pari.subst('x',variable)
 
-    def degree(self):
+    def degree(self, gen=None):
         """
         Return the degree of this sparse polynomial.
 
@@ -410,7 +411,7 @@ class Polynomial_generic_sparse(Polynomial):
             else:
                 output[index] = coeff
 
-        output = self.polynomial(output, check=False)
+        output = self.parent()(output, check=False)
         output.__normalize()
         return output
 
@@ -437,7 +438,7 @@ class Polynomial_generic_sparse(Polynomial):
                 else:
                     output[index] = product
 
-        output = self.polynomial(output, check=False)
+        output = self.parent()(output, check=False)
         output.__normalize()
         return output
 
@@ -470,13 +471,13 @@ class Polynomial_generic_sparse(Polynomial):
             output = {}
             for (index, coeff) in self.__coeffs.iteritems():
                 output[index + n] = coeff
-            return self.polynomial(output, check=False)
+            return self.parent()(output, check=False)
         if n < 0:
             output = {}
             for (index, coeff) in self.__coeffs.iteritems():
                 if index + n >= 0:
                     output[index + n] = coeff
-            return self.polynomial(output, check=False)
+            return self.parent()(output, check=False)
 
 
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
@@ -529,7 +530,8 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             sage: x.xgcd(K(1))
             (1, 0, 1)
         """
-        other = self.parent()(other)
+        P = self.parent()
+        other = P(other)
         if other.is_zero():
             raise ZeroDivisionError, "other must be nonzero"
 
@@ -537,8 +539,8 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         A = self
         B = other
         R = A
-        Q = self.polynomial(0)
-        X = self.parent().gen()
+        Q = P.zero_element()
+        X = P.gen()
         while R.degree() >= B.degree():
             aaa = (R.leading_coefficient()/B.leading_coefficient())
             bbb = X**(R.degree()-B.degree())
@@ -858,7 +860,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         f.__poly = self.__poly.copy()
         return f
 
-    def degree(self):
+    def degree(self, gen=None):
         """
         Return the degree of this polynomial.  The zero polynomial
         has degree -1.

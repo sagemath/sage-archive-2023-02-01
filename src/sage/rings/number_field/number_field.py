@@ -420,7 +420,7 @@ def NumberFieldTower(v, names, check=True):
     f = v[0]
     w = NumberFieldTower(v[1:], names=names[1:])
     if isinstance(f, polynomial_element.Polynomial):
-        var = f.name()
+        var = f.variable_name()
     else:
         var = 'x'
 

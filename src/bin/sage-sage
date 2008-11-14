@@ -362,8 +362,9 @@ if [ $1 = '-ipython'  -o $1 = '--ipython' ]; then
 fi
 
 if [ $1 = '-sh'  -o $1 = '--sh' ]; then
-    # AUTHORS: Carl Witty and William Stein
-    # Craig Citro: add shell options for not loading profile
+    # AUTHORS:
+    #   Carl Witty and William Stein: initial version
+    #   Craig Citro: add options for not loading profile
     cd "$CUR"
     shift
     echo ""
@@ -371,37 +372,44 @@ if [ $1 = '-sh'  -o $1 = '--sh' ]; then
     echo "Be sure to exit when you are done and do not do anything"
     echo "with other copies of Sage!"
     echo ""
-    PS1="sage$ "
-    export PS1
-    # We must start a new shell with no .profile or .bashrc files
-    # processed, so that we know our path is correct
     SHELL_NAME=`basename -a $SHELL`
-    case $SHELL_NAME in
-      bash)
-       SHELL_OPTS=" --norc"
-       ;;
-      csh)
-       SHELL_OPTS=" -f"
-       ;;
-      ksh)
-       SHELL_OPTS=" -p"
-       ;;
-      sh)
-       SHELL_OPTS=" --norc"
-       ;;
-      tcsh)
-       SHELL_OPTS=" -f"
-       ;;
-      zsh)
-       SHELL_OPTS=" -f -d"
-       ;;
-      *)
-       echo "Unknown shell: $SHELL!"
-       echo "Exiting Sage."
-       exit 1
-    esac
-
+    if [ $# -eq 0 ]; then
+	SHELL_OPTS=""
+    else
+        shift
+        echo "Bypassing shell configuration files ..."
+        echo
+        # We must start a new shell with no .profile or .bashrc files
+        # processed, so that we know our path is correct
+	PS1="sage$ "
+	export PS1
+	case $SHELL_NAME in
+	    bash)
+		SHELL_OPTS=" --norc"
+		;;
+	    csh)
+		SHELL_OPTS=" -f"
+		;;
+	    ksh)
+		SHELL_OPTS=" -p"
+		;;
+	    sh)
+		SHELL_OPTS=" --norc"
+		;;
+	    tcsh)
+		SHELL_OPTS=" -f"
+		;;
+	    zsh)
+		SHELL_OPTS=" -f -d"
+		;;
+	    *)
+		echo "Unknown shell: $SHELL!"
+		echo "Exiting Sage."
+		exit 1
+	esac
+    fi
     $SHELL_NAME $SHELL_OPTS "$@"
+
     echo Exited Sage subshell.
     exit $?
 fi

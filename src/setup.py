@@ -13,12 +13,6 @@ if len(sys.argv) > 1 and sys.argv[1] == "sdist":
 else:
     sdist = False
 
-# comment these four lines out to turn on warnings from gcc
-import distutils.sysconfig
-NO_WARN = True
-if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
-    extra_compile_args = ['-w']
-
 if not os.environ.has_key('SAGE_ROOT'):
     print "    ERROR: The environment variable SAGE_ROOT must be defined."
     sys.exit(1)
@@ -59,6 +53,11 @@ include_dirs = ['%s/include'%SAGE_LOCAL, \
 
 extra_compile_args = [ ]
 
+# comment these four lines out to turn on warnings from gcc
+import distutils.sysconfig
+NO_WARN = True
+if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
+    extra_compile_args.append('-w')
 
 DEVEL = False
 if DEVEL:
@@ -78,6 +77,7 @@ from module_list import ext_modules
 
 for m in ext_modules:
     m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
+    m.extra_compile_args += extra_compile_args
     if os.environ.has_key('SAGE_DEBIAN'):
         m.library_dirs += ['/usr/lib','/usr/lib/eclib','/usr/lib/singular','/usr/lib/R/lib','%s/lib' % SAGE_LOCAL]
     else:
@@ -402,24 +402,26 @@ def compile_command_list(ext_modules, deps):
                 dest_file = "%s/%s"%(SITE_PACKAGES, f)
                 dest_time = deps.timestamp(dest_file)
                 if dest_time < dep_time:
-                    cmd = compile_cmd(f, m)
                     if dep_file == f:
                         print "Building modified file %s."%f
+                        cmd = compile_cmd(f, m)
                         queue_compile_high.append(cmd)
                     elif dep_file == (f[:-4] + '.pxd'):
                         print "Building %s because it depends on %s."%(f, dep_file)
+                        cmd = compile_cmd(f, m)
                         queue_compile_med.append(cmd)
                     else:
                         print "Building %s because it depends on %s."%(f, dep_file)
+                        cmd = compile_cmd(f, m)
                         queue_compile_low.append(cmd)
             new_sources.append(process_filename(f, m))
         m.sources = new_sources
-    print "# compile high = ", len(queue_compile_high)
-    print queue_compile_high
-    print "# compile med =  ", len(queue_compile_med)
-    print queue_compile_med
-    print "# compile low =  ", len(queue_compile_low)
-    print queue_compile_low
+    # print "# compile high = ", len(queue_compile_high)
+    # print queue_compile_high
+    # print "# compile med =  ", len(queue_compile_med)
+    # print queue_compile_med
+    # print "# compile low =  ", len(queue_compile_low)
+    # print queue_compile_low
     return queue_compile_high + queue_compile_med + queue_compile_low
 
 

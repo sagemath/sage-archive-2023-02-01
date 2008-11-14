@@ -2117,12 +2117,27 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
             True
             sage: (17/(2*a)) in OK
             False
-            sage: (17/(2*a)).parent() is K
-            True
         """
         cdef NumberFieldElement_absolute x
         x = NumberFieldElement_absolute._div_(self, other)
         return self._parent.number_field()(x)
+
+    def __invert__(self):
+        """
+        Implement inversion, checking that the return value has the right parent.
+        See trac #4190.
+        EXAMPLE:
+            sage: K = NumberField(x^3 -x + 2, 'a')
+            sage: OK = K.ring_of_integers()
+            sage: a = OK(K.gen())
+            sage: (~a).parent() is K
+            True
+            sage: (~a) in OK
+            False
+            sage: a**(-1) in OK
+            False
+        """
+        return self._parent.number_field()(NumberFieldElement_absolute.__invert__(self))
 
 cdef class OrderElement_relative(NumberFieldElement_relative):
     """
@@ -2176,10 +2191,9 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             sage: K1.<a> = NumberField(x^3 - 17)
             sage: R.<y> = K1[]
             sage: K2 = K1.extension(y^2 - a, 'b')
-            sage: b= K2.gen()
-            sage: OK2 = K2.order(b) # (not maximal)
-            sage: b == OK2(b) # not implemented (#4193)
-            True
+            sage: OK2 = K2.order(K2.gen()) # (not maximal)
+            sage: b = OK2.gens()[1]; b
+            b
             sage: (17/b).parent() is K2
             True
             sage: (17/b) in OK2 # not implemented (#4193)
@@ -2190,6 +2204,30 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
         cdef NumberFieldElement_relative x
         x = NumberFieldElement_relative._div_(self, other)
         return self._parent.number_field()(x)
+
+    def __invert__(self):
+        """
+        Implement division, checking that the result has the
+        right parent. See trac #4190.
+
+        EXAMPLES:
+            sage: K1.<a> = NumberField(x^3 - 17)
+            sage: R.<y> = K1[]
+            sage: K2 = K1.extension(y^2 - a, 'b')
+            sage: OK2 = K2.order(K2.gen()) # (not maximal)
+            sage: b = OK2.gens()[1]; b
+            b
+            sage: b.parent() is OK2
+            True
+            sage: (~b).parent() is K2
+            True
+            sage: (~b) in OK2 # not implemented (#4193)
+            False
+            sage: b**(-1) in OK2 # not implemented (#4193)
+            False
+        """
+        return self._parent.number_field()(NumberFieldElement_relative.__invert__(self))
+
 
 class CoordinateFunction:
     def __init__(self, NumberFieldElement alpha, W, to_V):

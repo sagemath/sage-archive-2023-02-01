@@ -1164,6 +1164,23 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         x = NumberFieldElement_quadratic._div_(self, other)
         return self._parent.number_field()(x)
 
+    def __invert__(self):
+        """
+        Implement inversion, checking that the return value has the right parent.
+        See trac #4190.
+        EXAMPLE:
+            sage: K = NumberField(x^2 -x + 2, 'a')
+            sage: OK = K.ring_of_integers()
+            sage: a = OK(K.gen())
+            sage: (~a).parent() is K
+            True
+            sage: (~a) in OK
+            False
+            sage: a**(-1) in OK
+            False
+        """
+        return self._parent.number_field()(NumberFieldElement_quadratic.__invert__(self))
+
 cdef class Q_to_quadratic_field_element(Morphism):
     """
     Morphism that coerces from rationals to elements of a

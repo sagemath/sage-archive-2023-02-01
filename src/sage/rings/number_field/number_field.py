@@ -2651,8 +2651,7 @@ class NumberField_generic(number_field_base.NumberField):
             ...                                                # 64-bit
             PariError: not a definite matrix in lllgram (42)   # 64-bit
             sage: F.reduced_basis(prec=96)
-            [1, alpha, alpha^3 - 2*alpha^2 + 15*alpha, 16*alpha^3 - 31*alpha^2 + 469*alpha + 267109] # 32-bit
-            [1, alpha, alpha^2 - 15*alpha, alpha^3 - 16*alpha^2 + 469*alpha + 267109] # 64-bit
+            [1, alpha, alpha^3 - 2*alpha^2 + 15*alpha, 16*alpha^3 - 31*alpha^2 + 469*alpha + 267109]
         """
         if self.is_totally_real():
             try:

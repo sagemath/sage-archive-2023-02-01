@@ -102,8 +102,8 @@ def execute_list_of_commands_in_serial(command_list):
         print cmd
         r = os.system(cmd)
         if r != 0:
-            print "Error running command."
-            sys.exit(r)
+            print "Error running command, exited with status %s."%r
+            sys.exit(1)
 
 def run_command(cmd):
     """
@@ -135,6 +135,7 @@ def execute_list_of_commands_in_parallel(command_list, ncpus):
     p = Pool(ncpus)
     for r in p.imap(run_command, command_list):
         if r:
+            print "Parallel build failed with status %s."%r
             sys.exit(1)
 
 def number_of_cpus():

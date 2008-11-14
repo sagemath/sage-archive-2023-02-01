@@ -66,6 +66,8 @@ if [ -d devel/sage-main ]; then
    ln -sf ../../../../devel/sage/build/sage .
 fi
 
+cd "$SAGE_ROOT"
+
 if [ -d devel/doc-main ]; then
    if [ ! -d $TMP/devel ];  then
        mkdir $TMP/devel/

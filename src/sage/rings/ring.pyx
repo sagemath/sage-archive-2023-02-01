@@ -743,7 +743,7 @@ cdef class CommutativeRing(Ring):
 
     def krull_dimension(self):
         """
-        Return the Krull dimension if this commutative ring.
+        Return the Krull dimension of this commutative ring.
 
         The Krull dimension is the length of the longest ascending chain
         of prime ideals.
@@ -752,6 +752,7 @@ cdef class CommutativeRing(Ring):
         \code{krull_dimension} is not implemented for generic commutative
         rings. Fields and PIDs, with Krull dimension equal to 0 and 1,
         respectively, have naive implementations of \code{krull_dimension}
+        Orders in number fields also have Krull dimension 1.
             sage: R = CommutativeRing(ZZ)
             sage: R.krull_dimension()
             Traceback (most recent call last):
@@ -765,6 +766,20 @@ cdef class CommutativeRing(Ring):
             <type 'sage.rings.ring.CommutativeRing'>
             <class 'sage.rings.rational_field.RationalField'>
             <type 'sage.rings.integer_ring.IntegerRing_class'>
+
+            All orders in number fields have Krull dimension 1,
+            including non-maximal orders:
+            sage: K.<i> = QuadraticField(-1)
+            sage: R = K.maximal_order(); R
+            Maximal Order in Number Field in i with defining polynomial x^2 + 1
+            sage: R.krull_dimension()
+            1
+            sage: R = K.order(2*i); R
+            Order in Number Field in i with defining polynomial x^2 + 1
+            sage: R.is_maximal()
+            False
+            sage: R.krull_dimension()
+            1
         """
         raise NotImplementedError
 
@@ -1019,9 +1034,7 @@ cdef class DedekindDomain(IntegralDomain):
             sage: K = NumberField(x^2 + 1, 's')
             sage: OK = K.ring_of_integers()
             sage: OK.krull_dimension()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            1
 
         The following are not Dedekind domains but have
         a \code{krull_dimension} function.
@@ -1035,6 +1048,14 @@ cdef class DedekindDomain(IntegralDomain):
             Multivariate Polynomial Ring in x, y, z over Integer Ring
             sage: U.krull_dimension()
             4
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: R = K.order(2*i); R
+            Order in Number Field in i with defining polynomial x^2 + 1
+            sage: R.is_maximal()
+            False
+            sage: R.krull_dimension()
+            1
         """
         return 1
 

@@ -290,6 +290,20 @@ class Order(IntegralDomain):
         """
         return self.is_maximal()
 
+    def krull_dimension(self):
+        """
+        Return the Krull dimension of this order, which is 1.
+
+        EXAMPLES:
+            sage: K.<a> = QuadraticField(5)
+            sage: OK = K.maximal_order()
+            sage: OK.krull_dimension()
+            1
+            sage: O2 = K.order(2*a)
+            sage: O2.krull_dimension()
+            1
+        """
+        return ZZ(1)
 
     def integral_closure(self):
         """

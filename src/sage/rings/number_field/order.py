@@ -603,9 +603,17 @@ class Order(IntegralDomain):
         EXAMPLES:
             sage: ZZ[2^(1/3)].class_number()
             1
-            sage: ZZ[sqrt(-23)].class_number()
+            sage: QQ[sqrt(-23)].maximal_order().class_number()
             3
+
+        Note that non-maximal orders aren't supported yet:
+            sage: ZZ[3*sqrt(-3)].class_number()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: computation of class numbers of non-maximal orders is not implemented
         """
+        if not self.is_maximal():
+            raise NotImplementedError, "computation of class numbers of non-maximal orders is not implemented"
         return self.number_field().class_number(proof=proof)
 
     def class_group(self, proof=None, names='c'):

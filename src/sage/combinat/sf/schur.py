@@ -76,13 +76,19 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             1485
             sage: len(s([2,1])^9) #long
             2876
+
+            sage: 0*s([2,1])
+            0
         """
         #Use symmetrica to do the multiplication
         A = left.parent()
         R = A.base_ring()
 
         if  R is ZZ or R is QQ:
-            return symmetrica.mult_schur_schur(left, right)
+            if left and right:
+                return symmetrica.mult_schur_schur(left, right)
+            else:
+                return A._from_dict({})
 
         z_elt = {}
         for (left_m, left_c) in left._monomial_coefficients.iteritems():

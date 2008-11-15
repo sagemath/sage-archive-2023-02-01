@@ -3475,7 +3475,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
 
     cdef long long* _hnf_modn_impl(Matrix_integer_dense self, mod_int det,
-            Py_ssize_t nrows, Py_ssize_t ncols):
+            Py_ssize_t nrows, Py_ssize_t ncols) except NULL:
         cdef long long *res, *T_ent, **res_rows, **T_rows, *B
         cdef Py_ssize_t i, j, k
         cdef long long R, mod, T_i_i, T_j_i, c1, c2, q, t

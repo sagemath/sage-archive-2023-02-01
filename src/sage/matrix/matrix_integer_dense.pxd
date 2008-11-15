@@ -27,5 +27,5 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef int _hnf_modn(Matrix_integer_dense self, Matrix_integer_dense res,
             mod_int det) except -1
     cdef long long* _hnf_modn_impl(Matrix_integer_dense self, mod_int det,
-                                   Py_ssize_t nrows, Py_ssize_t ncols)
+                                   Py_ssize_t nrows, Py_ssize_t ncols) except NULL
     cdef _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)

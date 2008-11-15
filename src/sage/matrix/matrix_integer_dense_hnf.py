@@ -538,14 +538,14 @@ def hnf_square(A, proof):
         # Since we have no good conditioning code at present,
         # in this case we just fall back to using pari.
         H = W.echelon_form(algorithm='pari')
-    elif g > CUTOFF:
+    elif 2*g > CUTOFF:
         # Unlikely that g will be large on even slightly random input
         # if it is, we fallback to the traditional algorithm.
         # A nasty example is A = n*random_matrix(ZZ,m), where
         # this algorithm gets killed.  This is not random input though.
         f = W.gcd()
         g = g / (f**W.nrows())
-        if g <= CUTOFF:
+        if 2*g <= CUTOFF:
             verbose("Found common factor of %s -- dividing out; get new g = %s"%(f,g))
             W0 = (W/f).change_ring(ZZ)
             H = W0._hnf_mod(2*g)

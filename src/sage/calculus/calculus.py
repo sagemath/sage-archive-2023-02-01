@@ -6874,13 +6874,26 @@ class Function_gamma(PrimitiveFunction):
             120.000000000000
             sage: gamma(x)
             gamma(x)
+
+            sage: gamma(pi)
+            gamma(pi)
+            sage: gamma(QQbar(I))
+            -0.154949828301811 - 0.498015668118356*I
+            sage: Q.<i> = NumberField(x^2+1)
+            sage: gamma(i)
+            -0.154949828301811 - 0.498015668118356*I
+            sage: gamma(int(5))
+            24
         """
         try:
             return x.gamma()
         except AttributeError:
-            if isinstance(x, float):
-                return RR(x).gamma()
-        return SymbolicComposition(self, SR(x))
+            pass
+        if isinstance(x, (int, long)):
+            return Integer(x).gamma()
+        if is_Element(x) and x.parent() is SR:
+            return SymbolicComposition(self, x)
+        return CC(x).gamma()
 
 gamma = Function_gamma()
 _syms['gamma'] = gamma

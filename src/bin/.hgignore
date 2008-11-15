@@ -278,3 +278,4 @@ rst2xml.py
 rstpep2html.py
 sphinx-build
 sphinx-quickstart
+ncadoctest.pyc

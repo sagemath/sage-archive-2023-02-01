@@ -13,7 +13,7 @@ def theta2_qexp(prec=10, var='q', K=ZZ, sparse=False):
     r"""
     Return the $q$-expansion of the series
       $$
-        \theta_2 = \sum_{n odd} q^n.
+        \theta_2 = \sum_{n odd} q^{n^2}.
       $$
 
     INPUT:

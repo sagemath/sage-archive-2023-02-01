@@ -392,6 +392,60 @@ class Order(IntegralDomain):
         """
         raise NotImplementedError
 
+    def coordinates(self, x):
+        r"""
+        Returns the coordinate vector of $x$ with respect to this order.
+
+        INPUT:
+            $x$ -- an element of the number field of this order.
+
+        OUTPUT:
+            A vector of length $n$ (the degree of the field) giving
+            the coordinates of $x$ with respect to the integral basis
+            of the order.  In general this will be a vector of
+            rationals; it will consist of integers if and only if $x$
+            is in the order.
+
+        AUTHOR: John Cremona  2008-11-15
+            Uses linear algebra.  The change-of-basis matrix is
+            cached.  Provides simpler implementations for
+            _contains_(), is_integral() and smallest_integer().
+
+        EXAMPLES:
+            sage: K.<i> = QuadraticField(-1)
+            sage: OK = K.ring_of_integers()
+            sage: OK_basis = OK.basis(); OK_basis
+            [1, i]
+            sage: a = 23-14*i
+            sage: acoords = OK.coordinates(a); acoords
+            (23, -14)
+            sage: sum([OK_basis[j]*acoords[j] for j in range(2)]) == a
+            True
+            sage: OK.coordinates((120+340*i)/8)
+            (15, 85/2)
+
+            sage: O = K.order(3*i)
+            sage: O.is_maximal()
+            False
+            sage: O.index_in(OK)
+            3
+            sage: acoords = O.coordinates(a); acoords
+            (23, -14/3)
+            sage: sum([O.basis()[j]*acoords[j] for j in range(2)]) == a
+            True
+
+       """
+        K = self.number_field()
+        V, from_V, to_V = K.absolute_vector_space()
+
+        try:
+            M = self.__basis_matrix_inverse
+        except AttributeError:
+            from sage.matrix.constructor import Matrix
+            self.__basis_matrix_inverse = Matrix([to_V(b) for b in self.basis()]).inverse()
+            M = self.__basis_matrix_inverse
+        return to_V(K(x))*M
+
     def free_module(self):
         """
         Return the free ZZ-module contained in the vector space
@@ -409,8 +463,9 @@ class Order(IntegralDomain):
             [  0 1/2 1/2]
             [  0   0   1]
 
-        An example in a relative extension.  Notice that the module is a ZZ-module in the
-        absolute_field associated to the relative field:
+        An example in a relative extension.  Notice that the module is
+        a ZZ-module in the absolute_field associated to the relative
+        field:
             sage: K.<a,b> = NumberField([x^2 + 1, x^2 + 2])
             sage: O = K.maximal_order(); O.basis()
             [(-3/2*b - 5)*a + 7/2*b - 2, -3*a + 2*b, -2*b*a - 3, -7*a + 5*b]

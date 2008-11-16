@@ -729,7 +729,12 @@ class NumberFieldIdeal(Ideal_generic):
             sage: F[0][0].norm().factor()
             19^2
         """
-        return QQ(self.number_field().pari_nf().idealnorm(self.pari_hnf()))
+        try:
+            return self._norm
+        except AttributeError:
+            pass
+        self._norm = QQ(self.number_field().pari_nf().idealnorm(self.pari_hnf()))
+        return self._norm
 
     def number_field(self):
         """
@@ -1114,6 +1119,181 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         if self.is_prime():
             return ZZ(self._pari_prime.getattr('e'))
         raise ValueError, "the fractional ideal (= %s) is not prime"%self
+
+    def residues(self):
+        """
+        Returns a iterator through a complete list of residues modulo this integral ideal.
+
+        An error is raised if this fractional ideal is not integral.
+
+        EXAMPLES:
+
+            sage: K.<i>=NumberField(x^2+1)
+            sage: res =  K.ideal(2).residues(); res  # random address
+            xmrange_iter([[0, 1], [0, 1]], <function <lambda> at 0xa252144>)
+            sage: list(res)
+            [0, i, 1, i + 1]
+            sage: list(K.ideal(2+i).residues())
+            [-2, -1, 0, 1, 2]
+            sage: list(K.ideal(i).residues())
+            [0]
+            sage: I = K.ideal(3+6*i)
+            sage: reps=I.residues()
+            sage: len(list(reps)) == I.norm()
+            True
+            sage: all([r==s or not (r-s) in I for r in reps for s in reps])
+            True
+
+
+        """
+        R = self.number_field().maximal_order()
+        Rbasis = R.basis()
+        n = len(Rbasis)
+        from sage.matrix.all import MatrixSpace
+        try:
+            M = MatrixSpace(ZZ,n)([R.coordinates(y) for y in self.basis()])
+        except TypeError:
+            raise TypeError, "residues only defined for integral ideals"
+
+        from sage.misc.mrange import xmrange_iter
+        d = [M[i,i] for i in range(n)]
+        coord_ranges = [range((-di+2)//2,(di+2)//2) for di in d]
+        combo = lambda c: sum([c[i]*Rbasis[i] for i in range(n)])
+        return xmrange_iter(coord_ranges, combo)
+
+    def denominator(self):
+        """
+        Return the denominator ideal of this fractional ideal.
+
+        Each fractional ideal has a unique expression as N/D where N,
+        D are coprime integral ideals.  The denominator is D.
+
+        EXAMPLES:
+            sage: K.<i>=NumberField(x^2+1)
+            sage: I = K.ideal((3+4*i)/5); I
+            Fractional ideal (4/5*i + 3/5)
+            sage: I.denominator()
+            Fractional ideal (2*i + 1)
+            sage: I.numerator()
+            Fractional ideal (-i - 2)
+            sage: I.numerator().is_integral() and I.denominator().is_integral()
+            True
+            sage: I.numerator() + I.denominator() == K.unit_ideal()
+            True
+            sage: I.numerator()/I.denominator() == I
+            True
+        """
+        try:
+            return self._denom_ideal
+        except AttributeError:
+            pass
+        self._denom_ideal = (self + self.number_field().unit_ideal())**(-1)
+        return self._denom_ideal
+
+    def numerator(self):
+        """
+        Return the numerator ideal of this fractional ideal.
+
+        Each fractional ideal has a unique expression as N/D where N,
+        D are coprime integral ideals.  The numerator is N.
+
+        EXAMPLES:
+            sage: K.<i>=NumberField(x^2+1)
+            sage: I = K.ideal((3+4*i)/5); I
+            Fractional ideal (4/5*i + 3/5)
+            sage: I.denominator()
+            Fractional ideal (2*i + 1)
+            sage: I.numerator()
+            Fractional ideal (-i - 2)
+            sage: I.numerator().is_integral() and I.denominator().is_integral()
+            True
+            sage: I.numerator() + I.denominator() == K.unit_ideal()
+            True
+            sage: I.numerator()/I.denominator() == I
+            True
+        """
+        try:
+            return self._num_ideal
+        except AttributeError:
+            pass
+        self._num_ideal = self * self.denominator()
+        return self._num_ideal
+
+    def is_coprime(self, other):
+        """
+        Returns True if this ideal is coprime to the other, else False.
+
+        INPUT:
+           other -- another ideal of the same field, or generators of an ideal.
+
+        OUTPUT:
+           True if self and other are coprime, else False.
+
+        NOTE:
+           This function works for fractional ideals as well as
+           integral ideals.
+
+        EXAMPLES:
+            sage: K.<i>=NumberField(x^2+1)
+            sage: I = K.ideal(2+i)
+            sage: J = K.ideal(2-i)
+            sage: I.is_coprime(J)
+            True
+            sage: (I^-1).is_coprime(J^3)
+            True
+            sage: I.is_coprime(5)
+            False
+            sage: I.is_coprime(6+i)
+            True
+        """
+        # Catch invalid inputs by making sure that we can make an ideal out of other.
+        K = self.number_field()
+        other = K.ideal(other)
+        if arith.gcd(self.norm(), other.norm()) == 1:
+            return True
+        # This special case is necessary since the zero ideal is not a
+        # fractional ideal!
+        if other.norm() == 0:
+            return self.norm() == 1
+        one = K.unit_ideal()
+        D1 = self.denominator()
+        N1 = self.numerator()
+        D2 = other.denominator()
+        N2 = other.numerator()
+        return N1+N2==one and N1+D2==one and D1+N2==one and D1+D2==one
+
+    def euler_phi(self):
+        r"""
+        Returns the Euler $\varphi$-function of this integral ideal.
+
+        This is the order of the multiplicative group of the quotient
+        modulo the ideal.
+
+        An error is raised if the ideal is not integral.
+
+        EXAMPLES:
+            sage: K.<i>=NumberField(x^2+1)
+            sage: I = K.ideal(2+i)
+            sage: [r for r in I.residues() if I.is_coprime(r)]
+            [-2, -1, 1, 2]
+            sage: I.euler_phi()
+            4
+            sage: J = I^3
+            sage: J.euler_phi()
+            100
+            sage: len([r for r in J.residues() if J.is_coprime(r)])
+            100
+            sage: J = K.ideal(3-2*i)
+            sage: I.is_coprime(J)
+            True
+            sage: I.euler_phi()*J.euler_phi() == (I*J).euler_phi()
+            True
+        """
+        if not self.is_integral():
+            raise ValueError, "euler_phi only defined for integral ideals"
+        return prod([(np-1)*np**(e-1) \
+                     for np,e in [(p.norm(),e) \
+                                  for p,e in self.factor()]])
 
     def _p_quotient(self, p):
         """

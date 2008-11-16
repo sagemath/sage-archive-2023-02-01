@@ -276,8 +276,8 @@ cdef set_zero_one_elements():
     initialized = True
 set_zero_one_elements()
 
-cdef zero = the_integer_ring._zero_element
-cdef one = the_integer_ring._one_element
+cdef Integer zero = the_integer_ring._zero_element
+cdef Integer one = the_integer_ring._one_element
 
 # The documentation for the ispseudoprime function in the pari
 # manual states that its result is always prime up to this 10^13.
@@ -1686,9 +1686,150 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ValueError: n must be nonzero
             sage: a = 2^3 * 3^2 * 17; a.divisors()
             [1, 2, 3, 4, 6, 8, 9, 12, 17, 18, 24, 34, 36, 51, 68, 72, 102, 136, 153, 204, 306, 408, 612, 1224]
+            sage: a = odd_part(factorial(31))
+            sage: v = a.divisors(); len(v)
+            172800
+            sage: prod(e+1 for p,e in factor(a))
+            172800
+            sage: all([t.divides(a) for t in v])
+            True
+
+        NOTES:
+            If one first computes all the divisors and then sorts it, the
+            sorting step can easily dominate the runtime. Note, however, that
+            (non-negative) multiplication on the left preserves relative
+            order. One can leverage this fact to keep the list in order as one
+            computes it using a process similar to that of the merge sort when
+            adding new elements.
         """
-        late_import()
-        return sage.rings.arith.divisors(self)
+        cdef list all, prev, sorted
+        cdef long tip, top
+        cdef long i, j, e, ee
+        cdef Integer apn, p, pn, z, all_tip
+
+        if not self:
+            raise ValueError, "n must be nonzero"
+        f = self.factor()
+
+        # All of the declarations below are for optimizing the word-sized case.
+        # Operations are performed in c as far as possible without overflow before
+        # moving to python objects.
+        cdef long long p_c, pn_c, apn_c
+        cdef long all_len, sorted_len, prev_len
+        cdef long long* ptr
+        cdef long long* empty_c
+        cdef long long* swap_tmp
+        cdef long long* all_c
+        cdef long long* sorted_c
+        cdef long long* prev_c
+
+        cdef long divisor_count = 1
+        for p,e in f: divisor_count *= (1+e)
+        ptr = <long long*>sage_malloc(sizeof(long long) * 3 * divisor_count)
+        if ptr == NULL:
+            raise MemoryError
+        all_c = ptr
+        sorted_c = ptr + divisor_count
+        prev_c = ptr + (2*divisor_count)
+
+        # These are used to keep track of whether or not we are able to
+        # perform the operations in machine words. A factor of two safety
+        # margin is added to cover any floating-point rounding issues.
+        cdef bint fits_c = True
+        cdef double cur_max = 1
+        cdef double fits_max = 2.0**(sizeof(long long)*8-2)
+
+        sorted_c[0] = 1
+        sorted_len = 1
+
+        for p, e in f:
+
+            cur_max *= (<double>p)**e
+            if fits_c and cur_max > fits_max:
+                sorted = []
+                for i from 0 <= i < sorted_len:
+                    z = <Integer>PY_NEW(Integer)
+                    mpz_set_longlong(z.value, sorted_c[i])
+                    sorted.append(z)
+                sage_free(ptr)
+                fits_c = False
+
+            # The two cases below are essentially the same algorithm, one operating
+            # on Integers in Python lists, the other on long longs.
+            if fits_c:
+
+                pn_c = p_c = p
+
+                swap_tmp = sorted_c
+                sorted_c = prev_c
+                prev_c = swap_tmp
+                prev_len = sorted_len
+                sorted_len = 0
+
+                tip = 0
+                prev_c[prev_len] = prev_c[prev_len-1] * pn_c
+                for i from 0 <= i < prev_len:
+                    apn_c = prev_c[i] * pn_c
+                    while prev_c[tip] < apn_c:
+                        sorted_c[sorted_len] = prev_c[tip]
+                        sorted_len += 1
+                        tip += 1
+                    sorted_c[sorted_len] = apn_c
+                    sorted_len += 1
+
+                for ee in range(1, e):
+
+                    swap_tmp = all_c
+                    all_c = sorted_c
+                    sorted_c = swap_tmp
+                    all_len = sorted_len
+                    sorted_len = 0
+
+                    pn_c *= p_c
+                    tip = 0
+                    all_c[all_len] = prev_c[prev_len-1] * pn_c
+                    for i from 0 <= i < prev_len:
+                        apn_c = prev_c[i] * pn_c
+                        while all_c[tip] < apn_c:
+                            sorted_c[sorted_len] = all_c[tip]
+                            sorted_len += 1
+                            tip += 1
+                        sorted_c[sorted_len] = apn_c
+                        sorted_len += 1
+
+            else:
+                prev = sorted
+                pn = <Integer>PY_NEW(Integer)
+                mpz_set_ui(pn.value, 1)
+                for ee in range(e):
+                    all = sorted
+                    sorted = []
+                    tip = 0
+                    top = len(all)
+                    mpz_mul(pn.value, pn.value, p.value) # pn *= p
+                    for a in prev:
+                        # apn = a*pn
+                        apn = <Integer>PY_NEW(Integer)
+                        mpz_mul(apn.value, (<Integer>a).value, pn.value)
+                        while tip < top:
+                            all_tip = <Integer>all[tip]
+                            if mpz_cmp(all_tip.value, apn.value) > 0:
+                                break
+                            sorted.append(all_tip)
+                            tip += 1
+                        sorted.append(apn)
+
+        if fits_c:
+            # all the data is in sorted_c
+            sorted = []
+            for i from 0 <= i < sorted_len:
+                z = <Integer>PY_NEW(Integer)
+                mpz_set_longlong(z.value, sorted_c[i])
+                sorted.append(z)
+            sage_free(ptr)
+
+        return sorted
+
 
     def __pos__(self):
         """

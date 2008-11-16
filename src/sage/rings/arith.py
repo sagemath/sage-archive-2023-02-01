@@ -21,7 +21,7 @@ import sage.rings.complex_field
 import sage.rings.complex_number
 import sage.rings.real_mpfr
 import sage.structure.factorization as factorization
-from sage.structure.element import RingElement, canonical_coercion, bin_op
+from sage.structure.element import RingElement, canonical_coercion, bin_op, parent
 from sage.interfaces.all import gp
 from sage.misc.misc import prod
 from sage.rings.fraction_field_element import is_FractionFieldElement
@@ -875,6 +875,14 @@ def divisors(n):
     Returns a list of all positive integer divisors
     of the nonzero integer n.
 
+    A second parameter may be passed to surpress sorting
+    of the list (as ordering the list can be more time
+    consuming then creating it).
+
+    INPUT:
+        n -- the element
+        sorted -- whether or not to sort the output (default True)
+
     EXAMPLES:
         sage: divisors(-3)
         [1, 3]
@@ -894,36 +902,41 @@ def divisors(n):
         ValueError: n must be nonzero
         sage: divisors(2^3 * 3^2 * 17)
         [1, 2, 3, 4, 6, 8, 9, 12, 17, 18, 24, 34, 36, 51, 68, 72, 102, 136, 153, 204, 306, 408, 612, 1224]
+
+    This function works whenever one has unique factorization:
+        sage: K.<a> = QuadraticField(7)
+        sage: divisors(K.ideal(7))
+        [Fractional ideal (1), Fractional ideal (-a), Fractional ideal (7)]
+        sage: divisors(K.ideal(3))
+        [Fractional ideal (1), Fractional ideal (3), Fractional ideal (a - 2), Fractional ideal (-a - 2)]
+        sage: divisors(K.ideal(35))
+        [Fractional ideal (1), Fractional ideal (35), Fractional ideal (-5*a), Fractional ideal (5), Fractional ideal (-a), Fractional ideal (7)]
+
+    TESTS:
+        sage: divisors(int(300))
+        [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 25, 30, 50, 60, 75, 100, 150, 300]
     """
-    if n == 0:
+    if not n:
         raise ValueError, "n must be nonzero"
-    if n < 0:  # make positive, or, since (-1,1) is a factor, will get wrong answer.
-        n*=-1
-    F = factor(n)
-    r = [0 for i in range(len(F))]
-    e = [m for _, m in F]     # max exponents
-    ans = []
-    x = 1
-    while r != e:
-        ans.append(ZZ(x))
-        r[0] += 1
-        if r[0] <= e[0]:
-            x *= F[0][0]
-        else:  # carry
-            i = 0
-            while i < len(F) and r[i] > e[i]:
-                x /= F[i][0]**F[i][1]
-                r[i] = 0
-                i += 1
-                if i < len(F):
-                    r[i] += 1
-                    if r[i] <= e[i]:
-                        x *= F[i][0]
-        #endif
-    #endwhile
-    ans.append(ZZ(n))
-    ans.sort()
-    return ans
+
+    R = parent(n)
+    if R in [int, long]:
+        n = ZZ(n) # we have specalized code for this case, make sure it gets used
+    try:
+        return n.divisors()
+    except AttributeError:
+        pass
+    f = factor(n)
+    one = R(1)
+    all = [one]
+    for p, e in f:
+        prev = all[:]
+        pn = one
+        for i in range(e):
+            pn *= p
+            all.extend([a*pn for a in prev])
+    all.sort()
+    return all
 
 class Sigma:
     """

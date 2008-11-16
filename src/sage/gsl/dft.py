@@ -53,8 +53,8 @@ AUTHORS:
 ##########################################################################
 
 from sage.rings.number_field.number_field import CyclotomicField
-from sage.plot.plot import polygon, line
-from sage.plot.plot import (Graphics, polygon)
+from sage.plot.all import polygon, line
+from sage.plot.plot import Graphics
 from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.groups.perm_gps.permgroup import PermutationGroup

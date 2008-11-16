@@ -1,6 +1,6 @@
 from functools import wraps
 from copy import copy
-
+from math import modf
 
 def ensure_subs(f):
     if not hasattr(f, 'subs'):
@@ -24,6 +24,65 @@ colors = {
     "lightblue" : (0.4,0.4,1.0),
     "automatic": (0.4,0.4,1.0)
 }
+
+def to_mpl_color(c):
+    """
+    Convert a tuple or string to a matplotlib rgb color tuple.
+
+    INPUT:
+        c -- string or 3-tuple
+
+    OUTPUT:
+        3-tuple of floats between 0 and 1.
+
+    EXAMPLES:
+        sage: from sage.plot.plot import to_mpl_color
+        sage: to_mpl_color('#fa0')
+        (1.0, 0.66666666666666663, 0.0)
+        sage: to_mpl_color('#ffffe1')
+        (1.0, 1.0, 0.88235294117647056)
+        sage: to_mpl_color('blue')
+        (0.0, 0.0, 1.0)
+        sage: to_mpl_color([1,1/2,1/3])
+        (1.0, 0.5, 0.33333333333333331)
+        sage: to_mpl_color([1,2,255])   # WARNING -- numbers are reduced mod 1!!
+        (1.0, 0.0, 0.0)
+    """
+    if isinstance(c, Color):
+        c = c.rgb()
+
+    if isinstance(c, str):
+        if len(c) > 0 and c[0] == '#':
+            # it is some sort of html like color, e.g, #00ffff or #ab0
+            h = c[1:]
+            if len(h) == 3:
+                h = '%s%s%s%s%s%s'%(h[0],h[0], h[1],h[1], h[2],h[2])
+            elif len(h) != 6:
+                raise ValueError, "color hex string (= '%s') must have length 3 or 6"%h
+            return tuple([eval('0x%s'%h[i:i+2])/float(255) for i in [0,2,4]])
+        else:
+            try:
+                return colors[c]
+            except KeyError:
+                raise ValueError, "unknown color '%s'"%c
+
+    elif isinstance(c, (list, tuple)):
+        c = list(c)
+        if len(c) != 3:
+            raise ValueError, "color tuple must have 3 entries, one for each RGB channel"
+        for i in range(len(c)):
+            s = float(c[i])
+            if s != 1:
+                s = modf(s)[0]
+                if s < 0:
+                    s += 1
+            c[i] = s
+
+    else:
+        raise TypeError, "c must be a list, tuple, or string"
+
+    return tuple(c)
+
 
 def rgbcolor(c):
     """

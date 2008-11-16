@@ -77,7 +77,7 @@ import sage.structure.coerce as coerce
 from sage.rings.finite_field import FiniteField as GF
 from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
-from sage.plot.plot import polygon, text
+from sage.plot.all import polygon, text
 from sage.calculus.calculus import sin, cos
 pi = RDF.pi()
 

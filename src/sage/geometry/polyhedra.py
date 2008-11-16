@@ -41,7 +41,7 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from sage.plot.plot3d.shapes2 import point3d
-from sage.plot.plot import line
+from sage.plot.all import line
 from sage.combinat.combinat import permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from sage.misc.package import is_package_installed

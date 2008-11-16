@@ -37,7 +37,7 @@ Other functions for solving DEs are given in functions/elementary.py.
 
 from sage.calculus.equations import SymbolicEquation
 from sage.interfaces.maxima import MaximaElement, Maxima
-from sage.plot.plot import line
+from sage.plot.all import line
 
 maxima = Maxima()
 

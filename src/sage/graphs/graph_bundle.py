@@ -219,10 +219,10 @@ class GraphBundle(Graph):
             B.relabel(rd)
             E = G.disjoint_union(B)
             kwds['pos'] = pos
-            from sage.plot.plot import arrow
-            G = Graph.plot(E, *args, **kwds) + \
-             arrow( ((tot_x_max + tot_x_min)/2.0, tot_y_min + y_diff), \
-                    ((tot_x_max + tot_x_min)/2.0, bas_y_max), axes=False )
+            from sage.plot.all import arrow
+            G = Graph.plot(E, *args, **kwds)
+            G += arrow( ((tot_x_max + tot_x_min)/2.0, tot_y_min + y_diff),
+                        ((tot_x_max + tot_x_min)/2.0, bas_y_max), axes=False )
             G.axes(False)
             return G
         else:

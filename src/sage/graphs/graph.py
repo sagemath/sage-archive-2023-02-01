@@ -5384,7 +5384,7 @@ class GenericGraph(SageObject):
             vertex_size = 500
             if partition is None:
                 vertex_colors = {'#FFFFFF':self.vertices()}
-        from sage.plot.plot import networkx_plot, Graphics, rainbow
+        from sage.plot.all import networkx_plot, Graphics, rainbow
         if vertex_colors is None:
             if partition is not None:
                 l = len(partition)
@@ -5478,7 +5478,7 @@ class GenericGraph(SageObject):
         if save_pos:
             self.set_pos(pos)
         if self._directed:
-            from sage.plot.plot import arrow
+            from sage.plot.all import arrow
             P = Graphics()
             from math import sqrt, pi
             vertex_radius = sqrt(vertex_size/pi)
@@ -5497,22 +5497,16 @@ class GenericGraph(SageObject):
                             this_edge=edge_style.copy()
                             this_edge['rgbcolor']=color
                             P += arrow((pos[u][0],pos[u][1]),(pos[v][0],pos[v][1]), **this_edge)
-            limits = (G.xmin(), G.xmax(), G.ymin(), G.ymax())
             G = P + G
-            G.xmin(limits[0])
-            G.xmax(limits[1])
-            G.ymin(limits[2])
-            G.ymax(limits[3])
         if edge_labels:
-            from sage.plot.plot import text
+            from sage.plot.all import text
             K = Graphics()
             for u,v,l in self.edges():
                 if not l is None:
                     K += text(str(l), [(pos[u][0] + pos[v][0])/2, (pos[u][1] + pos[v][1])/2])
-            K.axes_range(xmin=G.xmin(), xmax=G.xmax(), ymin=G.ymin(), ymax=G.ymax())
             G += K
         if self.loops():
-            from sage.plot.plot import circle
+            from sage.plot.all import circle
             L = []
             for v in self.loop_vertices():
                 L.append(circle((pos[v][0],pos[v][1]-loop_size), loop_size, rgbcolor=(0,0,0)))
@@ -5601,7 +5595,7 @@ class GenericGraph(SageObject):
             sage: D.plot3d().show() # long time
 
             sage: P = graphs.PetersenGraph().to_directed()
-            sage: from sage.plot.plot import rainbow
+            sage: from sage.plot.all import rainbow
             sage: edges = P.edges()
             sage: R = rainbow(len(edges), 'rgbtuple')
             sage: edge_colors = {}

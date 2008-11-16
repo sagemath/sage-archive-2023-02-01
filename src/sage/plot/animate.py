@@ -67,45 +67,47 @@ class Animation(SageObject):
     TESTS:
     This illustrates that ticket \#2066 is fixed (setting axes ranges
     when an endpoint is 0):
-        sage: animate([plot(sin, -1,1)], xmin=0, ymin=0)._Animation__xmin
+        sage: animate([plot(sin, -1,1)], xmin=0, ymin=0)._Animation__kwds['xmin']
         0
     """
-    def __init__(self, v,
-                 xmin=None, xmax=None, ymin=None, ymax=None,
-                 **kwds):
+    def __init__(self, v, **kwds):
         w = []
         for x in v:
             if not isinstance(x, plot.Graphics):
-                if xmin is None:
-                    xmin = 0
-                if xmax is None:
-                    xmax = 1
-                x = plot.plot(x, (xmin, xmax))
+                x = plot.plot(x, (kwds.get('xmin',0), kwds.get('xmax', 1)))
             w.append(x)
         if len(w) == 0:
             w = [plot.Graphics()]
         self.__frames = w
-        G = w[0]
-        if xmin is None:
-            xmin = G.xmin()
-        if xmax is None:
-            xmax = G.xmax()
-        if ymin is None:
-            ymin = G.ymin()
-        if ymax is None:
-            ymax = G.ymax()
-        self.__xmin = xmin
-        self.__xmax = xmax
-        self.__ymin = ymin
-        self.__ymax = ymax
         self.__kwds = kwds
 
-        # the following used to be a separate method, _set_axes.
-        for F in self.__frames:
-            F.xmin(self.__xmin)
-            F.xmax(self.__xmax)
-            F.ymin(self.__ymin)
-            F.ymax(self.__ymax)
+    def _combine_kwds(self, *kwds_tuple):
+        """
+        Returns a dictionary which is a combination of the all the dictionaries
+        in kwds_tuple.  This also does the appropriate thing for taking the
+        mins and maxes of all of the x/y mins/maxes.
+
+        EXAMPLES:
+            sage: a = animate([plot(sin, -1,1)], xmin=0, ymin=0)
+            sage: kwds1 = {'a':1, 'b':2, 'xmin':2, 'xmax':5}
+            sage: kwds2 = {'b':3, 'xmin':0, 'xmax':4}
+            sage: kwds = a._combine_kwds(kwds1, kwds2)
+            sage: list(sorted(kwds.items()))
+            [('a', 1), ('b', 3), ('xmax', 5), ('xmin', 0)]
+
+        """
+        new_kwds = {}
+
+        for kwds in kwds_tuple:
+            new_kwds.update(kwds)
+
+        import __builtin__
+        for name in ['xmin', 'xmax', 'ymin', 'ymax']:
+            values = [v for v in [kwds.get(name, None) for kwds in kwds_tuple] if v is not None]
+            if values:
+                new_kwds[name] = getattr(__builtin__, name[1:])(*values)
+        return new_kwds
+
 
     def __getitem__(self, i):
         """
@@ -131,9 +133,7 @@ class Animation(SageObject):
             Animation with 4 frames
             sage: a[3:7].show() # optional
         """
-        return Animation(self.__frames.__getslice__(*args), xmin=self.__xmin,
-                       xmax = self.__xmax, ymin = self.__ymin,
-                       ymax = self.__ymax, **self.__kwds)
+        return Animation(self.__frames.__getslice__(*args), **self.__kwds)
 
     def _repr_(self):
         """
@@ -169,26 +169,14 @@ class Animation(SageObject):
         if not isinstance(other, Animation):
             other = Animation(other)
 
-        kwds = dict(self.__kwds)
-        for k, v in other.__kwds.iteritems():
-            if not kwds.has_key(k):
-                kwds[k] = v
+        kwds = self._combine_kwds(self.__kwds, other.__kwds)
 
-        if len(self.__frames) > len(other.__frames):
-            frames = self.__frames
-            for i in range(len(other.__frames)):
-                frames[i] += other.__frames[i]
-        else:
-            frames = other.__frames
-            for i in range(len(self.__frames)):
-                frames[i] += self.__frames[i]
+        #Combine the frames
+        m = max(len(self.__frames), len(other.__frames))
+        frames = [a+b for a,b in zip(self.__frames, other.__frames)]
+        frames += self.__frames[m:] + other.__frames[m:]
 
-        return Animation(frames,
-                       xmin = min(self.__xmin, other.__xmin),
-                       xmax = max(self.__xmax, other.__xmax),
-                       ymin = min(self.__ymin, other.__ymin),
-                       ymax = max(self.__ymax, other.__ymax),
-                       **kwds)
+        return Animation(frames, **kwds)
 
     def __mul__(self, other):
         """
@@ -209,16 +197,10 @@ class Animation(SageObject):
         """
         if not isinstance(other, Animation):
             other = Animation(other)
-        kwds = dict(self.__kwds)
-        for k, v in other.__kwds.iteritems():
-            if not kwds.has_key(k):
-                kwds[k] = v
-        return Animation(self.__frames + other.__frames,
-                       xmin = min(self.__xmin, other.__xmin),
-                       xmax = max(self.__xmax, other.__xmax),
-                       ymin = min(self.__ymin, other.__ymin),
-                       ymax = max(self.__ymax, other.__ymax),
-                       **kwds)
+
+        kwds = self._combine_kwds(self.__kwds, other.__kwds)
+
+        return Animation(self.__frames + other.__frames, **kwds)
 
     def png(self, dir=None):
         """
@@ -236,15 +218,10 @@ class Animation(SageObject):
         except AttributeError:
             pass
         d = sage.misc.misc.tmp_dir()
-        xmin = self.__xmin
-        xmax = self.__xmax
-        ymin = self.__ymin
-        ymax = self.__ymax
         G = self.__frames
-        for i in range(len(G)):
+        for i, frame in enumerate(self.__frames):
             filename = '%s/%s'%(d,sage.misc.misc.pad_zeros(i,8))
-            G[i].save(filename + '.png',
-                      xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, **self.__kwds)
+            frame.save(filename + '.png', **self.__kwds)
         self.__png_dir = d
         return d
 
@@ -274,12 +251,6 @@ class Animation(SageObject):
         n = len(self.__frames)
         ncols = int(ncols)
         return plot.graphics_array(self.__frames, int(n/ncols),  ncols)
-
-##     def html(self):
-##         d = self.png()
-
-##         for filename in os.path.listdir(d):
-##             shutil.copyfile(d + '/' + filename, filename)
 
     def gif(self, delay=20, savefile=None, iterations=0, show_path=False):
         r"""

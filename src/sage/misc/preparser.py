@@ -1005,6 +1005,9 @@ def preparse_file(contents, attached={}, magic=True,
                   do_time=False, ignore_prompts=False,
                   numeric_literals=True):
     """
+    NOTE: Temporarily, if @parallel is in the input, then numeric_literals
+    is always set to False.
+
     TESTS:
         sage: from sage.misc.preparser import preparse_file
         sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
@@ -1018,6 +1021,12 @@ def preparse_file(contents, attached={}, magic=True,
     # in order to avoid a recursive load that would result
     # in creating a massive file and crashing.
     loaded_files = []
+
+    # This is a hack, since when we use @parallel to parallelize code,
+    # the numeric literals that are factored out do not get copied
+    # to the subprocesses properly.  See trac #4545.
+    if '@parallel' in contents:
+        numeric_literals = False
 
     if numeric_literals:
         contents, literals = strip_string_literals(contents)

@@ -13,6 +13,10 @@ the intersection of a set of half-planes and hyperplanes.  The
 half-planes are also referred to as inequalities, and abbreviated
 ieq, and the hyperplanes are also referred to as linearities.
 
+Although the ability to specify polyhedra by inequalities and
+linearities is supported, much of the code was designed for the case
+of bounded polytopes specified by vertices (with rational coordinates).
+
 AUTHOR:
     -- Marshall Hampton: first version and bugfixes, 2008
     -- Arnaud Bergeron: improvements to triangulation and rendering, 2008
@@ -74,7 +78,7 @@ def mink_sum(polyhedra_list, verbose = False):
 
 class Polyhedron(SageObject):
 
-    def __init__(self, vertices = [], rays = [], ieqs = [], linearities = [], cdd_type = 'rational'):
+    def __init__(self, vertices = [], rays = [], ieqs = [], linearities = [], cdd_type = 'rational', verbose = False):
         """
         A class for polyhedral objects.  Architecture is still in flux.
         Do not instantiate with both vertex/ray and ieq/linearity data:
@@ -101,8 +105,15 @@ class Polyhedron(SageObject):
         self._ieqs = ieqs
         self._linearities = linearities
         self._rays = rays
+        self._verbose = verbose
 	if self._vertices != []:
 	    self._remove_redundant_vertices(cdd_type = self._cdd_type)
+        else:
+            if self._ieqs != []:
+                vertices = [x for x in self.vertices()]
+                temp = Polyhedron(vertices = vertices)
+                self._ieqs = temp.ieqs()
+
 
     def _repr_(self):
         """
@@ -276,6 +287,43 @@ class Polyhedron(SageObject):
         """
         return self.__mul__(other)
 
+
+    def union(self, other):
+        """
+        Returns a polyhedron whose vertices are the union of the vertices
+        of the two polyhedra.
+
+        EXAMPLES:
+            sage: a_simplex = polytopes.n_simplex(3)
+            sage: verts = [x for x in a_simplex.vertices()]
+            sage: verts = [[x[0]*3/5+x[1]*4/5, -x[0]*4/5+x[1]*3/5, x[2]] for x in verts]
+            sage: another_simplex = Polyhedron(vertices = verts)
+            sage: simplex_union = a_simplex.union(another_simplex)
+            sage: simplex_union.n_vertices()
+            7
+        """
+        return Polyhedron(vertices = self.vertices() + other.vertices())
+
+
+    def intersection(self, other):
+        """
+        Returns the intersection of one polyhedron with another.
+
+        EXAMPLES:
+            sage: cube = polytopes.n_cube(3)
+            sage: oct = polytopes.cross_polytope(3)
+            sage: cube_oct = cube.intersection(oct*2)
+            sage: cube_oct
+	    A Polyhedron with 12 vertices with 14 supporting hyperplanes.
+            sage: len(cube_oct.vertices())
+            12
+            sage: cube_oct
+            A Polyhedron with 12 vertices with 14 supporting hyperplanes.
+        """
+        new_ieqs = self.ieqs() + other.ieqs()
+        return Polyhedron(ieqs = new_ieqs)
+
+
     def vertices(self, force_from_ieqs = False):
         """
         Returns the vertices of the polyhedron.
@@ -286,7 +334,7 @@ class Polyhedron(SageObject):
             [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]]
         """
         if (self._vertices == [] and self._ieqs != []) or force_from_ieqs:
-            temp_poly_object = ieq_to_vert(self._ieqs, linearities = self._linearities)
+            temp_poly_object = ieq_to_vert(self._ieqs, linearities = self._linearities, verbose = self._verbose)
             self._vertices = temp_poly_object._vertices
             self._vertex_incidences = temp_poly_object._vertex_incidences
             self._vertex_adjacencies = temp_poly_object._vertex_adjacencies
@@ -340,14 +388,21 @@ class Polyhedron(SageObject):
             sage: ieqs[-1]
             [5, -1, 0, 0, 0, 0]
         """
-        if (self._ieqs == [] and self._vertices != []) or force_from_vertices:
+        if self._vertices != []:
             temp_poly_object = vert_to_ieq(self._vertices, rays = self._rays, cdd_type = self._cdd_type)
             self._linearities = temp_poly_object._linearity
             self._ieqs = temp_poly_object._inequalities
-            #temp_verts = temp_poly_object.
             self._facial_incidences = temp_poly_object._facial_incidences
             self._facial_adjacencies = temp_poly_object._facial_adjacencies
             return self._ieqs
+        elif force_from_vertices:
+            if self._vertices == [] and self.ieqs() != []:
+                temp_poly_object = ieq_to_vert(self._ieqs, linearities = self._linearities, cdd_type = self._cdd_type)
+                self._vertices = temp_poly_object.vertices()
+                self._linearities = temp_poly_object._linearities
+                self._facial_incidences = temp_poly_object._facial_incidences
+                self._facial_adjacencies = temp_poly_object._facial_adjacencies
+                return self._linearities
         else:
             return self._ieqs
 
@@ -555,6 +610,41 @@ class Polyhedron(SageObject):
         old_verts = [list(x) for x in old_verts]
         return Polyhedron(ieqs = [[1] + x for x in old_verts])
 
+    def pyramid(self):
+        """
+        Returns a polyhedron that is a pyramid over the original.
+
+        EXAMPLES:
+            sage: square = polytopes.n_cube(2)
+            sage: egyptian_pyramid = square.pyramid()
+            sage: egyptian_pyramid.n_vertices()
+            5
+            sage: egyptian_pyramid.vertices()
+            [[1, 1, 0], [1, -1, 0], [-1, 1, 0], [-1, -1, 0], [0, 0, 1]]
+        """
+        old_verts = [x for x in self.vertices()]
+        old_verts_center = sum([vector(x) for x in old_verts])/self.n_vertices()
+        new_verts = [x+[0] for x in old_verts] + [list(old_verts_center) + [1]]
+        return Polyhedron(vertices = new_verts)
+
+    def prism(self):
+        """
+        Returns a prism of the original polyhedron.
+
+        EXAMPLES:
+            sage: square = polytopes.n_cube(2)
+            sage: cube = square.prism()
+            sage: cube.ieqs()
+            [[0, 0, 0, 1], [1, 1, 0, 0], [1, 0, 1, 0], [1, 0, 0, -1], [1, 0, -1, 0], [1, -1, 0, 0]]
+            sage: hypercube = cube.prism()
+            sage: hypercube.n_vertices()
+            16
+        """
+        new_verts = [x + [0] for x in self.vertices()]
+        new_verts = new_verts + [x + [1] for x in self.vertices()]
+        return Polyhedron(vertices = new_verts)
+
+
     def triangulated_facial_incidences(self):
         """
         Returns a list of the form [face_index, [v_i_0, v_i_1,...,v_i_{n-1}]]
@@ -620,7 +710,7 @@ class Polyhedron(SageObject):
         self._triangulated_facial_incidences = t_fac_incs
         return t_fac_incs
 
-    def render_wireframe(self):
+    def render_wireframe(self, rgbcolor = (0,0,1)):
         """
         For polytopes in 2 or 3 dimensions, returns the edges
         as a list of lines.
@@ -643,7 +733,7 @@ class Polyhedron(SageObject):
                 for vert in adj[1]:
                     if vert > adj[0]:
                         edges.append([verts[adj[0]],verts[vert]])
-            return sum([line(an_edge) for an_edge in edges])
+            return sum([line(an_edge, rgbcolor = rgbcolor) for an_edge in edges])
         # Now we must be in 4 dimensions, so return Schlegel diagram from the first face.
         v = self.vertices()
         f0 = (self.facial_incidences()[0])[1]
@@ -656,10 +746,10 @@ class Polyhedron(SageObject):
         spverts = [house*vector(RDF,x) for x in spverts] # reflect so face center is at "north pole"
         spverts = [list(x) for x in spverts]
         proj_verts = [[x[0]/(1-x[3]),x[1]/(1-x[3]),x[2]/(1-x[3])] for x in spverts] # stereographically project
-        hlines = point3d([0,0,0], pointsize = 0.01, rgbcolor = (1,1,1)) # workaround due to bug in line not giving a bounding box
+        hlines = point3d([0,0,0], pointsize = 0.01, rgbcolor = rgbcolor) # workaround due to bug in line not giving a bounding box
         for an_edge in self.vertex_adjacencies():
             for j in an_edge[1]:
-                hlines += line([proj_verts[an_edge[0]],proj_verts[j]])
+                hlines += line([proj_verts[an_edge[0]],proj_verts[j]], rgbcolor = rgbcolor)
         return hlines
 
     def render_solid(self, rgbcolor = (1,0,0), **kwds):
@@ -1052,7 +1142,7 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
             post = [vert_index - 1 for vert_index in post] # subtract to make indexing pythonic
             adjacencies.append([pre,post])
     poly_obj = Polyhedron()
-    poly_obj._linearity = linearities
+    poly_obj._linearities = linearities
     poly_obj._inequalities = in_list
     poly_obj._vertex_incidences = incidences
     poly_obj._vertex_adjacencies = adjacencies
@@ -1188,6 +1278,29 @@ class Polytopes():
         verts = verts + [i([0,-r12,-g/2]) for i in AlternatingGroup(3)]
         return Polyhedron(vertices = verts)
 
+    def small_rhombicuboctahedron(self):
+        """
+        An Archimedean solid with 24 vertices and 26 faces.
+        """
+        verts = [[-3/2, -1/2, -1/2], [-3/2, -1/2, 1/2], [-3/2, 1/2, -1/2], [-3/2, 1/2,
+1/2], [-1/2, -3/2, -1/2], [-1/2, -3/2, 1/2], [-1/2, -1/2, -3/2], [-1/2,
+-1/2, 3/2], [-1/2, 1/2, -3/2], [-1/2, 1/2, 3/2], [-1/2, 3/2, -1/2],
+[-1/2, 3/2, 1/2], [1/2, -3/2, -1/2], [1/2, -3/2, 1/2], [1/2, -1/2,
+-3/2], [1/2, -1/2, 3/2], [1/2, 1/2, -3/2], [1/2, 1/2, 3/2], [1/2, 3/2,
+-1/2], [1/2, 3/2, 1/2], [3/2, -1/2, -1/2], [3/2, -1/2, 1/2], [3/2, 1/2,
+-1/2], [3/2, 1/2, 1/2]]
+        return Polyhedron(vertices = verts)
+
+    def great_rhombicuboctahedron(self):
+        """
+        An Archimedean solid with 48 vertices and 26 faces.
+        """
+        sqr2 = floor(100000*n(sqrt(2)))/100000
+        verts = list(Permutations([1,1+sqr2,1+2*sqr2]))
+        verts = verts + [[x[0],x[1],-x[2]] for x in verts]
+        verts = verts + [[x[0],-x[1],x[2]] for x in verts]
+        verts = verts + [[-x[0],x[1],x[2]] for x in verts]
+        return Polyhedron(vertices = verts)
 
     def twenty_four_cell(self):
         """

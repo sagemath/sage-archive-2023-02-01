@@ -137,7 +137,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Coercion from fraction field element with trivial denominator:
             sage: f = (x^3 - 1) / (x - 1)
             sage: type(f)
-            <class 'sage.rings.fraction_field_element.FractionFieldElement'>
+            <type 'sage.rings.fraction_field_element.FractionFieldElement'>
             sage: g = R(f); g
             x^2 + x + 1
 

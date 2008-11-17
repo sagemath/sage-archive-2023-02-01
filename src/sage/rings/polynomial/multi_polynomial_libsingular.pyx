@@ -2040,7 +2040,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: g = f^(-1); g
             1/(x^3 + y)
             sage: type(g)
-            <class 'sage.rings.fraction_field_element.FractionFieldElement'>
+            <type 'sage.rings.fraction_field_element.FractionFieldElement'>
 
             sage: P.<x,y> = PolynomialRing(ZZ)
             sage: P(2)**(-1)

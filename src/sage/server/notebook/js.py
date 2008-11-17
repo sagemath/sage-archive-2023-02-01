@@ -219,7 +219,7 @@ OUTPUT:
 var active_cell_list = [];
 
 //Browser & OS identification
-var browser_op, browser_saf, browser_konq, browser_moz, browser_ie, browser_ie5;
+var browser_op, browser_saf, browser_konq, browser_moz, browser_ie, browser_ie5, browser_iphone;
 var os_mac, os_lin, os_win;
 
 var update_count = 0;
@@ -368,6 +368,7 @@ function initialize_the_notebook() {
         var nua=n.userAgent;
         browser_op=(nua.indexOf('Opera')!=-1);
         browser_saf=(nua.indexOf('Safari')!=-1);
+        browser_iphone=(nua.indexOf('iPhone')!=-1);
         browser_konq=(!browser_saf && (nua.indexOf('Konqueror')!=-1) ) ? true : false;
         browser_moz=( (!browser_saf && !browser_konq ) && ( nua.indexOf('Gecko')!=-1 ) ) ? true : false;
         browser_ie=((nap.indexOf('Internet Explorer') != -1)&&!browser_op);
@@ -1942,6 +1943,7 @@ function cell_input_key_event(id, e) {
             - cell delete
             - a cell may be evaluated
     */
+    if (browser_iphone) return;
     cell_input = get_cell(id);
     e = new key_event(e);
     if (e==null) return;

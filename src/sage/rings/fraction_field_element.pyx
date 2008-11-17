@@ -96,6 +96,27 @@ cdef class FractionFieldElement(FieldElement):
         if self.__denominator.is_zero():
             raise ZeroDivisionError, "fraction field element division by zero"
 
+    def _im_gens_(self, codomain, im_gens):
+        """
+        EXAMPLES:
+            sage: F = ZZ['x,y'].fraction_field()
+            sage: x,y = F.gens()
+            sage: K = GF(7)['a,b'].fraction_field()
+            sage: a,b = K.gens()
+
+            sage: phi = F.hom([a+b, a*b], K)
+            sage: phi(x+y) # indirect doctest
+            a*b + a + b
+
+            sage: (x^2/y)._im_gens_(K, [a+b, a*b])
+            (a^2 + 2*a*b + b^2)/(a*b)
+            sage: (x^2/y)._im_gens_(K, [a, a*b])
+            a/b
+        """
+        nnum = codomain.coerce(self.__numerator._im_gens_(codomain, im_gens))
+        nden = codomain.coerce(self.__denominator._im_gens_(codomain, im_gens))
+        return codomain.coerce(nnum/nden)
+
     def reduce(self):
         """
         Divides out the gcd of the numerator and denominator.

@@ -402,6 +402,39 @@ class FractionField_generic(field.Field):
         r = self._element_class(self, x, one, coerce=False, reduce=False)
         return r
 
+    def _is_valid_homomorphism_(self, codomain, im_gens):
+        """
+        Check if the homomorphism defined by sending generators of this
+        fraction field to im_gens in codomain is valid.
+
+        EXAMPLES:
+            sage: F = QQ['x,y'].fraction_field()
+            sage: x,y = F.gens()
+            sage: F._is_valid_homomorphism_(F, [y,x])
+            True
+            sage: R = ZZ['x']; x = R.gen()
+            sage: F._is_valid_homomorphism_(R, [x, x])
+            False
+
+        TESTS:
+            sage: F._is_valid_homomorphism_(ZZ, [])
+            False
+
+            # test homomorphisms
+            sage: phi = F.hom([2*y, x])
+            sage: phi(x+y)
+            x + 2*y
+            sage: phi(x/y)
+            2*y/x
+        """
+        if len(im_gens) != self.ngens():
+            return False
+        # it is enough to check if elements of the base ring coerce to
+        # the codomain
+        if codomain.has_coerce_map_from(self.base_ring()):
+            return True
+        return False
+
     def random_element(self, *args, **kwds):
         """
         Returns a random element in this fraction field.

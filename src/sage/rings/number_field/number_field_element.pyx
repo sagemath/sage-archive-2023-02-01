@@ -55,6 +55,8 @@ from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.rings.integer_ring cimport IntegerRing_class
 
+from sage.modules.free_module_element import vector
+
 from sage.libs.all import pari_gen
 from sage.libs.pari.gen import PariError
 from sage.structure.element cimport Element
@@ -103,6 +105,34 @@ def __create__NumberFieldElement_version1(parent, cls, poly):
         True
     """
     return cls(parent, poly)
+
+def _inverse_mod_generic(elt, I):
+    r"""
+    Return an inverse of elt modulo the given ideal. This is a separate
+    function called from each of the OrderElement_xxx classes, since
+    otherwise we'd have to have the same code three times over (there is no
+    OrderElement_generic class -- no multiple inheritance). See trac #4190.
+
+    EXAMPLES:
+        sage: OE = NumberField(x^3 - x + 2, 'w').ring_of_integers()
+        sage: w = OE.ring_generators()[0]
+        sage: from sage.rings.number_field.number_field_element import _inverse_mod_generic
+        sage: _inverse_mod_generic(w, 13*OE)
+        -7*w^2 - 13*w + 7
+    """
+    from sage.matrix.constructor import matrix
+    R = elt.parent()
+    n = R.absolute_degree()
+    I = R.ideal_monoid()(I)
+    if not I.is_integral():
+        raise TypeError, "inverse modulo non-integral ideals not defined"
+    m = matrix(ZZ, [R.coordinates(y) for y in I.integral_basis()] + [R.coordinates(elt*s) for s in R.gens()])
+    a,b = m.echelon_form(transformation=True)
+    if (a[0:n] != 1):
+        raise ZeroDivisionError, "%s is not invertible modulo %s" % (elt, I)
+    v = R.coordinates(1)
+    y = sum([b[j,i+n] * R.gens()[i] * v[j] for i in xrange(n) for j in xrange(n)])
+    return y
 
 cdef class NumberFieldElement(FieldElement):
     """
@@ -2132,6 +2162,30 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
         cdef NumberFieldElement_absolute x
         x = NumberFieldElement_absolute._div_(self, other)
         return self._parent.number_field()(x)
+
+    def inverse_mod(self, I):
+        r"""
+        Return an inverse of self modulo the given ideal.
+
+        INPUT:
+            I -- may be an ideal of self.parent(), or an element or list of
+            elements of self.parent() generating a nonzero ideal. A TypeError
+            is raised if I is non-integral, and a ValueError if the generators
+            are all zero. A ZeroDivisionError is raised if I + (x) != (1).
+
+        EXAMPLES:
+            sage: OE = NumberField(x^3 - x + 2, 'w').ring_of_integers()
+            sage: w = OE.ring_generators()[0]
+            sage: w.inverse_mod(13*OE)
+            -7*w^2 - 13*w + 7
+            sage: w * (w.inverse_mod(13)) - 1 in 13*OE
+            True
+            sage: w.inverse_mod(2*OE)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: w is not invertible modulo Fractional ideal (2)
+        """
+        return _inverse_mod_generic(self, I)
 
     def __invert__(self):
         r"""

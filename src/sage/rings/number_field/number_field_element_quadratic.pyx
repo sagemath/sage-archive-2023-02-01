@@ -31,6 +31,7 @@ cdef object QQ, ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.categories.morphism cimport Morphism
+from sage.rings.number_field.number_field_element import _inverse_mod_generic
 
 import number_field
 
@@ -1181,6 +1182,22 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
             False
         """
         return self._parent.number_field()(NumberFieldElement_quadratic.__invert__(self))
+
+    def inverse_mod(self, I):
+        r"""
+        Return an inverse of self modulo the given ideal.
+
+        EXAMPLES:
+            sage: OE = QuadraticField(-7, 's').ring_of_integers()
+            sage: w = OE.ring_generators()[0]
+            sage: w.inverse_mod(13) + (7*w + 6) in 13*OE
+            True
+            sage: w.inverse_mod(2*OE)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: 1/2*s + 1/2 is not invertible modulo Fractional ideal (2)
+        """
+        return _inverse_mod_generic(self, I)
 
 cdef class Q_to_quadratic_field_element(Morphism):
     """

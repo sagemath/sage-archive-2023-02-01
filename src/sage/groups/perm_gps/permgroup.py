@@ -100,6 +100,8 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.misc.cachefunc import cached_method
+from sage.groups.class_function import ClassFunction
+
 
 def load_hap():
      try:
@@ -1196,6 +1198,45 @@ class PermutationGroup_generic(group.FiniteGroup):
         from sage.matrix.all import MatrixSpace
         MS = MatrixSpace(K,n)
         return MS(ct)
+
+    def irreducible_characters(self):
+        r"""
+        Returns a list of the irreducible characters of self.
+
+        EXAMPLES:
+            sage: irr = SymmetricGroup(3).irreducible_characters()
+            sage: [x.values() for x in irr]
+            [[1, -1, 1], [2, 0, -1], [1, 1, 1]]
+        """
+        Irr = self._gap_().Irr()
+        L = []
+        for irr in Irr:
+            L.append(ClassFunction(self, irr))
+        return L
+
+    def trivial_character(self):
+        r"""
+        Returns the trivial character of self.
+
+        EXAMPLES:
+            sage: SymmetricGroup(3).trivial_character()
+            Character of Symmetric group of order 3! as a permutation group
+        """
+        values = [1]*Integer(self._gap_().NrConjugacyClasses())
+        return self.character(values)
+
+    def character(self, values):
+        r"""
+        Returns a group character of from values, where values is a list of
+        the values of the character evaluated on the conjugacy classes.
+
+        EXAMPLES:
+            sage: G = AlternatingGroup(4)
+            sage: n = len(G.conjugacy_classes_representatives())
+            sage: G.character([1]*n)
+            Character of Alternating group of order 4!/2 as a permutation group
+        """
+        return ClassFunction(self,values)
 
     def conjugacy_classes_representatives(self):
         """

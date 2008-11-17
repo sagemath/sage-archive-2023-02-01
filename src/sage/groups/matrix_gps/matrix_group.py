@@ -71,10 +71,9 @@ import sage.rings.integer as integer
 from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.structure.sage_object import SageObject
-
+from sage.groups.class_function import ClassFunction
 
 #################################################################
-
 
 class MatrixGroup_generic(Group):
     pass
@@ -453,6 +452,13 @@ class MatrixGroup_gap(MatrixGroup_generic):
         v = [MatrixGroupElement(MS(x), self, check=False) for x in v]
         self.__list = v
         return list(v)
+
+    def irreducible_characters(self):
+        Irr = self._gap_().Irr()
+        L = []
+        for irr in Irr:
+            L.append(ClassFunction(self,irr))
+        return L
 
 class MatrixGroup_gap_finite_field(MatrixGroup_gap):
     """

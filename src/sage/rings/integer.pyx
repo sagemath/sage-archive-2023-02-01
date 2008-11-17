@@ -3430,7 +3430,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return (<Integer>x)._lshift(long(y))
         return bin_op(x, y, operator.lshift)
 
-    cdef _rshift(Integer self, long int n):
+    cpdef _rshift_(Integer self, long int n):
         cdef Integer x
         x = <Integer> PY_NEW(Integer)
 
@@ -3461,7 +3461,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 x = Integer(x)
             elif not PY_TYPE_CHECK(y, Integer):
                 y = Integer(y)
-            return (<Integer>x)._rshift(long(y))
+            return (<Integer>x)._rshift_(long(y))
         except TypeError:
             raise TypeError, "unsupported operands for >>"
 

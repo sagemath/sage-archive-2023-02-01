@@ -1805,10 +1805,17 @@ def odd_part(n):
     """
     The odd part of the integer $n$.  This is $n / 2^v$, where $v =
     \code{valuation(n,2)}$.
+
+    EXAMPLES:
+        sage: odd_part(5)
+        5
+        sage: odd_part(4)
+        1
+        sage: odd_part(factorial(31))
+        122529844256906551386796875
     """
-    while (n%2) == 1:
-        n = n >> 1
-    return n
+    n = ZZ(n)
+    return n._rshift_(n.valuation(2))
 
 def prime_to_m_part(n,m):
     """

@@ -3998,7 +3998,7 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Compute the Jordan canonical form of the matrix, if it exists.
 
-	This computation is performed in a naive way using the ranks
+        This computation is performed in a naive way using the ranks
         of powers of A-xI, where x is an eigenvalue of the matrix A.
 
         INPUT:
@@ -4006,7 +4006,7 @@ cdef class Matrix(matrix1.Matrix):
             sparse -- (default False) If sparse=True, return a sparse matrix.
             subdivide -- (default True) If subdivide=True, the subdivisions
                          for the Jordan blocks in the matrix are shown.
-	    transformation -- (default False) If transformation=True,
+            transformation -- (default False) If transformation=True,
             compute also the transformation matrix (see example below).
 
         EXAMPLES:
@@ -4098,6 +4098,10 @@ cdef class Matrix(matrix1.Matrix):
             sage: mjf, mp = m.jordan_form(transformation=True)
             sage: mjf == jf
             True
+            sage: m = diagonal_matrix([1,1,0,0])
+            sage: jf,P = m.jordan_form(transformation=True)
+            sage: jf == ~P*m*P
+            True
 
         """
         from sage.matrix.constructor import block_diagonal_matrix, jordan_block, diagonal_matrix
@@ -4111,10 +4115,13 @@ cdef class Matrix(matrix1.Matrix):
         else:
             mat = self.change_ring(base_ring)
 
+
+
         evals = mat.charpoly().roots()
         if sum([mult for (_,mult) in evals]) < size:
             raise RuntimeError("Some eigenvalue does not exist in %s."%(mat.base_ring()))
         blocks = []
+
         for eval, mult in evals:
             if mult == 1:
                 blocks.append((eval,1))
@@ -4133,40 +4140,61 @@ cdef class Matrix(matrix1.Matrix):
         jf = block_diagonal_matrix([jordan_block(eval, size, sparse=sparse) for (eval, size) in blocks], subdivide=subdivide)
 
         if transformation:
-            #Compute the transformation matrix
+            jordan_chains = {}
+
+            for eval,_ in evals:
+                mat_eval = mat - eval
+                eval_block_sizes = [size for e,size in blocks if e == eval]
+                n = max(eval_block_sizes)
+                used_vectors = []
+                # chains is a dictionary with key=length of chain and
+                # value = list of chains
+                chains = {}
+
+                for current_rank in xrange(n,0,-1):
+                    for chain_list in chains.values():
+                        for c in chain_list:
+                            v = mat_eval*c[-1]
+                            c.append(v)
+                            used_vectors.append(v)
+
+                    if current_rank in eval_block_sizes:
+                        se = mat_eval**(current_rank-1)
+                        basis = (se*mat_eval).right_kernel().basis()
+                        new_chains = 0
+                        num_chains = eval_block_sizes.count(current_rank)
+                        chains[current_rank] = []
+                        for v in basis:
+                            if v not in used_vectors and se*v!=0:
+                                chains[current_rank].append([v])
+                                new_chains += 1
+                                if new_chains == num_chains:
+                                    break
+                        if new_chains != num_chains:
+                            raise ValueError,"cannot compute the transformation matrix due to lack of precision"
+
+                for chain_list in chains.values():
+                    for c in chain_list:
+                        c.reverse()
+
+                jordan_chains[eval] = chains
+
+
+            # Now jordan_chains has all the columns of the transformation
+            # matrix; we just need to put them in the right order.
+
             jordan_basis = []
+            for eval,size in blocks:
+                jordan_basis += jordan_chains[eval][size].pop()
 
-            for eval, size in blocks:
-                se = self - eval
-                block_basis = (se**size).right_kernel().basis()
 
-                if len(block_basis) != size:
-                    if base_ring.is_exact() is False:
-                        raise ValueError, "cannot compute the transformation matrix due to lack of precision"
-                    else:
-                        #I don't think we should ever get here since we are
-                        #working with exact base rings.
-                        raise ValueError, "cannot compute the basis of the Jordan block of size %s with eigenvalue %s"%(size, eval)
+            transformation_matrix = (mat.parent()(jordan_basis)).transpose()
 
-                if size == 1:
-                    jordan_basis.append(block_basis[0])
-                    continue
-
-                for b in block_basis:
-                    if se*b != 0:
-                        chain = []
-                        chain.append(b)
-                        for i in range(1, size):
-                            chain.append( se*chain[-1] )
-
-                        chain.reverse()
-                        jordan_basis.extend(chain)
-                        break
-
-            return jf, (self.parent()(jordan_basis)).transpose()
-
+        if transformation:
+            return jf, transformation_matrix
         else:
             return jf
+
 
     def symplectic_form(self):
         r"""

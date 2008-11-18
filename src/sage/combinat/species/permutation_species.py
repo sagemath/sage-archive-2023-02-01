@@ -85,7 +85,7 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
             sage: a = P.structures(["a", "b", "c", "d"]).random_element(); a
             ['a', 'c', 'b', 'd']
             sage: a.automorphism_group()
-            Permutation Group with generators [(1,4), (2,3)]
+            Permutation Group with generators [(2,3), (1,4)]
 
             sage: [a.transport(perm) for perm in a.automorphism_group()]
             [['a', 'c', 'b', 'd'],

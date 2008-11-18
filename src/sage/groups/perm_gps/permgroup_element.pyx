@@ -185,7 +185,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         First we construct elements by multiplying together generators
         for a group.
 
-            sage: G = PermutationGroup(['(1,2)(3,4)', '(3,4,5,6)'])
+            sage: G = PermutationGroup(['(1,2)(3,4)', '(3,4,5,6)'], canonicalize=False)
             sage: s = G.gens()
             sage: s[0]
             (1,2)(3,4)
@@ -404,11 +404,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         Compare group elements self and right.
 
         EXAMPLES:
-            sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
+            sage: G = PermutationGroup([[(3,4)], [(1,2,3),(4,5)]])
             sage: G.gen(0) < G.gen(1)
-            False
-            sage: G.gen(0) > G.gen(1)
             True
+            sage: G.gen(0) > G.gen(1)
+            False
         """
         cdef int i
         cdef bint equal = 1
@@ -812,7 +812,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         functions "EpimorphismFromFreeGroup" and "PreImagesRepresentative".
 
         EXAMPLE:
-            sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
+            sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]], canonicalize=False)
             sage: g1 = G.gens()[0]
             sage: g2 = G.gens()[1]
             sage: h = g1^2*g2*g1

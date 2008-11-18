@@ -528,7 +528,7 @@ class Polyhedron(SageObject):
         EXAMPLES:
             sage: g3 = polytopes.n_cube(3).graph()
             sage: g3.automorphism_group()
-            Permutation Group with generators [(1,2)(5,6), (2,4)(3,5),
+            Permutation Group with generators [(2,4)(3,5), (1,2)(5,6),
             (1,8)(2,3)(4,5)(6,7)]
             sage: s4 = polytopes.n_simplex(4).graph()
             sage: s4.is_eulerian()

@@ -160,15 +160,24 @@ def from_gap_list(G, src):
     srcs = map(G, srcs)
     return srcs
 
-def PermutationGroup(gens=None, gap_group=None):
+def PermutationGroup(gens=None, gap_group=None, canonicalize=True):
     """
     Return the permutation group associated to $x$ (typically a list
     of generators).
 
+    INPUT:
+        gens -- list of generators
+        gap_group -- a gap permutation group
+        canonicalize -- bool (default: True), if True sort generators
+                        and remove duplicates
+
+    OUTPUT:
+        a permutation group
+
     EXAMPLES:
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
         sage: G
-        Permutation Group with generators [(1,2,3)(4,5), (3,4)]
+        Permutation Group with generators [(3,4), (1,2,3)(4,5)]
 
     We can also make permutation groups from PARI groups:
         sage: H = pari('x^4 - 2*x^3 - 2*x + 1').polgalois()
@@ -199,7 +208,7 @@ def PermutationGroup(gens=None, gap_group=None):
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
         sage: current_randstate().set_seed_gap()
         sage: G._gap_().DerivedSeries()
-        [ Group( [ (1,2,3)(4,5), (3,4) ] ), Group( [ (1,5)(3,4), (1,5)(2,3), (1,5,4) ] ) ]
+        [ Group( [ (3,4), (1,2,3)(4,5) ] ), Group( [ (1,5)(3,4), (1,5)(2,4), (1,5,3) ] ) ]
 
     TESTS:
         sage: PermutationGroup(SymmetricGroup(5))
@@ -212,7 +221,7 @@ def PermutationGroup(gens=None, gap_group=None):
         return gens._permgroup_()
     if gens is not None and not isinstance(gens, (tuple,list, GapElement)):
         raise TypeError, "gens must be a tuple, list, or GapElement"
-    return PermutationGroup_generic(gens=gens, gap_group=gap_group)
+    return PermutationGroup_generic(gens=gens, gap_group=gap_group, canonicalize=canonicalize)
 
 
 class PermutationGroup_generic(group.FiniteGroup):
@@ -220,7 +229,7 @@ class PermutationGroup_generic(group.FiniteGroup):
     EXAMPLES:
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
         sage: G
-        Permutation Group with generators [(1,2,3)(4,5), (3,4)]
+        Permutation Group with generators [(3,4), (1,2,3)(4,5)]
         sage: G.center()
         Permutation Group with generators [()]
         sage: G.group_id()          # requires optional database_gap
@@ -231,14 +240,23 @@ class PermutationGroup_generic(group.FiniteGroup):
         sage: loads(G.dumps()) == G
         True
     """
-    def __init__(self, gens=None, gap_group=None):
+    def __init__(self, gens=None, gap_group=None, canonicalize=True):
         r"""
+        INPUT:
+            gens -- list of generators
+            gap_group -- a gap permutation group
+            canonicalize -- bool (default: True), if True sort generators
+                            and remove duplicates
+
+         OUTPUT:
+            a permutation group
+
         EXAMPLES:
         We explicitly construct the alternating group on four elements.
             sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]]); A4
-            Permutation Group with generators [(1,2,3), (2,3,4)]
+            Permutation Group with generators [(2,3,4), (1,2,3)]
             sage: A4.__init__([[(1,2,3)],[(2,3,4)]]); A4
-            Permutation Group with generators [(1,2,3), (2,3,4)]
+            Permutation Group with generators [(2,3,4), (1,2,3)]
             sage: A4.center()
             Permutation Group with generators [()]
             sage: loads(A4.dumps()) == A4
@@ -256,6 +274,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         gens = [PermutationGroupElement(x, check=False).list() for x in gens]
         self._deg = max([1]+[max(g) for g in gens])
         gens = [PermutationGroupElement(x, self, check=False) for x in gens]
+        if canonicalize:
+             gens = list(set(gens))
+             gens.sort()
         self._gens = gens
         self._gap_string = 'Group(%s)'%gens
 
@@ -291,9 +312,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         The \code{_gap_init_} method shows how you would define the Sage
         \code{PermutationGroup_generic} object in Gap:
             sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]]); A4
-            Permutation Group with generators [(1,2,3), (2,3,4)]
+            Permutation Group with generators [(2,3,4), (1,2,3)]
             sage: A4._gap_init_()
-            'Group([(1,2,3), (2,3,4)])'
+            'Group([(2,3,4), (1,2,3)])'
         """
         return self._gap_string
 
@@ -305,9 +326,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         We explicitly construct the alternating group on four elements. In
         Magma, one would type the string below to construct the group.
             sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]]); A4
-            Permutation Group with generators [(1,2,3), (2,3,4)]
+            Permutation Group with generators [(2,3,4), (1,2,3)]
             sage: A4._magma_init_()
-            'PermutationGroup<4 | (1,2,3), (2,3,4)>'
+            'PermutationGroup<4 | (2,3,4), (1,2,3)>'
         """
         g = str(self.gens())[1:-1]
         return 'PermutationGroup<%s | %s>'%(self.degree(), g)
@@ -513,19 +534,19 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2,3)], [(1,2)]])
             sage: G.gens()
-            [(1,2,3), (1,2)]
+            [(1,2), (1,2,3)]
 
-        Note that the generators need not be minimal.
-            sage: G = PermutationGroup([[(1,2)], [(1,2)]])
+        Note that the generators need not be minimal though duplicates are removed.
+            sage: G = PermutationGroup([[(1,2)], [(1,3)], [(2,3)], [(1,2)]])
             sage: G.gens()
-            [(1,2), (1,2)]
+            [(2,3), (1,2), (1,3)]
 
             sage: G = PermutationGroup([[(1,2,3,4), (5,6)], [(1,2)]])
             sage: g = G.gens()
             sage: g[0]
-            (1,2,3,4)(5,6)
-            sage: g[1]
             (1,2)
+            sage: g[1]
+            (1,2,3,4)(5,6)
 
         TESTS:
         We make sure that the trivial group gets handled correctly.
@@ -562,16 +583,16 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES:
         We explicitly construct the alternating group on four elements:
             sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]]); A4
-            Permutation Group with generators [(1,2,3), (2,3,4)]
+            Permutation Group with generators [(2,3,4), (1,2,3)]
             sage: A4.gens()
-            [(1,2,3), (2,3,4)]
+            [(2,3,4), (1,2,3)]
             sage: A4.gen(0)
-            (1,2,3)
+            (2,3,4)
             sage: A4.gen(1)
-            (2,3,4)
-            sage: A4.gens()[0]; A4.gens()[1]
             (1,2,3)
+            sage: A4.gens()[0]; A4.gens()[1]
             (2,3,4)
+            (1,2,3)
         """
         return self.gens()[i]
 
@@ -729,12 +750,12 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
         We explicitly construct the alternating group on four elements. Note
-        that
-        the \code{AlternatingGroup} class has its own representation string:
+        that the \code{AlternatingGroup} class has its own representation string.
+
             sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]]); A4
-            Permutation Group with generators [(1,2,3), (2,3,4)]
+            Permutation Group with generators [(2,3,4), (1,2,3)]
             sage: A4._repr_()
-            'Permutation Group with generators [(1,2,3), (2,3,4)]'
+            'Permutation Group with generators [(2,3,4), (1,2,3)]'
             sage: AlternatingGroup(4)._repr_()
             'Alternating group of order 4!/2 as a permutation group'
         """
@@ -749,11 +770,11 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES:
         We explicitly construct the alternating group on four elements.
             sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]]); A4
-            Permutation Group with generators [(1,2,3), (2,3,4)]
+            Permutation Group with generators [(2,3,4), (1,2,3)]
             sage: latex(A4)
-            \langle (1,2,3), (2,3,4) \rangle
+            \langle (2,3,4), (1,2,3) \rangle
             sage: A4._latex_()
-            '\\langle (1,2,3), (2,3,4) \\rangle'
+            '\\langle (2,3,4), (1,2,3) \\rangle'
         """
         return '\\langle ' + \
                ', '.join([x._latex_() for x in self.gens()]) + ' \\rangle'
@@ -897,7 +918,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup([(1,2,3),(3,4,5)])
             sage: g = G((1,2,3))
             sage: G.subgroup([g])
-            Subgroup of Permutation Group with generators [(1,2,3), (3,4,5)] generated by [(1,2,3)]
+            Subgroup of Permutation Group with generators [(3,4,5), (1,2,3)] generated by [(1,2,3)]
 
         """
         return PermutationGroup_subgroup(self, gens)
@@ -1244,13 +1265,13 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
             sage: g = G([(1,3)])
             sage: G.normalizer(g)
-            Permutation Group with generators [(1,3), (2,4)]
+            Permutation Group with generators [(2,4), (1,3)]
             sage: g = G([(1,2,3,4)])
             sage: G.normalizer(g)
-            Permutation Group with generators [(1,2,3,4), (1,3)(2,4), (2,4)]
+            Permutation Group with generators [(2,4), (1,2,3,4), (1,3)(2,4)]
             sage: H = G.subgroup([G([(1,2,3,4)])])
             sage: G.normalizer(H)
-            Permutation Group with generators [(1,2,3,4), (1,3)(2,4), (2,4)]
+            Permutation Group with generators [(2,4), (1,2,3,4), (1,3)(2,4)]
 
         """
         N = self._gap_().Normalizer(g)
@@ -1264,7 +1285,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
             sage: g = G([(1,3)])
             sage: G.centralizer(g)
-            Permutation Group with generators [(1,3), (2,4)]
+            Permutation Group with generators [(2,4), (1,3)]
             sage: g = G([(1,2,3,4)])
             sage: G.centralizer(g)
             Permutation Group with generators [(1,2,3,4)]
@@ -1371,7 +1392,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup([(1,2,3), (2,3)])
             sage: H = PermutationGroup([(1,2,4), (1,4)])
             sage: G.isomorphism_to(H)
-            Homomorphism : Permutation Group with generators [(1,2,3), (2,3)] --> Permutation Group with generators [(1,2,4), (1,4)]
+            Homomorphism : Permutation Group with generators [(2,3), (1,2,3)] --> Permutation Group with generators [(1,2,4), (1,4)]
         """
         current_randstate().set_seed_gap()
 
@@ -1832,7 +1853,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
         sage: K.gens()
         [(1,2,3,4)]
     """
-    def __init__(self, ambient, gens, from_group = False, check=True):
+    def __init__(self, ambient, gens, from_group = False, check=True, canonicalize=True):
         r"""
         Initialization method for the \code{PermutationGroup_subgroup} class.
 
@@ -1841,6 +1862,8 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
             gens -- the generators of the subgroup
             from_group -- True: subroup is generated from a Gap string representation of the generators
             check-- True: checks if gens are indeed elements of the ambient group
+            canonicalize -- bool (default: True), if True sort generators
+                            and remove duplicates
 
         EXAMPLES:
         An example involving the dihedral group on four elements. $D_8$
@@ -1884,7 +1907,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
                     raise TypeError, "each generator must be in the ambient group"
         self.__ambient_group = G
 
-        PermutationGroup_generic.__init__(self, gens)
+        PermutationGroup_generic.__init__(self, gens, canonicalize=canonicalize)
 
     def __cmp__(self, other):
         r"""

@@ -85,7 +85,7 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             sage: a = F.structures([1,2,3,4])[6]; a
             {1, 3}
             sage: a.automorphism_group()
-            Permutation Group with generators [(1,3), (2,4)]
+            Permutation Group with generators [(2,4), (1,3)]
 
             sage: [a.transport(g) for g in a.automorphism_group()]
             [{1, 3}, {1, 3}, {1, 3}, {1, 3}]

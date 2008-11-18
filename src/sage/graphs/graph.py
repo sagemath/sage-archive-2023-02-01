@@ -6271,10 +6271,9 @@ class GenericGraph(SageObject):
             (6, [(2,3), (1,2)])
             (2, [(1,4)(2,3)])
             (2, [(1,2)])
-            (8, [(2,3), (1,4), (1,3)(2,4)])
+            (8, [(2,3), (1,3)(2,4), (1,4)])
             (4, [(2,3), (1,4)])
             (24, [(2,3), (1,2), (1,4)])
-
             sage: C = graphs.CubeGraph(4)
             sage: G = C.automorphism_group()
             sage: M = G.character_table()

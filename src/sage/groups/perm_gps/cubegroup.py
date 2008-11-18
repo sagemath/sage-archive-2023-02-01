@@ -419,7 +419,7 @@ class CubeGroup(PermutationGroup_generic):
         B = "(33,35,40,38)(34,37,39,36)( 3, 9,46,32)( 2,12,47,29)( 1,14,48,27)" ## B = back or rear
         D = "(41,43,48,46)(42,45,47,44)(14,22,30,38)(15,23,31,39)(16,24,32,40)" ## D = down or bottom
         self.__gens = [B,D,F,L,R,U]
-        self._group = PermutationGroup([B,D,F,L,R,U])
+        self._group = PermutationGroup([B,D,F,L,R,U], canonicalize=False)
 
     def gen_names(self):
         return ['B','D','F','L','R','U']

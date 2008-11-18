@@ -84,7 +84,7 @@ def BinaryTreeSpecies():
         sage: a = B.structures([1,2,3,4,5]).random_element(); a
         2*((5*3)*(4*1))
         sage: a.automorphism_group()
-        Permutation Group with generators [(), ()]
+        Permutation Group with generators [()]
 
     TESTS:
         sage: seq = B.isotype_generating_series().counts(10)[1:] #optional

@@ -403,7 +403,7 @@ class DihedralGroup(PermutationGroup_generic):
             sage: DihedralGroup(2)
             Dihedral group of order 4 as a permutation group
             sage: DihedralGroup(2).gens()
-            [(1,2), (3,4)]
+	    [(3,4), (1,2)]
 
             sage: DihedralGroup(5).gens()
             [(1,2,3,4,5), (1,5)(2,4)]

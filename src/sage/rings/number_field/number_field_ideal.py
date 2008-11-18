@@ -1144,7 +1144,14 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: all([r==s or not (r-s) in I for r in reps for s in reps])
             True
 
+            sage: K.<a> = NumberField(x^3-10)
+            sage: I = K.ideal(a-1)
+            sage: len(list(I.residues())) == I.norm()
+            True
 
+            sage: K.<z> = CyclotomicField(11)
+            sage: len(list(K.primes_above(3)[0].residues())) == 3**5
+            True
         """
         R = self.number_field().maximal_order()
         Rbasis = R.basis()
@@ -1155,10 +1162,13 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         except TypeError:
             raise TypeError, "residues only defined for integral ideals"
 
+        D, U, V = M.smith_form()
         from sage.misc.mrange import xmrange_iter
-        d = [M[i,i] for i in range(n)]
+        d = [D[i,i] for i in range(n)]
         coord_ranges = [range((-di+2)//2,(di+2)//2) for di in d]
-        combo = lambda c: sum([c[i]*Rbasis[i] for i in range(n)])
+        V = V.inverse()
+        newRbasis = [sum([V[i,j]*Rbasis[j] for j in range(n)]) for i in range(n)]
+        combo = lambda c: sum([c[i]*newRbasis[i] for i in range(n)])
         return xmrange_iter(coord_ranges, combo)
 
     def denominator(self):

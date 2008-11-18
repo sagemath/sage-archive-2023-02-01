@@ -34,6 +34,13 @@ def kSchurFunctions(R, k, t=None):
         sage: s = SFASchur(ks3.base_ring())
         sage: s(ks3([3,2,1]))
         s[3, 2, 1] + t*s[4, 1, 1] + t*s[4, 2] + t^2*s[5, 1]
+        sage: ks3 = kSchurFunctions(QQ, 3, 1); ks3
+        k-Schur Functions at level 3 with t=1 over Rational Field
+        sage: s = SFASchur(ks3.base_ring())
+        sage: ks3(s([3]))
+        ks3[3]
+        sage: s(ks3([3,2,1]))
+        s[3, 2, 1] + s[4, 1, 1] + s[4, 2] + s[5, 1]
     """
     return cache_t(R, k, t)
 
@@ -187,9 +194,9 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         if n in self._self_to_s_cache:
             return
 
-        R = QQ['t']
-        t = R.gen()
-        s = sfa.SFASchur(R)
+        R = self.base_ring()
+        t = self.t
+        s = self._s
         zero = s(0)
 
         if n == 0:

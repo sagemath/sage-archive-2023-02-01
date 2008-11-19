@@ -2067,6 +2067,8 @@ class RegistrationPage(resource.PostableResource):
 
     def render(self, request):
         input_boxes = ['username', 'password', 'retype_password']
+        if notebook.conf()['email']:
+            input_boxes.append('email')
         is_valid_dict = {'username': is_valid_username, 'password': is_valid_password,
                          'retype_password': do_passwords_match, 'email': is_valid_email}
 
@@ -2145,7 +2147,7 @@ class RegistrationPage(resource.PostableResource):
             try:
                 e = filled_in['email'] if notebook.conf()['email'] else ''
                 self.userdb.add_user(filled_in['username'], request.args['password'][0],
-                                     e, force=True)
+                                     e)
             except ValueError:
                 template_dict['username_taken'] = True
                 errors_found()

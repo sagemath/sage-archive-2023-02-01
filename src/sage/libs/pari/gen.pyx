@@ -322,6 +322,94 @@ def prec_words_to_dec(int prec_in_words):
     return prec_bits_to_dec(prec_words_to_bits(prec_in_words))
 
 ###################################################################
+# Random utility functions
+###################################################################
+
+cpdef _normalize_slice(s, size):
+    """
+    Given a python slice object s and an int size, return a list of
+    valid indices for a list of length size corresponding to s.
+
+    INPUT:
+      s -- Python slice object of the form start:stop:step, where
+           any or all of these fields can be None
+      size -- non-negative Python int
+
+    OUTPUT:
+      A list inds of Python ints all less than size, and such that for
+      any list ls of length size, we have
+        [ ls[x] for x in inds ] == ls[s].
+
+    EXAMPLES:
+        sage: ns = sage.libs.pari.gen._normalize_slice
+        sage: ns(slice(2,5), 10)
+        [2, 3, 4]
+        sage: ns(slice(2,5), 4)
+        [2, 3]
+        sage: ns(slice(2,5), 5)
+        [2, 3, 4]
+        sage: ns(slice(-30,2), 5)
+        [0, 1]
+        sage: ns(slice(2,5,3), 20)
+        [2]
+        sage: ns(slice(2,8,3), 20)
+        [2, 5]
+        sage: ns(slice(2,9,3), 20)
+        [2, 5, 8]
+        sage: [ ns(slice(None,None,-i), 20) for i in range(1,8) ]
+        [[19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+        [19, 17, 15, 13, 11, 9, 7, 5, 3, 1],
+        [19, 16, 13, 10, 7, 4, 1],
+        [19, 15, 11, 7, 3],
+        [19, 14, 9, 4],
+        [19, 13, 7, 1],
+        [19, 12, 5]]
+        sage: ns(slice(5,8,-1),10)
+        [7, 6, 5]
+        sage: ns(slice(-5,None), 10)
+        [5, 6, 7, 8, 9]
+        sage: ns(slice(None,-5), 10)
+        [0, 1, 2, 3, 4]
+        sage: ns(slice(-5,-5), 10)
+        []
+        sage: ns(slice(-2,5), 10)
+        []
+        sage: ns(slice(2,-5), 10)
+        [2, 3, 4]
+        sage: ns(slice(-8,5), 10)
+        [2, 3, 4]
+        sage: ns(slice(1,-1),10)
+        [1, 2, 3, 4, 5, 6, 7, 8]
+        sage: ns(slice(1,-1,3),10)
+        [1, 4, 7]
+    """
+    # check start
+    i = int(s.start) if s.start is not None else 0
+    if i < 0:
+        i = i % size
+    if i >= size:
+        i = int(size)
+
+    # check end of slice
+    j = int(s.stop) if s.stop is not None else int(size)
+    if j < 0:
+        j = j % size
+    if j >= size:
+        j = int(size)
+
+    step = int(s.step) if s.step is not None else 1
+    if not step:
+        raise ValueError, "slice step cannot be zero"
+
+    res = []
+    ind = i if step > 0 else j-1
+    while i <= ind < j:
+        res.append(ind)
+        ind += step
+
+    return res
+
+###################################################################
 
 
 # Also a copy of PARI accessible from external pure python code.
@@ -676,6 +764,25 @@ cdef class gen(sage.structure.element.RingElement):
             TypeError: unindexable object
             sage: m = pari("[[1,2;3,4],5]") ; m[0][1,0]
             3
+            sage: v = pari(xrange(20))
+            sage: v[2:5]
+            [2, 3, 4]
+            sage: v[:]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            sage: v[10:]
+            [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            sage: v[:5]
+            [0, 1, 2, 3, 4]
+            sage: v
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            sage: v[-1]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of bounds
+            sage: v[:-3]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+            sage: v[5:]
+            [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
         """
         cdef int pari_type
 
@@ -706,6 +813,15 @@ cdef class gen(sage.structure.element.RingElement):
                 val = P.new_ref(gmael(self.g, j+1, i+1), self)
                 self._refers_to[ind] = val
                 return val
+
+        elif PyObject_TypeCheck(n, slice):
+            l = glength(self.g)
+            inds = _normalize_slice(n, l)
+            k = len(inds)
+            v = P.vector(k)
+            for i in range(k):
+                v[i] = self[inds[i]]
+            return v
 
         ## there are no "out of bounds" problems
         ## for a polynomial or power series, so these go before
@@ -772,41 +888,18 @@ cdef class gen(sage.structure.element.RingElement):
             ## as mentioned above
             return P.new_ref(gel(self.g,n+1), self)
 
-
-    def __getslice__(self,  Py_ssize_t i,  Py_ssize_t j):
+    def _gen_length(gen self):
         """
+        Return the length of self as a Pari object, *including*
+        codewords.
+
         EXAMPLES:
-            sage: v = pari(xrange(20))
-            sage: v[2:5]
-            [2, 3, 4]
-            sage: v[:]
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-            sage: v[10:]
-            [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-            sage: v[:5]
-            [0, 1, 2, 3, 4]
-            sage: v
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-            sage: v[-1]
-            Traceback (most recent call last):
-            ...
-            IndexError: index out of bounds
-            sage: v[:-3]
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-            sage: v[5:]
-            [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            sage: n = pari(30)
+            sage: n.length()
+            1
+            sage: n._gen_length()
+            3
         """
-        cdef long l, k
-        l = glength(self.g)
-        if j >= l: j = l
-        if i < 0: i = 0
-        if j <= i: return P.vector(0)
-        v = P.vector(j-i)
-        for k from i <= k < j:
-            v[k-i] = self[k]
-        return v
-
-    def gen_length(gen self):
         return lg(self.g)
 
     def __setitem__(gen self, n, y):
@@ -824,8 +917,8 @@ cdef class gen(sage.structure.element.RingElement):
                gp interpreter, where assignment makes a copy of y.
 
             \item Because setting creates references it is \emph{possible} to
-               make circular references, unlike in GP.  Do \emph{not} do
-               this (see the example below).  If you need circular
+               make circular references, unlike in GP. Do \emph{not} do
+               this (see the example below). If you need circular
                references, work at the Python level (where they work
                well), not the PARI object level.
         \end{itemize}
@@ -866,11 +959,39 @@ cdef class gen(sage.structure.element.RingElement):
             sage: w
             [[0]]
             sage: v[0] = w
-            sage: # Now there is a circular reference. Accessing v[0] will crash Sage.
+
+        Now there is a circular reference. Accessing v[0] will crash Sage.
+
+            sage: s=pari.vector(2,[0,0])
+            sage: s[:1]
+            [0]
+            sage: s[:1]=[1]
+            sage: s
+            [1, 0]
+            sage: type(s[0])
+            <type 'sage.libs.pari.gen.gen'>
+            sage: s = pari(range(20)) ; s
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            sage: s[0:10:2] = range(50,55) ; s
+            [50, 1, 51, 3, 52, 5, 53, 7, 54, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            sage: s[10:20:3] = range(100,150) ; s
+            [50, 1, 51, 3, 52, 5, 53, 7, 54, 9, 100, 11, 12, 101, 14, 15, 102, 17, 18, 103]
+
+        TESTS:
+            sage: v = pari(xrange(10)) ; v
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: v[:] = [20..29]
+            sage: v
+            [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
+            sage: type(v[0])
+            <type 'sage.libs.pari.gen.gen'>
 
         """
         cdef int i, j
         cdef gen x
+        cdef long l
+        cdef Py_ssize_t ii, jj, step
+
 
         _sig_on
         if PyObject_TypeCheck(y, gen):
@@ -896,6 +1017,18 @@ cdef class gen(sage.structure.element.RingElement):
             self._refers_to[ind] = x
 
             (<GEN>(self.g)[j+1])[i+1] = <long>(x.g)
+            return
+
+        elif isinstance(n, slice):
+            l = glength(self.g)
+            inds = _normalize_slice(n, l)
+            k = len(inds)
+            if k > len(y):
+                raise ValueError, "attempt to assign sequence of size %s to slice of size %s"%(len(y), k)
+
+            # actually set the values
+            for i in range(k):
+                self[inds[i]] = y[i]
             return
 
         i = int(n)
@@ -2557,14 +2690,30 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return P.new_gen(gimag(x.g))
 
-    def length(gen x):
+    def length(self):
         """
-        length(x): Return the number of non-code words in x.  If x
-        is a string, this is the number of characters of x.
+        Return the length of self, which is the number of
+        non-codewords in self.
 
-        ?? terminator ?? carriage return ??
+        NOTE: For strings, this count does not include the null
+        terminator ('\0'), but does include newlines.
+
+        NOTE: This may be architecture dependent.
+
+        EXAMPLES:
+            sage: pari(5).length()
+            1
+            sage: pari(2**50).length()
+            2             # 32-bit
+            1             # 64-bit
+            sage: pari(range(5)).length()
+            5
+            sage: pari([2**50..2**50+10]).length()
+            11
+            sage: pari('\"hello world\"').length()
+            11
         """
-        return glength(x.g)
+        return glength(self.g)
 
     def lift(gen x, v=-1):
         """

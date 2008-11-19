@@ -1297,10 +1297,21 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         else:
             return self.element % 2 == 0
 
-    def sqrt(FiniteField_givaroElement self, all=False, extend=False):
+    def sqrt(FiniteField_givaroElement self, extend=False, all=False):
         """
         Return a square root of this finite field element in its
         parent, if there is one.  Otherwise, raise a ValueError.
+
+        INPUT:
+            extend -- bool (default: True); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the root is not in the base
+                 ring.  Warning: this option is not implemented!
+            all -- bool (default: False); if True, return all square
+                 roots of self, instead of just one.
+
+        WARNING:
+            The 'extend' option is not implemented (yet).
 
         EXAMPLES:
             sage: k.<a> = GF(7^2)
@@ -1354,34 +1365,37 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         INPUT:
             n -- integer >= 1 (must fit in C int type)
-            extend -- bool (default: True); if True, return a square
+            extend -- bool (default: True); if True, return an nth
                  root in an extension ring, if necessary. Otherwise,
-                 raise a ValueError if the square is not in the base
-                 ring.
-            all -- bool (default: False); if True, return all square
+                 raise a ValueError if the root is not in the base
+                 ring.  Warning: this option is not implemented!
+            all -- bool (default: False); if True, return all nth
                  roots of self, instead of just one.
 
         OUTPUT:
-           If self has an nth root, returns one (if all == False) or a list of
-           all of them (if all == True).  Otherwise, raises a ValueError (if
-           extend = False) or a NotImplementedError (if extend = True).
+            If self has an nth root, returns one (if all == False) or a list of
+            all of them (if all == True).  Otherwise, raises a ValueError (if
+            extend = False) or a NotImplementedError (if extend = True).
 
         AUTHOR:
-           -- David Roe (2007-10-3)
+            -- David Roe (2007-10-3)
+
+        WARNING:
+            The 'extend' option is not implemented (yet).
 
         EXAMPLES:
-        sage: k.<a> = GF(29^2)
-        sage: b = a^2 + 5*a + 1
-        sage: b.nth_root(11)
-        3*a + 20
-        sage: b.nth_root(5)
-        Traceback (most recent call last):
-        ...
-        ValueError: no nth root
-        sage: b.nth_root(5, all = True)
-        []
-        sage: b.nth_root(3, all = True)
-        [14*a + 18, 10*a + 13, 5*a + 27]
+            sage: k.<a> = GF(29^2)
+            sage: b = a^2 + 5*a + 1
+            sage: b.nth_root(11)
+            3*a + 20
+            sage: b.nth_root(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: no nth root
+            sage: b.nth_root(5, all = True)
+            []
+            sage: b.nth_root(3, all = True)
+            [14*a + 18, 10*a + 13, 5*a + 27]
         """
         if extend:
             raise NotImplementedError

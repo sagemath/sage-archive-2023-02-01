@@ -212,10 +212,13 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         INPUT:
             extend -- bool (default: True); if True, return a square
                  root in an extension ring, if necessary. Otherwise,
-                 raise a ValueError if the square is not in the base
-                 ring.
+                 raise a ValueError if the root is not in the base
+                 ring.  Warning: this option is not implemented!
             all -- bool (default: False); if True, return all square
                  roots of self, instead of just one.
+
+        WARNING:
+            The 'extend' option is not implemented (yet).
 
         EXAMPLES:
           sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
@@ -265,32 +268,35 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
         INPUT:
             n -- integer >= 1 (must fit in C int type)
-            extend -- bool (default: True); if True, return a square
+            extend -- bool (default: True); if True, return an nth
                  root in an extension ring, if necessary. Otherwise,
-                 raise a ValueError if the square is not in the base
-                 ring.
-            all -- bool (default: False); if True, return all square
+                 raise a ValueError if the root is not in the base
+                 ring.  Warning: this option is not implemented!
+            all -- bool (default: False); if True, return all nth
                  roots of self, instead of just one.
 
         OUTPUT:
-           If self has an nth root, returns one (if all == False) or a list of
-           all of them (if all == True).  Otherwise, raises a ValueError (if
-           extend = False) or a NotImplementedError (if extend = True).
+            If self has an nth root, returns one (if all == False) or a list of
+            all of them (if all == True).  Otherwise, raises a ValueError (if
+            extend = False) or a NotImplementedError (if extend = True).
+
+        WARNING:
+            The 'extend' option is not implemented (yet).
 
         AUTHOR:
-           -- David Roe (2007-10-3)
+            -- David Roe (2007-10-3)
 
         EXAMPLES:
-        sage: k.<a> = GF(29^5)
-        sage: b = a^2 + 5*a + 1
-        sage: b.nth_root(5)
-        19*a^4 + 2*a^3 + 2*a^2 + 16*a + 3
-        sage: b.nth_root(7)
-        Traceback (most recent call last):
-        ...
-        ValueError: no nth root
-        sage: b.nth_root(4, all=True)
-        []
+            sage: k.<a> = GF(29^5)
+            sage: b = a^2 + 5*a + 1
+            sage: b.nth_root(5)
+            19*a^4 + 2*a^3 + 2*a^2 + 16*a + 3
+            sage: b.nth_root(7)
+            Traceback (most recent call last):
+            ...
+            ValueError: no nth root
+            sage: b.nth_root(4, all=True)
+            []
         """
         if extend:
             raise NotImplementedError

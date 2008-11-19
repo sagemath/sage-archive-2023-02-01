@@ -1,12 +1,59 @@
-* upgraded to sympy-0.6.3
-* upgraded to sympy-0.6.2
-* upgraded to sympy-0.6.0
-* upgraded to sympy-0.5.13
-* added a README file
-* upgraded to sympy-0.5.11
-* upgraded to sympy-0.5.7
-* added a script for getting a hg version
-* added a script for downloading the upstream sources, creating the src dir
-* upgraded to sympy-0.5.6
-* upgraded to sympy-0.5.5
-* upgraded to sympy-0.5.3
+= SymPy =
+
+== Description ==
+
+SymPy is a Python library for symbolic mathematics. It aims to become a full-featured computer algebra system (CAS) while keeping the code as simple as possible in order to be comprehensible and easily extensible. SymPy is written entirely in Python and does not require any external libraries, except optionally for plotting support.
+
+== Website ==
+
+http://code.google.com/p/sympy/
+
+== License ==
+
+New BSD: http://www.opensource.org/licenses/bsd-license.php
+
+== SPKG Maintainers ==
+ * Ondrej Certik
+
+== Upstream Contact ==
+
+sympy mailinglist: http://groups.google.com/group/sympy
+
+== Dependencies ==
+ * Python 2.4 or later
+
+== Special Update/Build Instructions ==
+
+ * None
+
+== Changelog ==
+
+=== sympy-0.6.3 (Ondrej Certik, Nov 19, 2008) ===
+  * new upstream release
+
+=== sympy-0.6.2 (Ondrej Certik) ===
+  * new upstream release
+
+=== sympy-0.6.0 (Ondrej Certik) ===
+  * new upstream release
+
+=== sympy-0.5.13 (Ondrej Certik) ===
+  * new upstream release
+  * added a README file
+
+=== sympy-0.5.11 (Ondrej Certik) ===
+  * new upstream release
+
+=== sympy-0.5.7 (Ondrej Certik) ===
+  * new upstream release
+  * added a script for getting a hg version
+  * added a script for downloading the upstream sources, creating the src dir
+
+=== sympy-0.5.6 (Ondrej Certik) ===
+  * new upstream release
+
+=== sympy-0.5.5 (Ondrej Certik) ===
+  * new upstream release
+
+=== sympy-0.5.3 (William Stein) ===
+  * initial version of the packaging

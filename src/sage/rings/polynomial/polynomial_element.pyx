@@ -907,7 +907,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # characteristic 0.
 
         if self.base_ring().characteristic() != 0:
-            raise NotImplementedError, "Squarefree decomposition not implemented for " + self.parent()
+            raise NotImplementedError, "Squarefree decomposition not implemented for " + str(self.parent())
 
         f = [self]
         cur = self
@@ -933,6 +933,62 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 unit = unit * a[i].constant_coefficient() ** (i + 1)
 
         return Factorization(factors, unit=unit, sort=False)
+
+    def is_square(self, root=False):
+        """
+        Returns whether or not polynomial is square, and if it is a
+        square also returns the square root.  If it is not square, also
+        returns None.
+
+
+        INPUT:
+            root -- whether or not to also return a square root (default: False)
+        OUTPUT:
+            bool -- whether or not a square
+            object -- (optional) an actual square if found, and None otherwise.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = 12*(x+1)^2 * (x+3)^2
+            sage: S.<y> = PolynomialRing(RR)
+            sage: g = 12*(y+1)^2 * (y+3)^2
+            sage: f.is_square()
+            False
+            sage: f.is_square(root=True)
+            (False, None)
+            sage: g.is_square()
+            True
+            sage: h = f/3; h
+            4*x^4 + 32*x^3 + 88*x^2 + 96*x + 36
+            sage: h.is_square(root=True)
+            (True, 2*x^2 + 8*x + 6)
+        """
+        from sage.rings.arith import gcd
+        R = self.base_ring()
+        P = self.parent()
+        try:
+            f = self.squarefree_decomposition()
+        except NotImplementedError:
+            f = self.factor()
+        u = R(f.unit())
+        # are all powers in the factorization even?
+        if (gcd([a[1] for a in f])%2 == 0
+            # is the unit a square?
+            and u.is_square()):
+            # build square root
+            g = P(u.sqrt())
+            for a in f:
+                g *= a[0]**(a[1]/2)
+            if root:
+                return True, g
+            else:
+                return True
+        else:
+            if root:
+                return False, None
+            else:
+                return False
+
 
     def __div__(self, right):
         """

@@ -430,10 +430,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             answers on similar platforms depending on the hardware
             and tuning options given to ATLAS:
             sage: A = Matrix(RDF, [[1, 0], [0, 0]])
-            sage: A.inverse().det()
-            Traceback (most recent call last):
-            ...
-            LinAlgError: singular matrix
+
+
+
+
             sage: A = matrix(RDF,3,range(1,10));A
             [1.0 2.0 3.0]
             [4.0 5.0 6.0]
@@ -441,11 +441,31 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
             sage: A.determinant() < 10e-12
             True
-            sage: ~A
-            Traceback (most recent call last):
-            ...
-            LinAlgError: singular matrix
+
+
+
+
         """
+# see trac ticket 4502 --- there is an issue with the "#random" pragma that needs to be fixed
+#                          as for the mathematical side, scipy v0.7 is expected to fix the invertibility failures
+#
+#            sage: A = Matrix(RDF, [[1, 0], [0, 0]])
+#            sage: A.inverse().det()        # random - on some computers, this will be invertible due to numerical error.
+#            Traceback (most recent call last):
+#            ...
+#            LinAlgError: singular matrix
+#            sage: A = matrix(RDF,3,range(1,10));A
+#            [1.0 2.0 3.0]
+#            [4.0 5.0 6.0]
+#            [7.0 8.0 9.0]
+#
+#            sage: A.determinant() < 10e-12
+#            True
+#            sage: ~A                       # random - on some computers, this will be invertible due to numerical error.
+#            Traceback (most recent call last):
+#            ...
+#            LinAlgError: singular matrix
+#
         if self._nrows == 0 or self._ncols == 0:
             return self.copy()
 

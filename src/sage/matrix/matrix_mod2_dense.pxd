@@ -21,7 +21,9 @@ cdef extern from "m4ri/m4ri.h":
     ##############
     # Maintainance
     ##############
-    cdef void m4ri_build_all_codes() # builds all gray codes up to a certain size
+
+    # builds all gray codes up to a certain size
+    cdef void m4ri_build_all_codes()
     cdef void m4ri_destroy_all_codes()
 
     ##############
@@ -31,8 +33,14 @@ cdef extern from "m4ri/m4ri.h":
     # create empty matrix
     cdef packedmatrix *mzd_init(int,int)
 
-    # free memory
+    # create the identity permutation
+    cdef permutation *mzp_init(long)
+
+    # free memory for the matrix
     cdef void mzd_free(packedmatrix *)
+
+    # free memory for the permutation
+    cdef void mzp_free(permutation *)
 
     # filled uniformly random
     cdef void mzd_randomize(packedmatrix *)
@@ -47,7 +55,6 @@ cdef extern from "m4ri/m4ri.h":
     #            | B |
     cdef packedmatrix *mzd_stack(packedmatrix *C, packedmatrix *A, packedmatrix *B)
 
-
     # returns a submatrix from a
     cdef packedmatrix *mzd_submatrix(packedmatrix *S, packedmatrix *A, int lowr, int lowc, int highr, int highc)
 
@@ -59,16 +66,12 @@ cdef extern from "m4ri/m4ri.h":
     # deep copy
     cdef packedmatrix *mzd_copy(packedmatrix *, packedmatrix *)
 
-    ####
-    # IO
-    ####
+    ##############
+    # Bit Level IO
+    ##############
 
     # set BIT
     cdef void mzd_write_bit( packedmatrix *m, int row, int col, BIT value)
-
-    cdef void mzd_write_zeroed_bits(packedmatrix *m, int x, int y, int n, word values)
-
-    cdef void mzd_clear_bits(packedmatrix *m, int x, int y, int n)
 
     # get BIT
     cdef BIT mzd_read_bit( packedmatrix *m, int row, int col )
@@ -76,10 +79,9 @@ cdef extern from "m4ri/m4ri.h":
     # get BITs (n<=64)
     cdef word mzd_read_bits( packedmatrix *m, int row, int col, int n)
 
-
-    ######################
-    # Low-Level Arithmetic
-    ######################
+    #####################
+    # Row/Column Based IO
+    #####################
 
     cdef void mzd_row_swap(packedmatrix *, int, int)
 
@@ -89,8 +91,6 @@ cdef extern from "m4ri/m4ri.h":
 
     cdef void mzd_row_add_offset(packedmatrix *m, int, int, int)
 
-    cdef permutation *mzd_col_block_rotate(packedmatrix *M, int ,int, int, int, permutation *)
-
     ############
     # Arithmetic
     ############
@@ -98,8 +98,8 @@ cdef extern from "m4ri/m4ri.h":
     # matrix addition
     cdef packedmatrix *mzd_add(packedmatrix *, packedmatrix *, packedmatrix *)
 
-    # naiv cubic matrix multiply
-    cdef packedmatrix *mzd_mul_naiv(packedmatrix *, packedmatrix *, packedmatrix *)
+    # naive cubic matrix multiply
+    cdef packedmatrix *mzd_mul_naive(packedmatrix *, packedmatrix *, packedmatrix *)
 
     # matrix multiply using Gray codes
     cdef packedmatrix *mzd_mul_m4rm(packedmatrix *, packedmatrix *, packedmatrix *, int k)
@@ -125,17 +125,44 @@ cdef extern from "m4ri/m4ri.h":
     # transpose
     cdef packedmatrix *mzd_transpose(packedmatrix *, packedmatrix *)
 
+    # density with given resolution
+    cdef double mzd_density(packedmatrix *, int resolution)
+
+    ########################
+    # LAPACK Level Functions
+    ########################
+
     # cubic Gaussian elimination
-    cdef int mzd_reduce_naiv(packedmatrix *, int full)
+    cdef int mzd_echelonize_naive(packedmatrix *, int full)
 
-    # matrix reduction using Gray codes
-    cdef int mzd_reduce_m4ri(packedmatrix *m, int full, int k, packedmatrix *tablepacked, int *lookuppacked)
+    # row echelon form using Gray codes
+    cdef int mzd_echelonize_m4ri(packedmatrix *m, int full, int k, packedmatrix *tablepacked, int *lookuppacked)
 
-    # compute reduced row echelon form from upper triangular form
-    cdef void mzd_top_reduce_m4ri(packedmatrix *m, int k, packedmatrix *tablepacked, int *lookuppacked)
+    # reduced row echelon form from upper triangular form
+    cdef void mzd_top_echelonize_m4ri(packedmatrix *m, int k, packedmatrix *tablepacked, int *lookuppacked)
 
     # matrix inversion using Gray codes
     cdef packedmatrix *mzd_invert_m4ri(packedmatrix *m, packedmatrix *identity, int k)
+
+    # assymptotically fast PLUQ factorization
+    cdef long mzd_pluq(packedmatrix *A, permutation *P, permutation *Q, int cutoff)
+
+    # PLUQ factorization using Gray codes
+    cdef long _mzd_pluq_mmpf(packedmatrix *A, permutation *P, permutation *Q, int k)
+
+    # cubic PLUQ factorization
+    cdef long _mzd_pluq_naive(packedmatrix *A, permutation *P, permutation *Q)
+
+    # reduced row echelon form using PLUQ factorization
+    cdef long mzd_echelonize_pluq(packedmatrix *A, int full)
+
+    ##################################
+    # Internal Functions for Debugging
+    ##################################
+
+    cdef void mzd_write_zeroed_bits(packedmatrix *m, int x, int y, int n, word values)
+
+    cdef void mzd_clear_bits(packedmatrix *m, int x, int y, int n)
 
 
 cimport matrix_dense
@@ -152,4 +179,3 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):
 
     # For conversion to other systems
     cpdef _export_as_string(self)
-

@@ -6815,7 +6815,8 @@ class Function_sin(PrimitiveFunction):
             <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
             sage: sin._fast_float_()
             <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
-
+            sage: sin._fast_float_()(0)
+            0.0
         """
         return fast_float.fast_float_func(math.sin, fast_float.fast_float_arg(0))
 
@@ -6855,9 +6856,10 @@ class Function_cos(PrimitiveFunction):
             <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
             sage: cos._fast_float_()
             <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
-
+            sage: cos._fast_float_()(0)
+            1.0
         """
-        return fast_float.fast_float_func(math.sin, fast_float.fast_float_arg(0))
+        return fast_float.fast_float_func(math.cos, fast_float.fast_float_arg(0))
 
 
 cos = Function_cos()

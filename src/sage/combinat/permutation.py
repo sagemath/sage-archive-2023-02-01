@@ -117,11 +117,16 @@ def PermutationOptions(**kwargs):
 
 def Permutation(l):
     """
-    Convert l to a Permutation, where l is a list of integers, tuple of
-    integers, tuple of tuples of integers, list of tuples of integers,
-    or a string in cycle notation. Tuples are interpreted as cycles;
-    lists of integers as one-line permutation notation. Returns a member
-    of the Permutation class.
+    Convert l to a permutation.
+
+    INPUT:
+        l -- an instance of Permutation_class (returns l),
+          -- list of integers, viewed as one-line permutation notation,
+          -- string, expressing the permutation in cycle notation,
+          -- list of tuples of integers, the permutation in cycle notation.
+
+    OUTPUT:
+        Permutation_class object.
 
     EXAMPLES:
         sage: Permutation([2,1])
@@ -162,12 +167,17 @@ def Permutation(l):
     TESTS:
         sage: Permutation([()])
         [1]
-
+        sage: Permutation('()')
+        [1]
+        sage: Permutation(())
+        [1]
     """
     if isinstance(l, Permutation_class):
         return l
     #if l is a string, then assume it is in cycle notation
     elif isinstance(l, str):
+        if l == "()":
+            return from_cycles(1,[])
         cycles = l.split(")(")
         cycles[0] = cycles[0][1:]
         cycles[-1] = cycles[-1][:-1]
@@ -188,7 +198,7 @@ def Permutation(l):
                 n = max(l)
                 l = [list(l)]
                 return from_cycles(n, l)
-        elif len(l) == 1:
+        elif len(l) <= 1:
             return Permutation([1])
         else:
             raise ValueError, "cannot convert l (= %s) to a Permutation"%l

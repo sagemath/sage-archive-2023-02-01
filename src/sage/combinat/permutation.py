@@ -628,6 +628,38 @@ class Permutation_class(CombinatorialObject):
         new_p1 = self[:] + [i+1 for i in range(len(self), len(rp))]
         return Permutation([ new_rp[i-1] for i in new_p1 ])
 
+    def __call__(self, i):
+        r"""
+        Returns the image of the integer i under this permutation.
+
+        EXAMPLES:
+            sage: p = Permutation([2, 1, 4, 5, 3])
+            sage: p(1)
+            2
+            sage: p = Permutation(((1,2),(4,3,5)))
+            sage: p(4)
+            3
+            sage: p(2)
+            1
+            sage: p = Permutation([5,2,1,6,3,7,4])
+            sage: map(p, range(1,8))
+            [5, 2, 1, 6, 3, 7, 4]
+
+        TESTS:
+            sage: p = Permutation([5,2,1,6,3,7,4])
+            sage: p(-1)
+            Traceback (most recent call last):
+            ...
+            TypeError: i (= -1) must be between 1 and 7
+            sage: p(10)
+            Traceback (most recent call last):
+            ...
+            TypeError: i (= 10) must be between 1 and 7
+        """
+        if isinstance(i,(int,Integer)) and 1 <= i <= len(self):
+            return self[i-1]
+        else:
+            raise TypeError, "i (= %s) must be between %s and %s" % (i,1,len(self))
 
     ########
     # Rank #

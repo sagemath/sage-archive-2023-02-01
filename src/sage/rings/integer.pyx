@@ -154,6 +154,61 @@ cdef set_from_int(Integer self, int other):
 cdef public mpz_t* get_value(Integer self):
     return &self.value
 
+
+cdef bint mpz_set_longlong(mpz_t dst, long long src) except -1:
+    cdef int a = 1
+    cdef mp_limb_t* limbs
+    if sizeof(long long) == sizeof(mp_limb_t):
+        mpz_set_si(dst, <long>src)
+    elif sizeof(long long) == 2*sizeof(mp_limb_t):
+        if (<long>src) == src:
+            mpz_set_si(dst, <long>src)
+        else:
+            _mpz_realloc(dst, 2)
+            if src < 0:
+                (<__mpz_struct*>dst)._mp_size = -2
+                src = -src
+            else:
+                (<__mpz_struct*>dst)._mp_size = 2
+            limbs = <mp_limb_t*>&src
+            if (<char*>&a)[0]:
+                # little endian
+                (<__mpz_struct*>dst)._mp_d[0] = limbs[0]
+                (<__mpz_struct*>dst)._mp_d[1] = limbs[1]
+            else:
+                # big endian
+                (<__mpz_struct*>dst)._mp_d[0] = limbs[1]
+                (<__mpz_struct*>dst)._mp_d[1] = limbs[0]
+            if not (<__mpz_struct*>dst)._mp_d[1]:
+                (<__mpz_struct*>dst)._mp_size /= 2
+    else:
+        # Any self-respecting compiler will optimize this away if it's not needed.
+        raise TypeError, "Can't assign a long long to an mpz_t: sizeof(long long)=%s sizeof(mp_limb_t)=%s" % (sizeof(long long), sizeof(mp_limb_t))
+
+
+def _test_mpz_set_longlong(long long v):
+    """
+    TESTS:
+        sage: from sage.rings.integer import _test_mpz_set_longlong
+        sage: _test_mpz_set_longlong(1)
+        1
+        sage: _test_mpz_set_longlong(-1)
+        -1
+        sage: _test_mpz_set_longlong(100)
+        100
+        sage: _test_mpz_set_longlong(100000000000)
+        100000000000
+        sage: _test_mpz_set_longlong(2^32) == 2^32
+        True
+        sage: _test_mpz_set_longlong(-2^32) == -2^32
+        True
+        sage: all([_test_mpz_set_longlong(2^n) == 2^n for n in range(63)])
+        True
+    """
+    cdef Integer z = PY_NEW(Integer)
+    mpz_set_longlong(z.value, v)
+    return z
+
 cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
     """
         Parameters:
@@ -3835,7 +3890,8 @@ cdef class long_to_Z(Morphism):
 
 include "../ext/python_rich_object.pxi"
 cdef extern from "gmp.h":
-    ctypedef void* mp_ptr #"mp_ptr"
+    ctypedef long mp_limb_t
+    ctypedef mp_limb_t* mp_ptr #"mp_ptr"
 
     # We allocate _mp_d directly (mpz_t is typedef of this in GMP)
     ctypedef struct __mpz_struct "__mpz_struct":

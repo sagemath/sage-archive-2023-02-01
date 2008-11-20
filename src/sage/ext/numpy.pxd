@@ -35,16 +35,7 @@
 # :Author:    Travis Oliphant
 
 
-# Note that the below path is different than the numpy.pxd/pxi file
-# that is distributed with numpy (there the path is
-# numpy/arrayobject.h).  This is because in Sage, we include the numpy
-# header directory as
-# "SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy",
-# which means the numpy/ part is already specified in the path.  Not
-# changing the path below or the path in setup.py leads to not finding
-# arrayobject.h or using the system arrayobject.h instead of the local
-# Sage copy.
-cdef extern from "arrayobject.h":
+cdef extern from "numpy/arrayobject.h":
 
     cdef enum NPY_TYPES:
         NPY_BOOL

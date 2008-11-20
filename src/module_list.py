@@ -108,13 +108,13 @@ ext_modules = [ \
               ['sage/modules/complex_double_vector.pyx'],
               libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'],
               define_macros=[('GSL_DISABLE_DEPRECATED','1')],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']),
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']),
 
     Extension('sage.modules.real_double_vector',
               ['sage/modules/real_double_vector.pyx'],
               libraries = ['gsl', BLAS, BLAS2, 'pari','gmp'],
               define_macros = [('GSL_DISABLE_DEPRECATED','1')],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']),
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']),
 
     Extension('sage.modules.vector_integer_dense',
               ['sage/modules/vector_integer_dense.pyx'],
@@ -315,7 +315,7 @@ ext_modules = [ \
     Extension('sage.matrix.matrix_double_dense',
               ['sage/matrix/matrix_double_dense.pyx'],
               libraries=[BLAS, BLAS2],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']),
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']),
 
     Extension('sage.matrix.matrix_integer_sparse',
               ['sage/matrix/matrix_integer_sparse.pyx'],
@@ -324,17 +324,17 @@ ext_modules = [ \
     Extension('sage.matrix.matrix_real_double_dense',
               ['sage/matrix/matrix_real_double_dense.pyx'],
               libraries=[BLAS, BLAS2],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']),
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']),
 
     Extension('sage.matrix.change_ring',
               ['sage/matrix/change_ring.pyx'],
               libraries=[BLAS, BLAS2, 'gmp'],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']),
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']),
 
     Extension('sage.matrix.matrix_complex_double_dense',
               ['sage/matrix/matrix_complex_double_dense.pyx'],
               libraries=[BLAS, BLAS2],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']),
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']),
 
     Extension('sage.libs.linbox.linbox',
               ['sage/libs/linbox/linbox.pyx'],
@@ -482,7 +482,7 @@ ext_modules = [ \
 
     Extension('sage.finance.time_series',
               ['sage/finance/time_series.pyx'],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']),
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']),
 
     Extension('sage.finance.markov_multifractal_cython',
               ['sage/finance/markov_multifractal_cython.pyx']),
@@ -494,12 +494,12 @@ ext_modules = [ \
     Extension('sage.stats.hmm.hmm',
               ['sage/stats/hmm/hmm.pyx'],
               libraries = ['ghmm'],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']),
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']),
 
     Extension('sage.stats.hmm.chmm',
               ['sage/stats/hmm/chmm.pyx'],
               libraries = ['ghmm'],
-              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']),
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']),
 
     Extension('sage.media.channels',
               sources = ['sage/media/channels.pyx']),
@@ -833,7 +833,7 @@ ext_modules = [ \
     Extension('sage.rings.number_field.totallyreal_data',
               ['sage/rings/number_field/totallyreal_data.pyx'],
               libraries = ['gmp'],
-              include_dirs = [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy']), \
+              include_dirs = [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']), \
 
     Extension('sage.rings.morphism',
               sources = ['sage/rings/morphism.pyx']), \

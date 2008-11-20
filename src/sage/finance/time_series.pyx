@@ -47,7 +47,7 @@ cdef extern from "math.h":
 cdef extern from "string.h":
     void* memcpy(void* dst, void* src, size_t len)
 
-cdef extern from "arrayobject.h":
+cdef extern from "numpy/arrayobject.h":
     cdef enum:
         NPY_OWNDATA = 0x0004 #bit mask so numpy does not free array contents when its destroyed
     object PyArray_FromDimsAndData(int,int*,int,double *)

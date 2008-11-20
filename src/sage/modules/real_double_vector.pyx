@@ -32,7 +32,7 @@ import sage.rings.complex_double
 
 include '../ext/stdsage.pxi'
 
-cdef extern from "arrayobject.h":
+cdef extern from "numpy/arrayobject.h":
 #The following exposes the internal C structure of the numpy python object
 # extern class [object PyArrayObject]  tells pyrex that this is
 # a compiled python class defined by the C struct PyArrayObject

@@ -199,13 +199,13 @@ Substitution:
 
 Simplifying expressions involving scientific notation:
     sage: k = var('k')
-    sage: a0 = 2e-6; a1 = 12
+    sage: a0 = 2e-06; a1 = 12
     sage: c = a1 + a0*k; c
-    2.000000000000000e-6*k + 12
+    2e-06*k + 12
     sage: sqrt(c)
-    sqrt(2.000000000000000e-6*k + 12)
+    sqrt(2e-06*k + 12)
     sage: sqrt(c^3)
-    sqrt((2.000000000000000e-6*k + 12)^3)
+    sqrt((2e-06*k + 12)^3)
 
 The symbolic Calculus package uses its own copy of maxima for
 simplification, etc., which is separate from the default system-wide
@@ -439,7 +439,7 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
 
         A Python complex number:
             sage: SR(complex(2,-3))
-            2.00000000000000 - 3.00000000000000*I
+            2.0 - 3.0*I
         """
         if is_SymbolicExpression(x):
             return x
@@ -2200,7 +2200,7 @@ class SymbolicExpression(RingElement):
             sage: f.limit(x = 5)
             7776/3125
             sage: f.limit(x = 1.2)
-            2.0696157546720...
+            2.06961575467...
             sage: f.limit(x = I, taylor=True)
             (1 - I)^I
             sage: f(1.2)
@@ -2542,7 +2542,7 @@ class SymbolicExpression(RingElement):
         maxima.
 
             sage: integral(e^(-x^2),x, 0, 0.1)
-            0.0562314580091424*sqrt(pi)
+            0.0562314580091*sqrt(pi)
 
 
         ALIASES:
@@ -3971,7 +3971,7 @@ class SymbolicExpression(RingElement):
             sage: f = 1 + sin(x)/x + sqrt(z^2+y^2)/cosh(x)
             sage: ff = f._fast_float_('x', 'y', 'z')
             sage: f(1.0,2.0,3.0)
-            4.1780638977866...
+            4.17806389779...
             sage: ff(1.0,2.0,3.0)
             4.17806389778660...
         """
@@ -6747,7 +6747,7 @@ class Function_floor(PrimitiveFunction):
         sage: var('x')
         x
         sage: a = floor(5.4 + x); a
-        floor(x + 0.400000000000000) + 5
+        floor(x + 0.4) + 5
         sage: a(2)
         7
 
@@ -7011,7 +7011,7 @@ class Function_arcsin(PrimitiveFunction):
         sage: arcsin(1/2)
         pi/6
         sage: arcsin(1 + I*1.0)
-        1.061275061905036*I + 0.666239432492515
+        1.06127506191*I + 0.666239432493
     """
     def _repr_(self, simplify=True):
         """
@@ -7065,7 +7065,7 @@ class Function_arcsinh(PrimitiveFunction):
         sage: arcsinh(1/2)
         arcsinh(1/2)
         sage: arcsinh(1 + I*1.0)
-        0.666239432492515*I + 1.061275061905036
+        0.666239432493*I + 1.06127506191
     """
     def _repr_(self, simplify=True):
         """
@@ -7121,7 +7121,7 @@ class Function_arccosh(PrimitiveFunction):
         sage: arccosh(1/2)
         arccosh(1/2)
         sage: arccosh(1 + I*1.0)
-        0.904556894302381*I + 1.061275061905036
+        0.904556894302*I + 1.06127506191
 
     Warning: If the input is real the output will be real or NaN:
         sage: arccosh(0.5)
@@ -7187,7 +7187,7 @@ class Function_arctanh(PrimitiveFunction):
         sage: arctanh(1/2)
         arctanh(1/2)
         sage: arctanh(1 + I*1.0)
-        1.017221967897851*I + 0.402359478108525
+        1.0172219679*I + 0.402359478109
     """
     def _repr_(self, simplify=True):
         return "arctanh"
@@ -7216,11 +7216,11 @@ class Function_arccoth(PrimitiveFunction):
 
     EXAMPLES:
         sage: arccoth(2.)
-        0.549306144334055
+        0.549306144334
         sage: arccoth(2)
         arccoth(2)
         sage: arccoth(1 + I*1.0)
-        0.402359478108525 - 0.553574358897045*I
+        0.402359478109 - 0.553574358897*I
     """
     def _repr_(self, simplify=True):
         return "arccoth"
@@ -7249,11 +7249,11 @@ class Function_arcsech(PrimitiveFunction):
 
     EXAMPLES:
         sage: arcsech(.5)
-        1.316957896924817
+        1.31695789692
         sage: arcsech(1/2)
         arcsech(1/2)
         sage: arcsech(1 + I*1.0)
-        0.530637530952518 - 1.118517879643706*I
+        0.530637530953 - 1.11851787964*I
     """
     def _repr_(self, simplify=True):
         return "arcsech"
@@ -7289,11 +7289,11 @@ class Function_arccsch(PrimitiveFunction):
 
     EXAMPLES:
         sage: arccsch(2.)
-        0.481211825059603
+        0.48121182506
         sage: arccsch(2)
         arccsch(2)
         sage: arccsch(1 + I*1.0)
-        0.530637530952518 - 0.452278447151191*I
+        0.530637530953 - 0.452278447151*I
     """
     def _repr_(self, simplify=True):
         return "arccsch"
@@ -7333,7 +7333,7 @@ class Function_arccos(PrimitiveFunction):
         sage: arccos(1/2)
         pi/3
         sage: arccos(1 + I*1.0)
-        0.904556894302381 - 1.061275061905036*I
+        0.904556894302 - 1.06127506191*I
     """
     def _repr_(self, simplify=True):
         return "arccos"
@@ -7926,7 +7926,7 @@ def polylog(n, z):
         sage: polylog(2,x^2+1)
         polylog(2, x^2 + 1)
         sage: polylog(4,0.5)
-        polylog(4, 0.500000000000000)
+        polylog(4, 0.5)
         sage: float(polylog(4,0.5))
         0.51747906167389934
 
@@ -8791,7 +8791,7 @@ def _find_func(name):
         return function(name)
 
 SR_parser = Parser(make_int      = lambda x: SymbolicConstant(Integer(x)),
-                   make_float    = lambda x: SymbolicConstant(create_RealNumber(x)),
+                   make_float    = lambda x: SymbolicConstant(RealDoubleElement(x)),
                    make_var      = _find_var,
                    make_function = _find_func)
 

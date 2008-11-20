@@ -1139,11 +1139,11 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return res
 
     cpdef RingElement _div_(self, RingElement other):
-        """
+        r"""
         Implement division, checking that the result has the
         right parent. It's not so crucial what the parent actually
         is, but it is crucial that the returned value really is an
-        element of its supposed parent! This fixes trac #4190.
+        element of its supposed parent! This fixes trac \#4190.
 
         EXAMPLES:
             sage: K = NumberField(x^2 - 17, 'a')
@@ -1165,10 +1165,11 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return self._parent.number_field()(x)
 
     def __invert__(self):
-        """
+        r"""
         Implement inversion, checking that the return value has the right parent.
-        See trac #4190.
-        EXAMPLE:
+        See trac \#4190.
+
+        EXAMPLES:
             sage: K = NumberField(x^2 -x + 2, 'a')
             sage: OK = K.ring_of_integers()
             sage: a = OK(K.gen())

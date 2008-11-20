@@ -36,11 +36,6 @@ AUTHORS:
 ##############################################################################
 import math
 
-include '../ext/interrupt.pxi'
-include '../ext/stdsage.pxi'
-include '../ext/cdefs.pxi'
-include '../ext/python.pxi'
-
 import sage.rings.real_double
 import sage.rings.complex_double
 from matrix cimport Matrix
@@ -50,11 +45,13 @@ from sage.modules.free_module_element import vector
 cimport sage.structure.element
 from matrix_space import MatrixSpace
 
+cimport sage.ext.numpy as cnumpy
+
 numpy=None
 scipy=None
 
 # This is for the Numpy C API to work
-import_array()
+cnumpy.import_array()
 
 
 from matrix_complex_double_dense import Matrix_complex_double_dense
@@ -111,10 +108,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: a=matrix(RDF, 3, range(9))
             sage: a.__create_matrix__()
         """
-        cdef npy_intp dims[2]
+        cdef cnumpy.npy_intp dims[2]
         dims[0] = self._nrows
         dims[1] = self._ncols
-        self._matrix_numpy = PyArray_SimpleNew(2, dims, self._numpy_dtypeint)
+        self._matrix_numpy = cnumpy.PyArray_SimpleNew(2, dims, self._numpy_dtypeint)
         return
 
     def __dealloc__(self):
@@ -212,7 +209,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [2.0 + 2.0*I 3.0 + 3.0*I]
         """
         cdef Py_ssize_t i,j
-        cdef npy_intp dims[2]
+        cdef cnumpy.npy_intp dims[2]
         dims[0] = self._nrows
         dims[1] = self._ncols
         if isinstance(entries,(tuple, list)):
@@ -229,7 +226,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
                         self.set_unsafe(i,j,entries[i*self._ncols+j])
 
         else:
-            PyArray_FILLWBYTE(self._matrix_numpy, 0)
+            cnumpy.PyArray_FILLWBYTE(self._matrix_numpy, 0)
 
             if entries is None:
                 z = self._python_dtype(0.0)
@@ -251,7 +248,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Set the (i,j) entry to value without any bounds checking,
         mutability checking, etc.
         """
-        # We assume that Py_ssize_t is the same as npy_intp
+        # We assume that Py_ssize_t is the same as cnumpy.npy_intp
 
         # We must patch the ndarrayobject.h file so that the SETITEM
         # macro does not have a semicolon at the end for this to work.
@@ -265,8 +262,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         # numpy does not know how to deal with complex numbers other
         # than the builtin complex number type.
         cdef int status
-        status = PyArray_SETITEM(self._matrix_numpy,
-                        PyArray_GETPTR2(self._matrix_numpy, i, j),
+        status = cnumpy.PyArray_SETITEM(self._matrix_numpy,
+                        cnumpy.PyArray_GETPTR2(self._matrix_numpy, i, j),
                         self._python_dtype(value))
         #TODO: Throw an error if status == -1
 
@@ -275,9 +272,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Set the (i,j) entry to value without any bounds checking, etc.
         """
-        # We assume that Py_ssize_t is the same as npy_intp
-        return self._sage_dtype(PyArray_GETITEM(self._matrix_numpy,
-                                                PyArray_GETPTR2(self._matrix_numpy, i, j)))
+        # We assume that Py_ssize_t is the same as cnumpy.npy_intp
+        return self._sage_dtype(cnumpy.PyArray_GETITEM(self._matrix_numpy,
+                                                cnumpy.PyArray_GETPTR2(self._matrix_numpy, i, j)))
 
     cdef Matrix_double_dense _new(self, int nrows=-1, int ncols=-1):
         """

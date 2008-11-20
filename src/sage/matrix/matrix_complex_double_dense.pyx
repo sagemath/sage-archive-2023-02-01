@@ -34,6 +34,8 @@ AUTHORS:
 ##############################################################################
 from sage.rings.complex_double import CDF
 
+cimport sage.ext.numpy as cnumpy
+
 numpy=None
 
 cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
@@ -88,7 +90,7 @@ cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
             import numpy
         self._numpy_dtype = numpy.dtype('complex128')
         self._python_dtype = complex
-        self._numpy_dtypeint = NPY_CDOUBLE
+        self._numpy_dtypeint = cnumpy.NPY_CDOUBLE
         # TODO: Make ComplexDoubleElement instead of CDF for speed
         self._sage_dtype = CDF
         self.__create_matrix__()

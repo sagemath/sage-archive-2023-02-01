@@ -32,6 +32,8 @@ AUTHORS:
 ##############################################################################
 from sage.rings.real_double import RDF
 
+cimport sage.ext.numpy as cnumpy
+
 numpy=None
 
 cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
@@ -85,7 +87,7 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
         if numpy is None:
             import numpy
         self._numpy_dtype = numpy.dtype('float64')
-        self._numpy_dtypeint = NPY_DOUBLE
+        self._numpy_dtypeint = cnumpy.NPY_DOUBLE
         self._python_dtype = float
         # TODO: Make RealDoubleElement instead of RDF for speed
         self._sage_dtype = RDF

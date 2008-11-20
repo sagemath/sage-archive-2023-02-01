@@ -163,7 +163,7 @@ sage: a[1]
 2
 
 sage: sympify(1.5)
-1.5
+1.50000000000000
 sage: sympify(2)
 2
 sage: sympify(-2)

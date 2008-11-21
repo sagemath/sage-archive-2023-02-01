@@ -6256,7 +6256,6 @@ class SymbolicComposition(SymbolicOperation):
                 return abs(g) # special case
             else:
                 return fast_float.fast_float_func(f, g)
-        return lambda x: f(g(x))
 
     def __complex__(self):
         """
@@ -6497,6 +6496,43 @@ class PrimitiveFunction(SymbolicExpression):
             1
         """
         return 1
+
+    def _fast_float_(self, *vars):
+        """
+        Returns an object which provides fast floating point evaluation of
+        self.
+
+        See sage.ext.fast_eval? for more information.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_eval import fast_float
+            sage: fast_float(sin)
+            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
+            sage: sin._fast_float_()
+            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
+            sage: sin._fast_float_()(0)
+            0.0
+
+            sage: ff = cos._fast_float_(); ff
+            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
+            sage: ff.is_pure_c()
+            True
+            sage: ff(0)
+            1.0
+
+            sage: ff = erf._fast_float_()
+            sage: ff.is_pure_c()
+            False
+            sage: ff(1.5)
+            0.96610514647531076
+            sage: erf(1.5)
+            0.966105146475311
+        """
+        args = [fast_float.fast_float_arg(n) for n in range(self.number_of_arguments())]
+        try:
+            return self(*args)
+        except TypeError:
+            return fast_float.fast_float_func(self, *args)
 
 _syms = {}
 
@@ -6802,24 +6838,6 @@ class Function_sin(PrimitiveFunction):
                 return math.sin(x)
         return SymbolicComposition(self, SR(x))
 
-    def _fast_float_(self, *vars):
-        """
-        Returns an object which provides fast floating point evaluation of
-        self.
-
-        See sage.ext.fast_eval? for more information.
-
-        EXAMPLES:
-            sage: from sage.ext.fast_eval import fast_float
-            sage: fast_float(sin)
-            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
-            sage: sin._fast_float_()
-            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
-            sage: sin._fast_float_()(0)
-            0.0
-        """
-        return fast_float.fast_float_func(math.sin, fast_float.fast_float_arg(0))
-
 sin = Function_sin()
 _syms['sin'] = sin
 
@@ -6842,25 +6860,6 @@ class Function_cos(PrimitiveFunction):
             if isinstance(x, float):
                 return math.cos(x)
         return SymbolicComposition(self, SR(x))
-
-    def _fast_float_(self, *vars):
-        """
-        Returns an object which provides fast floating point evaluation of
-        self.
-
-        See sage.ext.fast_eval? for more information.
-
-        EXAMPLES:
-            sage: from sage.ext.fast_eval import fast_float
-            sage: fast_float(cos)
-            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
-            sage: cos._fast_float_()
-            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
-            sage: cos._fast_float_()(0)
-            1.0
-        """
-        return fast_float.fast_float_func(math.cos, fast_float.fast_float_arg(0))
-
 
 cos = Function_cos()
 _syms['cos'] = cos

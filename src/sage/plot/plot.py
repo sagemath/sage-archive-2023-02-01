@@ -2158,18 +2158,22 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         from sage.rings.integer import Integer
         options = self.options()
         fill = options['fill']
-        cmap = options['cmap']
+        given_cmap = options['cmap']
         contours = options['contours']
         #cm is the matplotlib color map module
         from matplotlib import cm
+        from matplotlib.colors import LinearSegmentedColormap as C
+        key_error = False
         try:
-            cmap = cm.__dict__[cmap]
+            cmap = cm.__dict__[given_cmap]
         except KeyError:
-            from matplotlib.colors import LinearSegmentedColormap as C
+            key_error = True
+
+        if key_error or not isinstance(cmap, C):
             possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
                                        isinstance(cm.__dict__[x], C)])
             sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level = 0)
-            raise RuntimeError, "Color map %s not known"%cmap
+            raise RuntimeError, "Color map %s not known"%given_cmap
 
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
         y0,y1 = float(self.yrange[0]), float(self.yrange[1])
@@ -2211,17 +2215,21 @@ class GraphicPrimitive_MatrixPlot(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         options = self.options()
-        cmap = options['cmap']
+        given_cmap = options['cmap']
         #cm is the matplotlib color map module
         from matplotlib import cm
+        from matplotlib.colors import LinearSegmentedColormap as C
+        key_error = False
         try:
-            cmap = cm.__dict__[cmap]
+            cmap = cm.__dict__[given_cmap]
         except KeyError:
-            from matplotlib.colors import LinearSegmentedColormap as C
+            key_error = True
+
+        if key_error or not isinstance(cmap, C):
             possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
                                        isinstance(cm.__dict__[x], C)])
             sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
-            raise RuntimeError, "Color map %s not known"%cmap
+            raise RuntimeError, "Color map %s not known"%given_cmap
 
         subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest', extent=(0,self.xrange[1],0,self.yrange[1]))
 
@@ -3129,6 +3137,17 @@ def matrix_plot(mat, **options):
     Another random plot, but over GF(389):
         sage: matrix_plot(random_matrix(GF(389), 10), cmap='Oranges')
 
+    TESTS:
+
+        sage: matrix_plot(random_matrix(RDF, 50), cmap='jolies')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Color map jolies not known
+
+        sage: matrix_plot(random_matrix(RDF, 50), cmap='mpl')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Color map mpl not known
     """
     from sage.matrix.all import is_Matrix
     from matplotlib.numerix import array

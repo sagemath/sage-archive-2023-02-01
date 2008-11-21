@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+cd src
+
+python setup.py install
+
+if [ $? -ne 0 ]; then
+     echo "Try again without tkinter"
+     cp ../patches/setup.py .
+     python setup.py install
+fi

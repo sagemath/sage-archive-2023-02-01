@@ -1,0 +1,2 @@
+=== pil-1.1.6 (William Stein, November, 2008) ===
+  * initial version, straight from website with no changes

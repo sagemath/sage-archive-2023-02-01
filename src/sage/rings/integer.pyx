@@ -121,6 +121,10 @@ cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
     cdef long mpz_pythonhash(mpz_t src)
 
+cdef extern from "mpz_longlong.h":
+    cdef void mpz_set_longlong(mpz_t dst, long long src)
+    cdef void mpz_set_ulonglong(mpz_t dst, unsigned long long src)
+
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
 
@@ -150,37 +154,6 @@ cdef set_from_int(Integer self, int other):
 
 cdef public mpz_t* get_value(Integer self):
     return &self.value
-
-
-cdef bint mpz_set_longlong(mpz_t dst, long long src) except -1:
-    cdef int a = 1
-    cdef mp_limb_t* limbs
-    if sizeof(long long) == sizeof(mp_limb_t):
-        mpz_set_si(dst, <long>src)
-    elif sizeof(long long) == 2*sizeof(mp_limb_t):
-        if (<long>src) == src:
-            mpz_set_si(dst, <long>src)
-        else:
-            _mpz_realloc(dst, 2)
-            if src < 0:
-                (<__mpz_struct*>dst)._mp_size = -2
-                src = -src
-            else:
-                (<__mpz_struct*>dst)._mp_size = 2
-            limbs = <mp_limb_t*>&src
-            if (<char*>&a)[0]:
-                # little endian
-                (<__mpz_struct*>dst)._mp_d[0] = limbs[0]
-                (<__mpz_struct*>dst)._mp_d[1] = limbs[1]
-            else:
-                # big endian
-                (<__mpz_struct*>dst)._mp_d[0] = limbs[1]
-                (<__mpz_struct*>dst)._mp_d[1] = limbs[0]
-            if not (<__mpz_struct*>dst)._mp_d[1]:
-                (<__mpz_struct*>dst)._mp_size /= 2
-    else:
-        # Any self-respecting compiler will optimize this away if it's not needed.
-        raise TypeError, "Can't assign a long long to an mpz_t: sizeof(long long)=%s sizeof(mp_limb_t)=%s" % (sizeof(long long), sizeof(mp_limb_t))
 
 
 def _test_mpz_set_longlong(long long v):

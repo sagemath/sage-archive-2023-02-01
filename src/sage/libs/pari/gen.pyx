@@ -382,7 +382,13 @@ cpdef _normalize_slice(s, size):
         [1, 2, 3, 4, 5, 6, 7, 8]
         sage: ns(slice(1,-1,3),10)
         [1, 4, 7]
+
+        sage: ns(slice(1,20,3), 0)
+        []
     """
+    if not size:
+        return []
+
     # check start
     i = int(s.start) if s.start is not None else 0
     if i < 0:
@@ -783,6 +789,8 @@ cdef class gen(sage.structure.element.RingElement):
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
             sage: v[5:]
             [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            sage: pari([])[::]
+            []
         """
         cdef int pari_type
 

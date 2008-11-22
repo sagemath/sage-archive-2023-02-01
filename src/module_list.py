@@ -797,10 +797,6 @@ ext_modules = [ \
               sources = ['sage/rings/rational.pyx'],
               libraries=['ntl', 'gmp']), \
 
-    Extension('sage.rings.sparse_poly',
-              sources = ['sage/rings/sparse_poly.pyx'],
-              libraries=['gmp']), \
-
     Extension('sage.rings.polynomial.polydict',
               sources = ['sage/rings/polynomial/polydict.pyx']), \
 

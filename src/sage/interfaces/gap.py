@@ -748,6 +748,45 @@ class Gap(Expect):
         """
         return GapFunctionElement
 
+    def function_call(self, function, args=None, kwds=None):
+        """
+        Calls the GAP function with args and kwds.
+
+        EXAMPLES:
+            sage: gap.function_call('SymmetricGroup', [5])
+            SymmetricGroup( [ 1 .. 5 ] )
+
+        If the GAP function does not return a value, but prints something
+        to the screen, then a string of the printed output is returned.
+            sage: s = gap.function_call('Display', [gap.SymmetricGroup(5).CharacterTable()])
+            sage: type(s)
+            <class 'sage.interfaces.expect.AsciiArtString'>
+            sage: s.startswith('CT')
+            True
+
+        """
+        args, kwds = self._convert_args_kwds(args, kwds)
+        self._check_valid_function_name(function)
+
+        #Here we have to do some magic because not all GAP
+        #functions return a value.  If you try to store their
+        #results to a variable, then GAP will complain.  Thus, before
+        #we evaluate the function, we make it so that the marker string
+        #is in the 'last' variable in GAP.  If the function returns a
+        #value, then that value will be in 'last', otherwise it will
+        #be the marker.
+        marker = '"__SAGE_LAST__"'
+        self.eval('$__SAGE_LAST__ := %s;;'%marker)
+        res = self.eval("%s(%s)"%(function, ",".join([s.name() for s in args]+
+                                                     ['%s=%s'%(key,value.name()) for key, value in kwds.items()])))
+
+        if gap.eval('last') != marker:
+            return self.new('last')
+        else:
+            if res.strip():
+                from sage.interfaces.expect import AsciiArtString
+                return AsciiArtString(res)
+
     def trait_names(self):
         """
         EXAMPLES:

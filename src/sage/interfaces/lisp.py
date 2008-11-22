@@ -363,26 +363,19 @@ class Lisp(Expect):
         """
         raise NotImplementedError
 
-    def function_call(self, function, args=[], kwds={}):
+    def function_call(self, function, args=None, kwds=None):
         """
+        Calls the Lisp function with given args and kwds.
+        For Lisp functions, the kwds are ignored.
+
         EXAMPLES:
             sage: lisp.function_call('sin', ['2'])
             0.9092974
             sage: lisp.sin(2)
             0.9092974
         """
-        if function == '':
-            raise ValueError, "function name must be nonempty"
-        if function[:2] == "__":
-            raise AttributeError
-        if not isinstance(args, list):
-            args = [args]
-        for i in range(len(args)):
-            if not isinstance(args[i], LispElement):
-                args[i] = self.new(args[i])
-        for key, value in kwds.items():
-            if not isinstance(args[i], LispElement):
-                kwds[key] = self.new(value)
+        args, kwds = self._convert_args_kwds(args, kwds)
+        self._check_valid_function_name(function)
         return self.new("(%s %s)"%(function, ",".join([s.name() for s in args])))
 
 class LispElement(ExpectElement):

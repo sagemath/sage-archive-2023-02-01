@@ -233,9 +233,8 @@ Polynomials:
     sage: a = lie('X[1,2] - 2*X[2,1]') # optional
     sage: b = a.sage(); b # optional
     -2*x0^2*x1 + x0*x1^2
-    sage: is_MPolynomial(b) # optional
-    True
-
+    sage: type(b)
+    <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
 
 Text:
 
@@ -246,10 +245,10 @@ Text:
     <type 'str'>
 
 
-LiE can be programmed using the SAGE interface as well. Section 5.1.5
+LiE can be programmed using the Sage interface as well. Section 5.1.5
 of the manual gives an example of a function written in LiE's language
 which evaluates a polynomial at a point.  Below is a (roughly) direct
-translation of that program into Python / SAGE.
+translation of that program into Python / Sage.
 
     sage: def eval_pol(p, pt): # optional
     ...       s = 0
@@ -682,7 +681,7 @@ class LiE(Expect):
         """
         raise NotImplementedError
 
-    def function_call(self, function, args=[], kwds={}):
+    def function_call(self, function, args=None, kwds=None):
         """
         EXAMPLES:
             sage: lie.function_call("diagram", args=['A4'])  #optional -- requires LiE
@@ -690,18 +689,11 @@ class LiE(Expect):
             1   2   3   4
             A4
         """
-        #Handle the functions that do not return a value that can
-        #be assigned to a variable
-        for i in range(len(args)):
-            if not isinstance(args[i], LiEElement):
-                args[i] = self.new(args[i])
-        for key, value in kwds.iteritems():
-            kwds[key] = self.new(value)
-
         #If function just prints something on the screen rather than
         #returning an object, then we return an AsciiArtString rather
         #than a LiEElement
         if function in ['diagram', 'setdefault', 'print_tab', 'type', 'factor', 'void', 'gcol']:
+            args, kwds = self._convert_args_kwds(args, kwds)
             cmd = "%s(%s)"%(function, ",".join([s.name() for s in args]))
             return AsciiArtString(self.eval(cmd))
 

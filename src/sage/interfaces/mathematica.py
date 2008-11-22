@@ -375,12 +375,8 @@ remote connection to a server running Mathematica -- for hints, type
              allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt)
         return str(s).strip('\n')
 
-    def function_call(self, function, args=[]):
-        if not isinstance(args, list):
-            args = [args]
-        for i in range(len(args)):
-            if not isinstance(args[i], ExpectElement):
-                args[i] = self.new(args[i])
+    def function_call(self, function, args=None, kwds=None):
+        args, kwds = self._convert_args_kwds(args, kwds)
         return self.new("%s[%s]"%(function, ",".join([s.name() for s in args])))
 
     def _left_list_delim(self):

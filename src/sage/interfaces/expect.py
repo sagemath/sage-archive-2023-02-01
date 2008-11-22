@@ -1146,7 +1146,59 @@ If this all works, you can then make calls like:
         """
         return FunctionElement
 
-    def function_call(self, function, args=[], kwds={}):
+    def _convert_args_kwds(self, args=None, kwds=None):
+        """
+        Converts all of the args and kwds to be elements of this
+        interface.
+
+        EXAMPLES:
+            sage: args = [5]
+            sage: kwds = {'x': 6}
+            sage: args, kwds = gap._convert_args_kwds(args, kwds)
+            sage: args
+            [5]
+            sage: map(type, args)
+            [<class 'sage.interfaces.gap.GapElement'>]
+            sage: type(kwds['x'])
+            <class 'sage.interfaces.gap.GapElement'>
+        """
+        args = [] if args is None else args
+        kwds = {} if kwds is None else kwds
+        if not isinstance(args, list):
+            args = [args]
+        for i, arg in enumerate(args):
+            if not isinstance(arg, ExpectElement) or arg.parent() is not self:
+                args[i] = self(arg)
+        for key, value in kwds.iteritems():
+            if not isinstance(value, ExpectElement) or value.parent() is not self:
+                kwds[key] = self(value)
+
+        return args, kwds
+
+    def _check_valid_function_name(self, function):
+        """
+        Checks to see if function is a valid function
+        name in this interface.  If it is not, an exception is raised.
+        Otherwise, nothing is done.
+
+        EXAMPLES:
+            sage: gap._check_valid_function_name('SymmetricGroup')
+            sage: gap._check_valid_function_name('')
+            Traceback (most recent call last):
+            ...
+            ValueError: function name must be nonempty
+            sage: gap._check_valid_function_name('__foo')
+            Traceback (most recent call last):
+            ...
+            AttributeError
+
+        """
+        if function == '':
+            raise ValueError, "function name must be nonempty"
+        if function[:2] == "__":
+            raise AttributeError
+
+    def function_call(self, function, args=None, kwds=None):
         """
         EXAMPLES:
             sage: maxima.quad_qags(x, x, 0, 1, epsrel=1e-4)
@@ -1154,18 +1206,8 @@ If this all works, you can then make calls like:
             sage: maxima.function_call('quad_qags', [x, x, 0, 1], {'epsrel':'1e-4'})
             [0.5,5.5511151231257...E-15,21,0]
         """
-        if function == '':
-            raise ValueError, "function name must be nonempty"
-        if function[:2] == "__":
-            raise AttributeError
-        if not isinstance(args, list):
-            args = [args]
-        for i in range(len(args)):
-            if not isinstance(args[i], ExpectElement):
-                args[i] = self.new(args[i])
-        for key, value in kwds.iteritems():
-            kwds[key] = self.new(value)
-
+        args, kwds = self._convert_args_kwds(args, kwds)
+        self._check_valid_function_name(function)
         return self.new("%s(%s)"%(function, ",".join([s.name() for s in args]+
                                                      ['%s=%s'%(key,value.name()) for key, value in kwds.items()])))
 

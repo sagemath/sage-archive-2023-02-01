@@ -738,16 +738,12 @@ class Magma(Expect):
             RuntimeError: Error evaluating Magma code...
             Runtime error in :=: Expected to assign 3 value(s) but only computed 2 value(s)
         """
-        if not isinstance(args, list):
-            args = [args]
-        for i in range(len(args)):
-            if not isinstance(args[i], MagmaElement) or args[i].parent() is not self:
-                args[i] = self(args[i])
+        args, params = self._convert_args_kwds(args, params)
         nvals = int(nvals)
         if len(params) == 0:
             par = ''
         else:
-            par = ' : ' + ','.join(['%s:=%s'%(a,self(b)) for a,b in params.items()])
+            par = ' : ' + ','.join(['%s:=%s'%(a,b) for a,b in params.items()])
 
         fun = "%s(%s%s)"%(function, ",".join([s.name() for s in args]), par)
 

@@ -1334,13 +1334,21 @@ class LinearCode(module.Module):
             True
             sage: C1.is_permutation_equivalent(C2,method="verbose")
             (True, (4,6,5,7))
+            sage: C1 = RandomLinearCode(10,5,GF(2))
+            sage: C2 = RandomLinearCode(10,5,GF(3))
+            sage: C1.is_permutation_equivalent(C2)
+            False
 
         """
         from sage.groups.perm_gps.partn_ref.refinement_binary import NonlinearBinaryCodeStruct
         F = self.base_ring()
+        F_o = other.base_ring()
         q = F.order()
         G = self.gen_mat()
-        n = len(G.columns())
+        n = self.length()
+        n_o = other.length()
+        if F != F_o or n != n_o:
+            return False
         k = len(G.rows())
         MS = MatrixSpace(F,q**k,n)
         CW1 = MS(self.list())
@@ -1580,6 +1588,21 @@ class LinearCode(module.Module):
             Permutation Group with generators [(1,2)(3,4), (1,3)(2,4)]
             sage: C.permutation_automorphism_group(method="gap")
             Permutation Group with generators [(1,2)(3,4), (1,3)(2,4)]
+            sage: C = TernaryGolayCode()
+            sage: C.permutation_automorphism_group(method="gap")
+            Permutation Group with generators [(3,4)(5,7)(6,9)(8,11), (3,5,8)(4,11,7)(6,9,10), (2,3)(4,6)(5,8)(7,10), (1,2)(4,11)(5,8)(9,10)]
+
+        However, the option \code{method="gap+verbose"}, will print out
+
+             Minimum distance: 5
+             Weight distribution:
+             [1, 0, 0, 0, 0, 132, 132, 0, 330, 110, 0, 24]
+
+             Using the 132 codewords of weight 5
+             Supergroup size:
+             39916800
+
+        in addition to the output of C.permutation_automorphism_group(method="gap").
 
         """
         F = self.base_ring()
@@ -1594,7 +1617,7 @@ class LinearCode(module.Module):
         wts = self.spectrum()                                            # bottleneck 1
         nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
         Sn = SymmetricGroup(n)
-        if method=="gap":
+        if "gap" in method:
             Gp = gap("SymmetricGroup(%s)"%n)               # initializing G in gap
             Gstr = str(gap(G))
             gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")

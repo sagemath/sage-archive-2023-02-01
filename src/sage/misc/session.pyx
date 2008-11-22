@@ -11,11 +11,14 @@ verify that it is listed as a newly defined variable:
     sage: show_identifiers()
     ['w']
 
-We next save this session.
-    sage: save_session('session')
+We next save this session. We are using a file in SAGE_TMP. We do this
+\emph{for testing} only --- please do not do this, when you want to
+save your session permanently, since SAGE_TMP will be removed when
+leaving Sage!
+    sage: save_session(SAGE_TMP+'session')
 
 This saves a dictionary with $w$ as one of the keys:
-    sage: z = load('session.sobj')
+    sage: z = load(SAGE_TMP+'session')
     sage: z.keys()
     ['w']
     sage: z['w']
@@ -25,7 +28,7 @@ Next we reset the session, verify this, and load the session back.
     sage: reset()
     sage: show_identifiers()
     []
-    sage: load_session('session')
+    sage: load_session(SAGE_TMP+'session')
 
 Indeed $w$ is now defined again.
     sage: show_identifiers()
@@ -33,9 +36,8 @@ Indeed $w$ is now defined again.
     sage: w
     2/3
 
-We clean up the file created in the above code.
-    sage: os.unlink('session.sobj')
-
+It is not needed to clean up the file created in the above code, since it
+resides in the directory SAGE_TMP.
 
 
 AUTHOR:
@@ -200,27 +202,28 @@ def save_session(name='sage_session', verbose=False):
                 why certain variables can't be saved.
 
     OUTPUT:
-        creates a files
+        creates a file
 
     EXAMPLES:
+    For testing, we use a temporary file, that will be removed as soon
+    as Sage is left. Of course, for permanently saving your session,
+    you should choose a permanent file.
         sage: a = 5
-        sage: save_session('session')
+        sage: tmp_f = tmp_filename()
+        sage: save_session(tmp_f)
         sage: del a
-        sage: load_session('session')
+        sage: load_session(tmp_f)
         sage: print a
         5
 
     We illustrate what happens when one of the variables is a function.
         sage: f = lambda x : x^2
-        sage: save_session('session')
-        sage: save_session('session', verbose=True)
+        sage: save_session(tmp_f)
+        sage: save_session(tmp_f, verbose=True)
         Saving...
         Not saving f: f is a function
         ...
 
-
-    Clean up the session file we just wrote to disk.
-        sage: os.unlink('session.sobj')
     """
     state = caller_locals()
     # This dict D will contain the session -- as a dict -- that we will save to disk.
@@ -269,9 +272,14 @@ def load_session(name='sage_session', verbose=False):
     EXAMPLES:
         sage: a = 5
         sage: f = lambda x: x^2
-        sage: save_session('session')
+
+    For testing, we use a temporary file, that will be removed as soon
+    as Sage is left. Of course, for permanently saving your session,
+    you should choose a permanent file.
+        sage: tmp_f = tmp_filename()
+        sage: save_session(tmp_f)
         sage: del a; del f
-        sage: load_session('session')
+        sage: load_session(tmp_f)
         sage: print a
         5
 
@@ -280,7 +288,6 @@ def load_session(name='sage_session', verbose=False):
         Traceback (most recent call last):
         ...
         NameError: name 'f' is not defined
-        sage: os.unlink('session.sobj')
     """
     state = caller_locals()
 

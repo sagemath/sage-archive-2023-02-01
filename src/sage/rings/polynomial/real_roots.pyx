@@ -165,7 +165,8 @@ cdef extern from "qd/fpu.h":
 include "../../ext/cdefs.pxi"
 include "../../ext/gmp.pxi"
 include "../../gsl/gsl.pxi"
-include "../mpfr.pxi"
+
+from sage.libs.mpfr cimport *
 
 cdef class interval_bernstein_polynomial:
     """

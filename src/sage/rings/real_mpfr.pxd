@@ -2,7 +2,8 @@ cdef extern from "stdlib.h":
     ctypedef int size_t
     void free(void *ptr)
 
-include 'mpfr.pxi'
+from sage.libs.mpfr cimport *
+
 include '../ext/cdefs.pxi'
 include '../libs/pari/decl.pxi'
 

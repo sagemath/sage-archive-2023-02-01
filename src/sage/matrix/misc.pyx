@@ -8,7 +8,8 @@ of several classes, and we want to avoid circular cimports.
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
-include "../rings/mpfr.pxi"
+
+from sage.libs.mpfr cimport *
 
 include '../modules/binary_search.pxi'
 include '../modules/vector_integer_sparse_h.pxi'
@@ -18,9 +19,6 @@ include '../modules/vector_rational_sparse_c.pxi'
 include '../modules/vector_modn_sparse_h.pxi'
 include '../modules/vector_modn_sparse_c.pxi'
 
-# mod_int isn't defined in stdio.h -- this is to fool SageX.
-# cdef extern from "stdio.h":
-#     ctypedef int mod_int
 cdef extern from "../ext/multi_modular.h":
     ctypedef unsigned long mod_int
     mod_int MOD_INT_OVERFLOW

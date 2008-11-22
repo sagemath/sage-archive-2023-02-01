@@ -1,5 +1,6 @@
 include '../ext/cdefs.pxi'
-include 'mpfr.pxi'
+
+from sage.libs.mpfr cimport *
 
 cimport sage.structure.element
 cimport real_mpfr

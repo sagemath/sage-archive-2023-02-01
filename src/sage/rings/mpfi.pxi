@@ -1,4 +1,5 @@
-include 'mpfr.pxi'
+from sage.libs.mpfr cimport *
+
 include '../ext/cdefs.pxi'
 
 cdef extern from "mpfi.h":

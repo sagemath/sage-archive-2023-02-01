@@ -1,6 +1,9 @@
 include "../../ext/stdsage.pxi"
 include "../../ext/interrupt.pxi"
 
+from python_int cimport PyInt_AS_LONG
+from python_float cimport PyFloat_AS_DOUBLE
+
 from sage.structure.parent cimport Parent
 from polynomial_element cimport Polynomial
 from sage.rings.real_mpfr cimport RealField, RealNumber

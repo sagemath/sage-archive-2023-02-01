@@ -124,9 +124,6 @@ cdef extern from "mpz_pylong.h":
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
 
-cdef extern from *:
-    cdef void mpz_swap(mpz_t a, mpz_t b)
-
 cdef extern from "math.h":
     cdef double log_c "log" (double)
     cdef double ceil_c "ceil" (double)

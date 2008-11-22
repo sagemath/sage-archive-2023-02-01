@@ -6,9 +6,9 @@
 # The C compiler doesn't see any of this -- it only sees mpfr.h and stdlib.h
 #*****************************************************************************
 
+from sage.libs.gmp.all cimport mp_exp_t, mpz_t, mpq_t
+
 cdef extern from "mpfr.h":
-    ctypedef void* mpq_t
-    ctypedef void* mpz_t
     ctypedef struct __mpfr_struct:
         pass
 
@@ -25,7 +25,6 @@ cdef extern from "mpfr.h":
         GMP_RNDNA = -1
 
     ctypedef mpfr_rnd_t mp_rnd_t
-    ctypedef long int mp_exp_t
     ctypedef long mp_prec_t
 
     int MPFR_PREC_MIN, MPFR_PREC_MAX

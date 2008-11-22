@@ -114,9 +114,6 @@ cdef public int py_get_parent_char(object o) except *:
 # Binomial Coefficients
 #################################################################
 
-cdef extern from "gmp.h":
-    void mpz_bin_uiui(mpz_t, unsigned int, unsigned int)
-
 # We declare the functions defined below as extern here, to prevent Cython
 # from generating separate declarations for them which confuse g++
 cdef extern from *:

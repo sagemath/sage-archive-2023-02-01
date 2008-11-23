@@ -60,7 +60,7 @@ def derivative(f, *args, **kwds):
     """
     The derivative of $f$.
 
-    Repeated differentation is supported by the syntax given in the
+    Repeated differentiation is supported by the syntax given in the
     examples below.
 
     ALIAS:

@@ -84,7 +84,7 @@ def desolve(de, dvar, ics=None, ivar=None):
     """
     if isinstance(de, SymbolicEquation):
         de = de.lhs() - de.rhs()
-    # for backwards compatability
+    # for backwards compatibility
     if isinstance(dvar, list):
         dvar, ivar = dvar
     elif ivar is None:
@@ -149,7 +149,7 @@ def desolve(de, dvar, ics=None, ivar=None):
 
 ##     AUTHOR: David Joyner (1st version 1-2006, 8-2007)
 ##     """
-#    ######## this method seems reasonable but doesnt work for some reason
+#    ######## this method seems reasonable but doesn't work for some reason
 #    name0 = vars[0]._repr_()[0:(len(vars[0]._repr_())-2-len(str(vars[1])))]
 #    name1 = str(vars[1])
 #    #maxima("de:"+de+";")
@@ -189,7 +189,7 @@ def desolve_laplace(de,vars,ics=None):
          'x*%e^x+%e^x'
 
     WARNING:
-        The second SAGE command in the above example sets the values of f(0) and f'(0)
+        The second Sage command in the above example sets the values of f(0) and f'(0)
         in Maxima, so subsequent ODEs involving these variables will have these initial conditions
         automatically imposed.
 

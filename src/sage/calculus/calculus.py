@@ -432,7 +432,7 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
             sage: is_SymbolicExpression(SR(I))
             True
 
-        If $a$ is already in the symblic expression ring, coercing returns
+        If $a$ is already in the symbolic expression ring, coercing returns
         $a$ itself (not a copy):
             sage: SR(a) is a
             True
@@ -472,7 +472,7 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
             return x
         elif isinstance(x, MaximaElement):
             return symbolic_expression_from_maxima_element(x)
-        # if "x" is a SymPy object, convert it to a SAGE object
+        # if "x" is a SymPy object, convert it to a Sage object
         elif is_Polynomial(x) or is_MPolynomial(x):
             if x.base_ring() != self:  # would want coercion to go the other way
                 return SymbolicPolynomial(x)
@@ -1083,7 +1083,7 @@ class SymbolicExpression(RingElement):
             sage: cmp(SR(5), SR(2))
             1
 
-        Note that specifiec comparison operators do not call cmp.
+        Note that specific comparison operators do not call cmp.
             sage: SR(3) < SR(5)
             3 < 5
             sage: bool(SR(3) < SR(5))
@@ -1728,7 +1728,7 @@ class SymbolicExpression(RingElement):
         base ring, if possible.
 
         The point of this function is that it converts purely symbolic
-        polynomials into optimized algebraic polynomials over a given
+        polynomials into optimised algebraic polynomials over a given
         base ring.
 
         WARNING: This is different from \code{self.poly(x)} which is used
@@ -2027,7 +2027,7 @@ class SymbolicExpression(RingElement):
         args = derivative_parse(args)
 
         if not args:
-            # no differentation taking place
+            # no differentiation taking place
             return self
 
         # check all variables are really variables
@@ -2048,7 +2048,7 @@ class SymbolicExpression(RingElement):
                 if arg is not None and arg is not vars[0]:
                     return self.parent()(0)
 
-            # otherwise we're differentating with respect to that
+            # otherwise we're differentiating with respect to that
             # variable n times (each None may be assumed to correspond
             # to that variable).
             t = maxima('diff(%s, %s, %d)' % (self._maxima_().name(), repr(vars[0]), len(args)))
@@ -2710,7 +2710,7 @@ class SymbolicExpression(RingElement):
 
 
     ###################################################################
-    # Manipulating epxressions
+    # Manipulating expressions
     ###################################################################
     def coefficient(self, x, n=1):
         """
@@ -3264,7 +3264,7 @@ class SymbolicExpression(RingElement):
 
         NOTE: Expressions always print simplified; a simplified
         expression is distinguished because the way it prints agrees
-        with its underlyilng representation.
+        with its underlying representation.
 
         OUTPUT:
             symbolic expression -- a simplified symbolic expression
@@ -3770,7 +3770,7 @@ class SymbolicExpression(RingElement):
     ###################################################################
     def subs_expr(self, *equations):
         """
-        Given a dictionary of key:value pairs, substitute all occurences
+        Given a dictionary of key:value pairs, substitute all occurrences
         of key for value in self.
 
         WARNING: This is a formal pattern substitution, which may or
@@ -5048,7 +5048,7 @@ class SymbolicArithmetic(SymbolicOperation):
         op = self._operator
         s = [x._repr_(simplify=simplify) for x in ops]
 
-        # if an operand is a rational number, trick SAGE into thinking it's an
+        # if an operand is a rational number, trick Sage into thinking it's an
         # operation
         li = []
         for o in ops:
@@ -5231,7 +5231,7 @@ class SymbolicArithmetic(SymbolicOperation):
 
         # In order to make this more robust, one would have to implement
         # _sympy_ recursively in all expressions, but that would pollute Sage
-        # quite a lot, and currently this oneliner does the job and it's easy
+        # quite a lot, and currently this one-liner does the job and it's easy
         # to understand.
         from sympy import sympify
         from sage.all import preparse
@@ -5579,7 +5579,7 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
 
     def _an_element_impl(self):
         """
-        Return an element of the ring of callabel symbolic expressions.
+        Return an element of the ring of callable symbolic expressions.
         This is used by the coercion model.
 
         EXAMPLES:
@@ -5781,7 +5781,7 @@ class CallableSymbolicExpression(SymbolicExpression):
     def __call__(self, *args,**kwargs):
         """
         Calling a callable symbolic expression returns a symbolic expression with the
-        approriate arguments substituted.
+        appropriate arguments substituted.
 
         EXAMPLES:
             sage: var('a, x, y, z')
@@ -8675,7 +8675,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         is_simplified = True
         return symbolic_expression_from_string(s, syms, accept_sequence=True)
     except SyntaxError:
-        raise TypeError, "unable to make sense of Maxima expression '%s' in SAGE"%s
+        raise TypeError, "unable to make sense of Maxima expression '%s' in Sage"%s
     finally:
         is_simplified = False
 

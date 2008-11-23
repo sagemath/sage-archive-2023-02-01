@@ -86,7 +86,7 @@ True
 sage: restore('x')
 
 sage: # (YES -- Maxima doesn't consider them equal,
-sage: # but SAGE does additional testing to show that they are)
+sage: # but Sage does additional testing to show that they are)
 sage: # (Exp(x)-1)/(Exp(x/2)+1)=Exp(x/2)-1.
 sage: f = (exp(x)-1)/(exp(x/2)+1)
 sage: g = exp(x/2)-1
@@ -215,7 +215,7 @@ sage: h = f-g
 sage: print h.trig_simplify()
                                        0
 sage: # (NO) Define rewrite rules to match  Cos(3*x)/Cos(x)=Cos(x)^2-3*Sin(x)^2.
-sage: # SAGE has no notion of "rewrite rules".
+sage: # Sage has no notion of "rewrite rules".
 
 
 sage: # (YES) Sqrt(997)-(997^3)^(1/6)=0

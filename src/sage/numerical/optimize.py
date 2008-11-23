@@ -403,3 +403,140 @@ def linear_program(c,G,h,A=None,b=None):
     z=vector(RDF,list(sol['z']))
     return  {'x':x,'s':s,'y':y,'z':z}
 
+
+def find_fit(data, model, initial_guess = None, parameters = None, variables = None, solution_dict = False):
+    r"""
+    Finds numerical estimates for the parameters of the function model to give a best fit to data.
+
+    INPUT:
+       data - A two dimensional table of floating point numbers of the form
+              [[x_{1,1}, x_{1,2}, \ldots, x_{1,k}, f_1],
+               [x_{2,1}, x_{2,2}, \ldots, x_{2,k}, f_2],
+               \ldots,
+               [x_{n,1}, x_{n,2}, \ldots, x_{n,k}, f_n]]
+              given as either a list of lists, matrix, or numpy array.
+
+       model - Either a symbolic expression, symbolic function, or a Python function.
+               model hast to be a function of the variables (x_1, x_2, \ldots, x_k) and
+               free parameters (a_1, a_2, \ldots, a_l).
+
+       initial_guess - (default: None) Initial estimate for the parameters (a_1, a_2, \ldots, a_l),
+                       given as either a list, tuple, vector or numpy array.
+                       If None the default estimate for each parameter is 1.
+
+       parameters - (default: None) A list of the parameters (a_1, a_2, \ldots, a_l),
+                    If model is a symbolic function it is ignored, and the free parameters
+                    of the symbolic function are used.
+
+       variables - (default: None) A list of the variables (x_1, x_2, \ldots, x_k).
+                   If model is a symbolic function it is ignored, and the variables of
+                   the symbolic function are used.
+
+       solution_dict - (default: False) if True, return the solution
+                       as a dictionary rather than an equation.
+
+      EXAMPLES:
+        First we create some datapoints of a sine function with some random perturbations:
+          sage: data = [(i, 1.2 * sin(0.5*i-0.2) + 0.1 * normalvariate(0, 1)) for i in xsrange(0, 4*pi, 0.2)]
+          sage: var('a, b, c, x')
+          (a, b, c, x)
+
+        We define a function with free parameters $a$, $b$ and $c$:
+          sage: model(x) = a * sin(b * x - c)
+
+        We search for the parameters that give the best fit to the data:
+          sage: find_fit(data, model)
+          [a == 1.21..., b == 0.49..., c == 0.19...]
+
+        We can also use a python function for the model:
+          sage: def f(x, a, b, c): return a * sin(b * x - c)
+          sage: find_fit(data, f, parameters = [a, b, c], variables = [x], solution_dict = True)
+          {a: 1.21..., c: 0.19..., b: 0.49...}
+
+        We search for a formula for the n-th prime number:
+          sage: dataprime = [(i, nth_prime(i)) for i in xrange(1, 5000, 100)]
+          sage: find_fit(dataprime, a * x * log(b * x), parameters = [a, b], variables = [x])
+          [a == 1.11..., b == 1.24...]
+
+      ALGORITHM: Uses scipy.optimize.leastsq which in turn uses MINPACK’s lmdif and lmder algorithms.
+    """
+    import numpy
+
+    if not isinstance(data, numpy.ndarray):
+        try:
+            data = numpy.array(data, dtype = float)
+        except (ValueError, TypeError):
+            raise TypeError, "data has to be a list of lists, a matrix, or a numpy array"
+    elif data.dtype == object:
+        raise ValueError, "the entries of data have to be of type float"
+
+    if data.ndim != 2:
+        raise ValueError, "data has to be a two dimensional table of floating point numbers"
+
+    from sage.calculus.calculus import SymbolicExpression, CallableSymbolicExpression
+    if isinstance(model, CallableSymbolicExpression):
+        parameters = list(model.variables())
+        variables = list(model.arguments())
+        for v in variables:
+            parameters.remove(v)
+
+    if data.shape[1] != len(variables) + 1:
+        raise ValueError, "each row of data needs %d entries, only %d entries given" % (len(variables) + 1, data.shape[1])
+
+    if parameters == None or len(parameters) == 0 or \
+       variables == None or len(variables) == 0:
+        raise ValueError, "no variables given"
+
+    if initial_guess == None:
+        initial_guess = len(parameters) * [1]
+
+    if not isinstance(initial_guess, numpy.ndarray):
+        try:
+            initial_guess = numpy.array(initial_guess, dtype = float)
+        except (ValueError, TypeError):
+            raise TypeError, "initial_guess has to be a list, tuple, or numpy array"
+    elif initial_guess.dtype == object:
+        raise ValueError, "the entries of initial_guess have to be of type float"
+
+    if len(initial_guess) != len(parameters):
+        raise ValueError, "length of initial_guess does not coinside with the number of parameters"
+
+    if isinstance(model, SymbolicExpression):
+        var_list = variables + parameters
+        var_names = map(str, var_list)
+        func = model._fast_float_(*var_names)
+    else:
+        func = model
+
+    def function(x_data, params):
+        result = numpy.zeros(len(x_data))
+        for row in xrange(len(x_data)):
+            fparams = numpy.hstack((x_data[row], params)).tolist()
+            result[row] = func(*fparams)
+        return result
+
+    def error_function(params, x_data, y_data):
+        result = numpy.zeros(len(x_data))
+        for row in xrange(len(x_data)):
+            fparams = x_data[row].tolist() + params.tolist()
+            result[row] = func(*fparams)
+        return result - y_data
+
+    x_data = data[:, 0:len(variables)]
+    y_data = data[:, -1]
+
+    from scipy.optimize import leastsq
+    estimated_params, d = leastsq(error_function, initial_guess, args = (x_data, y_data))
+
+    if isinstance(estimated_params, float):
+        estimated_params = [estimated_params]
+    else:
+        estimated_params = estimated_params.tolist()
+
+    if solution_dict:
+       dict = {}
+       for item in zip(parameters, estimated_params):
+           dict[item[0]] = item[1]
+       return dict
+
+    return [item[0] == item[1] for item in zip(parameters, estimated_params)]

@@ -901,6 +901,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p = 37 * (x-2/3)^2
             sage: p.squarefree_decomposition()
             (37) * (x - 2/3)^2
+            sage: x = polygen(GF(3))
+            sage: x.squarefree_decomposition()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Squarefree decomposition not implemented for Univariate Polynomial Ring in x over Finite Field of size 3
         """
 
         # Wikipedia says this works for arbitrary fields of
@@ -936,16 +941,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_square(self, root=False):
         """
-        Returns whether or not polynomial is square, and if it is a
-        square also returns the square root.  If it is not square, also
-        returns None.
-
+        Returns whether or not polynomial is square.  If the optional
+        argument root is True, then also returns the square root (or
+        None, if the polynomial is not square).
 
         INPUT:
             root -- whether or not to also return a square root (default: False)
         OUTPUT:
             bool -- whether or not a square
-            object -- (optional) an actual square if found, and None otherwise.
+            object -- (optional) an actual square root if found, and None otherwise.
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)

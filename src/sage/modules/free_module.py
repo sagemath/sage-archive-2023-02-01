@@ -2264,7 +2264,7 @@ class FreeModule_generic_pid(FreeModule_generic):
              NotImplementedError: echelon form over Univariate Polynomial Ring in x over Rational Field not yet implemented
 
         """
-        V = self.span_of_basis(basis=basis, check=True, already_echelonized=already_echelonized)
+        V = self.span_of_basis(basis=basis, check=check, already_echelonized=already_echelonized)
         if check:
             if not V.is_submodule(self):
                 raise ArithmeticError, "The given basis does not generate a submodule of self."

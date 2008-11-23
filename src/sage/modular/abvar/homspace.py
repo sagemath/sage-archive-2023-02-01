@@ -443,7 +443,7 @@ class Homspace(HomsetWithBase):
     def calculate_generators(self):
         """
         If generators haven't already been computed, calculate generators
-        for this homspace.   If they have been computed, do nothing.
+        for this homspace. If they have been computed, do nothing.
 
         EXAMPLES:
             sage: E = End(J0(11))
@@ -451,6 +451,10 @@ class Homspace(HomsetWithBase):
         """
 
         if self._gens is not None:
+            return
+
+        if (self.domain() == self.codomain()) and (self.domain().dimension() == 1):
+            self._gens = tuple([ identity_matrix(ZZ,2) ])
             return
 
         phi = self.domain()._isogeny_to_product_of_powers()

@@ -289,7 +289,7 @@ class FreeAlgebra_generic(Algebra):
             sage: F._coerce_(GF(7)(5))
             5
 
-        Elements of the correspondining moind (of monomials) coerce in:
+        Elements of the corresponding monoid (of monomials) coerce in:
             sage: M = F.monoid(); m = M.0*M.1^2; m
             x*y^2
             sage: F._coerce_(m)

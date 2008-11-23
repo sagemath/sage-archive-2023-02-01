@@ -25,7 +25,7 @@ from sage.algebras.algebra_element import AlgebraElement
 class AlgebraIdealElement(AlgebraElement):
     """
     An element of an ideal in an algebra, stored as an element
-    of the algebra in which it embedds.
+    of the algebra in which it embeds.
     """
     def __init__(self, A, x):
         """

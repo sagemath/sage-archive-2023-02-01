@@ -18,7 +18,7 @@ TESTS:
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #
-#  Distributed under the terms of the GNU Genral Public License (GPL)
+#  Distributed under the terms of the GNU General Public License (GPL)
 #
 #    This code is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty

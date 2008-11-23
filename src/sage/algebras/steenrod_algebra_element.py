@@ -1136,7 +1136,7 @@ not %s" % (poly, poly.parent().prime, p)
             Sq(0,1)
             sage: x.serre_cartan()
             Sq^{2} Sq^{1} + Sq^{3}
-            sage: x.adem()  # 'adem' is a synomym for 'serre_cartan'
+            sage: x.adem()  # 'adem' is a synonym for 'serre_cartan'
             Sq^{2} Sq^{1} + Sq^{3}
             """
         return self.basis('serre-cartan')

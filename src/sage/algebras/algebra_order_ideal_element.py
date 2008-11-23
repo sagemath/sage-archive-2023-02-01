@@ -22,7 +22,7 @@ from sage.algebras.algebra_order_element import AlgebraOrderElement
 class AlgebraOrderIdealElement(AlgebraOrderElement):
     """
     An element of an ideal for an order in an algebra, stored as
-    an element of the ambient algebra in which it embedds.
+    an element of the ambient algebra in which it embeds.
     """
     def __init__(self, O, x, check=True):
         """

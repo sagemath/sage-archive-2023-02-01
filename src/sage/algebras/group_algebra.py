@@ -231,7 +231,7 @@ class GroupAlgebra(Algebra):
             TypeError: 0.770000000000000 is not an element of group General Linear Group of degree 2 over Finite Field of size 7
 
         Ordering of elements in output unpredictable as sort order of such wildly
-        dissimliar elements is subject to change between platforms and versions
+        dissimilar elements is subject to change between platforms and versions
         (see trac ticket \#4373).
             sage: OG(FormalSum([ (1, G(2)), (2, RR(0.77)) ]), check=False) # random
             [2 0]

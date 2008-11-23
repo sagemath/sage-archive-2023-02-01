@@ -198,6 +198,7 @@ def execute_list_of_commands(command_list):
 ###### Dependency checking
 #############################################
 
+CYTHON_INCLUDE_DIRS=[ SAGE_LOCAL + '/lib/python/site-packages/Cython/Includes/' ]
 
 # matches any dependency
 import re
@@ -277,13 +278,34 @@ class DependencyTree:
             if module is not None:
                 if '.' in module:
                     path = module.replace('.', '/') + '.pxd'
+                    base_dependency_name = path
                 else:
                     path = "%s/%s.pxd" % (dirname, module)
+                    base_dependency_name = "%s.pxd"%module
             else:
                 path = '%s/%s'%(dirname, groups[2])
                 if not os.path.exists(path):
                     path = groups[2]
-            deps.add(os.path.normpath(path))
+                base_dependency_name = groups[2]
+
+            # if we can find the file, add it to the dependencies.
+            path = os.path.normpath(path)
+            if os.path.exists(path):
+                deps.add(path)
+            # we didn't find the file locally, so check the
+            # Cython include path.
+            else:
+                found_include = False
+                for idir in CYTHON_INCLUDE_DIRS:
+                    new_path = os.path.normpath(idir + base_dependency_name)
+                    if os.path.exists(new_path):
+                        deps.add(new_path)
+                        found_include = True
+                        break
+                # so we really couldn't find the dependency -- raise
+                # an exception.
+                if not found_include:
+                    raise IOError, "could not find dependency %s included in %s."%(path, filename)
         f.close()
         return list(deps)
 

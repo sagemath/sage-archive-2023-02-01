@@ -1,17 +1,28 @@
 #!/usr/bin/env python
 
-# the default timeout for doctests: 6 minutes
-TIMEOUT = 360
-# the timeout value for long doctests: 30 minutes
-TIMEOUT_LONG = 1800
+####################################################################
+# Doctest a single Python or Cython file, using Sage's custom
+# doctesting tags and framework built on top of Python's doctest
+# functionality.  In particular, this allows for sage: prompts,
+# preparsing, optional doctests, random behavior, etc.
+####################################################################
+
+# the default timeout for doctests: 6 minutes (in seconds)
+TIMEOUT      = 6 * 60
+# the timeout value for long doctests: 30 minutes (in seconds)
+TIMEOUT_LONG = 30 * 60
 # the timeout for doctests running under valgrind tools: unreasonably long
 TIMEOUT_VALGRIND = 1024*1024
 
+# System imports
 import os, re, sys, signal, time, shutil, tempfile
 
-optional = False
-long_time = False
-verbose = False
+
+long_time          = False
+only_optional      = False
+only_optional_tags = set([])
+optional           = False
+verbose            = False
 
 argv = sys.argv
 
@@ -23,18 +34,21 @@ import sage.misc.preparser
 def is_64bit():
     return sys.maxint == 9223372036854775807
 
+######################################################
+# Temporary files
+######################################################
 DOT_SAGE = os.environ['DOT_SAGE']
-SAGE_TMP='%s/tmp/%s/'%(DOT_SAGE,os.getpid())
+SAGE_TMP ='%s/tmp/%s/'%(DOT_SAGE,os.getpid())
 def delete_tmpfiles():
     try:
         pass
-#        shutil.rmtree(SAGE_TMP)
     except OSError:
         pass
 
 ######################################################
-
-SAGE_ROOT=os.environ["SAGE_ROOT"]
+# Set environment variables
+######################################################
+SAGE_ROOT = os.environ["SAGE_ROOT"]
 LD = os.environ["LD_LIBRARY_PATH"]
 os.environ["LD_LIBRARY_PATH"] = SAGE_ROOT + "/local/lib:" + LD
 os.environ["PYTHONPATH"]=SAGE_ROOT + "/local/lib/python/site-packages"
@@ -43,8 +57,8 @@ if os.environ.has_key('SAGE_PATH'):
 
 
 ######################################################
-
-# below we are attempting to get some custom flags for the valgrind modes
+# Custom flags for the valgrind modes
+######################################################
 try:
     SAGE_MEMCHECK_FLAGS=os.environ['SAGE_MEMCHECK_FLAGS']
     print SAGE_MEMCHECK_FLAGS
@@ -72,7 +86,8 @@ except:
    SAGE_OMEGA_FLAGS = " --log-file=$HOME/.sage/valgrind/sage-omega.%p "
 
 ######################################################
-
+# The Python binary
+######################################################
 PYTHON = SAGE_ROOT + "/local/bin/python"
 
 def test_code(filename):
@@ -124,7 +139,7 @@ NONE=0; LONG_TIME=1; RANDOM=2; OPTIONAL=3; NOT_IMPLEMENTED=4; NOT_TESTED=5
 def comment_modifier(s):
     sind = s.find('#')
     if sind == -1 or s[sind:sind+3] == '###':
-        return []
+        return [], ''
     eind = s.find('###',sind+1)
     L = s[sind+1:eind].lower()
     v = []
@@ -138,7 +153,7 @@ def comment_modifier(s):
         v.append(NOT_TESTED)
     if 'random' in L:
         v.append(RANDOM)
-    return v
+    return v, L
 
 def preparse_line_with_prompt(L):
     i = L.find(':')
@@ -161,10 +176,12 @@ def doc_preparse(s):
 
     # Deal with code whose output should be ignored.
     t = []
+    comment_modifiers = []  # used only for parsing only_optional; list of comments
     for L in s.split('\n'):
         begin = L.lstrip()[:5]
+        comment = ''
         if begin == 'sage:':
-            c = comment_modifier(L)
+            c, comment = comment_modifier(L)
             line = ''
             if LONG_TIME in c and not long_time:
                 L = '\n'  # extra line so output ignored
@@ -174,7 +191,7 @@ def doc_preparse(s):
                 L = '\n'   # not tested
             if NOT_IMPLEMENTED in c:
                 L = '\n'   # not tested
-            if OPTIONAL in c and not optional:
+            if OPTIONAL in c and not only_optional:
                 L = '\n'
             line = preparse_line_with_prompt(L)
             if RANDOM in c:
@@ -195,7 +212,63 @@ def doc_preparse(s):
         else:
 
             t.append(L)
+
+        comment_modifiers.append(comment)
+
+    # if only_optional is True, then we skip the entire block unless certain
+    # conditions are met:
+    #  1. If the tag list is empty, some line must contain # optional
+    #  2. If the tag list is nonempty, some line must contain
+    #                 # optional - nonempty,subset,of,tags
+    #     In this case, we also strip out all #optional lines that don't
+    #     contain a nonempty subset of tags, but keep all other lines.
+    if only_optional:
+        # check if any doctest is optional
+        contains_optional_doctests = (len([x for x in comment_modifiers if 'optional' in x]) > 0)
+        if len(only_optional_tags) == 0:
+            # case 1
+            if not contains_optional_doctests:
+                t = []
+        else:
+            # case 2
+            # first test that some line contains nonempty subset of tags, since
+            # if not we won't bother at all.
+            if contains_optional_doctests:
+                # make a list of each optional line cut out by our tag choices
+                v = [i for i in range(len(t)) if only_optional_include(comment_modifiers[i])]
+                if len(v) == 0:
+                    # if v is empty, don't test this block at all.
+                    t = []
+                else:
+                    # otherwise, we test everything that is non-optional along with everything
+                    # listed in v.
+                    v = set(v)
+                    t = [t[i] for i in range(len(t)) if  i in v  or  'optional' not in comment_modifiers[i]]
+            else:
+                t = []
+    # Now put docstring together and return it.
     return '\n'.join(t)
+
+def only_optional_include(s):
+    """
+    Return True if s is of the form
+          # optional list,of,tags
+    and the list of tags is a nonempty subset the global list only_optional_tags.
+
+    INPUT:
+        s -- a string
+        only_optional_tags -- a global variable
+    OUTPUT:
+        bool
+    """
+    i = s.find('optional')
+    if i == -1:
+        return False
+    # delete all white spaces and -'s
+    s = ''.join(s[i+len('optional')+1:].replace('-','').split())
+    v = set(s.split(','))
+    return (len(v) > 0 and v.issubset(only_optional_tags))
+
 
 def extract_doc(file_name, module):
     a = os.path.abspath(file_name)
@@ -269,39 +342,22 @@ def change_warning_output(file):
         i = F.find('"""')
         if i == -1: break
         name = "example"
-##        z = F[:i].rfind('def ')
-##         if z != -1:
-##             z2 = F[z+4:].find(':')
-##             z3 = F[z+4:].find('(')
-##             z4 = min(z2,z3)
-##             if z4 != -1:
-##                 try:
-##                     name = F[z+4:z+4+z4].strip().split()[0]
-##                 except IndexError:
-##                     pass
-##         if '.' in name:
-##             name = 'example'
         k = F[i+3].find('"""')
         j = i+3 + F[i+3:].find('"""')
-        s += "def %s_%s():"%(name,n)
-        n += 1
         try:
             doc = doc_preparse(F[i:j+3])
         except SyntaxError:
             doc = F[i:j+3]
         if len(doc):
             doc = '""">>> set_random_seed(0L)\n\n' + '>>> change_warning_output(sys.stdout)\n\n' + doc[3:]
-        s += "\tr"+ doc + "\n\n"
+            s += "def %s_%s():"%(name,n)
+            n += 1
+            s += "\tr"+ doc + "\n\n"
         F = F[j+3:]
 
-    #i = F.find('def __doctest_cleanup')
-    #if i != -1:
-    #    s += F[i:] + '\n'
-    #    s += test_code()
-    #    s += '    __doctest_cleanup()\n'
-    #else:
+    if n == 0:
+        return  ''
     s += test_code(os.path.abspath(file_name))
-
 
     # Allow for "sage:" instead of the traditional Python ">>>".
     s = s.replace("sage:",">>>").replace('_sage"','')
@@ -388,6 +444,8 @@ def test_file(file):
         name = os.path.basename(file)
         name = name[:name.find(".")]
         s = extract_doc(file, name)
+        if len(s) == 0:
+            sys.exit(0)
         if 'SAGE_TESTDIR' not in os.environ or os.environ['SAGE_TESTDIR'] is "":
             os.environ['SAGE_TESTDIR'] = os.environ['SAGE_ROOT']+"/tmp"
         f = "%s/.doctest_%s.py"%(os.environ['SAGE_TESTDIR'],name)
@@ -471,11 +529,30 @@ def has_opt(opt):
         return True
     return False
 
+def parse_only_opt():
+    """
+    Search through argv for the -only-optional=list,of,tags option.
+    If it is there, return True and a set of tags as a list of strings.
+    If not, return False and an empty set.
+
+    NOTE: Because it's very natural/easy to type only_optional instead
+    of only-optional as an option (given that variable names have
+    underscores in Python), using only_optional is accepted in
+    addition to only-optional.
+
+    OUTPUT:
+        bool, set
+    """
+    for j, X in enumerate(argv):
+        Z = X.lstrip('-')
+        if Z.startswith('only-optional=') or Z.startswith('only_optional='):
+            i = Z.find('=')
+            del argv[j]
+            return True, set(Z[i+1:].split(','))
+    return False, []
+
 def usage():
-    print "\n\nUsage: sage -t [-optional] [-long] [-verbose] <filename.py | filename.pyx>"
-    print "If -optional is present include examples that uses optional packages."
-    print "If -long is present include examples that take a long time to run,"
-    print 'which is defined by the input line containing the phrase "long time".'
+    print "\n\nUsage: sage-doctest [same options as sage -t] filenames"
     sys.exit(1)
 
 if __name__ ==  '__main__':
@@ -488,12 +565,13 @@ if __name__ ==  '__main__':
         optional   = has_opt('optional')
         long_time  = has_opt('long')
         verbose    = has_opt('verbose')
-        do_timeit     = has_opt('timeit')
+        do_timeit  = has_opt('timeit')
         gdb        = has_opt('gdb')
         memcheck   = has_opt('memcheck') or has_opt('valgrind')
         massif     = has_opt('massif')
         cachegrind = has_opt('cachegrind')
         omega      = has_opt('omega')
+        only_optional, only_optional_tags = parse_only_opt()
         if long_time:
             TIMEOUT = TIMEOUT_LONG
         if gdb or memcheck or massif or cachegrind or omega:

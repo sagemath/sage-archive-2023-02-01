@@ -6,8 +6,8 @@ Catalogue of Functions and of Parent and Element Constructors
 
 class Catalogue:
     """
-    Use the new object and tab completion to create new SAGE objects.  It gathers
-    together and organizers the various SAGE constructors.
+    Use the new object and tab completion to create new Sage objects.  It gathers
+    together and organizes the various Sage constructors.
     """
     pass
 

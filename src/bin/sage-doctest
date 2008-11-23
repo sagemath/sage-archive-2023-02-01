@@ -254,6 +254,8 @@ def only_optional_include(s):
     Return True if s is of the form
           # optional list,of,tags
     and the list of tags is a nonempty subset the global list only_optional_tags.
+    If only_optional_tags is empty, then it is considered to be the
+    set of all tags.
 
     INPUT:
         s -- a string
@@ -264,6 +266,10 @@ def only_optional_include(s):
     i = s.find('optional')
     if i == -1:
         return False
+    if len(only_optional_tags) == 0:
+        # this doctest has # optional in it, but there are no tags, which
+        # mean test everything that is optional.
+        return True
     # delete all white spaces and -'s
     s = ''.join(s[i+len('optional')+1:].replace('-','').split())
     v = set(s.split(','))
@@ -549,6 +555,9 @@ def parse_only_opt():
             i = Z.find('=')
             del argv[j]
             return True, set(Z[i+1:].split(','))
+        elif Z.startswith('only-optional') or Z.startswith('only_optional'):  # no equals
+            del argv[j]
+            return True, set([])
     return False, []
 
 def usage():

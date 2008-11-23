@@ -127,7 +127,9 @@ if len(files) == 0:
     print "     -long          -- include lines with the phrase 'long time'"
     print "     -verbose       -- print debuging output during the test"
     print "     -optional      -- also test all #optional examples"
-    print "     -only-optional -- only run doctests with #optional <nonempty subset of tags>"
+    print "     -only-optional=list,of,tags -- only run doctests with "
+    print "                       #optional <nonempty subset of tags>"
+    print "      if the list of tags is omitted, run all optional doctests"
     sys.exit(1)
 
 files.sort()

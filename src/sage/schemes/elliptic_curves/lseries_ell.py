@@ -102,8 +102,8 @@ class Lseries_ell(SageObject):
             sage: L = E.lseries().dokchitser()
             sage: L(2)
             0.381575408260711
-            sage: L = E.lseries().dokchitser(algorithm='magma')         # optional
-            sage: L.Evaluate(2)                                     # optional
+            sage: L = E.lseries().dokchitser(algorithm='magma')         # optional - magma
+            sage: L.Evaluate(2)                                         # optional - magma
             0.38157540826071121129371040958008663667709753398892116
 
         If the curve has too large a conductor, it isn't possible to
@@ -162,7 +162,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: a = E.lseries().sympow(2,16)   # optional -- requires precomputing "sympow('-new_data 2')"
+            sage: a = E.lseries().sympow(2,16)   # optional - requires precomputing "sympow('-new_data 2')"
             sage: a      # optional
             '2.492262044273650E+00'
             sage: RR(a)                      # optional

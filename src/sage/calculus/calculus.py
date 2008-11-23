@@ -1199,9 +1199,9 @@ class SymbolicExpression(RingElement):
             sage: f = sin(cos(x^2) + log(x))
             sage: f._magma_init_()
             '"sin(cos(x^2) + log(x))"'
-            sage: magma(f)                         # optional -- requires magma
+            sage: magma(f)                         # optional - magma
             sin(cos(x^2) + log(x))
-            sage: magma(f).Type()                  # optional -- requires magma
+            sage: magma(f).Type()                  # optional - magma
             MonStgElt
         """
         return '"%s"'%repr(self)

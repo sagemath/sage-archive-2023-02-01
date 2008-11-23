@@ -29,46 +29,47 @@ expressions, with the result returned as a string.
 \subsection{Tutorial}
 We follow some of the tutorial from
    \url{http://library.wolfram.com/conferences/devconf99/withoff/Basic1.html/}.
-For any of this to work you must buy and install the optional mathematica
+
+For any of this to work you must buy and install the Mathematica
 program, and it must be available as the command \code{math} in your
-PATH.  You do not have to install any special SAGE packages.
+PATH.
 
 \subsubsection{Syntax}
 Now make 1 and add it to itself.  The result is a Mathematica object.
     sage: m = mathematica
-    sage: a = m(1) + m(1); a
+    sage: a = m(1) + m(1); a                # optional - mathematica
     2
-    sage: a.parent()
+    sage: a.parent()                        # optional - mathematica
     Mathematica
-    sage: m('1+1')
+    sage: m('1+1')                          # optional - mathematica
     2
-    sage: m(3)**m(50)
+    sage: m(3)**m(50)                       # optional - mathematica
     717897987691852588770249
 
 The following is equivalent to \code{Plus[2, 3]} in Mathematica:
     sage: m = mathematica
-    sage: m(2).Plus(m(3))
+    sage: m(2).Plus(m(3))                   # optional - mathematica
     5
 
 We can also compute $7(2+3)$.
-    sage: m(7).Times(m(2).Plus(m(3)))
+    sage: m(7).Times(m(2).Plus(m(3)))       # optional - mathematica
     35
-    sage: m('7(2+3)')
+    sage: m('7(2+3)')                       # optional - mathematica
     35
 
 \subsubsection{Some typical input}
 We solve an equation and a system of two equations:
 
-    sage: eqn = mathematica('3x + 5 == 14')
-    sage: eqn
+    sage: eqn = mathematica('3x + 5 == 14') # optional - mathematica
+    sage: eqn                               # optional - mathematica
     5 + 3*x == 14
-    sage: eqn.Solve('x')
+    sage: eqn.Solve('x')                    # optional - mathematica
     {{x -> 3}}
-    sage: sys = mathematica('{x^2 - 3y == 3, 2x - y == 1}')
-    sage: print sys
+    sage: sys = mathematica('{x^2 - 3y == 3, 2x - y == 1}')  # optional - mathematica
+    sage: print sys                         # optional - mathematica
                2
              {x  - 3 y == 3, 2 x - y == 1}
-    sage: sys.Solve('{x, y}')
+    sage: sys.Solve('{x, y}')               # optional - mathematica
     {{y -> -1, x -> 0}, {y -> 11, x -> 6}}
 
 
@@ -77,19 +78,19 @@ We solve an equation and a system of two equations:
 If you assign the mathematica $5$ to a variable $c$ in SAGE,
 this does not affect the $c$ in Mathematica.
 
-    sage: c = m(5)
-    sage: print m('b + c x')
+    sage: c = m(5)                          # optional - mathematica
+    sage: print m('b + c x')                # optional - mathematica
                  b + c x
-    sage: print m('b') + c*m('x')
+    sage: print m('b') + c*m('x')           # optional - mathematica
              b + 5 x
 
 The SAGE interfaces changes SAGE lists into Mathematica lists:
     sage: m = mathematica
-    sage: eq1 = m('x^2 - 3y == 3')
-    sage: eq2 = m('2x - y == 1')
-    sage: v = m([eq1, eq2]); v
+    sage: eq1 = m('x^2 - 3y == 3')          # optional - mathematica
+    sage: eq2 = m('2x - y == 1')            # optional - mathematica
+    sage: v = m([eq1, eq2]); v              # optional - mathematica
     {x^2 - 3*y == 3, 2*x - y == 1}
-    sage: v.Solve(['x', 'y'])
+    sage: v.Solve(['x', 'y'])               # optional - mathematica
     {{y -> -1, x -> 0}, {y -> 11, x -> 6}}
 
 \subsubsection{Function definitions}
@@ -98,15 +99,15 @@ Define mathematica functions by simply sending the definition to the
 interpreter.
 
     sage: m = mathematica
-    sage: _ = mathematica('f[p_] = p^2');
-    sage: m('f[9]')
+    sage: _ = mathematica('f[p_] = p^2');   # optional - mathematica
+    sage: m('f[9]')                         # optional - mathematica
     81
 
 \subsubsection{Numerical Calculations}
 
 We find the $x$ such that $e^x - 3x = 0$.
-    sage: e = mathematica('Exp[x] - 3x == 0')
-    sage: e.FindRoot(['x', 2])
+    sage: e = mathematica('Exp[x] - 3x == 0') # optional - mathematica
+    sage: e.FindRoot(['x', 2])                # optional - mathematica
     {x -> 1.512134551657842}
 
 Note that this agrees with what the PARI interpreter gp produces:
@@ -117,10 +118,10 @@ Note that this agrees with what the PARI interpreter gp produces:
 Next we find the minimimum of a polynomial using the two
 different ways of accessing Mathematica:
 
-    sage: mathematica('FindMinimum[x^3 - 6x^2 + 11x - 5, {x,3}]')
+    sage: mathematica('FindMinimum[x^3 - 6x^2 + 11x - 5, {x,3}]')  # optional - mathematica
     {0.6150998205402516, {x -> 2.5773502699629733}}
-    sage: f = mathematica('x^3 - 6x^2 + 11x - 5')
-    sage: f.FindMinimum(['x', 3])
+    sage: f = mathematica('x^3 - 6x^2 + 11x - 5')  # optional - mathematica
+    sage: f.FindMinimum(['x', 3])                  # optional - mathematica
     {0.6150998205402516, {x -> 2.5773502699629733}}
 
 
@@ -132,37 +133,37 @@ We factor a polynomial of degree 200 over the integers.
     sage: f = (x**100+17*x+5)*(x**100-5*x+20)
     sage: f
     x^200 + 12*x^101 + 25*x^100 - 85*x^2 + 315*x + 100
-    sage: g = mathematica(str(f))
-    sage: print g
+    sage: g = mathematica(str(f))            # optional - mathematica
+    sage: print g                            # optional - mathematica
                                2       100       101    200
              100 + 315 x - 85 x  + 25 x    + 12 x    + x
-    sage: g
+    sage: g                                  # optional - mathematica
     100 + 315*x - 85*x^2 + 25*x^100 + 12*x^101 + x^200
-    sage: print g.Factor()
+    sage: print g.Factor()                   # optional - mathematica
                           100               100
              (20 - 5 x + x   ) (5 + 17 x + x   )
 
 We can also factor a multivariate polynomial:
-    sage: f = mathematica('x^6 + (-y - 2)*x^5 + (y^3 + 2*y)*x^4 - y^4*x^3')
-    sage: print f.Factor()
+    sage: f = mathematica('x^6 + (-y - 2)*x^5 + (y^3 + 2*y)*x^4 - y^4*x^3')  # optional - mathematica
+    sage: print f.Factor()                   # optional - mathematica
               3                  2    3
              x  (x - y) (-2 x + x  + y )
 
 We factor an integer:
-    sage: n = mathematica(2434500)
-    sage: n.FactorInteger()
+    sage: n = mathematica(2434500)           # optional - mathematica
+    sage: n.FactorInteger()                  # optional - mathematica
+    {{2, 2}, {3, 2}, {5, 3}, {541, 1}}       # optional - mathematica
+    sage: n = mathematica(2434500)           # optional - mathematica
+    sage: F = n.FactorInteger(); F           # optional - mathematica
     {{2, 2}, {3, 2}, {5, 3}, {541, 1}}
-    sage: n = mathematica(2434500)
-    sage: F = n.FactorInteger(); F
-    {{2, 2}, {3, 2}, {5, 3}, {541, 1}}
-    sage: F[1]
+    sage: F[1]                               # optional - mathematica
     {2, 2}
-    sage: F[4]
+    sage: F[4]                               # optional - mathematica
     {541, 1}
 
 We can also load the ECM package and factoring using it:
-    sage: _ = mathematica.eval("<<NumberTheory`FactorIntegerECM`");
-    sage: mathematica.FactorIntegerECM('932901*939321')
+    sage: _ = mathematica.eval("<<NumberTheory`FactorIntegerECM`");  # optional - mathematica
+    sage: mathematica.FactorIntegerECM('932901*939321')              # optional - mathematica
     8396109
 
 %\subsection{Module Documentation}
@@ -172,32 +173,32 @@ The Mathematica interface reads in even very long input (using files)
 in a robust manner.
 
     sage: t = '"%s"'%10^10000   # ten thousand character string.
-    sage: a = mathematica(t)
-    sage: a = mathematica.eval(t)
+    sage: a = mathematica(t)        # optional - mathematica
+    sage: a = mathematica.eval(t)   # optional - mathematica
 
 \subsection{Loading and saving}
 Mathematica has an excellent \code{InputForm} function, which makes
 saving and loading Mathematica objects possible.  The first
 examples test saving and loading to strings.
 
-    sage: x = mathematica(pi/2)
-    sage: print x
+    sage: x = mathematica(pi/2)     # optional - mathematica
+    sage: print x                   # optional - mathematica
              Pi
              --
              2
-    sage: loads(dumps(x)) == x
+    sage: loads(dumps(x)) == x      # optional - mathematica
     True
-    sage: n = x.N(50)
-    sage: print n
+    sage: n = x.N(50)               # optional - mathematica
+    sage: print n                   # optional - mathematica
                   1.5707963267948966192313216916397514420985846996876
-    sage: loads(dumps(n)) == n
+    sage: loads(dumps(n)) == n      # optional - mathematica
     True
 
 OTHER Examples:
     sage: def math_bessel_K(nu,x):
     ...       return mathematica(nu).BesselK(x).N(20).sage()
     ...
-    sage: math_bessel_K(2,I)
+    sage: math_bessel_K(2,I)                      # optional - mathematica
     0.180489972066962*I - 2.592886175491197
 
 AUTHOR:
@@ -469,9 +470,9 @@ class MathematicaElement(ExpectElement):
         Show a mathematica plot in the Sage notebook.
 
         EXAMPLES:
-            sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional
-            sage: show(P)                                        # optional
-            sage: P.show(ImageSize=800)                          # optional
+            sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
+            sage: show(P)                                        # optional - mathematica
+            sage: P.show(ImageSize=800)                          # optional - mathematica
         """
         P = self._check_valid()
         if filename is None:

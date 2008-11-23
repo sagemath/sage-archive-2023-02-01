@@ -220,12 +220,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     def _macaulay2_init_(self):
         """
         EXAMPLES:
-            sage: macaulay2(Integers(7))  #optional
+            sage: macaulay2(Integers(7))  # optional - macaulay2
             ZZ
             --
              7
 
-            sage: macaulay2(Integers(10)) #optional
+            sage: macaulay2(Integers(10)) # optional - macaulay2
             Traceback (most recent call last):
             ...
             TypeError: Error evaluating Macaulay2 code.
@@ -904,7 +904,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R = Integers(12345678900)
             sage: R
             Ring of integers modulo 12345678900
-            sage: magma(R)                                          # optional
+            sage: magma(R)                                          # optional - magma
             Residue class ring of integers modulo 12345678900
         """
         return 'Integers(%s)'%self.order()

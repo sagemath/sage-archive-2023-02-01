@@ -1252,7 +1252,7 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
 
         EXAMPLE:
             sage: k.<a> = GF(2^16)
-            sage: a._magma_init_() #random and optional requires MAGMA
+            sage: a._magma_init_()      # random; optional - magma
             '_sage_[2]'
 
         NOTE: This method calls \MAGMA to setup the parent.

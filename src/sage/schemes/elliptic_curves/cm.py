@@ -40,13 +40,13 @@ def hilbert_class_polynomial(D):
         A polynomial over the integers.
 
     EXAMPLES:
-        sage: hilbert_class_polynomial(-4)      # optional MAGMA required
+        sage: hilbert_class_polynomial(-4)      # optional - magma
         x - 1728
-        sage: hilbert_class_polynomial(-7)      # optional MAGMA required
+        sage: hilbert_class_polynomial(-7)      # optional - magma
         x + 3375
-        sage: hilbert_class_polynomial(-23)     # optional MAGMA required
+        sage: hilbert_class_polynomial(-23)     # optional - magma
         x^3 + 3491750*x^2 - 5151296875*x + 12771880859375
-        sage: hilbert_class_polynomial(-37*4)   # optional MAGMA required
+        sage: hilbert_class_polynomial(-37*4)   # optional - magma
         x^2 - 39660183801072000*x - 7898242515936467904000000
     """
     D = Integer(D)

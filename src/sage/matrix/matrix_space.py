@@ -1090,10 +1090,10 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         r"""
         EXAMPLES:
         We first coerce a square matrix.
-            sage: magma(MatrixSpace(QQ,3))                      # optional
+            sage: magma(MatrixSpace(QQ,3))                      # optional - magma
             Full Matrix Algebra of degree 3 over Rational Field
 
-            sage: magma(MatrixSpace(Integers(8),2,3))           # optional
+            sage: magma(MatrixSpace(Integers(8),2,3))           # optional - magma
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
         """
         K = self.base_ring()._magma_init_()

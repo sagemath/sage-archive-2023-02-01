@@ -734,7 +734,7 @@ class RationalField(_uniq, number_field_base.NumberField):
     def _magma_init_(self):
         """
         EXAMPLES:
-            sage: magma(QQ)                       # optional
+            sage: magma(QQ)                       # optional - magma
             Rational Field
         """
         return 'RationalField()'
@@ -742,7 +742,7 @@ class RationalField(_uniq, number_field_base.NumberField):
     def _macaulay2_init_(self):
         """
         EXAMPLES:
-            sage: macaulay2(QQ)       #optional
+            sage: macaulay2(QQ)                   # optional- macaulay2
             QQ
         """
         return "QQ"

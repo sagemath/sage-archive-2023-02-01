@@ -97,8 +97,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Return a Magma command that creates this curve.
 
         EXAMPLES:
-            sage: E =  EllipticCurve(GF(41),[2,5]) # optional -- requires Magma
-            sage: E._magma_init_()                 # optional -- requires Magma
+            sage: E =  EllipticCurve(GF(41),[2,5]) # optional - magma
+            sage: E._magma_init_()                 # optional - magma
             'EllipticCurve([GF(41)|GF(41)!0,GF(41)!0,GF(41)!0,GF(41)!2,GF(41)!5])'
        """
         k = self.base_ring()
@@ -659,7 +659,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
             sage: EllipticCurve(GF(3^100,'a'),[1,2,3,4,5]).cardinality()
             515377520732011331036459693969645888996929981504
-            sage: magma.eval("Order(EllipticCurve([GF(3^100)|1,2,3,4,5]))")    # optional -- requires magma
+            sage: magma.eval("Order(EllipticCurve([GF(3^100)|1,2,3,4,5]))")    # optional - magma
             '515377520732011331036459693969645888996929981504'
 
 

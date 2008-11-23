@@ -180,34 +180,34 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES:
         We first coerce a square matrix.
             sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
-            sage: B = magma(A); B                       # optional
+            sage: B = magma(A); B                       # optional - magma
             [  1   2   3]
             [4/3 5/3 3/2]
             [  7   8   9]
-            sage: B.Type()                              # optional
+            sage: B.Type()                              # optional - magma
             AlgMatElt
-            sage: B.Parent()                            # optional
+            sage: B.Parent()                            # optional - magma
             Full Matrix Algebra of degree 3 over Rational Field
 
         We coerce a non-square matrix over $\Z/8\Z$.
             sage: A = MatrixSpace(Integers(8),2,3)([-1,2,3,4,4,-2])
-            sage: B = magma(A); B                       # optional
+            sage: B = magma(A); B                       # optional - magma
             [7 2 3]
             [4 4 6]
-            sage: B.Type()                              # optional
+            sage: B.Type()                              # optional - magma
             ModMatRngElt
-            sage: B.Parent()                            # optional
+            sage: B.Parent()                            # optional - magma
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
 
             sage: R.<x,y> = QQ[]
             sage: A = MatrixSpace(R,2,2)([x+y,x-1,y+5,x*y])
-            sage: B = magma(A); B                       # optional
+            sage: B = magma(A); B                       # optional - magma
             [x + y x - 1]
             [y + 5   x*y]
 
             sage: R.<x,y> = ZZ[]
             sage: A = MatrixSpace(R,2,2)([x+y,x-1,y+5,x*y])
-            sage: B = magma(A); B                       # optional
+            sage: B = magma(A); B                       # optional - magma
             [x + y x - 1]
             [y + 5   x*y]
 
@@ -219,11 +219,11 @@ cdef class Matrix(matrix0.Matrix):
             [                 0                  1                  3]
             [             zeta9            zeta9^4          zeta9 - 1]
             [-zeta9^5 - zeta9^2                  1                  0]
-            sage: magma(M)                             # optional -- requires magma
+            sage: magma(M)                             # optional - magma
             [                   0                    1                    3]
             [              zeta_9             zeta_9^4           zeta_9 - 1]
             [-zeta_9^5 - zeta_9^2                    1                    0]
-            sage: magma(M**2) == magma(M)**2           # optional -- requires magma
+            sage: magma(M**2) == magma(M)**2           # optional - magma
             True
         """
         K = magma(self.base_ring())

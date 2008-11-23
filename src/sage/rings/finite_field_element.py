@@ -416,9 +416,11 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
     def _magma_init_(self):
         """
-        Return a string representation of self that MAGMA can
-        understand.
+        Return a string representation of self that Magma can understand.
 
+        EXAMPLES:
+            sage: GF(7)(3)._magma_init_()                 # optional - magma
+            'GF(7)!3'
         """
         km = self.parent()._magma_()
         vn = km.gen(1).name()

@@ -256,22 +256,22 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         EXAMPLES:
             sage: R.<y,z,w> = PolynomialRing(QQ,3)
-            sage: magma(R) # optional
+            sage: magma(R)                        # optional - magma
             Polynomial ring of rank 3 over Rational Field
             Graded Reverse Lexicographical Order
             Variables: y, z, w
 
-            sage: magma(PolynomialRing(GF(7),4, 'x')) #optional
+            sage: magma(PolynomialRing(GF(7),4, 'x'))        # optional - magma
             Polynomial ring of rank 4 over GF(7)
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2, x3
 
-            sage: magma(PolynomialRing(GF(49,'a'),10, 'x')) #optional
+            sage: magma(PolynomialRing(GF(49,'a'),10, 'x'))  # optional - magma
             Polynomial ring of rank 10 over GF(7^2)
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9
 
-            sage: magma(PolynomialRing(ZZ['a,b,c'],3, 'x')) #optional
+            sage: magma(PolynomialRing(ZZ['a,b,c'],3, 'x'))  # optional - magma
             Polynomial ring of rank 3 over Polynomial ring of rank 3 over Integer Ring
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2
@@ -306,7 +306,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         EXAMPLES:
             sage: R = ZZ['x,y']
-            sage: R._magma_gens() #optional
+            sage: R._magma_gens()                    # optional - magma
             ['_sage_[3]', '_sage_[4]']
 
         """

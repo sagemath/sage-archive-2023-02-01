@@ -2442,17 +2442,17 @@ class NumberField_generic(number_field_base.NumberField):
             sage: NumberField(x^3-2, 'a').galois_group(pari_group=True)
             Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
-            sage: NumberField(x-1, 'a').galois_group(pari_group=False)    # optional database_gap package
+            sage: NumberField(x-1, 'a').galois_group(pari_group=False)    # optional - database_gap
             Galois group Transitive group number 1 of degree 1 of the Number Field in a with defining polynomial x - 1
-            sage: NumberField(x^2+2, 'a').galois_group(pari_group=False)  # optional database_gap package
+            sage: NumberField(x^2+2, 'a').galois_group(pari_group=False)  # optional - database_gap
             Galois group Transitive group number 1 of degree 2 of the Number Field in a with defining polynomial x^2 + 2
-            sage: NumberField(x^3-2, 'a').galois_group(pari_group=False)  # optional database_gap package
+            sage: NumberField(x^3-2, 'a').galois_group(pari_group=False)  # optional - database_gap
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
             sage: x = polygen(QQ)
             sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(pari_group=False)
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
-            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(algorithm='magma')   # optional -- requires magma
+            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(algorithm='magma')   # optional - magma
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
 
 
@@ -3423,12 +3423,12 @@ class NumberField_absolute(NumberField_generic):
         EXAMPLES:
             sage: R.<t> = PolynomialRing(RationalField())
             sage: K.<a> = NumberField(t^2 + 1)
-            sage: L = magma(K)    # optional -- requires magma
-            sage: L               # optional
+            sage: L = magma(K)    # optional - magma
+            sage: L               # optional - magma
             Number Field with defining polynomial t^2 + 1 over the Rational Field
-            sage: L.1             # optional
+            sage: L.1             # optional - magma
             a
-            sage: L.1^2           # optional
+            sage: L.1^2           # optional - magma
             -1
         """
         # Get magma version of defining polynomial of this number field
@@ -5489,10 +5489,10 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         EXAMPLES:
             sage: K=CyclotomicField(7,'z')
-            sage: K._magma_init_()
+            sage: K._magma_init_()                                # optional - magma
             'CyclotomicField(7); z:=CyclotomicField(7).1;'
             sage: K=CyclotomicField(7,'zeta')
-            sage: K._magma_init_()
+            sage: K._magma_init_()                                # optional - magma
             'CyclotomicField(7); zeta:=CyclotomicField(7).1;'
         """
         return 'CyclotomicField(%s); %s:=CyclotomicField(%s).1;'%(self.__n, self.gen(), self.__n)

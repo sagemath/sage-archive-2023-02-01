@@ -296,8 +296,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         elliptic curve in the Magma subsystem.
 
         EXAMPLES:
-            sage: E=EllipticCurve(QQ,[1,1])
-            sage: E._magma_init_()
+            sage: E = EllipticCurve(QQ,[1,1])
+            sage: E._magma_init_()                          # optional - magma
             'EllipticCurve([0/1,0/1,0/1,1/1,1/1])'
         """
         return 'EllipticCurve([%s])'%(','.join([x._magma_init_() for x in self.ainvs()]))

@@ -185,9 +185,9 @@ def PermutationGroup(gens=None, gap_group=None, canonicalize=True):
         sage: H = pari('x^4 - 2*x^3 - 2*x + 1').polgalois()
         sage: G = PariGroup(H, 4); G
         PARI group [8, -1, 3, "D(4)"] of degree 4
-        sage: H = PermutationGroup(G); H          # requires optional database_gap
+        sage: H = PermutationGroup(G); H          # optional - database_gap
         Transitive group number 3 of degree 4
-        sage: H.gens()                            # requires optional database_gap
+        sage: H.gens()                            # optional - database_gap
         [(1,2,3,4), (1,3)]
 
     We can also create permutation groups whose generators are
@@ -234,7 +234,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         Permutation Group with generators [(3,4), (1,2,3)(4,5)]
         sage: G.center()
         Permutation Group with generators [()]
-        sage: G.group_id()          # requires optional database_gap
+        sage: G.group_id()          # optional - database_gap
         [120, 34]
         sage: n = G.order(); n
         120
@@ -813,7 +813,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2,3),(4,5)], [(1,2)]])
-            sage: G.group_id()    # requires optional database_gap-4.4.6 package
+            sage: G.group_id()    # optional - database_gap
             [12, 4]
         """
         return [Integer(n) for n in eval(str(self._gap_().IdGroup()))]
@@ -825,7 +825,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2,3),(4,5)], [(1,2)]])
-            sage: G.group_id()    # requires optional database_gap-4.4.6 package
+            sage: G.group_id()    # optional - database_gap
             [12, 4]
         """
         return self.group_id()
@@ -963,16 +963,16 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
             sage: G = SymmetricGroup(4)
-            sage: G.cohomology(1,2)                            # requires optional gap_packages
+            sage: G.cohomology(1,2)                            # optional - gap_packages
             Multiplicative Abelian Group isomorphic to C2
             sage: G = SymmetricGroup(3)
-            sage: G.cohomology(5)                              # requires optional gap_packages
+            sage: G.cohomology(5)                              # optional - gap_packages
             Trivial Abelian Group
-            sage: G.cohomology(5,2)                            # requires optional gap_packages
+            sage: G.cohomology(5,2)                            # optional - gap_packages
             Multiplicative Abelian Group isomorphic to C2
-            sage: G.homology(5,3)                              # requires optional gap_packages
+            sage: G.homology(5,3)                              # optional - gap_packages
             Trivial Abelian Group
-            sage: G.homology(5,4)                              # requires optional gap_packages
+            sage: G.homology(5,4)                              # optional - gap_packages
             Traceback (most recent call last):
             ...
             ValueError: p must be 0 or prime
@@ -1013,7 +1013,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
             sage: G = SymmetricGroup(5)
-            sage: G.cohomology_part(7,2)                   # requires optional gap_packages
+            sage: G.cohomology_part(7,2)                   # optional - gap_packages
             Multiplicative Abelian Group isomorphic to C2 x C2 x C2
             sage: G = SymmetricGroup(3)
             sage: G.cohomology_part(2,3)
@@ -1054,13 +1054,13 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
             sage: G = SymmetricGroup(5)
-            sage: G.homology(7)                              # requires optional gap_packages
+            sage: G.homology(7)                              # optional - gap_packages
             Multiplicative Abelian Group isomorphic to C2 x C2 x C4 x C3 x C5
-            sage: G.homology(7,2)                              # requires optional gap_packages
+            sage: G.homology(7,2)                              # optional - gap_packages
             Multiplicative Abelian Group isomorphic to C2 x C2 x C2 x C2 x C2
-            sage: G.homology(7,3)                              # requires optional gap_packages
+            sage: G.homology(7,3)                              # optional - gap_packages
             Multiplicative Abelian Group isomorphic to C3
-            sage: G.homology(7,5)                              # requires optional gap_packages
+            sage: G.homology(7,5)                              # optional - gap_packages
             Multiplicative Abelian Group isomorphic to C5
 
         REFERENCES:
@@ -1093,7 +1093,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
             sage: G = SymmetricGroup(5)
-            sage: G.homology_part(7,2)                              # requires optional gap_packages
+            sage: G.homology_part(7,2)                              # optional - gap_packages
             Multiplicative Abelian Group isomorphic to C2 x C2 x C2 x C2 x C4
 
         AUTHORS:
@@ -1804,10 +1804,10 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
             sage: G = SymmetricGroup(5)
-            sage: G.poincare_series(2,10)                              # requires optional gap_packages
+            sage: G.poincare_series(2,10)                              # optional - gap_packages
             (x^2 + 1)/(x^4 - x^3 - x + 1)
             sage: G = SymmetricGroup(3)
-            sage: G.poincare_series(2,10)                              # requires optional gap_packages
+            sage: G.poincare_series(2,10)                              # optional - gap_packages
             1/(-x + 1)
 
         AUTHORS:

@@ -1076,7 +1076,7 @@ def benchmark_magma_hnf(nrange, bits=4):
     """
     EXAMPLES:
         sage: import sage.matrix.matrix_integer_dense_hnf as hnf
-        sage: hnf.benchmark_magma_hnf([50,100],32)     # optional -- requires magma
+        sage: hnf.benchmark_magma_hnf([50,100],32)     # optional - magma
         ('magma', 50, 32, ...),
         ('magma', 100, 32, ...),
     """

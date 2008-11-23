@@ -26,7 +26,7 @@ def magma_free_eval(code, strip=True, columns=0):
     and there is a limitation on the amount of RAM.
 
     EXAMPLES:
-        sage: magma_free("Factorization(9290348092384)")  # optional (internet)
+        sage: magma_free("Factorization(9290348092384)")  # optional - internet
         [ <2, 5>, <290323377887, 1> ]
     """
     import urllib
@@ -51,7 +51,7 @@ class MagmaFree:
     on your computer by using the free online MAGMA calculator.
 
     EXAMPLES:
-        sage: magma_free("Factorization(9290348092384)")  # optional (internet)
+        sage: magma_free("Factorization(9290348092384)")  # optional - internet
         [ <2, 5>, <290323377887, 1> ]
     """
     def eval(self, x):

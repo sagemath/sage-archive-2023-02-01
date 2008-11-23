@@ -1551,18 +1551,18 @@ class FreeModule_generic(module.Module):
     def _magma_convert_(self, magma):
         """
         EXAMPLES:
-            sage: magma(FreeModule(Integers(8), 2))             # optional
+            sage: magma(FreeModule(Integers(8), 2))             # optional - magma
             Full RSpace of degree 2 over IntegerRing(8)
 
-            sage: magma(FreeModule(QQ, 9))                      # optional
+            sage: magma(FreeModule(QQ, 9))                      # optional - magma
             Full Vector space of degree 9 over Rational Field
 
-            sage: magma(FreeModule(QQ['x'], 2))                 # optional
+            sage: magma(FreeModule(QQ['x'], 2))                 # optional - magma
             Full RSpace of degree 2 over Univariate Polynomial Ring in x over Rational Field
 
             sage: A = MatrixSpace(ZZ,2)([[1,0],[0,-1]])
             sage: M = FreeModule(ZZ,2,inner_product_matrix=A)
-            sage: magma(M)                                      # optional
+            sage: magma(M)                                      # optional - magma
             Full RSpace of degree 2 over Integer Ring
             Inner Product Matrix:
             [ 1  0]

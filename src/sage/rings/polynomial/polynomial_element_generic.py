@@ -712,11 +712,11 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: G = f.galois_group(); G            # uses optional database_gap package
+            sage: G = f.galois_group(); G            # optional - database_gap
             Transitive group number 5 of degree 4
-            sage: G.gens()                           # uses optional database_gap package
+            sage: G.gens()                           # optional - database_gap
             ((1,2,3,4), (1,2))
-            sage: G.order()                          # uses optional database_gap package
+            sage: G.order()                          # optional - database_gap
             24
 
         It is potentially useful to instead obtain the corresponding
@@ -726,7 +726,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: f = x^4 - 17*x^3 - 2*x + 1
             sage: G = f.galois_group(pari_group=True); G
             PARI group [24, -1, 5, "S4"] of degree 4
-            sage: PermutationGroup(G)                # uses optional database_gap package
+            sage: PermutationGroup(G)                # optional - database_gap
             Transitive group number 5 of degree 4
 
         You can use KASH to compute Galois groups as well.  The
@@ -735,11 +735,11 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         not-so-thorough experiments PARI is faster than KASH.)
 
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: f.galois_group(algorithm='kash')      # requires optional KASH
+            sage: f.galois_group(algorithm='kash')      # optional - kash
             Transitive group number 5 of degree 4
 
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: f.galois_group(algorithm='magma')      # requires optional magma
+            sage: f.galois_group(algorithm='magma')      # optional - magma
             Transitive group number 5 of degree 4
         """
         from sage.groups.all import PariGroup, PermutationGroup, TransitiveGroup

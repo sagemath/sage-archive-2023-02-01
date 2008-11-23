@@ -462,8 +462,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             True
 
         The same algorithm can be used to factor $N = pq$ if partial
-        knowledge about $q$ is available. This example is from the \MAGMA
-        handbook:
+        knowledge about $q$ is available. This example is from the
+        Magma handbook:
 
         First, we set up $p$,$q$ and $N$.
 

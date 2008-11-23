@@ -888,7 +888,7 @@ class TermOrder(SageObject):
             sage: T = P.term_order()
             sage: T.macaulay2_str()
             '(GRevLex => 3,Lex => 5)'
-            sage: P._macaulay2_() # optional -- requires macaulay2
+            sage: P._macaulay2_() # optional - macaulay2
             ZZ/127 [x0, x1, x2, x3, x4, x5, x6, x7, MonomialOrder => {GRevLex => 3, Lex => 5}, MonomialSize => 16]
         """
         return self.__macaulay2_str
@@ -902,7 +902,7 @@ class TermOrder(SageObject):
 
         EXAMPLE:
             sage: P = PolynomialRing(GF(127), 10,names='x',order='degrevlex')
-            sage: P._magma_() # optional, requires MAGMA
+            sage: P._magma_() # optional - magma
             Polynomial ring of rank 10 over GF(127)
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9

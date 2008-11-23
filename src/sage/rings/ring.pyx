@@ -1547,13 +1547,13 @@ cdef class FiniteField(Field):
 
     def _magma_init_(self):
         """
-        Return string representation of self that MAGMA can
+        Return string representation of self that Magma can
         understand.
 
         EXAMPLES:
-            sage: GF(97,'a')._magma_init_()
+            sage: GF(97,'a')._magma_init_()              # optional - magma
             'GF(97)'
-            sage: GF(9,'a')._magma_init_()
+            sage: GF(9,'a')._magma_init_()               # optional - magma
             'ext< GF(3) | Polynomial(GF(3), [GF(3)!2,GF(3)!2,GF(3)!1]) >'
         """
         if self.degree() == 1:
@@ -1567,9 +1567,9 @@ cdef class FiniteField(Field):
         Convert self to Magma.
 
         EXAMPLES:
-            sage: magma(GF(9,'a'))           # optional -- requires magma
+            sage: magma(GF(9,'a'))           # optional - magma
             Finite field of size 3^2
-            sage: magma(GF(9,'a')).1         # optional -- requires magma
+            sage: magma(GF(9,'a')).1         # optional - magma
             a
         """
         K = magma(self._magma_init_())
@@ -1585,11 +1585,11 @@ cdef class FiniteField(Field):
             sage: GF(97,'a')._macaulay2_init_()
             'GF 97'
 
-            sage: macaulay2(GF(97, 'a')) #optional
+            sage: macaulay2(GF(97, 'a'))       # optional - macaulay2
             ZZ
             --
             97
-            sage: macaulay2(GF(49, 'a')) #optional
+            sage: macaulay2(GF(49, 'a'))       # optional - macaulay2
             GF 49
         """
         return "GF %s"%(self.order())

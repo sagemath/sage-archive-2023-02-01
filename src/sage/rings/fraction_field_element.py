@@ -355,11 +355,11 @@ class FractionFieldElement(field_element.FieldElement):
 
         EXAMPLES:
             sage: R.<x> = ZZ[]
-            sage: magma((x^2 + x + 1)/(x + 1))          # optional
+            sage: magma((x^2 + x + 1)/(x + 1))          # optional - magma
             (x^2 + x + 1)/(x + 1)
 
             sage: R.<x,y> = QQ[]
-            sage: magma((x+y)/x)                        # optional
+            sage: magma((x+y)/x)                        # optional - magma
             (x + y)/x
         """
         pgens = self.parent()._magma_().gens()

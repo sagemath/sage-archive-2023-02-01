@@ -985,7 +985,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         EXAMPLE:
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
-            sage: B._magma_() # optional requires magma
+            sage: B._magma_()                              # optional - magma
             Affine Algebra of rank 3 over GF(2)
             Lexicographical Order
             Variables: x, y, z
@@ -1021,7 +1021,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         EXAMPLE:
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
-            sage: B._magma_() # optional requires magma, indirect doctest
+            sage: B._magma_()                               # indirect doctest; optional - magma
             Affine Algebra of rank 3 over GF(2)
             Lexicographical Order
             Variables: x, y, z
@@ -2793,7 +2793,7 @@ cdef class BooleanPolynomial(MPolynomial):
         EXAMPLES:
             sage: R.<x,y> = BooleanPolynomialRing()
             sage: f = y*x + x +1
-            sage: f._magma_() #optional
+            sage: f._magma_() # optional - magma
             x*y + x + 1
         """
         if magma is None:

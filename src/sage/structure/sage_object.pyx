@@ -328,24 +328,24 @@ cdef class SageObject:
         EXAMPLES:
             sage: n = -3/7
             sage: m2 = Magma()
-            sage: n._magma_()                        # optional -- requires magma
+            sage: n._magma_()                        # optional - magma
             -3/7
-            sage: n._magma_().parent()               # optional
+            sage: n._magma_().parent()               # optional - magma
             Magma
-            sage: n._magma_().parent() is m2         # optional
+            sage: n._magma_().parent() is m2         # optional - magma
             False
-            sage: n._magma_().parent() is magma      # optional
+            sage: n._magma_().parent() is magma      # optional - magma
             True
-            sage: n._magma_(m2).parent() is m2       # optional
+            sage: n._magma_(m2).parent() is m2       # optional - magma
             True
 
         This example illustrates caching, which happens automatically
         since K is a Python object:
             sage: K.<a> = NumberField(x^3 + 2)
-            sage: K._magma_() is K._magma_()        # optional
+            sage: K._magma_() is K._magma_()        # optional - magma
             True
             sage: magma2 = Magma()
-            sage: K._magma_() is K._magma_(magma2)  # optional
+            sage: K._magma_() is K._magma_(magma2)  # optional - magma
             False
         """
         if M is None:
@@ -409,7 +409,7 @@ cdef class SageObject:
 
         EXAMPLES:
             sage: n = -3/7
-            sage: n._magma_convert_(magma)       # optional -- requires magma
+            sage: n._magma_convert_(magma)       # optional - magma
             -3/7
         """
         return self._interface_(M)
@@ -520,11 +520,11 @@ def load(filename, compress=True, verbose=True):
     (Setting "verbose = False" suppresses the loading progress indicator.)
 
     EXAMPLE:
-        sage: u = 'http://sage.math.washington.edu/home/was/db/test.sobj'  # optional
-        sage: s = load(u)                                                  # optional
+        sage: u = 'http://sage.math.washington.edu/home/was/db/test.sobj'
+        sage: s = load(u)                                                  # optional - internet
         Attempting to load remote file: http://sage.math.washington.edu/home/was/db/test.sobj
         Loading: [.]
-        sage: s                                                            # optional
+        sage: s                                                            # optional - internet
         'hello SAGE'
     """
 

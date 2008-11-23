@@ -352,19 +352,19 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         EXAMPLES:
             sage: R.<y> = PolynomialRing(QQ)
-            sage: S = magma(R) #optional
-            sage: print S #optional
+            sage: S = magma(R)                              # optional - magma
+            sage: print S                                   # optional - magma
             Univariate Polynomial Ring in y over Rational Field
-            sage: S.1 #optional
+            sage: S.1                                       # optional - magma
             y
 
-            sage: magma(PolynomialRing(GF(7), 'x')) #optional
+            sage: magma(PolynomialRing(GF(7), 'x'))         # optional - magma
             Univariate Polynomial Ring in x over GF(7)
 
-            sage: magma(PolynomialRing(GF(49,'a'), 'x')) #optional
+            sage: magma(PolynomialRing(GF(49,'a'), 'x'))    # optional - magma
             Univariate Polynomial Ring in x over GF(7^2)
 
-            sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'), 'x')) #optional
+            sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'), 'x')) # optional - magma
             Univariate Polynomial Ring in x over Univariate Polynomial Ring over Integer Ring
         """
         if G is None:
@@ -421,7 +421,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         EXAMPLES:
             sage: R = QQ['x']
-            sage: macaulay2(R) #optional
+            sage: macaulay2(R) # optional - macaulay2
             QQ [x]
         """
         if m2 is None:

@@ -1564,27 +1564,27 @@ cdef class Vector(ModuleElement):
         """
         EXAMPLES:
             sage: v = vector([1,2,3])
-            sage: mv = magma(v); mv                     # optional
+            sage: mv = magma(v); mv                     # optional - magma
             (1 2 3)
-            sage: mv.Type()                             # optional
+            sage: mv.Type()                             # optional - magma
             ModTupRngElt
-            sage: mv.Parent()                           # optional
+            sage: mv.Parent()                           # optional - magma
             Full RSpace of degree 3 over Integer Ring
 
             sage: v = vector(QQ, [1/2, 3/4, 5/6])
-            sage: mv = magma(v); mv                     # optional
+            sage: mv = magma(v); mv                     # optional - magma
             (1/2 3/4 5/6)
-            sage: mv.Type()                             # optional
+            sage: mv.Type()                             # optional - magma
             ModTupFldElt
-            sage: mv.Parent()                           # optional
+            sage: mv.Parent()                           # optional - magma
             Full Vector space of degree 3 over Rational Field
 
         A more demanding example:
             sage: R.<x,y,z> = QQ[]
             sage: v = vector([x^3, y, 2/3*z + x/y])
-            sage: magma(v)                              # optional
+            sage: magma(v)                              # optional - magma
             (            x^3               y (2/3*y*z + x)/y)
-            sage: magma(v).Parent()                     # optional
+            sage: magma(v).Parent()                     # optional - magma
             Full Vector space of degree 3 over Multivariate rational function field of rank 3 over Rational Field
 
         """

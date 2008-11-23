@@ -894,11 +894,11 @@ class AbsoluteOrder(Order):
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 + 2)
-            sage: magma(K.maximal_order())  # optional -- requires magma
+            sage: magma(K.maximal_order())  # optional - magma
             Equation Order with defining polynomial x^3 + 2 over its ground order
 
         _magma_convert_ was called implicitly by the above call:
-            sage: K.maximal_order()._magma_convert_(magma) # optional -- requires magma
+            sage: K.maximal_order()._magma_convert_(magma) # optional - magma
             Equation Order with defining polynomial x^3 + 2 over its ground order
         """
         K = self.number_field()

@@ -1891,7 +1891,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         EXAMPLE:
             sage: k.<a> = GF(3^5)
-            sage: k._magma_init_() # requires optional MAGMA installation
+            sage: k._magma_init_()        # optional - magma
             'ext< GF(3) | Polynomial(GF(3), [GF(3)!1,GF(3)!2,GF(3)!0,GF(3)!0,GF(3)!0,GF(3)!1]) >'
         """
         km = self.parent()._magma_()

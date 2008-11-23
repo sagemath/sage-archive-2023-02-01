@@ -29,7 +29,7 @@ def init():
 def three_selmer_rank(E, bound=0, method=2):
     """
     INPUT:
-        E -- SAGE elliptic curve over Q.
+        E -- SAGE elliptic curve over Q with irreducible mod 3 representation
 
         bound -- integer (default: 0); if 0 use a bound determined by Magma;
                                        otherwise, use this bound (use a small
@@ -38,7 +38,7 @@ def three_selmer_rank(E, bound=0, method=2):
 
         method -- integer (default: 2) this "parameter specifies how to deal
                   with the global restriction involving the algebra B. If
-                  method = 0, use class and unit groups and ideal
+                  Method = 0, use class and unit groups and ideal
                   factorisation.  If Method = 1, use class and unit groups
                   and reductions mod primes. If Method = 2, use test on cubes."
                   (Quoting from Stoll's documentation for the Magma function.)
@@ -47,7 +47,17 @@ def three_selmer_rank(E, bound=0, method=2):
         integer -- the rank of the 3-selmer group of E, i.e., the
                    dimension over F_3 of Sel^{(3)}(E/Q)
 
-    Note that we do not subtract of anything for the 3-torsion subgroup.
+    EXAMPLES:
+        sage: from sage.schemes.elliptic_curves.magma_3descent import three_selmer_rank
+        sage: three_selmer_rank(EllipticCurve('11a'))   # optional - magma
+        0
+
+    The mod-3 representation must be irreducible (in the example below there is no
+    rational 3-torsion but there is a 3-isogeny).
+        sage: three_selmer_rank(EllipticCurve('14a3'))
+        Traceback (most recent call last):
+        ...
+        Runtime error in 'ThreeSelmerGroup': Currently, only the case with irreducible phi3 is implemented.
     """
     init()
     cmd = '_, d, _, _ := ThreeSelmerGroup(%s : Bound := %s, Method := %s)'%(

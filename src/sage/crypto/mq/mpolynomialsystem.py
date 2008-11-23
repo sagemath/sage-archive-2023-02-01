@@ -416,7 +416,7 @@ class MPolynomialRoundSystem_generic(SageObject):
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
             sage: F,s = sr.polynomial_system()
             sage: R1 = F.round(1)
-            sage: R1._magma_() # optional, requires MAGMA
+            sage: R1._magma_()                               # optional - magma
             Ideal of Polynomial ring of rank 20 over GF(2)
             Graded Reverse Lexicographical Order
             Variables: k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
@@ -848,7 +848,7 @@ class MPolynomialSystem_generic(SageObject):
 	EXAMPLE:
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
             sage: F,s = sr.polynomial_system()
-            sage: F._magma_() # optional, requires MAGMA
+            sage: F._magma_()                                       # optional - magma
         """
         return magma.ideal(list(self))
 

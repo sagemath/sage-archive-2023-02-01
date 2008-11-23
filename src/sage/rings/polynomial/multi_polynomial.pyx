@@ -669,7 +669,7 @@ cdef class MPolynomial(CommutativeRingElement):
         EXAMPLES:
             sage: R.<x,y> = GF(2)[]
             sage: f = y*x^2 + x +1
-            sage: f._magma_init_() #optional
+            sage: f._magma_init_()                    # optional - magma
             '_sage_[3]^2*_sage_[4] + _sage_[3] + 1'
         """
         return self._repr_with_changed_varnames(self.parent()._magma_gens())

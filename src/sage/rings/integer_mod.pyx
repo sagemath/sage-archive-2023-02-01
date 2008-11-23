@@ -356,10 +356,10 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
         EXAMPLES:
             sage: a = Integers(15)(4)
-            sage: b = magma(a)                # optional
-            sage: b.Type()                    # optional
+            sage: b = magma(a)                # optional - magma
+            sage: b.Type()                    # optional - magma
             RngIntResElt
-            sage: b^2                         # optional
+            sage: b^2                         # optional - magma
             1
         """
         return '%s!%s'%(self.parent()._magma_init_(), self)

@@ -997,7 +997,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             2
             sage: E.analytic_rank(algorithm='sympow')
             2
-            sage: E.analytic_rank(algorithm='magma')    # optional
+            sage: E.analytic_rank(algorithm='magma')    # optional - magma
             2
             sage: E.analytic_rank(algorithm='all')
             2
@@ -1172,10 +1172,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         function.}
 
         EXAMPLES:
-            sage: EllipticCurve('37a').three_selmer_rank()  # optional & long -- Magma
+            sage: EllipticCurve('37a').three_selmer_rank()  # long; optional - magma
             1
 
-            sage: EllipticCurve('14a1').three_selmer_rank()      # optional
+            sage: EllipticCurve('14a1').three_selmer_rank()      # optional - magma
             Traceback (most recent call last):
             ...
             NotImplementedError:  Currently, only the case with irreducible phi3 is implemented.
@@ -2356,7 +2356,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1984
             sage: EllipticCurve([0, 0, 1, -7, 6]).modular_degree(algorithm='sympow')
             1984
-            sage: EllipticCurve([0, 0, 1, -7, 6]).modular_degree(algorithm='magma')  # optional
+            sage: EllipticCurve([0, 0, 1, -7, 6]).modular_degree(algorithm='magma')  # optional - magma
             1984
 
         We compute the modular degree of the curve with rank 4 having smallest

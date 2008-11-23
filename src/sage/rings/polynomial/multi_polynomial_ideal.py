@@ -75,14 +75,14 @@ Working with a polynomial ring over $\ZZ$:
     sage: R.<x,y,z,w> = ZZ['x,y,z,w']
     sage: i = ideal(x^2 + y^2 - z^2 - w^2, x-y)
     sage: j = i^2
-    sage: j.groebner_basis('macaulay2')          # requires optional M2 package
+    sage: j.groebner_basis('macaulay2')          # optional - macaulay2
     [4*y^4 - 4*y^2*z^2 + z^4 - 4*y^2*w^2 + 2*z^2*w^2 + w^4,
      2*x*y^2 - 2*y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2,
      x^2 - 2*x*y + y^2]
 
-    sage: y^2 - 2*x*y + x^2 in j                # optional
+    sage: y^2 - 2*x*y + x^2 in j                # optional - macaulay2
     True
-    sage: 0 in j                                # optional
+    sage: 0 in j                                # optional - macaulay2
     True
 
 We do a Groebner basis computation over a number field:
@@ -357,7 +357,7 @@ class MPolynomialIdeal_magma_repr:
         EXAMPLES:
             sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
             sage: I = sage.rings.ideal.Cyclic(R,4)
-            sage: I._magma_() #optional MAGMA
+            sage: I._magma_()                                          # optional - magma
             Ideal of Polynomial ring of rank 10 over GF(127)
             Graded Reverse Lexicographical Order
             Variables: a, b, c, d, e, f, g, h, i, j
@@ -384,8 +384,8 @@ class MPolynomialIdeal_magma_repr:
         EXAMPLES:
             sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
             sage: I = sage.rings.ideal.Cyclic(R,6)
-            sage: gb = I.groebner_basis('magma:GroebnerBasis') #optional MAGMA, indirect doctest
-            sage: len(gb) #optional MAGMA
+            sage: gb = I.groebner_basis('magma:GroebnerBasis') # indirect doctest; optional - magma
+            sage: len(gb)                                      # optional - magma
             45
         """
         R = self.ring()
@@ -450,22 +450,22 @@ class MPolynomialIdeal_singular_repr:
         Implicit plotting in 2-d:
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: I = R.ideal([y^3 - x^2])
-            sage: I.plot()        # cusp         (optional surf)
+            sage: I.plot()        # cusp         optional - surf
             sage: I = R.ideal([y^2 - x^2 - 1])
-            sage: I.plot()        # hyperbola    (optional surf)
+            sage: I.plot()        # hyperbola    optional - surf
             sage: I = R.ideal([y^2 + x^2*(1/4) - 1])
-            sage: I.plot()        # ellipse      (optional surf)
+            sage: I.plot()        # ellipse      optional - surf
             sage: I = R.ideal([y^2-(x^2-1)*(x-2)])
-            sage: I.plot()        # elliptic curve  (optional surf)
+            sage: I.plot()        # elliptic curve  optional - surf
 
         Implicit plotting in 3-d:
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: I = R.ideal([y^2 + x^2*(1/4) - z])
-            sage: I.plot()          # a cone         (optional surf)
+            sage: I.plot()          # a cone         optional - surf
             sage: I = R.ideal([y^2 + z^2*(1/4) - x])
-            sage: I.plot()          # same code, from a different angle  (optional surf)
+            sage: I.plot()          # same code, from a different angle  optional - surf
             sage: I = R.ideal([x^2*y^2+x^2*z^2+y^2*z^2-16*x*y*z])
-            sage: I.plot()          # Steiner surface   (optional surf)
+            sage: I.plot()          # Steiner surface   optional - surf
 
         AUTHOR:
             -- David Joyner (2006-02-12)
@@ -1641,17 +1641,17 @@ class MPolynomialIdeal_macaulay2_repr:
         EXAMPLE:
             sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
             sage: I = ideal(x*y-z^2, y^2-w^2)
-            sage: I.groebner_basis('macaulay2') # optional -- requires macaulay2, indirect doctest
+            sage: I.groebner_basis('macaulay2')                # indirect doctest; optional - macaulay2
             [z^4 - x^2*w^2, y*z^2 - x*w^2, x*y - z^2, y^2 - w^2]
 
         Groebner basis can be used to compute in $\Z/n\Z[x,\ldots]$.
 
             sage: R.<x,y,z> = ZZ[]
             sage: I = ideal([y^2*z - x^3 - 19*x*z, y^2, 19^2])
-            sage: I.groebner_basis('macaulay2') # optional -- requires macaulay2
+            sage: I.groebner_basis('macaulay2')               # optional - macaulay2
             [x^3 + 19*x*z, y^2, 361]
             sage: I = ideal([y^2*z - x^3 - 19^2*x*z, y^2, 19^2])
-            sage: I.groebner_basis('macaulay2') # optional -- requires macaulay2
+            sage: I.groebner_basis('macaulay2')               # optional - macaulay2
             [x^3, y^2, 361]
         """
         I = self._macaulay2_()
@@ -1670,7 +1670,7 @@ class MPolynomialIdeal_macaulay2_repr:
         EXAMPLES:
             sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
             sage: I = ideal(x*y-z^2, y^2-w^2)
-            sage: I._reduce_using_macaulay2(x*y-z^2 + y^2)    # optional
+            sage: I._reduce_using_macaulay2(x*y-z^2 + y^2)    # optional  - macaulay2
             w^2
         """
         I = self._macaulay2_()
@@ -1884,11 +1884,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
-            sage: I.groebner_basis('macaulay2:gb') # optional requires Macaulay2
+            sage: I.groebner_basis('macaulay2:gb') # optional - macaulay2
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
-            sage: I.groebner_basis('magma:GroebnerBasis') # optional requires MAGMA
+            sage: I.groebner_basis('magma:GroebnerBasis') # optional - magma
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         Groebner bases over $\ZZ$ can be computed. However, the native
@@ -1906,7 +1906,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
              10*b*c + 12*c^2 - b - 4*c,
              a + 2*b + 2*c - 1]
 
-            sage: I.groebner_basis('macaulay2') # requires optional M2 package
+            sage: I.groebner_basis('macaulay2') # optional - macaulay2
             [b^3 + b*c^2 + 12*c^3 + b^2 + b*c - 4*c^2,
              2*b*c^2 - 6*c^3 + b^2 + 5*b*c + 8*c^2 - b - 2*c,
              42*c^3 + b^2 + 2*b*c - 14*c^2 + b,

@@ -164,7 +164,7 @@ system has no solutions over the rationals.
 
     The Groebner basis modulo any product of the prime factors is also non-trivial.
 
-        sage: I.change_ring(P.change_ring( IntegerModRing(2*7) )).groebner_basis()
+        sage: I.change_ring(P.change_ring( IntegerModRing(2*7) )).groebner_basis() # optional - m2
         verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
         [x + y + z, y^2 + y + 8, y*z + y + 2, 2*y + 6, z^2 + 3, 2*z + 10]
 

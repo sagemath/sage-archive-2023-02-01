@@ -3924,6 +3924,80 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             h_gs = max(1, log_g2)
         return max(R(1),h_j, h_gs)
 
+    def lll_reduce(self, points, height_matrix=None):
+        """
+        Returns an LLL-reduced basis from a given basis, with transform matrix.
+
+        INPUT:
+           points -- a list of points on this elliptic curve, which
+                     should be independent.
+           height_matrix -- the height-pairing matrix of the points, or None.
+                            If None, it will be computed.
+
+        OUTPUT:
+           A tuple (newpoints,U) where
+             U is a unimodular integer matrix,
+             new_points is the transform of points by U, such that
+             new_points has LLL-reduced height pairing matrix
+
+        NOTE:
+           If the input points are not independent, the output depends
+           on the undocumented behaviour of pari's qflllgram()
+           function when applied to a gram matrix which is not
+           positive definite.
+
+        EXAMPLE:
+            sage: E = EllipticCurve([0, 1, 1, -2, 42])
+            sage: Pi = E.gens(); Pi
+            [(-4 : 1 : 1), (-3 : 5 : 1), (-11/4 : 43/8 : 1), (-2 : 6 : 1)]
+            sage: Qi, U = E.lll_reduce(Pi)
+            sage: Qi
+            [(0 : 6 : 1), (1 : -7 : 1), (-4 : 1 : 1), (-3 : 5 : 1)]
+            sage: U.det()
+            1
+            sage: E.regulator_of_points(Pi)
+            4.59088036960574
+            sage: E.regulator_of_points(Qi)
+            4.59088036960574
+
+            sage: E = EllipticCurve([1,0,1,-120039822036992245303534619191166796374,504224992484910670010801799168082726759443756222911415116])
+            sage: xi = [2005024558054813068,\
+            -4690836759490453344,\
+            4700156326649806635,\
+            6785546256295273860,\
+            6823803569166584943,\
+            7788809602110240789,\
+            27385442304350994620556,\
+            54284682060285253719/4,\
+            -94200235260395075139/25,\
+            -3463661055331841724647/576,\
+            -6684065934033506970637/676,\
+            -956077386192640344198/2209,\
+            -27067471797013364392578/2809,\
+            -25538866857137199063309/3721,\
+            -1026325011760259051894331/108241,\
+            9351361230729481250627334/1366561,\
+            10100878635879432897339615/1423249,\
+            11499655868211022625340735/17522596,\
+            110352253665081002517811734/21353641,\
+            414280096426033094143668538257/285204544,\
+            36101712290699828042930087436/4098432361,\
+            45442463408503524215460183165/5424617104,\
+            983886013344700707678587482584/141566320009,\
+            1124614335716851053281176544216033/152487126016]
+            sage: points = [E.lift_x(x) for x in xi]
+            sage: newpoints, U = E.lll_reduce(points) # long time (2m)
+            sage: [P[0] for P in newpoints]           # long time
+            [6823803569166584943, 5949539878899294213, 2005024558054813068, 5864879778877955778, 23955263915878682727/4, 5922188321411938518, 5286988283823825378, 11465667352242779838, -11451575907286171572, 3502708072571012181, 1500143935183238709184/225, 27180522378120223419/4, -5811874164190604461581/625, 26807786527159569093, 7041412654828066743, 475656155255883588, 265757454726766017891/49, 7272142121019825303, 50628679173833693415/4, 6951643522366348968, 6842515151518070703, 111593750389650846885/16, 2607467890531740394315/9, -1829928525835506297]
+
+        """
+        r = len(points)
+        if height_matrix is None:
+            height_matrix = self.height_pairing_matrix(points)
+        U = pari(height_matrix).lllgram().python()
+        new_points = [sum([U[j,i]*points[j] for j in range(r)]) for i in range(r)]
+        return new_points, U
+
     def antilogarithm(self, z, prec=None):
         """
         Returns the rational point (if any) associated to this complex
@@ -3993,14 +4067,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [(-3 : 0 : 1), (-2 : 3 : 1), (-1 : 3 : 1), (0 : 2 : 1), (1 : 0 : 1), (2 : 0 : 1), (3 : 3 : 1), (4 : 6 : 1), (8 : 21 : 1), (11 : 35 : 1), (14 : 51 : 1), (21 : 95 : 1), (37 : 224 : 1), (52 : 374 : 1), (93 : 896 : 1), (342 : 6324 : 1), (406 : 8180 : 1), (816 : 23309 : 1)]
 
             sage: a = E.integral_points([P1,P2,P3], verbose=True)
-            Using mw_basis  [(2 : 0 : 1), (4 : 6 : 1), (114/49 : -720/343 : 1)]
-            e1,e2,e3:  -3.0124303725... 1.0658205476... 1.9466098248...
-            Minimal eigenvalue of height pairing matrix:  0.4727305558...
+            Using mw_basis  [(2 : 0 : 1), (3 : -4 : 1), (8 : -22 : 1)]
+            e1,e2,e3:  -3.01243037259331 1.0658205476962... 1.94660982489710
+            Minimal eigenvalue of height pairing matrix:  0.63792081458500...
             x-coords of points on compact component with  -3 <=x<= 1
             [-3, -2, -1, 0, 1]
             x-coords of points on non-compact component with  2 <=x<= 6
             [2, 3, 4]
-            starting search of remaining points using coefficient bound  6
+            starting search of remaining points using coefficient bound  5
             x-coords of extra integral points:
             [2, 3, 4, 8, 11, 14, 21, 37, 52, 93, 342, 406, 816]
             Total number of integral points: 18
@@ -4025,6 +4099,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: P5=E.point((432,4428))
             sage: a=E.integral_points([P1,P2,P3,P4,P5]); len(a)  # long time (400s!)
             54
+
+            # bug reported on trac \#4525 is now fixed:
+            sage: EllipticCurve('91b1').integral_points()
+            [(-1 : 3 : 1), (1 : 0 : 1), (3 : 4 : 1)]
+
+            sage: [len(e.integral_points(both_signs=False)) for e in cremona_curves([11..100])] # long time
+            [2, 0, 2, 3, 2, 1, 3, 0, 2, 4, 2, 4, 3, 0, 0, 1, 2, 1, 2, 0, 2, 1, 0, 1, 3, 3, 1, 1, 4, 2, 3, 2, 0, 0, 5, 3, 2, 2, 1, 1, 1, 0, 1, 3, 0, 1, 0, 1, 1, 3, 6, 1, 2, 2, 2, 0, 0, 2, 3, 1, 2, 2, 1, 1, 0, 3, 2, 1, 0, 1, 0, 1, 3, 3, 1, 1, 5, 1, 0, 1, 1, 0, 1, 2, 0, 2, 0, 1, 1, 3, 1, 2, 2, 4, 4, 2, 1, 0, 0, 5, 1, 0, 1, 2, 0, 2, 2, 0, 0, 0, 1, 0, 3, 1, 5, 1, 2, 4, 1, 0, 1, 0, 1, 0, 1, 0, 2, 2, 0, 0, 1, 0, 1, 1, 4, 1, 0, 1, 1, 0, 4, 2, 0, 1, 1, 2, 3, 1, 1, 1, 1, 6, 2, 1, 1, 0, 2, 0, 6, 2, 0, 4, 2, 2, 0, 0, 1, 2, 0, 2, 1, 0, 3, 1, 2, 1, 4, 6, 3, 2, 1, 0, 2, 2, 0, 0, 5, 4, 1, 0, 0, 1, 0, 2, 2, 0, 0, 2, 3, 1, 3, 1, 1, 0, 1, 0, 0, 1, 2, 2, 0, 2, 0, 0, 1, 2, 0, 0, 4, 1, 0, 1, 1, 0, 1, 2, 0, 1, 4, 3, 1, 2, 2, 1, 1, 1, 1, 6, 3, 3, 3, 3, 1, 1, 1, 1, 1, 0, 7, 3, 0, 1, 3, 2, 1, 0, 3, 2, 1, 0, 2, 2, 6, 0, 0, 6, 2, 2, 3, 3, 5, 5, 1, 0, 6, 1, 0, 3, 1, 1, 2, 3, 1, 2, 1, 1, 0, 1, 0, 1, 0, 5, 5, 2, 2, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1]
 
 
         NOTES:
@@ -4092,130 +4173,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             """
             return set([x for x  in range(xmin,xmax) if self.is_x_coord(x)])
         ##############################  end  ################################
-        ############################## begin ################################
-        def integral_points_with_bounded_mw_coeffs():
-            r"""
-            Returns the set of integers x which are x-coordinates of
-            points on the curve which are linear combinations of the
-            generators (basis and torsion points) with coefficients
-            bounded by $H_q$.  The bound $H_q$ will be computed at
-            runtime.
-            """
-            from sage.misc.all import cartesian_product_iterator
-            from sage.groups.generic import multiples
-            xs=set()
-            N=H_q
-
-            def use(P):
-                """
-                Helper function to record x-coord of a point if integral.
-                """
-                if not P.is_zero():
-                    xP = P[0]
-                    if xP.is_integral():
-                        xs.add(xP)
-
-            def use_t(R):
-                """
-                Helper function to record x-coords of a point +torsion if integral.
-                """
-                for T in tors_points:
-                    use(R+T)
-
-            # We use a naive method when the number of possibilities is small:
-
-            if r==1 and N<=10:
-                for P in multiples(mw_base[0],N+1):
-                    use_t(P)
-                return xs
-
-            # Otherwise it is very very much faster to first compute
-            # the linear combinations over RR, and only compute them as
-            # rational points if they are approximately integral.
-
-            # Note: making eps larger here will dramatically increase
-            # the running time.  If evidence arises that integral
-            # points are being missed, it would be better to increase
-            # the real precision than to increase eps.
-
-            def is_approx_integral(P):
-                eps = 0.0001
-                return (abs(P[0]-P[0].round()))<eps and (abs(P[1]-P[1].round()))<eps
-
-            RR = RealField(100) #(100)
-            ER = self.change_ring(RR)
-
-# Note: doing [ER(P) for P in mw_base] sometimes fails.  This way is
-# harder since we have to make sure we don't use -P instead of P, but
-# is safer.
-
-            Rgens = [ER.lift_x(P[0]) for P in mw_base]
-            for i in range(r):
-                if abs(Rgens[i][1]-mw_base[i][1])>abs((-Rgens[i])[1]-mw_base[i][1]):
-                    Rgens[i] = -Rgens[i]
-
-            # the ni loop through all tuples (a1,a2,...,ar) with
-            # |ai|<=N, but we stop immediately after using the tuple
-            # (0,0,...,0).
-
-            for ni in cartesian_product_iterator([range(-N,N+1) for i in range(r)]): ##opt1
-
-#  Alternative version not using the fancy iterator:
-#            for mi in range((((2*H_q+1)**r)/2).ceil()): ##opt2
-#                ni = Z(mi).digits(base=2*H_q+1, padto=r, digits=range(-H_q, H_q+1)) ##opt2
-
-                if all([n==0 for n in ni]):
-                    use_t(self(0))
-                    break
-                RP=sum([ni[i]*Rgens[i] for i in range(r)],ER(0))
-                for T in tors_points:
-                    if is_approx_integral(RP+ER(T)):
-                        P = sum([ni[i]*mw_base[i] for i in range(r)],T)
-                        use(P)
-            return xs
-
-            # Below this point we keep earlier experimental code which
-            # is slower when either N or r is large
-
-#           if r==2:
-#               for P in multiples(mw_base[0],N+1):
-#                   for Q in multiples(mw_base[1],N+1):
-#                       for R in set([Q+P,Q-P]):
-#                           use_t(R)
-#               return xs
-#
-#           if r==3:
-#               for P in multiples(mw_base[0],N+1):
-#                   for Q in multiples(mw_base[1],N+1):
-#                       PQ = [P+Q,P-Q]
-#                       PQ = set(PQ + [-R for R in PQ]) # {\pm P\pm Q}
-#                       for R in multiples(mw_base[2],N+1):
-#                           for S in PQ:
-#                               use_t(R+S)
-#               return xs
-#
-#           # general rank
-#           mults=[list(multiples(mw_base[i],N+1)) for i in range(r)]
-#           for i in range(r-1):
-#               mults[i] = [-P for P in mults[i] if not P.is_zero()] + mults[i]
-#           for Pi in cartesian_product_iterator(mults):
-#               use_t(sum(Pi,self(0)))
-#           return xs
-#
-#  older, even slower  code:
-#
-#           for i in range((((2*H_q+1)**r)/2).ceil()):
-#               koeffs = Z(i).digits(base=2*H_q+1)
-#               koeffs = [0]*(r-len(koeffs)) + koeffs # pad with 0s
-#               P = sum([(koeffs[j]-H_q)*mw_base[j] for j in range(r)],self(0))
-#               for Q in tors_points: # P + torsion points (includes 0)
-#                   tmp = P + Q
-#                   if not tmp.is_zero():
-#                       x = tmp[0]
-#                       if x.is_integral():
-#                           xs.add(x)
-#           return xs
-        ##############################  end  #################################
 
         # END Internal functions #############################################
         ######################################################################
@@ -4231,6 +4188,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 print 'Total number of integral points:',len(int_points)
             return int_points
 
+        if verbose:
+            import sys  # so we can flush stdout for debugging
 
         g2 = self.c4()/12
         g3 = self.c6()/216
@@ -4264,9 +4223,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         e = R(1).exp()
         pi = R(constants.pi)
 
+        M = self.height_pairing_matrix(mw_base)
+        mw_base, U = self.lll_reduce(mw_base,M)
+        M = U.transpose()*M*U
+
         if verbose:
             print "Using mw_basis ",mw_base
             print "e1,e2,e3: ",e1,e2,e3
+            sys.stdout.flush()
 
         # Algorithm presented in [Co1]
         h_E = self.height()
@@ -4281,10 +4245,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             mu += 1
 
         c1 = (mu + 2.14).exp()
-        M = self.height_pairing_matrix(mw_base)
         c2 = min(M.charpoly ().roots(multiplicities=False))
         if verbose:
             print "Minimal eigenvalue of height pairing matrix: ", c2
+            sys.stdout.flush()
 
         c3 = (w1**2)*R(b2).abs()/48 + 8
         c5 = (c1*c3).sqrt()
@@ -4382,6 +4346,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 L = list(x_int_points) # to have the order
                 L.sort()               # deterministic for doctests!
                 print L
+                sys.stdout.flush()
         else:
             x_int_points = set()
 
@@ -4395,16 +4360,29 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             L = list(x_int_points2)
             L.sort()
             print L
+            sys.stdout.flush()
 
         if verbose:
             print 'starting search of remaining points using coefficient bound ',H_q
-        x_int_points3 = integral_points_with_bounded_mw_coeffs()
+            sys.stdout.flush()
+        x_int_points3 = integral_points_with_bounded_mw_coeffs(self,mw_base,H_q)
         x_int_points = x_int_points.union(x_int_points3)
         if verbose:
             print 'x-coords of extra integral points:'
             L = list(x_int_points3)
             L.sort()
             print L
+            sys.stdout.flush()
+
+        if len(tors_points)>1:
+            x_int_points_t = set()
+            for x in x_int_points:
+                P = self.lift_x(x)
+                for T in tors_points:
+                    Q = P+T
+                    if not Q.is_zero() and Q[0].is_integral():
+                        x_int_points_t = x_int_points_t.union([Q[0]])
+            x_int_points = x_int_points.union(x_int_points_t)
 
         # Now we have all the x-coordinates of integral points, and we
         # construct the points, depending on the parameter both_signs:
@@ -4469,3 +4447,106 @@ def cremona_optimal_curves(conductors):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 
+def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
+    r"""
+    Returns the set of integers $x$ which are $x$-coordinates of
+    points on the curve $E$ which are linear combinations of the
+    generators (basis and torsion points) with coefficients
+    bounded by $N$.
+    """
+    from sage.groups.generic import multiples
+    xs=set()
+    tors_points = E.torsion_points()
+    r = len(mw_base)
+
+    def use(P):
+        """
+        Helper function to record x-coord of a point if integral.
+        """
+        if not P.is_zero():
+            xP = P[0]
+            if xP.is_integral():
+                xs.add(xP)
+
+    def use_t(R):
+        """
+        Helper function to record x-coords of a point +torsion if integral.
+        """
+        for T in tors_points:
+            use(R+T)
+
+    # We use a naive method when the number of possibilities is small:
+
+    if r==1 and N<=10:
+        for P in multiples(mw_base[0],N+1):
+            use_t(P)
+        return xs
+
+    # Otherwise it is very very much faster to first compute
+    # the linear combinations over RR, and only compute them as
+    # rational points if they are approximately integral.
+
+    # Note: making eps larger here will dramatically increase
+    # the running time.  If evidence arises that integral
+    # points are being missed, it would be better to increase
+    # the real precision than to increase eps.
+
+    def is_approx_integral(P):
+        eps = 0.0001
+        return (abs(P[0]-P[0].round()))<eps and (abs(P[1]-P[1].round()))<eps
+
+    RR = RealField(100) #(100)
+    ER = E.change_ring(RR)
+    ER0 = ER(0)
+
+    # Note: doing [ER(P) for P in mw_base] sometimes fails.  The
+    # following way is harder, since we have to make sure we don't use
+    # -P instead of P, but is safer.
+
+    Rgens = [ER.lift_x(P[0]) for P in mw_base]
+    for i in range(r):
+        if abs(Rgens[i][1]-mw_base[i][1])>abs((-Rgens[i])[1]-mw_base[i][1]):
+            Rgens[i] = -Rgens[i]
+
+    # the ni loop through all tuples (a1,a2,...,ar) with
+    # |ai|<=N, but we stop immediately after using the tuple
+    # (0,0,...,0).
+
+    # Initialization:
+    ni = [-N for i in range(r)]
+    RgensN = [-N*P for P in Rgens]
+    # RPi[i] = -N*(Rgens[0]+...+Rgens[i])
+    RPi = [0 for j in range(r)]
+    RPi[0] = RgensN[0]
+    for i in range(1,r):
+        RPi[i] = RPi[i-1] + RgensN[i]
+
+    while True:
+        if all([n==0 for n in ni]):
+             use_t(E(0))
+             break
+
+        # test the ni-combination which is RPi[r-1]
+        RP = RPi[r-1]
+
+        for T in tors_points:
+            if is_approx_integral(RP+ER(T)):
+                 P = sum([ni[i]*mw_base[i] for i in range(r)],T)
+                 use(P)
+
+        # increment indices and stored points
+        i0 = r-1
+        while ni[i0]==N:
+            ni[i0] = -N
+            i0 -= 1
+        ni[i0] += 1
+        # The next lines are to prevent rounding error: (-P)+P behaves
+        # badly for real points!
+	if all([n==0 for n in ni[0:i0+1]]):
+            RPi[i0] = ER0
+        else:
+            RPi[i0] += Rgens[i0]
+	for i in range(i0+1,r):
+            RPi[i] = RPi[i-1] + RgensN[i]
+
+    return xs

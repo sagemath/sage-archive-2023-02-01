@@ -205,7 +205,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             if self.term_order != other.term_order:
                 raise TypeError, "Incompatible term orders (%s,%s)." % (self.term_order, other.term_order)
             if set(self.vars).intersection(other.vars):
-                raise TypeError, "Overlaping variables (%s,%s)" % (self.vars, other.vars)
+                raise TypeError, "Overlapping variables (%s,%s)" % (self.vars, other.vars)
             return MultiPolynomialFunctor(other.vars + self.vars, self.term_order)
         elif isinstance(other, CompositConstructionFunctor) \
               and isinstance(other.all[-1], MultiPolynomialFunctor):
@@ -360,7 +360,7 @@ class SubspaceFunctor(ConstructionFunctor):
         return c
     def merge(self, other):
         if isinstance(other, SubspaceFunctor):
-            return SubspaceFunctor(self.basis + other.basis) # TODO: remove linear dependancies
+            return SubspaceFunctor(self.basis + other.basis) # TODO: remove linear dependencies
         else:
             return None
 
@@ -502,13 +502,13 @@ def pushout(R, S):
     """
     Given a pair of Objects R and S, try and construct a
     reasonable object $Y$ and return maps such that
-    cannonically $R \leftarrow Y \rightarrow S$.
+    canonically $R \leftarrow Y \rightarrow S$.
 
     ALGORITHM:
-       This incorperates the idea of functors discussed SAGE Days 4.
+       This incorporates the idea of functors discussed Sage Days 4.
        Every object $R$ can be viewed as an initial object and
        a series of functors (e.g. polynomial, quotient, extension,
-       completion, vector/matrix, etc.) Call the series of
+       completion, vector/matrix, etc.). Call the series of
        increasingly-simple rings (with the associated functors)
        the "tower" of $R$. The \code{construction} method is used to
        create the tower.
@@ -649,14 +649,14 @@ def pushout(R, S):
             if Rc[-1] == Sc[-1]:
                 # If they are indeed the same operation, we only do it once.
                 # The \code{merge} function here takes into account non-mathematical
-                # distinctions (e.g. single vs. multivariate polynomials)
+                # distinctions (e.g. single vs. multivariate polynomials).
                 cR = Rc.pop()
                 cS = Sc.pop()
                 c = cR.merge(cS) or cS.merge(cR)
                 if c:
                     all = c * all
                 else:
-                    raise TypeError, "Incompatable Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS)
+                    raise TypeError, "Incompatible Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS)
             else:
                 # Now we look ahead to see if either top functor is
                 # applied later on in the other tower.
@@ -691,10 +691,10 @@ def pushout_lattice(R, S):
     """
     Given a pair of Objects R and S, try and construct a
     reasonable object $Y$ and return maps such that
-    cannonically $R \leftarrow Y \rightarrow S$.
+    canonically $R \leftarrow Y \rightarrow S$.
 
     ALGORITHM:
-       This is based on the model that arose from much discussion at SAGE Days 4.
+       This is based on the model that arose from much discussion at Sage Days 4.
        Going up the tower of constructions of $R$ and $S$ (e.g. the reals
        come from the rationals come from the integers) try and find a
        common parent, and then try and fill in a lattice with these

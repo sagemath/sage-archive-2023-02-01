@@ -181,12 +181,12 @@ cdef class Map(Element):
         r"""
         INPUT:
             self          -- a member of Hom(Y, Z)
-            new_codomain  -- an object X such that there is a cannonical
+            new_codomain  -- an object X such that there is a canonical
                              coercion $\phi$ in Hom(X, Y)
 
         OUTPUT:
             An element of Hom(X, Z) obtained by composing self with the $\phi$.
-            If no cannonical $\phi$ exists, a TypeError is raised.
+            If no canonical $\phi$ exists, a TypeError is raised.
 
         EXAMPLES:
             sage: mor = CDF.coerce_map_from(RDF)
@@ -218,12 +218,12 @@ cdef class Map(Element):
         r"""
         INPUT:
             self          -- a member of Hom(X, Y)
-            new_codomain  -- an object Z such that there is a cannonical
+            new_codomain  -- an object Z such that there is a canonical
                              coercion $\phi$ in Hom(Y, Z)
 
         OUTPUT:
             An element of Hom(X, Z) obtained by composing self with the $\phi$.
-            If no cannonical $\phi$ exists, a TypeError is raised.
+            If no canonical $\phi$ exists, a TypeError is raised.
 
         EXAMPLES:
             sage: mor = QQ.coerce_map_from(ZZ)

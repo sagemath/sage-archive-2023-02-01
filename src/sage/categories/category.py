@@ -3,7 +3,7 @@ Categories
 
 AUTHORS:  David Kohel and William Stein
 
-Every SAGE object lies in a category.  Categories in SAGE are modeled on
+Every Sage object lies in a category.  Categories in Sage are modeled on
 the mathematical idea of category, and are distinct from Python
 classes, which are a programming construct.
 

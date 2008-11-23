@@ -370,7 +370,7 @@ class Homset(Set_generic):
         """
         return Homset(self._codomain, self._domain, self.__category)
 
-    ############### For compatability with old coercion model #######################
+    ############### For compatibility with old coercion model #######################
 
     def get_action_c(self, R, op, self_on_left):
         return None

@@ -1,7 +1,7 @@
 """
-Specific categorie classes.
+Specific category classes.
 
-This is paced in a seperate file from categories.py to avoid circular imports
+This is placed in a separate file from categories.py to avoid circular imports
 (as morphisms must be very low in the hierarchy with the new coercion model).
 """
 
@@ -250,7 +250,7 @@ class Category_ideal(Category_in_ambient):
 #############################################################
 class Objects(Category_uniq):
     """
-    The category of all SAGE objects.
+    The category of all Sage objects.
 
     EXAMPLES:
         sage: Objects()
@@ -381,7 +381,7 @@ class SetsWithPartialMaps(Category_uniq):
 
 #############################################################
 # GSets
-#     $G$-Sets play an important rule in permutation groups.
+#     $G$-Sets play an important role in permutation groups.
 #############################################################
 class GSets(uniq1, Category):
     """
@@ -722,7 +722,7 @@ class NumberFields(Category_uniq):
         sage: K in C
         True
 
-    Number fields all lie in this category, irregardless of the name
+    Number fields all lie in this category, regardless of the name
     of the variable.
         sage: K = NumberField(x^2 + 1, 'a')
         sage: K in C
@@ -943,7 +943,7 @@ class FreeModules(Category_module):
 class VectorSpaces(Category_module):
     """
     The category of vector spaces over a specified field,
-    with an emedding in an ambient vector space.
+    with an embedding in an ambient vector space.
 
     EXAMPLES:
         sage: VectorSpaces(RationalField())

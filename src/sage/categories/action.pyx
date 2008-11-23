@@ -68,8 +68,8 @@ cdef class Action(Functor):
 
     def act(self, g, a):
         """
-        This is a consistant interface for acting on a by g,
-        irregardless of whether its a left or right action.
+        This is a consistent interface for acting on a by g,
+        regardless of whether it's a left or right action.
         """
         if self._is_left:
             return self._call_(g, a)

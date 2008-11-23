@@ -79,7 +79,7 @@ def is_Functor(x):
 
 
 ###########################################
-# The natural functors in SAGE
+# The natural functors in Sage
 ###########################################
 
 class ForgetfulFunctor_generic(Functor):

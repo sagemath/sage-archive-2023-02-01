@@ -417,7 +417,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
               given as either a list of lists, matrix, or numpy array.
 
        model - Either a symbolic expression, symbolic function, or a Python function.
-               model hast to be a function of the variables (x_1, x_2, \ldots, x_k) and
+               model has to be a function of the variables (x_1, x_2, \ldots, x_k) and
                free parameters (a_1, a_2, \ldots, a_l).
 
        initial_guess - (default: None) Initial estimate for the parameters (a_1, a_2, \ldots, a_l),
@@ -458,7 +458,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
           sage: find_fit(dataprime, a * x * log(b * x), parameters = [a, b], variables = [x])
           [a == 1.11..., b == 1.24...]
 
-      ALGORITHM: Uses scipy.optimize.leastsq which in turn uses MINPACK’s lmdif and lmder algorithms.
+      ALGORITHM: Uses scipy.optimize.leastsq which in turn uses MINPACK's lmdif and lmder algorithms.
     """
     import numpy
 
@@ -499,7 +499,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
         raise ValueError, "the entries of initial_guess have to be of type float"
 
     if len(initial_guess) != len(parameters):
-        raise ValueError, "length of initial_guess does not coinside with the number of parameters"
+        raise ValueError, "length of initial_guess does not coincide with the number of parameters"
 
     if isinstance(model, SymbolicExpression):
         var_list = variables + parameters

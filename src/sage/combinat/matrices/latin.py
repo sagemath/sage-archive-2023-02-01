@@ -6,7 +6,8 @@ each symbol $s \in \{ 0, 1, \dots, n-1\}$ appears precisely once in each
 row, and precisely once in each column. A {\it partial latin square} of
 order $n$ is an $n \times n$ array such that
 each symbol $s \in \{ 0, 1, \dots, n-1\}$ appears at most once in each
-row, and at most once in each column. A latin square $L$ is a
+row, and at most once in each column. Empty cells are denoted by $-1$.
+A latin square $L$ is a
 {\it completion} of a partial latin square $P$ if $P \subseteq L$. If
 $P$ completes to just $L$ then $P$ {\it has unique completion}.
 
@@ -73,7 +74,7 @@ for converting to a pair of LatinSquare objects.
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
         sage: B = back_circulant(5)
-        sage: print B
+        sage: B
         [0 1 2 3 4]
         [1 2 3 4 0]
         [2 3 4 0 1]
@@ -87,19 +88,19 @@ for converting to a pair of LatinSquare objects.
 
         sage: (a, b, c, G) = alternating_group_bitrade_generators(1)
         sage: (T1, T2) = bitrade_from_group(a, b, c, G)
-        sage: print T1
-        [ 0 -1  3  1]
-        [-1  1  0  2]
+        sage: T1
+        [ 0  2 -1  1]
+        [-1  0  1  3]
+        [ 3 -1  0  2]
         [ 1  3  2 -1]
-        [ 2  0 -1  3]
-        sage: print T2
-        [ 1 -1  0  3]
-        [-1  0  2  1]
-        [ 2  1  3 -1]
-        [ 0  3 -1  2]
-        sage: print T1.nr_filled_cells()
+        sage: T2
+        [ 1  0 -1  2]
+        [-1  3  0  1]
+        [ 0 -1  2  3]
+        [ 3  2  1 -1]
+        sage: T1.nr_filled_cells()
         12
-        sage: print genus(T1, T2)
+        sage: genus(T1, T2)
         1
 
 To do:
@@ -189,7 +190,7 @@ class LatinSquare:
         Latin square from a matrix:
 
             sage: M = matrix(ZZ, [[0, 1], [2, 3]])
-            sage: print LatinSquare(M)
+            sage: LatinSquare(M)
             [0 1]
             [2 3]
         """
@@ -251,7 +252,7 @@ class LatinSquare:
         EXAMPLES:
             sage: from sage.combinat.matrices.latin import *
             sage: B = back_circulant(3)
-            sage: print B[1, 1]
+            sage: B[1, 1]
             2
         """
 
@@ -269,7 +270,7 @@ class LatinSquare:
             sage: from sage.combinat.matrices.latin import *
             sage: B = back_circulant(3)
             sage: B[1, 1] = 10
-            sage: print B[1, 1]
+            sage: B[1, 1]
             10
         """
 
@@ -286,7 +287,7 @@ class LatinSquare:
         EXAMPLES:
             sage: L = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
             sage: L.set_immutable()
-            sage: print {L : 0}   # this would fail without set_immutable()
+            sage: {L : 0}   # this would fail without set_immutable()
             {[0 1]
             [2 3]: 0}
         """
@@ -301,7 +302,7 @@ class LatinSquare:
         EXAMPLES:
             sage: L = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
             sage: L.set_immutable()
-            sage: print L.__hash__()
+            sage: L.__hash__()
             12
         """
 
@@ -315,10 +316,10 @@ class LatinSquare:
         EXAMPLES:
             sage: A = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
             sage: B = LatinSquare(matrix(ZZ, [[0, 4], [2, 3]]))
-            sage: print A == B
+            sage: A == B
             False
             sage: B[0, 1] = 1
-            sage: print A == B
+            sage: A == B
             True
         """
 
@@ -331,7 +332,7 @@ class LatinSquare:
         EXAMPLES:
             sage: A = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
             sage: B = A.copy()
-            sage: print A
+            sage: A
             [0 1]
             [2 3]
         """
@@ -347,7 +348,7 @@ class LatinSquare:
         EXAMPLES:
             sage: A = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
             sage: A.clear_cells()
-            sage: print A
+            sage: A
             [-1 -1]
             [-1 -1]
         """
@@ -361,7 +362,7 @@ class LatinSquare:
         Number of rows in the latin square.
 
         EXAMPLES:
-            sage: print LatinSquare(3).nrows()
+            sage: LatinSquare(3).nrows()
             3
         """
 
@@ -372,7 +373,7 @@ class LatinSquare:
         Number of columns in the latin square.
 
         EXAMPLES:
-            sage: print LatinSquare(3).ncols()
+            sage: LatinSquare(3).ncols()
             3
         """
         return self.square.ncols()
@@ -444,11 +445,11 @@ class LatinSquare:
             sage: B = back_circulant(3)
             sage: B[0,2] = B[1,2] = B[2,2] = -1
             sage: B[0,0] = B[2,1] = -1
-            sage: print B
+            sage: B
             [-1  1 -1]
             [ 1  2 -1]
             [ 2 -1 -1]
-            sage: print B.actual_row_col_sym_sizes()
+            sage: B.actual_row_col_sym_sizes()
             (3, 2, 2)
         """
 
@@ -468,10 +469,10 @@ class LatinSquare:
         EXAMPLES:
             sage: from sage.combinat.matrices.latin import *
             sage: L = back_circulant(4)
-            sage: print L.is_empty_column(0)
+            sage: L.is_empty_column(0)
             False
             sage: L[0,0] = L[1,0] = L[2,0] = L[3,0] = -1
-            sage: print L.is_empty_column(0)
+            sage: L.is_empty_column(0)
             True
         """
 
@@ -484,10 +485,10 @@ class LatinSquare:
         EXAMPLES:
             sage: from sage.combinat.matrices.latin import *
             sage: L = back_circulant(4)
-            sage: print L.is_empty_row(0)
+            sage: L.is_empty_row(0)
             False
             sage: L[0,0] = L[0,1] = L[0,2] = L[0,3] = -1
-            sage: print L.is_empty_row(0)
+            sage: L.is_empty_row(0)
             True
 
         """
@@ -504,11 +505,11 @@ class LatinSquare:
             sage: back_circulant(5).nr_distinct_symbols()
             5
             sage: L = LatinSquare(10)
-            sage: print L.nr_distinct_symbols()
+            sage: L.nr_distinct_symbols()
             0
             sage: L[0, 0] = 0
             sage: L[0, 1] = 1
-            sage: print L.nr_distinct_symbols()
+            sage: L.nr_distinct_symbols()
             2
         """
 
@@ -526,7 +527,7 @@ class LatinSquare:
         EXAMPLES:
             sage: from sage.combinat.matrices.latin import *
             sage: B = back_circulant(5)
-            sage: print B
+            sage: B
             [0 1 2 3 4]
             [1 2 3 4 0]
             [2 3 4 0 1]
@@ -535,7 +536,7 @@ class LatinSquare:
             sage: alpha = isotopism((0,1,2,3,4))
             sage: beta  = isotopism((1,0,2,3,4))
             sage: gamma = isotopism((2,1,0,3,4))
-            sage: print B.apply_isotopism(alpha, beta, gamma)
+            sage: B.apply_isotopism(alpha, beta, gamma)
             [3 4 2 0 1]
             [0 2 3 1 4]
             [1 3 0 4 2]
@@ -549,7 +550,8 @@ class LatinSquare:
         for r in range(self.nrows()):
             for c in range(self.ncols()):
                 try:
-                    s2 = sym_perm[self[r, c]] - 1
+                    if self[r, c] < 0: s2 = -1
+                    else: s2 = sym_perm[self[r, c]] - 1
                 except IndexError:
                     s2 = self[r, c]  # we must be leaving the symbol fixed?
 
@@ -573,8 +575,8 @@ class LatinSquare:
             sage: from sage.combinat.matrices.latin import *
             sage: (a, b, c, G) = alternating_group_bitrade_generators(1)
             sage: (T1, T2) = bitrade_from_group(a, b, c, G)
-            sage: print T1.filled_cells_map()
-            {1: (0, 0), 2: (0, 2), 3: (0, 3), 4: (1, 1), 5: (1, 2), 6: (1, 3), 7: (2, 0), 8: (2, 1), 9: (2, 2), 10: (3, 0), 11: (3, 1), 12: (3, 3), (2, 1): 8, (1, 3): 6, (0, 3): 3, (1, 2): 5, (3, 3): 12, (3, 0): 10, (2, 2): 9, (1, 1): 4, (0, 0): 1, (3, 1): 11, (2, 0): 7, (0, 2): 2}
+            sage: T1.filled_cells_map()
+            {1: (0, 0), 2: (0, 1), 3: (0, 3), 4: (1, 1), 5: (1, 2), 6: (1, 3), 7: (2, 0), 8: (2, 2), 9: (2, 3), 10: (3, 0), 11: (3, 1), 12: (3, 2), (1, 3): 6, (0, 3): 3, (1, 2): 5, (3, 0): 10, (2, 2): 8, (1, 1): 4, (3, 2): 12, (0, 0): 1, (2, 3): 9, (0, 1): 2, (3, 1): 11, (2, 0): 7}
         """
 
         cells_map = {}
@@ -605,7 +607,7 @@ class LatinSquare:
             sage: from sage.combinat.matrices.latin import *
             sage: B = back_circulant(5)
             sage: B[3, 4] = -1
-            sage: print B.top_left_empty_cell()
+            sage: B.top_left_empty_cell()
             [3, 4]
         """
 
@@ -714,7 +716,7 @@ class LatinSquare:
             sage: from sage.combinat.matrices.latin import *
             sage: L = back_circulant(5)
             sage: L[0, 0] = -1
-            sage: print L.permissable_values(0, 0)
+            sage: L.permissable_values(0, 0)
             [0]
         """
 
@@ -818,16 +820,16 @@ class LatinSquare:
             sage: B[1, 1] = 0
             sage: B[2, 2] = 1
 
-            sage: print B
+            sage: B
             [ 0 -1 -1]
             [-1  0 -1]
             [-1 -1  1]
 
-            sage: print B.is_completable()
+            sage: B.is_completable()
             False
 
             sage: B[2, 2] = 0
-            sage: print B.is_completable()
+            sage: B.is_completable()
             True
 
         """
@@ -844,7 +846,7 @@ class LatinSquare:
             sage: from sage.combinat.matrices.latin import *
             sage: A = elementary_abelian_2group(3)
             sage: G = A.gcs()
-            sage: print A
+            sage: A
             [0 1 2 3 4 5 6 7]
             [1 0 3 2 5 4 7 6]
             [2 3 0 1 6 7 4 5]
@@ -853,7 +855,7 @@ class LatinSquare:
             [5 4 7 6 1 0 3 2]
             [6 7 4 5 2 3 0 1]
             [7 6 5 4 3 2 1 0]
-            sage: print G
+            sage: G
             [ 0  1  2  3  4  5  6 -1]
             [ 1  0  3  2  5  4 -1 -1]
             [ 2  3  0  1  6 -1  4 -1]
@@ -905,7 +907,7 @@ class LatinSquare:
             sage: from sage.combinat.matrices.latin import *
             sage: B = back_circulant(3)
             sage: B[0, 0] = -1
-            sage: print back_circulant(3).vals_in_row(0)
+            sage: back_circulant(3).vals_in_row(0)
             {0: True, 1: True, 2: True}
         """
 
@@ -927,7 +929,7 @@ class LatinSquare:
             sage: from sage.combinat.matrices.latin import *
             sage: B = back_circulant(3)
             sage: B[0, 0] = -1
-            sage: print back_circulant(3).vals_in_col(0)
+            sage: back_circulant(3).vals_in_col(0)
             {0: True, 1: True, 2: True}
         """
         n = self.nrows()
@@ -972,7 +974,7 @@ class LatinSquare:
         EXAMPLES:
             sage: from sage.combinat.matrices.latin import *
             sage: B = back_circulant(4)
-            sage: print B.disjoint_mate_dlxcpp_rows_and_map(allow_subtrade = True)
+            sage: B.disjoint_mate_dlxcpp_rows_and_map(allow_subtrade = True)
             ([[0, 16, 32], [1, 17, 32], [2, 18, 32], [3, 19, 32], [4, 16, 33], [5, 17, 33], [6, 18, 33], [7, 19, 33], [8, 16, 34], [9, 17, 34], [10, 18, 34], [11, 19, 34], [12, 16, 35], [13, 17, 35], [14, 18, 35], [15, 19, 35], [0, 20, 36], [1, 21, 36], [2, 22, 36], [3, 23, 36], [4, 20, 37], [5, 21, 37], [6, 22, 37], [7, 23, 37], [8, 20, 38], [9, 21, 38], [10, 22, 38], [11, 23, 38], [12, 20, 39], [13, 21, 39], [14, 22, 39], [15, 23, 39], [0, 24, 40], [1, 25, 40], [2, 26, 40], [3, 27, 40], [4, 24, 41], [5, 25, 41], [6, 26, 41], [7, 27, 41], [8, 24, 42], [9, 25, 42], [10, 26, 42], [11, 27, 42], [12, 24, 43], [13, 25, 43], [14, 26, 43], [15, 27, 43], [0, 28, 44], [1, 29, 44], [2, 30, 44], [3, 31, 44], [4, 28, 45], [5, 29, 45], [6, 30, 45], [7, 31, 45], [8, 28, 46], [9, 29, 46], [10, 30, 46], [11, 31, 46], [12, 28, 47], [13, 29, 47], [14, 30, 47], [15, 31, 47]], {(9, 29, 46): (3, 2, 1), (13, 17, 35): (0, 3, 1), (7, 19, 33): (0, 1, 3), (14, 26, 43): (2, 3, 2), (0, 28, 44): (3, 0, 0), (5, 25, 41): (2, 1, 1), (11, 31, 46): (3, 2, 3), (14, 18, 35): (0, 3, 2), (11, 23, 38): (1, 2, 3), (5, 29, 45): (3, 1, 1), (13, 21, 39): (1, 3, 1), (1, 29, 44): (3, 0, 1), (0, 20, 36): (1, 0, 0), (12, 24, 43): (2, 3, 0), (8, 28, 46): (3, 2, 0), (12, 20, 39): (1, 3, 0), (11, 27, 42): (2, 2, 3), (6, 22, 37): (1, 1, 2), (1, 17, 32): (0, 0, 1), (10, 18, 34): (0, 2, 2), (12, 28, 47): (3, 3, 0), (1, 25, 40): (2, 0, 1), (10, 22, 38): (1, 2, 2), (5, 17, 33): (0, 1, 1), (3, 23, 36): (1, 0, 3), (6, 26, 41): (2, 1, 2), (9, 25, 42): (2, 2, 1), (7, 31, 45): (3, 1, 3), (15, 27, 43): (2, 3, 3), (3, 31, 44): (3, 0, 3), (8, 20, 38): (1, 2, 0), (2, 22, 36): (1, 0, 2), (3, 19, 32): (0, 0, 3), (9, 17, 34): (0, 2, 1), (15, 31, 47): (3, 3, 3), (8, 16, 34): (0, 2, 0), (14, 22, 39): (1, 3, 2), (4, 16, 33): (0, 1, 0), (14, 30, 47): (3, 3, 2), (2, 30, 44): (3, 0, 2), (4, 20, 37): (1, 1, 0), (6, 30, 45): (3, 1, 2), (12, 16, 35): (0, 3, 0), (15, 19, 35): (0, 3, 3), (5, 21, 37): (1, 1, 1), (4, 24, 41): (2, 1, 0), (13, 25, 43): (2, 3, 1), (0, 16, 32): (0, 0, 0), (15, 23, 39): (1, 3, 3), (7, 23, 37): (1, 1, 3), (6, 18, 33): (0, 1, 2), (10, 30, 46): (3, 2, 2), (13, 29, 47): (3, 3, 1), (11, 19, 34): (0, 2, 3), (1, 21, 36): (1, 0, 1), (7, 27, 41): (2, 1, 3), (0, 24, 40): (2, 0, 0), (10, 26, 42): (2, 2, 2), (3, 27, 40): (2, 0, 3), (2, 26, 40): (2, 0, 2), (9, 21, 38): (1, 2, 1), (8, 24, 42): (2, 2, 0), (4, 28, 45): (3, 1, 0), (2, 18, 32): (0, 0, 2)})
         """
 
@@ -1087,9 +1089,9 @@ class LatinSquare:
             sage: from sage.combinat.matrices.latin import *
             sage: P = elementary_abelian_2group(2)
             sage: P[0, 0] = -1
-            sage: print P.contained_in(elementary_abelian_2group(2))
+            sage: P.contained_in(elementary_abelian_2group(2))
             True
-            sage: print back_circulant(4).contained_in(elementary_abelian_2group(2))
+            sage: back_circulant(4).contained_in(elementary_abelian_2group(2))
             False
         """
 
@@ -1114,11 +1116,11 @@ def genus(T1, T2):
         sage: from sage.combinat.matrices.latin import *
         sage: (a, b, c, G) = alternating_group_bitrade_generators(1)
         sage: (T1, T2) = bitrade_from_group(a, b, c, G)
-        sage: print genus(T1, T2)
+        sage: genus(T1, T2)
         1
         sage: (a, b, c, G) = pq_group_bitrade_generators(3, 7)
         sage: (T1, T2) = bitrade_from_group(a, b, c, G)
-        sage: print genus(T1, T2)
+        sage: genus(T1, T2)
         3
     """
 
@@ -1140,26 +1142,26 @@ def tau123(T1, T2):
         sage: from sage.combinat.matrices.latin import *
         sage: (a, b, c, G) = pq_group_bitrade_generators(3, 7)
         sage: (T1, T2) = bitrade_from_group(a, b, c, G)
-        sage: print T1
-        [0 6 4]
-        [1 0 5]
-        [2 1 6]
-        [3 2 0]
-        [4 3 1]
-        [5 4 2]
-        [6 5 3]
-        sage: print T2
-        [6 4 0]
-        [0 5 1]
-        [1 6 2]
-        [2 0 3]
-        [3 1 4]
-        [4 2 5]
-        [5 3 6]
+        sage: T1
+        [ 0  1  2 -1 -1 -1 -1]
+        [ 2  4  3 -1 -1 -1 -1]
+        [ 4  0  5 -1 -1 -1 -1]
+        [ 3  5  1 -1 -1 -1 -1]
+        [ 6  3  0 -1 -1 -1 -1]
+        [ 1  6  4 -1 -1 -1 -1]
+        [ 5  2  6 -1 -1 -1 -1]
+        sage: T2
+        [ 2  0  1 -1 -1 -1 -1]
+        [ 3  2  4 -1 -1 -1 -1]
+        [ 5  4  0 -1 -1 -1 -1]
+        [ 1  3  5 -1 -1 -1 -1]
+        [ 0  6  3 -1 -1 -1 -1]
+        [ 4  1  6 -1 -1 -1 -1]
+        [ 6  5  2 -1 -1 -1 -1]
         sage: (cells_map, t1, t2, t3) = tau123(T1, T2)
-        sage: print cells_map
+        sage: cells_map
         {1: (0, 0), 2: (0, 1), 3: (0, 2), 4: (1, 0), 5: (1, 1), 6: (1, 2), 7: (2, 0), 8: (2, 1), 9: (2, 2), 10: (3, 0), 11: (3, 1), 12: (3, 2), 13: (4, 0), (2, 1): 8, 15: (4, 2), 16: (5, 0), 17: (5, 1), 18: (5, 2), 19: (6, 0), 20: (6, 1), 21: (6, 2), (5, 1): 17, (4, 0): 13, (1, 2): 6, (3, 0): 10, (5, 0): 16, (2, 2): 9, (4, 1): 14, (1, 1): 5, (3, 2): 12, (0, 0): 1, (6, 0): 19, 14: (4, 1), (4, 2): 15, (1, 0): 4, (0, 1): 2, (6, 1): 20, (3, 1): 11, (2, 0): 7, (6, 2): 21, (5, 2): 18, (0, 2): 3}
-        sage: print cells_map_as_square(cells_map, max(T1.nrows(), T1.ncols()))
+        sage: cells_map_as_square(cells_map, max(T1.nrows(), T1.ncols()))
         [ 1  2  3 -1 -1 -1 -1]
         [ 4  5  6 -1 -1 -1 -1]
         [ 7  8  9 -1 -1 -1 -1]
@@ -1168,32 +1170,18 @@ def tau123(T1, T2):
         [16 17 18 -1 -1 -1 -1]
         [19 20 21 -1 -1 -1 -1]
         sage: t1
-        [3, 1, 2, 6, 4, 5, 9, 7, 8, 12, 10, 11, 15, 13, 14, 18, 16, 17, 21, 19, 20]
+        [2, 3, 1, 5, 6, 4, 8, 9, 7, 11, 12, 10, 14, 15, 13, 17, 18, 16, 20, 21, 19]
         sage: t2
-        [19, 17, 12, 1, 20, 15, 4, 2, 18, 7, 5, 21, 10, 8, 3, 13, 11, 6, 16, 14, 9]
-        sage: print t3
-        [5, 9, 13, 8, 12, 16, 11, 15, 19, 14, 18, 1, 17, 21, 4, 20, 3, 7, 2, 6, 10]
+        [4, 8, 12, 10, 20, 18, 19, 5, 15, 16, 14, 9, 1, 17, 6, 7, 2, 21, 13, 11, 3]
+        sage: t3
+        [15, 16, 20, 3, 7, 14, 18, 1, 11, 6, 19, 2, 21, 10, 8, 12, 13, 5, 9, 4, 17]
 
         sage: t1.to_cycles()
-        [(1, 3, 2),
-         (4, 6, 5),
-         (7, 9, 8),
-         (10, 12, 11),
-         (13, 15, 14),
-         (16, 18, 17),
-         (19, 21, 20)]
+        [(1, 2, 3), (4, 5, 6), (7, 8, 9), (10, 11, 12), (13, 14, 15), (16, 17, 18), (19, 20, 21)]
         sage: t2.to_cycles()
-        [(1, 19, 16, 13, 10, 7, 4),
-         (2, 17, 11, 5, 20, 14, 8),
-         (3, 12, 21, 9, 18, 6, 15)]
+        [(1, 4, 10, 16, 7, 19, 13), (2, 8, 5, 20, 11, 14, 17), (3, 12, 9, 15, 6, 18, 21)]
         sage: t3.to_cycles()
-        [(1, 5, 12),
-         (2, 9, 19),
-         (3, 13, 17),
-         (4, 8, 15),
-         (6, 16, 20),
-         (7, 11, 18),
-         (10, 14, 21)]
+        [(1, 15, 8), (2, 16, 12), (3, 20, 4), (5, 7, 18), (6, 14, 10), (9, 11, 19), (13, 21, 17)]
 
     The product t1*t2*t3 is the identity, i.e. it fixes every point:
 
@@ -1237,14 +1225,14 @@ def isotopism(p):
         [2, 3, 1]
 
         sage: x = isotopism( ((0,1,2), (3,4)) ) # tuple of cycles
-        sage: print x
+        sage: x
         [2, 3, 1, 5, 4]
         sage: x.to_cycles()
         [(1, 2, 3), (4, 5)]
     """
 
     # Identity isotopism on p points:
-    if type(p) == Integer:
+    if type(p) == Integer or type(p) == int:
         return Permutation(range(1, p+1))
 
     if type(p) == PermutationGroupElement:
@@ -1286,19 +1274,19 @@ def cells_map_as_square(cells_map, n):
         sage: from sage.combinat.matrices.latin import *
         sage: (a, b, c, G) = alternating_group_bitrade_generators(1)
         sage: (T1, T2) = bitrade_from_group(a, b, c, G)
-        sage: print T1
-        [ 0 -1  3  1]
-        [-1  1  0  2]
+        sage: T1
+        [ 0  2 -1  1]
+        [-1  0  1  3]
+        [ 3 -1  0  2]
         [ 1  3  2 -1]
-        [ 2  0 -1  3]
 
     There are 12 filled cells in T:
 
-        sage: print cells_map_as_square(T1.filled_cells_map(), max(T1.nrows(), T1.ncols()))
-        [ 1 -1  2  3]
+        sage: cells_map_as_square(T1.filled_cells_map(), max(T1.nrows(), T1.ncols()))
+        [ 1  2 -1  3]
         [-1  4  5  6]
-        [ 7  8  9 -1]
-        [10 11 -1 12]
+        [ 7 -1  8  9]
+        [10 11 12 -1]
     """
 
     assert n > 1
@@ -1333,9 +1321,9 @@ def beta1(rce, T1, T2):
         sage: y = isotopism(5) # identity
         sage: z = isotopism(5) # identity
         sage: T2 = T1.apply_isotopism(x, y, z)
-        sage: print is_bitrade(T1, T2)
+        sage: is_bitrade(T1, T2)
         True
-        sage: print beta1([0, 0, 0], T1, T2)
+        sage: beta1([0, 0, 0], T1, T2)
         (1, 0, 0)
     """
 
@@ -1369,9 +1357,9 @@ def beta2(rce, T1, T2):
         sage: y = isotopism(5) # identity
         sage: z = isotopism(5) # identity
         sage: T2 = T1.apply_isotopism(x, y, z)
-        sage: print is_bitrade(T1, T2)
+        sage: is_bitrade(T1, T2)
         True
-        sage: print beta2([0, 0, 0], T1, T2)
+        sage: beta2([0, 0, 0], T1, T2)
         (0, 1, 0)
     """
 
@@ -1405,9 +1393,9 @@ def beta3(rce, T1, T2):
         sage: y = isotopism(5) # identity
         sage: z = isotopism(5) # identity
         sage: T2 = T1.apply_isotopism(x, y, z)
-        sage: print is_bitrade(T1, T2)
+        sage: is_bitrade(T1, T2)
         True
-        sage: print beta3([0, 0, 0], T1, T2)
+        sage: beta3([0, 0, 0], T1, T2)
         (0, 0, 4)
     """
 
@@ -1445,13 +1433,13 @@ def tau1(T1, T2, cells_map):
         sage: y = isotopism(5) # identity
         sage: z = isotopism(5) # identity
         sage: T2 = T1.apply_isotopism(x, y, z)
-        sage: print is_bitrade(T1, T2)
+        sage: is_bitrade(T1, T2)
         True
         sage: (cells_map, t1, t2, t3) = tau123(T1, T2)
         sage: t1 = tau1(T1, T2, cells_map)
-        sage: print t1
+        sage: t1
         [2, 3, 4, 5, 1, 7, 8, 9, 10, 6, 12, 13, 14, 15, 11, 17, 18, 19, 20, 16, 22, 23, 24, 25, 21]
-        sage: print t1.to_cycles()
+        sage: t1.to_cycles()
         [(1, 2, 3, 4, 5), (6, 7, 8, 9, 10), (11, 12, 13, 14, 15), (16, 17, 18, 19, 20), (21, 22, 23, 24, 25)]
     """
 
@@ -1496,13 +1484,13 @@ def tau2(T1, T2, cells_map):
         sage: y = isotopism(5) # identity
         sage: z = isotopism(5) # identity
         sage: T2 = T1.apply_isotopism(x, y, z)
-        sage: print is_bitrade(T1, T2)
+        sage: is_bitrade(T1, T2)
         True
         sage: (cells_map, t1, t2, t3) = tau123(T1, T2)
         sage: t2 = tau2(T1, T2, cells_map)
-        sage: print t2
+        sage: t2
         [21, 22, 23, 24, 25, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-        sage: print t2.to_cycles()
+        sage: t2.to_cycles()
         [(1, 21, 16, 11, 6), (2, 22, 17, 12, 7), (3, 23, 18, 13, 8), (4, 24, 19, 14, 9), (5, 25, 20, 15, 10)]
     """
 
@@ -1529,10 +1517,10 @@ def tau2(T1, T2, cells_map):
 
 def tau3(T1, T2, cells_map):
     """
-    The definition of tau1 is:
+    The definition of tau3 is:
 
-        tau1 : T1 -> T1
-        tau1 = beta\^(-1)_3 beta_1   (composing left to right)
+        tau3 : T1 -> T1
+        tau3 = beta\^(-1)_1 beta_2   (composing left to right)
 
     where
 
@@ -1547,13 +1535,13 @@ def tau3(T1, T2, cells_map):
         sage: y = isotopism(5) # identity
         sage: z = isotopism(5) # identity
         sage: T2 = T1.apply_isotopism(x, y, z)
-        sage: print is_bitrade(T1, T2)
+        sage: is_bitrade(T1, T2)
         True
         sage: (cells_map, t1, t2, t3) = tau123(T1, T2)
         sage: t3 = tau3(T1, T2, cells_map)
-        sage: print t3
+        sage: t3
         [10, 6, 7, 8, 9, 15, 11, 12, 13, 14, 20, 16, 17, 18, 19, 25, 21, 22, 23, 24, 5, 1, 2, 3, 4]
-        sage: print t3.to_cycles()
+        sage: t3.to_cycles()
         [(1, 10, 14, 18, 22), (2, 6, 15, 19, 23), (3, 7, 11, 20, 24), (4, 8, 12, 16, 25), (5, 9, 13, 17, 21)]
     """
 
@@ -1589,7 +1577,7 @@ def back_circulant(n):
 
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
-        sage: print back_circulant(5)
+        sage: back_circulant(5)
         [0 1 2 3 4]
         [1 2 3 4 0]
         [2 3 4 0 1]
@@ -1617,7 +1605,7 @@ def forward_circulant(n):
 
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
-        sage: print forward_circulant(5)
+        sage: forward_circulant(5)
         [0 4 3 2 1]
         [1 0 4 3 2]
         [2 1 0 4 3]
@@ -1688,7 +1676,7 @@ def elementary_abelian_2group(s):
 
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
-        sage: print elementary_abelian_2group(3)
+        sage: elementary_abelian_2group(3)
         [0 1 2 3 4 5 6 7]
         [1 0 3 2 5 4 7 6]
         [2 3 0 1 6 7 4 5]
@@ -1748,14 +1736,14 @@ def next_conjugate(L):
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
         sage: L = back_circulant(6)
-        sage: print L
+        sage: L
         [0 1 2 3 4 5]
         [1 2 3 4 5 0]
         [2 3 4 5 0 1]
         [3 4 5 0 1 2]
         [4 5 0 1 2 3]
         [5 0 1 2 3 4]
-        sage: print next_conjugate(L)
+        sage: next_conjugate(L)
         [0 1 2 3 4 5]
         [5 0 1 2 3 4]
         [4 5 0 1 2 3]
@@ -1790,13 +1778,13 @@ def row_containing_sym(L, c, x):
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
         sage: L = matrix([(0, 1, 0, 3), (3, 0, 2, 1), (1, 0, 3, 2), (2, 3, 1, 0)])
-        sage: print L
+        sage: L
         [0 1 0 3]
         [3 0 2 1]
         [1 0 3 2]
         [2 3 1 0]
         sage: c = row_containing_sym(L, 1, 0)
-        sage: print c == 1 or c == 2
+        sage: c == 1 or c == 2
         True
     """
 
@@ -1828,13 +1816,13 @@ def column_containing_sym(L, r, x):
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
         sage: L = matrix([(1, 0, 2, 3), (0, 2, 3, 0), (2, 3, 0, 1), (3, 0, 1, 2)])
-        sage: print L
+        sage: L
         [1 0 2 3]
         [0 2 3 0]
         [2 3 0 1]
         [3 0 1 2]
         sage: c = column_containing_sym(L, 1, 0)
-        sage: print c == 0 or c == 3
+        sage: c == 0 or c == 3
         True
     """
 
@@ -1873,7 +1861,7 @@ def LatinSquare_generator(L_start, check_assertions = False):
 
         sage: from sage.combinat.matrices.latin import *
         sage: g = LatinSquare_generator(back_circulant(4))
-        sage: print g.next().is_latin_square()
+        sage: g.next().is_latin_square()
         True
 
     REFERENCE:
@@ -2004,14 +1992,14 @@ def group_to_LatinSquare(G):
 
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
-        sage: print group_to_LatinSquare(DihedralGroup(2))
+        sage: group_to_LatinSquare(DihedralGroup(2))
         [0 1 2 3]
         [1 0 3 2]
         [2 3 0 1]
         [3 2 1 0]
 
         sage: G = gap.Group(PermutationGroupElement((1,2,3)))
-        sage: print group_to_LatinSquare(G)
+        sage: group_to_LatinSquare(G)
         [0 1 2]
         [1 2 0]
         [2 0 1]
@@ -2073,16 +2061,16 @@ def alternating_group_bitrade_generators(m):
         ()
 
         sage: (T1, T2) = bitrade_from_group(a, b, c, G)
-        sage: print T1
-        [ 0 -1  3  1]
-        [-1  1  0  2]
+        sage: T1
+        [ 0  2 -1  1]
+        [-1  0  1  3]
+        [ 3 -1  0  2]
         [ 1  3  2 -1]
-        [ 2  0 -1  3]
-        sage: print T2
-        [ 1 -1  0  3]
-        [-1  0  2  1]
-        [ 2  1  3 -1]
-        [ 0  3 -1  2]
+        sage: T2
+        [ 1  0 -1  2]
+        [-1  3  0  1]
+        [ 0 -1  2  3]
+        [ 3  2  1 -1]
     """
 
     assert m >= 1
@@ -2157,10 +2145,7 @@ def p3_group_bitrade_generators(p):
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
         sage: p3_group_bitrade_generators(3)
-        ((1,2,3)(4,16,17)(5,20,21)(6,10,14)(7,11,15)(8,24,18)(9,26,23)(12,19,25)(13,22,27),
-         (1,4,5)(2,8,9)(3,12,13)(6,18,22)(7,19,23)(10,25,20)(11,16,27)(14,17,26)(15,24,21),
-         (1,21,8)(2,23,12)(3,27,4)(5,17,10)(6,13,25)(7,26,16)(9,18,14)(11,22,24)(15,20,19),
-         Permutation Group with generators [(1,2,3)(4,16,17)(5,20,21)(6,10,14)(7,11,15)(8,24,18)(9,26,23)(12,19,25)(13,22,27), (1,4,5)(2,8,9)(3,12,13)(6,18,22)(7,19,23)(10,25,20)(11,16,27)(14,17,26)(15,24,21), (1,6,7)(2,10,11)(3,14,15)(4,18,19)(5,22,23)(8,25,16)(9,20,27)(12,17,24)(13,26,21)])
+        ((2,6,7)(3,8,9), (1,2,3)(4,7,8)(5,6,9), (1,9,2)(3,7,4)(5,8,6), Permutation Group with generators [(2,6,7)(3,8,9), (1,2,3)(4,7,8)(5,6,9)])
     """
 
     assert is_prime(p)
@@ -2181,18 +2166,12 @@ def p3_group_bitrade_generators(p):
 
     G = F.FactorGroupFpGroupByRels(rels)
 
-    N = gap.NormalClosure(F, gap.Subgroup(F, rels))
-    niso = gap.NaturalHomomorphismByNormalSubgroupNC(F, N)
+    iso = gap.IsomorphismPermGroup(G)
 
-    a = PermutationGroupElement(gap.Image(niso, a))
-    b = PermutationGroupElement(gap.Image(niso, b))
-    c = PermutationGroupElement(gap.Image(niso, c))
+    x = PermutationGroupElement(gap.Image(iso, G.gen(1)))
+    y = PermutationGroupElement(gap.Image(iso, G.gen(2)))
 
-    G = PermutationGroup([a, b, c])
-
-    c = PermutationGroupElement((a*b)**(-1))
-
-    return (a, b, c, G)
+    return (x, y, (x*y)**(-1), PermutationGroup([x, y]))
 
 def check_bitrade_generators(a, b, c):
     """
@@ -2203,9 +2182,9 @@ def check_bitrade_generators(a, b, c):
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
         sage: a, b, c, G = p3_group_bitrade_generators(3)
-        sage: print check_bitrade_generators(a, b, c)
+        sage: check_bitrade_generators(a, b, c)
         True
-        sage: print check_bitrade_generators(a, b, G.identity())
+        sage: check_bitrade_generators(a, b, gap('()'))
         False
     """
 
@@ -2232,7 +2211,7 @@ def is_bitrade(T1, T2):
         sage: y = isotopism(5) # identity
         sage: z = isotopism(5) # identity
         sage: T2 = T1.apply_isotopism(x, y, z)
-        sage: print is_bitrade(T1, T2)
+        sage: is_bitrade(T1, T2)
         True
     """
 
@@ -2250,7 +2229,7 @@ def is_primary_bitrade(a, b, c, G):
     EXAMPLES:
         sage: from sage.combinat.matrices.latin import *
         sage: (a, b, c, G) = p3_group_bitrade_generators(5)
-        sage: print is_primary_bitrade(a, b, c, G)
+        sage: is_primary_bitrade(a, b, c, G)
         True
     """
 
@@ -2258,59 +2237,84 @@ def is_primary_bitrade(a, b, c, G):
 
     return G == H
 
-def coset_representatives(x, G):
+def tau_to_bitrade(t1, t2, t3):
     """
-    For some group element x in G, return a list of the canonical
-    coset representatives for the subgroup <x> in G.
+    Given permutation t1, t2, t3 that represent a latin bitrade,
+    convert them to an explicit latin bitrade (T1, T2). The result
+    is unique up to isotopism.
 
-    EXAMPLES:
+    EXAMPLE:
         sage: from sage.combinat.matrices.latin import *
-        sage: a, b, c, G = alternating_group_bitrade_generators(1)
-        sage: print coset_representatives(a, G)
-        [(), (1,2)(3,4), (1,4)(2,3), (1,3)(2,4)]
+        sage: T1 = back_circulant(5)
+        sage: x = isotopism( (0,1,2,3,4) )
+        sage: y = isotopism(5) # identity
+        sage: z = isotopism(5) # identity
+        sage: T2 = T1.apply_isotopism(x, y, z)
+        sage: _, t1, t2, t3 = tau123(T1, T2)
+        sage: U1, U2 = tau_to_bitrade(t1, t2, t3)
+        sage: assert is_bitrade(U1, U2)
+        sage: U1
+        [0 1 2 3 4]
+        [1 2 3 4 0]
+        [2 3 4 0 1]
+        [3 4 0 1 2]
+        [4 0 1 2 3]
+        sage: U2
+        [4 0 1 2 3]
+        [0 1 2 3 4]
+        [1 2 3 4 0]
+        [2 3 4 0 1]
+        [3 4 0 1 2]
     """
 
-    rcosets = gap.RightCosets(G, PermutationGroup([x]))
+    c1 = t1.to_cycles()
+    c2 = t2.to_cycles()
+    c3 = t3.to_cycles()
 
-    cosetReps = []
+    pt_to_cycle1 = {}
+    pt_to_cycle2 = {}
+    pt_to_cycle3 = {}
 
-    for i in range(1, len(rcosets)+1):
-        cosetReps.append(gap.Representative(rcosets[i]))
+    for i in range(len(c1)):
+        for j in range(len(c1[i])):
+            pt_to_cycle1[c1[i][j]] = i
 
-    assert gap.Index(G, PermutationGroup([x])) == len(cosetReps)
+    for i in range(len(c2)):
+        for j in range(len(c2[i])):
+            pt_to_cycle2[c2[i][j]] = i
 
-    return cosetReps
+    for i in range(len(c3)):
+        for j in range(len(c3[i])):
+            pt_to_cycle3[c3[i][j]] = i
 
-def entry_label(eLabels, C, x):
-    """
-    ARGUMENTS:
-        eLabels --- list of coset representatives of C in G
-        C       --- subgroup G of G
-        x       --- element of G
+    n = max(len(c1), len(c2), len(c3))
 
-    RETURNS:
-        integer i such that C*eLabels[i] == C*x
+    T1 = LatinSquare(n)
+    T2 = LatinSquare(n)
 
-    EXAMPLES:
-        sage: from sage.combinat.matrices.latin import *
-        sage: a, b, c, G = alternating_group_bitrade_generators(1)
-        sage: print entry_label(coset_representatives(c, G), gap.Group([c]), a)
-        1
-    """
+    for r in range(len(c1)):
+        for c in range(len(c2)):
+            for s in range(len(c3)):
+                nr_common = len(reduce(sets.Set.intersection, \
+                    [sets.Set(c1[r]), sets.Set(c2[c]), sets.Set(c3[s])]))
+                assert nr_common in [0, 1]
 
-    # fixme There should be a nicer way to do this using
-    # dictionary.
+                if nr_common == 1: T1[r, c] = s
 
-    Cx = gap.RightCoset(C, x)
+    for cycle in c1:
+        for pt1 in cycle:
+            pt2 = t1[pt1 - 1]
+            pt3 = t2[pt2 - 1]
+            assert t3[pt3 - 1] == pt1
 
-    for i in range(len(eLabels)):
-        y = eLabels[i]
+            r = pt_to_cycle1[pt1]
+            c = pt_to_cycle2[pt2]
+            s = pt_to_cycle3[pt3]
 
-        Cy = gap.RightCoset(C, y)
+            T2[r, c] = s
 
-        if Cx == Cy: return i
+    return T1, T2
 
-    assert False
 
 def bitrade_from_group(a, b, c, G):
     """
@@ -2323,70 +2327,29 @@ def bitrade_from_group(a, b, c, G):
         sage: from sage.combinat.matrices.latin import *
         sage: a, b, c, G = alternating_group_bitrade_generators(1)
         sage: (T1, T2) = bitrade_from_group(a, b, c, G)
-        sage: print T1
-        [ 0 -1  3  1]
-        [-1  1  0  2]
+        sage: T1
+        [ 0  2 -1  1]
+        [-1  0  1  3]
+        [ 3 -1  0  2]
         [ 1  3  2 -1]
-        [ 2  0 -1  3]
-        sage: print T2
-        [ 1 -1  0  3]
-        [-1  0  2  1]
-        [ 2  1  3 -1]
-        [ 0  3 -1  2]
+        sage: T2
+        [ 1  0 -1  2]
+        [-1  3  0  1]
+        [ 0 -1  2  3]
+        [ 3  2  1 -1]
     """
 
-    T1 = {}
-    T2 = {}
+    hom = gap.ActionHomomorphism(G, gap.RightCosets(G, gap.TrivialSubgroup(G)), gap.OnRight)
 
-    # The rows of the bitrade are labeled using
-    # the cosets of <a> in G.
-    rLabels = coset_representatives(a, G)
-    cLabels = coset_representatives(b, G)
-    eLabels = coset_representatives(c, G)
+    t1 = gap.Image(hom, a)
+    t2 = gap.Image(hom, b)
+    t3 = gap.Image(hom, c)
 
-    T1 = LatinSquare(len(rLabels), len(cLabels))
-    T2 = LatinSquare(len(rLabels), len(cLabels))
+    t1 = Permutation(str(t1).replace('\n', ''))
+    t2 = Permutation(str(t2).replace('\n', ''))
+    t3 = Permutation(str(t3).replace('\n', ''))
 
-    for i in range(len(rLabels)):
-        for j in range(len(cLabels)):
-            T1[i, j] = -1
-            T2[i, j] = -1
-
-    A = gap.Group([a])
-    B = gap.Group([b])
-    C = gap.Group([c])
-
-    for i in range(len(rLabels)):
-        for j in range(len(cLabels)):
-            for k in range(len(eLabels)):
-                cosetRow = gap.RightCoset(A, rLabels[i])
-                cosetCol = gap.RightCoset(B, cLabels[j])
-                cosetEnt = gap.RightCoset(C, eLabels[k])
-
-                g = gap.Intersection(gap.Elements(cosetRow), gap.Elements(cosetCol), gap.Elements(cosetEnt))
-
-                if len(g) == 0: continue
-
-                # At this point we know that a, b, c are the right
-                # generators for a group-based bitrade so we can get
-                # the *unique* element g in the intersection of
-                # cosetRow, cosetCol, and cosetEnt by getting the
-                # intersection of just one pair.
-                g = gap.Intersection(cosetRow, cosetCol)
-
-                assert len(g) == 1
-
-                g = g[1]
-                #eIdx = entry_label(eLabels, C, a**(-1) * g)
-                eIdx = entry_label(eLabels, C, a * g)
-                # fixme we're doing things with right instead of
-                # left cosets now, oops! The published work uses left
-                # cosets.
-
-                T1[i, j] = k
-                T2[i, j] = eIdx
-
-    return (T1, T2)
+    return tau_to_bitrade(t1, t2, t3)
 
 def is_disjoint(T1, T2):
     """
@@ -2404,7 +2367,7 @@ def is_disjoint(T1, T2):
         sage: y = isotopism(5) # identity
         sage: z = isotopism(5) # identity
         sage: T2 = T1.apply_isotopism(x, y, z)
-        sage: print is_disjoint(T1, T2)
+        sage: is_disjoint(T1, T2)
         True
     """
 
@@ -2592,13 +2555,13 @@ def bitrade(T1, T2):
         sage: gamma = isotopism((2,1,0,3,4))
         sage: B2 = B1.apply_isotopism(alpha, beta, gamma)
         sage: T1, T2 = bitrade(B1, B2)
-        sage: print T1
+        sage: T1
         [ 0  1 -1  3  4]
         [ 1 -1 -1  4  0]
         [ 2 -1  4  0  1]
         [ 3  4  0  1  2]
         [ 4  0  1  2  3]
-        sage: print T2
+        sage: T2
         [ 3  4 -1  0  1]
         [ 0 -1 -1  1  4]
         [ 1 -1  0  4  2]
@@ -2621,4 +2584,5 @@ def bitrade(T1, T2):
                 Q2[r, c] = -1
 
     return Q1, Q2
+
 

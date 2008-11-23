@@ -57,6 +57,7 @@ We compute in a quotient of a polynomial ring over $\ZZ/17\ZZ$:
     sage: R.<x,y> = ZZ[]
     sage: S.<a,b> = R.quotient((x^2 + y^2, 17))
     ...
+    verbose 0 ... Warning: falling back to very slow toy implementation.
     sage: S
     Quotient of Multivariate Polynomial Ring in x, y over Integer Ring
     by the ideal (x^2 + y^2, 17)
@@ -143,6 +144,7 @@ system has no solutions over the rationals.
 
         sage: I.groebner_basis()
         ...
+        verbose 0 ... Warning: falling back to very slow toy implementation.
         [x + y + z, y^2 + y + 23234, y*z + y + 26532, 2*y + 158864, z^2 + 17223, 2*z + 41856, 164878]
 
     Now for each prime $p$ dividing this integer 164878, the

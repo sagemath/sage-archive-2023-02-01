@@ -467,7 +467,6 @@ If this all works, you can then make calls like:
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.__name)
-            print msg
             raise RuntimeError, "Unable to start %s"%self.__name
         self._expect.timeout = None
         with gc_disabled():
@@ -477,6 +476,7 @@ If this all works, you can then make calls like:
             else:
                 for X in self.__init_code:
                     self._send(X)
+
 
     def clear_prompts(self):
         while True:

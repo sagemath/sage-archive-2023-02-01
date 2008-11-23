@@ -28,32 +28,36 @@ sympy mailinglist: http://groups.google.com/group/sympy
 
 == Changelog ==
 
-=== sympy-0.6.3 (Ondrej Certik, Nov 19, 2008) ===
-  * new upstream release
+=== sympy-0.6.3.p0 (Michael Abshoff, November 22nd, 2008) ===
+ * Clean up SPKG.txt and spkg-install
+
+=== sympy-0.6.3 (Ondrej Certik, November 19th, 2008) ===
+ * new upstream release
 
 === sympy-0.6.2 (Ondrej Certik) ===
-  * new upstream release
+ * new upstream release
 
 === sympy-0.6.0 (Ondrej Certik) ===
-  * new upstream release
+ * new upstream release
 
 === sympy-0.5.13 (Ondrej Certik) ===
-  * new upstream release
-  * added a README file
+ * new upstream release
+ * added a README file
 
 === sympy-0.5.11 (Ondrej Certik) ===
-  * new upstream release
+ * new upstream release
 
 === sympy-0.5.7 (Ondrej Certik) ===
-  * new upstream release
-  * added a script for getting a hg version
-  * added a script for downloading the upstream sources, creating the src dir
+ * new upstream release
+ * added a script for getting a hg version
+ * added a script for downloading the upstream sources, creating the src dir
 
 === sympy-0.5.6 (Ondrej Certik) ===
-  * new upstream release
+ * new upstream release
 
 === sympy-0.5.5 (Ondrej Certik) ===
-  * new upstream release
+ * new upstream release
 
 === sympy-0.5.3 (William Stein) ===
-  * initial version of the packaging
+ * initial version of the packaging
+

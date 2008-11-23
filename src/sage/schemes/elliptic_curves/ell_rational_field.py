@@ -1158,36 +1158,43 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     two_descent_simon = simon_two_descent
 
-    def three_selmer_rank(self, bound=0, method=2):
+    def three_selmer_rank(self, algorithm='UseSUnits'):
         r"""
         Return the 3-selmer rank of this elliptic curve, computed
         using Magma.
 
-        This is not implemented for all curves; a NotImplementedError
-        exception is raised when this function is called on curves
-        for which 3-descent isn't implemented.
+        INPUT:
+            algorithm -- 'Heuristic' (which is usually much faster in large examples),
+                         'FindCubeRoots', or 'UseSUnits' (default)
 
-        \note{Use a slightly modified version of Michael Stoll's MAGMA
-        file \code{3descent.m}.  You must have Magma to use this
-        function.}
+        OUTPUT:
+            nonnegative integer
 
         EXAMPLES:
-            sage: EllipticCurve('37a').three_selmer_rank()  # long; optional - magma
+        A rank 0 curve:
+            sage: EllipticCurve('11a').three_selmer_rank()       # optional - magma
+            0
+
+        A rank 0 curve with rational 3-isogeny but no 3-torsion
+            sage: EllipticCurve('14a3').three_selmer_rank()      # optional - magma
+            0
+
+        A rank 0 curve with rational 3-torsion:
+            sage: EllipticCurve('14a1').three_selmer_rank()
             1
 
-            sage: EllipticCurve('14a1').three_selmer_rank()      # optional - magma
-            Traceback (most recent call last):
-            ...
-            NotImplementedError:  Currently, only the case with irreducible phi3 is implemented.
-        """
-        import magma_3descent
-        try:
-            return magma_3descent.three_selmer_rank(self, bound, method)
-        except RuntimeError, msg:
-            msg = str(msg)
-            i = msg.rfind(':')
-            raise NotImplementedError, msg[i+1:]
+        A rank 1 curve with rational 3-isogeny:
+            sage: EllipticCurve('91b').three_selmer_rank()       # optional - magma
+            2
 
+        A rank 0 curve with nontrivial 3-Sha.  The Heuristic option
+        makes this about twice as fast as without it.
+            sage: EllipticCurve('681b').three_selmer_rank(algorithm='Heuristic')   # long (10 seconds); optional - magma
+            2
+        """
+        from sage.interfaces.all import magma
+        E = magma(self)
+        return Integer(E.ThreeSelmerGroup(MethodForFinalStep = magma('"%s"'%algorithm)).Ngens())
 
     def rank(self, use_database=False, verbose=False,
                    only_use_mwrank=True,

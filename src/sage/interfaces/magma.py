@@ -743,7 +743,7 @@ class Magma(Expect):
         if len(params) == 0:
             par = ''
         else:
-            par = ' : ' + ','.join(['%s:=%s'%(a,b) for a,b in params.items()])
+            par = ' : ' + ','.join(['%s:=%s'%(a,b.name()) for a,b in params.items()])
 
         fun = "%s(%s%s)"%(function, ",".join([s.name() for s in args]), par)
 

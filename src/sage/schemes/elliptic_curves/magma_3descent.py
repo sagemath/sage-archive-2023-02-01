@@ -51,13 +51,6 @@ def three_selmer_rank(E, bound=0, method=2):
         sage: from sage.schemes.elliptic_curves.magma_3descent import three_selmer_rank
         sage: three_selmer_rank(EllipticCurve('11a'))   # optional - magma
         0
-
-    The mod-3 representation must be irreducible (in the example below there is no
-    rational 3-torsion but there is a 3-isogeny).
-        sage: three_selmer_rank(EllipticCurve('14a3'))
-        Traceback (most recent call last):
-        ...
-        Runtime error in 'ThreeSelmerGroup': Currently, only the case with irreducible phi3 is implemented.
     """
     init()
     cmd = '_, d, _, _ := ThreeSelmerGroup(%s : Bound := %s, Method := %s)'%(

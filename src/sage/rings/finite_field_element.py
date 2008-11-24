@@ -477,14 +477,6 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         n = self.log(g)
         return 'Z(%s)^%s'%(F.order(), n)
 
-    def order(self):
-        """
-        Return the additive order of this finite field element.
-        """
-        if self.is_zero():
-            return Integer(1)
-        return self.parent().characteristic()
-
     def _repr_(self):
         return ("%s"%(self.__value.lift().lift())).replace('a',self.parent().variable_name())
 

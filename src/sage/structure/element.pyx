@@ -2400,6 +2400,82 @@ cdef class FiniteFieldElement(FieldElement):
             else:
                 return L[0][0]
 
+    def additive_order(self):
+        """
+        Return the additive order of this finite field element.
+
+        EXAMPLES:
+            sage: k.<a> = FiniteField(2^12, 'a')
+            sage: b = a^3 + a + 1
+            sage: b.additive_order()
+            2
+            sage: k(0).additive_order()
+            1
+        """
+        if self.is_zero():
+            from sage.rings.integer import Integer
+            return Integer(1)
+        return self.parent().characteristic()
+
+    def pth_power(self, int k = 1):
+        """
+        Return the $p^k$th power of self, where $p$ is the characteristic
+        of the field.
+
+        INPUT:
+            k -- integer (default: 1, must fit in C int type)
+
+        OUTPUT:
+	    The $p^k$th power of self.
+
+        Note that if $k$ is negative, then this computes the appropriate root.
+
+	EXAMPLES:
+            sage: F.<a> = GF(29^2)
+	    sage: z = a^2 + 5*a + 1
+            sage: z.pth_power()
+            19*a + 20
+            sage: z.pth_power(10)
+            10*a + 28
+            sage: z.pth_power(-10) == z
+            True
+            sage: F.<b> = GF(2^12)
+            sage: y = b^3 + b + 1
+            sage: y == (y.pth_power(-3))^(2^3)
+            True
+            sage: y.pth_power(2)
+            b^7 + b^6 + b^5 + b^4 + b^3 + b
+        """
+        p = self.additive_order()
+        n = self.parent().degree()
+        return self**(p**(k % n))
+
+    frobenius = pth_power
+
+    def pth_root(self, int k = 1):
+        """
+        Return the $p^k$th root of self, where $p$ is the characteristic
+        of the field.
+
+        INPUT:
+            k -- integer (default: 1, must fit in C int type)
+
+        OUTPUT:
+	    The $p^k$th root of self.
+
+        Note that if $k$ is negative, then this computes the appropriate power.
+
+	EXAMPLES:
+            sage: F.<b> = GF(2^12)
+            sage: y = b^3 + b + 1
+            sage: y == (y.pth_root(3))^(2^3)
+            True
+            sage: y.pth_root(2)
+            b^11 + b^10 + b^9 + b^7 + b^5 + b^4 + b^2 + b
+        """
+        return self.pth_power(-k)
+
+
 def is_AlgebraElement(x):
     """
     Return True if x is of type AlgebraElement.

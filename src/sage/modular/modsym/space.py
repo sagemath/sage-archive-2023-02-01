@@ -1227,7 +1227,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         A = self.ambient_hecke_module()
         I = A.integral_structure()
         if I.echelonized_basis_matrix().is_one() and (self.free_module().denominator() == 1):
-            J = I.submodule_with_basis(self.free_module().basis(), check=False)
+            J = I.submodule(self.free_module().basis(), check=False, already_echelonized=True)
         else:
             J = self.free_module().intersection(I)
         self.__integral_structure = J

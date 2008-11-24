@@ -662,17 +662,31 @@ cdef class MPolynomial(CommutativeRingElement):
         P = P.change_ring(R)
         return P(self)
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
-        Returns the MAGMA representation of self.
+        Returns a Magma string representation of self valid in the
+        given magma session.
 
         EXAMPLES:
             sage: R.<x,y> = GF(2)[]
             sage: f = y*x^2 + x +1
-            sage: f._magma_init_()                    # optional - magma
-            '_sage_[3]^2*_sage_[4] + _sage_[3] + 1'
+            sage: f._magma_init_(magma)                    # optional - magma
+            '(GF(2)!1)*_sage_[...]^2*_sage_[...]+(GF(2)!1)*_sage_[...]+(GF(2)!1)*1'
+
+        A more complicated nested example:
+            sage: R.<x,y> = QQ[]; S.<z,w> = R[]; f = (2/3)*x^3*z + w^2 + 5
+            sage: f._magma_init_(magma)               # optional - magma
+            '((1/1)*1)*_sage_[...]^2+((2/3)*_sage_[...]^3)*_sage_[...]+((5/1)*1)*1'
+            sage: magma(f)                            # optional - magma
+            w^2 + 2/3*x^3*z + 5
         """
-        return self._repr_with_changed_varnames(self.parent()._magma_gens())
+        g = magma(self.parent()).gen_names()
+        v = []
+        for m, c in zip(self.monomials(), self.coefficients()):
+            v.append('(%s)*%s'%( c._magma_init_(magma),
+                                 m._repr_with_changed_varnames(g)))
+        return '+'.join(v)
+
 
     def gradient(self):
         r"""

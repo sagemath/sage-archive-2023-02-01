@@ -1245,19 +1245,19 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             o *= g
         return ret
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         r"""
         Return a string representation of self that \MAGMA can
         understand.
 
         EXAMPLE:
             sage: k.<a> = GF(2^16)
-            sage: a._magma_init_()      # random; optional - magma
+            sage: a._magma_init_(magma)      # random; optional - magma
             '_sage_[2]'
 
         NOTE: This method calls \MAGMA to setup the parent.
         """
-        km = self.parent()._magma_()
+        km = magma(self.parent())
         vn_m = km.gen(1).name()
         vn_s = str(self.parent().polynomial_ring().gen())
         return str(self.polynomial()).replace(vn_s,vn_m)

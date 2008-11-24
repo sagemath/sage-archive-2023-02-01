@@ -233,10 +233,11 @@ cdef class SageObject:
                     pass
             except (KeyError, ValueError):
                 pass
-        if hasattr(self, '_%s_init_'%I.name()):
-            s = self.__getattribute__('_%s_init_'%I.name())()
-        elif hasattr(self, '_system_init_'):
-            s = self._system_init_(I.name())
+        nm = I.name()
+        if nm == 'magma':
+            s = self._magma_init_(I)
+        elif hasattr(self, '_%s_init_'%nm):
+            s = self.__getattribute__('_%s_init_'%nm)()
         else:
             try:
               s = self._interface_init_()
@@ -309,7 +310,7 @@ cdef class SageObject:
         return self._interface_init_()
 
 
-    def _magma_(self, M=None):
+    def _magma_(self, magma):
         """
         Given a Magma interpreter M (or None for the default global
         interpreter), return MagmaElement corresponding to self in M.
@@ -328,13 +329,13 @@ cdef class SageObject:
         EXAMPLES:
             sage: n = -3/7
             sage: m2 = Magma()
-            sage: n._magma_()                        # optional - magma
+            sage: n._magma_(magma)                        # optional - magma
             -3/7
-            sage: n._magma_().parent()               # optional - magma
+            sage: n._magma_(magma).parent()               # optional - magma
             Magma
-            sage: n._magma_().parent() is m2         # optional - magma
+            sage: n._magma_(magma).parent() is m2         # optional - magma
             False
-            sage: n._magma_().parent() is magma      # optional - magma
+            sage: n._magma_(magma).parent() is magma      # optional - magma
             True
             sage: n._magma_(m2).parent() is m2       # optional - magma
             True
@@ -342,19 +343,16 @@ cdef class SageObject:
         This example illustrates caching, which happens automatically
         since K is a Python object:
             sage: K.<a> = NumberField(x^3 + 2)
-            sage: K._magma_() is K._magma_()        # optional - magma
+            sage: magma(K) is magma(K)        # optional - magma
             True
             sage: magma2 = Magma()
-            sage: K._magma_() is K._magma_(magma2)  # optional - magma
+            sage: magma(K) is magma2(K)       # optional - magma
             False
         """
-        if M is None:
-            import sage.interfaces.magma
-            M = sage.interfaces.magma.magma
         c = self._interface_is_cached_()
         if c:
             try:
-                X = self.__interface[M]
+                X = self.__interface[magma]
                 X._check_valid()
                 return X
             except (AttributeError, TypeError):
@@ -367,28 +365,24 @@ cdef class SageObject:
                     pass
             except (KeyError, ValueError):
                 pass
-        A = self._magma_convert_(M)
+        A = self._magma_convert_(magma)
         if c:
-            self.__interface[M] = A
+            self.__interface[magma] = A
         return A
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
-        Return an ascii string that evaluates to something equal to
-        self in Magma.  Use this for converting very simple things
-        (e.g., integers) from Sage to Magma.  For anything much more
-        complicated, use _magma_convert_.
+        Return an ascii string that evaluates to the Magma version of
+        self in the given magma interface.
 
-        The default coercion for elements from Sage to Magma is to
-        call _magma_init_, which just calls the repr method of the
-        object.
-
+        INPUT:
+            magma -- a Magma interface
         OUTPUT:
             string
 
         EXAMPLES:
             sage: n = -3/7
-            sage: n._magma_init_()
+            sage: n._magma_init_(magma)
             '-3/7'
         """
         return self._interface_init_()

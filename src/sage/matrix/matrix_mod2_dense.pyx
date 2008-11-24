@@ -1128,14 +1128,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
 
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         r"""
         Returns a string of self in \Magma form. Does not return \Magma
         object but string.
 
         EXAMPLE:
             sage: A = random_matrix(GF(2),3,3)
-            sage: A._magma_init_()                             # optional - magma
+            sage: A._magma_init_(magma)                             # optional - magma
             'MatrixAlgebra(GF(2), 3)![0,1,0,0,1,1,0,0,0]'
             sage: A = random_matrix(GF(2),100,100)
             sage: B = random_matrix(GF(2),100,100)
@@ -1148,7 +1148,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Matrix with 0 rows and 3 columns
         """
         cdef int i,j
-        K = self._base_ring._magma_init_()
+        K = self._base_ring._magma_init_(magma)
         if self._nrows == self._ncols:
             s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
         else:

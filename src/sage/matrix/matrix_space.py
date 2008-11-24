@@ -1086,7 +1086,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         Z.randomize(density, *args, **kwds)
         return Z
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         r"""
         EXAMPLES:
         We first coerce a square matrix.
@@ -1096,7 +1096,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: magma(MatrixSpace(Integers(8),2,3))           # optional - magma
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
         """
-        K = self.base_ring()._magma_init_()
+        K = self.base_ring()._magma_init_(magma)
         if self.__nrows == self.__ncols:
             s = 'MatrixAlgebra(%s, %s)'%(K, self.__nrows)
         else:

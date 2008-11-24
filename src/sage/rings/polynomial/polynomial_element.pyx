@@ -2891,17 +2891,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _pari_init_(self):
         return repr(self._pari_())
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         Return a string that evaluates in Magma to this polynomial.
 
         EXAMPLES:
             sage: R.<y> = ZZ[]
             sage: f = y^3 - 17*y + 5
-            sage: f._magma_init_()             # optional - magma
+            sage: f._magma_init_(magma)             # optional - magma
             'Polynomial(IntegerRing(), [5,-17,0,1])'
         """
-        return 'Polynomial(%s, [%s])'%(self.base_ring()._magma_init_(), ','.join([a._magma_init_() for a in self.list()]))
+        return 'Polynomial(%s, [%s])'%(self.base_ring()._magma_init_(magma),
+                                       ','.join([a._magma_init_(magma) for a in self.list()]))
 
     def _magma_convert_(self, G):
         """
@@ -2927,7 +2928,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             y^3 - 17*y + 5
         """
         z = G(self.parent())   # makes sure the indeterminate var name is defined
-        return G(self._magma_init_())
+        return G(self._magma_init_(G))
 
     def _gap_init_(self):
         return repr(self)

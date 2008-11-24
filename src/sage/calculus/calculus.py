@@ -1187,7 +1187,7 @@ class SymbolicExpression(RingElement):
     def _maple_init_(self):
         return self._sys_init_('maple')
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         Return string representation in Magma of this symbolic expression.
 
@@ -1197,7 +1197,7 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: x = var('x')
             sage: f = sin(cos(x^2) + log(x))
-            sage: f._magma_init_()
+            sage: f._magma_init_(magma)
             '"sin(cos(x^2) + log(x))"'
             sage: magma(f)                         # optional - magma
             sin(cos(x^2) + log(x))
@@ -4095,10 +4095,7 @@ def sys_init(x, system):
     try:
         return x.__getattribute__('_%s_init_'%system)()
     except AttributeError:
-        try:
-            return x._system_init_(system)
-        except AttributeError:
-            return repr(x)
+        return repr(x)
 
 class SymbolicConstant(Symbolic_object):
     def __init__(self, x):

@@ -1545,22 +1545,22 @@ cdef class FiniteField(Field):
         """
         return 'GF(%s)'%self.order()
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         Return string representation of self that Magma can
         understand.
 
         EXAMPLES:
-            sage: GF(97,'a')._magma_init_()              # optional - magma
+            sage: GF(97,'a')._magma_init_(magma)              # optional - magma
             'GF(97)'
-            sage: GF(9,'a')._magma_init_()               # optional - magma
+            sage: GF(9,'a')._magma_init_(magma)               # optional - magma
             'ext< GF(3) | Polynomial(GF(3), [GF(3)!2,GF(3)!2,GF(3)!1]) >'
         """
         if self.degree() == 1:
             return 'GF(%s)'%self.order()
         B = self.base_ring()
         p = self.polynomial()
-        return "ext< %s | %s >"%(B._magma_init_(),p._magma_init_())
+        return "ext< %s | %s >"%(B._magma_init_(magma),p._magma_init_(magma))
 
     def _magma_convert_(self, magma):
         """
@@ -1572,7 +1572,7 @@ cdef class FiniteField(Field):
             sage: magma(GF(9,'a')).1         # optional - magma
             a
         """
-        K = magma(self._magma_init_())
+        K = magma(self._magma_init_(magma))
         K.assign_names([self.variable_name()])
         return K
 

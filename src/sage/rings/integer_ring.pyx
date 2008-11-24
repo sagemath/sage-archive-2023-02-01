@@ -840,7 +840,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return 'Integers'
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         EXAMPLES:
             sage: magma(ZZ)           # optional - magma

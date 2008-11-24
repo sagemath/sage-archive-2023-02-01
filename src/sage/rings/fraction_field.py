@@ -195,17 +195,17 @@ class FractionField_generic(field.Field):
         return "\\mbox{\\rm Frac}(%s)"%latex.latex(self.ring())
 
     __magma = None
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         Return a string representation of self Magma can understand.
 
         EXAMPLES:
-            sage: QQ['x'].fraction_field()._magma_init_()            # optional - magma
+            sage: QQ['x'].fraction_field()._magma_init_(magma)            # optional - magma
             'FieldOfFractions(PolynomialRing(RationalField()))'
         """
         if self.__magma:
             return self.__magma
-        B = self.ring()._magma_init_()
+        B = self.ring()._magma_init_(magma)
         return "FieldOfFractions(%s)"%B
 
     def _magma_(self, magma = None):
@@ -223,7 +223,7 @@ class FractionField_generic(field.Field):
             import sage.interfaces.magma
             magma = sage.interfaces.magma.magma
         if self.__magma is None:
-            s = self._magma_init_()
+            s = self._magma_init_(magma)
             F = magma(s)
             F.assign_names(self.variable_names())
             self.__magma = F

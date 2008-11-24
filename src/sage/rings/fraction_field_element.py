@@ -349,7 +349,7 @@ class FractionFieldElement(field_element.FieldElement):
         return "\\frac{%s}{%s}"%(latex.latex(self.__numerator),
                                  latex.latex(self.__denominator))
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         Return a string representation of self Magma can understand.
 
@@ -362,7 +362,7 @@ class FractionFieldElement(field_element.FieldElement):
             sage: magma((x+y)/x)                        # optional - magma
             (x + y)/x
         """
-        pgens = self.parent()._magma_().gens()
+        pgens = magma(self.parent()).gens()
 
         s = self._repr_()
         for i, j in zip(self.parent().variable_names(), pgens):

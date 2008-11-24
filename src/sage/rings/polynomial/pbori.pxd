@@ -13,6 +13,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     cdef public _monom_monoid
     cdef public object __interface
 
+    # it is very important to keep this cached, since otherwise the magma interface will break
+    cdef public object __cover_ring
+
 cdef class BooleanPolynomial(MPolynomial):
     cdef PBPoly _pbpoly
 

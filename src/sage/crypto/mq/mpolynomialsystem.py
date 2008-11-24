@@ -43,7 +43,6 @@ from sage.matrix.matrix import is_Matrix
 from sage.matrix.constructor import Matrix
 
 from sage.interfaces.singular import singular
-from sage.interfaces.magma import magma
 
 
 def is_MPolynomialSystem(F):
@@ -408,7 +407,7 @@ class MPolynomialRoundSystem_generic(SageObject):
         """
         return singular.ideal(self._gens)
 
-    def _magma_(self):
+    def _magma_(self, magma):
         """
         Return MAGMA ideal representation of self.
 
@@ -416,7 +415,7 @@ class MPolynomialRoundSystem_generic(SageObject):
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
             sage: F,s = sr.polynomial_system()
             sage: R1 = F.round(1)
-            sage: R1._magma_()                               # optional - magma
+            sage: magma(R1)                               # optional - magma
             Ideal of Polynomial ring of rank 20 over GF(2)
             Graded Reverse Lexicographical Order
             Variables: k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
@@ -826,7 +825,7 @@ class MPolynomialSystem_generic(SageObject):
 
     def _singular_(self):
         """
-        Return SINGULAR ideal representation of this system.
+        Return Singular ideal representation of this system.
 
 	EXAMPLE:
 	    sage: P.<a,b,c,d> = PolynomialRing(GF(127))
@@ -841,14 +840,21 @@ class MPolynomialSystem_generic(SageObject):
         """
         return singular.ideal(list(self))
 
-    def _magma_(self):
+    def _magma_(self, magma):
         """
-        Return MAGMA ideal representation of this system as an ideal.
+        Return Magma ideal representation of this system as an ideal.
 
 	EXAMPLE:
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
             sage: F,s = sr.polynomial_system()
-            sage: F._magma_()                                       # optional - magma
+            sage: magma(F)                                       # optional - magma
+            Ideal of Polynomial ring of rank 20 over GF(2)
+            Graded Reverse Lexicographical Order
+            Variables: k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
+            Basis:
+            [
+            ...
+            ]
         """
         return magma.ideal(list(self))
 

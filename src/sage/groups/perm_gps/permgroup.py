@@ -320,7 +320,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         return self._gap_string
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         r"""
         Returns a string showing how to declare / intialize self in Magma.
 
@@ -329,7 +329,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         Magma, one would type the string below to construct the group.
             sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]]); A4
             Permutation Group with generators [(2,3,4), (1,2,3)]
-            sage: A4._magma_init_()
+            sage: A4._magma_init_(magma)
             'PermutationGroup<4 | (2,3,4), (1,2,3)>'
         """
         g = str(self.gens())[1:-1]

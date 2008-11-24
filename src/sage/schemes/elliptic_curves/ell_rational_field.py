@@ -1011,7 +1011,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             from sage.lfunctions.sympow import sympow
             return sympow.analytic_rank(self)[0]
         elif algorithm == 'magma':
-            return rings.Integer(self._magma_().AnalyticRank())
+            from sage.interfaces.all import magma
+            return rings.Integer(magma(self).AnalyticRank())
         elif algorithm == 'all':
             S = list(set([self.analytic_rank('cremona'),
                      self.analytic_rank('rubinstein'), self.analytic_rank('sympow')]))
@@ -2383,7 +2384,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 from sage.lfunctions.all import sympow
                 m = sympow.modular_degree(self)
             elif algorithm == 'magma':
-                m = rings.Integer(self._magma_().ModularDegree())
+                from sage.interfaces.all import magma
+                m = rings.Integer(magma(self).ModularDegree())
             else:
                 raise ValueError, "unknown algorithm %s"%algorithm
             self.__modular_degree = m

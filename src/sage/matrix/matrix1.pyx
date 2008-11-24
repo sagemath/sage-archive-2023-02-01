@@ -220,9 +220,9 @@ cdef class Matrix(matrix0.Matrix):
             [             zeta9            zeta9^4          zeta9 - 1]
             [-zeta9^5 - zeta9^2                  1                  0]
             sage: magma(M)                             # optional - magma
-            [                   0                    1                    3]
-            [              zeta_9             zeta_9^4           zeta_9 - 1]
-            [-zeta_9^5 - zeta_9^2                    1                    0]
+            [                 0                  1                  3]
+            [             zeta9            zeta9^4          zeta9 - 1]
+            [-zeta9^5 - zeta9^2                  1                  0]
             sage: magma(M**2) == magma(M)**2           # optional - magma
             True
         """
@@ -233,7 +233,7 @@ cdef class Matrix(matrix0.Matrix):
            s = 'RMatrixSpace(%s, %s, %s)'%(K.name(), self.nrows(), self.ncols())
         v = []
         for x in self.list():
-             v.append(x._magma_init_())
+             v.append(x._magma_init_(magma))
         return magma(s + '![%s]'%(','.join(v)))
 
     def _maple_init_(self):

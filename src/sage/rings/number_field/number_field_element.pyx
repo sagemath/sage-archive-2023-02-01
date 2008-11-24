@@ -1820,7 +1820,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         self.__pari[var] = h
         return h
 
-    def _magma_(self, magma):
+    def _magma_init_(self, magma):
         """
         Return Magma version of this number field element.
 
@@ -1832,11 +1832,22 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 + 2)
-            sage: magma((2/3)*a^2 - 17/3) # optional -- requires magma
+            sage: a._magma_init_(magma)            # optional - magma
+            '(_sage_[...]![0, 1, 0])'
+            sage: magma((2/3)*a^2 - 17/3)          # optional - magma
             1/3*(2*a^2 - 17)
+
+        An element of a cyclotomic field.
+            sage: K = CyclotomicField(9)
+            sage: K.gen()
+            zeta9
+            sage: K.gen()._magma_init_(magma)
+            '(_sage_[...]![0, 1, 0, 0, 0, 0])'
+            sage: magma(K.gen())
+            zeta9
         """
         K = magma(self.parent())
-        return K(self.list())
+        return '(%s!%s)'%(K.name(), self.list())
 
     cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
         """

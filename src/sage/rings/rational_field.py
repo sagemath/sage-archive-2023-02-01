@@ -731,7 +731,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return 'Rationals'
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         EXAMPLES:
             sage: magma(QQ)                       # optional - magma

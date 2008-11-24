@@ -92,18 +92,18 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         self.__pari = pari('ellinit(Mod(1,%s)*%s)'%(F.characteristic(), [b._pari_() for b in self.ainvs()]))
         return self.__pari
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         Return a Magma command that creates this curve.
 
         EXAMPLES:
             sage: E =  EllipticCurve(GF(41),[2,5]) # optional - magma
-            sage: E._magma_init_()                 # optional - magma
+            sage: E._magma_init_(magma)                 # optional - magma
             'EllipticCurve([GF(41)|GF(41)!0,GF(41)!0,GF(41)!0,GF(41)!2,GF(41)!5])'
        """
         k = self.base_ring()
-        kmn = k._magma_init_()
-        return 'EllipticCurve([%s|%s])'%(kmn,','.join([x._magma_init_() for x in self.ainvs()]))
+        kmn = k._magma_init_(magma)
+        return 'EllipticCurve([%s|%s])'%(kmn,','.join([x._magma_init_(magma) for x in self.ainvs()]))
 
     def _gp(self):
         """

@@ -644,7 +644,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         EXAMPLE:
             sage: P.<x,y> = PolynomialRing(GF(2))
             sage: Q = P.quotient(sage.rings.ideal.FieldIdeal(P))
-            sage: Q._magma_()                                         # optional - magma
+            sage: magma(Q)                                         # optional - magma
             Affine Algebra of rank 2 over GF(2)
             Graded Reverse Lexicographical Order
             Variables: x, y

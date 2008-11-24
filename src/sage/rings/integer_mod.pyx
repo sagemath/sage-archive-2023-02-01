@@ -350,7 +350,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         n = self.log(R(g))
         return 'Z(%s)^%s'%(m, n)
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         Coercion to Magma.
 
@@ -362,7 +362,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: b^2                         # optional - magma
             1
         """
-        return '%s!%s'%(self.parent()._magma_init_(), self)
+        return '%s!%s'%(self.parent()._magma_init_(magma), self)
 
     def _sage_input_(self, sib, coerced):
         r"""

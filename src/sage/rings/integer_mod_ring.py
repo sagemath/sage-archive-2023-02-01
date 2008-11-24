@@ -898,7 +898,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return 'ZmodnZ(%s)'%self.order()
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         EXAMPLES:
             sage: R = Integers(12345678900)

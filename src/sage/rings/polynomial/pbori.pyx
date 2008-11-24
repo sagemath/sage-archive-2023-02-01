@@ -935,8 +935,18 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: B.term_order() == R.term_order()
             True
+
+        The cover ring is cached:
+            sage: B.cover_ring() is B.cover_ring()
+            True
         """
-        return PolynomialRing(GF(2),self.ngens(),self.variable_names(),order=self.term_order())
+        if self.__cover_ring is not None:
+            return self.__cover_ring
+        R = PolynomialRing(GF(2), self.ngens(),
+                           self.variable_names(), order=self.term_order())
+        self.__cover_ring = R
+        return R
+
 
     def defining_ideal(self):
         r"""
@@ -976,16 +986,17 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         """
         return self.cover_ring().quo( self.defining_ideal() )._singular_init_()
 
-    def _magma_(self, magma=None):
+    def _magma_init_(self, magma):
         r"""
-        Return a \Magma representation of this boolean polynomial ring.
+        Return a a string which when evaluated with Magma returns a
+        Magma representaion of this boolean polynomial ring.
 
         INPUT:
-            magma -- a magma instance (default: default instance)
+            magma -- a magma instance
 
         EXAMPLE:
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
-            sage: B._magma_()                              # optional - magma
+            sage: magma(B)                               # indirect doctest; optional - magma
             Affine Algebra of rank 3 over GF(2)
             Lexicographical Order
             Variables: x, y, z
@@ -996,51 +1007,16 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             z^2 + z
             ]
         """
+        R = magma(self.cover_ring())
+        v = [z.name() for z in R.gens()]  # important to use this because it caches the generators
+        w = [f._repr_with_changed_varnames(v) for f in self.defining_ideal().gens()]
+        return "quo<%s | %s>"%(R.name(), ",".join(w))
 
-        if magma is None:
-            import sage.interfaces.magma
-            magma = sage.interfaces.magma.magma
+    def _magma_convert_(self, magma):
+        return magma(self._magma_init_(magma))
 
-        try:
-            m = self.__interface['magma']
-            m._check_valid()
-            if not m.parent() is magma:
-                raise ValueError
-            return m
-        except (KeyError, ValueError):
-            self.__interface['magma'] = magma(self._magma_init_(magma=magma))
-            return self.__interface['magma']
-
-    def _magma_init_(self, magma=None):
-        r"""
-        Return a a string which when evaluated with \Magma returns a
-        \Magma representaion of this boolean polynomial ring.
-
-        INPUT:
-            magma -- a magma instance (default: default instance)
-
-        EXAMPLE:
-            sage: B.<x,y,z> = BooleanPolynomialRing(3)
-            sage: B._magma_()                               # indirect doctest; optional - magma
-            Affine Algebra of rank 3 over GF(2)
-            Lexicographical Order
-            Variables: x, y, z
-            Quotient relations:
-            [
-            x^2 + x,
-            y^2 + y,
-            z^2 + z
-            ]
-
-        NOTE: This method actually calls \Magma.
-        """
-        if magma is None:
-            import sage.interfaces.magma
-            magma = sage.interfaces.magma.magma
-
-        R = self.cover_ring()._magma_(magma=magma)
-        vn = [x._magma_().name() for x in self.cover_ring().gens()]
-        return "quo<%s | %s>"%(R.name(), ",".join([f._repr_with_changed_varnames(vn) for f in self.defining_ideal().gens()]))
+    def _magma_(self, magma):
+        return magma(self._magma_init_(magma))
 
     def interpolation_polynomial(self, zeros, ones):
         r"""
@@ -2786,21 +2762,17 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return unpickle_BooleanPolynomial, (self._parent, PBPoly_to_str(&self._pbpoly))
 
-    def _magma_(self, magma=None):
+    def _magma_(self, magma):
         r"""
         Returns the \MAGMA representation of self.
 
         EXAMPLES:
             sage: R.<x,y> = BooleanPolynomialRing()
             sage: f = y*x + x +1
-            sage: f._magma_() # optional - magma
+            sage: magma(f) # optional - magma
             x*y + x + 1
         """
-        if magma is None:
-            import sage.interfaces.magma
-            magma = sage.interfaces.magma.magma
-
-        magma_gens = [e.name() for e in self.parent()._magma_().gens()]
+        magma_gens = [e.name() for e in magma(self.parent()).gens()]
         f = self._repr_with_changed_varnames(magma_gens)
         return magma(f)
 

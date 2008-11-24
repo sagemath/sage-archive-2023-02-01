@@ -1884,19 +1884,19 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         return pari(self._pari_init_(var))
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         Return a string representation of self that MAGMA can
         understand.
 
         EXAMPLE:
             sage: k.<a> = GF(3^5)
-            sage: k._magma_init_()        # optional - magma
+            sage: k._magma_init_(magma)        # optional - magma
             'ext< GF(3) | Polynomial(GF(3), [GF(3)!1,GF(3)!2,GF(3)!0,GF(3)!0,GF(3)!0,GF(3)!1]) >'
         """
-        km = self.parent()._magma_()
+        km = magma(self.parent())
         vn = km.gen(1).name()
-        return self.parent()._element_poly_repr(self,vn)
+        return self.parent()._element_poly_repr(self, vn)
 
     def multiplicative_order(FiniteField_givaroElement self):
         """

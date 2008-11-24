@@ -250,7 +250,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             return False
         return True
 
-    def _magma_(self, magma=None):
+    def _magma_convert_(self, magma=None):
         """
         Used in converting this ring to the corresponding ring in MAGMA.
 
@@ -276,52 +276,20 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2
         """
-        if magma == None:
-            import sage.interfaces.magma
-            magma = sage.interfaces.magma.magma
+        B = magma(self.base_ring())
+        R = magma('PolynomialRing(%s, %s, %s)'%(B.name(), self.ngens(), self.term_order().magma_str()))
+        R.assign_names(self.variable_names())
+        return R
 
-        try:
-            if self.__magma is None:
-                raise AttributeError
-            m = self.__magma
-            m._check_valid()
-            if not m.parent() is magma:
-                raise ValueError
-            return m
-        except (AttributeError,ValueError):
-            B = magma(self.base_ring())
-            R = magma('PolynomialRing(%s, %s, %s)'%(B.name(), self.ngens(),self.term_order().magma_str()))
-            R.assign_names(self.variable_names())
-            self.__magma = R
-            self.__magma_gens = [e.name() for e in R.gens()]
-            return R
-
-    def _magma_gens(self):
+    def _magma_init_(self, magma):
         """
-        Returns a list with names of Magma representations of the generators
-        of this ring.
-
-        If a Magma object for this ring has not already been initialized,
-        Magma is called first, otherwise cached names are returned.
-
-        EXAMPLES:
-            sage: R = ZZ['x,y']
-            sage: R._magma_gens()                    # optional - magma
-            ['_sage_[3]', '_sage_[4]']
-
-        """
-        if self.__magma_gens is None or not self.__magma._check_valid():
-            self._magma_()
-        return self.__magma_gens
-
-    def _magma_init_(self):
-        """
-        Return a string representation of self MAGMA can understand.
+        Return a string representation of self Magma can understand.
+        Used in conversion of self to Magma.
         """
         try: # we need that for GF(q) arithmetic
-            B = self.base_ring()._magma_().name()
+            B = magma(self.base_ring()).name()
         except (RuntimeError,TypeError):
-            B = self.base_ring()._magma_init_()
+            B = self.base_ring()._magma_init_(magma)
         R = 'PolynomialRing(%s, %s, %s)'%(B, self.ngens(),self.term_order().magma_str())
         return R
 

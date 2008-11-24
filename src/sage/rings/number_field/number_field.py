@@ -5472,7 +5472,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         """
         return NumberField_cyclotomic_v1, (self.__n, self.variable_name())
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         # TODO: I really don't like this on multiple levels.
         # (1) it kills a global symbol self.gen()
         # (2) it abuses how conversion works and throws in an extra define.
@@ -5489,10 +5489,10 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         EXAMPLES:
             sage: K=CyclotomicField(7,'z')
-            sage: K._magma_init_()                                # optional - magma
+            sage: K._magma_init_(magma)                                # optional - magma
             'CyclotomicField(7); z:=CyclotomicField(7).1;'
             sage: K=CyclotomicField(7,'zeta')
-            sage: K._magma_init_()                                # optional - magma
+            sage: K._magma_init_(magma)                                # optional - magma
             'CyclotomicField(7); zeta:=CyclotomicField(7).1;'
         """
         return 'CyclotomicField(%s); %s:=CyclotomicField(%s).1;'%(self.__n, self.gen(), self.__n)

@@ -240,14 +240,14 @@ class QuotientRingElement(ring_element.RingElement):
             sage: P.<x,y> = PolynomialRing(GF(2))
             sage: Q = P.quotient(sage.rings.ideal.FieldIdeal(P))
             sage: xbar, ybar = Q.gens()
-            sage: xbar._magma_() # optional requires magma
+            sage: magma(xbar)             # optional -- magma
             x
         """
         if magma is None:
             import sage.interfaces.magma
             magma = sage.interfaces.magma.magma
 
-        magma_gens = [e.name() for e in self.parent()._magma_().gens()]
+        magma_gens = [e.name() for e in magma(self.parent()).gens()]
         f = self.__rep._repr_with_changed_varnames(magma_gens)
         return magma(f)
 

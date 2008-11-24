@@ -95,7 +95,7 @@ We compute a space of modular forms with character.
     ]
 
 In SAGE/Python (and sort of C++) coercion of an element x into a
-structure S is denoted by S(x).  This also works for the MAGMA interface:
+structure S is denoted by S(x).  This also works for the Magma interface:
 
     sage: G = magma.DirichletGroup(20)                                    # optional - magma
     sage: G.AssignNames(['a', 'b'])                                       # optional - magma
@@ -107,7 +107,7 @@ structure S is denoted by S(x).  This also works for the MAGMA interface:
     sage: print e.Modulus()                                               # optional - magma
     40
 
-We coerce some polynomial rings into MAGMA:
+We coerce some polynomial rings into Magma:
 
     sage: R.<y> = PolynomialRing(QQ)
     sage: S = magma(R)                                                    # optional - magma
@@ -185,9 +185,9 @@ class Magma(Expect):
     a new Magma object, and \code{magma.eval(...)} to run a string
     using Magma (and get the result back as a string).
 
-    NOTE: If you do not own a local copy of MAGMA, try using the
+    NOTE: If you do not own a local copy of Magma, try using the
     \code{magma\_free} command instead, which uses the free demo web
-    interface to MAGMA.
+    interface to Magma.
 
     EXAMPLES:
 
@@ -209,8 +209,8 @@ class Magma(Expect):
             logfile -- output logged to this file
             server -- address of remote server
             user_config -- if True, then local user configuration files
-                           will be read by MAGMA.  If False (the default),
-                           then MAGMA is started with the -n option which
+                           will be read by Magma.  If False (the default),
+                           then Magma is started with the -n option which
                            supresses user configuration files.
 
         EXAMPLES:
@@ -476,8 +476,8 @@ class Magma(Expect):
         Coerce x into this Magma interpreter interface.
 
         INPUT:
-            x -- object
-            gens -- string; names of generators of self, separated by commas
+            x     -- object
+            gens  -- string; names of generators of self, separated by commas
 
         OUTPUT:
             MagmaElement
@@ -502,12 +502,62 @@ class Magma(Expect):
             True
             sage: a.parent() is m       # optional - magma
             False
+
+        We test caching:
+            sage: R.<x> =  ZZ[]                     # optional - magma
+            sage: magma(R) is magma(R)              # optional - magma
+            True
+            sage: m = Magma()                       # optional - magma
+            sage: m(R)                              # optional - magma
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: m(R) is magma(R)                  # optional - magma
+            False
+            sage: R._magma_cache                    # optional - magma
+            {Magma: Univariate Polynomial Ring in x over Integer Ring,
+             Magma: Univariate Polynomial Ring in x over Integer Ring}
         """
-        if gens is None:
-            if isinstance(x, bool):
-                return Expect.__call__(self, str(x).lower())
-            return Expect.__call__(self, x)
-        return self.objgens(x, gens)
+        if isinstance(x, bool):
+            return Expect.__call__(self, 'true' if x else 'false')
+
+        if gens is not None:  # get rid of this at some point -- it's weird
+            return self.objgens(x, gens)
+
+        # This is mostly about caching the Magma element in the object
+        # itself below.  Note that it is *very* important that caching
+        # happen on the object itself, and not in a dictionary that is
+        # held by the Magma interface, since we want garbage collection
+        # of the objects in the Magma interface to work correctly.
+        has_cache = hasattr(x, '_magma_cache')
+        try:
+            if has_cache and x._magma_cache.has_key(self):
+                A = x._magma_cache[self]
+                if A._session_number == self._session_number:
+                    return A
+        except AttributeError:
+            # This happens when x has _magma_cache as a cdef public object attribute.
+            x._magma_cache = {}
+        A = Expect.__call__(self, x)
+        if has_cache:
+            x._magma_cache[self] = A
+        else:
+            try:  # use try/except here, because if x is cdef'd we won't be able to set this.
+                x._magma_cache = {self:A}
+            except AttributeError, msg:
+                pass
+        return A
+
+
+    def _coerce_from_special_method(self, x):
+        """
+        Tries to coerce to self by calling a special underscore method.
+
+        If no such method is defined, raises an AttributeError
+        instead of a TypeError.
+        """
+        try:
+            return x._magma_(self)
+        except AttributeError:
+            return self(x._magma_init_(self))
 
     def clear(self, var):
         """
@@ -593,9 +643,9 @@ class Magma(Expect):
 
     def attach(self, filename):
         r"""
-        Attach the given file to the running instance of MAGMA.
+        Attach the given file to the running instance of Magma.
 
-        Attaching a file in MAGMA makes all intrinsics defined in the
+        Attaching a file in Magma makes all intrinsics defined in the
         file available to the shell.  Moreover, if the file doesn't
         start with the \code{freeze;} command, then the file is
         reloaded whenever it is changed.  Note that functions and
@@ -645,9 +695,9 @@ class Magma(Expect):
     def load(self, filename):
         """
         Load the file with given filename using the 'load' command
-        in the MAGMA shell.
+        in the Magma shell.
 
-        Loading a file in MAGMA makes all the functions and procedures
+        Loading a file in Magma makes all the functions and procedures
         in the file available. The file should not contain any
         intrinsics (or you'll get errors).  It also runs code in the
         file, which can produce output.
@@ -693,7 +743,7 @@ class Magma(Expect):
             try:
                 self.eval('Append(~_sage_, 0);')
             except:
-                # this exception could happen if the MAGMA process
+                # this exception could happen if the Magma process
                 # was interrupted during startup / initialization.
                 self.eval('_sage_ := [* 0 : i in [1..%s] *];'%self.__seq)
         if len(self.__available_var) > 0:
@@ -861,7 +911,7 @@ class Magma(Expect):
         """
         return MagmaElement
 
-    # Usually "Sequences" are what you want in MAGMA, not "lists".
+    # Usually "Sequences" are what you want in Magma, not "lists".
     # It's very painful using the interface without this.
     def _left_list_delim(self):
         """
@@ -1037,12 +1087,12 @@ class Magma(Expect):
                 except IOError:
                     pass
             if verbose:
-                print "\nCreating list of all MAGMA intrinsics for use in tab completion."
+                print "\nCreating list of all Magma intrinsics for use in tab completion."
                 print "This takes a few minutes the first time, but is saved to the"
                 print "file '%s' for future instant use."%INTRINSIC_CACHE
-                print "MAGMA may produce errors during this process, which are safe to ignore."
+                print "Magma may produce errors during this process, which are safe to ignore."
                 print "Delete that file to force recreation of this cache."
-                print "Scanning MAGMA types ..."
+                print "Scanning Magma types ..."
                 tm = sage.misc.misc.cputime()
             T = self.eval('ListTypes()').split()
             N = []
@@ -1055,7 +1105,7 @@ class Magma(Expect):
                     for x in s.split('\n'):
                         i = x.find('(')
                         N.append(x[:i])
-                except RuntimeError, msg:  # weird internal problems in MAGMA type system
+                except RuntimeError, msg:  # weird internal problems in Magma type system
                     print 'Error -- %s'%msg
                     pass
             if verbose:
@@ -1070,7 +1120,7 @@ class Magma(Expect):
 
     def ideal(self, L):
         """
-        Return the MAGMA ideal defined by L.
+        Return the Magma ideal defined by L.
 
         INPUT:
             L -- a list of elements of a SAGE multivariate polynomial ring.
@@ -1091,7 +1141,7 @@ class Magma(Expect):
             ]
         """
         P = iter(L).next().parent()
-        Pn = P._magma_().name()
+        Pn = self(P).name()
         k = P.base_ring()
         if k.degree() > 1:
             i = str(k.gen())
@@ -1477,7 +1527,7 @@ class MagmaElement(ExpectElement):
             [$.1]
         """
         try:
-            return self.__gens
+            return self._magma_gens
         except AttributeError:
             pass
         G = []
@@ -1490,8 +1540,30 @@ class MagmaElement(ExpectElement):
             except (RuntimeError, TypeError):
                 break
             i += 1
-        self.__gens = G
+        self._magma_gens = G
         return G
+
+    def gen_names(self):
+        """
+        Return list of Magma variable names of the generators of self.
+
+        NOTE: As illustrated below, these are not the print names of
+        the the generators of the Magma object, but special variable
+        names in the Magma session that reference the generators.
+
+        EXAMPLES:
+            sage: R.<x,zw> = QQ[]
+            sage: S = magma(R)         # optional - magma
+            sage: S.gen_names()        # optional - magma
+            ('_sage_[...]', '_sage_[...]')
+            sage: magma(S.gen_names()[1])
+            zw
+        """
+        try:
+            return self.__gen_names
+        except AttributeError:
+            self.__gen_names = tuple([x.name() for x in self.gens()])
+        return self.__gen_names
 
     def evaluate(self, *args):
         """
@@ -1818,12 +1890,12 @@ class MagmaElement(ExpectElement):
         Quotient of division of self by other.  This is denoted // ("div" in magma).
 
         EXAMPLE:
-            sage: R.<x,y,z>=QQ[]
-            sage: magma(5)//magma(2) # optional - magma
+            sage: R.<x,y,z> = QQ[]
+            sage: magma(5)//magma(2)     # optional - magma
             2
-            sage: m=magma(x*z+x*y)   # optional - magma
-            sage: n=magma(x)         # optional - magma
-            sage: m//n               # optional - magma
+            sage: m = magma(x*z + x*y)   # optional - magma
+            sage: n = magma(x)           # optional - magma
+            sage: m//n                   # optional - magma
             y + z
         """
         return self.parent()('%s div %s'%(self.name(), x.name()))

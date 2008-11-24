@@ -346,7 +346,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             pass
         raise TypeError
 
-    def _magma_(self, G=None):
+    def _magma_convert_(self, magma):
         """
         Used in converting this ring to the corresponding ring in MAGMA.
 
@@ -367,15 +367,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'), 'x')) # optional - magma
             Univariate Polynomial Ring in x over Univariate Polynomial Ring over Integer Ring
         """
-        if G is None:
-            import sage.interfaces.magma
-            G = sage.interfaces.magma.magma
-        R = G(self._magma_init_())
+        R = magma(self._magma_init_(magma))
         R.assign_names(self.variable_names())
         return R
 
-    def _magma_init_(self):
-        return 'PolynomialRing(%s)'%(self.base_ring()._magma_init_())
+    def _magma_init_(self, magma):
+        return 'PolynomialRing(%s)'%(self.base_ring()._magma_init_(magma))
 
     def _gap_(self, G=None):
         """

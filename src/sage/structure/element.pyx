@@ -1591,7 +1591,7 @@ cdef class Vector(ModuleElement):
         V = magma(self._parent)
         v = []
         for x in self.list():
-            v.append(x._magma_init_())
+            v.append(x._magma_init_(magma))
         s = '%s![%s]'%(V.name(), ','.join(v))
         return magma(s)
 

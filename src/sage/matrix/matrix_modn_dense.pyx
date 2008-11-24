@@ -1537,14 +1537,17 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             raise IndexError, "matrix window index out of range"
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
-        Returns a string of self in MAGMA form.
+        Returns a string representation of self in Magma form.
 
-        NOTE: Does not return MAGMA object but string.
+        INPUT:
+            magma -- a Magma session
+        OUTPUT:
+            string
         """
         cdef int i,j
-        K = self._base_ring._magma_init_()
+        K = self._base_ring._magma_init_(magma)
         if self._nrows == self._ncols:
             s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
         else:

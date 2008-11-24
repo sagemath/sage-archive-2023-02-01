@@ -290,17 +290,17 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         return 'ellinit([%s])'%(','.join([x._pari_init_() for x in self.ainvs()]))
 
-    def _magma_init_(self):
+    def _magma_init_(self, magma):
         """
         Internal function.  Returns a string to initialize this
         elliptic curve in the Magma subsystem.
 
         EXAMPLES:
             sage: E = EllipticCurve(QQ,[1,1])
-            sage: E._magma_init_()                          # optional - magma
+            sage: E._magma_init_(magma)                          # optional - magma
             'EllipticCurve([0/1,0/1,0/1,1/1,1/1])'
         """
-        return 'EllipticCurve([%s])'%(','.join([x._magma_init_() for x in self.ainvs()]))
+        return 'EllipticCurve([%s])'%(','.join([x._magma_init_(magma) for x in self.ainvs()]))
 
     def _symbolic_(self, SR):
         r"""

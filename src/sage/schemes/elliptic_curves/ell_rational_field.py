@@ -1181,7 +1181,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             0
 
         A rank 0 curve with rational 3-torsion:
-            sage: EllipticCurve('14a1').three_selmer_rank()
+            sage: EllipticCurve('14a1').three_selmer_rank()      # optional - magma
             1
 
         A rank 1 curve with rational 3-isogeny:

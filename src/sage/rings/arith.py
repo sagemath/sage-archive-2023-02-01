@@ -3008,7 +3008,9 @@ def falling_factorial(x, a):
         3628800
         sage: factorial(10)
         3628800
-        sage: falling_factorial(1+I, I)
+        sage: a = falling_factorial(1+I, I); a
+        gamma(I + 2)
+        sage: CC(a)
         0.652965496420167 + 0.343065839816545*I
         sage: falling_factorial(1+I, 4)
         (I - 2)*(I - 1)*I*(I + 1)
@@ -3071,7 +3073,9 @@ def rising_factorial(x, a):
         sage: rising_factorial(10,RR('3.3'))
         2826.38895824964
 
-        sage: rising_factorial(1+I, I)
+        sage: a = rising_factorial(1+I, I); a
+        gamma(2*I + 1)/gamma(I + 1)
+        sage: CC(a)
         0.266816390637832 + 0.122783354006372*I
 
         sage: a = rising_factorial(I, 4); a

@@ -174,14 +174,19 @@ def doc_preparse(s):
                sl.find('package') != -1 and sl.find('installed'):
         return ''
 
-    # Deal with code whose output should be ignored.
+    # t: Deal with code whose output should be ignored.
     t = []
-    comment_modifiers = []  # used only for parsing only_optional; list of comments
-    for L in s.split('\n'):
+
+    # following two: used only for parsing only_optional; list of comments
+    comment_modifiers = []
+    last_prompt_comment = ''
+
+    for L in s.splitlines():
         begin = L.lstrip()[:5]
         comment = ''
         if begin == 'sage:':
             c, comment = comment_modifier(L)
+            last_prompt_comment = comment
             line = ''
             if LONG_TIME in c and not long_time:
                 L = '\n'  # extra line so output ignored
@@ -191,7 +196,7 @@ def doc_preparse(s):
                 L = '\n'   # not tested
             if NOT_IMPLEMENTED in c:
                 L = '\n'   # not tested
-            if OPTIONAL in c and not only_optional:
+            if OPTIONAL in c and not (only_optional or optional):
                 L = '\n'
             line = preparse_line_with_prompt(L)
             if RANDOM in c:
@@ -205,15 +210,19 @@ def doc_preparse(s):
             t.append(line)
 
         elif begin.startswith('...'):
-
+            comment = last_prompt_comment
             i = L.find('.')
             t.append(L[:i+3] + sage.misc.preparser.preparse(L[i+3:]))
 
         else:
-
+            comment = last_prompt_comment
             t.append(L)
 
         comment_modifiers.append(comment)
+
+    # The very last line -- which is typically """ -- must never be marked as optional,
+    # or it might not get included, which would be a syntax error.
+    comment_modifiers[-1] = ''
 
     # if only_optional is True, then we skip the entire block unless certain
     # conditions are met:
@@ -247,6 +256,7 @@ def doc_preparse(s):
             else:
                 t = []
     # Now put docstring together and return it.
+
     return '\n'.join(t)
 
 def only_optional_include(s):

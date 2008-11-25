@@ -739,7 +739,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             Transitive group number 5 of degree 4
 
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: f.galois_group(algorithm='magma')     # optional - magma
+            sage: f.galois_group(algorithm='magma')     # optional - magma, database_gap
             Transitive group number 5 of degree 4
         """
         from sage.groups.all import PariGroup, PermutationGroup, TransitiveGroup

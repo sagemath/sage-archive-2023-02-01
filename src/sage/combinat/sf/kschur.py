@@ -26,14 +26,51 @@ import copy
 
 def kSchurFunctions(R, k, t=None):
     """
-    Returns the k-Schur functions.
+    Returns the k-Schur functions.  See the examples below for caveats on their use.
 
     EXAMPLES:
         sage: ks3 = kSchurFunctions(QQ, 3); ks3
         k-Schur Functions at level 3 over Univariate Polynomial Ring in t over Rational Field
-        sage: s = SFASchur(ks3.base_ring())
+        sage: s = SFASchur(ks3.base_ring()) # Allow 't' coefficients for the Schurs.
+        sage: t = ks3.t # Allow 't' as input
         sage: s(ks3([3,2,1]))
         s[3, 2, 1] + t*s[4, 1, 1] + t*s[4, 2] + t^2*s[5, 1]
+
+        sage: ks3(s([3, 2, 1]) + t*s([4, 1, 1]) + t*s([4, 2]) + t^2*s([5, 1]))
+        ks3[3, 2, 1]
+
+        sage: ks3([4,3,2,1])  # k-Schurs are indexed by partitions with first part \le k.
+        0
+
+    Attempting to convert a function that is not in the linear span of the k-Schur's raises an
+    error.
+        sage: ks3(s([4]))
+        Traceback (most recent call last):
+        ...
+        ValueError: s[4] is not in the space spanned by k-Schur Functions at level 3 over Univariate Polynomial Ring in t over Rational Field.
+
+    Note that the product of k-Schurs is not guaranteed to be in the space
+    spanned by the k-Schurs.  In general, we only have that a k-Schur times a j-Schur
+    is a (k+j)-Schur.  This fact is not currently incorporated into the Sage design, so the multiplication
+    of k-Schur functions may return an error.  This example shows how to get around this 'manually'.
+        sage: ks2 = kSchurFunctions(QQ, 2)
+        sage: ks2([2,1])^2
+        Traceback (most recent call last):
+        ...
+        ValueError: s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + (2*t+2)*s[3, 2, 1] + (t^2+1)*s[3,
+        3] + (2*t+1)*s[4, 1, 1] + (t^2+2*t+1)*s[4, 2] + (t^2+2*t)*s[5, 1] + t^2*s[6] is not in the
+        space spanned by k-Schur Functions at level 2 over Univariate Polynomial Ring in t over
+        Rational Field.
+
+        sage: f = s(ks2([2,1]))^2; f # Convert to Schur functions first and multiply there.
+        s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + (2*t+2)*s[3, 2, 1] + (t^2+1)*s[3,
+        3] + (2*t+1)*s[4, 1, 1] + (t^2+2*t+1)*s[4, 2] + (t^2+2*t)*s[5, 1] + t^2*s[6]
+        sage: ks4 = kSchurFunctions(QQ, 4)
+        sage: ks4(f) # The product of two 'ks2's is a 'ks4'.
+        ks4[2, 2, 1, 1] + ks4[2, 2, 2] + ks4[3, 1, 1, 1] + (t+2)*ks4[3, 2, 1] + (t^2+1)*ks4[3, 3] + (t+1)*ks4[4, 1, 1] + ks4[4, 2]
+
+    However, at t=1, the product of k-Schurs is in the span of the k-Schurs.  Below are some
+    examples at t=1.
         sage: ks3 = kSchurFunctions(QQ, 3, 1); ks3
         k-Schur Functions at level 3 with t=1 over Rational Field
         sage: s = SFASchur(ks3.base_ring())
@@ -41,6 +78,8 @@ def kSchurFunctions(R, k, t=None):
         ks3[3]
         sage: s(ks3([3,2,1]))
         s[3, 2, 1] + s[4, 1, 1] + s[4, 2] + s[5, 1]
+        sage: ks3([2,1])^2
+        ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1]
     """
     return cache_t(R, k, t)
 
@@ -69,10 +108,10 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
             ks3[1, 1, 1] + ks3[2, 1]
 
         """
+        orig = el
         P = el.parent()
         zero = self.base_ring()(0)
         out = {}
-        fail = False
         while el != 0:
             l = el.support()
             l.sort()
@@ -80,7 +119,7 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
             n = part2.size()
 
             if not to_other_cache[n][part2]:
-                break
+                raise ValueError,"%s is not in the space spanned by %s."%(orig,self)
 
             c = el.coefficient(part2)
             if not unitriang:
@@ -95,15 +134,27 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
     def _multiply(self, left, right):
         """
         Multiply left and right by coverting to the Schurs,
-        multiplying there, and converting back.
+        multiplying there, and converting back. Note that the
+        product of k-Schurs with t is only guaranteed to be a
+        sum of k-Schurs when t = 1.
 
         EXAMPLES:
             sage: ks3 = kSchurFunctions(QQ, 3)
+
             sage: ks3([1])^2 # indirect doctest
             ks3[1, 1] + ks3[2]
-            sage: ks3([2,1])^2
-            ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1] + (-2*t+2)*ks3[3, 2, 1] + (-t^2+1)*ks3[3, 3]
 
+            sage: ks3([2,1])^2
+            Traceback (most recent call last):
+            ...
+            ValueError: s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] +
+            s[3, 3] + s[4, 1, 1] + s[4, 2] is not in the space spanned by k-Schur
+            Functions at level 3 over Univariate Polynomial Ring in t over Rational
+            Field.
+
+            sage: ks3 = kSchurFunctions(QQ,3,1)
+            sage: ks3([2,1])^2
+            ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1]
         """
         return self( self._s(left) * self._s(right) )
 
@@ -163,7 +214,9 @@ class kSchurFunctions_t(kSchurFunctions_generic):
             sage: ks3(s([2,1]))
             ks3[2, 1]
             sage: ks3(s([4]))
-            0
+            Traceback (most recent call last):
+            ...
+            ValueError: s[4] is not in the space spanned by k-Schur Functions at level 3 over Univariate Polynomial Ring in t over Rational Field.
         """
         if x in sage.combinat.partition.Partitions():
             if len(x) > 0 and max(x) > self.k:
@@ -172,7 +225,7 @@ class kSchurFunctions_t(kSchurFunctions_generic):
             return self._from_dict({x:self.base_ring()(1)})
 
         if isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
-            x = self._s(x).restrict_parts(self.k)
+            x = self._s(x)
             for p in x.support():
                 self._s_cache(p.size())
             return self._change_by_triangularity(x, self._self_to_s_cache, True)

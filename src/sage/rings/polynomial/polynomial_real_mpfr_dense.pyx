@@ -12,18 +12,9 @@ from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.element import parent, canonical_coercion, bin_op, gcd
-
-# import the mpfr stuff from RealNumber becase it's included, not cimported
-from sage.rings.real_mpfr cimport mpfr_t, mp_rnd_t
-from sage.rings.real_mpfr cimport *
+from sage.libs.mpfr cimport *
 
 from sage.libs.all import pari_gen
-
-cdef extern from "mpfr.h":
-    int mpfr_mul_ui (mpfr_t rop, mpfr_t op1, unsigned long int op2, mp_rnd_t rnd)
-    int mpfr_div_ui (mpfr_t rop, mpfr_t op1, unsigned long int op2, mp_rnd_t rnd)
-    int mpfr_cmp_si (mpfr_t op1, signed long int op2)
-    int mpfr_cmpabs (mpfr_t op1, mpfr_t op2)
 
 cdef class PolynomialRealDense(Polynomial):
 

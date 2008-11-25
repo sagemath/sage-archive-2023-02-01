@@ -26,7 +26,7 @@ with the lowest precision:
 
 Mixing of symbolic an quad double elements:
     sage: a = RQDF(2) / log(10); a
-    2.00000000000000/log(10)
+    2.0/log(10)
     sage: parent(a)
     Symbolic Ring
 

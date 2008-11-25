@@ -918,7 +918,7 @@ def elliptic_e (phi, m):
         sage: elliptic_e (z, 0)
         z
         sage: elliptic_e (0.5, 0.1)
-        0.498011394498832
+        0.498011394499
 
     """
     _init()
@@ -931,7 +931,7 @@ def elliptic_ec (m):
 
     EXAMPLES:
         sage: elliptic_ec (0.1)
-        1.530757636897763
+        1.5307576369
         sage: elliptic_ec (x).diff()
         (elliptic_ec(x) - elliptic_kc(x))/(2*x)
 
@@ -947,7 +947,7 @@ def elliptic_eu (u, m):
 
     EXAMPLES:
         sage: elliptic_eu (0.5, 0.1)
-        0.496054551286597
+        0.496054551287
 
     """
     _init()
@@ -968,7 +968,7 @@ def elliptic_f (phi, m):
         sage: elliptic_f (z, 1)
         log(tan(z/2 + pi/4))
         sage: elliptic_f (0.2, 0.1)
-        0.200132506747543
+        0.200132506748
 
     """
     _init()
@@ -981,9 +981,9 @@ def elliptic_kc (m):
 
     EXAMPLES:
         sage: elliptic_kc (0.5)
-        1.854074677301372
+        1.8540746773
         sage: elliptic_f (RR(pi/2), 0.5)
-        1.854074677301378
+        1.8540746773
 
     """
     _init()
@@ -997,7 +997,7 @@ def elliptic_pi (n, phi, m):
 
     EXAMPLES:
         sage: elliptic_pi(0.1, 0.2, 0.3)
-        0.200665068220979
+        0.200665068221
 
     """
     _init()

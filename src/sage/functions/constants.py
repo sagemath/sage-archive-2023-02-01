@@ -797,7 +797,7 @@ class I_class(Constant):
         sage: maxima(2*I)
         2*%i
         sage: 1e8*I
-        1.00000000000000e8*I
+        100000000.0*I
     """
     def __init__(self):
         """

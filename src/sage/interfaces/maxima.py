@@ -1421,17 +1421,17 @@ class MaximaElement(ExpectElement):
             sage: a = maxima('sqrt(2) + 2.5'); a
             sqrt(2)+2.5
             sage: b = a._sage_(); b
-            sqrt(2) + 2.50000000000000
+            sqrt(2) + 2.5
             sage: type(b)
             <class 'sage.calculus.calculus.SymbolicArithmetic'>
 
         We illustrate an automatic coercion:
             sage: c = b + sqrt(3); c
-            sqrt(3) + sqrt(2) + 2.50000000000000
+            sqrt(3) + sqrt(2) + 2.5
             sage: type(c)
             <class 'sage.calculus.calculus.SymbolicArithmetic'>
             sage: d = sqrt(3) + b; d
-            sqrt(3) + sqrt(2) + 2.50000000000000
+            sqrt(3) + sqrt(2) + 2.5
             sage: type(d)
             <class 'sage.calculus.calculus.SymbolicArithmetic'>
         """

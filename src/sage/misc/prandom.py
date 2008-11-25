@@ -180,7 +180,7 @@ def uniform(a, b):
         sage: uniform(0, 1)
         0.111439293741037
         sage: uniform(e, pi)
-        0.514347513419168*(pi - e) + e
+        0.514347513419*(pi - e) + e
     """
     return _pyrand().uniform(a, b)
 

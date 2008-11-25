@@ -574,7 +574,7 @@ class PiecewisePolynomial:
             sage: f(0.5)
             1
             sage: f(2.5)
-            12.1824939607034...
+            12.1824939607
             sage: f(1)
             1/2
         """
@@ -954,12 +954,12 @@ class PiecewisePolynomial:
             sage: f = lambda x:x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_hann(3,1)
-            0.500000000000000*(cos(2*pi/3) + 1)*cos(2*pi*x)/pi^2 - 2.00000000000000*(cos(pi/3) + 1)*cos(pi*x)/pi^2 + 1/3
+            0.5*(cos(2*pi/3) + 1)*cos(2*pi*x)/pi^2 - 2.0*(cos(pi/3) + 1)*cos(pi*x)/pi^2 + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_hann(3,pi)
-            -1.50000000000000*(cos(2*pi/3) + 1)*sin(2*x)/pi + 1.50000000000000*(cos(pi/3) + 1)*sin(x)/pi - 1.50000000000000*(cos(pi/3) + 1)*cos(x)/pi - 1/4
+            -1.5*(cos(2*pi/3) + 1)*sin(2*x)/pi + 1.5*(cos(pi/3) + 1)*sin(x)/pi - 1.5*(cos(pi/3) + 1)*cos(x)/pi - 1/4
 
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)

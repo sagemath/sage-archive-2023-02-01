@@ -2596,9 +2596,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         We raise a real number to a symbolic object:
             sage: x, y = var('x,y')
             sage: 1.5^x
-            1.50000000000000^x
+            1.5^x
             sage: -2.3^(x+y^3+sin(x))
-            -2.30000000000000^(y^3 + sin(x) + x)
+            -2.3^(y^3 + sin(x) + x)
         """
         cdef RealNumber x
         if not PY_TYPE_CHECK(self, RealNumber):

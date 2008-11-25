@@ -456,7 +456,7 @@ cdef class Parser:
 
             sage: p = Parser(make_float=RR, make_var=var, make_function={'foo': (lambda x: x*x+x)})
             sage: p.parse("1.5 + foo(b)")
-            b^2 + b + 1.50000000000000
+            b^2 + b + 1.5
             sage: p.parse("1.9").parent()
             Real Field with 53 bits of precision
         """

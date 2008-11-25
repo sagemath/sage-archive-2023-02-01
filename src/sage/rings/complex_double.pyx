@@ -328,7 +328,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
         Thus the sum of a CDF and a symbolic object is symbolic:
             sage: a = pi + CDF.0; a
-            1.00000000000000*I + pi
+            1.0*I + pi
             sage: parent(a)
             Symbolic Ring
 
@@ -1151,9 +1151,9 @@ cdef class ComplexDoubleElement(FieldElement):
         We raise to symbolic powers:
         sage: x, n = var('x, n')
             sage: CDF(1.2)^x
-            1.20000000000000^x
+            1.2^x
             sage: CDF(1.2)^(x^n + n^x)
-            1.20000000000000^(x^n + n^x)
+            1.2^(x^n + n^x)
         """
         try:
             return z._pow_(a)

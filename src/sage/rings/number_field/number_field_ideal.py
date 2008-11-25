@@ -1255,17 +1255,29 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             False
             sage: I.is_coprime(6+i)
             True
+
+            # See trac \# 4536:
+            sage: E.<a> = NumberField(x^5 + 7*x^4 + 18*x^2 + x - 3)
+            sage: OE = E.ring_of_integers()
+            sage: i,j,k = [u[0] for u in factor(3*OE)]
+            sage: (i/j).is_coprime(j/k)
+            False
+            sage: (j/k).is_coprime(j/k)
+            False
         """
         # Catch invalid inputs by making sure that we can make an ideal out of other.
         K = self.number_field()
+        one = K.unit_ideal()
         other = K.ideal(other)
-        if arith.gcd(self.norm(), other.norm()) == 1:
-            return True
+        if self.is_integral() and other.is_integral():
+            if arith.gcd(self.norm(), other.norm()) == 1:
+                return True
+            else:
+                return self+other == one
         # This special case is necessary since the zero ideal is not a
         # fractional ideal!
         if other.norm() == 0:
-            return self.norm() == 1
-        one = K.unit_ideal()
+            return self == one
         D1 = self.denominator()
         N1 = self.numerator()
         D2 = other.denominator()

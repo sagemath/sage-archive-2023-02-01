@@ -1553,10 +1553,10 @@ class MagmaElement(ExpectElement):
 
         EXAMPLES:
             sage: R.<x,zw> = QQ[]
-            sage: S = magma(R)         # optional - magma
-            sage: S.gen_names()        # optional - magma
+            sage: S = magma(R)               # optional - magma
+            sage: S.gen_names()              # optional - magma
             ('_sage_[...]', '_sage_[...]')
-            sage: magma(S.gen_names()[1])
+            sage: magma(S.gen_names()[1])    # optional - magma
             zw
         """
         try:

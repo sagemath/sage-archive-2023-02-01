@@ -1841,9 +1841,9 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             sage: K = CyclotomicField(9)
             sage: K.gen()
             zeta9
-            sage: K.gen()._magma_init_(magma)
+            sage: K.gen()._magma_init_(magma)     # optional - magma
             '(_sage_[...]![0, 1, 0, 0, 0, 0])'
-            sage: magma(K.gen())
+            sage: magma(K.gen())                  # optional - magma
             zeta9
         """
         K = magma(self.parent())

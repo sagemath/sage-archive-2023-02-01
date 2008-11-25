@@ -195,10 +195,12 @@ def code2leon(C,output):
     OUTPUT: A file output.txt in Sage's tmp director.
 
     EXAMPLES:
+        sage: from sage.misc.misc import SAGE_TMP
+        sage: tmpdir = SAGE_TMP
         sage: C = HammingCode(3,GF(2)); C
         Linear code of length 7, dimension 4 over Finite Field of size 2
         sage: foo = sage.coding.linear_code.code2leon(C,"output")
-        sage: print open("output").read()
+        sage: print open(tmpdir+"output").read()
         LIBRARY code;
         code=seq(2,4,7,seq(
         1,0,0,1,0,1,0,
@@ -207,10 +209,12 @@ def code2leon(C,output):
         0,0,0,0,1,1,1
         ));
         FINISH;
-        sage: open("output").close()
+        sage: open(tmpdir+"output").close()
 
     This gets added to SAGE_ROOT.
     """
+    from sage.misc.misc import SAGE_TMP
+    tmpdir = SAGE_TMP
     F = C.base_ring()
     n = C.length()
     k = C.dimension()
@@ -226,7 +230,7 @@ def code2leon(C,output):
     s = s[:-2]+"\n"
     s = s+"));\n"
     s = s+"FINISH;"
-    f = open(output,"w")
+    f = open(tmpdir+output,"w")
     f.write(s)
     f.close()
     return f

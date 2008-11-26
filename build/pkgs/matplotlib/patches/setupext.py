@@ -1081,6 +1081,7 @@ def add_tk_flags(module):
         #      of distros.
 
         # Query Tcl/Tk system for library paths and version string
+        tk_ver = ''
         try:
             tcl_lib_dir, tk_lib_dir, tk_ver = query_tcltk()
         except:

@@ -199,7 +199,7 @@ fi
 
 sage() {
     sage_setup
-    sage-ipython "$@" -i
+    sage-ipython "$@" -p sage -i
 }
 
 if [ $# -eq 0 ]; then
@@ -550,7 +550,7 @@ if [ $1 = '-q' ]; then
    SAGE_BANNER="no"
    sage_setup
    shift
-   sage-ipython  $LOGOPT -rcfile="$IPYTHONRC" -i -c "$SAGE_STARTUP_COMMAND" "$@"
+   sage "$@"
    exit $?
 fi
 
@@ -891,7 +891,7 @@ if [ $1 = '-startuptime' -o $1 = '--startuptime' ]; then
     exit $?
 fi
 if [ $1 = '-gthread' -o $1 = '-qthread' -o $1 = '-q4thread' -o $1 = '-wthread' -o $1 = '-pylab' ]; then
-    "$SAGE_ROOT"/sage $1
+    sage $1
     exit $?
 fi
 

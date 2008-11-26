@@ -8,8 +8,6 @@ SAGE IPython startup script.
 import os
 import sys
 
-sys.argv = ['-c', os.environ['SAGE_LOCAL'] + '/bin/sage-startup']
-
 __SAGE_AUTOINJECT__ = True
 
 import IPython
@@ -17,10 +15,10 @@ from IPython.CrashHandler import CrashHandler
 
 ipy_sage = IPython.Shell.start()
 
-sageCH = CrashHandler(ipy_sage.IP, 'Sage', 'sage-support', \
-                      'sage-support@googlegroups.com', \
-                      'http://trac.sagemath.org/sage_trac', \
-		      'Sage_crash_report.txt', \
+sageCH = CrashHandler(ipy_sage.IP, 'Sage', 'sage-support',
+                      'sage-support@googlegroups.com',
+                      'http://trac.sagemath.org/sage_trac',
+		      'Sage_crash_report.txt',
                       show_crash_traceback=False)
 
 ipy_sage.IP.set_crash_handler(sageCH)

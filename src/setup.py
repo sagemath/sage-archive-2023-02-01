@@ -93,16 +93,16 @@ for m in ext_modules:
 def execute_list_of_commands_in_serial(command_list):
     """
     INPUT:
-        command_list -- a list of commands (strings) to run at the shell using os.system
+        command_list -- a list of commands, each given as a pair
+           of the form [command, argument].
 
     OUTPUT:
         the given list of commands are all executed in serial
     """
-    for cmd in command_list:
-        print cmd
-        r = os.system(cmd)
+    for f,v in command_list:
+        r = f(v)
         if r != 0:
-            print "Error running command, exited with status %s."%r
+            print "Error running command, failed with status %s."%r
             sys.exit(1)
 
 def run_command(cmd):
@@ -116,10 +116,21 @@ def run_command(cmd):
     print cmd
     return os.system(cmd)
 
+def apply_pair(p):
+    """
+    Given a pair p consisting of a function and a value, apply
+    the function to the value.
+
+    This exists solely because we can't pickle an anonymous function
+    in execute_list_of_commands_in_parallel below.
+    """
+    return p[0](p[1])
+
 def execute_list_of_commands_in_parallel(command_list, ncpus):
     """
     INPUT:
-        command_list -- a list of strings (commands)
+        command_list -- a list of pairs, consisting of a
+             function to call and its argument
         ncpus -- integer; number of cpus to use
 
     OUTPUT:
@@ -133,7 +144,7 @@ def execute_list_of_commands_in_parallel(command_list, ncpus):
     print "Execute %s commands (using %s cpus)"%(len(command_list), min(len(command_list),ncpus))
     from processing import Pool
     p = Pool(ncpus)
-    for r in p.imap(run_command, command_list):
+    for r in p.imap(apply_pair, command_list):
         if r:
             print "Parallel build failed with status %s."%r
             sys.exit(1)
@@ -159,10 +170,12 @@ def number_of_cpus():
 def execute_list_of_commands(command_list):
     """
     INPUT:
-        command_list -- a list of strings (commands)
+        command_list -- a list of strings or pairs
     OUTPUT:
-        runs the given list of commands using os.system; on machines
-        with more than 1 cpu the commands are run in parallel.
+        For each entry in command_list, we attempt to run the command.
+        If it is a string, we call os.system. If it is a pair [f, v],
+        we call f(v). On machines with more than 1 cpu the commands
+        are run in parallel.
     """
     t = time.time()
     if not os.environ.has_key('MAKE'):
@@ -184,6 +197,9 @@ def execute_list_of_commands(command_list):
                     ncpus = min(ncpus, n)
             except ValueError:
                 ncpus = 1
+
+    # normalize the command_list to handle strings correctly
+    command_list = [ [run_command, x] if isinstance(x, str) else x for x in command_list ]
 
     if ncpus > 1:
         # parallel version
@@ -373,14 +389,34 @@ def process_filename(f, m):
     else:
         return f
 
-def compile_cmd(f, m):
+def compile_command(f):
     """
-    Given a .pyx file f, which is a part of module m, copy the
-    file to SITE_PACKAGES, and return a string which will call
-    Cython on it.
+    Given a pair p, consisting of a filename f and a module m, compile
+    the file f.
+
+    Given a pair p = [f, m], with a .pyx file f which is a part the
+    module m, call Cython on f
+
+    copy the file to SITE_PACKAGES, and return a string
+    which will call Cython on it.
     """
     if f.endswith('.pyx'):
         # process cython file
+
+        # find the right filename
+        outfile = f[:-4]
+        if m.language == 'c++':
+            outfile += ".cpp"
+        else:
+            outfile += ".c"
+
+        # call cython, abort if it failed
+        cmd = "python2.5 `which cython` --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
+        r = run_command(cmd)
+        if r:
+            return r
+
+        # if cython worked, copy the file to the build directory
         pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
         retval = os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
         # we could do this more elegantly -- load the files, use
@@ -395,18 +431,13 @@ def compile_cmd(f, m):
             if retval:
                 raise OSError, "cannot copy %s to %s"%(f,pyx_inst_file)
         print "%s --> %s"%(f, pyx_inst_file)
-        outfile = f[:-4]
-        if m.language == 'c++':
-            outfile += ".cpp"
-        else:
-            outfile += ".c"
-        cmd = "python2.5 `which cython` --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
 
     elif f.endswith(('.c','.cc','.cpp')):
         # process C/C++ file
         cmd = "touch %s"%f
+        r = run_command(cmd)
 
-    return cmd #"NEED TO COMPILE file " + f + " in module " + m.name
+    return r
 
 def compile_command_list(ext_modules, deps):
     """
@@ -427,24 +458,15 @@ def compile_command_list(ext_modules, deps):
                 if dest_time < dep_time:
                     if dep_file == f:
                         print "Building modified file %s."%f
-                        cmd = compile_cmd(f, m)
-                        queue_compile_high.append(cmd)
+                        queue_compile_high.append([compile_command, f])
                     elif dep_file == (f[:-4] + '.pxd'):
                         print "Building %s because it depends on %s."%(f, dep_file)
-                        cmd = compile_cmd(f, m)
-                        queue_compile_med.append(cmd)
+                        queue_compile_med.append([compile_command, f])
                     else:
                         print "Building %s because it depends on %s."%(f, dep_file)
-                        cmd = compile_cmd(f, m)
-                        queue_compile_low.append(cmd)
+                        queue_compile_low.append([compile_command, f])
             new_sources.append(process_filename(f, m))
         m.sources = new_sources
-    # print "# compile high = ", len(queue_compile_high)
-    # print queue_compile_high
-    # print "# compile med =  ", len(queue_compile_med)
-    # print queue_compile_med
-    # print "# compile low =  ", len(queue_compile_low)
-    # print queue_compile_low
     return queue_compile_high + queue_compile_med + queue_compile_low
 
 

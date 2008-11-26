@@ -8,6 +8,9 @@ setupext.py by a version that adds some SAGE-specific paths so the build doesn't
 
 == Changelog ==
 
+== matplotlib-0.98.3.p3 (William Stein, 25 Nov 2008) ===
+ * fix so matplotlib may build in a fallback case (there is a stupid bug in upstreams setupext.py)
+
 == matplotlib-0.98.3.p2 (Jason Grout, 20 Sep 2008) ===
  * Update quiver.py to the SVN version 6115 to make the vector field plots respect aspect ratio.
 

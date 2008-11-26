@@ -389,17 +389,18 @@ def process_filename(f, m):
     else:
         return f
 
-def compile_command(f):
+def compile_command(p):
     """
-    Given a pair p, consisting of a filename f and a module m, compile
-    the file f.
-
-    Given a pair p = [f, m], with a .pyx file f which is a part the
+    Given a pair p = (f, m), with a .pyx file f which is a part the
     module m, call Cython on f
+
+    INPUT:
+         p -- a 2-tuple f, m
 
     copy the file to SITE_PACKAGES, and return a string
     which will call Cython on it.
     """
+    f, m = p
     if f.endswith('.pyx'):
         # process cython file
 
@@ -458,13 +459,13 @@ def compile_command_list(ext_modules, deps):
                 if dest_time < dep_time:
                     if dep_file == f:
                         print "Building modified file %s."%f
-                        queue_compile_high.append([compile_command, f])
+                        queue_compile_high.append([compile_command, (f,m)])
                     elif dep_file == (f[:-4] + '.pxd'):
                         print "Building %s because it depends on %s."%(f, dep_file)
-                        queue_compile_med.append([compile_command, f])
+                        queue_compile_med.append([compile_command, (f,m)])
                     else:
                         print "Building %s because it depends on %s."%(f, dep_file)
-                        queue_compile_low.append([compile_command, f])
+                        queue_compile_low.append([compile_command, (f,m)])
             new_sources.append(process_filename(f, m))
         m.sources = new_sources
     return queue_compile_high + queue_compile_med + queue_compile_low

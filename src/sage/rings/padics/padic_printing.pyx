@@ -387,11 +387,15 @@ cdef class pAdicPrinter_class(SageObject):
             7 * 52 + O(7^5)
             sage: print a.str('series')
             3*7 + 7^3 + O(7^5)
+            sage: padic_printing.sep('')
             sage: K = Qp(7, print_mode="digits")
             sage: repr(K(1/2))
-            '...3|3|3|3|3|3|3|3|3|3|3|3|3|3|3|3|3|3|3|4'
+            '...33333333333333333334'
             sage: repr(K(1/42))
-            '...5|5|5|5|5|5|5|5|5|5|5|5|5|5|5|5|5|5|5|.|6'
+            '...5555555555555555555.6'
+            sage: padic_printing.sep('|')
+            sage: repr(Qp(97, print_mode="digits")(1/13))
+            '...29|82|7|44|74|59|67|14|89|52|22|37|29|82|7|44|74|59|67|15'
         """
         cdef Py_ssize_t i
         if elt._is_exact_zero():

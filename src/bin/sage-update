@@ -83,7 +83,7 @@ def download_file(file):
     print "]"
     # If the downloaded file is suspiciously small, check that it was actually valid.
     # If not bail and completely kill the entire upgrade process (that's what exit 2 does).
-    if os.path.getsize(file+'.part') < 2000 and 'not found' not in open(file+'.part').read().lower():
+    if os.path.getsize(file+'.part') < 2000 and 'not found' in open(file+'.part').read().lower():
         os.unlink(file+'.part')
         print "Failed to download '%s'"%url
         print "Abort."

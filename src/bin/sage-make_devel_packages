@@ -166,7 +166,7 @@ chmod +x sage-*
 chmod +x dsage_*
 rm sage-*~
 
-cp -pr dsage_* sage-* .hg* $SCRIPTS/
+cp -pr dsage_* sage-* .hg* ipy_profile_sage.py $SCRIPTS/
 cp -p $SAGE_ROOT/sage-python $SCRIPTS/
 cp -p $SAGE_ROOT/*.txt $SCRIPTS/
 cp -pr $SAGE_ROOT/ipython $SCRIPTS/

@@ -451,6 +451,17 @@ class NumberFieldIdeal(Ideal_generic):
             [  0   0   2]
             sage: N.index_in(p1.free_module()).abs()
             2
+
+        TESTS:
+        Sage can find the free module associated to quite large ideals
+        quickly (see trac #4627):
+            sage: y = polygen(ZZ)
+            sage: M.<a> = NumberField(y^20 - 2*y^19 + 10*y^17 - 15*y^16 + 40*y^14 - 64*y^13 + 46*y^12 + 8*y^11 - 32*y^10 + 8*y^9 + 46*y^8 - 64*y^7 + 40*y^6 - 15*y^4 + 10*y^3 - 2*y + 1)
+            sage: M.ideal(prod(prime_range(6000, 6200))).free_module()
+            Free module of degree 20 and rank 20 over Integer Ring
+            User basis matrix:
+            20 x 20 dense matrix over Rational Field
+
         """
         try:
             return self.__free_module

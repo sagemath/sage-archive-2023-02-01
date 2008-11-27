@@ -36,7 +36,7 @@ def max_det_prime(n):
     k = int(26 - math.ceil(math.log(n)*0.7213475205))
     return next_prime(2**k)
 
-def det_from_modp_and_divisor(A, d, p, z_mod, moduli):
+def det_from_modp_and_divisor(A, d, p, z_mod, moduli, z_so_far=ZZ(1), N_so_far=ZZ(1)):
     """
     This is used for internal purposes for computing determinants
     quickly (with the hybrid p-adic / multimodular algorithm).
@@ -47,9 +47,12 @@ def det_from_modp_and_divisor(A, d, p, z_mod, moduli):
         p -- a prime
         z_mod -- values of det/d (mod ...)
         moduli -- the moduli so far
+        z_so_far -- for a modulus p in the list moduli,
+            (z_so_far mod p) is the determinant of A modulo p.
+        N_so_far -- N_so_far is the product over the primes in the list moduli.
 
     OUTPUT:
-        z_mod and moduli are updated, and a new det bound is returned
+        A triple (det bound, new z_so_far, new N_so_far).
 
     EXAMPLES:
         sage: a = matrix(ZZ, 3, [6, 1, 2, -56, -2, -1, -11, 2, -3])
@@ -58,7 +61,7 @@ def det_from_modp_and_divisor(A, d, p, z_mod, moduli):
         sage: d = 13
         sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
         sage: matrix_integer_dense_hnf.det_from_modp_and_divisor(a, d, 97, [], [])
-        -377
+        (-377, -29, 97)
         sage: a.det()
         -377
     """
@@ -67,12 +70,13 @@ def det_from_modp_and_divisor(A, d, p, z_mod, moduli):
     z = z.lift()
     z_mod.append(z)
     moduli.append(p)
-    z = CRT_list(z_mod, moduli)
-    N = prod(moduli)
+    z = CRT_list([z_so_far, z], [N_so_far, p])
+    N = N_so_far*p
+
     if z > N//2:
         z = z - N
     verbose("Finished multimodular det for p = %s"%p, tm, level=2)
-    return d * z
+    return (d * z, z, N)
 
 def det_given_divisor(A, d, proof=True, stabilize=2):
     """
@@ -137,6 +141,8 @@ def det_given_divisor(A, d, proof=True, stabilize=2):
     z_mod = []
     moduli = []
     assert d != 0
+    z_so_far = 1
+    N_so_far = 1
     if proof:
         N = 1
         B = (10**A.hadamard_bound()) + 1
@@ -148,7 +154,7 @@ def det_given_divisor(A, d, proof=True, stabilize=2):
         while N < B:
             if d % p != 0:
                 tm = cputime()
-                dd = det_from_modp_and_divisor(A, d, p, z_mod, moduli)
+                dd, z_so_far, N_so_far = det_from_modp_and_divisor(A, d, p, z_mod, moduli, z_so_far, N_so_far)
                 N *= p
                 verbose("computed det mod p=%s which is %s (of about %s)"%(p, cnt, est), tm)
             p = previous_prime(p)
@@ -159,7 +165,7 @@ def det_given_divisor(A, d, proof=True, stabilize=2):
         while True:
             if d % p != 0:
                 tm = cputime()
-                dd = det_from_modp_and_divisor(A, d, p, z_mod, moduli)
+                dd, z_so_far, N_so_far = det_from_modp_and_divisor(A, d, p, z_mod, moduli, z_so_far, N_so_far)
                 verbose("computed det mod %s"%p, tm)
                 val.append(dd)
                 if len(val) >= stabilize and len(set(val[-stabilize:])) == 1:

@@ -1,5 +1,5 @@
---- setupext.py.orig	2008-08-27 02:46:42.000000000 -0700
-+++ setupext.py	2008-08-27 02:45:53.000000000 -0700
+--- setupext.py.orig	2008-11-26 18:13:23.000000000 -0800
++++ setupext.py	2008-11-25 21:20:51.000000000 -0800
 @@ -44,10 +44,13 @@
  import os
  import re
@@ -25,3 +25,11 @@
  
  def getoutput(s):
      'get the output of a system command'
+@@ -1076,6 +1081,7 @@
+         #      of distros.
+ 
+         # Query Tcl/Tk system for library paths and version string
++        tk_ver = ''
+         try:
+             tcl_lib_dir, tk_lib_dir, tk_ver = query_tcltk()
+         except:

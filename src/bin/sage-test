@@ -11,13 +11,6 @@ import os, signal, sys, time
 
 argv = sys.argv
 
-try:
-    i = argv.index('-sage')
-    del argv[i]
-    use_sage_only = True
-except ValueError:
-    use_sage_only = False
-
 opts = ' '.join([X for X in argv if X[0] == '-'])
 argv = [X for X in argv if X[0] != '-']
 
@@ -59,7 +52,7 @@ def sage_test_command(f):
     g = abspath(f)
     if SAGE_ROOT in g:
         f = g[len(SAGE_ROOT)+1:]
-    return "sage -t %s %s"%(opts, f)
+    return 'sage -t %s "%s"'%(opts, f)
 
 def skip(F):
     G = abspath(F)
@@ -83,7 +76,7 @@ def test(F, cmd):
     if skip(F):
         return 0
     try:
-        s = "%s/local/bin/sage-%s %s"%(SAGE_ROOT, cmd, F)
+        s = '%s/local/bin/sage-%s "%s"'%(SAGE_ROOT, cmd, F)
         err = os.system(s)   # need to catch control c by writing to a file and looking at it??
     except KeyboardInterrupt:
         print "Keyboard Interrupt"
@@ -104,9 +97,7 @@ def test_file(F):
         return 1
 
     base, ext = os.path.splitext(F)
-    if use_sage_only or ext == '.sage':
-        return test(F, 'doctest_tex ' + opts)
-    elif ext in ['.py', '.pyx', '.tex', '.pxi']:
+    if ext in ['.py', '.pyx', '.tex', '.pxi', '.sage']:
         return test(F, 'doctest '+opts)
     elif os.path.isdir(F) and not (F[:1] == '.') \
             and not '#' in F and not '/notes' in F:

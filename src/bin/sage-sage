@@ -91,7 +91,8 @@ usage_advanced() {
     echo "  -testall      -- test all source, docs, and examples in your Sage distro."
     #echo "  -update       -- download latest non-optional Sage packages (do not build them)"
     #echo "  -update-build -- build and install all downloaded non-optional Sage packages"
-    echo "  -upgrade      -- download, build and install latest non-optional Sage packages"
+    echo "  -upgrade [url]-- download, build and install standard packages from "
+    echo "                   given url (if not given, uses SAGE_SERVER)"
     echo "  -gthread, -qthread, -q4thread, -wthread, -pylab"
     echo "                -- pass the option through to ipython"
     echo "  -valgrind     -- this is an alias for -memcheck"
@@ -832,8 +833,13 @@ if [ $1 = '-upgrade' -o $1 = "--upgrade" ]; then
     # script changes, it gets confused and exits with an error.
     # Running again (with the script replaced) then fixes the problem.
     # Run from a temporary copy of sage-sage
-    sage-upgrade
-    sage-upgrade
+    shift
+    sage-upgrade "$@"
+    if [ $? = 2 ]; then   # this exit codes means the user elected not to do the upgrade at all.
+        exit $?
+    fi
+    echo "Double checking that all packages have been installed."
+    sage-upgrade "$@"
     exit $?
 fi
 

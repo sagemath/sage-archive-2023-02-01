@@ -4070,7 +4070,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: a = E.integral_points([P1,P2,P3], verbose=True)
             Using mw_basis  [(2 : 0 : 1), (3 : -4 : 1), (8 : -22 : 1)]
-            e1,e2,e3:  -3.01243037259331 1.0658205476962... 1.94660982489710
+            e1,e2,e3:  -3.0124303725933... 1.0658205476962... 1.94660982489710
             Minimal eigenvalue of height pairing matrix:  0.63792081458500...
             x-coords of points on compact component with  -3 <=x<= 1
             [-3, -2, -1, 0, 1]

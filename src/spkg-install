@@ -99,7 +99,7 @@ if [ -d "$DEVEL/sage-main" ]; then
     scons -c "$SAGE_LOCAL"/include/
     cd ..
 
-    "$SAGE_ROOT/sage" -br
+    "$SAGE_ROOT/sage" -b
     if [ $? -ne 0 ]; then
         echo "Error building new version of SAGE."
         echo "You might try typing 'sage -ba' or write to sage-support with as much information as possible."

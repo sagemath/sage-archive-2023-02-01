@@ -8,75 +8,206 @@
 # 1. Download new package list.
 # 2. Download each changed package.
 #
+# AUTHOR: William Stein, Copyright GPLv2+.
+#
 #####################################################
 
+# Standard system libraries
 import os, sys, urllib
 
+# Make sure the SAGE_ROOT variable is set.  This should always be set
+# because sage-update is only supposed to be called by sage-upgrade,
+# which is called only by sage-sage, after sage-env.
 if not os.environ.has_key("SAGE_ROOT"):
-     raise RuntimeError, "The environment variable SAGE_ROOT must be set"
+    raise RuntimeError, "The environment variable SAGE_ROOT must be set"
 SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
 
-if not os.environ.has_key("SAGE_SERVER"):
-     print "The environment variable SAGE_SERVER must be set"
-     sys.exit(1)
+# Figure out what the package server is, where we will download our
+# spkg's.  This defaults to SAGE_SERVER, but can be overriden by the
+# first command line argument.
+if len(sys.argv) > 1:
+    # Server given on command line, typically a URL to a specific Sage install.
+    PKG_SERVER = sys.argv[1]
+else:
+    # Default server: specified by environment variable.
+    if not os.environ.has_key("SAGE_SERVER"):
+        print "The environment variable SAGE_SERVER must be set."
+        sys.exit(1)
+    PKG_SERVER = os.environ['SAGE_SERVER']
 
-PKG_SERVER=os.environ['SAGE_SERVER']
+if not PKG_SERVER.endswith('/spkg'):
+    PKG_SERVER += '/spkg'
 
-if PKG_SERVER[-9:] != '/packages':
-     PKG_SERVER += '/packages'
+# Announce where we will download from.
+print "Downloading packages from %s"%PKG_SERVER
 
-print "Using Sage Server %s"%PKG_SERVER
-
+# reporthook is a standard Python function that prints .'s as a URL is downloaded.
 cur = 0
 def reporthook(block, size, total):
-     global cur
-     n = block*size*50/total
-     if n > cur:
-          cur = n
-          sys.stdout.write('.')
-          sys.stdout.flush()
+    global cur
+    n = block*size*50/total
+    if n > cur:
+         cur = n
+         sys.stdout.write('.')
+         sys.stdout.flush()
 
 def download_file(file):
-     url = "%s/%s"%(PKG_SERVER, file)
-     i = url.rfind('/')
-     file = url[i+1:]
-     print url, "-->", file
-     global cur
-     cur = 0
-     j = file.find("-")
-     if j != -1:
-          if not os.path.exists("../archive/"):
-               os.makedirs("../archive/")
-          os.system("mv %s-* ../archive/ 1>/dev/null 2>/dev/null"%file[:j])
-     print "[",
-     urllib.urlretrieve(url, file, reporthook)
-     print "]"
-     if os.path.getsize(file) < 1000 and open(file).read().find("404 Not Found") != -1:
-          os.unlink(file)
-          return False
-     return True
+    """
+    INPUT:
+        file -- a string
+     OUTPUT:
+        downloads file from PKG_SERVER to a temp file, then if the
+        download finishes it moves it to the proper spkg name, then
+        deletes all old versions of the spkg.
+    """
+    url = "%s/%s"%(PKG_SERVER, file)
+    i = url.rfind('/')
+    file = url[i+1:]
+    print url, "-->", file
+    global cur
+    cur = 0
+    j = file.find("-")
+    if j != -1:
+        # Blatantly delete all old versions of the given spkg.
+        # We used to move these to archive, but nobody ever used that,
+        # so now we delete them.
+        # First we make a list of the old versions here, then
+        # we download the new version, and only if that succeeds
+        # do we actually do the delete of the old versions.
+        old_versions = [x for x in os.listdir('.') if x.startswith(file[:j+1])]
+    else:
+        old_versions = []
+
+    print "[",
+    urllib.urlretrieve(url, file+'.part', reporthook)
+    print "]"
+    # If the downloaded file is suspiciously small, check that it was actually valid.
+    # If not bail and completely kill the entire upgrade process (that's what exit 2 does).
+    if os.path.getsize(file+'.part') < 2000 and 'not found' not in open(file+'.part').read().lower():
+        os.unlink(file+'.part')
+        print "Failed to download '%s'"%url
+        print "Abort."
+        sys.exit(2)
+    else:
+        # we're good -- move temp file over and delete all old versions.
+        os.rename(file+'.part', file)
+        for X in old_versions:
+            if os.path.exists(X):
+                print "Deleting old spkg %s"%X
+                os.unlink(X)
+
+def permission_error():
+    """
+    Print a message that user doesn't have sufficient enough
+    permissions, and needs to fix that problem.
+    """
+    print "You must have write permissions to the following directory: %s"%SPKG_ROOT
+    print "Please login as UNIX user with appropriate permissions and try again."
+    sys.exit(2)
+
+def spkg_list(url):
+    """
+    INPUT:
+        url -- a url to be appended to PKG_SERVER
+    OUTPUT:
+        writes file in the current directory
+    """
+    # file - file in which to put a list of all spkg's in the given URL.
+    file = 'list.tmp'
+    web_url = "%s/%s"%(PKG_SERVER, url)
+    print web_url
+    print "Reading package lists..."
+    # Download the spkg/ directory listing.
+    try:
+        urllib.urlretrieve(web_url, file, reporthook)
+    except IOError, msg:
+        if "Permission denied" in str(msg):
+            # bail -- user isn't good enough to ugprade.
+            permission_error()
+        raise
+    r = open(file).read()
+    os.unlink(file)
+    if 'not found' in r.lower():
+        print "\n404 Error: Package server %s not found"%PKG_SERVER
+        print "Abort."
+        sys.exit(2)
+    print "Done"
+    # This is a pretty silly/abitrary way to do this but directory
+    # listings from http have links to each file, and the code below
+    # simply finds (one each) via a silly approach all the spkg's
+    # that are so listed.  This is just simple but works fine.
+    r = r.split('"')
+    v = list(set([x.strip() for x in r if x.endswith('.spkg')]))
+    v.sort()
+    return v
+
+def do_update():
+    """
+    Download the list of spkg's and see which are new.  For each of
+    those, download the actual spkg's along with some basic
+    build-system scripts, after checking with the user that they
+    really want to upgrade.
+
+    OUTPUT:
+        Creates and deletes files from SAGE_ROOT/spkg/
+    """
+    # Download list of all spkg's
+    os.chdir("%s/standard/"%SPKG_ROOT)
+    packages = spkg_list('standard')
+
+    # Figure out which spkg's haven't been installed locally.  Note
+    # that we will re-download over local spkg's if they haven't been
+    # successfully installed.  This is great because it means that
+    # partial or corrupted downloads get fixed if they failed to
+    # download correctly in the past.
+    installed = set(os.listdir("%s/installed/"%SPKG_ROOT))
+    to_download = [x for x in packages if not x.rstrip('.spkg') in installed]
+    if len(to_download) == 0:
+         # Nothing to do.
+         print "No new packages."
+         return
+
+    # Display list of packages to upgrade.
+    print "The following packages will be upgraded:"
+    print '  ' + ' '.join([x.rstrip('.spkg') for x in to_download])
+    # Make sure the user really wants to upgrade.  After all upgrading,
+    # is not guaranteed to work, yet.  This is for "power users".
+    print "* WARNING: This is a source-based upgrade, which could take hours, fail and render your Sage install useless!!"
+    for F in os.listdir("."):
+        if 'Placeholder spkg file' in open(F).readline():
+            print "* This is a binary install, so upgrading in place is *not* recommended unless you are an expert."
+            print "* (Considering installing a new binary from http://sagemath.org instead.)"
+            break
+
+    # The default answer is "no":
+    ans = raw_input("Do you want to continue [y/N]? ")
+    if not ans:
+        ans = "n"
+    else:
+        ans = ans.lower()
+    if ans != 'y':
+        print "Abort."
+        sys.exit(2)
+
+    # Let's do it -- download everything.
+    for P in to_download:
+        download_file("standard/%s"%P)
+
+    # Download these since the build system requires them to be
+    # updated or we can't build correctly.
+    os.chdir(SPKG_ROOT)
+    download_file("install")
+    os.system('chmod +x install')
+    os.chdir("%s/standard/"%SPKG_ROOT)
+    download_file("standard/deps")
+    download_file("standard/newest_version")
+    os.system('chmod +x newest_version')
+    download_file("standard/README.txt")
 
 if __name__ ==  '__main__':
-     os.chdir(SPKG_ROOT)
-     download_file("install")
-     os.system('chmod +x install')
-
-     os.chdir("%s/standard/"%SPKG_ROOT)
-     download_file("standard/list")
-     download_file("standard/deps")
-     download_file("standard/newest_version")
-     os.system('chmod +x newest_version')
-     download_file("standard/README")
-
-     packages = open("list").read().split('\n')
-     installed = set(os.listdir("%s/installed/"%SPKG_ROOT))
-
-     for P in packages:
-          file_to_download = "%s.spkg"%P
-          if not os.path.exists(file_to_download):
-               file = "standard/%s.spkg"%P
-               download_file(file)
-               if not os.path.exists(file_to_download):
-                    print "%s: Error downloading %s/%s"%(
-                         sys.argv[0], PKG_SERVER, file)
-                    sys.exit(1)
+    try:
+        do_update()
+    except KeyboardInterrupt:
+        print "\nControl-C pressed.  Don't panic -- this is safe and won't corrupt anything."
+        print "Abort."
+        sys.exit(2)

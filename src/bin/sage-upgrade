@@ -1,23 +1,34 @@
 #!/usr/bin/env bash
+#####################################################
+#
+# AUTHOR: William Stein, Copyright GPLv2+.
+#
+#####################################################
 
-sage-update
+# Call the sage-update Python script, passing on the arguments.
+sage-update "$@"
+ERR=$?
 
-if [ $? -ne 0 ]; then
+# If an error code of 2 is received, get the heck out. User cancelled, or
+# something else went very wrong.
+if [ $ERR = 2 ]; then
+    exit 2  # user wants to cancel and not install
+fi
+
+# Something went wrong, but not user abort.
+if [ $ERR -ne 0 ]; then
     echo "Error getting new packages!"
     exit 1
 fi
 
-cd $SAGE_ROOT
-
+# Got all new packages, and ready to go.  Now actually do the install.
 cd $SAGE_ROOT/spkg/
-
-
 
 ./install
 
+# Something went very wrong.
 if [ $? -ne 0 ]; then
     echo "Error installing Sage!"
     exit 1
 fi
 
-cd $SAGE_ROOT

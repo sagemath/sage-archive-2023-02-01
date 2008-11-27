@@ -671,8 +671,11 @@ class R(Expect):
         NOTE:
             This is similar to typing r.command?.
         """
-        s = self.eval('help("%s")'%command)     # ?cmd is only an unsafe shortcut
-        return HelpExpression(s.strip().replace("_\x08",""))
+        s = self.eval('help("%s")'%command).strip()     # ?cmd is only an unsafe shortcut
+        import sage.plot.plot
+        if sage.plot.plot.EMBEDDED_MODE:
+            s = s.replace('_\x08','')
+        return HelpExpression(s)
 
     def _assign_symbol(self):
         """

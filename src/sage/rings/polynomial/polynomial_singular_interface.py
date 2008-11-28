@@ -132,6 +132,16 @@ class PolynomialRing_singular_repr:
             //                  : names    x
             //        block   2 : ordering C
 
+            sage: r = Frac(ZZ['a,b'])['x,y']
+            sage: r._singular_()
+            //   characteristic : 0
+            //   2 parameter    : a b
+            //   minpoly        : 0
+            //   number of vars : 2
+            //        block   1 : ordering dp
+            //                  : names    x y
+            //        block   2 : ordering C
+
         WARNING:
            If the base ring is a finite extension field or a number field
            the ring will not only be returned but also be set as the current
@@ -227,6 +237,13 @@ class PolynomialRing_singular_repr:
 
             self.__singular = r
 
+	elif sage.rings.fraction_field.is_FractionField(self.base_ring()) and (self.base_ring().base_ring() is ZZ or self.base_ring().base_ring().is_prime_field()):
+	    if self.base_ring().ngens()==1:
+	      gens = str(self.base_ring().gen())
+	    else:
+              gens = str(self.base_ring().gens())
+            self.__singular = singular.ring( "(%s,%s)"%(self.base_ring().characteristic(),gens), _vars, order=order, check=False)
+
         else:
             raise TypeError, "no conversion to a Singular ring defined"
 
@@ -263,6 +280,7 @@ def can_convert_to_singular(R):
              or is_RealDoubleField(base_ring)
              or is_ComplexDoubleField(base_ring)
              or number_field.all.is_NumberField(base_ring)
+	     or ( sage.rings.fraction_field.is_FractionField(base_ring) and ( base_ring.base_ring().is_prime_field() or base_ring.base_ring() is ZZ ) )
              or base_ring is ZZ )
 
 

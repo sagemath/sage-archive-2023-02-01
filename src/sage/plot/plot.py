@@ -337,7 +337,6 @@ class Graphics(SageObject):
         self.__tick_label_color = (0, 0, 0)
         self.__axes_width = 0.8
         self.__objects = []
-        self.__axes_range = {}
 
     def set_aspect_ratio(self, ratio):
         """
@@ -401,9 +400,10 @@ class Graphics(SageObject):
             (-1.0, 20.0, 0.0, 2.0)
         """
         l = locals()
+        axes_range = self.get_axes_range()
         for name in ['xmin', 'xmax', 'ymin', 'ymax']:
             if l[name] is not None:
-                self.__axes_range[name] = float(l[name])
+                axes_range[name] = float(l[name])
 
     def get_axes_range(self):
         """
@@ -415,7 +415,11 @@ class Graphics(SageObject):
             sage: L.get_axes_range()
             {'xmin': -1.0}
         """
-        return self.__axes_range
+        try:
+            return self.__axes_range
+        except AttributeError:
+            self.__axes_range = {}
+            return self.__axes_range
 
     def fontsize(self, s=None):
         """
@@ -1102,7 +1106,7 @@ class Graphics(SageObject):
         """
         d = self.get_minmax_data()
         self.axes_range(xmin, xmax, ymin, ymax)
-        d.update(self.__axes_range)
+        d.update(self.get_axes_range())
         xmin = d['xmin']
         xmax = d['xmax']
         ymin = d['ymin']
@@ -2314,3 +2318,19 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
                     level=level+1)
     else:
         return []
+
+
+#Lovely cruft to keep the pickle jar working
+from line import line, line2d, Line as GraphicPrimitive_Line
+from arrow import arrow, Arrow as GraphicPrimitive_Arrow
+from bar_chart import bar_chart, BarChart as GraphicPrimitive_BarChart
+from networkx_graph import networkx_plot, NetworkXGraph as GraphicPrimitive_NetworkXGraph
+from disk import disk, Disk as GraphicPrimitive_Disk
+from point import point, points, point2d, Point as GraphicPrimitive_Point
+from matrix_plot import matrix_plot, MatrixPlot as GraphicPrimitive_MatrixPlot
+from plot_field import plot_vector_field, plot_slope_field, PlotField as GraphicPrimitive_PlotField
+from text import text, Text as GraphicPrimitive_Text
+from polygon import polygon, Polygon as GraphicPrimitive_Polygon
+from circle import circle, Circle as GraphicPrimtive_Circle
+from contour_plot import contour_plot, implicit_plot, ContourPlot as GraphicPrimitive_ContourPlot
+

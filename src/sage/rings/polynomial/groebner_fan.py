@@ -76,7 +76,7 @@ from polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.plot.plot import line, Graphics, polygon
+from sage.plot.all import line, Graphics, polygon
 from sage.plot.plot3d.shapes2 import line3d
 from sage.geometry.polyhedra import Polyhedron, ieq_to_vert, vert_to_ieq
 

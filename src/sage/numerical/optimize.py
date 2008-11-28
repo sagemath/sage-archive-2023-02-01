@@ -48,7 +48,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
         2.0082590205656166
 
     This agrees with the plot:
-        sage: show(plot(f,2,2.01),xmin=2,xmax=2.01, ymin=0.01,ymax=0.01)
+        sage: plot(f,2,2.01)
     """
     try:
         return f.find_root(a=a,b=b,xtol=xtol,rtol=rtol,maxiter=maxiter,full_output=full_output)

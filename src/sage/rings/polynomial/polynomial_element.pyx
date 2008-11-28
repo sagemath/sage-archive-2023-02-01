@@ -231,7 +231,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: plot(x^2 + 1, rgbcolor=(1,0,0)).save()
         """
         R = self.base_ring()
-        from sage.plot.plot import plot, point, line
+        from sage.plot.all import plot, point, line
         if R.characteristic() == 0:
             if xmin is None and xmax is None:
                 (xmin, xmax) = (-1,1)

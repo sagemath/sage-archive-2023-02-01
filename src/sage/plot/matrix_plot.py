@@ -59,7 +59,7 @@ class MatrixPlot(GraphicPrimitive):
         from matplotlib.colors import LinearSegmentedColormap as C
         key_error = False
         try:
-            cmap = cm.__dict__[cmap]
+            cmap = cm.__dict__[given_cmap]
         except KeyError:
             key_error = True
 

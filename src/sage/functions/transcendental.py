@@ -376,10 +376,7 @@ class PrimePi:
         for i in range(len(primes)-1):
             v.extend([(primes[i],base+i+1), (primes[i+1],base+i+1)])
         P = sage.plot.all.line(v, *args, **kwds)
-        P.xmin(xmin)
-        P.xmax(xmax)
-        P.ymin(ymin)
-        P.ymax(base+len(primes))
+        P.axes_range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=base+len(primes))
         return P
 
 #############

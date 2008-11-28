@@ -946,10 +946,7 @@ cdef class TimeSeries:
             L = point(w, **kwds)
         else:
             L = line(w, **kwds)
-        L.ymin(min(v))
-        L.ymax(max(v))
-        L.xmin(0)
-        L.xmax(len(v)*s)
+        L.axes_range(ymin=min(v), ymax=max(v), xmin=0, xmax=len(v)*s)
         return L
 
     def simple_moving_average(self, Py_ssize_t k):
@@ -1760,10 +1757,7 @@ cdef class TimeSeries:
         for i, (x0,x1) in enumerate(intervals):
             s += polygon([(x0,0), (x0,counts[i]), (x1,counts[i]), (x1,0)], **kwds)
         if len(intervals) > 0:
-            s.xmin(intervals[0][0])
-            s.xmax(intervals[-1][1])
-            s.ymin(0)
-            s.ymax(max(counts))
+            s.axes_range(ymin=0, ymax=max(counts), xmin=intervals[0][0], xmax=intervals[-1][1])
         return s
 
     def plot_candlestick(self, int bins=30):
@@ -1790,7 +1784,7 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries(1000).randomize()
             sage: v.plot_candlestick(bins=20)
         """
-        from sage.plot.plot import line, polygon, Graphics
+        from sage.plot.all import line, polygon, Graphics
 
         cdef TimeSeries t = new_time_series(self._length)
         cdef TimeSeries s

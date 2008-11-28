@@ -2218,7 +2218,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         from sage.rings.rational_field import QQ
         from sage.rings.real_mpfr import RR
-        from sage.plot.plot import implicit_plot
+        from sage.plot.all import implicit_plot
 
         if self.ring().base_ring() is not QQ:
             raise TypeError, "Base ring must be rational field."

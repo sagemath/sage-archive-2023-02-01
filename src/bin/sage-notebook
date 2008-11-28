@@ -11,6 +11,6 @@ from sage.server.notebook.all import notebook
 print "..."
 
 if len(sys.argv) > 1:
-    notebook(*sys.argv[1:])
+    exec "notebook(" + ",".join(sys.argv[1:]) + ")"
 else:
     notebook(port=8000)

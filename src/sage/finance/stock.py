@@ -84,7 +84,7 @@ class Stock:
 
         EXAMPLES:
             sage: S = finance.Stock('ibm')
-            sage: S        # optional -- requires internet, and random
+            sage: S        # random; optional -- internet
             IBM (127.48)
         """
         self.symbol = symbol.upper()
@@ -95,7 +95,7 @@ class Stock:
         Return string representation of this stock.
 
         EXAMPLES:
-            sage: finance.Stock('ibm').__repr__()     # optional -- requires internet, and random
+            sage: finance.Stock('ibm').__repr__()     # random; optional -- internet
             'IBM (127.47)'
         """
         return "%s (%s)"%(self.symbol, self.market_value())
@@ -108,7 +108,7 @@ class Stock:
             Python float
 
         EXAMPLES:
-            sage: finance.Stock('goog').market_value()   # optional and random
+            sage: finance.Stock('goog').market_value()   # random; optional - internet
             575.83000000000004
         """
         return float(self.yahoo()['price'])
@@ -121,7 +121,7 @@ class Stock:
             dict
 
         EXAMPLES:
-            sage: finance.Stock('GOOG').yahoo()          # random and optional (requires internet)
+            sage: finance.Stock('GOOG').yahoo()          # random; optional -- internet
             {'stock_exchange': '"NasdaqNM"', 'market_cap': '181.1B', '200day_moving_avg': '564.569', '52_week_high': '747.24', 'price_earnings_growth_ratio': '1.04', 'price_sales_ratio': '10.16', 'price': '576.48', 'earnings_per_share': '14.463', '50day_moving_avg': '549.293', 'avg_daily_volume': '6292480', 'volume': '1613507', '52_week_low': '412.11', 'short_ratio': '1.00', 'price_earnings_ratio': '40.50', 'dividend_yield': 'N/A', 'dividend_per_share': '0.00', 'price_book_ratio': '7.55', 'ebitda': '6.513B', 'change': '-9.32', 'book_value': '77.576'}
         """
         url = 'http://finance.yahoo.com/d/quotes.csv?s=%s&f=%s' % (self.symbol, 'l1c1va2xj1b4j4dyekjm3m4rr5p5p6s7')
@@ -177,22 +177,22 @@ class Stock:
 
         EXAMPLES:
         We get the first five days of VMware's stock history:
-            sage: finance.Stock('vmw').google()[:5]   # optional -- requires internet
+            sage: finance.Stock('vmw').google()[:5]   # optional -- internet
             [
-             15-Aug-07 52.11 59.87 51.50 57.71   10678500,
-             16-Aug-07 60.99 61.49 52.71 56.99    6919500,
-             17-Aug-07 59.00 59.00 54.45 55.55    3086100,
-             20-Aug-07 56.05 57.50 55.61 57.33    2140900,
-             21-Aug-07 57.25 66.59 56.50 65.99    7369700
+             28-Nov-07 80.57 88.49 80.57 87.69    7496000,
+             29-Nov-07 90.91 93.20 89.50 90.85    5497600,
+             30-Nov-07 95.39 95.60 89.85 91.37    4750200,
+              3-Dec-07 89.87 96.00 88.70 94.97    4401100,
+              4-Dec-07 92.26 97.10 92.05 95.08    2896600
             ]
 
-            sage: finance.Stock('F').google('Jan+3,+1978', 'Jul+7,+2008')[:5] # optional -- requires internet
+            sage: finance.Stock('F').google('Jan+3,+1978', 'Jul+7,+2008')[:5] # optional -- internet
             [
-              3-Jan-78 2.90 2.90 2.84 2.85    1074495,
-              4-Jan-78 2.84 2.84 2.81 2.83    1648713,
-              5-Jan-78 2.83 2.84 2.77 2.77    1988524,
-              6-Jan-78 2.77 2.77 2.74 2.76    2019988,
-              9-Jan-78 2.73 2.73 2.69 2.73    2600499
+              3-Jan-78 0.00 1.93 1.89 1.89    1618200,
+              4-Jan-78 0.00 1.89 1.87 1.88    2482700,
+              5-Jan-78 0.00 1.89 1.84 1.84    2994900,
+              6-Jan-78 0.00 1.84 1.82 1.83    3042500,
+              9-Jan-78 0.00 1.81 1.79 1.81    3916400
             ]
 
         Note that when startdate is too far prior to a stock's actual start
@@ -200,25 +200,25 @@ class Stock:
         leading up to the specified enddate.  For example, Apple's (AAPL) stock
         history only dates back to September 7, 1984
 
-            sage: finance.Stock('AAPL').google('Sep+1,+1900', 'Jan+1,+2000')[0:5] # optional -- requires internet
+            sage: finance.Stock('AAPL').google('Sep+1,+1900', 'Jan+1,+2000')[0:5] # optional -- internet
             [
-              4-Jan-99 10.53 10.56 10.00 10.31   34031600,
-              5-Jan-99 10.48 10.98 10.38 10.83   50361200,
-              6-Jan-99 11.03 11.03 10.25 10.44   48163200,
-              7-Jan-99 10.56 11.27 10.53 11.25   51036400,
-              8-Jan-99 11.64 11.72 11.00 11.25   24244000
+              4-Jan-99 0.00 10.56 10.00 10.31   34031600,
+              5-Jan-99 0.00 10.98 10.38 10.83   50360400,
+              6-Jan-99 0.00 11.03 10.25 10.44   48160800,
+              7-Jan-99 0.00 11.27 10.53 11.25   51036400,
+              8-Jan-99 0.00 11.72 11.00 11.25   24240000
             ]
 
         Here is an example where we create and get the history of a stock
         that is not in NASDAQ or NYSE
 
-            sage: finance.Stock("OTC:NTDOY").google(startdate="Jan+1,+2007", enddate="Jan+1,+2008")[:5]
+            sage: finance.Stock("OTC:NTDOY").google(startdate="Jan+1,+2007", enddate="Jan+1,+2008")[:5]  # optional -- internet
             [
-              3-Jan-07 32.44 32.75 32.30 32.44     156300,
-              4-Jan-07 31.70 32.40 31.20 31.70     222700,
-              5-Jan-07 30.15 30.50 30.15 30.15      65700,
-              8-Jan-07 30.10 30.50 30.00 30.10     130800,
-              9-Jan-07 29.90 30.05 29.60 29.90     103400
+              3-Jan-07 32.44 32.75 32.30 32.44     156283,
+              4-Jan-07 31.70 32.40 31.20 31.70     222643,
+              5-Jan-07 30.15 30.50 30.15 30.15      65670,
+              8-Jan-07 30.10 30.50 30.00 30.10     130765,
+              9-Jan-07 29.90 30.05 29.60 29.90     103338
             ]
 
 
@@ -228,15 +228,14 @@ class Stock:
         the symbol and cid do not match, the history based on the
         contract id will be returned.
 
-            sage: sage.finance.stock.Stock("AAPL", 22144).google(startdate='Jan+1,+1990')[:5] #optional -- requires internet
+            sage: sage.finance.stock.Stock("AAPL", 22144).google(startdate='Jan+1,+1990')[:5] #optional -- internet
             [
-              2-Jan-90 8.81 9.38 8.75 9.31    6542800,
-              3-Jan-90 9.50 9.50 9.38 9.38    7428400,
-              4-Jan-90 9.56 9.69 9.31 9.41    7911200,
-              5-Jan-90 9.44 9.56 9.25 9.44    4404000,
-              8-Jan-90 9.38 9.50 9.25 9.50    3627600
+              2-Jan-90 0.00 9.38 8.75 9.31    6542800,
+              3-Jan-90 0.00 9.50 9.38 9.38    7428400,
+              4-Jan-90 0.00 9.69 9.31 9.41    7911200,
+              5-Jan-90 0.00 9.56 9.25 9.44    4404000,
+              8-Jan-90 0.00 9.50 9.25 9.50    3627600
             ]
-
         """
         cid = self.cid
         symbol = self.symbol
@@ -272,26 +271,26 @@ class Stock:
 
         EXAMPLES:
         You can directly obtain Open data as so:
-            sage: finance.Stock('vmw').open(startdate='Jan+1,+2008', enddate='Feb+1,+2008')                 # optional -- requires internet
-            [83.0500, 85.4900, 84.9000, 82.0000, 81.2500 ... 82.0000, 58.0500, 54.4900, 55.6000, 56.9800]
+            sage: finance.Stock('vmw').open(startdate='Jan+1,+2008', enddate='Feb+1,+2008')                 # optional -- internet
+            [83.0500, 85.4900, 84.9000, 82.0000, 81.2500 ... 82.0000, 58.2700, 54.4900, 55.6000, 56.9800]
 
         Or, you can initialize stock data first and then extract the Open
         data:
             sage: c = finance.Stock('vmw')
-            sage: c.google(startdate='Feb+1,+2008', enddate='Mar+1,+2008')[:5]    # optional -- requires internet
+            sage: c.google(startdate='Feb+1,+2008', enddate='Mar+1,+2008')[:5]    # optional -- internet
             [
-             31-Jan-08 55.60 57.35 55.52 56.67    2607800,
-              1-Feb-08 56.98 58.14 55.06 57.85    2489400,
-              4-Feb-08 58.00 60.47 56.91 58.05    1840300,
-              5-Feb-08 57.60 59.30 57.17 59.30    1711700,
-              6-Feb-08 60.32 62.00 59.50 61.52    2209700
+             31-Jan-08 55.60 57.35 55.52 56.67    2591100,
+              1-Feb-08 56.98 58.14 55.06 57.85    2473000,
+              4-Feb-08 58.00 60.47 56.91 58.05    1816500,
+              5-Feb-08 57.60 59.30 57.17 59.30    1709000,
+              6-Feb-08 60.32 62.00 59.50 61.52    2191100
             ]
-            sage: c.open()    # optional -- requires internet
+            sage: c.open()    # optional -- internet
             [55.6000, 56.9800, 58.0000, 57.6000, 60.3200 ... 56.5500, 59.3000, 60.0000, 59.7900, 59.2600]
 
         Otherwise, \code{self.google()} will be called with the default
         arguements returning a year's worth of data:
-            sage: finance.Stock('vmw').open()   # optional and random -- requires internet and depends on day
+            sage: finance.Stock('vmw').open()   # random; optional -- internet
             [52.1100, 60.9900, 59.0000, 56.0500, 57.2500 ... 83.0500, 85.4900, 84.9000, 82.0000, 81.2500]
 
         """
@@ -324,28 +323,28 @@ class Stock:
 
         EXAMPLES:
         You can directly obtain close data as so:
-            sage: finance.Stock('vmw').close(startdate='Jan+1,+2008', enddate='Feb+1,+2008')                 # optional -- requires internet
+            sage: finance.Stock('vmw').close(startdate='Jan+1,+2008', enddate='Feb+1,+2008')                 # optional -- internet
             [84.9900, 84.6000, 83.9500, 80.4900, 72.9900 ... 83.0000, 54.8700, 56.4200, 56.6700, 57.8500]
 
         Or, you can initialize stock data first and then extract the Close
         data:
             sage: c = finance.Stock('vmw')
-            sage: c.google(startdate='Feb+1,+2008', enddate='Mar+1,+2008')[:5]    # optional -- requires internet
+            sage: c.google(startdate='Feb+1,+2008', enddate='Mar+1,+2008')[:5]    # optional -- internet
             [
-             31-Jan-08 55.60 57.35 55.52 56.67    2607800,
-              1-Feb-08 56.98 58.14 55.06 57.85    2489400,
-              4-Feb-08 58.00 60.47 56.91 58.05    1840300,
-              5-Feb-08 57.60 59.30 57.17 59.30    1711700,
-              6-Feb-08 60.32 62.00 59.50 61.52    2209700
+             31-Jan-08 55.60 57.35 55.52 56.67    2591100,
+              1-Feb-08 56.98 58.14 55.06 57.85    2473000,
+              4-Feb-08 58.00 60.47 56.91 58.05    1816500,
+              5-Feb-08 57.60 59.30 57.17 59.30    1709000,
+              6-Feb-08 60.32 62.00 59.50 61.52    2191100
             ]
-            sage: c.close()    # optional -- requires internet
+            sage: c.close()    # optional -- internet
             [56.6700, 57.8500, 58.0500, 59.3000, 61.5200 ... 58.2900, 60.1800, 59.8600, 59.9500, 58.6700]
 
 
 
         Otherwise, \code{self.google()} will be called with the default
         arguements returning a year's worh of data:
-            sage: finance.Stock('vmw').close()   # optional and random -- requires internet and depends on day
+            sage: finance.Stock('vmw').close()   # random; optional -- internet
             [57.7100, 56.9900, 55.5500, 57.3300, 65.9900 ... 84.9900, 84.6000, 83.9500, 80.4900, 72.9900]
         """
 
@@ -453,10 +452,10 @@ class Stock:
 
         EXAMPLES:
         This indirectly tests the use of get_data.
-            sage: finance.Stock('aapl').google(startdate='Jan+1,+1990')[:2]    # optional -- requires internet
+            sage: finance.Stock('aapl').google(startdate='Jan+1,+1990')[:2]    # optional -- internet
             [
-              2-Jan-90 8.81 9.38 8.75 9.31    6542800,
-              3-Jan-90 9.50 9.50 9.38 9.38    7428400
+              2-Jan-90 0.00 9.38 8.75 9.31    6542800,
+              3-Jan-90 0.00 9.50 9.38 9.38    7428400
             ]
         """
         symbol = self.symbol

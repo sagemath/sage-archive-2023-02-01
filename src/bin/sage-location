@@ -46,6 +46,9 @@ def get_flags_info():
         r = r[i+1:]
         i = r.find('\n')
         r = r[:i]
+        # This line restricts the flags to just ones that start with sse, 3d or mmx.
+        # We do not want *all* flags, since some like "up" are not relevant (up = uniprocessor).
+        r = ' '.join(x for x in r.split() if x.startswith('sse') or x.startswith('3d') or x.startswith('mmx') or x.startswith('pni') or x.startswith('cmov'))
         return r
     except IOError:
         # On a system without /proc/cpuinfo, so don't bother In

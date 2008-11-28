@@ -201,7 +201,7 @@ def KodairaSymbol(symbol):
 
     INPUT:
     symbol -- A string of the form "I0", "I1", \ldots, "In", "II", "III", "IV", "I0*", "I1*", \ldots, "In*", "II*", "III*", or "IV*",
-              or an integer encoding a Kodaia symbol using Pari's conventions:
+              or an integer encoding a Kodaira symbol using Pari's conventions:
               1 = "I0" (good reduction)
               2 = "II"
               3 = "III"

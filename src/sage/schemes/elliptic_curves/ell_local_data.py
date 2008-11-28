@@ -48,7 +48,7 @@ class EllipticCurveLocalData(SageObject):
             P -- a prime ideal of the field
                  (or a prime integer if the field is QQ)
             proof -- whether to only use provably correct methods
-                     (default controled by global proof module).  Note
+                     (default controlled by global proof module).  Note
                      that the proof module is number_field, not
                      elliptic_curves, since the functions that
                      actually need the flag are in number fields.
@@ -153,7 +153,7 @@ class EllipticCurveLocalData(SageObject):
 
     def prime(self):
         """
-        Return the prime ideal associated with from this local reduction data.
+        Return the prime ideal associated with this local reduction data.
 
         EXAMPLES:
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
@@ -249,8 +249,8 @@ class EllipticCurveLocalData(SageObject):
         Return the type of bad reduction.
 
         OUTPUT:
-            +1 for split multiplcative reduction
-            -1 for non-split multiplcative reduction
+            +1 for split multiplicative reduction
+            -1 for non-split multiplicative reduction
             0  for additive reduction
             None for good reduction
 
@@ -518,7 +518,7 @@ class EllipticCurveLocalData(SageObject):
             # NB the c invariants never change.
 
             if not pdiv(c4):
-                # Multiplcative reduction: Type In (n = val_disc)
+                # Multiplicative reduction: Type In (n = val_disc)
                 split = False
                 if _pquadroots(1, a1, -a2):
                     cp = val_disc

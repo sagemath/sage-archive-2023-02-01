@@ -202,7 +202,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
     def local_integral_model(self,*P):
         r"""
         Return a model of self which is integral at the prime ideal $P$
-        NB Does not affect integrality at other primes even if P non-principal
+        NB Does not affect integrality at other primes even if P
+        is non-principal.
 
         EXAMPLES:
             sage: K.<i> = NumberField(x^2+1)
@@ -223,7 +224,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def is_global_integral_model(self):
         r"""
-        Return true iff self is integral at all primes
+        Return true iff self is integral at all primes.
 
         EXAMPLES:
             sage: K.<i> = NumberField(x^2+1)
@@ -237,7 +238,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def global_integral_model(self):
         r"""
-        Return a model of self which is integral at all primes
+        Return a model of self which is integral at all primes.
 
         EXAMPLES:
             sage: K.<i> = NumberField(x^2+1)
@@ -336,14 +337,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             self -- an elliptic curve over a number field.
             $P$    -- either None or a prime ideal of the base field of self.
             proof -- whether to only use provably correct methods
-                     (default controled by global proof module).  Note
+                     (default controlled by global proof module).  Note
                      that the proof module is number_field, not
                      elliptic_curves, since the functions that
                      actually need the flag are in number fields.
 
         OUTPUT:
 
-            If $P$ specified, returns the EllipticCurveLocalData object
+            If $P$ is specified, returns the EllipticCurveLocalData object
             associated to the prime P for this curve.  Otherwise,
             returns a list of such objects, one for each prime $P$
             in the support of the discriminant.
@@ -430,7 +431,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         INPUT:
             $P$ -- a prime ideal of the base field of self, or a field
                  element generating such an ideal.
-            proof -- whether to only use provably correct methods (default controled by
+            proof -- whether to only use provably correct methods (default controlled by
                      global proof module).  Note that the proof module is number_field,
                      not elliptic_curves, since the functions that actually need the flag
                      are in number fields.
@@ -615,7 +616,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             $P$ -- a prime ideal of the base field of self, or a field
                  element generating such an ideal.
             proof -- whether to only use provably correct methods
-                     (default controled by global proof module).  Note
+                     (default controlled by global proof module).  Note
                      that the proof module is number_field, not
                      elliptic_curves, since the functions that
                      actually need the flag are in number fields.
@@ -648,7 +649,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             $P$ -- a prime ideal of the base field of self, or a field
                  element generating such an ideal.
             proof -- whether to only use provably correct methods
-                     (default controled by global proof module).  Note
+                     (default controlled by global proof module).  Note
                      that the proof module is number_field, not
                      elliptic_curves, since the functions that
                      actually need the flag are in number fields.
@@ -681,7 +682,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             $P$ -- a prime ideal of the base field of self, or a field
                  element generating such an ideal.
             proof -- whether to only use provably correct methods
-                     (default controled by global proof module).  Note
+                     (default controlled by global proof module).  Note
                      that the proof module is number_field, not
                      elliptic_curves, since the functions that
                      actually need the flag are in number fields.
@@ -757,7 +758,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         INPUT:
             self -- an elliptic curve over a number field of class number
             proof -- whether to only use provably correct methods
-                     (default controled by global proof module).  Note
+                     (default controlled by global proof module).  Note
                      that the proof module is number_field, not
                      elliptic_curves, since the functions that
                      actually need the flag are in number fields.
@@ -787,7 +788,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def reduction(self,place):
        """
-       Return the reduction of the elliptic curve at a place of good reduction
+       Return the reduction of the elliptic curve at a place of good reduction.
 
        INPUT:
             place -- a prime ideal in the base field of the curve

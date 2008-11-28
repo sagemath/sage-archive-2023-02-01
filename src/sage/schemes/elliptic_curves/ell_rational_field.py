@@ -318,7 +318,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         NOTE: The output is a raw string and completely illegible
             using automatic display, so it is recommended to use print
-            for legible outout
+            for legible output
 
         EXAMPLES:
             sage: E = EllipticCurve('37a1')
@@ -451,7 +451,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             prec -- The precision of quantities calculated for the
                     returned curve, in bits.  If None, defaults
                     to factor * the precision of the largest cached curve
-                    (or the default real precision if none yet computed)
+                    (or the default real precision if none yet computed).
             factor -- The factor by which to increase the precision over the
                       maximum previously computed precision.  Only used if
                       prec (which gives an explicit precision) is None.
@@ -530,7 +530,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             prec -- The precision of quantities calculated for the
                     returned curve, in bits.  If None, defaults
                     to factor * the precision of the largest cached curve
-                    (or the default real precision if none yet computed)
+                    (or the default real precision if none yet computed).
             factor -- The factor by which to increase the precision over the
                       maximum previously computed precision.  Only used if
                       prec (which gives an explicit precision) is None.
@@ -580,7 +580,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Elliptic Curve defined by y^2  = x^3 + x^2 + 3*x + 5 over Rational Field
 
         NOTES: The model of the curve in the database can be different
-               than the Weierstrass model for this curve, e.g.,
+               from the Weierstrass model for this curve, e.g.,
                database models are always minimal.
         """
         try:
@@ -728,7 +728,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         INPUT:
             n -- integer
             python_ints -- bool (default: False); if True return a list of
-                      Python ints instead of SAGE integers.
+                      Python ints instead of Sage integers.
 
         OUTPUT:
             -- list of integers
@@ -760,13 +760,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def anlist(self, n, python_ints=False):
         """
         The Fourier coefficients up to and including $a_n$ of the
-        modular form attached to this elliptic curve.  The ith element
+        modular form attached to this elliptic curve.  The i-th element
         of the return list is a[i].
 
         INPUT:
             n -- integer
             python_ints -- bool (default: False); if True return a list of
-                      Python ints instead of SAGE integers.
+                      Python ints instead of Sage integers.
 
         OUTPUT:
             -- list of integers
@@ -797,7 +797,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # int conversion is done very sensibly.  NOTE: This would fail
         # if a_n won't fit in a C int, i.e., is bigger than
         # 2147483648; however, we wouldn't realistically compute
-        # anlist for n that large anyways.
+        # anlist for n that large anyway.
         #
         # Some relevant timings:
         #
@@ -827,7 +827,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         #  time v=e.ellan (10000000)                                139.37
         #  time v=E.anlist(10000000)                                136.32
         #
-        #  The last SAGE comp retries with stack size 40MB,
+        #  The last Sage comp retries with stack size 40MB,
         #  80MB, 160MB, and succeeds last time.  It's very interesting that this
         #  last computation is *not* possible in GP, but works in py_pari!
         #
@@ -1896,7 +1896,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         This will be 0, 1 or 2.
 
-        NOTE: As s side-effect of calling this function, the full
+        NOTE: As a side-effect of calling this function, the full
         torsion subgroup of the curve is computed (if not already
         cached).  A simpler implementation of this function would be
         possible (by counting the roots of the 2-division polynomial),
@@ -1985,7 +1985,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         D must be a nonzero rational number.
 
         NOTE: This function overrides the generic quadratic_twist()
-            function for elliptic curves, returning a minimal model
+            function for elliptic curves, returning a minimal model.
 
         EXAMPLES:
             sage: E=EllipticCurve('37a1')
@@ -2020,7 +2020,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Return True iff this elliptic curve is a reduced minimal model.
 
-        the unique minimal Weierstrass equation for this
+        The unique minimal Weierstrass equation for this
         elliptic curve.  This is the model with minimal discriminant
         and $a_1,a_2,a_3 \in \{0,\pm 1\}$.
 
@@ -2040,11 +2040,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def is_p_minimal(self, p):
         """
-        Tests if curve curve is p-minimal at a given prime p.
+        Tests if curve is p-minimal at a given prime p.
 
-        INPUT: p - a prime
-        OUTPUT: True - if curve is p-minimal
-                False - if curve isn't p-minimal
+        INPUT: p -- a prime
+        OUTPUT: True -- if curve is p-minimal
+                False -- if curve isn't p-minimal
 
         EXAMPLES:
             sage: E = EllipticCurve('441a2')
@@ -2330,7 +2330,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def local_integral_model(self,p):
         r"""
-        Return a model of self which is integral at the prime $p$
+        Return a model of self which is integral at the prime $p$.
 
         EXAMPLES:
             sage: E=EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
@@ -2348,7 +2348,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def is_global_integral_model(self):
         r"""
-        Return true iff self is integral at all primes
+        Return true iff self is integral at all primes.
 
         EXAMPLES:
             sage: E=EllipticCurve([1/2,1/5,1/5,1/5,1/5])
@@ -2362,7 +2362,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def global_integral_model(self):
         r"""
-        Return a model of self which is integral at all primes
+        Return a model of self which is integral at all primes.
 
         EXAMPLES:
             sage: E = EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
@@ -2425,7 +2425,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Return the modular degree of this elliptic curve.
 
-        The result is cached.  Subsequence calls, even with a
+        The result is cached.  Subsequent calls, even with a
         different algorithm, just returned the cached result.
 
         INPUT:
@@ -2450,7 +2450,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             \item The modular degree fits in a machine double, so it
             better be less than about 50-some bits.  (If you use sympow
-            this contraint does not apply.)
+            this constraint does not apply.)
 
         \end{itemize}
 
@@ -2521,9 +2521,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         The curve is converted to a minimal model.
 
-        OUTPUT: A list of two Larent series [X(x),Y(x)] of degrees -2,
+        OUTPUT: A list of two Laurent series [X(x),Y(x)] of degrees -2,
         -3 respectively, which satisfy the equation of the (minimal
-        model of the) elliptic curve.  The are modular functions on
+        model of the) elliptic curve.  There are modular functions on
         $\Gamma_0(N)$ where $N$ is the conductor.
 
         X.deriv()/(2*Y+a1*X+a3) should equal f(q)dq/q where f is
@@ -2595,7 +2595,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def reduction(self,p):
        """
-       Return the reduction of the elliptic curve at a prime of good reduction
+       Return the reduction of the elliptic curve at a prime of good reduction.
 
        NOTE: All is done in self.change_ring(GF(p)); all we do is
        check that p is prime and does not divide the discriminant.
@@ -2819,7 +2819,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def has_cm(self):
         """
-        Returns True iff this elliptic curve has Complex Multiplication
+        Returns True iff this elliptic curve has Complex Multiplication.
 
         EXAMPLES:
             sage: E=EllipticCurve('37a1')
@@ -2840,7 +2840,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         curve has Complex Multiplication.
 
         A ValueError is raised if the curve does not have CM (see the
-        function has_cm())
+        function has_cm()).
 
         EXAMPLES:
             sage: E=EllipticCurve('32a1')
@@ -3074,7 +3074,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def is_irreducible(self, p):
         """
-        Return True if the mod p represenation is irreducible.
+        Return True if the mod p representation is irreducible.
 
         EXAMPLES:
             sage: e = EllipticCurve('37b')
@@ -3289,7 +3289,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             A -- an integer
         OUTPUT:
             list -- if curve has CM, returns [(0,"cm")].  Otherwise, returns a
-                    list of primes where mod-p representation very likely
+                    list of primes where mod-p representation is very likely
                     not surjective.   At any prime not in this list,
                     the representation is definitely surjective.
         EXAMPLES:
@@ -3484,8 +3484,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Evaluate the L-series of this elliptic curve at points in CC
 
         INPUT:
-              points--  a list of points in the half-plane of convergence
-              prec--    precision
+              points -- a list of points in the half-plane of convergence
+              prec -- precision
 
         OUTPUT:
               A list of values L(E,s) for s in points
@@ -4178,7 +4178,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         NOTES: The complexity increases exponentially in the rank of
             curve E.  The computation time (but not the output!)
             depends on the Mordell-Weil basis.  If mw_base is given
-            but it not a basis for the Mordell-Weil group (modulo
+            but is not a basis for the Mordell-Weil group (modulo
             torsion), integral points which are not in the subgroup
             generated by the given points will almost certainly not be
             listed.

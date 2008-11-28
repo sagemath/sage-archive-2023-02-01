@@ -8685,6 +8685,13 @@ def symbolic_expression_from_maxima_element(x):
         sage: a = sage.calculus.calculus.maxima('x^(sqrt(y)+%pi) + sin(%e + %pi)')
         sage: sage.calculus.calculus.symbolic_expression_from_maxima_element(a)
         x^(sqrt(y) + pi) - sin(e)
+        sage: var('x, y')
+        (x, y)
+        sage: v = sage.calculus.calculus.maxima.vandermonde_matrix([x, y, 1/2])
+        sage: sage.calculus.calculus.symbolic_expression_from_maxima_element(v)
+        [  1   x x^2]
+        [  1   y y^2]
+        [  1 1/2 1/4]
     """
     return symbolic_expression_from_maxima_string(x.name())
 
@@ -8699,6 +8706,13 @@ def evaled_symbolic_expression_from_maxima_string(x):
         sin(erf(theta)*sqrt(x))*y*z + x^3 + 2*x
         sage: sage.calculus.calculus.evaled_symbolic_expression_from_maxima_string('x^%e + %e^%pi + %i')
         x^e + I + e^pi
+        sage: sage.calculus.calculus.evaled_symbolic_expression_from_maxima_string('mm: matrix([x, 0],[0,y^2])')
+        [  x   0]
+        [  0 y^2]
+        sage: sage.calculus.calculus.evaled_symbolic_expression_from_maxima_string('[mm, mm.mm, 1]')
+        [[  x   0]
+        [  0 y^2], [x^2   0]
+        [  0 y^4], 1]
     """
     return symbolic_expression_from_maxima_string(maxima.eval(x))
 

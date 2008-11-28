@@ -64,6 +64,7 @@ cdef enum token_types:
     LESS_EQ
     GREATER_EQ
     NOT_EQ
+    MATRIX
 
 enum_map = {
   INT:        'INT',
@@ -74,6 +75,7 @@ enum_map = {
   LESS_EQ:    'LESS_EQ',
   GREATER_EQ: 'GREATER_EQ',
   NOT_EQ:     'NOT_EQ',
+  MATRIX:     'MATRIX',
 }
 
 def token_to_str(int token):
@@ -293,6 +295,10 @@ cdef class Tokenizer:
         if is_alphanumeric(s[pos]):
             while is_alphanumeric(s[pos]):
                 pos += 1
+            # matrices
+            if s[self.pos:pos] == 'matrix':
+                self.pos = pos
+                return MATRIX
             self.pos = pos
             return NAME
 
@@ -481,7 +487,12 @@ cdef class Parser:
             E == c^2*m
         """
         cdef Tokenizer tokens = Tokenizer(s)
-        expr = self.p_eqn(tokens) if accept_eqn else self.p_expr(tokens)
+        if tokens.peek() == MATRIX:
+            tokens.next()
+            expr = self.p_matrix(tokens)
+        else:
+            expr = self.p_eqn(tokens) if accept_eqn else self.p_expr(tokens)
+
         if tokens.next() != EOS:
             self.parse_error(tokens)
         return expr
@@ -524,6 +535,32 @@ cdef class Parser:
             all = all[0]
         return all
 
+    cpdef p_matrix(self, Tokenizer tokens):
+        """
+        Parse a matrix
+
+        EXAMPLES:
+            sage: from sage.misc.parser import Parser, Tokenizer
+            sage: p = Parser(make_var=var)
+            sage: p.p_matrix(Tokenizer("([a,0],[0,a])"))
+            [a 0]
+            [0 a]
+        """
+        cdef int token
+        all = []
+        if tokens.next() == '(':
+            token = ','
+            while token == ',':
+                all.append(self.p_list(tokens))
+                token = tokens.next()
+
+            if token == ')':
+                from sage.matrix.constructor import matrix
+                return matrix(all)
+            else:
+                self.parse_error(tokens, "Malformed matrix")
+        else:
+            self.parse_error(tokens, "Malformed matrix")
 
     cpdef p_sequence(self, Tokenizer tokens):
         """
@@ -541,7 +578,10 @@ cdef class Parser:
         cdef int token = ','
         while token == ',':
             token = tokens.peek()
-            if token == INT:
+            if token == MATRIX:
+                tokens.next()
+                obj = self.p_matrix(tokens)
+            elif token == INT:
                 # we optimize for this rather than going all the way to atom
                 tokens.next()
                 if tokens.peek() == c',':

@@ -31,6 +31,8 @@ def install_package(package=None, force=False):
     You must have an internet connection.  Also, you will have to
     restart SAGE for the changes to take affect.
 
+    It is not needed to provide the version number.
+
     INPUT:
         package -- optional; if specified, install the
                    given package.  If not, list all
@@ -58,7 +60,25 @@ def install_package(package=None, force=False):
             X.sort()
             __installed_packages = X
         return __installed_packages
-    os.system('sage -f "%s"'%package)
+    # Get full package name
+    if force:
+        S = [P for P in standard_packages()[0] if P.startswith(package)]
+        O = [P for P in optional_packages()[0] if P.startswith(package)]
+        E = [P for P in experimental_packages()[0] if P.startswith(package)]
+    else:
+        S,O,E = [], [], []
+    S.extend([P for P in standard_packages()[1] if P.startswith(package)])
+    O.extend([P for P in optional_packages()[1] if P.startswith(package)])
+    E.extend([P for P in experimental_packages()[1] if P.startswith(package)])
+    L = S+O+E
+    if len(L)>1:
+        print "Possible packages are:"
+        for P in L:
+            print " ", P
+        raise ValueError, "There is more than one package name starting with '%s'. Please specify!"%(package)
+    if len(L)==0:
+        raise ValueError, "There is no package name starting with '%s'."%(package)
+    os.system('sage -f "%s"'%(L[0]))
     __installed_packages = None
 
 

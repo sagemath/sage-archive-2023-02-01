@@ -3430,6 +3430,43 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots(ring=RealIntervalField(150))
             [(1.414213562373095048801688724209698078569671875376948073176679738?, 1), (1.732050807568877293527446341505872366942805253810380628055806980?, 1)]
 
+        We can handle polynomials with huge coefficients.
+
+        This number doesn't even fit in an IEEE double-precision float,
+        but RR and CC allow a much larger range of floating-point numbers:
+            sage: bigc = 2^1500
+            sage: CDF(bigc)
+            inf
+            sage: CC(bigc)
+            3.50746621104340e451
+
+        Polynomials using such large coefficients can't be handled by numpy,
+        but pari can deal with them:
+            sage: x = polygen(QQ)
+            sage: p = x + bigc
+            sage: p.roots(ring=RR, algorithm='numpy')
+            Traceback (most recent call last):
+            ...
+            ValueError: array must not contain infs or NaNs
+            sage: p.roots(ring=RR, algorithm='pari')
+            [(-3.50746621104340e451, 1)]
+            sage: p.roots(ring=AA)
+            [(-3.5074662110434039?e451, 1)]
+            sage: p.roots(ring=QQbar)
+            [(-3.5074662110434039?e451, 1)]
+            sage: p = bigc*x + 1
+            sage: p.roots(ring=RR)
+            [(0.000000000000000, 1)]
+            sage: p.roots(ring=AA)
+            [(-2.8510609648967059?e-452, 1)]
+            sage: p.roots(ring=QQbar)
+            [(-2.8510609648967059?e-452, 1)]
+            sage: p = x^2 - bigc
+            sage: p.roots(ring=RR)
+            [(-5.92238652153286e225, 1), (5.92238652153286e225, 1)]
+            sage: p.roots(ring=QQbar)
+            [(5.9223865215328558?e225, 1), (-5.9223865215328558?e225, 1)]
+
         Algorithms used:
 
         For brevity, we will use RR to mean any RealField of any
@@ -3449,7 +3486,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         53 bits, as do the default RR=RealField() and CC=ComplexField())
         then we default to using numpy's roots(); otherwise, we use
         Pari's polroots().  This choice can be overridden with
-        algorithm='pari' or algorithm='numpy'.
+        algorithm='pari' or algorithm='numpy'.  If the algorithm is
+        unspecified and numpy's roots() algorithm fails, then we fall
+        back to pari (numpy will fail if some coefficient is infinite, for
+        instance).
 
         If L is AA or RIF, and K is ZZ, QQ, or AA, then the root isolation
         algorithm sage.rings.polynomial.real_roots.real_roots() is used.
@@ -3529,11 +3569,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             low_prec = L.prec() <= 53
             if algorithm is None:
                 if low_prec:
-                    algorithm = 'numpy'
+                    algorithm = 'either'
                 else:
                     algorithm = 'pari'
 
-            if algorithm != 'numpy' and algorithm != 'pari':
+            if algorithm != 'numpy' and algorithm != 'either' and algorithm != 'pari':
                 raise ValueError, "Unknown algorithm '%s'" % algorithm
 
             # We should support GSL, too.  We could also support Pari's
@@ -3542,33 +3582,39 @@ cdef class Polynomial(CommutativeAlgebraElement):
             input_arbprec = (is_RealField(K) or
                              is_ComplexField(K))
 
-            if algorithm == 'pari':
-                if not input_arbprec:
-                    self = self.change_ring(CC if input_complex else RR)
-                ext_rts = pari(self).polroots(precision = L.prec())
-
-            if algorithm == 'numpy':
+            if algorithm == 'numpy' or algorithm == 'either':
                 import numpy
+                from numpy.linalg.linalg import LinAlgError
                 numpy_dtype = ('complex' if input_complex else 'double')
                 ty = (complex if input_complex else float)
                 coeffs = self.list()
                 numpy_array = numpy.array([ty(c) for c in reversed(coeffs)], dtype=numpy_dtype)
-                ext_rts1 = numpy.roots(numpy_array)
-                # We want to make two changes to ext_rts1:
-                # 1) convert to CDF
-                # 2) make sure the real roots are at the beginning of
-                # the list, and sorted (Pari makes this guarantee, and
-                # we might as well follow Pari's lead)
-                rrts = []
-                crts = []
-                for rt in ext_rts1:
-                    if rt.imag == 0:
-                        rrts.append(CDF(rt))
+                try:
+                    ext_rts1 = numpy.roots(numpy_array)
+                    # We want to make two changes to ext_rts1:
+                    # 1) convert to CDF
+                    # 2) make sure the real roots are at the beginning of
+                    # the list, and sorted (Pari makes this guarantee, and
+                    # we might as well follow Pari's lead)
+                    rrts = []
+                    crts = []
+                    for rt in ext_rts1:
+                        if rt.imag == 0:
+                            rrts.append(CDF(rt))
+                        else:
+                            crts.append(CDF(rt))
+                    rrts.sort()
+                    ext_rts = rrts + crts
+                except (ValueError, LinAlgError):
+                    if algorithm == 'either':
+                        algorithm = 'pari'
                     else:
-                        crts.append(CDF(rt))
-                rrts.sort()
-                ext_rts = rrts + crts
+                        raise
 
+            if algorithm == 'pari':
+                if not input_arbprec:
+                    self = self.change_ring(CC if input_complex else RR)
+                ext_rts = pari(self).polroots(precision = L.prec())
 
             if output_complex:
                 rts = [L(root) for root in ext_rts]

@@ -672,7 +672,7 @@ class R(Expect):
             This is similar to typing r.command?.
         """
         s = self.eval('help("%s")'%command)     # ?cmd is only an unsafe shortcut
-        return HelpExpression(s.strip())
+        return HelpExpression(s.strip().replace("_\x08",""))
 
     def _assign_symbol(self):
         """

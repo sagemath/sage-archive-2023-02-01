@@ -8,7 +8,7 @@ SAGE_TEST_LOG="$SAGE_TESTDIR/test.log"
 DSAGE_TEST_LOG="$SAGE_TESTDIR/test-dsage.log"
 cd "$SAGE_TESTDIR"
 
-echo "---------------------" > "$SAGE_TEST_LOG"
+cat "$SAGE_ROOT/local/bin/sage-banner" > "$SAGE_TEST_LOG"
 echo `date` >> "$SAGE_TEST_LOG"
 
 # Run DSAGE unit tests

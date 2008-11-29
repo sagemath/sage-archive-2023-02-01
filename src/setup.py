@@ -5,6 +5,15 @@ from distutils.core import setup
 from distutils.extension import Extension
 
 #########################################################
+### List of Extensions
+###
+### Since Sage 3.2 the list of extensions resides in
+### module_list.py in the same directory as this file.
+#########################################################
+
+from module_list import ext_modules
+
+#########################################################
 ### Configuration
 #########################################################
 
@@ -72,8 +81,6 @@ if DEVEL:
 # checking that we need.
 ######################################################################
 
-
-from module_list import ext_modules
 
 for m in ext_modules:
     m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
@@ -471,23 +478,23 @@ def compile_command_list(ext_modules, deps):
     return queue_compile_high + queue_compile_med + queue_compile_low
 
 
-import cPickle as pickle
-CYTHON_DEPS_FILE='.cython_deps'
+#import cPickle as pickle
+CYTHON_DEPS_FILE='.cython_deps_delete_me_'
 
 if not sdist:
     print "Updating Cython code...."
     t = time.time()
     try:
         f = open(CYTHON_DEPS_FILE)
-        deps = pickle.load(open(CYTHON_DEPS_FILE))
+        #deps = pickle.load(open(CYTHON_DEPS_FILE))
         f.close()
     except:
         deps = DependencyTree()
     queue = compile_command_list(ext_modules, deps)
     execute_list_of_commands(queue)
-    f = open(CYTHON_DEPS_FILE, 'w')
-    pickle.dump(deps, f)
-    f.close()
+    #f = open(CYTHON_DEPS_FILE, 'w')
+    #pickle.dump(deps, f)
+    #f.close()
     print "Finished compiling Cython code (time = %s seconds)"%(time.time() - t)
 
 

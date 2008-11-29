@@ -71,6 +71,30 @@ class EllipticCurveLocalData(SageObject):
             Conductor exponent: 1
             Kodaira Symbol: I6
             Tamagawa Number: 2
+
+            sage: EllipticCurveLocalData(E,2,algorithm="generic")
+            Local data at Principal ideal (2) of Integer Ring:
+            Reduction type: bad non-split multiplicative
+            Local minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field
+            Minimal discriminant valuation: 6
+            Conductor exponent: 1
+            Kodaira Symbol: I6
+            Tamagawa Number: 2
+
+            sage: EllipticCurveLocalData(E,2,algorithm="pari")
+            Local data at Principal ideal (2) of Integer Ring:
+            Reduction type: bad non-split multiplicative
+            Local minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field
+            Minimal discriminant valuation: 6
+            Conductor exponent: 1
+            Kodaira Symbol: I6
+            Tamagawa Number: 2
+
+            sage: EllipticCurveLocalData(E,2,algorithm="unknown")
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be one of 'pari', 'generic'
+
             sage: EllipticCurveLocalData(E,3)
             Local data at Principal ideal (3) of Integer Ring:
             Reduction type: good
@@ -79,6 +103,7 @@ class EllipticCurveLocalData(SageObject):
             Conductor exponent: 0
             Kodaira Symbol: I0
             Tamagawa Number: 1
+
             sage: EllipticCurveLocalData(E,7)
             Local data at Principal ideal (7) of Integer Ring:
             Reduction type: bad split multiplicative
@@ -91,10 +116,16 @@ class EllipticCurveLocalData(SageObject):
         self._curve = E
         K = E.base_field()
         self._prime = check_prime(K,P) # error handling done in that function
+        if algorithm != "pari" and algorithm != "generic":
+            raise ValueError, "algorithm must be one of 'pari', 'generic'"
+
+        if K is QQ:
+            p = self._prime.gen()
+        else:
+            p = self._prime
         self._reduction_type = None
 
         if algorithm=="pari" and K is QQ:
-            p = self._prime.gen()
             Eint = E.integral_model()
             data = Eint.pari_curve().elllocalred(p)
             self._fp = data[0].python()
@@ -106,7 +137,6 @@ class EllipticCurveLocalData(SageObject):
             if self._fp>0:
                 self._reduction_type = Eint.ap(p) # = 0,-1 or +1
         else:
-            p = self._prime
             self._Emin, ch, self._val_disc, self._fp, self._KS, self._cp, self._split = self._tate(proof)
             if self._fp>0:
                 if self._Emin.c4().valuation(p)>0:
@@ -237,7 +267,7 @@ class EllipticCurveLocalData(SageObject):
             2
         """
         cp = self._cp
-        if not cp==4:
+        if cp!=4:
             return cp
         ks = self._KS
         if ks._roman==1 and ks._n%2==0 and ks._starred:
@@ -272,11 +302,11 @@ class EllipticCurveLocalData(SageObject):
         Return True if there is good reduction.
 
         EXAMPLES:
-            sage: E=EllipticCurve('14a1')
+            sage: E = EllipticCurve('14a1')
             sage: [(p,E.local_data(p).has_good_reduction()) for p in prime_range(15)]
             [(2, False), (3, True), (5, True), (7, False), (11, True), (13, True)]
 
-            sage: K.<a>=NumberField(x^3-2)
+            sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
             sage: E = EllipticCurve([0,0,0,0,2*a+1])
             sage: [(p,E.local_data(p).has_good_reduction()) for p in [P17a,P17b]]
@@ -290,11 +320,11 @@ class EllipticCurveLocalData(SageObject):
         Return True if there is bad reduction.
 
         EXAMPLES:
-            sage: E=EllipticCurve('14a1')
+            sage: E = EllipticCurve('14a1')
             sage: [(p,E.local_data(p).has_bad_reduction()) for p in prime_range(15)]
             [(2, True), (3, False), (5, False), (7, True), (11, False), (13, False)]
 
-            sage: K.<a>=NumberField(x^3-2)
+            sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
             sage: E = EllipticCurve([0,0,0,0,2*a+1])
             sage: [(p,E.local_data(p).has_bad_reduction()) for p in [P17a,P17b]]
@@ -311,11 +341,11 @@ class EllipticCurveLocalData(SageObject):
                  has_nonsplit_multiplicative_reduction().
 
         EXAMPLES:
-            sage: E=EllipticCurve('14a1')
+            sage: E = EllipticCurve('14a1')
             sage: [(p,E.local_data(p).has_multiplicative_reduction()) for p in prime_range(15)]
             [(2, True), (3, False), (5, False), (7, True), (11, False), (13, False)]
 
-            sage: K.<a>=NumberField(x^3-2)
+            sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
             sage: E = EllipticCurve([0,0,0,0,2*a+1])
             sage: [(p,E.local_data(p).has_multiplicative_reduction()) for p in [P17a,P17b]]
@@ -328,11 +358,11 @@ class EllipticCurveLocalData(SageObject):
         Return True if there is split multiplicative  reduction.
 
         EXAMPLES:
-            sage: E=EllipticCurve('14a1')
+            sage: E = EllipticCurve('14a1')
             sage: [(p,E.local_data(p).has_split_multiplicative_reduction()) for p in prime_range(15)]
             [(2, False), (3, False), (5, False), (7, True), (11, False), (13, False)]
 
-            sage: K.<a>=NumberField(x^3-2)
+            sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
             sage: E = EllipticCurve([0,0,0,0,2*a+1])
             sage: [(p,E.local_data(p).has_split_multiplicative_reduction()) for p in [P17a,P17b]]
@@ -346,11 +376,11 @@ class EllipticCurveLocalData(SageObject):
         Return True if there is non-split multiplicative  reduction.
 
         EXAMPLES:
-            sage: E=EllipticCurve('14a1')
+            sage: E = EllipticCurve('14a1')
             sage: [(p,E.local_data(p).has_nonsplit_multiplicative_reduction()) for p in prime_range(15)]
             [(2, True), (3, False), (5, False), (7, False), (11, False), (13, False)]
 
-            sage: K.<a>=NumberField(x^3-2)
+            sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
             sage: E = EllipticCurve([0,0,0,0,2*a+1])
             sage: [(p,E.local_data(p).has_nonsplit_multiplicative_reduction()) for p in [P17a,P17b]]
@@ -363,11 +393,11 @@ class EllipticCurveLocalData(SageObject):
         Return True if there is additive reduction.
 
         EXAMPLES:
-            sage: E=EllipticCurve('27a1')
+            sage: E = EllipticCurve('27a1')
             sage: [(p,E.local_data(p).has_additive_reduction()) for p in prime_range(15)]
             [(2, False), (3, True), (5, False), (7, False), (11, False), (13, False)]
 
-            sage: K.<a>=NumberField(x^3-2)
+            sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
             sage: E = EllipticCurve([0,0,0,0,2*a+1])
             sage: [(p,E.local_data(p).has_additive_reduction()) for p in [P17a,P17b]]

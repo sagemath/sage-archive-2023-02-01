@@ -72,11 +72,17 @@ def install_package(package=None, force=False):
     E.extend([P for P in experimental_packages()[1] if P.startswith(package)])
     L = S+O+E
     if len(L)>1:
-        print "Possible packages are:"
+        if force:
+            print "Possible package names starting with '%s' are:"%(package)
+        else:
+            print "Possible names of non-installed packages starting with '%s':"%(package)
         for P in L:
             print " ", P
         raise ValueError, "There is more than one package name starting with '%s'. Please specify!"%(package)
     if len(L)==0:
+        if not force:
+            if is_package_installed(package):
+                raise ValueError, "Package is already installed. Try install_package('%s',force=True)"%(package)
         raise ValueError, "There is no package name starting with '%s'."%(package)
     os.system('sage -f "%s"'%(L[0]))
     __installed_packages = None

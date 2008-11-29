@@ -478,23 +478,33 @@ def compile_command_list(ext_modules, deps):
     return queue_compile_high + queue_compile_med + queue_compile_low
 
 
-#import cPickle as pickle
-CYTHON_DEPS_FILE='.cython_deps_delete_me_'
+## Note: the DependencyTree object created below was designed with
+## the intention of pickling it and saving it between builds. However,
+## this wasn't robust enough to handle all of the various cases we
+## run into with the Sage build process, so caching of this information
+## has been temporarily disabled (see trac #4647 and trac #4651). If
+## you want to try this out, uncomment all the lines that begin with
+## two hash marks below, and comment out the line that says
+## "deps = DependencyTree()".
+
+##import cPickle as pickle
+##CYTHON_DEPS_FILE='.cython_deps'
 
 if not sdist:
     print "Updating Cython code...."
     t = time.time()
-    try:
-        f = open(CYTHON_DEPS_FILE)
-        #deps = pickle.load(open(CYTHON_DEPS_FILE))
-        f.close()
-    except:
-        deps = DependencyTree()
+    ## try:
+    ##     f = open(CYTHON_DEPS_FILE)
+    ##     deps = pickle.load(open(CYTHON_DEPS_FILE))
+    ##     f.close()
+    ## except:
+    ##     deps = DependencyTree()
+    deps = DependencyTree()
     queue = compile_command_list(ext_modules, deps)
     execute_list_of_commands(queue)
-    #f = open(CYTHON_DEPS_FILE, 'w')
-    #pickle.dump(deps, f)
-    #f.close()
+    ## f = open(CYTHON_DEPS_FILE, 'w')
+    ## pickle.dump(deps, f)
+    ## f.close()
     print "Finished compiling Cython code (time = %s seconds)"%(time.time() - t)
 
 

@@ -106,11 +106,13 @@ cdef class NamedConvertMap(Map):
         """
         EXAMPLES:
             sage: from sage.structure.coerce_maps import NamedConvertMap
+            sage: var('t')
+            t
             sage: mor = NamedConvertMap(SR, QQ['t'], '_polynomial_')
-            sage: mor(x^2/4+1)
+            sage: mor(t^2/4+1)
             1/4*t^2 + 1
             sage: mor = NamedConvertMap(SR, GF(7)[['t']], '_polynomial_')
-            sage: mor(x^2/4+1)
+            sage: mor(t^2/4+1)
             1 + 2*t^2
         """
         if PY_TYPE_CHECK(domain, type):

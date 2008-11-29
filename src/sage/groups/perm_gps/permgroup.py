@@ -276,6 +276,8 @@ class PermutationGroup_generic(group.FiniteGroup):
         gens = [PermutationGroupElement(x, check=False).list() for x in gens]
         self._deg = max([1]+[max(g) for g in gens])
         gens = [PermutationGroupElement(x, self, check=False) for x in gens]
+        if not gens:  # length 0
+             gens = [()]
         if canonicalize:
              gens = list(set(gens))
              gens.sort()
@@ -300,8 +302,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         gens = [PermutationGroupElement(gens[n],self, check=False)
                        for n in range(1, int(gens.Length())+1)]
         if gens == []:
-            gens = [self.identity()]
-
+            gens = [()]
         return gens
 
 
@@ -1684,7 +1685,10 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
             sage: G.composition_series()  # random output
             [Permutation Group with generators [(1,2,3)(4,5), (3,4)], Permutation Group with generators [(1,5)(3,4), (1,5)(2,3), (1,5,4)], Permutation Group with generators [()]]
-
+            sage: G = PermutationGroup([[(1,2,3),(4,5)], [(1,2)]])
+            sage: CS = G.composition_series()
+            sage: CS[3]
+            Permutation Group with generators [()]
         """
         current_randstate().set_seed_gap()
         ans = []

@@ -43,8 +43,10 @@ class CachedFunction(object):
         """
         self.f = f
         self.cache = {}
-        self.__doc__ = f.func_doc
-        self.__name__ = f.func_name
+        if hasattr(f, "func_doc"):
+            self.__doc__ = f.func_doc
+        if hasattr(f, "func_name"):
+            self.__name__ = f.func_name
         self.__module__ = f.__module__
 
     def __call__(self, *args, **kwds):

@@ -165,7 +165,7 @@ class Gnuplot(SageObject):
         from sage.misc.all import SAGE_TMP
         file= '%s/gnuplot'%SAGE_TMP
         open(file, 'w').write(cmd + '\n pause -1 "Press return to continue (no further rotation possible)"')
-        os.system('gnuplot -persist %s'%file)
+        os.system('sage-native-execute gnuplot -persist %s'%file)
 
     def console(self):
         gnuplot_console()

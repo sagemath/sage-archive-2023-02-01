@@ -172,7 +172,7 @@ class IncidenceStructure(object):
             Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
             sage: BD = BlockDesign(4,[[0],[0,1],[1,2],[3,3]],test=False)
             sage: G = BD.automorphism_group(); G
-            Permutation Group with generators []
+            Permutation Group with generators [()]
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: G = BD.automorphism_group(); G
             Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]

@@ -1136,27 +1136,26 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         EXAMPLE:
             sage: A = random_matrix(GF(2),3,3)
             sage: A._magma_init_(magma)                             # optional - magma
-            'MatrixAlgebra(GF(2), 3)![0,1,0,0,1,1,0,0,0]'
+            '_sage_[1]![0,1,0,0,1,1,0,0,0]'
             sage: A = random_matrix(GF(2),100,100)
             sage: B = random_matrix(GF(2),100,100)
-            sage: magma(A*B) == magma(A) * magma(B) # indirect doctest; optional - magma
+            sage: magma(A*B) == magma(A) * magma(B)                 # optional - magma
             True
 
         TESTS:
             sage: A = random_matrix(GF(2),0,3)
             sage: magma(A)                          # optional - magma
             Matrix with 0 rows and 3 columns
+            sage: A = matrix(GF(2),2,3,[0,1,1,1,0,0])
+            sage: A._magma_init_(magma)             # optional - magma
+            '_sage_[...]![0,1,1,1,0,0]'
+            sage: magma(A)                          # optional - magma
+            [0 1 1]
+            [1 0 0]
         """
-        cdef int i,j
-        K = self._base_ring._magma_init_(magma)
-        if self._nrows == self._ncols:
-            s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
-        else:
-            s = 'RMatrixSpace(%s, %s, %s)'%(K, self.nrows(), self.ncols())
-        v = []
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                v.append(str(mzd_read_bit(self._entries,i,j)))
+        cdef Py_ssize_t i,j
+        s = magma(self.parent()).name()
+        v = [str(mzd_read_bit(self._entries,i,j)) for i in range(self._nrows) for j in range(self._ncols)]
         return s + '![%s]'%(','.join(v))
 
     def transpose(self):

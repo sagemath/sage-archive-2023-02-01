@@ -2910,21 +2910,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Return a string that evaluates in Magma to this polynomial.
 
         EXAMPLES:
+            sage: magma = Magma()  # new session
             sage: R.<y> = ZZ[]
             sage: f = y^3 - 17*y + 5
-            sage: f._magma_init_(magma)             # optional - magma
-            'Polynomial(IntegerRing(), [5,-17,0,1])'
-        """
-        return 'Polynomial(%s, [%s])'%(self.base_ring()._magma_init_(magma),
-                                       ','.join([a._magma_init_(magma) for a in self.list()]))
-
-    def _magma_convert_(self, G):
-        """
-        Return the Magma version of this polynomial.
-
-        EXAMPLES:
-            sage: R.<y> = ZZ[]
-            sage: f = y^3 - 17*y + 5
+            sage: f._magma_init_(magma)        # optional - magma
+            '_sage_[1]![5,-17,0,1]'
             sage: g = magma(f); g              # optional - magma
             y^3 - 17*y + 5
 
@@ -2940,9 +2930,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         In SAGE the variable name does not change:
             sage: f
             y^3 - 17*y + 5
+
+        A more complicated nested example:
+            sage: k.<a> = GF(9); R.<s,t> = k[]; S.<W> = R[]
+            sage: magma(a*W^20 + s*t/a)        # optional - magma
+            a*W^20 + a^7*s*t
         """
-        z = G(self.parent())   # makes sure the indeterminate var name is defined
-        return G(self._magma_init_(G))
+        # Get a reference to Magma version of parent.
+        R = magma(self.parent())
+        # Get list of coefficients.
+        v = ','.join([a._magma_init_(magma) for a in self.list()])
+        return '%s![%s]'%(R.name(), v)
 
     def _gap_init_(self):
         return repr(self)

@@ -3416,13 +3416,15 @@ class NumberField_absolute(NumberField_generic):
         self._zero_element = self(0)
         self._one_element =  self(1)
 
-    def _magma_convert_(self, magma):
+    def _magma_init_(self, magma):
         """
         Return Magma version of this number field.
 
         EXAMPLES:
-            sage: R.<t> = PolynomialRing(RationalField())
+            sage: R.<t> = QQ[]
             sage: K.<a> = NumberField(t^2 + 1)
+            sage: K._magma_init_(magma)                            # optional - magma
+            'SageCreateWithNames(NumberField(_sage_[...]),["a"])'
             sage: L = magma(K)    # optional - magma
             sage: L               # optional - magma
             Number Field with defining polynomial t^2 + 1 over the Rational Field
@@ -3433,11 +3435,8 @@ class NumberField_absolute(NumberField_generic):
         """
         # Get magma version of defining polynomial of this number field
         f = magma(self.defining_polynomial())
-        # Make number field from that polynomial
-        K = f.NumberField()
-        # Set variable name of the Magma version of this number field
-        K.AssignNames(self.variable_names())
-        return K
+        s = 'NumberField(%s)'%f.name()
+        return magma._with_names(s, self.variable_names())
 
     def base_field(self):
         """
@@ -5473,16 +5472,9 @@ class NumberField_cyclotomic(NumberField_absolute):
         return NumberField_cyclotomic_v1, (self.__n, self.variable_name())
 
     def _magma_init_(self, magma):
-        # TODO: I really don't like this on multiple levels.
-        # (1) it kills a global symbol self.gen()
-        # (2) it abuses how conversion works and throws in an extra define.
-        # (3) a cyclo field in a funny generator wouldn't get converted to
-        #     one with the right name via this.
-        # (4) One should define _magma_convert_ instead of _magma_init_
-        #     in this case, probably.
-        #    -- William
         """
-        Function returning a string to create this cyclotomic field in Magma.
+        Function returning a string to create this cyclotomic field in
+        Magma.
 
         NOTE: The Magma generator name is also initialized to be the
         same as for the Sage field.
@@ -5490,12 +5482,13 @@ class NumberField_cyclotomic(NumberField_absolute):
         EXAMPLES:
             sage: K=CyclotomicField(7,'z')
             sage: K._magma_init_(magma)                                # optional - magma
-            'CyclotomicField(7); z:=CyclotomicField(7).1;'
+            'SageCreateWithNames(CyclotomicField(7),["z"])'
             sage: K=CyclotomicField(7,'zeta')
             sage: K._magma_init_(magma)                                # optional - magma
-            'CyclotomicField(7); zeta:=CyclotomicField(7).1;'
+            'SageCreateWithNames(CyclotomicField(7),["zeta"])'
         """
-        return 'CyclotomicField(%s); %s:=CyclotomicField(%s).1;'%(self.__n, self.gen(), self.__n)
+        s = 'CyclotomicField(%s)'%self.__n
+        return magma._with_names(s, self.variable_names())
 
     def _repr_(self):
         r"""

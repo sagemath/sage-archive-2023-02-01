@@ -87,11 +87,11 @@ We compute a space of modular forms with character.
     sage: eps = magma.KroneckerCharacter(eps_top, RationalField())        # optional - magma
     sage: M2 = magma.ModularForms(eps)                                    # optional - magma
     sage: print M2                                                        # optional - magma
-    Space of modular forms on Gamma_1(5) with character $.1, weight 2, and dimension 2 over Integer Ring.
+    Space of modular forms on Gamma_1(5) ...
     sage: print M2.Basis()                                                # optional - magma
     [
-    1 + 10*q^2 + 20*q^3 + 20*q^5 + 60*q^7 + 50*q^8 + 30*q^10 + O(q^12),
-    q + q^2 + 2*q^3 + 3*q^4 + 5*q^5 + 2*q^6 + 6*q^7 + 5*q^8 + 7*q^9 + 5*q^10 + 12*q^11 + O(q^12)
+    1 + 10*q^2 + 20*q^3 + 20*q^5 + 60*q^7 + ...
+    q + q^2 + 2*q^3 + 3*q^4 + 5*q^5 + 2*q^6 + ...
     ]
 
 In SAGE/Python (and sort of C++) coercion of an element x into a
@@ -161,11 +161,15 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, sys
+import os, re, sys
 
+from sage.structure.parent import Parent
 from sage.structure.element import RingElement
 from expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
 PROMPT = ">>>"
+
+SAGE_REF = "_sage_ref"
+SAGE_REF_RE = re.compile('%s\d+'%SAGE_REF)
 
 import sage.misc.misc
 import sage.misc.sage_eval
@@ -236,7 +240,9 @@ class Magma(Expect):
         # local user startup configuration is not read.
 
         self.__seq = 0
+        self.__ref = 0
         self.__available_var = []
+        self.__cache = {}
 
     def __reduce__(self):
         """
@@ -417,7 +423,7 @@ class Magma(Expect):
             sage: magma('abc')                      # optional - magma
             13/5
         """
-        out = self.eval("%s := %s"%(var, value))
+        out = self.eval("%s:=%s"%(var, value))
         if out.lower().find("error") != -1:
             raise TypeError, "Error executing Magma code:\n%s"%out
 
@@ -536,6 +542,15 @@ class Magma(Expect):
         except AttributeError:
             # This happens when x has _magma_cache as a cdef public object attribute.
             x._magma_cache = {}
+
+        try:
+            if self.__cache.has_key(x):
+                A = self.__cache[x]
+                if A._session_number == self._session_number:
+                    return A
+        except TypeError:  # if x isn't hashable
+            pass
+
         A = Expect.__call__(self, x)
         if has_cache:
             x._magma_cache[self] = A
@@ -543,7 +558,16 @@ class Magma(Expect):
             try:  # use try/except here, because if x is cdef'd we won't be able to set this.
                 x._magma_cache = {self:A}
             except AttributeError, msg:
-                pass
+                # Unfortunately, we *have* do have this __cache
+                # attribute, which can lead to "leaks" in the working
+                # Magma session.  This is because it is critical that
+                # parent objects get cached, but sometimes they can't
+                # be cached in the object itself, because the object
+                # doesn't have a _magma_cache attribute.  So in such
+                # cases when the object is a parent we cache it in
+                # the magma interface.
+                if isinstance(x, Parent):
+                    self.__cache[x] = A
         return A
 
 
@@ -553,11 +577,45 @@ class Magma(Expect):
 
         If no such method is defined, raises an AttributeError
         instead of a TypeError.
+
+        EXAMPLES:
+            sage: magma._coerce_from_special_method(-3/5)     # optional - magma
+            -3/5
+
+        Note that AttributeError:
+            sage: magma._coerce_from_special_method('2 + 3')  # optional - magma
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'str' object has no attribute '_magma_init_'
         """
-        try:
-            return x._magma_(self)
-        except AttributeError:
-            return self(x._magma_init_(self))
+        s = x._magma_init_(self)
+        a = self(s)
+
+        # dereference all _sage_ref's used in this string.
+        while True:
+            z = SAGE_REF_RE.search(s)
+            if not z: break
+            self.eval('delete %s;'%s[z.start():z.end()])
+            s = s[z.end()+1:]
+        return a
+
+    def _with_names(self, s, names):
+        """
+        Return s but wrapped by a call to SageCreateWithNames.  This is just
+        a very simple convenience function so that code is cleaner.
+
+        INPUT:
+            s -- string
+            names -- list of strings
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: magma._with_names('PolynomialRing(RationalField())', ['y'])     # optional - magma
+            'SageCreateWithNames(PolynomialRing(RationalField()),["y"])'
+        """
+        return 'SageCreateWithNames(%s,[%s])'%(s, ','.join('"%s"'%x for x in names))
 
     def clear(self, var):
         """
@@ -753,6 +811,22 @@ class Magma(Expect):
         else:
             self.__seq += 1
             return '_sage_[%s]'%self.__seq
+
+    def _next_ref_name(self):
+        """
+        Return the next reference name.  This is used internally to
+        deal with Magma objects that would be deallocated before they
+        are used in constructing another object.
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: magma._next_ref_name()
+            '_sage_ref...'
+        """
+        self.__ref += 1
+        return '%s%s'%(SAGE_REF, self.__ref)
 
     def function_call(self, function, args=[], params={}, nvals=1):
         """
@@ -1400,6 +1474,31 @@ def is_MagmaElement(x):
     return isinstance(x, MagmaElement)
 
 class MagmaElement(ExpectElement):
+    def _ref(self):
+        """
+        Return a variable name that is a new reference to this
+        particular MagmaElement in Magma.  This keeps this object from
+        being garbage collected by Magma, even if all the Sage
+        references to it are freed.
+
+        WARNING: Use _ref sparingly, since it involves a full call to
+        Magma, which can be slow.
+
+        OUTPUT:
+             string
+
+        EXAMPLES:
+            sage: a = magma('-2/3')                          # optional - magma
+            sage: s = a._ref(); s                            # optional - magma
+            '_sage_ref...'
+            sage: magma.eval(s)                              # optional - magma
+            '-2/3'
+        """
+        P = self._check_valid()
+        n = P._next_ref_name()
+        P.set(n, self.name())
+        return n
+
     def __getattr__(self, attrname):
         """
         INPUT:
@@ -1503,6 +1602,42 @@ class MagmaElement(ExpectElement):
         P.eval(cmd)
 
     assign_names = AssignNames
+
+    def gen(self, n):
+        """
+        Return the n-th generator of this Magma element.  Note that generators
+        are 1-based in Magma rather than 0 based!
+
+        INPUT:
+            n -- a *positive* integer
+
+        OUTPUT:
+            MagmaElement
+
+        EXAMPLES:
+            sage: k.<a> = GF(9)
+            sage: magma(k).gen(1)         # optional -- magma
+            a
+            sage: R.<s,t,w> = k[]
+            sage: m = magma(R)            # optional -- magma
+            sage: m.gen(1)                # optional -- magma
+            s
+            sage: m.gen(2)                # optional -- magma
+            t
+            sage: m.gen(3)                # optional -- magma
+            w
+            sage: m.gen(0)                # optional -- magma
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be positive since Magma indexes are 1-based
+            sage: m.gen(4)                # optional -- magma
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+        """
+        if n <= 0:
+            raise IndexError, "index must be positive since Magma indexes are 1-based"
+        return self.gens()[n-1]
 
     def gens(self):
         """

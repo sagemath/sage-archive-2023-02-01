@@ -346,33 +346,40 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             pass
         raise TypeError
 
-    def _magma_convert_(self, magma):
+    def _magma_init_(self, magma):
         """
         Used in converting this ring to the corresponding ring in MAGMA.
 
         EXAMPLES:
-            sage: R.<y> = PolynomialRing(QQ)
+            sage: R = QQ['y']
+            sage: R._magma_init_(magma)                     # optional - magma
+            'SageCreateWithNames(PolynomialRing(RationalField()),["y"])'
             sage: S = magma(R)                              # optional - magma
             sage: print S                                   # optional - magma
             Univariate Polynomial Ring in y over Rational Field
             sage: S.1                                       # optional - magma
             y
-
             sage: magma(PolynomialRing(GF(7), 'x'))         # optional - magma
             Univariate Polynomial Ring in x over GF(7)
-
             sage: magma(PolynomialRing(GF(49,'a'), 'x'))    # optional - magma
             Univariate Polynomial Ring in x over GF(7^2)
-
             sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'), 'x')) # optional - magma
-            Univariate Polynomial Ring in x over Univariate Polynomial Ring over Integer Ring
-        """
-        R = magma(self._magma_init_(magma))
-        R.assign_names(self.variable_names())
-        return R
+            Univariate Polynomial Ring in x over Univariate Polynomial Ring in w over Integer Ring
 
-    def _magma_init_(self, magma):
-        return 'PolynomialRing(%s)'%(self.base_ring()._magma_init_(magma))
+        Watch out, Magma has different semantics than Sage, i.e., in
+        Magma there is a unique univariate polynomial ring, and the
+        variable name has no intrinsic meaning (it only impacts
+        printing), so can't be reliable set because of caching.
+            sage: m = Magma()            # new magma session; optional - magma
+            sage: m(QQ['w'])                                # optional - magma
+            Univariate Polynomial Ring in w over Rational Field
+            sage: m(QQ['x'])                                # optional - magma
+            Univariate Polynomial Ring in x over Rational Field
+            sage: m(QQ['w'])   # same magma object, now prints as x; optional - magma
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        s = 'PolynomialRing(%s)'%(self.base_ring()._magma_init_(magma))
+        return magma._with_names(s, self.variable_names())
 
     def _gap_(self, G=None):
         """

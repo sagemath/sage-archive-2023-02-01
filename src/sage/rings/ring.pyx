@@ -1554,27 +1554,18 @@ cdef class FiniteField(Field):
             sage: GF(97,'a')._magma_init_(magma)              # optional - magma
             'GF(97)'
             sage: GF(9,'a')._magma_init_(magma)               # optional - magma
-            'ext< GF(3) | Polynomial(GF(3), [GF(3)!2,GF(3)!2,GF(3)!1]) >'
+            'SageCreateWithNames(ext<GF(3)|_sage_[...]![GF(3)!2,GF(3)!2,GF(3)!1]>,["a"])'
+            sage: magma(GF(9,'a'))                            # optional - magma
+            Finite field of size 3^2
+            sage: magma(GF(9,'a')).1                          # optional - magma
+            a
         """
         if self.degree() == 1:
             return 'GF(%s)'%self.order()
         B = self.base_ring()
         p = self.polynomial()
-        return "ext< %s | %s >"%(B._magma_init_(magma),p._magma_init_(magma))
-
-    def _magma_convert_(self, magma):
-        """
-        Convert self to Magma.
-
-        EXAMPLES:
-            sage: magma(GF(9,'a'))           # optional - magma
-            Finite field of size 3^2
-            sage: magma(GF(9,'a')).1         # optional - magma
-            a
-        """
-        K = magma(self._magma_init_(magma))
-        K.assign_names([self.variable_name()])
-        return K
+        s = "ext<%s|%s>"%(B._magma_init_(magma),p._magma_init_(magma))
+        return magma._with_names(s, self.variable_names())
 
     def _macaulay2_init_(self):
         """

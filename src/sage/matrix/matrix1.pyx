@@ -173,9 +173,9 @@ cdef class Matrix(matrix0.Matrix):
        """
        return '{' + ', '.join([v._mathematica_init_() for v in self.rows()]) + '}'
 
-    def _magma_(self, magma):
+    def _magma_init_(self, magma):
         r"""
-        Return copy of this matrix in the given magma session.
+        Return string that evaluates in the given Magma session to this matrix.
 
         EXAMPLES:
         We first coerce a square matrix.
@@ -226,15 +226,9 @@ cdef class Matrix(matrix0.Matrix):
             sage: magma(M**2) == magma(M)**2           # optional - magma
             True
         """
-        K = magma(self.base_ring())
-        if self._nrows == self._ncols:
-           s = 'MatrixAlgebra(%s, %s)'%(K.name(), self.nrows())
-        else:
-           s = 'RMatrixSpace(%s, %s, %s)'%(K.name(), self.nrows(), self.ncols())
-        v = []
-        for x in self.list():
-             v.append(x._magma_init_(magma))
-        return magma(s + '![%s]'%(','.join(v)))
+        P = magma(self.parent())
+        v = [x._magma_init_(magma) for x in self.list()]
+        return '%s![%s]'%(P.name(), ','.join(v))
 
     def _maple_init_(self):
         """

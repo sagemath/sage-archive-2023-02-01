@@ -937,7 +937,7 @@ class AbsoluteOrder(Order):
             raise TypeError, "Number fields don't match."
         return AbsoluteOrder(left._K, left._module_rep.intersection(right._module_rep), False)
 
-    def _magma_convert_(self, magma):
+    def _magma_init_(self, magma):
         """
         Return Magma version of this absolute order.
 
@@ -952,12 +952,13 @@ class AbsoluteOrder(Order):
             sage: magma(K.maximal_order())  # optional - magma
             Equation Order with defining polynomial x^3 + 2 over its ground order
 
-        _magma_convert_ was called implicitly by the above call:
-            sage: K.maximal_order()._magma_convert_(magma) # optional - magma
-            Equation Order with defining polynomial x^3 + 2 over its ground order
+        _magma_init_ was called implicitly by the above call:
+            sage: K.maximal_order()._magma_init_(magma) # optional - magma
+            'Order([(_sage_[3]![1, 0, 0]),(_sage_[3]![0, 1, 0]),(_sage_[3]![0, 0, 1])])'
         """
         K = self.number_field()
-        return magma.Order([K(a) for a in self.gens()])
+        v = [K(a)._magma_init_(magma) for a in self.gens()]
+        return 'Order([%s])'%(','.join(v))
 
     def discriminant(self):
         """

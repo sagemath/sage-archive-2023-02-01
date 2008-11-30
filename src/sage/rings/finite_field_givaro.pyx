@@ -1891,12 +1891,22 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         EXAMPLE:
             sage: k.<a> = GF(3^5)
+
+        String rep of parent:
             sage: k._magma_init_(magma)        # optional - magma
-            'ext< GF(3) | Polynomial(GF(3), [GF(3)!1,GF(3)!2,GF(3)!0,GF(3)!0,GF(3)!0,GF(3)!1]) >'
+            'SageCreateWithNames(ext<GF(3)|_sage_[...]![GF(3)!1,GF(3)!2,GF(3)!0,GF(3)!0,GF(3)!0,GF(3)!1]>,["a"])'
+
+        Magma repr of element:
+            sage: a._magma_init_(magma)        # optional - magma
+             '_sage_[...]!(_sage_[...])'
+
+        Because of caching the string representation of an element must not change:
+            sage: a._magma_init_(magma) == a._magma_init_(magma)   # optional - magma
+            True
         """
-        km = magma(self.parent())
-        vn = km.gen(1).name()
-        return self.parent()._element_poly_repr(self, vn)
+        R = magma(self.parent())
+        a = R.gen(1).name()
+        return '%s!(%s)'%(R.name(), self.parent()._element_poly_repr(self, a))
 
     def multiplicative_order(FiniteField_givaroElement self):
         """

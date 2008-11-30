@@ -10,8 +10,6 @@ TESTS:
     sage: S = R.quotient_ring(I);
     sage: S == loads(dumps(S))
     True
-
-
 """
 
 ################################################################################
@@ -633,13 +631,14 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         self.__singular = singular("%s"%self.__I._singular_().name(),"qring")
         return self.__singular
 
-    def _magma_convert_(self, magma):
+    def _magma_init_(self, magma):
         r"""
-        Return Magma version of this quotient ring.  This is called implicitly
-        when doing coercions.
+        Return string that evaluates to Magma version of this quotient
+        ring.  This is called implicitly when doing conversions to
+        Magma.
 
         INPUT:
-            magma -- a magma instance (default: default instance)
+            magma -- a magma instance
 
         EXAMPLE:
             sage: P.<x,y> = PolynomialRing(GF(2))
@@ -655,7 +654,5 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             ]
         """
         R = magma(self.__R)
-        I = [magma(x) for x in self.__I.gens()]
-        vn = [x.name() for x in I]
-        S = magma("quo<%s | %s>"%(R.name(), ','.join(vn)))
-        return S
+        I = magma(self.__I.gens())
+        return "quo<%s|%s>"%(R.name(), I._ref())

@@ -1560,10 +1560,15 @@ cdef class Vector(ModuleElement):
                     raise ArithmeticError, "vector is not in free module"
         raise TypeError, arith_error_message(self, right, div)
 
-    def _magma_convert_(self, magma):
+    def _magma_init_(self, magma):
         """
+        Return string that evaluates in Magma to something equivalent
+        to this vector.
+
         EXAMPLES:
             sage: v = vector([1,2,3])
+            sage: v._magma_init_(magma)                 # optional - magma
+            '_sage_[...]![1,2,3]'
             sage: mv = magma(v); mv                     # optional - magma
             (1 2 3)
             sage: mv.Type()                             # optional - magma
@@ -1586,15 +1591,10 @@ cdef class Vector(ModuleElement):
             (            x^3               y (2/3*y*z + x)/y)
             sage: magma(v).Parent()                     # optional - magma
             Full Vector space of degree 3 over Multivariate rational function field of rank 3 over Rational Field
-
         """
         V = magma(self._parent)
-        v = []
-        for x in self.list():
-            v.append(x._magma_init_(magma))
-        s = '%s![%s]'%(V.name(), ','.join(v))
-        return magma(s)
-
+        v = [x._magma_init_(magma) for x in self.list()]
+        return '%s![%s]'%(V.name(), ','.join(v))
 
 def is_Vector(x):
     return IS_INSTANCE(x, Vector)

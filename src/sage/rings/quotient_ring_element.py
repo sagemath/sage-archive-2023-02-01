@@ -231,9 +231,9 @@ class QuotientRingElement(ring_element.RingElement):
         """
         return self.__rep._singular_(singular)
 
-    def _magma_(self, magma=None):
-        r"""
-        Returns the \Magma representation of this quotient ring
+    def _magma_init_(self, magma):
+        """
+        Returns the Magma representation of this quotient ring
         element.
 
         EXAMPLES:
@@ -242,14 +242,12 @@ class QuotientRingElement(ring_element.RingElement):
             sage: xbar, ybar = Q.gens()
             sage: magma(xbar)             # optional -- magma
             x
+            sage: xbar._magma_init_(magma)  # optional -- magma
+            '_sage_[...]!_sage_ref...'
         """
-        if magma is None:
-            import sage.interfaces.magma
-            magma = sage.interfaces.magma.magma
-
-        magma_gens = [e.name() for e in magma(self.parent()).gens()]
-        f = self.__rep._repr_with_changed_varnames(magma_gens)
-        return magma(f)
+        g = magma(self.__rep)
+        R = magma(self.parent())
+        return '%s!%s'%(R.name(), g._ref())
 
     def reduce(self, G):
         r"""

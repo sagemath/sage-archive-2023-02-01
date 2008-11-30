@@ -250,16 +250,28 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             return False
         return True
 
-    def _magma_convert_(self, magma=None):
+    def _magma_init_(self, magma):
         """
-        Used in converting this ring to the corresponding ring in MAGMA.
+        Used in converting this ring to the corresponding ring in Magma.
 
         EXAMPLES:
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
+            sage: R._magma_init_(magma)                      # optional - magma
+            'SageCreateWithNames(PolynomialRing(_sage_ref...,10,"grevlex"),["a","b","c","d","e","f","g","h","i","j"])'
             sage: R.<y,z,w> = PolynomialRing(QQ,3)
-            sage: magma(R)                        # optional - magma
+            sage: magma(R)                                   # optional - magma
             Polynomial ring of rank 3 over Rational Field
             Graded Reverse Lexicographical Order
             Variables: y, z, w
+
+        A complicated nested example:
+            sage: R.<a,b,c> = PolynomialRing(GF(9,'a')); S.<T,W> = R[]; S
+            Multivariate Polynomial Ring in T, W over Multivariate Polynomial Ring in a, b, c over Finite Field in a of size 3^2
+            sage: magma(S)                                   # optional - magma
+            Polynomial ring of rank 2 over Polynomial ring of rank 3 over GF(3^2)
+            Graded Reverse Lexicographical Order
+            Variables: T, W
+
 
             sage: magma(PolynomialRing(GF(7),4, 'x'))        # optional - magma
             Polynomial ring of rank 4 over GF(7)
@@ -277,21 +289,9 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             Variables: x0, x1, x2
         """
         B = magma(self.base_ring())
-        R = magma('PolynomialRing(%s, %s, %s)'%(B.name(), self.ngens(), self.term_order().magma_str()))
-        R.assign_names(self.variable_names())
-        return R
-
-    def _magma_init_(self, magma):
-        """
-        Return a string representation of self Magma can understand.
-        Used in conversion of self to Magma.
-        """
-        try: # we need that for GF(q) arithmetic
-            B = magma(self.base_ring()).name()
-        except (RuntimeError,TypeError):
-            B = self.base_ring()._magma_init_(magma)
-        R = 'PolynomialRing(%s, %s, %s)'%(B, self.ngens(),self.term_order().magma_str())
-        return R
+        Bref = B._ref()
+        s = 'PolynomialRing(%s,%s,%s)'%(Bref, self.ngens(), self.term_order().magma_str())
+        return magma._with_names(s, self.variable_names())
 
     def is_finite(self):
         if self.ngens() == 0:

@@ -668,24 +668,33 @@ cdef class MPolynomial(CommutativeRingElement):
         given magma session.
 
         EXAMPLES:
-            sage: R.<x,y> = GF(2)[]
-            sage: f = y*x^2 + x +1
-            sage: f._magma_init_(magma)                    # optional - magma
-            '(GF(2)!1)*_sage_[...]^2*_sage_[...]+(GF(2)!1)*_sage_[...]+(GF(2)!1)*1'
+            sage: k.<b> = GF(25); R.<x,y> = k[]
+            sage: f = y*x^2*b + x*(b+1) + 1
+            sage: magma = Magma()                       # so var names same below
+            sage: magma(f)                              # optional - magma
+            b*x^2*y + b^22*x + 1
+            sage: f._magma_init_(magma)                 # optional - magma
+            '_sage_[3]!((_sage_[2]!(_sage_[7]))*_sage_[4]^2*_sage_[5]+(_sage_[2]!(_sage_[7] + 1))*_sage_[4]+(_sage_[2]!(1))*1)'
 
         A more complicated nested example:
             sage: R.<x,y> = QQ[]; S.<z,w> = R[]; f = (2/3)*x^3*z + w^2 + 5
             sage: f._magma_init_(magma)               # optional - magma
-            '((1/1)*1)*_sage_[...]^2+((2/3)*_sage_[...]^3)*_sage_[...]+((5/1)*1)*1'
+            '_sage_[...]!((_sage_[...]!((1)*1))*_sage_[...]^2+(_sage_[...]!((2/3)*_sage_[...]^3))*_sage_[...]+(_sage_[...]!((5)*1))*1)'
             sage: magma(f)                            # optional - magma
             w^2 + 2/3*x^3*z + 5
         """
-        g = magma(self.parent()).gen_names()
+        R = magma(self.parent())
+        g = R.gen_names()
         v = []
         for m, c in zip(self.monomials(), self.coefficients()):
             v.append('(%s)*%s'%( c._magma_init_(magma),
                                  m._repr_with_changed_varnames(g)))
-        return '+'.join(v)
+        if len(v) == 0:
+            s = '0'
+        else:
+            s = '+'.join(v)
+
+        return '%s!(%s)'%(R.name(), s)
 
 
     def gradient(self):

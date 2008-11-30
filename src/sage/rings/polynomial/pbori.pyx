@@ -1012,12 +1012,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         w = [f._repr_with_changed_varnames(v) for f in self.defining_ideal().gens()]
         return "quo<%s | %s>"%(R.name(), ",".join(w))
 
-    def _magma_convert_(self, magma):
-        return magma(self._magma_init_(magma))
-
-    def _magma_(self, magma):
-        return magma(self._magma_init_(magma))
-
     def interpolation_polynomial(self, zeros, ones):
         r"""
         Return the lexicographically minimal boolean polynomial for
@@ -2762,19 +2756,20 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return unpickle_BooleanPolynomial, (self._parent, PBPoly_to_str(&self._pbpoly))
 
-    def _magma_(self, magma):
+    def _magma_init_(self, magma):
         r"""
-        Returns the \MAGMA representation of self.
+        Returns the Magma representation of self.
 
         EXAMPLES:
             sage: R.<x,y> = BooleanPolynomialRing()
             sage: f = y*x + x +1
-            sage: magma(f) # optional - magma
+            sage: f._magma_init_(magma)               # optional - magma
+            '_sage_[...]*_sage_[...] + _sage_[...] + 1'
+            sage: magma(f)                            # optional - magma
             x*y + x + 1
         """
         magma_gens = [e.name() for e in magma(self.parent()).gens()]
-        f = self._repr_with_changed_varnames(magma_gens)
-        return magma(f)
+        return self._repr_with_changed_varnames(magma_gens)
 
     def is_homogeneous(self):
         r"""

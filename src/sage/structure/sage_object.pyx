@@ -234,9 +234,7 @@ cdef class SageObject:
             except (KeyError, ValueError):
                 pass
         nm = I.name()
-        if nm == 'magma':
-            s = self._magma_init_(I)
-        elif hasattr(self, '_%s_init_'%nm):
+        if hasattr(self, '_%s_init_'%nm):
             s = self.__getattribute__('_%s_init_'%nm)()
         else:
             try:
@@ -309,35 +307,32 @@ cdef class SageObject:
     def _maxima_init_(self):
         return self._interface_init_()
 
-
-    def _magma_(self, magma):
+    def _magma_init_(self, magma):
         """
-        Given a Magma interpreter M (or None for the default global
-        interpreter), return MagmaElement corresponding to self in M.
-        This properly keeps tracking of caching, and also checks for
-        validity of an element before returning it.  Note that the
-        Magma versions of cdef'd elements are not cached.
-
-        This should not be redefined in derived classes.  Instead,
-        derived classes should redefine _magma_convert_.
+        Given a Magma interpreter M, return a string that evaluates in
+        that interpreter to the Magma object corresponding to self.
+        This function may call the magma interpreter when it runs.
 
         INPUT:
-            M -- a Magma interpreter
+            magma -- a Magma interface
         OUTPUT:
-            a Magma object
+            string
 
         EXAMPLES:
             sage: n = -3/7
+            sage: n._magma_init_(magma)
+            '-3/7'
+
+        Some other examples that illustrate conversion to Magma.
+            sage: n = -3/7
             sage: m2 = Magma()
-            sage: n._magma_(magma)                        # optional - magma
+            sage: magma(n)                        # optional - magma
             -3/7
-            sage: n._magma_(magma).parent()               # optional - magma
+            sage: magma(n).parent()               # optional - magma
             Magma
-            sage: n._magma_(magma).parent() is m2         # optional - magma
+            sage: magma(n).parent() is m2         # optional - magma
             False
-            sage: n._magma_(magma).parent() is magma      # optional - magma
-            True
-            sage: n._magma_(m2).parent() is m2       # optional - magma
+            sage: magma(n).parent() is magma      # optional - magma
             True
 
         This example illustrates caching, which happens automatically
@@ -349,64 +344,7 @@ cdef class SageObject:
             sage: magma(K) is magma2(K)       # optional - magma
             False
         """
-        c = self._interface_is_cached_()
-        if c:
-            try:
-                X = self.__interface[magma]
-                X._check_valid()
-                return X
-            except (AttributeError, TypeError):
-                try:
-                    self.__interface = {}
-                except AttributeError:
-                    # do this because C-extension classes won't have
-                    # an __interface attribute.
-                    c = False
-                    pass
-            except (KeyError, ValueError):
-                pass
-        A = self._magma_convert_(magma)
-        if c:
-            self.__interface[magma] = A
-        return A
-
-    def _magma_init_(self, magma):
-        """
-        Return an ascii string that evaluates to the Magma version of
-        self in the given magma interface.
-
-        INPUT:
-            magma -- a Magma interface
-        OUTPUT:
-            string
-
-        EXAMPLES:
-            sage: n = -3/7
-            sage: n._magma_init_(magma)
-            '-3/7'
-        """
-        return self._interface_init_()
-
-    def _magma_convert_(self, M):
-        """
-        Given a magma interpreter, this function should return a
-        MagmaElement in M.
-
-        One should usually redefine this function in the derived
-        class.  There is no need to worry about caching, which is done
-        automatically by the infrastructure in sage_object.
-
-        INPUT:
-            M -- a Magma interpreter
-        OUTPUT:
-            a Magma object
-
-        EXAMPLES:
-            sage: n = -3/7
-            sage: n._magma_convert_(magma)       # optional - magma
-            -3/7
-        """
-        return self._interface_(M)
+        return repr(self)  # default
 
     def _macaulay2_(self, G=None):
         if G is None:

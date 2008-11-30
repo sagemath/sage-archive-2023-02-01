@@ -203,8 +203,9 @@ TESTS:
 #*****************************************************************************
 from __future__ import with_statement
 
-from sage.interfaces.all import singular as singular_default
-from sage.interfaces.all import macaulay2 as macaulay2_default
+from sage.interfaces.all import (singular as singular_default,
+                                 macaulay2 as macaulay2_default,
+                                 magma as magma_default)
 
 from sage.rings.ideal import Ideal_generic
 from sage.rings.integer import Integer
@@ -347,14 +348,13 @@ def is_MPolynomialIdeal(x):
     return isinstance(x, MPolynomialIdeal)
 
 class MPolynomialIdeal_magma_repr:
-    def _magma_(self, magma=None):
+    def _magma_init_(self, magma):
         r"""
-        Returns a \MAGMA ideal matching this ideal if the base ring is
-        coercable to \MAGMA and \MAGMA is available.
+        Returns a Magma ideal matching this ideal if the base ring
+        coerces to Magma and Magma is available.
 
         INPUT:
-            magma -- \MAGMA instance or None (default instance)
-                     (default: None)
+            magma -- Magma instance
 
         EXAMPLES:
             sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
@@ -371,17 +371,16 @@ class MPolynomialIdeal_magma_repr:
             a*b*c*d + 126
             ]
         """
-        if magma == None:
-            import sage.interfaces.magma
-            magma = sage.interfaces.magma.magma
-        return magma.ideal(self.gens())
+        P = magma(self.ring())
+        G = magma(self.gens())
+        return 'ideal<%s|%s>'%(P.name(), G._ref())
 
-    def _groebner_basis_magma(self, magma=None):
+    def _groebner_basis_magma(self, magma=magma_default):
         r"""
-        Computes a Groebner Basis for self using \MAGMA if available.
+        Computes a Groebner Basis for self using Magma if available.
 
         INPUT:
-            magma -- \MAGMA instance or None (default instance)
+            magma -- Magma instance or None (default instance)
                      (default: None)
         EXAMPLES:
             sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
@@ -390,8 +389,9 @@ class MPolynomialIdeal_magma_repr:
             sage: len(gb)                                      # optional - magma
             45
         """
-        R = self.ring()
-        mgb = self._magma_(magma=magma).GroebnerBasis()
+        R   = self.ring()
+        mgb = magma(self).GroebnerBasis()
+        # TODO: rewrite this to be much more sophisticated in multi-level nested cases.
         mgb = [str(mgb[i+1]) for i in range(len(mgb))]
         if R.base_ring().degree() > 1:
             a = str(R.base_ring().gen())
@@ -1827,7 +1827,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             \item['toy:buchberger2'] \Sage's toy/educational buchberger with strategy
             \item['toy:d_basis'] \Sage's toy/educational d_basis algorithm
             \item['macaulay2:gb'] Macaulay2's \code{gb} command (if available)
-            \item['magma:GroebnerBasis'] \MAGMA's \code{Groebnerbasis} command (if available)
+            \item['magma:GroebnerBasis'] Magma's \code{Groebnerbasis} command (if available)
             \end{description}
 
         If only a system is given -- e.g. 'magma' -- the default
@@ -1922,7 +1922,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis()
             [x^2 + 1/2*y^3, x*y*z + z^5, y^5 + 3*z^5, y^4*z - 2*x*z^5, z^6]
 
-        ALGORITHM: Uses \Singular, \MAGMA (if available), Macaulay2 (if
+        ALGORITHM: Uses \Singular, Magma (if available), Macaulay2 (if
         available), or toy implementation.
         """
         from sage.rings.integer_mod_ring import is_IntegerModRing

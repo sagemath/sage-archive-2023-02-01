@@ -407,15 +407,15 @@ class MPolynomialRoundSystem_generic(SageObject):
         """
         return singular.ideal(self._gens)
 
-    def _magma_(self, magma):
+    def _magma_init_(self, magma):
         """
-        Return MAGMA ideal representation of self.
+        Return Magma ideal representation of self.
 
         EXAMPLE:
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
             sage: F,s = sr.polynomial_system()
             sage: R1 = F.round(1)
-            sage: magma(R1)                               # optional - magma
+            sage: magma(R1)                               # implicit doctest; optional - magma
             Ideal of Polynomial ring of rank 20 over GF(2)
             Graded Reverse Lexicographical Order
             Variables: k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
@@ -427,7 +427,9 @@ class MPolynomialRoundSystem_generic(SageObject):
             k003^2 + k003
             ]
         """
-        return magma.ideal(self._gens)
+        P = magma(self.ring()).name()
+        v = [x._magma_init_(magma) for x in self._gens]
+        return 'ideal<%s|%s>'%(P, ','.join(v))
 
 class MPolynomialSystem_generic(SageObject):
     def __init__(self, R, rounds):
@@ -840,14 +842,14 @@ class MPolynomialSystem_generic(SageObject):
         """
         return singular.ideal(list(self))
 
-    def _magma_(self, magma):
+    def _magma_init_(self, magma):
         """
         Return Magma ideal representation of this system as an ideal.
 
 	EXAMPLE:
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
             sage: F,s = sr.polynomial_system()
-            sage: magma(F)                                       # optional - magma
+            sage: magma(F)                          # implicit doctest; optional - magma
             Ideal of Polynomial ring of rank 20 over GF(2)
             Graded Reverse Lexicographical Order
             Variables: k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
@@ -856,7 +858,9 @@ class MPolynomialSystem_generic(SageObject):
             ...
             ]
         """
-        return magma.ideal(list(self))
+        P = magma(self.ring()).name()
+        v = [x._magma_init_(magma) for x in list(self)]
+        return 'ideal<%s|%s>'%(P, ','.join(v))
 
     def _repr_(self):
         """

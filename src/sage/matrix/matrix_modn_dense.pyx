@@ -1545,16 +1545,23 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             magma -- a Magma session
         OUTPUT:
             string
+
+        EXAMPLES:
+            sage: a = matrix(GF(389),2,2,[1..4])
+            sage: magma(a)                                         # optional - magma
+            [  1   2]
+            [  3   4]
+            sage: a._magma_init_(magma)                            # optional - magma
+            '_sage_[...]![1,2,3,4]'
+
+        A consistency check:
+            sage: a = random_matrix(GF(13),50); b = random_matrix(GF(13),50)
+            sage: magma(a*b) == magma(a)*magma(b)                  # optional - magma
+            True
         """
-        cdef int i,j
-        K = self._base_ring._magma_init_(magma)
-        if self._nrows == self._ncols:
-            s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
-        else:
-            s = 'RMatrixSpace(%s, %s, %s)'%(K, self.nrows(), self.ncols())
-        v = []
-        for i from 0 <= i < self._nrows*self._ncols:
-                v.append(str(self._entries[i]))
+        cdef Py_ssize_t i,j
+        s = magma(self.parent()).name()
+        v = [str(self._entries[i]) for i in range(self._nrows*self._ncols)]
         return s + '![%s]'%(','.join(v))
 
     def _matrices_from_rows(self, Py_ssize_t nrows, Py_ssize_t ncols):

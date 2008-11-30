@@ -1098,9 +1098,9 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         K = self.base_ring()._magma_init_(magma)
         if self.__nrows == self.__ncols:
-            s = 'MatrixAlgebra(%s, %s)'%(K, self.__nrows)
+            s = 'MatrixAlgebra(%s,%s)'%(K, self.__nrows)
         else:
-            s = 'RMatrixSpace(%s, %s, %s)'%(K, self.__nrows, self.__ncols)
+            s = 'RMatrixSpace(%s,%s,%s)'%(K, self.__nrows, self.__ncols)
         return s
 
 def dict_to_list(entries, nrows, ncols):

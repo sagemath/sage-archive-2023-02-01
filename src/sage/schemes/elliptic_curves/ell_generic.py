@@ -298,7 +298,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         EXAMPLES:
             sage: E = EllipticCurve(QQ,[1,1])
             sage: E._magma_init_(magma)                          # optional - magma
-            'EllipticCurve([0/1,0/1,0/1,1/1,1/1])'
+            'EllipticCurve([0,0,0,1,1])'
         """
         return 'EllipticCurve([%s])'%(','.join([x._magma_init_(magma) for x in self.ainvs()]))
 

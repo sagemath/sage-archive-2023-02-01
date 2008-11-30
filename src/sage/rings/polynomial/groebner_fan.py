@@ -61,13 +61,13 @@ REFERENCES:
 """
 
 import os
-
 import string
-
 import pexpect
+from subprocess import PIPE, Popen
 
 from sage.misc.multireplace import multiple_replace
 from sage.misc.misc import forall, tmp_filename
+from sage.misc.sage_eval import sage_eval
 
 from sage.structure.sage_object import SageObject
 from sage.interfaces.gfan import gfan
@@ -76,7 +76,8 @@ from polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.plot.all import line, Graphics, polygon
+from sage.modules.free_module_element import vector
+from sage.plot.plot import line, Graphics, polygon
 from sage.plot.plot3d.shapes2 import line3d
 from sage.geometry.polyhedra import Polyhedron, ieq_to_vert, vert_to_ieq
 
@@ -554,6 +555,27 @@ class GroebnerFan(SageObject):
             ring_str = self._gfan_ring()
             self.__gfan_ideal = ring_str + ideal_gen_str
             return self.__gfan_ideal
+
+    def weight_vectors(self):
+        """
+        Returns the weight vectors corresponding to the reduced Groebner bases.
+
+        EXAMPLES:
+            sage: r3.<x,y,z> = PolynomialRing(QQ,3)
+            sage: g = r3.ideal([x^3+y,y^3-z,z^2-x]).groebner_fan()
+            sage: g.weight_vectors()
+            [(3, 7, 1), (5, 1, 2), (7, 1, 4), (1, 1, 4), (1, 1, 1), (1, 4, 1), (1, 4, 10)]
+            sage: r4.<x,y,z,w> = PolynomialRing(QQ,4)
+            sage: g4 = r4.ideal([x^3+y,y^3-z,z^2-x,z^3 - w]).groebner_fan()
+            sage: len(g4.weight_vectors())
+            23
+
+        """
+        gfan_processes = Popen(['gfan','_weightvector','-m'], stdin = PIPE, stdout=PIPE, stderr=PIPE)
+        ans, err = gfan_processes.communicate(input = self.gfan())
+        ans = sage_eval(ans.replace('{','').replace('}','').replace('\n',''))
+        ans = [vector(QQ,x) for x in ans]
+        return ans
 
     def ring(self):
         """

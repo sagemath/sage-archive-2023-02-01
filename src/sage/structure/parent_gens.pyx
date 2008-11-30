@@ -1,8 +1,8 @@
 r"""
-NOTE: This class is being depricated, see \code{sage.structure.parent.Parent}
-and \code{sage.structure.category_object.CategoryObject} for the new model.
-
 Base class for parent objects with generators.
+
+NOTE: This class is being deprecated, see \code{sage.structure.parent.Parent}
+and \code{sage.structure.category_object.CategoryObject} for the new model.
 
 Many parent objects in SAGE are equipped with generators, which are
 special elements of the object.  For example, the polynomial ring

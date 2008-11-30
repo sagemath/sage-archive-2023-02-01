@@ -4225,7 +4225,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: a=E.integral_points([P1,P2,P3,P4,P5]); len(a)  # long time (400s!)
             54
 
-            # bug reported on trac \#4525 is now fixed:
+        The bug reported on trac \#4525 is now fixed:
             sage: EllipticCurve('91b1').integral_points()
             [(-1 : 3 : 1), (1 : 0 : 1), (3 : 4 : 1)]
 

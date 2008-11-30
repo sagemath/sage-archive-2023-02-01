@@ -65,6 +65,36 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
         sage: e.torsion_order()
         16
 
+        Constructing points from the torsion subgroup (which is an
+        abstract abelian group):
+            sage: E = EllipticCurve('14a1')
+            sage: T = E.torsion_subgroup()
+            sage: [E(t) for t in T]
+            [(0 : 1 : 0),
+            (9 : 23 : 1),
+            (2 : 2 : 1),
+            (1 : -1 : 1),
+            (2 : -5 : 1),
+            (9 : -33 : 1)]
+
+        An example where the torsion subgroup is not cyclic:
+            sage: E = EllipticCurve([0,0,0,-49,0])
+            sage: T = E.torsion_subgroup()
+            sage: [E(t) for t in T]
+            [(0 : 1 : 0), (0 : 0 : 1), (7 : 0 : 1), (-7 : 0 : 1)]
+
+        Note that the following behaviour for curves with trivial
+        torsion is due to a bug in the AbelianGroup class:
+
+            sage: E = EllipticCurve('37a1')
+            sage: T = E.torsion_subgroup()
+            sage: T
+            Torsion Subgroup isomorphic to Trivial Abelian Group associated to the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: [E(t) for t in T]
+            []
+            sage: T.list()
+            []
+
     Examples over other Number Fields:
 
         sage: E=EllipticCurve('11a1')

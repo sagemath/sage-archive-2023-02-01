@@ -43,6 +43,7 @@ AUTHORS:
 import math
 
 from sage.rings.all import PolynomialRing
+import sage.groups.abelian_gps as groups
 import sage.groups.generic as generic
 import sage.plot.all as plot
 
@@ -65,6 +66,7 @@ import sage.schemes.generic.projective_space as projective_space
 import sage.schemes.generic.homset as homset
 
 import ell_point
+import ell_torsion
 import constructor
 import formal_group
 import weierstrass_morphism as wm
@@ -495,10 +497,37 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 + (2+2*3+2*3^2+2*3^3+2*3^4+2*3^5+2*3^6+2*3^7+2*3^8+2*3^9+2*3^10+2*3^11+2*3^12+2*3^13+2*3^14+2*3^15+2*3^16+2*3^17+2*3^18+2*3^19+O(3^20))*x over 3-adic Field with capped relative precision 20
             sage: Ep(P)
             (0 : 0 : 1 + O(3^20))
+
+        Constructing points from the torsion subgroup (which is an
+        abstract abelian group):
+            sage: E = EllipticCurve('14a1')
+            sage: T = E.torsion_subgroup()
+            sage: [E(t) for t in T]
+            [(0 : 1 : 0),
+            (9 : 23 : 1),
+            (2 : 2 : 1),
+            (1 : -1 : 1),
+            (2 : -5 : 1),
+            (9 : -33 : 1)]
+
+            sage: E = EllipticCurve([0,0,0,-49,0])
+            sage: T = E.torsion_subgroup()
+            sage: [E(t) for t in T]
+            [(0 : 1 : 0), (0 : 0 : 1), (7 : 0 : 1), (-7 : 0 : 1)]
+
+        Note that the following is due to a bug in the AbelianGroup class:
+            sage: E = EllipticCurve('37a1')
+            sage: T = E.torsion_subgroup()
+            sage: [E(t) for t in T]
+            []
+
         """
         if len(args) == 1 and args[0] == 0:
             R = self.base_ring()
             return self.point([R(0),R(1),R(0)], check=False)
+        P = args[0]
+        if isinstance(P,groups.abelian_group_element.AbelianGroupElement) and isinstance(P.parent(),ell_torsion.EllipticCurveTorsionSubgroup):
+            return sum([zi*Ti for zi,Ti in zip(P.list(),P.parent().gens())])
         if isinstance(args[0],
               (ell_point.EllipticCurvePoint_field, \
                ell_point.EllipticCurvePoint_number_field, \

@@ -5,19 +5,19 @@ function PreparseElts(R)
     return true;
 end function;
 
-intrinsic Sage(X::.) -> MonStgElt
+intrinsic Sage(X::.) -> MonStgElt, BoolElt
 {Default way to convert a Magma object to Sage if we haven't
 written anything better.}
     return Sprintf("%o", X), true;
 end intrinsic;
 
-intrinsic Sage(X::SetEnum) -> MonStgElt
+intrinsic Sage(X::SetEnum) -> MonStgElt, BoolElt
 {Convert an enumerated set to Sage.}
     Y := [Sage(z) : z in X];
     return Sprintf("Set(%o)", Y), true;
 end intrinsic;
 
-intrinsic Sage(X::SetIndx) -> MonStgElt
+intrinsic Sage(X::SetIndx) -> MonStgElt, BoolElt
 {Convert an indexed set to Sage.
  WARNING: Sage does not have an analogue of indexed sets (yet!),
  so we just return a Python list.}
@@ -66,4 +66,9 @@ intrinsic Sage(X::ModMatRngElt) -> MonStgElt, BoolElt
     return convert_matrix(X, pp), pp;
 end intrinsic;
 
-/* Elltiptic Curve */
+
+intrinsic SageCreateWithNames(X::., names::.) -> .
+{Assign the given names to the object X, then return X.}
+    AssignNames(~X, names);
+    return X;
+end intrinsic;

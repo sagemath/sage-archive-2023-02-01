@@ -464,19 +464,19 @@ def cython_lambda(vars, expr,
         sage: f = lambda x,y: x*x + y*y + x + y + 17r*x + 3.2r
 
     We make the same Lambda function, but in a compiled form.
-        sage: g = cython_lambda('double x, double y', 'x*x + y*y + x + y + 17*x + 3.2')
-        sage: g(2,3)
+        sage: g = cython_lambda('double x, double y', 'x*x + y*y + x + y + 17*x + 3.2')  # optional -- gcc
+        sage: g(2,3)                                                                     # optional -- gcc
         55.200000000000003
-        sage: g(0,0)
+        sage: g(0,0)                                                                     # optional -- gcc
         3.2000000000000002
 
     We access a global function and variable.
         sage: a = 25
-        sage: f = cython_lambda('double x', 'sage.math.sin(x) + sage.a')
-        sage: f(10)
+        sage: f = cython_lambda('double x', 'sage.math.sin(x) + sage.a')                 # optional -- gcc
+        sage: f(10)                                                                      # optional -- gcc
         24.455978889110629
         sage: a = 50
-        sage: f(10)
+        sage: f(10)                                                                      # optional -- gcc
         49.455978889110632
     """
     if isinstance(vars, str):
@@ -536,15 +536,15 @@ def cython_create_local_so(filename):
         sage: s = "def hello():\n  print 'hello'\n"
         sage: f.write(s)
         sage: f.close()
-        sage: cython_create_local_so('hello.spyx')
+        sage: cython_create_local_so('hello.spyx')                            # optional -- gcc
         Compiling hello.spyx...
-        sage: sys.path.append('.')
-        sage: import hello
-        sage: hello.hello()
+        sage: sys.path.append('.')                                            # optional -- gcc
+        sage: import hello                                                    # optional -- gcc
+        sage: hello.hello()                                                   # optional -- gcc
         hello
 
-        sage: os.unlink('hello.spyx')
-        sage: os.unlink('hello.so')
+        sage: os.unlink('hello.spyx')                                         # optional -- gcc
+        sage: os.unlink('hello.so')                                           # optional -- gcc
 
     AUTHORS:
         -- David Fu (2008-04-09): initial version

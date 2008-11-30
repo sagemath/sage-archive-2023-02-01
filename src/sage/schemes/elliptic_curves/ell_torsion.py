@@ -83,17 +83,14 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
             sage: [E(t) for t in T]
             [(0 : 1 : 0), (0 : 0 : 1), (7 : 0 : 1), (-7 : 0 : 1)]
 
-        Note that the following behaviour for curves with trivial
-        torsion is due to a bug in the AbelianGroup class:
+        An example where the torsion subgroup is trivial:
 
             sage: E = EllipticCurve('37a1')
             sage: T = E.torsion_subgroup()
             sage: T
             Torsion Subgroup isomorphic to Trivial Abelian Group associated to the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: [E(t) for t in T]
-            []
-            sage: T.list()
-            []
+            [(0 : 1 : 0)]
 
     Examples over other Number Fields:
 

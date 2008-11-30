@@ -770,10 +770,10 @@ class AbelianGroup_class(group.AbelianGroup):
             pass
         if not(self.is_finite()):
            raise NotImplementedError, "Group must be finite"
-        invs = self.invariants()
-        T = mrange(invs)
-        n = self.order()
-        L = [AbelianGroupElement(self, t) for t in T]
+        if self.order()==1:
+            L = [AbelianGroupElement(self, 1)]
+        else:
+            L = [AbelianGroupElement(self, t) for t in mrange(self.invariants())]
         self.__list = L
         return list(L)
 

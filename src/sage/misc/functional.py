@@ -871,7 +871,7 @@ def quotient(x, y, *args, **kwds):
 quo = quotient
 
 def show(x, *args, **kwds):
-    r"""
+    """
     Show a graphics object x.
 
     OPTIONAL INPUT:
@@ -883,40 +883,11 @@ def show(x, *args, **kwds):
         axes -- (default: True)
         fontsize -- positive integer
         frame -- (default: False) draw a MATLAB-like frame around the image
-        table_form -- (default: False) show a list of lists as a table
 
     EXAMPLES:
         sage: show(graphs(3))
         sage: show(list(graphs(3)))
-        sage: show([(i, j, i == j) for i in [0..1] for j in [0..1]], table_form = True)
-        <html>
-        <div class="notruncate">
-        <table class="table_form">
-        <tbody>
-        <tr class ="row-a">
-        <td><span class="math">0</span></td>
-        <td><span class="math">0</span></td>
-        <td><span class="math">\mbox{\rm True}</span></td>
-        </tr>
-        <tr class ="row-b">
-        <td><span class="math">0</span></td>
-        <td><span class="math">1</span></td>
-        <td><span class="math">\mbox{\rm False}</span></td>
-        </tr>
-        <tr class ="row-a">
-        <td><span class="math">1</span></td>
-        <td><span class="math">0</span></td>
-        <td><span class="math">\mbox{\rm False}</span></td>
-        </tr>
-        <tr class ="row-b">
-        <td><span class="math">1</span></td>
-        <td><span class="math">1</span></td>
-        <td><span class="math">\mbox{\rm True}</span></td>
-        </tr>
-        </tbody>
-        </table>
-        </div>
-        </html>
+
     """
     if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
         try:
@@ -936,61 +907,7 @@ def show(x, *args, **kwds):
                 import sage.graphs.graph_list as graphs_list
                 graphs_list.show_graphs(x)
                 return
-
-            if kwds.has_key('table_form') and kwds['table_form'] == True:
-                _show_table(x)
-                return
     _do_show(x)
-
-def _show_table(x):
-    r"""
-    Print a nested list as a html table.
-
-    EXAMPLES:
-        sage: from sage.misc.functional import _show_table
-        sage: _show_table([sin(x), cos(x)])
-        <html>
-        <div class="notruncate">
-        <table class="table_form">
-        <tbody>
-        <tr class ="row-a">
-        <td><span class="math">\sin \left( x \right)</span></td>
-        </tr>
-        <tr class ="row-b">
-        <td><span class="math">\cos \left( x \right)</span></td>
-        </tr>
-        </tbody>
-        </table>
-        </div>
-        </html>
-    """
-    import types
-    if isinstance(x, types.GeneratorType):
-        x = list(x)
-    if isinstance(x, (list, tuple)):
-        rows = len(x)
-        if rows > 0:
-            # if the table has less then 100 rows, don't truncate the output in the notebook
-            if rows <= 100:
-                print "<html>\n<div class=\"notruncate\">\n<table class=\"table_form\">\n<tbody>"
-            else:
-                print "<html>\n<div class=\"truncate\">\n<table class=\"table_form\">\n<tbody>"
-
-            row_class = ["row-a", "row-b"]
-
-            odd = 0
-            for row in x:
-                if isinstance(row, types.GeneratorType):
-                    row = list(row)
-                elif not isinstance(row, (list, tuple)):
-                    row = [row]
-
-                print "<tr class =\"%s\">" % row_class[odd]
-                for column in xrange(len(row)):
-                    print '<td><span class="math">%s</span></td>' % sage.misc.latex.latex(row[column])
-                print "</tr>"
-                odd = (odd + 1) % 2
-            print "</tbody>\n</table>\n</div>\n</html>"
 
 def _do_show(x):
     if sage.server.support.EMBEDDED_MODE:

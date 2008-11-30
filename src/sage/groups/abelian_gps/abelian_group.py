@@ -763,6 +763,11 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G = AbelianGroup([2,3], names = "ab")
             sage: G.list()
             [1, b, b^2, a, a*b, a*b^2]
+
+            sage: G = AbelianGroup([]); G
+            Trivial Abelian Group
+            sage: G.list()
+            [1]
         """
         try:
             return list(self.__list)

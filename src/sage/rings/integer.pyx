@@ -134,9 +134,6 @@ cdef extern from "math.h":
 
 from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
 
-cdef class Integer(sage.structure.element.EuclideanDomainElement)
-
-
 import sage.rings.infinity
 import sage.libs.pari.all
 

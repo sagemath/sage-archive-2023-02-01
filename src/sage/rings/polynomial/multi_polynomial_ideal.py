@@ -142,7 +142,7 @@ system has no solutions over the rationals.
     $\ZZ$), we note that there is a certain integer in the ideal which
     is not 1.
 
-        sage: I.groebner_basis()
+        sage: I.groebner_basis() # optional - m2
         ...
         verbose 0 ... Warning: falling back to very slow toy implementation.
         [x + y + z, y^2 + y + 23234, y*z + y + 26532, 2*y + 158864, z^2 + 17223, 2*z + 41856, 164878]

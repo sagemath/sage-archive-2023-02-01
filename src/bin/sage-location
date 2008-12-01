@@ -127,6 +127,22 @@ def update_hardcoded_files(path):
         O.write(SAGE_ROOT)
         O.close()
 
+def update_easy_install():
+    """
+    Find the easy-install.pth file in the current tree, and replace the line
+    with site-packages in it with a new line that has the correct path to
+    our new site-packages.
+    """
+    base = '%s/local/lib/python2.5/site-packages'%SAGE_ROOT
+    file = '%s/easy-install.pth'%base
+    r = open(file).readlines()
+    for i in range(len(r)):
+        if 'site-packages' in r[i]:   # found it
+            r[i] = base + '\n'
+            open(file,'w').write(''.join(r))
+            return
+    print "Warning: something went wrong updating the easy-install.pth file."  # non fatal
+
 def __mysig(a,b):
     raise KeyboardInterrupt, "computation timed out because alarm was set for %s seconds"%__alarm_time
 
@@ -143,5 +159,6 @@ if __name__ ==  '__main__':
         print "Do not interrupt this."
 	update_library_files(R)
         update_hardcoded_files(SAGE_ROOT + '/local/lib/python/')
+        update_easy_install()
 
 

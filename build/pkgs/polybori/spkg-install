@@ -90,19 +90,19 @@ echo "Starting build..."
 
 echo "Removing old PolyBoRi install..."
 clean_polybori
-echo "Done Removing old PolyBoRi install."
+echo "Done removing old PolyBoRi install."
 
-echo "Running build_polybori..."
-build_polybori
-echo "Done build_polybori."
+echo "Removing old boost..."
+clean_boost
+echo "Done removing old boost."
 
 echo "Installing boost..."
 install_boost
 echo "Done installing boost."
 
-echo "Installing PolyBoRi..."
-install_polybori
-echo "Done installing PolyBoRi."
+echo "Running build_polybori..."
+build_polybori
+echo "Done build_polybori."
 
 echo "Removing dynamic libraries..."
 remove_dylib

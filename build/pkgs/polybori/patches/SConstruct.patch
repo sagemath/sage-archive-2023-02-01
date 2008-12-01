@@ -1,5 +1,5 @@
---- SConstruct.orig	2008-09-09 19:58:41.000000000 -0700
-+++ SConstruct	2008-09-09 20:01:01.000000000 -0700
+--- SConstruct.orig	2008-11-30 22:25:03.000000000 -0800
++++ SConstruct	2008-11-30 22:24:45.000000000 -0800
 @@ -118,7 +118,12 @@
  opts.Add('CXXFLAGS', "C++ compiler flags",
           "-std=c++98 -ftemplate-depth-100",
@@ -28,3 +28,12 @@
  
  
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
+@@ -1086,7 +1094,7 @@
+     for inst_path in [InstPath(), InstExecPath(), InstDocPath(), InstPyPath(),
+                       InstManPath()]:
+         env.Alias('install', inst_path)
+-    env.Install(InstManPath('man1'), DocPath('man/ipbori.1'))
++    FinalizeNonExecs(env.Install(InstManPath('man1'), DocPath('man/ipbori.1')))
+     
+     # Executables and shared libraries to be installed
+     pyfiles = []

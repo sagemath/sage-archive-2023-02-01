@@ -1094,7 +1094,7 @@ if 'install' in COMMAND_LINE_TARGETS:
     for inst_path in [InstPath(), InstExecPath(), InstDocPath(), InstPyPath(),
                       InstManPath()]:
         env.Alias('install', inst_path)
-    env.Install(InstManPath('man1'), DocPath('man/ipbori.1'))
+    FinalizeNonExecs(env.Install(InstManPath('man1'), DocPath('man/ipbori.1')))
 
     # Executables and shared libraries to be installed
     pyfiles = []

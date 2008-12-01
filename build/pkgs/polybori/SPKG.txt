@@ -32,6 +32,10 @@ None
 
 == Releases ==
 
+=== polybori-0.5rc.p6 (Michael Abshoff, November 30th, 2008) ===
+ * Apply patch by Alexander Dreyer to fix manpage permission issues (#4321)
+ * Fix permission issues for boost includes
+
 === polybori-0.5rc.p4 (Michael Abshoff, September 9th, 2008) ===
  * only force a rebuild of the PolyBoRi extension if the Sage library has been installed
 

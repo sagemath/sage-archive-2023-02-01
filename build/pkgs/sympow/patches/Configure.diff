@@ -1,0 +1,71 @@
+--- Configure.orig	2008-11-30 16:51:45.000000000 -0800
++++ Configure	2008-11-30 16:51:21.000000000 -0800
+@@ -5,19 +5,20 @@
+ fi
+ 
+ whichexe() {
+-    if [ -f /bin/$1 ]; then
+-        echo /bin/$1
+-        return;
+-    fi;
+-    if [ -f /usr/bin/$1 ]; then
+-        echo /usr/bin/$1
+-        return;
+-    fi;
+-    if [ -f /usr/local/bin/$1 ]; then
+-        echo /usr/local/bin/$1
+-        return;
+-    fi;
+-    echo `which $1`
++#    if [ -f /bin/$1 ]; then
++#        echo /bin/$1
++#        return;
++#    fi;
++#    if [ -f /usr/bin/$1 ]; then
++#        echo /usr/bin/$1
++#        return;
++#    fi;
++#    if [ -f /usr/local/bin/$1 ]; then
++#        echo /usr/local/bin/$1
++#        return;
++#    fi;
++#    echo `which $1`
++    echo $1
+ }
+ 
+ FILE="Makefile.new"
+@@ -70,13 +71,6 @@
+   echo "SH = $SH"
+ fi
+ 
+-CC=`whichexe cc` && echo "CC = $CC" >> $FILE
+-if [ -z "$CC" ]; then
+-  echo "**ERROR**: Could not find cc"; exit 1;
+-else
+-  echo "CC = $CC"
+-fi
+-
+ UNAME=`whichexe uname`
+ if [ -z "$UNAME" ];then
+   echo "**ERROR**: Could not find uname"; exit 1;
+@@ -84,6 +78,20 @@
+   echo "UNAME = $UNAME"
+ fi
+ 
++if [ `"$UNAME"` = "SunOS" ]; then
++  echo "using gcc"
++  CC='gcc'
++else 
++  CC=`whichexe gcc`   
++fi
++
++echo "CC = $CC" >> $FILE
++if [ -z "$CC" ]; then
++  echo "**ERROR**: Could not find cc"; exit 1;
++else
++  echo "CC = $CC"
++fi
++
+ MACH=`"$UNAME" -m`
+ for x in ix86 i386 i486 i586 i686 x86_64 ia64 
+ do

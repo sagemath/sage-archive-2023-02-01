@@ -1,7 +1,13 @@
 == Changelog ==
 
+=== sympow-1.018.1.p6 (Michael Abshoff, November 30th, 2008) ===
+ * add build fix for tcsh by Willem Jan Palenstijn (trac #4261)
+ * small cleanups
+
 === sympow-1.018.1.p5 ===
  * make sure we pick gcc over cc
+
+---------------------------------------------------------------------
 
 A comment from Mark Watkins:
 

@@ -9,6 +9,10 @@
 
 == Releases ==
 
+=== singular-3-0-4-4-20080711.p2 (Michael Abshoff, November 30th, 2008) ===
+ * Fix header permission problem (#4668)
+ * delete old singular headers in $SAGE_LOCAL/include/singular
+
 === singular-3-0-4-4-20080711.p1 (Michael Abshoff, September 1st, 2008) ===
  * Fix three Solaris issues: libsingular build options, tail POSIX issue and install missing on Solaris
 

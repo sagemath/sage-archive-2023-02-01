@@ -65,6 +65,11 @@ export CXXFLAGS
 export CFLAGS
 export CPPFLAGS
 
+clean_headers()
+{
+    rm -rf $SAGE_LOCAL/include/singular
+}
+
 patch()
 {
     # work-around patches
@@ -293,6 +298,8 @@ build_libfac()
 
 build()
 {
+    clean_headers
+
     patch
 
     distclean

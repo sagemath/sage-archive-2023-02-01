@@ -63,22 +63,27 @@ def pager():
     else:
         return 'less'
 
+
+hg_docstring = r"""
+This is an HG (Mercurial) repository.
+
+To learn about Mercurial, see http://www.selenic.com/mercurial/wiki/.
+
+This system should all be fully usable from the Sage notebook.
+
+Most commands are directly provided as member functions.  However,
+you can use the full functionality of hg, i.e.,
+
+\code{hg_%(obj_name)s("command line arguments")}
+
+is \emph{exactly} the same as typing
+\begin{verbatim}
+        cd %(dir)s && hg command line arguments
+\end{verbatim}
+"""
+
+
 class HG:
-    r"""
-    This is an HG (Mercurial) repository.
-
-    To learn about Mercurial, see http://www.selenic.com/mercurial/wiki/.
-
-    This system should all be fully usable from the SAGE notebook.
-
-    Most commands are directly provided as member functions.  However,
-    you can use the full functionality of hg, i.e.,
-            \code{hg_sage("command line arguments")}
-    is \emph{exactly} the same as typing
-    \begin{verbatim}
-            cd <SAGE_ROOT>/devel/sage/ && hg command line arguments
-    \end{verbatim}
-    """
     def __init__(self, dir, name, pull_url, push_url, target=None, cloneable=False, obj_name=''):
         """
         INPUT:
@@ -91,6 +96,9 @@ class HG:
             target -- if the last part of dir is, e.g., sage-hg,
                       create a symlink from sage-hg to target.
                       If target=None, this symlink will not be created.
+        TESTS:
+            sage: 'scripts' in hg_scripts.__doc__
+            True
         """
         self.__dir = os.path.abspath(dir)
         self.__name = name
@@ -100,6 +108,9 @@ class HG:
         self.__target = target
         self.__cloneable = cloneable
         self.__obj_name = obj_name
+
+        self.__doc__ = hg_docstring%{'obj_name':obj_name,
+                                     'dir':self.__dir}
 
     def __repr__(self):
         return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)

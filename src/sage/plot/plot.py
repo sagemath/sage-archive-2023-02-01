@@ -1473,6 +1473,20 @@ def plot(funcs, *args, **kwds):
         sage: d['xmax']
         120.0
 
+    We check various combinations of tuples and functions, ending
+    with tests that lambda functions work properly with
+    explicit variable declaration, without a tuple.
+        sage: p = plot(lambda x: x,(x,-1,1))
+        sage: p = plot(lambda x: x,-1,1)
+        sage: p = plot(x,x,-1,1)
+        sage: p = plot(x,-1,1)
+        sage: p = plot(x^2,x,-1,1)
+        sage: p = plot(lambda x: x,x,-1,1)
+        sage: p = plot(lambda x: x^2,x,-1,1)
+        sage: p = plot(lambda x: 1/x,x,-1,1)
+        sage: f(x) = sin(x+3)-.1*x^3
+        sage: p = plot(lambda x: f(x),x,-1,1)
+
     We check to handle cases where the function gets evaluated at a point
     which causes an 'inf' or '-inf' result to be produced.
         sage: p = plot(1/x, 0, 1)
@@ -1497,6 +1511,13 @@ def plot(funcs, *args, **kwds):
             xmax = args[1]
             args = args[2:]
             G = _plot(funcs, (xmin, xmax), *args, **kwds)
+        elif n == 3:
+        # if there are three extra args, then pull them out and pass them as a tuple
+            var = args[0]
+            xmin = args[1]
+            xmax = args[2]
+            args = args[3:]
+            G = _plot(funcs, (var, xmin, xmax), *args, **kwds)
         else:
             sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
     if kwds.has_key('xmin') and kwds.has_key('xmax'):

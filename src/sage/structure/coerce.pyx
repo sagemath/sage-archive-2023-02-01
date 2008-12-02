@@ -856,7 +856,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Note that to break symmetry, if there is a coercion map in both
         directions, the parent on the left is used:
             sage: V = QQ^3
-            sage: W = loads(dumps(V))
+            sage: W = V.__class__(QQ, 3)
             sage: V == W
             True
             sage: V is W

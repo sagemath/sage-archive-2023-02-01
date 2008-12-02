@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 Preparses input from the interpreter
 
 Modified input.
@@ -28,19 +28,19 @@ TODO:
 
 All other input is processed normally.
 
-It automatically converts *most* integer literals to SAGE Integer's and
-decimal literals to SAGE Reals.  It does not convert indexes into
+It automatically converts *most* integer literals to Sage Integer's and
+decimal literals to Sage Reals.  It does not convert indexes into
 1-d arrays, since those have to be ints.
 
 I also extended the load command so it *really* works exactly
-like the SAGE interpreter, so e.g., ^ for exponentiation is
+like the Sage interpreter, so e.g., ^ for exponentiation is
 allowed.  Also files being loaded can themselves load other files.
 Finally, I added an "attach" command, e.g.,
     attach 'file'
 that works kind of like attach in MAGMA.  Whenever you enter a blank
-line in the SAGE interpreter, *all* attached files that have changed
+line in the Sage interpreter, *all* attached files that have changed
 are automatically reloaded.  Moreover, the attached files work according
-to the SAGE interpreter rules, i.e., ^ --> **, etc.
+to the Sage interpreter rules, i.e., ^ --> **, etc.
 
 I also fixed it so ^ is not replaced by ** inside strings.
 
@@ -49,17 +49,17 @@ of object M, again like in MAGMA.
 
 EXAMPLE:
     sage: 2/3
-          2/3
+    2/3
     sage: type(2/3)
-          <type 'sage.rings.rational.Rational'>
+    <type 'sage.rings.rational.Rational'>
     sage: a = 49928420832092
     sage: type(a)
-          <type 'sage.rings.integer.Integer'>
+    <type 'sage.rings.integer.Integer'>
     sage: a.factor()
-          [(2, 2), (11, 1), (1134736837093, 1)]
+    2^2 * 11 * 1134736837093
     sage: v = [1,2,3]
     sage: type(v[0])
-          <type 'sage.rings.integer.Integer'>
+    <type 'sage.rings.integer.Integer'>
 
 If we don't make potential list indices int's, then lots of stuff
 breaks, or users have to type v[int(7)], which is insane.
@@ -69,21 +69,17 @@ so the w = [5] above would work right.
 
     sage: s = "x^3 + x + 1"
     sage: s
-          'x^3 + x + 1'
+    'x^3 + x + 1'
     sage: pari(s)
-          x^3 + x + 1
+    x^3 + x + 1
     sage: f = pari(s)
     sage: f^2
-          x^6 + 2*x^4 + 2*x^3 + x^2 + 2*x + 1
-    sage: V = VectorSp
-    VectorSpace                      VectorSpace_subspace
-    VectorSpace_ambient              VectorSpace_subspace_with_basis
-    VectorSpace_generic
-    sage: V = VectorSpace(Q,3)
+    x^6 + 2*x^4 + 2*x^3 + x^2 + 2*x + 1
+    sage: V = VectorSpace(QQ,3)
     sage: V.0
-          (1 0 0)
+    (1, 0, 0)
     sage: V.1
-          (0 1 0)
+    (0, 1, 0)
     sage: s = "This. Is. It."
     sage: print s
     This. Is. It.
@@ -380,7 +376,7 @@ def preparse_file_named(name):
 
 def sage_prefilter(self, block, continuation):
     """
-    SAGE's prefilter for input.  Given a string block (usually a
+    Sage's prefilter for input.  Given a string block (usually a
     line), return the preparsed version of it.
 
     INPUT:
@@ -407,7 +403,7 @@ def sage_prefilter(self, block, continuation):
 
     except None:
 
-        print "WARNING: An error occured in the SAGE parser while"
+        print "WARNING: An error occured in the Sage parser while"
         print "parsing the following block:"
         print block
         print "Please report this as a bug (include the output of typing '%hist')."
@@ -424,7 +420,7 @@ ipython_prefilter = InteractiveShell.prefilter
 do_preparse=True
 def preparser(on=True):
     """
-    Turn on or off the SAGE preparser.
+    Turn on or off the Sage preparser.
 
     NOTE: This only works on the command line.  To turn off preparsing
     in the notebook, switch to python mode.
@@ -436,7 +432,7 @@ def preparser(on=True):
         sage: 2/3
         2/3
         sage: preparser(False)
-        sage: 2/3
+        sage: 2/3  #not tested since doctests are always preparsed
         0
         sage: preparser(True)
         sage: 2^3
@@ -456,6 +452,27 @@ import IPython.OInspect
 IPython.OInspect.getdoc = sagedoc.my_getdoc
 IPython.OInspect.getsource = sagedoc.my_getsource
 
+#We monkey-patch IPython to disable the showing of plots
+#when doing introspection on them. This fixes Trac #2163.
+old_pinfo = IPython.OInspect.Inspector.pinfo
+def sage_pinfo(self, *args, **kwds):
+    """
+    A wrapper around IPython.OInspect.Inspector.pinfo which turns
+    off show_default before it is called and then sets it back
+    to its previous value.
+
+    Since this requires an IPython shell to test and the doctests aren't,
+    run under IPython, we cannot add doctests for this function.
+    """
+    from sage.plot.all import show_default
+    old_value = show_default()
+    show_default(False)
+
+    result = old_pinfo(self, *args, **kwds)
+
+    show_default(old_value)
+    return result
+IPython.OInspect.Inspector.pinfo = sage_pinfo
 
 import __builtin__
 _prompt = 'sage'

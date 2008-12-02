@@ -1,0 +1,47 @@
+@import url('/css/reset.css');
+
+html {
+font-size:100.1%
+}
+
+body {
+font:.9em/1.2em Arial, Helvetica, sans-serif
+}
+
+h1 {
+background:#DCDCDC;
+border-bottom:1px solid #CCC;
+font-size:2em;
+padding:0 5px
+}
+
+#buttons {
+background:#DCDCDC;
+padding:5px
+}
+
+h2 {
+font-size:1.5em
+}
+
+.section {
+border-bottom:1px solid #CCC;
+padding:5px
+}
+
+.section > div {
+max-width:350px;
+text-align:right
+}
+
+td {
+padding-left:5px
+}
+
+input.c1 {
+width:200px
+}
+
+strong {
+font-weight: bold
+}

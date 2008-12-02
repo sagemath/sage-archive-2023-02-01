@@ -950,6 +950,9 @@ cdef class LazyUnop(LazyFieldElement):
             return ~arg
         return self._op(self._arg.eval(R))
 
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
     def __hash__(self):
         """
         EXAMPLES:
@@ -1055,6 +1058,9 @@ cdef class LazyNamedUnop(LazyUnop):
             # this is less info though, but mostly just want to print it
             interval_field = self._parent.interval_field()
             return self.eval(interval_field._middle_field())
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -1169,6 +1175,9 @@ cdef class LazyConstant(LazyFieldElement):
         self._extra_args = args
         return self
 
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
     def __hash__(self):
         """
         TESTS:
@@ -1231,6 +1240,10 @@ cdef class LazyAlgebraic(LazyFieldElement):
         if self._poly.degree() == 2:
             c, b, a = self._poly.list()
             self._quadratic_disc = b*b - 4*a*c
+        if isinstance(parent, RealLazyField_class):
+            from sage.rings.real_double import RDF
+            if len(self._poly.roots(RDF)) == 0:
+                raise ValueError, "%s has no real roots" % self._poly
 
     cpdef eval(self, R):
         """

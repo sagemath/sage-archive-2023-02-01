@@ -356,7 +356,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
     polynomial = Q(polynomial)
 
     if cache:
-        key = (polynomial, name, embedding)
+        key = (polynomial, name, embedding, embedding.parent() if embedding is not None else None)
         if _nf_cache.has_key(key):
             K = _nf_cache[key]()
             if not K is None: return K
@@ -548,6 +548,10 @@ def QuadraticField(D, names, check=True, embedding=True):
         sage: type(K)
         <class 'sage.rings.number_field.number_field.NumberField_quadratic'>
         sage: is_NumberField(K)
+        True
+
+    Quadratic number fields are cached:
+        sage: QuadraticField(-11, 'a') is QuadraticField(-11, 'a')
         True
     """
     D = QQ(D)

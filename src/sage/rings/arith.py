@@ -10,7 +10,7 @@ Miscellaneous arithmetic functions
 ###########################################################################
 
 import math
-
+import sys
 import sage.misc.misc as misc
 import sage.misc.search
 from sage.libs.pari.gen import pari, PariError, vecsmall_to_intlist
@@ -2139,6 +2139,8 @@ def binomial(x,m):
         1
         sage: n=var('n'); binomial(n,n-1)
         n
+        sage: binomial(2^100, 2^100)
+        1
     """
     if not isinstance(m, (int, long, integer.Integer)):
         try:
@@ -2146,6 +2148,14 @@ def binomial(x,m):
         except TypeError:
             raise TypeError, 'Either m or x-m must be an integer'
     if isinstance(x, (int, long, integer.Integer)):
+        if m < 0 or m > x:
+            return ZZ(0)
+
+        if m > sys.maxint:
+            m = x - m
+            if m > sys.maxint:
+                raise ValueError, "binomial not implemented for m >= 2^32.\nThis is probably OK, since the answer would have billions of digits."
+
         return ZZ(pari(x).binomial(m))
     try:
         P = x.parent()

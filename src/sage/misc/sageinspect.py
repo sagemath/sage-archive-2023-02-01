@@ -358,6 +358,16 @@ def sage_getsource(obj, is_binary=False):
         -- William Stein
         -- Extensions by Nick Alexander
     """
+    #First we should check if the object has a _sage_src_
+    #method.  If it does, we just return the output from
+    #that.  This is useful for getting pexpect interface
+    #elements to behave similar to regular Python objects
+    #with respect to introspection.
+    try:
+        return obj._sage_src_()
+    except AttributeError:
+        pass
+
     t = sage_getsourcelines(obj, is_binary)
     if not t:
         return None
@@ -378,6 +388,7 @@ def sage_getsourcelines(obj, is_binary=False):
     # Check if we deal with instance
     if isclassinstance(obj):
         obj=obj.__class__
+
     # If we can handle it, we do.  This is because Python's inspect will
     # happily dump binary for cython extension source code.
     d = inspect.getdoc(obj)

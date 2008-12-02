@@ -301,19 +301,6 @@ def my_getdoc(obj):
     return sagedoc.format(ds)
 
 def my_getsource(obj, is_binary):
-    #First we should check if the object has a _sage_src_
-    #method.  If it does, we just return the output from
-    #that.  This is useful for getting pexpect interface
-    #elements to behave similar to regular Python objects
-    #with respect to introspection.
-    try:
-        return obj._sage_src_()
-    except AttributeError:
-        pass
-    except Exception, msg:
-       print 'Error getting source:', msg
-       return None
-
     try:
         s = sageinspect.sage_getsource(obj, is_binary)
         return sagedoc.format_src(s)

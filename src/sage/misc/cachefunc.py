@@ -49,6 +49,21 @@ class CachedFunction(object):
             self.__name__ = f.func_name
         self.__module__ = f.__module__
 
+    def _sage_src_(self):
+        """
+        Returns the source code for the wrapped function.
+
+        EXAMPLES:
+            sage: from sage.misc.sageinspect import sage_getsource
+            sage: g = CachedFunction(number_of_partitions)
+            sage: 'bober' in sage_getsource(g)
+            True
+
+        """
+        from sage.misc.sageinspect import sage_getsource
+        return sage_getsource(self.f)
+
+
     def __call__(self, *args, **kwds):
         """
         EXAMPLES:

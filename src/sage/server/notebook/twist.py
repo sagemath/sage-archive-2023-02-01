@@ -1,5 +1,14 @@
 r"""
 The Sage Notebook Twisted Web Server
+
+TESTS:
+It is important that this file never be imported by default on startup
+by Sage, since it is very expensive, since importing Twisted is
+expensive.  This doctests verifies that twist.py isn't imported on
+startup.
+
+    sage: os.system("sage -startuptime | grep twisted\.web2 1>/dev/null") != 0  # !=0 means not found
+    True
 """
 
 #############################################################################
@@ -1386,6 +1395,7 @@ class EmptyTrash(resource.Resource):
 
         EXAMPLES:
         We create an instance of this resource.
+            sage: import sage.server.notebook.twist
             sage: E = sage.server.notebook.twist.EmptyTrash('sage'); E
             <sage.server.notebook.twist.EmptyTrash object at ...>
         """

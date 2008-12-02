@@ -49,7 +49,6 @@ import sage.server.support   as support
 
 # Imports specifically relevant to the sage notebook
 import worksheet_conf
-import twist
 from   cell import Cell, TextCell
 
 # Set some constants that will be used for regular expressions below.
@@ -732,6 +731,7 @@ class Worksheet:
             sage: W.notebook() is sage.server.notebook.twist.notebook
             True
         """
+        import twist
         return twist.notebook
 
     def DIR(self):

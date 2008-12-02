@@ -36,6 +36,12 @@ if sys.version_info[:2] < (2, 5):
     print >>sys.stderr, "SAGE requires Python 2.5 or newer"
     sys.exit(1)
 
+###################################################################
+
+#Import twisted.persisted.styles in order to allow things like
+#modules to be pickles
+
+import twisted.persisted.styles
 
 ###################################################################
 

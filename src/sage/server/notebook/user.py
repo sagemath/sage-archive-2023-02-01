@@ -6,7 +6,6 @@ import os
 SALT = 'aa'
 
 import user_conf
-import twist
 
 class User:
     def __init__(self, username, password='', email='', account_type='admin'):
@@ -36,6 +35,7 @@ class User:
         try:
             return self.history
         except AttributeError:
+            import twist   # late import
             if twist.notebook is None: return []
             history_file = "%s/worksheets/%s/history.sobj"%(twist.notebook.directory(), self.__username)
             if os.path.exists(history_file):
@@ -51,6 +51,7 @@ class User:
     def save_history(self):
         if not hasattr(self, 'history'):
             return
+        import twist   # late import
         if twist.notebook is None: return
         history_file = "%s/worksheets/%s/history.sobj"%(twist.notebook.directory(), self.__username)
         try:

@@ -124,6 +124,7 @@ def Permutation(l):
           -- list of integers, viewed as one-line permutation notation,
           -- string, expressing the permutation in cycle notation,
           -- list of tuples of integers, the permutation in cycle notation.
+          -- a PermutationGroupElement
 
     OUTPUT:
         Permutation_class object.
@@ -164,6 +165,12 @@ def Permutation(l):
         5
         10
 
+    We construct a Permutation from a PermutationGroupElement:
+        sage: g = PermutationGroupElement([2,1,3])
+        sage: Permutation(g)
+        [2, 1, 3]
+
+
     TESTS:
         sage: Permutation([()])
         [1]
@@ -175,6 +182,8 @@ def Permutation(l):
     if isinstance(l, Permutation_class):
         return l
     #if l is a string, then assume it is in cycle notation
+    elif isinstance(l, PermutationGroupElement):
+        l = l.list()
     elif isinstance(l, str):
         if l == "()":
             return from_cycles(1,[])
@@ -202,9 +211,9 @@ def Permutation(l):
             return Permutation([1])
         else:
             raise ValueError, "cannot convert l (= %s) to a Permutation"%l
+
     # otherwise, it gets processed by CombinatorialObject's __init__.
-    else:
-        return Permutation_class(l)
+    return Permutation_class(l)
 
 class Permutation_class(CombinatorialObject):
     def __hash__(self):

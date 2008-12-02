@@ -749,7 +749,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Inverts the polynomial a with respect to m, or throw a
         ValueError if no such inverse exists.
 
-        EXAMMPLES:
+        EXAMPLES:
             sage: S.<t> = QQ[]
             sage: f = inverse_mod(t^2 + 1, t^3 + 1); f
             -1/2*t^2 - 1/2*t + 1/2
@@ -761,7 +761,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1
 
         It also works over in-exact rings, but note that due to rounding
-        error the product is only guerenteed to be withing epsilon of the
+        error the product is only guaranteed to be within epsilon of the
         constant polynomial 1.
             sage: R.<x> = RDF[]
             sage: f = inverse_mod(x^2 + 1, x^5 + x + 1); f
@@ -1290,7 +1290,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             value -- value to set the n-th coefficient to
 
         OUTPUT:
-            an IndexErros is always raised.
+            an IndexError is always raised.
 
         EXAMPLES:
             sage: R.<x> = ZZ[]
@@ -2547,7 +2547,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
 
         Important -- this function doesn't return True if self equals
-        the generator; it returs True if self \emph{is} the generator.
+        the generator; it returns True if self \emph{is} the generator.
             sage: f = R([0,1]); f
             x
             sage: f.is_gen()
@@ -3814,7 +3814,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def variables(self):
         """
-        Returns the list of variables occuring in this polynomial.
+        Returns the list of variables occurring in this polynomial.
 
         EXAMPLES:
             sage: R.<x> = QQ[]
@@ -4608,7 +4608,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             q^100 + q^10 + 1
 
         TESTS:
-        Make sure we're not actually testing a specalized implementation.
+        Make sure we're not actually testing a specialized implementation.
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
         """

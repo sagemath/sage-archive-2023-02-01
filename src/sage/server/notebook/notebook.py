@@ -94,6 +94,8 @@ class Notebook(SageObject):
         # This must happen after twist.notebook is set.
         self.save()
 
+    def all_worksheets(self):
+        return self.__worksheets
 
     def _migrate_worksheets(self):
         v = []
@@ -1296,7 +1298,7 @@ class Notebook(SageObject):
 
         X = self.get_worksheets_with_viewer(user)
         if typ == "trash":
-            worksheet_heading = "Trash"
+            worksheet_heading = "Deleted Worksheets"
             W = [x for x in X if x.is_trashed(user)]
         elif typ == "active":
             worksheet_heading = "Active Worksheets"
@@ -1311,7 +1313,6 @@ class Notebook(SageObject):
 
         top = self.html_worksheet_list_top(user, typ=typ, search=search)
         list = self.html_worksheet_list(W, user, worksheet_heading, sort=sort, reverse=reverse, typ=typ)
-        worksheet_filenames = [x.filename() for x in W]
 
         s = """
         <html>
@@ -1336,7 +1337,6 @@ class Notebook(SageObject):
         else:
             entries.append(('/home/%s'%user, 'Home', 'Back to your personal worksheet list'))
             entries.append(('/pub', 'Published', 'Browse the published worksheets'))
-            #entries.append(('/settings', 'Settings', 'Change user settings'))   # TODO -- settings
             entries.append(('help()', 'Help', 'Documentation'))
 
         ## TODO -- settings

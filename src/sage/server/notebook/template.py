@@ -12,26 +12,31 @@
 HTML templating for the notebook
 
 AUTHORS:
-    -- Bobby Moretti
-    -- Timothy Clemans
+    -- Bobby Moretti (2007-07-18): initial version
+    -- Timothy Clemans and Mike Hansen (2008-10-27): major update
 """
 
-from jinja import Environment, FileSystemLoader
-from jinja.exceptions import TemplateNotFound
-from os.path import join, exists, getmtime
-from sage.misc.misc import SAGE_ROOT
+import jinja
+import sage.misc.misc as misc
 
-env = Environment(loader=FileSystemLoader(SAGE_ROOT+"/devel/sage/sage/server/notebook/templates"))
+env = jinja.Environment(loader=jinja.FileSystemLoader(misc.SAGE_ROOT + '/devel/sage/sage/server/notebook/templates'))
 
-class PageTemplate:
-    def __init__(self, filename):
-        self.__template = env.get_template(filename)
+def contained_in(container):
+    def wrapped(env, context, value):
+        return value in container
+    return wrapped
 
-    def __call__(self, **kwds):
-        return str(self.__template.render(kwds))
+env.tests['contained_in'] = contained_in
 
-# Define variables for each template
-G = globals()
-templates = ['login', 'yes_no', 'registration', 'account_settings', 'account_recovery', 'user_management', 'error_message']
-for name in templates:
-    G[name] =  PageTemplate('%s.html'%name)
+default_context = {'sitename': 'Sage Notebook'}
+
+def template(filename, **context):
+    """
+    Returns a compiled template.
+    """
+    try:
+        tmpl = env.get_template(filename)
+    except jinja.exceptions.TemplateNotFound:
+        return template('template_error.html')
+    context.update(default_context)
+    return str(tmpl.render(**context))

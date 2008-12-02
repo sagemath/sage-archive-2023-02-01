@@ -390,6 +390,13 @@ class Worksheet:
             self.__collaborators = []
             return self.__collaborators
 
+    def collab(self):
+        collab = [x for x in self.collaborators() if x != self.owner()]
+        collaborators = ', '.join([x for x in collab])
+        if len(collaborators) > 21:
+            collaborators = collaborators[:21] + '...'
+        return collaborators
+
     def set_collaborators(self, v):
         """
         Set the list of collaborators to those listed in the
@@ -2165,12 +2172,14 @@ class Worksheet:
                 return True, user
         False
 
-
-    def html_time_since_last_edited(self):
+    def ws_time_since_last_edited(self):
         t = self.time_since_last_edited()
         tm = convert_seconds_to_meaningful_time_span(t)
-        who = ' by %s'%self.last_to_edit()
-        return '<span class="lastedit">%s ago%s</span>'%(tm, who)
+        return tm
+
+    def html_time_since_last_edited(self):
+        tm, who = time_since_last_edited
+        return '<span class="lastedit">%s ago%s</span>'%(tm, self.last_to_edit)
 
     def html_time_last_edited(self):
         tm = convert_time_to_string(self.last_edited())

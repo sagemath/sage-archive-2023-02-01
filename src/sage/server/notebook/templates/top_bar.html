@@ -1,0 +1,25 @@
+        <table width="100%%"><tr><td>
+        <div class="banner">
+        <table width="100%%"><tr><td>
+        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="Sage"> Notebook</a></td><td><span class="ping" id="ping">Searching for Sage server...</span></td>
+        </tr><tr><td style="font-size:xx-small; text-indent:13px; color:black">Version {{ version }}</td><td></td></tr></table>
+        </div>
+        </td><td align=right>
+        <span class="username">{{ username }}</span>
+	{% if username == 'guest' %}
+	<span class="vbar"></span><a title="Please log in to the Sage notebook" class="usercontrol" href="/">Log in</a>
+        {% else %}
+        <span class="vbar"></span><a title="Back to your personal worksheet list" class="usercontrol" href="/home/{{ username }}">Home</a>
+        {% if not pub %}
+        <span class="vbar"></span><a title="Browse the published worksheets" class="usercontrol" href="/pub">Published</a>
+        <span class="vbar"></span><a title="View a log of recent computations" class="usercontrol" onClick="history_window()">Log</a>
+        {% else %}
+        <span class="vbar"></span><span class="usercontrol">Published</span>
+        {% endif %}
+        <span class="vbar"></span><a title="Documentation" class="usercontrol" onClick="help()">Help</a>
+        <span class="vbar"></span><a title="Change account settings including password" class="usercontrol" href="/settings">Settings</a>
+        <span class="vbar"></span><a title="Log out of the Sage notebook" class="usercontrol" href="/logout">Sign out</a>
+        {% endif %}
+        </td></tr>
+        </table>
+        <hr class="usercontrol">

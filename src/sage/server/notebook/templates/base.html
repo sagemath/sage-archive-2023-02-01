@@ -1,8 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html lang="en">
 <head>
-    <title>{% block title %}{% endblock %} | Sage Notebook</title>
-	<link type="text/css" rel="stylesheet" href="/css/{% block css %}master{% endblock %}.css" media="screen" />
+    <title>{% block title %}{% endblock %} | {{ sitename }}</title>
+    <link type="text/css" rel="stylesheet" href="/css/{% block css %}master{% endblock %}.css" media="screen" />
+    {% block javascript %}{% endblock %}
 </head>
 <body>
     {% block body %}{% endblock %}

@@ -1137,6 +1137,8 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
         An error is raised if this fractional ideal is not integral.
 
+        AUTHOR: John Cremona
+
         EXAMPLES:
 
             sage: K.<i>=NumberField(x^2+1)
@@ -1181,6 +1183,44 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         newRbasis = [sum([V[i,j]*Rbasis[j] for j in range(n)]) for i in range(n)]
         combo = lambda c: sum([c[i]*newRbasis[i] for i in range(n)])
         return xmrange_iter(coord_ranges, combo)
+
+    def invertible_residues(self):
+        """
+        Returns a iterator through a list of invertible residues modulo this integral ideal.
+
+        An error is raised if this fractional ideal is not integral.
+
+        AUTHOR: John Cremona
+
+        EXAMPLES:
+
+            sage: K.<i>=NumberField(x^2+1)
+            sage: ires =  K.ideal(2).invertible_residues(); ires  # random address
+            <generator object at 0xa2feb6c>
+            sage: list(ires)
+            [1, i]
+            sage: list(K.ideal(2+i).invertible_residues())
+            [-2, -1, 1, 2]
+            sage: list(K.ideal(i).residues())
+            [0]
+            sage: I = K.ideal(3+6*i)
+            sage: units=I.invertible_residues()
+            sage: len(list(units))==I.euler_phi()
+            True
+
+            sage: K.<a> = NumberField(x^3-10)
+            sage: I = K.ideal(a-1)
+            sage: len(list(I.invertible_residues())) == I.euler_phi()
+            True
+
+            sage: K.<z> = CyclotomicField(10)
+            sage: len(list(K.primes_above(3)[0].invertible_residues()))
+            80
+        """
+        for r in self.residues():
+            if self.is_coprime(r):
+                yield r
+
 
     def denominator(self):
         """
@@ -1254,6 +1294,8 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
            This function works for fractional ideals as well as
            integral ideals.
 
+        AUTHOR: John Cremona
+
         EXAMPLES:
             sage: K.<i>=NumberField(x^2+1)
             sage: I = K.ideal(2+i)
@@ -1295,6 +1337,91 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         N2 = other.numerator()
         return N1+N2==one and N1+D2==one and D1+N2==one and D1+D2==one
 
+    def element_1_mod(self, other):
+        """
+        Returns an element r in this ideal such that 1-r is in other
+
+        An error is raised if either ideal is not integral of if they
+        are not coprime.
+
+        INPUT:
+            other -- another ideal of the same field, or generators of an ideal.
+        OUTPUT:
+            r -- an element of the ideal self such that 1-r is in the ideal other
+
+        AUTHOR: Maite Aranes
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3-2)
+            sage: A = K.ideal(a+1); A; A.norm()
+            Fractional ideal (a + 1)
+            3
+            sage: B = K.ideal(a^2-4*a+2); B; B.norm()
+            Fractional ideal (a^2 - 4*a + 2)
+            68
+            sage: r = A.element_1_mod(B); r
+            a^2 + 5
+            sage: r in A
+            True
+            sage: 1-r in B
+            True
+
+        TESTS:
+            sage: K.<a> = NumberField(x^3-2)
+            sage: A = K.ideal(a+1)
+            sage: B = K.ideal(a^2-4*a+1); B; B.norm()
+            Fractional ideal (a^2 - 4*a + 1)
+            99
+            sage: A.element_1_mod(B)
+            Traceback (most recent call last):
+            ...
+            TypeError: Fractional ideal (a + 1), Fractional ideal (a^2 - 4*a + 1) are not coprime ideals
+
+            sage: B = K.ideal(1/a); B
+            Fractional ideal (1/2*a^2)
+            sage: A.element_1_mod(B)
+            Traceback (most recent call last):
+            TypeError: element_1_mod only defined for integral ideals
+        """
+        # Catch invalid inputs by making sure that we can make an ideal out of other.
+        k = self.number_field()
+        other = k.ideal(other)
+
+        #we want a basis for the ring of integers with first element=1
+        R = k.unit_ideal()
+        Rbasis = R.basis()
+        assert Rbasis[0]==1  # true in 3.2.2
+
+        n = len(Rbasis)
+
+        #matrices for self and other in terms of basis chosen for R
+        self_b = self.basis()
+        other_b = other.basis()
+
+        from sage.matrix.all import MatrixSpace
+
+        try:
+            M_self = MatrixSpace(ZZ,n)([R.coordinates(y) for y in self_b])
+            M_other = MatrixSpace(ZZ,n)([R.coordinates(y) for y in other_b])
+        except TypeError:
+	    raise TypeError, "element_1_mod only defined for integral ideals"
+
+        #hnf for matrix representing C = self+other:
+        C = M_self.stack(M_other)
+        Chnf, U = C.hermite_form(transformation=True)
+
+        #we make sure the ideals self and other are coprime
+        if Chnf[0][0]!=1 or not (Chnf.submatrix(0,1,1)).is_zero():
+            raise TypeError, "%s, %s are not coprime ideals"%(self, other)
+
+        #element r in self such that 1 - r in other
+        from sage.modules.free_module_element import vector
+        r = vector([U[0][i] for i in range(n)])*M_self
+        r = sum([r[i]*Rbasis[i] for i in range(n)])
+
+        return r
+
+
     def euler_phi(self):
         r"""
         Returns the Euler $\varphi$-function of this integral ideal.
@@ -1327,6 +1454,48 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         return prod([(np-1)*np**(e-1) \
                      for np,e in [(p.norm(),e) \
                                   for p,e in self.factor()]])
+    def prime_to_idealM_part(self, M):
+        """
+        Version for integral ideals of the prime_to_m_part function over ZZ.
+        Returns the largest divisor of self that is coprime to the ideal M.
+
+        INPUT:
+            M -- an integral ideal of the same field, or generators of an ideal
+
+        OUTPUT:
+            An ideal which is the largest divisor of self that is coprime to M.
+
+        AUTHOR: Maite Aranes
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^2 + 23)
+            sage: I = k.ideal(a+1)
+            sage: M = k.ideal(2, 1/2*a - 1/2)
+            sage: J = I.prime_to_idealM_part(M); J
+            Fractional ideal (12, 1/2*a + 13/2)
+            sage: J.is_coprime(M)
+            True
+
+            sage: J = I.prime_to_idealM_part(2); J
+            Fractional ideal (3, -1/2*a - 1/2)
+            sage: J.is_coprime(M)
+            True
+        """
+        # Catch invalid inputs by making sure that we can make an ideal out of M.
+        k = self.number_field()
+        M = k.ideal(M)
+
+        if not self.is_integral or not M.is_integral():
+            raise TypeError, "prime_to_idealM_part defined only for integral ideals"
+
+        if self.is_coprime(M):
+            return self
+        G = self + M
+        I = self
+        while not G.is_trivial():
+            I = I/G
+            G = I + G
+        return I
 
     def _p_quotient(self, p):
         """

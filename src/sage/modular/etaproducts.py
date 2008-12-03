@@ -1,5 +1,5 @@
 r"""
-Eta-products on modular curves X_0(N).
+Eta-products on modular curves $X_0(N)$.
 
 This package provides a class for representing eta-products, which are
 meromorphic functions on modular curves of the form
@@ -8,7 +8,7 @@ where $\eta(q)$ is Dirichlet's eta function $q^{1/24} \prod_{n =
 1}^\infty(1-q^n)$. These are useful for obtaining explicit models of modular
 curves.
 
-See trac ticket #3934 for background.
+See trac ticket \#3934 for background.
 
 AUTHOR:
     -- David Loeffler (2008-08-22): initial version
@@ -171,8 +171,8 @@ class EtaGroup_class(AbelianGroup):
             valid $r_d$ are those that satisfy two congruences modulo 24, and
             one congruence modulo 2 for every prime divisor of N. We beef up
             the congruences modulo 2 to congruences modulo 24 by multiplying by
-            12. To calculate the kernel of the ensuing map $\mathbb{Z}^m \to
-            (\mathbb{Z}/24\mathbb{Z})^n$ we lift it arbitrarily to an integer
+            12. To calculate the kernel of the ensuing map $\ZZ^m \to
+            (\ZZ/24\ZZ)^n$ we lift it arbitrarily to an integer
             matrix and calculate its Smith normal form. This gives a basis for
             the lattice.
 
@@ -227,7 +227,7 @@ class EtaGroup_class(AbelianGroup):
 
         ALGORITHM:
             We define the norm of an eta-product to be the $L^2$ norm of its
-            divisor (as an element of the free $\mathbb{Z}$-module with the cusps
+            divisor (as an element of the free $\ZZ$-module with the cusps
             as basis and the standard inner product). Applying LLL-reduction to
             this gives a basis of hopefully more tractable elements. Of course we'd
             like to use the $L^1$ norm as this is just twice the degree, which is a
@@ -361,7 +361,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def _div_(self, other):
         r"""
-        Return self * other^(-1).
+        Return $self * other^{-1}$.
 
         EXAMPLES:
             sage: eta1, eta2 = EtaGroup(4).basis()
@@ -445,7 +445,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
             -- (integer) n: number of terms to calculate
 
         OUTPUT:
-            -- a power series over ZZ in the variable q, with a *relative* precision of 1 + O(q^n).
+            -- a power series over $\ZZ$ in the variable $q$, with a *relative* precision of $1 + O(q^n)$.
 
         ALGORITHM:
             Calculates eta to (n/m) terms, where m is the smallest integer
@@ -508,7 +508,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def degree(self):
         r"""
-        Return the degree of self as a map $X_0(N) \to \mathbb{P}^1$, which is
+        Return the degree of self as a map $X_0(N) \to \PP^1$, which is
         equal to the sum of all the positive coefficients in the divisor of
         self.
 
@@ -572,7 +572,7 @@ def num_cusps_of_width(N, d):
     return euler_phi(gcd(d, N/d))
 
 def AllCusps(N):
-    r""" Return a list of CuspFamily objects corresponding to the cusps of X_0(N).
+    r""" Return a list of CuspFamily objects corresponding to the cusps of $X_0(N)$.
 
     INPUT:
         -- (integer) N: the level
@@ -603,7 +603,7 @@ class CuspFamily(SageObject):
 
     def __init__(self, N, width, label = None):
         r""" Create the cusp of width d on X_0(N) corresponding to the
-        family of Tate curves $(\mathbb{C}_p/q^d, \langle \zeta q\rangle)$.
+        family of Tate curves $(\CC_p/q^d, \langle \zeta q\rangle)$.
         Here $\zeta$ is a primitive root of unity of order $r$ with
         $\mathrm{lcm}(r,d) = N$. The cusp doesn't store zeta, so we store
         an arbitrary label instead.
@@ -655,7 +655,7 @@ class CuspFamily(SageObject):
 
     def sage_cusp(self):
         """
-        Return the corresponding element of $\mathbb{P}^1(\mathbb{Q})$.
+        Return the corresponding element of $\PP^1(\QQ)$.
         EXAMPLE:
             sage: CuspFamily(10, 1).sage_cusp() # not implemented
             Infinity
@@ -682,13 +682,13 @@ def qexp_eta(ps_ring, n):
     Dedekind's function $$\eta(q) = q^{1/24}\prod_{i=1}^\infty (1-q^i)$$, as an
     element of ps_ring, to precision n. Completely naive algorithm.
 
-    INPUTS:
+    INPUT:
         -- (PowerSeriesRing) ps_ring: a power series ring -- we pass this as an
             argument as we frequently need to create multiple series in the same ring.
         -- (integer) n: the number of terms to compute.
 
     OUTPUT:
-        An element of ps_ring which is the q-expansion of eta(q)/q^{1/24} truncated to n terms.
+        An element of ps_ring which is the q-expansion of $\eta(q)/q^{1/24}$ truncated to n terms.
 
     ALGORITHM:
         Multiply out the product $\prod_{i=1}^n (1 - q^i)$. Could perhaps be speeded up by using
@@ -726,9 +726,9 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
         -- An expression of the form $ \sum_{0 \le i,j \le d} a_{ij} x^i y^j $
         is zero if and only if it vanishes at the cusp infinity to degree at
         least $v = d(deg(x) + deg(y))$. For all terms up to $q^v$ in the
-        $q$-expansion of this expression to be zero is a system of v + k linear
-        equations in d**2 coefficients, where k is the number of nonzero
-        negative coefficients that can appear.
+	    $q$-expansion of this expression to be zero is a system of $v + k$
+        linear equations in $d**2$ coefficients, where $k$ is the number of
+        nonzero negative coefficients that can appear.
 
         Solving these equations and calculating a basis for the solution space
         gives us a set of polynomial relations, but this is generally far from
@@ -790,13 +790,13 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
 def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
     r"""
     Helper function used by eta_poly_relations. Finds a basis for the space of
-    linear relations between the first qexp_terms of the q-expansions of the
-    monomials eta1^i * eta2^j for 0 <= i,j < degree, and calculates a Grobner
-    basis for the ideal generated by these relations.
+    linear relations between the first qexp_terms of the $q$-expansions of the
+    monomials $\eta_1^i * \eta_2^j$ for $0 \le i,j < degree$, and calculates a
+    Grobner basis for the ideal generated by these relations.
 
-    Liable to return meaningless results if qexp_terms isn't at least 1 + d*(m1,m2)
-    where mi = min(0, degree of the pole of eta_i at infinity), as then 1 will be
-    in the ideal.
+    Liable to return meaningless results if qexp_terms isn't at least $1 +
+    d*(m_1,m_2)$ where $m_i = min(0, {\text degree of the pole of $\eta_i$ at
+    $\infty$})$, as then 1 will be in the ideal.
 
     EXAMPLE:
         sage: from sage.modular.etaproducts import _eta_relations_helper

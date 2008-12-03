@@ -1,88 +1,175 @@
 {% extends "base.html" %}
-           {% block title %}{{ worksheet_heading }}{% endblock %}
-	   {% block css %}main{% endblock %}
-	   {% block javascript %}
-           <script type="text/javascript" src="/javascript/main.js"></script>
-{% if not pub %}
-           <script type="text/javascript">
-           var worksheet_filenames = {{ worksheet_filenames }};
-           </script>
-	   {% endif %}
-	   {% endblock %}
-	   {% block body %}
-	   {% include "list_top.html" %}
-		<br><br>
-        <table width="100%" border=0 cellspacing=0 cellpadding=0>
-        <tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>
-        <tr  class="greybox">
 
-        {% if not pub %}
-           <td>&nbsp;<input id="controlbox" onClick="set_worksheet_list_checks();" class="entry" type=checkbox></td>
-        {% else %}
-            <td>&nbsp;&nbsp;<a class="listcontrol" href=".?sort=rating">Rating</a></td>
-		{% endif %}
-
-        <td><a class="listcontrol" href=".?typ={{ typ }}&sort=name{{ '' if sort != 'name' or reverse else '&reverse=True' }}">{{ worksheet_heading }}</a> </td>
-
-        <td><a class="listcontrol" href=".?typ={{ typ }}&sort=owner{{ '' if sort != 'owner' or reverse else '&reverse=True' }}">Owner {{ '' if pub else ' / Collaborators' }}</a> </td>
-        <td><a class="listcontrol" href=".?typ={{ typ }}&{{ '' if sort != 'last_edited' or reverse else 'reverse=True' }}">Last Edited</a> </td>
-        </tr>
-        <tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>
-{% if not any_worksheets %}
 {% if pub %}
-      <tr><td colspan="5" style="padding:20px;text-align:center">There are no published worksheets.</td></tr>
+  {% set worksheet_heading='Published Worksheets' %}
+{% elif typ == 'trash' %}
+  {% set worksheet_heading='Deleted Worksheets' %}
 {% elif typ == 'active' %}
-            <tr><td colspan="5" style="padding:20px;text-align:center">Welcome to Sage! You can
-<a href="/new_worksheet">create a new worksheet</a>, view <a href="/pub/">published worksheets</a>, or read the <a href="/help" target="_new">documentation</a>.</td></tr>
-{% endif %}
+  {% set worksheet_heading='Active Worksheets' %}
 {% else %}
+  {% set worksheet_heading='Archived and Active Worksheets' %}
+{% endif %}
 
-{% for worksheet in worksheets %}
-{% set name = worksheet.filename() %}
-<tr><td class="entry">
+
+{% block title %}
+{{ worksheet_heading }}
+{% endblock %}
+
+{% block css %}main{% endblock %}
+
+{% block javascript %}
+  <script type="text/javascript" src="/javascript/main.js"></script>
+  {% if not pub %}
+    <script type="text/javascript">
+    var worksheet_filenames = {{ worksheet_filenames }};
+    </script>
+  {% endif %}
+{% endblock %}
+
+{% block body %}
+
 {% if pub %}
-&nbsp;&nbsp;&nbsp;&nbsp;<a class="worksheet_edit" href="/home/{{ name }}/rating_info">{% if worksheet.rating() < 0 %}---- {% else %} {{ worksheet.rating() }} {% endif %}</a>
+  {% include "list_top_public.html" %}
 {% else %}
-<input type=checkbox unchecked id="{{ name }}">
-        &nbsp;&nbsp;&nbsp;&nbsp;
-            <select onchange="go_option(this);" class="worksheet_edit">
-            <option value="" title="File options" selected>File</option>
-            <option value="list_rename_worksheet('{{ name }}','{{ worksheet.name() }}');" title="Change the name of this worksheet.">Rename...</option>
-            <option value="list_edit_worksheet('{{ name }}');" title="Open this worksheet and edit it">Edit</option>
-            <option value="list_copy_worksheet('{{ name }}');" title="Copy this worksheet">Copy Worksheet</option>
-            <option value="list_share_worksheet('{{ name }}');" title="Share this worksheet with others">Collaborate</option>
-            <option value="list_publish_worksheet('{{ name }}');" title="Publish this worksheet on the internet">Publish</option>
-            <option value="list_revisions_of_worksheet('{{ name }}');" title="See all revisions of this worksheet">Revisions</option>
-            </select>
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        {% endif %}
-        </td>
-{% if worksheet.is_active(username) %}
-<td class="worksheet_link">
-   {% else %}
-   <td class="archived_worksheet_link">
-      {% endif %}
-        <a title="{{ worksheet_name }}" id="name/{{ name }}" class="worksheetname" href="/home/{{ name }}">{{ worksheet.truncated_name(35) }}</a> {% if not pub and worksheet.is_published() %}(Published){% endif %}
-   </td>
-<td class="owner_collab">
+  {% include "list_top.html" %}
+{% endif %}
 
-   {{ worksheet.owner() }}
-   {% if not pub and typ != 'trash' %}
-   {{ worksheet.collab() }}
-   {% if worksheet.collab() %}
-   <a class="share" href="/home/{{ worksheet.filename() }}/share">Add or Delete</a>
-   {% else %}
-   <a class="share" href="/home/{{ worksheet.filename() }}/share">Share now</a>
-   {% endif %}
-       {% if worksheet.has_published_version() %}
-        <a href="/home/{{ worksheet.published_version().filename() }}">(published)
-{% endif %}
-   {% endif %}
-</td>
-<td><span class="lastedit">{{ worksheet.ws_time_since_last_edited() }} ago by {{ worksheet.last_to_edit() }}</span></td>
-</tr>
-<tr class="thingreybox"><td colspan=4><div class="ultrathinspace"></div></td></tr>
-{% endfor %}
-{% endif %}
-        </table>
-	{% endblock %}
+<br><br>
+
+<table width="100%" border=0 cellspacing=0 cellpadding=0>
+  <tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>
+  <tr class="greybox">
+    {% if not pub %}
+    <td><input id="controlbox" onClick="set_worksheet_list_checks();" class="entry" type=checkbox></td>
+    {% else %}
+    <td><a class="listcontrol" href=".?sort=rating">Rating</a></td>
+    {% endif %}
+
+    <td>
+      <a class="listcontrol" href=".?typ={{ typ }}&sort=name{{ '' if sort != 'name' or reverse else '&reverse=True' }}">
+      {{ worksheet_heading }}
+      </a>
+    </td>
+
+    <td>
+      <a class="listcontrol" href=".?typ={{ typ }}&sort=owner{{ '' if sort != 'owner' or reverse else '&reverse=True' }}">
+      Owner {{ '' if pub else ' / Collaborators' }}
+      </a>
+    </td>
+
+    <td>
+      <a class="listcontrol" href=".?typ={{ typ }}&{{ '' if sort != 'last_edited' or reverse else 'reverse=True' }}">
+      Last Edited
+      </a>
+    </td>
+  </tr>
+
+  <tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>
+
+  {% if not worksheets %}
+    {% if pub %}
+    <tr>
+      <td colspan="5" style="padding:20px;text-align:center">
+        There are no published worksheets.
+      </td>
+    </tr>
+    {% elif typ == 'active' %}
+    <tr>
+      <td colspan="5" style="padding:20px;text-align:center">
+        Welcome to Sage! You can <a href="/new_worksheet">create a new worksheet</a>,
+        view <a href="/pub/">published worksheets</a>, or read the
+        <a href="/help" target="_new">documentation</a>.
+      </td>
+    </tr>
+    {% endif %}
+  {% else %}
+
+    {% for worksheet in worksheets %}
+    {% set name = worksheet.filename() %}
+    <tr>
+      <td class="entry">
+	{% if pub %}
+
+	<a class="worksheet_edit" href="/home/{{ name }}/rating_info">
+	{% if worksheet.rating() < 0 %}
+	----
+	{% else %}
+	{{ worksheet.rating() }}
+	{% endif %}
+	</a>
+
+	{% else %}
+
+	<input type=checkbox unchecked id="{{ name }}">
+	<select onchange="go_option(this);" class="worksheet_edit">
+	  <option value="" title="File options" selected>File</option>
+	  <option value="list_rename_worksheet('{{ name }}','{{ worksheet.name() }}');" title="Change the name of this worksheet.">
+	    Rename...
+	  </option>
+	  <option value="list_edit_worksheet('{{ name }}');" title="Open this worksheet and edit it">Edit</option>
+	  <option value="list_copy_worksheet('{{ name }}');" title="Copy this worksheet">Copy Worksheet</option>
+	  <option value="list_share_worksheet('{{ name }}');" title="Share this worksheet with others">Collaborate</option>
+	  <option value="list_publish_worksheet('{{ name }}');" title="Publish this worksheet on the internet">Publish</option>
+	  <option value="list_revisions_of_worksheet('{{ name }}');" title="See all revisions of this worksheet">Revisions</option>
+	</select>
+
+        {% endif %}
+      </td>
+
+      {% if worksheet.is_active(username) %}
+      <td class="worksheet_link">
+      {% else %}
+      <td class="archived_worksheet_link">
+      {% endif %}
+	<a title="{{ worksheet_name }}" id="name/{{ name }}" class="worksheetname" href="/home/{{ name }}">
+	{% if worksheet.compute_process_has_been_started() %}(running) {% endif %}
+	{{ worksheet.truncated_name(35) }}
+	</a>
+
+	{% if not pub and worksheet.is_published() %}(Published){% endif %}
+      </td>
+      <td class="owner_collab">
+	{{ worksheet.owner() }}
+
+	{% if not pub and typ != 'trash' %}
+
+	{% set shared = False %}
+
+	{% if worksheet.collaborator_names() %}
+	  / {{ worksheet.collaborator_names(5) }}
+	  {% set shared = True %}
+	{% endif %}
+
+	{% if worksheet.viewer_names() %}
+	  / {{ worksheet.viewer_names(5) }}
+	  {% set shared = True %}
+	{% endif %}
+
+	{% if (worksheet.owner() != username) or username == 'admin' %}
+	  {% set shared = False %}
+	{% endif %}
+
+	{% if shared %}
+	<a class="share" href="/home/{{ worksheet.filename() }}/share">Add or Delete</a>
+	{% else %}
+	<a class="share" href="/home/{{ worksheet.filename() }}/share">Share now</a>
+	{% endif %}
+
+	{% if worksheet.has_published_version() %}
+	<a href="/home/{{ worksheet.published_version().filename() }}">
+	(published)
+	</a>
+	{% endif %}
+
+	{% endif %}
+      </td>
+      <td>
+	{{ worksheet.html_time_since_last_edited() }}
+      </td>
+    </tr>
+
+    <tr class="thingreybox"><td colspan=4><div class="ultrathinspace"></div></td></tr>
+    {% endfor %}
+  {% endif %}
+  </table>
+{% endblock %}

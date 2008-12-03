@@ -94,9 +94,6 @@ class Notebook(SageObject):
         # This must happen after twist.notebook is set.
         self.save()
 
-    def all_worksheets(self):
-        return self.__worksheets
-
     def _migrate_worksheets(self):
         v = []
         for key, W in self.__worksheets.iteritems():
@@ -1263,70 +1260,28 @@ class Notebook(SageObject):
         return s
 
 
-    def html_worksheet_list_public(self, username,
-                                  sort='last_edited', reverse=False, search=None):
+
+    def worksheet_list_for_public(self, username, sort='last_edited', reverse=False, search=None):
         W = [x for x in self.__worksheets.itervalues() if x.is_published() and not x.is_trashed(user)]
 
         if search:
             W = [x for x in W if x.satisfies_search(search)]
 
         sort_worksheet_list(W, sort, reverse)  # changed W in place
-        worksheet_filenames = [x.filename() for x in W]
+        return W
 
-        top  = self.html_worksheet_list_top(username, False, pub=True, search=search)
-        list = self.html_worksheet_list(W, username, False, sort=sort, reverse=reverse, typ="all", pub=True)
-
-        s = """
-        <html>
-           <link rel=stylesheet href="/css/main.css">
-           <title>Sage: Published Worksheets</title>
-           %s
-        <body>
-        %s
-        %s
-        </body>
-        </html>
-        """%(self.list_window_javascript(worksheet_filenames), top, list)
-
-        return s
-
-    def html_worksheet_list_for_user(self, user,
-                                     typ="active",
-                                     sort='last_edited',
-                                     reverse=False,
-                                     search=None):
-
+    def worksheet_list_for_user(self, user, typ="active", sort='last_edited', reverse=False, search=None):
         X = self.get_worksheets_with_viewer(user)
         if typ == "trash":
-            worksheet_heading = "Deleted Worksheets"
             W = [x for x in X if x.is_trashed(user)]
         elif typ == "active":
-            worksheet_heading = "Active Worksheets"
             W = [x for x in X if x.is_active(user)]
         else: # typ must be archived or "all"
-            worksheet_heading = "Archived and Active"
             W = [x for x in X if not x.is_trashed(user)]
         if search:
             W = [x for x in W if x.satisfies_search(search)]
-
         sort_worksheet_list(W, sort, reverse)  # changed W in place
-
-        top = self.html_worksheet_list_top(user, typ=typ, search=search)
-        list = self.html_worksheet_list(W, user, worksheet_heading, sort=sort, reverse=reverse, typ=typ)
-
-        s = """
-        <html>
-           <link rel=stylesheet href="/css/main.css">
-           <title>Sage: Worksheet List</title>
-           %s
-        <body>
-        %s
-        %s
-        </body>
-        </html>
-        """%(self.list_window_javascript(worksheet_filenames), top, list)
-
-        return s
+        return W
 
     def html_topbar(self, user, pub=False):
         s = ''
@@ -1398,37 +1353,8 @@ class Notebook(SageObject):
         """%ver
         return s
 
-    def html_search(self, search, typ):
-        s = """
-        <span class="flush-right">
-        <input id="search_worksheets" size=20 onkeypress="return search_worksheets_enter_pressed(event, '%s');" value="%s"></input>
-        <button class="add_new_worksheet_menu" onClick="search_worksheets('%s');">Search Worksheets</button>
-        &nbsp;&nbsp;&nbsp;
-        </span>
-        """%(typ, '' if search is None else search.replace('"',"'"), typ)
-        return s
-
-    def html_new_or_upload(self):
-        s = """
-        <a class="boldusercontrol" href="/new_worksheet">New Worksheet</a>\n
-        <a class="boldusercontrol" href="/upload">Upload</a>\n
-        """
-        return s
 
     def html_worksheet_actions(self, user, typ):
-##
-##          <option onClick="save_worksheets('sws');" title="Save the selected worksheets to disk">Save ...</option>
-##          <option onClick="save_worksheets('html');" title="Save the selected worksheets as a single HTML web page">Save as HTML (zipped) ... </option>
-##          <option onClick="save_worksheets('latex');" title="Save the selected worksheets as a single LaTeX document">Save as LaTeX (zipped) ... </option>
-##          <option onClick="save_worksheets('pdf');" title="Save the selected worksheets as a single PDF document">Save as PDF...</option>
-##          <option onClick="save_worksheets('txt');" title="Save the selected worksheets to a single text file">Save as Text...</option>
-##         s = """
-##          <select class="worksheet_list">
-##          <option onClick="archive_button();" title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</option>
-##          <option onClick="make_active_button();" title="Unarchive this worksheet so it appears in the default worksheet list">Unarchive</option>
-##          <option onClick="uncollaborate_me();" title="Remove myself from collaboration or viewing of this worksheet">Un-collaborate me</option>
-##         </select>
-##         """
         s = ''
 
         if not self.user_is_guest(user):
@@ -1455,136 +1381,6 @@ class Notebook(SageObject):
             if typ == 'trash':
                 s += '&nbsp;<a class="boldusercontrol" onClick="empty_trash();return false;" href="">(Empty Trash)</a>'
             s += '</span>'
-        return s
-
-
-    def html_worksheet_list(self, worksheets, user, worksheet_heading, sort, reverse, typ, pub=False):
-        s = ''
-
-        s = '<br><br>'
-        s += '<table width="100%" border=0 cellspacing=0 cellpadding=0>'
-        s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'
-        s += '<tr  class="greybox">'
-
-        if not pub:
-            s += '<td>&nbsp;<input id="controlbox" onClick="set_worksheet_list_checks();" class="entry" type=checkbox></td>'
-        else:
-            s += '<td>&nbsp;&nbsp;<a class="listcontrol" href=".?sort=rating">Rating</a></td>'
-            worksheet_heading = "Published Worksheets"
-
-        s += '<td><a class="listcontrol" href=".?typ=%s&sort=name%s">%s</a> </td>'%(typ,
-            '' if sort != 'name' or reverse else '&reverse=True', worksheet_heading)
-        s += '<td><a class="listcontrol" href=".?typ=%s&sort=owner%s">Owner%s</a> </td>'%(typ,
-            '' if sort != 'owner' or reverse else '&reverse=True',
-            '' if pub else ' / Collaborators')
-        s += '<td><a class="listcontrol" href=".?typ=%s&%s">Last Edited</a> </td>'%(typ,
-            '' if sort != 'last_edited' or reverse else 'reverse=True')
-        s += '</tr>'
-        s += '<tr class="greybox"><td colspan=4><div class="thinspace"></div></td></tr>'
-
-        v = []
-        for w in worksheets:
-            k = '<tr>'
-            k += '<td class="entry">%s</td>'%self.html_check_col(w, user, pub)
-            name = self.html_worksheet_link(w, pub)
-            if w.compute_process_has_been_started():
-                name = '(running) %s'%name
-            if w.is_active(user):
-                k += '<td class="worksheet_link">%s</td>'%name
-            else:
-                k += '<td class="archived_worksheet_link">%s</td>'%name
-            k += '<td class="owner_collab">%s</td>'%self.html_owner_collab_view(w, user, typ)
-            k += '<td class="last_edited">%s</td>'%w.html_time_since_last_edited()
-            k += '</tr>'
-            k += '<tr class="thingreybox"><td colspan=4><div class="ultrathinspace"></div></td></tr>'
-            v.append(k)
-
-        s += ''.join(v)
-        if not v and typ != 'trash' and not pub:
-            s += """<tr><td colspan="5" style="padding:20px;text-align:center">Welcome to Sage! You can
-<a href="/new_worksheet">create a new worksheet</a>, view <a href="/pub/">published worksheets</a>, or read the <a href="/help" target="_new">documentation</a>.</td></tr>"""
-        s += '</table>'
-
-        return s
-
-    def html_check_col(self, worksheet, user, pub):
-        def doc_options(name):
-            if pub:
-                rating = worksheet.rating()
-                if rating == -1:
-                    r = "----"
-                else:
-                    r = "%.1f"%rating
-                if not self.user_is_guest(user) and not worksheet.is_rater(user):
-                    r = '<i>%s</i>'%r
-                if r != '----':
-                    r = '<a class="worksheet_edit" href="/home/%s/rating_info">%s</a>'%(name,r)
-                return r
-
-            return """
-            <select onchange="go_option(this);" class="worksheet_edit">
-            <option value="" title="File options" selected>File</option>
-            <option value="list_rename_worksheet('%s','%s');" title="Change the name of this worksheet.">Rename...</option>
-            <option value="list_edit_worksheet('%s');" title="Open this worksheet and edit it">Edit</option>
-            <option value="list_copy_worksheet('%s');" title="Copy this worksheet">Copy Worksheet</option>
-            <option value="list_share_worksheet('%s');" title="Share this worksheet with others">Collaborate</option>
-            <option value="list_publish_worksheet('%s');" title="Publish this worksheet on the internet">Publish</option>
-            <option value="list_revisions_of_worksheet('%s');" title="See all revisions of this worksheet">Revisions</option>
-            </select>
-            """%(name, worksheet.name(), name, name,name,name,name)
-
-        k = ''
-        if not pub:
-            k += '<input type=checkbox unchecked id="%s">'%worksheet.filename()
-        k += '&nbsp;'*4
-        k += doc_options(worksheet.filename())
-        k += '&nbsp;'*4
-        return k
-
-    def html_worksheet_link(self, worksheet, pub):
-        name = worksheet.truncated_name(35)
-        if not pub and worksheet.is_published():
-            name += ' (published)'
-        return '<a title="%s" id="name/%s" class="worksheetname" href="/home/%s">%s</a>\n'%(
-            worksheet.name(), worksheet.filename(), worksheet.filename(), name)
-
-    def html_owner_collab_view(self, worksheet, user, typ):
-        v = []
-
-        owner = worksheet.owner()
-        pub = False
-        if owner == 'pub':
-            pub = True
-            owner = worksheet.worksheet_that_was_published().owner()
-
-        v.append(owner)
-
-        collab = [x for x in worksheet.collaborators() if not x == owner]
-        share = ''
-
-        if not pub and typ != 'trash' or self.user(user).is_admin():
-            if len(collab) == 0:
-                share = '<a class="share" href="/home/%s/share">Share now</a>'%(worksheet.filename())
-            else:
-                collaborators = ', '.join([x for x in collab])
-                if len(collaborators) > 21:
-                    collaborators = collaborators[:21] + '...'
-                v.append(collaborators)
-                share = '<a class="share" href="/home/%s/share">Add or Delete</a>'%(worksheet.filename())
-        if not (self.user(user).is_admin() or owner == user):
-            share = ''
-
-        if worksheet.has_published_version():
-            pub_ver = worksheet.published_version().filename()
-            share += ' <a href="/home/%s">(published)'%pub_ver
-
-        viewers = worksheet.viewers()
-        if len(viewers) > 0:
-            viewers = '<i>' + ', '.join(viewers) + '</i>'
-            v.append(viewers)
-
-        s = ' / '.join([str(w) for w in v]) + ' ' + share
-
         return s
 
 
@@ -2612,7 +2408,7 @@ def clean_name(name):
 def sort_worksheet_list(v, sort, reverse):
     """
     INPUT:
-        sort -- 'last_edited', 'owner', or 'name'
+        sort -- 'last_edited', 'owner', 'rating', or 'name'
         reverse -- if True, reverse the order of the sort.
     """
     f = None
@@ -2635,6 +2431,3 @@ def sort_worksheet_list(v, sort, reverse):
     else:
         raise ValueError, "invalid sort key '%s'"%sort
     v.sort(cmp = f, reverse=reverse)
-
-
-

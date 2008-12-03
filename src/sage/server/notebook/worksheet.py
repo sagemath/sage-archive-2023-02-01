@@ -390,12 +390,31 @@ class Worksheet:
             self.__collaborators = []
             return self.__collaborators
 
-    def collab(self):
-        collab = [x for x in self.collaborators() if x != self.owner()]
-        collaborators = ', '.join([x for x in collab])
-        if len(collaborators) > 21:
-            collaborators = collaborators[:21] + '...'
-        return collaborators
+    def collaborator_names(self, max=None):
+        """
+        Returns a string of the non-owner collaborators on this worksheet.
+
+        INPUT:
+            max -- an integer. If this is specified, then only max number of
+                   collaborators are shown.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('test1', 'admin')
+            sage: C = W.collaborators(); C
+            []
+            sage: C.append('sage')
+            sage: C.append('wstein')
+            sage: W.collaborator_names()
+            'sage, wstein'
+            sage: W.collaborator_names(max=1)
+            'sage, ...'
+
+        """
+        collaborators = [x for x in self.collaborators() if x != self.owner()]
+        if max is not None and len(collaborators) > max:
+            collaborators = collaborators[:max] + ['...']
+        return ", ".join(collaborators)
 
     def set_collaborators(self, v):
         """
@@ -457,6 +476,32 @@ class Worksheet:
         except AttributeError:
             self.__viewers = []
             return self.__viewers
+
+    def viewer_names(self, max=None):
+        """
+        Returns a string of the non-owner viewers on this worksheet.
+
+        INPUT:
+            max -- an integer. If this is specified, then only max number of
+                   viewers are shown.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: W = nb.create_new_worksheet('test1', 'admin')
+            sage: C = W.viewers(); C
+            []
+            sage: C.append('sage')
+            sage: C.append('wstein')
+            sage: W.viewer_names()
+            'sage, wstein'
+            sage: W.viewer_names(max=1)
+            'sage, ...'
+
+        """
+        viewers = [x for x in self.viewers() if x != self.owner()]
+        if max is not None and len(viewers) > max:
+            viewers = viewers[:max] + ['...']
+        return ", ".join(viewers)
 
     def delete_notebook_specific_data(self):
         """
@@ -2172,20 +2217,18 @@ class Worksheet:
                 return True, user
         False
 
-    def ws_time_since_last_edited(self):
+    def html_time_since_last_edited(self):
         t = self.time_since_last_edited()
         tm = convert_seconds_to_meaningful_time_span(t)
-        return tm
-
-    def html_time_since_last_edited(self):
-        tm, who = time_since_last_edited
-        return '<span class="lastedit">%s ago%s</span>'%(tm, self.last_to_edit)
+        who = ' by %s'%self.last_to_edit()
+        return '<span class="lastedit">%s ago%s</span>'%(tm, who)
 
     def html_time_last_edited(self):
         tm = convert_time_to_string(self.last_edited())
         who = self.last_to_edit()
         t = '<span class="lastedit">last edited on %s by %s</span>'%(tm, who)
         return t
+
 
     ##########################################################
     # Managing cells and groups of cells in this worksheet

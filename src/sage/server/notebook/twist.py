@@ -1156,7 +1156,7 @@ class Worksheet_publish(WorksheetResource, resource.Resource):
 class Worksheet_rating_info(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = self.worksheet.html_ratings_info()
-        return http.Response(stream=message("""
+        return http.Response(stream=message('''
         <h2 align=center>Ratings for %s</h2>
         <h3 align=center><a href='/home/%s'>Go to the worksheet.</a>
         <br><br>
@@ -1165,7 +1165,7 @@ class Worksheet_rating_info(WorksheetResource, resource.Resource):
         %s
         </table>
         <br><br>
-        """%(self.worksheet.name(), self.worksheet.filename(), s)))
+        '''%(self.worksheet.name(), self.worksheet.filename(), s)))
 
 
 class Worksheet_rate(WorksheetResource, resource.Resource):
@@ -1299,78 +1299,41 @@ class Worksheet(WorksheetResource, resource.Resource):
                     return static.File(h)
             return NotImplementedWorksheetOp(op, self.worksheet)
 
-def worksheets_by_group(user, group):
-    X = notebook.get_worksheets_with_viewer(user)
-    if group == "trash":
-        return ('Trash', [x for x in X if x.is_trashed(user)])
-    elif group == "active":
-        return ('Active Worksheets', [x for x in X if x.is_active(user)])
-    else: # typ must be archived or "all"
-        return ('Archived and Active', [x for x in X if not x.is_trashed(user)])
-
-def sort_worksheet_list(v, sort, reverse):
-    """
-    INPUT:
-        sort -- 'last_edited', 'owner', or 'name'
-        reverse -- if True, reverse the order of the sort.
-    """
-    f = None
-    if sort == 'last_edited':
-        def c(a, b):
-            return -cmp(a.last_edited(), b.last_edited())
-        f = c
-    elif sort == 'name':
-        def c(a,b):
-            return cmp((a.name().lower(), -a.last_edited()), (b.name().lower(), -b.last_edited()))
-        f = c
-    elif sort == 'owner':
-        def c(a,b):
-            return cmp((a.owner().lower(), -a.last_edited()), (b.owner().lower(), -b.last_edited()))
-        f = c
-    elif sort == "rating":
-        def c(a,b):
-            return -cmp((a.rating(), -a.last_edited()), (b.rating(), -b.last_edited()))
-        f = c
-    else:
-        raise ValueError, "invalid sort key '%s'"%sort
-    v.sort(cmp = f, reverse=reverse)
 
 def render_worksheet_list(args, pub, username):
-    template_dict = {'pub': pub,
-               'typ': args['typ'][0] if 'typ' in args else 'active',
-               'search': args['search'][0] if 'search' in args else None,
-               'sort': args['sort'][0] if 'sort' in args else 'last_edited',
-               'reverse': (args['reverse'][0] == 'True') if 'reverse' in args else False}
-    typ = template_dict['typ']
+    """
+    Returns a rendered worksheet listing.
+
+    INPUT:
+       args -- ctx.args where ctx is the dict passed into a
+               resource's render method
+       pub -- boolean, True if this is a listing of public
+              worksheets
+       username -- the user whose worksheets we are listing
+
+    OUTPUT:
+       a string
+    """
+    from sage.server.notebook.notebook import sort_worksheet_list
+    typ = args['typ'][0] if 'typ' in args else 'active'
+    search = args['search'][0] if 'search' in args else None
+    sort = args['sort'][0] if 'sort' in args else 'last_edited'
+    reverse = (args['reverse'][0] == 'True') if 'reverse' in args else False
+
     if not pub:
-        template_dict['group'], template_dict['worksheets'] = worksheets_by_group(username, template_dict['typ'])
+        worksheets = notebook.worksheet_list_for_user(username, typ=typ, sort=sort,
+                                                      search=search, reverse=reverse)
+
     else:
-        template_dict['group'] = ''
-        template_dict['worksheets'] = [x for x in notebook.all_worksheets().itervalues() if x.is_published() and not x.is_trashed(username)]
-    sort_worksheet_list(template_dict['worksheets'], template_dict['sort'], template_dict['reverse'])
-    template_dict['worksheet_filenames'] = [x.filename() for x in template_dict['worksheets']]
-    template_dict['username'] = username
-    template_dict['version'] = version
+        worksheets = notebook.worksheet_list_for_public(username, sort=sort,
+                                                        search=search, reverse=reverse)
+
+    worksheet_filenames = [x.filename() for x in worksheets]
+
     if pub and (not username or username == tuple([])):
-        template_dict['username'] = 'pub'
+        username = 'pub'
 
-    template_dict['any_worksheets'] = bool(template_dict['worksheets'])
-    #k += '<td class="owner_collab">%s</td>'%html_owner_collab_view(w, username, typ)
-    #k += '<td class="last_edited">%s</td>'%w.html_time_since_last_edited()
-
-    if pub:
-        template_dict['worksheet_heading'] = "Published Worksheets"
-    elif template_dict['typ'] == "trash":
-        template_dict['worksheet_heading'] = "Deleted Worksheets"
-        #W = [x for x in X if x.is_trashed(user)]
-    elif template_dict['typ'] == "active":
-        template_dict['worksheet_heading'] = "Active Worksheets"
-        #W = [x for x in X if x.is_active(user)]
-    else: # typ must be archived or "all"
-        template_dict['worksheet_heading'] = "Archived and Active Worksheets"
-        #W = [x for x in X if not x.is_trashed(user)]
-
-    return template('worksheet_listing.html', **template_dict)
+    return template('worksheet_listing.html', **locals())
 
 
 class WorksheetsByUser(resource.Resource):

@@ -7,7 +7,7 @@
 {% elif typ == 'active' %}
   {% set worksheet_heading='Active Worksheets' %}
 {% else %}
-  {% set worksheet_heading='Archived and Active Worksheets' %}
+  {% set worksheet_heading='Archived Worksheets' %}
 {% endif %}
 
 
@@ -116,11 +116,7 @@
         {% endif %}
       </td>
 
-      {% if worksheet.is_active(username) %}
       <td class="worksheet_link">
-      {% else %}
-      <td class="archived_worksheet_link">
-      {% endif %}
 	<a title="{{ worksheet_name }}" id="name/{{ name }}" class="worksheetname" href="/home/{{ name }}">
 	{% if worksheet.compute_process_has_been_started() %}(running) {% endif %}
 	{{ worksheet.truncated_name(35) }}

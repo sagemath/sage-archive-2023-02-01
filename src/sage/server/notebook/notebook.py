@@ -1276,8 +1276,8 @@ class Notebook(SageObject):
             W = [x for x in X if x.is_trashed(user)]
         elif typ == "active":
             W = [x for x in X if x.is_active(user)]
-        else: # typ must be archived or "all"
-            W = [x for x in X if not x.is_trashed(user)]
+        else: # typ must be archived
+            W = [x for x in X if not (x.is_trashed(user) or x.is_active(user))]
         if search:
             W = [x for x in W if x.satisfies_search(search)]
         sort_worksheet_list(W, sort, reverse)  # changed W in place

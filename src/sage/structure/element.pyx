@@ -173,17 +173,13 @@ from sage.structure.parent      cimport Parent
 
 def make_element(_class, _dict, parent):
     """
-    Used for unpickling Element objects (and subclasses).
+    This function is only here to support old pickles.
 
-    This should work for any Python class deriving from Element, as long
-    as it doesn't implement some screwy __new__() method.
-
-    See also Element.__reduce__().
+    Pickling functionality is moved to Element.{__getstate__,__setstate__}
+    functions.
     """
-    new_object = _class.__new__(_class)
-    new_object._set_parent(parent)
-    new_object.__dict__ = _dict
-    return new_object
+    from sage.misc.pickle_old import make_element_old
+    return make_element_old(_class, _dict, parent)
 
 def py_scalar_to_element(py):
     from sage.rings.integer_ring import ZZ
@@ -246,8 +242,40 @@ cdef class Element(sage_object.SageObject):
     def _repr_(self):
         return "Generic element of a structure"
 
-    def __reduce__(self):
-        return (make_element, (self.__class__, self.__dict__, self._parent))
+    def __getstate__(self):
+        """
+        Returns a tuple describing the state of your object.
+
+        This should return all information that will be required to unpickle
+        the object. The functionality for unpickling is implemented in
+        __setstate__().
+
+        TESTS:
+            sage: R.<x,y> = QQ[]
+            sage: i = ideal(x^2 - y^2 + 1)
+            sage: i.__getstate__()
+            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Rational Field, {'_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Rational Field, '_Ideal_generic__gens': (x^2 - y^2 + 1,)})
+        """
+        return (self._parent, self.__dict__)
+
+    def __setstate__(self, state):
+        """
+        Initializes the state of the object from data saved in a pickle.
+
+        During unpickling __init__ methods of classes are not called, the saved
+        data is passed to the class via this function instead.
+
+        TESTS:
+            sage: R.<x,y> = QQ[]
+            sage: i = ideal(x); i
+            Ideal (x) of Multivariate Polynomial Ring in x, y over Rational Field
+            sage: S.<y,z> = ZZ[]
+            sage: i.__setstate__((R,{'_Ideal_generic__ring':S,'_Ideal_generic__gens': (x^2 - y^2 + 1,)}))
+            sage: i
+            Ideal (x^2 - y^2 + 1) of Multivariate Polynomial Ring in y, z over Integer Ring
+        """
+        self._set_parent(state[0])
+        self.__dict__ = state[1]
 
     def __hash__(self):
         return hash(str(self))

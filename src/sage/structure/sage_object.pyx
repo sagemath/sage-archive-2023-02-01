@@ -680,6 +680,7 @@ def unpickle_all(dir):
     into the standard pickle jar.
         sage: std = os.environ['SAGE_DATA'] + '/extcode/pickle_jar/pickle_jar.tar.bz2'
         sage: sage.structure.sage_object.unpickle_all(std)
+        doctest:...: DeprecationWarning: Your data is stored in an old format. Please use the save() function to store your data in a more recent format.
         Successfully unpickled ... objects.
         Failed to unpickle 0 objects.
     """

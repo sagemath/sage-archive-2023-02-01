@@ -666,6 +666,9 @@ ext_modules = [
     Extension('sage.misc.parser',
               sources = ['sage/misc/parser.pyx']),
 
+    Extension('sage.misc.pickle_old',
+              sources = ['sage/misc/pickle_old.pyx']),
+
     Extension('sage.misc.randstate',
               sources = ['sage/misc/randstate.pyx']),
 

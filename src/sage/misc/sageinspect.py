@@ -365,7 +365,7 @@ def sage_getsource(obj, is_binary=False):
     #with respect to introspection.
     try:
         return obj._sage_src_()
-    except AttributeError:
+    except (AttributeError, TypeError):
         pass
 
     t = sage_getsourcelines(obj, is_binary)

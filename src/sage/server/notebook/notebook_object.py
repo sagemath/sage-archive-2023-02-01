@@ -22,9 +22,9 @@ import run_notebook
 
 class NotebookObject:
     r"""
-Start the Sage Notebook server. More documentation is available in the Sage
-installation guide, in the "Running the SAGE Notebook Securely" chapter, and
-at http://wiki.sagemath.org/StartingTheNotebook.
+Start the Sage Notebook server. More documentation is available in the
+Sage installation guide, in the "Running the SAGE Notebook Securely"
+chapter, and at http://wiki.sagemath.org/StartingTheNotebook.
 
     INPUT:
         directory     -- directory that contains the Sage notebook files;
@@ -61,9 +61,13 @@ at http://wiki.sagemath.org/StartingTheNotebook.
                          SAGE_BROWSER environment variable, e.g., by putting
                              export SAGE_BROWSER="firefox"
                          in the file .bashrc in your home directory.
-        timeout       -- (default: 0) seconds until idle worksheet sessions
-                         automatically timeout, i.e., the corresponding Sage
-                         session terminates.  0 means `never timeout'.
+        timeout       -- (default: 0) seconds until idle worksheet
+                         sessions automatically timeout, i.e., the
+                         corresponding Sage session terminates. 0 means
+                         `never timeout'. If your server is running out
+                         of memory, setting a timeout can be useful as
+                         this will free the memory used by idle
+                         sessions.
         server_pool   -- (default: None) list; this option specifies that
                          worksheet processes run as a separate user (chosen
                          from the list in the server_pool -- see below).

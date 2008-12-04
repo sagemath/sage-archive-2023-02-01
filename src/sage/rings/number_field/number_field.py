@@ -303,6 +303,17 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
         sage: K.<a> = NumberField(x^3-2, embedding=f.roots()[0][0])
         sage: a + L(1)
         4 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + 4*5^12 + 4*5^14 + 4*5^15 + 3*5^16 + 5^17 + 5^18 + 2*5^19 + O(5^20)
+        sage: L.<b> = NumberField(x^6-x^2+1/10, embedding=1)
+        sage: K.<a> = NumberField(x^3-x+1/10, embedding=b^2)
+        sage: a+b
+        b^2 + b
+        sage: CC(a) == CC(b)^2
+        True
+        sage: K.coerce_embedding()
+        Generic morphism:
+          From: Number Field in a with defining polynomial x^3 - x + 1/10
+          To:   Number Field in b with defining polynomial x^6 - x^2 + 1/10
+          Defn: a -> b^2
 
     The \code{QuadraticField} and \code{CyclotomicField} constructors create an
     embedding by default unless otherwise specified.
@@ -4498,6 +4509,8 @@ class NumberField_relative(NumberField_generic):
             sage: l.base_field().base_field()
             Number Field in a1 with defining polynomial x^2 + 1
         """
+        if embedding is not None:
+            raise NotImplementedError, "Embeddings not implemented for relative number fields"
         if not names is None: name = names
         if not is_NumberField(base):
             raise TypeError, "base (=%s) must be a number field"%base

@@ -293,19 +293,38 @@ def create_embedding_from_approx(K, gen_image):
           From: Number Field in a with defining polynomial x^3 - x + 1/10
           To:   Real Lazy Field
           Defn: a -> -1.046680531804603?
+
+    We can define embeddings from one number field to another:
+        sage: L.<b> = NumberField(x^6-x^2+1/10)
+        sage: create_embedding_from_approx(K, b^2)
+        Generic morphism:
+          From: Number Field in a with defining polynomial x^3 - x + 1/10
+          To:   Number Field in b with defining polynomial x^6 - x^2 + 1/10
+          Defn: a -> b^2
+
+    The if the embedding is exact, it must be valid:
+        sage: create_embedding_from_approx(K, b)
+        Traceback (most recent call last):
+        ...
+        ValueError: b is not a root of the defining polynomial of Number Field in a with defining polynomial x^3 - x + 1/10
     """
     if gen_image is None:
         return None
     elif isinstance(gen_image, Map):
         return gen_image
     elif isinstance(gen_image, Element):
+        f = K.defining_polynomial()
         P = gen_image.parent()
-        RR = RealField(mpfr_prec_min())
-        CC = ComplexField(mpfr_prec_min())
-        if RR.has_coerce_map_from(P):
-            P = RLF
-        elif CC.has_coerce_map_from(P):
-            P = CLF
+        if not P.is_exact() or f(gen_image) != 0:
+            RR = RealField(mpfr_prec_min())
+            CC = ComplexField(mpfr_prec_min())
+            if RR.has_coerce_map_from(P):
+                P = RLF
+            elif CC.has_coerce_map_from(P):
+                P = CLF
+            # padic lazy, when implemented, would go here
+            elif f(gen_image) != 0:
+                raise ValueError, "%s is not a root of the defining polynomial of %s" % (gen_image, K)
         return NumberFieldEmbedding(K, P, gen_image)
     else:
         raise TypeError, "Embedding (type %s) must be a morphism or element." % type(gen_image)

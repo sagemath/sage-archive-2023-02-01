@@ -32,7 +32,12 @@ from sage.rings.ring cimport Field
 import sage.rings.infinity
 from sage.rings.integer import Integer
 
+cdef QQ, RR, CC, RealField, ComplexField
 from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RR, RealField_constructor as RealField
+from sage.rings.complex_field import ComplexField
+CC = ComplexField(53)
+
 cdef _QQx = None
 
 cdef QQx():
@@ -1214,11 +1219,11 @@ cdef class LazyAlgebraic(LazyFieldElement):
 
     cdef readonly _poly
     cdef readonly _root_approx
-    cdef readonly _prec
+    cdef readonly int _prec
     cdef readonly _quadratic_disc
     cdef readonly _root
 
-    def __init__(self, parent, poly, approx, prec=0):
+    def __init__(self, parent, poly, approx, int prec=0):
         r"""
         This represents an algebraic number, specified by a polynomial over
         \Q and a real or complex approximation.
@@ -1232,7 +1237,6 @@ cdef class LazyAlgebraic(LazyFieldElement):
         """
         LazyFieldElement.__init__(self, parent)
         self._poly = QQx()(poly)
-        self._root_approx = approx
         self._root = None
         if prec is None:
             prec = approx.parent().prec()
@@ -1244,6 +1248,10 @@ cdef class LazyAlgebraic(LazyFieldElement):
             from sage.rings.real_double import RDF
             if len(self._poly.roots(RDF)) == 0:
                 raise ValueError, "%s has no real roots" % self._poly
+            approx = (RR if prec == 0 else RealField(prec))(approx)
+        else:
+            approx = (CC if prec == 0 else ComplexField(prec))(approx)
+        self._root_approx = approx
 
     cpdef eval(self, R):
         """

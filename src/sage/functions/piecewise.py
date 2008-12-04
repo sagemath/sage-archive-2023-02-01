@@ -101,6 +101,7 @@ from sage.rings.rational_field import RationalField
 from sage.rings.real_mpfr import RealField_constructor as RealField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR, Integer, Rational
+from sage.calculus.functional import derivative
 
 from sage.calculus.calculus import SR, var, maxima
 
@@ -753,15 +754,13 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.derivative()
             Piecewise defined function with 2 parts, [[(0, pi/2), 0], [(pi/2, pi), 0]]
+
+            sage: f = Piecewise([[(0,1), x * 2]])
+            sage: f.derivative()
+            Piecewise defined function with 1 parts, [[(0, 1), 2]]
         """
-        maxima = sage.interfaces.all.maxima
-        R = PolynomialRing(QQ,'x')
-        x = R.gen()
-        diffs = [maxima('%s'%p[1](x)).diff('x') \
-                 for p in self.list()]
-        dlist = [[(p[0][0], p[0][1]),
-            R(sage_eval(repr(maxima('%s'%p[1](x)).diff('x')).replace("%",""),
-                {'x':x}))] for p in self.list()]
+        x = var('x')
+        dlist = [[(p[0][0], p[0][1]), derivative(p[1](x), x)] for p in self.list()]
         return Piecewise(dlist)
 
     def tangent_line(self,pt):

@@ -157,20 +157,38 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: S=EllipticCurve(GF(97),[2,3])._points_via_group_structure()
             sage: len(S)
             100
+
+            See trac \#4687, where the following example did not work:
+            sage: E=EllipticCurve(GF(2),[0, 0, 1, 1, 1])
+            sage: E.points()
+            [(0 : 1 : 0)]
+
+            sage: E=EllipticCurve(GF(2),[0, 0, 1, 0, 1])
+            sage: E.points()
+            [(0 : 1 : 0), (1 : 0 : 1), (1 : 1 : 1)]
+
+            sage: E=EllipticCurve(GF(4,'a'),[0, 0, 1, 0, 1])
+            sage: E.points()
+            [(0 : 1 : 0), (0 : a : 1), (0 : a + 1 : 1), (1 : 0 : 1), (1 : 1 : 1), (a : 0 : 1), (a : 1 : 1), (a + 1 : 0 : 1), (a + 1 : 1 : 1)]
+
         """
         # TODO, eliminate when polynomial calling is fast
         G, pts = self.abelian_group()
 
         ni = G.invariants()
+        ngens = G.ngens()
 
         H0=[self(0)]
-        for m in range(1,ni[0]): H0.append(H0[-1]+pts[0])
-        if len(ni)==1:   # cyclic case
+        if ngens == 0:    # trivial group
             return H0
-        else:            # noncyclic
-            H1=[self(0)]
-            for m in range(1,ni[1]): H1.append(H1[-1]+pts[1])
-            return [P+Q for P in H0 for Q in H1]
+        for m in range(1,ni[0]): H0.append(H0[-1]+pts[0])
+        if ngens == 1:    # cyclic group
+            return H0
+
+        # else noncyclic group
+        H1=[self(0)]
+        for m in range(1,ni[1]): H1.append(H1[-1]+pts[1])
+        return [P+Q for P in H0 for Q in H1]
 
     def points(self):
         r"""

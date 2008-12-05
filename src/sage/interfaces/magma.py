@@ -1509,7 +1509,7 @@ class MagmaElement(ExpectElement):
             sage: s = a._ref(); s                            # optional - magma
             '_sage_ref...'
             sage: magma(s)                                   # optional - magma
-            '-2/3'
+            -2/3
         """
         P = self._check_valid()
         n = P._next_ref_name()

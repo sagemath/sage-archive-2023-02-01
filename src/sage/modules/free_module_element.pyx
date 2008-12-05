@@ -93,6 +93,7 @@ import sage.rings.integer_ring
 import sage.rings.integer
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
+from sage.misc.derivative import multi_derivative
 
 #from sage.matrix.matrix cimport Matrix
 
@@ -1287,6 +1288,61 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         else:
             return vector(R,v, sparse=self.is_sparse())
 
+
+    def _derivative(self, var=None):
+        """
+        Differentiate with respect to var by differentiating each
+        element with respect to var.
+
+        SEE ALSO:
+            self.derivative()
+
+        EXAMPLES:
+            sage: v = vector([1,x,x^2])
+            sage: v._derivative(x)
+            (0, 1, 2*x)
+            sage: type(v._derivative()) == type(v)
+            True
+            sage: v = vector([1,x,x^2], sparse=True)
+            sage: v._derivative(x)
+            (0, 1, 2*x)
+            sage: type(v._derivative()) == type(v)
+            True
+        """
+        # We would just use apply_map, except that Cython doesn't
+        # allow lambda functions
+        if self._degree == 0:
+            return self.copy()
+
+        if self.is_sparse():
+            v = dict([(i,z.derivative(var)) for i,z in self.dict().items()])
+        else:
+            v = [z.derivative(var) for z in self.list()]
+
+        return self.parent().ambient_module()(v)
+
+    def derivative(self, *args):
+        """
+        Derivative with respect to variables supplied in args.
+
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more details.
+
+        EXAMPLES:
+            sage: v = vector([1,x,x^2])
+            sage: v.derivative(x)
+            (0, 1, 2*x)
+            sage: type(v.derivative()) == type(v)
+            True
+            sage: v = vector([1,x,x^2], sparse=True)
+            sage: v.derivative(x)
+            (0, 1, 2*x)
+            sage: type(v.derivative()) == type(v)
+            True
+            sage: v.derivative(x,x)
+            (0, 0, 2)
+        """
+        return multi_derivative(self, args)
 
 #############################################
 # Generic dense element

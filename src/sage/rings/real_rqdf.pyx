@@ -212,6 +212,29 @@ cdef class RealQuadDoubleField_class(Field):
             return x._real_rqdf_(self)
         return QuadDoubleElement(x)
 
+    def _magma_init_(self, magma):
+        r"""
+        Return a string representation of self in the Magma language.
+
+        EXAMPLES:
+            sage: magma(RQDF) # optional
+            Real field of precision 63
+            sage: floor(RR(log(2**212, 10)))
+            63
+        """
+        return "RealField(%s : Bits := true)" % self.prec()
+
+    def prec(self):
+        """
+        Return the precision of this real quad double field (to be more
+        similar to RealField).  Always returns 212.
+
+        EXAMPLES:
+            sage: RQDF.prec()
+            212
+        """
+        return 212
+
     def gen(self, i=0):
         """
         Return the generator of the field.
@@ -541,6 +564,16 @@ cdef class QuadDoubleElement(FieldElement):
         """
         return (self.initptr.x[0], self.initptr.x[1],
                 self.initptr.x[2], self.initptr.x[3])
+
+    def prec(self):
+        """
+        Return the precision of this real quad double element.  Always returns 212.
+
+        EXAMPLES:
+            sage: RQDF(0).prec()
+            212
+        """
+        return 212
 
     def real(self):
         """

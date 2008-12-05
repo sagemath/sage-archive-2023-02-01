@@ -537,6 +537,20 @@ cdef class RealField(sage.rings.ring.Field):
     def prec(self):
         return self.__prec
 
+    def _magma_init_(self, magma):
+        r"""
+        Return a string representation of self in the Magma language.
+
+        EXAMPLES:
+            sage: magma(RealField(70)) # optional - magma
+            Real field of precision 21
+            sage: 10^21 < 2^70 < 10^22
+            True
+            sage: s = magma(RealField(70)).sage(); s # optional - magma
+            Real Field with 70 bits of precision
+        """
+        return "RealField(%s : Bits := true)" % self.prec()
+
     def to_prec(self, prec):
         """
         Returns the real field that is identical to self, except at the specified precision.
@@ -811,6 +825,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
         self.init = 1
         if x is None: return
         self._set(x, base)
+
+    def _magma_init_(self, magma):
+        r"""
+        Return a string representation of self in the Magma language.
+
+        EXAMPLES:
+            sage: magma(RR(10.5)) # optional - magma
+            10.5000000000000
+            sage: RealField(200)(10.5) # optional - magma
+            10.500000000000000000000000000000000000000000000000000000000
+        """
+        return "%s!%s" % (self.parent()._magma_init_(magma), self)
 
     cdef _set(self, x, int base):
         # This should not be called except when the number is being created.

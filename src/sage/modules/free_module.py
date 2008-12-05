@@ -1574,14 +1574,75 @@ class FreeModule_generic(module.Module):
             Full RSpace of degree 2 over Univariate Polynomial Ring in x over Rational Field
 
             sage: A = matrix([[1,0],[0,-1]])
-            sage: M = FreeModule(ZZ,2,inner_product_matrix=A)
+            sage: M = FreeModule(ZZ,2,inner_product_matrix=A); M
+            Ambient free quadratic module of rank 2 over the principal ideal domain Integer Ring
+            Inner product matrix:
+            [ 1  0]
+            [ 0 -1]
             sage: M._magma_init_(magma)                         # optional - magma
             'RSpace(_sage_[...],2,_sage_ref...)'
-            sage: magma(M)                                      # optional - magma
+            sage: m = magma(M); m                               # optional - magma
             Full RSpace of degree 2 over Integer Ring
             Inner Product Matrix:
             [ 1  0]
             [ 0 -1]
+            sage: m.Type()                                      # optional - magma
+            ModTupRng
+            sage: m.sage()                                      # optional - magma
+            Ambient free quadratic module of rank 2 over the principal ideal domain Integer Ring
+            Inner product matrix:
+            [ 1  0]
+            [ 0 -1]
+            sage: m.sage() is M                               # optional - magma
+            True
+
+            Now over a field:
+
+            sage: N = FreeModule(QQ,2,inner_product_matrix=A); N
+            Ambient quadratic space of dimension 2 over Rational Field
+            Inner product matrix:
+            [ 1  0]
+            [ 0 -1]
+            sage: n = magma(N); n                                      # optional - magma
+            Full Vector space of degree 2 over Rational Field
+            Inner Product Matrix:
+            [ 1  0]
+            [ 0 -1]
+            sage: n.Type()                                             # optional - magma
+            ModTupFld
+            sage: n.sage()                                           # optional - magma
+            Ambient quadratic space of dimension 2 over Rational Field
+            Inner product matrix:
+            [ 1  0]
+            [ 0 -1]
+            sage: n.sage() is N                                      # optional - magma
+            True
+
+            How about some inexact fields:
+            sage: v = vector(RR, [1, pi, 5/6])
+            sage: F = v.parent()
+            sage: M = magma(F); M # optional - magma
+            Full Vector space of degree 3 over Real field of precision 15
+            sage: M.Type() # optional - magma
+            ModTupFld
+            sage: m = M.sage(); m # optional - magma
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: m is F # optional - magma
+            True
+
+            For interval fields, we can convert to Magma but there is no
+            interval field in Magma so we cannot convert back:
+
+            sage: v = vector(RealIntervalField(100), [1, pi, 0.125])
+            sage: F = v.parent()
+            sage: M = magma(v.parent()); M # optional - magma
+            Full Vector space of degree 3 over Real field of precision 30
+            sage: M.Type() # optional - magma
+            ModTupFld
+            sage: m = M.sage(); m # optional - magma
+            Vector space of dimension 3 over Real Field with 100 bits of precision
+            sage: m is F # optional - magma
+            False
         """
         K = magma(self.base_ring())
         if not self._inner_product_is_dot_product():
@@ -1591,7 +1652,7 @@ class FreeModule_generic(module.Module):
             return "RSpace(%s,%s)"%(K.name(), self.__rank)
 
     def _macaulay2_(self, macaulay2=None):
-        """
+        r"""
         EXAMPLES:
             sage: R = QQ^2
             sage: macaulay2(R) # optional

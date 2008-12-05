@@ -169,6 +169,24 @@ class ComplexField_class(field.Field):
     def prec(self):
         return self._prec
 
+    def _magma_init_(self, magma):
+        r"""
+        Return a string representation of self in the Magma language.
+
+        EXAMPLES:
+            sage: magma(ComplexField(200)) # optional - magma
+            Complex field of precision 60
+            sage: 10^60 < 2^200 < 10^61
+            True
+            sage: s = magma(ComplexField(200)).sage(); s # optional - magma
+            Complex Field with 200 bits of precision
+            sage: 2^199 < 10^60 < 2^200
+            True
+            sage: s is ComplexField(200) # optional - magma
+            True
+        """
+        return "ComplexField(%s : Bits := true)" % self.prec()
+
     precision = prec
 
     def to_prec(self, prec):

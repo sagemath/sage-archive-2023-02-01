@@ -356,6 +356,20 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         elif CC.has_coerce_map_from(S):
             return CCtoCDF(CC, self) * CC.coerce_map_from(S)
 
+    def _magma_init_(self, magma):
+        r"""
+        Return a string representation of self in the Magma language.
+
+        EXAMPLES:
+            sage: magma(CDF) # optional - magma
+            Complex field of precision 15
+            sage: floor(RR(log(2**53, 10)))
+            15
+            sage: magma(CDF).sage() # optional - magma
+            Complex Field with 53 bits of precision
+        """
+        return "ComplexField(%s : Bits := true)" % self.prec()
+
     def prec(self):
         """
         Return the precision of this complex double field (to be more
@@ -658,6 +672,18 @@ cdef class ComplexDoubleElement(FieldElement):
             return self._complex.dat[n]
         raise IndexError, "index n must be 0 or 1"
 
+    def _magma_init_(self, magma):
+        r"""
+        EXAMPLES:
+            sage: magma(CDF(1.2, 0.3)) # optional - magma
+            1.20000000000000 + 0.300000000000000*$.1
+            sage: s = magma(CDF(1.2, 0.3)).sage(); s # optional - magma
+            1.20000000000000 + 0.300000000000000*I
+            sage: s.parent() # optional - magma
+            Complex Field with 53 bits of precision
+        """
+        return "%s![%s, %s]" % (self.parent()._magma_init_(magma), self.real(), self.imag())
+
     def prec(self):
         """
         Returns the precision of this number (to be more similar to
@@ -667,7 +693,6 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(0).prec()
             53
         """
-
         return 53
 
     #######################################################################

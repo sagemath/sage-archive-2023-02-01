@@ -591,6 +591,18 @@ cdef class RealIntervalField(sage.rings.ring.Field):
     def prec(self):
         return self.__prec
 
+    def _magma_init_(self, magma):
+        r"""
+        Return a string representation of self in the Magma language.
+
+        EXAMPLES:
+            sage: magma(RealIntervalField(80)) # optional - magma
+            Real field of precision 24
+            sage: floor(RR(log(2**80, 10)))
+            24
+        """
+        return "RealField(%s : Bits := true)" % self.prec()
+
     def pi(self):
         """
         Returns pi to the precision of this field.
@@ -875,6 +887,18 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def _latex_(self):
         return str(self)
+
+    def _magma_init_(self, magma):
+        r"""
+        Return a string representation of self in the Magma language.
+
+        EXAMPLES:
+            sage: t = RIF(10, 10.5); t
+            11.?
+            sage: magma(t) # optional - magma
+            10.2500000000000
+        """
+        return "%s!%s" % (self.parent()._magma_init_(magma), self.center())
 
     def _interface_init_(self):
         """

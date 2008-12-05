@@ -291,6 +291,49 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         self._degree = parent.degree()
         self._is_mutable = 1
 
+    def _magma_init_(self, magma):
+        r"""
+        Convert self to Magma.
+
+        EXAMPLES:
+            sage: F = FreeModule(ZZ, 2, inner_product_matrix=matrix(ZZ, 2, 2, [1, 0, 0, -1]))
+            sage: v = F([1, 2])
+            sage: M = magma(v); M # optional - magma
+            (1 2)
+            sage: M.Type() # optional - magma
+            ModTupRngElt
+            sage: M.Parent() # optional - magma
+            Full RSpace of degree 2 over Integer Ring
+            Inner Product Matrix:
+            [ 1  0]
+            [ 0 -1]
+            sage: M.sage() # optional - magma
+            (1, 2)
+            sage: M.sage() == v # optional - magma
+            True
+            sage: M.sage().parent() is v.parent() # optional - magma
+            True
+
+            sage: v = vector(QQ, [1, 2, 5/6])
+            sage: M = magma(v); M # optional - magma
+            (  1   2 5/6)
+            sage: M.Type() # optional - magma
+            ModTupFldElt
+            sage: M.Parent() # optional - magma
+            Full Vector space of degree 3 over Rational Field
+            sage: M.sage() # optional - magma
+            (1, 2, 5/6)
+            sage: M.sage() == v # optional - magma
+            True
+            sage: M.sage().parent() is v.parent() # optional - magma
+            True
+        """
+        # Get a reference to Magma version of parent.
+        R = magma(self.parent())
+        # Get list of coefficients.
+        v = ','.join([a._magma_init_(magma) for a in self.list()])
+        return '%s![%s]' % (R.name(), v)
+
     def __hash__(self):
         if self._is_mutable:
             raise TypeError, "mutable vectors are unhasheable"

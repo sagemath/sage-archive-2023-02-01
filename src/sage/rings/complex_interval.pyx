@@ -431,6 +431,20 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             return sage.rings.ring_element.RingElement.__pow__(self, right)
         return (self.log() * right).exp()
 
+    def _magma_init_(self, magma):
+        r"""
+        EXAMPLES:
+            sage: t = CIF((1, 1.1), 2.5); t
+            1.1? + 2.5000000000000000?*I
+            sage: magma(t) # optional - magma
+            1.05000000000000 + 2.50000000000000*$.1
+            sage: t = ComplexIntervalField(100)((1, 4/3), 2.5); t
+            2.? + 2.5000000000000000000000000000000?*I
+            sage: magma(t) # optional - magma
+            1.16666666666666666666666666670 + 2.50000000000000000000000000000*$.1
+        """
+        return "%s![%s, %s]" % (self.parent()._magma_init_(magma), self.center().real(), self.center().imag())
+
     def prec(self):
         """
         Return precision of this complex number.

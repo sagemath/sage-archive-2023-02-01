@@ -227,10 +227,31 @@ cdef class RealDoubleField_class(Field):
         if connecting is not None:
             return ToRDF(RR) * connecting
 
+    def _magma_init_(self, magma):
+        r"""
+        Return a string representation of self in the Magma language.
+
+        EXAMPLES:
+            Magma handles precision in decimal digits, so we lose a bit:
+
+            sage: magma(RDF) # optional - magma
+            Real field of precision 15
+            sage: 10^15 < 2^53 < 10^16
+            True
+
+            When we convert back from Magma, we convert to a generic real
+            field that has 53 bits of precision:
+
+            sage: magma(RDF).sage() # optional - magma
+            Real Field with 53 bits of precision
+        """
+        return "RealField(%s : Bits := true)" % self.prec()
+
     def prec(self):
         """
-        Return the precision of this real double field (to be more
-        similar to RealField).  Always returns 53.
+        Return the precision of this real double field in bits.
+
+        Always returns 53.
 
         EXAMPLES:
             sage: RDF.prec()
@@ -441,6 +462,18 @@ cdef class RealDoubleElement(FieldElement):
         """
         self._value = float(x)
 
+    def _magma_init_(self, magma):
+        r"""
+        Return a string representation of self in the Magma language.
+
+        EXAMPLES:
+            sage: RDF(10.5)
+            10.5
+            sage: magma(RDF(10.5)) # optional - magma
+            10.5000000000000
+        """
+        return "%s!%s" % (self.parent()._magma_init_(magma), self)
+
     def __reduce__(self):
         """
         EXAMPLES:
@@ -458,8 +491,9 @@ cdef class RealDoubleElement(FieldElement):
 
     def prec(self):
         """
-        Returns the precision of this number (to be more similar to
-        RealNumber).  Always returns 53.
+        Returns the precision of this number in bits.
+
+        Always returns 53.
 
         EXAMPLES:
             sage: RDF(0).prec()

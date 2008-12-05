@@ -511,6 +511,17 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         except AttributeError:
             raise TypeError
 
+    def _magma_init_(self, magma):
+        r"""
+        EXAMPLES:
+            sage: magma(CC([1, 2])) # optional - magma
+            1.00000000000000 + 2.00000000000000*$.1
+            sage: v = magma(CC([1, 2])).sage(); v # optional - magma
+            1.00000000000000 + 2.00000000000000*I
+            sage: v.parent() # optional - magma
+            Complex Field with 53 bits of precision
+        """
+        return "%s![%s, %s]" % (self.parent()._magma_init_(magma), self.real(), self.imag())
 
     def __nonzero__(self):
         """

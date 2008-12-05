@@ -147,6 +147,18 @@ class ComplexIntervalField_class(field.Field):
     def prec(self):
         return self._prec
 
+    def _magma_init_(self, magma):
+        r"""
+        Return a string representation of self in the Magma language.
+
+        EXAMPLES:
+            sage: magma(ComplexIntervalField(100)) # optional - magma
+            Complex field of precision 30
+            sage: floor(RR(log(2**100, 10)))
+            30
+        """
+        return "ComplexField(%s : Bits := true)" % self.prec()
+
     precision = prec
 
 

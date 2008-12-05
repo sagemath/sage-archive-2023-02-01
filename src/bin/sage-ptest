@@ -93,7 +93,7 @@ for gr in range(0,numglobaliteration):
                         elif ext in ['.py', '.pyx', '.tex', '.pxi']:
                             e = test(F, 'doctest '+opts)
                         else:
-                            raise TypeError, "Unknown File %s" % F
+                            continue # prefer silence to: raise TypeError, "Unknown File %s" % F
                         if e==-2:
                             raise KeyboardInterrupt
                     else:
@@ -234,8 +234,11 @@ for gr in range(0,numglobaliteration):
         filemutex.acquire()
         for FF in filelist:
             if os.path.isfile(FF):
-                cwd = os.getcwd()
-                files.append(cwd + '/' +  FF)
+                if not os.path.isabs(FF):
+                    cwd = os.getcwd()
+                    files.append(cwd + '/' +  FF)
+                else:
+                    files.append(FF)
                 continue
             curdir = os.getcwd()
             walkdir = os.path.join(CUR,FF)

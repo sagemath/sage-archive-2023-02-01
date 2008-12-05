@@ -33,6 +33,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.integer_mod_ring import IntegerModRing
+from sage.misc.derivative import multi_derivative
 
 import sage.modules.free_module
 import matrix_space
@@ -4549,6 +4550,30 @@ cdef class Matrix(matrix1.Matrix):
         """
         from sage.plot.plot import matrix_plot
         return matrix_plot(self, *args, **kwds)
+
+    def derivative(self, *args):
+        """
+        Derivative with respect to variables supplied in args.
+
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more details.
+
+        EXAMPLES:
+            sage: v = vector([1,x,x^2])
+            sage: v.derivative(x)
+            (0, 1, 2*x)
+            sage: type(v.derivative()) == type(v)
+            True
+            sage: v = vector([1,x,x^2], sparse=True)
+            sage: v.derivative(x)
+            (0, 1, 2*x)
+            sage: type(v.derivative()) == type(v)
+            True
+            sage: v.derivative(x,x)
+            (0, 0, 2)
+        """
+        return multi_derivative(self, args)
+
 
 def _dim_cmp(x,y):
     """

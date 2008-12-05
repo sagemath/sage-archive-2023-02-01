@@ -432,6 +432,38 @@ cdef class Matrix_sparse(matrix.Matrix):
                    self._ncols, sparse=True)
         return M(v)
 
+    def _derivative(self, var=None):
+        """
+        Differentiate with respect to var by differentiating each
+        element with respect to var.
+
+        SEE ALSO:
+            self.derivative()
+
+        EXAMPLES:
+            sage: m = matrix(2, [x^i for i in range(4)], sparse=True)
+            sage: m._derivative(x)
+            [    0     1]
+            [  2*x 3*x^2]
+        """
+        # We would just use apply_map, except that Cython doesn't
+        # allow lambda functions
+
+        if self._nrows==0 or self._ncols==0:
+            return self.copy()
+        v = [(ij, z.derivative(var)) for ij,z in self.dict().iteritems()]
+        if R is None:
+            w = [x for _, x in v]
+            w = sage.structure.sequence.Sequence(w)
+            R = w.universe()
+            v = dict([(v[i][0],w[i]) for i in range(len(v))])
+        else:
+            v = dict(v)
+        M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
+                   self._ncols, sparse=True)
+        return M(v)
+
+
 
 ##     def _echelon_in_place_classical(self):
 ##         """

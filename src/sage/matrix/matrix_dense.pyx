@@ -321,3 +321,34 @@ cdef class Matrix_dense(matrix.Matrix):
         if self.subdivisions is not None:
             image.subdivide(*self.get_subdivisions())
         return image
+
+    def _derivative(self, var=None):
+        """
+        Differentiate with respect to var by differentiating each
+        element with respect to var.
+
+        SEE ALSO:
+            self.derivative()
+
+        EXAMPLES:
+            sage: m = matrix(2, [x^i for i in range(4)])
+            sage: m._derivative(x)
+            [    0     1]
+            [  2*x 3*x^2]
+        """
+        # We would just use apply_map, except that Cython doesn't
+        # allow lambda functions
+
+        if self._nrows==0 or self._ncols==0:
+            return self.copy()
+        v = [z.derivative(var) for z in self.list()]
+        if R is None:
+            v = sage.structure.sequence.Sequence(v)
+            R = v.universe()
+        M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
+                   self._ncols, sparse=False)
+        image = M(v)
+        if self.subdivisions is not None:
+            image.subdivide(*self.get_subdivisions())
+        return image
+

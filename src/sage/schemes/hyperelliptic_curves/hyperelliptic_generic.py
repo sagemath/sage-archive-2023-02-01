@@ -29,6 +29,13 @@ import sage.schemes.plane_curves.projective_curve as plane_curve
 from sage.schemes.generic.all import ProjectiveSpace
 
 def is_HyperellipticCurve(C):
+    """
+    EXAMPLES:
+        sage: R.<x> = QQ[]; C = HyperellipticCurve(x^3 + x - 1); C
+        Hyperelliptic Curve over Rational Field defined by y^2 = x^3 + x - 1
+        sage: sage.schemes.hyperelliptic_curves.hyperelliptic_generic.is_HyperellipticCurve(C)
+        True
+    """
     return isinstance(C,HyperellipticCurve_generic)
 
 class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
@@ -90,6 +97,13 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return cmp(self._hyperelliptic_polynomials, other._hyperelliptic_polynomials)
 
     def hyperelliptic_polynomials(self, K=None, var='x'):
+        """
+        EXAMPLES:
+            sage: R.<x> = QQ[]; C = HyperellipticCurve(x^3 + x - 1, x^3/5); C
+            Hyperelliptic Curve over Rational Field defined by y^2 + 1/5*x^3*y = x^3 + x - 1
+            sage: C.hyperelliptic_polynomials()
+            (x^3 + x - 1, 1/5*x^3)
+        """
         if K == None:
             return self._hyperelliptic_polynomials
         else:
@@ -129,3 +143,22 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         import jacobian_generic
         return jacobian_generic.HyperellipticJacobian_generic(self)
 
+    def _magma_init_(self, magma):
+        """
+        Internal function.  Returns a string to initialize this
+        elliptic curve in the Magma subsystem.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]; C = HyperellipticCurve(x^3 + x - 1, x); C
+            Hyperelliptic Curve over Rational Field defined by y^2 + x*y = x^3 + x - 1
+            sage: magma(C)             # optional - magma
+            Hyperelliptic Curve defined by y^2 + x*y = x^3 + x - 1 over Rational Field
+            sage: R.<x> = GF(9,'a')[]; C = HyperellipticCurve(x^3 + x - 1, x^10); C
+            Hyperelliptic Curve over Finite Field in a of size 3^2 defined by y^2 + x^10*y = x^3 + x + 2
+            sage: D = magma(C); D             # optional - magma
+            Hyperelliptic Curve defined by y^2 + (x^10)*y = x^3 + x + 2 over GF(3^2)
+            sage: D.sage()                    # optional - magma
+            Hyperelliptic Curve over Finite Field in a of size 3^2 defined by y^2 + x^10*y = x^3 + x + 2
+        """
+        f, h = self._hyperelliptic_polynomials
+        return 'HyperellipticCurve(%s, %s)'%(f._magma_init_(magma), h._magma_init_(magma))

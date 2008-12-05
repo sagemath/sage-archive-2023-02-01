@@ -43,8 +43,6 @@ SYSTEM_NAMES = [v.split()[0] for v in SYSTEMS]
 
 JSMATH = True
 
-JQUERY = True
-
 if is_package_installed("jsmath-image-fonts"):
     JSMATH_IMAGE_FONTS = True
 else:
@@ -1231,6 +1229,7 @@ class Notebook(SageObject):
     ##########################################################
     def list_window_javascript(self, worksheet_filenames):
         s = """
+           <script type="text/javascript" src="/javascript_local/jquery/jquery.js"></script>
            <script type="text/javascript" src="/javascript/main.js"></script>
            <script type="text/javascript">
            var worksheet_filenames = %s;
@@ -1243,6 +1242,7 @@ class Notebook(SageObject):
         W = self.get_worksheet_with_filename(filename)
         s = '<head>\n'
         s += '<title>Sage Worksheet: %s</title>\n'%W.name()
+        s += '<script type="text/javascript" src="/javascript_local/jquery/jquery.js"></script>'
         s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
         if do_print:
             s += '<script type="text/javascript" src="/javascript_local/jsmath/jsMath.js"></script>\n'
@@ -1694,6 +1694,7 @@ class Notebook(SageObject):
             head = '\n<title>Sage Notebook | Welcome</title>'
 
         # Load the Sage javascript libray.
+        head += '\n<script type="text/javascript" src="/javascript_local/jquery/jquery.js"></script>'
         head += '\n<script type="text/javascript" src="/javascript/main.js"></script>\n'
         head += '\n<link rel=stylesheet href="/css/main.css" type="text/css">\n'
 
@@ -1718,24 +1719,28 @@ jsMath = {styles: {
 """
             head += '<script type="text/javascript" src="/javascript_local/jsmath/jsMath.js"></script>\n'
 
-        if JQUERY:
-            # Load the jquery and ui-jquery javascript library.
-            # This is used for interact functionality in the notebook, and will be used
-            # to enable drag and drop, image zoom, etc.
-            head += '''
-<script type="text/javascript" src="/javascript/jquery/jquery.js"></script>
-<script type="text/javascript" src="/javascript/jqueryui/jquery.dimensions.js"></script>
-<script type="text/javascript" src="/javascript/jqueryui/ui.mouse.js"></script>
-<script type="text/javascript" src="/javascript/jqueryui/ui.slider.js"></script>
-<script type="text/javascript" src="/javascript/jqueryui/ui.draggable.js"></script>
-<script type="text/javascript" src="/javascript/jqueryui/ui.draggable.ext.js"></script>
-<script type="text/javascript" src="/javascript/jqueryui/ui.resizable.js"></script>
-<script type="text/javascript" src="/javascript/jqueryui/ui.dialog.js"></script>
-<link rel="stylesheet" href="/javascript/jqueryui/themes/flora/flora.all.css">
+        # Load the jquery and ui-jquery javascript library.
+        # This is used for interact functionality in the notebook, and will be used
+        # to enable drag and drop, image zoom, etc.
+        head += '''
+<script type="text/javascript" src="/javascript_local/jqueryui/jquery.ui.all.min.js"></script>
+<script type="text/javascript" src="/javascript_local/jquery/plugins/farbtastic/farbtastic.min.js"></script>
+<script type="text/javascript" src="/javascript_local/jquery/plugins/dimensions/jquery.dimensions.min.js"></script>
+<script type="text/javascript" src="/javascript_local/jquery/plugins/jquery.event.extendedclick.js"></script>
 
-<script type="text/javascript" src="/javascript/farbtastic/farbtastic.js"></script>
-<link rel="stylesheet" href="/javascript/farbtastic/farbtastic.css" type="text/css" />
+<link rel="stylesheet" href="/javascript_local/jquery/plugins/farbtastic/farbtastic.css" type="text/css" />
+<link rel="stylesheet" href="/javascript_local/jqueryui/themes/flora/flora.all.css">
          '''
+# TODO: get the lazy loading plugin
+
+# TODO: Load individual ui plugins, not the whole package:
+# <script type="text/javascript" src="/javascript_local/jqueryui/ui.mouse.min.js"></script>
+# <script type="text/javascript" src="/javascript_local/jqueryui/ui.slider.min.js"></script>
+# <script type="text/javascript" src="/javascript_local/jqueryui/ui.draggable.min.js"></script>
+# <script type="text/javascript" src="/javascript_local/jqueryui/ui.draggable.ext.min.js"></script>
+# <script type="text/javascript" src="/javascript_local/jqueryui/ui.resizable.min.js"></script>
+# <script type="text/javascript" src="/javascript_local/jqueryui/ui.dialog.min.js"></script>
+
 
         # This was for syntax hilighting
 #        head +=' <script type="text/javascript" src="/javascript/highlight/prettify.js"></script>\n'

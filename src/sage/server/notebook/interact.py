@@ -229,8 +229,8 @@ def html_slider(id, values, callback, steps, default=0, margin=0):
         <html>...</html>
     """
     s = """<table><tr><td>
-    	<div id='%s' class='ui-slider-3' style='padding:0px;margin:%spx;'><span class='ui-slider-handle'></span></div>
-    	</td>"""%(id, int(margin))
+    	<div id='%s' class='ui-slider ui-slider-3' style='margin:%spx;'><span class='ui-slider-handle'></span></div>
+    	</td>"""%(id,int(margin))
     if values != "null":
         s += "<td><font color='black' id='%s-lbl'></font></td>"%id
     s += "</tr></table>"
@@ -238,16 +238,16 @@ def html_slider(id, values, callback, steps, default=0, margin=0):
     # We now generate javascript that gets run after the above div
     # gets inserted. This happens because of the setTimeout function
     # below which gets passed an anonymous function.
-    s += """<script>(function(){ var values = %s; setTimeout(function() {
-    $('#%s').slider({
-    	stepping: 1, minValue: 0, maxValue: %s, startValue: %s,
-    	change: function () { var position = Math.ceil($('#%s').slider('value')); if(values!=null) $('#%s-lbl').text(values[position]); %s; },
-    	slide: function() { if(values!=null) $('#%s-lbl').text(values[Math.ceil($('#%s').slider('value'))]); }
+    s += """<script>(function(){ var values = %(values)s; setTimeout(function() {
+    $('#%(id)s').slider({
+    	stepping: 1, min: 0, max: %(maxvalue)s, startValue: %(startvalue)s,
+    	change: function (e,ui) { var position = ui.value; if(values!=null) $('#%(id)s-lbl').text(values[position]); %(callback)s; },
+    	slide: function(e,ui) { if(values!=null) $('#%(id)s-lbl').text(values[ui.value]); }
     });
-    if(values != null) $('#%s-lbl').text(values[Math.ceil($('#%s').slider('value'))]);
-    }, 1); })();</script>"""%(values, id, steps-1, default, id, id, callback, id, id, id, id)
+    if(values != null) $('#%(id)s-lbl').text(values[$('#%(id)s').slider('value')]);
+    }, 1); })();</script>"""%{'values': values, 'id': id, 'maxvalue': steps-1, 'startvalue': default, 'callback': callback}
     # change 'change' to 'slide' and it changes the slider every time it moves;
-    # needs much more work to actually work, since server gets fludded by
+    # needs much more work to actually work, since server gets flooded by
     # requests.
 
     return s
@@ -274,9 +274,9 @@ def html_rangeslider(id, values, callback, steps, default_l=0, default_r=1, marg
         <html>...</html>
     """
     s = """<table>
-    <tr><td><div id='%s' class='ui-slider-3' style='padding:0px;margin:%spx;'>
+    <tr><td><div id='%s' class='ui-slider ui-slider-3' style='margin:%spx;'>
     <span class='ui-slider-handle'></span><span class='ui-slider-handle'></span>
-    </div></td></tr>"""%(id, int(margin))
+    </div></td></tr>"""%(id,int(margin))
     if values != "null":
         s += "<tr><td><font color='black' id='%s-lbl'></font></td></tr>"%id
     s += "</table>"
@@ -291,8 +291,8 @@ def html_rangeslider(id, values, callback, steps, default_l=0, default_r=1, marg
         var sel = '#%s';
         var updatePos = function()
         {
-            pos[0]=Math.ceil($(sel).slider('value', 0));
-            pos[1]=Math.ceil($(sel).slider('value', 1));
+            pos[0]=$(sel).slider('value', 0);
+            pos[1]=$(sel).slider('value', 1);
             if(values!=null) $(sel+'-lbl').text("("+values[pos[0]]+", "+values[pos[1]]+")");
         };
         setTimeout(function()
@@ -301,15 +301,17 @@ def html_rangeslider(id, values, callback, steps, default_l=0, default_r=1, marg
             {
                 range: true,
                 stepping: 1,
-                minValue: 0,
-                maxValue: %s,
-                startValue: [%s, %s],
-                change: function(){ updatePos(); %s; },
+                min: 0,
+                max: %s,
+                handles: [{start: %s},{start:%s}],
+                change: function(e,ui){ updatePos(); %s; },
                 slide: updatePos
             });
             updatePos();
         }, 1);
     })();</script>"""%(values, default_l, default_r, id, steps-1, default_l, default_r, callback)
+
+
     # change 'change' to 'slide' and it changes the slider every time it moves;
     # needs much more work to actually work, since server gets fludded by
     # requests.

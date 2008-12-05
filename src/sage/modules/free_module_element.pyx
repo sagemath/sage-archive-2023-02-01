@@ -1234,6 +1234,60 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return self.parent().ambient_module().sparse_module()(self.list())
 
 
+    def apply_map(self, phi, R=None):
+        """
+        Apply the given map phi (an arbitrary Python function or
+        callable object) to this free module element.  If R is not
+        given, automatically determine the base ring of the resulting
+        element.
+
+        INPUT:
+            phi -- arbitrary Python function or callable object
+            R -- (optional) ring
+
+        OUTPUT:
+            a free module element over R
+
+        EXAMPLES:
+            sage: m = vector([1,x,sin(x+1)])
+            sage: m.apply_map(x^2)
+            (1, x^2, sin(x + 1)^2)
+            sage: m.apply_map(sin)
+            (sin(1), sin(x), sin(sin(x + 1)))
+
+            sage: m = vector(ZZ, 9, range(9))
+            sage: k.<a> = GF(9)
+            sage: m.apply_map(k)
+            (0, 1, 2, 0, 1, 2, 0, 1, 2)
+
+        In this example, we explicitly specify the codomain.
+
+            sage: s = GF(3)
+            sage: f = lambda x: s(x)
+            sage: n = m.apply_map(f, k); n
+            (0, 1, 2, 0, 1, 2, 0, 1, 2)
+            sage: n.parent()
+            Vector space of dimension 9 over Finite Field in a of size 3^2
+
+        TESTS:
+            sage: m = vector(SR,[])
+            sage: m.apply_map(lambda x: x*x) == m
+            True
+        """
+        if self._degree == 0:
+            return self.copy()
+
+        if self.is_sparse():
+            v = dict([(i,phi(z)) for i,z in self.dict().items()])
+        else:
+            v = [phi(z) for z in self.list()]
+
+        if R is None:
+            return vector(v, sparse=self.is_sparse())
+        else:
+            return vector(R,v, sparse=self.is_sparse())
+
+
 #############################################
 # Generic dense element
 #############################################

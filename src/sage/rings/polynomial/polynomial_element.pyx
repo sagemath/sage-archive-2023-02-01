@@ -2920,7 +2920,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<y> = ZZ[]
             sage: f = y^3 - 17*y + 5
             sage: f._magma_init_(magma)        # optional - magma
-            '_sage_[1]![5,-17,0,1]'
+            '_sage_[...]![5,-17,0,1]'
             sage: g = magma(f); g              # optional - magma
             y^3 - 17*y + 5
 

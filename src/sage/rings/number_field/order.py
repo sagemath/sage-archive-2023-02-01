@@ -954,7 +954,7 @@ class AbsoluteOrder(Order):
 
         _magma_init_ was called implicitly by the above call:
             sage: K.maximal_order()._magma_init_(magma) # optional - magma
-            'Order([(_sage_[3]![1, 0, 0]),(_sage_[3]![0, 1, 0]),(_sage_[3]![0, 0, 1])])'
+            'Order([(_sage_[...]![1, 0, 0]),(_sage_[...]![0, 1, 0]),(_sage_[...]![0, 0, 1])])'
         """
         K = self.number_field()
         v = [K(a)._magma_init_(magma) for a in self.gens()]

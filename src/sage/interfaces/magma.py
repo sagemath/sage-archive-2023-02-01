@@ -1481,6 +1481,23 @@ class MagmaElement(ExpectElement):
         being garbage collected by Magma, even if all the Sage
         references to it are freed.
 
+        Important special behavior: When _ref is used during an
+        implicit call to _magma_init_, then the reference disappears
+        after the coercion is done.  More precisely, if the output of
+        _ref() appears as part of the output of a call to _magma_init_
+        that is then going to be input to magma(...), then it is
+        deleted in the Magma interface.  The main use for this
+        behavior is that in _magma_init_ it allows you to get a
+        reference to one object, and use it exactly once in
+        constructing a string to evaluate in Magma, without having to
+        worry about that object being deallocated.  There are more
+        sophisticated ways that the same problem (with _magma_init_
+        and references) could have been solved, but this solution is
+        much simpler and easier to understand than all others I came
+        up with.  If this doesn't make sense, read the source code to
+        _coerce_from_special_method, which is much shorter than this
+        paragraph.
+
         WARNING: Use _ref sparingly, since it involves a full call to
         Magma, which can be slow.
 
@@ -1491,7 +1508,7 @@ class MagmaElement(ExpectElement):
             sage: a = magma('-2/3')                          # optional - magma
             sage: s = a._ref(); s                            # optional - magma
             '_sage_ref...'
-            sage: magma.eval(s)                              # optional - magma
+            sage: magma(s)                                   # optional - magma
             '-2/3'
         """
         P = self._check_valid()

@@ -266,7 +266,7 @@ class FractionField_generic(field.Field):
 
         EXAMPLES:
             sage: QQ['x'].fraction_field()._magma_init_(magma)            # optional - magma
-            'SageCreateWithNames(FieldOfFractions(SageCreateWithNames(PolynomialRing(RationalField()),["x"])),["x"])'
+            'SageCreateWithNames(FieldOfFractions(SageCreateWithNames(PolynomialRing(_sage_ref...),["x"])),["x"])'
             sage: GF(9,'a')['x,y,z'].fraction_field()._magma_init_(magma) # optional - magma
             'SageCreateWithNames(FieldOfFractions(SageCreateWithNames(PolynomialRing(_sage_ref...,3,"grevlex"),["x","y","z"])),["x","y","z"])'
 

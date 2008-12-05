@@ -353,7 +353,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES:
             sage: R = QQ['y']
             sage: R._magma_init_(magma)                     # optional - magma
-            'SageCreateWithNames(PolynomialRing(RationalField()),["y"])'
+            'SageCreateWithNames(PolynomialRing(_sage_ref...),["y"])'
             sage: S = magma(R)                              # optional - magma
             sage: print S                                   # optional - magma
             Univariate Polynomial Ring in y over Rational Field
@@ -377,8 +377,16 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             Univariate Polynomial Ring in x over Rational Field
             sage: m(QQ['w'])   # same magma object, now prints as x; optional - magma
             Univariate Polynomial Ring in x over Rational Field
+
+        A nested example over a Givaro finite field:
+            sage: k.<a> = GF(9)
+            sage: R.<x> = k[]
+            sage: magma(a^2*x^3 + (a+1)*x + a)              # optional - magma
+            a^2*x^3 + a^2*x + a
         """
-        s = 'PolynomialRing(%s)'%(self.base_ring()._magma_init_(magma))
+        B = magma(self.base_ring())
+        Bref = B._ref()
+        s = 'PolynomialRing(%s)'%(Bref)
         return magma._with_names(s, self.variable_names())
 
     def _gap_(self, G=None):

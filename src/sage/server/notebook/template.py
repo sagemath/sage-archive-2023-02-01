@@ -64,7 +64,7 @@ def template(filename, **user_context):
     try:
         tmpl = env.get_template(filename)
     except jinja.exceptions.TemplateNotFound:
-        return template('template_error.html')
+        return template('template_error.html', template=filename)
     context = dict(default_context)
     context.update(user_context)
     return str(tmpl.render(**context))

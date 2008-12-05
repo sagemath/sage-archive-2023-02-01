@@ -261,10 +261,16 @@ class Source(resource.Resource):
         self.username = username
 
     def render(self, ctx):
-        if os.path.isfile(self.path):
-            return http.Response(stream = notebook.html_src(self.path, self.username))
+        filename = self.path
+        if os.path.isfile(filename):
+            if not os.path.exists(filename):
+                src = "No such file '%s'"%filename
+            else:
+                src = open(filename).read()
+            src = src.replace('<','&lt;')
+            return http.Response(stream = template('source_code.html', src_filename=self.path, src=src, username=self.username))
         else:
-            return static.File(self.path)
+            return static.File(filename)
 
     def childFactory(self, request, name):
         return Source(self.path + '/' + name, self.username)
@@ -290,8 +296,11 @@ def redirect(url):
     return '<html><head><meta http-equiv="REFRESH" content="0; URL=%s"></head></html>'%url
 
 class Upload(resource.Resource):
+    def __init__(self, username):
+        self.username = username
+
     def render(self, ctx):
-        return http.Response(stream = notebook.upload_window())
+        return http.Response(stream = template('upload.html', username=self.username))
 
 class UploadWorksheet(resource.PostableResource):
     def __init__(self, username):
@@ -1598,8 +1607,8 @@ class Help(resource.Resource):
         self.username = username
 
     def render(self, ctx):
-        s = notebook.html_notebook_help_window(self.username)
-        return http.Response(stream=s)
+        from tutorial import notebook_help
+        return http.Response(stream=template('docs.html', username=self.username, notebook_help=notebook_help))
 
 
 ############################
@@ -2179,7 +2188,6 @@ class UserToplevel(Toplevel):
     child_javascript_local = JavascriptLocal()
     child_java = Java()
 
-    child_upload = Upload()
     child_logout = Logout()
 
     child_confirm = RegConfirmation()
@@ -2211,6 +2219,7 @@ class UserToplevel(Toplevel):
     userchild_notebook_settings = NotebookSettings
     userchild_settings = SettingsPage
     userchild_pub = PublicWorksheets
+    userchild_upload = Upload
 
     userchild_send_to_trash = SendWorksheetToTrash
     userchild_send_to_archive = SendWorksheetToArchive

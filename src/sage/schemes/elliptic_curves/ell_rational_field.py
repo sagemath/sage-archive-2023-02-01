@@ -2182,6 +2182,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             4
             sage: E.tamagawa_exponent(5)
             2
+
+            See \#4715:
+            sage: E=EllipticCurve('117a3')
+            sage: E.tamagawa_exponent(13)
+            4
         """
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"

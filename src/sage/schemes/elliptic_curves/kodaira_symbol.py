@@ -79,6 +79,7 @@ class KodairaSymbol_class(SageObject):
             elif n > 4:
                 nu = n - 4
                 self._n = nu
+                self._roman = 1
                 self._str = 'I' + nu.str()
                 self._latex = '$I_{' + nu.str() + '}$'
             elif n == -1:

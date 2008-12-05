@@ -55,7 +55,7 @@ from sage.rings.padics.factory import Zp, Qp
 
 import sage.matrix.all as matrix
 import sage.databases.cremona
-from   sage.libs.pari.all import pari
+from   sage.libs.pari.all import pari, PariError
 import sage.functions.transcendental as transcendental
 from math import sqrt
 import sage.libs.mwrank.all as mwrank
@@ -485,6 +485,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: [a.precision() for a in E]
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4] # 32-bit
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3] # 64-bit
+
+            This shows that the bug uncovered by trac \#4715 is fixed:
+            sage: Ep = EllipticCurve('903b3').pari_curve()
         """
         try:
             # if the PARI curve has already been computed to this
@@ -505,8 +508,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     return self._pari_curve[L[-1]]
                 else:
                     prec = int(factor * L[-1])
-        self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
-        return self._pari_curve[prec]
+        # EllipticCurve('903b3').pari_curve() fails without this loop:
+        while True:
+            try:
+                self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
+                return self._pari_curve[prec]
+            except PariError:
+                prec *= 2
 
     # This alias is defined so that pari(E) returns exactly the same
     # as E.pari_curve().  Without it, pari(E) would call the default

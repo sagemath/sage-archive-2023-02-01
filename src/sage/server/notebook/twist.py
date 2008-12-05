@@ -963,9 +963,26 @@ class Worksheet_new_cell_before(WorksheetResource, resource.PostableResource):
             input = ''
         else:
             input = ctx.args['input'][0]
+
         cell = self.worksheet.new_cell_before(id, input=input)
         s = encode_list([cell.id(), cell.html(div_wrap=False), id])
         return http.Response(stream = s)
+
+class Worksheet_new_text_cell_before(WorksheetResource, resource.PostableResource):
+    """
+    Adds a new cell before a given cell.
+    """
+    def render(self, ctx):
+        id = self.id(ctx)
+        if not ctx.args.has_key('input'):
+            input = ''
+        else:
+            input = ctx.args['input'][0]
+
+        cell = self.worksheet.new_text_cell_before(id, input=input)
+        s = encode_list([cell.id(), cell.html(editing=True), id])
+        return http.Response(stream = s)
+
 
 class Worksheet_new_cell_after(WorksheetResource, resource.PostableResource):
     """
@@ -979,6 +996,21 @@ class Worksheet_new_cell_after(WorksheetResource, resource.PostableResource):
             input = ctx.args['input'][0]
         cell = self.worksheet.new_cell_after(id, input=input)
         s = encode_list([cell.id(), cell.html(div_wrap=False), id])
+        return http.Response(stream = s)
+
+class Worksheet_new_text_cell_after(WorksheetResource, resource.PostableResource):
+    """
+    Adds a new text cell after a given cell.
+    """
+    def render(self, ctx):
+        id = self.id(ctx)
+        if not ctx.args.has_key('input'):
+            input = ''
+        else:
+            input = ctx.args['input'][0]
+
+        cell = self.worksheet.new_text_cell_after(id, input=input)
+        s = encode_list([cell.id(), cell.html(editing=True), id])
         return http.Response(stream = s)
 
 
@@ -1091,6 +1123,9 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
         if ctx.args.has_key('save_only') and ctx.args['save_only'][0] == '1':
             notebook_updates()
             return http.Response(stream='')
+        elif ctx.args.has_key('text_only') and ctx.args['text_only'][0] == '1':
+            notebook_updates()
+            return http.Response(stream=encode_list([str(id), cell.html()]))
         else:
             newcell = int(ctx.args['newcell'][0])  # whether to insert a new cell or not
 

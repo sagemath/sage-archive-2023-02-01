@@ -48,6 +48,11 @@ if is_package_installed("jsmath-image-fonts"):
 else:
     JSMATH_IMAGE_FONTS = False
 
+if is_package_installed("tinyMCE"):
+    JEDITABLE_TINYMCE = True
+else:
+    JEDITABLE_TINYMCE = False
+
 vbar = '<span class="vbar"></span>'
 
 DOC_TIMEOUT = 120
@@ -1752,6 +1757,81 @@ jsMath = {styles: {
         head +=' <script type="text/javascript" src="/java/jmol/appletweb/Jmol.js"></script>\n'
 
         head +=' <script>jmolInitialize("/java/jmol");</script>\n' # this must stay in the <head>
+
+        # TinyMCE and jEditable -- in-place editing of text cells
+        if JEDITABLE_TINYMCE:
+            head += """<script type="text/javascript" src="/javascript_local/tiny_mce/tiny_mce.js"></script>
+<script src="/javascript_local/jquery/plugins/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+
+function toggleEditor(id) {
+	if (!tinyMCE.get(id))
+		tinyMCE.execCommand('mceAddControl', false, id);
+	else
+		tinyMCE.execCommand('mceRemoveControl', false, id);
+}
+
+$.fn.tinymce = function(options){
+   return this.each(function(){
+      tinyMCE.execCommand("mceAddControl", true, this.id);
+   });
+}
+
+function initMCE(){
+   tinyMCE.init({mode : "none",
+      plugins: "table,searchreplace,safari,paste,autosave",
+      theme : "advanced",
+      theme_advanced_toolbar_location : "top",
+      theme_advanced_toolbar_align : "left",
+      theme_advanced_statusbar_location : "bottom",
+      theme_advanced_buttons1 : "\
+formatselect,bold,italic,underline,strikethrough,forecolor,backcolor,|,\
+bullist,numlist,|,\
+undo,redo,search,pastetext,pasteword,|,\
+link,image,unlink",
+      theme_advanced_buttons2 : "\
+justifyleft,justifycenter,justifyright,justifyfull,outdent,indent,|,\
+charmap,|,\
+table,tablecontrols,|,\
+code",
+      theme_advanced_buttons3 : "",
+      theme_advanced_resizing : true});
+}
+
+initMCE();
+
+
+$.editable.addInputType('mce', {
+   element : function(settings, original) {
+      var textarea = $('<textarea id="'+$(original).attr("id")+'_mce"/>');
+      if (settings.rows) {
+         textarea.attr('rows', settings.rows);
+      } else {
+         textarea.height(settings.height);
+      }
+      if (settings.cols) {
+         textarea.attr('cols', settings.cols);
+      } else {
+         textarea.width(settings.width);
+      }
+      $(this).append(textarea);
+         return(textarea);
+      },
+   plugin : function(settings, original) {
+      tinyMCE.execCommand("mceAddControl", true, $(original).attr("id")+'_mce');
+      },
+   submit : function(settings, original) {
+      tinyMCE.triggerSave();
+      tinyMCE.execCommand("mceRemoveControl", true, $(original).attr("id")+'_mce');
+      },
+   reset : function(settings, original) {
+      tinyMCE.execCommand("mceRemoveControl", true, $(original).attr("id")+'_mce');
+      original.reset();
+   }
+});
+</script>
+"""
+
         return head
 
     def html_worksheet_topbar(self, worksheet, select=None, username='guest', backwards=False):

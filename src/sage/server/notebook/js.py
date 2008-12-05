@@ -1623,6 +1623,53 @@ function send_cell_input(id) {
                   {save_only: 1, id: id, input: cell.value});
 }
 
+function evaluate_text_cell_input(id,value, settings) {
+    /* Send the input text of the current cell back to the server.
+    INPUT:
+       id -- The id of the cell
+       value -- The new text for the cell
+    OUTPUT:
+       makes an async call back to the server sending the input text.
+    */
+    async_request(worksheet_command('eval'), evaluate_text_cell_callback,
+                  {text_only: 1, id: id, input: value});
+}
+
+function evaluate_text_cell_callback(status, response_text) {
+    /*
+    Display the new content of a text cell, parsing for math if needed.
+
+    INPUT:
+        response_text -- string that is of the form
+             [id][cell_html]
+             id -- string (integer) of the current text cell
+
+             cell_html -- the html to put in the cell
+    */
+    if (status == "failure") {
+        // Failure evaluating a cell.
+        return;
+    }
+    var X = response_text.split(SEP);
+    if (X[0] == '-1') {
+        // something went wrong -- i.e., the requested cell doesn't exist.
+        alert("You requested to evaluate a cell that, for some reason, the server is unaware of.");
+        return;
+    }
+    id = X[0];
+    text = X[1];
+    text_cell = get_element('cell_text_'+id);
+    $(text_cell).html(eval_script_tags(text));
+    if (contains_jsmath(text)) {
+        try {
+            jsMath.ProcessBeforeShowing(text_cell);
+        } catch(e) {
+            text_cell.innerHTML = jsmath_font_msg + text_cell.innerHTML;
+        }
+    }
+
+}
+
 function debug_focus() {
     /*
     Called when the Javascript debugging window gets focus.  This window
@@ -3229,6 +3276,51 @@ function insert_new_cell_after_callback(status, response_text) {
     jump_to_cell(new_id,0);
 }
 
+function insert_new_text_cell_after(id, input) {
+     /*
+    Insert a new text cell after the cell with given id.
+
+    This sends a message to the server requesting that a new cell be
+    inserted, then via a callback modifes the DOM.
+
+    INPUT:
+        id -- integer
+        input -- string
+    */
+    if(input == null) input = "";
+    async_request(worksheet_command('new_text_cell_after'), insert_new_text_cell_after_callback, {id: id, input: input});
+}
+
+function insert_new_text_cell_after_callback(status, response_text) {
+    /*
+    Callback that is called when the server inserts a new cell
+    after a given cell.
+
+    INPUT:
+        response_text -- 'locked': means that the user is not allowed to
+                         insert new cells into this worksheet
+                      -- or a string that encodes several variables:
+                             [new_id]SEP[new_html]SEP[id]
+                         where
+                            new_id -- string representation of an integer
+                            new_html -- new HTML output for new cell
+                            id -- id of cell before the new one being inserted
+    */
+    if (status == "failure") {
+        alert("Problem inserting new text cell before current input cell.");
+        return ;
+    }
+    if (response_text == "locked") {
+        alert("Worksheet is locked.  Cannot insert cells.");
+        return;
+    }
+    /* Insert a new cell _before_ a cell. */
+    var X = response_text.split(SEP);
+    var new_id = eval(X[0]);
+    var new_html = X[1];
+    var id = eval(X[2]);
+    do_insert_new_cell_after(id, new_id, new_html);
+}
 
 function do_insert_new_cell_after(id, new_id, new_html) {
     /*
@@ -3286,6 +3378,42 @@ function insert_new_cell_before_callback(status, response_text) {
     var id = eval(X[2]);
     do_insert_new_cell_before(id, new_id, new_html);
     jump_to_cell(new_id,0);
+}
+
+function insert_new_text_cell_before(id, input) {
+     /*
+    Insert a new text cell before the cell with given id.
+
+    This sends a message to the server requesting that a new cell be
+    inserted, then via a callback modifes the DOM.
+
+    INPUT:
+        id -- integer
+        input -- string
+    */
+    if(input == null) input = "";
+    async_request(worksheet_command('new_text_cell_before'), insert_new_text_cell_before_callback, {id: id, input: input});
+}
+
+function insert_new_text_cell_before_callback(status, response_text) {
+    /*
+    See the documentation for insert_new_text_cell_after_callback, since
+    response_text is encoded in exactly the same way there.
+    */
+    if (status == "failure") {
+        alert("Problem inserting new text cell before current input cell.");
+        return ;
+    }
+    if (response_text == "locked") {
+        alert("Worksheet is locked.  Cannot insert cells.");
+        return;
+    }
+    /* Insert a new cell _before_ a cell. */
+    var X = response_text.split(SEP);
+    var new_id = eval(X[0]);
+    var new_html = X[1];
+    var id = eval(X[2]);
+    do_insert_new_cell_before(id, new_id, new_html);
 }
 
 

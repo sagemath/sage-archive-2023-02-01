@@ -2137,7 +2137,12 @@ class Worksheet:
 
         if not do_print and not published:
             s += '\n</div>\n'
-            s += '\n<div class="insert_new_cell" id="insert_last_cell" onmousedown="insert_new_cell_after(cell_id_list[cell_id_list.length-1]);"> </div>\n'
+            s += """<div class="insert_new_cell" id="insert_last_cell">
+                 </div>
+<script type="text/javascript">
+$("#insert_last_cell").plainclick(function(e) {insert_new_cell_after(cell_id_list[cell_id_list.length-1]);});
+$("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_id_list[cell_id_list.length-1]);});
+</script>"""
             s += '<div class="worksheet_bottom_padding"></div>\n'
         return s
 
@@ -2333,6 +2338,32 @@ class Worksheet:
         cells.append(C)
         return C
 
+    def new_text_cell_before(self, id, input=""):
+        """
+        Insert a new cell into the cell list before the cell
+        with the given integer id.  If the id is not the
+        id of any cell, inserts a new cell at the end of the
+        cell list.
+
+        INPUT:
+            id -- integer
+            input -- string
+
+        OUTPUT:
+            new cell with the given input text (empty by default).
+
+        """
+        cells = self.cell_list()
+        for i in range(len(cells)):
+            if cells[i].id() == id:
+                C = self._new_text_cell(plain_text=input)
+                cells.insert(i, C)
+                return C
+        C = self._new_text_cell(plain_text=input)
+        cells.append(C)
+        return C
+
+
     def new_cell_after(self, id, input=""):
         """
         Insert a new cell into the cell list after the cell
@@ -2353,6 +2384,31 @@ class Worksheet:
                 cells.insert(i+1, C)
                 return C
         C = self._new_cell(input=input)
+        cells.append(C)
+        return C
+
+    def new_text_cell_after(self, id, input=""):
+        """
+        Insert a new cell into the cell list after the cell
+        with the given integer id.  If the id is not the
+        id of any cell, inserts a new cell at the end of the
+        cell list.
+
+        INPUT:
+            id -- integer
+            input -- string
+
+        OUTPUT:
+            new cell with the given input text (empty by default).
+
+        """
+        cells = self.cell_list()
+        for i in range(len(cells)):
+            if cells[i].id() == id:
+                C = self._new_text_cell(plain_text=input)
+                cells.insert(i+1, C)
+                return C
+        C = self._new_text_cell(plain_text=input)
         cells.append(C)
         return C
 

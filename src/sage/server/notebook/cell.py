@@ -37,6 +37,13 @@ import os, shutil
 from   sage.misc.misc import word_wrap
 from   sage.misc.html import math_parse
 from   sage.misc.preparser import strip_string_literals
+from   sage.misc.package   import is_package_installed
+
+
+if is_package_installed("tinyMCE"):
+    JEDITABLE_TINYMCE = True
+else:
+    JEDITABLE_TINYMCE = False
 
 
 class Cell_generic:
@@ -154,7 +161,7 @@ class TextCell(Cell_generic):
         """
         return self.__worksheet
 
-    def html(self, ncols, do_print=False, do_math_parse=True):
+    def html(self, ncols=0, do_print=False, do_math_parse=True, editing=False):
         """
         Returns an HTML version of self as a string.
 
@@ -165,19 +172,64 @@ class TextCell(Cell_generic):
 
         EXAMPLES:
              sage: C = sage.server.notebook.cell.TextCell(0, '2+3', None)
-             sage: C.html(80)
-             '<div><font size=+1>2+3</font></div>'
+             sage: C.html()
+             '<div class="text_cell" id="cell_text_0">2+3...'
              sage: C.set_input_text("$2+3$")
-             sage: C.html(80, do_math_parse=True)
-             '<div><font size=+1><span class="math">2+3</span></font></div>'
+             sage: C.html(do_math_parse=True)
+             '<div class="text_cell" id="cell_text_0"><span class="math">2+3</span>...'
+        """
 
+        s = """<div class="text_cell" id="cell_text_%s">%s</div>"""%(self.__id,self.html_inner(ncols=ncols, do_print=do_print, do_math_parse=do_math_parse, editing=editing))
+
+        if JEDITABLE_TINYMCE:
+            s += """<script>$("#cell_text_%s").unbind('dblclick').editable(function(value,settings) {
+evaluate_text_cell_input(%s,value,settings);
+return(value);
+}, {
+      tooltip   : "Doubleclick to edit...",
+//      type   : 'textarea',
+      type   : 'mce',
+      onblur : 'ignore',
+      select : false,
+      submit : 'Make changes',
+      cancel : 'Cancel changes',
+      event  : "dblclick",
+      style  : "inherit",
+      data   : %r
+  });
+</script>"""%(self.__id,self.__id,self.__text)
+
+
+        if editing:
+            s += """<script>$("#cell_text_%s").trigger('dblclick');</script>"""%self.__id
+
+        return s
+
+    def html_inner(self,ncols=0, do_print=False, do_math_parse=True, editing=False):
+        """
+        Returns an HTML version of the content of self as a string.
+
+        INPUT:
+            do_math_parse -- bool (default: True)
+                If True, call math_parse (defined in cell.py)
+                on the html.
+
+        EXAMPLES:
+             sage: C = sage.server.notebook.cell.TextCell(0, '2+3', None)
+             sage: C.html_inner()
+             '2+3...'
+             sage: C.set_input_text("$2+3$")
+             sage: C.html_inner(do_math_parse=True)
+             '<span class="math">2+3</span>...'
         """
         t = self.__text
         if do_math_parse:
             # Do dollar sign math parsing
             t = math_parse(t)
-        s = '<div><font size=+1>%s</font></div>'%t
+        s = """%s"""%t
+
         return s
+
 
     def plain_text(self, prompts=False):
         """
@@ -1492,15 +1544,14 @@ class Cell(Cell_generic):
         EXAMPLES:
             sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
             sage: print C.html_new_cell_before()
-            <div class="insert_new_cell" id="insert_new_cell_0"
-                               onmousedown="insert_new_cell_before(0);">
-                             </div>
-
+            <div class="insert_new_cell" id="insert_new_cell_0">...
         """
-        return """<div class="insert_new_cell" id="insert_new_cell_%s"
-                   onmousedown="insert_new_cell_before(%s);">
+        return """<div class="insert_new_cell" id="insert_new_cell_%(id)s">
                  </div>
-              """%(self.id(), self.id())
+<script type="text/javascript">
+$("#insert_new_cell_%(id)s").plainclick(function(e) {insert_new_cell_before(%(id)s);});
+$("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_before(%(id)s);});
+</script>"""%{'id': self.id()}
     def html_new_cell_after(self):
         """
         Returns the HTML code for inserting a new cell after self.
@@ -1508,15 +1559,15 @@ class Cell(Cell_generic):
         EXAMPLES:
             sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
             sage: print C.html_new_cell_after()
-            <div class="insert_new_cell" id="insert_new_cell_0"
-                               onmousedown="insert_new_cell_after(0);">
-                             </div>
-
+            <div class="insert_new_cell" id="insert_new_cell_0">...
         """
-        return """<div class="insert_new_cell" id="insert_new_cell_%s"
-                   onmousedown="insert_new_cell_after(%s);">
+        return """<div class="insert_new_cell" id="insert_new_cell_%(id)s">
                  </div>
-              """%(self.id(), self.id())
+<script type="text/javascript">
+$("#insert_new_cell_%(id)s").plainclick(function(e) {insert_new_cell_after(%(id)s);});
+$("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(%(id)s);});
+</script>"""%{'id': self.id()}
+
 
     def url_to_self(self):
         """

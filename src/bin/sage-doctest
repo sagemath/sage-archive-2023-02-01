@@ -492,15 +492,29 @@ def test_file(file):
 
         tm = time.time()
         try:
+            out = ''; err = ''
             if verbose or gdb or memcheck or massif or cachegrind:
-                e = os.system(cmd)
-                out = ''; err = ''
+                import subprocess
+                proc = subprocess.Popen(cmd,shell=True)
+                while time.time()-tm <= TIMEOUT and proc.poll() == None:
+                    time.sleep(1.0)
+                if time.time()-tm >=TIMEOUT:
+                    os.kill(proc.pid, 9)
+                    print "\n*** *** Error: TIMED OUT! PROCESS KILLED! *** ***"
+                e = proc.poll()
             else:
                 outf = tempfile.NamedTemporaryFile()
                 errf = tempfile.NamedTemporaryFile()
-                e = os.system("%s 1>%s 2>%s"%(cmd,outf.name,errf.name))
+                import subprocess
+                proc = subprocess.Popen(cmd,shell=True, stdout=outf, stdin = errf)
+                while time.time()-tm <= TIMEOUT and proc.poll() == None:
+                    time.sleep(1.0)
+                if time.time()-tm >=TIMEOUT:
+                    os.kill(proc.pid, 9)
+                    print "\n*** *** Error: TIMED OUT! PROCESS KILLED! *** ***"
                 out = outf.read()
                 err = errf.read()
+                e = proc.poll()
         except KeyboardInterrupt:
             err += "\n Error -- interrupted after %s seconds!"%tm
             print "Error!!!"

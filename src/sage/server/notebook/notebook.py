@@ -1825,7 +1825,7 @@ jsMath = {styles: {
 
         else:
 
-            entries = [('toggle_top()', 'Toggle', 'Toggle the top bar'),
+            entries = [("$('#topbar').toggle()", 'Toggle', 'Toggle the top bar'),
                        ('/', 'Home', 'Back to your personal worksheet list'),
                        ('/pub', 'Published', 'Browse the published worksheets'),
                        ('history_window()', 'Log', 'View a log of recent computations'),

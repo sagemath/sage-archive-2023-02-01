@@ -4,19 +4,19 @@ Dense matrices over the Real Double Field.
 Matrix operations using numpy.
 
 EXAMPLES:
-    sage: b=Mat(RDF,2,3).basis()
+    sage: b=Mat(CDF,2,3).basis()
     sage: b[0]
-    [1.0 0.0 0.0]
-    [0.0 0.0 0.0]
+    [1.0   0   0]
+    [  0   0   0]
 
 
 We deal with the case of zero rows or zero columns:
-    sage: m = MatrixSpace(RDF,0,3)
+    sage: m = MatrixSpace(CDF,0,3)
     sage: m.zero_matrix()
     []
 
 TESTS:
-    sage: a = matrix(RDF,2,range(4), sparse=False)
+    sage: a = matrix(CDF,2,[i+(4-i)*I for i in range(4)], sparse=False)
     sage: loads(dumps(a)) == a
     True
 
@@ -46,13 +46,13 @@ cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
     call the underlying BLAS on the system.
 
     EXAMPLES:
-        sage: m = Matrix(RDF, [[1,2],[3,4]])
+        sage: m = Matrix(CDF, [[1,2*I],[3+I,4]])
         sage: m**2
-        [ 7.0 10.0]
-        [15.0 22.0]
+        [-1.0 + 6.0*I       10.0*I]
+        [15.0 + 5.0*I 14.0 + 6.0*I]
         sage: n= m^(-1); n
-        [-2.0  1.0]
-        [ 1.5 -0.5]
+        [  0.333333333333 + 0.333333333333*I   0.166666666667 - 0.166666666667*I]
+        [ -0.166666666667 - 0.333333333333*I 0.0833333333333 + 0.0833333333333*I]
 
     To compute eigenvalues the use the functions left_eigenvectors or right_eigenvectors
 
@@ -65,9 +65,9 @@ cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
     where A = [[1,2]  and b = [5,6]
              [3,4]]
 
-        sage: b = vector(RDF,[5,6])
+        sage: b = vector(CDF,[5,6])
         sage: m.solve_left(b)
-        (-4.0, 4.5)
+        (2.66666666667 + 0.666666666667*I, -0.333333333333 - 1.16666666667*I)
 
     See the commands qr, lu, and svd for QR, LU, and singular value
     decomposition.

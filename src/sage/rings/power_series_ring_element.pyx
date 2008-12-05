@@ -1328,6 +1328,7 @@ cdef class PowerSeries(AlgebraElement):
              strategy.
           -- David Harvey (2006-09-11): factored functionality out to
              solve_linear_de().
+          -- Sourav Sen Gupta + David Harvey (nov 2008): handle constant term
 
         EXAMPLES:
            sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
@@ -1358,27 +1359,41 @@ cdef class PowerSeries(AlgebraElement):
            sage: (t + O(t^2)).exp(0)
            O(t^0)
 
-		 Check for non-zero constant term (fixes \#4477):
-           sage: (1 + t + O(t^2)).exp()
+         Handle nonzero constant term (fixes trac \#4477):
+           sage: R.<x> = PowerSeriesRing(RR)
+           sage: (1 + x + x^2 + O(x^3)).exp()
+           2.71828182845905 + 2.71828182845905*x + 4.07742274268857*x^2 + O(x^3)
+
+           sage: R.<x> = PowerSeriesRing(ZZ)
+           sage: (1 + x + O(x^2)).exp()
            Traceback (most recent call last):
            ...
-           ArithmeticError: exponential of the input does not belong to the ring
-           sage: (1.23 + t + O(t^5)).exp()
-           3.42122953628967 + 3.42122953628967*t + 1.71061476814484*t^2
-           + 0.570204922714945*t^3 + 0.142551230678736*t^4 + O(t^5)
+           ArithmeticError: exponential of constant term does not belong to coefficient ring (consider working in a larger ring)
+
+           sage: R.<x> = PowerSeriesRing(GF(5))
+           sage: (1 + x + O(x^2)).exp()
+           Traceback (most recent call last):
+           ...
+           ArithmeticError: constant term of power series does not support exponentation
 
         """
         if prec is None:
             prec = self._parent.default_prec()
-        if self[0]:
+
+        t = self.derivative().solve_linear_de(prec)
+
+        if not self[0].is_zero():
             try:
                 C = self[0].exp()
-                if C.parent()!=self.base_ring():
-                    raise ArithmeticError
-            except (AttributeError, ArithmeticError):
-                raise ArithmeticError, "exponential of the input does not belong to the ring"
-            return C*self.derivative().solve_linear_de(prec)
-        return self.derivative().solve_linear_de(prec)
+            except AttributeError:
+                raise ArithmeticError, "constant term of power series does not support exponentation"
+
+            if C.parent() is not self.base_ring():
+                raise ArithmeticError, "exponential of constant term does not belong to coefficient ring (consider working in a larger ring)"
+
+            t = C * t
+
+        return t
 
 
     def V(self, n):

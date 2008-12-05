@@ -52,7 +52,7 @@ p = os.path.join
 css_path        = p(SAGE_EXTCODE, "notebook/css")
 image_path      = p(SAGE_EXTCODE, "notebook/images")
 javascript_path = p(SAGE_EXTCODE, "notebook/javascript")
-slider_path     = p(SAGE_EXTCODE, "notebook/slider")
+javascript_local_path = p(SAGE_LOCAL, "notebook/javascript")
 java_path       = p(SAGE_LOCAL, "java")
 
 # the list of users waiting to register
@@ -1649,6 +1649,17 @@ class Javascript(resource.Resource):
 setattr(Javascript, 'child_main.js', Main_js())
 
 
+class JavascriptLocal(resource.Resource):
+    addSlash = True
+
+    def render(self, ctx):
+        return static.File(javascript_local_path)
+
+    def childFactory(self, request, name):
+        return static.File(javascript_local_path + "/" + name)
+
+
+
 ############################
 # Java resources
 ############################
@@ -1661,20 +1672,6 @@ class Java(resource.Resource):
 
     def childFactory(self, request, name):
         return static.File(java_path + "/" + name)
-
-############################
-# Slide resources
-############################
-
-class Slider(resource.Resource):
-    addSlash = True
-
-    def render(self, ctx):
-        return static.File(slider_path)
-
-    def childFactory(self, request, name):
-        return static.File(slider_path + "/" + name)
-
 
 ############################
 # Logout
@@ -2087,8 +2084,8 @@ class AnonymousToplevel(Toplevel):
     child_images = Images()
     child_css = CSS()
     child_javascript = Javascript()
+    child_javascript_local = JavascriptLocal()
     child_java = Java()
-    child_slider = Slider()
     child_logout = RedirectLogin()
 
     def userchildFactory(self, request, name):
@@ -2144,8 +2141,8 @@ class UserToplevel(Toplevel):
     child_images = Images()
     child_css = CSS()
     child_javascript = Javascript()
+    child_javascript_local = JavascriptLocal()
     child_java = Java()
-    child_slider = Slider()
 
     child_upload = Upload()
     child_logout = Logout()

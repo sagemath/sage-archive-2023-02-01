@@ -1245,7 +1245,7 @@ class Notebook(SageObject):
         s += '<title>Sage Worksheet: %s</title>\n'%W.name()
         s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
         if do_print:
-            s += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
+            s += '<script type="text/javascript" src="/javascript_local/jsmath/jsMath.js"></script>\n'
         s += '<link rel=stylesheet href="/css/main.css">\n'
         s += '</head>\n'
         if do_print:
@@ -1702,7 +1702,7 @@ class Notebook(SageObject):
             head += '\n <STYLE> #jsMath_Warning {display: none} </STYLE>\n'
             head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
             if not JSMATH_IMAGE_FONTS:
-                head +=' <script type="text/javascript" src="/javascript/jsmath/plugins/noImageFonts.js"></script>\n'
+                head +=' <script type="text/javascript" src="/javascript_local/jsmath/plugins/noImageFonts.js"></script>\n'
 
             # Move the jsMath button 20 pixels from the right edge
             # (apparently in some browsers, it covers up the scroll
@@ -1716,7 +1716,7 @@ jsMath = {styles: {
       }};
     </script>
 """
-            head += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
+            head += '<script type="text/javascript" src="/javascript_local/jsmath/jsMath.js"></script>\n'
 
         if JQUERY:
             # Load the jquery and ui-jquery javascript library.

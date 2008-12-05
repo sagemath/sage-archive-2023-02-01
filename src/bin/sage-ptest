@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os, signal, sys, time, thread, threading, tempfile
+from __future__ import with_statement
+import os, signal, sys, time, thread, threading, tempfile, pickle
 
 ####################################
 
@@ -49,7 +50,27 @@ for gr in range(0,numglobaliteration):
 
     t0 = time.time()
     filemutex = thread.allocate_lock()
-    printmutex = thread. allocate_lock()
+    printmutex = thread.allocate_lock()
+    #Pick a filename for the timing files -- long vs normal
+    time_file_name = os.environ["SAGE_TESTDIR"]+"/"
+    if opts.count("-long"):
+        time_file_name+=".ptest_timing_long"
+    else:
+        time_file_name+=".ptest_timing"
+    time_dict = { }
+    try:
+        with open(time_file_name) as time_file:
+            time_dict = pickle.load(time_file)
+        if opts.count("-long"):
+            print "Using long cached timings."
+        else:
+            print "Using cached timings."
+    except:
+        time_dict = { }
+        if opts.count("-long"):
+            print "No long cached timings exist; will create upon successful finish."
+        else:
+            print "No cached timings exist; will create upon successful finish."
     done = False
     threadlist = list()
 
@@ -120,6 +141,9 @@ for gr in range(0,numglobaliteration):
     def abs(f):
         return "sage -t %s %s"%(opts, abspath(f)[len(SAGE_ROOT)+1:])
 
+    def abs_sage_path(f):
+        return abspath(f)[len(SAGE_ROOT)+1:]
+
     def skip(F):
         if not os.path.exists(F):
             return True
@@ -184,14 +208,26 @@ for gr in range(0,numglobaliteration):
                     break
         else:
             return 0
+        finished_time = time.time() - t
         printmutex.acquire()
         print abs(F)
         if ol!="" and (not ol.isspace()):
             print ol
-        print "\t [%.1f s]"%(time.time() - t)
+        time_dict[abs_sage_path(F)] = finished_time
+        print "\t [%.1f s]"%(finished_time)
         printmutex.release()
         return ret
 
+
+    def infiles_cmp(a,b):
+        #This compare function is used to sort the list of filenames by the time they take to run
+        if time_dict.has_key(abs_sage_path(a)):
+            if time_dict.has_key(abs_sage_path(b)):
+                return cmp(time_dict[abs_sage_path(a)],time_dict[abs_sage_path(b)])
+            else:
+                return 1
+        else:
+            return -1
 
     def populatefilelist(filelist):
         global CUR
@@ -224,6 +260,8 @@ for gr in range(0,numglobaliteration):
         filemutex.release()
         return 0
     populatefilelist(infiles)
+    #Sort the files by test time
+    files.sort(infiles_cmp)
     launchthreads(numthreads)
 
 
@@ -234,8 +272,14 @@ for gr in range(0,numglobaliteration):
     for t in threadlist:
         t.join()
     os.chdir(CUR)
+
     if len(failed) == 0:
         print "All tests passed!"
+        #Only update timings if we are doing something standard
+        if opts=="-long" or len(opts)==0:
+            with open(time_file_name,"w") as time_file:
+                pickle.dump(time_dict, time_file)
+                print "Timings have been updated."
     else:
         print "\nThe following tests failed:\n"
         for i in range(len(failed)):

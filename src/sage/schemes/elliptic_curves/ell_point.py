@@ -1329,8 +1329,8 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         EXAMPLE:
         sage: E = EllipticCurve(GF(17), [1,-1])
         sage: P = E([13, 4])
-        sage: P._magma_init_(magma)
-        'EllipticCurve([GF(17)|GF(17)!0,GF(17)!0,GF(17)!0,GF(17)!1,GF(17)!16])![13,4]'
+        sage: P._magma_init_(magma)                               # optional - magma
+        'EllipticCurve([_sage_ref...|GF(17)!0,GF(17)!0,GF(17)!0,GF(17)!1,GF(17)!16])![13,4]'
         """
         E = self.curve()._magma_init_(magma)
         x,y = self.xy()

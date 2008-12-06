@@ -53,7 +53,6 @@ cp -LRp makefile *.txt *.sage sage ipythonrc $TMP/
 STD=standard
 mkdir $TMP/$PKGDIR
 mkdir $TMP/$PKGDIR/$STD
-cp -p $PKGDIR/$STD/README.txt $TMP/$PKGDIR/$STD/
 cp -p $PKGDIR/$STD/deps $TMP/$PKGDIR/$STD/
 cp -p $PKGDIR/$STD/libdist_filelist $TMP/$PKGDIR/$STD/
 cp -p $PKGDIR/$STD/newest_version $TMP/$PKGDIR/$STD/
@@ -61,6 +60,7 @@ cp -pr $PKGDIR/base $TMP/$PKGDIR/
 cp -p $PKGDIR/install $TMP/$PKGDIR/
 cp -p $PKGDIR/update $TMP/$PKGDIR/
 cp -p $PKGDIR/gen_html $TMP/$PKGDIR/
+cp -p $PKGDIR/README.txt $TMP/$PKGDIR/
 
 $SAGE_ROOT/local/bin/sage-make_devel_packages $SAGE_VERSION $SAGE_ROOT $TMP/devel
 

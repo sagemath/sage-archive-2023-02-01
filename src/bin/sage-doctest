@@ -504,16 +504,15 @@ def test_file(file):
                 e = proc.poll()
             else:
                 outf = tempfile.NamedTemporaryFile()
-                errf = tempfile.NamedTemporaryFile()
                 import subprocess
-                proc = subprocess.Popen(cmd,shell=True, stdout=outf, stdin = errf)
+                proc = subprocess.Popen(cmd,shell=True, stdout=outf.file.fileno(), stderr = outf.file.fileno())
                 while time.time()-tm <= TIMEOUT and proc.poll() == None:
                     time.sleep(1.0)
                 if time.time()-tm >=TIMEOUT:
                     os.kill(proc.pid, 9)
                     print "\n*** *** Error: TIMED OUT! PROCESS KILLED! *** ***"
+                outf.file.seek(0)
                 out = outf.read()
-                err = errf.read()
                 e = proc.poll()
         except KeyboardInterrupt:
             err += "\n Error -- interrupted after %s seconds!"%tm
@@ -529,12 +528,15 @@ def test_file(file):
             print err
 
         s = post_process(out, file, f)  + err
-        print s
         numfail = s.count('Failed') + s.count('Error')
+        if numfail == 0 and e>0:
+            numfail = e
         if numfail > 0:
+            if not (verbose or gdb or memcheck or massif or cachegrind):
+                print "\n" + out
             delete_tmpfiles()
             sys.exit(4)
-        elif e != 0:
+        elif e <0:
             if not verbose:
                 print "A mysterious error (perphaps a memory error?) occurred, which may have crashed doctest."
             sys.exit(3)

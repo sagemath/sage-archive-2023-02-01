@@ -175,7 +175,7 @@ gnuplot = Gnuplot()
 
 import os
 def gnuplot_console():
-    os.system('gnuplot')
+    os.system('sage-native-execute gnuplot')
 
 
 

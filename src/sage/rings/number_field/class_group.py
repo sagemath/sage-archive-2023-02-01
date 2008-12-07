@@ -105,6 +105,47 @@ class ClassGroup(AbelianGroup_class):
             raise IndexError
         return self.__gens[i]
 
+    def __iter__(self):
+        r"""
+        Return an iterator of all ideal classes in this class group.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^4 + 23)
+            sage: G = K.class_group()
+            sage: G
+            Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^4 + 23
+            sage: list(G)
+            [Trivial principal fractional ideal class, Fractional ideal class (2, 1/2*a^2 + a - 1/2), Fractional ideal class (2, 1/2*a^2 + 1/2)]
+            sage: G.list()
+            [Trivial principal fractional ideal class, Fractional ideal class (2, 1/2*a^2 + a - 1/2), Fractional ideal class (2, 1/2*a^2 + 1/2)]
+
+        TESTS:
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: G = K.class_group()
+            sage: G
+            Class group of order 1 with structure  of Number Field in a with defining polynomial x^2 + 1
+            sage: list(G)
+            [Trivial principal fractional ideal class]
+            sage: G.list()
+            [Trivial principal fractional ideal class]
+
+            sage: C = NumberField(x^2 + x + 23899, 'a').class_group(); C
+            Class group of order 68 with structure C34 x C2 of Number Field in a with defining polynomial x^2 + x + 23899
+            sage: len(list(C.__iter__()))
+            68
+        """
+        from sage.misc.mrange import mrange
+        invs = self.invariants()
+        T = mrange(invs)
+        g = self.gens()
+        for t in T:
+            I = self(1)
+            for i, j in enumerate(t):
+                I *= g[i]**j
+            yield I
+        if not T:
+            yield self(1)
+
     def _repr_(self):
         """
         Return string representation of self.

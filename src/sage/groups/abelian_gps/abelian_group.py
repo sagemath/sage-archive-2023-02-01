@@ -775,12 +775,8 @@ class AbelianGroup_class(group.AbelianGroup):
             pass
         if not(self.is_finite()):
            raise NotImplementedError, "Group must be finite"
-        if self.order()==1:
-            L = [AbelianGroupElement(self, 1)]
-        else:
-            L = [AbelianGroupElement(self, t) for t in mrange(self.invariants())]
-        self.__list = L
-        return list(L)
+        self.__list = list(self.__iter__())
+        return list(self.__list)
 
     def __iter__(self):
         """
@@ -790,10 +786,29 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G = AbelianGroup([2,3], names = "ab")
             sage: [a for a in G]
             [1, b, b^2, a, a*b, a*b^2]
-        """
-        for g in self.list():
-            yield g
+            sage: L = list(G); L
+            [1, b, b^2, a, a*b, a*b^2]
 
+            The returned list is a reference; mutating it does not allow the
+            user to (accidentally?) alter the computed generators:
+
+            sage: L[0] = 0
+            sage: list(G)
+            [1, b, b^2, a, a*b, a*b^2]
+            sage: G = AbelianGroup([1], names="a")
+            sage: list(G)
+            [1]
+            sage: G = AbelianGroup([])
+            sage: G.list()
+            [1]
+            sage: list(G)
+            [1]
+        """
+        invs = self.invariants()
+        if len(invs)==0:
+            yield AbelianGroupElement(self, [])
+        for t in mrange(invs):
+            yield AbelianGroupElement(self, t)
 
 class AbelianGroup_subgroup(AbelianGroup_class):
     """

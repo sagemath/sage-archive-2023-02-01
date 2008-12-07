@@ -11,8 +11,6 @@ rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Sphinx-*
 
 #Copy the patched file over
 cp patches/highlighting.py src/sphinx/
-cp patches/setup.py src/
-cp patches/MANIFEST.in src/
 
 #Install new version
 cd src

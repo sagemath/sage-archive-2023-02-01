@@ -32,6 +32,9 @@ A patch was added to support highlighting the "sage:" prompts.
 
 == Changelog ==
 
+=== 0.5 (Mike Hansen, December 1st, 2008) ===
+ * Updated to version 0.5
+
 === svn 66476 (Mike Hansen, September 15th, 2008) ===
  * Initial version.
 

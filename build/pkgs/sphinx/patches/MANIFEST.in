@@ -1,4 +1,0 @@
-recursive-include sphinx/locale *
-recursive-include sphinx/static *
-recursive-include sphinx/templates *
-recursive-include sphinx/texinputs *

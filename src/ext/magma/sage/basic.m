@@ -100,12 +100,12 @@ end intrinsic;
 
 intrinsic Sage(X::FldRe) -> MonStgElt, BoolElt
 {}
-    return Sprintf("RealField(%o)", Floor(Log(2, 10^Precision(X)))), false;
+    return Sprintf("RealField(%o)", Precision(X : Bits := true)), false;
 end intrinsic;
 
 intrinsic Sage(X::FldCom) -> MonStgElt, BoolElt
 {}
-    return Sprintf("ComplexField(%o)", Floor(Log(2, 10^Precision(X)))), false;
+    return Sprintf("ComplexField(%o)", Precision(X : Bits := true)), false;
 end intrinsic;
 
 intrinsic Sage(X::FldReElt) -> MonStgElt, BoolElt

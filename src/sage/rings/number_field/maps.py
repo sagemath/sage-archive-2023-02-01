@@ -1,11 +1,39 @@
-"""
-TESTS:
-   sage: L.<cuberoot2, zeta3> = CyclotomicField(3).extension(x^3 - 2); K = L.absolute_field('a'); from_K,to_K = K.structure()
+r"""
+Isomorphisms of number fields.  Provides isomorphisms between relative and
+absolute presentations, to and form vector spaces, name changing maps, etc.
 
+EXAMPLES:
+    sage: L.<cuberoot2, zeta3> = CyclotomicField(3).extension(x^3 - 2)
+    sage: K = L.absolute_field('a')
+    sage: from_K, to_K = K.structure()
+    sage: from_K
+    Isomorphism map:
+      From: Number Field in a with defining polynomial x^6 - 3*x^5 + 6*x^4 - 11*x^3 + 12*x^2 + 3*x + 1
+      To:   Number Field in cuberoot2 with defining polynomial x^3 - 2 over its base field
+    sage: to_K
+    Isomorphism map:
+      From: Number Field in cuberoot2 with defining polynomial x^3 - 2 over its base field
+      To:   Number Field in a with defining polynomial x^6 - 3*x^5 + 6*x^4 - 11*x^3 + 12*x^2 + 3*x + 1
 """
 
+#*****************************************************************************
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.categories.map import Map
+from sage.categories.homset import Hom
 
 import sage.rings.rational_field as rational_field
 
@@ -15,59 +43,143 @@ import number_field_element
 
 QQ = rational_field.RationalField()
 
-class MapVectorSpaceToNumberField(SageObject):
+class NumberFieldIsomorphism(Map):
+    r"""
+    A base class for various isomorphisms betweeen number fields and
+    vector spaces.
+    """
+    def _repr_type(self):
+        return "Isomorphism"
+
+    def is_injective(self):
+        return True
+
+    def is_surjective(self):
+        return True
+
+class MapVectorSpaceToNumberField(NumberFieldIsomorphism):
+    r"""
+    EXAMPLES:
+        sage: K.<a> = NumberField(x^4 + 3*x + 1)
+        sage: V, fr, to = K.vector_space()
+        sage: V
+        Vector space of dimension 4 over Rational Field
+        sage: fr
+        Isomorphism map:
+          From: Vector space of dimension 4 over Rational Field
+          To:   Number Field in a with defining polynomial x^4 + 3*x + 1
+        sage: to
+        Isomorphism map:
+          From: Number Field in a with defining polynomial x^4 + 3*x + 1
+          To:   Vector space of dimension 4 over Rational Field
+        sage: type(fr), type(to)
+        (<class 'sage.rings.number_field.maps.MapVectorSpaceToNumberField'>,
+         <class 'sage.rings.number_field.maps.MapNumberFieldToVectorSpace'>)
+
+        sage: fr.is_injective(), fr.is_surjective()
+        (True, True)
+
+        sage: fr.domain(), to.codomain()
+        (Vector space of dimension 4 over Rational Field, Vector space of dimension 4 over Rational Field)
+        sage: to.domain(), fr.codomain()
+        (Number Field in a with defining polynomial x^4 + 3*x + 1, Number Field in a with defining polynomial x^4 + 3*x + 1)
+        sage: fr * to
+        Composite map:
+          From: Number Field in a with defining polynomial x^4 + 3*x + 1
+          To:   Number Field in a with defining polynomial x^4 + 3*x + 1
+          Defn:   Isomorphism map:
+                  From: Number Field in a with defining polynomial x^4 + 3*x + 1
+                  To:   Vector space of dimension 4 over Rational Field
+                then
+                  Isomorphism map:
+                  From: Vector space of dimension 4 over Rational Field
+                  To:   Number Field in a with defining polynomial x^4 + 3*x + 1
+        sage: to * fr
+        Composite map:
+          From: Vector space of dimension 4 over Rational Field
+          To:   Vector space of dimension 4 over Rational Field
+          Defn:   Isomorphism map:
+                  From: Vector space of dimension 4 over Rational Field
+                  To:   Number Field in a with defining polynomial x^4 + 3*x + 1
+                then
+                  Isomorphism map:
+                  From: Number Field in a with defining polynomial x^4 + 3*x + 1
+                  To:   Vector space of dimension 4 over Rational Field
+
+        sage: to(a), to(a + 1)
+        ((0, 1, 0, 0), (1, 1, 0, 0))
+        sage: fr(to(a)), fr(V([0, 1, 2, 3]))
+        (a, 3*a^3 + 2*a^2 + a)
+    """
+
     def __init__(self, V, K):
         self.__V = V
         self.__K = K
         self.__R = K.polynomial_ring()
+        NumberFieldIsomorphism.__init__(self, Hom(V, K))
 
-    def _repr_(self):
-        return "Isomorphism from %s to %s"%(self.__V, self.__K)
-
-    def __call__(self, v):
+    def _call_(self, v):
         f = self.__R(self.__V(v).list())
         return self.__K._element_class(self.__K, f)
 
-    def domain(self):
-        return self.__V
-
-    def codomain(self):
-        return self.__K
-
-class MapNumberFieldToVectorSpace(SageObject):
+class MapNumberFieldToVectorSpace(Map):
     def __init__(self, K, V):
         self.__V = V
         self.__K = K
         self.__zero = QQ(0)
         self.__n = K.degree()
+        NumberFieldIsomorphism.__init__(self, Hom(K, V))
 
-    def _repr_(self):
-        return "Isomorphism from %s to %s"%(self.__K, self.__V)
+    def _repr_type(self):
+        return "Isomorphism"
 
-    def __call__(self, x):
+    def _call_(self, x):
         y = self.__K(x)
         v = y._coefficients()
         w = v + [self.__zero]*(self.__n - len(v))
         return self.__V(w)
 
-    def domain(self):
-        return self.__K
+class MapRelativeVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
+    r"""
+    EXAMPLES:
+        sage: L.<b> = NumberField(x^4 + 3*x^2 + 1)
+        sage: K = L.relativize(L.subfields(2)[0][1], 'a'); K
+        Number Field in a0 with defining polynomial x^2 - b0*x + 1 over its base field
+        sage: V, fr, to = K.vector_space()
+        sage: V
+        Vector space of dimension 2 over Number Field in b0 with defining polynomial x^2 + 1
+        sage: fr
+        Isomorphism map:
+          From: Vector space of dimension 2 over Number Field in b0 with defining polynomial x^2 + 1
+          To:   Number Field in a0 with defining polynomial x^2 - b0*x + 1 over its base field
+        sage: to
+        Isomorphism map:
+          From: Number Field in a0 with defining polynomial x^2 - b0*x + 1 over its base field
+          To:   Vector space of dimension 2 over Number Field in b0 with defining polynomial x^2 + 1
+        sage: type(fr), type(to)
+        (<class 'sage.rings.number_field.maps.MapRelativeVectorSpaceToRelativeNumberField'>,
+         <class 'sage.rings.number_field.maps.MapRelativeNumberFieldToRelativeVectorSpace'>)
 
-    def codomain(self):
-        return self.__V
+        sage: a0 = K.gen(); b0 = K.base_field().gen()
+        sage: to(a0), to(a0 + 1), to(a0 + b0)
+        ((0, 1), (1, 1), (b0, 1))
+        sage: fr(to(a0 + 2*b0)), fr(V([0, 1])), fr(V([b0, 2*b0]))
+        (a0 + 2*b0, a0, 2*b0*a0 + b0)
 
-class MapRelativeVectorSpaceToRelativeNumberField(SageObject):
+        sage: (fr * to)(K.gen()) == K.gen()
+        True
+        sage: (to * fr)(V([1, 2])) == V([1, 2])
+        True
+    """
     def __init__(self, V, K):
         self.__V = V
         self.__K = K
         self.__R = K.polynomial_ring()
         self.__rnf = K.pari_rnf()
         self.__B = K.base_field().absolute_field('a')
+        NumberFieldIsomorphism.__init__(self, Hom(V, K))
 
-    def _repr_(self):
-        return "Isomorphism from %s to %s"%(self.__V, self.__K)
-
-    def __call__(self, v):
+    def _call_(self, v):
         # Given a relative vector space element, we have to
         # compute the corresponding number field element, in terms
         # of an absolute generator.
@@ -88,13 +200,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(SageObject):
         g = self.__R(self.__rnf.rnfeltreltoabs(h))
         return self.__K._element_class(self.__K, g)
 
-    def domain(self):
-        return self.__V
-
-    def codomain(self):
-        return self.__K
-
-class MapRelativeNumberFieldToRelativeVectorSpace(SageObject):
+class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
     def __init__(self, K, V):
         self.__V = V
         self.__K = K
@@ -104,11 +210,9 @@ class MapRelativeNumberFieldToRelativeVectorSpace(SageObject):
         self.__x = pari('x')
         self.__y = pari('y')
         self.__B = K.absolute_base_field()
+        NumberFieldIsomorphism.__init__(self, Hom(K, V))
 
-    def _repr_(self):
-        return "Isomorphism from %s to %s"%(self.__K, self.__V)
-
-    def __call__(self, alpha):
+    def _call_(self, alpha):
         # An element of a relative number field is represented
         # internally by an absolute polynomial over QQ.
         alpha = self.__K(alpha)
@@ -146,123 +250,149 @@ class MapRelativeNumberFieldToRelativeVectorSpace(SageObject):
         # Now w gives the coefficients.
         return self.__V(w)
 
-    def domain(self):
-        return self.__K
 
-    def codomain(self):
-        return self.__V
-
-
-class IdentityMap(SageObject):
+class IdentityMap(NumberFieldIsomorphism):
     def __init__(self, K):
         self.__K = K
-    def _repr_(self):
-        return "Identity map on %s"%self.__K
-    def __call__(self, x):
-        return self.__K(x)
-    def domain(self):
-        return self.__K
-    def codomain(self):
-        return self.__K
+        NumberFieldIsomorphism.__init__(self, Hom(K, K))
 
-class NameChangeMap(SageObject):
+    def _repr_type(self):
+        return "Identity map"
+
+    def _call_(self, x):
+        return self.__K(x)
+
+class NameChangeMap(NumberFieldIsomorphism):
     def __init__(self, K, L):
         self.__K = K
         self.__L = L
+        NumberFieldIsomorphism.__init__(self, Hom(K, L))
 
-    def _repr_(self):
-        return "Number field isomorphism from %s to %s given by variable name change"%(self.__K, self.__L)
+    def _repr_type(self):
+        return "Isomorphism given by variable name change"
 
-    def __call__(self, x):
+    def _call_(self, x):
         y = self.__K(x)
         z = y.__copy__()
         z._set_parent(self.__L)
         return z
 
-    def domain(self):
-        return self.__K
+class MapRelativeToAbsoluteNumberField(NumberFieldIsomorphism):
+    r"""
+    EXAMPLES:
+        sage: K.<a> = NumberField(x^6 + 4*x^2 + 200)
+        sage: L = K.relativize(K.subfields(3)[0][1], 'b'); L
+        Number Field in b0 with defining polynomial x^2 + a0 over its base field
+        sage: fr, to = L.structure()
+        sage: fr
+        Relative number field morphism:
+          From: Number Field in b0 with defining polynomial x^2 + a0 over its base field
+          To:   Number Field in a with defining polynomial x^6 + 4*x^2 + 200
+          Defn: b0 |--> a
+                a0 |--> -a^2
+        sage: to
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^6 + 4*x^2 + 200
+          To:   Number Field in b0 with defining polynomial x^2 + a0 over its base field
+          Defn: a |--> b0
+        sage: type(fr), type(to)
+        (<class 'sage.rings.number_field.morphism.RelativeNumberFieldHomomorphism_from_abs'>,
+         <class 'sage.rings.number_field.morphism.NumberFieldHomomorphism_im_gens'>)
 
-    def codomain(self):
-        return self.__L
+        sage: M.<c> = L.absolute_field(); M
+        Number Field in c with defining polynomial x^6 + 4*x^2 + 200
+        sage: fr, to = M.structure()
+        sage: fr
+        Isomorphism map:
+          From: Number Field in c with defining polynomial x^6 + 4*x^2 + 200
+          To:   Number Field in b0 with defining polynomial x^2 + a0 over its base field
+        sage: to
+        Isomorphism map:
+          From: Number Field in b0 with defining polynomial x^2 + a0 over its base field
+          To:   Number Field in c with defining polynomial x^6 + 4*x^2 + 200
+        sage: type(fr), type(to)
+        (<class 'sage.rings.number_field.maps.MapAbsoluteToRelativeNumberField'>,
+         <class 'sage.rings.number_field.maps.MapRelativeToAbsoluteNumberField'>)
+        sage: fr(M.gen()), to(fr(M.gen())) == M.gen()
+        (b0, True)
+        sage: to(L.gen()), fr(to(L.gen())) == L.gen()
+        (c, True)
+        sage: (to * fr)(M.gen()) == M.gen(), (fr * to)(L.gen()) == L.gen()
+        (True, True)
+    """
 
-class MapRelativeToAbsoluteNumberField(SageObject):
     def __init__(self, R, A):
         self.__R = R          # relative field
         self.__A = A          # absolute field
         self.__poly_ring = self.__A.polynomial_ring()
         self.__zero = QQ(0)
         self.__n = A.degree()
+        NumberFieldIsomorphism.__init__(self, Hom(R, A))
 
-    def _repr_(self):
-        return "Isomorphism from %s to %s"%(self.__R, self.__A)
-
-    def __call__(self, x):
+    def _call_(self, x):
         f = self.__R(x).polynomial()
         return self.__A._element_class(self.__A, f)
 
-    def domain(self):
-        return self.__R
-
-    def codomain(self):
-        return self.__A
-
-class MapAbsoluteToRelativeNumberField(SageObject):
+class MapAbsoluteToRelativeNumberField(NumberFieldIsomorphism):
     def __init__(self, A, R):
         self.__A = A          # absolute field
         self.__R = R          # relative field
         self.__poly_ring = self.__A.polynomial_ring()
         self.__zero = QQ(0)
         self.__n = A.degree()
+        NumberFieldIsomorphism.__init__(self, Hom(A, R))
 
-    def _repr_(self):
-        return "Isomorphism from %s to %s"%(self.__A, self.__R)
-
-    def __call__(self, x):
+    def _call_(self, x):
         f = self.__A(x).polynomial()
         return self.__R._element_class(self.__R, f)
 
-    def domain(self):
-        return self.__A
-
-    def codomain(self):
-        return self.__R
-
-
-class MapVectorSpaceToRelativeNumberField(SageObject):
+class MapVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
     def __init__(self, V, L, from_V, from_K):
         self.__V = V
         self.__L = L
         self.__from_V = from_V
         self.__from_K = from_K
+        NumberFieldIsomorphism.__init__(self, Hom(V, L))
 
-    def _repr_(self):
-        return "Isomorphism from %s to %s"%(self.__V, self.__L)
-
-    def __call__(self, x):
+    def _call_(self, x):
         return self.__from_K(self.__from_V(x))
 
-    def domain(self):
-        return self.__V
+class MapRelativeNumberFieldToVectorSpace(NumberFieldIsomorphism):
+    r"""
+    EXAMPLES:
+        sage: K.<a> = NumberField(x^8 + 100*x^6 + x^2 + 5)
+        sage: L = K.relativize(K.subfields(4)[0][1], 'b'); L
+        Number Field in b0 with defining polynomial x^2 + a0 over its base field
+        sage: L_to_K, K_to_L = L.structure()
 
-    def codomain(self):
-        return self.__L
+        sage: V, fr, to = L.absolute_vector_space()
+        sage: V
+        Vector space of dimension 8 over Rational Field
+        sage: fr
+        Isomorphism map:
+          From: Vector space of dimension 8 over Rational Field
+          To:   Number Field in b0 with defining polynomial x^2 + a0 over its base field
+        sage: to
+        Isomorphism map:
+          From: Number Field in b0 with defining polynomial x^2 + a0 over its base field
+          To:   Vector space of dimension 8 over Rational Field
+        sage: type(fr), type(to)
+        (<class 'sage.rings.number_field.maps.MapVectorSpaceToRelativeNumberField'>,
+         <class 'sage.rings.number_field.maps.MapRelativeNumberFieldToVectorSpace'>)
 
-class MapRelativeNumberFieldToVectorSpace(SageObject):
+        sage: v = V([1, 1, 1, 1, 0, 1, 1, 1])
+        sage: fr(v), to(fr(v)) == v
+        ((-a0^3 + a0^2 - a0 + 1)*b0 - a0^3 - a0 + 1, True)
+        sage: to(L.gen()), fr(to(L.gen())) == L.gen()
+        ((0, 1, 0, 0, 0, 0, 0, 0), True)
+    """
     def __init__(self, L, V, to_K, to_V):
         self.__L = L
         self.__V = V
         self.__to_K = to_K
         self.__to_V = to_V
+        NumberFieldIsomorphism.__init__(self, Hom(L, V))
 
-    def _repr_(self):
-        return "Isomorphism from %s to %s"%(self.__L, self.__V)
-
-    def __call__(self, x):
+    def _call_(self, x):
         return self.__to_V(self.__to_K(x))
-
-    def domain(self):
-        return self.__V
-
-    def codomain(self):
-        return self.__L
 

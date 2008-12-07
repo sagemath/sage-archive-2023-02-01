@@ -110,6 +110,7 @@ from galois_group import GaloisGroup
 #import order
 
 from sage.structure.element import is_Element
+from sage.categories.map import is_Map
 from sage.structure.sequence import Sequence
 
 import sage.structure.parent_gens
@@ -865,8 +866,12 @@ class NumberField_generic(number_field_base.NumberField):
             sage: L.<a> = K.absolute_field(); L
             Number Field in a with defining polynomial x^2 + 3
             sage: L.structure()
-            (Number field isomorphism from Number Field in a with defining polynomial x^2 + 3 to Number Field in z with defining polynomial x^2 + 3 given by variable name change,
-             Number field isomorphism from Number Field in z with defining polynomial x^2 + 3 to Number Field in a with defining polynomial x^2 + 3 given by variable name change)
+            (Isomorphism given by variable name change map:
+              From: Number Field in a with defining polynomial x^2 + 3
+              To:   Number Field in z with defining polynomial x^2 + 3,
+             Isomorphism given by variable name change map:
+              From: Number Field in z with defining polynomial x^2 + 3
+              To:   Number Field in a with defining polynomial x^2 + 3)
         """
         try:
             if self.__to_self is not None:
@@ -3829,7 +3834,9 @@ class NumberField_absolute(NumberField_generic):
             sage: L
             Number Field in ww with defining polynomial x^2 + 3
             sage: L.structure()[0]
-            Number field isomorphism from Number Field in ww with defining polynomial x^2 + 3 to Number Field in z with defining polynomial x^2 + 3 given by variable name change
+            Isomorphism given by variable name change map:
+              From: Number Field in ww with defining polynomial x^2 + 3
+              To:   Number Field in z with defining polynomial x^2 + 3
             sage: L.structure()[0](ww + 5/3)
             z + 5/3
         """
@@ -4045,7 +4052,9 @@ class NumberField_absolute(NumberField_generic):
             sage: V
             Vector space of dimension 3 over Rational Field
             sage: to_V
-            Isomorphism from Number Field in a with defining polynomial x^3 + 2 to Vector space of dimension 3 over Rational Field
+            Isomorphism map:
+              From: Number Field in a with defining polynomial x^3 + 2
+              To:   Vector space of dimension 3 over Rational Field
             sage: from_V(to_V(2/3*a - 5/8))
             2/3*a - 5/8
             sage: to_V(from_V(V([0,-1/7,0])))
@@ -4073,8 +4082,12 @@ class NumberField_absolute(NumberField_generic):
             sage: K.<a> = NumberField(x^3 - 5)
             sage: K.absolute_vector_space()
             (Vector space of dimension 3 over Rational Field,
-             Isomorphism from Vector space of dimension 3 over Rational Field to Number Field in a with defining polynomial x^3 - 5,
-             Isomorphism from Number Field in a with defining polynomial x^3 - 5 to Vector space of dimension 3 over Rational Field)
+             Isomorphism map:
+              From: Vector space of dimension 3 over Rational Field
+              To:   Number Field in a with defining polynomial x^3 - 5,
+             Isomorphism map:
+              From: Number Field in a with defining polynomial x^3 - 5
+              To:   Vector space of dimension 3 over Rational Field)
         """
         return self.vector_space()
 
@@ -4381,16 +4394,15 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.places(prec=prec)[0:self.signature()[0]]
 
-
     def relativize(self, alpha, names):
         r"""
-        Given an element alpha in self, return a relative number field
-        $K$ isomorphic to self that is relative over the absolute field
-        $\QQ(\alpha)$, along with isomorphisms from $K$ to self and
-        from self to K.
+        Given an element in self or an embedding of a subfield into self,
+        return a relative number field $K$ isomorphic to self that is relative
+        over the absolute field $\QQ(\alpha)$ or the domain of $alpha$, along
+        with isomorphisms from $K$ to self and from self to K.
 
         INPUT:
-            alpha -- an element of self.
+            alpha -- an element of self, or an embedding of a subfield into self
             names -- 2-tuple of names of generator for output
                      field K and the subfield QQ(alpha)
                      names[0] generators K and names[1] QQ(alpha).
@@ -4419,25 +4431,104 @@ class NumberField_absolute(NumberField_generic):
             d
             sage: from_L(to_L(a^4 + a^2 + 2))
             a^4 + a^2 + 2
+
+            The following demonstrates distinct embeddings of a subfield into
+            a larger field:
+
+            sage: K.<a> = NumberField(x^4 + 2*x^2 + 2)
+            sage: K0 = K.subfields(2)[0][0]; K0
+            Number Field in a0 with defining polynomial x^2 - 2*x + 2
+            sage: rho, tau = K0.embeddings(K)
+            sage: L0 = K.relativize(rho(K0.gen()), 'b'); L0
+            Number Field in b0 with defining polynomial x^2 - b1 + 2 over its base field
+            sage: L1 = K.relativize(rho, 'b'); L1
+            Number Field in b0 with defining polynomial x^2 - a0 + 2 over its base field
+            sage: L2 = K.relativize(tau, 'b'); L2
+            Number Field in b0 with defining polynomial x^2 + a0 over its base field
+            sage: L0.base_field() is K0
+            False
+            sage: L1.base_field() is K0
+            True
+            sage: L2.base_field() is K0
+            True
+
+            Here we see that with the different embeddings, the relative norms
+            are different:
+
+            sage: a0 = K0.gen()
+            sage: L1_into_K, K_into_L1 = L1.structure()
+            sage: L2_into_K, K_into_L2 = L2.structure()
+            sage: len(K.factor(41))
+            4
+            sage: w1 = -a^2 + a + 1; P = K.ideal([w1])
+            sage: Pp = L1.ideal(K_into_L1(w1)).ideal_below(); Pp == K0.ideal([4*a0 + 1])
+            True
+            sage: Pp == w1.norm(rho)
+            True
+
+            sage: w2 = a^2 + a - 1; Q = K.ideal([w2])
+            sage: Qq = L2.ideal(K_into_L2(w2)).ideal_below(); Qq == K0.ideal([-4*a0 + 9])
+            True
+            sage: Qq == w2.norm(tau)
+            True
+
+            sage: Pp == Qq
+            False
+
+        TESTS:
+            We can relativize over the whole field:
+
+            sage: K.relativize(K.gen(), 'a')
+            Number Field in a0 with defining polynomial x - a1 over its base field
+
+            But at the moment, we can't relativize over the prime field:
+
+            sage: K.relativize(K(1), 'a')
+            Traceback (most recent call last):
+            ...
+            AssertionError: bug in relativize
+
+            This is because of the following:
+
+            sage: L = QQ.extension(x - 1, 'c'); L
+            Number Field in c with defining polynomial x - 1
+            sage: M = L.extension(K.defining_polynomial(), 'd'); M
+            Number Field in d with defining polynomial x^4 + 2*x^2 + 2 over its base field
+            sage: M.gen().minpoly()
+            x^4 - 4*x^3 + 8*x^2 - 8*x + 5
+            sage: M.gen().minpoly()(ZZ['x'].gen() + 1)
+            x^4 + 2*x^2 + 2
+
+            Specifically, this is unexpected:
+
+            sage: M.gen().minpoly() == M.defining_polynomial()
+            False
         """
-        # step 1: construct the abstract field generated by alpha.
+        # step 1: construct the abstract field generated by alpha.w
         # step 2: make a relative extension of it.
         # step 3: construct isomorphisms
 
         names = sage.structure.parent_gens.normalize_names(2, names)
 
-        # make sure alpha is in self
-        alpha = self(alpha)
-
-        f = alpha.minpoly()
-        L = NumberField(f, names[1])
+        if is_Map(alpha):
+            # alpha better be a morphism with codomain self
+            if alpha.codomain() != self:
+                raise ValueError, "Co-domain of morphism must be self"
+            L = alpha.domain()
+            alpha = alpha(L.gen()) # relativize over phi's domain
+            f = alpha.minpoly()
+        else:
+            # alpha must be an element coercible to self
+            alpha = self(alpha)
+            f = alpha.minpoly()
+            L = NumberField(f, names[1])
 
         g = self.defining_polynomial()
         h = L['x'](g)
         F = h.factor()
 
         for f, e in F:
-            if L.degree() * f.degree() == self.degree():
+            if L.absolute_degree() * f.degree() == self.absolute_degree():
                 M = L.extension(f, names[0])
                 beta = M(L.gen())
                 try:
@@ -5036,9 +5127,13 @@ class NumberField_relative(NumberField_generic):
             sage: V,from_V,to_V = K.absolute_vector_space(); V
             Vector space of dimension 9 over Rational Field
             sage: from_V
-            Isomorphism from Vector space of dimension 9 over Rational Field to Number Field in a with defining polynomial x^3 + 3 over its base field
+            Isomorphism map:
+              From: Vector space of dimension 9 over Rational Field
+              To:   Number Field in a with defining polynomial x^3 + 3 over its base field
             sage: to_V
-            Isomorphism from Number Field in a with defining polynomial x^3 + 3 over its base field to Vector space of dimension 9 over Rational Field
+            Isomorphism map:
+              From: Number Field in a with defining polynomial x^3 + 3 over its base field
+              To:   Vector space of dimension 9 over Rational Field
             sage: c = (a+1)^5; c
             7*a^2 - 10*a - 29
             sage: to_V(c)
@@ -5223,11 +5318,15 @@ class NumberField_relative(NumberField_generic):
 
             sage: from_L, to_L = L.structure()
             sage: from_L
-            Isomorphism from Number Field in c with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49 to Number Field in a with defining polynomial x^4 + 3 over its base field
+            Isomorphism map:
+              From: Number Field in c with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49
+              To:   Number Field in a with defining polynomial x^4 + 3 over its base field
             sage: from_L(c)
             a - b
             sage: to_L
-            Isomorphism from Number Field in a with defining polynomial x^4 + 3 over its base field to Number Field in c with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49
+            Isomorphism map:
+              From: Number Field in a with defining polynomial x^4 + 3 over its base field
+              To:   Number Field in c with defining polynomial x^8 + 8*x^6 + 30*x^4 - 40*x^2 + 49
             sage: to_L(a)
             -5/182*c^7 - 87/364*c^5 - 185/182*c^3 + 323/364*c
             sage: to_L(b)
@@ -5568,13 +5667,13 @@ class NumberField_relative(NumberField_generic):
 
     def relativize(self, alpha, names):
         r"""
-        Given an element alpha in self, return a relative number field
-        $K$ isomorphic to self that is relative over the absolute field
-        $\QQ(\alpha)$, along with isomorphisms from $K$ to self and
-        from self to K.
+        Given an element in self or an embedding of a subfield into self,
+        return a relative number field $K$ isomorphic to self that is relative
+        over the absolute field $\QQ(\alpha)$ or the domain of $alpha$, along
+        with isomorphisms from $K$ to self and from self to K.
 
         INPUT:
-            alpha -- an element of self.
+            alpha -- an element of self, or an embedding of a subfield into self
             names -- name of generator for output field K.
 
         OUTPUT:
@@ -5596,10 +5695,65 @@ class NumberField_relative(NumberField_generic):
             Number Field in z with defining polynomial x^4 + (-2*w + 4)*x^2 + 4*w + 1 over its base field
             sage: L.base_field()
             Number Field in w with defining polynomial x^2 + 3
+
+            Now suppose we have K below L below M:
+
+            sage: M = NumberField(x^8 + 2, 'a'); M
+            Number Field in a with defining polynomial x^8 + 2
+            sage: L, L_into_M, _ = M.subfields(4)[0]; L
+            Number Field in a0 with defining polynomial x^4 + 2
+            sage: K, K_into_L, _ = L.subfields(2)[0]; K
+            Number Field in a00 with defining polynomial x^2 + 2
+            sage: K_into_M = L_into_M * K_into_L
+
+            sage: L_over_K = L.relativize(K_into_L, 'c'); L_over_K
+            Number Field in c0 with defining polynomial x^2 + a00 over its base field
+            sage: L_over_K_to_L, L_to_L_over_K = L_over_K.structure()
+            sage: M_over_L_over_K = M.relativize(L_into_M * L_over_K_to_L, 'd'); M_over_L_over_K
+            Number Field in d0 with defining polynomial x^2 + c0 over its base field
+            sage: M_over_L_over_K.base_field() is L_over_K
+            True
+
+            Let's test relativizing a degree 6 field over its degree 2 and
+            degree 3 subfields, using both an explicit element
+
+            sage: K.<a> = NumberField(x^6 + 2); K
+            Number Field in a with defining polynomial x^6 + 2
+            sage: K2, K2_into_K, _ = K.subfields(2)[0]; K2
+            Number Field in a0 with defining polynomial x^2 + 2
+            sage: K3, K3_into_K, _ = K.subfields(3)[0]; K3
+            Number Field in a0 with defining polynomial x^3 - 2
+
+            Here we explicitly relativize over an element of K2 (not the
+            generator):
+
+            sage: L = K.relativize(K3_into_K, 'b'); L
+            Number Field in b0 with defining polynomial x^2 + a0 over its base field
+            sage: L_to_K, K_to_L = L.structure()
+            sage: L_over_K2 = L.relativize(K_to_L(K2_into_K(K2.gen() + 1)), 'c'); L_over_K2
+            Number Field in c0 with defining polynomial x^3 - c1 + 1 over its base field
+            sage: L_over_K2.base_field()
+            Number Field in c1 with defining polynomial x^2 - 2*x + 3
+
+            Here we use a morphism to preserve the base field information:
+
+            sage: K2_into_L = K_to_L * K2_into_K
+            sage: L_over_K2 = L.relativize(K2_into_L, 'c'); L_over_K2
+            Number Field in c0 with defining polynomial x^3 - a0 over its base field
+            sage: L_over_K2.base_field() is K2
+            True
         """
         K = self.absolute_field('a')
         from_K, to_K = K.structure()
-        beta = to_K(alpha)
+
+        if is_Map(alpha):
+            # alpha is an embedding of a subfield into self; compose to get an
+            # embedding of a subfield into the absolute field
+            beta = to_K * alpha
+        else:
+            # alpha is an element coercible into self
+            beta = to_K(alpha)
+
         S = K.relativize(beta, names)
         # Now S is the appropriate field,
         # but the structure maps attached to S

@@ -279,7 +279,7 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
         return '\n'.join(['%s |--> %s'%(D.gen(i), ig[i]) for\
                        i in range(D.ngens())])
 
-    def __call__(self, x):
+    def _call_(self, x):
         return self.__abs_hom(self.__to_K(x))
 
 

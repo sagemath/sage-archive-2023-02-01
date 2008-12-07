@@ -148,6 +148,84 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         hnf = L.pari_rnf().rnfidealnormrel(self.pari_rhnf())
         return K.ideal([ K(R(x)) for x in convert_from_zk_basis(K, hnf) ])
 
+    def ideal_below(self):
+        """
+        Compute the ideal of K below this ideal of L.
+
+        EXAMPLE:
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^2+6)
+            sage: L.<b> = K.extension(K['x'].gen()^4 + a)
+            sage: N = L.ideal(b)
+            sage: M = N.ideal_below(); M == K.ideal([-a])
+            True
+            sage: Np = L.ideal( [ L(t) for t in M.gens() ])
+            sage: Np.ideal_below() == M
+            True
+            sage: M.parent()
+            Monoid of ideals of Number Field in a with defining polynomial x^2 + 6
+            sage: M.ring()
+            Number Field in a with defining polynomial x^2 + 6
+            sage: M.ring() is K
+            True
+
+            This example concerns an inert ideal:
+
+            sage: K = NumberField(x^4 + 6*x^2 + 24, 'a')
+            sage: K.factor(7)
+            Fractional ideal (7)
+            sage: K0, K0_into_K, _ = K.subfields(2)[0]
+            sage: K0
+            Number Field in a0 with defining polynomial x^2 - 6*x + 24
+            sage: L = K.relativize(K0_into_K, 'c'); L
+            Number Field in c0 with defining polynomial x^2 + a0 over its base field
+            sage: L.base_field() is K0
+            True
+            sage: L.ideal(7)
+            Fractional ideal (7)
+            sage: L.ideal(7).ideal_below()
+            Fractional ideal (7)
+            sage: L.ideal(7).ideal_below().number_field() is K0
+            True
+
+            This example concerns an ideal that splits in the quadratic field
+            but each factor ideal remains inert in the extension:
+
+            sage: len(K.factor(19))
+            2
+            sage: K0 = L.base_field(); a0 = K0.gen()
+            sage: len(K0.factor(19))
+            2
+            sage: w1 = -a0 + 1; P1 = K0.ideal([w1])
+            sage: P1.norm().factor(), P1.is_prime()
+            (19, True)
+            sage: L_into_K, K_into_L = L.structure()
+            sage: L.ideal(K_into_L(K0_into_K(w1))).ideal_below() == P1
+            True
+
+            The choice of embedding of quadratic field into quartic field
+            matters:
+
+            sage: rho, tau = K0.embeddings(K)
+            sage: L1 = K.relativize(rho, 'b')
+            sage: L2 = K.relativize(tau, 'b')
+            sage: L1_into_K, K_into_L1 = L1.structure()
+            sage: L2_into_K, K_into_L2 = L2.structure()
+            sage: a = K.gen()
+            sage: P = K.ideal([a^2 + 5])
+            sage: K_into_L1(P).ideal_below() == K0.ideal([-a0 + 1])
+            True
+            sage: K_into_L2(P).ideal_below() == K0.ideal([-a0 + 5])
+            True
+            sage: K0.ideal([-a0 + 1]) == K0.ideal([-a0 + 5])
+            False
+        """
+        L = self.number_field()
+        K = L.base_field()
+        R = K.polynomial().parent()
+        hnf = L.pari_rnf().rnfidealdown(self.pari_rhnf())
+        return K.ideal([ K(R(x)) for x in convert_from_zk_basis(K, hnf) ])
+
     def factor(self):
         raise NotImplementedError
     def integral_basis(self):

@@ -5708,6 +5708,31 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(rnfidealabstorel(self.g, t0))
 
+    def rnfidealdown(self, x):
+        r"""
+        rnfidealdown(rnf,x): finds the intersection of the ideal x with the base field.
+
+        EXAMPLES:
+            sage: x = ZZ['xx1'].0; pari(x)
+            xx1
+            sage: y = ZZ['yy1'].0; pari(y)
+            yy1
+            sage: nf = pari(y^2 - 6*y + 24).nfinit()
+            sage: rnf = nf.rnfinit(x^2 - pari(y))
+
+            This is the relative HNF of the inert ideal (2) in rnf:
+
+            sage: P = pari('[[[1, 0]~, [0, 0]~; [0, 0]~, [1, 0]~], [[2, 0; 0, 2], [2, 0; 0, 1/2]]]')
+
+            And this is the HNF of the inert ideal (2) in nf:
+
+            sage: rnf.rnfidealdown(P)
+            [2, 0; 0, 2]
+        """
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(rnfidealdown(self.g, t0))
+
     def rnfidealhnf(self, x):
         t0GEN(x)
         _sig_on

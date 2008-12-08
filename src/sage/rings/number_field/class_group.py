@@ -115,9 +115,11 @@ class ClassGroup(AbelianGroup_class):
             sage: G
             Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^4 + 23
             sage: list(G)
-            [Trivial principal fractional ideal class, Fractional ideal class (2, 1/2*a^2 + a - 1/2), Fractional ideal class (2, 1/2*a^2 + 1/2)]
+            [Trivial principal fractional ideal class, Fractional ideal class (2, 1/2*a^2 + a - 1/2), Fractional ideal class (2, 1/2*a^2 + 1/2)] # 32-bit
+            [Trivial principal fractional ideal class, Fractional ideal class (2, 1/2*a^2 - a + 3/2), Fractional ideal class (2, 1/2*a^2 + 1/2)] # 64-bit
             sage: G.list()
-            [Trivial principal fractional ideal class, Fractional ideal class (2, 1/2*a^2 + a - 1/2), Fractional ideal class (2, 1/2*a^2 + 1/2)]
+            [Trivial principal fractional ideal class, Fractional ideal class (2, 1/2*a^2 + a - 1/2), Fractional ideal class (2, 1/2*a^2 + 1/2)] # 32-bit
+            [Trivial principal fractional ideal class, Fractional ideal class (2, 1/2*a^2 - a + 3/2), Fractional ideal class (2, 1/2*a^2 + 1/2)] # 64-bit
 
         TESTS:
             sage: K.<a> = NumberField(x^2 + 1)

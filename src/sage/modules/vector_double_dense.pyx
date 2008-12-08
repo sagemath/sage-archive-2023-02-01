@@ -433,31 +433,58 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         This function is fastest if the vector's length is a power of 2.
 
         EXAMPLES:
-            sage: v = vector(CDF,[1,2,3,4])
-            sage: w = v.fft()
-            sage: v2 = w.fft(direction='backward')
+            sage: v = vector(CDF,[1+2*I,2,3*I,4])
+            sage: v.fft()
+            (7.0 + 5.0*I, 1.0 + 1.0*I, -5.0 + 5.0*I, 1.0 - 3.0*I)
+            sage: v.fft(direction='backward')
+            (1.75 + 1.25*I, 0.25 - 0.75*I, -1.25 + 1.25*I, 0.25 + 0.25*I)
+            sage: v.fft().fft(direction='backward')
+            (1.0 + 2.0*I, 2.0, 3.0*I, 4.0)
+            sage: v.fft().parent()
+            Vector space of dimension 4 over Complex Double Field
+            sage: v.fft(inplace=True)
+            sage: v
+            (7.0 + 5.0*I, 1.0 + 1.0*I, -5.0 + 5.0*I, 1.0 - 3.0*I)
+
             sage: v = vector(RDF,4,range(4)); v
             (0.0, 1.0, 2.0, 3.0)
             sage: v.fft()
             (6.0, -2.0 + 2.0*I, -2.0, -2.0 - 2.0*I)
             sage: v.fft(direction='backward')
             (1.5, -0.5 - 0.5*I, -0.5, -0.5 + 0.5*I)
-            sage: v.fft(direction='backward').fft()
-            (0, 1.0..., 2.0, 3.0...)
+            sage: v.fft().fft(direction='backward')
+            (0, 1.0, 2.0, 3.0)
+            sage: v.fft().parent()
+            Vector space of dimension 4 over Complex Double Field
+            sage: v.fft(inplace=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: inplace can only be True for CDF vectors
         """
+        if direction not in ('forward', 'backward'):
+            raise ValueError, "direction must be either 'forward' or 'backward'"
+
         if self._degree == 0:
             return self
         global scipy
         if scipy is None:
             import scipy
+        import scipy.fftpack
 
-        cdef Vector_double_dense v = self.complex_vector()
-        if direction == 'forward':
-            return v._new(scipy.fft(v._vector_numpy))
-        elif direction == 'backward':
-            return v._new(scipy.ifft(v._vector_numpy))
+        if inplace:
+            if self._sage_dtype is not CDF:
+                raise ValueError, "inplace can only be True for CDF vectors"
+            if direction == 'forward':
+                self._vector_numpy = scipy.fftpack.fft(self._vector_numpy, overwrite_x = True)
+            else:
+                self._vector_numpy = scipy.fftpack.ifft(self._vector_numpy, overwrite_x = True)
         else:
-            raise ValueError, "direction must be either 'forward' or 'backward'"
+            V = CDF**self._degree
+            from vector_complex_double_dense import Vector_complex_double_dense
+            if direction == 'forward':
+                return Vector_complex_double_dense(V, scipy.fft(self._vector_numpy))
+            else:
+                return Vector_complex_double_dense(V, scipy.ifft(self._vector_numpy))
 
 
     def numpy(self):

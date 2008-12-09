@@ -98,6 +98,17 @@ def matrix_plot(mat, **options):
     Another random plot, but over GF(389):
         sage: matrix_plot(random_matrix(GF(389), 10), cmap='Oranges')
 
+    Here we plot a random sparse matrix:
+        sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in xrange(100)]))
+        sage: matrix_plot(sparse)
+
+    Plotting lists of lists also works:
+        sage: matrix_plot([[1,3,5,1],[2,4,5,6],[1,3,5,7]])
+
+    As does plotting of numpy arrays:
+        sage: import numpy
+        sage: matrix_plot(numpy.random.rand(10, 10))
+
     TESTS:
 
         sage: matrix_plot(random_matrix(RDF, 50), cmap='jolies')
@@ -109,20 +120,41 @@ def matrix_plot(mat, **options):
         Traceback (most recent call last):
         ...
         RuntimeError: Color map mpl not known
+
+        sage: P.<t> = RR[]
+        sage: matrix_plot(random_matrix(P, 3, 3))
+        Traceback (most recent call last):
+        ...
+        ValueError: can not convert array entries to floating point numbers
+
+        sage: matrix_plot([1,2,3])
+        Traceback (most recent call last):
+        ...
+        TypeError: mat must be a Matrix or a two dimensional array
+
+        sage: matrix_plot([[sin(x), cos(x)], [1, 0]])
+        Traceback (most recent call last):
+        ...
+        ValueError: can not convert array entries to floating point numbers
     """
     from sage.plot.plot import Graphics
+    from numpy import asarray
     from sage.matrix.all import is_Matrix
-    from matplotlib.numerix import array
-    if not is_Matrix(mat) or (isinstance(mat, (list, tuple)) and isinstance(mat[0], (list, tuple))):
-        raise TypeError, "mat must be of type Matrix or a two dimensional array"
-
     if is_Matrix(mat):
-        xrange = (0, mat.ncols())
-        yrange = (0, mat.nrows())
-    else:
-        xrange = (0, len(mat[0]))
-        yrange = (0, len(mat))
-    xy_data_array = [array(r, dtype=float) for r in mat]
+        mat = mat.numpy()
+
+    try:
+        xy_data_array = asarray(mat, dtype = float)
+    except TypeError:
+        raise TypeError, "mat must be a Matrix or a two dimensional array"
+    except ValueError:
+        raise ValueError, "can not convert array entries to floating point numbers"
+
+    if len(xy_data_array.shape) < 2:
+        raise TypeError, "mat must be a Matrix or a two dimensional array"
+
+    xrange = (0, xy_data_array.shape[1])
+    yrange = (0, xy_data_array.shape[0])
 
     g = Graphics()
     g.add_primitive(MatrixPlot(xy_data_array, xrange, yrange, options))

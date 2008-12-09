@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 WARNING:
 The following examples will not work if you have not run \code{dsage.setup()}.
     sage: from sage.dsage.misc.misc import find_open_port

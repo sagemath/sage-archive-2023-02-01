@@ -225,7 +225,7 @@ cpdef matching_root(poly, target, ambient_field=None, margin=1, max_prec=None):
         sage: matching_root(x^2-2, .00000001)
         1.41421356237310
         sage: matching_root(x^3-1, CDF.0)
-        -0.500000000000000 + 0.866025403784439*I
+        -0.500000000000000 + 0.86602540378443...*I
         sage: matching_root(x^3-x, 2, ambient_field=RR)
         1.00000000000000
     """

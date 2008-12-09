@@ -123,11 +123,19 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
               From: Cyclotomic Field of order 12 and degree 4
               To:   Cyclotomic Field of order 36 and degree 12
               Defn: zeta12 -> zeta36^3
+
+        The embeddings must be compatible:
+            sage: F1 = NumberField(x^3 + 2, 'a', embedding=2)
+            sage: F2 = NumberField(x^3 + 2, 'a', embedding=CC.0)
+            sage: F1.gen() + F2.gen()
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '+': 'Number Field in a with defining polynomial x^3 + 2' and 'Number Field in a with defining polynomial x^3 + 2'
         """
         if ambient_field is None:
             from sage.rings.complex_double import CDF
             ambient_field = CDF
-        gen_image = closest_root(K.polynomial().change_ring(L), L.gen(), ambient_field=ambient_field)
+        gen_image = matching_root(K.polynomial().change_ring(L), K.gen(), ambient_field=ambient_field, margin=2)
         if gen_image is None:
             raise ValueError, "No consistant embedding of all of %s into %s." % (K, L)
         NumberFieldEmbedding.__init__(self, K, L, gen_image)
@@ -191,38 +199,34 @@ cdef class EmbeddedNumberFieldConversion(Map):
             zeta15^5
         """
         minpoly = x.minpoly()
-        gen_image = closest_root(minpoly.change_ring(self._codomain), x, self.ambient_field, False)
+        gen_image = matching_root(minpoly.change_ring(self._codomain), x, self.ambient_field, 4)
         if gen_image is None:
             raise ValueError, "No consistant embedding of %s into %s." % (self._domain, self._codomain)
         return gen_image
 
 
-cpdef closest_root(poly, target, ambient_field=None, bint require_all=False, max_prec=None):
+cpdef matching_root(poly, target, ambient_field=None, margin=1, max_prec=None):
     """
     Given a polynomial and a target, this function chooses the root that
     target best approximates as compared in ambient_field.
 
     If the parent of target is exact, the equality is required, otherwise
-    the closest root (with respect to the \code{abs} function) is returned.
-
-    If require_all is set and the ring is inexact, we require the polynomial
-    to factor completely to return the closest root.
+    find closest root (with respect to the \code{abs} function) in the
+    ambient field to the target, and return the root of poly (if any) that
+    approximates it best.
 
     EXAMPLES:
-        sage: from sage.rings.number_field.number_field_morphisms import closest_root
+        sage: from sage.rings.number_field.number_field_morphisms import matching_root
         sage: R.<x> = CC[]
-        sage: closest_root(x^2-2, 1.5)
+        sage: matching_root(x^2-2, 1.5)
         1.41421356237310
-        sage: closest_root(x^2-2, -100.0)
+        sage: matching_root(x^2-2, -100.0)
         -1.41421356237310
-        sage: closest_root(x^2-2, .00000001)
+        sage: matching_root(x^2-2, .00000001)
         1.41421356237310
-        sage: closest_root(x^2-2, 1e-500)
-        sage: closest_root(x^2-2, 1e-100, max_prec=1000)
-        1.41421356237310
-        sage: closest_root(x^3-1, CDF.0)
+        sage: matching_root(x^3-1, CDF.0)
         -0.500000000000000 + 0.866025403784439*I
-        sage: closest_root(x^3-x, 2, ambient_field=RR)
+        sage: matching_root(x^3-x, 2, ambient_field=RR)
         1.00000000000000
     """
     if isinstance(poly, list):
@@ -236,35 +240,65 @@ cpdef closest_root(poly, target, ambient_field=None, bint require_all=False, max
 
     if ambient_field is None:
         ambient_field = target.parent()
-    target_approx = ambient_field(target)
-    best_root = None
 
     if ambient_field.is_exact():
+        target_approx = ambient_field(target)
         for r in roots:
             if ambient_field(r) == target_approx:
                 return r
 
     else:
-        if require_all and len(roots) != poly.degree():
-            return None
-        elif len(roots) == 1:
-            return roots[0]
         # since things are inexact, try and pick the closest one
         if max_prec is None:
             max_prec = ambient_field.prec() * 32
-        best_root = None
-        while best_root is None and ambient_field.prec() < max_prec:
-            dists = [abs(target_approx - ambient_field(r)) for r in roots]
-            min_dist = min(dists)
-            sdists = sorted(dists)
-            if sdists[0] == sdists[1] or 10*sdists[1] < sdists[0]:
-                # we need enough precision to clearly distinguish the best
-                ambient_field = ambient_field.to_prec(ambient_field.prec() * 2)
-                target_approx = ambient_field(target)
+        while ambient_field.prec() < max_prec:
+            if isinstance(poly, list):
+                ambient_roots = [ambient_field(r) for r in poly]
             else:
-                for r, d in zip(roots, dists):
-                    if d == min_dist:
+                ambient_roots = [r for r, e in poly.change_ring(ambient_field).roots()]
+            target_root = closest(ambient_field(target), ambient_roots, margin)
+            if target_root is not None:
+                for r in roots:
+                    if closest(ambient_field(r), ambient_roots, margin) is target_root:
                         return r
+            ambient_field = ambient_field.to_prec(ambient_field.prec() * 2)
+
+
+cpdef closest(target, values, margin=1):
+    """
+    This is a utility function that returns the item in values closest to
+    target (with respect to the \code{abs} function). If margin is greater
+    than 1, and x and y are the first and second closest elements to target,
+    then only return x if x is margin times closer to target than y, i.e.
+    margin * abs(target-x) < abs(target-y).
+
+    TESTS:
+        sage: from sage.rings.number_field.number_field_morphisms import closest
+        sage: closest(1.2, [0,1,2,3,4])
+        1
+        sage: closest(1.7, [0,1,2,3,4])
+        2
+        sage: closest(1.7, [0,1,2,3,4], margin=5)
+        sage: closest(1.9, [0,1,2,3,4], margin=5)
+        2
+        sage: closest(.2, [-1, 1, CDF.0, -CDF.0])
+        1
+    """
+    cdef int i
+    if len(values) == 0:
+        raise ValueError
+    elif len(values) == 1:
+        return values[0]
+    else:
+        dists = [abs(target - r) for r in values]
+        sdists = sorted(dists)
+        min_dist = sdists[0]
+        if margin*min_dist < sdists[1]:
+            for i in range(len(values)):
+                if dists[i] is min_dist:
+                    return values[i]
+        else:
+            return None
 
 def create_embedding_from_approx(K, gen_image):
     """

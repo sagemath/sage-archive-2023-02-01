@@ -1242,9 +1242,9 @@ cdef class NumberFieldElement(FieldElement):
                         roots.append(soln.rhs())
                 if len(roots) != poly.degree():
                     raise TypeError, "Unable to solve by radicals."
-                from number_field_morphisms import closest_root
+                from number_field_morphisms import matching_root
                 from sage.rings.complex_field import ComplexField
-                gen_image = closest_root(roots, self, ambient_field=ComplexField(53))
+                gen_image = matching_root(roots, self, ambient_field=ComplexField(53), margin=2)
                 if gen_image is not None:
                     self.__symbolic = gen_image
                 else:

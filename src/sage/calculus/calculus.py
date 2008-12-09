@@ -1441,19 +1441,26 @@ class SymbolicExpression(RingElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: Could not prove minimal polynomial x^4 - 5/4*x^2 + 5/16 (epsilon 0.00000000000000e-1)
-            sage: f = a.minpoly(algorithm='numeric', epsilon=1e-100); f
+            sage: f = a.minpoly(algorithm='numerical', epsilon=1e-100); f
             x^4 - 5/4*x^2 + 5/16
             sage: f(a).numerical_approx(100)
             0.00000000000000000000000000000
 
         The degree must be high enough (default tops out at 24).
             sage: a = sqrt(3) + sqrt(2)
-            sage: a.minpoly(algorithm='numeric', bits=100, degree=3)
+            sage: a.minpoly(algorithm='numerical', bits=100, degree=3)
             Traceback (most recent call last):
             ...
             ValueError: Could not find minimal polynomial (100 bits, degree 3).
-            sage: a.minpoly(algorithm='numeric', bits=100, degree=10)
+            sage: a.minpoly(algorithm='numerical', bits=100, degree=10)
             x^4 - 10*x^2 + 1
+
+        There is a difference between algorithm='algebraic' and algorithm='numerical':
+            sage: cos(pi/22).minpoly(algorithm='algebraic')
+            x^10 - 11/4*x^8 + 11/4*x^6 - 77/64*x^4 + 55/256*x^2 - 11/1024
+            sage: cos(pi/22).minpoly(algorithm='numerical')
+            Traceback (most recent call last):
+            NotImplementedError: Could not prove minimal polynomial x^10 - 11/4*x^8 + 11/4*x^6 - 77/64*x^4 + 55/256*x^2 - 11/1024 (epsilon ...)
 
         Sometimes it fails.
             sage: sin(1).minpoly()
@@ -1476,8 +1483,7 @@ class SymbolicExpression(RingElement):
                 if algorithm == 'algebraic':
                     raise
 
-        if algorithm is None or algorithm == 'numerical':
-
+        if algorithm is None or algorithm.startswith('numeric'):
             bits_list = [bits] if bits else [100,200,500,1000]
             degree_list = [degree] if degree else [2,4,8,12,24]
 

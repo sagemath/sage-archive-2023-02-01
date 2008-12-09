@@ -84,10 +84,12 @@ class Worker(object):
         self.log_level = log_level
         self.poll_rate = poll
         self.checker_task = task.LoopingCall(self.check_work)
-        self.checker_timeout = 0.5
+        self.checker_timeout = 0.1
+        self.checker_limit = 0.1
         self.got_output = False
         self.job_start_time = None
         self.orig_poll = poll
+        self.get_pending = False
         self.start()
 
     def _catch_failure(self, failure):
@@ -107,6 +109,9 @@ class Worker(object):
                         % (self.id, self.poll_rate))
 
     def get_job(self):
+        if self.get_pending:
+            return
+        self.get_pending = True
         try:
             if self.log_level > 3:
                 log.msg(LOG_PREFIX % self.id +  'Getting job...')
@@ -119,7 +124,6 @@ class Worker(object):
             return
         d.addCallback(self.gotJob)
         d.addErrback(self.noJob)
-
         return d
 
     def gotJob(self, jdict):
@@ -144,6 +148,7 @@ class Worker(object):
             self.poll_rate = self.orig_poll
             self.doJob(self.job)
         except Exception, msg:
+            self.get_pending = False
             log.msg(msg)
             self.report_failure(msg)
             self.restart()
@@ -184,6 +189,7 @@ class Worker(object):
             return d
 
         if completed:
+            self.get_pending = False
             log.msg('[Worker %s] Finished job %s' % (self.id, job_id))
             self.restart()
 
@@ -198,7 +204,7 @@ class Worker(object):
         :param failure: a twisted failure object
 
         """
-
+        self.get_pending = False
         if failure.check(NoJobException):
             if self.log_level > 1:
                 msg = 'Sleeping for %s seconds' % self.poll_rate
@@ -307,6 +313,7 @@ except:
         job_file.write(GO_TO_TMP_DIR)
         job_file.write(SAVE_RESULT)
         job_file.write(SAVE_TIME)
+        job_file.write('print "00DSAGE00"')
         job_file.close()
         if self.log_level > 2:
             log.msg('[Worker: %s] Wrote job file. ' % (self.id))
@@ -358,7 +365,7 @@ except:
 
         if self.checker_task.running:
             self.checker_task.stop()
-        self.checker_timeout = 1.0
+        self.checker_timeout = 0.1
         self.checker_task = task.LoopingCall(self.check_work)
 
     def check_work(self):
@@ -382,13 +389,15 @@ except:
             log.msg(LOG_PREFIX % self.id + msg)
         os.chdir(self.tmp_job_dir)
         try:
-            # foo, output, new = self.sage._so_far()
             # This sucks and is a very bad way to tell when a calculation is
             # finished
-            done, new = self.sage._get()
             # If result.sobj exists, our calculation is done
-            result = open('result.sobj', 'rb').read()
-            done = True
+            done, new = self.sage._get()
+            if new.count("00DSAGE00"):
+                result = open('result.sobj', 'rb').read()
+                done = True
+            else:
+                done = False
         except RuntimeError, msg: # Error in calling worker.sage._so_far()
             done = False
             if self.log_level > 1:
@@ -413,6 +422,7 @@ except:
 
         if self.check_failure(new):
             self.report_failure(new)
+            self.get_pending = False
             self.restart()
             return
 
@@ -458,9 +468,9 @@ except:
         if self.checker_task.running:
             self.checker_task.stop()
 
-        self.checker_timeout = self.checker_timeout * 1.5
-        if self.checker_timeout > 300.0:
-            self.checker_timeout = 300.0
+        self.checker_timeout = self.checker_timeout * 1.1
+        if self.checker_timeout > self.checker_limit:
+            self.checker_timeout = self.checker_limit
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_task.start(self.checker_timeout, now=False)
         if self.log_level > 0:
@@ -931,8 +941,13 @@ class Monitor(pb.Referenceable):
         for worker in self.worker_pool:
             if worker.job != None:
                 if worker.job.job_id == job_id:
+                    worker.get_pending = False
                     worker.restart()
 
+    def remote_get_job(self):
+        for worker in self.worker_pool:
+            if worker.job==None:
+                worker.get_job()
 
 def usage():
     """

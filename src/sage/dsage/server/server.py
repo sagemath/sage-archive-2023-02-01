@@ -188,7 +188,13 @@ class DSageServer(pb.Root):
         job_id = self.jobdb.store_jdict(jdict)
         log.msg('Received job %s' % job_id)
 
+        self.push_job()
+
         return job_id
+
+    def push_job(self):
+        for worker in self.workers.values():
+            worker.callRemote('get_job')
 
     def get_all_jobs(self):
         """

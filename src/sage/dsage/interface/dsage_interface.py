@@ -450,7 +450,7 @@ class BlockingDSage(DSage):
                     if j.status in ('completed', 'killed'):
                         out_list.append(j)
                         yield (x, j)
-                    time.sleep(0.2)
+            time.sleep(0.1)
 
     def block_on_jobs(self, jobs):
         """

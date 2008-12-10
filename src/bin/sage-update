@@ -74,7 +74,7 @@ def download_file(file):
         # First we make a list of the old versions here, then
         # we download the new version, and only if that succeeds
         # do we actually do the delete of the old versions.
-        old_versions = [x for x in os.listdir('.') if x.startswith(file[:j+1])]
+        old_versions = [x for x in os.listdir('.') if x.startswith(file[:j+1]) and os.path.isfile(x)]
     else:
         old_versions = []
 
@@ -174,7 +174,7 @@ def do_update():
     # is not guaranteed to work, yet.  This is for "power users".
     print "* WARNING: This is a source-based upgrade, which could take hours, fail and render your Sage install useless!!"
     for F in os.listdir("."):
-        if 'Placeholder spkg file' in open(F).readline():
+        if os.path.isfile(F) and 'Placeholder spkg file' in open(F).readline():
             print "* This is a binary install, so upgrading in place is *not* recommended unless you are an expert."
             print "* (Considering installing a new binary from http://sagemath.org instead.)"
             break

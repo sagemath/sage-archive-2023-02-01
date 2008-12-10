@@ -65,7 +65,7 @@ def skip(F):
           or 'nodoctest' in open(G).read():
         return True
 
-    sys.stdout.write("%-60s"%sage_test_command(F))
+    sys.stdout.write("%-60s"%sage_test_command(F)+"\n")
     sys.stdout.flush()
     return False
 
@@ -127,7 +127,7 @@ files.sort()
 
 for F in files:
     e = test_file(F)
-    if e:
+    if e!=0 and e!=512:
         print "exit code: %s"%e
     #    sys.exit(1)
 

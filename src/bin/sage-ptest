@@ -212,6 +212,8 @@ for gr in range(0,numglobaliteration):
         printmutex.acquire()
         print abs(F)
         if ol!="" and (not ol.isspace()):
+            if (ol[len(ol)-1]=="\n"):
+                ol=ol[0:len(ol)-1]
             print ol
         time_dict[abs_sage_path(F)] = finished_time
         print "\t [%.1f s]"%(finished_time)

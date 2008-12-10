@@ -125,15 +125,6 @@ if __name__ ==  '__main__':
     sys.exit(runner.failures)
 """ % dict
 
-ALARM = """
-import signal
-def __mysig__(a,b):
-    print "TIME OUT TIME OUT TIME OUT"
-    raise RuntimeError, "timeout"
-signal.signal(signal.SIGALRM, __mysig__)
-signal.alarm(%s)
-"""%TIMEOUT
-
 NONE=0; LONG_TIME=1; RANDOM=2; OPTIONAL=3; NOT_IMPLEMENTED=4; NOT_TESTED=5
 
 def comment_modifier(s):
@@ -435,26 +426,6 @@ def post_process(s, file, tmpname):
         s += "For whitespace errors, see the file %s"%tmpname
     return s
 
-__alarm_time=0
-def __mysig(a,b):
-    raise RuntimeError, "computation timed out because alarm was set for %s seconds"%__alarm_time
-
-def alarm(seconds):
-    """
-    Raise a KeyboardInterrupt exception in a given number of seconds.
-    This is useful for automatically interrupting long computations
-    and can be trapped using exception handling.
-
-    INPUT:
-        seconds -- integer
-    """
-    seconds = int(seconds)
-    # Set our alarm signal handler.
-    signal.signal(signal.SIGALRM, __mysig)
-    global __alarm_time
-    __alarm_time = seconds
-    signal.alarm(seconds)
-
 def test_file(file):
     if os.path.exists(file):
         name = os.path.basename(file)
@@ -500,7 +471,7 @@ def test_file(file):
                     time.sleep(1.0)
                 if time.time()-tm >=TIMEOUT:
                     os.kill(proc.pid, 9)
-                    print "\n*** *** Error: TIMED OUT! PROCESS KILLED! *** ***"
+                    print "*** *** Error: TIMED OUT! PROCESS KILLED! *** ***"
                 e = proc.poll()
             else:
                 outf = tempfile.NamedTemporaryFile()
@@ -510,17 +481,15 @@ def test_file(file):
                     time.sleep(1.0)
                 if time.time()-tm >=TIMEOUT:
                     os.kill(proc.pid, 9)
-                    print "\n*** *** Error: TIMED OUT! PROCESS KILLED! *** ***"
+                    print "*** *** Error: TIMED OUT! PROCESS KILLED! *** ***"
                 outf.file.seek(0)
                 out = outf.read()
                 e = proc.poll()
         except KeyboardInterrupt:
-            err += "\n Error -- interrupted after %s seconds!"%tm
-            print "Error!!!"
+            print "KeyboardInterrupt -- interrupted after %s seconds!" % (time.time()-tm)
             sys.exit(2)
-
         if not verbose and 'raise KeyboardInterrupt' in err:
-            print "\n" + "*"*80 + "\nControl-C pressed -- interrupting doctests.\n" + "*"*80
+            print "*"*80 + "Control-C pressed -- interrupting doctests." + "*"*80
             sys.exit(2)
 
         if time.time() - tm >= TIMEOUT:
@@ -528,15 +497,15 @@ def test_file(file):
             print err
 
         s = post_process(out, file, f)  + err
-        numfail = s.count('Failed') + s.count('Error')
-        if numfail == 0 and e>0:
+        numfail = s.count('Failed') + s.count('Error') - s.count('TypeError')
+        if numfail == 0 and e>0 and verbose:
             numfail = e
         if numfail > 0:
             if not (verbose or gdb or memcheck or massif or cachegrind):
-                print "\n" + out
+                print out
             delete_tmpfiles()
             sys.exit(4)
-        elif e <0:
+        elif e !=0:
             if not verbose:
                 print "A mysterious error (perphaps a memory error?) occurred, which may have crashed doctest."
             sys.exit(3)

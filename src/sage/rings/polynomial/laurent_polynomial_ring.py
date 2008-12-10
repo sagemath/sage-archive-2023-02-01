@@ -160,10 +160,11 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
         sage: LaurentPolynomialRing(QQ, 'y', 3, sparse=True)
         Multivariate Laurent Polynomial Ring in y0, y1, y2 over Rational Field
 
-    You can call \code{injvar}, which is a convenient shortcut for \code{inject_variables()}.
+    By calling the \code{inject_variables()} method, all those variable
+    names are available for interactive use:
         sage: R = LaurentPolynomialRing(GF(7),15,'w'); R
         Multivariate Laurent Polynomial Ring in w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14 over Finite Field of size 7
-        sage: R.injvar()
+        sage: R.inject_variables()
         Defining w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14
         sage: (w0 + 2*w8 + w13)^2
         w0^2 + 4*w0*w8 + 4*w8^2 + 2*w0*w13 + 4*w8*w13 + w13^2

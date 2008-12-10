@@ -360,9 +360,11 @@ cdef class CategoryObject(sage_object.SageObject):
 
     def injvar(self, scope=None, verbose=True):
         """
-        This is a synonym for self.inject_variables(...)
+        This is a deprecated synonym for self.inject_variables(...)
         <<<sage.structure.parent.Parent.inject_variables>>>
         """
+        from sage.misc.misc import deprecation
+        deprecation('injvar is deprecated; use inject_variables instead.')
         return self.inject_variables(scope=scope, verbose=verbose)
 
     #################################################################################################

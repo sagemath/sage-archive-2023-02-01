@@ -9,6 +9,9 @@ the place to fix it.
 
 == Releases ==
 
+=== genus2reduction-0.3.p4 (William Stein, December 8th, 2008) ===
+ * change genus2reduction to include GPL copyright file and email from liu making the program GPL'd (#4743)
+
 === genus2reduction-0.3.p3 (Michael Abshoff, May 18th, 2008) ===
  * add 64 bit OSX support
 

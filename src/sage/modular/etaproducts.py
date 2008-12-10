@@ -154,16 +154,16 @@ class EtaGroup_class(AbelianGroup):
             [Eta product of level 5 : (eta_1)^6 (eta_5)^-6]
             sage: EtaGroup(12).basis()
             [Eta product of level 12 : (eta_1)^2 (eta_2)^1 (eta_3)^2 (eta_4)^-1 (eta_6)^-7 (eta_12)^3,
-            Eta product of level 12 : (eta_1)^3 (eta_2)^-2 (eta_3)^-1 (eta_4)^1 (eta_6)^2 (eta_12)^-3,
             Eta product of level 12 : (eta_1)^-2 (eta_2)^3 (eta_3)^6 (eta_4)^-1 (eta_6)^-9 (eta_12)^3,
-            Eta product of level 12 : (eta_1)^-1 (eta_2)^1 (eta_3)^3 (eta_4)^2 (eta_6)^-7 (eta_12)^2,
-            Eta product of level 12 : (eta_1)^6 (eta_2)^-9 (eta_3)^-2 (eta_4)^3 (eta_6)^3 (eta_12)^-1]
+            Eta product of level 12 : (eta_1)^-3 (eta_2)^2 (eta_3)^1 (eta_4)^-1 (eta_6)^-2 (eta_12)^3,
+            Eta product of level 12 : (eta_1)^1 (eta_2)^-1 (eta_3)^-3 (eta_4)^-2 (eta_6)^7 (eta_12)^-2,
+            Eta product of level 12 : (eta_1)^-6 (eta_2)^9 (eta_3)^2 (eta_4)^-3 (eta_6)^-3 (eta_12)^1]
             sage: EtaGroup(12).basis(reduce=False) # much bigger coefficients
-            [Eta product of level 12 : (eta_1)^15 (eta_2)^-24 (eta_3)^-29 (eta_4)^9 (eta_6)^24 (eta_12)^5,
-            Eta product of level 12 : (eta_1)^1 (eta_2)^9 (eta_3)^13 (eta_4)^-4 (eta_6)^-15 (eta_12)^-4,
-            Eta product of level 12 : (eta_1)^-8 (eta_2)^-2 (eta_6)^2 (eta_12)^8,
+            [Eta product of level 12 : (eta_2)^24 (eta_12)^-24,
             Eta product of level 12 : (eta_1)^-336 (eta_2)^576 (eta_3)^696 (eta_4)^-216 (eta_6)^-576 (eta_12)^-144,
-            Eta product of level 12 : (eta_2)^24 (eta_12)^-24]
+            Eta product of level 12 : (eta_1)^-8 (eta_2)^-2 (eta_6)^2 (eta_12)^8,
+            Eta product of level 12 : (eta_1)^1 (eta_2)^9 (eta_3)^13 (eta_4)^-4 (eta_6)^-15 (eta_12)^-4,
+            Eta product of level 12 : (eta_1)^15 (eta_2)^-24 (eta_3)^-29 (eta_4)^9 (eta_6)^24 (eta_12)^5]
 
         ALGORITHM:
             An eta product of level $N$ is uniquely determined by the integers
@@ -198,9 +198,9 @@ class EtaGroup_class(AbelianGroup):
         # now we compute elementary factors of Mlift
         S,U,V = Mlift.smith_form()
         good_vects = []
-        for vect in U.rows():
-            nf = sum(vect*Mlift*V) # has only one nonzero entry, but hard to predict
-                    # which one it is!
+        for i in xrange(U.nrows()):
+            vect = U.row(i)
+            nf = (i < S.ncols() and S[i,i]) or 0
             good_vects.append((vect * 24/gcd(nf, 24)).list())
         for v in good_vects:
             v.append(-sum([r for r in v]))

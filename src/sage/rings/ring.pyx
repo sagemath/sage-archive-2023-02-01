@@ -1120,10 +1120,7 @@ cdef class DedekindDomain(IntegralDomain):
             sage: K = NumberField(x^2 + 1, 's')
             sage: OK = K.ring_of_integers()
             sage: OK.is_noetherian()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
+            True
             sage: QQ.is_noetherian()
             True
         """

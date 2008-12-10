@@ -1143,7 +1143,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: res =  K.ideal(2).residues(); res  # random address
             xmrange_iter([[0, 1], [0, 1]], <function <lambda> at 0xa252144>)
             sage: list(res)
-            [0, i, 1, i + 1]
+            [0, 1, i, i + 1]
             sage: list(K.ideal(2+i).residues())
             [-2, -1, 0, 1, 2]
             sage: list(K.ideal(i).residues())

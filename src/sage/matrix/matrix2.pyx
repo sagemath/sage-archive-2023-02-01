@@ -4211,8 +4211,8 @@ cdef class Matrix(matrix1.Matrix):
         Anti-symmetric means that $M = -M^t$.  Alternating means that the
         diagonal of $M$ is identically zero.
 
-        A symplectic basis is a basis of the form $z_1, \ldots, z_i, e_1,
-        \ldots, e_j, f_1, \ldots f_j$ such that
+        A symplectic basis is a basis of the form $e_1, \ldots, e_j, f_1,
+        \ldots f_j, z_1, \dots, z_k$ such that
             * $z_i M v^t$ = 0 for all vectors $v$;
             * $e_i M {e_j}^t = 0$ for all $i, j$;
             * $f_i M {f_j}^t = 0$ for all $i, j$;
@@ -4573,6 +4573,343 @@ cdef class Matrix(matrix1.Matrix):
             (0, 0, 2)
         """
         return multi_derivative(self, args)
+
+    def elementary_divisors(self):
+        r""" If self is a matrix over a principal ideal domain R, return
+        elements $d_i$ for $1 \le i \le k = \min(r,s)$ where $r$ and $s$ are
+        the number of rows and columns of self, such that the cokernel of self
+        is isomorphic to
+        \[ R/(d_1) \oplus R/(d_2) \oplus R/(d_k)\]
+        with $d_i \mid d_{i+1}$ for all $i$. These are the diagonal entries of
+        the Smith form of self (see \code{smith_form()}).
+
+        EXAMPLES:
+            sage: OE = EquationOrder(x^2 - x + 2, 'w')
+            sage: w = OE.ring_generators()[0]
+            sage: m = Matrix([ [1, w],[w,7]])
+            sage: m.elementary_divisors()
+            [1, -w + 9]
+
+        SEE ALSO:
+            \code{smith_form()}
+        """
+        d, u, v = self.smith_form()
+        r = min(self.nrows(), self.ncols())
+        return [d[i,i] for i in xrange(r)]
+
+    def smith_form(self):
+        r""" If self is a matrix over a principal ideal domain R, return
+        matrices D, U, V over R such that D = U * self * V, U and V have unit
+        determinant, and D is diagonal with diagonal entries the ordered
+        elementary divisors of self, ordered so that $D_{i} \mid D_{i+1}$. Note
+        that U and V are not uniquely defined in general, and D is defined only
+        up to units.
+
+        INPUT:
+            self -- a matrix over an integral domain. If the base ring is not a
+            PID, the routine might work, or else it will fail having found an
+            example of a non-principal ideal. Note that we do not call any
+            methods to check whether or not the base ring is a PID, since this
+            might be quite expensive (e.g. for rings of integers of number
+            fields of large degree).
+
+        ALGORITHM:
+            Lifted wholesale from http://en.wikipedia.org/wiki/Smith_normal_form
+
+        SEE ALSO:
+            \code{elementary_divisors()}
+
+        AUTHOR:
+            -- David Loeffler (2008-12-05)
+
+        EXAMPLES:
+
+        An example over the ring of integers of a number field (of class number 1):
+            sage: OE = NumberField(x^2 - x + 2,'w').ring_of_integers()
+            sage: w = OE.ring_generators()[0]
+            sage: m = Matrix([ [1, w],[w,7]])
+            sage: d, u, v = m.smith_form()
+            sage: (d, u, v)
+            ([     1      0]
+            [     0 -w + 9], [ 1  0]
+            [-w  1], [ 1 -w]
+            [ 0  1])
+            sage: u * m * v == d
+            True
+            sage: u.base_ring() == v.base_ring() == d.base_ring() == OE
+            True
+            sage: u.det().is_unit() and v.det().is_unit()
+            True
+
+        An example over the polynomial ring QQ[x]:
+
+            sage: R.<x> = QQ[]; m=x*matrix(R,2,2,1) - matrix(R, 2,2,[3,-4,1,-1]); m.smith_form()
+            ([            1             0]
+            [            0 x^2 - 2*x + 1], [    0    -1]
+            [    1 x - 3], [    1 x + 1]
+            [    0     1])
+
+        An example over a field:
+            sage: m = matrix( GF(17), 3, 3, [11,5,1,3,6,8,1,16,0]); d,u,v = m.smith_form()
+            sage: d
+            [1 0 0]
+            [0 1 0]
+            [0 0 0]
+            sage: u*m*v == d
+            True
+
+        Some examples over non-PID's work anyway:
+            sage: R = EquationOrder(x^2 + 5, 's') # class number 2
+            sage: s = R.ring_generators()[0]
+            sage: matrix(R, 2, 2, [s-1,-s,-s,2*s+1]).smith_form()
+            ([     1      0]
+            [     0 -s - 6],
+            [   -1    -1]
+            [    s s - 1],
+            [    1 s + 1]
+            [    0     1])
+
+        Others don't, but they fail quite constructively:
+            sage: matrix(R,2,2,[s-1,-s-2,-2*s,-s-2]).smith_form()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Ideal Fractional ideal (2, s + 1) not principal
+
+        Empty matrices are handled safely:
+            sage: m = MatrixSpace(OE, 2,0)(0); d,u,v=m.smith_form(); u*m*v == d
+            True
+            sage: m = MatrixSpace(OE, 0,2)(0); d,u,v=m.smith_form(); u*m*v == d
+            True
+            sage: m = MatrixSpace(OE, 0,0)(0); d,u,v=m.smith_form(); u*m*v == d
+            True
+
+        Some pathological cases that crashed earlier versions:
+            sage: m = Matrix(OE, [[2*w,2*w-1,-w+1],[2*w+2,-2*w-1,w-1],[-2*w-1,-2*w-2,2*w-1]]); d, u, v = m.smith_form(); u * m * v == d
+            True
+            sage: m = matrix(OE, 3, 3, [-5*w-1,-2*w-2,4*w-10,8*w,-w,w-1,-1,1,-8]); d,u,v = m.smith_form(); u*m*v == d
+            True
+
+        """
+        R = self.base_ring()
+        left_mat = self.new_matrix(self.nrows(), self.nrows(), 1)
+        right_mat = self.new_matrix(self.ncols(), self.ncols(), 1)
+        if self == 0 or (self.nrows() <= 1 and self.ncols() <= 1):
+            return self.copy(), left_mat, right_mat
+
+        # data type checks on R
+        if not R.is_integral_domain() or not R.is_noetherian():
+            raise TypeError, "Smith form only defined over Noetherian integral domains"
+        if not R.is_exact():
+            raise NotImplementedError, "Smith form over non-exact rings not implemented at present"
+
+        # first clear the first row and column
+        u,t,v = _smith_onestep(self)
+
+        # now recurse: t now has a nonzero entry at 0,0 and zero entries in the rest
+        # of the 0th row and column, so we apply smith_form to the smaller submatrix
+        mm = t.submatrix(1,1)
+        dd, uu, vv = mm.smith_form()
+        mone = self.new_matrix(1, 1, [1])
+        d = dd.new_matrix(1,1,[t[0,0]]).block_sum(dd)
+        u = uu.new_matrix(1,1,[1]).block_sum(uu) * u
+        v = v * vv.new_matrix(1,1,[1]).block_sum(vv)
+        dp, up, vp = _smith_diag(d)
+        return dp,up*u,v*vp
+
+    # end of Matrix class methods
+
+def _smith_diag(d):
+    r""" For internal use by the smith_form routine. Given a diagonal matrix d
+    over a ring r, return matrices d', a,b such that a*d*b = d' and d' is
+    diagonal with each entry dividing the next.
+
+    If any of the d's is a unit, it replaces it with 1 (but no other attempt
+    is made to pick "good" representatives of ideals).
+
+    EXAMPLE:
+        sage: from sage.matrix.matrix2 import _smith_diag
+        sage: OE = EquationOrder(x^2 - x + 2, 'w')
+        sage: _smith_diag(matrix(OE, 2, [2,0,0,3]))
+        ([1 0]
+        [0 6], [-1  1]
+        [-3  2], [ 1 -3]
+        [ 1 -2])
+        sage: m = matrix(GF(7),2, [3,0,0,6]); d,u,v = _smith_diag(m); d
+        [1 0]
+        [0 1]
+        sage: u*m*v == d
+        True
+    """
+
+    dp = d.copy()
+    n = min(d.nrows(), d.ncols())
+    R = d.base_ring()
+    left = d.new_matrix(d.nrows(), d.nrows(), 1)
+    right = d.new_matrix(d.ncols(), d.ncols(), 1)
+    for i in xrange(n):
+        I = R.ideal(dp[i,i])
+
+        if I == R.unit_ideal():
+            if dp[i,i] != 1:
+                left.add_multiple_of_row(i,i,R(R(1)/(dp[i,i])) - 1)
+                dp[i,i] = R(1)
+            continue
+
+        for j in xrange(i+1,n):
+            if dp[j,j] not in I:
+                t = R.ideal([dp[i,i], dp[j,j]]).gens_reduced()
+                if len(t) > 1: raise ArithmeticError
+                t = t[0]
+                # find lambda, mu such that lambda*d[i,i] + mu*d[j,j] = t
+                lamb = R(dp[i,i]/t).inverse_mod( R.ideal(dp[j,j]/t))
+                mu = R((t - lamb*dp[i,i]) / dp[j,j])
+
+                newlmat = dp.new_matrix(dp.nrows(), dp.nrows(), 1)
+                newlmat[i,i] = lamb
+                newlmat[i,j] = 1
+                newlmat[j,i] = R(-dp[j,j]*mu/t)
+                newlmat[j,j] = R(dp[i,i]/t)
+                newrmat = dp.new_matrix(dp.ncols(), dp.ncols(), 1)
+                newrmat[i,i] = 1
+                newrmat[i,j] = R(-dp[j,j]/t)
+                newrmat[j,i] = mu
+                newrmat[j,j] = R(lamb*dp[i,i] / t)
+
+                left = newlmat*left
+                right = right*newrmat
+                dp = newlmat*dp*newrmat
+    return dp, left, right
+
+def _smith_onestep(m):
+    r""" Carry out one step of Smith normal form for matrix m. Returns three matrices a,b,c over
+    the same base ring as m, such that a * m * c = b, a and c have determinant
+    1, and the zeroth row and column of b have no nonzero entries except
+    b[0,0].
+
+    EXAMPLE:
+        sage: from sage.matrix.matrix2 import _smith_onestep
+        sage: OE = NumberField(x^2 - x + 2,'w').ring_of_integers()
+        sage: w = OE.ring_generators()[0]
+        sage: m = matrix(OE, 3,3,[1,0,7,2,w, w+17, 13+8*w, 0, 6])
+        sage: a,b,c = _smith_onestep(m); b
+        [         1          0          0]
+        [         0          w      w + 3]
+        [         0          0 -56*w - 85]
+        sage: a * m * c == b
+        True
+    """
+    a = m.copy()
+    R = m.base_ring()
+    left_mat = m.new_matrix(m.nrows(), m.nrows(), 1)
+    right_mat = m.new_matrix(m.ncols(), m.ncols(), 1)
+
+    if m == 0 or (m.nrows() <= 1 and m.ncols() <= 1):
+        return left_mat, m, right_mat
+
+    # preparation: if column 0 is zero, swap it with the first nonzero column
+    j = 0
+    while a.column(j) == 0: j += 1
+    if j > 0:
+        right_mat[0,0] = right_mat[j,j] = 0
+        right_mat[0,j] = 1
+        right_mat[j,0] = -1
+        a = a*right_mat
+        if m * right_mat != a:
+            raise ArithmeticError
+
+    # case 1: if a_{0, 0} = 0 and a_{k, 0} != 0 for some k, swap rows 0 and k.
+    if a[0, 0] == 0:
+        k = 1
+        while a[k, 0] == 0: k += 1 # this will terminate, because of the previous step
+        left_mat[0,0] = 0
+        left_mat[k,k] = 0
+        left_mat[0,k] = 1
+        left_mat[k,0] = -1
+        a = left_mat*a
+        if left_mat * m * right_mat != a:
+            raise ArithmeticError, "Something went wrong"
+
+    # case 2: if there is an entry at position (k,j) such that a_{0,j}
+    # does not divide a_{k,j}, then we know that there are c,d in R such
+    # that c.a_{0,j} - d.a_{k,j} = B where B = gcd(a_{0,j}, a_{k,j}) (which
+    # is well-defined since R is a PID).
+    # Then for appropriate e,f the matrix
+    # [c,-d]
+    # [e,f]
+    # is invertible over R
+
+    if a[0,0] != 0:
+        I = R.ideal(a[0, 0]) # need to make sure we change this when a[0,0] changes
+    else:
+        I = R.zero_ideal()
+    for k in xrange(1, a.nrows()):
+        if a[k,0] not in I:
+            try:
+                v = R.ideal(a[0,0], a[k,0]).gens_reduced()
+            except:
+                raise ArithmeticError, "Can't create ideal on %s and %s" % (a[0,0], a[k,0])
+            if len(v) > 1:
+                raise ArithmeticError, "Ideal %s not principal" %  R.ideal(a[0,0], a[k,0])
+            B = v[0]
+
+            # now we find c,d, using the fact that c * (a_{0,0}/B) - d *
+            # (a_{k,0}/B) = 1, so c is the inverse of a_{0,0}/B modulo
+            # a_{k,0}/B.
+            # need to handle carefully the case when a_{k,0}/B is a unit, i.e. a_{k,0} divides
+            # a_{0,0}.
+
+            c = R(a[0,0] / B).inverse_mod(R.ideal(a[k,0] / B))
+            d = R( (c*a[0,0] - B)/(a[k,0]) )
+
+            # sanity check
+            if c*a[0,0] - d*a[k,0] != B:
+                raise ArithmeticError
+
+            # now we find e,f such that e*d + c*f = 1 in the same way
+            if c != 0:
+                e = d.inverse_mod( R.ideal(c) )
+                f = R((1 - d*e)/c)
+            else:
+                e = R(-a[k,0]/B) # here d is a unit and this is just 1/d
+                f = R(1)
+
+            if e*d + c*f != 1:
+                raise ArithmeticError
+            newlmat = left_mat.parent()(1)
+            newlmat[0,0] = c
+            newlmat[0,k] = -d
+            newlmat[k,0] = e
+            newlmat[k,k] = f
+            if newlmat.det() != 1:
+                raise ArithmeticError
+            a = newlmat*a
+            I = R.ideal(a[0,0])
+            left_mat = newlmat*left_mat
+            if left_mat * m * right_mat != a:
+                raise ArithmeticError
+
+    # now everything in column 0 is divisible by the pivot
+    for i in xrange(1,a.nrows()):
+        s = R( a[i, 0]/a[0, 0])
+        a.add_multiple_of_row(i, 0, -s )
+        left_mat.add_multiple_of_row(i, 0, -s)
+    if left_mat * m * right_mat != a:
+        raise ArithmeticError
+
+    # test if everything to the right of the pivot in row 0 is good as well
+    isdone = True
+    for jj in xrange(j+1, a.ncols()):
+        if a[0,jj] != 0:
+            isdone = False
+
+    # if not we recurse -- algorithm must terminate if R is Noetherian.
+    if isdone == False:
+        s,t,u = _smith_onestep(a.transpose())
+        left_mat = u.transpose() * left_mat
+        a = t.transpose()
+        right_mat = right_mat* s.transpose()
+
+    return left_mat, a, right_mat
 
 
 def _dim_cmp(x,y):

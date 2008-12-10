@@ -8,8 +8,8 @@ Anti-symmetric means that $M = -M^t$, where $M^t$ denotes the
 transpose of $M$.  Alternating means that the diagonal of $M$ is
 identically zero.
 
-A symplectic basis is a basis of the form $z_1, \ldots, z_i, e_1,
-\ldots, e_j, f_1, \ldots f_j$ such that
+A symplectic basis is a basis of the form $e_1,
+\ldots, e_j, f_1, \ldots, f_j, z_1, \ldots, z_k$ such that
     * $z_i M v^t$ = 0 for all vectors $v$;
     * $e_i M {e_j}^t = 0$ for all $i, j$;
     * $f_i M {f_j}^t = 0$ for all $i, j$;
@@ -43,6 +43,7 @@ WARNING:
 
 AUTHOR:
     -- Nick Alexander: initial implementation
+    -- David Loeffler (2008-12-08): changed conventions for consistency with smith_form
 """
 
 ######################################################################
@@ -136,8 +137,8 @@ def symplectic_basis_over_field(M):
     Anti-symmetric means that $M = -M^t$.  Alternating means that the
     diagonal of $M$ is identically zero.
 
-    A symplectic basis is a basis of the form $z_1, \ldots, z_i, e_1,
-    \ldots, e_j, f_1, \ldots f_j$ such that
+    A symplectic basis is a basis of the form $e_1,
+    \ldots, e_j, f_1, \ldots f_j, z_1, \ldots, z_k$ such that
         * $z_i M v^t$ = 0 for all vectors $v$;
         * $e_i M {e_j}^t = 0$ for all $i, j$;
         * $f_i M {f_j}^t = 0$ for all $i, j$;
@@ -207,14 +208,14 @@ def symplectic_basis_over_field(M):
         [0 0 1 0 1 1 0 0]
         [1 0 1 1 0 1 0 0]
         sage: F, C = symplectic_basis_over_field(E); F
-        [0 0 0 0 0 0 0 0]
-        [0 0 0 0 0 0 0 0]
-        [0 0 0 0 0 1 0 0]
-        [0 0 0 0 0 0 1 0]
-        [0 0 0 0 0 0 0 1]
-        [0 0 1 0 0 0 0 0]
         [0 0 0 1 0 0 0 0]
         [0 0 0 0 1 0 0 0]
+        [0 0 0 0 0 1 0 0]
+        [1 0 0 0 0 0 0 0]
+        [0 1 0 0 0 0 0 0]
+        [0 0 1 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0]
         sage: F == C * E * C.transpose()
         True
 
@@ -310,7 +311,7 @@ def symplectic_basis_over_field(M):
         fs.append(pivot+1)
         pivot += 2
 
-    C = B.matrix_from_rows(zeroes + es + fs)
+    C = B.matrix_from_rows(es + fs + zeroes)
     F = C * M * C.transpose()
     return F, C
 
@@ -359,15 +360,15 @@ def symplectic_basis_over_ZZ(M):
     Anti-symmetric means that $M = -M^t$.  Alternating means that the
     diagonal of $M$ is identically zero.
 
-    A symplectic basis is a basis of the form $z_1, \ldots, z_i, e_1,
-    \ldots, e_j, f_1, \ldots f_j$ such that
+    A symplectic basis is a basis of the form $e_1,
+    \ldots, e_j, f_1, \ldots, f_j, z_1, \ldots, z_k$ such that
         * $z_i M v^t$ = 0 for all vectors $v$;
         * $e_i M {e_j}^t = 0$ for all $i, j$;
         * $f_i M {f_j}^t = 0$ for all $i, j$;
-        * $e_i M {f_i}^t = d_i$ for all $i$, and $d_{i+1} | d_{i}$ for all $i$;
+        * $e_i M {f_i}^t = d_i$ for all $i$, where d_i are positive integers such that $d_{i} | d_{i+1}$ for all $i$;
         * $e_i M {f_j}^t = 0$ for all $i$ not equal $j$.
 
-    The ordering for the factors $d_{i+1} | d_{i}$ and for the
+    The ordering for the factors $d_{i} | d_{i+1}$ and for the
     placement of zeroes was chosen to agree with the output of
     \code{smith_form}.
 
@@ -385,10 +386,10 @@ def symplectic_basis_over_ZZ(M):
         [ -2   4   0   0]
         sage: F, C = symplectic_basis_over_ZZ(E)
         sage: F
+        [ 0  2  0  0]
+        [-2  0  0  0]
         [ 0  0  0  0]
         [ 0  0  0  0]
-        [ 0  0  0  2]
-        [ 0  0 -2  0]
         sage: C * E * C.transpose() == F
         True
 
@@ -405,25 +406,25 @@ def symplectic_basis_over_ZZ(M):
         [  5  -3   0   3  12  -2   2   0]
         sage: F, C = symplectic_basis_over_ZZ(E)
         sage: F
-        [     0      0      0      0  20191      0      0      0]
+        [     0      0      0      0      1      0      0      0]
         [     0      0      0      0      0      1      0      0]
         [     0      0      0      0      0      0      1      0]
-        [     0      0      0      0      0      0      0      1]
-        [-20191      0      0      0      0      0      0      0]
+        [     0      0      0      0      0      0      0  20191]
+        [    -1      0      0      0      0      0      0      0]
         [     0     -1      0      0      0      0      0      0]
         [     0      0     -1      0      0      0      0      0]
-        [     0      0      0     -1      0      0      0      0]
+        [     0      0      0 -20191      0      0      0      0]
         sage: F == C * E * C.transpose()
         True
         sage: E.smith_form()[0]
-        [20191     0     0     0     0     0     0     0]
-        [    0 20191     0     0     0     0     0     0]
+        [    1     0     0     0     0     0     0     0]
+        [    0     1     0     0     0     0     0     0]
         [    0     0     1     0     0     0     0     0]
         [    0     0     0     1     0     0     0     0]
         [    0     0     0     0     1     0     0     0]
         [    0     0     0     0     0     1     0     0]
-        [    0     0     0     0     0     0     1     0]
-        [    0     0     0     0     0     0     0     1]
+        [    0     0     0     0     0     0 20191     0]
+        [    0     0     0     0     0     0     0 20191]
 
         An odd dimensional example:
 
@@ -435,19 +436,19 @@ def symplectic_basis_over_ZZ(M):
         [  2  -4   0  -8   0]
         sage: F, C = symplectic_basis_over_ZZ(E)
         sage: F
-        [ 0  0  0  0  0]
+        [ 0  0  1  0  0]
         [ 0  0  0  2  0]
-        [ 0  0  0  0  1]
+        [-1  0  0  0  0]
         [ 0 -2  0  0  0]
-        [ 0  0 -1  0  0]
+        [ 0  0  0  0  0]
         sage: F == C * E * C.transpose()
         True
         sage: E.smith_form()[0]
-        [0 0 0 0 0]
-        [0 2 0 0 0]
+        [1 0 0 0 0]
+        [0 1 0 0 0]
         [0 0 2 0 0]
-        [0 0 0 1 0]
-        [0 0 0 0 1]
+        [0 0 0 2 0]
+        [0 0 0 0 0]
 
         sage: F.parent()
         Full MatrixSpace of 5 by 5 dense matrices over Integer Ring
@@ -504,9 +505,9 @@ def symplectic_basis_over_ZZ(M):
             ps.append((E[pivot, pivot+1], pivot))
             pivot += 2
 
-    ps.sort(reverse=True)
+    ps.sort()
     es = [ p[1]   for p in ps ]
     fs = [ p[1]+1 for p in ps ]
-    C = B.matrix_from_rows(zeroes + es + fs)
+    C = B.matrix_from_rows(es + fs + zeroes)
     F = C * M * C.transpose()
     return F, C

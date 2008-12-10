@@ -271,6 +271,21 @@ class Order(IntegralDomain):
         """
         return False
 
+    def is_noetherian(self):
+        r"""
+        Return True (because orders are always Noetherian)
+
+        EXAMPLES:
+            sage: L.<alpha> = NumberField(x**4 - x**2 + 7)
+            sage: O = L.maximal_order() ; O.is_noetherian()
+            True
+            sage: E.<w> = NumberField(x^2 - x + 2)
+            sage: OE = E.ring_of_integers(); OE.is_noetherian()
+            True
+        """
+        return True
+
+
     def is_integrally_closed(self):
         """
         Return True if this ring is integrally closed, i.e., is equal

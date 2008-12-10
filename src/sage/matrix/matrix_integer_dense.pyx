@@ -1171,15 +1171,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Anti-symmetric means that $M = -M^t$.  Alternating means that the
         diagonal of $M$ is identically zero.
 
-        A symplectic basis is a basis of the form $z_1, \ldots, z_i, e_1,
-        \ldots, e_j, f_1, \ldots f_j$ such that
+        A symplectic basis is a basis of the form $e_1,
+        \ldots, e_j, f_1, \ldots, f_j, z_1, \ldots, z_k$ such that
             * $z_i M v^t$ = 0 for all vectors $v$;
             * $e_i M {e_j}^t = 0$ for all $i, j$;
             * $f_i M {f_j}^t = 0$ for all $i, j$;
-            * $e_i M {f_i}^t = d_i$ for all $i$, and $d_{i+1} | d_{i}$ for all $i$;
+            * $e_i M {f_i}^t = d_i$ for all $i$, with $d_i$ positive integers such that $d_{i} | d_{i+1}$ for all $i$;
             * $e_i M {f_j}^t = 0$ for all $i$ not equal $j$.
 
-        The ordering for the factors $d_{i+1} | d_{i}$ and for the
+        The ordering for the factors $d_{i} | d_{i+1}$ and for the
         placement of zeroes was chosen to agree with the output of
         \code{smith_form}.
 
@@ -1194,19 +1194,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  2  -4   0  -8   0]
             sage: F, C = E.symplectic_form()
             sage: F
-            [ 0  0  0  0  0]
+            [ 0  0  1  0  0]
             [ 0  0  0  2  0]
-            [ 0  0  0  0  1]
+            [-1  0  0  0  0]
             [ 0 -2  0  0  0]
-            [ 0  0 -1  0  0]
+            [ 0  0  0  0  0]
             sage: F == C * E * C.transpose()
             True
             sage: E.smith_form()[0]
-            [0 0 0 0 0]
-            [0 2 0 0 0]
+            [1 0 0 0 0]
+            [0 1 0 0 0]
             [0 0 2 0 0]
-            [0 0 0 1 0]
-            [0 0 0 0 1]
+            [0 0 0 2 0]
+            [0 0 0 0 0]
             """
         import sage.matrix.symplectic_basis
         return sage.matrix.symplectic_basis.symplectic_basis_over_ZZ(self)
@@ -1696,48 +1696,60 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A = MatrixSpace(IntegerRing(), 3)(range(9))
             sage: D, U, V = A.smith_form()
             sage: D
-            [0 0 0]
+            [1 0 0]
             [0 3 0]
-            [0 0 1]
+            [0 0 0]
             sage: U
-            [-1  2 -1]
-            [ 0 -1  1]
             [ 0  1  0]
+            [ 0 -1  1]
+            [-1  2 -1]
             sage: V
-            [ 1  4 -1]
-            [-2 -3  1]
-            [ 1  0  0]
+            [-1  4  1]
+            [ 1 -3 -2]
+            [ 0  0  1]
             sage: U*A*V
-            [0 0 0]
+            [1 0 0]
             [0 3 0]
-            [0 0 1]
+            [0 0 0]
 
         It also makes sense for nonsquare matrices:
 
             sage: A = Matrix(ZZ,3,2,range(6))
             sage: D, U, V = A.smith_form()
             sage: D
+            [1 0]
+            [0 2]
             [0 0]
-            [2 0]
-            [0 1]
             sage: U
-            [-1  2 -1]
-            [ 0 -1  1]
             [ 0  1  0]
+            [ 0 -1  1]
+            [-1  2 -1]
             sage: V
-            [ 3 -1]
-            [-2  1]
+            [-1  3]
+            [ 1 -2]
             sage: U * A * V
+            [1 0]
+            [0 2]
             [0 0]
-            [2 0]
-            [0 1]
+
+        Empty matrices are handled sensibly (see trac #3068):
+            sage: m = MatrixSpace(ZZ, 2,0)(0); d,u,v = m.smith_form(); u*m*v == d
+            True
+            sage: m = MatrixSpace(ZZ, 0,2)(0); d,u,v = m.smith_form(); u*m*v == d
+            True
+            sage: m = MatrixSpace(ZZ, 0,0)(0); d,u,v = m.smith_form(); u*m*v == d
+            True
 
         SEE ALSO: elementary_divisors
         """
         v = self._pari_().matsnf(1).python()
-        D = self.matrix_space()(v[2])
-        U = self.matrix_space(ncols = self._nrows)(v[0])
-        V = self.matrix_space(nrows = self._ncols)(v[1])
+        # silly special cases for matrices with 0 rows xor 0 columns -- PARI has a unique empty matrix
+        if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
+        if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
+        # need to reverse order of rows of U, columns of V, and both of D.
+        D = self.matrix_space()([v[2][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._ncols-1,-1,-1)])
+        U = self.matrix_space(ncols = self._nrows)([v[0][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._nrows)])
+        V = self.matrix_space(nrows = self._ncols)([v[1][i,j] for i in xrange(self._ncols) for j in xrange(self._ncols-1,-1,-1)])
         return D, U, V
 
     def frobenius(self,flag=0, var='x'):

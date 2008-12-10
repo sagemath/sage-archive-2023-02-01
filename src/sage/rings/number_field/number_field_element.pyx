@@ -1492,6 +1492,22 @@ cdef class NumberFieldElement(FieldElement):
         self.__multiplicative_order = sage.rings.infinity.infinity
         return self.__multiplicative_order
 
+    def additive_order(self):
+        r""" Return the additive order of this element (i.e. infinity if self
+        != 0, 1 if self == 0)
+
+        EXAMPLES:
+            sage: K.<u> = NumberField(x^4 - 3*x^2 + 3)
+            sage: u.additive_order()
+            +Infinity
+            sage: K(0).additive_order()
+            1
+            sage: K.ring_of_integers().characteristic() # implicit doctest
+            0
+        """
+        if self == 0: return 1
+        else: return sage.rings.infinity.infinity
+
     cdef bint is_rational_c(self):
         return ZZX_deg(self.__numerator) == 0
 

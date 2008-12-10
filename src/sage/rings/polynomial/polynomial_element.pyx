@@ -747,7 +747,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def inverse_mod(a, m):
         """
         Inverts the polynomial a with respect to m, or throw a
-        ValueError if no such inverse exists.
+        ValueError if no such inverse exists. m may be either a single
+        polynomial or an ideal (for consistency with inverse_mod in other rings)
 
         EXAMPLES:
             sage: S.<t> = QQ[]
@@ -759,6 +760,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -t^6 - 7*t^5 - 21*t^4 - 35*t^3 - 35*t^2 - 21*t - 7
             sage: (f * t) + (t+1)^7
             1
+            sage: t.inverse_mod(S.ideal((t + 1)^7)) == f
+            True
+
 
         It also works over in-exact rings, but note that due to rounding
         error the product is only guaranteed to be within epsilon of the
@@ -784,6 +788,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         AUTHOR:
             -- Robert Bradshaw (2007-05-31)
         """
+        from sage.rings.all import is_Ideal
+        if is_Ideal(m):
+            v = m.gens_reduced()
+            if len(v) > 1:
+                raise NotImplementedError, "Don't know how to invert modulo non-principal ideal %s" % m
+            m = v[0]
         if m.degree() == 1 and m[1].is_unit():
             # a(x) mod (x-r) = a(r)
             r = -m[0]

@@ -557,7 +557,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         U._matrix_numpy = self._U_M.copy()
         return P, L, U
 
-    def eigenspaces(self, var='a'):
+    def eigenspaces_left(self, var='a', algebraic_multiplicity=False):
         r"""
         Return a list of pairs (e, V) where e runs through all complex
         eigenvalues of this matrix, and V is the corresponding
@@ -568,7 +568,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             [6.0 7.0 8.0]
-            sage: es = m.eigenspaces()
+            sage: es = m.eigenspaces_left()
             sage: es # random
             [(13.3484692283, Vector space of degree 3 and dimension 1 over Real Double Field
             User basis matrix:
@@ -597,6 +597,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             c = v[l]
             pairs.append((e[l], c.parent().span_of_basis([c], check=False)))
         return pairs
+
+    left_eigenspaces = eigenspaces_left
 
     def eigenvalues(self):
         """

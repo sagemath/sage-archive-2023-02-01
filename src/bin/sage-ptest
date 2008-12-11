@@ -84,6 +84,12 @@ def abs(f):
     """
     return "sage -t %s %s"%(opts, abspath(f)[len(SAGE_ROOT)+1:])
 
+def sage_test_cmd(f):
+    """
+    Return the test command for the file as given
+    """
+    return "sage -t %s %s"%(opts, f)
+
 def abs_sage_path(f):
     """
     Return the absolute path, relative to the sage root directory
@@ -165,7 +171,10 @@ def process_result(result):
             failed.append(abs(F)+" # File not found")
         else:
             failed.append(abs(F))
-    print abs(F)
+    if abspath(F)[:len(CUR)]==CUR:
+        print sage_test_cmd(F[len(CUR)+1:])
+    else:
+        print abs(F)
     if ol!="" and (not ol.isspace()):
         if (ol[len(ol)-1]=="\n"):
             ol=ol[0:len(ol)-1]

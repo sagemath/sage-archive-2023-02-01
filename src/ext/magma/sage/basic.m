@@ -93,7 +93,7 @@ end intrinsic;
 
 intrinsic Sage(X::FldFinElt) -> MonStgElt, BoolElt
 {}
-  return Sprintf("%o(%o)", Sage(Parent(X)), Sage(Polynomial(X))), false;
+  return Sprintf("%o(%o)", Sage(Parent(X)), Sage(Polynomial(Eltseq(X)))), false;
 end intrinsic;
 
 /* Approximate fields */

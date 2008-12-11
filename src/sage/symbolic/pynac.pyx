@@ -569,7 +569,7 @@ cdef public int py_int_length(object x) except -1:
     # Size in binary notation.  For integers, this is the smallest n >= 0 such
     # that -2^n <= x < 2^n. If x > 0, this is the unique n > 0 such that
     # 2^(n-1) <= x < 2^n.  This returns 0 if x is not an integer.
-    return Integer(x).bits()
+    return Integer(x).nbits()
 
 
 ##################################################################

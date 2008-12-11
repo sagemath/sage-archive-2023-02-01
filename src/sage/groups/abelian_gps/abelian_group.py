@@ -9,6 +9,7 @@ AUTHOR:
     -- David Joyner (2006-10) added dual_group method
     -- David Joyner (2008-02) fixed serious bug in word_problem
     -- David Joyner (2008-03) fixed bug in trivial group case
+    -- David Joyner (2008-12) added (user requested) is_cyclic
 
 TODO:
    * additive abelian groups should also be supported
@@ -612,6 +613,44 @@ class AbelianGroup_class(group.AbelianGroup):
         """
         return list(self.__invariants)
 
+    def is_cyclic(self):
+        """
+        Return True if the group is a cyclic group.
+
+        EXAMPLES:
+            sage: J = AbelianGroup([2,3])
+            sage: J.invariants()
+            [2, 3]
+            sage: J.is_cyclic()
+            True
+            sage: G = AbelianGroup([6])
+            sage: G.invariants()
+            [6]
+            sage: G.is_cyclic()
+            True
+            sage: H = AbelianGroup([2,2])
+            sage: H.invariants()
+            [2, 2]
+            sage: H.is_cyclic()
+            False
+            sage: H.permutation_group().is_cyclic()
+            False
+            sage: T = AbelianGroup([])
+            sage: T.is_cyclic()
+            True
+
+        """
+        invs = self.invariants()
+        if invs == []:
+            return True
+        dups = 0
+        for x in invs:
+            if invs.count(x)>1 and x!=1:
+                dups = 1
+        if dups == 1:
+            return False
+        else:
+            return True
 
     def ngens(self):
         """

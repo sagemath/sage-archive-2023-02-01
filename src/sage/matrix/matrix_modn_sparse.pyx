@@ -86,6 +86,9 @@ from sage.rings.arith import is_prime
 
 from sage.structure.element import is_Vector
 
+cimport sage.structure.element
+from matrix_modn_dense cimport Matrix_modn_dense
+
 ################
 # TODO: change this to use extern cdef's methods.
 from sage.rings.fast_arith cimport arith_int
@@ -270,6 +273,54 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         else:
             raise ValueError, "unknown matrix format"
 
+
+    def _matrix_times_matrix_dense(self, sage.structure.element.Matrix _right):
+        """
+        Do the sparse matrix multiply, but return a dense matrix as the result.
+
+        EXAMPLES:
+            sage: a = matrix(GF(10007), 2, [1,2,3,4], sparse=True)
+            sage: b = matrix(GF(10007), 2, 3, [1..6], sparse=True)
+            sage: a * b
+            [ 9 12 15]
+            [19 26 33]
+            sage: c = a._matrix_times_matrix_dense(b); c
+            [ 9 12 15]
+            [19 26 33]
+            sage: type(c)
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+        """
+        cdef Matrix_modn_sparse right
+        cdef Matrix_modn_dense ans
+        right = _right
+
+        cdef c_vector_modint* v
+
+        # Build a table that gives the nonzero positions in each column of right
+        nonzero_positions_in_columns = [set([]) for _ in range(right._ncols)]
+        cdef Py_ssize_t i, j, k
+        for i from 0 <= i < right._nrows:
+            v = &(right.rows[i])
+            for j from 0 <= j < right.rows[i].num_nonzero:
+                nonzero_positions_in_columns[v.positions[j]].add(i)
+
+        ans = self.new_matrix(self._nrows, right._ncols, sparse=False)
+
+        # Now do the multiplication, getting each row completely before filling it in.
+        cdef int x, y, s
+
+        for i from 0 <= i < self._nrows:
+            v = &self.rows[i]
+            for j from 0 <= j < right._ncols:
+                s = 0
+                c = nonzero_positions_in_columns[j]
+                for k from 0 <= k < v.num_nonzero:
+                    if v.positions[k] in c:
+                        y = get_entry(&right.rows[v.positions[k]], j)
+                        x = v.entries[k] * y
+                        s = (s + x)%self.p
+                ans._matrix[i][j] = s
+        return ans
 
     ########################################################################
     # LEVEL 3 functionality (Optional)

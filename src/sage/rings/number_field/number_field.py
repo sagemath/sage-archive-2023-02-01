@@ -6771,51 +6771,54 @@ class NumberField_quadratic(NumberField_absolute):
                 self.__class_number = ZZ(pari("qfbclassno(%s)"%D))
             return self.__class_number
 
-    def hilbert_class_polynomial(self):
+    def hilbert_class_field_defining_polynomial(self):
         r"""
         Returns a polynomial over $\QQ$ whose roots generate the
-        Hilbert class field of this quadratic field.
+        Hilbert class field of this quadratic field as an extension of
+        this quadratic field.
 
         \note{Computed using PARI via Schertz's method.  This
         implementation is quite fast.}
 
         EXAMPLES:
             sage: K.<b> = QuadraticField(-23)
-            sage: K.hilbert_class_polynomial()
+            sage: K.hilbert_class_field_defining_polynomial()
             x^3 + x^2 - 1
+
+        Note that this polynomial is not the actual Hilbert class polynomial.
+            sage: magma(K.discriminant()).HilbertClassPolynomial()       # optional - magma
+            $.1^3 + 3491750*$.1^2 - 5151296875*$.1 + 12771880859375
 
             sage: K.<a> = QuadraticField(-431)
             sage: K.class_number()
             21
-            sage: K.hilbert_class_polynomial()
+            sage: K.hilbert_class_field_defining_polynomial()
             x^21 + x^20 - 13*x^19 - 50*x^18 + 592*x^17 - 2403*x^16 + 5969*x^15 - 10327*x^14 + 13253*x^13 - 12977*x^12 + 9066*x^11 - 2248*x^10 - 5523*x^9 + 11541*x^8 - 13570*x^7 + 11315*x^6 - 6750*x^5 + 2688*x^4 - 577*x^3 + 9*x^2 + 15*x + 1
         """
         f = pari('quadhilbert(%s))'%self.discriminant())
-        g = QQ['x'](f)
-        return g
+        return QQ['x'](f)
 
     def hilbert_class_field(self, names):
         r"""
-        Returns the Hilbert class field of this quadratic field as an
-        absolute extension of $\QQ$.  For a polynomial that defines a
-        relative extension see the \code{hilbert_class_polynomial}
-        command.
+        Returns the Hilbert class field of this quadratic field as a
+        relative extension of this field.
 
-        \note{Computed using PARI via Schertz's method.  This implementation
-        is amazingly fast.}
+        \note{For the polynomial that defines this field as a relative
+        extension, see the \code{hilbert_class_field_defining_polynomial}
+        command, which is vastly faster than this command, since it doesn't
+        construct a relative extension.}
 
         EXAMPLES:
-            sage: x = QQ['x'].0
-            sage: K = NumberField(x^2 + 23, 'a')
-            sage: K.hilbert_class_polynomial()
+            sage: K.<a> = NumberField(x^2 + 23)
+            sage: L = K.hilbert_class_field('b'); L
+            Number Field in b with defining polynomial x^3 + x^2 - 1 over its base field
+            sage: L.absolute_field('c')
+            Number Field in c with defining polynomial x^6 + 2*x^5 + 70*x^4 + 90*x^3 + 1631*x^2 + 1196*x + 12743
+            sage: K.hilbert_class_field_defining_polynomial()
             x^3 + x^2 - 1
-            sage: K.hilbert_class_field('h')
-            Number Field in h with defining polynomial x^6 + 2*x^5 + 70*x^4 + 90*x^3 + 1631*x^2 + 1196*x + 12743
         """
-        f = self.hilbert_class_polynomial()
-        C = self.composite_fields(NumberField(f,'x'),names)
-        assert len(C) == 1
-        return C[0]
+        f = self.hilbert_class_field_defining_polynomial()
+        return self.extension(f, names)
 
 def is_fundamental_discriminant(D):
     r"""

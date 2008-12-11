@@ -116,7 +116,6 @@ def test_file(F):
     """
     This is the function that actually tests a file
     """
-    t = time.time()
     outfile = tempfile.NamedTemporaryFile()
     base, ext = os.path.splitext(F)
     if use_sage_only or ext == '.sage':
@@ -128,7 +127,9 @@ def test_file(F):
         os.chdir(os.path.dirname(F))
         s = 'bash -c "%s/local/bin/sage-%s %s > %s" ' %(SAGE_ROOT, cmd, filestr, outfile.name)
         try:
+            t = time.time()
             ret = os.system(s)
+            finished_time = time.time() - t
             if ret>=256:
                 ret=ret/256
             ret = -ret
@@ -138,7 +139,6 @@ def test_file(F):
         ol = outfile.read()
         if ret != 0:
             break
-    finished_time = time.time() - t
     return (F, ret, finished_time, ol)
 
 def process_result(result):

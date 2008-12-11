@@ -468,7 +468,7 @@ def test_file(file):
                 import subprocess
                 proc = subprocess.Popen(cmd,shell=True)
                 while time.time()-tm <= TIMEOUT and proc.poll() == None:
-                    time.sleep(1.0)
+                    time.sleep(0.1)
                 if time.time()-tm >=TIMEOUT:
                     os.kill(proc.pid, 9)
                     print "*** *** Error: TIMED OUT! PROCESS KILLED! *** ***"
@@ -478,7 +478,7 @@ def test_file(file):
                 import subprocess
                 proc = subprocess.Popen(cmd,shell=True, stdout=outf.file.fileno(), stderr = outf.file.fileno())
                 while time.time()-tm <= TIMEOUT and proc.poll() == None:
-                    time.sleep(1.0)
+                    time.sleep(0.1)
                 if time.time()-tm >=TIMEOUT:
                     os.kill(proc.pid, 9)
                     print "*** *** Error: TIMED OUT! PROCESS KILLED! *** ***"

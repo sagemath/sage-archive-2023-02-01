@@ -1679,7 +1679,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return d
 
     def smith_form(self):
-        """
+        r"""
         Returns matrices S, U, and V such that S = U*self*V, and S
         is in Smith normal form.  Thus S is diagonal with diagonal
         entries the ordered elementary divisors of S.
@@ -1732,7 +1732,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 2]
             [0 0]
 
-        Empty matrices are handled sensibly (see trac #3068):
+        Empty matrices are handled sensibly (see trac \#3068):
             sage: m = MatrixSpace(ZZ, 2,0)(0); d,u,v = m.smith_form(); u*m*v == d
             True
             sage: m = MatrixSpace(ZZ, 0,2)(0); d,u,v = m.smith_form(); u*m*v == d

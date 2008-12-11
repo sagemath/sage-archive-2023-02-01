@@ -96,6 +96,7 @@ class HG:
             target -- if the last part of dir is, e.g., sage-hg,
                       create a symlink from sage-hg to target.
                       If target=None, this symlink will not be created.
+
         TESTS:
             sage: 'scripts' in hg_scripts.__doc__
             True

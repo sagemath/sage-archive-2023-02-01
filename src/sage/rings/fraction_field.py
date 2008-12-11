@@ -177,7 +177,7 @@ class FractionField_generic(field.Field):
             sage: F.has_coerce_map_from(ZZ)
             True
 
-            # test coercions
+        Test coercions:
             sage: F.coerce(1)
             1
             sage: F.coerce(int(1))
@@ -420,7 +420,7 @@ class FractionField_generic(field.Field):
             sage: F._is_valid_homomorphism_(ZZ, [])
             False
 
-            # test homomorphisms
+        Test homomorphisms:
             sage: phi = F.hom([2*y, x])
             sage: phi(x+y)
             x + 2*y

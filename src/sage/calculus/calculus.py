@@ -1339,7 +1339,7 @@ class SymbolicExpression(RingElement):
     n = numerical_approx
 
     def minpoly(self, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
-        """
+        r"""
         Return the minimal polynomial of self, if possible.
 
         INPUT:

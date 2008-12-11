@@ -598,6 +598,29 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             pairs.append((e[l], c.parent().span_of_basis([c], check=False)))
         return pairs
 
+    def eigenvalues(self):
+        """
+        Returns a list of the eigenvalues (with multiplicity)
+        of this matrix.  The returned eigenvalues are elements of CDF.
+
+        EXAMPLES:
+            sage: m = matrix(RDF, 2, 2, [1,2,3,4])
+            sage: m.eigenvalues()
+            [-0.372281323269, 5.37228132327]
+
+            sage: matrix(CDF,0,0).eigenvalues()
+            []
+        """
+        if not self.is_square():
+            raise ValueError, "self must be square"
+        if self._nrows == 0:
+            return []
+        global scipy
+        if scipy is None:
+            import scipy
+        import scipy.linalg
+        return [sage.rings.complex_double.CDF(x) for x in scipy.linalg.eigvals(self._matrix_numpy)]
+
     def left_eigenvectors(self):
         """
         Computes the eigenvalues and *left* eigenvectors of this

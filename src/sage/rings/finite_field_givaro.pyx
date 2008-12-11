@@ -1885,6 +1885,16 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         Because of caching the string representation of an element must not change:
             sage: a._magma_init_(magma) == a._magma_init_(magma)   # optional - magma
             True
+
+        We test a conversion back and forth:
+            sage: k.<a> = GF(3^6)
+            sage: b = magma(a^5 + 2*a^2 + 1)             # optional - magma
+
+        Note that small fields print using a log represenation in Magma (unlike Sage):
+            sage: b                                      # optional - magma
+            a^436
+            sage: b.sage()                               # optional - magma
+            a^5 + 2*a^2 + 1
         """
         R = magma(self.parent())
         a = R.gen(1).name()

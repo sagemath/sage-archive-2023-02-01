@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 
 Doctesting of this file is disabled because it fails in so many ways it is even funny.
 See http://trac.sagemath.org/sage_trac/ticket/3593 for two of the four ways I've
@@ -463,14 +463,14 @@ class BlockingDSage(DSage):
             jobs -- a list of completed jobs
 
         EXAMPLE:
-            sage: from sage.server.misc import find_next_available_port
-            sage: port = find_next_available_port(8000)
+            sage: from sage.dsage.misc.misc import find_open_port
+            sage: port = find_open_port().next()
             sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
             Going into testing mode...
             sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
             sage: sleep(2.0)
             sage: d = dsage.connect(port=port, ssl=False)
-            sage: sleep(1.0)
+            sage: sleep(2.0)
             sage: d.is_connected()
             True
             sage: def f(n):
@@ -554,7 +554,7 @@ class BlockingDSage(DSage):
             sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
             sage: sleep(2.0)
             sage: d = dsage.connect(port=port, ssl=False)
-            sage: sleep(1.0)
+            sage: sleep(5.0)
             sage: d.is_connected()
             True
             sage: P = parallel(p_iter = d.parallel_iter)
@@ -586,14 +586,14 @@ class BlockingDSage(DSage):
             job wrapper representing the function evaluated at input.
 
         EXAMPLE:
-            sage: from sage.server.misc import find_next_available_port
-            sage: port = find_next_available_port(8000)
+            sage: from sage.dsage.misc.misc import find_open_port
+            sage: port = find_open_port().next()
             sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
             Going into testing mode...
             sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
             sage: sleep(2.0)
             sage: d = dsage.connect(port=port, ssl=False)
-            sage: sleep(1.0)
+            sage: sleep(2.0)
             sage: d.is_connected()
             True
             sage: def f(n):

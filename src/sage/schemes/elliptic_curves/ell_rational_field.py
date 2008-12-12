@@ -4669,7 +4669,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         An example from [PZGH]:
             sage: E = EllipticCurve([0,0,0,-172,505])
-            sage: time E.rank(), len(E.S_integral_points([3,5,7]))  # long time (~15s)
+            sage: E.rank(), len(E.S_integral_points([3,5,7]))  #  time (~7s)
             (4, 72)
 
         NOTES:

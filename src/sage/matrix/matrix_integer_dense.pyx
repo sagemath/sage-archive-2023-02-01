@@ -488,7 +488,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 t = t + 1
             _sig_off
             data = str(s)[:-1]
-            free(s)
+            sage_free(s)
         return data
 
     def _unpickle(self, data, int version):

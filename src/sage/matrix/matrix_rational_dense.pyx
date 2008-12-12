@@ -263,7 +263,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     t = t + 1
             _sig_off
             data = str(s)[:-1]
-            free(s)
+            sage_free(s)
         return data
 
     cdef _unpickle_version0(self, data):

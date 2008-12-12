@@ -1561,17 +1561,68 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [  1   2]
             [  3   4]
             sage: a._magma_init_(magma)                            # optional - magma
-            '_sage_[...]![1,2,3,4]'
+            'Matrix(GF(389),2,2,StringToIntegerSequence("1 2 3 4"))'
 
         A consistency check:
             sage: a = random_matrix(GF(13),50); b = random_matrix(GF(13),50)
             sage: magma(a*b) == magma(a)*magma(b)                  # optional - magma
             True
         """
-        cdef Py_ssize_t i,j
-        s = magma(self.parent()).name()
-        v = [str(self._entries[i]) for i in range(self._nrows*self._ncols)]
-        return s + '![%s]'%(','.join(v))
+        s = self.base_ring()._magma_init_(magma)
+        return 'Matrix(%s,%s,%s,StringToIntegerSequence("%s"))'%(
+            s, self._nrows, self._ncols, self._export_as_string())
+
+    cpdef _export_as_string(self):
+        """
+        Return space separated string of the entries in this matrix.
+
+        EXAMPLES:
+            sage: w = matrix(GF(997),2,3,[1,2,5,-3,8,2]); w
+            [  1   2   5]
+            [994   8   2]
+            sage: w._export_as_string()
+            '1 2 5 994 8 2'
+        """
+        cdef int ndigits = len(str(self.p))
+
+        cdef int i
+        cdef char *s, *t
+
+        if self._nrows == 0 or self._ncols == 0:
+            data = ''
+        else:
+            n = self._nrows*self._ncols*(ndigits + 1) + 2  # spaces between each number plus trailing null
+            s = <char*> sage_malloc(n * sizeof(char))
+            t = s
+            _sig_on
+            for i in range(self._nrows * self._ncols):
+                sprintf(t, "%d ", self._entries[i])
+                t += strlen(t)
+            _sig_off
+            data = str(s)[:-1]
+            sage_free(s)
+        return data
+
+
+    def list(self):
+        """
+        Return list of elements of self.
+
+        EXAMPLES:
+            sage: w = matrix(GF(19), 2, 3, [1..6])
+            sage: w.list()
+            [1, 2, 3, 4, 5, 6]
+            sage: w.list()[0].parent()
+            Finite Field of size 19
+
+        TESTS:
+            sage: w = random_matrix(GF(3),100)
+            sage: w.parent()(w.list()) == w
+            True
+        """
+        cdef Py_ssize_t i
+        F = self.base_ring()
+        return [F(self._entries[i]) for i in range(self._nrows*self._ncols)]
 
     def _matrices_from_rows(self, Py_ssize_t nrows, Py_ssize_t ncols):
         """

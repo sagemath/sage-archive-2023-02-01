@@ -1442,7 +1442,16 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: m.det()
             0
 
+        TESTS:
+            sage: m = random_matrix(GF(3), 3, 4)
+            sage: m.determinant()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be square
         """
+        if self._nrows != self._ncols:
+            raise ValueError, "self must be square"
+
         if self.p > 2 and is_prime(self.p):
             x = self.fetch('det')
             if not x is None:

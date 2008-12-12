@@ -142,48 +142,199 @@ def to_gmp_hex(n):
 # timing
 #################################################################
 
-def cputime(t=0):
+def cputime(t=0, subprocesses=False):
     """
-    Return the time in CPU second since Sage started, or with optional
-    argument t, return the time since time t. This is how much time
-    Sage has spent using the CPU. It does not count time spent by
-    subprocesses spawned by Sage (e.g., Gap, Singular, etc.).
+    Return the time in CPU seconds since Sage started, or with
+    optional argument ``t``, return the time since ``t``. This is how
+    much time Sage has spent using the CPU.  If ``subprocesses=False``
+    this does not count time spent in subprocesses spawned by Sage
+    (e.g., Gap, Singular, etc.). If ``subprocesses=True`` this
+    function tries to take all subprocesses with a working
+    ``cputime()`` implementation into account.
 
-    This is done via a call to resource.getrusage, so it avoids the
-    wraparound problems in time.clock() on Cygwin.
+    The measurement for the main Sage process is done via a call to
+    :func:`resource.getrusage()`, so it avoids the wraparound problems in
+    :func:`time.clock()` on Cygwin.
 
     INPUT:
 
+    - ``t`` - (optional) time in CPU seconds, if ``t`` is a result
+      from an earlier call with ``subprocesses=True``, then
+      ``subprocesses=True`` is assumed.
 
-    -  ``t`` - (optional) float, time in CPU seconds
-
+    - subprocesses -- (optional), include subprocesses (default:
+      ``False``)
 
     OUTPUT:
 
+    - ``float`` - time in CPU seconds if ``subprocesses=False``
 
-    -  ``float`` - time in CPU seconds
-
+    - :class:`GlobalCputime` - object which holds CPU times of
+      subprocesses otherwise
 
     EXAMPLES::
 
         sage: t = cputime()
-        sage: F = factor(2^199-1)
+        sage: F = gp.factor(2^199-1)
         sage: cputime(t)          # somewhat random
-        0.29000000000000004
+        0.010999000000000092
 
-    ::
+        sage: t = cputime(subprocesses=True)
+        sage: F = gp.factor(2^199-1)
+        sage: cputime(t) # somewhat random
+        0.091999
 
         sage: w = walltime()
-        sage: F = factor(2^199-1)
+        sage: F = gp.factor(2^199-1)
         sage: walltime(w)         # somewhat random
-        0.8823847770690918
+        0.58425593376159668
+
+    .. note ::
+
+      Even with ``subprocesses=True`` there is no guarantee that the
+      CPU time is reported correctly because subprocesses can be
+      started and terminated at any given time.
     """
-    try:
-        t = float(t)
-    except TypeError:
-        t = 0.0
-    u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
-    return u+s - t
+    if isinstance(t, GlobalCputime):
+        subprocesses=True
+
+    if not subprocesses:
+        try:
+            t = float(t)
+        except TypeError:
+            t = 0.0
+        u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
+        return u+s - t
+    else:
+        if t == 0:
+            ret = GlobalCputime(cputime())
+            for s in sage.interfaces.quit.expect_objects:
+                S = s()
+                if S and S.is_running():
+                    try:
+                        ct = S.cputime()
+                        ret.total += ct
+                        ret.interfaces[s] = ct
+                    except NotImplementedError:
+                        pass
+            return ret
+        else:
+            if not isinstance(t, GlobalCputime):
+                t = GlobalCputime(t)
+            ret = GlobalCputime(cputime() - t.local)
+            for s in sage.interfaces.quit.expect_objects:
+                S = s()
+                if S and S.is_running():
+                    try:
+                        ct = S.cputime() - t.interfaces.get(s, 0.0)
+                        ret.total += ct
+                        ret.interfaces[s] = ct
+                    except NotImplementedError:
+                        pass
+            return ret
+
+class GlobalCputime:
+    """
+    Container for CPU times of subprocesses.
+
+    AUTHOR:
+
+    - Martin Albrecht - (2008-12): initial version
+
+    EXAMPLE:
+
+    Objects of this type are returned if ``subprocesses=True`` is
+    passed to :func:`cputime`::
+
+        sage: cputime(subprocesses=True) # indirect doctest, output random
+        0.2347431
+
+    We can use it to keep track of the CPU time spent in Singular for
+    example::
+
+        sage: t = cputime(subprocesses=True)
+        sage: P = PolynomialRing(QQ,7,'x')
+        sage: I = sage.rings.ideal.Katsura(P)
+        sage: gb = I.groebner_basis() # calls Singular
+        sage: cputime(subprocesses=True) - t # outpt random
+        0.462987
+
+    For further processing we can then convert this container to a
+    float::
+
+        sage: t = cputime(subprocesses=True)
+        sage: float(t) #output somewhat random
+        2.1088339999999999
+
+    .. seealso::
+
+      :func:`cputime`
+    """
+    def __init__(self, t):
+        """
+        Create a new CPU time object which also keeps track of
+        subprocesses.
+
+        EXAMPLE::
+
+            sage: from sage.misc.misc import GlobalCputime
+            sage: ct = GlobalCputime(0.0); ct
+            0.0...
+        """
+        self.total = t
+        self.local = t
+        self.interfaces = {}
+
+    def __repr__(self):
+        """
+        EXAMPLE::
+
+            sage: cputime(subprocesses=True) # indirect doctest, output random
+            0.2347431
+        """
+        return str(self.total)
+
+    def __add__(self, other):
+        """
+        EXAMPLE::
+
+            sage: t = cputime(subprocesses=True)
+            sage: P = PolynomialRing(QQ,7,'x')
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: gb = I.groebner_basis() # calls Singular
+            sage: cputime(subprocesses=True) + t # output random
+            2.798708
+        """
+        if not isinstance(other, GlobalCputime):
+            other = GlobalCputime(other)
+        ret = GlobalCputime(self.total + other.total)
+        return ret
+
+    def __sub__(self, other):
+        """
+        EXAMPLE::
+
+            sage: t = cputime(subprocesses=True)
+            sage: P = PolynomialRing(QQ,7,'x')
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: gb = I.groebner_basis() # calls Singular
+            sage: cputime(subprocesses=True) - t # outpt random
+            0.462987
+        """
+        if not isinstance(other, GlobalCputime):
+            other = GlobalCputime(other)
+        ret = GlobalCputime(self.total - other.total)
+        return ret
+
+    def __float__(self):
+        """
+        EXAMPLE::
+
+            sage: t = cputime(subprocesses=True)
+            sage: float(t) #output somewhat random
+            2.1088339999999999
+        """
+        return float(self.total)
 
 def walltime(t=0):
     """
@@ -196,9 +347,7 @@ def walltime(t=0):
 
     -  ``t`` - (optional) float, time in CPU seconds
 
-
     OUTPUT:
-
 
     -  ``float`` - time in seconds
 

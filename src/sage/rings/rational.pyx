@@ -439,6 +439,17 @@ cdef class Rational(sage.structure.element.FieldElement):
         import sympy
         return sympy.Rational(int(self.numerator()), int(self.denominator()))
 
+    def _magma_init_(self, magma):
+        """
+        EXAMPLES:
+            sage: n = -485/82847
+            sage: n._magma_init_(magma)
+            '-485/82847'
+        """
+        s = self.numerator()._magma_init_(magma)
+        if not self.is_integral():
+            s += '/' + self.denominator()._magma_init_(magma)
+        return s
 
     def _mathml_(self):
         """
@@ -2028,15 +2039,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         # A rational number is equal to 1 iff its numerator and denominator are equal
         return mpz_cmp(mpq_numref(self.value),mpq_denref(self.value))==0
-        r"""Test if a rational number is zero
-
-        EXAMPLES:
-
-        sage: QQ(1/2).is_zero()
-        False
-        sage: QQ(0/4).is_zero()
-        True
-        """
 
     def is_integral(self):
         r"""
@@ -2051,7 +2053,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: QQ(4/4).is_integral()
             True
         """
-        return bool(self in ZZ)
+        return mpz_cmp_si(mpq_denref(self.value), 1) == 0
 
     cdef _lshift(self, long int exp):
         r"""

@@ -3304,6 +3304,33 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return str(self)
 
+    def _magma_init_(self, magma):
+        """
+        Return string that evaluates in Magma to this element.
+
+        For small integers we just use base 10.  For large integers we use base 16,
+        but use Magma's StringToInteger command, which (for no good reason)
+        is much faster than 0x[string literal].  We only use base 16 for integers
+        with at least 10000 binary digits, since e.g., for a large list of
+        small integers the overhead of calling StringToInteger can be a killer.
+
+        EXAMPLES:
+            sage: (117)._magma_init_(magma)           # optional - magma
+            '117'
+
+        Large integers use hex:
+            sage: m = 3^(2^20)                        # optional - magma
+            sage: s = m._magma_init_(magma)           # optional - magma
+            sage: 'StringToInteger' in s              # optional - magma
+            True
+            sage: magma(m).sage() == m                # optional - magma
+            True
+        """
+        if self.ndigits(2) > 10000:
+            return 'StringToInteger("%s",16)'%self.str(16)
+        else:
+            return str(self)
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when evaluated.

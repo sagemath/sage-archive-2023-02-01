@@ -8,7 +8,10 @@ setupext.py by a version that adds some SAGE-specific paths so the build doesn't
 
 == Changelog ==
 
-== matplotlib-0.98.3.p3 (William Stein, 25 Nov 2008) ===
+=== matplotlib-0.98.3.p4 (Michael Abshoff, December 12th, 2008) ===
+ * apply Craig Citro's OSX build fix (#4680)
+
+=== matplotlib-0.98.3.p3 (William Stein, 25 Nov 2008) ===
  * fix so matplotlib may build in a fallback case (there is a stupid bug in upstreams setupext.py)
 
 == matplotlib-0.98.3.p2 (Jason Grout, 20 Sep 2008) ===

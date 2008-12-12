@@ -1,6 +1,6 @@
---- setupext.py.orig	2008-11-26 18:13:23.000000000 -0800
-+++ setupext.py	2008-11-25 21:20:51.000000000 -0800
-@@ -44,10 +44,13 @@
+--- setupext.py.orig	2008-12-12 08:22:19.000000000 -0800
++++ setupext.py	2008-12-12 08:20:55.000000000 -0800
+@@ -44,14 +44,16 @@
  import os
  import re
  
@@ -14,8 +14,13 @@
 +    'linux2' : [sage_lib],
      'linux'  : ['/usr/local', '/usr',],
      'cygwin' : ['/usr/local', '/usr',],
-     'darwin' : ['/sw/lib/freetype2', '/sw/lib/freetype219', '/usr/local',
-@@ -328,7 +331,9 @@
+-    'darwin' : ['/sw/lib/freetype2', '/sw/lib/freetype219', '/usr/local',
+-                '/usr', '/sw', '/usr/X11R6'],
++    'darwin' : [sage_lib],
+     'freebsd4' : ['/usr/local', '/usr'],
+     'freebsd5' : ['/usr/local', '/usr'],
+     'freebsd6' : ['/usr/local', '/usr'],
+@@ -328,7 +330,9 @@
  
      module.include_dirs.extend(incdirs)
      module.include_dirs.append('.')
@@ -25,7 +30,7 @@
  
  def getoutput(s):
      'get the output of a system command'
-@@ -1076,6 +1081,7 @@
+@@ -1076,6 +1080,7 @@
          #      of distros.
  
          # Query Tcl/Tk system for library paths and version string

@@ -9,14 +9,16 @@ AUTHOR:
     -- David Joyner (2006-10) added dual_group method
     -- David Joyner (2008-02) fixed serious bug in word_problem
     -- David Joyner (2008-03) fixed bug in trivial group case
-    -- David Joyner (2008-12) added (user requested) is_cyclic
+    -- William Stein,
+       David Joyner (2008-12) added (user requested) is_cyclic,
+                              fixed elementary_divisors.
 
 TODO:
    * additive abelian groups should also be supported
 
 
-Background on elementary divisors, invariant factors and the Smith
-normal form (according to section 4.1 of [C1]): An abelian group is a
+Background on invariant factors and the Smith normal form
+(according to section 4.1 of [C1]): An abelian group is a
 group A for which there exists an exact sequence $\Z^k \rightarrow
 \Z^\ell \rightarrow A \rightarrow 1$, for some positive integers
 $k,\ell$ with $k\leq \ell$. For example, a finite abelian group has a
@@ -66,9 +68,6 @@ where $r$ is the rank. The {\it invariant factors} of  A  are:
 \[
 s_1, s_2/s_1, s_3/s_2, ... s_r/s_{r-1}.
 \]
-The {\it elementary divisors} use the highest (non-trivial) prime
-powers occuring in the factorizations of the numbers $s_1, s_2,
-... s_r$.
 
 
 SAGE supports multiplicative abelian groups on any prescribed finite
@@ -137,6 +136,8 @@ from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
 from sage.misc.misc import add, prod
 from sage.misc.mrange import mrange
 import sage.groups.group as group
+from sage.rings.integer_ring import IntegerRing
+ZZ = IntegerRing()
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
 # uses a different implementation.
@@ -334,7 +335,7 @@ class AbelianGroup_class(group.AbelianGroup):
         sage: F = AbelianGroup(5,[2, 4, 12, 24, 120],names = list("abcde")); F
         Multiplicative Abelian Group isomorphic to C2 x C4 x C12 x C24 x C120
         sage: F.elementary_divisors()
-        [2, 3, 3, 3, 4, 4, 5, 8, 8]
+        [2, 4, 12, 24, 120]
 
     Thus we see that the "invariants" are not the invariant factors but
     the "elementary divisors" (in the terminology of Rotman [R]).
@@ -481,6 +482,20 @@ class AbelianGroup_class(group.AbelianGroup):
 
     def elementary_divisors(self):
         """
+        This returns the elementary divisors of the group, using Pari.
+
+        Here is an algorithm for computing the elementary divisors
+        d1, d2, d3, of a finite abelian group (where d1 | d2 | d3 |
+        are composed of prime powers dividing the invariants of the group
+        in a way described below). Just factor the invariants a_i that
+        define the abelian group.  Then the biggest d_i is the product
+        of the maximum prime powers dividing some a_j. In other words, the
+        largest d_i is the product of p^v, where v = max(ord_p(a_j) for all j).
+        Now divide out all those p^v's into the list of invariants a_i,
+        and get a new list of ``smaller invariants''. Repeat the above procedure
+        on these ``smaller invariants'' to compute d_{i-1}, and so on.
+        (Thanks to Robert Miller for communicating this algorithm.)
+
         EXAMPLES:
             sage: G = AbelianGroup(2,[2,6])
             sage: G
@@ -488,23 +503,18 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G.invariants()
             [2, 6]
             sage: G.elementary_divisors()
-            [2, 2, 3]
+            [2, 6]
             sage: J = AbelianGroup([1,3,5,12])
             sage: J.elementary_divisors()
-            [3, 3, 4, 5]
+            [1, 3, 60]
+            sage: G = AbelianGroup(2,[0,6])
+            sage: G.elementary_divisors()
+            [6, 0]
+
         """
+        from sage.matrix.constructor import diagonal_matrix
         inv = self.invariants()
-        invs = list(inv)
-        invs2 = list(inv)
-        n = len(invs)
-        for a in invs:
-           if not is_prime_power(a):
-               invs2.remove(a)
-               facs = factor(a)
-               pfacs = [facs[i][0]**facs[i][1] for i in range(len(facs))]
-               invs2 = invs2 + pfacs
-        invs2.sort()
-        return invs2
+        return diagonal_matrix(ZZ,inv).elementary_divisors()
 
     def exponent(self):
         """
@@ -621,6 +631,8 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: J = AbelianGroup([2,3])
             sage: J.invariants()
             [2, 3]
+            sage: J.elementary_divisors()
+            [1, 6]
             sage: J.is_cyclic()
             True
             sage: G = AbelianGroup([6])
@@ -633,24 +645,26 @@ class AbelianGroup_class(group.AbelianGroup):
             [2, 2]
             sage: H.is_cyclic()
             False
+            sage: H = AbelianGroup([2,4])
+            sage: H.elementary_divisors()
+            [2, 4]
+            sage: H.is_cyclic()
+            False
             sage: H.permutation_group().is_cyclic()
             False
             sage: T = AbelianGroup([])
             sage: T.is_cyclic()
             True
+            sage: T = AbelianGroup(1,[0]); T
+            Multiplicative Abelian Group isomorphic to Z
+            sage: T.is_cyclic()
+            True
 
         """
-        invs = self.invariants()
-        if invs == []:
-            return True
-        dups = 0
-        for x in invs:
-            if invs.count(x)>1 and x!=1:
-                dups = 1
-        if dups == 1:
-            return False
-        else:
-            return True
+        edivs = self.elementary_divisors()
+        if 1 in edivs:
+            edivs.remove(1)
+        return len(edivs) <= 1
 
     def ngens(self):
         """

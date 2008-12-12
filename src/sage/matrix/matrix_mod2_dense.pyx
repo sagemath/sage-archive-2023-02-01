@@ -1158,6 +1158,20 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         v = [str(mzd_read_bit(self._entries,i,j)) for i in range(self._nrows) for j in range(self._ncols)]
         return s + '![%s]'%(','.join(v))
 
+    def determinant(self):
+        """
+        Return the determinant of this matrix over GF(2).
+
+        EXAMPLES:
+            sage: matrix(GF(2),2,[1,1,0,1]).determinant()
+            1
+            sage: matrix(GF(2),2,[1,1,1,1]).determinant()
+            0
+        """
+        if not self.is_square():
+            raise ValueError, "self must be square"
+        return self.base_ring()(1 if self.rank() == self.nrows() else 0)
+
     def transpose(self):
         """
         Returns transpose of self and leaves self untouched.

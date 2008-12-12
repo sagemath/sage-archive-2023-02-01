@@ -1002,6 +1002,24 @@ class Maxima(Expect):
         """
         return maxima_version()
 
+    def cputime(self, t=None):
+        r"""
+        Returns the amount of CPU time that this Maxima session has used.
+        If \var{t} is not None, then it returns the difference between
+        the current CPU time and \var{t}.
+
+        EXAMPLES:
+            sage: t = maxima.cputime()
+            sage: _ = maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'], [1,1,1])
+            sage: maxima.cputime(t) # output random
+            0.568913
+        """
+        if t:
+            return float(self.eval('elapsed_run_time()')) - t
+        else:
+            return float(self.eval('elapsed_run_time()'))
+
+
 ##     def display2d(self, flag=True):
 ##         """
 ##         Set the flag that determines whether Maxima objects are

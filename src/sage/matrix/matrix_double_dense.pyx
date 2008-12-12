@@ -563,6 +563,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         eigenvalues of this matrix, and V is the corresponding
         left eigenspace (always a 1-dimensional complex vector space).
 
+        INPUT
+            Both the var and the algebraic_multiplicity arguments are
+            ignored.  They do not make much sense in a numerical
+            situation.
+
         EXAMPLES:
             sage: m = matrix(RDF, 3, range(9)); m
             [0.0 1.0 2.0]
@@ -589,7 +594,18 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             True
             sage: diff # random -- very small numbers
             (-2.6645352591e-15, -7.1054273576e-15, -3.5527136788e-15)
+
+        TESTS:
+            sage: m.eigenspaces_left(algebraic_multiplicity=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: algebraic_multiplicity can only be False for double precision matrices
         """
+        # Raise an error if algebraic_multiplicity is True since that
+        # would normally change the format of the return value.
+        if algebraic_multiplicity:
+            raise ValueError, "algebraic_multiplicity can only be False for double precision matrices"
+
         e, v = self.left_eigenvectors()
         v = v.rows()
         pairs = []

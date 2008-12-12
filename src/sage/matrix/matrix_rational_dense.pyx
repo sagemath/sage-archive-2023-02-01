@@ -222,6 +222,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             base --an integer <= 36; (default: 10)
 
         EXAMPLES:
+            sage: m = matrix(QQ,2,3,[1,2/3,-3/4,1,-2/3,-45/17])
             sage: m._export_as_string(10)
             '1 2/3 -3/4 1 -2/3 -45/17'
             sage: m._export_as_string(16)

@@ -1136,7 +1136,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         EXAMPLE:
             sage: A = random_matrix(GF(2),3,3)
             sage: A._magma_init_(magma)                             # optional - magma
-            '_sage_[...]![0,1,0,0,1,1,0,0,0]'
+            'Matrix(GF(2),3,3,StringToIntegerSequence("0 1 0 0 1 1 0 0 0"))'
             sage: A = random_matrix(GF(2),100,100)
             sage: B = random_matrix(GF(2),100,100)
             sage: magma(A*B) == magma(A) * magma(B)                 # optional - magma
@@ -1148,15 +1148,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Matrix with 0 rows and 3 columns
             sage: A = matrix(GF(2),2,3,[0,1,1,1,0,0])
             sage: A._magma_init_(magma)             # optional - magma
-            '_sage_[...]![0,1,1,1,0,0]'
+            'Matrix(GF(2),2,3,StringToIntegerSequence("0 1 1 1 0 0"))'
             sage: magma(A)                          # optional - magma
             [0 1 1]
             [1 0 0]
         """
-        cdef Py_ssize_t i,j
-        s = magma(self.parent()).name()
-        v = [str(mzd_read_bit(self._entries,i,j)) for i in range(self._nrows) for j in range(self._ncols)]
-        return s + '![%s]'%(','.join(v))
+        s = self.base_ring()._magma_init_(magma)
+        return 'Matrix(%s,%s,%s,StringToIntegerSequence("%s"))'%(
+            s, self._nrows, self._ncols, self._export_as_string())
 
     def determinant(self):
         """
@@ -1415,6 +1414,37 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         gdFree(buf)
         gdImageDestroy(im)
         return unpickle_matrix_mod2_dense_v1, (r,c, data, size)
+
+    cpdef _export_as_string(self):
+        """
+        Return space separated string of the entries in this matrix.
+
+        EXAMPLES:
+            sage: w = matrix(GF(2),2,3,[1,0,1,1,1,0])
+            sage: w._export_as_string()
+            '1 0 1 1 1 0'
+        """
+        cdef Py_ssize_t i, j, k, n
+        cdef char *s, *t
+
+        if self._nrows == 0 or self._ncols == 0:
+            data = ''
+        else:
+            n = self._nrows*self._ncols*2 + 2
+            s = <char*> sage_malloc(n * sizeof(char))
+            k = 0
+            _sig_on
+            for i in range(self._nrows):
+                for j in range(self._ncols):
+                    s[k] = <char>(48 + (1 if mzd_read_bit(self._entries,i,j) else 0))  # "0" or "1"
+                    k += 1
+                    s[k] = <char>32  # space
+                    k += 1
+            _sig_off
+            s[k-1] = <char>0
+            data = str(s)
+            sage_free(s)
+        return data
 
 # Used for hashing
 cdef int i, k

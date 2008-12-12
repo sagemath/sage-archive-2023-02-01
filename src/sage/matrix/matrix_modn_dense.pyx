@@ -1585,7 +1585,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         cdef int ndigits = len(str(self.p))
 
-        cdef int i
+        cdef Py_ssize_t i, n
         cdef char *s, *t
 
         if self._nrows == 0 or self._ncols == 0:

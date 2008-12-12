@@ -32,6 +32,7 @@ AUTHORS:
    * John Cremona (Feb 2008) -- Point counting and group structure for
      non-prime fields, Frobenius endomorphism and order, elliptic logs
    * John Cremona (Aug 2008) -- Introduced EllipticCurvePoint_number_field class
+   * Tobias Nagel, Michael Mardaus, John Cremona (Dec 2008) -- p-adic elliptic logarithm over Q
 """
 
 #*****************************************************************************
@@ -1317,7 +1318,67 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 z = z + w2/2
             return z
 
-    ##############################  end  ################################
+    def padic_elliptic_logarithm(self, p, precision=20):
+        r"""
+        Computes the p-adic elliptic logarithm of self
+
+        INPUT:
+            p - integer: a prime
+            precision - integer (default: 100): the p-adic precision of the result
+
+        OUTPUT:
+            p-adic elliptic logarithm of self
+
+        AUTHORS: Tobias Nagel, Michael Mardaus, John Cremona
+
+        METHOD: For points in the formal group (i.e. not integral at
+            p) we take the log() function from the formal groups
+            module and evaluate it at -x/y.  Otherwise we first
+            multiply the point to get into the formal group, and
+            divide the result afterwards.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0,1,1,-2,0])
+            sage: E(0).padic_elliptic_logarithm(3)
+            0
+            sage: P = E(0,0)
+            sage: P.padic_elliptic_logarithm(3)
+            2 + 2*3 + 3^3 + 2*3^7 + 3^8 + 3^9 + 3^11 + 3^15 + 2*3^17 + 3^18 + O(3^19)
+            sage: P.padic_elliptic_logarithm(3).lift()
+            660257522
+            sage: P = E(-11/9,28/27)
+            sage: [(2*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(20)]
+            [2 + O(2^19), 2 + O(3^20), 2 + O(5^19), 2 + O(7^19), 2 + O(11^19), 2 + O(13^19), 2 + O(17^19), 2 + O(19^19)]
+            sage: [(3*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]
+            [1 + 2 + O(2^19), 3 + 3^20 + O(3^21), 3 + O(5^19), 3 + O(7^19), 3 + O(11^19)]
+            sage: [(5*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]
+            [1 + 2^2 + O(2^19), 2 + 3 + O(3^20), 5 + O(5^19), 5 + O(7^19), 5 + O(11^19)]
+        """
+        if not p.is_prime():
+            raise ValueError,'p must be prime'
+        E = self.curve()
+        Q_p = Qp(p, precision)
+        if self.has_finite_order():
+            return Q_p(0)
+        Ep = E.change_ring(Q_p)
+        P = Ep(self)
+        x,y = P.xy()
+        f = 1  # f will be such that f*P is in the formal group E^1(Q_p)
+        if x.valuation() >=0:
+            n = E.tamagawa_exponent(p)  # n*P has good reduction at p
+            t = E.local_data(p).bad_reduction_type()
+            if t is None:
+                m = E.reduction(p).abelian_group()[0].exponent()
+            else:
+                m = p - t
+            # now t*(n*P) reduces to the identity mod p, so is in E^1(Q_p)
+            f = m*n
+            fP = f*P #  lies in E^1
+            x,y  = fP.xy()
+        t = -x/y
+        v = t.valuation()
+        phi = Ep.formal().log(prec=1+precision//v)
+        return phi(t)/f
 
 class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 

@@ -607,7 +607,16 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: m = matrix(RDF, 2, 2, [1,2,3,4])
             sage: m.eigenvalues()
             [-0.372281323269, 5.37228132327]
+            sage: parent(m.eigenvalues()[0])
+            Complex Double Field
 
+            sage: m = matrix(RDF, 2, 2, [0,1,-1,0])
+            sage: m.eigenvalues()
+            [1.0*I, -1.0*I]
+
+            sage: m = matrix(CDF, 2, 2, [I,1,-I,0])
+            sage: m.eigenvalues()
+            [-0.624810533844 + 1.30024259022*I, 0.624810533844 - 0.30024259022*I]
             sage: matrix(CDF,0,0).eigenvalues()
             []
         """

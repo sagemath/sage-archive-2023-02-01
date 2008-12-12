@@ -436,6 +436,23 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return self._pickle_version0(), 0
 
     cdef _pickle_version0(self):
+        return self._export_as_string(32)
+
+    cpdef _export_as_string(self, int base=10):
+        """
+        Return space separated string of the entries in this matrix, in the given base.
+        This is optimized for speed.
+
+        INPUT:
+            base --an integer <= 36; (default: 10)
+
+        EXAMPLES:
+            sage: m = matrix(ZZ,2,3,[1,2,-3,1,-2,-45])
+            sage: m._export_as_string(10)
+            '1 2 -3 1 -2 -45'
+            sage: m._export_as_string(16)
+            '1 2 -3 1 -2 -2d'
+        """
         # TODO: *maybe* redo this to use mpz_import and mpz_export
         # from sec 5.14 of the GMP manual. ??
         cdef int i, j, len_so_far, m, n
@@ -452,7 +469,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             _sig_on
             for i from 0 <= i < self._nrows * self._ncols:
-                m = mpz_sizeinbase (self._entries[i], 32)
+                m = mpz_sizeinbase (self._entries[i], base)
                 if len_so_far + m + 2 >= n:
                     # copy to new string with double the size
                     n = 2*n + m + 1
@@ -462,7 +479,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     s = tmp
                     t = s + len_so_far
                 #endif
-                mpz_get_str(t, 32, self._entries[i])
+                mpz_get_str(t, base, self._entries[i])
                 m = strlen(t)
                 len_so_far = len_so_far + m + 1
                 t = t + m
@@ -1156,6 +1173,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _echelon_strassen(self):
         raise NotImplementedError
+
+    def _magma_init_(self, magma):
+        """
+        EXAMPLES:
+            sage: m = matrix(ZZ,2,3,[1,2,-3,1,-2,-45])
+            sage: m._magma_init_(magma)
+            'Matrix(IntegerRing(),2,3,StringToIntegerSequence("1 2 -3 1 -2 -45"))'
+            sage: magma(m)                                               # optional - magma
+            [  1   2  -3]
+            [  1  -2 -45]
+        """
+        w = self._export_as_string(base=10)
+        return 'Matrix(IntegerRing(),%s,%s,StringToIntegerSequence("%s"))'%(
+            self.nrows(), self.ncols(), w)
 
     def symplectic_form(self):
         r"""
@@ -1970,6 +2001,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Return the adjoint of this matrix.
 
         Assumes self is a square matrix (checked in adjoint).
+
+        EXAMPLES:
+            sage: m = matrix(ZZ,3,[1..9])
+            sage: m.adjoint()
+            [ -3   6  -3]
+            [  6 -12   6]
+            [ -3   6  -3]
         """
         return self.parent()(self._pari_().matadjoint().python())
 

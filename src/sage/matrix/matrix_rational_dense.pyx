@@ -211,6 +211,22 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             raise RuntimeError, "unknown matrix version (=%s)"%version
 
     cdef _pickle_version0(self):
+        return self._export_as_string(32)
+
+    cpdef _export_as_string(self, int base=10):
+        """
+        Return space separated string of the entries in this matrix, in the given base.
+        This is optimized for speed.
+
+        INPUT:
+            base --an integer <= 36; (default: 10)
+
+        EXAMPLES:
+            sage: m._export_as_string(10)
+            '1 2/3 -3/4 1 -2/3 -45/17'
+            sage: m._export_as_string(16)
+            '1 2/3 -3/4 1 -2/3 -2d/11'
+        """
         cdef Py_ssize_t i, j, len_so_far, m, n
         cdef char *a
         cdef char *s, *t, *tmp
@@ -226,8 +242,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             _sig_on
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < self._ncols:
-                    m = mpz_sizeinbase (mpq_numref(self._matrix[i][j]), 32) + \
-                        mpz_sizeinbase (mpq_denref(self._matrix[i][j]), 32) + 3
+                    m = mpz_sizeinbase (mpq_numref(self._matrix[i][j]), base) + \
+                        mpz_sizeinbase (mpq_denref(self._matrix[i][j]), base) + 3
                     if len_so_far + m + 1 >= n:
                         # copy to new string with double the size
                         n = 2*n + m + 1
@@ -237,7 +253,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                         s = tmp
                         t = s + len_so_far
                     #endif
-                    mpq_get_str(t, 32, self._matrix[i][j])
+                    mpq_get_str(t, base, self._matrix[i][j])
                     m = strlen(t)
                     len_so_far = len_so_far + m + 1
                     t = t + m
@@ -912,8 +928,34 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         Return the adjoint of this matrix.
 
         Assumes self is a square matrix (checked in adjoint).
+
+        EXAMPLES:
+            sage: m = matrix(QQ,3,[1..9])/9; m
+            [1/9 2/9 1/3]
+            [4/9 5/9 2/3]
+            [7/9 8/9   1]
+            sage: m.adjoint()
+            [-1/27  2/27 -1/27]
+            [ 2/27 -4/27  2/27]
+            [-1/27  2/27 -1/27]
         """
         return self.parent()(self._pari_().matadjoint().python())
+
+    def _magma_init_(self, magma):
+        """
+        EXAMPLES:
+            sage: m = matrix(QQ,2,3,[1,2/3,-3/4,1,-2/3,-45/17])
+            sage: m._magma_init_(magma)
+            'Matrix(RationalField(),2,3,StringToIntegerSequence("204 136 -153 204 -136 -540"))/204'
+            sage: magma(m)                                                # optional - magma
+            [     1    2/3   -3/4]
+            [     1   -2/3 -45/17]
+        """
+        X, d = self._clear_denom()
+        s = X._magma_init_(magma).replace('IntegerRing','RationalField')
+        if d != 1:
+            s += '/%s'%d._magma_init_(magma)
+        return s
 
     def prod_of_row_sums(self, cols):
         cdef Py_ssize_t c, row

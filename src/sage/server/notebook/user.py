@@ -54,7 +54,7 @@ class User:
         if twist.notebook is None: return
         history_file = "%s/worksheets/%s/history.sobj"%(twist.notebook.directory(), self.__username)
         try:
-            print "Dumping %s history to '%s'"%(self.__username, history_file)
+            #print "Dumping %s history to '%s'"%(self.__username, history_file)
             his = cPickle.dumps(self.history)
         except AttributeError:
             his = cPickle.dumps([])

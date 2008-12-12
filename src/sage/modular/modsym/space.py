@@ -894,9 +894,21 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         must be $\QQ$ or a number field, and self must be cuspidal.
         The returned space is a $\ZZ$-module, where the coordinates
         are the coefficients of $q$-expansions.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(11, sign=1).cuspidal_submodule()
+            sage: M._q_expansion_module_integral(5)
+            Free module of degree 5 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [ 0  1 -2 -1  2]
+            sage: V = M.complement().cuspidal_submodule()
+            sage: V._q_expansion_module_integral(5)
+            Free module of degree 5 and rank 0 over Integer Ring
+            Echelon basis matrix:
+            []
         """
         V = self.q_expansion_module(prec, QQ)
-        return free_module.span(V.basis(), ZZ).saturation()
+        return free_module.FreeModule(ZZ, V.degree()).span(V.basis()).saturation()
 
 
     def congruence_number(self, other, prec=None):

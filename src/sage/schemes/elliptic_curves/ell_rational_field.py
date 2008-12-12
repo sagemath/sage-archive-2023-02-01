@@ -2567,6 +2567,59 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         XY = self.pari_mincurve().elltaniyama()
         return [1/R(1/XY[0]),1/R(1/XY[1])]
 
+    def congruence_number(self):
+        r"""
+        Let $X$ be the subspace of $S_2(\Gamma_0(N)) spanned by the newform
+        associated with this elliptic curve, and $Y$ be orthogonal compliment
+        of $X$ under the Peterson inner product. Let $S_X$ and $S_Y$ be the
+        intersections of $X$ and $Y$ with $S_2(\Gamma_0(N)m \Z)$. The congruence
+        number is defined to be $[S_X \oplus S_Y : S_2(\Gamma_0(N), \Z)]$.
+        It measures congruences between $f$ and elements of $S_2(\Gamma_0(N), \Z)$
+        orthogonal to $f$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.congruence_number()
+            2
+            sage: E.congruence_number()
+            2
+            sage: E = EllipticCurve('54b')
+            sage: E.congruence_number()
+            6
+            sage: E.modular_degree()
+            2
+            sage: E = EllipticCurve('242a1')
+            sage: E.modular_degree()
+            16
+            sage: E.congruence_number()  # long time
+            176
+
+        It is a theorem of Ribet that the congruence number is equal to the
+        modular degree in the case of square free conductor. It is a conjecture
+        of Agashe, Ribet, and Stein that $ord_p(c_f/m_f) \le ord_p(N)/2$.
+
+        TESTS:
+            sage: E = EllipticCurve('11a')
+            sage: E.congruence_number()
+            1
+        """
+        try:
+            return self.__congruence_number
+        except AttributeError:
+            pass
+        # Currently this is *much* faster to compute
+        m = self.modular_degree()
+        if self.conductor().is_squarefree():
+            self.__congruence_number = m
+        else:
+            W = self.modular_symbol_space(sign=1)
+            V = W.complement().cuspidal_subspace()
+            self.__congruence_number = W.congruence_number(V)
+            if not m.divides(self.__congruence_number):
+                # We should never get here
+                raise ValueError, "BUG in modular degree or congruence number computation of: %s" % self
+        return self.__congruence_number
+
     def cremona_label(self, space=False):
         """
         Return the Cremona label associated to (the minimal model) of

@@ -116,7 +116,7 @@ class DualAbelianGroup_class(group.AbelianGroup):
         Dual of Abelian Group isomorphic to Z/3Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z  over Complex Field with 53 bits of precision
         sage: F = AbelianGroup(4,[15,7,8,9],names = list("abcd"))
         sage: DualAbelianGroup(F)
-        Dual of Abelian Group isomorphic to Z/3Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z  over Complex Field with 53 bits of precision
+        Dual of Abelian Group isomorphic to Z/15Z x Z/7Z x Z/8Z x Z/9Z  over Complex Field with 53 bits of precision
 
     """
     def __init__(self, G, names="X", bse_ring=None):
@@ -165,7 +165,7 @@ class DualAbelianGroup_class(group.AbelianGroup):
             Dual of Abelian Group isomorphic to Z/2Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z  over Complex Field with 53 bits of precision
         """
         G = self.group()
-        eldv = G.elementary_divisors()
+        eldv = G.invariants()
         gp = ""
         for x in eldv:
             if x!=0:

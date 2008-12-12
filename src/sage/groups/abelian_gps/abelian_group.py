@@ -31,8 +31,7 @@ where $ord(a_i)=p_i^{c_i}$, for some primes $p_i$ and some
 positive integers $c_i$, $i=1,...,\ell$. GAP calls the
 list (ordered by size) of the $p_i^{c_i}$ the {\it abelian invariants}.
 In \sage they will be called {\it invariants}.
-In this situation,
-$k=\ell$ and $\phi:  \Z^\ell \rightarrow A$ is the map
+In this situation, $k=\ell$ and $\phi:  \Z^\ell \rightarrow A$ is the map
 $\phi(x_1,...,x_\ell) = a_1^{x_1}...a_\ell^{x_\ell}$,
 for $(x_1,...,x_\ell)\in \Z^\ell$. The matrix of relations
 $M:\Z^k \rightarrow \Z^\ell$ is the matrix
@@ -108,7 +107,6 @@ the underlying representation is lists of integer exponents.
 REFERENCES:
     [C1] H. Cohen {\bf Advanced topics in computational number theory}, Springer, 2000.
     [C2] ------, {\bf A course in computational algebraic number theory}, Springer, 1996.
-    [R]  J. Rotman, {\bf An introduction to the theory of groups}, 4th ed, Springer, 1995.
 
  WARNINGS: Many basic properties for infinite abelian groups are not implemented.
 
@@ -327,7 +325,7 @@ def is_AbelianGroup(x):
 class AbelianGroup_class(group.AbelianGroup):
     """
     Abelian group on $n$ generators. The invariant factors [a1,a2,...,ak]
-    need not be prime powers (though the elementary divisors will be).
+    need not be prime powers.
 
     EXAMPLES:
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
@@ -337,8 +335,6 @@ class AbelianGroup_class(group.AbelianGroup):
         sage: F.elementary_divisors()
         [2, 4, 12, 24, 120]
 
-    Thus we see that the "invariants" are not the invariant factors but
-    the "elementary divisors" (in the terminology of Rotman [R]).
     The entry 1 in the list of invariants is ignored:
 
         sage: F = AbelianGroup(3,[1,2,3],names='a')
@@ -484,19 +480,29 @@ class AbelianGroup_class(group.AbelianGroup):
         """
         This returns the elementary divisors of the group, using Pari.
 
-        Here is an algorithm for computing the elementary divisors
-        d1, d2, d3, of a finite abelian group (where d1 | d2 | d3 |
-        are composed of prime powers dividing the invariants of the group
-        in a way described below). Just factor the invariants a_i that
-        define the abelian group.  Then the biggest d_i is the product
-        of the maximum prime powers dividing some a_j. In other words, the
-        largest d_i is the product of p^v, where v = max(ord_p(a_j) for all j).
-        Now divide out all those p^v's into the list of invariants a_i,
-        and get a new list of ``smaller invariants''. Repeat the above procedure
-        on these ``smaller invariants'' to compute d_{i-1}, and so on.
-        (Thanks to Robert Miller for communicating this algorithm.)
+        COMMENT:
+            Here is another algorithm for computing the elementary divisors
+            d1, d2, d3, of a finite abelian group (where d1 | d2 | d3 |
+            are composed of prime powers dividing the invariants of the group
+            in a way described below). Just factor the invariants a_i that
+            define the abelian group.  Then the biggest d_i is the product
+            of the maximum prime powers dividing some a_j. In other words, the
+            largest d_i is the product of p^v, where v = max(ord_p(a_j) for all j).
+            Now divide out all those p^v's into the list of invariants a_i,
+            and get a new list of ``smaller invariants''. Repeat the above procedure
+            on these ``smaller invariants'' to compute d_{i-1}, and so on.
+            (Thanks to Robert Miller for communicating this algorithm.)
+
+        TODO: When somebody wants to speed this code up, please implement he
+            above algorithm.
 
         EXAMPLES:
+            sage: G = AbelianGroup(2,[2,3])
+            sage: G.elementary_divisors()
+            [6]
+            sage: G = AbelianGroup(1, [6])
+            sage: G.elementary_divisors()
+            [6]
             sage: G = AbelianGroup(2,[2,6])
             sage: G
             Multiplicative Abelian Group isomorphic to C2 x C6
@@ -506,7 +512,7 @@ class AbelianGroup_class(group.AbelianGroup):
             [2, 6]
             sage: J = AbelianGroup([1,3,5,12])
             sage: J.elementary_divisors()
-            [1, 3, 60]
+            [3, 60]
             sage: G = AbelianGroup(2,[0,6])
             sage: G.elementary_divisors()
             [6, 0]
@@ -514,7 +520,12 @@ class AbelianGroup_class(group.AbelianGroup):
         """
         from sage.matrix.constructor import diagonal_matrix
         inv = self.invariants()
-        return diagonal_matrix(ZZ,inv).elementary_divisors()
+        eldivs = diagonal_matrix(ZZ,inv).elementary_divisors()
+        if len(eldivs)==1 or not(1 in eldivs):
+            return eldivs
+        else:
+            eldivs.remove(1)
+            return eldivs
 
     def exponent(self):
         """
@@ -632,7 +643,7 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: J.invariants()
             [2, 3]
             sage: J.elementary_divisors()
-            [1, 6]
+            [6]
             sage: J.is_cyclic()
             True
             sage: G = AbelianGroup([6])
@@ -661,10 +672,7 @@ class AbelianGroup_class(group.AbelianGroup):
             True
 
         """
-        edivs = self.elementary_divisors()
-        if 1 in edivs:
-            edivs.remove(1)
-        return len(edivs) <= 1
+        return len(self.elementary_divisors()) <= 1
 
     def ngens(self):
         """

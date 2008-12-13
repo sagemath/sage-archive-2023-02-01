@@ -2571,7 +2571,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Let $X$ be the subspace of $S_2(\Gamma_0(N)) spanned by the newform
         associated with this elliptic curve, and $Y$ be orthogonal compliment
-        of $X$ under the Peterson inner product. Let $S_X$ and $S_Y$ be the
+        of $X$ under the Petersson inner product. Let $S_X$ and $S_Y$ be the
         intersections of $X$ and $Y$ with $S_2(\Gamma_0(N)m \Z)$. The congruence
         number is defined to be $[S_X \oplus S_Y : S_2(\Gamma_0(N), \Z)]$.
         It measures congruences between $f$ and elements of $S_2(\Gamma_0(N), \Z)$

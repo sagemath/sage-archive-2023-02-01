@@ -1936,7 +1936,7 @@ class RegistrationPage(resource.PostableResource):
 
                 # Send a confirmation message to the user.
                 try:
-                    send_mail(self, fromaddr, destaddr, "Sage Notebook Registration",body)
+                    send_mail(fromaddr, destaddr, "Sage Notebook Registration",body)
                     waiting[key] = filled_in['username']
                 except ValueError:
                     pass
@@ -1983,7 +1983,7 @@ class ForgotPassPage(resource.Resource):
             body = build_password_msg(password, request.args[string.strip('username')][0], listenaddr, port, notebook.secure)
             destaddr = user.get_email()
             try:
-                send_mail(self, fromaddr, destaddr, "Sage Notebook Account Recovery",body)
+                send_mail(fromaddr, destaddr, "Sage Notebook Account Recovery",body)
             except ValueError:
                 # the email address is invalid
                 user.set_password(oldpass)

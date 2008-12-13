@@ -38,7 +38,7 @@ def sendComplete(result):
 def handleError(error):
     print >> sys.stderr, "Error", error.getErrorMessage()
 
-def send_mail(self, fromaddr, toaddr, subject, body):
+def send_mail(fromaddr, toaddr, subject, body, on_success=sendComplete, on_failure=handleError):
     try:
         recpt_domain = toaddr.split('@')[1]
     except (ValueError, IndexError):
@@ -49,6 +49,7 @@ def send_mail(self, fromaddr, toaddr, subject, body):
     def on_found_record(mx_rec):
         smtp_server = str(mx_rec.name)
         sending = smtp.sendmail(smtp_server, fromaddr, [toaddr], messageData)
-        sending.addCallback(sendComplete).addErrback(handleError)
+        sending.addCallback(on_success).addErrback(on_failure)
 
     relaymanager.MXCalculator().getMX(recpt_domain).addCallback(on_found_record)
+

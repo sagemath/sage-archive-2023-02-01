@@ -10,6 +10,8 @@
 #from test_notebook import notebook_playback
 #from twist import notebook_twisted as notebook
 
+from sage_email import email
+
 from notebook_object import notebook, inotebook
 
 from interact import interact, input_box, slider, range_slider, selector, checkbox, input_grid, text_control

@@ -2569,7 +2569,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def congruence_number(self):
         r"""
-        Let $X$ be the subspace of $S_2(\Gamma_0(N)) spanned by the newform
+        Let $X$ be the subspace of $S_2(\Gamma_0(N))$ spanned by the newform
         associated with this elliptic curve, and $Y$ be orthogonal compliment
         of $X$ under the Petersson inner product. Let $S_X$ and $S_Y$ be the
         intersections of $X$ and $Y$ with $S_2(\Gamma_0(N)m \Z)$. The congruence

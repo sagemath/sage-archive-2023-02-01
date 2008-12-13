@@ -301,6 +301,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [1 3]
             [2 4]
 
+            sage: MS = MatrixSpace(ZZ, 2)
+            sage: g = Gamma0(5)([1,1,0,1])
+            sage: MS(g)
+            [1 1]
+            [0 1]
         """
         if entries is None:
             entries = 0
@@ -348,7 +353,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             entries = list_to_dict(entries, self.__nrows, self.__ncols, rows=rows)
             coerce = True
             copy = False
-        elif sage.groups.matrix_gps.matrix_group_element.is_MatrixGroupElement(entries):
+        elif sage.groups.matrix_gps.matrix_group_element.is_MatrixGroupElement(entries) \
+             or isinstance(entries, sage.modular.congroup_element.CongruenceSubgroupElement):
             return self(entries.matrix(), copy=False)
 
         return self.matrix(entries, copy=copy, coerce=coerce, rows=rows)

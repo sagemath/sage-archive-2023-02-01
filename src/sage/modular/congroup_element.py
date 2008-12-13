@@ -34,7 +34,7 @@ class CongruenceSubgroupElement(MultiplicativeGroupElement):
             sage: sage.modular.congroup_element.CongruenceSubgroupElement(G, [2,0,0,2])
             Traceback (most recent call last):
             ...
-            ValueError: matrix must have determinant 1
+            TypeError: matrix must have determinant 1
             sage: sage.modular.congroup_element.CongruenceSubgroupElement(G, [2,0,0,2], check=False)
             [2, 0, 0, 2]
 
@@ -47,7 +47,7 @@ class CongruenceSubgroupElement(MultiplicativeGroupElement):
                 raise TypeError, "parent (= %s) must be a congruence subgroup"%parent
             x = M2Z(x)
             if x.determinant() != 1:
-                raise ValueError, "matrix must have determinant 1"
+                raise TypeError, "matrix must have determinant 1"
             x.set_immutable()
 
         MultiplicativeGroupElement.__init__(self, parent)
@@ -73,12 +73,28 @@ class CongruenceSubgroupElement(MultiplicativeGroupElement):
             True
             sage: x.__cmp__(x)
             0
+
+            sage: x = Gamma0(5)([1,1,0,1])
+            sage: x == 0
+            False
         """
         from sage.misc.functional import parent
         if parent(self) != parent(right):
             return cmp(type(self), type(right))
         else:
             return cmp(self.__x, right.__x)
+
+    def __nonzero__(self):
+        """
+        Return True, since the self lives in SL(2,\Z), which does not
+        contain the zero matrix.
+
+        EXAMPLES:
+            sage: x = Gamma0(5)([1,1,0,1])
+            sage: x.__nonzero__()
+            True
+        """
+        return True
 
     def _mul_(self, right):
         """

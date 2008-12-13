@@ -1392,6 +1392,17 @@ class Gamma0_class(GammaH_class):
             Congruence Subgroup Gamma0(11)
             sage: loads(G.dumps()) == G
             True
+
+        TESTS:
+            sage: g = Gamma0(5)([1,1,0,1])
+            sage: g in Gamma0(7)
+            True
+            sage: g = Gamma0(5)([1,0,5,1])
+            sage: g in Gamma0(7)
+            False
+            sage: g = Gamma0(2)([1,0,0,1])
+            sage: g in SL2Z
+            True
         """
         GammaH_class.__init__(self, level, [int(x) for x in IntegerModRing(level).unit_gens()])
 

@@ -438,7 +438,10 @@ def test_file(file):
         f = "%s/.doctest_%s.py"%(os.environ['SAGE_TESTDIR'],name)
         d = "%s/.doctest"%os.environ['SAGE_TESTDIR']
         if not os.path.exists(d):
-            os.makedirs(d)
+            try:
+                os.makedirs(d)
+            except:
+                pass
         open(f,"w").write(s)
         cmd = "%s %s"%(PYTHON, f)
         if gdb:

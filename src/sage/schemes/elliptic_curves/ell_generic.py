@@ -301,16 +301,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve(QQ,[1,1])
             sage: E._magma_init_(magma)                          # optional - magma
             'EllipticCurve([_sage_ref...|0,0,0,1,1])'
-            sage: E =  EllipticCurve(GF(41),[2,5]) # optional - magma
-            sage: E._magma_init_(magma)                 # optional - magma
+            sage: E =  EllipticCurve(GF(41),[2,5])               # optional - magma
+            sage: E._magma_init_(magma)                          # optional - magma
             'EllipticCurve([_sage_ref...|GF(41)!0,GF(41)!0,GF(41)!0,GF(41)!2,GF(41)!5])'
             sage: E = EllipticCurve(GF(25,'a'), [0,0,1,4,0])
-            sage: magma(E)
+            sage: magma(E)                                       # optional - magma
             Elliptic Curve defined by y^2 + y = x^3 + 4*x over GF(5^2)
-            sage: magma(EllipticCurve([1/2,2/3,-4/5,6/7,8/9]))
+            sage: magma(EllipticCurve([1/2,2/3,-4/5,6/7,8/9]))   # optional - magma
             Elliptic Curve defined by y^2 + 1/2*x*y - 4/5*y = x^3 + 2/3*x^2 + 6/7*x + 8/9 over Rational Field
             sage: R.<x> = Frac(QQ['x'])
-            sage: magma(EllipticCurve([x,1+x]))
+            sage: magma(EllipticCurve([x,1+x]))                  # optional - magma
             Elliptic Curve defined by y^2 = x^3 + x*x + (x + 1) over Univariate rational function field over Rational Field
         """
         kmn = magma(self.base_ring())._ref()

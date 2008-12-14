@@ -115,12 +115,13 @@ def timedelta_to_seconds(time_delta):
 
     return seconds
 
-def find_open_port(server='localhost', low=8081):
+def find_open_port(server='localhost', low=0):
     """
     Tries to find an open port on your machine to use.
 
     """
-
+    if low == 0:
+        low = 8081+(os.getpid()%2609)
     import socket
 
     port = low

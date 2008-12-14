@@ -1,14 +1,10 @@
 r"""
 WARNING:
 The following examples will not work if you have not run \code{dsage.setup()}.
-    sage: from sage.dsage.misc.misc import find_open_port
-    sage: port = find_open_port().next()
-    sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+    sage: d = dsage.start_all()
     Going into testing mode...
-    sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
-    sage: sleep(2.0)
-    sage: d = dsage.connect(port=port, ssl=False)
-    sage: sleep(2.0)
+    sage: d.is_connected()
+    True
     sage: a = d('2 + 3')
     sage: a.wait(timeout=30)
     sage: a

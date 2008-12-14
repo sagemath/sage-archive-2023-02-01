@@ -47,7 +47,7 @@ class DSageThread(threading.Thread):
         if not reactor.running:
             try:
                 reactor.run(installSignalHandlers=0)
-            except AttributeError, msg:
+            except: # AttributeError, msg:
                 pass
                 # This is a temporary workaround for a weird bug in reactor
                 # during shutdown that one sees doing doctests (on some
@@ -450,14 +450,8 @@ class BlockingDSage(DSage):
             jobs -- a list of completed jobs
 
         EXAMPLE:
-            sage: from sage.dsage.misc.misc import find_open_port
-            sage: port = find_open_port().next()
-            sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+            sage: d = dsage.start_all()
             Going into testing mode...
-            sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
-            sage: sleep(2.0)
-            sage: d = dsage.connect(port=port, ssl=False)
-            sage: sleep(2.0)
             sage: d.is_connected()
             True
             sage: def f(n):
@@ -490,14 +484,8 @@ class BlockingDSage(DSage):
             *args -- iterables containing the parameters to the function
 
         EXAMPLE:
-            sage: from sage.server.misc import find_next_available_port
-            sage: port = find_next_available_port(8000)
-            sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+            sage: d = dsage.start_all()
             Going into testing mode...
-            sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
-            sage: sleep(2.0)
-            sage: d = dsage.connect(port=port, ssl=False)
-            sage: sleep(1.0)
             sage: d.is_connected()
             True
             sage: def f(n):
@@ -534,14 +522,8 @@ class BlockingDSage(DSage):
             where the order may be completely random
 
         EXAMPLE:
-            sage: from sage.server.misc import find_next_available_port
-            sage: port = find_next_available_port(8000)
-            sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+            sage: d = dsage.start_all()
             Going into testing mode...
-            sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
-            sage: sleep(2.0)
-            sage: d = dsage.connect(port=port, ssl=False)
-            sage: sleep(5.0)
             sage: d.is_connected()
             True
             sage: P = parallel(p_iter = d.parallel_iter)
@@ -573,14 +555,8 @@ class BlockingDSage(DSage):
             job wrapper representing the function evaluated at input.
 
         EXAMPLE:
-            sage: from sage.dsage.misc.misc import find_open_port
-            sage: port = find_open_port().next()
-            sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False, log_level=3)
+            sage: d = dsage.start_all()
             Going into testing mode...
-            sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False, log_level=3, poll=0.1, authenticate=False)
-            sage: sleep(2.0)
-            sage: d = dsage.connect(port=port, ssl=False)
-            sage: sleep(2.0)
             sage: d.is_connected()
             True
             sage: def f(n):

@@ -1318,9 +1318,9 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 z = z + w2/2
             return z
 
-    def padic_elliptic_logarithm(self, p, precision=20):
+    def padic_elliptic_logarithm(self, p, precision=40):
         r"""
-        Computes the p-adic elliptic logarithm of self
+        Computes the p-adic elliptic logarithm of self.
 
         INPUT:
             p - integer: a prime
@@ -1343,16 +1343,28 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             0
             sage: P = E(0,0)
             sage: P.padic_elliptic_logarithm(3)
-            2 + 2*3 + 3^3 + 2*3^7 + 3^8 + 3^9 + 3^11 + 3^15 + 2*3^17 + 3^18 + O(3^19)
+            2 + 2*3 + 3^3 + 2*3^7 + 3^8 + 3^9 + 3^11 + 3^15 + 2*3^17 + 3^18 + 3^19 + 2*3^21 + 3^23 + 3^24 + 3^25 + 2*3^26 + 3^27 + 3^28 + 3^29 + 2*3^30 + 3^31 + 2*3^36 + 3^38 + O(3^39)
             sage: P.padic_elliptic_logarithm(3).lift()
-            660257522
+            1652175907030975211
             sage: P = E(-11/9,28/27)
             sage: [(2*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(20)]
-            [2 + O(2^19), 2 + O(3^20), 2 + O(5^19), 2 + O(7^19), 2 + O(11^19), 2 + O(13^19), 2 + O(17^19), 2 + O(19^19)]
+            [2 + O(2^39), 2 + O(3^40), 2 + O(5^39), 2 + O(7^39), 2 + O(11^39), 2 + O(13^39), 2 + O(17^39), 2 + O(19^39)]
             sage: [(3*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]
-            [1 + 2 + O(2^19), 3 + 3^20 + O(3^21), 3 + O(5^19), 3 + O(7^19), 3 + O(11^19)]
+            [1 + 2 + O(2^39), 3 + 2*3^40 + O(3^41), 3 + O(5^39), 3 + O(7^39), 3 + O(11^39)]
             sage: [(5*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]
-            [1 + 2^2 + O(2^19), 2 + 3 + O(3^20), 5 + O(5^19), 5 + O(7^19), 5 + O(11^19)]
+            [1 + 2^2 + O(2^39), 2 + 3 + O(3^40), 5 + O(5^39), 5 + O(7^39), 5 + O(11^39)]
+
+        An example which arose during reviewing #4741, which fails if the precision is 20:
+        sage: E = EllipticCurve('794a1')
+        sage: P = E(-1,2)
+        sage: P.padic_elliptic_logarithm(2)
+        2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + O(2^19)
+        sage: P.padic_elliptic_logarithm(2, precision=30)
+        2^4 + 2^5 + 2^6 + 2^8 + O(2^9)
+        sage: P.padic_elliptic_logarithm(2, precision=20)
+        Traceback (most recent call last):
+        ...
+        PrecisionError: cannot divide by something indistinguishable from zero
         """
         if not p.is_prime():
             raise ValueError,'p must be prime'

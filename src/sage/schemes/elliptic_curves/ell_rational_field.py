@@ -65,6 +65,7 @@ from sage.interfaces.all import gp
 import ell_modular_symbols
 import padic_lseries
 import padics
+from sage.rings.padics.precision_error import PrecisionError
 
 from lseries_ell import Lseries_ell
 
@@ -4270,8 +4271,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [2, 3, 4, 8, 11, 14, 21, 37, 52, 93, 342, 406, 816]
             Total number of integral points: 18
 
-        It is also possible to not specify mw_base, but then the
-        Mordell-Weil basis must be computed;  this may take much longer
+       It is not necessary to specify mw_base; if it is not provided,
+       then the Mordell-Weil basis must be computed, which may take
+       much longer.
 
             sage: E=EllipticCurve([0,0,1,-7,6])
             sage: a=E.integral_points(both_signs=True); a
@@ -4651,8 +4653,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Total number of S-integral points: 43
             [(-3 : 0 : 1), (-26/9 : 28/27 : 1), (-8159/2916 : 233461/157464 : 1), (-2759/1024 : 60819/32768 : 1), (-151/64 : 1333/512 : 1), (-1343/576 : 36575/13824 : 1), (-2 : 3 : 1), (-7/4 : 25/8 : 1), (-1 : 3 : 1), (-47/256 : 9191/4096 : 1), (0 : 2 : 1), (1/4 : 13/8 : 1), (4/9 : 35/27 : 1), (9/16 : 69/64 : 1), (58/81 : 559/729 : 1), (7/9 : 17/27 : 1), (6169/6561 : 109871/531441 : 1), (1 : 0 : 1), (17/16 : -25/64 : 1), (2 : 0 : 1), (33/16 : 17/64 : 1), (172/81 : 350/729 : 1), (9/4 : 7/8 : 1), (25/9 : 64/27 : 1), (3 : 3 : 1), (31/9 : 116/27 : 1), (4 : 6 : 1), (25/4 : 111/8 : 1), (1793/256 : 68991/4096 : 1), (8 : 21 : 1), (625/64 : 14839/512 : 1), (11 : 35 : 1), (14 : 51 : 1), (21 : 95 : 1), (37 : 224 : 1), (52 : 374 : 1), (6142/81 : 480700/729 : 1), (93 : 896 : 1), (4537/36 : 305425/216 : 1), (342 : 6324 : 1), (406 : 8180 : 1), (816 : 23309 : 1), (207331217/4096 : 2985362173625/262144 : 1)]
 
-       It is not necessary to specify mw_base, then the Mordell-Weil basis
-       must be computed (may take much longer)
+       It is not necessary to specify mw_base; if it is not provided,
+       then the Mordell-Weil basis must be computed, which may take
+       much longer.
 
             sage: a = E.S_integral_points([2,3])
             sage: len(a)
@@ -4669,7 +4672,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         An example from [PZGH]:
             sage: E = EllipticCurve([0,0,0,-172,505])
-            sage: E.rank(), len(E.S_integral_points([3,5,7]))  #  time (~7s)
+            sage: E.rank(), len(E.S_integral_points([3,5,7]))  # long time (~7s)
             (4, 72)
 
         NOTES:
@@ -5047,8 +5050,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             cp = E.tamagawa_exponent(p)
             mp_temp = Z(len_tors).lcm(cp*Np)
             mp.append(mp_temp) #only necessary because of verbose below
-#            mw_base_p_log.append([(mp_temp*pts).padic_elliptic_logarithm(p) for pts in mw_base])
-            mw_base_p_log.append([mp_temp*(pts.padic_elliptic_logarithm(p)) for pts in mw_base])
+            p_prec=20
+            p_prec_ok=False
+            while not p_prec_ok:
+                try:
+                    mw_base_p_log.append([mp_temp*(pts.padic_elliptic_logarithm(p,precision=p_prec)) for pts in mw_base])
+                    p_prec_ok=True
+                except PrecisionError:
+                    p_prec *= 2
             #reorder mw_base_p: last value has minimal valuation at p
             mw_base_p_log_val = [mw_base_p_log[tmp][i].valuation() for i in range(r)]
             min_index = mw_base_p_log_val.index(min(mw_base_p_log_val))

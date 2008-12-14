@@ -512,7 +512,7 @@ class CongruenceSubgroup(group.Group):
 
         EXAMPLES:
             sage: Gamma0(36).cusps()
-            {1/6, 1/4, 1/3, 1/2, 1/9, 0, 1/18, 5/12, Infinity, 1/12, 2/3, 5/6}
+            {1/2, 0, 1/3, 1/12, 5/6, 5/12, 1/4, 1/18, 1/6, 1/9, 2/3, Infinity}
             sage: Gamma0(36).cusps(algorithm='modsym') == Gamma0(36).cusps()
             True
             sage: GammaH(36, [19,29]).cusps() == Gamma0(36).cusps()
@@ -1281,9 +1281,9 @@ class GammaH_class(CongruenceSubgroup):
 
         EXAMPLES:
             sage: Gamma1(5)._find_cusps()
-            {0, Infinity, 1/2, 2/5}
+            {0, 1/2, Infinity, 2/5}
             sage: Gamma1(35)._find_cusps()
-            {3/35, 9/10, 9/14, 11/35, 3/14, 9/35, 3/10, 11/14, 8/35, 4/7, 8/15, Infinity, 13/14, 16/35, 13/35, 0, 4/15, 1/13, 2/35, 1/11, 1/10, 1/17, 1/16, 1/15, 1/14, 1/7, 1/6, 1/5, 1/4, 1/3, 1/2, 6/35, 1/9, 1/8, 6/7, 3/5, 3/7, 7/10, 4/35, 2/5, 17/35, 2/7, 5/7, 1/12, 4/5, 5/14, 12/35, 2/15}
+            {4/7, 1/3, 3/35, 16/35, 1/17, 1/15, 6/35, 1/6, 11/14, 3/7, 2/5, 1/11, 4/35, 3/14, 1/2, 6/7, 3/10, 1/14, 1/5, 2/35, 7/10, 5/7, 1/10, 8/15, 0, 9/14, 13/35, 4/5, 1/13, 1/4, 11/35, 9/10, 1/9, 8/35, Infinity, 12/35, 3/5, 2/7, 1/12, 13/14, 4/15, 9/35, 5/14, 1/8, 17/35, 1/7, 2/15, 1/16}
             sage: Gamma1(24)._find_cusps() == Gamma1(24).cusps(algorithm='modsym')
             True
             sage: GammaH(24, [13,17])._find_cusps() == GammaH(24,[13,17]).cusps(algorithm='modsym')
@@ -1679,7 +1679,7 @@ class Gamma0_class(GammaH_class):
 
         EXAMPLES:
             sage: Gamma0(90)._find_cusps()
-            {1/6, 1/5, 1/3, 1/2, 11/30, 1/9, 2/3, 1/30, Infinity, 5/6, 1/45, 0, 1/18, 1/10, 1/15, 2/15}
+            {0, 1/3, 11/30, 5/6, 1/15, 1/10, 2/3, 1/9, Infinity, 1/2, 1/45, 1/18, 1/5, 2/15, 1/6, 1/30}
             sage: Gamma0(1).cusps()
             {Infinity}
             sage: Gamma0(180).cusps() == Gamma0(180).cusps(algorithm='modsym')

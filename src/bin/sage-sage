@@ -201,7 +201,7 @@ fi
 
 sage() {
     sage_setup
-    sage-ipython "$@" -p sage -i
+    sage-ipython "$@" -i
 }
 
 if [ $# -eq 0 ]; then

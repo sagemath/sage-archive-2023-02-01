@@ -8,6 +8,11 @@ SAGE IPython startup script.
 import os
 import sys
 
+#Make sure we're using the Sage profile
+#is one isn't specified
+if '-p' not in sys.argv:
+    sys.argv.extend(['-p', 'sage'])
+
 __SAGE_AUTOINJECT__ = True
 
 import IPython

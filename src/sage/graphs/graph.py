@@ -8960,8 +8960,25 @@ class DiGraph(GenericGraph):
        return self._graphviz_string_helper("digraph", "->") # edge_string is "->" for directed graphs
 
 
+    def strongly_connected_components(self):
+        """
+        Returns a list of lists of vertices, each list representing a
+        strongly connected component.
 
+        EXAMPLE:
+            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+            sage: D.connected_components()
+            [[0, 1, 2, 3], [4, 5, 6]]
+            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+            sage: D.strongly_connected_components()
+            [[3], [2], [1], [0], [6], [5], [4]]
+            sage: D.add_edge([2,0])
+            sage: D.strongly_connected_components()
+            [[0, 1, 2], [3], [6], [5], [4]]
 
+        """
+        import networkx
+        return networkx.strongly_connected_components(self.networkx_graph(copy=False))
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

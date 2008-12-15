@@ -282,6 +282,54 @@ cdef class Matrix(matrix0.Matrix):
         entries = map(list, self)
         return macaulay2(entries).matrix()
 
+
+    def _scilab_init_(self):
+        """
+        Returns a string defining a Scilab representation of self.
+
+        EXAMPLES:
+            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a  # optional - scilab
+            [1 2 3]
+            [4 5 6]
+            [7 8 9]
+            sage: a._scilab_init_()         # optional - scilab
+            '[1,2,3;4,5,6;7,8,9]'
+
+        AUTHORS:
+            --- Ronan Paixao (2008-12-12)
+        """
+        w = self.list()
+        cdef Py_ssize_t nr, nc, i, j
+        nr = self._nrows
+        nc = self._ncols
+        v = []
+        for i from 0 <= i < nr:
+            tmp = []
+            for j from 0 <= j < nc:
+                tmp.append(w[i*nc + j]._pari_init_())
+            v.append( ','.join(tmp))
+        return '[%s]'%(';'.join(v))
+
+    def _scilab_(self, scilab=None):
+        """
+        Creates a ScilabElement object based on self and returns it.
+
+        EXAMPLES:
+            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a  # optional - scilab
+            [1 2 3]
+            [4 5 6]
+            [7 8 9]
+            sage: b = scilab(a); b      # optional - scilab
+                1.    2.    3.
+                4.    5.    6.
+                7.    8.    9.
+
+        AUTHORS:
+            --- Ronan Paixao (2008-12-12)
+        """
+        return scilab(self._scilab_init_())
+
+
     def numpy(self, dtype=None):
         """
         Return the Numpy matrix associated to this matrix.

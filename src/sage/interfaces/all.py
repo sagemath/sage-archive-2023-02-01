@@ -25,6 +25,7 @@ from qepcad import qepcad, qepcad_console, qepcad_version, qepcad_formula
 from qsieve import qsieve
 from singular import singular, singular_console, singular_version, is_SingularElement, Singular
 from sage0 import sage0 as sage0, sage0_console, sage0_version, Sage
+from scilab import scilab
 from tachyon import tachyon_rt
 from psage import PSage
 from ecm import ECM, ecm

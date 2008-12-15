@@ -117,6 +117,32 @@ class CachedFunction(object):
         cache = self.get_cache()
         return self.get_key(*args, **kwds) in cache
 
+    def set_cache(self, value, *args, **kwds):
+        """
+        Set the value for those args and keyword args
+        Mind the unintuitive syntax (value first)
+        Any idea on how to improve that welcome
+
+        EXAMPLES:
+            sage: g = CachedFunction(number_of_partitions)
+            sage: a = g(5)
+            sage: g.get_cache()
+            {((5,), ()): 7}
+            sage: g.set_cache(17, 5)
+            sage: g.get_cache()
+            {((5,), ()): 17}
+            sage: g(5)
+            17
+
+          Is there a way to use the following intuitive syntax?
+            sage: g(5) = 19    # todo: not implemented
+            sage: g(5)         # todo: not implemented
+            19
+        """
+        cache = self.get_cache()
+        cache[self.get_key(*args, **kwds)] = value
+
+
     def get_key(self, *args, **kwds):
         """
         Returns the key in the cache to be used when args
@@ -185,11 +211,13 @@ class CachedMethod(CachedFunction):
     def __call__(self, *args, **kwds):
         """
         EXAMPLES:
-            sage: class Foo:
+            sage: class Foo(object):
             ...       def __init__(self, x):
             ...           self._x = x
             ...       @cached_method
             ...       def f(self):
+            ...           return self._x^2
+            ...       def g(self):
             ...           return self._x^2
             ...
             sage: a = Foo(2)
@@ -197,9 +225,14 @@ class CachedMethod(CachedFunction):
             4
             sage: a.f() is a.f()
             True
+            sage: a.g()
+            4
+            sage: a.g() is a.g()
+            False
             sage: b = Foo(3)
             sage: b.f()
             9
+
         """
         cache = self.get_cache()
         key = self.get_key(*args, **kwds)

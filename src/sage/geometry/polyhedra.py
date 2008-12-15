@@ -10,23 +10,16 @@ There seems to be some inconsistency in the use of the word polyhedra.
 In this module, a polyhedron is a convex (possibly unbounded) set
 defined either as
 - the intersection of a finite set of half-planes and hyperplanes (H-form),
-- the minkowsky sum of the convex hull of a finite set of vertices and
-  the positive (aka conic) combination of a finite set of rays (V-form)
+- the Minkowsky sum of the convex hull of a finite set of vertices and
+  the conic hull of a finite set of rays (V-form)
 
 The half-planes are also referred to as inequalities, and abbreviated
 ieq, and the hyperplanes are also referred to as linearities.
 
 A polytope is defined as a bounded polyhedron.
 
-More information about polyhedra, polytope and triangulation, consistent
-with the definitions chosen here can be found in Komei Fukuda's `FAQ in
-Polyhedral Computation`_.
-
-Although the ability to specify polyhedra by inequalities and
-linearities is supported, much of the code was designed for the case
-of polytopes specified by vertices (with rational coordinates).
-
-.. _`FAQ in Polyhedral Computation`: http://www.ifor.math.ethz.ch/~fukuda/polyfaq/polyfaq.html
+REFERENCES:
+    Komei Fukuda's `FAQ in Polyhedral Computation <http://www.ifor.math.ethz.ch/~fukuda/polyfaq/polyfaq.html>`_
 
 AUTHOR:
     -- Marshall Hampton: first version and bugfixes, 2008

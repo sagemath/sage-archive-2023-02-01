@@ -117,7 +117,8 @@ class Mupad(Expect):
         Expect.__init__(self,
                         name = 'MuPAD',
                         prompt = PROMPT,
-                        command = "mupkern -P e",
+                        # the -U SAGE=TRUE allows for MuPAD programs to test whether they are run from Sage
+                        command = "mupkern -P e -U SAGE=TRUE",
                         maxread = maxread,
                         script_subdirectory = script_subdirectory,
                         server = server,

@@ -4628,8 +4628,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         NOTE:
             Testing of this function has revealed some inputs where it
             fails due to p-adic precision issues.  For example,
-            EllipticCurve?("7690e1").S_integral_points([13,2])
-            fails as of version 3.2.2.  This is being tracked at \#4741.
+            EllipticCurve("7690e1").S_integral_points([13,2])
+            fails as of version 3.2.2.  This is being tracked at \#4805.
             Please report any other observed failures to sage-support.
 
         EXAMPLES:

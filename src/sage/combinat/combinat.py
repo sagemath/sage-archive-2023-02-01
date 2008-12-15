@@ -1215,9 +1215,8 @@ class CombinatorialClass(SageObject):
         $f$ is supposed to be injective.
 
         EXAMPLES:
-            sage: R = Permutations(3).map(lambda p: p.reduced_word())
-            sage: R # random
-            Image of Standard permutations of 3 by <function <lambda> at 0xa325b54>
+            sage: R = Permutations(3).map(attrcall('reduced_word')); R
+            Image of Standard permutations of 3 by *.reduced_word()
             sage: R.count()
             6
             sage: R.list()
@@ -1233,8 +1232,8 @@ class CombinatorialClass(SageObject):
             [1, 2, 2, 3, 4]
 
         TESTS:
-            sage: R = Permutations(3).map(lambda p: p.reduced_word())
-            sage: R == loads(dumps(R)) # todo: not implemented (function pickling)
+            sage: R = Permutations(3).map(attrcall('reduced_word'))
+            sage: R == loads(dumps(R))
             True
         """
         return MapCombinatorialClass(self, f, name)
@@ -1460,8 +1459,8 @@ class MapCombinatorialClass(CombinatorialClass):
     def __repr__(self):
         """
         TESTS:
-            sage: Partitions(3).map(id)
-            Image of Partitions of the integer 3 by <built-in function id>
+            sage: Partitions(3).map(attrcall('conjugate'))
+            Image of Partitions of the integer 3 by *.conjugate()
 
         """
         if self._name:
@@ -1474,7 +1473,7 @@ class MapCombinatorialClass(CombinatorialClass):
         Counts the elements of this combinatorial class
 
         EXAMPLES:
-            sage: R = Permutations(10).map(lambda p: p.reduced_word())
+            sage: R = Permutations(10).map(attrcall('reduced_word'))
             sage: R.count()
             3628800
 
@@ -1486,7 +1485,7 @@ class MapCombinatorialClass(CombinatorialClass):
         Returns an iterator over the elements of this combinatorial class
 
         EXAMPLES:
-            sage: R = Permutations(10).map(lambda p: p.reduced_word())
+            sage: R = Permutations(10).map(attrcall('reduced_word'))
             sage: R.count()
             3628800
         """

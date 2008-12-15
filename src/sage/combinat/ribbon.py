@@ -18,13 +18,13 @@ Ribbons
 
 import sage.combinat.misc as misc
 import sage.combinat.skew_tableau
-import sage.combinat.word as word
 import sage.combinat.permutation as permutation
 import sage.combinat.partition as partition
 import sage.combinat.skew_tableau as skew_tableau
 import sage.combinat.skew_partition
 import sage.rings.integer
 from combinat import CombinatorialClass, CombinatorialObject
+from sage.combinat.words.words import Words
 
 SkewTableau   = sage.combinat.skew_tableau.SkewTableau
 from_expr     = sage.combinat.skew_tableau.from_expr
@@ -170,14 +170,14 @@ class Ribbon_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Ribbon([[1],[2,3]]).to_word_by_row()
-            [2, 3, 1]
+            word: 231
             sage: Ribbon([[2, 4], [3], [1]]).to_word_by_row()
-            [1, 3, 2, 4]
+            word: 1324
         """
         word = []
         for row in self:
             word = row + word
-        return word
+        return Words(alphabet="positive integers")(word)
 
 
     def to_word_by_column(self):
@@ -186,9 +186,9 @@ class Ribbon_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Ribbon([[1],[2,3]]).to_word_by_column()
-            [1, 3, 2]
+            word: 132
             sage: Ribbon([[2, 4], [3], [1]]).to_word_by_column()
-            [4, 2, 3, 1]
+            word: 4231
 
         """
         return self.to_skew_tableau().to_word_by_column()
@@ -199,9 +199,9 @@ class Ribbon_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Ribbon([[1],[2,3]]).to_word_by_row()
-            [2, 3, 1]
+            word: 231
             sage: Ribbon([[2, 4], [3], [1]]).to_word_by_row()
-            [1, 3, 2, 4]
+            word: 1324
         """
         return self.to_word_by_row()
 
@@ -214,7 +214,7 @@ class Ribbon_class(CombinatorialObject):
             [1, 1, 1, 1]
         """
 
-        return word.evaluation(self.to_word())
+        return self.to_word().evaluation()
 
 
 

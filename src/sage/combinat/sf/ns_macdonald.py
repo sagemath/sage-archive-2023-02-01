@@ -1,5 +1,6 @@
 from sage.combinat.combinat import CombinatorialObject, CombinatorialClass
 import sage.combinat.word as word
+from sage.combinat.words.words import Words
 from sage.combinat.combination import Combinations
 from sage.combinat.permutation import Permutation
 from sage.rings.all import QQ, PolynomialRing, prod
@@ -350,7 +351,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             sage: a.weight()
             [1, 2, 1, 1, 2, 1]
         """
-        return word.evaluation(self.reading_word())
+        return self.reading_word().evaluation()
 
     def descents(self):
         """
@@ -420,9 +421,10 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         EXAMPLES:
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.reading_word()
-            [2, 5, 4, 6, 5, 3, 2, 1]
+            word: 25465321
         """
-        return [self[i,j] for i,j in self.reading_order() if j > 0]
+        w = [self[i,j] for i,j in self.reading_order() if j > 0]
+        return Words(alphabet="positive integers")(w)
 
 
     def inversions(self):

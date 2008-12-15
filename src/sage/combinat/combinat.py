@@ -533,7 +533,7 @@ class CombinatorialObject(SageObject):
         CombinatorialObject should have a unique string representation.
 
         INPUT:
-            l -- a list
+            l -- a list or any object that can be convert to a list by list
 
         EXAMPLES:
             sage: c = CombinatorialObject([1,2,3])
@@ -544,9 +544,10 @@ class CombinatorialObject(SageObject):
             sage: c._hash is None
             True
         """
-        if not isinstance(l, list):
-            raise ValueError, 'l must be a list'
-        self._list = l
+        if isinstance(l, list):
+            self._list = l
+        else:
+            self._list = list(l)
         self._hash = None
 
     def __str__(self):

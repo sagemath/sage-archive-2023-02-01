@@ -45,7 +45,10 @@ from ribbon import Ribbon, StandardRibbons
 from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableau, SemistandardMultiSkewTableaux
 
 #Words
-from word import Words, ShuffleProduct
+#from word import Words, ShuffleProduct
+# sage-words replaces Words
+from words.all import *
+
 from subword import Subwords
 
 from graph_path import GraphPaths

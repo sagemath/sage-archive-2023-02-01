@@ -70,7 +70,7 @@ from sage.rings.arith import factorial, binomial
 import itertools
 import __builtin__
 import sage.combinat.composition as composition
-import sage.combinat.word as word
+from sage.combinat.words.word import Word
 import sage.combinat.permutation as permutation
 import sage.rings.integer
 from sage.combinat.combinat import stirling_number2
@@ -388,7 +388,7 @@ class OrderedSetPartitions_scomp(CombinatorialClass):
             p += [j+1]*comp[j]
 
         for x in permutation.Permutations(p):
-            res = permutation.Permutation_class(range(1,len(lset)))*word.standard(x).inverse()
+            res = permutation.Permutation_class(range(1,len(lset))) * Word(x).standard_permutation().inverse()
             res =[lset[x-1] for x in res]
             yield [ Set( res[dcomp[i]+1:dcomp[i+1]+1] ) for i in range(l)]
 

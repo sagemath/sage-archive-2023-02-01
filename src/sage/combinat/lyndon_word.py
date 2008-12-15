@@ -25,7 +25,7 @@ from sage.misc.misc import prod
 import __builtin__
 import necklace
 from integer_vector import IntegerVectors
-import word
+from sage.combinat.words.word import Word
 
 def LyndonWords(e, k=None):
     """
@@ -207,7 +207,7 @@ class LyndonWords_nk(CombinatorialClass):
         """
 
         #Get the content of x and create
-        c = filter(lambda x: x!=0, word.evaluation(x))
+        c = filter(lambda x: x!=0, Word(x).evaluation())
 
         #Change x to the "standard form"
         d = {}

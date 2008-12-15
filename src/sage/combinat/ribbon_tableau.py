@@ -17,10 +17,11 @@ Ribbon Tableaux
 #*****************************************************************************
 
 from combinat import CombinatorialObject, CombinatorialClass
-import skew_tableau, word, permutation, partition, skew_partition
+import skew_tableau, permutation, partition, skew_partition
 from sage.rings.all import QQ, ZZ
 import sage.calculus.calculus
 import functools
+from sage.combinat.words.words import Words
 
 def RibbonTableau(rt=None, expr=None):
     """
@@ -74,6 +75,20 @@ class RibbonTableau_class(skew_tableau.SkewTableau_class):
         else:
             return t/l
 
+    def to_word(self):
+        """
+        Returns a word obtained from a row reading of self.
+
+        EXAMPLES:
+            sage: R = RibbonTableau([[0, 0, 3, 0], [1, 1, 0], [2, 0, 4]])
+            sage: R.to_word()
+            word: 2041100030
+        """
+        w = []
+        for row in reversed(self):
+            w += row
+        return Words(alphabet="natural numbers")(w)
+
     def evaluation(self):
         """
         Returns the evaluation of the ribbon tableau
@@ -82,7 +97,9 @@ class RibbonTableau_class(skew_tableau.SkewTableau_class):
             sage: RibbonTableau([[0, 0, 3, 0], [1, 1, 0], [2, 0, 4]]).evaluation()
             [2, 1, 1, 1]
         """
-        return word.evaluation([i for i in self.to_word() if i != 0])
+        w = [i for i in self.to_word() if i != 0]
+        word = Words(alphabet="positive integers")(w)
+        return word.evaluation()
 
 def from_expr(l):
     """
@@ -389,6 +406,7 @@ def spin_rec(t, nexts, current, part, weight, length):
         [2*t^7 + 2*t^5 + t^3]
 
     """
+    from sage.combinat.words.word import Word
     R = ZZ['t']
     if current == []:
         return [R(0)]
@@ -401,7 +419,7 @@ def spin_rec(t, nexts, current, part, weight, length):
     for perms in [current[i][1] for i in range(len(current))]:
         perm =  [partp[i] + len(partp)-(i+1)-perms[i] for i in range(len(partp))]
         perm.reverse()
-        perm = permutation.Permutation( word.standard(perm) )
+        perm = Word(perm).standard_permutation()
         tmp.append( (weight[-1]*(length-1)-perm.number_of_inversions()) )
 
     if nexts != []:

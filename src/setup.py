@@ -547,6 +547,8 @@ code = setup(name = 'sage',
                      'sage.combinat.posets',
                      'sage.combinat.species',
 
+                     'sage.combinat.words',
+
                      'sage.crypto',
                      'sage.crypto.mq',
 

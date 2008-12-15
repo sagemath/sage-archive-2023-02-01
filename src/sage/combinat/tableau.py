@@ -20,7 +20,6 @@ from sage.rings.integer import Integer
 import sage.combinat.skew_tableau
 import partition
 from integer_vector import IntegerVectors
-import word
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
 import copy
@@ -29,6 +28,7 @@ from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.misc import uniq
 from combinat import CombinatorialClass, CombinatorialObject
 import __builtin__
+from sage.combinat.words.words import Words
 
 def Tableau(t):
     """
@@ -204,14 +204,14 @@ class Tableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Tableau([[1,2],[3,4]]).to_word_by_row()
-            [3, 4, 1, 2]
+            word: 3412
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_row()
-            [3, 2, 5, 1, 4, 6]
+            word: 325146
         """
         w = []
         for row in reversed(self):
             w += row
-        return w
+        return Words(alphabet="positive integers")(w)
 
     def to_word_by_column(self):
         """
@@ -219,15 +219,15 @@ class Tableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Tableau([[1,2],[3,4]]).to_word_by_column()
-            [3, 1, 4, 2]
+            word: 3142
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_column()
-            [3, 2, 1, 5, 4, 6]
+            word: 321546
         """
         w = []
         conj = self.conjugate()
         for row in conj:
             w += list(reversed(row))
-        return w
+        return Words(alphabet="positive integers")(w)
 
     def to_word(self):
         """
@@ -235,9 +235,9 @@ class Tableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Tableau([[1,2],[3,4]]).to_word()
-            [3, 4, 1, 2]
+            word: 3412
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word()
-            [3, 2, 5, 1, 4, 6]
+            word: 325146
         """
         return self.to_word_by_row()
 
@@ -378,8 +378,7 @@ class Tableau_class(CombinatorialObject):
             sage: Tableau([[1,2],[3,4]]).evaluation()
             [1, 1, 1, 1]
         """
-
-        return word.evaluation(self.to_word())
+        return self.to_word().evaluation()
 
     weight = evaluation
 
@@ -1081,8 +1080,7 @@ class Tableau_class(CombinatorialObject):
             4
 
         """
-        return word.charge([i for i in reversed(self.to_word())])
-
+        return self.to_word().reversal().charge()
 
     def cocharge(self):
         """
@@ -1103,7 +1101,7 @@ class Tableau_class(CombinatorialObject):
             0
 
         """
-        return word.charge(self.to_word())
+        return self.to_word().charge()
 
 
     ##############
@@ -1298,7 +1296,7 @@ class Tableau_class(CombinatorialObject):
     def raise_action_from_words(self, f, *args):
         """
         EXAMPLES:
-            sage: from sage.combinat.word import symmetric_group_action_on_values
+            sage: from sage.combinat.tableau import symmetric_group_action_on_values
             sage: import functools
             sage: t = Tableau([[1,1,3,3],[2,3],[3]])
             sage: f = functools.partial(t.raise_action_from_words, symmetric_group_action_on_values)
@@ -1324,7 +1322,7 @@ class Tableau_class(CombinatorialObject):
             sage: t.symmetric_group_action_on_values([1,3,2])
             [[1, 1, 2, 2], [2, 2], [3]]
         """
-        return self.raise_action_from_words(word.symmetric_group_action_on_values, perm)
+        return self.raise_action_from_words(symmetric_group_action_on_values, perm)
 
     #########
     # atoms #
@@ -1390,14 +1388,14 @@ def from_shape_and_word(shape, w):
         sage: shape = t.shape(); shape
         [2, 1, 1]
         sage: word  = t.to_word(); word
-        [4, 2, 1, 3]
+        word: 4213
         sage: from_shape_and_word(shape, word)
         [[1, 3], [2], [4]]
     """
     res = []
     j = 0
     for i in reversed(range(len(shape))):
-        res.append( w[j:j+shape[i]] )
+        res.append( list(w[j:j+shape[i]]) )
         j += shape[i]
     res.reverse()
     return Tableau_class(res)
@@ -2445,3 +2443,82 @@ class SemistandardTableaux_nmu(CombinatorialClass):
             True
         """
         return x in SemistandardTableaux_all() and x in SemistandardTableaux(map(len, x), self.mu)
+
+##########################
+# Symmetric group action #
+##########################
+def unmatched_places(w, open, close):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.tableau import unmatched_places
+        sage: unmatched_places([2,2,2,1,1,1],2,1)
+        ([], [])
+        sage: unmatched_places([1,1,1,2,2,2],2,1)
+        ([0, 1, 2], [3, 4, 5])
+        sage: unmatched_places([], 2, 1)
+        ([], [])
+        sage: unmatched_places([1,2,4,6,2,1,5,3],2,1)
+        ([0], [1])
+        sage: unmatched_places([2,2,1,2,4,6,2,1,5,3], 2, 1)
+        ([], [0, 3])
+        sage: unmatched_places([3,1,1,1,2,1,2], 2, 1)
+        ([1, 2, 3], [6])
+    """
+    lw = len(w)
+    places_open = []
+    places_close = []
+    for i in range(lw):
+        letter = w[i]
+        if letter == open:
+            places_open.append(i)
+        elif letter == close:
+            if places_open == []:
+                places_close.append(i)
+            else:
+                places_open.pop()
+    return places_close, places_open
+
+
+def symmetric_group_action_on_values(word, perm):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.tableau import symmetric_group_action_on_values
+        sage: symmetric_group_action_on_values([1,1,1],[1,3,2])
+        [1, 1, 1]
+        sage: symmetric_group_action_on_values([1,1,1],[2,1,3])
+        [2, 2, 2]
+        sage: symmetric_group_action_on_values([1,2,1],[2,1,3])
+        [2, 2, 1]
+        sage: symmetric_group_action_on_values([2,2,2],[2,1,3])
+        [1, 1, 1]
+        sage: symmetric_group_action_on_values([2,1,2],[2,1,3])
+        [2, 1, 1]
+        sage: symmetric_group_action_on_values([2,2,3,1,1,2,2,3],[1,3,2])
+        [2, 3, 3, 1, 1, 2, 3, 3]
+        sage: symmetric_group_action_on_values([2,1,1],[2,1])
+        [2, 1, 2]
+        sage: symmetric_group_action_on_values([2,2,1],[2,1])
+        [1, 2, 1]
+        sage: symmetric_group_action_on_values([1,2,1],[2,1])
+        [2, 2, 1]
+    """
+    w = list(word)
+    ts = sage.combinat.permutation.Permutation(perm).reduced_word()
+    for j in reversed(range(len(ts))):
+        r = ts[j]
+        l = r + 1
+        places_r, places_l = unmatched_places(w, l, r)
+
+        #Now change the number of l's and r's in the new word
+        nbl = len(places_l)
+        nbr = len(places_r)
+        ma = max(nbl, nbr)
+        dif = ma - min(nbl, nbr)
+        if ma == nbl:
+            for i in range(dif):
+                w[places_l[i]] = r
+        else:
+            for i in range(nbr-dif,ma):
+                w[places_r[i]] = l
+    return w
+

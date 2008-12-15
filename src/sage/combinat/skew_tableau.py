@@ -23,7 +23,6 @@ import sage.combinat.tableau
 import skew_partition
 import partition
 import misc
-import word
 from sage.misc.all import prod
 import exceptions
 import random
@@ -32,6 +31,7 @@ from combinat import CombinatorialObject, CombinatorialClass
 from sage.graphs.graph import DiGraph
 import ribbon_tableau
 from integer_vector import IntegerVectors
+from sage.combinat.words.words import Words
 
 def SkewTableau(st=None, expr=None):
     """
@@ -200,20 +200,20 @@ class SkewTableau_class(CombinatorialObject):
               .  1
               2  3
             sage: s.to_word_by_row()
-            [2, 3, 1]
+            word: 231
             sage: s = SkewTableau([[None, 2, 4], [None, 3], [1]])
             sage: s.pp()
               .  2  4
               .  3
               1
             sage: s.to_word_by_row()
-            [1, 3, 2, 4]
+            word: 1324
         """
         word = []
         for row in self:
             word = row + word
 
-        return [i for i in word if i is not None]
+        return Words("positive integers")([i for i in word if i is not None])
 
 
     def to_word_by_column(self):
@@ -226,7 +226,7 @@ class SkewTableau_class(CombinatorialObject):
               .  1
               2  3
             sage: s.to_word_by_column()
-            [1, 3, 2]
+            word: 132
 
             sage: s = SkewTableau([[None, 2, 4], [None, 3], [1]])
             sage: s.pp()
@@ -234,7 +234,7 @@ class SkewTableau_class(CombinatorialObject):
             .  3
             1
             sage: s.to_word_by_column()
-            [4, 2, 3, 1]
+            word: 4231
 
         """
         return self.conjugate().to_word_by_row()
@@ -245,9 +245,9 @@ class SkewTableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: SkewTableau([[None,1],[2,3]]).to_word()
-            [2, 3, 1]
+            word: 231
             sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).to_word()
-            [1, 3, 2, 4]
+            word: 1324
         """
         return self.to_word_by_row()
 
@@ -259,7 +259,8 @@ class SkewTableau_class(CombinatorialObject):
             sage: SkewTableau([[1,2],[3,4]]).evaluation()
             [1, 1, 1, 1]
         """
-        return word.evaluation(self.to_word())
+        return self.to_word().evaluation()
+
     weight = evaluation
 
     def is_standard(self):
@@ -278,8 +279,7 @@ class SkewTableau_class(CombinatorialObject):
         """
         #Check to make sure that it is filled with 1...size
         w = self.to_word()
-        w.sort()
-        if w != range(1, self.size()+1):
+        if sorted(w) != range(1, self.size()+1):
             return False
         else:
             return self.is_semistandard()

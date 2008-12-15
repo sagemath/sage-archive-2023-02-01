@@ -16,7 +16,7 @@
 from combinat import CombinatorialClass
 from __builtin__ import list as builtinlist
 from sage.rings.integer import Integer
-import word
+from sage.combinat.words.word import Word
 from permutation import Permutation_class
 
 def WeightedIntegerVectors(n, weight):
@@ -142,7 +142,7 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
             else:
                 return []
 
-        perm = word.standard(self.weight)
+        perm = Word(self.weight).standard_permutation()
         l = [x for x in sorted(self.weight)]
         return [perm._left_to_right_multiply_on_right(Permutation_class(x)) for x in self._recfun(self.n,l)]
 

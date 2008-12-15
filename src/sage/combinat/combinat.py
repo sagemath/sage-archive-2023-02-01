@@ -1207,6 +1207,38 @@ class CombinatorialClass(SageObject):
             raise TypeError, "right_cc must be a CombinatorialClass"
         return UnionCombinatorialClass(self, right_cc, name=name)
 
+    def map(self, f, name=None):
+        """
+        Returns the image $\{f(x) x in self\}$ of this combinatorial
+        class by $f$, as a combinatorial class.
+
+        $f$ is supposed to be injective.
+
+        EXAMPLES:
+            sage: R = Permutations(3).map(lambda p: p.reduced_word())
+            sage: R # random
+            Image of Standard permutations of 3 by <function <lambda> at 0xa325b54>
+            sage: R.count()
+            6
+            sage: R.list()
+            [[], [2], [1], [1, 2], [2, 1], [2, 1, 2]]
+            sage: [ r for r in R]
+            [[], [2], [1], [1, 2], [2, 1], [2, 1, 2]]
+
+            If the function is not injective, then there may be repeated elements:
+            sage: P = Partitions(4)
+            sage: P.list()
+            [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+            sage: P.map(len).list()
+            [1, 2, 2, 3, 4]
+
+        TESTS:
+            sage: R = Permutations(3).map(lambda p: p.reduced_word())
+            sage: R == loads(dumps(R)) # todo: not implemented (function pickling)
+            True
+        """
+        return MapCombinatorialClass(self, f, name)
+
 class FilteredCombinatorialClass(CombinatorialClass):
     def __init__(self, combinatorial_class, f, name=None):
         """
@@ -1412,7 +1444,56 @@ class UnionCombinatorialClass(CombinatorialClass):
             return self.right_cc.unrank(x - self.left_cc.count())
 
 
+##############################################################################
+class MapCombinatorialClass(CombinatorialClass):
+    r"""
+    A MapCombinatorialClass models the image of a combinatorial
+    class through a function which is assumed to be injective
 
+    See CombinatorialClass.map for examples
+    """
+    def __init__(self, cc, f, name=None):
+        self.cc = cc
+        self.f  = f
+        self._name = name
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: Partitions(3).map(id)
+            Image of Partitions of the integer 3 by <built-in function id>
+
+        """
+        if self._name:
+            return self._name
+        else:
+            return "Image of %s by %s"%(self.cc, self.f)
+
+    def count(self):
+        """
+        Counts the elements of this combinatorial class
+
+        EXAMPLES:
+            sage: R = Permutations(10).map(lambda p: p.reduced_word())
+            sage: R.count()
+            3628800
+
+        """
+        return self.cc.count()
+
+    def __iter__(self):
+        """
+        Returns an iterator over the elements of this combinatorial class
+
+        EXAMPLES:
+            sage: R = Permutations(10).map(lambda p: p.reduced_word())
+            sage: R.count()
+            3628800
+        """
+        for x in self.cc:
+            yield self.f(x)
+
+    iterator = __iter__
 
 def hurwitz_zeta(s,x,N):
     """

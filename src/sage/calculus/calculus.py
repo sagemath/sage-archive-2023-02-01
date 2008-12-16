@@ -6728,11 +6728,12 @@ class Function_abs(PrimitiveFunction):
 
     def _latex_composition(self, x):
         """
-        sage: f = sage.calculus.calculus.Function_abs()
-        sage: latex(f)
-        \mathrm{abs}
-        sage: latex(abs(x))
-        \left| x \right|
+        EXAMPLES:
+            sage: f = sage.calculus.calculus.Function_abs()
+            sage: latex(f)
+            \mathrm{abs}
+            sage: latex(abs(x))
+            \left| x \right|
         """
         return "\\left| " + latex(x) + " \\right|"
 
@@ -6815,7 +6816,20 @@ class Function_ceil(PrimitiveFunction):
         return "ceil"
 
     def _latex_(self):
-        return "\\text{ceil}"
+        r"""
+        EXAMPLES:
+            sage: latex(ceil)
+            \text{ceil}
+        """
+        return r"\text{ceil}"
+
+    def _latex_composition(self, x):
+        r"""
+        EXAMPLES:
+            sage: latex(ceil(x))
+            \left \lceil x \right \rceil
+        """
+        return r"\left \lceil %s \right \rceil"%latex(x)
 
     def _maxima_init_(self):
         return "ceiling"
@@ -6912,7 +6926,20 @@ class Function_floor(PrimitiveFunction):
         return "floor"
 
     def _latex_(self):
-        return "\\text{floor}"
+        r"""
+        EXAMPLES:
+            sage: latex(floor)
+            \text{floor}
+        """
+        return r"\text{floor}"
+
+    def _latex_composition(self, x):
+        r"""
+        EXAMPLES:
+            sage: latex(floor(x))
+            \left \lfloor x \right \rfloor
+        """
+        return r"\left \lfloor %s \right \rfloor"%latex(x)
 
     def _maxima_init_(self):
         return "floor"
@@ -8670,7 +8697,7 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
             return '%s(%s)' % (self._f._name, args)
 
     def _latex_(self):
-        """
+        r"""
         Return a latex version of the function
 
         EXAMPLES:
@@ -8681,18 +8708,22 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
             sage: latex(y)
             y\left(u\right)
             sage: latex(diff(y,u))
-            {{d}\over{d\,u}}\,y\left(u\right)
+            {{{\it \partial}}\over{{\it \partial}\,u}}\,y\left(u\right)
             sage: latex(diff(y,u,3))
-            {{d^3}\over{d\,u^3}}\,y\left(u\right)
+            {{{\it \partial}^3}\over{{\it \partial}\,u^3}}\,y\left(u\right)
             sage: latex(diff(z,u))
-            {{d}\over{d\,u}}\,z\left(t , u\right)
+            {{{\it \partial}}\over{{\it \partial}\,u}}\,z\left(t , u\right)
             sage: latex(diff(z,u,t,u,t))
-            {{d^4}\over{d\,t^2\,d\,u^2}}\,z\left(t , u\right)
+            {{{\it \partial}^4}\over{{\it \partial}\,t^2\,{\it \partial}\,u^2}}  \,z\left(t , u\right)
             sage: latex(integrate(y,u))
             \int {y\left(u\right)}{\;du}
+
+            sage: latex(derivative(ceil(x), x))
+            {{{\it \partial}}\over{{\it \partial}\,x}}\,\left \lceil x \right \rceil
+
         """
         try:
-            return latex(self._maxima_())
+            return  latex(self._maxima_())
         except:
             return "{\\rm %s}(%s)"%(self._f._name, ', '.join([x._latex_() for
                                                               x in self._args]))

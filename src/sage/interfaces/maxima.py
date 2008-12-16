@@ -448,6 +448,7 @@ class Maxima(Expect):
             True
         """
         Expect._start(self)
+        self._sendline(r":lisp (defun tex-derivative (x l r) (tex (if $derivabbrev (tex-dabbrev x) (tex-d x '\\partial)) l r lop rop ))")
         self._eval_line('0;')
 
     def __reduce__(self):
@@ -1815,6 +1816,13 @@ class MaximaElement(ExpectElement):
         EXAMPLES:
             sage: maxima('sqrt(2) + 1/3 + asin(5)')._latex_()
             '\\sin^{-1}\\cdot5+\\sqrt{2}+{{1}\\over{3}}'
+
+            sage: y,d = var('y,d')
+            sage: latex(maxima(derivative(ceil(x*y*d), d,x,x,y)))
+            {{{\it \partial}^4}\over{{\it \partial}\,d\,{\it \partial}\,x^2\,  {\it \partial}\,y}}\,\left \lceil d\,x\,y \right \rceil
+
+            sage: latex(maxima(d/(d-2)))
+            {{d}\over{d-2}}
         """
         self._check_valid()
         P = self.parent()
@@ -1838,6 +1846,7 @@ class MaximaElement(ExpectElement):
         # decimal digit, or a ')', and followed by a decimal digit. The spaces
         # get replaced by a '\cdot'.
         s = re.sub(r'(?<=[})\d]) +(?=\d)', '\cdot', s)
+
         return s
 
     def trait_names(self, verbose=False):

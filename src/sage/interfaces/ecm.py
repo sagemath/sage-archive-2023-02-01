@@ -97,6 +97,7 @@ class ECM:
 
     def __call__(self, n, watch=False):
         n = Integer(n)
+        self._validate(n)
         cmd = 'echo "%s" | %s'%(n, self.__cmd)
         if watch:
             t = tmp_filename()
@@ -152,6 +153,7 @@ class ECM:
     def one_curve(self, n, factor_digits=None, B1=2000, method="ECM", **kwds):
         """
         Run one single ECM (or P-1/P+1) curve on input n.
+
         INPUT:
             n -- a positive integer
             factor_digits -- decimal digits estimate of the wanted factor
@@ -175,6 +177,8 @@ class ECM:
             sage: f.one_curve(n, B1=2000, method="P+1", x0=5)
             [328006342451, 6366805760909027985741435139224233]
         """
+        n = Integer(n)
+        self._validate(n)
         if not factor_digits is None:
             B1 = self.recommended_B1(factor_digits)
         if method == "P-1":
@@ -227,12 +231,25 @@ class ECM:
         """
         Splits off a single factor of n.
         See ECM.factor()
+
+        OUTPUT:
+            list of integers whose product is n
+
         EXAMPLES:
-           sage: f = ECM()
-           sage: n = 508021860739623467191080372196682785441177798407961
-           sage: f.find_factor(n)
-           [79792266297612017, 6366805760909027985741435139224233]
+            sage: f = ECM()
+            sage: n = 508021860739623467191080372196682785441177798407961
+            sage: f.find_factor(n)
+            [79792266297612017, 6366805760909027985741435139224233]
+
+        Note that the input number can't have more than 4095 digits:
+            sage: f=2^2^14+1
+            sage: ecm.find_factor(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must have at most 4095 digits
         """
+        n = Integer(n)
+        self._validate(n)
         if not 'c' in kwds: kwds['c'] = 1000000000
         if not 'I' in kwds: kwds['I'] = 1
         if not factor_digits is None:
@@ -419,6 +436,7 @@ class ECM:
             Expected curves: 4914   Expected time: 1.39h
 
         """
+        self._validate(n)
         B1 = self.recommended_B1(factor_digits)
         self.__cmd = self._ECM__startup_cmd(B1, None, {'v': ' '})
         child = pexpect.spawn(self.__cmd)
@@ -451,6 +469,35 @@ class ECM:
         time = child.match.groups()[int(offset)]
         child.kill(0)
         print "Expected curves:", curve_count, "\tExpected time:", time
+
+    def _validate(self, n):
+        """
+        Verify that n is positive and has at most 4095 digits.
+
+        INPUT:
+            n
+
+        This function raises a ValueError if the two conditions listed above
+        are not both satisfied.  It is here because GMP-ECM silently ignores
+        all digits of input after the 4095th!
+
+        EXAMPLES:
+            sage: ecm = ECM()
+            sage: ecm._validate(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be positive
+            sage: ecm._validate(10^5000)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must have at most 4095 digits
+        """
+        n = Integer(n)
+        if n <= 0:
+            raise ValueError, "n must be positive"
+        if n.ndigits() > 4095:
+            raise ValueError, "n must have at most 4095 digits"
+
 
 # unique instance
 ecm = ECM()

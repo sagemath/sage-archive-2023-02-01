@@ -545,8 +545,56 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
               (ell_point.EllipticCurvePoint_field, \
                ell_point.EllipticCurvePoint_number_field, \
                ell_point.EllipticCurvePoint)):
-            args = tuple(args[0])
+            # check if denominator of the point contains a factor of the
+            # characteristic of the base ring. if so, coerce the point to
+            # infinity.
+            characteristic = self.base_ring().characteristic()
+            if characteristic != 0 and isinstance(args[0][0], rings.Rational) and isinstance(args[0][1], rings.Rational):
+                if rings.mod(args[0][0].denominator(),characteristic) == 0 or rings.mod(args[0][1].denominator(),characteristic) == 0:
+                    args = self._reduce_point(args[0], characteristic)
+                    args = tuple(args)
+            else:
+                args = tuple(args[0])
+
         return plane_curve.ProjectiveCurve_generic.__call__(self, *args, **kwds)
+
+    def _reduce_point(self, R, p):
+        r"""
+        Reduces a point R on an ellipitc curve to the corresponding point on
+        the elliptic curve reduced modulo p. Used to coerce points between
+        curves when p is a factor of the denominator of one of the
+        coordinates.
+
+        INPUT:
+            R -- a point on an elliptic curve
+            p -- a prime
+
+        OUTPUT:
+            S -- the corresponding point of the elliptic curve containing R, but
+                 reduced modulo p
+
+        EXAMPLES:
+        Suppose we have a point with large height on a rational elliptic curve
+        whose denominator contains a factor of 11:
+            sage: E = EllipticCurve([1,-1,0,94,9])
+            sage: R = E([0,3]) + 5*E([8,31])
+            sage: factor(R.xy()[0].denominator())
+            2^2 * 11^2 * 1457253032371^2
+
+        Since 11 is a factor of the denominator, this point corresponds to the
+        point at infinity on the same curve but reduced modulo 11. The reduce
+        function tells us this:
+            sage: E11 = E.change_ring(GF(11))
+            sage: S = E11._reduce_point(R, 11)
+            sage: E11(S)
+            (0 : 1 : 0)
+
+        Note that one need not explicitly call \code{EllipticCurve._reduce()}.
+        This functionality is implemented in the \code{__call__} method.
+        """
+        x, y = R.xy()
+        d = arith.LCM(x.denominator(), y.denominator())
+        return R.curve().change_ring(rings.GF(p))([x*d, y*d, d])
 
     def is_x_coord(self, x):
         """

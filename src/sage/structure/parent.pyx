@@ -115,8 +115,6 @@ cdef bint guess_pass_parent(parent, element_constructor):
         return True
 
 
-cdef object all_parents = [] #weakref.WeakKeyDictionary()
-
 
 cdef class Parent(category_object.CategoryObject):
     """
@@ -151,11 +149,6 @@ cdef class Parent(category_object.CategoryObject):
         self._initial_coerce_list = []
         self._initial_action_list = []
         self._initial_convert_list = []
-        all_parents.append(self)
-#        try:
-#            all_parents[self] = True # this is a weak reference
-#        except:
-#            print "couldn't weakref", type(self)
 
     cdef int init_coerce(self, bint warn=True) except -1:
         if self._coerce_from_hash is None:
@@ -279,18 +272,10 @@ cdef class Parent(category_object.CategoryObject):
             mor = <map.Map>self.convert_map_from(R)
 
         if mor is not None:
-            try:
-                if no_extra_args:
-                    return mor._call_(x)
-                else:
-                    return mor._call_with_args(x, args, kwds)
-            except TypeError:
-                self._convert_from_hash.pop(mor.domain(), None)
-                for i from 0 <= i < len(self._convert_from_list):
-                    if self._convert_from_list[i] is mor:
-                        del self._convert_from_list[i]
-                        break
-                raise
+            if no_extra_args:
+                return mor._call_(x)
+            else:
+                return mor._call_with_args(x, args, kwds)
 
         raise TypeError, "No conversion defined from %s to %s"%(R, self)
 

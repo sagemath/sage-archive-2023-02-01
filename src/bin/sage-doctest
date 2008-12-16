@@ -505,7 +505,7 @@ def test_file(file):
             numfail = e
         if numfail > 0:
             if not (verbose or gdb or memcheck or massif or cachegrind):
-                print out
+                print s
             delete_tmpfiles()
             sys.exit(4)
         elif e !=0:

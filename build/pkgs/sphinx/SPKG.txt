@@ -32,7 +32,14 @@ A patch was added to support highlighting the "sage:" prompts.
 
 == Changelog ==
 
+=== 0.5.1 (Mike Hansen, December 16th, 2008) ===
+
+ * Updated to version 0.5.1
+
+ * Made sure that sphinx-build.py imported sage.all at the beginning
+
 === 0.5 (Mike Hansen, December 1st, 2008) ===
+
  * Updated to version 0.5
 
 === svn 66476 (Mike Hansen, September 15th, 2008) ===

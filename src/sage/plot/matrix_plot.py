@@ -96,7 +96,11 @@ def matrix_plot(mat, **options):
         sage: matrix_plot(random_matrix(RDF, 50), cmap='hsv')
 
     Another random plot, but over GF(389):
-        sage: matrix_plot(random_matrix(GF(389), 10), cmap='Oranges')
+        sage: m = random_matrix(GF(389), 10)
+        sage: matrix_plot(m, cmap='Oranges')
+
+    It also works if you lift it to the polynomial ring:
+        sage: matrix_plot(m.change_ring(GF(389)['x']), cmap='Oranges')
 
     Here we plot a random sparse matrix:
         sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in xrange(100)]))
@@ -125,7 +129,7 @@ def matrix_plot(mat, **options):
         sage: matrix_plot(random_matrix(P, 3, 3))
         Traceback (most recent call last):
         ...
-        ValueError: can not convert array entries to floating point numbers
+        TypeError: cannot coerce nonconstant polynomial to float
 
         sage: matrix_plot([1,2,3])
         Traceback (most recent call last):
@@ -137,14 +141,16 @@ def matrix_plot(mat, **options):
         ...
         ValueError: can not convert array entries to floating point numbers
     """
+    import numpy as np
     from sage.plot.plot import Graphics
-    from numpy import asarray
     from sage.matrix.all import is_Matrix
+    from sage.rings.all import RDF
+
     if is_Matrix(mat):
-        mat = mat.numpy()
+        mat = mat.change_ring(RDF).numpy()
 
     try:
-        xy_data_array = asarray(mat, dtype = float)
+        xy_data_array = np.asarray(mat, dtype = float)
     except TypeError:
         raise TypeError, "mat must be a Matrix or a two dimensional array"
     except ValueError:

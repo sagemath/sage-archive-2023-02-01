@@ -552,7 +552,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [3 4 5]
             [6 7 8]
             sage: -m
-            [19 18 17]
+            [ 0 18 17]
             [16 15 14]
             [13 12 11]
         """
@@ -569,7 +569,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             row_self = self._matrix[i]
             row_ans = M._matrix[i]
             for j from 0<= j < self._ncols:
-                row_ans[j] = p - row_self[j]
+                if row_self[j]:
+                    row_ans[j] = p - row_self[j]
+                else:
+                    row_ans[j] = 0
         _sig_off
         return M
 

@@ -1,5 +1,4 @@
 from sage.combinat.combinat import CombinatorialObject, CombinatorialClass
-import sage.combinat.word as word
 from sage.combinat.words.words import Words
 from sage.combinat.combination import Combinations
 from sage.combinat.permutation import Permutation

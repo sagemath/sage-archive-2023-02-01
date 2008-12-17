@@ -185,7 +185,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
             if v == 0:
-                v = (0,1,0)
+                v = (rings.Integer(0),rings.Integer(1),rings.Integer(0))
             if not isinstance(v,(list,tuple)):
                 raise TypeError, \
                       "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
@@ -193,14 +193,14 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
                 raise TypeError, "v (=%s) must have %s components"%(v, d)
             v = Sequence(v, point_homset.value_ring())
             if len(v) == d-1:     # very common special case
-                v.append(1)
+                v.append(v.universe()(1))
 
             n = len(v)
             all_zero = True
             for i in range(n):
-                if v[n-1-i]:
+                c = v[n-1-i]
+                if c:
                     all_zero = False
-                    c = v[n-1-i]
                     if c == 1:
                         break
                     for j in range(n-i):
@@ -492,6 +492,12 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             (1 : 0 : 1)
             sage: P._add_(Q) == P + Q
             True
+
+        Example to show that bug \#4820 is fixed:
+            sage: [type(c) for c in 2*EllipticCurve('37a1').gen(0)]
+            [<type 'sage.rings.rational.Rational'>,
+            <type 'sage.rings.rational.Rational'>,
+            <type 'sage.rings.rational.Rational'>]
         """
         # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic Number Theory"
         if self.is_zero():
@@ -518,7 +524,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         x3 = -x1 - x2 - a2 + m*(m+a1)
         y3 = -y1 - a3 - a1*x3 + m*(x1-x3)
-        return E.point([x3, y3, 1], check=False)
+        # See \#4820 for why we need to coerce 1 into the base ring here:
+        return E.point([x3, y3, E.base_ring()(1)], check=False)
 
     def _sub_(self, right):
         """
@@ -547,11 +554,18 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             (-1 : -2 : 1)
             sage: Q + P
             (0 : 1 : 0)
+
+        Example to show that bug \#4820 is fixed:
+            sage: [type(c) for c in -EllipticCurve('37a1').gen(0)]
+            [<type 'sage.rings.rational.Rational'>,
+            <type 'sage.rings.rational.Rational'>,
+            <type 'sage.rings.rational.Rational'>]
         """
         if self.is_zero():
             return self
         E, x, y = self.curve(), self[0], self[1]
-        return E.point([x, -y - E.a1()*x - E.a3(), 1], check=False)
+        # See \#4820 for why we need to coerce 1 into the base ring here:
+        return E.point([x, -y - E.a1()*x - E.a3(), E.base_ring()(1)], check=False)
 
     def xy(self):
         """

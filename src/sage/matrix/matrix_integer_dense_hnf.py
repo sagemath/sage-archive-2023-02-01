@@ -145,7 +145,7 @@ def det_given_divisor(A, d, proof=True, stabilize=2):
     N_so_far = 1
     if proof:
         N = 1
-        B = (10**A.hadamard_bound()) + 1
+        B = (2 * 10**A.hadamard_bound()) // d + 1
         dd = d
         # bad verbose statement, since computing the log overflows!
         est = int(RR(B).log() / RR(p).log()) + 1

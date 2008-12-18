@@ -33,8 +33,10 @@ import cusps
 from sage.sets.set import Set
 
 from sage.misc.misc import ellipsis_range
-
 import sage.modular.modsym.p1list
+
+# for making copies of lists of cusps
+from copy import copy
 
 # Just for now until we make an SL_2 group type.
 from sage.matrix.matrix_space import MatrixSpace
@@ -498,7 +500,7 @@ class CongruenceSubgroup(group.Group):
 
     def cusps(self, algorithm='default'):
         r"""
-        Return a set of inequivalent cusps for self, i.e. a set of
+        Return a sorted list of inequivalent cusps for self, i.e. a set of
         representatives for the orbits of self on $\mathbf{P}^1(\mathbf{Q})$.
         These should be returned in a reduced form.
 
@@ -512,23 +514,32 @@ class CongruenceSubgroup(group.Group):
 
         EXAMPLES:
             sage: Gamma0(36).cusps()
-            {1/2, 0, 1/3, 1/12, 5/6, 5/12, 1/4, 1/18, 1/6, 1/9, 2/3, Infinity}
+            [0, 1/18, 1/12, 1/9, 1/6, 1/4, 1/3, 5/12, 1/2, 2/3, 5/6, Infinity]
             sage: Gamma0(36).cusps(algorithm='modsym') == Gamma0(36).cusps()
             True
             sage: GammaH(36, [19,29]).cusps() == Gamma0(36).cusps()
             True
             sage: Gamma0(1).cusps()
-            {Infinity}
+            [Infinity]
         """
+
+        try:
+            return copy(self._cusp_list[algorithm])
+        except (AttributeError,KeyError):
+            self._cusp_list = {}
+
         if is_SL2Z(self):
-            return Set([cusps.Cusp(1,0)])
+            s = [cusps.Cusp(1,0)]
 
         if algorithm == 'default':
-            return self._find_cusps()
+            s = self._find_cusps()
         elif algorithm == 'modsym':
-            return Set([self.reduce_cusp(c) for c in self.modular_symbols().cusps()])
+            s = sorted([self.reduce_cusp(c) for c in self.modular_symbols().cusps()])
         else:
             raise ValueError, "unknown algorithm: %s"%algorithm
+
+        self._cusp_list[algorithm] = s
+        return copy(s)
 
     def _find_cusps(self):
         r"""
@@ -1258,8 +1269,8 @@ class GammaH_class(CongruenceSubgroup):
 
     def _find_cusps(self):
         r"""
-        Return a set of inequivalent cusps for self, i.e. a set of
-        representatives for the orbits of self on
+        Return an ordered list of inequivalent cusps for self, i.e. a
+        set of representatives for the orbits of self on
         $\mathbf{P}^1(\mathbf{Q})$.  These are returned in a reduced
         form; see self.reduce_cusp for the definition of reduced.
 
@@ -1281,9 +1292,9 @@ class GammaH_class(CongruenceSubgroup):
 
         EXAMPLES:
             sage: Gamma1(5)._find_cusps()
-            {0, 1/2, Infinity, 2/5}
+            [0, 2/5, 1/2, Infinity]
             sage: Gamma1(35)._find_cusps()
-            {4/7, 1/3, 3/35, 16/35, 1/17, 1/15, 6/35, 1/6, 11/14, 3/7, 2/5, 1/11, 4/35, 3/14, 1/2, 6/7, 3/10, 1/14, 1/5, 2/35, 7/10, 5/7, 1/10, 8/15, 0, 9/14, 13/35, 4/5, 1/13, 1/4, 11/35, 9/10, 1/9, 8/35, Infinity, 12/35, 3/5, 2/7, 1/12, 13/14, 4/15, 9/35, 5/14, 1/8, 17/35, 1/7, 2/15, 1/16}
+            [0, 2/35, 1/17, 1/16, 1/15, 1/14, 1/13, 1/12, 3/35, 1/11, 1/10, 1/9, 4/35, 1/8, 2/15, 1/7, 1/6, 6/35, 1/5, 3/14, 8/35, 1/4, 9/35, 4/15, 2/7, 3/10, 11/35, 1/3, 12/35, 5/14, 13/35, 2/5, 3/7, 16/35, 17/35, 1/2, 8/15, 4/7, 3/5, 9/14, 7/10, 5/7, 11/14, 4/5, 6/7, 9/10, 13/14, Infinity]
             sage: Gamma1(24)._find_cusps() == Gamma1(24).cusps(algorithm='modsym')
             True
             sage: GammaH(24, [13,17])._find_cusps() == GammaH(24,[13,17]).cusps(algorithm='modsym')
@@ -1291,6 +1302,7 @@ class GammaH_class(CongruenceSubgroup):
         """
 
         s = []
+        hashes = []
         N = self.level()
 
         for d in xrange(1, 1+N):
@@ -1301,8 +1313,12 @@ class GammaH_class(CongruenceSubgroup):
                     continue
                 while arith.gcd(a, d) != 1:
                     a += w
-                s.append(self.reduce_cusp(cusps.Cusp(a,d)))
-        return Set(s)
+                c = self.reduce_cusp(cusps.Cusp(a,d))
+                h = hash(c)
+                if not h in hashes:
+                    hashes.append(h)
+                    s.append(c)
+        return sorted(s)
 
     def __call__(self, x, check=True):
         r"""
@@ -1666,10 +1682,10 @@ class Gamma0_class(GammaH_class):
 
     def _find_cusps(self):
         r"""
-        Return a set of inequivalent cusps for self, i.e. a set of
-        representatives for the orbits of self on $\mathbf{P}^1(\mathbf{Q})$.
-        These are returned in a reduced form; see self.reduce_cusp for the
-        definition of reduced.
+        Return an ordered list of inequivalent cusps for self, i.e. a
+        set of representatives for the orbits of self on
+        $\mathbf{P}^1(\mathbf{Q})$.  These are returned in a reduced
+        form; see self.reduce_cusp for the definition of reduced.
 
         ALGORITHM:
             Uses explicit formulae specific to $\Gamma_0(N)$: a reduced cusp on
@@ -1679,14 +1695,15 @@ class Gamma0_class(GammaH_class):
 
         EXAMPLES:
             sage: Gamma0(90)._find_cusps()
-            {0, 1/3, 11/30, 5/6, 1/15, 1/10, 2/3, 1/9, Infinity, 1/2, 1/45, 1/18, 1/5, 2/15, 1/6, 1/30}
+            [0, 1/45, 1/30, 1/18, 1/15, 1/10, 1/9, 2/15, 1/6, 1/5, 1/3, 11/30, 1/2, 2/3, 5/6, Infinity]
             sage: Gamma0(1).cusps()
-            {Infinity}
+            [Infinity]
             sage: Gamma0(180).cusps() == Gamma0(180).cusps(algorithm='modsym')
             True
         """
         N = self.level()
         s = []
+
         for d in divisors(N):
             w = arith.gcd(d, N/d)
             if w == 1:
@@ -1702,7 +1719,7 @@ class Gamma0_class(GammaH_class):
                         while arith.gcd(a, d/w) != 1:
                             a += w
                         s.append(cusps.Cusp(a,d))
-        return Set(s)
+        return sorted(s)
 
 def is_SL2Z(x):
     """

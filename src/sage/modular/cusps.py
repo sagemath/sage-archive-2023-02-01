@@ -371,14 +371,14 @@ class Cusp(Element):
             sage: 2 < Cusp(3)
             True
         """
-        if self.__b == 0:
+        if not self.__b:
             # self is oo, which is bigger than everything but oo.
-            if right.__b == 0:
+            if not right.__b:
                 return 0
             else:
                 return 1
-        elif right.__b == 0:
-            if self.__b == 0:
+        elif not right.__b:
+            if not self.__b:
                 return 0
             else:
                 return -1
@@ -444,9 +444,15 @@ class Cusp(Element):
             sage: Cusp(11,2)._rational_()
             11/2
         """
-        if self.__b == 0:
+        try:
+            return self.__rational
+        except AttributeError:
+            pass
+
+        if not self.__b:
             raise TypeError, "cusp %s is not a rational number"%self
-        return self.__a / self.__b
+        self.__rational = self.__a / self.__b
+        return self.__rational
 
     def _integer_(self, ZZ=None):
         """

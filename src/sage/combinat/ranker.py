@@ -1,6 +1,6 @@
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
-#                          Nicolas M. Thiéry <nthiery at users.sf.net>
+#                          Nicolas M. Thiery <nthiery at users.sf.net>
 #  Ported from MuPAD-Combinat (combinat::rankers)
 #
 #  Distributed under the terms of the GNU General Public License (GPL)

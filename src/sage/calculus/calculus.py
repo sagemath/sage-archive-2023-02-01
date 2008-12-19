@@ -6982,6 +6982,7 @@ class Function_gamma(PrimitiveFunction):
         gamma(I)
         sage: gamma(x/2)(x=5)
         3*sqrt(pi)/4
+        sage: plot(gamma(x),(x,1,5))
 
     TESTS:
     We verify that we can convert this function to Maxima and convert

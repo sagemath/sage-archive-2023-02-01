@@ -592,9 +592,15 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E11(S)
             (0 : 1 : 0)
 
+        The 0 point reduces as expected:
+            sage: E11._reduce_point(E(0), 11)
+            (0 : 1 : 0)
+
         Note that one need not explicitly call
         \code{EllipticCurve._reduce_point}
         """
+        if R.is_zero():
+            return R.curve().change_ring(rings.GF(p))(0)
         x, y = R.xy()
         d = arith.LCM(x.denominator(), y.denominator())
         return R.curve().change_ring(rings.GF(p))([x*d, y*d, d])

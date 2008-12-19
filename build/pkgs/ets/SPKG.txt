@@ -1,0 +1,37 @@
+= name of spkg =
+ETS
+
+== Description ==
+The Enthought Tool Suite
+
+http://code.enthought.com/
+
+
+== License ==
+New BSD: http://code.enthought.com/openlicense.shtml
+
+== SPKG Maintainers ==
+ * Jaap Spies, j.spies@hccnet.nl
+
+== Upstream Contact ==
+ * The Enthought mailing list: enthought-dev@mail.enthought.com
+
+== Dependencies ==
+Depends on experimental packages:
+
+ * wxPython-2.8.x.x
+ * vtk-5.2.x
+ * pyrex-0.9.4.1
+ * swig-1.3.31
+
+Note that wxPython is linux only for now (20081219)
+{{{
+./sage -i wxPython-2.8.9.1
+./sage -i cmake-2.4.8
+./sage -i vtk-5.2
+./sage -i pyrex-0.9.4.1
+./sage -i swig-1.3.31
+}}}
+
+== Changelog ==
+ * first release ETS-3.1.1 - December 19th, 2008 - Jaap Spies

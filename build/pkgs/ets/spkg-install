@@ -1,0 +1,40 @@
+#!/bin/sh
+
+cd src
+
+echo "Creating ~/.numpy-site.cfg"
+
+echo "[x11]" > $HOME/.numpy-site.cfg
+echo "library_dirs = /usr/lib" >> $HOME/.numpy-site.cfg
+echo "include_dirs = /usr/include" >> $HOME/.numpy-site.cfg
+echo "" >> $HOME/.numpy-site.cfg
+
+echo "Cleaning up previous install"
+
+rm -rf $PYTHONPATH/site-packages/AppTools*
+rm -rf $PYTHONPATH/site-packages/BlockCanvas*
+rm -rf $PYTHONPATH/site-packages/Chaco*
+rm -rf $PYTHONPATH/site-packages/CodeTools*
+rm -rf $PYTHONPATH/site-packages/Enable*
+rm -rf $PYTHONPATH/site-packages/EnthoughtBase*
+rm -rf $PYTHONPATH/site-packages/EnvisageCore*
+rm -rf $PYTHONPATH/site-packages/EnvisagePlugins*
+rm -rf $PYTHONPATH/site-packages/ETS*
+rm -rf $PYTHONPATH/site-packages/ETSDevTools*
+rm -rf $PYTHONPATH/site-packages/ETSProjectTools*
+rm -rf $PYTHONPATH/site-packages/Mayavi*
+rm -rf $PYTHONPATH/site-packages/SciMath*
+rm -rf $PYTHONPATH/site-packages/Traits*
+rm -rf $PYTHONPATH/site-packages/TraitsBackendQt*
+rm -rf $PYTHONPATH/site-packages/TraitsBackendWX*
+rm -rf $PYTHONPATH/site-packages/TraitsGUI*
+
+# python egg_builder.py --clean
+
+python egg_builder.py -r -v
+
+easy_install -f dist -H dist ETS_*
+
+echo "Deleting ~/.numpy-site.cfg"
+
+rm $HOME/.numpy-site.cfg

@@ -204,7 +204,16 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
             continue
         cmd += '| grep "%s"' % extra
 
+    old_banner = os.environ.has_key('SAGE_BANNER')
+    if old_banner:
+        old_banner = os.environ['SAGE_BANNER']
+    os.environ['SAGE_BANNER'] = "no"
     r = os.popen(cmd).read()
+    if old_banner == False:
+        del os.environ['SAGE_BANNER']
+    else:
+        os.environ['SAGE_BANNER'] = old_banner
+
     if not interact:
         return r
     from sage.server.support import EMBEDDED_MODE
@@ -268,7 +277,17 @@ def search_doc(s, extra=''):
     containing s.  The search is not case sensitive.
     """
     cmd = 'sage -grepdoc "%s" | grep "%s"'%(s,extra)
+
+    old_banner = os.environ.has_key('SAGE_BANNER')
+    if old_banner:
+        old_banner = os.environ['SAGE_BANNER']
+    os.environ['SAGE_BANNER'] = "no"
     r = os.popen(cmd).read()
+    if old_banner == False:
+        del os.environ['SAGE_BANNER']
+    else:
+        os.environ['SAGE_BANNER'] = old_banner
+
     from sage.server.support import EMBEDDED_MODE
     if EMBEDDED_MODE:   # I.e., running from the notebook
         print format_search_as_html('Documentation', r, s + extra)

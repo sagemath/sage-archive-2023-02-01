@@ -112,7 +112,8 @@ def refine_root(ip, ipd, irt, fld):
         val = ip(center)
 
         nirt = center - val / slope
-        if nirt in irt and nirt.diameter() >= irt.diameter() >> 3:
+        # print irt, nirt, (nirt in irt), nirt.diameter(), irt.diameter(), center, val, slope
+        if nirt in irt and (nirt.diameter() >= irt.diameter() >> 3 or i >= 8):
             # If the new diameter is much less than the original diameter,
             # then we have not yet converged.  (Perhaps we were asked
             # for a particularly high-precision result.)  So we don't
@@ -266,6 +267,8 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         sage: x = polygen(ZZ)
         sage: complex_roots(x^5 - x - 1)
         [(1.167303978261419?, 1), (0.181232444469876? + 1.083954101317711?*I, 1), (0.181232444469876? - 1.083954101317711?*I, 1), (-0.764884433600585? + 0.352471546031727?*I, 1), (-0.764884433600585? - 0.352471546031727?*I, 1)]
+        sage: complex_roots(x^2 + 27*x + 181)
+        [(-14.61803398874990?, 1), (-12.38196601125010? + 0.?e-27*I, 1)]
 
         sage: K.<im> = NumberField(x^2 + 1)
         sage: eps = 1/2^100

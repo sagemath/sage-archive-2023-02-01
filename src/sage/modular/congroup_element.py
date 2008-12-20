@@ -41,14 +41,26 @@ class CongruenceSubgroupElement(MultiplicativeGroupElement):
             sage: x = Gamma0(11)([2,1,11,6])
             sage: x == loads(dumps(x))
             True
+
+            sage: x = Gamma0(5).0
+            sage: SL2Z(x)
+            [1 1]
+            [0 1]
+            sage: x in SL2Z
+            True
         """
         if check:
             if not congroup.is_CongruenceSubgroup(parent):
                 raise TypeError, "parent (= %s) must be a congruence subgroup"%parent
+
             x = M2Z(x)
             if x.determinant() != 1:
                 raise TypeError, "matrix must have determinant 1"
-            x.set_immutable()
+
+            try:
+                x.set_immutable()
+            except AttributeError:
+                pass
 
         MultiplicativeGroupElement.__init__(self, parent)
         self.__x = x

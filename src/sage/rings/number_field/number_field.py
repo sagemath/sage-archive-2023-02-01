@@ -940,6 +940,21 @@ class NumberField_generic(number_field_base.NumberField):
         self.__primitive_element = from_K(K.gen())
         return self.__primitive_element
 
+    def random_element(self):
+        r"""
+        Return a random element of this number field.
+
+        EXAMPLES:
+            sage: K.<j> = NumberField(x^8+1)
+            sage: K.random_element()
+            1/2*j^7 - j^6 - 12*j^5 + 1/2*j^4 - 1/95*j^3 - 1/2*j^2 - 4
+
+            sage: K.<a,b,c> = NumberField([x^2-2,x^2-3,x^2-5])
+            sage: K.random_element()
+            ((-c + 1)*b - c + 2/3)*a - 5/2*b + 2/3*c - 1/4
+        """
+        return self(self.polynomial_quotient_ring().random_element())
+
     def subfield(self, alpha, name=None):
         r"""
         Return an absolute number field K isomorphic to QQ(alpha) and
@@ -1478,7 +1493,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K._coerce_non_number_field_element_in(f)
             3*a^2 + 2*a + 1
 
-       But not this one over a field of order 27.
+        But not this one over a field of order 27.
             sage: F27.<g> = GF(27)
             sage: f = F27['z']([g^2, 2*g, 1]); f
             z^2 + 2*g*z + g^2
@@ -1486,11 +1501,23 @@ class NumberField_generic(number_field_base.NumberField):
             Traceback (most recent call last):
             ...
             TypeError: <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+
+        One can also coerce an element of the polynomial quotient ring
+        that's isomorphic to the number field:
+            sage: K.<a> = NumberField(x^3 + 17)
+            sage: b = K.polynomial_quotient_ring().random_element()
+            sage: K(b)
+            -1/2*a^2 - 4
         """
         if isinstance(x, (int, long, rational.Rational,
                               integer.Integer, pari_gen,
                               list)):
             return self._element_class(self, x)
+
+        if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
+               and (x in self.polynomial_quotient_ring()):
+            y = self.polynomial_ring().gen()
+            return x.lift().subs({y:self.gen()})
 
         try:
             if isinstance(x, polynomial_element.Polynomial):
@@ -4963,8 +4990,14 @@ class NumberField_relative(NumberField_generic):
         if not isinstance(x, (int, long, rational.Rational,
                               integer.Integer, pari_gen,
                               polynomial_element.Polynomial,
-                              list)):
+                              list,
+                              sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)):
             return self.base_field()(x)
+
+        if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
+               and (x in self.polynomial_quotient_ring()):
+            y = self.polynomial_ring().gen()
+            return x.lift().subs({y:self.gen()})
 
         return self._element_class(self, x)
 

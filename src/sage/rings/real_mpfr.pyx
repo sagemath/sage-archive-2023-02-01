@@ -1675,6 +1675,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
     def prec(self):
         return (<RealField>self._parent).__prec
 
+    def conjugate(self):
+        """
+        Return the complex conjugate of this real number, which is the
+        number itself.
+
+        EXAMPLES:
+            sage: x = RealField(100)(1.238)
+            sage: x.conjugate()
+            1.2380000000000000000000000000
+        """
+        return self
+
+
     ###################
     # Rounding etc
     ###################

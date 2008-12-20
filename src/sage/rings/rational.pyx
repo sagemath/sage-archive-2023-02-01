@@ -2147,6 +2147,18 @@ cdef class Rational(sage.structure.element.FieldElement):
                 return (<Rational>x)._rshift(y)
         return bin_op(x, y, operator.rshift)
 
+    def conjugate(self):
+        """
+        Return the complex conjugate of this rational number, which is
+        the number itself.
+
+        EXAMPLES:
+            sage: n = 23/11
+            sage: n.conjugate()
+            23/11
+        """
+        return self
+
     ##################################################
     # Support for interfaces
     ##################################################

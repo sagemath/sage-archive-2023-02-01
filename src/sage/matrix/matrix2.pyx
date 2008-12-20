@@ -4370,13 +4370,30 @@ cdef class Matrix(matrix1.Matrix):
         Return the conjugate of self, i.e. the matrix whose entries are
         the conjugates of the entries of self.
 
-        The entries of self must be complex numbers.
-
         EXAMPLES:
             sage: A = matrix(CDF, [[1+I,1],[0,2*I]])
             sage: A.conjugate()
             [1.0 - 1.0*I         1.0]
             [          0      -2.0*I]
+
+        A matrix over a not-totally-real number field:
+            sage: K.<j> = NumberField(x^2+5)
+            sage: M = matrix(K, [[1+j,1], [0,2*j]])
+            sage: M.conjugate()
+            [-j + 1      1]
+            [     0   -2*j]
+
+        Conjugates work (trivially) for matrices over rings that embed
+        canonically into the real numbers:
+            sage: M = random_matrix(ZZ, 2)
+            sage: M == M.conjugate()
+            True
+            sage: M = random_matrix(QQ, 3)
+            sage: M == M.conjugate()
+            True
+            sage: M = random_matrix(RR, 2)
+            sage: M == M.conjugate()
+            True
         """
         return self.new_matrix(self.nrows(), self.ncols(), [z.conjugate() for z in self.list()])
 

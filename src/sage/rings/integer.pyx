@@ -3910,6 +3910,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         x = Integer(self)
         return mpz_tstbit(x.value, i)
 
+    def conjugate(self):
+        """
+        Return the complex conjugate of this integer, which is the
+        integer itself.
+
+        EXAMPLES:
+            sage: n = 205
+            sage: n.conjugate()
+            205
+        """
+        return self
 
 ONE = Integer(1)
 Py_INCREF(ONE)

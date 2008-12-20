@@ -465,6 +465,25 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             raise NotImplementedError, "Computation of number field only implemented for quotients of the polynomial ring over the rational field."
         return sage.rings.number_field.all.NumberField(self.modulus(), self.variable_name())
 
+    def order(self):
+        """
+        Return the number of elements of this quotient ring.
+
+        EXAMPLES:
+            sage: F1.<a> = GF(2^7)
+            sage: P1.<x> = F1[]
+            sage: F2 = F1.extension(x^2+x+1, 'u')
+            sage: F2.order()
+            16384
+
+            sage: F1 = QQ
+            sage: P1.<x> = F1[]
+            sage: F2 = F1.extension(x^2+x+1, 'u')
+            sage: F2.order()
+            +Infinity
+        """
+        return self.base_ring().order() ** self.degree()
+
     def polynomial_ring(self):
         """
         Return the polynomial ring of which this ring is the quotient.
@@ -476,6 +495,19 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             Univariate Polynomial Ring in x over Rational Field
         """
         return self.__ring
+
+    def random_element(self):
+        """
+        Return a random element of this quotient ring.
+
+        EXAMPLES:
+            sage: F1.<a> = GF(2^7)
+            sage: P1.<x> = F1[]
+            sage: F2 = F1.extension(x^2+x+1, 'u')
+            sage: F2.random_element()
+            (a^6 + 1)*u + a^5 + a^4 + a^3 + 1
+        """
+        return self(self.polynomial_ring().random_element(degree=self.degree()-1))
 
 
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.integral_domain.IntegralDomain):

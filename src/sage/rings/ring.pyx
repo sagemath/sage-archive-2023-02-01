@@ -646,7 +646,7 @@ cdef class Ring(ParentWithGens):
 
         TESTS:
         The following example returns a NotImplementedError since the generic
-        ring class \code(__call__) function ruturns a NotImplementedError.
+        ring class \code(__call__) function returns a NotImplementedError.
         Note that \code(sage.rings.ring.Ring.random_element) performs a
         call in the generic ring class by a random integer.
             sage: R = sage.rings.ring.Ring(ZZ); R

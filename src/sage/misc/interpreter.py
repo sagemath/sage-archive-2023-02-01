@@ -396,7 +396,7 @@ def handle_encoding_declaration(contents, out):
         first_line = contents[0:]
 
     stripped_line = first_line.lstrip()
-    if stripped_line[0] == '#':
+    if stripped_line and stripped_line[0] == '#':
         pos=stripped_line.find(hint)
         if (pos > -1) and (stripped_line[pos+len(hint)] in ['=', ':']) :
             # we found a comment with an encoding hint

@@ -2028,9 +2028,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             return (<MPolynomialRing_libsingular>left._parent).fraction_field()(left,right)
 
-    def __pow__(MPolynomial_libsingular self,int exp,ignored):
+    def __pow__(MPolynomial_libsingular self, exp, ignored):
         r"""
         Return \code{self**(exp)}.
+
+        The exponent must be an integer.
 
         EXAMPLE:
             sage: R.<x,y> = PolynomialRing(QQ,2)
@@ -2045,7 +2047,20 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P.<x,y> = PolynomialRing(ZZ)
             sage: P(2)**(-1)
             1/2
+
+            sage: P.<u,v> = PolynomialRing(QQ, 2)
+            sage: u^(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: non-integral exponents not supported
         """
+        if not PY_TYPE_CHECK_EXACT(exp, Integer) or \
+                PY_TYPE_CHECK_EXACT(exp, int):
+                    try:
+                        exp = Integer(exp)
+                    except TypeError:
+                        raise TypeError, "non-integral exponents not supported"
+
         cdef ring *_ring
         _ring = (<MPolynomialRing_libsingular>self._parent)._ring
 

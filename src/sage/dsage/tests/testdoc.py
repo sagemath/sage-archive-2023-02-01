@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 WARNING:
 The following examples will not work if you have not run \code{dsage.setup()}.
     sage: d = dsage.start_all()

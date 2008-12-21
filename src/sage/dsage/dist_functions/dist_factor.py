@@ -1,3 +1,5 @@
+"""nodoctest"""
+
 from sage.dsage.database.job import Job
 from sage.dsage.dist_functions.dist_function import DistributedFunction
 from sage.dsage.interface.dsage_interface import JobWrapper

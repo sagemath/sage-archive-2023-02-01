@@ -362,3 +362,61 @@ def create_embedding_from_approx(K, gen_image):
         return NumberFieldEmbedding(K, P, gen_image)
     else:
         raise TypeError, "Embedding (type %s) must be a morphism or element." % type(gen_image)
+
+
+cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
+    """
+    Specialized class for converting cyclotomic field elements into a
+    cyclotomic field of higher order. All the real work is done by
+    _lift_cyclotomic_element.
+    """
+
+    cdef ratio
+
+    def __init__(self, K, L):
+        """
+        Check and cache the parameters.
+
+        EXAMPLES:
+            sage: from sage.rings.number_field.number_field_morphisms import CyclotomicFieldEmbedding
+            sage: CyclotomicFieldEmbedding(CyclotomicField(7), CyclotomicField(21))
+            Generic morphism:
+              From: Cyclotomic Field of order 7 and degree 6
+              To:   Cyclotomic Field of order 21 and degree 12
+              Defn: zeta7 -> zeta21^3
+
+        Note that this only handles the easy case of cyclotomic fields where
+        the order of the smaller dividing the order of the larger, regardless
+        of whether or not there is an actual coercion:
+
+            sage: CyclotomicFieldEmbedding(CyclotomicField(3), QuadraticField(-3, 'a'))
+            Traceback (most recent call last):
+            ...
+            TypeError: CyclotomicFieldEmbedding only valid for cyclotomic fields.
+            sage: CyclotomicFieldEmbedding(CyclotomicField(14), CyclotomicField(21))
+            Traceback (most recent call last):
+            ...
+            TypeError: The zeta_order of the new field must be a multiple of the zeta_order of the original.
+        """
+        Morphism.__init__(self, K, L)
+        from number_field import NumberField_cyclotomic
+        if not isinstance(K, NumberField_cyclotomic) or not isinstance(L, NumberField_cyclotomic):
+            raise TypeError, "CyclotomicFieldEmbedding only valid for cyclotomic fields."
+        if not K._n().divides(L._n()):
+            raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
+        self.ratio = int(L._n() // K._n())
+        self._gen_image = self(K.gen())
+
+    cpdef Element _call_(self, x):
+        """
+        EXAMPLES:
+            sage: from sage.rings.number_field.number_field_morphisms import CyclotomicFieldEmbedding
+            sage: K = CyclotomicField(7)
+            sage: L = CyclotomicField(21)
+            sage: f = CyclotomicFieldEmbedding(K, L)
+            sage: f(K.gen())
+            zeta21^3
+            sage: f(K.gen()^2 + 3)
+            zeta21^6 + 3
+        """
+        return x._lift_cyclotomic_element(self._codomain, False, self.ratio)

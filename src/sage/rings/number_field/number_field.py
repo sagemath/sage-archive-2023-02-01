@@ -102,6 +102,8 @@ import sage.rings.complex_double
 import sage.rings.real_double
 import sage.rings.real_lazy
 
+from sage.rings.integer_mod import mod
+
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name, latex_varify
 
@@ -1525,6 +1527,11 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<a> = CyclotomicField(16)
             sage: K(CyclotomicField(4).0)
             a^4
+            sage: QuadraticField(-3, 'a').coerce_map_from(CyclotomicField(3))
+            Generic morphism:
+              From: Cyclotomic Field of order 3 and degree 2
+              To:   Number Field in a with defining polynomial x^2 + 3
+              Defn: zeta3 -> 1/2*a - 1/2
 
         There are situations for which one might imagine canonical
         coercion could make sense (at least after fixing choices), but
@@ -5951,6 +5958,76 @@ class NumberField_cyclotomic(NumberField_absolute):
             return "%s(%s)"%(latex(QQ), v)
         else:
             return NumberField_generic._latex_(self)
+
+    def _coerce_map_from_(self, K):
+        r"""
+        The cyclotomic field $\Q(\zeta_n)$ coerces into the cyclotomic field
+        $\Q(\zeta_m)$ iff $n'|m$, where $n'$ is the odd part of $n$ if $4 \not | n$
+        and $n'=n$ otherwise.
+
+        The morphism is consistant with the chosen embedding into $\C$. In
+        particular, if $n|m$ then the resulting morphism is defined by
+        $\zeta_n \mapsto \zeta_m^(m/n)$.
+
+        If $K$ is not a cyclotomic field, the normal coercion rules for
+        number fields are used.
+
+        EXAMPLES:
+            sage: K.<a> = CyclotomicField(12)
+            sage: L.<b> = CyclotomicField(132)
+            sage: L.coerce_map_from(K)
+            Generic morphism:
+              From: Cyclotomic Field of order 12 and degree 4
+              To:   Cyclotomic Field of order 132 and degree 40
+              Defn: a -> b^11
+            sage: a + b
+            b^11 + b
+            sage: L.coerce_map_from(CyclotomicField(4, 'z'))
+            Generic morphism:
+              From: Cyclotomic Field of order 4 and degree 2
+              To:   Cyclotomic Field of order 132 and degree 40
+              Defn: z -> b^33
+            sage: L.coerce_map_from(CyclotomicField(5, 'z')) is None
+            True
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: L.<b> = CyclotomicField(6)
+            sage: L.coerce_map_from(K)
+            Generic morphism:
+              From: Cyclotomic Field of order 3 and degree 2
+              To:   Cyclotomic Field of order 6 and degree 2
+              Defn: a -> b - 1
+            sage: K.coerce_map_from(L)
+            Generic morphism:
+              From: Cyclotomic Field of order 6 and degree 2
+              To:   Cyclotomic Field of order 3 and degree 2
+              Defn: b -> a + 1
+
+            sage: CyclotomicField(33).coerce_map_from(CyclotomicField(66))
+            Generic morphism:
+              From: Cyclotomic Field of order 66 and degree 20
+              To:   Cyclotomic Field of order 33 and degree 20
+              Defn: zeta66 -> -zeta33^17
+            sage: CyclotomicField(15).coerce_map_from(CyclotomicField(6))
+            Generic morphism:
+              From: Cyclotomic Field of order 6 and degree 2
+              To:   Cyclotomic Field of order 15 and degree 8
+              Defn: zeta6 -> zeta15^5 + 1
+        """
+        if isinstance(K, NumberField_cyclotomic):
+            Kn = K.__n
+            n = self.__n
+            if Kn.divides(n):
+                return number_field_morphisms.CyclotomicFieldEmbedding(K, self)
+            if Kn % 4 == 2 and (Kn//2).divides(n):
+                e1 = (~mod(2, Kn//2)).lift()
+                e2 = 2*n // Kn
+                return number_field_morphisms.NumberFieldEmbedding(K, self, -self.gen() ** (e1*e2))
+            else:
+                return None
+        else:
+            return NumberField_absolute._coerce_map_from_(self, K)
+
 
     def _element_constructor_(self, x):
         """

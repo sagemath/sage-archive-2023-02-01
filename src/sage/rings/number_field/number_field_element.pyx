@@ -271,7 +271,7 @@ cdef class NumberFieldElement(FieldElement):
         ZZX_destruct(&self.__numerator)
         ZZ_destruct(&self.__denominator)
 
-    def _lift_cyclotomic_element(self, new_parent):
+    def _lift_cyclotomic_element(self, new_parent, bint check=True, int rel=0):
         """
         Creates an element of the passed field from this field.  This
         is specific to creating elements in a cyclotomic field from
@@ -311,17 +311,19 @@ cdef class NumberFieldElement(FieldElement):
             -- Craig Citro (fixed behavior for different representation of
                             quadratic field elements)
         """
-        if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) \
-               or not isinstance(new_parent, number_field.NumberField_cyclotomic):
-            raise TypeError, "The field and the new parent field must both be cyclotomic fields."
+        if check:
+            if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) \
+                   or not isinstance(new_parent, number_field.NumberField_cyclotomic):
+                raise TypeError, "The field and the new parent field must both be cyclotomic fields."
 
-        small_order = self.number_field()._n()
-        large_order = new_parent._n()
+        if rel == 0:
+            small_order = self.number_field()._n()
+            large_order = new_parent._n()
 
-        try:
-            _rel = ZZ(large_order / small_order)
-        except TypeError:
-            raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
+            try:
+                rel = ZZ(large_order / small_order)
+            except TypeError:
+                raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
 
         ## degree 2 is handled differently, because elements are
         ## represented differently
@@ -335,7 +337,6 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZX_c result
         cdef ZZ_c tmp
         cdef int i
-        cdef int rel = _rel
         cdef ntl_ZZX _num
         cdef ntl_ZZ _den
         for i from 0 <= i <= ZZX_deg(self.__numerator):

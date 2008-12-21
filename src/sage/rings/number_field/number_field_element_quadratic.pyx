@@ -230,7 +230,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_set(denom.value, self.denom)
         return __make_NumberFieldElement_quadratic0, (self._parent, a, b, denom)
 
-    def _lift_cyclotomic_element(self, new_parent):
+    def _lift_cyclotomic_element(self, new_parent, bint check=True, int rel=0):
         """
         Creates an element of the passed field from this field.  This
         is specific to creating elements in a cyclotomic field from
@@ -264,20 +264,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             -- Joel B. Mohler (original version)
             -- Craig Citro (reworked for quadratic elements)
         """
-        if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) \
-               or not isinstance(new_parent, number_field.NumberField_cyclotomic):
-            raise TypeError, "The field and the new parent field must both be cyclotomic fields."
+        if check:
+            if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) \
+                   or not isinstance(new_parent, number_field.NumberField_cyclotomic):
+                raise TypeError, "The field and the new parent field must both be cyclotomic fields."
 
-        small_order = self.number_field()._n()
-        large_order = new_parent._n()
+        if rel == 0:
+            small_order = self.number_field()._n()
+            large_order = new_parent._n()
 
-        try:
-            _rel = ZZ(large_order / small_order)
-        except TypeError:
-            raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
+            try:
+                rel = ZZ(large_order / small_order)
+            except TypeError:
+                raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
 
         cdef NumberFieldElement_quadratic x2
-        cdef int n = int(self.parent()._n())
+        cdef int n = self._parent._n()
 
         if new_parent.degree() == 2:
             ## since self is a *quadratic* element, we can only get
@@ -350,7 +352,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef ZZX_c result
         cdef ZZ_c tmp
         cdef int i
-        cdef int rel = _rel
         cdef ntl_ZZX _num
         cdef ntl_ZZ _den
         _num, _den = new_parent.polynomial_ntl()

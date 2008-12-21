@@ -8,10 +8,6 @@ from transcendental import (exponential_integral_1,
                             prime_pi,
                             dickman_rho)
 
-#from elementary import (cosine, sine, exponential,
-#                        ElementaryFunction,
-#                        ElementaryFunctionRing)
-
 from special    import (bessel_I, bessel_J, bessel_K, bessel_Y,
                         hypergeometric_U, Bessel,
                         spherical_bessel_J, spherical_bessel_Y,

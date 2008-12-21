@@ -121,10 +121,6 @@ from power_series_ring_element import PowerSeries, is_PowerSeries
 from laurent_series_ring import LaurentSeriesRing, is_LaurentSeriesRing
 from laurent_series_ring_element import LaurentSeries, is_LaurentSeries
 
-# Float interval arithmetic
-# (deprecated)
-# from interval import IntervalRing, Interval
-
 # Pseudo-ring of PARI objects.
 from pari_ring import PariRing, Pari
 

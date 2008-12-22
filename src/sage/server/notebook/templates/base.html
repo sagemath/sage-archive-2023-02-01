@@ -5,7 +5,7 @@
     <link type="text/css" rel="stylesheet" href="/css/{% block css %}master{% endblock %}.css" media="screen" />
     {% block javascript %}{% endblock %}
 </head>
-<body>
+<body{% block onload %}{% endblock %}>
     {% block body %}{% endblock %}
 </body>
 </html>

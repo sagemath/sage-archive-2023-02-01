@@ -23,8 +23,12 @@
     <script type="text/javascript">
     var worksheet_filenames = {{ worksheet_filenames }};
     </script>
+    <script type="text/javascript" src="/javascript/gears/gears_init.js"></script>
+    <script type="text/javascript" src="/javascript/gears/shortcut.js"></script>
   {% endif %}
 {% endblock %}
+
+{% block onload %} onLoad="checkForGearsInstalled();"{% endblock %}
 
 {% block body %}
 

@@ -187,11 +187,12 @@ evaluate_text_cell_input(%s,value,settings);
 return(value);
 }, {
       tooltip   : "Doubleclick to edit...",
+      placeholder : "Doubleclick to edit...",
 //      type   : 'textarea',
       type   : 'mce',
       onblur : 'ignore',
       select : false,
-      submit : 'Make changes',
+      submit : 'Save changes',
       cancel : 'Cancel changes',
       event  : "dblclick",
       style  : "inherit",

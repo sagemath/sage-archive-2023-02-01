@@ -3005,6 +3005,30 @@ function eval_script_tags(text) {
     return s;
 }
 
+function separate_script_tags(text) {
+    /*
+    Find all the tags in the given script and return a list of two strings.  The first
+    string is the html in text, the second is the contents of any <script>...</script> tags.
+
+    INPUT:
+        text -- a string
+    OUTPUT
+        a list of two strings.  The first is the text without script tags,
+        the second is the contents of the script tags.
+    */
+
+    var script = '';
+    var s = text; //text.replaceAll('\n','');
+    var i = s.indexOf('<'+'script>');
+    while (i != -1) {
+        var j = s.indexOf('<'+'/script>');
+        script += s.slice(8+i,j);
+
+        s = s.slice(0,i) + s.slice(j+9);
+        i = s.indexOf('<'+'script>');
+    }
+    return [s, script];
+}
 
 
 ///////////////////////////////////////////////////////////////////
@@ -3187,12 +3211,14 @@ function make_new_cell(id, html) {
         id -- integer
         html -- string
     */
+    var new_html =separate_script_tags(html);
     var new_cell = document.createElement("div");
     var in_cell = document.createElement("div");
     new_cell.appendChild(in_cell);
     new_cell.id = 'cell_outer_' + id;
     in_cell.id = 'cell_' + id;
-    in_cell.innerHTML = html;
+    in_cell.innerHTML = new_html[0];
+    setTimeout(new_html[1], 50);
     return new_cell;
 }
 

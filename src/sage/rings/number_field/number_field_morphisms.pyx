@@ -42,10 +42,10 @@ cdef class NumberFieldEmbedding(Morphism):
             2.0000000000000000000000000000000000000000000000000000000000
 
             sage: sigma_a = K.polynomial().change_ring(CC).roots()[1][0]; sigma_a
-            -0.629960524947436 + 1.09112363597172*I
+            -0.62996052494743... + 1.09112363597172*I
             sage: g = NumberFieldEmbedding(K, CC, sigma_a)
             sage: g(a+1)
-            0.370039475052564 + 1.09112363597172*I
+            0.37003947505256... + 1.09112363597172*I
         """
         from sage.categories.homset import Hom
         from sage.rings.real_lazy import LazyField, LazyAlgebraic

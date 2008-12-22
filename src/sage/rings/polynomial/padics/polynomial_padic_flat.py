@@ -1,7 +1,3 @@
-
-
-
-
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense, Polynomial
 from sage.rings.infinity import infinity
@@ -11,6 +7,10 @@ import sage.rings.padics.misc
 
 class Polynomial_padic_flat(Polynomial_generic_dense):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False, absprec=None):
+        """
+        Initialization function for the class  Polynomial_padic_flat.
+        """
+
         if x is None:
             Polynomial_generic_dense.__init__(self, parent, x = None, is_gen = is_gen)
             return
@@ -54,6 +54,9 @@ class Polynomial_padic_flat(Polynomial_generic_dense):
         Polynomial_generic_dense.__init__(self, parent, x, absprec = m)
 
     def _mul_(self, right):
+        """
+        Returns the product of this Polynomial_padic_flat by right.
+        """
         return self._mul_generic(right)
 
     def _repr(self, name=None):
@@ -94,6 +97,26 @@ class Polynomial_padic_flat(Polynomial_generic_dense):
         return s[1:]
 
     def factor(self, absprec = None):
+        r"""
+        Returns the factorization of this Polynomial_padic_flat.
+
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(Zp(5, prec=5, type = 'capped-abs', print_mode = 'val-unit'))
+            sage: f = w^5-1
+            sage: f.factor()
+            ((1 + O(5^5))*w + (624 + O(5^5))) * ((1 + O(5^5))*w^4 + (2501 + O(5^5))*w^3 + (1876 + O(5^5))*w^2 + (1251 + O(5^5))*w + (626 + O(5^5)))
+
+        See \#4038:
+            sage: E = EllipticCurve('37a1')
+            sage: K =Qp(7,10)
+            sage: EK = E.base_extend(K)
+            sage: E = EllipticCurve('37a1')
+            sage: K = Qp(7,10)
+            sage: EK = E.base_extend(K)
+            sage: g = EK.division_polynomial_0(3)
+            sage: g.factor()
+            (3 + O(7^10)) * ((1 + O(7^10))*x + (1 + 2*7 + 4*7^2 + 2*7^3 + 5*7^4 + 7^5 + 5*7^6 + 3*7^7 + 5*7^8 + 3*7^9 + O(7^10))) * ((1 + O(7^10))*x^3 + (6 + 4*7 + 2*7^2 + 4*7^3 + 7^4 + 5*7^5 + 7^6 + 3*7^7 + 7^8 + 3*7^9 + O(7^10))*x^2 + (6 + 3*7 + 5*7^2 + 2*7^4 + 7^5 + 7^6 + 2*7^8 + 3*7^9 + O(7^10))*x + (2 + 5*7 + 4*7^2 + 2*7^3 + 6*7^4 + 3*7^5 + 7^6 + 4*7^7 + O(7^10)))
+        """
         if self == 0:
             raise ValueError, "Factorization of 0 not defined"
         if absprec is None:
@@ -132,7 +155,7 @@ class Polynomial_padic_flat(Polynomial_generic_dense):
             upart = F[i][0].leading_coefficient().unit_part().lift_to_precision(absprec)
             lval = F[i][0].leading_coefficient().valuation()
             if upart != 1:
-                F[i] = (F[i][0] // upart, F[i][1])
+                F[i] = (F[i][0] / upart, F[i][1])
                 u *= upart ** F[i][1]
             c -= lval * F[i][1]
         if c != 0:

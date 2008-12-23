@@ -6,7 +6,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-
 if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
    echo "64 bit MacIntel"
    CFLAGS="-O2 -g -m64 -fPIC"; export CFLAGS
@@ -17,6 +16,11 @@ else
    CFLAGS="$CFLAGS -fPIC"; export CFLAGS
 fi
 
+# remove old executable/headers/library
+echo "Removing old binary, headers and static library"
+rm -f "$SAGE_LOCAL"/bin/ecm
+rm -f "$SAGE_LCOAL"/lib/libecm.*
+rm -r "$SAGE_LOCAL"/include/ecm.h
 
 cd src
 

@@ -1,9 +1,38 @@
-= ecm=
+= ecm =
 
-MAINTAINER:
-    -- William Stein
+== Description ==
 
-== Releases ===
+GMP-ECM - Elliptic Curve Method for Integer Factorization
+
+Sources can be obtained from http://gforge.inria.fr/projects/ecm/
+
+== License ==
+
+LGPL V2+
+
+== SPKG Maintainers ==
+
+ * Michael Abshoff
+ * William Stein
+
+== Upstream Contact ==
+
+ * ecm-discuss@lists.gforge.inria.fr (requires subscription)
+
+== Dependencies ==
+
+ * gmp
+
+== Special Update/Build Instructions ==
+
+src contains upstream code, no patches were applied.
+
+== Changelog ==
+
+=== ecm-6.2.1 (Michael Abshoff, December 23rd, 2008) ===
+ * upgrade to latest upstream release (#3237)
+ * clean up old static library, headers and binary
+ * improve SPKG.txt
 
 === ecm-6.1.3.p0 (Michael Abshoff, May 18th, 2008) ===
  * add 64 bit OSX support

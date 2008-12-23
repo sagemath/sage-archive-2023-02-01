@@ -1,3 +1,8 @@
+= networkx-0.99 =
+
+=== networkx-0.99 (Robert Miller, Dec. 23rd, 2008) ===
+ * upgraded to the 0.99 release
+
 = networkx-0.36 =
 
 === networkx-0.36.p1 (Michael Abshoff, Jan. 31st, 2008) ===

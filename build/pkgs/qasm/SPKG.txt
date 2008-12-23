@@ -1,0 +1,4 @@
+The src/ directory contains a clean but VERY proper subset of upstream from
+
+    http://www.media.mit.edu/quanta/qasm2circ/
+

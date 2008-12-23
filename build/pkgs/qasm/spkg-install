@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+
+which dvipng
+
+if [ $? -ne 0 ]; then
+    echo "You must make sure the dvipng program is available on your system."
+    echo "You might be able to install the dvipng program listed in the"
+    echo "output of 'sage -optional'.  If that doesn't work, just use whatever"
+    echo "is offered by your operating system."
+    exit 1
+fi
+
+which latex
+
+if [ $? -ne 0 ]; then
+    echo "You must make sure the latex program is available on your system."
+    exit 1
+fi
+
+TARGET="$SAGE_LOCAL/lib/qasm"
+
+if [ -d "$TARGET" ]; then
+    echo "Deleting old version."
+    rm -rf "$TARGET"
+fi
+
+mkdir "$TARGET"
+
+cp src/* "$TARGET"/
+
+python setup.py install
+
+

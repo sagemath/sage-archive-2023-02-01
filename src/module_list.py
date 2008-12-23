@@ -339,7 +339,8 @@ ext_modules = [
 
     Extension('sage.libs.libecm',
               sources = ['sage/libs/libecm.pyx'],
-              libraries = ['ecm', 'gmp']),
+              libraries = ['ecm', 'gmp'],
+              depends = [SAGE_ROOT + "/local/include/ecm.h"]),
 
     Extension('sage.libs.mwrank.mwrank',
               sources = ["sage/libs/mwrank/mwrank.pyx",

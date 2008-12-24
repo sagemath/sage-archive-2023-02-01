@@ -34,7 +34,7 @@ LATEX_HEADER='\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath
 SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n\\textwidth=1.1\\textwidth\\textheight=2\\textheight'
 
 
-import os
+import os, shutil
 
 import os.path
 
@@ -165,6 +165,9 @@ class Latex:
     Use \code{latex(...)} to typeset a SAGE object.
 
     Use \code{\%slide} instead to typeset slides.
+
+    WARNING: You must have the dvipng (or dvips and convert) installed
+    on your operating system, or this command won't work.
     """
     def __init__(self, debug=False, slide=False, density=150):
         self.__debug = debug
@@ -200,20 +203,37 @@ class Latex:
         INPUT:
             x -- string to evaluate.
             strip -- ignored
-            filename -- output filename
+            filename -- output filename (string with no spaces)
             debug -- whether to print verbose debugging output
             density -- how big output image is.
             locals -- extra local variables used when evaluating \sage{..}
                       code in x.
+
+        WARNING: You must have the dvipng (or dvips and convert)
+        installed on your operating system, or this command won't
+        work.
+
+        EXAMPLES:
+            sage: tmp = tmp_filename()
+            sage: sage.misc.latex.Latex().eval('1', filename=tmp)   # optional -- dvipng
+            ''
+            sage: os.path.exists(tmp+'.png')                        # optional -- dvipng
+            True
         """
         if density is None:
             density = self.__density
         if filename is None:
             filename = 'sage%s'%random.randint(1,100) # to defeat browser caches
+        else:
+            filename = os.path.splitext(filename)[0]  # get rid of extension
+        base = tmp_dir()
+        orig_base, filename = os.path.split(os.path.abspath(filename))
+        if len(filename.split()) > 1:
+            raise ValueError, "filename must contain no spaces"
         if debug is None:
             debug = self.__debug
         x = self._latex_preparse(x, locals)
-        O = open('%s.tex'%filename,'w')
+        O = open('%s/%s.tex'%(base,filename),'w')
         if self.__slide:
             O.write(SLIDE_HEADER)
             O.write('\\begin{document}\n\n')
@@ -232,17 +252,19 @@ class Latex:
             redirect=' 2>/dev/null 1>/dev/null '
         else:
             redirect=''
-        lt = 'latex \\\\nonstopmode \\\\input{%s.tex} %s'%(filename, redirect)
+        lt = 'cd "%s"&& sage-native-execute latex \\\\nonstopmode \\\\input{%s.tex} %s'%(base, filename, redirect)
         if have_dvipng():
-            dvipng = 'dvipng -q -T bbox -D %s %s.dvi'%(density, filename)
-            cmd = ' ; '.join([lt, dvipng])
+            dvipng = 'sage-native-execute dvipng -q -T bbox -D %s %s.dvi -o %s.png'%(density, filename, filename)
+            cmd = ' && '.join([lt, dvipng])
 
         else:
-            dvips = 'dvips %s.dvi %s'%(filename, redirect)
-            convert = 'convert -density %sx%s -trim %s.ps %s.png %s '%\
+            dvips = 'sage-native-execute dvips %s.dvi %s'%(filename, redirect)
+            convert = 'sage-native-execute convert -density %sx%s -trim %s.ps %s.png %s '%\
                       (density,density, filename, filename, redirect)
-            cmd = ' ; '.join([lt, dvips, convert])
-        e = os.system(cmd + ' 1>/dev/null 2>/dev/null')
+            cmd = ' && '.join([lt, dvips, convert])
+        if debug:
+            print cmd
+        e = os.system(cmd + ' ' + redirect)
         if e:
             print "An error occured."
             try:
@@ -250,13 +272,8 @@ class Latex:
             except IOError:
                 pass
             return 'Error latexing slide.'
-
-        if not debug:
-            F = os.listdir('.')
-            n = len(filename) + 1
-            d = ' '.join([x for x in F if x[:n] == filename+'.' and x[-4:] != '.png'])
-            cmd = 'rm ' + d
-            e = os.system(cmd)
+        shutil.copy(base + '/' + filename + '.png', orig_base + '/'+filename + '.png')
+        shutil.rmtree(base)
         return ''
 
 

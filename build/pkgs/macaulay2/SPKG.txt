@@ -12,6 +12,7 @@ GPL2
 
  * Gary Furnish
  * Mike Hansen
+ * Michael Abshoff
 
 == Upstream Contact ==
 
@@ -30,6 +31,10 @@ This is a stock Macaulay2 svn checkout from the 1.1 branch.  It may be obtained 
 svn://macaulay2.math.uiuc.edu/Macaulay2/release-branches/1.1
 
 == Changelog ==
+
+=== macaulay2-1.1-r7221.p0 (Michael Abshoff, December 24th, 2008) ===
+ * Disable parallel make (#4862)
+ * remove delete patch files from  the repo
 
 === Macaulay2-1.1-r7221 (Gary Furnish, August 31st 2008) ===
  * Move to latest upstream

@@ -21,6 +21,8 @@ if [ "x$GDBM" = "x" ]; then
     exit 1
 fi
 
+export MAKE=make
+
 export RM="rm -f"
 set -e
 cd src

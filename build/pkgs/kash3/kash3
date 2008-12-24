@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd $SAGE_ROOT/local/lib/kash
+./kash3 $*

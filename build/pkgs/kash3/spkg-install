@@ -1,0 +1,50 @@
+#!/bin/sh
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+PKG=KASH3-`uname`-2008-07-31
+
+if [ ! -f src/$PKG.tar.bz2 ]; then
+    echo "This package only contains Linux and OS X binaries.  There is nothing to be done for any other operating system."
+    exit 0
+fi
+
+bunzip2 -c src/$PKG.tar.bz2 | tar fixmv -
+
+if [ $? -ne 0 ]; then
+    echo "Error extracting kash."
+    exit 1
+fi
+
+TARGET="$SAGE_LOCAL/lib/kash"
+
+rm -rf "$TARGET"
+
+mv "$PKG" "$TARGET"
+
+if [ $? -ne 0 ]; then
+    echo "Error installing Kash library."
+    exit 1
+fi
+
+cp kash3 "$SAGE_LOCAL/bin/"
+
+if [ $? -ne 0 ]; then
+    echo "Error installing kash3 script."
+    exit 1
+fi
+
+cd "$SAGE_LOCAL/bin/"
+rm kash
+
+ln -sf kash3 kash
+
+if [ $? -ne 0 ]; then
+    echo "Error making kash symlink."
+    exit 1
+fi
+

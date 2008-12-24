@@ -1,0 +1,27 @@
+= KASH =
+
+== Description ==
+
+This is a binary of KASH from:  http://www.math.tu-berlin.de/~kant/download.html
+
+It works on OS X and Linux, but nothing else, since that's all that is available for KASH.
+The Linux binary is 32-bit only, but will run on 64-bit boxes in 32-bit mode.
+
+== License ==
+
+Closed source.  I have received oral permission to redistribute the binary.
+
+== SPKG Maintainer ==
+ * William Stein
+
+== Dependencies ==
+ * None
+
+== ChangeLog ==
+
+=== kash3-2008-07-31 (William Stein, December 24, 2008) ===
+ * initial version, based on some old kash3 packages I made years ago.
+
+
+
+

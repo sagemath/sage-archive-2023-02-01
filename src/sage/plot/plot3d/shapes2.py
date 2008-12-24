@@ -9,6 +9,7 @@ from base import PrimitiveObject, point_list_bounding_box
 
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
+from sage.plot.misc import options, rename_keyword
 from sage.misc.misc import srange
 
 from texture import Texture
@@ -88,6 +89,33 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         w._set_extra_kwds(kwds)
         return w
 
+@rename_keyword(alpha='opacity')
+@options(opacity=1, color=(0,0,1))
+def polygon3d(points, **options):
+    """
+    Draw a polygon in 3d.
+
+    INPUT:
+        points -- the vertices of the polygon
+
+    Type \code{polygon3d.options} for a dictionary of the default
+    options for polygons.  You can change this to change
+    the defaults for all future polygons.  Use \code{polygon3d.reset()}
+    to reset to the default options.
+
+    EXAMPLES:
+    A simple trangle:
+        sage: polygon3d([[0,0,0], [1,2,3], [3,0,0]])
+
+    Some modern art -- a random polygon:
+        sage: v = [(randrange(-5,5), randrange(-5,5), randrange(-5, 5)) for _ in range(10)]
+        sage: polygon3d(v)
+
+    A bent transparent green triangle:
+        sage: polygon3d([[1, 2, 3], [0,1,0], [1,0,1], [3,0,0]], color=(0,1,0), alpha=0.7)
+    """
+    from sage.plot.plot3d.index_face_set import IndexFaceSet
+    return IndexFaceSet([range(len(points))], points, **options)
 
 def frame3d(lower_left, upper_right, **kwds):
     """
@@ -291,7 +319,6 @@ def text3d(txt, (x,y,z), **kwds):
 
     return G
 
-
 class Point(PrimitiveObject):
     """
     Create a position in 3-space, represented by a sphere of fixed size.
@@ -333,7 +360,6 @@ class Point(PrimitiveObject):
         transform = render_params.transform
         cen = self.loc if transform is None else transform(self.loc)
         return ["draw %s DIAMETER %s {%s %s %s}\n%s" % (name, int(self.size), cen[0], cen[1], cen[2], self.texture.jmol_str('$' + name))]
-
 
 class Line(PrimitiveObject):
     r"""

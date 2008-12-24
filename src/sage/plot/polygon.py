@@ -77,8 +77,26 @@ class Polygon(GraphicPrimitive_xydata):
         p.set_facecolor(c)
         subplot.add_patch(p)
 
-@options(alpha=1, rgbcolor=(0,0,1), thickness=0)
 def polygon(points, **options):
+    """
+    Returns either a 2-dimensional or 3-dimensional polygon depending
+    on value of points.
+
+    For information regarding additional arguments, see either polygon2d?
+    or polygon3d?.
+
+    EXAMPLES:
+        sage: polygon([(0,0), (1,1), (0,1)])
+        sage: polygon([(0,0,1), (1,1,1), (2,0,1)])
+    """
+    try:
+        return polygon2d(points, **options)
+    except ValueError:
+        from sage.plot.plot3d.shapes2 import polygon3d
+        return polygon3d(points, **options)
+
+@options(alpha=1, rgbcolor=(0,0,1), thickness=0)
+def polygon2d(points, **options):
     r"""
     Returns a polygon defined by \code{points}.
 
@@ -89,53 +107,53 @@ def polygon(points, **options):
 
     EXAMPLES:
     We create a purple-ish polygon:
-        sage: polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,1))
+        sage: polygon2d([[1,2], [5,6], [5,0]], rgbcolor=(1,0,1))
 
     Some modern art -- a random polygon:
         sage: v = [(randrange(-5,5), randrange(-5,5)) for _ in range(10)]
-        sage: polygon(v)
+        sage: polygon2d(v)
 
     A purple hexagon:
 
         sage: L = [[cos(pi*i/3),sin(pi*i/3)] for i in range(6)]
-        sage: polygon(L, rgbcolor=(1,0,1))
+        sage: polygon2d(L, rgbcolor=(1,0,1))
 
     A green deltoid:
 
         sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
-        sage: polygon(L, rgbcolor=(1/8,3/4,1/2))
+        sage: polygon2d(L, rgbcolor=(1/8,3/4,1/2))
 
     A blue hypotrochoid:
 
         sage: L = [[6*cos(pi*i/100)+5*cos((6/2)*pi*i/100),6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
-        sage: polygon(L, rgbcolor=(1/8,1/4,1/2))
+        sage: polygon2d(L, rgbcolor=(1/8,1/4,1/2))
 
     Another one:
 
         sage: n = 4; h = 5; b = 2
         sage: L = [[n*cos(pi*i/100)+h*cos((n/b)*pi*i/100),n*sin(pi*i/100)-h*sin((n/b)*pi*i/100)] for i in range(200)]
-        sage: polygon(L, rgbcolor=(1/8,1/4,3/4))
+        sage: polygon2d(L, rgbcolor=(1/8,1/4,3/4))
 
     A purple epicycloid:
 
         sage: m = 9; b = 1
         sage: L = [[m*cos(pi*i/100)+b*cos((m/b)*pi*i/100),m*sin(pi*i/100)-b*sin((m/b)*pi*i/100)] for i in range(200)]
-        sage: polygon(L, rgbcolor=(7/8,1/4,3/4))
+        sage: polygon2d(L, rgbcolor=(7/8,1/4,3/4))
 
     A brown astroid:
 
         sage: L = [[cos(pi*i/100)^3,sin(pi*i/100)^3] for i in range(200)]
-        sage: polygon(L, rgbcolor=(3/4,1/4,1/4))
+        sage: polygon2d(L, rgbcolor=(3/4,1/4,1/4))
 
     And, my favorite, a greenish blob:
 
         sage: L = [[cos(pi*i/100)*(1+cos(pi*i/50)), sin(pi*i/100)*(1+sin(pi*i/50))] for i in range(200)]
-        sage: polygon(L, rgbcolor=(1/8, 3/4, 1/2))
+        sage: polygon2d(L, rgbcolor=(1/8, 3/4, 1/2))
 
     This one is for my wife:
 
         sage: L = [[sin(pi*i/100)+sin(pi*i/50),-(1+cos(pi*i/100)+cos(pi*i/50))] for i in range(-100,100)]
-        sage: polygon(L, rgbcolor=(1,1/4,1/2))
+        sage: polygon2d(L, rgbcolor=(1,1/4,1/2))
 
     AUTHORS:
         -- David Joyner (2006-04-14): the long list of examples above.

@@ -14,7 +14,7 @@ from point import point, points, point2d
 from matrix_plot import matrix_plot
 from plot_field import plot_vector_field, plot_slope_field
 from text import text
-from polygon import polygon
+from polygon import polygon, polygon2d
 from circle import circle
 from contour_plot import contour_plot, implicit_plot, region_plot
 from density_plot import density_plot

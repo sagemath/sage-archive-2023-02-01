@@ -320,8 +320,8 @@ ext_modules = [
               sources = ["sage/libs/flint/fmpz_poly.pyx"],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
               include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
-
-              extra_compile_args=["-std=c99", "-D_XPG6"]),
+              extra_compile_args=["-std=c99", "-D_XPG6"],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.libs.fplll.fplll',
               sources = ['sage/libs/fplll/fplll.pyx'],
@@ -705,13 +705,15 @@ ext_modules = [
               sources = ['sage/modular/modsym/apply.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
               include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
-              extra_compile_args=["-std=c99"]),
+              extra_compile_args=["-std=c99"],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.modular.modsym.heilbronn',
               sources = ['sage/modular/modsym/heilbronn.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
               include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
-              extra_compile_args=["-std=c99"]),
+              extra_compile_args=["-std=c99"],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.modular.modsym.p1list',
               sources = ['sage/modular/modsym/p1list.pyx'],
@@ -1051,7 +1053,8 @@ ext_modules = [
               sources = ['sage/rings/polynomial/polynomial_integer_dense_flint.pyx'],
               language = 'c++',
               libraries = ["csage", "flint", "gmp", "gmpxx", "ntl"],
-              include_dirs = [SAGE_ROOT+'/local/include/FLINT/']),
+              include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
               sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],

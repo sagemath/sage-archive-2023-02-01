@@ -22,10 +22,10 @@ endif
 
 CPP = $(FLINT_CPP)
 
-#LIBS = -L$(FLINT_GMP_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lm
-
 LIBS = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm -lstdc++
+
 LIBS2 = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm -lstdc++
+
 ifndef FLINT_NTL_INCLUDE_DIR
 	INCS = -I$(FLINT_GMP_INCLUDE_DIR)
 else
@@ -56,7 +56,7 @@ HEADERS = \
 	profiler.h \
 	test-support.h \
 	long_extras.h \
-        zmod_poly.h
+	zmod_poly.h
 
 
 ####### library object files
@@ -74,10 +74,10 @@ FLINTOBJ = \
 	mpz_poly.o \
 	ZmodF_poly.o \
 	long_extras.o \
-        zmod_poly.o \
+	zmod_poly.o \
 	NTL-interface.o
 
-QS: mpQS tinyQS
+QS: mpQS
 
 tune: ZmodF_mul-tune mpz_poly-tune
 
@@ -101,8 +101,7 @@ libflint.dll: $(FLINTOBJ)
 	$(CC) -fPIC -shared -o libflint.dll $(FLINTOBJ) $(LIBS)
 
 libflint.so: $(FLINTOBJ)
-	$(CC) -fPIC -shared -Wl,-soname,lib`cat DIRNAME`.so -o lib`cat DIRNAME`.so $(FLINTOBJ) $(LIBS)
-	ln -s lib`cat DIRNAME`.so libflint.so
+	$(CC) -fPIC -shared -o libflint.so $(FLINTOBJ) $(LIBS)
 
 mpn_extras.o: mpn_extras.c $(HEADERS)
 	$(CC) $(CFLAGS) -c mpn_extras.c -o mpn_extras.o
@@ -373,14 +372,14 @@ linear_algebra.o: QS/linear_algebra.c QS/linear_algebra.h
 block_lanczos.o: QS/block_lanczos.c QS/block_lanczos.h
 	$(CC) $(CFLAGS) -c QS/block_lanczos.c -o block_lanczos.o
 
-tinyQS: QS/tinyQS.c QS/tinyQS.h factor_base.o poly.o sieve.o linear_algebra.o block_lanczos.o $(FLINTOBJ)
-	$(CC) $(CFLAGS) -o tinyQS QS/tinyQS.c factor_base.o poly.o sieve.o linear_algebra.o block_lanczos.o $(FLINTOBJ) $(LIBS)
-
 mp_sieve.o: QS/mp_sieve.c QS/mp_sieve.h
 	$(CC) $(CFLAGS) -c QS/mp_sieve.c -o mp_sieve.o
 
 mp_linear_algebra.o: QS/mp_linear_algebra.c QS/mp_linear_algebra.h
 	$(CC) $(CFLAGS) -c QS/mp_linear_algebra.c -o mp_linear_algebra.o
+
+tinyQS.o: QS/tinyQS.c QS/tinyQS.h
+	$(CC) $(CFLAGS) -o tinyQS.o -c QS/tinyQS.c
 
 mp_poly.o: QS/mp_poly.c QS/mp_poly.h
 	$(CC) $(CFLAGS) -c QS/mp_poly.c -o mp_poly.o
@@ -391,8 +390,8 @@ mp_lprels.o: QS/mp_lprels.c QS/mp_lprels.h
 mp_factor_base.o: QS/mp_factor_base.c QS/mp_factor_base.h
 	$(CC) $(CFLAGS) -c QS/mp_factor_base.c -o mp_factor_base.o
 
-mpQS: QS/mpQS.c QS/mpQS.h mp_factor_base.o mp_poly.o mp_sieve.o mp_linear_algebra.o block_lanczos.o mp_lprels.o $(FLINTOBJ)
-	$(CC) $(CFLAGS) -o mpQS QS/mpQS.c mp_factor_base.o mp_poly.o mp_sieve.o mp_linear_algebra.o block_lanczos.o mp_lprels.o $(FLINTOBJ) $(LIBS)
+mpQS: QS/mpQS.c QS/mpQS.h QS/tinyQS.h factor_base.o poly.o sieve.o linear_algebra.o tinyQS.o mp_factor_base.o mp_poly.o mp_sieve.o mp_linear_algebra.o block_lanczos.o mp_lprels.o $(FLINTOBJ)
+	$(CC) $(CFLAGS) -o mpQS QS/mpQS.c factor_base.o poly.o sieve.o linear_algebra.o tinyQS.o mp_factor_base.o mp_poly.o mp_sieve.o mp_linear_algebra.o block_lanczos.o mp_lprels.o $(FLINTOBJ) $(LIBS)
 
 ####### Integer multiplication timing
 

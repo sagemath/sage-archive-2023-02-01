@@ -1,30 +1,28 @@
---- makefile.orig	2008-08-18 17:52:36.000000000 -0700
-+++ makefile	2008-08-18 17:53:45.000000000 -0700
-@@ -22,10 +22,10 @@
+--- makefile.orig	2008-12-23 15:51:18.000000000 -0800
++++ makefile	2008-12-23 15:50:36.000000000 -0800
+@@ -22,9 +22,9 @@
  
  CPP = $(FLINT_CPP) 
  
 -LIBS = -L$(FLINT_GMP_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lm
--
--LIBS2 = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm
-+#LIBS = -L$(FLINT_GMP_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lm
- 
 +LIBS = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm -lstdc++
+ 
+-LIBS2 = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm
 +LIBS2 = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm -lstdc++
+ 
  ifndef FLINT_NTL_INCLUDE_DIR
  	INCS = -I$(FLINT_GMP_INCLUDE_DIR) 
- else
 @@ -74,7 +74,8 @@
  	mpz_poly.o \
  	ZmodF_poly.o \
  	long_extras.o \
--        zmod_poly.o
-+        zmod_poly.o \
+-	zmod_poly.o
++	zmod_poly.o \
 +	NTL-interface.o
  
- QS: mpQS tinyQS
+ QS: mpQS
  
-@@ -93,11 +94,15 @@
+@@ -93,6 +94,9 @@
  libflint.dylib: $(FLINTOBJ)
  	$(CC) -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
  
@@ -34,10 +32,3 @@
  libflint.dll: $(FLINTOBJ)
  	$(CC) -fPIC -shared -o libflint.dll $(FLINTOBJ) $(LIBS)
  
- libflint.so: $(FLINTOBJ)
--	$(CC) -fPIC -shared -o libflint.so $(FLINTOBJ) $(LIBS)
-+	$(CC) -fPIC -shared -Wl,-soname,lib`cat DIRNAME`.so -o lib`cat DIRNAME`.so $(FLINTOBJ) $(LIBS)
-+	ln -s lib`cat DIRNAME`.so libflint.so
- 
- mpn_extras.o: mpn_extras.c $(HEADERS)
- 	$(CC) $(CFLAGS) -c mpn_extras.c -o mpn_extras.o

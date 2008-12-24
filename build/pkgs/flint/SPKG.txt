@@ -1,5 +1,40 @@
-Upstream maintainer: Bill Heart
+= flint =
+
+== Description ==
+
+FLINT is a C library for doing number theory, written by William Hart and David Harvey.
+
 Website: www.flintlib.org
+
+== License ==
+
+GPL V2+
+
+== SPKG Maintainers ==
+
+ * Michael Abshoff
+ * Burcin Erocal
+ * William Stein
+
+== Upstream Contact ==
+
+ * Bill Hart
+ * Development list for FLINT <flint-devel@lists.sourceforge.net> (moderated)
+
+== Dependencies ==
+
+ * gmp
+ * NTL
+
+== Special Update/Build Instructions ==
+
+We patch the makefile slightly to add 64 bit OSX build support and also changes LIBS and LIBS slightly since we use the NTL interface per default.
+
+== Changelog ==
+
+=== flint-1.0.20 (Michael Abshoff, December 23rd, 2008) ===
+ * Upgrade to latest upstream (#4861)
+ * clean up SPKG.txt
 
 === flint-1.0.13.p0 (Michael Abshoff, August 18th, 2008) ===
  * Add 64 bit OSX support

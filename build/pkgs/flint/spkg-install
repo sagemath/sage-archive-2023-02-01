@@ -75,11 +75,7 @@ if [ $UNAME != "Darwin" ]; then
         echo "Error building flint shared library."
         exit 1
     fi
-    $RM "$SAGE_LOCAL"/lib/libflint*.so
-    $CP libflint-1.0.13.so "$SAGE_LOCAL/lib/"
-    CUR=`pwd`
-    cd $SAGE_LOCAL/lib; $LN -sf libflint-1.0.13.so libflint.so
-    cd $CUR
+    $CP libflint.so "$SAGE_LOCAL/lib/"
 fi
 
 # OS X
@@ -116,6 +112,6 @@ fi
 
 #uncomment the line below to avoid running the test suite.
 #this should be done in all final releases
-exit 0
+#exit 0
 cd ..; ./spkg-check
 

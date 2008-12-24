@@ -4,9 +4,6 @@ which dvipng
 
 if [ $? -ne 0 ]; then
     echo "You must make sure the dvipng program is available on your system."
-    echo "You might be able to install the dvipng program listed in the"
-    echo "output of 'sage -optional'.  If that doesn't work, just use whatever"
-    echo "is offered by your operating system."
     exit 1
 fi
 

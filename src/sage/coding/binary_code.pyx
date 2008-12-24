@@ -73,6 +73,76 @@ cdef int *hamming_weights():
         ham_wts[i] = ham_wts[i & 255] + ham_wts[(i>>8) & 255]
     return ham_wts
 
+include '../misc/bitset_pxd.pxi'
+include '../misc/bitset.pxi'
+def weight_dist(M):
+    """
+    Computes the weight distribution of the row space of M.
+
+    EXAMPLES:
+        sage: from sage.coding.binary_code import weight_dist
+        sage: M = Matrix(GF(2),[\
+        ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],\
+        ... [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],\
+        ... [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],\
+        ... [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],\
+        ... [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
+        sage: weight_dist(M)
+        [1, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 0, 0, 0, 0, 0, 1]
+        sage: M = Matrix(GF(2),[\
+        ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],\
+        ... [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],\
+        ... [0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,1,1],\
+        ... [0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,1,1]])
+        sage: weight_dist(M)
+        [1, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 4, 0, 0, 0, 0, 0]
+        sage: M=Matrix(GF(2),[\
+        ... [1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0],\
+        ... [0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0],\
+        ... [0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0],\
+        ... [0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0],\
+        ... [0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0],\
+        ... [0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0],\
+        ... [0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0],\
+        ... [0,0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1]])
+        sage: weight_dist(M)
+        [1, 0, 0, 0, 0, 0, 68, 0, 85, 0, 68, 0, 34, 0, 0, 0, 0, 0]
+
+    """
+    cdef bitset_t word
+    cdef int i,j,k, dim=M.nrows(), deg=M.ncols()
+    cdef list L
+    cdef int *LL = <int *> sage_malloc((deg+1) * sizeof(int))
+    cdef bitset_s *basis = <bitset_s *> sage_malloc(dim * sizeof(bitset_s))
+    for i from 0 <= i < dim:
+        bitset_init(&basis[i], deg)
+        bitset_zero(&basis[i])
+        for j in M.row(i).nonzero_positions():
+            bitset_set(&basis[i], j)
+    for i from 0 <= i < deg+1: LL[i] = 0
+    bitset_init(word, deg)
+    bitset_zero(word)
+    i = 0
+    j = 0
+    while 1:
+        LL[bitset_hamming_weight(word)] += 1
+        i ^= 1
+        k = 0
+        if not i:
+            while not j & (1 << k): k += 1
+            k += 1
+        if k == dim: break
+        else:
+            j ^= (1 << k)
+            bitset_xor(word, word, &basis[k])
+    bitset_clear(word)
+    L = [int(LL[i]) for i from 0 <= i < deg+1]
+    for i from 0 <= i < dim:
+        bitset_clear(&basis[i])
+    sage_free(LL)
+    sage_free(basis)
+    return L
+
 def test_word_perms(t_limit=5.0):
     """
     Tests the WordPermutation structs for at least t_limit seconds.

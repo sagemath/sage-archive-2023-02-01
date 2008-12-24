@@ -1952,9 +1952,15 @@ class LinearCode(module.Module):
         Gs = Cdpd.gen_mat()
         return LinearCode(Gs)
 
-    def spectrum(self, method="gap"):
+    def spectrum(self, method=None):
         r"""
         The default method (gap) uses a GAP kernel function (in C) written by Steve Linton.
+
+        METHOD:
+            None -- defaults to gap except in the binary case
+            gap -- uses the GAP function
+            leon -- uses Jeffrey Leon's software via Guava
+            binary -- uses Sage native Cython code
 
         WARNING:
            The optional method (leon) may create a stack smashing error and a
@@ -1998,6 +2004,11 @@ class LinearCode(module.Module):
           version of the Guava libraries, so gives us the location of the Guava binaries too.
 
         """
+        if method is None:
+            if self.base_ring().order() == 2:
+                method = "binary"
+            else:
+                method = "gap"
         from sage.misc.misc import SAGE_TMP, SAGE_ROOT, tmp_filename
         import commands
         n = self.length()
@@ -2007,7 +2018,10 @@ class LinearCode(module.Module):
             Gstr = G._gap_init_()
             spec = wtdist_gap(Gstr,F)
             return spec
-        if method=="leon":
+        elif method=="binary":
+            from sage.coding.binary_code import weight_dist
+            return weight_dist(self.gen_mat())
+        elif method=="leon":
             if not(F.order() in [2,3,5,7]):
                 raise NotImplementedError("The method 'leon' is only implemented for q = 2,3,5,7.")
             wts = []
@@ -2046,7 +2060,7 @@ class LinearCode(module.Module):
                     Wts[i] = w
             #print wts, Wts
             return Wts
-        raise NotImplementedError("The only methods implemented currently are 'gap' and 'leon'.")
+        raise NotImplementedError("The only methods implemented currently are 'gap', 'leon' and 'binary'.")
 
     def standard_form(self):
         r"""

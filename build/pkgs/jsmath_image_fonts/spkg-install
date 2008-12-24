@@ -15,11 +15,18 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
+echo "deleting old jsMath fonts"
+rm -rf $install_dir/jsmath/fonts
+if [ $? -ne 0 ]; then
+   echo "Error deleting old jsMath fonts."
+   exit 1
+fi
+
+
 echo "Installing jsMath Image Fonts to:"
 echo $install_dir
 
-cd $install_dir
-tar xjf $top_level/src/jsMath-fonts-1.3.tar.bz2
+cp -r src $install_dir
 
 if [ $? -ne 0 ]; then
    echo "Error extracting jsMath Image Fonts."

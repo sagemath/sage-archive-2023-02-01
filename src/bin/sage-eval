@@ -7,4 +7,9 @@ from sage.misc.misc import tmp_filename
 
 if len(sys.argv) > 1:
     s = preparse(" ".join(sys.argv[1:]))
-    eval(compile(s,tmp_filename(),'exec'))
+    if s.startswith('load') or s.startswith('attach'):
+        curdir = os.getenv("CUR")
+        os.system('sage "' + os.path.join(curdir, s.split(None, 1)[1]) + '"')
+    else:
+        eval(compile(s,'<cmdline>','exec'))
+

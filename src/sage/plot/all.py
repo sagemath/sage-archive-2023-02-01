@@ -17,6 +17,7 @@ from text import text
 from polygon import polygon
 from circle import circle
 from contour_plot import contour_plot, implicit_plot
+from density_plot import density_plot
 
 from animate import Animation as animate
 

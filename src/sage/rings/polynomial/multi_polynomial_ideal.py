@@ -55,10 +55,10 @@ benchmark and test ideal.
 We compute in a quotient of a polynomial ring over $\ZZ/17\ZZ$:
 
     sage: R.<x,y> = ZZ[]
-    sage: S.<a,b> = R.quotient((x^2 + y^2, 17))
+    sage: S.<a,b> = R.quotient((x^2 + y^2, 17))     # optional -- macaulay2
     ...
     verbose 0 ... Warning: falling back to very slow toy implementation.
-    sage: S
+    sage: S                                         # optional -- macaulay2
     Quotient of Multivariate Polynomial Ring in x, y over Integer Ring
     by the ideal (x^2 + y^2, 17)
 
@@ -142,7 +142,7 @@ system has no solutions over the rationals.
     $\ZZ$), we note that there is a certain integer in the ideal which
     is not 1.
 
-        sage: I.groebner_basis() # optional - m2
+        sage: I.groebner_basis()          # optional -- macaulay2
         ...
         verbose 0 ... Warning: falling back to very slow toy implementation.
         [x + y + z, y^2 + y + 23234, y*z + y + 26532, 2*y + 158864, z^2 + 17223, 2*z + 41856, 164878]
@@ -164,7 +164,7 @@ system has no solutions over the rationals.
 
     The Groebner basis modulo any product of the prime factors is also non-trivial.
 
-        sage: I.change_ring(P.change_ring( IntegerModRing(2*7) )).groebner_basis() # optional - m2
+        sage: I.change_ring(P.change_ring( IntegerModRing(2*7) )).groebner_basis()   # optional -- macaulay2
         verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
         [x + y + z, y^2 + y + 8, y*z + y + 2, 2*y + 6, z^2 + 3, 2*z + 10]
 

@@ -62,13 +62,13 @@ We compute in a quotient of a polynomial ring over $\ZZ/17\ZZ$:
     Quotient of Multivariate Polynomial Ring in x, y over Integer Ring
     by the ideal (x^2 + y^2, 17)
 
-    sage: a^2 + b^2 == 0
+    sage: a^2 + b^2 == 0                            # optional -- macaulay2
     True
-    sage: a^3 - b^2
+    sage: a^3 - b^2                                 # optional -- macaulay2
     a*b^2 - b^2
-    sage: (a+b)^17
+    sage: (a+b)^17                                  # optional -- macaulay2
     a*b^16 + b^17
-    sage: S(17) == 0
+    sage: S(17) == 0                                # optional -- macaulay2
     True
 
 Working with a polynomial ring over $\ZZ$:

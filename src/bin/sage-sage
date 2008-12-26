@@ -653,6 +653,10 @@ if [ $1 = '-clone' -o $1 = "--clone" ]; then
 fi
 
 if [ $1 = '-t' ]; then
+   if ! [  -f  "$DOT_SAGE"/init.sage ]; then
+      echo "init.sage does not exist ... creating"
+      touch "$DOT_SAGE"/init.sage
+   fi
    cd "$CUR"
    shift
    sage-test "$@"
@@ -660,6 +664,10 @@ if [ $1 = '-t' ]; then
 fi
 
 if [ $1 = '-tp' ]; then
+   if ! [  -f  "$DOT_SAGE"/init.sage ]; then
+      echo "init.sage does not exist ... creating"
+      touch "$DOT_SAGE"/init.sage
+   fi
    cd "$CUR"
    shift
    sage-ptest "$@"

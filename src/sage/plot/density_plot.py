@@ -16,7 +16,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.plot.misc import options, rename_keyword, to_mpl_color
+from sage.plot.misc import options, rename_keyword, to_mpl_color, get_cmap
 from sage.misc.misc import verbose, xsrange
 
 class DensityPlot(GraphicPrimitive):
@@ -60,8 +60,7 @@ class DensityPlot(GraphicPrimitive):
             True
         """
         return {'plot_points':'How many points to use for plotting precision',
-                'cmap':"""The colormap, one of (autumn, bone, cool, copper,
-                       gray, hot, hsv, jet, pink, prism, spring, summer, winter)""",
+                'cmap':"A colormap (type cmap_help() for more information).",
                 'interpolation':'What interpolation method to use'}
 
     def _repr_(self):
@@ -74,33 +73,19 @@ class DensityPlot(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         options = self.options()
-        given_cmap = options['cmap']
-        #cm is the matplotlib color map module
-        from matplotlib import cm
-        from matplotlib.colors import LinearSegmentedColormap as C
-        key_error = False
-        try:
-            cmap = cm.__dict__[given_cmap]
-        except KeyError:
-            key_error = True
-
-        if key_error or not isinstance(cmap, C):
-            possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if
-                                       isinstance(cm.__dict__[x], C)])
-            verbose("The possible color maps include: %s"%possibilities, level = 0)
-            raise RuntimeError, "Color map %s not known"%given_cmap
+        cmap = get_cmap(options['cmap'])
 
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
         y0,y1 = float(self.yrange[0]), float(self.yrange[1])
 
-        subplot.imshow(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1), interpolation=options['interpolation'])
+        subplot.imshow(self.xy_data_array, origin='lower', cmap=cmap, extent=(x0,x1,y0,y1), interpolation=options['interpolation'])
 
 @options(plot_points=25, cmap='gray', interpolation='catrom')
 def density_plot(f, xrange, yrange, **options):
     r"""
 
     \code{density_plot} takes a function of two variables, $f(x,y)$
-    and plots contour lines of the function over the specified
+    and plots the height of of the function over the specified
     xrange and yrange as demonstrated below.
 
       density_plot(f, (xmin, xmax), (ymin, ymax), ...)
@@ -112,9 +97,7 @@ def density_plot(f, xrange, yrange, **options):
     The following inputs must all be passed in as named parameters:
         plot_points   -- integer (default: 25); number of points to plot
                          in each direction of the grid
-        cmap          -- string (default: 'gray'), the color map to use:
-                         autumn, bone, cool, copper, gray, hot, hsv,
-                         jet, pink, prism, spring, summer, winter
+        cmap          -- a colormap (type cmap_help() for more information).
         interpolation -- string (default: 'catrom'), the interpolation
                          method to use: bilinear, bicubic, spline16, spline36,
                          quadric, gaussian, sinc, bessel, mitchell, lanczos,
@@ -124,7 +107,7 @@ def density_plot(f, xrange, yrange, **options):
     EXAMPLES:
     Here we plot a simple function of two variables:
         sage: x,y = var('x,y')
-        sage: density_plot(cos(x^2+y^2), (-4, 4), (-4, 4))
+        sage: density_plot(sin(x)*sin(y), (-2, 2), (-2, 2))
 
 
     Here we change the ranges and add some options:

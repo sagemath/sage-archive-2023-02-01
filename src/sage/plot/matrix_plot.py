@@ -15,8 +15,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.plot.misc import options, rename_keyword, to_mpl_color
-from sage.misc.misc import verbose
+from sage.plot.misc import options, rename_keyword, to_mpl_color, get_cmap
 
 class MatrixPlot(GraphicPrimitive):
     """
@@ -45,29 +44,14 @@ class MatrixPlot(GraphicPrimitive):
         return minmax_data(self.xrange, self.yrange, dict=True)
 
     def _allowed_options(self):
-        return {'cmap':"""The colormap, one of (autumn, bone, cool, copper,
-                gray, hot, hsv, jet, pink, prism, spring, summer, winter)"""}
+        return {'cmap':"A colormap (type cmap_help() for more information)."}
 
     def _repr_(self):
         return "MatrixPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
 
     def _render_on_subplot(self, subplot):
         options = self.options()
-        given_cmap = options['cmap']
-        #cm is the matplotlib color map module
-        from matplotlib import cm
-        from matplotlib.colors import LinearSegmentedColormap as C
-        key_error = False
-        try:
-            cmap = cm.__dict__[given_cmap]
-        except KeyError:
-            key_error = True
-
-        if key_error or not isinstance(cmap, C):
-            possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if
-                                       isinstance(cm.__dict__[x], C)])
-            verbose("The possible color maps include: %s"%possibilities, level=0)
-            raise RuntimeError, "Color map %s not known"%given_cmap
+        cmap = get_cmap(options['cmap'])
 
         subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest', extent=(0,self.xrange[1],0,self.yrange[1]))
 
@@ -114,17 +98,6 @@ def matrix_plot(mat, **options):
         sage: matrix_plot(numpy.random.rand(10, 10))
 
     TESTS:
-
-        sage: matrix_plot(random_matrix(RDF, 50), cmap='jolies')
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Color map jolies not known
-
-        sage: matrix_plot(random_matrix(RDF, 50), cmap='mpl')
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Color map mpl not known
-
         sage: P.<t> = RR[]
         sage: matrix_plot(random_matrix(P, 3, 3))
         Traceback (most recent call last):

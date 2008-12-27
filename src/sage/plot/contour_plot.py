@@ -15,7 +15,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.plot.misc import options, rename_keyword, to_mpl_color
+from sage.plot.misc import options, rename_keyword, to_mpl_color, get_cmap
 from sage.misc.misc import verbose, xsrange
 
 class ContourPlot(GraphicPrimitive):
@@ -50,8 +50,7 @@ class ContourPlot(GraphicPrimitive):
 
     def _allowed_options(self):
         return {'plot_points':'How many points to use for plotting precision',
-                'cmap':"""The colormap, one of (autumn, bone, cool, copper,
-                       gray, hot, hsv, jet, pink, prism, spring, summer, winter)""",
+                'cmap':"A colormap (type cmap_help() for more information).",
                        'fill':'Fill contours or not',
                 'contours':"""Either an integer specifying the number of
                        contour levels, or a sequence of numbers giving
@@ -64,22 +63,8 @@ class ContourPlot(GraphicPrimitive):
         from sage.rings.integer import Integer
         options = self.options()
         fill = options['fill']
-        given_cmap = options['cmap']
         contours = options['contours']
-        #cm is the matplotlib color map module
-        from matplotlib import cm
-        from matplotlib.colors import LinearSegmentedColormap as C
-        key_error = False
-        try:
-            cmap = cm.__dict__[given_cmap]
-        except KeyError:
-            key_error = True
-
-        if key_error or not isinstance(cmap, C):
-            possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if
-                                       isinstance(cm.__dict__[x], C)])
-            verbose("The possible color maps include: %s"%possibilities, level = 0)
-            raise RuntimeError, "Color map %s not known"%given_cmap
+        cmap = get_cmap(options['cmap'])
 
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
         y0,y1 = float(self.yrange[0]), float(self.yrange[1])
@@ -117,9 +102,7 @@ def contour_plot(f, xrange, yrange, **options):
                         in each direction of the grid
         fill         -- bool (default: True), whether to color in the area
                         between contour lines
-        cmap         -- string (default: 'gray'), the color map to use:
-                        autumn, bone, cool, copper, gray, hot, hsv,
-                        jet, pink, prism, spring, summer, winter
+        cmap         -- a colormap (type cmap_help() for more information).
         contours     -- integer or list of numbers (default: None):
                         If a list of numbers is given, then this specifies
                         the contour levels to use.  If an integer is given,
@@ -154,7 +137,7 @@ def contour_plot(f, xrange, yrange, **options):
     We can play with the contour levels.
         sage: f = x^2 + y^2
         sage: contour_plot(f, (-2, 2), (-2, 2))
-        sage: contour_plot(f, (-2, 2), (-2, 2), contours=2)
+        sage: contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
 
@@ -189,6 +172,11 @@ def implicit_plot(f, xrange, yrange, **options):
 
 
     EXAMPLES:
+
+    A simple circle with a radius of 2:
+        sage: var("x y")
+        (x, y)
+        sage: implicit_plot(x^2+y^2-2, (-3,3), (-3,3)).show(aspect_ratio=1)
 
     We can define a level-$n$ approximation of the boundary of the
     Mandelbrot set.

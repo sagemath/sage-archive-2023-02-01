@@ -2,6 +2,8 @@ from functools import wraps
 from copy import copy
 from math import modf
 
+from sage.misc.misc import verbose
+
 def ensure_subs(f):
     if not hasattr(f, 'subs'):
         from sage.calculus.all import SR
@@ -83,6 +85,75 @@ def to_mpl_color(c):
 
     return tuple(c)
 
+def get_cmap(cmap):
+    r"""
+    Returns the colormap corresponding to cmap.
+
+    INPUT:
+        cmap -- a colormap description (type cmap_help() for more information)
+
+    EXAMPLES:
+        sage: from sage.plot.misc import get_cmap
+        sage: get_cmap('jet')
+        <matplotlib.colors.LinearSegmentedColormap instance at 0x...>
+        sage: get_cmap([(0,0,0), (0.5,0.5,0.5), (1,1,1)])
+        <matplotlib.colors.ListedColormap instance at 0x...>
+        sage: get_cmap(['green', 'lightblue', 'blue'])
+        <matplotlib.colors.ListedColormap instance at 0x...>
+        sage: get_cmap('jolies')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Color map jolies not known (type cmap_help() for valid names)
+        sage: get_cmap('mpl')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Color map mpl not known (type cmap_help() for valid names)
+    """
+    #cm is the matplotlib color map module
+    from matplotlib import cm
+    from matplotlib.colors import ListedColormap, Colormap
+    if isinstance(cmap, Colormap):
+        return cmap
+    elif isinstance(cmap, str):
+        if not cmap in cm.datad.keys():
+            raise RuntimeError, "Color map %s not known (type cmap_help() for valid names)"%cmap
+        return cm.__dict__[cmap]
+    elif isinstance(cmap, (list, tuple)):
+        cmap = map(rgbcolor, cmap)
+        return ListedColormap(cmap)
+
+def cmap_help():
+    """
+    Run to get help on colormap arguments.
+
+    TESTS:
+        sage: cmap_help()
+        A colormap can either be a string giving the name of a predefined colormap,
+        a sequence of colors describing a custom one, or an instance of a matplotlib
+        Colormap.
+        <BLANKLINE>
+        The valid colormap names are:
+        ...
+        <BLANKLINE>
+        If it is a list of colors, the colors can be specified by name, by a 3-tuple
+        of floats, or by an HTML hex color string.
+        <BLANKLINE>
+        The valid color names are:
+        ...
+    """
+    from matplotlib import cm
+    print """A colormap can either be a string giving the name of a predefined colormap,
+a sequence of color describing a custom one, or an instance of a matplotlib
+Colormap.
+
+The valid colormap names are:
+%s
+
+If it is a list of colors, the colors can be specified by name, by a 3-tuple
+of floats, or by an HTML hex color string.
+
+The valid color names are:
+%s""" % (', '.join(sorted(cm.datad.keys())), ', '.join(colors.keys()))
 
 def rgbcolor(c):
     """

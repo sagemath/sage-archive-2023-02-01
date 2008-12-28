@@ -15,7 +15,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.plot.misc import options, rename_keyword, to_mpl_color, get_cmap
+from sage.plot.misc import options, rename_keyword, rgbcolor, get_cmap
 from sage.misc.misc import verbose, xsrange
 
 class ContourPlot(GraphicPrimitive):
@@ -232,35 +232,85 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     Here we plot a simple function of two variables:
         sage: x,y = var('x,y')
-        sage: region_plot(cos(x^2+y^2)<0, (-3, 3), (-3, 3))
+        sage: region_plot(cos(x^2+y^2) <= 0, (-3, 3), (-3, 3))
 
     Here we play with the colors:
-        sage: region_plot(x^2+y^3<2, (-2, 2), (-2, 2), incol='lightblue', bordercol='gray')
+        sage: region_plot(x^2+y^3 < 2, (-2, 2), (-2, 2), incol='lightblue', bordercol='gray')
 
-    An even more complicated plot.
-        sage: region_plot(sin(x)*sin(y) >=1/4, (-10,10), (-10,10), incol='yellow', bordercol='black', plot_points=100).show(aspect_ratio=1)
+    An even more complicated plot:
+        sage: region_plot(sin(x)*sin(y) >= 1/4, (-10,10), (-10,10), incol='yellow', bordercol='black', plot_points=100)
+
+    A plot with more than one condition:
+        sage: region_plot([x^2+y^2<1, x<y], (-2,2), (-2,2))
+
+    Since it doesn't look very good, let's increase plot_points:
+        sage: region_plot([x^2+y^2<1, x<y], (-2,2), (-2,2), plot_points=400).show(aspect_ratio=1) #long time
     """
+
+    from sage.plot.plot import Graphics, setup_for_eval_on_grid
+    if not isinstance(f, (list, tuple)):
+        f = [f]
+    f = map(equify, f)
+    g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid(f, xrange, yrange, plot_points)
+    xy_data_arrays = map(lambda g: [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep)]
+                                             for y in xsrange(yrange[0], yrange[1], ystep)], g)
+
+    xy_data_array = map(lambda *rows: map(lambda *vals: mangle_neg(vals), *rows), *xy_data_arrays)
+
     from matplotlib.colors import ListedColormap
-    import operator
     incol = rgbcolor(incol)
     outcol = rgbcolor(outcol)
     cmap = ListedColormap([incol, outcol])
     cmap.set_over(outcol)
     cmap.set_under(incol)
+
+    g = Graphics()
+
+    g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, dict(plot_points=plot_points,
+                                                                    contours=[-1e307, 0, 1e307], cmap=cmap, fill=True)))
+
+    if bordercol is not None:
+        bordercol = rgbcolor(bordercol)
+        g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, dict(plot_points=plot_points,
+                                                                       contours=[0], cmap=[bordercol], fill=False)))
+
+    return g
+
+def equify(f):
+    """
+    Returns the equation rewritten to give negative values when True,
+    positive when False.
+
+    EXAMPLES:
+        sage: from sage.plot.contour_plot import equify
+        sage: equify(x^2 < 2)
+        x^2 - 2
+        sage: equify(x^2 > 2)
+        2 - x^2
+    """
+    import operator
     op = f.operator()
     if op is operator.gt or op is operator.ge:
-        g = f.rhs() - f.lhs()
+        return f.rhs() - f.lhs()
     else:
-        g = f.lhs() - f.rhs()
+        return f.lhs() - f.rhs()
 
-    from sage.plot.plot import Graphics
-    res = Graphics()
-    if op is not operator.eq:
-        res += contour_plot(g, xrange, yrange, plot_points=plot_points,
-                           contours=[-1e307, 0, 1e307], cmap=cmap, fill=True)
+def mangle_neg(vals):
+    """
+    Returns the product of all values in vals positive if any of the values is positive.
 
-    if op is operator.ge or op is operator.le or op is operator.eq or bordercol is not None:
-        if bordercol is None: bordercol = incol
-        res += contour_plot(g, xrange, yrange, plot_points=plot_points, contours=[0], cmap=[bordercol], fill=False)
-
-    return res
+    EXAMPLES:
+        sage: from sage.plot.contour_plot import mangle_neg
+        sage: mangle_neg([-1.2, -0.74, -2.56, -1.01])
+        -2.29601280000000
+        sage: mangle_neg([-1.2, 0.0, -2.56])
+        0.000000000000000
+        sage: mangle_neg([-1.2, -0.74, -2.56, 1.01])
+        2.29601280000000
+    """
+    from sage.misc.misc_c import prod
+    res = abs(prod(vals))
+    if any(map(lambda v: v>=0, vals)):
+        return res
+    else:
+        return -res

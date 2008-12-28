@@ -208,3 +208,59 @@ def implicit_plot(f, xrange, yrange, **options):
         sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50).show(aspect_ratio=1)
     """
     return contour_plot(f, xrange, yrange, **options)
+
+@options(plot_points=25, incol='blue', outcol='white', bordercol=None)
+def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
+    r"""
+    \code{region_plot} takes a boolean function of two variables, $f(x,y)$
+    and plots the region where f is True over the specified
+    xrange and yrange as demonstrated below.
+
+      region_plot(f, (xmin, xmax), (ymin, ymax), ...)
+
+    INPUT:
+        f -- a boolean function of two variables
+        (xmin, xmax) -- 2-tuple, the range of x values OR 3-tuple (x,xmin,xmax)
+        (ymin, ymax) -- 2-tuple, the range of y values OR 3-tuple (y,ymin,ymax)
+        plot_points  -- integer (default: 25); number of points to plot
+                        in each direction of the grid
+        incol        -- a color (default: 'blue'), the color inside the region
+        outcol       -- a color (default: 'white'), the color of the outside of the region
+        bordercol    -- a color (default: None), the color of the border (incol if not specified)
+
+    EXAMPLES:
+
+    Here we plot a simple function of two variables:
+        sage: x,y = var('x,y')
+        sage: region_plot(cos(x^2+y^2)<0, (-3, 3), (-3, 3))
+
+    Here we play with the colors:
+        sage: region_plot(x^2+y^3<2, (-2, 2), (-2, 2), incol='lightblue', bordercol='gray')
+
+    An even more complicated plot.
+        sage: region_plot(sin(x)*sin(y) >=1/4, (-10,10), (-10,10), incol='yellow', bordercol='black', plot_points=100).show(aspect_ratio=1)
+    """
+    from matplotlib.colors import ListedColormap
+    import operator
+    incol = rgbcolor(incol)
+    outcol = rgbcolor(outcol)
+    cmap = ListedColormap([incol, outcol])
+    cmap.set_over(outcol)
+    cmap.set_under(incol)
+    op = f.operator()
+    if op is operator.gt or op is operator.ge:
+        g = f.rhs() - f.lhs()
+    else:
+        g = f.lhs() - f.rhs()
+
+    from sage.plot.plot import Graphics
+    res = Graphics()
+    if op is not operator.eq:
+        res += contour_plot(g, xrange, yrange, plot_points=plot_points,
+                           contours=[-1e307, 0, 1e307], cmap=cmap, fill=True)
+
+    if op is operator.ge or op is operator.le or op is operator.eq or bordercol is not None:
+        if bordercol is None: bordercol = incol
+        res += contour_plot(g, xrange, yrange, plot_points=plot_points, contours=[0], cmap=[bordercol], fill=False)
+
+    return res

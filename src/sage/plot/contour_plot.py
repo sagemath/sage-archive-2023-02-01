@@ -50,7 +50,9 @@ class ContourPlot(GraphicPrimitive):
 
     def _allowed_options(self):
         return {'plot_points':'How many points to use for plotting precision',
-                'cmap':"A colormap (type cmap_help() for more information).",
+                'cmap':"""the name of a predefined colormap,
+                        a list of colors or an instance of a
+                        matplotlib Colormap.""",
                        'fill':'Fill contours or not',
                 'contours':"""Either an integer specifying the number of
                        contour levels, or a sequence of numbers giving
@@ -102,7 +104,11 @@ def contour_plot(f, xrange, yrange, **options):
                         in each direction of the grid
         fill         -- bool (default: True), whether to color in the area
                         between contour lines
-        cmap         -- a colormap (type cmap_help() for more information).
+        cmap         -- a colormap (default: 'gray'), the name of
+                        a predefined colormap, a list of colors
+                        or an instance of a matplotlib Colormap.
+                        Type: import matplotlib.cm; matplotlib.cm.datad.keys()
+                        for available colormap names.
         contours     -- integer or list of numbers (default: None):
                         If a list of numbers is given, then this specifies
                         the contour levels to use.  If an integer is given,

@@ -23,4 +23,4 @@ from animate import Animation as animate
 
 from tachyon import Tachyon
 
-from misc import Color, cmap_help
+from misc import Color

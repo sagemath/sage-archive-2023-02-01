@@ -44,7 +44,9 @@ class MatrixPlot(GraphicPrimitive):
         return minmax_data(self.xrange, self.yrange, dict=True)
 
     def _allowed_options(self):
-        return {'cmap':"A colormap (type cmap_help() for more information)."}
+        return {'cmap':"""the name of a predefined colormap,
+                        a list of colors or an instance of a
+                        matplotlib Colormap."""}
 
     def _repr_(self):
         return "MatrixPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)

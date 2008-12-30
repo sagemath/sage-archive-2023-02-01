@@ -245,6 +245,15 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     Since it doesn't look very good, let's increase plot_points:
         sage: region_plot([x^2+y^2<1, x<y], (-2,2), (-2,2), plot_points=400).show(aspect_ratio=1) #long time
+
+    Here is anoher plot:
+        sage: region_plot(x*(x-1)*(x+1)+y^2<0, (-3, 2), (-3, 3), incol='lightblue', bordercol='gray', plot_points=50)
+
+    If we want to keep only the region where x is positive:
+        sage: region_plot([x*(x-1)*(x+1)+y^2<0, x>-1], (-3, 2), (-3, 3), incol='lightblue', bordercol='gray', plot_points=50)
+
+    Here we have a cut circle:
+        sage: region_plot([x^2+y^2<4, x>-1], (-2, 2), (-2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1) #long time
     """
 
     from sage.plot.plot import Graphics, setup_for_eval_on_grid

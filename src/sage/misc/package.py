@@ -23,6 +23,61 @@ import os
 
 __installed_packages = None
 
+
+def install_all_optional_packages(force=True, dry_run=False):
+    """
+    Install all available optional spkg's in the official Sage spkg
+    repository.  Returns a list of all spkg's that *fail* to install.
+
+    INPUT:
+        force -- bool (default: True); whether to force reinstall of
+                 spkg's that are already installed.
+        dry_run -- bool (default: False); if True, just list the
+                   packages that would be installed in order, but
+                   don't actually install them.
+    OUTPUT:
+        list of strings
+
+    NOTE: This is designed mainly for testing purposes.  This also
+    doesn't do anything with respect to dependencies -- the packages
+    are installed in alphabetical order.  Dependency issues will be
+    dealt with in a future version.
+
+    AUTHOR:
+        -- William Stein (2008-12)
+
+    EXAMPLES:
+        sage: sage.misc.package.install_all_optional_packages(dry_run=True)
+        Installing ...
+        []
+    """
+    # Get list of all packages from the package server
+    installed, not_installed = optional_packages()
+    if force:
+        v = installed + not_installed
+    else:
+        v = not_installed
+    failed = []
+
+    # sort the list of packages in alphabetical order
+    v.sort()
+
+    # install each one
+    for pkg in v:
+        try:
+            print "Installing %s..."%pkg
+            if not dry_run:
+                # only actually do the install of the package if dry_run is False
+                install_package(pkg, force=force)
+        except ValueError, msg:
+            # An error occured -- catch exception and record this in
+            # the list of failed installed.
+            print "*"*70
+            print "FAILED to install '%s'"%pkg
+            print "*"*70
+            failed.append(pkg)
+    return failed
+
 def install_package(package=None, force=False):
     """
     Install a package or return a list of all packages

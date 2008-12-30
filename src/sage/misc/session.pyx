@@ -190,10 +190,22 @@ def save_session(name='sage_session', verbose=False):
     variables will be saved to a dictionary, which can be loaded using
     load(name) or load_session.
 
-    NOTES: 1. Function and anything else that can't be pickled is not
+    NOTES:
+    1. Function and anything else that can't be pickled is not
     saved.  This failure is silent unless you set \code{verbose=True}.
+
     2. In the Sage notebook the session is saved both to the current
     working cell and to the DATA directory.
+
+    3. One can still make sessions that can't be reloaded.  E.g., define
+       a class with
+           class Foo: pass
+       and make an instance with
+           f = Foo()
+       Then save_session followed by quit and load_session fails.
+       I doubt there is any good way to deal with this.  Fortunately,
+       one can simply re-evaluate the code to define Foo, and suddenly
+       load_session works fine.
 
     INPUT:
         name -- string (default: 'sage_session') name of sobj to save
@@ -221,9 +233,15 @@ def save_session(name='sage_session', verbose=False):
         sage: save_session(tmp_f)
         sage: save_session(tmp_f, verbose=True)
         Saving...
-        Not saving f: f is a function
+        Not saving f: f is a function, method, class or type
         ...
 
+    Something similar happens for cython-defined functions.
+        sage: g = cython_lambda('double x', 'x*x + 1.5')  # optional -- gcc
+        sage: save_session('tmp_f', verbose=True)         # optional -- gcc
+        ...
+        Not saving g: g is a function, method, class or type
+        ...
     """
     state = caller_locals()
     # This dict D will contain the session -- as a dict -- that we will save to disk.
@@ -233,8 +251,8 @@ def save_session(name='sage_session', verbose=False):
     for k in show_identifiers(hidden = True):
         try:
             x = state[k]
-            if isinstance(x, types.FunctionType):
-                raise TypeError, '%s is a function'%k
+            if isinstance(x, (types.FunctionType, types.BuiltinFunctionType, types.BuiltinMethodType, types.TypeType, types.ClassType)):
+                raise TypeError, '%s is a function, method, class or type'%k
 
             # We attempt to pickle *and* unpickle every variable to
             # make *certain* that we can pickled D at the end below.

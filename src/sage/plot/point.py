@@ -1,3 +1,12 @@
+"""
+
+TESTS:
+    sage: E = EllipticCurve('37a')
+    sage: P = E(0,0)
+    sage: def get_points(n): return sum([point(list(i*P)[:2], pointsize=3) for i in range(-n,n) if i != 0 and (i*P)[0] < 3])
+    sage: sum([get_points(15*n).plot3d(z=n) for n in range(1,10)])
+"""
+
 from sage.plot.primitive import GraphicPrimitive_xydata
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
@@ -101,19 +110,23 @@ class Point(GraphicPrimitive_xydata):
 
 def point(points, **kwds):
     """
-    Returns either a 2-dimensional or 3-dimensional point depending
-    on value of points.
+    Returns either a 2-dimensional or 3-dimensional point or sum of points.
+
+    INPUT:
+        points -- either a single point (as a tuple) or a list of points.
 
     For information regarding additional arguments, see either point2d?
     or point3d?.
 
     EXAMPLES:
+        sage: point((1,2))
+        sage: point((1,2,3))
         sage: point([(0,0), (1,1)])
         sage: point([(0,0,1), (1,1,1)])
     """
     try:
         return point2d(points, **kwds)
-    except ValueError:
+    except (ValueError, TypeError):
         from sage.plot.plot3d.shapes2 import point3d
         return point3d(points, **kwds)
 

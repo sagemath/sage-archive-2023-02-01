@@ -1058,8 +1058,108 @@ class Graphics(SageObject):
                   hgridlinesstyle=hgridlinesstyle)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
 
+    def xmin(self, xmin=None):
+        """
+        EXAMPLES:
+            sage: g = line([(-1,1), (3,2)])
+            sage: g.xmin()
+            -1.0
+            sage: g.xmin(-3)
+            sage: g.xmin()
+            -3.0
+        """
+        d = self.get_minmax_data()
+        if xmin is None:
+            return d['xmin']
+        self._minmax_data['xmin'] = float(xmin)
+
+    def xmax(self, xmax=None):
+        """
+        EXAMPLES:
+            sage: g = line([(-1,1), (3,2)])
+            sage: g.xmax()
+            3.0
+            sage: g.xmax(10)
+            sage: g.xmax()
+            10.0
+        """
+        d = self.get_minmax_data()
+        if xmax is None:
+            return d['xmax']
+        self._minmax_data['xmax'] = float(xmax)
+
+    def ymin(self, ymin=None):
+        """
+        EXAMPLES:
+            sage: g = line([(-1,1), (3,2)])
+            sage: g.ymin()
+            1.0
+            sage: g.ymin(-3)
+            sage: g.ymin()
+            -3.0
+        """
+        d = self.get_minmax_data()
+        if ymin is None:
+            return d['ymin']
+        self._minmax_data['ymin'] = float(ymin)
+
+    def ymax(self, ymax=None):
+        """
+        EXAMPLES:
+            sage: g = line([(-1,1), (3,2)])
+            sage: g.ymax()
+            2.0
+            sage: g.ymax(10)
+            sage: g.ymax()
+            10.0
+        """
+        d = self.get_minmax_data()
+        if ymax is None:
+            return d['ymax']
+        self._minmax_data['ymax'] = float(ymax)
 
     def get_minmax_data(self):
+        """
+        Return a dictionary whose keys give the xmin, xmax, ymin, and ymax
+        data for this graphic.
+
+        WARNING: The returned dictionary is mutable, but changing it does
+        not change the xmin/xmax/ymin/ymax data.  To change that, call
+        the methods xmin, xmax, ymin, and ymax.
+
+        EXAMPLES:
+            sage: g = line([(-1,1), (3,2)])
+            sage: list(sorted(g.get_minmax_data().items()))
+            [('xmax', 3.0), ('xmin', -1.0), ('ymax', 2.0), ('ymin', 1.0)]
+
+        We illustrate changing the ymax value:
+            sage: g.ymax(10)
+            sage: list(sorted(g.get_minmax_data().items()))
+            [('xmax', 3.0), ('xmin', -1.0), ('ymax', 10.0), ('ymin', 1.0)]
+        """
+        try:
+            # return *copy* since dictionaries are mutable
+            return dict(self._minmax_data)
+        except AttributeError:
+            self._minmax_data = self._get_minmax_data()
+            return dict(self._minmax_data)
+
+    def _get_minmax_data(self):
+        """
+        Actually compute the minmax data from the graphics that make up this image.
+
+        EXAMPLES:
+            sage: g = line([(-1,1), (3,2)])
+            sage: list(sorted(g._get_minmax_data().items()))
+            [('xmax', 3.0), ('xmin', -1.0), ('ymax', 2.0), ('ymin', 1.0)]
+
+        Note that changing ymax doesn't change the output of _get_minmax_data:
+            sage: g.ymax(10)
+            sage: list(sorted(g.get_minmax_data().items()))
+            [('xmax', 3.0), ('xmin', -1.0), ('ymax', 10.0), ('ymin', 1.0)]
+            sage: list(sorted(g._get_minmax_data().items()))
+            [('xmax', 3.0), ('xmin', -1.0), ('ymax', 2.0), ('ymin', 1.0)]
+        """
         objects = self.__objects
         if objects:
             minmax_data = [o.get_minmax_data() for o in objects]
@@ -1076,7 +1176,6 @@ class Graphics(SageObject):
         if ymin == ymax:
             ymin -= 1
             ymax += 1
-
         return {'xmin':xmin, 'xmax':xmax, 'ymin':ymin, 'ymax':ymax}
 
     def save(self, filename=None,

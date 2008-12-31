@@ -76,7 +76,7 @@ class Text(GraphicPrimitive):
 
 @options(fontsize=10, rgbcolor=(0,0,1), horizontal_alignment='center',
          vertical_alignment='center', axis_coords=False)
-def text(string, (x,y), **options):
+def text(string, xy, **options):
     r"""
     Returns a 2d text graphics object at the point $(x,y)$.
 
@@ -109,7 +109,20 @@ def text(string, (x,y), **options):
 
     You can save text as part of pdf output:
         sage: text("sage", (0,0), rgbcolor=(0,0,0)).save(SAGE_TMP + 'a.pdf')
+
+    Text must be 2d (use the text3d command for 3d text):
+        sage: t = text("hi",(1,2,3))
+        Traceback (most recent call last):
+        ...
+        ValueError: use text3d instead for text in 3d
+        sage: t = text3d("hi",(1,2,3))
     """
+    try:
+        x, y = xy
+    except ValueError:
+        if isinstance(xy, (list, tuple)) and len(xy) == 3:
+            raise ValueError, "use text3d instead for text in 3d"
+        raise
     from sage.plot.plot import Graphics
     options['rgbcolor'] = to_mpl_color(options['rgbcolor'])
     point = (float(x), float(y))

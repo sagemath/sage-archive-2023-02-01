@@ -816,6 +816,11 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             a^19 + a^15 + a^14 + a^12 + a^9 + a^7 + a^4 + a^3 + a + 1
             sage: a.sqrt()^2 == a
             True
+
+        This failed before \#4899:
+            sage: GF(2^16,'a')(1).sqrt()
+            1
+
         """
         # this really should be handled special, its gf2 linear after
         # all
@@ -824,7 +829,7 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             return [a]
         cdef FiniteField_ntl_gf2eElement e
         if self.is_one():
-            return self._one_element
+            return self.parent()._one_element
         else:
             return self.nth_root(2)
 

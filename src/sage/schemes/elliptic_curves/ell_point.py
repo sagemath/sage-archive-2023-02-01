@@ -1150,25 +1150,35 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: E.period_lattice().basis(prec=96)[0] / P.elliptic_logarithm (precision=96)
             5.000000000000000000000000000
 
-        A larger example, illustrating some precision issues.  The
-        default algorithm uses Pari and makes sure the result has the
-        requested precision.  Note that Pari may complain if the
-        requested precision is too low:
+        A larger example.  The default algorithm uses Pari and makes
+        sure the result has the requested precision.
             sage: E = EllipticCurve([1, 0, 1, -85357462, 303528987048]) #18074g1
             sage: P = E([4458713781401/835903744, -64466909836503771/24167649046528, 1])
-            sage: P.elliptic_logarithm(precision=64)
-            Traceback (most recent call last):
-            ...
-            PariError: precision too low (18)
-            sage: P.elliptic_logarithm(precision=65)
-            0.2765620401410706146
             sage: P.elliptic_logarithm()  # 100 bits
             0.27656204014107061464076203097
 
-        Note that the native algorithm 'sage' has trouble with
+        However, the native algorithm 'sage' has trouble with
         precision in this example:
             sage: P.elliptic_logarithm(algorithm='sage')  # 100 bits
             0.2765620401410710087007...
+
+        This shows that the bug reported at \#4901 has been fixed:
+            sage: E = EllipticCurve("4390c2")
+            sage: P = E(683762969925/44944,-565388972095220019/9528128)
+            sage: P.elliptic_logarithm()
+            0.00025638725886520225353198932529
+            sage: P.elliptic_logarithm(precision=64)
+            0.000256387258865202254
+            sage: P.elliptic_logarithm(precision=65)
+            0.0002563872588652022535
+            sage: P.elliptic_logarithm(precision=128)
+            0.00025638725886520225353198932528666427412
+            sage: P.elliptic_logarithm(precision=129)
+            0.00025638725886520225353198932528666427412
+            sage: P.elliptic_logarithm(precision=256)
+            0.0002563872588652022535319893252866642741168388008346370015005142128009610936373
+            sage: P.elliptic_logarithm(precision=257)
+            0.00025638725886520225353198932528666427411683880083463700150051421280096109363730
         """
         from sage.rings.number_field.number_field import refine_embedding
 
@@ -1205,27 +1215,48 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if algorithm == 'pari':
             from sage.libs.pari.all import pari
             from sage.libs.pari.gen import prec_words_to_bits
-            E = self.curve()
-            ai = [emb(a) for a in E.a_invariants()]
-            ER = EllipticCurve(ai) # defined over RR
-            E_pari = ER.pari_curve(prec=precision)
-            pt_pari = [pari(emb(self[0])), pari(emb(self[1]))]
-            log_pari = E_pari.ellpointtoz(pt_pari, precision=precision)
-            while prec_words_to_bits(log_pari.precision()) < precision:
-                working_prec = 2*precision
-                emb = K.embeddings(rings.RealField(working_prec))[0]
+            if K is rings.QQ:
+                # if the base field of E is QQ, work with exact coefficients
+                E_work = E
+                pt_pari = [pari(self[0]), pari(self[1])]
+            else:
+                # if the base field is not QQ, use the embedding to
+                # get real coefficients
                 ai = [emb(a) for a in E.a_invariants()]
-                ER = EllipticCurve(ai) # defined over RR
-                E_pari = ER.pari_curve(prec=working_prec)
+                E_work = EllipticCurve(ai) # defined over RR
                 pt_pari = [pari(emb(self[0])), pari(emb(self[1]))]
+            working_prec = precision
+            E_pari = E_work.pari_curve(prec=working_prec)
+            log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
+            while prec_words_to_bits(log_pari.precision()) < precision:
+                # result is not precise enough, re-compute with double
+                # precision. if the base field is not QQ, this
+                # requires modifying the precision of the embedding,
+                # the curve, and the point
+                working_prec = 2*working_prec
+                if not K is rings.QQ:
+                    emb = refine_embedding(emb, working_prec)
+                    ai = [emb(a) for a in E.a_invariants()]
+                    E_work = EllipticCurve(ai) # defined over RR
+                    pt_pari = [pari(emb(self[0])), pari(emb(self[1]))]
+                E_pari = E_work.pari_curve(prec=working_prec)
                 log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
+
+            # normalization step
             C = rings.ComplexField(precision)
-            return C(log_pari)
+            r, i = C(log_pari)
+            wR, wI = E.period_lattice(emb).basis(prec=precision)
+            k = (r/wR).floor()
+            if k:
+                r -= k*wR
+            if self.is_on_identity_component(emb):
+                return C(r)
+            # Now there are two components and P is on the non-identity one
+            return C(r)+C(wI/2)
 
         if algorithm <> 'sage':
             raise ValueError, "algorithm must be either 'pari' or 'sage'"
 
-        E = self.curve()
         ai = [emb(a) for a in E.a_invariants()]
         ER = EllipticCurve(ai) # defined over RR
         real_roots = ER.two_division_polynomial().roots(RR,multiplicities=False)
@@ -1254,7 +1285,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             roots = ER.two_division_polynomial().roots(rings.ComplexField(precision),multiplicities=False)
             roots.remove(e1)
             e2,e3 = roots
-            a1,a2,a3 = ai[:3]
+            pi = RR.pi()
 
             zz = (e1-e2).sqrt() # complex
             beta = (e1-e2).abs()
@@ -1265,9 +1296,9 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 a,b,c = (a + b)/2, (a*b).sqrt(), (c + (c**2 + b**2 - a**2).sqrt())/2
             z = (a/c).arcsin()
             if w*((x-e1)*(x-e1)-beta*beta) >= 0:
-                z = RR.pi() - z
+                z = pi - z
             if w>0:
-                z = z + RR.pi()
+                z += pi
             z /= a
             return z
 

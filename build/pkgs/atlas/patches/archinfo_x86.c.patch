@@ -1,0 +1,34 @@
+--- archinfo_x86.c.orig	2009-01-01 19:23:53.000000000 -0800
++++ archinfo_x86.c	2009-01-01 19:26:29.000000000 -0800
+@@ -92,11 +92,11 @@
+  */
+    do_cpuid(r, 1);
+    *family = (r[EAX] >> 8) & 0xf;      /* base family in bits 11-8 */
+-   if (*family == 0xf || *family == 0) /* extended family is added in */
++   /*if (*family == 0xf || *family == 0)*/ /* extended family is added in */
+        *family += ((r[EAX] >> 20) & 0xff);
+ 
+    *model = (r[0] >> 4) & 0xf;         /* model in bits 7-4 */
+-   if (*model == 0xf)                  /* extended model is concatenated */
++   /*if (*model == 0xf)*/                  /* extended model is concatenated */
+       *model |= ((r[0] >> 12) & 0xf0);
+ 
+ /*
+@@ -294,7 +294,7 @@
+       case 14:
+          iret = IntCoreDuo;
+          break;
+-      case 15:
++      case 15: ; case 23:
+          iret = IntCore2Duo;
+          break;
+       default:
+@@ -310,7 +310,7 @@
+          iret = IntP4;
+          break;
+       case 3:
+-      case 4:
++      case 4: ; case 6:
+          iret = IntP4E;
+          break;
+       default:

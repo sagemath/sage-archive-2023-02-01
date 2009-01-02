@@ -1,5 +1,5 @@
---- archinfo_x86.c.orig	2009-01-01 19:23:53.000000000 -0800
-+++ archinfo_x86.c	2009-01-01 19:26:29.000000000 -0800
+--- archinfo_x86.c.orig	2009-01-01 20:08:07.000000000 -0800
++++ archinfo_x86.c	2009-01-01 20:06:34.000000000 -0800
 @@ -92,11 +92,11 @@
   */
     do_cpuid(r, 1);
@@ -14,16 +14,24 @@
        *model |= ((r[0] >> 12) & 0xf0);
  
  /*
-@@ -294,7 +294,7 @@
+@@ -269,6 +269,7 @@
+          iret = MACHOther;
+       }
+       break;
++
+    case IntP6:  /* includes PPRO, PII, PIII, Core and Pentium-M */
+       switch(model)
+       {
+@@ -294,7 +295,7 @@
        case 14:
           iret = IntCoreDuo;
           break;
 -      case 15:
-+      case 15: ; case 23:
++      case 15: ; case 23: ; case 29:
           iret = IntCore2Duo;
           break;
        default:
-@@ -310,7 +310,7 @@
+@@ -310,7 +311,7 @@
           iret = IntP4;
           break;
        case 3:

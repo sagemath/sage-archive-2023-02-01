@@ -269,6 +269,7 @@ enum MACHTYPE Chip2Mach(enum CHIP chip, int model, int x8664)
          iret = MACHOther;
       }
       break;
+
    case IntP6:  /* includes PPRO, PII, PIII, Core and Pentium-M */
       switch(model)
       {
@@ -294,7 +295,7 @@ enum MACHTYPE Chip2Mach(enum CHIP chip, int model, int x8664)
       case 14:
          iret = IntCoreDuo;
          break;
-      case 15: ; case 23:
+      case 15: ; case 23: ; case 29:
          iret = IntCore2Duo;
          break;
       default:

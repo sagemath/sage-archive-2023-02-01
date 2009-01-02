@@ -35,7 +35,7 @@ config()
 	# -Si cputhrchk 0: Ignore/heed CPU throttle probe
 	# -Fa alg -fPIC: set flags so we can build dynamic libraries
 	# -t 0: disable threading for now.
-	../src/ATLAS/configure --prefix="$SAGE_LOCAL" --with-netlib-lapack="$SAGE_LOCAL"/lib/liblapack.a  \
+	../src/configure --prefix="$SAGE_LOCAL" --with-netlib-lapack="$SAGE_LOCAL"/lib/liblapack.a  \
 	-Si cputhrchk 0 -Fa alg -fPIC -t 0 -C if $FCOMPILER -b $bitwidth
 }
 

@@ -75,6 +75,8 @@ cp patches/archinfo_x86.c src/CONFIG/src/backend/archinfo_x86.c
 # add dynamic libs make install targets
 echo Updating Make.top
 cp patches/Make.top src/ATLAS/
+# add K7, Pentium M and non-AltiVec G4 profiles
+cp patches/*tgz src/CONFIG/ARCHS
 
 config
 

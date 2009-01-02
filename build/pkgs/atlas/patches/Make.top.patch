@@ -1,5 +1,5 @@
---- ATLAS/Make.top	2008-03-20 02:03:52.000000000 -0700
-+++ ATLAS-foo/Make.top	2008-03-20 02:25:42.000000000 -0700
+--- Make.top.orig	2009-01-01 19:20:21.000000000 -0800
++++ Make.top	2008-03-20 02:26:35.000000000 -0700
 @@ -298,5 +298,11 @@
  	- chmod 0644 $(INSTdir)/libf77blas.a
  	- cp $(LIBdir)/libptcblas.a $(INSTdir)/.

@@ -1,5 +1,5 @@
---- archinfo_linux.c.orig	2009-01-01 19:34:07.000000000 -0800
-+++ archinfo_linux.c	2009-01-01 19:33:56.000000000 -0800
+--- archinfo_linux.c.orig	2009-01-01 19:41:11.000000000 -0800
++++ archinfo_linux.c	2009-01-01 20:46:24.000000000 -0800
 @@ -72,6 +72,7 @@
           if (strstr(res, "G4")) mach = PPCG4;
           else if (strstr(res, "7400")) mach = PPCG4;
@@ -8,3 +8,18 @@
           else if (strstr(res, "7455")) mach = PPCG4;
           else if (strstr(res, "PPC970FX")) mach = PPCG5;
           else if (strstr(res, "POWER5")) mach = IbmPwr5;
+@@ -96,12 +97,12 @@
+       break;
+    case AFIA64:
+       res[0] = '\0';
+-      ierr = CmndOneLine(NULL, "fgrep 'Itanium' /proc/cpuinfo", res);
++      ierr = CmndOneLine(NULL, "fgrep 'IA-64' /proc/cpuinfo", res);
+       if (ierr || res[0] == '\0')
+          ierr = CmndOneLine(NULL, "fgrep \"model name\" /proc/cpuinfo", res);
+       if (!ierr && res[0] != '\0')
+       {
+-         if (strstr(res, "Itanium 2") || strstr(res, "McKinley"))
++         if (strstr(res, "IA-64") || strstr(res, "McKinley"))
+             mach = IA64Itan2;
+          else if (strstr(res, "Itanium")) mach = IA64Itan;
+       }

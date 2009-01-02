@@ -385,7 +385,29 @@ class Graphics(SageObject):
         """
         return self.__aspect_ratio
 
-    def axes_range(self, xmin=None, xmax=None, ymin=None, ymax=None):
+    def get_axes_range(self):
+        """
+        Returns a dictionary of the range of the axes for this graphics
+        object.  This is fall back to the ranges in get_minmax_data() for
+        any value which the user has not explicitly set.
+
+        WARNING: Changing the dictionary returned by this function does not
+        change the axes range for this object.  To do that, use the set_axes_range
+        function.
+
+        EXAMPLES:
+            sage: L = line([(1,2), (3,-4), (2, 5), (1,2)])
+            sage: list(sorted(L.get_axes_range().items()))
+            [('xmax', 3.0), ('xmin', 1.0), ('ymax', 5.0), ('ymin', -4.0)]
+            sage: L.set_axes_range(xmin=-1)
+            sage: list(sorted(L.get_axes_range().items()))
+            [('xmax', 3.0), ('xmin', -1.0), ('ymax', 5.0), ('ymin', -4.0)]
+        """
+        axes_range = self.get_minmax_data()
+        axes_range.update(self._get_axes_range_dict())
+        return axes_range
+
+    def set_axes_range(self, xmin=None, xmax=None, ymin=None, ymax=None):
         """
         Set the ranges of the $x$ and $y$ axes.
 
@@ -394,25 +416,30 @@ class Graphics(SageObject):
 
         EXAMPLES:
             sage: L = line([(1,2), (3,-4), (2, 5), (1,2)])
-            sage: L.axes_range(-1, 20, 0, 2)
+            sage: L.set_axes_range(-1, 20, 0, 2)
             sage: d = L.get_axes_range()
             sage: d['xmin'], d['xmax'], d['ymin'], d['ymax']
             (-1.0, 20.0, 0.0, 2.0)
         """
         l = locals()
-        axes_range = self.get_axes_range()
+        axes_range = self._get_axes_range_dict()
         for name in ['xmin', 'xmax', 'ymin', 'ymax']:
             if l[name] is not None:
                 axes_range[name] = float(l[name])
 
-    def get_axes_range(self):
+    axes_range = set_axes_range
+
+    def _get_axes_range_dict(self):
         """
+        Returns the underlying dictionary used to store the user's
+        custom ranges for the axes on this object.
+
         EXAMPLES:
             sage: L = line([(1,2), (3,-4), (2, 5), (1,2)])
-            sage: L.get_axes_range()
+            sage: L._get_axes_range_dict()
             {}
-            sage: L.axes_range(xmin=-1)
-            sage: L.get_axes_range()
+            sage: L.set_axes_range(xmin=-1)
+            sage: L._get_axes_range_dict()
             {'xmin': -1.0}
         """
         try:
@@ -1068,10 +1095,10 @@ class Graphics(SageObject):
             sage: g.xmin()
             -3.0
         """
-        d = self.get_minmax_data()
         if xmin is None:
-            return d['xmin']
-        self._minmax_data['xmin'] = float(xmin)
+            return self.get_axes_range()['xmin']
+        else:
+            self.set_axes_range(xmin=xmin)
 
     def xmax(self, xmax=None):
         """
@@ -1083,10 +1110,10 @@ class Graphics(SageObject):
             sage: g.xmax()
             10.0
         """
-        d = self.get_minmax_data()
         if xmax is None:
-            return d['xmax']
-        self._minmax_data['xmax'] = float(xmax)
+            return self.get_axes_range()['xmax']
+        else:
+            self.set_axes_range(xmax=xmax)
 
     def ymin(self, ymin=None):
         """
@@ -1098,10 +1125,10 @@ class Graphics(SageObject):
             sage: g.ymin()
             -3.0
         """
-        d = self.get_minmax_data()
         if ymin is None:
-            return d['ymin']
-        self._minmax_data['ymin'] = float(ymin)
+            return self.get_axes_range()['ymin']
+        else:
+            self.set_axes_range(ymin=ymin)
 
     def ymax(self, ymax=None):
         """
@@ -1113,10 +1140,11 @@ class Graphics(SageObject):
             sage: g.ymax()
             10.0
         """
-        d = self.get_minmax_data()
         if ymax is None:
-            return d['ymax']
-        self._minmax_data['ymax'] = float(ymax)
+            return self.get_axes_range()['ymax']
+        else:
+            self.set_axes_range(ymax=ymax)
+
 
     def get_minmax_data(self):
         """
@@ -1124,40 +1152,18 @@ class Graphics(SageObject):
         data for this graphic.
 
         WARNING: The returned dictionary is mutable, but changing it does
-        not change the xmin/xmax/ymin/ymax data.  To change that, call
-        the methods xmin, xmax, ymin, and ymax.
+        not change the xmin/xmax/ymin/ymax data.  The minmax data is a function
+        of the primitives which make up this Graphics object.  To change the
+        range of the axes, call methods xmin, xmax, ymin, ymax, or set_axes_range.
 
         EXAMPLES:
             sage: g = line([(-1,1), (3,2)])
             sage: list(sorted(g.get_minmax_data().items()))
             [('xmax', 3.0), ('xmin', -1.0), ('ymax', 2.0), ('ymin', 1.0)]
 
-        We illustrate changing the ymax value:
+        Note that changing ymax doesn't change the output of get_minmax_data:
             sage: g.ymax(10)
             sage: list(sorted(g.get_minmax_data().items()))
-            [('xmax', 3.0), ('xmin', -1.0), ('ymax', 10.0), ('ymin', 1.0)]
-        """
-        try:
-            # return *copy* since dictionaries are mutable
-            return dict(self._minmax_data)
-        except AttributeError:
-            self._minmax_data = self._get_minmax_data()
-            return dict(self._minmax_data)
-
-    def _get_minmax_data(self):
-        """
-        Actually compute the minmax data from the graphics that make up this image.
-
-        EXAMPLES:
-            sage: g = line([(-1,1), (3,2)])
-            sage: list(sorted(g._get_minmax_data().items()))
-            [('xmax', 3.0), ('xmin', -1.0), ('ymax', 2.0), ('ymin', 1.0)]
-
-        Note that changing ymax doesn't change the output of _get_minmax_data:
-            sage: g.ymax(10)
-            sage: list(sorted(g.get_minmax_data().items()))
-            [('xmax', 3.0), ('xmin', -1.0), ('ymax', 10.0), ('ymin', 1.0)]
-            sage: list(sorted(g._get_minmax_data().items()))
             [('xmax', 3.0), ('xmin', -1.0), ('ymax', 2.0), ('ymin', 1.0)]
         """
         objects = self.__objects
@@ -1203,9 +1209,8 @@ class Graphics(SageObject):
             sage: point((-1,1),pointsize=30, rgbcolor=(1,0,0))
 
         """
-        d = self.get_minmax_data()
-        self.axes_range(xmin, xmax, ymin, ymax)
-        d.update(self.get_axes_range())
+        self.set_axes_range(xmin, xmax, ymin, ymax)
+        d = self.get_axes_range()
         xmin = d['xmin']
         xmax = d['xmax']
         ymin = d['ymin']

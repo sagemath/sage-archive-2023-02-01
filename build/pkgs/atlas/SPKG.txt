@@ -25,6 +25,7 @@ Atlas devel mainling list.
  * patches/archinfo_linux.c.patch: : add G4 model 7447 and Itanium2 support
  * patches/archinfo_x86.c.patch: add cpuid support for Pentium D, E and modern Core2Duos cores
  * patches/Make.top.patch: add make install target for shared libs
+ * patches/probe_comp.c.patch: work around -m64 issue on Itanium2
  * Tuning info for K732SSE1.tgz, PM32SSE2.tgz and PPCG432.tgz
 
 == ChangeLog ==

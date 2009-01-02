@@ -65,9 +65,12 @@ echo $CUR
 # add PPC4 7447 CPU and better Itanium2 detection:
 echo Deal with PPC4 7447 model and Itanium 2
 cp patches/archinfo_linux.c src/CONFIG/src/backend/archinfo_linux.c
-# add Pentium D and E as well a Core2Duo CPUids
+# add Pentium D and E as well as Core2Duo and Dunnington CPUids
 echo Updating archinfo_x86.c
 cp patches/archinfo_x86.c src/CONFIG/src/backend/archinfo_x86.c
+# work around "-m64" cflag issue on Itanium
+echo Updating probe_comp.c
+cp patches/probe_comp.c src/CONFIG/src/probe_comp.c
 # add dynamic libs make install targets
 echo Updating Make.top
 cp patches/Make.top src/ATLAS/

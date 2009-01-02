@@ -66,10 +66,13 @@ if [ `uname -m` = "ia64" ]; then
     echo Updating CONFIG/src/probe_comp.c for Itanium
     cp patches/probe_comp.c src/ATLAS/CONFIG/src/
 fi
-echo Updating atlconf.h
-cp patches/atlconf.h  src/ATLAS/CONFIG/include/
-echo Updating atlcomp.txt
-cp patches/atlcomp.txt src/ATLAS/CONFIG/src/
+# add PPC4 7447 CPU detection:
+echo Deal with PPC4 7447 model and Itanium 2
+cp patches/archinfo_linux.c src/CONFIG/src/backend/archinfo_linux.c
+# add Pentium D and E as well a Core2Duo CPUids
+echo Updating archinfo_x86.c
+cp patches/archinfo_x86.c src/CONFIG/src/backend/archinfo_x86.c
+# add dynamic libs make install targets
 echo Updating Make.top
 cp patches/Make.top src/ATLAS/
 

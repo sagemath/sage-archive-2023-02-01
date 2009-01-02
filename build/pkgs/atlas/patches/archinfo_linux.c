@@ -97,12 +97,13 @@ enum MACHTYPE ProbeArch()
       break;
    case AFIA64:
       res[0] = '\0';
-      ierr = CmndOneLine(NULL, "fgrep 'IA-64' /proc/cpuinfo", res);
+      ierr = CmndOneLine(NULL, "fgrep 'Itanium' /proc/cpuinfo", res);
       if (ierr || res[0] == '\0')
-         ierr = CmndOneLine(NULL, "fgrep model /proc/cpuinfo", res);
+         ierr = CmndOneLine(NULL, "fgrep \"model name\" /proc/cpuinfo", res);
       if (!ierr && res[0] != '\0')
       {
-         if (strstr(res, "IA-64")) mach = IA64Itan2;
+         if (strstr(res, "Itanium 2") || strstr(res, "McKinley"))
+            mach = IA64Itan2;
          else if (strstr(res, "Itanium")) mach = IA64Itan;
       }
       break;
@@ -119,7 +120,6 @@ enum MACHTYPE ProbeArch()
             else if (strstr(res, " II ")) mach = IntPII;
             else if (strstr(res, "Pro")) mach = IntPPRO;
             else if (strstr(res, "MMX")) mach = IntP5MMX;
-            else if (strstr(res, " D ")) mach = IntP4D;
             else if (strstr(res, " 4 "))
             {
                ierr = CmndOneLine(NULL,
@@ -262,7 +262,7 @@ int ProbeThrottle()
  * is less than max
  */
    if (!CmndOneLine(NULL,
-       "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", res) )
+       "cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", res) )
    {
       imax = GetFirstInt(res);
       assert(!CmndOneLine(NULL,

@@ -1,6 +1,5 @@
-diff -urN ATLAS/CONFIG/src/backend/archinfo_linux.c ATLAS-orig/CONFIG/src/backend/archinfo_linux.c
---- ATLAS/CONFIG/src/backend/archinfo_linux.c	2008-02-22 17:38:51.000000000 +0100
-+++ ATLAS-orig/CONFIG/src/backend/archinfo_linux.c	2008-03-15 23:44:56.000000000 +0100
+--- archinfo_linux.c.orig	2009-01-01 19:34:07.000000000 -0800
++++ archinfo_linux.c	2009-01-01 19:33:56.000000000 -0800
 @@ -72,6 +72,7 @@
           if (strstr(res, "G4")) mach = PPCG4;
           else if (strstr(res, "7400")) mach = PPCG4;

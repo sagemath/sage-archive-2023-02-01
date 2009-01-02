@@ -17,31 +17,34 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
 Atlas devel mainling list.
 
 == Dependencies ==
- * None
+
+ * Fortran
 
 == Build Instructions/Notes ==
 
- * patches/ATLAS-3.8.1-Itanium2-detect-fix.patch - already applied to archinfo_linux.c [fixes Itanium 2 detection]
- * patches/ATLAS-3.8.1-Itanium-RHEL5-m64-workaround.patch - updates probe_comp.c - copyied over only on Itanium
- * patches/ATLAS-3.8.1-ppc-g4-7447-detect-fix.patch - already applied to  archinfo_linux.c [fixes G4 detection from latest iBook]
- * patches/ATLAS_arch_p4d.patch - adds a IntP4D arch
- * patches/ATLAS-copy-dynamic-lib.patch - adds make file targets for dynamic libs
-
-Note that 3.8.1.p2's changes are in the src directory directly since we will upgrade to 3.8.2 in the short term.
+ * patches/archinfo_linux.c.patch: : add G4 model 7447 and Itanium2 support
+ * patches/archinfo_x86.c.patch: add cpuid support for Pentium D, E and modern Core2Duos cores
+ * patches/Make.top.patch: add make install target for shared libs
+ * Tuning info for K732SSE1.tgz, PM32SSE2.tgz and PPCG432.tgz
 
 == ChangeLog ==
 
-=== atlas-3.8.p3 (Michael Abshoff, July 6th, 2008) ===
+=== atlas-3.8.2 (Michael Abshoff, Januar 1st, 2009) ===
+ * update to latest upstream
+ * add cleaned up patches to repo
+ * clean up SPKG.txt some more
+
+=== atlas-3.8.1.p3 (Michael Abshoff, July 6th, 2008) ===
  * Really apply the ATLAS-3.8.1-ppc-g4-7447-detect-fix.patch
 
-=== atlas-3.8.p2 (Michael Abshoff, June 26th, 2008) ===
+=== atlas-3.8.1.p2 (Michael Abshoff, June 26th, 2008) ===
  * Complex GEMM sometimes accesses C when BETA=0 (#3290)
  * Bad GEMM call causes performance drop for all architectures (#3380)
 
-=== atlas-3.8.p1 (Michael Abshoff, March 21st, 2008) ===
+=== atlas-3.8.1.p1 (Michael Abshoff, March 21st, 2008) ===
  * add Pentium D 64 bit tuning info (#2986)
 
-=== atlas-3.8.p0 (Michael Abshoff, March 19th, 2008) ===
+=== atlas-3.8.1.p0 (Michael Abshoff, March 19th, 2008) ===
  * update patch description
  * Fix Itanium2 detection and work around "-m64" issue on RHEL 64 bit
 

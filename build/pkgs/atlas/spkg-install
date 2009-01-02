@@ -62,11 +62,7 @@ fi
 
 CUR=`pwd`
 echo $CUR
-if [ `uname -m` = "ia64" ]; then
-    echo Updating CONFIG/src/probe_comp.c for Itanium
-    cp patches/probe_comp.c src/ATLAS/CONFIG/src/
-fi
-# add PPC4 7447 CPU detection:
+# add PPC4 7447 CPU and better Itanium2 detection:
 echo Deal with PPC4 7447 model and Itanium 2
 cp patches/archinfo_linux.c src/CONFIG/src/backend/archinfo_linux.c
 # add Pentium D and E as well a Core2Duo CPUids

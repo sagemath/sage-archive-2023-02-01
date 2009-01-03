@@ -829,7 +829,7 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             return [a]
         cdef FiniteField_ntl_gf2eElement e
         if self.is_one():
-            return self.parent()._one_element
+            return self
         else:
             return self.nth_root(2)
 

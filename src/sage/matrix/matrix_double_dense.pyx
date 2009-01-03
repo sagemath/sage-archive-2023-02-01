@@ -705,7 +705,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
     def solve_left_LU(self, b):
         """
-        Solve the equation A*x = b.
+        Solve the equation A*x = b using LU decomposition.
+
+        WARNING: This function is broken. See trac 4932.
 
         INPUT:
            self -- an invertible matrix
@@ -725,10 +727,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 7.6  2.3  1.0]
             [ 1.0  2.0 -1.0]
             sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_left(b); x
-            (-0.113695090439, 1.39018087855, -0.333333333333)
-            sage: A*x
-            (1.0, 2.0, 3.0)
+            sage: x = A.solve_left_LU(b); x
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not finished (see trac 4932)
+
 
         TESTS:
         We test two degenerate cases:
@@ -745,8 +748,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         if self._nrows == 0 or self._ncols == 0:
             return self._row_ambient_module().zero_vector()
 
+        raise NotImplementedError, "this function is not finished (see trac 4932)"
+        self._c_compute_LU()  # so self._L_M and self._U_M are defined below.
         cdef Matrix_double_dense M = self._new()
-        lu = self._L*self._U_M
+        lu = self._L_M*self._U_M
         global scipy
         if scipy is None:
             import scipy

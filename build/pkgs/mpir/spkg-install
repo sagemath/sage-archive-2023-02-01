@@ -14,172 +14,11 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-CUR=`pwd`
-CC=${CC:- gcc}
-patch()
-{
-    echo "Patching gmp-h.in (fixes OSX 10.5 issues and gcc 4.3 problems)"
-    cp patches/gmp-h.in src/gmp-h.in
-
-    # Possibly apply Gaudry's speedups for AMD 64:
-    #                  http://www.loria.fr/~gaudry/mpn_AMD64/
-    # or Martin's speedups for core2 (Intel64):
-    #                  http://www.math.jmu.edu/~martin
-    if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
-	# Test to see if it's a core2 machine
-	# This test attempts to compile a here-file
-	# which uses the CPUID instruction to get detailed
-	# information about the processor architecture.
-	#
-	# If it can't compile, or doesn't execute correctly, we
-	# just assume that it is an AMD64 machine.
-	#
-	cat > tmp_is_core2_cpu.c <<EOF
-#include<stdio.h>
-#include<stdlib.h>
-#include<stdint.h>
-
-/*
- * FUNCTION: uint32_t cpuid(uint32_t *output_array, uint32_t input)
- *
- * Places the input into eax and executes the CPUID instruction.
- * The value of eax is returned, the values of ebx,ecx,and edx
- * are placed on output_array[0], output_array[1], and output_array[2]
- * respectively.
- */
-uint32_t cpuid(uint32_t *output_array, uint32_t input)
-{
-  register uint32_t eax asm ("eax");
-  register uint32_t ebx asm ("ebx");
-  register uint32_t ecx asm ("ecx");
-  register uint32_t edx asm ("edx");
-
-  ebx = 0;
-  ecx = 0;
-  edx = 0;
-
-  eax = input;
-  asm ("cpuid");
-  output_array[0] = ebx;
-  output_array[1] = ecx;
-  output_array[2] = edx;
-  return(eax);
-}
-
-main()
-{
-  uint32_t response[3];
-  uint32_t input;
-  uint32_t output;
-
-  uint8_t steppingID, modelID, familyID, proc_type;
-  uint8_t ext_modelID, ext_familyID;
-
-  unsigned int Displayed_Family;
-  unsigned int Displayed_Model;
-
-  input = 1;
-  output = cpuid(response,input);
-  steppingID =   (uint8_t)( 0x0000000f & output);
-  modelID =      (uint8_t)((0x000000f0 & output) >> 4);
-  familyID =     (uint8_t)((0x00000f00 & output) >> 8);
-  proc_type =    (uint8_t)((0x00003000 & output) >> 12);
-  ext_modelID =  (uint8_t)((0x000f0000 & output) >> 16);
-  ext_familyID = (uint8_t)((0x0ff00000 & output) >> 20);
-
-  if (familyID != 0x0f)
-    {
-      Displayed_Family = familyID;
-    }
-  else
-    {
-      Displayed_Family = ext_familyID + familyID;
-    }
-
-  if ((familyID == 0x06) || (familyID == 0x0f) )
-    {
-      Displayed_Model = ((unsigned int)ext_modelID << 4) + modelID;
-    }
-  else
-    {
-      Displayed_Model = modelID;
-    }
-  if ( (Displayed_Model == 0xf) && (Displayed_Family == 0x6) )
-    {
-      printf("Yes");
-    }
-  else
-    {
-      printf("No");
-    }
-}
-EOF
-	${CC} -m64 tmp_is_core2_cpu.c -o tmp_is_core2_cpu > /dev/null 2>&1
-	if [ -x ./tmp_is_core2_cpu ]; then
-	    IS_CORE2_CPU=`./tmp_is_core2_cpu`;
-	    echo "Do we have a Core2 CPU?... ${IS_CORE2_CPU}";
-	    rm -f tmp_is_core2_cpu.c
-	    rm -f tmp_is_core2_cpu
-	else
-	    IS_CORE2_CPU=No;
-	    rm -f tmp_is_core2_cpu.c
-	fi
-	if [ ${IS_CORE2_CPU} == "Yes" ]; then
-	    # Apply the Core2 patch
-	    cd patches/gmp-4.2.1-core2-port
-	    ./install_gmp_4.2.1_core2_patch.sh "$CUR"/src
-	    cd "$CUR"
-	else
-            # Apply the AMD 64 patch
-	    cd patches/amd64
-	    ./install "$CUR"/src
-	    cd "$CUR"
-	fi
-    fi
-
-    # apply fast gcd patch
-    cd patches/fastgcd
-    ./install "$CUR"/src
-    cd "$CUR"
-}
-
 build()
 {
 
     SAGE_CONF_OPTS="--enable-shared --disable-static"
     case $UNAME in
-
-    Darwin)
-       #unset CFLAGS CXXFLAGS # let GMP's configure script decide
-       if [ `uname -p` = "i386" -a "$IS_CORE2_CPU" != "Yes" ]; then
-           # The mpn x86 assembly code in dive_1.asm and mode1o.asm simply
-           # does not work on OS X Intel.  So we delete those files from
-           # the mpn subdirectory (since I couldn't figure out how to fix
-           # them so they work, and the GMP developers don't care).
-           # GMP then builds mpn/gmp but using generic C code for two functions
-           # instead of optimized assembler code.  In some of my tests this
-           # is maybe 20% slower than using optimized assembler would be.
-           # And, in some tests it is 3 times as fast as using no assembler
-           # at all!!
-
-           cd mpn/x86
-           rm *dive_1* */*dive_1* */*/*dive_1*
-           rm */*mode1o* */*/*mode1o*
-           cd ../..
-       else
-           # I learned this from
-           # http://www.mail-archive.com/clamav-users@lists.clamav.net/msg22183.html
-           #  -- William Stein, 2006-04-06
-           # It's perhaps weird that this is needed on the powerpc, but it is...
-           # If I don't do this, then building ntl and mwrank fails due
-           # to missing symbols.  Make bench does work OK for GMP, but
-           # for whatever reason the resulting library simply doesn't work.
-           SAGE_CONF_OPTS="--build=none-apple-darwin --enable-shared --disable-static"
-
-           # apply an OSX-specific *patch*
-           cp "$CUR"/patches/addsub_n.c "$CUR"/src/mpn/generic/addsub_n.c
-       fi
-       ;;
 
     SunOS)
 	unset CFLAGS CXXFLAGS # let GMP's configure script decide
@@ -209,22 +48,9 @@ build()
         fi
     fi
 
-    if [ "$UNAME" = "CYGWIN" ]; then
-        # for some reason on Cygwin the headers sometimes (?)
-        # don't get installed unless we do this again.
-        # Added by William Stein 2006-05-04.
-        $MAKE install
-    fi
 }
 
-patch
-
 cd src
-
-if [ $? -ne 0 ]; then
-    echo "Error patching GMP."
-    exit 1
-fi
 
 build
 

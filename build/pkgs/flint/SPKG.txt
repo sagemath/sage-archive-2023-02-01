@@ -32,6 +32,9 @@ We patch the makefile slightly to add 64 bit OSX build support and also changes 
 
 == Changelog ==
 
+=== flint-1.0.21.0 (Michael Abshoff, January 2nd, 2009) ===
+ * do not run the test suite automatically
+
 === flint-1.0.21 (Michael Abshoff, December 23rd, 2008) ===
  * Upgrade to latest upstream (#4879)
 

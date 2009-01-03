@@ -30,6 +30,9 @@ Atlas devel mainling list.
 
 == ChangeLog ==
 
+=== atlas-3.8.2.p0 (Michael Abshoff, Januar 2nd, 2009) ===
+ * copy Make.top into the right directory
+
 === atlas-3.8.2 (Michael Abshoff, Januar 1st, 2009) ===
  * update to latest upstream
  * add cleaned up patches to repo

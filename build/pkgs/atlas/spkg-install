@@ -73,7 +73,7 @@ echo Updating probe_comp.c
 cp patches/probe_comp.c src/CONFIG/src/probe_comp.c
 # add dynamic libs make install targets
 echo Updating Make.top
-cp patches/Make.top src/ATLAS/
+cp patches/Make.top src
 # add K7, Pentium M and non-AltiVec G4 profiles
 cp patches/*tgz src/CONFIG/ARCHS
 

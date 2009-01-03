@@ -496,20 +496,20 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     ########################################################################
     cdef _c_compute_LU(self):
         """
-        Compute the LU factorization and store it in self._L, self._P,
-        and self._U.
+        Compute the LU factorization and store it in self._L_M, self._P_M,
+        and self._U_M.
         """
-        if not hasattr(self, '_L'):
+        if not hasattr(self, '_L_M'):
             # It's an awful waste to store a huge matrix for P, which
             # is just a simple permutation, really.
             global scipy
             if scipy is None:
                 import scipy
             import scipy.linalg
-            self._P, self._L, self._U = scipy.linalg.lu(self._matrix_numpy)
+            self._P_M, self._L_M, self._U_M = scipy.linalg.lu(self._matrix_numpy)
             # Numpy has a different convention than we had with GSL
             # So we invert (transpose) the P to match our prior behavior
-            self._P = self._P.T
+            self._P_M = self._P_M.T
             self.cache('LU_valid',True)
 
     def LU(self):
@@ -552,9 +552,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         P = self._new()
         L = self._new()
         U = self._new()
-        P._matrix_numpy = self._P.copy()
-        L._matrix_numpy = self._L.copy()
-        U._matrix_numpy = self._U.copy()
+        P._matrix_numpy = self._P_M.copy()
+        L._matrix_numpy = self._L_M.copy()
+        U._matrix_numpy = self._U_M.copy()
         return P, L, U
 
     def eigenspaces(self, var='a'):
@@ -746,12 +746,12 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             return self._row_ambient_module().zero_vector()
 
         cdef Matrix_double_dense M = self._new()
-        lu = self._L*self._U
+        lu = self._L*self._U_M
         global scipy
         if scipy is None:
             import scipy
         import scipy.linalg
-        M._matrix_numpy = scipy.linalg.lu_solve((lu, self._P), b)
+        M._matrix_numpy = scipy.linalg.lu_solve((lu, self._P_M), b)
         return M
 
     def solve_left(self,vec):
@@ -859,7 +859,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         if numpy is None:
             import numpy
 
-        return sage.rings.real_double.RDF(sum(numpy.log(abs(numpy.diag(self._U)))))
+        return sage.rings.real_double.RDF(sum(numpy.log(abs(numpy.diag(self._U_M)))))
 
     def transpose(self):
         """

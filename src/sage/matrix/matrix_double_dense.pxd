@@ -7,7 +7,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     cdef object _python_dtype
     cdef object _sage_dtype
     cdef object _sage_vector_dtype
-    cdef cnumpy.ndarray _L, _U, _P
+    cdef cnumpy.ndarray _L_M, _U_M, _P_M
     cdef int _LU_valid
     cdef Matrix_double_dense _new(self, int nrows=*, int ncols=*)
     cdef _c_compute_LU(self)

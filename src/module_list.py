@@ -705,14 +705,14 @@ ext_modules = [
               sources = ['sage/modular/modsym/apply.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
               include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
-              extra_compile_args=["-std=c99"],
+              extra_compile_args=["-std=c99",  "-D_XPG6"],
               depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.modular.modsym.heilbronn',
               sources = ['sage/modular/modsym/heilbronn.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
               include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
-              extra_compile_args=["-std=c99"],
+              extra_compile_args=["-std=c99", "-D_XPG6"],
               depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.modular.modsym.p1list',

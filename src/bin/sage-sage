@@ -23,6 +23,7 @@ usage() {
     echo "  -advanced     -- list more options"
     echo "  file.[sage|py|spyx] [options] -- run given .sage, .py or .spyx files"
     echo "  -c cmd        -- Evaluates cmd as sage code"
+    echo "  -docbuild  [lang/]<document>  -- Builds the Sage documentation"
     exit 1
 }
 
@@ -844,6 +845,14 @@ if [ $1 = '-upgrade' -o $1 = "--upgrade" ]; then
     sage-upgrade "$@"
     exit $?
 fi
+
+if [ $1 = "-docbuild" -o $1 = "--docbuild" ]; then
+   cd "$CUR"
+   shift
+   python "$SAGE_ROOT"/devel/sage/doc/common/builder.py $@
+   exit $?
+fi
+
 
 if [ $1 = '-gdb' -o $1 = "--gdb" ]; then
     sage_setup

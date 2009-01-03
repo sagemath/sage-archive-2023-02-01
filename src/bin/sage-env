@@ -97,6 +97,7 @@ BUILD=build
 SAGE_PACKAGES="$SAGE_ROOT/spkg" && export SAGE_PACKAGES
 SAGE_LOCAL="$SAGE_ROOT/local"   && export SAGE_LOCAL
 SAGE_DATA="$SAGE_ROOT/data"     && export SAGE_DATA
+SAGE_DOC="$SAGE_ROOT/devel/sage/doc" && export SAGE_DOC
 PATH="$SAGE_ROOT:$SAGE_LOCAL/bin:$PATH" && export PATH
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.

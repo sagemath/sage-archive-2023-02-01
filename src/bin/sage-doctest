@@ -318,7 +318,9 @@ def extract_doc(file_name, module):
     F = F.replace('\'"""\'','')
 
     if file_name[-4:] == ".tex":
-        F = pythonify(F)
+        F = pythonify_tex(F)
+    elif file_name[-4:] == ".rst":
+        F = pythonify_rst(F)
 
     n = 0
     i = 0
@@ -367,7 +369,7 @@ def change_warning_output(file):
 
     return s
 
-def pythonify(F):
+def pythonify_tex(F):
     """
     INPUT:
         F -- string; read in latex file
@@ -398,6 +400,76 @@ def pythonify(F):
     F = F.replace("\\begin{verbatim}",'"""')
     F = F.replace("\\end{verbatim}",'"""')
     return F
+
+def pythonify_rst(F):
+    """
+    INPUT:
+        F -- string; read in ReST file
+    OUTPUT:
+        string -- python program that has functions with docstrings made from the
+                  verbatim examples in the ReST file.
+    """
+    import re
+
+    def get_next_verbatim_block(s, pos):
+        while True:
+            pos = s.find('\n::', pos)
+
+            #Return -1 if we can't find any verbatim
+            #blocks
+            if pos == -1:
+                return "", pos, False
+
+            prev_line = F.rfind("\n", 0, pos)
+            start_of_options = F.rfind("\n", 0, prev_line if prev_line != -1 else 0)
+            options = F[start_of_options:pos]
+
+            pos += 3
+
+            #Don't return skipped blocks
+            if '.. skip' in options:
+                continue
+
+            #Check to see if we need to link up with the previous
+            #block
+            link_previous = True if '.. link' in options else False
+
+            #Find the first line that isn't
+            #indented (i.e., not in the verbatim block)
+            match = re.compile("^\S", re.M).search(s, pos)
+
+            if match is None:
+                return s[pos:], None, link_previous
+
+            block, pos = s[pos:match.start()], match.start()
+            if re.compile('^\s*sage: ', re.M).search(block) is not None:
+                return block, pos, link_previous
+
+    s = ''
+    pos = 0
+    while pos is not None and pos != -1:
+        block, pos, link_previous = get_next_verbatim_block(F, pos)
+
+        #Break if we can't find any more verbatim blocks
+        if pos == -1:
+            break
+
+        #Check to see if we have to link this block
+        #up with the previous block
+        if link_previous:
+            #Get rid of the trailing quotes and newlines from the
+            #previous block
+            s = s[:-5]
+
+            s += '%s\n"""\n\n'%block
+        else:
+            s += '\n"""\n%s\n"""\n\n'%block
+
+    #print s
+    #print "--"*100
+    return s
+
+
 
 def post_process(s, file, tmpname):
     s = s.replace('.doctest_','')

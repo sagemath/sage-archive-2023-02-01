@@ -38,7 +38,7 @@ def run(x):
                 base, ext = os.path.splitext(F)
                 if use_sage_only or ext == '.sage':
                     e = test(F, 'doctest_tex ' + opts)
-                elif ext in ['.py', '.pyx', '.tex', '.pxi']:
+                elif ext in ['.py', '.pyx', '.tex', '.pxi', '.rst']:
                     e = test(F, 'doctest '+opts)
                 else:
                     continue # prefer silence to: raise TypeError, "Unknown File %s" % F
@@ -114,7 +114,7 @@ def skip(F):
           or filenm[0] == '.' or '/.' in G.lstrip('/.') or \
           'nodoctest' in open(G).read():
         return True
-    if not (os.path.splitext(F)[1] in ['.py', '.pyx', '.tex', '.pxi', '.sage']):
+    if not (os.path.splitext(F)[1] in ['.py', '.pyx', '.tex', '.pxi', '.sage', '.rst']):
         return True
     return False
 
@@ -126,7 +126,7 @@ def test_file(F):
     base, ext = os.path.splitext(F)
     if use_sage_only or ext == '.sage':
         cmd =  'doctest_tex ' + opts
-    elif ext in ['.py', '.pyx', '.tex', '.pxi']:
+    elif ext in ['.py', '.pyx', '.tex', '.pxi', '.rst']:
         cmd = 'doctest '+opts
     filestr = os.path.split(F)[1]
     for i in range(0,numiteration):
@@ -217,7 +217,7 @@ def populatefilelist(filelist):
                 base, ext = os.path.splitext(F)
                 if use_sage_only and ext == '.sage':
                     continue
-                elif not (ext in ['.py', '.pyx', '.tex', '.pxi']):
+                elif not (ext in ['.py', '.pyx', '.tex', '.pxi', '.rst']):
                     continue
                 elif '__nodoctest__' in files:
                     continue

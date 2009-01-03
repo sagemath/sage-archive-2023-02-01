@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cd $SAGE_ROOT/doc/
+cd $SAGE_ROOT/devel/sage/doc/output/
 
 
 grep -i "$@" *.html  2>/dev/null

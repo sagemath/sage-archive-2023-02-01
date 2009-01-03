@@ -27,6 +27,8 @@ def top():
         cmd = 'top -b -n 1 -p %s'%pid
     elif U == 'darwin':
         cmd = 'top -l 1 |grep "^ *%s "'%pid
+    elif U == 'sunos':
+        cmd = 'top -b -n 65635 |grep "^ *%s "'%pid
     else:
         raise NotImplementedError, "top not implemented on platform %s"%U
 
@@ -57,6 +59,8 @@ def get_memory_usage(t=None):
             return linux_memory_usage() - t
     elif U == 'darwin':
         return top().split()[-1]
+    elif U == 'sunos':
+        return top().split()[-5]
     else:
         raise NotImplementedError, "memory usage not implemented on platform %s"%U
 

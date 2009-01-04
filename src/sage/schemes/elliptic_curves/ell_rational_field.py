@@ -4300,6 +4300,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: [len(e.integral_points(both_signs=False)) for e in cremona_curves([11..100])] # long time
             [2, 0, 2, 3, 2, 1, 3, 0, 2, 4, 2, 4, 3, 0, 0, 1, 2, 1, 2, 0, 2, 1, 0, 1, 3, 3, 1, 1, 4, 2, 3, 2, 0, 0, 5, 3, 2, 2, 1, 1, 1, 0, 1, 3, 0, 1, 0, 1, 1, 3, 6, 1, 2, 2, 2, 0, 0, 2, 3, 1, 2, 2, 1, 1, 0, 3, 2, 1, 0, 1, 0, 1, 3, 3, 1, 1, 5, 1, 0, 1, 1, 0, 1, 2, 0, 2, 0, 1, 1, 3, 1, 2, 2, 4, 4, 2, 1, 0, 0, 5, 1, 0, 1, 2, 0, 2, 2, 0, 0, 0, 1, 0, 3, 1, 5, 1, 2, 4, 1, 0, 1, 0, 1, 0, 1, 0, 2, 2, 0, 0, 1, 0, 1, 1, 4, 1, 0, 1, 1, 0, 4, 2, 0, 1, 1, 2, 3, 1, 1, 1, 1, 6, 2, 1, 1, 0, 2, 0, 6, 2, 0, 4, 2, 2, 0, 0, 1, 2, 0, 2, 1, 0, 3, 1, 2, 1, 4, 6, 3, 2, 1, 0, 2, 2, 0, 0, 5, 4, 1, 0, 0, 1, 0, 2, 2, 0, 0, 2, 3, 1, 3, 1, 1, 0, 1, 0, 0, 1, 2, 2, 0, 2, 0, 0, 1, 2, 0, 0, 4, 1, 0, 1, 1, 0, 1, 2, 0, 1, 4, 3, 1, 2, 2, 1, 1, 1, 1, 6, 3, 3, 3, 3, 1, 1, 1, 1, 1, 0, 7, 3, 0, 1, 3, 2, 1, 0, 3, 2, 1, 0, 2, 2, 6, 0, 0, 6, 2, 2, 3, 3, 5, 5, 1, 0, 6, 1, 0, 3, 1, 1, 2, 3, 1, 2, 1, 1, 0, 1, 0, 1, 0, 5, 5, 2, 2, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1]
 
+        The bug reported at \#4897 is now fixed:
+
+            sage: [P[0] for P in EllipticCurve([0,0,0,-468,2592]).integral_points()]
+            [-24, -18, -14, -6, -3, 4, 6, 18, 21, 24, 36, 46, 102, 168, 186, 381, 1476, 2034, 67246]
 
         NOTES:
             - This function uses the algorithm given in [Co1]
@@ -4336,23 +4340,32 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # INTERNAL FUNCTIONS ################################################
 
         ############################## begin ################################
-        def point_preprocessing(list):
-            #Transforms mw_base so that at most one point is on the
-            #compact component of the curve
-            Q = []
-            mem = -1
-            for i in range(0,len(list)):
-                if not list[i].is_on_identity_component(): # i.e. is on "egg"
-                    if mem == -1:
-                        mem = i
-                    else:
-                        Q.append(list[i]+list[mem])
-                        mem = i
-                else:
-                    Q.append(list[i])
-            if mem != -1: #add last point, which is not in egg, to Q
-                Q.append(2*list[mem])
-            return Q
+        def point_preprocessing(free,tor):
+            # Transforms an mw_base "free" into a Z-basis for E(Q)\cap
+            # E^0(R). If there is a torsion point on the "egg" we add
+            # it to any of the gens on the egg; otherwise we replace
+            # the free generators with generators of a subgroup of
+            # index 2.
+            r = len(free)
+            newfree = [Q for Q in free] # copy
+            tor_egg = [T for T in tor if not T.is_on_identity_component()]
+            free_id = [P.is_on_identity_component() for P in free]
+            if any(tor_egg):
+                T = tor_egg[0]
+                for i in range(r):
+                    if not free_id[i]:
+                        newfree[i] += T
+            else:
+                if not all(free_id):
+                    i0 = free_id.index(False)
+                    P = free[i0]
+                    for i in range(r):
+                        if not free_id[i]:
+                            if i==i0:
+                                newfree[i] = 2*newfree[i]
+                            else:
+                                newfree[i] += P
+            return newfree
         ##############################  end  ################################
         ############################## begin ################################
         def modified_height(i):#computes modified height if base point i
@@ -4402,9 +4415,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 RR=RealField(prec)
                 ei = pol.roots(RR,multiplicities=False)
             e1,e2,e3 = ei
-            if r >= 2: #preprocessing of mw_base only necessary if rank > 1
-                mw_base = point_preprocessing(mw_base) #at most one point in
-                                                       #E^{egg}
+            if r >= 1: #preprocessing of mw_base only necessary if rank > 0
+                mw_base = point_preprocessing(mw_base, tors_points)
+                  #at most one point in E^{egg}
 
         elif disc < 0: # one real component => 1 root in RR (=: e3),
                        # 2 roots in C (e1,e2)
@@ -4454,7 +4467,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             mw_base_log.append(mw_base[i].elliptic_logarithm().abs())
             mod_h_list.append(modified_height(i))
             c9_help_list.append((mod_h_list[i]).sqrt()/mw_base_log[i])
-
         c8 = max(e*h_E,max(mod_h_list))
         c9 = e/c7.sqrt() * min(c9_help_list)
         n=r+1

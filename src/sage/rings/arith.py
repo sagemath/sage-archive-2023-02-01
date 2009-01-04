@@ -523,13 +523,8 @@ def primes_first_n(n, leave_pari=False):
     Return the first $n$ primes.
 
     INPUT:
-        leave_pari -- bool (default: False) if True the returned list
-                    is a PARI list; this is *vastly* (10 times!)
-                    faster since the time of prime_range is dominated
-                    by conversion from PARI to SAGE integers.
-                    However, PARI integers are much different than
-                    SAGE integers.  If you use this option the lower
-                    bound must be 2.
+        n -- a nonnegative integer
+
     OUTPUT:
         a list of the first $n$ prime numbers.
 
@@ -538,13 +533,14 @@ def primes_first_n(n, leave_pari=False):
         [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
         sage: len(primes_first_n(1000))
         1000
-
-    This is very fast, because we leave the output as a PARI object:
-        sage: v = primes_first_n(10^6, leave_pari=True)
-        sage: len(v)
-        1000000
+        sage: primes_first_n(0)
+        []
     """
-    return fast_arith.prime_range(pari.nth_prime(n)+1, leave_pari=leave_pari)
+    if n < 0:
+        raise ValueError, "n must be nonnegative"
+    if n < 1:
+        return []
+    return fast_arith.prime_range(pari.nth_prime(n) + 1)
 
 #
 # This is from

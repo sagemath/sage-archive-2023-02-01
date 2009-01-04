@@ -53,7 +53,7 @@ from sage.rings.integer cimport Integer
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ(mpz_t value, long *g)
 
-cpdef prime_range(start, stop=None, leave_pari=False):
+cpdef prime_range(start, stop=None):
     r"""
     List of all primes between start and stop-1, inclusive.  If the
     second argument is omitted, returns the primes up to the first
@@ -66,8 +66,6 @@ cpdef prime_range(start, stop=None, leave_pari=False):
     INPUT:
         start -- lower bound
         stop -- upper bound
-        leave_pari -- (default: False) if True, return a list of Pari
-                      integers instead of Sage integers.
 
     EXAMPLES:
         sage: prime_range(10)
@@ -88,16 +86,6 @@ cpdef prime_range(start, stop=None, leave_pari=False):
     TESTS:
         sage: len(prime_range(25000,2500000))
         180310
-        sage: prime_range(8,leave_pari=True)
-        [2, 3, 5, 7]
-        sage: type(prime_range(7,leave_pari=True)[0])
-        <type 'sage.libs.pari.gen.gen'>
-        sage: prime_range(2,2,leave_pari=True)
-        []
-        sage: prime_range(2,3,leave_pari=True)
-        [2]
-        sage: prime_range(5,10,leave_pari=True)
-        [5, 7]
 
     AUTHORS:
       - William Stein (original version)
@@ -117,9 +105,6 @@ cpdef prime_range(start, stop=None, leave_pari=False):
         v = <pari_gen>pari.primes_up_to_n(int(stop-1))
         m = int(ZZ(pari(start-1).primepi()))
     n = lg(v.g) - 1
-
-    if leave_pari:
-        return v[m:]
 
     res = [0] * (n-m)
     for ind from m <= ind < n:

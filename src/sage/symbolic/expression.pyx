@@ -1517,7 +1517,7 @@ cdef class Expression(CommutativeRingElement):
 
     def gcd(self, b):
         """
-        Return the gcd of self and b, which must be integer or polynomials over
+        Return the gcd of self and b, which must be integers or polynomials over
         the rational numbers.
 
         TODO: I tried the massive gcd from

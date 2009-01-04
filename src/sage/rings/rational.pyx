@@ -570,90 +570,51 @@ cdef class Rational(sage.structure.element.FieldElement):
         other_d = other.numer()*self.denom()
         return self_d.lcm(other_d) / d
 
-    def gcd(self, Rational other):
+    def content(self, other):
         """
-        Return the least common multiple of self and other.
+        Return the content of self and other, i.e. the unique positive
+        rational number c such that self/c and other/c are coprime
+        integers.
 
-        One way to define this notion is the following:
-
-        Note that each rational positive rational number can be written
-        as a product of primes  with integer (positive or negative)
-        powers in a unique way.
-
-        Then, the GCD of two rational numbers x,y can be defined by
-        specifying that the exponent of every prime p in gcd(x,y) is
-        the infimum of the exponents of p in x,
-        and  the exponent of p  in y
-        (The primes that does not appear in the decomposition of x or y
-        are considered to have exponent zero).
-
-        This definition is consistent with the definition of the GCD
-        in the rational integers.  Our hopefully interesting notion of GCD
-        for rational numbers is illustrated in the examples below.
+        other can be a rational number or a list of rational numbers.
 
         EXAMPLES:
-
-            sage: gcd(2/3,1/5)
+            sage: a = 2/3
+            sage: a.content(2/3)
+            2/3
+            sage: a.content(1/5)
             1/15
-
-        This is consistent with the definition above, since:
-        $$
-           2/3 = 2^1 * 3^{-1}*5^0
-        $$
-        $$
-           1/5 = 2^0 * 3^0   *5^{-1}
-        $$
-        and hence,
-        $$
-           gcd(2/3,1/5)= 2^0*3^{-1}*5^{-1} = 1/15
-        $$
-
-            sage: gcd(2/3,7/5)
-            1/15
-
-        In this example:
-        $$
-          2/3 = 2^1*3^{-1}*5^0    * 7^0
-        $$
-        $$
-          7/5 = 2^0*3^0   *5^{-1} * 7^1
-        $$
-        $$
-          gcd(2/3,7/5) = 2^0*3^{-1}*5^{-1}*7^0 = 1/15
-        $$
-
-            sage: gcd(1/3,1/6)
-            1/6
-
-        In this example:
-        $$
-          1/3 = 2^0*3^{-1}
-        $$
-        $$
-          1/6 = 2^{-1}*3^{-1}
-        $$
-        $$
-          gcd(1/3,1/6)=2^{-1}*3^{-1}=1/6
-        $$
-
-            sage: gcd(6/7,9/7)
-            3/7
-
-        In this example:
-        $$
-          6/7 = 2^1*3^1*7^{-1}
-        $$
-        $$
-          9/7 = 2^0*3^2*7^{-1}
-        $$
-        $$
-          gcd(6/7,9/7)=2^0*3^1*7^{-1}=3/7
-        $$
+            sage: a.content([2/5, 4/9])
+            2/45
         """
-        d = self.denom()*other.denom()
-        self_d = self.numer()*other.denom()
-        other_d = other.numer()*self.denom()
-        return self_d.gcd(other_d) / d
+        from sage.structure.sequence import Sequence
+        seq = Sequence(other)
+        seq.append(self)
+        nums = [x.numerator() for x in seq]
+        denoms = [x.denominator() for x in seq]
+        from sage.rings.arith import gcd, lcm
+        return gcd(nums) / lcm(denoms)
+
+    def gcd(self, other):
+        """
+        Return a gcd of the rational numbers self and other.
+
+        If self = other = 0, this is by convention 0.  In all other
+        cases it can (mathematically) be any nonzero rational number,
+        but for simplicity we choose to always return 1.
+
+        EXAMPLES:
+            sage: gcd(1/3, 2/1)
+            1
+            sage: gcd(1/1, 0/1)
+            1
+            sage: gcd(0/1, 0/1)
+            0
+        """
+        if self == 0 and other == 0:
+            return Rational(0)
+        else:
+            return Rational(1)
 
     def valuation(self, p):
         """

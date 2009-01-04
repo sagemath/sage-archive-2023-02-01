@@ -16,7 +16,7 @@ from math import ceil as pyceil
 
 def _mul_fateman_to_int2(f_list,g_list):
     """
-    Convert an polynomial to an integer by evaluating it
+    Convert a polynomial to an integer by evaluating it
     INPUT: p, a list of integers
     OUTPUT: padding
     """
@@ -69,8 +69,8 @@ def _mul_fateman_mul(f,g):
     # Note: no precision is lost in this
     # direction
 
-    fgcd = gcd(f_list)
-    ggcd = gcd(g_list)
+    fgcd = f_list[0].content(f_list)
+    ggcd = g_list[0].content(g_list)
 
     # Need to change ring to ZZ
     z_poly_f=(f*fgcd.denominator()).change_ring(ZZ)

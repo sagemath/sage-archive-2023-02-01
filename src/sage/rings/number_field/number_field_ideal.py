@@ -1323,7 +1323,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         one = K.unit_ideal()
         other = K.ideal(other)
         if self.is_integral() and other.is_integral():
-            if arith.gcd(self.norm(), other.norm()) == 1:
+            if arith.gcd(ZZ(self.norm()), ZZ(other.norm())) == 1:
                 return True
             else:
                 return self+other == one

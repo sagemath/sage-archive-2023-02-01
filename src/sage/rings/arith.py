@@ -1034,7 +1034,7 @@ def gcd(a, b=None, **kwargs):
         sage: GCD(97*10^15, 19^20*97^2)
         97
         sage: GCD(2/3, 4/3)
-        2/3
+        1
         sage: GCD([2,4,6,8])
         2
         sage: GCD(srange(0,10000,10))  # fast  !!

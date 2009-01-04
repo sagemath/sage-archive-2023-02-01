@@ -223,7 +223,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             sage: J0(33).rational_torsion_subgroup().possible_orders()
             [100, 200]
 
-        Note that this function has been implemented for $J_1(N)$,
+        Note that this function has not been implemented for $J_1(N)$,
         though it should be reasonably easy to do so soon (see Conrad,
         Edixhoven, Stein):
             sage: J1(13).rational_torsion_subgroup().possible_orders()
@@ -339,7 +339,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
                 continue
 
             f = A.hecke_polynomial(p)
-            b = f(p+1)
+            b = ZZ(f(p+1))
 
             if bnd == 0:
                 bnd = b

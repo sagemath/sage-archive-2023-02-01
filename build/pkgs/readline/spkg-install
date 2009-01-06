@@ -71,8 +71,7 @@ else
 fi
 
 if [ $OVERWRITE_READLINE == "true" ]; then
-  echo "Overwriting libreadline with the system one in three seconds"
-  sleep 3
+  echo "Overwriting libreadline.so.5.2 with the system one"
   rm -f $SAGE_LOCAL/lib/libreadline.so.5.2
   cp /lib/libreadline.so.5.2 $SAGE_LOCAL/lib/
 fi

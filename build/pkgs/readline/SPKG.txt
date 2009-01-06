@@ -1,9 +1,34 @@
 = readline =
 
-Deleted some files from the doc directory from the standard distro, since it took tons of space;
-didn't delete anything else.
+== Description ==
 
-FIXME
+The GNU Readline library provides a set of functions for use by applications that allow users to edit command lines as they are typed in. Both Emacs and vi editing modes are available. The Readline library includes additional functions to maintain a list of previously-entered command lines, to recall and perhaps reedit those lines, and perform csh-like history expansion on previous commands.
+
+Website: http://tiswww.case.edu/php/chet/readline/rltop.html
+
+== License ==
+
+ * GPL V2+
+
+== SPKG Maintainers ==
+
+ * Michael Abshoff
+
+== Upstream Contact ==
+
+ * Chet Ramey at http://cnswww.cns.cwru.edu/~chet
+
+== Dependencies ==
+
+ * None
+
+== Special Update/Build Instructions ==
+
+ * Deleted some files from the doc directory from the standard distro, since it took tons of space; didn't delete anything else.
+ * Work around some MacOSX dynamic lib flags
+
+=== readline-5.2.p5 (Michael Abshoff, January 5th, 2009) ===
+ * Deal with OpenSUSE 11.1 (#4843)
 
 === readline-5.2.p4 (Arnaud Bergeron, September 3rd, 2008) ===
  * add a fix to find the dynamic library file on OpenBSD

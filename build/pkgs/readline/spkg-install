@@ -15,6 +15,28 @@ if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
    LDFLAGS="-m64"
 fi
 
+echo "Deleting old readline headers and libs"
+rm -rf $SAGE_LOCAL/include/readline/
+rm -rf $SAGE_LOCAL/lib/libreadline.*
+
+OVERWRITE_READLINE=false; export OVERWRITE_READLINE
+
+# First we check for OpenSUSE 11.1 since bash is linked dynamically with a
+# readline that breaks when we build Sage's readline, so we work around this
+# for now
+if [ `grep 11.1 /etc/SuSE-release > /dev/null; echo $?` == 0 ]; then
+    echo "OpenSUSE 11.1 detected"
+    if [ -d /usr/include/readline/ ]; then
+        echo "The development version of libreadline is installed -> copying"
+        cp /lib/libreadline.so.* $SAGE_LOCAL/lib
+        cp -r /usr/include/readline  $SAGE_LOCAL/include
+        exit 0
+    else
+        echo "No headers found, building library"
+        OVERWRITE_READLINE="true"; export OVERWRITE_READLINE
+    fi
+fi
+
 cd src/
 
 build()
@@ -46,6 +68,13 @@ elif [ "$UNAME" = "OpenBSD" ]; then
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.5.2
 else
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so
+fi
+
+if [ $OVERWRITE_READLINE == "true" ]; then
+  echo "Overwriting libreadline with the system one in three seconds"
+  sleep 3
+  rm -f $SAGE_LOCAL/lib/libreadline.so.5.2
+  cp /lib/libreadline.so.5.2 $SAGE_LOCAL/lib/
 fi
 
 # Make sure that the install worked, despite whatever the error

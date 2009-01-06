@@ -22,6 +22,5 @@ FIXME
  * set correct permissions on libreadline.so* and libhistory.so* (#1752)
 
 === readline-5.2 ===
-
-FIXME
+ * changes lost to history - please let us know if you have any details.
 

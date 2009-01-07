@@ -3783,6 +3783,7 @@ function jsmath_init() {
     Process all the jsmath in this page.
     */
     try {
+         jsMath.Extension.Require("verb");
          jsMath.Process();
     } catch(e) {
     }

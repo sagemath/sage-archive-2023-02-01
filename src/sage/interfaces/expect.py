@@ -1336,8 +1336,17 @@ class ExpectElement(RingElement):
         self._session_number = parent._session_number
 
     def _latex_(self):
-        return "\\begin{verbatim}%s\\end{verbatim}"%self
-
+#        return "\\begin{verbatim}%s\\end{verbatim}"%self
+        string = str(self)
+        if not '|' in string:
+            delim = '|'
+        elif not '#' in string:
+            delim = '#'
+        elif not '@' in string:
+            delim = '@'
+        elif not '~' in string:
+            delim = '~'
+        return "\\verb%s%s%s"%(delim, string, delim)
 
     def __iter__(self):
         for i in range(1, len(self)+1):

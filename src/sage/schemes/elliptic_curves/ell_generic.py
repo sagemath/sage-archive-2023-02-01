@@ -42,7 +42,7 @@ AUTHORS:
 
 import math
 
-from sage.rings.all import PolynomialRing
+from sage.rings.all import PolynomialRing, polygen
 import sage.groups.abelian_gps as groups
 import sage.groups.generic as generic
 import sage.plot.all as plot
@@ -1139,19 +1139,24 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     # j=0=1728, but I have never worked them out or seen them used!
     #
 
-    def quadratic_twist(self, D):
+    def quadratic_twist(self, D=None):
         """
         Return the quadratic twist of this curve by D, which must be nonzero except in characteristic 2.
 
         In characteristic!=2, D must be nonzero, and the twist is
         isomorphic to self after adjoining sqrt(D) to the base.
 
-        In characteristic==2, D is arbitrary, and the twist is
+        In characteristic 2, D is arbitrary, and the twist is
         isomorphic to self after adjoining a root of $x^2+x+D$ to the
         base.
 
-        In characteristics 2 when j==0 this is not implemented (the
-        twists are more complicated than quadratic!).
+        In characteristic 2 when j==0 this is not implemented.
+
+        If the base field F is finite, D need not be specified, and
+        the curve returned is the unique curve (up to isomorphism)
+        defined over F isomorphic to the original curve over the
+        quadratic extension of F but not over F itself.  Over infinte
+        fields, an error is raised if D is not given.
 
         EXAMPLES:
             sage: E = EllipticCurve([GF(1103)(1), 0, 0, 107, 340]); E
@@ -1172,14 +1177,64 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.is_isomorphic(E1,GF(4,'a'))
             True
 
+            Over finite fields, the twisting parameter may be omitted:
+            sage: k.<a> = GF(2^10)
+            sage: E = EllipticCurve(k,[a^2,a,1,a+1,1])
+            sage: Et = E.quadratic_twist()
+            sage: Et # random (only determined up to isomorphism)
+            Elliptic Curve defined by y^2 + x*y  = x^3 + (a^7+a^4+a^3+a^2+a+1)*x^2 + (a^8+a^6+a^4+1) over Finite Field in a of size 2^10
+            sage: E.is_isomorphic(Et)
+            False
+            sage: E.j_invariant()==Et.j_invariant()
+            True
+
+            sage: p=next_prime(10^10)
+            sage: k = GF(p)
+            sage: E = EllipticCurve(k,[1,2,3,4,5])
+            sage: Et = E.quadratic_twist()
+            sage: Et # random (only determined up to isomorphism)
+            Elliptic Curve defined by y^2  = x^3 + 7860088097*x^2 + 9495240877*x + 3048660957 over Finite Field of size 10000000019
+            sage: E.is_isomorphic(Et)
+            False
+            sage: k2 = GF(p^2,'a')
+            sage: E.change_ring(k2).is_isomorphic(Et.change_ring(k2))
+            True
         """
         K=self.base_ring()
         char=K.characteristic()
-        D=K(D)
+
+        if D is None:
+            if K.is_finite():
+                x = polygen(K)
+                if char==2:
+                    # We find D such that x^2+x+D is irreducible. If the
+                    # degree is odd we can take D=1; otherwise it suffices to
+                    # consider odd powers of a generator.
+                    D = K(1)
+                    if K.degree()%2==0:
+                        D = K.gen()
+                        a = D**2
+                        while len((x**2+x+D).roots())>0:
+                            D *= a
+                else:
+                    # We could take a multiplicative generator but
+                    # that might be expensive to compute; otherwise
+                    # half the elements will do
+                    D = K.random_element()
+                    while len((x**2-D).roots())>0:
+                        D = K.random_element()
+            else:
+                raise ValueError, "twisting parameter D must be specified over infinite fields."
+        else:
+            try:
+                D=K(D)
+            except ValueError:
+                raise ValueError, "twisting parameter D must be in the base field."
+
+            if char!=2 and D.is_zero():
+                raise ValueError, "twisting parameter D must be nonzero when characteristic is not 2"
 
         if char!=2:
-            if D.is_zero():
-                raise ValueError, "quadratic twist requires a nonzero argument when characteristic is not 2"
             b2,b4,b6,b8=self.b_invariants()
             # E is isomorphic to  [0,b2,0,8*b4,16*b6]
             return EllipticCurve(K,[0,b2*D,0,8*b4*D**2,16*b6*D**3])
@@ -1409,8 +1464,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
          should use division_polynomial().
 
          SEE ALSO:
-             -- multiple_x_numerator()
-             -- multiple_x_denominator()
+             -- _multiple_x_numerator()
+             -- _multiple_x_denominator()
              -- division_polynomial()
 
          INPUT:
@@ -1954,6 +2009,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
          The result is adjusted to be correct for both even and odd n.
 
+         The result is cached.  This is so that calling
+         P.division_points(n) for the same n and different points P
+         (on the same curve) does not have to recompute the
+         polynomials.
+
          WARNING: -- There may of course be cancellation between the
          numerator and the denominator (_multiple_x_denominator()). Be
          careful. E.g. if a point on an elliptic curve with coefficients in
@@ -1999,6 +2059,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
            (310 : -5458 : 1)
 
          """
+         try:
+             return self._mul_x_num_cache[n]
+         except AttributeError:
+             self._mul_x_num_cache = {}
+         except KeyError:
+             pass
+
          if cache is None:
              cache = {}
 
@@ -2015,9 +2082,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
          self.division_polynomial_0(n+1, x, cache)
 
          if n % 2 == 0:
-             return x * cache[-1] * cache[n]**2 - cache[n-1] * cache[n+1]
+             self._mul_x_num_cache[n] = x * cache[-1] * cache[n]**2 - cache[n-1] * cache[n+1]
          else:
-             return x * cache[n]**2 - cache[-1] * cache[n-1] * cache[n+1]
+             self._mul_x_num_cache[n] = x * cache[n]**2 - cache[-1] * cache[n-1] * cache[n+1]
+         return self._mul_x_num_cache[n]
 
 
     def _multiple_x_denominator(self, n, x=None, cache=None):
@@ -2028,6 +2096,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
          The inputs n, x, cache are as described in division_polynomial_0().
 
          The result is adjusted to be correct for both even and odd n.
+
+         The result is cached.  This is so that calling
+         P.division_points(n) for the same n and different points P
+         (on the same curve) does not have to recompute the
+         polynomials.
 
          SEE ALSO:
            -- _multiple_x_numerator()
@@ -2051,6 +2124,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             -- David Harvey (2006-09-24)
 
          """
+         try:
+             return self._mul_x_den_cache[n]
+         except AttributeError:
+             self._mul_x_den_cache = {}
+         except KeyError:
+             pass
+
          if cache is None:
              cache = {}
 
@@ -2065,9 +2145,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
          self.division_polynomial_0(n , x, cache)
 
          if n % 2 == 0:
-             return cache[-1] * cache[n]**2
+             self._mul_x_den_cache[n] = cache[-1] * cache[n]**2
          else:
-             return cache[n]**2
+             self._mul_x_den_cache[n] = cache[n]**2
+         return self._mul_x_den_cache[n]
 
 
     def multiplication_by_m(self, m, x_only=False):
@@ -2557,12 +2638,17 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         if p_rank == 1:
             P = Ep[0]
             if P.is_zero(): P=Ep[1]
-            (P,k) = P._divide_out(p)
-            k += 1
+            k = 1
+            pts = P.division_points(p) # length 0 or p
+            while len(pts)>0:
+                k += 1
+                P = pts[0]
+                pts = P.division_points(p)
             # now P generates the p-power-torsion and has order p^k
             return [[P,k]]
 
         assert p_rank == 2
+
         Epi = iter(Ep) # used to iterate through Ep
         # Find P1,P2 which generate the p-torsion:
         P1 = Epi.next()
@@ -2570,31 +2656,66 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         P2 = Epi.next()
         while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = Epi.next()
 
-        # Algorithm: we first keep dividing P1 and P2 by p until we no
-        # longer can.  If they stop at different orders p^k1, p^k2
-        # then we return [[P1,k1],[P2,k2]] (or in reverse order if
-        # k2>k1).  If they stop at the same order k, then we need to
-        # see if P1+a*P2 can be further divided for some a mod p; if
-        # so, replace P1 by P1+a*P2 and keep dividing it by p.
+        k = 1
+        pts1 = P1.division_points(p)
+        pts2 = P2.division_points(p)
+        while len(pts1)>0 and len(pts2)>0:
+            k += 1
+            P1 = pts1[0]
+            P2 = pts2[0]
+            pts1 = P1.division_points(p)
+            pts2 = P2.division_points(p)
 
-        (P1,k1) = P1._divide_out(p)
-        k1 += 1
-        (P2,k2) = P2._divide_out(p)
-        k2 += 1
-        if k1>k2:
-            return [[P1,k1],[P2,k2]]
-        if k1<k2:
-            return [[P2,k2],[P1,k1]]
-        # Now k1==k2
+        # Now P1,P2 are a basis for the p^k torsion, which is
+        # isomorphic to (Z/p^k)^2, and k is the maximal integer for
+        # which this is the case.
+
+        # We now determine whether a combination (P2 or P1+a*P2 for
+        # some a) can be further divided for some a mod p; if so,
+        # replace P1 by that combination, set pts to be the list of
+        # solutions Q to p*Q=P1.  If no combination can be divided,
+        # then the structure is (p^k,p^k) and we can stop.
+
+        if len(pts1) > 0:
+            pts = pts1
+        elif len(pts2) > 0:
+            P1, P2 = P2, P1
+            pts = pts2
+
         for Q in generic.multiples(P2,p-1,P1+P2,operation='+'):
             # Q runs through P1+a*P2 for a=1,2,...,p-1
-            (R,k) = Q._divide_out(p)
-            if k>0:
-                return [[R,k1+k],[P2,k2]]
-            else:
-                pass
-        # If we get here the structure is (p^k1,p^k1) and k2==k1
-        return [[P1,k1],[P2,k2]]
+            pts = Q.division_points(p)
+            if len(pts) > 0:
+                P1 = Q
+                break
+        if len(pts)==0:
+            return [[P1,k],[P2,k]]
+
+        # Now the structure is (p^n,p^k) for some n>k.  We need to
+        # replace P1 by an element of maximal order p^n.  So far we
+        # have pts = list of Q satisfying p*Q=P1, and all such Q have
+        # order p^{k+1}.
+
+        # We keep trying to divide P1 by p.  At each step, if we
+        # succeed, replace P1 by any of the results and increment n.
+        # If we fails try again with P1+a*P2 for a in [1..p-1]. If any
+        # succeed, replace P1 by one of the resulting divided points.
+        # If all fail, the structure is (p^n,p^k) and P1,P2 are
+        # generators.
+
+        n=k
+        while True:
+            P1=pts[0]
+            n += 1
+            pts = P1.division_points(p)
+            if len(pts)==0:
+                for Q in generic.multiples(P2,p-1,P1+P2,operation='+'):
+                    # Q runs through P1+a*P2 for a=1,2,...,p-1
+                    pts = Q.division_points(p)
+                    if len(pts)>0:
+                        break
+                if len(pts)==0:
+                    return [[P1,n],[P2,k]]
 
 
     def hyperelliptic_polynomials(self):

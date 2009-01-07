@@ -610,7 +610,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         self._order = Integer(N)
         return self._order
 
-    def cardinality(self, algorithm='heuristic', early_abort=False, disable_warning=False, extension_degree=1):
+    def cardinality(self, algorithm='heuristic', extension_degree=1):
         r"""
         Return the number of points on this elliptic curve over an
         extension field (default: the base field).
@@ -619,18 +619,19 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             algorithm    -- string (default: 'heuristic')
                          -- used only for point counting over prime fields
 
-                  'heuristic' -- use a heuristic to choose between bsgs and sea.
-                  'bsgs' -- use the baby step giant step method as implemented in
-                            PARI via the C-library function ellap.
+                  'heuristic' -- use a heuristic to choose between
+                                 pari, sea and bsgs (over prime fields only).
+                  'pari' -- use the baby step giant step method as implemented
+                            in PARI via the C-library function ellap.
                   'sea'  -- use sea.gp as implemented in PARI by Christophe
                             Doche and Sylvain Duquesne.
-                  'all'  -- compute cardinality with both bsgs and sea and
-                            return result if they agree or raise a RuntimeError
-                            if they do not.
-
-            early_abort -- bool (default: False); this is used only by
-                            sea.  if True, stop early if a small
-                            factor of the order is found.
+                  'bsgs' -- use the baby step giant step method as
+                             implemented in Sage, with the Cremona -
+                             Sutherland version of Mestre's trick.
+                  'all' -- (over prime fields only) compute
+                            cardinality with all of pari, sea and
+                            bsgs; return result if they agree or raise
+                            a RuntimeError if they do not.
 
             extension_degree -- int (default: 1); if the base field is
                             $k=GF(p^n)$ and extension_degree=d, returns
@@ -672,7 +673,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             10076
             sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='sea')
             10076
-            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='bsgs')
+            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='pari')
             10076
             sage: EllipticCurve(GF(next_prime(10**20)),[1,2,3,4,5]).cardinality(algorithm='sea')
             100000000011093199520
@@ -698,10 +699,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 return (self.frobenius()**extension_degree-1).norm()
 
         # Now extension_degree==1
-        try:
-            return self._order
-        except AttributeError:
-            pass
+        if algorithm != 'all':
+            try:
+                return self._order
+            except AttributeError:
+                pass
 
         k = self.base_ring()
 
@@ -717,33 +719,36 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         p = k.characteristic()
         d = k.degree()
 
-        if d == 1:             # prime field
+        # Over prime fields, we have a variety of algorithms to choose from:
+
+        if d == 1:
             if algorithm == 'heuristic':
-                if p > 10**18:
-                    algorithm = 'sea'
-                else:
-                    algorithm = 'bsgs'
-            if algorithm == 'bsgs':
-                E = self._pari_()
-                N = p+1 - int(E.ellap(p))
+                algorithm = 'sea' if p > 10**18 else 'pari'
+            if algorithm == 'pari':
+                N = self.cardinality_pari()
             elif algorithm == 'sea':
-                N = sea.ellsea(self.a_invariants(), self.base_ring().characteristic(), \
-                               early_abort=early_abort)
+                N = self.cardinality_sea()
+            elif algorithm == 'bsgs':
+                N = self.cardinality_bsgs()
             elif algorithm == 'all':
-                N1 = self.cardinality('bsgs')
-                N2 = self.cardinality('sea')
-                if N1 == N2:
+                N1 = self.cardinality_pari()
+                N2 = self.cardinality_sea()
+                N3 = self.cardinality_bsgs()
+                if N1 == N2 and N2 == N3:
                     N = N1
                 else:
-                    raise RuntimeError, "BUG! Cardinality with bsgs=%s but with sea=%s"%(N1, N2)
+                    if N1!=N2:
+                        raise RuntimeError, "BUG! Cardinality with pari=%s but with sea=%s"%(N1, N2)
+                    if N1!=N3:
+                        raise RuntimeError, "BUG! Cardinality with pari=%s but with bsgs=%s"%(N1, N3)
             self._order = Integer(N)
             return self._order
 
         # now k is not a prime field and j is not 0, 1728
 
         # we count points on a standard curve with the same
-        # j-invariant defined over the field it generates, then
-        # lift to the curve's own field, and finally allow for twists
+        # j-invariant, defined over the field it generates, then lift
+        # to the curve's own field, and finally allow for twists
 
         # Since j is not 0, 1728 the only twists are quadratic
 
@@ -752,7 +757,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         # if not possible to work over a smaller field:
         if d==j_deg:
-            self._order = self.cardinality_from_group()
+            self._order = self.cardinality_bsgs()
             return self._order
 
         kj=GF(p**j_deg,name='a',modulus=j_pol)
@@ -869,29 +874,214 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         self._order = Integer(1+sum([len(self.lift_x(x,all=True)) for x in self.base_field()]))
         return self._order
 
-    def cardinality_from_group(self):
+    def cardinality_pari(self):
+        r"""
+        Return the cardinality of self over the (prime) base field using pari.
+
+        The result is not cached.
+
+        EXAMPLES:
+            sage: p=next_prime(10^3)
+            sage: E=EllipticCurve(GF(p),[3,4])
+            sage: E.cardinality_pari()
+            1020
+            sage: K=GF(next_prime(10^6))
+            sage: E=EllipticCurve(K,[1,0,0,1,1])
+            sage: E.cardinality_pari()
+            999945
+
+        TESTS:
+            sage: K.<a>=GF(3^20)
+            sage: E=EllipticCurve(K,[1,0,0,1,a])
+            sage: E.cardinality_pari()
+            Traceback (most recent call last):
+            ...
+            ValueError: cardinality_pari() only works over prime fields.
+            sage: E.cardinality()
+            3486794310
+
+        """
+        k = self.base_ring()
+        p = k.characteristic()
+        if k.degree()==1:
+            return ZZ(p + 1 - int(self._pari_().ellap(p)))
+        else:
+            raise ValueError, "cardinality_pari() only works over prime fields."
+
+    def cardinality_sea(self, early_abort=False):
+        r"""
+        Return the cardinality of self over the (prime) base field using sea.
+
+        INPUT:
+            early_abort -- bool (default: False).  if True, an early abort
+                       technique is used and the computation is
+                       interrupted as soon as a small divisor of the
+                       order is detected.  The function then returns
+                       0.  This is useful for ruling out curves whose
+                       cardinality is divisible by a small prime.
+
+        The result is not cached.
+
+        EXAMPLES:
+            sage: p=next_prime(10^3)
+            sage: E=EllipticCurve(GF(p),[3,4])
+            sage: E.cardinality_sea()
+            1020
+            sage: K=GF(next_prime(10^6))
+            sage: E=EllipticCurve(K,[1,0,0,1,1])
+            sage: E.cardinality_sea()
+            999945
+
+        TESTS:
+            sage: K.<a>=GF(3^20)
+            sage: E=EllipticCurve(K,[1,0,0,1,a])
+            sage: E.cardinality_sea()
+            Traceback (most recent call last):
+            ...
+            ValueError: cardinality_sea() only works over prime fields.
+            sage: E.cardinality()
+            3486794310
+
+        """
+        k = self.base_ring()
+        p = k.characteristic()
+        if k.degree()==1:
+            return sea.ellsea(self.a_invariants(), p, early_abort=early_abort)
+        else:
+            raise ValueError, "cardinality_sea() only works over prime fields."
+
+    def cardinality_bsgs(self, verbose=False):
         r"""
         Return the cardinality of self over the base field.  Will be
         called by user function cardinality only when necessary,
         i.e. when the j_invariant is not in the prime field.
 
-        This function just calls abelian_group(), so results in the
-        group structure and generators being cached as well as the
-        group order.
+        ALGORITHM: A variant of "Mestre's trick" extended to all finite
+        fields by Cremona and Sutherland, 2008.
+
+        NOTES:
+        1. The Mestre-Schoof-Cremona-Sutherland algorithm may fail for
+        a small finite number of curves over F_q for q at most 49, so
+        for q<50 we use an exhaustive count.
+        2. Quadratic twists are not implemented in characteristic 2
+        when j=0 (=1728); but this case is treated separately.
 
         EXAMPLES:
             sage: p=next_prime(10^3)
             sage: E=EllipticCurve(GF(p),[3,4])
-            sage: E.cardinality_from_group()
+            sage: E.cardinality_bsgs()
             1020
             sage: E=EllipticCurve(GF(3^4,'a'),[1,1])
-            sage: E.cardinality_from_group()
+            sage: E.cardinality_bsgs()
             64
+            sage: F.<a>=GF(101^3,'a')
+            sage: E=EllipticCurve([2*a^2 + 48*a + 27, 89*a^2 + 76*a + 24])
+            sage: E.cardinality_bsgs()
+            1031352
         """
+        E1 = self
+        k = self.base_field()
+        q = k.order()
+        if q<50:
+            if verbose:
+                print "q=",q,"< 50 so using exhaustive count"
+            return self.cardinality_exhaustive()
 
-        A, gens = self.abelian_group()
-        return self._order
+        # Construct the quadratic twist:
+        E2 = E1.quadratic_twist()
+        if verbose:
+            print "Quadratic twist is ",E2.ainvs()
 
+        bounds = Hasse_bounds(q)
+        lower, upper = bounds
+        B = upper-q-1 # = floor(2*sqrt(q))
+        a = ZZ(0)
+        N1 = N2 = M = ZZ(1)
+        kmin = -B
+        kmax = B
+        q1 = q+1
+        # Throughout, we have #E=q+1-t where |t|<=B and t=a+k*M = a
+        # (mod M) where kmin <= k <= kmax.
+
+        # M is the lcm of the orders of all the points found on E1 and
+        # E2, which will eventually exceed 2*B, at which point
+        # kmin=kmax.
+
+        if q > 2**10:
+            N1 = ZZ(2)**sum([e for P,e in E1._p_primary_torsion_basis(2)])
+            N2 = ZZ(2)**sum([e for P,e in E2._p_primary_torsion_basis(2)])
+            if q > 2**20:
+                N1 *= ZZ(3)**sum([e for P,e in E1._p_primary_torsion_basis(3)])
+                N2 *= ZZ(3)**sum([e for P,e in E2._p_primary_torsion_basis(3)])
+                if q > 2**40:
+                    N1 *= ZZ(5)**sum([e for P,e in E1._p_primary_torsion_basis(5)])
+                    N2 *= ZZ(5)**sum([e for P,e in E2._p_primary_torsion_basis(5)])
+            # We now know that t=q+1 (mod N1) and t=-(q+1) (mod N2)
+            a = q1
+            M = N1
+            g,u,v = M.xgcd(N2) # g==u*M+v*N2
+            if N2>g:
+                a = (a*v*N2-q1*u*M)//g
+                M *= (N2//g) # = lcm(M,N2)
+                a = a%M
+                if verbose:
+                    print "(a,M)=",(a,M)
+                kmin = ((-B-a)/M).ceil()
+                kmax = ((B-a)/M).floor()
+                if kmin==kmax:
+                    self._order = q1-a-kmin*M
+                    if verbose: print "no random points were needed"
+                    return self._order
+            if verbose: print "(2,3,5)-torsion subgroup gives M=",M
+
+        # N1, N2 are divisors of the orders of E1, E2 separately,
+        # which are used to speed up the computation of the orders of
+        # points on each curve.  For large q it is worth initializing
+        # these with the full order of the (2,3,5)-torsion which are
+        # often non-trivial.
+
+        while kmax!=kmin:
+            # Get a random point on E1 and find its order, using the
+            # Hasse bounds and the fact that we know that the group
+            # order is a multiple of N1:
+            n = generic.order_from_bounds(E1.random_point(),bounds,N1,operation='+')
+            if verbose: print "New point on E has order ",n
+            # update N1 and M
+            N1 = N1.lcm(n)
+            g,u,v = M.xgcd(n) # g==u*M+v*n
+            if n>g:
+                # update congruence a (mod M) with q+1 (mod n)
+                a = (a*v*n+q1*u*M)//g
+                M *= (n//g) # = lcm(M,n)
+                a = a%M
+                if verbose: print "(a,M)=",(a,M)
+                kmin = ((-B-a)/M).ceil()
+                kmax = ((B-a)/M).floor()
+                if kmin==kmax:
+                    self._order = q1-a-kmin*M
+                    return self._order
+                if verbose: print "number of possibilities is now ",kmax-kmin+1
+
+            # Get a random point on E2 and find its order, using the
+            # Hasse bounds and the fact that we know that the group
+            # order is a multiple of N2:
+            n = generic.order_from_bounds(E2.random_point(),bounds,N2,operation='+')
+            if verbose:  print "New point on E' has order ",n
+            # update N2 and M
+            N2 = N2.lcm(n)
+            g,u,v = M.xgcd(n) # g==u*M+v*n
+            if n>g:
+                # update congruence a (mod M) with -(q+1) (mod n)
+                a = (a*v*n-q1*u*M)//g
+                M *= (n//g) # = lcm(M,n)
+                a = a%M
+                if verbose: print "(a,M)=",(a,M)
+                kmin = ((-B-a)/M).ceil()
+                kmax = ((B-a)/M).floor()
+                if kmin==kmax:
+                    self._order = q1-a-kmin*M
+                    return self._order
+                if verbose: print "number of possibilities is now ",kmax-kmin+1
 
     def gens(self):
         """
@@ -1000,8 +1190,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.abelian_group()
             (Multiplicative Abelian Group isomorphic to C1031352, ...
 
-        The group can be trivial (but this is the only example of that
-        up to isomorphism!)
+        The group can be trivial:
             sage: E=EllipticCurve(GF(2),[0,0,1,1,1])
             sage: E.abelian_group()
             (Trivial Abelian Group, ())
@@ -1046,11 +1235,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             d = j.minimal_polynomial().degree()
 
 
-        # Computing the group structure is helped by knowing the
-        # cardinality (partly because that makes computation of orders
-        # of points faster), but we only compute the cardinality first
-        # in certain cases: j=0 or 1728 (special-purpose code), or
-        # prime field (ditto using sea for large primes).
+        # Before computing the group structure we compute the
+        # cardinality.  While this is not strictly necessary, it makes
+        # the code simpler and also makes computation of orders of
+        # points faster.
 
         # j=0,1728
 
@@ -1064,40 +1252,28 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         if debug:
             print "Lower and upper bounds on group order: [",lower,",",upper,"]"
 
-        group_order_known = False
         try:
             N=self._order
             if debug:
-                print "Group order alrady known to be ",N
-            group_order_known = True
-            lower=N
-            upper=N
+                print "Group order already known to be ",N
         except:
-            if (q<75):
+            if (q<50):
                 if debug:
                     print "Computing group order naively"
                 N=self.cardinality_exhaustive()
-                if debug:
-                    print "... group order = ",N
-                group_order_known = True
-                lower=N
-                upper=N
-                self._order=N
             elif d==1:
                 if debug:
                     print "Computing group order using SEA"
                 N=self.cardinality(algorithm='sea')
+            else:
                 if debug:
-                    print "... group order = ",N
-                group_order_known = True
-                lower=N
-                upper=N
-                self._order=N
+                    print "Computing group order using bsgs"
+                N=self.cardinality_bsgs()
+            if debug:
+                print "... group order = ",N
 
-        if group_order_known and debug:
-            print "Lower and upper bounds on group order adjusted ",
-            print "to actual order ",lower
-
+        self._order=N
+        plist = N.prime_factors()
         P1=self(0)
         P2=self(0)
         n1= Integer(1)
@@ -1107,12 +1283,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         npts = 0
 
         # At all stages the current subgroup is generated by P1, P2 with
-        # orders n1,n2 which are disjoint.  We stop when n1*n2 >= lower
+        # orders n1,n2 which are disjoint.  We stop when n1*n2 == N
 
         if debug:
             "About to start generating random points"
 
-        while n1*n2<lower:
+        while n1*n2 != N:
             if debug:
                 "Getting a new random point"
             Q = self.random_point()
@@ -1128,11 +1304,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 if debug: print "Case 2: n2 may increase"
                 n1a = 1; n1b = n1
                 P1a = P1
-                if group_order_known:
-                    n1a = n1.prime_to_m_part(N//n1)
-                    n1b = n1//n1a
-                    Q = n1a*Q       # has order | n1b
-                    P1a = n1a*P1    # has order = n1b
+                n1a = n1.prime_to_m_part(N//n1)
+                n1b = n1//n1a
+                Q = n1a*Q       # has order | n1b
+                P1a = n1a*P1    # has order = n1b
                 if debug: print "n1a=",n1a
                 a = None
                 for m in n1b.divisors():
@@ -1144,7 +1319,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 assert a != None
                 a *= (m*n1a)
                 if debug: print "linear relation gives m=",m,", a=",a
-                assert m*Q==a*P1
+                if debug: assert m*Q==a*P1
                 if m>1: # else Q is in <P1>
                     Q=Q-(a//m)*P1; # has order m and is disjoint from P1
                     if debug: assert Q.order()==m
@@ -1173,7 +1348,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     if debug: assert P3.order()==n2
                     P3._order=n2
                     if debug: print "storing generator ",P3," of ",n2,"-torsion"
-                m = generic.order_from_bounds(Q,bounds,n1,operation='+')
+                m = generic.order_from_multiple(Q,N,plist,operation='+')
                 P1,n1=generic.merge_points((P1,n1),(Q,m))
                 if debug: assert P1.order()==n1
                 P1._order=n1
@@ -1181,17 +1356,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     print "Replacing first  generator by ",P1," of order ",
                     print n1,", gaining index ",n1//oldn1
                     print "Subgroup order now ",n1*n2,"=",n1,"*",n2
-
-                # If we did not yet know the group order, we may now be
-                # able to determine it
-                if not group_order_known:
-                    M = n1*n2  # group order is a multiple of this
-                    c1 = (upper/M).floor()
-                    if c1 == (lower/M).ceil():
-                        group_order_known = True
-                        lower = upper = N = c1*M
-                        if debug:
-                            print "Group order now determined to be ",N
 
                 # Now replace P2 by a point of order n2 s.t. it and
                 # (n1//n2)*P1 are still a basis for n2-torsion:

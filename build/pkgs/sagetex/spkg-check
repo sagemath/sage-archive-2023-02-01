@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# this runs Sage on the generated .sage files to see if they work ok
+
+if [ "$(which latex)" != "" ]
+then
+    cd src
+    for F in example sagetexpackage
+    do
+	latex $F
+	if [ $(sage $F.sage 2>&1 | grep -c 'failed') -gt 0 ]
+	then
+	    echo "Error running Sage on $F.sage!"
+	    exit 1
+	else
+	    echo "No problem (that this script can detect) running Sage on $F.sage."
+	fi
+    done
+else
+    echo "LaTeX isn't installed (or isn't in \$PATH); skipping test."
+fi
+
+# if we get here, we assume the .sage files are good, and exit successfully
+exit 0

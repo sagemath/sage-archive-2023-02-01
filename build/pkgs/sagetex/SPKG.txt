@@ -1,0 +1,75 @@
+= SageTeX =
+
+== Description ==
+
+The SageTeX package allows you to embed code, results of computations,
+and plots from Sage into LaTeX documents.
+
+== License ==
+
+The ''source code'' of the SageTeX package may be redistributed and/or
+modified under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 2 of the License, or (at
+your option) any later version. To view a copy of this license, see
+[[http://www.gnu.org/licenses/]] or send a letter to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301, USA.
+
+The ''documentation'' of the SageTeX package is licensed under the
+Creative Commons Attribution-Noncommercial-Share Alike 3.0 License. To
+view a copy of this license, visit
+[[http://creativecommons.org/licenses/by-nc-sa/3.0/]] or send a letter
+to Creative Commons, 171 Second Street, Suite 300, San Francisco,
+California, 94105, USA.
+
+== SPKG Maintainers ==
+
+Dan Drake (ddrake at member ams org)
+
+== Upstream Contact ==
+
+Author: Dan Drake. Web: [[http://www.bitbucket.org/ddrake/sagetex]].
+
+== Dependencies ==
+
+To install, nothing more than a standard Sage install. The
+{{{spkg-check}}} script will likely fail unless a complete (or nearly
+complete) Sage installation is available, as it attempts to run Sage on
+the {{{.sage}}} files associated with the documentation and the provided
+example.
+
+Of course, to fully ''use'' SageTeX, one needs a modern TeX
+distribution.
+
+== Notes ==
+
+To use SageTeX, both Sage and LaTeX need to know about it. If you have
+installed this spkg, then Sage knows about SageTeX; now you need to make
+LaTeX aware of it. The easiest thing to do is to copy a directory to a
+{{{texmf}}} directory in your home directory. For Linux/Unix users, do
+{{{
+  cp -r $SAGE_ROOT/local/share/texmf/ $HOME/texmf/
+}}}
+For OS X users with MacTeX:
+{{{
+  cp -r $SAGE_ROOT/local/share/texmf/ $HOME/Library/texmf/
+}}}
+After you've copied over the necessary files, you'll need to update
+TeX's database so that it can find them. Run "{{{texhash $HOME/texmf}}}"
+(replace the texmf directory as appropriate) to do this.
+
+The directory {{{$SAGE_ROOT/local/share/texmf/tex/generic/sagetex}}}
+contains documentation and an example file. If you have problems or
+suggestions see [[http://groups.google.com/group/sage-support|the
+sage-support group]].
+
+== Changelog ==
+
+=== sagetex-2.0.p1 (Dan Drake, 8 Jan 2008) ===
+
+ * Proper SPKG.txt, spkg-check, md5sums
+ * Split repos, get directory structure right
+
+=== sagetext-2.0 (Dan Drake, 18 Dec 2008) ===
+
+ * Initial release

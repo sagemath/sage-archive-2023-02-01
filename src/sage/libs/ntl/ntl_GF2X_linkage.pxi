@@ -17,14 +17,14 @@ AUTHOR:
 from sage.libs.ntl.ntl_GF2_decl cimport *, GF2_c
 from sage.libs.ntl.ntl_GF2X_decl cimport *, GF2X_c, GF2XModulus_c
 
-cdef int celement_construct(GF2X_c *e, parent):
+cdef int celement_construct(GF2X_c *e, long parent):
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
     """
     GF2X_construct(e)
 
-cdef int celement_destruct(GF2X_c *e, parent):
+cdef int celement_destruct(GF2X_c *e, long parent):
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -32,7 +32,7 @@ cdef int celement_destruct(GF2X_c *e, parent):
     """
     GF2X_destruct(e)
 
-cdef int celement_gen(GF2X_c *e, long i, parent) except -2:
+cdef int celement_gen(GF2X_c *e, long i, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -40,7 +40,7 @@ cdef int celement_gen(GF2X_c *e, long i, parent) except -2:
     cdef unsigned char g = 2
     GF2XFromBytes(e[0], <unsigned char *>(&g), 1)
 
-cdef object celement_repr(GF2X_c *e, parent):
+cdef object celement_repr(GF2X_c *e, long parent):
     """
     We ignore NTL's printing.
 
@@ -52,7 +52,7 @@ cdef object celement_repr(GF2X_c *e, parent):
     #return GF2X_to_PyString(e)
     raise NotImplementedError
 
-cdef inline int celement_set(GF2X_c* res, GF2X_c* a, parent) except -2:
+cdef inline int celement_set(GF2X_c* res, GF2X_c* a, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -61,7 +61,7 @@ cdef inline int celement_set(GF2X_c* res, GF2X_c* a, parent) except -2:
     """
     res[0] = a[0]
 
-cdef inline int celement_set_si(GF2X_c* res, long i, parent) except -2:
+cdef inline int celement_set_si(GF2X_c* res, long i, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -74,10 +74,10 @@ cdef inline int celement_set_si(GF2X_c* res, long i, parent) except -2:
     """
     GF2X_conv_long(res[0], i)
 
-cdef inline long celement_get_si(GF2X_c* res, parent) except -2:
+cdef inline long celement_get_si(GF2X_c* res, long parent) except -2:
     raise NotImplementedError
 
-cdef inline bint celement_is_zero(GF2X_c* a, parent) except -2:
+cdef inline bint celement_is_zero(GF2X_c* a, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -88,7 +88,7 @@ cdef inline bint celement_is_zero(GF2X_c* a, parent) except -2:
     """
     return GF2X_IsZero(a[0])
 
-cdef inline bint celement_is_one(GF2X_c *a, parent) except -2:
+cdef inline bint celement_is_one(GF2X_c *a, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -99,7 +99,7 @@ cdef inline bint celement_is_one(GF2X_c *a, parent) except -2:
     """
     return GF2X_IsOne(a[0])
 
-cdef inline bint celement_equal(GF2X_c *a, GF2X_c *b, parent) except -2:
+cdef inline bint celement_equal(GF2X_c *a, GF2X_c *b, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -112,7 +112,7 @@ cdef inline bint celement_equal(GF2X_c *a, GF2X_c *b, parent) except -2:
     """
     return GF2X_equal(a[0], b[0])
 
-cdef inline int celement_cmp(GF2X_c *a, GF2X_c *b, parent) except -2:
+cdef inline int celement_cmp(GF2X_c *a, GF2X_c *b, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -134,7 +134,7 @@ cdef inline int celement_cmp(GF2X_c *a, GF2X_c *b, parent) except -2:
     else:
         return -1
 
-cdef inline long celement_hash(GF2X_c *a, parent) except -2:
+cdef inline long celement_hash(GF2X_c *a, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -147,7 +147,7 @@ cdef inline long celement_hash(GF2X_c *a, parent) except -2:
     GF2XHexOutput_c[0] = _hex
     return hash(s)
 
-cdef long celement_len(GF2X_c *a, parent) except -2:
+cdef long celement_len(GF2X_c *a, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -158,7 +158,7 @@ cdef long celement_len(GF2X_c *a, parent) except -2:
     """
     return int(GF2X_NumBits(a[0]))
 
-cdef inline int celement_add(GF2X_c *res, GF2X_c *a, GF2X_c *b, parent) except -2:
+cdef inline int celement_add(GF2X_c *res, GF2X_c *a, GF2X_c *b, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -167,7 +167,7 @@ cdef inline int celement_add(GF2X_c *res, GF2X_c *a, GF2X_c *b, parent) except -
     """
     GF2X_add(res[0], a[0], b[0])
 
-cdef inline int celement_sub(GF2X_c* res, GF2X_c* a, GF2X_c* b, parent) except -2:
+cdef inline int celement_sub(GF2X_c* res, GF2X_c* a, GF2X_c* b, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -176,7 +176,7 @@ cdef inline int celement_sub(GF2X_c* res, GF2X_c* a, GF2X_c* b, parent) except -
     """
     GF2X_sub(res[0], a[0], b[0])
 
-cdef inline int celement_neg(GF2X_c* res, GF2X_c* a, parent) except -2:
+cdef inline int celement_neg(GF2X_c* res, GF2X_c* a, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -185,7 +185,7 @@ cdef inline int celement_neg(GF2X_c* res, GF2X_c* a, parent) except -2:
     """
     res[0] = a[0]
 
-cdef inline int celement_mul(GF2X_c* res, GF2X_c* a, GF2X_c* b, parent) except -2:
+cdef inline int celement_mul(GF2X_c* res, GF2X_c* a, GF2X_c* b, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -194,14 +194,14 @@ cdef inline int celement_mul(GF2X_c* res, GF2X_c* a, GF2X_c* b, parent) except -
     """
     GF2X_mul(res[0], a[0], b[0])
 
-cdef inline int celement_div(GF2X_c* res, GF2X_c* a, GF2X_c* b, parent) except -2:
+cdef inline int celement_div(GF2X_c* res, GF2X_c* a, GF2X_c* b, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
     """
     return GF2X_divide(res[0], a[0], b[0])
 
-cdef inline int celement_floordiv(GF2X_c* res, GF2X_c* a, GF2X_c* b, parent) except -2:
+cdef inline int celement_floordiv(GF2X_c* res, GF2X_c* a, GF2X_c* b, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -212,7 +212,7 @@ cdef inline int celement_floordiv(GF2X_c* res, GF2X_c* a, GF2X_c* b, parent) exc
     """
     GF2X_div(res[0], a[0], b[0])
 
-cdef inline int celement_mod(GF2X_c* res, GF2X_c* a, GF2X_c* b, parent) except -2:
+cdef inline int celement_mod(GF2X_c* res, GF2X_c* a, GF2X_c* b, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -221,7 +221,7 @@ cdef inline int celement_mod(GF2X_c* res, GF2X_c* a, GF2X_c* b, parent) except -
     """
     GF2X_rem(res[0], a[0], b[0])
 
-cdef inline int celement_quorem(GF2X_c* q, GF2X_c* r, GF2X_c* a, GF2X_c* b, parent) except -2:
+cdef inline int celement_quorem(GF2X_c* q, GF2X_c* r, GF2X_c* a, GF2X_c* b, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -231,7 +231,7 @@ cdef inline int celement_quorem(GF2X_c* q, GF2X_c* r, GF2X_c* a, GF2X_c* b, pare
     """
     GF2X_DivRem(q[0], r[0], a[0], b[0])
 
-cdef inline int celement_inv(GF2X_c* res, GF2X_c* a, parent) except -2:
+cdef inline int celement_inv(GF2X_c* res, GF2X_c* a, long parent) except -2:
     """
     We ignore NTL here and use the fraction field constructor.
 
@@ -240,7 +240,7 @@ cdef inline int celement_inv(GF2X_c* res, GF2X_c* a, parent) except -2:
     """
     raise NotImplementedError
 
-cdef inline int celement_pow(GF2X_c* res, GF2X_c* x, long e, GF2X_c *modulus, parent) except -2:
+cdef inline int celement_pow(GF2X_c* res, GF2X_c* x, long e, GF2X_c *modulus, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
@@ -275,7 +275,7 @@ cdef inline int celement_pow(GF2X_c* res, GF2X_c* x, long e, GF2X_c *modulus, pa
         GF2X_PowerMod_long_pre(res[0], x[0], e, mod)
         if do_sig: _sig_off
 
-cdef inline int celement_gcd(GF2X_c* res, GF2X_c* a, GF2X_c *b, parent) except -2:
+cdef inline int celement_gcd(GF2X_c* res, GF2X_c* a, GF2X_c *b, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]

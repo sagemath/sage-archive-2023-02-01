@@ -5,13 +5,22 @@ AUTHOR:
     -- Martin Albrecht (2008-10) initial implementation
 """
 
+
+# We need to define this stuff before including the templating stuff
+# to make sure the function get_cparent is found since it is used in
+# 'polynomial_template.pxi'.
+
+ctypedef long cparent
+cdef cparent get_cparent(parent):
+    return 0
+
+# first we include the definitions
 include "../../libs/ntl/ntl_GF2X_linkage.pxi"
 
+# and then the interface
 include "polynomial_template.pxi"
 
 from sage.libs.all import pari
-
-#ctypedef unsigned long long word "word"
 
 from sage.matrix.matrix_mod2_dense cimport mzd_write_bit, mzd_read_bit, Matrix_mod2_dense, word
 

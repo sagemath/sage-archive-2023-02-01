@@ -273,10 +273,73 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         else:
             raise ValueError, "unknown matrix format"
 
+    cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix _right):
+        """
+        This code is implicitly called for multiplying self by another
+        sparse matrix.
+
+        EXAMPLES:
+            sage: a = matrix(GF(43), 3, 3, range(9), sparse=True)
+            sage: b = matrix(GF(43), 3, 3, range(10,19), sparse=True)
+            sage: a*b
+            [ 2  5  8]
+            [33  2 14]
+            [21 42 20]
+            sage: a*a
+            [15 18 21]
+            [42 11 23]
+            [26  4 25]
+            sage: c = matrix(GF(43), 3, 8, range(24), sparse=True)
+            sage: a*c
+            [40  0  3  6  9 12 15 18]
+            [26 38  7 19 31  0 12 24]
+            [12 33 11 32 10 31  9 30]
+
+        Even though sparse and dense matrices are represented
+        differently, they still compare as equal if they have the
+        same entries:
+            sage: a*b == a._matrix_times_matrix_dense(b)
+            True
+            sage: d = matrix(GF(43), 3, 8, range(24))
+            sage: a*c == a*d
+            True
+        """
+        cdef Matrix_modn_sparse right, ans
+        right = _right
+
+        cdef c_vector_modint* v
+
+        # Build a table that gives the nonzero positions in each column of right
+        nonzero_positions_in_columns = [set([]) for _ in range(right._ncols)]
+        cdef Py_ssize_t i, j, k
+        for i from 0 <= i < right._nrows:
+            v = &(right.rows[i])
+            for j from 0 <= j < right.rows[i].num_nonzero:
+                nonzero_positions_in_columns[v.positions[j]].add(i)
+
+        ans = self.new_matrix(self._nrows, right._ncols)
+
+        # Now do the multiplication, getting each row completely before filling it in.
+        cdef int x, y, s
+
+        for i from 0 <= i < self._nrows:
+            v = &self.rows[i]
+            for j from 0 <= j < right._ncols:
+                s = 0
+                c = nonzero_positions_in_columns[j]
+                for k from 0 <= k < v.num_nonzero:
+                    if v.positions[k] in c:
+                        y = get_entry(&right.rows[v.positions[k]], j)
+                        x = v.entries[k] * y
+                        s += x
+                set_entry(&ans.rows[i], j, s)
+        return ans
+
 
     def _matrix_times_matrix_dense(self, sage.structure.element.Matrix _right):
         """
-        Do the sparse matrix multiply, but return a dense matrix as the result.
+        Multiply self by the sparse matrix _right, and return the
+        result as a dense matrix.
 
         EXAMPLES:
             sage: a = matrix(GF(10007), 2, [1,2,3,4], sparse=True)
@@ -288,7 +351,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             [ 9 12 15]
             [19 26 33]
             sage: type(c)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
         """
         cdef Matrix_modn_sparse right
         cdef Matrix_modn_dense ans

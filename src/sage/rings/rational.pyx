@@ -702,6 +702,133 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value))
 
+    def is_perfect_power(self, expected_value=False):
+        r"""
+        Returns \code{True} if self is a perfect power.
+
+        INPUT:
+            expected_value -- (bool) whether or not this rational is expected
+                              be a perfect power. This does not affect the
+                              correctness of the output, only the runtime.
+
+        If expected_value is False (default) it will check the
+        smallest of the numerator and denominator is a perfect power
+        as a first step, which is often faster than checking if the
+        quotient is a perfect power.
+
+        EXAMPLES:
+            sage: (4/9).is_perfect_power()
+            True
+            sage: (144/1).is_perfect_power()
+            True
+            sage: (4/3).is_perfect_power()
+            False
+            sage: (2/27).is_perfect_power()
+            False
+            sage: (4/27).is_perfect_power()
+            False
+            sage: (-1/25).is_perfect_power()
+            False
+            sage: (-1/27).is_perfect_power()
+            True
+            sage: (0/1).is_perfect_power()
+            True
+
+        The second parameter does not change the result, but may
+        change the runtime.
+            sage: (-1/27).is_perfect_power(True)
+            True
+            sage: (-1/25).is_perfect_power(True)
+            False
+            sage: (2/27).is_perfect_power(True)
+            False
+            sage: (144/1).is_perfect_power(True)
+            True
+
+        This test makes sure we workaround a bug in GMP (see trac #4612):
+            sage: [ -a for a in srange(100) if not QQ(-a^3).is_perfect_power() ]
+            []
+            sage: [ -a for a in srange(100) if not QQ(-a^3).is_perfect_power(True) ]
+            []
+        """
+        cdef int s
+
+        if (mpz_cmp_ui(mpq_numref(self.value), 0) == 0):
+            return True
+        elif (mpz_cmp_ui(mpq_numref(self.value), 1) == 0):
+            return mpz_perfect_power_p(mpq_denref(self.value))
+
+        cdef mpz_t prod
+        cdef bint res
+
+        # We should be able to run the code in the sign == 1 case
+        # below for both cases. However, we need to do extra work to
+        # avoid a bug in GMP's mpz_perfect_power_p; see trac #4612 for
+        # more details.
+        #
+        # The code in the case of sign == -1 could definitely be
+        # cleaned up, but it will be removed shortly, since both GMP
+        # and eMPIRe have fixes for the mpz_perfect_power_p bug.
+
+        s = mpz_sgn(mpq_numref(self.value))
+        if s == 1: # self is positive
+
+            if (mpz_cmp_ui(mpq_denref(self.value), 1) == 0):
+                return mpz_perfect_power_p(mpq_numref(self.value))
+            if expected_value == False:
+                # A necessary condition is that both the numerator and denominator
+                # be perfect powers, which can be faster to disprove than the full
+                # product (especially if both have a large prime factor).
+                if mpz_cmpabs(mpq_numref(self.value), mpq_denref(self.value)) < 0:
+                    if not mpz_perfect_power_p(mpq_numref(self.value)):
+                        return False
+                else:
+                    if not mpz_perfect_power_p(mpq_denref(self.value)):
+                        return False
+            mpz_init(prod)
+            mpz_mul(prod, mpq_numref(self.value), mpq_denref(self.value))
+            res = mpz_perfect_power_p(prod)
+            mpz_clear(prod)
+            return res == 1
+
+        else: # self is negative
+
+            if (mpz_cmp_ui(mpq_denref(self.value), 1) == 0):
+                if (mpz_cmp_si(mpq_numref(self.value), -1) == 0):
+                    return True
+                mpz_init(prod)
+                mpz_mul_si(prod, mpq_numref(self.value), -1)
+                while mpz_perfect_square_p(prod):
+                    mpz_sqrt(prod, prod)
+                s = mpz_perfect_power_p(prod)
+                mpz_clear(prod)
+                return s == 1
+
+            if expected_value == False:
+                if mpz_cmpabs(mpq_numref(self.value), mpq_denref(self.value)) < 0:
+                    mpz_init(prod)
+                    mpz_mul_si(prod, mpq_numref(self.value), -1)
+                    if mpz_cmp_ui(prod, 1) != 0:
+                        while mpz_perfect_square_p(prod):
+                            mpz_sqrt(prod, prod)
+                        if not mpz_perfect_power_p(prod):
+                            mpz_clear(prod)
+                            return False
+                else:
+                    if not mpz_perfect_power_p(mpq_denref(self.value)):
+                        return False
+                    mpz_init(prod)
+            else:
+                mpz_init(prod)
+
+            mpz_mul(prod, mpq_numref(self.value), mpq_denref(self.value))
+            mpz_mul_si(prod, prod, -1)
+            while mpz_perfect_square_p(prod):
+                mpz_sqrt(prod, prod)
+            res = mpz_perfect_power_p(prod)
+            mpz_clear(prod)
+            return res == 1
+
     def squarefree_part(self):
         """
         Return the square free part of $x$, i.e., an integer z such that $x = z y^2$,

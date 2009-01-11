@@ -2992,13 +2992,35 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z = 8
             sage: z.is_perfect_power()
             True
-            sage: z = 144
-            sage: z.is_perfect_power()
+            sage: 144.is_perfect_power()
             True
-            sage: z = 10
-            sage: z.is_perfect_power()
+            sage: 10.is_perfect_power()
             False
+            sage: (-8).is_perfect_power()
+            True
+            sage: (-4).is_perfect_power()
+            False
+
+        This is a test to make sure we workaround a bug in GMP. (See
+        trac #4612.)
+            sage: [ -a for a in srange(100) if not (-a^3).is_perfect_power() ]
+            []
         """
+        cdef mpz_t tmp
+        cdef int res
+        if mpz_sgn(self.value) == -1:
+            if mpz_cmp_si(self.value, -1) == 0:
+                return True
+            mpz_init(tmp)
+            mpz_mul_si(tmp, self.value, -1)
+            while mpz_perfect_square_p(tmp):
+                mpz_sqrt(tmp, tmp)
+            res = mpz_perfect_power_p(tmp)
+            mpz_clear(tmp)
+            if res:
+                return True
+            else:
+                return False
         return mpz_perfect_power_p(self.value)
 
     def jacobi(self, b):

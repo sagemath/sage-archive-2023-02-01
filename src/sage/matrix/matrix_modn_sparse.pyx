@@ -75,6 +75,7 @@ include '../modules/vector_modn_sparse_c.pxi'
 
 cimport matrix
 cimport matrix_sparse
+cimport matrix_dense
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.misc.misc import verbose, get_verbose, graphics_filename
@@ -352,9 +353,15 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             [19 26 33]
             sage: type(c)
             <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
+
+            sage: a = matrix(GF(2), 20, 20, sparse=True)
+            sage: a*a == a._matrix_times_matrix_dense(a)
+            True
+            sage: type(a._matrix_times_matrix_dense(a))
+            <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
         """
         cdef Matrix_modn_sparse right
-        cdef Matrix_modn_dense ans
+        cdef matrix_dense.Matrix_dense ans
         right = _right
 
         cdef c_vector_modint* v
@@ -382,7 +389,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                         y = get_entry(&right.rows[v.positions[k]], j)
                         x = v.entries[k] * y
                         s = (s + x)%self.p
-                ans._matrix[i][j] = s
+                ans.set_unsafe(i, j, s)
+                #ans._matrix[i][j] = s
         return ans
 
     ########################################################################

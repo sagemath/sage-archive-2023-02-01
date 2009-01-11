@@ -10,7 +10,7 @@ There seems to be some inconsistency in the use of the word polyhedra.
 In this module, a polyhedron is a convex (possibly unbounded) set
 defined either as
 - the intersection of a finite set of half-planes and hyperplanes (H-form),
-- the Minkowsky sum of the convex hull of a finite set of vertices and
+- the Minkowski sum of the convex hull of a finite set of vertices and
   the conic hull of a finite set of rays (V-form)
 
 The half-planes are also referred to as inequalities, and abbreviated
@@ -22,8 +22,9 @@ REFERENCES:
     Komei Fukuda's `FAQ in Polyhedral Computation <http://www.ifor.math.ethz.ch/~fukuda/polyfaq/polyfaq.html>`_
 
 AUTHOR:
-    -- Marshall Hampton: first version and bugfixes, 2008
+    -- Marshall Hampton: first version, bugfixes, and various improvements, 2008
     -- Arnaud Bergeron: improvements to triangulation and rendering, 2008
+    -- Sebastien Barthelemy: documentation improvements, 2008
 """
 
 ########################################################################
@@ -43,9 +44,9 @@ from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RR
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
-from sage.matrix.constructor import matrix
+from sage.matrix.constructor import matrix, identity_matrix
 from sage.plot.plot3d.shapes2 import point3d
-from sage.plot.all import line
+from sage.plot.plot import line
 from sage.combinat.combinat import permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from sage.misc.package import is_package_installed
@@ -161,8 +162,8 @@ class Polyhedron(SageObject):
         EXAMPLES:
             sage: p = polytopes.n_cube(4)
             sage: p_show = p.show()
-            sage: p_show.bounding_box()
-            ((-1.0, -1.0, -1.0), (1.0, 1.0, 1.0))
+            sage: p_show.aspect_ratio()
+            [1.0, 1.0, 1.0]
         """
         if self.ambient_dim() == 2 or self.ambient_dim() == 4:
             return self.render_wireframe()
@@ -233,6 +234,30 @@ class Polyhedron(SageObject):
             if len(edge_data[1]) != d:
                 return False
         return True
+
+    def gale_transform(self):
+        """
+        Returns the Gale transform as described in the reference below.
+
+        OUTPUT:
+            A list of vectors, the Gale transform.  The dimension is the
+            dimension of the affine dependencies of the vertices of the
+            polytope.
+
+        EXAMPLES:
+        This is from the reference, for a triangular prism:
+            sage: p = Polyhedron(vertices = [[0,0],[0,1],[1,0]])
+            sage: p2 = p.prism()
+            sage: p2.gale_transform()
+            [(1, 0), (0, 1), (-1, -1), (-1, 0), (0, -1), (1, 1)]
+
+        REFERENCES:
+            Lectures in Geometric Combinatorics, R.R.Thomas, 2006, AMS Press.
+        """
+        A = matrix(self.n_vertices(), [[1]+x for x in self.vertices()])
+        A = A.transpose()
+        A_ker = A.right_kernel()
+        return A_ker.basis_matrix().transpose().rows()
 
     def __add__(self, other):
         """
@@ -327,6 +352,34 @@ class Polyhedron(SageObject):
         new_ieqs = self.ieqs() + other.ieqs()
         return Polyhedron(ieqs = new_ieqs)
 
+    def edge_truncation(self, cut_frac = Integer(1)/3):
+        """
+        Returns a polytope formed from two points on each edge.
+
+        INPUT:
+            cut_frac - how deeply to cut into the edge.  Default is 1/3.
+
+        OUTPUT:
+            A Polyhedron object, truncated as described above.
+
+        EXAMPLES:
+	Truncating a cube:
+	    sage: cube = polytopes.n_cube(3)
+	    sage: trunc_cube = cube.edge_truncation()
+	    sage: trunc_cube.n_vertices()
+	    24
+	    sage: trunc_cube.n_facets()
+	    14
+        """
+        new_verts = []
+        old_verts = [vector(x) for x in self.vertices()]
+        for edge in self.vertex_adjacencies():
+            for vs in edge[1]:
+                if vs > edge[0]:
+                    new_verts.append(old_verts[edge[0]]*cut_frac+old_verts[vs]*(1-cut_frac))
+                    new_verts.append(old_verts[edge[0]]*(1-cut_frac)+old_verts[vs]*(cut_frac))
+        new_verts = [list(x) for x in new_verts]
+        return Polyhedron(vertices = new_verts)
 
     def vertices(self, force_from_ieqs = False):
         """
@@ -586,9 +639,8 @@ class Polyhedron(SageObject):
 
         EXAMPLES:
             sage: g3 = polytopes.n_cube(3).graph()
-            sage: g3.automorphism_group()
-            Permutation Group with generators [(2,4)(3,5), (1,2)(5,6),
-            (1,8)(2,3)(4,5)(6,7)]
+            sage: len(g3.automorphism_group())
+            48
             sage: s4 = polytopes.n_simplex(4).graph()
             sage: s4.is_eulerian()
             True
@@ -629,6 +681,33 @@ class Polyhedron(SageObject):
         old_verts = [x for x in self.vertices()]
         old_verts_center = sum([vector(x) for x in old_verts])/self.n_vertices()
         new_verts = [x+[0] for x in old_verts] + [list(old_verts_center) + [1]]
+        return Polyhedron(vertices = new_verts)
+
+    def bipyramid(self):
+        """
+        Returns a polyhedron that is a bipyramid over the original.
+
+        EXAMPLES:
+            sage: octahedron = polytopes.cross_polytope(3)
+            sage: cross_poly_4d = octahedron.bipyramid()
+            sage: cross_poly_4d.n_vertices()
+            8
+            sage: cross_poly_4d.vertices()
+            [[0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, -1, 0], [0, -1, 0, 0],
+            [-1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, -1]]
+
+        Now check that bipyramids of cross-polytopes are cross-polytopes
+            sage: q = cross_poly_4d.vertices()[:]
+            sage: q.sort()
+            sage: q2 = polytopes.cross_polytope(4).vertices()[:]
+            sage: q2.sort()
+            sage: q == q2
+            True
+        """
+        old_verts = [x for x in self.vertices()]
+        old_verts_center = sum([vector(x) for x in old_verts])/self.n_vertices()
+        new_verts = [x+[0] for x in old_verts] + [list(old_verts_center) + [1]]
+        new_verts = new_verts + [list(old_verts_center) + [-1]]
         return Polyhedron(vertices = new_verts)
 
     def prism(self):
@@ -714,6 +793,97 @@ class Polyhedron(SageObject):
         self._triangulated_facial_incidences = t_fac_incs
         return t_fac_incs
 
+    def _perspective_project(self, proj_point, hide_invisible = False):
+        """
+        Projects from the point proj_point onto a perpendicular plane through
+        the origin.
+
+        OUTPUT:
+            A list of projected edges.
+
+        EXAMPLES:
+            sage: test = Polyhedron(vertices = [[0,0,0],[1,0,0],[0,1,0],[0,0,1]])
+            sage: len(test._perspective_project([2,2,2], hide_invisible = True))
+            6
+        """
+        pdim = self.dim()
+        vs = self.vertices()[:]
+        vvs = [vector(RDF,x) for x in vs]
+        pproj = vector(RDF,proj_point)
+
+        psize = norm(pproj)
+        polediff = matrix(RDF,vector([0.0 for i in range(pdim-1)] +[psize])- pproj).transpose()
+        denom = RDF((polediff.transpose()*polediff)[0][0])
+        if denom != 0.0:
+            house = identity_matrix(RDF,pdim) - 2*polediff*polediff.transpose()/denom #Householder reflector
+        else:
+            house = identity_matrix(RDF,pdim)
+        verts = [house*x for x in vvs]
+        verts = [list(x) for x in verts]
+        proj_verts = [[x[i]/(psize-x[pdim-1]) for i in range(pdim-1)] for x in verts]
+        hlines = []
+        if hide_invisible:
+            visible = []
+            for i in range(len(self.ieqs())):
+                ieq = self.ieqs()[i]
+                if pproj.dot_product(vector(ieq[1:])) >= -ieq[0]:
+                    visible.extend(self.facial_incidences()[i][1])
+            visible = list(set(visible))
+        else:
+            visible = range(self.n_vertices())
+        for an_edge in self.vertex_adjacencies():
+            for j in an_edge[1]:
+                if j > an_edge[0] and j in visible and an_edge[0] in visible:
+                    hlines += [[proj_verts[an_edge[0]],proj_verts[j]]]
+        return hlines
+
+    def schlegel_projection(self, projection_dir = ''):
+        """
+        Returns a list of edges of the polytope after a Schlegel projection.
+        The vertices are normalized to the unit sphere, and stereographically
+        projected from a point slightly outside of the sphere.
+
+        INPUTS:
+            projection_dir - a direction from which to project.  The default is
+        to use the center of the first face.
+
+        OUTPUTS:
+            A list of edges in the projection.
+
+        EXAMPLES:
+            sage: p = polytopes.n_cube(3)
+            sage: schlegel_edges = p.schlegel_projection()
+            sage: len([x for x in schlegel_edges if x[0][0] > 0])
+            8
+        """
+        v = self.vertices()
+        pdim = self.dim()
+        f0 = (self.facial_incidences()[0])[1]
+        if projection_dir == '':
+            vcenter = [sum([v[f0[i]][j]/len(f0) for i in range(len(f0))]) for j in range(len(v[0]))] # compute center of face
+            spcenter = [1.1*vi/norm(vector(vcenter)) for vi in vcenter] # normalize to unit sphere
+        else:
+            try:
+                spcenter = [1.1*vi/norm(vector(projection_dir)) for vi in projection_dir]
+            except TypeError,e:
+                print 'projection direction should be a list of numbers of length ' + str(self.ambient_dim()) + ', not all zero'
+                print e
+                raise TypeError
+        height = norm(vector(spcenter))
+        spverts = [[vi/norm(vector(vp)) for vi in vp] for vp in v] # normalize vertices to unit sphere
+        polediff = matrix(RDF,vector([0.0 for i in range(pdim-1)] +[height])-vector(spcenter)).transpose()
+        denom = RDF((polediff.transpose()*polediff)[0][0])
+        house = identity_matrix(RDF,pdim) - 2*polediff*polediff.transpose()/denom #Householder reflector
+        spverts = [house*vector(RDF,x) for x in spverts] # reflect so face center is at "north pole"
+        spverts = [list(x) for x in spverts]
+        proj_verts = [[x[i]/(height-x[pdim-1]) for i in range(pdim-1)] for x in spverts] # stereographically project
+        hlines = []
+        for an_edge in self.vertex_adjacencies():
+            for j in an_edge[1]:
+                if j> an_edge[0]:
+                    hlines += [[proj_verts[an_edge[0]],proj_verts[j]]]
+        return hlines
+
     def render_wireframe(self, rgbcolor = (0,0,1)):
         """
         For polytopes in 2 or 3 dimensions, returns the edges
@@ -739,22 +909,7 @@ class Polyhedron(SageObject):
                         edges.append([verts[adj[0]],verts[vert]])
             return sum([line(an_edge, rgbcolor = rgbcolor) for an_edge in edges])
         # Now we must be in 4 dimensions, so return Schlegel diagram from the first face.
-        v = self.vertices()
-        f0 = (self.facial_incidences()[0])[1]
-        vcenter = [sum([v[f0[i]][j]/len(f0) for i in range(len(f0))]) for j in range(len(v[0]))] # compute center of face
-        spcenter = [vi/norm(vector(vcenter)) for vi in vcenter] # normalize to unit sphere
-        spverts = [[vi/norm(vector(vp)) for vi in vp] for vp in v] # normalize vertices to unit sphere
-        polediff = matrix(RDF,vector([0.0,0.0,0.0,1.0])-vector(spcenter)).transpose()
-        denom = RDF((polediff.transpose()*polediff)[0][0])
-        house = matrix(RDF,[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]) - 2*polediff*polediff.transpose()/denom #Householder reflector
-        spverts = [house*vector(RDF,x) for x in spverts] # reflect so face center is at "north pole"
-        spverts = [list(x) for x in spverts]
-        proj_verts = [[x[0]/(1-x[3]),x[1]/(1-x[3]),x[2]/(1-x[3])] for x in spverts] # stereographically project
-        hlines = point3d([0,0,0], pointsize = 0.01, rgbcolor = rgbcolor) # workaround due to bug in line not giving a bounding box
-        for an_edge in self.vertex_adjacencies():
-            for j in an_edge[1]:
-                hlines += line([proj_verts[an_edge[0]],proj_verts[j]], rgbcolor = rgbcolor)
-        return hlines
+        return sum([line(x, rgbcolor = rgbcolor) for x in self.schlegel_projection()])
 
     def render_solid(self, rgbcolor = (1,0,0), **kwds):
         """
@@ -1282,9 +1437,29 @@ class Polytopes():
         verts = verts + [i([0,-r12,-g/2]) for i in AlternatingGroup(3)]
         return Polyhedron(vertices = verts)
 
+    def dodecahedron(self):
+        """
+        Returns a dodecahedron. The vertices are
+        rational, so a rational approximation of the golden ratio
+        is used.
+
+	EXAMPLES:
+	    sage: d12 = polytopes.dodecahedron()
+	    sage: d12.n_facets()
+	    12
+        """
+        return self.icosahedron().polar()
+
     def small_rhombicuboctahedron(self):
         """
         An Archimedean solid with 24 vertices and 26 faces.
+
+	EXAMPLES:
+	    sage: sr = polytopes.small_rhombicuboctahedron()
+	    sage: sr.n_vertices()
+	    24
+	    sage: sr.n_facets()
+	    26
         """
         verts = [[-3/2, -1/2, -1/2], [-3/2, -1/2, 1/2], [-3/2, 1/2, -1/2], [-3/2, 1/2,
 1/2], [-1/2, -3/2, -1/2], [-1/2, -3/2, 1/2], [-1/2, -1/2, -3/2], [-1/2,
@@ -1298,13 +1473,83 @@ class Polytopes():
     def great_rhombicuboctahedron(self):
         """
         An Archimedean solid with 48 vertices and 26 faces.
+
+	EXAMPLES:
+	    sage: gr = polytopes.great_rhombicuboctahedron()
+	    sage: gr.n_vertices()
+	    48
+	    sage: gr.n_facets()
+	    26
         """
-        sqr2 = floor(100000*n(sqrt(2)))/100000
-        verts = list(Permutations([1,1+sqr2,1+2*sqr2]))
+        sqr2 = 77171371357/54568400000 #sqrt(2) approximation
+        verts = [[1, 131739771357/54568400000, 104455571357/27284200000], [1, 104455571357/27284200000, 131739771357/54568400000], [131739771357/54568400000, 1, 104455571357/27284200000], [131739771357/54568400000, 104455571357/27284200000, 1], [104455571357/27284200000, 1, 131739771357/54568400000], [104455571357/27284200000, 131739771357/54568400000, 1]]
         verts = verts + [[x[0],x[1],-x[2]] for x in verts]
         verts = verts + [[x[0],-x[1],x[2]] for x in verts]
         verts = verts + [[-x[0],x[1],x[2]] for x in verts]
         return Polyhedron(vertices = verts)
+
+    def rhombic_dodecahedron(self):
+        """
+        This face-regular, vertex-uniform polytope is dual to the
+        cuboctahedron. It has 14 vertices and 12 faces.
+
+	EXAMPLES:
+	    sage: rd = polytopes.rhombic_dodecahedron()
+	    sage: rd.n_vertices()
+	    14
+	    sage: rd.n_facets()
+	    12
+        """
+	return Polyhedron(vertices = [[1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1], [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1], [0, 0, 2], [0, 2, 0], [2, 0, 0], [0, 0, -2], [0, -2, 0], [-2, 0, 0]])
+        #return self.n_cube(3).union(2*self.cross_polytope(3))
+
+    def cuboctahedron(self):
+        """
+        An Archimedean solid with 12 vertices and 14 faces.  Dual to
+        the rhombic dodecahedron.
+
+	EXAMPLES:
+	    sage: co = polytopes.cuboctahedron()
+	    sage: co.n_vertices()
+	    12
+	    sage: len(co.facial_incidences())
+	    14
+        """
+        one = Integer(1)
+        verts = [[0, -one/2, -one/2], [0, one/2, -one/2], [one/2, -one/2, 0], [one/2, one/2, 0], [one/2, 0, one/2], [one/2, 0, -one/2], [0, one/2, one/2], [0, -one/2, one/2], [-one/2, 0, one/2], [-one/2, one/2, 0], [-one/2, 0, -one/2], [-one/2, -one/2, 0]]
+        return Polyhedron(vertices = verts)
+
+    def buckyball(self):
+        """
+        Also known as the truncated icosahedron, an Archimedean solid.
+        It has 32 faces and 60 vertices.
+
+	EXAMPLES:
+	    sage: bb = polytopes.buckyball()
+	    sage: bb.n_vertices()
+	    60
+	    sage: bb.n_facets()
+	    32
+        """
+        approx =  self.icosahedron().edge_truncation()
+        # the approximate version has some facets broken, which we can fix:
+	approx_ieqs = approx.ieqs()
+        buck_ieqs = [x for x in approx_ieqs if QQ(912022)/618033 != x[0]]
+        return Polyhedron(ieqs = buck_ieqs)
+
+    def pentakis_dodecahedron(self):
+        """
+        This face-regular, vertex-uniform polytope is dual to the
+        truncated icosahedron.  It has 60 faces and 32 vertices.
+
+	EXAMPLES:
+	    sage: pd = polytopes.pentakis_dodecahedron()
+	    sage: pd.n_vertices()
+	    32
+	    sage: pd.n_facets()
+	    60
+        """
+        return self.buckyball().polar()
 
     def twenty_four_cell(self):
         """

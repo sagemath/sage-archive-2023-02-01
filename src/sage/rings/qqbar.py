@@ -3823,9 +3823,13 @@ class AlgebraicPolynomialTracker(SageObject):
         EXAMPLES:
             sage: x = polygen(ZZ)
             sage: cp = AA.common_polynomial(x^4 - 2)
+
+        Note that the precision is not guaranteed to find the tightest possible interval
+        since complex_roots() depends on the underlying BLAS implementation.
+
             sage: cp.complex_roots(30, 1)
             [1.189207115002721?,
-             -1.189207115002721?,
+             -1.18920711500272...?,
              1.189207115002721?*I,
              -1.189207115002721?*I]
         """

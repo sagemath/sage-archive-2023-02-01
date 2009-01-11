@@ -1283,9 +1283,9 @@ cdef class RealDoubleElement(FieldElement):
     cdef _log_base(self, double log_of_base):
         if self._value < 2:
             if self._value == 0:
-                return -1./0
+                return RDF(-1)/RDF(0)
             if self._value < 0:
-                return 0./0
+                return RDF(0)/RDF(0)
             _sig_on
             a = self._new_c(gsl_sf_log_1plusx(self._value - 1) / log_of_base)
             _sig_off

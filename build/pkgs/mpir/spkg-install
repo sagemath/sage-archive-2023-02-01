@@ -14,6 +14,19 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+remove_pic_osx_32_bit()
+{
+    echo "Deleting assembly files with depend on PIC working or 32 bit OSX on Intel hardware"
+    rm mpn/x86/dive_1.asm
+    rm mpn/x86/diveby3.asm
+    rm mpn/x86/pentium4/sse2/dive_1.asm
+    rm mpn/x86/pentium4/sse2/mode1o.asm
+    rm mpn/x86/pentium4/sse2/diveby3.asm
+    rm mpn/x86/pentium4/mmx/popham.asm
+    rm mpn/x86/pentium4/mmx/rshift.asm
+}
+
+
 build()
 {
 
@@ -21,10 +34,23 @@ build()
     case $UNAME in
 
     SunOS)
-        ABI=32;;
+        if [ "$SAGE64" = "yes" ]; then
+            echo "Building 64 bit Solaris version"
+            ABI=64
+        else
+            ABI=32
+        fi;;
 
     Darwin)
-        ABI=32;;
+        if [ "$SAGE64" = "yes" ]; then
+            echo "Building 64 bit OSX version"
+            ABI=64
+        else
+            ABI=32
+            if [ `uname -m` = i386 ]; then
+                remove_pic_osx_32_bit
+            fi
+        fi;;
     esac
 
     export ABI CFLAGS CXXFLAGS

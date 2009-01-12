@@ -447,13 +447,13 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: set_modsym_print_mode('modular')
             sage: M = ModularSymbols(11)
             sage: M.modular_symbol([2/11, oo])
-            -{8/9,1}
+            -{-1/9,0}
             sage: M.1
-            {7/8,1}
+            {-1/8,0}
             sage: M.modular_symbol([-1/8, 0])
-            {7/8,1}
+            {-1/8,0}
             sage: M.modular_symbol([0, -1/8, 0])
-            {7/8,1}
+            {-1/8,0}
             sage: M.modular_symbol([10, -1/8, 0])
             Traceback (most recent call last):
             ...

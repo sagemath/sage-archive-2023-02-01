@@ -1238,7 +1238,7 @@ def xgcd(a, b):
         sage: 4*56 + (-5)*44
         4
         sage: g, a, b = xgcd(5/1, 7/1); g, a, b
-        (1, -4, 3)
+        (1, 3, -2)
         sage: a*(5/1) + b*(7/1) == g
         True
         sage: x = polygen(QQ)
@@ -2018,13 +2018,13 @@ def crt(a,b,m,n):
 
     EXAMPLES:
         sage: crt(2, 1, 3, 5)
-        11
+        -4
         sage: crt(13,20,100,301)
         -2087
 
     You can also use upper case:
         sage: c = CRT(2,3, 3, 5); c
-        -7
+        8
         sage: c % 3 == 2
         True
         sage: c % 5 == 3

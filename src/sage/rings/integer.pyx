@@ -3555,8 +3555,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES:
                 sage: Integer(5)._xgcd(7)
-                (1, -4, 3)
-                sage: 5*-4 + 7*3
+                (1, 3, -2)
+                sage: 5*3 + 7*-2
                 1
                 sage: g,s,t = Integer(58526524056)._xgcd(101294172798)
                 sage: g
@@ -3566,11 +3566,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             Without minimality guarantees, weird things can happen:
                 sage: Integer(3)._xgcd(21)
-                (3, -20, 3)
+                (3, 1, 0)
                 sage: Integer(3)._xgcd(24)
-                (3, -15, 2)
+                (3, 1, 0)
                 sage: Integer(3)._xgcd(48)
-                (3, -15, 1)
+                (3, 1, 0)
 
             Weirdness disappears with minimal option:
                 sage: Integer(3)._xgcd(21, minimal=True)

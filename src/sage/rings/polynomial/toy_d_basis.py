@@ -89,7 +89,7 @@ However, when we compute the Groebner basis of I (defined over \ZZ), we
 note that there is a certain integer in the ideal which is not 1.
 
     sage: d_basis(I)
-    [x + 170269749119, y + 2149906854, z + 170335012540, 282687803443]
+    [x + 170269749119, y + 2149906854, z + 735710619426, 282687803443]
 
 Now for each prime $p$ dividing this integer 282687803443, the Groebner
 basis of I modulo $p$ will be non-trivial and will thus give a solution
@@ -170,7 +170,7 @@ def gpol(g1,g2):
         sage: f = x^2 - 1
         sage: g = 2*x*y - z
         sage: gpol(f,g)
-        x^2*y - x*z + y
+        x^2*y - y
     """
     a1,a2 = g1.lc(),g2.lc()
     a, c1, c2 = xgcd(a1,a2)

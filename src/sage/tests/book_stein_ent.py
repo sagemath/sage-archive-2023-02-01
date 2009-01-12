@@ -80,11 +80,11 @@ sage: for n in range(1,10):
 8 0 7
 9 0 8
 sage: CRT(2,3, 3, 5)
--7
+8
 sage: CRT_list([2,3,2], [3,5,7])
 23
 sage: xgcd(5,7)
-(1, -4, 3)
+(1, 3, -2)
 sage: xgcd(130,61)
 (1, 23, -49)
 sage: a = Mod(17, 61)

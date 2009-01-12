@@ -21,9 +21,10 @@ build()
     case $UNAME in
 
     SunOS)
-	unset CFLAGS CXXFLAGS # let GMP's configure script decide
-        ABI=32   # do not delete this (!)
+        ABI=32;;
 
+    Darwin)
+        ABI=32;;
     esac
 
     export ABI CFLAGS CXXFLAGS

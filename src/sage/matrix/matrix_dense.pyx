@@ -77,6 +77,9 @@ cdef class Matrix_dense(matrix.Matrix):
         self.cache('hash', h)
         return h
 
+    cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
+        self[i][j] = value
+
     def _multiply_classical(left, Matrix_dense right):
         """
         Multiply the matrices left and right using the classical $O(n^3)$

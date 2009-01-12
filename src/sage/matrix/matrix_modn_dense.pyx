@@ -324,7 +324,17 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         return _hash
 
+    cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
+        """
+        Set the (i,j) entry of self to the int value.
+        """
+        self._matrix[i][j] = value
+
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
+        """
+        Set the (i,j) entry of self to the value, which is assumed
+        to be of type IntegerMod_int.
+        """
         self._matrix[i][j] = (<IntegerMod_int> value).ivalue
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):

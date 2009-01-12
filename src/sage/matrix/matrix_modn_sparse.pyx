@@ -389,7 +389,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                         y = get_entry(&right.rows[v.positions[k]], j)
                         x = v.entries[k] * y
                         s = (s + x)%self.p
-                ans.set_unsafe(i, j, s)
+                ans.set_unsafe_int(i, j, s)
                 #ans._matrix[i][j] = s
         return ans
 

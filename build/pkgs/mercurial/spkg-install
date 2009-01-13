@@ -21,10 +21,8 @@ fi
 
 cd "$CUR"
 
-# I do not like the default style.css -- its hard
-# to read and ugly.
-$CP patches/style.css src/templates/static/
-$CP patches/changelog.tmpl src/templates/
+#Remove existing copies of Mercurial
+$RM -rf "$SAGE_LOCAL"/lib/python/mercurial
 
 $CP patches/util.py src/mercurial/util.py
 $CP patches/setup.py src/setup.py
@@ -40,7 +38,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ `umame` = "Darwin" ]; then
+if [ `uname` = "Darwin" ]; then
    echo "Copying custom hgmerge script over to $SAGE_LOCAL/bin/"
    $CP patches/hgmerge-osx "$SAGE_LOCAL"/bin/hgmerge
 fi

@@ -3,6 +3,13 @@
 
 == Changelog ==
 
+=== mercurial-1.1.2 (Mike Hansen, January 13, 2009) ===
+ * Updated to Mercurial 1.1.2
+ * Removed patches to changelog.tmpl and style.css as they don't
+   really work due to changes in Mercurial's templating.  Plus,
+   the default hgserve should show "files" instead of "manifest".
+
+
 === mercurial-1.01.p2 (William Stein, Nov 3, 2008) ===
  * Added custom hgmerge script for OS X. For some reason no script at all was
    copied over, which lead to (1) hg merge silently failing painfully for most

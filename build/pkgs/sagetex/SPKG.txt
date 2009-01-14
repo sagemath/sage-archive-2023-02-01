@@ -65,7 +65,7 @@ sage-support group]].
 
 == Changelog ==
 
-=== sagetex-2.0.p1 (Dan Drake, 8 Jan 2008) ===
+=== sagetex-2.0.p0 (Dan Drake, 9 Jan 2008) ===
 
  * Proper SPKG.txt, spkg-check, md5sums
  * Split repos, get directory structure right

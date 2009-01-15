@@ -3723,9 +3723,9 @@ class StandardPermutations_avoiding_132(CombinatorialClass):
         """
         EXAMPLES:
             sage: Permutations(3, avoiding=[1,3,2]).list() # indirect doctest
-            [[1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+            [[1, 2, 3], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
             sage: Permutations(4, avoiding=[1,3,2]).list()
-            [[4, 1, 3, 2],
+            [[4, 1, 2, 3],
              [4, 2, 1, 3],
              [4, 2, 3, 1],
              [4, 3, 1, 2],
@@ -3734,12 +3734,11 @@ class StandardPermutations_avoiding_132(CombinatorialClass):
              [3, 4, 2, 1],
              [2, 3, 4, 1],
              [3, 2, 4, 1],
-             [1, 3, 2, 4],
+             [1, 2, 3, 4],
              [2, 1, 3, 4],
              [2, 3, 1, 4],
              [3, 1, 2, 4],
              [3, 2, 1, 4]]
-
         """
         if self.n == 0:
             return
@@ -3751,7 +3750,7 @@ class StandardPermutations_avoiding_132(CombinatorialClass):
 
         elif self.n == 3:
             for p in StandardPermutations_n(self.n):
-                if p != [1, 2, 3]:
+                if p != [1, 3, 2]:
                     yield p
             return
 
@@ -3923,8 +3922,7 @@ class StandardPermutations_avoiding_231(CombinatorialClass):
         """
         EXAMPLES:
             sage: Permutations(3, avoiding=[2, 3, 1]).list()
-            [[2, 3, 1], [3, 1, 2], [1, 3, 2], [2, 1, 3], [1, 2, 3]]
-
+            [[3, 2, 1], [3, 1, 2], [1, 3, 2], [2, 1, 3], [1, 2, 3]]
         """
         for p in StandardPermutations_avoiding_132(self.n):
             yield p.reverse()
@@ -3962,8 +3960,7 @@ class StandardPermutations_avoiding_312(CombinatorialClass):
         """
         EXAMPLES:
             sage: Permutations(3, avoiding=[3, 1, 2]).list()
-            [[3, 1, 2], [2, 3, 1], [2, 1, 3], [1, 3, 2], [1, 2, 3]]
-
+            [[3, 2, 1], [2, 3, 1], [2, 1, 3], [1, 3, 2], [1, 2, 3]]
         """
         for p in StandardPermutations_avoiding_132(self.n):
             yield p.complement()
@@ -4001,8 +3998,7 @@ class StandardPermutations_avoiding_213(CombinatorialClass):
         """
         EXAMPLES:
             sage: Permutations(3, avoiding=[2, 1, 3]).list()
-            [[2, 1, 3], [1, 3, 2], [3, 1, 2], [2, 3, 1], [3, 2, 1]]
-
+            [[1, 2, 3], [1, 3, 2], [3, 1, 2], [2, 3, 1], [3, 2, 1]]
         """
         for p in StandardPermutations_avoiding_132(self.n):
             yield p.complement().reverse()
@@ -4185,7 +4181,7 @@ def Permutations(n=None,k=None, **kwargs):
         sage: p = Permutations(4, avoiding=[1,3,2]); p
         Standard permutations of 4 avoiding [1, 3, 2]
         sage: p.list()
-        [[4, 1, 3, 2],
+        [[4, 1, 2, 3],
          [4, 2, 1, 3],
          [4, 2, 3, 1],
          [4, 3, 1, 2],
@@ -4194,7 +4190,7 @@ def Permutations(n=None,k=None, **kwargs):
          [3, 4, 2, 1],
          [2, 3, 4, 1],
          [3, 2, 4, 1],
-         [1, 3, 2, 4],
+         [1, 2, 3, 4],
          [2, 1, 3, 4],
          [2, 3, 1, 4],
          [3, 1, 2, 4],

@@ -79,7 +79,7 @@ from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.misc.misc import verbose, get_verbose, graphics_filename
 
-from sage.rings.integer import Integer
+import sage.rings.all as rings
 
 from sage.matrix.matrix2 import Matrix as Matrix2
 from sage.rings.arith import is_prime
@@ -445,34 +445,27 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     def density(self):
         """
-        Return the density of self.
-
-        By density we understand the ration of the number of nonzero
-        positions and the self.nrows() * self.ncols(), i.e. the number
-        of possible nonzero positions.
-
+        Return the density of self, i.e., the ratio of the number of
+        nonzero entries of self to the total size of self.
 
         EXAMPLE:
-
-            First, note that the density parameter does not ensure
-            the density of a matrix, it is only an upper bound.
-
-            sage: A = random_matrix(GF(127),200,200,density=0.3, sparse=True)
-            sage: A.density()
-            257/1000
-
             sage: A = matrix(QQ,3,3,[0,1,2,3,0,0,6,7,8],sparse=True)
             sage: A.density()
             2/3
-        """
-        from sage.rings.rational_field import QQ
 
-        cdef Py_ssize_t i, j, k
-        k = 0
+        Notice that the density parameter does not ensure the density
+        of a matrix; it is only an upper bound.
+            sage: A = random_matrix(GF(127),200,200,density=0.3, sparse=True)
+            sage: A.density()
+            257/1000
+        """
+        cdef Py_ssize_t i, nonzero_entries
+
+        nonzero_entries = 0
         for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self.rows[i].num_nonzero:
-                k+=1
-        return QQ(k)/QQ(self.nrows()*self.ncols())
+            nonzero_entries += self.rows[i].num_nonzero
+
+        return rings.ZZ(nonzero_entries)/rings.ZZ(self._nrows*self._ncols)
 
     def transpose(self):
         """
@@ -596,7 +589,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             # the returend pivots list is currently wrong
             #r, pivots = linbox.rank(1)
             r = linbox.rank(method)
-            r = Integer(r)
+            r = rings.Integer(r)
             _sig_off
             self.cache('rank', r)
             return r

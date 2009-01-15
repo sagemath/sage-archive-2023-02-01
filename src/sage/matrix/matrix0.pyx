@@ -21,8 +21,10 @@ EXAMPLES:
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
 include "../ext/python.pxi"
+include "../ext/python_list.pxi"
 include "../ext/python_object.pxi"
 include "../ext/python_slice.pxi"
+include "../ext/python_tuple.pxi"
 
 import sage.modules.free_module
 import sage.misc.latex
@@ -43,7 +45,6 @@ import sage.modules.free_module
 import matrix_misc
 
 cdef extern from "Python.h":
-    bint PyList_CheckExact(PyObject* p)
     bint PySlice_Check(PyObject* ob)
 
 cdef class Matrix(sage.structure.element.Matrix):
@@ -639,7 +640,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             []
             sage: M[range(2,2), :3]
             []
-
+            sage: M[(1,2), 3]
+            [ 7]
+            [11]
+            sage: M[(1,2),(0,1,1)]
+            [4 5 5]
+            [8 9 9]
         """
         cdef list row_list
         cdef list col_list
@@ -647,43 +653,33 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef int row, col
         cdef int nrows = self._nrows
         cdef int ncols = self._ncols
-
         cdef tuple key_tuple
+        cdef object row_index, col_index
 
-        if PY_TYPE_CHECK(key, tuple):
-            key_tuple = key
+        # used to keep track of when an index is a
+        # single number
+        cdef int single_row = 0, single_col = 0
+
+        if PyTuple_CheckExact(key):
+            key_tuple = <tuple>key
+            #if PyTuple_Size(key_tuple) != 2:
             if len(key_tuple) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
 
-            row_index = key_tuple[0]
-            col_index = key_tuple[1]
+            row_index = <object>PyTuple_GET_ITEM(key_tuple, 0)
+            col_index = <object>PyTuple_GET_ITEM(key_tuple, 1)
 
-            if not (PY_TYPE_CHECK(row_index, list)
-                    or PY_TYPE_CHECK(row_index, tuple)
-                    or PY_TYPE_CHECK(row_index, slice)) and not \
-            (PY_TYPE_CHECK(col_index, list)
-             or PY_TYPE_CHECK(col_index, tuple)
-             or PY_TYPE_CHECK(col_index, slice)):
-                row = row_index
-                col = col_index
-                if row<0:
-                    row += nrows
-                if col<0:
-                    col += ncols
-
-                if row<0 or row >= nrows or col<0 or col >= ncols:
-                    raise IndexError, "matrix index out of range"
-                return self.get_unsafe(row, col)
-
-
-            if PY_TYPE_CHECK(row_index, list) or PY_TYPE_CHECK(row_index, tuple):
-                row_list = row_index
+            if PyList_CheckExact(row_index) or PyTuple_CheckExact(row_index):
+                if PyTuple_CheckExact(row_index):
+                    row_list = list(row_index)
+                else:
+                    row_list = row_index
                 for i from 0<=i<len(row_list):
                     if row_list[i]<0:
                         row_list[i] += nrows
                     if row_list[i]<0 or row_list[i]>=nrows:
                         raise IndexError, "matrix index out of range"
-            elif PY_TYPE_CHECK(row_index, slice):
+            elif PySlice_Check(<PyObject *>row_index):
                 row_list = range(*row_index.indices(nrows))
             else:
                 row = row_index
@@ -691,16 +687,19 @@ cdef class Matrix(sage.structure.element.Matrix):
                     row += nrows
                 if row<0 or row >= nrows:
                     raise IndexError, "matrix index out of range"
-                row_list = [row]
+                single_row = 1
 
-            if PY_TYPE_CHECK(col_index, list) or PY_TYPE_CHECK(col_index, tuple):
-                col_list = col_index
+            if PyList_CheckExact(col_index) or PyTuple_CheckExact(col_index):
+                if PyTuple_CheckExact(col_index):
+                    col_list = list(col_index)
+                else:
+                    col_list = col_index
                 for i from 0<=i<len(col_list):
                     if col_list[i]<0:
                         col_list[i] += ncols
                     if col_list[i]<0 or col_list[i]>=ncols:
                         raise IndexError, "matrix index out of range"
-            elif PY_TYPE_CHECK(col_index, slice):
+            elif PySlice_Check(<PyObject *>col_index):
                 col_list =  range(*col_index.indices(ncols))
             else:
                 col = col_index
@@ -708,8 +707,19 @@ cdef class Matrix(sage.structure.element.Matrix):
                     col += ncols
                 if col<0 or col >= ncols:
                     raise IndexError, "matrix index out of range"
-                col_list = [col]
+                single_col = 1
 
+            # if we had a single row entry and a single column entry,
+            # we want to just do a get_unsafe
+            if single_row and single_col:
+                return self.get_unsafe(row, col)
+
+            # otherwise, prep these for the call to
+            # matrix_from_rows_and_columns
+            if single_row:
+                row_list = [row]
+            if single_col:
+                col_list = [col]
 
             if len(row_list) == 0 or len(col_list) == 0:
                 return self.new_matrix(nrows=0,ncols=0)

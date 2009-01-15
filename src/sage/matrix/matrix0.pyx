@@ -525,10 +525,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             IndexError: matrix index out of range
             sage: a[-1,0]
-            Traceback (most recent call last):
-            ...
-            IndexError: matrix index out of range
-
+            6
             sage: a[2.7]
             Traceback (most recent call last):
             ...
@@ -582,6 +579,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M[3,4]
             4
 
+            sage: M[-1,:]
+            [-1  2 -2 -1  4]
+
             sage: A = matrix(ZZ,3,4, [3, 2, -5, 0, 1, -1, 1, -4, 1, 0, 1, -3]); A
             [ 3  2 -5  0]
             [ 1 -1  1 -4]
@@ -596,20 +596,20 @@ cdef class Matrix(sage.structure.element.Matrix):
             [1 1]
             [1 1]
 
-            sage: A[2:-1:-1,:]
+            sage: A[2::-1,:]
             [ 1  0  1 -3]
             [ 1 -1  1 -4]
             [ 3  2 -5  0]
 
-            sage: A[1:,3:-1:-1]
+            sage: A[1:,3::-1]
             [-4  1 -1  1]
             [-3  1  0  1]
 
-            sage: A[1:,3:-1:-2]
+            sage: A[1:,3::-2]
             [-4 -1]
             [-3  0]
 
-            sage: A[2:-1:-1,3:1:-1]
+            sage: A[2::-1,3:1:-1]
             [-3  1]
             [-4  1]
             [ 0 -5]
@@ -627,9 +627,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: A = matrix(2, [1, 2, 3, 4])
             sage: A[[0,0],[0,0]]
-            Traceback (most recent call last):
-            ...
-            IndexError: duplicate values in index; use matrix_from_rows_and_columns() instead
+            [1 1]
+            [1 1]
 
             sage: M = matrix(3, 4, range(12))
             sage: M[0:0, 0:0]
@@ -642,66 +641,80 @@ cdef class Matrix(sage.structure.element.Matrix):
             []
 
         """
-        cdef PyObject* ts1
-        cdef PyObject* ts2
-        cdef object s1, s2
-        cdef Py_ssize_t ss1, ss2
-        cdef int stop
+        cdef list row_list
+        cdef list col_list
+        cdef Py_ssize_t i
+        cdef int row, col
+        cdef int nrows = self._nrows
+        cdef int ncols = self._ncols
 
-        if PyTuple_CheckExact(key):
-            if PyTuple_GET_SIZE(key) != 2:
+        cdef tuple key_tuple
+
+        if PY_TYPE_CHECK(key, tuple):
+            key_tuple = key
+            if len(key_tuple) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
 
-            ts1 = PyTuple_GET_ITEM(key, 0)
-            ts2 = PyTuple_GET_ITEM(key, 1)
+            row_index = key_tuple[0]
+            col_index = key_tuple[1]
 
-            if not (PyList_CheckExact(ts1) | PySlice_Check(ts1) ) and \
-                    not (PyList_CheckExact(ts2) | PySlice_Check(ts2)):
-                    ss1 = <object>ts1
-                    ss2 = <object>ts2
-                    if ss1<0 or ss1 >= self._nrows or ss2<0 or ss2 >= self._ncols:
+            if not (PY_TYPE_CHECK(row_index, list)
+                    or PY_TYPE_CHECK(row_index, tuple)
+                    or PY_TYPE_CHECK(row_index, slice)) and not \
+            (PY_TYPE_CHECK(col_index, list)
+             or PY_TYPE_CHECK(col_index, tuple)
+             or PY_TYPE_CHECK(col_index, slice)):
+                row = row_index
+                col = col_index
+                if row<0:
+                    row += nrows
+                if col<0:
+                    col += ncols
+
+                if row<0 or row >= nrows or col<0 or col >= ncols:
+                    raise IndexError, "matrix index out of range"
+                return self.get_unsafe(row, col)
+
+
+            if PY_TYPE_CHECK(row_index, list) or PY_TYPE_CHECK(row_index, tuple):
+                row_list = row_index
+                for i from 0<=i<len(row_list):
+                    if row_list[i]<0:
+                        row_list[i] += nrows
+                    if row_list[i]<0 or row_list[i]>=nrows:
                         raise IndexError, "matrix index out of range"
-                    return self.get_unsafe(ss1, ss2)
-            s1 = <object>ts1
-            s2 = <object>ts2
-
-            if PyList_CheckExact(ts1):
-                row_range = s1
-                if PyList_GET_SIZE(s1) != len(set(s1)):
-                    raise IndexError, "duplicate values in index; use matrix_from_rows_and_columns() instead"
-
-            elif PySlice_Check(ts1):
-                stop = self._nrows
-                if s1.stop is not None:
-                    stop = s1.stop
-
-                row_range = range( s1.start or 0, min(stop ,self._nrows) , s1.step or 1 )
-
+            elif PY_TYPE_CHECK(row_index, slice):
+                row_list = range(*row_index.indices(nrows))
             else:
-                row_range = [s1]
+                row = row_index
+                if row<0:
+                    row += nrows
+                if row<0 or row >= nrows:
+                    raise IndexError, "matrix index out of range"
+                row_list = [row]
 
-            if PyList_CheckExact(ts2):
-                col_range = s2
-                if PyList_GET_SIZE(s2) != len(set(s2)):
-                    raise IndexError, "duplicate values in index; use matrix_from_rows_and_columns() instead"
-
-            elif PySlice_Check(ts2):
-                stop = self._ncols
-                if s2.stop is not None:
-                    stop = s2.stop
-
-                col_range = range(s2.start or 0,min(stop , self._ncols), s2.step or 1 )
-
+            if PY_TYPE_CHECK(col_index, list) or PY_TYPE_CHECK(col_index, tuple):
+                col_list = col_index
+                for i from 0<=i<len(col_list):
+                    if col_list[i]<0:
+                        col_list[i] += ncols
+                    if col_list[i]<0 or col_list[i]>=ncols:
+                        raise IndexError, "matrix index out of range"
+            elif PY_TYPE_CHECK(col_index, slice):
+                col_list =  range(*col_index.indices(ncols))
             else:
-                col_range = [s2]
+                col = col_index
+                if col<0:
+                    col += ncols
+                if col<0 or col >= ncols:
+                    raise IndexError, "matrix index out of range"
+                col_list = [col]
 
-            if PyList_GET_SIZE(row_range) == 0 or PyList_GET_SIZE(col_range) == 0:
+
+            if len(row_list) == 0 or len(col_list) == 0:
                 return self.new_matrix(nrows=0,ncols=0)
 
-            if max(row_range) >= self._nrows or max(col_range)>= self._ncols:
-                raise IndexError, "Row or column out of range"
-
-            return self.matrix_from_rows_and_columns(row_range,col_range)
+            return self.matrix_from_rows_and_columns(row_list,col_list)
 
         # Else, just return this row
         r = self.row(key)

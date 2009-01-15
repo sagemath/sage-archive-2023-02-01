@@ -321,103 +321,6 @@ def prec_words_to_dec(int prec_in_words):
     """
     return prec_bits_to_dec(prec_words_to_bits(prec_in_words))
 
-###################################################################
-# Random utility functions
-###################################################################
-
-cpdef _normalize_slice(s, size):
-    """
-    Given a python slice object s and an int size, return a list of
-    valid indices for a list of length size corresponding to s.
-
-    INPUT:
-      s -- Python slice object of the form start:stop:step, where
-           any or all of these fields can be None
-      size -- non-negative Python int
-
-    OUTPUT:
-      A list inds of Python ints all less than size, and such that for
-      any list ls of length size, we have
-        [ ls[x] for x in inds ] == ls[s].
-
-    EXAMPLES:
-        sage: ns = sage.libs.pari.gen._normalize_slice
-        sage: ns(slice(2,5), 10)
-        [2, 3, 4]
-        sage: ns(slice(2,5), 4)
-        [2, 3]
-        sage: ns(slice(2,5), 5)
-        [2, 3, 4]
-        sage: ns(slice(-30,2), 5)
-        [0, 1]
-        sage: ns(slice(2,5,3), 20)
-        [2]
-        sage: ns(slice(2,8,3), 20)
-        [2, 5]
-        sage: ns(slice(2,9,3), 20)
-        [2, 5, 8]
-        sage: [ ns(slice(None,None,-i), 20) for i in range(1,8) ]
-        [[19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-        [19, 17, 15, 13, 11, 9, 7, 5, 3, 1],
-        [19, 16, 13, 10, 7, 4, 1],
-        [19, 15, 11, 7, 3],
-        [19, 14, 9, 4],
-        [19, 13, 7, 1],
-        [19, 12, 5]]
-        sage: ns(slice(5,8,-1),10)
-        [7, 6, 5]
-        sage: ns(slice(-5,None), 10)
-        [5, 6, 7, 8, 9]
-        sage: ns(slice(None,-5), 10)
-        [0, 1, 2, 3, 4]
-        sage: ns(slice(-5,-5), 10)
-        []
-        sage: ns(slice(-2,5), 10)
-        []
-        sage: ns(slice(2,-5), 10)
-        [2, 3, 4]
-        sage: ns(slice(-8,5), 10)
-        [2, 3, 4]
-        sage: ns(slice(1,-1),10)
-        [1, 2, 3, 4, 5, 6, 7, 8]
-        sage: ns(slice(1,-1,3),10)
-        [1, 4, 7]
-
-        sage: ns(slice(1,20,3), 0)
-        []
-    """
-    if not size:
-        return []
-
-    # check start
-    i = int(s.start) if s.start is not None else 0
-    if i < 0:
-        i = i % size
-    if i >= size:
-        i = int(size)
-
-    # check end of slice
-    j = int(s.stop) if s.stop is not None else int(size)
-    if j < 0:
-        j = j % size
-    if j >= size:
-        j = int(size)
-
-    step = int(s.step) if s.step is not None else 1
-    if not step:
-        raise ValueError, "slice step cannot be zero"
-
-    res = []
-    ind = i if step > 0 else j-1
-    while i <= ind < j:
-        res.append(ind)
-        ind += step
-
-    return res
-
-###################################################################
-
-
 # Also a copy of PARI accessible from external pure python code.
 pari = pari_instance
 
@@ -824,7 +727,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         elif PyObject_TypeCheck(n, slice):
             l = glength(self.g)
-            inds = _normalize_slice(n, l)
+            inds = range(*n.indices(l))
             k = len(inds)
             v = P.vector(k)
             for i in range(k):
@@ -1029,7 +932,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         elif isinstance(n, slice):
             l = glength(self.g)
-            inds = _normalize_slice(n, l)
+            inds = range(*n.indices(l))
             k = len(inds)
             if k > len(y):
                 raise ValueError, "attempt to assign sequence of size %s to slice of size %s"%(len(y), k)

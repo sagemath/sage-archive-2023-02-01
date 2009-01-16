@@ -417,9 +417,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             ...
             IndexError: matrix index out of range
             sage: a[-1,0]
-            Traceback (most recent call last):
-            ...
-            IndexError: matrix index out of range
+            6
         """
         cdef Integer z
         z = PY_NEW(Integer)

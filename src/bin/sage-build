@@ -88,4 +88,9 @@ if [ $DO_BUILD_ALL = 1 ]; then
    cd "$CUR"
 fi
 
+# In case SAGE64 has been set to yes before re-inject it into the environment
+# This is only done on OSX and Solaris since those are the only real multi lib
+# arches we support. Eventually Linux PPC on the PS3 might need to be added here
+source $SAGE_LOCAL/bin/sage-check-64
+
 build "sage"

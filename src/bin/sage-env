@@ -245,11 +245,10 @@ if [ "$SAGE64" != "yes" -a "$SAGE64" != "no" ]; then
     exit 1
 fi
 
-# Sets a compiler flag to make a 64-bit executable.
-# Generic gcc option.
-if [ "$SAGE64" = "yes" -a CC = "gcc" ]; then
-   CFLAGS="$CFLAGS -m64"
-fi
+# In case SAGE64 has been set to yes before re-inject it into the environment
+# This is only done on OSX and Solaris since those are the only real multi lib
+# arches we support. Eventually Linux PPC on the PS3 might need to be added here
+source $SAGE_LOCAL/bin/sage-check-64
 
 # Specific to a Sun running Solaris on SPARC hardware.
 if [ "$SAGE64" = "yes" -a "$CC" = "cc" ]; then

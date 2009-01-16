@@ -655,6 +655,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef int ncols = self._ncols
         cdef tuple key_tuple
         cdef object row_index, col_index
+        cdef int ind
 
         # used to keep track of when an index is a
         # single number
@@ -674,18 +675,22 @@ cdef class Matrix(sage.structure.element.Matrix):
                     row_list = list(row_index)
                 else:
                     row_list = row_index
-                for i from 0<=i<len(row_list):
-                    if row_list[i]<0:
-                        row_list[i] += nrows
-                    if row_list[i]<0 or row_list[i]>=nrows:
+
+                for i from 0 <= i < len(row_list):
+                    ind = row_list[i]
+                    if ind < 0:
+                        ind += nrows
+                        row_list[i] = ind
+
+                    if ind < 0 or ind >= nrows:
                         raise IndexError, "matrix index out of range"
             elif PySlice_Check(<PyObject *>row_index):
                 row_list = range(*row_index.indices(nrows))
             else:
                 row = row_index
-                if row<0:
+                if row < 0:
                     row += nrows
-                if row<0 or row >= nrows:
+                if row < 0 or row >= nrows:
                     raise IndexError, "matrix index out of range"
                 single_row = 1
 
@@ -694,18 +699,22 @@ cdef class Matrix(sage.structure.element.Matrix):
                     col_list = list(col_index)
                 else:
                     col_list = col_index
-                for i from 0<=i<len(col_list):
-                    if col_list[i]<0:
-                        col_list[i] += ncols
-                    if col_list[i]<0 or col_list[i]>=ncols:
+
+                for i from 0 <= i < len(col_list):
+                    ind = col_list[i]
+                    if ind < 0:
+                        ind += ncols
+                        col_list[i] = ind
+
+                    if ind < 0 or ind >= ncols:
                         raise IndexError, "matrix index out of range"
             elif PySlice_Check(<PyObject *>col_index):
                 col_list =  range(*col_index.indices(ncols))
             else:
                 col = col_index
-                if col<0:
+                if col < 0:
                     col += ncols
-                if col<0 or col >= ncols:
+                if col < 0 or col >= ncols:
                     raise IndexError, "matrix index out of range"
                 single_col = 1
 

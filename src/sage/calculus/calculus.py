@@ -5278,6 +5278,9 @@ class SymbolicArithmetic(SymbolicOperation):
             {{{\left( {x}^{2}  - 2 \right) \left( x - y \right)} \left( y + x \right)} \left( {y}^{2}  - 3 \right)}
             sage: latex(cos*(x+1))
             {\left( x + 1 \right) \cos}
+            sage: latex((-1)^(1/3))
+            {\left( -1 \right)}^{\frac{1}{3}}
+
         """
         # if we are not simplified, return the latex of a simplified version
         if simplify and not self._has_been_simplified():
@@ -5307,7 +5310,7 @@ class SymbolicArithmetic(SymbolicOperation):
         elif op is operator.pow:
             if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub) \
                or ops[0]._has_op(operator.mul) or ops[0]._has_op(operator.div) \
-               or ops[0]._has_op(operator.pow):
+               or ops[0]._has_op(operator.pow) or s[0].startswith('-'):
                 s[0] = r'\left( %s \right)' % s[0]
             return '{%s}^{%s} ' % (s[0], s[1])
         elif op is operator.neg:

@@ -328,6 +328,21 @@ class GenericGraph(SageObject):
             sage: G == H
             False
 
+        Note that graphs must be considered weighted, or Sage will not pay
+        attention to edge label data in equality testing:
+            sage: foo = Graph()
+            sage: foo.add_edges([(0, 1, 1), (0, 2, 2)])
+            sage: bar = Graph()
+            sage: bar.add_edges([(0, 1, 2), (0, 2, 1)])
+            sage: foo == bar
+            True
+            sage: foo.weighted(True)
+            sage: foo == bar
+            False
+            sage: bar.weighted(True)
+            sage: foo == bar
+            False
+
         """
         # inputs must be (di)graphs:
         if not isinstance(other, GenericGraph):
@@ -341,6 +356,8 @@ class GenericGraph(SageObject):
         if self.loops() != other.loops():
             return False
         if self.vertices() != other.vertices():
+            return False
+        if self._weighted != other._weighted:
             return False
         verts = self.vertices()
         # Finally, we are prepared to check edges:

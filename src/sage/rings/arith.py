@@ -1015,7 +1015,7 @@ class Sigma:
 
 sigma = Sigma()
 
-def gcd(a, b=None, integer=True, **kwargs):
+def gcd(a, b=None, **kwargs):
     """
     The greatest common divisor of a and b, or if a is a list and b is
     omitted the greatest common divisor of all elements of a.
@@ -1039,6 +1039,29 @@ def gcd(a, b=None, integer=True, **kwargs):
         2
         sage: GCD(srange(0,10000,10))  # fast  !!
         10
+
+    Note that to take the gcd of $n$ elements for $n\not=2$ you must
+    put the elements into a list by enclosing them in [..].  Before
+    \#4988 the following wrongly returned 3 since the third parameter
+    was just ignored:
+        sage: gcd(3,6,2)
+        Traceback (most recent call last):
+        ...
+        TypeError: gcd() takes at most 2 arguments (3 given)
+        sage: gcd([3,6,2])
+        1
+
+    Similarly, giving just one element (which is not a list) gives an error:
+        sage: gcd(3)
+        Traceback (most recent call last):
+        ...
+        TypeError: 'sage.rings.integer.Integer' object is not iterable
+
+    By convention, the gcd of the empty list is (the integer) 0:
+        sage: gcd([])
+        0
+        sage: type(gcd([]))
+        <type 'sage.rings.integer.Integer'>
     """
     # Most common use case first:
     if b is not None:
@@ -1205,14 +1228,14 @@ def xlcm(m,n):
         (360, 40, 9)
     """
     m0=m; n0=n
-    g=gcd(m,n,integer=True)
+    g=gcd(m,n)
     l=m*n//g      # = lcm(m,n)
     g=gcd(m,n//g) # divisible by those primes which divide n to a
                   # higher power than m
 
     while not g==1:
         m//=g
-        g=gcd(m,g,integer=True)
+        g=gcd(m,g)
 
     n=l//m;
     return (l,m,n)

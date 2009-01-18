@@ -4817,10 +4817,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             max_S: 3 len_S: 3 len_tors: 1
             lambda 0.485997517468...
             k1,k2,k3,k4 6.68597129142710e234 1.31952866480763 3.31908110593519e9 2.42767548272846e17
+            p= 2 : trying with p_prec =  30
+            mw_base_p_log_val =  [2, 2, 1]
+            min_psi =  2 + 2^3 + 2^6 + 2^7 + 2^8 + 2^9 + 2^11 + 2^12 + 2^13 + 2^16 + 2^17 + 2^19 + 2^20 + 2^21 + 2^23 + 2^24 + 2^28 + O(2^30)
+            p= 3 : trying with p_prec =  30
+            mw_base_p_log_val =  [1, 2, 1]
+            min_psi =  3 + 3^2 + 2*3^3 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + 2*3^11 + 2*3^12 + 2*3^13 + 3^15 + 2*3^16 + 3^18 + 2*3^19 + 2*3^22 + 2*3^23 + 2*3^24 + 2*3^27 + 3^28 + 3^29 + O(3^30)
             mw_base [(1 : -1 : 1), (2 : 0 : 1), (0 : -3 : 1)]
             mw_base_log [0.667789378224099, 0.552642660712417, 0.818477222895703]
             mp [5, 7]
-            mw_base_p_log [[2^2 + 2^3 + 2^6 + 2^7 + 2^8 + 2^9 + 2^14 + 2^15 + 2^18 + 2^19 + O(2^20), 2^2 + 2^3 + 2^5 + 2^6 + 2^9 + 2^11 + 2^12 + 2^14 + 2^15 + 2^16 + 2^18 + O(2^20), 2 + 2^3 + 2^6 + 2^7 + 2^8 + 2^9 + 2^11 + 2^12 + 2^13 + 2^16 + 2^17 + 2^19 + O(2^20)], [2*3^2 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + 2*3^10 + 3^12 + 2*3^14 + 3^15 + 3^17 + 2*3^19 + O(3^20), 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 2*3^7 + 2*3^8 + 3^10 + 2*3^12 + 3^13 + 2*3^14 + 3^15 + 3^18 + O(3^20), 3 + 3^2 + 2*3^3 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + 2*3^11 + 2*3^12 + 2*3^13 + 3^15 + 2*3^16 + 3^18 + 2*3^19 + O(3^20)]]
+            mw_base_p_log [[2^2 + 2^3 + 2^6 + 2^7 + 2^8 + 2^9 + 2^14 + 2^15 + 2^18 + 2^19 + 2^24 + 2^29 + O(2^30), 2^2 + 2^3 + 2^5 + 2^6 + 2^9 + 2^11 + 2^12 + 2^14 + 2^15 + 2^16 + 2^18 + 2^20 + 2^22 + 2^23 + 2^26 + 2^27 + 2^29 + O(2^30), 2 + 2^3 + 2^6 + 2^7 + 2^8 + 2^9 + 2^11 + 2^12 + 2^13 + 2^16 + 2^17 + 2^19 + 2^20 + 2^21 + 2^23 + 2^24 + 2^28 + O(2^30)], [2*3^2 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + 2*3^10 + 3^12 + 2*3^14 + 3^15 + 3^17 + 2*3^19 + 2*3^23 + 3^25 + 3^28 + O(3^30), 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 2*3^7 + 2*3^8 + 3^10 + 2*3^12 + 3^13 + 2*3^14 + 3^15 + 3^18 + 3^22 + 3^25 + 2*3^26 + 3^27 + 3^28 + O(3^30), 3 + 3^2 + 2*3^3 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + 2*3^11 + 2*3^12 + 2*3^13 + 3^15 + 2*3^16 + 3^18 + 2*3^19 + 2*3^22 + 2*3^23 + 2*3^24 + 2*3^27 + 3^28 + 3^29 + O(3^30)]]
             k5,k6,k7 0.321154513240... 1.55246328915... 0.161999172489...
             initial bound 2.6227097483365...e117
             bound_list [58, 58, 58]
@@ -4857,6 +4863,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([0,0,0,-172,505])
             sage: E.rank(), len(E.S_integral_points([3,5,7]))  # long time (~7s)
             (4, 72)
+
+        This is curve "7690e1" which failed until \#4805 was fixed:
+            sage: EllipticCurve([1,1,1,-301,-1821]).S_integral_points([13,2])
+            [(-13 : 16 : 1),
+            (-9 : 20 : 1),
+            (-7 : 4 : 1),
+            (21 : 30 : 1),
+            (23 : 52 : 1),
+            (63 : 452 : 1),
+            (71 : 548 : 1),
+            (87 : 756 : 1),
+            (2711 : 139828 : 1),
+            (7323 : 623052 : 1),
+            (17687 : 2343476 : 1)]
 
         NOTES:
             - This function uses the algorithm given in [PZGH]
@@ -5233,25 +5253,32 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             cp = E.tamagawa_exponent(p)
             mp_temp = Z(len_tors).lcm(cp*Np)
             mp.append(mp_temp) #only necessary because of verbose below
-            p_prec=20
+            p_prec=30+E.discriminant().valuation(p)
             p_prec_ok=False
             while not p_prec_ok:
+                if verbose:
+                    print "p=",p,": trying with p_prec = ",p_prec
                 try:
                     mw_base_p_log.append([mp_temp*(pts.padic_elliptic_logarithm(p,precision=p_prec)) for pts in mw_base])
                     p_prec_ok=True
-                except PrecisionError:
+                except ValueError:
                     p_prec *= 2
             #reorder mw_base_p: last value has minimal valuation at p
             mw_base_p_log_val = [mw_base_p_log[tmp][i].valuation() for i in range(r)]
+            if verbose:
+                print "mw_base_p_log_val = ",mw_base_p_log_val
             min_index = mw_base_p_log_val.index(min(mw_base_p_log_val))
             min_psi = mw_base_p_log[tmp][min_index]
+            if verbose:
+                print "min_psi = ",min_psi
             mw_base_p_log[tmp].remove(min_psi)
             mw_base_p_log[tmp].append(min_psi)
             #beta needed for reduction at p later on
-            if r==1 and mw_base_p_log[tmp]==[0]: #case can occure e.g. '172c6, S=[2]
-                beta.append([0])
-            else:
+            try:
                 beta.append([-mw_base_p_log[tmp][j]/min_psi for j in range(r)])
+            except:
+                # e.g. mw_base_p_log[tmp]==[0]:  can occur e.g. [?]'172c6, S=[2]
+                beta.append([0] for j in range(r))
             tmp +=1
 
         if verbose:

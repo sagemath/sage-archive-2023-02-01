@@ -55,6 +55,7 @@ from sage.interfaces import gp
 import sage.plot.all as plot
 
 from sage.rings.padics.factory import Qp
+from sage.rings.padics.precision_error import PrecisionError
 
 import ell_generic
 import sage.rings.all as rings
@@ -1032,6 +1033,75 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         gxdd = gxd.derivative()
         return ( e(gxd(self[0])) > 0 and e(gxdd(self[0])) > 0)
 
+    def has_good_reduction(self, P):
+        """
+        Returns True iff this point has good reduction modulo a prime.
+
+        INPUT:
+
+            P -- a prime of the base_field of the point's curve, or
+                 None (default)
+
+        OUTPUT:
+           If a prime $P$ of the base field is specified, returns True if
+           the point has good reduction at $P$; otherwise, return true if
+           the point has god reduction at all primes in the support of
+           the discriminant of this model.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('990e1')
+            sage: P = E.gen(0); P
+            (15 : 51 : 1)
+            sage: [E.has_good_reduction(p) for p in [2,3,5,7]]
+            [False, False, False, True]
+            sage: [P.has_good_reduction(p) for p in [2,3,5,7]]
+            [True, False, True, True]
+            sage: [E.tamagawa_exponent(p) for p in [2,3,5,7]]
+            [2, 2, 1, 1]
+            sage: [(2*P).has_good_reduction(p) for p in [2,3,5,7]]
+            [True, True, True, True]
+        """
+        if self.is_zero():       # trivial case
+            return True
+
+        E = self.curve()
+        K = E.base_field()
+        from sage.schemes.elliptic_curves.ell_local_data import check_prime
+        P = check_prime(K,P)
+
+        # If the curve has good reduction at P, the result is True:
+        t = E.local_data(P).bad_reduction_type()
+        if t is None:
+            return True
+
+        if K is rings.QQ:
+            pi = P
+        else:
+            pi = K.uniformizer(P)
+
+        # Make sure the curve is integral and locally minimal at P:
+        Emin = E.local_minimal_model(P)
+        urst = E.isomorphism_to(Emin)
+        Q = urst(self)
+
+        # Scale the homogeneous coordinates of the point to be primitive:
+        xyz = list(Q)
+        e = min([c.valuation(P) for c in xyz])
+        if e !=0:
+            if K is rings.QQ:
+                pi = P
+            else:
+                pi = K.uniformizer(P)
+            pie = pi**e
+            xyz = [c/pie for c in xyz]
+
+        # Evaluate the partial derivatives at the point to see if they are zero mod P:
+        F = Emin.defining_polynomial()
+        for v in F.variables():
+            if F.derivative(v)(xyz).valuation(P) == 0:
+                return True
+        return False
+
     def height(self, precision=None):
         """
         The Neron-Tate canonical height of the point.
@@ -1363,7 +1433,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 z = z + w2/2
             return z
 
-    def padic_elliptic_logarithm(self, p, precision=40):
+    def padic_elliptic_logarithm(self, p, precision=20):
         r"""
         Computes the p-adic elliptic logarithm of self.
 
@@ -1388,52 +1458,92 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             0
             sage: P = E(0,0)
             sage: P.padic_elliptic_logarithm(3)
-            2 + 2*3 + 3^3 + 2*3^7 + 3^8 + 3^9 + 3^11 + 3^15 + 2*3^17 + 3^18 + 3^19 + 2*3^21 + 3^23 + 3^24 + 3^25 + 2*3^26 + 3^27 + 3^28 + 3^29 + 2*3^30 + 3^31 + 2*3^36 + 3^38 + O(3^39)
+            2 + 2*3 + 3^3 + 2*3^7 + 3^8 + 3^9 + 3^11 + 3^15 + 2*3^17 + 3^18 + O(3^19)
             sage: P.padic_elliptic_logarithm(3).lift()
-            1652175907030975211
+            660257522
             sage: P = E(-11/9,28/27)
             sage: [(2*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(20)]
-            [2 + O(2^39), 2 + O(3^40), 2 + O(5^39), 2 + O(7^39), 2 + O(11^39), 2 + O(13^39), 2 + O(17^39), 2 + O(19^39)]
+            [2 + O(2^19), 2 + O(3^20), 2 + O(5^19), 2 + O(7^19), 2 + O(11^19), 2 + O(13^19), 2 + O(17^19), 2 + O(19^19)]
             sage: [(3*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]
-            [1 + 2 + O(2^39), 3 + 2*3^40 + O(3^41), 3 + O(5^39), 3 + O(7^39), 3 + O(11^39)]
+            [1 + 2 + O(2^19), 3 + 3^20 + O(3^21), 3 + O(5^19), 3 + O(7^19), 3 + O(11^19)]
             sage: [(5*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]
-            [1 + 2^2 + O(2^39), 2 + 3 + O(3^40), 5 + O(5^39), 5 + O(7^39), 5 + O(11^39)]
+            [1 + 2^2 + O(2^19), 2 + 3 + O(3^20), 5 + O(5^19), 5 + O(7^19), 5 + O(11^19)]
 
-        An example which arose during reviewing #4741, which fails if the precision is 20:
+        An example which arose during reviewing #4741:
         sage: E = EllipticCurve('794a1')
         sage: P = E(-1,2)
-        sage: P.padic_elliptic_logarithm(2)
-        2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + O(2^19)
+        sage: P.padic_elliptic_logarithm(2) # default precision=20
+        2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + O(2^16)
         sage: P.padic_elliptic_logarithm(2, precision=30)
-        2^4 + 2^5 + 2^6 + 2^8 + O(2^9)
-        sage: P.padic_elliptic_logarithm(2, precision=20)
-        Traceback (most recent call last):
-        ...
-        PrecisionError: cannot divide by something indistinguishable from zero
+        2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + 2^22 + 2^23 + 2^24 + O(2^26)
+        sage: P.padic_elliptic_logarithm(2, precision=40)
+        2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + 2^22 + 2^23 + 2^24 + 2^28 + 2^29 + 2^31 + 2^34 + O(2^35)
         """
         if not p.is_prime():
             raise ValueError,'p must be prime'
+        debug = False # True
+        if debug:
+            print "P=",self,"; p=",p," with precision ",precision
         E = self.curve()
         Q_p = Qp(p, precision)
         if self.has_finite_order():
             return Q_p(0)
-        Ep = E.change_ring(Q_p)
-        P = Ep(self)
-        x,y = P.xy()
+        while True:
+            try:
+                Ep = E.change_ring(Q_p)
+                P = Ep(self)
+                x,y = P.xy()
+                break
+            except (PrecisionError, ArithmeticError, ZeroDivisionError):
+                precision *=2
+                Q_p = Qp(p, precision)
+        if debug:
+            print "x,y=",(x,y)
         f = 1  # f will be such that f*P is in the formal group E^1(Q_p)
-        if x.valuation() >=0:
-            n = E.tamagawa_exponent(p)  # n*P has good reduction at p
-            t = E.local_data(p).bad_reduction_type()
-            if t is None:
-                m = E.reduction(p).abelian_group()[0].exponent()
-            else:
-                m = p - t
-            # now t*(n*P) reduces to the identity mod p, so is in E^1(Q_p)
-            f = m*n
-            fP = f*P #  lies in E^1
-            x,y  = fP.xy()
-        t = -x/y
-        v = t.valuation()
+        if x.valuation() >=0:  # P is not in E^1
+            if not self.has_good_reduction(p):  # P is not in E^0
+                n = E.tamagawa_exponent(p)  # n*P has good reduction at p
+                if debug:
+                    print "Tamagawa exponent = =",n
+                f = n
+                P = n*P #  lies in E^0
+                if debug:
+                    print "P=",P
+                try:
+                    x,y = P.xy()
+                except ZeroDivisionError:
+                    raise ValueError, "Insufficient precision in p-adic_elliptic_logarithm()"
+                if debug:
+                    print "x,y=",(x,y)
+            if x.valuation() >=0:  # P is still not in E^1
+                t = E.local_data(p).bad_reduction_type()
+                if t is None:
+                    m = E.reduction(p).abelian_group()[0].exponent()
+                else:
+                    m = p - t
+                if debug:
+                    print "mod p exponent = =",m
+                    # now m*(n*P) reduces to the identity mod p, so is in E^1(Q_p)
+                f *= m
+                P = m*P #  lies in E^1
+                try:
+                    x,y = P.xy()
+                except ZeroDivisionError:
+                    raise ValueError, "Insufficient precision in p-adic_elliptic_logarithm()"
+                if debug:
+                    print "f=",f
+                    print "x,y=",(x,y)
+        vx = x.valuation()
+        vy = y.valuation()
+        v = vx-vy
+        if not ( v>0 and vx==-2*v and vy == -3*v):
+            raise ValueError, "Insufficient precision in p-adic_elliptic_logarithm()"
+        try:
+            t = -x/y
+        except (ZeroDivisionError, PrecisionError):
+            raise ValueError, "Insufficient precision in p-adic_elliptic_logarithm()"
+        if debug:
+            print "t=",t,", with valuation ",v
         phi = Ep.formal().log(prec=1+precision//v)
         return phi(t)/f
 

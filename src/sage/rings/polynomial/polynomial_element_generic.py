@@ -540,13 +540,11 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         B = other
         R = A
         Q = P.zero_element()
-        X = P.gen()
         while R.degree() >= B.degree():
-            aaa = (R.leading_coefficient()/B.leading_coefficient())
-            bbb = X**(R.degree()-B.degree())
-            S = aaa * bbb
-            Q += S
-            R -= S*B
+            aaa = R.leading_coefficient()/B.leading_coefficient()
+            diff_deg=R.degree()-B.degree()
+            Q += P(aaa).shift(diff_deg)
+            R -= (aaa*B).shift(diff_deg)
         return (Q, R)
 
     def _gcd(self, other):

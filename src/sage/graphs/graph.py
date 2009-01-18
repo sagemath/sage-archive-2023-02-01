@@ -831,6 +831,13 @@ class GenericGraph(SageObject):
             sage: H == G
             True
 
+        The following doctest verifies that \#4888 is fixed:
+            sage: G = DiGraph({0:{}, 1:{0:1}, 2:{0:1}}, weighted = True)
+            sage: G.weighted_adjacency_matrix()
+            [0 0 0]
+            [1 0 0]
+            [1 0 0]
+
         """
         if self.multiple_edges():
             raise NotImplementedError, "Don't know how to represent weights for a multigraph."
@@ -849,7 +856,7 @@ class GenericGraph(SageObject):
                 D[(i,j)] = l
                 D[(j,i)] = l
         from sage.matrix.constructor import matrix
-        M = matrix(D, sparse=sparse)
+        M = matrix(self.num_verts(), D, sparse=sparse)
         return M
 
     def kirchhoff_matrix(self, weighted=None, boundary_first=False):

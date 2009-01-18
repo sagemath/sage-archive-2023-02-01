@@ -5622,11 +5622,24 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
         return self._coerce_impl(x)
 
     def _coerce_impl(self, x):
+        """
+        EXAMPLES:
+
+        We verify that coercion works in the case where x is not an
+        instance of SymbolicExpression, but its parent is still the
+        SymbolicRing.
+
+            sage: f(x) = 1
+            sage: f*e
+            x |--> e
+        """
         if isinstance(x, SymbolicExpression):
             if isinstance(x, PrimitiveFunction):
                 return CallableSymbolicExpression(self, x( *self._args ))
             if isinstance(x, CallableSymbolicExpression):
                 x = x._expr
+            return CallableSymbolicExpression(self, x)
+        if hasattr(x,'parent') and x.parent() == SR:
             return CallableSymbolicExpression(self, x)
         return self._coerce_try(x, [SR])
 

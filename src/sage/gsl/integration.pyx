@@ -161,7 +161,7 @@ def numerical_integral(func, a, b=None,
        sage: exp(-1/x).nintegral(x, 1, 2)   # via maxima
        (0.50479221787318396, 5.6043194293440752e-15, 21, 0)
        sage: numerical_integral(exp(-1/x), 1, 2)
-       (0.50479221787318407, 5.6043194293440744e-15)
+       (0.50479221787318..., 5.60431942934407...e-15)
 
    We can also integrate constant expressions:
        sage: numerical_integral(2, 1, 7)

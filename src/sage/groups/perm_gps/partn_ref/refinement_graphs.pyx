@@ -374,7 +374,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
                 frm[to[v]] = v
             partition = [[to[v] for v in cell] for cell in partition]
         else:
-            to = range(n)
+            to = dict(enumerate(range(n)))
             frm = to
         if sparse:
             G = SparseGraph(n)
@@ -393,7 +393,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     elif isinstance(G_in, CGraph):
         G = <CGraph> G_in
         n = G.num_verts
-        to = range(n)
+        to = dict(enumerate(range(n)))
         frm = to
     else:
         raise TypeError("G must be a Sage graph.")

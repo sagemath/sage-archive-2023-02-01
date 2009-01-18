@@ -6314,6 +6314,19 @@ class GenericGraph(SageObject):
             sage: G.automorphism_group(translation=True, edge_labels=True)
             (Permutation Group with generators [(1,2)], {0: 2, 1: 1})
 
+            sage: foo = Graph()
+            sage: bar = Graph(implementation='c_graph')
+            sage: foo.add_edges([(0,1,1),(1,2,2), (2,3,3)])
+            sage: bar.add_edges([(0,1,1),(1,2,2), (2,3,3)])
+            sage: foo.automorphism_group(translation=True, edge_labels=True)
+            (Permutation Group with generators [()], {0: 4, 1: 1, 2: 2, 3: 3})
+            sage: foo.automorphism_group(translation=True)
+            (Permutation Group with generators [(1,2)(3,4)], {0: 4, 1: 1, 2: 2, 3: 3})
+            sage: bar.automorphism_group(translation=True, edge_labels=True)
+            (Permutation Group with generators [()], {0: 4, 1: 1, 2: 2, 3: 3})
+            sage: bar.automorphism_group(translation=True)
+            (Permutation Group with generators [(1,2)(3,4)], {0: 4, 1: 1, 2: 2, 3: 3})
+
         You can also ask for just the order of the group:
             sage: G = graphs.PetersenGraph()
             sage: G.automorphism_group(return_group=False, order=True)

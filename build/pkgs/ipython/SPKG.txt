@@ -17,6 +17,7 @@ BSD
 
  * William Stein
  * Michael Abshoff
+ * Mike Hansen
 
 == Upstream Contact ==
 
@@ -28,7 +29,7 @@ ipython-user@scipy.org
 
 == Dependencies ==
 
-* Python
+ * Python
 
 == Special Update/Build Instructions ==
 
@@ -36,10 +37,13 @@ ipython-user@scipy.org
 
 == Changelog ==
 
-== ipython-0.8.4.p0 (Mike Hansen July 15, 2008 ==
+=== ipython-0.8.4.p1 (Michael Abshoff, January 19th, 2009) ===
+ * Do not check for libedit on Darwin since that breaks 'sage -gdb' (#4991)
+
+=== ipython-0.8.4.p0 (Mike Hansen July 15th, 2008) ===
  * update to the official 0.8.4 release
 
-=== ipython-0.8.2.p0 (Michael Abshoff, May 11, 2008) ===
+=== ipython-0.8.2.p0 (Michael Abshoff, May 11th, 2008) ===
  * add hg repo & .hgignore
  * clean up spkg-install
  * make sure SAGE_LOCAL is defined (#633)

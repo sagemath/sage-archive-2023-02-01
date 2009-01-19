@@ -8,6 +8,9 @@ setupext.py by a version that adds some SAGE-specific paths so the build doesn't
 
 == Changelog ==
 
+=== matplotlib-0.98.3.p5 (Michael Abshoff, January 19th, 2009) ===
+ * Work around Solaris 10 with gcc 4.3.2 problem in ttconv/pprdrv_tt2.cpp (#5008)
+
 === matplotlib-0.98.3.p4 (Michael Abshoff, December 12th, 2008) ===
  * apply Craig Citro's OSX build fix (#4680)
 

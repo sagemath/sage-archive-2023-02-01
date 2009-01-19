@@ -18,6 +18,11 @@ $CP patches/cbook.py src/lib/matplotlib/cbook.py
 $CP patches/arrow_line.py src/lib/matplotlib/arrow_line.py
 $CP patches/quiver.py src/lib/matplotlib/quiver.py
 
+if [ `uname` = "SunOS" ]; then
+    echo "Copy patched version of pprdrv_tt2.cpp for Solaris 10 that builds with gcc 4.3.2"
+    $CP patches/pprdrv_tt2.cpp src//ttconv/pprdrv_tt2.cpp
+fi
+
 if [ `uname -m` = "ia64" ]; then
     echo "Work around a problem building tkgui on some Itanium Linux machines."
     echo "This is a 1-line fix that just turns off checking for that GUI frontend."

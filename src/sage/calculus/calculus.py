@@ -1369,7 +1369,7 @@ class SymbolicExpression(RingElement):
 
         ALGORITHM:
             Two distinct algorithms are used, depending on the algorithm
-            parameter. By default, the algebraic algorithim is attempted
+            parameter. By default, the algebraic algorithm is attempted
             first, then the numerical one.
 
             Algebraic: Attempt to evaluate this expression in QQbar, using
@@ -1386,7 +1386,7 @@ class SymbolicExpression(RingElement):
                 enough to 0 then evaluate $f(\code{self})$ symbolically,
                 attempting to prove vanishing. If this fails, and \var{epsilon}
                 is non-zero, return $f$ if and only if $f(\code{self}) < \var{epsilon}$.
-                Otherwise raise a \exception{ValueError} (if no suitible candidate
+                Otherwise raise a \exception{ValueError} (if no suitable candidate
                 was found) or a \exception{NotImplementedError} (if a likely
                 candidate was found but could not be proved correct).
 
@@ -6654,7 +6654,7 @@ class SymbolicComposition(SymbolicOperation):
                     res = (exp_ia + ~exp_ia)/2
                 else:
                     res = -QQbar.zeta(4)*(exp_ia - ~exp_ia)/(exp_ia + ~exp_ia)
-            elif func_name in ['sinh', 'cosh', 'tahn']:
+            elif func_name in ['sinh', 'cosh', 'tanh']:
                 exp_a = exp(operand)._algebraic_(QQbar)
                 if func_name == 'sinh':
                     res = (exp_a - ~exp_a)/2

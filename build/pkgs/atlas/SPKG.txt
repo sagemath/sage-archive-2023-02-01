@@ -30,6 +30,9 @@ Atlas devel mainling list.
 
 == ChangeLog ==
 
+=== atlas-3.8.2.p1 (Michael Abshoff, Januar 2nd, 2009) ===
+ * Do not create any dynamic liblapack.so on non-Linux since they break numpy and scipy
+
 === atlas-3.8.2.p0 (Michael Abshoff, Januar 2nd, 2009) ===
  * copy Make.top into the right directory
 

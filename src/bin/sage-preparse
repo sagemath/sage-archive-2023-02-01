@@ -102,9 +102,9 @@ def do_preparse(f, files_before=[]):
     # Put the Sage library include along with a autogen message in the file.
     # It is ** critical ** that we put this after the mdoule docstring, since
     # otherwise the module docstring will disappear.
-    insert = '%s%s%s.\nfrom sage.all_cmdline import *   # import sage library\n'%(coding, AUTOGEN_MSG, f)
+    insert = '%s%s.\nfrom sage.all_cmdline import *   # import sage library\n'%(AUTOGEN_MSG, f)
     i = find_position_right_after_module_docstring(G)
-    G = G[:i] + insert + G[i:]
+    G = coding + G[:i] + insert + G[i:]
 
     # Finally, write out the result.
     open(fname, 'w').write(G)

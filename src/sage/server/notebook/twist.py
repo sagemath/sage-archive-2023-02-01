@@ -1285,8 +1285,8 @@ class Worksheet(WorksheetResource, resource.Resource):
     addSlash = True
 
     def render(self, ctx):
-        s = notebook.html(worksheet_filename = self.name,  username=self.username)
         self.worksheet.sage()
+        s = notebook.html(worksheet_filename = self.name,  username=self.username)
         return http.Response(stream=s)
 
     def childFactory(self, request, op):

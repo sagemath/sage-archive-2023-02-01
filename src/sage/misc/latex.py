@@ -178,6 +178,15 @@ class Latex:
         return latex(x)
 
     def _latex_preparse(self, s, locals):
+        """
+        Replace instances of '\sage{x}' in s with the LaTeX version of
+        x in the running session.
+
+        EXAMPLES:
+            sage: s = 2
+            sage: sage.misc.latex.Latex()._latex_preparse('\sage{s}', locals())
+            '2'
+        """
         i0 = -1
         while True:
             i = s.find('\\sage{')
@@ -197,11 +206,12 @@ class Latex:
                 k = '\\mbox{\\rm [%s undefined]}'%var
             s = s[:i] + k + t[j+1:]
 
-    def eval(self, x, strip=False, filename=None, debug=None,
+    def eval(self, x, globals, strip=False, filename=None, debug=None,
              density=None, locals={}):
         """
         INPUT:
             x -- string to evaluate.
+            globals -- a globals dictionary
             strip -- ignored
             filename -- output filename (string with no spaces)
             debug -- whether to print verbose debugging output

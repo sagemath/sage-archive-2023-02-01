@@ -539,17 +539,8 @@ class Worksheet:
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.name()
             'A Test Worksheet'
-            sage: W.set_name('Title<script>alert("Uh oh");</script>')
-            sage: W.name()
-            'Title&amp;lt;script&amp;gt;alert&#40;&amp;quot;Uh oh&amp;quot;&#41;;&amp;lt;/script&amp;gt;'
-
         """
-        name = self.__name
-        for chara, replacement in [('<', '&lt;'), ('>', '&gt;'), ('"', '&quot;'),
-                                   ('&', '&amp;'), ('\'', '&apos;'), ('(', '&#40;'),
-                                   (')', '&#41;'), ('{', '&#123;'), ('\'', '&#124;')]:
-            name = name.replace(chara, replacement)
-        return name
+        return self.__name
 
     def set_name(self, name):
         """
@@ -1995,13 +1986,14 @@ class Worksheet:
         return name
 
     def html_title(self, username='guest'):
+        import cgi
         name = self.truncated_name()
 
         warn = self.warn_about_other_person_editing(username, WARN_THRESHOLD)
 
         s = ''
         s += '<div class="worksheet_title">'
-        s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(name.replace('<','&lt;'))
+        s += '<a id="worksheet_title" class="worksheet_title" onClick="rename_worksheet(); return false;" title="Click to rename this worksheet">%s</a>'%(cgi.escape(name))
         s += '<br>' + self.html_time_last_edited()
         if warn and username != 'guest' and not self.is_doc_worksheet():
             s += '&nbsp;&nbsp;<span class="pingdown">(Someone else is viewing this worksheet)</span>'

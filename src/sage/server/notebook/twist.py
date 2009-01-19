@@ -1,11 +1,12 @@
 r"""
 The Sage Notebook Twisted Web Server
 
-TESTS:
-It is important that this file never be imported by default on startup
-by Sage, since it is very expensive, since importing Twisted is
-expensive.  This doctests verifies that twist.py isn't imported on
-startup.
+    TESTS::
+
+    It is important that this file never be imported by default on
+    startup by Sage, since it is very expensive, since importing Twisted
+    is expensive. This doctest verifies that twist.py isn't imported on
+    startup.
 
     sage: os.system("sage -startuptime | grep twisted\.web2 1>/dev/null") != 0  # !=0 means not found
     True
@@ -1028,6 +1029,7 @@ class SettingsPage(resource.PostableResource):
         if template_dict['email']:
             template_dict['email_address'] = 'None' if not notebook.user(self.username)._User__email else notebook.user(self.username)._User__email
             template_dict['email_confirmed'] = 'Not confirmed' if not notebook.user(self.username).is_email_confirmed() else 'Confirmed'
+        template_dict['admin'] = user_type(self.username) == 'admin'
         return HTMLResponse(stream=template('account_settings.html', **template_dict))
 
 ########################################################
@@ -2137,7 +2139,7 @@ class RegistrationPage(resource.PostableResource):
             try:
                 e = filled_in['email'] if notebook.conf()['email'] else ''
                 self.userdb.add_user(filled_in['username'], request.args['password'][0],
-                                     e)
+                                     e, force=True)
             except ValueError:
                 template_dict['username_taken'] = True
                 errors_found()
@@ -2216,15 +2218,62 @@ class ForgotPassPage(resource.Resource):
         return HTMLResponse(stream=s)
 
 class ListOfUsers(resource.Resource):
-        def __init__(self, username):
-            self.username = username
+    addSlash = True
 
-        def render(self, ctx):
-            if user_type(self.username) != 'admin':
-                s = message('You must an admin to manage other users.')
-            else:
-                s = template('user_management.html', users = notebook.valid_login_names())
-            return HTMLResponse(stream = s)
+    def __init__(self, username):
+        self.username = username
+
+    def render(self, ctx):
+        template_dict = {}
+
+        if 'reset' in ctx.args:
+            user = ctx.args['reset'][0]
+            from random import choice
+            import string
+            chara = string.letters + string.digits
+            password = ''.join([choice(chara) for i in range(8)])
+            try:
+                U = notebook.user(user)
+                U.set_password(password)
+            except KeyError:
+                pass
+            template_dict['reset'] = [user, password]
+
+        if 'suspension' in ctx.args:
+            user = ctx.args['suspension'][0]
+            try:
+                U = notebook.user(user)
+                U.set_suspension()
+            except KeyError:
+                pass
+
+        template_dict['number_of_users'] = len(notebook.valid_login_names()) if len(notebook.valid_login_names()) > 1 else None
+        users = sorted(notebook.valid_login_names())
+        del users[users.index('admin')]
+        template_dict['users'] = [notebook.user(i) for i in users]
+        return HTMLResponse(stream = template('user_management.html', **template_dict))
+
+class AdminAddUser(resource.PostableResource):
+    def __init__(self, userdb):
+        self.userdb = userdb
+
+    def render(self, request):
+
+        if 'username' in request.args:
+            username = request.args['username'][0]
+            if not is_valid_username(username):
+                return HTMLResponse(stream=template('admin_add_user.html', error='username_invalid', username=username))
+
+            from random import choice
+            import string
+            chara = string.letters + string.digits
+            password = ''.join([choice(chara) for i in range(8)])
+            if username in notebook.usernames():
+                return HTMLResponse(stream=template('admin_add_user.html', error='username_taken', username=username))
+            notebook.add_user(username, password, '', force=True)
+            return HTMLResponse(stream=message('The temporary password for the new user <em>%s</em> is <em>%s</em>' % (username, password), '/adduser'))
+        else:
+            return HTMLResponse(stream=template('admin_add_user.html'))
 
 class InvalidPage(resource.Resource):
     addSlash = True
@@ -2331,7 +2380,7 @@ class FailedToplevel(Toplevel):
 
     def render(self, ctx):
         # Since public access is allowed, which lists usernames in the published
-        # worksheets and ratings, this gives no new information way.
+        # worksheets and ratings, this gives no new information away.
         # If published pages were disabled, then this should be disabled too.
         if self.problem == 'username':
             template_dict = {'accounts': notebook.get_accounts(),
@@ -2345,6 +2394,8 @@ class FailedToplevel(Toplevel):
                              'password_error': True,
                              'recovery': notebook.conf()['email']}
             return HTMLResponse(stream=template('login.html', **template_dict))
+        elif self.problem == 'suspended':
+            return HTMLResponse(stream = message("Your account is currently suspended."))
         else:
             return HTMLResponse(stream = message("Please enable cookies and try again."))
 
@@ -2386,7 +2437,6 @@ class UserToplevel(Toplevel):
     userchild_home = Worksheets
     userchild_live_history = LiveHistory
     userchild_new_worksheet = NewWorksheet
-    userchild_users = ListOfUsers
     userchild_notebook_settings = NotebookSettings
     userchild_settings = SettingsPage
     userchild_pub = PublicWorksheets
@@ -2419,13 +2469,11 @@ class UserToplevel(Toplevel):
 
 
 class AdminToplevel(UserToplevel):
+    addSlash = True
+
     userchild_home = WorksheetsAdmin
-    userchild_conf = NotebookConf
-
-
-
-def set_cookie(cookie):
-    return [http_headers.Cookie(SID_COOKIE, cookie)]
+    child_users = ListOfUsers
+    child_adduser = AdminAddUser
 
 def user_type(username):
     # one of admin, guest, user

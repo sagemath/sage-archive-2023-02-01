@@ -6,6 +6,7 @@
 
 {% block body %}
 <h1>Account Settings</h1>
+<div class="section">{% if admin %}<a href="/users">Manage Users</a> | {% endif %}<a href="/">My Worksheets</a> | <a href="/logout">Sign Out</a></div>
 
   <form method="post" action="/settings">
 

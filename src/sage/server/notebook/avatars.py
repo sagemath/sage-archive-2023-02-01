@@ -61,6 +61,8 @@ def user_type(avatarId):
             return 'invalid_password', avatarId.username
         elif avatarId.failure_type == 'cookies':
             return 'cookies_disabled'
+        elif avatarId.failure_type == 'suspended':
+            return 'suspended'
         else:
             raise ValueError, 'invalid failure type'
 
@@ -103,6 +105,7 @@ class PasswordChecker(object):
     def requestAvatarId(self, credentials):
         username = credentials.username
         password = credentials.password
+
         if username == 'COOKIESDISABLED':
             return defer.succeed(FailedLogin(username, failure_type = 'cookies'))
 
@@ -112,6 +115,8 @@ class PasswordChecker(object):
             return defer.succeed(FailedLogin(username, failure_type = 'user'))
 
         if U.password_is(password):
+            if twist.notebook.user(username).is_suspended():
+                return defer.succeed(FailedLogin(username, failure_type = 'suspended'))
             return defer.succeed(username)
         else:
             return defer.succeed(FailedLogin(username,failure_type='password'))
@@ -194,6 +199,10 @@ class LoginSystem(object):
 
             elif T == 'cookies_disabled':
                 rsrc = twist.FailedToplevel(avatarId, problem='cookies_disabled')
+                return (iweb.IResource, rsrc, self.logout)
+
+            elif T == 'suspended':
+                rsrc = twist.FailedToplevel(avatarId, problem='suspended')
                 return (iweb.IResource, rsrc, self.logout)
 
             elif T == 'user':

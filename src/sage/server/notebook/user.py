@@ -17,6 +17,8 @@ class User:
             raise ValueError, "account type must be one of admin, user, or guest"
         self.__account_type = account_type
         self.__conf = user_conf.UserConfiguration()
+        self.__temporary_password = ''
+        self.__is_suspended = False
 
     def __getstate__(self):
         d = copy.copy(self.__dict__)
@@ -128,6 +130,7 @@ class User:
             self.__password = 'x'   # won't get as a password -- i.e., this account is closed.
         else:
             self.__password = crypt.crypt(password, SALT)
+            self.__temporary_password = ''
 
     def set_hashed_password(self, password):
         """
@@ -140,6 +143,7 @@ class User:
             'Crrc!'
         """
         self.__password = password
+        self.__temporary_password = ''
 
     def get_email(self):
         """
@@ -253,3 +257,37 @@ class User:
             False
         """
         return self.__account_type == 'guest'
+
+    def is_suspended(self):
+        """
+        EXAMPLES:
+            sage: from sage.server.notebook.user import User
+            sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
+            sage: user.is_suspended()
+            False
+        """
+        try:
+            return self.__is_suspended
+        except AttributeError:
+            return False
+
+    def set_suspension(self):
+        """
+        EXAMPLES:
+            sage: from sage.server.notebook.user import User
+            sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
+            sage: user.is_suspended()
+            False
+            sage: user.set_suspension()
+            sage: user.is_suspended()
+            True
+            sage: user.set_suspension()
+            sage: user.is_suspended()
+            False
+        """
+        try:
+            self.__is_suspended = False if self.__is_suspended else True
+        except AttributeError:
+            self.__is_suspended = True
+
+

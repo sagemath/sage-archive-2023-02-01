@@ -1,59 +1,47 @@
-Changes made from standard distro:
+= MPIR =
 
+== Description ==
 
-  * During the build process one of the following patches may be applied automatically:
+MPIR is a fork of GMP. See www.mpir.org
 
-          * PowerPC OS X: apply the gmp_add_nc.patch to fix a bug in the build
-            process that is a show stopper under PowerPC OS X.  (This
-            bug was introduced in gmp-6.2.1.)
+== License ==
 
-          * The Intel Core 2 Duo 64-bit patch of Jason Martin:
-                    http://www.math.jmu.edu/~martin/
+ * LGPL V2+
 
-          * Gaudry's speedups for AMD 64:
-                    http://www.loria.fr/~gaudry/mpn_AMD64/
+== SPKG Maintainers ==
 
-  * A patch is applied to incorporate GMP's fast GCD/XGCD code, which
-    probably won't get officially released until GMP 5. The underlying
-    code was obtained from http://gmplib.org/devel/ on 6-Sep-2007, which
-    says that the author is Niels Moller, and it's licensed under GPL
-    (apparently *not* all under LGPL). David Harvey wrote the patch to
-    include it in SAGE's GMP build.
+ * Michael Abshoff
 
-============================
+== Upstream Contact ==
 
-NOTE: When upgrading GMP, don't forget to update the spkg-install
-script for polymake.
+ * The Google group mpir-devel
 
-============================
+== Dependencies ==
 
-LOG
+ * None
+
+== Special Update/Build Instructions ==
+
+ * This is a svn checkout. Note that on MacIntel OSX one has to remove a number of files due to PIC issues. The problem will be fixed upstream.
 
 == Changelog ==
+
+=== gmp-mpir-svn1555.p0 (Michael Abshoff, January 19th, 2008) ===
+ * unset PYTHON since it confuses yasm during configure time
+
+=== gmp-mpir-svn1555 (Michael Abshoff, January 19th, 2008) ===
+ * Switch to MPIR
 
 === gmp-4.2.1.p13 (Michael Abshoff, March 28th, 2008) ===
  * Fix OSX 10.5 detection code to handle 10.5.2 and higher (#2672)
  * Make sure SAGE_ROOT is defined (#633)
  * clean spkg-check
 
-------------------------
+=== gmp-4.2.1.p12 and previous ===
 
-2006-02-19:
-   Joe Weening completely rewrote the spkg-install file.
+Work by
+ * William Stein
+ * Joe Weening
+ * David Harvey
+ * Wilson Cheung
 
---------------------
-
-(Submitted by Wilson Cheung)
-   The following is really a gmp-4.1.4 "bug" when compiled under
-   Solaris 10, and not a problem with sage itself.  In the section of
-   gmp's "configure" that determines which valid values for "ABI" are
-   available for each OS, it only checks up to Solaris 2.9.
-
-   On Solaris 10, it thinks that "ABI=64" value is invalid since it
-   just falls through to the default ABI choice of "standard".  This
-   problem may already be fixed in GMP 4.1.5 development code or newer
-   (haven't checked).
-
----------------------
-
-2006-01-18 -- Wilson modified the sunos section of spkg-install.

@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
-###########################################
-## GMP spkg-install
-## AUTHOR:
-##    -- Joe Weening (2006-02-19), jweening@ccrwest.org
-##    -- William Stein (2006-11).
-##    -- Jason Martin (2007-02): turn on support for some optimization patches.
-##    -- David Harvey (2007-09): fast gcd patch
-###########################################
 
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
+
+# The Yasm build uses PYTHON from env to find python, so unset it
+# since the version from newest_version confuses it
+unset PYTHON
 
 remove_pic_osx_32_bit()
 {

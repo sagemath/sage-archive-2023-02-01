@@ -1647,6 +1647,7 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
 
 
     def files_html(self, out):
+        import time
         D = self.files()
         D.sort()
         if len(D) == 0:
@@ -1662,7 +1663,7 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
             url = "%s/%s"%(self.url_to_self(), F)
             if F.endswith('.png') or F.endswith('.bmp') or \
                     F.endswith('.jpg') or F.endswith('.gif'):
-                images.append('<img src="%s?%d">'%(url, self.version()))
+                images.append('<img src="%s?%d">'%(url, time.time()))
             elif F.endswith('.obj'):
                 images.append("""<a href="javascript:sage3d_show('%s', '%s_%s', '%s');">Click for interactive view.</a>"""%(url, self.__id, F, F[:-4]))
             elif F.endswith('.mtl') or F.endswith(".objmeta"):
@@ -1681,7 +1682,7 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
                 #script = '<script>jmol_applet(%s, "%s");</script>%s' % (size, url, popup)
                 #script = '<script>jmol_popup("%s");</script>' % (url)
 
-                script = '<div><script>jmol_applet(%s, "%s?%d");</script></div>' % (size, url, self.version())
+                script = '<div><script>jmol_applet(%s, "%s?%d");</script></div>' % (size, url, time.time())
                 images.append(script)
             elif F.endswith('.jmol.zip'):
                 pass # jmol data

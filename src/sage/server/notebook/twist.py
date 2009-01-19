@@ -524,6 +524,7 @@ class CellData(resource.Resource):
     def childFactory(self, request, name):
         dir = self.worksheet.directory()
         path = '%s/cells/%s/%s'%(dir, self.number, name)
+        request.setLastModified(os.stat(filename).st_mtime)
         return static.File(path)
 
 

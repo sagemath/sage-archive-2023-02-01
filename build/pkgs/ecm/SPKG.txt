@@ -29,6 +29,9 @@ src contains upstream code, no patches were applied.
 
 == Changelog ==
 
+=== ecm-6.2.1.p0 (Michael Abshoff, January 19th, 2008) ===
+ * bump version to force recompile due to gmp -> MPIR switch
+
 === ecm-6.2.1 (Michael Abshoff, December 23rd, 2008) ===
  * upgrade to latest upstream release (#3237)
  * clean up old static library, headers and binary

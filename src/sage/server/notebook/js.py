@@ -3867,10 +3867,18 @@ function empty_trash() {
 
 function jsmath_init() {
     /*
-    Process all the jsmath in this page.
+    Process all the jsmath in this page.  The extensions here do the following:
+      - verb implements the \verb command:
+        see http://www.math.union.edu/~dpvc/jsMath/authors/verb.html
+      - moreArrows implements \xrightarrow, among other things:
+        see http://www.math.union.edu/~dpvc/jsMath/authors//moreArrows.html
+      - AMSmath implements a number of AMS math commands:
+        see http://www.math.union.edu/~dpvc/jsMath/authors/AMSmath.html
     */
     try {
          jsMath.Extension.Require("verb");
+         jsMath.Extension.Require("moreArrows");
+         jsMath.Extension.Require("AMSmath");
          jsMath.Process();
     } catch(e) {
     }

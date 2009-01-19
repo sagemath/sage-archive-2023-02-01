@@ -136,7 +136,7 @@ def point2d(points, **options):
     A point of size `pointsize' defined by point = $(x,y)$.
     Point takes either a single tuple of coordinates or a list of tuples.
 
-    Type \code{point.options} to see all options.
+    Type \code{point2d.options} to see all options.
 
     EXAMPLES:
         A purple point from a single tuple or coordinates:

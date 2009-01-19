@@ -1953,8 +1953,7 @@ class Worksheet:
         if not self.is_published():
             for c in self.cell_list():
                 if c.is_interactive_cell():
-                    if not c in self.__queue:
-                        self.enqueue(c)
+                    c.delete_output()
 
         # This *depends* on self.cell_list() being set!!
         self.set_cell_counter()

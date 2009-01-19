@@ -11,7 +11,8 @@ lrs is released under a GPL v2+ license.
 
 == SPKG Maintainers ==
 
-Marshall Hampton with help from Micheal Abshoff.
+ * Marshall Hampton
+ * Michael Abshoff
 
 == Upstream Contact ==
 
@@ -26,6 +27,12 @@ No dependencies.
 The only patch is the makefile, which has been cleaned up for Sage using our environmental variables and with an added "make check" section.
 
 == Changelog ==
-This became an optional package in May 2008, version lrs-4.2b.p0.spkg.
 
-Package revised (lrs-4.2b.p1.spkg) January 2009 with the goal of getting it to conform to Sage standards enough to become standard.
+=== lrs-4.2b.p1 (Marshall Hampton, January 19th, 2009) ===
+ * fixed SPKG.txt
+ * added make check section to our patched makefile
+ * created hg repository for this spkg
+ * added spkg-check which uses the "make check" added
+
+=== lrs-4.2b.p0 (Marshall Hampton, May 2008) ===
+ * made lrs 4.2b an optional spkg

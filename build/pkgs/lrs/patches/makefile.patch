@@ -1,0 +1,63 @@
+--- patches/makefile.orig	2009-01-18 21:58:48.000000000 -0600
++++ patches/makefile	2009-01-18 13:00:08.000000000 -0600
+@@ -14,26 +14,10 @@
+ 
+ # make clean    to clean all executables
+ 
++# Modified to use Sage gmp libraries
+ 
+-#Select one of the following INCLUDE,LIB paths only needed for gmp version
+-
+-#linux at mcgill with gmp version 3
+-#INCLUDEDIR = /usr/local/include
+-#LIBDIR     = /usr/local/lib
+-
+-#linux at mcgill with gmp version 2
+-#INCLUDEDIR = /labs/cgm/gmp2/include
+-#LIBDIR     = /labs/cgm/gmp2/lib
+-
+-
+-#TRUE64 at mcgill gmp version 3
+-INCLUDEDIR = /labs/cgm/include
+-LIBDIR     = /labs/cgm/lib
+-
+-#TRUE64 at mcgill gmp version 2
+-#INCLUDEDIR = /labs/cgm/gmp2/include
+-#LIBDIR     = /labs/cgm/gmp2/lib
+-
++INCLUDEDIR = ${SAGE_LOCAL}/include
++LIBDIR     = ${SAGE_LOCAL}/lib
+ 
+ all:	lrs.c lrslib.c lrslib.h lrsmp.c lrsmp.h lrslong.c lrslong.h redund.c buffer.c nash.c
+ 	gcc -O3 -DTIMES -DSIGNALS -o lrs  lrs.c lrslib.c lrsmp.c
+@@ -47,10 +31,10 @@
+ 	gcc -O3 -o buffer buffer.c
+ 
+ gmp:	lrs.c redund.c lrslib.h lrslib.c lrsgmp.h lrsgmp.c nash.c
+-	gcc -O3 -static -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} lrs.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o glrs
+-	gcc -O3 -static -DTIMES -DSIGNALS -DGMP -I${INCLUDEDIR} redund.c lrslib.c lrsgmp.c -L${LIBDIR} -lgmp -o gredund
+-	gcc -O3 -static -DLRS_QUIET -DTIMES -DSIGNALS -DGMP -I${INCLUDEDIR} nash.c lrslib.c lrsgmp.c -L${LIBDIR} -lgmp -o gnash
+-	gcc -O3 -static -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} fourier.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o gfourier
++	gcc -O3 -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} lrs.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o glrs
++	gcc -O3 -DTIMES -DSIGNALS -DGMP -I${INCLUDEDIR} redund.c lrslib.c lrsgmp.c -L${LIBDIR} -lgmp -o gredund
++	gcc -O3 -DLRS_QUIET -DTIMES -DSIGNALS -DGMP -I${INCLUDEDIR} nash.c lrslib.c lrsgmp.c -L${LIBDIR} -lgmp -o gnash
++	gcc -O3 -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} fourier.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o gfourier
+ 	gcc -O3 -o buffer buffer.c
+ 
+ gnash:	lrslib.h lrslib.c lrsgmp.h lrsgmp.c nash.c
+@@ -112,3 +96,15 @@
+ gfoo:	foo.c lrslib.h lrslib.c lrsgmp.h lrsgmp.c
+ 	gcc -O3 -static -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} foo.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o gfoo
+ 
++check:
++	lrs ext/test/cut16_11.ext > testout1
++	echo `grep -G Volume testout1` > testout1
++	echo "*Volume= 32768/14175" > testout2
++	diff testout1 testout2
++	lrs ine/test/cyclic17_8.ine > testout1
++	echo `grep -G Volume testout1` > testout1
++	echo "*Totals: vertices=935 rays=0 bases=935 integer_vertices=0" > testout2
++	diff testout1 testout2
++	rm testout1
++	rm testout2
++

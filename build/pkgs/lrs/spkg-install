@@ -1,8 +1,14 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 cp -f patches/makefile src/makefile
 
 cd src/
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 $MAKE
 if [ $? -ne 0 ]; then

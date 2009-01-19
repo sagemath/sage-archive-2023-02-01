@@ -1,0 +1,31 @@
+= lrs =
+
+== Description ==
+
+lrs implements the linear reverse search algorithm of Avis and Fukuda.
+
+See the homepage (http://cgm.cs.mcgill.ca/~avis/C/lrs.html)  for details.
+
+== License ==
+lrs is released under a GPL v2+ license.
+
+== SPKG Maintainers ==
+
+Marshall Hampton with help from Micheal Abshoff.
+
+== Upstream Contact ==
+
+David Avis, avis at cs dot mcgill dot edu.
+
+== Dependencies ==
+
+No dependencies.
+
+== Special Update/Build Instructions ==
+
+The only patch is the makefile, which has been cleaned up for Sage using our environmental variables and with an added "make check" section.
+
+== Changelog ==
+This became an optional package in May 2008, version lrs-4.2b.p0.spkg.
+
+Package revised (lrs-4.2b.p1.spkg) January 2009 with the goal of getting it to conform to Sage standards enough to become standard.

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+cd src/
+
+$MAKE check
+if [ $? -ne 0 ]; then
+   echo "Error in testing lrs"
+   exit 1
+fi
+

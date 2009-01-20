@@ -49,8 +49,7 @@ else
     CXXFLAGS="-O2 -g -m64"; export CXXFLAGS
     CPPFLAGS="-O2 -g -m64"; export CPPFLAGS
     LDFLAGS="-m64 "; export LDFLAGS
-    DYNAMIC_KERNEL="--with-malloc=system $DYNAMIC_KERNEL"; export DYNAMIC_KERNEL
-    echo $DYNAMIC_KERNEL
+    DYNAMIC_KERNEL="--with-malloc=system --without-dynamic-kernel"; export DYNAMIC_KERNEL
   fi
 fi
 
@@ -117,8 +116,8 @@ config()
 		--enable-libfac \
                 --enable-IntegerProgramming \
                 --disable-doc  \
-                "$DYNAMIC_KERNEL" \
-		"$ENABLE_DEBUG"
+                $DYNAMIC_KERNEL \
+		$ENABLE_DEBUG
 
     if [ $? -ne 0 ]; then
         echo "Unable to configure Singular."

@@ -6,6 +6,9 @@ see below
 
 == Changelog ==
 
+=== tachyon-0.98beta.p7 (Michael Abshoff, January 20th, 2009) ===
+ * Add 64 bit OSX support
+
 === tachyon-0.98beta.p6 (Andrzej Giniewicz, August 2nd, 2008) ===
  * Workaround segfault on new GCC versions (#3710)
 

@@ -869,6 +869,17 @@ macosx:
 	"RANLIB = ranlib" \
 	"LIBS = -L. -ltachyon $(MISCLIB)"
 
+macosx-64:
+	$(MAKE) all \
+	"ARCH = macosx" \
+	"CC = cc" \
+	"CFLAGS = -Os -m64 -ffast-math -DBsd $(MISCFLAGS)" \
+	"AR = ar" \
+	"ARFLAGS = r" \
+	"STRIP = strip" \
+	"RANLIB = ranlib" \
+	"LIBS = -L. -ltachyon $(MISCLIB)"
+
 macosx-thr:
 	$(MAKE) all \
 	"ARCH = macosx-thr" \

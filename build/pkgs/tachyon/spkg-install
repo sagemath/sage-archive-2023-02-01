@@ -1,4 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 cd src/
 
@@ -28,7 +34,12 @@ fi
 if [ $UNAME = "Darwin" ]; then
     #make macosx-thr
     # The threaded version of the 0.98 beta doesn't work on OS X.
-    make macosx
+    if [ "$SAGE64" = "yes" ]; then
+        echo "Building 64 bit MaxOSX"
+        make macosx-64
+    else
+        make macosx
+    fi
     finished
 fi
 
@@ -59,5 +70,5 @@ if [ $UNAME = "SunOS" ]; then
     finished
 fi
 
-echo "Tachyon build for $UNAME not implemented (for SAGE)"
+echo "Tachyon build for $UNAME not implemented (for SAGE) - please complain on sage-devel"
 exit 1

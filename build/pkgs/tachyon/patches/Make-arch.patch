@@ -1,6 +1,24 @@
---- Make-arch	2008-08-02 03:36:26.000000000 +0200
-+++ ../../../new/src/unix/Make-arch	2008-08-02 03:23:39.000000000 +0200
-@@ -1131,7 +1131,7 @@
+--- Make-arch.orig	2009-01-20 03:56:18.000000000 -0800
++++ Make-arch	2009-01-20 03:52:23.000000000 -0800
+@@ -869,6 +869,17 @@
+ 	"RANLIB = ranlib" \
+ 	"LIBS = -L. -ltachyon $(MISCLIB)"
+ 
++macosx-64:
++	$(MAKE) all \
++	"ARCH = macosx" \
++	"CC = cc" \
++	"CFLAGS = -Os -m64 -ffast-math -DBsd $(MISCFLAGS)" \
++	"AR = ar" \
++	"ARFLAGS = r" \
++	"STRIP = strip" \
++	"RANLIB = ranlib" \
++	"LIBS = -L. -ltachyon $(MISCLIB)"
++
+ macosx-thr:
+ 	$(MAKE) all \
+ 	"ARCH = macosx-thr" \
+@@ -1131,7 +1142,7 @@
  	$(MAKE) all \
  	"ARCH = linux-thr" \
  	"CC = gcc" \

@@ -596,6 +596,29 @@ def matrix(*args, **kwds):
 
 
 def prepare(w):
+    """
+    Given a list w of numbers, find a common ring that they all
+    canonically map to, and return the list of images of the elements
+    of w in that ring along with the ring.
+
+    This is for internal use by the matrix function.
+
+    INPUT:
+        w -- list
+    OUTPUT:
+        list, ring
+
+    EXAMPLES:
+        sage: sage.matrix.constructor.prepare([-2, Mod(1,7)])
+        ([5, 1], Ring of integers modulo 7)
+
+    Notice that the elements must all canonically coerce to a common
+    ring (since Sequence is called):
+        sage: sage.matrix.constructor.prepare([2/1, Mod(1,7)])
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to find a common ring for all elements
+    """
     if 0 == len(w):
         return Sequence([], rings.ZZ), rings.ZZ
     entries = Sequence(w)
@@ -611,17 +634,71 @@ def prepare(w):
     return entries, ring
 
 def prepare_dict(w):
+    """
+    Given a dictionary w of numbers, find a common ring that they all
+    canonically map to, and return the dictionary of images of the
+    elements of w in that ring along with the ring.
+
+    This is for internal use by the matrix function.
+
+    INPUT:
+        w -- dict
+    OUTPUT:
+        dict, ring
+
+    EXAMPLES:
+        sage: sage.matrix.constructor.prepare_dict({(0,1):2, (4,10):Mod(1,7)})
+        ({(0, 1): 2, (4, 10): 1}, Ring of integers modulo 7)
+    """
     Z = w.items()
     X = [x for _, x in Z]
     entries, ring = prepare(X)
     return dict([(Z[i][0],entries[i]) for i in xrange(len(entries))]), ring
 
 def nrows_from_dict(d):
+    """
+    Given a dictionary that defines a sparse matrix, return the number
+    of rows that matrix should have.
+
+    This is for internal use by the matrix function.
+
+    INPUT:
+        d -- dict
+    OUTPUT:
+        integer
+
+    EXAMPLES:
+        sage: sage.matrix.constructor.nrows_from_dict({})
+        0
+
+    Here the answer is 301 not 300, since there is a 0-th row.
+        sage: sage.matrix.constructor.nrows_from_dict({(300,4):10})
+        301
+    """
     if 0 == len(d):
         return 0
     return max([0] + [ij[0] for ij in d.keys()]) + 1
 
 def ncols_from_dict(d):
+    """
+    Given a dictionary that defines a sparse matrix, return the number
+    of columns that matrix should have.
+
+    This is for internal use by the matrix function.
+
+    INPUT:
+        d -- dict
+    OUTPUT:
+        integer
+
+    EXAMPLES:
+        sage: sage.matrix.constructor.ncols_from_dict({})
+        0
+
+    Here the answer is 301 not 300, since there is a 0-th row.
+        sage: sage.matrix.constructor.ncols_from_dict({(4,300):10})
+        301
+    """
     if 0 == len(d):
         return 0
     return max([0] + [ij[1] for ij in d.keys()]) + 1

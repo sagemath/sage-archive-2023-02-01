@@ -3,6 +3,11 @@ Misc matrix algorithms
 
 Code goes here mainly when it needs access to the internal structure
 of several classes, and we want to avoid circular cimports.
+
+NOTE: The whole problem of avoiding circular imports -- the reason for
+existence of this file -- is now a non-issue, since some bugs in
+Cython were fixed.  Probably all this code should be moved into the
+relevant classes and this file deleted.
 """
 
 include "../ext/interrupt.pxi"
@@ -47,65 +52,24 @@ from sage.rings.real_mpfr cimport RealNumber
 
 from sage.misc.misc import verbose, get_verbose
 
-
-def matrix_modn_dense_lift(Matrix_modn_dense A):
-    cdef Py_ssize_t i, j
-    cdef Matrix_integer_dense L
-    L = Matrix_integer_dense.__new__(Matrix_integer_dense,
-                                     A.parent().change_ring(ZZ),
-                                     0, 0, 0)
-    cdef mpz_t* L_row
-    cdef mod_int* A_row
-    for i from 0 <= i < A._nrows:
-        L_row = L._matrix[i]
-        A_row = A._matrix[i]
-        for j from 0 <= j < A._ncols:
-            mpz_init_set_si(L_row[j], A_row[j])
-    L._initialized = 1
-    return L
-
-def matrix_modn_sparse_lift(Matrix_modn_sparse A):
-    cdef Py_ssize_t i, j
-    cdef Matrix_integer_sparse L
-    L = Matrix_integer_sparse.__new__(Matrix_integer_sparse,
-                                     A.parent().change_ring(ZZ),
-                                     0, 0, 0)
-
-    cdef mpz_vector* L_row
-    cdef c_vector_modint* A_row
-    for i from 0 <= i < A._nrows:
-        L_row = &(L._matrix[i])
-        A_row = &(A.rows[i])
-        sage_free(L_row.entries)
-        L_row.entries = <mpz_t*> sage_malloc(sizeof(mpz_t)*A_row.num_nonzero)
-        L_row.num_nonzero = A_row.num_nonzero
-        if L_row.entries == NULL:
-            raise MemoryError, "error allocating space for sparse vector during sparse lift"
-        sage_free(L_row.positions)
-        L_row.positions = <Py_ssize_t*> sage_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
-        if L_row.positions == NULL:
-            sage_free(L_row.entries)
-            L_row.entries = NULL
-            raise MemoryError, "error allocating space for sparse vector during sparse lift"
-        for j from 0 <= j < A_row.num_nonzero:
-            L_row.positions[j] = A_row.positions[j]
-            mpz_init_set_si(L_row.entries[j], A_row.entries[j])
-    return L
-
-
-## VERSION without denom trick -- vastly slower!
-##
-## def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer N):
-##     cdef Matrix_rational_dense R
-##     R = Matrix_rational_dense.__new__(Matrix_rational_dense,
-##                                       A.parent().change_ring(QQ), 0,0,0)
-##     #cdef mpz_t denom   # lcm of denoms so far
-##     for i from 0 <= i < A._nrows:
-##         for j from 0 <= j < A._ncols:
-##             mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
-##     return R
-
 def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer N):
+    """
+    Given a matrix over the integers and an integer modulus, do
+    rational reconstruction on all entries of the matrix, viewed as
+    numbers mod N.  This is done efficiently by assuming there is a
+    large common factor dividing the denominators.
+
+    INPUT:
+        A -- matrix
+        N -- an integer
+
+    EXAMPLES:
+        sage: B = ((matrix(ZZ, 3,4, [1,2,3,-4,7,2,18,3,4,3,4,5])/3)%500).change_ring(ZZ)
+        sage: sage.matrix.misc.matrix_integer_dense_rational_reconstruction(B, 500)
+        [ 1/3  2/3    1 -4/3]
+        [ 7/3  2/3    6    1]
+        [ 4/3    1  4/3  5/3]
+    """
     cdef Matrix_rational_dense R
     R = Matrix_rational_dense.__new__(Matrix_rational_dense,
                                       A.parent().change_ring(QQ), 0,0,0)
@@ -156,30 +120,19 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
     mpz_clear(bnd)
     return R
 
-## Old slow version
-## def xxx_matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integer N):
-##     cdef Matrix_rational_sparse R
-##     R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
-##                                       A.parent().change_ring(QQ), 0,0,0)
-
-##     # todo -- use lcm of denoms so far trick...
-##     #cdef mpz_t denom   # lcm of denoms so far
-
-##     cdef mpq_t x
-##     mpq_init(x)
-##     cdef mpz_vector* A_row
-##     cdef mpq_vector* R_row
-##     for i from 0 <= i < A._nrows:
-##         A_row = &A._matrix[i]
-##         R_row = &R._matrix[i]
-##         for j from 0 <= j < A_row.num_nonzero:
-##             mpq_rational_reconstruction(x, A_row.entries[j], N.value)
-##             mpq_vector_set_entry(R_row, A_row.positions[j], x)
-
-##     mpq_clear(x)
-##     return R
-
 def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integer N):
+    """
+    Given a sparse matrix over the integers and an integer modulus, do
+    rational reconstruction on all entries of the matrix, viewed as
+    numbers mod N.
+
+    EXAMPLES:
+        sage: A = matrix(ZZ, 3, 4, [(1/3)%500, 2, 3, (-4)%500, 7, 2, 2, 3, 4, 3, 4, (5/7)%500], sparse=True)
+        sage: sage.matrix.misc.matrix_integer_sparse_rational_reconstruction(A, 500)
+        [1/3   2   3  -4]
+        [  7   2   2   3]
+        [  4   3   4 5/7]
+    """
     cdef Matrix_rational_sparse R
     R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
                                       A.parent().change_ring(QQ), 0,0,0)
@@ -247,38 +200,6 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
     return R
 
 
-## def matrix_modn_sparse_lift(Matrix_modn_sparse A):
-##     raise NotImplementedError
-##     cdef Py_ssize_t i, j
-##     cdef Matrix_integer_sparse L
-##     L = Matrix_integer_sparse.__new__(Matrix_integer_sparse,
-##                                      A.parent().change_ring(ZZ),
-##                                      0, 0, 0)
-##     cdef mpz_t* L_row
-##     cdef mod_int* A_row
-##     for i from 0 <= i < A._nrows:
-##         L_row = L._matrix[i]
-##         A_row = A._matrix[i]
-##         for j from 0 <= j < A._ncols:
-##             mpz_init_set_si(L_row[j], A_row[j])
-##     L._initialized = 1
-##     return L
-
-## def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integer N):
-##     raise NotImplementedError
-##     cdef Matrix_rational_sparse R
-##     R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
-##                                       A.parent().change_ring(QQ), 0,0,0)
-
-##     cdef mpz_t denom   # lcm of denoms so far
-##     for i from 0 <= i < A._nrows:
-##         for j from 0 <= j < A._ncols:
-##             mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
-##     return R
-
-
-
-
 def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, proof=None):
     """
     Returns reduced row-echelon form using a multi-modular
@@ -328,6 +249,23 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
 
         where H denotes the height.   If this fails, do step 4 with
         a few more primes.
+
+    EXAMPLES:
+        sage: A = matrix(QQ, 3, 7, [1..21])
+        sage: sage.matrix.misc.matrix_rational_echelon_form_multimodular(A)
+        [ 1  0 -1 -2 -3 -4 -5]
+        [ 0  1  2  3  4  5  6]
+        [ 0  0  0  0  0  0  0]
+
+        sage: A = matrix(QQ, 3, 4, [0,0] + [1..9] + [-1/2^20])
+        sage: sage.matrix.misc.matrix_rational_echelon_form_multimodular(A)
+        [                1                 0                 0 -10485761/1048576]
+        [                0                 1                 0  27262979/4194304]
+        [                0                 0                 1                 2]
+        sage: A.echelon_form()
+        [                1                 0                 0 -10485761/1048576]
+        [                0                 1                 0  27262979/4194304]
+        [                0                 0                 1                 2]
     """
 
     if proof is None:
@@ -409,10 +347,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
                 p = X[i].base_ring().order()
                 if not lifts.has_key(p):
                     t0 = verbose("Lifting a good matrix", level=2, caller_name = "multimod echelon")
-                    if X[i].is_dense():
-                        lift = matrix_modn_dense_lift(X[i])
-                    else:
-                        lift = matrix_modn_sparse_lift(X[i])
+                    lift = X[i].lift()
                     lifts[p] = (lift, p)
                     verbose("Finished lift", level=2, caller_name= "multimod echelon", t=t0)
                 Y.append(lifts[p])
@@ -462,12 +397,28 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
 def cmp_pivots(x,y):
     """
     Compare two sequences of pivot columns.
-    If x is short than y, return -1, i.e., x < y, "not as good".
-    If x is longer than y, x > y, "better"
-    If the length is the same then x is better, i.e., x > y
-        if the entries of x are correspondingly >= those of y with
-        one being greater.
-    I
+
+    If x is shorter than y, return -1, i.e., x < y, "not as good".
+    If x is longer than y, then x > y, so "better" and return +1.
+    If the length is the same, then x is better, i.e., x > y
+    if the entries of x are correspondingly <= those of y with
+    one being strictly less.
+
+    INPUT:
+        x, y -- list of integers
+
+    EXAMPLES:
+    We illustrate each of the above comparisons.
+        sage: sage.matrix.misc.cmp_pivots([1,2,3], [4,5,6,7])
+        -1
+        sage: sage.matrix.misc.cmp_pivots([1,2,3,5], [4,5,6])
+        1
+        sage: sage.matrix.misc.cmp_pivots([1,2,4], [1,2,3])
+        -1
+        sage: sage.matrix.misc.cmp_pivots([1,2,3], [1,2,3])
+        0
+        sage: sage.matrix.misc.cmp_pivots([1,2,3], [1,2,4])
+        1
     """
     if len(x) < len(y):
         return -1
@@ -484,16 +435,6 @@ def cmp_pivots(x,y):
 
 #######################################
 
-def matrix_rational_sparse__dense_matrix(Matrix_rational_sparse self):
-    cdef Matrix_rational_dense B
-    cdef mpq_vector* v
-
-    B = self.matrix_space(sparse=False).zero_matrix()
-    for i from 0 <= i < self._nrows:
-        v = &(self._matrix[i])
-        for j from 0 <= j < v.num_nonzero:
-            mpq_set(B._matrix[i][v.positions[j]], v.entries[j])
-    return B
 
 
 #######################################

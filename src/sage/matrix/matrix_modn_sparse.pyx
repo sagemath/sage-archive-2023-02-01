@@ -90,6 +90,11 @@ from sage.structure.element import is_Vector
 cimport sage.structure.element
 from matrix_modn_dense cimport Matrix_modn_dense
 
+include '../modules/binary_search.pxi'
+include '../modules/vector_integer_sparse_h.pxi'
+include '../modules/vector_integer_sparse_c.pxi'
+from matrix_integer_sparse cimport Matrix_integer_sparse
+
 ################
 # TODO: change this to use extern cdef's methods.
 from sage.rings.fast_arith cimport arith_int
@@ -857,3 +862,43 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             return (X.base_ring() ** X.ncols())(X.list())
         else:
             return X.transpose()
+
+    def lift(self):
+        """
+        Return lift of this matrix to a sparse matrix over the integers.
+
+        EXAMPLES:
+            sage: a = matrix(GF(7),2,3,[1..6], sparse=True)
+            sage: a.lift()
+            [1 2 3]
+            [4 5 6]
+            sage: a.lift().parent()
+            Full MatrixSpace of 2 by 3 sparse matrices over Integer Ring
+        """
+        cdef Py_ssize_t i, j
+        cdef Matrix_integer_sparse L
+        L = Matrix_integer_sparse.__new__(Matrix_integer_sparse,
+                                         self.parent().change_ring(rings.ZZ),
+                                         0, 0, 0)
+
+        cdef mpz_vector* L_row
+        cdef c_vector_modint* A_row
+        for i from 0 <= i < self._nrows:
+            L_row = &(L._matrix[i])
+            A_row = &(self.rows[i])
+            sage_free(L_row.entries)
+            L_row.entries = <mpz_t*> sage_malloc(sizeof(mpz_t)*A_row.num_nonzero)
+            L_row.num_nonzero = A_row.num_nonzero
+            if L_row.entries == NULL:
+                raise MemoryError, "error allocating space for sparse vector during sparse lift"
+            sage_free(L_row.positions)
+            L_row.positions = <Py_ssize_t*> sage_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
+            if L_row.positions == NULL:
+                sage_free(L_row.entries)
+                L_row.entries = NULL
+                raise MemoryError, "error allocating space for sparse vector during sparse lift"
+            for j from 0 <= j < A_row.num_nonzero:
+                L_row.positions[j] = A_row.positions[j]
+                mpz_init_set_si(L_row.entries[j], A_row.entries[j])
+        return L
+

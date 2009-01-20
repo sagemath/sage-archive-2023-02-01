@@ -553,8 +553,27 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         mpq_vector_scalar_multiply(&self._matrix[i], &self._matrix[j], _s.value)
 
     def dense_matrix(self):
-        import misc
-        return misc.matrix_rational_sparse__dense_matrix(self)
+        """
+        Return dense version of this matrix.
+
+        EXAMPLES:
+            sage: a = matrix(QQ,2,[1..4],sparse=True); type(a)
+            <type 'sage.matrix.matrix_rational_sparse.Matrix_rational_sparse'>
+            sage: type(a.dense_matrix())
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            sage: a.dense_matrix()
+            [1 2]
+            [3 4]
+        """
+        cdef Matrix_rational_dense B
+        cdef mpq_vector* v
+
+        B = self.matrix_space(sparse=False).zero_matrix()
+        for i from 0 <= i < self._nrows:
+            v = &(self._matrix[i])
+            for j from 0 <= j < v.num_nonzero:
+                mpq_set(B._matrix[i][v.positions[j]], v.entries[j])
+        return B
 
 ##     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
 ##                                                                  Py_ssize_t r, cols):

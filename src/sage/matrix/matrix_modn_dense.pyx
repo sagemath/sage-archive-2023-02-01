@@ -133,6 +133,9 @@ from sage.rings.integer cimport Integer
 
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 
+from matrix_integer_dense cimport Matrix_integer_dense
+from sage.rings.integer_ring   import ZZ
+
 ################
 from sage.rings.fast_arith cimport arith_int
 cdef arith_int ai
@@ -1636,6 +1639,35 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         F = self.base_ring()
         return [F(self._entries[i]) for i in range(self._nrows*self._ncols)]
+
+    def lift(self):
+        """
+        Return the lift of this matrix to the integers.
+
+        EXAMPLES:
+            sage: a = matrix(GF(7),2,3,[1..6])
+            sage: a.lift()
+            [1 2 3]
+            [4 5 6]
+            sage: a.lift().parent()
+            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+        """
+        cdef Py_ssize_t i, j
+
+        cdef Matrix_integer_dense L
+        L = Matrix_integer_dense.__new__(Matrix_integer_dense,
+                                         self.parent().change_ring(ZZ),
+                                         0, 0, 0)
+        cdef mpz_t* L_row
+        cdef mod_int* A_row
+        for i from 0 <= i < self._nrows:
+            L_row = L._matrix[i]
+            A_row = self._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpz_init_set_si(L_row[j], A_row[j])
+        L._initialized = 1
+        return L
+
 
     def _matrices_from_rows(self, Py_ssize_t nrows, Py_ssize_t ncols):
         """

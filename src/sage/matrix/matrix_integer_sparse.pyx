@@ -277,6 +277,13 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         Use rational reconstruction to lift self to a matrix over the
         rational numbers (if possible), where we view self as a matrix
         modulo N.
+
+        EXAMPLES:
+            sage: A = matrix(ZZ, 3, 4, [(1/3)%500, 2, 3, (-4)%500, 7, 2, 2, 3, 4, 3, 4, (5/7)%500], sparse=True)
+            sage: A.rational_reconstruction(500)
+            [1/3   2   3  -4]
+            [  7   2   2   3]
+            [  4   3   4 5/7]
         """
         import misc
         return misc.matrix_integer_sparse_rational_reconstruction(self, N)

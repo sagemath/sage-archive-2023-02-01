@@ -9,6 +9,9 @@
 
 == Releases ==
 
+=== singular-3-0-4-4-20080711.p3 (Michael Abshoff, January 20th, 2009) ===
+ * use "--with-malloc=system" for 64 bit OSX
+
 === singular-3-0-4-4-20080711.p2 (Michael Abshoff, November 30th, 2008) ===
  * Fix header permission problem (#4668)
  * delete old singular headers in $SAGE_LOCAL/include/singular

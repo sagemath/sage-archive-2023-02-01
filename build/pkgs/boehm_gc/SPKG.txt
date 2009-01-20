@@ -28,6 +28,9 @@ None. Sources in src are vanilla.
 
 == Changelog ==
 
+=== boehm_gc-7.1.p1 (Michael Abshoff, January 20th, 2009) ===
+ * add 64 bit OSX support
+
 === boehm_gc-7.1.p0 (Michael Abshoff, July 16th, 2008) ===
  * clean up spkg-install
  * clean up SPKG.txt

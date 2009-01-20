@@ -8,6 +8,12 @@ fi
 
 cd src
 
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   CFLAGS="-O2 -g -fPIC -m64 "; export CFLAGS
+   LDFLAGS="-m64"; export LDFLAGS
+fi
+
 ./configure --prefix=$SAGE_LOCAL --enable-large-config
 if [ $? -ne 0 ]; then
    echo "Error configuring BoehmGC."

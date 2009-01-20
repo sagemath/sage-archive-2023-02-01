@@ -392,6 +392,11 @@ cdef class Matrix(matrix0.Matrix):
 
     def lift(self):
         """
+        Return lift of self to the covering ring of the base ring R,
+        which is by definition the ring returned by calling
+        cover_ring() on R, or just R itself if the cover_ring method
+        is not defined.
+
         EXAMPLES:
             sage: M = Matrix(Integers(7), 2, 2, [5, 9, 13, 15]) ; M
             [5 2]
@@ -401,8 +406,24 @@ cdef class Matrix(matrix0.Matrix):
             [6 1]
             sage: parent(M.lift())
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+
+        The field QQ doesn't have a cover_ring method:
+            sage: hasattr(QQ, 'cover_ring')
+            False
+
+        So lifting a matrix over QQ gives back the same exact matrix.
+            sage: B = matrix(QQ, 2, [1..4])
+            sage: B.lift()
+            [1 2]
+            [3 4]
+            sage: B.lift() is B
+            True
         """
-        return self.change_ring(self._base_ring.cover_ring())
+        if hasattr(self._base_ring, 'cover_ring'):
+            S = self._base_ring.cover_ring()
+            if S is not self._base_ring:
+                return self.change_ring(S)
+        return self
 
     #############################################################################################
     # rows, columns, sparse_rows, sparse_columns, dense_rows, dense_columns, row, column

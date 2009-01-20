@@ -10,12 +10,12 @@ GPL V2+
 
 == SPKG Maintainers ==
 
- * Burcin Erocal - burcin@erocal.org
-
+ * Burcin Erocal - burcin <AT> spam.erocal.org
+ * Michael Abshoff
 == Upstream Contact ==
 
- * Burcin Erocal - burcin@erocal.org
- * William Stein - wstein@gmail.com
+ * Burcin Erocal - burcin <AT> spam.erocal.org
+ * William Stein - wstein <AT> spam.gmail.com
 
 == Dependencies ==
 
@@ -31,6 +31,8 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.1.p0 (Michael Abshoff, January 20th, 2009) ===
+ * add OSX 64 bit build support
 
 === pynac-0.1.1 (Burcin Erocal, October 15th, 2008) ===
  * Allow python functions to provide custom evaluation, derivative, series

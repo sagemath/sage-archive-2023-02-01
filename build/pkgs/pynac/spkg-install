@@ -4,12 +4,16 @@
 ###########################################
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo "SAGE_LOCAL undefined ... exiting";
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
-
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+    echo "64 bit MacIntel"
+    CXXFLAGS="-m64 -O2 -g"; export CXXFLAGS
+    LDFLAGS="-m64"; export LDFLAGS
+fi
 
 WORKDIR=${PWD}/src
 PYNACDIR=${WORKDIR}
@@ -22,8 +26,10 @@ patch()
 build_pynac()
 {
     cd ${PYNACDIR}
-    CPPFLAGS=-I"$SAGE_LOCAL"/include/python2.5 PKG_CONFIG_PATH=${SAGE_LOCAL}/lib/pkgconfig ./configure --disable-static --prefix=${SAGE_LOCAL}
-    CPPFLAGS=-I"$SAGE_LOCAL"/include/python2.5 $MAKE
+    PKG_CONFIG_PATH=${SAGE_LOCAL}/lib/pkgconfig; export PKG_CONFIG_PATH
+    CPPFLAGS=-I"$SAGE_LOCAL"/include/python2.5; export CPPFLAGS
+    ./configure --disable-static --prefix=${SAGE_LOCAL}
+    $MAKE
     if [ $? -ne 0 ]; then
         echo "Error building pynac."
         exit 1

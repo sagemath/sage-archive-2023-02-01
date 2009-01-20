@@ -133,34 +133,34 @@ def apply_pair(p):
     """
     return p[0](p[1])
 
-def execute_list_of_commands_in_parallel(command_list, ncpus):
+def execute_list_of_commands_in_parallel(command_list, nthreads):
     """
     INPUT:
         command_list -- a list of pairs, consisting of a
              function to call and its argument
-        ncpus -- integer; number of cpus to use
+        nthreads -- integer; number of threads to use
 
     OUTPUT:
         Executes the given list of commands, possibly in parallel,
-        using ncpus cpus.  Terminates setup.py with an exit code of 1
+        using nthreads threads.  Terminates setup.py with an exit code of 1
         if an error occurs in any subcommand.
 
     WARNING: commands are run roughly in order, but of course successive
     commands may be run at the same time.
     """
-    print "Execute %s commands (using %s cpus)"%(len(command_list), min(len(command_list),ncpus))
+    print "Execute %s commands (using %s threads)"%(len(command_list), min(len(command_list),nthreads))
     from processing import Pool
-    p = Pool(ncpus)
+    p = Pool(nthreads)
     for r in p.imap(apply_pair, command_list):
         if r:
             print "Parallel build failed with status %s."%r
             sys.exit(1)
 
-def number_of_cpus():
+def number_of_threads():
     """
-    Try to determine the number of cpu's on this system.
-    If successful return that number.  Otherwise return 0
-    to indicate failure.
+    Try to determine the number of threads one can run at once on this
+    system (e.g., the number of cores).  If successful return that
+    number.  Otherwise return 0 to indicate failure.
 
     OUTPUT:
         int
@@ -186,31 +186,31 @@ def execute_list_of_commands(command_list):
     """
     t = time.time()
     if not os.environ.has_key('MAKE'):
-        ncpus = 1
+        nthreads = 1
     else:
         MAKE = os.environ['MAKE']
         z = [w[2:] for w in MAKE.split() if w.startswith('-j')]
         if len(z) == 0:  # no command line option
-            ncpus = 1
+            nthreads = 1
         else:
-            # Determine number of cpus from command line argument.
-            # Also, use the OS to cap the number of cpus, in case
+            # Determine number of threads from command line argument.
+            # Also, use the OS to cap the number of threads, in case
             # user annoyingly makes a typo and asks to use 10000
-            # cpus at once.
+            # threads at once.
             try:
-                ncpus = int(z[0])
-                n = 2*number_of_cpus()
+                nthreads = int(z[0])
+                n = 2*number_of_threads()
                 if n:  # prevent dumb typos.
-                    ncpus = min(ncpus, n)
+                    nthreads = min(nthreads, n)
             except ValueError:
-                ncpus = 1
+                nthreads = 1
 
     # normalize the command_list to handle strings correctly
     command_list = [ [run_command, x] if isinstance(x, str) else x for x in command_list ]
 
-    if ncpus > 1:
+    if nthreads > 1:
         # parallel version
-        execute_list_of_commands_in_parallel(command_list, ncpus)
+        execute_list_of_commands_in_parallel(command_list, nthreads)
     else:
         # non-parallel version
         execute_list_of_commands_in_serial(command_list)

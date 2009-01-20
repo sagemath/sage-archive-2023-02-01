@@ -1,4 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 cp patches/lanczos.h  src/
 
@@ -7,7 +13,11 @@ cd src
 if [ `uname -m` = "x86_64" ]; then
     $CP makefile.opteron makefile
 else
-    $CP makefile.sage makefile
+    if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+        $CP makefile.osx64 makefile
+    else
+        $CP makefile.sage makefile
+    fi
 fi
 
 $MAKE

@@ -3,7 +3,14 @@ Dense Matrices over a general ring
 """
 
 def _convert_dense_entries_to_list(entries):
-    # Create matrix from a list of vectors
+    """
+    Create list of entries that define a matrix from a list of vectors.
+
+    EXAMPLES:
+        sage: entries = [vector([1,2,3]), vector([4,5,6])]
+        sage: sage.matrix.matrix_generic_dense._convert_dense_entries_to_list(entries)
+        [1, 2, 3, 4, 5, 6]
+    """
     e = []
     for v in entries:
         e = e+ v.list()
@@ -27,6 +34,15 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     defines functionality for dense matrices over any base ring.
     Matrices are represented by a list of elements in the base ring,
     and element access operations are implemented in this class.
+
+    EXAMPLES:
+        sage: A = random_matrix(Integers(25)['x'],2); A
+        [    x^2 + 12*x + 2   4*x^2 + 13*x + 8]
+        [ 22*x^2 + 2*x + 17 19*x^2 + 22*x + 14]
+        sage: type(A)
+        <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+        sage: A == loads(dumps(A))
+        True
     """
     ########################################################################
     # LEVEL 1 functionality
@@ -98,17 +114,53 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         return <object>PyList_GET_ITEM(self._entries, i*self._ncols + j)
 
     def _pickle(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = Integers(25)['x']; A = matrix(R, [1,x,x^3+1,2*x])
+            sage: A._pickle()
+            ([1, x, x^3 + 1, 2*x], 0)
+        """
         return self._entries, 0
 
     def _unpickle(self, data, int version):
+        """
+        EXAMPLES:
+            sage: R.<x> = Integers(25)['x']; A = matrix(R, [1,x,x^3+1,2*x]); B = A.parent()(0)
+            sage: v = A._pickle()
+            sage: B._unpickle(v[0], v[1])
+            sage: B
+            [      1       x x^3 + 1     2*x]
+        """
         if version == 0:
             self._entries = data
         else:
             raise RuntimeError, "unknown matrix version"
 
     def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
+        """
+        EXAMPLES:
+            sage: A = random_matrix(Integers(25)['x'],2)
+            sage: cmp(A,A)
+            0
+            sage: cmp(A,A+1)
+            -1
+            sage: cmp(A+1,A)
+            1
+        """
         return self._richcmp(right, op)
+
     def __hash__(self):
+        """
+        EXAMPLES:
+            sage: A = random_matrix(Integers(25)['x'],2)
+            sage: hash(A)
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+            sage: A.set_immutable()
+            sage: hash(A)
+            -623270016
+        """
         return self._hash()
 
     ########################################################################
@@ -164,16 +216,20 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES:
         We multiply two matrices over a fairly general ring:
-
             sage: R.<x,y> = Integers(8)['x,y']
             sage: a = matrix(R,2,[x,y,x^2,y^2]); a
             [  x   y]
             [x^2 y^2]
+            sage: type(a)
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
             sage: a*a
             [  x^2*y + x^2     y^3 + x*y]
             [x^2*y^2 + x^3   y^4 + x^2*y]
             sage: a.det()^2 == (a*a).det()
             True
+            sage: a._multiply_classical(a)
+            [  x^2*y + x^2     y^3 + x*y]
+            [x^2*y^2 + x^3   y^4 + x^2*y]
 
             sage: A = matrix(QQ['x,y'], 2, [0,-1,2,-2])
             sage: B = matrix(QQ['x,y'], 2, [-1,-1,-2,-2])
@@ -231,6 +287,16 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         return A
 
     def _list(self):
+        """
+        Return reference to list of entries of self.  For internal use
+        only, since this circumvents immutability.
+
+        EXAMPLES:
+            sage: A = random_matrix(Integers(25)['x'],2); A.set_immutable()
+            sage: A._list()[0] = 0
+            sage: A._list()[0]
+            0
+        """
         return self._entries
 
     ########################################################################
@@ -244,6 +310,19 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     ########################################################################
 
     def __deepcopy__(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: A = matrix(R, 2, [1,2,x,x^2])
+            sage: B = A.__deepcopy__()
+            sage: A[0,0]._unsafe_mutate(1,2/3)
+            sage: A
+            [2/3*x + 1         2]
+            [        x       x^2]
+            sage: B
+            [  1   2]
+            [  x x^2]
+        """
         import copy
         return self.__class__(self._parent, copy.deepcopy(self._entries), copy = False, coerce=False)
 

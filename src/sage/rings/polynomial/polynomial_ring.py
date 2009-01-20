@@ -67,6 +67,8 @@ TESTS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sys # for maxint
+
 from sage.structure.element import is_Element
 import sage.algebras.algebra
 import sage.rings.commutative_ring as commutative_ring
@@ -490,7 +492,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: type(RR['x'].0)
             <type 'sage.rings.polynomial.polynomial_real_mpfr_dense.PolynomialRealDense'>
             sage: type(Integers(4)['x'].0)
-            <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_zz'>
+            <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
             sage: type(Integers(5*2^100)['x'].0)
             <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ'>
             sage: type(CC['x'].0)
@@ -1142,14 +1144,17 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         """
         if hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
-        if self.__modulus < ZZ_sage(polynomial_modn_dense_ntl.zz_p_max):
+        elif self.__modulus <= sys.maxint:
+            import sage.rings.polynomial.polynomial_zmod_flint as polynomial_zmod_flint
+            return polynomial_zmod_flint.Polynomial_zmod_flint(self, x, check, is_gen,construct=construct)
+        elif self.__modulus < ZZ_sage(polynomial_modn_dense_ntl.zz_p_max):
             return polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_zz(self, x, check, is_gen, construct=construct)
         else:
             return polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ(self, x, check, is_gen, construct=construct)
 
-class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
-                                 PolynomialRing_singular_repr,
-                                 principal_ideal_domain.PrincipalIdealDomain):
+class PolynomialRing_dense_mod_p(PolynomialRing_field,
+                                 PolynomialRing_dense_mod_n,
+                                 PolynomialRing_singular_repr):
     def __init__(self, base_ring, name="x"):
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         self.__modulus = base_ring.order()
@@ -1171,9 +1176,13 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                 raise TypeError,"Unable to coerce string"
         elif hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
-        if self.modulus() == 2:
+        modulus = self.modulus()
+        if modulus == 2:
             import sage.rings.polynomial.polynomial_gf2x as polynomial_gf2x
             return polynomial_gf2x.Polynomial_GF2X(self, x, check, is_gen,construct=construct)
+        elif modulus <= sys.maxint:
+            import sage.rings.polynomial.polynomial_zmod_flint as polynomial_zmod_flint
+            return polynomial_zmod_flint.Polynomial_zmod_flint(self, x, check, is_gen,construct=construct)
         else:
             return polynomial_modn_dense_ntl.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
 

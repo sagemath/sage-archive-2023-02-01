@@ -615,12 +615,10 @@ class FiniteField_ext_pari(FiniteField_generic):
         Return the hash of this field.
 
         EXAMPLES:
-            sage: hash(GF(9,'a'))
-            -417021630                     # 32-bit
-            1006006598732398914            # 64-bit
-            sage: hash(GF(9,'b'))
-            995034271                      # 32-bit
-            8600900932991911071            # 64-bit
+            sage: {GF(9,'a'): 1} # indirect doctest
+            {Finite Field in a of size 3^2: 1}
+            sage: {GF(9,'b'): 1} # indirect doctest
+            {Finite Field in b of size 3^2: 1}
         """
         return hash((self.__order, self.variable_name(), self.__modulus))
 

@@ -177,7 +177,7 @@ class FiniteFieldFactory(UniqueFactory):
         sage: f = K.modulus(); f
         x^5 + 4*x + 1
         sage: type(f)
-        <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_mod_p'>
+         <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
 
     The modulus must be irreducible:
         sage: K.<a> = GF(5**5, name='a', modulus=x^5 - x )

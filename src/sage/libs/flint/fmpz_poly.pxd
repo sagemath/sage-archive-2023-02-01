@@ -1,7 +1,7 @@
 include "../../ext/stdsage.pxi"
 include "../../ext/cdefs.pxi"
 
-include "flint.pxi"
+from flint cimport *
 include "fmpz_poly.pxi"
 
 from sage.structure.sage_object cimport SageObject

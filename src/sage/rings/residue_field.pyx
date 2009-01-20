@@ -482,7 +482,6 @@ class ReductionMap:
         # The reduction map is just x |--> F(to_vs(x) * (PB**(-1))) if
         # either x is integral or the denominator of x is coprime to
         # p; otherwise we work harder.
-
         x = self.__K(x)
         p = self.__F.p
 

@@ -2270,11 +2270,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if unit is None:
                 c *= f.leading_coefficient()
             F.append((f,e))
-
         if unit is None:
-
             unit = R.base_ring()(self.leading_coefficient()/c)
-
         if not unit.is_unit():
 
             F.append((R(unit), ZZ(1)))

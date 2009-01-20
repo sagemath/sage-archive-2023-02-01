@@ -60,7 +60,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
             sage: f[1]
             0
         """
-        cdef long c
+        cdef long c = 0
         if 0 <= i < GF2X_NumBits(self.x):
             c = GF2_conv_to_long(GF2X_coeff(self.x, i))
         return self._parent.base_ring()(c)

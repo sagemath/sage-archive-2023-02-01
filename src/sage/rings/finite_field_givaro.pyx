@@ -876,9 +876,8 @@ cdef class FiniteField_givaro(FiniteField):
         characterstic polynomial and the string 'givaro'
 
         EXAMPLES:
-            sage: hash(GF(3^4, 'a'))
-            -417021630                # 32-bit
-            1006006598732398914       # 64-bit
+            sage: {GF(3^4, 'a'):1} #indirect doctest
+            {Finite Field in a of size 3^4: 1}
         """
         if self._hash is None:
             pass
@@ -1779,7 +1778,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: f = (b^2+1).polynomial(); f
             b + 4
             sage: type(f)
-            <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_mod_p'>
+            <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
             sage: parent(f)
             Univariate Polynomial Ring in b over Finite Field of size 5
         """

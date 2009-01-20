@@ -1,3 +1,10 @@
+include "../../ext/cdefs.pxi"
+include "fmpz.pxi"
+
+from sage.libs.flint.fmpz_poly cimport fmpz_poly_t
+from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
+from sage.libs.ntl.ntl_ZZX_decl cimport ZZX_c
+
 cdef extern from "FLINT/NTL-interface.h":
     unsigned long ZZ_limbs(ZZ_c z)
 

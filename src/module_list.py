@@ -1049,6 +1049,13 @@ ext_modules = [
               language = 'c++',
               include_dirs = ['sage/libs/ntl/']),
 
+    Extension('sage.rings.polynomial.polynomial_zmod_flint',
+              sources = ['sage/rings/polynomial/polynomial_zmod_flint.pyx'],
+              libraries = ["csage", "flint", "gmp", "gmpxx", "ntl", "zn_poly"],
+              extra_compile_args=["-std=c99", "-D_XPG6"],
+              include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
+
     Extension('sage.rings.polynomial.polynomial_integer_dense_flint',
               sources = ['sage/rings/polynomial/polynomial_integer_dense_flint.pyx'],
               language = 'c++',

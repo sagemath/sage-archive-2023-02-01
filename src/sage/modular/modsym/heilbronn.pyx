@@ -24,7 +24,7 @@ import sage.misc.misc
 include '../../ext/cdefs.pxi'
 include '../../ext/interrupt.pxi'
 include '../../ext/stdsage.pxi'
-include "../../libs/flint/flint.pxi"
+from sage.libs.flint.flint cimport *
 include "../../libs/flint/fmpz_poly.pxi"
 
 cimport p1list

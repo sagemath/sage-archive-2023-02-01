@@ -17,6 +17,23 @@ AUTHOR:
 from sage.libs.ntl.ntl_GF2_decl cimport *, GF2_c
 from sage.libs.ntl.ntl_GF2X_decl cimport *, GF2X_c, GF2XModulus_c
 
+
+cdef GF2X_c *celement_new(long parent):
+    """
+    EXAMPLE:
+        sage: P.<x> = GF(2)[]
+    """
+    cdef GF2X_c *e = GF2X_new()
+    return e
+
+cdef int celement_delete(GF2X_c *e, long parent):
+    """
+    EXAMPLE:
+        sage: P.<x> = GF(2)[]
+        sage: del x
+    """
+    GF2X_delete(e)
+
 cdef int celement_construct(GF2X_c *e, long parent):
     """
     EXAMPLE:
@@ -122,39 +139,48 @@ cdef inline int celement_cmp(GF2X_c *a, GF2X_c *b, long parent) except -2:
         False
         sage: x > 1
         True
+
+        sage: f = x^64 + x^20 + 1
+        sage: g = x^63 + x^20 + 1
+        sage: f > g
+        True
+
+        sage: f = x^64 + x^10 + 1
+        sage: g = x^64 + x^20 + 1
+        sage: f < g
+        True
+
+        sage: f = x^64 + x^20
+        sage: g = x^64 + x^20 + 1
+        sage: f < g
+        True
     """
     cdef bint t
     cdef long diff
+    cdef long ca, cb
     diff = GF2X_NumBits(a[0]) - GF2X_NumBits(b[0])
     if diff > 0:
         return 1
-    elif diff == 0:
-        t = GF2X_equal(a[0], b[0])
-        return not t
-    else:
+    elif diff < 0:
         return -1
-
-cdef inline long celement_hash(GF2X_c *a, long parent) except -2:
-    """
-    EXAMPLE:
-        sage: P.<x> = GF(2)[]
-        sage: {x:1}
-        {x: 1}
-    """
-    cdef long _hex = GF2XHexOutput_c[0]
-    GF2XHexOutput_c[0] = 1
-    s = GF2X_to_PyString(a)
-    GF2XHexOutput_c[0] = _hex
-    return hash(s)
+    else:
+        for i in xrange(GF2X_NumBits(a[0])-1, -1, -1):
+            ca = GF2_conv_to_long(GF2X_coeff(a[0], i))
+            cb = GF2_conv_to_long(GF2X_coeff(b[0], i))
+            if ca < cb:
+                return -1
+            elif ca > cb:
+                return 1
+    return 0
 
 cdef long celement_len(GF2X_c *a, long parent) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
-        sage: len(x)
-        2
-        sage: len(x+1)
-        2
+        sage: x.degree()
+        1
+        sage: (x+1).degree()
+        1
     """
     return int(GF2X_NumBits(a[0]))
 
@@ -286,3 +312,6 @@ cdef inline int celement_gcd(GF2X_c* res, GF2X_c* a, GF2X_c *b, long parent) exc
         x
     """
     GF2X_GCD(res[0], a[0], b[0])
+
+cdef inline int celement_xgcd(GF2X_c* res, GF2X_c* s, GF2X_c *t, GF2X_c* a, GF2X_c *b, long parent) except -2:
+    raise NotImplementedError

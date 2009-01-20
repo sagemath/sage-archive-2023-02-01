@@ -1268,7 +1268,7 @@ function rename_worksheet() {
     been renamed.
     */
     var new_worksheet_name = prompt('Enter new worksheet name:',worksheet_name);
-    if (new_worksheet_name == null) return;
+    if (new_worksheet_name == null || new_worksheet_name == "") return;
     var T = get_element("worksheet_title");
     var set_name;
     if (new_worksheet_name.length >= 30) {

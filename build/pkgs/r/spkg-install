@@ -44,7 +44,7 @@ if [ `uname` = "Darwin" ]; then
     OSXFW="--enable-R-framework=no --with-aqua=no"; export OSXFW
     if [ "$SAGE64" = "yes" ]; then
        echo "Disabling iconv and aqua support on 64 bit OSX"
-       OSXFW="--enable-R-framework=no --with-iconv=no "; export OSXFW
+       OSXFW="--enable-R-framework=no --with-iconv=no --with-aqua=no"; export OSXFW
     fi
 else
     OSXFW=""; export OSXFW

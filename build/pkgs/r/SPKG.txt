@@ -23,6 +23,9 @@
 
 == Changelog ==
 
+=== r-2.6.1.p22 (Michael Abshoff, January 20th, 2009) ===
+ * Also disable aqua support on 64 bit OSX
+
 === r-2.6.1.p21 (Michael Abshoff, October 12th, 2008) ===
  * work around java infinite hang issue on OSX 10.5 (#4219)
 

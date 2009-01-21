@@ -257,8 +257,6 @@ def integral(f, *args, **kwds):
     """
     try:
         return f.integral(*args, **kwds)
-    except ValueError, err:
-        raise err
     except AttributeError:
         pass
 

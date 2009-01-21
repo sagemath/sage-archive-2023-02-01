@@ -2563,6 +2563,16 @@ class SymbolicExpression(RingElement):
             sage: f.integral(x, 0, pi/2)
             1
 
+        The variable and endpoints are both optional:
+            sage: integral(sin(x))
+            -cos(x)
+            sage: integral(sin(x), var('y'))
+            sin(x)*y
+            sage: integral(sin(x), pi, 2*pi)
+            -2
+            sage: integral(sin(x), var('y'), pi, 2*pi)
+            pi*sin(x)
+
         Constraints are sometimes needed:
             sage: var('x, n')
             (x, n)
@@ -2673,16 +2683,31 @@ class SymbolicExpression(RingElement):
         The following integral was broken prior to Maxima 5.15.0 - see \#3013
             sage: integrate(sin(x)*cos(10*x)*log(x))
             (9*integrate(cos(11*x)/x, x) - 11*integrate(cos(9*x)/x, x) - 9*log(x)*cos(11*x) + 11*log(x)*cos(9*x))/198
+
+        It is possible to use certain functions without an explicit variable:
+            sage: integrate(sin)
+            -cos(x)
+            sage: integrate(sin, 0, 1)
+            1 - cos(1)
         """
+        if b is None and a is not None:
+            # two arguments, must be endpoints
+            a, b = v, a
+            v = None
 
         if v is None:
             v = self.default_variable()
+            if len(self.variables()) == 0:
+                # a bare function like sin
+                self = SymbolicComposition(self,v)
 
-        if not isinstance(v, SymbolicVariable):
+        elif not isinstance(v, SymbolicVariable):
             v = var(repr(v))
             #raise TypeError, 'must integrate with respect to a variable'
-        if (a is None and (not b is None)) or (b is None and (not a is None)):
+
+        if (a is None) ^ (b is None):
             raise TypeError, 'only one endpoint given'
+
         if a is None:
             return self.parent()(self._maxima_().integrate(v))
         else:
@@ -2693,8 +2718,7 @@ class SymbolicExpression(RingElement):
                 if "divergent" in s or 'Principal Value' in s:
                     raise ValueError, "Integral is divergent."
                 else:
-                    raise TypeError, error
-
+                    raise
 
     integrate = integral
 
@@ -5793,18 +5817,66 @@ class CallableSymbolicExpression(SymbolicExpression):
 
     def integral(self, x=None, a=None, b=None):
         r"""
-        Returns an integral of \code{self}.
+        Returns an integral of \code{self} with respect to the
+        variable $x$, ignoring the constant of integration. Or, if
+        endpoints $a$ and $b$ are specified, returns the definite
+        integral over the interval $[a, b]$.
+
+        If \code{self} has only one variable, then it returns the
+        integral with respect to that variable.
+
+        INPUT:
+            x -- (optional) a variable or variable name
+            a -- (optional) lower endpoint of definite integral
+            b -- (optional) upper endpoint of definite integral
+
+
+        EXAMPLES:
+            sage: h(x) = 1-x
+            sage: h
+            x |--> 1 - x
+            sage: h.integral()
+            x |--> x - x^2/2
+            sage: h.integral(x)
+            x |--> x - x^2/2
+            sage: h.integral(1,2)
+            -1/2
+            sage: h.integral(x,1,2)
+            -1/2
+            sage: h.integral(None,1,2)
+            -1/2
+
+        Note that Maxima does something different with variable=None:
+            sage: h._maxima_().integrate(None,0,2)
+            2*(1-x)
         """
         if a is None:
             return SymbolicExpression.integral(self, x, None, None)
             # if l. endpoint is None, compute an indefinite integral
-        else:
-            if x is None:
-                x = self.default_variable()
-            if not isinstance(x, SymbolicVariable):
-                x = var(repr(x))
-                # if we supplied an endpoint, then we want to return a number.
-            return SR(self._maxima_().integrate(x, a, b))
+
+        elif b is None and a is not None:
+            # two arguments, must be endpoints
+            a, b = x, a
+            x = None
+
+        if x is None:
+            x = self.default_variable()
+
+        elif not isinstance(x, SymbolicVariable):
+            x = var(repr(x))
+
+        if (a is None) ^ (b is None):
+            raise TypeError, 'only one endpoint given'
+
+        else: # compute value of definite integral
+            try:
+                return SR(self._maxima_().integrate(x, a, b))
+            except TypeError, error:
+                s = str(error)
+                if "divergent" in s or 'Principal Value' in s:
+                    raise ValueError, "Integral is divergent."
+                else:
+                    raise
 
     integrate = integral
 

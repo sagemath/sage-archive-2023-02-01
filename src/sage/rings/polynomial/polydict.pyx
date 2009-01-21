@@ -483,6 +483,12 @@ cdef class PolyDict:
             #sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             #sage: f.poly_repr(['a','b','c'], atomic_exponents=False)
             #'4*a^(2)*b*c + 3*a*b^(2)*c + 2*a^(2/3)*b^(3)*c^(5)'
+
+        We check to make sure that when we are in characteristic two, we
+        don't put negative signs on the generators.
+
+            sage: Integers(2)['x,y'].gens()
+            (x, y)
         """
         n = len(vars)
         poly = ""
@@ -498,6 +504,9 @@ cdef class PolyDict:
             # probably self.__zero is not a ring element
             pos_one = 1
             neg_one = -1
+
+        is_characteristic_2 = bool(pos_one == neg_one)
+
         for e in E:
             c = self.__repn[e]
             if c != self.__zero:
@@ -516,7 +525,7 @@ cdef class PolyDict:
                 # Next determine coefficient of multinomial
                 if len(multi) == 0:
                     multi = str(c)
-                elif c == neg_one:
+                elif c == neg_one and not is_characteristic_2:
                     # handle -1 specially because it's a pain
                     if len(poly) > 0:
                         sign_switch = True

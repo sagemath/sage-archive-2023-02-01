@@ -1490,7 +1490,7 @@ def solve_mod(eqns, modulus):
         sage: var('x,y')
         (x, y)
         sage: solve_mod([x^2 + 2 == x, x^2 + y == y^2], 14)
-        [(2, 4), (6, 4), (9, 4), (13, 4)]
+        [(4, 2), (4, 6), (4, 9), (4, 13)]
         sage: solve_mod([x^2 == 1, 4*x  == 11], 15)
         [(14,)]
 
@@ -1499,6 +1499,11 @@ def solve_mod(eqns, modulus):
         (x, y, z)
         sage: solve_mod([x^5 + y^5 == z^5], 3)
         [(0, 0, 0), (0, 1, 1), (0, 2, 2), (1, 0, 1), (1, 1, 2), (1, 2, 0), (2, 0, 2), (2, 1, 0), (2, 2, 1)]
+
+    We solve an simple equation modulo 2:
+        sage: x,y = var('x,y')
+        sage: solve_mod([x == y], 2)
+        [(0, 0), (1, 1)]
 
     WARNING:
         Currently this naively enumerates all possible solutions.
@@ -1519,12 +1524,12 @@ def solve_mod(eqns, modulus):
     if modulus < 1:
          raise ValueError, "the modulus must be a positive integer"
     vars = list(set(sum([list(e.variables()) for e in eqns], [])))
-    vars.sort()
+    vars.sort(cmp)
     n = len(vars)
     R = Integers(modulus)
     S = PolynomialRing(R, len(vars), vars)
-    eqns_mod = [S(eq) if is_SymbolicExpression(eq) else \
-                  S(eq.lhs() - eq.rhs()) for eq in eqns]
+    eqns_mod = [S(eq) if is_SymbolicExpression(eq) else
+                S(eq.lhs() - eq.rhs()) for eq in eqns]
     ans = []
     for t in cartesian_product_iterator([R]*len(vars)):
         is_soln = True

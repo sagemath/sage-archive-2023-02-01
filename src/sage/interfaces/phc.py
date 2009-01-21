@@ -405,7 +405,6 @@ class PHC:
             sage: R2.<x,y> = PolynomialRing(QQ,2)    #optional
             sage: start_sys = [(x-1)^2+(y-1)-1, x^2+y^2-1]  #optional
             sage: a = phc._output_from_command_list(['phc -m','4','n','n','n'], start_sys)#optional
-            sage: os.unlink(a)#optional
         """
         # Get temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)
         input_filename = sage.misc.misc.tmp_filename()

@@ -338,7 +338,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             raise TypeError, "mutable vectors are unhasheable"
         return hash(tuple(self))
 
-    def _vector_(self, R):
+    def _vector_(self, R=None):
         r"""Return self as a vector.
 
         EXAMPLES:
@@ -349,7 +349,14 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (2, 5, 1)
             sage: vector(v, ZZ['x', 'y'])
             (2, 12, 22)
+
+	    sage: vector(vector((1, 6.8)))
+	    (1.00000000000000, 6.80000000000000)
+	    sage: vector(vector(SR, (1, sqrt(2)) ) )
+	    (1, sqrt(2))
         """
+        if R is None:
+            R = self.base_ring()
         return self.change_ring(R)
 
     def _matrix_(self, R=None):

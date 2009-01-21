@@ -16,6 +16,7 @@ def class_graph(top_module, depth=5, name_filter=None, classes=None):
         classes -- optional dictionary to be filled in (it is also returned)
 
     EXAMPLE:
+        sage: from sage.rings.polynomial.padics import polynomial_padic_capped_relative_dense, polynomial_padic_flat
         sage: C = class_graph(sage.rings.polynomial.padics, depth=2)
         sage: C
         {'Polynomial_padic_capped_relative_dense': ['Polynomial_generic_domain'],

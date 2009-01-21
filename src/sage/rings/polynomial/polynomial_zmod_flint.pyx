@@ -17,6 +17,10 @@ ctypedef unsigned long cparent
 cdef inline cparent get_cparent(parent):
     if parent is None:
         return 0
+    try:
+        m = parent.modulus()
+    except:
+        return 0
     return <unsigned long>(parent.modulus())
 
 # first we include the definitions

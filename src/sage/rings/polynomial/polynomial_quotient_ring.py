@@ -82,7 +82,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     $$
 
         sage: A.<y> = PolynomialRing(GF(2)); A
-        Univariate Polynomial Ring in y over Finite Field of size 2
+        Univariate Polynomial Ring in y over Finite Field of size 2 (using NTL)
         sage: B = A.quotient(y^2 + y + 1, 'y2'); print B
         Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1
         sage: C = PolynomialRing(B, 'x'); x=C.gen(); print C

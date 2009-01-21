@@ -11,7 +11,7 @@ rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Sphinx-*
 
 #Copy the patched file over
 cp patches/highlighting.py src/sphinx/
-cp patches/sphinx-build.py src/
+cp patches/autodoc.py src/sphinx/ext/
 
 #Install new version
 cd src
@@ -21,3 +21,6 @@ if [ $? -ne 0 ]; then
    echo "Error installing Sphinx."
    exit 1
 fi
+
+cd ..
+cp patches/sphinx-build "$SAGE_LOCAL"/bin/

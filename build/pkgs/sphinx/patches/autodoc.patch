@@ -1,0 +1,13 @@
+--- ../src/sphinx/ext/autodoc.py	2008-12-09 14:36:50.000000000 -0800
++++ autodoc.py	2009-01-20 15:59:57.000000000 -0800
+@@ -425,8 +425,8 @@
+         try:
+             sig = self.format_signature(what, name, todoc, args, retann)
+         except Exception, err:
+-            self.warn('error while formatting signature for %s: %s' %
+-                      (fullname, err))
++            #self.warn('error while formatting signature for %s: %s' %
++            #          (fullname, err))
+             sig = ''
+ 
+         # make sure that the result starts with an empty line.  This is

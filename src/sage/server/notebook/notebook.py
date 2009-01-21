@@ -1257,7 +1257,7 @@ class Notebook(SageObject):
             s += '<body>\n'
             s += '<div class="worksheet_print_title">%s</div>'%W.name()
         else:
-            s += '<body onLoad="initialize_the_notebook();">\n'
+            s += '<body class="worksheet-online" onLoad="initialize_the_notebook();">\n'
         s += W.html(include_title=False, do_print=do_print)
         if do_print:
             s += '<script type="text/javascript">jsMath.Process();</script>\n'
@@ -2127,7 +2127,7 @@ function save_worksheet_and_close() {
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
         <html>
         <head>%s</head>
-        <body onLoad="initialize_the_notebook();">%s</body>
+        <body class="worksheet-online" onLoad="initialize_the_notebook();">%s</body>
         </html>
         """%(head, body)
 

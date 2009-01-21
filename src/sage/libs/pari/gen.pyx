@@ -729,7 +729,7 @@ cdef class gen(sage.structure.element.RingElement):
         pari_type = typ(self.g)
 
         if PyObject_TypeCheck(n, tuple):
-            if typ(self.g) != t_MAT:
+            if pari_type != t_MAT:
                 raise TypeError, "self must be of pari type t_MAT"
             if len(n) != 2:
                 raise IndexError, "index must be an integer or a 2-tuple (i,j)"
@@ -756,11 +756,22 @@ cdef class gen(sage.structure.element.RingElement):
 
         elif PyObject_TypeCheck(n, slice):
             l = glength(self.g)
-            inds = range(*n.indices(l))
+            start,stop,step = n.indices(l)
+            inds = xrange(start,stop,step)
             k = len(inds)
+            # fast exit
+            if k==0:
+                return P.vector(0)
+            # fast call, beware pari is one based
+            if pari_type == t_VEC:
+                if step==1:
+                    return self.vecextract('"'+str(start+1)+".."+str(stop)+'"')
+                if step==-1:
+                    return self.vecextract('"'+str(start+1)+".."+str(stop+2)+'"')
+            # slow call
             v = P.vector(k)
-            for i in range(k):
-                v[i] = self[inds[i]]
+            for i,j in enumerate(inds):
+                v[i] = self[j]
             return v
 
         ## there are no "out of bounds" problems
@@ -782,7 +793,7 @@ cdef class gen(sage.structure.element.RingElement):
         elif n < 0 or n >= glength(self.g):
             raise IndexError, "index out of bounds"
 
-        elif typ(self.g) == t_VEC or typ(self.g) == t_MAT:
+        elif pari_type == t_VEC or pari_type == t_MAT:
             if PyDict_Contains(self._refers_to, n):
                 return self._refers_to[n]
             else:
@@ -794,13 +805,13 @@ cdef class gen(sage.structure.element.RingElement):
                 self._refers_to[n] = val
                 return val
 
-        elif typ(self.g) == t_VECSMALL:
+        elif pari_type == t_VECSMALL:
             return self.g[n+1]
 
-        elif typ(self.g) == t_STR:
+        elif pari_type == t_STR:
             return chr( (<char *>(self.g+1))[n] )
 
-        elif typ(self.g) == t_LIST:
+        elif pari_type == t_LIST:
             return P.new_ref(gel(self.g,n+2), self)
 
         elif pari_type in (t_INTMOD, t_POLMOD):
@@ -810,12 +821,12 @@ cdef class gen(sage.structure.element.RingElement):
             # do we want this? maybe the other way around?
             raise TypeError, "unindexable object"
 
-        #elif typ(self.g) in (t_FRAC, t_RFRAC):
+        #elif pari_type in (t_FRAC, t_RFRAC):
             # generic code gives us:
             #   [0] = numerator
             #   [1] = denominator
 
-        #elif typ(self.g) == t_COMPLEX:
+        #elif pari_type == t_COMPLEX:
             # generic code gives us
             #   [0] = real part
             #   [1] = imag part
@@ -964,14 +975,14 @@ cdef class gen(sage.structure.element.RingElement):
 
         elif isinstance(n, slice):
             l = glength(self.g)
-            inds = range(*n.indices(l))
+            inds = xrange(*n.indices(l))
             k = len(inds)
             if k > len(y):
                 raise ValueError, "attempt to assign sequence of size %s to slice of size %s"%(len(y), k)
 
             # actually set the values
-            for i in range(k):
-                self[inds[i]] = y[i]
+            for i,j in enumerate(inds):
+                self[j] = y[i]
             return
 
         i = int(n)

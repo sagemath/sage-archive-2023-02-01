@@ -154,6 +154,15 @@ class HeckeSubmodule(module.HeckeModule_free_module):
     def complement(self, bound=None):
         """
         Return the largest Hecke-stable complement of this space.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(15, 6).cuspidal_subspace()
+            sage: M.complement()
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 20 for Gamma_0(15) of weight 6 with sign 0 over Rational Field
+            sage: E = EllipticCurve("128a")
+            sage: ME = E.modular_symbol_space()
+            sage: ME.complement()
+            Modular Symbols subspace of dimension 17 of Modular Symbols space of dimension 18 for Gamma_0(128) of weight 2 with sign 1 over Rational Field
         """
         try:
             return self.__complement
@@ -180,9 +189,9 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         if bound is None:
             bound = A.hecke_bound()
         while True:
-            misc.verbose("using T_%s"%p)
             if anemic:
                 while N % p == 0: p = arith.next_prime(p)
+            misc.verbose("using T_%s"%p)
             f = self.hecke_polynomial(p)
             T = A.hecke_matrix(p)
             g = T.charpoly('x')
@@ -197,9 +206,23 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             C = A.submodule(V, check=False)
             self.__complement = C
             return C
-        else:
-            # failed
-            raise RuntimeError, "Computation of complementary space failed (cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), self.rank())
+
+        # first attempt to compute the complement failed, we now try
+        # the following naive approach: decompose the ambient space,
+        # decompose self, and sum the pieces of ambient that are not
+        # subspaces of self
+        misc.verbose("falling back on naive algorithm")
+        D = A.decomposition()
+        C = A.zero_submodule()
+        for X in D:
+            if self.intersection(X).dimension() == 0:
+                C = C + X
+        if C.rank() + self.rank() == A.rank():
+            self.__complement = C
+            return C
+
+        # failed miserably
+        raise RuntimeError, "Computation of complementary space failed (cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), A.rank()-self.rank())
 
 
     def degeneracy_map(self, level, t=1):

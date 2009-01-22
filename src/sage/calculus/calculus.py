@@ -3106,10 +3106,11 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # solve
     ###################################################################
-    def roots(self, x=None, explicit_solutions=True):
+    def roots(self, x=None, explicit_solutions=True, multiplicities=True, ring=None):
         r"""
-        Returns roots of \code{self} that can be found exactly, with
-        multiplicities.  Not all root are guaranteed to be found.
+        Returns roots of \code{self} that can be found exactly,
+        possibly with multiplicities.  Not all roots are guaranteed to
+        be found.
 
         WARNING: This is \emph{not} a numerical solver -- use
         \code{find_root} to solve for self == 0 numerically on an
@@ -3120,8 +3121,13 @@ class SymbolicExpression(RingElement):
                    (use default variable if not given)
             explicit_solutions -- bool (default True); require that
                 roots be explicit rather than implicit
+            multiplicities -- bool (default True); when True, return
+            multiplicities
+            ring -- a ring (default None): if not None, convert
+            self to a polynomial over ring and find roots over ring
+
         OUTPUT:
-            list of pairs (root, multiplicity)
+            list of pairs (root, multiplicity) or list of roots
 
         If there are infinitely many roots, e.g., a function
         like $\sin(x)$, only one is returned.
@@ -3133,6 +3139,8 @@ class SymbolicExpression(RingElement):
         A simple example:
             sage: ((x^2-1)^2).roots()
             [(-1, 2), (1, 2)]
+            sage: ((x^2-1)^2).roots(multiplicities=False)
+            [-1, 1]
 
         A complicated example.
             sage: f = expand((x^2 - 1)^3*(x^2 + 1)*(x-a)); f
@@ -3186,14 +3194,47 @@ class SymbolicExpression(RingElement):
             RuntimeError: no explicit roots found
             sage: f.roots(explicit_solutions=False)
             [(x^5 + x^3 + 17*x + 1, 1)]
-        """
+            sage: f.roots(explicit_solutions=False, multiplicities=False)
+            [x^5 + x^3 + 17*x + 1]
+
+        Now let's find some roots over different rings:
+            sage: f.roots(ring=CC)
+            [(-0.0588115223184495, 1), (1.36050567903502 + 1.51880872209965*I, 1), (-1.33109991787579 + 1.52241655183732*I, 1), (1.36050567903502 - 1.51880872209965*I, 1), (-1.33109991787580 - 1.52241655183732*I, 1)]
+            sage: (2.5*f).roots(ring=RR)
+            [(-0.0588115223184494, 1)]
+            sage: f.roots(ring=CC, multiplicities=False)
+            [-0.0588115223184495, 1.36050567903502 + 1.51880872209965*I, -1.33109991787579 + 1.52241655183732*I, 1.36050567903502 - 1.51880872209965*I, -1.33109991787580 - 1.52241655183732*I]
+            sage: f.roots(ring=QQ)
+            []
+            sage: f.roots(ring=QQbar, multiplicities=False)
+            [-0.05881152231844944?, 1.360505679035020? + 1.518808722099650?*I, -1.331099917875796? + 1.522416551837318?*I, 1.360505679035020? - 1.518808722099650?*I, -1.331099917875796? - 1.522416551837318?*I]
+
+        At the moment, root finding over finite fields fails:
+            sage: f.roots(ring=GF(7^2, 'a'))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to coerce
+
+            sage: (sqrt(3) * f).roots(ring=QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert sqrt(3) to a rational
+            """
         if x is None:
             x = self.default_variable()
+        if ring is not None:
+            p = self.polynomial(ring)
+            return p.roots(ring=ring, multiplicities=multiplicities)
+
         S, mul = self.solve(x, multiplicities=True, explicit_solutions=explicit_solutions)
         if len(mul) == 0 and explicit_solutions:
             raise RuntimeError, "no explicit roots found"
         else:
-            return [(S[i].rhs(), mul[i]) for i in range(len(mul))]
+            rt_muls = [(S[i].rhs(), mul[i]) for i in range(len(mul))]
+        if multiplicities:
+            return rt_muls
+        else:
+            return [ rt for rt, mul in rt_muls ]
 
     def solve(self, x, multiplicities=False, explicit_solutions=False):
         r"""

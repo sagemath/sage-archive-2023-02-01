@@ -1137,6 +1137,11 @@ class PiecewisePolynomial:
             sage: f.cosine_series_coefficient(111,pi)
             2/(37*pi)
 
+            sage: f1 = lambda x: x*(pi-x)
+            sage: f = Piecewise([[(0,pi),f1]])
+            sage: f.cosine_series_coefficient(0,pi)
+            pi^2/3
+
         """
         from sage.all import cos, pi
         x = var('x')

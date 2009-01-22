@@ -36,10 +36,10 @@ We compute with power series over the symbolic ring.
     sage: a, b, c = var('a,b,c')
     sage: f = a + b*t + c*t^2 + O(t^3)
     sage: f*f
-    a^2 + ((b + a)^2 - b^2 - a^2)*t + ((c + b + a)^2 - (c + b)^2 - (b + a)^2 + 2*b^2)*t^2 + O(t^3)
+    a^2 + 2*a*b*t + (2*a*c + b^2)*t^2 + O(t^3)
     sage: f = sqrt(2) + sqrt(3)*t + O(t^3)
     sage: f^2
-    2 + ((sqrt(3) + sqrt(2))^2 - 5)*t + 3*t^2 + O(t^3)
+    2 + 2*sqrt(2)*sqrt(3)*t + 3*t^2 + O(t^3)
 
 Elements are first coerced to constants in base_ring, then coerced into the
 PowerSeriesRing:

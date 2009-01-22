@@ -459,7 +459,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
 
             sage: x = polygen(SR)
             sage: p = (x - sqrt(-5)) * (x - sqrt(3)); p
-            x^2 + ((1 - sqrt(3))*(1 - sqrt(5)*I) - sqrt(3)*sqrt(5)*I - 1)*x + sqrt(3)*sqrt(5)*I
+            x^2 + (-sqrt(5)*I - sqrt(3))*x + sqrt(3)*sqrt(5)*I
             sage: p = QQbar.common_polynomial(p)
             sage: a = QQbar.polynomial_root(p, CIF(RIF(-0.1, 0.1), RIF(2, 3))); a
             0.?e-18 + 2.236067977499790?*I

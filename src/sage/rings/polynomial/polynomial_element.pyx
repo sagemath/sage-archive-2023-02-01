@@ -771,7 +771,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = inverse_mod(x^2 + 1, x^5 + x + 1); f
             0.4*x^4 - 0.2*x^3 - 0.4*x^2 + 0.2*x + 0.8
             sage: f * (x^2 + 1) % (x^5 + x + 1)
-            5.55111512313e-17*x^3 + 1.66533453694e-16*x^2 + 5.55111512313e-17*x + 1.0
+            2.22044604925e-16*x^2 + 1.11022302463e-16*x + 1.0
             sage: f = inverse_mod(x^3 - x + 1, x - 2); f
             0.142857142857
             sage: f * (x^3 - x + 1) % (x - 2)
@@ -861,6 +861,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = ZZ[]
             sage: (x - 4)*(x^2 - 8*x + 16)
             x^3 - 12*x^2 + 48*x - 64
+            sage: C.<t> = PowerSeriesRing(ZZ)
+            sage: D.<s> = PolynomialRing(C)
+            sage: z = (1 + O(t)) + t*s^2
+            sage: z*z
+            t^2*s^4 + (2*t + O(t^2))*s^2 + 1 + O(t)
         """
         if right == 0 or self == 0:
             return self._parent(0)

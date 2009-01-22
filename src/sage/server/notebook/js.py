@@ -1839,6 +1839,15 @@ function cell_delete_callback(status, response_text) {
     var worksheet = get_element('worksheet_cell_list');
     worksheet.removeChild(cell);
     cell_id_list = delete_from_array(cell_id_list, X[1]);
+
+    /*
+    If we are in slide mode, we call slide_mode() again
+    to recalculate the slides.
+    */
+    if (in_slide_mode) {
+        current_cell = -1;
+        slide_mode();
+    }
 }
 
 function debug_input_key_event(e) {

@@ -35,6 +35,10 @@ class Line(GraphicPrimitive_xydata):
             sage: Line([-1,2], [17,4], {'thickness':2})
             Line defined by 2 points
         """
+        valid_options = self._allowed_options().keys()
+        for opt in options.iterkeys():
+            if opt not in valid_options:
+                raise RuntimeError("Error in line(): option '%s' not valid."%opt)
         self.xdata = xdata
         self.ydata = ydata
         GraphicPrimitive_xydata.__init__(self, options)

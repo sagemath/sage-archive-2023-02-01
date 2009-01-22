@@ -1595,6 +1595,12 @@ def plot(funcs, *args, **kwds):
     which causes an 'inf' or '-inf' result to be produced.
         sage: p = plot(1/x, 0, 1)
         sage: p = plot(-1/x, 0, 1)
+
+    Bad options now give better errors:
+        sage: P = plot(sin(1/x), (x,-1,3), foo=10)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Error in line(): option 'foo' not valid.
     """
     original_opts = kwds.pop('__original_opts', {})
     do_show = kwds.pop('show',False)

@@ -22,6 +22,7 @@ Access to Cremona's PARI scripts via SAGE.
 from sage.interfaces.gp import Gp
 from sage.rings.all import Integer, RealField
 from sage.misc.randstate import current_randstate
+from sage.misc.misc import verbose
 R = RealField()
 
 gp = None
@@ -39,8 +40,10 @@ def init():
         gp.read("ell_zp.gp")
         gp.eval('debug_group=0;')
 
-def ellanalyticrank(e):
+def ellanalyticrank_prec(e,prec=None):
     """
+    Try to compute analytic rank with precision set to prec.
+
     INPUT:
         e -- five-tuple of integers that define a minimal weierstrass equation
     OUTPUT:
@@ -53,24 +56,55 @@ def ellanalyticrank(e):
         Users are commended to use EllipticCurve(ai).analytic_rank() instead.
 
     EXAMPLES:
-        sage: import sage.schemes.elliptic_curves.gp_cremona
-        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,-1,1,-10,-20])
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank_prec([0,-1,1,-10,-20])
         0
-        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,0,1,-1,0])
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank_prec([0,0,1,-1,0])
         1
-        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,1,1,-2,0])
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank_prec([0,1,1,-2,0])
         2
-        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,0,1,-7,6])
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank_prec([0,0,1,-7,6])
         3
-        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,0,1,-7,36])
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank_prec([0,0,1,-7,36])
         4
     """
     init()
+    if prec: old_prec = gp.set_real_precision(prec)
     cmd = "ellanalyticrank(ellinit(%s),0)"%e
     x = gp.eval(cmd)
+    if prec: gp.set_real_precision(old_prec)
     if x.find("***") != -1:
-        raise RuntimeError, "Error: '%s'"%x
+        raise RuntimeError, "error '%s' running '%s'"%(x,cmd)
     return Integer(x)
+
+def ellanalyticrank(e):
+    """
+    Try to compute analytic rank.
+
+    INPUT:
+        e -- five-tuple of integers that define a minimal weierstrass equation
+
+    OUTPUT:
+        integer -- the ("computed") analytic rank r of E
+
+    ALGORITHM:
+        Uses Cremona's gp script
+
+    NOTE:
+        Users are commended to use EllipticCurve(ai).analytic_rank() instead.
+
+    EXAMPLES:
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,-1,1,-10,-20])
+        0
+    """
+    prec = 16
+    while True:
+        try:
+            return ellanalyticrank_prec(e, prec)
+        except RuntimeError,msg:
+            if 'precision too low' in str(msg):
+                prec *= 2
+            else:
+                raise
 
 def ellzp(e, p):
     """

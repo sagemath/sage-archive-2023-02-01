@@ -1035,12 +1035,26 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             2
             sage: E.analytic_rank(algorithm='all')
             2
+
+        TESTS:
+        When the input is horrendous, some of the algorithms just bomb out with a RuntimeError:
+            sage: EllipticCurve([1234567,89101112]).analytic_rank(algorithm='rubinstein')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: unable to compute analytic rank using rubinstein algorithm ('unable to convert x (= 6.19283e+19 and is too large) to an integer')
+            sage: EllipticCurve([1234567,89101112]).analytic_rank(algorithm='sympow')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: failed to compute analytic rank
         """
         if algorithm == 'cremona':
             return rings.Integer(gp_cremona.ellanalyticrank(self.minimal_model().a_invariants()))
         elif algorithm == 'rubinstein':
-            from sage.lfunctions.lcalc import lcalc
-            return lcalc.analytic_rank(L=self)
+            try:
+                from sage.lfunctions.lcalc import lcalc
+                return lcalc.analytic_rank(L=self)
+            except TypeError,msg:
+                raise RuntimeError, "unable to compute analytic rank using rubinstein algorithm ('%s')"%msg
         elif algorithm == 'sympow':
             from sage.lfunctions.sympow import sympow
             return sympow.analytic_rank(self)[0]

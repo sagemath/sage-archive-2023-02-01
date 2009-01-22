@@ -3822,9 +3822,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLE:
             sage: M = random_matrix(CC, 4)
-            sage: M.visualize_structure()           # not tested
-
-        WARNING -- the above *may* fail on some OSX systems due to some libpng.dylib issues.
+            sage: M.visualize_structure()
         """
         import gd
         import os
@@ -3854,9 +3852,9 @@ cdef class Matrix(matrix1.Matrix):
             ic = mr
             b = 1.0
 
-        fct = 255.0/(b*b)
-        bi = <int>b
+        bi = round(b)
         bisq = bi*bi
+        fct = 255.0/bisq
 
         im = gd.image((ir,ic),1)
         white = im.colorExact((255,255,255))
@@ -3874,7 +3872,7 @@ cdef class Matrix(matrix1.Matrix):
                         if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
                             v-=1 #increase darkness
 
-                v = int(v*v*fct)
+                v =  round(v*fct)
                 val = colorExact((v,v,v))
                 setPixel((y,x), val)
 

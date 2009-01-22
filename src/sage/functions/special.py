@@ -500,6 +500,10 @@ def bessel_J(nu,z,algorithm="pari",prec=53):
         0.719622018527511
         sage: bessel_J(0,1)
         0.765197686557967
+        sage: bessel_J(0,0)
+        1.00000000000000
+        sage: bessel_J(0.1,0.1)
+        0.777264368097005
 
     We check consistency of PARI and Maxima:
         sage: n(bessel_J(3,10,"maxima"))
@@ -509,6 +513,7 @@ def bessel_J(nu,z,algorithm="pari",prec=53):
         sage: bessel_J(3,10,"scipy")
         0.0583793793052...
     """
+
     if algorithm=="pari":
         from sage.libs.pari.all import pari
         try:
@@ -520,6 +525,8 @@ def bessel_J(nu,z,algorithm="pari",prec=53):
             nu = C(nu)
             z = C(z)
             K = C
+        if nu == 0:
+            nu = ZZ(0)
         K = z.parent()
         return K(pari(nu).besselj(z, precision=prec))
     elif algorithm=="scipy":

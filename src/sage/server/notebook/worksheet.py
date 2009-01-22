@@ -2578,26 +2578,21 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
         D = C.directory()
         if not C.introspect():
-            if C.is_interacting():
-                I = C.interact
-            else:
-                I = C.input_text().strip()
+            I = C.cleaned_input_text()
             if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
                 S = self.system()
                 if S is None: S = 'sage'
                 C.set_output_text('Exited %s process'%S,'')
                 return
-            if not I.startswith('%timeit'):
-                if I.startswith('%time'):
-                    C.do_time()
-                    I = after_first_word(I).lstrip()
-                elif first_word(I) == 'time':
-                    C.do_time()
-                    I = after_first_word(I).lstrip()
         else:
             before_prompt, after_prompt = C.introspect()
             I = before_prompt
+
+        #Handle any percent directives
+        percent_directives = C.percent_directives()
+        if 'save_server' in percent_directives:
+            self.notebook().save()
 
         S = self.sage()
 
@@ -3387,7 +3382,37 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
     # Parsing the %cython, %jsmath, %python, etc., extension.
     ##########################################################
 
-    def cython_import(self, cmd, C):
+    def get_cell_system(self, cell):
+        """
+        Returns the system that will run the input in cell.  This
+        defaults to worksheet's system if there is not one
+        specifically given in the cell.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
+            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W.edit_save('Sage\nsystem:sage\n{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
+            sage: c0, c1 = W.cell_list()
+            sage: W.get_cell_system(c0)
+            'sage'
+            sage: W.get_cell_system(c1)
+            'gap'
+            sage: W.edit_save('Sage\nsystem:gap\n{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
+            sage: c0, c1 = W.cell_list()
+            sage: W.get_cell_system(c0)
+            'sage'
+            sage: W.get_cell_system(c1)
+            'gap'
+
+        """
+        if cell.system() is not None:
+            system = cell.system()
+        else:
+            system = self.system()
+        return system
+
+    def cython_import(self, cmd, cell):
         # Choice: Can use either C.relative_id() or self.next_block_id().
         # C.relative_id() has the advantage that block evals are cached, i.e.,
         # no need to recompile.  On the other hand tracebacks don't work if
@@ -3401,7 +3426,7 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         s  = '_support_.cython_import_all("%s", globals())'%spyx
         return s
 
-    def check_for_system_switching(self, s, C):
+    def check_for_system_switching(self, input, cell):
         r"""
         Check for input cells that start with \code{\%foo},
         where \var{foo} is an object with an eval method.
@@ -3422,9 +3447,9 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
             sage: W.edit_save('Sage\nsystem:sage\n{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
             sage: c0, c1 = W.cell_list()
-            sage: W.check_for_system_switching(c0.input_text(), c0)
+            sage: W.check_for_system_switching(c0.cleaned_input_text(), c0)
             (False, '2+3')
-            sage: W.check_for_system_switching(c1.input_text(), c1)
+            sage: W.check_for_system_switching(c1.cleaned_input_text(), c1)
             (True,
              "print _support_.syseval(gap, ur'''SymmetricGroup(5)''', '...')")
 
@@ -3444,9 +3469,9 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
             sage: W.edit_save('Sage\nsystem:gap\n{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
             sage: c0, c1 = W.cell_list()
-            sage: W.check_for_system_switching(c0.input_text(), c0)
+            sage: W.check_for_system_switching(c0.cleaned_input_text(), c0)
             (False, '2+3')
-            sage: W.check_for_system_switching(c1.input_text(), c1)
+            sage: W.check_for_system_switching(c1.cleaned_input_text(), c1)
             (True,
              "print _support_.syseval(gap, ur'''SymmetricGroup(5)''', '...')")
             sage: c0.evaluate()
@@ -3462,45 +3487,15 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
             )
 
         """
-        s = s.lstrip()
-        if self.system() != 'sage':
-            if len(s) == 0 or s[0] != "%":
-                #Since no other system is specified, we return True
-                #and evaluate the code using self.system()
-                return True, self._eval_cmd(self.system(), s, os.path.abspath(C.directory()))
-            elif s.startswith("%sage"):
-                #Since the code we want to run is Sage code, we return
-                #False.
-                s = after_first_word(s).lstrip()
-                return False, s
+        system = self.get_cell_system(cell)
+        if system == 'sage':
+            return False, input
+        elif system in ['cython', 'pyrex', 'sagex']:
+            return True, self.cython_import(input, cell)
         else:
-            #Since the system in Sage and there is not another
-            #system specified, we return False.
-            if len(s) == 0 or s[0] != '%':
-                return False, s
-
-        if s.startswith('%hide'):
-            t = after_first_word(s).lstrip()
-            if len(t) == 0 or t[0] != '%':
-                return False, t
-            s = t
-        if s.startswith('%save_server'):
-            self.notebook().save()
-            t = after_first_word(s).lstrip()
-            if len(t) == 0 or t[0] != '%':
-                return False, t
-            s = t
-        if s.startswith("%cython") or s.startswith("%pyrex") or s.startswith("%sagex"):  # a block of Cython code.
-            return True, self.cython_import(after_first_word(s).lstrip(), C)
-
-        # Determine system = the system doing the computation, e.g., %magma, and
-        #           code_to_eval = the code to feed to the system via .eval.
-        system = first_word(s)[1:]     # get rid of the percent sign.
-        code_to_eval = after_first_word(s)
-        cmd = self._eval_cmd(system, code_to_eval, os.path.abspath(C.directory()))
-        if system == 'html':
-            C.set_is_html(True)
-        return True, cmd
+            cmd = self._eval_cmd(system, input,
+                                 os.path.abspath(cell.directory()))
+            return True, cmd
 
     ##########################################################
     # List of attached files.

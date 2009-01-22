@@ -303,15 +303,15 @@ class Cell(Cell_generic):
             True
         """
         self.__id    = int(id)
-        self.__in    = str(input).replace('\r','')
         self.__out   = str(out).replace('\r','')
         self.__worksheet = worksheet
         self.__interrupted = False
         self.__completions = False
         self.has_new_output = False
-        self.__version = 0
         self.__no_output_cell = False
         self.__asap = False
+        self.__version = -1
+        self.set_input_text(str(input).replace('\r',''))
 
     def set_asap(self, asap):
         """
@@ -983,6 +983,10 @@ class Cell(Cell_generic):
         if hasattr(self, '_html_cache'):
             del self._html_cache
 
+        #Run get the input text with all of the percent
+        #directives parsed
+        self._cleaned_input = self.parse_percent_directives()
+
     def input_text(self):
         """
         Returns self's input text.
@@ -994,9 +998,95 @@ class Cell(Cell_generic):
         """
         return self.__in
 
+    def cleaned_input_text(self):
+        """
+        Returns the input text with all of the percent directives
+        removed.  If the cell is interacting, then the interacting
+        text is returned.
+
+        EXAMPLES:
+            sage: C = sage.server.notebook.cell.Cell(0, '%hide\n%maxima\n2+3', '5', None)
+            sage: C.cleaned_input_text()
+            '2+3'
+
+        """
+        if self.is_interacting():
+            return self.interact
+        else:
+            return self._cleaned_input
+
+    def parse_percent_directives(self):
+        """
+        Parses all of the percent directives found at the top
+        of a file and returns the input text of self with all of them
+        removed.
+
+        EXAMPLES:
+            sage: C = sage.server.notebook.cell.Cell(0, '%hide\n%maxima\n2+3', '5', None)
+            sage: C.parse_percent_directives()
+            '2+3'
+            sage: C.percent_directives()
+            ['hide', 'maxima']
+        """
+        self._system = None
+        text = self.input_text().split('\n')
+        directives = []
+        for i, line in enumerate(text):
+            if not line.startswith('%'):
+                #Handle the #auto case here for now
+                if line == "#auto":
+                    pass
+                else:
+                    break
+            elif line in ['%auto', '%hide', '%hideall', '%save_server', "%time", "%timeit"]:
+                #We do not consider any of the above percent
+                #directives as specifying a system.
+                pass
+            else:
+                self._system = line[1:]
+
+            directives.append(line[1:])
+
+        self._percent_directives = directives
+        return "\n".join(text[i:]).strip()
+
+    def percent_directives(self):
+        """
+        Returns a list of all the percent directives that appear
+        in this cell.
+
+        EXAMPLES:
+            sage: C = sage.server.notebook.cell.Cell(0, '%hide\n%maxima\n2+3', '5', None)
+            sage: C.percent_directives()
+            ['hide', 'maxima']
+        """
+        return self._percent_directives
+
+    def system(self):
+        """
+        Returns the system used to evaluate this cell. The system
+        is specified by a percent directive like '%maxima' at
+        the top of a cell.
+
+        If no system is explicitly specified, then None is returned
+        which tells the notebook to evaluate the cell using the
+        worksheet's default system.
+
+        EXAMPLES:
+            sage: C = sage.server.notebook.cell.Cell(0, '%maxima\n2+3', '5', None)
+            sage: C.system()
+            'maxima'
+            sage: prefixes = ['%hide', '%time', '']
+            sage: cells = [sage.server.notebook.cell.Cell(0, '%s\n2+3'%prefix, '5', None) for prefix in prefixes]
+            sage: [(C, C.system()) for C in cells if C.system() is not None]
+            []
+        """
+        return self._system
+
+
     def is_auto_cell(self):
         """
-        Returns True if self is an auto cell..
+        Returns True if self is an auto cell.
 
         An auto cell is a cell that is automatically evaluated when the
         worksheet starts up.
@@ -1009,7 +1099,7 @@ class Cell(Cell_generic):
             sage: C.is_auto_cell()
             True
         """
-        return '#auto' in self.__in
+        return 'auto' in self.percent_directives()
 
     def changed_input_text(self):
         """
@@ -1230,29 +1320,21 @@ class Cell(Cell_generic):
         Returns True if this is an HTML cell.  An HTML cell whose system
         is HTML and is typically specified by '%html' at the top of the cell.
 
-        All of the code for determining the system is in worksheet.py in the
-        function check_for_system_switching.
-
         EXAMPLES:
-            sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
-            sage: C = W.new_cell_after(0, "%html\nTest HTML")
-            sage: C.is_html()
-            False
-            sage: W.check_for_system_switching(C.input_text(), C)
-            (True,
-            "print _support_.syseval(html, ur'''Test HTML''', '...')")
+            sage: C = sage.server.notebook.cell.Cell(0, "%html\nTest HTML", None, None)
+            sage: C.system()
+            'html'
             sage: C.is_html()
             True
-
-            sage: import shutil; shutil.rmtree(nb.directory())
-
+            sage: C = sage.server.notebook.cell.Cell(0, "Test HTML", None, None)
+            sage: C.is_html()
+            False
         """
         try:
             return self.__is_html
         except AttributeError:
-            return False
+            self.parse_percent_directives()
+            return self.system() == 'html'
 
     def set_is_html(self, v):
         """
@@ -1340,7 +1422,7 @@ class Cell(Cell_generic):
         """
         self.__introspect = [before_prompt, after_prompt]
 
-    def evaluate(self, introspect=False, time=False, username=None):
+    def evaluate(self, introspect=False, time=None, username=None):
         """
         INPUT:
             username -- name of user doing the evaluation
@@ -1370,7 +1452,8 @@ class Cell(Cell_generic):
         """
         self.__interrupted = False
         self.__evaluated = True
-        self.__time = time
+        if time is not None:
+            self.__time = time
         self.__introspect = introspect
         self.__worksheet.enqueue(self, username=username)
         self.__type = 'wrap'
@@ -1411,31 +1494,14 @@ class Cell(Cell_generic):
         EXAMPLES:
             sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
             sage: C.time()
-            '?'
-            sage: C.do_time()
+            False
+            sage: C = sage.server.notebook.cell.Cell(0, '%time\n2+3', '5', None)
             sage: C.time()
             True
         """
-        try:
-            return self.__time
-        except AttributeError:
-            return "?"
-
-    def do_time(self):
-        """
-        Tells the worksheet to print the time it takes to evaluate
-        this cell.
-
-        EXAMPLES:
-            sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', None)
-            sage: C.time()
-            '?'
-            sage: C.do_time()
-            sage: C.time()
-            True
-
-        """
-        self.__time = True
+        return ('time' in self.percent_directives() or
+                'timeit' in self.percent_directives() or
+                getattr(self, '__time', False))
 
     def doc_html(self, wrap=None, div_wrap=True, do_print=False):
         """
@@ -1572,9 +1638,6 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
 
     def url_to_self(self):
         """
-        TODO:
-            Figure out why the url starts with /home/.
-
         EXAMPLES:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)

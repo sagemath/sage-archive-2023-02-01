@@ -34,7 +34,10 @@ Set up `compilation-exit-message-function' and run `sage-test-setup-hook'."
 
 (defvar sage-test-regexp-alist
   '(("File \"\\(.*?\\)\", line \\([0-9]+\\):"
-     1 2)))
+     1 2)
+    ("File \"\\(.*?\\)\", line \\([0-9]+\\),"
+     1 2 nil 1)
+    ))
 
 (defun sage-kill-compilation ()
   "Work hard to really kill sage-test."
@@ -56,9 +59,14 @@ Set up `compilation-exit-message-function' and run `sage-test-setup-hook'."
   (set (make-local-variable 'compilation-process-setup-function)
        'sage-test-process-setup))
 
+(defun sage-default-test-files ()
+  (if (sage-mode-p)
+      (buffer-file-name)
+    (format "%s*" default-directory)))
+
 (defun sage-default-test-command ()
   "Compute the default sage test command for C-u M-x sage-test to offer."
-  (format "%s >/dev/null && %s -t %s" (sage-default-build-command) sage-command (buffer-file-name)))
+  (format "%s >/dev/null && %s -tp 4 %s" (sage-default-build-command) sage-command (sage-default-test-files)))
 
 (defun sage-default-test-new-command ()
   "Compute the default sage test new command for C-u M-x sage-test to offer."
@@ -67,8 +75,7 @@ Set up `compilation-exit-message-function' and run `sage-test-setup-hook'."
 ;;;###autoload
 (defun sage-test (command-args)
   "Run sage-test, with user-specified args, and collect output in a buffer.
-While sage-test runs asynchronously, you can use
-\\[next-error] (M-x next-error), or
+While sage-test runs asynchronously, you can use \\[next-error] (M-x next-error), or
 \\<sage-test-mode-map>\\[compile-goto-error] in the sage-test
 output buffer, to go to the lines where sage-test found matches.
 
@@ -88,8 +95,10 @@ easily repeat a sage-test command."
   ;; even when async processes aren't supported.
   (compilation-start command-args 'sage-test-mode))
 
-(defvar sage-test-prompt
-  (rx bol (0+ (or space punct)) "sage: "))
+(defcustom sage-test-prompt (rx line-start (? (or "-" "+")) (0+ (or space punct)) (1+ (or "sage: " ">>> " "....." "...")))
+  "Regular expression matching the SAGE prompt of a single doctest line."
+  :group 'sage
+  :type 'regexp)
 
 ;;;_* "Interactive" doctesting
 (defun sage-send-doctest-line-and-forward (&optional noshow)
@@ -148,5 +157,27 @@ If NOGO is nil, pop to the Sage process buffer."
 	(inferior-sage-wait-for-prompt))))
   (unless nogo
     (pop-to-buffer sage-buffer)))
+
+(defun sage-retest-failing-files-from-buffer (buffer)
+  (interactive "b")
+  (save-match-data
+    (with-current-buffer buffer
+      (let ((files nil)
+	    (root (concat (sage-root) "/")))
+	(goto-char 0)
+	(re-search-forward "^The following tests failed:")
+	(while (re-search-forward "\\(devel/.*\\)" (point-max) t)
+	  (setq files (cons (concat root (match-string 1)) files)))
+	files))))
+
+(defun sage-retest (buffer)
+  "Retest only failing files scraped from an existing *sage-test* buffer.
+"
+  (interactive "bRetest failing files from buffer: ")
+  (let* ((files (sage-retest-failing-files-from-buffer buffer))
+	 (files-str (mapconcat #'identity files " ")))
+    (flet ((sage-default-test-files () files-str))
+      ;; (setq default-directory (sage-current-devel-root))
+      (call-interactively 'sage-test))))
 
 (provide 'sage-test)

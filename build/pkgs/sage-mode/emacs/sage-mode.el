@@ -31,7 +31,7 @@
 
 ;;;_* Inferior SAGE major mode for interacting with a slave SAGE process
 
-(defcustom inferior-sage-prompt (rx line-start (1+ (and (or "sage:" "....." ">>>" "...") " ")))
+(defcustom inferior-sage-prompt (rx line-start (1+ (and (or "sage:" "....." ">>>" "..." "(Pdb)" "ipdb>") " ")))
   "Regular expression matching the SAGE prompt."
   :group 'sage
   :type 'regexp)
@@ -47,8 +47,10 @@
   "Inferior SAGE"
   "Major mode for interacting with an inferior SAGE process."
 
+  (sage-set-buffer (current-buffer))
+
   (setq comint-prompt-regexp inferior-sage-prompt)
-  (setq comint-redirect-finished-regexp "sage:") ; comint-prompt-regexp)
+  (setq comint-redirect-finished-regexp comint-prompt-regexp)
 
   (setq comint-input-sender 'sage-input-sender)
   ;; I type x? a lot
@@ -296,11 +298,12 @@ Additional arguments are added when the command is used by `run-sage' et al."
   (setq mode-line-process (sage-mode-line-name-for-sage-buffer buffer))
   (force-mode-line-update))
 
+(defalias 'set-sage-buffer 'sage-set-buffer)
 (defun sage-set-buffer (buffer)
   (interactive
    (list (progn
-	   (unless (sage-mode-p)
-	     (error "Not in a sage-mode buffer!"))
+	   ;; (unless (sage-mode-p)
+;; 	     (error "Not in a sage-mode buffer!"))
 	   (completing-read
 	    "SAGE buffer: " (sage-all-inferior-sage-buffers) nil nil
 	    (car (sage-all-inferior-sage-buffers))))))
@@ -309,6 +312,28 @@ Additional arguments are added when the command is used by `run-sage' et al."
     (setq python-buffer chosen-buffer) ; update python-buffer too
     (when (sage-mode-p)
       (sage-update-mode-line chosen-buffer))))
+
+(defun python-proc ()
+  "Return the current Python process.
+See variable `python-buffer'.  Starts a new process if necessary."
+  ;; Fixme: Maybe should look for another active process if there
+  ;; isn't one for `python-buffer'.
+  (message "python-proc")
+
+  (cond ((inferior-sage-mode-p)
+	 ;; if we're in a sage buffer, that's us
+	 (get-buffer-process (current-buffer)))
+	((comint-check-proc sage-buffer)
+	 ;; if we refer to a good sage instance, use it
+	 (get-buffer-process sage-buffer))
+	((sage-running-inferior-sage-buffers)
+	 ;; if there are other good sage instances, use one of them
+	 (call-interactively 'sage-set-buffer)
+	 (python-proc))
+	(t
+	 ;; otherwise, start a new sage and try again
+	 (run-sage nil t)
+	 (python-proc))))
 
 ;; History of sage-run commands.
 ;;;###autoload
@@ -322,6 +347,8 @@ Additional arguments are added when the command is used by `run-sage' et al."
 				   default
 				   nil nil 'sage-run-history
 				   default)))))
+  (unless cmd
+    (setq cmd sage-command))
   (with-current-buffer
       (let* ((sage-buffer-base-name (format "*SAGE-%s*" (sage-current-branch)))
 	     (sage-buffer-name (if new (generate-new-buffer sage-buffer-base-name) sage-buffer-base-name))
@@ -341,10 +368,13 @@ Additional arguments are added when the command is used by `run-sage' et al."
 
 (defun sage-new-sage-p ()
   (interactive)
-  (or (null sage-buffer)		      ; if there isn't a running sage
-      (not (comint-check-proc sage-buffer)))) ; or the sage buffer is dead
+  (or (and (inferior-sage-mode-p)	; in a sage buffer but it's dead
+	   (not (comint-check-proc (current-buffer))))
+      (or (null sage-buffer)		      ; if there isn't a running sage
+	  (not (comint-check-proc sage-buffer))))) ; or the sage buffer is dead
 
 ;;;###autoload
+(defalias 'sage 'run-sage)
 (defun run-sage (&optional new cmd noshow)
   "Run an inferior SAGE process, input and output via buffer *SAGE*.
 
@@ -396,16 +426,18 @@ buffer for a list of commands.)"
 (defun sage-root ()
   "Return SAGE_ROOT."
   (interactive)
-  (let ((lst (split-string (shell-command-to-string (concat sage-command " -root")))))
-    (nth 0 lst)))
+  (save-match-data
+    (let ((lst (split-string (shell-command-to-string (concat sage-command " -root")))))
+    (nth 0 lst))))
 
 (defun sage-current-branch-link ()
   "Return the current SAGE branch link, i.e., the target of devel/sage."
   (interactive)
-  (let ((lst (split-string (shell-command-to-string (concat sage-command " -branch")))))
-    (if (= 1 (length lst))
-	(nth 0 lst)
-      "main")))
+  (save-match-data
+    (let ((lst (split-string (shell-command-to-string (concat sage-command " -branch")))))
+      (if (= 1 (length lst))
+	  (nth 0 lst)
+	"main"))))
 
 (defun sage-current-branch ()
   "Return the current SAGE branch name."
@@ -832,7 +864,7 @@ time, it does not handle multi-line input strings at all."
 (defvar ipython-completing-read-symbol-pred nil
   "Default predicate for filtering queried Python symbols.")
 
-(defvar ipython-completing-read-symbol-command "%s*?"
+(defvar ipython-completing-read-symbol-command "_ip.IP.magic_psearch('-a %s*')"
   "IPython command for generating completions.
 Each completion should appear separated by whitespace.")
 

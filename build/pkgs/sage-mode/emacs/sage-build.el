@@ -15,6 +15,34 @@
 ;;;###autoload
 (defvar sage-build-history nil)
 
+(defun rerun-sage ()
+  (interactive)
+  (if (not (sage-all-inferior-sage-buffers))
+      (progn
+	(message "Need a SAGE buffer to rerun SAGE in...")
+	(call-interactively 'run-sage))
+    (let ((buffer (completing-read
+		   "Rerun SAGE in buffer: " (sage-all-inferior-sage-buffers) nil nil
+		   (car (sage-all-inferior-sage-buffers))))
+	  (dummy 1))
+      (kill-buffer buffer)
+      (run-sage t))))
+
+;;       (pop-to-buffer buffer)
+;; ;;       (while (and (get-buffer-process (current-buffer))
+;; ;; 		  (< dummy 10))
+;; ;; 	(comint-send-eof) ;; nicer than comint-kill-subjob
+;; ;; 	(sleep-for 0 1)
+;; ;; 	(incf dummy))
+;;       (message "A")
+;;       (when (get-buffer-process buffer)
+;; 	(with-current-buffer buffer
+;; 	  (comint-kill-subjob)))
+;;       (run-sage t)
+;;       (unless (get-buffer-process buffer)
+;; 	(kill-buffer buffer))
+;;       (message "C"))))
+
 (defun sage-build-process-setup ()
   "Setup compilation variables and buffer for `sage-build'.
 Set up `compilation-exit-message-function' and run `sage-build-setup-hook'."
@@ -31,7 +59,7 @@ Set up `compilation-exit-message-function' and run `sage-build-setup-hook'."
   (add-hook 'compilation-finish-functions
 	    (lambda (buffer msg)
 	      (when current-prefix-arg ;; XXX (and (string-match "succeed" msg) andrun)
-		(run-sage t)
+		(rerun-sage)
 		)) nil t)
   (run-hooks 'sage-build-setup-hook))
 

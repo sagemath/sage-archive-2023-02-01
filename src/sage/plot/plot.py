@@ -1807,23 +1807,34 @@ def parametric_plot(funcs, tmin, tmax, **kwargs):
 
     return plot(funcs, tmin, tmax, parametric=True, **kwargs)
 
-def polar_plot(funcs, xmin, xmax, **kwargs):
+def polar_plot(funcs, *args, **kwds):
     r"""
     \code{polar_plot} takes a single function or a list or tuple of functions
-    and plots them parametrically in the given range.
+    and plots them with polar coordinates in the given domain.
+
+    This function is equivalent to the plot command with the option
+    polar=True.  For more help on options, see the documentation for
+    plot.
+
+    INPUT:
+        funcs -- a function
+        other options -- passed to plot
 
     EXAMPLES:
     Here is a blue 8-leaved petal:
-        sage: polar_plot(sin(5*x)^2, 0, 2*pi, rgbcolor=hue(0.6))
+        sage: polar_plot(sin(5*x)^2, (x, 0, 2*pi), color='blue')
 
     A red figure-8:
-        sage: polar_plot(abs(sqrt(1 - sin(x)^2)), 0, 2*pi, rgbcolor=hue(1.0))
+        sage: polar_plot(abs(sqrt(1 - sin(x)^2)), (x, 0, 2*pi), color='red')
 
     A green limacon of Pascal:
-        sage: polar_plot(2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
+        sage: polar_plot(2 + 2*cos(x), (x, 0, 2*pi), rgbcolor=hue(0.3))
 
+    Several polar plots:
+        sage: polar_plot([2*sin(x), 2*cos(x)], (x, 0, 2*pi))
     """
-    return plot(funcs, xmin, xmax, polar=True, **kwargs)
+    kwds['polar']=True
+    return plot(funcs, *args, **kwds)
 
 def list_plot(data, plotjoined=False, **kwargs):
     r"""

@@ -119,8 +119,9 @@ cdef class CompiledPolynomialFunction:
             temp = self._dag.value               #for an explanation
             pd_clean(self._dag)                  #of these 3 lines
             return temp
-        except:
-            raise RuntimeError, "Polynomial evaluation error in val()!"
+        except TypeError,msg:
+            self._dag.reset()
+            raise TypeError, msg
 
     cdef object _parse_structure(CompiledPolynomialFunction self):
         """
@@ -331,7 +332,7 @@ cdef class CompiledPolynomialFunction:
 # self.value to None if they have.  Thus, we don't hold
 # on to intermediate values any longer than we have to.
 
-cdef inline void pd_eval(generic_pd pd, object vars, object coeffs):
+cdef inline int pd_eval(generic_pd pd, object vars, object coeffs) except -2:
     if pd.value is None:
         pd.eval(vars, coeffs)
     pd.hits += 1
@@ -348,11 +349,15 @@ cdef class generic_pd:
         self.refs = 0
         self.label = -1
 
-    cdef void eval(generic_pd self, object vars, object coeffs):
+    cdef int eval(generic_pd self, object vars, object coeffs) except -2:
         raise NotImplementedError
 
     cdef generic_pd nodummies(generic_pd self):
         return self
+
+    cdef void reset(generic_pd self):
+        self.hits = 0
+        self.value = None
 
 cdef class dummy_pd(generic_pd):
     def __init__(dummy_pd self, int label):
@@ -370,7 +375,7 @@ cdef class var_pd(generic_pd):
     def __init__(var_pd self, int index):
         generic_pd.__init__(self)
         self.index = index
-    cdef void eval(var_pd self, object vars, object coeffs):
+    cdef int eval(var_pd self, object vars, object coeffs) except -2:
         self.value = vars[self.index]
     def __repr__(self):
         return "x[%s]"%(self.index)
@@ -380,7 +385,7 @@ cdef class univar_pd(generic_pd):
     def __init__(univar_pd self):
         generic_pd.__init__(self)
         self.label = 1
-    cdef void eval(univar_pd self, object var, object coeffs):
+    cdef int eval(univar_pd self, object var, object coeffs) except -2:
         self.value = var
     def __repr__(self):
         return "x"
@@ -389,10 +394,13 @@ cdef class coeff_pd(generic_pd):
     def __init__(coeff_pd self, int index):
         generic_pd.__init__(self)
         self.index = index
-    cdef void eval(coeff_pd self, object vars, object coeffs):
+    cdef int eval(coeff_pd self, object vars, object coeffs) except -2:
         self.value = coeffs[self.index]
     def __repr__(self):
         return "a%s"%(self.index)
+
+    cdef void reset(self):
+        pass
 
 cdef class unary_pd(generic_pd):
     def __init__(unary_pd self, generic_pd operand):
@@ -404,11 +412,17 @@ cdef class unary_pd(generic_pd):
         self.operand = self.operand.nodummies()
         return self
 
+    cdef void reset(self):
+        generic_pd.reset(self)
+        self.operand.reset()
+
+
 cdef class sqr_pd(unary_pd):
-    cdef void eval(sqr_pd self, object vars, object coeffs):
+    cdef int eval(sqr_pd self, object vars, object coeffs) except -2:
         pd_eval(self.operand, vars, coeffs)
         self.value = self.operand.value * self.operand.value
         pd_clean(self.operand)
+
     def __repr__(self):
         return "(%s)^2"%(self.operand)
 
@@ -417,7 +431,7 @@ cdef class pow_pd(unary_pd):
         unary_pd.__init__(self, base)
         self.exponent = exponent
 
-    cdef void eval(pow_pd self, object vars, object coeffs):
+    cdef int eval(pow_pd self, object vars, object coeffs) except -2:
         pd_eval(self.operand, vars, coeffs)
         self.value = self.operand.value ** self.exponent
         pd_clean(self.operand)
@@ -440,8 +454,13 @@ cdef class binary_pd(generic_pd):
         self.right = self.right.nodummies()
         return self
 
+    cdef void reset(self):
+        generic_pd.reset(self)
+        self.left.reset()
+        self.right.reset()
+
 cdef class add_pd(binary_pd):
-    cdef void eval(add_pd self, object vars, object coeffs):
+    cdef int eval(add_pd self, object vars, object coeffs) except -2:
         pd_eval(self.left, vars, coeffs)
         pd_eval(self.right, vars, coeffs)
         self.value = self.left.value + self.right.value
@@ -451,7 +470,7 @@ cdef class add_pd(binary_pd):
         return "(%s+%s)"%(self.left, self.right)
 
 cdef class mul_pd(binary_pd):
-    cdef void eval(mul_pd self, object vars, object coeffs):
+    cdef int eval(mul_pd self, object vars, object coeffs) except -2:
         pd_eval(self.left, vars, coeffs)
         pd_eval(self.right, vars, coeffs)
         self.value = self.left.value * self.right.value
@@ -468,7 +487,7 @@ cdef class abc_pd(binary_pd):
     def __repr__(self):
         return "(%s*%s+a%s)"%(self.left, self.right, self.index)
 
-    cdef void eval(abc_pd self, object vars, object coeffs):
+    cdef int eval(abc_pd self, object vars, object coeffs) except -2:
         pd_eval(self.left, vars, coeffs)
         pd_eval(self.right, vars, coeffs)
         self.value = self.left.value * self.right.value + coeffs[self.index]

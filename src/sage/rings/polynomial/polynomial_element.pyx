@@ -413,6 +413,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(2, 1/2)
             15/8
 
+        TESTS:
+
+        The following shows that #2360 is indeed fixed.
+
+            sage: R.<x,y> = ZZ[]
+            sage: P.<a> = ZZ[]
+            sage: e = [x^2,y^3]
+            sage: f = 6*a^4
+            sage: f(x)
+            6*x^4
+            sage: f(e)
+            Traceback (most recent call last):
+            ...
+            TypeError: can't multiply sequence by non-int of type 'list'
+            sage: f(x)
+            6*x^4
+
         AUTHORS:
             -- David Joyner, 2005-04-10
             -- William Stein, 2006-01-22; change so parent

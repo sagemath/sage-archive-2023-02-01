@@ -18,8 +18,9 @@ cdef class generic_pd:
     cdef object value
     cdef int refs, hits
     cdef int label
-    cdef void eval(self, vars, coeffs)
+    cdef int eval(self, vars, coeffs) except -2
     cdef generic_pd nodummies(generic_pd)
+    cdef void reset(self)
 
 cdef class dummy_pd(generic_pd):
     cdef generic_pd link

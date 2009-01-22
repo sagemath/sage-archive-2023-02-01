@@ -85,8 +85,10 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     OUTPUT:
 
     ``PolynomialRing(base_ring, name, sparse=False)`` returns a univariate
-    polynomial ring; all other input formats return a multivariate polynomial
-    ring.
+    polynomial ring; also, PolynomialRing(base_ring, names, sparse=False)
+    yields a univariate polynomial ring, if names is a list or tuple
+    providing exactly one name. All other input formats return a
+    multivariate polynomial ring.
 
     UNIQUENESS and IMMUTABILITY: In Sage there is exactly one
     single-variate polynomial ring over each base ring in each choice
@@ -245,6 +247,16 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: R == S
         False
 
+       Note that a univariate polynomial ring is returned, if the list
+ 	   of names is of length one. If it is of length zero, a multivariate
+       polynomial ring with no variables is returned.
+
+       ::
+
+        sage: PolynomialRing(QQ,["x"])
+        Univariate Polynomial Ring in x over Rational Field
+        sage: PolynomialRing(QQ,[])
+        Multivariate Polynomial Ring in no variables over Rational Field
 
     3. ``PolynomialRing(base_ring, name, n, order='degrevlex')``
 
@@ -261,6 +273,16 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
         sage: PolynomialRing(QQ, 'y', 3, sparse=True)
         Multivariate Polynomial Ring in y0, y1, y2 over Rational Field
+
+       Note that a multivariate polynomial ring is returned when an
+       explicit number is given.
+
+       ::
+
+        sage: PolynomialRing(QQ,"x",1)
+        Multivariate Polynomial Ring in x over Rational Field
+        sage: PolynomialRing(QQ,"x",0)
+        Multivariate Polynomial Ring in no variables over Rational Field
 
        It is easy in Python to create fairly arbitrary variable names.  For
        example, here is a ring with generators labeled by the first 100

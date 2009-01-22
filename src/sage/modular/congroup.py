@@ -603,7 +603,7 @@ def lift_to_sl2z(c, d, N):
 
 
 _gammaH_cache = {}
-def GammaH(level, H):
+def GammaH_constructor(level, H):
     r"""
     Return the congruence subgroup $\Gamma_H(N)$, which is the subgroup of
     $SL_2(\Z)$ consisting of matrices of the form $\begin{pmatrix} a & b \\
@@ -1364,7 +1364,7 @@ def is_Gamma0(x):
     return isinstance(x, Gamma0_class)
 
 _gamma0_cache = {}
-def Gamma0(N):
+def Gamma0_constructor(N):
     """
     Return the congruence subgroup Gamma0(N).
 
@@ -1848,7 +1848,7 @@ def is_Gamma1(x):
     return (isinstance(x, Gamma1_class) or is_SL2Z(x))
 
 _gamma1_cache = {}
-def Gamma1(N):
+def Gamma1_constructor(N):
     r"""
     Return the congruence subgroup $\Gamma_1(N)$.
 
@@ -2068,3 +2068,22 @@ class Gamma1_class(GammaH_class):
 import congroup_pyx
 degeneracy_coset_representatives_gamma0 = congroup_pyx.degeneracy_coset_representatives_gamma0
 degeneracy_coset_representatives_gamma1 = congroup_pyx.degeneracy_coset_representatives_gamma1
+
+###########################################################
+# Re-bindings for unpickling
+#
+# Because we have a large number of pickles which were
+# created when Gamma0, Gamma1, etc., were still classes
+# as opposed to functions, we can't unpickle these unless
+# sage.modular.congroup.Gamma0, etc. are classes. So we
+# re-bind these as such below -- note that these bindings
+# are *DIFFERENT* than the bindings for Gamma0, etc. that
+# get imported in all.py.
+#
+# See trac #5059.
+#
+###########################################################
+
+Gamma0 = Gamma0_class
+Gamma1 = Gamma1_class
+GammaH = GammaH_class

@@ -52,7 +52,12 @@ cdef class Map(Element):
     cdef _update_slots(self, _slots):
         self._domain = _slots['_domain']
         self._codomain = _slots['_codomain']
-        self._repr_type_str = _slots['_repr_type_str']
+        # Several pickles exist without a _repr_type_str, so
+        # if there is none saved, we just set it to None.
+        if _slots.has_key('_repr_type_str'):
+            self._repr_type_str = _slots['_repr_type_str']
+        else:
+            self._repr_type_str = None
 
     def _test_update_slots(self, _slots):
         self._update_slots(_slots)

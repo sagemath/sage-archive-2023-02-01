@@ -1155,7 +1155,10 @@ class MPolynomialIdeal_singular_repr:
 
     @redSB
     def reduced_basis(self):
-        r"""
+        """
+        Note: This function is deprecated. It will be removed in a future
+        release of Sage. Please use the interreduced_basis() function instead.
+
         If this ideal is spanned by $(f_1, ..., f_n)$ this method
         returns $(g_1, ..., g_s)$ such that:
 
@@ -1171,11 +1174,45 @@ class MPolynomialIdeal_singular_repr:
             sage: R.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
             sage: I.reduced_basis()
+            doctest:...: DeprecationWarning: This function is deprecated. It will be removed in a future release of Sage. Please use the interreduced_basis() function instead.
             [x*z - z, x*y + z, y^3 + z]
 
             sage: R.<x,y,z> = PolynomialRing(QQ,order='negdegrevlex')
             sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
             sage: I.reduced_basis()
+            [x*z + y^3, x*y - y^3, z + y^3]
+
+        ALGORITHM: Uses \Singular's interred command or
+        \code{toy_buchberger.inter_reduction} if conversion to
+        \Singular fails.
+        """
+        from sage.misc.misc import deprecation
+        deprecation("This function is deprecated. It will be removed in a future release of Sage. Please use the interreduced_basis() function instead.")
+        return self.interreduced_basis()
+
+    @redSB
+    def interreduced_basis(self):
+        r"""
+        If this ideal is spanned by $(f_1, ..., f_n)$ this method
+        returns $(g_1, ..., g_s)$ such that:
+
+        \begin{itemize}
+        \item $(f_1,...,f_n) = (g_1,...,g_s)$
+        \item $LT(g_i) != LT(g_j)$ for all $i != j$
+        \item $LT(g_i)$ does not divide $m$ for all monomials $m$
+              of $\{g_1,...,g_{i-1},g_{i+1},...,g_s\}$
+        \item $LC(g_i) == 1$ for all $i$.
+        \end{itemize}
+
+        EXAMPLE:
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
+            sage: I.interreduced_basis()
+            [x*z - z, x*y + z, y^3 + z]
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,order='negdegrevlex')
+            sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
+            sage: I.interreduced_basis()
             [x*z + y^3, x*y - y^3, z + y^3]
 
         ALGORITHM: Uses \Singular's interred command or

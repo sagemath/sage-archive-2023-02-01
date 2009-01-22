@@ -699,6 +699,12 @@ def numerical_approx(x, prec=None, digits=None):
         12.5878862295484
         sage: n(pi^2 + e, digits=50)
         12.587886229548403854194778471228813633070946500941
+        sage: a = CC(-5).n(prec=100)
+        sage: b = ComplexField(100)(-5)
+        sage: a == b
+        True
+        sage: type(a) == type(b)
+        True
 
     You can also usually use method notation:
         sage: (pi^2 + e).n()
@@ -712,10 +718,12 @@ def numerical_approx(x, prec=None, digits=None):
     try:
         return x.numerical_approx(prec)
     except AttributeError:
-        try:
-            return sage.rings.real_mpfr.RealField_constructor(prec)(x)
-        except TypeError:
+        from sage.rings.complex_double import is_ComplexDoubleElement
+        from sage.rings.complex_number import is_ComplexNumber
+        if is_ComplexNumber(x) or is_ComplexDoubleElement(x):
             return sage.rings.complex_field.ComplexField(prec)(x)
+        else:
+            return sage.rings.real_mpfr.RealField_constructor(prec)(x)
 
 n = numerical_approx
 N = numerical_approx

@@ -2926,8 +2926,22 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         return self.__pow(exponent)
 
     def __pow__(self, exponent, modulus):
+        """
+        EXAMPLES:
+        sage: R = RealIntervalField(17)
+        sage: x = R((-e,pi))
+        sage: x2 = x^2; x2.lower(), x2.upper()
+        (0.0000, 9.870)
+        sage: x3 = x^3; x3.lower(), x3.upper()
+        (-26.83, 31.01)
+        """
         if isinstance(exponent, (int, long, Integer)):
-            return sage.rings.ring_element.RingElement.__pow__(self, exponent)
+            q, r = divmod (exponent, 2)
+            if r == 0: # x^(2q) = (x^q)^2
+               xq = sage.rings.ring_element.RingElement.__pow__(self, q)
+               return (xq * xq).abs()
+            else:
+               return sage.rings.ring_element.RingElement.__pow__(self, exponent)
         return (self.log() * exponent).exp()
 
 

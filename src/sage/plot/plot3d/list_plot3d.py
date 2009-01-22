@@ -11,8 +11,8 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
     points in 3-dimensional space.
 
     INPUT:
-        v -- something that defines a set of points in 3 space,
-             for example:
+        v -- something that defines a set of points in 3 space, for
+             example:
                  * a matrix
                  * a list of 3-tuples
                  * a list of lists (all of the same length) -- this
@@ -90,16 +90,18 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         ...         l.append((float(i*pi/5),float(j*pi/5),m[i,j]))
         sage: list_plot3d(l,texture='yellow')
 
-
-        Note that the points do not have to be regularly sampled. For example
-
+    Note that the points do not have to be regularly sampled. For example
         sage: l=[]
         sage: for i in range(-5,5):
         ...    for j in range(-5,5):
         ...      l.append((normalvariate(0,1),normalvariate(0,1),normalvariate(0,1)))
         sage: list_plot3d(l,interpolation_type='nn',texture='yellow',num_points=100)
 
-
+    TESTS:
+    We plot 0, 1, and 2 points:
+        sage: list_plot3d([])
+        sage: list_plot3d([(2,3,4)])
+        sage: list_plot3d([(0,0,1), (2,3,4)])
     """
     import numpy
     if texture == "automatic":
@@ -122,6 +124,14 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
             # return empty 3d graphic
             from base import Graphics3d
             return Graphics3d()
+        elif len(v) == 1:
+            # return a point
+            from shapes2 import point3d
+            return point3d(v[0], **kwds)
+        elif len(v) == 2:
+            # return a line
+            from shapes2 import line3d
+            return line3d(v, **kwds)
         elif isinstance(v[0],tuple) or point_list==True and len(v[0]) == 3:
             return list_plot3d_tuples(v,interpolation_type,texture=texture, **kwds)
         else:

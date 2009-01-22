@@ -1298,6 +1298,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1
             sage: E.minimal_model().rank()
             1
+
+        A large example where mwrank doesn't determine the result with certainty:
+            sage: EllipticCurve([1,0,0,0,37455]).rank(proof=False)
+            0
+            sage: EllipticCurve([1,0,0,0,37455]).rank(proof=True)
+            Traceback (most recent call last):
+            ...
+            Rank not provably correct.
         """
         if proof is None:
             from sage.structure.proof.proof import get_flag
@@ -1343,17 +1351,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         elif algorithm == 'mwrank_shell':
             misc.verbose("using mwrank shell")
             X = self.mwrank()
-            if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
+            if 'determined unconditionally' not in X or 'only a lower bound of' in X:
                 if proof:
                     raise RuntimeError, '%s\nRank not provably correct.'%X
                 else:
-                    misc.verbose("Warning -- rank not provably correct", level=1)
-            elif proof is False:
-                proof = True #since we actually provably found the rank
-            i = X.find('Rank = ')
-            assert i != -1
-            j = i + X[i:].find('\n')
-            self.__rank[proof] = Integer(X[i+7:j])
+                    misc.verbose("Warning -- rank not proven correct", level=1)
+
+                s = "lower bound of"
+                X = X[X.rfind(s)+len(s)+1:]
+                r = Integer(X.split()[0])
+            else:
+                if proof is False:
+                    proof = True #since we actually provably found the rank
+                i = X.find('Rank = ')
+                assert i != -1, "bug in parsing of mwrank output"
+                j = i + X[i:].find('\n')
+                r = Integer(X[i+7:j])
+            self.__rank[proof] = r
+
         return self.__rank[proof]
 
     def gens(self, verbose=False, rank1_search=10,

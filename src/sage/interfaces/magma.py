@@ -175,8 +175,26 @@ import sage.misc.misc
 import sage.misc.sage_eval
 
 INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj'%sage.misc.misc.DOT_SAGE
-MAGMA_SPEC = '%s/magma/spec'%sage.misc.misc.SAGE_EXTCODE
 
+
+EXTCODE_DIR = None
+def extcode_dir():
+    """
+    Return directory that contains all the Magma extcode.  This is put
+    in a writable directory owned by the user, since when attached,
+    Magma has to write sig and lck files.
+
+    EXAMPLES:
+        sage: sage.interfaces.magma.extcode_dir()
+        '...dir_.../data/'
+    """
+    global EXTCODE_DIR
+    if not EXTCODE_DIR:
+        import shutil
+        tmp = sage.misc.misc.tmp_dir()
+        shutil.copytree('%s/magma/'%sage.misc.misc.SAGE_EXTCODE, tmp + '/data')
+        EXTCODE_DIR = "%s/data/"%tmp
+    return EXTCODE_DIR
 
 
 class Magma(Expect):
@@ -393,7 +411,7 @@ class Magma(Expect):
         """
         Initialize a Magma interface instance.  This involves (1)
         setting up an obfuscated prompt, and (2) attaching the
-        MAGMA_SPEC file (see sage.interfaces.magma.MAGMA_SPEC).
+        EXTCODE_DIR/spec file (see sage.interfaces.magma.EXTCODE_DIR/spec).
 
         EXAMPLES:
         This is not too exciting:
@@ -406,9 +424,7 @@ class Magma(Expect):
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
-        if os.path.exists(MAGMA_SPEC):
-            self.attach_spec(MAGMA_SPEC)
-
+        self.attach_spec(extcode_dir() + '/spec')
 
     def set(self, var, value):
         """
@@ -739,7 +755,7 @@ class Magma(Expect):
 
         EXAMPLES:
             sage: magma.attach_spec('%s/data/extcode/magma/spec'%SAGE_ROOT)    # optional - magma
-            sage: magma.attach_spec('%s/data/extcode/magma/spec2'%SAGE_ROOT)# optional - magma
+            sage: magma.attach_spec('%s/data/extcode/magma/spec2'%SAGE_ROOT)   # optional - magma
             Traceback (most recent call last):
             ...
             RuntimeError: Can't open package spec file .../data/extcode/magma/spec2 for reading (No such file or directory)

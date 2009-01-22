@@ -474,7 +474,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         """
         return self.__modulus.sageInteger
 
-    def charpoly(self, var):
+    def charpoly(self, var='x'):
         """
         Returns the characteristic polynomial of this element.
 
@@ -491,6 +491,26 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         """
         R = self.parent()[var]
         return R([-self,1])
+
+    def minpoly(self, var='x'):
+        """
+        Returns the minimal polynomial of this element.
+
+        EXAMPLES:
+            sage: GF(241, 'a')(1).minpoly()
+            x + 240
+        """
+        return self.charpoly(var)
+
+    def minimal_polynomial(self, var='x'):
+        """
+        Returns the minimal polynomial of this element.
+
+        EXAMPLES:
+            sage: GF(241, 'a')(1).minimal_polynomial(var = 'z')
+            z + 240
+        """
+        return self.minpoly(var)
 
     def polynomial(self, var='x'):
         """

@@ -864,7 +864,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if right == 0 or self == 0:
             return self._parent(0)
-        return self._mul_karatsuba(right)
+
+        if self._parent.is_exact():
+            return self._mul_karatsuba(right)
+        else:
+            return self._mul_generic(right)
 
     def square(self):
         """

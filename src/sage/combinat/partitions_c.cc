@@ -83,6 +83,9 @@
  *      along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+#define USE_DD_QD 0
+
 #if defined(__sun)
 extern "C" long double fabsl (long double);
 extern "C" long double sinl (long double);
@@ -109,9 +112,11 @@ extern "C" long double sinhl (long double);
 #include <mpfr.h>
 #include <gmp.h>
 
+#if USE_DD_QD
 #include <qd/qd_real.h>
 #include <qd/dd_real.h>
 #include <qd/fpu.h>
+#endif
 
 using namespace std;
 
@@ -158,11 +163,13 @@ const unsigned int long_double_precision = (LDBL_MANT_DIG == 106) ? double_preci
                                                                             //      will not ever be used. It would be nice if this were fixed.
 
 
+#if USE_DD_QD
 const unsigned int qd_precision = 200;                          // The assumed precision of a qd_real. (Note, qd_reals should have a precision of
                                                                 // 4 * double_precision = 4*53, but since we need the library to be compiled with
                                                                 // "sloppy" multiplication and division if we want it to be fast, so we only count
                                                                 // on it for a little less precision.
 const unsigned int dd_precision = 100;                          // The assumed precision for a dd_real. (Same note applies here.)
+#endif
 
 
 
@@ -175,10 +182,16 @@ const unsigned int dd_precision = 100;                          // The assumed p
 // purpose functions.
 
 // const unsigned int level_one_precision = infinity        // We don't actually use this, but if we did it would be infinite.
+#if USE_DD_QD
 const unsigned int level_two_precision = qd_precision;
 const unsigned int level_three_precision = dd_precision;
+#else
+const unsigned int level_two_precision = long_double_precision;
+const unsigned int level_three_precision = long_double_precision;
+#endif
 const unsigned int level_four_precision = long_double_precision;
 const unsigned int level_five_precision = double_precision;
+
 
 const long double ld_pi = 3.141592653589793238462643L;
 const double d_pi = ld_pi;
@@ -200,14 +213,18 @@ mpfr_t mp_one_over_12, mp_one_over_24, mp_sqrt2, mp_sqrt3, mp_pi, half, fourth; 
                                                                                         // because we don't know how much precision we will need
                                                                                         // until we know for what n we are computing p(n).
 
+#if USE_DD_QD
 qd_real qd_one_over_12, qd_one_over_24, qd_sqrt2, qd_sqrt3, qd_pi, qd_half, qd_fourth;  // Technically, these could be set at compile time.
 dd_real dd_one_over_12, dd_one_over_24, dd_sqrt2, dd_sqrt3, dd_pi, dd_half, dd_fourth;  // but that would probably not be worth the effort.
 qd_real qd_pi_sqrt2;                                                                    //
 dd_real dd_pi_sqrt2;                                                                    //
+#endif
 
 mpfr_t mp_A, mp_B, mp_C, mp_D;                                                          // These "constants" all depend on n, and
+#if USE_DD_QD
 qd_real qd_A, qd_B, qd_C, qd_D;                                                         // are used many times in f() and mp_f().
 dd_real dd_A, dd_B, dd_C, dd_D;                                                         //
+#endif
 double d_A, d_B, d_C, d_D;                                                              //
 long double ld_A, ld_B, ld_C, ld_D;                                                     //
 
@@ -305,52 +322,70 @@ template <class T> static inline T s(unsigned int h, unsigned int k);           
 // they shouldn't even appear in the object code generated.
 
 template <class T> static inline T pi(){ return ld_pi; }
+#if USE_DD_QD
 template <> inline qd_real pi() { return qd_pi; }
 template <> inline dd_real pi() { return dd_pi; }
+#endif
 
 template <class T> static inline T sqrt2() {return sqrt(2.0L);}
+#if USE_DD_QD
 template <> inline qd_real sqrt2() {return qd_sqrt2;}
 template <> inline dd_real sqrt2() {return dd_sqrt2;}
+#endif
 
 template <class T> static inline T sqrt3() {return sqrt(3.0L);}
+#if USE_DD_QD
 template <> inline qd_real sqrt3() {return qd_sqrt3;}
 template <> inline dd_real sqrt3() {return dd_sqrt3;}
+#endif
 
 template <class T> static inline T A() {return 1;}
 template <> inline double A() {return d_A;}
 template <> inline long double A() {return ld_A;}
+#if USE_DD_QD
 template <> inline qd_real A() {return qd_A;}
 template <> inline dd_real A() {return dd_A;}
+#endif
 
 template <class T> static inline T B() {return 1;}
 template <> inline double B() {return d_B;}
 template <> inline long double B() {return ld_B;}
+#if USE_DD_QD
 template <> inline qd_real B() {return qd_B;}
 template <> inline dd_real B() {return dd_B;}
+#endif
 
 template <class T> static inline T C() {return 1;}
 template <> inline double C() {return d_C;}
 template <> inline long double C() {return ld_C;}
+#if USE_DD_QD
 template <> inline qd_real C() {return qd_C;}
 template <> inline dd_real C() {return dd_C;}
+#endif
 
 template <class T> static inline T D() {return 1;}
 template <> inline double D() {return d_D;}
 template <> inline long double D() {return ld_D;}
+#if USE_DD_QD
 template <> inline qd_real D() {return qd_D;}
 template <> inline dd_real D() {return dd_D;}
+#endif
 
 template <class T> static inline T pi_sqrt2() {return 1;}
 template <> inline double pi_sqrt2() {return d_pi * sqrt(2.0);}
 template <> inline long double pi_sqrt2() {return ld_pi * sqrt(2.0L);}
+#if USE_DD_QD
 template <> inline qd_real pi_sqrt2() {return qd_pi_sqrt2;}
 template <> inline dd_real pi_sqrt2() {return dd_pi_sqrt2;}
+#endif
 
 template <class T> static inline T one_over_12() {return 1;}
 template <> inline double one_over_12() {return 1.0/12.0;}
 template <> inline long double one_over_12() {return 1.0L/12.0L;}
+#if USE_DD_QD
 template <> inline qd_real one_over_12() {return qd_one_over_12;}
 template <> inline dd_real one_over_12() {return dd_one_over_12;}
+#endif
 
 // A few utility functions...
 
@@ -686,29 +721,37 @@ void initialize_constants(unsigned int prec, unsigned int n) {
 
     init = true;
 
+#if USE_DD_QD
     unsigned int cw;
     fpu_fix_start(&cw);
+#endif
 
     mpfr_set_ui(mp_one_over_12, 1, round_mode);                             // mp_one_over_12 = 1/12
     mpfr_div_ui(mp_one_over_12, mp_one_over_12, 12, round_mode);            //
 
+#if USE_DD_QD
     qd_one_over_12 = "0.083333333333333333333333333333333333333333333333333333333333333333";
     dd_one_over_12 = "0.083333333333333333333333333333333333333333333333333333333333333333";
+#endif
 
     mpfr_set_ui(mp_one_over_24, 1, round_mode);                             // mp_one_over_24 = 1/24
     mpfr_div_ui(mp_one_over_24, mp_one_over_24, 24, round_mode);            //
 
+#if USE_DD_QD
     qd_one_over_24 = "0.041666666666666666666666666666666666666666666666666666666666666667";
     dd_one_over_24 = "0.041666666666666666666666666666666666666666666666666666666666666667";
+#endif
 
     mpfr_set_ui(half, 1, round_mode);                                       //
     mpfr_div_ui(half, half, 2, round_mode);                                 // half = 1/2
     mpfr_div_ui(fourth, half, 2, round_mode);                               // fourth = 1/4
 
+#if USE_DD_QD
     qd_half = "0.5";
     qd_fourth = "0.25";
     dd_half = "0.5";
     dd_fourth = "0.25";
+#endif
 
     mpfr_t n_minus;                                                         //
     mpfr_init2(n_minus, p);                                                 //
@@ -724,6 +767,7 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     mpfr_sqrt_ui(mp_sqrt3, 3, round_mode);                                  // mp_sqrt3 = sqrt(3)
     mpfr_const_pi(mp_pi, round_mode);                                       // mp_pi = pi
 
+#if USE_DD_QD
     qd_sqrt2 = "1.4142135623730950488016887242096980785696718753769480731766797380";
     qd_sqrt3 = "1.7320508075688772935274463415058723669428052538103806280558069795";
     qd_pi_sqrt2 = "4.4428829381583662470158809900606936986146216893756902230853956";
@@ -733,6 +777,7 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     dd_sqrt3 = "1.7320508075688772935274463415058723669428052538103806280558069795";
     dd_pi = "3.1415926535897932384626433832795028841971693993751058209749445923";
     dd_pi_sqrt2 = "4.4428829381583662470158809900606936986146216893756902230853956";
+#endif
 
     //mp_A = sqrt(2) * 3.1415926535897931 * sqrt(n - 1.0/24.0);---------------
                                                                             //
@@ -741,8 +786,10 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     mpfr_mul(mp_A, mp_A, sqrt_n_minus, round_mode);                         // mp_A = sqrt(2) * pi * sqrt(n - 1/24)
     //------------------------------------------------------------------------
 
+#if USE_DD_QD
     qd_A = qd_sqrt2 * qd_pi * sqrt(n - qd_one_over_24);
     dd_A = dd_sqrt2 * dd_pi * sqrt(n - dd_one_over_24);
+#endif
 
 
     //mp_B = 2.0 * sqrt(3) * (n - 1.0/24.0);----------------------------------
@@ -750,8 +797,10 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     mpfr_mul(mp_B, mp_B, mp_sqrt3, round_mode);                             // mp_A = 2*sqrt(3)
     mpfr_mul(mp_B, mp_B, n_minus, round_mode);                              // mp_A = 2*sqrt(3)*(n-1/24)
     //------------------------------------------------------------------------
+#if USE_DD_QD
     qd_B = 2 * qd_sqrt3 * (n - qd_one_over_24);
     dd_B = 2 * dd_sqrt3 * (n - dd_one_over_24);
+#endif
 
 
     //mp_C = sqrt(2) * pi * sqrt(n - 1.0/24.0) / sqrt(3);---------------------
@@ -760,8 +809,10 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     mpfr_mul(mp_C, mp_C, sqrt_n_minus, round_mode);                         // mp_C = sqrt(2) * pi * sqrt(n - 1/24)
     mpfr_div(mp_C, mp_C, mp_sqrt3, round_mode);                             // mp_C = sqrt(2) * pi * sqrt(n - 1/24) / sqrt3
     //------------------------------------------------------------------------
+#if USE_DD_QD
     qd_C = qd_sqrt2 * qd_pi * sqrt(n - qd_one_over_24) / qd_sqrt3;
     dd_C = dd_sqrt2 * dd_pi * sqrt(n - dd_one_over_24) / dd_sqrt3;
+#endif
 
 
     //mp_D = 2.0 * (n - 1.0/24.0) * sqrt(n - 1.0/24.0);-----------------------
@@ -769,10 +820,12 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     mpfr_mul(mp_D, mp_D, n_minus, round_mode);                              // mp_D = 2 * (n - 1/24)
     mpfr_mul(mp_D, mp_D, sqrt_n_minus, round_mode);                         // mp_D = 2 * (n - 1/24) * sqrt(n - 1/24)
     //------------------------------------------------------------------------
+#if USE_DD_QD
     qd_D = 2 * (n - qd_one_over_24) * sqrt(n - qd_one_over_24);
     dd_D = 2 * (n - dd_one_over_24) * sqrt(n - dd_one_over_24);
 
     fpu_fix_end(&cw);
+#endif
 
     mpfr_clear(n_minus);
     mpfr_clear(sqrt_n_minus);
@@ -785,9 +838,9 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     d_C = sqrt(2) * d_pi * sqrt(n - 1.0/24.0) / sqrt(3);
     d_D = 2.0 * (n - 1.0/24.0) * sqrt(n - 1.0/24.0);
 
-    ld_A = sqrtl(2) * d_pi * sqrtl(n - 1.0L/24.0L);
+    ld_A = sqrtl(2) * ld_pi * sqrtl(n - 1.0L/24.0L);
     ld_B = 2.0L * sqrtl(3) * (n - 1.0/24.0);
-    ld_C = sqrt(2) * d_pi * sqrtl(n - 1.0L/24.0L) / sqrtl(3);
+    ld_C = sqrtl(2) * ld_pi * sqrtl(n - 1.0L/24.0L) / sqrtl(3);
     ld_D = 2.0L * (n - 1.0L/24.0L) * sqrtl(n - 1.0L/24.0L);
 
 }
@@ -1152,6 +1205,7 @@ void mp_t(mpfr_t result, unsigned int n) {
     mpfr_init2(t1, 200);
     mpfr_init2(t2, 200);
 
+#if USE_DD_QD
     unsigned int cw;
     fpu_fix_start(&cw);
 
@@ -1168,12 +1222,15 @@ void mp_t(mpfr_t result, unsigned int n) {
     mpfr_add(result, result, t1, round_mode);
 
     fpu_fix_end(&cw);
+#endif
 
     long double ld_partial_sum = partial_sum_of_t<long double>(n,k,level_five_precision, extra, 0);
     mpfr_set_ld(t1, ld_partial_sum, round_mode);
     mpfr_add(result, result, t1, round_mode);
 
+#if USE_DD_QD
     fpu_fix_start(&cw);
+#endif
 
     double d_partial_sum = partial_sum_of_t<double>(n,k,0,extra,error);
 
@@ -1191,7 +1248,9 @@ void mp_t(mpfr_t result, unsigned int n) {
     mpfr_clear(t1);
     mpfr_clear(t2);
 
+#if USE_DD_QD
     fpu_fix_end(&cw);
+#endif
 }
 
 template <class T>

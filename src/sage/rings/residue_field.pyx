@@ -50,6 +50,41 @@ Reducing a curve modulo a prime:
     sage: Fpp = OK.residue_field(pp)
     sage: E.base_extend(Fpp)
     Elliptic Curve defined by y^2  = x^3 + x + 5 over Residue field of Fractional ideal (13, s - 4)
+
+Calculating Groebner bases over various residue fields.  First over a small non-prime field:
+    sage: F1.<u> = NumberField(x^6 + 6*x^5 + 124*x^4 + 452*x^3 + 4336*x^2 + 8200*x + 42316)
+    sage: reduct_id = F1.factor(47)[0][0]
+    sage: Rf = F1.residue_field(reduct_id)
+    sage: type(Rf)
+    <class 'sage.rings.residue_field.ResidueFiniteField_ext_pari'>
+    sage: Rf.cardinality().factor()
+    47^3
+    sage: R.<X, Y> = PolynomialRing(Rf)
+    sage: ubar = Rf(u)
+    sage: I = ideal([ubar*X + Y]); I
+    Ideal ((ubar)*X + Y) of Multivariate Polynomial Ring in X, Y over Residue field in ubar of Fractional ideal (47, 517/55860*u^5 + 235/3724*u^4 + 9829/13965*u^3 + 54106/13965*u^2 + 64517/27930*u + 755696/13965)
+    sage: I.groebner_basis()
+    [X + (-19*ubar^2 - 5*ubar - 17)*Y]
+
+And now over a large prime field:
+    sage: x = ZZ['x'].0
+    sage: F1.<u> = NumberField(x^2 + 6*x + 324)
+    sage: reduct_id = F1.prime_above(next_prime(2^42))
+    sage: Rf = F1.residue_field(reduct_id)
+    sage: type(Rf)
+    <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn'>
+    sage: Rf.cardinality().factor()
+    4398046511119
+    sage: S.<X, Y, Z> = PolynomialRing(Rf, order='lex')
+    sage: I = ideal([2*X - Y^2, Y + Z])
+    sage: I.groebner_basis()
+    verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+    [X + 2199023255559*Z^2, Y + Z]
+    sage: S.<X, Y, Z> = PolynomialRing(Rf, order='deglex')
+    sage: I = ideal([2*X - Y^2, Y + Z])
+    sage: I.groebner_basis()
+    verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+    [Z^2 + 4398046511117*X, Y + Z]
 """
 
 #*****************************************************************************
@@ -261,12 +296,31 @@ class ResidueField_generic(Field):
             sage: P = K.ideal(29).factor()[0][0]
             sage: k = K.residue_field(P) # indirect doctest
             sage: F = ZZ.residue_field(17)  # indirect doctest
-
         """
         self.p = p
         self.f = f
+        lst = [ self._generic_convert_map(self.base_ring()) ]
         if self.f is not None:
-            ParentWithBase.__init__(self, GF(intp), coerce_from = [f, self._generic_convert_map(self.base_ring())])
+            lst.append(f)
+        ParentWithBase.__init__(self, GF(intp), coerce_from = lst)
+
+    def ideal(self):
+        r"""
+        Return the maximal ideal that this residue field is the quotient by.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + x + 1)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: k = K.residue_field(P) # indirect doctest
+            sage: k.ideal() is P
+            True
+            sage: p = next_prime(2^40); p
+            1099511627791
+            sage: k = K.residue_field(K.prime_above(p))
+            sage: k.ideal().norm() == p
+            True
+        """
+        return self.p
 
     def coerce_map_from_impl(self, R):
         """
@@ -384,6 +438,16 @@ class ResidueField_generic(Field):
         return cmp(type(self), type(x))
 
     def __hash__(self):
+        r"""
+        Return the hash of self.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + x + 1)
+            sage: hash(K.residue_field(K.prime_above(17))) # random
+            -6463132282686559142
+            sage: hash(K.residue_field(K.prime_above(2^60))) # random
+            -6939519969600666586
+        """
         return 1 + hash(self.ideal())
 
 class ReductionMap:
@@ -621,6 +685,9 @@ class LiftingMap:
             'Lifting map from Residue field in tmod of Fractional ideal (-3*theta_12^2 + 1) to Cyclotomic Field of order 12 and degree 4'
         """
         return "Lifting map from %s to %s"%(self.__F, self.__K)
+
+cdef class ResidueFieldHomomorphism(RingHomomorphism):
+    pass
 
 cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
     """

@@ -1753,7 +1753,7 @@ def _plot(funcs, xrange, parametric=False,
 
 ########## misc functions ###################
 
-def parametric_plot(funcs, tmin, tmax, **kwargs):
+def parametric_plot(funcs, *args, **kwargs):
     r"""
     \code{parametric_plot} takes two or three functions as a list or a
     tuple and makes a plot with the first function giving the $x$
@@ -1762,16 +1762,14 @@ def parametric_plot(funcs, tmin, tmax, **kwargs):
 
     INPUT:
         funcs -- 2 or 3-tuple of functions
-        tmin -- start value of t
-        tmax -- end value of t
         other options -- passed to plot.
 
     EXAMPLES:
     We draw some 2d parametric plots:
         sage: t = var('t')
-        sage: parametric_plot( (sin(t), sin(2*t)), 0, 2*pi, rgbcolor=hue(0.6) )
-        sage: parametric_plot((1, t), 0, 4)
-        sage: parametric_plot((t, t^2), -4, 4)
+        sage: parametric_plot( (sin(t), sin(2*t)), (t, 0, 2*pi), rgbcolor=hue(0.6) )
+        sage: parametric_plot((1, t), (t, 0, 4))
+        sage: parametric_plot((t, t^2), (t, -4, 4))
 
     We draw a 3d parametric plot:
         sage: parametric_plot3d( (5*cos(x), 5*sin(x), x), (-12, 12), plot_points=150, color="red")
@@ -1804,8 +1802,8 @@ def parametric_plot(funcs, tmin, tmax, **kwargs):
         from sage.misc.misc import uniq
         if len(uniq(vars)) > 1:
             raise ValueError, "there cannot be more than one free variable in funcs"
-
-    return plot(funcs, tmin, tmax, parametric=True, **kwargs)
+    kwargs['parametric'] = True
+    return plot(funcs, *args, **kwargs)
 
 def polar_plot(funcs, *args, **kwds):
     r"""

@@ -104,11 +104,17 @@ from sage.groups.class_function import ClassFunction
 
 
 def load_hap():
+     """
+     Load the GAP hap package into the default GAP interpreter
+     interface, and if this fails, try one more time to load it.
+
+     EXAMPLES:
+         sage: sage.groups.perm_gps.permgroup.load_hap()
+     """
      try:
          gap.eval('LoadPackage("hap")')
      except:
          gap.eval('LoadPackage("hap")')
-     return True
 
 def direct_product_permgroups(P):
     """
@@ -1619,21 +1625,20 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def is_supersolvable(self):
         """
-        Returns True if the group is supersolvable. A finite group is supersolvable if it has a
-        normal series with cyclic factors.
+        Returns True if the group is supersolvable. A finite group is
+        supersolvable if it has a normal series with cyclic factors.
 
         EXAMPLES:
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: G.is_supersolvable()
             True
-
         """
         return self._gap_().IsSupersolvableGroup().bool()
 
     def is_transitive(self):
         """
-        Return True if self is a transitive group, i.e. if the action of
-        self on self.set() is transitive.
+        Return True if self is a transitive group, i.e., if the action
+        of self on [1..n] is transitive.
 
         EXAMPLES:
             sage: G = SymmetricGroup(5)
@@ -1642,11 +1647,20 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup(['(1,2)(3,4)(5,6)'])
             sage: G.is_transitive()
             False
+
+        NOTE: This differs from the definition in GAP, where
+        IsTransitive returns whether the group is transitive on the
+        set of points moved by the group.
+            sage: G = PermutationGroup([(2,3)])
+            sage: G.is_transitive()
+            False
+            sage: gap(G).IsTransitive()
+            true
         """
-        return self._gap_().IsTransitive().bool()
+        return self._gap_().IsTransitive('[1..%s]'%self.degree()).bool()
 
     def normalizes(self,other):
-        """
+        r"""
         Returns True if the group other is normalized by the self.
         Wraps GAP's IsNormal function.
 

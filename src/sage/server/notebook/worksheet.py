@@ -2626,7 +2626,12 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         Istrip = I.strip()
         if Istrip.endswith('?') and not Istrip.startswith('#'):
             C.set_introspect(I, '')
-        I = I.replace('\\\n','')
+
+        #Handle line continuations: join lines that end in a backslash
+        #_except_ in LaTeX mode.
+        if self.get_cell_system(C) not in ['latex']:
+            I = I.replace('\\\n','')
+
         C._before_preparse = input + I
         input += self.preparse_input(I, C)
 

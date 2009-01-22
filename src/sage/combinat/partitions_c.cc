@@ -355,7 +355,7 @@ template <> inline dd_real one_over_12() {return dd_one_over_12;}
 // A few utility functions...
 
 static inline long GCD(long a, long b);
-static int test(bool longtest = false, bool forever = false);                   // Runs a bunch of tests to make sure
+int test(bool longtest = false, bool forever = false);                          // Runs a bunch of tests to make sure
                                                                                 // that we are getting the right answers.
                                                                                 // Tests are based on a few "known" values that
                                                                                 // have been verified by other programs, and

@@ -14,6 +14,7 @@ cdef extern from "gmp.h":
 
 cdef extern from "partitions_c.h":
     int part(mpz_t answer, unsigned int n)
+    int test(bint longtest, bint forever)
 
 include "../ext/interrupt.pxi"
 
@@ -44,3 +45,11 @@ def number_of_partitions(n):
     _sig_off
 
     return ans
+
+def run_tests(bint longtest=False, bint forever=False):
+    _sig_on
+    error = test(longtest, forever)
+    _sig_off
+    print "Done."
+    if error:
+        return error

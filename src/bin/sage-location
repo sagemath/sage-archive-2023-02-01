@@ -1,6 +1,6 @@
 #!/usr/bin/env sage.bin
 
-import os
+import os, sys
 
 SAGE_ROOT     = os.environ['SAGE_ROOT']
 
@@ -88,7 +88,10 @@ def check_processor_flags():
         print ""
         print ""
         print "Email http://groups.google.com/group/sage-support for help."
+        print "To remove this warning and make Sage start, just delete"
+        print "     %s"%flags_file
         print "*"*70
+        sys.exit(1)
 
 def update_library_files(R):
     LIB = '%s/local/lib/'%os.path.abspath(SAGE_ROOT)

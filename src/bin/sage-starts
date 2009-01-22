@@ -1,5 +1,12 @@
 #!/usr/bin/env sh
 
+sage-location
+
+if [ $? -ne 0 ]; then
+   echo "Problem with sage location or flags."
+   exit 1
+fi
+
 echo "Testing that Sage starts..."
 sage -c "print 'Yes, Sage starts.'"
 

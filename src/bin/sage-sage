@@ -163,6 +163,9 @@ sage_setup() {
     # Check to see if the whole SAGE install tree has moved.
     # If so, regenerate .pyc files.
     "$SAGE_ROOT/local/bin/"sage-location
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
 
     cd "$SAGE_ROOT/local/bin"
     IPYTHONDIR="$DOT_SAGE/ipython" && export IPYTHONDIR

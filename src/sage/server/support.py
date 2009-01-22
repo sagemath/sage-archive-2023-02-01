@@ -313,10 +313,8 @@ def variables(with_types=True):
 
 def syseval(system, cmd, dir=None):
     if dir:
-        try:
+        if hasattr(system.__class__, 'chdir'):
             system.chdir(dir)
-        except (AttributeError, TypeError):
-            pass
     try:
         return system.eval(cmd, sage_globals, locals = sage_globals)
     except TypeError:

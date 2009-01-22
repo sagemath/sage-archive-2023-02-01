@@ -28,6 +28,8 @@ import sage.modules.all
 import module
 import ambient_module
 
+from sage.rings.polynomial.polynomial_ring import polygen
+
 def is_HeckeSubmodule(x):
     return isinstance(x, HeckeSubmodule)
 
@@ -268,68 +270,175 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         return d.restrict_domain(self)
 
 
-    def dual_free_module(self, bound=None, anemic=True):
-        """
+    def dual_free_module(self, bound=None, anemic=True, use_star=True):
+        r"""
         Compute embedded dual free module if possible.  In general
         this won't be possible, e.g., if this space is not Hecke
         equivariant, possibly if it is not cuspidal, or if the
         characteristic is not 0.  In all these cases we raise a
         RuntimeError exception.
+
+        If use_star is True (which is the default), we also use the
+        +/- eigenspaces for the star operator to find the dual free
+        module of self. If the self does not have a star involution,
+        use_star will automatically be set to True.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(11, 2)
+            sage: M.dual_free_module()
+            Vector space of dimension 3 over Rational Field
+            sage: Mpc = M.plus_submodule().cuspidal_submodule()
+            sage: Mcp = M.cuspidal_submodule().plus_submodule()
+            sage: Mcp.dual_free_module() == Mpc.dual_free_module()
+            True
+            sage: Mpc.dual_free_module()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [  1 5/2   5]
+
+            sage: M = ModularSymbols(35,2).cuspidal_submodule()
+            sage: M.dual_free_module(use_star=False)
+            Vector space of degree 9 and dimension 6 over Rational Field
+            Basis matrix:
+            [   1    0    0    0   -1    0    0    4   -2]
+            [   0    1    0    0    0    0    0 -1/2  1/2]
+            [   0    0    1    0    0    0    0 -1/2  1/2]
+            [   0    0    0    1   -1    0    0    1    0]
+            [   0    0    0    0    0    1    0   -2    1]
+            [   0    0    0    0    0    0    1   -2    1]
+
+            sage: M = ModularSymbols(40,2)
+            sage: Mmc = M.minus_submodule().cuspidal_submodule()
+            sage: Mcm = M.cuspidal_submodule().minus_submodule()
+            sage: Mcm.dual_free_module() == Mmc.dual_free_module()
+            True
+            sage: Mcm.dual_free_module()
+            Vector space of degree 13 and dimension 3 over Rational Field
+            Basis matrix:
+            [ 0  1  0  0  0  0  1  0 -1 -1  1 -1  0]
+            [ 0  0  1  0 -1  0 -1  0  1  0  0  0  0]
+            [ 0  0  0  0  0  1  1  0 -1  0  0  0  0]
+
+            sage: M = ModularSymbols(43).cuspidal_submodule()
+            sage: S = M[0].plus_submodule() + M[1].minus_submodule()
+            sage: S.dual_free_module(use_star=False)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Computation of embedded dual vector space failed (cut down to rank 6, but should have cut down to rank 3).
+            sage: S.dual_free_module().dimension() == S.dimension()
+            True
         """
         try:
             return self.__dual_free_module
         except AttributeError:
-            if self.dimension() == 0:
-                self.__dual_free_module = self.ambient_hecke_module().dual_free_module().zero_submodule()
-                return self.__dual_free_module
+            pass
 
-            # ALGORITHM: Compute the char poly of each Hecke operator on the
-            # submodule, then use it to cut out a submodule of the dual.  If
-            # the dimension cuts down to the dimension of self terminate
-            # with success.  If it stays bigger beyond the bound (Sturm)
-            # bound, raise a RuntimeError exception.
-            misc.verbose("computing")
-            N = self.level()
-            A = self.ambient_hecke_module()
-            if A.dimension() == self.dimension():
-                self.__dual_free_module = A.free_module()
-                return self.__dual_free_module
-            V = A.free_module()
-            p = 2
-            if bound is None:
-                bound = A.hecke_bound()
-            while True:
-                misc.verbose("using T_%s"%p)
-                if anemic:
-                    while N % p == 0: p = arith.next_prime(p)
-                f = self.hecke_polynomial(p)
-                T = A.dual_hecke_matrix(p)
-                V = T.kernel_on(V, poly=f, check=False)
-                if V.dimension() <= self.dimension():
-                    break
-                p = arith.next_prime(p)
-                if p > bound:
-                    break
+        misc.verbose("computing")
 
-            if V.rank() == self.rank():
-                self.__dual_free_module = V
+        A = self.ambient_hecke_module()
+
+        if self.dimension() == 0:
+            self.__dual_free_module = A.zero_submodule()
+            return self.__dual_free_module
+
+        if A.dimension() == self.dimension():
+            self.__dual_free_module = A.free_module()
+            return self.__dual_free_module
+
+        # ALGORITHM: Compute the char poly of each Hecke operator on
+        # the submodule, then use it to cut out a submodule of the
+        # dual.  If the dimension cuts down to the dimension of self
+        # terminate with success.  If it stays larger beyond the Sturm
+        # bound, raise a RuntimeError exception.
+
+        # In the case that the sign of self is not 1, we need to use
+        # the star involution as well as the Hecke operators in order
+        # to find the dual of self.
+        #
+        # Note that one needs to comment out the line caching the
+        # result of this computation below in order to get meaningful
+        # timings.
+
+        # If the star involution doesn't make sense for self, then we
+        # can't use it.
+        if not hasattr(self, 'star_eigenvalues'):
+            use_star = False
+
+        if use_star:
+            # If the star involution has both + and - eigenspaces on self,
+            # then we compute the dual on each eigenspace, then put them
+            # together.
+            if len(self.star_eigenvalues()) == 2:
+                V = self.plus_submodule(compute_dual = False).dual_free_module() + \
+                    self.minus_submodule(compute_dual = False).dual_free_module()
                 return V
-            else:
-                # failed
-                raise RuntimeError, "Computation of embedded dual vector space failed " + \
-                      "(cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), self.rank())
+
+            # At this point, we know that self is an eigenspace for star.
+            V = A.sign_submodule(self.sign()).dual_free_module()
+        else:
+            V = A.free_module()
+
+        N = self.level()
+        p = 2
+        if bound is None:
+            bound = A.hecke_bound()
+        while True:
+            if anemic:
+                while N % p == 0: p = arith.next_prime(p)
+            misc.verbose("using T_%s"%p)
+            f = self.hecke_polynomial(p)
+            T = A.dual_hecke_matrix(p)
+            V = T.kernel_on(V, poly=f, check=False)
+            if V.dimension() <= self.dimension():
+                break
+            p = arith.next_prime(p)
+            if p > bound:
+                break
+
+        if V.rank() == self.rank():
+            self.__dual_free_module = V
+            return V
+        else:
+            # Failed to reduce V to the appropriate dimension
+            raise RuntimeError, "Computation of embedded dual vector space failed " + \
+                  "(cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), self.rank())
 
 
     def free_module(self):
+        """
+        Return the free module corresponding to self.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(33,2).cuspidal_subspace() ; M
+            Modular Symbols subspace of dimension 6 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
+            sage: M.free_module()
+            Vector space of degree 9 and dimension 6 over Rational Field
+            Basis matrix:
+            [ 0  1  0  0  0  0  0 -1  1]
+            [ 0  0  1  0  0  0  0 -1  1]
+            [ 0  0  0  1  0  0  0 -1  1]
+            [ 0  0  0  0  1  0  0 -1  1]
+            [ 0  0  0  0  0  1  0 -1  1]
+            [ 0  0  0  0  0  0  1 -1  0]
+        """
         return self.__submodule
 
     def module(self):
-        return self.__submodule
+        r"""
+        Alias for \code{self.free_module()}.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(17,4).cuspidal_subspace()
+            sage: M.free_module() is M.module()
+            True
+        """
+        return self.free_module()
 
     def intersection(self, other):
         """
         Returns the intersection of self and other, which must both
         lie in a common ambient space of modular symbols.
+
         EXAMPLES:
             sage: M = ModularSymbols(43, sign=1)
             sage: A = M[0] + M[1]
@@ -365,6 +474,19 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         return M
 
     def is_ambient(self):
+        r"""
+        Return \code{True} if self is an ambient space of modular
+        symbols.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(17,4)
+            sage: M.cuspidal_subspace().is_ambient()
+            False
+            sage: A = M.ambient_hecke_module()
+            sage: S = A.submodule(A.basis())
+            sage: sage.modular.hecke.submodule.HeckeSubmodule.is_ambient(S)
+            True
+        """
         return self.free_module() == self.ambient_hecke_module().free_module()
 
     def is_new(self, p=None):

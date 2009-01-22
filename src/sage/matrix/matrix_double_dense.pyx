@@ -1233,3 +1233,83 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             d += math.log(s)
         d /= 2
         return int(math.ceil(d / math.log(10)))
+
+    def exp(self, method='pade', order=None):
+        r"""
+        Calculate the exponential of this matrix X, which is the matrix
+
+        e^X = sum_{k=0}^{infty} frac{X^k}{k!}.
+
+        INPUT:
+
+            method -- 'pade', 'eig', or 'taylor'; the method used to
+            compute the exponential.
+
+            order -- for Pade or Taylor series methods, order is the
+            order of the Pade approximation or the order of the Taylor
+            series used.  The current defaults (from scipy) are 7 for
+            'pade' and 20 for 'taylor'.
+
+        EXAMPLES:
+            sage: A=matrix(RDF, 2, [1,2,3,4]); A
+            [1.0 2.0]
+            [3.0 4.0]
+            sage: A.exp()
+            [51.9689561987  74.736564567]
+            [112.104846851 164.073803049]
+            sage: A.exp(method='eig')
+            [51.9689561987  74.736564567]
+            [112.104846851 164.073803049]
+            sage: A.exp(order=2)
+            [51.8888631634 74.6198348038]
+            [111.929752206 163.818615369]
+            sage: A.exp(method='taylor', order=5)
+            [19.9583333333 28.0833333333]
+            [       42.125 62.0833333333]
+            sage: A.exp(method='taylor')
+            [51.9689035511 74.7364878369]
+            [112.104731755 164.073635306]
+
+            sage: A=matrix(CDF, 2, [1,2+I,3*I,4]); A
+            [        1.0 2.0 + 1.0*I]
+            [      3.0*I         4.0]
+            sage: A.exp()
+            [-19.6146029538 + 12.5177438468*I  3.79496364496 + 28.8837993066*I]
+            [-32.3835809809 + 21.8842359579*I  2.26963300409 + 44.9013248277*I]
+            sage: A.exp(method='eig')
+            [-19.6146029538 + 12.5177438468*I  3.79496364496 + 28.8837993066*I]
+            [-32.3835809809 + 21.8842359579*I  2.26963300409 + 44.9013248277*I]
+            sage: A.exp(order=2)
+            [-19.6130852955 + 12.5327938535*I   3.81156364812 + 28.891438232*I]
+            [-32.3827876895 + 21.9087393169*I   2.29565402142 + 44.915581543*I]
+            sage: A.exp(method='taylor', order=5)
+            [       -6.29166666667 + 14.25*I 14.0833333333 + 15.7916666667*I]
+            [               -10.5 + 26.375*I         20.0833333333 + 24.75*I]
+            sage: A.exp(method='taylor')
+            [-19.6146006163 + 12.5177432169*I  3.79496442472 + 28.8837964828*I]
+            [-32.3835771246 + 21.8842351994*I  2.26963458304 + 44.9013203415*I]
+        """
+        if method not in ('pade', 'eig', 'taylor'):
+            raise ValueError, "method must be 'pade', 'eig', or 'taylor'"
+
+        if scipy is None:
+            import scipy
+        import scipy.linalg
+
+        cdef Matrix_double_dense M
+        M = self._new()
+
+        if method=='pade':
+            if order is None:
+                M._matrix_numpy = scipy.linalg.expm(self._matrix_numpy)
+            else:
+                M._matrix_numpy = scipy.linalg.expm(self._matrix_numpy, q=order)
+        elif method=='eig':
+            M._matrix_numpy = scipy.linalg.expm2(self._matrix_numpy)
+        elif method=='taylor':
+            if order is None:
+                M._matrix_numpy = scipy.linalg.expm3(self._matrix_numpy)
+            else:
+                M._matrix_numpy = scipy.linalg.expm3(self._matrix_numpy, q=order)
+
+        return M

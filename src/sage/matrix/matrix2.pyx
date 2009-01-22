@@ -4591,6 +4591,45 @@ cdef class Matrix(matrix1.Matrix):
         """
         return multi_derivative(self, args)
 
+    def exp(self):
+        """
+        Calculate the exponential of this matrix X, which is the matrix
+
+        e^X = sum_{k=0}^{infty} frac{X^k}{k!}.
+
+        This function depends on maxima's matrix exponentiation
+        function, which does not deal well with floating point
+        numbers.  If the matrix has floating point numbers, they will
+        be rounded automatically to rational numbers during the
+        computation.  If you want approximations to the exponential
+        that are calculated numerically, you may get better results by
+        first converting your matrix to RDF or CDF, as shown in the
+        last example.
+
+        EXAMPLES:
+            sage: a=matrix([[1,2],[3,4]])
+            sage: a.exp()
+            [-e^(5/2 - sqrt(33)/2)*((sqrt(33) - 11)*e^sqrt(33) - sqrt(33) - 11)/22          e^(5/2 - sqrt(33)/2)*(2*sqrt(33)*e^sqrt(33) - 2*sqrt(33))/33]
+            [             e^(5/2 - sqrt(33)/2)*(sqrt(33)*e^sqrt(33) - sqrt(33))/11  e^(5/2 - sqrt(33)/2)*((sqrt(33) + 11)*e^sqrt(33) - sqrt(33) + 11)/22]
+            sage: type(a.exp())
+            <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
+
+            sage: a=matrix([[1/2,2/3],[3/4,4/5]])
+            sage: a.exp()
+            [-e^(13/20 - sqrt(209)/20)*((3*sqrt(209) - 209)*e^(sqrt(209)/10) - 3*sqrt(209) - 209)/418              e^(13/20 - sqrt(209)/20)*(20*sqrt(209)*e^(sqrt(209)/10) - 20*sqrt(209))/627]
+            [             e^(13/20 - sqrt(209)/20)*(15*sqrt(209)*e^(sqrt(209)/10) - 15*sqrt(209))/418  e^(13/20 - sqrt(209)/20)*((3*sqrt(209) + 209)*e^(sqrt(209)/10) - 3*sqrt(209) + 209)/418]
+
+            sage: a=matrix(RR,[[1,pi.n()],[1e2,1e-2]])
+            sage: a.exp()
+            [ e^(101/200 - sqrt(382784569869489)/1103400)*((297*sqrt(382784569869489) + 208148216351)*e^(sqrt(382784569869489)/551700) - 297*sqrt(382784569869489) + 208148216351)/416296432702                      e^(101/200 - sqrt(382784569869489)/1103400)*(5199650*sqrt(382784569869489)*e^(sqrt(382784569869489)/551700) - 5199650*sqrt(382784569869489))/1148353709608467]
+            [                             e^(101/200 - sqrt(382784569869489)/1103400)*(30000*sqrt(382784569869489)*e^(sqrt(382784569869489)/551700) - 30000*sqrt(382784569869489))/208148216351 -e^(101/200 - sqrt(382784569869489)/1103400)*((297*sqrt(382784569869489) - 208148216351)*e^(sqrt(382784569869489)/551700) - 297*sqrt(382784569869489) - 208148216351)/416296432702]
+            sage: a.change_ring(RDF).exp()
+            [42748127.3153 7368259.24416]
+            [234538976.138 40426191.4516]
+        """
+        from sage.calculus.calculus import SR
+        return self.change_ring(SR).exp()
+
     def elementary_divisors(self):
         r""" If self is a matrix over a principal ideal domain R, return
         elements $d_i$ for $1 \le i \le k = \min(r,s)$ where $r$ and $s$ are

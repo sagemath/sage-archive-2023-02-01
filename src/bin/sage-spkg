@@ -80,7 +80,7 @@ if [ $1 = '-s' -o $1 = '-m' ]; then
 fi
 
 INSTALLED="$SAGE_PACKAGES/installed/"
-PKG_NAME=`echo "$1" | sed -e "s/\.spkg//"`
+PKG_NAME=`echo "$1" | sed -e "s/\.spkg$//"`
 PKG_NAME=`basename "$PKG_NAME"`
 PKG_SRC="$1"
 PKG_BASE=`echo "$PKG_NAME" | sed -e "s/-.*//"`

@@ -1017,9 +1017,10 @@ class Cell(Cell_generic):
 
     def parse_percent_directives(self):
         """
-        Parses all of the percent directives found at the top
-        of a file and returns the input text of self with all of them
-        removed.
+        Returns a string which consists of the input text of this cell
+        with the percent directives at the top removed.  As it's doing
+        this, it computes a list of all the directives and which
+        system (if any) the cell should be run under.
 
         EXAMPLES:
             sage: C = sage.server.notebook.cell.Cell(0, '%hide\n%maxima\n2+3', '5', None)
@@ -1333,7 +1334,6 @@ class Cell(Cell_generic):
         try:
             return self.__is_html
         except AttributeError:
-            self.parse_percent_directives()
             return self.system() == 'html'
 
     def set_is_html(self, v):
@@ -1547,7 +1547,7 @@ class Cell(Cell_generic):
         introspect = "<div id='introspect_div_%s' class='introspection'></div>"%self.id()
         html_out = self.html_out(wrap, do_print=do_print)
 
-        if self.__in.lstrip()[:8] == '%hideall':
+        if 'hideall' in self.percent_directives():
             s = html_out
         else:
             s = html_in + introspect + html_out
@@ -1572,10 +1572,7 @@ class Cell(Cell_generic):
         id = self.__id
         t = self.__in.rstrip()
 
-        if t.lstrip().startswith('%hide'):
-            cls = "cell_input_hide"
-        else:
-            cls = "cell_input"
+        cls = "cell_input_hide" if 'hide' in self.percent_directives() else "cell_input"
 
         if not do_print:
             s += self.html_new_cell_before()
@@ -1638,6 +1635,8 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
 
     def url_to_self(self):
         """
+        Returns a notebook URL for this cell.
+
         EXAMPLES:
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
@@ -1645,9 +1644,6 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
             sage: C = sage.server.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.url_to_self()
             '/home/sage/0/cells/0'
-
-            sage: import shutil; shutil.rmtree(nb.directory())
-
         """
         try:
             return self.__url_to_self

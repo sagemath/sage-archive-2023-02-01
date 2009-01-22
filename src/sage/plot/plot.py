@@ -1760,9 +1760,14 @@ def parametric_plot(funcs, *args, **kwargs):
     coordinates, the second function giving the $y$ coordinates, and the
     third function (if present) giving the $z$ coordinates.
 
+    In the 2d case, parametric_plot is equivalent to the plot command
+    with the option parametric=True.  In the 3d case, parametric_plot
+    is equivalent to parametric_plot3d.  See each of these functions
+    for more help and examples.
+
     INPUT:
         funcs -- 2 or 3-tuple of functions
-        other options -- passed to plot.
+        other options -- passed to plot or parametric_plot3d.
 
     EXAMPLES:
     We draw some 2d parametric plots:
@@ -1771,39 +1776,45 @@ def parametric_plot(funcs, *args, **kwargs):
         sage: parametric_plot((1, t), (t, 0, 4))
         sage: parametric_plot((t, t^2), (t, -4, 4))
 
-    We draw a 3d parametric plot:
-        sage: parametric_plot3d( (5*cos(x), 5*sin(x), x), (-12, 12), plot_points=150, color="red")
+    We draw some 3d parametric plots:
+        sage: parametric_plot( (5*cos(x), 5*sin(x), x), (x,-12, 12), plot_points=150, color="red")
+
+        sage: y=var('y')
+        sage: parametric_plot( (5*cos(x), x*y, cos(x*y)), (x, -4,4), (y,-4,4))
 
     TESTS:
-        sage: parametric_plot((x, t^2), -4, 4)
+        sage: parametric_plot((x, t^2), (x, -4, 4))
         Traceback (most recent call last):
         ...
-        ValueError: there cannot be more than one free variable in funcs
+        ValueError: the number of functions and the number of free variables is not a possible combination for 2d or 3d parametric plots
 
-        sage: parametric_plot((1, x+t), -4, 4)
+        sage: parametric_plot((1, x+t), (x, -4, 4))
         Traceback (most recent call last):
         ...
-        ValueError: there cannot be more than one free variable in funcs
+        ValueError: the number of functions and the number of free variables is not a possible combination for 2d or 3d parametric plots
+
+        sage: parametric_plot((-t, x+t), (x, -4, 4))
+        Traceback (most recent call last):
+        ...
+        ValueError: the number of functions and the number of free variables is not a possible combination for 2d or 3d parametric plots
+
+        sage: parametric_plot((1, x+t, y), (x, -4, 4), (t, -4, 4))
+        Traceback (most recent call last):
+        ...
+        ValueError: the number of functions and the number of free variables is not a possible combination for 2d or 3d parametric plots
 
     """
-    if len(funcs) == 3:
-        raise ValueError, "use parametric_plot3d for parametric plots in 3d dimensions."
-    elif len(funcs) != 2:
-        raise ValueError, "parametric plots only implemented in 2 and 3 dimensions."
-    else:
-        vars = []
-        f,g = funcs
-        if hasattr(f, 'variables'):
-            vars += list(f.variables())
-        if hasattr(g, 'variables'):
-            vars += list(g.variables())
-        vars = [str(v) for v in vars]
+    num_funcs = len(funcs)
+    var_list = [list(getattr(f, 'variables', lambda : [])()) for f in funcs]
+    num_vars = len(set(sum(var_list, [])))
 
-        from sage.misc.misc import uniq
-        if len(uniq(vars)) > 1:
-            raise ValueError, "there cannot be more than one free variable in funcs"
-    kwargs['parametric'] = True
-    return plot(funcs, *args, **kwargs)
+    if num_funcs == 2 and num_vars <= 1:
+        kwargs['parametric'] = True
+        return plot(funcs, *args, **kwargs)
+    elif (num_funcs == 3 and num_vars <= 2):
+        return sage.plot.plot3d.parametric_plot3d.parametric_plot3d(funcs, *args, **kwargs)
+    else:
+        raise ValueError, "the number of functions and the number of free variables is not a possible combination for 2d or 3d parametric plots"
 
 def polar_plot(funcs, *args, **kwds):
     r"""

@@ -19,7 +19,6 @@ Database of Modular Polynomials
 
 import bz2, os
 import sage.misc.misc
-import sage.rings.polynomial.polydict as polydict # internal representation may change!!!
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -60,6 +59,23 @@ class ModularPolynomialDatabase:
         return "%s modular %s database"%(head,poly)
 
     def __getitem__(self,level):
+        """
+        Return the modular polynomial of given level, or an error if
+        there is no such polynomial in the database.
+
+        EXAMPLES:
+            sage: DBMP = ClassicalModularPolynomialDatabase()  #optional requires database_hohel
+            sage: f = DBMP[29]                                 #optional
+            sage: f.degree()                                   #optional
+            58
+            sage: f.coefficient([28,28])                       #optional
+            400152899204646997840260839128
+
+            sage: DBMP[50]                                     #optional
+            Traceback (most recent call last):
+            ...
+            RuntimeError: No database entry for modular polynomial of level 50
+        """
         if self.model in ("Atk","Eta"):
             level = Integer(level)
             if not level.is_prime():
@@ -82,7 +98,7 @@ class ModularPolynomialDatabase:
         poly = {}
         if self.model == "Cls":
             if level == 1:
-                return P(polydict.PolyDict({(1,0):1,(0,1):-1}))
+                return P({(1,0):1,(0,1):-1})
             for cff in coeff_list:
                 i = cff[0]
                 j = cff[1]
@@ -92,7 +108,7 @@ class ModularPolynomialDatabase:
         else:
             for cff in coeff_list:
                 poly[(cff[0],cff[1])] = Integer(cff[2])
-        return P(polydict.PolyDict(poly))
+        return P(poly)
 
 class ModularCorrespondenceDatabase(ModularPolynomialDatabase):
     def _dbpath(self,level):

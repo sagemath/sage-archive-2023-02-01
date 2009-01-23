@@ -733,14 +733,22 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
     """
     INPUT:
     Supported formats
-        1. matrix(diagonal_entries, [sparse=True]):
-               matrix with each row constructed from the list_of_rows
-        2. matrix(nrows, diagonal_entries, [sparse=True]):
-               matrix with each row constructed from the list_of_rows
-        3. matrix(ring, diagonal_entries, [sparse=True]):
-               matrix with each row constructed from the list_of_rows
-        4. matrix(ring, nrows, diagonal_entries, [sparse=True]):
-               matrix with given number of rows and flat list of entries
+        1. diagonal_matrix(diagonal_entries, [sparse=True]):
+            diagonal matrix with flat list of entries
+
+        2. diagonal_matrix(nrows, diagonal_entries, [sparse=True]):
+            diagonal matrix with flat list of entries and the rest zeros
+
+        3. diagonal_matrix(ring, diagonal_entries, [sparse=True]):
+            diagonal matrix over specified ring with flat list of entries
+
+        4. diagonal_matrix(ring, nrows, diagonal_entries, [sparse=True]):
+            diagonal matrix over specified ring with flat
+            list of entries and the rest zeros
+
+        5. diagonal_matrix(vect, [sparse=True]):
+            diagonal matrix with entries taken from a vector
+
     The sparse option is optional, must be explicitly named (i.e.,
     sparse=True), and may be either True or False.
 
@@ -751,14 +759,14 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
         [0 2 0]
         [0 0 3]
 
-    Input format 2.
-        sage: diagonal_matrix(GF(3), [1,2,3])
+    Input format 2:
+        sage: diagonal_matrix(3, [1,2])
         [1 0 0]
         [0 2 0]
         [0 0 0]
 
-    Input format 3:
-        sage: diagonal_matrix(3, [1,2])
+    Input format 3.
+        sage: diagonal_matrix(GF(3), [1,2,3])
         [1 0 0]
         [0 2 0]
         [0 0 0]
@@ -768,6 +776,13 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
         [2 0 0]
         [0 2 0]
         [0 0 0]
+
+    Input format 5:
+        sage: diagonal_matrix(vector(GF(3),[1,2,3]))
+        [1 0 0]
+        [0 2 0]
+        [0 0 0]
+
     """
     ring = None
     if isinstance(arg0, (list, tuple)):
@@ -775,17 +790,23 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
         v = arg0
         nrows = len(v)
     elif isinstance(arg0, (int, long, rings.Integer)):
+        # Format 2
         nrows = arg0
         v = arg1
     elif rings.is_Ring(arg0):
         ring = arg0
         if isinstance(arg1, (list, tuple)):
+            # Format 3
             v = arg1
             nrows = len(v)
         else:
+            # Format 4
             nrows = arg1
             v = arg2
-
+    elif is_Vector(arg0):
+        # Format 5
+        v = list(arg0)
+        nrows = len(v)
     if isinstance(v, list):
         w = {}
         for i in range(len(v)):

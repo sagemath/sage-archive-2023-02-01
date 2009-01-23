@@ -190,6 +190,8 @@ REFERENCES:
 #*****************************************************************************
 from sage.interfaces.all import gap, maxima
 from sage.rings.all import QQ, ZZ
+from sage.rings.arith import bernoulli, binomial
+from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
 from sage.misc.prandom import randint
@@ -2106,9 +2108,17 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
 
 def bernoulli_polynomial(x,n):
     r"""
+    Return the nth Bernoulli polynomial as a polynomial in x. In
+    particular, if x is anything other than a variable, this will
+    simply be the nth Bernoulli polynomial evaluated at x.
+
     The generating function for the Bernoulli polynomials is
     \[
-     \frac{t e^{xt}}{e^t-1}= \sum_{n=0}^\infty B_n(x) \frac{t^n}{n!}.
+     \frac{t e^{xt}}{e^t-1}= \sum_{n=0}^\infty B_n(x) \frac{t^n}{n!},
+    \]
+    and they are given directly by
+    \[
+     B_n(x) = \sum_{i=0}^n \binomial{n}{i}B_{n-i}x^i.
     \]
 
     One has $B_n(x) = - n\zeta(1 - n,x)$, where $\zeta(s,x)$ is the
@@ -2119,8 +2129,20 @@ def bernoulli_polynomial(x,n):
         sage: y = QQ['y'].0
         sage: bernoulli_polynomial(y,5)
         y^5 - 5/2*y^4 + 5/3*y^3 - 1/6*y
+        sage: bernoulli_polynomial(y,5)(12)
+        199870
+        sage: bernoulli_polynomial(12,5)
+        199870
 
     REFERENCES:
         http://en.wikipedia.org/wiki/Bernoulli_polynomials
     """
-    return sage_eval(maxima.eval("bernpoly(x,%s)"%n), {'x':x})
+    try:
+        n = ZZ(n)
+    except TypeError:
+        raise TypeError, "second argument must be an integer"
+
+    if isinstance(x, Polynomial):
+        return x.parent()([ binomial(n,i) * bernoulli(n-i) for i in range(n+1) ])
+    else:
+        return sum([ binomial(n,i) * bernoulli(i) * x**(n-i) for i in range(n+1) ])

@@ -3774,6 +3774,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: x.gcd(1)
             1
 
+            sage: k.<a> = GF(9)
+            sage: R.<x,y> = PolynomialRing(k)
+            sage: f = R.change_ring(GF(3)).gen()
+            sage: g = x+y
+            sage: g.gcd(f)
+            1
+            sage: x.gcd(R.change_ring(GF(3)).gen())
+            x
         """
         cdef MPolynomial_libsingular _right
         cdef poly *_res
@@ -3795,7 +3803,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if(_ring != currRing): rChangeCurrRing(_ring)
 
-        if not PY_TYPE_CHECK(right, MPolynomial_libsingular):
+        if not (PY_TYPE_CHECK(right, MPolynomial_libsingular) and (<MPolynomial_libsingular>right)._parent is (<MPolynomial_libsingular>self)._parent):
             _right = (<MPolynomialRing_libsingular>self._parent)._coerce_c(right)
         else:
             _right = (<MPolynomial_libsingular>right)

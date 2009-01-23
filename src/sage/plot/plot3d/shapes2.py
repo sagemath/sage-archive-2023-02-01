@@ -17,6 +17,8 @@ TACHYON_PIXEL = 1/200.0
 
 from shapes import Text, Sphere
 
+from sage.structure.element import is_Vector
+
 def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     r"""
     Draw a 3d line joining a sequence of points.
@@ -507,7 +509,7 @@ def point3d(v, size=5, **kwds):
     EXAMPLES:
         sage: sum([point3d((i,i^2,i^3), size=5) for i in range(10)])
     """
-    if isinstance(v,(list,tuple)) and len(v) == 3 and not isinstance(v[0],(list,tuple)):
+    if isinstance(v,(list,tuple)) and len(v) == 3 and not (isinstance(v[0],(list,tuple)) or is_Vector(v[0])):
         return Point(v, size, **kwds)
     else:
         A = sum([Point(z, size, **kwds) for z in v])

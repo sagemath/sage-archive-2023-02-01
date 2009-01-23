@@ -992,7 +992,7 @@ class BooleanFormula:
             sage: s = propcalc.formula("~(a&b)")
             sage: tree = ['~', ['&', 'a', 'b'], None]
             sage: logicparser.apply_func(tree, s.dist_not) #long time
-            ['|', ['~', 'a', None], ['~', 'b', None]
+            ['|', ['~', 'a', None], ['~', 'b', None]]
         """
         if(tree[0] == '~' and type(tree[1]) is ListType):
             op = tree[1][0]
@@ -1025,8 +1025,8 @@ class BooleanFormula:
             sage: s = propcalc.formula("(a&b)|(a&c)")
             sage: tree = ['|', ['&', 'a', 'b'], ['&', 'a', 'c']]
             sage: logicparser.apply_func(tree, s.dist_ors) #long time
-            ['&', ['&', ['|', 'a', 'a'], ['|', 'b', 'a']], ['&', ['|', 'a', 'c'], ['|', 'b',\
-            'c']]]
+            ['&', ['&', ['|', 'a', 'a'], ['|', 'b', 'a']], ['&', ['|', 'a', 'c'], ['|', 'b', 'c']]]
+
         """
         if(tree[0] == '|' and type(tree[2]) is ListType and tree[2][0] == '&'):
             new_tree = ['&', ['|', tree[1], tree[2][1]], ['|', tree[1], tree[2][2]]]
@@ -1075,8 +1075,9 @@ class BooleanFormula:
         EXAMPLES:
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a^b<->c")
-            sage: s.convert_cnf_recur()  #long time
-            (a|a)&(b|a)&(a|c)&(b|c)
+            sage: s.convert_cnf_recur(); s  #long time
+            (~a|a|c)&(~b|a|c)&(~a|b|c)&(~b|b|c)&(~c|a|b)&(~c|~a|~b)
+
         """
         ttree = self.__tree[:]
         ttree = logicparser.apply_func(ttree, self.to_infix)

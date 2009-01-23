@@ -54,12 +54,11 @@ EXAMPLES:
 
 It is not an error to use nonsensical numeric inputs.
     sage: s = propcalc.formula("a&b|~(c|a)")
-    sage: s.truthtable(5, 9)                #long time
-    c      b      a      value
+    sage: s.truthtable(5, 9)
+    a      b      c      value
     True   False  True   False
-    True   True   False  False
+    True   True   False  True
     True   True   True   True
-    False  False  False  True
 
     sage: s.truthtable(9, 5)
     a      b      c      value

@@ -4329,8 +4329,13 @@ cdef class gen(sage.structure.element.RingElement):
             0
             sage: pari(-15).primepi()
             0
+            sage: pari(500509).primepi()
+            41581
         """
+        global num_primes
         _sig_on
+        if self > num_primes:
+            P.init_primes(self + 10)
         if signe(self.g) != 1:
             return P(0)
         return P.new_gen(primepi(self.g))
@@ -7385,6 +7390,22 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return
 
     ##############################################
+
+    def _primelimit(self):
+        """
+        Return the number of primes already computed
+        in this Pari instance.
+
+        EXAMPLES:
+            sage: pari._primelimit()
+            500519
+            sage: pari.init_primes(600000)
+            sage: pari._primelimit()
+            600000
+        """
+        global num_primes
+        from sage.rings.all import ZZ
+        return ZZ(num_primes)
 
     def prime_list(self, long n):
         """

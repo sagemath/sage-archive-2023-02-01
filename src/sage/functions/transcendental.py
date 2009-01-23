@@ -329,6 +329,8 @@ class PrimePi:
         0
         sage: prime_pi(-10)
         0
+        sage: prime_pi(500509)
+        41581
 
     The prime_pi function also has a special plotting method, so it plots
     quickly and perfectly as a step function.
@@ -340,12 +342,7 @@ class PrimePi:
     def __call__(self, x):
         if x < 2:
             return ZZ(0)
-        try:
-            return ZZ(pari(x).primepi())
-        except PariError:
-            from sage.rings.integer import Integer
-            pari.init_primes(pari(x)+Integer(1))
-            return ZZ(pari(x).primepi())
+        return ZZ(pari(x).primepi())
 
     def plot(self, xmin=0, xmax=100, *args, **kwds):
         primes = prime_range(xmin, xmax+2)

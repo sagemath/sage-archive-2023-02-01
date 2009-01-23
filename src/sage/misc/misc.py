@@ -615,10 +615,12 @@ def assert_attribute(x, attr, init=None):
 # Ranges and [1,2,..,n] notation.
 #################################################################
 
-def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=False):
+def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=False, endpoint_tolerance=1e-5):
     r"""
     Return list of numbers \code{a, a+step, ..., a+k*step},
-    where \code{a+k*step < b} and \code{a+(k+1)*step > b}.
+    where \code{a+k*step < b} and \code{a+(k+1)*step >= b} over
+    exact rings, and makes a best attempt for inexact rings
+    (see note below).
 
     This provides one way to iterate over Sage integers as opposed to
     Python int's.  It also allows you to specify step sizes for such
@@ -632,7 +634,10 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         a -- number
         b -- number (default: None)
         step -- number (default: 1)
+        universe -- Parent or type where all the elements should live (default: deduce from inputs)
+        check -- make sure a, b, and step all lie in the same universe
         include_endpoint -- whether or not to include the endpoint (default: False)
+        endpoint_tolerance -- used to determine whether or not the endpoint is hit for inexact rings (default 1e-5)
 
     OUTPUT:
         list
@@ -642,6 +647,19 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
 
     Unlike range, a and b can be any type of numbers, and the
     resulting list involves numbers of that type.
+
+    NOTE: The list elements are computed via repeated addition
+    rather than multiplication, which may produce slightly
+    different results with inexact rings. For example:
+
+        sage: sum([1.1] * 10) == 1.1 * 10
+        False
+
+    Also, the question of whether the endpoint is hit exactly for
+    a given \code{a + k*step} is fuzzy for an inexact ring. If
+    \code{a + k*step = b} for some k within \code{endpoint_tolerance} of
+    being integral, it is considered an exact hit, thus avoiding spurious
+    values falling just below the endpoint.
 
     NOTE: This function is called \code{srange} to distinguish
     it from the builtin Python \code{range} command.  The s
@@ -664,14 +682,15 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         sage: srange(10,1,-1, include_endpoint=True)
         [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
-        sage: Q = RationalField()
-        sage: srange(1,10,Q('1/2'))
+        sage: srange(1, 10, universe=RDF)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+
+        sage: srange(1, 10, 1/2)
         [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2]
 
-        sage: R = RealField()
-        sage: srange(1,5,R('0.5'))
+        sage: srange(1, 5, 0.5)
         [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
-        sage: srange(0,1,R('0.4'))
+        sage: srange(0, 1, 0.4)
         [0.000000000000000, 0.400000000000000, 0.800000000000000]
         sage: srange(1.0, 5.0, include_endpoint=True)
         [1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000, 5.00000000000000]
@@ -684,55 +703,67 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         sage: V = VectorSpace(QQ, 2)
         sage: srange(V([0,0]), V([5,5]), step=V([2,2]))
         [(0, 0), (2, 2), (4, 4)]
+
+    Including the endpoint:
+        sage: srange(0, 10, step=2, include_endpoint=True)
+        [0, 2, 4, 6, 8, 10]
+        sage: srange(0, 10, step=3, include_endpoint=True)
+        [0, 3, 6, 9]
+
+    Try some inexact rings:
+        sage: srange(0.5, 1.1, 0.1, universe=RDF, include_endpoint=False)
+        [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        sage: srange(0.5, 1, 0.1, universe=RDF, include_endpoint=False)
+        [0.5, 0.6, 0.7, 0.8, 0.9]
+        sage: srange(0.5, 0.9, 0.1, universe=RDF, include_endpoint=False)
+        [0.5, 0.6, 0.7, 0.8]
+        sage: srange(0, 1.1, 0.1, universe=RDF, include_endpoint=True)
+        [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]
+        sage: srange(0, 0.2, 0.1, universe=RDF, include_endpoint=True)
+        [0.0, 0.1, 0.2]
+        sage: srange(0, 0.3, 0.1, universe=RDF, include_endpoint=True)
+        [0.0, 0.1, 0.2, 0.3]
     """
     from sage.structure.sequence import Sequence
     from sage.rings.all import ZZ
+
     if end is None:
         end = start
         start = 0
+
     if check:
         if universe is None:
             universe = Sequence([start, end, step]).universe()
         start, end, step = universe(start), universe(end), universe(step)
-    if include_endpoint:
-        if universe in [int, long, ZZ]:
-            if (end-start) % step == 0:
-                end += step
-        else:
-            count = (end-start)/step
-            if count == int(float(count)):
-                end += step
-    if universe is int or universe is long:
-        return range(start, end, step)
-    elif universe is ZZ:
-        return ZZ.range(start, end, step)
+
+    if universe in [int, long, ZZ]:
+        if include_endpoint and (end-start) % step == 0:
+            end += step
+        if universe is ZZ:
+            return ZZ.range(start, end, step)
+        else: # universe is int or universe is long:
+            return range(start, end, step)
+
+    count = (end-start)/step
+    if not isinstance(universe, type) and universe.is_exact():
+        icount = int(math.ceil(float(count)))
+        if icount != count:
+            include_endpoint = False
     else:
-        L = []
-        sign = 1 if step > 0 else -1
-        # In order for range to make sense, start, end, and step must lie in a 1-dim real subspace...
-        count = int(math.ceil((float((end-start)/step))))
-        if count <= 0:
-            return L
-        # we assume that a+b*c = a + b + ... + b
-        if not (start + count * step)*sign > end*sign:
-            # we won't get there by adding, perhaps comparison in the ring is bad
-            # rather than enter an infinite loop, do something sensible
-            # the 'not' is hear because incomparable items return False
-            L = [start + k*step for k in range(count)] # this is slower due to coercion and mult
-        elif step > 0:
-            while start < end:
-                L.append(start)
-                start += step
-        elif step < 0:
-            while start > end:
-                L.append(start)
-                start += step
-        else:
-            raise ValueError, "step must not be 0"
-        return L
+        icount = int(math.ceil(float(count) - endpoint_tolerance))
+        if abs(float(count) - icount) > endpoint_tolerance:
+            include_endpoint = False
+
+    L = []
+    for k in xrange(icount):
+        L.append(start)
+        start += step
+    if include_endpoint:
+        L.append(end)
+    return L
 
 
-def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint=False):
+def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint=False, endpoint_tolerance=1e-5):
     """
     Return an iterator over numbers \code{a, a+step, ..., a+k*step},
     where \code{a+k*step < b} and \code{a+(k+1)*step > b}.
@@ -741,6 +772,10 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         a -- number
         b -- number
         step -- number (default: 1)
+        universe -- Parent or type where all the elements should live (default: deduce from inputs)
+        check -- make sure a, b, and step all lie in the same universe
+        include_endpoint -- whether or not to include the endpoint (default: False)
+        endpoint_tolerance -- used to determine whether or not the endpoint is hit for inexact rings (default 1e-5)
     OUTPUT:
         iterator
 
@@ -760,10 +795,9 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         sage: list(xsrange(1, 10, Q('1/2')))
         [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2]
 
-        sage: R = RealField()
-        sage: list(xsrange(1, 5, R(0.5)))
+        sage: list(xsrange(1, 5, 0.5))
         [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
-        sage: list(xsrange(0, 1, R('0.4')))
+        sage: list(xsrange(0, 1, 0.4))
         [0.000000000000000, 0.400000000000000, 0.800000000000000]
 
     Negative ranges are also allowed:
@@ -774,57 +808,46 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         sage: list(sxrange(4,1,-1/2))
         [4, 7/2, 3, 5/2, 2, 3/2]
     """
+    from sage.structure.sequence import Sequence
+    from sage.rings.all import ZZ
+
     if end is None:
         end = start
         start = 0
-    if step == 0:
-        raise ValueError, "step must not be 0"
-    from sage.structure.sequence import Sequence
-    from sage.rings.all import ZZ
+
     if check:
         if universe is None:
             universe = Sequence([start, end, step]).universe()
         start, end, step = universe(start), universe(end), universe(step)
-    if include_endpoint:
-        if universe in [int, long, ZZ]:
-            if (start-end) % step == 0:
-                end += step
-        else:
-            count = (start-end)/step
-            if count == int(float(count)):
-                end += step
-                count += 1
-    if universe is int:
-        return xrange(start, end, step)
-#    elif universe is ZZ:
-#        return ZZ.xrange(start, end, step)
+
+    if universe in [int, long, ZZ]:
+        if include_endpoint and (end-start) % step == 0:
+            end += step
+            include_endpoint = False
+        if universe is not ZZ:
+            return xrange(start, end, step)
+
+    count = (end-start)/step
+    if universe is long or not isinstance(universe, type) and universe.is_exact():
+        icount = int(math.ceil(float(count)))
+        if icount != count:
+            include_endpoint = False
     else:
-        return generic_xsrange(start, end, step)
+        icount = int(math.ceil(float(count) - endpoint_tolerance))
+        if abs(float(count) - icount) > endpoint_tolerance:
+            include_endpoint = False
+
+    def generic_xsrange():
+        cur = start
+        for k in xrange(icount):
+            yield cur
+            cur += step
+        if include_endpoint:
+            yield end
+
+    return generic_xsrange()
 
 
-def generic_xsrange(start, end, step):
-        sign = 1 if step > 0 else -1
-        # In order for range to make sense, start, end, and step must lie in a 1-dim real subspace...
-        count = int(math.ceil((float((end-start)/step))))
-        if count <= 0:
-            return
-        # we assume that a+b*c = a + b + ... + b
-        if not (start + count * step)*sign > end*sign:
-            # we won't get there by adding, perhaps comparison in the ring is bad
-            # rather than enter an infinite loop, do something sensible
-            # the 'not' is hear because incomparable items return False
-            for k in xrange(count):
-                yield start + k*step
-        elif step > 0:
-            while start < end:
-                yield start
-                start += step
-        elif step < 0:
-            while start > end:
-                yield start
-                start += step
-        else:
-            raise ValueError, "step must not be 0"
 
 sxrange = xsrange
 

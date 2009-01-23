@@ -2088,6 +2088,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: hash(long(n))
             -873977844            # 32-bit
             6874330978542788722   # 64-bit
+
+        These tests come from trac #4957.
+            sage: n = 2^31 + 2^13
+            sage: hash(n)
+            -2147475456               # 32-bit
+            2147491840                # 64-bit
+            sage: hash(n) == hash(int(n))
+            True
+            sage: n = 2^63 + 2^13
+            sage: hash(n)
+            -2147475456               # 32-bit
+            -9223372036854767616      # 64-bit
+            sage: hash(n) == hash(int(n))
+            True
         """
         return mpz_pythonhash(self.value)
 

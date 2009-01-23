@@ -225,7 +225,7 @@ CYTHON_INCLUDE_DIRS=[ SAGE_LOCAL + '/lib/python/site-packages/Cython/Includes/' 
 
 # matches any dependency
 import re
-dep_regex = re.compile(r'^ *(?:cimport +(\S+))|(?:from +(\S+) *cimport)|(?:include *[\'"]([^\'"]+)[\'"])', re.M)
+dep_regex = re.compile(r'^ *(?:(?:cimport +([\S ,]+))|(?:from +(\S+) *cimport)|(?:include *[\'"]([^\'"]+)[\'"])|(?:cdef *extern *from *[\'"]([^\'"]+)[\'"]))', re.M)
 
 class DependencyTree:
     """
@@ -294,23 +294,29 @@ class DependencyTree:
             if os.path.exists(pxd_file):
                 deps.add(pxd_file)
 
+        raw_deps = []
         f = open(filename)
         for m in dep_regex.finditer(open(filename).read()):
             groups = m.groups()
-            module = groups[0] or groups[1] # cimport or from ... cimport
-            if module is not None:
-                if '.' in module:
-                    path = module.replace('.', '/') + '.pxd'
-                    base_dependency_name = path
-                else:
-                    path = "%s/%s.pxd" % (dirname, module)
-                    base_dependency_name = "%s.pxd"%module
-            else:
-                path = '%s/%s'%(dirname, groups[2])
+            modules = groups[0] or groups[1] # cimport or from ... cimport
+            if modules is not None:
+                for module in modules.split(','):
+                    module = module.strip().split(' ')[0] # get rid of 'as' clause
+                    if '.' in module:
+                        path = module.replace('.', '/') + '.pxd'
+                        base_dependency_name = path
+                    else:
+                        path = "%s/%s.pxd" % (dirname, module)
+                        base_dependency_name = "%s.pxd"%module
+                    raw_deps.append((path, base_dependency_name))
+            else: # include or extern from
+                extern_file = groups[2] or groups[3]
+                path = '%s/%s'%(dirname, extern_file)
                 if not os.path.exists(path):
-                    path = groups[2]
-                base_dependency_name = groups[2]
+                    path = extern_file
+                raw_deps.append((path, extern_file))
 
+        for path, base_dependency_name in raw_deps:
             # if we can find the file, add it to the dependencies.
             path = os.path.normpath(path)
             if os.path.exists(path):
@@ -328,7 +334,8 @@ class DependencyTree:
                 # so we really couldn't find the dependency -- raise
                 # an exception.
                 if not found_include:
-                    raise IOError, "could not find dependency %s included in %s."%(path, filename)
+                    if path[-2:] != '.h':  # there are implicit headers from distutils, etc
+                        raise IOError, "could not find dependency %s included in %s."%(path, filename)
         f.close()
         return list(deps)
 

@@ -13,8 +13,25 @@ factor = arith.factor
 Q = RationalField()
 
 class Sha(SageObject):
+    """
+    The Shafarevich-Tate group associated to an elliptic curve.
+
+    If `E` is an elliptic curve over a field `K`, the Shafarevich-Tate group
+    is the subgroup of `H^1(K,E)` which maps to zero under every global-to-local
+    restriction map `H^1(K,E) \rightarrow H^1(K_v,E)`, one for each place `v`
+    of `K`.
+
+    EXAMPLES::
+        sage: E = EllipticCurve('389a')
+        sage: E.sha()
+        Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+
+    """
     def __init__(self, E):
         self.E = E
+
+    def __repr__(self):
+        return "Shafarevich-Tate group for the " + repr(self.E)
 
     ########################################################################
     # Functions related to the BSD conjecture.

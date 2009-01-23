@@ -124,6 +124,14 @@ cdef extern from "dlfcn.h":
     char *dlerror()
     void dlclose(void *handle)
 
+cdef extern from "stdlib.h":
+    # this is actually built-in but we need to give something as
+    # 'from'
+    int unlikely(int)
+
+
+cdef unsigned long max_exponent_size
+
 cdef init_singular():
     r"""
     This initializes the \Singular library. Right now, this is a hack.
@@ -135,6 +143,7 @@ cdef init_singular():
     far is to load the library again and to specifiy RTLD_GLOBAL.
     """
     global singular_options
+    global max_exponent_size
 
     cdef void *handle = NULL
 
@@ -164,6 +173,13 @@ cdef init_singular():
     On(SW_USE_NTL_GCD_P)
     On(SW_USE_EZGCD)
     Off(SW_USE_NTL_SORT)
+
+    from sage.misc.misc_c import is_64_bit
+
+    if is_64_bit:
+        max_exponent_size = 1<<31-1;
+    else:
+        max_exponent_size = 1<<16-1;
 
  # call it
 init_singular()
@@ -433,6 +449,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     mon = p_Init(_ring)
                     p_SetCoeff(mon, co.sa2si(c, _ring), _ring)
                     for pos in m.nonzero_positions():
+                        assert(m[pos] <= max_exponent_size)
                         p_SetExp(mon, pos+1, m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
@@ -642,6 +659,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     mon = p_Init(_ring)
                     p_SetCoeff(mon, co.sa2si(c , _ring), _ring)
                     for pos in m.nonzero_positions():
+                        assert(m[pos] <= max_exponent_size)
                         p_SetExp(mon, pos+1, m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
@@ -675,6 +693,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     raise TypeError, "tuple key must have same length as ngens"
                 for pos from 0 <= pos < len(m):
                     if m[pos]:
+                        assert(m[pos] <= max_exponent_size)
                         p_SetExp(mon, pos+1, m[pos], _ring)
                 p_Setm(mon, _ring)
                 _p = p_Add_q(_p, mon, _ring)
@@ -1929,13 +1948,26 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P.<x,y,z>=PolynomialRing(QQ,3)
             sage: (3/2*x - 1/2*y - 1) * (3/2*x + 1/2*y + 1)
             9/4*x^2 - 1/4*y^2 - y - 1
+
+            sage: P.<x,y> = PolynomialRing(QQ,order='lex')
+            sage: (x^2^30) * x^2^30
+            Traceback (most recent call last):
+            ...
+            OverflowError: Exponent overflow.
         """
         cdef poly *_l, *_r, *_p
         cdef ring *_ring
 
         _ring = (<MPolynomialRing_libsingular>left._parent)._ring
-
         if(_ring != currRing): rChangeCurrRing(_ring)
+
+        cdef unsigned long le = p_GetMaxExp(left._poly, _ring)
+        cdef unsigned long lr = p_GetMaxExp((<MPolynomial_libsingular>right)._poly, _ring)
+        cdef unsigned long esum = le + lr
+
+        if unlikely(esum > max_exponent_size):
+            raise OverflowError("Exponent overflow.")
+
         _p = pp_Mult_qq(left._poly, (<MPolynomial_libsingular>right)._poly, _ring)
         return co.new_MP(left._parent,_p)
 
@@ -1953,6 +1985,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ring *_ring
 
         _ring = (<MPolynomialRing_libsingular>left._parent)._ring
+
+        cdef unsigned long le = p_GetMaxExp(left._poly, _ring)
+        cdef unsigned long lr = p_GetMaxExp((<MPolynomial_libsingular>right)._poly, _ring)
+        cdef unsigned long esum = le + lr
+
+        if unlikely(esum > max_exponent_size):
+            raise OverflowError("Exponent overflow.")
 
         if(_ring != currRing): rChangeCurrRing(_ring)
         _p = pp_Mult_qq(left._poly, (<MPolynomial_libsingular>right)._poly, _ring)
@@ -2053,6 +2092,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Traceback (most recent call last):
             ...
             TypeError: non-integral exponents not supported
+
+            sage: P.<x,y> = PolynomialRing(QQ,order='lex')
+            sage: (x+y^2^30)^10
+            Traceback (most recent call last):
+            ....
+            OverflowError: Exponent overflow.
         """
         if not PY_TYPE_CHECK_EXACT(exp, Integer) or \
                 PY_TYPE_CHECK_EXACT(exp, int):
@@ -2071,8 +2116,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if _exp < 0:
             return 1/(self**(-_exp))
-        if _exp > 65535:
-            raise TypeError,  "exponent is too large, max. is 65535"
+        elif _exp == 0:
+            return (<MPolynomialRing_libsingular>self._parent)._one_element
+
+        cdef unsigned long v = p_GetMaxExp(self._poly, _ring)
+        v = v * _exp
+        if v > max_exponent_size:
+            raise OverflowError("Exponent overflow.")
 
         if(_ring != currRing): rChangeCurrRing(_ring)
         cdef int count = polyLengthBounded(self._poly,15)
@@ -2338,7 +2388,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def degrees(self):
         r"""
-        Returns a tuple with the maximl degree of each variable in
+        Returns a tuple with the maximal degree of each variable in
         this polynomial.  The list of degrees is ordered by the order
         of the generators.
 
@@ -2634,6 +2684,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         m = p_ISet(1,r)
         i = 1
         for e in x:
+            assert(e <= max_exponent_size)
             p_SetExp(m, i, int(e), r)
             i += 1
         p_Setm(m, r)
@@ -3625,7 +3676,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def reduce(self,I):
         r"""
-
         Return the normal form of self w.r.t. \var{I}, i.e. return the
         remainder of this polynomial with respect to the polynomials
         in \var{I}. If the polynomial set/list \var{I} is not a
@@ -3997,7 +4047,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             0
             sage: x.sub_m_mul_q(Q.gen(1),Q.gen(2))
             -y*z + x
-
          """
         cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
 
@@ -4010,6 +4059,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             raise ArithmeticError, "m must be a monomial."
         elif not m._poly:
             return self
+
+        cdef int le = p_GetMaxExp(m._poly, r)
+        cdef int lr = p_GetMaxExp(q._poly, r)
+        cdef int esum = le + lr
+
+        if unlikely(esum > max_exponent_size):
+            raise OverflowError("Exponent overflow.")
 
         return co.new_MP(self._parent, p_Minus_mm_Mult_qq(p_Copy(self._poly, r), m._poly, q._poly, r))
 
@@ -4078,8 +4134,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         elif not m._poly:
             return self
 
-        return co.new_MP(self._parent, p_Plus_mm_Mult_qq(p_Copy(self._poly, r), m._poly, q._poly, r))
+        cdef int le = p_GetMaxExp(m._poly, r)
+        cdef int lr = p_GetMaxExp(q._poly, r)
+        cdef int esum = le + lr
 
+        if unlikely(esum > max_exponent_size):
+            raise OverflowError("Exponent overflow.")
+
+        return co.new_MP(self._parent, p_Plus_mm_Mult_qq(p_Copy(self._poly, r), m._poly, q._poly, r))
 
     def __reduce__(self):
         """
@@ -4330,6 +4392,7 @@ def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
                 p_Delete(&p,r)
                 p_Delete(&m,r)
                 raise TypeError, "exponent too small"
+            assert(_e <= max_exponent_size)
             p_SetExp(m, _i+1,_e, r)
         p_SetCoeff(m, co.sa2si(c, r), r)
         p_Setm(m,r)

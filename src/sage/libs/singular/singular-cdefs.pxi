@@ -305,6 +305,10 @@ cdef extern from "libsingular.h":
 
     int p_GetExp(poly *p, int v, ring *r)
 
+    # get the maximal exponent in p
+
+    unsigned long p_GetMaxExp(poly *p, ring *r)
+
     # if SetExp is called on p, p_Setm needs to be called afterwards to finalize the change.
 
     void p_Setm(poly *p, ring *r)

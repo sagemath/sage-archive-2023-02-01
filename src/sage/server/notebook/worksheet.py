@@ -2571,13 +2571,17 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
             return
 
         C = self.__queue[0]
+        cell_system = self.get_cell_system(C)
+        percent_directives = C.percent_directives()
 
         if C.interrupted():
             # don't actually compute
             return
 
-        D = C.directory()
-        if not C.introspect():
+        if cell_system == 'sage' and C.introspect():
+            before_prompt, after_prompt = C.introspect()
+            I = before_prompt
+        else:
             I = C.cleaned_input_text()
             if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
@@ -2585,12 +2589,9 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
                 if S is None: S = 'sage'
                 C.set_output_text('Exited %s process'%S,'')
                 return
-        else:
-            before_prompt, after_prompt = C.introspect()
-            I = before_prompt
+
 
         #Handle any percent directives
-        percent_directives = C.percent_directives()
         if 'save_server' in percent_directives:
             self.notebook().save()
 
@@ -2609,7 +2610,7 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
             os.makedirs(cell_dir)
         tmp = '%s/code/%s.py'%(dir, id)
 
-        absD = os.path.abspath(D)
+        absD = os.path.abspath(C.directory())
         input = 'os.chdir("%s")\n'%absD
 
         os.system('chmod -R a+rw "%s"'%absD)
@@ -2623,13 +2624,14 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
         # If the input ends in a question mark and is *not* a comment line,
         # then we introspect on it.
-        Istrip = I.strip()
-        if Istrip.endswith('?') and not Istrip.startswith('#'):
-            C.set_introspect(I, '')
+        if cell_system == 'sage':
+            Istrip = I.strip()
+            if Istrip.endswith('?') and not Istrip.startswith('#'):
+                C.set_introspect(I, '')
 
         #Handle line continuations: join lines that end in a backslash
         #_except_ in LaTeX mode.
-        if self.get_cell_system(C) not in ['latex']:
+        if cell_system not in ['latex']:
             I = I.replace('\\\n','')
 
         C._before_preparse = input + I

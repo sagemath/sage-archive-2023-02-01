@@ -184,23 +184,21 @@ VectorSpace = fm.VectorSpace
 def hamming_weight(v):
     return len(v.nonzero_positions())
 
-def code2leon(C,output):
+def code2leon(C):
     r"""
-    This is the Python/Sage translation of the GuavaToLeon command in Guava's
-    codefun.gi file. It takes a code and outputs a file which represents a code
-    readable by Leon's wtdist C program.
+    Writes a file in Sage's temp directory representing the code C, returning
+    the absolute path to the file. This is the Sage translation of the
+    GuavaToLeon command in Guava's codefun.gi file.
 
     INPUT: C -- a linear code (over GF(p), p<11)
-           output = a string name
-    OUTPUT: A file output.txt in Sage's tmp director.
+
+    OUTPUT: Absolute path to the file written.
 
     EXAMPLES:
-        sage: from sage.misc.misc import SAGE_TMP
-        sage: tmpdir = SAGE_TMP
         sage: C = HammingCode(3,GF(2)); C
         Linear code of length 7, dimension 4 over Finite Field of size 2
-        sage: foo = sage.coding.linear_code.code2leon(C,"output")
-        sage: print open(tmpdir+"output").read()
+        sage: file_loc = sage.coding.linear_code.code2leon(C)
+        sage: f = open(file_loc); print f.read()
         LIBRARY code;
         code=seq(2,4,7,seq(
         1,0,0,1,0,1,0,
@@ -209,31 +207,20 @@ def code2leon(C,output):
         0,0,0,0,1,1,1
         ));
         FINISH;
-        sage: open(tmpdir+"output").close()
+        sage: f.close()
 
-    This gets added to SAGE_ROOT.
     """
-    from sage.misc.misc import SAGE_TMP
-    tmpdir = SAGE_TMP
+    from sage.misc.misc import tmp_filename
     F = C.base_ring()
-    n = C.length()
-    k = C.dimension()
-    p = F.order()  # must be prine and <11
-    s = "LIBRARY code;\n"+"code=seq(%s,%s,%s,seq(\n"%(p,k,n)
-    Gr = [str(r) for r in C.gen_mat().rows()]
-    for r in Gr:
-        r1 = r.replace("(","")
-        r2 = r1 # r2 = r1.replace(",","")
-        r3 = r2.replace(")",",\n")
-        r4 = r3.replace(" ","")
-        s = s+r4
-    s = s[:-2]+"\n"
-    s = s+"));\n"
-    s = s+"FINISH;"
-    f = open(tmpdir+output,"w")
+    p = F.order()  # must be prime and <11
+    s = "LIBRARY code;\n"+"code=seq(%s,%s,%s,seq(\n"%(p,C.dimension(),C.length())
+    Gr = [str(r)[1:-1].replace(" ","") for r in C.gen_mat().rows()]
+    s += ",\n".join(Gr) + "\n));\nFINISH;"
+    file_loc = tmp_filename()
+    f = open(file_loc,"w")
     f.write(s)
     f.close()
-    return f
+    return file_loc
 
 def wtdist_gap(Gmat, F):
     r"""
@@ -1987,21 +1974,14 @@ class LinearCode(module.Module):
             Linear code of length 13, dimension 10 over Finite Field of size 3
             sage: C.spectrum() == C.spectrum(method="leon")
             True
-            #[1, 0, 0, 104, 468, 1404, 4056, 8424, 11934, 13442, 11232, 5616, 2080, 288]
             sage: C = HammingCode(2,GF(5)); C
             Linear code of length 6, dimension 4 over Finite Field of size 5
             sage: C.spectrum() == C.spectrum(method="leon")
             True
-            #[1, 0, 0, 80, 120, 264, 160]
             sage: C = HammingCode(2,GF(7)); C
             Linear code of length 8, dimension 6 over Finite Field of size 7
             sage: C.spectrum() == C.spectrum(method="leon")
             True
-            #[1, 0, 0, 336, 1680, 9072, 26544, 45744, 34272]
-
-        NOTE:
-          The GAP command DirectoriesPackageLibrary tells the location of the latest
-          version of the Guava libraries, so gives us the location of the Guava binaries too.
 
         """
         if method is None:
@@ -2009,8 +1989,6 @@ class LinearCode(module.Module):
                 method = "binary"
             else:
                 method = "gap"
-        from sage.misc.misc import SAGE_TMP, SAGE_ROOT, tmp_filename
-        import commands
         n = self.length()
         F = self.base_ring()
         G = self.gen_mat()
@@ -2024,43 +2002,30 @@ class LinearCode(module.Module):
         elif method=="leon":
             if not(F.order() in [2,3,5,7]):
                 raise NotImplementedError("The method 'leon' is only implemented for q = 2,3,5,7.")
-            wts = []
-            code2leon(self,"incode")
-            rt = SAGE_ROOT
-            #tmp = SAGE_TMP
-            tmp_file = tmp_filename()
-            #print tmp_file
-            #pth = rt+"/local/lib/gap-4.4.10/pkg/guava3.4/bin/"
-            spth = gap.eval('DirectoriesPackageLibrary( "guava" )')
-            pth = spth[7:][:-8]+"bin/"
-            a = commands.getoutput(pth+"wtdist "+rt+"/incode::code > "+tmp_file)
-            f = open(tmp_file)
-            lines = f.readlines()
-            f.close()
+            # The GAP command DirectoriesPackageLibrary tells the location of the latest
+            # version of the Guava libraries, so gives us the location of the Guava binaries too.
+            guava_bin_dir = gap.eval('DirectoriesPackageLibrary( "guava" )')
+            guava_bin_dir = guava_bin_dir[1:-1].strip()[5:-6] + 'bin/'
+            input = code2leon(self)
+            from sage.misc.misc import tmp_filename
+            output = tmp_filename()
+            import os
+            status = os.system(guava_bin_dir + "leon/wtdist " + input + "::code > " + output)
+            if status != 0:
+                raise RuntimeError("Problem calling Leon's wtdist program.")
+            f = open(output); lines = f.readlines(); f.close()
+            wts = [0]*(n+1)
             s = 0
-            for L in lines:  # find the line where the numbers start
-                s = s+1
-                if len(L)>2 and L[-2] == "-":
-                    break
-            for L in lines[s:]:
-                N = len(L)
-                for m in range(1,N):
-                    if L[-m]==" ":
-                        break
-                if " " in L[-m:]:
-                    fs = L[-m:].replace(" ","")
-                if " " in L[:N-m]:
-                    ws = L[:N-m].replace(" ","")
-                wts.append([eval(ws),eval(fs)])
-            Wts = [0]*(n+1)
-            for x in wts:
-                i = int(x[0])
-                w = int(x[1])
-                if len(x)==2 and (i in range(n+1)):
-                    Wts[i] = w
-            #print wts, Wts
-            return Wts
-        raise NotImplementedError("The only methods implemented currently are 'gap', 'leon' and 'binary'.")
+            for L in lines:
+                L = L.strip()
+                if len(L) > 0:
+                    o = ord(L[0])
+                    if o >= 48 and o <= 57:
+                        wt, num = L.split()
+                        wts[eval(wt)] = eval(num)
+            return wts
+        else:
+            raise NotImplementedError("The only methods implemented currently are 'gap', 'leon' and 'binary'.")
 
     def standard_form(self):
         r"""

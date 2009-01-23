@@ -163,9 +163,9 @@ from math import fabs
 
 # For controlling the round-to-double bit on x86 machines
 # These functions have no effects on other platforms
-cdef extern from "qd/fpu.h":
-    void fpu_fix_start(unsigned int *old_cw)
-    void fpu_fix_end(unsigned int *old_cw)
+# cdef extern from "qd/fpu.h":
+#     void fpu_fix_start(unsigned int *old_cw)
+#     void fpu_fix_end(unsigned int *old_cw)
 
 include "../../ext/cdefs.pxi"
 include "../../ext/gmp.pxi"
@@ -758,7 +758,7 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
             sage: bp.as_float()
             degree 4 IBP with floating-point coefficients
             sage: str(bp.as_float())
-            '<IBP: ((0.1953125, 0.078125, -0.3515625, -0.2734375, 0.78125) + [-1.11022302463e-16 .. 0.01953125]) * 2^8>'
+            '<IBP: ((0.1953125, 0.078125, -0.3515625, -0.2734375, 0.78125) + [-1.12757025938e-16 .. 0.01953125]) * 2^8>'
         """
         (fcoeffs, neg_err, pos_err, scale_log2_delta) = intvec_to_doublevec(self.coeffs, self.error)
         cdef interval_bernstein_polynomial_float fbp = interval_bernstein_polynomial_float(fcoeffs, self.lower, self.upper, self.lsign, self.usign, neg_err, pos_err, self.scale_log2 + scale_log2_delta, self.level, self.slope_err)
@@ -1239,7 +1239,9 @@ def de_casteljau_intvec(Vector_integer_dense c, int c_bitsize, Rational x, int u
 # give the same results in double-precision or extended precision.)
 
 # This is the value of a half-ULP for numbers in the range 0.5 <= x < 1.
-cdef double half_ulp = ldexp(1.0, -54)
+# This is actually slightly more than a half-ULP because of possible
+# double-rounding on x86 PCs.
+cdef double half_ulp = ldexp(1.0 * 65/64, -54)
 
 def intvec_to_doublevec(Vector_integer_dense b, long err):
     """
@@ -1257,10 +1259,10 @@ def intvec_to_doublevec(Vector_integer_dense b, long err):
     EXAMPLES:
         sage: from sage.rings.polynomial.real_roots import *
         sage: intvec_to_doublevec(vector(ZZ, [1, 2, 3, 4, 5]), 3)
-        ((0.125, 0.25, 0.375, 0.5, 0.625), -1.1102230246251565e-16, 0.37500000000000017, 3)
+        ((0.125, 0.25, 0.375, 0.5, 0.625), -1.1275702593849246e-16, 0.37500000000000017, 3)
     """
     cdef unsigned int cwf
-    fpu_fix_start(&cwf)
+    # fpu_fix_start(&cwf)
 
     vs = FreeModule(RDF, len(b))
 
@@ -1298,7 +1300,7 @@ def intvec_to_doublevec(Vector_integer_dense b, long err):
 
     cdef double low_err = -2*half_ulp
     cdef double high_err = 3*half_ulp + ldexp(err, delta)
-    fpu_fix_end(&cwf)
+    # fpu_fix_end(&cwf)
     return (db, low_err, high_err, -delta)
 
 
@@ -1613,7 +1615,7 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
             '[-4.8400000000000017 .. 7.2000000000000011]'
         """
         cdef unsigned int cwf
-        fpu_fix_start(&cwf)
+        # fpu_fix_start(&cwf)
 
         width = self.region_width()
         (min_diff, max_diff) = min_max_diff_doublevec(self.coeffs)
@@ -1630,7 +1632,7 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         else:
             rng = rng >> (-self.scale_log2)
 
-        fpu_fix_end(&cwf)
+        # fpu_fix_end(&cwf)
 
         return rng
 
@@ -1698,7 +1700,7 @@ def de_casteljau_doublevec(Vector_real_double_dense c, Rational x):
     c2 = c.__copy__()
 
     cdef unsigned int cwf
-    fpu_fix_start(&cwf)
+    # fpu_fix_start(&cwf)
 
     cdef numpy.ndarray[double, ndim=1] c1d = c1._vector_numpy
     cdef numpy.ndarray[double, ndim=1] c2d = c2._vector_numpy
@@ -1743,7 +1745,7 @@ def de_casteljau_doublevec(Vector_real_double_dense c, Rational x):
 
         extra_err = 3*(n-1)
 
-    fpu_fix_end(&cwf)
+    # fpu_fix_end(&cwf)
 
     return (c1, c2, extra_err)
 

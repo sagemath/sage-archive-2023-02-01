@@ -11,23 +11,23 @@ this interface.  You do not have to install any optional \sage
 packages.
 
 TESTS:
-    sage: mupad.package('"MuPAD-Combinat"')
-    sage: combinat = mupad.combinat
-    sage: examples = mupad.examples
-    sage: S = examples.SymmetricFunctions()
-    sage: S.s[2,1]^2
+    sage: mupad.package('"MuPAD-Combinat"')                        # optional - mupad
+    sage: combinat = mupad.combinat                                # optional - mupad
+    sage: examples = mupad.examples                                # optional - mupad
+    sage: S = examples.SymmetricFunctions()                        # optional - mupad
+    sage: S.s[2,1]^2                                               # optional - mupad
     s[3, 3] + s[4, 2] + s[2, 2, 1, 1] + s[2, 2, 2] + 2 s[3, 2, 1] + s[4, 1, 1] +
     s[3, 1, 1, 1]
-    sage: S.omega( S.s[3] )
+    sage: S.omega( S.s[3] )                                        # optional - mupad
     s[1, 1, 1]
-    sage: s = S.s
-    sage: p = S.p
-    sage: s(s[2,1] + p[2,1])
+    sage: s = S.s                                                  # optional - mupad
+    sage: p = S.p                                                  # optional - mupad
+    sage: s(s[2,1] + p[2,1])                                       # optional - mupad
     s[2, 1] + s[3] - s[1, 1, 1]
-    sage: s(_)
+    sage: s(_)                                                     # optional - mupad
     s[2, 1] + s[3] - s[1, 1, 1]
 
-    sage: combinat.tableaux.list(3)
+    sage: combinat.tableaux.list(3)                                # optional - mupad
                 --                                      +---+ --
                 |                                       | 3 |  |
                 |                 +---+      +---+      +---+  |
@@ -35,8 +35,8 @@ TESTS:
                 |  +---+---+---+  +---+---+  +---+---+  +---+  |
                 |  | 1 | 2 | 3 |, | 1 | 2 |, | 1 | 3 |, | 1 |  |
                 -- +---+---+---+  +---+---+  +---+---+  +---+ --
-    sage: three = mupad(3)
-    sage: three.combinat.tableaux.list()
+    sage: three = mupad(3)                                        # optional - mupad
+    sage: three.combinat.tableaux.list()                          # optional - mupad
                 --                                      +---+ --
                 |                                       | 3 |  |
                 |                 +---+      +---+      +---+  |
@@ -44,12 +44,12 @@ TESTS:
                 |  +---+---+---+  +---+---+  +---+---+  +---+  |
                 |  | 1 | 2 | 3 |, | 1 | 2 |, | 1 | 3 |, | 1 |  |
                 -- +---+---+---+  +---+---+  +---+---+  +---+ --
-    sage: t = _[1]
-    sage: t
+    sage: t = _[1]                                                # optional - mupad
+    sage: t                                                       # optional - mupad
                                  +---+---+---+
                                  | 1 | 2 | 3 |
                                  +---+---+---+
-    sage: combinat.tableaux.conjugate(t)
+    sage: combinat.tableaux.conjugate(t)                          # optional - mupad
                                      +---+
                                      | 3 |
                                      +---+
@@ -58,21 +58,21 @@ TESTS:
                                      | 1 |
                                      +---+
 
-    sage: combinat.ribbonsTableaux.list([2,2],[1,1],2)
+    sage: combinat.ribbonsTableaux.list([2,2],[1,1],2)           # optional - mupad
                            -- +---+---+  +---+---+ --
                            |  |   | 2 |  |     2 |  |
                            |  +   +   +, +---+---+  |
                            |  | 1 |   |  | 1     |  |
                            -- +---+---+  +---+---+ --
-    sage: combinat.tableaux.kAtom([2,1],3)
+    sage: combinat.tableaux.kAtom([2,1],3)                      # optional - mupad
                                   -- +---+     --
                                   |  | 2 |      |
                                   |  +---+---+  |
                                   |  | 1 | 1 |  |
                                   -- +---+---+ --
-    sage: M = S.Macdonald()
-    sage: a = M.P[1]^2
-    sage: mupad.mapcoeffs(a, 'normal')
+    sage: M = S.Macdonald()                                    # optional - mupad
+    sage: a = M.P[1]^2                                         # optional - mupad
+    sage: mupad.mapcoeffs(a, 'normal')                         # optional - mupad
                                  q - t + q t - 1
                           P[2] + --------------- P[1, 1]
                                      q t - 1
@@ -111,7 +111,7 @@ class Mupad(Expect):
         Create an instance of the MuPAD interpreter.
 
         EXAMPLES:
-            sage: mupad == loads(dumps(mupad))
+            sage: mupad == loads(dumps(mupad))                      # optional - mupad
             True
         """
         Expect.__init__(self,
@@ -136,9 +136,9 @@ class Mupad(Expect):
             sage: mupad._function_class()
             <class 'sage.interfaces.mupad.MupadFunction'>
 
-            sage: mdiff = mupad.diff; mdiff  #optional -- requires MuPAD
+            sage: mdiff = mupad.diff; mdiff  # optional - mupad
             diff
-            sage: type(mdiff) #optional
+            sage: type(mdiff)                # optional -- mupad
             <class 'sage.interfaces.mupad.MupadFunction'>
         """
         return MupadFunction
@@ -163,7 +163,7 @@ class Mupad(Expect):
             sage: f.write('x := 2;\n')
             sage: f.close()
             sage: mupad.read(filename)   #optional -- requires MuPAD
-            sage: mupad.get('x').strip() #optional
+            sage: mupad.get('x').strip() # optional - mupad
             '2'
 
         """
@@ -204,8 +204,8 @@ command-line version of MuPAD.
     def expect(self):
         """
         EXAMPLES:
-            sage: a = mupad(1)   #optional requires MuPAD
-            sage: mupad.expect() #optional
+            sage: a = mupad(1)   # optional - mupad
+            sage: mupad.expect() # optional - mupad
             <pexpect.spawn instance at 0x...>
         """
         return self._expect
@@ -230,7 +230,7 @@ command-line version of MuPAD.
     def eval(self, code, strip=True):
         """
         EXAMPLES:
-            sage: mupad.eval('2+2') #optional -- requires MuPAD
+            sage: mupad.eval('2+2')   # optional - mupad
                                                    4
 
         """
@@ -241,9 +241,9 @@ command-line version of MuPAD.
                    need_output=True):
         """
         EXAMPLES:
-            sage: mupad._eval_line('2+2')  #optional -- requires MuPAD
+            sage: mupad._eval_line('2+2')  # optional - mupad
             '                                       4'
-            sage: mupad._eval_line('x::asdf') #optional --requires MuPAD
+            sage: mupad._eval_line('x::asdf') # optional - mupad
             Traceback (most recent call last):
             ...
             RuntimeError: Unknown slot "x::asdf" [slot]
@@ -294,8 +294,8 @@ command-line version of MuPAD.
         Set the variable var to the given value.
 
         EXAMPLES:
-            sage: mupad.set('a', 4) #optional -- requires MuPAD
-            sage: mupad.get('a').strip() #optional
+            sage: mupad.set('a', 4) # optional - mupad
+            sage: mupad.get('a').strip() # optional - mupad
             '4'
         """
         cmd = '%s:=%s:'%(var,value)
@@ -309,8 +309,8 @@ command-line version of MuPAD.
         Get the value of the variable var.
 
         EXAMPLES:
-            sage: mupad.set('a', 4) #optional -- requires MuPAD
-            sage: mupad.get('a').strip() #optional
+            sage: mupad.set('a', 4) # optional - mupad
+            sage: mupad.get('a').strip() # optional - mupad
             '4'
 
         """
@@ -355,10 +355,10 @@ command-line version of MuPAD.
         Return list of all commands defined in MuPAD.
 
         EXAMPLES:
-            sage: cmds = mupad._commands()  #optional -- requires MuPAD
-            sage: len(cmds) > 100 #optional
+            sage: cmds = mupad._commands()  # optional - mupad
+            sage: len(cmds) > 100 # optional - mupad
             True
-            sage: 'diff' in cmds  #optional
+            sage: 'diff' in cmds  # optional - mupad
             True
         """
         try:
@@ -376,10 +376,10 @@ command-line version of MuPAD.
     def trait_names(self, verbose=True, use_disk_cache=True):
         """
         EXAMPLES:
-            sage: names = mupad.trait_names() #optional -- requires MuPAD
-            sage: len(names) > 100 #optional
+            sage: names = mupad.trait_names() # optional - mupad
+            sage: len(names) > 100 # optional - mupad
             True
-            sage: 'combinat' in names #optional
+            sage: 'combinat' in names # optional - mupad
             True
         """
         try:
@@ -406,7 +406,7 @@ command-line version of MuPAD.
     def completions(self, string, strip=False):
         """
         EXAMPLES:
-            sage: mupad.completions('linal') #optional -- requires MuPAD
+            sage: mupad.completions('linal') # optional - mupad
             ['linalg']
         """
         res = self.eval('_pref(Complete)("%s")'%string).strip()
@@ -444,7 +444,7 @@ class MupadFunction(ExpectFunction):
     def trait_names(self):
         """
         EXAMPLES:
-            sage: mupad.linalg.trait_names() #optional -- requires MuPAD
+            sage: mupad.linalg.trait_names() # optional - mupad
             ['addCol',
              'addRow',
              ...
@@ -458,8 +458,8 @@ class MupadFunctionElement(FunctionElement):
     def _sage_doc_(self):
         """
         EXAMPLES:
-            sage: x = mupad('x') #optional -- requires MuPAD
-            sage: x.diff._sage_doc_() #optional
+            sage: x = mupad('x') # optional - mupad
+            sage: x.diff._sage_doc_() # optional - mupad
             No help on diff available
 
         """
@@ -468,13 +468,13 @@ class MupadFunctionElement(FunctionElement):
     def __getattr__(self, attrname):
         """
         EXAMPLES:
-            sage: mupad.package('"MuPAD-Combinat"')  #optional -- requires MuPAD-Combinat
-            sage: combinat = mupad.combinat          #optional
-            sage: three = mupad(3)                   #optional
-            sage: type(three.combinat)               #optional
+            sage: mupad.package('"MuPAD-Combinat"')  # optional - mupad-Combinat
+            sage: combinat = mupad.combinat          # optional - mupad-Combinat
+            sage: three = mupad(3)                   # optional - mupad-Combinat
+            sage: type(three.combinat)               # optional - mupad-Combinat
             <class 'sage.interfaces.mupad.MupadFunctionElement'>
-            sage: tableaux = three.combinat.tableaux #optional
-            sage: type(tableaux)                     #optional
+            sage: tableaux = three.combinat.tableaux # optional - mupad-Combinat
+            sage: type(tableaux)                     # optional - mupad-Combinat
             <class 'sage.interfaces.mupad.MupadFunctionElement'>
         """
         P = self._obj.parent()
@@ -492,7 +492,7 @@ class MupadFunctionElement(FunctionElement):
     def trait_names(self):
         """
         EXAMPLES:
-            sage: three = mupad(3) #optional -- requires MuPAD
+            sage: three = mupad(3) # optional - mupad
             sage: 'list' in three.combinat.tableaux.trait_names() #optional
             True
         """
@@ -504,13 +504,13 @@ class MupadFunctionElement(FunctionElement):
     def __call__(self, *args):
         """
         EXAMPLES:
-            sage: mupad.package('"MuPAD-Combinat"') #optional -- requires MuPAD-Combinat
-            sage: combinat = mupad.combinat         #optional
-            sage: examples = mupad.examples         #optional
-            sage: S = examples.SymmetricFunctions() #optional
-            sage: type(S.omega)                     #optional
+            sage: mupad.package('"MuPAD-Combinat"') # optional - mupad-Combinat
+            sage: combinat = mupad.combinat         # optional - mupad-Combinat
+            sage: examples = mupad.examples         # optional - mupad-Combinat
+            sage: S = examples.SymmetricFunctions() # optional - mupad-Combinat
+            sage: type(S.omega)                     # optional - mupad-Combinat
             <class 'sage.interfaces.mupad.MupadFunctionElement'>
-            sage: S.omega(S.s[3])                   #optional
+            sage: S.omega(S.s[3])                   # optional - mupad-Combinat
             s[1, 1, 1]
         """
         P = self._obj.parent()
@@ -523,15 +523,15 @@ class MupadElement(ExpectElement):
     def __getattr__(self, attrname):
         """
         EXAMPLES:
-            sage: mupad.package('"MuPAD-Combinat"') #optional -- requires MuPAD-Combinat
+            sage: mupad.package('"MuPAD-Combinat"') # optional - mupad-Combinat
             sage: S = mupad.examples.SymmetricFunctions() #optional
-            sage: type(S)                           #optional
+            sage: type(S)                           # optional - mupad-Combinat
             <class 'sage.interfaces.mupad.MupadElement'>
-            sage: S.s                               #optional
+            sage: S.s                               # optional - mupad-Combinat
             (examples::SymmetricFunctions(Dom::ExpressionField()))::s
 
-            sage: x = mupad('x')                    #optional
-            sage: x.diff(x)                         #optional
+            sage: x = mupad('x')                    # optional - mupad-Combinat
+            sage: x.diff(x)                         # optional - mupad-Combinat
                                        1
 
         """
@@ -558,9 +558,9 @@ class MupadElement(ExpectElement):
     def trait_names(self):
         """
         EXAMPLES:
-            sage: mupad.package('"MuPAD-Combinat"')       #optional -- requires MuPAD-Combinat
-            sage: S = mupad.examples.SymmetricFunctions() #optional
-            sage: 'HallLittlewood' in S.trait_names()     #optional
+            sage: mupad.package('"MuPAD-Combinat"')       # optional - mupad-Combinat
+            sage: S = mupad.examples.SymmetricFunctions() # optional - mupad-Combinat
+            sage: 'HallLittlewood' in S.trait_names()     # optional - mupad-Combinat
             True
         """
         res = self.parent().completions(self.name()+"::", strip=True)
@@ -569,8 +569,8 @@ class MupadElement(ExpectElement):
     def __repr__(self):
         """
         EXAMPLES:
-            sage: mupad.package('"MuPAD-Combinat"')  #optional -- requires MuPAD-Combinat
-            sage: S = mupad.examples.SymmetricFunctions(); S #optional
+            sage: mupad.package('"MuPAD-Combinat"')  # optional - mupad-Combinat
+            sage: S = mupad.examples.SymmetricFunctions(); S # optional - mupad-Combinat
             examples::SymmetricFunctions(Dom::ExpressionField())
         """
         self._check_valid()
@@ -579,9 +579,9 @@ class MupadElement(ExpectElement):
     def _latex_(self):
         r"""
         EXAMPLES:
-            sage: mupad.package('"MuPAD-Combinat"') #optional -- requires MuPAD-Combinat
-            sage: S = mupad.examples.SymmetricFunctions() #optional
-            sage: latex(S) #optional
+            sage: mupad.package('"MuPAD-Combinat"') # optional - mupad-Combinat
+            sage: S = mupad.examples.SymmetricFunctions() # optional - mupad-Combinat
+            sage: latex(S) # optional - mupad-Combinat
             \mathrm{examples}{::}\mathrm{SymmetricFunctions}\left(\mathbb{E}\right)
         """
         self._check_valid()
@@ -626,11 +626,11 @@ def __doctest_cleanup():
     """
     EXAMPLES:
         sage: from sage.interfaces.mupad import __doctest_cleanup
-        sage: m = mupad(2)         #optional -- requires MuPAD
-        sage: mupad.is_running()   #optional
+        sage: m = mupad(2)         # optional - mupad
+        sage: mupad.is_running()   # optional - mupad
         True
         sage: __doctest_cleanup()
-        sage: mupad.is_running()
+        sage: mupad.is_running()   # optional - mupad
         False
     """
     import sage.interfaces.quit

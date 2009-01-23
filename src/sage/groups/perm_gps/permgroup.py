@@ -1033,7 +1033,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.cohomology_part(7,2)                   # optional - gap_packages
             Multiplicative Abelian Group isomorphic to C2 x C2 x C2
             sage: G = SymmetricGroup(3)
-            sage: G.cohomology_part(2,3)
+            sage: G.cohomology_part(2,3)                   # optional - gap_packages
             Multiplicative Abelian Group isomorphic to C3
 
         AUTHORS:

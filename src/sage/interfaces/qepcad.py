@@ -1,5 +1,5 @@
 r"""
-Interface to QEPCAD B
+Interface to QEPCAD
 
 The basic function of QEPCAD is to construct cylindrical algebraic
 decompositions (CADs) of $\RR^k$, given a list of polynomials.  Using
@@ -71,12 +71,12 @@ sage: F = qf.exists(y, ellipse == 0); F
 
 Then we run qepcad to get the answer.
 
-sage: qepcad(F)
+sage: qepcad(F)                            # optional - qepcad
 8 x^2 - 8 x - 29 <= 0
 
 How about the projection onto the $y$ axis?
 
-sage: qepcad(qf.exists(x, ellipse == 0))
+sage: qepcad(qf.exists(x, ellipse == 0))   # optional - qepcad
 8 y^2 + 16 y - 85 <= 0
 
 QEPCAD deals with more quantifiers than just ``exists'', of course.
@@ -92,9 +92,9 @@ sage: circle = x^2 + y^2 - 3
 For what values $k$ does a vertical line $x=k$ intersect the combined
 figure of the circle and ellipse exactly three times?
 
-sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F
+sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F    # optional - qepcad
 (X3 y)[(y^2 + x^2 - 3) (y^2 + 2 x y + y + 3 x^2 - x - 7) = 0]
-sage: qepcad(F)
+sage: qepcad(F)                                           # optional - qepcad
 8 x^2 - 8 x - 29 <= 0 /\ x^2 - 3 <= 0 /\ 8 x^4 - 26 x^2 - 4 x + 13 >= 0 /\ [ 8 x^4 - 26 x^2 - 4 x + 13 = 0 \/ x^2 - 3 = 0 \/ 8 x^2 - 8 x - 29 = 0 ]
 
 Here we see that the solutions are among the eight ($4 + 2 + 2$) roots
@@ -115,7 +115,7 @@ input.  We can request output that's intended to be easy to interpret
 geometrically; then QEPCAD will use the extended language to produce
 a solution formula without the selection polynomials.
 
-sage: qepcad(F, solution='geometric')
+sage: qepcad(F, solution='geometric')                          # optional - qepcad
 x = _root_1 8 x^2 - 8 x - 29
 \/
 8 x^4 - 26 x^2 - 4 x + 13 = 0
@@ -130,9 +130,9 @@ the circle.
 Let's do some basic formula simplification and visualization.
 We'll look at the region which is inside both the ellipse and the circle:
 
-sage: F = qf.and_(ellipse < 0, circle < 0); F
+sage: F = qf.and_(ellipse < 0, circle < 0); F                     # optional - qepcad
 [y^2 + 2 x y + y + 3 x^2 - x - 7 < 0 /\ y^2 + x^2 - 3 < 0]
-sage: qepcad(F)
+sage: qepcad(F)                                                   # optional - qepcad
 y^2 + 2 x y + y + 3 x^2 - x - 7 < 0 /\ y^2 + x^2 - 3 < 0
 
 We get back the same formula we put in.  This is not surprising (we
@@ -141,7 +141,7 @@ enlightening either.  Again, if we ask for a 'geometric' output, then we see
 an output that lets us understand something about the shape of the solution
 set.
 
-sage: qepcad(F, solution='geometric')
+sage: qepcad(F, solution='geometric')                             # optional - qepcad
 [
   [
     x = _root_-2 8 x^4 - 26 x^2 - 4 x + 13
@@ -170,9 +170,9 @@ structure, it also can be more efficient to construct.  Consider this
 formula for the projection of a particular semicircle onto the $x$
 axis:
 
-sage: F = qf.exists(y, qf.and_(circle == 0, x + y > 0)); F
+sage: F = qf.exists(y, qf.and_(circle == 0, x + y > 0)); F                # optional - qepcad
 (E y)[y^2 + x^2 - 3 = 0 /\ y + x > 0]
-sage: qepcad(F)
+sage: qepcad(F)                                                           # optional - qepcad
 x^2 - 3 <= 0 /\ [ x > 0 \/ 2 x^2 - 3 < 0 ]
 
 Here, the formula $x > 0$ had to be introduced in order to get a
@@ -182,7 +182,7 @@ with a solution formula, we can tell it to use the extended language;
 it's always possible to construct a solution formula in the extended
 language without introducing new polynomials.
 
-sage: qepcad(F, solution='extended')
+sage: qepcad(F, solution='extended')                                      # optional - qepcad
 x^2 - 3 <= 0 /\ x > _root_1 2 x^2 - 3
 
 Up to this point, all the output we've seen has basically been in the
@@ -207,7 +207,7 @@ often have many more points than that.)
 Let's revisit some of the above examples and get some points to play
 with.  We'll start by finding a point on our ellipse.
 
-sage: p = qepcad(ellipse == 0, solution='any-point'); p
+sage: p = qepcad(ellipse == 0, solution='any-point'); p                       # optional - qepcad
 {'y': 0.9685019685029527?, 'x': -1.468501968502953?}
 
 (Note that despite the decimal printing and the question marks, these
@@ -217,13 +217,13 @@ We can verify that this point is a solution.  To do so, we create
 a copy of ellipse as a polynomial over QQ (instead of a symbolic
 expresision).
 
-sage: pellipse = QQ['x,y'](ellipse)
-sage: pellipse(**p) == 0
+sage: pellipse = QQ['x,y'](ellipse)                                           # optional - qepcad
+sage: pellipse(**p) == 0                                                      # optional - qepcad
 True
 
 For cell-points, let's look at points \emph{not} on the ellipse.
 
-sage: pts = qepcad(ellipse != 0, solution='cell-points'); pts
+sage: pts = qepcad(ellipse != 0, solution='cell-points'); pts                 # optional - qepcad
 [{'y': 0, 'x': 4}, {'y': 1, 'x': 2.468501968502953?}, {'y': -9, 'x': 2.468501968502953?}, {'y': 9, 'x': 1/2}, {'y': -1, 'x': 1/2}, {'y': -5, 'x': 1/2}, {'y': 3, 'x': -1.468501968502953?}, {'y': -1, 'x': -1.468501968502953?}, {'y': 0, 'x': -3}]
 
 For the points here which are in full-dimensional cells, QEPCAD has the
@@ -231,34 +231,34 @@ freedom to choose rational sample points, and it does so.
 
 And, of course, all these points really are not on the ellipse.
 
-sage: [pellipse(**p) != 0 for p in pts]
+sage: [pellipse(**p) != 0 for p in pts]                                       # optional - qepcad
 [True, True, True, True, True, True, True, True, True]
 
 Finally, for all-points, let's look again at finding vertical lines that
 intersect the union of the circle and the ellipse exactly three times.
 
-sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F
+sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F                       # optional - qepcad
 (X3 y)[(y^2 + x^2 - 3) (y^2 + 2 x y + y + 3 x^2 - x - 7) = 0]
-sage: pts = qepcad(F, solution='all-points'); pts
+sage: pts = qepcad(F, solution='all-points'); pts                            # optional - qepcad
 [{'x': 1.732050807568878?}, {'x': 1.731054913462534?}, {'x': 0.678911384208004?}, {'x': -0.9417727377417167?}, {'x': -1.468193559928821?}, {'x': -1.468501968502953?}]
 
 Since $y$ is bound by the quantifier, the solutions only refer to $x$.
 
 We can substitute one of these solutions into the original equation:
 
-sage: pt = pts[0]
-sage: pcombo = QQ['x,y'](circle * ellipse)
-sage: intersections = pcombo(y=polygen(AA, 'y'), **pt); intersections
+sage: pt = pts[0]                                                           # optional - qepcad
+sage: pcombo = QQ['x,y'](circle * ellipse)                                  # optional - qepcad
+sage: intersections = pcombo(y=polygen(AA, 'y'), **pt); intersections       # optional - qepcad
 y^4 + 4.464101615137755?*y^3 + 0.2679491924311227?*y^2
 
 and verify that it does have three roots:
 
-sage: intersections.roots()
+sage: intersections.roots()                                                 # optional - qepcad
 [(-4.403249005600958?, 1), (-0.06085260953679653?, 1), (0, 2)]
 
 Let's check all six solutions.
 
-sage: [len(pcombo(y=polygen(AA, 'y'), **p).roots()) for p in pts]
+sage: [len(pcombo(y=polygen(AA, 'y'), **p).roots()) for p in pts]          # optional - qepcad
 [3, 3, 3, 3, 3, 3]
 
 We said earlier that we can run QEPCAD either automatically or
@@ -270,7 +270,7 @@ instead of returning a result, it returns an object of class
 \class{Qepcad} representing a running instance of QEPCAD that you can
 interact with.  For example:
 
-sage: qe = qepcad(qf.forall(x, x^2 + b*x + c > 0), interact=True); qe
+sage: qe = qepcad(qf.forall(x, x^2 + b*x + c > 0), interact=True); qe     # optional - qepcad
 QEPCAD object in phase 'Before Normalization'
 
 This object is a fairly thin wrapper over QEPCAD; most QEPCAD commands
@@ -287,7 +287,7 @@ not available during all phases.  We saw above that QEPCAD starts out
 in phase `Before Normalization'; we see that the \code{d_cell} command
 is not available in this phase:
 
-sage: qe.d_cell()
+sage: qe.d_cell()                                                         # optional - qepcad
 Error GETCID: This command is not active here.
 
 We will focus here on the fourth (and last) phase, `Before Solution',
@@ -301,11 +301,11 @@ command, which partially completes a phase for phases that have
 multiple steps, and the \code{finish} command, which runs QEPCAD to
 completion.)
 
-sage: qe.go()
+sage: qe.go()                                                             # optional - qepcad
 QEPCAD object has moved to phase 'Before Projection (x)'
-sage: qe.go()
+sage: qe.go()                                                             # optional - qepcad
 QEPCAD object has moved to phase 'Before Choice'
-sage: qe.go()
+sage: qe.go()                                                             # optional - qepcad
 QEPCAD object has moved to phase 'Before Solution'
 
 Note that the \class{Qepcad} object returns the new phase whenever the
@@ -313,17 +313,17 @@ phase changes, as a convenience for interactive use; except that when
 the new phase is `EXITED', the solution formula printed by QEPCAD is
 returned instead.
 
-sage: qe.go()
+sage: qe.go()                                                             # optional - qepcad
 4 c - b^2 > 0
-sage: qe
+sage: qe                                                                  # optional - qepcad
 QEPCAD object in phase 'EXITED'
 
 Let's pick a nice, simple example, return to phase 4, and explore the
 resulting \var{qe} object.
 
-sage: qe = qepcad(circle == 0, interact=True); qe
+sage: qe = qepcad(circle == 0, interact=True); qe                         # optional - qepcad
 QEPCAD object in phase 'Before Normalization'
-sage: qe.go(); qe.go(); qe.go()
+sage: qe.go(); qe.go(); qe.go()                                           # optional - qepcad
 QEPCAD object has moved to phase 'Before Projection (y)'
 QEPCAD object has moved to phase 'Before Choice'
 QEPCAD object has moved to phase 'Before Solution'
@@ -356,7 +356,7 @@ the circle has index (3,3).
 We can view these cells with the QEPCAD command \code{d_cell}.  For
 instance, let's look at the cell for the upper semicircle:
 
-sage: qe.d_cell(3, 4)
+sage: qe.d_cell(3, 4)                                                        # optional - qepcad
 ---------- Information about the cell (3,4) ----------
 Level                       : 2
 Dimension                   : 1
@@ -389,27 +389,27 @@ For programmatic access to cells, we've defined a \sage wrapper class
 \class{QepcadCell}.  These cells can be created with the \method{cell}
 method; for example:
 
-sage: c = qe.cell(3, 4); c
+sage: c = qe.cell(3, 4); c                                       # optional - qepcad
 QEPCAD cell (3, 4)
 
 A \class{QepcadCell} has accessor methods for the important state held
 within a cell.  For instance:
 
-sage: c.level()
+sage: c.level()                                                  # optional - qepcad
 2
-sage: c.index()
+sage: c.index()                                                  # optional - qepcad
 (3, 4)
-sage: qe.cell(3).number_of_children()
+sage: qe.cell(3).number_of_children()                            # optional - qepcad
 5
-sage: len(qe.cell(3))
+sage: len(qe.cell(3))                                            # optional - qepcad
 5
 
 One particularly useful thing we can get from a cell is its sample point,
 as \sage algebraic real numbers.
 
-sage: c.sample_point()
+sage: c.sample_point()                                           # optional - qepcad
 (0, 1.732050807568878?)
-sage: c.sample_point_dict()
+sage: c.sample_point_dict()                                      # optional - qepcad
 {'y': 1.732050807568878?, 'x': 0}
 
 We've seen that we can get cells using the \method{cell} method.
@@ -417,7 +417,7 @@ There are several QEPCAD commands that print lists of cells; we can
 also get cells using the \method{make_cells} method, passing it the
 output of one of these commands.
 
-sage: qe.make_cells(qe.d_true_cells())
+sage: qe.make_cells(qe.d_true_cells())                          # optional - qepcad
 [QEPCAD cell (4, 2), QEPCAD cell (3, 4), QEPCAD cell (3, 2), QEPCAD cell (2, 2)]
 
 Also, the cells in the stack over a given cell can be accessed using
@@ -425,10 +425,10 @@ array subscripting or iteration.  (Remember that cells in a stack are
 numbered starting with one; we preserve this convention in the
 array-subscripting syntax.)
 
-sage: c = qe.cell(3)
-sage: c[1]
+sage: c = qe.cell(3)                                           # optional - qepcad
+sage: c[1]                                                     # optional - qepcad
 QEPCAD cell (3, 1)
-sage: [c2 for c2 in c]
+sage: [c2 for c2 in c]                                         # optional - qepcad
 [QEPCAD cell (3, 1), QEPCAD cell (3, 2), QEPCAD cell (3, 3), QEPCAD cell (3, 4), QEPCAD cell (3, 5)]
 
 We can do one more thing with a cell: we can set its truth value.
@@ -442,17 +442,17 @@ ellipse.  Suppose you want to find all vertical lines that intersect
 the circle twice, and also intersect the ellipse twice.  The vertical
 lines that intersect the circle twice can be found by simplifying:
 
-sage: F = qf.exactly_k(2, y, circle == 0); F
+sage: F = qf.exactly_k(2, y, circle == 0); F                     # optional - qepcad
 (X2 y)[y^2 + x^2 - 3 = 0]
 
 and the vertical lines that intersect the ellipse twice are expressed by:
 
-sage: G = qf.exactly_k(2, y, ellipse == 0); G
+sage: G = qf.exactly_k(2, y, ellipse == 0); G                   # optional - qepcad
 (X2 y)[y^2 + 2 x y + y + 3 x^2 - x - 7 = 0]
 
 and the lines that intersect both figures would be:
 
-sage: qf.and_(F, G)
+sage: qf.and_(F, G)                                            # optional - qepcad
 Traceback (most recent call last):
 ...
 ValueError: QEPCAD formulas must be in prenex (quantifiers outermost) form
@@ -465,8 +465,8 @@ and set the truth values ourselves.  (The exact formula we use doesn't
 matter, since we're going to replace the truth values in the cells; we
 just need to use a formula that uses both polynomials.)
 
-sage: qe = qepcad(qf.and_(ellipse == 0, circle == 0), interact=True)
-sage: qe.go(); qe.go(); qe.go()
+sage: qe = qepcad(qf.and_(ellipse == 0, circle == 0), interact=True)       # optional - qepcad
+sage: qe.go(); qe.go(); qe.go()                                            # optional - qepcad
 QEPCAD object has moved to phase 'Before Projection (y)'
 QEPCAD object has moved to phase 'Before Choice'
 QEPCAD object has moved to phase 'Before Solution'
@@ -477,7 +477,7 @@ also contains exactly two cells on the circle.
 
 Our input polynomials are ``level-2 projection factors'', we see:
 
-sage: qe.d_proj_factors()
+sage: qe.d_proj_factors()                                                 # optional - qepcad
 P_1,1  = fac(J_1,1) = fac(dis(A_2,1))
        = 8 x^2 - 8 x - 29
 P_1,2  = fac(J_1,2) = fac(dis(A_2,2))
@@ -493,24 +493,24 @@ so we can test whether a cell is on the ellipse by checking that the
 sign of the corresponding projection factor is 0 in our cell.
 For instance, the cell (12,2) is on the ellipse:
 
-sage: qe.cell(12,2).signs()[1][0]
+sage: qe.cell(12,2).signs()[1][0]                                          # optional - qepcad
 0
 
 So we can update the truth values as desired like this:
 
-sage: for c in qe.cell():
-...       count_ellipse = 0
-...       count_circle = 0
-...       for c2 in c:
-...           count_ellipse += (c2.signs()[1][0] == 0)
-...           count_circle += (c2.signs()[1][1] == 0)
-...       c.set_truth(count_ellipse == 2 and count_circle == 2)
+sage: for c in qe.cell():                                                 # optional - qepcad
+...       count_ellipse = 0                                               # optional - qepcad
+...       count_circle = 0                                                # optional - qepcad
+...       for c2 in c:                                                    # optional - qepcad
+...           count_ellipse += (c2.signs()[1][0] == 0)                    # optional - qepcad
+...           count_circle += (c2.signs()[1][1] == 0)                     # optional - qepcad
+...       c.set_truth(count_ellipse == 2 and count_circle == 2)           # optional - qepcad
 
 and then we can get our desired solution formula.  (The 'G' stands for
 'geometric', and gives solutions using the same rules as
 \code{solution='geometric'} described above.)
 
-sage: qe.solution_extension('G')
+sage: qe.solution_extension('G')                                         # optional - qepcad
 8 x^2 - 8 x - 29 < 0
 /\
 x^2 - 3 < 0
@@ -569,8 +569,8 @@ def _update_command_info():
 
     EXAMPLES:
         sage: from sage.interfaces.qepcad import _update_command_info, _command_info_cache
-        sage: _update_command_info() # optional
-        sage: _command_info_cache['approx_precision'] # optional
+        sage: _update_command_info()                         # optional - qepcad
+        sage: _command_info_cache['approx_precision']        # optional - qepcad
         ('46', 'abcde', 'm', 'approx-precision N\n\nApproximate algeraic numbers to N decimal places.\n', None)
     """
     global _command_info_cache
@@ -738,7 +738,7 @@ class Qepcad:
 
         EXAMPLES:
             sage: from sage.interfaces.qepcad import Qepcad
-            sage: Qepcad(x^2 - 1 == 0) # optional
+            sage: Qepcad(x^2 - 1 == 0)                     # optional - qepcad
             QEPCAD object in phase 'Before Normalization'
         """
         self._cell_cache = {}
@@ -797,7 +797,7 @@ class Qepcad:
         Return a string representation of this \class{Qepcad} object.
 
         EXAMPLES:
-            sage: qepcad(x - 1 == 0, interact=True) # optional
+            sage: qepcad(x - 1 == 0, interact=True) # optional - qepcad
             QEPCAD object in phase 'Before Normalization'
         """
         return "QEPCAD object in phase '%s'"%self.phase()
@@ -822,9 +822,9 @@ class Qepcad:
             sage: var('a,b,c,x')
             (a, b, c, x)
             sage: qf = qepcad_formula
-            sage: qe = qepcad(qf.exists(x, a*x^2 + b*x + c == 0), interact=True) # optional
-            sage: qe.assume(a != 0) # optional
-            sage: qe.finish() # optional
+            sage: qe = qepcad(qf.exists(x, a*x^2 + b*x + c == 0), interact=True) # optional - qepcad
+            sage: qe.assume(a != 0) # optional - qepcad
+            sage: qe.finish() # optional - qepcad
             4 a c - b^2 <= 0
         """
         if not isinstance(assume, str):
@@ -857,13 +857,13 @@ class Qepcad:
             (x, y)
             sage: qf = qepcad_formula
             sage: qe = qepcad(qf.and_(x^2 + y^2 - 3 == 0, x + y > 0), interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.solution_extension('E') # optional
+            sage: qe.solution_extension('E') # optional - qepcad
             x > _root_1 2 x^2 - 3 /\ y^2 + x^2 - 3 = 0 /\ [ 2 x^2 - 3 > 0 \/ y = _root_-1 y^2 + x^2 - 3 ]
-            sage: qe.solution_extension('G') # optional
+            sage: qe.solution_extension('G') # optional - qepcad
             [
               [
                 2 x^2 - 3 < 0
@@ -881,7 +881,7 @@ class Qepcad:
               /\
               y^2 + x^2 - 3 = 0
             ]
-            sage: qe.solution_extension('T') # optional
+            sage: qe.solution_extension('T') # optional - qepcad
             y + x > 0 /\ y^2 + x^2 - 3 = 0
         """
         if kind == 'I':
@@ -902,12 +902,12 @@ class Qepcad:
         1 (true), and 2 (undetermined).
 
         EXAMPLES:
-            sage: qe = qepcad(x == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x == 1, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'At the end of projection phase'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.set_truth_value(1, 1) # optional
+            sage: qe.set_truth_value(1, 1) # optional - qepcad
         """
         index_str = _format_cell_index([index])
         self._eval_line('set-truth-value\n%s\n%s' % (index_str, nv))
@@ -917,24 +917,24 @@ class Qepcad:
         Return the current phase of the QEPCAD program.
 
         EXAMPLES:
-            sage: qe = qepcad(x > 2/3, interact=True) # optional
-            sage: qe.phase() # optional
+            sage: qe = qepcad(x > 2/3, interact=True) # optional - qepcad
+            sage: qe.phase() # optional - qepcad
             'Before Normalization'
             sage: qe.go() # optional
             QEPCAD object has moved to phase 'At the end of projection phase'
-            sage: qe.phase() # optional
+            sage: qe.phase() # optional  - qepcad
             'At the end of projection phase'
             sage: qe.go() # optional
             QEPCAD object has moved to phase 'Before Choice'
-            sage: qe.phase() # optional
+            sage: qe.phase() # optional - qepcad
             'Before Choice'
             sage: qe.go() # optional
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.phase() # optional
+            sage: qe.phase() # optional - qepcad
             'Before Solution'
-            sage: qe.go() # optional
+            sage: qe.go() # optional - qepcad
             3 x - 2 > 0
-            sage: qe.phase() # optional
+            sage: qe.phase() # optional - qepcad
             'EXITED'
         """
         match = self._qex.expect().match
@@ -951,13 +951,13 @@ class Qepcad:
         (both as strings).
 
         EXAMPLES:
-            sage: qe = qepcad(x^2 > 2, interact=True) # optional
-            sage: qe.finish() # optional
+            sage: qe = qepcad(x^2 > 2, interact=True) # optional - qepcad
+            sage: qe.finish() # optional - qepcad
             x^2 - 2 > 0
-            sage: (ans, stats) = qe._parse_answer_stats() # optional
-            sage: ans # optional
+            sage: (ans, stats) = qe._parse_answer_stats() # optional - qepcad
+            sage: ans # optional - qepcad
             'x^2 - 2 > 0'
-            sage: stats # random, optional
+            sage: stats # random, optional - qepcad
             '-----------------------------------------------------------------------------\r\n0 Garbage collections, 0 Cells and 0 Arrays reclaimed, in 0 milliseconds.\r\n492514 Cells in AVAIL, 500000 Cells in SPACE.\r\n\r\nSystem time: 16 milliseconds.\r\nSystem time after the initialization: 4 milliseconds.\r\n-----------------------------------------------------------------------------\r\n'
         """
         if self.phase() != 'EXITED':
@@ -977,10 +977,10 @@ class Qepcad:
         exiting.
 
         EXAMPLES:
-            sage: qe = qepcad(x^3 - x == 0, interact=True) # optional
-            sage: qe.finish() # optional
+            sage: qe = qepcad(x^3 - x == 0, interact=True) # optional - qepcad
+            sage: qe.finish() # optional - qepcad
             x - 1 <= 0 /\ x + 1 >= 0 /\ [ x = 0 \/ x - 1 = 0 \/ x + 1 = 0 ]
-            sage: qe.answer() # optional
+            sage: qe.answer() # optional - qepcad
             x - 1 <= 0 /\ x + 1 >= 0 /\ [ x = 0 \/ x - 1 = 0 \/ x + 1 = 0 ]
         """
         return AsciiArtString(self._parse_answer_stats()[0])
@@ -1010,10 +1010,10 @@ class Qepcad:
         extra methods on a \class{Qepcad} object.
 
         EXAMPLES:
-            sage: qe = qepcad(x^2 < 0, interact=True) # optional
-            sage: len(qe.trait_names()) # optional, random
+            sage: qe = qepcad(x^2 < 0, interact=True) # optional - qepcad
+            sage: len(qe.trait_names()) # random, optional - qepcad
             97
-            sage: 'd_cell' in qe.trait_names() # optional
+            sage: 'd_cell' in qe.trait_names() # optional - qepcad
             True
         """
         _update_command_info()
@@ -1025,14 +1025,14 @@ class Qepcad:
         cell.  Uses a cache for efficiency.
 
         EXAMPLES:
-            sage: qe = qepcad(x + 3 == 42, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x + 3 == 42, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'At the end of projection phase'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.cell(2) # optional
+            sage: qe.cell(2) # optional - qepcad
             QEPCAD cell (2)
-            sage: qe.cell(2) is qe.cell(2) # optional
+            sage: qe.cell(2) is qe.cell(2) # optional - qepcad
             True
         """
         index_str = _format_cell_index(index)
@@ -1052,12 +1052,12 @@ class Qepcad:
         EXAMPLES:
             sage: var('x,y')
             (x, y)
-            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.make_cells(qe.d_false_cells()) # optional
+            sage: qe.make_cells(qe.d_false_cells()) # optional - qepcad
             [QEPCAD cell (5, 1), QEPCAD cell (4, 3), QEPCAD cell (4, 1), QEPCAD cell (3, 5), QEPCAD cell (3, 3), QEPCAD cell (3, 1), QEPCAD cell (2, 3), QEPCAD cell (2, 1), QEPCAD cell (1, 1)]
         """
         # get rid of AsciiArtString
@@ -1086,8 +1086,8 @@ class Qepcad:
         Returns a \class{QepcadFunction} object for any QEPCAD command.
 
         EXAMPLES:
-            sage: qe = qepcad(x^3 == 8, interact=True) # optional
-            sage: qe.d_cell # optional
+            sage: qe = qepcad(x^3 == 8, interact=True) # optional - qepcad
+            sage: qe.d_cell # optional - qepcad
             d_cell
         """
         if attrname[:1] == "_":
@@ -1103,8 +1103,8 @@ class Qepcad:
         direct use.
 
         EXAMPLES:
-            sage: qe = qepcad(x^2 == x^3, interact=True) # optional
-            sage: qe._eval_line('d-formula') # optional
+            sage: qe = qepcad(x^2 == x^3, interact=True) # optional - qepcad
+            sage: qe._eval_line('d-formula') # optional - qepcad
             '-x^3 + x^2 = 0'
         """
         # Evidently when the QEPCAD command parser reads a command, it
@@ -1155,11 +1155,11 @@ class Qepcad:
         to QEPCAD and return the result.  Not intended for direct use.
 
         EXAMPLES:
-            sage: qe = qepcad(x^2 - 1 == 0, interact=True) # optional
-            sage: qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 - 1 == 0, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'At the end of projection phase'
             QEPCAD object has moved to phase 'Before Choice'
-            sage: qe._function_call('d_level_factors', (1,)) # optional
+            sage: qe._function_call('d_level_factors', (1,)) # optional - qepcad
             A_1,1  = input
                    = x + 1
             A_1,2  = input
@@ -1188,13 +1188,13 @@ def _format_cell_index(a):
     EXAMPLES:
         sage: from sage.interfaces.qepcad import _format_cell_index
 
-        sage: qe = qepcad(x == 0, interact=True); qe.go(); qe.go(); qe.go() # optional
+        sage: qe = qepcad(x == 0, interact=True); qe.go(); qe.go(); qe.go() # optional - qepcad
         QEPCAD object has moved to phase 'At the end of projection phase'
         QEPCAD object has moved to phase 'Before Choice'
         QEPCAD object has moved to phase 'Before Solution'
-        sage: _format_cell_index(qe.cell(1)) # optional
+        sage: _format_cell_index(qe.cell(1)) # optional - qepcad
         '(1)'
-        sage: _format_cell_index((qe.cell(1), 2, 3)) # optional
+        sage: _format_cell_index((qe.cell(1), 2, 3)) # optional - qepcad
         '(1, 2, 3)'
         sage: _format_cell_index(())
         '()'
@@ -1219,9 +1219,9 @@ class QepcadFunction(ExpectFunction):
         \file{qepcad.help}.
 
         EXAMPLES:
-            sage: qe = qepcad(x == 17, interact=True) # optional
-            sage: cmd = qe.approx_precision # optional
-            sage: cmd._sage_doc_() # optional
+            sage: qe = qepcad(x == 17, interact=True) # optional - qepcad
+            sage: cmd = qe.approx_precision # optional - qepcad
+            sage: cmd._sage_doc_() # optional - qepcad
             'approx-precision N\n\nApproximate algeraic numbers to N decimal places.\n'
         """
         _update_command_info()
@@ -1237,9 +1237,9 @@ class QepcadFunction(ExpectFunction):
         after reading \file{qepcad.help}.)
 
         EXAMPLES:
-            sage: qe = qepcad(x^2 < 1, interact=True) # optional
-            sage: cmd = qe.d_formula # optional
-            sage: cmd.__call__() # optional
+            sage: qe = qepcad(x^2 < 1, interact=True) # optional - qepcad
+            sage: cmd = qe.d_formula # optional - qepcad
+            sage: cmd.__call__() # optional - qepcad
             x^2 - 1 < 0
         """
         _update_command_info()
@@ -1460,7 +1460,7 @@ def qepcad_banner():
 
     EXAMPLES:
         sage: from sage.interfaces.qepcad import qepcad_banner
-        sage: qepcad_banner() # optional
+        sage: qepcad_banner() # optional - qepcad
         =======================================================
                         Quantifier Elimination
                                   in
@@ -1488,11 +1488,11 @@ def qepcad_version():
     Return a string containing the current QEPCAD version number.
 
     EXAMPLES:
-        sage: qepcad_version() # optional, random
+        sage: qepcad_version() # random, optional - qepcad
         'Version B 1.48, 25 Oct 2007'
 
     TESTS:
-        sage: qepcad_version() # optional
+        sage: qepcad_version() # optional - qepcad
         'Version B ..., ...'
     """
     banner = str(qepcad_banner())
@@ -2083,12 +2083,12 @@ class QepcadCell:
             sage: from sage.interfaces.qepcad import QepcadCell
             sage: var('a,b')
             (a, b)
-            sage: qe = qepcad(a^2 + b^2 == 5, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(a^2 + b^2 == 5, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (b)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.d_cell(4, 3) # optional
+            sage: qe.d_cell(4, 3) # optional - qepcad
             ---------- Information about the cell (4,3) ----------
             Level                       : 2
             Dimension                   : 1
@@ -2111,7 +2111,7 @@ class QepcadCell:
                          = 1.0000000000
             ----------------------------------------------------
 
-            sage: QepcadCell(qe, str(qe.d_cell(4, 3)).splitlines()) # optional
+            sage: QepcadCell(qe, str(qe.d_cell(4, 3)).splitlines()) # optional - qepcad
             QEPCAD cell (4, 3)
         """
         self._parent = parent
@@ -2200,12 +2200,12 @@ class QepcadCell:
         EXAMPLES:
             sage: var('x,y')
             (x, y)
-            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: [c.sample_point() for c in qe.cell(3)] # optional
+            sage: [c.sample_point() for c in qe.cell(3)] # optional - qepcad
             [(0, -3), (0, -1), (0, -1/2), (0, 1), (0, 3)]
         """
         for i in range(1, self._number_of_children + 1):
@@ -2238,14 +2238,14 @@ class QepcadCell:
         EXAMPLES:
             sage: var('x,y')
             (x, y)
-            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: len(qe.cell()) # optional
+            sage: len(qe.cell()) # optional - qepcad
             5
-            sage: [len(c) for c in qe.cell()] # optional
+            sage: [len(c) for c in qe.cell()] # optional - qepcad
             [1, 3, 5, 3, 1]
         """
         return self._number_of_children
@@ -2258,16 +2258,16 @@ class QepcadCell:
         EXAMPLES:
             sage: var('x,y')
             (x, y)
-            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.cell() # optional
+            sage: qe.cell() # optional - qepcad
             QEPCAD cell ()
-            sage: qe.cell(1) # optional
+            sage: qe.cell(1) # optional - qepcad
             QEPCAD cell (1)
-            sage: qe.cell(2, 2) # optional
+            sage: qe.cell(2, 2) # optional - qepcad
             QEPCAD cell (2, 2)
         """
         ind = self.index()
@@ -2284,16 +2284,16 @@ class QepcadCell:
         EXAMPLES:
             sage: var('x,y')
             (x, y)
-            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.cell().index() # optional
+            sage: qe.cell().index() # optional - qepcad
             ()
-            sage: qe.cell(1).index() # optional
+            sage: qe.cell(1).index() # optional - qepcad
             (1,)
-            sage: qe.cell(2, 2).index() # optional
+            sage: qe.cell(2, 2).index() # optional - qepcad
             (2, 2)
         """
         return self._index
@@ -2305,16 +2305,16 @@ class QepcadCell:
         EXAMPLES:
             sage: var('x,y')
             (x, y)
-            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.cell().level() # optional
+            sage: qe.cell().level() # optional - qepcad
             0
-            sage: qe.cell(1).level() # optional
+            sage: qe.cell(1).level() # optional - qepcad
             1
-            sage: qe.cell(2, 2).level() # optional
+            sage: qe.cell(2, 2).level() # optional - qepcad
             2
         """
         return self._level
@@ -2329,14 +2329,14 @@ class QepcadCell:
         EXAMPLES:
             sage: var('x,y')
             (x, y)
-            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
             sage: from sage.interfaces.qepcad import QepcadCell
-            sage: all_cells = flatten(qe.cell(), ltypes=QepcadCell, max_level=1) # optional
-            sage: [(c, c.signs()[1][0]) for c in all_cells] # optional
+            sage: all_cells = flatten(qe.cell(), ltypes=QepcadCell, max_level=1) # optional - qepcad
+            sage: [(c, c.signs()[1][0]) for c in all_cells] # optional - qepcad
             [(QEPCAD cell (1, 1), 1), (QEPCAD cell (2, 1), 1), (QEPCAD cell (2, 2), 0), (QEPCAD cell (2, 3), 1), (QEPCAD cell (3, 1), 1), (QEPCAD cell (3, 2), 0), (QEPCAD cell (3, 3), -1), (QEPCAD cell (3, 4), 0), (QEPCAD cell (3, 5), 1), (QEPCAD cell (4, 1), 1), (QEPCAD cell (4, 2), 0), (QEPCAD cell (4, 3), 1), (QEPCAD cell (5, 1), 1)]
         """
         return self._signs
@@ -2349,14 +2349,14 @@ class QepcadCell:
         EXAMPLES:
             sage: var('x,y')
             (x, y)
-            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.cell().number_of_children() # optional
+            sage: qe.cell().number_of_children() # optional - qepcad
             5
-            sage: [c.number_of_children() for c in qe.cell()] # optional
+            sage: [c.number_of_children() for c in qe.cell()] # optional - qepcad
             [1, 3, 5, 3, 1]
         """
         return self._number_of_children
@@ -2372,15 +2372,15 @@ class QepcadCell:
         EXAMPLES:
             sage: var('x,y')
             (x, y)
-            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.solution_extension('T') # optional
+            sage: qe.solution_extension('T') # optional - qepcad
             y^2 + x^2 - 1 = 0
-            sage: qe.cell(3, 3).set_truth(True) # optional
-            sage: qe.solution_extension('T') # optional
+            sage: qe.cell(3, 3).set_truth(True) # optional - qepcad
+            sage: qe.solution_extension('T') # optional - qepcad
             y^2 + x^2 - 1 <= 0
         """
         if v is None:
@@ -2395,16 +2395,16 @@ class QepcadCell:
         \sage algebraic reals.
 
         EXAMPLES:
-            sage: qe = qepcad(x^2 - x - 1 == 0, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 - x - 1 == 0, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'At the end of projection phase'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: v1 = qe.cell(2).sample_point()[0]; v1 # optional
+            sage: v1 = qe.cell(2).sample_point()[0]; v1 # optional - qepcad
             -0.618033988749895?
-            sage: v2 = qe.cell(4).sample_point()[0]; v2 # optional
+            sage: v2 = qe.cell(4).sample_point()[0]; v2 # optional - qepcad
             1.618033988749895?
-            sage: v1 + v2 == 1 # optional
+            sage: v1 + v2 == 1 # optional - qepcad
             True
         """
         try:
@@ -2439,12 +2439,12 @@ class QepcadCell:
         mapping variable names (as strings) to \sage algebraic reals.
 
         EXAMPLES:
-            sage: qe = qepcad(x^2 - x - 1 == 0, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 - x - 1 == 0, interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'At the end of projection phase'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.cell(4).sample_point_dict() # optional
+            sage: qe.cell(4).sample_point_dict() # optional - qepcad
             {'x': 1.618033988749895?}
         """
         points = self.sample_point()

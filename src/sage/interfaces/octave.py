@@ -460,12 +460,12 @@ class OctaveElement(ExpectElement):
         Return \sage matrix from this octave element.
 
         EXAMPLES:
-            sage: A = octave('[1,2;3,4]')       # optional octave package
-            sage: matrix(ZZ, A)
+            sage: A = octave('[1,2;3,4]')       # optional - octave
+            sage: matrix(ZZ, A)                 # optional - octave
             [1 2]
             [3 4]
-            sage: A = octave('[1,2;3,4.5]')     # optional octave package
-            sage: matrix(RR, A)
+            sage: A = octave('[1,2;3,4.5]')     # optional - octave
+            sage: matrix(RR, A)                 # optional - octave
             [1.00000000000000 2.00000000000000]
             [3.00000000000000 4.50000000000000]
         """

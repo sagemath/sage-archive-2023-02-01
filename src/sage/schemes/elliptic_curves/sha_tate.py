@@ -155,7 +155,7 @@ class Sha(SageObject):
         The smallest conductor curve of rank > 1:
             sage: E = EllipticCurve([0, 1, 1, -2, 0])       # 389A (rank 2)
             sage: E.sha().an()
-            0.999999999999998
+            1.00000000000000
 
         The following are examples that require computation of the Mordell-Weil
         group and regulator:

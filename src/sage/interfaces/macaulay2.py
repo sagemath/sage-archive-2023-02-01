@@ -44,7 +44,7 @@ EXAMPLES:
      5
     sage: x = macaulay2('x')            #optional
     sage: y = macaulay2('y')            #optional
-    sage: print (x+y)^5
+    sage: print (x+y)^5                 #optional
      5    5
     x  + y
     sage: parent((x+y)^5)               #optional

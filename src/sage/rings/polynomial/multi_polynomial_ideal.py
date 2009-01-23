@@ -1899,7 +1899,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: P.<a,b,c> = PolynomialRing(ZZ,3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
-            sage: I.groebner_basis()
+            sage: I.groebner_basis()                               # optional - macaulay2
             ...
             [b^3 - b*c^2 - 24*c^3 - b^2 - 6*b*c + 2*c^2 + 2*c,
              2*b*c^2 + 36*c^3 - 9*b*c - 24*c^2 + 2*b + 4*c,

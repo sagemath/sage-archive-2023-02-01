@@ -16,7 +16,7 @@ EXAMPLES:
     '\nans =\n\n     4\n'
 
     sage: a = matlab(10)                     # optional
-    sage: a**10
+    sage: a**10                              # optional
        1.0000e+10
 
 AUTHORS:

@@ -120,7 +120,7 @@ Setting using paranthesis cannot work (because of how the Python language works)
            8.          1.          1.
 
 TESTS:
-    sage: M = scilab(x)
+    sage: M = scilab(x)                                     # optional - scilab
     Traceback (most recent call last):
     ...
     TypeError: Error executing code in Scilab
@@ -130,31 +130,31 @@ TESTS:
         0.    1.    2.
         3.    4.    5.
         6.    7.    8.
-    sage: M(10)
+    sage: M(10)                                             # optional - scilab
     Traceback (most recent call last):
     ...
     TypeError: Error executing code in Scilab
     ...
     Invalid index.
-    sage: M[10]
+    sage: M[10]                                             # optional - scilab
     Traceback (most recent call last):
     ...
     TypeError: Error executing code in Scilab
     ...
     Invalid index.
-    sage: M(4,2)
+    sage: M(4,2)                                            # optional - scilab
     Traceback (most recent call last):
     ...
     TypeError: Error executing code in Scilab
     ...
     Invalid index.
-    sage: M[2,4]
+    sage: M[2,4]                                            # optional - scilab
     Traceback (most recent call last):
     ...
     TypeError: Error executing code in Scilab
     ...
     Invalid index.
-    sage: M(9) = x
+    sage: M(9) = x                                          # optional - scilab
     Traceback (most recent call last):
     ...
     TypeError: Must construct a function with a tuple (or list) of SymbolicVariables.

@@ -231,9 +231,9 @@ Matrices:
 Polynomials:
 
     sage: a = lie('X[1,2] - 2*X[2,1]') # optional
-    sage: b = a.sage(); b # optional
+    sage: b = a.sage(); b              # optional
     -2*x0^2*x1 + x0*x1^2
-    sage: type(b)
+    sage: type(b)                      # optional
     <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
 
 Text:

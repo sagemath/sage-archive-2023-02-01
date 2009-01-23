@@ -17,15 +17,15 @@ First load the database:
 
 List the degree and discriminant of all fields in the database that
 have ramification at most at 2:
-    sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])]
+    sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])]    # optional - jones_database
     [(1, 1), (2, 8), (2, -4), (2, -8), (4, 2048), (4, -1024), (4, 512), (4, -2048), (4, 256), (4, 2048), (4, 2048)]
 
 List the discriminants of the fields of degree exactly 2 unramified outside 2:
-    sage: [k.disc() for k in J.unramified_outside([2],2)]
+    sage: [k.disc() for k in J.unramified_outside([2],2)]                # optional - jones_database
     [8, -4, -8]
 
 List the discriminants of cubic field in the database ramified exactly at 3 and 5:
-    sage: [k.disc() for k in J.ramified_at([3,5],3)]
+    sage: [k.disc() for k in J.ramified_at([3,5],3)]                     # optional - jones_database
     [-6075, -6075, -675, -135]
     sage: factor(6075)
     3^5 * 5^2
@@ -35,7 +35,7 @@ List the discriminants of cubic field in the database ramified exactly at 3 and 
     3^3 * 5
 
 List all fields in the database ramified at 101
-    sage: J.ramified_at(101)
+    sage: J.ramified_at(101)                                             # optional - jones_database
     [Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6]
 """
 

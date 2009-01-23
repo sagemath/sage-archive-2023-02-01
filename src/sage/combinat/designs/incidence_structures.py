@@ -358,12 +358,12 @@ class IncidenceStructure(object):
            Incidence structure with 4 points and 3 blocks
            sage: D.dual_design()
            Incidence structure with 3 points and 4 blocks
-           sage: print D.dual_design(method="gap")
+           sage: print D.dual_design(method="gap")       # optional - gap_design
            IncidenceStructure<points=[0, 1, 2], blocks=[[0], [0, 1, 2], [1], [1, 2]]>
            sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="FanoPlane")
            sage: BD
            Incidence structure with 7 points and 7 blocks
-           sage: print BD.dual_design(method="gap")         # requires optional gap package
+           sage: print BD.dual_design(method="gap")         # optional - gap_design
            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
            sage: BD.dual_incidence_structure()
            Incidence structure with 7 points and 7 blocks

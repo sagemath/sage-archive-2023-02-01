@@ -16,6 +16,7 @@ cdef int allocate_c_vector_modint(c_vector_modint* v, Py_ssize_t num_nonzero) ex
         raise MemoryError, "Error allocating memory"
     v.positions = <Py_ssize_t*>sage_malloc(num_nonzero*sizeof(Py_ssize_t))
     if v.positions == NULL:
+        sage_free(v.entries)
         raise MemoryError, "Error allocating memory"
     return 0
 

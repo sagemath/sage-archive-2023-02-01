@@ -4842,29 +4842,52 @@ class ANBinaryExpr(ANDescr):
         raise NotImplementedError
 
     def exactify(self):
-        left = self._left
-        right = self._right
-        left.exactify()
-        right.exactify()
-        gen = left._exact_field().union(right._exact_field())
-        left_value = gen(left._exact_value())
-        right_value = gen(right._exact_value())
+        """
+        TESTS:
 
-        op = self._op
+        We check to make sure that this method still works even.  We
+        do this by increasing the recursion level at each step and
+        decrease it before we return.
 
-        if op == '+':
-            value = left_value + right_value
-        if op == '-':
-            value = left_value - right_value
-        if op == '*':
-            value = left_value * right_value
-        if op == '/':
-            value = left_value / right_value
+            sage: import sys; sys.getrecursionlimit()
+            1000
+            sage: s = SFASchur(QQ)
+            sage: a=s([3,2]).expand(8)(flatten([[QQbar.zeta(3)^d for d in range(3)], [QQbar.zeta(5)^d for d in range(5)]]))
+            sage: a.exactify(); a #long
+            0
+            sage: sys.getrecursionlimit()
+            1000
 
-        if gen.is_trivial():
-            return ANRational(value)
-        else:
-            return ANExtensionElement(gen, value)
+        """
+        import sys
+        old_recursion_limit = sys.getrecursionlimit()
+        sys.setrecursionlimit(old_recursion_limit + 10)
+        try:
+            left = self._left
+            right = self._right
+            left.exactify()
+            right.exactify()
+            gen = left._exact_field().union(right._exact_field())
+            left_value = gen(left._exact_value())
+            right_value = gen(right._exact_value())
+
+            op = self._op
+
+            if op == '+':
+                value = left_value + right_value
+            if op == '-':
+                value = left_value - right_value
+            if op == '*':
+                value = left_value * right_value
+            if op == '/':
+                value = left_value / right_value
+
+            if gen.is_trivial():
+                return ANRational(value)
+            else:
+                return ANExtensionElement(gen, value)
+        finally:
+            sys.setrecursionlimit(old_recursion_limit)
 
 ax = QQbarPoly.gen()
 # def heptadecagon():

@@ -516,15 +516,33 @@ def is_odd(x):
 
 def kernel(x):
     """
-    Return the kernel of x.
+    Return the left kernel of x.
 
     EXAMPLES:
-        sage: M = MatrixSpace(QQ,3,3)
-        sage: A = M([1,2,3,4,5,6,7,8,9])
+        sage: M = MatrixSpace(QQ,3,2)
+        sage: A = M([1,2,3,4,5,6])
         sage: kernel(A)
         Vector space of degree 3 and dimension 1 over Rational Field
         Basis matrix:
         [ 1 -2  1]
+        sage: kernel(A.transpose())
+        Vector space of degree 2 and dimension 0 over Rational Field
+        Basis matrix:
+        []
+
+    Here are two corner cases:
+        sage: M=MatrixSpace(QQ,0,3)
+        sage: A=M([])
+        sage: kernel(A)
+        Vector space of degree 0 and dimension 0 over Rational Field
+        Basis matrix:
+        []
+        sage: kernel(A.transpose()).basis()
+        [
+        (1, 0, 0),
+        (0, 1, 0),
+        (0, 0, 1)
+        ]
     """
     return x.kernel()
 

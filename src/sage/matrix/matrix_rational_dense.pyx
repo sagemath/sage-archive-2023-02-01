@@ -984,12 +984,23 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     ################################################
     def kernel(self, algorithm='padic', **kwds):
         """
-        Return the kernel of this matrix, as a vector space over QQ.
+        Return the left kernel of this matrix, as a vector space over QQ.
 
         INPUT:
            algorithm -- 'padic' (or 'default'): use IML's p-adic nullspace algorithm
                        anything else -- passed on to the generic echelon-form based algorithm.
                             **kwds -- passed onto to echelon form algorithm in the echelon case.
+
+        EXAMPLES:
+            sage: M=Matrix(QQ,[[1/2,3],[0,1],[1,1]])
+            sage: M.kernel()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [   1 -5/2 -1/2]
+            sage: M.right_kernel()
+            Vector space of degree 2 and dimension 0 over Rational Field
+            Basis matrix:
+            []
         """
         K = self.fetch('kernel')
         if not K is None:

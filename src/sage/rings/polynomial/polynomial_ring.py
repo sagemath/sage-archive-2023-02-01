@@ -106,6 +106,8 @@ from polynomial_real_mpfr_dense import PolynomialRealDense
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
 
+from polynomial_element import PolynomialBaseringInjection
+
 import cyclotomic
 
 ZZ_sage = IntegerRing()
@@ -177,6 +179,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         self.__generator = self._polynomial_class(self, [0,1], is_gen=True)
         self.__cyclopoly_cache = {}
         self._has_singular = False
+        self._populate_coercion_lists_(
+                coerce_list = [PolynomialBaseringInjection(base_ring, self)],
+                convert_list = [list],
+                convert_method_name = '_polynomial_')
+
 
     def __reduce__(self):
         import sage.rings.polynomial.polynomial_ring_constructor
@@ -184,7 +191,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 (self.base_ring(), self.variable_name(), None, self.is_sparse()))
 
 
-    def __call__(self, x=None, check=True, is_gen = False, construct=False, absprec = None):
+    def _element_constructor_(self, x=None, check=True, is_gen = False, construct=False, absprec = None):
         r"""
         Coerce \code{x} into this univariate polynomial ring, possibly non-canonically.
 
@@ -327,29 +334,51 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         else:
             raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, P):
         """
-        Return the canonical coercion of x to this polynomial ring, if one is
-        defined, or raise a TypeError.
-
         The rings that canonically coerce to this polynomial ring are:
             * this ring itself
             * any ring that canonically coerces to the base ring of this ring.
             * polynomial rings in the same variable over any base ring that
               canonically coerces to the base ring of this ring
+
+        EXAMPLES:
+            sage: R = QQ['x']
+            sage: R.has_coerce_map_from(QQ)
+            True
+            sage: R.has_coerce_map_from(ZZ)
+            True
+            sage: R.has_coerce_map_from(GF(7))
+            False
+            sage: R.has_coerce_map_from(ZZ['x'])
+            True
+            sage: R.has_coerce_map_from(ZZ['y'])
+            False
+
+            sage: R.coerce_map_from(ZZ)
+            Composite map:
+              From: Integer Ring
+              To:   Univariate Polynomial Ring in x over Rational Field
+              Defn:   Natural morphism:
+                      From: Integer Ring
+                      To:   Rational Field
+                    then
+                      Polynomial base injection morphism:
+                      From: Rational Field
+                      To:   Univariate Polynomial Ring in x over Rational Field
         """
         # handle constants that canonically coerce into self.base_ring()
         # first, if possible
         try:
-            y = self.base_ring()._coerce_(x)
-            return self([y])
+            connecting = self.base_ring().coerce_map_from(P)
+            if connecting is not None:
+                return self.coerce_map_from(self.base_ring()) * connecting
         except TypeError:
             pass
 
         # polynomial rings in the same variable over a base that canonically
         # coerces into self.base_ring()
         try:
-            P = x.parent()
             if is_PolynomialRing(P):
                 if P.variable_name() == self.variable_name():
                     if P.base_ring() is self.base_ring() and \
@@ -365,14 +394,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                         # coercion model, at which point this code will
                         # become useful.
                         if self._implementation_names == ('NTL',):
-                            raise TypeError, "no canonical coercion from FLINT to NTL polynomials"
-                    if self.has_coerce_map_from(P.base_ring()):
-                        return self(x)
-                    else:
-                        raise TypeError, "no natural map between bases of polynomial rings"
+                            return False
+                    return self.base_ring().has_coerce_map_from(P.base_ring())
         except AttributeError:
             pass
-        raise TypeError
 
     def _magma_init_(self, magma):
         """
@@ -478,7 +503,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             # of the polynomial ring canonically coerce into codomain.
             # Since poly rings are free, any image of the gen
             # determines a homomorphism
-            codomain._coerce_(self.base_ring()(1))
+            codomain.coerce(self.base_ring()(1))
         except TypeError:
             return False
         return True

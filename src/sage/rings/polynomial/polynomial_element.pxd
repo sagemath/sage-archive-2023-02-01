@@ -14,12 +14,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef CompiledPolynomialFunction _compiled
     cpdef Polynomial truncate(self, long n)
     cdef long _hash_c(self)
+    cpdef constant_coefficient(self)
+    cpdef Polynomial _new_constant_poly(self, a)
 
     # UNSAFE, only call from an inplace operator
     # may return a new element if not possible to modify inplace
     cdef _inplace_truncate(self, long n)
 
 cdef class Polynomial_generic_dense(Polynomial):
+    cdef Polynomial_generic_dense _new_c(self, list coeffs)
     cdef list __coeffs
     cdef void __normalize(self)
 #    cdef _dict_to_list(self, x, zero)

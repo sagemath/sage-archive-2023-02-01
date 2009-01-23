@@ -69,6 +69,9 @@ import polynomial_fateman
 
 from sage.rings.integer cimport Integer
 
+from sage.categories.map cimport Map
+from sage.categories.morphism cimport Morphism
+
 def is_Polynomial(f):
     """
     Return True if f is of type univariate polynomial.
@@ -722,10 +725,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: QQ(3*x + 45)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial
+            TypeError: not a constant polynomial
         """
         if self.degree() > 0:
-            raise TypeError, "cannot coerce nonconstant polynomial"
+            raise TypeError, "not a constant polynomial"
         return sage.rings.rational.Rational(self[0])
 
     def __invert__(self):
@@ -2480,7 +2483,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return R.fraction_field()[self.parent().variable_name()].quotient(self, names)
 
 
-    def constant_coefficient(self):
+    cpdef constant_coefficient(self):
         """
         Return the constant coefficient of this polynomial.
 
@@ -2494,6 +2497,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -1/3
         """
         return self[0]
+
+    cpdef Polynomial _new_constant_poly(self, a):
+        """
+        Create a new constant polynomial from a, which MUST be an element of the basering.
+        """
+        return self._parent._element_constructor(a)
 
     def is_monic(self):
         """
@@ -4355,8 +4364,43 @@ cdef class Polynomial_generic_dense(Polynomial):
         if check:
             self.__normalize()
 
+    cdef Polynomial_generic_dense _new_c(self, list coeffs):
+        cdef Polynomial_generic_dense f = <Polynomial_generic_dense>PY_NEW_SAME_TYPE(self)
+        f._parent = self._parent
+        f.__coeffs = coeffs
+        return f
+
+    cpdef Polynomial _new_constant_poly(self, a):
+        """
+        Create a new constant polynomial from a, which MUST be an element of the basering.
+
+        EXAMPLES:
+            sage: S.<y> = QQ[]
+            sage: R.<x> = S[]
+            sage: x._new_constant_poly(y+1)
+            y + 1
+            sage: parent(x._new_constant_poly(y+1))
+            Univariate Polynomial Ring in x over Univariate Polynomial Ring in y over Rational Field
+        """
+        if a:
+            return self._new_c([a])
+        else:
+            return self._new_c([])
 
     def __reduce__(self):
+        """
+        For pickling.
+
+        TESTS:
+            sage: R.<x> = QQ['a,b']['x']
+            sage: f = x^3-x
+            sage: loads(dumps(f)) == f
+            True
+
+        Make sure we're testing the right method.
+            sage: type(f)
+            <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
+        """
         return make_generic_polynomial, (self._parent, self.__coeffs)
 
     def __nonzero__(self):
@@ -4464,9 +4508,12 @@ cdef class Polynomial_generic_dense(Polynomial):
         if right.parent() == self.parent():
             return Polynomial.__floordiv__(self, right)
         d = self.parent().base_ring()(right)
-        return self._parent([c // d for c in self.__coeffs], check=False)
+        cdef Polynomial_generic_dense res = self._new_c([c // d for c in self.__coeffs])
+        res.__normalize()
+        return res
 
     cpdef ModuleElement _add_(self, ModuleElement right):
+        cdef Polynomial_generic_dense res
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs
         y = (<Polynomial_generic_dense>right).__coeffs
@@ -4478,13 +4525,13 @@ cdef class Polynomial_generic_dense(Polynomial):
             high = y[min:]
         else:
             min = len(x)
-        low = [x[i] + y[i] for i from 0 <= i < min]
+        cdef list low = [x[i] + y[i] for i from 0 <= i < min]
         if len(x) == len(y):
-            res = self._parent(low, check=0)
-            (<Polynomial_generic_dense>res).__normalize()
+            res = self._new_c(low)
+            res.__normalize()
             return res
         else:
-            return self._parent(low + high, check=0)
+            return self._new_c(low + high)
 
     cpdef ModuleElement _iadd_(self, ModuleElement right):
         cdef Py_ssize_t check=0, i, min
@@ -4502,6 +4549,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         return self
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
+        cdef Polynomial_generic_dense res
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs
         y = (<Polynomial_generic_dense>right).__coeffs
@@ -4515,11 +4563,11 @@ cdef class Polynomial_generic_dense(Polynomial):
             min = len(x)
         low = [x[i] - y[i] for i from 0 <= i < min]
         if len(x) == len(y):
-            res = self._parent(low, check=0)
-            (<Polynomial_generic_dense>res).__normalize()
+            res = self._new_c(low)
+            res.__normalize()
             return res
         else:
-            return self._parent(low + high, check=0)
+            return self._new_c(low + high)
 
     cpdef ModuleElement _isub_(self, ModuleElement right):
         cdef Py_ssize_t check=0, i, min
@@ -4542,9 +4590,9 @@ cdef class Polynomial_generic_dense(Polynomial):
         if c._parent is not (<Element>self.__coeffs[0])._parent:
             c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
         v = [c * a for a in self.__coeffs]
-        res = self._parent(v, check=0)
+        cdef Polynomial_generic_dense res = self._new_c(v)
         if not v[len(v)-1]:
-            (<Polynomial_generic_dense>res).__normalize()
+            res.__normalize()
         return res
 
     cpdef ModuleElement _lmul_(self, RingElement c):
@@ -4553,9 +4601,9 @@ cdef class Polynomial_generic_dense(Polynomial):
         if c._parent is not (<Element>self.__coeffs[0])._parent:
             c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
         v = [a * c for a in self.__coeffs]
-        res = self._parent(v, check=0)
+        cdef Polynomial_generic_dense res = self._new_c(v)
         if not v[len(v)-1]:
-            (<Polynomial_generic_dense>res).__normalize()
+            res.__normalize()
         return res
 
     cpdef ModuleElement _ilmul_(self, RingElement c):
@@ -4569,6 +4617,25 @@ cdef class Polynomial_generic_dense(Polynomial):
         if not self.__coeffs[deg-1]:
             self.__normalize()
         return self
+
+    cpdef constant_coefficient(self):
+        """
+        Return the constant coefficient of this polynomial.
+
+        OUTPUT:
+            elemenet of base ring
+
+        EXAMPLES:
+            sage: R.<t> = QQ[]
+            sage: S.<x> = R[]
+            sage: f = x*t + x + t
+            sage: f.constant_coefficient()
+            t
+        """
+        if len(self.__coeffs) == 0:
+            return self.base_ring()(0)
+        else:
+            return self.__coeffs[0]
 
     def list(self, copy=True):
         """
@@ -4623,12 +4690,12 @@ cdef class Polynomial_generic_dense(Polynomial):
         if n > 0:
             output = [self.base_ring()(0)] * n
             output.extend(self.__coeffs)
-            return self._parent(output, check=False)
+            return self._new_c(output)
         if n < 0:
             if n > len(self.__coeffs) - 1:
                 return self._parent([])
             else:
-                return self._parent(self.__coeffs[-int(n):], check=False)
+                return self._new_c(self.__coeffs[-int(n):])
 
     cpdef Polynomial truncate(self, long n):
         r"""
@@ -4654,7 +4721,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         if n < len(self.__coeffs):
             while n > 0 and not self.__coeffs[n-1]:
                 n -= 1
-        return <Polynomial>self._parent(self.__coeffs[:n], check=False)
+        return self._new_c(self.__coeffs[:n])
 
     cdef _inplace_truncate(self, long n):
         if n < len(self.__coeffs):
@@ -4666,3 +4733,104 @@ cdef class Polynomial_generic_dense(Polynomial):
 
 def make_generic_polynomial(parent, coeffs):
     return parent(coeffs)
+
+
+cdef class ConstantPolynomialSection(Map):
+    """
+    This class is used for conversion from a polynomial ring to its basering.
+
+    It calls the constant_coefficient method, which can be optimized for
+    a particular polynomial type.
+    """
+    cpdef Element _call_(self, x):
+        """
+        TESTS:
+            sage: from sage.rings.polynomial.polynomial_element import ConstantPolynomialSection
+            sage: R.<x> = QQ[]
+            sage: m = ConstantPolynomialSection(R, QQ); m
+            Generic map:
+              From: Univariate Polynomial Ring in x over Rational Field
+              To:   Rational Field
+            sage: m(x-x+1/2) # implicit
+            1/2
+            sage: m(x-x)
+            0
+            sage: m(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: not a constant polynomial
+        """
+        if x.degree() <= 0:
+            return <Element>((<Polynomial>x).constant_coefficient())
+        else:
+            raise TypeError, "not a constant polynomial"
+
+cdef class PolynomialBaseringInjection(Morphism):
+    """
+    This class is used for conversion from a ring to a polynomial
+    over that ring.
+
+    It calls the _new_constant_poly method on the generator,
+    which should be optimized for a particular polynomial type.
+    Technically, it should be a method of the polynomial ring, but
+    few polynomial rings are cython classes.
+    """
+
+    cdef Polynomial _an_element
+
+    def __init__(self, domain, codomain):
+        """
+        TESTS:
+            sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
+            sage: PolynomialBaseringInjection(QQ, QQ['x'])
+            Polynomial base injection morphism:
+              From: Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: PolynomialBaseringInjection(ZZ, QQ['x'])
+            Traceback (most recent call last):
+            ...
+            AssertionError: domain must be basering
+        """
+        assert domain is codomain.base_ring(), "domain must be basering"
+        Morphism.__init__(self, domain, codomain)
+        self._an_element = codomain.gen()
+        self._repr_type_str = "Polynomial base injection"
+
+    cpdef Element _call_(self, x):
+        """
+        TESTS:
+            sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
+            sage: m = PolynomialBaseringInjection(ZZ, ZZ['x']); m
+            Polynomial base injection morphism:
+              From: Integer Ring
+              To:   Univariate Polynomial Ring in x over Integer Ring
+            sage: m(2) # implicit doctest
+            2
+            sage: parent(m(2))
+            Univariate Polynomial Ring in x over Integer Ring
+        """
+        return self._an_element._new_constant_poly(<Element>x)
+
+    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        """
+        TESTS:
+            sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
+            sage: m = PolynomialBaseringInjection(Qp(5), Qp(5)['x'])
+            sage: m(1 + O(5^11), absprec = 5)
+            (1 + O(5^11))
+        """
+        return self._codomain._element_constructor(x, *args, **kwds)
+
+    def section(self):
+        """
+        TESTS:
+            sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
+            sage: m = PolynomialBaseringInjection(RDF, RDF['x'])
+            sage: m.section()
+            Generic map:
+              From: Univariate Polynomial Ring in x over Real Double Field
+              To:   Real Double Field
+            sage: type(m.section())
+            <type 'sage.rings.polynomial.polynomial_element.ConstantPolynomialSection'>
+        """
+        return ConstantPolynomialSection(self._codomain, self._domain)

@@ -678,8 +678,10 @@ cdef class Parent(category_object.CategoryObject):
                 self._convert_from_list.append(mor)
                 self._convert_from_hash[mor.domain()] = mor
             elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
+                t = mor
                 mor = self._generic_convert_map(mor)
                 self._convert_from_list.append(mor)
+                self._convert_from_hash[t] = mor
                 self._convert_from_hash[mor.domain()] = mor
             else:
                 raise TypeError, "entries in the convert_list must be parents or maps"

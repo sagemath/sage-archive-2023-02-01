@@ -379,11 +379,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: cm.explain(ZZ['x'], QQ, operator.add)
             Coercion on left operand via
-                Call morphism:
+                Conversion map:
                   From: Univariate Polynomial Ring in x over Integer Ring
                   To:   Univariate Polynomial Ring in x over Rational Field
             Coercion on right operand via
-                Call morphism:
+                Polynomial base injection morphism:
                   From: Rational Field
                   To:   Univariate Polynomial Ring in x over Rational Field
             Arithmetic performed after coercions.
@@ -414,7 +414,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: cm.explain(ZZ['x'], QQ['x'], operator.div)
             Coercion on left operand via
-                Call morphism:
+                Conversion map:
                   From: Univariate Polynomial Ring in x over Integer Ring
                   To:   Univariate Polynomial Ring in x over Rational Field
             Arithmetic performed after coercions.
@@ -842,11 +842,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: f, g = cm.coercion_maps(ZZ['x'], QQ)
             sage: print f
-            Call morphism:
+            Conversion map:
               From: Univariate Polynomial Ring in x over Integer Ring
               To:   Univariate Polynomial Ring in x over Rational Field
             sage: print g
-            Call morphism:
+            Polynomial base injection morphism:
               From: Rational Field
               To:   Univariate Polynomial Ring in x over Rational Field
 

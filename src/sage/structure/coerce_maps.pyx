@@ -155,6 +155,16 @@ cdef class NamedConvertMap(Map):
             e = m._call_(e)
         return e
 
+    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        """
+        EXAMPLES:
+            sage: from sage.structure.coerce_maps import NamedConvertMap
+            sage: f = NamedConvertMap(SR, ZZ['x'], '_polynomial_')
+            sage: f(x^2+1, check=True)
+            x^2 + 1
+        """
+        return self._codomain._element_constructor(self._call_(x), *args, **kwds)
+
 
 # Perhaps this could be a method, extracting (<PyMethodDescrObject *>(<object>Parent).coerce_map_from).d_method.ml_meth and/or PyCFunction_GET_FUNCTION(method)
 # and constructing a CCallableConvertMap_class if it is bound ot the codomain.

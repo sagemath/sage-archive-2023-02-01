@@ -104,9 +104,9 @@ cdef class IdentityMorphism(Morphism):
         if len(args) == 0 and len(kwds) == 0:
             return x
         elif self._codomain._element_init_pass_parent:
-            return self._codomain._element_class(self._codomain, x, *args, **kwds)
+            return self._codomain._element_constructor(self._codomain, x, *args, **kwds)
         else:
-            return self._codomain._element_class(x, *args, **kwds)
+            return self._codomain._element_constructor(x, *args, **kwds)
 
     def __mul__(left, right):
         if not isinstance(right, Morphism):

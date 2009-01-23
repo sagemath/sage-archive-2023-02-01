@@ -69,11 +69,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         try:
             return self.__absolute_ideal
         except AttributeError:
-            rnf = self.number_field().pari_rnf()
             L = self.number_field().absolute_field('a')
-            R = L['x']
-            nf = L.pari_nf()
-            genlist = [L(R(x.polynomial())) for x in list(self.gens())]
+            genlist = [L(x.polynomial()) for x in list(self.gens())]
             self.__absolute_ideal = L.ideal(genlist)
             return self.__absolute_ideal
 

@@ -1640,8 +1640,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         WARNING: This is MUCH faster than the smith_form function.
 
         The elementary divisors are the invariants of the finite
-        abelian group that is the cokernel of this matrix.  They are
-        ordered in reverse by divisibility.
+        abelian group that is the cokernel of *left* multiplication by this
+        matrix.  They are ordered in reverse by divisibility.
 
         INPUT:
             self -- matrix
@@ -1651,6 +1651,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         OUTPUT:
             list of int's
+
+        NOTE:
+        These are the invariants of the cokernel of *left* multiplication:
+            sage: M = Matrix([[3,0,1],[0,1,0]])
+            sage: M
+            [3 0 1]
+            [0 1 0]
+            sage: M.elementary_divisors()
+            [1, 1]
+            sage: M.transpose().elementary_divisors()
+            [1, 1, 0]
+
 
         EXAMPLES:
             sage: matrix(3, range(9)).elementary_divisors()

@@ -89,7 +89,8 @@ def preparse_ipython(line, reset=True):
         num_lines += 1
     else:
         if interface_name in ['gap', 'magma', 'kash', 'singular']:
-            line += ';'
+            if not line.endswith(';'):
+                line += ';'
             if magma_colon_equals and interface_name == 'magma':
                 line = line.replace(':=','=').replace('=',':=')
         elif interface_name == 'mathematica':

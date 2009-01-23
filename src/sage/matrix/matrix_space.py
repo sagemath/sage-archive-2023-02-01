@@ -407,8 +407,18 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         raise TypeError, "no base extension defined"
 
     def construction(self):
+        """
+        EXAMPLES:
+            sage: A = matrix(ZZ, 2, [1..4], sparse=True)
+            sage: A.parent().construction()
+            (MatrixFunctor, Integer Ring)
+            sage: A.parent().construction()[0](QQ['x'])
+            Full MatrixSpace of 2 by 2 sparse matrices over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(A/2)
+            Full MatrixSpace of 2 by 2 sparse matrices over Rational Field
+        """
         from sage.categories.pushout import MatrixFunctor
-        return MatrixFunctor(self.__nrows, self.__ncols), self.base_ring()
+        return MatrixFunctor(self.__nrows, self.__ncols, is_sparse=self.is_sparse()), self.base_ring()
 
     def get_action_impl(self, S, op, self_on_left):
         try:

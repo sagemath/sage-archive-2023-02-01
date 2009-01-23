@@ -440,6 +440,22 @@ class InteractControl:
         """
         return self.__default_value
 
+    def html_escaped_default_value(self):
+        """
+        Returns the HTML escaped default value of the variable
+        corresponding to this interact control.  Note that any
+        HTML that that uses quotes around this should use double
+        quotes and not single quotes.
+
+        EXAMPLES:
+            sage: from sage.server.notebook.interact import InteractControl
+            sage: InteractControl('x', '"cool"').html_escaped_default_value()
+            '&quot;cool&quot;'
+
+        """
+        import cgi
+        return cgi.escape(str(self.default_value()), quote=True)
+
     def adapt_number(self):
         """
         Return integer index into adapt dictionary of function that is
@@ -600,17 +616,17 @@ class InputBox(InteractControl):
 
         EXAMPLES:
             sage: sage.server.notebook.interact.InputBox('theta', 1).render()
-            '<input type=\'text\' value=\'1\' size=80 onchange=\'interact(0, "sage.server.notebook.interact.update(0, \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals())")\'></input>'
+            '<input type=\'text\' value="1" size=80 onchange=\'interact(0, "sage.server.notebook.interact.update(0, \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals())")\'></input>'
         """
         if self.__type is bool:
             return """<input type='checkbox' %s width=200px onchange='%s'></input>"""%(
                 'checked' if self.default_value() else '',  self.interact())
         elif self.__type is str:
-            return """<input type='text' value='%s' size=%s onchange='%s'></input>"""%(
-                self.default_value(), self.__width, self.interact())
+            return """<input type='text' value="%s" size=%s onchange='%s'></input>"""%(
+                self.html_escaped_default_value(), self.__width, self.interact())
         else:
-            return """<input type='text' value='%r' size=%s onchange='%s'></input>"""%(
-                self.default_value(), self.__width,  self.interact())
+            return """<input type='text' value="%s" size=%s onchange='%s'></input>"""%(
+                self.html_escaped_default_value(), self.__width,  self.interact())
 
 class ColorInput(InputBox):
     def value_js(self, n):

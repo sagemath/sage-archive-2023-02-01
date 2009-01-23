@@ -2335,10 +2335,11 @@ def test_consistency(max_n=2, **kwargs):
 
     TESTS:
         sage: from sage.crypto.mq.sr import test_consistency
-        sage: test_consistency(2) # long time -- and requires a LOT of RAM (>> 2GB, evidently).
+        sage: test_consistency(1) # long time -- calling w/ max_n = 2 requires a LOT of RAM (>> 2GB, evidently).  Calling w/ max_n = 1 is far more managable.
         True
 
-    We emphasize that the above doctest will fail on a machine with "only" 2GB RAM.
+    The above doctest used to fail on a machine with "only" 2GB RAM.
+    Using max_n = 1 appears to be a more reasonable memory usage.
     """
     consistent = True
     for r in (1, 2, 4):

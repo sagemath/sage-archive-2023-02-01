@@ -1822,7 +1822,10 @@ not %s" % (poly, poly.parent().prime, p)
             sage: z.additive_order()
             2
         """
-        return self._prime
+        if len(self._raw['milnor']) == 0:
+            return 1
+        else:
+            return self._prime
 
 
 def Sq(*nums):

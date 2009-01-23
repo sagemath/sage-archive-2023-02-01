@@ -2105,6 +2105,17 @@ cdef class Matrix(sage.structure.element.Matrix):
             return self._nonzero_positions_by_row(copy)
 
     def _nonzero_positions_by_row(self, copy=True):
+        """
+        Returns the list of pairs (i,j) such that self[i,j] != 0.
+
+        It is safe to change the resulting list (unless you give the option copy=False).
+
+        EXAMPLE::
+            sage: M = Matrix(CC, [[1,0],[0,1]], sparse=True)
+            sage: M.nonzero_positions()
+            [(0, 0), (1, 1)]
+
+        """
         x = self.fetch('nonzero_positions')
         if not x is None:
             if copy:

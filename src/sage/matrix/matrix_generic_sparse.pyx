@@ -292,7 +292,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
     def _nonzero_positions_by_row(self, copy=True):
         x = self.fetch('nonzero_positions')
-        if not x is None:
+        if x is not None:
             if copy:
                 return list(x)
             return x
@@ -308,7 +308,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
     def _nonzero_positions_by_column(self, copy=True):
         x = self.fetch('nonzero_positions_by_column')
-        if not x is None:
+        if x is not None:
             if copy:
                 return list(x)
             return x

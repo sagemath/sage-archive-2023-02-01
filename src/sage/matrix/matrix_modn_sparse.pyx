@@ -406,6 +406,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     #    * Matrix windows -- only if you need strassen for that base
     #    * Other functions (list them here):
     # x      - echelon form in place
+    # x      - nonzero_positions
     ########################################################################
     def swap_rows(self, r1, r2):
         self.check_bounds_and_mutability(r1,0)
@@ -491,6 +492,35 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         self.cache('pivots',pivots)
         self.cache('in_echelon_form',True)
+
+    def _nonzero_positions_by_row(self, copy=True):
+        """
+        Returns the list of pairs (i,j) such that self[i,j] != 0.
+
+        It is safe to change the resulting list (unless you give the option copy=False).
+
+        EXAMPLE::
+            sage: M = Matrix(GF(7), [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
+            [0 0 0 1 0 0 0 0]
+            [0 1 0 0 0 0 1 0]
+            sage: M.nonzero_positions()
+            [(0, 3), (1, 1), (1, 6)]
+
+        """
+        x = self.fetch('nonzero_positions')
+        if not x is None:
+            if copy:
+                return list(x)
+            return x
+        nzp = []
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self.rows[i].num_nonzero:
+                nzp.append((i,self.rows[i].positions[j]))
+        self.cache('nonzero_positions', nzp)
+        if copy:
+            return list(nzp)
+        return nzp
 
     def visualize_structure(self, filename=None, maxsize=512):
         """

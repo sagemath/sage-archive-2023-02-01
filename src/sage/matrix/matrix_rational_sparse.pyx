@@ -312,6 +312,35 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     #    * Other functions (list them here):
     ########################################################################
 
+    def _nonzero_positions_by_row(self, copy=True):
+        """
+        Returns the list of pairs (i,j) such that self[i,j] != 0.
+
+        It is safe to change the resulting list (unless you give the option copy=False).
+
+        EXAMPLE::
+            sage: M = Matrix(QQ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
+            [0 0 0 1 0 0 0 0]
+            [0 1 0 0 0 0 1 0]
+            sage: M.nonzero_positions()
+            [(0, 3), (1, 1), (1, 6)]
+
+        """
+        x = self.fetch('nonzero_positions')
+        if not x is None:
+            if copy:
+                return list(x)
+            return x
+        nzp = []
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._matrix[i].num_nonzero:
+                nzp.append((i,self._matrix[i].positions[j]))
+        self.cache('nonzero_positions', nzp)
+        if copy:
+            return list(nzp)
+        return nzp
+
     def height(self):
         """
         Return the height of this matrix, which is the least common

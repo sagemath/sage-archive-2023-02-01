@@ -102,6 +102,25 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         sage: list_plot3d([])
         sage: list_plot3d([(2,3,4)])
         sage: list_plot3d([(0,0,1), (2,3,4)])
+
+        However, if two points with the same x,y coordinates are given and different z coordinates
+        an exception will be raised
+
+        sage: pts =[(-4/5, -2/5, -2/5), (-4/5, -2/5, 2/5), (-4/5, 2/5, -2/5), (-4/5, 2/5, 2/5), (-2/5, -4/5, -2/5), (-2/5, -4/5, 2/5), (-2/5, -2/5, -4/5), (-2/5, -2/5, 4/5), (-2/5, 2/5, -4/5), (-2/5, 2/5, 4/5), (-2/5, 4/5, -2/5), (-2/5, 4/5, 2/5), (2/5, -4/5, -2/5), (2/5, -4/5, 2/5), (2/5, -2/5, -4/5), (2/5, -2/5, 4/5), (2/5, 2/5, -4/5), (2/5, 2/5, 4/5), (2/5, 4/5, -2/5), (2/5, 4/5, 2/5), (4/5, -2/5, -2/5), (4/5, -2/5, 2/5), (4/5, 2/5, -2/5), (4/5, 2/5, 2/5)]
+        sage: show(list_plot3d(pts, interpolation_type='nn'))
+        Traceback (most recent call last):
+        ...
+        ValueError: Two points with same x,y coordinates and different z coordinates were given. Interpolation cannot handle this.
+
+
+        Additionally we need at least 3 points to do the interpolation
+
+        sage: pts=[(0,0,0)]
+        sage: show(list_plot3d(pts,interpolation_type='nn'))
+        Traceback (most recent call last):
+        ...
+        ValueError: We need at least 3 points to perform the interpolation
+
     """
     import numpy
     if texture == "automatic":
@@ -160,6 +179,9 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
     from scipy import stats
     from plot3d import plot3d
 
+    if len(v)<3:
+        raise ValueError, "We need at least 3 points to perform the interpolation"
+
     x=[float(p[0]) for p in v]
     y=[float(p[1]) for p in v]
     z=[float(p[2]) for p in v]
@@ -177,6 +199,25 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
         x=[float(p[0])+random()*ep for p in v]
         y=[float(p[1])+random()*ep for p in v]
 
+
+    #If the list of data points has two points with the exact same x,y coordinate and different z coordinates
+    #then scipy sometimes segfaults. The following block checks for this. alternatively the code in the if block
+    #above which adds random error could be applied to perturb the points, but probably an exception should be raised
+    #The code also removes duplicate points which scipy can't handle.
+
+    drop_list=[]
+
+    for i in range(len(x)):
+        for j in range(i+1,len(x)):
+            if x[i]==x[j] and y[i]==y[j]:
+                if z[i]!=z[j]:
+                    raise ValueError, "Two points with same x,y coordinates and different z coordinates were given. Interpolation cannot handle this."
+                elif z[i]==z[j]:
+                    drop_list.append(j)
+
+    x=[x[i] for i in range(len(x)) if i not in drop_list]
+    y=[y[i] for i in range(len(x)) if i not in drop_list]
+    z=[z[i] for i in range(len(x)) if i not in drop_list]
 
     xmin=float(min(x))
     xmax=float(max(x))

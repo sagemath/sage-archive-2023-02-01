@@ -5,8 +5,8 @@ SAGE includes John Cremona's tables of elliptic curves in an
 easy-to-use format.  The unique instance of the class
 CremonaDatabase() gives access to the database.
 
-If the full CremonaDatabase isn't installed, a mini-version, which is
-included by default with SAGE, is included.  It includes Weierstrass
+If the full CremonaDatabase isn't installed, a mini-version is
+included by default with SAGE.  It contains Weierstrass
 equations, rank, and torsion for curves up to conductor 10000.
 
 The large database includes all curves of conductor up to 120,000 (!).
@@ -145,7 +145,7 @@ def cremona_letter_code(n):
 
 def old_cremona_letter_code(n):
     r"""
-    Returns \emph{old} the Cremona letter code corresponding to an
+    Returns the \emph{old} Cremona letter code corresponding to an
     integer.
 
     For example,
@@ -209,11 +209,11 @@ def old_cremona_letter_code(n):
 
 def parse_cremona_label(label):
     """
-    Given a Cremona label corresponding that defines an elliptic
+    Given a Cremona label that defines an elliptic
     curve, e.g., 11A1 or 37B3, parse the label and return the
     conductor, isogeny class label, and number.
 
-    The isogeny number may be omitted, in which case it default to 1.
+    The isogeny number may be omitted, in which case it defaults to 1.
     If the isogeny number and letter are both omitted, so label is
     just a string representing a conductor, then the label defaults to
     'A' and the number to 1.
@@ -548,11 +548,11 @@ class LargeCremonaDatabase(sage.databases.db.Database):
     def isogeny_class(self, label):
         """
         Returns the isogeny class of elliptic curves that are
-        isogeneous to the curve with given Cremona label.
+        isogenous to the curve with given Cremona label.
         INPUT:
             label -- string
         OUTPUT:
-            list -- list of EllpticCurve objects.
+            list -- list of EllipticCurve objects.
         """
         conductor, iso, num = parse_cremona_label(label)
         A = self.allcurves(conductor)
@@ -583,11 +583,11 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         INPUT:
             conductors -- list or generator of ints
         OUTPUT:
-            generator that iterates over EllipticCurve objects.
+            list of EllipticCurve objects.
         """
         return list(self.iter(conductors))
 
-    def list(self, conductors):
+    def list_optimal(self, conductors):
         """
         Returns a list of all optimal curves with conductor between Nmin and
         Nmax-1, inclusive, in the database.
@@ -677,9 +677,21 @@ class LargeCremonaDatabase(sage.databases.db.Database):
             4
             sage: c.number_of_curves(990)
             42
+            sage: num = c.number_of_curves()
         """
         if N == 0:
-            return self['number_of_curves']
+            try:
+                # if the optional database is installed, the number is
+                # easy to get
+                return self['number_of_curves']
+            except KeyError:
+                # otherwise we need to do a bit of work
+                num = 0
+                for N in range(self.smallest_conductor(), self.largest_conductor()+1):
+                    L = self.allcurves(N)
+                    num = num + len(L)
+                return num
+
         C = self.allcurves(N)
         if i == 0:
             return len(C)
@@ -690,8 +702,8 @@ class LargeCremonaDatabase(sage.databases.db.Database):
     def number_of_isogeny_classes(self, N=0):
         """
         Returns the number of isogeny classes of curves in the database
-        of conductor N.  If N is 0, return the total number of curves
-        in the database.
+        of conductor N.  If N is 0, return the total number of isogeny
+        classes of curves in the database.
 
         INPUT:
             N -- int
@@ -703,10 +715,23 @@ class LargeCremonaDatabase(sage.databases.db.Database):
             1
             sage: c.number_of_isogeny_classes(37)
             2
+            sage: num = c.number_of_isogeny_classes()
         """
         if N == 0:
-            return self['number_of_isogeny_classes']
+            try:
+                # if the optional database is installed, the number is
+                # easy to get
+                return self['number_of_isogeny_classes']
+            except KeyError:
+                # otherwise we need to do a bit of work
+                num = 0
+                for N in range(self.smallest_conductor(), self.largest_conductor()+1):
+                    L = self.curves(N)
+                    num = num + len(L)
+                return num
+
         return len(self.curves(N))
+
 
     def random(self):
         """

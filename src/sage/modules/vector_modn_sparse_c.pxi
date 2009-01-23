@@ -28,6 +28,7 @@ cdef int init_c_vector_modint(c_vector_modint* v, int p, Py_ssize_t degree,
     if (allocate_c_vector_modint(v, num_nonzero) == -1):
         raise MemoryError, "Error allocating memory for sparse vector."
     if p > 46340:
+        clear_c_vector_modint(v)
         raise OverflowError, "The prime must be <= 46340."
     v.num_nonzero = num_nonzero
     v.degree = degree

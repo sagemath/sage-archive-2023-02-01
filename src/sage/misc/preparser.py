@@ -654,29 +654,39 @@ eq_chars_pre = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     r"""
-    sage: preparse("ZZ.<x> = ZZ['x']")
-    "ZZ = ZZ['x']; (x,) = ZZ._first_ngens(Integer(1))"
-    sage: preparse("ZZ.<x> = ZZ['y']")
-    "ZZ = ZZ['y']; (x,) = ZZ._first_ngens(Integer(1))"
-    sage: preparse("ZZ.<x,y> = ZZ[]")
-    "ZZ = ZZ['x, y']; (x, y,) = ZZ._first_ngens(Integer(2))"
-    sage: preparse("ZZ.<x,y> = ZZ['u,v']")
-    "ZZ = ZZ['u,v']; (x, y,) = ZZ._first_ngens(Integer(2))"
-    sage: preparse("ZZ.<x> = QQ[2^(1/3)]")
-    'ZZ = QQ[Integer(2)**(Integer(1)/Integer(3))]; (x,) = ZZ._first_ngens(Integer(1))'
-    sage: QQ[2^(1/3)]
-    Number Field in a with defining polynomial x^3 - 2
+    EXAMPLES:
+        sage: preparse("ZZ.<x> = ZZ['x']")
+        "ZZ = ZZ['x']; (x,) = ZZ._first_ngens(Integer(1))"
+        sage: preparse("ZZ.<x> = ZZ['y']")
+        "ZZ = ZZ['y']; (x,) = ZZ._first_ngens(Integer(1))"
+        sage: preparse("ZZ.<x,y> = ZZ[]")
+        "ZZ = ZZ['x, y']; (x, y,) = ZZ._first_ngens(Integer(2))"
+        sage: preparse("ZZ.<x,y> = ZZ['u,v']")
+        "ZZ = ZZ['u,v']; (x, y,) = ZZ._first_ngens(Integer(2))"
+        sage: preparse("ZZ.<x> = QQ[2^(1/3)]")
+        'ZZ = QQ[Integer(2)**(Integer(1)/Integer(3))]; (x,) = ZZ._first_ngens(Integer(1))'
+        sage: QQ[2^(1/3)]
+        Number Field in a with defining polynomial x^3 - 2
 
-    sage: preparse("a^b")
-    'a**b'
-    sage: preparse("a^^b")
-    'a^b'
-    sage: 8^1
-    8
-    sage: 8^^1
-    9
-    sage: 9^^1
-    8
+        sage: preparse("a^b")
+        'a**b'
+        sage: preparse("a^^b")
+        'a^b'
+        sage: 8^1
+        8
+        sage: 8^^1
+        9
+        sage: 9^^1
+        8
+
+    We check to make sure that triple single quotes are handled
+    properly.  See Trac ticket \#4405.  In the following case, we
+    check to make sure that the single quote in the comment doesn't
+    prevent the carat from being turned into exponentiation.
+
+        sage: preparse("def foo(x):\n    '''\n    It's a comment.\n    '''\n    return x^2")
+        "def foo(x):\n    '''\n    It's a comment.\n    '''\n    return x**Integer(2)"
+
     """
     try:
         # [1,2,..,n] notation
@@ -751,16 +761,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         # a backslash, or it is but both previous characters
         # are backslashes.
         if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
-            if line[i] == "'":
-                if not in_quote():
-                    in_single_quote = True
-                    i += 1
-                    continue
-                elif in_single_quote:
-                    in_single_quote = False
-                    i += 1
-                    continue
-            elif line[i:i+3] == '"""':
+            if line[i:i+3] in ['"""', "'''"]:
                 if not in_quote():
                     in_triple_quote = True
                     i += 3
@@ -768,6 +769,15 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 elif in_triple_quote:
                     in_triple_quote = False
                     i += 3
+                    continue
+            elif line[i] == "'":
+                if not in_quote():
+                    in_single_quote = True
+                    i += 1
+                    continue
+                elif in_single_quote:
+                    in_single_quote = False
+                    i += 1
                     continue
             elif line[i] == '"':
                 if not in_quote():

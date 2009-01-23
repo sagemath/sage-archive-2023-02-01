@@ -1686,16 +1686,16 @@ def is_in_string(line, pos):
         # a backslash, or it is but both previous characters
         # are backslashes.
         if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
-            if line[i] == "'":
-                if not in_quote():
-                    in_single_quote = True
-                elif in_single_quote:
-                    in_single_quote = False
-            elif line[i:i+3] == '"""':
+            if line[i:i+3] in ['"""', "'''"]:
                 if not in_quote():
                     in_triple_quote = True
                 elif in_triple_quote:
                     in_triple_quote = False
+            elif line[i] == "'":
+                if not in_quote():
+                    in_single_quote = True
+                elif in_single_quote:
+                    in_single_quote = False
             elif line[i] == '"':
                 if not in_quote():
                     in_double_quote = True

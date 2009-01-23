@@ -266,7 +266,10 @@ class Function(RingElement):
         if self is right:
             return 0
         R = RealField()
-        c = cmp(R(self), R(right))
+        try:
+            c = cmp(R(self), R(right))
+        except TypeError:
+            raise TypeError, "these objects are not comparable"
         if c: return c
         try:
 	    return cmp(maxima(self),maxima(right))

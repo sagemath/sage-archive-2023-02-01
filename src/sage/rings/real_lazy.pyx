@@ -594,15 +594,6 @@ cdef class LazyFieldElement(FieldElement):
         """
         return self.eval(R)
 
-    def _real_rqdf_(self, R):
-        """
-        EXAMPLES:
-            sage: a = RLF(1/3)
-            sage: RQDF(a)
-            0.333333333333333333333333333333333333333333333333333333333333333
-        """
-        return self.eval(R)
-
     def _generic_(self, R):
         """
         EXAMPLES:
@@ -1018,8 +1009,8 @@ cdef class LazyNamedUnop(LazyUnop):
             2.00000000000000
             sage: a.sqrt()
             1.414213562373095?
-            sage: RQDF(a)
-            2.000000000000000000000000000000000000000000000000000000000000000
+            sage: RealField(212)(a)
+            2.00000000000000000000000000000000000000000000000000000000000000
             sage: float(a)
             2.0
 

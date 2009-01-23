@@ -1645,7 +1645,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         method on all of its entries.
 
         EXAMPLES:
-            sage: v = vector(RQDF, [1,2,3])
+            sage: v = vector(RealField(212), [1,2,3])
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
@@ -1967,7 +1967,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         method on all of its entries.
 
         EXAMPLES:
-            sage: v = vector(RQDF, [1,2,3], sparse=True)
+            sage: v = vector(RealField(200), [1,2,3], sparse=True)
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()

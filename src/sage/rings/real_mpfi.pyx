@@ -264,11 +264,9 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         -3939
         sage: RIF('1.5')
         1.5000000000000000?
-        sage: RIF(RQDF.pi())
-        3.14159265358980?
-        sage: qdpi = RQDF(RealField(500).pi())
-        sage: cmp(RealIntervalField(212)(qdpi), RealIntervalField(212).pi())
-        0
+        sage: R200 = RealField(200)
+        sage: RIF(R200.pi())
+        3.141592653589794?
 
     The base must be explicitly specified as a named parameter:
         sage: RIF('101101', base=2)

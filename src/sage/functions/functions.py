@@ -3,7 +3,7 @@ SAGE Functions Class
 
 AUTHORS:
    -- William Stein
-   -- didier deshommes <dfdeshom@gmail.com>(2007-03-26): added support for RQDF
+   -- didier deshommes <dfdeshom@gmail.com>(2007-03-26): added support for RQDF (deprecated)
 """
 import weakref
 
@@ -491,9 +491,6 @@ class Function_arith(Function):
         """
         return self.__op(self.__x._mpfr_(R), self.__y._mpfr_(R))
 
-    def _real_rqdf_(self, R):
-        return self.__op(self.__x._real_rqdf_(R), self.__y._real_rqdf_(R))
-
 class Function_gen(Function):
     """
     Function defined by a generic SAGE object.  This makes possible
@@ -530,9 +527,6 @@ class Function_gen(Function):
         return latex(self.__x)
 
     def _mpfr_(self, R):
-        return R(self.__x)
-
-    def _real_rqdf_(self, R):
         return R(self.__x)
 
     def str(self, bits=None):
@@ -612,10 +606,6 @@ class Function_at(Function):
         return '%s(%s)'%(self.__f, self.__x)
 
     def _mpfr_(self, R):
-        x = R(self.__x)
-        return self.__f(x)
-
-    def _real_rqdf_(self, R):
         x = R(self.__x)
         return self.__f(x)
 

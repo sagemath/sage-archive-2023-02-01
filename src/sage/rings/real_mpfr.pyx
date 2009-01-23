@@ -130,8 +130,6 @@ from rational_field import QQ
 from real_double import RDF
 from real_double cimport RealDoubleElement
 
-from real_rqdf import QuadDoubleElement, RQDF
-
 import sage.rings.rational_field
 
 import sage.rings.infinity
@@ -347,12 +345,6 @@ cdef class RealField(sage.rings.ring.Field):
             1.5625
             sage: a.str(2)
             '1.1001000000000000000'
-            sage: w = RQDF('2.345001').sqrt(); w
-            1.531339609622894852128128425884749978483262262653204338472911277
-            sage: RealField(212)(w)
-            1.53133960962289485212812842588474997848326226265320433847291128
-            sage: RR(w)
-            1.53133960962289
         """
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
@@ -390,9 +382,8 @@ cdef class RealField(sage.rings.ring.Field):
         elif QQ.has_coerce_map_from(S):
             return QQtoRR(QQ, self) * QQ.coerce_map_from(S)
         from sage.rings.qqbar import AA
-        from sage.rings.real_rqdf import RQDF
         from sage.rings.real_lazy import RLF
-        if S == AA or S is RLF or (S == RQDF and self.__prec <= 212):
+        if S == AA or S is RLF:
             return self._generic_convert_map(S)
         return self._coerce_map_via([RLF], S)
 
@@ -869,9 +860,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_d(self.value, x, parent.rnd)
         elif PY_TYPE_CHECK(x, RealDoubleElement):
             mpfr_set_d(self.value, (<RealDoubleElement>x)._value, parent.rnd)
-        elif PY_TYPE_CHECK(x, QuadDoubleElement):
-            qd = x
-            self._set_from_qd(qd)
         else:
             s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):
@@ -883,41 +871,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
                     mpfr_set_inf(self.value, -1)
                 else:
                     raise TypeError, "Unable to convert x (='%s') to real number."%s
-
-    cdef _set_from_qd(self,q):
-        """
-        Extract an MPFR number from a quad double
-        real number.
-
-        EXAMPLES:
-            sage: RR = RealField (53)
-            sage: RR(RQDF('324324.0098736633445565765349760000276353865'))
-            324324.009873663
-
-            sage: RR = RealField (200)
-            sage: RR(RQDF('324324.0098736633445565765349760000276353865'))
-            324324.00987366334455657653497600002763538650000000000000000
-
-            sage: w = RQDF('2.345001').sqrt(); w
-            1.531339609622894852128128425884749978483262262653204338472911277
-            sage: RealField(212)(w)
-            1.53133960962289485212812842588474997848326226265320433847291128
-            sage: RealField(250)(w)
-            1.5313396096228948521281284258847499784832622626532043384729112767048720070
-        """
-        cdef int i
-        cdef double d
-        cdef mpfr_t curr
-        doubles = q.get_doubles()
-        rnd = (<RealField>self._parent).rnd
-        mpfr_init2(curr, mpfr_get_prec(self.value))
-        mpfr_set_d(self.value,doubles[0],rnd)
-        for i from 1 <= i < 4:
-            d = doubles[i]
-            mpfr_set_d(curr,d,rnd)
-            mpfr_add(self.value, self.value,curr,rnd)
-
-        mpfr_clear(curr)
 
     cdef _set_from_GEN_REAL(self, GEN g):
         """
@@ -3857,6 +3810,7 @@ def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
     if type == "RDF":
         return RDF
     elif type == "RQDF":
+        from real_rqdf import RQDF
         return RQDF
     elif type == "Interval":
         from real_mpfi import RealIntervalField

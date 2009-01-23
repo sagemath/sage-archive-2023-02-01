@@ -1656,3 +1656,50 @@ def attrcall(name, *args, **kwds):
         [[2], [1, 1], [1, 1], [3, 1, 1], [2], [2], [1, 1]]
     """
     return AttrCallObject(name, args, kwds)
+
+
+def is_in_string(line, pos):
+    r"""
+    Returns True if the character at position pos in line occurs
+    within a string.
+
+    EXAMPLES:
+        sage: from sage.misc.misc import is_in_string
+        sage: line = 'test(\'#\')'
+        sage: is_in_string(line, line.rfind('#'))
+        True
+        sage: is_in_string(line, line.rfind(')'))
+        False
+    """
+    i = 0
+    in_single_quote = False
+    in_double_quote = False
+    in_triple_quote = False
+
+    def in_quote():
+        return in_single_quote or in_double_quote or in_triple_quote
+
+    while i < pos:
+        # Update quote parsing
+        # We only do this if this quote isn't backquoted itself,
+        # which is the case if the previous character isn't
+        # a backslash, or it is but both previous characters
+        # are backslashes.
+        if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
+            if line[i] == "'":
+                if not in_quote():
+                    in_single_quote = True
+                elif in_single_quote:
+                    in_single_quote = False
+            elif line[i:i+3] == '"""':
+                if not in_quote():
+                    in_triple_quote = True
+                elif in_triple_quote:
+                    in_triple_quote = False
+            elif line[i] == '"':
+                if not in_quote():
+                    in_double_quote = True
+                elif in_double_quote:
+                    in_double_quote = False
+        i += 1
+    return in_quote()

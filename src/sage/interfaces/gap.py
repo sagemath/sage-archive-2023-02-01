@@ -147,7 +147,7 @@ AUTHORS:
 
 import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.misc.misc import SAGE_ROOT, DOT_SAGE, is_64_bit
+from sage.misc.misc import SAGE_ROOT, DOT_SAGE, is_64_bit, is_in_string
 from IPython.genutils import page
 import re
 import os
@@ -400,16 +400,35 @@ class Gap(Expect):
         EXAMPLES:
             sage: gap.eval('2+2')
             '4'
+            sage: gap.eval('Print(4); #test\n Print(6);')
+            '46'
+            sage: gap.eval('Print("#"); Print(6);')
+            '#6'
+            sage: gap.eval('4; \n 6;')
+            '4\n6'
         """
-        # newlines cause hang (i.e., error but no gap> prompt!)
-        x = str(x).rstrip().replace('\n','')
-        if len(x) == 0 or x[len(x) - 1] != ';':
-            x += ';'
-        s = Expect.eval(self, x)
-        if newlines:
-            return s
-        else:
-            return s.replace("\\\n","")
+        #We remove all of the comments:  On each line, we try
+        #to find a pound sign.  If we find it, we check to see if
+        #it is occuring in a string.  If it is not in a string, we
+        #strip off the comment.
+        input_line = ""
+        for line in  str(x).rstrip().split('\n'):
+            pound_position = line.rfind('#')
+            if pound_position != -1 and not is_in_string(line, pound_position):
+                line = line[:pound_position]
+
+            input_line += line
+
+        if not input_line.endswith(';'):
+            input_line += ';'
+
+        result = Expect.eval(self, input_line)
+
+        if not newlines:
+            result = result.replace("\\\n","")
+
+        return result.strip()
+
 
     # Todo -- this -- but there is a tricky "when does it end" issue!
     # Maybe do via a file somehow?

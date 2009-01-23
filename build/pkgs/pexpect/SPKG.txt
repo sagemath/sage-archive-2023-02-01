@@ -1,3 +1,36 @@
+= pexpect =
+
+== Description ==
+
+Pexpect is a pure Python module for spawning child applications;
+controlling them; and responding to expected patterns in their output.
+
+== License ==
+
+== SPKG Maintainers ==
+
+ * William Stein
+
+== Upstream Contact ==
+
+
+== Dependencies ==
+
+ * None
+
+
+== Special Update/Build Instructions ==
+
+ * This is a svn checkout. Note that on MacIntel OSX one has to remove a number of files due to PIC issues. The problem will be fixed upstream.
+
+== Changelog ==
+
+===  (William Stein, January 23rd, 2009) ===
+ -- created proper SPKG.txt
+ -- fixed bug in pexpect where it tried to run directories
+
+== NOTES ==
+
 NOTE -- pexpect-2.1 is shockingly slow for SAGE (especially in the notebook)
         and I can't figure out why.  So we're sticking with pexpect-2.0
         for now (which works fine for us).

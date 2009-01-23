@@ -70,6 +70,11 @@ def Set(X):
         {1, 2, 3}
         sage: 5 in X
         False
+
+    Set also accepts iterators, but be careful to only give *finite* sets.
+        sage: list(Set(iter([1, 2, 3, 4, 5])))
+        [1, 2, 3, 4, 5]
+
     """
     if is_Set(X):
         return X
@@ -83,6 +88,11 @@ def Set(X):
             return Set_object_enumerated(X)
     except AttributeError:
         pass
+    if hasattr(X, 'next'):
+        X = list(X)
+        # Note we are risking an infinite loop here,
+        # but this is the way Python behaves too: try
+        # sage: set(an iterator which does not terminate)
     return Set_object(X)
 
 def EnumeratedSet(X):

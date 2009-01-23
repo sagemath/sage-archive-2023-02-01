@@ -1472,7 +1472,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
 
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cdef int _cmp_c_impl(self, Element right) except -2:
         """
         EXAMPLES:
             sage: mod(5,13) == mod(-8,13)
@@ -1486,9 +1486,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: mod(0, 13) == int(0)
             True
         """
-        if (<IntegerMod_int>left).ivalue == (<IntegerMod_int>right).ivalue:
+        if self.ivalue == (<IntegerMod_int>right).ivalue:
             return 0
-        elif (<IntegerMod_int>left).ivalue < (<IntegerMod_int>right).ivalue:
+        elif self.ivalue < (<IntegerMod_int>right).ivalue:
             return -1
         else:
             return 1
@@ -1643,7 +1643,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: R(7) * R(8)
             6
         """
-        return self._new_c((self.ivalue * right.ivalue) % self.__modulus.int32)
+        return self._new_c((self.ivalue * (<IntegerMod_int>right).ivalue) % self.__modulus.int32)
 
     cpdef RingElement _imul_(self, RingElement right):
         """
@@ -1652,7 +1652,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: R(7) * R(8)
             6
         """
-        self.ivalue = (self.ivalue * right.ivalue) % self.__modulus.int32
+        self.ivalue = (self.ivalue * (<IntegerMod_int>right).ivalue) % self.__modulus.int32
         return self
 
     cpdef RingElement _div_(self, RingElement right):
@@ -2179,7 +2179,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return self.ivalue
 
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cdef int _cmp_c_impl(self, Element right) except -2:
         """
         EXAMPLES:
             sage: mod(5,13^5) == mod(13^5+5,13^5)
@@ -2193,8 +2193,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(0, 13^5) == int(0)
             True
         """
-        if (<IntegerMod_int64>left).ivalue == (<IntegerMod_int64>right).ivalue: return 0
-        elif (<IntegerMod_int64>left).ivalue < (<IntegerMod_int64>right).ivalue: return -1
+        if self.ivalue == (<IntegerMod_int64>right).ivalue: return 0
+        elif self.ivalue < (<IntegerMod_int64>right).ivalue: return -1
         else: return 1
 
     def __richcmp__(left, right, int op):

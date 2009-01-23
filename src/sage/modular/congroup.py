@@ -734,9 +734,9 @@ class GammaH_class(CongruenceSubgroup):
 
         EXAMPLES:
             sage: GammaH(92,[5,11]).__reduce__()
-            (<function GammaH at ...>, (92, [5, 11]))
+            (<function GammaH_constructor at ...>, (92, [5, 11]))
         """
-        return GammaH, (self.level(), self.__H)
+        return GammaH_constructor, (self.level(), self.__H)
 
     def divisor_subgroups(self):
         r"""
@@ -1450,9 +1450,9 @@ class Gamma0_class(GammaH_class):
 
         EXAMPLES:
             sage: Gamma0(22).__reduce__()
-            (<function Gamma0 at ...>, (22,))
+            (<function Gamma0_constructor at ...>, (22,))
         """
-        return Gamma0, (self.level(),)
+        return Gamma0_constructor, (self.level(),)
 
     def _latex_(self):
         r"""
@@ -1939,9 +1939,9 @@ class Gamma1_class(GammaH_class):
 
         EXAMPLES:
             sage: Gamma1(82).__reduce__()
-            (<function Gamma1 at ...>, (82,))
+            (<function Gamma1_constructor at ...>, (82,))
         """
-        return Gamma1, (self.level(),)
+        return Gamma1_constructor, (self.level(),)
 
     def _latex_(self):
         r"""

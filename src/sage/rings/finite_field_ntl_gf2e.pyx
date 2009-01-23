@@ -142,7 +142,7 @@ cdef unsigned int switch_endianess(unsigned int i):
 cdef class FiniteField_ntl_gf2e(FiniteField):
     def __init__(FiniteField_ntl_gf2e self, q, names="a",  modulus=None, repr="poly"):
         """
-        Fnite Field for characteristic 2 and order >= 2.
+        Finite Field for characteristic 2 and order >= 2.
 
         INPUT:
             q     -- 2^n (must be 2 power)

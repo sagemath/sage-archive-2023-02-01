@@ -1778,8 +1778,9 @@ cdef class FiniteField(Field):
     def multiplicative_generator(self):
         """
         Return a generator for the multiplicative group of this field.
-        The generator is not randomized, though it could change from
-        one version of SAGE to another.
+
+        This generator might change from one version of Sage to
+        another.
 
         EXAMPLES:
             sage: k = GF(997)

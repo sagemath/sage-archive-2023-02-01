@@ -197,7 +197,11 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
     def gen(self, n=0):
         """
-        Return generator of this finite field.
+        Return generator of this finite field as an extension of its
+        prime field.
+
+        NOTE: If you want a primitive element for this finite field
+        instead, use \code{self.multiplicative_generator()}.
 
         EXAMPLES:
             sage: k = GF(13)

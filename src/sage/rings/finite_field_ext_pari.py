@@ -275,14 +275,14 @@ class FiniteField_ext_pari(FiniteField_generic):
 
     def gen(self, n=0):
         """
-        Return chosen generator of the finite field.  This generator
-        is a root of the defining polynomial of the finite field.
+        Return a generator of the finite field.  This generator
+        is a root of the defining polynomial of the finite field, and
+        might differ between different runs or different
+        architectures.
 
-        WARNING: The generator is not guaranteed to be a generator for
-            the multiplicative group.  To obtain the latter, use
-            multiplicative_generator().  Both gen() and
-            multiplicative_generator() are random: the elements
-            returned will in general differ between runs.
+        WARNING: This generator is not guaranteed to be a generator
+            for the multiplicative group.  To obtain the latter, use
+            multiplicative_generator().
 
         INPUT:
             nothing

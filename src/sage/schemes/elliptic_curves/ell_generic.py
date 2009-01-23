@@ -2217,6 +2217,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             ...       f = E.multiplication_by_m(-n)
             ...       Q = -n*P
             ...       assert Q == E(eval(f,P))
+
+        The following test shows that \#4364 is indeed fixed.
+            sage: p = next_prime(2^30-41)
+            sage: a = GF(p)(1)
+            sage: b = GF(p)(1)
+            sage: E = EllipticCurve([a, b])
+            sage: P = E.random_point()
+            sage: my_eval = lambda f,P: [fi(P[0],P[1]) for fi in f]
+            sage: f = E.multiplication_by_m(2)
+            sage: assert(E(eval(f,P)) == 2*P)
         """
         # Coerce the input m to be an integer
         m = rings.Integer(m)

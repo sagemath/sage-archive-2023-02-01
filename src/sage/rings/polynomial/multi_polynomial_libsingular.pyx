@@ -3449,6 +3449,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if right.is_zero():
             raise ZeroDivisionError
 
+        if (<MPolynomial_libsingular>self)._parent._base.is_finite() and (<MPolynomial_libsingular>self)._parent._base.characteristic() > 1<<29:
+            raise NotImplementedError, "Division of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
+
         cdef int count = polyLengthBounded(_self._poly,15)
         if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
             _sig_on
@@ -3855,6 +3858,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         _ring = (<MPolynomialRing_libsingular>self._parent)._ring
 
+        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
+            raise NotImplementedError, "GCD of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
+
         if(_ring != currRing): rChangeCurrRing(_ring)
 
         if not (PY_TYPE_CHECK(right, MPolynomial_libsingular) and (<MPolynomial_libsingular>right)._parent is (<MPolynomial_libsingular>self)._parent):
@@ -3915,6 +3921,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             _g = <MPolynomial_libsingular>g
 
+        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
+            raise NotImplementedError, "LCM of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
+
         cdef int count = polyLengthBounded(self._poly,20)+polyLengthBounded(_g._poly,20)
         if count >= 20:
             _sig_on
@@ -3942,6 +3951,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
         if(_ring != currRing): rChangeCurrRing(_ring)
+
+        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
+            raise NotImplementedError, "is_squarefree of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
+
         return bool(singclap_isSqrFree(self._poly))
 
     def quo_rem(self, MPolynomial_libsingular right):
@@ -3991,6 +4004,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             py_quo = self//right
             py_rem = self - right*py_quo
             return py_quo, py_rem
+
+        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
+            raise NotImplementedError, "Division of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
 
         cdef int count = polyLengthBounded(self._poly,15)
         if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
@@ -4298,6 +4314,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if not variable.parent() is self.parent():
             raise TypeError, "second parameter needs to be an element of self.parent() or None"
+
+
+        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
+            raise NotImplementedError, "Resultants of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
 
         cdef int count = polyLengthBounded(self._poly,20)+polyLengthBounded(other._poly,20)
         if count >= 20:

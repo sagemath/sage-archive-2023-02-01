@@ -502,6 +502,48 @@ cdef class RealDoubleElement(FieldElement):
 
         return 53
 
+    def ulp(self):
+        """
+        Returns the unit of least precision of self, which is the weight of
+        the least significant bit of self. Unless self is exactly a power of
+        two, it is gap between this number and the next closest distinct
+        number that can be represented.
+
+        EXAMPLES:
+            sage: a = RDF(1)
+            sage: a - a.ulp() == a
+            False
+            sage: a - a.ulp()/2 == a
+            True
+
+            sage: a = RDF.pi()
+            sage: b = a + a.ulp()
+            sage: (a+b)/2 in [a,b]
+            True
+
+            sage: a = RDF(1)/RDF(0); a
+            inf
+            sage: a.ulp()
+            inf
+            sage: (-a).ulp()
+            inf
+            sage: a = RR('nan')
+            sage: a.ulp() is a
+            True
+        """
+        cdef int e, v = gsl_isinf(self._value)
+        if gsl_isnan(self._value):
+            return self
+        elif self._value == 0:
+            return RealDoubleElement(ldexp(1.0, e-1082))
+        elif v == 1:
+            return self
+        elif v == -1:
+            return -self
+        else:
+            frexp(self._value, &e)
+            return RealDoubleElement(ldexp(1.0, e-54))
+
     def real(self):
         """
         Returns itself -- we're already real.

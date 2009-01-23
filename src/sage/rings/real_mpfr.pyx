@@ -1677,6 +1677,53 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self
 
+    def ulp(self):
+        """
+        Returns the unit of least precision of self, which is the weight of
+        the least significant bit of self. Unless self is exactly a power of
+        two, it is gap between this number and the next closest distinct
+        number that can be represented.
+
+        EXAMPLES:
+            sage: a = 1.0
+            sage: a + a.ulp() == a
+            False
+            sage: a + a.ulp()/2 == a
+            True
+
+            sage: a = RealField(500).pi()
+            sage: b = a + a.ulp()
+            sage: (a+b)/2 in [a,b]
+            True
+
+            sage: a = RR(infinity)
+            sage: a.ulp()
+            +infinity
+            sage: (-a).ulp()
+            +infinity
+            sage: a = RR('nan')
+            sage: a.ulp() is a
+            True
+        """
+        cdef RealNumber x
+        if mpfr_nan_p(self.value):
+            return self
+        elif mpfr_inf_p(self.value):
+            if mpfr_sgn(self.value) == 1:
+                return self
+            else:
+                return -self
+        else:
+            x = self._new()
+            mpfr_set(x.value, self.value, (<RealField>self._parent).rnd)
+            if mpfr_sgn(self.value) == 1:
+                mpfr_nextabove(x.value)
+            else:
+                mpfr_nextbelow(x.value)
+            mpfr_sub(x.value, x.value, self.value, (<RealField>self._parent).rnd)
+            mpfr_abs(x.value, x.value, (<RealField>self._parent).rnd)
+            return x
+
 
     ###################
     # Rounding etc

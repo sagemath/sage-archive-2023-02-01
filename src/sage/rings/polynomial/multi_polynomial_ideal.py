@@ -2068,11 +2068,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         if algorithm is '':
             if self.ring().base_ring() is ZZ:
-                try:
-                    gb = self._groebner_basis_macaulay2()
-                except TypeError:
-                    verbose("Warning: falling back to very slow toy implementation.", level=0)
-                    gb = toy_d_basis.d_basis(self, *args, **kwds)
+#                 try:
+#                     gb = self._groebner_basis_macaulay2()
+#                 except TypeError:
+                verbose("Warning: falling back to very slow toy implementation.", level=0)
+                gb = toy_d_basis.d_basis(self, *args, **kwds)
             elif is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
                 try:
                     gb = self._groebner_basis_macaulay2()

@@ -316,6 +316,13 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.libs.flint.flint',
+              sources = ["sage/libs/flint/flint.pyx"],
+              libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
+              include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
+              extra_compile_args=["-std=c99", "-D_XPG6"],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
+
     Extension('sage.libs.flint.fmpz_poly',
               sources = ["sage/libs/flint/fmpz_poly.pyx"],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],

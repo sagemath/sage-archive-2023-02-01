@@ -262,6 +262,22 @@ class Function(RingElement):
             True
             sage: bool(t < s)
             False
+
+        Python raises an error when comparing the imaginary unit with
+        a real number. In order to be consistent with python, we raise
+        a TypeError when comparing constants that don't live in the
+        field of real number.
+            sage: cmp(I,e)
+            Traceback (most recent call last):
+            ...
+            TypeError: these objects are not comparable
+
+        However, bool(I < e) evaluates correctly and does not raise
+        an error:
+            sage: bool(I < e)
+            False
+            sage: bool(I == I)
+            True
         """
         if self is right:
             return 0

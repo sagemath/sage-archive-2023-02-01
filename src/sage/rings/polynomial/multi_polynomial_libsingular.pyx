@@ -3411,7 +3411,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return f
 
-    def factor(self):
+    def factor(self, proof=True):
         r"""
         Return the factorization of \code{self}.
 
@@ -3532,11 +3532,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if not self._parent._base.is_field():
             raise NotImplementedError, "Factorization of multivariate polynomials over non-fields is not implemented."
 
-        if self._parent._base.is_finite() and not self._parent._base.is_prime_field():
-            raise NotImplementedError, "Factorization of multivariate polynomials over non-prime fields explicitly disabled due to bugs in Singular."
-
-        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
-            raise NotImplementedError, "Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
+        if self._parent._base.is_finite():
+            if proof:
+                raise NotImplementedError, "proof = True factorization not implemented.  Call factor with proof=False."
+            if not self._parent._base.is_prime_field():
+                return self._factor_over_nonprime_finite_field()
+            if self._parent._base.characteristic() > 1<<29:
+                raise NotImplementedError, "Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
 
         # I make a temporary copy of the poly in self because singclap_factorize appears to modify it's parameter
         ptemp = p_Copy(self._poly,_ring)

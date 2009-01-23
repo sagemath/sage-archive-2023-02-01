@@ -873,18 +873,18 @@ cdef class FiniteField_givaro(FiniteField):
     def __hash__(FiniteField_givaro self):
         """
         The hash of a Givaro finite field is a hash over it's
-        characterstic polynomial and the string 'givaro'
+        characteristic polynomial and the string 'givaro'.
 
         EXAMPLES:
             sage: {GF(3^4, 'a'):1} #indirect doctest
             {Finite Field in a of size 3^4: 1}
         """
-        if self._hash is None:
-            pass
-        if self.degree()>1:
-            self._hash = hash((self.characteristic(),self.polynomial(),self.variable_name(),"givaro"))
+        if self._hash is not None:
+            return self._hash
+        if self.degree() > 1:
+            self._hash = hash((self.characteristic(), self.polynomial(), self.variable_name(), "givaro"))
         else:
-            self._hash = hash((self.characteristic(),self.variable_name(),"givaro"))
+            self._hash = hash((self.characteristic(), self.variable_name(), "givaro"))
         return self._hash
 
     def _element_repr(FiniteField_givaro self, FiniteField_givaroElement e):
@@ -1686,6 +1686,24 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         return (<FiniteField_givaro>self._parent).log_to_int(self.element)
 
+    def _integer_(FiniteField_givaroElement self, Integer):
+        """
+        Coerce self to an integer.
+
+        EXAMPLES:
+            sage: k.<b> = GF(5^2); k
+            Finite Field in b of size 5^2
+            sage: ZZ(k(4))
+            4
+            sage: ZZ(b)
+            Traceback (most recent call last):
+            ...
+            TypeError: not in prime subfield
+        """
+        cdef int a = (<FiniteField_givaro>self._parent).log_to_int(self.element)
+        if a < (<FiniteField_givaro>self._parent).objectptr.characteristic():
+            return Integer(a)
+        raise TypeError, "not in prime subfield"
 
     def log_to_int(FiniteField_givaroElement self):
         r"""

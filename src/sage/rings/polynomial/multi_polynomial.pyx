@@ -657,6 +657,10 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f = x^3 + 3/5*y + 1
             sage: f.change_ring(GF(7))
             x^3 + 2*y + 1
+
+            sage: R.<x,y> = GF(9,'a')[]
+            sage: (x+2*y).change_ring(GF(3))
+            x - y
         """
         P = self._parent
         P = P.change_ring(R)

@@ -765,12 +765,37 @@ function input_keyup(id, event) {
     */
     if(skip_keyup) { skip_keyup = false; return false; }
     var t = time_now()
+
     if((t - last_keypress_resize) > keypress_resize_delay) {
         last_keypress_resize = t;
         cell_input_resize(id);
     } else if(!will_resize_soon) {
         will_resize_soon = true;
         setTimeout("cell_input_resize("+id+"); will_resize_soon=false;", keypress_resize_delay)
+    }
+
+    // automatic indentation
+    if (browser_iphone) return;
+    var e = new key_event(event);
+    if (e==null) return;
+    if (key_enter(e)) {
+        var cell = get_cell(id)
+        //warning!  very subtle regular expression (for nonjaphs)
+        // (?:\n|^)        -- starting from the last line ending (or beginning of the cell), (don't capture contents)
+        // ( *)            -- as many spaces as we can find (capture this, we'll find it in RegExp.$1)
+        // (?:.*?)         -- everything else in the string, but save room for the following terms (don't capture contents)
+        // (:?)            -- optionally, capture a colon before the following term (find it in RegExp.$2)
+        // [ \t\r\v\f]*\n$ -- ignore whitespace at the end of the line
+        re = /(?:\n|^)( *)(?:.*?)(:?)[ \t\r\v\f]*\n$/;
+
+        var position = get_cursor_position(cell);
+        var text = text_cursor_split(cell);
+        re.test(text[0])
+        var indent = RegExp.$1
+        var colon = RegExp.$2
+        if (colon == ':') { indent = indent + "    " }
+        get_cell(id).value = text[0] + indent + text[1];
+        set_cursor_position(cell, position + indent.length)
     }
 }
 
@@ -2039,6 +2064,8 @@ function cell_input_key_event(id, e) {
     } else if (key_request_log(e)) {
        text_log_window(worksheet_filename);
     }
+
+
 
     // An actual non-controlling character was sent, which means this cell has changed.
     // When the cursor leaves the cell, we'll use this to know to send the changed

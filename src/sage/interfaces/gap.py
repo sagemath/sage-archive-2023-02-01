@@ -561,8 +561,24 @@ class Gap(Expect):
         return ("".join(normal_outputs),"".join(error_outputs))
 
     def _keyboard_interrupt(self):
+        """
+        TESTS:
+
+        We check to make sure that the gap interface behaves correctly
+        after a keyboard interrupt.
+
+            sage: gap(2)
+            2
+            sage: try:
+            ...     gap._keyboard_interrupt()
+            ... except:
+            ...     pass
+            Interrupting Gap...
+            sage: gap(2)
+            2
+        """
         print "Interrupting %s..."%self
-        os.killpg(self._expect.pid, 2)
+        self.quit()
         raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
     def _eval_line_using_file(self, line):

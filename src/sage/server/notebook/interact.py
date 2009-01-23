@@ -1588,7 +1588,7 @@ def interact(f):
         ...       xyz = a
         <html>...
 
-    If you enter the above you obtain an interact campus.  Entering
+    If you enter the above you obtain an interact canvas.  Entering
     values in the box, changes the global variable xyz.
 
         sage: @interact

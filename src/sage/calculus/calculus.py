@@ -3898,7 +3898,9 @@ class SymbolicExpression(RingElement):
     def subs_expr(self, *equations):
         """
         Given a dictionary of key:value pairs, substitute all occurrences
-        of key for value in self.
+        of key for value in self.  The substitutions can also be given
+        as a number of symbolic equalities key == value; see the
+        examples.
 
         WARNING: This is a formal pattern substitution, which may or
         may not have any mathematical meaning.  The exact rules used
@@ -3914,6 +3916,10 @@ class SymbolicExpression(RingElement):
             sage: var('x,y,z'); f = x^3 + y^2 + z
             (x, y, z)
             sage: f.subs_expr(x^3 == y^2, z == 1)
+            2*y^2 + 1
+
+        Or the same thing giving the substitutions as a dictionary:
+            sage: f.subs_expr({x^3:y^2, z:1})
             2*y^2 + 1
 
             sage: f = x^2 + x^4
@@ -3940,6 +3946,10 @@ class SymbolicExpression(RingElement):
             sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional -- requires mathematica
             2 t + Cos[x] + Sin[y]
         """
+        if isinstance(equations[0], dict):
+            eq_dict = equations[0]
+            equations = [ x == eq_dict[x] for x in eq_dict.keys() ]
+
         for x in equations:
             if not isinstance(x, SymbolicEquation):
                 raise TypeError, "each expression must be an equation"

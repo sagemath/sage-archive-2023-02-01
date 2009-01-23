@@ -76,12 +76,6 @@ def tmp_expect_interface_local():
 ##         raise RuntimeError
 ##     return ' '.join([t] + c[1:])
 
-
-# . in user's path causes *HUGE* trouble, e.g., pexpect will try to
-# run a directory name!
-p = os.environ['PATH'].split(':')
-os.environ['PATH'] = ':'.join([v for v in p if v.strip() != '.'])
-
 # The subprocess is a shared resource.  In a multi-threaded
 # environment, there would have to be a lock to control access to the
 # subprocess.  Fortunately, SAGE does not use Python threads.

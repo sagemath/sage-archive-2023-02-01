@@ -1297,90 +1297,90 @@ def qepcad(formula, assume=None, interact=False, solution=None, vars=None, **kwa
         (a, b, c, d, x, y, z, long_with_underscore_314159)
         sage: K.<q,r> = QQ[]
 
-        sage: qepcad('(E x)[a x + b > 0]', vars='(a,b,x)')
+        sage: qepcad('(E x)[a x + b > 0]', vars='(a,b,x)')      # optional - qepcad
         a /= 0 \/ b > 0
 
-        sage: qepcad(a > b)
+        sage: qepcad(a > b)                                     # optional - qepcad
         b - a < 0
 
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0))
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0))        # optional - qepcad
         4 a c - b^2 <= 0 /\ [ c = 0 \/ a /= 0 \/ 4 a c - b^2 < 0 ]
 
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0), assume=(a != 0))
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0), assume=(a != 0))    # optional - qepcad
         4 a c - b^2 <= 0
 
         For which values of $a$,$b$,$c$ does $a x^2 + b x + c$ have
         2 real zeroes?
-        sage: exact2 = qepcad(qf.exactly_k(2, x, a*x^2 + b*x + c == 0)); exact2
+        sage: exact2 = qepcad(qf.exactly_k(2, x, a*x^2 + b*x + c == 0)); exact2   # optional - qepcad
         a /= 0 /\ 4 a c - b^2 < 0
 
         1 real zero?
-        sage: exact1 = qepcad(qf.exactly_k(1, x, a*x^2 + b*x + c == 0)); exact1
+        sage: exact1 = qepcad(qf.exactly_k(1, x, a*x^2 + b*x + c == 0)); exact1   # optional - qepcad
         [ a > 0 /\ 4 a c - b^2 = 0 ] \/ [ a < 0 /\ 4 a c - b^2 = 0 ] \/ [ a = 0 /\ 4 a c - b^2 < 0 ]
 
         no real zeroes?
-        sage: exact0 = qepcad(qf.forall(x, a*x^2 + b*x + c != 0)); exact0
+        sage: exact0 = qepcad(qf.forall(x, a*x^2 + b*x + c != 0)); exact0     # optional - qepcad
         4 a c - b^2 >= 0 /\ c /= 0 /\ [ b = 0 \/ 4 a c - b^2 > 0 ]
 
         $3^{75}$ real zeroes?
-        sage: qepcad(qf.exactly_k(3^75, x, a*x^2 + b*x + c == 0))
+        sage: qepcad(qf.exactly_k(3^75, x, a*x^2 + b*x + c == 0))             # optional - qepcad
         FALSE
 
         We can check that the results don't overlap:
-        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact1), vars='a,b,c')
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact1), vars='a,b,c')      # optional - qepcad
         FALSE
-        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact2), vars='a,b,c')
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact2), vars='a,b,c')      # optional - qepcad
         FALSE
-        sage: qepcad(r'[[%s] /\ [%s]]' % (exact1, exact2), vars='a,b,c')
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact1, exact2), vars='a,b,c')      # optional - qepcad
         FALSE
 
         and that the union of the results is as expected:
-        sage: qepcad(r'[[%s] \/ [%s] \/ [%s]]' % (exact0, exact1, exact2), vars=(a,b,c))
+        sage: qepcad(r'[[%s] \/ [%s] \/ [%s]]' % (exact0, exact1, exact2), vars=(a,b,c))  # optional - qepcad
         b /= 0 \/ a /= 0 \/ c /= 0
 
         So we have finitely many zeroes if $a$, $b$, or $c$ is nonzero;
         which means we should have infinitely many zeroes if they are all
         zero.
-        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c == 0))
+        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c == 0))          # optional - qepcad
         a = 0 /\ b = 0 /\ c = 0
 
         The polynomial is nonzero almost everywhere iff it is not
         identically zero.
-        sage: qepcad(qf.all_but_finitely_many(x, a*x^2 + b*x + c != 0))
+        sage: qepcad(qf.all_but_finitely_many(x, a*x^2 + b*x + c != 0))    # optional - qepcad
         b /= 0 \/ a /= 0 \/ c /= 0
 
         The non-zeroes are continuous iff there are no zeroes or if
         the polynomial is zero.
-        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c != 0))
+        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c != 0))         # optional - qepcad
         4 a c - b^2 >= 0 /\ [ a = 0 \/ 4 a c - b^2 > 0 ]
 
         The zeroes are continuous iff there are no or one zeroes, or if the
         polynomial is zero:
-        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c == 0))
+        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c == 0))         # optional - qepcad
         a = 0 \/ 4 a c - b^2 >= 0
-        sage: qepcad(r'[[%s] \/ [%s] \/ [a = 0 /\ b = 0 /\ c = 0]]' % (exact0, exact1), vars='a,b,c')
+        sage: qepcad(r'[[%s] \/ [%s] \/ [a = 0 /\ b = 0 /\ c = 0]]' % (exact0, exact1), vars='a,b,c')   # optional - qepcad
         a = 0 \/ 4 a c - b^2 >= 0
 
         Since polynomials are continuous and $y > 0$ is an open set,
         they are positive infinitely often iff they are positive at
         lesat once.
-        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c > 0))
+        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c > 0))        # optional - qepcad
         c > 0 \/ a > 0 \/ 4 a c - b^2 < 0
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c > 0))
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c > 0))                 # optional - qepcad
         c > 0 \/ a > 0 \/ 4 a c - b^2 < 0
 
         However, since $y >= 0$ is not open, the equivalence does not
         hold if you replace ``positive'' with ``nonnegative''.
         (We assume $a \neq 0$ to get simpler formulas.)
-        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c >= 0), assume=(a != 0))
+        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c >= 0), assume=(a != 0))    # optional - qepcad
         a > 0 \/ 4 a c - b^2 < 0
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c >= 0), assume=(a != 0))
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c >= 0), assume=(a != 0))             # optional - qepcad
         a > 0 \/ 4 a c - b^2 <= 0
 
     TESTS:
         We verify that long variable names work.  (Note that QEPCAD
         does not support underscores, so they are stripped from the formula.)
-        sage: qepcad(qf.exists(a, a*long_with_underscore_314159 == 1))
+        sage: qepcad(qf.exists(a, a*long_with_underscore_314159 == 1))                # optional - qepcad
         longwithunderscore314159 /= 0
     """
     use_witness = False

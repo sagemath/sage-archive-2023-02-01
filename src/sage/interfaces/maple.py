@@ -816,15 +816,15 @@ class MapleElement(ExpectElement):
         don't need to install any Sage packages for this.
 
         EXAMPLES:
-            sage: m = maple('x^2+y^2')
-            sage: m.__hash__()
+            sage: m = maple('x^2+y^2')                      # optional - maple
+            sage: m.__hash__()                              # optional - maple
             188724254834261060184983038723355865733L
-            sage: hash(m)
+            sage: hash(m)                                   # optional - maple
             5035731711831192733
-            sage: m = maple('x^2+y^3')
-            sage: m.__hash__()
+            sage: m = maple('x^2+y^3')                      # optional - maple
+            sage: m.__hash__()                              # optional - maple
             264835029579301191531663246434344770556L
-            sage: hash(m)
+            sage: hash(m)                                   # optional - maple
             -2187277978252104690
         """
         return int(maple.eval('StringTools:-Hash(convert(%s, string));'%self.name())[1:-1],16)
@@ -837,32 +837,32 @@ class MapleElement(ExpectElement):
         don't need to install any Sage packages for this.
 
         EXAMPLES:
-            sage: a = maple(5)
-            sage: b = maple(5)
-            sage: a == b
+            sage: a = maple(5)                             # optional - maple
+            sage: b = maple(5)                             # optional - maple
+            sage: a == b                                   # optional - maple
             True
-            sage: a == 5
-            True
-
-            sage: c = maple(3)
-            sage: a == c
-            False
-            sage: a < c
-            False
-            sage: a < 6
-            True
-            sage: c <= a
+            sage: a == 5                                   # optional - maple
             True
 
-            sage: M = matrix(ZZ, 2, range(1,5))
-            sage: Mm = maple(M)
-            sage: Mm == Mm
+            sage: c = maple(3)                             # optional - maple
+            sage: a == c                                   # optional - maple
+            False
+            sage: a < c                                    # optional - maple
+            False
+            sage: a < 6                                    # optional - maple
             True
-            sage: Mm < 5
+            sage: c <= a                                   # optional - maple
             True
-            sage: (Mm < 5) == (M < 5)
+
+            sage: M = matrix(ZZ, 2, range(1,5))            # optional - maple
+            sage: Mm = maple(M)                            # optional - maple
+            sage: Mm == Mm                                 # optional - maple
             True
-            sage: 5 < Mm
+            sage: Mm < 5                                   # optional - maple
+            True
+            sage: (Mm < 5) == (M < 5)                      # optional - maple
+            True
+            sage: 5 < Mm                                   # optional - maple
             False
 
         TESTS:
@@ -871,7 +871,7 @@ class MapleElement(ExpectElement):
             sage: u = maple(x^2+2*x+1)
             sage: u == t # todo: not implemented
             True         # returns False, should use 'testeq' in maple
-            sage: maple.eval('testeq(%s = %s)'%(t.name(),u.name()))
+            sage: maple.eval('testeq(%s = %s)'%(t.name(),u.name()))    # optional - maple
             'true'
         """
         P = self.parent()
@@ -908,20 +908,20 @@ class MapleElement(ExpectElement):
         don't need to install any Sage packages for this.
 
         EXAMPLES:
-            sage: t = maple(5); u = maple(3)
-            sage: t*u
+            sage: t = maple(5); u = maple(3)                # optional - maple
+            sage: t*u                                       # optional - maple
             15
-            sage: M = matrix(ZZ,2,range(4))
-            sage: Mm = maple(M)
-            sage: Mm*Mm
+            sage: M = matrix(ZZ,2,range(4))                 # optional - maple
+            sage: Mm = maple(M)                             # optional - maple
+            sage: Mm*Mm                                     # optional - maple
             Matrix(2, 2, [[2,3],[6,11]])
 
             sage: v = vector(ZZ,2,[2,3])
-            sage: vm = maple(v)
-            sage: vm*Mm
+            sage: vm = maple(v)                             # optional - maple
+            sage: vm*Mm                                     # optional - maple
             Vector[row](2, [6,11])
 
-            sage: t*Mm
+            sage: t*Mm                                      # optional - maple
             Matrix(2, 2, [[0,5],[10,15]])
         """
         P = self._check_valid()
@@ -948,12 +948,12 @@ class MapleElement(ExpectElement):
 
         EXAMPLES:
             sage: x = var('x')
-            sage: maple(x)
+            sage: maple(x)                      # optional - maple
             x
-            sage: maple(5)
+            sage: maple(5)                      # optional - maple
             5
             sage: M = matrix(QQ,2,range(4))
-            sage: maple(M)
+            sage: maple(M)                      # optional - maple
             Matrix(2, 2, [[0,1],[2,3]])
         """
         self._check_valid()

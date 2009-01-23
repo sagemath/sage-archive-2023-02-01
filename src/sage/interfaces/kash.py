@@ -155,7 +155,7 @@ seems much faster than PARI's (which is the default in SAGE).}
     sage: z = kash('1 + 2*I')                      # optional -- kash
     sage: z                                        # optional -- kash
     1.000000000000000000000000000000000000000 + 2.000000000000000000000000000000000000000*I
-    sage: z*z
+    sage: z*z                                      # optional -- kash
     -3.000000000000000000000000000000000000000 + 4.000000000000000000000000000000000000000*I
 
     sage: kash.Cos('1.24')                         # optional -- kash

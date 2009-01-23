@@ -161,10 +161,6 @@ def doc_preparse(s):
     """
     sl = s.lower()
 
-    if not optional and sl.find("optional") != -1 and \
-               sl.find('package') != -1 and sl.find('installed'):
-        return ''
-
     # t: Deal with code whose output should be ignored.
     t = []
 
@@ -344,13 +340,13 @@ def change_warning_output(file):
     import warnings
     warnings.showwarning = warning_function(file)
 """
-
     while True:
         i = F.find('"""')
         if i == -1: break
         name = "example"
-        k = F[i+3].find('"""')
-        j = i+3 + F[i+3:].find('"""')
+        k = F[i+3:].find('"""')
+        if k == -1: break
+        j = i+3 + k
         try:
             doc = doc_preparse(F[i:j+3])
         except SyntaxError:

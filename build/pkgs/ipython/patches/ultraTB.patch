@@ -1,0 +1,11 @@
+--- ../src/IPython/ultraTB.py	2008-08-23 18:25:35.000000000 -0700
++++ ultraTB.py	2009-01-23 23:57:15.000000000 -0800
+@@ -280,6 +280,8 @@
+     _line_format = _parser.format2
+ 
+     for line in lines:
++        if line.strip() == "":
++            continue
+         new_line, err = _line_format(line,'str',scheme)
+         if not err: line = new_line
+         

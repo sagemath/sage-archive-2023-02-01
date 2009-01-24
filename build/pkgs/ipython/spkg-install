@@ -11,6 +11,7 @@ rm -rf "$SAGE_LOCAL/lib/python/site-packages/IPython"
 # copy over patched rlimport that does not check for linking against libedit
 # which makes sage -gdb work on OSX again (#4991)
 cp patches/rlineimpl.py src/IPython/
+cp patches/ultraTB.py src/IPython/
 
 cd src
 

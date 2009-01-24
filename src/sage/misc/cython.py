@@ -532,6 +532,8 @@ def cython_create_local_so(filename):
             - Import the .so file in other scripts
 
     EXAMPLE:
+        sage: curdir = os.path.abspath(os.curdir)
+        sage: dir = tmp_dir(); os.chdir(dir)
         sage: f = file('hello.spyx', 'w')
         sage: s = "def hello():\n  print 'hello'\n"
         sage: f.write(s)
@@ -542,9 +544,7 @@ def cython_create_local_so(filename):
         sage: import hello                                                    # optional -- gcc
         sage: hello.hello()                                                   # optional -- gcc
         hello
-
-        sage: os.unlink('hello.spyx')                                         # optional -- gcc
-        sage: os.unlink('hello.so')                                           # optional -- gcc
+        sage: os.chdir(curdir)
 
     AUTHORS:
         -- David Fu (2008-04-09): initial version

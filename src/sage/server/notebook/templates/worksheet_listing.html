@@ -155,7 +155,12 @@
 	{% if not pub and worksheet.is_published() %}(Published){% endif %}
       </td>
       <td class="owner_collab">
-	{{ worksheet.owner() }}
+
+    {% if not pub %}
+        {{ worksheet.owner() }}
+    {% else %}
+        {{worksheet.worksheet_that_was_published().owner()}}
+    {% endif %}
 
 	{% if not pub and typ != 'trash' %}
 

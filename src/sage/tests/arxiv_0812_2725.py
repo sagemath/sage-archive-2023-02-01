@@ -40,7 +40,8 @@ points since they cannot create any sort of crossing.
 from sage.combinat.set_partition import SetPartitions as SetPartitions
 
 def CompleteMatchings(n):
-    """Return a generator for the complete matchings of the set [1..n].
+    """
+    Return a generator for the complete matchings of the set [1..n].
 
     INPUT:
         n -- nonnegative integer
@@ -72,7 +73,8 @@ def CompleteMatchings(n):
     for m in matchingsset(range(1, n+1)): yield m
 
 def matchingsset(L):
-    """Return a generator for complete matchings of the sequence L.
+    """
+    Return a generator for complete matchings of the sequence L.
 
     This is not really meant to be called directly, but rather by
     CompleteMatchings().
@@ -163,7 +165,8 @@ def dcrossing(m_):
     return d
 
 def setp_to_edges(p):
-    """Transform a set partition into a list of edges.
+    """
+    Transform a set partition into a list of edges.
 
     INPUT:
         p -- a Sage set partition.
@@ -186,7 +189,8 @@ def setp_to_edges(p):
     return ans
 
 def dcrossvec_setp(n):
-    """Return a list with the distribution of k-dcrossings on set partitions of [1..n].
+    """
+    Return a list with the distribution of k-dcrossings on set partitions of [1..n].
 
     INPUT:
         n -- a nonnegative integer.
@@ -222,7 +226,8 @@ def dcrossvec_setp(n):
     return vec
 
 def dcrossvec_cm(n):
-    """Return a list with the distribution of k-dcrossings on complete matchings on n vertices.
+    """
+    Return a list with the distribution of k-dcrossings on complete matchings on n vertices.
 
     INPUT:
         n -- a nonnegative integer.
@@ -269,7 +274,8 @@ def dcrossvec_cm(n):
     return vec
 
 def tablecolumn(n, k):
-    """Return column n of Table 1 or 2 from the paper arxiv:0812.2725.
+    """
+    Return column n of Table 1 or 2 from the paper arxiv:0812.2725.
 
     INPUT:
         n -- positive integer.

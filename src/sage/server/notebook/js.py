@@ -1517,7 +1517,7 @@ function list_copy_worksheet(filename) {
     INPUT:
         filename -- string; filename of the worsheet to share
     */
-    async_request('/home/' + filename + '/copy', refresh);
+    async_request('/home/' + filename + '/copy?no_load', refresh);
 }
 
 function list_share_worksheet(filename) {
@@ -1526,7 +1526,7 @@ function list_share_worksheet(filename) {
     the worksheet list with other users.
 
     INPUT:
-        filename -- string; filename of the worsheet to share
+        filename -- string; filename of the worksheet to share
     */
     window.location.replace('/home/' + filename + '/share');
 }

@@ -701,7 +701,10 @@ class Worksheet_text(WorksheetResource, resource.Resource):
 class Worksheet_copy(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         W = notebook.copy_worksheet(self.worksheet, self.username)
-        return http.RedirectResponse('/home/' + W.filename())
+        if 'no_load' in ctx.args:
+            return http.StatusResponse(200, '')
+        else:
+            return http.RedirectResponse('/home/' + W.filename())
 
 ########################################################
 # Get a copy of a published worksheet and start editing it

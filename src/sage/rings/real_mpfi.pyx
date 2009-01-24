@@ -2935,6 +2935,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         sage: x3 = x^3; x3.lower(), x3.upper()
         (-26.83, 31.01)
         """
+        if exponent == 2:
+            return self.square()
         if isinstance(exponent, (int, long, Integer)):
             q, r = divmod (exponent, 2)
             if r == 0: # x^(2q) = (x^q)^2

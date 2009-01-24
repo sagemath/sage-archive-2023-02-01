@@ -194,7 +194,7 @@ def implicit_multiplication(level=None):
       'Integer(2)*x'
       sage: implicit_multiplication(False)
       sage: preparse('2x')
-      'Integer(2)x'
+      '2x'
     """
     from sage.plot.plot import EMBEDDED_MODE
     if EMBEDDED_MODE:
@@ -228,7 +228,7 @@ def in_quote():
     return in_single_quote or in_double_quote or in_triple_quote
 
 
-def strip_string_literals(code):
+def strip_string_literals(code, state=None):
     r"""
     Returns a string with all literal quotes replaced with
     labels and a dict of labels for re-subsitution. This makes
@@ -236,7 +236,7 @@ def strip_string_literals(code):
 
     EXAMPLES:
         sage: from sage.misc.preparser import strip_string_literals
-        sage: s, literals = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
+        sage: s, literals, state = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
         sage: s
         '[%(L1)s, %(L2)s, %(L3)s, %(L4)s]'
         sage: literals
@@ -247,24 +247,34 @@ def strip_string_literals(code):
         -%(L1)s-%(L2)s-
 
     Triple-quotes are handled as well.
-        sage: s, literals = strip_string_literals("[a, '''b''', c, '']")
+        sage: s, literals, state = strip_string_literals("[a, '''b''', c, '']")
         sage: s
         '[a, %(L1)s, c, %(L2)s]'
         sage: print s % literals
         [a, '''b''', c, '']
 
     Comments are subsituted too:
-        sage: s, literals = strip_string_literals("code '#' # ccc 't'"); s
+        sage: s, literals, state = strip_string_literals("code '#' # ccc 't'"); s
         'code %(L1)s #%(L2)s'
         sage: s % literals
         "code '#' # ccc 't'"
+
+    A state is returned so one can break strings across multiple calls to
+    this function:
+        sage: s, literals, state = strip_string_literals('s = "some'); s
+        's = %(L1)s'
+        sage: s, literals, state = strip_string_literals('thing" * 5', state); s
+        '%(L1)s * 5'
     """
     new_code = []
     literals = {}
     counter = 0
     start = q = 0
-    in_quote = False
-    raw = False
+    if state is None:
+        in_quote = False
+        raw = False
+    else:
+        in_quote, raw = state
     while True:
         sig_q = code.find("'", q)
         dbl_q = code.find('"', q)
@@ -282,7 +292,13 @@ def strip_string_literals(code):
             new_code.append("#%%(%s)s" % label)
             start = q = newline
         elif q == -1:
-            new_code.append(code[start:].replace('%','%%'))
+            if in_quote:
+                counter += 1
+                label = "L%s" % counter
+                literals[label] = code[start:]
+                new_code.append("%%(%s)s" % label)
+            else:
+                new_code.append(code[start:].replace('%','%%'))
             break
         elif in_quote:
             if not raw and code[q-1] == '\\':
@@ -302,7 +318,7 @@ def strip_string_literals(code):
             else:
                 q += 1
         else:
-            raw = q>0 and code[q-1] in ['r', 'R']
+            raw = q>0 and code[q-1] in 'rR'
             if len(code) >= q+3 and (code[q+1] == code[q] == code[q+2]):
                 in_quote = code[q]*3
             else:
@@ -311,7 +327,7 @@ def strip_string_literals(code):
             start = q
             q += len(in_quote)
 
-    return "".join(new_code), literals
+    return "".join(new_code), literals, (in_quote, raw)
 
 
 def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
@@ -431,58 +447,150 @@ def extract_numeric_literals(code):
         '[_sage_const_1 , _sage_const_1p1 , _sage_const_1e1 , -_sage_const_1en1 , _sage_const_1p ]'
 
         sage: extract_numeric_literals("[1.sqrt(), 1.2.sqrt(), 1r, 1.2r, R.1, R0.1, (1..5)]")[0]
-        '[_sage_const_1 .sqrt(), _sage_const_1p2 .sqrt(), 1r, 1.2r, R.1, R0.1, (_sage_const_1 .._sage_const_5 )]'
+        '[_sage_const_1 .sqrt(), _sage_const_1p2 .sqrt(), 1 , 1.2 , R.1, R0.1, (_sage_const_1 .._sage_const_5 )]'
+    """
+    return preparse_numeric_literals(code, True)
+
+all_num_regex = None
+
+def preparse_numeric_literals(code, extract=False):
+    """
+    This preparses numerical literals into their sage counterparts,
+    e.g. Integer, RealNumber, and ComplexNumber.
+    If extract is true, then it will create names for the literals
+    and return a dict of name-construction pairs along with the
+    processed code.
+
+    EXAMPLES:
+        sage: from sage.misc.preparser import preparse_numeric_literals
+        sage: preparse_numeric_literals("5")
+        'Integer(5)'
+        sage: preparse_numeric_literals("5j")
+        "ComplexNumber(0, '5')"
+        sage: preparse_numeric_literals("5jr")
+        '5J'
+        sage: preparse_numeric_literals("5l")
+        '5l'
+        sage: preparse_numeric_literals("5L")
+        '5L'
+        sage: preparse_numeric_literals("1.5")
+        "RealNumber('1.5')"
+        sage: preparse_numeric_literals("1.5j")
+        "ComplexNumber(0, '1.5')"
+        sage: preparse_numeric_literals(".5j")
+        "ComplexNumber(0, '.5')"
+        sage: preparse_numeric_literals("5e9j")
+        "ComplexNumber(0, '5e9')"
+        sage: preparse_numeric_literals("5.")
+        "RealNumber('5.')"
+        sage: preparse_numeric_literals("5.j")
+        "ComplexNumber(0, '5.')"
+        sage: preparse_numeric_literals("5.foo()")
+        'Integer(5).foo()'
+        sage: preparse_numeric_literals("5.5.foo()")
+        "RealNumber('5.5').foo()"
+        sage: preparse_numeric_literals("5.5j.foo()")
+        "ComplexNumber(0, '5.5').foo()"
+        sage: preparse_numeric_literals("5j.foo()")
+        "ComplexNumber(0, '5').foo()"
+        sage: preparse_numeric_literals("1.exp()")
+        'Integer(1).exp()'
+        sage: preparse_numeric_literals("1e+10")
+        "RealNumber('1e+10')"
+        sage: preparse_numeric_literals("0x0af")
+        'Integer(0x0af)'
+        sage: preparse_numeric_literals("0x10.sqrt()")
+        'Integer(0x10).sqrt()'
+        sage: preparse_numeric_literals('0o100')
+        "Integer('100', 8)"
+        sage: preparse_numeric_literals('0b111001')
+        "Integer('111001', 2)"
     """
     literals = {}
     last = 0
     new_code = []
-    dec_num = r"\b\d+\b"
-    hex_num = r"\b0x[0-9a-fA-F]\b"
-    # This is slightly annoying as floating point numbers may start
-    # with a decimal point, but if they do the \b will not match.
-    float_num = r"((\b\d+([.]\d*)?)|([.]\d+))([eE][-+]?\d+)?\b"
-    all_num = r"(%s)|(%s)|(%s)" % (float_num, dec_num, hex_num)
-    for m in re.finditer(all_num, code):
-        num, start, end = m.group(), m.start(), m.end()
 
-        # The Sage preparser does extra things with numbers, which we need to handle here.
-        if '.' in num:
-            if start > 0 and num[0] == '.':
-                if code[start-1] == '.':
-                    # handle Ellipsis
-                    start += 1
-                    num = num[1:]
-                elif re.match(r'[a-zA-Z0-9_\])]', code[start-1]):
-                    # handle R.0
-                    continue
-            elif end < len(code) and num[-1] == '.':
-                if re.match('[a-zA-Z]', code[end]):
-                    # handle 4.sqrt()
-                    end -= 1
-                    num = num[:-1]
-                elif re.match(r'\d', code[end]):
-                    # handle 4.0r
-                    continue
-        elif end < len(code) and code[end] == '.':
-            # \b does not match after the .
-            # two dots in a row would be an ellipsis
-            if end+1 == len(code) or code[end+1] != '.':
-                end += 1
-                num += '.'
+    global all_num_regex
+    if all_num_regex is None:
+        dec_num = r"\b\d+"
+        hex_num = r"\b0x[0-9a-f]+"
+        oct_num = r"\b0o[0-7]+"
+        bin_num = r"\b0b[01]+"
+        # This is slightly annoying as floating point numbers may start
+        # with a decimal point, but if they do the \b will not match.
+        float_num = r"((\b\d+([.]\d*)?)|([.]\d+))(e[-+]?\d+)?"
+        all_num = r"((%s)|(%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (float_num, dec_num, hex_num, oct_num, bin_num)
+        all_num_regex = re.compile(all_num, re.I)
 
-        if '.' in num or 'e' in num or 'E' in num:
-            num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
-            num_make = "RealNumber('%s')" % num
+    for m in all_num_regex.finditer(code):
+        start, end = m.start(), m.end()
+        num = m.group(1)
+        postfix = m.groups()[-1].upper()
+
+        if 'R' in postfix:
+            num_name = num_make = num + postfix.replace('R', '')
+        elif 'L' in postfix:
+            continue
         else:
-            num_name = numeric_literal_prefix + num
-            num_make = "Integer(%s)" % num
-        literals[num_name] = num_make
+
+            # The Sage preparser does extra things with numbers, which we need to handle here.
+            if '.' in num:
+                if start > 0 and num[0] == '.':
+                    if code[start-1] == '.':
+                        # handle Ellipsis
+                        start += 1
+                        num = num[1:]
+                    elif re.match(r'[a-zA-Z0-9_\])]', code[start-1]):
+                        # handle R.0
+                        continue
+                elif end < len(code) and num[-1] == '.':
+                    if re.match('[a-zA-Z_]', code[end]):
+                        # handle 4.sqrt()
+                        end -= 1
+                        num = num[:-1]
+            elif end < len(code) and code[end] == '.' and not postfix and re.match(r'\d+$', num):
+                # \b does not match after the . for floating point
+                # two dots in a row would be an ellipsis
+                if end+1 == len(code) or code[end+1] != '.':
+                    end += 1
+                    num += '.'
+
+            if '.' in num or 'e' in num or 'E' in num or 'J' in postfix:
+                num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
+                if 'J' in postfix:
+                    num_make = "ComplexNumber(0, '%s')" % num
+                    num_name += 'j'
+                else:
+                    num_make = "RealNumber('%s')" % num
+            else:
+                num_name = numeric_literal_prefix + num
+                if len(num) > 3:
+                    # Py3 oct and bin support
+                    if num[1] in 'bB':
+                        num_make = "Integer('%s', 2)" % num[2:]
+                    elif num[1] in 'oO':
+                        num_make = "Integer('%s', 8)" % num[2:]
+                    else:
+                        num_make = "Integer(%s)" % num
+                else:
+                    num_make = "Integer(%s)" % num
+
+            literals[num_name] = num_make
+
         new_code.append(code[last:start])
-        new_code.append(num_name+' ')
+        if extract:
+            new_code.append(num_name+' ')
+        else:
+            new_code.append(num_make)
         last = end
 
     new_code.append(code[last:])
-    return ''.join(new_code), literals
+    code = ''.join(new_code)
+    if extract:
+        return code, literals
+    else:
+        return code
+
 
 def strip_prompts(line):
     r"""Get rid of leading sage: and >>> prompts so that pasting of examples from
@@ -532,51 +640,51 @@ def parse_generators(line, start_index):
         Vanilla:
 
         sage: preparse("R.<x> = ZZ['x']")
-        "R = ZZ['x']; (x,) = R._first_ngens(Integer(1))"
+        "R = ZZ['x']; (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = ZZ['x,y']")
-        "R = ZZ['x,y']; (x, y,) = R._first_ngens(Integer(2))"
+        "R = ZZ['x,y']; (x, y,) = R._first_ngens(2)"
 
         No square brackets:
 
         sage: preparse("R.<x> = PolynomialRing(ZZ, 'x')")
-        "R = PolynomialRing(ZZ, 'x',names=('x',)); (x,) = R._first_ngens(Integer(1))"
+        "R = PolynomialRing(ZZ, 'x',names=('x',)); (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = PolynomialRing(ZZ, 'x,y')")
-        "R = PolynomialRing(ZZ, 'x,y',names=('x', 'y')); (x, y,) = R._first_ngens(Integer(2))"
+        "R = PolynomialRing(ZZ, 'x,y',names=('x', 'y')); (x, y,) = R._first_ngens(2)"
 
         Names filled in:
 
         sage: preparse("R.<x> = ZZ[]")
-        "R = ZZ['x']; (x,) = R._first_ngens(Integer(1))"
+        "R = ZZ['x']; (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = ZZ[]")
-        "R = ZZ['x, y']; (x, y,) = R._first_ngens(Integer(2))"
+        "R = ZZ['x, y']; (x, y,) = R._first_ngens(2)"
 
         Names given not the same as generator names:
 
         sage: preparse("R.<x> = ZZ['y']")
-        "R = ZZ['y']; (x,) = R._first_ngens(Integer(1))"
+        "R = ZZ['y']; (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = ZZ['u,v']")
-        "R = ZZ['u,v']; (x, y,) = R._first_ngens(Integer(2))"
+        "R = ZZ['u,v']; (x, y,) = R._first_ngens(2)"
 
         Number fields:
 
         sage: preparse("K.<a> = QQ[2^(1/3)]")
-        'K = QQ[Integer(2)**(Integer(1)/Integer(3))]; (a,) = K._first_ngens(Integer(1))'
+        'K = QQ[Integer(2)**(Integer(1)/Integer(3))]; (a,) = K._first_ngens(1)'
         sage: preparse("K.<a, b> = QQ[2^(1/3), 2^(1/2)]")
-        'K = QQ[Integer(2)**(Integer(1)/Integer(3)), Integer(2)**(Integer(1)/Integer(2))]; (a, b,) = K._first_ngens(Integer(2))'
+        'K = QQ[Integer(2)**(Integer(1)/Integer(3)), Integer(2)**(Integer(1)/Integer(2))]; (a, b,) = K._first_ngens(2)'
 
         Just the .<> notation:
 
         sage: preparse("R.<x> = ZZx")
-        'R = ZZx; (x,) = R._first_ngens(Integer(1))'
+        'R = ZZx; (x,) = R._first_ngens(1)'
         sage: preparse("R.<x, y> = a+b")
-        'R = a+b; (x, y,) = R._first_ngens(Integer(2))'
+        'R = a+b; (x, y,) = R._first_ngens(2)'
 
         Ensure we don't eat too much:
 
         sage: preparse("R.<x, y> = ZZ;2")
-        'R = ZZ; (x, y,) = R._first_ngens(Integer(2));Integer(2)'
+        'R = ZZ; (x, y,) = R._first_ngens(2);Integer(2)'
         sage: preparse("R.<x, y> = ZZ['x,y'];2")
-        "R = ZZ['x,y']; (x, y,) = R._first_ngens(Integer(2));Integer(2)"
+        "R = ZZ['x,y']; (x, y,) = R._first_ngens(2);Integer(2)"
     """
     i = start_index
     if not line.startswith(".<", i):
@@ -651,20 +759,21 @@ def parse_generators(line, start_index):
     return (line, i)
 
 eq_chars_pre = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
+quote_state = None
 
-def preparse(line, reset=True, do_time=False, ignore_prompts=False):
+def preparse(line, reset=True, do_time=False, ignore_prompts=False, after_semicolon=False):
     r"""
     EXAMPLES:
         sage: preparse("ZZ.<x> = ZZ['x']")
-        "ZZ = ZZ['x']; (x,) = ZZ._first_ngens(Integer(1))"
+        "ZZ = ZZ['x']; (x,) = ZZ._first_ngens(1)"
         sage: preparse("ZZ.<x> = ZZ['y']")
-        "ZZ = ZZ['y']; (x,) = ZZ._first_ngens(Integer(1))"
+        "ZZ = ZZ['y']; (x,) = ZZ._first_ngens(1)"
         sage: preparse("ZZ.<x,y> = ZZ[]")
-        "ZZ = ZZ['x, y']; (x, y,) = ZZ._first_ngens(Integer(2))"
+        "ZZ = ZZ['x, y']; (x, y,) = ZZ._first_ngens(2)"
         sage: preparse("ZZ.<x,y> = ZZ['u,v']")
-        "ZZ = ZZ['u,v']; (x, y,) = ZZ._first_ngens(Integer(2))"
+        "ZZ = ZZ['u,v']; (x, y,) = ZZ._first_ngens(2)"
         sage: preparse("ZZ.<x> = QQ[2^(1/3)]")
-        'ZZ = QQ[Integer(2)**(Integer(1)/Integer(3))]; (x,) = ZZ._first_ngens(Integer(1))'
+        'ZZ = QQ[Integer(2)**(Integer(1)/Integer(3))]; (x,) = ZZ._first_ngens(1)'
         sage: QQ[2^(1/3)]
         Number Field in a with defining polynomial x^3 - 2
 
@@ -688,16 +797,42 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         "def foo(x):\n    '''\n    It's a comment.\n    '''\n    return x**Integer(2)"
 
     """
-    try:
-        # [1,2,..,n] notation
-        L, literals = strip_string_literals(line)
-        L = parse_ellipsis(L, preparse_step=False)
-        line = L % literals
-    except SyntaxError:
-        pass
+    global quote_state
+    if reset:
+        quote_state = None
 
-    if implicit_mul_level:
-        line = implicit_mul(line, level = implicit_mul_level)
+    if not after_semicolon:
+        # This part handles lines with semi-colons all at once
+        # Then can also handle multiple lines more efficiently, but
+        # that optimization can be done later.
+        L, literals, quote_state = strip_string_literals(line, quote_state)
+
+        # Ellipsis Range
+        # [1..n]
+        try:
+            L = parse_ellipsis(L, preparse_step=False)
+        except SyntaxError:
+            pass
+
+        # Implicit Multiplication
+        # 2x -> 2*x
+        if implicit_mul_level:
+            L = implicit_mul(L, level = implicit_mul_level)
+
+        # Wrapping
+        # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
+        L = preparse_numeric_literals(L)
+
+        # Generators
+        # R.0 -> R.gen(0)
+        L = re.sub(r'([_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
+
+        # Use ^ for exponentiation and ^^ for xor
+        # (A side effect is that **** becomes xor as well.)
+        L = L.replace('^', '**').replace('****', '^')
+
+        line = L % literals
+
 
     # find where the parens are for function assignment notation
     oparen_index = -1
@@ -717,30 +852,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         i = line.find('...')
         return line[:i+3] + preparse(line[i+3:], reset=reset, do_time=do_time, ignore_prompts=ignore_prompts)
 
-    # Wrap integers with ZZ() and reals with RR().
-    def wrap_num(i, line, is_real, num_start):
-        zz = line[num_start:i]
-        if is_real or '.' in zz:
-            if zz[-1] == '.' and i < len(line) and line[i].isalpha():
-                # by popular demand -- this allows, e.g., 173.sqrt().
-                if '.' in zz[:-1]:
-                    O = "RealNumber('"; C="')."
-                else:
-                    O = "Integer("; C = ")."
-                zz = zz[:-1]
-            else:
-                O = "RealNumber('"; C="')"
-        else:
-            O = "Integer("; C = ")"
-        line = line[:num_start] + O + zz + C + line[i:]
-        return line, len(O+C)
-
     i = 0
-    num_start = -1
-    in_number = False
-    is_real = False
-    is_hex = False
-
     in_args = False
 
     if reset:
@@ -789,41 +901,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                     i += 1
                     continue
 
-        # Decide if we should wrap a particular integer or real literal
-        if in_number:
-            if line[i] == ".":
-                is_real = True
-            elif not is_real and i == num_start+1 and line[num_start:i+1].lower() == '0x':
-                is_hex = True
-            elif not (line[i].isdigit() or (is_hex and line[i].lower() in 'abcdef')):
-                # end of a number
-                # Do we wrap?
-                if in_quote():
-                    # do not wrap
-                    pass
-                elif i < len(line) and line[i] == 'x' and line[i-1] == '0' and num_start==i-1:
-                    # Yes, hex constant.
-                    i += 1
-                    continue
-                elif i < len(line) and line[i] in 'eE':
-                    # Yes, in scientific notation, so will wrap later
-                    is_real = True
-                    i += 1
-                    if i < len(line) and line[i] == '-':
-                        i += 2
-                    continue
-                elif i < len(line) and line[i] in 'rR':
-                    # Raw number so do not wrap; but have to get rid of the "r".
-                    line = line[:i] + line[i+1:]
-                else:
-                    line, n = wrap_num(i, line, is_real, num_start)
-                    i += n
-                in_number = False
-                is_real = False
-                continue
-
-        elif line[i] == ";" and not in_quote():
-            line = line[:i+1] + preparse(line[i+1:], reset, do_time, ignore_prompts)
+        if line[i] == ";" and not in_quote():
+            line = line[:i+1] + preparse(line[i+1:], reset, do_time, ignore_prompts, after_semicolon=True)
             i = len(line)
             continue
 
@@ -941,31 +1020,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         #
         ####### END CALCULUS ########
 
-        # Since we use ^ for exponentiation (see below), we
-        # rewrite ^^ to ^ so that XOR is still accessible
-        elif line[i:i+2] == "^^" and not in_quote():
-            line = line[:i] + "^" + line[i+2:]
-            i += 1
-            continue
-
-        # exponents can be either ^ or **
-        elif line[i] == "^" and not in_quote():
-            line = line[:i] + "**" + line[i+1:]
-            i += 2
-            continue
-
-        elif line[i] == "." and i > 0 and i < len(line)-1 and not in_quote() and \
-                 (isalphadigit_(line[i-1]) or line[i-1] == ")" or line[i-1] == ']') and line[i+1].isdigit():
-            # Generators: replace all ".<number>" by ".gen(<number>)"
-            # If . is preceeded by \, then replace "\." by ".".
-            j = i+1
-            while j < len(line) and line[j].isdigit():
-                j += 1
-            line = line[:i] + ".gen(" + line[i+1:j] + ")" + line[j:]
-            i = j+4
-
-        if     not in_number and \
-               not in_quote():
+        if not in_quote():
 
             if i < len(line)-1 and line[i] == '\\':
                 j = i+1
@@ -976,12 +1031,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                     j += 1
                 line = line[:i] + "._backslash_(" + line[i+1:j] + ')' + line[j:]
 
-            elif (line[i].isdigit() or \
-                   (len(line)>i+1 and line[i] == '.' and line[i+1].isdigit())) and \
-               (i == 0 or (i > 0 and not (isalphadigit_(line[i-1]) \
-                                          or line[i-1] == ')'))):
-                in_number = True
-                num_start = i
 
         # Decide if we hit a comment, so we're done.
         if line[i] == '#' and not (in_single_quote or in_double_quote or in_triple_quote):
@@ -989,9 +1038,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             break
 
         i += 1
-
-    if in_number:
-        line, _ = wrap_num(i, line, is_real, num_start)
 
     # Time command like in MAGMA: (commented out, since it's standard in IPython now)
     L = line.lstrip()
@@ -1039,7 +1085,7 @@ def preparse_file(contents, attached={}, magic=True,
         numeric_literals = False
 
     if numeric_literals:
-        contents, literals = strip_string_literals(contents)
+        contents, literals, state = strip_string_literals(contents)
         contents, nums = extract_numeric_literals(contents)
         contents = contents % literals
         if nums:
@@ -1149,7 +1195,7 @@ def implicit_mul(code, level=5):
                                           code[m.end():])
         return code
 
-    code, literals = strip_string_literals(code)
+    code, literals, state = strip_string_literals(code)
     if level >= 1:
         no_mul_token = " '''_no_mult_token_''' "
         code = re.sub(r'\b0x', r'0%sx' % no_mul_token, code)  # hex digits

@@ -914,7 +914,7 @@ class Cell(Cell_generic):
 
         """
         # Do *not* cache
-        s, _ = strip_string_literals(self.input_text())
+        s = strip_string_literals(self.input_text())[0]
         return bool(re.search('(?<!\w)interact\s*\(.*\).*', s) or re.search('\s*@\s*interact\s*\n', s))
 
     def is_interacting(self):

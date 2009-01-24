@@ -859,6 +859,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: (5/3).sqrt_approx()
+            doctest:1172: DeprecationWarning: This function is deprecated.  Use sqrt with a given number of bits of precision instead.
             1.29099444873581
             sage: (990829038092384908234098239048230984/4).sqrt_approx()
             4.9770197862083713747374920870362581922510725585130996993055116540856385e17
@@ -867,6 +868,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (9/4).sqrt_approx()
             3/2
         """
+        from sage.misc.misc import deprecation
+        deprecation("This function is deprecated.  Use sqrt with a given number of bits of precision instead.")
         try:
             return self.sqrt(extend=False,all=all)
         except ValueError:

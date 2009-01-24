@@ -140,7 +140,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
 
         n = h.degree()
 
-        k = ceil(Integer(n+1).sqrt_approx())
+        k = ceil(Integer(n+1).sqrt(prec=Integer(n).log(2,prec=30)+1))
         l = ceil((self.degree() + 1) / k)
 
         # we store all matrices transposed for performance reasons

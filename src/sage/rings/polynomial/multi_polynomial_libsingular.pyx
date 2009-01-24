@@ -3429,7 +3429,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: R.<x, y> = GF(3)[]
             sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
             x^5 - x^3*y^2 + x^4 - x^2*y^2 + x^3 - x*y^2
-            sage: F = f.factor()
+            sage: F = f.factor(proof=False)      # we use proof = False, since Singular's factorization has issues
             sage: F # order is somewhat random
             (-1) * x * (-x + y) * (x + y) * (x - 1)^2
 
@@ -3458,12 +3458,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: R.<x,y,z> = GF(32003)[]
             sage: f = 9*(x-1)^2*(y+z)
-            sage: f.factor()
+            sage: f.factor(proof=False)
             (9) * (y + z) * (x - 1)^2
 
             sage: R.<x,w,v,u> = QQ['x','w','v','u']
             sage: p = (4*v^4*u^2 - 16*v^2*u^4 + 16*u^6 - 4*v^4*u + 8*v^2*u^3 + v^4)
-            sage: p.factor()
+            sage: p.factor(proof=False)
             (-2*v^2*u + 4*u^3 + v^2)^2
             sage: R.<a,b,c,d> = QQ[]
             sage: f =  (-2) * (a - d) * (-a + b) * (b - d) * (a - c) * (b - c) * (c - d)
@@ -3491,7 +3491,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.factor()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Factorization of multivariate polynomials over non-prime fields explicitly disabled due to bugs in Singular.
+            NotImplementedError: proof = True factorization not implemented.  Call factor with proof=False.
+            sage: f.factor(proof=False)
+            (y + (-a)) * (x + (-a))
 
         Also, factorization for finite prime fields with
         characteristic $> 2^{29}$ is not supported either.
@@ -3533,12 +3535,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             raise NotImplementedError, "Factorization of multivariate polynomials over non-fields is not implemented."
 
         if self._parent._base.is_finite():
+            if self._parent._base.characteristic() > 1<<29:
+                raise NotImplementedError, "Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
             if proof:
                 raise NotImplementedError, "proof = True factorization not implemented.  Call factor with proof=False."
             if not self._parent._base.is_prime_field():
                 return self._factor_over_nonprime_finite_field()
-            if self._parent._base.characteristic() > 1<<29:
-                raise NotImplementedError, "Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
 
         # I make a temporary copy of the poly in self because singclap_factorize appears to modify it's parameter
         ptemp = p_Copy(self._poly,_ring)

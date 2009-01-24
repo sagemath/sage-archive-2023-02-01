@@ -19,6 +19,10 @@ def top():
     """
     Return the top output line that contains this running SAGE
     process.
+
+    EXAMPLES:
+        sage: top()              # random output
+        '72373 python       0.0%  0:01.36   1    14+  1197   39M+   34M+   55M+  130M+'
     """
     U = os.uname()[0].lower()
     pid = os.getpid()
@@ -50,19 +54,27 @@ def get_memory_usage(t=None):
         * Linux -- Returns float number (in megabytes)
         * OS X -- returns string (VSIZE column of top)
         * other -- not implemented for any other operating systems
+
+    EXAMPLES:
+    We test that memory usage doesn't change instantly:
+        sage: t = get_memory_usage()
+        sage: get_memory_usage(t)          # amount of memory more than when we defined t.
+        0.0
     """
     U = os.uname()[0].lower()
     if U == 'linux':
-        if t is None:
-            return linux_memory_usage()
-        else:
-            return linux_memory_usage() - t
+        m = linux_memory_usage()
     elif U == 'darwin':
-        return top().split()[-1]
+        m = float(top().split()[-1].strip('M+'))
     elif U == 'sunos':
-        return top().split()[-5]
+        m = float(top().split()[-5].strip('M'))
     else:
         raise NotImplementedError, "memory usage not implemented on platform %s"%U
+
+    if t is None:
+        return m
+    else:
+        return m - t
 
 
 

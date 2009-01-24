@@ -27,7 +27,7 @@ from sage.combinat.combinat import combinations_iterator
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose, graphics_filename
 from sage.rings.number_field.all import is_NumberField
-from sage.rings.integer_ring import ZZ
+from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -1504,6 +1504,21 @@ cdef class Matrix(matrix1.Matrix):
             Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
             Basis matrix:
             [ 1 -1]
+
+        We test a trivial left kernel over ZZ:
+            sage: id = matrix(ZZ, 2, 2, [[1, 0], [0, 1]])
+            sage: id.left_kernel()
+            Free module of degree 2 and rank 0 over Integer Ring
+            Echelon basis matrix:
+            []
+
+        Another matrix over ZZ.
+            sage: a = matrix(ZZ,3,1,[1,2,3])
+            sage: a.left_kernel()
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 1  1 -1]
+            [ 0  3 -2]
         """
         K = self.fetch('left_kernel')
         if not K is None:
@@ -1521,6 +1536,11 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('left_kernel', Z)
             return Z
 
+        if is_IntegerRing(R):
+            Z = self.kernel(*args, **kwds)
+            self.cache('left_kernel', Z)
+            return Z
+
         if is_NumberField(R):
             A = self._pari_().mattranspose()
             B = A.matker()
@@ -1535,8 +1555,7 @@ cdef class Matrix(matrix1.Matrix):
         pivots = E.pivots()
         pivots_set = set(pivots)
         basis = []
-        VS = sage.modules.free_module.VectorSpace
-        V = VS(R, self.nrows())
+        V = R ** self.nrows()
         ONE = R(1)
         for i in xrange(self._nrows):
             if not (i in pivots_set):
@@ -1545,7 +1564,7 @@ cdef class Matrix(matrix1.Matrix):
                 for r in range(len(pivots)):
                     v[pivots[r]] = -E[r,i]
                 basis.append(v)
-        W = V.subspace(basis)
+        W = V.submodule(basis)
         if W.dimension() != len(basis):
             raise RuntimeError, "bug in kernel function in matrix2.pyx -- basis got from echelon form not a basis."
         self.cache('left_kernel', W)

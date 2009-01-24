@@ -502,8 +502,7 @@ def adapt_to_callable(f, nargs=None):
         else:
             # Otherwise any free variable names in any order
             try:
-                vars = list(set(sum([z.variables() for z in f], ())))
-                vars.sort()
+                vars = tuple(sorted(set(sum( [z.variables() for z in f], ()) )))
             except AttributeError:
                 vars = ()
                 f = [fast_float_constant(x) for x in f]

@@ -213,8 +213,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: for i in range(1, 60): b[i]=1
             sage: a.forward_transform()
             sage: a.backward_transform()
-            sage: (a.plot()+b.plot()).save('a.png', ymin=0)
-
+            sage: (a.plot() + b.plot()).show(ymin=0)
         """
         cdef gsl_fft_complex_wavetable * wt
         cdef gsl_fft_complex_workspace * mem

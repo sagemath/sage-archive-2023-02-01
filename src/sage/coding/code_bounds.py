@@ -321,8 +321,7 @@ def gv_bound_asymp(delta,q):
 
     EXAMPLES:
         sage: f = lambda x: gv_bound_asymp(x,2)
-        sage: P = plot(f,0,1)
-        sage: P.save()
+        sage: plot(f,0,1)
     """
     return (1-entropy(delta,q))
 
@@ -333,8 +332,7 @@ def hamming_bound_asymp(delta,q):
 
     EXAMPLES:
         sage: f = lambda x: hamming_bound_asymp(x,2)
-        sage: P = plot(f,0,1)
-        sage: P.save()
+        sage: plot(f,0,1)
     """
     return (1-entropy(delta/2,q))
 
@@ -344,9 +342,7 @@ def singleton_bound_asymp(delta,q):
 
     EXAMPLES:
         sage: f = lambda x: singleton_bound_asymp(x,2)
-        sage: P = plot(f,0,1)
-        sage: P.save()
-
+        sage: plot(f,0,1)
     """
     return (1-delta)
 

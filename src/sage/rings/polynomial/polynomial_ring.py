@@ -191,7 +191,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 (self.base_ring(), self.variable_name(), None, self.is_sparse()))
 
 
-    def _element_constructor_(self, x=None, check=True, is_gen = False, construct=False, absprec = None):
+    def _element_constructor_(self, x=None, check=True, is_gen = False, construct=False, **kwds):
         r"""
         Coerce \code{x} into this univariate polynomial ring, possibly non-canonically.
 
@@ -283,10 +283,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             if x.type() != 't_POL':
                 x = x.Polrev()
 
-        if absprec is None:
-            return C(self, x, check, is_gen, construct=construct)
-        else:
-            return C(self, x, check, is_gen, construct=construct, absprec = absprec)
+        return C(self, x, check, is_gen, construct=construct, **kwds)
 
     def is_integral_domain(self):
         """

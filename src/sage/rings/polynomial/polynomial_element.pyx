@@ -4310,7 +4310,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         sage: loads(f.dumps()) == f
         True
     """
-    def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, absprec=None):
+    def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
         if x is None:
@@ -4329,11 +4329,8 @@ cdef class Polynomial_generic_dense(Polynomial):
                 x = list(x.list())
             elif (<Element>x)._parent is R or (<Element>x)._parent == R:
                 x = [x]
-            elif absprec is None:
-                x = [R(a) for a in x.list()]
-                check = 0
             else:
-                x = [R(a, absprec = absprec) for a in x.list()]
+                x = [R(a, **kwds) for a in x.list()]
                 check = 0
 
         elif PY_TYPE_CHECK(x, list):
@@ -4347,18 +4344,12 @@ cdef class Polynomial_generic_dense(Polynomial):
             x = self._dict_to_list(x, R(0))
 
         elif isinstance(x, pari_gen):
-            if absprec is None:
-                x = [R(w) for w in x.Vecrev()]
-            else:
-                x = [R(w, absprec = absprec) for w in x.Vecrev()]
+            x = [R(w, **kwds) for w in x.Vecrev()]
             check = 1
         elif not isinstance(x, list):
             x = [x]   # constant polynomials
         if check:
-            if absprec is None:
-                self.__coeffs = [R(z) for z in x]
-            else:
-                self.__coeffs = [R(z, absprec=absprec) for z in x]
+            self.__coeffs = [R(z, **kwds) for z in x]
         else:
             self.__coeffs = x
         if check:

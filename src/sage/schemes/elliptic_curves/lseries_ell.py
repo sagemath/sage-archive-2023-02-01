@@ -228,7 +228,7 @@ class Lseries_ell(SageObject):
             [0.000000000, 5.00317001]
 
             sage: a = E.lseries().zeros(20)             # long time
-            sage: point([(1,x) for x in a]).save()    # graph  (long time)
+            sage: point([(1,x) for x in a])             # graph  (long time)
 
         AUTHOR:
             -- Uses Rubinstein's L-functions calculator.

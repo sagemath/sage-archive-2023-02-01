@@ -226,9 +226,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES:
             sage: x = polygen(GF(389))
-            sage: plot(x^2 + 1, rgbcolor=(0,0,1)).save()
+            sage: plot(x^2 + 1, rgbcolor=(0,0,1))
             sage: x = polygen(QQ)
-            sage: plot(x^2 + 1, rgbcolor=(1,0,0)).save()
+            sage: plot(x^2 + 1, rgbcolor=(1,0,0))
         """
         R = self.base_ring()
         from sage.plot.all import plot, point, line

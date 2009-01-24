@@ -837,7 +837,7 @@ class GenericGraph(SageObject):
         function.
 
         EXAMPLES:
-            sage: G = Graph(sparse=True)
+            sage: G = Graph(sparse=True, weighted=True)
             sage: G.add_edges([(0,1,1),(1,2,2),(0,2,3),(0,3,4)])
             sage: M = G.weighted_adjacency_matrix(); M
             [0 1 3 4]
@@ -1192,13 +1192,12 @@ class GenericGraph(SageObject):
             sage: G == H
             True
 
-        Now one is weighted and the other is not, so the comparison is done as
-        if neither is weighted:
+        Now one is weighted and the other is not, and thus the graphs are not equal.
             sage: G.weighted(True)
             sage: H.weighted()
             False
             sage: G == H
-            True
+            False
 
         However, if both are weighted, then we finally compare 'a' to 'b'.
             sage: H.weighted(True)

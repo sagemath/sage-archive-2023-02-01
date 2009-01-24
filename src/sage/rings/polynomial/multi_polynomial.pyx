@@ -394,6 +394,14 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: R = Qp(7)['x,y,z,p']; S = ZZ['x']['y,z,t']['p'] # shouldn't work, but should throw a better error
             sage: R(S.0)
             p
+
+        See trac 2601:
+            sage: R.<a,b,c> = PolynomialRing(QQ, 3)
+            sage: a._mpoly_dict_recursive(['c', 'b', 'a'])
+            {(0, 0, 1): 1}
+            sage: testR.<a,b,c> = PolynomialRing(QQ,3)
+            sage: id_ringA = ideal([a^2-b,b^2-c,c^2-a])
+            sage: id_ringB = ideal(id_ringA.gens()).change_ring(PolynomialRing(QQ,'c,b,a'))
         """
         from polydict import ETuple
         if not self:
@@ -407,7 +415,6 @@ cdef class MPolynomial(CommutativeRingElement):
             return self.dict()
         elif not my_vars[-1] in vars:
             x = base_ring(self) if base_ring is not None else self
-#            print "vars", vars, type(vars)
             const_ix = ETuple((0,)*len(vars))
             return { const_ix: x }
         elif not set(my_vars).issubset(set(vars)):
@@ -415,7 +422,8 @@ cdef class MPolynomial(CommutativeRingElement):
             return self.polynomial(self.parent().gen(len(my_vars)-1))._mpoly_dict_recursive(vars, base_ring)
         else:
             D = {}
-            prev_vars = vars[:vars.index(my_vars[0])]
+            m = min([vars.index(z) for z in my_vars])
+            prev_vars = vars[:m]
             var_range = range(len(my_vars))
             if len(prev_vars) > 0:
                 mapping = [vars.index(v) - len(prev_vars) for v in my_vars]

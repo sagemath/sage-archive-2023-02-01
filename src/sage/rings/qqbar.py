@@ -3828,10 +3828,10 @@ class AlgebraicPolynomialTracker(SageObject):
         since complex_roots() depends on the underlying BLAS implementation.
 
             sage: cp.complex_roots(30, 1)
-            [1.189207115002721?,
-             -1.18920711500272...?,
-             1.189207115002721?*I,
-             -1.189207115002721?*I]
+            [-1.18920711500272...?,
+             1.189207115002721?,
+             -1.189207115002721?*I,
+             1.189207115002721?*I]
         """
         if self._roots_cache.has_key(multiplicity):
             roots = self._roots_cache[multiplicity]

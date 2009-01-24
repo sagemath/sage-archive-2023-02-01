@@ -19,7 +19,7 @@ arithmetic.
 EXAMPLES:
     sage: x = polygen(ZZ)
     sage: (x^5 - x - 1).roots(ring=CIF)
-    [(1.167303978261419?, 1), (0.181232444469876? + 1.083954101317711?*I, 1), (0.181232444469876? - 1.083954101317711?*I, 1), (-0.764884433600585? + 0.352471546031727?*I, 1), (-0.764884433600585? - 0.352471546031727?*I, 1)]
+    [(1.167303978261419?, 1), (-0.764884433600585? - 0.352471546031727?*I, 1), (-0.764884433600585? + 0.352471546031727?*I, 1), (0.181232444469876? - 1.083954101317711?*I, 1), (0.181232444469876? + 1.083954101317711?*I, 1)]
 """
 
 from copy import copy
@@ -28,6 +28,7 @@ from sage.rings.real_mpfi import RealIntervalField
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.qqbar import AA, QQbar
+from sage.rings.arith import sort_complex_numbers_for_display
 
 def refine_root(ip, ipd, irt, fld):
     """
@@ -266,7 +267,7 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         sage: from sage.rings.polynomial.complex_roots import complex_roots
         sage: x = polygen(ZZ)
         sage: complex_roots(x^5 - x - 1)
-        [(1.167303978261419?, 1), (0.181232444469876? + 1.083954101317711?*I, 1), (0.181232444469876? - 1.083954101317711?*I, 1), (-0.764884433600585? + 0.352471546031727?*I, 1), (-0.764884433600585? - 0.352471546031727?*I, 1)]
+        [(1.167303978261419?, 1), (-0.764884433600585? - 0.352471546031727?*I, 1), (-0.764884433600585? + 0.352471546031727?*I, 1), (0.181232444469876? - 1.083954101317711?*I, 1), (0.181232444469876? + 1.083954101317711?*I, 1)]
         sage: complex_roots(x^2 + 27*x + 181)
         [(-14.61803398874990?..., 1), (-12.3819660112501...? + 0.?e-27*I, 1)]
 
@@ -281,7 +282,7 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         [3.87259191484932e-121, -3.87259191484932e-121]
         sage: rts = complex_roots(p)
         sage: [ComplexIntervalField(10)(rt[0] - 1) for rt in rts]
-        [0, 7.8887?e-31*I, 7.8887?e-31, -7.8887?e-31*I, -7.8887?e-31]
+        [-7.8887?e-31, 0, 7.8887?e-31, -7.8887?e-31*I, 7.8887?e-31*I]
 
     We can get roots either as intervals, or as elements of QQbar or AA.
         sage: p = (x^2 + x - 1)
@@ -334,6 +335,7 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
                 all_rts.append((irt, factor, exp))
 
         if ok and intervals_disjoint([rt for (rt, fac, mult) in all_rts]):
+            all_rts = sort_complex_numbers_for_display(all_rts)
             if retval == 'interval':
                 return [(rt, mult) for (rt, fac, mult) in all_rts]
             elif retval == 'algebraic':

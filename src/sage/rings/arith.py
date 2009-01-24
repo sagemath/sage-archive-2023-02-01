@@ -3313,3 +3313,93 @@ def differences(lis, n=1):
         return lis
     return differences(lis, n - 1)
 
+def _cmp_complex_for_display(a, b):
+    r"""
+    Compare two complex numbers in a "pretty" (but mathematically
+    meaningless) fashion, for display only.
+
+    Real numbers (with a zero imaginary part) come before complex numbers,
+    and are sorted.  Complex numbers are sorted by their real part
+    unless their real parts are quite close, in which case they are
+    sorted by their imaginary part.
+
+    EXAMPLES::
+
+        sage: import sage.rings.arith
+        sage: cmp_c = sage.rings.arith._cmp_complex_for_display
+        sage: teeny = 3e-11
+        sage: cmp_c(CC(5), CC(3, 3))
+        -1
+        sage: cmp_c(CC(3), CC(5, 5))
+        -1
+        sage: cmp_c(CC(5), CC(3))
+        1
+        sage: cmp_c(CC(teeny, -1), CC(-teeny, 1))
+        -1
+        sage: cmp_c(CC(teeny, 1), CC(-teeny, -1))
+        1
+        sage: cmp_c(CC(0, 1), CC(1, 0.5))
+        -1
+        sage: cmp_c(CC(3+teeny, -1), CC(3-teeny, 1))
+        -1
+    """
+    ar = a.real(); br = b.real()
+    ai = a.imag(); bi = b.imag()
+    if ai:
+        if bi:
+            if abs(br) < 1e-10:
+                if abs(ar) < 1e-10:
+                    return cmp(ai, bi)
+                return cmp(ar, 0)
+            if abs((ar - br) / br) < 1e-10:
+                return cmp(ai, bi)
+            return cmp(ar, br)
+        else:
+            return 1
+    else:
+        if bi:
+            return -1
+        else:
+            return cmp(ar, br)
+
+def sort_complex_numbers_for_display(nums):
+    r"""
+    Given a list of complex numbers (or a list of tuples, where the
+    first element of each tuple is a complex number), we sort the list
+    in a "pretty" order.  First come the real numbers (with zero
+    imaginary part), then the complex numbers sorted according to
+    their real part.  If two complex numbers have a real part which is
+    sufficiently close, then they are sorted according to their
+    imaginary part.
+
+    This is not a useful function mathematically (not least because
+    there's no principled way to determine whether the real components
+    should be treated as equal or not).  It is called by various
+    polynomial root-finders; its purpose is to make doctest printing
+    more reproducible.
+
+    We deliberately choose a cumbersome name for this function to
+    discourage use, since it is mathematically meaningless.
+
+    EXAMPLES::
+
+        sage: import sage.rings.arith
+        sage: sort_c = sort_complex_numbers_for_display
+        sage: nums = [CDF(i) for i in range(3)]
+        sage: for i in range(3):
+        ...       nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
+        ...                       RDF.random_element()))
+        ...       nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
+        ...                       RDF.random_element()))
+        sage: shuffle(nums)
+        sage: sort_c(nums)
+        [0, 1.0, 2.0, -2.862406201e-11 - 0.708874026302*I, 2.2108362707e-11 - 0.436810529675*I, 1.00000000001 - 0.758765473764*I, 0.999999999976 - 0.723896589334*I, 1.99999999999 - 0.456080101207*I, 1.99999999999 + 0.609083628313*I]
+    """
+    if len(nums) == 0:
+        return nums
+
+    if isinstance(nums[0], tuple):
+        return sorted(nums, cmp=_cmp_complex_for_display, key=lambda t: t[0])
+    else:
+        return sorted(nums, cmp=_cmp_complex_for_display)
+

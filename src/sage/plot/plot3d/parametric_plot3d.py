@@ -8,6 +8,7 @@ from texture import Texture
 from sage.plot.misc import ensure_subs
 
 from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
+import sage.calculus.calculus
 
 def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     r"""
@@ -343,6 +344,10 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
         Traceback (most recent call last):
         ...
         ValueError: plot variables should be distinct, but both are u.
+
+    From trac 2858:
+        sage: parametric_plot3d((u,-u,v), (-10,10),(-10,10))
+        sage: f(u)=u; g(v)=v^2; parametric_plot3d((g,f,f), (-10,10),(-10,10))
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above
@@ -490,14 +495,15 @@ def adapt_to_callable(f, nargs=None):
         function, expected arguments
     """
     try:
-        s = sum(f) # get common universe
-        try:
-            # If s is callable, will return the arguments in the right order
-            vars = s.args()
-        except AttributeError:
+        if sum([sage.calculus.calculus.is_CallableSymbolicExpression(z) for z in f]):
+            # Sum to get common universe; this works since f is callable, and summing
+            # gets the arguments in the right order.
+            vars = sum(f).args()
+        else:
             # Otherwise any free variable names in any order
             try:
-                vars = s.variables()
+                vars = list(set(sum([z.variables() for z in f], ())))
+                vars.sort()
             except AttributeError:
                 vars = ()
                 f = [fast_float_constant(x) for x in f]

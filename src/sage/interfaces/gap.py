@@ -152,6 +152,7 @@ from IPython.genutils import page
 import re
 import os
 import pexpect
+import time
 
 DB_HOME = "%s/data/"%SAGE_ROOT
 WORKSPACE = "%s/gap/workspace-%s"%(DOT_SAGE, abs(hash(SAGE_ROOT)))
@@ -160,11 +161,14 @@ GAP_STAMP = '%s/local/bin/gap_stamp'%SAGE_ROOT
 if not os.path.exists(GAP_STAMP):
     open(GAP_STAMP,'w').close()
 
+GAP_DIR = '%s/gap/'%DOT_SAGE
+
 first_try = True
 
 if not os.path.exists('%s/gap/'%DOT_SAGE):
-    os.makedirs('%s/gap/'%DOT_SAGE)
+    os.makedirs(GAP_DIR)
     open('%s/gap/README.txt'%DOT_SAGE, 'w').write("It is OK to delete all these cache files.  They will be recreated as needed.")
+
 
 gap_cmd = "gap -r"
 
@@ -851,6 +855,21 @@ if not os.path.exists(WORKSPACE) or os.path.getmtime(WORKSPACE) < os.path.getmti
     #print "Automatically updating the cached Gap workspace:"
     #print WORKSPACE
     gap_reset_workspace(verbose=False)
+
+    # Delete all gap workspaces that haven't been used in at least 1
+    # week, to avoid needless cruft.  I had an install on sage.math
+    # with 90 of these, since I run a lot of different versions of
+    # Sage, and it totalled 1.3GB of wasted space!  See trac #4936.
+    # We only do this after creating a new workspace, since this cruft
+    # issue is only a problem if workspaces get created every so
+    # often.  We don't want to have to do this on every startup.
+    now = time.time()
+    for F in os.listdir(GAP_DIR):
+        if F.startswith('workspace'):
+            age = now - os.path.getatime(GAP_DIR + '/' + F)
+            if age  >= 604800:    # = 168*3600 = 2 weeks in seconds
+                os.unlink(GAP_DIR + '/' + F)
+
 
 class GapElement(ExpectElement):
     def __getitem__(self, n):

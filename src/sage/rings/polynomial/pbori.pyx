@@ -153,6 +153,7 @@ include "../../ext/stdsage.pxi"
 include "../../ext/cdefs.pxi"
 include '../../libs/polybori/decl.pxi'
 
+import operator
 from sage.misc.randstate import current_randstate
 from sage.rings.integer import Integer
 from sage.rings.finite_field import FiniteField as GF
@@ -167,6 +168,8 @@ from sage.structure.element cimport ModuleElement
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
+
+from sage.categories.action cimport Action
 
 from sage.monoids.monoid import Monoid_class
 
@@ -1326,6 +1329,24 @@ class BooleanMonomialMonoid(Monoid_class):
             (<BooleanPolynomialRing>self._ring)._pbring.variable(i)) \
                 for i in xrange(self.ngens())])
 
+    def _get_action_(self, S, op, bint self_on_left):
+        """
+        Monomials support multiplication by 0 and 1 in GF(2).
+
+        EXAMPLES:
+            sage: from polybori import BooleanMonomialMonoid
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: M = BooleanMonomialMonoid(P)
+            sage: M.get_action(ZZ)
+            Right action by Integer Ring on MonomialMonoid of Boolean PolynomialRing in x, y, z
+            sage: M.get_action(GF(2))
+            Right action by Finite Field of size 2 on MonomialMonoid of Boolean PolynomialRing in x, y, z
+            sage: M.get_action(QQ) is None
+            True
+        """
+        if GF(2).has_coerce_map_from(S) and op is operator.mul:
+            return BooleanMulAction(S, self, not self_on_left, op=op)
+
     def _coerce_impl(self, other):
         """
         Canonical conversion of elements from other objects to this
@@ -1813,15 +1834,6 @@ cdef class BooleanMonomial(MonoidElement):
 
             sage: xy*z
             x*y*z
-
-            sage: x*1   # todo: not implemented
-            x
-            sage: 1*x   # todo: not implemented
-
-            sage: x*int(1)
-            x
-            sage: int(1)*x
-            x
         """
         cdef BooleanMonomial m = new_BM_from_PBMonom(\
                 (<BooleanMonomial>left)._parent,
@@ -4120,6 +4132,32 @@ cdef class GroebnerStrategy:
             self._strat.reduceByTailReduced = val
         else:
             raise AttributeError, name
+
+class BooleanMulAction(Action):
+    def _call_(self, left, right):
+        """
+        EXAMPLES:
+            sage: from polybori import BooleanMonomialMonoid
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: M = BooleanMonomialMonoid(P)
+            sage: x = M(x); xy = M(x*y); z=M(z)
+            sage: x*1
+            x
+            sage: 1*x
+            x
+            sage: x*int(1)
+            x
+            sage: int(1)*x
+            x
+            sage: 0*x
+            0
+            sage: x*2
+            0
+        """
+        if self.is_left():
+            return right if left % 2 else GF(2)(0)
+        else:
+            return left if right % 2 else GF(2)(0)
 
 cdef inline CCuddNavigator new_CN_from_PBNavigator(PBNavigator juice):
     """

@@ -55,7 +55,7 @@ def Hom(X, Y, cat=None):
     """
     if hasattr(X, '_Hom_'):
         return X._Hom_(Y, cat)
-    import category_types
+
     global _cache
     key = (X,Y,cat)
     if _cache.has_key(key):
@@ -67,6 +67,8 @@ def Hom(X, Y, cat=None):
             H = X._Hom_(Y)
         except AttributeError:
             pass
+
+    import category_types
 
     cat_X = X.category()
     cat_Y = Y.category()

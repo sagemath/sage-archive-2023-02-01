@@ -34,12 +34,6 @@ from sage.algebras.algebra import is_Algebra
 ####################################################################
 
 #############################################################
-# Unique category
-#############################################################
-class Category_uniq(uniq, Category):
-    pass
-
-#############################################################
 # Category of elements of some object
 #############################################################
 class Elements(uniq1, Category):
@@ -261,75 +255,6 @@ class Objects(Category_uniq):
 
     def __contains__(self, x):
         return True
-
-
-
-#############################################################
-# Pointed Sets
-#############################################################
-
-class PointedSets(Category_uniq):
-    """
-    The category of pointed sets.
-
-    EXAMPLES:
-        sage: PointedSets()
-        Category of pointed sets
-    """
-    def __call__(self, X, pt):
-        import sage.sets.all
-        return sage.sets.all.Set(X, pt)
-
-    def __reduce__(self):
-        return PointedSets, tuple([])
-
-#############################################################
-# Sets with Partial Maps
-#############################################################
-
-class SetsWithPartialMaps(Category_uniq):
-    """
-    The category whose objects are sets and whose morphisms are
-    maps that are allowed to raise a ValueError on some inputs.
-
-    This category is equivalent to the category of pointed sets,
-    via the equivalence sending an object X to X union {error},
-    a morphism f to the morphism of pointed sets that sends x
-    to f(x) if f does not raise an error on x, or to error if it
-    does.
-
-    EXAMPLES:
-        sage: SetsWithPartialMaps()
-        Category with objects Sets and morphisms partially defined maps
-    """
-    def __call__(self, X, pt):
-        import sage.sets.all
-        return sage.sets.all.Set(X, pt)
-
-    def __reduce__(self):
-        return SetsWithPartialMaps, tuple([])
-
-    def __repr__(self):
-        return "Category with objects Sets and morphisms partially defined maps"
-
-#############################################################
-# Sets
-#############################################################
-
-class Sets(Category_uniq):
-    """
-    The category of sets.
-
-    EXAMPLES:
-        sage: Sets()
-        Category of sets
-    """
-    def __call__(self, X):
-        import sage.sets.all
-        return sage.sets.all.Set(X)
-
-    def __reduce__(self):
-        return Sets, tuple([])
 
 #############################################################
 # Pointed Sets

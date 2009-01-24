@@ -358,10 +358,47 @@ cdef class RealField(sage.rings.ring.Field):
         Canonical coercion of x to this mpfr real field.
 
         The rings that canonically coerce to this mpfr real field are:
-             * any mpfr real field with precision that is as large as this one
+             * any mpfr real field with precision that is at most as large as this one
              * int, long, integer, and rational rings.
              * the field of algebraic reals
              * floats and RDF if self.prec <= 53
+
+        EXAMPLES:
+            sage: RR.has_coerce_map_from(ZZ)
+            True
+            sage: RR.has_coerce_map_from(float)
+            True
+            sage: RealField(100).has_coerce_map_from(float)
+            False
+            sage: RR.has_coerce_map_from(RealField(200))
+            True
+            sage: RR.has_coerce_map_from(RealField(20))
+            False
+            sage: RR.has_coerce_map_from(RDF)
+            True
+            sage: RR.coerce_map_from(ZZ)(2)
+            2.00000000000000
+            sage: RR.coerce(3.4r)
+            3.40000000000000
+            sage: RR.coerce(3.4)
+            3.40000000000000
+            sage: RR.coerce(3.4r)
+            3.40000000000000
+            sage: RR.coerce(3.400000000000000000000000000000000000000000)
+            3.40000000000000
+            sage: RealField(100).coerce(3.4)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Real Field with 53 bits of precision to Real Field with 100 bits of precision
+            sage: RR.coerce(17/5)
+            3.40000000000000
+            sage: RR.coerce(2^4000)
+            1.31820409343094e1204
+
+            sage: RR.coerce_map_from(float)
+            Generic map:
+              From: Set of Python objects of type 'float'
+              To:   Real Field with 53 bits of precision
 
         TESTS:
             sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
@@ -1067,7 +1104,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # and "-1.3*x".)
         cdef bint can_use_float_literal = \
             rnd == GMP_RNDN and (sib.preparse() or
-                                 float(str(float(self))) == self)
+                                 self._parent(float(str(float(self)))) == self)
 
         if can_use_int_literal or can_use_float_literal:
             if can_use_int_literal:

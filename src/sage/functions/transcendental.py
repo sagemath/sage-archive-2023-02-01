@@ -430,13 +430,13 @@ class DickmanRhoComputer(PrimitiveFunction):
         if self._cur_prec < x.parent().prec() or not self._f.has_key(n):
             self._cur_prec = rel_prec = x.parent().prec()
             # Go a bit beyond so we're not constantly re-computing.
-            max = 1.1*x + 10
+            max = x.parent()(1.1)*x + 10
             abs_prec = (-self.approximate(max).log2() + rel_prec + 2*max.log2()).ceil()
             self._f = {}
             if sys.getrecursionlimit() < max + 10:
                 sys.setrecursionlimit(int(max) + 10)
             self._compute_power_series(max.floor(), abs_prec, cache_ring=x.parent())
-        return self._f[n](2*(x-n-0.5))
+        return self._f[n](2*(x-n-x.parent()(0.5)))
 
     def power_series(self, n, abs_prec):
         """

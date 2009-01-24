@@ -66,10 +66,10 @@ def GF2XHexOutput(have_hex=None):
         sage: x
         [1 0 1 0 1]
     """
-    if have_hex==None:
+    if have_hex is None:
         return bool(GF2XHexOutput_c[0])
 
-    if have_hex==True:
+    if have_hex:
         GF2XHexOutput_c[0] = 1
     else:
         GF2XHexOutput_c[0] = 0

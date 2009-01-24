@@ -116,6 +116,9 @@ cpdef py_scalar_parent(py_type):
     else:
         return None
 
+cdef object _native_coercion_ranks_inv = (bool, int, long, float, complex)
+cdef object _native_coercion_ranks = dict([(t, k) for k, t in enumerate(_native_coercion_ranks_inv)])
+
 cdef object _Integer
 cdef bint is_Integer(x):
     global _Integer
@@ -394,12 +397,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         what will actually happen:
 
             sage: cm.explain(RealField(100), float, operator.add)
-            Right operand is numeric, will attempt conversion in both directions.
+            Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(RealField(100)(1) + float(1))
-            Real Field with 100 bits of precision
+            <type 'float'>
             sage: cm.explain(QQ, float, operator.add)
-            Right operand is numeric, will attempt conversion in both directions.
+            Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(QQ(1) + float(1))
             <type 'float'>
@@ -526,7 +529,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 if op is div and PY_TYPE_CHECK(yp, Parent):
                     yp = self.division_parent(yp)
                 return all, yp
-            all.append("Left operand is numeric, will attempt conversion in both directions.")
+            all.append("Left operand is numeric, will attempt coercion in both directions.")
         elif type(xp) is type:
             all.append("Left operand is not Sage element, will try _sage_.")
 
@@ -538,7 +541,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 if op is div and PY_TYPE_CHECK(xp, Parent):
                     xp = self.division_parent(xp)
                 return all, xp
-            all.append("Right operand is numeric, will attempt conversion in both directions.")
+            all.append("Right operand is numeric, will attempt coercion in both directions.")
         elif type(yp) is type:
             all.append("Right operand is not Sage element, will try _sage_.")
 
@@ -698,7 +701,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     cpdef canonical_coercion(self, x, y):
         """
-        Given to elements x and y, with parents S and R respectively,
+        Given two elements x and y, with parents S and R respectively,
         find a common parent Z such that there are coercions
         $f: S \mapsto Z$ and $g: R \mapsto Z$ and return $f(x), g(y)$
         which will have the same parent.
@@ -723,6 +726,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: x, y = cm.canonical_coercion(int(5), 10)
             sage: type(x), type(y)
             (<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>)
+
+
+            sage: x, y = cm.canonical_coercion(int(5), complex(3))
+            sage: type(x), type(y)
+            (<type 'complex'>, <type 'complex'>)
 
             sage: class MyClass:
             ...       def _sage_(self):
@@ -771,28 +779,41 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     return x_elt,y_elt
             self._coercion_error(x, x_map, x_elt, y, y_map, y_elt)
 
+
+        cdef bint x_numeric = PY_IS_NUMERIC(x)
+        cdef bint y_numeric = PY_IS_NUMERIC(y)
+
+        if x_numeric and y_numeric:
+            x_rank = _native_coercion_ranks[type(x)]
+            y_rank = _native_coercion_ranks[type(y)]
+            ty = _native_coercion_ranks_inv[max(x_rank, y_rank)]
+            x = ty(x)
+            y = ty(y)
+            return x, y
+
         # Now handle the native python + sage object cases
         # that were not taken care of above.
-        elif PY_IS_NUMERIC(x):
+        elif x_numeric:
             try:
-                x = yp(x)
-                if PY_TYPE_CHECK(yp, type): return x,y
+                sage_parent = py_scalar_parent(type(x))
+                if sage_parent is None or sage_parent.has_coerce_map_from(yp):
+                    return x, x.__class__(y)
+                else:
+                    return self.canonical_coercion(sage_parent(x), y)
             except (TypeError, ValueError):
                 self._record_exception()
-                y = x.__class__(y)
-                return x, y
-            return _verify_canonical_coercion_c(x,y)
 
-        elif PY_IS_NUMERIC(y):
+        elif y_numeric:
             try:
-                y = xp(y)
-                if PY_TYPE_CHECK(xp, type): return x,y
+                sage_parent = py_scalar_parent(type(y))
+                if sage_parent is None or sage_parent.has_coerce_map_from(xp):
+                    return y.__class__(x), y
+                else:
+                    return self.canonical_coercion(x, sage_parent(y))
             except (TypeError, ValueError):
                 self._record_exception()
-                x = y.__class__(x)
-                return x, y
-            return _verify_canonical_coercion_c(x,y)
 
+        # See if the non-objects define a _sage_ method.
         try:
             if not PY_TYPE_CHECK(x, SageObject) or not PY_TYPE_CHECK(y, SageObject):
                 x = x._sage_()

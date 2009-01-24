@@ -194,3 +194,41 @@ class uniq1(object):
         O = object.__new__(cls)
         cache1[key] = weakref.ref(O)
         return O
+
+
+#############################################################
+# Unique category
+#############################################################
+class Category_uniq(uniq, Category):
+    pass
+
+#############################################################
+# Sets
+#############################################################
+
+class Sets(Category_uniq):
+    """
+    The category of sets.
+
+    EXAMPLES:
+        sage: Sets()
+        Category of sets
+    """
+    def __call__(self, X):
+        """
+        EXAMPLES:
+            sage: Sets()(ZZ)
+            Set of elements of Integer Ring
+        """
+        import sage.sets.all
+        return sage.sets.all.Set(X)
+
+    def __reduce__(self):
+        """
+        For pickling.
+
+        TESTS:
+            sage: loads(dumps(Sets())) is Sets()
+            True
+        """
+        return Sets, tuple([])

@@ -1400,7 +1400,7 @@ cdef class Set_PythonType_class(Set_generic):
     cdef _type
 
     def __init__(self, theType):
-        from sage.categories.category_types import Sets
+        from sage.categories.category import Sets
         Set_generic.__init__(self, element_constructor=theType, categories=[Sets()])
         self._type = theType
 
@@ -1514,6 +1514,22 @@ cdef class Set_PythonType_class(Set_generic):
             # probably
             import sage.rings.infinity
             return sage.rings.infinity.infinity
+
+    def _Hom_(self, domain, cat=None):
+        """
+        By default, create a homset in the category of sets.
+
+        EXAMPLES:
+            sage: R = sage.structure.parent.Set_PythonType(int)
+            sage: S = sage.structure.parent.Set_PythonType(float)
+            sage: R._Hom_(S)
+            Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
+        """
+        from sage.categories.category import Sets
+        from sage.categories.homset import Homset
+        if cat is None:
+            cat = Sets()
+        return Homset(self, domain, cat)
 
 # These functions are to guarantee that user defined _lmul_, _rmul_,
 # _l_action_, _r_action_ do not in turn call __mul__ on their

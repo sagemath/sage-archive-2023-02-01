@@ -720,17 +720,22 @@ class Factorization(SageObject):
         mul =  ' * '
         if cr:
             mul += '\n'
+        x = self.__x[0][0]
+        if hasattr(x, 'parent'):
+            one = x.parent()(1)
+        else:
+            one = 1
         for i in range(len(self)):
             t = repr(self.__x[i][0])
             n = self.__x[i][1]
-            if (n>1 or len(self) > 1 or self.__unit != 1) and not atomic  and ('+' in t or '-' in t or ' ' in t):
+            if (n>1 or len(self) > 1 or self.__unit != one) and not atomic  and ('+' in t or '-' in t or ' ' in t):
                 t = '(%s)'%t
             if n != 1:
                 t += '^%s'%n
             s += t
             if i < len(self)-1:
                 s += mul
-        if self.__unit != 1:
+        if self.__unit != one:
             if atomic:
                 u = repr(self.__unit)
             else:

@@ -801,7 +801,27 @@ class MPolynomialIdeal_singular_repr:
               sage: I.dimension()
               1
 
-        ALGORITHM: Uses \Singular.
+        For polynomials over a finite field of order too large for Singular,
+        this falls back on a toy implementation of Buchberger to compute
+        the Groebner basis, then uses the algorithm described in Chapter 9,
+        Section 1 of Cox, Little, and O'Shea's "Ideals, Varieties, and Algorithms".
+
+        EXAMPLE:
+              sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+              sage: I = R.ideal([x*y,x*y+1])
+              sage: I.dimension()
+              verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+              0
+              sage: I=ideal([x*(x*y+1),y*(x*y+1)])
+              sage: I.dimension()
+              verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+              1
+              sage: I = R.ideal([x^3*y,x*y^2])
+              sage: I.dimension()
+              verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+              1
+
+        ALGORITHM: Uses \Singular, unless the characteristic is too large.
 
         NOTE: Requires computation of a Groebner basis, which can be a
         very expensive operation.
@@ -809,8 +829,49 @@ class MPolynomialIdeal_singular_repr:
         try:
             return self.__dimension
         except AttributeError:
-            v = self._groebner_basis_singular_raw()
-            self.__dimension = Integer(v.dim())
+            try:
+                v = self._groebner_basis_singular_raw()
+                self.__dimension = Integer(v.dim())
+            except TypeError:
+                if self.ring().term_order().is_global():
+                    verbose("Warning: falling back to very slow toy implementation.", level=0)
+                    # See Chapter 9, Section 1 of Cox, Little, O'Shea's "Ideals, Varieties,
+                    # and Algorithms".
+                    from sage.sets.set import Set
+                    gb = toy_buchberger.buchberger_improved(self)
+                    ring_vars = self.ring().gens()
+                    n = len(ring_vars)
+                    lms = [each.lm() for each in gb]
+                    # compute M_j, denoted by var_lms
+                    var_lms = [Set([]) for each in lms]
+                    for j in xrange(len(ring_vars)):
+                        for i in xrange(len(lms)):
+                            if lms[i].degree(ring_vars[j]) > 0:
+                                var_lms[i] += Set([j+1])
+                    # compute intersections of M_j and J
+                    # we assume that the iterator starts with the empty set,
+                    # then iterates through all subsets of order 1,
+                    # then through all subsets of order 2, etc...
+                    # the way Sage currently operates
+                    all_J = Set([each + 1 for each in range(n)]).subsets()
+                    min_dimension = 0
+                    all_J = all_J.iterator()
+                    while min_dimension == 0:
+                        try:
+                            J = all_J.next()
+                        except StopIteration:
+                            min_dimension = n
+                            break
+                        J_intersects_all = True
+                        i = 0
+                        while J_intersects_all and i < len(var_lms):
+                            J_intersects_all = J.intersection(var_lms[i]) != Set([])
+                            i += 1
+                        if J_intersects_all:
+                            min_dimension = len(J)
+                    return n - min_dimension
+                else:
+                    raise TypeError, "Local/unknown orderings not supported by 'toy_buchberger' implementation."
         return self.__dimension
 
     def vector_space_dimension(self):

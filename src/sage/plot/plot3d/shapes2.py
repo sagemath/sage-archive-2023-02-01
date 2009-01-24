@@ -508,6 +508,10 @@ def point3d(v, size=5, **kwds):
 
     EXAMPLES:
         sage: sum([point3d((i,i^2,i^3), size=5) for i in range(10)])
+
+    We check to make sure this works with vectors.
+
+        sage: pl = point3d([vector(ZZ,(1, 0, 0)), vector(ZZ,(0, 1, 0)), (-1, -1, 0)])
     """
     if isinstance(v,(list,tuple)) and len(v) == 3 and not (isinstance(v[0],(list,tuple)) or is_Vector(v[0])):
         return Point(v, size, **kwds)

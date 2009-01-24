@@ -279,9 +279,10 @@ def _formatTracebackLines(lnum, index, lines, Colors, lvals=None,scheme=None):
             scheme = DEFAULT_SCHEME
     _line_format = _parser.format2
 
+    if all(line.strip() == '' for line in lines):
+        return []
+
     for line in lines:
-        if line.strip() == "":
-            continue
         new_line, err = _line_format(line,'str',scheme)
         if not err: line = new_line
 

@@ -444,14 +444,15 @@ class InteractControl:
         """
         Returns the HTML escaped default value of the variable
         corresponding to this interact control.  Note that any
-        HTML that that uses quotes around this should use double
+        HTML that uses quotes around this should use double
         quotes and not single quotes.
 
         EXAMPLES:
             sage: from sage.server.notebook.interact import InteractControl
             sage: InteractControl('x', '"cool"').html_escaped_default_value()
             '&quot;cool&quot;'
-
+            sage: InteractControl('x',"'cool'").html_escaped_default_value()
+            "'cool'"
         """
         import cgi
         return cgi.escape(str(self.default_value()), quote=True)

@@ -284,7 +284,8 @@ cdef class Parent(category_object.CategoryObject):
     #############################################################################
     def __contains__(self, x):
         r"""
-        True if there is an element of self that is equal to x under ==.
+        True if there is an element of self that is equal to x under ==,
+        or if x is already an element of self.
 
         For many structures we test this by using \code{__call__} and
         then testing equality between x and the result.
@@ -304,7 +305,13 @@ cdef class Parent(category_object.CategoryObject):
             False
             sage: SR(2) in ZZ
             True
+            sage: RIF(1, 2) in RIF
+            True
+            sage: pi in RIF # there is no element of RIF equal to pi
+            False
         """
+        if parent_c(x) == self:
+            return True
         try:
             x2 = self(x)
             return bool(x2 == x)

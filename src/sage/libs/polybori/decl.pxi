@@ -38,8 +38,8 @@ cdef extern from "pb_wrap.h":
     void PBDD_destruct "Destruct<CDDInterface<CTypes::dd_base> >"(PBDD *mem)
 
 
-    void pbenv_changeOrdering "BooleEnv::changeOrdering"(ordercodes c)
-    ordercodes  pbenv_getOrderCode "BooleEnv::getOrderCode"()
+    void pbenv_changeOrdering "BooleEnv::changeOrdering"(int c)
+    int  pbenv_getOrderCode "BooleEnv::getOrderCode"()
     bint pbenv_isDegreeOrder "BooleEnv::ordering().isDegreeOrder"()
 
 
@@ -199,7 +199,7 @@ cdef extern from "pb_wrap.h":
 
     # non-allocating versions
     PBRing* PBRing_construct \
-            "Construct_pp<BoolePolyRing, BoolePolyRing::size_type, BoolePolyRing::ordercode_type> " (void *mem, int nvars, ordercodes order)
+            "Construct_pp<BoolePolyRing, BoolePolyRing::size_type, BoolePolyRing::ordercode_type> " (void *mem, int nvars, int order)
     void PBRing_destruct "Destruct<BoolePolyRing>"(PBRing *mem)
 
     # non-allocating versions

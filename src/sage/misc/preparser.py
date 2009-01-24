@@ -430,8 +430,8 @@ def extract_numeric_literals(code):
         sage: extract_numeric_literals("[1, 1.1, 1e1, -1e-1, 1.]")[0]
         '[_sage_const_1 , _sage_const_1p1 , _sage_const_1e1 , -_sage_const_1en1 , _sage_const_1p ]'
 
-        sage: extract_numeric_literals("[1.sqrt(), 1.2.sqrt(), 1r, 1.2r, R.1, (1..5)]")[0]
-        '[_sage_const_1 .sqrt(), _sage_const_1p2 .sqrt(), 1r, 1.2r, R.1, (_sage_const_1 .._sage_const_5 )]'
+        sage: extract_numeric_literals("[1.sqrt(), 1.2.sqrt(), 1r, 1.2r, R.1, R0.1, (1..5)]")[0]
+        '[_sage_const_1 .sqrt(), _sage_const_1p2 .sqrt(), 1r, 1.2r, R.1, R0.1, (_sage_const_1 .._sage_const_5 )]'
     """
     literals = {}
     last = 0
@@ -452,7 +452,7 @@ def extract_numeric_literals(code):
                     # handle Ellipsis
                     start += 1
                     num = num[1:]
-                elif re.match(r'[a-zA-Z\])]', code[start-1]):
+                elif re.match(r'[a-zA-Z0-9_\])]', code[start-1]):
                     # handle R.0
                     continue
             elif end < len(code) and num[-1] == '.':

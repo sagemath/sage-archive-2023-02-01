@@ -33,9 +33,18 @@ ipython-user@scipy.org
 
 == Special Update/Build Instructions ==
 
- * None for the current release
+=== Patches ===
+ * src/IPython/rlineimpl.py: We disable the check for libedit which
+   caused "sage -gdb" not to work under OS X.  This was trac ticket
+   #4991.
+ * src/IPython/ultraTB.py: We add two lines which cause IPython not to
+   print blank lines for frames in tracebacks that occur within Cython
+   extensions. This was trac ticket #5051.
 
 == Changelog ==
+
+=== ipython-0.9.1 (Mike Hansen, January 24th, 2009) ===
+ * Update to IPython 0.9.1
 
 === ipython-0.8.4.p1 (Michael Abshoff, January 19th, 2009) ===
  * Do not check for libedit on Darwin since that breaks 'sage -gdb' (#4991)

@@ -59,7 +59,9 @@ with them there (which is quite fast).
 TESTS:
     sage: y = polygen(QQ,'y'); K.<beta> = NumberField([y^3 - 3, y^2 - 2])
     sage: K(y^10)
-    (-3024*beta1 + 1530)*beta0^2 + (-2320*beta1 + 5067)*beta0 - 3150*beta1 + 7592
+    27*beta0
+    sage: beta^10
+    27*beta0
 """
 
 #*****************************************************************************
@@ -798,6 +800,72 @@ class NumberField_generic(number_field_base.NumberField):
         embedding = number_field_morphisms.create_embedding_from_approx(self, embedding)
         self._populate_coercion_lists_(embedding=embedding)
 
+    def _element_constructor_(self, x):
+        r"""
+        Make x into an element of this relative number field, possibly not canonically.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + 17)
+            sage: K(a) is a
+            True
+            sage: K('a^2 + 2/3*a + 5')
+            a^2 + 2/3*a + 5
+            sage: K('1').parent()
+            Number Field in a with defining polynomial x^3 + 17
+            sage: K(3/5).parent()
+            Number Field in a with defining polynomial x^3 + 17
+        """
+        if isinstance(x, number_field_element.NumberFieldElement):
+            K = x.parent()
+            if K is self:
+                return x
+            elif K == self:
+                return self._element_class(self, x.polynomial())
+            elif isinstance(x, (number_field_element.OrderElement_absolute,
+                                number_field_element.OrderElement_relative,
+                                number_field_element_quadratic.OrderElement_quadratic)):
+                L = K.number_field()
+                if L is self:
+                    return self._element_class(self, x)
+                x = L(x)
+            return self._coerce_from_other_number_field(x)
+        elif isinstance(x,str):
+            return self._coerce_from_str(x)
+        elif isinstance(x, (tuple, list)) or \
+                (isinstance(x, sage.modules.free_module_element.FreeModuleElement) and
+                 self.base_ring().has_coerce_map_from(x.parent().base_ring())):
+            if len(x) != self.degree():
+                raise ValueError, "Length must be equal to the degree of this number field"
+            return sum([ x[i]*self.gen(0)**i for i in range(self.degree()) ])
+        return self._coerce_non_number_field_element_in(x)
+
+
+    def _coerce_from_str(self, x):
+        """
+        Coerce a string representation of an element of this
+        number field into this number field.
+
+        INPUT:
+            x -- string
+
+        EXAMPLES:
+            sage: k.<theta25> = NumberField(x^3+(2/3)*x+1)
+            sage: k._coerce_from_str('theta25^3 + (1/3)*theta25')
+            -1/3*theta25 - 1
+
+        This function is called by the coerce method when it gets a string
+        as input:
+            sage: k('theta25^3 + (1/3)*theta25')
+            -1/3*theta25 - 1
+        """
+        # provide string coercion, as
+        # for finite fields
+        w = sage.misc.all.sage_eval(x,locals=self.gens_dict())
+        if not (is_Element(w) and w.parent() is self):
+            return self(w)
+        else:
+            return w
+
     def _Hom_(self, codomain, cat=None):
         """
         Return homset of homomorphisms from self to the number field codomain.
@@ -1357,221 +1425,6 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
                               self.polynomial()._latex_(self.latex_variable_name()))
-
-    def _element_constructor_(self, x):
-        """
-        Coerce x into this number field.
-
-        EXAMPLES:
-            sage: K.<a> = NumberField(x^3 + 17)
-            sage: K(a) is a
-            True
-            sage: K('a^2 + 2/3*a + 5')
-            a^2 + 2/3*a + 5
-            sage: K('1').parent()
-            Number Field in a with defining polynomial x^3 + 17
-            sage: K(3/5).parent()
-            Number Field in a with defining polynomial x^3 + 17
-        """
-        if isinstance(x, number_field_element.NumberFieldElement):
-            K = x.parent()
-            if K is self:
-                return x
-            elif K == self:
-                return self._element_class(self, x.polynomial())
-            elif isinstance(x, (number_field_element.OrderElement_absolute,
-                                number_field_element.OrderElement_relative,
-                                number_field_element_quadratic.OrderElement_quadratic)):
-                L = K.number_field()
-                if L is self:
-                    return self._element_class(self, x)
-                x = L(x)
-            return self._coerce_from_other_number_field(x)
-        elif isinstance(x,str):
-            return self._coerce_from_str(x)
-        elif isinstance(x, (sage.modules.vector_integer_dense.Vector_integer_dense,
-                            sage.modules.vector_rational_dense.Vector_rational_dense)):
-            if len(x) != self.degree():
-                raise ValueError, "vector must be of length equal to the degree of this number field"
-            return sum([ x[i]*self.gen(0)**i for i in range(self.degree()) ])
-        return self._coerce_non_number_field_element_in(x)
-
-    def _coerce_from_str(self, x):
-        """
-        Coerce a string representation of an element of this
-        number field into this number field.
-
-        INPUT:
-            x -- string
-
-        EXAMPLES:
-            sage: k.<theta25> = NumberField(x^3+(2/3)*x+1)
-            sage: k._coerce_from_str('theta25^3 + (1/3)*theta25')
-            -1/3*theta25 - 1
-
-        This function is called by the coerce method when it gets a string
-        as input:
-            sage: k('theta25^3 + (1/3)*theta25')
-            -1/3*theta25 - 1
-        """
-        # provide string coercion, as
-        # for finite fields
-        w = sage.misc.all.sage_eval(x,locals=\
-                                  {self.variable_name():self.gen()})
-        if not (is_Element(w) and w.parent() is self):
-            return self(w)
-        else:
-            return w
-
-    def _coerce_from_other_number_field(self, x):
-        """
-        Coerce a number field element x into this number field.
-
-        In most cases this currently doesn't work (since it is
-        barely implemented) -- it only works for constants.
-
-        INPUT:
-            x -- an element of some number field
-
-        EXAMPLES:
-            sage: K.<a> = NumberField(x^3 + 2)
-            sage: L.<b> = NumberField(x^2 + 1)
-            sage: K._coerce_from_other_number_field(L(2/3))
-            2/3
-        """
-        f = x.polynomial()
-        if f.degree() <= 0:
-            return self._element_class(self, f[0])
-        # todo: more general coercion if embedding have been asserted
-        raise TypeError, "Cannot coerce element into this number field"
-
-    def _coerce_non_number_field_element_in(self, x):
-        """
-        Coerce a non-number field element x into this number field.
-
-        INPUT:
-            x -- a non number field element x, e.g., a list, integer,
-            rational, or polynomial.
-
-        EXAMPLES:
-            sage: K.<a> = NumberField(x^3 + 2/3)
-            sage: K._coerce_non_number_field_element_in(-7/8)
-            -7/8
-            sage: K._coerce_non_number_field_element_in([1,2,3])
-            3*a^2 + 2*a + 1
-
-        The list is just turned into a polynomial in the generator.
-            sage: K._coerce_non_number_field_element_in([0,0,0,1,1])
-            -2/3*a - 2/3
-
-        Any polynomial whose coefficients can be coerced to rationals will
-        coerce, e.g., this one in characteristic 7.
-            sage: f = GF(7)['y']([1,2,3]); f
-            3*y^2 + 2*y + 1
-            sage: K._coerce_non_number_field_element_in(f)
-            3*a^2 + 2*a + 1
-
-        But not this one over a field of order 27.
-            sage: F27.<g> = GF(27)
-            sage: f = F27['z']([g^2, 2*g, 1]); f
-            z^2 + 2*g*z + g^2
-            sage: K._coerce_non_number_field_element_in(f)
-            Traceback (most recent call last):
-            ...
-            TypeError: <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
-
-        One can also coerce an element of the polynomial quotient ring
-        that's isomorphic to the number field:
-            sage: K.<a> = NumberField(x^3 + 17)
-            sage: b = K.polynomial_quotient_ring().random_element()
-            sage: K(b)
-            -1/2*a^2 - 4
-        """
-        if isinstance(x, (int, long, rational.Rational,
-                              integer.Integer, pari_gen,
-                              list)):
-            return self._element_class(self, x)
-
-        if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
-               and (x in self.polynomial_quotient_ring()):
-            y = self.polynomial_ring().gen()
-            return x.lift().subs({y:self.gen()})
-
-        try:
-            if isinstance(x, polynomial_element.Polynomial):
-                return self._element_class(self, x)
-
-            return self._element_class(self, x._rational_())
-        except (TypeError, AttributeError), msg:
-            pass
-        raise TypeError, type(x)
-
-    def _coerce_map_from_(self, R):
-        """
-        Canonical coercion of x into self.
-
-        Currently integers, rationals, and this field itself coerce
-        canonical into this field.
-
-        EXAMPLES:
-            sage: S.<y> = NumberField(x^3 + x + 1)
-            sage: S.coerce(int(4))
-            4
-            sage: S.coerce(long(7))
-            7
-            sage: S.coerce(-Integer(2))
-            -2
-            sage: z = S.coerce(-7/8); z, type(z)
-            (-7/8, <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>)
-            sage: S.coerce(y) is y
-            True
-
-        Fields with embeddings into an ambient field coerce natrually.
-            sage: CyclotomicField(15).coerce(CyclotomicField(5).0 - 17/3)
-            zeta15^3 - 17/3
-            sage: K.<a> = CyclotomicField(16)
-            sage: K(CyclotomicField(4).0)
-            a^4
-            sage: QuadraticField(-3, 'a').coerce_map_from(CyclotomicField(3))
-            Generic morphism:
-              From: Cyclotomic Field of order 3 and degree 2
-              To:   Number Field in a with defining polynomial x^2 + 3
-              Defn: zeta3 -> 1/2*a - 1/2
-
-        There are situations for which one might imagine canonical
-        coercion could make sense (at least after fixing choices), but
-        which aren't yet implemented:
-            sage: K.<a> = QuadraticField(2)
-            sage: K.coerce(sqrt(2))
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Symbolic Ring to Number Field in a with defining polynomial x^2 - 2
-
-        TESTS:
-            sage: K.<a> = NumberField(polygen(QQ)^3-2)
-            sage: type(K.coerce_map_from(QQ))
-            <type 'sage.structure.coerce_maps.DefaultConvertMap_unique'>
-
-        Make sure we still get our optimized morphisms for special fields:
-            sage: K.<a> = NumberField(polygen(QQ)^2-2)
-            sage: type(K.coerce_map_from(QQ))
-            <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
-        """
-        if R in [int, long, ZZ, QQ, self.base()]:
-            return self._generic_convert_map(R)
-        from sage.rings.number_field.order import is_NumberFieldOrder
-        if is_NumberFieldOrder(R) and R.number_field().has_coerce_map_from(self):
-            return self._generic_convert_map(R)
-        if is_NumberField(R) and R != QQ:
-            if R.coerce_embedding() is not None:
-                if self.coerce_embedding() is not None:
-                    try:
-                        from sage.categories.pushout import pushout
-                        ambient_field = pushout(R.coerce_embedding().codomain(), self.coerce_embedding().codomain())
-                        if ambient_field is not None:
-                            return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
-                    except (TypeError, ValueError):
-                        pass
 
     def category(self):
         """
@@ -2875,7 +2728,7 @@ class NumberField_generic(number_field_base.NumberField):
                 B = f.nfbasis(p = m)
 
             R = self.polynomial().parent()
-            basis = [self(R(g).list()) for g in B]
+            basis = [ self(R(g)) for g in B]
             self._integral_basis_dict[v] = basis
             return basis
 
@@ -3685,6 +3538,180 @@ class NumberField_absolute(NumberField_generic):
         self._element_class = number_field_element.NumberFieldElement_absolute
         self._zero_element = self(0)
         self._one_element =  self(1)
+
+    def _coerce_from_other_number_field(self, x):
+        """
+        Coerce a number field element x into this number field.
+
+        In most cases this currently doesn't work (since it is
+        barely implemented) -- it only works for constants.
+
+        INPUT:
+            x -- an element of some number field
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: L.<b> = NumberField(x^2 + 1)
+            sage: K._coerce_from_other_number_field(L(2/3))
+            2/3
+        """
+        f = x.polynomial()
+        if f.degree() <= 0:
+            return self._element_class(self, f[0])
+        # todo: more general coercion if embedding have been asserted
+        raise TypeError, "Cannot coerce element into this number field"
+
+    def _coerce_non_number_field_element_in(self, x):
+        """
+        Coerce a non-number field element x into this number field.
+
+        INPUT:
+            x -- a non number field element x, e.g., a list, integer,
+            rational, or polynomial.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + 2/3)
+            sage: K._coerce_non_number_field_element_in(-7/8)
+            -7/8
+            sage: K._coerce_non_number_field_element_in([1,2,3])
+            3*a^2 + 2*a + 1
+
+        The list is just turned into a polynomial in the generator.
+            sage: K._coerce_non_number_field_element_in([0,0,0,1,1])
+            -2/3*a - 2/3
+
+        Any polynomial whose coefficients can be coerced to rationals will
+        coerce, e.g., this one in characteristic 7.
+            sage: f = GF(7)['y']([1,2,3]); f
+            3*y^2 + 2*y + 1
+            sage: K._coerce_non_number_field_element_in(f)
+            3*a^2 + 2*a + 1
+
+        But not this one over a field of order 27.
+            sage: F27.<g> = GF(27)
+            sage: f = F27['z']([g^2, 2*g, 1]); f
+            z^2 + 2*g*z + g^2
+            sage: K._coerce_non_number_field_element_in(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+
+        One can also coerce an element of the polynomial quotient ring
+        that's isomorphic to the number field:
+            sage: K.<a> = NumberField(x^3 + 17)
+            sage: b = K.polynomial_quotient_ring().random_element()
+            sage: K(b)
+            -1/2*a^2 - 4
+        """
+        if isinstance(x, (int, long, rational.Rational,
+                              integer.Integer, pari_gen,
+                              list)):
+            return self._element_class(self, x)
+
+        if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
+               and (x in self.polynomial_quotient_ring()):
+            y = self.polynomial_ring().gen()
+            return x.lift().subs({y:self.gen()})
+
+        try:
+            if isinstance(x, polynomial_element.Polynomial):
+                return self._element_class(self, x)
+
+            return self._element_class(self, x._rational_())
+        except (TypeError, AttributeError), msg:
+            pass
+        raise TypeError, type(x)
+
+    def _coerce_from_str(self, x):
+        r"""
+        Coerce a string representation of an element of this
+        number field into this number field.
+
+        INPUT:
+            x -- string
+
+        EXAMPLES:
+            sage: k.<theta25> = NumberField(x^3+(2/3)*x+1)
+            sage: k._coerce_from_str('theta25^3 + (1/3)*theta25')
+            -1/3*theta25 - 1
+
+        This function is called by the coerce method when it gets a string
+        as input:
+            sage: k('theta25^3 + (1/3)*theta25')
+            -1/3*theta25 - 1
+        """
+        w = sage.misc.all.sage_eval(x,locals=self.gens_dict())
+        if not (is_Element(w) and w.parent() is self):
+            return self(w)
+        else:
+            return w
+
+    def _coerce_map_from_(self, R):
+        """
+        Canonical coercion of x into self.
+
+        Currently integers, rationals, and this field itself coerce
+        canonical into this field.
+
+        EXAMPLES:
+            sage: S.<y> = NumberField(x^3 + x + 1)
+            sage: S.coerce(int(4))
+            4
+            sage: S.coerce(long(7))
+            7
+            sage: S.coerce(-Integer(2))
+            -2
+            sage: z = S.coerce(-7/8); z, type(z)
+            (-7/8, <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>)
+            sage: S.coerce(y) is y
+            True
+
+        Fields with embeddings into an ambient field coerce natrually.
+            sage: CyclotomicField(15).coerce(CyclotomicField(5).0 - 17/3)
+            zeta15^3 - 17/3
+            sage: K.<a> = CyclotomicField(16)
+            sage: K(CyclotomicField(4).0)
+            a^4
+            sage: QuadraticField(-3, 'a').coerce_map_from(CyclotomicField(3))
+            Generic morphism:
+              From: Cyclotomic Field of order 3 and degree 2
+              To:   Number Field in a with defining polynomial x^2 + 3
+              Defn: zeta3 -> 1/2*a - 1/2
+
+        There are situations for which one might imagine canonical
+        coercion could make sense (at least after fixing choices), but
+        which aren't yet implemented:
+            sage: K.<a> = QuadraticField(2)
+            sage: K.coerce(sqrt(2))
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Symbolic Ring to Number Field in a with defining polynomial x^2 - 2
+
+        TESTS:
+            sage: K.<a> = NumberField(polygen(QQ)^3-2)
+            sage: type(K.coerce_map_from(QQ))
+            <type 'sage.structure.coerce_maps.DefaultConvertMap_unique'>
+
+        Make sure we still get our optimized morphisms for special fields:
+            sage: K.<a> = NumberField(polygen(QQ)^2-2)
+            sage: type(K.coerce_map_from(QQ))
+            <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
+        """
+        if R in [int, long, ZZ, QQ, self.base()]:
+            return self._generic_convert_map(R)
+        from sage.rings.number_field.order import is_NumberFieldOrder
+        if is_NumberFieldOrder(R) and R.number_field().has_coerce_map_from(self):
+            return self._generic_convert_map(R)
+        if is_NumberField(R) and R != QQ:
+            if R.coerce_embedding() is not None:
+                if self.coerce_embedding() is not None:
+                    try:
+                        from sage.categories.pushout import pushout
+                        ambient_field = pushout(R.coerce_embedding().codomain(), self.coerce_embedding().codomain())
+                        if ambient_field is not None:
+                            return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
+                    except (TypeError, ValueError):
+                        pass
 
     def _magma_init_(self, magma):
         """

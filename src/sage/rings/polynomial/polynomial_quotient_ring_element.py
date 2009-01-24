@@ -61,6 +61,7 @@ AUTHOR:
 
 import sage.rings.commutative_ring_element as commutative_ring_element
 import sage.rings.number_field.number_field as number_field
+import sage.rings.number_field.number_field_rel as number_field_rel
 
 
 class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElement):
@@ -373,7 +374,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
 	f = R.hom([alpha], F, check=False)
 
-        if number_field.is_RelativeNumberField(F):
+        if number_field_rel.is_RelativeNumberField(F):
 
             base_hom = F.base_field().hom([R.base_ring().gen()])
             g = F.Hom(R)(x, base_hom)

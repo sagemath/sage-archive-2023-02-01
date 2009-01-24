@@ -73,6 +73,22 @@ class Mwrank_class(Expect):
     def console(self):
         mwrank_console()
 
+    def quit(self, verbose=False):
+        """
+        Quit the mwrank process using kill -9 (so exit doesn't dump core, etc.).
+
+        INPUT:
+            verbose -- ignored
+
+        EXAMPLES:
+            sage: m = Mwrank()
+            sage: e = m('1 2 3 4 5')
+            sage: m.quit()
+        """
+        if self._expect is None: return
+        os.kill(self._expect.pid, 9)
+        self._expect = None
+
 
 # An instance
 mwrank = Mwrank()

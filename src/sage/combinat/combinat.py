@@ -333,13 +333,11 @@ def euler_number(n):
 
 def fibonacci(n, algorithm="pari"):
     """
-    Returns then n-th Fibonacci number. The Fibonacci sequence $F_n$
+    Returns the n-th Fibonacci number. The Fibonacci sequence $F_n$
     is defined by the initial conditions $F_1=F_2=1$ and the
     recurrence relation $F_{n+2} = F_{n+1} + F_n$. For negative $n$ we
     define $F_n = (-1)^{n+1}F_{-n}$, which is consistent with the
     recurrence relation.
-
-    For negative $n$, define $F_{n} = -F_{|n|}$.
 
     INPUT:
         algorithm -- string:
@@ -378,14 +376,14 @@ def fibonacci(n, algorithm="pari"):
 
 def lucas_number1(n,P,Q):
     """
-    Returns then n-th Lucas number ``of the first kind'' (this is not
+    Returns the n-th Lucas number ``of the first kind'' (this is not
     standard terminology). The Lucas sequence $L^{(1)}_n$ is defined
-    by the initial conditions $L^{(1)}_1=0$, $L^{(1)}_2=1$ and the recurrence
-    relation $L^{(1)}_{n+2} = P*L^{(1)}_{n+1} - Q*L^{(1)}_n$.
+    by the initial conditions $L^{(1)}_1=0$, $L^{(1)}_2=1$ and the
+    recurrence relation $L^{(1)}_{n+2} = P*L^{(1)}_{n+1} - Q*L^{(1)}_n$.
 
     Wraps GAP's Lucas(...)[1].
 
-    P=1, Q=-1 fives the Fibonacci sequence.
+    P=1, Q=-1 gives the Fibonacci sequence.
 
     INPUT:
         n -- integer
@@ -433,14 +431,14 @@ def lucas_number1(n,P,Q):
          [843, False, 14, False],
          [1364, False, 15, False]]
 
-    Can you use SAGE to find a counterexample to the conjecture?
+    Can you use Sage to find a counterexample to the conjecture?
     """
     ans=gap.eval("Lucas(%s,%s,%s)[1]"%(QQ._coerce_(P),QQ._coerce_(Q),ZZ(n)))
     return sage_eval(ans)
 
 def lucas_number2(n,P,Q):
     r"""
-    Returns then n-th Lucas number ``of the second kind'' (this is not
+    Returns the n-th Lucas number ``of the second kind'' (this is not
     standard terminology). The Lucas sequence $L^{(2)}_n$ is defined
     by the initial conditions $L^{(2)}_1=2$, $L^{(2)}_2=P$ and the recurrence
     relation $L^{(2)}_{n+2} = P*L^{(2)}_{n+1} - Q*L^{(2)}_n$.

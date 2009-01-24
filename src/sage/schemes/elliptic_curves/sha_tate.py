@@ -107,6 +107,11 @@ class Sha(SageObject):
         as a provably corret integer, unless the analytic rank is > 1,
         in which case this function returns a numerical value.
 
+        INPUT:
+            use_database -- bool (default: False); if True, try to use any
+            databases installed to lookup the analytic order of Sha, if
+            possible.  The order of Sha is computed if it can't be looked up.
+
         This result is proved correct if the order of vanishing is 0
         and the Manin constant is <= 2.
 
@@ -125,7 +130,7 @@ class Sha(SageObject):
 
             sage: EllipticCurve('14a4').sha().an()
             1
-            sage: EllipticCurve('14a4').sha().an(use_database=True)  # optional -- requires large Cremona database package
+            sage: EllipticCurve('14a4').sha().an(use_database=True)   # will be faster if you have large Cremona database installed
             1
 
         The smallest conductor curve with nontrivial Sha:
@@ -169,17 +174,13 @@ class Sha(SageObject):
             sage: E.sha().an()
             1
         """
-#            sage: e = EllipticCurve([1, 0, 0, -19491080, -33122512122])   # 15834T2
-#            sage: e.sha().an()                          # takes a long time (way too long!!)
-#            25
         if hasattr(self, '__an'):
             return self.__an
         if use_database:
-            try:
-                self.__an = int(round(float(self.E.database_curve().db_extra[4])))
+            d = self.E.database_curve()
+            if hasattr(d, 'db_extra'):
+                self.__an = int(round(float(d.db_extra[4])))
                 return self.__an
-            except RuntimeError, AttributeError:
-                pass
 
         # it's critical to switch to the minimal model.
         E = self.E.minimal_model()

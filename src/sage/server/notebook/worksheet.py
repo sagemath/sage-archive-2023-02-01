@@ -2624,8 +2624,9 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
         # If the input ends in a question mark and is *not* a comment line,
         # then we introspect on it.
-        if cell_system == 'sage':
-            Istrip = I.strip()
+        if cell_system == 'sage' and len(I) != 0:
+            #Get the last line of a possible multiline input
+            Istrip = I.strip().split('\n').pop()
             if Istrip.endswith('?') and not Istrip.startswith('#'):
                 C.set_introspect(I, '')
 

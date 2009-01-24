@@ -10,7 +10,27 @@ from sage.server.notebook.all import notebook
 
 print "..."
 
+def wrap(s):
+    """
+    INPUT:
+        s -- string
+    OUTPUT:
+        string
+
+    Do nothing to True, False or positive integer.  Wrap everything
+    else in a raw triple quoted string.
+    """
+    if '=' in s:
+        v = s.split('=')
+        return v[0] + '=' + wrap(v[1])
+    if s in ['True', 'False']:
+        return s
+    if s.isdigit(): return s
+    return "r'''%s'''"%s
+
 if len(sys.argv) > 1:
-    exec "notebook(" + ",".join(sys.argv[1:]) + ")"
+    cmd = "notebook(" + ",".join([wrap(v) for v in sys.argv[1:]]) + ")"
+    print cmd
+    exec cmd
 else:
     notebook(port=8000)

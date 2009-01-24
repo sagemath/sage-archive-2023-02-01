@@ -20,7 +20,7 @@
 
 import os, shutil, sys, time, socket
 
-HOSTNAME = socket.gethostname()
+HOSTNAME = socket.gethostname().replace('-','_')
 
 DOT_SAGE = os.environ['DOT_SAGE']
 tmp = '%s/temp/%s/'%(DOT_SAGE, HOSTNAME)
@@ -43,7 +43,6 @@ def cleanup():
     if not os.path.exists(tmp):
         return 0
     tmp_dirs = os.listdir(tmp)
-    #print "tmp_dirs = ", tmp_dirs
     for parent_pid in tmp_dirs:
         #print "checking on %s"%parent_pid
         if not is_running(parent_pid):
@@ -96,7 +95,6 @@ def setup_daemon():
         if is_running(pid):
             sys.exit(0)
     open(pidfile,'w').write(str(os.getpid()))
-
 
 if __name__ == '__main__':
     setup_daemon()

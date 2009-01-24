@@ -58,26 +58,26 @@ cdef class Parent(category_object.CategoryObject):
     # List consisting of Morphisms (from anything to self)
     # and Parents for which the __call__ method of self
     # results in natural coercion.
-    # Initalized at ring creation.
+    # Initialized at ring creation.
     cdef _coerce_from_list
-    # Hashtable of everything we've (possibliy recursively) discovered so far.
+    # Hashtable of everything we've (possibly recursively) discovered so far.
     cdef _coerce_from_hash
 
     # List consisting of Actions (either by or on self)
     # and Parents for which self._rmul_ and/or self._lmul_
     # do the correct thing.
-    # Initalized at ring creation.
+    # Initialized at ring creation.
     cdef _action_list
-    # Hashtable of everything we've (possibliy recursively) discovered so far.
+    # Hashtable of everything we've (possibly recursively) discovered so far.
     cdef _action_hash
 
     # List consisting of Morphisms (from anything to self)
     # and Parents for which the __call__ method of self
     # does not result in type errors
-    # Initalized at ring creation.
+    # Initialized at ring creation.
     cdef _convert_from_list
-    # Hashtable of everything we've (possibliy recursively) discovered so far.
+    # Hashtable of everything we've (possibly recursively) discovered so far.
     cdef _convert_from_hash
-    # An optional single Morphism that describes a cannonical coercion out of self
+    # An optional single Morphism that describes a canonical coercion out of self
     cdef _embedding
 

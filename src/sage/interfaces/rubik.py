@@ -73,13 +73,13 @@ class SingNot:
     """
     def __init__(self, s):
         self.rep = s
-        self.cannonical = (s[0] + "".join(sorted(list(s[1:])))).lower()
+        self.canonical = (s[0] + "".join(sorted(list(s[1:])))).lower()
     def __eq__(self, other):
-        return isinstance(other, SingNot) and other.cannonical == self.cannonical
+        return isinstance(other, SingNot) and other.canonical == self.canonical
     def __repr__(self):
         return self.rep
     def __hash__(self):
-        return hash(self.cannonical)
+        return hash(self.canonical)
 
 # This is our list
 singmaster_list = [''] + [SingNot(index2singmaster(i+1)) for i in range(48)]; singmaster_list

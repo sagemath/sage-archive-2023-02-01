@@ -379,7 +379,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ.coerce(GF(7)(2))
             Traceback (most recent call last):
             ...
-            TypeError: no cannonical coercion from Finite Field of size 7 to Integer Ring
+            TypeError: no canonical coercion from Finite Field of size 7 to Integer Ring
 
         The rational number 3/1 = 3 does not canonically coerce into
         the integers, since there is no canonical coercion map from
@@ -392,7 +392,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ.coerce(a)
             Traceback (most recent call last):
             ...
-            TypeError: no cannonical coercion from Rational Field to Integer Ring
+            TypeError: no canonical coercion from Rational Field to Integer Ring
 
 
         TESTS:

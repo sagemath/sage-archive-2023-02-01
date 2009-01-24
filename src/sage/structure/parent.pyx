@@ -322,7 +322,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: ZZ.coerce(QQ(2))
             Traceback (most recent call last):
             ...
-            TypeError: no cannonical coercion from Rational Field to Integer Ring
+            TypeError: no canonical coercion from Rational Field to Integer Ring
 
         We make an exception for zero:
             sage: V = GF(7)^7
@@ -336,7 +336,7 @@ cdef class Parent(category_object.CategoryObject):
                     return self(0)
                 except:
                     _record_exception()
-            raise TypeError, "no cannonical coercion from %s to %s" % (parent_c(x), self)
+            raise TypeError, "no canonical coercion from %s to %s" % (parent_c(x), self)
         else:
             return (<map.Map>mor)._call_(x)
 
@@ -595,7 +595,7 @@ cdef class Parent(category_object.CategoryObject):
 
         INPUT:
             coerce_list    -- a list of coercion Morphisms to self and
-                              parents with cannonical coercions to self
+                              parents with canonical coercions to self
             action_list    -- a list of actions on and by self
             convert_list   -- a list of conversion Maps to self and
                               parents with conversions to self

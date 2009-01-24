@@ -327,7 +327,7 @@ def Newforms(group, weight=2, base_ring=rings.QQ, names=None):
 def Newform(identifier, group=None, weight=2, base_ring=rings.QQ, names=None):
     """
     INPUT:
-       identifier -- a cannonical label, or the index of the specific
+       identifier -- a canonical label, or the index of the specific
                      newform desired
        group      -- the congruence subgroup of the newform
        weight     -- the weight of the newform (default 2)
@@ -346,9 +346,9 @@ def Newform(identifier, group=None, weight=2, base_ring=rings.QQ, names=None):
     if isinstance(identifier, str):
         group, identifier = parse_label(identifier)
         if weight != 2:
-            raise ValueError, "Cannonical label not implemented for higher weight forms."
+            raise ValueError, "Canonical label not implemented for higher weight forms."
         elif base_ring != rings.QQ:
-            raise ValueError, "Cannonical label not implemented except for over Q."
+            raise ValueError, "Canonical label not implemented except for over Q."
     elif group is None:
         raise ValueError, "Must specify a group or a label."
     return Newforms(group, weight, base_ring, names=names)[identifier]

@@ -190,7 +190,7 @@ class ExtendedRationalField_class(_uniq0, RationalField):
             sage: E.coerce(R(1))
             Traceback (most recent call last):
             ...
-            TypeError: no cannonical coercion from Univariate Polynomial Ring in x over Rational Field to Extended Rational Field
+            TypeError: no canonical coercion from Univariate Polynomial Ring in x over Rational Field to Extended Rational Field
 
         TESTS:
             sage: ExtendedRationalField(2)*ExtendedIntegerRing(2)

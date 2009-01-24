@@ -1,5 +1,5 @@
 r"""
-The coercion model manages how elements of one parent get relate to elements
+The coercion model manages how elements of one parent get related to elements
 of another. For example, the integer 2 can canonically be viewed as an element
 of the rational numbers. (The Parent of a non-element is its Python type.)
 
@@ -29,7 +29,7 @@ original parents is made. The results of these discoveries are cached.
 On failure, a TypeError is always raised.
 
 Some arithmetic operations (such as multiplication) can indicate an action
-rather than arithmitic in a common parent. For example
+rather than arithmetic in a common parent. For example
 
     sage: E = EllipticCurve('37a')
     sage: P = E(0,0)
@@ -43,10 +43,10 @@ parents.
 There are two kinds of ways to get from one parent to another, coercions and
 conversions.
 
-Coercions are cannonical (possibly modulo a finite number of determanistic
+Coercions are canonical (possibly modulo a finite number of deterministic
 choices) morphisms, and the set of all coercions between all parents forms a
-comuting diagram (modulo possibly rounding issues). $\Z \rightarrow \Q$ is an
-example of a coercion. These are invoked implictly by the coercion model.
+commuting diagram (modulo possibly rounding issues). $\Z \rightarrow \Q$ is an
+example of a coercion. These are invoked implicitly by the coercion model.
 
 Conversions try to construct an element out of their input if at all possible.
 Examples include sections of coercions, creating an element from a string or

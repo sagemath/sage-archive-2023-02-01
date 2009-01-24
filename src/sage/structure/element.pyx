@@ -534,7 +534,7 @@ cdef class Element(sage_object.SageObject):
                 if r == 0:
                     r = -1
                 # Often things are compared against 0 (or 1), even when there
-                # is not a cannonical coercion ZZ -> other
+                # is not a canonical coercion ZZ -> other
                 # Things should implement and/or use __nonzero__ and is_one()
                 # but we can't do that here as that calls this.
                 # The old coercion model would declare a coercion if 0 went in.

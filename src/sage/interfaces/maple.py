@@ -400,7 +400,7 @@ connection to a server running Maple; for hints, type
 
         EXAMPLES:
             sage: c = maple.completions('di')  # optional - maple
-            sage: 'dilog' in c                 # optional - maple
+            sage: 'divide' in c                # optional - maple
             True
         """
         bs = chr(8)*len(s)
@@ -426,7 +426,7 @@ connection to a server running Maple; for hints, type
         Return list of all commands defined in Maple.
 
         EXAMPLES:
-            sage: c = maple._commands() #optional -- requires Maple
+            sage: c = maple._commands() # optional - maple
             sage: len(c) > 100          # optional - maple
             True
             sage: 'dilog' in c          # optional - maple
@@ -513,6 +513,7 @@ connection to a server running Maple; for hints, type
             sage: t = maple.cputime() # optional - maple
             sage: t                   # random; optional - maple
             0.02
+            sage: x = maple('x')      # optional - maple
             sage: maple.diff(x^2, x)  # optional - maple
             2*x
             sage: maple.cputime(t)    # random; optional - maple

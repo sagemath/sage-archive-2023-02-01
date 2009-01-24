@@ -18,15 +18,15 @@ if file[0] == '-':
     sys.exit(1)
 
 if file.endswith('.sage'):
-    if os.system('sage -preparse %s'%file):
+    if os.system('sage -preparse "%s"'%file):
         sys.exit(1)
-    e = os.system('"$SAGE_LOCAL/bin/sage-python" %s.py %s'%(file[:-5], options))
+    e = os.system('"$SAGE_LOCAL/bin/sage-python" "%s.py" %s'%(file[:-5], options))
     sys.exit(e>>8)
 elif file.endswith('.spyx'):
-    e = os.system('"$SAGE_LOCAL/bin/sage-sagex" %s'%file)
+    e = os.system('"$SAGE_LOCAL/bin/sage-sagex" "%s"'%file)
     sys.exit(e>>8)
 else:
-    e = os.system('"$SAGE_LOCAL/bin/sage-python" %s %s'%(file, options))
+    e = os.system('"$SAGE_LOCAL/bin/sage-python" "%s" %s'%(file, options))
     sys.exit(e>>8)
 
 

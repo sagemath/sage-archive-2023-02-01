@@ -102,8 +102,8 @@ class ComplexField_class(field.Field):
         0.333333333333333 + 2.00000000000000*I
         sage: C(RR.pi())
         3.14159265358979
-        sage: C(RR.log2(), RR.e())
-        0.693147180559945 + 2.71828182845905*I
+        sage: C(RR.log2(), RR.pi())
+        0.693147180559945 + 3.14159265358979*I
 
     We can also coerce rational numbers and integers into C, but
     coercing a polynomial will raise an exception.

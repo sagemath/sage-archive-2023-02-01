@@ -628,7 +628,6 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         """
         from  sage.groups.generic import discrete_log
 
-        q = (self.parent()).order()
         b = self.parent()(base)
         # TODO: This function is TERRIBLE!
-        return discrete_log(self, b, q-1)
+        return discrete_log(self, b)

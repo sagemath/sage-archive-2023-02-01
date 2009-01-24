@@ -55,7 +55,7 @@ Discrete logs:
     672
     sage: Q=39*P; Q
     (36*a + 32 : 5*a + 12 : 1)
-    sage: discrete_log(Q,P,P.order(),'+')
+    sage: discrete_log(Q,P,P.order(),operation='+')
     39
 
 Linear relation finder:
@@ -487,7 +487,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
 
     raise ValueError, "Log of %s to the base %s does not exist in %s."%(b,a,bounds)
 
-def discrete_log(a, base, ord=None, operation='*', identity=None, inverse=None, op=None):
+def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
     """
     Totally generic discrete log function.
 
@@ -507,6 +507,7 @@ def discrete_log(a, base, ord=None, operation='*', identity=None, inverse=None, 
         a    -- group element
         base -- group element (the base)
         ord  -- integer (multiple of order of base, or None)
+        bounds -- a priori bounds on the log
         operation -- string: '*', '+', 'other'
         identity -- the group's identity
         inverse()  -- function of 1 argument x returning inverse of x
@@ -519,7 +520,7 @@ def discrete_log(a, base, ord=None, operation='*', identity=None, inverse=None, 
 
         If no such $n$ exists, this function raises a ValueError exception.
 
-    ALGORITHM: Baby step giant step.
+    ALGORITHM: Pohlig-Hellman and Baby step giant step.
 
     EXAMPLES:
         sage: b = Mod(2,37);  a = b^20
@@ -564,18 +565,18 @@ def discrete_log(a, base, ord=None, operation='*', identity=None, inverse=None, 
         sage: eps.multiplicative_order()
         +Infinity
         sage: eta = eps^100
-        sage: discrete_log(eta,eps,1000)
+        sage: discrete_log(eta,eps,bounds=(0,1000))
         100
 
         In this case we cannot detect negative powers:
         sage: eta = eps^(-3)
-        sage: discrete_log(eta,eps,100)
+        sage: discrete_log(eta,eps,bounds=(0,100))
         Traceback (most recent call last):
         ...
         ValueError: No discrete log of -11515*a - 55224 found to base 5*a - 24
 
         But we can invert the base (and negate the result) instead:
-        sage: - discrete_log(eta^-1,eps,100)
+        sage: - discrete_log(eta^-1,eps,bounds=(0,100))
         -3
 
         An additive example: elliptic curve DLOG:
@@ -588,8 +589,15 @@ def discrete_log(a, base, ord=None, operation='*', identity=None, inverse=None, 
         672
         sage: Q=39*P; Q
         (36*a + 32 : 5*a + 12 : 1)
-        sage: discrete_log(Q,P,P.order(),'+')
+        sage: discrete_log(Q,P,P.order(),operation='+')
         39
+
+        An example of big smooth group:
+        sage: F.<a>=GF(2^63)
+        sage: g=F.gen()
+        sage: u=g**123456789
+        sage: discrete_log(u,g)
+        123456789
 
     AUTHOR:
         -- William Stein and David Joyner (2005-01-05)
@@ -613,7 +621,23 @@ def discrete_log(a, base, ord=None, operation='*', identity=None, inverse=None, 
             except:
                 raise ValueError, "ord must be specified"
     try:
-        return bsgs(base,a,(0,ord),operation=operation)
+        from sage.rings.infinity import Infinity
+        if ord==+Infinity:
+            return bsgs(base,a,bounds, operation=operation)
+        if ord==1 and a!=base:
+            raise ValueError
+        f=ord.factor()
+        l=[0]*len(f)
+        for i,(pi,ri) in enumerate(f):
+            for j in range(ri):
+                if operation in multiplication_names:
+                    c=bsgs(base**(ord//pi),(a/base**l[i])**(ord//pi**(j+1)),(0,pi),operation=operation)
+                    l[i] += c*(pi**j)
+                elif operation in addition_names:
+                    c=bsgs(base*(ord//pi),(a-base*l[i])*(ord//pi**(j+1)),(0,pi),operation=operation)
+                    l[i] += c*(pi**j)
+        from sage.rings.arith import CRT_list
+        return  CRT_list(l,[pi**ri for pi,ri in f])
     except ValueError:
         raise ValueError, "No discrete log of %s found to base %s"%(a,base)
 

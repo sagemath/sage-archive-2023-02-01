@@ -1416,9 +1416,8 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         """
         from  sage.groups.generic import discrete_log
 
-        q = Integer((self.parent()).order())
         b = self.parent()(base)
-        return discrete_log(self, b, q-1)
+        return discrete_log(self, b)
 
 def unpickleFiniteField_ntl_gf2eElement(parent, elem):
     """

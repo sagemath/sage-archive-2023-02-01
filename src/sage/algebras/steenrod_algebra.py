@@ -62,6 +62,7 @@ from sage.structure.element import RingElement
 from sage.rings.all import GF
 from sage.misc.functional import parent
 from sage.rings.integer import Integer
+from sage.structure.factory import UniqueFactory
 
 class SteenrodAlgebra_generic(Algebra):
     r"""
@@ -642,7 +643,97 @@ class SteenrodAlgebra_mod_two(SteenrodAlgebra_generic):
             raise ValueError, "Sq is only defined at the prime 2"
 
 
-def SteenrodAlgebra(p=2, basis='milnor'):
+# Now we specify the names of the implemented bases.  For the Milnor
+# and Serre-Cartan bases, give a list of synonyms:
+
+_steenrod_milnor_basis_names = ['milnor']
+_steenrod_serre_cartan_basis_names = ['serre_cartan', 'serre-cartan', 'sc',
+                                         'adem', 'admissible']
+
+# For the other bases, use pattern-matching rather than a list of
+# synonyms:
+#   * Search for 'wood' and 'y' or 'wood' and 'z' to get the Wood bases.
+#   * Search for 'arnon' and 'c' for the Arnon C basis.
+#   * Search for 'arnon' (and no 'c') for the Arnon A basis.  Also see if
+#     'long' is present, for the long form of the basis.
+#   * Search for 'wall' for the Wall basis. Also see if 'long' is present.
+#   * Search for 'pst' for P^s_t bases, then search for the order type:
+#     'rlex', 'llex', 'deg', 'revz'.
+#   * For commutator types, search for 'comm', an order type, and also
+#     check to see if 'long' is present.
+
+def get_basis_name(basis, p):
+    """
+    Return canonical basis named by string basis at the prime p.
+
+    INPUT:
+        basis -- string
+        p -- positive prime number
+
+    OUTPUT:
+        basis_name -- string
+
+    EXAMPLES:
+        sage: sage.algebras.steenrod_algebra.get_basis_name('adem', 2)
+        'serre-cartan'
+        sage: sage.algebras.steenrod_algebra.get_basis_name('milnor', 2)
+        'milnor'
+        sage: sage.algebras.steenrod_algebra.get_basis_name('MiLNoR', 5)
+        'milnor'
+        sage: sage.algebras.steenrod_algebra.get_basis_name('pst-llex', 2)
+        'pst_llex'
+    """
+    basis = basis.lower()
+    if basis in _steenrod_milnor_basis_names:
+        result = 'milnor'
+    elif basis in _steenrod_serre_cartan_basis_names:
+        result = 'serre-cartan'
+    elif p == 2 and basis.find('pst') >= 0:
+        if basis.find('rlex') >= 0:
+            result = 'pst_rlex'
+        elif basis.find('llex') >= 0:
+            result = 'pst_llex'
+        elif basis.find('deg') >= 0:
+            result = 'pst_deg'
+        elif basis.find('revz') >= 0:
+            result = 'pst_revz'
+        else:
+            result = 'pst_revz'
+    elif p == 2 and basis.find('comm') >= 0:
+        if basis.find('rlex') >= 0:
+            result = 'comm_rlex'
+        elif basis.find('llex') >= 0:
+            result = 'comm_llex'
+        elif basis.find('deg') >= 0:
+            result = 'comm_deg'
+        elif basis.find('revz') >= 0:
+            result = 'comm_revz'
+        else:
+            result = 'comm_revz'
+        if basis.find('long') >= 0:
+            result = result + '_long'
+    elif p == 2 and basis.find('wood') >= 0:
+        if basis.find('y') >= 0:
+            result = 'woody'
+        else:
+            result = 'woodz'
+    elif p == 2 and basis.find('arnon') >= 0:
+        if basis.find('c') >= 0:
+            result = 'arnonc'
+        else:
+            result = 'arnona'
+            if basis.find('long') >= 0:
+                result = result + '_long'
+    elif p == 2 and basis.find('wall') >= 0:
+        result = 'wall'
+        if basis.find('long') >= 0:
+            result = result + '_long'
+    else:
+        raise ValueError, "%s is not a recognized basis at the prime %s." % (basis, p)
+    return result
+
+
+class SteenrodAlgebraFactory(UniqueFactory):
     r"""
     The mod $p$ Steenrod algebra
 
@@ -770,98 +861,40 @@ def SteenrodAlgebra(p=2, basis='milnor'):
         Sq^{2} Sq^{1} Sq^{2} Sq^{1} + Sq^{2} Sq^{4}
         sage: SteenrodAlgebra(2, 'comm_deg_long')(Sq(6))
         s_{1} s_{2} s_{12} + s_{2} s_{4}
+
+    Testing unique parents
+        sage: S0 = SteenrodAlgebra(2)
+        sage: S1 = SteenrodAlgebra(2)
+        sage: S0 is S1
+        True
     """
-    basis_name = get_basis_name(basis, p)
-    if p == 2:
-        return SteenrodAlgebra_mod_two(2, basis_name)
-    else:
-        return SteenrodAlgebra_generic(p, basis_name)
+    def create_key(self, p = 2, basis = 'milnor'):
+        """
+        This is an internal function that is used to ensure unique
+        parents.  Not for public consumption.
 
-# Now we specify the names of the implemented bases.  For the Milnor
-# and Serre-Cartan bases, give a list of synonyms:
+        EXAMPLES:
+            sage: SteenrodAlgebra.create_key()
+            (2, 'milnor')
+        """
+        return (p,basis)
 
-_steenrod_milnor_basis_names = ['milnor']
-_steenrod_serre_cartan_basis_names = ['serre_cartan', 'serre-cartan', 'sc',
-                                         'adem', 'admissible']
+    def create_object(self, version, key, **extra_args):
+        """
+        This is an internal function that is used to ensure unique
+        parents.  Not for public consumption.
 
-# For the other bases, use pattern-matching rather than a list of
-# synonyms:
-#   * Search for 'wood' and 'y' or 'wood' and 'z' to get the Wood bases.
-#   * Search for 'arnon' and 'c' for the Arnon C basis.
-#   * Search for 'arnon' (and no 'c') for the Arnon A basis.  Also see if
-#     'long' is present, for the long form of the basis.
-#   * Search for 'wall' for the Wall basis. Also see if 'long' is present.
-#   * Search for 'pst' for P^s_t bases, then search for the order type:
-#     'rlex', 'llex', 'deg', 'revz'.
-#   * For commutator types, search for 'comm', an order type, and also
-#     check to see if 'long' is present.
+        EXAMPLES:
+            sage: SteenrodAlgebra.create_object(1,(11,'milnor'))
+            mod 11 Steenrod algebra
+        """
 
-def get_basis_name(basis, p):
-    """
-    Return canonical basis named by string basis at the prime p.
-
-    INPUT:
-        basis -- string
-        p -- positive prime number
-
-    OUTPUT:
-        basis_name -- string
-
-    EXAMPLES:
-        sage: sage.algebras.steenrod_algebra.get_basis_name('adem', 2)
-        'serre-cartan'
-        sage: sage.algebras.steenrod_algebra.get_basis_name('milnor', 2)
-        'milnor'
-        sage: sage.algebras.steenrod_algebra.get_basis_name('MiLNoR', 5)
-        'milnor'
-        sage: sage.algebras.steenrod_algebra.get_basis_name('pst-llex', 2)
-        'pst_llex'
-    """
-    basis = basis.lower()
-    if basis in _steenrod_milnor_basis_names:
-        result = 'milnor'
-    elif basis in _steenrod_serre_cartan_basis_names:
-        result = 'serre-cartan'
-    elif p == 2 and basis.find('pst') >= 0:
-        if basis.find('rlex') >= 0:
-            result = 'pst_rlex'
-        elif basis.find('llex') >= 0:
-            result = 'pst_llex'
-        elif basis.find('deg') >= 0:
-            result = 'pst_deg'
-        elif basis.find('revz') >= 0:
-            result = 'pst_revz'
+        p = key[0]
+        basis = key[1]
+        basis_name = get_basis_name(basis, p)
+        if p == 2:
+            return SteenrodAlgebra_mod_two(p=2, basis=basis_name)
         else:
-            result = 'pst_revz'
-    elif p == 2 and basis.find('comm') >= 0:
-        if basis.find('rlex') >= 0:
-            result = 'comm_rlex'
-        elif basis.find('llex') >= 0:
-            result = 'comm_llex'
-        elif basis.find('deg') >= 0:
-            result = 'comm_deg'
-        elif basis.find('revz') >= 0:
-            result = 'comm_revz'
-        else:
-            result = 'comm_revz'
-        if basis.find('long') >= 0:
-            result = result + '_long'
-    elif p == 2 and basis.find('wood') >= 0:
-        if basis.find('y') >= 0:
-            result = 'woody'
-        else:
-            result = 'woodz'
-    elif p == 2 and basis.find('arnon') >= 0:
-        if basis.find('c') >= 0:
-            result = 'arnonc'
-        else:
-            result = 'arnona'
-            if basis.find('long') >= 0:
-                result = result + '_long'
-    elif p == 2 and basis.find('wall') >= 0:
-        result = 'wall'
-        if basis.find('long') >= 0:
-            result = result + '_long'
-    else:
-        raise ValueError, "%s is not a recognized basis at the prime %s." % (basis, p)
-    return result
+            return SteenrodAlgebra_generic(p=p, basis=basis_name)
+
+SteenrodAlgebra = SteenrodAlgebraFactory("SteenrodAlgebra")

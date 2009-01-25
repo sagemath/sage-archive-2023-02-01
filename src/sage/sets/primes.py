@@ -1,5 +1,9 @@
 """
-The set of prime numbers
+The set of prime numbers.
+
+TESTS:
+    sage: loads(dumps(Primes())) == Primes()
+    True
 """
 
 #*****************************************************************************
@@ -32,15 +36,14 @@ class Primes_class(Set_generic):
         sage: loads(P.dumps()) == P
         True
     """
-    def __init__(self):
+    def __init__(self, proof=True):
         """
-        There is nothing to initialize for the set of primes.
-
         EXAMPLES::
 
-            sage: P = Primes()
+            sage: P = Primes(); P
+            Set of all prime numbers: 2, 3, 5, 7, ...
         """
-        pass
+        self.__proof = proof
 
     def cardinality(self):
         """
@@ -54,6 +57,18 @@ class Primes_class(Set_generic):
             +Infinity
         """
         return infinity
+
+    def __len__(self):
+        """
+        TESTS::
+
+            sage: len(Primes())
+            Traceback (most recent call last):
+            ...
+            TypeError
+        """
+        raise TypeError
+
 
     def __cmp__(self, right):
         """
@@ -76,12 +91,18 @@ class Primes_class(Set_generic):
             sage: R.<x>=ZZ[]
             sage: P!=x^2+x
             True
+
+        Make sure changing order changes the comparison with something
+        of a different type::
+
+            sage: cmp('foo', Primes()) != cmp(Primes(), 'foo')
+            True
         """
         if isinstance(right, Primes_class):
             return 0
         return -1
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Representation of the set of primes.
 
@@ -107,7 +128,7 @@ class Primes_class(Set_generic):
         p = Integer(2)
         while True:
             yield p
-            p = p.next_prime()
+            p = p.next_prime(self.__proof)
 
     def __contains__(self, x):
         """
@@ -133,9 +154,9 @@ class Primes_class(Set_generic):
         except TypeError:
             return False
 
-the_set_of_primes = Primes_class()
+the_set_of_primes = {True: Primes_class(proof=True), False: Primes_class(proof=False)}
 
-def Primes():
+def Primes(proof=True):
     """
     Return the set of prime numbers.
 
@@ -156,4 +177,4 @@ def Primes():
         sage: 100 in P
         False
     """
-    return the_set_of_primes
+    return the_set_of_primes[proof]

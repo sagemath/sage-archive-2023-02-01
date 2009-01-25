@@ -2285,7 +2285,44 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return '%s/%s'%(self.numerator(), self.denominator())
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
 
+        EXAMPLES:
+            sage: sage_input(QQ(1), verify=True)
+            # Verified
+            QQ(1)
+            sage: sage_input(-22/7, verify=True)
+            # Verified
+            -22/7
+            sage: sage_input(-22/7, preparse=False)
+            -ZZ(22)/7
+            sage: sage_input(10^-50, verify=True)
+            # Verified
+            1/100000000000000000000000000000000000000000000000000
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: (-2/37)._sage_input_(SageInputBuilder(preparse=False), False)
+            {unop:- {binop:/ {call: {atomic:ZZ}({atomic:2})} {atomic:37}}}
+            sage: QQ(5)._sage_input_(SageInputBuilder(preparse=False), True)
+            {atomic:5}
+        """
+
+        # This code is extensively described in the docstring
+        # for sage_input.py.
+
+        num = self.numerator()
+        neg = (num < 0)
+        if neg: num = -num
+        if self.denominator() == 1:
+            if coerced:
+                v = sib.int(num)
+            else:
+                v = sib.name('QQ')(sib.int(num))
+        else:
+            v = sib(num)/sib.int(self.denominator())
+        if neg: v = -v
+        return v
 
 def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
     """

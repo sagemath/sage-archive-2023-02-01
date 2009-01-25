@@ -123,6 +123,20 @@ cdef class RealDoubleField_class(Field):
     def _latex_(self):
         return "\\mathbf{R}"
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(RDF, verify=True)
+            # Verified
+            RDF
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: RDF._sage_input_(SageInputBuilder(), False)
+            {atomic:RDF}
+        """
+        return sib.name('RDF')
+
     def __repr__(self):
         """
         Print out this real double field.
@@ -632,6 +646,96 @@ cdef class RealDoubleElement(FieldElement):
             True
         """
         return repr(self._value)
+
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(RDF(NaN), verify=True)
+            # Verified
+            RDF(NaN)
+            sage: sage_input(RDF(-infinity), verify=True)
+            # Verified
+            -RDF(infinity)
+            sage: sage_input(RDF(-infinity)*polygen(RDF), verify=True)
+            # Verified
+            R.<x> = RDF[]
+            -RDF(infinity)*x + RDF(NaN)
+            sage: sage_input(RDF(pi), verify=True)
+            # Verified
+            RDF(3.1415926535897931)
+            sage: sage_input(RDF(-e), verify=True, preparse=False)
+            # Verified
+            -RDF(2.7182818284590451)
+            sage: sage_input(RDF(pi)*polygen(RDF), verify=True, preparse=None)
+            # Verified
+            R = RDF['x']
+            x = R.gen()
+            3.1415926535897931*x
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: RDF(22/7)._sage_input_(sib, True)
+            {atomic:3.1428571428571428}
+            sage: RDF(22/7)._sage_input_(sib, False)
+            {call: {atomic:RDF}({atomic:3.1428571428571428})}
+        """
+        cdef int isinf = gsl_isinf(self._value)
+        cdef bint isnan = gsl_isnan(self._value)
+        if isinf or isnan:
+            if isnan:
+                v = sib.name('NaN')
+            else:
+                v = sib.name('infinity')
+            v = sib(self.parent())(v)
+            if isinf < 0:
+                v = -v
+            return v
+
+        from sage.rings.all import ZZ, RR
+
+        cdef bint negative = self._value < 0
+        if negative:
+            self = -self
+
+        # There are five possibilities for printing this floating-point
+        # number, ordered from prettiest to ugliest (IMHO).
+        # 1) An integer: 42
+        # 2) A simple literal: 3.14159
+        # 3) A coerced integer: RDF(42)
+        # 4) A coerced literal: RDF(3.14159)
+        # 5) A coerced RR value: RDF(RR('3.14159'))
+
+        # str(self) works via libc, which we don't necessarily trust
+        # to produce the best possible answer.  So this function prints
+        # via RR/MPFR.  Without the preparser, input works via libc as
+        # well, but we don't have a choice about that.
+
+        # To use choice 1 or choice 3, this number must be an integer.
+        cdef bint can_use_int_literal = \
+            self.abs() < (Integer(1) << self.prec()) and self in ZZ
+
+        self_str = RR(self._value).str(truncate=False, skip_zeroes=True)
+
+        # To use choice 2 or choice 4, we must be able to read
+        # numbers of this precision as a literal.
+        cdef bint can_use_float_literal = \
+            (sib.preparse() or float(self_str) == self)
+
+        if can_use_int_literal or can_use_float_literal:
+            if can_use_int_literal:
+                v = sib.int(self._integer_())
+            else:
+                v = sib.float_str(self_str)
+        else:
+            v = sib(RR(self))
+        if not coerced:
+            v = sib(self.parent())(v)
+
+        if negative:
+            v = -v
+
+        return v
 
     def __repr__(self):
         """

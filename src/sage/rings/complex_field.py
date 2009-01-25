@@ -298,6 +298,38 @@ class ComplexField_class(field.Field):
     def _latex_(self):
         return "\\C"
 
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(CC, verify=True)
+            # Verified
+            CC
+            sage: sage_input(ComplexField(25), verify=True)
+            # Verified
+            ComplexField(25)
+            sage: k = (CC, ComplexField(75))
+            sage: sage_input(k, verify=True)
+            # Verified
+            (CC, ComplexField(75))
+            sage: sage_input((k, k), verify=True)
+            # Verified
+            CC75 = ComplexField(75)
+            ((CC, CC75), (CC, CC75))
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: ComplexField(99)._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:ComplexField}({atomic:99})}
+        """
+        if self.prec() == 53:
+            return sib.name('CC')
+
+        v = sib.name('ComplexField')(sib.int(self.prec()))
+
+        name = 'CC%d' % (self.prec())
+        sib.cache(self, v, name)
+        return v
+
     def characteristic(self):
         return integer.Integer(0)
 

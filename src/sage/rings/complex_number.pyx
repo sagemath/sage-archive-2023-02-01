@@ -165,6 +165,106 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self.str(truncate=False)
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: for prec in (2, 53, 200):
+            ...       fld = ComplexField(prec)
+            ...       var = polygen(fld)
+            ...       ins = [-20, 0, 1, -2^4000, 2^-4000] + [fld._real_field().random_element() for _ in range(3)]
+            ...       for v1 in ins:
+            ...           for v2 in ins:
+            ...               v = fld(v1, v2)
+            ...               _ = sage_input(fld(v), verify=True)
+            ...               _ = sage_input(fld(v) * var, verify=True)
+            sage: x = polygen(CC)
+            sage: for v1 in [-2, 0, 2]:
+            ...       for v2 in [-2, -1, 0, 1, 2]:
+            ...           print str(sage_input(x + CC(v1, v2))).splitlines()[1]
+            x + CC(-2 - 2*I)
+            x + CC(-2 - I)
+            x - 2
+            x + CC(-2 + I)
+            x + CC(-2 + 2*I)
+            x - CC(2*I)
+            x - CC(I)
+            x
+            x + CC(I)
+            x + CC(2*I)
+            x + CC(2 - 2*I)
+            x + CC(2 - I)
+            x + 2
+            x + CC(2 + I)
+            x + CC(2 + 2*I)
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: sib_np = SageInputBuilder(preparse=False)
+            sage: CC(-infinity)._sage_input_(sib, True)
+            {unop:- {call: {atomic:RR}({atomic:Infinity})}}
+            sage: CC(0, infinity)._sage_input_(sib, True)
+            {call: {atomic:CC}({call: {atomic:RR}({atomic:0})}, {call: {atomic:RR}({atomic:Infinity})})}
+            sage: CC(NaN, 5)._sage_input_(sib, True)
+            {call: {atomic:CC}({call: {atomic:RR}({atomic:NaN})}, {call: {atomic:RR}({atomic:5})})}
+            sage: CC(5, NaN)._sage_input_(sib, True)
+            {call: {atomic:CC}({call: {atomic:RR}({atomic:5})}, {call: {atomic:RR}({atomic:NaN})})}
+            sage: CC(12345)._sage_input_(sib, True)
+            {atomic:12345}
+            sage: CC(-12345)._sage_input_(sib, False)
+            {unop:- {call: {atomic:CC}({atomic:12345})}}
+            sage: CC(0, 12345)._sage_input_(sib, True)
+            {call: {atomic:CC}({binop:* {atomic:12345} {atomic:I}})}
+            sage: CC(0, -12345)._sage_input_(sib, False)
+            {unop:- {call: {atomic:CC}({binop:* {atomic:12345} {atomic:I}})}}
+            sage: CC(1.579)._sage_input_(sib, True)
+            {atomic:1.579}
+            sage: CC(1.579)._sage_input_(sib_np, True)
+            {atomic:1.579}
+            sage: ComplexField(150).zeta(37)._sage_input_(sib, True)
+            {call: {call: {atomic:ComplexField}({atomic:150})}({binop:+ {atomic:0.98561591034770846226477029397621845736859851519} {binop:* {atomic:0.16900082032184907409303555538443060626072476297} {atomic:I}}})}
+            sage: ComplexField(150).zeta(37)._sage_input_(sib_np, True)
+            {call: {call: {atomic:ComplexField}({atomic:150})}({binop:+ {call: {call: {atomic:RealField}({atomic:150})}({atomic:'0.98561591034770846226477029397621845736859851519'})} {binop:* {call: {call: {atomic:RealField}({atomic:150})}({atomic:'0.16900082032184907409303555538443060626072476297'})} {atomic:I}}})}
+        """
+        if coerced and self.imag() == 0:
+            return sib(self.real(), True)
+
+        # The body will be coerced first to symbolics and then to CC.
+        # This works fine if we produce integer or float literals, but
+        # not for infinity or NaN.
+        if not (mpfr_number_p(self.__re) and mpfr_number_p(self.__im)):
+            return sib(self.parent())(self.real(), self.imag())
+
+        # The following uses of .sum() and .prod() will simplify
+        # 3+0*I to 3, 0+1*I to I, etc.
+        real_part = sib(self.real(), 2)
+        imag_part = sib.prod([sib(self.imag(), 2), sib.name('I')],
+                             simplify=True)
+        sum = sib.sum([real_part, imag_part], simplify=True)
+        if sum._sie_is_negation():
+            return -sib(self.parent())(sum._sie_operand)
+        else:
+            return sib(self.parent())(sum)
+
+        # The following is an (untested) implementation that produces
+        # CC_I = CC.gen()
+        # 2 + 3*CC_I
+        # instead of CC(2 + 3*I)
+#         cdef int prec
+
+#         if self.real().is_zero() and self.imag() == 1:
+#             v = sib(self.parent()).gen()
+#             prec = self.prec()
+#             if prec == 53:
+#                 gen_name = 'CC_I'
+#             else:
+#                 gen_name = 'CC%d_I' % prec
+#             sib.cache(self, v, gen_name)
+
+#         real_part = sib(self.real())
+#         imag_part = sib.prod([self.imag(), self.parent().gen()], simplify=True)
+#         return sib.sum([real_part, imag_part], simplify=True)
+
     def _repr_(self):
         r"""
         Returns self formatted as a string.

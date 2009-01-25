@@ -20,7 +20,7 @@ sage: sage_input(3)
 sage: sage_input((polygen(RR) + RR(pi))^2, verify=True)
 # Verified
 R.<x> = RR[]
-x^2 + 6.2831853071795862*x + 9.8696044010893580
+x^2 + 6.2831853071795862*x + 9.869604401089358
 
 With \code{verify=True}, \function{sage_input} also verifies the
 results, by calling sage_eval on the result and verifying that it is
@@ -65,7 +65,8 @@ present).  If \var{coerced} is \code{False}, then your method must
 generate an expression which will evaluate to a value of the correct
 type with the correct parent.  If \var{coerced} is \code{True}, then
 your method may generate an expression of a type that has a canonical
-coercion to your type.
+coercion to your type; and if \var{coerced} is 2, then your method
+may generate an expression of a type that has a conversion to your type.
 
 Let's work through some examples.  We'll build a sequence of functions
 that would be acceptable as \method{_sage_input_} methods for the
@@ -160,6 +161,7 @@ sage: test_qq_formatter(qq_sage_input_v4)
 """
 
 from sage.misc.functional import parent
+import math
 
 ##########################################################################
 #
@@ -355,11 +357,15 @@ class SageInputBuilder:
             sage: sib.result(sib(GF(17)(5)))
             GF(17)(5)
 
-        The argument \code{coerced=True} will get passed to the
-        \method{_sage_input_} method of the argument.
+        The argument \code{coerced=True} or \code{coerced=2} will get
+        passed to the \method{_sage_input_} method of the argument.
             sage: sib = SageInputBuilder()
             sage: sib.result(sib(GF(17)(5), True))
             5
+            sage: sib.result(sib(RealField(200)(1.5), True))
+            1.5000000000000000000000000000000000000000000000000000000000000
+            sage: sib.result(sib(RealField(200)(1.5), 2))
+            1.5
 
         Since \function{sage_input} directly calls this method, all
         of the following are indirect doctests.
@@ -392,6 +398,18 @@ class SageInputBuilder:
             sage: sage_input(long(2^75), preparse=None, verify=True)
             # Verified
             long(37778931862957161709568)
+            sage: sage_input(float(-infinity), preparse=True, verify=True)
+            # Verified
+            -float(infinity)
+            sage: sage_input(float(NaN), preparse=True, verify=True)
+            # Verified
+            float(NaN)
+            sage: sage_input(float(-pi), preparse=True, verify=True)
+            # Verified
+            float(-RR(3.1415926535897931))
+            sage: sage_input(float(42), preparse=True, verify=True)
+            # Verified
+            float(42)
             sage: sage_input("Hello, world\n", verify=True)
             # Verified
             'Hello, world\n'
@@ -409,7 +427,7 @@ class SageInputBuilder:
             'Icky chars: \x00\n\t\x08\'"\x80\xc0\x9c'
             sage: sage_input((2, 3.5, 'Hi'), verify=True)
             # Verified
-            (2, RR(3.5000000000000000), 'Hi')
+            (2, 3.5, 'Hi')
             sage: sage_input(lambda x: x)
             Traceback (most recent call last):
             ...
@@ -471,11 +489,35 @@ class SageInputBuilder:
                 else:
                     return self.name('long')(self.int(x))
 
+        if isinstance(x, float):
+            # floats could often have prettier output,
+            # but I think they're rare enough in Sage that it's not
+            # worth the effort.
+            from sage.all import RR, ZZ, infinity
+            if x == float(infinity):
+                return self.name('float')(self.name('infinity'))
+            if x != x:
+                return self.name('float')(self.name('NaN'))
+            if x == -float(infinity):
+                return -self.name('float')(self.name('infinity'))
+            if self._preparse == False and float(str(x)) == x:
+                if x < 0:
+                    return -SIE_literal_stringrep(self, str(-x))
+                else:
+                    return SIE_literal_stringrep(self, str(x))
+            rrx = RR(x)
+            if rrx in ZZ and abs(rrx) < (1 << 53):
+                return self.name('float')(self.int(ZZ(rrx)))
+            return self.name('float')(RR(x))
+
         if isinstance(x, str):
             return SIE_literal_stringrep(self, repr(x))
 
         if isinstance(x, tuple):
-            return SIE_tuple(self, map(self, x))
+            return SIE_tuple(self, map(self, x), False)
+
+        if isinstance(x, list):
+            return SIE_tuple(self, map(self, x), True)
 
         if self._allow_locals:
             loc = self._next_local
@@ -603,6 +645,26 @@ class SageInputBuilder:
         self._cached_types.add(type(x))
         self._cache[(parent(x), x)] = sie
         sie._sie_preferred_varname = name
+
+    def dict(self, entries):
+        r"""
+        Given a dictionary, or a list of (key, value) pairs,
+        produces a \class{SageInputExpression} representing
+        the dictionary.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.result(sib.dict({1:1, 2:5/2, 3:100/3}))
+            {1:1, 2:5/2, 3:100/3}
+            sage: sib.result(sib.dict([('hello', 'sunshine'), ('goodbye', 'rain')]))
+            {'hello':'sunshine', 'goodbye':'rain'}
+        """
+        if isinstance(entries, dict):
+            entries = list(entries.items())
+        entries = [(self(key),self(val)) for (key,val) in entries]
+        return SIE_dict(self, entries)
 
     def empty_subscript(self, parent):
         r"""
@@ -898,7 +960,7 @@ class SageInputExpression(object):
     constructs a \class{SageInputExpression} representing this sum.
     This also works for attribute access, function calls, subscripts, etc.
     Since arbitrary attribute accesses might be used to construct a new
-    attribte-access expression, all internal attributes and methods
+    attribute-access expression, all internal attributes and methods
     have names that begin with \code{_sie_} to reduce the chance of
     collisions.
 
@@ -1042,6 +1104,25 @@ class SageInputExpression(object):
 
         return self._sie_varname
 
+    def _sie_is_negation(self):
+        r"""
+        Test whether a \class{SageInputExpression} is a negation.
+
+        Despite the obscure name, this is intended to be a public method.
+
+        See the documentation for \method{SIE_unary._sie_is_negation}
+        for useful examples.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+
+            sage: sib = SageInputBuilder()
+            sage: sie = sib.name('foo')
+            sage: sie._sie_is_negation()
+            False
+        """
+        return False
+
     def __call__(self, *args, **kwargs):
         r"""
         Given a \class{SageInputExpression}, build a new
@@ -1081,6 +1162,23 @@ class SageInputExpression(object):
         """
         skey = self._sie_builder(key)
         return SIE_subscript(self._sie_builder, self, skey)
+
+    def __getattr__(self, attr):
+        r"""
+        Given a \class{SageInputExpression}, build a new
+        \class{SageInputExpression} representing an attribute access.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sie = sib.name('x')
+            sage: sie.foo
+            {getattr: {atomic:x}.foo}
+            sage: sie.foo()
+            {call: {getattr: {atomic:x}.foo}()}
+        """
+        return SIE_getattr(self._sie_builder, self, attr)
 
     def __pow__(self, other):
         r"""
@@ -1457,7 +1555,7 @@ class SIE_subscript(SageInputExpression):
 
         INPUTS:
             sib -- a \class{SageInputBuilder}
-            func -- a \class{SageInputExpression} representing a collection
+            coll -- a \class{SageInputExpression} representing a collection
             key -- a \class{SageInputExpression} representing the subscript/key
 
         As a special case, \var{key} may be \code{None}; this represents an
@@ -1537,9 +1635,91 @@ class SIE_subscript(SageInputExpression):
             key = sif.format(self._sie_key, 0)
         return '%s[%s]' % (coll, key), _prec_subscript
 
+class SIE_getattr(SageInputExpression):
+    r"""
+    This class represents a getattr node in a \function{sage_input}
+    expression tree.
+
+    EXAMPLES:
+        sage: from sage.misc.sage_input import SageInputBuilder
+
+        sage: sib = SageInputBuilder()
+        sage: sie = sib.name('CC').gen()
+        sage: sie
+        {call: {getattr: {atomic:CC}.gen}()}
+    """
+
+    def __init__(self, sib, obj, attr):
+        r"""
+        Initialize an instance of \class{SIE_getattr}.
+
+        INPUTS:
+            sib -- a \class{SageInputBuilder}
+            obj -- a \class{SageInputExpression} representing an object
+            attr -- a string; the attribute name
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.name('QQbar').zeta(5)
+            {call: {getattr: {atomic:QQbar}.zeta}({atomic:5})}
+        """
+        super(SIE_getattr, self).__init__(sib)
+        self._sie_obj = obj
+        self._sie_attr = attr
+
+    def __repr__(self):
+        r"""
+        Returns a string representing this \class{SIE_getattr} value.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.name('AA')(3).sqrt()
+            {call: {getattr: {call: {atomic:AA}({atomic:3})}.sqrt}()}
+        """
+        obj = repr(self._sie_obj)
+        return "{getattr: %s.%s}" % (obj, self._sie_attr)
+
+    def _sie_referenced(self):
+        r"""
+        Returns a list of the immediate subexpressions of this
+        \class{SIE_subscript}.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sie = sib.name('CDF').gen
+            sage: sie._sie_referenced()
+            [{atomic:CDF}]
+        """
+        return [self._sie_obj]
+
+    def _sie_format(self, sif):
+        r"""
+        Return the formatted string value of this expression, and an
+        indication that it is an attribute reference.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+
+            sage: sib = SageInputBuilder()
+            sage: sif = SageInputFormatter()
+            sage: sie = sib.name('AA').common_polynomial
+            sage: sie._sie_prepare(sif)
+            sage: sie._sie_format(sif)
+            ('AA.common_polynomial', 34)
+        """
+        obj = sif.format(self._sie_obj, _prec_exponent)
+        return '%s.%s' % (obj, self._sie_attr), _prec_attribute
+
+
 class SIE_tuple(SageInputExpression):
     r"""
-    This class represents a tuple node in a \function{sage_input}
+    This class represents a tuple or list node in a \function{sage_input}
     expression tree.
 
     EXAMPLES:
@@ -1548,9 +1728,11 @@ class SIE_tuple(SageInputExpression):
         sage: sib = SageInputBuilder()
         sage: sib((1, 'howdy'))
         {tuple: ({atomic:1}, {atomic:'howdy'})}
+        sage: sib(["lists"])
+        {list: ({atomic:'lists'})}
     """
 
-    def __init__(self, sib, values):
+    def __init__(self, sib, values, is_list):
         r"""
         Initialize an instance of \class{SIE_tuple}.
 
@@ -1558,16 +1740,21 @@ class SIE_tuple(SageInputExpression):
             sib -- a \class{SageInputBuilder}
             values -- a list of \class{SageInputExpression}s representing
                  the elements of this tuple
+            is_list -- is True if this class represents a list, False for
+                 a tuple
 
         EXAMPLES:
             sage: from sage.misc.sage_input import SageInputBuilder
 
             sage: sib = SageInputBuilder()
             sage: sib((3.5, -2))
-            {tuple: ({call: {atomic:RR}({atomic:3.5000000000000000})}, {unop:- {atomic:2}})}
+            {tuple: ({atomic:3.5}, {unop:- {atomic:2}})}
+            sage: sib(["Hello", "world"])
+            {list: ({atomic:'Hello'}, {atomic:'world'})}
         """
         super(SIE_tuple, self).__init__(sib)
         self._sie_values = values
+        self._sie_is_list = is_list
 
     def __repr__(self):
         r"""
@@ -1579,8 +1766,12 @@ class SIE_tuple(SageInputExpression):
             sage: sib = SageInputBuilder()
             sage: sib((2,3,5))
             {tuple: ({atomic:2}, {atomic:3}, {atomic:5})}
+            sage: sib(["Hello", "world"])
+            {list: ({atomic:'Hello'}, {atomic:'world'})}
         """
-        return "{tuple: (%s)}" % ', '.join([repr(v) for v in self._sie_values])
+        kind = "list" if self._sie_is_list else "tuple"
+        return "{%s: (%s)}" % \
+            (kind, ', '.join([repr(v) for v in self._sie_values]))
 
     def _sie_referenced(self):
         r"""
@@ -1599,7 +1790,7 @@ class SIE_tuple(SageInputExpression):
 
     def _sie_format(self, sif):
         r"""
-        Return the formatted string value of this tuple, and an
+        Return the formatted string value of this tuple or list, and an
         indication that it is atomic (never needs to be parenthesized).
 
         EXAMPLES:
@@ -1607,19 +1798,111 @@ class SIE_tuple(SageInputExpression):
 
             sage: sib = SageInputBuilder()
             sage: sif = SageInputFormatter()
-            sage: for v in ((), (1,), (1,2)):
+            sage: for v in ((), (1,), (1,2), [], [1], [1,2]):
             ...        sie = sib(v)
             ...        sie._sie_prepare(sif)
             ...        sie._sie_format(sif)
             ('()', 42)
             ('(1,)', 42)
             ('(1, 2)', 42)
+            ('[]', 42)
+            ('[1]', 42)
+            ('[1, 2]', 42)
         """
         values = [sif.format(val, 0) for val in self._sie_values]
-        if len(values) == 1:
-            return '(%s,)' % values[0], _prec_atomic
+        if self._sie_is_list:
+            return '[%s]' % ', '.join(values), _prec_atomic
         else:
-            return '(%s)' % ', '.join(values), _prec_atomic
+            if len(values) == 1:
+                return '(%s,)' % values[0], _prec_atomic
+            else:
+                return '(%s)' % ', '.join(values), _prec_atomic
+
+class SIE_dict(SageInputExpression):
+    r"""
+    This class represents a dict node in a \function{sage_input}
+    expression tree.
+
+    EXAMPLES:
+        sage: from sage.misc.sage_input import SageInputBuilder
+
+        sage: sib = SageInputBuilder()
+        sage: sib.dict([('TeX', RR(pi)), ('Metafont', RR(e))])
+        {dict: {{atomic:'TeX'}:{call: {atomic:RR}({atomic:3.1415926535897931})}, {atomic:'Metafont'}:{call: {atomic:RR}({atomic:2.7182818284590451})}}}
+        sage: sib.dict({-40:-40, 0:32, 100:212})
+        {dict: {{unop:- {atomic:40}}:{unop:- {atomic:40}}, {atomic:0}:{atomic:32}, {atomic:100}:{atomic:212}}}
+    """
+
+    def __init__(self, sib, entries):
+        r"""
+        Initialize an instance of \class{SIE_dict}.
+
+        INPUTS:
+            sib -- a \class{SageInputBuilder}
+            entries -- a list of pairs of
+                \class{SageInputExpression}s representing the entries of
+                this dict
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.dict({'us':'good', 'them':'bad'})
+            {dict: {{atomic:'them'}:{atomic:'bad'}, {atomic:'us'}:{atomic:'good'}}}
+            sage: sib.dict([(10, 'PS2'), (12, 'PS2'), (13, 'PS3')])
+            {dict: {{atomic:10}:{atomic:'PS2'}, {atomic:12}:{atomic:'PS2'}, {atomic:13}:{atomic:'PS3'}}}
+        """
+        super(SIE_dict, self).__init__(sib)
+        self._sie_entries = entries
+
+    def __repr__(self):
+        r"""
+        Returns a string representing this \class{SIE_dict} value.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.dict({'keaton':'general', 'chan':'master'})
+            {dict: {{atomic:'keaton'}:{atomic:'general'}, {atomic:'chan'}:{atomic:'master'}}}
+        """
+        return "{dict: {%s}}" % \
+            ', '.join([repr(key) + ':' + repr(val)
+                       for key,val in self._sie_entries])
+
+    def _sie_referenced(self):
+        r"""
+        Returns a list of the immediate subexpressions of this
+        \class{SIE_dict}.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sie = sib.dict({1:'beguilement', 2:'legacy', 3:'passage'})
+            sage: sie._sie_referenced()
+            [{atomic:1}, {atomic:2}, {atomic:3}, {atomic:'beguilement'}, {atomic:'legacy'}, {atomic:'passage'}]
+        """
+        return [k for k,v in self._sie_entries] + [v for k,v in self._sie_entries]
+
+    def _sie_format(self, sif):
+        r"""
+        Return the formatted string value of this dict, and an
+        indication that it is atomic (never needs to be parenthesized).
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+
+            sage: sib = SageInputBuilder()
+            sage: sif = SageInputFormatter()
+            sage: sie = sib.dict({'carnivores':1, 'thinking':2, 'triumph':3})
+            sage: sie._sie_prepare(sif)
+            sage: sie._sie_format(sif)
+            ("{'carnivores':1, 'thinking':2, 'triumph':3}", 42)
+        """
+        return "{%s}" %\
+            ', '.join(sif.format(k, 0)+':'+sif.format(v, 0) for k,v in self._sie_entries), _prec_atomic
+
 
 class SIE_binary(SageInputExpression):
     r"""
@@ -1875,6 +2158,37 @@ class SIE_unary(SageInputExpression):
         if rprec is None: rprec = prec
 
         return '%s%s' % (fop, sif.format(self._sie_operand, prec)), rprec
+
+    def _sie_is_negation(self):
+        r"""
+        Test whether a \class{SageInputExpression} is a negation.
+
+        Despite the obscure name, this is intended to be a public method.
+
+        This is used in the \method{_sage_input_} method for
+        \class{ComplexNumber}, so that \code{sage_input(CC(-3))} will
+        produce \code{-CC(3)} instead of \code{CC(-3)}.  (This is preferred
+        so that you get \code{x - CC(3)} instead of \code{x + CC(-3)}.)
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+
+            sage: sib = SageInputBuilder()
+            sage: x = sib.name('x')
+            sage: v = -x
+
+            sage: def mk_CC(b):
+            ...       if b._sie_is_negation():
+            ...           return -sib.name('CC')(b._sie_operand)
+            ...       else:
+            ...           return sib.name('CC')(b)
+
+            sage: mk_CC(x)
+            {call: {atomic:CC}({atomic:x})}
+            sage: mk_CC(v)
+            {unop:- {call: {atomic:CC}({atomic:x})}}
+        """
+        return self._sie_op == '-'
 
 class SIE_gens_constructor(SageInputExpression):
     r"""
@@ -2393,6 +2707,17 @@ def verify_same(a, b):
         assert(a.parent() == b.parent())
     else:
         assert(type(a) == type(b))
+    if type(a) == float:
+        # The IEEE floating-point standard recommends that NaN != NaN
+        # Sage doesn't do this for RDF or RR, but Python does for floats.
+        # So we need to consider the cases: a is/is not NaN, b is/is not NaN.
+        if not (a == a):
+            # a is a NaN; so confirm that b is a NaN
+            assert not (b == b)
+        else:
+            # a is not NaN.  If b is NaN, then the assertion will fail.
+            assert a == b
+        return
     assert(a == b)
 
 def verify_si_answer(x, answer, preparse):

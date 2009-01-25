@@ -225,7 +225,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Unsafe version of the dict method, mainly for internal use.
         This may return the dict of elements, but as an *unsafe*
-        reference to the underlying dict of the object.  It is might
+        reference to the underlying dict of the object.  It might
         be dangerous if you change entries of the returned dict.
 
         EXAMPLES:

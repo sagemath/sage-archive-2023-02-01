@@ -747,6 +747,20 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return "QQ"
 
+    def _sage_input_(self, sib, coerced):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(QQ, verify=True)
+            # Verified
+            QQ
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: QQ._sage_input_(SageInputBuilder(), False)
+            {atomic:QQ}
+        """
+        return sib.name('QQ')
+
 
 QQ = RationalField()
 Q = QQ

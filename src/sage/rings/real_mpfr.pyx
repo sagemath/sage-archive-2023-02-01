@@ -98,6 +98,7 @@ Make sure we don't have a new field for every new literal:
 import math # for log
 import sys
 import weakref
+import re
 
 include '../ext/interrupt.pxi'
 include "../ext/stdsage.pxi"
@@ -143,6 +144,8 @@ cdef class RealNumber(sage.structure.element.RingElement)
 #       Implementation
 #
 #*****************************************************************************
+
+_re_skip_zeroes = re.compile(r'^(.+?)0*$')
 
 #*****************************************************************************
 #
@@ -1038,6 +1041,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sib_np = SageInputBuilder(preparse=False)
+            sage: RR60 = RealField(60)
             sage: RR(-infinity)._sage_input_(sib, True)
             {unop:- {call: {atomic:RR}({atomic:Infinity})}}
             sage: RR(NaN)._sage_input_(sib, True)
@@ -1047,9 +1051,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(-12345)._sage_input_(sib, False)
             {unop:- {call: {atomic:RR}({atomic:12345})}}
             sage: RR(1.579)._sage_input_(sib, True)
-            {atomic:1.5790000000000000}
+            {atomic:1.579}
             sage: RR(1.579)._sage_input_(sib_np, True)
-            {atomic:1.5790000000000000}
+            {atomic:1.579}
+            sage: RR60(1.579)._sage_input_(sib, True)
+            {atomic:1.5790000000000000008}
+            sage: RR60(1.579)._sage_input_(sib_np, True)
+            {call: {call: {atomic:RealField}({atomic:60})}({atomic:'1.5790000000000000008'})}
+            sage: RR(1.579)._sage_input_(sib_np, False)
+            {call: {atomic:RR}({atomic:1.579})}
+            sage: RR(1.579)._sage_input_(sib_np, 2)
+            {atomic:1.579}
             sage: RealField(150)(pi)._sage_input_(sib, True)
             {atomic:3.1415926535897932384626433832795028841971694008}
             sage: RealField(150)(pi)._sage_input_(sib_np, True)
@@ -1093,6 +1105,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef bint can_use_int_literal = \
             self.abs() < (Integer(1) << self.prec()) and self in ZZ
 
+        # If "not coerced", then we will introduce a conversion
+        # ourselves.  If coerced==2, then there will be an external conversion.
+        # On the other hand, if coerced==1 (or True), then we only
+        # have a coercion, not a conversion; which means we need to read
+        # in a number with at least the number of bits we need.
+        will_convert = (coerced == 2 or not coerced)
+
+        self_str = self.str(truncate=False,
+                            skip_zeroes=(will_convert or self.prec() <= 53))
+
         # To use choice 2 or choice 4, we must be able to read
         # numbers of this precision as a literal.  We support this
         # only for the default rounding mode; "pretty" output for
@@ -1104,19 +1126,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # and "-1.3*x".)
         cdef bint can_use_float_literal = \
             rnd == GMP_RNDN and (sib.preparse() or
-                                 self._parent(float(str(float(self)))) == self)
+                                 ((will_convert or self.prec() <= 53) and
+                                  self._parent(float(self_str)) == self))
 
         if can_use_int_literal or can_use_float_literal:
             if can_use_int_literal:
                 v = sib.int(self._integer_())
             else:
-                s = self.str(truncate=False)
-                v = sib.float_str(s)
-            if not coerced:
+                v = sib.float_str(self_str)
+            if not coerced and (can_use_int_literal or not sib.preparse() or create_RealNumber(self_str).prec() != self.prec()):
                 v = sib(self.parent())(v)
         else:
             if rnd == GMP_RNDN:
-                s = self.str(truncate=False)
+                s = self_str
             else:
                 # This is tricky.  str() uses mpfr_get_str() with
                 # reqdigits=0; this guarantees to give enough digits
@@ -1176,7 +1198,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self._parent
 
-    def str(self, int base=10, no_sci=None, e=None, int truncate=1):
+    def str(self, int base=10, no_sci=None, e=None, int truncate=1, bint skip_zeroes=0):
         """
         INPUT:
              base -- base for output
@@ -1189,6 +1211,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                        base<=10, and '@' otherwise
              truncate -- if True, round off the last digits in printing to
                        lessen confusing base-2 roundoff issues.
+             skip_zeroes -- if True, skip trailing zeroes in mantissa
 
         EXAMPLES:
             sage: a = 61/3.0; a
@@ -1221,6 +1244,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.11022302462516e-16
             sage: 0.5^54
             5.55111512312578e-17
+            sage: (0.01).str()
+            '0.0100000000000000'
+            sage: (0.01).str(skip_zeroes=True)
+            '0.01'
+            sage: (-10.042).str()
+            '-10.0420000000000'
+            sage: (-10.042).str(skip_zeroes=True)
+            '-10.042'
+            sage: (389.0).str(skip_zeroes=True)
+            '389.'
         """
         if base < 2 or base > 36:
             raise ValueError, "the base (=%s) must be between 2 and 36"%base
@@ -1278,6 +1311,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             raise RuntimeError, "Unable to convert an mpfr number to a string."
         t = str(s)
         mpfr_free_str(s)
+
+        if skip_zeroes:
+            t = _re_skip_zeroes.match(t).group(1)
 
         cdef int digits
         digits = len(t)

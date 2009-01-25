@@ -543,6 +543,26 @@ class MinusInfinity(_uniq3, MinusInfinityElement):
     def _latex_(self):
         return "-\\infty"
 
+    def __float__(self):
+        r"""
+        Generate a floating-point -infinity.  The printing of
+        floating-point -infinity varies across platforms.
+
+        EXAMPLES:
+            sage: RDF(-infinity)
+            -inf
+            sage: float(-infinity) # random
+            -inf
+            sage: CDF(-infinity)
+            -inf
+            sage: (-infinity).__float__() # random
+            -inf
+        """
+        # Evidently there is no standard way to generate an infinity
+        # in Python (before Python 2.6).
+        from sage.rings.all import RR
+        return float(RR(self))
+
     def _add_(self, other):
         if isinstance(other, PlusInfinity):
             raise SignError, "cannot add infinity to minus infinity"
@@ -616,6 +636,26 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
 
     def _latex_(self):
         return "+\\infty"
+
+    def __float__(self):
+        r"""
+        Generate a floating-point infinity.  The printing of
+        floating-point infinity varies across platforms.
+
+        EXAMPLES:
+            sage: RDF(infinity)
+            inf
+            sage: float(infinity) # random
+            inf
+            sage: CDF(infinity)
+            inf
+            sage: infinity.__float__() # random
+            inf
+        """
+        # Evidently there is no standard way to generate an infinity
+        # in Python (before Python 2.6).
+        from sage.rings.all import RR
+        return float(RR(self))
 
     def _add_(self, other):
         if isinstance(other, MinusInfinity):

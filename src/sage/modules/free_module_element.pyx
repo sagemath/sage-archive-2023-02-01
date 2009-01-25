@@ -376,6 +376,53 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         from sage.matrix.constructor import matrix
         return matrix(R, [list(self)])
 
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(vector(RR, [pi, e, 0.5]), verify=True)
+            # Verified
+            vector(RR, [3.1415926535897931, 2.7182818284590451, 0.5])
+            sage: sage_input(vector(GF(5), [1, 2, 3, 4, 5]), verify=True)
+            # Verified
+            vector(GF(5), [1, 2, 3, 4, 0])
+            sage: sage_input(vector([0, 0, 0, 1, 0, 0, 0], sparse=True), verify=True)
+            # Verified
+            vector(ZZ, {3:1, 6:0})
+            sage: sage_input(vector(ZZ, []), verify=True)
+            # Verified
+            vector(ZZ, [])
+            sage: sage_input(vector(RealField(27), [], sparse=True), verify=True)
+            # Verified
+            vector(RealField(27), {})
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: vector(ZZ, [42, 389])._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:vector}({atomic:ZZ}, {list: ({atomic:42}, {atomic:389})})}
+            sage: vector(RDF, {1:pi, 1000:e})._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:vector}({atomic:RDF}, {dict: {{atomic:1}:{atomic:3.1415926535897931}, {atomic:1000}:{atomic:2.7182818284590451}}})}
+        """
+        # Not a lot of room for prettiness here.
+        # We always specify the ring, because that lets us use coerced=2
+        # on the elements, which is sometimes much prettier than
+        # the coerced=False we would get otherwise.
+        if self.is_sparse_c():
+            items = [(n, sib(e, 2))
+                     for n,e in self.dict().items()]
+            items.sort()
+            if len(self):
+                # we may need to add an extra element on the end to
+                # set the size.  (There doesn't seem to be a better way
+                # to do it.)
+                if len(items) == 0 or len(self)-1 > items[-1][0]:
+                    items.append((len(self)-1, sib.int(0)))
+            items_dict = sib.dict([(sib.int(n), e) for n,e in items])
+
+            return sib.name('vector')(self.base_ring(), items_dict)
+        else:
+            return sib.name('vector')(self.base_ring(),
+                                      [sib(e, 2) for e in self])
+
     def transpose(self):
         r"""Return self as a column matrix.
 

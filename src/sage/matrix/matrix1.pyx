@@ -330,6 +330,53 @@ cdef class Matrix(matrix0.Matrix):
         return scilab(self._scilab_init_())
 
 
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(matrix(QQ, 3, 3, [5..13])/7, verify=True)
+            # Verified
+            matrix(QQ, [[5/7, 6/7, 1], [8/7, 9/7, 10/7], [11/7, 12/7, 13/7]])
+            sage: sage_input(MatrixSpace(GF(5), 50, 50, sparse=True).random_element(density=0.002), verify=True)
+            # Verified
+            matrix(GF(5), 50, 50, {(7,43):4, (29,44):3, (35,4):4})
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: matrix(RDF, [[3, 1], [4, 1]])._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:matrix}({atomic:RDF}, {list: ({list: ({atomic:3}, {atomic:1})}, {list: ({atomic:4}, {atomic:1})})})}
+            sage: matrix(ZZ, 50, 50, {(9,17):1})._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:matrix}({atomic:ZZ}, {atomic:50}, {atomic:50}, {dict: {{atomic:(9,17)}:{atomic:1}}})}
+
+        TESTS:
+            sage: sage_input(matrix(RR, 0, 3, []), verify=True)
+            # Verified
+            matrix(RR, 0, 3)
+            sage: sage_input(matrix(RR, 3, 0, []), verify=True)
+            # Verified
+            matrix(RR, 3, 0)
+            sage: sage_input(matrix(RR, 0, 0, []), verify=True)
+            # Verified
+            matrix(RR, 0, 0)
+        """
+        if self.is_sparse():
+            entries = list(self.dict().items())
+            entries.sort()
+            # We hand-format the keys to get rid of the space that would
+            # normally follow the comma
+            entries = [(sib.name('(%d,%d)'%k), sib(v, 2)) for k,v in entries]
+            return sib.name('matrix')(self.base_ring(),
+                                      sib.int(self.nrows()),
+                                      sib.int(self.ncols()),
+                                      sib.dict(entries))
+        elif self.nrows() == 0 or self.ncols() == 0:
+            return sib.name('matrix')(self.base_ring(),
+                                      sib.int(self.nrows()),
+                                      sib.int(self.ncols()))
+        else:
+            entries = [[sib(v, 2) for v in row] for row in self.rows()]
+            return sib.name('matrix')(self.base_ring(), entries)
+
+
     def numpy(self, dtype=None):
         """
         Return the Numpy matrix associated to this matrix.

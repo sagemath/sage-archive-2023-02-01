@@ -247,8 +247,18 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         """
         Unsafe version of the dict method, mainly for internal use.
         This may return the dict of elements, but as an *unsafe*
-        reference to the underlying dict of the object.  It is might
+        reference to the underlying dict of the object.  It might
         be dangerous if you change entries of the returned dict.
+
+        EXAMPLES:
+            sage: MS = MatrixSpace(GF(13), 50, 50, sparse=True)
+            sage: m = MS.random_element(density=0.002)
+            sage: m._dict()
+            {(7, 43): 11, (29, 44): 10, (35, 4): 11, (16, 26): 2}
+
+        TESTS:
+            sage: parent(m._dict()[7,43])
+            Finite Field of size 13
         """
         d = self.fetch('dict')
         if not d is None:
@@ -256,9 +266,13 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         cdef Py_ssize_t i, j, k
         d = {}
+        cdef IntegerMod_int n
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self.rows[i].num_nonzero:
-                d[(int(i),int(self.rows[i].positions[j]))] = self.rows[i].entries[j]
+                n = IntegerMod_int.__new__(IntegerMod_int)
+                IntegerMod_abstract.__init__(n, self._base_ring)
+                n.ivalue = self.rows[i].entries[j]
+                d[(int(i),int(self.rows[i].positions[j]))] = n
         self.cache('dict', d)
         return d
 

@@ -451,7 +451,7 @@ sage: #      Verify(Simplify(Integrate(x)
 sage: #        if(x<0) (-x) else x),
 sage: #        Simplify(if(x<0) (-x^2/2) else x^2/2));
 sage: f = piecewise([ [[-10,0], -x], [[0,10], x]])
-sage: f.integral()
+sage: f.integral(definite=True)
 100
 
 sage: # (YES) Taylor series of 1/Sqrt(1-v^2/c^2) at v=0.

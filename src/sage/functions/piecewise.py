@@ -64,6 +64,7 @@ AUTHOR: David Joyner (2006-04) -- initial version
                        laplace transform of functions with infinite support.
         DJ (2008-07) - fixed a left multiplication bug reported by C. Boncelet
                        (by defining __rmul__ = __mul__).
+        Paul Butler (2009-01) -- added indefinite integration and default_variable
 
 TESTS:
     sage: R.<x> = QQ[]
@@ -95,7 +96,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_mpfr import RealField_constructor as RealField
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import QQ, RR, Integer, Rational
+from sage.rings.all import QQ, RR, Integer, Rational, infinity
 from sage.calculus.functional import derivative
 
 from sage.calculus.calculus import SR, var, maxima
@@ -356,7 +357,7 @@ class PiecewisePolynomial:
             19/6
             sage: f.riemann_sum_integral_approximation(6,mode="midpoint")
             3
-            sage: f.integral()
+            sage: f.integral(definite=True)
             3
         """
         if mode is None:
@@ -466,7 +467,7 @@ class PiecewisePolynomial:
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: ta = f.trapezoid_integral_approximation(6)
             sage: t = text('trapezoid approximation = %s'%ta, (1.5, 0.25))
-            sage: a = f.integral()
+            sage: a = f.integral(definite=True)
             sage: tt = text('area under curve = %s'%a, (1.5, -0.5))
             sage: P + Q + t + tt
 
@@ -475,7 +476,7 @@ class PiecewisePolynomial:
             sage: ta = f.trapezoid_integral_approximation(4)
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: t = text('trapezoid approximation = %s'%ta, (1.5, 0.25))
-            sage: a = f.integral()
+            sage: a = f.integral(definite=True)
             sage: tt = text('area under curve = %s'%a, (1.5, -0.5))
             sage: P+Q+t+tt
         """
@@ -587,26 +588,150 @@ class PiecewisePolynomial:
                 return f
         raise ValueError,"Function not defined outside of domain."
 
-    def integral(self, x=None):
+    def default_variable(self):
         r"""
-        Returns the definite integral (as computed by maxima)
-        $\sum_I \int_I self|_I$, as I runs over the intervals
-        belonging to self.
+        Return the default variable. The default variable is defined as the
+        first variable in the first piece uses a variable. If no pieces have
+        a variable (each piece is a constant value), $x$ is returned.
+
+        The result is cached.
+
+        AUTHOR: Paul Butler
+
+        EXAMPLES:
+            sage: f1(x) = 1
+            sage: f2(x) = 5*x
+            sage: p = Piecewise([[(0,1),f1],[(1,4),f2]])
+            sage: p.default_variable()
+            x
+        """
+        try:
+            return self.__default_variable
+        except AttributeError:
+            pass
+        for _, fun in self._list:
+            if fun.variables():
+                v = fun.variables()[0]
+                self.__default_variable = v
+                return v
+        # default to x
+        v = var('x')
+        self.__default_value = v
+        return v
+
+    def integral(self, x=None, a=None, b=None, definite=False):
+        r"""
+        By default, returns the indefinite integral of the function.
+        If definite=True is given, returns the definite integral.
+
+        AUTHOR: Paul Butler
 
         EXAMPLES:
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
-            sage: f.integral()
+            sage: f.integral(definite=True)
             1/2
 
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
-            sage: f.integral()
+            sage: f.integral(definite=True)
             pi/2
+
+            sage: f1(x) = 2
+            sage: f2(x) = 3 - x
+            sage: f = Piecewise([[(-2, 0), f1], [(0, 3), f2]])
+            sage: f.integral()
+            Piecewise defined function with 2 parts, [[(-2, 0), 2*(x + 2)], [(0, 3), (6*x - x^2)/2 + 4]]
+
+            sage: f1(y) = -1
+            sage: f2(y) = y + 3
+            sage: f3(y) = -y - 1
+            sage: f4(y) = y^2 - 1
+            sage: f5(y) = 3
+            sage: f = Piecewise([[(-4,-3),f1],[(-3,-2),f2],[(-2,0),f3],[(0,2),f4],[(2,3),f5]])
+            sage: F = f.integral(y)
+            sage: F
+            Piecewise defined function with 5 parts, [[(-4, -3), -y - 4],
+            [(-3, -2), (y^2 + 6*y)/2 + 7/2], [(-2, 0), (-y^2 - 2*y)/2 - 1/2],
+            [(0, 2), (y^3 - 3*y)/3 - 1/2], [(2, 3), 3*(y - 2) + 1/6]]
+
+            Ensure results are consistant with FTC:
+            sage: F(-3) - F(-4)
+            -1
+            sage: F(-1) - F(-3)
+            1
+            sage: F(2) - F(0)
+            2/3
+            sage: f.integral(y, 0, 2)
+            2/3
+            sage: F(3) - F(-4)
+            19/6
+            sage: f.integral(y, -4, 3)
+            19/6
+            sage: f.integral(definite=True)
+            19/6
+
+            sage: f1(y) = (y+3)^2
+            sage: f2(y) = y+3
+            sage: f3(y) = 3
+            sage: f = Piecewise([[(-infinity, -3), f1], [(-3, 0), f2], [(0, infinity), f3]])
+            sage: f.integral()
+            Piecewise defined function with 3 parts, [[(-Infinity, -3), (y^3 + 9*y^2 + 27*y)/3 + 9],
+            [(-3, 0), (y^2 + 6*y)/2 + 9/2], [(0, +Infinity), 3*y + 9/2]]
+
+            sage: f1(x) = e^(-abs(x))
+            sage: f = Piecewise([[(-infinity, infinity), f1]])
+            sage: f.integral(definite=True)
+            2
+            sage: f.integral()
+            Piecewise defined function with 1 parts, [[(-Infinity, +Infinity),
+            -integrate(e^(-abs(x)), x, x, +Infinity)]]
         """
-        return sum([f.integral(x,a,b) for (a,b),f in self.list()])
+        if a != None and b != None:
+            F = self.integral(x)
+            return F(b) - F(a)
+
+        if a != None or b != None:
+            raise TypeError, 'only one endpoint given'
+
+        area = 0 # cumulative definite integral of parts to the left of the current interval
+        integrand_pieces = self.list()
+        integrand_pieces.sort()
+        new_pieces = []
+
+        if x == None:
+            x = self.default_variable()
+
+        # The integral is computed by iterating over the pieces in order.
+        # The definite integral for each piece is calculated and accumulated in `area`.
+        # Thus at any time, `area` represents the definite integral of all the pieces
+        # encountered so far. The indefinite integral of each piece is also calculated,
+        # and the `area` before each piece is added to the piece.
+        #
+        # If a definite integral is requested, `area` is returned.
+        # Otherwise, a piecewise function is constructed from the indefinite integrals
+        # and returned.
+        #
+        # An exception is made if integral is called on a piecewise function
+        # that starts at -infinity. In this case, we do not try to calculate the
+        # definite integral of the first piece, and the value of `area` remains 0
+        # after the first piece.
+
+        for (start, end), fun in integrand_pieces:
+            if start == -infinity and not definite:
+                fun_integrated = fun.integral(x, end, x)
+            else:
+                fun_integrated = fun.integral(x, start, x) + area
+                if definite or end != infinity:
+                    area += fun.integral(x, start, end)
+            new_pieces.append([(start, end), fun_integrated])
+
+        if definite:
+            return area
+        else:
+            return Piecewise(new_pieces)
 
     def convolution(self, other):
         """

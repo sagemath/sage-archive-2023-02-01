@@ -999,6 +999,22 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             raise ArithmeticError, "multiplicative order of %s not defined since it is not a unit modulo %s"%(
                 self, self.__modulus.sageInteger)
 
+    def __floordiv__(self, other):
+        """
+        Exact division for prime moduli, for compatability with other fields.
+
+        EXAMPLES:
+        sage: GF(7)(3) // GF(7)(5)
+        2
+        """
+        # needs to be rewritten for coercion
+        if other.parent() is not self.parent():
+            other = self.parent().coerce(other)
+        if self.parent().is_field():
+            return self / other
+        else:
+            raise TypeError, "Floor division not defined for non-prime modulus"
+
     def _repr_(self):
         return str(self.lift())
 

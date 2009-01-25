@@ -529,11 +529,11 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
+            Vector space of dimension 3 over Complex Field with 53 bits of precision
             sage: v.n(prec=75)
             (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
+            Vector space of dimension 3 over Complex Field with 75 bits of precision
             sage: v = vector(RDF, [1,2,3])
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)

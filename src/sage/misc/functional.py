@@ -853,11 +853,14 @@ def round(x, ndigits=0):
         3.0
         sage: b = 5.4999999999999999
         sage: round(b)
-        5
+        5.0
 
-    The result is always a double floating point:
+    Since we use floating-point with a limited range, some roundings can't
+    be performed:
         sage: round(sqrt(Integer('1'*500)))
-        inf
+        Traceback (most recent call last):
+        ...
+        OverflowError: cannot convert float infinity to long
 
 
     IMPLEMENTATION: If ndigits is specified, it calls Python's builtin round function,
@@ -875,7 +878,7 @@ def round(x, ndigits=0):
             return RealDoubleElement(__builtin__.round(x, ndigits))
         else:
             try:
-                return x.round()
+                return RealDoubleElement(x.round())
             except AttributeError:
                 return RealDoubleElement(__builtin__.round(x, 0))
     except ArithmeticError:

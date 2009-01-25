@@ -2652,8 +2652,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
     def span(self, gens, base_ring=None, check=True, already_echelonized=False):
         """
         Return the K-span of the given list of gens, where K is the
-        base field of self.  Note that this span is a subspace of the
-        ambient vector space, but need not be a subspace of self.
+        base field of self or the user-specified base_ring.  Note that
+        this span is a subspace of the ambient vector space, but need
+        not be a subspace of self.
 
         INPUT:
             gens -- list of vectors
@@ -2677,11 +2678,20 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: V = FreeModule(RDF,3)
             sage: W = V.submodule([V.gen(0)])
             sage: W.span([V.gen(1)], base_ring=GF(7))
+            Vector space of degree 3 and dimension 1 over Finite Field of size 7
+            Basis matrix:
+            [0 1 0]
+            sage: v = V((1, pi, e)); v
+            (1.0, 3.14159265359, 2.71828182846)
+            sage: W.span([v], base_ring=GF(7))
             Traceback (most recent call last):
             ...
-            ValueError: Argument base_ring (= Finite Field of size 7) is not compatible with the base field (= Real Double Field).
-
-
+            ValueError: Argument gens (= [(1.0, 3.14159265359, 2.71828182846)]) is not compatible with base_ring (= Finite Field of size 7).
+            sage: W = V.submodule([v])
+            sage: W.span([V.gen(2)], base_ring=GF(7))
+            Vector space of degree 3 and dimension 1 over Finite Field of size 7
+            Basis matrix:
+            [0 0 1]
         """
         if is_FreeModule(gens):
             gens = gens.gens()
@@ -2692,7 +2702,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
                 self.ambient_module(), gens=gens, check=check, already_echelonized=already_echelonized)
         else:
             try:
-                M = self.change_ring(base_ring)
+                M = self.ambient_module().change_ring(base_ring)
             except TypeError:
                 raise ValueError, \
                     "Argument base_ring (= %s) is not compatible with the base field (= %s)." % (base_ring, self.base_field() )

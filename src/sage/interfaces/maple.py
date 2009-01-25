@@ -588,7 +588,7 @@ connection to a server running Maple; for hints, type
             sage: maple._equality_symbol()
             '='
 
-            sage: maple(2) == maple(2) # optional - maples
+            sage: maple(2) == maple(2) # optional -- requires maple
             True
         """
         return '='
@@ -601,7 +601,7 @@ connection to a server running Maple; for hints, type
             sage: maple._true_symbol()
             'true'
 
-            sage: maple(2) == maple(2) # optional - maples
+            sage: maple(2) == maple(2) # optional -- requires maple
             True
         """
         return 'true'
@@ -696,16 +696,16 @@ connection to a server running Maple; for hints, type
         the appropriate package.
 
             sage: maple.quit()   # optional -- to reset maple.
-            sage: maple('partition(10)')              # optional
+            sage: maple('partition(10)')              # optional -- requires maple
             partition(10)
-            sage: maple('bell(10)')                   # optional
+            sage: maple('bell(10)')                   # optional -- requires maple
             bell(10)
-            sage: maple.with_package('combinat')               # optional
-            sage: maple('partition(10)')               # optional
+            sage: maple.with_package('combinat')      # optional -- requires maple
+            sage: maple('partition(10)')              # optional -- requires maple
             [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 2], [1, 1, 1, 1, 1, 1, 2, 2], [1, 1, 1, 1, 2, 2, 2], [1, 1, 2, 2, 2, 2], [2, 2, 2, 2, 2], [1, 1, 1, 1, 1, 1, 1, 3], [1, 1, 1, 1, 1, 2, 3], [1, 1, 1, 2, 2, 3], [1, 2, 2, 2, 3], [1, 1, 1, 1, 3, 3], [1, 1, 2, 3, 3], [2, 2, 3, 3], [1, 3, 3, 3], [1, 1, 1, 1, 1, 1, 4], [1, 1, 1, 1, 2, 4], [1, 1, 2, 2, 4], [2, 2, 2, 4], [1, 1, 1, 3, 4], [1, 2, 3, 4], [3, 3, 4], [1, 1, 4, 4], [2, 4, 4], [1, 1, 1, 1, 1, 5], [1, 1, 1, 2, 5], [1, 2, 2, 5], [1, 1, 3, 5], [2, 3, 5], [1, 4, 5], [5, 5], [1, 1, 1, 1, 6], [1, 1, 2, 6], [2, 2, 6], [1, 3, 6], [4, 6], [1, 1, 1, 7], [1, 2, 7], [3, 7], [1, 1, 8], [2, 8], [1, 9], [10]]
-            sage: maple('bell(10)')                   # optional
+            sage: maple('bell(10)')                   # optional -- requires maple
             115975
-            sage: maple('fibonacci(10)')              # optional
+            sage: maple('fibonacci(10)')              # optional -- requires maple
             55
         """
         self.eval('with(%s)'%package)
@@ -868,8 +868,8 @@ class MapleElement(ExpectElement):
 
         TESTS:
             sage: x = var('x')
-            sage: t = maple((x+1)^2)
-            sage: u = maple(x^2+2*x+1)
+            sage: t = maple((x+1)^2)                       # optional -- requires maple
+            sage: u = maple(x^2+2*x+1)                     # optional -- requires maple
             sage: u == t # todo: not implemented
             True         # returns False, should use 'testeq' in maple
             sage: maple.eval('testeq(%s = %s)'%(t.name(),u.name()))    # optional - maple
@@ -965,9 +965,9 @@ class MapleElement(ExpectElement):
         You can output Maple expressions in latex.
 
         EXAMPLES:
-            sage: print latex(maple('(x^4 - y)/(y^2-3*x)'))      # optional
+            sage: print latex(maple('(x^4 - y)/(y^2-3*x)'))      # optional -- requires maple
             {\frac {{x}^{4}-y}{{y}^{2}-3\,x}}
-            sage: print latex(maple(pi - e^3))                   # optional
+            sage: print latex(maple(pi - e^3))                   # optional -- requires maple
             \pi - \left( {e^{1}} \right) ^{3}
 
         \note{Some expressions might require the Maple style file

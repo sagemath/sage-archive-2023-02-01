@@ -20,7 +20,7 @@
 
 import os, shutil, sys, time, socket
 
-HOSTNAME = socket.gethostname().replace('-','_')
+HOSTNAME = socket.gethostname().replace('-','_').replace('/','_').replace('\\','_')
 
 DOT_SAGE = os.environ['DOT_SAGE']
 tmp = '%s/temp/%s/'%(DOT_SAGE, HOSTNAME)

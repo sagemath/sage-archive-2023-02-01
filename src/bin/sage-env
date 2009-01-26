@@ -131,8 +131,6 @@ if [ "$DOT_SAGE" = "" ]; then
     export DOT_SAGE
 fi
 
-MATPLOTLIBRC="$DOT_SAGE/" && export MATPLOTLIBRC
-
 if [ "$SAGE_STARTUP_FILE" = "" ]; then
     SAGE_STARTUP_FILE="$DOT_SAGE/init.sage"
     export SAGE_STARTUP_FILE

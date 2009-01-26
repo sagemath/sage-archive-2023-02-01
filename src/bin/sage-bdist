@@ -49,7 +49,7 @@ mkdir "$TMP"
 cd "$SAGE_ROOT"
 
 echo "Copying files over to tmp directory"
-cp -$OPT examples local makefile *.txt *.sage sage ipython matplotlibrc data "$TMP"/
+cp -$OPT examples local makefile *.txt *.sage sage ipython data "$TMP"/
 cp -L$OPT devel/doc/html "$TMP"/doc
 
 if [ -d devel/sage-main ]; then

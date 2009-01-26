@@ -170,7 +170,6 @@ cp -pr dsage_* sage-* .hg* ipy_profile_sage.py $SCRIPTS/
 cp -p $SAGE_ROOT/sage-python $SCRIPTS/
 cp -p $SAGE_ROOT/*.txt $SCRIPTS/
 cp -pr $SAGE_ROOT/ipython $SCRIPTS/
-cp -pr $SAGE_ROOT/matplotlibrc $SCRIPTS/
 cp -p $SAGE_ROOT/spkg/install $SCRIPTS/
 cp -p $SAGE_ROOT/local/bin/sage-spkg-install $SCRIPTS/spkg-install
 cp -p $SAGE_ROOT/local/bin/SbuildHack.pm $SCRIPTS/

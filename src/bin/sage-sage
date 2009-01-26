@@ -146,14 +146,6 @@ fi
 LOGFILE="$SAGE_ROOT/sage.log"
 LOGOPT=""
 
-matplotlib_setup() {
-    MATPLOTLIBRC="$DOT_SAGE/" && export MATPLOTLIBRC
-    if [ ! -f "$MATPLOTLIBRC/matplotlibrc" ]; then
-        mkdir -p "$DOT_SAGE"
-        cp "$SAGE_ROOT/matplotlibrc" "$DOT_SAGE/"
-    fi
-}
-
 sage_setup() {
     # Display the startup banner
     if [ "$SAGE_BANNER" != "no" ]; then
@@ -174,7 +166,6 @@ sage_setup() {
         mkdir -p "$DOT_SAGE"
         cp -r "$SAGE_ROOT/ipython" "$DOT_SAGE/"
     fi
-    matplotlib_setup
     sage-cleaner &
 }
 
@@ -914,7 +905,6 @@ if [ $1 = '-gthread' -o $1 = '-qthread' -o $1 = '-q4thread' -o $1 = '-wthread' -
 fi
 
 if [ $# -ge 1 ]; then
-   matplotlib_setup
    T=`echo "$1" | sed -e "s/.*\.//"`
    if [ "$T " = "spkg " ]; then
        install "" "$@"

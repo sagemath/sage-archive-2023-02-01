@@ -45,9 +45,6 @@ rm -rf "$TMP"/ipython
 cp -r "$SAGE_ROOT"/ipython "$TMP"/
 cp -r ipython "$SAGE_ROOT/"
 
-cp "$SAGE_ROOT"/matplotlibrc "$TMP"/
-cp matplotlibrc "$SAGE_ROOT/"
-
 # I think these below should moved to the relevant spkg's.
 # -- William Stein (2007-10-04)
 cd "$TARGET"

@@ -43,7 +43,7 @@ WIN32 - VISUAL STUDIO 7.1 (2003)
 
 import os
 import re
-
+import subprocess
 ### FOR SAGE
 sage_inc = os.environ['SAGE_LOCAL'] + '/include/'
 sage_lib = os.environ['SAGE_LOCAL'] + '/lib/'
@@ -66,20 +66,11 @@ basedir = {
 import sys, os, stat
 if sys.platform != 'win32':
     import commands
-from sets import Set
 from textwrap import fill
 from distutils.core import Extension
 import glob
 import ConfigParser
 import cStringIO
-
-major, minor1, minor2, s, tmp = sys.version_info
-if major<2 or (major==2 and minor1<3):
-    True = 1
-    False = 0
-else:
-    True = True
-    False = False
 
 BUILT_PNG       = False
 BUILT_AGG       = False
@@ -87,13 +78,13 @@ BUILT_FT2FONT   = False
 BUILT_TTCONV    = False
 BUILT_GTKAGG    = False
 BUILT_IMAGE     = False
+BUILT_MACOSX    = False
 BUILT_TKAGG     = False
 BUILT_WXAGG     = False
 BUILT_WINDOWING = False
 BUILT_CONTOUR   = False
-BUILT_DELAUNAY   = False
+BUILT_DELAUNAY  = False
 BUILT_NXUTILS   = False
-BUILT_TRAITS = False
 BUILT_CONTOUR   = False
 BUILT_GDK       = False
 BUILT_PATH      = False
@@ -109,13 +100,12 @@ options = {'display_status': True,
            'verbose': False,
            'provide_pytz': 'auto',
            'provide_dateutil': 'auto',
-           'provide_configobj': 'auto',
-           'provide_traits': False,
            'build_agg': True,
            'build_gtk': 'auto',
            'build_gtkagg': 'auto',
            'build_tkagg': 'auto',
            'build_wxagg': 'auto',
+           'build_macosx': 'auto',
            'build_image': True,
            'build_windowing': True,
            'backend': None,
@@ -138,14 +128,6 @@ if os.path.exists("setup.cfg"):
     try: options['provide_dateutil'] = config.getboolean("provide_packages",
                                                          "dateutil")
     except: options['provide_dateutil'] = 'auto'
-
-    try: options['provide_configobj'] = config.getboolean("provide_packages",
-                                                          "configobj")
-    except: options['provide_configobj'] = 'auto'
-
-    try: options['provide_traits'] = config.getboolean("provide_packages",
-                                                       "enthought.traits")
-    except: options['provide_traits'] = False
 
     try: options['build_gtk'] = config.getboolean("gui_support", "gtk")
     except: options['build_gtk'] = 'auto'
@@ -189,6 +171,14 @@ else:
     def print_line(*args, **kwargs):
         pass
     print_status = print_message = print_raw = print_line
+
+def run_child_process(cmd):
+    p = subprocess.Popen(cmd, shell=True,
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT,
+                         close_fds=True)
+    return p.stdin, p.stdout
 
 class CleanUpFile:
     """CleanUpFile deletes the specified filename when self is destroyed."""
@@ -238,7 +228,8 @@ has_pkgconfig.cache = None
 def get_pkgconfig(module,
                   packages,
                   flags="--libs --cflags",
-                  pkg_config_exec='pkg-config'):
+                  pkg_config_exec='pkg-config',
+                  report_error=False):
     """Loosely based on an article in the Python Cookbook:
     http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/502261"""
     if not has_pkgconfig():
@@ -250,8 +241,8 @@ def get_pkgconfig(module,
               '-D': 'define_macros',
               '-U': 'undef_macros'}
 
-    status, output = commands.getstatusoutput(
-        "%s %s %s" % (pkg_config_exec, flags, packages))
+    cmd = "%s %s %s" % (pkg_config_exec, flags, packages)
+    status, output = commands.getstatusoutput(cmd)
     if status == 0:
         for token in output.split():
             attr = _flags.get(token[:2], None)
@@ -269,6 +260,9 @@ def get_pkgconfig(module,
                 if token not in module.extra_link_args:
                     module.extra_link_args.append(token)
         return True
+    if report_error:
+        print_status("pkg-config", "looking for %s" % packages)
+        print_message(output)
     return False
 
 def get_pkgconfig_version(package):
@@ -443,67 +437,9 @@ def check_provide_dateutil(hasdatetime=True):
             print_status("dateutil", "present, version unknown")
             return False
 
-def check_provide_configobj():
-    if options['provide_configobj'] is True:
-        print_status("configobj", "matplotlib will provide")
-        return True
-    try:
-        import configobj
-    except ImportError:
-        if options['provide_configobj']:
-            print_status("configobj", "matplotlib will provide")
-            return True
-        else:
-            print_status("configobj", "no")
-            return False
-    else:
-        if configobj.__version__.endswith('mpl'):
-            print_status("configobj", "matplotlib will provide")
-            return True
-        else:
-            print_status("configobj", configobj.__version__)
-            return False
-
-def check_provide_traits():
-    # Let's not install traits by default for now, unless it is specifically
-    # asked for in setup.cfg AND it is not already installed
-#    if options['provide_traits'] is True:
-#        print_status("enthought.traits", "matplotlib will provide")
-#        return True
-    try:
-        from enthought import traits
-        try:
-            from enthought.traits import version
-        except:
-            print_status("enthought.traits", "unknown and incompatible version: < 2.0")
-            return False
-        else:
-            # traits 2 and 3 store their version strings in different places:
-            try:
-                version = version.version
-            except AttributeError:
-                version = version.__version__
-            # next 2 lines added temporarily while we figure out what to do
-            # with traits:
-            print_status("enthought.traits", version)
-            return False
-#            if version.endswith('mpl'):
-#                print_status("enthought.traits", "matplotlib will provide")
-#                return True
-#            else:
-#                print_status("enthought.traits", version)
-#                return False
-    except ImportError:
-        if options['provide_traits']:
-            print_status("enthought.traits", "matplotlib will provide")
-            return True
-        else:
-            print_status("enthought.traits", "no")
-            return False
-
 def check_for_dvipng():
     try:
-        stdin, stdout = os.popen4('dvipng -version')
+        stdin, stdout = run_child_process('dvipng -version')
         print_status("dvipng", stdout.readlines()[1].split()[-1])
         return True
     except (IndexError, ValueError):
@@ -516,7 +452,7 @@ def check_for_ghostscript():
             command = 'gswin32c --version'
         else:
             command = 'gs --version'
-        stdin, stdout = os.popen4(command)
+        stdin, stdout = run_child_process(command)
         print_status("ghostscript", stdout.read()[:-1])
         return True
     except (IndexError, ValueError):
@@ -525,7 +461,7 @@ def check_for_ghostscript():
 
 def check_for_latex():
     try:
-        stdin, stdout = os.popen4('latex -version')
+        stdin, stdout = run_child_process('latex -version')
         line = stdout.readlines()[0]
         pattern = '3\.1\d+'
         match = re.search(pattern, line)
@@ -537,7 +473,7 @@ def check_for_latex():
 
 def check_for_pdftops():
     try:
-        stdin, stdout = os.popen4('pdftops -v')
+        stdin, stdout = run_child_process('pdftops -v')
         for line in stdout.readlines():
             if 'version' in line:
                 print_status("pdftops", line.split()[-1])
@@ -647,6 +583,7 @@ def check_for_gtk():
             explanation = (
                 "Could not find Gtk+ headers in any of %s" %
                 ", ".join(["'%s'" % x for x in module.include_dirs]))
+            gotit = False
 
     def ver2str(tup):
         return ".".join([str(x) for x in tup])
@@ -693,7 +630,7 @@ def add_pygtk_flags(module):
 
         add_base_flags(module)
 
-        if not os.environ.has_key('PKG_CONFIG_PATH'):
+        if 'PKG_CONFIG_PATH' not in os.environ:
             # If Gtk+ is installed, pkg-config is required to be installed
             os.environ['PKG_CONFIG_PATH'] = 'C:\GTK\lib\pkgconfig'
 
@@ -723,8 +660,10 @@ def add_pygtk_flags(module):
     if sys.platform != 'win32':
         # If Gtk+ is installed, pkg-config is required to be installed
         add_base_flags(module)
-        get_pkgconfig(module, 'pygtk-2.0 gtk+-2.0')
-
+        ok = get_pkgconfig(module, 'pygtk-2.0 gtk+-2.0', report_error=True)
+        if not ok:
+            print_message(
+                "You may need to install 'dev' package(s) to provide header files.")
     # visual studio doesn't need the math library
     if sys.platform == 'win32' and win32_compiler == 'msvc' and 'm' in module.libraries:
         module.libraries.remove('m')
@@ -865,6 +804,17 @@ def check_for_tk():
         print_message(explanation)
     return gotit
 
+def check_for_macosx():
+    gotit = False
+    import sys
+    if sys.platform=='darwin':
+        gotit = True
+    if gotit:
+        print_status("Mac OS X native", "yes")
+    else:
+        print_status("Mac OS X native", "no")
+    return gotit
+
 def query_tcltk():
     """Tries to open a Tk window in order to query the Tk object about its library paths.
        This should never be called more than once by the same process, as Tk intricacies
@@ -947,6 +897,7 @@ def parse_tcl_config(tcl_lib_dir, tk_lib_dir):
     try:
         tcl_lib = tcl_vars.get("default", "TCL_LIB_SPEC")[1:-1].split()[0][2:]
         tcl_inc = tcl_vars.get("default", "TCL_INCLUDE_SPEC")[3:-1]
+
         tk_lib = tk_vars.get("default", "TK_LIB_SPEC")[1:-1].split()[0][2:]
         if tk_vars.has_option("default", "TK_INCLUDE_SPEC"):
             # On Ubuntu 8.04
@@ -1120,8 +1071,7 @@ def build_windowing(ext_modules, packages):
     global BUILT_WINDOWING
     if BUILT_WINDOWING: return # only build it if you you haven't already
     module = Extension('matplotlib._windowing',
-                       ['src/_windowing.cpp',
-                        ],
+                       ['src/_windowing.cpp'],
                        )
     add_windowing_flags(module)
     ext_modules.append(module)
@@ -1211,6 +1161,19 @@ def build_wxagg(ext_modules, packages):
 
      ext_modules.append(module)
      BUILT_WXAGG = True
+
+
+def build_macosx(ext_modules, packages):
+    global BUILT_MACOSX
+    if BUILT_MACOSX: return # only build it if you you haven't already
+    module = Extension('matplotlib.backends._macosx',
+                       ['src/_macosx.m'],
+                       extra_link_args = ['-framework','Cocoa'],
+                      )
+    add_numpy_flags(module)
+    ext_modules.append(module)
+    BUILT_MACOSX = True
+
 
 def build_png(ext_modules, packages):
     global BUILT_PNG
@@ -1326,23 +1289,6 @@ def build_image(ext_modules, packages):
     BUILT_IMAGE = True
 
 
-def build_traits(ext_modules, packages):
-    global BUILT_TRAITS
-    if BUILT_TRAITS:
-        return # only build it if you you haven't already
-
-    ctraits = Extension('enthought.traits.ctraits',
-                        ['lib/enthought/traits/ctraits.c'])
-    ext_modules.append(ctraits)
-    packages.extend(['enthought',
-                     'enthought/etsconfig',
-                     'enthought/traits',
-                     'enthought/traits/ui',
-                     'enthought/traits/ui/extras',
-                     'enthought/traits/ui/null',
-                     'enthought/traits/ui/tk',
-                     ])
-    BUILT_TRAITS = True
 
 def build_delaunay(ext_modules, packages):
     global BUILT_DELAUNAY
@@ -1399,7 +1345,7 @@ def build_gdk(ext_modules, packages):
     temp_copy('src/_backend_gdk.c', 'src/backend_gdk.c')
     module = Extension(
         'matplotlib.backends._backend_gdk',
-        ['src/backend_gdk.c', ],
+        ['src/backend_gdk.c'],
         libraries = [],
         include_dirs=numpy_inc_dirs,
         )

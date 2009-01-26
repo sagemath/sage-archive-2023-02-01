@@ -1,6 +1,6 @@
---- src/lib/matplotlib/cbook.py	2008-08-03 13:15:03.000000000 -0500
-+++ patches/cbook.py	2008-08-20 01:16:22.000000000 -0500
-@@ -13,7 +13,10 @@
+--- ../matplotlib-src-svn-6821/lib/matplotlib/cbook.py	2009-01-23 13:48:57.000000000 -0800
++++ patches-new/cbook.py	2009-01-23 14:15:31.000000000 -0800
+@@ -14,7 +14,10 @@
  
  
  # on some systems, locale.getpreferredencoding returns None, which can break unicode

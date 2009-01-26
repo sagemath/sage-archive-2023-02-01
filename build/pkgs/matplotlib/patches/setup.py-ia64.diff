@@ -1,6 +1,6 @@
---- src/setup.py	2008-08-03 13:15:22.000000000 -0500
-+++ patches/setup.py-ia64	2008-08-20 00:12:13.000000000 -0500
-@@ -121,7 +121,7 @@
+--- ../matplotlib-src-svn-6821/setup.py	2009-01-23 13:49:20.000000000 -0800
++++ src/setup.py	2009-01-23 17:46:24.000000000 -0800
+@@ -130,7 +130,7 @@
  # the options can be True, False, or 'auto'. If True, try to build
  # regardless of the lack of dependencies. If auto, silently skip
  # when dependencies are missing.

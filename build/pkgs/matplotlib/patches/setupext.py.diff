@@ -1,9 +1,9 @@
---- setupext.py.orig	2008-12-12 08:22:19.000000000 -0800
-+++ setupext.py	2008-12-12 08:20:55.000000000 -0800
+--- src/setupext.py	2009-01-23 17:35:47.000000000 -0800
++++ patches-new/setupext.py	2009-01-23 17:40:08.000000000 -0800
 @@ -44,14 +44,16 @@
  import os
  import re
- 
+ import subprocess
 +### FOR SAGE
 +sage_inc = os.environ['SAGE_LOCAL'] + '/include/'
 +sage_lib = os.environ['SAGE_LOCAL'] + '/lib/'
@@ -20,7 +20,7 @@
      'freebsd4' : ['/usr/local', '/usr'],
      'freebsd5' : ['/usr/local', '/usr'],
      'freebsd6' : ['/usr/local', '/usr'],
-@@ -328,7 +330,9 @@
+@@ -322,7 +324,9 @@
  
      module.include_dirs.extend(incdirs)
      module.include_dirs.append('.')
@@ -30,7 +30,7 @@
  
  def getoutput(s):
      'get the output of a system command'
-@@ -1076,6 +1080,7 @@
+@@ -1027,6 +1031,7 @@
          #      of distros.
  
          # Query Tcl/Tk system for library paths and version string

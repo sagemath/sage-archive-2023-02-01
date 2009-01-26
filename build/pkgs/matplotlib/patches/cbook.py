@@ -5,6 +5,7 @@ from the Python Cookbook -- hence the name cbook
 from __future__ import generators
 import re, os, errno, sys, StringIO, traceback, locale, threading, types
 import time, datetime
+import warnings
 import numpy as np
 import numpy.ma as ma
 from weakref import ref
@@ -263,16 +264,22 @@ def unique(x):
 def iterable(obj):
     'return true if *obj* is iterable'
     try: len(obj)
-    except: return 0
-    return 1
+    except: return False
+    return True
 
 
 def is_string_like(obj):
-    'return true if *obj* looks like a string'
-    if hasattr(obj, 'shape'): return 0
+    'Return True if *obj* looks like a string'
+    if isinstance(obj, (str, unicode)): return True
+    # numpy strings are subclass of str, ma strings are not
+    if ma.isMaskedArray(obj):
+        if obj.ndim == 0 and obj.dtype.kind in 'SU':
+            return True
+        else:
+            return False
     try: obj + ''
-    except (TypeError, ValueError): return 0
-    return 1
+    except: return False
+    return True
 
 def is_sequence_of_strings(obj):
     """
@@ -320,7 +327,10 @@ def to_filehandle(fname, flag='r', return_opened=False):
         return fh, opened
     return fh
 
-def flatten(seq, scalarp=is_scalar):
+def is_scalar_or_string(val):
+    return is_string_like(val) or not iterable(val)
+
+def flatten(seq, scalarp=is_scalar_or_string):
     """
     this generator flattens nested containers such as
 
@@ -472,7 +482,20 @@ class Null:
 
 
 def mkdirs(newdir, mode=0777):
-    try: os.makedirs(newdir, mode)
+    """
+    make directory *newdir* recursively, and set *mode*.  Equivalent to ::
+
+        > mkdir -p NEWDIR
+        > chmod MODE NEWDIR
+    """
+    try:
+        if not os.path.exists(newdir):
+            parts = os.path.split(newdir)
+            for i in range(1, len(parts)+1):
+                thispart = os.path.join(*parts[:i])
+                if not os.path.exists(thispart):
+                    os.makedirs(thispart, mode)
+
     except OSError, err:
         # Reraise the error unless it's about an already existing directory
         if err.errno != errno.EEXIST or not os.path.isdir(newdir):
@@ -1159,47 +1182,6 @@ def simple_linear_interpolation(a, steps):
 
     return result
 
-def less_simple_linear_interpolation( x, y, xi, extrap=False ):
-    """
-    This function provides simple (but somewhat less so than
-    simple_linear_interpolation) linear interpolation.
-    simple_linear_interpolation will give a list of point between a
-    start and an end, while this does true linear interpolation at an
-    arbitrary set of points.
-
-    This is very inefficient linear interpolation meant to be used
-    only for a small number of points in relatively non-intensive use
-    cases.
-    """
-    if is_scalar(xi): xi = [xi]
-
-    x = np.asarray(x)
-    y = np.asarray(y)
-    xi = np.asarray(xi)
-
-    s = list(y.shape)
-    s[0] = len(xi)
-    yi = np.tile( np.nan, s )
-
-    for ii,xx in enumerate(xi):
-        bb = x == xx
-        if np.any(bb):
-            jj, = np.nonzero(bb)
-            yi[ii] = y[jj[0]]
-        elif xx<x[0]:
-            if extrap:
-                yi[ii] = y[0]
-        elif xx>x[-1]:
-            if extrap:
-                yi[ii] = y[-1]
-        else:
-            jj, = np.nonzero(x<xx)
-            jj = max(jj)
-
-            yi[ii] = y[jj] + (xx-x[jj])/(x[jj+1]-x[jj]) * (y[jj+1]-y[jj])
-
-    return yi
-
 def recursive_remove(path):
     if os.path.isdir(path):
         for fname in glob.glob(os.path.join(path, '*')) + glob.glob(os.path.join(path, '.*')):
@@ -1338,60 +1320,6 @@ def unmasked_index_ranges(mask, compressed = True):
     ic1 = breakpoints
     return np.concatenate((ic0[:, np.newaxis], ic1[:, np.newaxis]), axis=1)
 
-def isvector(X):
-    """
-    Like the Matlab (TM) function with the same name, returns true if
-    the supplied numpy array or matrix looks like a vector, meaning it
-    has a one non-singleton axis (i.e., it can have multiple axes, but
-    all must have length 1, except for one of them).
-
-    If you just want to see if the array has 1 axis, use X.ndim==1
-
-    """
-    return np.prod(X.shape)==np.max(X.shape)
-
-def vector_lengths( X, P=2., axis=None ):
-    """
-    Finds the length of a set of vectors in n dimensions.  This is
-    like the numpy norm function for vectors, but has the ability to
-    work over a particular axis of the supplied array or matrix.
-
-    Computes (sum((x_i)^P))^(1/P) for each {x_i} being the elements of X along
-    the given axis.  If *axis* is *None*, compute over all elements of X.
-    """
-    X = np.asarray(X)
-    return (np.sum(X**(P),axis=axis))**(1./P)
-
-def distances_along_curve( X ):
-    """
-    Computes the distance between a set of successive points in N dimensions.
-
-    where X is an MxN array or matrix.  The distances between successive rows
-    is computed.  Distance is the standard Euclidean distance.
-    """
-    X = np.diff( X, axis=0 )
-    return vector_lengths(X,axis=1)
-
-def path_length(X):
-    """
-    Computes the distance travelled along a polygonal curve in N dimensions.
-
-
-    where X is an MxN array or matrix.  Returns an array of length M consisting
-    of the distance along the curve at each point (i.e., the rows of X).
-    """
-    X = distances_along_curve(X)
-    return np.concatenate( (np.zeros(1), np.cumsum(X)) )
-
-def is_closed_polygon(X):
-    """
-    Tests whether first and last object in a sequence are the same.  These are
-    presumably coordinates on a polygonal curve, in which case this function
-    tests if that curve is closed.
-
-    """
-    return np.all(X[0] == X[-1])
-
 # a dict to cross-map linestyle arguments
 _linestyles = [('-', 'solid'),
     ('--', 'dashed'),
@@ -1400,6 +1328,77 @@ _linestyles = [('-', 'solid'),
 
 ls_mapper = dict(_linestyles)
 ls_mapper.update([(ls[1], ls[0]) for ls in _linestyles])
+
+def less_simple_linear_interpolation( x, y, xi, extrap=False ):
+    """
+    This function has been moved to matplotlib.mlab -- please import
+    it from there
+    """
+    # deprecated from cbook in 0.98.4
+    warnings.warn('less_simple_linear_interpolation has been moved to matplotlib.mlab -- please import it from there', DeprecationWarning)
+    import matplotlib.mlab as mlab
+    return mlab.less_simple_linear_interpolation( x, y, xi, extrap=extrap )
+
+def isvector(X):
+    """
+    This function has been moved to matplotlib.mlab -- please import
+    it from there
+    """
+    # deprecated from cbook in 0.98.4
+    warnings.warn('isvector has been moved to matplotlib.mlab -- please import it from there', DeprecationWarning)
+    import matplotlib.mlab as mlab
+    return mlab.isvector( x, y, xi, extrap=extrap )
+
+def vector_lengths( X, P=2., axis=None ):
+    """
+    This function has been moved to matplotlib.mlab -- please import
+    it from there
+    """
+    # deprecated from cbook in 0.98.4
+    warnings.warn('vector_lengths has been moved to matplotlib.mlab -- please import it from there', DeprecationWarning)
+    import matplotlib.mlab as mlab
+    return mlab.vector_lengths( X, P=2., axis=axis )
+
+def distances_along_curve( X ):
+    """
+    This function has been moved to matplotlib.mlab -- please import
+    it from there
+    """
+    # deprecated from cbook in 0.98.4
+    warnings.warn('distances_along_curve has been moved to matplotlib.mlab -- please import it from there', DeprecationWarning)
+    import matplotlib.mlab as mlab
+    return mlab.distances_along_curve( X )
+
+def path_length(X):
+    """
+    This function has been moved to matplotlib.mlab -- please import
+    it from there
+    """
+    # deprecated from cbook in 0.98.4
+    warnings.warn('path_length has been moved to matplotlib.mlab -- please import it from there', DeprecationWarning)
+    import matplotlib.mlab as mlab
+    return mlab.path_length(X)
+
+def is_closed_polygon(X):
+    """
+    This function has been moved to matplotlib.mlab -- please import
+    it from there
+    """
+    # deprecated from cbook in 0.98.4
+    warnings.warn('is_closed_polygon has been moved to matplotlib.mlab -- please import it from there', DeprecationWarning)
+    import matplotlib.mlab as mlab
+    return mlab.is_closed_polygon(X)
+
+def quad2cubic(q0x, q0y, q1x, q1y, q2x, q2y):
+    """
+    This function has been moved to matplotlib.mlab -- please import
+    it from there
+    """
+    # deprecated from cbook in 0.98.4
+    warnings.warn('quad2cubic has been moved to matplotlib.mlab -- please import it from there', DeprecationWarning)
+    import matplotlib.mlab as mlab
+    return mlab.quad2cubic(q0x, q0y, q1x, q1y, q2x, q2y)
+
 
 if __name__=='__main__':
     assert( allequal([1,1,1]) )

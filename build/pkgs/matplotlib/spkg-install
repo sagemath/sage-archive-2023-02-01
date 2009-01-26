@@ -15,8 +15,6 @@ fi
 # Use patched versions.  See SPKG.txt for why and what.
 $CP patches/setupext.py src
 $CP patches/cbook.py src/lib/matplotlib/cbook.py
-$CP patches/arrow_line.py src/lib/matplotlib/arrow_line.py
-$CP patches/quiver.py src/lib/matplotlib/quiver.py
 
 if [ `uname` = "SunOS" ]; then
     echo "Copy patched version of pprdrv_tt2.cpp for Solaris 10 that builds with gcc 4.3.2"

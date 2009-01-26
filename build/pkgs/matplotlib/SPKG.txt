@@ -4,9 +4,12 @@
 
 The following is in the patches subdirectory.  It is copied in during the build process.
 
-setupext.py by a version that adds some SAGE-specific paths so the build doesn't fail (since SAGE includes certain libs that matplotlib depends on).
+Replace setupext.py by a version that adds some SAGE-specific paths so the build doesn't fail (since SAGE includes certain libs that matplotlib depends on).
 
 == Changelog ==
+
+=== matplotlib-svn6821 (Jason Grout, January 23, 2009) ===
+ * Update to the latest SVN version (6821) of Matplotlib and update patches.  Two patches disappear because one patch was just updating quiver.py to a mid-release version and arrow_line.py is now subsumed by much nicer functionality in Matplotlib.
 
 === matplotlib-0.98.3.p5 (Michael Abshoff, January 19th, 2009) ===
  * Work around Solaris 10 with gcc 4.3.2 problem in ttconv/pprdrv_tt2.cpp (#5008)

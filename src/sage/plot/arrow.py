@@ -125,21 +125,20 @@ class Arrow(GraphicPrimitive):
         """
         options = self.options()
         width = float(options['width'])
-        arrowshorten = float(options.get('arrowshorten',0))
-        arrowsize = float(options.get('arrowsize',10))
-        from matplotlib.arrow_line import ArrowLine
-        p = ArrowLine([self.xtail, self.xhead], [self.ytail, self.yhead],  lw=width, arrow='>', arrowsize=arrowsize, arrowshorten=arrowshorten)
+        arrowshorten_end = float(options.get('arrowshorten',0))/2.0+width*2
+        arrowsize = float(options.get('arrowsize',5))
+        head_width=arrowsize
+        head_length=arrowsize*2.0
+        color = to_mpl_color(options['rgbcolor'])
+        from matplotlib.patches import FancyArrowPatch
+        p = FancyArrowPatch((self.xtail, self.ytail), (self.xhead, self.yhead),
+                            lw=width, arrowstyle='-|>,head_width=%s,head_length=%s'%(head_width, head_length),
+                            shrinkA=arrowshorten_end, shrinkB=arrowshorten_end,
+                            fc=color, ec=color)
+        subplot.add_patch(p)
+        return p
 
-
-        c = to_mpl_color(options['rgbcolor'])
-        p._arrowedgecolor=(c)
-        p._arrowfacecolor=(c)
-        p.set_color(c)
-        p.set_solid_capstyle('butt')
-        p.set_solid_joinstyle('bevel')
-        subplot.add_line(p)
-
-
+@rename_keyword(color='rgbcolor')
 @options(width=2, rgbcolor=(0,0,1))
 def arrow(tailpoint, headpoint, **options):
     """
@@ -147,7 +146,7 @@ def arrow(tailpoint, headpoint, **options):
 
     INPUT
         width -- (default 2) the width of the arrow shaft, in points
-        rgbcolor -- (default (0,0,1)) the color of the arrow (as an rgb tuple)
+        color -- (default (0,0,1)) the color of the arrow (as an rgb tuple or a string)
         hue -- the color of the arrow (as a number)
         arrowsize -- the size of the arrowhead
         arrowshorten -- the length in points to shorten the arrow
@@ -158,7 +157,8 @@ def arrow(tailpoint, headpoint, **options):
        sage: arrow((1, 1), (3, 3))
 
     Make a red arrow:
-       sage: arrow((-1, -1), (2, 3), rgbcolor=(1,0,0))
+       sage: arrow((-1, -1), (2, 3), color=(1,0,0))
+       sage: arrow((-1, -1), (2, 3), color='red')
 
     You can change the width of an arrow:
         sage: arrow((1, 1), (3, 3), width=5, arrowsize=15)

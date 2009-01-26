@@ -50,6 +50,9 @@ def eisenstein_series_qexp(k, prec=10, K=QQ, var='q'):
         sage: eisenstein_series_qexp(2,5,GF(7),var='T')
         2 + T + 3*T^2 + 4*T^3 + O(T^5)
 
+        sage: eisenstein_series_qexp(10, 30, GF(17))
+        15 + q + 3*q^2 + 15*q^3 + 7*q^4 + 13*q^5 + 11*q^6 + 11*q^7 + 15*q^8 + 7*q^9 + 5*q^10 + 7*q^11 + 3*q^12 + 14*q^13 + 16*q^14 + 8*q^15 + 14*q^16 + q^17 + 4*q^18 + 3*q^19 + 6*q^20 + 12*q^21 + 4*q^22 + 12*q^23 + 4*q^24 + 4*q^25 + 8*q^26 + 14*q^27 + 9*q^28 + 6*q^29 + O(q^30)
+
     AUTHORS:
         -- William Stein: original implementation
         -- Craig Citro (2007-06-01): rewrote for massive speedup
@@ -94,7 +97,13 @@ def eisenstein_series_qexp(k, prec=10, K=QQ, var='q'):
 
     val[0] = a0
     R = K[[var]]
-    return R(val, prec=prec, check=False)
+    if R == QQ:
+        return R(val, prec=prec, check=False)
+    else:
+        # this is a temporary fix due to a change in the
+        # polynomial constructor over finite fields; this
+        # is a notable speed regression, to be fixed soon.
+        return R(val, prec=prec, check=True)
 
 ######################################################################
 

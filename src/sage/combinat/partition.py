@@ -1117,6 +1117,28 @@ class Partition_class(CombinatorialObject):
         """
         return self.to_exp()
 
+    def to_exp_dict(self):
+        """
+        Returns a dictionary containing the multiplicities of the
+        parts of this partition.
+
+        EXAMPLES:
+            sage: p = Partition([4,2,2,1])
+            sage: d = p.to_exp_dict()
+            sage: d[4]
+            1
+            sage: d[2]
+            2
+            sage: d[1]
+            1
+            sage: 5 in d
+            False
+        """
+        d = {}
+        for part in self:
+            d[part] = d.get(part, 0) + 1
+        return d
+
     def centralizer_size(self, t=0, q=0):
         """
         Returns the size of the centralizer of any permuation of cycle type

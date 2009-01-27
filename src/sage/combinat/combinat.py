@@ -2013,6 +2013,50 @@ def cyclic_permutations_iterator(mset):
     else:
         yield mset
 
+def bell_polynomial(n, k):
+    r"""
+    This function returns the Bell Polynomial
+
+    $$
+    $B_{n,k}(x_1, x_2, \ldots, x_{n-k+1}) = \sum_{\sum{j_i}=k, \sum{i j_i}
+    =n} \frac{n!}{j_1!j_2!\ldots} \frac{x_1}{1!}^j_1 \frac{x_2}{2!}^j_2
+    \ldots
+    $$
+
+    INPUT:
+        n -- integer
+        k -- integer
+
+    OUTPUT:
+        polynomial expression (SymbolicArithmetic)
+
+    EXAMPLES:
+        sage: bell_polynomial(6,2)
+        10*x_3^2 + 15*x_2*x_4 + 6*x_1*x_5
+        sage: bell_polynomial(6,3)
+        15*x_2^3 + 60*x_1*x_2*x_3 + 15*x_1^2*x_4
+
+    REFERENCES:
+        E.T. Bell, "Partition Polynomials"
+
+    AUTHORS:
+        - Blair Sutton (2009-01-26)
+    """
+    from sage.combinat.partition import Partitions
+    from sage.rings.arith import factorial
+    vars = ZZ[tuple(['x_'+str(i) for i in range(1, n-k+2)])].gens()
+    result = 0
+    for p in Partitions(n, length=k):
+        factorial_product  = 1
+        power_factorial_product = 1
+        for part, count in p.to_exp_dict().iteritems():
+            factorial_product *= factorial(count)
+            power_factorial_product *= factorial(part)**count
+
+        coefficient = factorial(n) / (factorial_product * power_factorial_product)
+        result += coefficient *  prod([vars[i-1] for i in p])
+
+    return result
 
 def fibonacci_sequence(start, stop=None, algorithm=None):
     r"""

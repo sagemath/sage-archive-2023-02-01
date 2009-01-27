@@ -10,3 +10,4 @@ from covering_design import (CoveringDesign,
                              schonheim,
                              trivial_covering_design,
                              best_known_covering_design_www)
+

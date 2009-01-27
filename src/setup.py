@@ -225,7 +225,7 @@ CYTHON_INCLUDE_DIRS=[ SAGE_LOCAL + '/lib/python/site-packages/Cython/Includes/' 
 
 # matches any dependency
 import re
-dep_regex = re.compile(r'^ *(?:(?:cimport +([\S ,]+))|(?:from +(\S+) *cimport)|(?:include *[\'"]([^\'"]+)[\'"])|(?:cdef *extern *from *[\'"]([^\'"]+)[\'"]))', re.M)
+dep_regex = re.compile(r'^ *(?:(?:cimport +([\w\. ,]+))|(?:from +(\w+) +cimport)|(?:include *[\'"]([^\'"]+)[\'"])|(?:cdef *extern *from *[\'"]([^\'"]+)[\'"]))', re.M)
 
 class DependencyTree:
     """

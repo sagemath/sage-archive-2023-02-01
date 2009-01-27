@@ -25,6 +25,8 @@ AUTHORS:
 import sage.rings.all as rings
 
 from sage.structure.sequence import Sequence
+from sage.structure.element import parent
+from sage.calculus.calculus import SR, SymbolicEquation
 
 
 def EllipticCurve(x, y=None):
@@ -81,6 +83,15 @@ def EllipticCurve(x, y=None):
         sage: E.j_invariant()
         2988.97297297297
 
+    We can also create elliptic curves by giving the Weierstrass equation:
+        sage: x, y = var('x,y')
+        sage: EllipticCurve(y^2 + y ==  x^3 + x - 9)
+        Elliptic Curve defined by y^2 + y = x^3 + x - 9 over Rational Field
+
+        sage: R.<x,y> = GF(5)[]
+        sage: EllipticCurve(x^3 + x^2 + 2 - y^2 - y*x)
+        Elliptic Curve defined by y^2 + x*y  = x^3 + x^2 + 2 over Finite Field of size 5
+
     TESTS:
         sage: R = ZZ['u', 'v']
         sage: EllipticCurve(R, [1,1])
@@ -107,6 +118,52 @@ def EllipticCurve(x, y=None):
         #ArithmeticError: Point (1/4, -5/8) is not on curve.
     #
     import ell_generic, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
+
+    if isinstance(x, SymbolicEquation):
+        x = x.left() - x.right()
+
+    if parent(x) is SR:
+        x = x._polynomial_(rings.QQ['x', 'y'])
+
+    if rings.is_MPolynomial(x) and y is None:
+        f = x
+        if f.degree() != 3:
+            raise ValueError, "Elliptic curves must be defined by a cubic polynomial."
+        if f.degrees() == (3,2):
+            x, y = f.parent().gens()
+        elif f.degree() == (2,3):
+            y, x = f.parent().gens()
+        elif len(f.parent().gens()) == 2 or len(f.parent().gens()) == 3 and f.is_homogeneous():
+            # We'd need a point too...
+            raise NotImplementedError, "Construction of an elliptic curve from a generic cubic not yet implemented."
+        else:
+            raise ValueError, "Defining polynomial must be a cubic polynomial in two variables."
+
+        try:
+            if f.coefficient(x**3) < 0:
+                f = -f
+            # is there a nicer way to extract the coefficients?
+            a1 = a2 = a3 = a4 = a6 = 0
+            for coeff, mon in f:
+                if mon == x**3:
+                    assert coeff == 1
+                elif mon == x**2:
+                    a2 = coeff
+                elif mon == x:
+                    a4 = coeff
+                elif mon == 1:
+                    a6 = coeff
+                elif mon == y**2:
+                    assert coeff == -1
+                elif mon == x*y:
+                    a1 = -coeff
+                elif mon == y:
+                    a3 = -coeff
+                else:
+                    assert False
+            return EllipticCurve([a1, a2, a3, a4, a6])
+        except AssertionError:
+            raise NotImplementedError, "Construction of an elliptic curve from a generic cubic not yet implemented."
 
     if rings.is_Ring(x):
         if rings.is_RationalField(x):

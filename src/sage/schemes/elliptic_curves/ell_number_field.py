@@ -380,7 +380,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.local_data(3)
             Local data at Principal ideal (3) of Integer Ring:
             Reduction type: good
-            Local minimal model: Elliptic Curve defined by y^2  = x^3 + x +1 over Rational Field
+            Local minimal model: Elliptic Curve defined by y^2 = x^3 + x + 1 over Rational Field
             Minimal discriminant valuation: 0
             Conductor exponent: 0
             Kodaira Symbol: I0

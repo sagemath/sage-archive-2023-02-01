@@ -267,11 +267,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         EXAMPLES:
             sage: E=EllipticCurve(QQ,[1,1]); E
-            Elliptic Curve defined by y^2  = x^3 + x +1 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + x + 1 over Rational Field
             sage: E.is_p_integral(2)
             True
             sage: E2=E.change_weierstrass_model(2,0,0,0); E2
-            Elliptic Curve defined by y^2  = x^3 + 1/16*x + 1/64 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + 1/16*x + 1/64 over Rational Field
             sage: E2.is_p_integral(2)
             False
             sage: E2.is_p_integral(3)
@@ -289,11 +289,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         EXAMPLES:
             sage: E=EllipticCurve(QQ,[1,1]); E
-            Elliptic Curve defined by y^2  = x^3 + x +1 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + x + 1 over Rational Field
             sage: E.is_integral()
             True
             sage: E2=E.change_weierstrass_model(2,0,0,0); E2
-            Elliptic Curve defined by y^2  = x^3 + 1/16*x + 1/64 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + 1/16*x + 1/64 over Rational Field
             sage: E2.is_integral()
             False
          """
@@ -2030,7 +2030,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES:
             sage: E=EllipticCurve([10,100,1000,10000,1000000])
             sage: E.minimal_model()
-            Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + x +1 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + x + 1 over Rational Field
         """
         try:
             return self.__minimal_model
@@ -3001,7 +3001,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: I, _ = EllipticCurve('37b').isogeny_class('database'); I
             [Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field,
              Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
-             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x +1 over Rational Field]
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x + 1 over Rational Field]
 
         This is an example of a curve with a $37$-isogeny:
             sage: E = EllipticCurve([1,1,1,-8,6])
@@ -3014,12 +3014,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         This curve had numerous $2$-isogenies:
         sage: e=EllipticCurve([1,0,0,-39,90])
             sage: e.isogeny_class ()
-            ([Elliptic Curve defined by y^2 + x*y  = x^3 - 39*x + 90 over Rational Field,
-              Elliptic Curve defined by y^2 + x*y  = x^3 - 4*x -1 over Rational Field,
-              Elliptic Curve defined by y^2 + x*y  = x^3 + x over Rational Field,
-              Elliptic Curve defined by y^2 + x*y  = x^3 - 49*x - 136 over Rational Field,
-              Elliptic Curve defined by y^2 + x*y  = x^3 - 34*x - 217 over Rational Field,
-              Elliptic Curve defined by y^2 + x*y  = x^3 - 784*x - 8515 over Rational Field],
+            ([Elliptic Curve defined by y^2 + x*y = x^3 - 39*x + 90 over Rational Field,
+              Elliptic Curve defined by y^2 + x*y = x^3 - 4*x - 1 over Rational Field,
+              Elliptic Curve defined by y^2 + x*y = x^3 + x over Rational Field,
+              Elliptic Curve defined by y^2 + x*y = x^3 - 49*x - 136 over Rational Field,
+              Elliptic Curve defined by y^2 + x*y = x^3 - 34*x - 217 over Rational Field,
+              Elliptic Curve defined by y^2 + x*y = x^3 - 784*x - 8515 over Rational Field],
              [0 2 0 0 0 0]
              [2 0 2 2 0 0]
              [0 2 0 0 0 0]

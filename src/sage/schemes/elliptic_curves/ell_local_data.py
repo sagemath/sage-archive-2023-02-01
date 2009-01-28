@@ -175,7 +175,7 @@ class EllipticCurveLocalData(SageObject):
             Elliptic Curve defined by y^2  = x^3 + 64 over Rational Field
             sage: data = EllipticCurveLocalData(E,2)
             sage: data.minimal_model()
-            Elliptic Curve defined by y^2  = x^3 +1 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
             sage: data.minimal_model() == E.local_minimal_model(2)
             True
         """
@@ -188,7 +188,7 @@ class EllipticCurveLocalData(SageObject):
         EXAMPLES:
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve([0,0,0,0,64]); E
-            Elliptic Curve defined by y^2  = x^3 + 64 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
             sage: data = EllipticCurveLocalData(E,2)
             sage: data.prime()
             Principal ideal (2) of Integer Ring
@@ -202,7 +202,7 @@ class EllipticCurveLocalData(SageObject):
         EXAMPLES:
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve([0,0,0,0,64]); E
-            Elliptic Curve defined by y^2  = x^3 + 64 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
             sage: data = EllipticCurveLocalData(E,2)
             sage: data.conductor_valuation()
             2
@@ -216,7 +216,7 @@ class EllipticCurveLocalData(SageObject):
         EXAMPLES:
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve([0,0,0,0,64]); E
-            Elliptic Curve defined by y^2  = x^3 + 64 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
             sage: data = EllipticCurveLocalData(E,2)
             sage: data.kodaira_symbol()
             IV
@@ -232,7 +232,7 @@ class EllipticCurveLocalData(SageObject):
         EXAMPLES:
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve([0,0,0,0,64]); E
-            Elliptic Curve defined by y^2  = x^3 + 64 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
             sage: data = EllipticCurveLocalData(E,2)
             sage: data.tamagawa_number()
             3

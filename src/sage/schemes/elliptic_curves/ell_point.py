@@ -8,7 +8,7 @@ EXAMPLES:
 Arithmetic with a point over an extension of a finite field:
     sage: k.<a> = GF(5^2)
     sage: E = EllipticCurve(k,[1,0]); E
-    Elliptic Curve defined by y^2  = x^3 + x over Finite Field in a of size 5^2
+    Elliptic Curve defined by y^2 = x^3 + x over Finite Field in a of size 5^2
     sage: P = E([a,2*a+4])
     sage: 5*P
     (2*a + 3 : 2*a : 1)
@@ -302,13 +302,13 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: E=EllipticCurve(QQ,[1,1])
             sage: P=E(0,1)
             sage: P.scheme()
-            Elliptic Curve defined by y^2  = x^3 + x +1 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + x + 1 over Rational Field
             sage: P.scheme() == P.curve()
             True
             sage: K.<a>=NumberField(x^2-3,'a')
             sage: P=E.base_extend(K)(1,a)
             sage: P.scheme()
-            Elliptic Curve defined by y^2  = x^3 + x +1 over Number Field in a with defining polynomial x^2 - 3
+            Elliptic Curve defined by y^2 = x^3 + x + 1 over Number Field in a with defining polynomial x^2 - 3
         """
         #The following text is just not true: it applies to the class
         #EllipticCurvePoint, which appears to be never used, but does
@@ -352,7 +352,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: K.<a>=NumberField(x^2-3,'a')
             sage: P=E.base_extend(K)(1,a)
             sage: P.codomain()
-            Elliptic Curve defined by y^2  = x^3 + x +1 over Number Field in a with defining polynomial x^2 - 3
+            Elliptic Curve defined by y^2 = x^3 + x + 1 over Number Field in a with defining polynomial x^2 - 3
             sage: P.codomain() == P.curve()
             True
        """
@@ -1489,7 +1489,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         EXAMPLES:
             sage: k.<a> = GF(5^5)
             sage: E = EllipticCurve(k,[2,4]); E
-            Elliptic Curve defined by y^2  = x^3 + 2*x + 4 over Finite Field in a of size 5^5
+            Elliptic Curve defined by y^2 = x^3 + 2*x + 4 over Finite Field in a of size 5^5
             sage: P = E(3*a^4 + 3*a , 2*a + 1 )
             sage: P.order()
             3227

@@ -37,6 +37,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+$MAKE check
+if [ $? -ne 0 ]; then
+    echo "libm4ri testsuite failed, please report upstream!"
+    exit 1
+fi
+
 $MAKE install
 if [ $? -ne 0 ]; then
     echo "Error installing libm4ri"

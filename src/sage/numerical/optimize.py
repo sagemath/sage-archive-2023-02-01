@@ -272,8 +272,6 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
     INPUT:
        func - Either a symbolic function, or a Python function whose argument is a tuple with n components
 
-       x0 - Initial point for finding minimum
-
        cons - constraints. This should be either a function or list of functions that must be positive.
               Alternatively, the constraints can be specified as a list of intervals that define the
               region we are minimizing in.
@@ -283,6 +281,8 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
 
               If the constraints are specifed as a list of intervals and there are no constraints for a given
               variable, that component can be (None,None).
+
+       x0 - Initial point for finding minimum
 
        algorithm - Optional, specify the algorithm to use:
                    "default"  - default choices

@@ -328,7 +328,7 @@ is positive or zero.
     sage: t.limit(Ax=0,dir='above')
     Traceback (most recent call last):
     ...
-    TypeError: Computation failed since Maxima requested additional constraints (use assume):
+    TypeError: Computation failed since Maxima requested additional constraints (try the command 'assume(By^2+Bx^2>0)' before integral or limit evaluation, for example):
     Is By^2+Bx^2  positive or zero?
 
 
@@ -481,6 +481,29 @@ class Maxima(Expect):
         print "Maxima crashed -- automatically restarting."
 
     def _expect_expr(self, expr=None, timeout=None):
+        """
+        EXAMPLES:
+            sage: a,b=var('a,b')
+            sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
+            Traceback (most recent call last):
+            ...
+            TypeError: Computation failed since Maxima requested additional constraints (try the command 'assume(a>0)' before integral or limit evaluation, for example):
+            Is  a  positive or negative?
+            sage: assume(a>0)
+            sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
+            2*b^2*arctan((2*(b*x + a)^(1/3) + a^(1/3))/(sqrt(3)*a^(1/3)))/(3*sqrt(3)*a^(7/3)) - b^2*log((b*x + a)^(2/3) + a^(1/3)*(b*x + a)^(1/3) + a^(2/3))/(9*a^(7/3)) + 2*b^2*log((b*x + a)^(1/3) - a^(1/3))/(9*a^(7/3)) + (4*b^2*(b*x + a)^(5/3) - 7*a*b^2*(b*x + a)^(2/3))/(6*a^2*(b*x + a)^2 - 12*a^3*(b*x + a) + 6*a^4)
+            sage: var('x, n')
+            (x, n)
+            sage: integral(x^n,x)
+            Traceback (most recent call last):
+            ...
+            TypeError: Computation failed since Maxima requested additional constraints (try the command 'assume(n+1>0)' before integral or limit evaluation, for example):
+            Is  n+1  zero or nonzero?
+            sage: assume(n+1>0)
+            sage: integral(x^n,x)
+            x^(n + 1)/(n + 1)
+            sage: forget()
+        """
         if expr is None:
             expr = self._prompt_wait
         if self._expect is None:
@@ -501,7 +524,8 @@ class Maxima(Expect):
 
                 j = v.find('Is ')
                 v = v[j:]
-                msg = "Computation failed since Maxima requested additional constraints (use assume):\n" + v + self._ask[i-1]
+                k = v.find(' ',4)
+                msg = "Computation failed since Maxima requested additional constraints (try the command 'assume(" + v[4:k] +">0)' before integral or limit evaluation, for example):\n" + v + self._ask[i-1]
                 self._sendstr(chr(3))
                 self._sendstr(chr(3))
                 self._expect_expr()

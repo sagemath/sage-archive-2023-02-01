@@ -2576,13 +2576,18 @@ class SymbolicExpression(RingElement):
             sage: integral(x^n,x)
             Traceback (most recent call last):
             ...
-            TypeError: Computation failed since Maxima requested additional constraints (use assume):
+            TypeError: Computation failed since Maxima requested additional constraints (try the command 'assume(n+1>0)' before integral or limit evaluation, for example):
             Is  n+1  zero or nonzero?
             sage: assume(n > 0)
             sage: integral(x^n,x)
             x^(n + 1)/(n + 1)
             sage: forget()
 
+        Usually the constraints are of sign, but others are possible:
+            sage: assume(n==-1)
+            sage: integral(x^n,x)
+            log(x)
+            sage: forget()
 
         Note that an exception is raised when a definite integral is divergent.
             sage: integrate(1/x^3,x,0,1)
@@ -2668,7 +2673,7 @@ class SymbolicExpression(RingElement):
             sage: integrate(1/(x^3 *(a+b*x)^(1/3)), x)
             Traceback (most recent call last):
             ...
-            TypeError: Computation failed since Maxima requested additional constraints (use assume):
+            TypeError: Computation failed since Maxima requested additional constraints (try the command 'assume(a>0)' before integral or limit evaluation, for example):
             Is  a  positive or negative?
 
         So we just assume that $a>0$ and the integral works:

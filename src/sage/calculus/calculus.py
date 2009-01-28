@@ -3122,9 +3122,9 @@ class SymbolicExpression(RingElement):
             explicit_solutions -- bool (default True); require that
                 roots be explicit rather than implicit
             multiplicities -- bool (default True); when True, return
-            multiplicities
+                multiplicities
             ring -- a ring (default None): if not None, convert
-            self to a polynomial over ring and find roots over ring
+                self to a polynomial over ring and find roots over ring
 
         OUTPUT:
             list of pairs (root, multiplicity) or list of roots

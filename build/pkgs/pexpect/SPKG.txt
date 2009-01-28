@@ -16,24 +16,22 @@ controlling them; and responding to expected patterns in their output.
 
 == Dependencies ==
 
- * None
-
+ * Python
 
 == Special Update/Build Instructions ==
 
  * This is a svn checkout. Note that on MacIntel OSX one has to remove a number of files due to PIC issues. The problem will be fixed upstream.
+ * pexpect-2.1 is shockingly slow for SAGE (especially in the notebook) and I can't figure out why.  So we're sticking with p
+expect-2.0 for now (which works fine for us).
+ * put a try/except around __del__, to get rid of lots of pointless warning messages.
 
 == Changelog ==
 
-===  (William Stein, January 23rd, 2009) ===
- -- created proper SPKG.txt
- -- fixed bug in pexpect where it tried to run directories
+=== pexpect-2.0.p3 (Michael Abshoff, Janury 8th, 2009) ===
+ * further clean up SPKG.txt
+ * add .hgignore
 
-== NOTES ==
+=== pexpect-2.0.p2 (William Stein, January 23rd, 2009) ===
+ * created proper SPKG.txt
+ * fixed bug in pexpect where it tried to run directories
 
-NOTE -- pexpect-2.1 is shockingly slow for SAGE (especially in the notebook)
-        and I can't figure out why.  So we're sticking with pexpect-2.0
-        for now (which works fine for us).
-
- -- put a try/except around __del__, to get rid of lots of pointless
-    warning messages.

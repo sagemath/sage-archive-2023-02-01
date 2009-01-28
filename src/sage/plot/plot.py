@@ -1585,6 +1585,7 @@ def plot(funcs, *args, **kwds):
         sage: p = plot(x,x,-1,1)
         sage: p = plot(x,-1,1)
         sage: p = plot(x^2,x,-1,1)
+        sage: p = plot(x^2,xmin=-1,xmax=2)
         sage: p = plot(lambda x: x,x,-1,1)
         sage: p = plot(lambda x: x^2,x,-1,1)
         sage: p = plot(lambda x: 1/x,x,-1,1)
@@ -1609,9 +1610,13 @@ def plot(funcs, *args, **kwds):
     # if we are using the generic plotting method
     else:
         n = len(args)
-        # if there are no extra args, pick some silly default
+        # if there are no extra args, try to get xmin,xmax from
+        # keyword arguments or pick some silly default
         if n == 0:
-            G = _plot(funcs, (-1, 1), *args, **kwds)
+            xmin = kwds.pop('xmin', -1)
+            xmax = kwds.pop('xmax', 1)
+            G = _plot(funcs, (xmin, xmax), **kwds)
+
         # if there is one extra arg, then it had better be a tuple
         elif n == 1:
             G = _plot(funcs, *args, **kwds)
@@ -1628,14 +1633,14 @@ def plot(funcs, *args, **kwds):
             xmax = args[2]
             args = args[3:]
             G = _plot(funcs, (var, xmin, xmax), *args, **kwds)
+        elif ('xmin' in kwds) or ('xmax' in kwds):
+            xmin = kwds.pop('xmin', -1)
+            xmax = kwds.pop('xmax', 1)
+            G = _plot(funcs, (xmin, xmax), *args, **kwds)
+            pass
         else:
             sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
-    if kwds.has_key('xmin') and kwds.has_key('xmax'):
-        xmin = kwds['xmin']
-        xmax = kwds['xmax']
-        del kwds['xmin']
-        del kwds['xmax']
-        G = _plot(funcs, (xmin, xmax), *args, **kwds)
+
     if do_show:
         G.show()
     return G

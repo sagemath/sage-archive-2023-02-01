@@ -51,6 +51,7 @@ build()
      cp ../../patches/tools.c ../src/tools.c
      cp ../../patches/tools.h ../include/NTL/tools.h
      cp ../../patches/mfile ../src/mfile
+     cp ../../patches/DoConfig DoConfig
 
      # Run the configure script, setting CC, CXX, CFLAGS etc as need. This
      # ensures that they get written by DoConfig into 'makefile'.
@@ -75,11 +76,7 @@ build()
     echo "Building and install NTL"
 
     # Do performance tuning steps.
-    if [ `uname` = "Linux" -a `uname -m` = "ppc64" ]; then
-        echo "NTL auto tuning is broken on Linux ppc64.  Please report this to Victor Shoup.  Thanks."
-    else
-        do_tune
-    fi
+    do_tune
 
     if [ $UNAME = "Darwin" ]; then
         # OS X

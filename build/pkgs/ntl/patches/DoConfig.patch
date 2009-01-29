@@ -1,0 +1,18 @@
+--- DoConfig.orig	2009-01-28 19:02:17.000000000 -0800
++++ DoConfig	2009-01-28 19:03:28.000000000 -0800
+@@ -76,10 +76,11 @@
+ 
+ foreach $arg (@ARGV) {
+ 
+-   if ($arg =~ '-h|help|-help|--help') {
+-      system("more ../doc/config.txt");
+-      exit;
+-   }
++# Disable the help dialog since building NTL with gmp in a directory containing "-h" will trigger it
++#   if ($arg =~ '-h|help|-help|--help') {
++#      system("more ../doc/config.txt");
++#      exit;
++#   }
+ 
+    if (($name, $val) = ($arg =~ /(.*?)=(.*)/)) {
+       

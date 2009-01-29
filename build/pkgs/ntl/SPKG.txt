@@ -24,8 +24,13 @@ GPL
  * We need to modfiy new.h to accomodate Singular
  * ntl_makefile adds the needed bits to the makefile to enable the building of dynamic libraries on OSX, Cygwin and Linux
  * We modify tools.c and tools.h to provide an error callback framework (SetErrorCallbackFunction)
+ * We modify DoConfig and disable the help option
 
 == Changelog ==
+
+=== ntl-5.4.2.p5 (Michael Abshoff, July 21st, 2008) ===
+ * Disable the help switch in DoConfig (#5040)
+ * reenable tuning on 64 bit PPC Linux since it works on the PS3 (#4978)
 
 === ntl-5.4.2.p4 (Michael Abshoff, July 21st, 2008) ===
  * Fix Solaris build issue in spkg-install

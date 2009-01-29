@@ -1,0 +1,285 @@
+# This is a perl script, invoked from a shell
+
+# use warnings;  # this doesn't work on older versions of perl
+
+
+%MakeFlag = (
+
+'WIZARD'  => 'on',
+
+);
+
+%MakeVal = (
+
+'CC'	      => 'gcc',
+'CXX'	      => 'g++',
+'CFLAGS'      => '-O2',
+'CXXFLAGS'    => '$(CFLAGS)',
+'AR'	      => 'ar',
+'ARFLAGS'     => 'ruv',
+'RANLIB'      => 'ranlib',
+'LDFLAGS'     => '',
+'LDFLAGS_CXX' => '$(LDFLAGS)',
+'LDLIBS'      => '-lm',
+'LDLIBS_CXX'  => '$(LDLIBS)',
+'CPPFLAGS'    => '',
+'PREFIX'      => '/usr/local',
+'LIBDIR'      => '$(PREFIX)/lib',
+'INCLUDEDIR'  => '$(PREFIX)/include',
+'DOCDIR'      => '$(PREFIX)/doc',
+
+'GMP_PREFIX'  => undef,
+'GMP_INCDIR'  => undef,
+'GMP_LIBDIR'  => undef,
+
+);
+
+
+
+
+%ConfigFlag = (
+
+'NTL_STD_CXX'           => 'on',
+'NTL_PSTD_NNS'          => 'off',
+'NTL_PSTD_NHF'          => 'off',
+'NTL_PSTD_NTN'          => 'off',
+'NTL_GMP_LIP'           => 'off',
+'NTL_GMP_HACK'          => 'off',
+'NTL_CXX_ONLY'          => 'off',
+'NTL_X86_FIX'           => 'off',
+'NTL_NO_X86_FIX'        => 'off',
+'NTL_AVOID_FLOAT'       => 'off',
+'NTL_LONG_LONG'         => 'off',
+'NTL_SPMM_ULL'          => 'off',
+'NTL_SPMM_UL'           => 'off',
+'NTL_SPMM_ASM'          => 'off',
+'NTL_AVOID_BRANCHING'   => 'off',
+'NTL_TBL_REM'           => 'off',
+'NTL_GF2X_NOINLINE'     => 'off',
+'NTL_GF2X_ALTCODE'      => 'off',
+'NTL_GF2X_ALTCODE1'     => 'off',
+'NTL_NO_INIT_TRANS'     => 'off',
+'NTL_CLEAN_INT'         => 'off',
+'NTL_CLEAN_PTR'         => 'off',
+'NTL_RANGE_CHECK'       => 'off',
+
+);
+
+
+%ConfigVal = (
+
+'NTL_LONG_LONG_TYPE' => undef,
+'NTL_UNSIGNED_LONG_LONG_TYPE' => undef,
+
+);
+
+
+foreach $arg (@ARGV) {
+
+# Disable the help dialog since building NTL with gmp in a directory containing "-h" will trigger it
+#   if ($arg =~ '-h|help|-help|--help') {
+#      system("more ../doc/config.txt");
+#      exit;
+#   }
+
+   if (($name, $val) = ($arg =~ /(.*?)=(.*)/)) {
+
+      if (exists($MakeFlag{$name}) && ($val =~ 'on|off')) {
+         $MakeFlag{$name} = $val;
+         next;
+      }
+      elsif (exists($MakeVal{$name})) {
+         $MakeVal{$name} = $val;
+         next;
+      }
+      elsif (exists($ConfigFlag{$name}) && ($val =~ 'on|off')) {
+         $ConfigFlag{$name} = $val;
+         next;
+      }
+      elsif (exists($ConfigVal{$name})) {
+         $ConfigVal{$name} = $val;
+         next;
+      }
+   }
+
+   die "Error: unrecognized option: $arg\ntype \"./configure -h\" for help\n";
+
+}
+
+
+
+# some special logic to set GMP_INCDIR, GMP_LIBDIR, and GMP_LIB.
+# note that GMP_PREFIX is not really a variable in the makefile template
+
+if ($ConfigFlag{'NTL_GMP_LIP'} eq 'on' || $ConfigFlag{'NTL_GMP_HACK'} eq 'on') {
+
+   if (defined($MakeVal{'GMP_PREFIX'})) {
+      if (!defined($MakeVal{'GMP_INCDIR'})) {
+         $MakeVal{'GMP_INCDIR'} = "-I$MakeVal{'GMP_PREFIX'}/include";
+      }
+
+      if (!defined($MakeVal{'GMP_LIBDIR'})) {
+         $MakeVal{'GMP_LIBDIR'} = "-L$MakeVal{'GMP_PREFIX'}/lib";
+      }
+   }
+   else {
+      if (!defined($MakeVal{'GMP_INCDIR'})) {
+         $MakeVal{'GMP_INCDIR'} = '';
+      }
+
+      if (!defined($MakeVal{'GMP_LIBDIR'})) {
+         $MakeVal{'GMP_LIBDIR'} = '';
+      }
+   }
+
+   $MakeVal{'GMP_LIB'} = '-lgmp';
+}
+else {
+
+   $MakeVal{'GMP_INCDIR'} = '';
+   $MakeVal{'GMP_LIBDIR'} = '';
+   $MakeVal{'GMP_LIB'} = '';
+
+}
+
+
+
+# copy %MakeVal and %MakeFlag as is into %MakeSub
+
+%MakeSub = (%MakeVal, %MakeFlag);
+
+
+# copy %ConfigFlag into %ConfigSub, substituting 0 for off and 1 of on
+
+
+%ConfigSub = ( );
+
+foreach $name (keys %ConfigFlag) {
+
+   if ($ConfigFlag{$name} eq 'on') {
+      $ConfigSub{$name} = 1;
+   }
+   else {
+      $ConfigSub{$name} = 0;
+   }
+
+}
+
+# special logic for NTL_LONG_LONG_TYPE
+
+if (defined($ConfigVal{'NTL_LONG_LONG_TYPE'})) {
+
+   $ConfigSub{'NTL_LONG_LONG_TYPE'} = $ConfigVal{'NTL_LONG_LONG_TYPE'};
+   $ConfigSub{'FLAG_LONG_LONG_TYPE'} = 1;
+
+}
+else {
+
+   $ConfigSub{'NTL_LONG_LONG_TYPE'} = 'long long';
+   $ConfigSub{'FLAG_LONG_LONG_TYPE'} = 0;
+
+}
+
+
+# special logic for NTL_UNSIGNED_LONG_LONG_TYPE
+
+if (defined($ConfigVal{'NTL_UNSIGNED_LONG_LONG_TYPE'})) {
+
+   $ConfigSub{'NTL_UNSIGNED_LONG_LONG_TYPE'} = $ConfigVal{'NTL_UNSIGNED_LONG_LONG_TYPE'};
+   $ConfigSub{'FLAG_UNSIGNED_LONG_LONG_TYPE'} = 1;
+
+}
+else {
+
+   $ConfigSub{'NTL_UNSIGNED_LONG_LONG_TYPE'} = 'unsigned long long';
+   $ConfigSub{'FLAG_UNSIGNED_LONG_LONG_TYPE'} = 0;
+
+}
+
+# special logic for WIZARD_HACK
+
+$ConfigSub{'WIZARD_HACK'} = '';
+
+
+# some extra logic consistency checks
+
+if ($ConfigSub{'NTL_X86_FIX'} + $ConfigSub{'NTL_NO_X86_FIX'} > 1) {
+
+   die "Error: at most one of NTL_X86_FIX and NTL_NO_X86_FIX may be on\n";
+
+}
+
+if ($ConfigSub{'NTL_GMP_HACK'} + $ConfigSub{'NTL_GMP_LIP'} > 1) {
+
+   die "Error: at most one of NTL_GMP_HACK and NTL_GMP_LIP may be on\n";
+
+}
+
+if ($ConfigSub{'NTL_AVOID_FLOAT'} + $ConfigSub{'NTL_LONG_LONG'} > 1) {
+
+   die "Error: at most one of NTL_AVOID_FLOAT and NTL_LONG_LONG may be on\n";
+
+}
+
+
+if ($ConfigSub{'NTL_SPMM_UL'} + $ConfigSub{'NTL_SPMM_ULL'} +
+    $ConfigSub{'NTL_SPMM_ASM'} > 1) {
+
+   die "Error: at most one of NTL_SPMM_UL, NTL_SPMM_ULL and NTL_SPMM_ASM may be on\n";
+
+}
+
+
+if ($ConfigSub{'NTL_GF2X_ALTCODE'} + $ConfigSub{'NTL_GF2X_ALTCODE1'} > 1) {
+
+   die "Error: at most one of NTL_GF2X_ALTCODE and NTL_GF2X_ALTCODE1 may be on\n";
+
+}
+
+
+
+######################################
+
+# all tests pass -- generate files
+
+######################################
+
+# generate makefile
+
+open(MFILE, "< mfile");
+open(MFILEOUT, "> mfileout");
+
+while ($line = <MFILE>) {
+
+   $line =~ s/@\{(.*?)\}/$MakeSub{$1}/ge;
+
+   print MFILEOUT $line;
+
+}
+
+close(MFILE);
+close(MFILEOUT);
+
+
+# generate config.h
+
+open(CFILE, "< cfile");
+open(CFILEOUT, "> cfileout");
+
+while ($line = <CFILE>) {
+
+   $line =~ s/@\{(.*?)\}/$ConfigSub{$1}/ge;
+
+   print CFILEOUT $line;
+
+}
+
+close(CFILE);
+close(CFILEOUT);
+
+print("writing makefile\n");
+system("cp mfileout makefile");
+
+print("writing ../include/NTL/config.h\n");
+system("cp cfileout ../include/NTL/config.h");
+

@@ -950,10 +950,9 @@ class Set_object_intersection(Set_object):
             sage: pi in X
             False
 
-        pi is not in RR either, since the comparison takes
-        place in the symbolic ring.
+        pi is considered to be in RR, since it is a symbolic constant and can be cast into RR.
             sage: pi in RR
-            False
+            True
         """
         return x in self.__X and x in self.__Y
 

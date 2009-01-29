@@ -309,12 +309,25 @@ cdef class Parent(category_object.CategoryObject):
             True
             sage: pi in RIF # there is no element of RIF equal to pi
             False
+            sage: sqrt(2) in CC
+            True
         """
         if parent_c(x) == self:
             return True
         try:
             x2 = self(x)
-            return bool(x2 == x)
+            EQ = (x2 == x)
+            if EQ is True:
+                return True
+            elif EQ is False:
+                return False
+            elif EQ:
+                return True
+            else:
+                from sage.calculus.equations import SymbolicEquation
+                if isinstance(EQ, SymbolicEquation):
+                    return True
+                return False
         except (TypeError, ValueError):
             return False
 

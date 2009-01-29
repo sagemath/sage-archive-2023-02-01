@@ -90,6 +90,7 @@ import sage.rings.integer
 import sage.rings.rational
 
 from sage.structure.element cimport ModuleElement, RingElement, Element
+from sage.symbolic.function cimport new_SFunction_from_serial
 
 
 from sage.rings.rational import Rational  # Used for sqrt.
@@ -1116,6 +1117,100 @@ cdef class Expression(CommutativeRingElement):
         """
         return [new_Expression_from_GEx(self._gobj.op(i)) \
                             for i from 0 <= i < self._gobj.nops()]
+
+    def operator(self):
+        """
+        Returns the topmost operator in this expression.
+
+        EXAMPLES:
+            sage: x,y,z = var('x,y,z',ns=1)
+            sage: (x+y).operator()
+            <built-in function add>
+            sage: (x^y).operator()
+            <built-in function pow>
+            sage: (x^y * z).operator()
+            <built-in function mul>
+            sage: (x < y).operator()
+            <built-in function lt>
+
+            sage: abs(x).operator()
+            <built-in function abs>
+            sage: r = gamma(x).operator(); type(r)
+            <class 'sage.calculus.calculus.Function_gamma'>
+
+            sage: from sage.symbolic.function import function
+            sage: psi = function('psi', 1)
+            sage: psi(x).operator()
+            psi
+
+            sage: r = psi(x).operator()
+            sage: r == psi
+            True
+
+            sage: f = function('f', 1, conjugate_func=lambda x: 2*x)
+            sage: nf = f(x).operator()
+            sage: nf(x).conjugate()
+            2*x
+
+        TESTS:
+            sage: (x <= y).operator()
+            <built-in function le>
+            sage: (x == y).operator()
+            <built-in function eq>
+            sage: (x != y).operator()
+            <built-in function ne>
+            sage: (x > y).operator()
+            <built-in function gt>
+            sage: (x >= y).operator()
+            <built-in function ge>
+        """
+        cdef operators o
+        cdef unsigned serial
+        import operator
+        if is_a_add(self._gobj):
+            return operator.add
+        elif is_a_mul(self._gobj) or is_a_ncmul(self._gobj):
+            return operator.mul
+        elif is_a_power(self._gobj):
+            return operator.pow
+        elif is_a_relational(self._gobj):
+            # find the operator and return it
+            o = relational_operator(self._gobj)
+            if o == equal:
+                return operator.eq
+            elif o == not_equal:
+                return operator.ne
+            elif o == less:
+                return operator.lt
+            elif o == less_or_equal:
+                return operator.le
+            elif o == greater:
+                return operator.gt
+            elif o == greater_or_equal:
+                return operator.ge
+            else:
+                raise RuntimeError, "operator type not known, please report this as a bug"
+        elif is_a_function(self._gobj):
+            # get function id
+            serial = ex_to_function(self._gobj).get_serial()
+
+            from sage.symbolic.pynac import get_ginac_serial
+
+            # if operator is a special function defined by us
+            # find the python equivalent and return it
+            if serial < get_ginac_serial():
+                from sage.symbolic.function import get_sfunction_map
+                fn = get_sfunction_map()[serial]
+                if fn is None:
+                    raise NotImplementedError, "Sage equivalent of this special function is not implemented."
+                return fn
+            else: # else, return a new SFunction object with the same serial
+                return new_SFunction_from_serial(serial,
+                        <char *>ex_to_function(self._gobj).get_name(),
+                        g_registered_functions().index(serial).get_nparams())
+
+        # self._gobj is either a symbol, constant or numeric
+        return None
 
     def n(self, prec=None, digits=None):
         """

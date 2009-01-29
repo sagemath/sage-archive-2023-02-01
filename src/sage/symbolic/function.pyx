@@ -211,6 +211,24 @@ cdef class SFunction:
         """
         return self.name
 
+    def __cmp__(self, other):
+        """
+
+        TESTS:
+            sage: from sage.symbolic.function import function as nfunction
+            sage: foo = nfunction("foo", 2)
+            sage: foo == foo
+            True
+            sage: foo == 2
+            False
+            sage: foo(1,2).operator() == foo
+            True
+
+        """
+        if PY_TYPE_CHECK(other, SFunction):
+            return cmp(self.serial, (<SFunction>other).serial)
+        return False
+
     def __call__(self, *args, coerce=True):
         """
         EXAMPLES:
@@ -348,4 +366,85 @@ cdef new_SFunction_from_serial(int serial, char* name, int nargs):
     f.nargs = nargs
     return f
 
-cos = new_SFunction_from_serial(cos_serial, "cos", 1)
+def init_sfunction_map():
+    """
+    Initializes a list mapping GiNaC function serials to the equivalent Sage
+    functions.
+
+    EXAMPLES:
+        sage: from sage.symbolic.function import init_sfunction_map
+        sage: f_list = init_sfunction_map()
+        sage: f_list[8] # indices here depend on the GiNaC library
+        gamma
+        sage: f_list[12]
+        exp
+    """
+    # colliding serials (variable number of arguments): psi2, G2
+
+    f_list = [None]*get_ginac_serial()
+
+    f_list[abs_serial] = abs
+#    f_list[step_serial] = # step function
+#    f_list[csgn_serial] = # complex sign
+#    f_list[conjugate_serial] = # complex conjugation
+#    f_list[real_part_serial] = # real part
+#    f_list[imag_part_serial] = # imaginary part
+    from sage.calculus.calculus import sin, cos, tan, asin, acos, \
+            atan, sinh, cosh, tanh, asinh, acosh, atanh, exp, log, gamma, \
+            factorial
+    f_list[sin_serial] = sin # sine
+    f_list[cos_serial] = cos # cosine
+    f_list[tan_serial] = tan # tangent
+    f_list[asin_serial] = asin # inverse sine
+    f_list[acos_serial] = acos # inverse cosine
+    f_list[atan_serial] = atan # inverse tangent
+    f_list[atan2_serial] = atan # inverse tangent with two arguments
+    f_list[sinh_serial] = sinh # hyperbolic sine
+    f_list[cosh_serial] = cosh # hyperbolic cosine
+    f_list[tanh_serial] = tanh # hyperbolic tangent
+    f_list[asinh_serial] = asinh # inverse hyperbolic sine
+    f_list[acosh_serial] = acosh # inverse hyperbolic cosine
+    f_list[atanh_serial] = atanh # inverse hyperbolic tangent
+    f_list[exp_serial] = exp # exponential function
+    f_list[log_serial] = log # natural logarithm
+#    f_list[Li2_serial] = # dilogarithm
+#    f_list[Li_serial] = # classical polylogarithm as well as multiple polylogarithm
+#    f_list[G_serial] = # multiple polylogarithm
+        # G2_serial = # multiple polylogarithm with explicit signs for the imaginary parts
+#    f_list[S_serial] = # Nielsen's generalized polylogarithm
+#    f_list[H_serial] = # harmonic polylogarithm
+    from sage.functions.transcendental import zeta
+    f_list[zeta1_serial] = zeta # Riemann's zeta function as well as multiple zeta value
+#    f_list[zeta2_serial] = # alternating Euler sum
+#    f_list[zetaderiv_serial] = # derivatives of Riemann's zeta function
+    f_list[tgamma_serial] = gamma # gamma function
+#    f_list[lgamma_serial] = # logarithm of gamma function
+#    f_list[beta_serial] = # beta function (tgamma*tgamma(y)/tgamma(x+y))
+#    f_list[psi_serial] = # psi (digamma) function
+        # psi2_serial = # derivatives of psi function (polygamma functions)
+    from sage.rings.arith import binomial
+    f_list[factorial_serial] = factorial # factorial function n!
+    f_list[binomial_serial] = binomial # binomial coefficients
+    from sage.rings.big_oh import O
+    f_list[Order_serial] = O # order term function in truncated power series
+
+    return f_list
+
+sfunction_map = None
+def get_sfunction_map():
+    """
+    Returns the mapping between GiNaC function serials and Sage functions,
+    initializing it if necessary.
+
+    EXAMPLES:
+        sage: from sage.symbolic.function import get_sfunction_map
+        sage: f_list = get_sfunction_map()
+        sage: f_list[14]
+        sin
+        sage: f_list[15]
+        cos
+    """
+    global sfunction_map
+    if sfunction_map is None:
+        sfunction_map = init_sfunction_map()
+    return sfunction_map

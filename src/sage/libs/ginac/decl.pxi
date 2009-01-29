@@ -74,7 +74,13 @@ cdef extern from "ginac_wrap.h":
 
     # Relations
     ctypedef enum operators "relational::operators":
-        equal, not_equal, less, less_or_equal, greater, greater_or_equal
+        equal               "GiNaC::relational::equal"
+        not_equal           "GiNaC::relational::not_equal"
+        less                "GiNaC::relational::less"
+        less_or_equal       "GiNaC::relational::less_or_equal"
+        greater             "GiNaC::relational::greater"
+        greater_or_equal    "GiNaC::relational::greater_or_equal"
+
     bint is_negative(GEx x)                  except +
     bint is_a_relational "is_a<relational>" (GEx e)
     bint relational_to_bool(GEx e)
@@ -126,6 +132,14 @@ cdef extern from "ginac_wrap.h":
         GExSetIter end()
 
     void g_list_symbols "list_symbols" (GEx e, GExSet s)
+
+    # more is_a tests
+    bint is_a_add "is_a<add>" (GEx e)
+    bint is_a_mul "is_a<mul>" (GEx e)
+    bint is_a_power "is_a<power>" (GEx e)
+    bint is_a_function "is_a<function>" (GEx e)
+    bint is_a_ncmul "is_a<ncmul>" (GEx e)
+
 
     # Arithmetic
     int ginac_error()
@@ -179,7 +193,10 @@ cdef extern from "ginac_wrap.h":
 
 
     ctypedef struct GFunction "function":
-        pass
+        unsigned get_serial()
+        char* get_name "get_name().c_str" ()
+
+    GFunction ex_to_function "ex_to<function>" (GEx ex)
 
     GEx g_function_evalv(unsigned int serial, GExVector) except +
     GEx g_function_eval0(unsigned int serial) except +
@@ -208,6 +225,7 @@ cdef extern from "ginac_wrap.h":
             GEx, GEx, GEx, GEx, GEx, GEx, GEx, GEx) except +
 
     ctypedef struct GFunctionOpt "function_options":
+        unsigned get_nparams()
         void set_python_func()
         GFunctionOpt eval_func(object f)
         GFunctionOpt evalf_func(object f)
@@ -237,4 +255,43 @@ cdef extern from "ginac_wrap.h":
     GFunctionOptVector g_registered_functions \
             "GiNaC::function::registered_functions" ()
 
-    unsigned cos_serial "cos_SERIAL::serial"
+    # these serials allow us to map pynac function objects to
+    # Sage special functions for the .operator() method of expressions
+    unsigned abs_serial "GiNaC::abs_SERIAL::serial"
+    unsigned step_serial "GiNaC::step_SERIAL::serial"# step function
+    unsigned csgn_serial "GiNaC::csgn_SERIAL::serial"# complex sign
+    unsigned conjugate_serial "GiNaC::conjugate_SERIAL::serial"# complex conjugation
+    unsigned real_part_serial "GiNaC::real_part_SERIAL::serial" # real part
+    unsigned imag_part_serial "GiNaC::imag_part_SERIAL::serial" # imaginary part
+    unsigned sin_serial "GiNaC::sin_SERIAL::serial" # sine
+    unsigned cos_serial "GiNaC::cos_SERIAL::serial" # cosine
+    unsigned tan_serial "GiNaC::tan_SERIAL::serial" # tangent
+    unsigned asin_serial "GiNaC::asin_SERIAL::serial" # inverse sine
+    unsigned acos_serial "GiNaC::acos_SERIAL::serial" # inverse cosine
+    unsigned atan_serial "GiNaC::atan_SERIAL::serial" # inverse tangent
+    unsigned atan2_serial "GiNaC::atan2_SERIAL::serial" # inverse tangent with two arguments
+    unsigned sinh_serial "GiNaC::sinh_SERIAL::serial" # hyperbolic sine
+    unsigned cosh_serial "GiNaC::cosh_SERIAL::serial" # hyperbolic cosine
+    unsigned tanh_serial "GiNaC::tanh_SERIAL::serial" # hyperbolic tangent
+    unsigned asinh_serial "GiNaC::asinh_SERIAL::serial" # inverse hyperbolic sine
+    unsigned acosh_serial "GiNaC::acosh_SERIAL::serial" # inverse hyperbolic cosine
+    unsigned atanh_serial "GiNaC::atanh_SERIAL::serial" # inverse hyperbolic tangent
+    unsigned exp_serial "GiNaC::exp_SERIAL::serial" # exponential function
+    unsigned log_serial "GiNaC::log_SERIAL::serial" # natural logarithm
+    unsigned Li2_serial "GiNaC::Li2_SERIAL::serial" # dilogarithm
+    unsigned Li_serial "GiNaC::Li_SERIAL::serial" # classical polylogarithm as well as multiple polylogarithm
+    unsigned G_serial "GiNaC::G_SERIAL::serial" # multiple polylogarithm
+    #unsigned G2_serial "GiNaC::G_SERIAL::serial" # multiple polylogarithm with explicit signs for the imaginary parts
+    unsigned S_serial "GiNaC::S_SERIAL::serial" # Nielsen's generalized polylogarithm
+    unsigned H_serial "GiNaC::H_SERIAL::serial" # harmonic polylogarithm
+    unsigned zeta1_serial "GiNaC::zeta1_SERIAL::serial" # Riemann's zeta function as well as multiple zeta value
+    unsigned zeta2_serial "GiNaC::zeta2_SERIAL::serial" # alternating Euler sum
+    unsigned zetaderiv_serial "GiNaC::zetaderiv_SERIAL::serial" # derivatives of Riemann's zeta function
+    unsigned tgamma_serial "GiNaC::tgamma_SERIAL::serial" # gamma function
+    unsigned lgamma_serial "GiNaC::lgamma_SERIAL::serial" # logarithm of gamma function
+    unsigned beta_serial "GiNaC::beta_SERIAL::serial" # beta function (tgamma*tgamma(y)/tgamma(x+y))
+    unsigned psi_serial "GiNaC::psi_SERIAL::serial" # psi (digamma) function
+    #unsigned psi2_serial "GiNaC::psi_SERIAL::serial" # derivatives of psi function (polygamma functions)
+    unsigned factorial_serial "GiNaC::factorial_SERIAL::serial" # factorial function n!
+    unsigned binomial_serial "GiNaC::binomial_SERIAL::serial" # binomial coefficients
+    unsigned Order_serial "GiNaC::Order_SERIAL::serial" # order term function in truncated power series

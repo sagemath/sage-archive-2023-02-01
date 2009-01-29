@@ -265,7 +265,7 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
                 min= optimize.fmin_ncg(f,map(float,x0),fprime=gradient,fhess=hessian,fhess_p=hessian_p,**args)
     return vector(RDF,min)
 
-def minimize_constrained(func,cons,x0,gradient=None, **args):
+def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args):
     r"""
     Minimize a function with constraints.
 
@@ -282,8 +282,14 @@ def minimize_constrained(func,cons,x0,gradient=None, **args):
               with n components (assuming n variables).
 
               If the constraints are specifed as a list of intervals and there are no constraints for a given
-              variable, that component can be [None,None].
+              variable, that component can be (None,None).
 
+       algorithm - Optional, specify the algorithm to use:
+                   "default"  - default choices
+                   "l-bfgs-b" - only effective, if you specify bound constraints
+                                Ref.: C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778: L-BFGS-B,
+                                      FORTRAN routines for large scale bound constrained optimization (1997),
+                                      ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550 - 560.
 
        gradient - Optional gradient function. This will be computed automatically for symbolic functions.
                   This is only used when the constraints are specified as a list of intervals.
@@ -306,8 +312,19 @@ def minimize_constrained(func,cons,x0,gradient=None, **args):
 
           sage: x,y = var('x y')
           sage: f = sin(x*y)
-          sage: minimize_constrained(f, [[None,None],[4,10]],[5,5])
+          sage: minimize_constrained(f, [(None,None),(4,10)],[5,5])
           (4.8..., 4.8...)
+
+        Check, if L-BFGS-B finds the same minimum:
+          sage: minimize_constrained(f, [(None,None),(4,10)],[5,5], algorithm='l-bfgs-b')
+          (4.7..., 4.9...)
+
+        Rosenbrock funcion, [http://en.wikipedia.org/wiki/Rosenbrock_function]:
+          sage: from scipy.optimize import rosen, rosen_der
+          sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],gradient=rosen_der,algorithm='l-bfgs-b')
+          (-10.0, 10.0)
+          sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],algorithm='l-bfgs-b')
+          (-10.0, 10.0)
 
     """
     from sage.calculus.calculus import SymbolicExpression
@@ -329,9 +346,16 @@ def minimize_constrained(func,cons,x0,gradient=None, **args):
     if isinstance(cons,list):
         if isinstance(cons[0],tuple) or isinstance(cons[0],list) or cons[0]==None:
             if gradient!=None:
-                min= optimize.fmin_tnc(f,x0,gradient,bounds=cons,messages=0,**args)[0]
+                if algorithm=='l-bfgs-b':
+                    min= optimize.fmin_l_bfgs_b(f,x0,gradient,bounds=cons, iprint=-1, **args)[0]
+                else:
+                    min= optimize.fmin_tnc(f,x0,gradient,bounds=cons,messages=0,**args)[0]
             else:
-                min= optimize.fmin_tnc(f,x0,approx_grad=True,bounds=cons,messages=0,**args)[0]
+                if algorithm=='l-bfgs-b':
+                    min= optimize.fmin_l_bfgs_b(f,x0,approx_grad=True,bounds=cons,iprint=-1, **args)[0]
+                else:
+                    min= optimize.fmin_tnc(f,x0,approx_grad=True,bounds=cons,messages=0,**args)[0]
+
         elif isinstance(cons[0],function_type):
             min= optimize.fmin_cobyla(f,x0,cons,iprint=0,**args)
     elif isinstance(cons, function_type):

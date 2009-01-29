@@ -1,9 +1,36 @@
-= networkx-0.99 =
+= NetworkX =
+
+== Description ==
+
+NetworkX (NX) is a Python package for the creation, manipulation, and study of the structure, dynamics, and functions of complex networks.
+
+== License ==
+
+LGPL V2.1 or later
+
+== SPKG Maintainers ==
+ * Robert Miller
+ * Michael Abshoff
+
+== Upstream Contact ==
+
+See http://networkx.lanl.gov/
+
+== Dependencies ==
+ * numpy
+ * scipy
+
+== Special Update/Build Instructions ==
+ * remove the src/doc/data directory containing various pngs
+
+== Changelog ==
+
+=== networkx-0.99.p0 (Michael Abshoff, January 28th, 2009) ===
+ * cleanup SPKG.txt
+ * cleanup spkg-install
 
 === networkx-0.99 (Robert Miller, Dec. 23rd, 2008) ===
  * upgraded to the 0.99 release
-
-= networkx-0.36 =
 
 === networkx-0.36.p1 (Michael Abshoff, Jan. 31st, 2008) ===
  * remove .svn directories (#2009)
@@ -14,7 +41,4 @@
 === networkx-0.36 ===
  * update to the 0.36 release (Robert Miller)
  * remove src/doc/data directory to cut down the size (Michael Abshoff)
-
-= notes =
- * remove the src/doc/data directory containing various pngs
 

@@ -1510,6 +1510,20 @@ cdef class Expression(CommutativeRingElement):
         _sig_off
         return new_Expression_from_GEx(x)
 
+    def collect_common_factors(self):
+        """
+
+        EXAMPLES:
+            sage: var('x', ns=1)
+            x
+            sage: (x/(x^2 + x)).collect_common_factors()
+            1/(x + 1)
+        """
+        _sig_on
+        cdef GEx x = g_collect_common_factors(self._gobj)
+        _sig_off
+        return new_Expression_from_GEx(x)
+
     def __abs__(self):
         """
         Return the absolute value of this expression.

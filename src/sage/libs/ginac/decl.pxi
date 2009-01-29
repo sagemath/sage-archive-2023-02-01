@@ -157,6 +157,7 @@ cdef extern from "ginac_wrap.h":
     GEx g_pow "pow" (GEx left, GEx exp)      except +
 
     GSymbol get_symbol(char* s)              except +
+    GEx g_collect_common_factors "collect_common_factors" (GEx e) except +
 
     GEx g_abs "GiNaC::abs" (GEx x)           except +
     GEx g_step "GiNaC::step" (GEx x)	     except +  # step function

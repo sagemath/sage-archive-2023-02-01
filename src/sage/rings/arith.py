@@ -2170,11 +2170,19 @@ def binomial(x,m):
         n
         sage: binomial(2^100, 2^100)
         1
+
+        sage: k, i = var('k,i',ns=1)
+        sage: binomial(k,i)
+        binomial(k,i)
     """
     if not isinstance(m, (int, long, integer.Integer)):
         try:
             m = ZZ(x-m)
         except TypeError:
+            try:
+                return x.binomial(m)
+            except AttributeError:
+                pass
             raise TypeError, 'Either m or x-m must be an integer'
     if isinstance(x, (int, long, integer.Integer)):
         if m < 0 or m > x:

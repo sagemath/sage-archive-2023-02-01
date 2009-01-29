@@ -7224,6 +7224,9 @@ class Function_factorial(PrimitiveFunction):
         sage: _.sage()
         factorial(z)
 
+        sage: k = var('k',ns=1)
+        sage: factorial(k)
+        factorial(k)
     """
     def _repr_(self, simplify=True):
         """
@@ -7289,6 +7292,10 @@ class Function_factorial(PrimitiveFunction):
         except (TypeError, ValueError), err:
             if 'nonnegative' in str(err):
                 raise
+            try:
+                return n.factorial()
+            except AttributeError:
+                pass
 
         return SymbolicComposition(self, SR(n))
 

@@ -1212,6 +1212,81 @@ cdef class Expression(CommutativeRingElement):
         # self._gobj is either a symbol, constant or numeric
         return None
 
+    def __iter__(self):
+        """
+        Return an iterator over the arguments of this expression.
+
+        EXAMPLES:
+            sage: x,y,z = var('x,y,z',ns=1)
+            sage: list(iter(x+y+z))
+            [x, y, z]
+            sage: list(iter(x*y*z))
+            [x, y, z]
+            sage: list(iter(x^y*z*(x+y)))
+            [x + y, x^y, z]
+        """
+        return new_ExpIter_from_Expression(self)
+
+    def __getitem__(self, ind):
+        """
+        EXAMPLES:
+            sage: x,y,z = var('x,y,z',ns=1)
+            sage: e = x + x*y + z^y + 3*y*z; e
+            x*y + 3*y*z + z^y + x
+            sage: e[1]
+            3*y*z
+            sage: e[-1]
+            x
+            sage: e[1:]
+            [3*y*z, z^y, x]
+            sage: e[:2]
+            [x*y, 3*y*z]
+            sage: e[-2:]
+            [z^y, x]
+            sage: e[:-2]
+            [x*y, 3*y*z]
+
+        """
+        cdef int bind, eind, step, i
+        cdef int n_ops = self._gobj.nops()
+        if PY_TYPE_CHECK(ind, slice):
+            if ind.start:
+                bind = ind.start
+                if bind != ind.start:
+                    raise ValueError, "integer index expected"
+                if bind < 0:
+                    bind = n_ops + bind
+            else:
+                bind = 0
+            if ind.stop:
+                eind = ind.stop
+                if eind != ind.stop:
+                    raise ValueError, "integer index expected"
+                if eind > n_ops:
+                    eind = n_ops
+                if eind < 0:
+                    eind = n_ops + eind
+            else:
+                eind = n_ops
+            if ind.step:
+                step = ind.step
+                if step != ind.step:
+                    raise ValueError, "step value must be an integer"
+            else:
+                step = 1
+            return [new_Expression_from_GEx(self._gobj.op(i))
+                    for i in xrange(bind, eind, step)]
+
+        try:
+            bind = ind
+            if bind != ind:
+                raise ValueError, "integer index expected"
+        except TypeError:
+            raise TypeError, "index should either be a slice object, or an integer"
+        if bind < 0:
+            bind = n_ops + bind
+        return new_Expression_from_GEx(self._gobj.op(bind))
+
     def n(self, prec=None, digits=None):
         """
         Return a numerical approximation of self.
@@ -2061,3 +2136,53 @@ cdef Expression new_Expression_from_GEx(GEx juice):
     GEx_construct_ex(&nex._gobj, juice)
     nex._parent = ring.NSR
     return nex
+
+cdef class ExpressionIterator:
+    cdef Expression _ex
+    cdef int _ind
+    cdef int _len
+    def __iter__(self):
+        """
+        Return this iterator object itself.
+
+        EXAMPLE:
+            sage: x,y,z = var('x,y,z',ns=1)
+            sage: i = iter(x+y)
+            sage: iter(i) is i
+            True
+        """
+        return self
+
+    def __next__(self):
+        """
+        Return the next component of the expression.
+
+        EXAMPLE:
+            sage: x,y,z = var('x,y,z',ns=1)
+            sage: i = iter(x+y)
+            sage: i.next()
+            x
+        """
+        cdef GEx ex
+        if self._ind == self._len:
+            raise StopIteration
+        ex = self._ex._gobj.op(self._ind)
+        self._ind+=1
+        return new_Expression_from_GEx(ex)
+
+cdef inline ExpressionIterator new_ExpIter_from_Expression(Expression ex):
+    """
+    Construct a new iterator over a symbolic expression.
+
+    EXAMPLES:
+        sage: x,y,z = var('x,y,z',ns=1)
+        sage: i = iter(x+y) #indirect doctest
+    """
+    # The const_iterator in GiNaC just keeps an integer index to the current
+    # subexpression. We do the same here, to avoid the trouble of having to
+    # mess with C++ class constructors/destructors.
+    cdef ExpressionIterator m = <ExpressionIterator>PY_NEW(ExpressionIterator)
+    m._ex = ex
+    m._ind = 0
+    m._len  = ex._gobj.nops()
+    return m

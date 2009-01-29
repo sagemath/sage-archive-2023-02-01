@@ -36,13 +36,15 @@ def CartesianProduct(*iters):
       by a function, then you should use IterableFunctionCall class
       defined in sage.combinat.misc.
 
-        sage: def a(): yield 1; yield 2
+        sage: def a(n): yield 1*n; yield 2*n
         sage: def b(): yield 'a'; yield 'b'
-        sage: CartesianProduct(a(), b()).list()
-        [[1, 'a'], [1, 'b']]
+        sage: CartesianProduct(a(3), b()).list()
+        [[3, 'a'], [3, 'b']]
         sage: from sage.combinat.misc import IterableFunctionCall
-        sage: CartesianProduct(IterableFunctionCall(a), IterableFunctionCall(b)).list()
-        [[1, 'a'], [1, 'b'], [2, 'a'], [2, 'b']]
+        sage: CartesianProduct(IterableFunctionCall(a, 3), IterableFunctionCall(b)).list()
+        [[3, 'a'], [3, 'b'], [6, 'a'], [6, 'b']]
+
+      See the documentation for IterableFunctionCall for more information.
     """
     return CartesianProduct_iters(*iters)
 

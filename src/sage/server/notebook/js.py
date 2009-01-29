@@ -1684,7 +1684,12 @@ function evaluate_text_cell_callback(status, response_text) {
     id = X[0];
     text = X[1];
     text_cell = get_element('cell_text_'+id);
-    $(text_cell).html(eval_script_tags(text));
+    var new_html =separate_script_tags(text);
+    $(text_cell).replaceWith(new_html[0]);
+    // Need to get the new text cell.
+    text_cell = get_element('cell_text_'+id);
+    setTimeout(new_html[1], 50);
+
     if (contains_jsmath(text)) {
         try {
             jsMath.ProcessBeforeShowing(text_cell);
@@ -3258,6 +3263,21 @@ function make_new_cell(id, html) {
     return new_cell;
 }
 
+function make_new_text_cell(id, html) {
+    /*
+    Create a new cell in the DOM with given id and html defining it.    This does
+    not send a message back to the server.
+    INPUT:
+        id -- integer
+        html -- string
+    */
+    var new_html =separate_script_tags(html);
+    var new_cell = $(new_html[0])
+    setTimeout(new_html[1], 50);
+    return new_cell;
+}
+
+
 function do_insert_new_cell_before(id, new_id, new_html) {
     /*
     Insert a new cell with the given new_id and new_html
@@ -3271,10 +3291,8 @@ function do_insert_new_cell_before(id, new_id, new_html) {
         doing_split_eval -- if true, evaluate both cells id and new_id.
     */
     var new_cell = make_new_cell(new_id, new_html);
-    var cell = get_element('cell_outer_' + id);
-    var worksheet = get_element('worksheet_cell_list');
+    $('#cell_outer_'+id).before(new_cell)
 
-    worksheet.insertBefore(new_cell, cell);
     var i = cell_id_list.indexOf(eval(id));
     cell_id_list = insert_into_array(cell_id_list, i, eval(new_id));
 
@@ -3288,6 +3306,23 @@ function do_insert_new_cell_before(id, new_id, new_html) {
         evaluate_cell(new_id, false);
     }
 }
+
+
+function do_insert_new_text_cell_before(id, new_id, new_html) {
+    /*
+    Insert a new cell with the given new_id and new_html
+    before the cell with given id.
+
+    INPUT:
+        id -- integer; id of a cell
+        new_id -- integer
+        new_html -- text to put in new cell
+    */
+    var new_cell = make_new_text_cell(new_id, new_html);
+    $('#cell_outer_'+id).before(new_cell)
+}
+
+
 
 function insert_new_cell_after(id, input) {
     /*
@@ -3381,7 +3416,7 @@ function insert_new_text_cell_after_callback(status, response_text) {
     var new_id = eval(X[0]);
     var new_html = X[1];
     var id = eval(X[2]);
-    do_insert_new_cell_after(id, new_id, new_html);
+    do_insert_new_text_cell_after(id, new_id, new_html);
 }
 
 function do_insert_new_cell_after(id, new_id, new_html) {
@@ -3398,12 +3433,34 @@ function do_insert_new_cell_after(id, new_id, new_html) {
     i = id_of_cell_delta(id,1);
 
     if(i == id) {
-        // is is the last cell.
+        // i is the last cell.
         append_new_cell(new_id,new_html);
     } else {
         do_insert_new_cell_before(i, new_id, new_html);
     }
 }
+
+function do_insert_new_text_cell_after(id, new_id, new_html) {
+    /*
+    Insert a new text cell with the given new_id and new_html after the
+    cell with given id.
+
+    INPUT:
+        id -- integer
+        new_id -- integer
+        new_html -- string
+    */
+    // Find the cell id of the cell right after the cell with id.
+    i = id_of_cell_delta(id,1);
+
+    if(i == id) {
+        // i is the last cell.
+        append_new_text_cell(new_id,new_html);
+    } else {
+        do_insert_new_text_cell_before(i, new_id, new_html);
+    }
+}
+
 
 function insert_new_cell_before(id, input) {
     /*
@@ -3475,7 +3532,7 @@ function insert_new_text_cell_before_callback(status, response_text) {
     var new_id = eval(X[0]);
     var new_html = X[1];
     var id = eval(X[2]);
-    do_insert_new_cell_before(id, new_id, new_html);
+    do_insert_new_text_cell_before(id, new_id, new_html);
 }
 
 
@@ -3501,6 +3558,22 @@ function append_new_cell(id, html) {
     }else {
         jump_to_cell(id, 0);
     }
+}
+
+
+function append_new_text_cell(id, html) {
+    /*
+    Append a new text cell with given id to the end of the list of cells, then
+    position the cursor in that cell.
+
+    This modifies the DOM and nothing else.
+
+    INPUT:
+        id -- an integer
+        html -- html text that goes in the new cell.
+    */
+    var new_cell = make_new_text_cell(id, html);
+    $('#worksheet_cell_list').append(new_cell)
 }
 
 

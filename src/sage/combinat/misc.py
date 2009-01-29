@@ -237,6 +237,16 @@ class IterableFunctionCall:
         sage: for z in g: print z
         a
         b
+
+    If your function takes arguments, just put them after the function
+    name. You needn't enclose them in a tuple or anything, just put them
+    there:
+        sage: def f(n, m): yield 'a' * n; yield 'b' * m; yield 'foo'
+        sage: g = IterableFunctionCall(f, 2, 3)
+        sage: for z in g: print z
+        aa
+        bbb
+        foo
     """
     def __init__(self, f, *args, **kwargs):
         """

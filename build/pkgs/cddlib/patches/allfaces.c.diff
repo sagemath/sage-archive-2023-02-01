@@ -1,5 +1,5 @@
---- allfaces.c.orig	2008-09-23 02:27:54.835449000 -0400
-+++ allfaces.c	2008-09-23 02:28:19.364793000 -0400
+--- src/src/allfaces.c	2009-01-26 02:03:47.000000000 +0100
++++ patches/allfaces.c	2009-01-26 15:10:23.000000000 +0100
 @@ -59,18 +59,18 @@
  dd_boolean FaceEnum(dd_MatrixPtr M, dd_rowset R, dd_rowset S, dd_boolean rip, dd_colrange mindim)
  {

@@ -1,3 +1,5 @@
+=== cddlib-094f (Sebastien Barthelemy, January 26th, 2009) ===
+ * using upstream version 094f
 
 === cddlib-094b.p3 (Michael Abshoff, September 22nd, 2008) ===
  * add Solaris x86[-64] build support

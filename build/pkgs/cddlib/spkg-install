@@ -15,7 +15,7 @@ cp patches/allfaces.c src/src/
 
 cd src/
 
-# This is needed for cddlib-094b, which fails
+# This is needed for cddlib-094, which fails
 # to find the gmp headers otherwise.
 CFLAGS="-I $SAGE_LOCAL/include -L$SAGE_LOCAL/lib $CFLAGS"
 export CFLAGS

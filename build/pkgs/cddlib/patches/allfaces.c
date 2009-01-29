@@ -175,6 +175,7 @@ int main(int argc, char *argv[])
   set_free(S);
 _L99:;
   if (err!=dd_NoError) dd_WriteErrorMessages(stderr,err);
+  dd_free_global_constants();  /* At the end, this should be called. */
   return 0;
 }
 

@@ -122,9 +122,9 @@ cdef class NSymbolicRing(Ring):
             sage: x,y = var('x,y',ns=1); SR = x.parent()
             sage: w0 = SR.wild(0); w1 = SR.wild(1)
             sage: pattern = sin(x)*w0*w1^2; pattern
-            sin(x)*$0*$1^2
+            $0*$1^2*sin(x)
             sage: f = atan(sin(x)*3*x^2); f
-            arctan(3*sin(x)*x^2)
+            arctan(3*x^2*sin(x))
             sage: f.has(pattern)
             True
             sage: f.subs(pattern == x^2)

@@ -37,13 +37,13 @@ cdef class SFunction:
         sage: psi = function('psi', 1)(r); psi
         psi(r)
         sage: g = 1/r^2*(2*r*psi.diff(r,1) + r^2*psi.diff(r,2)); g
-        (2*D[0](psi)(r)*r + D[0,0](psi)(r)*r^2)*r^(-2)
+        (r^2*D[0,0](psi)(r) + 2*r*D[0](psi)(r))/r^2
         sage: g.expand()
-        D[0,0](psi)(r) + 2*D[0](psi)(r)*r^(-1)
+        2*D[0](psi)(r)/r + D[0,0](psi)(r)
         sage: g.coeff(psi.diff(r,2))
         1
         sage: g.coeff(psi.diff(r,1))
-        2*r^(-1)
+        2/r
     """
     cdef unsigned int serial
     cdef object name
@@ -67,7 +67,7 @@ cdef class SFunction:
             sage: foo = nfunction("foo", 2)
             sage: x,y,z = var("x y z", ns=1)
             sage: foo(x,y) + foo(y,z)^2
-            foo(x,y) + foo(y,z)^2
+            foo(y,z)^2 + foo(x,y)
 
             sage: def ev(x): return 2*x
             sage: foo = nfunction("foo", 1, eval_func=ev)

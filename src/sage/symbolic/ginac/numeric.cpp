@@ -128,6 +128,8 @@ extern "C" PyObject* py_eval_catalan(long ndigits);
 
 extern "C" int py_get_parent_char(PyObject* o);
 
+extern "C" char* py_latex(PyObject* o);
+
 // Call the Python function f on *this as input and return the result
 // as a PyObject*.
 #define PY_RETURN(f)  PyObject *a = Number_T_to_pyobject(*this);		 \
@@ -746,7 +748,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     case PYOBJECT:
       int result;
       if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result)== -1) {
-	py_error("==");
+	      PyErr_Clear();
+	      result = 1;
+	//py_error("==");
       }
       verbose2("result =", result);
       return (result == 0);
@@ -889,7 +893,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       return 1;
     case PYOBJECT:
       int result;
-      if (PyObject_Cmp(v._pyobject, ZERO, &result) == -1) 
+      if (PyObject_Cmp(v._pyobject, ZERO, &result) == -1)
 	py_error("csgn");
       return result;
     default:
@@ -1468,8 +1472,14 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     dst = (long int) arg;   // TODO: worry about long int to unsigned int!!
   }
 
-  void numeric::print_numeric(const print_context & c, const char *par_open, const char *par_close, const char *imag_sym, const char *mul_sym, unsigned level) const
+  void numeric::print_numeric(const print_context & c, const char *par_open,
+		  const char *par_close, const char *imag_sym, 
+		  const char *mul_sym, unsigned level, bool latex=false) const
   {
+	  if (latex) {
+		  c.s<<py_latex(to_pyobject());
+		  return;
+	  }
     // TODO: This is stupid.  Should make it so value.real() and value.imag() are defined. 
     Number_T r = real().value, i = imag().value;
     
@@ -1512,16 +1522,16 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	print_real_number(c, r);
 	if (i < Number_T(0)) {
 	  if (i == Number_T(-1)) {
-	    c.s << "-" << imag_sym;
+	    c.s << " - " << imag_sym;
 	  } else {
 	    print_real_number(c, i);
 	    c.s << mul_sym << imag_sym;
 	  }
 	} else {
 	  if (i == Number_T(1)) {
-	    c.s << "+" << imag_sym;
+	    c.s << " + " << imag_sym;
 	  } else {
-	    c.s << "+";
+	    c.s << " + ";
 	    print_real_number(c, i);
 	    c.s << mul_sym << imag_sym;
 	  }
@@ -1534,12 +1544,12 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   void numeric::do_print(const print_context & c, unsigned level) const
   {
-    print_numeric(c, "(", ")", "I", "*", level);
+    print_numeric(c, "(", ")", "I", "*", level, false);
   }
 
   void numeric::do_print_latex(const print_latex & c, unsigned level) const
   {
-    print_numeric(c, "{(", ")}", "i", " ", level);
+    print_numeric(c, "{(", ")}", "i", " ", level, true);
   }
 
   void numeric::do_print_csrc(const print_csrc & c, unsigned level) const
@@ -1713,7 +1723,10 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   {
     GINAC_ASSERT(is_exactly_a<numeric>(other));
     const numeric &o = static_cast<const numeric &>(other);
-    return (value - o.value).csgn();
+    int cmpval = (real() - o.real()).csgn();
+    if (cmpval != 0)
+	    return cmpval;
+    return (imag() - o.imag()).csgn();
   }
 
 

@@ -20,6 +20,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <sstream>
 #include <iostream>
 #include <stdexcept>
 #include <limits>
@@ -111,10 +112,13 @@ DEFAULT_ARCHIVING(add)
 
 // public
 
-void add::print_add(const print_context & c, const char *openbrace, const char *closebrace, const char *mul_sym, unsigned level) const
+void add::print_add(const print_context & c, unsigned level, bool latex) const
 {
-	if (precedence() <= level)
-		c.s << openbrace << '(';
+	if (precedence() <= level){
+		if (latex)
+			c.s<<"{";
+		c.s << '(';
+	}
 
 	numeric coeff;
 	bool first = true;
@@ -122,62 +126,67 @@ void add::print_add(const print_context & c, const char *openbrace, const char *
 	// Then proceed with the remaining factors
 	epvector::const_iterator it = seq.begin(), itend = seq.end();
 	while (it != itend) {
-		coeff = ex_to<numeric>(it->coeff);
-		if (!first) {
-			if (coeff.csgn() == -1) c.s << " - "; else c.s << " + ";
+		std::stringstream tstream;
+		print_context *tcontext_p;
+		if (latex) {
+			tcontext_p = new print_latex(tstream, c.options);
 		} else {
-			if (coeff.csgn() == -1) c.s << "-";
+			tcontext_p = new print_dflt(tstream, c.options);
+		}
+		mul(it->rest,it->coeff).print(*tcontext_p, precedence());
+
+		if (!first) {
+			if (tstream.peek() == '-') {
+				tstream.ignore();
+				c.s << " - ";
+			} else 
+				c.s << " + ";
+		} else {
 			first = false;
 		}
-		if (!coeff.is_equal(*_num1_p) &&
-		   (!coeff.is_equal(*_num_1_p) || coeff.is_parent_pos_char())) {
-			if (coeff.is_rational()) {
-				if (coeff.is_negative())
-					(-coeff).print(c);
-				else
-					coeff.print(c);
-			} else {
-				if (coeff.csgn() == -1)
-					(-coeff).print(c, precedence());
-				else
-					coeff.print(c, precedence());
-			}
-			c.s << mul_sym;
-		}
-		it->rest.print(c, precedence());
+		tstream.get(*(c.s.rdbuf()));
+		delete tcontext_p;
 		++it;
 	}
 
 	// Finally print the "overall" numeric coefficient, if present.
 	// This is just the constant coefficient. 
 	if (!(ex_to<numeric>(overall_coeff)).is_zero()) {
-	  if (first) {
-	    overall_coeff.print(c, 0);
-	  } else if (!first) {
-	    if ( (ex_to<numeric>(overall_coeff)).csgn() == -1) {
-	      c.s << " - ";
-	      (-overall_coeff).print(c, 0);
-	    } else {
-	      c.s << " + ";
-	      overall_coeff.print(c, 0);
-	    }
-	  }
+		std::stringstream tstream;
+		print_context *tcontext_p;
+		if (latex) {
+			tcontext_p = new print_latex(tstream, c.options);
+		} else {
+			tcontext_p = new print_dflt(tstream, c.options);
+		}
+		overall_coeff.print(*tcontext_p, 0);
+		if (!first) {
+			if (tstream.peek() == '-') {
+				c.s << " - ";
+				tstream.ignore();
+			} else
+				c.s << " + ";
+		}
+
+		tstream.get(*(c.s.rdbuf()));
+		delete tcontext_p;
 	}
 
-	if (precedence() <= level)
-		c.s << ')' << closebrace;
-
-
+	if (precedence() <= level) {
+		c.s << ')';
+		if (latex)
+			c.s << '}';
+	}
 }
 
 void add::do_print(const print_context & c, unsigned level) const
 {
-	print_add(c, "", "", "*", level);
+	print_add(c, level, false);
 }
 
 void add::do_print_latex(const print_latex & c, unsigned level) const
 {
-	print_add(c, "{", "}", " ", level);
+	print_add(c, level, true);
 }
 
 void add::do_print_csrc(const print_csrc & c, unsigned level) const

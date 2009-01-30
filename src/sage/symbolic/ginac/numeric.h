@@ -333,7 +333,9 @@ namespace GiNaC {
     //numeric(const Number_T &z);
 
   protected:
-    void print_numeric(const print_context & c, const char *par_open, const char *par_close, const char *imag_sym, const char *mul_sym, unsigned level) const;
+    void print_numeric(const print_context & c, const char *par_open,
+		    const char *par_close, const char *imag_sym,
+		    const char *mul_sym, unsigned level, bool latex) const;
     void do_print(const print_context & c, unsigned level) const;
     void do_print_latex(const print_latex & c, unsigned level) const;
     void do_print_csrc(const print_csrc & c, unsigned level) const;

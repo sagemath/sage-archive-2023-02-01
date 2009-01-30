@@ -30,6 +30,8 @@ extern "C" PyObject* py_binomial_int(int n, unsigned int k);
 #include <iostream>
 #include <stdexcept>
 #include <limits>
+#include <sstream>
+#include <string>
 
 #include "power.h"
 #include "expairseq.h"
@@ -115,12 +117,12 @@ void power::print_power(const print_context & c, const char *powersymbol, const 
 	if (precedence() <= level)
 		c.s << openbrace << '(';
 	basis.print(c, precedence());
-	c.s << powersymbol;
-	c.s << openbrace;
-	exponent.print(c, precedence());
-	c.s << closebrace;
 	if (precedence() <= level)
 		c.s << ')' << closebrace;
+	c.s << powersymbol;
+	c.s << openbrace;
+	exponent.print(c, level);
+	c.s << closebrace;
 }
 
 void power::do_print_dflt(const print_dflt & c, unsigned level) const
@@ -132,8 +134,43 @@ void power::do_print_dflt(const print_dflt & c, unsigned level) const
 		basis.print(c);
 		c.s << ')';
 
-	} else
-		print_power(c, "^", "", "", level);
+	} else if (exponent.is_equal(_ex_1_2)) {
+		// Square roots are printed in a special way
+		c.s << "1/sqrt(";
+		basis.print(c);
+		c.s << ')';
+	} else {
+		
+		std::stringstream tstream;
+		print_dflt tcontext(tstream, c.options);
+		exponent.print(tcontext, level);
+		std::string expstr = tstream.str();
+		if (expstr[0] == '-') {
+			c.s<<"1/";
+			expstr = expstr.erase(0, 1);
+		}
+		if (precedence() <= level)
+			c.s << '(';
+		basis.print(c, precedence());
+		if (!exponent.is_equal(_ex_1)) {
+			c.s << "^";
+			bool paranthesis = ((expstr.find(' ') != 
+						std::string::npos)||
+				(expstr.find('+') != std::string::npos) ||
+				(expstr.find('-') != std::string::npos) ||
+				(expstr.find('/') != std::string::npos) ||
+				(expstr.find('*') != std::string::npos) ||
+				(expstr.find('^') != std::string::npos));
+			if (paranthesis)
+				c.s << '(';
+			c.s<<expstr;
+			if (paranthesis)
+				c.s << ')';
+		}
+		if (precedence() <= level)
+			c.s << ')';
+	}
+		
 }
 
 void power::do_print_latex(const print_latex & c, unsigned level) const

@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <limits>
 #include <cmath>
+#include <sstream>
 
 #include "mul.h"
 #include "add.h"
@@ -126,28 +127,43 @@ DEFAULT_ARCHIVING(mul)
 // functions overriding virtual functions from base classes
 //////////
 
-void mul::print_overall_coeff(const print_context & c, const char *mul_sym) const
+void mul::print_overall_coeff(const print_context & c,
+		const char *mul_sym, bool latex) const
 {
 	const numeric &coeff = ex_to<numeric>(overall_coeff);
-	if (coeff.csgn() == -1)
+	std::stringstream tstream;
+	print_context* tcontext_p;
+	if (latex)
+		tcontext_p = new print_latex(tstream, c.options);
+	else
+		tcontext_p = new print_dflt(tstream, c.options);
+	//print_context tcontext(tstream, c.options);
+	coeff.print(*tcontext_p, 0);
+	std::string coeffstr = tstream.str();
+	delete tcontext_p;
+	if (coeffstr[0] == '-') {
 		c.s << '-';
+		coeffstr = coeffstr.erase(0, 1);
+	}
+
+	bool paranthesis = ((coeffstr.find(' ') != std::string::npos)||
+		(coeffstr.find('+') != std::string::npos) ||
+		(coeffstr.find('-') != std::string::npos));// ||
+		//(coeffstr.find('/') != std::string::npos) ||
+		//(coeffstr.find('*') != std::string::npos) ||
+		//(coeffstr.find('^') != std::string::npos));
 	if (!coeff.is_equal(*_num1_p) &&
 		(!coeff.is_equal(*_num_1_p) || coeff.is_parent_pos_char())) {
-		if (coeff.is_rational()) {
-			if (coeff.is_negative())
-				(-coeff).print(c);
-			else
-				coeff.print(c);
-		} else {
-			if (coeff.csgn() == -1)
-				(-coeff).print(c, precedence());
-			else
-				coeff.print(c, precedence());
-		}
+		if (paranthesis)
+			c.s << '(';
+		c.s<<coeffstr;
+		if (paranthesis)
+			c.s << ')';
 		c.s << mul_sym;
 	}
 }
 
+/*
 void mul::do_print(const print_context & c, unsigned level) const
 {
 	if (precedence() <= level)
@@ -169,13 +185,42 @@ void mul::do_print(const print_context & c, unsigned level) const
 	if (precedence() <= level)
 		c.s << ')';
 }
+*/
+
+void mul::do_print(const print_context & c, unsigned level) const
+{
+	do_print_rat_func(c, level, false);
+}
 
 void mul::do_print_latex(const print_latex & c, unsigned level) const
 {
-	if (precedence() <= level)
-		c.s << "{(";
+	do_print_rat_func(c, level, true);
+}
 
-	print_overall_coeff(c, " ");
+void mul::print_exvector(const exvector & v, const print_context & c,
+		char* sep) const
+{
+	bool first = true;
+	exvector::const_iterator vit = v.begin(), vitend = v.end();
+	while (vit != vitend) {
+		if (!first)
+			c.s << sep;
+		else
+			first = false;
+		vit->print(c, precedence());
+		++vit;
+	}
+}
+
+void mul::do_print_rat_func(const print_context & c, unsigned level,
+		bool latex_tags) const
+{
+	char *sep;
+	if (latex_tags) {
+		sep = " ";
+	} else {
+		sep = "*";
+	}
 
 	// Separate factors into those with negative numeric exponent
 	// and all others
@@ -183,7 +228,8 @@ void mul::do_print_latex(const print_latex & c, unsigned level) const
 	exvector neg_powers, others;
 	while (it != itend) {
 		GINAC_ASSERT(is_exactly_a<numeric>(it->coeff));
-		if (ex_to<numeric>(it->coeff).is_negative())
+		if (ex_to<numeric>(it->coeff).is_real() &&
+				ex_to<numeric>(it->coeff).is_negative())
 			neg_powers.push_back(recombine_pair_to_ex(expair(it->rest, -(it->coeff))));
 		else
 			others.push_back(recombine_pair_to_ex(*it));
@@ -191,27 +237,42 @@ void mul::do_print_latex(const print_latex & c, unsigned level) const
 	}
 
 	if (!neg_powers.empty()) {
-
 		// Factors with negative exponent are printed as a fraction
-		c.s << "\\frac{";
-		mul(others).eval().print(c);
-		c.s << "}{";
-		mul(neg_powers).eval().print(c);
-		c.s << "}";
+		print_overall_coeff(c, others.size() == 0 ? "" : sep,
+				latex_tags);
+		if (latex_tags) {
+			c.s << "\\frac{";
+			if (others.empty())
+				c.s<<"1";
+			else
+				print_exvector(others, c, sep);
+			c.s << "}{";
+			print_exvector(neg_powers, c, sep);
+			c.s << "}";
+		} else {
+			if (others.empty() && ( overall_coeff.is_equal(_ex1) ||
+						overall_coeff.is_equal(_ex_1)))
+				c.s<<"1";
+			else
+				print_exvector(others, c, sep);
+			c.s << "/";
+
+			if (neg_powers.size() > 1) {
+				c.s<<"(";
+			}
+			print_exvector(neg_powers, c, sep);
+			if (neg_powers.size() > 1) {
+				c.s << ")";
+			}
+		}
 
 	} else {
 
-		// All other factors are printed in the ordinary way
-		exvector::const_iterator vit = others.begin(), vitend = others.end();
-		while (vit != vitend) {
-			c.s << ' ';
-			vit->print(c, precedence());
-			++vit;
-		}
+		print_overall_coeff(c, sep, latex_tags);
+
+		print_exvector(others, c, sep);
 	}
 
-	if (precedence() <= level)
-		c.s << ")}";
 }
 
 void mul::do_print_csrc(const print_csrc & c, unsigned level) const

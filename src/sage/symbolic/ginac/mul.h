@@ -95,9 +95,14 @@ public:
 	int compare_symbol(const symbol &other) const;
 	int compare_pow(const power &other) const;
 protected:
-	void print_overall_coeff(const print_context & c, const char *mul_sym) const;
+	void print_overall_coeff(const print_context & c,
+			const char *mul_sym, bool latex=false) const;
+	void print_exvector(const exvector & v, const print_context & c,
+		char* sep) const;
 	void do_print(const print_context & c, unsigned level) const;
 	void do_print_latex(const print_latex & c, unsigned level) const;
+	void do_print_rat_func(const print_context & c, unsigned level, 
+			bool latex_tags) const;
 	void do_print_csrc(const print_csrc & c, unsigned level) const;
 	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
 	static bool can_be_further_expanded(const ex & e);

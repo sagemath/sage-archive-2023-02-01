@@ -956,12 +956,29 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs(w0^2 == w0^3)
             (x + y)^3 + a^3 + b^3
 
+            # more than one keyword argument is accepted
+            sage: t.subs(a=b, b=c)
+            (x + y)^3 + b^2 + c^2
+
+            # using keyword arguments with a dictionary is allowed
+            sage: t.subs({a:b}, b=c)
+            (x + y)^3 + b^2 + c^2
+
+            # in this case keyword arguments override the dictionary
+            sage: t.subs({a:b}, a=c)
+            (x + y)^3 + b^2 + c^2
+
+            sage: t.subs({a:b, b:c})
+            (x + y)^3 + b^2 + c^2
+
         TESTS:
-            # no arguments returns error
+            # no arguments return the same expression
             sage: t.subs()
-            Traceback (most recent call last):
-            ...
-            TypeError: subs takes either a single keyword argument, or a dictionary, or a symbolic relational expression
+            (x + y)^3 + a^2 + b^2
+
+            # similarly for an empty dictionary argument
+            sage: t.subs({})
+            (x + y)^3 + a^2 + b^2
 
             # non keyword or dictionary argument returns error
             sage: t.subs(5)
@@ -969,50 +986,27 @@ cdef class Expression(CommutativeRingElement):
             ...
             TypeError: subs takes either a single keyword argument, or a dictionary, or a symbolic relational expression
 
-            # only one keyword argument is accepted
-            sage: t.subs(a=b, b=c)
-            Traceback (most recent call last):
-            ...
-            ValueError: Only one substitution can be performed at a time!
-
-            # using keyword arguments with a dictionary is not allowed
-            sage: t.subs({a:b}, b=c)
-            Traceback (most recent call last):
-            ...
-            ValueError: Only one substitution can be performed at a time!
-
-            # dictionary can't have more than one item
-            sage: t.subs({a:b, b:c})
-            Traceback (most recent call last):
-            ...
-            ValueError: Only one substitution can be performed at a time!
-
         """
-        if kwds:
-            if in_dict or len(kwds) != 1:
-                raise ValueError, "Only one substitution can be performed at a time!"
-            t = kwds.popitem()
-        elif isinstance(in_dict, dict):
-            if len(in_dict) > 1:
-                raise ValueError, "Only one substitution can be performed at a time!"
-            elif len(in_dict) == 1:
-                t = in_dict.popitem()
-            else:
-                return self
-        elif isinstance(in_dict, Expression):
-            return self._subs_expr(in_dict)
-        else:
-            raise TypeError, "subs takes either a single keyword argument, or a dictionary, or a symbolic relational expression"
+        cdef dict sdict = {}
+        if in_dict is not None:
+            if isinstance(in_dict, Expression):
+                return self._subs_expr(in_dict)
+            if not isinstance(in_dict, dict):
+                raise TypeError, "subs takes either a single keyword argument, or a dictionary, or a symbolic relational expression"
+            sdict = in_dict
 
-        cdef Expression left
-        cdef Expression right = self.coerce_in(t[1])
-        if isinstance(t[0], str):
+        if kwds:
             from sage.misc.sage_eval import sage_eval
-            left = self.coerce_in(sage_eval(t[0], locals=globals()))
-        else:
-            left = self.coerce_in(t[0])
-        return new_Expression_from_GEx(self._gobj.subs(\
-                g_eq(left._gobj, right._gobj)))
+            for k, v in kwds.iteritems():
+                k = sage_eval(k, locals=globals())
+                sdict[k] = v
+
+        cdef GExMap smap
+        for k, v in sdict.iteritems():
+            smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
+                (<Expression>self.coerce_in(v))._gobj))
+
+        return new_Expression_from_GEx(self._gobj.subs_map(smap))
 
     cpdef Expression _subs_expr(self, expr):
         """
@@ -1057,6 +1051,18 @@ cdef class Expression(CommutativeRingElement):
             """
         cdef Expression p = self.coerce_in(expr)
         return new_Expression_from_GEx(self._gobj.subs(p._gobj))
+
+    def __call__(self, *args, **kwds):
+        """
+        Calls the .subs() method on this expression.
+
+        EXAMPLES:
+            sage: var('x,y,z',ns=1)
+            (x, y, z)
+            sage: (x+y)(x=z^2, y=x^y)
+            x^y + z^2
+        """
+        return self.subs(*args, **kwds)
 
     def variables(self):
         """

@@ -30,6 +30,10 @@ cdef extern from "ginac_wrap.h":
 
     object GSymbol_to_str "_to_PyString<symbol>"(GSymbol *s)
 
+    ctypedef struct GExPair "std::pair<ex, ex>"
+    ctypedef struct GExMap "exmap":
+        void insert(GExPair e)
+
     ctypedef struct GEx "ex":
         unsigned int gethash()        except +
         int compare(GEx other)        except +
@@ -41,6 +45,7 @@ cdef extern from "ginac_wrap.h":
         bint match(GEx pattern)       except +
         bint has(GEx pattern)         except +
         GEx subs(GEx expr)            except +
+        GEx subs_map "subs" (GExMap map) except +
         GEx coeff(GEx expr, int n)    except +
         GEx lcoeff(GEx expr)          except +
         GEx tcoeff(GEx expr)          except +
@@ -55,6 +60,8 @@ cdef extern from "ginac_wrap.h":
         GEx conjugate()               except +
         GEx real_part()               except +
         GEx imag_part()               except +
+
+    GExPair make_pair "std::make_pair" (GEx, GEx)
 
     # Numericals
     bint is_a_numeric "is_a<numeric>" (GEx e)

@@ -71,6 +71,7 @@ cdef class NSymbolicRing(Ring):
             sage: a^2
             2
         """
+        from sage.functions.constants import pi, catalan, euler_gamma
         cdef GEx exp
 
         if isinstance(other, int):
@@ -83,6 +84,12 @@ cdef class NSymbolicRing(Ring):
             GEx_construct_pyobject(exp, other)
         elif isinstance(other, RingElement):
             GEx_construct_pyobject(exp, other)
+        elif other is pi:
+            return new_Expression_from_GEx(g_Pi)
+        elif other is catalan:
+            return new_Expression_from_GEx(g_Catalan)
+        elif other is euler_gamma:
+            return new_Expression_from_GEx(g_Euler)
         else:
             raise TypeError
         return new_Expression_from_GEx(exp)

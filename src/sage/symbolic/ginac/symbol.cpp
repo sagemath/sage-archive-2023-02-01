@@ -292,6 +292,8 @@ int symbol::compare(const basic& other) const
 {
 	static const tinfo_t pow_id = find_tinfo_key("power");
 	static const tinfo_t mul_id = find_tinfo_key("mul");
+	static const tinfo_t function_id = find_tinfo_key("function");
+	static const tinfo_t fderivative_id = find_tinfo_key("fderivative");
 	const tinfo_t typeid_this = tinfo();
 	const tinfo_t typeid_other = other.tinfo();
 	if (typeid_this==typeid_other) {
@@ -301,6 +303,9 @@ int symbol::compare(const basic& other) const
 		return -static_cast<const power&>(other).compare_symbol(*this);
 	} else if (typeid_other == mul_id) {
 		return -static_cast<const mul&>(other).compare_symbol(*this);
+	} else if (typeid_other == function_id ||
+			typeid_other == fderivative_id) {
+		return -1;
 	} else {
 		return (typeid_this<typeid_other ? -1 : 1);
 	}

@@ -1833,6 +1833,18 @@ ex function::derivative(const symbol & s) const
 	return result;
 }
 
+int function::compare(const basic& other) const
+{
+	const tinfo_t typeid_this = tinfo();
+	const tinfo_t typeid_other = other.tinfo();
+	if (typeid_this==typeid_other) {
+		GINAC_ASSERT(typeid(*this)==typeid(other));
+		return compare_same_type(other);
+	} else {
+		return 1;
+	}
+}
+
 int function::compare_same_type(const basic & other) const
 {
 	GINAC_ASSERT(is_a<function>(other));

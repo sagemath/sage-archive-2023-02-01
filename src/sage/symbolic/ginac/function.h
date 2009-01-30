@@ -676,6 +676,7 @@ public:
 	ex conjugate() const;
 	ex real_part() const;
 	ex imag_part() const;
+	int compare(const basic &other) const;
 protected:
 	ex derivative(const symbol & s) const;
 	bool is_equal_same_type(const basic & other) const;

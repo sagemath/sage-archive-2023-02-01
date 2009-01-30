@@ -831,6 +831,8 @@ int basic::compare(const basic & other) const
 #ifdef GINAC_COMPARE_STATISTICS
 	compare_statistics.total_basic_compares++;
 #endif
+	static const tinfo_t function_id = find_tinfo_key("function");
+	static const tinfo_t fderivative_id = find_tinfo_key("fderivative");
 	const tinfo_t typeid_this = tinfo();
 	const tinfo_t typeid_other = other.tinfo();
 
@@ -866,6 +868,9 @@ int basic::compare(const basic & other) const
 		compare_statistics.compare_same_type++;
 #endif
 		return compare_same_type(other);
+	} else if (typeid_other == function_id ||
+			typeid_other == fderivative_id) {
+		return -1;
 	} else {
 // 		std::cout << "hash collision, different types: " 
 // 		          << *this << " and " << other << std::endl;

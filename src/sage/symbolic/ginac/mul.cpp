@@ -835,6 +835,8 @@ double mul::total_degree() const
 
 int mul::compare(const basic& other) const
 {
+	static const tinfo_t function_id = find_tinfo_key("function");
+	static const tinfo_t fderivative_id = find_tinfo_key("fderivative");
 	static const tinfo_t pow_id = find_tinfo_key("power");
 	static const tinfo_t symbol_id = find_tinfo_key("symbol");
 	const tinfo_t typeid_this = tinfo();
@@ -846,6 +848,9 @@ int mul::compare(const basic& other) const
 		return compare_pow(static_cast<const power&>(other));
 	} else if (typeid_other == symbol_id) {
 		return compare_symbol(static_cast<const symbol&>(other));
+	} else if (typeid_other == function_id ||
+			typeid_other == fderivative_id) {
+		return -1;
 	} else {
 		return (typeid_this<typeid_other ? -1 : 1);
 	}

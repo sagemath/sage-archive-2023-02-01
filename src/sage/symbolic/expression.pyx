@@ -164,6 +164,32 @@ cdef class Expression(CommutativeRingElement):
         """
         return GEx_to_str(&self._gobj)
 
+    def _latex_(self):
+        """
+        Return string representation of this symbolic expression.
+
+        EXAMPLES:
+
+
+        TESTS:
+            sage: var('x,y,z',ns=1)
+            (x, y, z)
+            sage: latex(y + 3*(x^(-1)))
+            y + 3\frac{1}{x}
+            sage: latex(x^(y+z^(1/y)))
+            x^{z^{\frac{1}{y}} + y}
+            sage: latex(1/sqrt(x+y))
+            \frac{1}{\sqrt{x + y}}
+            sage: latex(sin(x*(z+y)^x))
+            \sin({(y + z)}^{x} x)
+            sage: latex(3/2*(x+y)/z/y)
+            \frac{3}{2} \frac{{(x + y)}}{y z}
+            sage: latex((2^(x^y)))
+            2^{x^{y}}
+
+        """
+        return GEx_to_str_latex(&self._gobj)
+
     def _integer_(self, ZZ=None):
         """
         EXAMPLES:
@@ -567,6 +593,14 @@ cdef class Expression(CommutativeRingElement):
             sage: a = 1000 + 300*x + x^3 + 30*x^2
             sage: a*Mod(1,7)
             x^3 + 2*x^2 + 6*x + 6
+
+            sage: var('z',ns=1)
+            z
+            sage: 3*(x+y)/z
+            3*(x + y)/z
+            sage: (-x+z)*(3*x-3*z)
+            -3*(x - z)^2
+
 
         """
         cdef GEx x
@@ -1473,11 +1507,11 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: gcd: arguments must be polynomials over the rationals
             sage: gcd(x^3 - y^3, x-y)
-            x - y
+            -x + y
             sage: gcd(x^100-y^100, x^10-y^10)
-            x^10 - y^10
+            -x^10 + y^10
             sage: gcd(expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) ), expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3)) )
-            -1/7*x^5 + 17/7*y - 2/21
+            1/7*x^5 - 17/7*y + 2/21
         """
         cdef Expression r = self.coerce_in(b)
         _sig_on
@@ -1697,13 +1731,18 @@ cdef class Expression(CommutativeRingElement):
             sage: tan(x^2 + y^2)
             tan(x^2 + y^2)
             sage: tan(sage.symbolic.constants.pi/2)
-            tan(1/2*Pi)
+            Traceback (most recent call last):
+            ...
+            ValueError: simple pole at 1/2*Pi
             sage: tan(S(1))
             tan(1)
             sage: tan(S(RealField(150)(1)))
             1.5574077246549022305069748074583601730872508
         """
-        return new_Expression_from_GEx(g_tan(self._gobj))
+        try:
+            return new_Expression_from_GEx(g_tan(self._gobj))
+        except RuntimeError:
+            raise ValueError, "simple pole at %s"%(self)
 
     def arcsin(self):
         """
@@ -1907,7 +1946,7 @@ cdef class Expression(CommutativeRingElement):
 
         Sage automatically applies certain identies:
             sage: S(3/2).arcsinh().cosh()
-            sqrt(13/4)
+            1/2*sqrt(13)
         """
         return new_Expression_from_GEx(g_asinh(self._gobj))
 
@@ -1959,7 +1998,7 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES:
             sage: x = var('x', ns=1); S = x.parent()
             sage: x.exp()
-            e^(x)
+            e^x
             sage: S(0).exp()
             1
             sage: S(1/2).exp()
@@ -2094,7 +2133,7 @@ cdef class Expression(CommutativeRingElement):
             1
             sage: S(10).gamma()
             362880
-            sage: S(10.0).gamma()
+            sage: S(10.0r).gamma()
             362880.000000000
             sage: S(CDF(1,1)).gamma()
             0.498015668118-0.154949828302*I

@@ -206,6 +206,14 @@ PyObject* py_object_from_numeric(ex x) {
     return (ex_to<numeric>(x)).to_pyobject();
 }
 
+template <class T>
+PyObject* _to_PyString_latex(const T *x)
+{
+  std::ostringstream instore;
+  instore << latex << (*x);
+  return PyString_FromString(instore.str().data());
+}
+
 #define ASSIGN_WRAP(x,y) x = y
 
 #define ADD_WRAP(x,y) (x)+(y)

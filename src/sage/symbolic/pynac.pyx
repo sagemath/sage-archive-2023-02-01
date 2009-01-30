@@ -16,6 +16,7 @@ include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
 include "../libs/ginac/decl.pxi"
 
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr import RR, RealField
 from sage.rings.all import CC
@@ -94,6 +95,18 @@ def get_ginac_serial():
         True
     """
     return GINAC_FN_SERIAL
+
+#################################################################
+# Printing helpers
+#################################################################
+
+cdef extern from *:
+    char* py_latex(object o) except +
+
+cdef public char* py_latex(object o) except +:
+    from sage.misc.latex import latex
+    s = latex(o)
+    return s
 
 #################################################################
 # Modular helpers
@@ -296,8 +309,9 @@ cdef public bint py_is_rational(object x):
 
 
 cdef public bint py_is_integer(object x):
-    return PY_TYPE_CHECK_EXACT(x, Integer) or\
-           IS_INSTANCE(x, int) or IS_INSTANCE(x, long)
+    #return PY_TYPE_CHECK_EXACT(x, Integer) or\
+    #       IS_INSTANCE(x, int) or IS_INSTANCE(x, long)
+    return (x in ZZ)
 
 cdef public bint py_is_real(object a):
     return py_imag(a) == 0

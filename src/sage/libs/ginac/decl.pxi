@@ -119,7 +119,8 @@ cdef extern from "ginac_wrap.h":
 
     # Conversions
     double GEx_to_double(GEx e, int* success) except +
-    object GEx_to_str "_to_PyString<ex>"(GEx *s)
+    object GEx_to_str "_to_PyString<ex>"(GEx *s) except +
+    object GEx_to_str_latex "_to_PyString_latex<ex>"(GEx *s) except +
 
     bint is_a_symbol "is_a<symbol>" (GEx e)
     GSymbol ex_to_symbol "ex_to<symbol>" (GEx e)

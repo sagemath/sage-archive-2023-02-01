@@ -222,6 +222,7 @@ public:
 	virtual ex real_part() const;
 	virtual ex imag_part() const;
 
+	virtual int compare(const basic & other) const;
 	// functions that should be called from class ex only
 protected:
 	virtual int compare_same_type(const basic & other) const;
@@ -246,7 +247,6 @@ public:
 
 	ex subs_one_level(const exmap & m, unsigned options) const;
 	ex diff(const symbol & s, unsigned nth = 1) const;
-	int compare(const basic & other) const;
 	bool is_equal(const basic & other) const;
 	const basic & hold() const;
 

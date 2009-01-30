@@ -1748,7 +1748,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  a numeric object. */
   const numeric numeric::add(const numeric &other) const
   {
-    return value + other.value;
+    return numeric(value + other.value);
   }
 
 
@@ -1756,7 +1756,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  result as a numeric object. */
   const numeric numeric::sub(const numeric &other) const
   {
-    return value - other.value;
+    return numeric(value - other.value);
   }
 
 
@@ -1764,7 +1764,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *  result as a numeric object. */
   const numeric numeric::mul(const numeric &other) const
   {
-    return value * other.value;
+    return numeric(value * other.value);
   }
 
 
@@ -1777,7 +1777,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     //todo -- delete
     if (other.is_zero()) 
       throw std::overflow_error("numeric::div(): division by zero");
-    return value / other.value;
+    return numeric(value / other.value);
   }
 
 

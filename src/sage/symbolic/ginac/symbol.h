@@ -66,6 +66,7 @@ public:
 	// functions overriding virtual functions from base classes
 public:
 	//	int compare_same_type(const basic & other) const;
+	int compare(const basic &other) const;
 	bool info(unsigned inf) const;
 	ex eval(int level = 0) const;
 	ex evalf(int level = 0) const { return *this; } // overwrites basic::evalf() for performance reasons

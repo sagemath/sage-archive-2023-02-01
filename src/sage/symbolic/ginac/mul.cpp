@@ -24,10 +24,10 @@
 #include <vector>
 #include <stdexcept>
 #include <limits>
+#include <cmath>
 
 #include "mul.h"
 #include "add.h"
-#include "power.h"
 #include "operators.h"
 #include "matrix.h"
 #include "indexed.h"
@@ -818,9 +818,123 @@ ex mul::derivative(const symbol & s) const
 	return (new add(addseq))->setflag(status_flags::dynallocated);
 }
 
+double mul::total_degree() const
+{
+	if (flags & status_flags::tdegree_calculated) {
+		return tdegree;
+	}
+	numeric tdeg = calc_total_degree();
+	if (tdeg.is_real())
+		tdegree = tdeg.to_double();
+	else
+		tdegree = std::sqrt(std::pow(tdeg.real().to_double(), 2) + 
+				std::pow(tdeg.imag().to_double(), 2));
+	setflag(status_flags::tdegree_calculated);
+	return tdegree;
+}
+
+int mul::compare(const basic& other) const
+{
+	static const tinfo_t pow_id = find_tinfo_key("power");
+	static const tinfo_t symbol_id = find_tinfo_key("symbol");
+	const tinfo_t typeid_this = tinfo();
+	const tinfo_t typeid_other = other.tinfo();
+	if (typeid_this==typeid_other) {
+		GINAC_ASSERT(typeid(*this)==typeid(other));
+		return compare_same_type(other);
+	} else if (typeid_other == pow_id) {
+		return compare_pow(static_cast<const power&>(other));
+	} else if (typeid_other == symbol_id) {
+		return compare_symbol(static_cast<const symbol&>(other));
+	} else {
+		return (typeid_this<typeid_other ? -1 : 1);
+	}
+}
+
+int mul::compare_symbol(const symbol &other) const
+{
+	int cmpval;
+	double tdeg;
+	tdeg = total_degree();
+	if (tdeg == 1) {
+		cmpval = seq[0].rest.compare(other);
+		if (cmpval != 0) {
+			return cmpval;
+		}
+		cmpval = _ex1.compare(seq[0].coeff);
+		if (cmpval != 0) {
+			return cmpval;
+		}
+		return -1;
+	}
+	return tdeg > 1 ? -1 : 1;
+}
+
+// compare this to a pow object
+// first we compare degrees
+// if equal we compare the first item in the sequence to the base in other
+int mul::compare_pow(const power &other) const
+{
+	double my_deg = total_degree();
+	double odeg;
+	numeric oexp;
+	int cmpval = 0;
+	if (is_a<numeric>(other.exponent)) {
+		numeric oexp = ex_to<numeric>(other.exponent);
+		if (oexp.is_real()) {
+			odeg = oexp.to_double();
+		} else {
+			odeg = std::sqrt(std::pow(oexp.real().to_double(), 2) + 
+					std::pow(oexp.imag().to_double(), 2));
+		}
+		if (odeg != my_deg)
+			return my_deg < odeg ? 1 : -1;
+	} else {
+		cmpval = seq[0].coeff.compare(other.exponent);
+		if (cmpval != 0)
+			return cmpval;
+	}
+	cmpval = seq[0].rest.compare(other.basis);
+	if (cmpval != 0) {
+		return cmpval;
+	}
+	if (seq.size() == 1 && overall_coeff.is_equal(_ex_1))
+		return 0;
+	return 1;
+}
+
+
 int mul::compare_same_type(const basic & other) const
 {
-	return inherited::compare_same_type(other);
+	int cmpval;
+
+	const mul &o = static_cast<const mul &>(other);
+
+	// compare total degrees
+	double deg1 = total_degree();
+	double deg2 = o.total_degree();
+	if (deg1 != deg2)
+		return deg1 < deg2 ? 1 : -1;
+
+	// compare each item in this product to correnponding element in other
+	epvector::const_iterator cit1 = seq.begin();
+	epvector::const_iterator cit2 = o.seq.begin();
+	epvector::const_iterator last1 = seq.end();
+	epvector::const_iterator last2 = o.seq.end();
+
+	for (; (cit1!=last1)&&(cit2!=last2); ++cit1, ++cit2) {
+		cmpval = (*cit1).compare(*cit2);
+		if (cmpval != 0)
+			return cmpval;
+	}
+
+	// compare sizes
+	if (cit1 != last1) 
+		return 1;
+	else if (cit2 != last2)
+		return -1;
+
+	return 0;
 }
 
 unsigned mul::return_type() const

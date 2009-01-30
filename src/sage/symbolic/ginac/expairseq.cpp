@@ -486,8 +486,19 @@ ex expairseq::subs(const exmap & m, unsigned options) const
 		return subs_one_level(m, options);
 }
 
-// protected
+// returns total degree of this sequence
+numeric expairseq::calc_total_degree() const
+{
+	numeric deg = 0;
+	epvector::const_iterator cit = seq.begin();
+	epvector::const_iterator last = seq.end();
+	for (; (cit!=last); ++cit) {
+		deg = deg.add(ex_to<numeric>(cit->coeff));
+	}
+	return deg;
+}
 
+// protected
 int expairseq::compare_same_type(const basic &other) const
 {
 	GINAC_ASSERT(is_a<expairseq>(other));
@@ -498,11 +509,13 @@ int expairseq::compare_same_type(const basic &other) const
 	// compare number of elements
 	if (seq.size() != o.seq.size())
 		return (seq.size()<o.seq.size()) ? -1 : 1;
-	
+
 	// compare overall_coeff
+	/*
 	cmpval = overall_coeff.compare(o.overall_coeff);
 	if (cmpval!=0)
 		return cmpval;
+		*/
 	
 #if EXPAIRSEQ_USE_HASHTAB
 	GINAC_ASSERT(hashtabsize==o.hashtabsize);
@@ -512,15 +525,15 @@ int expairseq::compare_same_type(const basic &other) const
 		epvector::const_iterator cit2 = o.seq.begin();
 		epvector::const_iterator last1 = seq.end();
 		epvector::const_iterator last2 = o.seq.end();
-		
+
 		for (; (cit1!=last1)&&(cit2!=last2); ++cit1, ++cit2) {
-			cmpval = (*cit1).compare(*cit2);
+			cmpval = (*cit2).compare(*cit1);
 			if (cmpval!=0) return cmpval;
 		}
-		
+
 		GINAC_ASSERT(cit1==last1);
 		GINAC_ASSERT(cit2==last2);
-		
+	
 		return 0;
 #if EXPAIRSEQ_USE_HASHTAB
 	}

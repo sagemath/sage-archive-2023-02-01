@@ -767,6 +767,34 @@ ex power::derivative(const symbol & s) const
 	}
 }
 
+int power::compare(const basic& other) const
+{
+	static const tinfo_t mul_id = find_tinfo_key("mul");
+	static const tinfo_t symbol_id = find_tinfo_key("symbol");
+	const tinfo_t typeid_this = tinfo();
+	const tinfo_t typeid_other = other.tinfo();
+	if (typeid_this==typeid_other) {
+		GINAC_ASSERT(typeid(*this)==typeid(other));
+		return compare_same_type(other);
+	} else if (typeid_other == mul_id) {
+		return -static_cast<const mul&>(other).compare_pow(*this);
+	} else if (typeid_other == symbol_id) {
+		return compare_symbol(static_cast<const symbol&>(other));
+	} else {
+		return (typeid_this<typeid_other ? -1 : 1);
+	}
+}
+
+int power::compare_symbol(const symbol & other) const
+{
+	int cmpval;
+	cmpval = _ex1.compare(exponent);
+	if (cmpval != 0) {
+		return cmpval;
+	}
+	return basis.compare(other);
+}
+
 int power::compare_same_type(const basic & other) const
 {
 	GINAC_ASSERT(is_exactly_a<power>(other));

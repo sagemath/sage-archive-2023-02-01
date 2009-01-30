@@ -24,6 +24,7 @@
 #define __GINAC_MUL_H__
 
 #include "expairseq.h"
+#include "power.h"
 
 namespace GiNaC {
 
@@ -82,6 +83,7 @@ protected:
 	bool can_make_flat(const expair & p) const;
 	ex expand(unsigned options=0) const;
 	void find_real_imag(ex&, ex&) const;
+	int compare(const basic& other) const;
 	
 	// new virtual functions which can be overridden by derived classes
 	// none
@@ -89,6 +91,9 @@ protected:
 	// non-virtual functions in this class
 public:
 	ex algebraic_subs_mul(const exmap & m, unsigned options) const;
+	double total_degree() const;
+	int compare_symbol(const symbol &other) const;
+	int compare_pow(const power &other) const;
 protected:
 	void print_overall_coeff(const print_context & c, const char *mul_sym) const;
 	void do_print(const print_context & c, unsigned level) const;
@@ -97,6 +102,8 @@ protected:
 	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
 	static bool can_be_further_expanded(const ex & e);
 	std::auto_ptr<epvector> expandchildren(unsigned options) const;
+
+	mutable double tdegree;
 };
 
 } // namespace GiNaC

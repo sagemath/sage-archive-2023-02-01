@@ -70,6 +70,8 @@ public:
 	ex conjugate() const;
 	ex real_part() const;
 	ex imag_part() const;
+	int compare(const basic& other) const;
+	int compare_symbol(const symbol& other) const;
 protected:
 	ex derivative(const symbol & s) const;
 	ex eval_ncmul(const exvector & v) const;

@@ -801,10 +801,22 @@ static ex binomial_imag_part(const ex & x, const ex & y)
 	return 0;
 }
 
+static void binomial_print_latex(const ex & x, const ex & y,
+		const print_context & c)
+{
+	c.s<<"{";
+	x.print(c);
+	c.s<<" \\choose ";
+	y.print(c);
+	c.s<<"}";
+}
+
+
 REGISTER_FUNCTION(binomial, eval_func(binomial_eval).
                             evalf_func(binomial_evalf).
                             conjugate_func(binomial_conjugate).
                             real_part_func(binomial_real_part).
+                            print_func<print_latex>(binomial_print_latex).
                             imag_part_func(binomial_imag_part));
 
 //////////

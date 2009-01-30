@@ -1128,7 +1128,7 @@ class SR_generic(MPolynomialSystemGenerator):
             e = self.e
 
         l = str(max([  len(str(rc-1)), len(str(n-1)), len(str(e-1)) ] ))
-        if name != "k":
+        if name not in ("k", "s"):
             pf = self._postfix
         else:
             pf = ""

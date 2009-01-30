@@ -6069,6 +6069,39 @@ class GenericGraph(SageObject):
                 G.add_edge(e)
         return G
 
+    def is_transitively_reduced(self):
+        r"""
+        Returns True if the digraph is transitively reduced and False
+        otherwise.
+
+        A digraph is transitively reduced if it is equal to its transitive
+        reduction.
+
+        EXAMPLES::
+
+            sage: d = DiGraph({0:[1],1:[2],2:[3]})
+            sage: d.is_transitively_reduced()
+            True
+
+            sage: d = DiGraph({0:[1,2],1:[2]})
+            sage: d.is_transitively_reduced()
+            False
+
+            sage: d = DiGraph({0:[1,2],1:[2],2:[]})
+            sage: d.is_transitively_reduced()
+            False
+        """
+        from sage.rings.infinity import Infinity
+        G = self.copy()
+        for e in self.edge_iterator():
+            G.delete_edge(e)
+            if G.distance(e[0],e[1]) == Infinity:
+                G.add_edge(e)
+            else:
+                return False
+        return True
+
+
     ### Visualization
 
     def _color_by_label(self, format='hex'):

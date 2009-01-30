@@ -31,6 +31,14 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.2 (Burcin Erocal, January 30th, 2009) ===
+ * factorial now prints as factorial(n), not n!.
+ * Change comparison functions to make higher degree terms print first.
+ * functions (and fderivatives) now print after other types.
+ * Add latex printing for binomials.
+ * exp is now printed as e^x.
+ * Change the way rational functions are printed to match Sage.
+
 === pynac-0.1.1.p0 (Michael Abshoff, January 20th, 2009) ===
  * add OSX 64 bit build support
 

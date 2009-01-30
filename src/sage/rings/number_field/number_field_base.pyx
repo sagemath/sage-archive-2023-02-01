@@ -116,7 +116,15 @@ cdef class NumberField(Field):
 
     def minkowski_bound(self):
         r"""
-        Return the Minkowski bound associated to this number field.
+        Return the Minkowski bound associated to this number field,
+        which is a bound B so that every integral ideal is equivalent
+        modulo principal fractional ideals to an integral ideal of
+        norm at most B.
+
+        See also: self.bach_bound()
+
+        OUTPUT:
+            symbolic expression or Rational
 
         EXAMPLES:
         The Minkowski bound for $\QQ[i]$ tells us that the class
@@ -158,4 +166,47 @@ cdef class NumberField(Field):
             return d * (4/pi)**s * n.factorial() / (n**n)
         else:
             return d * n.factorial() / (n**n)
+
+    def bach_bound(self):
+        r"""
+        Return the Bach bound associated to this number field.
+        Assuming the General Riemann Hypothesis, this is a bound B so
+        that every integral ideal is equivalent modulo principal
+        fractional ideals to an integral ideal of norm at most B.
+
+        See also: self.minkowski_bound()
+
+        OUTPUT:
+            symbolic expression or the Integer 1
+
+        EXAMPLES:
+        We compute both the Minkowski and Bach bounds for a quadratic
+        field, where the Minkowski bound is much better:
+            sage: K = QQ[sqrt(5)]
+            sage: K.minkowski_bound()
+            sqrt(5)/2
+            sage: K.minkowski_bound().n()
+            1.11803398874989
+            sage: K.bach_bound()
+            12*log(5)^2
+            sage: K.bach_bound().n()
+            31.0834847277628
+
+        We compute both the Minkowski and Bach bounds for a bigger
+        degree field, where the Bach bound is much better:
+            sage: K = CyclotomicField(37)
+            sage: K.minkowski_bound().n()
+            7.50857335698545e14
+            sage: K.bach_bound().n()
+            191669.304126267
+
+        The bound of course also works for the rational numbers:
+            sage: QQ.minkowski_bound()
+            1
+        """
+        ans = 12 * abs(self.discriminant()).log()**2
+        if ans == 0: # rational numbers
+            from sage.rings.integer import Integer
+            return Integer(1)
+        return ans
 

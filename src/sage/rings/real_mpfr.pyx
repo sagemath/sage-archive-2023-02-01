@@ -1682,6 +1682,36 @@ cdef class RealNumber(sage.structure.element.RingElement):
     # Rounding etc
     ###################
 
+    def __mod__(left, right):
+        """
+        Return the value of left - n*right, rounded according to the rounding
+        mode of the parent, where n is the integer quotient of x divided by y.
+        The integer n is rounded toward the nearest integer (ties rounded
+        to even).
+
+        EXAMPLES:
+            sage: 10.0 % 2r
+            0.000000000000000
+            sage: 20r % .5
+            0.000000000000000
+
+            sage 1.1 % 0.25
+            0.100000000000000
+        """
+        if not PY_TYPE_CHECK(left, Element) or \
+                not PY_TYPE_CHECK(right, Element) or \
+                (<Element>left)._parent is not (<Element>right)._parent:
+            from sage.structure.element import canonical_coercion
+            left, right = canonical_coercion(left, right)
+            return left % right
+
+        cdef RealNumber x
+        x = (<RealNumber>left)._new()
+        mpfr_remainder (x.value, (<RealNumber>left).value,
+                (<RealNumber>right).value,
+                (<RealField>(<RealNumber>left)._parent).rnd)
+        return x
+
     def round(self):
         """
         Rounds self to the nearest integer. The rounding

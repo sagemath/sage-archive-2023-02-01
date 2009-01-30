@@ -1280,8 +1280,8 @@ class MPolynomialIdeal_singular_repr:
 
         M = (F * LTF.syz()).reduce(self._singular_())
 
-        for i in range(M.nrows()):
-            if int(singular.eval("%s[1][%s+1]!=0"%(M.name(),i))):
+        for i in range(M.ncols()):
+            if int(singular.eval("%s[1,%s+1]!=0"%(M.name(),i))):
                 return False
 
         self._singular_().attrib('isSB',1)

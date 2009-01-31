@@ -1418,7 +1418,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.right_nullity()
             1
         """
-        return self.transpose().nullity()
+        return self.ncols() - self.rank()
 
     kernel = left_kernel
 

@@ -31,7 +31,7 @@ We list the elements of $\Z/3\Z$
 AUTHORS
     -- William Stein (initial code)
     -- David Joyner (2005-12-22): most examples
-    -- Robert Bradshaw (2006-08-24): convert to SageX
+    -- Robert Bradshaw (2006-08-24): convert to SageX (Cython)
     -- William Stein (2007-04-29): square_roots_of_one
 """
 

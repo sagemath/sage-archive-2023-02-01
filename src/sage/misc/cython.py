@@ -513,7 +513,7 @@ def cython_create_local_so(filename):
     Compile filename and make it available as a loadable shared object file.
 
     INPUT:
-        filename -- string: a Sagex (.spyx) file
+        filename -- string: a Cython (formerly SageX) (.spyx) file
 
     OUTPUT:
         None

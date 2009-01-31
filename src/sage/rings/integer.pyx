@@ -4173,7 +4173,7 @@ global_dummy_Integer = Integer()
 # To avoid this we calculate the byte offset of the value member and
 # remember it in this variable.
 #
-# Eventually this may be rendered obsolete by a change in SageX allowing
+# Eventually this may be rendered obsolete by a change in Cython allowing
 # non-reference counted extension types.
 cdef long mpz_t_offset
 mpz_t_offset_python = None
@@ -4349,7 +4349,7 @@ cdef hook_fast_tp_functions():
     # an Integer which includes reference counting. Reference counting
     # is bad in constructors and destructors as it potentially calls
     # the destructor.
-    # Eventually this may be rendered obsolete by a change in SageX allowing
+    # Eventually this may be rendered obsolete by a change in Cython allowing
     # non-reference counted extension types.
     mpz_t_offset = <char *>(&global_dummy_Integer.value) - <char *>o
     global mpz_t_offset_python

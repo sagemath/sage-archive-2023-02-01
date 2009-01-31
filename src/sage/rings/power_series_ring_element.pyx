@@ -8,7 +8,7 @@ AUTHOR:
    -- William Stein
    -- David Harvey (2006-09-11): added solve_linear_de() method
    -- Robert Bradshaw (2007-04): sqrt, rmul, lmul, shifting
-   -- Robert Bradshaw (2007-04): SageX version
+   -- Robert Bradshaw (2007-04): Cython version
 
 EXAMPLE:
     sage: R.<x> = PowerSeriesRing(ZZ)

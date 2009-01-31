@@ -25,7 +25,7 @@ that it does not have the speed advantage of compiled code.  Thus our
 $p$-adics can be painfully slow at times when you're doing real
 computations.  However, finding and fixing bugs in Python code is
 \emph{far} easier than finding and fixing errors in the compiled
-alternative within SAGE (SageX), and Python code is also faster and
+alternative within SAGE (Cython), and Python code is also faster and
 easier to write.  We thus have significantly more functionality
 implemented and working than we would have if we had chosen to focus
 initially on speed.  And at some point in the future, we will go back

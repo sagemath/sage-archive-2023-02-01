@@ -39,7 +39,7 @@ AUTHORS:
     -- William Stein: original version
     -- David Joyner: added examples 2006-01-22
     -- Robert Bradshaw: optimizations, shifting 2007-04
-    -- Robert Bradshaw: SageX version
+    -- Robert Bradshaw: Cython version
 """
 
 import operator

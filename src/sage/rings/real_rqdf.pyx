@@ -167,7 +167,7 @@ cdef class RealQuadDoubleField_class(Field):
     cpdef bint is_exact(self) except -2:
         return False
 
-    cdef _an_element_c_impl(self):  # override this in SageX
+    cdef _an_element_c_impl(self):  # override this in Cython
         return self(1.23)
 
     def _latex_(self):

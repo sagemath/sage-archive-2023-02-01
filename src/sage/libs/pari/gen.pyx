@@ -7246,7 +7246,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             return x
         raise TypeError, "x must be a PARI object"
 
-    cdef _an_element_c_impl(self):  # override this in SageX
+    cdef _an_element_c_impl(self):  # override this in Cython
         return self.ZERO
 
 # Commented out by John Cremona 2008-09-06 -- never used and confusing.

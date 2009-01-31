@@ -51,7 +51,7 @@ def var(s, ns=False):
         sage: parent(theta)
         Symbolic Ring
     """
-    G = globals()  # this is the reason the code must be in SageX.
+    G = globals()  # this is the reason the code must be in Cython.
     if ns:
         v = new_var(s)
     else:
@@ -104,7 +104,7 @@ def function(s, *args):
     if len(args) > 0:
         return function(s)(*args)
 
-    G = globals()  # this is the reason the code must be in SageX.
+    G = globals()  # this is the reason the code must be in Cython.
     v = calculus.function(s)
     if isinstance(v, tuple):
         for x in v:

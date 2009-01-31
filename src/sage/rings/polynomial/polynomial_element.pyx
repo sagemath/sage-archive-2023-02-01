@@ -4,7 +4,7 @@ Univariate Polynomial Base Class
 AUTHORS:
     -- William Stein: first version
     -- Martin Albrecht: Added singular coercion.
-    -- Robert Bradshaw: Move Polynomial_generic_dense to SageX
+    -- Robert Bradshaw: Move Polynomial_generic_dense to Cython
 
 TESTS:
      sage: R.<x> = ZZ[]
@@ -4244,7 +4244,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return w
 
 # ----------------- inner functions -------------
-# Sagex can't handle function definitions inside other function
+# Cython can't handle function definitions inside other function
 
 
 cdef _karatsuba_sum(v,w):

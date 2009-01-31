@@ -1,5 +1,5 @@
 """
-Implements a few data structures in SageX.
+Implements a few data structures in Cython (SageX).
 
 AUTHORS:
     -- Tom Boothby (2007-02-15).  Initial version free for any use (public domain).

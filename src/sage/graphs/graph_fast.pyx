@@ -1,5 +1,5 @@
 """
-Graph Theory SageX functions
+Graph Theory Cython functions
 
 AUTHORS:
     -- Robert L. Miller   (2007-02-13): initial version

@@ -28,7 +28,7 @@ def reset(vars=None):
     if not vars is None:
         restore(vars)
         return
-    G = globals()  # this is the reason the code must be in SageX.
+    G = globals()  # this is the reason the code must be in Cython.
     T = type(sys)
     for k in G.keys():
         if k[0] != '_' and type(k) != T and k not in EXCLUDE:
@@ -75,7 +75,7 @@ def restore(vars=None):
         ...
         NameError: name 'ww' is not defined
     """
-    G = globals()  # this is the reason the code must be in SageX.
+    G = globals()  # this is the reason the code must be in Cython.
     if not G.has_key('sage_mode'):
         import sage.all
         D = sage.all.__dict__

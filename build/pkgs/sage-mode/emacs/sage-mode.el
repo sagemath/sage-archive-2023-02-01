@@ -31,7 +31,7 @@
 
 ;;;_* Inferior SAGE major mode for interacting with a slave SAGE process
 
-(defcustom inferior-sage-prompt (rx line-start (1+ (and (or "sage:" "....." ">>>" "..." "(Pdb)" "ipdb>") " ")))
+(defcustom inferior-sage-prompt (rx line-start (1+ (and (or "sage:" "....." ">>>" "..." "(Pdb)" "ipdb>" "(gdb)") " ")))
   "Regular expression matching the SAGE prompt."
   :group 'sage
   :type 'regexp)
@@ -50,6 +50,7 @@
   (sage-set-buffer (current-buffer))
 
   (setq comint-prompt-regexp inferior-sage-prompt)
+  (setq comint-prompt-read-only t)
   (setq comint-redirect-finished-regexp comint-prompt-regexp)
 
   (setq comint-input-sender 'sage-input-sender)
@@ -318,7 +319,6 @@ Additional arguments are added when the command is used by `run-sage' et al."
 See variable `python-buffer'.  Starts a new process if necessary."
   ;; Fixme: Maybe should look for another active process if there
   ;; isn't one for `python-buffer'.
-  (message "python-proc")
 
   (cond ((inferior-sage-mode-p)
 	 ;; if we're in a sage buffer, that's us
@@ -526,9 +526,7 @@ buffer for a list of commands.)"
   "Install inferior-sage-mode bindings locally."
   (interactive)
   (pcomplete-sage-setup)
-  ;;   (local-set-key [(tab)] (make-hippie-expand-function
-  ;; 			  '(try-complete-sage-symbol-partially) t))
-  (local-set-key [(tab)] 'sage-pcomplete-or-help))
+  (local-set-key (kbd "TAB") 'sage-pcomplete-or-help))
 
 (add-hook 'sage-mode-hook 'sage-bindings)
 ;; (add-hook 'inferior-sage-mode-hook 'sage-bindings)
@@ -1236,7 +1234,7 @@ Interactively, try to find current method at point."
 )
 (add-to-list 'auto-mode-alist '("\\.hg\\'" . mercurial-bundle-mode))
 
-;;;_* Setup imenu by defaul
+;;;_* Setup imenu by default
 (when (featurep 'imenu)
   (add-hook 'sage-mode-hook 'imenu-add-menubar-index))
 

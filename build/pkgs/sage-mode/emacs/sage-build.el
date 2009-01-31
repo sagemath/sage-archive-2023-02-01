@@ -15,18 +15,86 @@
 ;;;###autoload
 (defvar sage-build-history nil)
 
+(defcustom sage-rerun-command (format "%s" sage-command)
+  "Actual command used to rerun SAGE.
+Additional arguments are added when the command is used by `rerun-sage' et al."
+  :group 'sage
+  :type 'string)
+
+(defun sage-wait-until-dead (process seconds msg)
+  (let ((killed nil))
+    (message "Trying %s..." msg)
+    (accept-process-output)
+    (if (with-timeout (seconds (not killed))
+	  (while (not killed)
+	    (accept-process-output sprocess 1)
+	    (setq killed (not (memq (process-status process) '(open run stop))))
+	    ;; (setq killed (eq (process-status process) 'exit))
+
+	    ;; (goto-char (point-max))
+	    ;; (beginning-of-line)
+	    ;; (setq killed (looking-at "Process SAGE killed"))
+	    ))
+	(progn
+	  (accept-process-output sprocess 0 1)
+	  (message "Trying %s... failed!" msg)
+	  nil)
+      (accept-process-output sprocess 0 1)
+      (message "Trying %s... done." msg)
+      t
+      )))
+
+(defalias 'restart-sage 'rerun-sage)
+
 (defun rerun-sage ()
   (interactive)
-  (if (not (sage-all-inferior-sage-buffers))
-      (progn
-	(message "Need a SAGE buffer to rerun SAGE in...")
-	(call-interactively 'run-sage))
-    (let ((buffer (completing-read
-		   "Rerun SAGE in buffer: " (sage-all-inferior-sage-buffers) nil nil
-		   (car (sage-all-inferior-sage-buffers))))
-	  (dummy 1))
-      (kill-buffer buffer)
-      (run-sage t))))
+  (let ((bufs (sage-all-inferior-sage-buffers))
+	(buffer nil))
+    (cond ((not bufs)
+	   (progn
+	     (message "Need a SAGE buffer to rerun SAGE in...")
+	     (call-interactively 'run-sage)))
+	  ((= 1 (length bufs))
+	   (setq buffer (car bufs)))
+	  (t (setq buffer
+		   (completing-read
+		    "Rerun SAGE in buffer: " bufs nil nil
+		    (car bufs)))))
+    ;; (kill-buffer buffer)
+    (with-current-buffer buffer
+      ;; (message (get-buffer-process buffer))
+      (let* ((sprocess (get-buffer-process (current-buffer))))
+	(when (and sprocess
+		   (not (eq (process-status sprocess) 'exit)))
+	  ;; (set-process-sentinel sprocess nil)
+	  (comint-kill-input)
+	  (comint-send-eof)
+	  (sage-wait-until-dead sprocess 2 "soft kill")
+
+	  (when (not (eq (process-status sprocess) 'exit))
+	    (comint-kill-subjob)
+	    (sage-wait-until-dead sprocess 3 "hard kill"))))
+
+      ;; (comint-mode)
+      (goto-char (point-max))
+      (insert "\nRestarting SAGE...\n\n")
+      (goto-char (point-max))
+      (run-sage nil sage-rerun-command) ;; restart
+      (goto-char (point-max))
+      )))
+
+	  ;; 	  ;; if we're not dead yet...
+;; 	  (message "Killing soft")
+;; 	  (goto-char (point-max))
+;; 	  (comint-kill-input)
+;; 	  (comint-send-eof) ;; kill nicely
+;; 	  (accept-process-output nil 0 1)
+;; 	  (sit-for 0.5) ;; XXX correct way to do this?
+;; 	  (if (not (eq (process-status sprocess) 'exit))
+;; 	      (message "Killing hard")
+;; 	      (comint-kill-subjob) ;; kill rudely
+;; 	    (accept-process-output nil 0 1))
+;; 	  (sit-for 0.5)) ;; XXX correct way to do this?
 
 ;;       (pop-to-buffer buffer)
 ;; ;;       (while (and (get-buffer-process (current-buffer))

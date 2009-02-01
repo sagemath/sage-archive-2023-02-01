@@ -3079,6 +3079,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 - 1568*x - 4669 over Rational Field
             sage: F.cremona_label()
             '990h3'
+            sage: EllipticCurve('990a1').optimal_curve().cremona_label()   # a isn't h.
+            '990a1'
 
         If the input curve is optimal, this function returns that
         curve (not just a copy of it or a curve isomorphic to it!):
@@ -3095,8 +3097,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Elliptic Curve defined by y^2  = x^3 - 16*x + 16 over Rational Field
         """
         label = self.cremona_label()
-        # strip off the isogeny number (it can be at most 8, hence is a single digit)
-        optimal_label = label[:-1] + ('3' if self.conductor() == 990 else '1')
+        N, isogeny, number = sage.databases.cremona.parse_cremona_label(label)
+        if N == 990 and isogeny == 'h':
+            optimal_label = '990h3'
+        else:
+            optimal_label = '%s%s1'%(N,isogeny)
         if optimal_label == label: return self
         return constructor.EllipticCurve(optimal_label)
 

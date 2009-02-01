@@ -5439,6 +5439,11 @@ def cremona_optimal_curves(conductors):
         ('38a1', 0),
         ('38b1', 0),
         ('39a1', 0)]
+
+    There is one case -- 990h3 -- when the optimal curve isn't labeled with a 1:
+        sage: [e.cremona_label() for e in cremona_optimal_curves([990])]
+        ['990a1', '990b1', '990c1', '990d1', '990e1', '990f1', '990g1', '990h3', '990i1', '990j1', '990k1', '990l1']
+
     """
     if isinstance(conductors, (int,long,rings.RingElement)):
         conductors = [conductors]

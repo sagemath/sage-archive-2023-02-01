@@ -76,23 +76,25 @@ def is_optimal_id(id):
     false otherwise.  The curve is optimal if the id, which is of
     the form [letter code][number] has number 1.
 
-    NOTE: 990H3 is the optimal curve in that class, so doesn't obey
+    NOTE: 990h3 is the optimal curve in that class, so doesn't obey
     this rule.
 
     INPUT:
         id -- str of form letter code followed by an integer, e.g.,
-              A3,   BB5, etc.
+              a3,   bb1, etc.
     OUTPUT:
         bool
 
     EXAMPLES:
-        sage: is_optimal_id('A2')
+        sage: is_optimal_id('a2')
         False
-        sage: is_optimal_id('B1')
+        sage: is_optimal_id('b1')
         True
-        sage: is_optimal_id('CC1')
+        sage: is_optimal_id('bb1')
         True
-        sage: is_optimal_id('CC2')
+        sage: is_optimal_id('c1')
+        True
+        sage: is_optimal_id('c2')
         False
     """
     return id[-1] == '1' and not id[-2].isdigit()
@@ -429,13 +431,23 @@ class LargeCremonaDatabase(sage.databases.db.Database):
             dict -- {id:[ainvs, rank, tor], ...}
 
 
-        NOTE: 990H3 is the optimal curve in that class, due to a
+        NOTE: 990h3 is the optimal curve in that class, due to a
         mistake in Cremona's labeling.
+
+        EXAMPLES:
+        Optimal curves of conductor 37:
+            sage: CremonaDatabase().curves(37)
+            {'a1': [[0, 0, 1, -1, 0], 1, 1], 'b1': [[0, 1, 1, -23, -50], 0, 3]}
+
+        Note the 'h3', which is the unique case in the tables where
+        the optimal curve doesn't have label ending in 1:
+            sage: list(sorted(CremonaDatabase().curves(990).keys()))
+            ['a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h3', 'i1', 'j1', 'k1', 'l1']
         """
         A = self.allcurves(N)
         if N != 990:
             return dict([(id,val) for id,val in A.iteritems() if is_optimal_id(id)])
-        return dict([(id,val) for id,val in A.iteritems() if id == 'H3' or (id[0]!='H' and is_optimal_id(id))])
+        return dict([(id,val) for id,val in A.iteritems() if id == 'h3' or (id[0]!='h' and is_optimal_id(id))])
 
 
     def degphi(self, N):
@@ -568,12 +580,25 @@ class LargeCremonaDatabase(sage.databases.db.Database):
             conductors -- list or generator of ints
         OUTPUT:
             generator that iterates over EllipticCurve objects.
+
+        EXAMPLES:
+        We list optimal curves with conductor up to 20:
+            sage: [e.cremona_label() for e in CremonaDatabase().iter_optimal([11..20])]
+            ['11a1', '14a1', '15a1', '17a1', '19a1', '20a1']
+
+        Note the unfortunate 990h3 special case:
+            sage: [e.cremona_label() for e in CremonaDatabase().iter_optimal([990])]
+            ['990a1', '990b1', '990c1', '990d1', '990e1', '990f1', '990g1', '990h3', '990i1', '990j1', '990k1', '990l1']
+
         """
         for N in conductors:
             K = self.curves(N).keys()
             K.sort(cmp_code)
             for id in K:
-                yield self.elliptic_curve(str(N) + id)
+                if N == 990 and id == 'h1':   # the unfortunate ugly special case
+                    yield self.elliptic_curve('990h3')
+                else:
+                    yield self.elliptic_curve(str(N) + id)
 
     def list(self, conductors):
         """
@@ -589,12 +614,19 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
     def list_optimal(self, conductors):
         """
-        Returns a list of all optimal curves with conductor between Nmin and
-        Nmax-1, inclusive, in the database.
+        Returns a list of all optimal curves with conductor between
+        Nmin and Nmax-1, inclusive, in the database.
+
         INPUT:
             conductors -- list or generator of ints
+
         OUTPUT:
             list of EllipticCurve objects.
+
+        EXAMPLES:
+            sage: CremonaDatabase().list_optimal([37])
+            [Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field]
         """
         return list(self.iter_optimal(conductors))
 

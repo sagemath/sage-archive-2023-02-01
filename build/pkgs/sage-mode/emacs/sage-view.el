@@ -55,7 +55,7 @@
 ;;; Code:
 (require 'sage)
 
-(add-hook 'inferior-sage-mode-hook 'sage-view) ;; XXX
+;; (add-hook 'inferior-sage-mode-hook 'sage-view)
 
 (defvar sage-view-head
   "\\documentclass{article}\\usepackage[active, tightpage, pdftex, displaymath]{preview}\\usepackage{amstext}\\begin{document}\\begin{preview}\$")
@@ -83,44 +83,8 @@
 	"-dNOPAUSE"))
 
 (defvar sage-view-resolution nil)
-(defvar sage-view-scale 1.4)
+(defvar sage-view-scale 1.2)
 (defvar sage-view-current-overlay nil)
-
-(defun sage-view-math-from-tree (string)
-  (let* ((root (with-temp-buffer
-		 (insert string)
-		 (xml-parse-region (point-min) (point-max))))
-	 (html (car root))
-	 (span (car (xml-get-children html 'span)))
-	 (attrs (xml-node-attributes span))
-	 (text (car (xml-node-children span))))
-    (cond
-     ((equal (cdr (assq 'class attrs)) "math")
-      ;; First node has class 'math'
-      text)
-     (t ""))))
-
-(defun sage-view-alt-math-from-tree (string)
-  (let ((head (length "<html><span class=\"math\">"))
-	 (tail (1+ (length "</span></html>"))))
-    (substring string head (- tail))))
-
-(defun sage-view-preoutput-filter (string)
-  "Set `sage-view-text' to text extracted from a <span
-class=\"math\"> tag found in string; then return this text. If
-string is not in XML format or there's no such tag, just return
-string.
-
-Function to be inserted in `comint-preoutput-filter-functions'."
-  ;; Turn string to an xml tree
-  (cond
-   ((and (length string)
-	 (not (string-match inferior-sage-prompt string))
-	 (equal (substring string 0 (min 6 (length string))) "<html>"))
-    ;; FIXME: string could be  made of trees concatenated
-    (setq sage-view-text (sage-view-alt-math-from-tree string))
-    " \n")
-   (t string)))
 
 (defvar sage-view-start-string "<html><span class=\"math\">" "")
 (defvar sage-view-final-string "</span></html>")
@@ -239,51 +203,77 @@ Function to be inserted in `comint-preoutput-filter-functions'."
 This generates the filename for the image, and use it for the
 region between `comint-last-output-start' and `process-mark'.
 
-Function to be inserted in `comint-output-filter-function'."
-  (if (and string sage-view-text)
-      (let* ((start comint-last-output-start)
-	     (end (process-mark (get-buffer-process (current-buffer)))))
-	(setq sage-view-current-overlay (make-overlay start (- end 1) nil nil nil))
-	(overlay-put sage-view-current-overlay 'help-echo "Overlay made by View")
-	(if (not (file-exists-p sage-view-temp-dir))
-	    (make-directory sage-view-temp-dir))
-	(let* ((base (expand-file-name (make-temp-name "output_")
-				       sage-view-temp-dir))
+Function to be inserted in `comint-output-filter-functions'."
+
+  ;; we need to foil emacs' image cache, which doesn't reload files with the same name
+  (let* ((pngname (format "%s/sage-view.png" sage-view-temp-dir))
+	 (base (expand-file-name (make-temp-name "plot_") sage-view-temp-dir))
+	 (pngname2 (concat base ".png")))
+    (when (and pngname
+	       (file-exists-p pngname)
+	       (file-readable-p pngname))
+      (dired-rename-file pngname pngname2 t)
+
+      (save-excursion
+	(save-restriction
+	  (goto-char comint-last-input-end)
+	  (insert-image (create-image pngname2 'png))))
+      ;; (dired-delete-file pngname2 'always) ;; causes problems with emacs image loading
+      ))
+
+  (if (string-match (regexp-quote sage-view-final-string) string) ;; we found the end of some html; go back and texify that range
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region comint-last-input-end (process-mark (get-buffer-process (current-buffer))))
+	  (setq sage-view-text (buffer-substring-no-properties (point-min) (point-max)))
+
+	  (goto-char (point-min))
+
+	  (when (search-forward sage-view-start-string (point-max) t)
+	    (setq sage-view-overlay-start (- (point) (length sage-view-start-string)))
+	    (goto-char (point-max))
+	    (search-backward sage-view-final-string)
+	    (setq sage-view-overlay-final (+ (point) (length sage-view-final-string)))
+
+	    (setq sage-view-current-overlay (make-overlay sage-view-overlay-start sage-view-overlay-final nil nil nil))
+	    (overlay-put sage-view-current-overlay 'help-echo "Overlay made by sage-view")
+
+	    (let* ((base (expand-file-name (make-temp-name "output_")
+					   sage-view-temp-dir))
 	       (file (concat base ".tex")))
-	  (with-temp-file file
-	     (insert sage-view-head)
-	     (insert sage-view-text)
-	     (insert sage-view-tail))
-	  (sage-view-latex->pdf file))))
-  (setq sage-view-text nil))
+	      (with-temp-file file
+		(insert sage-view-head)
+		(insert (substring sage-view-text (length sage-view-start-string) (- (+ 1 (length sage-view-final-string)))))
+		(insert sage-view-tail))
+	      (sage-view-latex->pdf file))))
+	  )))
 
 (defun sage-view-gs-open ()
   "Start a Ghostscript conversion pass.")
 
 (defun sage-view-pretty-print-enable ()
-  (comint-send-string
-   (get-buffer-process (current-buffer))
-   "pretty_print_default()\n"))
+  (python-send-receive-multiline "sage.plot.plot.DOCTEST_MODE = True;")
+  (python-send-receive-multiline (format "sage.plot.plot.DOCTEST_MODE_FILE = '%s';" (format "%s/sage-view.png" sage-view-temp-dir)))
+  (python-send-receive-multiline "pretty_print_default(True);"))
 
 (defun sage-view-pretty-print-disable ()
-  (comint-send-string
-   (get-buffer-process (current-buffer))
-   "pretty_print_default(enable=false)\n"))
+  (python-send-receive-multiline "pretty_print_default(False);"))
 
 (define-minor-mode sage-view
   "With this mode, output in SAGE interactive buffers is
   preprocessed and texify." nil
   :group 'sage
-  :lighter "(View)"
+  :lighter " Sage-View"
   (if sage-view
       (progn
+	(if (not (file-exists-p sage-view-temp-dir))
+	    (make-directory sage-view-temp-dir))
 	(sage-view-pretty-print-enable)
 	(setq sage-view-text nil
 	      sage-view-temp-dir
 	      (make-temp-file (expand-file-name "tmp" "~/.sage/temp/") t))
 	(make-local-variable 'comint-preoutput-filter-functions)
 	(make-local-variable 'comint-output-filter-function)
-	(add-hook 'comint-preoutput-filter-functions 'sage-view-preoutput-filter)
 	(add-hook 'comint-output-filter-functions 'sage-view-output-filter))
     (progn
       (remove-hook 'comint-output-filter-functions 'sage-view-output-filter)
@@ -291,7 +281,8 @@ Function to be inserted in `comint-output-filter-function'."
       (if (and sage-view-temp-dir (file-exists-p sage-view-temp-dir))
 	  (dired-delete-file sage-view-temp-dir 'always))
       (setq sage-view-text nil)
-      (sage-view-pretty-print-disable))))
+      (sage-view-pretty-print-disable)
+      )))
 
 (provide 'sage-view)
 ;;; sage-view.el ends here

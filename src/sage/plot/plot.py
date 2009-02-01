@@ -223,6 +223,8 @@ DEFAULT_FIGSIZE=(6, 3.70820393249937)
 DEFAULT_DPI = 100
 EMBEDDED_MODE = False
 DOCTEST_MODE = False
+import sage.misc.misc
+DOCTEST_MODE_FILE = sage.misc.misc.SAGE_TMP + '/test.png'
 SHOW_DEFAULT = True
 
 def show_default(default=None):
@@ -1057,7 +1059,7 @@ class Graphics(SageObject):
             sage: matrix_plot(M).show(gridlines=True)
         """
         if DOCTEST_MODE:
-            self.save(sage.misc.misc.SAGE_TMP + '/test.png',
+            self.save(DOCTEST_MODE_FILE,
                       xmin, xmax, ymin, ymax, figsize,
                       dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame,
                       aspect_ratio=aspect_ratio, gridlines=gridlines,
@@ -2065,7 +2067,7 @@ class GraphicsArray(SageObject):
         """
         if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
         if DOCTEST_MODE:
-            self.save(sage.misc.misc.SAGE_TMP + '/test.png',
+            self.save(DOCTEST_MODE_FILE,
                       dpi=dpi, figsize=self._figsize, axes = axes, **args)
             return
         if EMBEDDED_MODE:

@@ -2961,27 +2961,29 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
 
     ##########################################################
-    # Isogeny class (currently just uses Cremona database.)
+    # Isogeny class
     ##########################################################
     def isogeny_class(self, algorithm="mwrank", verbose=False):
         r"""
         Return all curves over $\Q$ in the isogeny class of this
         elliptic curve.
 
+        WARNING: The result is \emph{not} provably correct, in the
+            sense that when the numbers are huge isogenies could be
+            missed because of precision issues.
+
         INPUT:
             algorithm -- string:
                  "mwrank"   -- (default) use the mwrank C++ library
                  "database" -- use the Cremona database (only works if
                                curve is isomorphic to a curve in the database)
+            verbose -- bool (default: False)
 
         OUTPUT:
             Returns the sorted list of the curves isogenous to self.
             If algorithm is "mwrank", also returns the isogeny matrix (otherwise
             returns None as second return value).
 
-        \note{The result is \emph{not} provably correct, in the sense
-            that when the numbers are huge isogenies could be missed
-            because of precision issues.}
 
         \note{The ordering depends on which algorithm is used.}
 
@@ -3028,10 +3030,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         See \url{http://modular.ucsd.edu/Tables/nature/} for more interesting
         examples of isogeny structures.
         """
-        #if algorithm == "gp":
-
-       #     return sum([L for _, L in self.isogenous_curves(algorithm="gp")], [self])
-
         if algorithm == "mwrank":
             try:
                 E = self.mwrank_curve()
@@ -3050,18 +3048,67 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 raise RuntimeError, "unable to to find %s in the database"%self
             db = sage.databases.cremona.CremonaDatabase()
             I = db.isogeny_class(label)
+            if len(I) == 0:
+                raise RuntimeError, "unable to to find %s in the database"%self
             I.sort()
             return I, None
 
         else:
 
-            raise ValueError, "unknown algorithm '%s'%"%algorithm
+            raise ValueError, "unknown algorithm '%s'"%algorithm
+
+    def optimal_curve(self):
+        """
+        Given an elliptic curve that is in the installed Cremona
+        database, return the optimal curve isogenous to it.
+
+        EXAMPLES:
+        The following curve is not optimal:
+            sage: E = EllipticCurve('11a2'); E
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field
+            sage: E.optimal_curve()
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: E.optimal_curve().cremona_label()
+            '11a1'
+
+        Note that 990h is the special case where the optimal curve
+        isn't the first in the Cremona labeling:
+            sage: E = EllipticCurve('990h4'); E
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 + 6112*x - 41533 over Rational Field
+            sage: F = E.optimal_curve(); F
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 - 1568*x - 4669 over Rational Field
+            sage: F.cremona_label()
+            '990h3'
+
+        If the input curve is optimal, this function returns that
+        curve (not just a copy of it or a curve isomorphic to it!):
+            sage: E = EllipticCurve('37a1')
+            sage: E.optimal_curve() is E
+            True
+
+        Also, if this curve is optimal but not given by a minimal
+        model, this curve will still be returned, so this function
+        need not return a minimal model in general.
+            sage: F = E.short_weierstrass_model(); F
+            Elliptic Curve defined by y^2  = x^3 - 16*x + 16 over Rational Field
+            sage: F.optimal_curve()
+            Elliptic Curve defined by y^2  = x^3 - 16*x + 16 over Rational Field
+        """
+        label = self.cremona_label()
+        # strip off the isogeny number (it can be at most 8, hence is a single digit)
+        optimal_label = label[:-1] + ('3' if self.conductor() == 990 else '1')
+        if optimal_label == label: return self
+        return constructor.EllipticCurve(optimal_label)
 
     def isogeny_graph(self):
         r"""
         Returns a graph representing the isogeny class of this elliptic curve,
         where the vertices are isogenous curves over $\Q$ and the edges are
         prime degree isogenies labeled by their degree.
+
+        WARNING: The result is \emph{not} provably correct, in the
+            sense that when the numbers are huge isogenies could be
+            missed because of precision issues.
 
         EXAMPLES:
             sage: LL = []
@@ -3092,13 +3139,130 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: G.plot(edge_labels=True)
         """
         from sage.graphs.graph import Graph
-        L, M = self.isogeny_class()
+        L, M = self.isogeny_class(algorithm='mwrank')
         G = Graph(M, format='weighted_adjacency_matrix')
-        d = {}
-        for v in G.vertices():
-            d[v] = L[v]
-        G.set_vertices(d)
+        G.set_vertices(dict([(v,L[v]) for v in G.vertices()]))
         return G
+
+    def manin_constant(self):
+        r"""
+        Return the Manin constant of this elliptic curve.
+
+        OUTPUT:
+            an integer
+
+        This function only works if the curve is in the installed
+        Cremona database.  Sage includes by default a small databases;
+        for the full database you have to install an optional package.
+
+        WARNING: The result is \emph{not} provably correct, in the
+            sense that when the numbers are huge isogenies could be
+            missed because of precision issues.
+
+        EXAMPLES:
+            sage: EllipticCurve('11a1').manin_constant()
+            1
+            sage: EllipticCurve('11a2').manin_constant()
+            5
+            sage: EllipticCurve('11a3').manin_constant()
+            5
+
+        Check that it works even if the curve is non-minimal:
+            sage: EllipticCurve('11a1').short_weierstrass_model().manin_constant()
+            1
+
+        An example where the isogeny class is large, so it's not completely
+        trivial to find the minimal degree of an isogeny to the optimal curve:
+            sage: [EllipticCurve('210b%s'%i).manin_constant() for i in [1..8]]
+            [1, 2, 3, 4, 4, 6, 12, 12]
+
+        Make sure the special case 990h is treated correctly, i.e., that 990h3 has
+        Manin constant 1.
+            sage: [EllipticCurve('990h%s'%i).manin_constant() for i in [1..4]]
+            [3, 6, 1, 2]
+
+        This plots helps you see that the above Manin constants are
+        right.  Note that the vertex labels are 0-based unlinke the
+        Cremona isogeny labels:
+            sage: EllipticCurve('210b1').isogeny_graph().plot(edge_labels=True)
+        """
+        label = self.cremona_label()
+        optimal = self.optimal_curve()
+        if optimal == self:
+            return Integer(1)
+        L, v = self._shortest_paths()
+        i = L.index(optimal)
+        return v[i]
+
+    def _shortest_paths(self):
+        r"""
+        Technical internal function that returns the list of isogenies
+        curves and corresponding dictionary of shortest isogeny paths
+        from self to each other curve in the isogeny class.
+
+        WARNING: The result is \emph{not} provably correct, in the
+            sense that when the numbers are huge isogenies could be
+            missed because of precision issues.
+
+        OUTPUT:
+            list, dict
+
+        EXAMPLES:
+            sage: EllipticCurve('11a1')._shortest_paths()
+            ([Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field,
+              Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field,
+              Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field],
+             {0: 0, 1: 5, 2: 5})
+            sage: EllipticCurve('11a2')._shortest_paths()
+            ([Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field,
+              Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field,
+              Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field],
+             {0: 0, 1: 5, 2: 25})
+        """
+        from sage.graphs.graph import Graph
+        L, M = self.isogeny_class(algorithm='mwrank')
+        M = M.change_ring(rings.RR)
+        # see trac #4889 for nebulous M.list() --> M.entries() change...
+        # Take logs here since shortest path minimizes the *sum* of the weights -- not the product.
+        M = M.parent()([a.log() if a else 0 for a in M.list()])
+        G = Graph(M, format='weighted_adjacency_matrix')
+        G.set_vertices(dict([(v,L[v]) for v in G.vertices()]))
+        v = G.shortest_path_lengths(0, by_weight=True, weight_sums=True)
+        # Now exponentiate and round to get degrees of isogenies
+        v = dict([(i, j.exp().round() if j else 0) for i,j in v.iteritems()])
+        return L, v
+
+    def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
+        r"""
+        Internal function returning an integer m such that the degree of
+        the isogeny between this curve and the optimal curve in its
+        isogeny class is a divisor of m.
+
+        WARNING: The result is \emph{not} provably correct, in the
+            sense that when the numbers are huge isogenies could be
+            missed because of precision issues.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a1')
+            sage: E._multiple_of_degree_of_isogeny_to_optimal_curve()
+            5
+            sage: E = EllipticCurve('11a2')
+            sage: E._multiple_of_degree_of_isogeny_to_optimal_curve()
+            25
+            sage: E = EllipticCurve('11a3')
+            sage: E._multiple_of_degree_of_isogeny_to_optimal_curve()
+            25
+        """
+        _, v = self._shortest_paths()
+        # Compute the degree of an isogeny from self to anything else
+        # in the isogeny class of self.  Assuming the isogeny
+        # enumeration is complete (which need not be the case a priori!), the LCM
+        # of these numbers is a multiple of the degree of the isogeny
+        # to the optimal curve.
+        v = [deg for num, deg in v.iteritems() if deg]  # get just the degrees
+        return arith.LCM(v)
+
+
 
     ##########################################################
     # Galois Representations
@@ -3599,25 +3763,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ans.append(s.python())
         return ans
 
-    def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
-        """
-        Internal function returning an integer m such that the degree of
-        the isogeny between this curve and the optimal curve in its
-        isogeny class is a divisor of m.
-
-        EXAMPLES:
-            sage: E=EllipticCurve('11a1')
-            sage: E._multiple_of_degree_of_isogeny_to_optimal_curve()
-            25
-            sage: E=EllipticCurve('11a2')
-            sage: E._multiple_of_degree_of_isogeny_to_optimal_curve()
-            5
-            sage: E=EllipticCurve('11a3')
-            sage: E._multiple_of_degree_of_isogeny_to_optimal_curve()
-            5
-        """
-        M = self.isogeny_class()[1]
-        return Integer(misc.prod([x for x in M.row(0) if x], 1))
 
     ########################################################################
     # Functions related to bounding the order of Sha (provably correctly!)

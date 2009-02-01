@@ -5,6 +5,7 @@ AUTHORS:
     - David Joyner (2006-02); based on free_abelian_monoid_element.py, written by David Kohel.
     - David Joyner (2006-05); bug fix in order
     -              (2006-08); bug fix+new method in pow for negatives+fixed corresponding examples.
+    -              (2009-02): Fixed bug in order.
 
 EXAMPLES:
 Recall an example from abelian groups.
@@ -278,6 +279,9 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             sage: a,b,c = F.gens()
             sage: (b*c).order()
             72
+            sage: G = AbelianGroup(3,[7,8,9])
+            sage: type((G.0 * G.1).order())==Integer
+            True
         """
         M = self.parent()
         if self == M(1):
@@ -289,11 +293,11 @@ class AbelianGroupElement(MultiplicativeGroupElement):
                 return infinity
             return o
         L = list(self.list())
-        N = LCM([invs[i]/GCD(invs[i],L[i]) for i in range(len(invs)) if L[i]!=0])   ####### error here????
+        N = LCM([invs[i]//GCD(invs[i],L[i]) for i in range(len(invs)) if L[i]!=0])
         if N == 0:
             return infinity
         else:
-            return N
+            return Integer(N)
 
     def random_element(self):
         """

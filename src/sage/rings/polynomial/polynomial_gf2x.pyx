@@ -99,6 +99,13 @@ cdef class Polynomial_GF2X(Polynomial_template):
             sage: g.modular_composition(g, f) == g(g) % f
             True
 
+            sage: P.<x> = GF(2)[]
+            sage: f = x^29 + x^24 + x^22 + x^21 + x^20 + x^16 + x^15 + x^14 + x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^2
+            sage: g = x^31 + x^30 + x^28 + x^26 + x^24 + x^21 + x^19 + x^18 + x^11 + x^10 + x^9 + x^8 + x^5 + x^2 + 1
+            sage: h = x^30 + x^28 + x^26 + x^25 + x^24 + x^22 + x^21 + x^18 + x^17 + x^15 + x^13 + x^12 + x^11 + x^10 + x^9 + x^4
+            sage: f.modular_composition(g,h) == f(g) % h
+            True
+
         AUTHORS:
              -- Paul Zimmermann (2008-10) initial implementation
              -- Martin Albrecht (2008-10) performance improvements

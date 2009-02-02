@@ -1033,7 +1033,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         gxdd = gxd.derivative()
         return ( e(gxd(self[0])) > 0 and e(gxdd(self[0])) > 0)
 
-    def has_good_reduction(self, P):
+    def has_good_reduction(self, P=None):
         """
         Returns True iff this point has good reduction modulo a prime.
 
@@ -1060,11 +1060,36 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             [2, 2, 1, 1]
             sage: [(2*P).has_good_reduction(p) for p in [2,3,5,7]]
             [True, True, True, True]
+            sage: P.has_good_reduction()
+            False
+            sage: (2*P).has_good_reduction()
+            True
+            sage: (3*P).has_good_reduction()
+            False
+
+            sage: K.<i> = NumberField(x^2+1)
+            sage: E = EllipticCurve(K,[0,1,0,-160,308])
+            sage: P = E(26,-120)
+            sage: E.discriminant().support()
+            [Fractional ideal (i + 1),
+            Fractional ideal (-i - 2),
+            Fractional ideal (2*i + 1),
+            Fractional ideal (3)]
+            sage: [E.tamagawa_exponent(p) for p in E.discriminant().support()]
+            [1, 4, 4, 4]
+            sage: P.has_good_reduction()
+            False
+            sage: (2*P).has_good_reduction()
+            False
+            sage: (4*P).has_good_reduction()
+            True
         """
         if self.is_zero():       # trivial case
             return True
 
         E = self.curve()
+        if P is None:
+            return all([self.has_good_reduction(P) for P in E.discriminant().support()])
         K = E.base_field()
         from sage.schemes.elliptic_curves.ell_local_data import check_prime
         P = check_prime(K,P)
@@ -1073,11 +1098,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         t = E.local_data(P).bad_reduction_type()
         if t is None:
             return True
-
-        if K is rings.QQ:
-            pi = P
-        else:
-            pi = K.uniformizer(P)
 
         # Make sure the curve is integral and locally minimal at P:
         Emin = E.local_minimal_model(P)
@@ -1433,13 +1453,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 z = z + w2/2
             return z
 
-    def padic_elliptic_logarithm(self, p, precision=20):
+    def padic_elliptic_logarithm(self, p, absprec=20):
         r"""
         Computes the p-adic elliptic logarithm of self.
 
         INPUT:
             p - integer: a prime
-            precision - integer (default: 100): the p-adic precision of the result
+            absprec - integer (default: 20): the initial p-adic
+                      absolute precision of the computation
 
         OUTPUT:
             p-adic elliptic logarithm of self
@@ -1451,6 +1472,10 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             module and evaluate it at -x/y.  Otherwise we first
             multiply the point to get into the formal group, and
             divide the result afterwards.
+
+        TODO: See comments at trac \#4805.  Currently the absolute
+        precision of the result may be less than the given value of
+        absprec, and error-handling is imperfect..
 
         EXAMPLES:
             sage: E = EllipticCurve([0,1,1,-2,0])
@@ -1474,9 +1499,9 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         sage: P = E(-1,2)
         sage: P.padic_elliptic_logarithm(2) # default precision=20
         2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + O(2^16)
-        sage: P.padic_elliptic_logarithm(2, precision=30)
+        sage: P.padic_elliptic_logarithm(2, absprec=30)
         2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + 2^22 + 2^23 + 2^24 + O(2^26)
-        sage: P.padic_elliptic_logarithm(2, precision=40)
+        sage: P.padic_elliptic_logarithm(2, absprec=40)
         2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + 2^22 + 2^23 + 2^24 + 2^28 + 2^29 + 2^31 + 2^34 + O(2^35)
         """
         if not p.is_prime():
@@ -1485,7 +1510,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if debug:
             print "P=",self,"; p=",p," with precision ",precision
         E = self.curve()
-        Q_p = Qp(p, precision)
+        Q_p = Qp(p, absprec)
         if self.has_finite_order():
             return Q_p(0)
         while True:
@@ -1495,8 +1520,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 x,y = P.xy()
                 break
             except (PrecisionError, ArithmeticError, ZeroDivisionError):
-                precision *=2
-                Q_p = Qp(p, precision)
+                absprec *=2
+                Q_p = Qp(p, absprec)
         if debug:
             print "x,y=",(x,y)
         f = 1  # f will be such that f*P is in the formal group E^1(Q_p)
@@ -1544,7 +1569,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             raise ValueError, "Insufficient precision in p-adic_elliptic_logarithm()"
         if debug:
             print "t=",t,", with valuation ",v
-        phi = Ep.formal().log(prec=1+precision//v)
+        phi = Ep.formal().log(prec=1+absprec//v)
         return phi(t)/f
 
 class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):

@@ -207,30 +207,6 @@ UNAME=`uname`
 if [ `uname | sed -e 's/WIN.\+/WIN/'` = "CYGWIN" ]; then
     UNAME="CYGWIN"
 fi
- # For the Sun compiler use SHAREDFLAGS="-xcode=pic13 on SPARC or"
-# -KPIC on Solaris x86.
-if [ "$SHAREDFLAGS" = "" ]; then
-    SHAREDFLAGS="-fPIC"
-    # inspired by around line 7500 of GMP's configure script:
-    if [ "$CC" = "gcc" ]; then
-       case $UNAME in
-          CYGWIN)
-             SHAREDFLAGS="-DDLL_EXPORT"
-          ;;
-          Darwin)
-             SHAREDFLAGS="-fno-common"
-          ;;
-       esac
-    else
-       if [ $UNAME = "SunOS" ]; then
-          if [ `uname -p` = "sparc" ]; then
-             SHAREDFLAGS="-xcode=pic32"
-          else
-             SHAREDFLAGS="-Kpic"
-          fi
-       fi
-    fi
-fi
 
 if [ "$LDFLAGS" = "" ]; then
     LDFLAGS=""          && export LDFLAGS
@@ -249,19 +225,6 @@ fi
 # This is only done on OSX and Solaris since those are the only real multi lib
 # arches we support. Eventually Linux PPC on the PS3 might need to be added here
 source $SAGE_LOCAL/bin/sage-check-64
-
-# Specific to a Sun running Solaris on SPARC hardware.
-if [ "$SAGE64" = "yes" -a "$CC" = "cc" ]; then
-   if [ `uname` = "SunOS" -a `uname -p` = "sparc" ]; then
-      # we use a nested if, because at least on linux test doesn't allow four things.
-      CFLAGS="$CFLAGS -xarch=v9"
-      # Solaris SPARC with Sun compiler only
-      echo "*Note*, you might wish to use -xarch=v9a or -xarch=v9b instead"
-      echo "instead of -xarch=v9 to build the 64-bit binary on SPARC hardware."
-      echo "In this case unset SAGE64 and add -xarch=v9a or -xarch=v9b  to CFLAGS & CXXFLAGS"
-      echo "-xarch=v9b will only work on UltraSPARC III processors, not UltraSPARC II"
-   fi
-fi
 export SAGE64
 
 if [ "$CXXFLAGS" = "" ]; then

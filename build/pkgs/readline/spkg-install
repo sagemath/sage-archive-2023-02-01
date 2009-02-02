@@ -28,7 +28,11 @@ if [ `grep 11.1 /etc/SuSE-release > /dev/null; echo $?` == 0 ]; then
     echo "OpenSUSE 11.1 detected"
     if [ -d /usr/include/readline/ ]; then
         echo "The development version of libreadline is installed -> copying"
-        cp /lib/libreadline.so.* $SAGE_LOCAL/lib
+        if [ `uname -p` = "x86_64" ]; then
+            cp /lib64/libreadline.so.* $SAGE_LOCAL/lib
+        else
+            cp /lib/libreadline.so.* $SAGE_LOCAL/lib
+        fi
         cp -r /usr/include/readline  $SAGE_LOCAL/include
         exit 0
     else
@@ -73,7 +77,11 @@ fi
 if [ $OVERWRITE_READLINE == "true" ]; then
   echo "Overwriting libreadline.so.5.2 with the system one"
   rm -f $SAGE_LOCAL/lib/libreadline.so.5.2
-  cp /lib/libreadline.so.5.2 $SAGE_LOCAL/lib/
+  if [ `uname -p` = "x86_64" ]; then
+    cp /lib64/libreadline.so.5.2 $SAGE_LOCAL/lib
+  else
+    cp /lib/libreadline.so.5.2 $SAGE_LOCAL/lib
+   fi
 fi
 
 # Make sure that the install worked, despite whatever the error

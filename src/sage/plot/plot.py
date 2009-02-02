@@ -1405,7 +1405,7 @@ def xydata_from_point_list(points):
     return xdata, ydata
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, thickness=1, rgbcolor=(0,0,1), plot_points=200,
+@options(alpha=1, thickness=1, fill=None, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
          adaptive_tolerance=0.01, adaptive_recursion=5, __original_opts=True)
 def plot(funcs, *args, **kwds):
     r"""
@@ -1466,6 +1466,25 @@ def plot(funcs, *args, **kwds):
        markersize -- the size of the marker in points
        markeredgecolor -- the markerfacecolor can be any color arg
        markeredgewidth -- the size of the marker edge in points
+
+    FILLING OPTIONS:
+    INPUT:
+        fill -- (Default: None)
+                one of:
+                - "axis" or True: Fill the area between the function and the x-axis.
+                - "min": Fill the area between the function and its minimal value.
+                - "max": Fill the area between the function and its maximal value.
+                - a number c: Fill the area between the function and the horizontal line y = c.
+                - a function g: Fill the area between the function that is plotted and g.
+                - a dictonary d (only if a list of functions are plotted):
+                    The keys of the dictionary should be integers.
+                    The value of d[i] specifies the fill options for the i-th function in the list.
+                    If d[i] == [j]: Fill the area between the i-th and the j-th function in the list.
+
+        fillcolor -- (default: 'automatic') The color of the fill.
+                     Either 'automatic' or a color.
+        fillalpha -- (default: 0.5) How transparent the fill is.
+                     A number between 0 and 1.
 
     Note that this function does NOT simply sample equally spaced
     points between xmin and xmax.  Instead it computes equally spaced
@@ -1562,6 +1581,28 @@ def plot(funcs, *args, **kwds):
     To plot the negative real cube root, use something like the following.
         sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1))
 
+    The basic options for filling a plot:
+        sage: p1 = plot(sin(x), -pi, pi, fill = 'axis')
+        sage: p2 = plot(sin(x), -pi, pi, fill = 'min')
+        sage: p3 = plot(sin(x), -pi, pi, fill = 'max')
+        sage: p4 = plot(sin(x), -pi, pi, fill = 0.5)
+        sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False)
+
+        sage: plot([sin(x), cos(2*x)*sin(4*x)], -pi, pi, fill = {0: 1}, fillcolor = 'red', fillalpha = 1)
+
+    A example about the growth of prime numbers:
+        sage: plot(1.13*log(x), 1, 100, fill = lambda x: nth_prime(x)/floor(x), fillcolor = 'red')
+
+    Fill the area between a function and its asymptote:
+        f = (2*x^3+2*x-1)/((x-2)*(x+1))
+        plot([f, 2*x+2], -7,7, fill = {0: [1]}, fillcolor='#ccc').show(ymin=-20, ymax=20)
+
+        sage: def b(n): return lambda x: bessel_J(n, x)
+        sage: plot([b(n) for n in [1..5]], 0, 20, fill = 'axis')
+
+        sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
+        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]))
+
     TESTS:
     We do not randomize the endpoints:
         sage: p = plot(x, (x,-1,1))
@@ -1647,8 +1688,9 @@ def plot(funcs, *args, **kwds):
         G.show()
     return G
 
+
 def _plot(funcs, xrange, parametric=False,
-              polar=False, label='', randomize=True, **options):
+              polar=False, fill=None, label='', randomize=True, **options):
     if not is_fast_float(funcs):
         funcs =  fast_float(funcs)
 
@@ -1660,98 +1702,117 @@ def _plot(funcs, xrange, parametric=False,
     else:
         f = funcs
 
-    plot_points = int(options.pop('plot_points'))
-    x, data = var_and_list_of_values(xrange, plot_points)
-    xmin = data[0]
-    xmax = data[-1]
+    # xrange has to be either of the form (var, xmin, xmax) or (xmin, xmax)
+    if not isinstance(xrange, (tuple, list)):
+        raise TypeError, "xrange must be a tuple or list"
+    if len(xrange) == 3:
+        xmin, xmax = xrange[1], xrange[2]
+    elif len(xrange) == 2:
+        xmin, xmax = xrange[0], xrange[1]
+    else:
+        raise ValueError, "parametric value range must be a list or tuple of length 2 or 3."
 
     #check to see if funcs is a list of functions that will
     #be all plotted together.
     if isinstance(funcs, (list, tuple)) and not parametric:
-        return reduce(operator.add, (plot(f, (xmin, xmax), polar=polar, **options) for f in funcs))
+        rainbow_colors = rainbow(len(funcs))
 
-    delta = float(xmax-xmin) / plot_points
-
-    random = current_randstate().python_random().random
-    exceptions = 0; msg=''
-    exception_indices = []
-    for i in range(len(data)):
-        xi = data[i]
-        # Slightly randomize the interior sample points if
-        # randomize is true
-        if randomize and i > 0 and i < plot_points-1:
-            xi += delta*(random() - 0.5)
-
-        try:
-            data[i] = (float(xi), float(f(xi)))
-            if str(data[i][1]) in ['nan', 'NaN', 'inf', '-inf']:
-                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
-                exceptions += 1
-                exception_indices.append(i)
-        except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
-            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
-
-            if i == 0:
-                for j in range(1, 99):
-                    xj = xi + delta*j/100.0
-                    try:
-                        data[i] = (float(xj), float(f(xj)))
-                        # nan != nan
-                        if data[i][1] != data[i][1]:
-                            continue
-                        break
-                    except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
-                        pass
+        G = Graphics()
+        for i, h in enumerate(funcs):
+            if isinstance(fill, dict):
+                if i in fill:
+                    fill_entry = fill[i]
+                    if isinstance(fill_entry, list):
+                        if fill_entry[0] < len(funcs):
+                            fill_temp = funcs[fill_entry[0]]
+                        else:
+                            fill_temp = None
+                    else:
+                        fill_temp = fill_entry
                 else:
-                    exceptions += 1
-                    exception_indices.append(i)
-            elif i == plot_points-1:
-                for j in range(1, 99):
-                    xj = xi - delta*j/100.0
-                    try:
-                        data[i] = (float(xj), float(f(xj)))
-                        # nan != nan
-                        if data[i][1] != data[i][1]:
-                            continue
-                        break
-                    except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
-                        pass
-                else:
-                    exceptions += 1
-                    exception_indices.append(i)
+                    fill_temp = None
             else:
-                exceptions += 1
-                exception_indices.append(i)
+                fill_temp = fill
 
-            exceptions += 1
-            exception_indices.append(i)
+            options_temp = options.copy()
+            fillcolor_temp = options_temp.pop('fillcolor', 'automatic')
+            if fillcolor_temp == 'automatic':
+                fillcolor_temp = rainbow_colors[i]
 
+            G += plot(h, (xmin, xmax), polar = polar, fill = fill_temp, \
+                      fillcolor = fillcolor_temp, **options_temp)
+        return G
 
-    data = [data[i] for i in range(len(data)) if i not in exception_indices]
+    adaptive_tolerance = options.pop('adaptive_tolerance')
+    adaptive_recursion = options.pop('adaptive_recursion')
+    plot_points = int(options.pop('plot_points'))
 
-    # adaptive refinement
-    i, j = 0, 0
-    adaptive_tolerance = delta * float(options.pop('adaptive_tolerance'))
-    adaptive_recursion = int(options.pop('adaptive_recursion'))
+    data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize)
 
-    while i < len(data) - 1:
-       for p in adaptive_refinement(f, data[i], data[i+1],
-                                     adaptive_tolerance=adaptive_tolerance,
-                                     adaptive_recursion=adaptive_recursion):
-            data.insert(i+1, p)
-            i += 1
-       i += 1
-
-    if (len(data) == 0 and exceptions > 0) or exceptions > 10:
-        sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
-        sage.misc.misc.verbose("Last error message: '%s'"%msg, level=0)
     if parametric:
         data = [(fdata, g(x)) for x, fdata in data]
+
+    G = Graphics()
+
+    fillcolor = options.pop('fillcolor', 'automatic')
+    fillalpha = options.pop('fillalpha', 0.5)
+
+    if fill != None:
+        if parametric:
+            filldata = data
+        else:
+            if fill == 'axis' or fill == True:
+                base_level = 0
+            elif fill == 'min':
+                base_level = min(t[1] for t in data)
+            elif fill == 'max':
+                base_level = max(t[1] for t in data)
+            elif hasattr(fill, '__call__'):
+                if fill == max or fill == min:
+                    if fill == max:
+                        fstr = 'max'
+                    else:
+                        fstr = 'min'
+                    msg = "WARNING: You use the built-in function %s for filling. You probably wanted the string '%s'." % (fstr, fstr)
+                    sage.misc.misc.verbose(msg, level=0)
+                if not is_fast_float(fill):
+                    fill_f = fast_float(fill)
+                else:
+                    fill_f = fill
+
+                filldata = generate_plot_points(fill_f, xrange, plot_points, adaptive_tolerance, \
+                                                adaptive_recursion, randomize)
+                filldata.reverse()
+                filldata += data
+            else:
+                try:
+                    base_level = float(fill)
+                except TypeError:
+                    base_level = 0
+
+            if not hasattr(fill, '__call__') and polar:
+                filldata = generate_plot_points(lambda x: base_level, xrange, plot_points, adaptive_tolerance, \
+                                                adaptive_recursion, randomize)
+                filldata.reverse()
+                filldata += data
+            if not hasattr(fill, '__call__') and not polar:
+                filldata = [(data[0][0], base_level)] + data + [(data[-1][0], base_level)]
+
+        if fillcolor == 'automatic':
+            fillcolor = (0.5, 0.5, 0.5)
+        fill_options = {}
+        fill_options['rgbcolor'] = fillcolor
+        fill_options['alpha'] = fillalpha
+        fill_options['thickness'] = 0
+        if polar:
+            filldata = [(y*cos(x), y*sin(x)) for x, y in filldata]
+        G += polygon(filldata, **fill_options)
+
     if polar:
         data = [(y*cos(x), y*sin(x)) for x, y in data]
 
     from sage.plot.all import line, text
-    G = line(data, **options)
+    G += line(data, **options)
 
     # Label?
     if label:
@@ -1787,7 +1848,10 @@ def parametric_plot(funcs, *args, **kwargs):
         sage: t = var('t')
         sage: parametric_plot( (sin(t), sin(2*t)), (t, 0, 2*pi), rgbcolor=hue(0.6) )
         sage: parametric_plot((1, t), (t, 0, 4))
-        sage: parametric_plot((t, t^2), (t, -4, 4))
+        sage: parametric_plot((t, t^2), (t, -4, 4), fill = 'top')
+
+    A filled Hypotrochoid:
+        sage: parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], 0, 8*pi, fill = True)
 
     We draw some 3d parametric plots:
         sage: parametric_plot( (5*cos(x), 5*sin(x), x), (x,-12, 12), plot_points=150, color="red")
@@ -1854,6 +1918,15 @@ def polar_plot(funcs, *args, **kwds):
 
     Several polar plots:
         sage: polar_plot([2*sin(x), 2*cos(x)], (x, 0, 2*pi))
+
+    A filled spiral:
+        sage: polar_plot(sqrt, 0, 2 * pi, fill = True)
+
+    Fill the area between two functions:
+        sage: polar_plot(cos(4*x) + 1.5, 0, 2*pi, fill=0.5 * cos(4*x) + 2.5, fillcolor='orange').show(aspect_ratio=1)
+
+    Fill the area between several spirals:
+        sage: polar_plot([(1.2+k*0.2)*log(x) for k in range(6)], 1, 3 * pi, fill = {0: [1], 2: [3], 4: [5]})
     """
     kwds['polar']=True
     return plot(funcs, *args, **kwds)
@@ -2262,7 +2335,7 @@ def var_and_list_of_values(v, plot_points):
         var = None
         a, b = v
     else:
-        raise ValueError, "parametric value range must be a list of 2 or 3-tuple."
+        raise ValueError, "parametric value range must be a list or tuple of length 2 or 3."
 
     a = float(a)
     b = float(b)
@@ -2477,6 +2550,142 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
     else:
         return []
 
+def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize = True):
+    r"""
+    Calculate plot points for a function f in the interval xrange.
+    The adaptive refinement algorithm for plotting a function f. See the
+    docstring for plot for a description of the algorithm.
+
+    INPUT:
+        f -- a function of one variable
+        p1, p2 -- two points to refine between
+        plot_points        -- (default: 5) the minimal number of plot points.
+        adaptive_recursion -- (default: 5) how many levels of recursion to go
+                              before giving up when doing adaptive refinement.
+                              Setting this to 0 disables adaptive refinement.
+        adaptive_tolerance -- (default: 0.01) how large a difference should be
+                              before the adaptive refinement code considers
+                              it significant.  See the documentation for
+                              plot() for more information.
+
+    OUTPUT:
+        list -- a list of points (x, f(x)) in the interval xrange, which aproximate
+                the function f.
+
+    TESTS:
+        sage: from sage.plot.plot import generate_plot_points
+        sage: generate_plot_points(sin, (0, pi), plot_points=2, adaptive_recursion=0)
+        [(0.0, 0.0), (3.1415926535897931, 1.2246063538223773e-16)]
+
+        sage: generate_plot_points(sin(x), (-pi, pi), randomize=False)
+        [(-3.1415926535897931, -1.2246063538223773e-16), (-2.748893571891069,
+        -0.38268343236508989), (-2.3561944901923448, -0.70710678118654757),
+        (-2.1598449493429825, -0.83146961230254546), (-1.9634954084936207,
+        -0.92387953251128674), (-1.7671458676442586, -0.98078528040323043),
+        (-1.5707963267948966, -1.0), (-1.3744467859455345,
+        -0.98078528040323043), (-1.1780972450961724, -0.92387953251128674),
+        (-0.98174770424681035, -0.83146961230254524), (-0.78539816339744828,
+        -0.70710678118654746), (-0.39269908169872414, -0.38268343236508978),
+        (0.0, 0.0), (0.39269908169872414, 0.38268343236508978),
+        (0.78539816339744828, 0.70710678118654746), (0.98174770424681035,
+        0.83146961230254524), (1.1780972450961724, 0.92387953251128674),
+        (1.3744467859455345, 0.98078528040323043), (1.5707963267948966, 1.0),
+        (1.7671458676442586, 0.98078528040323043), (1.9634954084936207,
+        0.92387953251128674), (2.1598449493429825, 0.83146961230254546),
+        (2.3561944901923448, 0.70710678118654757), (2.748893571891069,
+        0.38268343236508989), (3.1415926535897931, 1.2246063538223773e-16)]
+
+    This shows that lowering adaptive_tolerance and raising
+    adaptive_recursion both increase the number of subdivision points:
+
+        sage: x = var('x')
+        sage: f = sin(1/x)
+        sage: [len(generate_plot_points(f, (-pi, pi), adaptive_tolerance=i)) for i in [0.01, 0.001, 0.0001]]
+        [42, 67, 104]
+
+        sage: [len(generate_plot_points(f, (-pi, pi), adaptive_recursion=i)) for i in [5, 10, 15]]
+        [34, 144, 897]
+    """
+    x, data = var_and_list_of_values(xrange, plot_points)
+    xmin = data[0]
+    xmax = data[-1]
+    delta = float(xmax-xmin) / plot_points
+
+    random = current_randstate().python_random().random
+    exceptions = 0; msg=''
+    exception_indices = []
+    for i in range(len(data)):
+        xi = data[i]
+        # Slightly randomize the interior sample points if
+        # randomize is true
+        if randomize and i > 0 and i < plot_points-1:
+            xi += delta*(random() - 0.5)
+
+        try:
+            data[i] = (float(xi), float(f(xi)))
+            if str(data[i][1]) in ['nan', 'NaN', 'inf', '-inf']:
+                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+                exceptions += 1
+                exception_indices.append(i)
+        except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+
+            if i == 0:
+                for j in range(1, 99):
+                    xj = xi + delta*j/100.0
+                    try:
+                        data[i] = (float(xj), float(f(xj)))
+                        # nan != nan
+                        if data[i][1] != data[i][1]:
+                            continue
+                        break
+                    except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+                        pass
+                else:
+                    exceptions += 1
+                    exception_indices.append(i)
+            elif i == plot_points-1:
+                for j in range(1, 99):
+                    xj = xi - delta*j/100.0
+                    try:
+                        data[i] = (float(xj), float(f(xj)))
+                        # nan != nan
+                        if data[i][1] != data[i][1]:
+                            continue
+                        break
+                    except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+                        pass
+                else:
+                    exceptions += 1
+                    exception_indices.append(i)
+            else:
+                exceptions += 1
+                exception_indices.append(i)
+
+            exceptions += 1
+            exception_indices.append(i)
+
+
+    data = [data[i] for i in range(len(data)) if i not in exception_indices]
+
+    # adaptive refinement
+    i, j = 0, 0
+    adaptive_tolerance = delta * float(adaptive_tolerance)
+    adaptive_recursion = int(adaptive_recursion)
+
+    while i < len(data) - 1:
+       for p in adaptive_refinement(f, data[i], data[i+1],
+                                     adaptive_tolerance=adaptive_tolerance,
+                                     adaptive_recursion=adaptive_recursion):
+            data.insert(i+1, p)
+            i += 1
+       i += 1
+
+    if (len(data) == 0 and exceptions > 0) or exceptions > 10:
+        sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
+        sage.misc.misc.verbose("Last error message: '%s'"%msg, level=0)
+
+    return data
 
 #Lovely cruft to keep the pickle jar working
 from line import line, line2d, Line as GraphicPrimitive_Line

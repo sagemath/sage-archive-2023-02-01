@@ -7209,7 +7209,8 @@ class Function_factorial(PrimitiveFunction):
         factorial(factorial(x) + x)
         sage: f(x=3)
         362880
-
+        sage: factorial(x)^2
+        factorial(x)^2
         sage: factorial(-32)
         Traceback (most recent call last):
         ...

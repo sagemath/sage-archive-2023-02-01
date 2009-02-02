@@ -802,7 +802,7 @@ cdef class Parser:
             tokens.backtrack()
             return self.p_power(tokens)
 
-# power ::=  atom ^ factor | atom | atom!
+# power ::=  (atom | atom!) ^ factor | atom | atom!
     cpdef p_power(self, Tokenizer tokens):
         """
         Parses a power. Note that exponentiation groups right to left.
@@ -823,6 +823,8 @@ cdef class Parser:
             factorial(x)
             sage: p.p_factor(Tokenizer('(x^2)!'))
             factorial(x^2)
+            sage: p.p_factor(Tokenizer('x!^2'))
+            factorial(x)^2
 
         """
         operand1 = self.p_atom(tokens)
@@ -832,7 +834,13 @@ cdef class Parser:
             return operand1 ** operand2
         elif token == "!":
             from sage.calculus.calculus import factorial
-            return factorial(operand1)
+            operand1 = factorial(operand1)
+            if tokens.peek() == '^':
+                tokens.next()
+                operand2 = self.p_factor(tokens)
+                return operand1 ** operand2
+            else:
+                return operand1
         else:
             tokens.backtrack()
             return operand1

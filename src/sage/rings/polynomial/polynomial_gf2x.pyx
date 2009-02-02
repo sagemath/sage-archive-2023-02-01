@@ -129,6 +129,9 @@ cdef class Polynomial_GF2X(Polynomial_template):
         cdef Py_ssize_t i, j, k, l, n, maxlength
         cdef Matrix_mod2_dense F, G, H
 
+        if g.degree() >= h.degree():
+            g = g % h
+
         cdef GF2X_c _f = (<Polynomial_GF2X>self).x
         cdef GF2X_c _g = (<Polynomial_GF2X>g).x
         cdef GF2X_c gpow, g2, tt

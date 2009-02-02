@@ -1642,10 +1642,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             else:
                 if proof is False:
                     proof = True #since we actually provably found the rank
-                i = X.find('Rank = ')
-                assert i != -1, "bug in parsing of mwrank output"
+                match = 'Rank ='
+                i = X.find(match)
+                if i == -1:
+                    match = 'found points of rank'
+                    i = X.find(match)
+                    if i == -1:
+                        raise RuntimeError, "%s\nbug -- tried to find 'Rank =' or 'found points of rank' in mwrank output but couldn't."%X
                 j = i + X[i:].find('\n')
-                r = Integer(X[i+7:j])
+                r = Integer(X[i+len(match)+1:j])
             self.__rank[proof] = r
 
         return self.__rank[proof]
@@ -4809,6 +4814,249 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return rings.prime_range(3,p), D
         else:
             return _bound(P)
+
+
+    #################################################################################
+    def _heegner_index_in_EK(self, D):
+        """
+        Return the index of the sum of E(QQ)/tor + E^D(QQ)/tor in E(K)/tor.
+
+        INPUT:
+            D -- negative integer; the Heegner discriminant
+
+        OUTPUT:
+            a power of 2 -- the given index
+
+        EXAMPLES:
+        We compute the index for a rank 2 curve and found that it is 2.
+            sage: E = EllipticCurve('389a')
+            sage: E._heegner_index_in_EK(-7)
+            2
+
+        We explicitly verify in the above example that indeed that
+        index is divisibly by 2 by writing down a generator of
+        E(QQ)/tor + E^D(QQ)/tor that is divisible by 2 in E(K).
+            sage: F = E.quadratic_twist(-7)
+            sage: K = QuadraticField(-7,'a')
+            sage: G = E.change_ring(K)
+            sage: phi = F.change_ring(K).isomorphism_to(G)
+            sage: P = G(E.0) + G(E.1) + G(phi(F.0)); P
+            (-867/3872*a - 3615/3872 : -18003/170368*a - 374575/170368 : 1)
+            sage: P.division_points(2)
+            [(1/8*a + 5/8 : -5/16*a - 9/16 : 1)]
+
+        """
+        # check conditions, then use cache if possible.
+        if not self.satisfies_heegner_hypothesis(D):
+            raise ValueError, "D (=%s) must satisfy the Heegner hypothesis"%D
+        try:
+            return self.__heegner_index_in_EK[D]
+        except AttributeError:
+            self.__heegner_index_in_EK = {}
+        except KeyError:
+            pass
+
+        #####################################################################
+        # THE ALGORITHM:
+        #
+        # For an element P of an abelian group A, let [P] denote the
+        # equivalence class of P in the quotient A/A_tor of A by
+        # its torsion subgroup.   Then for P in E(Q) + E^D(QQ), we
+        # have that [P] is divisible by 2 in E(K)/tor if and only
+        # there is R in E(K) such that 2*[R] = [P], and this is
+        # only if there is R in E(K) and t in E(K)_tor such that
+        #          2*R = P + t.
+        #
+        # Using complex conjugation, one sees that the quotient
+        # group E(K)/tor / ( E(Q)/tor + E^D(Q)/tor ) is killed by 2.
+        # So to compute the order of this group we run through
+        # representatives P for A/(2A) where A = E(Q)/tor + E^D(Q)/tor,
+        # and for each we see whether there is a torsion point t in E(K)
+        # such that P + t is divisible by 2.   Also, we have
+        #    2 | P+t  <==> 2 | P+n*t for any odd integer n,
+        # so we may assume t is of 2-power order.
+        #####################################################################
+
+        E     = self  # nice shortcut
+        F     = E.quadratic_twist(D).minimal_model()
+        K     = rings.QuadraticField(D,'a')
+
+        # Define a map phi that we'll use to put the points of E^D(QQ)
+        # into E(K):
+        G     = E.change_ring(K)
+        G2    = F.change_ring(K)
+        phi   = G2.isomorphism_to(G)
+
+        # Basis for E(Q)/tor oplus E^D(QQ)/tor in E(K):
+        basis = [G(z) for z in E.gens()] + [G(phi(z)) for z in F.gens()]
+        # Make a list of the 2-power order torsion points in E(K), including 0.
+        T     = [G(z) for z in G.torsion_subgroup().list() if z.order() == 1 or
+                ((z.order() % 2 == 0 and len(z.order().factor()) == 1))]
+
+        r     = len(basis)   # rank
+        V     = rings.QQ**r
+        B     = []
+
+        # Iterate through reps for A/(2*A) creating vectors in (1/2)*ZZ^r
+        for v in rings.GF(2)**r:
+            if not v: continue
+            P = sum([basis[i] for i in range(r) if v[i]])
+            for t in T:
+                if (P+t).is_divisible_by(2):
+                    B.append(V(v)/2)
+
+        A = rings.ZZ**r
+        # Take span of our vectors in (1/2)*ZZ^r, along with ZZ^r.  This is E(K)/tor.
+        W     = V.span(B,rings.ZZ) + A
+
+        # Compute the index in E(K)/tor of A = E(Q)/tor + E^D(Q)/tor, cache, and return.
+        index = A.index_in(W)
+        self.__heegner_index_in_EK[D] = index
+        return index
+
+    def heegner_sha_an(self, D, prec=53):
+        """
+        Return the conjectural (analytic) order of Sha
+
+        INPUT:
+            D -- negative integer; the Heegner discriminant
+            prec -- integer (default: 53); bits of precision to
+                    compute analytic order of Sha
+
+        OUTPUT:
+            sha -- conjectural order of sha, as a floating point number
+
+        NOTE: Often you'll want to do proof.elliptic_curve(False) when
+        using this function, since often the twisted elliptic curves
+        that come up have enormous conductor, and Sha is nontrivial,
+        which makes provably finding the Mordell-Weil group using
+        2-descent difficult.
+
+        EXAMPLES:
+        An example where E has rank 11.
+            sage: E = EllipticCurve('11a')
+            sage: E.heegner_sha_an(-7)                                  # long
+            1.00000000000000
+
+        The cache works:
+            sage: E.heegner_sha_an(-7) is E.heegner_sha_an(-7)          # long
+            True
+
+        Lower precision.
+            sage: E.heegner_sha_an(-7,10)                               # long
+            1.0
+
+        Checking that the cache works for any precision.
+            sage: E.heegner_sha_an(-7,10) is E.heegner_sha_an(-7,10)    # long
+            True
+
+        A rank 1 curve with nontrivial Sha over the quadratic
+        imaginary field K; however, there is no Sha for E over QQ or
+        for the quadratic twist of E.
+            sage: E = EllipticCurve('37a')
+            sage: E.heegner_sha_an(-40)                                 # long
+            4.00000000000000
+            sage: E.quadratic_twist(-40).sha().an()                     # long
+            1
+            sage: E.sha().an()                                          # long
+            1
+
+        A rank 2 curve.
+            sage: E = EllipticCurve('389a')                             # long
+            sage: E.heegner_sha_an(-7)                                  # long
+            1.00000000000000
+
+        If we remove the hypothesis that E(K) has rank 1 in Conjecture
+        2.3 in [Gross-Zagier, 1986, page 311], then that conjecture is
+        falase, as the following example shows:
+            sage: E = EllipticCurve('65a')                              # long
+            sage: E.heegner_sha_an(-56)                                 # long
+            1.00000000000000
+            sage: E.torsion_order()                                     # long
+            2
+            sage: E.tamagawa_product()                                  # long
+            1
+            sage: E.quadratic_twist(-56).rank()                         # long
+            2
+        """
+        # check conditions, then return from cache if possible.
+        if not self.satisfies_heegner_hypothesis(D):
+            raise ValueError, "D (=%s) must satisfy the Heegner hypothesis"%D
+        try:
+            return self.__heegner_sha_an[(D,prec)]
+        except AttributeError:
+            self.__heegner_sha_an = {}
+        except KeyError:
+            pass
+
+        # Use the BSD conjecture over the quadratic imaginary K --
+        # see page 311 of [Gross-Zagier, 1986] for the formula.
+        E   = self  # notational convenience
+        F   = E.quadratic_twist(D).minimal_model()
+        K   = rings.QuadraticField(D,'a')
+
+        # Compute each of the quantities in BSD
+        #  - The torsion subgroup over K.
+        T   = E.change_ring(K).torsion_order()
+
+        #  - The product of the Tamagawa numbers, which because D is
+        #    coprime to N is just the square of the product of the
+        #    Tamagawa numbers over QQ for E.  (we square below in the
+        #    BSD formula)
+        cqprod = E.tamagawa_product()
+
+        #  - The leading term of the L-series, as a product of two
+        #  other L-series.
+        rE  = E.rank()
+        rF = F.rank()
+        L_E = E.lseries().dokchitser(prec).derivative(1, rE)
+        L_F = F.lseries().dokchitser(prec).derivative(1, rF)
+        #    NOTE: The binomial coefficient in the following formula
+        #    for the leading term in terms of the other two leading
+        #    terms comes from the product rule for the derivative.
+        #    You can think this through or just type something like
+        #      f = function('f',x); g = function('g',x); diff(f*g,6)
+        #    into Sage to be convinced.
+        L = rings.binomial(rE + rF, rE) * (L_E * L_F / (rings.factorial(rE+rF)) )
+
+        #  - ||omega||^2 -- the period.  It's twice the volume of the
+        #    period lattice.  See the following paper for a derivation:
+        #    "Verification of the Birch and Swinnerton-Dyer Conjecture
+        #     for Specific Elliptic Curves", G. Grigorov, A. Jorza, S. Patrikis,
+        #     C. Patrascu, W. Stein
+        omega = 2 * abs(E.period_lattice().basis_matrix().det())
+
+        #  - The regulator.
+        #    First we compute the regualtor of the subgroup E(QQ) + E^D(QQ)
+        #    of E(K).   The factor of 2 in the regulator
+        #    accounts for the fact that the height over K is twice the
+        #    height over QQ, i.e., for P in E(QQ) we have h_K(P,P) =
+        #    2*h_Q(P,P).  See, e.g., equation (6.4) on page 230 of
+        #    [Gross-Zagier, 1986].
+        Reg_prod = 2**(rE + rF) * E.regulator(precision=prec) * F.regulator(precision=prec)
+        #    Next we call off to the _heegner_index_in_EK function, which
+        #    saturates the group E(QQ) + E^D(QQ) in E(K), given us the index,
+        #    which must be a power of 2, since E(QQ) is the +1 eigenspace for
+        #    complex conjugation, and E^D(QQ) is the -1 eigenspace.
+        ind = self._heegner_index_in_EK(D)
+        #    Finally, we know the regulator of E(K).
+        Reg = Reg_prod / ind**2
+
+        #  - Square root of the absolute value of the discriminant.  This is
+        #    easy; we just make sure the D passed in is an integer, so we
+        #    can call sqrt with the chosen precision.
+        sqrtD = Integer(abs(D)).sqrt(prec=prec)
+
+        #  - Done: Finally, we plug everything into the BSD formula to get the
+        #    analytic order of Sha.
+        sha_an = (L * T**2 * sqrtD) / (omega * Reg * cqprod**2)
+
+        #  - We cache and return the answer.
+        self.__heegner_sha_an[(D,prec)] = sha_an
+        return sha_an
+
+
+    #################################################################################
 
     padic_regulator = padics.padic_regulator
 

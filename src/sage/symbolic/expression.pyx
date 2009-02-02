@@ -95,6 +95,8 @@ from sage.symbolic.function cimport new_SFunction_from_serial
 
 from sage.rings.rational import Rational  # Used for sqrt.
 
+from sage.calculus.calculus import CallableSymbolicExpressionRing
+
 cdef class Expression(CommutativeRingElement):
     cpdef object pyobject(self):
         """
@@ -122,7 +124,9 @@ cdef class Expression(CommutativeRingElement):
         """
         GEx_destruct(&self._gobj)
 
-    def _repr_(self):
+    # TODO: The keyword argument simplify is for compatibility with
+    # old symbolics, once the switch is complete, it should be removed
+    def _repr_(self, simplify=None):
         """
         Return string representation of this symbolic expression.
 
@@ -1356,6 +1360,35 @@ cdef class Expression(CommutativeRingElement):
         """
         # TODO: prec and digits parameters
         return new_Expression_from_GEx(self._gobj.evalf(0))
+
+    def function(self, *args):
+        """
+        Return a callable symbolic expression with the given variables.
+
+        EXAMPLES:
+            sage: var('x,y,z',ns=1)
+            (x, y, z)
+            sage: f = (x+2*y).function(x,y); f
+            (x, y) |--> x + 2*y
+            sage: f(1,2)
+            5
+
+            sage: f(1)
+            2*y + 1
+
+        """
+        # we override type checking in CallableSymbolicExpressionRing,
+        # since it checks for old SymbolicVariable's
+        # and do the check here instead
+        for i in args:
+            if not PY_TYPE_CHECK(i, Expression):
+                break
+            elif not is_a_symbol((<Expression>i)._gobj):
+                break
+        else:
+            R = CallableSymbolicExpressionRing(args, check=False)
+            return R(self)
+        raise TypeError, "Must construct a function with a tuple (or list) of symbolic variables."
 
     ############################################################################
     # Polynomial functions

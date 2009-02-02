@@ -5700,6 +5700,9 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
             return CallableSymbolicExpression(self, x)
         if hasattr(x,'parent') and x.parent() == SR:
             return CallableSymbolicExpression(self, x)
+        from sage.symbolic.expression import Expression
+        if isinstance(x, Expression):
+            return CallableSymbolicExpression(self, x)
         return self._coerce_try(x, [SR])
 
     def _repr_(self):
@@ -6010,8 +6013,8 @@ class CallableSymbolicExpression(SymbolicExpression):
     # TODO: should len(args) == len(vars)?
     def __call__(self, *args,**kwargs):
         """
-        Calling a callable symbolic expression returns a symbolic expression with the
-        appropriate arguments substituted.
+        Calling a callable symbolic expression returns a symbolic expression
+        with the appropriate arguments substituted.
 
         EXAMPLES:
             sage: var('a, x, y, z')

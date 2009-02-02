@@ -672,7 +672,7 @@ If this all works, you can then make calls like:
             try:
                 self._expect.close(force=1)
             except pexpect.ExceptionPexpect, msg:
-                raise pexcept.ExceptionPexpect( "THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+                raise pexpect.ExceptionPexpect( "THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
             self._start()
             raise KeyboardInterrupt, "Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self
         else:

@@ -70,6 +70,26 @@ class Mwrank_class(Expect):
     def __call__(self, cmd):
         return self.eval(str(cmd))
 
+    def eval(self, *args, **kwds):
+        """
+        Send a line of input to mwrank, then when it finishes return
+        everything that mwrank output.
+
+        NOTE: If a RuntimeError exception is raised, then the mwrank
+        interface is restarted and the command is retried once.
+
+        EXAMPLES:
+            sage: mwrank.eval('12 3 4 5 6')
+            'Curve [12,3,4,5,6] :...'
+        """
+        if self._expect is not None and not self._expect.isalive():
+            # if mwrank is interrupted twice in rapid succession,
+            # then it doesn't restart correctly, and we're left with:
+            #   "RuntimeError: [Errno 9] Bad file descriptor"
+            # Doing _start again fixes that always. See trac #5157.
+            self._start()
+        return Expect.eval(self, *args, **kwds)
+
     def console(self):
         mwrank_console()
 
@@ -86,7 +106,9 @@ class Mwrank_class(Expect):
             sage: m.quit()
         """
         if self._expect is None: return
-        os.kill(self._expect.pid, 9)
+        try:
+            os.kill(self._expect.pid, 9)
+        except: pass
         self._expect = None
 
 

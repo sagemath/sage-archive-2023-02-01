@@ -30,7 +30,11 @@ Atlas devel mainling list.
 
 == ChangeLog ==
 
-=== atlas-3.8.2.p1 (Michael Abshoff, Januar 2nd, 2009) ===
+=== atlas-3.8.2.p2 (Michael Abshoff, Januar 2nd, 2009) ===
+ * Actually fix dynamic liblapack.so on Solaris as intended in atlas-3.8.2.p1
+ * revert dumb mistake from atlas-3.8.2.p1 make_correct_shared.sh
+
+=== atlas-3.8.2.p1 (Michael Abshoff, January 2nd, 2009) ===
  * Do not create any dynamic liblapack.so on non-Linux since they break numpy and scipy
 
 === atlas-3.8.2.p0 (Michael Abshoff, Januar 2nd, 2009) ===

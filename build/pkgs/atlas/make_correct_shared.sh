@@ -38,10 +38,21 @@ if [ `uname` = "Linux" ]; then
 	$f77blas_command
 
     else
-        echo "Not on Linux, so nuking liblapack.so to work around problems with Numpy and Scipy"
 	cd "$SAGE_LOCAL"/lib
-        rm -rf liblapack.so
+	lapack_command="ld -L"$SAGE_LOCAL"/lib  -shared -soname liblapack.so -o liblapack.so  --whole-archive liblapack.a --no-whole-archive -lc -lm -lgfortran"
+	f77blas_command="ld -L"$SAGE_LOCAL"/lib -shared -soname libf77blas.so -o libf77blas.so  --whole-archive libf77blas.a --no-whole-archive -lc -lm -lgfortran"
+	echo $lapack_command
+	$lapack_command
+	echo $f77blas_command
+	$f77blas_command
     fi
 
+fi
+
+# on Solaris a dynamic liblapack.so leads to import erros in numpy, so delete them for now.
+if [ `uname` = "SunOS" ]; then
+    echo "Deleting liblapack.so on Solaris due to bug in numpy/scipy"
+    cd "$SAGE_LOCAL"/lib
+    rm -rf liblapack.so*
 fi
 

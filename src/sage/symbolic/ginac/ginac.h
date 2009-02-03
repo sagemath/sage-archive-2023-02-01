@@ -66,8 +66,6 @@
 #include "color.h"
 #include "clifford.h"
 
-#include "excompiler.h"
-
 #ifdef __MAKECINT__
 #pragma link C++ nestedclass;
 #pragma link C++ nestedtypedef;

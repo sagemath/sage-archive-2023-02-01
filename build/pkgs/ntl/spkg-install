@@ -18,6 +18,12 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+
+if [ $UNAME = "Darwin" ]; then
+   echo "Setting SHAREDFLAGS to '-fno-common'"
+   export SHAREDFLAGS="-fno-common"
+fi
+
 CUR=`pwd`
 
 cd src/

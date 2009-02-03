@@ -28,7 +28,10 @@ GPL
 
 == Changelog ==
 
-=== ntl-5.4.2.p5 (Michael Abshoff, July 21st, 2008) ===
+=== ntl-5.4.2.p6 (Michael Abshoff, February 3rd, 2009) ===
+ * Set SHAREDFALGS to -fnocommon on Darwin (#5164)
+
+=== ntl-5.4.2.p5 (Michael Abshoff, January 28th, 2009) ===
  * Disable the help switch in DoConfig (#5040)
  * reenable tuning on 64 bit PPC Linux since it works on the PS3 (#4978)
 

@@ -1785,18 +1785,25 @@ function initMCE(){
       theme_advanced_toolbar_align : "left",
       theme_advanced_statusbar_location : "bottom",
       theme_advanced_buttons1 : "\
-formatselect,bold,italic,underline,strikethrough,forecolor,backcolor,|,\
+formatselect,fontselect,fontsizeselect,bold,italic,underline,strikethrough,forecolor,backcolor,|,\
 bullist,numlist,|,\
-undo,redo,search,pastetext,pasteword,|,\
-link,image,unlink",
+undo,redo,search,pastetext,pasteword",
       theme_advanced_buttons2 : "\
 justifyleft,justifycenter,justifyright,justifyfull,outdent,indent,|,\
 charmap,|,\
 table,tablecontrols,|,\
-code",
+code,|,\
+link,image,unlink",
       theme_advanced_buttons3 : "",
-      theme_advanced_resizing : true});
-}
+      theme_advanced_resizing : true,
+      setup : function(ed) {
+      ed.onKeyDown.add(function(ed, e) {
+          if(key_enter_shift(key_event(e))) {
+            $(ed.formElement).submit();
+          }
+      })}
+   });
+};
 
 initMCE();
 

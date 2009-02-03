@@ -46,6 +46,8 @@ js.keyhandler.add('control',                key = "KEY_CTRL")
 js.keyhandler.add('backspace',              key = "KEY_BKSPC")
 js.keyhandler.add('enter',                  key = "KEY_ENTER")
 js.keyhandler.add('enter',                  key = "KEY_RETURN")
+js.keyhandler.add('enter_shift',            key = "KEY_ENTER", shift=True)
+js.keyhandler.add('enter_shift',            key = "KEY_RETURN", shift=True)
 js.keyhandler.add('spliteval_cell',         key = "KEY_ENTER", ctrl=True)
 js.keyhandler.add('spliteval_cell',         key = "KEY_RETURN",ctrl=True)
 js.keyhandler.add('spliteval_cell',         key = "KEY_CTRLENTER", ctrl=True)  # needed on OS X Firefox

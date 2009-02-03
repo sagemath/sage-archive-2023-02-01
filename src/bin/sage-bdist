@@ -102,6 +102,15 @@ if [ "$UNAME" = "Darwin" ]; then
     mv * x
     mv x sage
     cp sage/local/bin/sage-README-osx.txt README.txt
+
+    echo 'Unpacking Sage.app'
+    tar -xzvf "$SAGE_ROOT/data/extcode/sage/ext/mac-app/Sage.app.tgz"
+    sed -i '' "s/SAGE_VERSION/$SAGE_VERSION/" \
+        ./Sage.app/Contents/Info.plist \
+        ./Sage.app/Contents/Resources/English.lproj/InfoPlist.strings
+
+    mv sage ./Sage.app/Contents/Resources/
+
     cd "$CUR"/tmp/
     echo "Creating dmg"
     DYLD_LIBRARY_PATH=$SAGE_ORIG_DYLD_LIBRARY_PATH; export DYLD_LIBRARY_PATH

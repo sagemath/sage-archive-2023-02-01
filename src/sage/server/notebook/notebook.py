@@ -1714,15 +1714,27 @@ class Notebook(SageObject):
             # (apparently in some browsers, it covers up the scroll
             # bar)
             head += """<script type="text/javascript">
-jsMath = {styles: {
+jsMath.styles = {
         '#jsMath_button':   'position:fixed; bottom:1px; right:20px; background-color:white; '
                                 + 'border: solid 1px #959595; margin:0px; padding: 0px 3px 1px 3px; '
                                 + 'z-index:102; color:black; text-decoration:none; font-size:x-small; '
                                 + 'width:auto; cursor:hand;',
-      }};
+      };
     </script>
 """
             head += '<script type="text/javascript" src="/javascript_local/jsmath/jsMath.js"></script>\n'
+            head += r'''<script type="text/javascript">/*The extensions here do the following:
+      - verb implements the \verb command:
+        see http://www.math.union.edu/~dpvc/jsMath/authors/verb.html
+      - moreArrows implements \xrightarrow, among other things:
+        see http://www.math.union.edu/~dpvc/jsMath/authors//moreArrows.html
+      - AMSmath implements a number of AMS math commands:
+        see http://www.math.union.edu/~dpvc/jsMath/authors/AMSmath.html
+    */
+         jsMath.Extension.Require("verb");
+         jsMath.Extension.Require("moreArrows");
+         jsMath.Extension.Require("AMSmath");
+</script>'''
 
         # Load the jquery and ui-jquery javascript library.
         # This is used for interact functionality in the notebook, and will be used

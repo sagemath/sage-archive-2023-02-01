@@ -1239,7 +1239,13 @@ cdef class Matrix(sage.structure.element.Matrix):
         Return the commutator self*other - other*self.
 
         EXAMPLES:
-            sage: A = Matrix(QQ[['t']], 2, 2, range(4))
+            sage: A = Matrix(ZZ, 2, 2, range(4))
+            sage: B = Matrix(ZZ, 2, 2, [0, 1, 0, 0])
+            sage: A.commutator(B)
+            [-2 -3]
+            [ 0  2]
+            sage: A.commutator(B) == -B.commutator(A)
+            True
         """
         return self*other - other*self
 

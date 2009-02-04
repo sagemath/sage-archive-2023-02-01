@@ -348,7 +348,7 @@ the "save" command), and get back to where you were quickly.
 
 notebook_help = [
             ('Full Text Search of Docs and Source', 'Search the SAGE documentation by typing <pre>search_doc("my query")</pre> in an input cell and press shift-enter.  Search the source code of SAGE by typing <pre>search_src("my query")</pre> and pressing shift-enter.  Arbitrary regular expressions are allowed as queries.'),
-            ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use $...$ and $$...$$ to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
+            ('HTML', 'Shift click between cells to create a new HTML cell.  Double click on existing HTML to edit it.  Use $...$ and $$...$$ to include typeset math in the HTML block.'),
             ('Shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
             ('Interactive Dynamic Widgets', 'Put @interact on the line before a function definition.  Type interact? for more details.'),
             ('Autoevaluate Cells on Load', 'Any cells with "#auto" in the input is automatically evaluated when the worksheet is first opened.'),

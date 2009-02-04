@@ -186,7 +186,7 @@ class TextCell(Cell_generic):
 evaluate_text_cell_input(%s,value,settings);
 return(value);
 }, {
-      tooltip   : "Doubleclick to edit...",
+      tooltip   : "",
       placeholder : "",
 //      type   : 'textarea',
       type   : 'mce',

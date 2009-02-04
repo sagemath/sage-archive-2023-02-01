@@ -25,6 +25,7 @@ include "../ext/python_list.pxi"
 include "../ext/python_object.pxi"
 include "../ext/python_slice.pxi"
 include "../ext/python_tuple.pxi"
+include "../ext/python_number.pxi"
 
 import sage.modules.free_module
 import sage.misc.latex
@@ -513,7 +514,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ValueError: vector is immutable; please change a copy instead (use self.copy())
             sage: A[0].is_immutable()
             True
-            sage: a = MatrixSpace(ZZ,3)(range(9)); a
+            sage: a = matrix(ZZ,3,range(9)); a
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -530,7 +531,15 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a[2.7]
             Traceback (most recent call last):
             ...
-            TypeError: 'sage.rings.real_mpfr.RealLiteral' object cannot be interpreted as an index
+            TypeError: index must be an integer
+            sage: a[1, 2.7]
+            Traceback (most recent call last):
+            ...
+            TypeError: index must be an integer
+            sage: a[2.7, 1]
+            Traceback (most recent call last):
+            ...
+            TypeError: index must be an integer
 
             sage: m=[(1, -2, -1, -1,9), (1, 8, 6, 2,2), (1, 1, -1, 1,4), (-1, 2, -2, -1,4)];M= matrix(m)
             sage: M
@@ -646,6 +655,51 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M[(1,2),(0,1,1)]
             [4 5 5]
             [8 9 9]
+            sage: m=[(1, -2, -1, -1), (1, 8, 6, 2), (1, 1, -1, 1), (-1, 2, -2, -1)]
+            sage: M= matrix(m);M
+            [ 1 -2 -1 -1]
+            [ 1  8  6  2]
+            [ 1  1 -1  1]
+            [-1  2 -2 -1]
+
+            sage: M[:2]
+            [ 1 -2 -1 -1]
+            [ 1  8  6  2]
+            sage: M[:]
+            [ 1 -2 -1 -1]
+            [ 1  8  6  2]
+            [ 1  1 -1  1]
+            [-1  2 -2 -1]
+            sage: M[1:3]
+            [ 1  8  6  2]
+            [ 1  1 -1  1]
+
+            sage: A=matrix(QQ,10,range(100))
+            sage: A[0:3]
+            [ 0  1  2  3  4  5  6  7  8  9]
+            [10 11 12 13 14 15 16 17 18 19]
+            [20 21 22 23 24 25 26 27 28 29]
+            sage: A[:2]
+            [ 0  1  2  3  4  5  6  7  8  9]
+            [10 11 12 13 14 15 16 17 18 19]
+            sage: A[8:]
+            [80 81 82 83 84 85 86 87 88 89]
+            [90 91 92 93 94 95 96 97 98 99]
+            sage: A[1:10:3]
+            [10 11 12 13 14 15 16 17 18 19]
+            [40 41 42 43 44 45 46 47 48 49]
+            [70 71 72 73 74 75 76 77 78 79]
+            sage: A[-1]
+            (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
+            sage: A[-1:-6:-2]
+            [90 91 92 93 94 95 96 97 98 99]
+            [70 71 72 73 74 75 76 77 78 79]
+            [50 51 52 53 54 55 56 57 58 59]
+
+            sage: A[3].is_immutable()
+            True
+            sage: A[1:3].is_immutable()
+            True
         """
         cdef list row_list
         cdef list col_list
@@ -687,6 +741,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             elif PySlice_Check(<PyObject *>row_index):
                 row_list = range(*row_index.indices(nrows))
             else:
+                if not PyIndex_Check(row_index):
+                    raise TypeError, "index must be an integer"
                 row = row_index
                 if row < 0:
                     row += nrows
@@ -711,6 +767,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             elif PySlice_Check(<PyObject *>col_index):
                 col_list =  range(*col_index.indices(ncols))
             else:
+                if not PyIndex_Check(col_index):
+                    raise TypeError, "index must be an integer"
                 col = col_index
                 if col < 0:
                     col += ncols
@@ -735,52 +793,38 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             return self.matrix_from_rows_and_columns(row_list,col_list)
 
-        # Else, just return this row
-        r = self.row(key)
+
+        row_index = key
+        if PyList_CheckExact(row_index) or PyTuple_CheckExact(row_index):
+            if PyTuple_CheckExact(row_index):
+                row_list = list(row_index)
+            else:
+                row_list = row_index
+
+            for i from 0 <= i < len(row_list):
+                ind = row_list[i]
+                if ind < 0:
+                    ind += nrows
+                    row_list[i] = ind
+
+                if ind < 0 or ind >= nrows:
+                    raise IndexError, "matrix index out of range"
+            r = self.matrix_from_rows(row_list)
+        elif PySlice_Check(<PyObject *>row_index):
+            row_list = range(*row_index.indices(nrows))
+            r = self.matrix_from_rows(row_list)
+        else:
+            if not PyIndex_Check(row_index):
+                raise TypeError, "index must be an integer"
+            row = row_index
+            if row < 0:
+                row += nrows
+            if row < 0 or row >= nrows:
+                raise IndexError, "matrix index out of range"
+            r = self.row(row)
+
         r.set_immutable()
         return r
-
-    def __getslice__(self,i,j):
-        """
-        Get a slice of this matrix
-        USAGE:
-           A[i:j]  -- the i-th through (j-1)-st rows of A.
-
-        EXAMPLES:
-            sage: m=[(1, -2, -1, -1), (1, 8, 6, 2), (1, 1, -1, 1), (-1, 2, -2, -1)]
-            sage: M= matrix(m);M
-            [ 1 -2 -1 -1]
-            [ 1  8  6  2]
-            [ 1  1 -1  1]
-            [-1  2 -2 -1]
-
-            sage: M[:2]
-            [ 1 -2 -1 -1]
-            [ 1  8  6  2]
-            sage: M[:]
-            [ 1 -2 -1 -1]
-            [ 1  8  6  2]
-            [ 1  1 -1  1]
-            [-1  2 -2 -1]
-            sage: M[1:3]
-            [ 1  8  6  2]
-            [ 1  1 -1  1]
-
-            sage: n=10;a=matrix(QQ,n,range(n^2))
-            sage: a[0:3]
-            [ 0  1  2  3  4  5  6  7  8  9]
-            [10 11 12 13 14 15 16 17 18 19]
-            [20 21 22 23 24 25 26 27 28 29]
-            sage: a[:2]
-            [ 0  1  2  3  4  5  6  7  8  9]
-            [10 11 12 13 14 15 16 17 18 19]
-            sage: a[8:]
-            [80 81 82 83 84 85 86 87 88 89]
-            [90 91 92 93 94 95 96 97 98 99]
-
-        """
-        #self.check_bounds(i,j)
-        return self.matrix_from_rows(range(min(i,self._nrows),min(j,self._nrows)))
 
     def __setitem__(self, ij, x):
         """

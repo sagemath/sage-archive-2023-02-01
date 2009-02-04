@@ -1,7 +1,7 @@
 r"""
 Linear Codes
 
-VERSION: 1.0
+VERSION: 1.1
 
 Let $ F$ be a finite field (we denote the finite field with $q$ elements
 $GF(q)$ by $\FF_q$). A subspace of $ F^n$ (with the standard basis)
@@ -136,6 +136,7 @@ and a new function, LinearCodeFromVectorSpace.
                      add is_permutation_equivalent and improve permutation_automorphism_group
                      using an interface with Robert Miller's code; added interface with
                      Leon's code for the spectrum method.
+    -- dj (2009-02): added native decoding methods (see module decoder.py)
 
 
 TESTS:
@@ -979,16 +980,19 @@ class LinearCode(module.Module):
         except:
             raise ValueError("Sorry, the covering radius of this code cannot be computed by Guava.")
 
-    def decode(self, right):
+    def decode(self, right,method="syndrome"):
         r"""
-        Wraps GUAVA's Decodeword. Hamming codes have a special
-        decoding algorithm. Otherwise, syndrome decoding is used.
+        Decodes a received vector v (=right) to an element c in the
+        code C (=self). Optional methods are "guava", "nearest neighbor"
+        or "syndrome". The method="guava" wraps GUAVA's Decodeword
+        (Hamming codes have a special decoding algorithm; otherwise,
+        syndrome decoding is used). The default is "syndrome".
 
         INPUT:
-            right must be a vector of length = length(self)
+            v must be a vector of length(C)
 
         OUTPUT:
-            The codeword c in C closest to r.
+            The codeword c in C closest to v.
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
@@ -996,6 +1000,10 @@ class LinearCode(module.Module):
             sage: F = GF(2); a = F.gen()
             sage: v1 = [a,a,F(0),a,a,F(0),a]
             sage: C.decode(v1)
+            (1, 0, 0, 1, 1, 0, 1)
+            sage: C.decode(v1,method="nearest neighbor")
+            (1, 0, 0, 1, 1, 0, 1)
+            sage: C.decode(v1,method="guava")
             (1, 0, 0, 1, 1, 0, 1)
             sage: v2 = matrix([[a,a,F(0),a,a,F(0),a]])
             sage: C.decode(v2)
@@ -1005,17 +1013,28 @@ class LinearCode(module.Module):
             (1, 0, 0, 1, 1, 0, 1)
             sage: c in C
             True
-            sage: v4 = [[a,a,F(0),a,a,F(0),a]]
-            sage: C.decode(v4)
-            (1, 0, 0, 1, 1, 0, 1)
             sage: C = HammingCode(2,GF(5))
             sage: v = vector(GF(5),[1,0,0,2,1,0])
             sage: C.decode(v)
  	    (2, 0, 0, 2, 1, 0)
+ 	    sage: F = GF(4,"a")
+ 	    sage: C = HammingCode(2,F)
+ 	    sage: v = vector(F, [1,0,0,a,1])
+ 	    sage: C.decode(v)
+ 	    (1, 0, 0, 1, 1)
+ 	    sage: C.decode(v, method="nearest neighbor")
+ 	    (1, 0, 0, 1, 1)
+ 	    sage: C.decode(v, method="guava")
+ 	    (1, 0, 0, 1, 1)
 
         Does not work for very long codes since the syndrome table grows too large.
         """
         from sage.interfaces.gap import gfq_gap_to_sage
+        from decoder import decode
+        if method=="syndrome" or method=="nearest neighbor":
+            return decode(self,right)
+        if not(method in ["syndrome", "nearest neighbor","guava"]):
+            raise NotImplementedError, "Only 'syndrome','nearest neighbor','guava' are implemented."
         F = self.base_ring()
         q = F.order()
         G = self.gen_mat()

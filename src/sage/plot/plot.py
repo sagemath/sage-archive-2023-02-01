@@ -1848,7 +1848,9 @@ def parametric_plot(funcs, *args, **kwargs):
         sage: t = var('t')
         sage: parametric_plot( (sin(t), sin(2*t)), (t, 0, 2*pi), rgbcolor=hue(0.6) )
         sage: parametric_plot((1, t), (t, 0, 4))
-        sage: parametric_plot((t, t^2), (t, -4, 4), fill = 'top')
+
+    Note that in parametric_plot, there is only fill or no fill.
+        sage: parametric_plot((t, t^2), (t, -4, 4), fill = True)
 
     A filled Hypotrochoid:
         sage: parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], 0, 8*pi, fill = True)

@@ -1016,7 +1016,7 @@ class Sigma:
 sigma = Sigma()
 
 def gcd(a, b=None, **kwargs):
-    """
+    r"""
     The greatest common divisor of a and b, or if a is a list and b is
     omitted the greatest common divisor of all elements of a.
 
@@ -1844,7 +1844,7 @@ def prime_divisors(n):
 prime_factors = prime_divisors
 
 def odd_part(n):
-    """
+    r"""
     The odd part of the integer $n$.  This is $n / 2^v$, where $v =
     \code{valuation(n,2)}$.
 
@@ -1958,7 +1958,7 @@ def is_squarefree(n):
 # Euler phi function
 #################################################################
 class Euler_Phi:
-    """
+    r"""
     Return the value of the Euler phi function on the integer n.  We
     defined this to be the number of positive integers <= n that are
     relatively prime to n.  Thus if n<=0 then \code{euler_phi(n)} is
@@ -2762,7 +2762,7 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
         raise NotImplementedError, "%s\ncomputation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."%msg
 
 def convergent(v, n):
-    """
+    r"""
     Return the n-th continued fraction convergent of the continued
     fraction defined by the sequence of integers v.  We assume
     $n \geq 0$.

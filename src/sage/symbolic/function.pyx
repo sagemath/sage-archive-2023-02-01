@@ -374,10 +374,15 @@ def init_sfunction_map():
     EXAMPLES:
         sage: from sage.symbolic.function import init_sfunction_map
         sage: f_list = init_sfunction_map()
-        sage: f_list[8] # indices here depend on the GiNaC library
+        sage: gamma in f_list
+        True
+        sage: exp in f_list
+        True
+        sage: x = var('x',ns=1)
+        sage: sin(x).operator()
+        sin
+        sage: gamma(x).operator()
         gamma
-        sage: f_list[12]
-        exp
     """
     # colliding serials (variable number of arguments): psi2, G2
 
@@ -439,10 +444,12 @@ def get_sfunction_map():
     EXAMPLES:
         sage: from sage.symbolic.function import get_sfunction_map
         sage: f_list = get_sfunction_map()
-        sage: f_list[14]
-        sin
-        sage: f_list[15]
-        cos
+        sage: binomial in f_list
+        True
+        sage: gamma in f_list
+        True
+        sage: cos in f_list
+        True
     """
     global sfunction_map
     if sfunction_map is None:

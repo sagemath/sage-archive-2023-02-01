@@ -89,7 +89,7 @@ However, when we compute the Groebner basis of I (defined over \ZZ), we
 note that there is a certain integer in the ideal which is not 1.
 
     sage: d_basis(I)
-    [x + 170269749119, y + 2149906854, z + 735710619426, 282687803443]
+    [x + 170269749119, y + 2149906854, z + ..., 282687803443]
 
 Now for each prime $p$ dividing this integer 282687803443, the Groebner
 basis of I modulo $p$ will be non-trivial and will thus give a solution

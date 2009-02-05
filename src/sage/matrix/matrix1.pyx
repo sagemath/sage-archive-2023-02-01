@@ -979,7 +979,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: A.set_row(2, [0,0]); A
             Traceback (most recent call last):
             ...
-            IndexError: matrix index out of range
+            IndexError: index out of range
 
             sage: A.set_row(0, [0,0,0])
             Traceback (most recent call last):
@@ -1010,7 +1010,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: A.set_column(2, [0,0]); A
             Traceback (most recent call last):
             ...
-            IndexError: matrix index out of range
+            IndexError: index out of range
 
             sage: A.set_column(0, [0,0,0])
             Traceback (most recent call last):

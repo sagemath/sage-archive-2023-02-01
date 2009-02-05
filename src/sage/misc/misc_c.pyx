@@ -18,6 +18,8 @@ include "../ext/stdsage.pxi"
 include "../ext/python_sequence.pxi"
 include "../ext/python_list.pxi"
 include "../ext/python_tuple.pxi"
+include "../ext/python_slice.pxi"
+include "../ext/python_number.pxi"
 
 cdef extern from *:
     bint PyGen_Check(x)
@@ -477,3 +479,179 @@ def test_bitset(py_a, py_b, long n):
 #################################################################
 is_64_bit = sys.maxint >= 9223372036854775807
 is_32_bit = not is_64_bit
+
+
+cpdef list normalize_index(object key, int size):
+    """
+    Normalize an index key and return a valid index or list of indices
+    within the range(0, size).
+
+    INPUT
+        key -- the index key, which can be either an integer, a tuple/list of integers, or a slice.
+        size -- the size of the collection
+
+    OUTPUT
+        a tuple (SINGLE, VALUE), where SINGLE is True (i.e., 1) if VALUE
+        is an integer and False (i.e., 0) if VALUE is a list.
+
+    EXAMPLES
+        sage: from sage.misc.misc_c import normalize_index
+        sage: normalize_index(-6,5)
+        Traceback (most recent call last):
+        ...
+        IndexError: index out of range
+        sage: normalize_index(-5,5)
+        [0]
+        sage: normalize_index(-4,5)
+        [1]
+        sage: normalize_index(-3,5)
+        [2]
+        sage: normalize_index(-2,5)
+        [3]
+        sage: normalize_index(-1,5)
+        [4]
+        sage: normalize_index(0,5)
+        [0]
+        sage: normalize_index(1,5)
+        [1]
+        sage: normalize_index(2,5)
+        [2]
+        sage: normalize_index(3,5)
+        [3]
+        sage: normalize_index(4,5)
+        [4]
+        sage: normalize_index(5,5)
+        Traceback (most recent call last):
+        ...
+        IndexError: index out of range
+        sage: normalize_index(6,5)
+        Traceback (most recent call last):
+        ...
+        IndexError: index out of range
+        sage: normalize_index((4,-6),5)
+        Traceback (most recent call last):
+        ...
+        IndexError: index out of range
+        sage: normalize_index((-2,3),5)
+        [3, 3]
+        sage: normalize_index((5,0),5)
+        Traceback (most recent call last):
+        ...
+        IndexError: index out of range
+        sage: normalize_index((-5,2),5)
+        [0, 2]
+        sage: normalize_index((0,-2),5)
+        [0, 3]
+        sage: normalize_index((2,-3),5)
+        [2, 2]
+        sage: normalize_index((3,3),5)
+        [3, 3]
+        sage: normalize_index((-2,-5),5)
+        [3, 0]
+        sage: normalize_index((-2,-4),5)
+        [3, 1]
+        sage: normalize_index([-2,-1,3],5)
+        [3, 4, 3]
+        sage: normalize_index([4,2,1],5)
+        [4, 2, 1]
+        sage: normalize_index([-2,-3,-4],5)
+        [3, 2, 1]
+        sage: normalize_index([3,-2,-3],5)
+        [3, 3, 2]
+        sage: normalize_index([-5,2,-3],5)
+        [0, 2, 2]
+        sage: normalize_index([4,4,-5],5)
+        [4, 4, 0]
+        sage: s=slice(None,None,None); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(None,None,-2); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(None,None,4); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(None,-2,None); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(None,-2,-2); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(None,-2,4); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(None,4,None); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(None,4,-2); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(None,4,4); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(-2,None,None); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(-2,None,-2); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(-2,None,4); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(-2,-2,None); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(-2,-2,-2); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(-2,-2,4); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(-2,4,None); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(-2,4,-2); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(-2,4,4); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(4,None,None); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(4,None,-2); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(4,None,4); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(4,-2,None); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(4,-2,-2); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(4,-2,4); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(4,4,None); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(4,4,-2); normalize_index(s,5)==range(5)[s]
+        True
+        sage: s=slice(4,4,4); normalize_index(s,5)==range(5)[s]
+        True
+    """
+    cdef tuple index_tuple
+    cdef list return_list = []
+    cdef int index
+    cdef int i
+    cdef object index_obj
+
+    if PyIndex_Check(key):
+        index = key
+        if index < 0:
+            index += size
+        if index < 0 or index >= size:
+            raise IndexError, "index out of range"
+        return [index]
+    elif PySlice_Check(key):
+        return range(*key.indices(size))
+    elif PyTuple_CheckExact(key):
+        index_tuple = key
+    elif PyList_CheckExact(key):
+        index_tuple = PyList_AsTuple(key)
+    else:
+        raise TypeError, "index must be an integer or slice or a tuple/list of integers and slices"
+
+    # Cython doesn't automatically use PyTuple_GET_SIZE, even though
+    # it knows that index_tuple is tuple
+    for i in range(PyTuple_GET_SIZE(index_tuple)):
+        index_obj = index_tuple[i]
+        if PyIndex_Check(index_obj):
+            index = index_obj
+            if index < 0:
+                index += size
+            if index < 0 or index >= size:
+                raise IndexError, "index out of range"
+            return_list.append(index)
+        elif PySlice_Check(index_obj):
+            return_list.extend(range(*index_obj.indices(size)))
+        else:
+            raise TypeError, "index must be an integer or slice"
+    return return_list

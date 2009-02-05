@@ -25,7 +25,6 @@ include "../ext/python_list.pxi"
 include "../ext/python_object.pxi"
 include "../ext/python_slice.pxi"
 include "../ext/python_tuple.pxi"
-include "../ext/python_number.pxi"
 
 import sage.modules.free_module
 import sage.misc.latex
@@ -37,6 +36,7 @@ from   sage.structure.sequence import Sequence
 cimport sage.structure.element
 from   sage.structure.element    cimport ModuleElement, Element, RingElement, Vector
 from   sage.structure.mutability cimport Mutability
+from   sage.misc.misc_c cimport normalize_index
 
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
@@ -497,8 +497,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             key -- tuple (i,j) where i, j can be integers, slices or lists
 
         USAGE:
-            A[i, j] -- the i,j of A, or
-            A[i:j]  -- the i-th through (j-1)-st rows of A.
+            A[i, j] -- the i,j element (or elements, if i or j are
+                       slices or lists) of A, or
+            A[i:j]  -- rows of A, according to slice notation
 
         EXAMPLES:
             sage: A = Matrix(Integers(2006),2,2,[-1,2,3,4])
@@ -826,62 +827,477 @@ cdef class Matrix(sage.structure.element.Matrix):
         r.set_immutable()
         return r
 
-    def __setitem__(self, ij, x):
+    def __setitem__(self, key, value):
         """
-        Set position i,j of this matrix to x.
+        Set elements of this matrix to values given in value.
 
         INPUT:
-            ij -- tuple (i,j), where i is the row and j the column
-                  Alternatively, ij can be an integer, and the ij-th row is set.
-            x -- something that can be coerced to the base ring of this matrix.
-
-        USAGE:
-            A[i, j] = x -- set the (i,j) entry of A
-            A[i]    = x -- set the ith row of A
+            key -- any legal indexing (i.e., self[key] works)
+            value -- values that are used to set the elements indicated by key.
 
         EXAMPLES:
-            sage: A = Matrix(Integers(2006),2,2,[-1,2,3,4]); A
-            [2005    2]
-            [   3    4]
-            sage: A[0,0] = 5; A
-            [5 2]
-            [3 4]
-            sage: A[0] = [2,3]
-            sage: A
-            [2 3]
-            [3 4]
+            sage: A = Matrix(Integers(2006),2,2,[-1,2,3,4])
+            sage: A[0,0]=43; A
+            [43  2]
+            [ 3  4]
+
+            sage: A[0]=[10,20]; A
+            [10 20]
+            [ 3  4]
             sage: A.set_immutable()
             sage: A[0,0] = 7
             Traceback (most recent call last):
             ...
             ValueError: matrix is immutable; please change a copy instead (use self.copy()).
 
-            sage: a = matrix(ZZ,2,3, range(6)); a
+            sage: A = MatrixSpace(ZZ,3)(range(9)); A
             [0 1 2]
             [3 4 5]
-            sage: a[0,0] = 10
-            sage: a
-            [10  1  2]
-            [ 3  4  5]
-        """
-        cdef Py_ssize_t i, j
+            [6 7 8]
+            sage: A[1,2]=100; A
+            [  0   1   2]
+            [  3   4 100]
+            [  6   7   8]
+            sage: A[0]=(10,20,30); A
+            [ 10  20  30]
+            [  3   4 100]
+            [  6   7   8]
+            sage: A[4,7]=45
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: A[-1,0]=63; A[-1,0]
+            63
+            sage: A[2.7]=3
+            Traceback (most recent call last):
+            ...
+            TypeError: index must be an integer or slice or a tuple/list of integers and slices
+            sage: A[1, 2.7]=3
+            Traceback (most recent call last):
+            ...
+            TypeError: index must be an integer or slice or a tuple/list of integers and slices
+            sage: A[2.7, 1]=3
+            Traceback (most recent call last):
+            ...
+            TypeError: index must be an integer or slice or a tuple/list of integers and slices
 
-        if PyTuple_Check(ij):
-            # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(ij) != 2:
-                raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(ij, 0)
-            j = <object> PyTuple_GET_ITEM(ij, 1)
-            self.check_bounds_and_mutability(i, j)
-            self.set_unsafe(i, j, self._coerce_element(x))
+            sage: M=matrix([(1, -2, -1, -1,9), (1, 8, 6, 2,2), (1, 1, -1, 1,4), (-1, 2, -2, -1,4)]); M
+            [ 1 -2 -1 -1  9]
+            [ 1  8  6  2  2]
+            [ 1  1 -1  1  4]
+            [-1  2 -2 -1  4]
+
+            Set the 2 x 2 submatrix of M, starting at row index and column
+            index 1
+            sage: M[1:3,1:3] = [[1,0],[0,1]]; M
+            [ 1 -2 -1 -1  9]
+            [ 1  1  0  2  2]
+            [ 1  0  1  1  4]
+            [-1  2 -2 -1  4]
+
+            Set the 2 x 3 submatrix of M starting at row index and column
+            index 1:
+            sage: M[1:3,[1..3]] = M[2:4,0:3]; M
+            [ 1 -2 -1 -1  9]
+            [ 1  1  0  1  2]
+            [ 1 -1  2 -2  4]
+            [-1  2 -2 -1  4]
+
+            Set part of the first column of M:
+            sage: M[1:,0]=[[2],[3],[4]]; M
+            [ 1 -2 -1 -1  9]
+            [ 2  1  0  1  2]
+            [ 3 -1  2 -2  4]
+            [ 4  2 -2 -1  4]
+
+            Or do a similar thing with a vector:
+            sage: M[1:,0]=vector([-2,-3,-4]); M
+            [ 1 -2 -1 -1  9]
+            [-2  1  0  1  2]
+            [-3 -1  2 -2  4]
+            [-4  2 -2 -1  4]
+
+            Or a constant:
+            sage: M[1:,0]=30; M
+            [ 1 -2 -1 -1  9]
+            [30  1  0  1  2]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+
+
+            Set the first row of M:
+            sage: M[0,:]=[[20,21,22,23,24]]; M
+            [20 21 22 23 24]
+            [30  1  0  1  2]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+            sage: M[0,:]=vector([0,1,2,3,4]); M
+            [ 0  1  2  3  4]
+            [30  1  0  1  2]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+            sage: M[0,:]=-3; M
+            [-3 -3 -3 -3 -3]
+            [30  1  0  1  2]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+
+
+
+            More examples:
+            sage: M[range(2),:]=[[1..5], [6..10]]; M
+            [ 1  2  3  4  5]
+            [ 6  7  8  9 10]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+
+            sage: M[range(2),4]=0; M
+            [ 1  2  3  4  0]
+            [ 6  7  8  9  0]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+
+            sage: M[range(3),range(5)]=M[range(1,4), :]; M
+            [ 6  7  8  9  0]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+            [30  2 -2 -1  4]
+
+
+            sage: M[3,range(5)]=vector([-2,3,4,-5,4]); M
+            [ 6  7  8  9  0]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+            [-2  3  4 -5  4]
+            sage: M[3,:]=2*M[2,:]; M
+            [ 6  7  8  9  0]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+            [60  4 -4 -2  8]
+            sage: M[3,4]=M[3,2]; M
+            [ 6  7  8  9  0]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+            [60  4 -4 -2 -4]
+
+            sage: M[-1,:]=M[-3,:]; M
+            [ 6  7  8  9  0]
+            [30 -1  2 -2  4]
+            [30  2 -2 -1  4]
+            [30 -1  2 -2  4]
+
+            sage: A = matrix(ZZ,3,4, [3, 2, -5, 0, 1, -1, 1, -4, 1, 0, 1, -3]); A
+            [ 3  2 -5  0]
+            [ 1 -1  1 -4]
+            [ 1  0  1 -3]
+
+            We can use the step feature of slices to set every other column
+            sage: A[:,0:3:2] = 5; A
+            [ 5  2  5  0]
+            [ 5 -1  5 -4]
+            [ 5  0  5 -3]
+
+            sage: A[1:,0:4:2] = [[100,200],[300,400]]; A
+            [  5   2   5   0]
+            [100  -1 200  -4]
+            [300   0 400  -3]
+
+            We can also count backwards to flip the matrix upside down.
+            sage: A[::-1,:]=A; A
+            [300   0 400  -3]
+            [100  -1 200  -4]
+            [  5   2   5   0]
+
+
+            sage: A[1:,3::-1]=[[2,3,0,1],[9,8,7,6]]; A
+            [300   0 400  -3]
+            [  1   0   3   2]
+            [  6   7   8   9]
+
+            sage: A[1:,::-2] = A[1:,::2]; A
+            [300   0 400  -3]
+            [  1   3   3   1]
+            [  6   8   8   6]
+
+            sage: A[::-1,3:1:-1] = [[4,3],[1,2],[-1,-2]]; A
+            [300   0  -2  -1]
+            [  1   3   2   1]
+            [  6   8   3   4]
+
+            sage: A= matrix(3,4,[1, 0, -3, -1, 3, 0, -2, 1, -3, -5, -1, -5]); A
+            [ 1  0 -3 -1]
+            [ 3  0 -2  1]
+            [-3 -5 -1 -5]
+
+            sage: A[range(2,-1,-1),:]=A; A
+            [-3 -5 -1 -5]
+            [ 3  0 -2  1]
+            [ 1  0 -3 -1]
+
+            sage: A[range(2,-1,-1),range(3,-1,-1)]=A; A
+            [-1 -3  0  1]
+            [ 1 -2  0  3]
+            [-5 -1 -5 -3]
+
+            sage: A = matrix(2, [1, 2, 3, 4])
+            sage: A[[0,0],[0,0]]=10; A
+            [10  2]
+            [ 3  4]
+
+            sage: M = matrix(3, 4, range(12))
+            sage: M[0:0, 0:0]=20; M
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            sage: M[0:0, 1:4]=20; M
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            sage: M[2:3, 3:3]=20; M
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            sage: M[range(2,2), :3]=20; M
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            sage: M[(1,2), 3]=vector([-1,-2]); M
+            [ 0  1  2  3]
+            [ 4  5  6 -1]
+            [ 8  9 10 -2]
+            sage: M[(1,2),(0,1,1)]=[[-1,-2,-3],[-4,-5,-6]]; M
+            [ 0  1  2  3]
+            [-1 -3  6 -1]
+            [-4 -6 10 -2]
+            sage: M=matrix([(1, -2, -1, -1), (1, 8, 6, 2), (1, 1, -1, 1), (-1, 2, -2, -1)]); M
+            [ 1 -2 -1 -1]
+            [ 1  8  6  2]
+            [ 1  1 -1  1]
+            [-1  2 -2 -1]
+
+            sage: M[:2]=M[2:]; M
+            [ 1  1 -1  1]
+            [-1  2 -2 -1]
+            [ 1  1 -1  1]
+            [-1  2 -2 -1]
+
+            sage: M[:] = M.transpose(); M
+            [ 1 -1  1 -1]
+            [ 1  2  1  2]
+            [-1 -2 -1 -2]
+            [ 1 -1  1 -1]
+            sage: M = matrix(ZZ,4,range(16)); M
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            [12 13 14 15]
+            sage: M[::2]=M[::-2]; M
+            [12 13 14 15]
+            [ 4  5  6  7]
+            [ 4  5  6  7]
+            [12 13 14 15]
+            sage: M[::2]=2; M
+            [ 2  2  2  2]
+            [ 4  5  6  7]
+            [ 2  2  2  2]
+            [12 13 14 15]
+
+            sage: M[2:]=10; M
+            [ 2  2  2  2]
+            [ 4  5  6  7]
+            [10 10 10 10]
+            [10 10 10 10]
+
+            sage: M=matrix(3,1,[1,2,3]); M
+            [1]
+            [2]
+            [3]
+            sage: M[1] = vector([20]); M
+            [ 1]
+            [20]
+            [ 3]
+        """
+        #print "SETITEM CALLED WITH", self, key, value, type(value)
+        cdef list row_list
+        cdef list col_list
+        cdef object index
+        cdef int row_list_len, col_list_len
+        cdef list value_list
+        cdef bint value_list_one_dimensional = 0
+        cdef Py_ssize_t i
+        cdef int row, col
+        cdef int nrows = self._nrows
+        cdef int ncols = self._ncols
+        cdef tuple key_tuple
+        cdef object row_index, col_index
+        cdef object value_row
+
+        # used to keep track of when an index is a
+        # single number
+        cdef bint single_row = 0, single_col = 0
+        cdef bint no_col_index = 0
+
+        # If the matrix is immutable, check_mutability will raise an
+        # exception.
+        self.check_mutability()
+
+        if PyTuple_CheckExact(key):
+            key_tuple = <tuple>key
+            #if PyTuple_Size(key_tuple) != 2:
+            if len(key_tuple) != 2:
+                raise IndexError, "index can't have more than two components"
+
+            row_index = <object>PyTuple_GET_ITEM(key_tuple, 0)
+            col_index = <object>PyTuple_GET_ITEM(key_tuple, 1)
+
+
+            if PyIndex_Check(col_index):
+                col = col_index
+                if col < 0:
+                    col += ncols
+                if col < 0 or col >= ncols:
+                    raise IndexError, "index out of range"
+                single_col = 1
+                col_list_len = 1
+            else:
+                col_list = normalize_index(col_index, ncols)
+                col_list_len = len(col_list)
+                if col_list_len==1:
+                    col = col_list[0]
+                    single_col = 1
+                elif col_list_len==0:
+                    return
+
         else:
-            # If ij is not a tuple, coerce to an integer and set the whole row.
-            i = ij
-            if self._ncols == 0: # degenerate case
+            no_col_index = 1
+            row_index = key
+            col_list_len = ncols
+            if col_list_len==1:
+                col = 0
+                single_col = 1
+            elif col_list_len==0:
                 return
-            self.check_bounds_and_mutability(i, 0)
-            for j from 0 <= j < self._ncols:
-                self.set_unsafe(i, j, self._coerce_element(x[j]))
+
+        # Special-case a single-row.
+        if PyIndex_Check(row_index):
+            row = row_index
+            if row < 0:
+                row += nrows
+            if row < 0 or row >= nrows:
+                raise IndexError, "index out of range"
+            single_row = 1
+            row_list_len = 1
+        else:
+            row_list = normalize_index(row_index, nrows)
+            row_list_len = len(row_list)
+            if row_list_len==1:
+                row = row_list[0]
+                single_row = 1
+            elif row_list_len==0:
+               return
+
+        if single_row and single_col:
+            if no_col_index:
+                self.set_unsafe(row, col, self._coerce_element(value[0]))
+            else:
+                self.set_unsafe(row, col, self._coerce_element(value))
+            return
+
+        if PyList_CheckExact(value):
+            if single_row and no_col_index:
+                # A convenience addition, so we can set a row by
+                # M[1] = [1,2,3] or M[1,:]=[1,2,3]
+                value_list_one_dimensional = 1
+            value_list = value
+        elif  PyTuple_CheckExact(value):
+            if single_row and no_col_index:
+                # A convenience addition, so we can set a row by
+                # M[1] = [1,2,3] or M[1,:]=[1,2,3]
+                value_list_one_dimensional = 1
+            value_list = list(value)
+        elif IS_INSTANCE(value, Matrix):
+            value_list = list(value)
+        elif IS_INSTANCE(value, Vector):
+            if single_row or single_col:
+                value_list_one_dimensional = 1
+                value_list = list(value)
+            else:
+                raise IndexError, "value does not have the right dimensions"
+        else:
+            # If value is not a list, tuple, matrix, or vector, try
+            # broadcasting the element to all positions.
+            value_element = self._coerce_element(value)
+            if single_row:
+                if no_col_index:
+                    for col in range(col_list_len):
+                        self.set_unsafe(row, col, value_element)
+                else:
+                    for col in col_list:
+                        self.set_unsafe(row, col, value_element)
+            elif single_col:
+                for row in row_list:
+                    self.set_unsafe(row, col, value_element)
+            else:
+                if no_col_index:
+                    for row in row_list:
+                        for col in range(col_list_len):
+                            self.set_unsafe(row, col, value_element)
+                else:
+                    for row in row_list:
+                        for col in col_list:
+                            self.set_unsafe(row, col, value_element)
+            return
+
+        if value_list_one_dimensional:
+            # This will break when assigning a vector to a column
+            if single_row and col_list_len != len(value_list):
+                raise IndexError, "value does not have the right number of columns"
+            elif single_col and row_list_len != len(value_list):
+                raise IndexError, "value does not have the right number of rows"
+        else:
+            if row_list_len != len(value_list):
+                raise IndexError, "value does not have the right number of rows"
+            for value_row in value_list:
+                if col_list_len != len(value_row):
+                    raise IndexError, "value does not have the right number of columns"
+
+
+        if single_row:
+            if value_list_one_dimensional:
+                value_row = value_list
+            else:
+                value_row = value_list[0]
+
+            if no_col_index:
+                for col in range(col_list_len):
+                    self.set_unsafe(row, col, self._coerce_element(value_row[col]))
+            else:
+                for col in range(col_list_len):
+                    self.set_unsafe(row, col_list[col], self._coerce_element(value_row[col]))
+        elif single_col:
+            if value_list_one_dimensional:
+                for row in range(row_list_len):
+                    self.set_unsafe(row_list[row], col, self._coerce_element(value_list[row]))
+            else:
+                for row in range(row_list_len):
+                    self.set_unsafe(row_list[row], col, self._coerce_element(value_list[row][0]))
+        else:
+            if no_col_index:
+                for i in range(row_list_len):
+                    row = row_list[i]
+                    value_row = value_list[i]
+                    for col in range(col_list_len):
+                        self.set_unsafe(row, col, self._coerce_element(value_row[col]))
+            else:
+                for i in range(row_list_len):
+                    row = row_list[i]
+                    value_row = value_list[i]
+                    for col in range(col_list_len):
+                        self.set_unsafe(row, col_list[col], self._coerce_element(value_row[col]))
+        return
+
+
+
 
     cdef _coerce_element(self, x):
         """

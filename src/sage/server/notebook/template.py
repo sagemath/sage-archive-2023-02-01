@@ -60,6 +60,11 @@ def template(filename, **user_context):
         sage: 'Yes' in s
         True
 
+        sage: from sage.server.notebook.template import template
+        sage: u = unicode('Are Gröbner bases awesome?','utf-8')
+        sage: s = template('yes_no.html',message=u)
+        sage: 'Gr\xc3\xb6bner' in s
+        True
     """
     try:
         tmpl = env.get_template(filename)
@@ -67,4 +72,5 @@ def template(filename, **user_context):
         return template('template_error.html', template=filename)
     context = dict(default_context)
     context.update(user_context)
-    return str(tmpl.render(**context))
+    r = tmpl.render(**context)
+    return r.encode('utf-8')

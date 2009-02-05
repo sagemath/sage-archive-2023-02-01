@@ -3342,16 +3342,26 @@ def _cmp_complex_for_display(a, b):
         -1
         sage: cmp_c(CC(3+teeny, -1), CC(3-teeny, 1))
         -1
+        sage: CIF200 = ComplexIntervalField(200)
+        sage: cmp_c(CIF200(teeny, -1), CIF200(-teeny, 1))
+        -1
+        sage: cmp_c(CIF200(teeny, 1), CIF200(-teeny, -1))
+        1
+        sage: cmp_c(CIF200(0, 1), CIF200(1, 0.5))
+        -1
+        sage: cmp_c(CIF200(3+teeny, -1), CIF200(3-teeny, 1))
+        -1
     """
     ar = a.real(); br = b.real()
     ai = a.imag(); bi = b.imag()
+    epsilon = ar.parent()(1e-10)
     if ai:
         if bi:
-            if abs(br) < 1e-10:
-                if abs(ar) < 1e-10:
+            if abs(br) < epsilon:
+                if abs(ar) < epsilon:
                     return cmp(ai, bi)
                 return cmp(ar, 0)
-            if abs((ar - br) / br) < 1e-10:
+            if abs((ar - br) / br) < epsilon:
                 return cmp(ai, bi)
             return cmp(ar, br)
         else:

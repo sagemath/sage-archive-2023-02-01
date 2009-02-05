@@ -40,7 +40,8 @@ class Text(GraphicPrimitive):
                 'hue':'The color given as a hue.',
                 'axis_coords':'Uses axis coordinates -- (0,0) lower left and (1,1) upper right',
                 'vertical_alignment': 'how to align vertically: top, center, bottom',
-                'horizontal_alignment':'how to align horizontally: left, center, right'}
+                'horizontal_alignment':'how to align horizontally: left, center, right',
+                'zorder':'The layer level in which to draw'}
 
     def _plot3d_options(self, options=None):
         if options == None:
@@ -69,6 +70,8 @@ class Text(GraphicPrimitive):
         opts['fontsize'] = int(options['fontsize'])
         opts['verticalalignment'] = options['vertical_alignment']
         opts['horizontalalignment'] = options['horizontal_alignment']
+        if 'zorder' in options:
+            opts['zorder'] = options['zorder']
         if options['axis_coords']:
             opts['transform'] = subplot.transAxes
         subplot.text(self.x, self.y, self.string, **opts)

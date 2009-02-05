@@ -55,7 +55,8 @@ class PlotField(GraphicPrimitive):
                 'pivot': 'Where the arrow should be placed in relation to the point (tail, middle, tip)',
                 'headwidth': 'Head width as multiple of shaft width, default is 3',
                 'headlength': 'head length as multiple of shaft width, default is 5',
-                'headaxislength': 'head length at shaft intersection, default is 4.5'}
+                'headaxislength': 'head length at shaft intersection, default is 4.5',
+                'zorder':'The layer level in which to draw'}
 
     def _repr_(self):
         return "PlotField defined by a %s x %s vector grid"%(len(self.xpos_array), len(self.ypos_array))

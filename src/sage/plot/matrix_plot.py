@@ -46,7 +46,8 @@ class MatrixPlot(GraphicPrimitive):
     def _allowed_options(self):
         return {'cmap':"""the name of a predefined colormap,
                         a list of colors or an instance of a
-                        matplotlib Colormap."""}
+                        matplotlib Colormap.""",
+                'zorder':"The layer level in which to draw"}
 
     def _repr_(self):
         return "MatrixPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)

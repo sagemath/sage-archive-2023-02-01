@@ -58,11 +58,13 @@ class BarChart(GraphicPrimitive):
             sage: list(sorted(g._allowed_options().iteritems()))
             [('hue', 'The color given as a hue.'),
              ('rgbcolor', 'The color as an rgb tuple.'),
-             ('width', 'The width of the bars')]
+             ('width', 'The width of the bars'),
+             ('zorder', 'The layer level in which to draw')]
         """
         return {'rgbcolor':'The color as an rgb tuple.',
                 'hue':'The color given as a hue.',
-                'width':'The width of the bars'}
+                'width':'The width of the bars',
+                'zorder':'The layer level in which to draw'}
 
     def _repr_(self):
         """

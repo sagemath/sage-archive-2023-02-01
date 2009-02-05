@@ -46,7 +46,8 @@ class Polygon(GraphicPrimitive_xydata):
         return {'alpha':'How transparent the line is.',
                 'thickness': 'How thick the border line is.',
                 'rgbcolor':'The color as an rgb tuple.',
-                'hue':'The color given as a hue.'}
+                'hue':'The color given as a hue.',
+                'zorder':'The layer level in which to draw'}
 
     def _plot3d_options(self, options=None):
         if options == None:

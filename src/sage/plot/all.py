@@ -8,6 +8,8 @@ from plot import (Graphics, plot,
 from line import line, line2d
 from arrow import arrow
 from bar_chart import bar_chart
+from bezier_path import bezier_path
+from scatter_plot import scatter_plot
 from networkx_graph import networkx_plot
 from disk import disk
 from point import point, points, point2d

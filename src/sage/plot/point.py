@@ -42,7 +42,8 @@ class Point(GraphicPrimitive_xydata):
                 'pointsize': 'How big the point is.',
                 'faceted': 'If True color the edge of the point.',
                 'rgbcolor':'The color as an rgb tuple.',
-                'hue':'The color given as a hue.'}
+                'hue':'The color given as a hue.',
+                'zorder':'The layer level in which to draw'}
 
     def _plot3d_options(self, options=None):
         if options == None:

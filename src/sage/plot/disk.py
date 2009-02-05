@@ -56,7 +56,8 @@ class Disk(GraphicPrimitive):
                 'fill': 'Whether or not to fill the polygon.',
                 'thickness':'How thick the border of the polygon is.',
                 'rgbcolor':'The color as an rgb tuple.',
-                'hue':'The color given as a hue.'}
+                'hue':'The color given as a hue.',
+                'zorder':'The layer level in which to draw'}
 
     def _repr_(self):
         return "Disk defined by (%s,%s) with r=%s spanning (%s, %s) radians"%(self.x,

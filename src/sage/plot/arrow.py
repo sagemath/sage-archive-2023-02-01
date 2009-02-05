@@ -73,13 +73,15 @@ class Arrow(GraphicPrimitive):
              ('arrowsize', 'The size of the arrowhead'),
              ('hue', 'The color given as a hue.'),
              ('rgbcolor', 'The color as an rgb tuple.'),
-             ('width', 'The width of the shaft of the arrow, in points.')]
+             ('width', 'The width of the shaft of the arrow, in points.'),
+             ('zorder', 'The layer level in which to draw')]
         """
         return {'width':'The width of the shaft of the arrow, in points.',
                 'rgbcolor':'The color as an rgb tuple.',
                 'hue':'The color given as a hue.',
                 'arrowshorten':'The length in points to shorten the arrow.',
-                'arrowsize':'The size of the arrowhead'}
+                'arrowsize':'The size of the arrowhead',
+                'zorder':'The layer level in which to draw'}
 
     def _plot3d_options(self, options=None):
         if options == None:

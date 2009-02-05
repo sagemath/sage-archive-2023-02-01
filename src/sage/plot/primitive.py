@@ -78,6 +78,9 @@ class GraphicPrimitive(SageObject):
             raise NotImplementedError, "Unknown plot3d equivalent for %s" % ", ".join(options.keys())
         return options_3d
 
+    def set_zorder(self, zorder):
+        self.__options['zorder'] = zorder
+
     def options(self):
         """
         Return the dictionary of options for this graphics primitive.

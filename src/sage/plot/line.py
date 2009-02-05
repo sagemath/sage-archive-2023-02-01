@@ -60,7 +60,8 @@ class Line(GraphicPrimitive_xydata):
              ('markeredgewidth', 'the size of the markter edge in points'),
              ('markersize', 'the size of the marker in points'),
              ('rgbcolor', 'The color as an rgb tuple.'),
-             ('thickness', 'How thick the line is.')]
+             ('thickness', 'How thick the line is.'),
+             ('zorder', 'The layer level in which to draw')]
         """
         return {'alpha':'How transparent the line is.',
                 'thickness':'How thick the line is.',
@@ -70,7 +71,8 @@ class Line(GraphicPrimitive_xydata):
                 'marker':"'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown), '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point), '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right), '<' (triangle_left), '>' (triangle_right), 'None' (nothing), 'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up), 'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon), 's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)",
                 'markersize':'the size of the marker in points',
                 'markeredgecolor':'the markerfacecolor can be any color arg',
-                'markeredgewidth':'the size of the markter edge in points'
+                'markeredgewidth':'the size of the markter edge in points',
+                'zorder':'The layer level in which to draw'
                 }
 
     def _plot3d_options(self, options=None):

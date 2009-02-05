@@ -602,7 +602,7 @@ class GraphDatabase(GenericSQLDatabase):
 
             This class interfaces with the sqlite database graphs.db.  It is an
             immutable database that inherits from SQLDatabase (see
-            sage.databases.database.py).  The display functions and get_list create
+            sage.databases.database.py).  The display functions and get_graphs_list create
             their own queries, but it is also possible to query the database by
             constructing either a GenericSQLQuery or a SQLQuery.
 

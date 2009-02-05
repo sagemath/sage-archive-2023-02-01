@@ -50,7 +50,9 @@ class Circle(GraphicPrimitive):
                 'fill': 'Whether or not to fill the polygon.',
                 'thickness':'How thick the border of the polygon is.',
                 'rgbcolor':'The color as an rgb tuple.',
-                'hue':'The color given as a hue.'}
+                'hue':'The color given as a hue.',
+                'zorder':'The layer level in which to draw',
+                'linestyle':"The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
 
     def _repr_(self):
         return "Circle defined by (%s,%s) with r=%s"%(self.x, self.y, self.r)
@@ -66,6 +68,7 @@ class Circle(GraphicPrimitive):
         c = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(c)
         p.set_facecolor(c)
+        p.set_linestyle(options['linestyle'])
         subplot.add_patch(p)
 
     def plot3d(self, **kwds):
@@ -77,6 +80,7 @@ class Circle(GraphicPrimitive):
         options = dict(self.options())
         fill = options['fill']
         del options['fill']
+        del options['linestyle']
         n = 50
         dt = float(2*pi/n)
         x, y, r = self.x, self.y, self.r
@@ -90,7 +94,7 @@ class Circle(GraphicPrimitive):
             return Line(xdata, ydata, options).plot3d()
 
 
-@options(alpha=1, fill=False, thickness=1, rgbcolor=(0,0,1))
+@options(alpha=1, fill=False, thickness=1, rgbcolor=(0,0,1), linestyle='solid')
 def circle(center, radius, **options):
     """
     Return a circle at a point = $(x,y)$ with radius = $r$.
@@ -105,6 +109,7 @@ def circle(center, radius, **options):
         fill -- default: False
         thickness -- default: 1
         rgbcolor -- default: (0,0,0)
+        linestyle -- default: 'solid' (2d plotting only)
 
     EXAMPLES:
         sage: c = circle((1,1), 1, rgbcolor=(1,0,0))

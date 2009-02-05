@@ -56,7 +56,8 @@ class ContourPlot(GraphicPrimitive):
                        'fill':'Fill contours or not',
                 'contours':"""Either an integer specifying the number of
                        contour levels, or a sequence of numbers giving
-                       the actual contours to use."""}
+                       the actual contours to use.""",
+                'zorder':'The layer level in which to draw'}
 
     def _repr_(self):
         return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)

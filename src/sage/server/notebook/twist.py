@@ -1040,7 +1040,7 @@ class Worksheet_delete_cell(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
         id = self.id(ctx)
         W = self.worksheet
-        if len(W) <= 1:
+        if len(W.compute_cell_id_list()) <= 1:
             s = 'ignore'
         else:
             prev_id = W.delete_cell_with_id(id)

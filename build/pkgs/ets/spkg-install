@@ -7,40 +7,52 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 
+# Test for libX11 in Linux
+# libXtst.so is needed building Envisage!
+if [ `uname` = "Linux" ]; then
+    echo "Testing for libXtst in /usr/lib/"
+    ls /usr/lib/libXtst.so
+    if [ $? -ne 0 ]; then
+        echo "Failed to find an libXtst.so. Install all of libX11-devel!"
+        exit 1
+    fi
+fi
+
+
 # check wether dependencies are installed
 
-Package=vtk-5.2
-Package_installed=`cd $SAGE_ROOT/spkg/installed/; ls $Package`
+PACKAGE=vtk-5.2
+PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
 if [ $? -ne 0 ]; then
-    echo "Failed to find $Package  Please install the $Package spkg"
+    echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
     exit 1
 fi
 
-Package=wxPython-2.8.9.1
-Package_installed=`cd $SAGE_ROOT/spkg/installed/; ls $Package`
+PACKAGE=wxPython-2.8.9.1
+PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
 if [ $? -ne 0 ]; then
-    echo "Failed to find $Package  Please install the $Package spkg"
+    echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
     exit 1
 fi
 
-Package=reportlab-2.2
-Package_installed=`cd $SAGE_ROOT/spkg/installed/; ls $Package`
+PACKAGE=reportlab-2.2
+PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
 if [ $? -ne 0 ]; then
-    echo "Failed to find $Package  Please install the $Package spkg"
+    echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
     exit 1
 fi
 
-Package=pil-1.1.6
-Package_installed=`cd $SAGE_ROOT/spkg/installed/; ls $Package`
+PACKAGE=pil-1.1.6
+PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
 if [ $? -ne 0 ]; then
-    echo "Failed to find $Package  Please install the $Package spkg"
+    echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
     exit 1
 fi
 
-Package=swig-1.3.31
-Package_installed=`cd $SAGE_ROOT/spkg/installed/; ls $Package`
+PACKAGE=swig-1.3.31
+PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
 if [ $? -ne 0 ]; then
-    echo "Failed to find $Package  Please install the $Package spkg"
+    echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
     exit 1
 fi
 
@@ -57,6 +69,10 @@ echo "" >> $HOME/.numpy-site.cfg
 
 echo "Cleaning up previous install"
 
+# removing remains of mayavi-2.*
+rm -rf $PYTHONPATH/site-packages/enthought*
+
+# removing previous install
 rm -rf $PYTHONPATH/site-packages/AppTools*
 rm -rf $PYTHONPATH/site-packages/BlockCanvas*
 rm -rf $PYTHONPATH/site-packages/Chaco*
@@ -78,8 +94,18 @@ rm -rf $PYTHONPATH/site-packages/TraitsGUI*
 # python egg_builder.py --clean
 
 python egg_builder.py -r -v
+if [ $? -ne 0 ]; then
+    echo "Error building ETS"
+    rm $HOME/.numpy-site.cfg
+    exit 1
+fi
 
 easy_install -f dist -H dist ETS_*
+if [ $? -ne 0 ]; then
+    echo "Error installing ETS"
+    rm $HOME/.numpy-site.cfg
+    exit 1
+fi
 
 echo "Deleting ~/.numpy-site.cfg"
 

@@ -832,7 +832,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         Set elements of this matrix to values given in value.
 
         INPUT:
-            key -- any legal indexing (i.e., self[key] works)
+            key -- any legal indexing (i.e., such that self[key] works)
             value -- values that are used to set the elements indicated by key.
 
         EXAMPLES:
@@ -844,42 +844,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A[0]=[10,20]; A
             [10 20]
             [ 3  4]
-            sage: A.set_immutable()
-            sage: A[0,0] = 7
-            Traceback (most recent call last):
-            ...
-            ValueError: matrix is immutable; please change a copy instead (use self.copy()).
-
-            sage: A = MatrixSpace(ZZ,3)(range(9)); A
-            [0 1 2]
-            [3 4 5]
-            [6 7 8]
-            sage: A[1,2]=100; A
-            [  0   1   2]
-            [  3   4 100]
-            [  6   7   8]
-            sage: A[0]=(10,20,30); A
-            [ 10  20  30]
-            [  3   4 100]
-            [  6   7   8]
-            sage: A[4,7]=45
-            Traceback (most recent call last):
-            ...
-            IndexError: index out of range
-            sage: A[-1,0]=63; A[-1,0]
-            63
-            sage: A[2.7]=3
-            Traceback (most recent call last):
-            ...
-            TypeError: index must be an integer or slice or a tuple/list of integers and slices
-            sage: A[1, 2.7]=3
-            Traceback (most recent call last):
-            ...
-            TypeError: index must be an integer or slice or a tuple/list of integers and slices
-            sage: A[2.7, 1]=3
-            Traceback (most recent call last):
-            ...
-            TypeError: index must be an integer or slice or a tuple/list of integers and slices
 
             sage: M=matrix([(1, -2, -1, -1,9), (1, 8, 6, 2,2), (1, 1, -1, 1,4), (-1, 2, -2, -1,4)]); M
             [ 1 -2 -1 -1  9]
@@ -943,6 +907,85 @@ cdef class Matrix(sage.structure.element.Matrix):
             [30  2 -2 -1  4]
 
 
+            sage: A = matrix(ZZ,3,4, [3, 2, -5, 0, 1, -1, 1, -4, 1, 0, 1, -3]); A
+            [ 3  2 -5  0]
+            [ 1 -1  1 -4]
+            [ 1  0  1 -3]
+
+            We can use the step feature of slices to set every other column
+            sage: A[:,0:3:2] = 5; A
+            [ 5  2  5  0]
+            [ 5 -1  5 -4]
+            [ 5  0  5 -3]
+
+            sage: A[1:,0:4:2] = [[100,200],[300,400]]; A
+            [  5   2   5   0]
+            [100  -1 200  -4]
+            [300   0 400  -3]
+
+            We can also count backwards to flip the matrix upside down.
+            sage: A[::-1,:]=A; A
+            [300   0 400  -3]
+            [100  -1 200  -4]
+            [  5   2   5   0]
+
+
+            sage: A[1:,3::-1]=[[2,3,0,1],[9,8,7,6]]; A
+            [300   0 400  -3]
+            [  1   0   3   2]
+            [  6   7   8   9]
+
+            sage: A[1:,::-2] = A[1:,::2]; A
+            [300   0 400  -3]
+            [  1   3   3   1]
+            [  6   8   8   6]
+
+            sage: A[::-1,3:1:-1] = [[4,3],[1,2],[-1,-2]]; A
+            [300   0  -2  -1]
+            [  1   3   2   1]
+            [  6   8   3   4]
+
+
+        TESTS
+            sage: A = MatrixSpace(ZZ,3)(range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A[1,2]=100; A
+            [  0   1   2]
+            [  3   4 100]
+            [  6   7   8]
+            sage: A[0]=(10,20,30); A
+            [ 10  20  30]
+            [  3   4 100]
+            [  6   7   8]
+            sage: A[4,7]=45
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: A[-1,0]=63; A[-1,0]
+            63
+            sage: A[2.7]=3
+            Traceback (most recent call last):
+            ...
+            TypeError: index must be an integer or slice or a tuple/list of integers and slices
+            sage: A[1, 2.7]=3
+            Traceback (most recent call last):
+            ...
+            TypeError: index must be an integer or slice or a tuple/list of integers and slices
+            sage: A[2.7, 1]=3
+            Traceback (most recent call last):
+            ...
+            TypeError: index must be an integer or slice or a tuple/list of integers and slices
+            sage: A.set_immutable()
+            sage: A[0,0] = 7
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (use self.copy()).
+
+
+
+
 
             More examples:
             sage: M[range(2),:]=[[1..5], [6..10]]; M
@@ -986,43 +1029,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             [30  2 -2 -1  4]
             [30 -1  2 -2  4]
 
-            sage: A = matrix(ZZ,3,4, [3, 2, -5, 0, 1, -1, 1, -4, 1, 0, 1, -3]); A
-            [ 3  2 -5  0]
-            [ 1 -1  1 -4]
-            [ 1  0  1 -3]
-
-            We can use the step feature of slices to set every other column
-            sage: A[:,0:3:2] = 5; A
-            [ 5  2  5  0]
-            [ 5 -1  5 -4]
-            [ 5  0  5 -3]
-
-            sage: A[1:,0:4:2] = [[100,200],[300,400]]; A
-            [  5   2   5   0]
-            [100  -1 200  -4]
-            [300   0 400  -3]
-
-            We can also count backwards to flip the matrix upside down.
-            sage: A[::-1,:]=A; A
-            [300   0 400  -3]
-            [100  -1 200  -4]
-            [  5   2   5   0]
-
-
-            sage: A[1:,3::-1]=[[2,3,0,1],[9,8,7,6]]; A
-            [300   0 400  -3]
-            [  1   0   3   2]
-            [  6   7   8   9]
-
-            sage: A[1:,::-2] = A[1:,::2]; A
-            [300   0 400  -3]
-            [  1   3   3   1]
-            [  6   8   8   6]
-
-            sage: A[::-1,3:1:-1] = [[4,3],[1,2],[-1,-2]]; A
-            [300   0  -2  -1]
-            [  1   3   2   1]
-            [  6   8   3   4]
 
             sage: A= matrix(3,4,[1, 0, -3, -1, 3, 0, -2, 1, -3, -5, -1, -5]); A
             [ 1  0 -3 -1]
@@ -1116,18 +1122,29 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 1]
             [20]
             [ 3]
+            sage: M = matrix(3, 2, srange(6)); M[1] = 15; M
+            [ 0  1]
+            [15 15]
+            [ 4  5]
+            sage: M = matrix(3, 1, srange(3)); M[1] = 15; M
+            [ 0]
+            [15]
+            [ 2]
+            sage: M = matrix(3, 1, srange(3)); M[1] = [15]; M
+            [ 0]
+            [15]
+            [ 2]
         """
-        #print "SETITEM CALLED WITH", self, key, value, type(value)
         cdef list row_list
         cdef list col_list
         cdef object index
-        cdef int row_list_len, col_list_len
+        cdef Py_ssize_t row_list_len, col_list_len
         cdef list value_list
         cdef bint value_list_one_dimensional = 0
         cdef Py_ssize_t i
-        cdef int row, col
-        cdef int nrows = self._nrows
-        cdef int ncols = self._ncols
+        cdef Py_ssize_t row, col
+        cdef Py_ssize_t nrows = self._nrows
+        cdef Py_ssize_t ncols = self._ncols
         cdef tuple key_tuple
         cdef object row_index, col_index
         cdef object value_row
@@ -1196,11 +1213,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             elif row_list_len==0:
                return
 
-        if single_row and single_col:
-            if no_col_index:
-                self.set_unsafe(row, col, self._coerce_element(value[0]))
-            else:
-                self.set_unsafe(row, col, self._coerce_element(value))
+        if single_row and single_col and not no_col_index:
+            self.set_unsafe(row, col, self._coerce_element(value))
             return
 
         if PyList_CheckExact(value):

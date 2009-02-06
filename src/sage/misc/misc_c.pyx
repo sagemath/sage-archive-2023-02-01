@@ -619,8 +619,8 @@ cpdef list normalize_index(object key, int size):
     """
     cdef tuple index_tuple
     cdef list return_list = []
-    cdef int index
-    cdef int i
+    cdef Py_ssize_t index
+    cdef Py_ssize_t i
     cdef object index_obj
 
     if PyIndex_Check(key):

@@ -110,3 +110,15 @@ fi
 echo "Deleting ~/.numpy-site.cfg"
 
 rm $HOME/.numpy-site.cfg
+
+echo "Try this:"
+echo "./sage -sh"
+echo "mayavi2"
+echo ""
+echo "or type ./sage -wthread"
+echo "and on the sage prompt"
+echo "sage: from enthought.mayavi import mlab as M"
+echo "sage: M.test_surf()"
+echo "sage: M.axes()"
+echo "sage: show_pipeline()"
+echo "etcetera."

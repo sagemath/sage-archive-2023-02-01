@@ -1684,11 +1684,24 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     Returns the factorization of n. The result depends on the type of n.
 
     If n is an integer, factor returns the factorization of the
-    integer n as an object of type Factorization. If n is not an
-    integer, n.factor(proof=proof, **kwds) gets called. See n.factor??
-    for more documentation in this case.
+    integer n as an object of type Factorization.
 
-    What follows is a documentation for n integer.
+    If n is not an integer, n.factor(proof=proof, **kwds) gets called.
+    See n.factor?? for more documentation in this case.
+
+    Warning!  This means that applying factor to an integer result of
+    a symbolic computation will not factor the integer, because it is
+    considered as an element of a larger symbolic ring.
+
+    EXAMPLE:
+        sage: f(n)=n^2
+        sage: is_prime(f(3))
+        False
+        sage: factor(f(3))
+        9
+
+    What follows is documentation of factor for the case when n is
+    an integer.
 
     INPUT:
         n -- an nonzero integer

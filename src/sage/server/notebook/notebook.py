@@ -2011,7 +2011,7 @@ function save_worksheet_and_close() {
         </script>
         """
         t = worksheet.edit_text()
-        t = t.replace('<','&lt;')
+        t = t.replace('&','&amp;').replace('<','&lt;')
         body = '<form method="post" action="save" enctype="multipart/form-data">' + body
         body += """
         <textarea class="plaintextedit" id="cell_intext" name="textfield" rows="%s">%s</textarea>

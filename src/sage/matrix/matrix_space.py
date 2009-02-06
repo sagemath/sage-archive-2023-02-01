@@ -194,11 +194,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
     EXAMPLES:
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
-        sage: MatrixSpace(ZZ,10,2^33)
+        sage: MatrixSpace(ZZ,10,2^31)
         Traceback (most recent call last):                                   # 32-bit
         ...                                                                  # 32-bit
-        ValueError: number of rows and columns must be less than 2^32 (on a 32-bit computer -- use a 64-bit computer for bigger matrices)    # 32-bit
-        Full MatrixSpace of 10 by 8589934592 dense matrices over Integer Ring   # 64-bit
+        ValueError: number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for bigger matrices)    # 32-bit
+        Full MatrixSpace of 10 by 2147483648 dense matrices over Integer Ring   # 64-bit
     """
     def __init__(self,  base_ring,
                         nrows,
@@ -216,11 +216,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             raise ArithmeticError, "ncols must be nonnegative"
 
         if sage.misc.misc.is_64_bit:
-            if nrows >= 2**64 or ncols >= 2**64:
-                raise ValueError, "number of rows and columns must be less than 2^64"
+            if nrows >= 2**63 or ncols >= 2**63:
+                raise ValueError, "number of rows and columns must be less than 2^63"
         else:
-            if nrows >= 2**32 or ncols >= 2**32:
-                raise ValueError, "number of rows and columns must be less than 2^32 (on a 32-bit computer -- use a 64-bit computer for bigger matrices)"
+            if nrows >= 2**31 or ncols >= 2**31:
+                raise ValueError, "number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for bigger matrices)"
 
         self.__nrows = nrows
         self.__is_sparse = sparse

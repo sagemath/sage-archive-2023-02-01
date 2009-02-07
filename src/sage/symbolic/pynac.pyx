@@ -16,10 +16,12 @@ include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
 include "../libs/ginac/decl.pxi"
 
+from sage.structure.element import Element
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr import RR, RealField
 from sage.rings.all import CC
+from sage.calculus.all import SR
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 
@@ -309,9 +311,37 @@ cdef public bint py_is_rational(object x):
 
 
 cdef public bint py_is_integer(object x):
-    #return PY_TYPE_CHECK_EXACT(x, Integer) or\
-    #       IS_INSTANCE(x, int) or IS_INSTANCE(x, long)
-    return (x in ZZ)
+    r"""
+    Returns True if pynac should treat this object as an integer.
+
+    EXAMPLES:
+        sage: from sage.symbolic.pynac import py_is_integer_for_doctests
+        sage: py_is_integer = py_is_integer_for_doctests
+
+        sage: py_is_integer(1r)
+        True
+        sage: py_is_integer(long(1))
+        True
+        sage: py_is_integer(3^57)
+        True
+        sage: py_is_integer(SR(5))
+        True
+        sage: py_is_integer(4/2)
+        True
+        sage: py_is_integer(QQbar(sqrt(2))^2)
+        True
+        sage: py_is_integer(3.0)
+        False
+        sage: py_is_integer(3.0r)
+        False
+    """
+    return IS_INSTANCE(x, int) or IS_INSTANCE(x, long) or \
+           (IS_INSTANCE(x, Element) and
+            (x.parent().is_exact() or x.parent() == SR) and
+            (x in ZZ))
+
+def py_is_integer_for_doctests(x):
+    return py_is_integer(x)
 
 cdef public bint py_is_real(object a):
     return py_imag(a) == 0

@@ -1240,7 +1240,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return self.parent().ambient_module().sparse_module()(self.list())
 
 
-    def apply_map(self, phi, R=None):
+    def apply_map(self, phi, R=None, sparse=None):
         """
         Apply the given map phi (an arbitrary Python function or
         callable object) to this free module element.  If R is not
@@ -1250,6 +1250,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         INPUT:
             phi -- arbitrary Python function or callable object
             R -- (optional) ring
+            sparse -- True or False will control whether the result
+              is sparse.  By default, the result is sparse iff self
+              is sparse.
 
         OUTPUT:
             a free module element over R
@@ -1275,23 +1278,88 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: n.parent()
             Vector space of dimension 9 over Finite Field in a of size 3^2
 
+        If your map sends 0 to a non-zero value, then your resulting
+        vector is not mathematically sparse:
+
+            sage: v = vector([0] * 6 + [1], sparse=True); v
+            (0, 0, 0, 0, 0, 0, 1)
+            sage: v2 = v.apply_map(lambda x: x+1); v2
+            (1, 1, 1, 1, 1, 1, 2)
+
+        but it's still represented with a sparse data type:
+
+            sage: parent(v2)
+            Ambient sparse free module of rank 7 over the principal ideal domain Integer Ring
+
+        This data type is inefficient for dense vectors, so you may
+        want to specify sparse=False:
+
+            sage: v2 = v.apply_map(lambda x: x+1, sparse=False); v2
+            (1, 1, 1, 1, 1, 1, 2)
+            sage: parent(v2)
+            Ambient free module of rank 7 over the principal ideal domain Integer Ring
+
+        Or if you have a map that will result in mostly zeroes, you may
+        want to specify sparse=True:
+
+            sage: v = vector(srange(10))
+            sage: v2 = v.apply_map(lambda x: 0 if x else 1, sparse=True); v2
+            (1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            sage: parent(v2)
+            Ambient sparse free module of rank 10 over the principal ideal domain Integer Ring
+
         TESTS:
             sage: m = vector(SR,[])
             sage: m.apply_map(lambda x: x*x) == m
             True
+
+        Check that we don't unnecessarily apply phi to 0 in the sparse case:
+            sage: m = vector(ZZ, range(1, 4), sparse=True)
+            sage: m.apply_map(lambda x: 1/x)
+            (1, 1/2, 1/3)
+
+            sage: parent(vector(RDF, (), sparse=True).apply_map(lambda x: x, sparse=True))
+            Sparse vector space of dimension 0 over Real Double Field
+            sage: parent(vector(RDF, (), sparse=True).apply_map(lambda x: x, sparse=False))
+            Vector space of dimension 0 over Real Double Field
+            sage: parent(vector(RDF, (), sparse=False).apply_map(lambda x: x, sparse=True))
+            Sparse vector space of dimension 0 over Real Double Field
+            sage: parent(vector(RDF, (), sparse=False).apply_map(lambda x: x, sparse=False))
+            Vector space of dimension 0 over Real Double Field
         """
+        if sparse is None:
+            sparse = self.is_sparse()
+
         if self._degree == 0:
-            return self.copy()
+            if sparse == self.is_sparse():
+                return self.copy()
+            elif sparse:
+                return self.sparse_vector()
+            else:
+                return self.dense_vector()
+
+        v = None
 
         if self.is_sparse():
-            v = dict([(i,phi(z)) for i,z in self.dict().items()])
+            if len(self.dict(copy=False)) < self._degree:
+                # OK, we have some zero entries.
+                zero_res = phi(self.base_ring()(0))
+                if not zero_res.is_zero():
+                    # And phi maps 0 to a non-zero value.
+                    v = [zero_res] * self._degree
+                    for i,z in self.dict(copy=False).items():
+                        v[i] = phi(z)
+
+            if v is None:
+                # phi maps 0 to 0 (or else we don't have any zeroes at all)
+                v = dict([(i,phi(z)) for i,z in self.dict(copy=False).items()])
         else:
             v = [phi(z) for z in self.list()]
 
         if R is None:
-            return vector(v, sparse=self.is_sparse())
+            return vector(v, sparse=sparse)
         else:
-            return vector(R,v, sparse=self.is_sparse())
+            return vector(R, v, sparse=sparse)
 
 
     def _derivative(self, var=None):

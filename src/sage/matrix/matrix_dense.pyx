@@ -272,7 +272,7 @@ cdef class Matrix_dense(matrix.Matrix):
             image.subdivide(*self.get_subdivisions())
         return image
 
-    def apply_map(self, phi, R=None):
+    def apply_map(self, phi, R=None, sparse=False):
         """
         Apply the given map phi (an arbitrary Python function or
         callable object) to this dense matrix.  If R is not given,
@@ -281,6 +281,7 @@ cdef class Matrix_dense(matrix.Matrix):
         INPUT:
             phi -- arbitrary Python function or callable object
             R -- (optional) ring
+            sparse -- True to make the output a sparse matrix; default False
 
         OUTPUT:
             a matrix over R
@@ -307,19 +308,44 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: n.parent()
             Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
 
+        If self is subdivided, the result will be as well:
+            sage: m = matrix(2, 2, srange(4))
+            sage: m.subdivide(None, 1); m
+            [0|1]
+            [2|3]
+            sage: m.apply_map(lambda x: x*x)
+            [0|1]
+            [4|9]
+
+        If the map sends most of the matrix to zero, then it may be useful
+        to get the result as a sparse matrix.
+            sage: m = matrix(ZZ, 3, 3, range(1, 10))
+            sage: n = m.apply_map(lambda x: 1//x, sparse=True); n
+            [1 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+
         TESTS:
             sage: m = matrix([])
             sage: m.apply_map(lambda x: x*x) == m
             True
+
+            sage: m.apply_map(lambda x: x*x, sparse=True).parent()
+            Full MatrixSpace of 0 by 0 sparse matrices over Integer Ring
         """
         if self._nrows==0 or self._ncols==0:
-            return self.copy()
+            if sparse:
+                return self.sparse_matrix()
+            else:
+                return self.copy()
         v = [phi(z) for z in self.list()]
         if R is None:
             v = sage.structure.sequence.Sequence(v)
             R = v.universe()
         M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
-                   self._ncols, sparse=False)
+                   self._ncols, sparse=sparse)
         image = M(v)
         if self.subdivisions is not None:
             image.subdivide(*self.get_subdivisions())

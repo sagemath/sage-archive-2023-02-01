@@ -375,7 +375,7 @@ cdef class Matrix_sparse(matrix.Matrix):
                    self._ncols, sparse=True)
         return M(dict([(ij,phi(z)) for ij,z in self.dict().iteritems()]))
 
-    def apply_map(self, phi, R=None):
+    def apply_map(self, phi, R=None, sparse=True):
         """
         Apply the given map phi (an arbitrary Python function or
         callable object) to this matrix.  If R is not given,
@@ -384,6 +384,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         INPUT:
             phi -- arbitrary Python function or callable object
             R -- (optional) ring
+            sparse -- False to make the output a dense matrix; default True
 
         OUTPUT:
             a matrix over R
@@ -413,24 +414,91 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: n[1,2]
             2
 
+        If self is subdivided, the result will be as well:
+            sage: m = matrix(2, 2, [0, 0, 3, 0])
+            sage: m.subdivide(None, 1); m
+            [0|0]
+            [3|0]
+            sage: m.apply_map(lambda x: x*x)
+            [0|0]
+            [9|0]
+
+        If the map sends zero to a non-zero value, then it may be useful to
+        get the result as a dense matrix.
+            sage: m = matrix(ZZ, 3, 3, [0] * 7 + [1,2], sparse=True); m
+            [0 0 0]
+            [0 0 0]
+            [0 1 2]
+            sage: parent(m)
+            Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+            sage: n = m.apply_map(lambda x: x+polygen(QQ), sparse=False); n
+            [    x     x     x]
+            [    x     x     x]
+            [    x x + 1 x + 2]
+            sage: parent(n)
+            Full MatrixSpace of 3 by 3 dense matrices over Univariate Polynomial Ring in x over Rational Field
+
         TESTS:
-            sage: m = matrix([])
+            sage: m = matrix([], sparse=True)
             sage: m.apply_map(lambda x: x*x) == m
             True
+
+            sage: m.apply_map(lambda x: x*x, sparse=False).parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Integer Ring
+
+        Check that we don't unnecessarily apply phi to 0 in the sparse case:
+            sage: m = matrix(QQ, 2, 2, range(1, 5), sparse=True)
+            sage: m.apply_map(lambda x: 1/x)
+            [  1 1/2]
+            [1/3 1/4]
+
+        Test subdivisions when phi maps 0 to non-zero:
+            sage: m = matrix(2, 2, [0, 0, 3, 0])
+            sage: m.subdivide(None, 1); m
+            [0|0]
+            [3|0]
+            sage: m.apply_map(lambda x: x+1)
+            [1|1]
+            [4|1]
         """
         if self._nrows==0 or self._ncols==0:
-            return self.copy()
-        v = [(ij, phi(z)) for ij,z in self.dict().iteritems()]
+            if not sparse:
+                return self.dense_matrix()
+            else:
+                return self.copy()
+        self_dict = self._dict()
+        if len(self_dict) < self._nrows * self._ncols:
+            zero_res = phi(self.base_ring()(0))
+            if zero_res.is_zero():
+                zero_res = None
+        else:
+            zero_res = None
+        v = [(ij, phi(z)) for ij,z in self_dict.iteritems()]
         if R is None:
             w = [x for _, x in v]
+            if zero_res is not None:
+                w.append(zero_res)
             w = sage.structure.sequence.Sequence(w)
             R = w.universe()
             v = dict([(v[i][0],w[i]) for i in range(len(v))])
         else:
             v = dict(v)
+        if zero_res is not None:
+            M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
+                                                     self._ncols, sparse=sparse)
+            m = M([zero_res] * (self._nrows * self._ncols))
+            for i,n in v.items():
+                m[i] = n
+            if self.subdivisions is not None:
+                m.subdivide(*self.get_subdivisions())
+            return m
+
         M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
-                   self._ncols, sparse=True)
-        return M(v)
+                   self._ncols, sparse=sparse)
+        m = M(v)
+        if self.subdivisions is not None:
+            m.subdivide(*self.get_subdivisions())
+        return m
 
     def _derivative(self, var=None):
         """

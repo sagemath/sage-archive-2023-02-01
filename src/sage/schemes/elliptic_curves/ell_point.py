@@ -820,6 +820,213 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     ##############################  end  ################################
 
+    def _line_(self,R,Q):
+        r"""
+        Computes a straight line through points self and R evaluated in point Q.
+
+        INPUT:
+            R -- a point on self.curve()
+            Q -- a point on self.curve()
+
+        OUTPUT:
+            An element in the base field self.curve().base_field()
+
+        EXAMPLE:
+            sage: F.<a>=GF(2^5)
+            sage: E=EllipticCurve(F,[0,0,1,1,1])
+            sage: P = E(a^4 + 1, a^3)
+            sage: Q = E(a^4, a^4 + a^3)
+            sage: O = E(0)
+            sage: P._line_(P,-2*P) == 0
+            True
+            sage: P._line_(Q,-(P+Q)) == 0
+            True
+            sage: O._line_(O,Q) == F(1)
+            True
+            sage: P._line_(O,Q) == a^4 - a^4 + 1
+            True
+            sage: P._line_(13*P,Q) == a^4
+            True
+            sage: P._line_(P,Q) == a^4 + a^3 + a^2 + 1
+            True
+
+        NOTES:
+            Cover all posible point combination cases.
+            The function is used in _miller_ algorithm.
+
+        AUTHOR:
+            - David Hansen (2009-01-25)
+        """
+        if self.is_zero() or R.is_zero():
+            if self == R:
+                return self.curve().base_field().one_element()
+            if self.is_zero():
+                return Q[0] - R[0]
+            if R.is_zero():
+                return Q[0] - self[0]
+        elif self != R:
+            if self[0] == R[0]:
+                return Q[0] - self[0]
+            else:
+                l = (R[1] - self[1])/(R[0] - self[0])
+                return Q[1] - self[1] - l * (Q[0] - self[0])
+        else:
+            [a1, a2, a3, a4, a6] = self.curve().a_invariants()
+            numerator = (3*self[0]**2 + 2*a2*self[0] + a4 - a1*self[1])
+            denominator = (2*self[1] + a1*self[0] + a3)
+            if denominator == 0:
+                return Q[0] - self[0]
+            else:
+                l = numerator/denominator
+                return Q[1] - self[1] - l * (Q[0] - self[0])
+
+    def _miller_(self,Q,n):
+        r"""
+        Compute the value of the rational function $f_{n,P}(Q)$, where divisor $div(f_{n,P})=n[P]-n[O]$.
+
+        INPUT:
+            Q -- a point on self.curve()
+            n -- an integer such that n*self = n*Q = (0:1:0)
+
+        OUTPUT:
+            t -- An element in the base field self.curve().base_field()
+
+        EXAMPLE:
+            sage: F.<a>=GF(2^5)
+            sage: E=EllipticCurve(F,[0,0,1,1,1])
+            sage: P = E(a^4 + 1, a^3)
+            sage: Fx.<b>=GF(2^(4*5))
+            sage: Ex=EllipticCurve(Fx,[0,0,1,1,1])
+            sage: phi=Hom(F,Fx)(F.gen().minpoly().roots(Fx)[0][0])
+            sage: Px=Ex(phi(P.xy()[0]),phi(P.xy()[1]))
+            sage: Qx = Ex(b^19 + b^18 + b^16 + b^12 + b^10 + b^9 + b^8 + b^5 + b^3 + 1, b^18 + b^13 + b^10 + b^8 + b^5 + b^4 + b^3 + b)
+            sage: Px._miller_(Qx,41) == b^17 + b^13 + b^12 + b^9 + b^8 + b^6 + b^4 + 1
+            True
+            sage: Qx._miller_(Px,41) == b^13 + b^10 + b^8 + b^7 + b^6 + b^5
+            True
+
+        Example on even order n
+            sage: F.<a> = GF(19^4)
+            sage: E = EllipticCurve(F,[-1,0])
+            sage: P = E(15*a^3 + 17*a^2 + 14*a + 13,16*a^3 + 7*a^2 + a + 18)
+            sage: Q = E(10*a^3 + 16*a^2 + 4*a + 2, 6*a^3 + 4*a^2 + 3*a + 2)
+            sage: x=P.weil_pairing(Q,360)
+            sage: x^360 == F(1)
+            True
+
+        You can use the _miller_ function on lin dep points, but with the risk of a dividing with zero.
+            sage: Px._miller_(2*Px,41)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in finite field.
+
+        NOTES:
+            Implemented with double-and-add.
+            The function requires access to the _line_ function.
+            REFERENCES:
+                [Mil04] Victor S. Miller, "The Weil pairing, and its efficient calculation", J. Cryptol., 17(4):235-261, 2004
+
+        AUTHOR:
+            - David Hansen (2009-01-25)
+
+        """
+        t = self.curve().base_field().one_element()
+        V = self
+        S = 2*V
+        nbin = n.bits()
+        i = n.nbits() - 2
+        while i > -1:
+            S = 2*V
+            t = (t**2)*(V._line_(V,Q)/S._line_(-S,Q))
+            V = S
+            if nbin[i] == 1:
+                S = V+self
+                t=t*(V._line_(self,Q)/S._line_(-S,Q))
+                V = S
+            i=i-1
+        return t
+
+    def weil_pairing(self, Q, n):
+        r"""
+        Compute the Weil pairing of self and Q using Miller's algorithm.
+
+        INPUT:
+            Q -- a point on self.curve()
+            n -- an integer such that n*self = n*Q = (0:1:0)
+
+        OUTPUT:
+            An n'th root of unity in the base field self.curve().base_field()
+
+        EXAMPLE:
+            sage: F.<a>=GF(2^5)
+            sage: E=EllipticCurve(F,[0,0,1,1,1])
+            sage: P = E(a^4 + 1, a^3)
+            sage: Fx.<b>=GF(2^(4*5))
+            sage: Ex=EllipticCurve(Fx,[0,0,1,1,1])
+            sage: phi=Hom(F,Fx)(F.gen().minpoly().roots(Fx)[0][0])
+            sage: Px=Ex(phi(P.xy()[0]),phi(P.xy()[1]))
+            sage: O = Ex(0)
+            sage: Qx = Ex(b^19 + b^18 + b^16 + b^12 + b^10 + b^9 + b^8 + b^5 + b^3 + 1, b^18 + b^13 + b^10 + b^8 + b^5 + b^4 + b^3 + b)
+            sage: Px.weil_pairing(Qx,41) == b^19 + b^15 + b^9 + b^8 + b^6 + b^4 + b^3 + b^2 + 1
+            True
+            sage: Px.weil_pairing(17*Px,41) == Fx(1)
+            True
+            sage: Px.weil_pairing(O,41) == Fx(1)
+            True
+
+        An error is raised if either point is not $n$-torsion:
+            sage: Px.weil_pairing(O,40)
+            Traceback (most recent call last):
+            ...
+            ValueError: points must both be n-torsion
+
+        A larger example (see trac \#4964:
+            sage: P,Q = EllipticCurve(GF(19^4,'a'),[-1,0]).gens()
+            sage: P.order(), Q.order()
+            (360, 360)
+            sage: z = P.weil_pairing(Q,360)
+            sage: z.multiplicative_order()
+            360
+
+        An example over a number field:
+            sage: P,Q = EllipticCurve('11a1').change_ring(CyclotomicField(5)).torsion_subgroup().gens()
+            sage: (P.order(),Q.order())
+            (5, 5)
+            sage: P.weil_pairing(Q,5)
+            zeta5^2
+            sage: Q.weil_pairing(P,5)
+            zeta5^3
+
+        NOTES:
+            Implemented using proposition 8 in [Mil04].
+            The function requires access to the _miller_ function.
+            In the case where lin. dep. input leads to division with zero, the error is catched and the 1 is returned.
+            Use try-catch instead of doing discrete log test for linear dependence, since this is much to slow for large n.
+            REFERENCES:
+                [Mil04] Victor S. Miller, "The Weil pairing, and its efficient calculation", J. Cryptol., 17(4):235-261, 2004
+
+        AUTHOR:
+            - David Hansen (2009-01-25)
+        """
+        # Test if P, Q are both in E[n]
+        if not ((n*self).is_zero() and (n*Q).is_zero()):
+            raise ValueError, "points must both be n-torsion"
+
+        # Case where P = Q
+        if self == Q:
+            return self.curve().base_field().one_element()
+
+        # Case where P = O or Q = O
+        if self.is_zero() or Q.is_zero():
+            return self.curve().base_field().one_element()
+
+        # The non-trivial case P != Q
+        try:
+            r = ((-1)**n.test_bit(0))*(self._miller_(Q,n)/Q._miller_(self,n))
+            return r
+        except ZeroDivisionError, detail:
+            return self.curve().base_field().one_element()
+
 class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
     """
     A point on an elliptic curve over a number field.
@@ -1573,6 +1780,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         phi = Ep.formal().log(prec=1+absprec//v)
         return phi(t)/f
 
+
 class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
     def _magma_init_(self, magma):
@@ -1699,194 +1907,4 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         self._order = N
         return self._order
-
-    def _line_(self,R,Q):
-        r"""
-        Computes a straight line through points self and R evaluated in point Q.
-
-        INPUT:
-            R -- a point on self.curve()
-            Q -- a point on self.curve()
-
-        OUTPUT:
-            An element in the base field self.curve().base_field()
-
-        EXAMPLE:
-            sage: F.<a>=GF(2^5)
-            sage: E=EllipticCurve(F,[0,0,1,1,1])
-            sage: P = E(a^4 + 1, a^3)
-            sage: Q = E(a^4, a^4 + a^3)
-            sage: O = E(0)
-            sage: P._line_(P,-2*P) == 0
-            True
-            sage: P._line_(Q,-(P+Q)) == 0
-            True
-            sage: O._line_(O,Q) == F(1)
-            True
-            sage: P._line_(O,Q) == a^4 - a^4 + 1
-            True
-            sage: P._line_(13*P,Q) == a^4
-            True
-            sage: P._line_(P,Q) == a^4 + a^3 + a^2 + 1
-            True
-
-        NOTES:
-            Cover all posible point combination cases.
-            The function is used in _miller_ algorithm.
-
-        AUTHOR:
-            - David Hansen (2009-01-25)
-        """
-        if self.is_zero() or R.is_zero():
-            if self == R:
-                return self.curve().base_field().one_element()
-            if self.is_zero():
-                return Q[0] - R[0]
-            if R.is_zero():
-                return Q[0] - self[0]
-        elif self != R:
-            if self[0] == R[0]:
-                return Q[0] - self[0]
-            else:
-                l = (R[1] - self[1])/(R[0] - self[0])
-                return Q[1] - self[1] - l * (Q[0] - self[0])
-        else:
-            [a1, a2, a3, a4, a6] = self.curve().a_invariants()
-            numerator = (3*self[0]**2 + 2*a2*self[0] + a4 - a1*self[1])
-            denominator = (2*self[1] + a1*self[0] + a3)
-            if denominator == 0:
-                return Q[0] - self[0]
-            else:
-                l = numerator/denominator
-                return Q[1] - self[1] - l * (Q[0] - self[0])
-
-    def _miller_(self,Q,n):
-        r"""
-        Compute the value of the rational function $f_{n,P}(Q)$, where divisor $div(f_{n,P})=n[P]-n[O]$.
-
-        INPUT:
-            Q -- a point on self.curve()
-            n -- an integer such that n*self = n*Q = (0:1:0)
-
-        OUTPUT:
-            t -- An element in the base field self.curve().base_field()
-
-        EXAMPLE:
-            sage: F.<a>=GF(2^5)
-            sage: E=EllipticCurve(F,[0,0,1,1,1])
-            sage: P = E(a^4 + 1, a^3)
-            sage: Fx.<b>=GF(2^(4*5))
-            sage: Ex=EllipticCurve(Fx,[0,0,1,1,1])
-            sage: phi=Hom(F,Fx)(F.gen().minpoly().roots(Fx)[0][0])
-            sage: Px=Ex(phi(P.xy()[0]),phi(P.xy()[1]))
-            sage: Qx = Ex(b^19 + b^18 + b^16 + b^12 + b^10 + b^9 + b^8 + b^5 + b^3 + 1, b^18 + b^13 + b^10 + b^8 + b^5 + b^4 + b^3 + b)
-            sage: Px._miller_(Qx,41) == b^17 + b^13 + b^12 + b^9 + b^8 + b^6 + b^4 + 1
-            True
-            sage: Qx._miller_(Px,41) == b^13 + b^10 + b^8 + b^7 + b^6 + b^5
-            True
-
-        Example on even order n
-            sage: F.<a> = GF(19^4)
-            sage: E = EllipticCurve(F,[-1,0])
-            sage: P = E(15*a^3 + 17*a^2 + 14*a + 13,16*a^3 + 7*a^2 + a + 18)
-            sage: Q = E(10*a^3 + 16*a^2 + 4*a + 2, 6*a^3 + 4*a^2 + 3*a + 2)
-            sage: x=P.weil_pairing(Q,360)
-            sage: x^360 == F(1)
-            True
-
-        You can use the _miller_ function on lin dep points, but with the risk of a dividing with zero.
-            sage: Px._miller_(2*Px,41)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: division by zero in finite field.
-
-        NOTES:
-            Implemented with double-and-add.
-            The function requires access to the _line_ function.
-            REFERENCES:
-                [Mil04] Victor S. Miller, "The Weil pairing, and its efficient calculation", J. Cryptol., 17(4):235-261, 2004
-
-        AUTHOR:
-            - David Hansen (2009-01-25)
-
-        """
-        t = self.curve().base_field().one_element()
-        V = self
-        S = 2*V
-        nbin = n.bits()
-        i = n.nbits() - 2
-        while i > -1:
-            S = 2*V
-            t = (t**2)*(V._line_(V,Q)/S._line_(-S,Q))
-            V = S
-            if nbin[i] == 1:
-                S = V+self
-                t=t*(V._line_(self,Q)/S._line_(-S,Q))
-                V = S
-            i=i-1
-        return t
-
-    def weil_pairing(self, Q, n):
-        r"""
-        Compute the Weil pairing of self and Q using Miller's algorithm.
-
-        INPUT:
-            Q -- a point on self.curve()
-            n -- an integer such that n*self = n*Q = (0:1:0)
-
-        OUTPUT:
-            An n'th root of unity in the base field self.curve().base_field()
-
-        EXAMPLE:
-            sage: F.<a>=GF(2^5)
-            sage: E=EllipticCurve(F,[0,0,1,1,1])
-            sage: P = E(a^4 + 1, a^3)
-            sage: Fx.<b>=GF(2^(4*5))
-            sage: Ex=EllipticCurve(Fx,[0,0,1,1,1])
-            sage: phi=Hom(F,Fx)(F.gen().minpoly().roots(Fx)[0][0])
-            sage: Px=Ex(phi(P.xy()[0]),phi(P.xy()[1]))
-            sage: O = Ex(0)
-            sage: Qx = Ex(b^19 + b^18 + b^16 + b^12 + b^10 + b^9 + b^8 + b^5 + b^3 + 1, b^18 + b^13 + b^10 + b^8 + b^5 + b^4 + b^3 + b)
-            sage: Px.weil_pairing(Qx,41) == b^19 + b^15 + b^9 + b^8 + b^6 + b^4 + b^3 + b^2 + 1
-            True
-            sage: Px.weil_pairing(17*Px,41) == Fx(1)
-            True
-            sage: Px.weil_pairing(O,41) == Fx(1)
-            True
-
-        In this simple implementation we only allow points of same order.
-            sage: Px.weil_pairing(O,40)
-            Traceback (most recent call last):
-            ...
-            ValueError: P and Q do not both have order n
-
-        NOTES:
-            Implemented using proposition 8 in [Mil04].
-            The function requires access to the _miller_ function.
-            In the case where lin. dep. input leads to division with zero, the error is catched and the 1 is returned.
-            Use try-catch instead of doing discrete log test for linear dependence, since this is much to slow for large n.
-            REFERENCES:
-                [Mil04] Victor S. Miller, "The Weil pairing, and its efficient calculation", J. Cryptol., 17(4):235-261, 2004
-
-        AUTHOR:
-            - David Hansen (2009-01-25)
-        """
-        # Test is both P, Q is in E[n]
-        if not ((n*self).is_zero() and (n*Q).is_zero()):
-            raise ValueError, "P and Q do not both have order n"
-
-        # Case where P = Q
-        if self == Q:
-            return self.curve().base_field().one_element()
-
-        # Case where P = O or Q = O
-        if self.is_zero() or Q.is_zero():
-            return self.curve().base_field().one_element()
-
-        # The non-trivial case P != Q
-        try:
-            r = ((-1)**n.test_bit(0))*(self._miller_(Q,n)/Q._miller_(self,n))
-            return r
-        except ZeroDivisionError, detail:
-            return self.curve().base_field().one_element()
 

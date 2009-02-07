@@ -26,6 +26,11 @@ MPIR is a fork of GMP. See www.mpir.org
 
 == Changelog ==
 
+=== gmp-mpir-0.9.rc3 (Michael Abshoff, February 7th, 2009) ===
+ * update to latest upstream 0.9.rc3 release
+ * clean out no longer used patches from the patches directory
+ * turn on test suite per default
+
 === gmp-mpir-svn1555.p0 (Michael Abshoff, January 19th, 2008) ===
  * unset PYTHON since it confuses yasm during configure time
 

@@ -2945,7 +2945,7 @@ function set_output_text(id, text, wrapped_text, output_html,
             if (cell_interact) {
                  // This is the first time that the underlying Python interact function is
                  // actually called!
-                interact(id, 'sage.server.notebook.interact.state[' + id + ']["function"]()');
+                interact(id, 'sage.server.notebook.interact.recompute(' + id + ')');
             }
         }
     }

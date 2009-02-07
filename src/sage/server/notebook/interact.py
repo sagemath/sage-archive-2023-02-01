@@ -360,7 +360,64 @@ def html_color_selector(id, change, input_change, default='000000'):
     return s
 
 
-class InteractControl:
+class InteractElement(object):
+    def label(self):
+        """
+        Returns an empty label for this element. This should be
+        overridden for subclasses that need a label.
+
+        EXAMPLES:
+            sage: from sage.server.notebook.interact import UpdateButton, InteractElement
+            sage: b = UpdateButton(1)
+            sage: isinstance(b, InteractElement)
+            True
+            sage: b.label()
+            ''
+        """
+        return ""
+
+    def set_canvas(self, canvas):
+        """
+        Sets the InteractCanvas on which this element appears.  This
+        method is primarily called in the constructor for
+        InteractCanvas.
+
+        EXAMPLES:
+            sage: from sage.server.notebook.interact import InputBox, InteractCanvas
+            sage: B = InputBox('x',2)
+            sage: canvas1 = InteractCanvas([B], 3)
+            sage: canvas2 = InteractCanvas([B], 3)
+            sage: B.canvas() is canvas2
+            True
+            sage: B.set_canvas(canvas1)
+            sage: B.canvas() is canvas1
+            True
+
+        """
+        self._canvas = canvas
+
+    def canvas(self):
+        """
+        Returns the InteractCanvas associated to this element.  If no
+        canvas has been set (via the set_canvas method), then this
+        will return a ValueError.
+
+        EXAMPLES:
+            sage: from sage.server.notebook.interact import InputBox, InteractCanvas
+            sage: B = InputBox('x',2)
+            sage: canvas1 = InteractCanvas([B], 3)
+            sage: canvas2 = InteractCanvas([B], 3)
+            sage: B.canvas() is canvas2
+            True
+
+        """
+        if hasattr(self, '_canvas'):
+            return self._canvas
+        else:
+            raise ValueError, "this element does not have a canvas associated with it"
+
+
+class InteractControl(InteractElement):
     def __init__(self, var, default_value, label=None):
         """
         Abstract base class for interact controls.  These are controls
@@ -388,6 +445,8 @@ class InteractControl:
             self.__label = var
         else:
             self.__label = label
+
+        InteractElement.__init__(self)
 
     def __repr__(self):
         """
@@ -497,18 +556,36 @@ class InteractControl:
         javascript interact function with appropriate inputs for
         this control.
 
+        This method will check to see if there is a canvas attached to
+        this control and whether or not controls should automatically
+        update the output when their values change.  If no canvas is
+        associated with this control, then the control will
+        automatically update.
+
         OUTPUT:
             string -- that is meant to be evaluated in Javascript
 
         EXAMPLES:
             sage: sage.server.notebook.interact.InteractControl('x', 1).interact()
-            'interact(..., "sage.server.notebook.interact.update(..., \\"x\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(NULL)+"\\"), globals())")'
+            'interact(..., "sage.server.notebook.interact.update(..., \\"x\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(NULL)+"\\"), globals());sage.server.notebook.interact.recompute(0)")'
         """
+        #We have to do a try/except block here since the
+        #control may not have a canvas associated with it.
+        try:
+            auto_update = self.canvas().is_auto_update()
+        except ValueError:
+            auto_update = True
+
         # The following is a crazy line to read because of all the backslashes and try/except.
         # All it does is run the interact function once after setting exactly one
         # dynamic variable.    If setting the dynamic variable fails, due to a KeyError
-        s = 'interact(%s, "sage.server.notebook.interact.update(%s, \\"%s\\", %s, sage.server.notebook.interact.standard_b64decode(\\""+encode64(%s)+"\\"), globals())")'%(
-            self.cell_id(), self.cell_id(), self.var(), self.adapt_number(), self.value_js(*args))
+        python_string = 'sage.server.notebook.interact.update(%s, \\"%s\\", %s, sage.server.notebook.interact.standard_b64decode(\\""+encode64(%s)+"\\"), globals())'%(
+            self.cell_id(), self.var(), self.adapt_number(), self.value_js(*args))
+
+        if auto_update:
+            python_string += ';sage.server.notebook.interact.recompute(%s)'%self.cell_id()
+
+        s = 'interact(%s, "%s")'%(self.cell_id(), python_string)
         return s
 
     def var(self):
@@ -617,7 +694,7 @@ class InputBox(InteractControl):
 
         EXAMPLES:
             sage: sage.server.notebook.interact.InputBox('theta', 1).render()
-            '<input type=\'text\' value="1" size=80 onchange=\'interact(0, "sage.server.notebook.interact.update(0, \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals())")\'></input>'
+            '<input type=\'text\' value="1" size=80 onchange=\'interact(0, "sage.server.notebook.interact.update(0, \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals());sage.server.notebook.interact.recompute(0)")\'></input>'
         """
         if self.__type is bool:
             return """<input type='checkbox' %s width=200px onchange='%s'></input>"""%(
@@ -1303,7 +1380,7 @@ class TextControl(InteractControl):
 
 
 class InteractCanvas:
-    def __init__(self, controls, id):
+    def __init__(self, controls, id, **options):
         """
         Base class for interact canvases. This is where all the controls
         along with the output of the interactd function are layed out
@@ -1312,14 +1389,19 @@ class InteractCanvas:
         INPUT:
             controls -- a list of InteractControl instances.
             id -- the id of the cell that contains this InteractCanvas.
+            options -- any additional keyword arguments (for example, auto_update=False)
 
         EXAMPLES:
             sage: B = sage.server.notebook.interact.InputBox('x',2)
             sage: sage.server.notebook.interact.InteractCanvas([B], 3)
             Interactive canvas in cell 3 with 1 controls
         """
+        for control in controls:
+            control.set_canvas(self)
+
         self.__controls = controls
         self.__cell_id = id
+        self.__options = options
 
     def __repr__(self):
         """
@@ -1332,6 +1414,36 @@ class InteractCanvas:
         """
         return "Interactive canvas in cell %s with %s controls"%(
             self.__cell_id, len(self.__controls))
+
+    def is_auto_update(self):
+        """
+        Returns True if any change of the values for the controls on
+        this canvas should cause an update.  If auto_update=False was
+        not specified in the constructor for this canvas, then this
+        will default to True.
+
+        EXAMPLES:
+            sage: B = sage.server.notebook.interact.InputBox('x',2)
+            sage: canvas = sage.server.notebook.interact.InteractCanvas([B], 3)
+            sage: canvas.is_auto_update()
+            True
+            sage: canvas = sage.server.notebook.interact.InteractCanvas([B], 3, auto_update=False)
+            sage: canvas.is_auto_update()
+            False
+        """
+        return self.__options.get('auto_update', True)
+
+    def cell_id(self):
+        """
+        Returns the cell id associated to this InteractCanvas.
+
+        EXAMPLES:
+            sage: B = sage.server.notebook.interact.InputBox('x',2)
+            sage: canvas = sage.server.notebook.interact.InteractCanvas([B], 3)
+            sage: canvas.cell_id()
+            3
+        """
+        return self.__cell_id
 
     def controls(self):
         """
@@ -1447,6 +1559,46 @@ class InteractCanvas:
         s = self.wrap_in_outside_frame(s)
         return s
 
+class JavascriptCodeButton(InteractElement):
+    def __init__(self, label, code):
+        """
+        This interact element displays a button which when clicked
+        executes Javascript code in the notebook.
+
+        EXAMPLES:
+            sage: b = sage.server.notebook.interact.JavascriptCodeButton('Push me', 'alert("2")')
+        """
+        self.__label = label
+        self.__code = code
+        InteractElement.__init__(self)
+
+    def render(self):
+        r"""
+        Returns the HTML to display this button.
+
+        EXAMPLES:
+            sage: b = sage.server.notebook.interact.JavascriptCodeButton('Push me', 'alert("2")')
+            sage: b.render()
+            '<input type="button" value="Push me" onclick=\'alert("2")\'>\n'
+
+        """
+        return '<input type="button" value="%s" onclick=\'%s\'>\n'%(self.__label, self.__code)
+
+class UpdateButton(JavascriptCodeButton):
+    def __init__(self, cell_id):
+        r"""
+        This interact element creates a button which when clicked
+        causes the interact function in the cell cell_id to be
+        recomputed with the current values of the variables.
+
+        EXAMPLES:
+            sage: b = sage.server.notebook.interact.UpdateButton(0)
+            sage: b.render()
+            '<input type="button" value="Update" onclick=\'interact(0, "sage.server.notebook.interact.recompute(0)")\'>\n'
+
+        """
+        s = 'interact(%s, "sage.server.notebook.interact.recompute(%s)")'%(cell_id, cell_id)
+        JavascriptCodeButton.__init__(self, "Update", s)
 
 def interact(f):
     r"""
@@ -1505,6 +1657,19 @@ def interact(f):
     also be a library function as long as it is written in Python:
 
         sage: interact(matrix)   # put ZZ, 2,2,[1..4] in boxes...
+        <html>...
+
+    If your the time to evaluate your function takes awhile, you may
+    not want to have it reevaluated every time the inputs change.  In
+    order to prevent this, you can add a keyword
+    \code{auto_update=False} to your function to prevent it from
+    updating whenever the values are changed.  This will cause a
+    button labeled 'Update' to appear which you can click on to
+    revaluate your function.
+
+        sage: @interact
+        ... def _(n=(10,100,1), auto_update=False):
+        ...     show(factor(x^n - 1))
         <html>...
 
     DEFAULTS:
@@ -1729,31 +1894,34 @@ def interact(f):
         defaults = []
 
     n = len(args) - len(defaults)
-    controls = [automatic_control(defaults[i-n] if i >= n else None) for i in range(len(args))]
+    controls = [automatic_control(defaults[i-n] if i >= n else None).render(arg)
+                for i, arg in enumerate(args)]
 
-    # Convert the controls to InteractControl objects
-    controls = [controls[i].render(args[i]) for i in range(len(args))]
+    variables = {}
+    adapt = {}
+    state[SAGE_CELL_ID] = {'variables':variables, 'adapt':adapt}
 
-    C = InteractCanvas(controls, SAGE_CELL_ID)
+    for control in controls:
+        variables[control.var()] = control.default_value()
+        adapt[control.adapt_number()] = control._adaptor
 
-    d = {}
-    ad = {}
-    state[SAGE_CELL_ID] = {'variables':d, 'adapt':ad}
+    #Replace the auto_update checkbox with a button that
+    #will cause the cell to recompute itself.
+    auto_update = variables.get('auto_update', True)
+    if auto_update is False:
+        i = args.index('auto_update')
+        controls[i] = UpdateButton(SAGE_CELL_ID)
 
-    for con in controls:
-        d[con.var()] = con.default_value()
-        ad[con.adapt_number()] = con._adaptor
-
+    C = InteractCanvas(controls, SAGE_CELL_ID, auto_update=auto_update)
     html(C.render())
 
     def _():
-        z = f(*[d[args[i]] for i in range(len(args))])
+        z = f(*[variables[arg] for arg in args])
         if z: print z
 
     state[SAGE_CELL_ID]['function'] = _
 
     return f
-
 
 ######################################################
 # Actual control objects that the user passes in
@@ -2590,6 +2758,8 @@ def list_of_first_n(v,n):
 def update(cell_id, var, adapt, value, globs):
     """
     Called when updating the positions of an interactive control.
+    Note that this just causes the values of the variables to be
+    updated; it does not reevaluate the function with the new values.
 
     INPUT:
         cell_id -- the id of a interact cell
@@ -2611,10 +2781,29 @@ def update(cell_id, var, adapt, value, globs):
         adapt_function = S["adapt"][adapt]
         # Apply that function and save the result in the appropriate variables dictionary.
         S["variables"][var] = adapt_function(value, globs)
+    except KeyError:
+        # If you change this, make sure to change js.py as well.
+        print "__SAGE_INTERACT_RESTART__"
+
+def recompute(cell_id):
+    """
+    Evaluates the interact function associated to the cell
+    cell_id. This typically gets called after a call to
+    sage.server.notebook.interact.update.
+
+    EXAMPLES:
+    The following outputs __SAGE_INTERACT_RESTART__ to indicate that
+    not all the state of the interrupt canvas has been setup yet (this
+    setup happens when javascript calls certain functions).
+        sage: sage.server.notebook.interact.recompute(10)
+        __SAGE_INTERACT_RESTART__
+
+    """
+    try:
+        S = state[cell_id]
         # Finally call the interactive function, which will use the above variables.
         S['function']()
     except KeyError:
         # If you change this, make sure to change js.py as well.
         print "__SAGE_INTERACT_RESTART__"
-
 

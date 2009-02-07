@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+SAGE_DEBUG=0
+
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
@@ -12,8 +14,16 @@ $MAKE clean
 
 INCLUDES="-I$SAGE_LOCAL/include/"
 
-CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib -O2 -Wall -pedantic -g"
+CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib -Wall -pedantic -g"
 CPPFLAGS="$INCLUDES"
+
+if [ "$SAGE_DEBUG" = "1" ]; then
+   CFLAGS="$CFLAGS -O0"
+   ENABLE_DEBUG="--enable-debug"
+else
+   CFLAGS="$CFLAGS -O2"
+   ENABLE_DEBUG=""
+fi
 
 if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
     echo "64 bit OSX build"
@@ -24,7 +34,7 @@ fi
 export CFLAGS
 export CPPFLAGS
 
-./configure --prefix=$SAGE_LOCAL --includedir=$SAGE_LOCAL/include/
+./configure --prefix=$SAGE_LOCAL --includedir=$SAGE_LOCAL/include/ $ENABLE_DEBUG
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4ri"

@@ -1008,24 +1008,48 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         AUTHOR:
             - David Hansen (2009-01-25)
         """
+        P = self
+        E = P.curve()
+
+        if not Q.curve() is E:
+            raise ValueError, "points must both be on the same curve"
+
         # Test if P, Q are both in E[n]
-        if not ((n*self).is_zero() and (n*Q).is_zero()):
+        if not ((n*P).is_zero() and (n*Q).is_zero()):
             raise ValueError, "points must both be n-torsion"
 
+        one = E.base_field().one_element()
+
         # Case where P = Q
-        if self == Q:
-            return self.curve().base_field().one_element()
+        if P == Q:
+            return one
 
         # Case where P = O or Q = O
-        if self.is_zero() or Q.is_zero():
-            return self.curve().base_field().one_element()
+        if P.is_zero() or Q.is_zero():
+            return one
 
         # The non-trivial case P != Q
+
+        # Reduction to order d = gcd(|P|,|Q|); value is a d'th root of unity
         try:
-            r = ((-1)**n.test_bit(0))*(self._miller_(Q,n)/Q._miller_(self,n))
-            return r
+            nP = P.order()
+        except AttributeError:
+            nP = generic.order_from_multiple(P,n,operation='+')
+        try:
+            nQ = Q.order()
+        except AttributeError:
+            nQ = generic.order_from_multiple(Q,n,operation='+')
+        d = arith.gcd(nP,nQ)
+        if d==1:
+            return one
+
+        P = (nP//d)*P # order d
+        Q = (nQ//d)*Q # order d
+        n = d
+        try:
+            return ((-1)**n.test_bit(0))*(P._miller_(Q,n)/Q._miller_(P,n))
         except ZeroDivisionError, detail:
-            return self.curve().base_field().one_element()
+            return one
 
 class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
     """

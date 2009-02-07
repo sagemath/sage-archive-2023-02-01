@@ -6,6 +6,9 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+# unset RM since it messes with libtool for "make check"
+unset RM
+
 echo "Deleting old libraries"
 rm -f "$SAGE_LOCAL"/lib/libmpfr.*
 echo "Deleting old headers"
@@ -47,9 +50,7 @@ cd src
 
 build
 
-if [ $? -eq 0 -a -f $SAGE_LOCAL/include/mpfr.h ];  then
-    exit 0
-else
+if ! [ $? -eq 0 -a -f $SAGE_LOCAL/include/mpfr.h ];  then
     echo "An error occured while building mpfr."
     exit 1
 fi

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 HTML templating for the notebook
 

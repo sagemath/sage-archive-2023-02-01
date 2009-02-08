@@ -66,7 +66,8 @@ static ex lgamma_eval(const ex & x)
 			if (x.info(info_flags::posint))
 				return log(factorial(x + _ex_1));
 			else
-				throw (pole_error("lgamma_eval(): logarithmic pole",0));
+				return Infinity;
+				//throw (pole_error("lgamma_eval(): logarithmic pole",0));
 		}
 		if (!ex_to<numeric>(x).is_rational())
 			return lgamma(ex_to<numeric>(x));
@@ -148,7 +149,9 @@ static ex tgamma_eval(const ex & x)
 			if (two_x.is_positive()) {
 				return factorial(ex_to<numeric>(x).sub(*_num1_p));
 			} else {
-				throw (pole_error("tgamma_eval(): simple pole",1));
+				//throw (pole_error("tgamma_eval(): simple pole",1));
+
+				return UnsignedInfinity;
 			}
 		}
 		// trap half integer arguments:

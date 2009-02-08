@@ -80,6 +80,9 @@ private:
 extern const constant Pi;
 extern const constant Catalan;
 extern const constant Euler;
+extern const constant UnsignedInfinity;
+extern const constant Infinity;
+extern const constant NegInfinity;
 
 } // namespace GiNaC
 

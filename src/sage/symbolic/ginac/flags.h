@@ -67,7 +67,8 @@ public:
 	enum {
 		complex,
 		real,
-		positive
+		positive,
+		infinity
 	};
 };
 
@@ -222,6 +223,7 @@ public:
 		even,
 		odd,
 		prime,
+		infinity,
 
 		// answered by class relation
 		relation,

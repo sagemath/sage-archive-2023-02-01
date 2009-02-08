@@ -473,6 +473,9 @@ namespace GiNaC {
   ex PiEvalf();
   ex EulerEvalf();
   ex CatalanEvalf();
+  ex UnsignedInfinityEvalf();
+  ex InfinityEvalf();
+  ex NegInfinityEvalf();
 
 
 } // namespace GiNaC

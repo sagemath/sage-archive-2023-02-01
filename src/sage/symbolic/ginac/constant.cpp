@@ -145,6 +145,9 @@ bool constant::info(unsigned inf) const
 		return domain==domain::real || domain==domain::positive ;
 	if (inf==info_flags::positive || inf==info_flags::nonnegative)
 		return domain == domain::positive;
+	if (inf==info_flags::infinity) {
+		return domain == domain::infinity;
+	}
 	else
 		return inherited::info(inf);
 }
@@ -245,14 +248,30 @@ unsigned constant::next_serial = 0;
 // global constants
 //////////
 
-/**  Pi. (3.14159...)  Diverts straight into CLN for evalf(). */
+/**  Pi. (3.14159...) Calls python function py_eval_pi() for evalf(). */
 const constant Pi("Pi", PiEvalf, "\\pi", domain::positive);
 
 /** Euler's constant. (0.57721...)  Sometimes called Euler-Mascheroni constant.
- *  Diverts straight into CLN for evalf(). */
+ *  Calls python function py_eval_euler_gamma for evalf(). */
 const constant Euler("Euler", EulerEvalf, "\\gamma_E", domain::positive);
 
-/** Catalan's constant. (0.91597...)  Diverts straight into CLN for evalf(). */
+/** Catalan's constant. (0.91597...)  
+ *  Calls python function py_eval_catalan for evalf(). */
 const constant Catalan("Catalan", CatalanEvalf, "G", domain::positive);
+
+/** UnsignedInfinity. E.g., return value of gamma(-1).
+ *  Calls python function py_eval_unsigned_infinity for evalf(). */
+const constant UnsignedInfinity("Infinity", UnsignedInfinityEvalf, "\\infty",
+		domain::infinity);
+
+/** Infinity, i.e., positive infinity.
+ *  Calls python function py_eval_infinity for evalf(). */
+const constant Infinity("+Infinity", InfinityEvalf, "+\\infty",
+		domain::infinity);
+
+/** -Infinity, i.e., minus_infinity.
+ *  Calls python function py_eval_neg_infinity for evalf(). */
+const constant NegInfinity("-Infinity", NegInfinityEvalf, "-\\infty",
+		domain::infinity);
 
 } // namespace GiNaC

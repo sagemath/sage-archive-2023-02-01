@@ -125,6 +125,9 @@ extern "C" int       py_int_length(PyObject* x);
 extern "C" PyObject* py_eval_pi(long ndigits);
 extern "C" PyObject* py_eval_euler_gamma(long ndigits);
 extern "C" PyObject* py_eval_catalan(long ndigits);
+extern "C" PyObject* py_eval_unsigned_infinity();
+extern "C" PyObject* py_eval_infinity();
+extern "C" PyObject* py_eval_neg_infinity();
 
 extern "C" int py_get_parent_char(PyObject* o);
 
@@ -2630,6 +2633,24 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     if (!x) py_error("error getting digits of catalan constant");
     return x;
   }
+
+	ex UnsignedInfinityEvalf()
+	{
+		PyObject* x = py_eval_unsigned_infinity();
+		return x;
+	}
+
+	ex InfinityEvalf()
+	{
+		PyObject* x = py_eval_infinity();
+		return x;
+	}
+
+	ex NegInfinityEvalf()
+	{
+		PyObject* x = py_eval_neg_infinity();
+		return x;
+	}
 
 
   /** _numeric_digits default constructor, checking for singleton invariance. */

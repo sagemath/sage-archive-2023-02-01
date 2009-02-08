@@ -37,6 +37,7 @@
 #include "operators.h"
 #include "utils.h"
 #include "indexed.h"
+#include "constant.h"
 
 #if EXPAIRSEQ_USE_HASHTAB
 #include <cmath>
@@ -888,7 +889,7 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
 			expair p2 = split_ex_to_pair(rh);
 			
 			int cmpval = p1.rest.compare(p2.rest);
-			if (cmpval==0) {
+			if (cmpval==0 && !p1.rest.is_equal(UnsignedInfinity)) {
 				p1.coeff = ex_to<numeric>(p1.coeff).add_dyn(ex_to<numeric>(p2.coeff));
 				if (!ex_to<numeric>(p1.coeff).is_zero()) {
 					// no further processing is necessary, since this

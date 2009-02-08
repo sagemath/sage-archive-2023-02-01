@@ -444,11 +444,61 @@ ex power::eval(int level) const
 		exponent_is_numerical = true;
 		num_exponent = &ex_to<numeric>(eexponent);
 	}
+
+	// ^(\infty, x)
+	// error if x is not numeric and real
+	// -> 0 if x < 0
+	// -> error if x == 0
+	// -> Infinity if \infty is NegInfinity and x is even
+	// -> \infty otherwise
+	if (ebasis.info(info_flags::infinity)) {
+		if (exponent_is_numerical) {
+			if (!num_exponent->is_real()) {
+				throw(std::domain_error("power::eval(): pow(Infinity, x) is not defined for complex x."));
+			} else if (num_exponent->csgn() == -1)
+				return _ex0;
+			else if (num_exponent->is_zero())
+				throw(std::domain_error("power::eval(): pow(Infinity, 0) is undefined."));
+			else if (ebasis.is_equal(NegInfinity) && 
+					num_exponent->is_even())
+				return Infinity;
+			else
+				return ebasis;
+		} else
+			throw(std::domain_error("power::eval(): pow(Infinity, x) for non numeric x is not defined."));
+	}
+	// ^(x, \infty)
+	// error if x is not numeric
+	// error if \infty is UnsignedInfinity
+	// error if x \in {0, 1, -1}
+	// 0 if \infty is NegInfinity
+	// UnsignedInfinity if x < 0
+	// Infinity otherwise
+	if (eexponent.info(info_flags::infinity)) {
+		if (!basis_is_numerical) {
+			throw(std::domain_error("power::eval(): pow(x, Infinity) for non numeric x is not defined."));
+		} else if (!num_basis->is_real()) {
+			throw(std::domain_error("power::eval(): pow(x, Infinity) for non real x is not defined."));
+		} else if (ebasis.is_equal(UnsignedInfinity)) {
+			throw(std::domain_error("power::eval(): pow(x, UnsignedInfinity) is not defined."));
+		} else if (num_basis->is_zero()) {
+			throw(std::domain_error("power::eval(): pow(0, Infinity) is not defined."));
+		} else if (num_basis->is_equal(*_num1_p) || 
+				num_basis->is_equal(*_num_1_p)) {
+			throw(std::domain_error("power::eval(): pow(1, Infinity) is not defined."));
+		} else if (eexponent.is_equal(NegInfinity)) {
+			return _ex0;
+		} else if (num_basis->csgn() == -1) {
+			return UnsignedInfinity;
+		} else {
+			return Infinity;
+		}
+	}
 	
 	// ^(x,0) -> 1  (0^0 also handled here)
 	if (eexponent.is_zero() && 
-		!(is_exactly_a<numeric>(ebasis) && 
-			ex_to<numeric>(ebasis).is_parent_pos_char())) {
+		!(basis_is_numerical && 
+			num_basis->is_parent_pos_char())) {
 		if (ebasis.is_zero())
 			throw (std::domain_error("power::eval(): pow(0,0) is undefined"));
 		else

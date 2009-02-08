@@ -37,6 +37,7 @@
 #include "utils.h"
 #include "symbol.h"
 #include "compiler.h"
+#include "constant.h"
 
 namespace GiNaC {
 
@@ -488,10 +489,47 @@ ex mul::eval(int level) const
 	size_t seq_size = seq.size();
 	if (overall_coeff.is_zero()) {
 		// *(...,x;0) -> 0
+		// unless an element of seq is infinity
+		epvector::const_iterator last = seq.end();
+		epvector::const_iterator i = seq.begin();
+		for (; i != last; ++i) {
+			if (i->rest.info(info_flags::infinity) && 
+					is_a<numeric>(i->coeff) && 
+					ex_to<numeric>(i->coeff).csgn() == 1) {
+				throw(std::runtime_error("indeterminate expression: 0*infinity encountered."));
+			}
+		}
 		return _ex0;
 	} else if (seq_size==0) {
 		// *(;c) -> c
 		return overall_coeff;
+	} else if (seq_size==1 && seq[0].rest.info(info_flags::infinity)) {
+		if (!ex_to<numeric>(overall_coeff).is_real()) {
+			throw(std::domain_error("x*Infinity with non real x encountered."));
+		} else if (!is_a<numeric>(seq[0].coeff) || 
+				!ex_to<numeric>(seq[0].coeff).is_real()) {
+				throw(std::domain_error("power::eval(): pow(Infinity, x) for non real x is not defined."));
+		} else if (ex_to<numeric>(seq[0].coeff).csgn() == -1) {
+			return _ex0;
+		} else if (seq[0].rest.is_equal(UnsignedInfinity)) {
+			return UnsignedInfinity;
+		}
+		bool overall_sign=(ex_to<numeric>(overall_coeff).csgn() == -1);
+		if (overall_sign) {
+			if (seq[0].rest.is_equal(NegInfinity)) {
+				if (ex_to<numeric>(seq[0].coeff).is_even()) {
+					return NegInfinity;
+				} else
+					return Infinity;
+			} else
+				return NegInfinity;
+		} else {
+			if (seq[0].rest.is_equal(NegInfinity) && 
+				ex_to<numeric>(seq[0].coeff).is_even()) {
+					return Infinity;
+			} else
+				return seq[0].rest;
+		}
 	} else if (seq_size==1 && overall_coeff.is_equal(_ex1) && \
 			!ex_to<numeric>(overall_coeff).is_parent_pos_char()) {
 		// *(x;1) -> x
@@ -522,7 +560,43 @@ ex mul::eval(int level) const
 		std::auto_ptr<epvector> s(new epvector);
 		numeric oc = *_num1_p;
 		bool something_changed = false;
+		// we use pval to store the previously encountered infinity type
+		//  0 means we have 1/infinity
+		//  1 means we didn't run into infinity
+		ex pval = _ex1;
+		ex nval = _ex1;
 		while (i!=last) {
+			if ((i->rest).info(info_flags::infinity)) {
+				if (is_a<numeric>(i->coeff) && 
+					ex_to<numeric>(i->coeff).is_real()) {
+					if (ex_to<numeric>(i->coeff).csgn() ==
+							-1){
+						nval = _ex0;
+					}
+					else if (i->rest.is_equal(NegInfinity) 
+							&& ex_to<numeric>(
+							    i->coeff).is_even())
+						nval = Infinity;
+					else
+						nval = i->rest;
+				} else
+					throw(std::domain_error("power::eval(): pow(Infinity, x) for non real x is not defined."));
+				if (nval.is_zero()) {
+					if (!(pval.is_zero() || 
+							pval.is_equal(_ex1)))
+						throw(std::runtime_error("indeterminate expression: infinity/infinity encountered."));
+					else
+						pval = _ex0;
+				} else if (nval.is_equal(UnsignedInfinity) ||
+						pval.is_equal(UnsignedInfinity))
+					pval = UnsignedInfinity;
+				else if (pval.is_equal(_ex1))
+					pval = nval;
+				else if (nval.is_equal(pval))
+					pval = Infinity;
+				else
+					pval = NegInfinity;
+			}
 			if (likely(! (is_a<add>(i->rest) && i->coeff.is_equal(_ex1)))) {
 				// power::eval has such a rule, no need to handle powers here
 				++i;
@@ -574,6 +648,17 @@ ex mul::eval(int level) const
 
 			++i;
 			++j;
+		}
+		if (!pval.is_equal(_ex1)) {
+			if (!ex_to<numeric>(overall_coeff).is_real()) {
+				throw(std::domain_error("x*Infinity with non real x encountered."));
+			} else if (pval.is_zero() || 
+					pval.is_equal(UnsignedInfinity))
+				return pval;
+			else if (ex_to<numeric>(overall_coeff).csgn() == -1)
+				return -pval;
+			else
+				return pval;
 		}
 		if (something_changed) {
 			while (j!=last) {

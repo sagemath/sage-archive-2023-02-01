@@ -1420,13 +1420,12 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.ncols() - self.rank()
 
-    kernel = left_kernel
-
-    def left_kernel(self, *args, **kwds):
+    def kernel(self, *args, **kwds):
         r"""
         Return the (left) kernel of this matrix, as a vector space.
         This is the space of vectors x such that x*self=0.
         Use self.right_kernel() for the right kernel.
+        self.left_kernel() is equivalent to self.kernel().
 
         INPUT:
             -- all additional arguments to the kernel function
@@ -1519,6 +1518,18 @@ cdef class Matrix(matrix1.Matrix):
             Echelon basis matrix:
             [ 1  1 -1]
             [ 0  3 -2]
+
+        Kernel of a large dense rational matrix, which will invoke the fast IML routines
+        in matrix_integer_dense class.  Timing on a 64-bit 3 GHz dual-core machine is about
+        3 seconds to setup and about 1 second for the kernel() call.  Timings that are one
+        or two orders of magnitude larger indicate problems with reaching specialized
+        derived classes.
+            sage: entries = [[1/(i+j+1) for i in srange(500)] for j in srange(500)]
+            sage: a = matrix(QQ, entries)
+            sage: a.kernel()
+            Vector space of degree 500 and dimension 0 over Rational Field
+            Basis matrix:
+            0 x 500 dense matrix over Rational Field
         """
         K = self.fetch('left_kernel')
         if not K is None:
@@ -1582,23 +1593,27 @@ cdef class Matrix(matrix1.Matrix):
         By convention if self has 0 columns, the kernel is of dimension
         0, whereas the kernel is whole domain if self has 0 rows.
 
+        \note{For information on algorithms used, see the documentation of kernel()
+        in this class, or versions of kernel() in derived classes which override the
+        one here.}
+
         EXAMPLES:
 
-        A kernel of dimension one over $\Q$:
+        A right kernel of dimension one over $\Q$:
             sage: A = MatrixSpace(QQ, 3)(range(9))
             sage: A.right_kernel()
             Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
             [ 1 -2  1]
 
-        A trivial kernel:
+        A trivial right kernel:
             sage: A = MatrixSpace(QQ, 2)([1,2,3,4])
             sage: A.right_kernel()
             Vector space of degree 2 and dimension 0 over Rational Field
             Basis matrix:
             []
 
-        Kernel of a zero matrix:
+        Right kernel of a zero matrix:
             sage: A = MatrixSpace(QQ, 2)(0)
             sage: A.right_kernel()
             Vector space of degree 2 and dimension 2 over Rational Field
@@ -1606,14 +1621,14 @@ cdef class Matrix(matrix1.Matrix):
             [1 0]
             [0 1]
 
-        Kernel of a non-square matrix:
+        Right kernel of a non-square matrix:
             sage: A = MatrixSpace(QQ,2,3)(range(6))
             sage: A.right_kernel()
             Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
             [ 1 -2  1]
 
-        The 2-dimensional kernel of a matrix over a cyclotomic field:
+        The 2-dimensional right kernel of a matrix over a cyclotomic field:
             sage: K = CyclotomicField(12); a=K.0
             sage: M = MatrixSpace(K,2,4)([1,-1, 0,-2, 0,-a**2-1, 0,a**2-1])
             sage: M
@@ -1625,7 +1640,7 @@ cdef class Matrix(matrix1.Matrix):
             [      1  4/13*zeta12^2 - 1/13      0 -2/13*zeta12^2 + 7/13]
             [      0                     0      1                     0]
 
-        A nontrivial kernel over a complicated base field.
+        A nontrivial right kernel over a complicated base field.
             sage: K = FractionField(PolynomialRing(QQ, 2, 'x'))
             sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
             sage: M
@@ -1635,6 +1650,18 @@ cdef class Matrix(matrix1.Matrix):
             Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
             Basis matrix:
             [ 1 x1/(-x0)]
+
+        Right kernel of a large dense rational matrix, which will invoke the fast IML routines
+        in matrix_integer_dense class.  Timing on a 64-bit 3 GHz dual-core machine is about
+        3 seconds to setup and about 1 second for the kernel() call.  Timings that are one
+        or two orders of magnitude larger indicate problems with reaching specialized
+        derived classes.
+            sage: entries = [[1/(i+j+1) for i in srange(500)] for j in srange(500)]
+            sage: a = matrix(QQ, entries)
+            sage: a.right_kernel()
+            Vector space of degree 500 and dimension 0 over Rational Field
+            Basis matrix:
+            0 x 500 dense matrix over Rational Field
         """
         K = self.fetch('right_kernel')
         if not K is None:
@@ -1642,6 +1669,99 @@ cdef class Matrix(matrix1.Matrix):
 
         K = self.transpose().kernel(*args, **kwds)
         self.cache('right_kernel', K)
+        return K
+
+
+    def left_kernel(self, *args, **kwds):
+        r"""
+        Return the left kernel of this matrix, as a vector space.
+        This is the space of vectors x such that x*self=0.
+
+        INPUT:
+            -- all additional arguments to the kernel function
+               are passed directly onto the echelon call.
+
+        By convention if self has 0 columns, the kernel is of dimension
+        0, whereas the kernel is whole domain if self has 0 rows.
+
+        \note{For information on algorithms used, see the documentation of kernel()
+        in this class, or versions of kernel() in derived classes which override the
+        one here.}
+
+        EXAMPLES:
+
+        A left kernel of dimension one over $\Q$:
+            sage: A = MatrixSpace(QQ, 3)(range(9))
+            sage: A.left_kernel()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2  1]
+
+        A trivial left kernel:
+            sage: A = MatrixSpace(QQ, 2)([1,2,3,4])
+            sage: A.left_kernel()
+            Vector space of degree 2 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+
+        Left kernel of a zero matrix:
+            sage: A = MatrixSpace(QQ, 2)(0)
+            sage: A.left_kernel()
+            Vector space of degree 2 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 0]
+            [0 1]
+
+        Left kernel of a non-square matrix:
+            sage: A = MatrixSpace(QQ,3,2)(range(6))
+            sage: A.left_kernel()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2  1]
+
+        The 2-dimensional left kernel of a matrix over a cyclotomic field:
+            sage: K = CyclotomicField(12); a=K.0
+            sage: M = MatrixSpace(K,4,2)([1,-1, 0,-2, 0,-a**2-1, 0,a**2-1])
+            sage: M
+            [             1             -1]
+            [             0             -2]
+            [             0 -zeta12^2 - 1]
+            [             0  zeta12^2 - 1]
+            sage: M.left_kernel()
+            Vector space of degree 4 and dimension 2 over Cyclotomic Field of order 12 and degree 4
+            Basis matrix:
+            [               0                1                0     -2*zeta12^2]
+            [               0                0                1 -2*zeta12^2 + 1]
+
+        A nontrivial left kernel over a complicated base field.
+            sage: K = FractionField(PolynomialRing(QQ, 2, 'x'))
+            sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
+            sage: M
+            [x1 x0]
+            [x1 x0]
+            sage: M.left_kernel()
+            Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
+            Basis matrix:
+            [ 1 -1]
+
+        Left kernel of a large dense rational matrix, which will invoke the fast IML routines
+        in matrix_integer_dense class.  Timing on a 64-bit 3 GHz dual-core machine is about
+        3 seconds to setup and about 1 second for the kernel() call.  Timings that are one
+        or two orders of magnitude larger indicate problems with reaching specialized
+        derived classes.
+            sage: entries = [[1/(i+j+1) for i in srange(500)] for j in srange(500)]
+            sage: a = matrix(QQ, entries)
+            sage: a.left_kernel()
+            Vector space of degree 500 and dimension 0 over Rational Field
+            Basis matrix:
+            0 x 500 dense matrix over Rational Field
+        """
+        K = self.fetch('left_kernel')
+        if not K is None:
+            return K
+
+        K = self.kernel(*args, **kwds)
+        self.cache('left_kernel', K)
         return K
 
 

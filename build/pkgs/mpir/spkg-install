@@ -12,7 +12,7 @@ unset PYTHON
 
 remove_pic_osx_32_bit()
 {
-    echo "Deleting assembly files with depend on PIC working or 32 bit OSX on Intel hardware"
+    echo "Deleting assembly files which depend on PIC assembly working or 32 bit OSX on Intel hardware"
     rm mpn/x86/dive_1.asm
     rm mpn/x86/diveby3.asm
     rm mpn/x86/pentium4/sse2/dive_1.asm
@@ -43,7 +43,7 @@ build()
             ABI=64
         else
             ABI=32
-            if [ `uname -m` = "i386" ]; then
+            if [ "`uname -m`" = "i386" ]; then
                 remove_pic_osx_32_bit
             fi
         fi;;
@@ -77,9 +77,7 @@ cd src
 
 build
 
-if [ $? -eq 0 ]; then
-    exit 0
-else
+if ! [ $? -eq 0 ]; then
     echo "Failed to build shared GMP library."
     exit 1
 fi

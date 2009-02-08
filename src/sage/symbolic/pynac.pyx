@@ -252,6 +252,8 @@ def test_binomial(n, k):
 #################################################################
 import sage.rings.arith
 cdef public object py_gcd(object n, object k):
+    if PY_TYPE_CHECK_EXACT(n, Rational) and PY_TYPE_CHECK_EXACT(k, Rational):
+        return n.content(k)
     try:
         return sage.rings.arith.gcd(n,k)
     except (TypeError, ValueError, AttributeError):

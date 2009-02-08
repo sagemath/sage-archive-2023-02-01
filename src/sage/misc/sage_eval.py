@@ -108,7 +108,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
 
         sage: R.<x> = PolynomialRing(RationalField())
         sage: gap.eval('R:=PolynomialRing(Rationals,["x"]);')
-        'PolynomialRing(..., [ x ])'
+        'Rationals[x]'
         sage: ff = gap.eval('x:=IndeterminatesOfPolynomialRing(R);; f:=x^2+1;'); ff
         'x^2+1'
         sage: sage_eval(ff, locals={'x':x})

@@ -288,7 +288,7 @@ class ClassFunction(SageObject):
 
         EXAMPLES:
             sage: G = GL(2,3)
-            sage: [x.values() for x in G.irreducible_characters()]
+            sage: [x.values() for x in G.irreducible_characters()]  # random order output
             [[1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, -1, -1, -1], [2, -1, 2, -1, 2, 0, 0, 0], [2, 1, -2, -1, 0, -zeta8^3 - zeta8, zeta8^3 + zeta8, 0], [2, 1, -2, -1, 0, zeta8^3 + zeta8, -zeta8^3 - zeta8, 0], [3, 0, 3, 0, -1, -1, -1, 1], [3, 0, 3, 0, -1, 1, 1, -1], [4, -1, -4, 1, 0, 0, 0, 0]]
         """
         return list(self)

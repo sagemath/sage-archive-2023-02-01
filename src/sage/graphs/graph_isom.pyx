@@ -1424,7 +1424,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: print c
         [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0]]
         sage: DodecAut = PermutationGroup([perm_group_elt(aa) for aa in a])
-        sage: DodecAut.character_table()
+        sage: DodecAut.character_table()  # random order output
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
         [                     3                     -1                      0                     -1     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      3]
@@ -1436,7 +1436,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         [                     5                      1                     -1                      1                      0                      0                     -1                      0                      0                      5]
         [                     5                     -1                     -1                      1                      0                      0                      1                      0                      0                     -5]
         sage: DodecAut2 = PermutationGroup([perm_group_elt(cc) for cc in c])
-        sage: DodecAut2.character_table()
+        sage: DodecAut2.character_table()  # random order output
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
         [                     3                     -1                      0                     -1     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      3]
@@ -1457,7 +1457,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         [[0, 1, 2, 7, 5, 4, 6, 3, 9, 8], [0, 1, 6, 8, 5, 4, 2, 9, 3, 7], [0, 4, 3, 8, 5, 1, 9, 2, 6, 7], [1, 0, 4, 9, 6, 2, 5, 3, 7, 8]] I@OZCMgs?
         sage: c = search_tree(G, Pi, lab=False)
         sage: PAut = PermutationGroup([perm_group_elt(aa) for aa in a])
-        sage: PAut.character_table()
+        sage: PAut.character_table()  # random order output
         [ 1  1  1  1  1  1  1]
         [ 1 -1  1 -1  1 -1  1]
         [ 4 -2  0  1  1  0 -1]
@@ -1466,7 +1466,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         [ 5 -1  1 -1 -1  1  0]
         [ 6  0 -2  0  0  0  1]
         sage: PAut = PermutationGroup([perm_group_elt(cc) for cc in c])
-        sage: PAut.character_table()
+        sage: PAut.character_table()  # random order output
         [ 1  1  1  1  1  1  1]
         [ 1 -1  1 -1  1 -1  1]
         [ 4 -2  0  1  1  0 -1]

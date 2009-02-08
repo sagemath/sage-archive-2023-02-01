@@ -322,8 +322,8 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         for self as a word in the elements of (words).
 
         This function does not solve the word problem in SAGE. Rather
-        it pushes it over to GAP, which has optimized algorithms for
-        the word problem.
+        it pushes it over to GAP, which has optimized (non-deterministic)
+        algorithms for the word problem.
 
         WANRING: Don't use E (or other GAP-reserved letters) as a generator
         name.
@@ -331,11 +331,11 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         EXAMPLE:
             sage: G = AbelianGroup(2,[2,3], names="xy")
             sage: x,y = G.gens()
-            sage: x.word_problem([x,y])
+            sage: x.word_problem([x,y])  # random order output
             [[x, 1]]
-            sage: y.word_problem([x,y])
+            sage: y.word_problem([x,y])  # random order output
             [[y, 1]]
-            sage: (y*x).word_problem([x,y])
+            sage: (y*x).word_problem([x,y])  # random order output
             [[x, 1], [y, 1]]
 
         """

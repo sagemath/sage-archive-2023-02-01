@@ -6314,7 +6314,7 @@ class GenericGraph(SageObject):
             sage: C = graphs.CubeGraph(4)
             sage: G = C.automorphism_group()
             sage: M = G.character_table()
-            sage: M.determinant()
+            sage: M.determinant() # random sign (only abs. value is well-defined)
             -712483534798848
             sage: G.order()
             384

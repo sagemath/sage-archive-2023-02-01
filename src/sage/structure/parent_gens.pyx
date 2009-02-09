@@ -139,12 +139,46 @@ def _certify_names(names):
     return tuple(v)
 
 def normalize_names(int ngens, names=None):
+    r"""
+    Return a tuple of strings of variable names of length ngens given the input names.
+
+    INPUT: names can be a:
+        - tuple or list of strings, such as ('x', 'y')
+        - a string prefix, such as 'alpha'
+        - string of single character names, such as 'xyz'
+
+    EXAMPLES:
+        sage: from sage.structure.parent_gens import normalize_names as nn
+        sage: nn(1, 'a')
+        ('a',)
+        sage: nn(2, 'zzz')
+        ('zzz0', 'zzz1')
+        sage: nn(2, 'ab')
+        ('a', 'b')
+        sage: nn(3, ('a', 'bb', 'ccc'))
+        ('a', 'bb', 'ccc')
+        sage: nn(4, ['a1', 'a2', 'b1', 'b11'])
+        ('a1', 'a2', 'b1', 'b11')
+
+    TESTS:
+        sage: nn(2, 'z1')
+        ('z10', 'z11')
+        sage: PolynomialRing(QQ, 2, 'alpha0')
+        Multivariate Polynomial Ring in alpha00, alpha01 over Rational Field
+    """
     if names is None:
         return None
     if isinstance(names, str) and names.find(',') != -1:
         names = names.split(',')
     if isinstance(names, str) and ngens > 1 and len(names) == ngens:
-        names = tuple(names)
+        maybe_names = tuple(names)
+        try:
+            _certify_names(maybe_names)
+            names = maybe_names
+        except ValueError:
+            # this happens when you try for 2 names starting "x0"
+            # that gets split to "x", "0" and fails the certification
+            pass
     if isinstance(names, str):
         name = names
         names = sage.misc.defaults.variable_names(ngens, name)

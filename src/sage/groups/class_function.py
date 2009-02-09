@@ -21,7 +21,6 @@ from sage.structure.sage_object import SageObject
 from sage.interfaces.gap import gap, GapElement, gfq_gap_to_sage
 from sage.rings.all import Integer
 from sage.rings.all import CyclotomicField
-from sage.misc.randstate import current_randstate
 
 class ClassFunction(SageObject):
     """
@@ -303,9 +302,8 @@ class ClassFunction(SageObject):
         EXAMPLES:
             sage: G = GL(2,3)
             sage: [x.values() for x in G.irreducible_characters()]
-            [[1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, -1, -1, -1], [2, -1, 2, -1, 2, 0, 0, 0], [2, 1, -2, -1, 0, -zeta8^3 - zeta8, zeta8^3 + zeta8, 0], [2, 1, -2, -1, 0, zeta8^3 + zeta8, -zeta8^3 - zeta8, 0], [3, 0, 3, 0, -1, -1, -1, 1], [3, 0, 3, 0, -1, 1, 1, -1], [4, -1, -4, 1, 0, 0, 0, 0]]
+            [[1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, -1, -1, -1], [2, -1, 2, -1, 2, 0, 0, 0], [2, 1, -2, -1, 0, -zeta8^3 - zeta8, zeta8^3 + zeta8, 0], [2, 1, -2, -1, 0, zeta8^3 + zeta8, -zeta8^3 - zeta8, 0], [3, 0, 3, 0, -1, 1, 1, -1], [3, 0, 3, 0, -1, -1, -1, 1], [4, -1, -4, 1, 0, 0, 0, 0]]
         """
-        current_randstate().set_seed_gap()
         return list(self)
 
     def central_character(self):

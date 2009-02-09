@@ -72,6 +72,7 @@ from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.structure.sage_object import SageObject
 from sage.groups.class_function import ClassFunction
+from sage.misc.randstate import current_randstate
 
 #################################################################
 
@@ -454,6 +455,19 @@ class MatrixGroup_gap(MatrixGroup_generic):
         return list(v)
 
     def irreducible_characters(self):
+        """
+        Returns the list of irreducible characters of the group.
+
+        EXAMPLES:
+            sage: G = GL(2,2)
+            sage: G.irreducible_characters()
+
+            [Character of General Linear Group of degree 2 over Finite Field of size 2,
+             Character of General Linear Group of degree 2 over Finite Field of size 2,
+             Character of General Linear Group of degree 2 over Finite Field of size 2]
+
+        """
+        current_randstate().set_seed_gap()
         Irr = self._gap_().Irr()
         L = []
         for irr in Irr:
@@ -574,6 +588,7 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
             sage: len(GU(2,GF(5)).conjugacy_class_representatives())
             36
         """
+        current_randstate().set_seed_gap()
         try:
             return self.__reps
         except AttributeError:

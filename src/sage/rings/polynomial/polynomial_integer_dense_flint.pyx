@@ -853,6 +853,32 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         return fmpz_poly_degree(self.__poly)
 
+    def pseudo_divrem(self, B):
+        """
+        Write A = self.  This function computes polynomials Q and R
+        and an integer d such that
+             lead(B)^d*A = B*Q + R
+        where R has degree less than that of B.
+
+        INPUT:
+            B -- a polynomial over ZZ
+        OUTPUT:
+            Q, R -- polynomials
+            d -- nonnegative integer
+
+        EXAMPLES:
+            sage: R.<x> = ZZ['x']
+            sage: A = R(range(10)); B = 3*R([-1, 0, 1])
+            sage: Q, R, d = A.pseudo_divrem(B)
+            sage: Q, R, d
+            (9*x^7 + 8*x^6 + 16*x^5 + 14*x^4 + 21*x^3 + 18*x^2 + 24*x + 20, 75*x + 60, 1)
+            sage: B.leading_coefficient()^d * A == B*Q + R
+            True
+        """
+        cdef Polynomial_integer_dense_flint Q = self._new(), R = self._new(), _B = B
+        cdef unsigned long d
+        fmpz_poly_pseudo_divrem(Q.__poly, R.__poly, &d, self.__poly, _B.__poly)
+        return Q, R, Integer(d)
 
     def discriminant(self, proof=True):
         r"""

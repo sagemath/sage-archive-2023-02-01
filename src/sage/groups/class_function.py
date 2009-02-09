@@ -1,3 +1,16 @@
+r"""
+Class functions of groups.
+
+This module implements a wrapper of GAP's ClassFunction function.
+
+NOTE: The ordering of the columns of the character table of a group
+corresponds to the ordering of the list. However, in general there is
+no way to canonically list (or index) the conjugacy classes of a group.
+Therefore the ordering of  the columns of the character table of
+a group is somewhat random.
+
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
@@ -8,6 +21,7 @@ from sage.structure.sage_object import SageObject
 from sage.interfaces.gap import gap, GapElement, gfq_gap_to_sage
 from sage.rings.all import Integer
 from sage.rings.all import CyclotomicField
+from sage.misc.randstate import current_randstate
 
 class ClassFunction(SageObject):
     """
@@ -288,9 +302,10 @@ class ClassFunction(SageObject):
 
         EXAMPLES:
             sage: G = GL(2,3)
-            sage: [x.values() for x in G.irreducible_characters()]  # random order output
+            sage: [x.values() for x in G.irreducible_characters()]
             [[1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, -1, -1, -1], [2, -1, 2, -1, 2, 0, 0, 0], [2, 1, -2, -1, 0, -zeta8^3 - zeta8, zeta8^3 + zeta8, 0], [2, 1, -2, -1, 0, zeta8^3 + zeta8, -zeta8^3 - zeta8, 0], [3, 0, 3, 0, -1, -1, -1, 1], [3, 0, 3, 0, -1, 1, 1, -1], [4, -1, -4, 1, 0, 0, 0, 0]]
         """
+        current_randstate().set_seed_gap()
         return list(self)
 
     def central_character(self):

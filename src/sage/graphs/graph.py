@@ -32,6 +32,7 @@ AUTHORS:
     -- Robert L. Miller (Sage Days 7): Edge labeled graph isomorphism
     -- Tom Boothby (Sage Days 7): Miscellaneous awesomeness
     -- Tom Boothby (2008-01-09): Added graphviz output
+    -- D. Joyner (2009-2): Fixed docstring bug related to GAP.
 
 \subsection{Graph Format}
 
@@ -6314,8 +6315,8 @@ class GenericGraph(SageObject):
             sage: C = graphs.CubeGraph(4)
             sage: G = C.automorphism_group()
             sage: M = G.character_table()
-            sage: M.determinant() # random sign (only abs. value is well-defined)
-            -712483534798848
+            sage: int(abs(M.determinant()))
+            712483534798848
             sage: G.order()
             384
 

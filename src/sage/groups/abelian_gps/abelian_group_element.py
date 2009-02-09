@@ -6,6 +6,8 @@ AUTHORS:
     - David Joyner (2006-05); bug fix in order
     -              (2006-08); bug fix+new method in pow for negatives+fixed corresponding examples.
     -              (2009-02): Fixed bug in order.
+    -              (2009-02): Fixed docstring bugs related to 4.4.10-4.4.12 upgrade.
+
 
 EXAMPLES:
 Recall an example from abelian groups.
@@ -51,7 +53,7 @@ from sage.structure.element import MultiplicativeGroupElement
 from sage.rings.infinity import infinity
 from sage.misc.misc import prod
 from sage.rings.arith import LCM, GCD
-
+from sage.misc.randstate import current_randstate
 
 def is_AbelianGroupElement(x):
     """
@@ -331,13 +333,14 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         EXAMPLE:
             sage: G = AbelianGroup(2,[2,3], names="xy")
             sage: x,y = G.gens()
-            sage: x.word_problem([x,y])  # random order output
+            sage: x.word_problem([x,y])
             [[x, 1]]
-            sage: y.word_problem([x,y])  # random order output
+            sage: y.word_problem([x,y])
             [[y, 1]]
-            sage: (y*x).word_problem([x,y])  # random order output
-            [[x, 1], [y, 1]]
+            sage: (y*x).word_problem([x,y])
+            [[y, 1], [x, 1]]
 
         """
+        current_randstate().set_seed_gap()
         from sage.groups.abelian_gps.abelian_group import AbelianGroup, word_problem
         return word_problem(words,self)

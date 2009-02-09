@@ -12,6 +12,7 @@ AUTHOR:
     -- William Stein,
        David Joyner (2008-12) added (user requested) is_cyclic,
                               fixed elementary_divisors.
+    -- David Joyner (2009-02): fixed bug related to 4.4.10->4.4.12 upgrade.
 
 TODO:
    * additive abelian groups should also be supported
@@ -136,6 +137,7 @@ from sage.misc.mrange import mrange
 import sage.groups.group as group
 from sage.rings.integer_ring import IntegerRing
 ZZ = IntegerRing()
+from sage.misc.randstate import current_randstate
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
 # uses a different implementation.
@@ -172,28 +174,24 @@ def word_problem(words, g, verbose = False):
     EXAMPLE:
         sage: G.<a,b,c> = AbelianGroup(3,[2,3,4]); G
         Multiplicative Abelian Group isomorphic to C2 x C3 x C4
-        sage: word_problem([a*b,a*c], b*c)  # random order output
-        [[a*b, 1], [a*c, 1]]
-        sage: word_problem([a*c,c],a)  # random order output
-        [[a*c, 1], [c, -1]]
-        sage: word_problem([a*c,c],a,verbose=True)  # random order output
-        a = (a*c)^1*(c)^-1
-        [[a*c, 1], [c, -1]]
-
+        sage: word_problem([a*b,a*c], b*c)
+        [[a*c, 1], [a*b, 1]]
+        sage: word_problem([a*c,c],a)
+        [[c, -1], [a*c, 1]]
+        sage: word_problem([a*c,c],a,verbose=True)
+        a = (c)^-1*(a*c)^1
+        [[c, -1], [a*c, 1]]
         sage: A.<a,b,c,d,e> = AbelianGroup(5,[4, 5, 5, 7, 8])
         sage: b1 = a^3*b*c*d^2*e^5
         sage: b2 = a^2*b*c^2*d^3*e^3
         sage: b3 = a^7*b^3*c^5*d^4*e^4
         sage: b4 = a^3*b^2*c^2*d^3*e^5
         sage: b5 = a^2*b^4*c^2*d^4*e^5
-        sage: word_problem([b1,b2,b3,b4,b5],e)  # random order output
-        [[a^3*b*c*d^2*e^5, 1],
-         [a^2*b*c^2*d^3*e^3, 1],
-         [a^3*b^3*d^4*e^4, 3],
-         [a^2*b^4*c^2*d^4*e^5, 1]]
-        sage: word_problem([a,b,c,d,e],e)  # random order output
+        sage: word_problem([b1,b2,b3,b4,b5],e)
+        [[a^2*b^4*c^2*d^4*e^5, 1], [a^3*b^3*d^4*e^4, 3], [a^2*b*c^2*d^3*e^3, 1], [a^3*b*c*d^2*e^5, 1]]
+        sage: word_problem([a,b,c,d,e],e)
         [[e, 1]]
-        sage: word_problem([a,b,c,d,e],b)  # random order output
+        sage: word_problem([a,b,c,d,e],b)
         [[b, 1]]
 
 
@@ -207,6 +205,7 @@ def word_problem(words, g, verbose = False):
                  "PreImagesRepresentative") and may be faster.
 
     """
+    current_randstate().set_seed_gap()
     from sage.interfaces.all import gap
     G = g.parent()
     invs = G.invariants()

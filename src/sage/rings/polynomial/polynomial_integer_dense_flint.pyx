@@ -750,11 +750,19 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: (5*x^2+1)//(2*x)
             2*x
 
+        Divide by a scalar.
+
+            sage: (5*x^3 + 5*x + 10)//5
+            x^3 + x + 2
+
         TESTS:
             sage: x//0
             Traceback (most recent call last):
             ...
             ZeroDivisionError: division by zero
+
+            sage: (x^2 + 13*x + 169) // 13
+            x + 13
         """
         cdef Polynomial_integer_dense_flint res = self._new()
         cdef Polynomial
@@ -763,11 +771,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             raise ZeroDivisionError, "division by zero"
         if not PY_TYPE_CHECK(right, Polynomial_integer_dense_flint):
             if right in ZZ:
-                if right < LONG_MAX:
-                    t = mpz_get_si((<Integer>ZZ(right)).value)
-                    _sig_on
-                    fmpz_poly_scalar_div_exact_si(res.__poly, self.__poly, t)
-                    _sig_off
+                _sig_on
+                fmpz_poly_scalar_div_mpz(res.__poly, self.__poly,
+                        (<Integer>ZZ(right)).value)
+                _sig_off
+                return res
         if self._parent is not right.parent():
             right = self._parent(right)
         _sig_on

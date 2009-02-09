@@ -2038,6 +2038,18 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
     def absolute_charpoly(self, var='x'):
         r"""
         Return the characteristic polynomial of this element over $\QQ$.
+
+        EXAMPLES:
+            sage: x = ZZ['x'].0
+            sage: K.<a> = NumberField(x^4 + 2, 'a')
+            sage: a.absolute_charpoly()
+            x^4 + 2
+            sage: a.absolute_charpoly('y')
+            y^4 + 2
+            sage: (-a^2).absolute_charpoly()
+            x^4 + 4*x^2 + 4
+            sage: (-a^2).absolute_minpoly()
+            x^2 + 2
         """
         return self.charpoly(var=var)
 
@@ -2046,8 +2058,18 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         Return the minimal polynomial of this element over $\QQ$.
 
         EXAMPLES:
-
-
+            sage: x = ZZ['x'].0
+            sage: f = x^10 - 5*x^9 + 15*x^8 - 68*x^7 + 81*x^6 - 221*x^5 + 141*x^4 - 242*x^3 - 13*x^2 - 33*x - 135
+            sage: K.<a> = NumberField(f, 'a')
+            sage: a.absolute_charpoly()
+            x^10 - 5*x^9 + 15*x^8 - 68*x^7 + 81*x^6 - 221*x^5 + 141*x^4 - 242*x^3 - 13*x^2 - 33*x - 135
+            sage: a.absolute_charpoly('y')
+            y^10 - 5*y^9 + 15*y^8 - 68*y^7 + 81*y^6 - 221*y^5 + 141*y^4 - 242*y^3 - 13*y^2 - 33*y - 135
+            sage: b = -79/9995*a^9 + 52/9995*a^8 + 271/9995*a^7 + 1663/9995*a^6 + 13204/9995*a^5 + 5573/9995*a^4 + 8435/1999*a^3 - 3116/9995*a^2 + 7734/1999*a + 1620/1999
+            sage: b.absolute_charpoly()
+            x^10 + 10*x^9 + 25*x^8 - 80*x^7 - 438*x^6 + 80*x^5 + 2950*x^4 + 1520*x^3 - 10439*x^2 - 5130*x + 18225
+            sage: b.absolute_minpoly()
+            x^5 + 5*x^4 - 40*x^2 - 19*x + 135
         """
         return self.minpoly(var=var)
 
@@ -2068,6 +2090,8 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             sage: K.<a> = NumberField(x^3-2)
             sage: a.charpoly('x')
             x^3 - 2
+            sage: a.charpoly('y').parent()
+            Univariate Polynomial Ring in y over Rational Field
 
         TESTS:
             sage: R = K.ring_of_integers()
@@ -2077,7 +2101,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             Univariate Polynomial Ring in x over Integer Ring
         """
         R = self._parent.base_ring()[var]
-        return R(self._pari_('x').charpoly())
+        return R(self.matrix().charpoly())
 
     def list(self):
         """
@@ -2234,9 +2258,33 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         The characteristic polynomial of this element over its base field.
 
         EXAMPLES:
+            sage: x = ZZ['x'].0
+            sage: K.<a, b> = QQ.extension([x^2 + 2, x^5 + 400*x^4 + 11*x^2 + 2])
+            sage: a.charpoly()
+            x^2 + 2
+            sage: b.charpoly()
+            x^2 - 2*b*x + b^2
+            sage: b.minpoly()
+            x - b
 
+            sage: K.<a, b> = NumberField([x^2 + 2, x^2 + 1000*x + 1])
+            sage: y = K['y'].0
+            sage: L.<c> = K.extension(y^2 + a*y + b)
+            sage: c.charpoly()
+            x^2 + a*x + b
+            sage: c.minpoly()
+            x^2 + a*x + b
+            sage: L(a).charpoly()
+            x^2 - 2*a*x - 2
+            sage: L(a).minpoly()
+            x - a
+            sage: L(b).charpoly()
+            x^2 - 2*b*x - 1000*b - 1
+            sage: L(b).minpoly()
+            x - b
         """
-        return self.matrix().charpoly(var)
+        R = self._parent.base_ring()[var]
+        return R(self.matrix().charpoly(var))
 
     def absolute_charpoly(self, var='x'):
         r"""
@@ -2262,29 +2310,31 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: a.absolute_charpoly('y')
             y^9 + 51*y^6 + 867*y^3 + 4913
         """
-        g = self.polynomial()  # in QQ[x]
-        R = g.parent()
-        f = self.number_field().pari_polynomial()  # # field is QQ[x]/(f)
-        return R( (g._pari_().Mod(f)).charpoly() ).change_variable_name(var)
+        R = QQ[var]
+        return R(self.matrix(QQ).charpoly())
 
     def absolute_minpoly(self, var='x'):
         r"""
         Return the minpoly over $\QQ$ of this element.
 
         EXAMPLES:
+            sage: K.<a, b> = NumberField([x^2 + 2, x^2 + 1000*x + 1])
+            sage: y = K['y'].0
+            sage: L.<c> = K.extension(y^2 + a*y + b)
+            sage: c.absolute_charpoly()
+            x^8 - 1996*x^6 + 996006*x^4 + 1997996*x^2 + 1
+            sage: c.absolute_minpoly()
+            x^8 - 1996*x^6 + 996006*x^4 + 1997996*x^2 + 1
+            sage: L(a).absolute_charpoly()
+            x^8 + 8*x^6 + 24*x^4 + 32*x^2 + 16
+            sage: L(a).absolute_minpoly()
+            x^2 + 2
+            sage: L(b).absolute_charpoly()
+            x^8 + 4000*x^7 + 6000004*x^6 + 4000012000*x^5 + 1000012000006*x^4 + 4000012000*x^3 + 6000004*x^2 + 4000*x + 1
+            sage: L(b).absolute_minpoly()
+            x^2 + 1000*x + 1
         """
         return self.absolute_charpoly(var).radical()
-
-## This might be useful for computing relative charpoly.
-## BUT -- currently I don't even know how to view elements
-## as being in terms of the right thing, i.e., this code
-## below as is lies.
-##             nf = self.number_field()._pari_base_nf()
-##             prp = self.number_field().pari_relative_polynomial()
-##             elt = str(self.polynomial()._pari_())
-##             return R(nf.rnfcharpoly(prp, elt))
-##         # return self.matrix().charpoly('x')
-
 
 cdef class OrderElement_absolute(NumberFieldElement_absolute):
     """
@@ -2297,6 +2347,15 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
         2*a
         sage: parent(w)
         Order in Number Field in a with defining polynomial x^2 + 1
+
+        sage: w.absolute_charpoly()
+        x^2 + 4
+        sage: w.absolute_charpoly().parent()
+        Univariate Polynomial Ring in x over Integer Ring
+        sage: w.absolute_minpoly()
+        x^2 + 4
+        sage: w.absolute_minpoly().parent()
+        Univariate Polynomial Ring in x over Integer Ring
     """
     def __init__(self, order, f):
         K = order.number_field()
@@ -2479,6 +2538,108 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             False
         """
         return self._parent.number_field()(NumberFieldElement_relative.__invert__(self))
+
+    def charpoly(self, var='x'):
+        r"""
+        The characteristic polynomial of this order element over its base ring.
+
+        This special implementation works around bug \#4738.  At this
+        time the base ring of relative order elements is ZZ; it should
+        be the ring of integers of the base field.
+
+        EXAMPLES:
+            sage: x = ZZ['x'].0
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
+            sage: OK = K.maximal_order(); OK.basis()
+            [1, 1/2*a - 1/2*b, -1/2*b*a + 1/2, a]
+            sage: charpoly(OK.1)
+            x^2 + b*x + 1
+            sage: charpoly(OK.1).parent()
+            Univariate Polynomial Ring in x over Maximal Order in Number Field in b with defining polynomial x^2 - 3
+            sage: [ charpoly(t) for t in OK.basis() ]
+            [x^2 - 2*x + 1, x^2 + b*x + 1, x^2 - x + 1, x^2 + 1]
+        """
+        R = self.parent().number_field().base_field().ring_of_integers()[var]
+        return R(self.matrix().charpoly(var))
+
+    def minpoly(self, var='x'):
+        r"""
+        The minimal polynomial of this order element over its base ring.
+
+        This special implementation works around bug \#4738.  At this
+        time the base ring of relative order elements is ZZ; it should
+        be the ring of integers of the base field.
+
+        EXAMPLES:
+            sage: x = ZZ['x'].0
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
+            sage: OK = K.maximal_order(); OK.basis()
+            [1, 1/2*a - 1/2*b, -1/2*b*a + 1/2, a]
+            sage: minpoly(OK.1)
+            x^2 + b*x + 1
+            sage: charpoly(OK.1).parent()
+            Univariate Polynomial Ring in x over Maximal Order in Number Field in b with defining polynomial x^2 - 3
+            sage: _, u, _, v = OK.basis()
+            sage: t = 2*u - v; t
+            -b
+            sage: t.charpoly()
+            x^2 + 2*b*x + 3
+            sage: t.minpoly()
+            x + b
+
+            sage: t.absolute_charpoly()
+            x^4 - 6*x^2 + 9
+            sage: t.absolute_minpoly()
+            x^2 - 3
+        """
+        K = self.parent().number_field()
+        R = K.base_field().ring_of_integers()[var]
+        return R(K(self).minpoly(var))
+
+    def absolute_charpoly(self, var='x'):
+        r"""
+        The absolute characteristic polynomial of this order element over ZZ.
+
+        EXAMPLES:
+            sage: x = ZZ['x'].0
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
+            sage: OK = K.maximal_order()
+            sage: _, u, _, v = OK.basis()
+            sage: t = 2*u - v; t
+            -b
+            sage: t.absolute_charpoly()
+            x^4 - 6*x^2 + 9
+            sage: t.absolute_minpoly()
+            x^2 - 3
+            sage: t.absolute_charpoly().parent()
+            Univariate Polynomial Ring in x over Integer Ring
+        """
+        K = self.parent().number_field()
+        R = ZZ[var]
+        return R(K(self).absolute_charpoly(var))
+
+    def absolute_minpoly(self, var='x'):
+        r"""
+        The absolute minimal polynomial of this order element over ZZ.
+
+        EXAMPLES:
+            sage: x = ZZ['x'].0
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
+            sage: OK = K.maximal_order()
+            sage: _, u, _, v = OK.basis()
+            sage: t = 2*u - v; t
+            -b
+            sage: t.absolute_charpoly()
+            x^4 - 6*x^2 + 9
+            sage: t.absolute_minpoly()
+            x^2 - 3
+            sage: t.absolute_minpoly().parent()
+            Univariate Polynomial Ring in x over Integer Ring
+        """
+        K = self.parent().number_field()
+        R = ZZ[var]
+        return R(K(self).absolute_minpoly(var))
+
 
 
 class CoordinateFunction:

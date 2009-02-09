@@ -461,7 +461,6 @@ class MatrixGroup_gap(MatrixGroup_generic):
         EXAMPLES:
             sage: G = GL(2,2)
             sage: G.irreducible_characters()
-
             [Character of General Linear Group of degree 2 over Finite Field of size 2,
              Character of General Linear Group of degree 2 over Finite Field of size 2,
              Character of General Linear Group of degree 2 over Finite Field of size 2]

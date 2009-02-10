@@ -644,18 +644,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             if c: return c
         return 0
 
-    def __nonzero__(self):
-        """
-        EXAMPLES:
-            sage: V = vector(ZZ, [0, 0, 0, 0])
-            sage: bool(V)
-            False
-            sage: V = vector(ZZ, [1, 2, 3, 5])
-            sage: bool(V)
-            True
-        """
-        return self != 0
-
     def __getitem__(self, i):
         raise NotImplementedError
 

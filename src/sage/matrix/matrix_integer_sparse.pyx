@@ -352,3 +352,38 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             [ 0  1 -2  1]
         """
         return self.dense_matrix().kernel(algorithm, LLL, proof, echelonize)
+
+    def elementary_divisors(self, algorithm='pari'):
+        """
+        Return the elementary divisors of self, in order.
+
+        The elementary divisors are the invariants of the finite
+        abelian group that is the cokernel of *left* multiplication by
+        this matrix.  They are ordered in reverse by divisibility.
+
+        INPUT:
+            self -- matrix
+            algorithm -- (default: 'pari')
+                 'pari': works robustly, but is slower.
+                 'linbox' -- use linbox (currently off, broken)
+
+        OUTPUT:
+            list of integers
+
+        EXAMPLES:
+            sage: matrix(3, range(9),sparse=True).elementary_divisors()
+            [1, 3, 0]
+            sage: M = matrix(ZZ, 3, [1,5,7, 3,6,9, 0,1,2], sparse=True)
+            sage: M.elementary_divisors()
+            [1, 1, 6]
+
+        This returns a copy, which is safe to change:
+            sage: edivs = M.elementary_divisors()
+            sage: edivs.pop()
+            6
+            sage: M.elementary_divisors()
+            [1, 1, 6]
+
+        SEE ALSO: smith_form
+        """
+        return self.dense_matrix().elementary_divisors(algorithm=algorithm)

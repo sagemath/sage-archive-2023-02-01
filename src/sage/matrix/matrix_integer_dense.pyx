@@ -1633,24 +1633,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         Return the elementary divisors of self, in order.
 
-        IMPLEMENTATION: Uses linbox, except sometimes linbox doesn't
-        work (errors about pre-conditioning), in which case PARI is
-        used.
-
         WARNING: This is MUCH faster than the smith_form function.
 
         The elementary divisors are the invariants of the finite
-        abelian group that is the cokernel of *left* multiplication by this
-        matrix.  They are ordered in reverse by divisibility.
+        abelian group that is the cokernel of *left* multiplication by
+        this matrix.  They are ordered in reverse by divisibility.
 
         INPUT:
             self -- matrix
             algorithm -- (default: 'pari')
-                 'pari': works robustless, but is slower.
+                 'pari': works robustly, but is slower.
                  'linbox' -- use linbox (currently off, broken)
 
         OUTPUT:
-            list of int's
+            list of integers
 
         NOTE:
         These are the invariants of the cokernel of *left* multiplication:

@@ -55,12 +55,19 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         [2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)]]
         sage: E.simon_two_descent()
         (2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)])
+
+    TESTS:
+        sage: E = EllipticCurve('37a1').change_ring(QuadraticField(-11,'x'))
+        sage: E.simon_two_descent()
+        (1, 1, [(-1 : 0 : 1)])
+
     """
     init()
 
     current_randstate().set_seed_gp(gp)
 
-    K = E.base_ring()
+    K = E.base_ring().change_names('a')
+    E = E.change_ring(K)
     F = E.integral_model()
 
     if K != QQ:

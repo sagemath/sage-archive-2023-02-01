@@ -460,8 +460,25 @@ cdef class Element(sage_object.SageObject):
         return s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1
 
     def __nonzero__(self):
-        """
+        r"""
         Return True if self does not equal self.parent()(0).
+
+        Note that this is automatically called when converting to
+        boolean, as in the conditional of an if or while statement.
+
+        TESTS:
+        Verify that \#5185 is fixed.
+
+            sage: v = vector({1: 1, 3: -1})
+            sage: w = vector({1: -1, 3: 1})
+            sage: v + w
+            (0, 0, 0, 0)
+            sage: (v+w).is_zero()
+            True
+            sage: bool(v+w)
+            False
+            sage: (v+w).__nonzero__()
+            False
         """
         return self != self._parent(0)
 

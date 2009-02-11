@@ -109,6 +109,7 @@ from sage.rings.integer_ring import IntegerRing
 import operator
 import weakref
 from sage.misc.latex import latex
+from sage.misc.cachefunc import cached_method
 
 import sage.rings.arith as arith
 import sage.rings.rational_field as rational_field
@@ -197,7 +198,7 @@ class NumberField_relative(NumberField_generic):
             Number Field in a with defining polynomial x^4 + x^3 + x^2 + x + 1 over its base field
 
         A relative extension of a relative extension:
-            sage: x = var('x')
+            sage: x = ZZ['x'].0
             sage: k.<a> = NumberField([x^2 + 2, x^2 + 1])
             sage: l.<b> = k.extension(x^2 + 3)
             sage: l
@@ -206,6 +207,30 @@ class NumberField_relative(NumberField_generic):
             Number Field in a0 with defining polynomial x^2 + 2 over its base field
             sage: l.base_field().base_field()
             Number Field in a1 with defining polynomial x^2 + 1
+
+        TESTS:
+        Let's ensure that irreducibility testing is working:
+            sage: x = ZZ['x'].0
+            sage: K.<a, b> = NumberField([x^2 + 2, x^2 + 3])
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: L.<b> = K.extension(K['x'].0^3 + 3*a)
+
+            sage: (K['x'].0^3 + 2*a).factor()
+            (x - a) * (x^2 + a*x - 2)
+            sage: L.<b> = K.extension(K['x'].0^3 + 2*a)
+            Traceback (most recent call last):
+            ...
+            ValueError: defining polynomial (x^3 + 2*a) must be irreducible
+            sage: (K['x'].0^2 + 2).factor()
+            (x - a) * (x + a)
+            sage: L.<b> = K.extension(K['x'].0^2 + 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: defining polynomial (x^2 + 2) must be irreducible
+            sage: L.<b> = K.extension(x^2 + 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: defining polynomial (x^2 + 2) must be irreducible
         """
         if embedding is not None:
             raise NotImplementedError, "Embeddings not implemented for relative number fields"
@@ -238,38 +263,17 @@ class NumberField_relative(NumberField_generic):
             to_abs_base = maps.IdentityMap(base)
 
         self.__absolute_base_field = abs_base, from_abs_base, to_abs_base
-        Qx = abs_base.polynomial().parent()
-        Qy = (abs_base.polynomial().base_ring())['y']
-        phi = Qx.hom([Qy.gen()])
-        base_polynomial_y = phi(abs_base.polynomial())
-
-        self.__base_nf = pari(base_polynomial_y).nfinit()
-        self.__base_bnf = pari(base_polynomial_y).bnfinit()
-
-        # Use similar methods to convert the polynomial defining the
-        # relative extension into a polynomial in x, with y denoting
-        # the generator of the base field.
-        # NOTE: This should be rewritten if there is a way to extend
-        #       homomorphisms K -> K' to homomorphisms K[x] -> K'[x].
-
-        base_field_y = NumberField(abs_base.polynomial(), 'y')
-        Kx = base_field_y['x']
-        i = abs_base.hom([base_field_y.gen()]) # inclusion K -> K' with a -> y
-        rel_coeffs = [i(to_abs_base(c)) for c in polynomial.coeffs()]
-        polynomial_y = Kx(rel_coeffs)
-
-        if check:
-            if not polynomial_y.is_irreducible():
-                raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
-
-
-        self.__pari_relative_polynomial = pari(str(polynomial_y))
-        self.__rnf = self.__base_nf.rnfinit(self.__pari_relative_polynomial)
-
         self.__base_field = base
         self.__relative_polynomial = polynomial
-        self.__pari_bnf_certified = False
         self._element_class = number_field_element.NumberFieldElement_relative
+
+        if check:
+            if not self.pari_relative_polynomial().polisirreducible():
+                # this is *much* faster than
+                # polynomial.is_irreducible() at some point in the
+                # future, is_irreducible should be made faster for
+                # polynomials over number fields -- see ticket #4724
+                raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
 
         self.__gens = [None]
 
@@ -793,6 +797,33 @@ class NumberField_relative(NumberField_generic):
         if mor is not None:
             return self.coerce_map_from(self.base_field()) * mor
 
+    def _rnfeltreltoabs(self, element, check=False):
+        r"""
+        Return PARI's rnfeletreltoabs, but without requiring rnfinit().
+
+        TESTS:
+            sage: x = ZZ['x'].0
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: L.<b> = K.extension(K['x'].0^3 + 3*a)
+            sage: M.<c> = L.extension(L['x'].0^2 + 5*b)
+
+            sage: L._rnfeltreltoabs(b^2 + a, check=True)
+            -2/9*x^3 - 2
+            sage: M._rnfeltreltoabs(c*b, check=True)
+            1/625*x^6
+        """
+        z, a, k = self._pari_rnfequation()
+        # a is an alpha in extension such that z(alpha) = base_polynomial(alpha) = 0
+        # extension_polynomial(beta) = 0
+        # absolute_polynomial(theta) = 0
+        # theta = beta + k alpha
+        pol = element.polynomial('y')
+        t2 = pol(a).lift()
+        if check:
+            t1 = self.pari_rnf().rnfeltreltoabs(pol._pari_())
+            assert t1 == t2
+        return t2
+
     def __base_inclusion(self, element):
         """
         Given an element of the base field, give its inclusion into
@@ -823,10 +854,8 @@ class NumberField_relative(NumberField_generic):
         # Write element in terms of the absolute base field
         element = self.base_field().coerce(element)
         element = to_abs_base(element)
-        # Obtain the polynomial in y corresponding to element in terms of the absolute base
-        f = element.polynomial('y')
         # Find an expression in terms of the absolute generator for self of element.
-        expr_x = self.pari_rnf().rnfeltreltoabs(f._pari_())
+        expr_x = self._rnfeltreltoabs(element)
         # Convert to a SAGE polynomial, then to one in gen(), and return it
         R = self.polynomial_ring()
         # We do NOT call self(...) because this code is called by
@@ -846,10 +875,13 @@ class NumberField_relative(NumberField_generic):
         """
         return sage.rings.number_field.number_field_ideal_rel.NumberFieldFractionalIdeal_rel
 
-    def _pari_base_bnf(self, proof=None):
+    def _pari_base_bnf(self, certify=False, units=True):
         """
         Return the PARI bnf (big number field) representation of the
-        base field.
+        absolute base field in terms of the pari variable y, suitable
+        for extension by the pari variable x.
+
+        All caching is done by the absolute base field.
 
         INPUT:
             proof -- bool (default: True) if True, certify correctness
@@ -860,16 +892,23 @@ class NumberField_relative(NumberField_generic):
             sage: k._pari_base_bnf()
             [[;], matrix(0,9), [;], ... 0]
         """
-        proof = proof_flag(proof)
-        # No need to certify the same field twice, so we'll just check
-        # that the base field is certified.
-        if proof:
-            self.base_field().pari_bnf_certify()
-        return self.__base_bnf
+        abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
+        bnf_in_x = abs_base.pari_bnf(certify=certify, units=units) # this gives a bnf in terms of x
+        x = ZZ['x'].gen()
+        y = ZZ['y'].gen()
+        bnf_in_y = bnf_in_x.subst(x, y) # now we have a bnf structure in terms of y
+        return bnf_in_y
 
+    @cached_method
     def _pari_base_nf(self):
         """
-        Return the PARI number field representation of the base field.
+        Return the PARI number field representation of the absolute
+        base field, in terms of the pari variable y, suitable for
+        extension by the pari variable x.
+
+        In future, all caching will be done by the absolute base
+        field, but for now we work around a PARI bug that makes
+        renamed (substed) nf structures fail in strange ways.
 
         EXAMPLES:
             sage: y = polygen(QQ,'y')
@@ -877,7 +916,13 @@ class NumberField_relative(NumberField_generic):
             sage: k._pari_base_nf()
             [y^2 + 2, [0, 1], -8, 1, ..., [1, 0, 0, -2; 0, 1, 1, 0]]
         """
-        return self.__base_nf
+        abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
+#         nf_in_x = abs_base.pari_nf() # try to reuse, but this is in terms of x
+#         x = ZZ['x'].gen()
+#         y = ZZ['y'].gen()
+#         nf_in_y = nf_in_x.subst(x, y) # now we have an nf structure in terms of y
+        nf_in_y = QQ['y'](abs_base.polynomial())._pari_().nfinit()
+        return nf_in_y
 
     def is_galois(self):
         r"""
@@ -983,8 +1028,39 @@ class NumberField_relative(NumberField_generic):
         """
         return self.__absolute_base_field
 
-    def _gen_relative(self):
+    @cached_method
+    def _pari_rnfequation(self):
+        r"""
+        Internal helper that calls PARI's rnfequation for self without
+        first initializing any PARI structures.
+
+        TESTS:
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: L.<b> = K.extension(K['x'].0^5 + 2*a)
+            sage: L._pari_rnfequation()
+            [x^10 + 8, Mod(-1/2*x^5, x^10 + 8), 0]
+            sage: NumberField(x^10 + 8, 'a').is_isomorphic(L)
+            True
+
+        Initialization is lazy enough to allow arithmetic in massive fields:
+            sage: K.<a> = NumberField(x^10 + 2000*x + 100001)
+            sage: L.<b> = K.extension(K['x'].0^10 + 2*a)
+            sage: L._pari_rnfequation()
+            [x^100 - 1024000*x^10 + 102401024, Mod(-1/2*x^10, x^100 - 1024000*x^10 + 102401024), 0]
+            sage: a + b
+            b + a
+            sage: b^100
+            -2048000*a - 102401024
+            sage: (-2*a)^10
+            -2048000*a - 102401024
         """
+        # Perhaps in future this should check if base_nf is known and
+        # use that, since it might be faster.
+        return self.pari_absolute_base_polynomial().rnfequation(self.pari_relative_polynomial(), 1)
+
+    @cached_method
+    def _gen_relative(self):
+        r"""
         Return root of defining polynomial, which is a generator of
         the relative number field over the base.
 
@@ -999,13 +1075,10 @@ class NumberField_relative(NumberField_generic):
             sage: c^2 + 3
             0
         """
-        try:
-            return self.__gen_relative
-        except AttributeError:
-            rnf = self.pari_rnf()
-            f = (pari('x') - rnf[10][2]*rnf[10][1]).lift()
-            self.__gen_relative = self._element_class(self, f)
-            return self.__gen_relative
+        rnfeqn = self._pari_rnfequation()
+        f = (pari('x') - rnfeqn[2]*rnfeqn[1]).lift()
+        g = self._element_class(self, f)
+        return g
 
     def pari_polynomial(self):
         """
@@ -1027,22 +1100,56 @@ class NumberField_relative(NumberField_generic):
                 self.__pari_polynomial = poly._pari_()
             return self.__pari_polynomial
 
+    @cached_method
     def pari_rnf(self):
-        """
+        r"""
         Return the PARI relative number field object associated
         to this relative extension.
 
         EXAMPLES:
             sage: k.<a> = NumberField([x^4 + 3, x^2 + 2])
             sage: k.pari_rnf()
-            [x^4 + 3, [], [[108, 0; 0, 108], [3, 0]~], ... 0]
+            [Mod(1, y^2 + 2)*x^4 + Mod(3, y^2 + 2), [], [[108, 0; 0, 108], [3, 0]~], ... 0]
         """
-        return self.__rnf
+        return self._pari_base_nf().rnfinit(self.pari_relative_polynomial())
+
+    def pari_absolute_base_polynomial(self):
+        r"""
+        Return the PARI polynomial defining the absolute base field, in y.
+
+        EXAMPLES:
+            sage: x = ZZ['x'].0
+            sage: K.<a, b> = NumberField([x^2 + 2, x^2 + 3]); K
+            Number Field in a with defining polynomial x^2 + 2 over its base field
+            sage: K.pari_absolute_base_polynomial()
+            y^2 + 3
+            sage: K.pari_absolute_base_polynomial().parent()
+            Interface to the PARI C library
+
+            sage: z = ZZ['z'].0
+            sage: K.<a, b, c> = NumberField([z^2 + 2, z^2 + 3, z^2 + 5]); K
+            Number Field in a with defining polynomial z^2 + 2 over its base field
+            sage: K.pari_absolute_base_polynomial()
+            y^4 + 16*y^2 + 4
+            sage: K.base_field()
+            Number Field in b with defining polynomial z^2 + 3 over its base field
+            sage: len(QQ['y'](K.pari_absolute_base_polynomial()).roots(K.base_field()))
+            4
+            sage: K.pari_absolute_base_polynomial().parent()
+            Interface to the PARI C library
+        """
+        abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
+        return QQ['y'](abs_base.polynomial())._pari_()
 
     def pari_relative_polynomial(self):
-        """
-        Return the PARI relative polynomial associated to this
-        number field.  This is always a polynomial in x and y.
+        r"""
+        Return the PARI relative polynomial associated to this number
+        field.
+
+        This is always a polynomial in x and y, suitable for PARI's
+        rnfinit function.  Notice that if this is a relative extension
+        of a relative extension, the base field is the absolute base
+        field.
 
         EXAMPLES:
             sage: k.<i> = NumberField(x^2 + 1)
@@ -1050,9 +1157,17 @@ class NumberField_relative(NumberField_generic):
             sage: m
             Number Field in z with defining polynomial w^2 + i over its base field
             sage: m.pari_relative_polynomial ()
-            x^2 + y
+            Mod(1, y^2 + 1)*x^2 + Mod(y, y^2 + 1)
+
+            sage: l.<t> = m.extension(m['t'].0^2 + z)
+            sage: l.pari_relative_polynomial()
+            Mod(1, y^4 + 1)*x^2 + Mod(y, y^4 + 1)
         """
-        return self.__pari_relative_polynomial
+        abs_base, _, _ = self.absolute_base_field()
+        g = QQ['y'](abs_base.polynomial())
+        vals = [ QQ['y'](f.polynomial())._pari_().Mod(g) for f in self.polynomial().list() ]
+        f = pari(vals).Polrev()
+        return f
 
     def number_of_roots_of_unity(self):
         """
@@ -1178,6 +1293,7 @@ class NumberField_relative(NumberField_generic):
             self.__abs_polynomial_ntl = ntl.ZZX((self.absolute_polynomial()*den).list())
         return (self.__abs_polynomial_ntl, self.__abs_denominator_ntl)
 
+    @cached_method
     def absolute_polynomial(self):
         r"""
         Return the polynomial over $\QQ$ that defines this field as an
@@ -1189,15 +1305,7 @@ class NumberField_relative(NumberField_generic):
             sage: k.absolute_polynomial()
             x^6 + 5*x^4 - 2*x^3 + 4*x^2 + 4*x + 1
         """
-        try:
-            return self.__absolute_polynomial
-        except AttributeError:
-            pbn = self._pari_base_nf()
-            prp = self.pari_relative_polynomial()
-            pari_poly = pbn.rnfequation(prp)
-            R = QQ['x']
-            self.__absolute_polynomial = R(pari_poly)
-            return self.__absolute_polynomial
+        return QQ['x'](self._pari_rnfequation()[0])
 
     def base_field(self):
         """

@@ -2141,6 +2141,43 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             7
             sage: pari(j)^2
             Mod(7, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
+            sage: (j^2)._pari_('y')
+            Mod(7, y^6 - 21*y^4 + 4*y^3 + 147*y^2 + 84*y - 339)
+
+            sage: K.<a> = NumberField(x^2 + 2, 'a')
+            sage: K(1)._pari_()
+            Mod(1, x^2 + 2)
+            sage: K(1)._pari_('t')
+            Mod(1, t^2 + 2)
+
+            sage: K.gen()._pari_()
+            Mod(x, x^2 + 2)
+            sage: K.gen()._pari_('t')
+            Mod(t, t^2 + 2)
+
+            At this time all elements, even relative elements, are
+            represented as absolute polynomials:
+
+            sage: K.<a> = NumberField(x^2 + 2, 'a')
+            sage: L.<b> = NumberField(K['x'].0^2 + a, 'b')
+            sage: L(1)._pari_()
+            Mod(1, x^4 + 2)
+            sage: L(1)._pari_('t')
+            Mod(1, t^4 + 2)
+            sage: L.gen()._pari_()
+            Mod(x, x^4 + 2)
+            sage: L.gen()._pari_('t')
+            Mod(t, t^4 + 2)
+
+            sage: M.<c> = NumberField(L['x'].0^3 + b, 'c')
+            sage: M(1)._pari_()
+            Mod(1, x^12 + 2)
+            sage: M(1)._pari_('t')
+            Mod(1, t^12 + 2)
+            sage: M.gen()._pari_()
+            Mod(x, x^12 + 2)
+            sage: M.gen()._pari_('t')
+            Mod(t, t^12 + 2)
         """
         try:
             return self.__pari[var]
@@ -2148,14 +2185,11 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             pass
         except TypeError:
             self.__pari = {}
-        if var is None:
-            var = self.number_field().variable_name()
+        g = self.parent().pari_polynomial()
         f = self.polynomial()._pari_()
-        g = str(self.number_field().pari_polynomial())
-        base = self.number_field().base_ring()
-        gsub = base.gen()._pari_()
-        gsub = str(gsub).replace('x', 'y')
-        g = g.replace('y', gsub)
+        f = f.subst('x', var)
+        g = g.subst('x', var)
+        h = f.Mod(g)
         h = f.Mod(g)
         self.__pari[var] = h
         return h

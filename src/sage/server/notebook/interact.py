@@ -888,7 +888,7 @@ class Selector(InteractControl):
         """
         if len(values) > 0 and isinstance(values[0], tuple) and len(values[0]) == 2:
             vals = [z[0] for z in values]
-            lbls = [str(z[1]) if z[1] is not None else None for z in values]
+            lbls = [repr(z[1]) if z[1] is not None else None for z in values]
         else:
             vals = values
             lbls = [None]*len(vals)
@@ -1130,12 +1130,14 @@ class SliderGeneric(InteractControl):
             '["1","2","3","4","5"]'
             sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha', False).values_js()
             'null'
+            sage: sage.server.notebook.interact.Slider('x', [pi..2*pi], 2, 'alpha').values_js()
+            '["pi","pi + 1","pi + 2","pi + 3"]'
         """
         if self.__display_value == False:
             return "null"
         s = "["
         for i in self.__values:
-            ie = str(i).replace("\\","\\\\").replace("\"","\\\"").replace("'","\\'")
+            ie = repr(i).replace("\\","\\\\").replace("\"","\\\"").replace("'","\\'")
             s += "\"%s\","%ie
         s = s[:-1] + ']'
         return s

@@ -245,6 +245,16 @@ Additional arguments are added when the command is used by `run-sage' et al."
   :group 'sage
   :type 'string)
 
+(defcustom sage-startup-hook nil
+  "*Normal hook (list of functions) run after `sage' is run and the first prompt is seen.
+See `run-hooks'."
+  :group 'sage
+  :type 'hook)
+
+(defun sage-send-startup-command ()
+  (sage-send-command sage-startup-command t))
+(add-hook 'sage-startup-hook 'sage-send-startup-command)
+
 (defvaralias 'sage-buffer 'python-buffer)
 ;; (defvar sage-buffer nil
 ;;   "*The current SAGE process buffer.
@@ -406,9 +416,9 @@ buffer for a list of commands.)"
     (with-current-buffer sage-buffer
       (unless noshow (pop-to-buffer sage-buffer)) ; show progress
       (unless (inferior-sage-mode-p)
-	(inferior-sage-mode)
-	(when (inferior-sage-wait-for-prompt) ; wait for prompt
-	  (sage-send-command sage-startup-command t))))
+	(inferior-sage-mode))
+      (when (inferior-sage-wait-for-prompt) ; wait for prompt
+	(run-hooks 'sage-startup-hook)))
 
     (when (sage-mode-p)
       ;; If we're coming from a sage-mode buffer, update inferior buffer

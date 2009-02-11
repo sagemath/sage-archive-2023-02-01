@@ -23,7 +23,8 @@
 ;; Put this file in a directory in `load-path' and add the following
 ;; line to `.emacs':
 
-;; (add-hook 'inferior-sage-mode-hook 'sage-view)
+;; if you want sage-view to be enabled for every sage session, try
+;; (add-hook 'sage-startup-hook 'sage-view-always)
 
 ;; This mode was inspired by doc-view.el by Tassilo Horn, preview.el
 ;; by David Kastrup, and imath.el by Yasuaki Honda.
@@ -285,6 +286,9 @@ Function to be inserted in `comint-output-filter-functions'."
       (setq sage-view-text nil)
       (sage-view-pretty-print-disable)
       )))
+
+(defun sage-view-always ()
+  (sage-view 1))
 
 (provide 'sage-view)
 ;;; sage-view.el ends here

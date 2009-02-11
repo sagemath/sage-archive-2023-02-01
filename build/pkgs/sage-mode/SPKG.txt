@@ -50,10 +50,14 @@ A basic install might include the following Emacs Lisp in your .emacs:
 
 ;; If you want sage-view to typeset all your output and have plot()
 ;; commands inline, uncomment the following line and configure sage-view:
-;; (add-hook 'inferior-sage-mode-hook 'sage-view)
+;; (require 'sage-view "sage-view")
+;; (add-hook 'sage-startup-hook 'sage-view-always)
 }}}
 
 == Changelog ==
+
+=== sage-mode-0.5.1 (Nick Alexander, 2009-02-11) ===
+* Added `sage-startup-hook' and made `sage-view' actually usable.
 
 === sage-mode-0.5 (Nick Alexander, 2009-01-31) ===
 * Incorporated Matthias Meulien's sage-view.el.  To enable, try sage-view or

@@ -766,12 +766,13 @@ class GenericGraph(SageObject):
                 sparse=True
 
         verts = self.vertices(boundary_first=boundary_first)
+        new_indices = dict((v,i) for i,v in enumerate(verts))
         D = {}
         directed = self._directed
         multiple_edges = self.multiple_edges()
         for i,j,l in self.edge_iterator():
-            i = verts.index(i)
-            j = verts.index(j)
+            i = new_indices[i]
+            j = new_indices[j]
             if multiple_edges and (i,j) in D:
                 D[(i,j)] += 1
                 if not directed:
@@ -860,23 +861,25 @@ class GenericGraph(SageObject):
             raise NotImplementedError, "Don't know how to represent weights for a multigraph."
 
         verts = self.vertices(boundary_first=boundary_first)
+        new_indices = dict((v,i) for i,v in enumerate(verts))
+
         D = {}
         if self._directed:
             for i,j,l in self.edge_iterator():
-                i = verts.index(i)
-                j = verts.index(j)
+                i = new_indices[i]
+                j = new_indices[j]
                 D[(i,j)] = l
         else:
             for i,j,l in self.edge_iterator():
-                i = verts.index(i)
-                j = verts.index(j)
+                i = new_indices[i]
+                j = new_indices[j]
                 D[(i,j)] = l
                 D[(j,i)] = l
         from sage.matrix.constructor import matrix
         M = matrix(self.num_verts(), D, sparse=sparse)
         return M
 
-    def kirchhoff_matrix(self, weighted=None, boundary_first=False):
+    def kirchhoff_matrix(self, weighted=None, **kwds):
         """
         Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
 
@@ -886,6 +889,9 @@ class GenericGraph(SageObject):
 
         If weighted == True, the weighted adjacency matrix is used for M, and
         the diagonal entries are the row-sums of M.
+
+        Note that any additional keywords will be pased on to either
+        the adjacency_matrix or weighted_adjacency_matrix method.
 
         AUTHOR:
             Tom Boothby
@@ -919,7 +925,11 @@ class GenericGraph(SageObject):
             [ 0  1 -1  0]
             [-1 -1  3 -1]
             [-1  0 -1  2]
-
+            sage: M = G.laplacian_matrix(boundary_first=True, sparse=False); M
+            [ 2  0 -1 -1]
+            [ 0  1 -1  0]
+            [-1 -1  3 -1]
+            [-1  0 -1  2]
         """
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import IntegerRing
@@ -928,14 +938,24 @@ class GenericGraph(SageObject):
             weighted = self._weighted
 
         if weighted:
-            M = self.weighted_adjacency_matrix(boundary_first=boundary_first)
+            M = self.weighted_adjacency_matrix(**kwds)
         else:
-            M = self.adjacency_matrix(boundary_first=boundary_first)
-        A = list(-M)
-        S = [sum(M.row(i)) for i in range(M.nrows())]
-        for i in range(len(A)):
-            A[i][i] = S[i]
-        return M.parent()(A)
+            M = self.adjacency_matrix(**kwds)
+
+        A = -M
+
+        if M.is_sparse():
+            row_sums = {}
+            for (i,j), entry in M.dict().iteritems():
+                row_sums[i] = row_sums.get(i, 0) + entry
+        else:
+            ones = matrix(M.base_ring(), M.nrows(), 1, [1]*M.nrows())
+            S = M*ones
+            row_sums = dict((i, S[i,0]) for i in range(M.nrows()))
+
+        for i in range(M.nrows()):
+            A[i,i] = row_sums.get(i, 0)
+        return A
 
     laplacian_matrix = kirchhoff_matrix
 

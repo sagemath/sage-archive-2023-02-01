@@ -6,7 +6,7 @@ sage-mode provides Emacs Lisp that helps you use Sage in GNU Emacs.
 
 == License ==
 
-Copyright (C) 2007, 2008  Nick Alexander
+Copyright (C) 2007, 2008, 2009  Nick Alexander
 Author: Nick Alexander <ncalexander [at] gmail.com>
 
 sage-mode is free software; you can redistribute it and/or modify
@@ -47,9 +47,23 @@ A basic install might include the following Emacs Lisp in your .emacs:
 (require 'pyrex "pyrex-mode")
 (require 'sage "sage-mode")
 (setq sage-command "/path/to/sage")
+
+;; If you want sage-view to typeset all your output and have plot()
+;; commands inline, uncomment the following line and configure sage-view:
+;; (add-hook 'inferior-sage-mode-hook 'sage-view)
 }}}
 
 == Changelog ==
+
+=== sage-mode-0.5 (Nick Alexander, 2009-01-31) ===
+* Incorporated Matthias Meulien's sage-view.el.  To enable, try sage-view or
+  (add-hook 'inferior-sage-mode-hook 'sage-view).
+
+* Added sage-rerun to restart sage and made C-u C-c C-b (sage-build with a
+  prefix argument) build and restart sage.
+
+=== sage-mode-0.4 (Nick Alexander, 2008-06-16) ===
+I honestly can't remember.
 
 === sage-mode-0.3 (Nick Alexander, 2008-06-15) ===
 Add sage-build command. Make sage-default-test-* more robust, and add

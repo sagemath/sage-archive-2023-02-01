@@ -266,6 +266,8 @@ Function to be inserted in `comint-output-filter-functions'."
   :lighter " Sage-View"
   (if sage-view
       (progn
+	(setq sage-view-temp-dir (make-temp-file (expand-file-name "tmp" "~/.sage/temp/") t))
+
 	(if (not (file-exists-p sage-view-temp-dir))
 	    (make-directory sage-view-temp-dir))
 	(sage-view-pretty-print-enable)

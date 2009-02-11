@@ -35,5 +35,7 @@ A basic sage-mode install might include the following Emacs Lisp in your .emacs:
 (require 'sage "sage-mode")
 (setq sage-command "$SAGE_ROOT/sage")
 
-
+;; If you want sage-view to typeset all your output and have plot()
+;; commands inline, uncomment the following line and configure sage-view:
+;; (add-hook 'inferior-sage-mode-hook 'sage-view)
 EOF

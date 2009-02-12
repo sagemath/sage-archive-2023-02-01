@@ -60,37 +60,36 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         sage: m = matrix(RDF, 6, [sin(i^2 + j^2) for i in [0,pi/5,..,pi] for j in [0,pi/5,..,pi]])
         sage: list_plot3d(m, texture='yellow', frame_aspect_ratio=[1,1,1/3])
 
-   Though it doesn't change the shap of the graph, increasing num_points can increase the clarity of the
-   graph
+   Though it doesn't change the shape of the graph, increasing
+   num_points can increase the clarity of the graph.
         sage: list_plot3d(m, texture='yellow', frame_aspect_ratio=[1,1,1/3],num_points=40)
 
-    We can change the interpolation type
+    We can change the interpolation type.
         sage: list_plot3d(m, texture='yellow', interpolation_type='nn',frame_aspect_ratio=[1,1,1/3])
 
-    We can make this look better by increasing the number of samples
+    We can make this look better by increasing the number of samples.
         sage: list_plot3d(m, texture='yellow', interpolation_type='nn',frame_aspect_ratio=[1,1,1/3],num_points=40)
 
-    Lets try a spline
+    Let's try a spline.
         sage: list_plot3d(m, texture='yellow', interpolation_type='spline',frame_aspect_ratio=[1,1,1/3])
 
-    That spline doesn't capture the oscillation very well, lets try a higher degree spline
+    That spline doesn't capture the oscillation very well; let's try a
+    higher degree spline.
         sage: list_plot3d(m, texture='yellow', interpolation_type='spline', degree=5, frame_aspect_ratio=[1,1,1/3])
-
 
     We plot a list of lists:
         sage: show(list_plot3d([[1, 1, 1, 1], [1, 2, 1, 2], [1, 1, 3, 1], [1, 2, 1, 4]]))
 
-    We plot a list of points:
-        As a first example  we can extract the (x,y,z) coordinates from the above example and
-        make a list plot out of it. By default we do linear interpolation.
-
+    We plot a list of points.  As a first example we can extract the
+    (x,y,z) coordinates from the above example and make a list plot
+    out of it. By default we do linear interpolation.
         sage: l=[]
         sage: for i in range(6):
         ...      for j in range(6):
         ...         l.append((float(i*pi/5),float(j*pi/5),m[i,j]))
         sage: list_plot3d(l,texture='yellow')
 
-    Note that the points do not have to be regularly sampled. For example
+    Note that the points do not have to be regularly sampled. For example:
         sage: l=[]
         sage: for i in range(-5,5):
         ...    for j in range(-5,5):
@@ -103,24 +102,20 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         sage: list_plot3d([(2,3,4)])
         sage: list_plot3d([(0,0,1), (2,3,4)])
 
-        However, if two points with the same x,y coordinates are given and different z coordinates
-        an exception will be raised
-
+    However, if two points are given with the same x,y coordinates but
+    different z coordinates, an exception will be raised:
         sage: pts =[(-4/5, -2/5, -2/5), (-4/5, -2/5, 2/5), (-4/5, 2/5, -2/5), (-4/5, 2/5, 2/5), (-2/5, -4/5, -2/5), (-2/5, -4/5, 2/5), (-2/5, -2/5, -4/5), (-2/5, -2/5, 4/5), (-2/5, 2/5, -4/5), (-2/5, 2/5, 4/5), (-2/5, 4/5, -2/5), (-2/5, 4/5, 2/5), (2/5, -4/5, -2/5), (2/5, -4/5, 2/5), (2/5, -2/5, -4/5), (2/5, -2/5, 4/5), (2/5, 2/5, -4/5), (2/5, 2/5, 4/5), (2/5, 4/5, -2/5), (2/5, 4/5, 2/5), (4/5, -2/5, -2/5), (4/5, -2/5, 2/5), (4/5, 2/5, -2/5), (4/5, 2/5, 2/5)]
         sage: show(list_plot3d(pts, interpolation_type='nn'))
         Traceback (most recent call last):
         ...
         ValueError: Two points with same x,y coordinates and different z coordinates were given. Interpolation cannot handle this.
 
-
-        Additionally we need at least 3 points to do the interpolation
-
-        sage: pts=[(0,0,0)]
-        sage: show(list_plot3d(pts,interpolation_type='nn'))
+    Additionally we need at least 3 points to do the interpolation:
+        sage: mat = matrix(RDF, 1, 2, [3.2, 1.550])
+        sage: show(list_plot3d(mat,interpolation_type='nn'))
         Traceback (most recent call last):
         ...
         ValueError: We need at least 3 points to perform the interpolation
-
     """
     import numpy
     if texture == "automatic":

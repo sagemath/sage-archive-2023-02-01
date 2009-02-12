@@ -2726,16 +2726,15 @@ cdef generic_power_c(a, nn, one):
     except TypeError:
         raise NotImplementedError, "non-integral exponents not supported"
 
-    if not a:
-        # a is zero, return it, or raise an exception if n is zero
-        if not n:
+    # Its better to test first the equality to zero of the exponent. Indeed,
+    # the following tests tree allows us be sure that "non a" is never called
+    # if n is not 0, so that we can deals with this particular case before
+    # calling generic_power. It is needed to handle the case of semi-groups
+    # (without unit) where "not a" does not makes sense and there is no one to
+    # return when n is 0.
+    if not n:
+        if not a:
             raise ArithmeticError, "0^0 is undefined."
-        elif n < 0:
-            raise ZeroDivisionError
-        else:
-            return a
-    elif not n:
-        # n is zero, let's try our best to return a one that doesn't suck
         if one is None:
             if PY_TYPE_CHECK(a, Element):
                 return (<Element>a)._parent(1)
@@ -2748,9 +2747,13 @@ cdef generic_power_c(a, nn, one):
                 return 1 #oops, the one sucks
         else:
             return one
-
-    if n < 0:
-        # negative exponent! flip it all around.
+    elif n < 0:
+        # I don't think raising division by zero is really my job. It should
+        # be the one of ~a. Moreover, this does not handle the case of monoids
+        # with partially defined division (e.g. the multiplicative monoid of a
+        # ring such as ZZ/12ZZ)
+        #        if not a:
+        #            raise ZeroDivisionError
         a = ~a
         n = -n
 

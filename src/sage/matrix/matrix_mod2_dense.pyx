@@ -760,9 +760,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         TESTS:
             sage: A = matrix(GF(2),0,0)
             sage: A^(-1)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError
+            []
         """
         cdef int k = 0
         cdef packedmatrix *I

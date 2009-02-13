@@ -33,7 +33,7 @@ from functional import (diff, derivative,
                         integrate, limit, lim,
                         taylor, simplify)
 
-from functions import (wronskian,)
+from functions import (wronskian,jacobian)
 
 from desolvers import (desolve, desolve_laplace, desolve_system,
                        eulers_method, eulers_method_2x2,

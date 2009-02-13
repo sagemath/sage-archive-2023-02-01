@@ -2,9 +2,11 @@ r"""
 Calculus functions.
 """
 
-from sage.matrix.all import matrix
-from calculus import SymbolicVariable
+from sage.matrix.all import matrix, is_Matrix
+from sage.structure.element import is_Vector
+from calculus import SymbolicVariable, SymbolicExpression
 from functional import diff
+
 
 def wronskian(*args):
     """Returns the Wronskian of the provided functions, differentiating with
@@ -93,3 +95,46 @@ def wronskian(*args):
         A = matrix(map(row, range(len(fs))))
         return A.determinant()
         #return matrix(map(row, range(len(fs)))).determinant()
+
+
+def jacobian(functions, variables):
+    """
+    Return the Jacobian matrix, which is the matrix of partial
+    derivatives in which the i,j entry of the Jacobian matrix is the
+    partial derivative diff(functions[i], variables[j]).
+
+    EXAMPLE:
+        sage: var('x,y')
+        (x, y)
+        sage: g=x^2-2*x*y
+        sage: jacobian(g, (x,y))
+        [2*x - 2*y      -2*x]
+
+    The Jacobian of the Jacobian should give us the "second derivative", the Hessian matrix.
+        sage: jacobian(jacobian(g, (x,y)), (x,y))
+        [ 2 -2]
+        [-2  0]
+        sage: g.hessian()
+        [ 2 -2]
+        [-2  0]
+
+        sage: f=(x^3*sin(y), cos(x)*sin(y), exp(x))
+        sage: jacobian(f, (x,y))
+        [  3*x^2*sin(y)     x^3*cos(y)]
+        [-sin(x)*sin(y)  cos(x)*cos(y)]
+        [           e^x              0]
+        sage: jacobian(f, (y,x))
+        [    x^3*cos(y)   3*x^2*sin(y)]
+        [ cos(x)*cos(y) -sin(x)*sin(y)]
+        [             0            e^x]
+
+    """
+    if is_Matrix(functions) and (functions.nrows()==1 or functions.ncols()==1):
+        functions = functions.list()
+    elif not (isinstance(functions, (tuple, list)) or is_Vector(functions)):
+        functions = [functions]
+
+    if not isinstance(variables, (tuple, list)) and not is_Vector(variables):
+        variables = [variables]
+
+    return matrix([[diff(f, v) for v in variables] for f in functions])

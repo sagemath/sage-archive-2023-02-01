@@ -726,6 +726,24 @@ class SymbolicExpression(RingElement):
             self.__nonzero = ans
         return ans
 
+    def is_unit(self):
+        """
+        Return if self is a unit of the symbolic ring or not.
+
+        EXAMPLES:
+            sage: SR(1).is_unit()
+            True
+            sage: SR(-1).is_unit()
+            True
+            sage: SR(0).is_unit()
+            False
+        """
+        if self.__nonzero__():
+            return True
+        if self == 0:
+            return False
+        return NotImplementedError
+
     def __str__(self):
         """
         Printing an object explicitly gives ASCII art:

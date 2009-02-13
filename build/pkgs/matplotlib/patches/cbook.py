@@ -305,7 +305,7 @@ def is_numlike(obj):
     except TypeError: return False
     else: return True
 
-def to_filehandle(fname, flag='r', return_opened=False):
+def to_filehandle(fname, flag='rU', return_opened=False):
     """
     *fname* can be a filename or a file handle.  Support for gzipped
     files is automatic, if the filename ends in .gz.  *flag* is a
@@ -314,6 +314,8 @@ def to_filehandle(fname, flag='r', return_opened=False):
     if is_string_like(fname):
         if fname.endswith('.gz'):
             import gzip
+            # get rid of 'U' in flag for gzipped files.
+            flag = flag.replace('U','')
             fh = gzip.open(fname, flag)
         else:
             fh = file(fname, flag)

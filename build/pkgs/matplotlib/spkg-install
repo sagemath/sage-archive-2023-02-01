@@ -18,7 +18,7 @@ $CP patches/cbook.py src/lib/matplotlib/cbook.py
 
 if [ `uname` = "SunOS" ]; then
     echo "Copy patched version of pprdrv_tt2.cpp for Solaris 10 that builds with gcc 4.3.2"
-    $CP patches/pprdrv_tt2.cpp src//ttconv/pprdrv_tt2.cpp
+    $CP patches/pprdrv_tt2.cpp src/ttconv/pprdrv_tt2.cpp
 fi
 
 if [ `uname -m` = "ia64" ]; then

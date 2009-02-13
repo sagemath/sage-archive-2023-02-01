@@ -42,6 +42,7 @@ from sage.rings.finite_field_element import is_FiniteFieldElement
 from sage.rings.finite_field import FiniteField as GF
 from sage.rings.ideal import FieldIdeal, Ideal
 from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
 
@@ -212,8 +213,9 @@ class SBox(SageObject):
         on the bit order of this S-box.
 
         INPUT:
-            X -- either an integer or a tuple of GF(2) elements of
-                 length \code{len(self)}
+            X -- either an integer, a tuple of GF(2) elements of
+                 length \code{len(self)} or a finite field element in
+                 GF($2^n$)
 
         EXAMPLE:
             sage: S = mq.SBox([7,6,0,4,2,5,1,3])
@@ -228,17 +230,37 @@ class SBox(SageObject):
 
             sage: S[(0,0,1)]
             [1, 1, 0]
+
+            sage: k.<a> = GF(2^3)
+            sage: S(a^2)
+            a
         """
-        try:
+        if isinstance(X, (int, Integer)):
             return self._S[ZZ(X)]
-        except TypeError:
-            if len(X) == self.n:
-                if self._big_endian:
-                    X = list(reversed(X))
-                X = ZZ(map(ZZ,X),2)
-                out =  self._S[X]
-                return self.to_bits(out)
-        raise TypeError
+        try:
+            from sage.all import vector
+            K = X.parent()
+            if K.order() == 2**self.n:
+                X = vector(X)
+            if not self._big_endian:
+                X = list(reversed(X))
+            else:
+                X = list(X)
+            X = ZZ(map(ZZ,X),2)
+            out =  self.to_bits(self._S[X])
+            if self._big_endian:
+                out = list(reversed(out))
+            return K(vector(GF(2),out))
+        except AttributeError:
+            pass
+
+        if len(X) == self.n:
+            if self._big_endian:
+                X = list(reversed(X))
+            X = ZZ(map(ZZ,X),2)
+            out =  self._S[X]
+            return self.to_bits(out)
+        raise TypeError, "Cannot apply SBox to %s"%X
 
     def __getitem__(self, X):
         r"""

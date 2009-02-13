@@ -1,21 +1,24 @@
 r"""
 Small Scale Variants of the AES (SR) Polynomial System Generator.
 
-\sage support polynomial system generation for small scale (and full
-scale) AES variants over $GF(2)$ and $GF(2^e)$. Also, \sage supports
-both the specification of SR as given in the papers [CMR05] and [CMR06] and
-a variant of SR* which is equivalent to AES.
+\Sage support polynomial system generation for small scale (and full
+scale) AES variants over $GF(2)$ and $GF(2^e)$. Also, \Sage supports
+both the specification of SR as given in the papers [CMR05] and
+[CMR06] and a variant of SR* which is equivalent to AES.
 
 AUTHORS:
     -- Martin Albrecht <malb@informatik.uni-bremen.de> (2007-09) initial version
+    -- Martin Albrecht <M.R.Albrecht@rhul.ac.uk> (2008,2009-01) usability improvements
 
 EXAMPLES:
 
+We construct SR(1,1,1,4) and study its properties.
+
     sage: sr = mq.SR(1, 1, 1, 4)
 
-$n$ is the number of rounds, $r$ the number of rows in the state
-array, $c$ the number of columns in the state array. $e$ the degree of
-the underlying field.
+\var{n} is the number of rounds, \var{r} the number of rows in the
+state array, \var{c} the number of columns in the state array. \var{e} the
+degree of the underlying field.
 
     sage: sr.n, sr.r, sr.c, sr.e
     (1, 1, 1, 4)
@@ -29,6 +32,8 @@ By default variables are ordered reverse to as they appear., e.g.:
        Block  0 : Ordering : degrevlex
                   Names    : k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
 
+
+However, this can be prevented by passing in \code{reverse_variables=False} to the constructor.
 
 For SR(1, 1, 1, 4) the ShiftRows matrix isn't that interesting:
 
@@ -55,7 +60,7 @@ Lin, however is not the identity matrix.
     [                1               a^3             a + 1             a + 1]
 
 
-    M and Mstar are identical for SR(1, 1, 1, 4)
+M and Mstar are identical for SR(1, 1, 1, 4)
 
     sage: sr.M
     [          a^2 + 1                 1         a^3 + a^2           a^2 + 1]
@@ -74,12 +79,148 @@ We can compute a Groebner basis for the ideals spanned by SR instances
 to recover all solutions to the system.
 
     sage: sr = mq.SR(1,1,1,4, gf2=True, polybori=True)
-    sage: F,s = sr.polynomial_system()
+    sage: K = sr.base_ring()
+    sage: a = K.gen()
+    sage: K = [a]
+    sage: P = [1]
+    sage: F,s = sr.polynomial_system(P=P, K=K)
     sage: F.groebner_basis()
-    [k002 + k003, k001, k000 + k003 + 1, s003 + k003 + 1, s002 + 1,
-    s001 + 1, s000 + 1, w103 + k003 + 1, w102 + k003 + 1, w101, w100 +
-    k003, x103 + k003, x102 + 1, x101 + 1, x100 + 1, k103 + k003,
-    k102, k101 + k003, k100 + k003 + 1]
+    [k002 + 1, k001, k000,
+     s003 + k003 + 1, s002 + k003, s001 + k003,
+     s000 + 1, w103 + k003 + 1, w102 + 1, w101, w100,
+     x103 + k003, x102 + k003 + 1,
+     x101 + k003 + 1, x100 + 1, k103 + k003, k102,
+     k101 + 1, k100]
+
+Note that the order of \var{k000},\var{k001},\var{k002} and \var{k003}
+is little endian. Thus the result \code{k002 + 1, k001, k000}
+indicates that the key is either $a$ or $a+1$. We can verify that both
+keys encrypt P to the same ciphertext:
+
+    sage: sr(P,[a])
+    [0]
+    sage: sr(P,[a+1])
+    [0]
+
+All solutions can easily be recovered using the variety function for ideals.
+
+   sage: I = F.ideal()
+   sage: I.variety() # order is random-ish
+   [{k100: 0, k003: 0, k002: 1, k001: 0, k000: 0, s003: 1, s002: 0, s001: 0, s000: 1, w103: 1, w102: 1, w101: 0, w100: 0, x103: 0, x102: 1, x101: 1, x100: 1, k103: 0, k102: 0, k101: 1},
+    {k100: 0, k003: 1, k002: 1, k001: 0, k000: 0, s003: 0, s002: 1, s001: 1, s000: 1, w103: 0, w102: 1, w101: 0, w100: 0, x103: 1, x102: 0, x101: 0, x100: 1, k103: 1, k102: 0, k101: 1}]
+
+Note that the SBox object for SR can be constructed with a call to
+\code{sr.sbox()}.
+
+   sage: sr = mq.SR(1,1,1,4, gf2=True, polybori=True)
+   sage: S = sr.sbox()
+
+For example, we can now study the difference distribution matrix of \var{S}.
+
+   sage: S.difference_distribution_matrix()
+   [16  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+   [ 0  2  2  2  2  0  0  0  2  0  0  0  2  4  0  0]
+   [ 0  2  0  4  2  2  2  0  0  2  0  0  0  0  0  2]
+   [ 0  2  4  0  0  2  0  0  2  2  0  2  0  0  2  0]
+   [ 0  0  2  0  4  2  0  0  0  0  2  0  2  0  2  2]
+   [ 0  0  0  2  0  0  0  2  4  2  0  0  2  0  2  2]
+   [ 0  4  0  0  0  2  0  2  0  2  2  0  2  2  0  0]
+   [ 0  2  0  0  0  0  2  0  0  0  0  2  4  2  2  2]
+   [ 0  2  2  0  0  0  2  2  2  0  2  0  0  0  0  4]
+   [ 0  0  2  2  0  0  0  0  0  2  2  4  0  2  0  2]
+   [ 0  0  2  0  2  0  2  2  0  4  0  2  2  0  0  0]
+   [ 0  0  0  0  2  0  2  0  2  2  4  0  0  2  2  0]
+   [ 0  0  0  2  0  4  2  0  2  0  2  2  2  0  0  0]
+   [ 0  0  0  0  2  2  0  4  2  0  0  2  0  2  0  2]
+   [ 0  0  2  2  0  2  4  2  0  0  0  0  0  2  2  0]
+   [ 0  2  0  2  2  0  0  2  0  0  2  2  0  0  4  0]
+
+or use \var{S} to find alternative polynomial representations for the S-Box.
+
+   sage: S.polynomials(degree=3)
+   [x0*x1 + x1*x2 + x0*x3 + x0*y2 + x1 + y0 + y1 + 1,
+    x0*x1 + x0*x2 + x0*y0 + x0*y1 + x0*y2 + x1 + x2 + y0 + y1 + y2,
+    x0*x1 + x0*x2 + x0*x3 + x1*x3 + x0*y0 + x1*y0 + x0*y1 + x0*y3,
+    x0*x1 + x0*x2 + x0*x3 + x1*x3 + x0*y0 + x1*y1 + x0*y3 + x1 + y0 + y1 + 1,
+    x0*x1 + x0*x2 + x0*y2 + x1*y2 + x0*y3 + x0 + x1,
+    x0*x3 + x1*x3 + x0*y1 + x0*y2 + x1*y3 + x0 + x1 + x2 + x3 + y0 + y1 + y3 + 1,
+    x0*x1 + x1*x3 + x2*x3 + x0*y0 + x0*y2 + x0*y3 + x2 + y0 + y3,
+    x0*x1 + x0*x2 + x0*x3 + x1*x3 + x2*y0 + x0*y2 + x0 + x2 + x3 + y3,
+    x0*x3 + x1*x3 + x0*y0 + x2*y1 + x0*y2 + x3 + y3,
+    x0*x1 + x0*x2 + x0*y0 + x0*y1 + x2*y2 + x0*y3 + x1 + y0 + y1 + 1,
+    x0*x3 + x1*x3 + x0*y0 + x0*y1 + x0*y3 + x2*y3 + y0 + y3,
+    x0*x1 + x0*x2 + x3*y0 + x0*y1 + x0*y3 + y0,
+    x0*y0 + x0*y1 + x3*y1 + x0 + x2 + y0 + y3,
+    x0*y0 + x3*y2 + y0,
+    x0*x1 + x0*x2 + x0*x3 + x1*x3 + x0*y0 + x0*y2 + x3*y3 + y0,
+    x0*x2 + x0*x3 + x0*y1 + y0*y1 + x0*y3 + x2 + x3 + y3,
+    x0*x2 + x0*y0 + y0*y2 + x0*y3 + x0 + y0,
+    x0*x1 + x0*x2 + x1*x3 + x0*y2 + y0*y3 + y0,
+    x0*x1 + x0*y0 + y1*y2 + x0*y3 + x1 + x2 + y0 + 1,
+    x0*x2 + x1*x3 + x0*y1 + x0*y2 + x0*y3 + y1*y3 + x0 + y0 + y3,
+    x0*x1 + x0*x2 + x0*x3 + x0*y1 + x0*y2 + x0*y3 + y2*y3 + x0 + x1 + x2 + x3 + y1 + y3 + 1,
+    x0*x1*x2 + x0*x3 + x0*y0 + x0*y1 + x0*y2 + x0,
+    x0*x1*x3 + x0*x2 + x0*x3 + x0*y1 + x0*y3 + x0,
+    x0*x1*y0 + x0*x1 + x0*y0 + x0,
+    x0*x1*y1,
+    x0*x1*y2 + x0*x2 + x0*y2 + x0*y3 + x0,
+    x0*x1*y3 + x0*x1 + x0*x3 + x0*y0 + x0*y1 + x0*y2 + x0,
+    x0*x2*x3 + x0*x1 + x0*x3 + x0*y1 + x0*y2 + x0*y3 + x0,
+    x0*x2*y0 + x0*x1 + x0*x2 + x0*x3 + x0*y1 + x0*y2,
+    x0*x2*y1 + x0*x2 + x0*x3 + x0*y0 + x0*y1 + x0*y2 + x0,
+    x0*x2*y2 + x0*x2 + x0*y3 + x0,
+    x0*x2*y3 + x0*x2 + x0*y3 + x0,
+    x0*x3*y0 + x0*x1 + x0*x2 + x0*y0 + x0*y1 + x0*y3,
+    x0*x3*y1 + x0*x2 + x0*y1 + x0*y3 + x0,
+    x0*x3*y2,
+    x0*x3*y3 + x0*x1 + x0*y1 + x0*y2 + x0*y3 + x0,
+    x0*y0*y1 + x0*y1,
+    x0*y0*y2 + x0*x2 + x0*y3 + x0,
+    x0*y0*y3 + x0*x1 + x0*x3 + x0*y0 + x0*y1 + x0*y2 + x0*y3 + x0,
+    x0*y1*y2 + x0*x2 + x0*y3 + x0,
+    x0*y1*y3 + x0*x3 + x0*y0 + x0*y2 + x0*y3,
+    x0*y2*y3 + x0*y2,
+    x1*x2*x3 + x0*x1 + x1*x3 + x0*y0 + x0*y1 + x2 + x3 + y3,
+    x1*x2*y0 + x0*x1 + x1*x3 + x0*y0 + x0*y1 + x2 + x3 + y3,
+    x1*x2*y1 + x0*x1 + x1*x3 + x0*y0 + x1 + x2 + x3 + y0 + y1 + y3 + 1,
+    x1*x2*y2 + x0*x1 + x0*y0 + x0*y1 + x0 + x1 + y0 + y1 + 1,
+    x1*x2*y3 + x0*x1 + x1*x3 + x0*y0 + x1 + x2 + x3 + y0 + y1 + y3 + 1,
+    x1*x3*y0 + x0*x1 + x0*x2 + x0*x3 + x1*x3 + x0*y0 + x0*y1 + x0*y3,
+    x1*x3*y1 + x0*x2 + x0*x3 + x0*y3 + x2 + x3 + y3,
+    x1*x3*y2 + x0*x2 + x0*x3 + x1*x3 + x0*y1 + x0*y3 + x0,
+    x1*x3*y3 + x0*x1 + x0*x2 + x0*x3 + x0*y0 + x0*y1 + x0*y3,
+    x1*y0*y1 + x0*x2 + x0*x3 + x0*y3 + x2 + x3 + y3,
+    x1*y0*y2 + x0*x2 + x0*x3 + x1*x3 + x0*y1 + x0*y3 + x0,
+    x1*y0*y3,
+    x1*y1*y2 + x0*x1 + x0*x2 + x0*x3 + x1*x3 + x0*y0 + x0*y3 + x1 + y0 + y1 + 1,
+    x1*y1*y3 + x0*x1 + x1*x3 + x0*y0 + x1 + x2 + x3 + y0 + y1 + y3 + 1,
+    x1*y2*y3 + x0*x1 + x0*x2 + x1*x3 + x0*y0 + x0*y2 + x0*y3 + x0 + x1 + x2 + x3 + y0 + y1 + y3 + 1,
+    x2*x3*y0 + x0*x1 + x0*x3 + x1*x3 + x0*y2 + x0*y3 + x2 + x3 + y3,
+    x2*x3*y1 + x0*y1 + x0*y2 + x0*y3 + x3 + y0,
+    x2*x3*y2 + x1*x3 + x0*y1 + x0 + x2 + x3 + y3,
+    x2*x3*y3,
+    x2*y0*y1 + x0*x2 + x0*x3 + x0*y0 + x0*y1 + x0*y2 + x0,
+    x2*y0*y2 + x0*x2 + x1*x3 + x0*y1 + x0*y3 + x2 + x3 + y3,
+    x2*y0*y3 + x0*x2 + x0*y3 + x0,
+    x2*y1*y2 + x0*x1 + x0*x2 + x1*x3 + x0*y0 + x0*y3 + x0 + x1 + x2 + x3 + y0 + y1 + y3 + 1,
+    x2*y1*y3 + x0*x3 + x1*x3 + x0*y0 + x0*y1 + x0*y3 + y0 + y3,
+    x2*y2*y3 + x0*x1 + x0*x2 + x1*x3 + x0*y0 + x0*y3 + x0 + x1 + x2 + x3 + y0 + y1 + y3 + 1,
+    x3*y0*y1 + x0*x3 + x0*y1 + x0 + x2 + x3 + y3,
+    x3*y0*y2 + x0*y0 + y0,
+    x3*y0*y3 + x1*x3 + x0*y1 + x0*y2 + x0*y3 + y0,
+    x3*y1*y2 + x0*x2 + x0*x3 + x0*y3 + x2 + x3 + y3,
+    x3*y1*y3 + x0*x2 + x0*x3 + x0*y0 + x0*y2 + x0,
+    x3*y2*y3 + x0*x2 + x0*x3 + x1*x3 + x0*y0 + x0*y1 + x0*y3 + x0 + y0,
+    y0*y1*y2 + x0*x3 + x0 + x2 + x3 + y3,
+    y0*y1*y3 + x0*x3 + x0*y0 + x0*y2 + x0*y3,
+    y0*y2*y3 + x0*x3 + x1*x3 + x0*y0 + x0*y1 + y0,
+    y1*y2*y3 + x0*x1 + x0*x2 + x1*x3 + x0*y0 + x0*y3 + x0 + x1 + x2 + x3 + y0 + y1 + y3 + 1]
+
+   sage: S.interpolation_polynomial()
+   (a^2 + 1)*x^14 + x^13 + (a^3 + a^2)*x^11 + (a^2 + 1)*x^7 + a^2 + a
+
+The \class{SR_gf2_2} gives an example how use alternative polynomial
+representations of the S-Box for construction of polynomial systems.
 
 TESTS:
     sage: sr == loads(dumps(sr))
@@ -94,6 +235,7 @@ REFERENCES:
    [CMR06] C. Cid , S. Murphy, and M.J.B. Robshaw; Algebraic Aspects
    of the Advanced Encryption Standard; Springer 2006;
 """
+from __future__ import with_statement
 
 from sage.rings.finite_field import FiniteField as GF
 from sage.rings.integer_ring import ZZ
@@ -237,16 +379,17 @@ class SR_generic(MPolynomialSystemGenerator):
 
         self._base = self.base_ring()
 
-        # to generate table, allow zero inversions
-        self._allow_zero_inversions = True
-        sub_byte_lookup = dict([(e, self.sub_byte(e)) for e in self._base])
-        self._sub_byte_lookup = sub_byte_lookup
-
         self._postfix = kwargs.get("postfix", "")
         self._order = kwargs.get("order", "degrevlex")
-        self._allow_zero_inversions = bool(kwargs.get("allow_zero_inversions", False))
         self._aes_mode = kwargs.get("aes_mode", True)
         self._gf2 = kwargs.get("gf2", False)
+        self._allow_zero_inversions = bool(kwargs.get("allow_zero_inversions", False))
+        self._reverse_variables = bool(kwargs.get("reverse_variables", True))
+
+        with AllowZeroInversionsContext(self):
+            sub_byte_lookup = dict([(e, self.sub_byte(e)) for e in self._base])
+        self._sub_byte_lookup = sub_byte_lookup
+
         if self._gf2:
             self._polybori = kwargs.get("polybori",False)
 
@@ -284,6 +427,7 @@ class SR_generic(MPolynomialSystemGenerator):
         kwds.setdefault("allow_zero_inversions", self._allow_zero_inversions)
         kwds.setdefault("aes_mode", self._aes_mode)
         kwds.setdefault("gf2", self._gf2)
+        kwds.setdefault("reverse_variables", self._reverse_variables)
 
         try:
             polybori = self._polybori
@@ -303,7 +447,10 @@ class SR_generic(MPolynomialSystemGenerator):
             biaffine_only = False
         kwds.setdefault("biaffine_only", biaffine_only)
 
-        return SR(**kwds)
+        if self._gf2 == kwds.get('gf2'):
+            return self.__class__(**kwds)
+        else:
+            return SR(**kwds)
 
     def __getattr__(self, attr):
         """
@@ -529,6 +676,98 @@ class SR_generic(MPolynomialSystemGenerator):
             return k.fetch_int(99)
         else:
             raise TypeError, "sbox constant only defined for e in (4, 8)"
+
+    def sbox(self, inversion_only=False):
+        """
+        Return an SBox object for this SR instance.
+
+        INPUT:
+            inversion_only -- do not include the GF(2) affine map when
+                              computing the S-Box (default: False)
+
+        EXAMPLE:
+            sage: sr = mq.SR(1,2,2,4, allow_zero_inversions=True)
+            sage: S = sr.sbox(); S
+            (6, 11, 5, 4, 2, 14, 7, 10, 9, 13, 15, 12, 3, 1, 0, 8)
+
+            sage: sr.sub_byte(0)
+            a^2 + a
+            sage: sage_eval(str(sr.sub_byte(0)), {'a':2})
+            6
+            sage: S(0)
+            6
+
+            sage: sr.sub_byte(1)
+            a^3 + a + 1
+            sage: sage_eval(str(sr.sub_byte(1)), {'a':2})
+            11
+            sage: S(1)
+            11
+
+            sage: sr = mq.SR(1,2,2,8, allow_zero_inversions=True)
+            sage: S = sr.sbox(); S
+            (99, 124, 119, 123, 242, 107, 111, 197, 48, 1, 103, 43,
+            254, 215, 171, 118, 202, 130, 201, 125, 250, 89, 71, 240,
+            173, 212, 162, 175, 156, 164, 114, 192, 183, 253, 147, 38,
+            54, 63, 247, 204, 52, 165, 229, 241, 113, 216, 49, 21, 4,
+            199, 35, 195, 24, 150, 5, 154, 7, 18, 128, 226, 235, 39,
+            178, 117, 9, 131, 44, 26, 27, 110, 90, 160, 82, 59, 214,
+            179, 41, 227, 47, 132, 83, 209, 0, 237, 32, 252, 177, 91,
+            106, 203, 190, 57, 74, 76, 88, 207, 208, 239, 170, 251,
+            67, 77, 51, 133, 69, 249, 2, 127, 80, 60, 159, 168, 81,
+            163, 64, 143, 146, 157, 56, 245, 188, 182, 218, 33, 16,
+            255, 243, 210, 205, 12, 19, 236, 95, 151, 68, 23, 196,
+            167, 126, 61, 100, 93, 25, 115, 96, 129, 79, 220, 34, 42,
+            144, 136, 70, 238, 184, 20, 222, 94, 11, 219, 224, 50, 58,
+            10, 73, 6, 36, 92, 194, 211, 172, 98, 145, 149, 228, 121,
+            231, 200, 55, 109, 141, 213, 78, 169, 108, 86, 244, 234,
+            101, 122, 174, 8, 186, 120, 37, 46, 28, 166, 180, 198,
+            232, 221, 116, 31, 75, 189, 139, 138, 112, 62, 181, 102,
+            72, 3, 246, 14, 97, 53, 87, 185, 134, 193, 29, 158, 225,
+            248, 152, 17, 105, 217, 142, 148, 155, 30, 135, 233, 206,
+            85, 40, 223, 140, 161, 137, 13, 191, 230, 66, 104, 65,
+            153, 45, 15, 176, 84, 187, 22)
+
+            sage: sr.sub_byte(0)
+            a^6 + a^5 + a + 1
+
+            sage: sage_eval(str(sr.sub_byte(0)), {'a':2})
+            99
+            sage: S(0)
+            99
+
+            sage: sr.sub_byte(1)
+            a^6 + a^5 + a^4 + a^3 + a^2
+
+            sage: sage_eval(str(sr.sub_byte(1)), {'a':2})
+            124
+
+            sage: S(1)
+            124
+
+            sage: sr = mq.SR(1,2,2,4, allow_zero_inversions=True)
+            sage: S = sr.sbox(inversion_only=True); S
+            (0, 1, 9, 14, 13, 11, 7, 6, 15, 2, 12, 5, 10, 4, 3, 8)
+
+            sage: S(0)
+            0
+            sage: S(1)
+            1
+
+            sage: S(sr.k.gen())
+            a^3 + 1
+        """
+        from sage.crypto.mq.sbox import SBox
+
+        k = self.base_ring()
+        if not inversion_only:
+            with AllowZeroInversionsContext(self):
+                S = [self.sub_byte(elem) for elem in sorted(k)]
+            return  SBox(S)
+        else:
+            e = self.e
+            S = [elem ** (2**e - 2) for elem in sorted(k)]
+            return  SBox(S)
 
     def shift_rows(self, d):
         r"""
@@ -913,7 +1152,7 @@ class SR_generic(MPolynomialSystemGenerator):
             R[10].output  3925841D02DC09FBDC118597196A0B32
             sage: set_verbose(0)
         """
-        r = self.r
+        r,c,e = self.r,self.c,self.e
         F = self.base_ring()
 
         _type = self.state_array
@@ -927,6 +1166,13 @@ class SR_generic(MPolynomialSystemGenerator):
             _type = self.state_array
         elif self.is_vector(P) and self.is_vector(K):
             _type = self.vector
+        elif isinstance(P, (list,tuple)) and isinstance(K, (list,tuple)):
+            if len(P) == len(K) == r*c:
+                _type = self.state_array
+            elif len(P) == len(K) == r*c*e:
+                _type = self.vector
+            else:
+                raise TypeError, "length %d or %d doesn't match either %d or %d"%(len(P),len(K),r*c,r*c*e)
         else:
             raise TypeError, "plaintext or key parameter not understood"
 
@@ -1135,6 +1381,25 @@ class SR_generic(MPolynomialSystemGenerator):
         format_string = name + pf + "%0" + l + "d" + "%0" + l + "d" + "%0" + l + "d"
         return format_string
 
+    def varstr(self, name, nr, rc, e):
+        """
+        Return a string representing a variable for the small scale
+        AES subject to the given constraints.
+
+        INPUT:
+            name -- variable name
+            nr -- number of round to create variable strings for
+            rc -- row*column index in state array
+            e -- exponent of base field
+
+        EXAMPLE:
+            sage: sr = mq.SR(10, 1, 2, 4)
+            sage: sr.varstr('x', 2, 1, 1)
+            'x211'
+        """
+        format_string = self.varformatstr(name, self.n, self.r*self.c, self.e)
+        return format_string % (nr, rc, e)
+
     def varstrs(self, name, nr, rc = None, e = None):
         """
         Return a list of strings representing variables in self.
@@ -1142,7 +1407,7 @@ class SR_generic(MPolynomialSystemGenerator):
         INPUT:
             name -- variable name
             nr -- number of round to create variable strings for
-            rc -- number of rounds * number of columns in the state array
+            rc -- number of rows * number of columns in the state array
             e -- exponent of base field
 
         EXAMPLE:
@@ -1179,8 +1444,44 @@ class SR_generic(MPolynomialSystemGenerator):
             [x200, x201, x202, x203, x210, x211, x212, x213]
 
         """
-        gd = self.R.gens_dict()
+        gd = self.variable_dict()
         return [gd[e] for e in self.varstrs(name, nr, rc, e)]
+
+    def variable_dict(self):
+        """
+        Return a dictionary to access variables in \code{self.R} by
+        their names.
+
+        EXAMPLE:
+            sage: sr = mq.SR(1,1,1,4)
+            sage: sr.variable_dict()
+            {'x101': x101, 'x100': x100, 'x103': x103, 'x102': x102,
+             's002': s002, 'w100': w100, 'w101': w101, 'w102': w102,
+             'w103': w103, 'k100': k100, 'k101': k101, 'k102': k102,
+             'k103': k103, 's003': s003, 's001': s001, 'k002': k002,
+             'k001': k001, 'k000': k000, 'k003': k003, 's000': s000}
+
+            sage: sr = mq.SR(1,1,1,4,gf2=True)
+            sage: sr.variable_dict()
+            {'x101': x101, 'x100': x100, 'x103': x103, 'x102': x102,
+             's002': s002, 'w100': w100, 'w101': w101, 'w102': w102,
+             'w103': w103, 'k100': k100, 'k101': k101, 'k102': k102,
+             'k103': k103, 's003': s003, 's001': s001, 'k002': k002,
+             'k001': k001, 'k000': k000, 'k003': k003, 's000': s000}
+
+        """
+        try:
+            R,gd = self._variable_dict
+            if R is self.R:
+                return gd
+            else:
+                pass
+        except AttributeError:
+            pass
+
+        gd = self.R.gens_dict()
+        self._variable_dict = self.R,gd
+        return gd
 
     def block_order(self):
         """
@@ -1216,18 +1517,30 @@ class SR_generic(MPolynomialSystemGenerator):
 
         return T
 
-    def ring(self, order=None):
-        """
+    def ring(self, order=None, reverse_variables=None):
+        r"""
         Construct a ring as a base ring for the polynomial system.
 
-        Variables are ordered in the reverse of their natural
+        By default, variables are ordered in the reverse of their natural
         ordering, i.e. the reverse of as they appear.
+
+        INPUT:
+            order -- a monomial ordering (default: None)
+            reverse_variables -- reverse rounds of variables (default: True)
 
         The variable assignment is as follows:
          * k_ijl subkey round i word j conjugate/bit l
          * s_ijl subkey inverse round i word j conjugate/bit l
          * w_ijl inversion input  round i word j conjugate/bit l
          * x_ijl inversion output round i word j conjugate/bit l
+
+        Note that the variables are ordered in column major ordering
+        in the state array and that the bits are ordered in little
+        endian ordering.
+
+        For example, if $x010$ is a variable over GF(2) for $r=2$ and
+        $c=2$ then refers to the MOST significant bit of the entry
+        in the position (1,0) in the state array matrix.
 
         EXAMPLE:
             sage: sr = mq.SR(2, 1, 1, 4)
@@ -1257,24 +1570,37 @@ class SR_generic(MPolynomialSystemGenerator):
         if self._order == 'block':
             self._order = self.block_order()
 
-        names = []
+        if reverse_variables is None:
+            reverse_variables = self._reverse_variables
 
-        for _n in reversed(xrange(n)):
+        if reverse_variables:
+            process = lambda x: reversed(x)
+        else:
+            process = lambda x: x
+
+        if reverse_variables:
+            names = []
+        else:
+            names = self.varstrs("k", 0, r*c, e)
+
+
+        for _n in process(xrange(n)):
             names += self.varstrs("k", _n+1, r*c, e)
             names += self.varstrs("x", _n+1, r*c, e)
             names += self.varstrs("w", _n+1, r*c, e)
             names += self.varstrs("s", _n, r, e)
 
-        names +=  self.varstrs("k", 0, r*c, e)
+        if reverse_variables:
+            names +=  self.varstrs("k", 0, r*c, e)
 
         from sage.rings.polynomial.pbori import BooleanPolynomialRing
 
-        if not self._gf2 or not self._polybori:
-            return PolynomialRing(k, 2*n*r*c*e + (n+1)*r*c*e + n*r*e, names, order=self._order)
-        else:
+        if self._gf2 and self._polybori:
             return BooleanPolynomialRing(2*n*r*c*e + (n+1)*r*c*e + n*r*e, names, order=self._order)
+        else:
+            return PolynomialRing(k, 2*n*r*c*e + (n+1)*r*c*e + n*r*e, names, order=self._order)
 
-    def round_polynomials(self, i, plaintext = None, ciphertext = None):
+    def round_polynomials(self, i, plaintext=None, ciphertext=None):
         r"""
         Return list of polynomials for a given round $i$.
 
@@ -1356,28 +1682,24 @@ class SR_generic(MPolynomialSystemGenerator):
             according to the key schedule which is non-linear.
 
             sage: sr.key_schedule_polynomials(1)
-            [k100 + s000 + s002 + s003, k101 + s000 + s001 + s003 + 1,
-            k102 + s000 + s001 + s002 + 1, k103 + s001 + s002 + s003 +
-            1, k100^2 + k100, k101^2 + k101, k102^2 + k102, k103^2 +
-            k103, s000^2 + s000, s001^2 + s001, s002^2 + s002, s003^2
-            + s003, s000*k000 + s003*k000 + s002*k001 + s001*k002 +
-            s000*k003, s000*k000 + s001*k000 + s000*k001 + s003*k001 +
-            s002*k002 + s001*k003, s001*k000 + s002*k000 + s000*k001 +
-            s001*k001 + s000*k002 + s003*k002 + s002*k003, s002*k000 +
-            s001*k001 + s000*k002 + s003*k003 + 1, s000*k000 +
-            s002*k000 + s003*k000 + s000*k001 + s001*k001 + s002*k002
-            + s000*k003 + k000, s001*k000 + s003*k000 + s001*k001 +
-            s002*k001 + s000*k002 + s003*k002 + s001*k003 + k001,
-            s000*k000 + s002*k000 + s000*k001 + s002*k001 + s003*k001
-            + s000*k002 + s001*k002 + s002*k003 + k002, s001*k000 +
-            s002*k000 + s000*k001 + s003*k001 + s001*k002 + s003*k003
-            + k003, s000*k000 + s001*k000 + s003*k000 + s001*k001 +
-            s000*k002 + s002*k002 + s000*k003 + s000, s002*k000 +
-            s000*k001 + s001*k001 + s003*k001 + s001*k002 + s000*k003
-            + s002*k003 + s001, s000*k000 + s001*k000 + s002*k000 +
-            s002*k001 + s000*k002 + s001*k002 + s003*k002 + s001*k003
-            + s002, s001*k000 + s000*k001 + s002*k001 + s000*k002 +
-            s001*k003 + s003*k003 + s003]
+            [k100 + s000 + s002 + s003,
+             k101 + s000 + s001 + s003 + 1,
+             k102 + s000 + s001 + s002 + 1,
+             k103 + s001 + s002 + s003 + 1,
+             k100^2 + k100, k101^2 + k101, k102^2 + k102, k103^2 + k103,
+             s000^2 + s000, s001^2 + s001, s002^2 + s002, s003^2 + s003,
+             s000*k000 + s003*k000 + s002*k001 + s001*k002 + s000*k003,
+             s000*k000 + s001*k000 + s000*k001 + s003*k001 + s002*k002 + s001*k003,
+             s001*k000 + s002*k000 + s000*k001 + s001*k001 + s000*k002 + s003*k002 + s002*k003,
+             s000*k000 + s002*k000 + s003*k000 + s000*k001 + s001*k001 + s002*k002 + s000*k003 + k000,
+             s001*k000 + s003*k000 + s001*k001 + s002*k001 + s000*k002 + s003*k002 + s001*k003 + k001,
+             s000*k000 + s002*k000 + s000*k001 + s002*k001 + s003*k001 + s000*k002 + s001*k002 + s002*k003 + k002,
+             s001*k000 + s002*k000 + s000*k001 + s003*k001 + s001*k002 + s003*k003 + k003,
+             s000*k000 + s001*k000 + s003*k000 + s001*k001 + s000*k002 + s002*k002 + s000*k003 + s000,
+             s002*k000 + s000*k001 + s001*k001 + s003*k001 + s001*k002 + s000*k003 + s002*k003 + s001,
+             s000*k000 + s001*k000 + s002*k000 + s002*k001 + s000*k002 + s001*k002 + s003*k002 + s001*k003 + s002,
+             s001*k000 + s000*k001 + s002*k001 + s000*k002 + s001*k003 + s003*k003 + s003,
+             s002*k000 + s001*k001 + s000*k002 + s003*k003 + 1]
         """
         R = self.R
         r = self.r
@@ -2172,9 +2494,9 @@ class SR_gf2(SR_generic):
             columns.append( list(reversed(((a**i)**2)._vector_())) )
         return Matrix(GF(2), e , e, columns).transpose()
 
-    def inversion_polynomials_single_sbox(self, x= None, w=None, biaffine_only=None, correct_only=None):
+    def inversion_polynomials_single_sbox(self, x=None, w=None, biaffine_only=None, correct_only=None):
         """
-        Generator for S-Box inversion polynomials of a single sbox.
+        Return inversion polynomials of a single S-Box.
 
         INPUT:
             x -- output variables (default: None)
@@ -2191,6 +2513,218 @@ class SR_gf2(SR_generic):
             sage: len(sr.inversion_polynomials_single_sbox(biaffine_only=False))
             40
             sage: len(sr.inversion_polynomials_single_sbox(biaffine_only=False, correct_only=True))
+            39
+
+
+            sage: sr = mq.SR(1, 1, 1, 8, gf2=True)
+            sage: l0 = sr.inversion_polynomials_single_sbox(); len(l0)
+            24
+            sage: l1 = sr.inversion_polynomials_single_sbox(correct_only=True); len(l1)
+            23
+            sage: l2 = sr.inversion_polynomials_single_sbox(biaffine_only=False); len(l2)
+            40
+            sage: l3 = sr.inversion_polynomials_single_sbox(biaffine_only=False, correct_only=True); len(l3)
+            39
+
+            sage: set(l0) == set(sr._inversion_polynomials_single_sbox())
+            True
+            sage: set(l1) == set(sr._inversion_polynomials_single_sbox(correct_only=True))
+            True
+            sage: set(l2) == set(sr._inversion_polynomials_single_sbox(biaffine_only=False))
+            True
+            sage: set(l3) == set(sr._inversion_polynomials_single_sbox(biaffine_only=False, correct_only=True))
+            True
+
+            sage: sr = mq.SR(1, 1, 1, 4, gf2=True)
+            sage: l0 = sr.inversion_polynomials_single_sbox(); len(l0)
+            12
+            sage: l1 = sr.inversion_polynomials_single_sbox(correct_only=True); len(l1)
+            11
+            sage: l2 = sr.inversion_polynomials_single_sbox(biaffine_only=False); len(l2)
+            20
+            sage: l3 = sr.inversion_polynomials_single_sbox(biaffine_only=False, correct_only=True); len(l3)
+            19
+
+            sage: set(l0) == set(sr._inversion_polynomials_single_sbox())
+            True
+            sage: set(l1) == set(sr._inversion_polynomials_single_sbox(correct_only=True))
+            True
+            sage: set(l2) == set(sr._inversion_polynomials_single_sbox(biaffine_only=False))
+            True
+            sage: set(l3) == set(sr._inversion_polynomials_single_sbox(biaffine_only=False, correct_only=True))
+            True
+        """
+        e = self.e
+
+        if biaffine_only is None:
+            biaffine_only = self._biaffine_only
+        if correct_only is None:
+            correct_only = self._correct_only
+
+        if x is None and w is None:
+            # make sure it prints like in the book.
+            names = ["w%d" % i for i in reversed(range(e))] + ["x%d"%i for i in reversed(range(e))]
+            P = PolynomialRing(GF(2), e*2, names, order='lex')
+            x = Matrix(P, e, 1, P.gens()[e:])
+            w = Matrix(P, e, 1, P.gens()[:e])
+        else:
+            if isinstance(x, (tuple, list)):
+                P = x[0].parent()
+            elif is_Matrix(x):
+                P = x.base_ring()
+            else:
+                raise TypeError, "x not understood"
+
+            if isinstance(x, (tuple, list)):
+                x = Matrix(P, e, 1, x)
+            if isinstance(w, (tuple, list)):
+                w = Matrix(P, e, 1, w)
+
+        if e == 4:
+            w3,w2,w1,w0 = w.column(0).list()
+            x3,x2,x1,x0 = x.column(0).list()
+
+            l = [w3*x3 + w3*x0 + w2*x1 + w1*x2 + w0*x3,
+                 w3*x3 + w3*x2 + w2*x3 + w2*x0 + w1*x1 + w0*x2,
+                 w3*x2 + w3*x1 + w2*x3 + w2*x2 + w1*x3 + w1*x0 + w0*x1,
+                 w3*x3 + w3*x2 + w3*x0 + w2*x2 + w1*x3 + w1*x1 + w0*x3 + x3,
+                 w3*x1 + w2*x3 + w2*x2 + w2*x0 + w1*x2 + w0*x3 + w0*x1 + x2,
+                 w3*x3 + w3*x2 + w3*x1 + w2*x1 + w1*x3 + w1*x2 + w1*x0 + w0*x2 + x1,
+                 w3*x2 + w2*x3 + w2*x1 + w1*x3 + w0*x2 + w0*x0 + x0,
+                 w3*x3 + w3*x1 + w3*x0 + w3 + w2*x3 + w2*x2 + w1*x1 + w0*x3,
+                 w3*x2 + w3*x0 + w2*x2 + w2*x1 + w2 + w1*x3 + w1*x0 + w0*x2,
+                 w3*x3 + w3*x1 + w2*x3 + w2*x1 + w2*x0 + w1*x3 + w1*x2 + w1 + w0*x1,
+                 w3*x2 + w3*x1 + w2*x3 + w2*x0 + w1*x2 + w0*x0 + w0]
+
+            if not correct_only:
+                l.append(w3*x1 + w2*x2 + w1*x3 + w0*x0 + 1)
+
+            if not biaffine_only:
+                l.extend([w3*x2 + w3*x1 + w3*x0 + w2*x3 + w2*x1 + w1*x3 + w1*x2 + w0*x3 + x3**2 + x3*x2 + x3*x1 + x2**2 + x1**2,
+                          w3*x2 + w2*x2 + w2*x1 + w2*x0 + w1*x3 + w1*x1 + w0*x3 + w0*x2 + x3*x2 + x3*x1 + x3*x0 + x2**2 + x2*x1 + x2*x0 + x1*x0,
+                          w3*x2 + w3*x1 + w2*x2 + w1*x2 + w1*x1 + w1*x0 + w0*x3 + w0*x1 + x3**2 + x3*x2 + x2*x0 + x1*x0,
+                          w3*x3 + w3*x1 + w2*x3 + w2*x2 + w1*x3 + w0*x3 + w0*x2 + w0*x1 + w0*x0 + x3*x1 + x2*x1 + x2*x0 + x0**2,
+                          w3**2 + w3*w2 + w3*w1 + w3*x2 + w3*x1 + w3*x0 + w2**2 + w2*x3 + w2*x1 + w1**2 + w1*x3 + w1*x2 + w0*x3,
+                          w3*w2 + w3*w1 + w3*w0 + w3*x1 + w3*x0 + w2**2 + w2*w1 + w2*w0 + w2*x3 + w2*x2 + w2*x0 + w1*w0 + w1*x2 + w1*x1 + w0*x2,
+                          w3**2 + w3*w2 + w3*x0 + w2*w0 + w2*x3 + w2*x2 + w2*x1 + w1*w0 + w1*x3 + w1*x1 + w1*x0 + w0*x1,
+                          w3*w1 + w3*x3 + w3*x2 + w3*x1 + w3*x0 + w2*w1 + w2*w0 + w2*x2 + w2*x0 + w1*x3 + w1*x0 + w0**2 + w0*x0])
+            return l
+
+        else:
+            w7,w6,w5,w4,w3,w2,w1,w0 = w.column(0).list()
+            x7,x6,x5,x4,x3,x2,x1,x0 = x.column(0).list()
+
+            l = [w7*x7 + w7*x5 + w7*x4 + w7*x0 + w6*x6 + w6*x5 + w6*x1 + w5*x7 + w5*x6 + w5*x2 + w4*x7 + w4*x3 + w3*x4 + w2*x5 + w1*x6 + w0*x7,
+                 w7*x6 + w7*x4 + w7*x3 + w6*x7 + w6*x5 + w6*x4 + w6*x0 + w5*x6 + w5*x5 + w5*x1 + w4*x7 + w4*x6 + w4*x2 + w3*x7 + w3*x3 + w2*x4 + w1*x5 + w0*x6,
+                 w7*x5 + w7*x3 + w7*x2 + w6*x6 + w6*x4 + w6*x3 + w5*x7 + w5*x5 + w5*x4 + w5*x0 + w4*x6 + w4*x5 + w4*x1 + w3*x7 + w3*x6 + w3*x2 + w2*x7 + w2*x3 + w1*x4 + w0*x5,
+                 w7*x7 + w7*x4 + w7*x2 + w7*x1 + w6*x5 + w6*x3 + w6*x2 + w5*x6 + w5*x4 + w5*x3 + w4*x7 + w4*x5 + w4*x4 + w4*x0 + w3*x6 + w3*x5 + w3*x1 + w2*x7 + w2*x6 + w2*x2 + w1*x7 + w1*x3 + w0*x4,
+                 w7*x7 + w7*x6 + w7*x5 + w7*x4 + w7*x3 + w7*x1 + w6*x7 + w6*x6 + w6*x5 + w6*x4 + w6*x2 + w5*x7 + w5*x6 + w5*x5 + w5*x3 + w4*x7 + w4*x6 + w4*x4 + w3*x7 + w3*x5 + w3*x0 + w2*x6 + w2*x1 \
+                     + w1*x7 + w1*x2 + w0*x3,
+                 w7*x6 + w7*x3 + w7*x2 + w6*x7 + w6*x4 + w6*x3 + w5*x5 + w5*x4 + w4*x6 + w4*x5 + w3*x7 + w3*x6 + w2*x7 + w2*x0 + w1*x1 + w0*x2,
+                 w7*x7 + w7*x5 + w7*x2 + w7*x1 + w6*x6 + w6*x3 + w6*x2 + w5*x7 + w5*x4 + w5*x3 + w4*x5 + w4*x4 + w3*x6 + w3*x5 + w2*x7 + w2*x6 + w1*x7 + w1*x0 + w0*x1,
+                 w7*x6 + w7*x5 + w7*x2 + w7*x0 + w6*x7 + w6*x4 + w6*x3 + w5*x7 + w5*x6 + w5*x3 + w5*x1 + w4*x5 + w4*x4 + w3*x7 + w3*x4 + w3*x2 + w2*x6 + w2*x5 + w1*x5 + w1*x3 + w0*x7 + w0*x6 + x7,
+                 w7*x6 + w7*x3 + w7*x2 + w6*x6 + w6*x5 + w6*x2 + w6*x0 + w5*x7 + w5*x4 + w5*x3 + w4*x7 + w4*x6 + w4*x3 + w4*x1 + w3*x5 + w3*x4 + w2*x7 + w2*x4 + w2*x2 + w1*x6 + w1*x5 + w0*x5 + w0*x3 \
+                     + x6,
+                 w7*x7 + w7*x5 + w7*x4 + w7*x1 + w6*x6 + w6*x3 + w6*x2 + w5*x6 + w5*x5 + w5*x2 + w5*x0 + w4*x7 + w4*x4 + w4*x3 + w3*x7 + w3*x6 + w3*x3 + w3*x1 + w2*x5 + w2*x4 + w1*x7 + w1*x4 + w1*x2 \
+                     + w0*x6 + w0*x5 + x5,
+                 w7*x7 + w7*x5 + w7*x2 + w7*x1 + w6*x7 + w6*x5 + w6*x4 + w6*x1 + w5*x6 + w5*x3 + w5*x2 + w4*x6 + w4*x5 + w4*x2 + w4*x0 + w3*x7 + w3*x4 + w3*x3 + w2*x7 + w2*x6 + w2*x3 + w2*x1 + w1*x5 \
+                     + w1*x4 + w0*x7 + w0*x4 + w0*x2 + x4,
+                 w7*x5 + w7*x4 + w7*x3 + w7*x2 + w6*x5 + w6*x4 + w6*x3 + w6*x2 + w6*x1 + w5*x6 + w5*x5 + w5*x4 + w5*x3 + w4*x6 + w4*x5 + w4*x4 + w4*x3 + w4*x2 + w3*x7 + w3*x6 + w3*x5 + w3*x4 + w3*x0 \
+                     + w2*x7 + w2*x6 + w2*x5 + w2*x4 + w2*x3 + w1*x7 + w1*x6 + w1*x5 + w1*x1 + w0*x7 + w0*x6 + w0*x5 + w0*x4 + x3,
+                 w7*x7 + w7*x6 + w7*x5 + w7*x4 + w7*x3 + w7*x1 + w6*x7 + w6*x5 + w6*x2 + w5*x7 + w5*x6 + w5*x5 + w5*x4 + w5*x2 + w4*x6 + w4*x3 + w3*x7 + w3*x6 + w3*x5 + w3*x3 + w2*x7 + w2*x4 + w2*x0 \
+                     + w1*x7 + w1*x6 + w1*x4 + w0*x5 + w0*x1 + x2,
+                 w7*x6 + w7*x4 + w7*x1 + w6*x7 + w6*x6 + w6*x5 + w6*x4 + w6*x3 + w6*x1 + w5*x7 + w5*x5 + w5*x2 + w4*x7 + w4*x6 + w4*x5 + w4*x4 + w4*x2 + w3*x6 + w3*x3 + w2*x7 + w2*x6 + w2*x5 + w2*x3 \
+                     + w1*x7 + w1*x4 + w1*x0 + w0*x7 + w0*x6 + w0*x4 + x1,
+                 w7*x7 + w7*x4 + w7*x3 + w6*x7 + w6*x6 + w6*x3 + w6*x1 + w5*x5 + w5*x4 + w4*x7 + w4*x4 + w4*x2 + w3*x6 + w3*x5 + w2*x5 + w2*x3 + w1*x7 + w1*x6 + w0*x6 + w0*x4 + w0*x0 + x0,
+                 w7*x6 + w7*x5 + w7*x3 + w7*x0 + w7 + w6*x7 + w6*x5 + w6*x2 + w6*x0 + w5*x7 + w5*x4 + w5*x2 + w5*x1 + w4*x6 + w4*x4 + w4*x3 + w3*x6 + w3*x5 + w3*x1 + w2*x7 + w2*x3 + w1*x5 + w0*x7,
+                 w7*x5 + w7*x4 + w7*x2 + w6*x7 + w6*x6 + w6*x4 + w6*x1 + w6 + w5*x6 + w5*x3 + w5*x1 + w5*x0 + w4*x5 + w4*x3 + w4*x2 + w3*x7 + w3*x5 + w3*x4 + w3*x0 + w2*x7 + w2*x6 + w2*x2 + w1*x4 \
+                     + w0*x6,
+                 w7*x7 + w7*x4 + w7*x3 + w7*x1 + w6*x6 + w6*x5 + w6*x3 + w6*x0 + w5*x7 + w5*x5 + w5*x2 + w5*x0 + w5 + w4*x7 + w4*x4 + w4*x2 + w4*x1 + w3*x6 + w3*x4 + w3*x3 + w2*x6 + w2*x5 + w2*x1 \
+                     + w1*x7 + w1*x3 + w0*x5,
+                 w7*x7 + w7*x6 + w7*x3 + w7*x2 + w7*x0 + w6*x5 + w6*x4 + w6*x2 + w5*x7 + w5*x6 + w5*x4 + w5*x1 + w4*x6 + w4*x3 + w4*x1 + w4*x0 + w4 + w3*x5 + w3*x3 + w3*x2 + w2*x7 + w2*x5 + w2*x4 \
+                     + w2*x0 + w1*x7 + w1*x6 + w1*x2 + w0*x4,
+                 w7*x3 + w7*x2 + w7*x1 + w7*x0 + w6*x5 + w6*x4 + w6*x3 + w6*x2 + w6*x1 + w6*x0 + w5*x7 + w5*x6 + w5*x5 + w5*x4 + w5*x3 + w5*x2 + w5*x1 + w5*x0 + w4*x7 + w4*x6 + w4*x5 + w4*x4 \
+                     + w4*x3 + w4*x2 + w4*x0 + w3*x7 + w3*x6 + w3*x5 + w3*x4 + w3*x2 + w3 + w2*x7 + w2*x6 + w2*x4 + w1*x6 + w1*x1 + w0*x3,
+                 w7*x7 + w7*x6 + w7*x5 + w7*x3 + w7*x2 + w7*x1 + w6*x7 + w6*x5 + w6*x4 + w6*x3 + w6*x1 + w5*x7 + w5*x6 + w5*x5 + w5*x3 + w5*x0 + w4*x7 + w4*x5 + w4*x2 + w4*x1 + w3*x7 + w3*x4 \
+                     + w3*x3 + w2*x6 + w2*x5 + w2 + w1*x7 + w1*x0 + w0*x2,
+                 w7*x6 + w7*x5 + w7*x4 + w7*x2 + w7*x1 + w7*x0 + w6*x7 + w6*x6 + w6*x4 + w6*x3 + w6*x2 + w6*x0 + w5*x6 + w5*x5 + w5*x4 + w5*x2 + w4*x7 + w4*x6 + w4*x4 + w4*x1 + w4*x0 + w3*x6 \
+                     + w3*x3 + w3*x2 + w2*x5 + w2*x4 + w1*x7 + w1*x6 + w1 + w0*x1,
+                 w7*x7 + w7*x6 + w7*x4 + w7*x1 + w6*x6 + w6*x3 + w6*x1 + w6*x0 + w5*x5 + w5*x3 + w5*x2 + w4*x7 + w4*x5 + w4*x4 + w4*x0 + w3*x7 + w3*x6 + w3*x2 + w2*x4 + w1*x6 + w0*x0 + w0]
+
+            if not correct_only:
+                l.append(w7*x6 + w7*x5 + w7*x1 + w6*x7 + w6*x6 + w6*x2 + w5*x7 + w5*x3 + w4*x4 + w3*x5 + w2*x6 + w1*x7 + w0*x0 + 1)
+
+            if not biaffine_only:
+                l.extend([w7**2 + w7*w6 + w7*w3 + w7*w1 + w7*x7 + w7*x6 + w7*x5 + w7*x2 + w7*x1 + w7*x0 + w6**2 + w6*w0 + w6*x6 + w6*x5 + w6*x4 + w6*x3 + w6*x1 + w6*x0 + w5**2 + w5*w4 + w5*w3 \
+                              + w5*w2 + w5*x7 + w5*x5 + w5*x4 + w5*x1 + w5*x0 + w4**2 + w4*w2 + w4*w0 + w4*x5 + w4*x4 + w4*x2 + w3*w2 + w3*x6 + w3*x3 + w3*x1 + w3*x0 + w2*x7 + w2*x5 + w2*x4 \
+                              + w2*x0 + w1*x4 + w0**2 + w0*x0,
+                          w7*x6 + w7*x4 + w7*x1 + w6*x7 + w6*x6 + w6*x5 + w6*x2 + w5*x7 + w5*x6 + w5*x5 + w5*x4 + w5*x3 + w5*x1 + w4*x5 + w4*x4 + w4*x3 + w4*x1 + w4*x0 + w3*x7 + w3*x5 + w3*x2 \
+                              + w2*x7 + w2*x6 + w2*x3 + w1*x7 + w1*x6 + w1*x5 + w1*x4 + w1*x2 + w0*x6 + w0*x5 + w0*x4 + w0*x2 + w0*x1 + x7**2 + x7*x6 + x7*x5 + x7*x3 + x7*x1 + x7*x0 + x6*x2 \
+                              + x6*x1 + x5*x4 + x5*x3 + x5*x2 + x5*x1 + x4*x3 + x4*x2 + x4*x1 + x3**2 + x3*x2 + x2*x1 + x2*x0,
+                          w7*x5 + w7*x4 + w7*x3 + w7*x1 + w7*x0 + w6*x7 + w6*x5 + w6*x2 + w5*x7 + w5*x6 + w5*x3 + w4*x7 + w4*x6 + w4*x5 + w4*x4 + w4*x2 + w3*x6 + w3*x5 + w3*x4 + w3*x2 + w3*x1 \
+                              + w2*x6 + w2*x3 + w1*x7 + w1*x4 + w0*x7 + w0*x6 + w0*x5 + w0*x3 + x7*x3 + x7*x2 + x6*x5 + x6*x4 + x6*x3 + x6*x2 + x6*x0 + x5*x4 + x5*x3 + x5*x2 + x4**2 + x4*x3 \
+                              + x3*x2 + x3*x1,
+                          w7*w3 + w7*w2 + w7*x6 + w7*x5 + w7*x4 + w7*x1 + w7*x0 + w6*w5 + w6*w4 + w6*w3 + w6*w2 + w6*w0 + w6*x5 + w6*x4 + w6*x3 + w6*x2 + w6*x0 + w5*w4 + w5*w3 + w5*w2 + w5*x7 \
+                              + w5*x6 + w5*x4 + w5*x3 + w5*x0 + w4**2 + w4*w3 + w4*x7 + w4*x4 + w4*x3 + w4*x1 + w3*w2 + w3*w1 + w3*x7 + w3*x5 + w3*x2 + w3*x0 + w2*x6 + w2*x4 + w2*x3 + w1*x7 \
+                              + w1*x3 + w0*x7,
+                          w7*x5 + w7*x2 + w7*x1 + w6*x7 + w6*x6 + w6*x5 + w6*x4 + w6*x2 + w6*x1 + w5*x5 + w5*x3 + w5*x2 + w4*x3 + w4*x2 + w4*x1 + w3*x6 + w3*x3 + w3*x2 + w3*x0 + w2*x7 + w2*x6 \
+                              + w2*x5 + w2*x3 + w2*x2 + w1*x6 + w1*x4 + w1*x3 + w0*x4 + w0*x3 + w0*x2 + x7*x5 + x7*x4 + x7*x1 + x7*x0 + x6*x0 + x5**2 + x5*x2 + x5*x1 + x5*x0 + x4**2 + x4*x0 \
+                              + x3*x2 + x3*x0 + x1**2,
+                          w7*w6 + w7*w5 + w7*w4 + w7*w3 + w7*x7 + w7*x5 + w7*x4 + w7*x3 + w7*x0 + w6**2 + w6*w5 + w6*w4 + w6*w2 + w6*w1 + w6*w0 + w6*x7 + w6*x4 + w6*x3 + w6*x2 + w6*x1 + w5*w4 \
+                              + w5*w1 + w5*w0 + w5*x7 + w5*x6 + w5*x5 + w5*x3 + w5*x2 + w4*w2 + w4*w1 + w4*x7 + w4*x6 + w4*x3 + w4*x2 + w4*x0 + w3*w0 + w3*x7 + w3*x6 + w3*x4 + w3*x1 + w2**2 \
+                              + w2*x5 + w2*x3 + w2*x2 + w1*x7 + w1*x6 + w1*x2 + w0*x6,
+                          w7*w5 + w7*w4 + w7*w1 + w7*w0 + w7*x6 + w7*x2 + w6*w0 + w6*x6 + w6*x3 + w6*x2 + w6*x1 + w5**2 + w5*w2 + w5*w1 + w5*w0 + w5*x7 + w5*x6 + w5*x5 + w5*x2 + w4**2 + w4*w0 \
+                              + w4*x6 + w4*x1 + w4*x0 + w3*w2 + w3*w0 + w3*x5 + w3*x4 + w3*x3 + w3*x2 + w3*x1 + w3*x0 + w2*x7 + w2*x6 + w2*x5 + w2*x4 + w2*x3 + w2*x2 + w2*x0 + w1**2 + w1*x7 \
+                              + w1*x6 + w1*x4 + w0*x3,
+                          w7*x7 + w7*x6 + w7*x5 + w7*x2 + w6*x7 + w6*x6 + w6*x5 + w6*x4 + w6*x3 + w6*x1 + w5*x5 + w5*x4 + w5*x3 + w5*x1 + w5*x0 + w4*x7 + w4*x5 + w4*x2 + w3*x7 + w3*x6 + w3*x3 \
+                              + w2*x7 + w2*x6 + w2*x5 + w2*x4 + w2*x2 + w1*x6 + w1*x5 + w1*x4 + w1*x2 + w1*x1 + w0*x6 + w0*x3 + x7**2 + x7*x5 + x7*x3 + x6**2 + x6*x5 + x6*x2 + x6*x0 + x5**2 \
+                              + x4**2 + x4*x3 + x4*x2 + x4*x1 + x3**2 + x3*x1 + x2*x1,
+                          w7**2 + w7*w6 + w7*w5 + w7*w3 + w7*w1 + w7*w0 + w7*x6 + w7*x5 + w7*x3 + w7*x2 + w7*x1 + w6*w2 + w6*w1 + w6*x7 + w6*x6 + w6*x5 + w6*x2 + w6*x1 + w6*x0 + w5*w4 + w5*w3 \
+                              + w5*w2 + w5*w1 + w5*x6 + w5*x5 + w5*x4 + w5*x3 + w5*x1 + w5*x0 + w4*w3 + w4*w2 + w4*w1 + w4*x7 + w4*x5 + w4*x4 + w4*x1 + w4*x0 + w3**2 + w3*w2 + w3*x5 + w3*x4 \
+                              + w3*x2 + w2*w1 + w2*w0 + w2*x6 + w2*x3 + w2*x1 + w2*x0 + w1*x7 + w1*x5 + w1*x4 + w1*x0 + w0*x4,
+                          w7*x7 + w7*x5 + w7*x2 + w6*x7 + w6*x6 + w6*x3 + w5*x7 + w5*x6 + w5*x5 + w5*x4 + w5*x2 + w4*x6 + w4*x5 + w4*x4 + w4*x2 + w4*x1 + w3*x6 + w3*x3 + w2*x7 + w2*x4 + w1*x7 \
+                              + w1*x6 + w1*x5 + w1*x3 + w0*x7 + w0*x6 + w0*x5 + w0*x3 + w0*x2 + w0*x0 + x7**2 + x7*x6 + x7*x3 + x7*x1 + x6**2 + x6*x0 + x5**2 + x5*x4 + x5*x3 + x5*x2 + x4**2 \
+                              + x4*x2 + x4*x0 + x3*x2 + x0**2,
+                          w7*x7 + w7*x6 + w7*x5 + w7*x4 + w7*x3 + w7*x1 + w6*x5 + w6*x4 + w6*x3 + w6*x1 + w6*x0 + w5*x7 + w5*x5 + w5*x2 + w4*x7 + w4*x6 + w4*x3 + w3*x7 + w3*x6 + w3*x5 + w3*x4 \
+                              + w3*x2 + w2*x6 + w2*x5 + w2*x4 + w2*x2 + w2*x1 + w1*x6 + w1*x3 + w0*x7 + w0*x4 + x7*x6 + x7*x5 + x7*x4 + x7*x3 + x6**2 + x6*x5 + x6*x4 + x6*x2 + x6*x1 + x6*x0 \
+                              + x5*x4 + x5*x1 + x5*x0 + x4*x2 + x4*x1 + x3*x0 + x2**2,
+                          w7*x5 + w7*x4 + w7*x3 + w7*x2 + w6*x7 + w6*x1 + w5*x5 + w5*x4 + w5*x3 + w5*x2 + w5*x1 + w4*x7 + w4*x6 + w4*x4 + w4*x3 + w3*x6 + w3*x5 + w3*x4 + w3*x3 + w2*x2 + w2*x0 \
+                              + w1*x6 + w1*x5 + w1*x4 + w1*x3 + w1*x2 + w0*x7 + w0*x5 + w0*x4 + x7**2 + x7*x4 + x7*x2 + x6*x4 + x6*x3 + x6*x2 + x6*x1 + x5**2 + x5*x4 + x5*x3 + x5*x2 + x5*x0 \
+                              + x4*x3 + x4*x2 + x4*x1 + x3**2 + x2*x0 + x1*x0,
+                          w7*x6 + w7*x5 + w7*x3 + w7*x2 + w6*x5 + w6*x4 + w6*x3 + w6*x2 + w5*x7 + w5*x1 + w4*x5 + w4*x4 + w4*x3 + w4*x2 + w4*x1 + w3*x7 + w3*x6 + w3*x4 + w3*x3 + w2*x6 + w2*x5 \
+                              + w2*x4 + w2*x3 + w1*x2 + w1*x0 + w0*x6 + w0*x5 + w0*x4 + w0*x3 + w0*x2 + x7*x5 + x7*x2 + x7*x0 + x6**2 + x6*x5 + x6*x2 + x6*x1 + x6*x0 + x5**2 + x5*x4 + x4**2 \
+                              + x4*x2 + x4*x1 + x4*x0 + x3**2 + x3*x2 + x1*x0,
+                          w7**2 + w7*w5 + w7*w3 + w7*x7 + w7*x6 + w7*x4 + w7*x3 + w7*x2 + w6**2 + w6*w5 + w6*w2 + w6*w0 + w6*x7 + w6*x6 + w6*x3 + w6*x2 + w6*x1 + w6*x0 + w5**2 + w5*x7 + w5*x6 \
+                              + w5*x5 + w5*x4 + w5*x2 + w5*x1 + w4**2 + w4*w3 + w4*w2 + w4*w1 + w4*x6 + w4*x5 + w4*x2 + w4*x1 + w3**2 + w3*w1 + w3*x6 + w3*x5 + w3*x3 + w3*x0 + w2*w1 + w2*x7 \
+                              + w2*x4 + w2*x2 + w2*x1 + w1*x6 + w1*x5 + w1*x1 + w0*x5,
+                          w7*w5 + w7*w2 + w7*w0 + w7*x5 + w7*x3 + w6**2 + w6*w5 + w6*w2 + w6*w1 + w6*w0 + w6*x7 + w6*x3 + w6*x2 + w6*x0 + w5**2 + w5*w4 + w5*x7 + w5*x6 + w5*x4 + w5*x2 + w5*x0 \
+                              + w4**2 + w4*w2 + w4*w1 + w4*w0 + w4*x6 + w4*x4 + w4*x3 + w4*x2 + w4*x0 + w3**2 + w3*w2 + w3*x7 + w3*x6 + w3*x4 + w3*x3 + w3*x2 + w3*x0 + w2*x7 + w2*x6 + w2*x4 \
+                              + w2*x1 + w2*x0 + w1*w0 + w1*x5 + w1*x4 + w0*x1,
+                          w7**2 + w7*w4 + w7*w2 + w7*x6 + w7*x4 + w7*x0 + w6*w4 + w6*w3 + w6*w2 + w6*w1 + w6*x4 + w6*x3 + w6*x1 + w5**2 + w5*w4 + w5*w3 + w5*w2 + w5*w0 + w5*x7 + w5*x5 + w5*x3 \
+                              + w5*x1 + w5*x0 + w4*w3 + w4*w2 + w4*w1 + w4*x7 + w4*x5 + w4*x4 + w4*x3 + w4*x1 + w4*x0 + w3**2 + w3*x7 + w3*x5 + w3*x4 + w3*x3 + w3*x1 + w2*w0 + w2*x7 + w2*x5 \
+                              + w2*x2 + w2*x1 + w1*w0 + w1*x6 + w1*x5 + w0*x2])
+
+        return l
+
+    def _inversion_polynomials_single_sbox(self, x= None, w=None, biaffine_only=None, correct_only=None):
+        """
+        Generate inversion polynomials of a single S-box.
+
+        INPUT:
+            x -- output variables (default: None)
+            w -- input variables  (default: None)
+            biaffine_only -- only include biaffine polynomials (default: object default)
+            correct_only -- only include correct polynomials (default: object default)
+
+        EXAMPLES:
+            sage: sr = mq.SR(1, 1, 1, 8, gf2=True)
+            sage: len(sr._inversion_polynomials_single_sbox())
+            24
+            sage: len(sr._inversion_polynomials_single_sbox(correct_only=True))
+            23
+            sage: len(sr._inversion_polynomials_single_sbox(biaffine_only=False))
+            40
+            sage: len(sr._inversion_polynomials_single_sbox(biaffine_only=False, correct_only=True))
             39
         """
         e = self.e
@@ -2285,7 +2819,6 @@ class SR_gf2(SR_generic):
             l += self.inversion_polynomials_single_sbox(xi[j:j+e], wi[j:j+e])
         return l
 
-
     def field_polynomials(self, name, i, l=None):
         """
         Return list of field polynomials for a given round -- given by
@@ -2321,6 +2854,91 @@ class SR_gf2(SR_generic):
             return [self.R( fms%(i, rci, ei) + "**2 + " + fms%(i, rci, ei) )  for rci in range(l)  for ei in range(e) ]
         else:
             return []
+
+class SR_gf2_2(SR_gf2):
+    """
+    This is an example how to customize the SR constructor.
+
+    In this example, we replace the S-Box inversion polynomials by the
+    polynomials generated by the S-Box class.
+    """
+    def inversion_polynomials_single_sbox(self, x=None, w=None, biaffine_only=None, correct_only=None, groebner=False):
+        """
+        Return inversion polynomials of a single S-Box.
+
+        INPUT:
+            x -- output variables (default: None)
+            w -- input variables  (default: None)
+            biaffine_only -- ignored
+            correct_only -- always True
+            groebner -- precompute the Groebner basis for this S-Box (default: False).
+
+        EXAMPLES:
+            sage: from sage.crypto.mq.sr import SR_gf2_2
+            sage: e = 4
+            sage: sr = SR_gf2_2(1, 1, 1, e)
+            sage: P = PolynomialRing(GF(2),['x%d'%i for i in range(e)] + ['w%d'%i for i in range(e)],order='lex')
+            sage: X,W = P.gens()[:e],P.gens()[e:]
+            sage: sr.inversion_polynomials_single_sbox(X, W, groebner=True)
+            [x0 + w0*w1*w2 + w0*w1 + w0*w2 + w0*w3 + w0 + w1 + w2,
+             x1 + w0*w1*w3 + w0*w3 + w0 + w1*w3 + w1 + w2*w3,
+             x2 + w0*w2*w3 + w0*w2 + w0 + w1*w2 + w1*w3 + w2*w3,
+             x3 + w0*w1*w2 + w0 + w1*w2*w3 + w1*w2 + w1*w3 + w1 + w2 + w3]
+       """
+        e = self.e
+        if x is None and w is None:
+            # make sure it prints like in the book.
+            names = ["w%d" % i for i in reversed(range(e))] + ["x%d"%i for i in reversed(range(e))]
+            P = PolynomialRing(GF(2), e*2, names, order='lex')
+            x = P.gens()[e:]
+            w = P.gens()[:e]
+
+        S = self.sbox(inversion_only=True)
+        F =  S.polynomials(w, x, degree=e-2, groebner=groebner)
+        return F
+
+class AllowZeroInversionsContext:
+    """
+    Temporarily allow zero inversion.
+    """
+    def __init__(self, sr):
+        """
+        EXAMPLE:
+            sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
+            sage: sr = mq.SR(1,2,2,4)
+            sage: with AllowZeroInversionsContext(sr):
+            ...    sr.sub_byte(0)
+            a^2 + a
+        """
+        self.sr = sr
+    def __enter__(self):
+        """
+        EXAMPLE:
+            sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
+            sage: sr = mq.SR(1,2,2,4)
+            sage: sr.sub_byte(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: A zero inversion occurred during an encryption or key schedule.
+
+            sage: with AllowZeroInversionsContext(sr):
+            ...    sr.sub_byte(0)
+            a^2 + a
+        """
+        self.allow_zero_inversions = self.sr._allow_zero_inversions
+        self.sr._allow_zero_inversions = True
+    def __exit__(self, typ, value, tb):
+        """
+        EXAMPLE:
+            sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
+            sage: sr = mq.SR(1,2,2,4)
+            sage: with AllowZeroInversionsContext(sr):
+            ...    sr.sub_byte(0)
+            a^2 + a
+            sage: sr._allow_zero_inversions
+            False
+        """
+        self.sr._allow_zero_inversions = self.allow_zero_inversions
 
 
 def test_consistency(max_n=2, **kwargs):

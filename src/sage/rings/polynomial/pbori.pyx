@@ -2589,6 +2589,23 @@ cdef class BooleanPolynomial(MPolynomial):
         else:
             return k._zero_element
 
+    def constant_coefficient(self):
+        """
+        Returns the constant coefficient of this boolean polynomial.
+
+        EXAMPLE:
+            sage: B.<a,b> = BooleanPolynomialRing()
+            sage: a.constant_coefficient()
+            0
+            sage: (a+1).constant_coefficient()
+            1
+        """
+        cdef BooleanPolynomialRing B = <BooleanPolynomialRing>self._parent
+        if self._pbpoly.hasConstantPart():
+            return B._base._one_element
+        else:
+            return B._base._zero_element
+
     def __hash__(self):
         r"""
         Return hash for \code{self}.

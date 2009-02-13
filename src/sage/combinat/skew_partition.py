@@ -812,9 +812,9 @@ class SkewPartitions_n(CombinatorialClass):
             return 1
 
         if overlap > 0:
-            gg = sage.combinat.composition.Compositions(n, min_part = overlap).iterator()
+            gg = sage.combinat.composition.Compositions(n, min_part = overlap)
         else:
-            gg = sage.combinat.composition.Compositions(n).iterator()
+            gg = sage.combinat.composition.Compositions(n)
 
         sum_a = 0
         for co in gg:

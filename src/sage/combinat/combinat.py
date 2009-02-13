@@ -197,7 +197,7 @@ from sage.libs.all import pari
 from sage.misc.prandom import randint
 from sage.misc.misc import prod
 from sage.structure.sage_object import SageObject
-
+import sage
 ######### combinatorial sequences
 
 def hadamard_matrix(n):
@@ -794,7 +794,7 @@ class CombinatorialClass(SageObject):
         """
         return self.__repr__()
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES:
             sage: repr(Partitions(5))
@@ -827,17 +827,6 @@ class CombinatorialClass(SageObject):
         """
         raise NotImplementedError
 
-    def __iter__(self):
-        """
-        Allows the combinatorial class to be treated as an iterator.
-
-        EXAMPLES:
-            sage: p5 = Partitions(5)
-            sage: [i for i in p5]
-            [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
-        """
-        return self.iterator()
-
     def __cmp__(self, x):
         """
         Compares two different combinatorial classes.  For now, the comparison
@@ -859,14 +848,15 @@ class CombinatorialClass(SageObject):
         of the combinatorial class to count the number of objects.
 
         EXAMPLES:
-            sage: C = CombinatorialClass()
-            sage: it = lambda: iter([1,2,3])
-            sage: C.iterator = it
-            sage: C.count() #indirect doctest
+            sage: class C(CombinatorialClass):
+            ...     def __iter__(self):
+            ...          return iter([1,2,3])
+            ...
+            sage: C().count() #indirect doctest
             3
         """
         c = 0
-        for _ in self.iterator():
+        for _ in self:
             c += 1
         return c
     count = __count_from_iterator
@@ -899,14 +889,15 @@ class CombinatorialClass(SageObject):
         the iterator.
 
         EXAMPLES:
-            sage: C = CombinatorialClass()
-            sage: it = lambda: iter([1,2,3])
-            sage: C.iterator = it
-            sage: C.list() #indirect doctest
+            sage: class C(CombinatorialClass):
+            ...     def __iter__(self):
+            ...          return iter([1,2,3])
+            ...
+            sage: C().list() #indirect doctest
             [1, 2, 3]
 
         """
-        return [x for x in self.iterator()]
+        return [x for x in self]
 
     #Set list to the default implementation
     list  = __list_from_iterator
@@ -922,7 +913,7 @@ class CombinatorialClass(SageObject):
             sage: C = CombinatorialClass()
             sage: C.first = lambda: 0
             sage: C.next  = lambda c: c+1
-            sage: it = C.iterator() # indirect doctest
+            sage: it = C.__iter__() # indirect doctest
             sage: [it.next() for _ in range(4)]
             [0, 1, 2, 3]
         """
@@ -956,7 +947,7 @@ class CombinatorialClass(SageObject):
             ...           return c-1
             ...
             sage: C.previous  = prev
-            sage: it = C.iterator() # indirect doctest
+            sage: it = C.__iter__() # indirect doctest
             sage: [it.next() for _ in range(4)]
             [1, 2, 3, 4]
         """
@@ -982,7 +973,7 @@ class CombinatorialClass(SageObject):
             sage: C = CombinatorialClass()
             sage: l = [1,2,3]
             sage: C.unrank = lambda c: l[c]
-            sage: list(C.iterator()) # indirect doctest
+            sage: list(C.__iter__()) # indirect doctest
             [1, 2, 3]
         """
         r = 0
@@ -1007,23 +998,32 @@ class CombinatorialClass(SageObject):
         EXAMPLES:
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1, 2, 3]
-            sage: list(C.iterator()) # indirect doctest
+            sage: list(C.__iter__()) # indirect doctest
             [1, 2, 3]
         """
         for x in self.list():
             yield x
 
-    def iterator(self):
+    def __iter__(self):
         """
-        Default implementation of iterator.
+        Allows the combinatorial class to be treated as an iterator. Default
+        implementation.
 
         EXAMPLES:
+            sage: p5 = Partitions(5)
+            sage: [i for i in p5]
+            [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
             sage: C = CombinatorialClass()
-            sage: C.iterator()
+            sage: C.__iter__()
             Traceback (most recent call last):
             ...
             NotImplementedError: iterator called but not implemented
         """
+
+        if hasattr(self, 'iterator'):
+#            Prepare the deprecated bomb to be activated :-)
+#            sage.misc.misc.deprecation("The usage of iterator for combinatorial classes is deprecated. Please use the class itself")
+            return self.iterator()
         #Check to see if .first() and .next() are overridden in the subclass
         if ( self.first != self.__first_from_iterator and
              self.next  != self.__next_from_iterator ):
@@ -1052,7 +1052,7 @@ class CombinatorialClass(SageObject):
             2
         """
         counter = 0
-        for u in self.iterator():
+        for u in self:
             if counter == r:
                 return u
             counter += 1
@@ -1104,7 +1104,7 @@ class CombinatorialClass(SageObject):
             2
         """
         r = 0
-        for i in self.iterator():
+        for i in self:
             if i == obj:
                 return r
             r += 1
@@ -1122,7 +1122,7 @@ class CombinatorialClass(SageObject):
             sage: C.first() # indirect doctest
             1
         """
-        for i in self.iterator():
+        for i in self:
             return i
 
     first = __first_from_iterator
@@ -1137,7 +1137,7 @@ class CombinatorialClass(SageObject):
             sage: C.last() # indirect doctest
             3
         """
-        for i in self.iterator():
+        for i in self:
             pass
         return i
 
@@ -1154,7 +1154,7 @@ class CombinatorialClass(SageObject):
             3
         """
         found = False
-        for i in self.iterator():
+        for i in self:
             if found:
                 return i
             if i == obj:
@@ -1174,7 +1174,7 @@ class CombinatorialClass(SageObject):
             1
         """
         prev = None
-        for i in self.iterator():
+        for i in self:
             if i == obj:
                 break
             prev = i
@@ -1294,18 +1294,18 @@ class FilteredCombinatorialClass(CombinatorialClass):
             1
         """
         c = 0
-        for _ in self.iterator():
+        for _ in self:
             c += 1
         return c
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES:
             sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
-            sage: list(P.iterator())
+            sage: list(P)
             [[3, 2, 1]]
         """
-        for x in self.combinatorial_class.iterator():
+        for x in self.combinatorial_class:
             if self.f(x):
                 yield x
 
@@ -1378,11 +1378,11 @@ class UnionCombinatorialClass(CombinatorialClass):
         return self.left_cc.list() + self.right_cc.list()
 
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES:
             sage: P = Permutations(3).union(Permutations(2))
-            sage: list(P.iterator())
+            sage: list(P)
             [[1, 2, 3],
              [1, 3, 2],
              [2, 1, 3],
@@ -1392,9 +1392,9 @@ class UnionCombinatorialClass(CombinatorialClass):
              [1, 2],
              [2, 1]]
         """
-        for x in self.left_cc.iterator():
+        for x in self.left_cc:
             yield x
-        for x in self.right_cc.iterator():
+        for x in self.right_cc:
             yield x
 
     def first(self):
@@ -1493,7 +1493,6 @@ class MapCombinatorialClass(CombinatorialClass):
         for x in self.cc:
             yield self.f(x)
 
-    iterator = __iter__
 
 def hurwitz_zeta(s,x,N):
     """

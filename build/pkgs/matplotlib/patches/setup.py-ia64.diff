@@ -1,5 +1,5 @@
---- ../matplotlib-src-svn-6821/setup.py	2009-01-23 13:49:20.000000000 -0800
-+++ src/setup.py	2009-01-23 17:46:24.000000000 -0800
+--- setup.py.orig	2009-01-23 13:49:20.000000000 -0800
++++ setup.py	2009-01-23 17:46:24.000000000 -0800
 @@ -130,7 +130,7 @@
  # the options can be True, False, or 'auto'. If True, try to build
  # regardless of the lack of dependencies. If auto, silently skip

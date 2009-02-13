@@ -581,7 +581,7 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_mod2_dense',
               sources = ['sage/matrix/matrix_mod2_dense.pyx'],
-              libraries = ['gmp','m4ri', 'png', 'gd']),
+              libraries = ['gmp','m4ri', 'png12', 'gd']),
 
     Extension('sage.matrix.matrix_modn_dense',
               sources = ['sage/matrix/matrix_modn_dense.pyx'],

@@ -87,7 +87,10 @@ def plot_vector_field((f, g), xrange, yrange, **options):
         sage: f = exp(-(u^2+v^2))
         sage: plot_vector_field(f.gradient(), (u,-2,2), (v,-2,2))
 
-
+    We ignore function values that are infinite or NaN.
+        sage: x,y = var('x,y')
+        sage: plot_vector_field( (-x/sqrt(x^2+y^2), -y/sqrt(x^2+y^2)), (x, -10, 10), (y, -10, 10))
+        sage: plot_vector_field( (-x/sqrt(x+y), -y/sqrt(x+y)), (x, -10, 10), (y, -10, 10))
     """
     from sage.plot.plot import setup_for_eval_on_grid, Graphics
     z, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f,g], xrange, yrange, options['plot_points'])
@@ -102,8 +105,8 @@ def plot_vector_field((f, g), xrange, yrange, **options):
             yvec_array.append(g(x,y))
 
     import numpy
-    xvec_array = numpy.array(xvec_array, dtype=float)
-    yvec_array = numpy.array(yvec_array, dtype=float)
+    xvec_array = numpy.ma.masked_invalid(numpy.array(xvec_array, dtype=float))
+    yvec_array = numpy.ma.masked_invalid(numpy.array(yvec_array, dtype=float))
     g = Graphics()
     g.add_primitive(PlotField(xpos_array, ypos_array, xvec_array, yvec_array, options))
     return g

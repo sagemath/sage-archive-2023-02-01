@@ -34,6 +34,7 @@ import server_conf  # server configuration
 import user_conf    # user configuration
 import user         # users
 
+from cgi import escape
 
 SYSTEMS = ['sage', 'gap', 'gp', 'jsmath', 'html', 'latex', 'maxima', 'python', 'r', 'sage', 'sh', 'singular', 'axiom (optional)', 'kash (optional)', 'macaulay2 (optional)', 'magma (optional)', 'maple (optional)', 'mathematica (optional)', 'matlab (optional)', 'mupad (optional)', 'octave (optional)']
 
@@ -821,7 +822,7 @@ class Notebook(SageObject):
 
     def user_history_html(self, username):
         t = self.user_history_text(username)
-        t = t.replace('<','&lt;')
+        t = escape(t)
         s = """
         <html>
         <head>
@@ -881,7 +882,7 @@ class Notebook(SageObject):
 
     def history_html(self):
         t = self.history_text()
-        t = t.replace('<','&lt;')
+        t = escape(t)
         s = '<head>\n'
         s += '<title>Command History</title>\n'
         s += '</head>\n'
@@ -1107,7 +1108,7 @@ class Notebook(SageObject):
     def plain_text_worksheet_html(self, name, prompts=True):
         W = self.get_worksheet_with_filename(name)
         t = W.plain_text(prompts = prompts)
-        t = t.replace('<','&lt;')
+        t = escape(t)
         s = '<head>\n'
         s += '<title>Sage Worksheet: %s</title>\n'%W.name()
         s += '</head>\n'
@@ -1980,7 +1981,7 @@ $.editable.addInputType('mce', {
         head, body = self.html_worksheet_page_template(worksheet, username, 'View plain text', select="text")
 
         t = worksheet.plain_text(prompts=True, banner=False)
-        t = t.replace('<','&lt;')
+        t = escape(t)
         body += """
         <pre class="plaintext" id="cell_intext" name="textfield">%s
         </pre>
@@ -2011,7 +2012,7 @@ function save_worksheet_and_close() {
         </script>
         """
         t = worksheet.edit_text()
-        t = t.replace('&','&amp;').replace('<','&lt;')
+        t = escape(t)
         body = '<form method="post" action="save" enctype="multipart/form-data">' + body
         body += """
         <textarea class="plaintextedit" id="cell_intext" name="textfield" rows="%s">%s</textarea>

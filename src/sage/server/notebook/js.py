@@ -1820,7 +1820,7 @@ function cell_input_resize(id) {
     var resizer = get_element('cell_resizer');
     var cell_input = get_cell(id);
     resizer.style.width = cell_input.offsetWidth + 'px';
-    resizer.innerHTML = cell_input.value.replace(/</g,'&lt;').replace(/\r?\n/g,'<br>').replace(/\s\s/g,' &nbsp;') + '&nbsp;';
+    resizer.innerHTML = cell_input.value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\r?\n/g,'<br>').replace(/\s\s/g,' &nbsp;') + '&nbsp;';
     cell_input.style.height = resizer.offsetHeight + 'px';
 
     if(slide_hidden) {

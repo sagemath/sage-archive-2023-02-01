@@ -39,6 +39,7 @@ from   sage.misc.html import math_parse
 from   sage.misc.preparser import strip_string_literals
 from   sage.misc.package   import is_package_installed
 
+from cgi import escape
 
 if is_package_installed("tinyMCE"):
     JEDITABLE_TINYMCE = True
@@ -1260,7 +1261,7 @@ class Cell(Cell_generic):
 
     def parse_html(self, s, ncols):
         def format(x):
-            return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+            return word_wrap(escape(x), ncols=ncols)
 
         def format_html(x):
             return self.process_cell_urls(x)
@@ -1270,9 +1271,8 @@ class Cell(Cell_generic):
         if not self.is_interactive_cell():
             s = format_exception(format_html(s), ncols)
 
-        # Everything not wrapped in <html> ... </html>
-        # should have the <'s replaced by &lt;'s
-        # and be word wrapped.
+        # Everything not wrapped in <html> ... </html> should be
+        # escaped and word wrapped.
         t = ''
         while len(s) > 0:
             i = s.find('<html>')
@@ -1359,7 +1359,7 @@ class Cell(Cell_generic):
         if completing:
             self.__introspect_html = html
         else:
-            html = html.replace('<','&lt;').strip()
+            html = escape(html).strip()
             self.__introspect_html = '<pre class="introspection">'+html+'</pre>'
 
     def introspect_html(self):
@@ -1580,7 +1580,7 @@ class Cell(Cell_generic):
         r = max(1, number_of_rows(t.strip(), ncols))
 
         if do_print:
-            tt = t.replace('<','&lt;').replace('\n','<br>').replace('  ',' &nbsp;') + '&nbsp;'
+            tt = escape(t).replace('\n','<br>').replace('  ',' &nbsp;') + '&nbsp;'
             s += '<div class="cell_input_print">%s</div>'%tt
         else:
             s += """
@@ -1597,7 +1597,7 @@ class Cell(Cell_generic):
         if not do_print:
            s+= '<a href="javascript:evaluate_cell(%s,0)" class="eval_button" id="eval_button%s" alt="Click here or press shift-return to evaluate">evaluate</a>'%(id,id)
 
-        t = t.replace("<","&lt;")+" "
+        t = escape(t)+" "
 
         return s
 

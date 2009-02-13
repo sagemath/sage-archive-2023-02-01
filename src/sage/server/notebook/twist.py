@@ -276,7 +276,7 @@ class Source(resource.Resource):
                 src = "No such file '%s'"%filename
             else:
                 src = open(filename).read()
-            src = src.replace('<','&lt;')
+            src = escape(src)
             return http.Response(stream = template('source_code.html', src_filename=self.path, src=src, username=self.username))
         else:
             return static.File(filename)

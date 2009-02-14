@@ -557,8 +557,7 @@ class Gap(Expect):
                 elif x == 8: # @i awaiting normal input
                     break;
                 elif x == 9: # @m finished running a child
-                             # not generated in GAP 4
-                    print "Warning: this should never happen"
+                    pass   # there is no need to do anything
                 elif x==10: #@n normal output line
                     current_outputs = normal_outputs;
                 elif x==11: #@r echoing input
@@ -570,8 +569,7 @@ class Gap(Expect):
                 elif x ==14: #@x seems to be safely ignorable
                     pass
                 elif x == 15:#@z GAP starting a subprocess
-                             # actually not used
-                        print "Warning: this should never happen"
+                    pass  # there is no need to do anything
         except pexpect.EOF:
             if not expect_eof:
                 raise RuntimeError, "Unexpected EOF from %s executing %s"%(self,line)

@@ -32,6 +32,7 @@ Replace setupext.py by a version that adds some SAGE-specific paths so the build
 
 === matplotlib-0.98.5.3rc0-svn6910.p0 (Michael Abshoff, February 14, 2009) ===
  * link against libpng12 instead of libpng (#4774)
+ * disable tkagg on all machines since it causes too much trouble
 
 === matplotlib-0.98.5.3rc0-svn6910 (Jason Grout, February 13, 2009) ===
  * Update to the latest SVN version (6910) of Matplotlib and update patches.  Two patches disappear because one patch was just updating quiver.py to a mid-release version and arrow_line.py is now subsumed by much nicer functionality in Matplotlib.

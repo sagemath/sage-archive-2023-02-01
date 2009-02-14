@@ -21,11 +21,9 @@ if [ `uname` = "SunOS" ]; then
     $CP patches/pprdrv_tt2.cpp src/ttconv/pprdrv_tt2.cpp
 fi
 
-if [ `uname -m` = "ia64" ]; then
-    echo "Work around a problem building tkgui on some Itanium Linux machines."
-    echo "This is a 1-line fix that just turns off checking for that GUI frontend."
-    $CP patches/setup.py-ia64 src/setup.py
-fi
+echo "Work around a problem building tkgui on some Linux/Solaris  machines."
+echo "This is a 1-line fix that just turns off checking for that GUI frontend."
+$CP patches/setup.py-ia64 src/setup.py
 
 cd src
 

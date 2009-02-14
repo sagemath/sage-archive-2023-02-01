@@ -14,6 +14,10 @@ EXAMPLE:
     Hyperelliptic Curve over Rational Field defined by y^2 = 4*x^5 - 30*x^3 + 45*x - 22
     sage: C.genus()
     2
+
+    sage: D = C.affine_patch(0)
+    sage: D.defining_polynomials()[0].parent()
+    Multivariate Polynomial Ring in x0, x1 over Rational Field
 """
 
 #*****************************************************************************

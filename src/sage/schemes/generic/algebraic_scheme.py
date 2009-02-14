@@ -206,7 +206,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             G = tuple(G)
         if len(G) > 0:
             G = self._validate(G)
-        self.__G = G  # now G is a tuple of defining polynomials.
+        R = A.coordinate_ring()
+        self.__G = tuple([R(g) for g in G])  # now G is a tuple of defining polynomials.
 
     def _validate(self, G):
         G = Sequence(G)  # make sure they have a common parent

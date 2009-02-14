@@ -30,6 +30,9 @@ Replace setupext.py by a version that adds some SAGE-specific paths so the build
 
 == Changelog ==
 
+=== matplotlib-0.98.5.3rc0-svn6910.p1 (Jason Grout, February 14, 2009) ===
+ * Add a patch for patches.py, which ignores the errors generated when trying to draw arrows that are "too short".
+
 === matplotlib-0.98.5.3rc0-svn6910.p0 (Michael Abshoff, February 14, 2009) ===
  * link against libpng12 instead of libpng (#4774)
  * disable tkagg on all machines since it causes too much trouble

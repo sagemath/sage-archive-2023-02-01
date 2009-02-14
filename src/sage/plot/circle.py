@@ -49,10 +49,12 @@ class Circle(GraphicPrimitive):
         return {'alpha':'How transparent the line is.',
                 'fill': 'Whether or not to fill the polygon.',
                 'thickness':'How thick the border of the polygon is.',
-                'rgbcolor':'The color as an rgb tuple.',
+                'edgecolor':'2d only: The color of the edge as an rgb tuple.',
+                'facecolor':'2d only: The color of the face as an rgb tuple.',
+                'rgbcolor':'The color (edge and face) as an rgb tuple.',
                 'hue':'The color given as a hue.',
-                'zorder':'The layer level in which to draw',
-                'linestyle':"The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+                'zorder':'2d only: The layer level in which to draw',
+                'linestyle':"2d only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
 
     def _repr_(self):
         return "Circle defined by (%s,%s) with r=%s"%(self.x, self.y, self.r)
@@ -65,9 +67,12 @@ class Circle(GraphicPrimitive):
         p.set_fill(options['fill'])
         a = float(options['alpha'])
         p.set_alpha(a)
-        c = to_mpl_color(options['rgbcolor'])
-        p.set_edgecolor(c)
-        p.set_facecolor(c)
+        ec = to_mpl_color(options['edgecolor'])
+        fc = to_mpl_color(options['facecolor'])
+        if 'rgbcolor' in options:
+            ec = fc = to_mpl_color(options['rgbcolor'])
+        p.set_edgecolor(ec)
+        p.set_facecolor(fc)
         p.set_linestyle(options['linestyle'])
         subplot.add_patch(p)
 
@@ -81,6 +86,9 @@ class Circle(GraphicPrimitive):
         fill = options['fill']
         del options['fill']
         del options['linestyle']
+        del options['edgecolor']
+        del options['facecolor']
+        del options['zorder']
         n = 50
         dt = float(2*pi/n)
         x, y, r = self.x, self.y, self.r
@@ -94,7 +102,7 @@ class Circle(GraphicPrimitive):
             return Line(xdata, ydata, options).plot3d()
 
 
-@options(alpha=1, fill=False, thickness=1, rgbcolor=(0,0,1), linestyle='solid')
+@options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid', zorder=5)
 def circle(center, radius, **options):
     """
     Return a circle at a point = $(x,y)$ with radius = $r$.
@@ -110,6 +118,8 @@ def circle(center, radius, **options):
         thickness -- default: 1
         rgbcolor -- default: (0,0,0)
         linestyle -- default: 'solid' (2d plotting only)
+        edgecolor -- default: 'black' (2d plotting only)
+        facecolor -- default: 'red' (2d plotting only)
 
     EXAMPLES:
         sage: c = circle((1,1), 1, rgbcolor=(1,0,0))

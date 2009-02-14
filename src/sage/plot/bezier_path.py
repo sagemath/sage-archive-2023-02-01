@@ -89,6 +89,7 @@ class BezierPath(GraphicPrimitive):
         options = self.options()
         bpatch.set_linewidth(float(options['thickness']))
         bpatch.set_fill(options['fill'])
+        bpatch.set_zorder(options['zorder'])
         a = float(options['alpha'])
         bpatch.set_alpha(a)
         c = to_mpl_color(options['rgbcolor'])

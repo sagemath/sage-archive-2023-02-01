@@ -5248,12 +5248,26 @@ class GenericGraph(SageObject):
     @options(vertex_size=200, vertex_labels=True, layout=None,
             edge_style='solid', edge_colors='black', edge_labels=False,
             iterations=50, tree_orientation='down', heights=None, graph_border=False,
-            talk=False, color_by_label=False, partition=None)
+            talk=False, color_by_label=False, partition=None,
+            dist = .075, max_dist=1.5, loop_size=.075)
     def graphplot(self, **options):
         """
-        TODO: docstring
-
         Returns a GraphPlot object.
+
+        EXAMPLES:
+
+        Creating a graphplot object uses the same options as graph.plot():
+            sage: g = Graph({}, loops=True, multiedges=True)
+            sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
+            ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            sage: GP = g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed')
+            sage: GP.plot()
+
+        We can modify the graphplot object.  Notice that the changes are cumulative:
+            sage: GP.set_edges(edge_style='solid')
+            sage: GP.plot()
+            sage: GP.set_vertices(talk=True)
+            sage: GP.plot()
         """
         from sage.graphs.graph_plot import GraphPlot
         return GraphPlot(graph=self, options=options)
@@ -5265,8 +5279,6 @@ class GenericGraph(SageObject):
             dist = .075, max_dist=1.5, loop_size=.075)
     def plot(self, **options):
         """
-        TODO:  docstring
-
         Returns a graphics object representing the (di)graph.
 
         INPUT:
@@ -5286,6 +5298,8 @@ class GenericGraph(SageObject):
                 each label l. Labels equal to None are not printed (to set edge
                 labels, see set_edge_label).
             vertex_size -- size of vertices displayed
+            vertex_shape -- the shape to draw the vertices (Not available for
+                multiedge digraphs.
             graph_border -- whether to include a box around the graph
             vertex_colors -- optional dictionary to specify vertex colors: each
                 key is a color recognizable by matplotlib, and each corresponding
@@ -5319,31 +5333,29 @@ class GenericGraph(SageObject):
                 upwards (resp. downwards). Ignored unless layout='tree'.
             save_pos -- save position computed during plotting
 
-
-
         EXAMPLES:
             sage: from sage.graphs.graph_plot import graphplot_options
-            sage: graphplot_options
-            {'color_by_label': 'Whether or not to color the edges by their label values.',
-             'dist': 'The distance between multiedges.',
-             'edge_colors': 'Dictionary of edge coloring.',
-             'edge_labels': 'Whether or not to draw edge labels.',
-             'edge_style': 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot".',
-             'graph_border': 'Whether or not to draw a frame around the graph.',
-             'heights': 'Dictionary specifying height (y positions) for vertices.',
-             'iterations': 'The number of times to execute the spring layout algorithm.',
-             'layout': 'A specified layout style-- one of "spring", "circular", "tree".',
-             'loop_size': 'The radius of the smallest loop.',
-             'max_dist': 'The max distance range to allow multiedges.',
-             'partition': 'A partition of the vertex set.  (Draws each cell of vertices in a different color).',
-             'pos': 'The position dictionary of vertices',
-             'save_pos': 'Whether or not to save the computed position for the graph.',
-             'tree_orientation': 'The direction of tree branches-- "up" or "down".',
-             'tree_root': 'A vertex designation for drawing trees.',
-             'vertex_colors': 'Dictionary of vertex coloring.',
-             'vertex_labels': 'Whether or not to draw vertex labels.',
-             'vertex_size': 'The size to draw the vertices.'}
-
+            sage: list(sorted(graphplot_options.iteritems()))
+            [('color_by_label', 'Whether or not to color the edges by their label values.'),
+            ('dist', 'The distance between multiedges.'),
+            ('edge_colors', 'Dictionary of edge coloring.'),
+            ('edge_labels', 'Whether or not to draw edge labels.'),
+            ('edge_style', 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot".'),
+            ('graph_border', 'Whether or not to draw a frame around the graph.'),
+            ('heights', 'Dictionary specifying height (y positions) for vertices.'),
+            ('iterations', 'The number of times to execute the spring layout algorithm.'),
+            ('layout', 'A specified layout style-- one of "spring", "circular", "tree".'),
+            ('loop_size', 'The radius of the smallest loop.'),
+            ('max_dist', 'The max distance range to allow multiedges.'),
+            ('partition', 'A partition of the vertex set.  (Draws each cell of vertices in a different color).'),
+            ('pos', 'The position dictionary of vertices'),
+            ('save_pos', 'Whether or not to save the computed position for the graph.'),
+            ('tree_orientation', 'The direction of tree branches-- "up" or "down".'),
+            ('tree_root', 'A vertex designation for drawing trees.'),
+            ('vertex_colors', 'Dictionary of vertex coloring.'),
+            ('vertex_labels', 'Whether or not to draw vertex labels.'),
+            ('vertex_shape', 'The shape to draw the vertices, Currently unavailable for Multi-edged DiGraphs.'),
+            ('vertex_size', 'The size to draw the vertices.')]
 
             sage: from math import sin, cos, pi
             sage: P = graphs.PetersenGraph()
@@ -5428,16 +5440,16 @@ class GenericGraph(SageObject):
              9: [0.47..., 0.15...]}
             sage: P = G.plot(save_pos=True, layout='spring')
             sage: G.get_pos()
-            {0: [-0.39..., 0.06...],
-             1: [-0.26..., 0.94...],
-             2: [-0.29..., 0.43...],
-             3: [-0.40..., -0.70...],
-             4: [-0.88..., -0.46...],
-             5: [0.75..., -0.1...],
-             6: [0.32..., 0.28...],
-             7: [0.67..., 0.52...],
-             8: [0.44..., -0.72...],
-             9: [0.05..., -0.19...]}
+            {0: [-0.81..., -0.32...],
+            1: [-0.49..., 0.53...],
+            2: [0.04..., 0.96...],
+            3: [0.00..., 0.01...],
+            4: [0.17..., -0.71...],
+            5: [-0.47..., 0.06...],
+            6: [0.35..., -0.17...],
+            7: [0.54..., 0.50...],
+            8: [-0.30..., -0.57...],
+            9: [0.95..., -0.28...]}
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
@@ -5462,6 +5474,19 @@ class GenericGraph(SageObject):
             sage: t = DiGraph('JCC???@A??GO??CO??GO??')
             sage: t.plot(layout='tree', tree_root=0, tree_orientation="up")
 
+            sage: D = DiGraph({0:[1,2,3], 2:[1,4], 3:[0]})
+            sage: D.plot()
+
+            sage: D = DiGraph(multiedges=True)
+            sage: for i in range(5):
+            ...     D.add_edge((i,i+1,'a'))
+            ...     D.add_edge((i,i-1,'b'))
+            sage: D.plot(edge_labels=True,edge_colors=D._color_by_label())
+
+            sage: g = Graph({}, loops=True, multiedges=True)
+            sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
+            ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            sage: g.plot(edge_labels=True, color_by_label=True, edge_style='dashed')
         """
         from sage.graphs.graph_plot import GraphPlot
         return GraphPlot(graph=self, options=options).plot()
@@ -5477,8 +5502,6 @@ class GenericGraph(SageObject):
             sage: C = graphs.CubeGraph(8)
             sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()
-
-        TODO:  this will break because argspec for plot is different
         """
         kwds.setdefault('figsize', [4,4])
         from graph_plot import graphplot_options

@@ -1769,7 +1769,7 @@ jsMath.styles = {
         # Jmol -- embedded 3d graphics.
         head +=' <script type="text/javascript" src="/java/jmol/appletweb/Jmol.js"></script>\n'
 
-        head +=' <script>jmolInitialize("/java/jmol");</script>\n' # this must stay in the <head>
+        head +=' <script>jmolInitialize("/java/jmol");jmolSetCallback("menuFile","/java/jmol/appletweb/SageMenu.mnu");</script>\n' # this must stay in the <head>
 
         # TinyMCE and jEditable -- in-place editing of text cells
         if JEDITABLE_TINYMCE:

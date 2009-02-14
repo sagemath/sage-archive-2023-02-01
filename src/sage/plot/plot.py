@@ -2421,12 +2421,22 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
 
     EXAMPLES:
         sage: x,y = var('x,y')
-        sage: sage.plot.plot.setup_for_eval_on_grid([x^2 + y^2], (x,0,5), (y,0,pi), 10)
+        sage: sage.plot.plot.setup_for_eval_on_grid([x^2 + y^2], (x,0,5), (y,0,pi), 11)
         ([<sage.ext.fast_eval.FastDoubleFunc object at ...>],
          0.5,
          0.31415926535897931,
          (0.0, 5.0),
          (0.0, 3.1415926535897931))
+
+    We always plot at least two points; one at the beginning and one at the end of the ranges.
+        sage: sage.plot.plot.setup_for_eval_on_grid([x^2+y^2], (x,0,1), (y,-1,1), 1)
+        ([<sage.ext.fast_eval.FastDoubleFunc object at ...>],
+        1.0,
+        2.0,
+        (0.0, 1.0),
+        (-1.0, 1.0))
+
+
     """
     if len(xrange) == 3:
         xvar = xrange[0]
@@ -2438,10 +2448,10 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
     xrange = tuple([float(z) for z in xrange])
     yrange = tuple([float(z) for z in yrange])
     plot_points = int(plot_points)
-    if plot_points <= 0:
-        plot_points = 1
-    xstep = abs(xrange[0] - xrange[1])/plot_points
-    ystep = abs(yrange[0] - yrange[1])/plot_points
+    if plot_points <= 1:
+        plot_points = 2
+    xstep = abs(xrange[0] - xrange[1])/(plot_points-1)
+    ystep = abs(yrange[0] - yrange[1])/(plot_points-1)
 
     g = []
     for f in v:

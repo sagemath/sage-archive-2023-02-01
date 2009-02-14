@@ -98,8 +98,8 @@ def plot_vector_field((f, g), xrange, yrange, **options):
     f,g = z
 
     xpos_array, ypos_array, xvec_array, yvec_array = [],[],[],[]
-    for x in xsrange(xrange[0], xrange[1], xstep):
-        for y in xsrange(yrange[0], yrange[1], ystep):
+    for x in xsrange(xrange[0], xrange[1], xstep, include_endpoint=True):
+        for y in xsrange(yrange[0], yrange[1], ystep, include_endpoint=True):
             xpos_array.append(x)
             ypos_array.append(y)
             xvec_array.append(f(x,y))

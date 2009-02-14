@@ -664,7 +664,7 @@ class GraphPlot(SageObject):
             sage: D.show(partition=Pi)
 
             sage: G = graphs.PetersenGraph()
-            sage: G.loops(True)
+            sage: G.allow_loops(True)
             sage: G.add_edge(0,0)
             sage: G.show()
 

@@ -97,9 +97,9 @@ def Poset(data, element_labels=None, cover_relations=True):
     6. Any directed acyclic graph without loops or multiple edges as
     long as cover_relations=False.
         sage: dig = DiGraph({0:[2,3], 1:[3,4,5], 2:[5], 3:[5], 4:[5]})
-        sage: dig.multiple_edges()
+        sage: dig.allows_multiple_edges()
         False
-        sage: dig.loops()
+        sage: dig.allows_loops()
         False
         sage: dig.transitive_reduction() == dig
         False
@@ -144,9 +144,9 @@ def Poset(data, element_labels=None, cover_relations=True):
 
     # Check that the digraph does not contain loops, multiple edges
     # and is transitively reduced.
-    if D.loops():
+    if D.has_loops():
         raise ValueError, "Hasse diagram contains loops."
-    elif D.multiple_edges():
+    elif D.has_multiple_edges():
         raise ValueError, "Hasse diagram contains multiple edges."
     elif cover_relations is True \
             and not D.transitive_reduction() == D:

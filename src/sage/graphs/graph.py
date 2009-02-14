@@ -316,7 +316,7 @@ class GenericGraph(SageObject):
             sage: H = Graph( {1:[0], 2:[0], 3:[0], 4:[0], 5:[0], 6:[0], 7:[0]} )
             sage: G == H
             True
-            sage: G.loops(True)
+            sage: G.allow_loops(True)
             sage: G == H
             False
             sage: G = graphs.RandomGNP(9,.3).to_directed()
@@ -353,9 +353,9 @@ class GenericGraph(SageObject):
         g2_is_graph = isinstance(other, Graph)
         if g1_is_graph != g2_is_graph:
             return False
-        if self.multiple_edges() != other.multiple_edges():
+        if self.allows_multiple_edges() != other.allows_multiple_edges():
             return False
-        if self.loops() != other.loops():
+        if self.allows_loops() != other.allows_loops():
             return False
         if self.vertices() != other.vertices():
             return False
@@ -363,7 +363,7 @@ class GenericGraph(SageObject):
             return False
         verts = self.vertices()
         # Finally, we are prepared to check edges:
-        if not self.multiple_edges():
+        if not self.allows_multiple_edges():
             for i in verts:
                 for j in verts:
                     if self.has_edge(i,j) != other.has_edge(i,j):
@@ -571,9 +571,9 @@ class GenericGraph(SageObject):
 
         """
         name = ""
-        if self.loops():
+        if self.allows_loops():
             name += "looped "
-        if self.multiple_edges():
+        if self.allows_multiple_edges():
             name += "multi-"
         if self._directed:
             name += "di"
@@ -684,7 +684,7 @@ class GenericGraph(SageObject):
                 class_type = networkx.XDiGraph
             else:
                 class_type = networkx.XGraph
-            N = class_type(selfloops=self.loops(), multiedges=self.multiple_edges(),
+            N = class_type(selfloops=self.allows_loops(), multiedges=self.allows_multiple_edges(),
                            name=self.name())
             N.add_nodes_from(self.vertices())
             N.add_edges_from(self.edges())
@@ -771,17 +771,17 @@ class GenericGraph(SageObject):
         new_indices = dict((v,i) for i,v in enumerate(verts))
         D = {}
         directed = self._directed
-        multiple_edges = self.multiple_edges()
+        multiple_edges = self.allows_multiple_edges()
         for i,j,l in self.edge_iterator():
             i = new_indices[i]
             j = new_indices[j]
             if multiple_edges and (i,j) in D:
                 D[(i,j)] += 1
-                if not directed:
+                if not directed and i != j:
                     D[(j,i)] += 1
             else:
                 D[(i,j)] = 1
-                if not directed:
+                if not directed and i != j:
                     D[(j,i)] = 1
         from sage.rings.integer_ring import IntegerRing
         from sage.matrix.constructor import matrix
@@ -799,23 +799,23 @@ class GenericGraph(SageObject):
         EXAMPLE:
             sage: G = graphs.CubeGraph(3)
             sage: G.incidence_matrix()
-            [ 0  1  0  0  0  0  1 -1  0  0  0  0]
-            [ 0  0  0  1  0 -1 -1  0  0  0  0  0]
             [-1 -1 -1  0  0  0  0  0  0  0  0  0]
-            [ 1  0  0 -1 -1  0  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0  1  0  0  1 -1]
-            [ 0  0  0  0  0  1  0  0  1  0  0  1]
-            [ 0  0  1  0  0  0  0  0  0  1 -1  0]
-            [ 0  0  0  0  1  0  0  0 -1 -1  0  0]
+            [ 0  0  1 -1 -1  0  0  0  0  0  0  0]
+            [ 0  1  0  0  0 -1 -1  0  0  0  0  0]
+            [ 0  0  0  0  1  0  1 -1  0  0  0  0]
+            [ 1  0  0  0  0  0  0  0 -1 -1  0  0]
+            [ 0  0  0  1  0  0  0  0  0  1 -1  0]
+            [ 0  0  0  0  0  1  0  0  1  0  0 -1]
+            [ 0  0  0  0  0  0  0  1  0  0  1  1]
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
             sage: D.incidence_matrix()
-            [-1 -1 -1  1  0  0  0  1  0  0]
-            [ 1  0  0 -1 -1  0  0  0  0  1]
-            [ 0  1  0  0  1 -1  0  0  0  0]
-            [ 0  0  1  0  0  1 -1  0  0  0]
-            [ 0  0  0  0  0  0  1 -1 -1  0]
-            [ 0  0  0  0  0  0  0  0  1 -1]
+            [-1 -1 -1  0  0  0  0  0  1  1]
+            [ 0  0  1 -1  0  0  0  1 -1  0]
+            [ 0  1  0  1 -1  0  0  0  0  0]
+            [ 1  0  0  0  1 -1  0  0  0  0]
+            [ 0  0  0  0  0  1 -1  0  0 -1]
+            [ 0  0  0  0  0  0  1 -1  0  0]
 
         """
         from sage.matrix.constructor import matrix
@@ -824,13 +824,24 @@ class GenericGraph(SageObject):
         verts = self.vertices()
         d = [0]*n
         cols = []
-        for i, j, l in self.edge_iterator():
-            col = copy(d)
-            i = verts.index(i)
-            j = verts.index(j)
-            col[i] = -1
-            col[j] = 1
-            cols.append(col)
+        if self._directed:
+            for i, j, l in self.edge_iterator():
+                col = copy(d)
+                i = verts.index(i)
+                j = verts.index(j)
+                col[i] = -1
+                col[j] = 1
+                cols.append(col)
+        else:
+            for i, j, l in self.edge_iterator():
+                col = copy(d)
+                i,j = (i,j) if i <= j else (j,i)
+                i = verts.index(i)
+                j = verts.index(j)
+                col[i] = -1
+                col[j] = 1
+                cols.append(col)
+        cols.sort()
         return matrix(cols, sparse=sparse).transpose()
 
     def weighted_adjacency_matrix(self, sparse=True, boundary_first=False):
@@ -859,7 +870,7 @@ class GenericGraph(SageObject):
             [1 0 0]
 
         """
-        if self.multiple_edges():
+        if self.has_multiple_edges():
             raise NotImplementedError, "Don't know how to represent weights for a multigraph."
 
         verts = self.vertices(boundary_first=boundary_first)
@@ -1083,51 +1094,405 @@ class GenericGraph(SageObject):
                     return False
         return True
 
-    def loops(self, new=None):
+    def has_loops(self):
         """
-        Returns whether loops are permitted in the graph.
+        Returns whether there are loops in the (di)graph.
+
+        EXAMPLES:
+            sage: G = Graph(loops=True); G
+            Looped graph on 0 vertices
+            sage: G.has_loops()
+            False
+            sage: G.allows_loops()
+            True
+            sage: G.add_edge((0,0))
+            sage: G.has_loops()
+            True
+            sage: G.loops()
+            [(0, 0, None)]
+            sage: G.allow_loops(False); G
+            Graph on 1 vertex
+            sage: G.has_loops()
+            False
+            sage: G.edges()
+            []
+
+            sage: D = DiGraph(loops=True); D
+            Looped digraph on 0 vertices
+            sage: D.has_loops()
+            False
+            sage: D.allows_loops()
+            True
+            sage: D.add_edge((0,0))
+            sage: D.has_loops()
+            True
+            sage: D.loops()
+            [(0, 0, None)]
+            sage: D.allow_loops(False); D
+            Digraph on 1 vertex
+            sage: D.has_loops()
+            False
+            sage: D.edges()
+            []
+        """
+        if self.allows_loops():
+            for v in self:
+                if self.has_edge(v,v):
+                    return True
+        return False
+
+    def allows_loops(self):
+        """
+        Returns whether loops are permitted in the (di)graph.
+
+        EXAMPLES:
+            sage: G = Graph(loops=True); G
+            Looped graph on 0 vertices
+            sage: G.has_loops()
+            False
+            sage: G.allows_loops()
+            True
+            sage: G.add_edge((0,0))
+            sage: G.has_loops()
+            True
+            sage: G.loops()
+            [(0, 0, None)]
+            sage: G.allow_loops(False); G
+            Graph on 1 vertex
+            sage: G.has_loops()
+            False
+            sage: G.edges()
+            []
+
+            sage: D = DiGraph(loops=True); D
+            Looped digraph on 0 vertices
+            sage: D.has_loops()
+            False
+            sage: D.allows_loops()
+            True
+            sage: D.add_edge((0,0))
+            sage: D.has_loops()
+            True
+            sage: D.loops()
+            [(0, 0, None)]
+            sage: D.allow_loops(False); D
+            Digraph on 1 vertex
+            sage: D.has_loops()
+            False
+            sage: D.edges()
+            []
+        """
+        return self._backend.loops(None)
+
+    def allow_loops(self, new):
+        """
+        Changes whether loops are permitted in the (di)graph.
 
         INPUT:
-        new -- boolean, changes whether loops are permitted in the graph.
+        new -- boolean.
 
-        EXAMPLE:
-            sage: G = Graph(); G
-            Graph on 0 vertices
-            sage: G.loops(True)
-
-            sage: D = DiGraph(); D
-            Digraph on 0 vertices
-            sage: D.loops()
+        EXAMPLES:
+            sage: G = Graph(loops=True); G
+            Looped graph on 0 vertices
+            sage: G.has_loops()
             False
-            sage: D.loops(True)
-            sage: D.loops()
+            sage: G.allows_loops()
             True
+            sage: G.add_edge((0,0))
+            sage: G.has_loops()
+            True
+            sage: G.loops()
+            [(0, 0, None)]
+            sage: G.allow_loops(False); G
+            Graph on 1 vertex
+            sage: G.has_loops()
+            False
+            sage: G.edges()
+            []
 
+            sage: D = DiGraph(loops=True); D
+            Looped digraph on 0 vertices
+            sage: D.has_loops()
+            False
+            sage: D.allows_loops()
+            True
+            sage: D.add_edge((0,0))
+            sage: D.has_loops()
+            True
+            sage: D.loops()
+            [(0, 0, None)]
+            sage: D.allow_loops(False); D
+            Digraph on 1 vertex
+            sage: D.has_loops()
+            False
+            sage: D.edges()
+            []
         """
         if new is False:
             self.remove_loops()
-        return self._backend.loops(new)
+        self._backend.loops(new)
 
-    def multiple_edges(self, new=None):
+    def loops(self, new=None, labels=True):
+        """
+        Returns any loops in the (di)graph.
+
+        INPUT:
+        new -- deprecated
+        labels -- whether returned edges have labels ((u,v,l)) or not ((u,v)).
+
+        EXAMPLES:
+            sage: G = Graph(loops=True); G
+            Looped graph on 0 vertices
+            sage: G.has_loops()
+            False
+            sage: G.allows_loops()
+            True
+            sage: G.add_edge((0,0))
+            sage: G.has_loops()
+            True
+            sage: G.loops()
+            [(0, 0, None)]
+            sage: G.allow_loops(False); G
+            Graph on 1 vertex
+            sage: G.has_loops()
+            False
+            sage: G.edges()
+            []
+
+            sage: D = DiGraph(loops=True); D
+            Looped digraph on 0 vertices
+            sage: D.has_loops()
+            False
+            sage: D.allows_loops()
+            True
+            sage: D.add_edge((0,0))
+            sage: D.has_loops()
+            True
+            sage: D.loops()
+            [(0, 0, None)]
+            sage: D.allow_loops(False); D
+            Digraph on 1 vertex
+            sage: D.has_loops()
+            False
+            sage: D.edges()
+            []
+        """
+        from sage.misc.misc import deprecation
+        if new is not None:
+            deprecation("The function loops is replaced by allow_loops and allows_loops.")
+        loops = []
+        for v in self:
+            loops += self.edge_boundary([v], [v], labels)
+        return loops
+
+    def has_multiple_edges(self):
+        """
+        Returns whether there are multiple edges in the (di)graph.
+
+        EXAMPLES:
+            sage: G = Graph(multiedges=True); G
+            Multi-graph on 0 vertices
+            sage: G.has_multiple_edges()
+            False
+            sage: G.allows_multiple_edges()
+            True
+            sage: G.add_edges([(0,1)]*3)
+            sage: G.has_multiple_edges()
+            True
+            sage: G.multiple_edges()
+            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            sage: G.allow_multiple_edges(False); G
+            Graph on 2 vertices
+            sage: G.has_multiple_edges()
+            False
+            sage: G.edges()
+            [(0, 1, None)]
+
+            sage: D = DiGraph(multiedges=True); D
+            Multi-digraph on 0 vertices
+            sage: D.has_multiple_edges()
+            False
+            sage: D.allows_multiple_edges()
+            True
+            sage: D.add_edges([(0,1)]*3)
+            sage: D.has_multiple_edges()
+            True
+            sage: D.multiple_edges()
+            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            sage: D.allow_multiple_edges(False); D
+            Digraph on 2 vertices
+            sage: D.has_multiple_edges()
+            False
+            sage: D.edges()
+            [(0, 1, None)]
+        """
+        if self.allows_multiple_edges():
+            if self._directed:
+                for v in self:
+                    for u in self.predecessor_iterator(v):
+                        edges = self.edge_boundary([u], [v])
+                        if len(edges) > 1:
+                            return True
+            else:
+                for v in self:
+                    for u in self.neighbor_iterator(v):
+                        edges = self.edge_boundary([v], [u])
+                        if len(edges) > 1:
+                            return True
+        return False
+
+    def allows_multiple_edges(self):
         """
         Returns whether multiple edges are permitted in the (di)graph.
 
-        INPUT:
-        new -- boolean. If specified, changes whether multiple edges are
-        permitted in the graph.
-
-        EXAMPLE:
+        EXAMPLES:
             sage: G = Graph(multiedges=True); G
             Multi-graph on 0 vertices
-            sage: G.multiple_edges(False); G
-            Graph on 0 vertices
+            sage: G.has_multiple_edges()
+            False
+            sage: G.allows_multiple_edges()
+            True
+            sage: G.add_edges([(0,1)]*3)
+            sage: G.has_multiple_edges()
+            True
+            sage: G.multiple_edges()
+            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            sage: G.allow_multiple_edges(False); G
+            Graph on 2 vertices
+            sage: G.has_multiple_edges()
+            False
+            sage: G.edges()
+            [(0, 1, None)]
+
             sage: D = DiGraph(multiedges=True); D
             Multi-digraph on 0 vertices
-            sage: D.multiple_edges(False); D
-            Digraph on 0 vertices
-
+            sage: D.has_multiple_edges()
+            False
+            sage: D.allows_multiple_edges()
+            True
+            sage: D.add_edges([(0,1)]*3)
+            sage: D.has_multiple_edges()
+            True
+            sage: D.multiple_edges()
+            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            sage: D.allow_multiple_edges(False); D
+            Digraph on 2 vertices
+            sage: D.has_multiple_edges()
+            False
+            sage: D.edges()
+            [(0, 1, None)]
         """
-        return self._backend.multiple_edges(new)
+        return self._backend.multiple_edges(None)
+
+    def allow_multiple_edges(self, new):
+        """
+        Changes whether multiple edges are permitted in the (di)graph.
+
+        INPUT:
+        new -- boolean.
+
+        EXAMPLES:
+            sage: G = Graph(multiedges=True); G
+            Multi-graph on 0 vertices
+            sage: G.has_multiple_edges()
+            False
+            sage: G.allows_multiple_edges()
+            True
+            sage: G.add_edges([(0,1)]*3)
+            sage: G.has_multiple_edges()
+            True
+            sage: G.multiple_edges()
+            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            sage: G.allow_multiple_edges(False); G
+            Graph on 2 vertices
+            sage: G.has_multiple_edges()
+            False
+            sage: G.edges()
+            [(0, 1, None)]
+
+            sage: D = DiGraph(multiedges=True); D
+            Multi-digraph on 0 vertices
+            sage: D.has_multiple_edges()
+            False
+            sage: D.allows_multiple_edges()
+            True
+            sage: D.add_edges([(0,1)]*3)
+            sage: D.has_multiple_edges()
+            True
+            sage: D.multiple_edges()
+            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            sage: D.allow_multiple_edges(False); D
+            Digraph on 2 vertices
+            sage: D.has_multiple_edges()
+            False
+            sage: D.edges()
+            [(0, 1, None)]
+        """
+        self._backend.multiple_edges(new)
+
+    def multiple_edges(self, new=None, labels=True):
+        """
+        Returns any multiple edges in the (di)graph.
+
+        INPUT:
+        new -- deprecated
+        labels -- whether returned edges have labels ((u,v,l)) or not ((u,v)).
+
+        EXAMPLES:
+            sage: G = Graph(multiedges=True); G
+            Multi-graph on 0 vertices
+            sage: G.has_multiple_edges()
+            False
+            sage: G.allows_multiple_edges()
+            True
+            sage: G.add_edges([(0,1)]*3)
+            sage: G.has_multiple_edges()
+            True
+            sage: G.multiple_edges()
+            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            sage: G.allow_multiple_edges(False); G
+            Graph on 2 vertices
+            sage: G.has_multiple_edges()
+            False
+            sage: G.edges()
+            [(0, 1, None)]
+
+            sage: D = DiGraph(multiedges=True); D
+            Multi-digraph on 0 vertices
+            sage: D.has_multiple_edges()
+            False
+            sage: D.allows_multiple_edges()
+            True
+            sage: D.add_edges([(0,1)]*3)
+            sage: D.has_multiple_edges()
+            True
+            sage: D.multiple_edges()
+            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            sage: D.allow_multiple_edges(False); D
+            Digraph on 2 vertices
+            sage: D.has_multiple_edges()
+            False
+            sage: D.edges()
+            [(0, 1, None)]
+        """
+        from sage.misc.misc import deprecation
+        if new is not None:
+            deprecation("The function multiple_edges is replaced by allow_multiple_edges and allows_multiple_edges.")
+        multi_edges = []
+        if self._directed:
+            for v in self:
+                for u in self.predecessor_iterator(v):
+                    edges = self.edge_boundary([u], [v], labels)
+                    if len(edges) > 1:
+                        multi_edges += edges
+        else:
+            for v in self:
+                for u in self.neighbor_iterator(v):
+                    if hash(u) >= hash(v):
+                        edges = self.edge_boundary([v], [u], labels)
+                        if len(edges) > 1:
+                            multi_edges += edges
+        return multi_edges
 
     def name(self, new=None):
         """
@@ -1261,8 +1626,8 @@ class GenericGraph(SageObject):
                 return True
 
         g = self.copy()
-        g.multiple_edges(False)
-        g.loops(False)
+        g.allow_multiple_edges(False)
+        g.allow_loops(False)
         g = g.transitive_closure()
         gpaths = g.edges(labels=False)
         for e in gpaths:
@@ -1288,16 +1653,16 @@ class GenericGraph(SageObject):
             1/2
 
         Note that there are more possible edges on a looped graph:
-            sage: G.loops(True)
+            sage: G.allow_loops(True)
             sage: G.density()
             1/3
 
         """
-        if self.multiple_edges():
+        if self.has_multiple_edges():
             raise TypeError("Density is not well-defined for multigraphs.")
         from sage.rings.rational import Rational
         n = self.order()
-        if self.loops():
+        if self.allows_loops():
             if self._directed:
                 return Rational(self.size())/Rational(n**2)
             else:
@@ -2535,7 +2900,7 @@ class GenericGraph(SageObject):
             [0, 1]
 
         """
-        if self.loops():
+        if self.allows_loops():
             return [v for v in self if self.has_edge(v,v)]
         else:
             return []
@@ -2615,7 +2980,7 @@ class GenericGraph(SageObject):
             return iter(set(self.successor_iterator(vertex)) \
                     | set(self.predecessor_iterator(vertex)))
         else:
-            return self._backend.iterator_nbrs(vertex)
+            return iter(set(self._backend.iterator_nbrs(vertex)))
 
     def vertices(self, boundary_first=False):
         """
@@ -2714,7 +3079,7 @@ class GenericGraph(SageObject):
                 except:
                     u, v = u
                     label = None
-        if not self.loops() and u==v:
+        if not self.allows_loops() and u==v:
             return
         self._backend.add_edge(u, v, label, self._directed)
 
@@ -2832,7 +3197,7 @@ class GenericGraph(SageObject):
             [(1, 0, None), (1, 2, None), (2, 3, None)]
 
         """
-        if self.multiple_edges():
+        if self.allows_multiple_edges():
             for l in self.edge_label(u, v):
                 self.delete_edge(u, v, l)
         else:
@@ -2908,7 +3273,7 @@ class GenericGraph(SageObject):
             1
 
         """
-        if self.multiple_edges():
+        if self.allows_multiple_edges():
             if len(self.edge_label(u, v)) > 1:
                 raise RuntimeError("Cannot set edge label, since there are multiple edges from %s to %s."%(u,v))
         self._backend.set_edge_label(u, v, l, self._directed)
@@ -3163,7 +3528,7 @@ class GenericGraph(SageObject):
             [(0, 1), (1, 2)]
 
         """
-        if self.multiple_edges():
+        if self.allows_multiple_edges():
             if self._directed:
                 for v in self:
                     for u in self.predecessor_iterator(v):
@@ -3189,8 +3554,10 @@ class GenericGraph(SageObject):
             sage: G.remove_loops()
             sage: G.edges(labels=False)
             [(2, 3)]
-            sage: G.loops()
+            sage: G.allows_loops()
             True
+            sage: G.has_loops()
+            False
 
             sage: D = DiGraph(4, loops=True)
             sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
@@ -3199,8 +3566,10 @@ class GenericGraph(SageObject):
             sage: D.remove_loops()
             sage: D.edges(labels=False)
             [(2, 3)]
-            sage: D.loops()
+            sage: D.allows_loops()
             True
+            sage: D.has_loops()
+            False
 
         """
         if vertices is None:
@@ -3230,7 +3599,7 @@ class GenericGraph(SageObject):
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
 
         """
-        if self.multiple_edges():
+        if self.allows_multiple_edges():
             return [(v,v,l) for v in self.loop_vertices() for l in self.edge_label(v,v)]
         else:
             return [(v,v,self.edge_label(v,v)) for v in self.loop_vertices()]
@@ -3618,8 +3987,8 @@ class GenericGraph(SageObject):
         """
         if directed_clique and self._directed:
             subgraph=self.subgraph(vertices)
-            subgraph.loops(False)
-            subgraph.multiple_edges(False)
+            subgraph.allow_loops(False)
+            subgraph.allow_multiple_edges(False)
             n=subgraph.order()
             return subgraph.size()==n*(n-1)
         else:
@@ -4700,13 +5069,15 @@ class GenericGraph(SageObject):
             [(0, 2, None), (1, 3, None)]
             sage: graphs.CycleGraph(4).complement()
             complement(Cycle graph): Graph on 4 vertices
-            sage: Graph(multiedges=True).complement()
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edges([(0,1)]*3)
+            sage: G.complement()
             Traceback (most recent call last):
             ...
             TypeError: Complement not well defined for (di)graphs with multiple edges.
 
         """
-        if self.multiple_edges():
+        if self.has_multiple_edges():
             raise TypeError('Complement not well defined for (di)graphs with multiple edges.')
         G = self.copy()
         G.delete_edges(G.edges())
@@ -4816,15 +5187,15 @@ class GenericGraph(SageObject):
             [(2, 3)]
             sage: H.is_directed()
             False
-            sage: H.loops()
+            sage: H.allows_loops()
             False
-            sage: H.multiple_edges()
+            sage: H.allows_multiple_edges()
             False
 
         """
         g=self.to_undirected()
-        g.loops(False)
-        g.multiple_edges(False)
+        g.allow_loops(False)
+        g.allow_multiple_edges(False)
         return g
 
     def disjoint_union(self, other, verbose_relabel=True):
@@ -5406,7 +5777,7 @@ class GenericGraph(SageObject):
             sage: D.show(partition=Pi)
 
             sage: G = graphs.PetersenGraph()
-            sage: G.loops(True)
+            sage: G.allow_loops(True)
             sage: G.add_edge(0,0)
             sage: G.show()
 
@@ -6169,7 +6540,7 @@ class GenericGraph(SageObject):
             raise TypeError("Partition (%s) is not valid for this graph: vertices are incorrect."%partition)
         if any(len(cell)==0 for cell in partition):
             raise TypeError("Partition (%s) is not valid for this graph: there is a cell of length 0."%partition)
-        if self.multiple_edges():
+        if self.has_multiple_edges():
             raise TypeError("Refinement function does not support multiple edges.")
         G = self.copy()
         perm_to = G.relabel(return_map=True)
@@ -6193,7 +6564,7 @@ class GenericGraph(SageObject):
         alpha = []
         for i in xrange(len(partition)):
             alpha.append(sum([len(cell) for cell in partition[:i]]))
-        nu.refine(CG, alpha, n, (self._directed or self.loops()), True)
+        nu.refine(CG, alpha, n, (self._directed or self.has_loops()), True)
         repr = nu.repr_at_k(1)
         result = [[int(b) for b in a.split(',')] for a in repr[1:-1].split('|')]
         return [[perm_from[b] for b in cell] for cell in result]
@@ -6311,7 +6682,7 @@ class GenericGraph(SageObject):
         from sage.graphs.graph_isom import perm_group_elt
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        dig = (self._directed or self.loops())
+        dig = (self._directed or self.has_loops())
         if partition is None:
             partition = [self.vertices()]
         if edge_labels:
@@ -6347,7 +6718,7 @@ class GenericGraph(SageObject):
                 real_aut_gp.remove(id)
             a = real_aut_gp
             b = translation_d
-        elif self.multiple_edges():
+        elif self.has_multiple_edges():
             G, partition = graph_isom_equivalent_non_multi_graph(self, partition)
             if hasattr(G._backend, '_cg'):
                 G = G._backend._cg
@@ -6560,7 +6931,7 @@ class GenericGraph(SageObject):
             else:
                 G, partition = graph_isom_equivalent_non_edge_labeled_graph(self, [self.vertices()])
                 G2, partition2 = graph_isom_equivalent_non_edge_labeled_graph(other, [other.vertices()])
-        elif self.multiple_edges():
+        elif self.has_multiple_edges():
             G, partition = graph_isom_equivalent_non_multi_graph(self, [self.vertices()])
             G2, partition2 = graph_isom_equivalent_non_multi_graph(other, [other.vertices()])
         else:
@@ -6573,7 +6944,7 @@ class GenericGraph(SageObject):
             G2 = G2._backend._cg
 
         from sage.misc.flatten import flatten
-        isom = isomorphic(G, G2, partition, flatten(partition2, max_level=1), (self._directed or self.loops()), 1)
+        isom = isomorphic(G, G2, partition, flatten(partition2, max_level=1), (self._directed or self.has_loops()), 1)
         if not isom and certify:
             return False, None
         elif not isom:
@@ -6639,7 +7010,7 @@ class GenericGraph(SageObject):
         import sage.groups.perm_gps.partn_ref.refinement_graphs
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
 
-        dig = (self.loops() or self._directed)
+        dig = (self.has_loops() or self._directed)
         if partition is None:
             partition = [self.vertices()]
         if edge_labels:
@@ -6657,7 +7028,7 @@ class GenericGraph(SageObject):
                 return H, relabeling
             else:
                 return H
-        if self.multiple_edges():
+        if self.has_multiple_edges():
             G, partition = graph_isom_equivalent_non_multi_graph(self, partition)
             if hasattr(G._backend, '_cg'):
                 G = G._backend._cg
@@ -6753,26 +7124,23 @@ class Graph(GenericGraph):
         sage: Graph(g)
         Graph on 5 vertices
 
-    In this single case, we do not make a copy of g, but just wrap the actual
-    NetworkX passed- the Sage graph becomes a wrapper for the NetworkX graph.
-
-        sage: import networkx
-        sage: g = networkx.XGraph({0:[1,2,3], 2:[4]})
-        sage: G = Graph(g, implementation='networkx')
-        sage: H = Graph(g, implementation='networkx')
-        sage: G._backend._nxg is H._backend._nxg
-        True
-
     2. A NetworkX graph:
         sage: import networkx
         sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
         sage: DiGraph(g)
         Digraph on 5 vertices
 
-    Note that in this case, we copy the networkX structure.
+    Note that in all cases, we copy the networkX structure.
 
         sage: import networkx
         sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
+        sage: G = Graph(g, implementation='networkx')
+        sage: H = Graph(g, implementation='networkx')
+        sage: G._backend._nxg is H._backend._nxg
+        False
+
+        sage: import networkx
+        sage: g = networkx.XGraph({0:[1,2,3], 2:[4]})
         sage: G = Graph(g, implementation='networkx')
         sage: H = Graph(g, implementation='networkx')
         sage: G._backend._nxg is H._backend._nxg
@@ -6818,7 +7186,8 @@ class Graph(GenericGraph):
 
         sage: g=graphs.CompleteGraph(4)
         sage: line_graph=Graph([g.edges(labels=false), \
-                 lambda i,j: len(set(i).intersection(set(j)))>0], implementation='networkx')
+                 lambda i,j: len(set(i).intersection(set(j)))>0], \
+                 implementation='networkx', loops=False)
         sage: line_graph.vertices()
         [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
         sage: line_graph.adjacency_matrix()
@@ -6865,9 +7234,9 @@ class Graph(GenericGraph):
         sage: graphs_list.from_sparse6(s)
         [Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices]
 
-    8. A SAGE matrix:
-    Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
-    matrix, and a nonsquare matrix is an incidence matrix.
+    8. A Sage matrix:
+    Note: If format is not specified, then Sage assumes a symmetric square
+    matrix is an adjacency matrix, otherwise an incidence matrix.
 
         A. an adjacency matrix:
 
@@ -6885,8 +7254,17 @@ class Graph(GenericGraph):
         sage: Graph(M)
         Graph on 10 vertices
 
-        sage: Graph(matrix([[1,2],[3,4]]),loops=True)
-        Looped graph on 2 vertices
+        sage: Graph(matrix([[1,2],[2,4]]),loops=True)
+        Looped multi-graph on 2 vertices
+
+        sage: M = Matrix([[0,1,-1],[1,0,-1/2],[-1,-1/2,0]]); M
+        [   0    1   -1]
+        [   1    0 -1/2]
+        [  -1 -1/2    0]
+        sage: G = Graph(M); G
+        Graph on 3 vertices
+        sage: G.weighted()
+        True
 
         B. an incidence matrix:
 
@@ -6900,159 +7278,122 @@ class Graph(GenericGraph):
         sage: Graph(M)
         Graph on 6 vertices
 
+        sage: Graph(Matrix([[1],[1],[1]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: There must be two nonzero entries (-1 & 1) per column.
+        sage: Graph(Matrix([[1],[1],[0]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: Each column represents an edge: -1 goes to 1.
+
+        sage: M = Matrix([[0,1,-1],[1,0,-1],[-1,-1,0]]); M
+        [ 0  1 -1]
+        [ 1  0 -1]
+        [-1 -1  0]
+        sage: Graph(M)
+        Graph on 3 vertices
+
+        sage: M = Matrix([[0,1,1],[1,0,0],[0,0,0]]); M
+        [0 1 1]
+        [1 0 0]
+        [0 0 0]
+        sage: Graph(M)
+        Traceback (most recent call last):
+        ...
+        ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: There must be two nonzero entries (-1 & 1) per column.
+
+        sage: M = Matrix([[0,1,1],[1,0,1],[-1,-1,0]]); M
+        [ 0  1  1]
+        [ 1  0  1]
+        [-1 -1  0]
+        sage: Graph(M)
+        Traceback (most recent call last):
+        ...
+        ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: Each column represents an edge: -1 goes to 1.
+
+
     """
     _directed = False
 
-    def __init__(self, data=None, pos=None, loops=False, format=None,
-                 boundary=[], weighted=False, implementation='networkx',
+    def __init__(self, data=None, pos=None, loops=None, format=None,
+                 boundary=[], weighted=None, implementation='networkx',
                  sparse=True, vertex_labels=True, **kwds):
         """
-        TEST:
+        TESTS:
             sage: G = Graph()
             sage: loads(dumps(G)) == G
             True
 
+            sage: a = matrix(2,2,[1,0,0,1])
+            sage: Graph(a).adjacency_matrix() == a
+            True
+
+            sage: a = matrix(2,2,[2,0,0,1])
+            sage: Graph(a).adjacency_matrix() == a
+            True
         """
-        if implementation == 'networkx':
-            import networkx
-            from sage.graphs.base.graph_backends import NetworkXGraphBackend
-        elif implementation == 'c_graph':
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            from sage.graphs.base.dense_graph import DenseGraphBackend
-            if kwds.get('multiedges', False) or weighted:
-                sparse = True
-            CGB = SparseGraphBackend if sparse else DenseGraphBackend
-        else:
-            raise NotImplementedError()
+        msg = ''
+        multiedges = kwds.get('multiedges', None)
         from sage.structure.element import is_Matrix
-        self._weighted = weighted
-        if format is None:
-            if isinstance(data, str):
-                if data[:10] == ">>graph6<<":
-                    data = data[10:]
-                    format = 'graph6'
-                elif data[:11] == ">>sparse6<<":
-                    data = data[11:]
-                    format = 'sparse6'
-                elif data[0] == ':':
-                    format = 'sparse6'
-                else:
-                    format = 'graph6'
-            elif is_Matrix(data):
-                if data.is_square():
-                    format = 'adjacency_matrix'
-                else:
-                    format = 'incidence_matrix'
-            elif isinstance(data, Graph):
-                if implementation == 'networkx':
-                    self._backend = NetworkXGraphBackend(data.networkx_graph())
-                elif implementation == 'c_graph':
-                    if not sparse and data.multiple_edges():
-                        raise TypeError("Dense graphs do not support multiple edges.")
-                    self._backend = CGB(data.num_verts())
-                    if data.vertices() != range(data.num_verts()):
-                        verts = data.vertices()
-                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(data.num_verts())]), False)
-                    for u,v,l in data.edge_iterator():
-                        self._backend.add_edge(u,v,l,False)
-                self.loops(data.loops())
-                self.multiple_edges(data.multiple_edges())
-                self.name(data.name())
-            elif isinstance(data,list) and len(data)>=2 and callable(data[1]):
-                if implementation == 'networkx':
-                    # Pass XGraph a dict of lists describing the adjacencies
-                    self._backend = NetworkXGraphBackend(networkx.XGraph(dict([[i]+[[j for j in data[0] if data[1](i,j)]] for i in data[0]]), selfloops=loops, **kwds))
-                elif implementation == 'c_graph':
-                    self._backend = CGB(len(data[0]))
-                    if sorted(data[0]) != range(len(data[0])):
-                        verts = data[0]
-                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(len(data[0]))]), False)
-                    for u in xrange(len(data[0])):
-                        for v in xrange(u+1):
-                            uu,vv = data[0][u], data[0][v]
-                            if data[1](uu,vv):
-                                self.add_edge(uu,vv)
-                    self.loops(loops)
-            elif isinstance(data, dict):
-                if implementation == 'networkx':
-                    self._backend = NetworkXGraphBackend(networkx.XGraph(data, selfloops=loops, **kwds))
-                elif implementation == 'c_graph':
-                    keys = data.keys()
-                    for u in data:
-                        if isinstance(data[u], (list,dict)):
-                            for v in data[u]:
-                                if v not in keys:
-                                    keys.append(v)
-                        else:
-                            raise TypeError("Dict must be in NetworkX format. (was: %s)"%data)
-                    self._backend = CGB(len(keys))
-                    self.loops(loops)
-                    self.multiple_edges(kwds.get('multiedges', False))
-                    if sorted(keys) != range(len(keys)):
-                        verts = keys
-                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(len(keys))]), False)
-                    for u in data:
-                        if isinstance(data[u], dict):
-                            for v in data[u].keys():
-                                if data[u][v] is None and not self.has_edge(u,v):
-                                    self.add_edge(u, v)
-                                elif data[u][v] is not None and not self.has_edge(u,v,data[u][v]):
-                                    self.add_edge(u, v, data[u][v])
-                        elif isinstance(data[u], list):
-                            for v in data[u]:
-                                if not self.has_edge(u,v):
-                                    self.add_edge(u, v)
-            elif hasattr(data,'adj'):
-                import networkx
-                if isinstance(data, (networkx.Graph, networkx.XGraph)):
-                    if implementation == 'networkx':
-                        if isinstance(data, networkx.XGraph):
-                            self._backend = NetworkXGraphBackend(data)
-                        else:
-                            self._backend = NetworkXGraphBackend(networkx.XGraph(data, selfloops=loops, **kwds))
-                    elif implementation == 'c_graph':
-                        keys = data.adj.keys()
-                        for u in data:
-                            for v in data[u]:
-                                if v not in keys:
-                                    keys.append(v)
-                        if not sparse and isinstance(data, networkx.XGraph) and data.multiedges:
-                            raise TypeError("Dense graphs do not support multiple edges.")
-                        self._backend = CGB(data.order())
-                        self.loops(loops)
-                        self.multiple_edges(kwds.get('multiedges', False))
-                        if sorted(keys) != range(data.order()):
-                            self._backend.relabel(dict([[i, keys[i]] for i in xrange(len(keys))]), False)
-                        if isinstance(data, networkx.XGraph):
-                            for u,v,l in data.edges_iter():
-                                self.add_edge(u,v,l)
-                        else:
-                            for u,v in data.edges_iter():
-                                self.add_edge(u,v)
-                else:
-                    raise NotImplementedError()
+        from sage.misc.misc import uniq
+        if format is None and isinstance(data, str):
+            if data[:10] == ">>graph6<<":
+                data = data[10:]
+                format = 'graph6'
+            elif data[:11] == ">>sparse6<<":
+                data = data[11:]
+                format = 'sparse6'
+            elif data[0] == ':':
+                format = 'sparse6'
             else:
-                if implementation == 'networkx':
-                    if isinstance(data, (int, Integer)):
-                        self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops=loops, **kwds))
-                        self.add_vertices(xrange(data))
-                    else:
-                        self._backend = NetworkXGraphBackend(networkx.XGraph(data, selfloops=loops, **kwds))
-                elif implementation == 'c_graph':
-                    if data is None:
-                        self._backend = CGB(0)
-                        self.loops(loops)
-                        self.multiple_edges(kwds.get('multiedges',False))
-                        self.name(kwds.get('name',''))
-                    elif isinstance(data, (int, Integer)):
-                        self._backend = CGB(data)
-                        self.loops(loops)
-                        self.multiple_edges(kwds.get('multiedges',False))
-                        self.name(kwds.get('name',''))
-                    else:
-                        raise NotImplementedError("Datatype not suppported for C graphs.")
+                format = 'graph6'
+        if format is None and is_Matrix(data):
+            if data.is_square() and data == data.transpose():
+                format = 'adjacency_matrix'
+            else:
+                format = 'incidence_matrix'
+                msg += "Non-symmetric or non-square matrix assumed to be an incidence matrix: "
+        if format is None and isinstance(data, Graph):
+            format = 'Graph'
+        if format is None and isinstance(data, DiGraph):
+            data = data.to_undirected()
+            format = 'Graph'
+        if format is None and isinstance(data,list) and \
+           len(data)>=2 and callable(data[1]):
+            format = 'rule'
+        if format is None and isinstance(data,dict):
+            keys = data.keys()
+            if len(keys) == 0: format = 'dict_of_dicts'
+            else:
+                if isinstance(data[keys[0]], list):
+                    format = 'dict_of_lists'
+                elif isinstance(data[keys[0]], dict):
+                    format = 'dict_of_dicts'
+        if format is None and hasattr(data, 'adj'):
+            import networkx
+            if isinstance(data, (networkx.DiGraph, networkx.XDiGraph)):
+                data = data.to_undirected()
+                format = 'NX'
+            elif isinstance(data, (networkx.Graph, networkx.XGraph)):
+                format = 'NX'
+        if format is None and isinstance(data, (int, Integer)):
+            format = 'int'
+        if format is None and data is None:
+            format = 'int'
+            data = 0
+        if format is None:
+            import networkx
+            data = networkx.XGraph(data)
+            format = 'NX'
+
+        # At this point, format has been set.
+        verts = None
 
         if format == 'graph6':
+            if loops      is None: loops      = False
+            if weighted   is None: weighted   = False
+            if multiedges is None: multiedges = False
             if not isinstance(data, str):
                 raise ValueError, 'If input format is graph6, then data must be a string.'
             n = data.find('\n')
@@ -7066,20 +7407,11 @@ class Graph(GenericGraph):
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
             elif len(m) < expected:
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short."%(ss,n))
-            if implementation == 'networkx':
-                self._backend = NetworkXGraphBackend(networkx.XGraph())
-                self.add_vertices(xrange(n))
-            else:
-                self._backend = CGB(n)
-            k = 0
-            for i in xrange(n):
-                for j in xrange(i):
-                    if m[k] == '1':
-                        self.add_edge(i, j)
-                    k += 1
-            self.loops(False)
-            self.multiple_edges(False)
+            num_verts = n
         elif format == 'sparse6':
+            if loops      is None: loops      = True
+            if weighted   is None: weighted   = False
+            if multiedges is None: multiedges = True
             from math import ceil, floor
             from sage.misc.functional import log
             n = data.find('\n')
@@ -7110,82 +7442,258 @@ class Graph(GenericGraph):
                     else:
                         if v < n:
                             edges.append((x[i],v))
-            if implementation == 'networkx':
-                self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops = True, multiedges = True))
-                self.add_vertices(xrange(n))
+            num_verts = n
+        elif format in ['adjacency_matrix', 'incidence_matrix']:
+            assert is_Matrix(data)
+        if format == 'weighted_adjacency_matrix':
+            if weighted is False:
+                raise ValueError("Format was weighted_adjacency_matrix but weighted was False.")
+            if weighted   is None: weighted   = True
+            if multiedges is None: multiedges = False
+            format = 'adjacency_matrix'
+        if format == 'adjacency_matrix':
+            entries = uniq(data.list())
+            for e in entries:
+                try:
+                    e = int(e)
+                    assert e >= 0
+                except:
+                    if weighted is False:
+                        raise ValueError("Non-weighted graph's"+
+                        " adjacency matrix must have only nonnegative"+
+                        " integer entries")
+                    weighted = True
+                    if multiedges is None: multiedges = False
+                    break
+            if multiedges is None: multiedges = (sorted(entries) != [0,1])
+            if weighted is None: weighted = False
+            for i in xrange(data.nrows()):
+                if data[i,i] != 0:
+                    if loops is None: loops = True
+                    elif not loops:
+                        raise ValueError("Non-looped graph's adjacency"+
+                        " matrix must have zeroes on the diagonal.")
+                    break
+            num_verts = data.nrows()
+        elif format == 'incidence_matrix':
+            try:
+                positions = []
+                for c in data.columns():
+                    NZ = c.nonzero_positions()
+                    positions.append(tuple(NZ))
+                    if len(NZ) != 2:
+                        assert False, \
+                "There must be two nonzero entries (-1 & 1) per column."
+                    L = uniq(c.list())
+                    L.sort()
+                    if L != [-1,0,1]:
+                        assert False, \
+                "Each column represents an edge: -1 goes to 1."
+                if loops      is None: loops     = False
+                if weighted   is None: weighted  = False
+                if multiedges is None:
+                    total = len(positions)
+                    multiedges = (  len(uniq(positions)) < total  )
+            except AssertionError, msg2:
+                raise ValueError(msg + str(msg2))
+            num_verts = data.nrows()
+        elif format == 'Graph':
+            if loops is None: loops = data.allows_loops()
+            elif not loops and data.has_loops():
+                raise ValueError("No loops but input graph has loops.")
+            if multiedges is None: multiedges = data.allows_multiple_edges()
+            elif not multiedges:
+                e = data.edges(labels=False)
+                e = [sorted(f) for f in e]
+                if len(e) != len(uniq(e)):
+                    raise ValueError("No multiple edges but input graph"+
+                    " has multiple edges.")
+            if weighted is None: weighted = data.weighted()
+            num_verts = data.num_verts()
+            verts = data.vertex_iterator()
+        elif format == 'rule':
+            f = data[1]
+            if loops is None: loops = any(f(v,v) for v in data[0])
+            if multiedges is None: multiedges = False
+            if weighted is None: weighted = False
+            num_verts = len(data[0])
+            verts = data[0]
+        elif format == 'dict_of_dicts':
+            if not all(isinstance(data[u], dict) for u in data):
+                raise ValueError("Input dict must be a consistent format.")
+            verts = data.keys()
+            if loops is None or loops is False:
+                for u in data:
+                    if u in data[u]:
+                        if loops is None: loops = True
+                        elif loops is False:
+                            raise ValueError("No loops but dict has loops.")
+                        break
+                if loops is None: loops = False
+            if weighted is None: weighted = False
+            for u in data:
+                for v in data[u]:
+                    if v not in verts: verts.append(v)
+                    if hash(u) > hash(v):
+                        if u in data[v]:
+                            if data[u][v] != data[v][u]:
+                                raise ValueError("Dict does not agree on edge (%s,%s)"%(u,v))
+                            continue
+                    if multiedges is not False and not isinstance(data[u][v], list):
+                        if multiedges is None: multiedges = False
+                        if multiedges:
+                            raise ValueError("Dict of dicts for multigraph must be in the format {v : {u : list}}")
+            if multiedges is None: multiedges = True
+            num_verts = len(verts)
+        elif format == 'dict_of_lists':
+            if not all(isinstance(data[u], list) for u in data):
+                raise ValueError("Input dict must be a consistent format.")
+            verts = data.keys()
+            if loops is None or loops is False:
+                for u in data:
+                    if u in data[u]:
+                        if loops is None: loops = True
+                        elif loops is False:
+                            raise ValueError("No loops but dict has loops.")
+                        break
+                if loops is None: loops = False
+            if weighted is None: weighted = False
+            for u in data:
+                verts += [v for v in data[u] if v not in verts]
+                if len(uniq(data[u])) != len(data[u]):
+                    if multiedges is False:
+                        raise ValueError("Non-multigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
+                    if multiedges is None: multiedges = True
+            if multiedges is None: multiedges = False
+            num_verts = len(verts)
+        elif format == 'NX':
+            if weighted is None:
+                if isinstance(data, networkx.Graph):
+                    weighted = False
+                    if multiedges is None:
+                        multiedges = False
+                    if loops is None:
+                        loops = False
+                else:
+                    weighted = True
+                    if multiedges is None:
+                        multiedges = data.multiedges
+                    if loops is None:
+                        loops = data.selfloops
+            num_verts = data.order()
+            verts = data.nodes()
+            data = data.adj
+            format = 'dict_of_dicts'
+        elif format in ['int', 'elliptic_curve_congruence']:
+            if weighted   is None: weighted   = False
+            if multiedges is None: multiedges = False
+            if loops      is None: loops      = False
+            if format == 'int': num_verts = data
             else:
-                self._backend = CGB(n)
-                self.loops(True)
-                self.multiple_edges(True)
+                num_verts = len(data)
+                curves = data
+                verts = [curve.cremona_label() for curve in data]
+
+        # weighted, multiedges, loops, verts and num_verts should now be set
+
+        if implementation == 'networkx':
+            import networkx
+            from sage.graphs.base.graph_backends import NetworkXGraphBackend
+            if format == 'Graph':
+                self._backend = NetworkXGraphBackend(data.networkx_graph())
+                self._weighted = weighted
+                self.allow_loops(loops)
+                self.allow_multiple_edges(multiedges)
+            else:
+                self._backend = NetworkXGraphBackend(networkx.XGraph())
+                self._weighted = weighted
+                self.allow_loops(loops)
+                self.allow_multiple_edges(multiedges)
+                if verts is not None:
+                    self.add_vertices(verts)
+                else:
+                    self.add_vertices(range(num_verts))
+        elif implementation == 'c_graph':
+            if verts is not None:
+                if sorted(verts) != range(num_verts):
+                    raise ValueError("C_graph vertices must be range(n)")
+            if multiedges or weighted:
+                if not sparse:
+                    raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            CGB = SparseGraphBackend if sparse else DenseGraphBackend
+            if format == 'Graph':
+                self._backend = CGB(num_verts)
+                self._weighted = weighted
+                self.allow_loops(loops)
+                self.allow_multiple_edges(multiedges)
+                for u,v,l in data.edge_iterator():
+                    self._backend.add_edge(u,v,l,False)
+            else:
+                self._backend = CGB(num_verts)
+                self._weighted = weighted
+                self.allow_loops(loops)
+                self.allow_multiple_edges(multiedges)
+        else:
+            raise NotImplementedError("Supported implementations: networkx, c_graph.")
+
+        if format == 'graph6':
+            k = 0
+            for i in xrange(n):
+                for j in xrange(i):
+                    if m[k] == '1':
+                        self.add_edge(i, j)
+                    k += 1
+        elif format == 'sparse6':
             for i,j in edges:
                 self.add_edge(i,j)
         elif format == 'adjacency_matrix':
-            if implementation == 'networkx':
-                self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops = loops, **kwds))
-                self.add_vertices(xrange(data.nrows()))
-            else:
-                self._backend = CGB(data.nrows())
-                self.loops(loops)
             e = []
-            for i,j in data.nonzero_positions():
-                if i < j and kwds.get('multiedges',False):
-                    e += [(i,j)]*int(data[i][j])
-                elif i < j:
-                    e.append((i,j))
-                elif i == j and loops and kwds.get('multiedges',False):
-                    e += [(i,j)]*int(data[i][j])
-                elif i == j and loops:
-                    e.append((i,j))
-            self.add_edges(e)
-        elif format == 'weighted_adjacency_matrix':
-            self._weighted = True
-            if implementation == 'networkx':
-                self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops = loops, **kwds))
-                self.add_vertices(xrange(data.nrows()))
+            if weighted:
+                for i,j in data.nonzero_positions():
+                    if i <= j:
+                        e.append((i,j,data[i][j]))
+            elif multiedges:
+                for i,j in data.nonzero_positions():
+                    if i <= j:
+                        e += [(i,j)]*int(data[i][j])
             else:
-                self._backend = CGB(data.nrows())
-                self.loops(loops)
-            e = []
-            for i,j in data.nonzero_positions():
-                if i < j:
-                    e.append((i,j,data[i,j]))
-                elif i == j and loops:
-                    e.append((i,j,data[i,j]))
+                for i,j in data.nonzero_positions():
+                    if i <= j:
+                        e.append((i,j))
             self.add_edges(e)
         elif format == 'incidence_matrix':
-            b = True
-            for c in data.columns():
-                d = c.dict()
-                if not len(d) == 2:
-                    b = False
-                else:
-                    k = d.keys()
-                    if not (d[k[0]] == -1 * d[k[1]] and abs(d[k[0]]) == 1):
-                        b = False
-            if not b:
-                raise AttributeError, "Incidence Matrix must have one 1 and one -1 per column."
-            if implementation == 'networkx':
-                self._backend = NetworkXGraphBackend(networkx.XGraph(selfloops = loops, **kwds))
-                self.add_vertices(xrange(data.nrows()))
-            else:
-                self._backend = CGB(data.nrows())
-            e = []
-            for c in data.columns():
-                k = c.dict().keys()
-                e.append((k[0],k[1]))
-            self.add_edges(e)
+            self.add_edges(positions)
+        elif format == 'Graph':
+            self.name(data.name())
+        elif format == 'rule':
+            verts = list(verts)
+            for u in xrange(num_verts):
+                for v in xrange(u+1):
+                    uu,vv = verts[u], verts[v]
+                    if f(uu,vv):
+                        self.add_edge(uu,vv)
+        elif format == 'dict_of_dicts':
+            for u in data:
+                for v in data[u]:
+                    if hash(u) <= hash(v) or v not in data or u not in data[v]:
+                        if multiedges:
+                            self.add_edges([(u,v,l) for l in data[u][v]])
+                        else:
+                            self.add_edge((u,v,data[u][v]))
+        elif format == 'dict_of_lists':
+            for u in data:
+                for v in data[u]:
+                    if multiedges or hash(u) <= hash(v) or \
+                       v not in data or u not in data[v]:
+                        self.add_edge(u,v)
         elif format == 'elliptic_curve_congruence':
             from sage.rings.arith import lcm, prime_divisors
             from sage.rings.fast_arith import prime_range
             from sage.misc.misc import prod
-            if implementation == 'networkx':
-                self._backend = NetworkXGraphBackend(networkx.XGraph(None, selfloops=loops, **kwds))
-            else:
-                raise NotImplementedError()
-            curves = list(data)
-            self.add_vertices( [curve.cremona_label() for curve in curves] )
-            for i in range(self.order()):
-                for j in range(i):
+            for i in xrange(self.order()):
+                for j in xrange(i):
                     E = curves[i]
                     F = curves[j]
                     M = E.conductor()
@@ -7204,9 +7712,13 @@ class Graph(GenericGraph):
                             p_edges = [p for p in p_edges if p in P]
                     if len(p_edges) > 0:
                         self.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1])
+        else:
+            assert format == 'int'
         self._pos = pos
         self._boundary = boundary
-        self.name( kwds.get('name', None) )
+        name = kwds.get('name', None)
+        if format != 'Graph' or name is not None:
+            self.name(name)
 
     ### Formats
 
@@ -7224,7 +7736,7 @@ class Graph(GenericGraph):
         n = self.order()
         if n > 262143:
             raise ValueError, 'graph6 format supports graphs on 0 to 262143 vertices only.'
-        elif self.loops() or self.multiple_edges():
+        elif self.has_loops() or self.has_multiple_edges():
             raise ValueError, 'graph6 format supports only simple graphs (no loops, no multiple edges)'
         else:
             return graph_fast.N(n) + graph_fast.R(self._bit_vector())
@@ -7614,7 +8126,7 @@ class Graph(GenericGraph):
 
         """
         D = DiGraph(name=self.name(), pos=self._pos, boundary=self._boundary,
-                    multiedges=self.multiple_edges(), implementation=implementation)
+                    multiedges=self.allows_multiple_edges(), implementation=implementation)
         D.name(self.name())
         D.add_vertices(self.vertex_iterator())
         for u,v,l in self.edge_iterator():
@@ -8117,23 +8629,13 @@ class DiGraph(GenericGraph):
         sage: DiGraph(g)
         Digraph on 5 vertices
 
-    In this single case, we do not make a copy of g, but just wrap the actual
-    NetworkX passed.  We do this for performance reasons.
-
-        sage: import networkx
-        sage: g = networkx.XDiGraph({0:[1,2,3], 2:[4]})
-        sage: G = DiGraph(g, implementation='networkx')
-        sage: H = DiGraph(g, implementation='networkx')
-        sage: G._backend._nxg is H._backend._nxg
-        True
-
     2. A NetworkX digraph:
         sage: import networkx
         sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
         sage: DiGraph(g)
         Digraph on 5 vertices
 
-    Note that in this case, we copy the networkX structure.
+    Note that in all cases, we copy the networkX structure.
 
         sage: import networkx
         sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
@@ -8142,6 +8644,12 @@ class DiGraph(GenericGraph):
         sage: G._backend._nxg is H._backend._nxg
         False
 
+        sage: import networkx
+        sage: g = networkx.XDiGraph({0:[1,2,3], 2:[4]})
+        sage: G = DiGraph(g, implementation='networkx')
+        sage: H = DiGraph(g, implementation='networkx')
+        sage: G._backend._nxg is H._backend._nxg
+        False
 
     3. A dictionary of dictionaries:
         sage: g = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}, implementation='networkx'); g
@@ -8243,207 +8751,77 @@ class DiGraph(GenericGraph):
     """
     _directed = True
 
-    def __init__(self, data=None, pos=None, loops=False, format=None,
-                 boundary=[], weighted=False, implementation='networkx',
+    def __init__(self, data=None, pos=None, loops=None, format=None,
+                 boundary=[], weighted=None, implementation='networkx',
                  sparse=True, vertex_labels=True, **kwds):
         """
         TEST:
             sage: D = DiGraph()
             sage: loads(dumps(D)) == D
             True
+
+            sage: a = matrix(2,2,[1,2,0,1])
+            sage: DiGraph(a).adjacency_matrix() == a
+            True
+
+            sage: a = matrix(2,2,[3,2,0,1])
+            sage: DiGraph(a).adjacency_matrix() == a
+            True
         """
-        if implementation == 'networkx':
-            import networkx
-            from sage.graphs.base.graph_backends import NetworkXGraphBackend
-        elif implementation == 'c_graph':
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            from sage.graphs.base.dense_graph import DenseGraphBackend
-            if kwds.get('multiedges', False) or weighted:
-                sparse = True
-            CGB = SparseGraphBackend if sparse else DenseGraphBackend
-        else:
-            raise NotImplementedError()
+        msg = ''
+        multiedges = kwds.get('multiedges', None)
         from sage.structure.element import is_Matrix
-        self._weighted = weighted
+        from sage.misc.misc import uniq
+        if format is None and isinstance(data, str):
+            format = 'dig6'
+            if data[:8] == ">>dig6<<":
+                data = data[8:]
+        if format is None and is_Matrix(data):
+            if data.is_square():
+                format = 'adjacency_matrix'
+            else:
+                format = 'incidence_matrix'
+                msg += "Non-symmetric or non-square matrix assumed to be an incidence matrix: "
+        if format is None and isinstance(data, DiGraph):
+            format = 'DiGraph'
+        if format is None and isinstance(data, Graph):
+            data = data.to_directed()
+            format = 'DiGraph'
+        if format is None and isinstance(data,list) and \
+           len(data)>=2 and callable(data[1]):
+            format = 'rule'
+        if format is None and isinstance(data,dict):
+            keys = data.keys()
+            if len(keys) == 0: format = 'dict_of_dicts'
+            else:
+                if isinstance(data[keys[0]], list):
+                    format = 'dict_of_lists'
+                elif isinstance(data[keys[0]], dict):
+                    format = 'dict_of_dicts'
+        if format is None and hasattr(data, 'adj'):
+            import networkx
+            if isinstance(data, (networkx.Graph, networkx.XGraph)):
+                data = data.to_directed()
+                format = 'NX'
+            elif isinstance(data, (networkx.DiGraph, networkx.XDiGraph)):
+                format = 'NX'
+        if format is None and isinstance(data, (int, Integer)):
+            format = 'int'
+        if format is None and data is None:
+            format = 'int'
+            data = 0
         if format is None:
-            if is_Matrix(data):
-                if data.is_square():
-                    format = 'adjacency_matrix'
-                else:
-                    format = 'incidence_matrix'
-            elif isinstance(data, DiGraph):
-                if implementation == 'networkx':
-                    self._backend = NetworkXGraphBackend(data.networkx_graph())
-                    self.loops(data.loops())
-                    self.multiple_edges(data.multiple_edges())
-                    self.name(data.name())
-                elif implementation == 'c_graph':
-                    if not sparse and data.multiple_edges():
-                        raise TypeError("Dense graphs do not support multiple edges.")
-                    self._backend = CGB(data.num_verts())
-                    self.loops(data.loops())
-                    self.multiple_edges(data.multiple_edges())
-                    self.name(data.name())
-                    if data.vertices() != range(data.num_verts()):
-                        verts = data.vertices()
-                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(data.num_verts())]), False)
-                    for u,v,l in data.edge_iterator():
-                        self._backend.add_edge(u,v,l,True)
-            elif hasattr(data, 'adj'):
-                import networkx
-                if isinstance(data, (networkx.XGraph, networkx.Graph)) and not isinstance(data, (networkx.XDiGraph, networkx.DiGraph)):
-                    data = data.to_directed()
-                if isinstance(data, (networkx.XDiGraph, networkx.DiGraph)):
-                    if implementation == 'networkx':
-                        if isinstance(data, networkx.XDiGraph):
-                            self._backend = NetworkXGraphBackend(data)
-                        else:
-                            self._backend = NetworkXGraphBackend(networkx.XDiGraph(data, selfloops=loops, **kwds))
-                    elif implementation == 'c_graph':
-                        keys = data.adj.keys()
-                        for u in data:
-                            for v in data[u]:
-                                if v not in keys:
-                                    keys.append(v)
-                        if not sparse and isinstance(data, networkx.XDiGraph) and data.multiedges:
-                            raise TypeError("Dense graphs do not support multiple edges.")
-                        self._backend = CGB(data.order())
-                        self.loops(loops)
-                        self.multiple_edges(kwds.get('multiedges', False))
-                        if sorted(keys) != range(data.order()):
-                            self._backend.relabel(dict([[i, keys[i]] for i in xrange(len(keys))]), False)
-                        if isinstance(data, networkx.XDiGraph):
-                            for u,v,l in data.edges_iter():
-                                self.add_edge(u,v,l)
-                        else:
-                            for u,v in data.edges_iter():
-                                self.add_edge(u,v)
-                else:
-                    raise NotImplementedError()
-            elif isinstance(data, str):
-                format = 'dig6'
-            elif isinstance(data,list) and len(data)>=2 and callable(data[1]):
-                if implementation == 'networkx':
-                    # Pass XGraph a dict of lists describing the adjacencies
-                    self._backend = NetworkXGraphBackend(networkx.XDiGraph(dict([[i]+[[j for j in data[0] if data[1](i,j)]] for i in data[0]]), selfloops=loops, **kwds))
-                elif implementation == 'c_graph':
-                    self._backend = CGB(len(data[0]))
-                    if sorted(data[0]) != range(len(data[0])):
-                        verts = data[0]
-                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(len(data[0]))]), False)
-                    for u in xrange(len(data[0])):
-                        for v in xrange(len(data[0])):
-                            uu,vv = data[0][u], data[0][v]
-                            if data[1](uu,vv):
-                                self.add_edge(uu,vv)
-                    self.loops(loops)
-            elif isinstance(data, dict):
-                if implementation == 'networkx':
-                    self._backend = NetworkXGraphBackend(networkx.XDiGraph(data, selfloops=loops, **kwds))
-                elif implementation == 'c_graph':
-                    keys = data.keys()
-                    for u in data:
-                        if isinstance(data[u], (list,dict)):
-                            for v in data[u]:
-                                if v not in keys:
-                                    keys.append(v)
-                        else:
-                            raise TypeError("Dict must be in NetworkX format. (was: %s)"%data)
-                    self._backend = CGB(len(keys))
-                    self.loops(loops)
-                    self.multiple_edges(kwds.get('multiedges', False))
-                    if sorted(keys) != range(len(keys)):
-                        verts = keys
-                        self._backend.relabel(dict([[i, verts[i]] for i in xrange(len(keys))]), False)
-                    for u in data:
-                        if isinstance(data[u], dict):
-                            for v in data[u].keys():
-                                if data[u][v] is None and not self.has_edge(u,v):
-                                    self.add_edge(u, v)
-                                elif data[u][v] is not None and not self.has_edge(u,v,data[u][v]):
-                                    self.add_edge(u, v, data[u][v])
-                        elif isinstance(data[u], list):
-                            for v in data[u]:
-                                if not self.has_edge(u,v):
-                                    self.add_edge(u, v)
-            elif isinstance(data, (int, Integer)):
-                if implementation == 'networkx':
-                    self._backend = NetworkXGraphBackend(networkx.XDiGraph(selfloops=loops, **kwds))
-                    self.add_vertices(xrange(data))
-                elif implementation == 'c_graph':
-                    self._backend = CGB(data)
-                    self.loops(loops)
-                    self.multiple_edges(kwds.get('multiedges',False))
-                    self.name(kwds.get('name',''))
-            else:
-                if implementation == 'networkx':
-                    self._backend = NetworkXGraphBackend(networkx.XDiGraph(data, selfloops=loops, **kwds))
-                elif implementation == 'c_graph':
-                    if data is None:
-                        self._backend = CGB(0)
-                        self.loops(loops)
-                        self.multiple_edges(kwds.get('multiedges',False))
-                    else:
-                        raise NotImplementedError("Datatype not suppported for C graphs.")
-        if format == 'adjacency_matrix':
-            if implementation == 'networkx':
-                self._backend = NetworkXGraphBackend(networkx.XDiGraph(selfloops = loops, **kwds))
-                self.add_vertices(xrange(data.nrows()))
-            else:
-                self._backend = CGB(data.nrows())
-                self.loops(loops)
-            e = []
-            for i,j in data.nonzero_positions():
-                if i == j and loops and kwds.get('multiedges',False):
-                    e += [(i,j)]*int(data[i][j])
-                elif i == j and loops:
-                    e.append((i,j))
-                elif not i == j and kwds.get('multiedges',False):
-                    e += [(i,j)]*int(data[i][j])
-                elif not i == j:
-                    e.append((i,j))
-            self.add_edges(e)
-        elif format == 'weighted_adjacency_matrix':
-            self._weighted = True
-            if implementation == 'networkx':
-                self._backend = NetworkXGraphBackend(networkx.XDiGraph(d, selfloops = loops, **kwds))
-                self.add_vertices(xrange(data.nrows()))
-            else:
-                self._backend = CGB(data.nrows())
-                self.loops(loops)
-            e = []
-            for i,j in data.nonzero_positions():
-                if i != j:
-                    e.append((i,j,data[i][j]))
-                elif i == j and loops:
-                    e.append((i,j,data[i][j]))
-            self.add_edges(e)
-        elif format == 'incidence_matrix':
-            b = True
-            for c in data.columns():
-                d = c.dict()
-                if not len(d) == 2:
-                    b = False
-                else:
-                    k = d.keys()
-                    if not d[k[0]] == -1 * d[k[1]]:
-                        b = False
-            if not b:
-                raise AttributeError, "Incidence Matrix must have one 1 and one -1 per column."
-            if implementation == 'networkx':
-                self._backend = NetworkXGraphBackend(networkx.XDiGraph(selfloops = loops, **kwds))
-                self.add_vertices(xrange(data.nrows()))
-            else:
-                self._backend = CGB(data.nrows())
-            e = []
-            for c in data.columns():
-                k = c.dict().keys()
-                if c[k[0]] == -1:
-                    e.append((k[0],k[1]))
-                else:
-                    e.append((k[1],k[0]))
-            self.add_edges(e)
-        elif format == 'dig6':
+            import networkx
+            data = networkx.XDiGraph(data)
+            format = 'NX'
+
+        # At this point, format has been set.
+        verts = None
+
+        if format == 'dig6':
+            if loops      is None: loops      = False
+            if weighted   is None: weighted   = False
+            if multiedges is None: multiedges = False
             if not isinstance(data, str):
                 raise ValueError, 'If input format is dig6, then data must be a string.'
             n = data.find('\n')
@@ -8457,21 +8835,243 @@ class DiGraph(GenericGraph):
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
             elif len(m) < expected:
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short."%(ss,n))
-            if implementation == 'networkx':
-                self._backend = NetworkXGraphBackend(networkx.XDiGraph())
-                self.add_vertices(xrange(n))
+            num_verts = n
+        elif format in ['adjacency_matrix', 'incidence_matrix']:
+            assert is_Matrix(data)
+        if format == 'weighted_adjacency_matrix':
+            if weighted is False:
+                raise ValueError("Format was weighted_adjacency_matrix but weighted was False.")
+            if weighted   is None: weighted   = True
+            if multiedges is None: multiedges = False
+            format = 'adjacency_matrix'
+        if format == 'adjacency_matrix':
+            entries = uniq(data.list())
+            for e in entries:
+                try:
+                    e = int(e)
+                    assert e >= 0
+                except:
+                    if weighted is False:
+                        raise ValueError("Non-weighted digraph's"+
+                        " adjacency matrix must have only nonnegative"+
+                        " integer entries")
+                    weighted = True
+                    if multiedges is None: multiedges = False
+                    break
+            if multiedges is None: multiedges = (sorted(entries) != [0,1])
+            if weighted is None: weighted = False
+            for i in xrange(data.nrows()):
+                if data[i,i] != 0:
+                    if loops is None: loops = True
+                    elif not loops:
+                        raise ValueError("Non-looped digraph's adjacency"+
+                        " matrix must have zeroes on the diagonal.")
+                    break
+            num_verts = data.nrows()
+        elif format == 'incidence_matrix':
+            try:
+                positions = []
+                for c in data.columns():
+                    NZ = c.nonzero_positions()
+                    if len(NZ) != 2:
+                        assert False, \
+                "There must be two nonzero entries (-1 & 1) per column."
+                    L = uniq(c.list())
+                    L.sort()
+                    if L != [-1,0,1]:
+                        assert False, \
+                "Each column represents an edge: -1 goes to 1."
+                    if c[NZ[0]] == -1:
+                        positions.append(tuple(NZ))
+                    else:
+                        positions.append((NZ[1],NZ[0]))
+                if loops      is None: loops     = False
+                if weighted   is None: weighted  = False
+                if multiedges is None:
+                    total = len(positions)
+                    multiedges = (  len(uniq(positions)) < total  )
+            except AssertionError, msg2:
+                raise ValueError(msg + msg2)
+            num_verts = data.nrows()
+        elif format == 'DiGraph':
+            if loops is None: loops = data.allows_loops()
+            elif not loops and data.has_loops():
+                raise ValueError("No loops but input digraph has loops.")
+            if multiedges is None: multiedges = data.allows_multiple_edges()
+            elif not multiedges:
+                e = data.edges(labels=False)
+                if len(e) != len(uniq(e)):
+                    raise ValueError("No multiple edges but input digraph"+
+                    " has multiple edges.")
+            if weighted is None: weighted = data.weighted()
+            num_verts = data.num_verts()
+            verts = data.vertex_iterator()
+        elif format == 'rule':
+            f = data[1]
+            if loops is None: loops = any(f(v,v) for v in data[0])
+            if multiedges is None: multiedges = False
+            if weighted is None: weighted = False
+            num_verts = len(data[0])
+            verts = data[0]
+        elif format == 'dict_of_dicts':
+            if not all(isinstance(data[u], dict) for u in data):
+                raise ValueError("Input dict must be a consistent format.")
+            verts = data.keys()
+            if loops is None or loops is False:
+                for u in data:
+                    if u in data[u]:
+                        if loops is None: loops = True
+                        elif loops is False:
+                            raise ValueError("No loops but dict has loops.")
+                        break
+                if loops is None: loops = False
+            if weighted is None: weighted = False
+            for u in data:
+                for v in data[u]:
+                    if v not in verts: verts.append(v)
+                    if multiedges is not False and not isinstance(data[u][v], list):
+                        if multiedges is None: multiedges = False
+                        if multiedges:
+                            raise ValueError("Dict of dicts for multidigraph must be in the format {v : {u : list}}")
+            if multiedges is None: multiedges = True
+            num_verts = len(verts)
+        elif format == 'dict_of_lists':
+            if not all(isinstance(data[u], list) for u in data):
+                raise ValueError("Input dict must be a consistent format.")
+            verts = data.keys()
+            if loops is None or loops is False:
+                for u in data:
+                    if u in data[u]:
+                        if loops is None: loops = True
+                        elif loops is False:
+                            raise ValueError("No loops but dict has loops.")
+                        break
+                if loops is None: loops = False
+            if weighted is None: weighted = False
+            for u in data:
+                verts += [v for v in data[u] if v not in verts]
+                if len(uniq(data[u])) != len(data[u]):
+                    if multiedges is False:
+                        raise ValueError("Non-multidigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
+                    if multiedges is None: multiedges = True
+            if multiedges is None: multiedges = False
+            num_verts = len(verts)
+        elif format == 'NX':
+            if weighted is None:
+                if isinstance(data, networkx.DiGraph):
+                    weighted = False
+                    if multiedges is None:
+                        multiedges = False
+                    if loops is None:
+                        loops = False
+                else:
+                    weighted = True
+                    if multiedges is None:
+                        multiedges = data.multiedges
+                    if loops is None:
+                        loops = data.selfloops
+            num_verts = data.order()
+            verts = data.nodes()
+            data = data.adj
+            format = 'dict_of_dicts'
+        elif format == 'int':
+            if weighted   is None: weighted   = False
+            if multiedges is None: multiedges = False
+            if loops      is None: loops      = False
+            num_verts = data
+
+        # weighted, multiedges, loops, verts and num_verts should now be set
+
+        if implementation == 'networkx':
+            import networkx
+            from sage.graphs.base.graph_backends import NetworkXGraphBackend
+            if format == 'DiGraph':
+                self._backend = NetworkXGraphBackend(data.networkx_graph())
+                self._weighted = weighted
+                self.allow_loops(loops)
+                self.allow_multiple_edges(multiedges)
             else:
-                self._backend = CGB(n)
+                self._backend = NetworkXGraphBackend(networkx.XDiGraph())
+                self._weighted = weighted
+                self.allow_loops(loops)
+                self.allow_multiple_edges(multiedges)
+                if verts is not None:
+                    self.add_vertices(verts)
+                else:
+                    self.add_vertices(range(num_verts))
+        elif implementation == 'c_graph':
+            if verts is not None:
+                if sorted(verts) != range(num_verts):
+                    raise ValueError("C_graph vertices must be range(n)")
+            if multiedges or weighted:
+                if not sparse:
+                    raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            CGB = SparseGraphBackend if sparse else DenseGraphBackend
+            if format == 'DiGraph':
+                self._backend = CGB(num_verts)
+                self._weighted = weighted
+                self.allow_loops(loops)
+                self.allow_multiple_edges(multiedges)
+                for u,v,l in data.edge_iterator():
+                    self._backend.add_edge(u,v,l,True)
+            else:
+                self._backend = CGB(num_verts)
+                self._weighted = weighted
+                self.allow_loops(loops)
+                self.allow_multiple_edges(multiedges)
+        else:
+            raise NotImplementedError("Supported implementations: networkx, c_graph.")
+
+        if format == 'dig6':
             k = 0
-            for i in range(n):
-                for j in range(n):
+            for i in xrange(n):
+                for j in xrange(n):
                     if m[k] == '1':
                         self.add_edge(i, j)
                     k += 1
-            self.loops(False)
+        elif format == 'adjacency_matrix':
+            e = []
+            if weighted:
+                for i,j in data.nonzero_positions():
+                    e.append((i,j,data[i][j]))
+            elif multiedges:
+                for i,j in data.nonzero_positions():
+                    e += [(i,j)]*int(data[i][j])
+            else:
+                for i,j in data.nonzero_positions():
+                    e.append((i,j))
+            self.add_edges(e)
+        elif format == 'incidence_matrix':
+            self.add_edges(positions)
+        elif format == 'DiGraph':
+            self.name(data.name())
+        elif format == 'rule':
+            verts = list(verts)
+            for u in xrange(num_verts):
+                for v in xrange(num_verts):
+                    uu,vv = verts[u], verts[v]
+                    if f(uu,vv):
+                        self.add_edge(uu,vv)
+        elif format == 'dict_of_dicts':
+            for u in data:
+                for v in data[u]:
+                    if multiedges:
+                        self.add_edges([(u,v,l) for l in data[u][v]])
+                    else:
+                        self.add_edge((u,v,data[u][v]))
+        elif format == 'dict_of_lists':
+            for u in data:
+                for v in data[u]:
+                    self.add_edge(u,v)
+        else:
+            assert format == 'int'
         self._pos = pos
         self._boundary = boundary
-        self.name( kwds.get('name', None) )
+        name = kwds.get('name', None)
+        if format != 'DiGraph' or name is not None:
+            self.name(name)
 
     ### Formats
 
@@ -8492,7 +9092,7 @@ class DiGraph(GenericGraph):
         n = self.order()
         if n > 262143:
             raise ValueError, 'dig6 format supports graphs on 0 to 262143 vertices only.'
-        elif self.multiple_edges():
+        elif self.has_multiple_edges():
             raise ValueError, 'dig6 format does not support multiple edges.'
         else:
             return graph_fast.N(n) + graph_fast.R(self._bit_vector())
@@ -8566,7 +9166,7 @@ class DiGraph(GenericGraph):
 
         """
         G = Graph(name=self.name(), pos=self._pos, boundary=self._boundary,
-                  multiedges=self.multiple_edges(), loops=self.loops(), implementation=implementation)
+                  multiedges=self.allows_multiple_edges(), loops=self.allows_loops(), implementation=implementation)
         G.name(self.name())
         G.add_vertices(self.vertex_iterator())
         G.add_edges(self.edge_iterator())
@@ -8662,7 +9262,7 @@ class DiGraph(GenericGraph):
             4
 
         """
-        return self._backend.iterator_in_nbrs(vertex)
+        return iter(set(self._backend.iterator_in_nbrs(vertex)))
 
     def predecessors(self, vertex):
         """
@@ -8689,7 +9289,7 @@ class DiGraph(GenericGraph):
             3
 
         """
-        return self._backend.iterator_out_nbrs(vertex)
+        return iter(set(self._backend.iterator_out_nbrs(vertex)))
 
     def successors(self, vertex):
         """
@@ -8864,7 +9464,7 @@ class DiGraph(GenericGraph):
             Reverse of (): Digraph on 6 vertices
 
         """
-        H = DiGraph(multiedges=self.multiple_edges(), loops=self.loops(), implementation='networkx')
+        H = DiGraph(multiedges=self.allows_multiple_edges(), loops=self.allows_loops(), implementation='networkx')
         H.add_vertices(self)
         H.add_edges( [ (v,u,d) for (u,v,d) in self.edge_iterator() ] )
         name = self.name()
@@ -9098,9 +9698,9 @@ def graph_isom_equivalent_non_multi_graph(g, partition):
 
     """
     if g._directed:
-        G = DiGraph(loops=g.loops())
+        G = DiGraph(loops=g.allows_loops())
     else:
-        G = Graph(loops=g.loops(), implementation='networkx')
+        G = Graph(loops=g.allows_loops(), implementation='networkx')
     G.add_vertices([('o', v) for v in g.vertices()]) # 'o' for original
     if g._directed:
         edges_with_multiplicity = [[u,v] for u,v,_ in g.edge_iterator()]
@@ -9152,11 +9752,11 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition):
 
     """
     from sage.misc.misc import uniq
-    if g.multiple_edges():
+    if g.has_multiple_edges():
         if g._directed:
-            G = DiGraph(loops=g.loops())
+            G = DiGraph(loops=g.allows_loops())
         else:
-            G = Graph(loops=g.loops(), implementation='networkx')
+            G = Graph(loops=g.allows_loops(), implementation='networkx')
         G.add_vertices(g.vertices())
         for u,v,l in g.edge_iterator():
             if not G.has_edge(u,v):
@@ -9173,9 +9773,9 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition):
                     label_list.append([l,1])
         g = G
     if g._directed:
-        G = DiGraph(loops=g.loops())
+        G = DiGraph(loops=g.allows_loops())
     else:
-        G = Graph(loops=g.loops(), implementation='networkx')
+        G = Graph(loops=g.allows_loops(), implementation='networkx')
     G.add_vertices([('o', v) for v in g.vertices()]) # 'o' for original
     index = 0
     edge_labels = sorted(g.edge_labels())
@@ -9226,5 +9826,4 @@ def compare_edges(x, y):
             return 1
         else:
             return 0
-
 

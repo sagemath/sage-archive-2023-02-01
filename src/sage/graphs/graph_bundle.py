@@ -110,7 +110,7 @@ class GraphBundle(Graph):
             sage: partition = [range(5), range(5,10)]
             sage: B = GraphBundle(P, partition)
             sage: B.edge_lift(0,1)
-            Bipartite subgraph of (petersen graph): graph on 10 vertices
+            Bipartite petersen graph: graph on 10 vertices
 
         """
         from bipartite_graph import BipartiteGraph

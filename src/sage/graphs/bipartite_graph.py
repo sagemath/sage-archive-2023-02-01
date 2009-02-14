@@ -88,7 +88,7 @@ class BipartiteGraph(Graph):
         sage: B2 = BipartiteGraph(B)
         sage: B == B2
         True
-        sage: B3 = BipartiteGraph(G, range(4), range(4,7))
+        sage: B3 = BipartiteGraph(G, [range(4), range(4,7)])
         sage: B3
         Bipartite graph on 7 vertices
         sage: B3 == B2
@@ -225,7 +225,10 @@ class BipartiteGraph(Graph):
                 # Assume that args[0] is a bipartition
                 from copy import copy
                 left, right = args[0]; left = copy(left); right = copy(right)
-                Graph.__init__(self, arg1.subgraph(list(set(left)|set(right))), implementation='networkx', *args, **kwds)
+                verts = set(left)|set(right)
+                if set(arg1.vertices()) != verts:
+                    arg1 = arg1.subgraph(list(verts))
+                Graph.__init__(self, arg1, implementation='networkx', *(args[1:]), **kwds)
                 if not kwds.has_key('check') or kwds['check']:
                     while len(left) > 0:
                         a = left.pop(0)

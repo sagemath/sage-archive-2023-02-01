@@ -5260,6 +5260,7 @@ class GenericGraph(SageObject):
             sage: g = Graph({}, loops=True, multiedges=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
+            sage: g.set_boundary([0,1])
             sage: GP = g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.plot()
 

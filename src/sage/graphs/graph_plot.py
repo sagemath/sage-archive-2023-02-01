@@ -346,6 +346,7 @@ class GraphPlot(SageObject):
         """
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
+        if 'edge_colors' in edge_options: self._options['color_by_label'] = False
 
         # Handle base edge options: thickness, linestyle
         eoptions={}

@@ -1,5 +1,5 @@
---- setupext.py.orig	2009-02-13 11:11:01.000000000 -0600
-+++ setupext.py	2009-02-13 11:11:33.000000000 -0600
+--- setupext.py.orig	2009-02-14 02:29:42.000000000 -0800
++++ setupext.py	2009-02-14 02:29:23.000000000 -0800
 @@ -44,14 +44,16 @@
  import os
  import re
@@ -30,6 +30,15 @@
  
  def getoutput(s):
      'get the output of a system command'
+@@ -506,7 +510,7 @@
+     module.include_dirs.append(numpy.get_include())
+ 
+ def add_png_flags(module):
+-    try_pkgconfig(module, 'libpng', 'png')
++    try_pkgconfig(module, 'libpng12', 'png12')
+     add_base_flags(module)
+     add_numpy_flags(module)
+     module.libraries.append('z')
 @@ -1027,6 +1031,7 @@
          #      of distros.
  

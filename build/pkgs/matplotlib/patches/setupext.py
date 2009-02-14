@@ -510,7 +510,7 @@ def add_numpy_flags(module):
     module.include_dirs.append(numpy.get_include())
 
 def add_png_flags(module):
-    try_pkgconfig(module, 'libpng', 'png')
+    try_pkgconfig(module, 'libpng12', 'png12')
     add_base_flags(module)
     add_numpy_flags(module)
     module.libraries.append('z')

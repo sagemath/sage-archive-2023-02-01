@@ -86,7 +86,7 @@ cdef class Matrix_dense(matrix.Matrix):
         algorithm.
 
         This method assumes that left and right have the same parent and
-        compatable dimensions.
+        compatible dimensions.
         """
         cdef Py_ssize_t i, j, k, l
         if left._ncols != right._nrows:

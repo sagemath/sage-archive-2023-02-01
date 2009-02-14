@@ -1648,7 +1648,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef Py_ssize_t i, j, n
 
         if self._nrows != self._ncols:
-            raise ArithmeticError, "self must be square"
+            raise ArithmeticError, "self must be a square matrix"
 
         F = f.base_ring()
         vars = f.parent().gens()
@@ -3242,11 +3242,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             1.00000000000000
             sage: M.is_invertible()
             True
-            sage: M.inverse()
-            []
             sage: M.inverse() == M
             True
-
 
         """
         if not self.base_ring().is_field():
@@ -3293,7 +3290,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [    -13/121   1436/1331 -8015/14641]
         """
         if not self.is_square():
-            raise ArithmeticError, "self must be square"
+            raise ArithmeticError, "self must be a square matrix"
 
         return RingElement.__pow__(self, n, ignored)
 

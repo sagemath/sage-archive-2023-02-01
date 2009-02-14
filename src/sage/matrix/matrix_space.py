@@ -1171,3 +1171,101 @@ def list_to_dict(entries, nrows, ncols, rows=True):
     return d
 
 
+
+# sage: m = matrix(F, 0,0, sparse=False)
+# sage: m.determinant()
+# 0
+
+
+def test_trivial_matrices_inverse(ring, sparse=True):
+    """
+    Tests inversion, determinant and is_inverstible for trivial matrices.
+
+    This function is a helper to check that the inversion of trivial matrices
+    (of size 0x0, nx0, 0xn or 1x1) is handled consistently by the various
+    implementation of matrices. The coherency is checked through a bunch of
+    assertions. If an inconsistency is found, an AssertionError is raised
+    which should make clear what is the problem.
+
+    INPUT:
+       ring -- a ring
+       sparse -- a boolean
+
+    OUTPUT:
+       nothing if everything is correct otherwise raise an AssertionError
+
+    The methods determinant, is_invertible and inverse as checked for
+     - the 0x0 empty identity matrix
+     - the 0x3 and 3x0 matrices
+     - the 1x1 null matrix [0]
+     - the 1x1 identity matrix [1]
+
+    TODO: must be adapted to category check framework when ready (see trac \#5274).
+
+    TESTS:
+      sage: from sage.matrix.matrix_space import test_trivial_matrices_inverse as tinv
+      sage: tinv(ZZ, sparse=True)
+      sage: tinv(ZZ, sparse=False)
+      sage: tinv(QQ, sparse=True)
+      sage: tinv(QQ, sparse=False)
+      sage: tinv(GF(11), sparse=True)
+      sage: tinv(GF(11), sparse=False)
+      sage: tinv(GF(2), sparse=True)
+      sage: tinv(GF(2), sparse=False)
+      sage: tinv(SR, sparse=True)
+      sage: tinv(SR, sparse=False)
+      sage: tinv(QQ['x,y'], sparse=True)
+      sage: tinv(QQ['x,y'], sparse=False)
+      sage: tinv(RDF, sparse=True)
+      sage: tinv(RDF, sparse=False)
+      sage: tinv(CDF, sparse=True)
+      sage: tinv(CDF, sparse=False)
+      sage: tinv(CyclotomicField(7), sparse=True)
+      sage: tinv(CyclotomicField(7), sparse=False)
+
+    """
+    # Check that the empty 0x0 matrix is it's own inverse with det=1.
+    ms00 = MatrixSpace(ring, 0, 0, sparse=sparse)
+    m00  = ms00(0)
+    assert(m00.determinant() == ring(1))
+    assert(m00.is_invertible())
+    assert(m00.inverse() == m00)
+
+    # Check that the empty 0x3 and 3x0 matrices are not invertible and that
+    # computing the detemininant raise the proper exception.
+    for ms0 in [MatrixSpace(ring, 0, 3, sparse=sparse),
+                MatrixSpace(ring, 3, 0, sparse=sparse)]:
+        m0  = ms0(0)
+        assert(not m0.is_invertible())
+        try:
+            d = m0.determinant()
+            print d
+            res = False
+        except ArithmeticError:
+            res = True
+        assert(res)
+        try:
+            m0.inverse()
+            res =False
+        except ArithmeticError:
+            res = True
+        assert(res)
+
+    # Check that the null 1x1 matrix is not invertible and that det=0
+    ms1 = MatrixSpace(ring, 1, 1, sparse=sparse)
+    m0  = ms1(0)
+    assert(not m0.is_invertible())
+    assert(m0.determinant() == ring(0))
+    try:
+        m0.inverse()
+        res = False
+    except ZeroDivisionError:
+        res = True
+    assert(res)
+
+    # Check that the identity 1x1 matrix is its own inverse with det=1
+    m1  = ms1(1)
+    assert(m1.is_invertible())
+    assert(m1.determinant() == ring(1))
+    inv = m1.inverse()
+    assert(inv == m1)

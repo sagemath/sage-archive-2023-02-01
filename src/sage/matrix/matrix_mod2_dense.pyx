@@ -1188,7 +1188,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             0
         """
         if not self.is_square():
-            raise ValueError, "self must be square"
+            raise ArithmeticError, "self must be a square matrix"
         return self.base_ring()(1 if self.rank() == self.nrows() else 0)
 
     def transpose(self):

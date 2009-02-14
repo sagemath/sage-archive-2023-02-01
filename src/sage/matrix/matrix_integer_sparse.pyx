@@ -9,6 +9,8 @@ TESTS:
     sage: a = matrix(ZZ,2,range(4), sparse=True)
     sage: loads(dumps(a)) == a
     True
+    sage: Matrix(ZZ,0,0,sparse=True).inverse()
+    []
 """
 
 ##############################################################################

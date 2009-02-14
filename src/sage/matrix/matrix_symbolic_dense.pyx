@@ -233,9 +233,30 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [1 0 0]
             [0 1 0]
             [0 0 1]
+
+        TESTS:
+            sage: matrix(SR, 1, 1, 1).inverse()
+            [1]
+            sage: matrix(SR, 0, 0).inverse()
+            []
+            sage: matrix(SR, 3, 0).inverse()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self must be a square matrix
         """
+        if not self.is_square():
+            raise ArithmeticError, "self must be a square matrix"
+        if self._nrows == 0: # work around maxima
+            return self.copy()
+        if self._nrows == 1: # work around maxima
+            res = self.copy()
+            res[0,0]= ~res[0,0]
+            return res
         cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = self._maxima.invert()
+        try:
+            M._maxima = self._maxima.invert()
+        except TypeError:
+            raise ZeroDivisionError, "singular matrix"
         return M
 
     def __copy__(self):
@@ -399,6 +420,10 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: M.det()
             sin(t)^2 + cos(t)^2
         """
+        if self._nrows != self._ncols:
+            raise ArithmeticError, "self must be a square matrix"
+        if self._nrows ==0:
+            return self._parent.base_ring()(1)
         det = repr(self._maxima.determinant())
         return self._parent.base_ring()(symbolic_expression_from_maxima_string(det))
 

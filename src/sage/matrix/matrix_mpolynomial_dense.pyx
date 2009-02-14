@@ -494,9 +494,16 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         ALGORITHM: Calls \Singular, libSingular or native
         implementation.
+
+        TESTS:
+            sage: R = PolynomialRing(QQ,9,'x')
+            sage: matrix(R,0,0).inverse()
+            []
         """
         if self._nrows != self._ncols:
-            raise ValueError, "self must be square"
+            raise ArithmeticError, "self must be a square matrix"
+        if self._nrows == 0:
+            return self._coerce_element(1)
 
         d = self.fetch('det')
         if not d is None:

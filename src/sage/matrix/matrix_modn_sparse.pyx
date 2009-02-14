@@ -59,6 +59,10 @@ EXAMPLES:
     sage: a[2,2] = 5
     sage: a.rank()
     3
+
+TESTS:
+    sage: matrix(Integers(37),0,0,sparse=True).inverse()
+    []
 """
 
 #############################################################################

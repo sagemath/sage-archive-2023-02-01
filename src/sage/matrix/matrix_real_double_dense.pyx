@@ -17,6 +17,8 @@ TESTS:
     sage: a = matrix(RDF,2,range(4), sparse=False)
     sage: loads(dumps(a)) == a
     True
+    sage: MatrixSpace(RDF,0,0).zero_matrix().inverse()
+    []
 
 AUTHORS:
     -- Jason Grout, Sep 2008: switch to numpy backend, factored out the Matrix_double_dense class

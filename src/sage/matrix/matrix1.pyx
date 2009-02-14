@@ -1308,7 +1308,7 @@ cdef class Matrix(matrix0.Matrix):
             PARI can deal with more general base rings
         """
         if self._nrows != self._ncols:
-            raise ArithmeticError, "matrix must be square"
+            raise ArithmeticError, "self must be a square matrix"
         X = self.fetch('adjoint')
         if not X is None:
             return X

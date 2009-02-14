@@ -26,6 +26,8 @@ TESTS:
     sage: a = matrix(ZZ,2,range(4), sparse=False)
     sage: loads(dumps(a)) == a
     True
+    sage: Matrix(ZZ,0,0).inverse()
+    []
 """
 
 ########## *** IMPORTANT ***
@@ -948,7 +950,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         time = verbose('computing %s of %s x %s matrix using linbox'%(typ, self._nrows, self._ncols))
         if self._nrows != self._ncols:
-            raise ValueError, "matrix must be square"
+            raise ArithmeticError, "self must be a square matrix"
         if self._nrows <= 1:
             return matrix_dense.Matrix_dense.charpoly(self, var)
         self._init_linbox()
@@ -2078,7 +2080,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             should work for semidefinite forms (PARI is ok)
         """
         if self._nrows != self._ncols:
-            raise ArithmeticError, "matrix must be square"
+            raise ArithmeticError, "self must be a square matrix"
 
         n = self.nrows()
         # maybe should be /unimodular/ matrices ?
@@ -2775,7 +2777,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if not d is None:
             return d
         if not self.is_square():
-            raise ValueError, "self must be square"
+            raise ArithmeticError, "self must be a square matrix"
         n = self.nrows()
 
         if n <= 3:
@@ -3067,7 +3069,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         if self._nrows != self._ncols:
             # This is *required* by the IML function we call below.
-            raise ArithmeticError, "self must be square"
+            raise ArithmeticError, "self must be a square matrix"
 
         if self.nrows() == 1:
             return B, self[0,0]

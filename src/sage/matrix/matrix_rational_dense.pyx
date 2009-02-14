@@ -523,6 +523,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: input matrix must be nonsingular
+
+        TESTS:
+            sage: matrix(QQ,0,0).inverse()
+            []
         """
         return self.invert()
 
@@ -567,7 +571,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef int i
 
         if self._nrows != self._ncols:
-            raise ValueError, "self must be square"
+            raise ArithmeticError, "self must be a square matrix"
         if self._nrows == 0:
             return self
         if self._nrows <= 2:

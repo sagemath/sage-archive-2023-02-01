@@ -79,6 +79,8 @@ TESTS:
     sage: B - int(-1)
     [0 0]
     [0 2]
+    sage: Matrix(GF(5),0,0, sparse=False).inverse()
+    []
 """
 
 
@@ -1463,10 +1465,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: m.determinant()
             Traceback (most recent call last):
             ...
-            ValueError: self must be square
+            ArithmeticError: self must be a square matrix
         """
         if self._nrows != self._ncols:
-            raise ValueError, "self must be square"
+            raise ArithmeticError, "self must be a square matrix"
+        if self._nrows == 0:
+            return self._coerce_element(1)
 
         if self.p > 2 and is_prime(self.p):
             x = self.fetch('det')

@@ -946,7 +946,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         # should we even bother with this check, or just say in
         # the docstring that we assume it's square?
         if self._nrows != self._ncols:
-            raise ValueError, "self must be square"
+            raise ArithmeticError, "self must be a square matrix"
 
         if self.is_zero():
             return 1

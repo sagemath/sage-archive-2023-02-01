@@ -172,6 +172,10 @@ cdef class Matrix_domain_dense(matrix.Matrix):
             [0 1]
             sage: (~I).parent()
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+        TESTS:
+            sage: MatrixSpace(IntegerRing(), 0)().inverse()
+            []
         """
         return ~self.matrix_over_field()
 

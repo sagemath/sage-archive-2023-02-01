@@ -551,7 +551,7 @@ class Crystal(CombinatorialClass, Parent):
             sage: C = CrystalOfLetters(['A', 5])
             sage: show_default(False) #do not show the plot by default
             sage: C.plot()
-            Graphics object consisting of 11 graphics primitives
+            Graphics object consisting of 17 graphics primitives
 
         """
         return self.digraph().plot(edge_labels=True,vertex_size=0,**options)

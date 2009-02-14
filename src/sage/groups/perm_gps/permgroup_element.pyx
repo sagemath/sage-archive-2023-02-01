@@ -333,7 +333,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         self.n = max(parent.degree(), 1)
 
-        if self.perm is NULL:
+        if self.perm is NULL or self.perm is self.perm_buf:
             self.perm = <int *>sage_malloc(sizeof(int) * self.n)
         else:
             self.perm = <int *>sage_realloc(self.perm, sizeof(int) * self.n)
@@ -357,7 +357,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         self.perm = NULL
 
     def __dealloc__(self):
-        sage_free(self.perm)
+        if self.perm is not NULL and self.perm is not self.perm_buf:
+            sage_free(self.perm)
 
     def __reduce__(self):
         return make_permgroup_element, (self._parent, self.list())
@@ -368,7 +369,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             other.__class__ = self.__class__
         other._parent = self._parent
         other.n = self.n
-        other.perm = <int *>sage_malloc(sizeof(int) * other.n)
+        if other.n <= sizeof(other.perm_buf) / sizeof(int):
+            other.perm = other.perm_buf
+        else:
+            other.perm = <int *>sage_malloc(sizeof(int) * other.n)
         return other
 
     def _gap_(self, G=None):

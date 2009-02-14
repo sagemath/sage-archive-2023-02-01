@@ -296,6 +296,93 @@ verify it.
     sage: lhs._exact_value()
     -242494609856316402264822833062350847769474540*a^9 + 862295472068289472491654837785947906234680703*a^8 - 829559238431038252116584538075753012193290520*a^7 - 125882239615006638366472766103700441555126185*a^6 + 1399067970863104691667276008776398309383579345*a^5 - 1561176687069361567616835847286958553574223422*a^4 + 761706318888840943058230840550737823821027895*a^3 + 580740464974951394762758666210754821723780266*a^2 - 954587496403409756503464154898858512440951323*a + 546081123623099782018260884934770383777092602 where a^10 - 4*a^9 + 5*a^8 - a^7 - 6*a^6 + 9*a^5 - 6*a^4 - a^3 + 5*a^2 - 4*a + 1 = 0 and a in 0.4440633440090926?
 
+Given an algebraic number, we can produce a string that will reproduce
+that algebraic number if you type the string into Sage.  We can see
+that until exact computation is triggered, an algebraic number keeps
+track of the computation steps used to produce that number.
+
+    sage: rt2 = AA(sqrt(2))
+    sage: rt3 = AA(sqrt(3))
+    sage: n = (rt2 + rt3)^5; n
+    308.3018001722975?
+    sage: sage_input(n)
+    v1 = sqrt(AA(2)) + sqrt(AA(3))
+    v2 = v1*v1
+    v2*v2*v1
+
+But once exact computation is triggered, the computation tree is discarded,
+and we get a way to produce the number directly.
+
+    sage: n == 109*rt2 + 89*rt3
+    True
+    sage: sage_input(n)
+    R.<x> = AA[]
+    v = AA.polynomial_root(AA.common_polynomial(x^4 - 4*x^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
+    -109*v^3 - 89*v^2 + 327*v + 178
+
+We can also see that some computations (basically, those which are
+easy to perform exactly) are performed directly, instead of storing
+the computation tree.
+
+    sage: z3_3 = QQbar.zeta(3) * 3
+    sage: z4_4 = QQbar.zeta(4) * 4
+    sage: z5_5 = QQbar.zeta(5) * 5
+    sage: sage_input(z3_3 * z4_4 * z5_5)
+    -60*QQbar.zeta(60)^17
+
+Note that the verify=True argument to sage_input will always trigger
+exact computation, so running sage_input twice in a row on the same number
+will actually give different answers.  (In the following, running sage_input
+on n will also trigger exact computation on rt2, as you can see by the
+fact that the third output is different than the first.)
+
+    sage: rt2 = AA(sqrt(2))
+    sage: n = rt2^2
+    sage: sage_input(n, verify=True)
+    # Verified
+    v = sqrt(AA(2))
+    v*v
+    sage: sage_input(n, verify=True)
+    # Verified
+    AA(2)
+    sage: n = rt2^2
+    sage: sage_input(n, verify=True)
+    # Verified
+    AA(2)
+
+Just for fun, let's try sage_input on a very complicated expression.
+
+    sage: rt2 = sqrt(AA(2))
+    sage: rt3 = sqrt(QQbar(3))
+    sage: x = polygen(QQbar)
+    sage: nrt3 = AA.polynomial_root((x-rt2)*(x+rt3), RIF(-2, -1))
+    sage: one = AA.polynomial_root((x-rt2)*(x-rt3)*(x-nrt3)*(x-1-rt3-nrt3), RIF(0.9, 1.1))
+    sage: one
+    1.000000000000000?
+    sage: sage_input(one, verify=True)
+    # Verified
+    R.<x> = QQbar[]
+    v1 = AA(2)
+    v2 = QQbar(sqrt(v1))
+    v3 = QQbar(3)
+    v4 = sqrt(v3)
+    v5 = v2*v4
+    v6 = (1 - v2)*(1 - v4) - 1 - v5
+    v7 = QQbar(sqrt(v1))
+    v8 = sqrt(v3)
+    si1 = v7*v8
+    cp = AA.common_polynomial(x^2 + ((1 - v7)*(1 + v8) - 1 + si1)*x - si1)
+    v9 = QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
+    v10 = 1 - v9
+    v11 = v6 + (v10 - 1)
+    v12 = -1 - v4 - QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
+    v13 = 1 + v12
+    v14 = v10*(v6 + v5) - (v6 - v5*v9)
+    si2 = v5*v9
+    AA.polynomial_root(AA.common_polynomial(x^4 + (v11 + (v13 - 1))*x^3 + (v14 + (v13*v11 - v11))*x^2 + (v13*(v14 - si2) - (v14 - si2*v12))*x - si2*v12), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
+    sage: one
+    1
+
 We can pickle and unpickle algebraic fields (and they are globally unique):
 
     sage: loads(dumps(AlgebraicField())) is AlgebraicField()
@@ -508,6 +595,20 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
     def _latex_(self):
         return "\\mathbf{A}"
 
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(AA, verify=True)
+            # Verified
+            AA
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: AA._sage_input_(SageInputBuilder(), False)
+            {atomic:AA}
+        """
+        return sib.name('AA')
+
     def _coerce_impl(self, x):
         if isinstance(x, (int, long, sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
@@ -665,6 +766,20 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
 
     def _repr_(self):
         return "Algebraic Field"
+
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(QQbar, verify=True)
+            # Verified
+            QQbar
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: QQbar._sage_input_(SageInputBuilder(), False)
+            {atomic:QQbar}
+        """
+        return sib.name('QQbar')
 
     def _coerce_impl(self, x):
         if isinstance(x, (int, long, sage.rings.integer.Integer,
@@ -1248,8 +1363,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
     if single_number:
         nums = nums[0]
 
-    codomain = QQbar if gen.is_complex() else AA
-    hom = fld.hom([codomain(gen._root)])
+    hom = fld.hom([gen.root_as_algebraic()])
 
     return (fld, nums, hom)
 
@@ -1315,6 +1429,7 @@ class AlgebraicGenerator(SageObject):
         self._pari_field = None
         self._trivial = (field is QQ)
         self._root = root
+        self._root_as_algebraic = (QQbar if root.is_complex() else AA)(root)
         self._unions = {}
         self._cyclotomic = False
         global algebraic_generator_counter
@@ -1356,6 +1471,9 @@ class AlgebraicGenerator(SageObject):
                 return str(self._root)
             else:
                 return '%s with a in %s'%(self._field, self._root._interval_fast(53))
+
+    def root_as_algebraic(self):
+        return self._root_as_algebraic
 
     def is_trivial(self):
         """
@@ -2033,6 +2151,54 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             return repr(CIF(self._value))
         else:
             return repr(RIF(self._value))
+
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+        These examples are mostly copied from the doctests of
+        the handle_sage_input functions; see those for more examples.
+
+            sage: sage_input(QQbar(3))
+            QQbar(3)
+            sage: sage_input(AA(22/7))
+            AA(22/7)
+            sage: sage_input(22/7*QQbar.zeta(4))
+            QQbar(22/7*I)
+            sage: sage_input(QQbar.zeta(5)^3)
+            -QQbar.zeta(10)
+            sage: sage_input((AA(3)^(1/2))^(1/3))
+            sqrt(AA(3)).nth_root(3)
+            sage: sage_input(QQbar(3+4*I))
+            QQbar(3 + 4*I)
+            sage: sage_input(-sqrt(AA(2)))
+            -sqrt(AA(2))
+            sage: sage_input(2 + sqrt(AA(2)))
+            2 + sqrt(AA(2))
+
+        And a nice big example:
+            sage: K.<x> = QQ[]
+            sage: p = K.random_element(4); p
+            1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
+            sage: rts = p.roots(ring=QQbar, multiplicities=False); rts
+            [-1.830225346898784?, 1.842584249981426?, 0.004346864248152390? - 1.540200655088741?*I, 0.004346864248152390? + 1.540200655088741?*I]
+            sage: sage_input(rts, verify=True)
+            # Verified
+            R.<x> = AA[]
+            cp = AA.common_polynomial(1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4)
+            [QQbar.polynomial_root(cp, CIF(RIF(-RR(1.8302253468987832), -RR(1.830225346898783)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(1.8425842499814258), RR(1.842584249981426)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.0043468642481523899), RR(0.0043468642481523908)), RIF(-RR(1.5402006550887404), -RR(1.5402006550887402)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.0043468642481523899), RR(0.0043468642481523908)), RIF(RR(1.5402006550887402), RR(1.5402006550887404))))]
+
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: sqrt(QQbar(7))._sage_input_(sib, False)
+            {call: {atomic:sqrt}({call: {atomic:QQbar}({atomic:7})})}
+        """
+        (v, complicated) = \
+            self._descr.handle_sage_input(sib, coerce, self.parent() is QQbar)
+        if complicated or True:
+            sib.id_cache(self, v, 'v')
+        return v
 
     def _mul_(self, other):
         """
@@ -2719,7 +2885,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         target = ComplexIntervalField(prec)(target_real,
                                             target_arg.sin() * target_abs)
 
-        return AlgebraicNumber(ANRoot(poly, target))
+        return AlgebraicNumber(ANRoot(poly, target, is_pow=(self, e, True)))
 
     def _mpfr_(self, field):
         r"""
@@ -3119,7 +3285,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         else:
             result_min = min(range.lower(), -1)
         result_max = max(range.upper(), 1)
-        return AlgebraicReal(ANRoot(poly, RIF(result_min, result_max)))
+        return AlgebraicReal(ANRoot(poly, RIF(result_min, result_max), is_pow=(self, e, False)))
 
     def _integer_(self, Z=None):
         """
@@ -3510,6 +3676,34 @@ class ANRational(ANDescr):
     def _repr_(self):
         return repr(self._value)
 
+    def handle_sage_input(self, sib, coerce, is_qqbar):
+        r"""
+        Produce an expression which will reproduce this value when evaluated,
+        and an indication of whether this value is worth sharing (always
+        False, for rationals).
+
+        EXAMPLES:
+            sage: sage_input(QQbar(22/7), verify=True)
+            # Verified
+            QQbar(22/7)
+            sage: sage_input(-AA(3)/5, verify=True)
+            # Verified
+            AA(-3/5)
+            sage: sage_input(vector(AA, (0, 1/2, 1/3)), verify=True)
+            # Verified
+            vector(AA, [0, 1/2, 1/3])
+            sage: from sage.rings.qqbar import *
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: rat = ANRational(9/10)
+            sage: rat.handle_sage_input(sib, False, True)
+            ({call: {atomic:QQbar}({binop:/ {atomic:9} {atomic:10}})}, False)
+        """
+        v = sib(self._value, True)
+        if not coerce:
+            v = sib.name('QQbar' if is_qqbar else 'AA')(v)
+        return (v, False)
+
     def kind(self):
         if self._value.is_zero():
             return 'zero'
@@ -3644,6 +3838,55 @@ class ANRootOfUnity(ANDescr):
 
     def _repr_(self):
         return "%s*e^(2*pi*I*%s)"%(self._scale, self._angle)
+
+    def handle_sage_input(self, sib, coerce, is_qqbar):
+        r"""
+        Produce an expression which will reproduce this value when evaluated,
+        and an indication of whether this value is worth sharing (False for
+        imaginary numbers, True for others).
+
+        EXAMPLES:
+            sage: sage_input(22/7*QQbar.zeta(4), verify=True)
+            # Verified
+            QQbar(22/7*I)
+            sage: sage_input((2*QQbar.zeta(12))^4, verify=True)
+            # Verified
+            16*QQbar.zeta(3)
+            sage: sage_input(QQbar.zeta(5)^2, verify=True)
+            # Verified
+            QQbar.zeta(5)^2
+            sage: sage_input(QQbar.zeta(5)^3, verify=True)
+            # Verified
+            -QQbar.zeta(10)
+            sage: sage_input(vector(QQbar, (I, 3*QQbar.zeta(9))), verify=True)
+            # Verified
+            vector(QQbar, [I, 3*QQbar.zeta(9)])
+            sage: from sage.rings.qqbar import *
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: rtofunity = ANRootOfUnity(137/500, 1/1000)
+            sage: rtofunity.handle_sage_input(sib, False, True)
+            ({binop:* {binop:/ {atomic:1} {atomic:1000}} {binop:** {call: {getattr: {atomic:QQbar}.zeta}({atomic:500})} {atomic:137}}}, True)
+        """
+        assert(is_qqbar)
+
+        angle = self._angle
+        scale = self._scale
+
+        if angle == QQ_1_4:
+            v = sib.prod([sib(scale, True), sib.name('I')], simplify=True)
+            if coerce != 2:
+                v = sib.name('QQbar')(v)
+                return (v, True)
+            return (v, False)
+        else:
+            zeta_denom = sib.name('QQbar').zeta(sib.int(angle.denominator()))
+            numer = angle.numerator()
+            if numer == 1:
+                v = sib.prod([sib(scale, True), zeta_denom], simplify=True)
+            else:
+                v = sib.prod([sib(scale, True), zeta_denom ** sib.int(numer)], simplify=True)
+            return (v, True)
 
     def kind(self):
         if self._angle == QQ_1_4:
@@ -3809,6 +4052,34 @@ class AlgebraicPolynomialTracker(SageObject):
         """
         return (AlgebraicPolynomialTracker, (self._poly, ))
 
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: sage_input(AA.common_polynomial(x^3 - 7))
+            R.<x> = AA[]
+            AA.common_polynomial(x^3 - 7)
+            sage: x = polygen(AA)
+            sage: p = sqrt(AA(2)) * x^2 - sqrt(AA(3))
+            sage: cp = AA.common_polynomial(p)
+            sage: sage_input((cp, cp))
+            R.<x> = AA[]
+            cp = AA.common_polynomial(sqrt(AA(2))*x^2 - sqrt(AA(3)))
+            (cp, cp)
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: cp._sage_input_(sib, False)
+            {call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:* {call: {atomic:sqrt}({call: {atomic:AA}({atomic:2})})} {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}}} {call: {atomic:sqrt}({call: {atomic:AA}({atomic:3})})}})}
+        """
+        # XXX It would be nicer to skip the "AA.common_polynomial()"
+        # wrapper if the polynomial is not actually shared.  But
+        # sage_input.py isn't quite that generic.
+        v = sib.name('AA').common_polynomial(self._poly)
+        sib.id_cache(self, v, 'cp')
+        return v
+
     def _repr_(self):
         return repr(self._poly)
 
@@ -3894,7 +4165,7 @@ class ANRoot(ANDescr):
     root of a polynomial with algebraic coefficients.
     This class is private, and should not be used directly.
     """
-    def __init__(self, poly, interval, multiplicity=1):
+    def __init__(self, poly, interval, multiplicity=1, is_pow=None):
         if not isinstance(poly, AlgebraicPolynomialTracker):
             poly = AlgebraicPolynomialTracker(poly)
         self._poly = poly
@@ -3902,6 +4173,7 @@ class ANRoot(ANDescr):
         self._complex = is_ComplexIntervalFieldElement(interval)
         self._complex_poly = poly.is_complex()
         self._interval = self.refine_interval(interval, 64)
+        self._is_pow = is_pow
 
     def __reduce__(self):
         """
@@ -3920,6 +4192,72 @@ class ANRoot(ANDescr):
     def _repr_(self):
         return 'Root %s of %s'%(self._interval, self._poly)
 
+    def handle_sage_input(self, sib, coerce, is_qqbar):
+        r"""
+        Produce an expression which will reproduce this value when evaluated,
+        and an indication of whether this value is worth sharing (always True,
+        for ANRoot).
+
+        EXAMPLES:
+            sage: sage_input((AA(3)^(1/2))^(1/3), verify=True)
+            # Verified
+            sqrt(AA(3)).nth_root(3)
+
+        These two examples are too big to verify quickly.  (Verification
+        would create a field of degree 28.)
+            sage: sage_input((sqrt(AA(3))^(5/7))^(9/4))
+            (sqrt(AA(3))^(5/7))^(9/4)
+            sage: sage_input((sqrt(QQbar(-7))^(5/7))^(9/4))
+            (sqrt(QQbar(-7))^(5/7))^(9/4)
+            sage: x = polygen(QQ)
+            sage: sage_input(AA.polynomial_root(x^2-x-1, RIF(1, 2)), verify=True)
+            # Verified
+            R.<x> = AA[]
+            AA.polynomial_root(AA.common_polynomial(x^2 - x - 1), RIF(RR(1.6180339887498947), RR(1.6180339887498949)))
+            sage: sage_input(QQbar.polynomial_root(x^3-5, CIF(RIF(-3, 0), RIF(0, 3))), verify=True)
+            # Verified
+            R.<x> = AA[]
+            QQbar.polynomial_root(AA.common_polynomial(x^3 - 5), CIF(RIF(-RR(0.85498797333834853), -RR(0.85498797333834842)), RIF(RR(1.4808826096823642), RR(1.4808826096823644))))
+            sage: from sage.rings.qqbar import *
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: rt = ANRoot(x^3 - 2, RIF(0, 4))
+            sage: rt.handle_sage_input(sib, False, True)
+            ({call: {getattr: {atomic:QQbar}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:3}} {atomic:2}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.259921049894873})}, {call: {atomic:RR}({atomic:1.2599210498948732})})})}, True)
+        """
+        if self._is_pow is not None:
+            (base, expt, result_is_qqbar) = self._is_pow
+            n = expt.numerator()
+            d = expt.denominator()
+            base = sib(base)
+            if n == 1:
+                if d == 2:
+                    v = sib.name('sqrt')(base)
+                else:
+                    v = base.nth_root(sib.int(d))
+            else:
+                v = base ** sib(expt, True)
+            if result_is_qqbar != is_qqbar:
+                v = sib.name('QQbar' if is_qqbar else 'AA')(v)
+            return (v, True)
+
+        parent = sib.name('QQbar' if is_qqbar else 'AA')
+        poly = sib(self._poly)
+        intv = self._interval
+        # Check whether a 53-bit interval actually isolates the root.
+        # If so, use it, because 53-bit intervals print prettier.
+        if is_ComplexIntervalFieldElement(intv):
+            loose_intv = CIF(intv)
+        else:
+            loose_intv = RIF(intv)
+        # If the derivative of the polynomial is bounded away from 0
+        # over this interval, then it definitely isolates a root.
+        if self._poly._poly.derivative()(loose_intv) != 0:
+            good_intv = loose_intv
+        else:
+            good_intv = intv
+        return (parent.polynomial_root(poly, sib(good_intv)), True)
+
     def kind(self):
         return 'other'
 
@@ -3932,7 +4270,7 @@ class ANRoot(ANDescr):
         if not self._complex_poly:
             return ANRoot(self._poly, self._interval.conjugate(), self._multiplicity)
 
-        raise NotImplementedError
+        return ANUnaryExpr(n, 'conjugate')
 
     def refine_interval(self, interval, prec):
         if self._complex or self._complex_poly:
@@ -4491,6 +4829,73 @@ class ANExtensionElement(ANDescr):
                                               self._generator.field().polynomial()._repr(name='a'),
                                               self._generator._interval_fast(53))
 
+    def handle_sage_input(self, sib, coerce, is_qqbar):
+        r"""
+        Produce an expression which will reproduce this value when evaluated,
+        and an indication of whether this value is worth sharing (always True,
+        for ANExtensionElement).
+
+        EXAMPLES:
+            sage: I = QQbar(I)
+            sage: sage_input(3+4*I, verify=True)
+            # Verified
+            QQbar(3 + 4*I)
+            sage: v = QQbar.zeta(3) + QQbar.zeta(5)
+            sage: v - v == 0
+            True
+            sage: sage_input(vector(QQbar, (4-3*I, QQbar.zeta(7))), verify=True)
+            # Verified
+            vector(QQbar, [4 - 3*I, QQbar.zeta(7)])
+            sage: sage_input(v, verify=True)
+            # Verified
+            v = QQbar.zeta(15)
+            v^5 + v^3
+            sage: v = QQbar(sqrt(AA(2)))
+            sage: v.exactify()
+            sage: sage_input(v, verify=True)
+            # Verified
+            R.<x> = AA[]
+            QQbar(AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951))))
+            sage: from sage.rings.qqbar import *
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: extel = ANExtensionElement(QQbar_I_generator, QQbar_I_generator.field().gen() + 1)
+            sage: extel.handle_sage_input(sib, False, True)
+            ({call: {atomic:QQbar}({binop:+ {atomic:1} {atomic:I}})}, True)
+        """
+        if self._generator is QQbar_I_generator:
+            assert(is_qqbar)
+            re, im = self._value.list()
+            im_part = sib.prod([sib(im, True), sib.name('I')], simplify=True)
+            v = sib.sum([sib(re, True), im_part], simplify=True)
+            if coerce != 2:
+                v = sib.name('QQbar')(v)
+                return (v, True)
+            return (v, False)
+
+        result_is_qqbar = self._generator.is_complex()
+
+        rt = sib(self._generator.root_as_algebraic())
+        # For the best fidelity, we really ought to somehow ensure
+        # that rt is exactified, but sage_input doesn't support that
+        # nicely.  Skip it for now.
+        # The following is copied with slight mods from polynomial_element.pyx
+        coeffs = [sib(c, True) for c in self._value.list()]
+        terms = []
+        for i in range(len(coeffs)-1, -1, -1):
+            if i > 0:
+                if i > 1:
+                    rt_pow = rt**sib.int(i)
+                else:
+                    rt_pow = rt
+                terms.append(sib.prod((coeffs[i], rt_pow), simplify=True))
+            else:
+                terms.append(coeffs[i])
+        v = sib.sum(terms, simplify=True)
+        if result_is_qqbar != is_qqbar:
+            v = sib.name('QQbar' if is_qqbar else 'AA')(v)
+        return (v, True)
+
     def kind(self):
         if self._generator is QQbar_I_generator:
             return 'gaussian'
@@ -4688,6 +5093,81 @@ class ANUnaryExpr(ANDescr):
         """
         return (ANUnaryExpr, (self._arg, self._op))
 
+    def handle_sage_input(self, sib, coerce, is_qqbar):
+        r"""
+        Produce an expression which will reproduce this value when evaluated,
+        and an indication of whether this value is worth sharing (always
+        True for ANUnaryExpr).
+
+        EXAMPLES:
+            sage: sage_input(-sqrt(AA(2)), verify=True)
+            # Verified
+            -sqrt(AA(2))
+            sage: sage_input(~sqrt(AA(2)), verify=True)
+            # Verified
+            ~sqrt(AA(2))
+            sage: sage_input(sqrt(QQbar(-3)).conjugate(), verify=True)
+            # Verified
+            sqrt(QQbar(-3)).conjugate()
+            sage: sage_input(QQbar.zeta(3).real(), verify=True)
+            # Verified
+            QQbar.zeta(3).real()
+            sage: sage_input(QQbar.zeta(3).imag(), verify=True)
+            # Verified
+            QQbar.zeta(3).imag()
+            sage: sage_input(abs(sqrt(QQbar(-3))), verify=True)
+            # Verified
+            abs(sqrt(QQbar(-3)))
+            sage: sage_input(sqrt(QQbar(-3)).norm(), verify=True)
+            # Verified
+            sqrt(QQbar(-3)).norm()
+            sage: sage_input(QQbar(QQbar.zeta(3).real()), verify=True)
+            # Verified
+            QQbar(QQbar.zeta(3).real())
+            sage: from sage.rings.qqbar import *
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: unexp = ANUnaryExpr(sqrt(AA(2)), '~')
+            sage: unexp.handle_sage_input(sib, False, False)
+            ({unop:~ {call: {atomic:sqrt}({call: {atomic:AA}({atomic:2})})}}, True)
+            sage: unexp.handle_sage_input(sib, False, True)
+            ({call: {atomic:QQbar}({unop:~ {call: {atomic:sqrt}({call: {atomic:AA}({atomic:2})})}})}, True)
+        """
+        arg_is_qqbar = self._arg.parent() is QQbar
+        v = sib(self._arg)
+        op = self._op
+        if op == '-':
+            v = -v
+        elif op == '~':
+            v = ~v
+        elif op == 'conjugate':
+            v = v.conjugate()
+        elif op == 'real':
+            v = v.real()
+        elif op == 'imag':
+            v = v.imag()
+        elif op == 'abs':
+            v = abs(v)
+        elif op == 'norm':
+            v = v.norm()
+        else:
+            raise NotImplementedError
+
+        result_is_qqbar = arg_is_qqbar
+        if op in ('real', 'imag', 'abs', 'norm'):
+            result_is_qqbar = False
+        if result_is_qqbar != is_qqbar:
+            # The following version is not safe with respect to caching;
+            # with the current sage_input.py, anything that gets entered
+            # into the cache must be safe at all coercion levels.
+#             if is_qqbar and not coerce:
+#                 v = sib.name('QQbar')(v)
+#             if not is_qqbar and coerce != 2:
+#                 v = sib.name('AA')(v)
+            v = sib.name('QQbar' if is_qqbar else 'AA')(v)
+
+        return (v, True)
+
     def kind(self):
         return 'other'
 
@@ -4811,6 +5291,105 @@ class ANBinaryExpr(ANDescr):
             True
         """
         return (ANBinaryExpr, (self._left, self._right, self._op))
+
+    def handle_sage_input(self, sib, coerce, is_qqbar):
+        r"""
+        Produce an expression which will reproduce this value when evaluated,
+        and an indication of whether this value is worth sharing (always
+        True for ANBinaryExpr).
+
+        EXAMPLES:
+            sage: sage_input(2 + sqrt(AA(2)), verify=True)
+            # Verified
+            2 + sqrt(AA(2))
+            sage: sage_input(sqrt(AA(2)) + 2, verify=True)
+            # Verified
+            sqrt(AA(2)) + 2
+            sage: sage_input(2 - sqrt(AA(2)), verify=True)
+            # Verified
+            2 - sqrt(AA(2))
+            sage: sage_input(2 / sqrt(AA(2)), verify=True)
+            # Verified
+            2/sqrt(AA(2))
+            sage: sage_input(2 + (-1*sqrt(AA(2))), verify=True)
+            # Verified
+            2 - sqrt(AA(2))
+            sage: sage_input(2*sqrt(AA(2)), verify=True)
+            # Verified
+            2*sqrt(AA(2))
+            sage: rt2 = sqrt(AA(2))
+            sage: one = rt2/rt2
+            sage: n = one+3
+            sage: sage_input(n)
+            v = sqrt(AA(2))
+            v/v + 3
+            sage: one == 1
+            True
+            sage: sage_input(n)
+            1 + AA(3)
+            sage: rt3 = QQbar(sqrt(3))
+            sage: one = rt3/rt3
+            sage: n = sqrt(AA(2))+one
+            sage: one == 1
+            True
+            sage: sage_input(n)
+            QQbar(sqrt(AA(2))) + 1
+            sage: from sage.rings.qqbar import *
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: binexp = ANBinaryExpr(AA(3), AA(5), '*')
+            sage: binexp.handle_sage_input(sib, False, False)
+            ({binop:* {atomic:3} {call: {atomic:AA}({atomic:5})}}, True)
+            sage: binexp.handle_sage_input(sib, False, True)
+            ({call: {atomic:QQbar}({binop:* {atomic:3} {call: {atomic:AA}({atomic:5})}})}, True)
+        """
+        arg1 = self._left
+        arg2 = self._right
+        op = self._op
+
+        # We want 2+QQbar.zeta(3) and QQbar.zeta(3)+2, not
+        # QQbar(2)+QQbar.zeta(3).  So we want to pass coerced=True to
+        # an argument if it is rational (but if both arguments are
+        # rational, we only want to set it for one of them).
+
+        arg1_coerced = False
+        arg2_coerced = False
+
+        if isinstance(arg1._descr, ANRational):
+            arg1_coerced = True
+        elif isinstance(arg2._descr, ANRational):
+            arg2_coerced = True
+
+        arg1_is_qqbar = arg1.parent() is QQbar
+        arg2_is_qqbar = arg2.parent() is QQbar
+
+        result_is_qqbar = \
+            (arg1_is_qqbar and not arg1_coerced) or \
+            (arg2_is_qqbar and not arg2_coerced)
+
+        v1 = sib(arg1, arg1_coerced)
+        v2 = sib(arg2, arg2_coerced)
+
+        if op == '+':
+            v = sib.sum([v1, v2], simplify=True)
+        elif op == '-':
+            v = sib.sum([v1, -v2], simplify=True)
+        elif op == '*':
+            v = sib.prod([v1, v2], simplify=True)
+        else:
+            v = v1 / v2
+
+        if result_is_qqbar != is_qqbar:
+            # The following version is not safe with respect to caching;
+            # with the current sage_input.py, anything that gets entered
+            # into the cache must be safe at all coercion levels.
+#             if is_qqbar and not coerce:
+#                 v = sib.name('QQbar')(v)
+#             if not is_qqbar and coerce != 2:
+#                 v = sib.name('AA')(v)
+            v = sib.name('QQbar' if is_qqbar else 'AA')(v)
+
+        return (v, True)
 
     def kind(self):
         return 'other'

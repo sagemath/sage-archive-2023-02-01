@@ -159,6 +159,38 @@ class ComplexIntervalField_class(field.Field):
         """
         return "ComplexField(%s : Bits := true)" % self.prec()
 
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(CIF, verify=True)
+            # Verified
+            CIF
+            sage: sage_input(ComplexIntervalField(25), verify=True)
+            # Verified
+            ComplexIntervalField(25)
+            sage: k = (CIF, ComplexIntervalField(37), ComplexIntervalField(1024))
+            sage: sage_input(k, verify=True)
+            # Verified
+            (CIF, ComplexIntervalField(37), ComplexIntervalField(1024))
+            sage: sage_input((k, k), verify=True)
+            # Verified
+            CIF37 = ComplexIntervalField(37)
+            CIF1024 = ComplexIntervalField(1024)
+            ((CIF, CIF37, CIF1024), (CIF, CIF37, CIF1024))
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: ComplexIntervalField(2)._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:ComplexIntervalField}({atomic:2})}
+        """
+        if self.prec() == 53:
+            return sib.name('CIF')
+
+        v = sib.name('ComplexIntervalField')(sib.int(self.prec()))
+        name = 'CIF%d' % self.prec()
+        sib.cache(self, v, name)
+        return v
+
     precision = prec
 
 

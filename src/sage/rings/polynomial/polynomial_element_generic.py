@@ -544,7 +544,13 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             aaa = R.leading_coefficient()/B.leading_coefficient()
             diff_deg=R.degree()-B.degree()
             Q += P(aaa).shift(diff_deg)
-            R -= (aaa*B).shift(diff_deg)
+            # We know that S*B exactly cancels the leading coefficient of R.
+            # Thus, we skip the computation of this leading coefficient.
+            # For most exact fields, this doesn't matter much; but for
+            # inexact fields, the leading coefficient might not end up
+            # exactly equal to zero; and for AA/QQbar, verifying that
+            # the coefficient is exactly zero triggers exact computation.
+            R = R[:R.degree()] - (aaa*B[:B.degree()]).shift(diff_deg)
         return (Q, R)
 
     def _gcd(self, other):

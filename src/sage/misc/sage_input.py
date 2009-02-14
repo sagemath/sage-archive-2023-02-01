@@ -323,6 +323,7 @@ class SageInputBuilder:
         self._preparse = preparse
         self._cached_types = set()
         self._cache = {}
+        self._id_cache = {}
         self._parent_gens = {}
         self._next_local = 1
         self._locals = {}
@@ -445,6 +446,9 @@ class SageInputBuilder:
         if type(x) in self._cached_types:
             v = self._cache.get((parent(x), x))
             if v is not None: return v
+
+        v = self._id_cache.get(id(x))
+        if v is not None: return v[1]
 
         if isinstance(x, SageInputExpression):
             return x
@@ -644,6 +648,60 @@ class SageInputBuilder:
         """
         self._cached_types.add(type(x))
         self._cache[(parent(x), x)] = sie
+        sie._sie_preferred_varname = name
+
+    def id_cache(self, x, sie, name):
+        r"""
+        INPUTS:
+            x -- an arbitrary value
+            sie -- a \class{SageInputExpression}
+            name -- a requested variable name
+
+        Enters \var{x} and \var{sie} in a cache, so that subsequent calls
+        \code{self(x)} will directly return \var{sie}.  Also, marks the
+        requested name of this \var{sie} to be \var{name}.  Differs from
+        the \method{cache} method in that the cache is keyed by
+        \code{id(x)} instead of by \code{x}.
+
+        This may be called on values of an arbitrary type, which may
+        be useful if the values are both large and likely to be used
+        multiple times in a single expression; it should be preferred to
+        \method{cache} if equality on the values is difficult or impossible
+        to compute.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: x = polygen(ZZ)
+            sage: sib = SageInputBuilder()
+            sage: my_42 = 42*x
+            sage: sie42 = sib(my_42)
+            sage: sib.id_cache(my_42, sie42, 'the_ultimate_answer')
+            sage: sib.result(sib(my_42) + sib(my_42))
+            R.<x> = ZZ[]
+            the_ultimate_answer = 42*x
+            the_ultimate_answer + the_ultimate_answer
+
+        Since id_cache keys off of object identity ("is"), the
+        following does not trigger the cache.
+            sage: sib.result(sib(42*x) + sib(42*x))
+            42*x + 42*x
+
+        Note that we don't assign the result to a variable if the value
+        is only used once.
+            sage: sib = SageInputBuilder()
+            sage: my_42 = 42*x
+            sage: sie42 = sib(my_42)
+            sage: sib.id_cache(my_42, sie42, 'the_ultimate_answer')
+            sage: sib.result(sib(my_42) + sib(43*x))
+            R.<x> = ZZ[]
+            42*x + 43*x
+        """
+        # If we just mapped id(x) -> sie, then it's possible that x could
+        # be freed and another value allocated at the same position,
+        # corrupting the cache.  But since we store x, that can't happen;
+        # we don't even have to look at x when we read the cache.
+        self._id_cache[id(x)] = (x, sie)
         sie._sie_preferred_varname = name
 
     def dict(self, entries):
@@ -889,8 +947,12 @@ class SageInputBuilder:
 
         sum = terms[0]
         for term in terms[1:]:
-            if simplify and isinstance(term, SIE_unary) and term._sie_op == '-':
-                sum = sum - term._sie_operand
+            negate = False
+            while simplify and isinstance(term, SIE_unary) and term._sie_op == '-':
+                negate = not negate
+                term = term._sie_operand
+            if negate:
+                sum = sum - term
             else:
                 sum = sum + term
         return sum
@@ -939,7 +1001,7 @@ _prec_shift = 22
 _prec_addsub = 24
 _prec_muldiv = 26
 _prec_negate = 28
-_prec_not = 30
+_prec_bitnot = 30
 _prec_exponent = 32
 _prec_attribute = 34
 _prec_subscript = 36
@@ -1283,6 +1345,34 @@ class SageInputExpression(object):
             {unop:- {atomic:3}}
         """
         return self._sie_unop('-')
+
+    def __invert__(self):
+        r"""
+        Compute an expression tree for \code{~self}.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sie = sib(3)
+            sage: ~sie
+            {unop:~ {atomic:3}}
+        """
+        return self._sie_unop('~')
+
+    def __abs__(self):
+        r"""
+        Compute an expression tree for \code{abs(self)}.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sie = sib(3)
+            sage: abs(sie)
+            {call: {atomic:abs}({atomic:3})}
+        """
+        return self._sie_builder.name('abs')(self)
 
     def _sie_unop(self, op):
         r"""
@@ -2120,6 +2210,10 @@ class SIE_unary(SageInputExpression):
             sage: v._sie_prepare(sif)
             sage: v._sie_format(sif)
             ('-x', 28)
+            sage: v = ~x
+            sage: v._sie_prepare(sif)
+            sage: v._sie_format(sif)
+            ('~x', 30)
 
         TESTS:
             sage: x = sib.name('x')
@@ -2152,6 +2246,8 @@ class SIE_unary(SageInputExpression):
             # (-a)*b.
             prec = _prec_muldiv
             rprec = _prec_negate
+        elif op == '~':
+            prec = _prec_bitnot
         else:
             raise ValueError, 'Unhandled op %s in SIE_unary' % op
 
@@ -2718,7 +2814,11 @@ def verify_same(a, b):
             # a is not NaN.  If b is NaN, then the assertion will fail.
             assert a == b
         return
-    assert(a == b)
+    from sage.rings.all import is_RealIntervalFieldElement, is_ComplexIntervalFieldElement
+    if is_RealIntervalFieldElement(a) or is_ComplexIntervalFieldElement(a):
+        assert(cmp(a, b) == 0)
+    else:
+        assert(a == b)
 
 def verify_si_answer(x, answer, preparse):
     r"""

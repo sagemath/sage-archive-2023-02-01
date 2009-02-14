@@ -390,6 +390,38 @@ cdef class RealIntervalField(sage.rings.ring.Field):
     def _latex_(self):
         return "\\I \\R"
 
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(RIF, verify=True)
+            # Verified
+            RIF
+            sage: sage_input(RealIntervalField(25), verify=True)
+            # Verified
+            RealIntervalField(25)
+            sage: k = (RIF, RealIntervalField(37), RealIntervalField(1024))
+            sage: sage_input(k, verify=True)
+            # Verified
+            (RIF, RealIntervalField(37), RealIntervalField(1024))
+            sage: sage_input((k, k), verify=True)
+            # Verified
+            RIF37 = RealIntervalField(37)
+            RIF1024 = RealIntervalField(1024)
+            ((RIF, RIF37, RIF1024), (RIF, RIF37, RIF1024))
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: RealIntervalField(2)._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:RealIntervalField}({atomic:2})}
+        """
+        if self.prec() == 53:
+            return sib.name('RIF')
+
+        v = sib.name('RealIntervalField')(sib.int(self.prec()))
+        name = 'RIF%d' % self.prec()
+        sib.cache(self, v, name)
+        return v
+
     cpdef bint is_exact(self) except -2:
         return False
 
@@ -928,6 +960,41 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         raise TypeError
         #return self.str(10, no_sci=True)
+
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(RIF(e, pi), verify=True)
+            # Verified
+            RIF(RR(2.7182818284590451), RR(3.1415926535897936))
+            sage: sage_input(RealIntervalField(64)(sqrt(2)), preparse=False, verify=True)
+            # Verified
+            RR64 = RealField(64)
+            RealIntervalField(64)(RR64('1.41421356237309504876'), RR64('1.41421356237309504887'))
+            sage: sage_input(RealIntervalField(2)(12), verify=True)
+            # Verified
+            RealIntervalField(2)(RealField(2)(12.))
+            sage: sage_input(RealIntervalField(2)(13), verify=True)
+            # Verified
+            RR2 = RealField(2)
+            RealIntervalField(2)(RR2(12.), RR2(16.))
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: RIF(-sqrt(3), -sqrt(2))._sage_input_(sib, False)
+            {call: {atomic:RIF}({unop:- {call: {atomic:RR}({atomic:1.7320508075688772})}}, {unop:- {call: {atomic:RR}({atomic:1.4142135623730951})}})}
+        """
+        # Interval printing could often be much prettier,
+        # but I'm feeling lazy :)
+        if self.is_exact():
+            return sib(self.parent())(sib(self.lower(rnd='RNDN')))
+        else:
+            # The following line would also be correct, but even though it
+            # uses coerced=2, that doesn't help because RealNumber doesn't
+            # print pretty for directed-rounding fields.
+            #return sib(self.parent())(sib(self.lower(), 2), sib(self.upper(), 2))
+            return sib(self.parent())(sib(self.lower(rnd='RNDN')), sib(self.upper(rnd='RNDN')))
 
     def __hash__(self):
         return hash(self.str(16))

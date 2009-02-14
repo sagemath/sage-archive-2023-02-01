@@ -445,6 +445,28 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return "%s![%s, %s]" % (self.parent()._magma_init_(magma), self.center().real(), self.center().imag())
 
+    def _sage_input_(self, sib, coerce):
+        r"""
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES:
+            sage: sage_input(CIF(RIF(e, pi), RIF(sqrt(2), sqrt(3))), verify=True)
+            # Verified
+            CIF(RIF(RR(2.7182818284590451), RR(3.1415926535897936)), RIF(RR(1.4142135623730949), RR(1.7320508075688774)))
+            sage: sage_input(ComplexIntervalField(64)(2)^I, preparse=False, verify=True)
+            # Verified
+            RIF64 = RealIntervalField(64)
+            RR64 = RealField(64)
+            ComplexIntervalField(64)(RIF64(RR64('0.769238901363972126565'), RR64('0.769238901363972126619')), RIF64(RR64('0.638961276313634801076'), RR64('0.638961276313634801184')))
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: ComplexIntervalField(15)(3+I).log()._sage_input_(sib, False)
+            {call: {call: {atomic:ComplexIntervalField}({atomic:15})}({call: {call: {atomic:RealIntervalField}({atomic:15})}({call: {call: {atomic:RealField}({atomic:15})}({atomic:1.15125})}, {call: {call: {atomic:RealField}({atomic:15})}({atomic:1.15137})})}, {call: {call: {atomic:RealIntervalField}({atomic:15})}({call: {call: {atomic:RealField}({atomic:15})}({atomic:0.321655})}, {call: {call: {atomic:RealField}({atomic:15})}({atomic:0.321777})})})}
+        """
+        # Interval printing could often be much prettier,
+        # but I'm feeling lazy :)
+        return sib(self.parent())(sib(self.real()), sib(self.imag()))
+
     def prec(self):
         """
         Return precision of this complex number.

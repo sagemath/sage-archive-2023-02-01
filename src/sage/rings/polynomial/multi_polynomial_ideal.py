@@ -2343,6 +2343,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I = R.ideal(f)
             sage: I.plot()                         # the Singular logo
 
+        This used to be trac \#5267:
+            sage: I = R.ideal([-x^2*y+1])
+            sage: I.plot()
+
         AUTHOR:
             -- Martin Albrecht (2008-09)
         """

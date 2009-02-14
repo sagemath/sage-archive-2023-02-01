@@ -3148,6 +3148,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             700*y^2 - 2*y + 305
             sage: g.univariate_polynomial(PolynomialRing(QQ,'z'))
             700*z^2 - 2*z + 305
+
+        Here's an example with a constant multivariate polynomial:
+            sage: g = R(1)
+            sage: h = g.univariate_polynomial(); h
+            1
+            sage: h.parent()
+            Univariate Polynomial Ring in x over Rational Field
         """
         cdef poly *p = self._poly
         cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
@@ -3158,7 +3165,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         #construct ring if none
         if R == None:
-            R = self.base_ring()[str(self.variables()[0])]
+            if self.is_constant():
+                R = self.base_ring()['x']
+            else:
+                R = self.base_ring()[str(self.variables()[0])]
 
         zero = k(0)
         coefficients = [zero] * (self.degree() + 1)

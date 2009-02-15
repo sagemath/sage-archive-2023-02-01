@@ -1305,7 +1305,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve([1,0,0,0,37455]).rank(proof=True)
             Traceback (most recent call last):
             ...
-            Rank not provably correct.
+            RuntimeError: Rank not provably correct.
         """
         if proof is None:
             from sage.structure.proof.proof import get_flag
@@ -1353,7 +1353,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             X = self.mwrank()
             if 'determined unconditionally' not in X or 'only a lower bound of' in X:
                 if proof:
-                    raise RuntimeError, '%s\nRank not provably correct.'%X
+                    X= "".join(X.split("\n")[-4:-2])
+                    print X
+                    raise RuntimeError, 'Rank not provably correct.'
                 else:
                     misc.verbose("Warning -- rank not proven correct", level=1)
 

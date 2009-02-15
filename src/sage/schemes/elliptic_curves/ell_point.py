@@ -1415,6 +1415,19 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: _.parent()
             Real Field with 100 bits of precision
 
+        An example to show that the bug at \#5252 is fixed:
+            sage: E = EllipticCurve([1, -1, 1, -2063758701246626370773726978, 32838647793306133075103747085833809114881])
+            sage: P = E([-30987785091199, 258909576181697016447])
+            sage: P.height()
+            25.8603170675462
+            sage: P.height(precision=100)
+            25.860317067546190743868840741
+            sage: P.height(precision=250)
+            25.860317067546190743868840740735110323098872903844416215577171041783572513
+            sage: P.height(precision=500)
+            25.8603170675461907438688407407351103230988729038444162155771710417835725129551130570889813281792157278507639909972112856019190236125362914195452321720
+
+
         Unfortunately, canonical height isn't implemented in general.
             sage: E = EllipticCurve('5077a1').change_ring(QuadraticField(-3,'a'))
             sage: P = E([-2,3,1])
@@ -1430,7 +1443,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             precision = rings.RealField().precision()
 
         try:
-            h = self.curve().pari_curve(prec=precision).ellheight([self[0], self[1]])
+            h = self.curve().pari_curve(prec=precision).ellheight([self[0], self[1]],precision=precision)
             return rings.RealField(precision)(h)
         except:
             raise NotImplementedError, "canonical height not yet implemented over general number fields."

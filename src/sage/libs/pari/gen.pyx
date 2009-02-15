@@ -4749,9 +4749,9 @@ cdef class gen(sage.structure.element.RingElement):
                       being faster than the other two)
             precision (optional) -- the precision of the result, in bits.
 
-        Note that the precision argument is ignored when flag=1 or 2.
-        If you want higher precision while using one of these flags,
-        you should first call ellinit with the desired precision.
+        Note that in order to achieve the desired precision, the
+        elliptic curve must have been created using ellinit with the
+        desired precision.
 
         EXAMPLES:
             sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]

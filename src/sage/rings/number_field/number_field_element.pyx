@@ -65,6 +65,14 @@ QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
 Integer_sage = sage.rings.integer.Integer
 
+# this is a threshold for the charpoly() methods in this file
+# for degrees <= this threshold, pari is used
+# for degrees > this threshold, sage matrices are used
+# the value was decided by running a tuning script on a number of
+# architectures; you can find this script attached to trac
+# ticket 5213
+TUNE_CHARPOLY_NF = 25
+
 def is_NumberFieldElement(x):
     """
     Return True if x is of type NumberFieldElement, i.e., an
@@ -2035,9 +2043,11 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         num[0] = _num.x
         den[0] = _den.x
 
-    def absolute_charpoly(self, var='x'):
+    def absolute_charpoly(self, var='x', algorithm=None):
         r"""
         Return the characteristic polynomial of this element over $\QQ$.
+
+        For the meaning of the optional argument algorithm, see charpoly().
 
         EXAMPLES:
             sage: x = ZZ['x'].0
@@ -2050,12 +2060,21 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             x^4 + 4*x^2 + 4
             sage: (-a^2).absolute_minpoly()
             x^2 + 2
-        """
-        return self.charpoly(var=var)
 
-    def absolute_minpoly(self, var='x'):
+            sage: a.absolute_charpoly(algorithm='pari') == a.absolute_charpoly(algorithm='sage')
+            True
+        """
+        # this hack is necessary because quadratic fields override
+        # charpoly(), and they don't take the argument 'algorithm'
+        if algorithm is None:
+            return self.charpoly(var)
+        return self.charpoly(var, algorithm)
+
+    def absolute_minpoly(self, var='x', algorithm=None):
         r"""
         Return the minimal polynomial of this element over $\QQ$.
+
+        For the meaning of the optional argument algorithm, see charpoly().
 
         EXAMPLES:
             sage: x = ZZ['x'].0
@@ -2070,10 +2089,17 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             x^10 + 10*x^9 + 25*x^8 - 80*x^7 - 438*x^6 + 80*x^5 + 2950*x^4 + 1520*x^3 - 10439*x^2 - 5130*x + 18225
             sage: b.absolute_minpoly()
             x^5 + 5*x^4 - 40*x^2 - 19*x + 135
-        """
-        return self.minpoly(var=var)
 
-    def charpoly(self, var='x'):
+            sage: b.absolute_minpoly(algorithm='pari') == b.absolute_minpoly(algorithm='sage')
+            True
+        """
+        # this hack is necessary because quadratic fields override
+        # minpoly(), and they don't take the argument 'algorithm'
+        if algorithm is None:
+            return self.minpoly(var)
+        return self.minpoly(var, algorithm)
+
+    def charpoly(self, var='x', algorithm=None):
         r"""
         The characteristic polynomial of this element, over $\QQ$ if
         self is an element of a field, and over $\ZZ$ is self is an
@@ -2081,6 +2107,16 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         This is the same as \code{self.absolute_charpoly} since this
         is an element of an absolute extension.
+
+        The optional argument algorithm controls how the
+        characteristic polynomial is computed: 'pari' uses Pari,
+        'sage' uses charpoly for Sage matrices.  The default value
+        None means that 'pari' is used for small degrees (up to the
+        value of the constant TUNE_CHARPOLY_NF, currently at 25),
+        otherwise 'sage' is used.  The constant TUNE_CHARPOLY_NF
+        should give reasonable performance on all architectures;
+        however, if you feel the need to customize it to your own
+        machine, see trac ticket 5213 for a tuning script.
 
         EXAMPLES:
 
@@ -2099,9 +2135,49 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             x^3 - 2
             sage: R(a).charpoly().parent()
             Univariate Polynomial Ring in x over Integer Ring
+
+            sage: R(a).charpoly(algorithm='pari') == R(a).charpoly(algorithm='sage')
+            True
         """
+        if algorithm is None:
+            if self._parent.degree() <= TUNE_CHARPOLY_NF:
+                algorithm = 'pari'
+            else:
+                algorithm = 'sage'
         R = self._parent.base_ring()[var]
-        return R(self.matrix().charpoly())
+        if algorithm == 'pari':
+            return R(self._pari_('x').charpoly())
+        if algorithm == 'sage':
+            return R(self.matrix().charpoly())
+
+    def minpoly(self, var='x', algorithm=None):
+        """
+        Return the minimal polynomial of this number field element.
+
+        For the meaning of the optional argument algorithm, see charpoly().
+
+        EXAMPLES:
+        We compute the charpoly of cube root of $2$.
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^3-2)
+            sage: a.minpoly('x')
+            x^3 - 2
+            sage: a.minpoly('y').parent()
+            Univariate Polynomial Ring in y over Rational Field
+
+        TESTS:
+            sage: R = K.ring_of_integers()
+            sage: R(a).minpoly()
+            x^3 - 2
+            sage: R(a).minpoly().parent()
+            Univariate Polynomial Ring in x over Integer Ring
+
+            sage: R(a).minpoly(algorithm='pari') == R(a).minpoly(algorithm='sage')
+            True
+
+        """
+        return self.charpoly(var, algorithm).radical() # square free part of charpoly
 
     def list(self):
         """
@@ -2284,14 +2360,24 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             x - b
         """
         R = self._parent.base_ring()[var]
-        return R(self.matrix().charpoly(var))
+        return R(self.matrix().charpoly())
 
-    def absolute_charpoly(self, var='x'):
+    def absolute_charpoly(self, var='x', algorithm=None):
         r"""
         The characteristic polynomial of this element over $\QQ$.
 
         We construct a relative extension and find the characteristic
         polynomial over $\QQ$.
+
+        The optional argument algorithm controls how the
+        characteristic polynomial is computed: 'pari' uses Pari,
+        'sage' uses charpoly for Sage matrices.  The default value
+        None means that 'pari' is used for small degrees (up to the
+        value of the constant TUNE_CHARPOLY_NF, currently at 25),
+        otherwise 'sage' is used.  The constant TUNE_CHARPOLY_NF
+        should give reasonable performance on all architectures;
+        however, if you feel the need to customize it to your own
+        machine, see trac ticket 5213 for a tuning script.
 
         EXAMPLES:
             sage: R.<x> = QQ[]
@@ -2309,13 +2395,32 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             x^9 + 51*x^6 + 867*x^3 + 4913
             sage: a.absolute_charpoly('y')
             y^9 + 51*y^6 + 867*y^3 + 4913
-        """
-        R = QQ[var]
-        return R(self.matrix(QQ).charpoly())
 
-    def absolute_minpoly(self, var='x'):
+            sage: a.absolute_charpoly(algorithm='pari') == a.absolute_charpoly(algorithm='sage')
+            True
+        """
+        if algorithm is None:
+            # this might not be the optimal condition; maybe it should
+            # be .degree() instead of .absolute_degree()
+            # there are too many bugs in relative number fields to
+            # figure this out now
+            if self._parent.absolute_degree() <= TUNE_CHARPOLY_NF:
+                algorithm = 'pari'
+            else:
+                algorithm = 'sage'
+        g = self.polynomial()  # in QQ[x]
+        R = QQ[var]
+        if algorithm == 'pari':
+            f = self.number_field().pari_polynomial()  # # field is QQ[x]/(f)
+            return R((g._pari_().Mod(f)).charpoly()).change_variable_name(var)
+        if algorithm == 'sage':
+            return R(self.matrix(QQ).charpoly())
+
+    def absolute_minpoly(self, var='x', algorithm=None):
         r"""
-        Return the minpoly over $\QQ$ of this element.
+        Return the minimal polynomial over $\QQ$ of this element.
+
+        For the meaning of the optional argument algorithm, see absolute_charpoly().
 
         EXAMPLES:
             sage: K.<a, b> = NumberField([x^2 + 2, x^2 + 1000*x + 1])
@@ -2334,7 +2439,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: L(b).absolute_minpoly()
             x^2 + 1000*x + 1
         """
-        return self.absolute_charpoly(var).radical()
+        return self.absolute_charpoly(var, algorithm).radical()
 
 cdef class OrderElement_absolute(NumberFieldElement_absolute):
     """

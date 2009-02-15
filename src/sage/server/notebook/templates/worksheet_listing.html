@@ -33,10 +33,35 @@
 
 {% block body %}
 
-{% if pub %}
-  {% include "list_top_public.html" %}
-{% else %}
-  {% include "list_top.html" %}
+{% include "list_top.html" %}
+
+
+{% if not pub %}
+    {% if typ == 'archive' %}
+    <button onClick="make_active_button();" title="Unarchive selected worksheets so it appears in the default worksheet list">Unarchive</button>
+    {% else %}
+    <button onClick="archive_button();" title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</button>
+    {% endif %}
+
+    {% if typ != 'trash' %}
+    <button onClick="delete_button();" title="Move the selected worksheets to the trash">Delete</button>
+    {% else %}
+    <button onClick="make_active_button();" title="Move the selected worksheets out of the trash">Undelete</button>
+    {% endif %}
+
+    <button onClick="stop_worksheets_button();" title="Stop selected worksheets">Stop</button>
+    <span style="padding-left:100px;">
+
+    Current Folder:
+    <a class="{{ 'bold' if typ == 'active' else '' }}usercontrol" href=".">Active</a>
+    <a class="{{ 'bold' if typ == 'archive' else '' }}usercontrol" href=".?typ=archive">Archived</a>
+    <a class="{{ 'bold' if typ == 'trash' else '' }}usercontrol" href=".?typ=trash">Trash</a>
+
+    {% if typ == 'trash' %}
+    <a class="boldusercontrol" onClick="empty_trash();return false;" href="">(Empty Trash)</a>
+    {% endif %}
+
+    </span>
 {% endif %}
 
 <br><br>

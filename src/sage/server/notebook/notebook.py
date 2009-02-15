@@ -820,30 +820,6 @@ class Notebook(SageObject):
             H = H[-maxlen:]
         return '\n\n'.join([L.strip() for L in H])
 
-    def user_history_html(self, username):
-        t = self.user_history_text(username)
-        t = escape(t)
-        s = """
-        <html>
-        <head>
-           <link rel=stylesheet href="/css/main.css">
-           <title>Sage: History for %s</title>
-        </head>
-        <body>
-        %s
-        <pre>
-        %s
-        </pre>
-        <hr class="usercontrol">
-        <a title="Click here to turn the above into a Sage worksheet" href="/live_history">Create a new Sage worksheet version of the last 100 commands in the above log.</a>
-        <a name="bottom"></a>
-        <script type="text/javascript"> window.location="#bottom"</script>
-        </body>
-        </html>
-        """%(username, self.html_worksheet_list_top(username, actions=False), t)
-        return s
-
-
     def add_to_user_history(self, entry, username):
         H = self.user_history(username)
         H.append(entry)
@@ -1313,17 +1289,6 @@ class Notebook(SageObject):
         s += '<hr class="usercontrol">'
         return s
 
-    def html_worksheet_list_top(self, user, actions=True, typ='active', pub=False, search=None):
-        s = self.html_topbar(user, pub)
-        if not pub:
-            s += self.html_new_or_upload()
-        s += self.html_search(search, typ)
-        s += '<br>'
-        s += '<hr class="usercontrol">'
-        if actions:
-            s += self.html_worksheet_actions(user, typ=typ)
-        return s
-
     def html_banner_and_control(self, user, entries):
         return """
         <table width="100%%"><tr><td>
@@ -1357,36 +1322,6 @@ class Notebook(SageObject):
         </tr><tr><td style="font-size:xx-small; text-indent:13px; color:black">Version %s</td><td></td></tr></table>
         </div>
         """%ver
-        return s
-
-
-    def html_worksheet_actions(self, user, typ):
-        s = ''
-
-        if not self.user_is_guest(user):
-            if typ == 'archive':
-                s += '<button onClick="make_active_button();" title="Unarchive selected worksheets so it appears in the default worksheet list">Unarchive</button>'
-            else:
-                s += '<button onClick="archive_button();" title="Archive selected worksheets so they do not appear in the default worksheet list">Archive</button>'
-
-            if typ != 'trash':
-                s += '&nbsp;&nbsp;<button onClick="delete_button();" title="Move the selected worksheets to the trash">Delete</button>'
-            else:
-                s += '&nbsp;&nbsp;<button onClick="make_active_button();" title="Move the selected worksheets out of the trash">Undelete</button>'
-
-            s += '&nbsp;&nbsp;<button onClick="stop_worksheets_button();" title="Stop selected worksheets">Stop</button>'
-
-            s += '<span>'
-            s += '&nbsp;'*10
-            #s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Published Worksheets</a>'
-            s += '&nbsp;'*10
-            s += "Current Folder: "
-            s += '&nbsp;<a class="%susercontrol" href=".">Active</a>'%('bold' if typ=='active' else '')
-            s += '&nbsp;<a class="%susercontrol" href=".?typ=archive">Archived</a>'%('bold' if typ=='archive' else '')
-            s += '&nbsp;<a class="%susercontrol" href=".?typ=trash">Trash</a>&nbsp;&nbsp;'%('bold' if typ=='trash' else '')
-            if typ == 'trash':
-                s += '&nbsp;<a class="boldusercontrol" onClick="empty_trash();return false;" href="">(Empty Trash)</a>'
-            s += '</span>'
         return s
 
 

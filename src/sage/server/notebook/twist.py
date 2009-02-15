@@ -1630,8 +1630,10 @@ class History(resource.Resource):
         self.username = username
 
     def render(self, ctx):
-        s = notebook.user_history_html(self.username)
-        return http.Response(stream=s)
+        t = template('history.html', username=self.username,
+                     text = notebook.user_history_text(self.username),
+                     actions=False)
+        return http.Response(stream=t)
 
 class LiveHistory(resource.Resource):
     def __init__(self, username):

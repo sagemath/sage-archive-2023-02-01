@@ -40,6 +40,8 @@ This spkg provides dependencies for
 === libpng-1.2.34 (Michael Abshoff, February 15th, 2009) ===
  * update to latest upstream release (security related)
  * delete SAGE_LOCAL/lib/libpng.* to avoid OSX specific issues. This required a set of other fixes.
+ * unset RM
+ * check if SAGE_LOCAL is set
 
 === libpng-1.2.22.p8 (Michael Abshoff, August 29th, 2008) ===
  * Do not delete libpng.dylib on OSX

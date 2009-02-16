@@ -177,7 +177,7 @@ cp -p $SAGE_ROOT/local/bin/ncadoctest.py $SCRIPTS/
 cp -p $SAGE_ROOT/local/bin/sagedoctest.py $SCRIPTS/
 
 chmod +x $SCRIPTS/spkg-install
-tar -jcvf $SCRIPTS.spkg $SCRIPTS
+tar -jcf $SCRIPTS.spkg $SCRIPTS
 mv $SCRIPTS.spkg $DESTINATION/
 rm -rf $SCRIPTS
 touch $SPKG_INST/sage_scripts-$SAGE_VERSION

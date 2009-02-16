@@ -80,7 +80,7 @@ mv $TMP/devel/*.spkg .
 rmdir $TMP/devel
 
 cd /tmp
-tar cvf $TARGET.tar $TARGET
+tar cf $TARGET.tar $TARGET
 
 if [ ! -d $SAGE_ROOT/dist ]; then
     mkdir $SAGE_ROOT/dist

@@ -397,20 +397,19 @@ class DyckWord_class(CombinatorialObject):
 
         One can view a balanced Dyck word as a lattice path from $(0,0)$ to
         $(n,n)$ in the first quadrant by letting '1's represent steps in
-        the direction $(1,0)$ and '0's represent steps in the direction
-        $(0,1)$.  The resulting path will remain weakly above the diagonal
+        the direction $(0,1)$ and '0's represent steps in the direction
+        $(1,0)$.  The resulting path will remain weakly above the diagonal
         $y = x$.
 
         We describe the b-statistic of such a path in terms of what is
-        known as the "bounce path".  Quoting from [1]:
+        known as the "bounce path".
 
-        We can think of our bounce path as describing the trail of a
-        billiard ball shot North from $(0, 0)$, which "bounces" right
-        whenever it encounters a horizontal step and "bounces" up when it
-        encounters the line $y = x$. The bouncing ball will strike the
-        diagonal at places $(0, 0), (j_1, j_1), (j_2, j_2), ... , (j_r-1,
-        j_r-1), (j_r, j_r) = (n, n)$. We define the b-statistic to be the
-        sum $\sum_{i=1}^{r-1} n - j_i$.
+        We can think of our bounce path as describing the trail of a billiard
+        ball shot West from (n, n), which "bounces" down whenever it
+        encounters a vertical step and "bounces" left when it encounters the
+        line y = x. The bouncing ball will strike the diagonal at places (0,
+        0), (j_1, j_1), (j_2, j_2), ... , (j_r-1, j_r-1), (j_r, j_r) = (n, n).
+        We define the b-statistic to be the sum sum_{i=1}^{r-1} j_i.
 
         EXAMPLES:
             sage: dw = DyckWord([1,1,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0])

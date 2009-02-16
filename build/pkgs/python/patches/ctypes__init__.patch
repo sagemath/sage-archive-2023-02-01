@@ -1,5 +1,5 @@
---- src-2.5.1/Lib/ctypes/__init__.py	2007-03-09 12:21:16.000000000 -0800
-+++ patches/ctypes__init__.py	2007-05-29 13:45:13.000000000 -0700
+--- ctypes__init__.py.orig	2009-02-15 21:38:41.000000000 -0800
++++ ctypes__init__.py	2009-02-15 21:39:26.000000000 -0800
 @@ -23,8 +23,10 @@
      from _ctypes import FormatError
  

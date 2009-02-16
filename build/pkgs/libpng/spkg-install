@@ -32,4 +32,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+echo "Deleting libpng.*"
+rm -rf "$SAGE_LOCAL"/lib/libpng.*
 

@@ -1,10 +1,45 @@
 = libpng =
 
-This is libpng.
+== Description ==
 
-http://www.libpng.org/pub/png/libpng.html
+libpng is the official PNG reference library. It supports almost all PNG features, is extensible, and has been extensively tested for over 13 years. The home site for development versions (i.e., may be buggy or subject to change or include experimental features) is http://libpng.sourceforge.net/, and the place to go for questions about the library is the png-mng-implement mailing list.
+
+Website: http://www.libpng.org/pub/png/libpng.html
+
+== License ==
+
+The libpng license - see http://www.libpng.org/pub/png/src/libpng-LICENSE.txt
+
+== SPKG Maintainers ==
+
+ * Michael Abshoff
+ * William Stein
+
+== Upstream Contact ==
+
+The png mailing lists - see http://www.libpng.org/pub/png/pngmisc.html#lists
+
+== Dependencies ==
+
+This spkg requires
+
+ * libz
+
+This spkg provides dependencies for
+
+ * the Sage library
+ * tachyon
+ * matplotlib
+
+== Special Update/Build Instructions ==
+
+ * No changes went into src. There are two different tarballs, but we use the one with configure.
 
 == Changelog ==
+
+=== libpng-1.2.34 (Michael Abshoff, February 15th, 2009) ===
+ * update to latest upstream release (security related)
+ * delete SAGE_LOCAL/lib/libpng.* to avoid OSX specific issues. This required a set of other fixes.
 
 === libpng-1.2.22.p8 (Michael Abshoff, August 29th, 2008) ===
  * Do not delete libpng.dylib on OSX

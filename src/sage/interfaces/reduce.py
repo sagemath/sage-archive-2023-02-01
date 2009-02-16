@@ -84,9 +84,9 @@ class Reduce(Expect):
 
         self.__seq = 0
 
-    def eval(self, code, strip=True):
+    def eval(self, code, strip=True, **kwds):
         code += ';\n'
-        return Expect.eval(self, code, strip)[1:]
+        return Expect.eval(self, code, strip, **kwds)[1:]
 
     def _repr_(self):
         return 'Reduce Interpreter'

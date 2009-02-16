@@ -312,14 +312,35 @@ def variables(with_types=True):
 
 
 def syseval(system, cmd, dir=None):
+    """
+    INPUT:
+        system -- an object with an eval method that takes as input
+                  a cmd (a string), and two dictionaries:
+                           sage_globals and locals.
+        dir -- an otional directory to change to before
+               calling system.eval.
+
+    OUTPUT:
+        The output of system.eval is returned.
+
+    EXAMPLES:
+        sage: from sage.misc.python import python
+        sage: sage.server.support.syseval(python, '2+4/3')
+        3
+        ''
+        sage: sage.server.support.syseval(python, 'import os; os.chdir(".")')
+        ''
+        sage: sage.server.support.syseval(python, 'import os; os.chdir(1,2,3)')
+        Traceback (most recent call last):
+        ...
+        TypeError: chdir() takes exactly 1 argument (3 given)
+        sage: sage.server.support.syseval(gap, "2+3")
+        '5'
+    """
     if dir:
         if hasattr(system.__class__, 'chdir'):
             system.chdir(dir)
-    try:
-        return system.eval(cmd, sage_globals, locals = sage_globals)
-    except TypeError:
-        return system.eval(cmd)
-
+    return system.eval(cmd, sage_globals, locals = sage_globals)
 
 ######################################################################
 # Cython

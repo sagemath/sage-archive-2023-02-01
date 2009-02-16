@@ -193,7 +193,7 @@ class Macaulay2(Expect):
             raise AttributeError
         return Macaulay2Function(self, attrname)
 
-    def eval(self, code, strip=True):
+    def eval(self, code, strip=True, **kwds):
         """
         Send the code x to the Macaulay2 interpreter and return the output
         as a string suitable for input back into Macaulay2, if possible.
@@ -208,7 +208,7 @@ class Macaulay2(Expect):
         """
         code = code.strip()
         # TODO: in some cases change toExternalString to toString??
-        ans = Expect.eval(self, code, strip=strip).strip('\n')
+        ans = Expect.eval(self, code, strip=strip, **kwds).strip('\n')
         if strip:
             ans = remove_output_labels(ans)
         return AsciiArtString(ans)

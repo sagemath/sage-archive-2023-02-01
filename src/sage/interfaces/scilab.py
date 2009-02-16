@@ -261,7 +261,7 @@ class Scilab(Expect):
         Expect._start(self)
         self.eval("mode(0)")
 
-    def eval(self, command):
+    def eval(self, command, **kwds):
         """
         Evaluates commands.
 
@@ -271,7 +271,7 @@ class Scilab(Expect):
             sage: scilab.eval("d=44")                   # optional - scilab
             'd  =\n \n    44.'
         """
-        s = Expect.eval(self, command).replace("\x1b[?1l\x1b>","").strip()
+        s = Expect.eval(self, command, **kwds).replace("\x1b[?1l\x1b>","").strip()
         return s
 
     def whos(self, name=None, typ=None):

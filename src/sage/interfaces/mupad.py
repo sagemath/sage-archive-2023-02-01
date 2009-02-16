@@ -227,14 +227,14 @@ command-line version of MuPAD.
         """
         mupad_console()
 
-    def eval(self, code, strip=True):
+    def eval(self, code, strip=True, **kwds):
         """
         EXAMPLES:
             sage: mupad.eval('2+2')   # optional - mupad
                                                    4
 
         """
-        s = Expect.eval(self, code)
+        s = Expect.eval(self, code, **kwds)
         return AsciiArtString(s)
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True,

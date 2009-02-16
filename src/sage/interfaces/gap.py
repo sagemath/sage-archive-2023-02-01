@@ -386,7 +386,7 @@ class Gap(Expect):
     def save_workspace(self):
         self.eval('SaveWorkspace("%s");'%WORKSPACE)
 
-    def eval(self, x, newlines=False, strip=True):
+    def eval(self, x, newlines=False, strip=True, **kwds):
         r"""
         Send the code in the string s to the GAP interpreter and return
         the output as a string.
@@ -422,7 +422,7 @@ class Gap(Expect):
         if not input_line.endswith(';'):
             input_line += ';'
 
-        result = Expect.eval(self, input_line)
+        result = Expect.eval(self, input_line, **kwds)
 
         if not newlines:
             result = result.replace("\\\n","")

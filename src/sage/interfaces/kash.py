@@ -455,7 +455,7 @@ class Kash(Expect):
     def _object_class(self):
         return KashElement
 
-    def eval(self, x, newlines=False, strip=True):
+    def eval(self, x, newlines=False, strip=True, **kwds):
         r"""
         Send the code in the string s to the Kash interpreter and return
         the output as a string.
@@ -470,7 +470,7 @@ class Kash(Expect):
         x = x.rstrip()
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
-        s = Expect.eval(self, x)
+        s = Expect.eval(self, x, **kwds)
         i = s.find('\r\n')
         if i != -1:
             s = s[i+2:]

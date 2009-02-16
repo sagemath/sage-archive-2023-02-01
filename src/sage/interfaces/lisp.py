@@ -103,7 +103,7 @@ class Lisp(Expect):
         self.__seq = 0
         self.__in_seq = 1
 
-    def eval(self, code, strip=True):
+    def eval(self, code, strip=True, **kwds):
         """
         EXAMPLES:
             sage: lisp.eval('(+ 2 2)')

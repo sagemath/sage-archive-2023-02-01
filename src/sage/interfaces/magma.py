@@ -377,7 +377,7 @@ class Magma(Expect):
         """
         self.eval('ChangeDirectory("%s")'%dir, strip=False)
 
-    def eval(self, x, strip=True):
+    def eval(self, x, strip=True, **kwds):
         """
         Evaluate the given block x of code in Magma and return the
         output as a string.
@@ -402,7 +402,7 @@ class Magma(Expect):
         x = str(x).rstrip()
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
-        ans = Expect.eval(self, x).replace('\\\n','')
+        ans = Expect.eval(self, x, **kwds).replace('\\\n','')
         if 'Runtime error' in ans or 'User error' in ans:
             raise RuntimeError, "Error evaluating Magma code.\nIN:%s\nOUT:%s"%(x, ans)
         return ans

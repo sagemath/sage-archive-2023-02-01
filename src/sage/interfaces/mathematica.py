@@ -326,8 +326,8 @@ remote connection to a server running Mathematica -- for hints, type
 ##         3) this cygwin batch file must be on the path for SAGE (placing
 ##            it in <SAGE_ROOT>/local/bin/ is an easy way to ensure this).
 
-    def eval(self, code, strip=True):
-        s = Expect.eval(self, code)
+    def eval(self, code, strip=True, **kwds):
+        s = Expect.eval(self, code, **kwds)
         if strip:
             return AsciiArtString(clean_output(s))
         else:

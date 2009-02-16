@@ -899,12 +899,14 @@ If this all works, you can then make calls like:
     # END Synchronization code.
     ###########################################################################
 
-    def eval(self, code, strip=True, synchronize=False, **kwds):
+    def eval(self, code, strip=True, synchronize=False, locals=None, **kwds):
         """
         INPUT:
             code -- text to evaluate
             strip -- bool; whether to strip output prompts, etc.
                      (ignored in the base class).
+            locals -- None (ignored); this is used for compatibility with the
+                      Sage notebook's generic system interface.
             **kwds -- All other arguments are passed onto the _eval_line method.
                      An often useful example is reformat=False.
         """

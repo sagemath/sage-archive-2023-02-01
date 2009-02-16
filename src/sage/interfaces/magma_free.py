@@ -54,7 +54,7 @@ class MagmaFree:
         sage: magma_free("Factorization(9290348092384)")  # optional - internet
         [ <2, 5>, <290323377887, 1> ]
     """
-    def eval(self, x):
+    def eval(self, x, **kwds):
         return magma_free_eval(x)
     def __call__(self, code, strip=True, columns=0):
         return magma_free_eval(code, strip=strip, columns=columns)

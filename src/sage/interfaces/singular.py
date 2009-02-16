@@ -396,7 +396,7 @@ class Singular(Expect):
         return '< "%s";'%filename
 
 
-    def eval(self, x, allow_semicolon=True, strip=True):
+    def eval(self, x, allow_semicolon=True, strip=True, **kwds):
         r"""
         Send the code x to the Singular interpreter and return the output
         as a string.
@@ -479,7 +479,7 @@ class Singular(Expect):
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
 
-        s = Expect.eval(self, x)
+        s = Expect.eval(self, x, **kwds)
 
         if s.find("error") != -1 or s.find("Segment fault") != -1:
             raise RuntimeError, 'Singular error:\n%s'%s

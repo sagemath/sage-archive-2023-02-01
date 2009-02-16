@@ -1,10 +1,36 @@
 = tachyon =
 
-== license ==
+== Description ==
 
-see below
+Describe the package here.
+
+== License ==
+
+See below. This needs to be cleaned up for the 0.98.1 update (#5281)
+
+== SPKG Maintainers ==
+
+ * Michael Abshoff
+ * William Stein
+
+== Upstream Contact ==
+
+Provide information for upstream contact.
+
+== Dependencies ==
+
+This spkg depends on:
+
+ * libpng
+
+== Special Update/Build Instructions ==
+
+See blow. This needs to be cleaned up for the 0.98.1 update (#5281)
 
 == Changelog ==
+
+=== tachyon-0.98beta.p8 (Michael Abshoff, February 15th, 2009) ===
+ * changed Make-config to link against libpng12
 
 === tachyon-0.98beta.p7 (Michael Abshoff, January 20th, 2009) ===
  * Add 64 bit OSX support
@@ -21,6 +47,8 @@ see below
 
 === tachyon-0.98beta.p3 ===
  * Changes lost to history
+
+-------- everything below needs to be cleaned up -------------
 
 == Build Instructions ==
 

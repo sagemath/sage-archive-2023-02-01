@@ -14,6 +14,9 @@ AUTHOR:
                                      * Add [1,2,..,n] notation.
     -- Robert Bradshaw (2008-01-04): * Implicit multiplication (off by default)
     -- Robert Bradshaw (2008-09-23): * Factor out constants.
+    -- Robert Bradshaw (2000-01):    * Simplify preparser by making it modular
+                                       and using regular expressions. Also bug
+                                       fixes, complex numbers, and binary input.
 
 EXAMPLES:
 
@@ -100,7 +103,7 @@ SYMBOLIC FUNCTIONAL NOTATION:
 
 This involves an =-, but should still be turned into a symbolic expression:
     sage: preparse('a(x) =- 5')
-    '_=var("x");a=symbolic_expression(- Integer(5)).function(x)'
+    '_ = var("x"); a = symbolic_expression(- Integer(5)).function(x)'
     sage: f(x)=-x
     sage: f(10)
     -10
@@ -610,11 +613,59 @@ def strip_prompts(line):
             break
     return line
 
-def parse_generators(line, start_index):
+
+def preparse_calculus(code):
+    """
+    Support for calculus-like function assignment, the line
+    "f(x,y,z) = sin(x^3 - 4*y) + y^x"
+    gets turnd into
+    '_ = var("x,y,z"); f = symbolic_expression(sin(x**3 - 4*y) + y**x).function(x,y,z)'
+
+    AUTHORS:
+        -- Bobby Moretti: initial version - 02/2007
+        -- William Stein: make variables become defined if they aren't already defined.
+        -- Robert Bradshaw: rewrite using regular expressions (01/2009)
+
+    EXAMPLES:
+        sage: preparse("f(x) = x^3-x")
+        '_ = var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
+        sage: preparse("f(u,v) = u - v")
+        '_ = var("u,v"); f = symbolic_expression(u - v).function(u,v)'
+        sage: preparse("f(x) =-5")
+        '_ = var("x"); f = symbolic_expression(-Integer(5)).function(x)'
+        sage: preparse("f(x) -= 5")
+        'f(x) -= Integer(5)'
+        sage: preparse("f(x_1, x_2) = x_1^2 - x_2^2")
+        '_ = var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
+
+    For simplicity, this function assumes all statements begin and end with a semicolon.
+        sage: from sage.misc.preparser import preparse_calculus
+        sage: preparse_calculus(";f(t,s)=t^2;")
+        ';_ = var("t,s"); f = symbolic_expression(t^2).function(t,s);'
+        sage: preparse_calculus(";f( t , s ) = t^2;")
+        ';_ = var("t,s"); f = symbolic_expression(t^2).function(t,s);'
+    """
+    new_code = []
+    last_end = 0
+    #                                   f         (  vars  )   =      expr
+    for m in re.finditer(r";(\s*)([a-zA-Z_]\w*) *\(([^()]+)\) *= *([^;#=][^;#]*)", code):
+        ident, func, vars, expr = m.groups()
+        vars = ','.join(v.strip() for v in vars.split(','))
+        new_code.append(code[last_end:m.start()])
+        new_code.append(';%s_ = var("%s"); %s = symbolic_expression(%s).function(%s)' % (ident, vars, func, expr, vars))
+        last_end = m.end()
+
+    if last_end == 0:
+        return code
+    else:
+        new_code.append(code[m.end():])
+        return ''.join(new_code)
+
+
+def preparse_generators(code):
     r"""Parse R.<a, b> in line[start_index:].
 
-    Returns (modified_line, continue_index); you should resume parsing
-    modified_line[continue_index:].
+    Returns preparsed code.
 
     Support for generator construction syntax:
     "obj.<gen0,gen1,...,genN> = objConstructor(...)"
@@ -633,9 +684,10 @@ def parse_generators(line, start_index):
         -- 2006-04-17: William Stein - improvements to allow multiple statements.
         -- 2006-05-01: William -- fix bug that Joe found
         -- 2006-10-31: William -- fix so obj doesn't have to be mutated
+        -- 2009-01-27: Robet Bradshaw -- rewrite using regular expressions
 
     TESTS:
-        sage: from sage.misc.preparser import preparse
+        sage: from sage.misc.preparser import preparse, preparse_generators
 
         Vanilla:
 
@@ -647,9 +699,9 @@ def parse_generators(line, start_index):
         No square brackets:
 
         sage: preparse("R.<x> = PolynomialRing(ZZ, 'x')")
-        "R = PolynomialRing(ZZ, 'x',names=('x',)); (x,) = R._first_ngens(1)"
+        "R = PolynomialRing(ZZ, 'x', names=('x',)); (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = PolynomialRing(ZZ, 'x,y')")
-        "R = PolynomialRing(ZZ, 'x,y',names=('x', 'y')); (x, y,) = R._first_ngens(2)"
+        "R = PolynomialRing(ZZ, 'x,y', names=('x', 'y',)); (x, y,) = R._first_ngens(2)"
 
         Names filled in:
 
@@ -678,6 +730,8 @@ def parse_generators(line, start_index):
         'R = ZZx; (x,) = R._first_ngens(1)'
         sage: preparse("R.<x, y> = a+b")
         'R = a+b; (x, y,) = R._first_ngens(2)'
+        sage: preparse("A.<x,y,z>=FreeAlgebra(ZZ,3)")
+        "A = FreeAlgebra(ZZ,Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = A._first_ngens(3)"
 
         Ensure we don't eat too much:
 
@@ -685,83 +739,49 @@ def parse_generators(line, start_index):
         'R = ZZ; (x, y,) = R._first_ngens(2);Integer(2)'
         sage: preparse("R.<x, y> = ZZ['x,y'];2")
         "R = ZZ['x,y']; (x, y,) = R._first_ngens(2);Integer(2)"
+        sage: preparse("F.<b>, f, g = S.field_extension()")
+        "F, f, g  = S.field_extension(names=('b',)); (b,) = F._first_ngens(1)"
+
+    For simplicity, this function assumes all statements begin and end with a semicolon.
+        preparse_generators(";  R.<x>=ZZ[];")
     """
-    i = start_index
-    if not line.startswith(".<", i):
-        return (line, i)
-    try:
-        gen_end = line.index(">", i+2)
-    except ValueError:
-        # Syntax Error -- let Python notice and raise the error
-        i += 2
-        return (line, i)
-
-    gen_begin = i
-    while gen_begin > 0 and line[gen_begin-1] != ';':
-        gen_begin -= 1
-
-    # parse out the object name and the list of generator names
-    gen_obj = line[gen_begin:i].strip()
-    gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
-    for g in gen_list:
-        if (not g.isalnum() and not g.replace("_","").isalnum()) or len(g) == 0 or not g[0].isalpha():
-            raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
-
-    # format names as a list of strings and a list of variables
-    gen_names = tuple(gen_list)
-    gen_vars  = ", ".join(gen_list)
-
-    # find end of constructor:
-    #    either end of line, next semicolon, or next #.
-    line_after = line[gen_end:]
-    c = line_after.find('#')
-    if c==-1: c = len(line_after)
-    s = line_after.find(';')
-    if s==-1: s = len(line_after)
-    c = min(c,s) + gen_end
-
-    gens_assignment = '; (%s,) = %s._first_ngens(%s)' % (gen_vars, gen_obj, gen_vars.count(',')+1)
-    ring_assignment = ""
-    # Find where the parenthesis of the constructor ends
-    if line[:c].rstrip()[-1] == ']':
-        # brackets constructor
-        c0 = line[:c].find(']')
-        d0 = line[:c0].rfind('[')
-        if c0 == -1:
-            raise SyntaxError, 'constructor must end with ) or ]'
-
-        in_square_brackets = line[d0+1:c0]
-        if in_square_brackets.strip() == '':
-            # as a convenience to the user, 'K.<a> = ZZ[]' -> 'K.<a> = ZZ["a"]'
-            in_square_brackets = "'%s'" % gen_vars
-
-        ring_assignment = '%s%s%s' % (line[:i] + line[gen_end+1:d0+1], in_square_brackets, line[c0:c])
-    elif line[:c].rstrip()[-1] == ')':
-        c0 = line[:c].rfind(')')
-        # General constructor -- rewrite the input line as two commands
-        # We have to determine whether or not to put a comma before
-        # the list of names.  We do this only if there are already
-        # arguments to the constructor.  Some constructors have no
-        # arguments, e.g., "K.<a> = f.root_field(  )"
-        c1 = line[:c0].rfind('(')
-        in_parentheses = line[c1+1:c0].strip()
-        if len(in_parentheses) > 0:
-            sep = ','
+    new_code = []
+    last_end = 0
+    #                                  obj       .< gens >      ,  other   =   constructor
+    for m in re.finditer(r";(\s*)([a-zA-Z_]\w*)\.<([^>]+)> *((?:,[\w, ]+)?)= *([^;#]+)", code):
+        ident, obj, gens, other_objs, constructor = m.groups()
+        gens = [v.strip() for v in gens.split(',')]
+        constructor = constructor.rstrip()
+        if constructor[-1] == ')':
+            opening = constructor.rindex('(')
+            # Only use comma if there are already arguments to the constructor
+            comma = ', ' if constructor[opening+1:-1].strip() != '' else ''
+            names = "('%s',)" % "', '".join(gens)
+            constructor = constructor[:-1] + comma + "names=%s)" % names
+        elif constructor[-1] == ']':
+            # Could be nested.
+            opening = constructor.rindex('[')
+            closing = constructor.index(']', opening)
+            if constructor[opening+1:closing].strip() == '':
+                names = "'" + ', '.join(gens) + "'"
+                constructor = constructor[:opening+1] + names + constructor[closing:]
         else:
-            sep = ''
-        ring_assignment = '%s%snames=%s)' % (line[:i] + line[gen_end+1:c0], sep, gen_names)
+            pass
+        gens_tuple = "(%s,)" % ', '.join(gens)
+        new_code.append(code[last_end:m.start()])
+        new_code.append(";%s%s%s = %s; %s = %s._first_ngens(%s)" % (ident, obj, other_objs, constructor, gens_tuple, obj, len(gens)))
+        last_end = m.end()
+
+    if last_end == 0:
+        return code
     else:
-        ring_assignment = line[:i] + line[gen_end+1:c]
+        new_code.append(code[m.end():])
+        return ''.join(new_code)
 
-    line = ring_assignment + gens_assignment + line[c:]
-    i += 1
 
-    return (line, i)
-
-eq_chars_pre = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
 quote_state = None
 
-def preparse(line, reset=True, do_time=False, ignore_prompts=False, after_semicolon=False):
+def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     r"""
     EXAMPLES:
         sage: preparse("ZZ.<x> = ZZ['x']")
@@ -788,62 +808,15 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False, after_semico
         sage: 9^^1
         8
 
-    We check to make sure that triple single quotes are handled
-    properly.  See Trac ticket \#4405.  In the following case, we
-    check to make sure that the single quote in the comment doesn't
-    prevent the carat from being turned into exponentiation.
-
-        sage: preparse("def foo(x):\n    '''\n    It's a comment.\n    '''\n    return x^2")
-        "def foo(x):\n    '''\n    It's a comment.\n    '''\n    return x**Integer(2)"
-
+        sage: preparse("A \ B")
+        'A ._backslash_(B)'
+        sage: preparse("time R.<x> = ZZ[]", do_time=True)
+        '_time__=misc.cputime(); __wall__=misc.walltime(); R = ZZ[\'x\']; print "Time: CPU %.2f s, Wall: %.2f s"%(misc.cputime(__time__), misc.walltime(__wall__)); (x,) = R._first_ngens(1)'
     """
     global quote_state
     if reset:
         quote_state = None
 
-    if not after_semicolon:
-        # This part handles lines with semi-colons all at once
-        # Then can also handle multiple lines more efficiently, but
-        # that optimization can be done later.
-        L, literals, quote_state = strip_string_literals(line, quote_state)
-
-        # Ellipsis Range
-        # [1..n]
-        try:
-            L = parse_ellipsis(L, preparse_step=False)
-        except SyntaxError:
-            pass
-
-        # Implicit Multiplication
-        # 2x -> 2*x
-        if implicit_mul_level:
-            L = implicit_mul(L, level = implicit_mul_level)
-
-        # Wrapping
-        # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
-        L = preparse_numeric_literals(L)
-
-        # Generators
-        # R.0 -> R.gen(0)
-        L = re.sub(r'([_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
-
-        # Use ^ for exponentiation and ^^ for xor
-        # (A side effect is that **** becomes xor as well.)
-        L = L.replace('^', '**').replace('****', '^')
-
-        line = L % literals
-
-
-    # find where the parens are for function assignment notation
-    oparen_index = -1
-    cparen_index = -1
-
-    # for caclulus function notation:
-    paren_level = 0
-    first_eq_index = -1
-
-    global in_single_quote, in_double_quote, in_triple_quote
-    line = line.rstrip()  # xreadlines leaves the '\n' at end of line
     L = line.lstrip()
     if len(L) > 0 and L[0] in ['#', '!']:
         return line
@@ -852,206 +825,73 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False, after_semico
         i = line.find('...')
         return line[:i+3] + preparse(line[i+3:], reset=reset, do_time=do_time, ignore_prompts=ignore_prompts)
 
-    i = 0
-    in_args = False
-
-    if reset:
-        in_single_quote = False
-        in_double_quote = False
-        in_triple_quote = False
-
-
     if ignore_prompts:
         # Get rid of leading sage: and >>> so that pasting of examples from
         # the documentation works.
         line = strip_prompts(line)
 
-    while i < len(line):
-        # Update quote parsing
-        # We only do this if this quote isn't backquoted itself,
-        # which is the case if the previous character isn't
-        # a backslash, or it is but both previous characters
-        # are backslashes.
-        if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
-            if line[i:i+3] in ['"""', "'''"]:
-                if not in_quote():
-                    in_triple_quote = True
-                    i += 3
-                    continue
-                elif in_triple_quote:
-                    in_triple_quote = False
-                    i += 3
-                    continue
-            elif line[i] == "'":
-                if not in_quote():
-                    in_single_quote = True
-                    i += 1
-                    continue
-                elif in_single_quote:
-                    in_single_quote = False
-                    i += 1
-                    continue
-            elif line[i] == '"':
-                if not in_quote():
-                    in_double_quote = True
-                    i += 1
-                    continue
-                elif in_double_quote:
-                    in_double_quote = False
-                    i += 1
-                    continue
+    # This part handles lines with semi-colons all at once
+    # Then can also handle multiple lines more efficiently, but
+    # that optimization can be done later.
+    L, literals, quote_state = strip_string_literals(line, quote_state)
 
-        if line[i] == ";" and not in_quote():
-            line = line[:i+1] + preparse(line[i+1:], reset, do_time, ignore_prompts, after_semicolon=True)
-            i = len(line)
-            continue
+    # Ellipsis Range
+    # [1..n]
+    try:
+        L = parse_ellipsis(L, preparse_step=False)
+    except SyntaxError:
+        pass
 
+    if implicit_mul_level:
+        # Implicit Multiplication
+        # 2x -> 2*x
+        L = implicit_mul(L, level = implicit_mul_level)
 
-        # Support for generator construction syntax:
-        # "obj.<gen0,gen1,...,genN> = objConstructor(...)"
-        # is converted into
-        # "obj = objConstructor(..., names=("gen0", "gen1", ..., "genN")); \
-        #  (gen0, gen1, ..., genN,) = obj.gens()"
-        #
-        # Also, obj.<gen0,gen1,...,genN> = R[...] is converted into
-        # "obj = R['gen0,gen1,..., genN']; (gen0, gen1, ..., genN,) = obj.gens()"
-        #
-        # LIMITATIONS:
-        #    - The entire constructor *must* be on one line.
-        #
-        # AUTHORS:
-        #     -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
-        #     -- 2006-04-17: William Stein - improvements to allow multiple statements.
-        #     -- 2006-05-01: William -- fix bug that Joe found
-        #     -- 2006-10-31: William -- fix so obj doesn't have to be mutated
-        elif not in_quote() and (line[i:i+2] == ".<"):
-            line, i = parse_generators(line, i)
+    # Wrapping
+    # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
+    L = preparse_numeric_literals(L)
 
-        # Support for calculus-like function assignment, the line
-        # "f(x,y,z) = sin(x^3 - 4*y) + y^x"
-        # gets turnd into
-        # '_=var("x,y,z");f=symbolic_expression(sin(x**Integer(3) - Integer(4)*y) + y**x).function(x,y,z)'
-        # AUTHORS:
-        #   - Bobby Moretti: initial version - 02/2007
-        #   - William Stein: make variables become defined if they aren't already defined.
+    # Generators
+    # R.0 -> R.gen(0)
+    L = re.sub(r'([_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
 
-        elif (line[i] == "(") and not in_quote():
-            paren_level += 1
-            # we need to make sure that this is the first open paren we find
-            if oparen_index == -1:
-                oparen_index = i
-            i += 1
-            continue
+    # Use ^ for exponentiation and ^^ for xor
+    # (A side effect is that **** becomes xor as well.)
+    L = L.replace('^', '**').replace('****', '^')
 
-        elif (line[i] == ")") and not in_quote():
-            cparen_index = i
-            paren_level -= 1
-            i += 1
-            continue
-
-        elif (line[i] == "=") and paren_level == 0 and not in_quote():
-            if first_eq_index == -1:
-                first_eq_index = i
-            eq = i
-
-            if cparen_index == -1:
-                i += 1
-                continue
-
-            # make sure the '=' sign is on its own, representing assignment
-            if eq+1 < len(line) and (line[eq-1] in eq_chars_pre or line[eq+1] == '='):
-                i += 1
-                continue
-
-            line_before = line[:oparen_index].strip()
-            if line_before == "" or not line_before.isalnum():
-                i += 1
-                continue
-
-            if eq != first_eq_index:
-                i += 1
-                continue
-
-            vars_end = cparen_index
-            vars_begin = oparen_index+1
-
-            # figure out where the line ends
-            line_after = line[vars_end+1:]
-            try:
-                a = line.index("#")
-            except ValueError:
-                a = len(line)
-
-            try:
-                b = line.index(";")
-            except ValueError:
-                b = len(line)
-
-            a =  min(a,b)
-
-            vars = line[vars_begin:vars_end].split(",")
-            vars = [v.strip() for v in vars]
-            b = []
-
-
-            # construct the parsed line
-            k = line[:vars_begin-1].rfind(';')
-            if k == -1:
-                k = len(line) - len(line.lstrip())
-            b.append(line[:k])
-            b.append('_=var("%s");'%(','.join(vars)))
-            b.append(line[k:vars_begin-1])
-            b.append('=')
-            b.append('symbolic_expression(')
-            b.append(line[eq+1:a].strip())
-            b.append(').function(')
-            b.append(','.join(vars))
-            b.append(')')
-            b.append(line[a:])
-
-            line =  ''.join(b)
-
-            # i should get set to the position of the first paren after the new
-            # assignment operator
-            n = len(line_before)
-            i = line.find('=', n) + 2
-
-            continue
-        #
-        ####### END CALCULUS ########
-
-        if not in_quote():
-
-            if i < len(line)-1 and line[i] == '\\':
-                j = i+1
-                while j < len(line) and line[j].isspace():
-                    j += 1
-
-                while j < len(line) and not line[j] in '*/;:\\#\'"':
-                    j += 1
-                line = line[:i] + "._backslash_(" + line[i+1:j] + ')' + line[j:]
-
-
-        # Decide if we hit a comment, so we're done.
-        if line[i] == '#' and not (in_single_quote or in_double_quote or in_triple_quote):
-            i = len(line)
-            break
-
-        i += 1
-
-    # Time command like in MAGMA: (commented out, since it's standard in IPython now)
-    L = line.lstrip()
+    # Make it easy to match statement ends
+    L = ';%s;' % L.replace('\n', ';\n;')
 
     if do_time:
-        if L[:5] == "time ":
-            # strip semicolon from end of line
-             if line[-1:] == ";":
-                 line = line[:-1]
-             indent = ' '*(len(line) - len(L))
-             line = indent + '__time__=misc.cputime(); __wall__=misc.walltime(); %s; print \
-        "Time: CPU %%.2f s, Wall: %%.2f s"%%(misc.cputime(__time__), misc.walltime(__wall__))'%L[4:]
+        # Separate time statement
+        L = re.sub(r';(\s*)time +(\w)', r';time;\1\2', L)
+
+    # Construction with generators
+    # R.<...> = obj()
+    # R.<.... = R[]
+    L = preparse_generators(L)
+
+    # Calculus functions
+    # f(x,y) = x^3 - sin(y)
+    L = preparse_calculus(L)
+
+    # Backslash
+    L = re.sub(r'''\\\s*([^*/;:\\#'"]+)''', r'._backslash_(\1)', L)
+
+    if do_time:
+        # Time keyword
+        L = re.sub(r';time;(\s*)(\S[^;]*)',
+                   r'\1__time__=misc.cputime(); __wall__=misc.walltime(); \2; print ' +
+                        '"Time: CPU %%.2f s, Wall: %%.2f s"%%(misc.cputime(__time__), misc.walltime(__wall__))',
+                   L)
+
+    # Remove extra ;'s
+    L = L.replace(';\n;', '\n')[1:-1]
+
+    line = L % literals
 
     return line
+
 
 ######################################################
 ## Apply the preparser to an entire file

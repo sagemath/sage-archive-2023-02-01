@@ -2703,7 +2703,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
 from line import line, line2d, Line as GraphicPrimitive_Line
 from arrow import arrow, Arrow as GraphicPrimitive_Arrow
 from bar_chart import bar_chart, BarChart as GraphicPrimitive_BarChart
-from networkx_graph import networkx_plot, NetworkXGraph as GraphicPrimitive_NetworkXGraph
+#from networkx_graph import networkx_plot, NetworkXGraph as GraphicPrimitive_NetworkXGraph
 from disk import disk, Disk as GraphicPrimitive_Disk
 from point import point, points, point2d, Point as GraphicPrimitive_Point
 from matrix_plot import matrix_plot, MatrixPlot as GraphicPrimitive_MatrixPlot

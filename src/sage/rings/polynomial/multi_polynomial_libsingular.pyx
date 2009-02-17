@@ -610,7 +610,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 else:
                     element = element.replace("^","**")
                     element = eval(element, d, {})
-            except SyntaxError:
+            except SyntaxError, NameError:
                 raise TypeError
 
             # we need to do this, to make sure that we actually get an

@@ -1,0 +1,58 @@
+--- Setup.py.orig	2009-02-16 22:44:48.000000000 -0800
++++ Setup.py	2009-02-16 22:39:28.000000000 -0800
+@@ -58,18 +58,11 @@
+ 
+ # Try to identify our libraries
+ 
+-import os
+-if os.uname()[0][:6] == "CYGWIN":
+-    want_libs = [
+-        "gd", "png", "z", "freetype", "libiconv"
+-    ]
+-    libs = filetest(libdirs, want_libs)
+-    libs.append('libiconv')
+-else:
+-    want_libs = [
+-        "gd", "png", "z", "freetype"
+-    ]
+-    libs = filetest(libdirs, want_libs)
++want_libs = [
++    "gd", "png12", "z", "freetype"
++]
++
++libs = filetest(libdirs, want_libs)
+ 
+ missing = []
+ 
+@@ -92,23 +85,24 @@
+ if "Xpm" in libs and "X11" not in libs:
+     remove("Xpm", libs)
+ 
+-if "png" in libs and "z" not in libs:
+-    remove("png", libs)
++if "png12" in libs and "z" not in libs:
++    remove("png12", libs)
+ 
+-if "z" in libs and "png" not in libs:
+-    remove("png", libs)
++if "z" in libs and "png12" not in libs:
++    remove("png12", libs)
+ 
+ # build the macro list
+ 
+ macros = []
+ 
+ for l in libs:
+-    macros.append(( "HAVE_LIB%s" % l.upper(), None ))
++    if l == "png12":
++       macros.append(( "HAVE_LIBPNG", None ))
++    else:
++       macros.append(( "HAVE_LIB%s" % l.upper(), None ))
+ 
+ # OK, now do it!
+ 
+-print libs
+-
+ setup(name="gdmodule", version=this_version,
+ 
+     description="GD Package",

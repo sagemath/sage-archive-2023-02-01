@@ -59,7 +59,7 @@ incdirs = dirtest([
 # Try to identify our libraries
 
 want_libs = [
-    "gd", "png", "z", "freetype"
+    "gd", "png12", "z", "freetype"
 ]
 
 libs = filetest(libdirs, want_libs)
@@ -85,18 +85,21 @@ if "ttf" in libs and "freetype" in libs:
 if "Xpm" in libs and "X11" not in libs:
     remove("Xpm", libs)
 
-if "png" in libs and "z" not in libs:
-    remove("png", libs)
+if "png12" in libs and "z" not in libs:
+    remove("png12", libs)
 
-if "z" in libs and "png" not in libs:
-    remove("png", libs)
+if "z" in libs and "png12" not in libs:
+    remove("png12", libs)
 
 # build the macro list
 
 macros = []
 
 for l in libs:
-    macros.append(( "HAVE_LIB%s" % l.upper(), None ))
+    if l == "png12":
+       macros.append(( "HAVE_LIBPNG", None ))
+    else:
+       macros.append(( "HAVE_LIB%s" % l.upper(), None ))
 
 # OK, now do it!
 

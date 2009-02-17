@@ -583,6 +583,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: S.<xx,yy> = Integers(5)[]
             sage: S(5*x*y + x + 17*y)
             xx + 2*yy
+
+        See trac 5292:
+            sage: R.<x> = QQ[]; S.<q,t> = QQ[]; F = FractionField(S);
+            sage: x in S
+            False
+            sage: x in F
+            False
         """
         cdef poly *_p, *mon
         cdef ring *_ring = self._ring
@@ -610,7 +617,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 else:
                     element = element.replace("^","**")
                     element = eval(element, d, {})
-            except SyntaxError, NameError:
+            except (SyntaxError, NameError):
                 raise TypeError
 
             # we need to do this, to make sure that we actually get an

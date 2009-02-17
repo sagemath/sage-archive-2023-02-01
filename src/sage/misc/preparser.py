@@ -811,7 +811,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         sage: preparse("A \ B")
         'A ._backslash_(B)'
         sage: preparse("time R.<x> = ZZ[]", do_time=True)
-        '_time__=misc.cputime(); __wall__=misc.walltime(); R = ZZ[\'x\']; print "Time: CPU %.2f s, Wall: %.2f s"%(misc.cputime(__time__), misc.walltime(__wall__)); (x,) = R._first_ngens(1)'
+        '__time__=misc.cputime(); __wall__=misc.walltime(); R = ZZ[\'x\']; print "Time: CPU %.2f s, Wall: %.2f s"%(misc.cputime(__time__), misc.walltime(__wall__)); (x,) = R._first_ngens(1)'
     """
     global quote_state
     if reset:
@@ -868,7 +868,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
     # Construction with generators
     # R.<...> = obj()
-    # R.<.... = R[]
+    # R.<...> = R[]
     L = preparse_generators(L)
 
     # Calculus functions
@@ -881,7 +881,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     if do_time:
         # Time keyword
         L = re.sub(r';time;(\s*)(\S[^;]*)',
-                   r'\1__time__=misc.cputime(); __wall__=misc.walltime(); \2; print ' +
+                   r';\1__time__=misc.cputime(); __wall__=misc.walltime(); \2; print ' +
                         '"Time: CPU %%.2f s, Wall: %%.2f s"%%(misc.cputime(__time__), misc.walltime(__wall__))',
                    L)
 

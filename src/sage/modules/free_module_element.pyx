@@ -1121,6 +1121,12 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
+            sage: v = vector({1: 1, 3: 2})  # test sparse vectors
+            sage: w = vector({0: 6, 3: -4})
+            sage: v.pairwise_product(w)
+            (0, 0, 0, -8)
+            sage: w.pairwise_product(v) == v.pairwise_product(w)
+            True
         """
         if not PY_TYPE_CHECK(right, FreeModuleElement):
             raise TypeError, "right must be a free module element"
@@ -1922,12 +1928,13 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         # Component wise vector * vector multiplication.
         cdef object v, e
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
+        v = PyDict_New()
         for i, a in left._entries.iteritems():
             if e.has_key(i):
-                e[i] = (<RingElement>a)._mul_(<RingElement> e[i])
-            else:
-                e[i] = a
-        return left._new_c(e)
+                prod = (<RingElement>a)._mul_(<RingElement> e[i])
+                if prod != 0:
+                    v[i] = prod
+        return left._new_c(v)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """

@@ -5374,6 +5374,29 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(idealappr(self.g, t0))
 
+    def idealcoprime(self, x, y):
+        """
+        Given two integral ideals x and y of a pari number field self,
+        return an element a of the field (expressed in the integral
+        basis of self) such that a*x is an integral ideal coprime to
+        y.
+
+        EXAMPLES:
+            sage: F = NumberField(x^3-2, 'alpha')
+            sage: nf = F._pari_()
+            sage: x = pari('[1, -1, 2]~')
+            sage: y = pari('[1, -1, 3]~')
+            sage: nf.idealcoprime(x, y)
+            [1, 0, 0]~
+
+            sage: y = pari('[2, -2, 4]~')
+            sage: nf.idealcoprime(x, y)
+            [5/43, 9/43, -1/43]~
+        """
+        t0GEN(x); t1GEN(y)
+        _sig_on
+        return self.new_gen(idealcoprime(self.g, t0, t1))
+
     def idealdiv(self, x, y, long flag=0):
         t0GEN(x); t1GEN(y)
         _sig_on
@@ -5393,6 +5416,33 @@ cdef class gen(sage.structure.element.RingElement):
             t1GEN(b)
             return self.new_gen(idealhnf0(self.g, t0, t1))
 
+    def ideallog(self, x, bid):
+        """
+        Return the discrete logarithm of x in (ring of integers/bid)^*.
+
+        INPUT:
+            self -- a pari number field
+            bid  -- a big ideal structure (corresponding to an ideal I
+                    of self) output by idealstar
+            x    -- an element of self with valuation zero at all
+                    primes dividing I
+
+        OUTPUT:
+            the discrete logarithm of x on the generators given in bid[2]
+
+        EXAMPLE:
+            sage: F = NumberField(x^3-2, 'alpha')
+            sage: nf = F._pari_()
+            sage: I = pari('[1, -1, 2]~')
+            sage: bid = nf.idealstar(I)
+            sage: x = pari('5')
+            sage: nf.ideallog(x, bid)
+            [25]~
+        """
+        t0GEN(x); t1GEN(bid)
+        _sig_on
+        return self.new_gen(zideallog(self.g, t0, t1))
+
     def idealmul(self, x, y, long flag=0):
         t0GEN(x); t1GEN(y)
         _sig_on
@@ -5405,6 +5455,39 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(x)
         _sig_on
         return self.new_gen(idealnorm(self.g, t0))
+
+    def idealstar(self, I, long flag=1):
+        """
+        Return the big ideal (bid) structure of modulus I.
+
+        INPUT:
+            self -- a pari number field
+            I -- an ideal of self, or a row vector whose first
+                 component is an ideal and whose second component
+                 is a row vector of r_1 0 or 1.
+            flag -- determines the amount of computation and the shape
+                    of the output:
+                    1 (default): return a bid structure without
+                       generators
+                    2: return a bid structure with generators (slower)
+                    0 (deprecated): only outputs (ring of integers/I)^*
+                       as an abelian group, i.e as a 3-component
+                       vector [h,d,g]: h is the order, d is the vector
+                       of SNF cyclic components and g the corresponding
+                       generators. This flag is deprecated: it is in
+                       fact slightly faster to compute a true bid
+                       structure, which contains much more information.
+
+        EXAMPLE:
+            sage: F = NumberField(x^3-2, 'alpha')
+            sage: nf = F._pari_()
+            sage: I = pari('[1, -1, 2]~')
+            sage: nf.idealstar(I)
+            [[[43, 9, 5; 0, 1, 0; 0, 0, 1], [0]], [42, [42]], Mat([[43, [9, 1, 0]~, 1, 1, [-5, -9, 1]~], 1]), [[[[42], [[3, 0, 0]~], [[3, 0, 0]~], [[]~], 1]], [[], [], [;]]], Mat(1)]
+        """
+        t0GEN(I)
+        _sig_on
+        return self.new_gen(idealstar0(self.g, t0, flag))
 
     def idealtwoelt(self, x, a=None):
         t0GEN(x)
@@ -5628,11 +5711,11 @@ cdef class gen(sage.structure.element.RingElement):
             sage: nf = pari(y^2 - 6*y + 24).nfinit()
             sage: rnf = nf.rnfinit(x^2 - pari(y))
 
-            This is the relative HNF of the inert ideal (2) in rnf:
+        This is the relative HNF of the inert ideal (2) in rnf:
 
             sage: P = pari('[[[1, 0]~, [0, 0]~; [0, 0]~, [1, 0]~], [[2, 0; 0, 2], [2, 0; 0, 1/2]]]')
 
-            And this is the HNF of the inert ideal (2) in nf:
+        And this is the HNF of the inert ideal (2) in nf:
 
             sage: rnf.rnfidealdown(P)
             [2, 0; 0, 2]

@@ -1665,7 +1665,11 @@ class Worksheet:
         t = time.time()
         if t - last >= self.user_autosave_interval(username):
             self.__last_autosave = t
-            self.save_snapshot(username)
+            current = self.edit_text()
+            filename = '%s/worksheet.txt'%(self.__dir)
+            old = open(filename).read()
+            if not current == old:
+                self.save_snapshot(username, current)
 
     def revert_to_snapshot(self, name):
         path = self.snapshot_directory()

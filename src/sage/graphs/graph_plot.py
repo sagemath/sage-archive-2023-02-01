@@ -105,12 +105,16 @@ class GraphPlot(SageObject):
             sage: g = Graph({0:[1,2], 2:[3], 4:[0,1]})
             sage: g.graphplot(save_pos=True, layout='circular')
             GraphPlot object for Graph on 5 vertices
+
+            The following illustrates the format of a position dictionary,
+            but due to numerical noise we do not check the values themselves.
+
             sage: g.get_pos()
-            {0: [6.123233995736766e-17, 1.0],
-             1: [-0.95105651629515353, 0.30901699437494751],
-             2: [-0.58778525229247325, -0.80901699437494734],
-             3: [0.58778525229247292, -0.80901699437494756],
-             4: [0.95105651629515364, 0.30901699437494717]}
+            {0: [..., ...],
+             1: [..., ...],
+             2: [..., ...],
+             3: [..., ...],
+             4: [..., ...]}
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]

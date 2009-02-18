@@ -5811,17 +5811,21 @@ class GenericGraph(SageObject):
              8: [0.29..., -0.40...],
              9: [0.47..., 0.15...]}
             sage: P = G.plot(save_pos=True, layout='spring')
+
+            The following illustrates the format of a position dictionary,
+            but due to numerical noise we do not check the values themselves.
+
             sage: G.get_pos()
-            {0: [-0.81..., -0.32...],
-            1: [-0.49..., 0.53...],
-            2: [0.04..., 0.96...],
-            3: [0.00..., 0.01...],
-            4: [0.17..., -0.71...],
-            5: [-0.47..., 0.06...],
-            6: [0.35..., -0.17...],
-            7: [0.54..., 0.50...],
-            8: [-0.30..., -0.57...],
-            9: [0.95..., -0.28...]}
+            {0: [..., ...],
+             1: [..., ...],
+             2: [..., ...],
+             3: [..., ...],
+             4: [..., ...],
+             5: [..., ...],
+             6: [..., ...],
+             7: [..., ...],
+             8: [..., ...],
+             9: [..., ...]}
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]

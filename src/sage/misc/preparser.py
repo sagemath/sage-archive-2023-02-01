@@ -809,7 +809,12 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         8
 
         sage: preparse("A \ B")
-        'A ._backslash_(B)'
+        'A  * BackslashOperator() * B'
+        sage: preparse("A^2 \ B + C")
+        'A**Integer(2)  * BackslashOperator() * B + C'
+        sage: preparse("a \\ b \\") # There is really only one backslash here, it's just being escaped.
+        'a  * BackslashOperator() * b \\'
+
         sage: preparse("time R.<x> = ZZ[]", do_time=True)
         '__time__=misc.cputime(); __wall__=misc.walltime(); R = ZZ[\'x\']; print "Time: CPU %.2f s, Wall: %.2f s"%(misc.cputime(__time__), misc.walltime(__wall__)); (x,) = R._first_ngens(1)'
     """
@@ -876,7 +881,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     L = preparse_calculus(L)
 
     # Backslash
-    L = re.sub(r'''\\\s*([^*/;:\\#'"]+)''', r'._backslash_(\1)', L)
+    L = re.sub(r'''\\\s*([^\t ;#])''', r' * BackslashOperator() * \1', L)
 
     if do_time:
         # Time keyword
@@ -1085,3 +1090,51 @@ def _strip_quotes(s):
     if s[-1] in ["'", '"']:
         s = s[:-1]
     return s
+
+
+class BackslashOperator:
+    """
+    This implements Matlab-style backslash operator for system solving via A \ b.
+
+    EXAMPLES:
+        sage: preparse("A \ matrix(QQ,2,1,[1/3,'2/3'])")
+        "A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),'2/3'])"
+        sage: preparse("A \ matrix(QQ,2,1,[1/3,2*3])")
+        'A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),Integer(2)*Integer(3)])'
+        sage: preparse("A \ B + C")
+        'A  * BackslashOperator() * B + C'
+        sage: preparse("A \ eval('C+D')")
+        "A  * BackslashOperator() * eval('C+D')"
+        sage: preparse("A \ x / 5")
+        'A  * BackslashOperator() * x / Integer(5)'
+        sage: preparse("A^3 \ b")
+        'A**Integer(3)  * BackslashOperator() * b'
+    """
+    def __rmul__(self, left):
+        """
+        EXAMPLES:
+            sage: A = random_matrix(ZZ, 4)
+            sage: B = random_matrix(ZZ, 4)
+            sage: temp = A * BackslashOperator()
+            sage: temp.left is A
+            True
+            sage: X = temp * B
+            sage: A * X == B
+            True
+        """
+        self.left = left
+        return self
+
+    def __mul__(self, right):
+        """
+        EXAMPLES:
+            sage: A = matrix(RDF, 5, 5, 2)
+            sage: b = vector(RDF, 5, range(5))
+            sage: A \ b
+            (0.0, 0.5, 1.0, 1.5, 2.0)
+            sage: A._backslash_(b)
+            (0.0, 0.5, 1.0, 1.5, 2.0)
+            sage: A * BackslashOperator() * b
+            (0.0, 0.5, 1.0, 1.5, 2.0)
+        """
+        return self.left._backslash_(right)

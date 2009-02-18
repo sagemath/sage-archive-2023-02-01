@@ -61,7 +61,7 @@ from mathml import mathml
 
 from defaults import set_default_variable_name
 
-from preparser import preparse, implicit_multiplication
+from preparser import preparse, implicit_multiplication, BackslashOperator
 
 from interpreter import preparser
 

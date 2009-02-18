@@ -706,7 +706,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (144/1).is_perfect_power(True)
             True
 
-        This test makes sure we workaround a bug in GMP (see trac #4612):
+        This test makes sure we workaround a bug in GMP (see trac \#4612):
             sage: [ -a for a in srange(100) if not QQ(-a^3).is_perfect_power() ]
             []
             sage: [ -a for a in srange(100) if not QQ(-a^3).is_perfect_power(True) ]

@@ -4732,10 +4732,10 @@ cdef class Matrix(matrix1.Matrix):
         return multi_derivative(self, args)
 
     def exp(self):
-        """
+        r"""
         Calculate the exponential of this matrix X, which is the matrix
 
-        e^X = sum_{k=0}^{infty} frac{X^k}{k!}.
+        $e^X = sum_{k=0}^{infty} frac{X^k}{k!}$.
 
         This function depends on maxima's matrix exponentiation
         function, which does not deal well with floating point

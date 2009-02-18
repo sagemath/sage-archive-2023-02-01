@@ -5346,7 +5346,7 @@ class SymbolicArithmetic(SymbolicOperation):
             return '%s%s' % (symbols[op], s[0])
 
     def _latex_(self, simplify=True):
-        """
+        r"""
         EXAMPLES:
             sage: var('x,y')
             (x, y)

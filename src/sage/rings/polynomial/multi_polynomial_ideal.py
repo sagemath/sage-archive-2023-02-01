@@ -1216,7 +1216,7 @@ class MPolynomialIdeal_singular_repr:
 
     @redSB
     def reduced_basis(self):
-        """
+        r"""
         Note: This function is deprecated. It will be removed in a future
         release of Sage. Please use the interreduced_basis() function instead.
 

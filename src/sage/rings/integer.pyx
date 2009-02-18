@@ -3034,7 +3034,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             False
 
         This is a test to make sure we workaround a bug in GMP. (See
-        trac #4612.)
+        trac \#4612.)
             sage: [ -a for a in srange(100) if not (-a^3).is_perfect_power() ]
             []
         """

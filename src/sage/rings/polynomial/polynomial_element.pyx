@@ -420,7 +420,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS:
 
-        The following shows that #2360 is indeed fixed.
+        The following shows that \#2360 is indeed fixed.
 
             sage: R.<x,y> = ZZ[]
             sage: P.<a> = ZZ[]

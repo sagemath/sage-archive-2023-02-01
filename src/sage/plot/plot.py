@@ -1594,8 +1594,8 @@ def plot(funcs, *args, **kwds):
         sage: plot(1.13*log(x), 1, 100, fill = lambda x: nth_prime(x)/floor(x), fillcolor = 'red')
 
     Fill the area between a function and its asymptote:
-        f = (2*x^3+2*x-1)/((x-2)*(x+1))
-        plot([f, 2*x+2], -7,7, fill = {0: [1]}, fillcolor='#ccc').show(ymin=-20, ymax=20)
+        sage: f = (2*x^3+2*x-1)/((x-2)*(x+1))
+        sage: plot([f, 2*x+2], -7,7, fill = {0: [1]}, fillcolor='#ccc').show(ymin=-20, ymax=20)
 
         sage: def b(n): return lambda x: bessel_J(n, x)
         sage: plot([b(n) for n in [1..5]], 0, 20, fill = 'axis')

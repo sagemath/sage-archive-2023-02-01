@@ -2017,7 +2017,7 @@ def bell_polynomial(n, k):
     This function returns the Bell Polynomial
 
     $$
-    $B_{n,k}(x_1, x_2, \ldots, x_{n-k+1}) = \sum_{\sum{j_i}=k, \sum{i j_i}
+    B_{n,k}(x_1, x_2, \ldots, x_{n-k+1}) = \sum_{\sum{j_i}=k, \sum{i j_i}
     =n} \frac{n!}{j_1!j_2!\ldots} \frac{x_1}{1!}^j_1 \frac{x_2}{2!}^j_2
     \ldots
     $$
@@ -2159,7 +2159,7 @@ def bernoulli_polynomial(x,n):
     \]
     and they are given directly by
     \[
-     B_n(x) = \sum_{i=0}^n \binomial{n}{i}B_{n-i}x^i.
+     B_n(x) = \sum_{i=0}^n {n \choose i} B_{n-i}x^i.
     \]
 
     One has $B_n(x) = - n\zeta(1 - n,x)$, where $\zeta(s,x)$ is the

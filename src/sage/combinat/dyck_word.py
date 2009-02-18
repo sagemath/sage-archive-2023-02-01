@@ -407,9 +407,9 @@ class DyckWord_class(CombinatorialObject):
         We can think of our bounce path as describing the trail of a billiard
         ball shot West from (n, n), which "bounces" down whenever it
         encounters a vertical step and "bounces" left when it encounters the
-        line y = x. The bouncing ball will strike the diagonal at places (0,
-        0), (j_1, j_1), (j_2, j_2), ... , (j_r-1, j_r-1), (j_r, j_r) = (n, n).
-        We define the b-statistic to be the sum sum_{i=1}^{r-1} j_i.
+        line y = x. The bouncing ball will strike the diagonal at places $(0,
+        0), (j_1, j_1), (j_2, j_2), ... , (j_r-1, j_r-1), (j_r, j_r) = (n, n)$.
+        We define the b-statistic to be the $\sum \sum_{i=1}^{r-1} j_i$.
 
         EXAMPLES:
             sage: dw = DyckWord([1,1,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0])

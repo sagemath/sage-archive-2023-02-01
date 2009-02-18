@@ -476,20 +476,20 @@ class AbelianGroup_class(group.AbelianGroup):
         return DualAbelianGroup(self)
 
     def elementary_divisors(self):
-        """
+        r"""
         This returns the elementary divisors of the group, using Pari.
 
         COMMENT:
             Here is another algorithm for computing the elementary divisors
             d1, d2, d3, of a finite abelian group (where d1 | d2 | d3 |
             are composed of prime powers dividing the invariants of the group
-            in a way described below). Just factor the invariants a_i that
-            define the abelian group.  Then the biggest d_i is the product
-            of the maximum prime powers dividing some a_j. In other words, the
-            largest d_i is the product of p^v, where v = max(ord_p(a_j) for all j).
-            Now divide out all those p^v's into the list of invariants a_i,
+            in a way described below). Just factor the invariants $a_i$ that
+            define the abelian group.  Then the biggest $d_i$ is the product
+            of the maximum prime powers dividing some $a_j$. In other words, the
+            largest $d_i$ is the product of $p^v$, where $v = max(ord_p(a_j)$ for all j).
+            Now divide out all those $p^v$'s into the list of invariants $a_i$,
             and get a new list of ``smaller invariants''. Repeat the above procedure
-            on these ``smaller invariants'' to compute d_{i-1}, and so on.
+            on these ``smaller invariants'' to compute $d_{i-1}$, and so on.
             (Thanks to Robert Miller for communicating this algorithm.)
 
         TODO: When somebody wants to speed this code up, please implement he

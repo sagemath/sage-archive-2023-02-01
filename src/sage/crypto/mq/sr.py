@@ -105,9 +105,51 @@ keys encrypt P to the same ciphertext:
 All solutions can easily be recovered using the variety function for ideals.
 
    sage: I = F.ideal()
-   sage: I.variety() # order is random-ish
-   [{k100: 0, k003: 0, k002: 1, k001: 0, k000: 0, s003: 1, s002: 0, s001: 0, s000: 1, w103: 1, w102: 1, w101: 0, w100: 0, x103: 0, x102: 1, x101: 1, x100: 1, k103: 0, k102: 0, k101: 1},
-    {k100: 0, k003: 1, k002: 1, k001: 0, k000: 0, s003: 0, s002: 1, s001: 1, s000: 1, w103: 0, w102: 1, w101: 0, w100: 0, x103: 1, x102: 0, x101: 0, x100: 1, k103: 1, k102: 0, k101: 1}]
+   sage: for V in I.variety():
+   ...    for k,v in sorted(V.iteritems()):
+   ...       print k,v
+   ...    print
+   k003 0
+   k002 1
+   k001 0
+   k000 0
+   s003 1
+   s002 0
+   s001 0
+   s000 1
+   w103 1
+   w102 1
+   w101 0
+   w100 0
+   x103 0
+   x102 1
+   x101 1
+   x100 1
+   k103 0
+   k102 0
+   k101 1
+   k100 0
+   <BLANKLINE>
+   k003 1
+   k002 1
+   k001 0
+   k000 0
+   s003 0
+   s002 1
+   s001 1
+   s000 1
+   w103 0
+   w102 1
+   w101 0
+   w100 0
+   x103 1
+   x102 0
+   x101 0
+   x100 1
+   k103 1
+   k102 0
+   k101 1
+   k100 0
 
 Note that the SBox object for SR can be constructed with a call to
 \code{sr.sbox()}.
@@ -1448,7 +1490,7 @@ class SR_generic(MPolynomialSystemGenerator):
         return [gd[e] for e in self.varstrs(name, nr, rc, e)]
 
     def variable_dict(self):
-        """
+        r"""
         Return a dictionary to access variables in \code{self.R} by
         their names.
 
@@ -2869,8 +2911,8 @@ class SR_gf2_2(SR_gf2):
         INPUT:
             x -- output variables (default: None)
             w -- input variables  (default: None)
-            biaffine_only -- ignored
-            correct_only -- always True
+            biaffine_only -- ignored (always False)
+            correct_only -- ignored (always True)
             groebner -- precompute the Groebner basis for this S-Box (default: False).
 
         EXAMPLES:
@@ -2884,6 +2926,32 @@ class SR_gf2_2(SR_gf2):
              x1 + w0*w1*w3 + w0*w3 + w0 + w1*w3 + w1 + w2*w3,
              x2 + w0*w2*w3 + w0*w2 + w0 + w1*w2 + w1*w3 + w2*w3,
              x3 + w0*w1*w2 + w0 + w1*w2*w3 + w1*w2 + w1*w3 + w1 + w2 + w3]
+
+            sage: from sage.crypto.mq.sr import SR_gf2_2
+            sage: e = 4
+            sage: sr = SR_gf2_2(1, 1, 1, e)
+            sage: sr.inversion_polynomials_single_sbox()
+            [w3*w1 + w3*w0 + w3*x2 + w3*x1 + w3 + w2*w1 + w1 + x3 + x2 + x1,
+             w3*w2 + w3*w1 + w3*x3 + w2 + w1 + x3,
+             w3*w2 + w3*w1 + w3*x2 + w3 + w2*x3 + x2 + x1,
+             w3*w2 + w3*w1 + w3*x3 + w3*x2 + w3*x1 + w3 + w2*x2 + w0 + x3 + x2 + x1 + x0,
+             w3*w2 + w3*w1 + w3*x1 + w3*x0 + w2*x1 + w0 + x3 + x0,
+             w3*w2 + w3*w1 + w3*w0 + w3*x2 + w3*x1 + w2*w0 + w2*x0 + w0 + x3 + x2 + x1 + x0,
+             w3*w2 + w3*x1 + w3 + w2*w0 + w1*w0 + w1 + x3 + x2,
+             w3*w2 + w3*w1 + w3*x1 + w1*x3 + x3 + x2 + x1,
+             w3*x3 + w3*x2 + w3*x0 + w3 + w1*x2 + w1 + w0 + x2 + x0,
+             w3*w2 + w3*w1 + w3*x2 + w3*x1 + w1*x1 + w1 + w0 + x2 + x0,
+             w3*w2 + w3*w1 + w3*w0 + w3*x3 + w3*x1 + w2*w0 + w1*x0 + x3 + x2,
+             w3*w2 + w3*w1 + w3*x2 + w3*x1 + w3*x0 + w3 + w1 + w0*x3 + x3 + x2,
+             w3*w2 + w3*w1 + w3*w0 + w3*x3 + w3 + w2*w0 + w1 + w0*x2 + x3 + x2,
+             w3*w0 + w3*x2 + w2*w0 + w0*x1 + w0 + x3 + x1 + x0,
+             w3*w0 + w3*x3 + w3*x0 + w2*w0 + w1 + w0*x0 + w0 + x3 + x2,
+             w3*w2 + w3 + w1 + x3*x2 + x3 + x1,
+             w3*w2 + w3*x3 + w1 + x3*x1 + x3 + x2,
+             w3*w2 + w3*w0 + w3*x3 + w3*x2 + w3*x1 + w0 + x3*x0 + x1 + x0,
+             w3*w2 + w3*w1 + w3*w0 + w3*x3 + w1 + w0 + x2*x1 + x2 + x0,
+             w3*w2 + w2*w0 + w1 + x3 + x2*x0,
+             w3*x3 + w3*x1 + w2*w0 + w1 + x3 + x2 + x1*x0 + x1]
        """
         e = self.e
         if x is None and w is None:

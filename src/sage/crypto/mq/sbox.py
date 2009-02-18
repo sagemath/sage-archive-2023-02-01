@@ -215,7 +215,8 @@ class SBox(SageObject):
         INPUT:
             X -- either an integer, a tuple of GF(2) elements of
                  length \code{len(self)} or a finite field element in
-                 GF($2^n$)
+                 GF($2^n$). As a last resort this function tries to
+                 convert X to an integer.
 
         EXAMPLE:
             sage: S = mq.SBox([7,6,0,4,2,5,1,3])
@@ -234,14 +235,30 @@ class SBox(SageObject):
             sage: k.<a> = GF(2^3)
             sage: S(a^2)
             a
+
+            sage: S(QQ(3))
+            4
+
+            sage: S([1]*10^6)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot apply SBox to provided element.
+
+            sage: S(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot apply SBox to 1/2.
         """
-        if isinstance(X, (int, Integer)):
+        if isinstance(X, (int, long, Integer)):
             return self._S[ZZ(X)]
+
         try:
-            from sage.all import vector
+            from sage.modules.free_module_element import vector
             K = X.parent()
             if K.order() == 2**self.n:
                 X = vector(X)
+            else:
+                raise TypeError
             if not self._big_endian:
                 X = list(reversed(X))
             else:
@@ -251,16 +268,28 @@ class SBox(SageObject):
             if self._big_endian:
                 out = list(reversed(out))
             return K(vector(GF(2),out))
-        except AttributeError:
+        except (AttributeError, TypeError):
             pass
 
-        if len(X) == self.n:
-            if self._big_endian:
-                X = list(reversed(X))
-            X = ZZ(map(ZZ,X),2)
-            out =  self._S[X]
-            return self.to_bits(out)
-        raise TypeError, "Cannot apply SBox to %s"%X
+        try:
+            if len(X) == self.n:
+                if self._big_endian:
+                    X = list(reversed(X))
+                X = ZZ(map(ZZ,X),2)
+                out =  self._S[X]
+                return self.to_bits(out)
+        except TypeError:
+            pass
+
+        try:
+            return self._S[ZZ(X)]
+        except TypeError:
+            pass
+
+        if len(str(X)) > 50:
+            raise TypeError, "Cannot apply SBox to provided element."
+        else:
+            raise TypeError, "Cannot apply SBox to %s."%X
 
     def __getitem__(self, X):
         r"""

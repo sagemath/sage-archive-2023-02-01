@@ -846,7 +846,7 @@ def random_tests(t=10.0, n_max=60, perms_per_graph=10):
                 return
 
         D = DGG.RandomDirectedGNP(n, p)
-        D.loops(True)
+        D.allow_loops(True)
         for i from 0 <= i < n:
             if random() < p:
                 D.add_edge(i,i)

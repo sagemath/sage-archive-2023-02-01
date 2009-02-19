@@ -52,9 +52,18 @@ A basic install might include the following Emacs Lisp in your .emacs:
 ;; commands inline, uncomment the following line and configure sage-view:
 ;; (require 'sage-view "sage-view")
 ;; (add-hook 'sage-startup-hook 'sage-view-always)
+;; You can use commands like
+;; (add-hook 'sage-startup-hook 'sage-view-always
+;; 'sage-view-disable-inline-output 'sage-view-disable-inline-plots)
+;; to have some combination of features.
+
 }}}
 
 == Changelog ==
+
+=== sage-mode-0.5.2 (Nick Alexander, 2009-02-19) ===
+* Made individual parts of `sage-view' toggleable, fixed bugs with plots and
+multiple outputs.
 
 === sage-mode-0.5.1 (Nick Alexander, 2009-02-11) ===
 * Added `sage-startup-hook' and made `sage-view' actually usable.

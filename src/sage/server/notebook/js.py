@@ -242,6 +242,7 @@ var cell_id_list; // this gets set in worksheet.py
 var input_keypress; //this gets set to a function when we set up the keyboards
 var input_keydown; //this gets set to a function when we set up the keyboards
 var debug_keypress; //this gets set to a function when we set up the keyboards
+var skip_keyup = false; //this gets set to work around a bug
 
 var in_debug_input = false;
 var in_slide_mode = false; //whether or not we're in slideshow mode
@@ -762,6 +763,7 @@ function input_keyup(id, event) {
         will_resize_soon -- if a keyup event is ignored for the purpose of resizing,
                             then we queue one up.  Avoid a timeout-flood with this lock.
     */
+    if(skip_keyup) { skip_keyup = false; return false; }
     var t = time_now()
     if((t - last_keypress_resize) > keypress_resize_delay) {
         last_keypress_resize = t;
@@ -826,6 +828,7 @@ function handle_replacement_controls(cell_input, event) {
         }
     } else if(key_menu_pick(event)) {  // press the enter key, so we do the replacement.
         do_replacement(introspect_id, replacement_word, true);
+        skip_keyup = true;
         return false;
     } else if(key_request_introspections(event)) {
         // instead of browsing through a list of options, here we are viewing

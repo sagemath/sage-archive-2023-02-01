@@ -29,6 +29,8 @@
 (require 'ansi-color)
 (require 'compile)
 
+(autoload 'sage-view "sage-view" "Sage view minor mode." t)
+
 ;;;_* Inferior SAGE major mode for interacting with a slave SAGE process
 
 (defcustom inferior-sage-prompt (rx line-start (1+ (and (or "sage:" "....." ">>>" "..." "(Pdb)" "ipdb>" "(gdb)") " ")))

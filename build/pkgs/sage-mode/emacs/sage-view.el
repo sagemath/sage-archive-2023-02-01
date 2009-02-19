@@ -65,7 +65,7 @@
 (defvar sage-view-tail
   "\$\\end{preview}\\end{document}\n")
 
-(defvar sage-view-temp-dir nil
+(defvar sage-view-temp-dir-name nil
   "Name of directory for temporary files")
 
 (defvar sage-view-conversion-process nil)
@@ -82,6 +82,7 @@
 	"-q"
 	"-dNOPAUSE"))
 
+;; XXX these should all be customizable
 (defvar sage-view-resolution nil)
 (defvar sage-view-scale 1.2)
 (defvar sage-view-current-overlay nil)
@@ -89,13 +90,16 @@
 (defvar sage-view-start-string "<html><span class=\"math\">")
 (defvar sage-view-final-string "</span></html>")
 
+(defvar sage-view-inline-plots-enabled nil) ;; do we want inline plotting?
+(defvar sage-view-inline-output-enabled nil) ;; do we want inline latex output?
+
 (defun sage-view-latex->dvi (latex)
   "Convert LATEX to DVI asynchronously."
   (setq sage-view-conversion-process
 	(apply 'start-process
 	       (append (list "latex->dvi" sage-view-conversion-buffer
 			     "latex")
-		       (list (concat "--output-directory=" (shell-quote-argument sage-view-temp-dir))
+		       (list (concat "--output-directory=" (shell-quote-argument (sage-view-temp-dir)))
 			     (concat "-interaction=" (shell-quote-argument "nonstopmode"))
 			     (concat "-output-format=" (shell-quote-argument "dvi")))
 		       (list latex))))
@@ -110,7 +114,7 @@
 	(apply 'start-process
 	       (append (list "latex->pdf" sage-view-conversion-buffer
 			     "latex")
-		       (list (concat "--output-directory=" (shell-quote-argument sage-view-temp-dir))
+		       (list (concat "--output-directory=" (shell-quote-argument (sage-view-temp-dir)))
 			     (concat "-interaction=" (shell-quote-argument "nonstopmode"))
 			     (concat "-output-format=" (shell-quote-argument "pdf")))
 		       (list latex))))
@@ -198,82 +202,123 @@
 	      (display-mm-height)))))
     (concat (int-to-string w) "x" (int-to-string h))))
 
-(defun sage-view-output-filter (string)
-  "Generate and place an overlay image.
-This generates the filename for the image, and use it for the
-region between `comint-last-output-start' and `process-mark'.
+(defun sage-view-output-filter-process-inline-output (string)
+  "Generate and place overlay images for inline output delimited
+by `sage-view-start-string' and `sage-view-final-string'.
 
-Function to be inserted in `comint-output-filter-functions'."
+This function expects the buffer to be narrowed to just the
+current output; see `sage-view-output-filter' for how to do
+that."
+
+  (goto-char (point-min))
+
+  (when (string-match (regexp-quote sage-view-final-string) string) ;; we found the end of some html; go back and texify that range
+    (setq sage-view-text (buffer-substring-no-properties (point-min) (point-max)))
+
+    (when (search-forward sage-view-start-string (point-max) t) ;; change this to while to do many
+      (setq sage-view-overlay-start (- (point) (length sage-view-start-string)))
+      (search-forward sage-view-final-string) ;; find the terminal
+      (search-backward sage-view-final-string) ;; position ourselves at the front of the terminal
+      (setq sage-view-overlay-final (+ (point) (length sage-view-final-string)))
+      (setq sage-view-insert
+	    (buffer-substring-no-properties
+	     (+ sage-view-overlay-start (length sage-view-start-string))
+	     (- sage-view-overlay-final (length sage-view-final-string))))
+      ;; (message "sage-view-insert _%s_" sage-view-insert)
+
+      (setq sage-view-current-overlay (make-overlay sage-view-overlay-start sage-view-overlay-final nil nil nil))
+      (overlay-put sage-view-current-overlay 'help-echo "Overlay made by sage-view")
+
+      (let* ((base (expand-file-name (make-temp-name "output_")
+				     (sage-view-temp-dir)))
+	     (file (concat base ".tex")))
+	(with-temp-file file
+	  (insert sage-view-head)
+	  (insert sage-view-insert)
+	  (insert sage-view-tail))
+	(sage-view-latex->pdf file)))))
+
+(defun sage-view-output-filter-process-inline-plots (string)
+  "Generate and place one overlay image for one inline plot,
+found by looking for a particular png file in
+`sage-view-temp-dir'.
+
+This function expects the buffer to be narrowed to just the
+current output; see `sage-view-output-filter' for how to do
+that."
 
   ;; we need to foil emacs' image cache, which doesn't reload files with the same name
-  (let* ((pngname (format "%s/sage-view.png" sage-view-temp-dir))
-	 (base (expand-file-name (make-temp-name "plot_") sage-view-temp-dir))
+  (let* ((pngname (format "%s/sage-view.png" (sage-view-temp-dir)))
+	 (base (expand-file-name (make-temp-name "plot_") (sage-view-temp-dir)))
 	 (pngname2 (concat base ".png")))
     ;; (message "Looking for plot at %s..." pngname)
     (if (not (and pngname
 		  (file-exists-p pngname)
 		  (file-readable-p pngname)))
 	() ;; the not found branch
-	;; (message "Looking for plot at %s... not found." pngname)
+      ;; (message "Looking for plot at %s... not found." pngname)
       ;; the found branch
       ;; (message "Looking for plot at %s... found!" pngname)
       (dired-rename-file pngname pngname2 t)
 
-      (save-excursion
-	(save-restriction
-	  (goto-char comint-last-input-end)
-	  (insert-image (create-image pngname2 'png))))
+      (goto-char (point-max))
+      (let ((im (create-image pngname2 'png nil)))
+	(setq sage-view-inline-plot-overlay
+	      (make-overlay (- (point) 1) (- (point) 0) nil nil nil))
+	(overlay-put sage-view-inline-plot-overlay 'display im)
+	(overlay-put sage-view-inline-plot-overlay 'before-string "\n\n") ;; help alignment as much as possible
+	(overlay-put sage-view-inline-plot-overlay 'after-string "\n\n")  ;; but emacs doesn't handle this right IMHO
       ;; (dired-delete-file pngname2 'always) ;; causes problems with emacs image loading
-      ))
+      ))))
 
-  (if (string-match (regexp-quote sage-view-final-string) string) ;; we found the end of some html; go back and texify that range
-      (save-excursion
-	(save-restriction
-	  (narrow-to-region comint-last-input-end (process-mark (get-buffer-process (current-buffer))))
-	  (setq sage-view-text (buffer-substring-no-properties (point-min) (point-max)))
+(defun sage-view-output-filter (string)
+  "Generate and place overlay images for inline output and inline plots.
 
-	  (goto-char (point-min))
+Function to be inserted in `comint-output-filter-functions'."
 
-	  (while (search-forward sage-view-start-string (point-max) t)
-	    (setq sage-view-overlay-start (- (point) (length sage-view-start-string)))
-	    (search-forward sage-view-final-string) ;; find the terminal
-	    (search-backward sage-view-final-string) ;; position ourselves at the front of the terminal
-	    (setq sage-view-overlay-final (+ (point) (length sage-view-final-string)))
-	    (setq sage-view-insert
-		  (buffer-substring-no-properties
-		   (+ sage-view-overlay-start (length sage-view-start-string))
-		   (- sage-view-overlay-final (length sage-view-final-string))))
-	    ;; (message "sage-view-insert _%s_" sage-view-insert)
+  (save-excursion
+    (save-restriction
+      (narrow-to-region comint-last-input-end (process-mark (get-buffer-process (current-buffer))))
 
-	    (setq sage-view-current-overlay (make-overlay sage-view-overlay-start sage-view-overlay-final nil nil nil))
-	    (overlay-put sage-view-current-overlay 'help-echo "Overlay made by sage-view")
+      (when sage-view-inline-plots-enabled ;; do we even want plot images inline?
+	(sage-view-output-filter-process-inline-plots string))
 
-	    (let* ((base (expand-file-name (make-temp-name "output_")
-					   sage-view-temp-dir))
-	       (file (concat base ".tex")))
-	      (with-temp-file file
-		  (insert sage-view-head)
-		  (insert sage-view-insert)
-		  (insert sage-view-tail))
-	      (sage-view-latex->pdf file))))
-	  )))
+      (when sage-view-inline-output-enabled ;; do we even want output latexed inline?
+	(sage-view-output-filter-process-inline-output string)))))
 
 (defun sage-view-gs-open ()
   "Start a Ghostscript conversion pass.")
 
-(defun sage-view-pretty-print-enable ()
-  (setq sage-view-temp-dir (make-temp-file (expand-file-name "tmp" "~/.sage/temp/") t))
-  (if (not (file-exists-p sage-view-temp-dir))
-      (make-directory sage-view-temp-dir))
-  (python-send-receive-multiline "sage.plot.plot.DOCTEST_MODE = True;")
-  (python-send-receive-multiline (format "sage.plot.plot.DOCTEST_MODE_FILE = '%s';" (format "%s/sage-view.png" sage-view-temp-dir)))
+(defun sage-view-temp-dir ()
+  (unless (and sage-view-temp-dir-name
+	       (file-exists-p sage-view-temp-dir-name)
+	       (file-readable-p sage-view-temp-dir-name))
+    (setq sage-view-temp-dir-name (make-temp-file (expand-file-name "tmp" "~/.sage/temp/") t))
+    (unless (file-exists-p sage-view-temp-dir-name)
+      (make-directory sage-view-temp-dir-name)))
+  sage-view-temp-dir-name)
+
+(defun sage-view-enable-inline-output ()
+  (interactive)
+  (setq sage-view-inline-output-enabled t)
   (python-send-receive-multiline "pretty_print_default(True);"))
 
-(defun sage-view-pretty-print-disable ()
-  (python-send-receive-multiline "pretty_print_default(False);")
+(defun sage-view-disable-inline-output ()
+  (interactive)
+  (setq sage-view-inline-output-enabled nil)
+  (python-send-receive-multiline "pretty_print_default(False);"))
+
+(defun sage-view-enable-inline-plots ()
+  (interactive)
+  (setq sage-view-inline-plots-enabled t)
+  (python-send-receive-multiline "sage.plot.plot.DOCTEST_MODE = True;")
+  (python-send-receive-multiline (format "sage.plot.plot.DOCTEST_MODE_FILE = '%s';" (format "%s/sage-view.png" (sage-view-temp-dir)))))
+
+(defun sage-view-disable-inline-plots ()
+  (interactive)
+  (setq sage-view-inline-plots-enabled nil)
   (python-send-receive-multiline "sage.plot.plot.DOCTEST_MODE = False;")
-  (python-send-receive-multiline (format "sage.plot.plot.DOCTEST_MODE_FILE = None;"))
-  (setq sage-view-temp-dir nil))
+  (python-send-receive-multiline (format "sage.plot.plot.DOCTEST_MODE_FILE = None;")))
 
 (define-minor-mode sage-view
   "With this mode, output in SAGE interactive buffers is
@@ -282,15 +327,18 @@ Function to be inserted in `comint-output-filter-functions'."
   :lighter " Sage-View"
   (if sage-view
       (progn
-	(sage-view-pretty-print-enable)
+	;; (sage-view-pretty-print-enable)
+	(sage-view-enable-inline-output)
+	(sage-view-enable-inline-plots)
 	(make-local-variable 'comint-preoutput-filter-functions)
 	(make-local-variable 'comint-output-filter-function)
 	(add-hook 'comint-output-filter-functions 'sage-view-output-filter))
     (progn
+      (sage-view-disable-inline-output)
+      (sage-view-disable-inline-plots)
       (remove-hook 'comint-output-filter-functions 'sage-view-output-filter)
       (remove-hook 'comint-preoutput-filter-functions 'sage-view-preoutput-filter)
-      (if (and sage-view-temp-dir (file-exists-p sage-view-temp-dir))
-	  (dired-delete-file sage-view-temp-dir 'always))
+      (dired-delete-file (sage-view-temp-dir) 'always)
       (sage-view-pretty-print-disable)
       )))
 

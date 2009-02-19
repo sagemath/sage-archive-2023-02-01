@@ -2389,7 +2389,7 @@ class Permutations_set(CombinatorialClass):
 
         yield [lset[x] for x in set_list]
 
-        if n == 1:
+        if n <= 1:
             return
 
         while True:
@@ -2596,7 +2596,7 @@ class StandardPermutations_all(CombinatorialClass):
         """
         TESTS:
             sage: [] in Permutations()
-            False
+            True
             sage: [1] in Permutations()
             True
             sage: [2] in Permutations()
@@ -2615,8 +2615,6 @@ class StandardPermutations_all(CombinatorialClass):
         if isinstance(x, Permutation_class):
             return True
         elif isinstance(x, __builtin__.list):
-            if len(x) == 0:
-                return False
             s = x[:]
             s.sort()
             if s != range(1, len(x)+1):
@@ -2651,6 +2649,8 @@ class StandardPermutations_n(CombinatorialClass):
     def __contains__(self,x):
         """
         TESTS:
+            sage: [] in Permutations(0)
+            True
             sage: [1,2] in Permutations(2)
             True
             sage: [1,2] in Permutations(3)
@@ -2672,6 +2672,8 @@ class StandardPermutations_n(CombinatorialClass):
     def iterator(self):
         """
         EXAMPLES:
+            sage: [p for p in Permutations(0)] # indirect doctest
+            [[]]
             sage: [p for p in Permutations(3)] # indirect doctest
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
@@ -2681,6 +2683,8 @@ class StandardPermutations_n(CombinatorialClass):
     def count(self):
         """
         EXAMPLES:
+            sage: Permutations(0).count()
+            1
             sage: Permutations(3).count()
             6
             sage: Permutations(4).count()
@@ -2696,6 +2700,8 @@ class StandardPermutations_n(CombinatorialClass):
         EXAMPLES:
             sage: Permutations(4).identity()
             [1, 2, 3, 4]
+            sage: Permutations(0).identity()
+            []
         """
 
         return Permutation_class(range(1,self.n+1))
@@ -2706,6 +2712,10 @@ class StandardPermutations_n(CombinatorialClass):
             sage: SP3 = Permutations(3)
             sage: l = map(SP3.unrank, range(6))
             sage: l == SP3.list()
+            True
+            sage: SP0 = Permutations(0)
+            sage: l = map(SP0.unrank, range(1))
+            sage: l == SP0.list()
             True
         """
         if r >= factorial(self.n) or r < 0:
@@ -2719,6 +2729,9 @@ class StandardPermutations_n(CombinatorialClass):
             sage: SP3 = Permutations(3)
             sage: map(SP3.rank, SP3)
             [0, 1, 2, 3, 4, 5]
+            sage: SP0 = Permutations(0)
+            sage: map(SP0.rank, SP0)
+            [0]
         """
         if p in self:
             return Permutation(p).rank()
@@ -2847,6 +2860,8 @@ def from_lehmer_code(lehmer):
     """
 
     n = len(lehmer)
+    if n==0:
+        return Permutation([])
     perm = [None] * n
 
     #Convert the factoradic to a permutation

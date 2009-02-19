@@ -17,7 +17,7 @@ at IBM. It contains symbolic manipulation algorithms, as well as
 implementations of special functions, including elliptic functions
 and generalized hypergeometric functions. Moreover, Axiom has
 implementations of many functions relating to the invariant theory
-of the symmetric group `S_n`. For many links to Axiom
+of the symmetric group `S_n.` For many links to Axiom
 documentation see http://wiki.axiom-developer.org.
 
 AUTHORS:
@@ -49,9 +49,9 @@ EXAMPLES: We evaluate a very simple expression in axiom.
 
 ::
 
-    sage: axiom('3 * 5')                     # optional
+    sage: axiom('3 * 5')                     #optional - axiom
     15
-    sage: a = axiom(3) * axiom(5); a         # optional
+    sage: a = axiom(3) * axiom(5); a         #optional - axiom
     15
 
 The type of a is AxiomElement, i.e., an element of the axiom
@@ -59,15 +59,15 @@ interpreter.
 
 ::
 
-    sage: type(a)                            # optional
+    sage: type(a)                            #optional - axiom
     <class 'sage.interfaces.axiom.AxiomElement'>
-    sage: parent(a)                          # optional
+    sage: parent(a)                          #optional - axiom
     Axiom
 
 The underlying Axiom type of a is also available, via the type
 method::
 
-    sage: a.type()                           # optional
+    sage: a.type()                           #optional - axiom
     PositiveInteger
 
 We factor `x^5 - y^5` in Axiom in several different ways.
@@ -75,23 +75,23 @@ The first way yields a Axiom object.
 
 ::
 
-    sage: F = axiom.factor('x^5 - y^5'); F      # optional
+    sage: F = axiom.factor('x^5 - y^5'); F      #optional - axiom
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
-    sage: type(F)                               # optional
+    sage: type(F)                               #optional - axiom
     <class 'sage.interfaces.axiom.AxiomElement'>
-    sage: F.type()                              # optional
+    sage: F.type()                              #optional - axiom
     Factored Polynomial Integer
 
 Note that Axiom objects are normally displayed using "ASCII art".
 
 ::
 
-    sage: a = axiom(2/3); a          # optional
+    sage: a = axiom(2/3); a          #optional - axiom
       2
       -
       3
-    sage: a = axiom('x^2 + 3/7'); a      # optional
+    sage: a = axiom('x^2 + 3/7'); a      #optional - axiom
        2   3
       x  + -
            7
@@ -103,10 +103,9 @@ Axiom would print out.
 
 ::
 
-    sage: print axiom.eval('factor(x^5 - y^5)')   # optional
+    sage: print axiom.eval('factor(x^5 - y^5)')   #optional - axiom
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
-
     Type: Factored Polynomial Integer
 
 We can create the polynomial `f` as a Axiom polynomial,
@@ -116,11 +115,11 @@ works.
 
 ::
 
-    sage: f = axiom('x^5 - y^5')                  # optional
-    sage: f^2                                     # optional
+    sage: f = axiom('x^5 - y^5')                  #optional - axiom
+    sage: f^2                                     #optional - axiom
        10     5 5    10
       y   - 2x y  + x
-    sage: f.factor()                              # optional
+    sage: f.factor()                              #optional - axiom
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
 
@@ -137,11 +136,11 @@ following sum but with a much bigger range, and hit control-C.
 
 ::
 
-    sage: axiom('1/100 + 1/101')                  # optional
+    sage: axiom('1/100 + 1/101')                  #optional - axiom
        201
       -----
       10100
-    sage: a = axiom('(1 + sqrt(2))^5'); a         # optional
+    sage: a = axiom('(1 + sqrt(2))^5'); a         #optional - axiom
          +-+
       29\|2  + 41
 
@@ -150,9 +149,9 @@ arguments.
 
 ::
 
-    sage: a = axiom(x+2); a  #optional
+    sage: a = axiom(x+2); a  #optional - axiom
     x + 2
-    sage: a.subst(x=3)       #optional
+    sage: a.subst(x=3)       #optional - axiom
     5
 
 We verify that Axiom floating point numbers can be converted to
@@ -160,7 +159,7 @@ Python floats.
 
 ::
 
-    sage: float(axiom(2))     #optional
+    sage: float(axiom(2))     #optional - axiom
     2.0
 """
 
@@ -178,16 +177,9 @@ Python floats.
 import os, re
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from pexpect import EOF
-
 from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
-
+from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
-
-cnt = 0
-seq = 0
-
-COMMANDS_CACHE = '%s/axiom_commandlist_cache.sobj'%DOT_SAGE
 
 # The Axiom commands ")what thing det" ")show Matrix" and ")display
 # op det" commands, gives a list of all identifiers that begin in
@@ -195,11 +187,13 @@ COMMANDS_CACHE = '%s/axiom_commandlist_cache.sobj'%DOT_SAGE
 # axiom has a lot a lot of ways for getting documentation from the
 # system -- this could also be useful.
 
-class Axiom(Expect):
+class PanAxiom(Expect):
     """
-    Interface to the Axiom interpreter.
+    Interface to a PanAxiom interpreter.
     """
-    def __init__(self, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, name='axiom', command='axiom -nox -noclef',
+                 script_subdirectory=None, logfile=None,
+                 server=None, server_tmpdir=None):
         """
         Create an instance of the Axiom interpreter.
 
@@ -210,10 +204,11 @@ class Axiom(Expect):
         """
         eval_using_file_cutoff = 200
         self.__eval_using_file_cutoff = eval_using_file_cutoff
+        self._COMMANDS_CACHE = '%s/%s_commandlist_cache.sobj'%(DOT_SAGE, name)
         Expect.__init__(self,
-                        name = 'axiom',
+                        name = name,
                         prompt = '\([0-9]+\) -> ',
-                        command = "axiom -nox -noclef",
+                        command = command,
                         maxread = 10,
                         script_subdirectory = script_subdirectory,
                         server=server,
@@ -223,43 +218,7 @@ class Axiom(Expect):
                         #init_code = [')lisp (si::readline-off)'],
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
-
-    def _function_class(self):
-        """
-        Return the AxiomExpectFunction class.
-
-        EXAMPLES::
-
-            sage: axiom._function_class()
-            <class 'sage.interfaces.axiom.AxiomExpectFunction'>
-            sage: type(axiom.gcd)
-            <class 'sage.interfaces.axiom.AxiomExpectFunction'>
-        """
-        return AxiomExpectFunction
-
-    def _object_class(self):
-        """
-        EXAMPLES::
-
-            sage: axiom._object_class()
-            <class 'sage.interfaces.axiom.AxiomElement'>
-            sage: type(axiom(2)) #optional -- requires Axiom
-            <class 'sage.interfaces.axiom.AxiomElement'>
-        """
-        return AxiomElement
-
-    def _function_element_class(self):
-        """
-        Returns the Axiom function element class.
-
-        EXAMPLES::
-
-            sage: axiom._function_element_class()
-            <class 'sage.interfaces.axiom.AxiomFunctionElement'>
-            sage: type(axiom(2).gcd) #optional -- requires Axiom
-            <class 'sage.interfaces.axiom.AxiomFunctionElement'>
-        """
-        return AxiomFunctionElement
+        self._prompt_wait = self._prompt
 
     def _start(self):
         """
@@ -270,10 +229,10 @@ class Axiom(Expect):
             sage: a = Axiom()
             sage: a.is_running()
             False
-            sage: a._start()     #optional -- requires axiom
-            sage: a.is_running() #optional
+            sage: a._start()     #optional - axiom
+            sage: a.is_running() #optional - axiom
             True
-            sage: a.quit()       #optional
+            sage: a.quit()       #optional - axiom
         """
         Expect._start(self)
         out = self._eval_line(')set functions compile on', reformat=False)
@@ -309,17 +268,6 @@ class Axiom(Expect):
         # The space before the \n is also important.
         return ')read %s \n'%filename
 
-    def __reduce__(self):
-        """
-        EXAMPLES::
-
-            sage: axiom.__reduce__()
-            (<function reduce_load_Axiom at 0x...>, ())
-            sage: f, args = _
-            sage: f(*args)
-            Axiom
-        """
-        return reduce_load_Axiom, tuple([])
 
     def _quit_string(self):
         """
@@ -329,27 +277,144 @@ class Axiom(Expect):
 
             sage: axiom._quit_string()
             ')lisp (quit)'
-
-        ::
-
             sage: a = Axiom()
             sage: a.is_running()
             False
-            sage: a._start()     #optional -- requires axiom
-            sage: a.is_running() #optional
+            sage: a._start()     #optional - axiom
+            sage: a.is_running() #optional - axiom
             True
-            sage: a.quit()       #optional
-            sage: a.is_running() #optional
+            sage: a.quit()       #optional - axiom
+            sage: a.is_running() #optional - axiom
             False
         """
         return ')lisp (quit)'
+
+    def _commands(self):
+        """
+        Returns a list of commands available. This is done by parsing the
+        result of the first section of the output of ')what things'.
+
+        EXAMPLES::
+
+            sage: cmds = axiom._commands() #optional - axiom
+            sage: len(cmds) > 100  #optional - axiom
+            True
+            sage: '<' in cmds      #optional - axiom
+            True
+            sage: 'factor' in cmds #optional - axiom
+            True
+        """
+        s = self.eval(")what things")
+        start = '\r\n\r\n#'
+        i = s.find(start)
+        end = "To get more information about"
+        j = s.find(end)
+        s = s[i+len(start):j].split()
+        return s
+
+
+    def trait_names(self, verbose=True, use_disk_cache=True):
+        """
+        Returns a list of all the commands defined in Axiom and optionally
+        (per default) store them to disk.
+
+        EXAMPLES::
+
+            sage: c = axiom.trait_names(use_disk_cache=False, verbose=False) #optional - axiom
+            sage: len(c) > 100  #optional - axiom
+            True
+            sage: 'factor' in c  #optional - axiom
+            True
+            sage: '**' in c     #optional - axiom
+            False
+            sage: 'upperCase?' in c  #optional - axiom
+            False
+            sage: 'upperCase_q' in c #optional - axiom
+            True
+            sage: 'upperCase_e' in c #optional - axiom
+            True
+        """
+        try:
+            return self.__trait_names
+        except AttributeError:
+            import sage.misc.persist
+            if use_disk_cache:
+                try:
+                    self.__trait_names = sage.misc.persist.load(self._COMMANDS_CACHE)
+                    return self.__trait_names
+                except IOError:
+                    pass
+            if verbose:
+                print "\nBuilding %s command completion list (this takes"%(self)
+                print "a few seconds only the first time you do it)."
+                print "To force rebuild later, delete %s."%self._COMMANDS_CACHE
+            v = self._commands()
+
+            #Process we now need process the commands to strip out things which
+            #are not valid Python identifiers.
+            import re
+            valid = re.compile('[^a-zA-Z0-9_]+')
+            names = [x for x in v if valid.search(x) is None]
+
+            #Change everything that ends with ? to _q and
+            #everything that ends with ! to _e
+            names += [x[:-1]+"_q" for x in v if x.endswith("?")]
+            names += [x[:-1]+"_e" for x in v if x.endswith("!")]
+
+            self.__trait_names = names
+            if len(v) > 200:
+                # Axiom is actually installed.
+                sage.misc.persist.save(v, self._COMMANDS_CACHE)
+            return names
+
+    def set(self, var, value):
+        """
+        Set the variable var to the given value.
+
+        EXAMPLES::
+
+            sage: axiom.set('xx', '2')    #optional - axiom
+            sage: axiom.get('xx')         #optional - axiom
+            '2'
+
+            sage: fricas.set('xx', '2')    #optional - fricas
+            sage: fricas.get('xx')         #optional - fricas
+            '2'
+
+        """
+        cmd = '%s := %s'%(var, value)
+        out = self._eval_line(cmd, reformat=False)
+
+        if out.find("error") != -1:
+            raise TypeError, "Error executing code in Axiom\nCODE:\n\t%s\nAxiom ERROR:\n\t%s"%(cmd, out)
+
+
+    def get(self, var):
+        r"""
+        Get the string value of the Axiom variable var.
+
+        EXAMPLES::
+
+            sage: axiom.set('xx', '2')    #optional - axiom
+            sage: axiom.get('xx')         #optional - axiom
+            '2'
+            sage: a = axiom('(1 + sqrt(2))^5') #optional - axiom
+            sage: axiom.get(a.name())          #optional - axiom
+            '     +-+\r\r\n  29\\|2  + 41'
+        """
+        s = self._eval_line(str(var))
+        i = s.rfind('Type:')
+        s = s[:i].rstrip().lstrip("\n")
+        if '\n' not in s:
+            s = s.strip()
+        return s
 
     def _eval_line(self, line, reformat=True, allow_use_file=False,
                    wait_for_prompt=True):
         """
         EXAMPLES::
 
-            sage: print axiom._eval_line('2+2')  #optional -- requires Axiom
+            sage: print axiom._eval_line('2+2')  #optional - axiom
               4
                                                        Type: PositiveInteger
         """
@@ -360,8 +425,6 @@ class Axiom(Expect):
             return ''
         if len(line) > 3000:
             raise NotImplementedError, "evaluation of long input lines (>3000 characters) in Axiom not yet implemented."
-        global seq
-        seq += 1
         if self._expect is None:
             self._start()
         if allow_use_file and self.__eval_using_file_cutoff and \
@@ -370,6 +433,7 @@ class Axiom(Expect):
         try:
             E = self._expect
             # debug
+            self._synchronize(cmd='1+%s\n')
             verbose("in = '%s'"%line,level=3)
             E.sendline(line)
             self._expect.expect(self._prompt)
@@ -409,131 +473,67 @@ class Axiom(Expect):
         out = "\n".join(line[i+1:] for line in outs[1:])
         return out
 
-    def _commands(self):
+
+class Axiom(PanAxiom):
+    def __reduce__(self):
         """
-        Returns a list of commands available. This is done by parsing the
-        result of the first section of the output of ')what things'.
+        EXAMPLES::
+
+            sage: axiom.__reduce__()
+            (<function reduce_load_Axiom at 0x...>, ())
+            sage: f, args = _
+            sage: f(*args)
+            Axiom
+        """
+        return reduce_load_Axiom, tuple([])
+
+    def _function_class(self):
+        """
+        Return the AxiomExpectFunction class.
 
         EXAMPLES::
 
-            sage: cmds = axiom._commands() #optional -- requires Axiom
-            sage: len(cmds) > 100  #optional
-            True
-            sage: '<' in cmds      #optional
-            True
-            sage: 'factor' in cmds #optional
-            True
+            sage: axiom._function_class()
+            <class 'sage.interfaces.axiom.AxiomExpectFunction'>
+            sage: type(axiom.gcd)
+            <class 'sage.interfaces.axiom.AxiomExpectFunction'>
         """
-        s = self.eval(")what things")
-        start = '\r\n\r\n#'
-        i = s.find(start)
-        end = "To get more information about"
-        j = s.find(end)
-        s = s[i+len(start):j].split()
-        return s
+        return AxiomExpectFunction
 
-
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _object_class(self):
         """
-        Returns a list of all the commands defined in Axiom and optionally
-        (per default) store them to disk.
+        EXAMPLES::
+
+            sage: axiom._object_class()
+            <class 'sage.interfaces.axiom.AxiomElement'>
+            sage: type(axiom(2)) #optional - axiom
+            <class 'sage.interfaces.axiom.AxiomElement'>
+        """
+        return AxiomElement
+
+    def _function_element_class(self):
+        """
+        Returns the Axiom function element class.
 
         EXAMPLES::
 
-            sage: c = axiom.trait_names(use_disk_cache=False, verbose=False) #optional
-            sage: len(c) > 100  #optional
-            True
-            sage: 'factor' in c  #optional
-            True
-            sage: '**' in c     #optional
-            False
-            sage: 'upperCase?' in c  #optional
-            False
-            sage: 'upperCase_q' in c #optional
-            True
-            sage: 'upperCase_e' in c #optional
-            True
+            sage: axiom._function_element_class()
+            <class 'sage.interfaces.axiom.AxiomFunctionElement'>
+            sage: type(axiom(2).gcd) #optional - axiom
+            <class 'sage.interfaces.axiom.AxiomFunctionElement'>
         """
-        try:
-            return self.__trait_names
-        except AttributeError:
-            import sage.misc.persist
-            if use_disk_cache:
-                try:
-                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.__trait_names
-                except IOError:
-                    pass
-            if verbose:
-                print "\nBuilding Axiom command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
-            v = self._commands()
-
-            #Process we now need process the commands to strip out things which
-            #are not valid Python identifiers.
-            import re
-            valid = re.compile('[^a-zA-Z0-9_]+')
-            names = [x for x in v if valid.search(x) is None]
-
-            #Change everything that ends with ? to _q and
-            #everything that ends with ! to _e
-            names += [x[:-1]+"_q" for x in v if x.endswith("?")]
-            names += [x[:-1]+"_e" for x in v if x.endswith("!")]
-
-            self.__trait_names = names
-            if len(v) > 200:
-                # Axiom is actually installed.
-                sage.misc.persist.save(v, COMMANDS_CACHE)
-            return names
-
-    def set(self, var, value):
-        """
-        Set the variable var to the given value.
-
-        EXAMPLES::
-
-            sage: axiom.set('xx', '2')    #optional -- requires Axiom
-            sage: axiom.get('xx')         #optional
-            '2'
-        """
-        cmd = '%s := %s'%(var, value)
-        out = self._eval_line(cmd, reformat=False)
-
-        if out.find("error") != -1:
-            raise TypeError, "Error executing code in Axiom\nCODE:\n\t%s\nAxiom ERROR:\n\t%s"%(cmd, out)
-
-
-    def get(self, var):
-        r"""
-        Get the string value of the Axiom variable var.
-
-        EXAMPLES::
-
-            sage: axiom.set('xx', '2')    #optional -- requires Axiom
-            sage: axiom.get('xx')         #optional
-            '2'
-            sage: a = axiom('(1 + sqrt(2))^5') #optional
-            sage: axiom.get(a.name())          #optional
-            '     +-+\r\n  29\\|2  + 41'
-        """
-        s = self._eval_line(str(var))
-        i = s.rfind('Type:')
-        s = s[:i].rstrip().lstrip("\n")
-        if '\n' not in s:
-            s = s.strip()
-        return s
+        return AxiomFunctionElement
 
     def console(self):
         """
-        Spawn a new Axiom (FriCAS) command-line session.
+        Spawn a new Axiom command-line session.
 
         EXAMPLES::
 
             sage: axiom.console() #not tested
-                             FriCAS (AXIOM fork) Computer Algebra System
-                                     Version: FriCAS 2007-07-19
-                          Timestamp: Saturday October 20, 2007 at 20:08:37
+                                    AXIOM Computer Algebra System
+                                    Version: Axiom (January 2009)
+                           Timestamp: Sunday January 25, 2009 at 07:08:54
             -----------------------------------------------------------------------------
                Issue )copyright to view copyright notices.
                Issue )summary for a summary of useful system commands.
@@ -542,14 +542,13 @@ class Axiom(Expect):
         """
         axiom_console()
 
-
-class AxiomElement(ExpectElement):
+class PanAxiomElement(ExpectElement):
     def __call__(self, x):
         """
         EXAMPLES::
 
-            sage: f = axiom(x+2) #optional -- requires Axiom
-            sage: f(2)           #optional
+            sage: f = axiom(x+2) #optional - axiom
+            sage: f(2)           #optional - axiom
             4
         """
         self._check_valid()
@@ -560,38 +559,34 @@ class AxiomElement(ExpectElement):
         """
         EXAMPLES::
 
-            sage: a = axiom(1); b = axiom(2)                  # optional
-            sage: a == b                                      # optional
-            False
-            sage: a < b                                       # optional
+            sage: two = axiom(2)  #optional - axiom
+            sage: two == 2        #optional - axiom
             True
-            sage: a > b                                       # optional
+            sage: two == 3        #optional - axiom
             False
-            sage: b < a                                       # optional
+            sage: two < 3         #optional - axiom
+            True
+            sage: two > 1         #optional - axiom
+            True
+
+            sage: a = axiom(1); b = axiom(2)  #optional - axiom
+            sage: a == b                      #optional - axiom
             False
-            sage: b > a                                       # optional
+            sage: a < b                       #optional - axiom
+            True
+            sage: a > b                       #optional - axiom
+            False
+            sage: b < a                       #optional - axiom
+            False
+            sage: b > a                       #optional - axiom
             True
 
         We can also compare more complicated object such as functions::
 
-            sage: f = axiom('sin(x)'); g = axiom('cos(x)')    # optional
-            sage: f == g                                      # optional
+            sage: f = axiom('sin(x)'); g = axiom('cos(x)')    #optional - axiom
+            sage: f == g                                      #optional - axiom
             False
-        """
 
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: two = axiom(2)  #optional -- requires Axiom
-            sage: two == 2        #optional
-            True
-            sage: two == 3        #optional
-            False
-            sage: two < 3         #optional
-            True
-            sage: two > 1         #optional
-            True
         """
         P = self.parent()
         if 'true' in P.eval("(%s = %s) :: Boolean"%(self.name(),other.name())):
@@ -614,7 +609,7 @@ class AxiomElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: axiom(x+2).type()  #optional -- requires Axiom
+            sage: axiom(x+2).type()  #optional - axiom
             Polynomial Integer
         """
         P = self._check_valid()
@@ -628,8 +623,8 @@ class AxiomElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: v = axiom('[x^i for i in 0..5]')            # optional
-            sage: len(v)                                      # optional
+            sage: v = axiom('[x^i for i in 0..5]')            # optional - axiom
+            sage: len(v)                                      # optional - axiom
             6
         """
         P = self._check_valid()
@@ -647,15 +642,15 @@ class AxiomElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: v = axiom('[i*x^i for i in 0..5]'); v          # optional
+            sage: v = axiom('[i*x^i for i in 0..5]'); v          # optional - axiom
                      2   3   4   5
               [0,x,2x ,3x ,4x ,5x ]
-            sage: v[4]                                           # optional
+            sage: v[4]                                           # optional - axiom
                 3
               3x
-            sage: v[1]                                           # optional
+            sage: v[1]                                           # optional - axiom
             0
-            sage: v[10]                                          # optional
+            sage: v[10]                                          # optional - axiom
             Traceback (most recent call last):
             ...
             IndexError: index out of range
@@ -675,13 +670,22 @@ class AxiomElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: two = axiom(2)  #optional -- requires Axiom
-            sage: two.comma(3)    #optional
+            sage: two = axiom(2)  #optional - axiom
+            sage: two.comma(3)    #optional - axiom
             [2,3]
-            sage: two.comma(3,4)  #optional
+            sage: two.comma(3,4)  #optional - axiom
             [2,3,4]
-            sage: _.type()        #optional
+            sage: _.type()        #optional - axiom
             Tuple PositiveInteger
+
+            sage: two = fricas(2)  #optional - fricas
+            sage: two.comma(3)     #optional - fricas
+            [2,3]
+            sage: two.comma(3,4)   #optional - fricas
+            [2,3,4]
+            sage: _.type()         #optional - fricas
+            Tuple PositiveInteger
+
         """
         P = self._check_valid()
         args = list(args)
@@ -692,16 +696,20 @@ class AxiomElement(ExpectElement):
         return P(cmd)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
-            sage: a = axiom(1/2) #optional -- requires Axiom
-            sage: latex(a)       #optional
+            sage: a = axiom(1/2) #optional - axiom
+            sage: latex(a)       #optional - axiom
+            \frac{1}{2}
+
+            sage: a = fricas(1/2) #optional - fricas
+            sage: latex(a)        #optional - fricas
             1 \over 2
         """
         self._check_valid()
         P = self.parent()
-        s = axiom._eval_line('outputAsTex(%s)'%self.name(), reformat=False)
+        s = P._eval_line('outputAsTex(%s)'%self.name(), reformat=False)
         if not '$$' in s:
             raise RuntimeError, "Error texing axiom object."
         i = s.find('$$')
@@ -715,18 +723,211 @@ class AxiomElement(ExpectElement):
             re.sub(r'\\leqno\(.*?\)','',s)) # no eq number!
         return s
 
+    def as_type(self, type):
+        """
+        Returns self as type.
 
-class AxiomFunctionElement(FunctionElement):
+        EXAMPLES::
+
+            sage: a = axiom(1.2); a            #optional - axiom
+            1.2
+            sage: a.as_type(axiom.DoubleFloat) #optional - axiom
+            1.2
+            sage: _.type()                     #optional - axiom
+            DoubleFloat
+
+        ::
+
+            sage: a = fricas(1.2); a            #optional - fricas
+            1.2
+            sage: a.as_type(fricas.DoubleFloat) #optional - fricas
+            1.2
+            sage: _.type()                      #optional - fricas
+            DoubleFloat
+
+        """
+        P = self._check_valid()
+        type = P(type)
+        return P.new("%s :: %s"%(self.name(), type.name()))
+
+    def unparsed_input_form(self):
+        """
+        Get the linear string representation of this object, if possible
+        (often it isn't).
+
+        EXAMPLES::
+
+            sage: a = axiom(x^2+1); a     #optional - axiom
+               2
+              x  + 1
+            sage: a.unparsed_input_form() #optional - axiom
+            'x*x+1'
+
+            sage: a = fricas(x^2+1)       #optional - fricas
+            sage: a.unparsed_input_form() #optional - fricas
+            'x^2+1'
+        """
+        P = self._check_valid()
+        s = P.eval('unparse(%s::InputForm)'%self._name)
+        if 'translation error' in s or 'Cannot convert' in s:
+            raise NotImplementedError
+        s = multiple_replace({'\r\n':'', # fix stupid Fortran-ish
+                              'DSIN(':'sin(',
+                              'DCOS(':'cos(',
+                              'DTAN(':'tan(',
+                              'DSINH(':'sinh('}, s)
+        r = re.search(r'"(.*)"',s)
+        if r:
+            return r.groups(0)[0]
+        else:
+            return s
+
+
+    def _sage_(self):
+        """
+        Convert self to a Sage object.
+
+        EXAMPLES::
+
+            sage: a = axiom(1/2); a #optional - axiom
+              1
+              -
+              2
+            sage: a.sage()          #optional - axiom
+            1/2
+            sage: _.parent()        #optional - axiom
+            Rational Field
+
+            sage: gp(axiom(1/2))    #optional - axiom
+            1/2
+
+            sage: fricas(1/2).sage() #optional - fricas
+            1/2
+
+        DoubleFloat's in Axiom are converted to be in RDF in Sage.
+
+        ::
+
+            sage: axiom(2.0).as_type('DoubleFloat').sage()  #optional - axiom
+            2.0
+            sage: _.parent() #optional - axiom
+            Real Double Field
+
+
+            sage: axiom(2.1234)._sage_() #optional - axiom
+            2.12340000000000
+            sage: _.parent()             #optional - axiom
+            Real Field with 53 bits of precision
+            sage: a = RealField(100)(pi)
+            sage: axiom(a)._sage_()      #optional - axiom
+            3.1415926535897932384626433833
+            sage: _.parent()             #optional - axiom
+            Real Field with 100 bits of precision
+            sage: axiom(a)._sage_() == a #optional - axiom
+            True
+            sage: axiom(2.0)._sage_() #optional - axiom
+            2.00000000000000
+            sage: _.parent() #optional  - axiom
+            Real Field with 53 bits of precision
+
+
+        We can also convert Axiom's polynomials to Sage polynomials.
+            sage: a = axiom(x^2 + 1)   #optional - axiom
+            sage: a.type()             #optional - axiom
+            Polynomial Integer
+            sage: a.sage()             #optional - axiom
+            x^2 + 1
+            sage: _.parent()           #optional - axiom
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: axiom('x^2 + y^2 + 1/2').sage()    #optional - axiom
+            y^2 + x^2 + 1/2
+            sage: _.parent()                         #optional - axiom
+            Multivariate Polynomial Ring in y, x over Rational Field
+
+
+        """
+        P = self._check_valid()
+        type = str(self.type())
+
+        if type == "Domain":
+            return self._sage_domain()
+
+        if type == "Float":
+            from sage.rings.all import RealField, ZZ
+            prec = max(self.mantissa().length()._sage_(), 53)
+            R = RealField(prec)
+            x,e,b = self.unparsed_input_form().lstrip('float(').rstrip(')').split(',')
+            return R(ZZ(x)*ZZ(b)**ZZ(e))
+        elif type == "DoubleFloat":
+            from sage.rings.all import RDF
+            return RDF(repr(self))
+        elif type.startswith('Polynomial'):
+            from sage.rings.all import PolynomialRing
+            base_ring = P(type.lstrip('Polynomial '))._sage_domain()
+            vars = str(self.variables())[1:-1]
+            R = PolynomialRing(base_ring, vars)
+            return R(self.unparsed_input_form())
+
+        #If all else fails, try using the unparsed input form
+        try:
+            import sage.misc.sage_eval
+            return sage.misc.sage_eval.sage_eval(self.unparsed_input_form())
+        except:
+            raise NotImplementedError
+
+
+    def _sage_domain(self):
+        """
+        A helper function for converting Axiom domains to the corresponding
+        Sage object.
+
+        EXAMPLES::
+
+            sage: axiom('Integer').sage()  #optional - axiom
+            Integer Ring
+            sage: fricas('Integer').sage() #optional - fricas
+            Integer Ring
+
+            sage: axiom('Fraction Integer').sage()  #optional - axiom
+            Rational Field
+            sage: fricas('Fraction Integer').sage() #optional - fricas
+            Rational Field
+
+            sage: axiom('DoubleFloat').sage()  #optional - axiom
+            Real Double Field
+            sage: fricas('DoubleFloat').sage() #optional - fricas
+            Real Double Field
+
+        """
+        P = self._check_valid()
+        name = str(self)
+        if name == 'Integer':
+            from sage.rings.all import ZZ
+            return ZZ
+        elif name == 'DoubleFloat':
+            from sage.rings.all import RDF
+            return RDF
+        elif name.startswith('Fraction '):
+            return P(name.lstrip('Fraction '))._sage_domain().fraction_field()
+
+        raise NotImplementedError
+
+
+
+class AxiomElement(PanAxiomElement):
+    pass
+
+class PanAxiomFunctionElement(FunctionElement):
     def __init__(self, object, name):
         """
         TESTS::
 
-            sage: a = axiom('"Hello"') #optional -- requires Axiom
-            sage: a.upperCase_q        #optional
+            sage: a = axiom('"Hello"') #optional - axiom
+            sage: a.upperCase_q        #optional - axiom
             upperCase?
-            sage: a.upperCase_e        #optional
+            sage: a.upperCase_e        #optional - axiom
             upperCase!
-            sage: a.upperCase_e()      #optional
+            sage: a.upperCase_e()      #optional - axiom
             "HELLO"
         """
         if name.endswith("_q"):
@@ -735,8 +936,10 @@ class AxiomFunctionElement(FunctionElement):
             name = name[:-2] + "!"
         FunctionElement.__init__(self, object, name)
 
+class AxiomFunctionElement(PanAxiomFunctionElement):
+    pass
 
-class AxiomExpectFunction(ExpectFunction):
+class PanAxiomExpectFunction(ExpectFunction):
     def __init__(self, parent, name):
         """
         TESTS::
@@ -752,6 +955,8 @@ class AxiomExpectFunction(ExpectFunction):
             name = name[:-2] + "!"
         ExpectFunction.__init__(self, parent, name)
 
+class AxiomExpectFunction(PanAxiomExpectFunction):
+    pass
 
 def is_AxiomElement(x):
     """
@@ -760,15 +965,15 @@ def is_AxiomElement(x):
     EXAMPLES::
 
         sage: from sage.interfaces.axiom import is_AxiomElement
-        sage: is_AxiomElement(axiom(2)) #optional -- requires Axiom
+        sage: is_AxiomElement(axiom(2)) #optional - axiom
         True
         sage: is_AxiomElement(2)
         False
     """
     return isinstance(x, AxiomElement)
 
-# An instance
-axiom = Axiom(script_subdirectory=None)
+#Instances
+axiom = Axiom(name='axiom')
 
 def reduce_load_Axiom():
     """
@@ -786,34 +991,20 @@ def reduce_load_Axiom():
 import os
 def axiom_console():
     """
-    Spawn a new Axiom (FriCAS) command-line session.
+    Spawn a new Axiom command-line session.
 
     EXAMPLES::
 
         sage: axiom_console() #not tested
-                         FriCAS (AXIOM fork) Computer Algebra System
-                                 Version: FriCAS 2007-07-19
-                      Timestamp: Saturday October 20, 2007 at 20:08:37
+                                AXIOM Computer Algebra System
+                                Version: Axiom (January 2009)
+                       Timestamp: Sunday January 25, 2009 at 07:08:54
         -----------------------------------------------------------------------------
            Issue )copyright to view copyright notices.
            Issue )summary for a summary of useful system commands.
            Issue )quit to leave AXIOM and return to shell.
         -----------------------------------------------------------------------------
+
     """
     os.system('axiom -nox')
 
-def __doctest_cleanup():
-    """
-    EXAMPLES::
-
-        sage: from sage.interfaces.axiom import __doctest_cleanup
-        sage: a = Axiom()
-        sage: two = a(2)     #optional -- requires Axiom
-        sage: a.is_running() #optional
-        True
-        sage: __doctest_cleanup()
-        sage: a.is_running()
-        False
-    """
-    import sage.interfaces.quit
-    sage.interfaces.quit.expect_quitall()

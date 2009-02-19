@@ -305,6 +305,15 @@ cdef class SageObject:
     def _axiom_init_(self):
         return self._interface_init_()
 
+    def _fricas_(self, G=None):
+        if G is None:
+            import sage.interfaces.fricas
+            G = sage.interfaces.fricas.fricas
+        return self._interface_(G)
+
+    def _fricas_init_(self):
+        return self._interface_init_()
+
     def _maxima_(self, G=None):
         if G is None:
             import sage.interfaces.maxima

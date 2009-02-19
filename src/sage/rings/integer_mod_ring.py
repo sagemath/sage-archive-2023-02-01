@@ -285,6 +285,26 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return "ZZ/%s"%self.order()
 
+    def _axiom_init_(self):
+        """
+        Returns a string representation of self in (Pan)Axiom.
+
+        EXAMPLES::
+
+            sage: Z7 = Integers(7)
+            sage: Z7._axiom_init_()
+            'IntegerMod(7)'
+
+            sage: axiom(Z7)  #optional - axiom
+            IntegerMod 7
+
+            sage: fricas(Z7) #optional - fricas
+            IntegerMod(7)
+        """
+        return 'IntegerMod(%s)'%self.order()
+
+    _fricas_init_ = _axiom_init_
+
     def krull_dimension(self):
         """
         EXAMPLES::

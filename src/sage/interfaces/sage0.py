@@ -246,9 +246,19 @@ class Sage(Expect):
             Sage
             sage: a is sage0(a)
             True
+
+        TESTS::
+
+            sage: sage0(axiom(x^2+1)) #optional - axiom
+            x^2 + 1
+
         """
-        if isinstance(x, SageElement) and x.parent() is self:
-            return x
+        if isinstance(x, ExpectElement):
+            if x.parent() is self:
+                return x
+            else:
+                return self(x.sage())
+
         if isinstance(x, str):
             return SageElement(self, x)
 

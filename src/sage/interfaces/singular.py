@@ -640,12 +640,12 @@ class Singular(Expect):
             sage: I.parent()
             Singular
         """
-        if isinstance(x, SingularElement):
+        if isinstance(x, SingularElement) and x.parent() is self:
             return x
-
-        elif (not isinstance(x, ExpectElement) and hasattr(x, '_singular_')) or  \
-                (isinstance(x, ExpectElement) and x.hasattr('_singular_')):
-            return getattr(x, '_singular_')(self)
+        elif isinstance(x, ExpectElement):
+            return self(x.sage())
+        elif not isinstance(x, ExpectElement) and hasattr(x, '_singular_'):
+            return x._singular_(self)
 
         # some convenient conversions
         if type in ("module","list") and isinstance(x,(list,tuple,Sequence)):

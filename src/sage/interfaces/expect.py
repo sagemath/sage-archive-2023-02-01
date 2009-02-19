@@ -886,7 +886,7 @@ If this all works, you can then make calls like:
         """
         print "%s crashed -- automatically restarting."%self
 
-    def _synchronize(self):
+    def _synchronize(self, cmd='1+%s;\n'):
         """
         Synchronize pexpect interface.
 
@@ -917,7 +917,7 @@ If this all works, you can then make calls like:
             return
         rnd = randrange(2147483647)
         s = str(rnd+1)
-        cmd = "1+%s;\n"%rnd
+        cmd = cmd%rnd
         self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)
@@ -993,11 +993,32 @@ If this all works, you can then make calls like:
         work.  Morever if foo is a function then
                       X.foo(y,z,...)
         calls foo(X, y, z, ...) and returns the corresponding object.
+
+        EXAMPLES::
+
+            sage: gp(2)
+            2
+            sage: gp('2')
+            2
+            sage: a = gp(2); gp(a) is a
+            True
+
         """
         cls = self._object_class()
 
-        if isinstance(x, cls) and x.parent() is self:
-            return x
+        #Handle the case when x is an object
+        #in some interface.
+        if isinstance(x, ExpectElement):
+            if x.parent() is self:
+                return x
+
+            #We convert x into an object in this
+            #interface by first going through Sage.
+            try:
+                return self(x._sage_())
+            except (NotImplementedError, TypeError):
+                pass
+
         if isinstance(x, basestring):
             return cls(self, x, name=name)
         try:
@@ -1489,13 +1510,35 @@ class ExpectElement(RingElement):
             pass
 
     def _sage_(self):
+        """
+        Attempt to return a Sage version of this object.
+        This is a generic routine that just tries to evaluate
+        the repr(self).
+
+        EXAMPLES::
+
+            sage: gp(1/2)._sage_()
+            1/2
+            sage: _.parent()
+            Rational Field
+        """
         #TO DO: this could use file transfers when self.is_remote()
-        return sage.misc.sage_eval.sage_eval(repr(self).replace('\n',''))
+        try:
+            return sage.misc.sage_eval.sage_eval(repr(self).replace('\n',''))
+        except:
+            raise NotImplementedError
 
 
     def sage(self):
         """
         Attempt to return a Sage version of this object.
+
+        EXAMPLES::
+
+            sage: gp(1/2).sage()
+            1/2
+            sage: _.parent()
+            Rational Field
         """
         return self._sage_()
 

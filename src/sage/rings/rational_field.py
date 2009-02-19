@@ -836,6 +836,20 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return "QQ"
 
+    def _axiom_init_(self):
+        """
+        EXAMPLES::
+
+           sage: axiom(QQ)    #optional - axiom
+           Fraction Integer
+           sage: fricas(QQ)   #optional - fricas
+           Fraction(Integer)
+
+        """
+        return 'Fraction Integer'
+
+    _fricas_init_ = _axiom_init_
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when evaluated.

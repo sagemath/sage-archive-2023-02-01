@@ -2154,6 +2154,32 @@ cdef class RealNumber(sage.structure.element.RingElement):
         import sage.rings.complex_field
         return sage.rings.complex_field.ComplexField(self.prec())(self)
 
+    def _axiom_(self, axiom):
+        """
+        Returns self as a floating point number in Axiom.
+
+        EXAMPLES::
+
+            sage: R = RealField(100)
+            sage: R(pi)
+            3.1415926535897932384626433833
+            sage: axiom(R(pi))  # optional - axiom
+            3.1415926535 8979323846 26433833
+            sage: fricas(R(pi)) # optional - fricas
+            3.1415926535 8979323846 26433833
+
+        """
+        prec = self.parent().prec()
+
+        #Set the precision in Axiom
+        old_prec = axiom('precision(%s)$Float'%prec)
+        res = axiom('%s :: Float'%self.exact_rational())
+        axiom.eval('precision(%s)$Float'%old_prec)
+
+        return res
+
+    _fricas_ = _axiom_
+
     def _pari_(self):
         """
         Returns self as a Pari floating-point number.

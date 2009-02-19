@@ -65,7 +65,6 @@
 (defvar sage-view-tail
   "\$\\end{preview}\\end{document}\n")
 
-(defvar sage-view-text "")
 (defvar sage-view-temp-dir nil
   "Name of directory for temporary files")
 
@@ -87,7 +86,7 @@
 (defvar sage-view-scale 1.2)
 (defvar sage-view-current-overlay nil)
 
-(defvar sage-view-start-string "<html><span class=\"math\">" "")
+(defvar sage-view-start-string "<html><span class=\"math\">")
 (defvar sage-view-final-string "</span></html>")
 
 (defun sage-view-latex->dvi (latex)
@@ -210,9 +209,14 @@ Function to be inserted in `comint-output-filter-functions'."
   (let* ((pngname (format "%s/sage-view.png" sage-view-temp-dir))
 	 (base (expand-file-name (make-temp-name "plot_") sage-view-temp-dir))
 	 (pngname2 (concat base ".png")))
-    (when (and pngname
-	       (file-exists-p pngname)
-	       (file-readable-p pngname))
+    ;; (message "Looking for plot at %s..." pngname)
+    (if (not (and pngname
+		  (file-exists-p pngname)
+		  (file-readable-p pngname)))
+	() ;; the not found branch
+	;; (message "Looking for plot at %s... not found." pngname)
+      ;; the found branch
+      ;; (message "Looking for plot at %s... found!" pngname)
       (dired-rename-file pngname pngname2 t)
 
       (save-excursion
@@ -230,11 +234,16 @@ Function to be inserted in `comint-output-filter-functions'."
 
 	  (goto-char (point-min))
 
-	  (when (search-forward sage-view-start-string (point-max) t)
+	  (while (search-forward sage-view-start-string (point-max) t)
 	    (setq sage-view-overlay-start (- (point) (length sage-view-start-string)))
-	    (goto-char (point-max))
-	    (search-backward sage-view-final-string)
+	    (search-forward sage-view-final-string) ;; find the terminal
+	    (search-backward sage-view-final-string) ;; position ourselves at the front of the terminal
 	    (setq sage-view-overlay-final (+ (point) (length sage-view-final-string)))
+	    (setq sage-view-insert
+		  (buffer-substring-no-properties
+		   (+ sage-view-overlay-start (length sage-view-start-string))
+		   (- sage-view-overlay-final (length sage-view-final-string))))
+	    ;; (message "sage-view-insert _%s_" sage-view-insert)
 
 	    (setq sage-view-current-overlay (make-overlay sage-view-overlay-start sage-view-overlay-final nil nil nil))
 	    (overlay-put sage-view-current-overlay 'help-echo "Overlay made by sage-view")
@@ -243,9 +252,9 @@ Function to be inserted in `comint-output-filter-functions'."
 					   sage-view-temp-dir))
 	       (file (concat base ".tex")))
 	      (with-temp-file file
-		(insert sage-view-head)
-		(insert (substring sage-view-text (length sage-view-start-string) (- (+ 1 (length sage-view-final-string)))))
-		(insert sage-view-tail))
+		  (insert sage-view-head)
+		  (insert sage-view-insert)
+		  (insert sage-view-tail))
 	      (sage-view-latex->pdf file))))
 	  )))
 
@@ -253,12 +262,18 @@ Function to be inserted in `comint-output-filter-functions'."
   "Start a Ghostscript conversion pass.")
 
 (defun sage-view-pretty-print-enable ()
+  (setq sage-view-temp-dir (make-temp-file (expand-file-name "tmp" "~/.sage/temp/") t))
+  (if (not (file-exists-p sage-view-temp-dir))
+      (make-directory sage-view-temp-dir))
   (python-send-receive-multiline "sage.plot.plot.DOCTEST_MODE = True;")
   (python-send-receive-multiline (format "sage.plot.plot.DOCTEST_MODE_FILE = '%s';" (format "%s/sage-view.png" sage-view-temp-dir)))
   (python-send-receive-multiline "pretty_print_default(True);"))
 
 (defun sage-view-pretty-print-disable ()
-  (python-send-receive-multiline "pretty_print_default(False);"))
+  (python-send-receive-multiline "pretty_print_default(False);")
+  (python-send-receive-multiline "sage.plot.plot.DOCTEST_MODE = False;")
+  (python-send-receive-multiline (format "sage.plot.plot.DOCTEST_MODE_FILE = None;"))
+  (setq sage-view-temp-dir nil))
 
 (define-minor-mode sage-view
   "With this mode, output in SAGE interactive buffers is
@@ -267,14 +282,7 @@ Function to be inserted in `comint-output-filter-functions'."
   :lighter " Sage-View"
   (if sage-view
       (progn
-	(setq sage-view-temp-dir (make-temp-file (expand-file-name "tmp" "~/.sage/temp/") t))
-
-	(if (not (file-exists-p sage-view-temp-dir))
-	    (make-directory sage-view-temp-dir))
 	(sage-view-pretty-print-enable)
-	(setq sage-view-text nil
-	      sage-view-temp-dir
-	      (make-temp-file (expand-file-name "tmp" "~/.sage/temp/") t))
 	(make-local-variable 'comint-preoutput-filter-functions)
 	(make-local-variable 'comint-output-filter-function)
 	(add-hook 'comint-output-filter-functions 'sage-view-output-filter))
@@ -283,7 +291,6 @@ Function to be inserted in `comint-output-filter-functions'."
       (remove-hook 'comint-preoutput-filter-functions 'sage-view-preoutput-filter)
       (if (and sage-view-temp-dir (file-exists-p sage-view-temp-dir))
 	  (dired-delete-file sage-view-temp-dir 'always))
-      (setq sage-view-text nil)
       (sage-view-pretty-print-disable)
       )))
 

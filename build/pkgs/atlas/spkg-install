@@ -45,14 +45,57 @@ build()
 	# build library
 	cd $CUR/ATLAS-build
 	make
+        if [ $? -ne 0 ]; then
+            echo "ATLAS failed - round 1 - sleeping  5 minutes"
+            sleep 300
+            echo "Restartig build for the first time"
+            make
+            if [ $? -ne 0 ]; then
+                echo "ATLAS failed - round 2 - sleeping  5 minutes"
+                sleep 300
+                echo "Restartig build for the second time"
+                make
+                if [ $? -ne 0 ]; then
+                    echo "ATLAS failed - round 3 - sleeping  5 minutes"
+                    sleep 300
+                    echo "Restartig build for the third time"
+                    make
+                    if [ $? -ne 0 ]; then
+                        echo "ATLAS failed - round 4 - sleeping  5 minutes"
+                        sleep 300
+                        echo "Restartig build for the fourth time"
+                        make
+                        if [ $? -ne 0 ]; then
+                            echo "ATLAS failed - round 5 - sleeping  5 minutes"
+                            sleep 300
+                            echo "Restartig build for the fifth time"
+                            make
+                            if [ $? -ne 0 ]; then
+                                echo "Giving up building ATLAS - please restart with less system load"
+                                exit 1
+                            fi
+                        fi
+                    fi
+                fi
+            fi
+        fi
+        echo "Finished building ATLAS"
 
 	# now build the shared libraries
 	cd lib
 	make shared cshared
+        if [ $? -ne 0 ]; then
+            echo "Building shared ATLAS libraris failed"
+            exit 1
+        fi
 
 	# and now install
 	cd ..
 	make install
+        if [ $? -ne 0 ]; then
+            echo "Make install for ATLAS failed"
+            exit 1
+        fi
 }
 
 if [ `uname` = "Darwin" ]; then

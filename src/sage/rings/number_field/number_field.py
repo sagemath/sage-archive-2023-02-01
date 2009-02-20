@@ -4913,6 +4913,14 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: k = CyclotomicField(3)
             sage: type(k)
             <class 'sage.rings.number_field.number_field.NumberField_cyclotomic'>
+
+        TESTS:
+            sage: type(CyclotomicField(4).zero_element())
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            sage: type(CyclotomicField(6).one_element())
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            sage: type(CyclotomicField(15).zero_element())
+            <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>
         """
         f = QQ['x'].cyclotomic_polynomial(n)
         if names[0].startswith('zeta'):
@@ -4943,6 +4951,14 @@ class NumberField_cyclotomic(NumberField_absolute):
                     self._NumberField_generic__gen = self._element_class(self, (one_half-1, one_half))
                 else:
                     self._NumberField_generic__gen = self._element_class(self, (one_half, one_half))
+
+            # NumberField_absolute.__init__(...) set _zero_element and
+            # _one_element to NumberFieldElement_absolute values, which is
+            # wrong (and dangerous; such elements can actually be used to
+            # crash Sage: see #5316).  Overwrite them with correct values.
+            self._zero_element = self(0)
+            self._one_element =  self(1)
+
         zeta = self.gen()
         zeta._set_multiplicative_order(n)
 
@@ -5785,6 +5801,13 @@ class NumberField_quadratic(NumberField_absolute):
         Don't do this:
             sage: k.<a> = QuadraticField(4, check=False); k
             Number Field in a with defining polynomial x^2 - 4
+
+        TESTS:
+            sage: k.<a> = QuadraticField(7)
+            sage: type(k.zero_element())
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            sage: type(k.one_element())
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
         """
         NumberField_absolute.__init__(self, polynomial, name=name, check=check, embedding=embedding)
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
@@ -5796,6 +5819,12 @@ class NumberField_quadratic(NumberField_absolute):
         parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
         self._NumberField_generic__gen = self._element_class(self, parts)
 
+        # NumberField_absolute.__init__(...) set _zero_element and
+        # _one_element to NumberFieldElement_absolute values, which is
+        # wrong (and dangerous; such elements can actually be used to
+        # crash Sage: see #5316).  Overwrite them with correct values.
+        self._zero_element = self(0)
+        self._one_element =  self(1)
 
     def _coerce_map_from_(self, K):
         """

@@ -154,6 +154,15 @@ All solutions can easily be recovered using the variety function for ideals.::
    k101 1
    k100 0
 
+We can also verify the correctness of the variety by evaluating all
+ideal generators on all points.::
+
+   sage: for V in I.variety():
+   ...     for f in I.gens():
+   ...       if f.subs(V) != 0:
+   ...         print "epic fail"
+
+
 Note that the S-Box object for SR can be constructed with a call to ``sr.sbox()``::
 
    sage: sr = mq.SR(1,1,1,4, gf2=True, polybori=True)
@@ -3213,6 +3222,21 @@ class SR_gf2_2(SR_gf2):
              w3*w2 + w3*w1 + w3*w0 + w3*x3 + w1 + w0 + x2*x1 + x2 + x0,
              w3*w2 + w2*w0 + w1 + x3 + x2*x0,
              w3*x3 + w3*x1 + w2*w0 + w1 + x3 + x2 + x1*x0 + x1]
+
+        TESTS:
+
+        Note that ``biaffine_only`` and ``correct_only`` are always
+        ignored. The former is always false while the second is always
+        true. They are only accepted for compatibility with the base
+        class.
+
+            sage: from sage.crypto.mq.sr import SR_gf2_2
+            sage: e = 4
+            sage: sr = SR_gf2_2(1, 1, 1, e)
+            sage: l = sr.inversion_polynomials_single_sbox()
+            sage: l == sr.inversion_polynomials_single_sbox(biaffine_only=True, correct_only=False)
+            True
+
        """
         e = self.e
         if x is None and w is None:

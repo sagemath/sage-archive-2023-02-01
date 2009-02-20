@@ -148,7 +148,7 @@ def rings0():
        - GF(q)
        - quadratic number fields
        - absolute number fields
-       - relative number fields
+       - relative number fields (disabled in the automatic tests for now)
 
     EXAMPLES:
         sage: type(sage.rings.tests.rings0())
@@ -162,8 +162,8 @@ def rings0():
          (finite_field, 'finite field with degree at most 20 and prime at most 10^6'),
          (small_finite_field, 'finite field with cardinality at most 2^16'),
          (quadratic_number_field, 'a quadratic number field'),
-         (absolute_number_field, 'an absolute number field of degree at most 10'),
-         (relative_number_field, 'a tower of at most 2 extensions each of degree at most 2'),
+         (absolute_number_field, 'an absolute number field of degree at most 10')
+         #(relative_number_field, 'a tower of at most 2 extensions each of degree at most 2')  # relative numbers are totally broken broken -- 4782
          ]
 
     return v

@@ -2667,11 +2667,11 @@ def automatic_control(default):
         sage: sage.server.notebook.interact.automatic_control(('alpha', (1,250)))
         Slider: alpha [1.0--|1.0|---250.0]
         sage: sage.server.notebook.interact.automatic_control((2,(0,250)))
-        Slider: None [0.0--|2.00400801603|---250]
+        Slider: None [0.0--|2.00400801603|---250.0]
         sage: sage.server.notebook.interact.automatic_control(('alpha label', (2,(0,250))))
-        Slider: alpha label [0.0--|2.00400801603|---250]
+        Slider: alpha label [0.0--|2.00400801603|---250.0]
         sage: sage.server.notebook.interact.automatic_control((2, ('alpha label',(0,250))))
-        Slider: alpha label [0.0--|2.00400801603|---250]
+        Slider: alpha label [0.0--|2.00400801603|---250.0]
         sage: C = sage.server.notebook.interact.automatic_control((1,52, 5)); C
         Slider: None [1--|1|---52]
         sage: C.values()

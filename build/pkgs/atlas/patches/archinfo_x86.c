@@ -89,14 +89,19 @@ int ProbeArch(char *vendor, unsigned *family, unsigned *model, int *x86_64)
 
 /*
  * Find processor family and model, ouput EAX
+ * According to latest docs, extended family and model should always be
+ * added in, not just in the cases shown in the commented-out if statements
+ * below.  The original "only do it in certain cases" was from the official
+ * IA32 ISA, but doing this causes problems on Xeons, so now we do like the
+ * newer docs indicate and always add the extended values in
  */
    do_cpuid(r, 1);
    *family = (r[EAX] >> 8) & 0xf;      /* base family in bits 11-8 */
-   /*if (*family == 0xf || *family == 0)*/ /* extended family is added in */
+/*   if (*family == 0xf || *family == 0) */ /* extended family is added in */
        *family += ((r[EAX] >> 20) & 0xff);
 
    *model = (r[0] >> 4) & 0xf;         /* model in bits 7-4 */
-   /*if (*model == 0xf)*/                  /* extended model is concatenated */
+/* if (*model == 0xf) */               /* extended model is concatenated */
       *model |= ((r[0] >> 12) & 0xf0);
 
 /*
@@ -269,7 +274,6 @@ enum MACHTYPE Chip2Mach(enum CHIP chip, int model, int x8664)
          iret = MACHOther;
       }
       break;
-
    case IntP6:  /* includes PPRO, PII, PIII, Core and Pentium-M */
       switch(model)
       {
@@ -295,8 +299,13 @@ enum MACHTYPE Chip2Mach(enum CHIP chip, int model, int x8664)
       case 14:
          iret = IntCoreDuo;
          break;
-      case 15: ; case 23: ; case 29:
-         iret = IntCore2Duo;
+      case 15:
+      case 23:
+      case 29:
+         iret = IntCore2;
+         break;
+      case 26:
+         iret = IntCorei7;
          break;
       default:
          iret = MACHOther;

@@ -1,14 +1,6 @@
---- archinfo_linux.c.orig	2009-01-01 19:41:11.000000000 -0800
-+++ archinfo_linux.c	2009-01-01 20:46:24.000000000 -0800
-@@ -72,6 +72,7 @@
-          if (strstr(res, "G4")) mach = PPCG4;
-          else if (strstr(res, "7400")) mach = PPCG4;
-          else if (strstr(res, "7410")) mach = PPCG4;
-+         else if (strstr(res, "7447")) mach = PPCG4;
-          else if (strstr(res, "7455")) mach = PPCG4;
-          else if (strstr(res, "PPC970FX")) mach = PPCG5;
-          else if (strstr(res, "POWER5")) mach = IbmPwr5;
-@@ -96,12 +97,12 @@
+--- archinfo_linux.c.orig	2009-02-20 11:01:34.000000000 -0800
++++ archinfo_linux.c	2009-02-20 11:02:27.000000000 -0800
+@@ -97,12 +97,12 @@
        break;
     case AFIA64:
        res[0] = '\0';

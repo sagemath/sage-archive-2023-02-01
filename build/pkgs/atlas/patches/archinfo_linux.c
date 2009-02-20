@@ -205,10 +205,10 @@ int ProbePointerBits(int *sure)
    char *uname;
    char cmnd[1024], res[1024];
 
+   *sure = 0;
 /*
  * Note this is a weak probe, archinfo_x86 much better . . .
  */
-   *sure = 0;
    uname = FindUname(NULL);
    sprintf(cmnd, "%s -a", uname);
 /*
@@ -222,6 +222,7 @@ int ProbePointerBits(int *sure)
       iret = 64;
       *sure = 1;
    }
+
    else if (!CmndOneLine(NULL, cmnd, res))
    {
 /*

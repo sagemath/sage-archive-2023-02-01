@@ -47,7 +47,7 @@ def install_all_optional_packages(force=True, dry_run=False):
         -- William Stein (2008-12)
 
     EXAMPLES:
-        sage: sage.misc.package.install_all_optional_packages(dry_run=True)
+        sage: sage.misc.package.install_all_optional_packages(dry_run=True)  # optional - internet
         Installing ...
         []
     """

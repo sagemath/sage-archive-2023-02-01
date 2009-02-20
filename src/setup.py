@@ -228,7 +228,7 @@ def execute_list_of_commands(command_list):
 ###### Dependency checking
 #############################################
 
-CYTHON_INCLUDE_DIRS=[ SAGE_LOCAL + '/lib/python/site-packages/Cython/Includes/' ]
+CYTHON_INCLUDE_DIRS=[ SAGE_LOCAL + '/lib/python2.5/site-packages/Cython/Includes/' ]
 
 # matches any dependency
 import re

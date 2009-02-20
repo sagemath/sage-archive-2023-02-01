@@ -1,5 +1,4 @@
 cdef extern from "Python.h":
-    ctypedef unsigned long size_t
 
     #####################################################################
     # 9.2 Memory Interface

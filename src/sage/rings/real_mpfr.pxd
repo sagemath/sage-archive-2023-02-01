@@ -1,5 +1,4 @@
 cdef extern from "stdlib.h":
-    ctypedef int size_t
     void free(void *ptr)
 
 from sage.libs.mpfr cimport *

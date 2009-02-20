@@ -25,9 +25,6 @@ include "../../ext/stdsage.pxi"
 include "../../ext/python_int.pxi"
 include "../../ext/python_ref.pxi"
 
-cdef extern from "stdlib.h":
-     ctypedef unsigned long size_t
-
 cdef extern from "dancing_links_c.h":
     ctypedef struct vector_int "std::vector<int>":
         void (* push_back)(int elem)

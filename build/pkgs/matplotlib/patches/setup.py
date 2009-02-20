@@ -15,6 +15,30 @@ try:
 except AttributeError:
     pass
 
+#####################################################################
+# Sage code -- all this code just sets the graphical_backend variable.
+# If True, that means we try to build GUI's; otherwise, we definitely
+# will not even try, even if we could.  See trac #5301.
+#####################################################################
+if os.environ.has_key('SAGE_MATPLOTLIB_GUI'):
+    if os.environ['SAGE_MATPLOTLIB_GUI'].lower() == 'no':
+        graphical_backend = False
+    else:
+        graphical_backend = True
+else:
+    if os.environ['UNAME'] == 'Darwin':
+        graphical_backend = False
+    else:
+        graphical_backend = True
+
+print "NOTE: Set SAGE_MATPLOTLIB_GUI to anything but 'no' to try to build the Matplotlib GUI."
+if graphical_backend:
+    print "Building graphical backends.  WARNING: This may causing some annoying and confusing behavior"
+    print "when using Sage + pylab, at least on OS X."
+else:
+    print "Not building any matplotlib graphical backends."
+ #####################################################################
+
 # This dict will be updated as we try to select the best option during
 # the build process. However, values in setup.cfg will be used, if
 # defined.
@@ -124,19 +148,19 @@ if has_libpng and options['build_image']:
 if has_libpng and options['build_agg'] or options['build_image']:
     build_png(ext_modules, packages)
 
-if options['build_windowing'] and sys.platform=='win32':
+if graphical_backend and options['build_windowing'] and sys.platform=='win32':
    build_windowing(ext_modules, packages)
 
 # the options can be True, False, or 'auto'. If True, try to build
 # regardless of the lack of dependencies. If auto, silently skip
 # when dependencies are missing.
-if False and options['build_tkagg']:
+if graphical_backend and options['build_tkagg']:
     if check_for_tk() or (options['build_tkagg'] is True):
         options['build_agg'] = 1
         build_tkagg(ext_modules, packages)
         rc['backend'] = 'TkAgg'
 
-if options['build_wxagg']:
+if graphical_backend and options['build_wxagg']:
     if check_for_wx() or (options['build_wxagg'] is True):
         options['build_agg'] = 1
         import wx
@@ -148,16 +172,16 @@ if options['build_wxagg']:
         rc['backend'] = 'WXAgg'
 
 hasgtk = check_for_gtk()
-if options['build_gtk']:
+if graphical_backend and options['build_gtk']:
     if hasgtk or (options['build_gtk'] is True):
         build_gdk(ext_modules, packages)
-if options['build_gtkagg']:
+if graphical_backend and options['build_gtkagg']:
     if hasgtk or (options['build_gtkagg'] is True):
         options['build_agg'] = 1
         build_gtkagg(ext_modules, packages)
         rc['backend'] = 'GTKAgg'
 
-if options['build_macosx']:
+if graphical_backend and options['build_macosx']:
     if check_for_macosx() or (options['build_macosx'] is True):
         build_macosx(ext_modules, packages)
         rc['backend'] = 'MacOSX'

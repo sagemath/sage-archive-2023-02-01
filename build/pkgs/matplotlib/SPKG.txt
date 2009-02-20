@@ -30,6 +30,10 @@ Replace setupext.py by a version that adds some SAGE-specific paths so the build
 
 == Changelog ==
 
+=== matplotlib-0.98.5.3rc0-svn6910.p2 (William Stein, February 20, 2009) ===
+ * Don't build GUI backends on OS X by default.  See trac #5301.
+   This is really a problem with libpng, so this is temporary.
+
 === matplotlib-0.98.5.3rc0-svn6910.p1 (Jason Grout, February 14, 2009) ===
  * Add a patch for patches.py, which ignores the errors generated when trying to draw arrows that are "too short".
 

@@ -1,11 +1,49 @@
---- setup.py.orig	2009-01-23 13:49:20.000000000 -0800
-+++ setup.py	2009-01-23 17:46:24.000000000 -0800
-@@ -130,7 +130,7 @@
- # the options can be True, False, or 'auto'. If True, try to build
- # regardless of the lack of dependencies. If auto, silently skip
- # when dependencies are missing.
--if options['build_tkagg']:
-+if False and options['build_tkagg']:
-     if check_for_tk() or (options['build_tkagg'] is True):
-         options['build_agg'] = 1
-         build_tkagg(ext_modules, packages)
+17a18,41
+> #####################################################################
+> # Sage code -- all this code just sets the graphical_backend variable.
+> # If True, that means we try to build GUI's; otherwise, we definitely
+> # will not even try, even if we could.  See trac #5301.
+> #####################################################################
+> if os.environ.has_key('SAGE_MATPLOTLIB_GUI'):
+>     if os.environ['SAGE_MATPLOTLIB_GUI'].lower() == 'no':
+>         graphical_backend = False
+>     else:
+>         graphical_backend = True
+> else:
+>     if os.environ['UNAME'] == 'Darwin':
+>         graphical_backend = False
+>     else:
+>         graphical_backend = True
+> 
+> print "NOTE: Set SAGE_MATPLOTLIB_GUI to anything but 'no' to try to build the Matplotlib GUI."
+> if graphical_backend:
+>     print "Building graphical backends.  WARNING: This may causing some annoying and confusing behavior"
+>     print "when using Sage + pylab, at least on OS X."
+> else:
+>     print "Not building any matplotlib graphical backends."
+>  #####################################################################
+> 
+127c151
+< if options['build_windowing'] and sys.platform=='win32':
+---
+> if graphical_backend and options['build_windowing'] and sys.platform=='win32':
+133c157
+< if options['build_tkagg']:
+---
+> if graphical_backend and options['build_tkagg']:
+139c163
+< if options['build_wxagg']:
+---
+> if graphical_backend and options['build_wxagg']:
+151c175
+< if options['build_gtk']:
+---
+> if graphical_backend and options['build_gtk']:
+154c178
+< if options['build_gtkagg']:
+---
+> if graphical_backend and options['build_gtkagg']:
+160c184
+< if options['build_macosx']:
+---
+> if graphical_backend and options['build_macosx']:

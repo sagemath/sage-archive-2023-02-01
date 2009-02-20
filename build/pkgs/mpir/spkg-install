@@ -20,6 +20,13 @@ remove_pic_osx_32_bit()
     rm mpn/x86/pentium4/sse2/diveby3.asm
     rm mpn/x86/pentium4/mmx/popham.asm
     rm mpn/x86/pentium4/mmx/rshift.asm
+    rm mpn/x86/p6/mode1o.asm
+    rm mpn/x86/p6/dive_1.asm
+    rm mpn/x86/pentium/hamdist.asm
+    rm mpn/x86/pentium/mod_1.asm
+    rm mpn/x86/pentium/popcount.asm
+    rm mpn/x86/pentium/mode1o.asm
+    rm mpn/x86/pentium/dive_1.asm
 }
 
 

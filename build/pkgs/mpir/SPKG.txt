@@ -26,6 +26,10 @@ MPIR is a fork of GMP. See www.mpir.org
 
 == Changelog ==
 
+=== gmp-mpir-0.9 (Michael Abshoff, February 20th, 2009) ===
+ * 0.9.rc4 become the official 0.9 release
+ * delete more OSX MacIntel specific assembly faile due to PIC issue (#5315)
+
 === gmp-mpir-0.9.rc4 (Michael Abshoff, February 10th, 2009) ===
  * update to latest upstream 0.9.rc4 release (fixes #5210)
 

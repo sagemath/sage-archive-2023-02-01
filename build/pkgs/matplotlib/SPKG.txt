@@ -26,13 +26,18 @@ The matplotlib mailing lists: see http://sourceforge.net/projects/matplotlib
 
 The following is in the patches subdirectory.  It is copied in during the build process.
 
-Replace setupext.py by a version that adds some SAGE-specific paths so the build doesn't fail (since SAGE includes certain libs that matplotlib depends on).
+ * cbook.py: deal with encodings
+ * patches.py: Work around problem with arrows of length zero
+ * setup.py: Introduce the env variable SAGE_MATPLOTLIB_GUI. If not set to no it will attempt to build graphical backends. Per default all graphical backends are turned off.
+ * setupext.py: add some SAGE-specific paths so the build doesn't fail (since SAGE includes certain libs that matplotlib depends on).
 
 == Changelog ==
 
-=== matplotlib-0.98.5.3rc0-svn6910.p2 (William Stein, February 20, 2009) ===
- * Don't build GUI backends on OS X by default.  See trac #5301.
-   This is really a problem with libpng, so this is temporary.
+=== matplotlib-0.98.5.3rc0-svn6910.p3 (Michael Abshoff, February 20th, 2009) ===
+ * Turn off GUI backend unconditionally since they cause trouble on systems without X, ie. sage.math, too. This might be a bug in Matplotlib, but until this is resolved it stays off.
+
+=== matplotlib-0.98.5.3rc0-svn6910.p2 (William Stein, February 20th, 2009) ===
+ * Don't build GUI backends on OS X by default.  See trac #5301. This is really a problem with libpng, so this is temporary.
 
 === matplotlib-0.98.5.3rc0-svn6910.p1 (Jason Grout, February 14, 2009) ===
  * Add a patch for patches.py, which ignores the errors generated when trying to draw arrows that are "too short".

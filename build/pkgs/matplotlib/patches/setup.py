@@ -26,10 +26,7 @@ if os.environ.has_key('SAGE_MATPLOTLIB_GUI'):
     else:
         graphical_backend = True
 else:
-    if os.environ['UNAME'] == 'Darwin':
-        graphical_backend = False
-    else:
-        graphical_backend = True
+    graphical_backend = False
 
 print "NOTE: Set SAGE_MATPLOTLIB_GUI to anything but 'no' to try to build the Matplotlib GUI."
 if graphical_backend:

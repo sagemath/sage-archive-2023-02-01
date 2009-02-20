@@ -22,13 +22,17 @@ Atlas devel mainling list.
 
 == Build Instructions/Notes ==
 
- * patches/archinfo_linux.c.patch: : add G4 model 7447 and Itanium2 support
- * patches/archinfo_x86.c.patch: add cpuid support for Pentium D, E and modern Core2Duos cores
+ * patches/archinfo_linux.c.patch: Fix Itanium2 support on modern RHEL 5 and SLES 10 systems
+ * patches/archinfo_x86.c.patch: add cpuid support for Pentium D, E models
  * patches/Make.top.patch: add make install target for shared libs
  * patches/probe_comp.c.patch: work around -m64 issue on Itanium2
  * Tuning info for K732SSE1.tgz, PM32SSE2.tgz and PPCG432.tgz
 
 == ChangeLog ==
+
+=== atlas-3.8.3 (Michael Abshoff, Januar 2nd, 2009) ===
+ * rebase against latest upstream (#5311)
+ * make ATLAS automatically restart build on tolerance error (#1641)
 
 === atlas-3.8.2.p2 (Michael Abshoff, Januar 2nd, 2009) ===
  * Actually fix dynamic liblapack.so on Solaris as intended in atlas-3.8.2.p1

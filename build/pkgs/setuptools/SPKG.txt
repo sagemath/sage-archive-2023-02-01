@@ -23,6 +23,9 @@ PSF or ZPL. i.e Python Software Foundation License or Zope Public License
 
 == Changelog ==
 
+=== setuptools-0.6c9 (Mike Hansen, February 19, 2008) ===
+ * Update to 0.6c9
+
 === setuptools-0.6c8.p1 (William Stein, July 7, 2008) ===
  * Delete two windows binaries (!!)
     src/setuptools/gui.exe

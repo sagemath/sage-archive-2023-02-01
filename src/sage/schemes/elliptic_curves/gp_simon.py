@@ -26,6 +26,7 @@ from sage.interfaces.gp import Gp
 from sage.misc.sage_eval import sage_eval
 from sage.misc.randstate import current_randstate
 from sage.rings.all import PolynomialRing, ZZ, QQ
+from constructor import EllipticCurve
 
 gp = None
 def init():
@@ -67,11 +68,13 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     current_randstate().set_seed_gp(gp)
 
     K = E.base_ring()
+    K_orig = K
     # The following is to correct the bug at \#5204: the gp script
     # fails when K is a number field whose generator is called 'x'.
     if not K is QQ:
         K = K.change_names('a')
-    E = E.change_ring(K)
+    E_orig = E
+    E = EllipticCurve(K,[K(list(a)) for a in E.ainvs()])
     F = E.integral_model()
 
     if K != QQ:
@@ -109,5 +112,6 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     ans = sage_eval(v, {'Mod': _gp_mod, 'y': K.gen(0)})
     inv_transform = F.isomorphism_to(E)
     ans[2] = [inv_transform(F(P)) for P in ans[2]]
+    ans[2] = [E_orig([K_orig(list(c)) for c in list(P)]) for P in ans[2]]
     return ans
 

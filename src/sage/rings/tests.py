@@ -29,7 +29,7 @@ def prime_finite_field():
         Finite Field of size 64748301524082521489
     """
     from sage.all import ZZ, GF
-    return GF(ZZ.random_element(x=2, y=10**20).next_prime())
+    return GF(ZZ.random_element(x=2, y=10**20 - 12).next_prime())
 
 def finite_field():
     """
@@ -43,7 +43,7 @@ def finite_field():
         Finite Field in a of size 161123^4
     """
     from sage.all import ZZ, GF
-    p = ZZ.random_element(x=2, y=10**6).next_prime()
+    p = ZZ.random_element(x=2, y=10**6-18).next_prime()
     d = ZZ.random_element(x=1, y=20)
     return GF(p**d,'a')
 
@@ -137,15 +137,18 @@ def relative_number_field(n=2, maxdeg=2):
 def rings0():
     """
     Return a list of pairs (f, desc), where f is a function that when
-    called create a random ring of a certain representative type
+    called creates a random ring of a certain representative type
     described by desc.
-    called create a random ring that takes only simple data types
-    (e.g. integers as input).
 
     RINGS::
        - ZZ
        - QQ
        - ZZ/nZZ
+       - GF(p)
+       - GF(q)
+       - quadratic number fields
+       - absolute number fields
+       - relative number fields
 
     EXAMPLES:
         sage: type(sage.rings.tests.rings0())
@@ -160,7 +163,7 @@ def rings0():
          (small_finite_field, 'finite field with cardinality at most 2^16'),
          (quadratic_number_field, 'a quadratic number field'),
          (absolute_number_field, 'an absolute number field of degree at most 10'),
-         #(relative_number_field, 'a tower of at most 2 extensions each of degree at most 2'),  # relative numbers are totally broken broken -- 4782!
+         (relative_number_field, 'a tower of at most 2 extensions each of degree at most 2'),
          ]
 
     return v
@@ -193,7 +196,7 @@ MAX_LEVEL=99999
 
 def random_rings(level=MAX_LEVEL):
     """
-    Return an iterator over random level 0 rings.
+    Return an iterator over random rings up to the given "level" of complexity.
 
     EXAMPLES:
         sage: type(sage.rings.tests.random_rings())

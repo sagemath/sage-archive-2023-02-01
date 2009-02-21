@@ -5418,7 +5418,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ideallog(self, x, bid):
         """
-        Return the discrete logarithm of x in (ring of integers/bid)^*.
+        Return the discrete logarithm of the unit x in (ring of integers)/bid.
 
         INPUT:
             self -- a pari number field
@@ -5470,7 +5470,7 @@ cdef class gen(sage.structure.element.RingElement):
                     1 (default): return a bid structure without
                        generators
                     2: return a bid structure with generators (slower)
-                    0 (deprecated): only outputs (ring of integers/I)^*
+                    0 (deprecated): only outputs units of (ring of integers/I)
                        as an abelian group, i.e as a 3-component
                        vector [h,d,g]: h is the order, d is the vector
                        of SNF cyclic components and g the corresponding

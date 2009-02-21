@@ -3,7 +3,7 @@
 import os, random, sys, time
 
 ##############################################
-## Build ATLAS repeatedly up to 10 times until
+## Build ATLAS repeatedly up to 5 times until
 ## it works. Pause a random amount of time
 ## between each build attempt.
 ##
@@ -24,7 +24,7 @@ for i in range(max_tries):
         if i == max_tries - 1:
             print "Too many failures to build atlas.  Giving up!"
             sys.exit(1)
-        print "ATLAS failed to build for the %s-th time, because of a"%(i+1)
+        print "ATLAS failed to build for the %s-th time, possibly because of a"%(i+1)
         print "loaded system, so we will automatically try again up to %s more times."%(max_tries-i-1)
         s = random.randint(300,900)
         print "Waiting %s minutes..."%(s//60)
@@ -32,5 +32,4 @@ for i in range(max_tries):
     else:
         print "Failed to build ATLAS."
         sys.exit(1)
-
 

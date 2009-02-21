@@ -1,136 +1,36 @@
-#!/bin/sh
+#!/usr/bin/env python
 
-###########################################
-## ATLAS
-###########################################
+import os, random, sys, time
 
+##############################################
+## Build ATLAS repeatedly up to 10 times until
+## it works. Pause a random amount of time
+## between each build attempt.
+##
+## AUTHOR: William Stein, 2009-02-20
+##############################################
 
-# we need to disable parallel builds
-MAKE=make
+max_tries = 5
 
-FCOMPILER="$SAGE_LOCAL"/bin/sage_fortran
-bitwidth=`python ./bitwidth.py`
-echo "Platform detected to be $bitwidth bits"
+for i in range(max_tries):
+    # e = shift by 8 to get correct exit code, which could be needed
+    # for better error handling later.
+    e = os.system('./spkg-install-script') >> 8
+    if e == 0:
+        # build success
+        sys.exit(0)
+    if os.path.exists('ATLAS-build') and \
+           len([x for x in os.listdir('ATLAS-build') if x.startswith('error')]) > 0:
+        if i == max_tries - 1:
+            print "Too many failures to build atlas.  Giving up!"
+            sys.exit(1)
+        print "ATLAS failed to build for the %s-th time, because of a"%(i+1)
+        print "loaded system, so we will automatically try again up to %s more times."%(max_tries-i-1)
+        s = random.randint(300,900)
+        print "Waiting %s minutes..."%(s//60)
+        time.sleep(s)
+    else:
+        print "Failed to build ATLAS."
+        sys.exit(1)
 
-python system_atlas.py
-output=$?
-
-#system_atlas script exits with status
-# 0: if the user SAGE_ATLAS_LIB worked
-# 1: if SAGE_ATLAS_LIB wass not set
-# 2: if SAGE_ATLAS_LIB is set but does not contain the correct libraries
-
-if [ $output = 0 ]; then
-  exit 0
-fi
-
-if [ $output = 2 ]; then
-  exit 1
-fi
-
-config()
-{
-        mkdir ATLAS-build
-	cd ATLAS-build
-	# -Si cputhrchk 0: Ignore/heed CPU throttle probe
-	# -Fa alg -fPIC: set flags so we can build dynamic libraries
-	# -t 0: disable threading for now.
-	../src/configure --prefix="$SAGE_LOCAL" --with-netlib-lapack="$SAGE_LOCAL"/lib/liblapack.a  \
-	-Si cputhrchk 0 -Fa alg -fPIC -t 0 -C if $FCOMPILER -b $bitwidth
-}
-
-
-build()
-{
-	# build library
-	cd $CUR/ATLAS-build
-	make
-        if [ $? -ne 0 ]; then
-            echo "ATLAS failed - round 1 - sleeping  5 minutes"
-            sleep 300
-            echo "Restartig build for the first time"
-            make
-            if [ $? -ne 0 ]; then
-                echo "ATLAS failed - round 2 - sleeping  5 minutes"
-                sleep 300
-                echo "Restartig build for the second time"
-                make
-                if [ $? -ne 0 ]; then
-                    echo "ATLAS failed - round 3 - sleeping  5 minutes"
-                    sleep 300
-                    echo "Restartig build for the third time"
-                    make
-                    if [ $? -ne 0 ]; then
-                        echo "ATLAS failed - round 4 - sleeping  5 minutes"
-                        sleep 300
-                        echo "Restartig build for the fourth time"
-                        make
-                        if [ $? -ne 0 ]; then
-                            echo "ATLAS failed - round 5 - sleeping  5 minutes"
-                            sleep 300
-                            echo "Restartig build for the fifth time"
-                            make
-                            if [ $? -ne 0 ]; then
-                                echo "Giving up building ATLAS - please restart with less system load"
-                                exit 1
-                            fi
-                        fi
-                    fi
-                fi
-            fi
-        fi
-        echo "Finished building ATLAS"
-
-	# now build the shared libraries
-	cd lib
-	make shared cshared
-        if [ $? -ne 0 ]; then
-            echo "Building shared ATLAS libraris failed"
-            exit 1
-        fi
-
-	# and now install
-	cd ..
-	make install
-        if [ $? -ne 0 ]; then
-            echo "Make install for ATLAS failed"
-            exit 1
-        fi
-}
-
-if [ `uname` = "Darwin" ]; then
-    exit 0
-fi
-
-
-CUR=`pwd`
-echo $CUR
-# add PPC4 7447 CPU and better Itanium2 detection:
-echo Deal with PPC4 7447 model and Itanium 2
-cp patches/archinfo_linux.c src/CONFIG/src/backend/archinfo_linux.c
-# add Pentium D and E as well as Core2Duo and Dunnington CPUids
-echo Updating archinfo_x86.c
-cp patches/archinfo_x86.c src/CONFIG/src/backend/archinfo_x86.c
-# work around "-m64" cflag issue on Itanium
-echo Updating probe_comp.c
-cp patches/probe_comp.c src/CONFIG/src/probe_comp.c
-# add dynamic libs make install targets
-echo Updating Make.top
-cp patches/Make.top src
-# add K7, Pentium M and non-AltiVec G4 profiles
-cp patches/*tgz src/CONFIG/ARCHS
-
-config
-
-build
-
-cd $CUR/ATLAS-build
-if [ -f error* ]; then
-    echo "ATLAS failed to build because your system is too heavily loaded to obtain accurate timing."
-    echo "Please restart the build by typing make, when the load on your system has decreased."
-    exit 1
-fi
-
-cd $CUR
-sh ./make_correct_shared.sh
 

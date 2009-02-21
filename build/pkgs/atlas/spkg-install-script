@@ -1,0 +1,109 @@
+#!/bin/sh
+
+###########################################
+## ATLAS
+###########################################
+
+
+# we need to disable parallel builds
+MAKE=make
+
+FCOMPILER="$SAGE_LOCAL"/bin/sage_fortran
+bitwidth=`python ./bitwidth.py`
+echo "Platform detected to be $bitwidth bits"
+
+python system_atlas.py
+output=$?
+
+#system_atlas script exits with status
+# 0: if the user SAGE_ATLAS_LIB worked
+# 1: if SAGE_ATLAS_LIB wass not set
+# 2: if SAGE_ATLAS_LIB is set but does not contain the correct libraries
+
+if [ $output = 0 ]; then
+  exit 0
+fi
+
+if [ $output = 2 ]; then
+  exit 1
+fi
+
+config()
+{
+        if [ -d ATLAS-build ]; then
+            rm -rf ATLAS-build
+        fi
+        mkdir ATLAS-build
+	cd ATLAS-build
+	# -Si cputhrchk 0: Ignore/heed CPU throttle probe
+	# -Fa alg -fPIC: set flags so we can build dynamic libraries
+	# -t 0: disable threading for now.
+	../src/configure --prefix="$SAGE_LOCAL" --with-netlib-lapack="$SAGE_LOCAL"/lib/liblapack.a  \
+	-Si cputhrchk 0 -Fa alg -fPIC -t 0 -C if $FCOMPILER -b $bitwidth
+}
+
+
+build()
+{
+	# build library
+	cd $CUR/ATLAS-build
+	make
+        if [ $? -ne 0 ]; then
+            echo "Failed to build ATLAS."
+            exit 1
+        fi
+        echo "Finished building ATLAS core"
+
+	# now build the shared libraries
+	cd lib
+	make shared cshared
+        if [ $? -ne 0 ]; then
+            echo "Building shared ATLAS libraris failed"
+            exit 1
+        fi
+
+	# and now install
+	cd ..
+	make install
+        if [ $? -ne 0 ]; then
+            echo "Make install for ATLAS failed"
+            exit 1
+        fi
+}
+
+if [ `uname` = "Darwin" ]; then
+    exit 0
+fi
+
+
+CUR=`pwd`
+echo $CUR
+# add PPC4 7447 CPU and better Itanium2 detection:
+echo Deal with PPC4 7447 model and Itanium 2
+cp patches/archinfo_linux.c src/CONFIG/src/backend/archinfo_linux.c
+# add Pentium D and E as well as Core2Duo and Dunnington CPUids
+echo Updating archinfo_x86.c
+cp patches/archinfo_x86.c src/CONFIG/src/backend/archinfo_x86.c
+# work around "-m64" cflag issue on Itanium
+echo Updating probe_comp.c
+cp patches/probe_comp.c src/CONFIG/src/probe_comp.c
+# add dynamic libs make install targets
+echo Updating Make.top
+cp patches/Make.top src
+# add K7, Pentium M and non-AltiVec G4 profiles
+cp patches/*tgz src/CONFIG/ARCHS
+
+config
+
+build
+
+cd $CUR/ATLAS-build
+if [ -f error* ]; then
+    echo "ATLAS failed to build because your system is too heavily loaded to obtain accurate timing."
+    echo "Please restart the build by typing make, when the load on your system has decreased."
+    exit 1
+fi
+
+cd $CUR
+sh ./make_correct_shared.sh
+

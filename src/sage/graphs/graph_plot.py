@@ -431,8 +431,6 @@ class GraphPlot(SageObject):
                 elif len(edges_to_draw[(a,b)]) > 1:
                     # Multi-edge
                     local_labels = edges_to_draw.pop((a,b))
-                    x = SymbolicVariable('x')
-                    d = SymbolicVariable('d')
 
                     # Compute perpendicular bisector
                     p1 = self._pos[a]
@@ -440,12 +438,12 @@ class GraphPlot(SageObject):
                     M = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2) # midpoint
                     if not p1[1] == p2[1]:
                         S = (p1[0]-p2[0])/(p2[1]-p1[1]) # perp slope
-                        y = S*x-S*M[0]+M[1] # perp bisector line
+                        y = lambda x : S*x-S*M[0]+M[1] # perp bisector line
 
                         # f,g are functions of distance d to determine x values
                         # on line y at d from point M
-                        f = Sqrt(d**2/(1+S**2)) + M[0]
-                        g = -Sqrt(d**2/(1+S**2)) + M[0]
+                        f = lambda d : sqrt(d**2/(1+S**2)) + M[0]
+                        g = lambda d : -sqrt(d**2/(1+S**2)) + M[0]
 
                         odd_x = f
                         even_x = g
@@ -453,8 +451,8 @@ class GraphPlot(SageObject):
                             odd_y = lambda d : M[1]
                             even_y = odd_y
                         else:
-                            odd_y = y(f)
-                            even_y = y(g)
+                            odd_y = lambda x : y(f(x))
+                            even_y = lambda x : y(g(x))
                     else:
                         odd_x = lambda d : M[0]
                         even_x = odd_x

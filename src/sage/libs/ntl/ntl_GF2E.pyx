@@ -147,8 +147,6 @@ cdef class ntl_GF2E:
             GF2E_construct(&self.x)
 
     def __dealloc__(self):
-        if <object>self.c is not None:
-            self.c.restore_c()
         GF2E_destruct(&self.x)
 
     cdef ntl_GF2E _new(self):

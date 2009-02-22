@@ -169,8 +169,6 @@ cdef class ntl_zz_pX:
         zz_pX_construct(&self.x)
 
     def __dealloc__(self):
-        if <object>self.c is not None:
-            self.c.restore_c()
         zz_pX_destruct(&self.x)
 
     def __reduce__(self):

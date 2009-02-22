@@ -232,8 +232,50 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
                 raise TypeError, "Modulus parameter not understood"
 
     def __dealloc__(FiniteField_ntl_gf2e self):
-        self.F.restore()
         GF2EContext_destruct(&self.F)
+
+    def __doctest_for_5340(self):
+        r"""
+        Every bug fix should have a doctest.  But #5340 only happens when
+        a garbage collection happens between restoring the modulus and
+        using it, so it can't be reliably doctested using any of the
+        existing Cython functions in this module.  The sole purpose of
+        this method is to doctest the fix for #5340.
+
+        EXAMPLES:
+            sage: k.<a> = GF(2^20)
+            sage: k.__doctest_for_5340()
+            [1 1 0 0 1 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 1]
+            [1 1 0 0 1 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 1]
+        """
+        import gc
+
+        # Do a garbage collection, so that this method is repeatable.
+        gc.collect()
+
+        # Create a new finite field.
+        new_fld = GF(1<<30, 'a', modulus='random')
+        # Create a garbage cycle.
+        cycle = [new_fld]
+        cycle.append(cycle)
+        # Make the cycle inaccessible.
+        new_fld = None
+        cycle = None
+
+        # Set the modulus.
+        self.F.restore()
+        # Print the current modulus.
+        cdef GF2XModulus_c modulus = GF2E_modulus()
+        cdef GF2X_c mod_poly = GF2XModulus_GF2X(modulus)
+        print GF2X_to_PyString(&mod_poly)
+
+        # do another garbage collection
+        gc.collect()
+
+        # and print the modulus again
+        modulus = GF2E_modulus()
+        mod_poly = GF2XModulus_GF2X(modulus)
+        print GF2X_to_PyString(&mod_poly)
 
     cdef FiniteField_ntl_gf2eElement _new(FiniteField_ntl_gf2e self):
         """
@@ -675,7 +717,6 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             GF2E_construct(&self.x)
 
     def __dealloc__(FiniteField_ntl_gf2eElement self):
-        #(<FiniteField_ntl_gf2e>self._parent).F.restore()
         GF2E_destruct(&self.x)
 
     cdef FiniteField_ntl_gf2eElement _new(FiniteField_ntl_gf2eElement self):
@@ -1429,5 +1470,3 @@ def unpickleFiniteField_ntl_gf2eElement(parent, elem):
         True
     """
     return parent(elem)
-
-

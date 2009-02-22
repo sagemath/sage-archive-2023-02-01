@@ -159,8 +159,6 @@ cdef class ntl_mat_GF2E:
         return self.c
 
     def __dealloc__(self):
-        if <object>self.c is not None:
-            self.c.restore_c()
         mat_GF2E_destruct(&self.x)
 
     def __reduce__(self):

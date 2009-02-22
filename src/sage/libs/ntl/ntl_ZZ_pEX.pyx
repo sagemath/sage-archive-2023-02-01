@@ -133,8 +133,6 @@ cdef class ntl_ZZ_pEX:
         ZZ_pEX_construct(&self.x)
 
     def __dealloc__(self):
-        if <object>self.c is not None:
-            self.c.restore_c()
         ZZ_pEX_destruct(&self.x)
 
     cdef ntl_ZZ_pEX _new(self):

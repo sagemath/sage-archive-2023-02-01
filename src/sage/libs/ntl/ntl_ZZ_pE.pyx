@@ -165,8 +165,6 @@ cdef class ntl_ZZ_pE:
             ZZ_pE_construct(&self.x)
 
     def __dealloc__(ntl_ZZ_pE self):
-        if <object>self.c is not None:
-            self.c.restore_c()
         ZZ_pE_destruct(&self.x)
 
     cdef ntl_ZZ_pE _new(self):

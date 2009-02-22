@@ -49,7 +49,7 @@ else
     CXXFLAGS="-O2 -g -m64"; export CXXFLAGS
     CPPFLAGS="-O2 -g -m64"; export CPPFLAGS
     LDFLAGS="-m64 "; export LDFLAGS
-    DYNAMIC_KERNEL="--with-malloc=system --without-dynamic-kernel"; export DYNAMIC_KERNEL
+    DYNAMIC_KERNEL="--without-dynamic-kernel"; export DYNAMIC_KERNEL
   fi
 fi
 
@@ -117,6 +117,7 @@ config()
                 --enable-IntegerProgramming \
                 --disable-doc  \
                 $DYNAMIC_KERNEL \
+                --with-malloc=system \
 		$ENABLE_DEBUG
 
     if [ $? -ne 0 ]; then

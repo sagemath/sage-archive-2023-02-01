@@ -41,9 +41,9 @@ class FastCrystal(ClassicalCrystal):
     FastCrystal(['B', 2], l1+1/2, l2+1/2) produces a crystal isomorphic
     to the following crystal T::
 
-        sage: C = CrystalOfTableaux(['B',2], shape=[l1,l2])
-        sage: D = CrystalOfSpins(['B',2])
-        sage: T = TensorProductOfCrystals(C,D,C.list()[0],D.list()[0])
+        C = CrystalOfTableaux(['B',2], shape=[l1,l2])
+        D = CrystalOfSpins(['B',2])
+        T = TensorProductOfCrystals(C,D,C.list()[0],D.list()[0])
 
     The representation of elements is in term of the
     Berenstein-Zelevinsky-Littelmann strings [a1, a2, ...] described

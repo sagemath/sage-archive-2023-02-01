@@ -721,7 +721,6 @@ class DocTestParser:
         """
         for i, line in enumerate(lines):
             if line and not line.startswith(prefix):
-                print lines
                 raise ValueError('line %r of the docstring for %s has '
                                  'inconsistent leading whitespace: %r' %
                                  (lineno+i+1, name, line))

@@ -23,7 +23,7 @@ usage() {
     echo "  -advanced     -- list more options"
     echo "  file.[sage|py|spyx] [options] -- run given .sage, .py or .spyx files"
     echo "  -c cmd        -- Evaluates cmd as sage code"
-    echo "  -docbuild  [lang/]<document>  -- Builds the Sage documentation"
+    echo "  -docbuild [lang/]<document> html|pdf|... -- Builds the Sage documentation"
     exit 1
 }
 

@@ -1,0 +1,13 @@
+diff -r 100026b156aa mminit.cc
+--- a/mminit.cc Sun Feb 22 21:45:28 2009 +0100
++++ b/mminit.cc Sun Feb 22 21:48:38 2009 +0100
+@@ -37,7 +37,7 @@
+ {
+   if(mmIsInitialized==0)
+   {
+-#if defined(OMALLOC_USES_MALLOC) || defined(X_OMALLOC)
++#if 0    /* in mmstd.c, for some architectures freeSize() unconditionally uses the *system* free() */
+     mp_set_memory_functions(omMallocFunc,omReallocSizeFunc,omFreeSizeFunc);
+ #else
+     mp_set_memory_functions(malloc,reallocSize,freeSize);
+

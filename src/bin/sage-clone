@@ -36,8 +36,6 @@ if os.system(cmd):
     print "Error cloning"
     sys.exit(1)
 
-#if len(sys.argv) == 2:
-
 print "Copying over all Cython auto-generated .c, .cpp and .h files..."
 def cpdir(src, dest):
     if not os.path.isdir(dest):
@@ -49,24 +47,31 @@ def cpdir(src, dest):
             ext = os.path.splitext(F)[-1]
             if ext in ['.h', '.c', '.cpp']:
                 if 'Cython' in open(src + '/' + F).readline():
-                    shutil.copy(src + '/' + F, dest + '/' +F)
+                    os.link(src + '/' + F, dest + '/' +F)
+                    os.utime(dest + '/' +F, None)
+
 
 cpdir(os.path.abspath('sage/sage'), os.path.abspath(branch + '/sage'))
 
+def copy_dtree(src_dir, dest_dir):
+    src_root = os.path.abspath(src_dir)
+    dest_root = os.path.abspath(dest_dir)
+
+    for root, dirs, files in os.walk(src_root):
+        nroot = dest_root + root[len(src_root):]
+        for d in dirs:
+            os.makedirs(nroot+'/'+d)
+        for f in files:
+            os.link(root+'/'+f,nroot+'/'+f)
+            os.utime(nroot+'/'+f, None)
+
 print "Copying over build directory."
-cmd = 'cp -r sage/build %s'%branch
-print cmd
-if os.system(cmd):
-    print "Error copying build directory"
-    sys.exit(1)
+copy_dtree('sage/build', branch + '/build')
 # Done copying over build cache.
 
 #Copying over documentation output
 print "Copying over documentation output"
-cmd = 'cp -r sage/doc/output %s/doc'%branch
-print cmd
-if os.system(cmd):
-    print "Error copying documentation output"
+copy_dtree('sage/doc/output', branch + '/doc/output')
 
 print "Building " + branch
 try:

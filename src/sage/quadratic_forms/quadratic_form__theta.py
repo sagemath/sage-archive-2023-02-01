@@ -12,22 +12,15 @@ from sage.interfaces.gp import gp
 from sage.modular.dims import sturm_bound
 
 
-def theta_series(self, Max='sturm', var_str='q', safe_flag=True):
+def theta_series(self, Max=10, var_str='q', safe_flag=True):
     """
     Compute the theta series as a power series in the variable given
     in var_str (which defaults to 'q'), up to the specified precision
     O(q^max).
 
-    If no precision is specified, then it defaults to computing the
-    precision specified by sturm_bound() + 1, which suffices to
-    uniquely determine the cuspidal part of the theta series.
-
     This uses the PARI/GP function qfrep, wrapped by the
-    theta_by_pari() method.  This caches teh result for future
+    theta_by_pari() method.  This caches the result for future
     computations.
-
-    WARNING: This may not be the correct default bound for
-    odd-dimensional quadratic forms!!  CHECK THIS!!!
 
     The safe_flag allows us to select whether we want a copy of the
     output, or the original output.  It is only meningful when a
@@ -37,6 +30,18 @@ def theta_series(self, Max='sturm', var_str='q', safe_flag=True):
     then the routine is much faster but the return values are
     vulnerable to being corrupted by the user.
 
+    TO DO: Allow the option Max='mod_form' to give enough coefficients
+    to ensure we determine the theta series as a modular form.  This
+    is related to the Sturm bound, but we'll need to be careful about
+    this (particularly for half-integral weights!).
+
+    EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
+        sage: Q.theta_series()
+        1 + 2*q + 2*q^3 + 6*q^4 + 2*q^5 + 4*q^6 + 6*q^7 + 8*q^8 + 14*q^9 + O(q^10)
+
+        sage: Q.theta_series(25)
+        1 + 2*q + 2*q^3 + 6*q^4 + 2*q^5 + 4*q^6 + 6*q^7 + 8*q^8 + 14*q^9 + 4*q^10 + 12*q^11 + 18*q^12 + 12*q^13 + 12*q^14 + 8*q^15 + 34*q^16 + 12*q^17 + 8*q^18 + 32*q^19 + 10*q^20 + 28*q^21 + 16*q^23 + 44*q^24 + O(q^25)
     """
     ## Sanity Check: Max is an integer or an allowed string:
     try:
@@ -44,12 +49,13 @@ def theta_series(self, Max='sturm', var_str='q', safe_flag=True):
     except:
         M = -1
 
-    if (Max not in ['sturm']) and (not M >= 0):
+    if (Max not in ['mod_form']) and (not M >= 0):
         print Max
         raise TypeError, "Oops!  Max is not an integer >= 0 or an allowed string."
 
-    if Max == 'sturm':
-        return self.theta_by_pari(sturm_bound(self.level(), self.dim() / ZZ(2)) + 1, var_str, safe_flag)
+    if Max == 'mod_form':
+        raise NotImplementedError, "Oops!  We have to figure out the correect number of Fourier coefficients to use..."
+        #return self.theta_by_pari(sturm_bound(self.level(), self.dim() / ZZ(2)) + 1, var_str, safe_flag)
     else:
         return self.theta_by_pari(M, var_str, safe_flag)
 
@@ -91,24 +97,12 @@ def theta_by_pari(self, Max, var_str='q', safe_flag=True):
         a power series or a vector
     """
     ## Try to use the cached result if it's enough precision
-    try:
-        if len(self.__theta_vec) >= Max:
-            theta_vec = self.__theta_vec[:Max]
-        else:
-            raise RuntimeError, ""
-    except:
-        ## Generate a PARI matrix string for the associated Hessian matrix
-        M_str = str(gp(self.matrix()))
-
-        ## Compute the theta function as a vector
-        gp_vec = list(gp.qfrep(M_str, 2*Max-2))
-
-        ## Create the "halved" representation/theta vector
-        theta_vec = [ZZ(1)] + [ZZ(2) * ZZ(gp_vec[x])  for x in range(1, len(gp_vec), 2)]
-
+    if hasattr(self, '__theta_vec') and len(self.__theta_vec) >= Max:
+        theta_vec = self.__theta_vec[:Max]
+    else:
+        theta_vec = self.representation_number_list(Max)
         ## Cache the theta vector
         self.__theta_vec = theta_vec
-
 
     ## Return the answer
     if var_str == '':
@@ -117,11 +111,12 @@ def theta_by_pari(self, Max, var_str='q', safe_flag=True):
         else:
             return theta_vec
     else:
-        return PowerSeriesRing(ZZ, var_str)(theta_vec)
+        return PowerSeriesRing(ZZ, var_str)(theta_vec, Max)
 
 
 
 ## -------------  Compute the theta function by using an explicit Cholesky decomposition ------------
+
 
 ##########################################################################
 ## Routines to compute the Fourier expansion of the theta function of Q ##
@@ -131,72 +126,6 @@ def theta_by_pari(self, Max, var_str='q', safe_flag=True):
 ## ~/Documents/290_Project/C/Ver13.2__3-5-2007/Matrix_mpz/Matrix_mpz.cc ##
 ##########################################################################
 
-def cholesky_decomposition(self, bit_prec = 53):
-    """
-    Give the Cholesky decomposition of Q as a real matrix of precision
-        bit_prec.
-
-    RESTRICTIONS: Q must be given as a QuadraticForm defnined over ZZ,
-        QQ, or some RealField().  If it is over some real field, then
-        an error is raised if the precision given is not less than the
-        defined precision of the real field defining the quadratic form!
-
-    REFERENCE: From Cohen's "A Course in Computational Algebraic
-        Number Theory" book, p 103.
-
-    INPUT:
-        bit_prec -- a natural number.
-
-    OUTPUT:
-        an upper triangular real matrix of precision bit_prec.
-
-
-    TO DO: If we only care about working over the real double field
-        (RDF), then we can use the cholesky() method present for
-        square matrices over that.
-
-
-    ##/////////////////////////////////////////////////////////////////////////////////////////////////
-    ##/// Finds the Cholesky decomposition of a quadratic form -- as an upper-triangular matrix!
-    ##/// (It's assumed to be global, hence twice the form it refers to.)  <-- Python revision asks:  Is this true?!? =|
-    ##/////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-    EXAMPLES:
-
-
-    """
-
-    ## Check that the precision passed is allowed.
-    if isinstance(self.base_ring(), RealField) and (self.base_ring().prec() < bit_prec):
-        raise RuntimeError, "Oops! The precision requested is greater than that of the given quadratic form!"
-
-    ## 1. Initialization
-    n = self.dim()
-    R = RealField(bit_prec)
-    MS = MatrixSpace(R, n, n)
-    Q = MS(R(0.5)) * MS(self.matrix())               ## Initialize the real symmetric matrix A with the matrix for Q(x) = x^t * A * x
-
-    ## DIAGNOSTIC
-    #print "After 1:  Q is \n" + str(Q)
-
-    ## 2. Loop on i
-    for i in range(n):
-        for j in range(i+1, n):
-            Q[j,i] = Q[i,j]             ## Is this line redudnant?
-            Q[i,j] = Q[i,j] / Q[i,i]
-
-        ## 3. Main Loop
-        for k in range(i+1, n):
-            for l in range(k, n):
-                Q[k,l] = Q[k,l] - Q[k,i] * Q[i,l]
-
-    ## 4. Zero out the strictly lower-triangular entries
-    for i in range(n):
-        for j in range(i-1):
-            Q[i,j] = 0
-
-    return Q
 
 
 def theta_by_cholesky(self, q_prec):
@@ -378,4 +307,6 @@ def theta_by_cholesky(self, q_prec):
 
     ## Return the series, truncated to the desired q-precision
     return PS(theta)
+
+
 

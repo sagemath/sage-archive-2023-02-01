@@ -383,6 +383,132 @@ def local_good_density_congruence_even(self, p, m, Zvec, NZvec):
 
 
 
+
+def local_good_density_congruence_even__experimental(self, p, m, Zvec, NZvec):
+    """
+    Finds the Good-type local density of Q representing m at p.
+    (Assuming that p = 2 and Q is given in local normal form.)
+
+    mpq_class Matrix_mpz::local_good_density_congruence_even(const mpz_class & p, const mpz_class & m,
+                                             const valarray<size_t> & Zvec, const valarray<size_t> & NZvec) const
+    """
+    #print " Break 0"
+    #print "\n Q is : " + str(Q)
+
+    n = self.dim()
+
+
+    ## Assuming Q is diagonal, trim it to ensure it's non-degenerate mod 8      <--- ??? Do we really assume that Q is diagonal?!?!?  =(
+    Qtrimvec = []
+
+    #print " Break 0.1"
+
+    ## Find the indices of the non-zero blocks mod 8
+    for i in range(n):
+
+        ## DIAGNOSTIC
+        verbose(" i = " + str(i))
+        verbose(" n = " + str(n))
+        verbose(" Qtrimvec = " + str(Qtrimvec))
+
+        nz_flag = False
+
+        if  ((self[i,i] % 8) != 0):
+            nz_flag = True
+        else:
+            #print " here 1"
+            if ((i == 0) and ((self[i,i+1] % 8) != 0)):
+                nz_flag = True
+            else:
+                #print " here 2" << endl;
+                if ((i == n-1) and ((self[i-1,i] % 8) != 0)):
+                    nz_flag = True
+                else:
+                    #print " here 3" << endl;
+                    if ( (i > 0)  and  (i < n-1)  and  (((self[i,i+1] % 8) != 0) or ((self[i-1,i] % 8) != 0)) ):
+                        nz_flag = True
+
+
+        if (nz_flag == True):
+            Qtrimvec += [i]
+
+
+    #print " Break 1"
+
+
+    ## DEBUGGING: Quick tests to make sure the form isn't zero mod 8
+    if (Qtrimvec == []):
+        raise RuntimeError, "Oh no!  The quadratic form should always be non-degenerate mod 8... =("
+
+
+    Qtrim = self.extract_variables(Qtrimvec)
+
+
+    ## DEBUGGING: Quick tests to make sure the extracted form isn't zero mod 8
+    assert(Qtrim.dim() > 0);
+
+    #print " Break 2"
+
+
+    ## Construct the big and small matrices:
+    ## -------------------------------------
+
+    ## Construct new congruence condition indices for the trimmed matrix
+    trimZvec = self.reindex_vector_from_extraction(Zvec, Qtrimvec)
+    trimNZvec = self.reindex_vector_from_extraction(NZvec, Qtrimvec)
+
+    ## Make the trimmed congruence vector
+    new_vec = list(Set(Zvec + NZvec))
+    trim_vec = self.reindex_vector_from_extraction(new_vec, Qtrimvec)
+
+    ## DIAGNOSTIC
+    verbose("")
+    verbose("Zvec = " + str(Zvec))
+    verbose("NZvec = " + str(NZvec))
+    verbose("new_vec = " + str(new_vec))
+    verbose("")
+
+
+    ## DIAGNOSTIC
+    verbose("\n Q is : " + str(self))
+    verbose(" m is : " + str(m))
+    verbose(" Qtrim is : " + str(Qtrim))
+    verbose(" Qtrimvec is : " + str(Qtrimvec))
+    verbose(" trimZvec is : " + str(trimZvec))
+    verbose(" trimNZvec is : " + str(trimNZvec))
+
+
+    ## DEBUGGING: Check that partlyfreenum is in range...
+    if not (len(new_vec) >= len(trim_vec)):
+        raise RuntimeError, "Oh no!  Some variable called 'partlyfreenum' is out of range. =("
+
+
+    ## Compute the number of different free components
+    partlyfreenum = len(new_vec) - len(trim_vec)
+    veryfreenum = (n - len(Qtrimvec)) - partlyfreenum
+
+
+    ## In the free part, each component with a congruence condition contrubite a factor of 4,
+    ## while components with no congruence conditions contribute a factor of 8.
+
+    total = (4 ** partlyfreenum) * (8 ** veryfreenum) \
+        * Qtrim.count_local_good_type(2, 3, m, trimZvec, trimNZvec)
+    good_density = ZZ(total) / ZZ(8**(n-1))
+
+
+    ## DIAGNOSTIC
+    verbose(" partlyfreenum = " + str(partlyfreenum))
+    verbose(" veryfreenum = " + str(veryfreenum))
+    verbose(" Qtrim.count_local_good_type(2, 3, m, trimZvec, trimNZvec) = " + str(Qtrim.count_local_good_type(2, 3, m, trimZvec, trimNZvec)))
+    verbose(" total = " + str(total))
+    verbose("    total has type ", type(total))
+    verbose(" denominator = " + str(8**(n-1)))
+    verbose(" Good Density = " + str(good_density))
+
+    return good_density
+
+
+
     ############################################
      ## Note: Assumes all forms are primitive       <== What does this mean?!?
     ############################################

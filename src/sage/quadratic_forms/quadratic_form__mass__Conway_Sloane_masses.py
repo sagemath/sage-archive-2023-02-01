@@ -47,6 +47,22 @@ def parity(self, allow_rescaling_flag=True):
         [ * 2 3 ]
         [ * * 1 ]
         sage: Q.parity()
+        'even'
+
+        sage: Q = QuadraticForm(ZZ, 3, [4, -2, 0, 2, 2, 2]); Q
+        Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 4 -2 0 ]
+        [ * 2 2 ]
+        [ * * 2 ]
+        sage: Q.parity()
+        'even'
+
+        sage: Q = QuadraticForm(ZZ, 3, [4, -2, 0, 2, 2, 1]); Q
+        Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 4 -2 0 ]
+        [ * 2 2 ]
+        [ * * 1 ]
+        sage: Q.parity()
         'odd'
 
     """
@@ -91,6 +107,15 @@ def is_even(self, allow_rescaling_flag=True):
     form represents no odd integers.  For more details, see parity().
 
     Requires that Q is defined over ZZ.
+
+    EXAMPLES:
+
+        sage: Q = QuadraticForm(ZZ, 2, [1, 0, 1])
+        sage: Q.is_even()
+        False
+        sage: Q = QuadraticForm(ZZ, 2, [1, 1, 1])
+        sage: Q.is_even()
+        True
     """
     return self.parity(allow_rescaling_flag) == "even"
 
@@ -101,6 +126,15 @@ def is_odd(self, allow_rescaling_flag=True):
     form represents some odd integers.  For more details, see parity().
 
     Requires that Q is defined over ZZ.
+
+    EXAMPLES:
+
+        sage: Q = QuadraticForm(ZZ, 2, [1, 0, 1])
+        sage: Q.is_odd()
+        True
+        sage: Q = QuadraticForm(ZZ, 2, [1, 1, 1])
+        sage: Q.is_odd()
+        False
     """
     return self.parity(allow_rescaling_flag) == "odd"
 
@@ -460,7 +494,7 @@ def conway_mass(self):
 
         sage: Q = DiagonalQuadraticForm(ZZ, [7,1,1])
         sage: Q.conway_mass()
-        1/16
+        3/16
 
         sage: Q = QuadraticForm(ZZ, 3, [7, 2, 2, 2, 0, 2]) + DiagonalQuadraticForm(ZZ, [1])
         sage: Q.conway_mass()

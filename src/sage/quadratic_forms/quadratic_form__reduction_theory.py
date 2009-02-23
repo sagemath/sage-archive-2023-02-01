@@ -7,13 +7,22 @@ from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
 
 
-def reduced_binary_form(self):
+def reduced_binary_form1(self):
     """
     Reduce the form ax^2 + bxy+cy^2 to satisfy the reduced condition
         |b| <= a <= c, with b >= 0 if a = c.
     This reduction occurs within the proper class, so all
     transformations are taken to have det = 1.
 
+    EXAMPLES:
+
+        sage: QuadraticForm(ZZ,2,[5,5,2]).reduced_binary_form1()
+        (Quadratic form in 2 variables over Integer Ring with coefficients:
+        [ 2 -1 ]
+        [ * 2 ]
+        ,
+        [ 0 -1]
+        [ 1  1])
     """
     if self.dim() != 2:
         raise TypeError, "This must be a binary form for now..."
@@ -57,8 +66,15 @@ def reduced_ternary_form__Dickson(self):
         [. b d]
         [. . c]
 
+    EXAMPLES:
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1, 1, 1])
+        sage: Q.reduced_ternary_form__Dickson()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: TO DO
     """
-    pass
+    raise NotImplementedError, "TO DO"
 
 
 
@@ -66,6 +82,16 @@ def reduced_binary_form(self):
     """
     Find a form which is reduced in the sense that no further binary
     form reductions can be done to reduce the original form.
+
+    EXAMPLES:
+
+        sage: QuadraticForm(ZZ,2,[5,5,2]).reduced_binary_form()
+        (Quadratic form in 2 variables over Integer Ring with coefficients:
+        [ 2 -1 ]
+        [ * 2 ]
+        ,
+        [ 0 -1]
+        [ 1  1])
     """
     R = self.base_ring()
     n = self.dim()
@@ -79,7 +105,7 @@ def reduced_binary_form(self):
     while (interior_reduced_flag == False):
         interior_reduced_flag = True
 
-        print Q
+        #print Q
 
         ## Arrange for (weakly) increasing diagonal entries
         for i in range(n):

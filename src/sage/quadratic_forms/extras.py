@@ -3,7 +3,7 @@ from random import random
 from sage.calculus.calculus import floor
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
-from sage.rings.arith import valuation, kronecker_symbol, legendre_symbol, hilbert_symbol
+from sage.rings.arith import valuation, kronecker_symbol, legendre_symbol, hilbert_symbol, is_prime
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
@@ -18,6 +18,14 @@ def hilbert_symbol_rational(a, b, p):
 
     TO DO: This should really be incorporated into the hilbert_symbol()
     routine.
+
+    EXAMPLES:
+        sage: hilbert_symbol_rational(-1, -1, 2) == -1
+        True
+        sage: hilbert_symbol_rational(QQ(-1)/QQ(4), -1, 2) == -1
+        True
+        sage: hilbert_symbol_rational(QQ(-1)/QQ(4), -1, 3) == 1
+        True
     """
     return hilbert_symbol(squarefree_part(a), squarefree_part(b), p)
 
@@ -38,7 +46,14 @@ def sgn(x):
         1, 0, or -1.
 
     EXAMPLES:
-
+        sage: sgn(pi) == 1
+        True
+        sage: sgn(5/6) == 1
+        True
+        sage: sgn(0) == 0
+        True
+        sage: sgn(-3) == -1
+        True
     """
     if x > 0:
         return ZZ(1)
@@ -167,7 +182,7 @@ def extend_to_primitive(A_input):
     B = A * V
     B_new = matrix(R, n-k, n)
     for i in range(n-k):
-        B_new[i, i] = 1
+        B_new[i, n-i-1] = 1
     C = B.stack(B_new)
     D = C * V**(-1)
 
@@ -193,26 +208,26 @@ def extend_to_primitive(A_input):
 def random_int_upto(n):
     """
     Returns a random integer x satisfying 0 <= x < n.
+
+    EXAMPLES:
+        sage: x = random_int_upto(10)
+        sage: x >= 0
+        True
+        sage: x < 10
+        True
     """
     return floor(n * random())
 
 
 
-def sgn(x):
-    """
-    Returns the sign of a real number x.
-    """
-    if x > 0:
-        return 1
-    elif x == 0:
-        return 0
-    else:
-        return -1
-
-
 def quadratic_nonresidue(p):
     """
-    Returns the smalest positive integer quadratic non-residue in Z/pZ for primes p>2.    """
+    Returns the smalest positive integer quadratic non-residue in Z/pZ for primes p>2.
+
+    EXAMPLES:
+        sage: quadratic_nonresidue(5)
+        2
+    """
     p1 = abs(p)
 
     ## Deal with the prime p = 2 and |p| <= 1.
@@ -233,16 +248,29 @@ def IsPadicSquare(m, p):
     """
     Determines whether the (non-zero) rational number m is a square in Q_p.
     When p = infinity this returns the answer for the real numbers.
+
+    EXAMPLES:
+        sage: IsPadicSquare(2, 7)
+        True
+        sage: IsPadicSquare(98, 7)
+        True
+        sage: IsPadicSquare(2, 5)
+        False
     """
     ## Make sure m is non-zero
     if m == 0:
         raise TypeError, "Oops!  We're not allowed to ask about zero right now..."
 
-    ## TO DO:  Check that p is prime
-
     ## Deal with p = infinity (i.e. the real numbers)
     if p == infinity:
         return (m > 0)
+
+    ## Check that p is prime
+    try:
+        is_prime(p)
+    except:
+        raise TypeError, 'Oops!  p must be "infinity" or a positive prime number.'
+
 
     ## Deal with finite primes
     v1 = valuation(QQ(m).numer(), p)

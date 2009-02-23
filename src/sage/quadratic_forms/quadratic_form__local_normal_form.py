@@ -289,6 +289,12 @@ def jordan_blocks_by_scale_and_unimodular(self, p, safe_flag=True):
 
 
         sage: Q2 = QuadraticForm(ZZ, 2, [1,1,1])
+        sage: Q2.jordan_blocks_by_scale_and_unimodular(2)
+        [(-1,
+          Quadratic form in 2 variables over Integer Ring with coefficients:
+        [ 2 2 ]
+        [ * 2 ]
+        )]
         sage: Q = Q2 + Q2.scale_by_factor(2)
         sage: Q.jordan_blocks_by_scale_and_unimodular(2)
         [(-1,
@@ -358,7 +364,7 @@ def jordan_blocks_by_scale_and_unimodular(self, p, safe_flag=True):
         i += block_size
 
     ## Add the last block
-    tmp_Jordan_list += [(start_scale, Q1.extract_variables(range(start_ind, n)).scale_by_factor(1/ZZ(p**(start_scale))))]
+    tmp_Jordan_list += [(start_scale, Q1.extract_variables(range(start_ind, n)).scale_by_factor(ZZ(1) / QQ(p)**(start_scale)))]
 
 
     ## Cache the result
@@ -389,12 +395,20 @@ def jordan_blocks_in_unimodular_list_by_scale_power(self, p):
     EXAMPLES:
         sage: Q = QuadraticForm(ZZ, 3, [2, -2, 0, 3, -5, 4])
         sage: Q.jordan_blocks_in_unimodular_list_by_scale_power(2)
+        Traceback (most recent call last):
+        ...
+        TypeError: Oops!  The given quadratic form has a Jordan component with a negative scale exponent!
+        This routine requires an integer-matrix quadratic form for the output indexing to work properly!
+
+        sage: Q.scale_by_factor(2).jordan_blocks_in_unimodular_list_by_scale_power(2)
         [Quadratic form in 2 variables over Integer Ring with coefficients:
-        [ 3 0 ]
-        [ * 15 ]
+        [ 0 2 ]
+        [ * 0 ]
         ,
-         Quadratic form in 1 variables over Integer Ring with coefficients:
-        [ 27 ]
+        Quadratic form in 0 variables over Integer Ring with coefficients:
+        ,
+        Quadratic form in 1 variables over Integer Ring with coefficients:
+        [ 345 ]
         ]
 
         sage: Q.jordan_blocks_in_unimodular_list_by_scale_power(3)

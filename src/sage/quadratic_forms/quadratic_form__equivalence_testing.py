@@ -3,8 +3,10 @@ from sage.misc.mrange import mrange
 from sage.rings.arith import hilbert_symbol, prime_divisors, is_prime, valuation, GCD, legendre_symbol
 from sage.rings.integer_ring import ZZ
 
+from quadratic_form import is_QuadraticForm
 from extras import hilbert_symbol_rational
 from quadratic_form__genus import CS_genus_symbol_list
+
 
 from sage.misc.misc import SAGE_ROOT
 
@@ -21,6 +23,15 @@ from random import random
 def is_globally_equivalent__souvigner(self, other, return_transformation=False):
     """
     Uses the Souvigner code to compute the number of automorphisms.
+
+        sage: Q = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+        sage: Q1 = QuadraticForm(ZZ, 3, [8, 6, 5, 3, 4, 2])
+        sage: M = Q.is_globally_equivalent__souvigner(Q1, True) ; M
+        [ 0  0 -1]
+        [ 1  0  0]
+        [-1  1  1]
+        sage: Q1(M) == Q
+        True
     """
     ## Write an input text file
     F_filename = '/tmp/tmp_isom_input' + str(random()) + ".txt"
@@ -55,7 +66,7 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
     #os.system("less " + F.name)
 
     ## Call the Souvigner automorphism code
-    souvigner_isom_path = SAGE_ROOT + "/devel/sage-qfdevel/sage/quadratic_forms/automorphisms/ISOM32"
+    souvigner_isom_path = SAGE_ROOT + "/local/bin/Souvigner_ISOM"
     G1 = tempfile.NamedTemporaryFile(prefix='tmp_isom_ouput', suffix=".txt")
     #print "Output filename = ", G1.name
     #print  "Executing the shell command:   " + souvigner_isom_path + " '" +  F.name + "' > '" + G1.name + "'"
@@ -91,7 +102,11 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
             G1.close()
             G2.close()
             os.system("rm -f " + F_filename)
-            return True, M
+            if return_transformation:
+                return M.transpose()
+            else:
+                return True
+            #return True, M
 
     ## Raise and error if we're here:
     raise RuntimeError, "Oops! There is a problem..."
@@ -116,16 +131,42 @@ def is_globally_equivalent_to(self, other, return_matrix=False, check_theta_to_p
         sage: Q1 = Q(M)
         sage: Q.is_globally_equivalent_to(Q1)
         True
-        sage: Q.is_globally_equivalent_to(Q1, return_matrix=True)
-        [1 2 0 0]
-        [0 1 0 0]
-        [0 0 1 0]
-        [0 0 0 1]
-        sage: Q.is_globally_equivalent_to(Q1, return_matrix=True) == M
+        sage: MM = Q.is_globally_equivalent_to(Q1, return_matrix=True)
+        sage: Q(MM) == Q1
         True
+        sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+        sage: Q2 = QuadraticForm(ZZ, 3, [2, 1, 2, 2, 1, 3])
+        sage: Q3 = QuadraticForm(ZZ, 3, [8, 6, 5, 3, 4, 2])
+        sage: Q1.is_globally_equivalent_to(Q2)
+        False
+        sage: Q1.is_globally_equivalent_to(Q3)
+        True
+        sage: M = Q1.is_globally_equivalent_to(Q3, True) ; M
+        [-1 -1  0]
+        [ 1  1  1]
+        [-1  0  0]
+        sage: Q1(M) == Q3
+        True
+        sage: Q = DiagonalQuadraticForm(ZZ, [1, -1])
+        sage: Q.is_globally_equivalent_to(Q)
+        Traceback (most recent call last):
+        ...
+        ValueError: not a definite form in QuadraticForm.is_globally_equivalent_to()
     """
+    ## only for definite forms
+    if not self.is_definite():
+        raise ValueError, "not a definite form in QuadraticForm.is_globally_equivalent_to()"
+
+    ## Check that other is a QuadraticForm
+    #if not isinstance(other, QuadraticForm):
+    if not is_QuadraticForm(other):
+        raise TypeError, "Oops!  You must compare two quadratic forms, but the argument is not a quadratic form. =("
+
+
     ## Now use the Souvigner code by default! =)
-    return self.is_globally_equivalent__souvigner(other)
+    return other.is_globally_equivalent__souvigner(self, return_matrix)    ## Note: We switch this because teh Souvigner code has the opposite mapping convention to us.  (It takes the second argument to the first!)
+
+
 
     ## ----------------------------------  Unused Code below  ---------------------------------------------------------
 
@@ -182,8 +223,16 @@ def is_locally_equivalent_to(self, other, check_primes_only=False, force_jordan_
     p-adic integers for every prime p.
 
     This works by comparing the local Jordan decompositions at every
-    prime, and the dimension and signarure at the real place.
+    prime, and the dimension and signature at the real place.
 
+    EXAMPLES:
+
+        sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+        sage: Q2 = QuadraticForm(ZZ, 3, [2, 1, 2, 2, 1, 3])
+        sage: Q1.is_globally_equivalent_to(Q2)
+        False
+        sage: Q1.is_locally_equivalent_to(Q2)
+        True
     """
     ## TO IMPLEMENT:
     if self.det() == 0:
@@ -226,6 +275,24 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
     """
     Determines if the given quadratic form has a Jordan decomposition
     equivalent to that of self.
+
+    sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 1, 0, 3])
+    sage: Q2 = QuadraticForm(ZZ, 3, [1, 0, 0, 2, -2, 6])
+    sage: Q3 = QuadraticForm(ZZ, 3, [1, 0, 0, 1, 0, 11])
+    sage: [Q1.level(), Q2.level(), Q3.level()]
+    [44, 44, 44]
+    sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q2,2)
+    False
+    sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q2,11)
+    False
+    sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q3,2)
+    False
+    sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q3,11)
+    True
+    sage: Q2.has_equivalent_Jordan_decomposition_at_prime(Q3,2)
+    True
+    sage: Q2.has_equivalent_Jordan_decomposition_at_prime(Q3,11)
+    False
     """
     ## Sanity Checks
     #if not isinstance(other, QuadraticForm):
@@ -275,7 +342,7 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
                 return False
 
         ## DIAGNOSTIC
-        print "Passed the Jordan invariant test."
+        #print "Passed the Jordan invariant test."
 
 
         ## Use O'Meara's isometry test 93:29 on p277.
@@ -284,7 +351,7 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
         ## List of norms, scales, and dimensions for each i
         scale_list = [ZZ(2)**self_jordan[i][0]  for i in range(t)]
         norm_list = [ZZ(2)**(self_jordan[i][0] + valuation(GCD(self_jordan[i][1].coefficients()), 2))  for i in range(t)]
-        dim_list = [GCD(self_jordan[i][1].dim())  for i in range(t)]
+        dim_list = [(self_jordan[i][1].dim())  for i in range(t)]
 
         ## List of Hessian determinants and Hasse invariants for each Jordan (sub)chain
         ## (Note: This is not the same as O'Meara's Gram determinants, but ratios are the same!)  -- NOT SO GOOD...
@@ -313,14 +380,14 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
 
 
         ## DIAGNOSTIC
-        print "scale_list = ", scale_list
-        print "norm_list = ", norm_list
-        print "dim_list = ", dim_list
-        print
-        print "self_chain_det_list = ", self_chain_det_list
-        print "other_chain_det_list = ", other_chain_det_list
-        print "self_hasse_chain_list = ", self_hasse_chain_list
-        print "other_hasse_chain_det_list = ", other_hasse_chain_list
+        #print "scale_list = ", scale_list
+        #print "norm_list = ", norm_list
+        #print "dim_list = ", dim_list
+        #print
+        #print "self_chain_det_list = ", self_chain_det_list
+        #print "other_chain_det_list = ", other_chain_det_list
+        #print "self_hasse_chain_list = ", self_hasse_chain_list
+        #print "other_hasse_chain_det_list = ", other_hasse_chain_list
 
 
         ## Test O'Meara's two conditions
@@ -331,7 +398,7 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
             if modulus > 8:
                    modulus = 8
             if (modulus > 1) and (((self_chain_det_list[i] / other_chain_det_list[i]) % modulus) != 1):
-                print "Failed when i =", i, " in condition 1."
+                #print "Failed when i =", i, " in condition 1."
                 return False
 
             ## Check O'Meara's conditon (ii) when appropriate
@@ -340,7 +407,7 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
                 ##  Corrected ## if self_hasse_chain_list[i] * other_hasse_chain_list[i] * hilbert_symbol(-self_chain_det_list[i], norm_list[i], 2) != 1:
                 if self_hasse_chain_list[i] * hilbert_symbol_rational(norm_list[i] * other_chain_det_list[i], -self_chain_det_list[i], 2) \
                        != other_hasse_chain_list[i] * hilbert_symbol_rational(norm_list[i], -other_chain_det_list[i], 2):      ## Nipp conditions
-                    print "Failed when i =", i, " in condition 2."
+                    #print "Failed when i =", i, " in condition 2."
                     return False
 
 

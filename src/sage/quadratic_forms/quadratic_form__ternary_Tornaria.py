@@ -13,7 +13,12 @@ from sage.rings.power_series_ring import PowerSeriesRing
 
 from sage.libs.pari.all import pari
 from sage.misc.misc import prod
-from sage.rings.arith import factor
+from sage.rings.arith import factor, gcd, prime_to_m_part, CRT_list
+from sage.rings.arith import hilbert_symbol, kronecker_symbol
+
+from sage.quadratic_forms.quadratic_form import QuadraticForm__constructor as QuadraticForm
+from sage.modules.free_module import FreeModule
+from sage.modules.free_module_element import vector
 
 
 ## TO DO -- Add second argument
@@ -25,31 +30,60 @@ from sage.rings.arith import factor
 
 
 
-def disc_Tornaria(self):
+def disc(self):
     """
-    Returns the discriminant of the quadratc form,
+    Returns the discriminant of the quadratic form,
     defined as
 
-        det(B)      for even dimension
-        det(B)/2    for odd dimension
+        (-1)^n * det(B)      for even dimension 2n
+        det(B)/2             for odd dimension
 
     where 2Q(x) = x^t * B * x.
+
+    This agrees with the usual discriminant for binary and ternary quadratic forms.
+
+    EXAMPLES:
+
+        sage: DiagonalQuadraticForm(ZZ, [1]).disc()
+        1
+        sage: DiagonalQuadraticForm(ZZ, [1,1]).disc()
+        -4
+        sage: DiagonalQuadraticForm(ZZ, [1,1,1]).disc()
+        4
+        sage: DiagonalQuadraticForm(ZZ, [1,1,1,1]).disc()
+        16
     """
     if is_odd(self.dim()):
       return  self.base_ring()(self.det() / 2)      ## This is not so good for characteristic 2.
     else:
-      return self.det()
+      return (-1)**(self.dim()/2) * self.det()
 
 
-#def content(self):
-#    """
-#    Returns the GCD of the coefficients fo the quadratic form.
-#
-#    Warning: Only works over Euclidean domains... probably just ZZ. =|
-#    """
-#    return gcd(self.__coeffs)
+def content(self):
+    """
+    Returns the GCD of the coefficients fo the quadratic form.
+
+    Warning: Only works over Euclidean domains... probably just ZZ. =|
+
+    EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1, 1])
+        sage: Q.matrix().gcd()
+        2
+        sage: Q.content()
+        1
+        sage: DiagonalQuadraticForm(ZZ, [1, 1]).is_primitive()
+        True
+        sage: DiagonalQuadraticForm(ZZ, [2, 4]).is_primitive()
+        False
+        sage: DiagonalQuadraticForm(ZZ, [2, 4]).primitive()
+        Quadratic form in 2 variables over Integer Ring with coefficients:
+        [ 1 0 ]
+        [ * 2 ]
+    """
+    return self.gcd()
 
 
+## in quadratic_form.py
 #def is_primitive(self):
 #    """
 #    Checks if the form is a multiple of another form... only over ZZ for now.
@@ -58,6 +92,7 @@ def disc_Tornaria(self):
 
 
 
+## in quadratic_form.py
 #def primitive(self):
 #    """
 #    Returns a primitive quadratic forms in the similarity class of the given form.
@@ -70,47 +105,101 @@ def disc_Tornaria(self):
 
 
 
-#def adjoint(self):
-#    """
-#    This gives the adjoint (integral) quadratic form associated to the
-#    given form, essentially defined by taking the adjoint of the matrix.
-#    """
-#    if is_odd(self.dim()):
-#        return QuadraticForm(self.matrix().adjoint()*2)
-#    else:
-#        return QuadraticForm(self.matrix().adjoint())
+def adjoint(self):
+    """
+    This gives the adjoint (integral) quadratic form associated to the
+    given form, essentially defined by taking the adjoint of the matrix.
+
+    EXAMPLES:
+
+        sage: Q = QuadraticForm(ZZ, 2, [1,2,5])
+        sage: Q.adjoint()
+        Quadratic form in 2 variables over Integer Ring with coefficients:
+        [ 5 -2 ]
+        [ * 1 ]
+
+        sage: Q = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+        sage: Q.adjoint()
+        Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 39 2 8 ]
+        [ * 19 4 ]
+        [ * * 8 ]
+
+    """
+    if is_odd(self.dim()):
+        return QuadraticForm(self.matrix().adjoint()*2)
+    else:
+        return QuadraticForm(self.matrix().adjoint())
 
 
-## Perhaps this is not needed...
-#
-#  def antiadjoint(self):
-#    """
-#
-#
-#    """
-#    n=self.dim
-#    try:
-#      d=(polygen(self.R)**(n-1)-self.disc()).roots()[0][0]
-#      if is_odd(n):
-#        return self.adjoint() / d**(n-2) / 4
-#      else:
-#        return self.adjoint() / d**(n-2)
-#    except IndexError:
-#      raise ValueError, "not an adjoint"
+def antiadjoint(self):
+    """
+    This gives an (integral) form such that its adjoint is the given form.
+    sage: Q = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+    sage: Q.adjoint().antiadjoint()
+    Quadratic form in 3 variables over Integer Ring with coefficients:
+    [ 1 0 -1 ]
+    [ * 2 -1 ]
+    [ * * 5 ]
+    sage: Q.antiadjoint()
+    Traceback (most recent call last):
+    ...
+    ValueError: not an adjoint
+    """
+    try:
+      n = self.dim()
+      R = self.base_ring()
+      d = R(self.disc()**(ZZ(1)/(n-1)))
+      if is_odd(n):
+        return self.adjoint().scale_by_factor( R(1) / 4 / d**(n-2) )
+      else:
+        return self.adjoint().scale_by_factor( R(1) / d**(n-2) )
+    except TypeError:
+      raise ValueError, "not an adjoint"
 
 
-## See above...
-#
-#  def is_adjoint(self):
-#    try:
-#      self.antiadjoint()
-#    except ValueError:
-#      return False
-#    return True
+def is_adjoint(self):
+    """
+    Determines if the given form is the adjoint of another form
+
+    EXAMPLES:
+
+        sage: Q = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+        sage: Q.is_adjoint()
+        False
+        sage: Q.adjoint().is_adjoint()
+        True
+    """
+    try:
+      self.antiadjoint()
+    except ValueError:
+      return False
+    return True
 
 
 def reciprocal(self):
-    return self.adjoint().primitive() * self.content()
+    """
+    This gives the reciprocal quadratic form associated to the given form.
+    This is defined as the multiple of the primitive adjoint with the same
+    content as the given form.
+
+    EXAMPLES:
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,37])
+        sage: Q.reciprocal()
+        Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 37 0 0 ]
+        [ * 37 0 ]
+        [ * * 1 ]
+        sage: Q.reciprocal().reciprocal()
+        Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 1 0 0 ]
+        [ * 1 0 ]
+        [ * * 37 ]
+        sage: Q.reciprocal().reciprocal() == Q
+        True
+    """
+    return self.adjoint().primitive() . scale_by_factor( self.content() )
 
 
 def omega(self):
@@ -118,6 +207,12 @@ def omega(self):
     This is the content of the adjont of the primitive associated quadratic form.
 
     Ref: See Dickson's "Studies in Number Theory".
+
+    EXAMPLES:
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,37])
+        sage: Q.omega()
+        4
     """
     return self.primitive().adjoint().content()
 
@@ -125,18 +220,55 @@ def delta(self):
     """
     This is the omega of the adjoint form,
     which is the same as the omega of the reciprocal form.
+
+    EXAMPLES:
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,37])
+        sage: Q.delta()
+        148
     """
     return self.adjoint().omega()
 
 
 def level__Tornaria(self):
     """
-    Hopefully this agrees with the usual level...
+    Returns the level of the quadratic form,
+    defined as
+
+        level(B)    for even dimension
+        level(B)/4  for odd dimension
+
+    where 2Q(x) = x^t * B * x.
+
+    This agrees with the usual level for even dimension...
+
+    EXAMPLES:
+        sage: DiagonalQuadraticForm(ZZ, [1]).level__Tornaria()
+        1
+        sage: DiagonalQuadraticForm(ZZ, [1,1]).level__Tornaria()
+        4
+        sage: DiagonalQuadraticForm(ZZ, [1,1,1]).level__Tornaria()
+        1
+        sage: DiagonalQuadraticForm(ZZ, [1,1,1,1]).level__Tornaria()
+        4
     """
-    return self.base_ring()(self.disc()/self.omega()/self.content()**self.dim())
+    return self.base_ring()(abs(self.disc())/self.omega()/self.content()**self.dim())
 
 
 def discrec(self):
+    """
+    Returns the discriminant of the reciprocal form.
+
+    EXAMPLES:
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,37])
+        sage: Q.disc()
+        148
+        sage: Q.discrec()
+        5476
+        sage: [4 * 37, 4 * 37^2]
+        [148, 5476]
+    """
     return self.reciprocal().disc()
 
 
@@ -146,19 +278,47 @@ def discrec(self):
 
 def hasse_conductor(self):
     """
-    This is the product of all primes where the Hasse invariant is -1.
+    This is the product of all primes where the Hasse invariant equals -(-1,-D).
 
-    Note: For ternary forms, this is the discriminant of the associated
+    Note: For ternary forms, this is the discriminant of the
     quaternion algebra associated to the quadratic space
+
+    EXAMPLES:
+
+        sage: Q = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+        sage: Q.hasse_invariant(2)
+        -1
+        sage: hilbert_symbol(-1, -37, 2)
+        -1
+        sage: Q.hasse_invariant(37)
+        -1
+        sage: hilbert_symbol(-1, -37, 37)
+        1
+        sage: Q.hasse_conductor()
+        37
+
+        sage: DiagonalQuadraticForm(ZZ, [1, 1, 1]).hasse_conductor()
+        2
+        sage: QuadraticForm(ZZ, 3, [2, -2, 0, 2, 0, 5]).hasse_conductor()
+        30
     """
-    # * self.hasse(-1) ???
-    return prod(filter(lambda(p):self.hasse_invariant(p)==-1, \
+    D = self.disc()
+    return prod(filter(lambda(p):self.hasse_invariant(p)==-hilbert_symbol(-1,-D,p), \
              map(lambda(x):x[0],factor(2*self.level()))))
 
 
 ### Genus theory
 
 def basiclemma(self,M):
+    """
+    Finds a number represented by self and coprime to M.
+
+    EXAMPLES:
+
+        sage: Q = QuadraticForm(ZZ, 2, [2, 1, 3])
+        sage: Q.basiclemma(6)
+        71
+    """
     a=self(self.basiclemmavec(M))
     assert gcd(a,M) == 1
     return a
@@ -166,6 +326,14 @@ def basiclemma(self,M):
 def basiclemmavec(self,M):
     """
     Finds a vector where the value of the quadratic form is coprime to M.
+
+    EXAMPLES:
+
+        sage: Q = QuadraticForm(ZZ, 2, [2, 1, 5])
+        sage: Q.basiclemmavec(10)
+        (6, 5)
+        sage: Q(_)
+        227
     """
     V=FreeModule(self.base_ring(),self.dim())
     mat = self.matrix()
@@ -178,11 +346,11 @@ def basiclemmavec(self,M):
     for i in range(self.dim()):
         M1 = prime_to_m_part(M0, self[i,i])
         if M1 != 1:
-            vec.append(V.i)
+            vec.append(V.gen(i))
             mod.append(M1)
         M0 = M0/M1
         if M0 == 1:
-            return __crt_list(vec,mod)
+            return CRT_list(vec,mod)
 
     for i in range(self.dim()):
         for j in range(i):
@@ -196,13 +364,6 @@ def basiclemmavec(self,M):
 
     raise ValueError, "not primitive form"
 
-def __crt_list(ls, ms):
-    """
-    Chinese remainder theorem for lists; find an element l
-    such that l = ls[i] mod ms[i] for all i.
-    """
-    return sum(map(prod,zip,(ls,crt_basis(ms))))
-
 
 ### FIXME: get the rules for validity of characters straight...
 ### p=2 might be bad!!!
@@ -212,19 +373,47 @@ def xi(self,p):
     We allow -1 as a prime.
 
     Reference: Dickson's "Studies in the Theory of Numbers"
+
+    EXAMPLES:
+
+        sage: Q1 = QuadraticForm(ZZ, 3, [1, 1, 1, 14, 3, 14])
+        sage: Q2 = QuadraticForm(ZZ, 3, [2, -1, 0, 2, 0, 50])
+        sage: [Q1.omega(), Q2.omega()]
+        [5, 5]
+        sage: [Q1.hasse_invariant(5), Q2.hasse_invariant(5)]    # equivalent over Q_5
+        [1, 1]
+        sage: [Q1.xi(5), Q2.xi(5)]                              # not equivalent over Z_5
+        [1, -1]
     """
     if self.dim() == 2 and self.disc() % p:
         raise ValueError, "not a valid character"
     if self.dim() >= 3 and self.omega() % p:
         raise ValueError, "not a valid character"
     if (p == -1) or (p == 2):
-        return kronecker(p, self.basiclemma(2))
-    return kronecker(self.basiclemma(p), p)
+        return kronecker_symbol(p, self.basiclemma(2))
+    return kronecker_symbol(self.basiclemma(p), p)
 
 
 def xi_rec(self,p):
     """
     Returns Xi(p) for the reciprocal form.
+
+    EXAMPLES:
+
+        sage: Q1 = QuadraticForm(ZZ, 3, [1, 1, 1, 14, 3, 14])
+        sage: Q2 = QuadraticForm(ZZ, 3, [2, -1, 0, 2, 0, 50])
+        sage: [Q1.hasse_conductor(), Q2.hasse_conductor()]   # equivalent over Q
+        [3, 3]
+        sage: Q1.is_locally_equivalent_to(Q2)                # not in the same genus
+        False
+        sage: [Q1.delta(), Q2.delta()]
+        [480, 480]
+        sage: factor(480)
+        2^5 * 3 * 5
+        sage: map(Q1.xi_rec, [-1,2,3,5])
+        [-1, -1, -1, 1]
+        sage: map(Q2.xi_rec, [-1,2,3,5])
+        [-1, -1, -1, -1]
     """
     return self.reciprocal().xi(p)
 
@@ -232,54 +421,135 @@ def xi_rec(self,p):
 def lll(self):
     """
     Returns an LLL-reduced form of Q (using Pari).
+
+    EXAMPLES:
+
+        sage: Q = QuadraticForm(ZZ, 4, range(1,11))
+        sage: Q.is_definite()
+        True
+        sage: Q.lll()
+        Quadratic form in 4 variables over Integer Ring with coefficients:
+        [ 1 0 -1 0 ]
+        [ * 4 3 3 ]
+        [ * * 6 3 ]
+        [ * * * 6 ]
     """
-    return self(self.matrix().lllgram())
+    return self(self.matrix().LLL_gram())
 
 
 def representation_number_list(self, B):
     """
     Returns the vector of representation numbers < B.
+
+    EXAMPLES:
+
+        sage: Q = DiagonalQuadraticForm(ZZ,[1,1,1,1,1,1,1,1])
+        sage: Q.representation_number_list(10)
+        [1, 16, 112, 448, 1136, 2016, 3136, 5504, 9328, 12112]
     """
-    return pari(1).concat(self._pari_().qfrep(B-1, 1) * 2)
+    ans = pari(1).concat(self._pari_().qfrep(B-1, 1) * 2)
+    return ans._sage_()
 
 
-def ThetaByPari(self, B):
+def representation_vector_list(self, B, maxvectors = 10**8):
     """
-    Returns the theta function up to O(q^B).
-    """
-    PSR = PowerSeriesRing(ZZ,'q')
-    return PSR(self.representation_number_list(B), B)
+    Find all vectors v where Q(v) < B.
 
+    EXAMPLES:
 
-
-def representation_vector_list(self, B):
+        sage: Q = DiagonalQuadraticForm(ZZ, [1, 1])
+        sage: Q.representation_vector_list(10)
+        [[(0, 0)],
+         [(0, 1), (0, -1), (1, 0), (-1, 0)],
+         [(1, 1), (-1, -1), (-1, 1), (1, -1)],
+         [],
+         [(0, 2), (0, -2), (2, 0), (-2, 0)],
+         [(1, 2), (-1, -2), (-1, 2), (1, -2), (2, 1), (-2, -1), (-2, 1), (2, -1)],
+         [],
+         [],
+         [(2, 2), (-2, -2), (-2, 2), (2, -2)],
+         [(0, 3), (0, -3), (3, 0), (-3, 0)]]
+        sage: map(len, _)
+        [1, 4, 4, 0, 4, 8, 0, 0, 4, 4]
+        sage: Q.representation_number_list(10)
+        [1, 4, 4, 0, 4, 8, 0, 0, 4, 4]
     """
-    Find all vectors v where Q(v) <= B.
-    """
-    n,m,vs = self._pari_().qfminim(2*(B-1), 10**8)
+    n, m, vs = self._pari_().qfminim(2*(B-1), maxvectors)
     if n != 2 * len(vs):
         raise RuntimeError("insufficient number of vectors")
-    ms = [[] for _ in xrange(m/2+1)]
-    for v in vs:
-        ms[int(self(v))].append(v)
+    ms = [[] for _ in xrange(B)]
+    ms[0] = [vector([0] * self.dim())]
+    for v in vs._sage_().columns():
+        ms[int(self(v))] += [v, -v]
     return ms
-
 
 
 ### zeros
 
-def is_singular_vector(self, v, p=0):
+def is_zero(self, v, p=0):
+    """
+    Determines if the vector v is on the conic Q(x) = 0 (mod p).
+
+    EXAMPLES:
+
+        sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+        sage: Q1.is_zero([0,1,0], 2)
+        True
+        sage: Q1.is_zero([1,1,1], 2)
+        True
+        sage: Q1.is_zero([1,1,0], 2)
+        False
+    """
+    norm = self(v)
+    if p != 0:
+        norm = norm % p
+    return  norm == 0
+
+def is_zero_nonsingular(self, v, p=0):
     """
     Determines if the vector v is on the conic Q(x) = 0 (mod p),
     and that this point is non-singular point of the conic.
+
+    EXAMPLES:
+
+        sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+        sage: Q1.is_zero_nonsingular([1,1,1], 2)
+        True
+        sage: Q1.is_zero([1, 19, 2], 37)
+        True
+        sage: Q1.is_zero_nonsingular([1, 19, 2], 37)
+        False
     """
     if not self.is_zero(v, p):
         return False
     vm = vector(self.base_ring(), v) * self.matrix()
     if p != 0:
         vm = vm % p
+    return (vm != 0)
 
+def is_zero_singular(self, v, p=0):
+    """
+    Determines if the vector v is on the conic Q(x) = 0 (mod p),
+    and that this point is singular point of the conic.
+
+    EXAMPLES:
+
+        sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+        sage: Q1.is_zero([1,1,1], 2)
+        True
+        sage: Q1.is_zero_singular([1,1,1], 2)
+        False
+        sage: Q1.is_zero_singular([1, 19, 2], 37)
+        True
+    """
+    if not self.is_zero(v, p):
+        return False
+    vm = vector(self.base_ring(), v) * self.matrix()
+    if p != 0:
+        vm = vm % p
     return (vm == 0)
+
+
 
 
 

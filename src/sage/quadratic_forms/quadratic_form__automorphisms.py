@@ -258,25 +258,36 @@ def automorphisms(self):
     48
     sage: 2^3 * factorial(3)
     48
-
-    sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
-    sage: Q.number_of_automorphisms()
-    384
-    sage: 2^4 * factorial(4)
-    384
+    sage: len(Q.automorphisms())
+    48
 
     sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
     sage: Q.number_of_automorphisms()
     16
+    sage: aut = Q.automorphisms()
+    sage: len(aut)
+    16
+    sage: print([Q(M) == Q for M in aut])
+    [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
 
-    #sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,1])
-    #sage: time Q.number_of_automorphisms()
-    #CPU times: user 119.44 s, sys: 0.87 s, total: 120.31 s
-    #Wall time: 121.80
-    #3840
-    #sage: 2^5 * factorial(5)
-    #3840
+    sage: Q = QuadraticForm(ZZ, 3, [2, 1, 2, 2, 1, 3])
+    sage: Q.automorphisms()
+    [[1 0 0]
+    [0 1 0]
+    [0 0 1], [-1  0  0]
+    [ 0 -1  0]
+    [ 0  0 -1]]
+
+    sage: Q = DiagonalQuadraticForm(ZZ, [1, -1])
+    sage: Q.automorphisms()
+    Traceback (most recent call last):
+    ...
+    ValueError: not a definite form in QuadraticForm.automorphisms()
     """
+    ## only for definite forms
+    if not self.is_definite():
+        raise ValueError, "not a definite form in QuadraticForm.automorphisms()"
+
     ## Check for a cached value
     try:
         return self.__automorphisms
@@ -294,6 +305,7 @@ def automorphisms(self):
 
     ## Make the matrix A:e_i |--> v_i to our new basis.
     A = Matrix(basis).transpose()
+    Ainv = A.inverse()
     #A1 = A.inverse() * A.det()
     #Q1 = A1.transpose() * self.matrix() * A1       ## This is the matrix of Q
     #Q = self.matrix() * A.det()**2
@@ -321,7 +333,7 @@ def automorphisms(self):
         #print M
         #print
         if M.transpose() * Q3 * M == Q2:       ## THIS DOES THE SAME THING! =(
-            Auto_list.append(M)
+            Auto_list.append(M * Ainv)
 
 
     ## Cache the answer and return the list
@@ -352,7 +364,23 @@ def number_of_automorphisms(self, recompute=False):
         48
         sage: Q.list_external_initializations()
         []
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
+        sage: Q.number_of_automorphisms()
+        384
+        sage: 2^4 * factorial(4)
+        384
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1, -1])
+        sage: Q.number_of_automorphisms()
+        Traceback (most recent call last):
+        ...
+        ValueError: not a definite form in QuadraticForm.number_of_automorphisms()
     """
+    ## only for definite forms
+    if not self.is_definite():
+        raise ValueError, "not a definite form in QuadraticForm.number_of_automorphisms()"
+
     ## Try to use the cached version if we can
     if not recompute:
         try:
@@ -377,6 +405,12 @@ def number_of_automorphisms(self, recompute=False):
 def number_of_automorphisms__souvigner(self):
     """
     Uses the Souvigner code to compute the number of automorphisms.
+
+    sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,1])
+    sage: Q.number_of_automorphisms__souvigner()
+    3840
+    sage: 2^5 * factorial(5)
+    3840
     """
     ## Write an input text file
     F_filename = '/tmp/tmp_isom_input' + str(random()) + ".txt"
@@ -453,18 +487,18 @@ def set_number_of_automorphisms(self, num_autos):
 
 
 
-
-def Nipp_automorphism_testing(self):
-    """
-    Testing the automorphism routine agains Nipp's Tables
-
-        --- MOVE THIS ELSEWHERE!!! ---
-
-    """
-    for i in range(20):
-        Q = QuadraticForm(ZZ, 4, Nipp[i][2])
-        my_num = Q.number_of_automorphisms()
-        nipp_num = Nipp.number_of_automorphisms(i)
-        print "    i = " + str(i) + "  my_num = " + str(my_num) + "  nipp_num = " + str(nipp_num)
-
+### TODO
+# def Nipp_automorphism_testing(self):
+#     """
+#     Testing the automorphism routine agains Nipp's Tables
+#
+#         --- MOVE THIS ELSEWHERE!!! ---
+#
+#     """
+#     for i in range(20):
+#         Q = QuadraticForm(ZZ, 4, Nipp[i][2])
+#         my_num = Q.number_of_automorphisms()
+#         nipp_num = Nipp.number_of_automorphisms(i)
+#         print "    i = " + str(i) + "  my_num = " + str(my_num) + "  nipp_num = " + str(nipp_num)
+#
 

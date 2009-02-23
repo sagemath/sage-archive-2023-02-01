@@ -24,19 +24,19 @@ def random_quadraticform(R, n, rand_arg_list=[]):
         A quadratic form over the ring R.
 
     EXAMPLES:
-        sage: random_quadraticform(ZZ, 3, [1,5])
+        sage: random_quadraticform(ZZ, 3, [1,5])    ## RANDOM
         Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 3 2 3 ]
         [ * 1 4 ]
         [ * * 3 ]
 
-        sage: random_quadraticform(ZZ, 3, [-5,5])
+        sage: random_quadraticform(ZZ, 3, [-5,5])    ## RANDOM
         Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 3 2 -5 ]
         [ * 2 -2 ]
         [ * * -5 ]
 
-        sage: random_quadraticform(ZZ, 3, [-50,50])
+        sage: random_quadraticform(ZZ, 3, [-50,50])    ## RANDOM
         Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 1 8 -23 ]
         [ * 0 0 ]
@@ -79,7 +79,7 @@ def random_quadraticform_with_conditions(R, n, condition_list=[], rand_arg_list=
 
     EXAMPLES:
         sage: Q = random_quadraticform_with_conditions(ZZ, 3, [QuadraticForm.is_positive_definite], [-5, 5])
-        sage: Q
+        sage: Q    ## RANDOM
         Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 3 -2 -5 ]
         [ * 2 2 ]

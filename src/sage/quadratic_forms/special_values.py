@@ -5,6 +5,7 @@
 from sage.algebras.quaternion_algebra import fundamental_discriminant
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.arith import kronecker_symbol, bernoulli, factorial
+from sage.rings.all import RealField
 from sage.combinat.combinat import bernoulli_polynomial
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
@@ -136,7 +137,18 @@ def QuadraticBernoulliNumber(k, d):
     Compute k-th Bernoulli number for the primitive
     quadratic character associated to chi(x) = (d/x).
 
+    References:  Iwasawa's "Lectures on p-adic L-functions", pp7-16.
+
     EXAMPLES:
+        sage: ## Makes a set of odd fund discriminants < -3
+        sage: Fund_odd_test_set = [D  for D in range(-163, -3, 4)  if is_fundamental_discriminant(D)]
+
+        sage: ## In general, we have B_{1, \chi_d} = -2h/w  for odd fund disc < 0
+        sage: for D in Fund_odd_test_set:
+        ...      if len(BinaryQF_reduced_representatives(D)) != -QuadraticBernoulliNumber(1, D):
+        ...          print "Oops!  There is an error at D = ", D
+
+
 
     """
     ## Ensure the character is primitive
@@ -165,17 +177,8 @@ def quadratic_L_function__exact(n, d):
         Washington's "Cyclotomic Fields"
 
     EXAMPLES:
-        sage: RR = RealField(100)
-        sage: for i in range(5):
-        ...       print "L(" + str(1+2*i) + ", (-4/.)): ", RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)
-        L(1, (-4/.)):  0.000049999999500000024999996962707
-        L(3, (-4/.)):  0.00000000000049999997000000374637816570842
-        L(5, (-4/.)):  0.0000000000000000000049999992370601592951889007864
-        L(7, (-4/.)):  0.000000000000000000000000000028398992587956424994822228350
-        L(9, (-4/.)):  0.0000000000000000000000000000031554436208840472216469142611
-
-        sage: ## Testing the accuracy of the negative special values
-        sage: ## ---- THIS FAILS SINCE THE DIRICHLET SERIES DOESN'T CONVERGE HERE! ----
+        sage: bool(quadratic_L_function__exact(1, -4) == pi/4)
+        True
 
     """
     if n<=0:
@@ -214,6 +217,26 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
     """
     Evaluate the Dirichlet L-function (for quadratic character) numerically
     (in a very naive way).
+
+    EXAMPLES:
+        sage:  ## Test several values for a given character
+        sage: RR = RealField(100)
+        sage: for i in range(5):
+        ...       print "L(" + str(1+2*i) + ", (-4/.)): ", RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)
+        L(1, (-4/.)):  0.000049999999500000024999996962707
+        L(3, (-4/.)):  4.9999997000000374637816570842e-13
+        L(5, (-4/.)):  4.9999992370601592951889007864e-21
+        L(7, (-4/.)):  2.8398992587956424994822228350e-29
+        L(9, (-4/.)):  3.1554436208840472216469142611e-30
+
+        sage: ## Testing the accuracy of the negative special values
+        sage: ## ---- THIS FAILS SINCE THE DIRICHLET SERIES DOESN'T CONVERGE HERE! ----
+
+        sage: ## Test several characters agree with the exact value, to a given accuracy.
+        sage: for d in range(-20,0):
+        ...       if abs(RR(quadratic_L_function__numerical(1, d, 10000) - quadratic_L_function__exact(1, d))) > 0.001:
+        ...           print "Oops!  We have a problem at d = ", d, "    exact = ", RR(quadratic_L_function__exact(1, d)), "    numerical = ", RR(quadratic_L_function__numerical(1, d))
+        ...
 
     """
     ## Set the correct precision if it's given (for n).

@@ -41,7 +41,7 @@ class QuadraticFormLocalRepresentationConditions():
              Reals:   [0, +Infinity]
              p = 2:   [0, 0, 0, +Infinity, 0, 0, 0, 0]
         sage: E = [m  for m in range(100)  if not Q3.is_locally_represented_number(m)]
-        sage: E1 = [m  for m in range(100)  if m / 2**(2*floor(valuation(m,2)/2)) % 8 == 7]
+        sage: E1 = [m  for m in range(1,100)  if m / 2**(2*floor(valuation(m,2)/2)) % 8 == 7]
         sage: E == E1
         True
         sage: E
@@ -87,6 +87,14 @@ class QuadraticFormLocalRepresentationConditions():
         they don't already exist).  The recompute_flag overrides the
         previously computed conditions if they exist, and stores the
         new conditions.
+
+        EXAMPLES:
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
+            sage: from sage.quadratic_forms.quadratic_form__local_representation_conditions import QuadraticFormLocalRepresentationConditions
+            sage: QuadraticFormLocalRepresentationConditions(Q)
+            This form represents the p-adic integers Z_p for all primes p except
+            [].  For these and the reals, we have:
+                 Reals:   [0, +Infinity]
         """
 
         ## Check that the form Q is integer-valued (we can relax this later)
@@ -183,6 +191,14 @@ class QuadraticFormLocalRepresentationConditions():
 
         TO DO:  Improve the output for the real numbers, and special output for locally unversality.
         Also give names to the squareclasses, so it's clear what the output means! =)
+
+        EXAMPLES:
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1])
+            sage: from sage.quadratic_forms.quadratic_form__local_representation_conditions import QuadraticFormLocalRepresentationConditions
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.__repr__()
+            'This 2-dimensional form represents the p-adic integers of even\nvaluation for all primes p except [2].\nFor these and the reals, we have:\n     Reals:   [0, +Infinity]\n     p = 2:   [0, +Infinity, 0, +Infinity, 0, +Infinity, 0, +Infinity]\n'
+
         """
         if self.dim == 0:
             out_str = "This 0-dimensional form only represents zero."
@@ -259,6 +275,11 @@ class QuadraticFormLocalRepresentationConditions():
             a list of integers
 
         EXAMPLES:
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+            sage: from sage.quadratic_forms.quadratic_form__local_representation_conditions import QuadraticFormLocalRepresentationConditions
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.squareclass_vector(5)
+            [1, 2, 5, 10]
         """
         if p == infinity:
             return [1, -1]
@@ -273,6 +294,15 @@ class QuadraticFormLocalRepresentationConditions():
     def local_conditions_vector_for_prime(self, p):
         """
         Returns a local representation vector for the (possibly infinite) prime p.
+
+        EXAMPLES:
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+            sage: from sage.quadratic_forms.quadratic_form__local_representation_conditions import QuadraticFormLocalRepresentationConditions
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.local_conditions_vector_for_prime(2)
+            [2, 0, 0, 0, +Infinity, 0, 0, 0, 0]
+            sage: C.local_conditions_vector_for_prime(3)
+            [3, 0, 0, 0, 0, None, None, None, None]
         """
         ## Check if p is non-generic
         if p in self.exceptional_primes:
@@ -313,6 +343,17 @@ class QuadraticFormLocalRepresentationConditions():
     def is_universal_at_prime(self, p):
         """
         Determines if the (integer-valued/rational) quadratic form represents all of Z_p.
+
+        EXAMPLES:
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+            sage: from sage.quadratic_forms.quadratic_form__local_representation_conditions import QuadraticFormLocalRepresentationConditions
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.is_universal_at_prime(2)
+            False
+            sage: C.is_universal_at_prime(3)
+            True
+            sage: C.is_universal_at_prime(infinity)
+            False
         """
         ## Check if the prime behaves generically for n >= 3.
         if (self.dim >= 3) and not (p in self.exceptional_primes):
@@ -333,7 +374,7 @@ class QuadraticFormLocalRepresentationConditions():
         v = self.local_conditions_vector_for_prime(p)
         Zp_univ_flag = True
         for nu in v[1:]:
-            if not ((nu >= 0) or (nu == None)):
+            if (nu != None) and ((nu != 0) or (nu == infinity)):
                 Zp_univ_flag = False
         return Zp_univ_flag
 
@@ -341,6 +382,19 @@ class QuadraticFormLocalRepresentationConditions():
     def is_universal_at_all_finite_primes(self):
         """
         Determines if the quadratic form represents Z_p for all finite/non-archimedian primes.
+
+        EXAMPLES:
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+            sage: from sage.quadratic_forms.quadratic_form__local_representation_conditions import QuadraticFormLocalRepresentationConditions
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.is_universal_at_all_finite_primes()
+            False
+
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
+            sage: from sage.quadratic_forms.quadratic_form__local_representation_conditions import QuadraticFormLocalRepresentationConditions
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.is_universal_at_all_finite_primes()
+            True
         """
         ## Check if dim <= 2.
         if self.dim <= 2:
@@ -349,7 +403,7 @@ class QuadraticFormLocalRepresentationConditions():
         ## Check that all non-generic finite primes are universal
         univ_flag = True
         for p in self.exceptional_primes[1:]:      ## Omit p = "infinity" here
-            univ_flag = univ_flag and is_universal_at_prime(p)
+            univ_flag = univ_flag and self.is_universal_at_prime(p)
         return univ_flag
 
 
@@ -357,6 +411,23 @@ class QuadraticFormLocalRepresentationConditions():
         """
         Determines if the quadratic form represents Z_p for all
         finite/non-archimedian primes, and represents all real numbers.
+        EXAMPLES:
+            sage: from sage.quadratic_forms.quadratic_form__local_representation_conditions import QuadraticFormLocalRepresentationConditions
+
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.is_universal_at_all_places()
+            False
+
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.is_universal_at_all_places()
+            False
+
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,-1])
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.is_universal_at_all_places()
+            True
         """
         ## Check if dim <= 2.
         if self.dim <= 2:
@@ -374,6 +445,22 @@ class QuadraticFormLocalRepresentationConditions():
         """
         Determines if the rational number m is locally represented by the
         quadratic form at the (possibly infinite) prime p.
+
+        EXAMPLES:
+            sage: from sage.quadratic_forms.quadratic_form__local_representation_conditions import QuadraticFormLocalRepresentationConditions
+
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.is_locally_represented_at_place(7, 2)
+            False
+            sage: C.is_locally_represented_at_place(1, 3)
+            True
+            sage: C.is_locally_represented_at_place(-1, infinity)
+            False
+            sage: C.is_locally_represented_at_place(1, infinity)
+            True
+            sage: C.is_locally_represented_at_place(0, infinity)
+            True
         """
         ## Sanity Check
         if not m in QQ:
@@ -419,7 +506,21 @@ class QuadraticFormLocalRepresentationConditions():
 
     def is_locally_represented(self, m):
         """
-        Determines if the rational number m is locally represented by the quadratic form.
+        Determines if the rational number m is locally represented by the quadratic form (allowing vectors with coeffs in Z_p at all places).
+
+        EXAMPLES:
+            sage: from sage.quadratic_forms.quadratic_form__local_representation_conditions import QuadraticFormLocalRepresentationConditions
+
+            sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)
+            sage: C.is_locally_represented(7)
+            False
+            sage: C.is_locally_represented(28)
+            False
+            sage: C.is_locally_represented(11)
+            True
+            sage: C.is_locally_represented(QQ(1)/QQ(2))
+            False
         """
         ## Representing zero
         if m == 0:

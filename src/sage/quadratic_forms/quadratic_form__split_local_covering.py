@@ -9,6 +9,7 @@ from copy import deepcopy
 from sage.quadratic_forms.extras import extend_to_primitive
 from sage.quadratic_forms.quadratic_form import QuadraticForm__constructor, is_QuadraticForm
 
+from sage.rings.real_mpfr import RealField
 from sage.rings.real_double import RDF
 from sage.matrix.matrix_space import MatrixSpace
 #from sage.matrix.matrix import Matrix
@@ -18,6 +19,75 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.misc.functional import round
 from sage.rings.arith import GCD
+
+
+def cholesky_decomposition(self, bit_prec = 53):
+    """
+    Give the Cholesky decomposition of Q as a real matrix of precision
+        bit_prec.
+
+    RESTRICTIONS: Q must be given as a QuadraticForm defnined over ZZ,
+        QQ, or some RealField().  If it is over some real field, then
+        an error is raised if the precision given is not less than the
+        defined precision of the real field defining the quadratic form!
+
+    REFERENCE: From Cohen's "A Course in Computational Algebraic
+        Number Theory" book, p 103.
+
+    INPUT:
+        bit_prec -- a natural number.
+
+    OUTPUT:
+        an upper triangular real matrix of precision bit_prec.
+
+
+    TO DO: If we only care about working over the real double field
+        (RDF), then we can use the cholesky() method present for
+        square matrices over that.
+
+
+    ##/////////////////////////////////////////////////////////////////////////////////////////////////
+    ##/// Finds the Cholesky decomposition of a quadratic form -- as an upper-triangular matrix!
+    ##/// (It's assumed to be global, hence twice the form it refers to.)  <-- Python revision asks:  Is this true?!? =|
+    ##/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    EXAMPLES:
+
+
+    """
+
+    ## Check that the precision passed is allowed.
+    if isinstance(self.base_ring(), RealField) and (self.base_ring().prec() < bit_prec):
+        raise RuntimeError, "Oops! The precision requested is greater than that of the given quadratic form!"
+
+    ## 1. Initialization
+    n = self.dim()
+    R = RealField(bit_prec)
+    MS = MatrixSpace(R, n, n)
+    Q = MS(R(0.5)) * MS(self.matrix())               ## Initialize the real symmetric matrix A with the matrix for Q(x) = x^t * A * x
+
+    ## DIAGNOSTIC
+    #print "After 1:  Q is \n" + str(Q)
+
+    ## 2. Loop on i
+    for i in range(n):
+        for j in range(i+1, n):
+            Q[j,i] = Q[i,j]             ## Is this line redundant?
+            Q[i,j] = Q[i,j] / Q[i,i]
+
+        ## 3. Main Loop
+        for k in range(i+1, n):
+            for l in range(k, n):
+                Q[k,l] = Q[k,l] - Q[k,i] * Q[i,l]
+
+    ## 4. Zero out the strictly lower-triangular entries
+    for i in range(n):
+        for j in range(i-1):
+            Q[i,j] = 0
+
+    return Q
+
 
 
 def vectors_by_length(self, bound):

@@ -32,8 +32,8 @@ def siegel_product(self, u):
 
     EXAMPLES:
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
-        sage: Q.theta_by_cholesky(10)
-        1 + 8*q + 24*q^2 + 32*q^3 + 24*q^4 + 48*q^5 + 96*q^6 + 64*q^7 + 24*q^8 + 104*q^9 + 144*q^10
+        sage: Q.theta_series(11)
+        1 + 8*q + 24*q^2 + 32*q^3 + 24*q^4 + 48*q^5 + 96*q^6 + 64*q^7 + 24*q^8 + 104*q^9 + 144*q^10 + O(q^11)
 
         sage: Q.siegel_product(1)
         8
@@ -64,7 +64,7 @@ def siegel_product(self, u):
         sage: M = 16; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 2]) / M^3     ## long time
         3/2
 
-        sage: [1] + [Q.siegel_product(ZZ(a))  for a in range(1,11)] == Q.theta_by_cholesky(10).list()
+        sage: [1] + [Q.siegel_product(ZZ(a))  for a in range(1,11)] == Q.theta_series(11).list()
         True
 
     """

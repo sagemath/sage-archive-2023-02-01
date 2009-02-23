@@ -242,7 +242,11 @@ def is_hyperbolic(self, p):
             - direct sum formulas (Lemma 2.3 on p58)
 
     EXAMPLES:
-        sage: Q = QuadraticForm(ZZ, [1,1])
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1])
+
+        sage: Q.is_hyperbolic("infinity")
+        False
+
         sage: Q.is_hyperbolic(2)
         False
 
@@ -271,7 +275,14 @@ def is_hyperbolic(self, p):
     ## (Note: since the dimension is even, the extra powers of 2 in
     ##        self.det() := Det(2*Q) don't affect the answer!)
     m = ZZ(self.dim() / 2)
-    return IsPadicSquare(self.det() * (-1)**m, p) and (self.hasse_invariant(p) == (-1)**m)
+    if p == "infinity":
+        return (self.signature() == 0)
+
+    elif p == 2:
+        return IsPadicSquare(self.det() * (-1)**m, p) and (self.hasse_invariant(p) == (-1)**m)    ## Actually, this -1 is the Hilbert symbol (-1,-1)_p
+
+    else:
+        return IsPadicSquare(self.det() * (-1)**m, p) and (self.hasse_invariant(p) == 1)
 
 
 
@@ -417,31 +428,30 @@ def compute_definiteness(self):
         self.__definiteness_string = "zero"
         return
 
-    ## Deal with degernerate forms
+    ## Deal with degenerate forms
     if self.det() == 0:
         self.__definiteness_string = "degenerate"
         return
 
 
     ## Check the sign of the ratios of consecutive determinants of the upper triangular r x r submatrices
-    ul = self[0,0]
-    subdet_list = [ul]
-    for r in range(1,n):
-        I = range(r+1)
+    first_coeff = self[0,0]
+    for r in range(1,n+1):
+        I = range(r)
         new_det = M.matrix_from_rows_and_columns(I, I).det()
 
-        ## Sanity Check for degenerateness
+        ## Check for a (non-degenerate) zero -- so it's indefinite
         if new_det == 0:
-            raise RuntimeError, "This shouldn't happen, since degernerate forms are not allowed at this point."
+            self.__definiteness_string = "indefinite"
+            return
 
-        ## Check for indefiniteness
-        subdet_list.append(new_det)
-        if not ((subdet_list[-1] / subdet_list[-2]) * ul > 0):
+        ## Check for a change of signs in the upper r x r submatrix -- so it's indefinite
+        if sgn(first_coeff)**r != sgn(new_det):
             self.__definiteness_string = "indefinite"
             return
 
     ## Here all ratios of determinants have the correct sign, so the matrix is (pos or neg) definite.
-    if ul > 0:
+    if first_coeff > 0:
         self.__definiteness_string = "pos_def"
     else:
         self.__definiteness_string = "neg_def"
@@ -551,7 +561,7 @@ def is_indefinite(self):
         def_str = self.__definiteness_string
 
     ## Return the answer
-    return def_str == "indef"
+    return def_str == "indefinite"
 
 
 def is_definite(self):

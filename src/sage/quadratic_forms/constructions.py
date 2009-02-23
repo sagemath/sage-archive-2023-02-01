@@ -28,7 +28,10 @@ def BezoutianQuadraticForm(f, g):
         sage: R = PolynomialRing(ZZ, 'x')
         sage: f = R([1,2,3])
         sage: g = R([2,5])
-        sage: BezoutianQuadraticForm(f, g)
+        sage: Q = BezoutianQuadraticForm(f, g) ; Q
+        Quadratic form in 2 variables over Integer Ring with coefficients:
+        [ 1 -12 ]
+        [ * -15 ]
 
     AUTHORS:
         Fernando Rodriguez-Villegas, Jonathan Hanke -- added on 11/9/2008
@@ -51,7 +54,10 @@ def BezoutianQuadraticForm(f, g):
     bez_poly = (f(a) * g(b) - f(b) * g(a)) // (b - a)    ## Trucated (exact) division here
     for i in range(n):
         for j in range(i, n):
-            Q[i,j] = bez_poly.coefficient({a:i,b:j})
+            if i == j:
+                Q[i,j] = bez_poly.coefficient({a:i,b:j})
+            else:
+                Q[i,j] = bez_poly.coefficient({a:i,b:j}) * 2
 
     return Q
 
@@ -63,7 +69,6 @@ def HyperbolicPlane_quadratic_form(R, r=1):
 
     EXAMPLES:
         sage: HyperbolicPlane_quadratic_form(ZZ)
-
         Quadratic form in 2 variables over Integer Ring with coefficients:
         [ 0 1 ]
         [ * 0 ]

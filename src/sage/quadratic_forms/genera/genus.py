@@ -30,7 +30,7 @@ def LocalGenusSymbol(A,p):
     """
     val = A.determinant().valuation(p)
     symbol = p_adic_symbol(A, p, val = val)
-    return GenusSymbol_p_adic_ring(p, symbol)
+    return Genus_Symbol_p_adic_ring(p, symbol)
 
 def is_GlobalGenus(G):
     """
@@ -38,7 +38,7 @@ def is_GlobalGenus(G):
     True in G represents the genus of a global quadratic form or lattice.
     """
     D = G.determinant()
-    r, s = G.signature()
+    r, s = G.signature_of_matrix()
     oddity = r - s
     for loc in G._local_symbols:
         p = loc._prime
@@ -48,19 +48,19 @@ def is_GlobalGenus(G):
         b = Integer(misc.prod([ s[2] for s in sym ]))
         if p == 2:
             if not is_2_adic_genus(sym):
-   	        # print "False in is_2_adic_genus(sym)"
-	        return False
- 	    if (a*b).kronecker(p) != 1:
-	        # print "False in (%s*%s).kronecker(%s)"%(a,b,p)
+                # print "False in is_2_adic_genus(sym)"
+                return False
+            if (a*b).kronecker(p) != 1:
+                # print "False in (%s*%s).kronecker(%s)"%(a,b,p)
                 return False
             oddity -= loc.excess()
-	else:
- 	    if a.kronecker(p) != b:
-	        # print "False in %s.kronecker(%s) != *%s"%(a,p,b)
+        else:
+            if a.kronecker(p) != b:
+                # print "False in %s.kronecker(%s) != *%s"%(a,p,b)
                 return False
             oddity += loc.excess()
     if oddity%8 != 0:
-  	# print "False in oddity"
+        # print "False in oddity"
         return False
     return True
 
@@ -71,19 +71,19 @@ def is_2_adic_genus(symbol):
     """
     for s in symbol:
         if s[1] == 1:
-	    if s[3] == 0 or s[2] != s[4]:
-	        return False
+            if s[3] == 0 or s[2] != s[4]:
+                return False
         if s[1] == 2 and s[3] == 1:
-	    if s[2] in (1,-1):
-	       if not s[4] in (0,2,6):
-	          return False
-	    if s[2] in (3,-3):
-	       if not s[4] in (2,4,6):
-	          return False
+            if s[2] in (1,-1):
+               if not s[4] in (0,2,6):
+                  return False
+            if s[2] in (3,-3):
+               if not s[4] in (2,4,6):
+                  return False
         if (s[1] - s[4])% 2 == 1:
-	    return False
-	if s[3] == 0 and s[4] != 0:
-	    return False
+            return False
+        if s[3] == 0 and s[4] != 0:
+            return False
     return True
 
 def canonical_2_adic_compartments(symbol):
@@ -97,14 +97,14 @@ def canonical_2_adic_compartments(symbol):
         s = symbol[i]
         if s[3] == 1:
             v = s[0]
-	    c = []
-  	    while i < r and symbol[i][3] == 1 and symbol[i][0] == v:
-	    	c.append(i)
- 	        i += 1
+            c = []
+            while i < r and symbol[i][3] == 1 and symbol[i][0] == v:
+                c.append(i)
+                i += 1
                 v += 1
             compartments.append(c)
         else:
-	    i += 1
+            i += 1
     return compartments
 
 def canonical_2_adic_trains(symbol, compartments):
@@ -117,7 +117,7 @@ def canonical_2_adic_trains(symbol, compartments):
         flag = True
         train = [ ]
         while flag:
-	    ci = compartments[i]
+            ci = compartments[i]
             j = ci[0]
             if j == 0 or symbol[j-1][0] != symbol[j][0] - 1:
                 train += ci
@@ -129,13 +129,13 @@ def canonical_2_adic_trains(symbol, compartments):
             else:
                 if act < len(symbol) and symbol[act][0] == symbol[act-1][0] +1:
                     train += [act]
-	        flag = False
+                flag = False
             if flag and symbol[ci[len(ci)-1]][0]+2 != symbol[ci_plus[0]][0]:
                 if act != ci_plus[0] and symbol[act][0] == symbol[act-1][0] +1:
                     train += [act]
                 flag = False
             i += 1
-	trains.append(train)
+        trains.append(train)
     return trains
 
 def canonical_2_adic_reduction(symbol):
@@ -145,31 +145,31 @@ def canonical_2_adic_reduction(symbol):
     # Canonical determinants:
     for i in range(len(symbol)):
         d = symbol[i][2]
-	if d in (1,7):
+        if d in (1,7):
             canonical_symbol[i][2] = 1
-	else:
+        else:
             canonical_symbol[i][2] = -1
     # Oddity fusion:
     compartments = canonical_2_adic_compartments(symbol)
     for compart in compartments:
         oddity = sum([ symbol[i][4] for i in compart ]) % 8
-	for i in compart:
-	    symbol[i][4] = 0
+        for i in compart:
+            symbol[i][4] = 0
         symbol[compart[0]][4] = oddity
     #print "End oddity fusion:", canonical_symbol
     # Sign walking:
     trains = canonical_2_adic_trains(symbol, compartments)
     for train in trains:
         t = len(train)
-	for i in range(t-1):
-	    t1 = train[t-i-1]
-	    if canonical_symbol[t1][2] == -1:
-	        canonical_symbol[t1][2] = 1
-	        canonical_symbol[t1-1][2] *= -1
-		for compart in compartments:
-		    if t1-1 in compart or t1 in compart:
-		        o = canonical_symbol[compart[0]][4]
-		        canonical_symbol[compart[0]][4] = (o+4) % 8
+        for i in range(t-1):
+            t1 = train[t-i-1]
+            if canonical_symbol[t1][2] == -1:
+                canonical_symbol[t1][2] = 1
+                canonical_symbol[t1-1][2] *= -1
+                for compart in compartments:
+                    if t1-1 in compart or t1 in compart:
+                        o = canonical_symbol[compart[0]][4]
+                        canonical_symbol[compart[0]][4] = (o+4) % 8
     #print "End sign walking:", canonical_symbol
     return canonical_symbol
 
@@ -188,15 +188,15 @@ def basis_complement(B):
         for j in range(k,n):
              if B[i,j] == 0:
                  C[l,j] = 1
-	         l += 1
-	     else:
+                 l += 1
+             else:
                  k = j+1
                  break
     for j in range(k,n):
-	C[l+j-k,j] = 1
+        C[l+j-k,j] = 1
     return C
 
-def signature(A):
+def signature_of_matrix(A):
     """
     The signature of a non-degenerate symmetric matrix.
 
@@ -207,11 +207,11 @@ def signature(A):
     e0 = 1
     for i in range(A.nrows()):
         # Argh!...
-	e1 = RealField()(A[0:i+1, 0:i+1].determinant()).sign()
-	if e0*e1 == 1:
-	   r += 1
+        e1 = RealField()(A[0:i+1, 0:i+1].determinant()).sign()
+        if e0*e1 == 1:
+           r += 1
         else:
-	   s += 1
+           s += 1
         e0 = e1
     return (r, s)
 
@@ -261,7 +261,7 @@ def p_adic_symbol(A,p,val):
 def is_even(A):
     for i in range(A.nrows()):
         if A[i,i]%2 == 1:
-	    return False, i
+            return False, i
     return True, -1
 
 def split_odd(A):
@@ -278,38 +278,38 @@ def split_odd(A):
     u = A[i,i]
     for j in range(n0-1):
         if j < i:
-	    C[j,j] = 1
-	    C[j,i] = -A[j,i]*u
+            C[j,j] = 1
+            C[j,i] = -A[j,i]*u
         else:
-	    C[j,j+1] = 1
-	    C[j,i] = -A[j+1,i]*u
+            C[j,j+1] = 1
+            C[j,i] = -A[j+1,i]*u
         B = C*A*C.transpose()
     even, j = is_even(B)
     if even:
         I = A.parent()(1)
-	# TODO: we could manually (re)construct the kernel here...
-	if i == 0:
-	    I[1,0] = 1 - A[1,0]*u
-	    i = 1
-	else:
-	    I[0,i] = 1 - A[0,i]*u
-	    i = 0
-	A = I*A*I.transpose()
-	u = A[i,i]
+        # TODO: we could manually (re)construct the kernel here...
+        if i == 0:
+            I[1,0] = 1 - A[1,0]*u
+            i = 1
+        else:
+            I[0,i] = 1 - A[0,i]*u
+            i = 0
+        A = I*A*I.transpose()
+        u = A[i,i]
         C = MatrixSpace(R,n0-1,n0)(0)
-	for j in range(n0-1):
-	    if j < i:
-	       C[j,j] = 1
-	       C[j,i] = -A[j,i]*u
+        for j in range(n0-1):
+            if j < i:
+               C[j,j] = 1
+               C[j,i] = -A[j,i]*u
             else:
-		C[j,j+1] = 1
-		C[j,i] = -A[j+1,i]*u
-	    B = C*A*C.transpose()
+                C[j,j+1] = 1
+                C[j,i] = -A[j+1,i]*u
+            B = C*A*C.transpose()
     even, j = is_even(B)
     if even:
         print "B:"
         print B
-	assert False
+        assert False
     return u, B
 
 def trace_diag(A):
@@ -333,9 +333,9 @@ def two_adic_symbol(A, val):
     where
         m = valuation of the component
         n = dimension of f
-	d = det(f) in {1,3,5,7}
+        d = det(f) in {1,3,5,7}
         s = 0 (or 1) if even (or odd)
-	o = oddity of f (= 0 if s = 0) in Z/8Z
+        o = oddity of f (= 0 if s = 0) in Z/8Z
     """
     m0 = min([ c.valuation(2) for c in A.list() ])
     q = 2**m0
@@ -346,40 +346,40 @@ def two_adic_symbol(A, val):
     K_2 = A_2.kernel()
     R_8 = ZZ.quotient_ring(Integer(8))
     if K_2.dimension() == 0:
-	A_8 = MatrixSpace(R_8,n)(A)
+        A_8 = MatrixSpace(R_8,n)(A)
         n0 = A.nrows()
         # d0 = ZZ(A_8.determinant()) # no determinant over Z/8Z
         d0 = ZZ(R_8(MatrixSpace(ZZ,n)(A_8).determinant()))
-	if d0 == 0:
-	    print "A:"
-	    print A
-	    assert False
-	even, i = is_even(A_2)
-	if even:
-	    return [ [m0,n0,d0,0,0] ]
-	else:
-	    tr8 = trace_diag(A_8)
-	    return [ [m0,n0,d0,1,tr8] ]
+        if d0 == 0:
+            print "A:"
+            print A
+            assert False
+        even, i = is_even(A_2)
+        if even:
+            return [ [m0,n0,d0,0,0] ]
+        else:
+            tr8 = trace_diag(A_8)
+            return [ [m0,n0,d0,1,tr8] ]
     else:
         B_2 = K_2.echelonized_basis_matrix()
         C_2 = basis_complement(B_2)
-	n0 = C_2.nrows()
-	C = MatrixSpace(ZZ,n0,n)(C_2)
+        n0 = C_2.nrows()
+        C = MatrixSpace(ZZ,n0,n)(C_2)
         A_new = C*A*C.transpose()
-	# compute oddity modulo 8:
+        # compute oddity modulo 8:
         A_8 = MatrixSpace(R_8,n0,n0)(A_new)
-	# d0 = A_8.det() # no determinant over Z/8Z
+        # d0 = A_8.det() # no determinant over Z/8Z
         d0 = ZZ(R_8(MatrixSpace(ZZ,n0,n0)(A_8).determinant()))
-	if d0 == 0:
-	    print "A:"
-	    print A_new
-	    assert False
-	even, i = is_even(A_new)
-	if even:
-	    sym = [ [0,n0,d0,0,0] ]
-	else:
-	    tr8 = trace_diag(A_8)
-	    sym = [ [0,n0,d0,1,tr8] ]
+        if d0 == 0:
+            print "A:"
+            print A_new
+            assert False
+        even, i = is_even(A_new)
+        if even:
+            sym = [ [0,n0,d0,0,0] ]
+        else:
+            tr8 = trace_diag(A_8)
+            sym = [ [0,n0,d0,1,tr8] ]
     r = B_2.nrows()
     B = MatrixSpace(ZZ,r,n)(B_2)
     C = MatrixSpace(IntegerRing(),n-r,n)(C_2)
@@ -410,11 +410,11 @@ class Genus_Symbol_p_adic_ring(object):
     """
     def __init__(self, prime, symbol, check = True):
         """
-	Create the local genus symbol of given prime and local invariants.
+        Create the local genus symbol of given prime and local invariants.
 
-	INPUT:
-	     prime -- the prime
-	     symbol -- the list of invariants for Jordan blocks A_t,...,A_t
+        INPUT:
+             prime -- the prime
+             symbol -- the list of invariants for Jordan blocks A_t,...,A_t
 
         The genus symbol of a component p^m*A for odd prime = p is of the
         form (m,n,d), where
@@ -431,26 +431,26 @@ class Genus_Symbol_p_adic_ring(object):
             d = det(A) in {1,3,5,7}
             s = 0 (or 1) if even (or odd)
             o = oddity of A (= 0 if s = 0) in Z/8Z
-	      = the trace of the diagonalization of A
+              = the trace of the diagonalization of A
 
-	The genus symbol is a list of such symbols (ordered by m) for each
+        The genus symbol is a list of such symbols (ordered by m) for each
         of the Jordan blocks A_1,...,A_t.
 
-	Reference: Conway and Sloane, Chapter 9.
-	"""
-	if check:
-	   pass
-	self._prime = prime
-	self._symbol = symbol
-	self._canonical_symbol = None
+        Reference: Conway and Sloane, Chapter 9.
+        """
+        if check:
+           pass
+        self._prime = prime
+        self._symbol = symbol
+        self._canonical_symbol = None
 
     def __repr__(self):
         return "Genus symbol at %s : %s"%(self._prime, self._symbol)
 
     def __eq__(self,other):
         p = self._prime
-	if p != other._prime:
-	    return False
+        if p != other._prime:
+            return False
         return self.canonical_symbol() == other.canonical_symbol()
 
     def __ne__(self,other):
@@ -459,11 +459,11 @@ class Genus_Symbol_p_adic_ring(object):
     def canonical_symbol(self):
         symbol = self._symbol
         if self._prime == 2:
-	    if self._canonical_symbol is None:
-  	        self._canonical_symbol = canonical_2_adic_reduction(symbol)
-	    return self._canonical_symbol
-	else:
-	    return self._symbol
+            if self._canonical_symbol is None:
+                self._canonical_symbol = canonical_2_adic_reduction(symbol)
+            return self._canonical_symbol
+        else:
+            return self._symbol
 
     def symbol(self):
         return self._symbol
@@ -483,31 +483,31 @@ class Genus_Symbol_p_adic_ring(object):
 
     def excess(self):
         """
-	The p-excesss in the notation of Conway & Sloane, and the oddity for p = 2.
+        The p-excesss in the notation of Conway & Sloane, and the oddity for p = 2.
         """
-	p = self._prime
+        p = self._prime
         if self._prime == 2:
-	   k = 0
-	   for s in self._symbol:
-	       if s[0]%2 == 1 and s[2] in (3,5):
-	           k += 1
+           k = 0
+           for s in self._symbol:
+               if s[0]%2 == 1 and s[2] in (3,5):
+                   k += 1
            return Integer(sum([ s[4] for s in self._symbol ]) + 4*k).mod(8)
         else:
-	   k = 0
-	   for s in self._symbol:
-	       if s[0]%2 == 1 and s[2] == -1:
-	           k += 1
+           k = 0
+           for s in self._symbol:
+               if s[0]%2 == 1 and s[2] == -1:
+                   k += 1
            return Integer(sum([ s[1]*(p**s[0]-1) for s in self._symbol ]) + 4*k).mod(8)
 
     def trains(self):
         assert self._prime == 2
-	symbol = self._symbol
+        symbol = self._symbol
         compartments = canonical_2_adic_compartments(symbol)
         return canonical_2_adic_trains(symbol, compartments)
 
     def compartments(self):
         assert self._prime == 2
-	symbol = self._symbol
+        symbol = self._symbol
         return canonical_2_adic_compartments(symbol)
 
 
@@ -517,41 +517,41 @@ class Genus_Symbol_global_ring(object):
     """
     def __init__(self, A, max_elem_divisors=None):
         """
-	Input precision max_elem_divisors for valuation of maximal p-elementary divisor.
+        Input precision max_elem_divisors for valuation of maximal p-elementary divisor.
         """
         D = A.determinant()
         D = 2*D
         prms = [ p[0] for p in D.factor() ]
-	self._representative = A
-	self._signature = signature(A)
-	self._local_symbols = []
-	for p in prms:
-	    if max_elem_divisors is None:
-	        val = D.valuation(p)
-	    symbol = p_adic_symbol(A, p, val = val)
- 	    G = Genus_Symbol_p_adic_ring(p, symbol)
-      	    self._local_symbols.append(G)
+        self._representative = A
+        self._signature = signature_of_matrix(A)
+        self._local_symbols = []
+        for p in prms:
+            if max_elem_divisors is None:
+                val = D.valuation(p)
+            symbol = p_adic_symbol(A, p, val = val)
+            G = Genus_Symbol_p_adic_ring(p, symbol)
+            self._local_symbols.append(G)
 
     def __repr__(self):
         return "Genus of %s"%self._representative
 
     def __eq__(self, other):
         if self is other:
-	    return True
-	t = len(self._local_symbols)
+            return True
+        t = len(self._local_symbols)
         if t != len(other._local_symbols):
-	    return False
-	for i in range(t):
-	    if self._local_symbols[i] != other._local_symbols[i]:
-	        return False
+            return False
+        for i in range(t):
+            if self._local_symbols[i] != other._local_symbols[i]:
+                return False
         return True
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def signature(self):
+    def signature_of_matrix(self):
         return self._signature
 
     def determinant(self):
-        r, s = self.signature()
+        r, s = self.signature_of_matrix()
         return (-1)**s*misc.prod([ G.determinant() for G in self._local_symbols ])

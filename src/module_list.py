@@ -795,6 +795,18 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.quadratic_forms
+    ##
+    ################################
+
+    Extension('sage.quadratic_forms.count_local_2',
+              sources = ['sage/quadratic_forms/count_local_2.pyx']),
+
+    Extension('sage.quadratic_forms.quadratic_form__evaluate',
+              sources = ['sage/quadratic_forms/quadratic_form__evaluate.pyx']),
+
+    ################################
+    ##
     ## sage.rings
     ##
     ################################

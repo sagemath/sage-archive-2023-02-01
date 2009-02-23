@@ -6,8 +6,14 @@
  * kernel.Makefile.in
  * src.Singular.Makefile.in
  * fac_distrib.cc (should be in upstream past singular-3-0-4-4-20080711)
+ * kernel/mminit.cc: Work around problem with the wrong free being picked causing double frees
 
 == Releases ==
+
+=== singular-3-0-4-4-20080711.p4 (Michael Abshoff, January 23rd, 2009) ===
+ * Integrate two patches by Georg Weber (#4181 and #5344)
+ * update SPKG.txt
+ * delete MacOSX junk added in singular-3-0-4-4-20080711.p3
 
 === singular-3-0-4-4-20080711.p3 (Michael Abshoff, January 20th, 2009) ===
  * use "--with-malloc=system" for 64 bit OSX

@@ -1,37 +1,40 @@
 r"""
 Infinity Rings
 
-The unsigned infinity ``ring'' is the set of two elements
-\begin{verbatim}
-        * infinity
-        * A number less than infinity
-\end{verbatim}
+The unsigned infinity "ring" is the set of two elements
 
-The rules for arithmetic are that the unsigned infinity ring does not
-canonically coerce to any other ring, and all other rings canonically
-coerce to the unsigned infinity ring, sending all elements to the
-single element ``a number less than infinity'' of the unsigned
-infinity ring. Arithmetic and comparisons then take place in the
-unsigned infinity ring, where all arithmetic operations that are
-well-defined are defined.
+::
 
-The infinity ``ring'' is the set of five elements
-\begin{verbatim}
-        * plus infinity
-        * a positive finite element
-        * zero
-        * a negative finite element
-        * negative infinity
-\end{verbatim}
+            * infinity
+            * A number less than infinity
 
-The infinity ring coerces to the unsigned infinity ring, sending the
-infinite elements to infinity and the non-infinite elements to ``a
-number less than infinity.''  Any ordered ring coerces to the infinity
-ring in the obvious way.
+The rules for arithmetic are that the unsigned infinity ring does
+not canonically coerce to any other ring, and all other rings
+canonically coerce to the unsigned infinity ring, sending all
+elements to the single element "a number less than infinity" of the
+unsigned infinity ring. Arithmetic and comparisons then take place
+in the unsigned infinity ring, where all arithmetic operations that
+are well-defined are defined.
+
+The infinity "ring" is the set of five elements
+
+::
+
+            * plus infinity
+            * a positive finite element
+            * zero
+            * a negative finite element
+            * negative infinity
+
+The infinity ring coerces to the unsigned infinity ring, sending
+the infinite elements to infinity and the non-infinite elements to
+"a number less than infinity." Any ordered ring coerces to the
+infinity ring in the obvious way.
 
 Note: the shorthand oo is predefined in Sage to be the same as
-+Infinity in the infinity ring.  It is considered equal to, but not
-the same as Infinity in the UnsignedInfinityRing:
++Infinity in the infinity ring. It is considered equal to, but not
+the same as Infinity in the UnsignedInfinityRing::
+
     sage: oo
     +Infinity
     sage: oo is InfinityRing.0
@@ -41,8 +44,9 @@ the same as Infinity in the UnsignedInfinityRing:
     sage: oo == UnsignedInfinityRing.0
     True
 
-EXAMPLES:
-We fetch the unsigned infinity ring and create some elements:
+EXAMPLES: We fetch the unsigned infinity ring and create some
+elements::
+
     sage: P = UnsignedInfinityRing; P
     The Unsigned Infinity Ring
     sage: P(5)
@@ -52,7 +56,8 @@ We fetch the unsigned infinity ring and create some elements:
     sage: unsigned_oo = P.0; unsigned_oo
     Infinity
 
-We compare finite numbers with infinity:
+We compare finite numbers with infinity::
+
     sage: 5 < unsigned_oo
     True
     sage: 5 > unsigned_oo
@@ -62,27 +67,32 @@ We compare finite numbers with infinity:
     sage: unsigned_oo > 5
     True
 
-We do arithmetic:
+We do arithmetic::
+
     sage: unsigned_oo + 5
     Infinity
 
-We make 1 / unsigned_oo return the integer 0 so that arithmetic of the
-following type works:
+We make 1 / unsigned_oo return the integer 0 so that arithmetic of
+the following type works::
+
     sage: (1/unsigned_oo) + 2
     2
     sage: 32/5 - (2.439/unsigned_oo)
     32/5
 
-Note that many operations are not defined, since the result is
-not well-defined:
+Note that many operations are not defined, since the result is not
+well-defined::
+
     sage: unsigned_oo/0
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand parent(s) for '/': 'The Unsigned Infinity Ring' and 'Integer Ring'
 
-What happened above is that 0 is canonically coerced to "a number less
-than infinity" in the unsigned infinity ring, and the quotient is then
-not well-defined.
+What happened above is that 0 is canonically coerced to "a number
+less than infinity" in the unsigned infinity ring, and the quotient
+is then not well-defined.
+
+::
 
     sage: 0/unsigned_oo
     0
@@ -95,19 +105,23 @@ not well-defined.
     ...
     TypeError: infinity 'ring' has no fraction field
 
-
 In the infinity ring, we can negate infinity, multiply positive
 numbers by infinity, etc.
+
+::
+
     sage: P = InfinityRing; P
     The Infinity Ring
     sage: P(5)
     A positive finite number
 
-The symbol oo is predefined as a shorthand for +Infinity:
+The symbol oo is predefined as a shorthand for +Infinity::
+
     sage: oo
     +Infinity
 
-We compare finite and infinite elements:
+We compare finite and infinite elements::
+
     sage: 5 < oo
     True
     sage: P(-5) < P(5)
@@ -117,7 +131,8 @@ We compare finite and infinite elements:
     sage: -oo < oo
     True
 
-We can do more arithmetic than in the unsigned infinity ring:
+We can do more arithmetic than in the unsigned infinity ring::
+
     sage: 2 * oo
     +Infinity
     sage: -2 * oo
@@ -130,15 +145,16 @@ We can do more arithmetic than in the unsigned infinity ring:
     0
 
 We make 1 / oo and 1 / -oo return the integer 0 instead of the
-infinity ring Zero so that arithmetic of the following type
-works:
+infinity ring Zero so that arithmetic of the following type works::
+
     sage: (1/oo) + 2
     2
     sage: 32/5 - (2.439/-oo)
     32/5
 
-If we try to subtract infinities or multiply infinity by zero we still
-get an error:
+If we try to subtract infinities or multiply infinity by zero we
+still get an error::
+
     sage: oo - oo
     Traceback (most recent call last):
     ...
@@ -152,17 +168,21 @@ get an error:
     ...
     SignError: cannot add positive finite value to negative finite value
 
-TESTS:
+TESTS::
+
     sage: P = InfinityRing
     sage: P == loads(dumps(P))
     True
 
+::
+
     sage: P(2) == loads(dumps(P(2)))
     True
 
-The following is assumed in a lot of code (i.e., "is" is used
-for testing whether something is infinity), so make sure it
-is satisfied:
+The following is assumed in a lot of code (i.e., "is" is used for
+testing whether something is infinity), so make sure it is
+satisfied::
+
     sage: loads(dumps(infinity)) is infinity
     True
 """
@@ -321,10 +341,11 @@ class UnsignedInfinity(_uniq1, InfinityElement):
 
     def lcm(self, x):
         """
-        Return the least common multiple of oo and x, which
-        is by definition oo unless x is 0.
+        Return the least common multiple of oo and x, which is by
+        definition oo unless x is 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: oo = UnsignedInfinityRing.gen(0)
             sage: oo.lcm(0)
             0
@@ -534,7 +555,8 @@ class MinusInfinity(_uniq3, MinusInfinityElement):
 
     def _maxima_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maxima(-oo)
             minf
         """
@@ -591,10 +613,11 @@ class MinusInfinity(_uniq3, MinusInfinityElement):
 
     def lcm(self, x):
         """
-        Return the least common multiple of -oo and x, which
-        is by definition oo unless x is 0.
+        Return the least common multiple of -oo and x, which is by
+        definition oo unless x is 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: moo = InfinityRing.gen(1)
             sage: moo.lcm(0)
             0
@@ -628,7 +651,8 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
 
     def _maxima_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maxima(oo)
             inf
         """
@@ -685,10 +709,11 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
 
     def lcm(self, x):
         """
-        Return the least common multiple of oo and x, which
-        is by definition oo unless x is 0.
+        Return the least common multiple of oo and x, which is by
+        definition oo unless x is 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: oo = InfinityRing.gen(0)
             sage: oo.lcm(0)
             0
@@ -712,15 +737,16 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
         """
         Converts oo to sympy oo.
 
-        Then you don't have to worry which oo you use, like in these examples:
+        Then you don't have to worry which oo you use, like in these
+        examples:
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sympy
             sage: bool(oo == sympy.oo) # indirect doctest
             True
             sage: bool(SR(oo) == sympy.oo)
             True
-
         """
         import sympy
         return sympy.oo

@@ -3,7 +3,11 @@ Homomorphisms of rings
 
 We give a large number of examples of ring homomorphisms.
 
-EXAMPLE: Natural inclusion $\Z \hookrightarrow \Q$.
+EXAMPLE: Natural inclusion
+`\mathbb{Z} \hookrightarrow \mathbb{Q}`.
+
+::
+
     sage: H = Hom(ZZ, QQ)
     sage: phi = H([1])
     sage: phi(10)
@@ -15,7 +19,8 @@ EXAMPLE: Natural inclusion $\Z \hookrightarrow \Q$.
     ...
     TypeError: 2/3 must be coercible into Integer Ring
 
-There is no homomorphism in the other direction:
+There is no homomorphism in the other direction::
+
     sage: H = Hom(QQ, ZZ)
     sage: H([1])
     Traceback (most recent call last):
@@ -23,6 +28,9 @@ There is no homomorphism in the other direction:
     TypeError: images do not define a valid homomorphism
 
 EXAMPLE: Reduction to finite field.
+
+::
+
     sage: H = Hom(ZZ, GF(9, 'a'))
     sage: phi = H([1])
     sage: phi(5)
@@ -32,6 +40,9 @@ EXAMPLE: Reduction to finite field.
     2
 
 EXAMPLE: Map from single variable polynomial ring.
+
+::
+
     sage: R, x = PolynomialRing(ZZ, 'x').objgen()
     sage: phi = R.hom([2], GF(5))
     sage: phi
@@ -43,6 +54,9 @@ EXAMPLE: Map from single variable polynomial ring.
     4
 
 EXAMPLE: Identity map on the real numbers.
+
+::
+
     sage: f = RR.hom([RR(1)]); f
     Ring endomorphism of Real Field with 53 bits of precision
       Defn: 1.00000000000000 |--> 1.00000000000000
@@ -55,21 +69,24 @@ EXAMPLE: Identity map on the real numbers.
 
 EXAMPLE: Homomorphism from one precision of field to another.
 
-From smaller to bigger doesn't make sense:
+From smaller to bigger doesn't make sense::
+
     sage: R200 = RealField(200)
     sage: f = RR.hom( R200 )
     Traceback (most recent call last):
     ...
     TypeError: Natural coercion morphism from Real Field with 53 bits of precision to Real Field with 200 bits of precision not defined.
 
-From bigger to small does:
+From bigger to small does::
+
     sage: f = RR.hom( RealField(15) )
     sage: f(2.5)
     2.500
     sage: f(RR.pi())
     3.142
 
-EXAMPLE: Inclusion map from the reals to the complexes:
+EXAMPLE: Inclusion map from the reals to the complexes::
+
     sage: i = RR.hom([CC(1)]); i
     Ring morphism:
       From: Real Field with 53 bits of precision
@@ -78,7 +95,8 @@ EXAMPLE: Inclusion map from the reals to the complexes:
     sage: i(RR('3.1'))
     3.10000000000000
 
-EXAMPLE: A map from a multivariate polynomial ring to itself:
+EXAMPLE: A map from a multivariate polynomial ring to itself::
+
     sage: R.<x,y,z> = PolynomialRing(QQ,3)
     sage: phi = R.hom([y,z,x^2]); phi
     Ring endomorphism of Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -88,7 +106,9 @@ EXAMPLE: A map from a multivariate polynomial ring to itself:
     sage: phi(x+y+z)
     x^2 + y + z
 
-EXAMPLE: An endomorphism of a quotient of a multi-variate polynomial ring:
+EXAMPLE: An endomorphism of a quotient of a multi-variate
+polynomial ring::
+
     sage: R.<x,y> = PolynomialRing(QQ)
     sage: S.<a,b> = quo(R, ideal(1 + y^2))
     sage: phi = S.hom([a^2, -b])
@@ -101,8 +121,8 @@ EXAMPLE: An endomorphism of a quotient of a multi-variate polynomial ring:
     sage: phi(a^2 + b^2)
     a^4 - 1
 
-EXAMPLE: The reduction map from the integers to the integers modulo 8,
-viewed as a quotient ring:
+EXAMPLE: The reduction map from the integers to the integers modulo
+8, viewed as a quotient ring::
 
     sage: R = ZZ.quo(8*ZZ)
     sage: pi = R.cover()
@@ -125,8 +145,10 @@ viewed as a quotient ring:
     sage: pi.lift(13)
     5
 
-
 EXAMPLE: Inclusion of GF(2) into GF(4,'a').
+
+::
+
     sage: k = GF(2)
     sage: i = k.hom(GF(4, 'a'))
     sage: i
@@ -138,7 +160,11 @@ EXAMPLE: Inclusion of GF(2) into GF(4,'a').
     sage: a = i(1); a.parent()
     Finite Field in a of size 2^2
 
-We next compose the inclusion with reduction from the integers to GF(2).
+We next compose the inclusion with reduction from the integers to
+GF(2).
+
+::
+
     sage: pi = ZZ.hom(k)
     sage: pi
     Ring Coercion morphism:
@@ -161,7 +187,10 @@ We next compose the inclusion with reduction from the integers to GF(2).
     sage: a.parent()
     Finite Field in a of size 2^2
 
-EXAMPLE: Inclusion from $\Q$ to the 3-adic field.
+EXAMPLE: Inclusion from `\mathbb{Q}` to the 3-adic field.
+
+::
+
     sage: phi = QQ.hom(Qp(3, print_mode = 'series'))
     sage: phi
     Ring Coercion morphism:
@@ -172,7 +201,11 @@ EXAMPLE: Inclusion from $\Q$ to the 3-adic field.
     sage: phi(394)
     1 + 2*3 + 3^2 + 2*3^3 + 3^4 + 3^5 + O(3^20)
 
-EXAMPLE: An automorphism of a quotient of a univariate polynomial ring.
+EXAMPLE: An automorphism of a quotient of a univariate polynomial
+ring.
+
+::
+
     sage: R.<x> = PolynomialRing(QQ)
     sage: S.<sqrt2> = R.quo(x^2-2)
     sage: sqrt2^2
@@ -183,7 +216,8 @@ EXAMPLE: An automorphism of a quotient of a univariate polynomial ring.
     sage: c(1+sqrt2)
     -sqrt2 + 1
 
-Note that \sage verifies that the morphism is valid:
+Note that Sage verifies that the morphism is valid::
+
     sage: (1 - sqrt2)^2
     -2*sqrt2 + 3
     sage: c = S.hom([1-sqrt2])    # this is not valid
@@ -192,6 +226,9 @@ Note that \sage verifies that the morphism is valid:
     TypeError: images do not define a valid homomorphism
 
 EXAMPLE: Endomorphism of power series ring.
+
+::
+
     sage: R.<t> = PowerSeriesRing(QQ); R
     Power Series Ring in t over Rational Field
     sage: f = R.hom([t^2]); f
@@ -204,6 +241,9 @@ EXAMPLE: Endomorphism of power series ring.
     1 - t^2 + t^4 - t^6 + t^8 - t^10 + t^12 - t^14 + t^16 - t^18 + O(t^20)
 
 EXAMPLE: Frobenious on a power series ring over a finite field.
+
+::
+
     sage: R.<t> = PowerSeriesRing(GF(5))
     sage: f = R.hom([t^5]); f
     Ring endomorphism of Power Series Ring in t over Finite Field of size 5
@@ -220,6 +260,9 @@ EXAMPLE: Frobenious on a power series ring over a finite field.
     2 + 3*t^5 + 3*t^10 + t^15 + O(t^20)
 
 EXAMPLE: Homomorphism of Laurent series ring.
+
+::
+
     sage: R.<t> = LaurentSeriesRing(QQ)
     sage: f = R.hom([t^3 + t]); f
     Ring endomorphism of Laurent Series Ring in t over Rational Field
@@ -239,8 +282,10 @@ EXAMPLE: Homomorphism of Laurent series ring.
     sage: f(s)
     2*t^-6 + 1 - t^3 + t^6 - t^9 + t^12 - t^15 + t^18 - t^21 + t^24 - t^27
 
-Note that the homomorphism must result in a converging Laurent series,
-so the valuation of the image of the generator must be positive:
+Note that the homomorphism must result in a converging Laurent
+series, so the valuation of the image of the generator must be
+positive::
+
     sage: R.hom([1/t])
     Traceback (most recent call last):
     ...
@@ -250,8 +295,10 @@ so the valuation of the image of the generator must be positive:
     ...
     TypeError: images do not define a valid homomorphism
 
-
 EXAMPLE: Complex conjugation on cyclotomic fields.
+
+::
+
     sage: K.<zeta7> = CyclotomicField(7)
     sage: c = K.hom([1/zeta7]); c
     Ring endomorphism of Cyclotomic Field of order 7 and degree 6
@@ -266,6 +313,9 @@ EXAMPLE: Complex conjugation on cyclotomic fields.
     -zeta7^5 - zeta7^4 - zeta7^3 - zeta7^2 - 1
 
 EXAMPLE: Embedding a number field into the reals.
+
+::
+
     sage: R.<x> = PolynomialRing(QQ)
     sage: K.<beta> = NumberField(x^3 - 2)
     sage: alpha = RR(2)^(1/3); alpha
@@ -282,7 +332,7 @@ EXAMPLE: Embedding a number field into the reals.
     sage: i(beta^2 + 1)
     2.58740105196820
 
-An example from Jim Carlson:
+An example from Jim Carlson::
 
     sage: K = QQ # by the way :-)
     sage: R.<a,b,c,d> = K[]; R
@@ -302,21 +352,25 @@ An example from Jim Carlson:
     sage: f( (a+b+c+d)^2 )
     u^2
 
-TESTS:
+TESTS::
+
     sage: H = Hom(ZZ, QQ)
     sage: H == loads(dumps(H))
     True
+
+::
 
     sage: K.<zeta7> = CyclotomicField(7)
     sage: c = K.hom([1/zeta7])
     sage: c == loads(dumps(c))
     True
 
+::
+
     sage: R.<t> = PowerSeriesRing(GF(5))
     sage: f = R.hom([t^5])
     sage: f == loads(dumps(f))
     True
-
 """
 
 #*****************************************************************************
@@ -350,12 +404,14 @@ cdef class RingMap(Morphism):
 
 cdef class RingMap_lift(RingMap):
     r"""
-    Given rings $R$ and $S$ such that for any $x \in R$ the function
-    \code{x.lift()} is an element that naturally coerces to $S$, this
-    returns the set-theoretic ring map $R \to S$ sending $x$ to
-    \code{x.lift()}.
+    Given rings `R` and `S` such that for any
+    `x \in R` the function ``x.lift()`` is an
+    element that naturally coerces to `S`, this returns the
+    set-theoretic ring map `R \to S` sending `x` to
+    ``x.lift()``.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
         sage: S.<xbar,ybar> = R.quo( (x^2 + y^2, y) )
         sage: S.lift()
@@ -441,21 +497,27 @@ cdef class RingHomomorphism(RingMap):
         r"""
         Return True if this is the zero map and False otherwise.
 
-        A *ring* homomorphism is considered to be 0 if and only if
-        it sends the 1 element of the domain to the 0 element of the
-        codomain.  Since rings in SAGE all have a 1 element, the
-        zero homomorphism is only to a ring of order 1, where 1==0,
-        e.g., the ring \code{Integers(1)}.
-
+        A *ring* homomorphism is considered to be 0 if and only if it
+        sends the 1 element of the domain to the 0 element of the codomain.
+        Since rings in Sage all have a 1 element, the zero homomorphism is
+        only to a ring of order 1, where 1==0, e.g., the ring
+        ``Integers(1)``.
 
         EXAMPLES:
+
         First an example of a map that is obviously nonzero.
+
+        ::
+
             sage: h = Hom(ZZ, QQ)
             sage: f = h.natural_map()
             sage: f.is_zero()
             False
 
-        Next we make the zero ring as $\ZZ/1\ZZ$.
+        Next we make the zero ring as `\mathbb{Z}/1\mathbb{Z}`.
+
+        ::
+
             sage: R = Integers(1)
             sage: R
             Ring of integers modulo 1
@@ -465,6 +527,9 @@ cdef class RingHomomorphism(RingMap):
             True
 
         Finally we check an example in characteristic 2.
+
+        ::
+
             sage: h = Hom(ZZ, GF(2))
             sage: f = h.natural_map()
             sage: f.is_zero()
@@ -474,7 +539,7 @@ cdef class RingHomomorphism(RingMap):
 
     def pushforward(self, I):
         """
-        Returns the pushforward of the ideal $I$ under this ring
+        Returns the pushforward of the ideal `I` under this ring
         homomorphism.
         """
         if not ideal.is_Ideal(I):
@@ -484,15 +549,15 @@ cdef class RingHomomorphism(RingMap):
 
     def inverse_image(self, I):
         """
-        Return the inverse image of the ideal $I$ under this ring
+        Return the inverse image of the ideal `I` under this ring
         homomorphism.
         """
         raise NotImplementedError
 
     def lift(self, x=None):
         """
-        Return a lifting homomorphism associated to this homomorphism,
-        if it has been defined.
+        Return a lifting homomorphism associated to this homomorphism, if
+        it has been defined.
 
         If x is not None, return the value of the lift morphism on x.
         """
@@ -556,7 +621,11 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
     cdef int _cmp_c_impl(self, Element other) except -2:
         """
         EXAMPLES:
+
         A single variate quotient over QQ.
+
+        ::
+
             sage: R.<x> = QQ[]
             sage: Q.<a> = R.quotient(x^2 + x + 1)
             sage: f1 = R.hom([a])
@@ -570,12 +639,17 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: f2(x^3 + x)
             a + 1
 
-        TESTS:
+        TESTS::
+
             sage: loads(dumps(f2)) == f2
             True
 
         EXAMPLES:
+
         A multivariate quotient over a finite field.
+
+        ::
+
             sage: R.<x,y> = GF(7)[]
             sage: Q.<a,b> = R.quotient([x^2 + x + 1, y^2 + y + 1])
             sage: f1 = R.hom([a, b])
@@ -591,7 +665,8 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: f2(x^3 + x + y^2)
             a - b
 
-        TEST:
+        TEST::
+
             sage: loads(dumps(f2)) == f2
             True
         """
@@ -612,7 +687,8 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
     r"""
     A homomorphism induced by quotienting a ring out by an ideal.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R.<x,y> = PolynomialRing(QQ, 2)
         sage: S.<a,b> = R.quo(x^2 + y^2)
         sage: phi = S.cover(); phi
@@ -637,7 +713,8 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: S.<a,b> = R.quo(x^2 + y^2)
             sage: phi = S.cover()
@@ -655,19 +732,25 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
     A ring homomorphism with domain a generic quotient ring.
 
     INPUT:
-        parent -- a ring homset Hom(R,S)
-        phi -- a ring homomorphism C --> S, where C is the
-               domain of R.cover()
-    OUTPUT:
-        a ring homomorphism
 
-    The domain $R$ is a quotient object $C \to R$, and
-    \code{R.cover()} is the ring homomorphism $\varphi: C \to R$.  The
-    condition on the elements \code{im_gens} of $S$ is that they
-    define a homomorphism $C \to S$ such that each generator of the
-    kernel of $\varphi$ maps to $0$.
 
-    EXAMPLES:
+    -  ``parent`` - a ring homset Hom(R,S)
+
+    -  ``phi`` - a ring homomorphism C --> S, where C is the
+       domain of R.cover()
+
+
+    OUTPUT: a ring homomorphism
+
+    The domain `R` is a quotient object `C \to R`, and
+    ``R.cover()`` is the ring homomorphism
+    `\varphi: C \to R`. The condition on the elements
+    ``im_gens`` of `S` is that they define a
+    homomorphism `C \to S` such that each generator of the
+    kernel of `\varphi` maps to `0`.
+
+    EXAMPLES::
+
         sage: R.<x, y, z> = PolynomialRing(QQ, 3)
         sage: S.<a, b, c> = R.quo(x^3 + y^3 + z^3)
         sage: phi = S.hom([b, c, a]); phi
@@ -680,9 +763,12 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         sage: loads(dumps(phi)) == phi
         True
 
-     Validity of the homomorphism is determined, when possible, and a
-     TypeError is raised if there is no homomorphism sending the
-     generators to the given images.
+    Validity of the homomorphism is determined, when possible, and a
+    TypeError is raised if there is no homomorphism sending the
+    generators to the given images.
+
+    ::
+
         sage: S.hom([b^2, c^2, a^2])
         Traceback (most recent call last):
         ...
@@ -724,7 +810,8 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x, y, z> = PolynomialRing(GF(19), 3)
             sage: S.<a, b, c> = R.quo(x^3 + y^3 + z^3)
             sage: phi = S.hom([b, c, a])

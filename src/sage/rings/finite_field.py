@@ -1,61 +1,78 @@
 r"""
 Finite Fields
 
-\SAGE supports arithmetic in finite prime and extension fields.
+Sage supports arithmetic in finite prime and extension fields.
 Several implementation for prime fields are implemented natively in
-\SAGE for several sizes of primes $p$. These implementations are
-\begin{itemize}
-\item \code{sage.rings.integer_mod.IntegerMod_int},
-\item \code{sage.rings.integer_mod.IntegerMod_int64}, and
-\item \code{sage.rings.integer_mod.IntegerMod_gmp}.
-\end{itemize}
-Small extension fields
-of cardinality $< 2^{16}$ are implemented using tables of Zech logs
-via the Givaro C++ library
-(\code{sage.rings.finite_field_givaro.FiniteField_givaro}). While this
-representation is very fast it is limited to finite fields of small
-cardinality. Larger finite extension fields of order $q >= 2^{16}$ are
-internally represented as polynomials over a smaller finite prime
-fields. If the characteristic of such a field is 2 then NTL is used
-internally to represent the field
-(\code{sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e}). In all
-other case the PARI C library is used
-(\code{sage.rings.finite_field_ext_pari.FiniteField_ext_pari}).
+Sage for several sizes of primes `p`. These implementations
+are
 
-However, this distinction is internal only and the user usually does
-not have to worry about it because consistency across all
-implementations is aimed for. In all extension field implementations
-the user may either specify a minimal polynomial or leave the choice
-to \SAGE.
+
+-  ``sage.rings.integer_mod.IntegerMod_int``,
+
+-  ``sage.rings.integer_mod.IntegerMod_int64``, and
+
+-  ``sage.rings.integer_mod.IntegerMod_gmp``.
+
+
+Small extension fields of cardinality `< 2^{16}` are
+implemented using tables of Zech logs via the Givaro C++ library
+(``sage.rings.finite_field_givaro.FiniteField_givaro``).
+While this representation is very fast it is limited to finite
+fields of small cardinality. Larger finite extension fields of
+order `q >= 2^{16}` are internally represented as
+polynomials over a smaller finite prime fields. If the
+characteristic of such a field is 2 then NTL is used internally to
+represent the field
+(``sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e``).
+In all other case the PARI C library is used
+(``sage.rings.finite_field_ext_pari.FiniteField_ext_pari``).
+
+However, this distinction is internal only and the user usually
+does not have to worry about it because consistency across all
+implementations is aimed for. In all extension field
+implementations the user may either specify a minimal polynomial or
+leave the choice to Sage.
 
 For small finite fields the default choice are Conway polynomials.
 
-The Conway polynomial $C_n$ is the lexicographically first monic
-irreducible, primitive polynomial of degree $n$ over $GF(p)$ with the
-property that for a root $\alpha$ of $C_n$ we have that $\beta=
-\alpha^{(p^n - 1)/(p^m - 1)}$ is a root of $C_m$ for all $m$ dividing
-$n$. \SAGE contains a database of conway polynomials which also can be
-queried independendtly of finite field construction.
+The Conway polynomial `C_n` is the lexicographically first
+monic irreducible, primitive polynomial of degree `n` over
+`GF(p)` with the property that for a root `\alpha`
+of `C_n` we have that
+`\beta=
+\alpha^{(p^n - 1)/(p^m - 1)}` is a root of
+`C_m` for all `m` dividing `n`. Sage
+contains a database of conway polynomials which also can be queried
+independendtly of finite field construction.
 
-While \SAGE supports basic arithmetic in finite fields some more
+While Sage supports basic arithmetic in finite fields some more
 advanced features for computing with finite fields are still not
-implemented. For instance, \SAGE does not calculate embeddings of
+implemented. For instance, Sage does not calculate embeddings of
 finite fields yet.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: k = GF(5); type(k)
     <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
+
+::
 
     sage: k = GF(5^2,'c'); type(k)
     <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>
 
+::
+
     sage: k = GF(2^16,'c'); type(k)
     <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e'>
+
+::
 
     sage: k = GF(3^16,'c'); type(k)
     <class 'sage.rings.finite_field_ext_pari.FiniteField_ext_pari'>
 
 Finite Fields support iteration, starting with 0.
+
+::
 
     sage: k = GF(9, 'a')
     sage: for i,x in enumerate(k):  print i,x
@@ -78,22 +95,29 @@ Finite Fields support iteration, starting with 0.
 
 We output the base rings of several finite fields.
 
+::
+
     sage: k = GF(3); type(k)
     <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
     sage: k.base_ring()
     Finite Field of size 3
+
+::
 
     sage: k = GF(9,'alpha'); type(k)
     <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>
     sage: k.base_ring()
     Finite Field of size 3
 
+::
+
     sage: k = GF(3^40,'b'); type(k)
     <class 'sage.rings.finite_field_ext_pari.FiniteField_ext_pari'>
     sage: k.base_ring()
     Finite Field of size 3
 
-Further examples:
+Further examples::
+
     sage: GF(2).is_field()
     True
     sage: GF(next_prime(10^20)).is_field()
@@ -104,9 +128,12 @@ Further examples:
     True
 
 AUTHORS:
-     -- William Stein: initial version
-     -- Robert Bradshaw: prime field implementation
-     -- Martin Albrecht: Givaro and ntl.GF2E implementations
+
+- William Stein: initial version
+
+- Robert Bradshaw: prime field implementation
+
+- Martin Albrecht: Givaro and ntl.GF2E implementations
 """
 
 #*****************************************************************************
@@ -146,31 +173,49 @@ from sage.structure.factory import UniqueFactory
 
 class FiniteFieldFactory(UniqueFactory):
     """
-    Return the globally unique finite field of given order with generator
-    labeled by the given name and possibly with given modulus.
+    Return the globally unique finite field of given order with
+    generator labeled by the given name and possibly with given
+    modulus.
 
     INPUT:
-        order --   int
-        name --    string; must be specified if not a prime field
-        modulus -- (optional) defining polynomial for field, i.e.,
-                   generator of the field will be a root of this
-                   polynomial; if not specified the choice of
-                   definining polynomials can be arbitrary.
-        elem_cache -- cache all elements to avoid creation time  (default: order<500)
-        check_irreducible -- verify that the polynomial modulus is irreducible
-        args -- additional parameters passed to finite field implementations
-        kwds -- additional keyword parameters passed to finite field implementations
 
-    ALIAS:
-        You can also use GF instead of FiniteField -- they are identical.
 
-    EXAMPLES:
+    -  ``order`` - int
+
+    -  ``name`` - string; must be specified if not a prime
+       field
+
+    -  ``modulus`` - (optional) defining polynomial for
+       field, i.e., generator of the field will be a root of this
+       polynomial; if not specified the choice of definining polynomials
+       can be arbitrary.
+
+    -  ``elem_cache`` - cache all elements to avoid
+       creation time (default: order500)
+
+    -  ``check_irreducible`` - verify that the polynomial
+       modulus is irreducible
+
+    -  ``args`` - additional parameters passed to finite
+       field implementations
+
+    -  ``kwds`` - additional keyword parameters passed to
+       finite field implementations
+
+
+    ALIAS: You can also use GF instead of FiniteField - they are
+    identical.
+
+    EXAMPLES::
+
         sage: k.<a> = FiniteField(9); k
         Finite Field in a of size 3^2
         sage: parent(a)
         Finite Field in a of size 3^2
         sage: charpoly(a, 'y')
         y^2 + 2*y + 2
+
+    ::
 
         sage: F.<x> = GF(5)[]
         sage: K.<a> = GF(5**5, name='a', modulus=x^5 - x +1 )
@@ -179,15 +224,18 @@ class FiniteFieldFactory(UniqueFactory):
         sage: type(f)
          <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
 
-    The modulus must be irreducible:
+    The modulus must be irreducible::
+
         sage: K.<a> = GF(5**5, name='a', modulus=x^5 - x )
         Traceback (most recent call last):
         ...
         ValueError: finite field modulus must be irreducible but it is not
 
-    You can't accidently fool the constructor into thinking the
-    modulus is irreducible when it isn't mod p, since it actually
-    tests irreducibility modulo p.
+    You can't accidently fool the constructor into thinking the modulus
+    is irreducible when it isn't mod p, since it actually tests
+    irreducibility modulo p.
+
+    ::
 
         sage: F.<x> = QQ[]
         sage: factor(x^5+2)
@@ -198,34 +246,44 @@ class FiniteFieldFactory(UniqueFactory):
         ValueError: finite field modulus must be irreducible but it is not
 
     If you wish to live dangerously, you can tell the constructor not
-    to test irreducibility using check_irreducible=False, but this
-    can easily lead to crashes and hangs -- so do not do it unless
-    you know that the modulus really is irreducible!
+    to test irreducibility using check_irreducible=False, but this can
+    easily lead to crashes and hangs - so do not do it unless you know
+    that the modulus really is irreducible!
+
+    ::
 
         sage: F.<x> = GF(5)[]
         sage: K.<a> = GF(5**2, name='a', modulus=x^2 + 2, check_irreducible=False)
 
     For example, you may print finite field elements as integers. This
-    currently only works if the order of field is $<2^{16}$, though.
+    currently only works if the order of field is `<2^{16}`,
+    though.
+
+    ::
 
         sage: k.<a> = GF(2^8,repr='int')
         sage: a
         2
 
-    The order of a finite field must be a prime power:
+    The order of a finite field must be a prime power::
 
         sage: GF(100)
         Traceback (most recent call last):
         ...
         ValueError: order of finite field must be a prime power
 
-    Finite fields with random modulus are not cached:
+    Finite fields with random modulus are not cached::
+
         sage: k.<a> = GF(2^17,modulus='random')
         sage: n.<a> = GF(2^17,modulus='random')
         sage: n is k
         False
 
-    We check that various ways of creating the same finite field yield the same object.
+    We check that various ways of creating the same finite field yield
+    the same object.
+
+    ::
+
         sage: K = GF(7, 'a')
         sage: L = GF(7, 'b')
         sage: K is L
@@ -241,7 +299,8 @@ class FiniteFieldFactory(UniqueFactory):
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None, impl=None, **kwds):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: GF.create_key_and_extra_args(9, 'a')
             ((9, ('a',), None, None, '{}'), {})
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
@@ -271,7 +330,8 @@ class FiniteFieldFactory(UniqueFactory):
 
     def create_object(self, version, key, check_irreducible=True, elem_cache=None, names=None, **kwds):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K = GF(19)
             sage: loads(dumps(K)) is K
             True
@@ -315,7 +375,8 @@ class FiniteFieldFactory(UniqueFactory):
 
     def other_keys(self, key, K):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: key, extra = GF.create_key_and_extra_args(9, 'a'); key
             (9, ('a',), None, None, '{}')
             sage: K = GF.create_object(0, key); K
@@ -351,7 +412,8 @@ def is_PrimeFiniteField(x):
     """
     Returns True if x is a prime finite field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.finite_field import is_PrimeFiniteField
         sage: is_PrimeFiniteField(QQ)
         False
@@ -379,23 +441,36 @@ def conway_polynomial(p, n):
     RuntimeError exception.
 
     INPUT:
-        p -- int
-        n -- int
+
+
+    -  ``p`` - int
+
+    -  ``n`` - int
+
 
     OUTPUT:
-        Polynomial -- a polynomial over the prime finite field GF(p).
 
-    NOTE: The first time this function is called a table is read from
-    disk, which takes a fraction of a second.  Subsequent calls do not
-    require reloading the table.
 
-    See also the \code{ConwayPolynomials()} object, which is a table of
-    Conway polynomials.   For example, if \code{c=ConwayPolynomials}, then
-    \code{c.primes()} is a list of all primes for which the polynomials are
-    known, and for a given prime $p$,  \code{c.degree(p)} is a list of all
-    degrees for which the Conway polynomials are known.
+    -  ``Polynomial`` - a polynomial over the prime finite
+       field GF(p).
 
-    EXAMPLES:
+
+    .. note::
+
+       The first time this function is called a table is read from
+       disk, which takes a fraction of a second. Subsequent calls do
+       not require reloading the table.
+
+    See also the ``ConwayPolynomials()`` object, which is a
+    table of Conway polynomials. For example, if
+    ``c=ConwayPolynomials``, then
+    ``c.primes()`` is a list of all primes for which the
+    polynomials are known, and for a given prime `p`,
+    ``c.degree(p)`` is a list of all degrees for which the
+    Conway polynomials are known.
+
+    EXAMPLES::
+
         sage: conway_polynomial(2,5)
         x^5 + x^2 + 1
         sage: conway_polynomial(101,5)
@@ -414,13 +489,14 @@ def conway_polynomial(p, n):
 
 def exists_conway_polynomial(p, n):
     r"""
-    Return True if the Conway polynomial over $F_p$ of degree $n$ is in the
-    database and False otherwise.
+    Return True if the Conway polynomial over `F_p` of degree
+    `n` is in the database and False otherwise.
 
     If the Conway polynomial is in the database, to obtain it use the
-    command \code{conway_polynomial(p,n)}.
+    command ``conway_polynomial(p,n)``.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: exists_conway_polynomial(2,3)
         True
         sage: exists_conway_polynomial(2,-1)

@@ -1,7 +1,8 @@
 """
 Laurent Series Rings
 
-EXAMPLES:
+EXAMPLES::
+
     sage: R = LaurentSeriesRing(QQ, "x")
     sage: R.base_ring()
     Rational Field
@@ -27,7 +28,8 @@ from sage.structure.parent_gens import ParentWithGens
 laurent_series = {}
 def LaurentSeriesRing(base_ring, name=None, names=None, sparse=False):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R = LaurentSeriesRing(QQ, 'x'); R
         Laurent Series Ring in x over Rational Field
         sage: x = R.0
@@ -36,19 +38,28 @@ def LaurentSeriesRing(base_ring, name=None, names=None, sparse=False):
         sage: g = 10*x^(-3) + 2006 - 19*x + x^2 - x^4 +O(x^8); g
         10*x^-3 + 2006 - 19*x + x^2 - x^4 + O(x^8)
 
-    You can also use more mathematical notation when the base is a field:
+    You can also use more mathematical notation when the base is a
+    field::
+
         sage: Frac(QQ[['x']])
         Laurent Series Ring in x over Rational Field
         sage: Frac(GF(5)['y'])
         Fraction Field of Univariate Polynomial Ring in y over Finite Field of size 5
 
-    Here the fraction field is not just the Laurent series ring, so you can't
-    use the \code{Frac} notation to make the Laurent series ring.
+    Here the fraction field is not just the Laurent series ring, so you
+    can't use the ``Frac`` notation to make the Laurent
+    series ring.
+
+    ::
+
         sage: Frac(ZZ[['t']])
         Fraction Field of Power Series Ring in t over Integer Ring
 
-    Laurent series rings are determined by their variable and the base ring,
-    and are globally unique.
+    Laurent series rings are determined by their variable and the base
+    ring, and are globally unique.
+
+    ::
+
         sage: K = Qp(5, prec = 5)
         sage: L = Qp(5, prec = 200)
         sage: R.<x> = LaurentSeriesRing(K)
@@ -89,7 +100,9 @@ def is_LaurentSeriesRing(x):
 class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
     """
     Univariate Laurent Series Ring
-    EXAMPLES:
+
+    EXAMPLES::
+
         sage: K, q = LaurentSeriesRing(CC, 'q').objgen(); K
         Laurent Series Ring in q over Complex Field with 53 bits of precision
         sage: loads(K.dumps()) == K
@@ -103,8 +116,8 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
     def base_extend(self, R):
         """
         Returns the laurent series ring over R in the same variable as
-        self, assuming there is a canonical coerce map from the base
-        ring of self to R.
+        self, assuming there is a canonical coerce map from the base ring
+        of self to R.
         """
         if R.has_coerce_map_from(self.base_ring()):
             return self.change_ring(R)
@@ -137,22 +150,28 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         Coerces the element x into this Laurent series ring.
 
         INPUT:
-            x -- the element to coerce
-            n -- the result of the coercion will be multiplied by $t^n$ (default: 0)
 
-        EXAMPLES:
+
+        -  ``x`` - the element to coerce
+
+        -  ``n`` - the result of the coercion will be
+           multiplied by `t^n` (default: 0)
+
+
+        EXAMPLES::
+
             sage: R.<u> = LaurentSeriesRing(Qp(5, 10))
             sage: S.<t> = LaurentSeriesRing(RationalField())
             sage: print R(t + t^2 + O(t^3))
             (1 + O(5^10))*u + (1 + O(5^10))*u^2 + O(u^3)
 
         Note that coercing an element into its own parent just produces
-        that element again (since Laurent series are immutable):
+        that element again (since Laurent series are immutable)::
 
             sage: u is R(u)
             True
 
-        Rational functions are accepted:
+        Rational functions are accepted::
 
             sage: I = sqrt(-1)
             sage: K.<I> = QQ[I]
@@ -163,11 +182,12 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             1/64*I*u^10 - 1/128*u^12 - 1/256*I*u^14 + 1/512*u^16 +
             1/1024*I*u^18 + O(u^20)
 
+        ::
+
             sage: L(t*I) / L(t^3+I*2*t)
             1/2 + 1/4*I*u^2 - 1/8*u^4 - 1/16*I*u^6 + 1/32*u^8 +
             1/64*I*u^10 - 1/128*u^12 - 1/256*I*u^14 + 1/512*u^16 +
             1/1024*I*u^18 + O(u^20)
-
         """
         from sage.rings.fraction_field_element import is_FractionFieldElement
         from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -189,11 +209,15 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
         Rings that canonically coerce to this power series ring R:
 
-           * R itself
-           * Any laurent series ring in the same variable whose base ring canonically coerces to
-             the base ring of R.
-           * Any ring that canonically coerces to the power series ring over the base ring of R.
-           * Any ring that canonically coerces to the base ring of R
+        - R itself
+
+        - Any laurent series ring in the same variable whose base ring
+          canonically coerces to the base ring of R.
+
+        - Any ring that canonically coerces to the power series ring
+          over the base ring of R.
+
+        - Any ring that canonically coerces to the base ring of R
         """
         try:
             P = x.parent()
@@ -255,10 +279,11 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     def power_series_ring(self):
         r"""
-        If this is the Laurent series ring $R((t))$, return the power
-        series ring $R[[t]]$.
+        If this is the Laurent series ring `R((t))`, return the
+        power series ring `R[[t]]`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = LaurentSeriesRing(QQ, "x")
             sage: R.power_series_ring()
             Power Series Ring in x over Rational Field

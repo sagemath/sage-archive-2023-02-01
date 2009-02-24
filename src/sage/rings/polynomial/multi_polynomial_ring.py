@@ -1,28 +1,38 @@
 r"""
 Multivariate Polynomial Rings
 
-\SAGE implements multivariate polynomial rings through several
-backends. The generic implementation used the classes \code{PolyDict}
-and \code{ETuple} to construct a dictionary with exponent tuples as
-keys and coefficients as values.
+Sage implements multivariate polynomial rings through several
+backends. The generic implementation used the classes
+``PolyDict`` and ``ETuple`` to construct a
+dictionary with exponent tuples as keys and coefficients as
+values.
 
-Additionally, specialized and optimized implementations are provided
-for multivariate polynomials over $\Q$ and $\F_p$. These are
-implemented in the classes \code{MPolynomialRing_libsingular} and
-\code{MPolynomial_libsingular}
+Additionally, specialized and optimized implementations are
+provided for multivariate polynomials over `\mathbb{Q}` and
+`\mathbb{F}_p`. These are implemented in the classes
+``MPolynomialRing_libsingular`` and
+``MPolynomial_libsingular``
 
 AUTHORS:
-    -- David Joyner and William Stein
-    -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
-              Singular features
-    -- Martin Albrecht (2006-04-21): reorganize class hiearchy for singular rep
-    -- Martin Albrecht (2007-04-20): reorganized class hierarchy to support Pyrex
-              implementations
-    -- Robert Bradshaw (2007-08-15): Coercions from rings in a subset of the variables.
+
+- David Joyner and William Stein
+
+- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of Singular
+  features
+
+- Martin Albrecht (2006-04-21): reorganize class hiearchy for singular
+  rep
+
+- Martin Albrecht (2007-04-20): reorganized class hierarchy to support
+  Pyrex implementations
+
+- Robert Bradshaw (2007-08-15): Coercions from rings in a subset of
+  the variables.
 
 EXAMPLES:
 
-We construct the Frobenius morphism on $\mbox{\rm F}_{5}[x,y,z]$ over $\F_5$:
+We construct the Frobenius morphism on
+`\mbox{\rm F}_{5}[x,y,z]` over `\mathbb{F}_5`::
 
     sage: R, (x,y,z) = PolynomialRing(GF(5), 3, 'xyz').objgens()
     sage: frob = R.hom([x^5, y^5, z^5])
@@ -34,7 +44,8 @@ We construct the Frobenius morphism on $\mbox{\rm F}_{5}[x,y,z]$ over $\F_5$:
     x^15 + x^10*y^5 + 2*x^5*y^10 - 2*y^15
 
 We make a polynomial ring in one variable over a polynomial ring in
-two variables:
+two variables::
+
     sage: R.<x, y> = PolynomialRing(QQ, 2)
     sage: S.<t> = PowerSeriesRing(R)
     sage: t*(x+y)
@@ -83,6 +94,7 @@ from sage.structure.element import Element
 
 class MPolynomialRing_macaulay2_repr:
     """
+
     """
     def _macaulay2_(self, macaulay2=None):
         if macaulay2 is None:
@@ -122,7 +134,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
     """
     Multivariable polynomial ring.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R = PolynomialRing(Integers(12), 'x', 5); R
         Multivariate Polynomial Ring in x0, x1, x2, x3, x4 over Ring of integers modulo 12
         sage: loads(R.dumps()) == R
@@ -159,11 +172,16 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
 
     def __call__(self, x, check=True):
         """
-        Coerce \code{x} into this multivariate polynomial ring, possibly non-canonically.
+        Coerce ``x`` into this multivariate polynomial ring,
+        possibly non-canonically.
 
         EXAMPLES:
-        We create a Macaulay2 multivariate polynomial via ideal arithmetic,
-        then coerce it into R.
+
+        We create a Macaulay2 multivariate polynomial via ideal
+        arithmetic, then coerce it into R.
+
+        ::
+
             sage: R.<x,y> = PolynomialRing(QQ, 2)                        # optional
             sage: I = R.ideal([x^3 + y, y])                              # optional
             sage: S = I._macaulay2_()                                    # optional
@@ -174,13 +192,17 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: R(repr(f))                                             # optional
             x^6*y + 2*x^3*y^2 + y^3
 
-        Some other subtle coercions.  We create polynomial rings in 2 variables
-        over the rationals, integers, and a finite field.
+        Some other subtle coercions. We create polynomial rings in 2
+        variables over the rationals, integers, and a finite field.
+
+        ::
+
             sage: R.<x,y> = QQ[]
             sage: S.<x,y> = ZZ[]
             sage: T.<x,y> = GF(7)[]
 
-        We coerce from the integer to the rationals, and back:
+        We coerce from the integer to the rationals, and back::
+
             sage: f = R(S.0^2 - 4*S.1^3); f
             -4*y^3 + x^2
             sage: parent(f)
@@ -189,28 +211,38 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             Multivariate Polynomial Ring in x, y over Integer Ring
 
         We coerce from the finite field.
+
+        ::
+
             sage: f = R(T.0^2 - 4*T.1^3); f
             3*y^3 + x^2
             sage: parent(f)
             Multivariate Polynomial Ring in x, y over Rational Field
 
-        We dump and load a the polynomial ring S:
+        We dump and load a the polynomial ring S::
+
             sage: S2 = loads(dumps(S))
             sage: S2 == S
             True
 
         Coerce works and gets the right parent.
+
+        ::
+
             sage: parent(S2._coerce_(S.0)) is S2
             True
 
-        Coercion to reduce modulo a prime between rings with different variable names:
+        Coercion to reduce modulo a prime between rings with different
+        variable names::
+
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: S.<a,b> = PolynomialRing(GF(7),2)
             sage: f = x^2 + 2/3*y^3
             sage: S(f)
             3*b^3 + a^2
 
-        Coercion from symbolic variables:
+        Coercion from symbolic variables::
+
             sage: x,y,z = var('x,y,z')
             sage: R = QQ[x,y,z]
             sage: type(x)
@@ -224,8 +256,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: parent(f)
             Multivariate Polynomial Ring in x, y, z over Rational Field
 
-        A more complicated symbolic and computational mix.  Behind the scenes
-        Singular and Maxima are doing the real work.
+        A more complicated symbolic and computational mix. Behind the
+        scenes Singular and Maxima are doing the real work.
+
+        ::
+
             sage: R = QQ[x,y,z]
             sage: f = (x^3 + y^3 - z^3)^10; f
             (-z^3 + y^3 + x^3)^10
@@ -234,7 +269,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: (f - g).expand()
             0
 
-        It intellegently handles coercion from polynomial rings in a subset of the variables too.
+        It intellegently handles coercion from polynomial rings in a subset
+        of the variables too.
+
+        ::
+
             sage: R = GF(5)['x,y,z']
             sage: S = ZZ['y']
             sage: R(7*S.0)
@@ -242,6 +281,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: T = ZZ['x,z']
             sage: R(2*T.0 + 6*T.1 + T.0*T.1^2)
             x*z^2 + 2*x + z
+
+        ::
 
             sage: R = QQ['t,x,y,z']
             sage: S.<x> = ZZ['x']
@@ -253,16 +294,16 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: R(f)
             x^2 + 6*x*z + 9*z^2 + 10*x + 30*z + 25
 
-<Merge Conflict>
-        Arithmetic with a constant from a base ring:
+        Arithmetic with a constant from a base ring::
+
             sage: R.<u,v> = QQ[]
             sage: S.<x,y> = R[]
             sage: u^3*x^2 + v*y
             u^3*x^2 + v*y
 
+        Stacked polynomial rings coerce into constants if possible. First,
+        the univariate case::
 
-        Stacked polynomial rings coerce into constants if possible.  First,
-        the univariate case:
             sage: R.<x> = QQ[]
             sage: S.<u,v> = R[]
             sage: S(u + 2)
@@ -274,7 +315,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: S(x + 3).degree()
             0
 
-        Second, the multivariate case:
+        Second, the multivariate case::
+
             sage: R.<x,y> = QQ[]
             sage: S.<u,v> = R[]
             sage: S(x + 2*y)
@@ -282,7 +324,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: S(u + 2*v)
             u + 2*v
 
-        Conversion from strings:
+        Conversion from strings::
+
             sage: R.<x,y> = QQ[]
             sage: R('x+(1/2)*y^2')
             1/2*y^2 + x
@@ -290,10 +333,13 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: S('u^2 + u*v + v^2')
             u^2 + u*v + v^2
 
-        Foreign polynomial rings coerce into the highest ring; the point here
-        is that an element of T could coerce to an element of R or an element
-        of S; it is anticipated that an element of T is more likely to be "the
-        right thing" and is historically consistent.
+        Foreign polynomial rings coerce into the highest ring; the point
+        here is that an element of T could coerce to an element of R or an
+        element of S; it is anticipated that an element of T is more likely
+        to be "the right thing" and is historically consistent.
+
+        ::
+
             sage: R.<x,y> = QQ[]
             sage: S.<u,v> = R[]
             sage: T.<a,b> = QQ[]
@@ -461,54 +507,77 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
     def monomial_quotient(self,f, g, coeff=False):
         """
-        Return f/g, where both f and g are treated as
-        monomials. Coefficients are ignored by default.
+        Return f/g, where both f and g are treated as monomials.
+        Coefficients are ignored by default.
 
         INPUT:
-            f -- monomial
-            g -- monomial
-            coeff -- divide coefficents as well (default: False)
 
-        EXAMPLE:
+
+        -  ``f`` - monomial
+
+        -  ``g`` - monomial
+
+        -  ``coeff`` - divide coefficents as well (default:
+           False)
+
+
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
             sage: P.monomial_quotient(3/2*x*y,x)
             y
 
+        ::
+
             sage: P.monomial_quotient(3/2*x*y,2*x,coeff=True)
             3/4*y
 
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: R.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_quotient(x*y,x)
             y
 
+        ::
+
             sage: P.monomial_quotient(x*y,R.gen())
             y
 
+        ::
+
             sage: P.monomial_quotient(P(0),P(1))
             0
+
+        ::
 
             sage: P.monomial_quotient(P(1),P(0))
             Traceback (most recent call last):
             ...
             ZeroDivisionError
 
+        ::
+
             sage: P.monomial_quotient(P(3/2),P(2/3), coeff=True)
             9/4
+
+        ::
 
             sage: P.monomial_quotient(x,y) # Note the wrong result
             x*y^-1
 
+        ::
+
             sage: P.monomial_quotient(x,P(1))
             x
 
-        NOTE: Assumes that the head term of f is a multiple of the
-        head term of g and return the multiplicant m. If this rule is
-        violated, funny things may happen.
+        .. note::
 
+           Assumes that the head term of f is a multiple of the head
+           term of g and return the multiplicant m. If this rule is
+           violated, funny things may happen.
         """
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 
@@ -536,28 +605,37 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         LCM for monomials. Coefficients are ignored.
 
         INPUT:
-            f -- monomial
-            g -- monomial
 
-        EXAMPLE:
+
+        -  ``f`` - monomial
+
+        -  ``g`` - monomial
+
+
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_lcm(3/2*x*y,x)
             x*y
 
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: R.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_lcm(x*y,R.gen())
             x*y
 
+        ::
+
             sage: P.monomial_lcm(P(3/2),P(2/3))
             1
 
+        ::
+
             sage: P.monomial_lcm(x,P(1))
             x
-
         """
         one = self.base_ring()(1)
 
@@ -578,17 +656,22 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
     def monomial_reduce(self, f, G):
         """
-        Try to find a g in G where g.lm() divides f. If found (g,flt)
-        is returned, (0,0) otherwise, where flt is f/g.lm().
+        Try to find a g in G where g.lm() divides f. If found (g,flt) is
+        returned, (0,0) otherwise, where flt is f/g.lm().
 
         It is assumed that G is iterable and contains ONLY elements in
         self.
 
         INPUT:
-            f -- monomial
-            G -- list/set of mpolynomials
 
-        EXAMPLES:
+
+        -  ``f`` - monomial
+
+        -  ``G`` - list/set of mpolynomials
+
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: f = x*y^2
@@ -596,18 +679,22 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             sage: P.monomial_reduce(f,G)
             (y, 1/4*x*y + 2/7)
 
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: f = x*y^2
             sage: G = [ 3/2*x^3 + y^2 + 1/2, 1/4*x*y + 2/7, P(1/2)  ]
 
+        ::
+
             sage: P.monomial_reduce(P(0),G)
             (0, 0)
 
+        ::
+
             sage: P.monomial_reduce(f,[P(0)])
             (0, 0)
-
         """
         if not f:
             return 0,0
@@ -626,10 +713,15 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         Return False if a does not divide b and True otherwise.
 
         INPUT:
-            a -- monomial
-            b -- monomial
 
-        EXAMPLES:
+
+        -  ``a`` - monomial
+
+        -  ``b`` - monomial
+
+
+        EXAMPLES::
+
             sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
             doctest:1: DeprecationWarning: MPolynomialRing is deprecated, use PolynomialRing instead!
             sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
@@ -637,13 +729,13 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)
             False
 
-        TESTS:
+        TESTS::
+
             sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
             sage: P.monomial_divides(P(1), P(0))
             True
             sage: P.monomial_divides(P(1), x)
             True
-
         """
 
         if not b:
@@ -661,30 +753,43 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
     def monomial_pairwise_prime(self, h, g):
         """
-        Return True if h and g are pairwise prime. Both are treated as monomials.
+        Return True if h and g are pairwise prime. Both are treated as
+        monomials.
 
         INPUT:
-            h -- monomial
-            g -- monomial
 
-        EXAMPLES:
+
+        -  ``h`` - monomial
+
+        -  ``g`` - monomial
+
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_pairwise_prime(x^2*z^3, y^4)
             True
 
+        ::
+
             sage: P.monomial_pairwise_prime(1/2*x^3*y^2, 3/4*y^3)
             False
 
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: Q.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_pairwise_prime(x^2*z^3, Q('y^4'))
             True
 
+        ::
+
             sage: P.monomial_pairwise_prime(1/2*x^3*y^2, Q(0))
             True
+
+        ::
 
             sage: P.monomial_pairwise_prime(P(1/2),x)
             False
@@ -706,13 +811,15 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         ignored.
 
         INPUT:
-            t -- a monomial
-
-        OUTPUT:
-            a list of monomials
 
 
-        EXAMPLE:
+        -  ``t`` - a monomial
+
+
+        OUTPUT: a list of monomials
+
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_all_divisors(x^2*z^3)

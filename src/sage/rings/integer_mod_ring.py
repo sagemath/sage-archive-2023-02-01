@@ -1,15 +1,21 @@
 r"""
-Ring $\Z/n\Z$ of integers modulo $n$
+Ring `\mathbb{Z}/n\mathbb{Z}` of integers modulo
+`n`
 
-EXAMPLES:
+EXAMPLES::
+
     sage: R = Integers(97)
     sage: a = R(5)
     sage: a**100000000000000000000000000000000000000000000000000000000000000
     61
 
-This example illustrates the relation between $\Z/p\Z$ and $\F_p$.  In
-particular, there is a canonical map to $\F_p$, but not in the other
-direction.
+This example illustrates the relation between
+`\mathbb{Z}/p\mathbb{Z}` and `\mathbb{F}_p`. In
+particular, there is a canonical map to `\mathbb{F}_p`, but not in
+the other direction.
+
+::
+
     sage: r = Integers(7)
     sage: s = GF(7)
     sage: r.has_coerce_map_from(s)
@@ -23,16 +29,23 @@ direction.
     sage: parent(r(1) + s(1))
     Finite Field of size 7
 
-We list the elements of $\Z/3\Z$
+We list the elements of `\mathbb{Z}/3\mathbb{Z}`
+
+::
+
     sage: R = Integers(3)
     sage: list(R)
     [0, 1, 2]
 
-AUTHORS
-    -- William Stein (initial code)
-    -- David Joyner (2005-12-22): most examples
-    -- Robert Bradshaw (2006-08-24): convert to SageX (Cython)
-    -- William Stein (2007-04-29): square_roots_of_one
+AUTHORS:
+
+- William Stein (initial code)
+
+- David Joyner (2005-12-22): most examples
+
+- Robert Bradshaw (2006-08-24): convert to SageX (Cython)
+
+- William Stein (2007-04-29): square_roots_of_one
 """
 
 #*****************************************************************************
@@ -77,12 +90,17 @@ from sage.structure.factory import UniqueFactory
 
 class IntegerModFactory(UniqueFactory):
     r"""
-    Return the quotient ring $\ZZ / n\ZZ$.
+    Return the quotient ring `\mathbb{Z} / n\mathbb{Z}`.
 
     INPUT:
-        order -- integer (default: 0), positive or negative
 
-    EXAMPLES:
+
+    -  ``order`` - integer (default: 0), positive or
+       negative
+
+
+    EXAMPLES::
+
         sage: IntegerModRing(15)
         Ring of integers modulo 15
         sage: IntegerModRing(7)
@@ -90,8 +108,11 @@ class IntegerModFactory(UniqueFactory):
         sage: IntegerModRing(-100)
         Ring of integers modulo 100
 
-    Note that you can also use \code{Integers}, which is a synonym
-    for \code{IntegerModRing}.
+    Note that you can also use ``Integers``, which is a
+    synonym for ``IntegerModRing``.
+
+    ::
+
         sage: Integers(18)
         Ring of integers modulo 18
         sage: Integers() is Integers(0) is ZZ
@@ -102,7 +123,8 @@ class IntegerModFactory(UniqueFactory):
 
     def create_object(self, version, order):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(10)
             sage: loads(dumps(R)) is R
             True
@@ -121,7 +143,8 @@ def is_IntegerModRing(x):
     """
     Return True if x is an integer modulo ring.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.integer_mod_ring import is_IntegerModRing
         sage: R = IntegerModRing(17)
         sage: is_IntegerModRing(R)
@@ -141,7 +164,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
     The ring of integers modulo N, with N composite.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R = IntegerModRing(97)
         sage: a = R(5)
         sage: a**(10^62)
@@ -149,18 +173,27 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
     def __init__(self, order, cache=None):
         """
-        Create with the command
-              IntegerModRing(order)
+        Create with the command IntegerModRing(order)
 
         INPUT:
-            order -- an integer > 1
+
+
+        -  ``order`` - an integer 1
+
 
         OUTPUT:
-            IntegerModRing -- the ring of integers modulo N.
+
+
+        -  ``IntegerModRing`` - the ring of integers modulo
+           N.
+
 
         EXAMPLES:
 
-        First we compute with integers modulo $17$.
+        First we compute with integers modulo `17`.
+
+        ::
+
             sage: FF = IntegerModRing(17)
             sage: FF
             Ring of integers modulo 17
@@ -180,7 +213,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: [pow(i) for i in range(16)]
             [1, 3, 9, 10, 13, 5, 15, 11, 16, 14, 8, 7, 4, 12, 2, 6]
 
-        Next we compute with the integers modulo $16$.
+        Next we compute with the integers modulo `16`.
+
+        ::
+
             sage: Z16 = IntegerModRing(16)
             sage: Z16.is_field()
             False
@@ -207,7 +243,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: b.multiplicative_order()
             4
 
-        Saving and loading:
+        Saving and loading::
+
             sage: R = Integers(100000)
             sage: loads(R.dumps()) == R
             True
@@ -231,11 +268,14 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def _macaulay2_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2(Integers(7))  # optional - macaulay2
             ZZ
             --
              7
+
+        ::
 
             sage: macaulay2(Integers(10)) # optional - macaulay2
             Traceback (most recent call last):
@@ -243,13 +283,13 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             TypeError: Error evaluating Macaulay2 code.
             IN:sage1=ZZ/10;
             OUT:stdio:3:9:(1):[0]: ZZ/n not implemented yet for composite n
-
         """
         return "ZZ/%s"%self.order()
 
     def krull_dimension(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Integers(18).krull_dimension()
             0
         """
@@ -257,7 +297,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def is_noetherian(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Integers(8).is_noetherian()
             True
         """
@@ -280,9 +321,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def multiplicative_subgroups(self):
         r"""
-        Return generators for each subgroup of $(\ZZ/N\ZZ)^*$.
+        Return generators for each subgroup of
+        `(\mathbb{Z}/N\mathbb{Z})^*`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Integers(5).multiplicative_subgroups()
             [[2], [4], [1]]
             sage: Integers(15).multiplicative_subgroups()
@@ -301,7 +344,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         Return True since Z/NZ is finite for all positive N.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = IntegerModRing(18)
             sage: R.is_finite()
             True
@@ -312,7 +356,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         Return True if and only if the order of self is prime.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Integers(389).is_integral_domain()
             True
             sage: Integers(389^2).is_integral_domain()
@@ -324,7 +369,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         Return True precisely if the order is prime.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = IntegerModRing(18)
             sage: R.is_field()
             False
@@ -336,11 +382,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def field(self):
         """
-        If this ring is a field, return the corresponding field as a
-        finite field, which may have extra functionality and
-        structure.  Otherwise, raise a ValueError.
+        If this ring is a field, return the corresponding field as a finite
+        field, which may have extra functionality and structure. Otherwise,
+        raise a ValueError.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(7); R
             Ring of integers modulo 7
             sage: R.field()
@@ -363,10 +410,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def _pseudo_fraction_field(self):
         """
-        If self is composite, we may still want to do divison by
-        elements of self.
+        If self is composite, we may still want to do divison by elements
+        of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Integers(15).fraction_field()
             Traceback (most recent call last):
             ...
@@ -377,8 +425,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: (x+5)/2
             8*x + 10
 
+        This should be very fast::
 
-        This should be very fast:
             sage: R.<x> = Integers(next_prime(10^101)*next_prime(10^100))[]
             sage: x / R.base_ring()(2)
             500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000013365000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000401*x
@@ -387,11 +435,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def multiplicative_group_is_cyclic(self):
         """
-        Return True if the multiplicative group of this field is
-        cyclic.  This is the case exactly when the order is less than
-        8 or a power of an odd prime.
+        Return True if the multiplicative group of this field is cyclic.
+        This is the case exactly when the order is less than 8 or a power
+        of an odd prime.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(7); R
             Ring of integers modulo 7
             sage: R.multiplicative_group_is_cyclic()
@@ -436,7 +485,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         Use the unit_gens function to obtain generators even in the
         non-cyclic case.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(7); R
             Ring of integers modulo 7
             sage: R.multiplicative_generator()
@@ -473,7 +523,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         Return a quadratic non-residue in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(17)
             sage: R.quadratic_nonresidue()
             3
@@ -490,18 +541,24 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def square_roots_of_one(self):
         """
-        Return all square roots of 1 in self, i.e., all solutions
-        to $x^2 - 1$.
+        Return all square roots of 1 in self, i.e., all solutions to
+        `x^2 - 1`.
 
         OUTPUT:
-            tuple -- the square roots of 1 in self.
 
-        EXAMPLES:
+
+        -  ``tuple`` - the square roots of 1 in self.
+
+
+        EXAMPLES::
+
             sage: R = Integers(2^10)
             sage: [x for x in R if x^2 == 1]
             [1, 511, 513, 1023]
             sage: R.square_roots_of_one()
             (1, 511, 513, 1023)
+
+        ::
 
             sage: v = Integers(9*5).square_roots_of_one(); v
             (1, 19, 26, 44)
@@ -559,7 +616,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def factored_order(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = IntegerModRing(18)
             sage: FF = IntegerModRing(17)
             sage: R.factored_order()
@@ -574,7 +632,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def characteristic(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = IntegerModRing(18)
             sage: FF = IntegerModRing(17)
             sage: FF.characteristic()
@@ -592,12 +651,15 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def modulus(self):
         r"""
-        Return the polynomial $x - 1$ over this ring.
+        Return the polynomial `x - 1` over this ring.
 
-        \note{This function exists for consistency with the
-        finite-field modulus function.}
+        .. note::
 
-        EXAMPLES:
+           This function exists for consistency with the finite-field
+           modulus function.
+
+        EXAMPLES::
+
             sage: R = IntegerModRing(18)
             sage: R.modulus()
             x + 17
@@ -643,7 +705,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def __iter__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = IntegerModRing(3)
             sage: for i in R:
             ...    print i
@@ -664,7 +727,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         r"""
         Canonical coercion.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = IntegerModRing(17)
             sage: a = R(3)
             sage: b = R._coerce_(3)
@@ -673,21 +737,25 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: a==b
             True
 
-        This is allowed:
+        This is allowed::
+
             sage: R(2/3)
             12
 
-        But this is not, since there is no (canonical or not!) ring homomorphism
-        from $\Q$ to $\GF(17)$.
+        But this is not, since there is no (canonical or not!) ring
+        homomorphism from `\mathbb{Q}` to
+        `\mathrm{GF}(17)`.
+
+        ::
 
             sage: R._coerce_(2/3)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion of x
 
-        We do not allow the coercion GF(p) --> Z/pZ, because in case
-        of a canonical isomorphism, there is a coercion map in only
-        one direction, i.e., to the object in the smaller category.
+        We do not allow the coercion GF(p) - Z/pZ, because in case of a
+        canonical isomorphism, there is a coercion map in only one
+        direction, i.e., to the object in the smaller category.
         """
         if isinstance(x, (int, long, integer.Integer)):
             return integer_mod.IntegerMod(self, x)
@@ -698,7 +766,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def coerce_map_from_impl(self, S):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(15)
             sage: f = R.coerce_map_from(Integers(450)); f
             Natural morphism:
@@ -738,7 +807,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(11)
             sage: F
             Finite Field of size 11
@@ -775,7 +845,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def __unit_gens_primepowercase(self, p, r):
         r"""
-        Find smallest generator for $(\Z/p^r\Z)^*$.
+        Find smallest generator for
+        `(\mathbb{Z}/p^r\mathbb{Z})^*`.
         """
         if r==1:
             return [self.__unit_gens_primecase(p)]
@@ -804,18 +875,22 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def unit_gens(self):
         r"""
-        Returns generators for the unit group $(\Z/N\Z)^*$.
+        Returns generators for the unit group
+        `(\mathbb{Z}/N\mathbb{Z})^*`.
 
-        We compute the list of generators using a deterministic
-        algorithm, so the generators list will always be the same.
-        Each generator corresponds to a prime divisor of $N$ (or
-        possibly two prime divisors for p=2).
+        We compute the list of generators using a deterministic algorithm,
+        so the generators list will always be the same. Each generator
+        corresponds to a prime divisor of `N` (or possibly two
+        prime divisors for p=2).
 
-        INPUT: (none)
-        OUTPUT:
-            list -- a list of elements of self
+        INPUT: (none)OUTPUT:
 
-        EXAMPLES:
+
+        -  ``list`` - a list of elements of self
+
+
+        EXAMPLES::
+
             sage: R = IntegerModRing(18)
             sage: R.unit_gens()
             [1, 11]
@@ -842,7 +917,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def unit_group_exponent(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = IntegerModRing(17)
             sage: R.unit_group_exponent()
             16
@@ -871,6 +947,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         Return the order of the unit group of this residue class ring.
 
         EXAMPLES;
+
+        ::
+
             sage: R = Integers(500)
             sage: R.unit_group_order()
             200
@@ -884,8 +963,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         If bound is not None, return the coercion of an integer in the
         interval [-bound, bound] into this ring.
 
+        EXAMPLES::
 
-        EXAMPLES:
             sage: R = IntegerModRing(18)
             sage: R.random_element()
             2
@@ -900,18 +979,20 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     #######################################################
     def _gap_init_(self):
         """
-        EXAMPLES:
-           sage: R = Integers(12345678900)
-           sage: R
-           Ring of integers modulo 12345678900
-           sage: gap(R)
-           (Integers mod 12345678900)
+        EXAMPLES::
+
+            sage: R = Integers(12345678900)
+            sage: R
+            Ring of integers modulo 12345678900
+            sage: gap(R)
+            (Integers mod 12345678900)
         """
         return 'ZmodnZ(%s)'%self.order()
 
     def _magma_init_(self, magma):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(12345678900)
             sage: R
             Ring of integers modulo 12345678900
@@ -937,8 +1018,8 @@ Integers = IntegerModRing
 
 def crt(v):
     """
-    INPUT: v -- (list) a lift of elements of rings.IntegerMod(n), for
-                 various coprime moduli n.
+    INPUT: v - (list) a lift of elements of rings.IntegerMod(n), for
+    various coprime moduli n.
     """
     if len(v) == 0:
         return IntegerModRing(1)(1)

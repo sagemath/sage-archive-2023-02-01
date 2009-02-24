@@ -1,8 +1,9 @@
 r"""
 Field of Arbitrary Precision Complex Numbers
 
-AUTHOR:
-    -- William Stein (2006-01-26): complete rewrite
+AUTHORS:
+
+- William Stein (2006-01-26): complete rewrite
 """
 
 #################################################################################
@@ -61,7 +62,8 @@ def ComplexField(prec=53, names=None):
     Return the complex field with real and imaginary parts having prec
     *bits* of precision.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: ComplexField()
         Complex Field with 53 bits of precision
         sage: ComplexField(100)
@@ -92,7 +94,8 @@ class ComplexField_class(field.Field):
     complex numbers. This is due to the rounding errors inherent to
     finite precision calculations.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: C = ComplexField(); C
         Complex Field with 53 bits of precision
         sage: Q = RationalField()
@@ -108,6 +111,8 @@ class ComplexField_class(field.Field):
     We can also coerce rational numbers and integers into C, but
     coercing a polynomial will raise an exception.
 
+    ::
+
         sage: Q = RationalField()
         sage: C(1/3)
         0.333333333333333
@@ -118,6 +123,9 @@ class ComplexField_class(field.Field):
         TypeError: unable to coerce to a ComplexNumber: <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>
 
     This illustrates precision.
+
+    ::
+
         sage: CC = ComplexField(10); CC(1/3, 2/3)
         0.33 + 0.67*I
         sage: CC
@@ -128,6 +136,9 @@ class ComplexField_class(field.Field):
         0.33333333333333333333333333333 + 0.66666666666666666666666666667*I
 
     We can load and save complex numbers and the complex field.
+
+    ::
+
         sage: loads(z.dumps()) == z
         True
         sage: loads(CC.dumps()) == CC
@@ -137,6 +148,9 @@ class ComplexField_class(field.Field):
         True
 
     This illustrates basic properties of a complex field.
+
+    ::
+
         sage: CC = ComplexField(200)
         sage: CC.is_field()
         True
@@ -152,7 +166,6 @@ class ComplexField_class(field.Field):
         False
         sage: CC == 1.1
         False
-
     """
     def __init__(self, prec=53):
         self._prec = int(prec)
@@ -173,7 +186,8 @@ class ComplexField_class(field.Field):
         r"""
         Return a string representation of self in the Magma language.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: magma(ComplexField(200)) # optional - magma
             Complex field of precision 60
             sage: 10^60 < 2^200 < 10^61
@@ -193,7 +207,8 @@ class ComplexField_class(field.Field):
         """
         Returns the complex field to the specified precision.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CC.to_prec(10)
             Complex Field with 10 bits of precision
             sage: CC.to_prec(100)
@@ -217,7 +232,8 @@ class ComplexField_class(field.Field):
 
     def __call__(self, x, im=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CC(2)
             2.00000000000000
             sage: CC(CC.0)
@@ -240,7 +256,8 @@ class ComplexField_class(field.Field):
 
     def _element_constructor_(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CC((1,2))
             1.00000000000000 + 2.00000000000000*I
         """
@@ -266,11 +283,15 @@ class ComplexField_class(field.Field):
 
     def _coerce_map_from_(self, S):
         """
-        The rings that canonicaly coerce to the MPFS complex field are:
-           * this MPFR complex field, or any other of higher precision
-           * anything that canonically coerces to the mpfr real field with this prec
+        The rings that canonicaly coerce to the MPFR complex field are:
 
-        EXAMPLES:
+        - This MPFR complex field, or any other of higher precision
+
+        - Anything that canonically coerces to the mpfr real field
+          with this prec
+
+        EXAMPLES::
+
             sage: ComplexField(200)(1) + RealField(90)(1)
             2.0000000000000000000000000
             sage: parent(ComplexField(200)(1) + RealField(90)(1))
@@ -342,7 +363,8 @@ class ComplexField_class(field.Field):
         """
         Return True, since the complex numbers are a field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CC.is_field()
             True
         """
@@ -352,7 +374,8 @@ class ComplexField_class(field.Field):
         """
         Return False, since the complex numbers are infinite.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CC.is_finite()
             False
         """
@@ -360,10 +383,11 @@ class ComplexField_class(field.Field):
 
     def construction(self):
         """
-        Returns the functorial construction of self, namely,
-        algebraic closure of the real field with the same precision.
+        Returns the functorial construction of self, namely, algebraic
+        closure of the real field with the same precision.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c, S = CC.construction(); S
             Real Field with 53 bits of precision
             sage: CC == c(S)
@@ -378,7 +402,8 @@ class ComplexField_class(field.Field):
         Returns a uniformly distributed random number inside a square
         centered on the origin (by default, the square [-1,1]x[-1,1]).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [CC.random_element() for _ in range(5)]
             [-0.306077326077253 - 0.0759291930543202*I, -0.838081254900233 - 0.207006276657392*I, -0.757827933063776 - 0.530834220505783*I, 0.918013195263849 - 0.805114150788948*I, 0.116924427170636 + 0.203592757069680*I]
             sage: CC6 = ComplexField(6)
@@ -400,13 +425,15 @@ class ComplexField_class(field.Field):
 
     def zeta(self, n=2):
         """
-        Return a primitive $n$-th root of unity.
+        Return a primitive `n`-th root of unity.
 
         INPUT:
-            n -- an integer (default: 2)
 
-        OUTPUT:
-            a complex n-th root of unity.
+
+        -  ``n`` - an integer (default: 2)
+
+
+        OUTPUT: a complex n-th root of unity.
         """
         from integer import Integer
         n = Integer(n)

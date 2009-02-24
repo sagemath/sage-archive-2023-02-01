@@ -1,11 +1,13 @@
 r"""
-\protect{Ring $\Z$ of Integers}
+Ring `\mathbb{Z}` of Integers
 
-The class \\class{IntegerRing} represents
-the ring $\\mathbf{Z}$ of (arbitrary precision) integers.  Each integer
-is an instance of the class \\class{Integer}, which is defined
-in a Pyrex extension module that wraps GMP integers
-(the \\class{mpz_t} type in GMP).
+The class ``IntegerRing`` represents the ring
+`\mathbb{Z}` of (arbitrary precision) integers. Each
+integer is an instance of the class ``Integer``, which
+is defined in a Pyrex extension module that wraps GMP integers (the
+``mpz_t`` type in GMP).
+
+::
 
     sage: Z = IntegerRing(); Z
     Integer Ring
@@ -14,10 +16,12 @@ in a Pyrex extension module that wraps GMP integers
     sage: Z.is_field()
     False
 
-There is a unique instances of class \\class{IntegerRing}.  To create
-an \\class{Integer}, coerce either a Python int, long, or a string.
-Various other types will also coerce to the integers, when it makes
-sense.
+There is a unique instances of class ``IntegerRing``.
+To create an ``Integer``, coerce either a Python int,
+long, or a string. Various other types will also coerce to the
+integers, when it makes sense.
+
+::
 
     sage: a = Z(1234); b = Z(5678); print a, b
     1234 5678
@@ -27,7 +31,6 @@ sense.
     6912
     sage: Z('94803849083985934859834583945394')
     94803849083985934859834583945394
-
 """
 
 #*****************************************************************************
@@ -82,16 +85,17 @@ def is_IntegerRing(x):
     """
     Internal funtion: returns true iff x is the ring ZZ of integers
 
-    EXAMPLES:
-    sage: from sage.rings.integer_ring import  is_IntegerRing
-    sage: is_IntegerRing(ZZ)
-    True
-    sage: is_IntegerRing(QQ)
-    False
-    sage: is_IntegerRing(parent(3))
-    True
-    sage: is_IntegerRing(parent(1/3))
-    False
+    EXAMPLES::
+
+        sage: from sage.rings.integer_ring import  is_IntegerRing
+        sage: is_IntegerRing(ZZ)
+        True
+        sage: is_IntegerRing(QQ)
+        False
+        sage: is_IntegerRing(parent(3))
+        True
+        sage: is_IntegerRing(parent(1/3))
+        False
     """
     return PY_TYPE_CHECK(x, IntegerRing_class)
 
@@ -101,9 +105,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     r"""
     The ring of integers.
 
-    In order to introduce the ring $\Z$ of integers, we illustrate
-    creation, calling a few functions, and working with its
+    In order to introduce the ring `\mathbb{Z}` of integers, we
+    illustrate creation, calling a few functions, and working with its
     elements.
+
+    ::
 
         sage: Z = IntegerRing(); Z
         Integer Ring
@@ -112,7 +118,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sage: Z.is_field()
         False
 
-    We next illustrate basic arithmetic in $\Z$:
+    We next illustrate basic arithmetic in `\mathbb{Z}`::
 
         sage: a = Z(1234); b = Z(5678); print a, b
         1234 5678
@@ -131,9 +137,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sage: b - a
         4444
 
-    When we divide to integers using /, the result is
-    automatically coerced to the field of rational numbers, even
-    if the result is an integer.
+    When we divide to integers using /, the result is automatically
+    coerced to the field of rational numbers, even if the result is an
+    integer.
+
+    ::
 
         sage: a / b
         617/2839
@@ -144,14 +152,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sage: type(a/a)
         <type 'sage.rings.rational.Rational'>
 
-    For floor division, instead using the // operator:
+    For floor division, instead using the // operator::
+
         sage: a // b
         0
         sage: type(a//b)
         <type 'sage.rings.integer.Integer'>
 
-    Next we illustrate arithmetic with automatic coercion.
-    The types that coerce are: str, int, long, Integer.
+    Next we illustrate arithmetic with automatic coercion. The types
+    that coerce are: str, int, long, Integer.
+
+    ::
+
         sage: a + 17
         1251
         sage: a * 374
@@ -163,12 +175,16 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sage: 0 + Z(-64)
         -64
 
-    Integers can be coerced:
+    Integers can be coerced::
+
         sage: a = Z(-64)
         sage: int(a)
         -64
 
     We can create integers from several types of objects.
+
+    ::
+
         sage: ZZ(17/1)
         17
         sage: ZZ(Mod(19,23))
@@ -195,7 +211,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __reduce__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: loads(dumps(ZZ)) is ZZ
             True
         """
@@ -235,10 +252,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __getitem__(self, x):
         """
-        Return the ring ZZ[...] obtained by adjoing to the integers
-        a list x of several elements.
+        Return the ring ZZ[...] obtained by adjoing to the integers a list
+        x of several elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ[ sqrt(2), sqrt(3) ]
             Relative Order in Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
             sage: ZZ[x]
@@ -253,7 +271,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             Order in Number Field in a with defining polynomial x^2 - x - 1
             sage: R.is_maximal()
             True
-
         """
         if x in self:
             return self
@@ -274,12 +291,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def range(self, start, end=None, step=None):
         """
-        Optimized range function for SAGE integer.
+        Optimized range function for Sage integer.
 
-        AUTHOR:
-          -- Robert Bradshaw (2007-09-20)
+        AUTHORS:
 
-        EXAMPLES:
+        - Robert Bradshaw (2007-09-20)
+
+        EXAMPLES::
+
             sage: ZZ.range(10)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: ZZ.range(-5,5)
@@ -295,7 +314,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ.range(50,-1,-5)
             [50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0]
 
-        It uses different code if the step doesn't fit in a long:
+        It uses different code if the step doesn't fit in a long::
+
             sage: ZZ.range(0,2^83,2^80)
             [0, 1208925819614629174706176, 2417851639229258349412352, 3626777458843887524118528, 4835703278458516698824704, 6044629098073145873530880, 7253554917687775048237056, 8462480737302404222943232]
         """
@@ -345,10 +365,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __iter__(self):
         """
-        Iterate over all integers.
-           0 1 -1 2 -2 3 -3 ...
+        Iterate over all integers. 0 1 -1 2 -2 3 -3 ...
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: for n in ZZ:
             ...    if n < 3: print n
             ...    else: break
@@ -370,10 +390,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     cpdef _coerce_map_from_(self, S):
         """
-        x canonically coerces to the integers ZZ over only if x is an
-        int, long or already an element of ZZ.
+        x canonically coerces to the integers ZZ over only if x is an int,
+        long or already an element of ZZ.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.coerce(int(5))
             5
             sage: ZZ.coerce(GF(7)(2))
@@ -381,9 +402,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ...
             TypeError: no canonical coercion from Finite Field of size 7 to Integer Ring
 
-        The rational number 3/1 = 3 does not canonically coerce into
-        the integers, since there is no canonical coercion map from
-        the full field of rational numbers to the integers.
+        The rational number 3/1 = 3 does not canonically coerce into the
+        integers, since there is no canonical coercion map from the full
+        field of rational numbers to the integers.
+
+        ::
 
             sage: a = 3/1; parent(a)
             Rational Field
@@ -394,8 +417,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ...
             TypeError: no canonical coercion from Rational Field to Integer Ring
 
+        TESTS::
 
-        TESTS:
             sage: f = ZZ.coerce_map_from(int); f
             Native morphism:
               From: Set of Python objects of type 'int'
@@ -406,6 +429,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             -7
 
         Note that the input MUST be an int.
+
+        ::
+
             sage: f(10000000000000000000000r) # random
             5
         """
@@ -423,7 +449,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         Every ring of characteristic 0 contains ZZ as a subring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.is_subring(QQ)
             True
         """
@@ -438,41 +465,51 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         r"""
         Return a random integer.
 
-            ZZ.random_element() -- return an integer using the default
-              distribution described below
-            ZZ.random_element(n) -- return an integer uniformly
-              distributed between 0 and n-1, inclusive.
-            ZZ.random_element(min, max) -- return an integer uniformly
-              destributed between min and max-1, inclusive.
+          ZZ.random_element()
+            return an integer using the default
+            distribution described below
+          ZZ.random_element(n)
+            return an
+            integer uniformly distributed between 0 and n-1, inclusive.
+          ZZ.random_element(min, max)
+            return an integer uniformly
+            destributed between min and max-1, inclusive.
 
         The default distribution for ZZ.random_element() is based on
-        $X = \mbox{trunc}(4/(5R))$, where $R$ is a random variable
-        uniformly distributed between -1 and 1.  This gives
-        $\mbox{Pr}(X = 0) = 1/5$, and $\mbox{Pr}(X = n) = 2/(5|n|(|n|+1))$ for $n \neq 0$.
-        Most of the samples will be small; -1, 0, and 1 occur with
-        probability 1/5 each.  But we also have a small but
-        non-negligible proportion of ``outliers''; $\mbox{Pr}(|X| \geq n) = 4/(5n)$,
-        so for instance, we expect that $|X| \geq 1000$ on one in
-        1250 samples.
+        `X = \mbox{trunc}(4/(5R))`, where `R` is a random
+        variable uniformly distributed between -1 and 1. This gives
+        `\mbox{Pr}(X = 0) = 1/5`, and
+        `\mbox{Pr}(X = n) = 2/(5|n|(|n|+1))` for
+        `n \neq 0`. Most of the samples will be small; -1, 0, and 1
+        occur with probability 1/5 each. But we also have a small but
+        non-negligible proportion of "outliers";
+        `\mbox{Pr}(|X| \geq n) = 4/(5n)`, so for instance, we
+        expect that `|X| \geq 1000` on one in 1250 samples.
 
         We actually use an easy-to-compute truncation of the above
-        distribution; the probabilities given above hold fairly well
-        up to about $|n| = 10000$, but around $|n| = 30000$ some
+        distribution; the probabilities given above hold fairly well up to
+        about `|n| = 10000`, but around `|n| = 30000` some
         values will never be returned at all, and we will never return
-        anything greater than $2^{30}$.
+        anything greater than `2^{30}`.
 
         EXAMPLES:
-        The default distribution is on average 50% $\pm 1$:
+
+        The default distribution is on average 50% `\pm 1`
+
+        ::
+
             sage: [ZZ.random_element() for _ in range(10)]
             [-8, 2, 0, 0, 1, -1, 2, 1, -95, -1]
 
-        The default uniform distribution is integers between -2 and 2 inclusive:
+        The default uniform distribution is integers between -2 and 2
+        inclusive::
+
             sage: [ZZ.random_element(distribution="uniform") \
                     for _ in range(10)]
             [2, -2, 2, -2, -1, 1, -1, 2, 1, 0]
 
+        If a range is given, the distribution is uniform in that range::
 
-        If a range is given, the distribution is uniform in that range:
             sage: ZZ.random_element(-10,10)
             -5
             sage: ZZ.random_element(10)
@@ -482,11 +519,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: [ZZ.random_element(5) for _ in range(10)]
             [1, 3, 4, 0, 3, 4, 0, 3, 0, 1]
 
-        Notice that the right endpoint is not included:
+        Notice that the right endpoint is not included::
+
             sage: [ZZ.random_element(-2,2) for _ in range(10)]
             [-1, -2, 0, -2, 1, -1, -1, -2, -2, 1]
 
-        We compute a histogram over 1000 samples of the default distribution:
+        We compute a histogram over 1000 samples of the default
+        distribution::
+
             sage: from collections import defaultdict
             sage: d = defaultdict(lambda: 0)
             sage: for _ in range(1000):
@@ -542,7 +582,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Return True - the integers are a Noetherian ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.is_noetherian()
             True
         """
@@ -550,11 +591,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def is_atomic_repr(self):
         """
-        Return True, since elements of the integers do not have
-        to be printed with parentheses around them, when they
-        are coefficients, e.g., in a polynomial.
+        Return True, since elements of the integers do not have to be
+        printed with parentheses around them, when they are coefficients,
+        e.g., in a polynomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: ZZ.is_atomic_repr()
             True
         """
@@ -564,7 +606,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Return False - the integers are not a field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.is_field()
             False
         """
@@ -574,7 +617,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Return False - the integers are an infinite ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.is_finite()
             False
         """
@@ -585,7 +629,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         Returns the field of rational numbers - the fraction field of the
         integers.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.fraction_field()
             Rational Field
             sage: ZZ.fraction_field() == QQ
@@ -595,10 +640,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def extension(self, poly, names=None, embedding=None):
         """
-        Returns the order in the number field defined by poly generated
-        (as a ring) by a root of poly.
+        Returns the order in the number field defined by poly generated (as
+        a ring) by a root of poly.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.extension(x^2-5, 'a')
             Order in Number Field in a with defining polynomial x^2 - 5
             sage: ZZ.extension([x^2 + 1, x^2 + 2], 'a,b')
@@ -611,9 +657,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def quotient(self, I, names=None):
         r"""
-        Return the quotient of $\Z$ by the ideal $I$ or integer $I$.
+        Return the quotient of `\mathbb{Z}` by the ideal
+        `I` or integer `I`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.quo(6*ZZ)
             Ring of integers modulo 6
             sage: ZZ.quo(0*ZZ)
@@ -639,15 +687,22 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def residue_field(self, prime, check = True):
         """
-        Return the residue field of the integers modulo the given prime, ie $\Z/p\Z$.
+        Return the residue field of the integers modulo the given prime, ie
+        `\mathbb{Z}/p\mathbb{Z}`.
 
         INPUT:
-            prime -- a prime number
-            check -- (boolean, default True) whether or not to check the primality of prime.
-        OUTPUT:
-            The residue field at this prime.
 
-        EXAMPLES:
+
+        -  ``prime`` - a prime number
+
+        -  ``check`` - (boolean, default True) whether or not
+           to check the primality of prime.
+
+
+        OUTPUT: The residue field at this prime.
+
+        EXAMPLES::
+
             sage: F = ZZ.residue_field(61); F
             Residue field of Integers modulo 61
             sage: pi = F.reduction_map(); pi
@@ -665,11 +720,13 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: (12345/67890) % 61
             33
 
-        Construction can be from a prime ideal instead of a prime:
+        Construction can be from a prime ideal instead of a prime::
+
             sage: ZZ.residue_field(ZZ.ideal(97))
             Residue field of Integers modulo 97
 
-        TESTS:
+        TESTS::
+
             sage: ZZ.residue_field(ZZ.ideal(96))
             Traceback (most recent call last):
             ...
@@ -694,11 +751,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def gens(self):
         """
+        Returns the tuple (1,) containing a single element, the additive
+        generator of the integers, which is 1.
 
-        Returns the tuple (1,) containing a single element, the
-        additive generator of the integers, which is 1.
+        EXAMPLES::
 
-        EXAMPLES:
             sage: ZZ.gens(); ZZ.gens()[0]
             (1,)
             1
@@ -711,7 +768,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Returns the additive generator of the integers, which is 1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.gen()
             1
             sage: type(ZZ.gen())
@@ -726,7 +784,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Returns the number of additive generators of the ring, which is 1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.ngens()
             1
             sage: len(ZZ.gens())
@@ -738,7 +797,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Return the degree of the integers, which is 1
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: ZZ.degree()
             1
         """
@@ -748,7 +808,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Return the absolute degree of the integers, which is 1
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: ZZ.absolute_degree()
             1
         """
@@ -758,7 +819,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Return the characteristic of the integers, which is 0
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: ZZ.characteristic()
             0
         """
@@ -768,7 +830,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Return the Krull dimension of the integers, which is 1.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: ZZ.krull_dimension()
             1
         """
@@ -776,9 +839,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def order(self):
         """
-        Return the order (cardinality) of the integers, which is +Infinity.
+        Return the order (cardinality) of the integers, which is
+        +Infinity.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: ZZ.order()
             +Infinity
         """
@@ -786,15 +851,19 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def zeta(self, n=2):
         """
-        Return a primitive n'th root of unity in the integers, or
-        raise an error if none exists
+        Return a primitive n'th root of unity in the integers, or raise an
+        error if none exists
 
         INPUT:
-            n -- a positive integer (default 2)
-        OUTPUT:
-            an n'th root of unity in ZZ
 
-        EXAMPLE:
+
+        -  ``n`` - a positive integer (default 2)
+
+
+        OUTPUT: an n'th root of unity in ZZ
+
+        EXAMPLE::
+
             sage: ZZ.zeta()
             -1
             sage: ZZ.zeta(1)
@@ -819,10 +888,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def parameter(self):
         """
-        Returns an integer of degree 1 for the Euclidean property of
-        ZZ, namely 1.
+        Returns an integer of degree 1 for the Euclidean property of ZZ,
+        namely 1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.parameter()
             1
         """
@@ -836,7 +906,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     #################################
     def _gap_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap(ZZ)
             Integers
         """
@@ -844,7 +915,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def _magma_init_(self, magma):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: magma(ZZ)           # optional - magma
             Integer Ring
         """
@@ -852,7 +924,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def _macaulay2_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: macaulay2(ZZ)       #optional - macaulay2
             ZZ
         """
@@ -860,9 +933,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def _sage_input_(self, sib, coerced):
         r"""
-        Produce an expression which will reproduce this value when evaluated.
+        Produce an expression which will reproduce this value when
+        evaluated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage_input(ZZ, verify=True)
             # Verified
             ZZ
@@ -879,7 +954,8 @@ def IntegerRing():
     """
     Return the integer ring
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: IntegerRing()
         Integer Ring
         sage: ZZ==IntegerRing()
@@ -889,12 +965,14 @@ def IntegerRing():
 
 def factor(n, algorithm='pari', proof=True):
     """
-    Return the factorization of the positive integer $n$ as a sorted
-    list of tuples $(p_i,e_i)$ such that $n=\prod p_i^{e_i}$.
+    Return the factorization of the positive integer `n` as a
+    sorted list of tuples `(p_i,e_i)` such that
+    `n=\prod p_i^{e_i}`.
 
     For further documentation see sage.rings.arith.factor()
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: sage.rings.integer_ring.factor(420)
         2^2 * 3 * 5 * 7
     """
@@ -904,32 +982,41 @@ def factor(n, algorithm='pari', proof=True):
 import sage.misc.misc
 def crt_basis(X, xgcd=None):
     """
-    Compute and return a Chinese Remainder Theorem basis for the list
-    X of coprime integers.
+    Compute and return a Chinese Remainder Theorem basis for the list X
+    of coprime integers.
 
     INPUT:
-        X -- a list of Integers that are coprime in pairs
+
+
+    -  ``X`` - a list of Integers that are coprime in
+       pairs
+
+
     OUTPUT:
-        E -- a list of Integers such that E[i] = 1 (mod X[i])
-             and E[i] = 0 (mod X[j]) for all j!=i.
+
+
+    -  ``E`` - a list of Integers such that E[i] = 1 (mod
+       X[i]) and E[i] = 0 (mod X[j]) for all j!=i.
+
 
     The E[i] have the property that if A is a list of objects, e.g.,
     integers, vectors, matrices, etc., where A[i] is moduli X[i], then
     a CRT lift of A is simply
-                       sum E[i] * A[i].
 
-    ALGORITHM:
-    To compute E[i], compute integers s and t such that
+        sum E[i] \* A[i].
 
-                s * X[i] + t * (prod over i!=j of X[j]) = 1.   (*)
+    ALGORITHM: To compute E[i], compute integers s and t such that
 
-    Then E[i] = t * (prod over i!=j of X[j]).  Notice that equation
-    (*) implies that E[i] is congruent to 1 modulo X[i] and to 0
+        s \* X[i] + t \* (prod over i!=j of X[j]) = 1. (\*)
+
+    Then E[i] = t \* (prod over i!=j of X[j]). Notice that equation
+    (\*) implies that E[i] is congruent to 1 modulo X[i] and to 0
     modulo the other X[j] for j!=i.
 
     COMPLEXITY: We compute len(X) extended GCD's.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: X = [11,20,31,51]
         sage: E = crt_basis([11,20,31,51])
         sage: E[0]%X[0]; E[1]%X[0]; E[2]%X[0]; E[3]%X[0]

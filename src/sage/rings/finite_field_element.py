@@ -1,15 +1,19 @@
 """
 Elements of Finite Fields
 
-EXAMPLES:
+EXAMPLES::
+
     sage: K = FiniteField(2)
     sage: V = VectorSpace(K,3)
     sage: w = V([0,1,2])
     sage: K(1)*w
     (0, 1, 0)
 
-We do some arithmetic involving a bigger field and a Conway polynomial,
-i.e., we verify compatibility condition.
+We do some arithmetic involving a bigger field and a Conway
+polynomial, i.e., we verify compatibility condition.
+
+::
+
     sage: f = conway_polynomial(2,63)
     sage: K.<a> = GF(2**63, name='a', modulus=f)
     sage: n = f.degree()
@@ -39,7 +43,8 @@ def is_FiniteFieldElement(x):
     """
     Returns if x is a finite field element.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.rings.finite_field_element import is_FiniteFieldElement
         sage: is_FiniteFieldElement(1)
         False
@@ -47,7 +52,6 @@ def is_FiniteFieldElement(x):
         False
         sage: is_FiniteFieldElement(GF(5)(2))
         True
-
     """
     return isinstance(x, element.Element) and ring.is_FiniteField(x.parent())
 
@@ -55,11 +59,12 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     """
     An element of a finite field.
 
-    Create elements by first defining the finite field F, then use
-    the notation F(n), for n an integer. or let a = F.gen() and
-    write the element in terms of a.
+    Create elements by first defining the finite field F, then use the
+    notation F(n), for n an integer. or let a = F.gen() and write the
+    element in terms of a.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: K = FiniteField(10007^10, 'a')
         sage: a = K.gen(); a
         a
@@ -71,7 +76,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         sage: loads(a.dumps()) == a
         True
 
-    TESTS:
+    TESTS::
+
         sage: K.<a> = GF(2^16)
         sage: K(0).is_zero()
         True
@@ -90,7 +96,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         """
         Create element of a finite field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(9,'a')
             sage: a = k(11); a
@@ -148,19 +155,22 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
     def polynomial(self):
         """
-        Elements of a finite field are represented as a polynomial
-        modulo a modulus.  This functions returns the representing
-        polynomial as an element of the polynomial ring over the prime
-        finite field, with the same variable as the finite field.
+        Elements of a finite field are represented as a polynomial modulo a
+        modulus. This functions returns the representing polynomial as an
+        element of the polynomial ring over the prime finite field, with
+        the same variable as the finite field.
 
-        EXAMPLES:
-        The default variable is a:
+        EXAMPLES: The default variable is a::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**2,'a')
             sage: k.gen().polynomial()
             a
 
         The variable can be any string.
+
+        ::
+
             sage: k = FiniteField(3**4, "alpha")
             sage: a = k.gen()
             sage: a.polynomial()
@@ -176,7 +186,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         """
         Returns True if and only if this element is a perfect square.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**2, 'a')
             sage: a = k.gen()
@@ -194,6 +205,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: a.is_square()
             False
 
+        ::
+
             sage: k(0).is_square()
             True
         """
@@ -209,32 +222,38 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         The square root function.
 
         INPUT:
-            extend -- bool (default: True); if True, return a square
-                 root in an extension ring, if necessary. Otherwise,
-                 raise a ValueError if the root is not in the base
-                 ring.  Warning: this option is not implemented!
-            all -- bool (default: False); if True, return all square
-                 roots of self, instead of just one.
 
-        WARNING:
-            The 'extend' option is not implemented (yet).
 
-        EXAMPLES:
-          sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
-          sage: F = FiniteField_ext_pari(7^2, 'a')
-          sage: F(2).square_root()
-          4
-          sage: F(3).square_root()
-          5*a + 1
-          sage: F(3).square_root()**2
-          3
-          sage: F(4).square_root()
-          5
-          sage: K = FiniteField_ext_pari(7^3, 'alpha')
-          sage: K(3).square_root()
-          Traceback (most recent call last):
-          ...
-          ValueError: must be a perfect square.
+        -  ``extend`` - bool (default: True); if True, return a
+           square root in an extension ring, if necessary. Otherwise, raise a
+           ValueError if the root is not in the base ring. Warning: this
+           option is not implemented!
+
+        -  ``all`` - bool (default: False); if True, return all
+           square roots of self, instead of just one.
+
+
+        .. warning::
+
+           The 'extend' option is not implemented (yet).
+
+        EXAMPLES::
+
+            sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
+            sage: F = FiniteField_ext_pari(7^2, 'a')
+            sage: F(2).square_root()
+            4
+            sage: F(3).square_root()
+            5*a + 1
+            sage: F(3).square_root()**2
+            3
+            sage: F(4).square_root()
+            5
+            sage: K = FiniteField_ext_pari(7^3, 'alpha')
+            sage: K(3).square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: must be a perfect square.
         """
         if extend:
             raise NotImplementedError
@@ -256,8 +275,9 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         See self.square_root().
 
         INPUT:
-           extend -- ignored
 
+
+        -  ``extend`` - ignored
         """
         return self.square_root(extend=extend, all=all)
 
@@ -266,26 +286,34 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         Returns an nth root of self.
 
         INPUT:
-            n -- integer >= 1 (must fit in C int type)
-            extend -- bool (default: True); if True, return an nth
-                 root in an extension ring, if necessary. Otherwise,
-                 raise a ValueError if the root is not in the base
-                 ring.  Warning: this option is not implemented!
-            all -- bool (default: False); if True, return all nth
-                 roots of self, instead of just one.
 
-        OUTPUT:
-            If self has an nth root, returns one (if all == False) or a list of
-            all of them (if all == True).  Otherwise, raises a ValueError (if
-            extend = False) or a NotImplementedError (if extend = True).
 
-        WARNING:
-            The 'extend' option is not implemented (yet).
+        -  ``n`` - integer = 1 (must fit in C int type)
 
-        AUTHOR:
-            -- David Roe (2007-10-3)
+        -  ``extend`` - bool (default: True); if True, return
+           an nth root in an extension ring, if necessary. Otherwise, raise a
+           ValueError if the root is not in the base ring. Warning: this
+           option is not implemented!
 
-        EXAMPLES:
+        -  ``all`` - bool (default: False); if True, return all
+           nth roots of self, instead of just one.
+
+
+        OUTPUT: If self has an nth root, returns one (if all == False) or a
+        list of all of them (if all == True). Otherwise, raises a
+        ValueError (if extend = False) or a NotImplementedError (if extend
+        = True).
+
+        .. warning::
+
+           The 'extend' option is not implemented (yet).
+
+        AUTHORS:
+
+        - David Roe (2007-10-3)
+
+        EXAMPLES::
+
             sage: k.<a> = GF(29^5)
             sage: b = a^2 + 5*a + 1
             sage: b.nth_root(5)
@@ -313,10 +341,11 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
     def rational_reconstruction(self):
         """
-        If the parent field is a prime field, uses rational reconstruction to
-        try to find a lift of this element to the rational numbers.
+        If the parent field is a prime field, uses rational reconstruction
+        to try to find a lift of this element to the rational numbers.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = GF(97)
             sage: a = k(RationalField()('2/3'))
@@ -334,10 +363,11 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
     def multiplicative_order(self):
         r"""
-        Returns the \emph{multiplicative} order of this element, which
-        must be nonzero.
+        Returns the *multiplicative* order of this element, which must be
+        nonzero.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: a = FiniteField_ext_pari(5**3, 'a').0
             sage: a.multiplicative_order()
@@ -365,7 +395,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         """
         Return a copy of this element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**3,'a')
             sage: a = k(5)
@@ -387,7 +418,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         """
         Return PARI object corresponding to this finite field element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**3, 'a')
             sage: a = k.gen()
@@ -395,8 +427,9 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: b._pari_()
             Mod(Mod(1, 3)*a^2 + Mod(2, 3)*a + Mod(1, 3), Mod(1, 3)*a^3 + Mod(2, 3)*a + Mod(1, 3))
 
-        Looking at the PARI representation of a finite field element, it's no wonder people
-        find PARI difficult to work with directly.  Compare our representation:
+        Looking at the PARI representation of a finite field element, it's
+        no wonder people find PARI difficult to work with directly. Compare
+        our representation::
 
             sage: b
             a^2 + 2*a + 1
@@ -417,7 +450,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         """
         Return a string representation of self that Magma can understand.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: GF(7)(3)._magma_init_(magma)                 # optional - magma
             'GF(7)!3'
         """
@@ -427,15 +461,17 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
     def _gap_init_(self):
         """
-        Supports returning corresponding GAP object.  This can be slow
-        since non-prime GAP finite field elements are represented as
-        powers of a generator for the multiplicative group, so the
-        discrete log problem must be solved.
+        Supports returning corresponding GAP object. This can be slow since
+        non-prime GAP finite field elements are represented as powers of a
+        generator for the multiplicative group, so the discrete log problem
+        must be solved.
 
-        \note{The order of the parent field must be $\leq 65536$.}
+        .. note::
 
+           The order of the parent field must be `\leq 65536`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: F = FiniteField_ext_pari(8,'a')
             sage: a = F.multiplicative_generator()
@@ -448,7 +484,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: gap(a^3)
             Z(2^3)^2
 
-        You can specify the instance of the Gap interpreter that is used:
+        You can specify the instance of the Gap interpreter that is used::
 
             sage: F = FiniteField_ext_pari(next_prime(200)^2, 'a')
             sage: a = F.multiplicative_generator ()
@@ -458,6 +494,9 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             Z(211^2)^20
 
         Gap only supports relatively small finite fields.
+
+        ::
+
             sage: F = FiniteField_ext_pari(next_prime(1000)^2, 'a')
             sage: a = F.multiplicative_generator ()
             sage: gap._coerce_(a)
@@ -539,7 +578,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
     def __invert__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: a = FiniteField_ext_pari(9, 'a').gen()
             sage: ~a
@@ -557,7 +597,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         If this element lies in a prime finite field, return a lift of this
         element to an integer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = GF(next_prime(10**10))
             sage: a = k(17)/k(19)
@@ -571,11 +612,12 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
     def __cmp__(self, other):
         """
-        Compare an element of a finite field with other.  If other is
-        not an element of a finite field, an attempt is made to coerce
-        it so it is one.
+        Compare an element of a finite field with other. If other is not an
+        element of a finite field, an attempt is made to coerce it so it is
+        one.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: a = FiniteField_ext_pari(3**3, 'a').gen()
             sage: a == 1
@@ -593,18 +635,24 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
     def log(self, base):
         """
-        Return $x$ such that $b^x = a$, where $x$ is $a$ and $b$
-        is the base.
+        Return `x` such that `b^x = a`, where `x`
+        is `a` and `b` is the base.
 
         INPUT:
-            self -- finite field element
-            b -- finite field element that generates the multiplicative group.
 
-        OUTPUT:
-            Integer $x$ such that $a^x = b$, if it exists.
-            Raises a ValueError exception if no such $x$ exists.
 
-        EXAMPLES:
+        -  ``self`` - finite field element
+
+        -  ``b`` - finite field element that generates the
+           multiplicative group.
+
+
+        OUTPUT: Integer `x` such that `a^x = b`, if it
+        exists. Raises a ValueError exception if no such `x`
+        exists.
+
+        EXAMPLES::
+
             sage: F = GF(17)
             sage: F(3^11).log(F(3))
             11
@@ -615,6 +663,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: F(23^997).log(F(23))
             997
 
+        ::
+
             sage: F = FiniteField(2^10, 'a')
             sage: g = F.gen()
             sage: b = g; a = g^37
@@ -624,7 +674,9 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             a^8 + a^7 + a^4 + a + 1
             a^8 + a^7 + a^4 + a + 1
 
-        AUTHOR: David Joyner and William Stein (2005-11)
+        AUTHORS:
+
+        - David Joyner and William Stein (2005-11)
         """
         from  sage.groups.generic import discrete_log
 

@@ -1,16 +1,21 @@
 """
 Power Series
 
-SAGE provides an implementation of dense and sparse power series over
-any SAGE base ring.
+Sage provides an implementation of dense and sparse power series
+over any Sage base ring.
 
-AUTHOR:
-   -- William Stein
-   -- David Harvey (2006-09-11): added solve_linear_de() method
-   -- Robert Bradshaw (2007-04): sqrt, rmul, lmul, shifting
-   -- Robert Bradshaw (2007-04): Cython version
+AUTHORS:
 
-EXAMPLE:
+- William Stein
+
+- David Harvey (2006-09-11): added solve_linear_de() method
+
+- Robert Bradshaw (2007-04): sqrt, rmul, lmul, shifting
+
+- Robert Bradshaw (2007-04): Cython version
+
+EXAMPLE::
+
     sage: R.<x> = PowerSeriesRing(ZZ)
     sage: R([1,2,3])
     1 + 2*x + 3*x^2
@@ -25,32 +30,44 @@ EXAMPLE:
     sage: g * f
     1 + O(x^4)
 
-In Python (as opposted to SAGE) create the power series ring and its
-generator as follows:
+In Python (as opposted to Sage) create the power series ring and
+its generator as follows::
 
     sage: R, x = objgen(PowerSeriesRing(ZZ, 'x'))
     sage: parent(x)
     Power Series Ring in x over Integer Ring
 
-EXAMPLE: COERCION
-This example illustrates that coercion for power series rings
-is consistent with coercion for polynomial rings.
+EXAMPLE:
+
+COERCION This example illustrates that coercion for power
+series rings is consistent with coercion for polynomial rings.
+
+::
 
     sage: poly_ring1.<gen1> = PolynomialRing(QQ)
     sage: poly_ring2.<gen2> = PolynomialRing(QQ)
     sage: huge_ring.<x> = PolynomialRing(poly_ring1)
 
-The generator of the first ring gets coerced in as itself,
-since it is the base ring.
+The generator of the first ring gets coerced in as itself, since it
+is the base ring.
+
+::
+
     sage: huge_ring(gen1)
     gen1
 
-The generator of the second ring gets mapped via the
-natural map sending one generator to the other.
+The generator of the second ring gets mapped via the natural map
+sending one generator to the other.
+
+::
+
     sage: huge_ring(gen2)
     x
 
 With power series the behavior is the same.
+
+::
+
     sage: power_ring1.<gen1> = PowerSeriesRing(QQ)
     sage: power_ring2.<gen2> = PowerSeriesRing(QQ)
     sage: huge_power_ring.<x> = PowerSeriesRing(power_ring1)
@@ -59,11 +76,10 @@ With power series the behavior is the same.
     sage: huge_power_ring(gen2)
     x
 
-TODO:
-   Rewrite valuation so it is *carried* along after any calculation,
-   so in almost all cases f.valuation() is instant.  Also, if you
-   add f and g and their valuations are the same, note that we only
-   have to look at terms at positions >= f.valuation().
+TODO: Rewrite valuation so it is *carried* along after any
+calculation, so in almost all cases f.valuation() is instant. Also,
+if you add f and g and their valuations are the same, note that we
+only have to look at terms at positions = f.valuation().
 """
 
 #*****************************************************************************
@@ -133,7 +149,8 @@ cdef class PowerSeries(AlgebraElement):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<t> = PowerSeriesRing(QQ, 5)
             sage: f = 1 + t - t^3 + O(t^12)
             sage: loads(dumps(f)) == f
@@ -143,7 +160,8 @@ cdef class PowerSeries(AlgebraElement):
 
     def is_sparse(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(ZZ)
             sage: t.is_sparse()
             False
@@ -155,7 +173,8 @@ cdef class PowerSeries(AlgebraElement):
 
     def is_dense(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(ZZ)
             sage: t.is_dense()
             True
@@ -167,9 +186,11 @@ cdef class PowerSeries(AlgebraElement):
 
     def is_gen(self):
         """
-        Returns True if this the generator (the variable) of the power series ring.
+        Returns True if this the generator (the variable) of the power
+        series ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = QQ[[]]
             sage: t.is_gen()
             True
@@ -178,6 +199,9 @@ cdef class PowerSeries(AlgebraElement):
 
         Note that this only returns true on the actual generator, not on
         something that happens to be equal to it.
+
+        ::
+
             sage: (1*t).is_gen()
             False
             sage: 1*t == t
@@ -187,10 +211,12 @@ cdef class PowerSeries(AlgebraElement):
 
     def _im_gens_(self, codomain, im_gens):
         """
-        Returns the image of this series under the map that sends the generators
-        to im_gens.   This is used internally for computing homomorphisms.
+        Returns the image of this series under the map that sends the
+        generators to im_gens. This is used internally for computing
+        homomorphisms.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = QQ[[]]
             sage: f = 1 + t + t^2
             sage: f._im_gens_(ZZ, [3])
@@ -202,7 +228,8 @@ cdef class PowerSeries(AlgebraElement):
         """
         Return a copy of this power series but with coefficients in R.
 
-        The following coercion uses base_extend implicitly:
+        The following coercion uses base_extend implicitly::
+
             sage: R.<t> = ZZ[['t']]
             sage: (t - t^2) * Mod(1, 3)
             t + 2*t^2
@@ -214,7 +241,8 @@ cdef class PowerSeries(AlgebraElement):
         """
         Change if possible the coefficients of self to lie in R.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<T> = QQ[[]]; R
             Power Series Ring in T over Rational Field
             sage: f = 1 - 1/2*T + 1/3*T^2 + O(T^3)
@@ -229,8 +257,10 @@ cdef class PowerSeries(AlgebraElement):
             ...
             ZeroDivisionError: Inverse does not exist.
 
-        We can only change irng if there is a __call__ coercion defined.
-        The following succeeds because ZZ(K(4)) is defined.
+        We can only change irng if there is a __call__ coercion
+        defined. The following succeeds because ZZ(K(4)) is defined.
+
+        ::
 
             sage: K.<a> = NumberField(cyclotomic_polynomial(3), 'a')
             sage: R.<t> = K[['t']]
@@ -238,13 +268,15 @@ cdef class PowerSeries(AlgebraElement):
             4*t
 
         This does not succeed because ZZ(K(a+1)) is not defined.
+
+        ::
+
             sage: K.<a> = NumberField(cyclotomic_polynomial(3), 'a')
             sage: R.<t> = K[['t']]
             sage: ((a+1)*t).change_ring(ZZ)
             Traceback (most recent call last):
             ...
             TypeError: Unable to coerce a + 1 to an integer
-
         """
         S = self._parent.change_ring(R)
         return S(self)
@@ -256,20 +288,20 @@ cdef class PowerSeries(AlgebraElement):
         r"""
         Comparison of self and right.
 
-        We say two approximate power series are equal, if they agree
-        for all coefficients up to the *minimum* of the precisions of
-        each.  Thus, e.g., $f=1+q+O(q^2)$ is equal to $g=1+O(q)$.
+        We say two approximate power series are equal, if they agree for
+        all coefficients up to the *minimum* of the precisions of each.
+        Thus, e.g., `f=1+q+O(q^2)` is equal to `g=1+O(q)`.
         This is how PARI defines equality of power series, but not how
-        MAGMA defines equality.  (MAGMA would declare f and g
-        unequal.)  I side with PARI, because even if $g=1+q+O(q^2)$,
-        we don't really know whether f equals g, since we don't know
-        the coefficients of $q^2$.
+        MAGMA defines equality. (MAGMA would declare f and g unequal.) I
+        side with PARI, because even if `g=1+q+O(q^2)`, we don't
+        really know whether f equals g, since we don't know the
+        coefficients of `q^2`.
 
         Comparison is done in dictionary order from lowest degree to
-        highest degree coefficients (this is different than
-        polynomials).
+        highest degree coefficients (this is different than polynomials).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<q> = ZZ[[ ]]; R
             Power Series Ring in q over Integer Ring
             sage: f=1+q+O(q^2); g = 1+O(q)
@@ -298,22 +330,22 @@ cdef class PowerSeries(AlgebraElement):
         """
         Return the nonzero coefficients of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2 - 10/3*t^3
             sage: f.coefficients()
             [1, 1, -10/3]
-
         """
         zero = self.parent().base_ring().zero_element()
         return [c for c in self.list() if c != zero]
 
     def exponents(self):
         """
-        Return the exponents appearing in self with nonzero
-        coefficients.
+        Return the exponents appearing in self with nonzero coefficients.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2 - 10/3*t^3
             sage: f.exponents()
@@ -331,10 +363,11 @@ cdef class PowerSeries(AlgebraElement):
 
     def __copy__(self):
         """
-        Return this power series.  Power series are immutable so copy
-        can safely just return the same polynomial.
+        Return this power series. Power series are immutable so copy can
+        safely just return the same polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<q> = ZZ[[ ]]; R
             Power Series Ring in q over Integer Ring
             sage: f = 1 + 3*q + O(q^10)
@@ -347,7 +380,8 @@ cdef class PowerSeries(AlgebraElement):
         """
         Return the base ring that this power series is defined over.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = GF(49,'alpha')[[]]
             sage: (t^2 + O(t^3)).base_ring()
             Finite Field in alpha of size 7^2
@@ -356,15 +390,20 @@ cdef class PowerSeries(AlgebraElement):
 
     def padded_list(self, n):
         """
-        Return list of coefficients of self up to (but not include $q^n$).
+        Return list of coefficients of self up to (but not include
+        `q^n`).
 
-        Includes 0's in the list on the right so that the list has
-        length $n$.
+        Includes 0's in the list on the right so that the list has length
+        `n`.
 
         INPUT:
-            n -- an integer that is at least 0
 
-        EXAMPLES:
+
+        -  ``n`` - an integer that is at least 0
+
+
+        EXAMPLES::
+
             sage: R.<q> = PowerSeriesRing(QQ)
             sage: f = 1 - 17*q + 13*q^2 + 10*q^4 + O(q^7)
             sage: f.list()
@@ -387,9 +426,11 @@ cdef class PowerSeries(AlgebraElement):
 
     def prec(self):
         """
-        The precision of $...+O(x^r)$ is by definition $r$.
+        The precision of `...+O(x^r)` is by definition
+        `r`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = ZZ[[]]
             sage: (t^2 + O(t^3)).prec()
             3
@@ -402,21 +443,25 @@ cdef class PowerSeries(AlgebraElement):
         """
         Return string represenation of this power series.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = ZZ[[]]
             sage: (t^2 + O(t^3))._repr_()
             't^2 + O(t^3)'
 
+        ::
+
             sage: R.<t> = QQ[[]]
             sage: 1 / (1+2*t +O(t^5))
             1 - 2*t + 4*t^2 - 8*t^3 + 16*t^4 + O(t^5)
+
+        ::
 
             sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
             sage: 1 / (1+2*t +O(t^5))
             1 - 2*t + 4*t^2 - 8*t^3 + 16*t^4 + O(t^5)
             sage: -13/2 * t^3  + 5*t^5 + O(t^10)
             -13/2*t^3 + 5*t^5 + O(t^10)
-
         """
         if self.is_zero():
             if self.prec() is infinity:
@@ -489,7 +534,8 @@ cdef class PowerSeries(AlgebraElement):
         r"""
         Return latex representation of this power series.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = QQ[[]]
             sage: f = -1/2 * t + 2/3*t^2 - 9/7 * t^15 + O(t^20); f
             -1/2*t + 2/3*t^2 - 9/7*t^15 + O(t^20)
@@ -548,7 +594,8 @@ cdef class PowerSeries(AlgebraElement):
         """
         The polynomial obtained from power series by truncation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<I> = GF(2)[[]]
             sage: f = 1/(1+I+O(I^8)); f
             1 + I + I^2 + I^3 + I^4 + I^5 + I^6 + I^7 + O(I^8)
@@ -566,10 +613,11 @@ cdef class PowerSeries(AlgebraElement):
 
     def add_bigoh(self, prec):
         r"""
-        Returns the power series of precision at most prec got by
-        adding $O(q^\text{prec})$ to f, where q is the variable.
+        Returns the power series of precision at most prec got by adding
+        `O(q^\text{prec})` to f, where q is the variable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<A> = RDF[[]]
             sage: f = (1+A+O(A^5))^5; f
             1.0 + 5.0*A + 10.0*A^2 + 10.0*A^3 + 5.0*A^4 + O(A^5)
@@ -586,13 +634,14 @@ cdef class PowerSeries(AlgebraElement):
 
     def __getitem__(self,n):
         r"""
-        Return the coefficient of $t^n$ in this power series, where
-        $t$ is the indeterminate of the power series ring.
+        Return the coefficient of `t^n` in this power series, where
+        `t` is the indeterminate of the power series ring.
 
-        If n is negative returns 0.  If n is beyond the precision,
-        raises an IndexError.
+        If n is negative returns 0. If n is beyond the precision, raises an
+        IndexError.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<m> = CDF[[]]
             sage: f = CDF(pi)^2 + m^3 + CDF(e)*m^4 + O(m^10); f
             9.86960440109 + 1.0*m^3 + 2.71828182846*m^4 + O(m^10)
@@ -625,10 +674,13 @@ cdef class PowerSeries(AlgebraElement):
 
     def common_prec(self, f):
         r"""
-        Returns minimum precision of $f$ and self.
+        Returns minimum precision of `f` and self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(QQ)
+
+        ::
 
             sage: f = t + t^2 + O(t^3)
             sage: g = t + t^3 + t^4 + O(t^4)
@@ -637,12 +689,16 @@ cdef class PowerSeries(AlgebraElement):
             sage: g.common_prec(f)
             3
 
+        ::
+
             sage: f = t + t^2 + O(t^3)
             sage: g = t^2
             sage: f.common_prec(g)
             3
             sage: g.common_prec(f)
             3
+
+        ::
 
             sage: f = t + t^2
             sage: f = t^2
@@ -686,7 +742,8 @@ cdef class PowerSeries(AlgebraElement):
         """
         Return True if this power series is not equal to 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<q> = ZZ[[ ]]; R
             Power Series Ring in q over Integer Ring
             sage: f = 1 + 3*q + O(q^10)
@@ -703,33 +760,37 @@ cdef class PowerSeries(AlgebraElement):
 
     def is_unit(self):
         """
-        Returns whether this power series is invertible, which is the
-        case precisely when the constant term is invertible.
+        Returns whether this power series is invertible, which is the case
+        precisely when the constant term is invertible.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(ZZ)
             sage: (-1 + t - t^5).is_unit()
             True
             sage: (3 + t - t^5).is_unit()
             False
 
-        AUTHOR: David Harvey (2006-09-03)
+        AUTHORS:
+
+        - David Harvey (2006-09-03)
         """
         return self[0].is_unit()
 
     def __invert__(self):
         """
-        Inverse of the power series (i.e. a series Y such that XY = 1).
-        The first nonzero coefficient must be a unit in the coefficient ring.
-        If the valuation of the series is positive, this function will return
-        a Laurent series.
+        Inverse of the power series (i.e. a series Y such that XY = 1). The
+        first nonzero coefficient must be a unit in the coefficient ring.
+        If the valuation of the series is positive, this function will
+        return a Laurent series.
 
-        ALGORITHM:
-            Uses Newton's method. Complexity is around $O(M(n) \log n)$,
-            where $n$ is the precision and $M(n)$ is the time required to
-            multiply polynomials of length $n$.
+        ALGORITHM: Uses Newton's method. Complexity is around
+        `O(M(n) \log n)`, where `n` is the precision and
+        `M(n)` is the time required to multiply polynomials of
+        length `n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<q> = QQ[[]]
             sage: 1/(1+q + O(q**2))
             1 - q + O(q^2)
@@ -741,6 +802,8 @@ cdef class PowerSeries(AlgebraElement):
             sage: 1/(1+q)
             1 - q + q^2 - q^3 + q^4 + O(q^5)
 
+        ::
+
             sage: 1/(q + q^2)
              q^-1 - 1 + q - q^2 + q^3 + O(q^4)
             sage: g = 1/(q + q^2 + O(q^5))
@@ -748,13 +811,19 @@ cdef class PowerSeries(AlgebraElement):
             q^-1 - 1 + q - q^2 + O(q^3)
             Laurent Series Ring in q over Rational Field
 
+        ::
+
             sage: 1/g
             q + q^2 + O(q^5)
             sage: (1/g).parent()
             Laurent Series Ring in q over Rational Field
 
+        ::
+
             sage: 1/(2 + q)
              1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
+
+        ::
 
             sage: R.<q> = QQ[['q']]
             sage: R.set_default_prec(5)
@@ -764,6 +833,8 @@ cdef class PowerSeries(AlgebraElement):
             sage: f/(10+q)
             1/10 + 9/100*q + 91/1000*q^2 - 91/10000*q^3 + 91/100000*q^4 + O(q^5)
 
+        ::
+
             sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
             sage: u = 17 + 3*t^2 + 19*t^10 + O(t^12)
             sage: v = ~u; v
@@ -772,8 +843,8 @@ cdef class PowerSeries(AlgebraElement):
             1 + O(t^12)
 
         AUTHORS:
-            -- David Harvey (2006-09-09): changed to use Newton's method
 
+        - David Harvey (2006-09-09): changed to use Newton's method
         """
         if self == 1:
             return self
@@ -837,18 +908,23 @@ cdef class PowerSeries(AlgebraElement):
 
     def valuation_zero_part(self):
         r"""
-        Factor self as as $q^n\cdot (a_0 + a_1 q + \cdots)$ with $a_0$
-        nonzero.  Then this function returns $a_0 + a_1 q + \cdots $.
+        Factor self as as `q^n \cdot (a_0 + a_1 q + \cdots)` with
+        `a_0` nonzero. Then this function returns
+        `a_0 + a_1 q + \cdots` .
 
-        NOTE: this valuation zero part need not be a unit if, e.g.,
-        $a_0$ is not invertible in the base ring.
+        .. note::
 
-        EXAMPLES:
+           This valuation zero part need not be a unit if, e.g.,
+           `a_0` is not invertible in the base ring.
+
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: ((1/3)*t^5*(17-2/3*t^3)).valuation_zero_part()
             17/3 - 2/9*t^3
 
-        In this example the valuation 0 part is not a unit:
+        In this example the valuation 0 part is not a unit::
+
             sage: R.<t> = PowerSeriesRing(ZZ, sparse=True)
             sage: u = (-2*t^5*(17-t^3)).valuation_zero_part(); u
             -34 + 2*t^3
@@ -874,7 +950,8 @@ cdef class PowerSeries(AlgebraElement):
 
     cpdef RingElement _div_(self, RingElement denom_r):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<t> = QQ[[]]
             sage: t/t
             1
@@ -907,7 +984,8 @@ cdef class PowerSeries(AlgebraElement):
 
     def __mod__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<T> = Qp(7)[[]]
             sage: f = (48*67 + 46*67^2)*T + (1 + 42*67 + 5*67^3)*T^2 + O(T^3)
             sage: f % 67
@@ -919,17 +997,20 @@ cdef class PowerSeries(AlgebraElement):
 
     def shift(self, n):
         r"""
-        Returns this power series multiplied by the power $t^n$. If $n$
-        is negative, terms below $t^n$ will be discarded. Does not
-        change this power series.
+        Returns this power series multiplied by the power `t^n`. If
+        `n` is negative, terms below `t^n` will be
+        discarded. Does not change this power series.
 
-        NOTE:
-            Despite the fact that higher order terms are printed to the
-            right in a power series, right shifting decreases the powers
-            of $t$, while left shifting increases them. This is to be
-            consistant with polynomials, integers, etc.
+        .. note::
 
-        EXAMPLES:
+           Despite the fact that higher order terms are printed to the
+           right in a power series, right shifting decreases the
+           powers of `t`, while left shifting increases
+           them. This is to be consistant with polynomials, integers,
+           etc.
+
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(QQ['y'], 't', 5)
             sage: f = ~(1+t); f
             1 - t + t^2 - t^3 + t^4 + O(t^5)
@@ -942,8 +1023,9 @@ cdef class PowerSeries(AlgebraElement):
             sage: t << 29
             t^30
 
-        AUTHOR:
-            -- Robert Bradshaw (2007-04-18)
+        AUTHORS:
+
+        - Robert Bradshaw (2007-04-18)
         """
         return self._parent(self.polynomial().shift(n), self._prec + n)
 
@@ -955,20 +1037,20 @@ cdef class PowerSeries(AlgebraElement):
 
     def is_square(self):
         """
-        Returns True if this function has a square root in this ring,
-        e.g. there is an element $y$ in \code{self.parent()} such that
-        $y^2 = \code{self}$.
+        Returns True if this function has a square root in this ring, e.g.
+        there is an element `y` in ``self.parent()``
+        such that `y^2 = ``self```.
 
-        ALGORITHM:
-            If the basering is a field, this is true whenever the power
-            series has even valuation and the leading coefficent is a
-            perfect square.
+        ALGORITHM: If the basering is a field, this is true whenever the
+        power series has even valuation and the leading coefficent is a
+        perfect square.
 
-            For an integral domain, it operates attempts the square root
-            in the fraction field and tests whether or not the result
-            lies in the original ring.
+        For an integral domain, it operates attempts the square root in the
+        fraction field and tests whether or not the result lies in the
+        original ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
             sage: (1+t).is_square()
             True
@@ -984,7 +1066,6 @@ cdef class PowerSeries(AlgebraElement):
             sage: f = (1+t)^100
             sage: f.is_square()
             True
-
         """
         val = self.valuation()
         if val is not infinity and val % 2 == 1:
@@ -1007,27 +1088,31 @@ cdef class PowerSeries(AlgebraElement):
 
         INPUT:
 
-            prec -- integer (default: None): if not None and the series
-                 has infinite precision, truncates series at precision prec.
-            extend -- bool (default: False); if True, return a square
-                 root in an extension ring, if necessary. Otherwise,
-                 raise a ValueError if the square is not in the base
-                 power series ring.  For example, if extend is True
-                 the square root of a power series with odd degree
-                 leading coefficient is defined as an element of a formal
-                 extension ring.
-            name -- if extend is True, you must also specify the print name of
-                 formal square root.
-            all -- bool (default: False); if True, return all square
-                 roots of self, instead of just one.
+          - prec - integer (default: None): if not None and the series has
+            infinite precision, truncates series at precision prec.
 
-        ALGORITHM:
-            Newton's method
-            $$
-                x_{i+1} = \frac{1}{2}( x_i + self/x_i )
-            $$
+          - extend - bool (default: False); if True, return a square root in an
+            extension ring, if necessary. Otherwise, raise a ValueError if the
+            square is not in the base power series ring. For example, if extend
+            is True the square root of a power series with odd degree leading
+            coefficient is defined as an element of a formal extension ring.
 
-        EXAMPLES:
+          - name - if extend is True, you must also specify the print name of
+            formal square root.
+
+          - all - bool (default: False); if True, return
+            all square roots of self, instead of just one.
+
+        ALGORITHM: Newton's method
+
+        .. math::
+
+                             x_{i+1} = \frac{1}{2}( x_i + self/x_i )
+
+
+
+        EXAMPLES::
+
             sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
             sage: sqrt(t^2)
             t
@@ -1053,6 +1138,8 @@ cdef class PowerSeries(AlgebraElement):
             sage: sqrt(t^2)
             t
 
+        ::
+
             sage: K.<t> = PowerSeriesRing(CDF, 5)
             sage: v = sqrt(-1 + t + t^3, all=True); v
             [1.0*I - 0.5*I*t - 0.125*I*t^2 - 0.5625*I*t^3 - 0.2890625*I*t^4 + O(t^5),
@@ -1060,7 +1147,8 @@ cdef class PowerSeries(AlgebraElement):
             sage: [a^2 for a in v]
             [-1.0 + 1.0*t + 1.0*t^3 + O(t^5), -1.0 + 1.0*t + 1.0*t^3 + O(t^5)]
 
-        A formal square root:
+        A formal square root::
+
             sage: K.<t> = PowerSeriesRing(QQ, 5)
             sage: f = 2*t + t^3 + O(t^4)
             sage: s = f.sqrt(extend=True, name='sqrtf'); s
@@ -1071,8 +1159,10 @@ cdef class PowerSeries(AlgebraElement):
             Univariate Quotient Polynomial Ring in sqrtf over Power Series Ring in t over Rational Field with modulus x^2 - 2*t - t^3 + O(t^4)
 
         AUTHORS:
-            -- Robert Bradshaw
-            -- William Stein
+
+        - Robert Bradshaw
+
+        - William Stein
         """
         if self.is_zero():
             ans = self._parent(0).O(self.prec()/2)
@@ -1159,9 +1249,11 @@ cdef class PowerSeries(AlgebraElement):
         Return the square root of self in this ring. If this cannot be done
         then an error will be raised.
 
-        This function succeeds if and only if \code{self.is_square()}
+        This function succeeds if and only if
+        ``self.is_square()``
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
             sage: (1+t).square_root()
             1 + 1/2*t - 1/8*t^2 + 1/16*t^3 - 5/128*t^4 + O(t^5)
@@ -1185,8 +1277,9 @@ cdef class PowerSeries(AlgebraElement):
             ...
             ValueError: Square root does not live in this ring.
 
-        AUTHOR:
-            -- Robert Bradshaw
+        AUTHORS:
+
+        - Robert Bradshaw
         """
         val = self.valuation()
         if val is not infinity and val % 2 == 1:
@@ -1203,7 +1296,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def O(self, prec):
         r"""
-        Return this series plus $O(x^\text{prec})$.  Does not change
+        Return this series plus `O(x^\text{prec})`. Does not change
         self.
         """
         if prec is infinity or prec >= self.prec():
@@ -1216,64 +1309,85 @@ cdef class PowerSeries(AlgebraElement):
         r"""
         Obtains a power series solution to an inhomogeneous linear
         differential equation of the form:
-           $$  f'(t) = a(t) f(t) + b(t). $$
+
+        .. math::
+
+              f'(t) = a(t) f(t) + b(t).
+
+
 
         INPUT:
-            self -- the power series $a(t)$
-            b -- the power series $b(t)$ (default is zero)
-            f0 -- the constant term of $f$ (``initial condition'')
-                 (default is 1)
-            prec -- desired precision of result (this will be reduced if
-                    either a or b have less precision available)
 
-        OUTPUT:
-            the power series f, to indicated precision
 
-        ALGORITHM:
-            A divide-and-conquer strategy; see the source code. Running time
-            is approximately $M(n) \log n$, where $M(n)$ is the time required
-            for a polynomial multiplication of length $n$ over the coefficient
-            ring. (If you're working over something like RationalField(),
-            running time analysis can be a little complicated because the
-            coefficients tend to explode.)
+        -  ``self`` - the power series `a(t)`
 
-        NOTES:
-            -- If the coefficient ring is a field of characteristic zero,
-               then the solution will exist and is unique.
-            -- For other coefficient rings, things are more complicated.
-               A solution may not exist, and if it does it may not be unique.
-               Generally, by the time the nth term has been computed, the
-               algorithm will have attempted divisions by $n!$ in the
-               coefficient ring. So if your coefficient ring has enough
-               ``precision'', and if your coefficient ring can perform
-               divisions even when the answer is not unique, and if you know
-               in advance that a solution exists, then this function will find
-               a solution (otherwise it will probably crash).
+        -  ``b`` - the power series `b(t)` (default is
+           zero)
+
+        -  ``f0`` - the constant term of `f` ("initial
+           condition") (default is 1)
+
+        -  ``prec`` - desired precision of result (this will be
+           reduced if either a or b have less precision available)
+
+
+        OUTPUT: the power series f, to indicated precision
+
+        ALGORITHM: A divide-and-conquer strategy; see the source code.
+        Running time is approximately `M(n) \log n`, where
+        `M(n)` is the time required for a polynomial multiplication
+        of length `n` over the coefficient ring. (If you're working
+        over something like RationalField(), running time analysis can be a
+        little complicated because the coefficients tend to explode.)
+
+        .. note::
+
+           - If the coefficient ring is a field of characteristic
+             zero, then the solution will exist and is unique.
+
+           - For other coefficient rings, things are more
+             complicated. A solution may not exist, and if it does it
+             may not be unique. Generally, by the time the nth term
+             has been computed, the algorithm will have attempted
+             divisions by `n!` in the coefficient ring. So if
+             your coefficient ring has enough 'precision', and if your
+             coefficient ring can perform divisions even when the
+             answer is not unique, and if you know in advance that a
+             solution exists, then this function will find a solution
+             (otherwise it will probably crash).
 
         AUTHORS:
-          -- David Harvey (2006-09-11): factored functionality out from
-             exp() function, cleaned up precision tests a bit
 
-        EXAMPLES:
-           sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
+        - David Harvey (2006-09-11): factored functionality out from
+          exp() function, cleaned up precision tests a bit
 
-           sage: a = 2 - 3*t + 4*t^2 + O(t^10)
-           sage: b = 3 - 4*t^2 + O(t^7)
-           sage: f = a.solve_linear_de(prec=5, b=b, f0=3/5)
-           sage: f
-            3/5 + 21/5*t + 33/10*t^2 - 38/15*t^3 + 11/24*t^4 + O(t^5)
-           sage: f.derivative() - a*f - b
-            O(t^4)
+        EXAMPLES::
 
-           sage: a = 2 - 3*t + 4*t^2
-           sage: b = b = 3 - 4*t^2
-           sage: f = a.solve_linear_de(b=b, f0=3/5)
-           Traceback (most recent call last):
-           ...
-           ValueError: cannot solve differential equation to infinite precision
+            sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
 
-           sage: a.solve_linear_de(prec=5, b=b, f0=3/5)
-            3/5 + 21/5*t + 33/10*t^2 - 38/15*t^3 + 11/24*t^4 + O(t^5)
+        ::
+
+            sage: a = 2 - 3*t + 4*t^2 + O(t^10)
+            sage: b = 3 - 4*t^2 + O(t^7)
+            sage: f = a.solve_linear_de(prec=5, b=b, f0=3/5)
+            sage: f
+             3/5 + 21/5*t + 33/10*t^2 - 38/15*t^3 + 11/24*t^4 + O(t^5)
+            sage: f.derivative() - a*f - b
+             O(t^4)
+
+        ::
+
+            sage: a = 2 - 3*t + 4*t^2
+            sage: b = b = 3 - 4*t^2
+            sage: f = a.solve_linear_de(b=b, f0=3/5)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot solve differential equation to infinite precision
+
+        ::
+
+            sage: a.solve_linear_de(prec=5, b=b, f0=3/5)
+             3/5 + 21/5*t + 33/10*t^2 - 38/15*t^3 + 11/24*t^4 + O(t^5)
         """
         if b is None:
             b = self._parent(0)
@@ -1311,71 +1425,90 @@ cdef class PowerSeries(AlgebraElement):
         Returns exp of this power series to the indicated precision.
 
         INPUT:
-            prec -- integer; default is self.parent().default_prec
 
-        ALGORITHM:
-            See PowerSeries.solve_linear_de().
 
-        NOTES:
-            -- Screwy things can happen if the coefficient ring is not
-               a field of characteristic zero.
-               See PowerSeries.solve_linear_de().
+        -  ``prec`` - integer; default is
+           self.parent().default_prec
+
+
+        ALGORITHM: See PowerSeries.solve_linear_de().
+
+        .. note::
+
+           - Screwy things can happen if the coefficient ring is not a
+             field of characteristic zero. See
+             PowerSeries.solve_linear_de().
 
         AUTHORS:
-          -- David Harvey (2006-09-08): rewrote to use simplest possible
-             ``lazy'' algorithm.
-          -- David Harvey (2006-09-10): rewrote to use divide-and-conquer
-             strategy.
-          -- David Harvey (2006-09-11): factored functionality out to
-             solve_linear_de().
-          -- Sourav Sen Gupta + David Harvey (nov 2008): handle constant term
 
-        EXAMPLES:
-           sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
+        - David Harvey (2006-09-08): rewrote to use simplest possible "lazy" algorithm.
 
-         Check that $\exp(t)$ is, well, $\exp(t)$:
-           sage: (t + O(t^10)).exp()
-           1 + t + 1/2*t^2 + 1/6*t^3 + 1/24*t^4 + 1/120*t^5 + 1/720*t^6 + 1/5040*t^7 + 1/40320*t^8 + 1/362880*t^9 + O(t^10)
+        - David Harvey (2006-09-10): rewrote to use divide-and-conquer
+          strategy.
 
-         Check that $\exp(\log(1+t))$ is $1+t$:
-           sage: (sum([-(-t)^n/n for n in range(1, 10)]) + O(t^10)).exp()
-           1 + t + O(t^10)
+        - David Harvey (2006-09-11): factored functionality out to
+          solve_linear_de().
 
-         Check that $\exp(2t + t^2 - t^5)$ is whatever it is:
-           sage: (2*t + t^2 - t^5 + O(t^10)).exp()
-           1 + 2*t + 3*t^2 + 10/3*t^3 + 19/6*t^4 + 8/5*t^5 - 7/90*t^6 - 538/315*t^7 - 425/168*t^8 - 30629/11340*t^9 + O(t^10)
+        - Sourav Sen Gupta, David Harvey (2008-11): handle constant
+          term
 
-         Check requesting lower precision:
-           sage: (t + t^2 - t^5 + O(t^10)).exp(5)
-           1 + t + 3/2*t^2 + 7/6*t^3 + 25/24*t^4 + O(t^5)
+        EXAMPLES::
 
-         Can't get more precision than the input:
-           sage: (t + t^2 + O(t^3)).exp(10)
-           1 + t + 3/2*t^2 + O(t^3)
+            sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
 
-         Check some boundary cases:
-           sage: (t + O(t^2)).exp(1)
-           1 + O(t)
-           sage: (t + O(t^2)).exp(0)
-           O(t^0)
+        Check that `\exp(t)` is, well, `\exp(t)`::
 
-         Handle nonzero constant term (fixes trac \#4477):
-           sage: R.<x> = PowerSeriesRing(RR)
-           sage: (1 + x + x^2 + O(x^3)).exp()
-           2.71828182845905 + 2.71828182845905*x + 4.07742274268857*x^2 + O(x^3)
+            sage: (t + O(t^10)).exp()
+            1 + t + 1/2*t^2 + 1/6*t^3 + 1/24*t^4 + 1/120*t^5 + 1/720*t^6 + 1/5040*t^7 + 1/40320*t^8 + 1/362880*t^9 + O(t^10)
 
-           sage: R.<x> = PowerSeriesRing(ZZ)
-           sage: (1 + x + O(x^2)).exp()
-           Traceback (most recent call last):
-           ...
-           ArithmeticError: exponential of constant term does not belong to coefficient ring (consider working in a larger ring)
+        Check that `\exp(\log(1+t))` is `1+t`::
 
-           sage: R.<x> = PowerSeriesRing(GF(5))
-           sage: (1 + x + O(x^2)).exp()
-           Traceback (most recent call last):
-           ...
-           ArithmeticError: constant term of power series does not support exponentation
+            sage: (sum([-(-t)^n/n for n in range(1, 10)]) + O(t^10)).exp()
+            1 + t + O(t^10)
 
+        Check that `\exp(2t + t^2 - t^5)` is whatever it is::
+
+            sage: (2*t + t^2 - t^5 + O(t^10)).exp()
+            1 + 2*t + 3*t^2 + 10/3*t^3 + 19/6*t^4 + 8/5*t^5 - 7/90*t^6 - 538/315*t^7 - 425/168*t^8 - 30629/11340*t^9 + O(t^10)
+
+        Check requesting lower precision::
+
+            sage: (t + t^2 - t^5 + O(t^10)).exp(5)
+            1 + t + 3/2*t^2 + 7/6*t^3 + 25/24*t^4 + O(t^5)
+
+        Can't get more precision than the input::
+
+            sage: (t + t^2 + O(t^3)).exp(10)
+            1 + t + 3/2*t^2 + O(t^3)
+
+        Check some boundary cases::
+
+            sage: (t + O(t^2)).exp(1)
+            1 + O(t)
+            sage: (t + O(t^2)).exp(0)
+            O(t^0)
+
+        Handle nonzero constant term (fixes trac #4477)::
+
+            sage: R.<x> = PowerSeriesRing(RR)
+            sage: (1 + x + x^2 + O(x^3)).exp()
+            2.71828182845905 + 2.71828182845905*x + 4.07742274268857*x^2 + O(x^3)
+
+        ::
+
+            sage: R.<x> = PowerSeriesRing(ZZ)
+            sage: (1 + x + O(x^2)).exp()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: exponential of constant term does not belong to coefficient ring (consider working in a larger ring)
+
+        ::
+
+            sage: R.<x> = PowerSeriesRing(GF(5))
+            sage: (1 + x + O(x^2)).exp()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: constant term of power series does not support exponentation
         """
         if prec is None:
             prec = self._parent.default_prec()
@@ -1398,7 +1531,8 @@ cdef class PowerSeries(AlgebraElement):
 
     def V(self, n):
         r"""
-        If $f = \sum a_m x^m$, then this function returns $\sum a_m x^{nm}$.
+        If `f = \sum a_m x^m`, then this function returns
+        `\sum a_m x^{nm}`.
         """
         v = self.list()
         m = 0
@@ -1418,8 +1552,8 @@ cdef class PowerSeries(AlgebraElement):
 
         This is equal to the valuation of the underlying polynomial.
 
-        EXAMPLES:
-        Sparse examples:
+        EXAMPLES: Sparse examples::
+
             sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
             sage: f = t^100000 + O(t^10000000)
             sage: f.valuation()
@@ -1427,7 +1561,8 @@ cdef class PowerSeries(AlgebraElement):
             sage: R(0).valuation()
             +Infinity
 
-        Dense examples:
+        Dense examples::
+
             sage: R.<t> = PowerSeriesRing(ZZ)
             sage: f = 17*t^100 +O(t^110)
             sage: f.valuation()
@@ -1439,23 +1574,26 @@ cdef class PowerSeries(AlgebraElement):
 
     def variable(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PowerSeriesRing(Rationals())
             sage: f = x^2 + 3*x^4 + O(x^7)
             sage: f.variable()
             'x'
 
-        AUTHOR:
-            -- David Harvey (2006-08-08)
+        AUTHORS:
+
+        - David Harvey (2006-08-08)
         """
         return self._parent.variable_name()
 
     def degree(self):
         """
-        Return the degree of this power series, which is by definition
-        the degree of the underlying polynomial.
+        Return the degree of this power series, which is by definition the
+        degree of the underlying polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
             sage: f = t^100000 + O(t^10000000)
             sage: f.degree()
@@ -1469,12 +1607,15 @@ cdef class PowerSeries(AlgebraElement):
         variables supplied in args.
 
         Multiple variables and iteration counts may be supplied; see
-        documentation for the global derivative() function for more details.
+        documentation for the global derivative() function for more
+        details.
 
-        SEE ALSO:
-            self._derivative()
+        .. seealso::
 
-        EXAMPLES:
+           :meth:`_derivative`
+
+        EXAMPLES::
+
             sage: R.<x> = PowerSeriesRing(QQ)
             sage: g = -x + x^2/2 - x^4 + O(x^6)
             sage: g.derivative()
@@ -1491,7 +1632,8 @@ cdef class PowerSeries(AlgebraElement):
 
     def __setitem__(self, n, value):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = ZZ[[]]
             sage: f = 3 - t^3 + O(t^5)
             sage: f[1] = 5
@@ -1503,10 +1645,11 @@ cdef class PowerSeries(AlgebraElement):
 
     def laurent_series(self):
         """
-        Return the Laurent series associated to this power series, i.e., this
-        series considered as a Laurent series.
+        Return the Laurent series associated to this power series, i.e.,
+        this series considered as a Laurent series.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<w> = QQ[[]]
             sage: f = 1+17*w+15*w^3+O(w^5)
             sage: parent(f)
@@ -1522,7 +1665,8 @@ cdef class PowerSeries(AlgebraElement):
 
         This function is known as serlaplace in GP/PARI.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2/factorial(2) + 2*t^3/factorial(3)
             sage: f.ogf()
@@ -1536,7 +1680,8 @@ cdef class PowerSeries(AlgebraElement):
 
         This function is known as serlaplace in GP/PARI.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2 + 2*t^3
             sage: f.egf()
@@ -1550,7 +1695,8 @@ cdef class PowerSeries(AlgebraElement):
 
         This is currently only implemented over QQ and ZZ.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<w> = QQ[[]]
             sage: f = 1+17*w+15*w^3+O(w^5)
             sage: pari(f)
@@ -1575,66 +1721,99 @@ def _solve_linear_de(R, N, L, a, b, f0):
     Internal function used by PowerSeries.solve_linear_de().
 
     INPUT:
-       R -- a PolynomialRing
-       N -- integer >= 0
-       L -- integer >= 1
-       a -- list of coefficients of $a$, any length, all coefficients should
-            belong to base ring of R.
-       b -- list of coefficients of $b$, length at least $L$
-            (only first $L$ coefficients are used), all coefficients
-            should belong to base ring of R.
-       f0 -- constant term of $f$ (only used if $N == 0$), should belong
-            to base ring of R.
 
-    OUTPUT:
-       List of coefficients of $f$ (length exactly $L$), where $f$ is a
-       solution to the linear inhomogeneous differential equation:
-          $$ (t^N f)'  =  a t^N f  +  t^{N-1} b  +  O(t^{N+L-1}).$$
-       The constant term of $f$ is taken to be f0 if $N == 0$, and otherwise
-       is determined by $N f_0 = b_0$.
 
-    ALGORITHM:
-        The algorithm implemented here is inspired by the ``fast lazy
-        multiplication algorithm'' described in the paper ``Lazy multiplication
-        of formal power series'' by J van der Hoeven (1997 ISSAC conference).
+    -  ``R`` - a PolynomialRing
 
-        Our situation is a bit simpler than the one described there,
-        because only one of the series being multiplied needs the lazy
-        treatment; the other one is known fully in advance. I have
-        reformulated the algorithm as an explicit divide-and-conquer
-        recursion. Possibly it is slower than the one described by van der
-        Hoeven, by a constant factor, but it seems easier to implement.
-        Also, because we repeatedly split in half starting at the top level,
-        instead of repeatedly doubling in size from the bottom level, it's
-        easier to avoid problems with ``overshooting'' in the last iteration.
+    -  ``N`` - integer = 0
 
-        The idea is to split the problem into two instances with $L$
-        about half the size. Take $L'$ to be the ceiling of
-        $(L/2)$. First recursively find $g$ modulo $t^{L'}$ such that
-          $$ (t^N g)'  =  a t^N g  +  t^{N-1} b  +  O(t^{N+L'-1}).$$
+    -  ``L`` - integer = 1
 
-        Next we want to find $h$ modulo $t^{L-L'}$ such that
-        $f = g + t^{L'} h$ is a solution of the original equation.
-        We can find a suitable $h$ by recursively solving another
-        differential equation of the same form, namely
-          $$ (t^{N+L'} h)'  =  a t^{N+L'} h  +  c t^{N+L'-1} + O(t^{N+L'-1}),$$
-        where $c$ is determined by
-          $$ (t^N g)' - a t^N g - t^{N-1} b  =  -c t^{N+L'-1} + O(t^{N+L-1}).$$
-        Once $g$ is known, $c$ can be recovered from this relation by computing
-        the coefficients of $t^j$ of the product $a g$ for $j$ in the range
-        $L'-1 \leq j < L-1$.
+    -  ``a`` - list of coefficients of `a`, any
+       length, all coefficients should belong to base ring of R.
 
-        At the bottom of the recursion we have $L = 1$, in which case
-        the solution is simply given by $f_0 = b_0/N$ (or by the supplied
-        initial condition $f_0$ when $N == 0$).
+    -  ``b`` - list of coefficients of `b`, length
+       at least `L` (only first `L` coefficients are
+       used), all coefficients should belong to base ring of R.
 
-        The algorithm has to do one multiplication of length $N$, two of
-        length $N/2$, four of length $N/4$, etc, hence giving runtime
-        $O(M(N) \log N)$.
+    -  ``f0`` - constant term of `f` (only used if
+       `N == 0`), should belong to base ring of R.
 
-    AUTHOR:
-        -- David Harvey (2006-09-11): factored out of PowerSeries.exp().
 
+    OUTPUT: List of coefficients of `f` (length exactly
+    `L`), where `f` is a solution to the linear
+    inhomogeneous differential equation:
+
+    .. math::
+
+         (t^N f)'  =  a t^N f  +  t^{N-1} b  +  O(t^{N+L-1}).
+
+
+    The constant term of `f` is taken to be f0 if
+    `N == 0`, and otherwise is determined by
+    `N f_0 = b_0`.
+
+    ALGORITHM: The algorithm implemented here is inspired by the "fast
+    lazy multiplication algorithm" described in the paper "Lazy
+    multiplication of formal power series" by J van der Hoeven (1997
+    ISSAC conference).
+
+    Our situation is a bit simpler than the one described there,
+    because only one of the series being multiplied needs the lazy
+    treatment; the other one is known fully in advance. I have
+    reformulated the algorithm as an explicit divide-and-conquer
+    recursion. Possibly it is slower than the one described by van der
+    Hoeven, by a constant factor, but it seems easier to implement.
+    Also, because we repeatedly split in half starting at the top
+    level, instead of repeatedly doubling in size from the bottom
+    level, it's easier to avoid problems with "overshooting" in the
+    last iteration.
+
+    The idea is to split the problem into two instances with
+    `L` about half the size. Take `L'` to be the
+    ceiling of `(L/2)`. First recursively find `g`
+    modulo `t^{L'}` such that
+
+    .. math::
+
+         (t^N g)'  =  a t^N g  +  t^{N-1} b  +  O(t^{N+L'-1}).
+
+
+
+    Next we want to find `h` modulo `t^{L-L'}` such
+    that `f = g + t^{L'} h` is a solution of the original
+    equation. We can find a suitable `h` by recursively solving
+    another differential equation of the same form, namely
+
+    .. math::
+
+         (t^{N+L'} h)'  =  a t^{N+L'} h  +  c t^{N+L'-1} + O(t^{N+L'-1}),
+
+
+    where `c` is determined by
+
+    .. math::
+
+         (t^N g)' - a t^N g - t^{N-1} b  =  -c t^{N+L'-1} + O(t^{N+L-1}).
+
+
+    Once `g` is known, `c` can be recovered from this
+    relation by computing the coefficients of `t^j` of the
+    product `a g` for `j` in the range
+    `L'-1 \leq j < L-1`.
+
+    At the bottom of the recursion we have `L = 1`, in which
+    case the solution is simply given by `f_0 = b_0/N` (or by
+    the supplied initial condition `f_0` when
+    `N == 0`).
+
+    The algorithm has to do one multiplication of length `N`,
+    two of length `N/2`, four of length `N/4`, etc,
+    hence giving runtime `O(M(N) \log N)`.
+
+    AUTHORS:
+
+    - David Harvey (2006-09-11): factored out of PowerSeries.exp().
     """
     if L == 1:
         # base case

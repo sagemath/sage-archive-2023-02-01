@@ -1,10 +1,12 @@
 """
 Quotient Rings
 
-AUTHOR:
-    -- William Stein
+AUTHORS:
 
-TESTS:
+- William Stein
+
+TESTS::
+
     sage: R.<x> = PolynomialRing(ZZ)
     sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
     sage: S = R.quotient_ring(I);
@@ -34,21 +36,26 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 def QuotientRing(R, I, names=None):
     r"""
     Creates a quotient ring of the ring R by the ideal I. Variables are
-    labeled by names. (If the quotient ring is a quotient of a polynomial
-    ring.). If names isn't given, 'bar' will be appended to the variable names
-    in R.
+    labeled by names. (If the quotient ring is a quotient of a
+    polynomial ring.). If names isn't given, 'bar' will be appended to
+    the variable names in R.
 
     INPUTS:
-        R -- a commutative ring
-        I -- and ideal of R
-        names -- a list of strings to be used as names for the variables in
-                 the quotient ring R/I
 
-    OUTPUTS:
-        R/I -- the quotient ring R mod the ideal I
+    - ``R`` - a commutative ring
+
+    - ``I`` - and ideal of R
+
+    - ``names`` - a list of
+      strings to be used as names for the variables in the quotient ring
+      R/I
+
+    OUTPUTS: R/I - the quotient ring R mod the ideal I
 
     EXAMPLES:
-    Some simple quotient rings with the integers:
+
+    Some simple quotient rings with the integers::
+
         sage: R = QuotientRing(ZZ,7*ZZ); R
         Quotient of Integer Ring by the ideal (7)
         sage: R.gens()
@@ -58,13 +65,18 @@ def QuotientRing(R, I, names=None):
         4
         0
 
+    ::
+
         sage: S = QuotientRing(ZZ,ZZ.ideal(8)); S
         Quotient of Integer Ring by the ideal (8)
         sage: 2*S(4)
         0
 
-    With polynomial rings: (note that the variable name of the quotient ring
-    can be specified as shown below)
+    With polynomial rings: (note that the variable name of the quotient
+    ring can be specified as shown below)
+
+    ::
+
         sage: R.<xx> = QuotientRing(QQ[x], QQ[x].ideal(x^2 + 1)); R
         Univariate Quotient Polynomial Ring in xx over Rational Field with modulus x^2 + 1
         sage: R.gens(); R.gen()
@@ -76,6 +88,8 @@ def QuotientRing(R, I, names=None):
         -1
         -xx
 
+    ::
+
         sage: S = QuotientRing(QQ[x], QQ[x].ideal(x^2 - 2)); S
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 - 2
@@ -86,14 +100,17 @@ def QuotientRing(R, I, names=None):
         xbar
         2
 
-    Sage coerces objects into ideals when possible:
+    Sage coerces objects into ideals when possible::
+
         sage: R = QuotientRing(QQ[x], x^2 + 1); R
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 + 1
 
-    By Noether's homomorphism theorems, the quotient of a quotient ring in R
-    is just the quotient of R by the sum of the ideals. In this example, we
-    end up modding out the ideal (x) from the ring QQ[x,y]:
+    By Noether's homomorphism theorems, the quotient of a quotient ring
+    in R is just the quotient of R by the sum of the ideals. In this
+    example, we end up modding out the ideal (x) from the ring
+    QQ[x,y]::
+
         sage: R.<x,y> = PolynomialRing(QQ,2)
         sage: S.<a,b> = QuotientRing(R,R.ideal(1 + y^2))
         sage: T.<c,d> = QuotientRing(S,S.ideal(a))
@@ -140,7 +157,8 @@ def is_QuotientRing(x):
     """
     Tests whether or not x inherits from QuotientRing_generic.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.quotient_ring import is_QuotientRing
         sage: R.<x> = PolynomialRing(ZZ,'x')
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
@@ -154,13 +172,16 @@ def is_QuotientRing(x):
 
 class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.parent_gens.ParentWithGens):
     """
-    The quotient ring of $R$ by the ideal $I$.
+    The quotient ring of `R` by the ideal `I`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R.<x> = PolynomialRing(ZZ,'x')
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: S = R.quotient_ring(I); S
         Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
+
+    ::
 
         sage: R.<x,y> = PolynomialRing(QQ)
         sage: S.<a,b> = R.quo(x^2 + y^2)
@@ -171,8 +192,11 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     EXAMPLE: Quotient of quotient
 
-    A quotient of a quotient is just the quotient of the
-    original top ring by the sum of two ideals.
+    A quotient of a quotient is just the quotient of the original top
+    ring by the sum of two ideals.
+
+    ::
+
         sage: R.<x,y> = PolynomialRing(QQ,2)
         sage: S.<a,b> = R.quo(1 + y^2)
         sage: T.<c,d> = S.quo(a)
@@ -186,10 +210,15 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         Create the quotient ring of R by the ideal I.
 
         INPUT:
-            R -- a commutative ring
-            I -- an ideal
 
-        EXAMPLES:
+
+        -  ``R`` - a commutative ring
+
+        -  ``I`` - an ideal
+
+
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: R.quotient_ring(x^2 + y^2)
             Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
@@ -200,13 +229,15 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def construction(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(ZZ,'x')
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: R.quotient_ring(I).construction()
             (QuotientFunctor, Univariate Polynomial Ring in x over Integer Ring)
 
-        TESTS:
+        TESTS::
+
             sage: F, R = Integers(5).construction()
             sage: F(R)
             Ring of integers modulo 5
@@ -221,7 +252,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(ZZ,'x')
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: R.quotient_ring(I)._repr_()
@@ -231,7 +263,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def _latex_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(ZZ,'x')
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: R.quotient_ring(I)._latex_()
@@ -241,9 +274,11 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def cover(self):
         r"""
-        The covering ring homomorphism $R \to R/I$, equipped with a section.
+        The covering ring homomorphism `R \to R/I`, equipped with a
+        section.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = ZZ.quo(3*ZZ)
             sage: pi = R.cover()
             sage: pi
@@ -255,7 +290,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             2
             sage: l = pi.lift()
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y>  = PolynomialRing(QQ)
             sage: Q = R.quo( (x^2,y^2) )
             sage: pi = Q.cover()
@@ -286,7 +322,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         """
         Return the lifting map to the cover.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: S = R.quotient(x^2 + y^2)
             sage: pi = S.cover(); pi
@@ -304,8 +341,11 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: L(S.1)
             y
 
-        Note that some reduction may be applied so that the lift of a reduction
-        need not equal the original element.
+        Note that some reduction may be applied so that the lift of a
+        reduction need not equal the original element.
+
+        ::
+
             sage: z = pi(x^3 + 2*y^2); z
             -xbar*ybar^2 + 2*ybar^2
             sage: L(z)
@@ -326,7 +366,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
         TODO: Not yet implemented!
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q = QuotientRing(ZZ,7*ZZ)
             sage: Q.characteristic()
             Traceback (most recent call last):
@@ -340,14 +381,17 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         Returns the ideal generating this quotient ring.
 
         EXAMPLES:
-        In the integers:
+
+        In the integers::
+
             sage: Q = QuotientRing(ZZ,7*ZZ)
             sage: Q.defining_ideal()
             Principal ideal (7) of Integer Ring
 
         An example involving a quotient of a quotient. By Noether's
         homomorphism theorems, this is actually a quotient by a sum of two
-        ideals:
+        ideals::
+
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: S.<a,b> = QuotientRing(R,R.ideal(1 + y^2))
             sage: T.<c,d> = QuotientRing(S,S.ideal(a))
@@ -364,7 +408,10 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         defining ideal is maximal.
 
         TESTS:
-        Requires the \code{is_maximal} function to be implemented:
+
+        Requires the ``is_maximal`` function to be
+        implemented::
+
             sage: Q = QuotientRing(ZZ,7*ZZ)
             sage: Q.is_field()
             Traceback (most recent call last):
@@ -375,16 +422,17 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def is_integral_domain(self):
         r"""
-        If this function returns True then self is definitely an
-        integral domain.  If it returns False, then either self is
-        definitely not an integral domain or this function was unable
-        to determine whether or not self is an integral domain.
+        If this function returns True then self is definitely an integral
+        domain. If it returns False, then either self is definitely not an
+        integral domain or this function was unable to determine whether or
+        not self is an integral domain.
 
-        Use \code{self.defining_ideal().is_prime()} to find out for
-        sure whether this quotient ring is really not an integral
-        domain, of if SAGE is unable to determine the answer.
+        Use ``self.defining_ideal().is_prime()`` to find out
+        for sure whether this quotient ring is really not an integral
+        domain, of if Sage is unable to determine the answer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(8)
             sage: R.is_integral_domain()
             False
@@ -395,7 +443,6 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         return self.defining_ideal().is_prime()
 
@@ -405,12 +452,15 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         ring R from which we modded out an ideal, I.
 
         TODO: PolynomialQuotientRings_field objects don't have a
-        \code{cover_ring} function.
+        ``cover_ring`` function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q = QuotientRing(ZZ,7*ZZ)
             sage: Q.cover_ring()
             Integer Ring
+
+        ::
 
             sage: Q = QuotientRing(QQ[x], x^2 + 1)
             sage: Q.cover_ring()
@@ -424,7 +474,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         """
         Return the ideal of self with the given generators.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: S = R.quotient_ring(x^2+y^2)
             sage: S.ideal()
@@ -449,7 +500,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def __call__(self, x, coerce=True):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: S = R.quotient_ring(x^2+y^2)
             sage: S(x)
@@ -476,10 +528,13 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
         The rings that coerce into the quotient ring canonically, are:
 
-           * this ring.
-           * anything that coerces into the ring of which this is the quotient
+        - this ring
 
-        EXAMPLES:
+        - anything that coerces into the ring of which this is the
+          quotient
+
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: S.<a,b> = R.quotient(x^2 + y^2)
             sage: S._coerce_(0)
@@ -497,18 +552,20 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def __cmp__(self, other):
         r"""
-        Only quotients by the \emph{same} ring and same ideal (with
-        the same generators!!) are considered equal.
+        Only quotients by the *same* ring and same ideal (with the same
+        generators!!) are considered equal.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: S = R.quotient_ring(x^2 + y^2)
             sage: S == R.quotient_ring(x^2 + y^2)
             True
 
-        The ideals $(x^2 + y^2)$ and $(-x^2-y^2)$ are equal, but
-        since the generators are different, the corresponding
-        quotient rings are not equal:
+        The ideals `(x^2 + y^2)` and `(-x^2-y^2)` are
+        equal, but since the generators are different, the corresponding
+        quotient rings are not equal::
+
             sage: R.ideal(x^2+y^2) == R.ideal(-x^2 - y^2)
             True
             sage: R.quotient_ring(x^2 + y^2) == R.quotient_ring(-x^2 - y^2)
@@ -523,16 +580,20 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         r"""
         Returns the number of generators for this quotient ring.
 
-        TODO: Note that \code{ngens} counts 0 as a generator. Does this make
-        sense? That is, since 0 only generates itself and the fact that this
-        is true for all rings, is there a way to "knock it off" of the
-        generators list if a generator of some original ring is modded out?
+        TODO: Note that ``ngens`` counts 0 as a generator. Does
+        this make sense? That is, since 0 only generates itself and the
+        fact that this is true for all rings, is there a way to "knock it
+        off" of the generators list if a generator of some original ring is
+        modded out?
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = QuotientRing(ZZ,7*ZZ)
             sage: R.gens(); R.ngens()
             (1,)
             1
+
+        ::
 
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: S.<a,b> = QuotientRing(R,R.ideal(1 + y^2))
@@ -554,10 +615,13 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         r"""
         Returns the ith generator for this quotient ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = QuotientRing(ZZ,7*ZZ)
             sage: R.gen(0)
             1
+
+        ::
 
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: S.<a,b> = QuotientRing(R,R.ideal(1 + y^2))
@@ -582,15 +646,22 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         Returns the Singular quotient ring of self if the base ring is
         coercable to Singular.
 
-        If a valid singular representation is found it is used
-        otherwise a new 'qring' is created.
+        If a valid singular representation is found it is used otherwise a
+        new 'qring' is created.
 
         INPUT:
-            singular -- Singular instance (default: the default Singular instance)
 
-        \note{This method also sets the current ring in Singular to self}
 
-        EXAMPLES:
+        -  ``singular`` - Singular instance (default: the
+           default Singular instance)
+
+
+        .. note::
+
+           This method also sets the current ring in Singular to self
+
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: S = R.quotient_ring(x^2+y^2)
             sage: S._singular_()
@@ -613,12 +684,13 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def _singular_init_(self,singular=singular_default):
         """
-        Returns a newly created Singular quotient ring matching self
-        if the base ring is coecable to Singular.
+        Returns a newly created Singular quotient ring matching self if the
+        base ring is coecable to Singular.
 
         See self._singular_
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: S = R.quotient_ring(x^2+y^2)
             sage: T = S._singular_init_()
@@ -634,13 +706,16 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
     def _magma_init_(self, magma):
         r"""
         Return string that evaluates to Magma version of this quotient
-        ring.  This is called implicitly when doing conversions to
-        Magma.
+        ring. This is called implicitly when doing conversions to Magma.
 
         INPUT:
-            magma -- a magma instance
 
-        EXAMPLE:
+
+        -  ``magma`` - a magma instance
+
+
+        EXAMPLE::
+
             sage: P.<x,y> = PolynomialRing(GF(2))
             sage: Q = P.quotient(sage.rings.ideal.FieldIdeal(P))
             sage: magma(Q)                                         # optional - magma

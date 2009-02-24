@@ -1,31 +1,49 @@
 r"""
 Elements of Quotients of Univariate Polynomial Rings
 
-EXAMPLES:
-We create a quotient of a univariate polynomial ring over $\ZZ$.
+EXAMPLES: We create a quotient of a univariate polynomial ring over
+`\mathbb{Z}`.
+
+::
+
     sage: R.<x> = ZZ[]
     sage: S.<a> = R.quotient(x^3 + 3*x -1)
     sage: 2 * a^3
     -6*a + 2
 
-Next we make a univeriate polynomial ring over $\Z[x]/(x^3+3x-1)$.
+Next we make a univeriate polynomial ring over
+`\mathbb{Z}[x]/(x^3+3x-1)`.
+
+::
+
     sage: S.<y> = S[]
 
-And, we quotient out that by $y^2 + a$.
+And, we quotient out that by `y^2 + a`.
+
+::
+
     sage: T.<z> = S.quotient(y^2+a)
 
-In the quotient $z^2$ is $-a$.
+In the quotient `z^2` is `-a`.
+
+::
+
     sage: z^2
     -a
 
-And since $a^3 = -3x + 1$, we have:
+And since `a^3 = -3x + 1`, we have::
+
     sage: z^6
     3*a - 1
+
+::
 
     sage: R.<x> = PolynomialRing(Integers(9))
     sage: S.<a> = R.quotient(x^4 + 2*x^3 + x + 2)
     sage: a^100
     7*a^3 + 8*a + 7
+
+::
 
     sage: R.<x> = PolynomialRing(QQ)
     sage: S.<a> = R.quotient(x^3-2)
@@ -34,10 +52,13 @@ And since $a^3 = -3x + 1$, we have:
     sage: a^3
     2
 
-For the purposes of comparison in SAGE the quotient element
-$a^3$ is equal to $x^3$.  This is because when the comparison
-is performed, the right element is coerced into the parent of
-the left element, and $x^3$ coerces to $a^3$.
+For the purposes of comparison in Sage the quotient element
+`a^3` is equal to `x^3`. This is because when the
+comparison is performed, the right element is coerced into the
+parent of the left element, and `x^3` coerces to
+`a^3`.
+
+::
 
     sage: a == x
     True
@@ -48,9 +69,9 @@ the left element, and $x^3$ coerces to $a^3$.
     sage: S(x^3)
     2
 
+AUTHORS:
 
-AUTHOR:
-    -- William Stein
+- William Stein
 """
 
 ####################################################################################
@@ -73,11 +94,15 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         Create an element of the quotient of a polynomial ring.
 
         INPUT:
-            parent -- a quotient of a polynomial ring
-            polynomial -- a polynomial
-            check -- bool (optional): whether or not to verify
-                     that x is a valid element of the polynomial
-                     ring and reduced (mod the modulus).
+
+
+        -  ``parent`` - a quotient of a polynomial ring
+
+        -  ``polynomial`` - a polynomial
+
+        -  ``check`` - bool (optional): whether or not to
+           verify that x is a valid element of the polynomial ring and reduced
+           (mod the modulus).
         """
         from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
         from sage.rings.polynomial.polynomial_element import Polynomial
@@ -119,7 +144,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: S.<a> = R.quotient(2*x^3 + 3/2*x -1/3)
             sage: 2 * a^3
@@ -131,7 +157,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def _repr_(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: S.<a> = R.quotient(3*x^3 + 3/2*x -1/3)
             sage: 3 * a^3 + S.modulus()
@@ -143,7 +170,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def _latex_(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: S.<a> = R.quotient(3*x^3 + 3/2*x -1/3)
             sage: latex(a*(3 * a^3) + S.modulus())
@@ -159,7 +187,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         """
         Return the product of two polynomial ring quotient elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: (a^2 - 4) * (a+2)
@@ -173,7 +202,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         """
         Return the difference of two polynomial ring quotient elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 - 2)
             sage: (a^2 - 4) - (a+2)
@@ -188,7 +218,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         """
         Return the sum of two polynomial ring quotient elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: (a^2 - 4) + (a+2)
@@ -203,7 +234,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         """
         Return the quotient of two polynomial ring quotient elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: (a^2 - 4) / (a+2)
@@ -216,9 +248,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def __cmp__(self, other):
         """
-        Compare this element with something else, where equality
-        testing coerces the object on the right, if possible (and
-        necessary).
+        Compare this element with something else, where equality testing
+        coerces the object on the right, if possible (and necessary).
 
         EXAMPLES:
         """
@@ -233,7 +264,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         """
         Coerce this element to an int if possible.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: int(S(10))
@@ -260,7 +292,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         """
         Coerce this element to a long if possible.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: long(S(10))
@@ -280,15 +313,21 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         generators to one another, and the inverse isomorphism.
 
         INPUT:
-            -- names - name of generator of output field
+
+        - ``names`` - name of generator of output field
+
 
         OUTPUT:
-            \# todo: is the return order backwards from the magma convention???
-            -- field
-            -- homomorphism from self to field
-            -- homomorphism from field to self
 
-        EXAMPLES:
+        -  field
+
+        -  homomorphism from self to field
+
+        -  homomorphism from field to self
+
+
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<alpha> = R.quotient(x^3-2)
             sage: F.<a>, f, g = alpha.field_extension()
@@ -300,9 +339,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: g(a)
             alpha
 
-
-        Over a finite field, the corresponding field extension is
-        not a number field:
+        Over a finite field, the corresponding field extension is not a
+        number field::
 
             sage: R.<x> = GF(25,'b')['x']
             sage: S.<a> = R.quo(x^3 + 2*x + 1)
@@ -312,14 +350,15 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: g(x^2 + 2)
             b^2 + 2
 
-        We do an example involving a relative number field:
+        We do an example involving a relative number field::
+
             sage: R.<x> = QQ['x']
             sage: K.<a> = NumberField(x^3-2)
             sage: S.<X> = K['X']
             sage: Q.<b> = S.quo(X^3 + 2*X + 1)
             sage: F, g, h = b.field_extension('c')
 
-        Another more awkward example:
+        Another more awkward example::
 
             sage: R.<x> = QQ['x']
             sage: K.<a> = NumberField(x^3-2)
@@ -337,10 +376,13 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: g(h(w))
             w
 
-        AUTHOR:
-            -- Craig Citro 06 Aug 06
-            -- William Stein 06 Aug 06
+        AUTHORS:
+
+        - Craig Citro (2006-08-06)
+
+        - William Stein (2006-08-06)
         """
+        #TODO: is the return order backwards from the magma convention?
 
 ##         We do another example over $\ZZ$.
 ##             sage: R.<x> = ZZ['x']
@@ -388,13 +430,17 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
     def charpoly(self, var):
         """
         The characteristic polynomial of this element, which is by
-        definition the characteristic polynomial of right multiplication
-        by this element.
+        definition the characteristic polynomial of right multiplication by
+        this element.
 
         INPUT:
-            var -- string -- the variable name
 
-        EXAMPLES:
+
+        -  ``var`` - string - the variable name
+
+
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quo(x^3 -389*x^2 + 2*x - 5)
             sage: a.charpoly('X')
@@ -404,10 +450,11 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def fcp(self, var='x'):
         """
-        Return the factorization of the characteristic polynomial
-        of this element.
+        Return the factorization of the characteristic polynomial of this
+        element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 -389*x^2 + 2*x - 5)
             sage: a.fcp('x')
@@ -422,7 +469,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         Return lift of this polynomial quotient ring element to the unique
         equivalent polynomial of degree less than the modulus.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: b = a^2 - 3
@@ -438,10 +486,11 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def list(self):
         """
-        Return list of the elements of self, of length the same as
-        the degree of the quotient polynomial ring.
+        Return list of the elements of self, of length the same as the
+        degree of the quotient polynomial ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 + 2*x - 5)
             sage: a^10
@@ -456,10 +505,11 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def matrix(self):
         """
-        The matrix of right multiplication by this element on the
-        power basis for the quotient ring.
+        The matrix of right multiplication by this element on the power
+        basis for the quotient ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 + 2*x - 5)
             sage: a.matrix()
@@ -489,18 +539,18 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def minpoly(self):
         """
-        The minimal polynomial of this element, which is by definition
-        the minimal polynomial of right multiplication by this
-        element.
+        The minimal polynomial of this element, which is by definition the
+        minimal polynomial of right multiplication by this element.
         """
         return self.matrix().minpoly()
 
     def norm(self):
         """
-        The norm of this element, which is the norm of the matrix
-        of right multiplication by this element.
+        The norm of this element, which is the norm of the matrix of right
+        multiplication by this element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 -389*x^2 + 2*x - 5)
             sage: a.norm()
@@ -510,10 +560,11 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 
     def trace(self):
         """
-        The trace of this element, which is the trace of the matrix
-        of right multiplication by this element.
+        The trace of this element, which is the trace of the matrix of
+        right multiplication by this element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 -389*x^2 + 2*x - 5)
             sage: a.trace()

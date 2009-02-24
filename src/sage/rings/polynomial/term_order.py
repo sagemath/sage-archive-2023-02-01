@@ -1,225 +1,250 @@
 r"""
 Term Orderings
 
-\SAGE supports the following term orderings:
+Sage supports the following term orderings:
 
-\begin{description}
-\item[Lexicographic (\emph{lex})]
+Lexicographic (*lex*)
+    `x^a < x^b \Leftrightarrow \exists\; 0 \le i < n : a_0 = b_0, \ldots, a_{i-1} = b_{i-1}, a_i < b_i`
 
-$x^a < x^b \Leftrightarrow \exists\; 0 \le i < n : a_0 = b_0, \ldots, a_{i-1} = b_{i-1}, a_i < b_i$
+    EXAMPLES:
 
-EXAMPLES:
-    sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='lex')
-    sage: x > y
-    True
-    sage: x > y^2
-    True
-    sage: x > 1
-    True
-    sage: x^1*y^2 > y^3*z^4
-    True
-    sage: x^3*y^2*z^4 < x^3*y^2*z^1
-    False
+    ::
 
-This term ordering is called 'lp' in \Singular.
+        sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='lex')
+        sage: x > y
+        True
+        sage: x > y^2
+        True
+        sage: x > 1
+        True
+        sage: x^1*y^2 > y^3*z^4
+        True
+        sage: x^3*y^2*z^4 < x^3*y^2*z^1
+        False
 
-\item[Degree reverse lexicographic (\emph{degrevlex})]
+    This term ordering is called 'lp' in Singular.
 
-Let $deg(x^a) = a_0 + \cdots + a_{n-1},$ then
-$x^a < x^b \Leftrightarrow deg(x^a) < deg(x^b)$ or
-$deg(x^a) = deg(x^b)$ and $\exists\ 0 \le i < n: a_{n-1} = b_{n-1}, \ldots, a_{i+1} = b_{i+1}, a_i > b_i.$
+Degree reverse lexicographic (*degrevlex*)
+    Let `deg(x^a) = a_0 + \cdots + a_{n-1},` then
+    `x^a < x^b \Leftrightarrow deg(x^a) < deg(x^b)` or
+    `deg(x^a) = deg(x^b)` and
+    `\exists\ 0 \le i < n: a_{n-1} = b_{n-1}, \ldots, a_{i+1} = b_{i+1}, a_i > b_i.`
 
-EXAMPLES:
-    sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='degrevlex')
-    sage: x > y
-    True
-    sage: x > y^2*z
-    False
-    sage: x > 1
-    True
-    sage: x^1*y^5*z^2 > x^4*y^1*z^3
-    True
-    sage: x^2*y*z^2 > x*y^3*z
-    False
+    EXAMPLES:
 
-This term ordering is called 'dp' in \Singular.
+    ::
 
-\item[Degree lexicographic (\emph{deglex})]
+        sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='degrevlex')
+        sage: x > y
+        True
+        sage: x > y^2*z
+        False
+        sage: x > 1
+        True
+        sage: x^1*y^5*z^2 > x^4*y^1*z^3
+        True
+        sage: x^2*y*z^2 > x*y^3*z
+        False
 
-Let $deg(x^a) = a_0 + \cdots + a_{n-1},$ then
-$x^a < x^b \Leftrightarrow deg(x^a) < deg(x^b)$ or
-$deg(x^a) = deg(x^b)$ and $\exists\ 0 \le i < n:a_0 = b_0, \ldots, a_{i-1} = b_{i-1}, a_i < b_i.$
+    This term ordering is called 'dp' in Singular.
 
-EXAMPLES:
-    sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='deglex')
-    sage: x > y
-    True
-    sage: x > y^2*z
-    False
-    sage: x > 1
-    True
-    sage: x^1*y^2*z^3 > x^3*y^2*z^0
-    True
-    sage: x^2*y*z^2 > x*y^3*z
-    True
+Degree lexicographic (*deglex*)
+    Let `deg(x^a) = a_0 + \cdots + a_{n-1},` then
+    `x^a < x^b \Leftrightarrow deg(x^a) < deg(x^b)` or
+    `deg(x^a) = deg(x^b)` and
+    `\exists\ 0 \le i < n:a_0 = b_0, \ldots, a_{i-1} = b_{i-1}, a_i < b_i.`
 
-This term order is called 'Dp' in \Singular.
+    EXAMPLES:
 
-\item[Inverse lexicographic (\emph{invlex})]
+    ::
 
-$x^a < x^b \Leftrightarrow \exists\; 0 \le i < n : a_{n-1} = b_{n-1}, \ldots, a_{i+1} = b_{i+1}, a_i < b_i.$
+        sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='deglex')
+        sage: x > y
+        True
+        sage: x > y^2*z
+        False
+        sage: x > 1
+        True
+        sage: x^1*y^2*z^3 > x^3*y^2*z^0
+        True
+        sage: x^2*y*z^2 > x*y^3*z
+        True
 
-EXAMPLES:
-    sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='invlex')
-    sage: x > y
-    False
-    sage: y > x^2
-    True
-    sage: x > 1
-    True
-    sage: x*y > z
-    False
+    This term order is called 'Dp' in Singular.
 
-This term ordering only makes sense in a non-commutative setting
-because if P is the ring $k[x_1, \dots, x_n]$ and term ordering
-'invlex' then it is equivalent to the ring $k[x_n, \dots, x_1]$ with
-term ordering 'lex'.
+Inverse lexicographic (*invlex*)
+    `x^a < x^b \Leftrightarrow \exists\; 0 \le i < n : a_{n-1} = b_{n-1}, \ldots, a_{i+1} = b_{i+1}, a_i < b_i.`
 
-This ordering is called 'rp' in \Singular.
+    EXAMPLES:
 
-\item[Negative lexicographic (\emph{neglex})]
+    ::
 
-$x^a < x^b \Leftrightarrow \exists\; 0 \le i < n : a_0 = b_0, \ldots, a_{i-1} = b_{i-1}, a_i > b_i$
+        sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='invlex')
+        sage: x > y
+        False
+        sage: y > x^2
+        True
+        sage: x > 1
+        True
+        sage: x*y > z
+        False
 
-EXAMPLES:
-    sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='neglex')
-    sage: x > y
-    False
-    sage: x > 1
-    False
-    sage: x^1*y^2 > y^3*z^4
-    False
-    sage: x^3*y^2*z^4 < x^3*y^2*z^1
-    True
-    sage: x*y > z
-    False
+    This term ordering only makes sense in a non-commutative setting
+    because if P is the ring `k[x_1, \dots, x_n]` and term
+    ordering 'invlex' then it is equivalent to the ring
+    `k[x_n, \dots, x_1]` with term ordering 'lex'.
 
-This term ordering is called 'ls' in \Singular.
+    This ordering is called 'rp' in Singular.
 
-\item[Negative degree reverse lexicographic (\emph{negdegrevlex})]
+Negative lexicographic (*neglex*)
+    `x^a < x^b \Leftrightarrow \exists\; 0 \le i < n : a_0 = b_0, \ldots, a_{i-1} = b_{i-1}, a_i > b_i`
 
-Let $deg(x^a) = a_0 + \cdots + a_{n-1},$ then
-$x^a < x^b \Leftrightarrow deg(x^a) > deg(x^b)$ or
-$deg(x^a) = deg(x^b)$ and $\exists\ 0 \le i < n: a_{n-1} = b_{n-1}, \ldots, a_{i+1} = b_{i+1}, a_i > b_i.$
+    EXAMPLES:
 
-EXAMPLES:
-    sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='negdegrevlex')
-    sage: x > y
-    True
-    sage: x > x^2
-    True
-    sage: x > 1
-    False
-    sage: x^1*y^2 > y^3*z^4
-    True
-    sage: x^2*y*z^2 > x*y^3*z
-    False
+    ::
 
-This term ordering is called 'ds' in \Singular.
+        sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='neglex')
+        sage: x > y
+        False
+        sage: x > 1
+        False
+        sage: x^1*y^2 > y^3*z^4
+        False
+        sage: x^3*y^2*z^4 < x^3*y^2*z^1
+        True
+        sage: x*y > z
+        False
 
-\item[Negative degree lexicographic (\emph{negdeglex})]
+    This term ordering is called 'ls' in Singular.
 
-Let $deg(x^a) = a_0 + \cdots + a_{n-1},$ then
-$x^a < x^b \Leftrightarrow deg(x^a) > deg(x^b)$ or
-$deg(x^a) = deg(x^b)$ and $\exists\ 0 \le i < n: a_0 = b_0, \ldots, a_{i-1} = b_{i-1}, a_i < b_i.$
+Negative degree reverse lexicographic (*negdegrevlex*)
+    Let `deg(x^a) = a_0 + \cdots + a_{n-1},` then
+    `x^a < x^b \Leftrightarrow deg(x^a) > deg(x^b)` or
+    `deg(x^a) = deg(x^b)` and
+    `\exists\ 0 \le i < n: a_{n-1} = b_{n-1}, \ldots, a_{i+1} = b_{i+1}, a_i > b_i.`
 
-EXAMPLES:
-    sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='negdeglex')
-    sage: x > y
-    True
-    sage: x > x^2
-    True
-    sage: x > 1
-    False
-    sage: x^1*y^2 > y^3*z^4
-    True
-    sage: x^2*y*z^2 > x*y^3*z
-    True
+    EXAMPLES:
 
-This term ordering is called 'Ds' in \Singular.
+    ::
 
-\end{description}
+        sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='negdegrevlex')
+        sage: x > y
+        True
+        sage: x > x^2
+        True
+        sage: x > 1
+        False
+        sage: x^1*y^2 > y^3*z^4
+        True
+        sage: x^2*y*z^2 > x*y^3*z
+        False
 
-Of these, only 'degrevlex', 'deglex', 'invlex' and 'lex' are global orderings.
+    This term ordering is called 'ds' in Singular.
 
-Additionally all these monomial orderings may be combined to product
-or block orderings, defined as:
+Negative degree lexicographic (*negdeglex*)
+    Let `deg(x^a) = a_0 + \cdots + a_{n-1},` then
+    `x^a < x^b \Leftrightarrow deg(x^a) > deg(x^b)` or
+    `deg(x^a) = deg(x^b)` and
+    `\exists\ 0 \le i < n: a_0 = b_0, \ldots, a_{i-1} = b_{i-1}, a_i < b_i.`
 
-Let $x = (x_0, \ldots, x_{n-1})$ and $y = (y_0, \ldots, y_{m-1})$ be
-two ordered sets of variables, $<_1$ a monomial ordering on $k[x]$ and
-$<_2$ a monomial ordering on $k[y]$.
+    EXAMPLES:
 
-The product ordering (or block ordering) $<\ := (<_1,<_2)$ on $k[x,y]$
-is defined as: $x^a y^b < x^A y^B \Leftrightarrow x^a <_1 x^A$ or
-$(x^a =x^A \textrm{ and } y^b <_2 y^B)$.
+    ::
 
-These block orderings are constructed in \SAGE by giving a comma
+        sage: P.<x,y,z> = PolynomialRing(QQ, 3, order='negdeglex')
+        sage: x > y
+        True
+        sage: x > x^2
+        True
+        sage: x > 1
+        False
+        sage: x^1*y^2 > y^3*z^4
+        True
+        sage: x^2*y*z^2 > x*y^3*z
+        True
+
+    This term ordering is called 'Ds' in Singular.
+
+
+Of these, only 'degrevlex', 'deglex', 'invlex' and 'lex' are global
+orderings.
+
+Additionally all these monomial orderings may be combined to
+product or block orderings, defined as:
+
+Let `x = (x_0, \ldots, x_{n-1})` and
+`y = (y_0, \ldots, y_{m-1})` be two ordered sets of
+variables, `<_1` a monomial ordering on `k[x]` and
+`<_2` a monomial ordering on `k[y]`.
+
+The product ordering (or block ordering)
+`<\ := (<_1,<_2)` on `k[x,y]` is defined as:
+`x^a y^b < x^A y^B \Leftrightarrow x^a <_1 x^A` or
+`(x^a =x^A \textrm{ and } y^b <_2 y^B)`.
+
+These block orderings are constructed in Sage by giving a comma
 separated list of monomial orderings with the length of each block
 attached to them.
 
 EXAMPLE:
 
-   As an example, consider constructing a block ordering where the
-   first four variables are compared using the degree reverse
-   lexicographical ordering while the last two variables in the second
-   block are compared using negative lexicographical ordering.
+As an example, consider constructing a block ordering where the
+first four variables are compared using the degree reverse
+lexicographical ordering while the last two variables in the second
+block are compared using negative lexicographical ordering.
 
-   sage: P.<a,b,c,d,e,f> = PolynomialRing(QQ, 6,order='degrevlex(4),neglex(2)')
-   sage: a > c^4
-   False
-   sage: a > e^4
-   True
-   sage: e > f^2
-   False
+::
 
-   The same result can be achieved by:
+    sage: P.<a,b,c,d,e,f> = PolynomialRing(QQ, 6,order='degrevlex(4),neglex(2)')
+    sage: a > c^4
+    False
+    sage: a > e^4
+    True
+    sage: e > f^2
+    False
 
-   sage: T1 = TermOrder('degrevlex',4)
-   sage: T2 = TermOrder('neglex',2)
-   sage: T = T1 + T2
-   sage: P.<a,b,c,d,e,f> = PolynomialRing(QQ, 6, order=T)
-   sage: a > c^4
-   False
-   sage: a > e^4
-   True
+The same result can be achieved by::
 
-If any other unsupported term ordering is given the provided string is
-passed through as is to \Singular, \textsc{Macaulay2}, and
-\Magma. This ensures that it is for example possible to calculated a
-Groebner basis with respect to some term ordering \Singular supports
-but \SAGE doesn't. However a warning is issued to make the user aware
-of the situation and potential typos:
+    sage: T1 = TermOrder('degrevlex',4)
+    sage: T2 = TermOrder('neglex',2)
+    sage: T = T1 + T2
+    sage: P.<a,b,c,d,e,f> = PolynomialRing(QQ, 6, order=T)
+    sage: a > c^4
+    False
+    sage: a > e^4
+    True
 
-   sage: P.<a,b,c,d,e,f> = PolynomialRing(QQ, 6, order=T)
-   sage: a > c^4
-   False
-   sage: a > e^4
-   True
+If any other unsupported term ordering is given the provided string
+is passed through as is to Singular, Macaulay2, and Magma. This
+ensures that it is for example possible to calculated a Groebner
+basis with respect to some term ordering Singular supports but Sage
+doesn't. However a warning is issued to make the user aware of the
+situation and potential typos::
 
-If any other unsupported term ordering is given the provided string is
-passed through as is to \Singular, \textsc{Macaulay2}, and
-\Magma. This ensures that it is for example possible to calculated a
-Groebner basis with respect to some term ordering \Singular supports
-but \SAGE doesn't. However a warning is issued to make the user aware
-of the situation and potential typos:
+    sage: P.<a,b,c,d,e,f> = PolynomialRing(QQ, 6, order=T)
+    sage: a > c^4
+    False
+    sage: a > e^4
+    True
 
-   sage: T = TermOrder("royalorder")
-   verbose 0 (...: term_order.py, __init__) Term ordering 'royalorder' unknown.
+If any other unsupported term ordering is given the provided string
+is passed through as is to Singular, Macaulay2, and Magma. This
+ensures that it is for example possible to calculated a Groebner
+basis with respect to some term ordering Singular supports but Sage
+doesn't. However a warning is issued to make the user aware of the
+situation and potential typos::
+
+    sage: T = TermOrder("royalorder")
+    verbose 0 (...: term_order.py, __init__) Term ordering 'royalorder' unknown.
 
 AUTHORS:
-    -- David Joyner and William Stein: initial version multi_polynomial_ring
-    -- Kiran S. Kedlaya: added macaulay2 interface
-    -- Martin Albrecht: implemented native term orderings, refactoring
+
+- David Joyner and William Stein: initial version
+  multi_polynomial_ring
+
+- Kiran S. Kedlaya: added macaulay2 interface
+
+- Martin Albrecht: implemented native term orderings, refactoring
 """
 
 import re
@@ -324,23 +349,29 @@ class TermOrder(SageObject):
     r"""
     A term order.
 
-    See \code{sage.rings.polynomial.term_order} for details on
-    supported term orderings.
+    See ``sage.rings.polynomial.term_order`` for details
+    on supported term orderings.
     """
     def __init__(self, name='lex', n = 0, blocks=True):
         """
         Construct a new term ordering object.
 
         INPUT:
-            name -- name of the term ordering (default: lex)
-            n -- number of variables in the polynomial ring (default: 0)
-            blocks -- controls whether a list of blocks is maintained
-                      (internal use only, default:True)
 
-        See the \code{sage.rings.polynomial.term_order} module for
-        help which names and orderings are available.
 
-        EXAMPLES:
+        -  ``name`` - name of the term ordering (default: lex)
+
+        -  ``n`` - number of variables in the polynomial ring
+           (default: 0)
+
+        -  ``blocks`` - controls whether a list of blocks is
+           maintained (internal use only, default:True)
+
+
+        See the ``sage.rings.polynomial.term_order`` module
+        for help which names and orderings are available.
+
+        EXAMPLES::
 
             sage: t = TermOrder('lex')
             sage: t
@@ -350,10 +381,12 @@ class TermOrder(SageObject):
 
         We can construct block orderings directly as
 
+        ::
+
             sage: TermOrder('degrevlex(3),neglex(2)')
             degrevlex(3),neglex(2) term order
 
-        or by adding together the blocks:
+        or by adding together the blocks::
 
             sage: t1 = TermOrder('degrevlex',3)
             sage: t2 = TermOrder('neglex',2)
@@ -362,11 +395,12 @@ class TermOrder(SageObject):
             sage: t2 + t1
             neglex(2),degrevlex(3) term order
 
-        NOTE: The optional $n$ parameter is not necessary if only
-        non-block orderings like $deglex$ are constructed. However, it
-        is useful if block orderings are to be constructed from this
-        \code{TermOrder} object later.
+        .. note::
 
+           The optional `n` parameter is not necessary if only
+           non-block orderings like `deglex` are
+           constructed. However, it is useful if block orderings are
+           to be constructed from this ``TermOrder`` object later.
         """
         if isinstance(name, TermOrder):
             if n == 0 and len(name) > 0:
@@ -437,9 +471,12 @@ class TermOrder(SageObject):
         """
         Return the correct compare_tuples/greater_tuple function.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: TermOrder('lex').compare_tuples
             <bound method TermOrder.compare_tuples_lp of Lexicographic term order>
+
+        ::
 
             sage: TermOrder('deglex').compare_tuples
             <bound method TermOrder.compare_tuples_Dp of Degree lexicographic term order>
@@ -459,14 +496,19 @@ class TermOrder(SageObject):
 
     def compare_tuples_lp(self,f,g):
         """
-        Compares two exponent tuples with respect to the
-        lexicographical term order.
+        Compares two exponent tuples with respect to the lexicographical
+        term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y> = PolynomialRing(QQbar, 2, order='lex')
             sage: x > y^2 # indirect doctest
             True
@@ -487,10 +529,15 @@ class TermOrder(SageObject):
         lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y> = PolynomialRing(QQbar, 2, order='invlex')
             sage: x > y^2 # indirect doctest
             False
@@ -501,14 +548,19 @@ class TermOrder(SageObject):
 
     def compare_tuples_Dp(self,f,g):
         """
-        Compares two exponent tuples with respect to the
-        degree lexicographical term order.
+        Compares two exponent tuples with respect to the degree
+        lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y> = PolynomialRing(QQbar, 2, order='deglex')
             sage: x > y^2 # indirect doctest
             False
@@ -526,14 +578,19 @@ class TermOrder(SageObject):
 
     def compare_tuples_dp(self,f,g):
         """
-        Compares two exponent tuples with respect to the degree
-        reversed lexicographical term order.
+        Compares two exponent tuples with respect to the degree reversed
+        lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y> = PolynomialRing(QQbar, 2, order='degrevlex')
             sage: x > y^2 # indirect doctest
             False
@@ -552,14 +609,19 @@ class TermOrder(SageObject):
 
     def compare_tuples_ls(self,f,g):
         """
-        Compares two exponent tuples with respect to the
-        negative lexicographical term order.
+        Compares two exponent tuples with respect to the negative
+        lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y> = PolynomialRing(QQbar, 2, order='neglex')
             sage: x > y^2 # indirect doctest
             False
@@ -570,14 +632,19 @@ class TermOrder(SageObject):
 
     def compare_tuples_ds(self,f,g):
         """
-        Compares two exponent tuples with respect to the
-        negative degree reverse lexicographical term order.
+        Compares two exponent tuples with respect to the negative degree
+        reverse lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y> = PolynomialRing(QQbar, 2, order='negdegrevlex')
             sage: x > y^2 # indirect doctest
             True
@@ -595,14 +662,19 @@ class TermOrder(SageObject):
 
     def compare_tuples_Ds(self,f,g):
         """
-        Compares two exponent tuples with respect to the
-        negative degree lexicographical term order.
+        Compares two exponent tuples with respect to the negative degree
+        lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y> = PolynomialRing(QQbar, 2, order='negdeglex')
             sage: x > y^2 # indirect doctest
             True
@@ -620,14 +692,19 @@ class TermOrder(SageObject):
 
     def compare_tuples_block(self, f,g):
         """
-        Compares two exponent tuple with respec to the block ordering
-        as specified when constructing this element.
+        Compares two exponent tuple with respec to the block ordering as
+        specified when constructing this element.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<a,b,c,d,e,f>=PolynomialRing(QQbar, 6, order='degrevlex(3),degrevlex(3)')
             sage: a > c^4 # indirect doctest
             False
@@ -648,29 +725,39 @@ class TermOrder(SageObject):
         lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLES:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = PolynomialRing(QQbar, 3, order='lex')
             sage: f = x + y^2; f.lm() # indirect doctest
             x
 
         This method is called by the lm/lc/lt methods of
-        \code{MPolynomial_polydict}.
+        ``MPolynomial_polydict``.
         """
         return f > g and f or g
 
     def greater_tuple_rp(self,f,g):
         """
-        Returns the greater exponent tuple with respect to the
-        inversed lexicographical term order.
+        Returns the greater exponent tuple with respect to the inversed
+        lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y,z> = PolynomialRing(QQbar, 3, order='invlex')
             sage: f = x + y; f.lm() # indirect doctest
             y
@@ -678,20 +765,25 @@ class TermOrder(SageObject):
             y
 
         This method is called by the lm/lc/lt methods of
-        \code{MPolynomial_polydict}.
+        ``MPolynomial_polydict``.
         """
         return f.reversed() > g.reversed()   and f or g
 
     def greater_tuple_Dp(self,f,g):
         """
-        Returns the greater exponent tuple with respect to the total
-        degree lexicographical term order.
+        Returns the greater exponent tuple with respect to the total degree
+        lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y,z> = PolynomialRing(QQbar, 3, order='deglex')
             sage: f = x + y; f.lm() # indirect doctest
             x
@@ -699,21 +791,26 @@ class TermOrder(SageObject):
             y^2*z
 
         This method is called by the lm/lc/lt methods of
-        \code{MPolynomial_polydict}.
+        ``MPolynomial_polydict``.
         """
         return (sum(f.nonzero_values(sort=False))>sum(g.nonzero_values(sort=False))
                 or (sum(f.nonzero_values(sort=False))==sum(g.nonzero_values(sort=False)) and f  > g )) and f or g
 
     def greater_tuple_dp(self,f,g):
         """
-        Returns the greater exponent tuple with respect to the total
-        degree reversed lexicographical term order.
+        Returns the greater exponent tuple with respect to the total degree
+        reversed lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLES:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = PolynomialRing(QQbar, 3, order='degrevlex')
             sage: f = x + y; f.lm() # indirect doctest
             x
@@ -721,22 +818,26 @@ class TermOrder(SageObject):
             y^2*z
 
         This method is called by the lm/lc/lt methods of
-        \code{MPolynomial_polydict}.
-
+        ``MPolynomial_polydict``.
         """
         return (sum(f.nonzero_values(sort=False))>sum(g.nonzero_values(sort=False))
                 or (sum(f.nonzero_values(sort=False))==sum(g.nonzero_values(sort=False)) and f.reversed() < g.reversed())) and f or g
 
     def greater_tuple_ds(self,f,g):
         """
-        Returns the greater exponent tuple with respect to the
-        negative degree reverse lexicographical term order.
+        Returns the greater exponent tuple with respect to the negative
+        degree reverse lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y,z> = PolynomialRing(QQbar, 3, order='negdegrevlex')
             sage: f = x + y; f.lm() # indirect doctest
             x
@@ -746,7 +847,7 @@ class TermOrder(SageObject):
             x*y^3*z
 
         This method is called by the lm/lc/lt methods of
-        \code{MPolynomial_polydict}.
+        ``MPolynomial_polydict``.
         """
         if self.compare_tuples_ds(f,g) >= 0:
             return f
@@ -755,14 +856,19 @@ class TermOrder(SageObject):
 
     def greater_tuple_Ds(self,f,g):
         """
-        Returns the greater exponent tuple with respect to the
-        negative degree lexicographical term order.
+        Returns the greater exponent tuple with respect to the negative
+        degree lexicographical term order.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<x,y,z> = PolynomialRing(QQbar, 3, order='negdeglex')
             sage: f = x + y; f.lm() # indirect doctest
             x
@@ -772,7 +878,7 @@ class TermOrder(SageObject):
             x^2*y*z^2
 
         This method is called by the lm/lc/lt methods of
-        \code{MPolynomial_polydict}.
+        ``MPolynomial_polydict``.
         """
         if self.compare_tuples_Ds(f,g) >= 0:
             return f
@@ -781,18 +887,22 @@ class TermOrder(SageObject):
 
     def greater_tuple_ls(self,f,g):
         """
-        Returns the greater exponent tuple with respect to the
-        negative lexicographical term order.
+        Returns the greater exponent tuple with respect to the negative
+        lexicographical term order.
 
         This method is called by the lm/lc/lt methods of
-        \code{MPolynomial_polydict}.
+        ``MPolynomial_polydict``.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
 
-        EXAMPLE:
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<a,b,c,d,e,f>=PolynomialRing(QQbar, 6, order='degrevlex(3),degrevlex(3)')
             sage: f = a + c^4; f.lm() # indirect doctest
             c^4
@@ -806,16 +916,22 @@ class TermOrder(SageObject):
 
     def greater_tuple_block(self, f,g):
         """
-        Compares two exponent tuple with respec to the block ordering
-        as specified when constructing this element.
+        Compares two exponent tuple with respec to the block ordering as
+        specified when constructing this element.
 
-        This method is called by the lm/lc/lt methods of \code{MPolynomial_polydict}.
+        This method is called by the lm/lc/lt methods of
+        ``MPolynomial_polydict``.
 
         INPUT:
-            f -- exponent tuple
-            g -- exponent tuple
 
-        EXAMPLE:
+
+        -  ``f`` - exponent tuple
+
+        -  ``g`` - exponent tuple
+
+
+        EXAMPLE::
+
             sage: P.<a,b,c,d,e,f>=PolynomialRing(QQbar, 6, order='degrevlex(3),degrevlex(3)')
             sage: f = a + c^4; f.lm() # indirect doctest
             c^4
@@ -835,7 +951,8 @@ class TermOrder(SageObject):
 
     def name(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: TermOrder('lex').name()
             'lex'
         """
@@ -843,7 +960,8 @@ class TermOrder(SageObject):
 
     def _repr_(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: TermOrder('lex') # indirect doctest
             Lexicographic term order
         """
@@ -854,10 +972,10 @@ class TermOrder(SageObject):
         """
         Return a SINGULAR representation of self.
 
-        Used to convert polynomial rings to their SINGULAR
-        representation.
+        Used to convert polynomial rings to their SINGULAR representation.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P = PolynomialRing(GF(127),10,names='x',order='lex(3),deglex(5),lex(2)')
             sage: T = P.term_order()
             sage: T.singular_str()
@@ -872,7 +990,6 @@ class TermOrder(SageObject):
             //        block   3 : ordering lp
             //                  : names    x8 x9
             //        block   4 : ordering C
-
         """
         return self.__singular_str
 
@@ -883,7 +1000,8 @@ class TermOrder(SageObject):
         Used to convert polynomial rings to their Macaulay2
         representation.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P = PolynomialRing(GF(127), 8,names='x',order='degrevlex(3),lex(5)')
             sage: T = P.term_order()
             sage: T.macaulay2_str()
@@ -897,15 +1015,17 @@ class TermOrder(SageObject):
         """
         Return a MAGMA representation of self.
 
-        Used to convert polynomial rings to their MAGMA
-        representation.
+        Used to convert polynomial rings to their MAGMA representation.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P = PolynomialRing(GF(127), 10,names='x',order='degrevlex')
             sage: magma(P)                                                        # optional - magma
             Polynomial ring of rank 10 over GF(127)
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9
+
+        ::
 
             sage: T = P.term_order()
             sage: T.magma_str()
@@ -917,17 +1037,24 @@ class TermOrder(SageObject):
         """
         Only equality testing makes sense here.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: TermOrder('lex') == TermOrder('lex',3)
             True
 
+        ::
+
             sage: TermOrder('degrevlex') == TermOrder('lex')
             False
+
+        ::
 
             sage: T1 = TermOrder('lex',2)+TermOrder('lex',3)
             sage: T2 = TermOrder('lex',3)+TermOrder('lex',2)
             sage: T1 == T2
             False
+
+        ::
 
             sage: T1 = TermOrder('lex',2)+TermOrder('neglex',3)
             sage: T2 = TermOrder('lex',2)+TermOrder('neglex',3)
@@ -947,12 +1074,15 @@ class TermOrder(SageObject):
         Block ordering constructor.
 
         INPUT:
-            other -- a term order
 
-        OUTPUT:
-            a block ordering
 
-        EXAMPLE:
+        -  ``other`` - a term order
+
+
+        OUTPUT: a block ordering
+
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.term_order import TermOrder
             sage: TermOrder('deglex',2) + TermOrder('degrevlex(3),neglex(3)')
             deglex(2),degrevlex(3),neglex(3) term order
@@ -979,7 +1109,8 @@ class TermOrder(SageObject):
         variables it covers. This may be zero for undefinitely many
         variables.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: T = TermOrder('lex')
             sage: len(T)
             0
@@ -994,18 +1125,27 @@ class TermOrder(SageObject):
         Return the i-th block of this term ordering.
 
         INPUT:
-            i -- index
 
-        EXAMPLE:
+
+        -  ``i`` - index
+
+
+        EXAMPLE::
+
             sage: T = TermOrder('lex')
             sage: T[0]
             Lexicographic term order
+
+        ::
 
             sage: T = TermOrder('lex', 2) + TermOrder('degrevlex', 3)
             sage: T[1]
             Degree reverse lexicographic term order
 
-        Note that \code{len(self)} does not count blocks but variables.
+        Note that ``len(self)`` does not count blocks but
+        variables.
+
+        ::
 
             sage: T = TermOrder('lex', 2) + TermOrder('degrevlex', 3)
             sage: T[len(T)-1]
@@ -1019,28 +1159,33 @@ class TermOrder(SageObject):
         r"""
         Iterate over the blocks of this term ordering.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: T = TermOrder('lex')
             sage: list(T) # indirect doctest
             [Lexicographic term order]
+
+        ::
 
             sage: T = TermOrder('lex', 2) + TermOrder('degrevlex', 3)
             sage: list(T)
             [Lexicographic term order, Degree reverse lexicographic term order]
 
-        Note that \code{len(self)} and \code{len(list(self))} are not
-        the same. The former counts the number of variables in
-        \code{self} while the latter counts the number of blocks.
+        Note that ``len(self)`` and
+        ``len(list(self))`` are not the same. The former counts
+        the number of variables in ``self`` while the latter
+        counts the number of blocks.
         """
         return iter(self.blocks)
 
     def is_global(self):
         r"""
-        Return \code{True} if this term ordering is definitely
-        global. Return \code{False} otherwise, which includes unknown
-        term orderings.
+        Return ``True`` if this term ordering is definitely
+        global. Return ``False`` otherwise, which includes
+        unknown term orderings.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: T = TermOrder('lex')
             sage: T.is_global()
             True
@@ -1061,11 +1206,12 @@ class TermOrder(SageObject):
 
     def is_local(self):
         r"""
-        Return \code{True} if this term ordering is definitely
-        local. Return \code{False} otherwise, which includes unknown
-        term orderings.
+        Return ``True`` if this term ordering is definitely
+        local. Return ``False`` otherwise, which includes
+        unknown term orderings.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: T = TermOrder('lex')
             sage: T.is_local()
             False

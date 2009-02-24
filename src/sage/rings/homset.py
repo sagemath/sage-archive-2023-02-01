@@ -37,9 +37,8 @@ class RingHomset_generic(HomsetWithBase):
 
     def has_coerce_map_from(self, x):
         """
-        The default for coercion maps between ring homomorphism
-        spaces is very restrictive (until more implementation work
-        is done).
+        The default for coercion maps between ring homomorphism spaces is
+        very restrictive (until more implementation work is done).
         """
         return (x.domain() == self.domain() and x.codomain() == self.codomain())
 
@@ -57,14 +56,16 @@ class RingHomset_generic(HomsetWithBase):
 
     def __call__(self, im_gens, check=True):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H = Hom(ZZ, QQ)
             sage: phi = H([])
             Traceback (most recent call last):
             ...
             TypeError: images do not define a valid homomorphism
 
-        TESTS:
+        TESTS::
+
             sage: H = Hom(ZZ, QQ)
             sage: H == loads(dumps(H))
             True
@@ -86,9 +87,11 @@ class RingHomset_generic(HomsetWithBase):
 
 class RingHomset_quo_ring(RingHomset_generic):
     """
-    Space of ring homomorphism where the domain is a (formal) quotient ring.
+    Space of ring homomorphism where the domain is a (formal) quotient
+    ring.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R.<x,y> = PolynomialRing(QQ, 2)
         sage: S.<a,b> = R.quotient(x^2 + y^2)
         sage: phi = S.hom([b,a]); phi
@@ -100,15 +103,18 @@ class RingHomset_quo_ring(RingHomset_generic):
         sage: phi(b)
         a
 
-    TESTS:
-    We test pickling of a homset from a quotient.
+    TESTS: We test pickling of a homset from a quotient.
+
+    ::
+
         sage: R.<x,y> = PolynomialRing(QQ, 2)
         sage: S.<a,b> = R.quotient(x^2 + y^2)
         sage: H = S.Hom(R)
         sage: H == loads(dumps(H))
         True
 
-    We test pickling of actual homomorphisms in a quotient:
+    We test pickling of actual homomorphisms in a quotient::
+
         sage: phi = S.hom([b,a])
         sage: phi == loads(dumps(phi))
         True

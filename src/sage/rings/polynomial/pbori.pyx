@@ -3,44 +3,66 @@ Boolean Polynomials.
 
 Elements of the quotient ring
 
-    $$\F_2[x_1,...,x_n]/<x_1^2+x_1,...,x_n^2+x_n>.$$
 
-are called boolean polynomials. Boolean polynomials arise naturally in
-cryptography, coding theory, formal logic, chip design and other
-areas. This implementation is a thin wrapper around the \PolyBoRi
+.. math::
+
+    \mathbb{F}_2[x_1,...,x_n]/<x_1^2+x_1,...,x_n^2+x_n>.
+
+
+
+are called boolean polynomials. Boolean polynomials arise naturally
+in cryptography, coding theory, formal logic, chip design and other
+areas. This implementation is a thin wrapper around the PolyBoRi
 library by Michael Brickenstein and Alexander Dreyer.
 
-``Boolean polynomials can be modelled in a rather simple way, with
-both coefficients and degree per variable lying in $\{0, 1\}$. The
-ring of Boolean polynomials is, however, not a polynomial ring, but
-rather the quotient ring of the polynomial ring over the field with
-two elements modulo the field equations $x^2=x$ for each
-variable $x$. Therefore, the usual polynomial data structures seem not
-to be appropriate for fast Groebner basis computations.  We introduce
-a specialised data structure for Boolean polynomials based on
-zero-suppressed binary decision diagrams (ZDDs), which is capable of
-handling these polynomials more efficiently with respect to memory
-consumption and also computational speed.  Furthermore, we concentrate
-on high-level algorithmic aspects, taking into account the new data
-structures as well as structural properties of Boolean
-polynomials.'' -- [BD07]
-
+"Boolean polynomials can be modelled in a rather simple way, with
+both coefficients and degree per variable lying in
+`\{0, 1\}`. The ring of Boolean polynomials is, however,
+not a polynomial ring, but rather the quotient ring of the
+polynomial ring over the field with two elements modulo the field
+equations `x^2=x` for each variable `x`. Therefore,
+the usual polynomial data structures seem not to be appropriate for
+fast Groebner basis computations. We introduce a specialised data
+structure for Boolean polynomials based on zero-suppressed binary
+decision diagrams (ZDDs), which is capable of handling these
+polynomials more efficiently with respect to memory consumption and
+also computational speed. Furthermore, we concentrate on high-level
+algorithmic aspects, taking into account the new data structures as
+well as structural properties of Boolean polynomials." - [BD07]
 
 AUTHORS:
-    -- Michael Brickenstein: \PolyBoRi author
-    -- Alexander Dreyer: \PolyBoRi author
-    -- Burcin Erocal <burcin@erocal.org>: main \SAGE wrapper author
-    -- Martin Albrecht <malb@informatik.uni-bremen.de>: some
-       contributions to the \SAGE wrapper
+
+-  Michael Brickenstein: PolyBoRi author
+
+-  Alexander Dreyer: PolyBoRi author
+
+-  Burcin Erocal <burcin@erocal.org>: main Sage wrapper author
+
+-  Martin Albrecht <malb@informatik.uni-bremen.de>: some
+   contributions to the Sage wrapper
+
 
 EXAMPLES:
 
 Consider the ideal
 
-  $$<ab + cd + 1, ace + de, abe + ce, bc + cde + 1>.$$
 
-First, we compute the lexicographical Groebner basis in the polynomial
-ring $$R = \F_2[a,b,c,d,e].$$
+.. math::
+
+    <ab + cd + 1, ace + de, abe + ce, bc + cde + 1>.
+
+
+
+First, we compute the lexicographical Groebner basis in the
+polynomial ring
+
+.. math::
+
+    R = \mathbb{F}_2[a,b,c,d,e].
+
+
+
+::
 
     sage: P.<a,b,c,d,e> = PolynomialRing(GF(2), 5, order='lex')
     sage: I1 = ideal([a*b + c*d + 1, a*c*e + d*e, a*b*e + c*e, b*c + c*d*e + 1])
@@ -52,10 +74,13 @@ ring $$R = \F_2[a,b,c,d,e].$$
     c*e + d^3*e^2 + d^3*e + d^2*e^2 + d*e
     d^4*e^2 + d^4*e + d^3*e + d^2*e^2 + d^2*e + d*e + e
 
-If one wants to solve this system over the algebraic closure of $\F_2$
-then this Groebner basis was the one to consider. If one wants
-solutions over $\F_2$ only then one adds the field polynomials to the
-ideal to force the solutions in $\F_2$.
+If one wants to solve this system over the algebraic closure of
+`\mathbb{F}_2` then this Groebner basis was the one to
+consider. If one wants solutions over `\mathbb{F}_2` only
+then one adds the field polynomials to the ideal to force the
+solutions in `\mathbb{F}_2`.
+
+::
 
     sage: J = I1 + sage.rings.ideal.FieldIdeal(P)
     sage: for f in J.groebner_basis():
@@ -66,14 +91,21 @@ ideal to force the solutions in $\F_2$.
     d^2 + d
     e
 
-So the solutions over $\F_2$ are $\{e=0, d=1, c=1, b=1, a=0\}$ and $\{e=0,
-d=0, c=1, b=1, a=1\}$.
+So the solutions over `\mathbb{F}_2` are
+`\{e=0, d=1, c=1, b=1, a=0\}` and
+`\{e=0,
+d=0, c=1, b=1, a=1\}`.
 
-We can express the restriction to $\F_2$ by considering the quotient
-ring. If $I$ is an ideal in $\F[x_1, ..., x_n]$ then the ideals in the
-quotient ring $\F[x_1, ..., x_n]/I$ are in one-to-one correspondence
-with the ideals of $\F[x_0, ..., x_n]$ containing $I$ (that is, the
-ideals $J$ satisfying $I \subset J \subset P$).
+We can express the restriction to `\mathbb{F}_2` by
+considering the quotient ring. If `I` is an ideal in
+`\mathbb{F}[x_1, ..., x_n]` then the ideals in the
+quotient ring `\mathbb{F}[x_1, ..., x_n]/I` are in
+one-to-one correspondence with the ideals of
+`\mathbb{F}[x_0, ..., x_n]` containing `I` (that
+is, the ideals `J` satisfying
+`I \subset J \subset P`).
+
+::
 
     sage: Q = P.quotient( sage.rings.ideal.FieldIdeal(P) )
     sage: I2 = ideal([Q(f) for f in I1.gens()])
@@ -84,7 +116,9 @@ ideals $J$ satisfying $I \subset J \subset P$).
     cbar + 1
     ebar
 
-This quotient ring is exactly what \PolyBoRi handles well.
+This quotient ring is exactly what PolyBoRi handles well.
+
+::
 
     sage: B.<a,b,c,d,e> = BooleanPolynomialRing(5, order='lex')
     sage: I2 = ideal([B(f) for f in I1.gens()])
@@ -95,27 +129,30 @@ This quotient ring is exactly what \PolyBoRi handles well.
     c + 1
     e
 
-Note that $d^2 + d$ is not representable in $B == Q$. Also note, that
-\PolyBoRi cannot play out its strength in such small examples,
-i.e. working in the polynomial ring might be faster for small examples
-like this.
+Note that `d^2 + d` is not representable in
+`B == Q`. Also note, that PolyBoRi cannot play out its
+strength in such small examples, i.e. working in the polynomial
+ring might be faster for small examples like this.
 
-\subsection{Implementation specific notes}
+Implementation specific notes
+-----------------------------
 
-\PolyBoRi comes with a Python wrapper. However this wrapper does not
-match \SAGE's style and is written using Boost. Thus \SAGE's wrapper
-is a reimplementation of Python bindings to \PolyBoRi's C++
-library. This interface is written in Cython like all of \SAGE's C/C++
-library interfaces. An interface in \PolyBoRi style is also provided
-which is effectively a reimplementation of the official Boost wrapper
-in Cython. This means that some functionality of the official wrapper
-might be missing from this wrapper and this wrapper might have bugs
-not present in the offical Python interface.
+PolyBoRi comes with a Python wrapper. However this wrapper does not
+match Sage's style and is written using Boost. Thus Sage's wrapper
+is a reimplementation of Python bindings to PolyBoRi's C++ library.
+This interface is written in Cython like all of Sage's C/C++
+library interfaces. An interface in PolyBoRi style is also provided
+which is effectively a reimplementation of the official Boost
+wrapper in Cython. This means that some functionality of the
+official wrapper might be missing from this wrapper and this
+wrapper might have bugs not present in the offical Python
+interface.
 
+Access to the original PolyBoRi interface
+-----------------------------------------
 
-\subsection{Access to the original \PolyBoRi interface}
-
-The re-implementation \PolyBoRi's native wrapper is available to the user too:
+The re-implementation PolyBoRi's native wrapper is available to the
+user too::
 
     sage: from polybori import *
     sage: declare_ring([Block('x',2),Block('y',3)],globals())
@@ -123,29 +160,33 @@ The re-implementation \PolyBoRi's native wrapper is available to the user too:
     sage: r
     Boolean PolynomialRing in x(0), x(1), y(0), y(1), y(2)
 
+::
+
     sage: [Variable(i) for i in xrange(r.ngens())]
     [x(0), x(1), y(0), y(1), y(2)]
 
 For details on this interface see:
 
-   \url{http://polybori.sourceforge.net/doc/tutorial/tutorial.html}.
+http://polybori.sourceforge.net/doc/tutorial/tutorial.html.
 
-Note that due to this duality of this interface some functions do not
-obey \sage's naming convention. For instance, \code{f.zerosIn} should
-be called \code{f.zeros_in} by \sage's standards. However, \PolyBoRi
-expects the function \code{f.zerosIn}.
+Note that due to this duality of this interface some functions do
+not obey Sage's naming convention. For instance,
+``f.zerosIn`` should be called
+``f.zeros_in`` by Sage's standards. However, PolyBoRi
+expects the function ``f.zerosIn``.
 
-Also, the interface provides functions for compatibility with \sage
-accepting convenient \sage datatypes which are slower than their
-native \PolyBoRi counterparts. For instance, sets of points can be
-represented as tuples of tuples (\sage) or as \code{BooleSet}s
-(\PolyBoRi) and naturally the second option is faster.
-
+Also, the interface provides functions for compatibility with Sage
+accepting convenient Sage datatypes which are slower than their
+native PolyBoRi counterparts. For instance, sets of points can be
+represented as tuples of tuples (Sage) or as
+``BooleSet``\s (PolyBoRi) and naturally the second
+option is faster.
 
 REFERENCES:
-    [BD07] Michael Brickenstein, Alexander Dreyer; '\PolyBoRi: A
-    Groebner basis framework for Boolean polynomials';
-    http://www.itwm.fraunhofer.de/zentral/download/berichte/bericht122.pdf
+
+- [BD07] Michael Brickenstein, Alexander Dreyer; 'PolyBoRi: A Groebner
+  basis framework for Boolean polynomials';
+  http://www.itwm.fraunhofer.de/zentral/download/berichte/bericht122.pdf
 """
 
 include "../../ext/interrupt.pxi"
@@ -192,39 +233,55 @@ cdef BooleanPolynomialRing cur_ring
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     def __init__(self, n=None, names=None, order='lex'):
         """
-        Construct a boolean polynomial ring with the following
-        parameters:
+        Construct a boolean polynomial ring with the following parameters:
 
         INPUT:
-            n -- number of variables (an integer > 1)
-            names -- names of ring variables, may be a string of
-                     list/tuple
-            order -- term order (default: lex)
 
-        EXAMPLES:
+
+        -  ``n`` - number of variables (an integer > 1)
+
+        -  ``names`` - names of ring variables, may be a string
+           of list/tuple
+
+        -  ``order`` - term order (default: lex)
+
+
+        EXAMPLES::
+
             sage: R.<x, y, z> = BooleanPolynomialRing()
             sage: R
             Boolean PolynomialRing in x, y, z
+
+        ::
 
             sage: p = x*y + x*z + y*z
             sage: x*p
             x*y*z + x*y + x*z
 
+        ::
+
             sage: R.term_order()
             Lexicographic term order
+
+        ::
 
             sage: R = BooleanPolynomialRing(5,'x',order='deglex(3),deglex(2)')
             sage: R.term_order()
             deglex(3),deglex(2) term order
 
+        ::
+
             sage: R = BooleanPolynomialRing(3,'x',order='degrevlex')
             sage: R.term_order()
             Degree reverse lexicographic term order
 
-        TESTS:
+        TESTS::
+
             sage: P.<x,y> = BooleanPolynomialRing(2,order='degrevlex')
             sage: x > y
             True
+
+        ::
 
             sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4,order='degrevlex(2),degrevlex(2)')
             sage: x0 > x1
@@ -317,7 +374,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def __reduce__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<a,b> = BooleanPolynomialRing(2)
             sage: loads(dumps(P)) == P # indirect doctest
             True
@@ -329,13 +387,15 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def ngens(self):
         """
-        Returns the number of variables in this boolean polynomial
-        ring.
+        Returns the number of variables in this boolean polynomial ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: P.ngens()
             2
+
+        ::
 
             sage: P = BooleanPolynomialRing(1000, 'x')
             sage: P.ngens()
@@ -348,9 +408,14 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         Returns the i-th generator of this boolean polynomial ring.
 
         INPUT:
-            i -- an integer or a boolean monomial in one variable
 
-        EXAMPLES:
+
+        -  ``i`` - an integer or a boolean monomial in one
+           variable
+
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: P.gen()
             x
@@ -360,7 +425,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P.gen(m)
             x
 
-        TESTS:
+        TESTS::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='dp')
             sage: P.gen(0)
             x
@@ -379,16 +445,20 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         """
         Return the tuple of variables in this ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: P.gens()
             (x, y, z)
+
+        ::
 
             sage: P = BooleanPolynomialRing(10,'x')
             sage: P.gens()
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
 
-        TESTS:
+        TESTS::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3,order='degrevlex')
             sage: P.gens()
             (x, y, z)
@@ -399,7 +469,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def _repr_(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x, y> = BooleanPolynomialRing(2)
             sage: P # indirect doctest
             Boolean PolynomialRing in x, y
@@ -409,12 +480,14 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     cdef _coerce_c_impl(self, other):
         r"""
-        Canonical conversion of elements from other domains to this
-        boolean polynomial ring.
+        Canonical conversion of elements from other domains to this boolean
+        polynomial ring.
 
         EXAMPLES:
 
-        Coerce elements of \code{self}.
+        Coerce elements of ``self``.
+
+        ::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: p = x*y + x
@@ -423,10 +496,14 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         Coerce from monomials over the same ring.
 
+        ::
+
             sage: P._coerce_(p.lm())
             x*y
 
         Coerce from a different BooleanPolynomialRing.
+
+        ::
 
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: R = BooleanPolynomialRing(2,'y,x')
@@ -437,6 +514,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             y*x + y + x + 1
 
         Coerce from polynomials over the integers.
+
+        ::
 
             sage: P = BooleanPolynomialRing(3,'x,y,z')
             sage: R.<z,x,y> = ZZ['z,x,y']
@@ -449,6 +528,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         Coerce from integers.
 
+        ::
+
             sage: P = BooleanPolynomialRing(3,'x,y,z')
             sage: p = P._coerce_(1)
             sage: p.is_one()
@@ -459,6 +540,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         Coerce from GF(2).
 
+        ::
+
             sage: P = BooleanPolynomialRing(3,'x,y,z')
             sage: F = GF(2)
             sage: p = P._coerce_(F.zero_element())
@@ -468,8 +551,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: p.is_one()
             True
 
-        Coerce from boolean monomials over a different boolean
-        polynomial ring.
+        Coerce from boolean monomials over a different boolean polynomial
+        ring.
+
+        ::
 
             sage: R.<y,x> = BooleanPolynomialRing(2)
             sage: M = R._monom_monoid
@@ -480,13 +565,16 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: t.parent()
             Boolean PolynomialRing in x, y, z
 
-        TESTS:
+        TESTS::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: R = BooleanPolynomialRing(1,'y')
             sage: p = R._coerce_(x+y+x*y+1)
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce from <type 'sage.rings.polynomial.pbori.BooleanPolynomial'> to Boolean PolynomialRing in y
+
+        ::
 
             sage: P = BooleanPolynomialRing(2,'x,y')
             sage: R.<z,x,y> = ZZ['z,x,y']
@@ -497,6 +585,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             TypeError: cannot coerce from <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'> to Boolean PolynomialRing in x, y
 
         Test coercion from a ring that compares equal.
+
+        ::
 
             sage: P = BooleanPolynomialRing(2,'x,y')
             sage: R.<x,y> = BooleanPolynomialRing(2)
@@ -579,16 +669,20 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def __call__(self, other):
         """
-        Convert elements of other objects to this boolean polynomial
-        ring.
+        Convert elements of other objects to this boolean polynomial ring.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: P(5)
             1
 
+        ::
+
             sage: P(x+y)
             x + y
+
+        ::
 
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: R = BooleanPolynomialRing(1,'y')
@@ -596,6 +690,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             y
             sage: p.parent()
             Boolean PolynomialRing in y
+
+        ::
 
             sage: P = BooleanPolynomialRing(2,'x,y')
             sage: R.<z,x,y> = ZZ['z,x,y']
@@ -605,13 +701,16 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: p.parent()
             Boolean PolynomialRing in x, y
 
-        TESTS:
+        TESTS::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: R = BooleanPolynomialRing(1,'y')
             sage: p = R(x+y+x*y+1)
             Traceback (most recent call last):
             ...
             ValueError: cannot convert polynomial x*y + x + y + 1 to Boolean PolynomialRing in y: name x not defined
+
+        ::
 
             sage: P = BooleanPolynomialRing(2,'x,y')
             sage: R.<z,x,y> = ZZ['z,x,y']
@@ -692,19 +791,25 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     def __richcmp__(left, right, int op):
         """
         BooleanPolynomialRings are equal if they have the same
-            - number of variables
-            - variable names
-            - order type
 
-        EXAMPLES:
+          - number of variables
+	  - variable names
+	  - order type
+
+        EXAMPLES::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: R.<x,y> = BooleanPolynomialRing(2)
             sage: P == R
             True
 
+        ::
+
             sage: Q.<x,z> = BooleanPolynomialRing(2)
             sage: P == Q
             False
+
+        ::
 
             sage: S.<x,y> = BooleanPolynomialRing(2, order='deglex')
             sage: P == S
@@ -714,7 +819,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     cdef int _cmp_c_impl(left, Parent right) except -2:
         r"""
-        See \code{self.__richcmp__}
+        See ``self.__richcmp__``
         """
         if PY_TYPE_CHECK(right, BooleanPolynomialRing):
             return cmp( (type(left), map(str, left.gens()), left.term_order()),
@@ -726,7 +831,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         """
         Return a hash of this boolean polynomial ring.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<a,b,c,d> = BooleanPolynomialRing(4, order='lex')
             sage: P
             Boolean PolynomialRing in a, b, c, d
@@ -740,17 +846,26 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         Create an ideal in this ring.
 
         INPUT:
-            gens -- list or tuple of generators
-            coerce -- bool (default: True) automatically coerce the
-                      given polynomials to this ring to form the ideal
 
-        EXAMPLES:
+
+        -  ``gens`` - list or tuple of generators
+
+        -  ``coerce`` - bool (default: True) automatically
+           coerce the given polynomials to this ring to form the ideal
+
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: P.ideal(x+y)
             Ideal (x + y) of Boolean PolynomialRing in x, y, z
 
+        ::
+
             sage: P.ideal(x*y, y*z)
             Ideal (x*y, y*z) of Boolean PolynomialRing in x, y, z
+
+        ::
 
             sage: P.ideal([x+y, z])
             Ideal (x + y, z) of Boolean PolynomialRing in x, y, z
@@ -763,41 +878,54 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     def random_element(self, degree=2, terms=5, choose_degree=True,
                        vars_set=None):
         """
-        Return a random boolean polynomial. Generated polynomial has
-        the given number of terms, and at most given degree.
+        Return a random boolean polynomial. Generated polynomial has the
+        given number of terms, and at most given degree.
 
         INPUT:
-            degree -- maximum degree (default: 2)
-            terms -- number of terms (default: 5)
-            choose_degree -- choose degree of monomials randomly first, rather
-                             than monomials uniformly random
-            vars_set -- list of integer indicies of generators of self to use
-                        in the generated polynomial
 
-        EXAMPLES:
+
+        -  ``degree`` - maximum degree (default: 2)
+
+        -  ``terms`` - number of terms (default: 5)
+
+        -  ``choose_degree`` - choose degree of monomials
+           randomly first, rather than monomials uniformly random
+
+        -  ``vars_set`` - list of integer indicies of
+           generators of self to use in the generated polynomial
+
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: P.random_element(degree=3, terms=4)
             x*y*z + x*z + y*z + z
 
+        ::
+
             sage: P.random_element(degree=1, terms=2)
             z + 1
 
-        TESTS:
+        TESTS::
+
             sage: P.random_element(degree=4)
             Traceback (most recent call last):
             ...
             ValueError: Given degree should be less than or equal to number of variables (3)
+
+        ::
 
             sage: t = P.random_element(degree=1, terms=5)
             Traceback (most recent call last):
             ...
             ValueError: Cannot generate random polynomial with 5 terms and maximum degree 1 using 3 variables
 
+        ::
+
             sage: t = P.random_element(degree=2,terms=5,vars_set=(0,1))
             Traceback (most recent call last):
             ...
             ValueError: Cannot generate random polynomial with 5 terms using 2 variables
-
         """
         from sage.rings.integer import Integer
         from sage.rings.arith import binomial
@@ -830,20 +958,28 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def _random_uniform_rec(self, degree, monom_counts, vars_set, dfirst, l):
         r"""
-        Recursively generate a random polynomial in in this ring,
-        using the variables from \code{vars_set}.
+        Recursively generate a random polynomial in in this ring, using the
+        variables from ``vars_set``.
 
         INPUT:
-            degree -- maximum degree
-            monom_counts -- a list containing total number of
-                            monomials up to given degree
-            vars_set -- list of variable indicies to use in the
-                        generated polynomial
-            dfirst -- if \code{True} choose degree first, otherwise
-                      choose the monomial uniformly
-            l -- number of monomials to generate
 
-        EXAMPLES:
+
+        -  ``degree`` - maximum degree
+
+        -  ``monom_counts`` - a list containing total number
+           of monomials up to given degree
+
+        -  ``vars_set`` - list of variable indicies to use in
+           the generated polynomial
+
+        -  ``dfirst`` - if ``True`` choose degree
+           first, otherwise choose the monomial uniformly
+
+        -  ``l`` - number of monomials to generate
+
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
             x + y
@@ -867,16 +1003,21 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def _random_monomial_uniform(self, monom_counts, vars_set):
         r"""
-        Choose a random monomial uniformly from set of monomials in
-        the variables indexed by \code{vars_set} in self.
+        Choose a random monomial uniformly from set of monomials in the
+        variables indexed by ``vars_set`` in self.
 
         INPUT:
-            monom_counts -- list of number of monomials up to given
-                            degree
-            vars_set -- list of variable indicies to use in the
-                        generated monomial
 
-        EXAMPLES:
+
+        -  ``monom_counts`` - list of number of monomials up
+           to given degree
+
+        -  ``vars_set`` - list of variable indicies to use in
+           the generated monomial
+
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: [P._random_monomial_uniform([1, 3, 4], (0,1)) for _ in range(10)]
             [x*y, x*y, x, x, x, x*y, x, y, x*y, 1]
@@ -901,16 +1042,22 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     def _random_monomial_dfirst(self, degree, vars_set):
         r"""
         Choose a random monomial using variables indexed in
-        \code{vars_set} up to given \code{degree}. The degree of the
-        monomial, $d$, is chosen uniformly in the interval [0,degree]
-        first, then the monomial is generated by selecting a random
-        sample of size $d$ from \code{vars_set}.
+        ``vars_set`` up to given ``degree``. The
+        degree of the monomial, `d`, is chosen uniformly in the
+        interval [0,degree] first, then the monomial is generated by
+        selecting a random sample of size `d` from
+        ``vars_set``.
 
         INPUT:
-            degree -- maximum degree
-            vars_set -- list of variable indicies of self
 
-        EXAMPLES:
+
+        -  ``degree`` - maximum degree
+
+        -  ``vars_set`` - list of variable indicies of self
+
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]
             [x*y*z, x*y*z, x*y*z, y*z, x*z, z, z, y*z, x*y*z, 1]
@@ -927,19 +1074,23 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def cover_ring(self):
         r"""
-        Return $R = \F_2[vars]$ if $vars$ is the ordered list of
-        variable names of this ring. $R$ also has the same term
-        ordering as this ring.
+        Return `R = \mathbb{F}_2[vars]` if `vars` is the
+        ordered list of variable names of this ring. `R` also has
+        the same term ordering as this ring.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y> = BooleanPolynomialRing(2)
             sage: R = B.cover_ring(); R
             Multivariate Polynomial Ring in x, y over Finite Field of size 2
 
+        ::
+
             sage: B.term_order() == R.term_order()
             True
 
-        The cover ring is cached:
+        The cover ring is cached::
+
             sage: B.cover_ring() is B.cover_ring()
             True
         """
@@ -953,11 +1104,13 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def defining_ideal(self):
         r"""
-        Return $I = <x_i^2 + x_i> \subset R$ where $R = \F_2[vars]$,
-        $vars$ the ordered list of variables/variable names of this
-        ring and $x_i$ any element in $vars$.
+        Return `I = <x_i^2 + x_i> \subset R` where
+        `R = \mathbb{F}_2[vars]`, `vars` the ordered list
+        of variables/variable names of this ring and `x_i` any
+        element in `vars`.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y> = BooleanPolynomialRing(2)
             sage: I = B.defining_ideal(); I
             Ideal (x^2 + x, y^2 + y) of Multivariate Polynomial Ring
@@ -969,13 +1122,16 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def _singular_init_(self, singular=singular_default):
         r"""
-        Return a newly created \Singular quotient ring matching this
-        boolean polynomial ring.
+        Return a newly created Singular quotient ring matching this boolean
+        polynomial ring.
 
-        NOTE & TODO: This method does not only return a string but
-        actually calls \Singular.
+        .. note::
 
-        EXAMPLE:
+           TODO: This method does not only return a string but actually
+           calls Singular.
+
+        EXAMPLE::
+
             sage: B.<x,y> = BooleanPolynomialRing(2)
             sage: B._singular_()
             //   characteristic : 2
@@ -991,13 +1147,17 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def _magma_init_(self, magma):
         r"""
-        Return a a string which when evaluated with Magma returns a
-        Magma representaion of this boolean polynomial ring.
+        Return a a string which when evaluated with Magma returns a Magma
+        representaion of this boolean polynomial ring.
 
         INPUT:
-            magma -- a magma instance
 
-        EXAMPLE:
+
+        -  ``magma`` - a magma instance
+
+
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: magma(B)                               # indirect doctest; optional - magma
             Affine Algebra of rank 3 over GF(2)
@@ -1017,26 +1177,36 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def interpolation_polynomial(self, zeros, ones):
         r"""
-        Return the lexicographically minimal boolean polynomial for
-        the given sets of points.
+        Return the lexicographically minimal boolean polynomial for the
+        given sets of points.
 
-        Given two sets of points \var{zeros} -- evaluating to zero --
-        and \var{ones} -- evaluating to one --, compute the
+        Given two sets of points ``zeros`` - evaluating to zero
+        - and ``ones`` - evaluating to one -, compute the
         lexicographically minimal boolean polynomial satisfying these
         points.
 
         INPUT:
-            zeros -- the set of interpolation points mapped to zero
-            ones -- the set of interpolation points mapped to one
+
+
+        -  ``zeros`` - the set of interpolation points mapped
+           to zero
+
+        -  ``ones`` - the set of interpolation points mapped to
+           one
+
 
         EXAMPLE:
 
         First we create a random-ish boolean polynomial.
 
+        ::
+
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing(6)
             sage: f = a*b*c*e + a*d*e + a*f + b + c + e + f + 1
 
         Now we find interpolation points mapping to zero and to one.
+
+        ::
 
             sage: zeros = set([(1, 0, 1, 0, 0, 0), (1, 0, 0, 0, 1, 0), \
                                 (0, 0, 1, 1, 1, 1), (1, 0, 1, 1, 1, 1), \
@@ -1052,18 +1222,23 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             [1, 1, 1, 1, 1, 1, 1, 1]
 
         Finally, we find the lexicographically smallest interpolation
-        polynomial using \PolyBoRi .
+        polynomial using PolyBoRi .
+
+        ::
 
             sage: g = B.interpolation_polynomial(zeros, ones); g
             b*f + c + d*f + d + e*f + e + 1
+
+        ::
 
             sage: [g(*p) for p in zeros]
             [0, 0, 0, 0, 0, 0, 0, 0]
             sage: [g(*p) for p in ones]
             [1, 1, 1, 1, 1, 1, 1, 1]
 
-        Alternatively, we can work with \PolyBoRi's native
-        \code{BooleSet}'s. This example is from the \PolyBoRi tutorial:
+        Alternatively, we can work with PolyBoRi's native
+        ``BooleSet``'s. This example is from the PolyBoRi
+        tutorial::
 
             sage: B = BooleanPolynomialRing(4,"x0,x1,x2,x3")
             sage: x = B.gen
@@ -1077,8 +1252,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: B.interpolation_polynomial(z,o)
             x1 + x2 + 1
 
-        ALGORITHM: Calls \code{interpolate_smallest_lex} as described
-        in the \PolyBoRi tutorial.
+        ALGORITHM: Calls ``interpolate_smallest_lex`` as
+        described in the PolyBoRi tutorial.
         """
         from polybori.interpolate import interpolate_smallest_lex
         from sage.misc.misc_c import prod
@@ -1108,33 +1283,40 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def _change_ordering(self, int order):
         r"""
-        Change the ordering of this boolean polynomial ring. Do NOT
-        call this method, unless you know very well what you are
-        doing.
+        Change the ordering of this boolean polynomial ring. Do NOT call
+        this method, unless you know very well what you are doing.
 
         INPUT:
-            order -- an integer (0 <= order <= 4)
 
-        EXAMPLE:
+
+        -  ``order`` - an integer (0 = order = 4)
+
+
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3,order='deglex')
             sage: y*z > x
             True
 
-        Now we call the internal method and change the ordering to 'lex':
+        Now we call the internal method and change the ordering to 'lex'::
 
             sage: B._change_ordering(0)
             sage: y*z > x
             False
 
-        However, this change is not -- and should not be -- picked up
-        by the public interface.
+        However, this change is not - and should not be - picked up by the
+        public interface.
+
+        ::
 
             sage: B.term_order()
             Degree lexicographic term order
 
-        WARNING: Do not use this method. It is provided for
-        compatibility reasons with \PolyBoRi but parents are supposed
-        to be immutable in \sage.
+        .. warning::
+
+           Do not use this method. It is provided for compatibility
+           reasons with PolyBoRi but parents are supposed to be
+           immutable in Sage.
         """
         if order < 0 or order > 4:
             raise ValueError, "order value %s is not supported"%(order)
@@ -1145,24 +1327,33 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         r"""
         Set variable name of i-th variable to s.
 
-        This function is used by \PolyBoRi python functions.
+        This function is used by PolyBoRi python functions.
 
         INPUT:
-            i -- index of variable
-            s -- new variable name
 
-        EXAMPLES:
+
+        -  ``i`` - index of variable
+
+        -  ``s`` - new variable name
+
+
+        EXAMPLES::
+
             sage: P.<x0,x1> = BooleanPolynomialRing(2)
             sage: P
             Boolean PolynomialRing in x0, x1
+
+        ::
 
             sage: P._set_variable_name(0, 't')
             sage: P
             Boolean PolynomialRing in t, x1
 
-        WARNING: Do not use this method. It is provided for
-        compatibility reasons with \PolyBoRi but parents are supposed
-        to be immutable in \sage.
+        .. warning::
+
+           Do not use this method. It is provided for compatibility
+           reasons with PolyBoRi but parents are supposed to be
+           immutable in Sage.
         """
         self._pbring.activate()
         pb_set_variable_name(i, s)
@@ -1172,20 +1363,24 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
 def get_var_mapping(ring, other):
     r"""
-    Return a variable mapping between variables of \var{other} and
-    \var{ring}. When other is a parent object, the mapping defines
-    images for all variables of other. If it is an element, only
-    variables occuring in other are mapped.
+    Return a variable mapping between variables of
+    ``other`` and ``ring``. When other is a
+    parent object, the mapping defines images for all variables of
+    other. If it is an element, only variables occuring in other are
+    mapped.
 
-    Raises \code{NameError} if no such mapping is possible.
+    Raises ``NameError`` if no such mapping is possible.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: P.<x,y,z> = BooleanPolynomialRing(3)
         sage: R.<z,y> = QQ[]
         sage: sage.rings.polynomial.pbori.get_var_mapping(P,R)
         [z, y]
         sage: sage.rings.polynomial.pbori.get_var_mapping(P, z^2)
         [z, None]
+
+    ::
 
         sage: R.<z,x> = BooleanPolynomialRing(2)
         sage: sage.rings.polynomial.pbori.get_var_mapping(P,R)
@@ -1227,14 +1422,21 @@ class BooleanMonomialMonoid(Monoid_class):
         This object provides a parent for boolean monomials.
 
         INPUT:
-            polring -- the polynomial ring our monomials lie in
 
-        EXAMPLES:
+
+        -  ``polring`` - the polynomial ring our monomials lie
+           in
+
+
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: M = BooleanMonomialMonoid(P)
             sage: M
             MonomialMonoid of Boolean PolynomialRing in x, y
+
+        ::
 
             sage: M.gens()
             (x, y)
@@ -1252,7 +1454,8 @@ class BooleanMonomialMonoid(Monoid_class):
 
     def _repr_(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: M = BooleanMonomialMonoid(P)
@@ -1265,7 +1468,8 @@ class BooleanMonomialMonoid(Monoid_class):
         """
         Return a hash for this monoid.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: M = BooleanMonomialMonoid(P)
@@ -1278,7 +1482,8 @@ class BooleanMonomialMonoid(Monoid_class):
         """
         Returns the number of variables in this monoid.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P = BooleanPolynomialRing(100, 'x')
             sage: M = BooleanMonomialMonoid(P)
@@ -1292,9 +1497,13 @@ class BooleanMonomialMonoid(Monoid_class):
         Return the i-th generator of self.
 
         INPUT:
-            i -- an integer
 
-        EXAMPLES:
+
+        -  ``i`` - an integer
+
+
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -1302,6 +1511,8 @@ class BooleanMonomialMonoid(Monoid_class):
             x
             sage: M.gen(2)
             z
+
+        ::
 
             sage: P = BooleanPolynomialRing(1000, 'x')
             sage: M = BooleanMonomialMonoid(P)
@@ -1318,7 +1529,8 @@ class BooleanMonomialMonoid(Monoid_class):
         """
         Return the tuple of generators of this monoid.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -1356,6 +1568,8 @@ class BooleanMonomialMonoid(Monoid_class):
 
         Coerce elements of self.
 
+        ::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -1366,6 +1580,9 @@ class BooleanMonomialMonoid(Monoid_class):
 
         Coerce elements from BooleanMonomialMonoids where the generators of
         self include the generators of the other monoid.
+
+        ::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: R.<z,y> = BooleanPolynomialRing(2)
             sage: N = BooleanMonomialMonoid(R)
@@ -1374,7 +1591,8 @@ class BooleanMonomialMonoid(Monoid_class):
             sage: m.parent() is M
             True
 
-        TESTS:
+        TESTS::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: R.<t,y> = BooleanPolynomialRing(2)
             sage: N = BooleanMonomialMonoid(R)
@@ -1382,6 +1600,8 @@ class BooleanMonomialMonoid(Monoid_class):
             Traceback (most recent call last):
             ...
             ValueError: cannot coerce monomial y to MonomialMonoid of Boolean PolynomialRing in x, y, z: name t not defined
+
+        ::
 
             sage: from polybori import BooleanMonomialMonoid
             sage: R.<t,x,y,z> = BooleanPolynomialRing(4)
@@ -1410,22 +1630,28 @@ class BooleanMonomialMonoid(Monoid_class):
         Convert elements of other objects to elements of this monoid.
 
         INPUT:
-            other -- element to convert,
-                     - if \code{None} a BooleanMonomial representing 1
-                       is returned
-                     - only \code{BooleanPolynomials} with the same
-                       parent ring as \code{self} which have a single
-                       monomial is converted
 
-        EXAMPLES:
+
+        -  ``other`` - element to convert,
+           - if ``None`` a BooleanMonomial representing 1 is returned
+	   - only ``BooleanPolynomials`` with the same parent ring
+             as ``self`` which have a single monomial is converted
+
+
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: x_monom = M(x); x_monom
             x
 
+        ::
+
             sage: M(x*y)
             x*y
+
+        ::
 
             sage: M(x+y)
             Traceback (most recent call last):
@@ -1434,10 +1660,14 @@ class BooleanMonomialMonoid(Monoid_class):
 
         Convert elements of self.
 
+        ::
+
             sage: M(x_monom)
             x
 
         Convert from other BooleanPolynomialRings.
+
+        ::
 
             sage: R.<z,x> = BooleanPolynomialRing(2)
             sage: t = M(z); t
@@ -1446,6 +1676,8 @@ class BooleanMonomialMonoid(Monoid_class):
             True
 
         Convert BooleanMonomials over other BooleanPolynomialRings.
+
+        ::
 
             sage: N = BooleanMonomialMonoid(R)
             sage: t = M(N(x*z)); t
@@ -1514,18 +1746,23 @@ cdef class BooleanMonomial(MonoidElement):
         Construct a boolean monomial object.
 
         INPUT:
-            parent -- parent monoid this element lies in
 
-        EXAMPLE:
+
+        -  ``parent`` - parent monoid this element lies in
+
+
+        EXAMPLE::
+
             sage: from polybori import BooleanMonomialMonoid, BooleanMonomial
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: BooleanMonomial(M)
             1
 
-        NOTE: Use the \code{__call__} method of
-        \code{BooleanMonomialMonoid} and not this constructor to
-        construct these objects.
+        .. note::
+
+           Use the ``__call__`` method of ``BooleanMonomialMonoid``
+           and not this constructor to construct these objects.
         """
         PBMonom_construct(&self._pbmonom)
         _parent = <ParentWithBase>parent
@@ -1538,21 +1775,30 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Compare BooleanMonomial objects.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: M(x) < M(y)
             False
 
+        ::
+
             sage: M(x) > M(y)
             True
+
+        ::
 
             sage: M(x) == M(x)
             True
 
+        ::
+
             sage: M(x) <= M(x)
             True
+
+        ::
 
             sage: M(x) >= M(x)
             True
@@ -1569,11 +1815,14 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Return a string representing self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
             sage: M(x*y) # indirect doctest
             x*y
+
+        ::
 
             sage: R.<t,u> = BooleanPolynomialRing(2)
             sage: M(x*y)
@@ -1586,9 +1835,13 @@ cdef class BooleanMonomial(MonoidElement):
         Evaluate this monomial.
 
         INPUT:
-            d -- dictionary with integer indicies
 
-        EXAMPLES:
+
+        -  ``d`` - dictionary with integer indicies
+
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: m = P._monom_monoid(x*y)
             sage: m._eval({0:y,1:z})
@@ -1607,7 +1860,8 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Evaluate this monomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y
             sage: m = f.lm()
@@ -1639,7 +1893,8 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Return a hash of this monomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y
             sage: m = f.lm()
@@ -1653,10 +1908,10 @@ cdef class BooleanMonomial(MonoidElement):
 
     def index(self):
         """
-        Return the variable index of the first variable in this
-        monomial.
+        Return the variable index of the first variable in this monomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y
             sage: m = f.lm()
@@ -1669,12 +1924,15 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Return degree of this monomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
             sage: M(x*y).deg()
             2
+
+        ::
 
             sage: M(x*x*y*z).deg()
             3
@@ -1685,7 +1943,8 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Return degree of this monomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -1699,7 +1958,8 @@ cdef class BooleanMonomial(MonoidElement):
         Return a set of boolean monomials with all divisors of this
         monomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y
             sage: m = f.lm()
@@ -1711,12 +1971,16 @@ cdef class BooleanMonomial(MonoidElement):
     def multiples(self, BooleanMonomial rhs):
         r"""
         Return a set of boolean monomials with all multiples of this
-        monomial up the bound \var{rhs}.
+        monomial up the bound ``rhs``.
 
         INPUT:
-            rhs -- a boolean monomial
 
-        EXAMPLE:
+
+        -  ``rhs`` - a boolean monomial
+
+
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x
             sage: m = f.lm()
@@ -1727,20 +1991,27 @@ cdef class BooleanMonomial(MonoidElement):
             sage: n.multiples(m)
             {{x,y,z}}
 
-        NOTE: The returned set always contains \code{self} even if the
-        bound \var{rhs} is smaller than \code{self}.
+        .. note::
+
+           The returned set always contains ``self`` even if the bound
+           ``rhs`` is smaller than ``self``.
         """
         return new_BS_from_PBSet(self._pbmonom.multiples(rhs._pbmonom),
                 self._ring)
 
     def reducibleBy(self, BooleanMonomial rhs):
         r"""
-        Return \code{True} if \code{self} is reducible by \var{rhs}.
+        Return ``True`` if ``self`` is reducible by
+        ``rhs``.
 
         INPUT:
-            rhs -- a boolean monomial
 
-        EXAMPLE:
+
+        -  ``rhs`` - a boolean monomial
+
+
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y
             sage: m = f.lm()
@@ -1755,7 +2026,8 @@ cdef class BooleanMonomial(MonoidElement):
         r"""
         Return a boolean set of variables in this monomials.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y
             sage: m = f.lm()
@@ -1766,10 +2038,11 @@ cdef class BooleanMonomial(MonoidElement):
 
     def __len__(BooleanMonomial self):
         """
-        Return number of variables in this monomial. This is
-        equivalent to the total degree for BooleanMonomials.
+        Return number of variables in this monomial. This is equivalent to
+        the total degree for BooleanMonomials.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -1782,7 +2055,8 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Return an iterator over the variables in this monomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -1795,7 +2069,8 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Return a list of the variables in this monomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -1808,7 +2083,8 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Return an iterator over the indicies of the variables in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -1821,7 +2097,8 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Multiply self with another boolean monomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -1829,8 +2106,12 @@ cdef class BooleanMonomial(MonoidElement):
             sage: x*x
             x
 
+        ::
+
             sage: xy*y
             x*y
+
+        ::
 
             sage: xy*z
             x*y*z
@@ -1846,7 +2127,8 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Addition operator. Returns a boolean polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from polybori import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -1854,10 +2136,14 @@ cdef class BooleanMonomial(MonoidElement):
             sage: x + xy
             x*y + x
 
+        ::
+
             sage: x+0
             x
             sage: 0+x   # todo: not implemented
             x
+
+        ::
 
             sage: x+1
             x + 1
@@ -1921,7 +2207,8 @@ cdef class BooleanMonomialVariableIterator:
         """
         Return an iterator over the variables of a boolean monomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y + z + 1
             sage: for m in f: list(m)# indirect doctest
@@ -1937,7 +2224,8 @@ cdef class BooleanMonomialVariableIterator:
 
     def __next__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y + z + 1
             sage: m = f.lm()
@@ -1972,7 +2260,8 @@ cdef class BooleanMonomialIterator:
     """
     def __iter__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y + z + 1
             sage: for m in f: list(m.iterindex())# indirect doctest
@@ -1988,7 +2277,8 @@ cdef class BooleanMonomialIterator:
 
     def __next__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y + z + 1
             sage: m = f.lm()
@@ -2020,16 +2310,22 @@ cdef class BooleanPolynomial(MPolynomial):
         polynomial ring.
 
         INPUT:
-            parent -- a boolean polynomial ring
 
-        TEST:
-           sage: from polybori import BooleanPolynomial
-           sage: B.<a,b,z> = BooleanPolynomialRing(3)
-           sage: BooleanPolynomial(B)
-           0
 
-        NOTE: Do not use this method to construct boolean polynomials,
-        but use the approriate \code{__call__} method in the parent.
+        -  ``parent`` - a boolean polynomial ring
+
+
+        TEST::
+
+            sage: from polybori import BooleanPolynomial
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: BooleanPolynomial(B)
+            0
+
+        .. note::
+
+           Do not use this method to construct boolean polynomials,
+           but use the approriate ``__call__`` method in the parent.
         """
         PBPoly_construct(&self._pbpoly)
         self._parent = <ParentWithBase>parent
@@ -2039,28 +2335,33 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def _repr_(self):
         """
-        EXAMPLE:
-           sage: B.<a,b,z> = BooleanPolynomialRing(3)
-           sage: repr(a+b+z^2+1) # indirect doctest
-           'a + b + z + 1'
+        EXAMPLE::
+
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: repr(a+b+z^2+1) # indirect doctest
+            'a + b + z + 1'
         """
         return PBPoly_to_str(&self._pbpoly)
 
     def _repr_with_changed_varnames(self, varnames):
         r"""
         Return string representing this boolean polynomial but change the
-        variable names to \var{varnames}.
+        variable names to ``varnames``.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,z> = BooleanPolynomialRing(3)
             sage: a._repr_with_changed_varnames(['x','y','z'])
             'x'
 
-        TESTS:
+        TESTS::
+
             sage: a._repr_with_changed_varnames([1,'y','z'])
             Traceback (most recent call last):
             ...
             TypeError: varnames has entries with wrong type.
+
+        ::
 
             sage: a
             a
@@ -2087,24 +2388,26 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def _latex_(self):
         r"""
-        Return a \LaTeX representation of this boolean polynomial.
+        Return a LaTeX representation of this boolean polynomial.
 
-        EXAMPLE:
-           sage: B.<a,b,z> = BooleanPolynomialRing(3)
-           sage: latex(a+b+a*z^2+1) # indirect doctest
-           a z + a + b + 1
+        EXAMPLE::
+
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: latex(a+b+a*z^2+1) # indirect doctest
+            a z + a + b + 1
         """
         R = self.parent().cover_ring()
         return R(self)._latex_()
 
     cpdef ModuleElement _add_(left, ModuleElement right):
         """
-        EXAMPLE:
-           sage: B.<a,b,z> = BooleanPolynomialRing(3)
-           sage: f = a*z + b + 1
-           sage: g = b + z
-           sage: f + g
-           a*z + z + 1
+        EXAMPLE::
+
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: f = a*z + b + 1
+            sage: g = b + z
+            sage: f + g
+            a*z + z + 1
         """
         cdef BooleanPolynomial p = new_BP_from_PBPoly(\
                 (<BooleanPolynomial>left)._parent, (<BooleanPolynomial>left)._pbpoly)
@@ -2113,23 +2416,25 @@ cdef class BooleanPolynomial(MPolynomial):
 
     cpdef ModuleElement _sub_(left, ModuleElement right):
         """
-        EXAMPLE:
-           sage: B.<a,b,z> = BooleanPolynomialRing(3)
-           sage: f = a*z + b + 1
-           sage: g = b + z
-           sage: f - g
-           a*z + z + 1
+        EXAMPLE::
+
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: f = a*z + b + 1
+            sage: g = b + z
+            sage: f - g
+            a*z + z + 1
         """
         return left._add_(right)
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
-        EXAMPLE:
-           sage: B.<a,b,z> = BooleanPolynomialRing(3)
-           sage: k = B.base_ring()
-           sage: f = a*z + b + 1
-           sage: f*k(1)
-           a*z + b + 1
+        EXAMPLE::
+
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: k = B.base_ring()
+            sage: f = a*z + b + 1
+            sage: f*k(1)
+            a*z + b + 1
         """
         if left:
             return new_BP_from_PBPoly(left._parent, self._pbpoly)
@@ -2138,23 +2443,25 @@ cdef class BooleanPolynomial(MPolynomial):
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         """
-        EXAMPLE:
-           sage: B.<a,b,z> = BooleanPolynomialRing(3)
-           sage: k = B.base_ring()
-           sage: f = a*z + b + 1
-           sage: k(0)*f
-           0
+        EXAMPLE::
+
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: k = B.base_ring()
+            sage: f = a*z + b + 1
+            sage: k(0)*f
+            0
         """
         return self._rmul_(right)
 
     cpdef RingElement _mul_(left, RingElement right):
         """
-        EXAMPLE:
-           sage: B.<a,b,z> = BooleanPolynomialRing(3)
-           sage: f = a*z + b + 1
-           sage: g = b + z
-           sage: f * g
-           a*b*z + a*z + b*z + z
+        EXAMPLE::
+
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: f = a*z + b + 1
+            sage: g = b + z
+            sage: f * g
+            a*b*z + a*z + b*z + z
         """
         cdef BooleanPolynomial p = new_BP_from_PBPoly(\
                 (<BooleanPolynomial>left)._parent, (<BooleanPolynomial>left)._pbpoly)
@@ -2163,33 +2470,44 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def is_equal(self, BooleanPolynomial right):
         """
-        EXAMPLE:
-           sage: B.<a,b,z> = BooleanPolynomialRing(3)
-           sage: f = a*z + b + 1
-           sage: g = b + z
-           sage: f.is_equal(g)
-           False
+        EXAMPLE::
 
-           sage: f.is_equal( (f + 1) - 1 )
-           True
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: f = a*z + b + 1
+            sage: g = b + z
+            sage: f.is_equal(g)
+            False
+
+        ::
+
+            sage: f.is_equal( (f + 1) - 1 )
+            True
         """
         return self._pbpoly.is_equal(right._pbpoly)
 
     def __richcmp__(left, right, int op):
         """
-        Compare left and right and return -1, 0, 1 for <, ==, and > respectively.
+        Compare left and right and return -1, 0, 1 for , ==, and
+        respectively.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: x < x+y
             True
 
+        ::
+
             sage: y*z < x
             True
+
+        ::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='deglex')
             sage: y*z < x
             False
+
+        ::
 
             sage: P(0) == 0
             True
@@ -2209,26 +2527,32 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __iter__(self):
         r"""
-        Return an iterator over the monomials of \code{self}, in the order of
-        the parent ring.
+        Return an iterator over the monomials of ``self``, in
+        the order of the parent ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: p = x + z + x*y + y*z + x*y*z
             sage: list(iter(p))
             [x*y*z, x*y, x, y*z, z]
+
+        ::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='deglex')
             sage: p = x + z + x*y + y*z + x*y*z
             sage: list(iter(p))
             [x*y*z, x*y, y*z, x, z]
 
+        ::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='degrevlex')
             sage: p = x + z + x*y + y*z + x*y*z
             sage: list(iter(p))
             [z*y*x, y*x, z*y, x, z]
 
-        TESTS:
+        TESTS::
+
             sage: R = BooleanPolynomialRing(1,'y')
             sage: list(iter(y))
             [y]
@@ -2239,28 +2563,39 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __pow__(BooleanPolynomial self, int exp, ignored):
         r"""
-        Return \code{self^(exp)}.
+        Return ``self^(exp)``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: p = x + y
             sage: p^0
             1
 
+        ::
+
             sage: p^1
             x + y
 
+        ::
+
             sage: p^5
             x + y
+
+        ::
 
             sage: p^-1
             Traceback (most recent call last):
             ...
             NotImplementedError: Negative exponents for non constant boolean polynomials not implemented.
 
+        ::
+
             sage: z = P(0)
             sage: z^0
             1
+
+        ::
 
             sage: z^1
             0
@@ -2278,27 +2613,33 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __neg__(BooleanPolynomial self):
         r"""
-        Return -\code{self}.
+        Return -``self``.
 
-        EXAMPLE:
-           sage: B.<a,b,z> = BooleanPolynomialRing(3)
-           sage: f = a*z + b + 1
-           sage: -f
-           a*z + b + 1
+        EXAMPLE::
+
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: f = a*z + b + 1
+            sage: -f
+            a*z + b + 1
         """
         return self
 
     def total_degree(BooleanPolynomial self):
         r"""
-        Return the total degree of \code{self}.
+        Return the total degree of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: (x+y).total_degree()
             1
 
+        ::
+
             sage: P(1).total_degree()
             0
+
+        ::
 
             sage: (x*y + x + y + 1).total_degree()
             2
@@ -2307,15 +2648,20 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def degree(self):
         r"""
-        Return the total degree of \code{self}.
+        Return the total degree of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: (x+y).degree()
             1
 
+        ::
+
             sage: P(1).degree()
             0
+
+        ::
 
             sage: (x*y + x + y + 1).degree()
             2
@@ -2327,10 +2673,13 @@ cdef class BooleanPolynomial(MPolynomial):
         Return the leading monomial of this boolean polynomial, with
         respect to the order of parent ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: (x+y+y*z).lm()
             x
+
+        ::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='deglex')
             sage: (x+y+y*z).lm()
@@ -2341,16 +2690,19 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def lt(BooleanPolynomial self):
         """
-        Return the leading term of this boolean polynomial, with
-        respect to the order of the parent ring.
+        Return the leading term of this boolean polynomial, with respect to
+        the order of the parent ring.
 
-        Note that for boolean polynomials this is equivalent to
-        returning leading monomials.
+        Note that for boolean polynomials this is equivalent to returning
+        leading monomials.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: (x+y+y*z).lt()
             x
+
+        ::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='deglex')
             sage: (x+y+y*z).lt()
@@ -2360,15 +2712,20 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def is_zero(BooleanPolynomial self):
         r"""
-        Check if \code{self} is zero.
+        Check if ``self`` is zero.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: P(0).is_zero()
             True
 
+        ::
+
             sage: x.is_zero()
             False
+
+        ::
 
             sage: P(1).is_zero()
             False
@@ -2377,15 +2734,20 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __nonzero__(self):
         r"""
-        Check if \code{self} is zero.
+        Check if ``self`` is zero.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: bool(P(0))
             False
 
+        ::
+
             sage: bool(x)
             True
+
+        ::
 
             sage: bool(P(1))
             True
@@ -2396,16 +2758,23 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         Check if self is 1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: P(1).is_one()
             True
 
+        ::
+
             sage: P.one_element().is_one()
             True
 
+        ::
+
             sage: x.is_one()
             False
+
+        ::
 
             sage: P(0).is_one()
             False
@@ -2414,15 +2783,18 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def is_unit(BooleanPolynomial self):
         r"""
-        Check if \code{self} is invertible in the parent ring.
+        Check if ``self`` is invertible in the parent ring.
 
         Note that this condition is equivalent to being 1 for boolean
         polynomials.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: P.one_element().is_unit()
             True
+
+        ::
 
             sage: x.is_unit()
             False
@@ -2431,18 +2803,25 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def is_constant(BooleanPolynomial self):
         r"""
-        Check if \code{self} is constant.
+        Check if ``self`` is constant.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: P(1).is_constant()
             True
 
+        ::
+
             sage: P(0).is_constant()
             True
 
+        ::
+
             sage: x.is_constant()
             False
+
+        ::
 
             sage: (x*y).is_constant()
             False
@@ -2452,18 +2831,23 @@ cdef class BooleanPolynomial(MPolynomial):
     def lm_degree(BooleanPolynomial self):
         r"""
         Returns the total degree of the leading monomial of
-        \code{self}.
+        ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: p = x + y*z
             sage: p.lm_degree()
             1
 
+        ::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3,order='deglex')
             sage: p = x + y*z
             sage: p.lm_degree()
             2
+
+        ::
 
             sage: P(0).lm_degree()
             0
@@ -2475,23 +2859,31 @@ cdef class BooleanPolynomial(MPolynomial):
     def varsAsMonomial(self):
         r"""
         Return a boolean monomial with all the variables appearing in
-        \code{self}.
+        ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: (x + y).varsAsMonomial()
             x*y
 
+        ::
+
             sage: (x*y + z).varsAsMonomial()
             x*y*z
+
+        ::
 
             sage: P.zero_element().varsAsMonomial()
             1
 
+        ::
+
             sage: P.one_element().varsAsMonomial()
             1
 
-        TESTS:
+        TESTS::
+
             sage: R = BooleanPolynomialRing(1, 'y')
             sage: y.varsAsMonomial()
             y
@@ -2503,18 +2895,25 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def variables(self):
         r"""
-        Return a list of all variables appearing in \code{self}.
+        Return a list of all variables appearing in ``self``.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: (x + y).variables()
             [x, y]
 
+        ::
+
             sage: (x*y + z).variables()
             [x, y, z]
 
+        ::
+
             sage: P.zero_element().variables()
             []
+
+        ::
 
             sage: P.one_element().variables()
             [1]
@@ -2530,7 +2929,8 @@ cdef class BooleanPolynomial(MPolynomial):
         Return the number of variables used to form this boolean
         polynomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: f = a*b*c + 1
             sage: f.nvariables()
@@ -2540,14 +2940,17 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def monomials(self):
         r"""
-        Return a list of monomials appearing in \code{self} ordered
-        largest to smallest.
+        Return a list of monomials appearing in ``self``
+        ordered largest to smallest.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<a,b,c> = BooleanPolynomialRing(3,order='lex')
             sage: f = a + c*b
             sage: f.monomials()
             [a, b*c]
+
+        ::
 
             sage: P.<a,b,c> = BooleanPolynomialRing(3,order='degrevlex')
             sage: f = a + c*b
@@ -2558,14 +2961,18 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def monomial_coefficient(self, mon):
         r"""
-        Return the coefficient of the monomial \var{mon} in
-        \code{self}, where \var{mon} must have the same parent as
-        \code{self}.
+        Return the coefficient of the monomial ``mon`` in
+        ``self``, where ``mon`` must have the same
+        parent as ``self``.
 
         INPUT:
-            mon -- a monomial
 
-        EXAMPLE:
+
+        -  ``mon`` - a monomial
+
+
+        EXAMPLE::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: x.monomial_coefficient(x)
             1
@@ -2575,8 +2982,12 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f=(1-x)*(1+y); f
             x*y + x + y + 1
 
+        ::
+
             sage: f.monomial_coefficient(1)
             1
+
+        ::
 
             sage: f.monomial_coefficient(0)
             0
@@ -2608,9 +3019,10 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __hash__(self):
         r"""
-        Return hash for \code{self}.
+        Return hash for ``self``.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: {x:1} # indirect doctest
             {x: 1}
@@ -2619,18 +3031,25 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __len__(self):
         r"""
-        Return number of monomials in \code{self}.
+        Return number of monomials in ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: len(x + y)
             2
 
+        ::
+
             sage: len(P.one_element())
             1
 
+        ::
+
             sage: len(x*y + y + z + x*z)
             4
+
+        ::
 
             sage: len(P.zero_element())
             0
@@ -2641,7 +3060,8 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         Evaluate this boolean polynomials.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y + z + 1
             sage: f(0,1,1)
@@ -2651,13 +3071,15 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f(x=z)
             y*z + z + 1
 
+        ::
+
             sage: P.<a,b,c> = PolynomialRing(QQ)
             sage: f(a,b,c)
             a*b + c + 1
             sage: f(x=a,y=b,z=1)
             a*b + 2
 
-        Evaluation of polynomials can be used fully symbolic:
+        Evaluation of polynomials can be used fully symbolic::
 
             sage: f(x=var('a'),y=var('b'),z=var('c'))
             c + a*b + 1
@@ -2699,16 +3121,22 @@ cdef class BooleanPolynomial(MPolynomial):
     def subs(self, in_dict=None, **kwds):
         r"""
         Fixes some given variables in a given boolean polynomial and
-        returns the changed boolean polynomials. The polynomial itself
-        is not affected. The variable,value pairs for fixing are to be
-        provided as dictionary of the form \code{\{variable:value\}}
-        or named parameters (see examples below).
+        returns the changed boolean polynomials. The polynomial itself is
+        not affected. The variable,value pairs for fixing are to be
+        provided as dictionary of the form {variable:value} or named
+        parameters (see examples below).
 
         INPUT:
-            in_dict -- (optional) dict with variable:value pairs
-            **kwds -- names parameters
 
-        EXAMPLE:
+
+        -  ``in_dict`` - (optional) dict with variable:value
+           pairs
+
+        -  ``**kwds`` - names parameters
+
+
+        EXAMPLE::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y + z + y*z + 1
             sage: f.subs(x=1)
@@ -2716,8 +3144,12 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.subs(x=0)
             y*z + z + 1
 
+        ::
+
             sage: f.subs(x=y)
             y*z + y + z + 1
+
+        ::
 
             sage: f.subs({x:1},y=1)
             0
@@ -2730,10 +3162,12 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.subs({'x':1},y=1)
             0
 
-            This method can work fully symbolic:
+        This method can work fully symbolic::
 
             sage: f.subs(x=var('a'),y=var('b'),z=var('c'))
             b*c + c + a*b + 1
+
+        ::
 
             sage: f.subs({'x':var('a'),'y':var('b'),'z':var('c')})
             b*c + c + a*b + 1
@@ -2778,7 +3212,8 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __reduce__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<a,b> = BooleanPolynomialRing(2)
             sage: loads(dumps(a)) == a
             True
@@ -2789,7 +3224,8 @@ cdef class BooleanPolynomial(MPolynomial):
         r"""
         Returns the Magma representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = BooleanPolynomialRing()
             sage: f = y*x + x +1
             sage: f._magma_init_(magma)               # optional - magma
@@ -2802,10 +3238,11 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def is_homogeneous(self):
         r"""
-        Return \code{True} if this element is a homogeneous
+        Return ``True`` if this element is a homogeneous
         polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x, y> = BooleanPolynomialRing()
             sage: (x+y).is_homogeneous()
             True
@@ -2826,10 +3263,11 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def set(self):
         r"""
-        Return a \code{BooleSet} with all monomials apprearing in this
-        polynomial.
+        Return a ``BooleSet`` with all monomials apprearing in
+        this polynomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,z> = BooleanPolynomialRing(3)
             sage: (a*b+z+1).set()
             {{a,b}, {z}, {}}
@@ -2838,17 +3276,22 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def deg(self):
         r"""
-        Return the degree of \code{self}. This is usually equivalent
-        to the total degree except for weighted term orderings which
-        are not implemented yet.
+        Return the degree of ``self``. This is usually
+        equivalent to the total degree except for weighted term orderings
+        which are not implemented yet.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: (x+y).degree()
             1
 
+        ::
+
             sage: P(1).degree()
             0
+
+        ::
 
             sage: (x*y + x + y + 1).degree()
             2
@@ -2859,7 +3302,8 @@ cdef class BooleanPolynomial(MPolynomial):
         r"""
         Return elimination length as used in the SlimGB algorithm.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: x.elength()
             1
@@ -2868,20 +3312,25 @@ cdef class BooleanPolynomial(MPolynomial):
             2
 
         REFERENCES:
-            Michael Brickenstein; SlimGB: Groebner Bases with Slim Polynomials
-            \url{http://www.mathematik.uni-kl.de/~zca/Reports_on_ca/35/paper_35_full.ps.gz}
+
+        - Michael Brickenstein; SlimGB: Groebner Bases with Slim
+          Polynomials
+          http://www.mathematik.uni-kl.de/~zca/Reports_on_ca/35/paper_35_full.ps.gz
         """
         return self._pbpoly.eliminationLength()
 
     def lead(self):
         r"""
-        Return the leading monomial of boolean polynomial, with
-        respect to to the order of parent ring.
+        Return the leading monomial of boolean polynomial, with respect to
+        to the order of parent ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: (x+y+y*z).lead()
             x
+
+        ::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='deglex')
             sage: (x+y+y*z).lead()
@@ -2892,13 +3341,16 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def lexLead(self):
         r"""
-        Return the leading monomial of boolean polynomial, with
-        respect to the lexicographical term ordering.
+        Return the leading monomial of boolean polynomial, with respect to
+        the lexicographical term ordering.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: (x+y+y*z).lexLead()
             x
+
+        ::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='deglex')
             sage: (x+y+y*z).lexLead()
@@ -2911,13 +3363,16 @@ cdef class BooleanPolynomial(MPolynomial):
         Return degree of leading monomial with respect to the
         lexicographical ordering.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3,order='lex')
             sage: f = x + y*z
             sage: f
             x + y*z
             sage: f.lexLmDeg()
             1
+
+        ::
 
             sage: B.<x,y,z> = BooleanPolynomialRing(3,order='deglex')
             sage: f = x + y*z
@@ -2933,13 +3388,16 @@ cdef class BooleanPolynomial(MPolynomial):
         Return the degree of the leading monomial with respect to the
         lexicographical orderings.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3,order='lex')
             sage: f = x + y*z
             sage: f
             x + y*z
             sage: f.lmDeg()
             1
+
+        ::
 
             sage: B.<x,y,z> = BooleanPolynomialRing(3,order='deglex')
             sage: f = x + y*z
@@ -2952,12 +3410,15 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def constant(self):
         r"""
-        Return \code{True} if this element is constant.
+        Return ``True`` if this element is constant.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: x.constant()
             False
+
+        ::
 
             sage: B(1).constant()
             True
@@ -2966,9 +3427,10 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def isZero(self):
         r"""
-        Return \code{True} if this element is zero.
+        Return ``True`` if this element is zero.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: x.isZero()
             False
@@ -2981,9 +3443,10 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def isOne(self):
         r"""
-        Return \code{True} if this element is one.
+        Return ``True`` if this element is one.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: x.isOne()
             False
@@ -2999,9 +3462,11 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def mapEveryXToXPlusOne(self):
         r"""
-        Map every variable \var{x_i} in this polynomial to $x_i + 1$.
+        Map every variable ``x_i`` in this polynomial to
+        `x_i + 1`.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,z> = BooleanPolynomialRing(3)
             sage: f = a*b + z + 1; f
             a*b + z + 1
@@ -3015,10 +3480,11 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def lmDivisors(self):
         r"""
-        Return a \code{BooleSet} of all divisors of the leading
+        Return a ``BooleSet`` of all divisors of the leading
         monomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,z> = BooleanPolynomialRing(3)
             sage: f = a*b + z + 1
             sage: f.lmDivisors()
@@ -3031,7 +3497,8 @@ cdef class BooleanPolynomial(MPolynomial):
         Return the first term with respect to the lexicographical term
         ordering.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,z> = BooleanPolynomialRing(3,order='lex')
             sage: f = b*z + a + 1
             sage: f.firstTerm()
@@ -3042,13 +3509,17 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def reducibleBy(self, BooleanPolynomial rhs):
         r"""
-        Return \code{True} if this boolean polynomial is reducible by
-        the polynomial \var{rhs}.
+        Return ``True`` if this boolean polynomial is reducible
+        by the polynomial ``rhs``.
 
         INPUT:
-            rhs -- a boolean polynomial
 
-        EXAMPLE:
+
+        -  ``rhs`` - a boolean polynomial
+
+
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4,order='degrevlex')
             sage: f = (a*b + 1)*(c + 1)
             sage: f.reducibleBy(d)
@@ -3057,7 +3528,6 @@ cdef class BooleanPolynomial(MPolynomial):
             True
             sage: f.reducibleBy(c + 1)
             True
-
         """
         return self._pbpoly.reducibleBy(rhs._pbpoly)
 
@@ -3069,7 +3539,8 @@ cdef class BooleanPolynomial(MPolynomial):
         Return the number of variables used to form this boolean
         polynomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: f = a*b*c + 1
             sage: f.nVars()
@@ -3081,7 +3552,8 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         Return total degree of this boolean polynomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: f = a*b*c + 1
             sage: f.totalDegree()
@@ -3092,21 +3564,28 @@ cdef class BooleanPolynomial(MPolynomial):
     def gradedPart(self, int deg):
         r"""
         Return graded part of this boolean polynomial of degree
-        \var{deg}.
+        ``deg``.
 
         INPUT:
-            deg -- a degree
 
-        EXAMPLE:
+
+        -  ``deg`` - a degree
+
+
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: f = a*b*c + c*d + a*b + 1
             sage: f.gradedPart(2)
             a*b + c*d
 
+        ::
+
             sage: f.gradedPart(0)
             1
 
-        TESTS:
+        TESTS::
+
             sage: f.gradedPart(-1)
             0
         """
@@ -3115,14 +3594,17 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def hasConstantPart(self):
         r"""
-        Return \code{True} if this boolean polynomial has a constant
-        part, i.e. if $1$ is a term.
+        Return ``True`` if this boolean polynomial has a
+        constant part, i.e. if `1` is a term.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: f = a*b*c + c*d + a*b + 1
             sage: f.hasConstantPart()
             True
+
+        ::
 
             sage: f = a*b*c + c*d + a*b
             sage: f.hasConstantPart()
@@ -3132,21 +3614,26 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def zerosIn(self, s):
         r"""
-        Return a set containing all elements of \var{s} where this
-        boolean polynomial evaluates to zero.
+        Return a set containing all elements of ``s`` where
+        this boolean polynomial evaluates to zero.
 
-        If \var{s} is given as a \code{BooleSet}, then the return type
-        is also a \code{BooleSet}. If \var{s} is a set/list/tuple of
-        tuple this function returns a tuple of tuples.
+        If ``s`` is given as a ``BooleSet``, then
+        the return type is also a ``BooleSet``. If
+        ``s`` is a set/list/tuple of tuple this function
+        returns a tuple of tuples.
 
         INPUT:
-            s -- candidate points for evaluation to zero
 
-        EXAMPLE:
+
+        -  ``s`` - candidate points for evaluation to zero
+
+
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: f = a*b + c + d + 1
 
-        Now we create a set of points:
+        Now we create a set of points::
 
             sage: s = a*b + a*b*c + c*d + 1
             sage: s = s.set(); s
@@ -3155,8 +3642,12 @@ cdef class BooleanPolynomial(MPolynomial):
         This encodes the points (1,1,1,0), (1,1,0,0), (0,0,1,1) and
         (0,0,0,0). But of these only (1,1,0,0) evaluates to zero.
 
+        ::
+
             sage: f.zerosIn(s)
             {{a,b}}
+
+        ::
 
             sage: f.zerosIn([(1,1,1,0), (1,1,0,0), (0,0,1,1), (0,0,0,0)])
             ((1, 1, 0, 0),)
@@ -3186,10 +3677,11 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def spoly(self, BooleanPolynomial rhs):
         r"""
-        Return the S-Polynomial of this boolean polynomial and the
-        other boolean polynomial \var{rhs}.
+        Return the S-Polynomial of this boolean polynomial and the other
+        boolean polynomial ``rhs``.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: f = a*b*c + c*d + a*b + 1
             sage: g = c*d + b
@@ -3206,7 +3698,8 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         Return the parent of this boolean polynomial.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: a.ring() is B
             True
@@ -3215,16 +3708,21 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def reduce(self, I):
         r"""
-        Return the normal form of \code{self} w.r.t. \var{I},
-        i.e. return the remainder of \code{self} with respect to the
-        polynomials in \var{I}. If the polynomial set/list \var{I} is
+        Return the normal form of ``self`` w.r.t.
+        ``I``, i.e. return the remainder of
+        ``self`` with respect to the polynomials in
+        ``I``. If the polynomial set/list ``I`` is
         not a Groebner basis the result is not canonical.
 
         INPUT:
-            I -- a list/set of polynomials in self.parent(). If I is an ideal,
-                 the generators are used.
 
-        EXAMPLE:
+
+        -  ``I`` - a list/set of polynomials in self.parent().
+           If I is an ideal, the generators are used.
+
+
+        EXAMPLE::
+
             sage: B.<x0,x1,x2,x3> = BooleanPolynomialRing(4)
             sage: I = B.ideal((x0 + x1 + x2 + x3, \
                                x0*x1 + x1*x2 + x0*x3 + x2*x3, \
@@ -3240,10 +3738,12 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: p.reduce(I)
             x1*x2*x3 + x2
 
-        NOTE: If this function is called repeatedly with the same I
-        then it is advised to use \PolyBoRi's \code{GroebnerStrategy}
-        object directly, since that will be faster. See the source
-        code of this function for details.
+        .. note::
+
+           If this function is called repeatedly with the same I then
+           it is advised to use PolyBoRi's ``GroebnerStrategy`` object
+           directly, since that will be faster. See the source code of
+           this function for details.
         """
         from polybori import red_tail
         if PY_TYPE_CHECK(I, BooleanPolynomialIdeal):
@@ -3259,7 +3759,8 @@ cdef class BooleanPolynomialIterator:
     """
     def __iter__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: list(B.random_element()) # indirect doctest
             [a*c, a*d, a, b*d, 1]
@@ -3272,7 +3773,8 @@ cdef class BooleanPolynomialIterator:
 
     def __next__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: it = iter(B.random_element())
             sage: it.next() # indirect doctest
@@ -3303,11 +3805,18 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         Construct an ideal in the boolean polynomial ring.
 
         INPUT:
-            ring -- the ring this ideal is defined in
-            gens -- a list of generators
-            coerce -- coerce all elements to the ring \var{ring} (default: \code{True})
 
-        EXAMPLES:
+
+        -  ``ring`` - the ring this ideal is defined in
+
+        -  ``gens`` - a list of generators
+
+        -  ``coerce`` - coerce all elements to the ring
+           ``ring`` (default: ``True``)
+
+
+        EXAMPLES::
+
             sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4)
             sage: I = P.ideal(x0*x1*x2*x3 + x0*x1*x3 + x0*x1 + x0*x2 + x0)
             sage: I
@@ -3320,53 +3829,60 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         Return a Groebner basis of this ideal.
 
         INPUT:
-            red_tail -- tail reductions in intermediate polynomials,
-                        this options affects mainly heuristics. The
-                        reducedness of the output polynomials can only
-                        be guaranteed by the option redsb
-                        (default: \code{True})
-            minsb  -- return a minimal Groebner basis (default: \code{True})
-            redsb -- return a minimal Groebner basis and all tails are
-                     reduced (default: \code{True})
-            deg_bound -- only compute Groebner basis up to a given
-                         degree bound (default: \code{False})
-            faugere -- turn off or on the linear algebra
-                       (default: \code{False})
-            linear_algebra_in_last_block -- this affects the last
-                                            block of block orderings
-                                            and degree orderings. If
-                                            it is set to \code{True}
-                                            linear algebra takes
-                                            affect in this
-                                            block.(default: True)
-            selection_size -- maximum number of polynomials for
-                              parallel reductions
-                              (default: 1000)
-            heuristic -- Turn off heuristic by setting \code{heuristic=False}
-                         (default: \code{True})
-            lazy  --  (default: \code{True})
-            invert -- setting \code{invert=True} input and output get
-                      a transformation $x+1$ for each variable $x$,
-                      which shouldn't effect the calculated GB, but
-                      the algorithm.
-            other_ordering_first -- possible values are \code{False} or an
-                                    ordering code. In practice, many
-                                    Boolean examples have very few
-                                    solutions and a very easy Groebner
-                                    basis. So, a complex walk
-                                    algorithm (which cannot be
-                                    implemented using the \POLYBORI
-                                    data structures) seems
-                                    unnecessary, as such Groebner bases
-                                    can be converted quite fast by the
-                                    normal Buchberger algorithm from
-                                    one ordering into another
-                                    ordering.
-                                    (default: \code{False})
-            prot  --  show protocol (default: False)
-            full_prot  --  show full protocol (default: False)
 
-        EXAMPLES:
+
+        -  ``red_tail`` - tail reductions in intermediate
+           polynomials, this options affects mainly heuristics. The
+           reducedness of the output polynomials can only be guaranteed by the
+           option redsb (default: ``True``)
+
+        -  ``minsb`` - return a minimal Groebner basis
+           (default: ``True``)
+
+        -  ``redsb`` - return a minimal Groebner basis and all
+           tails are reduced (default: ``True``)
+
+        -  ``deg_bound`` - only compute Groebner basis up to a
+           given degree bound (default: ``False``)
+
+        -  ``faugere`` - turn off or on the linear algebra
+           (default: ``False``)
+
+        -  ``linear_algebra_in_last_block`` - this affects
+           the last block of block orderings and degree orderings. If it is
+           set to ``True`` linear algebra takes affect in this
+           block.(default: True)
+
+        -  ``selection_size`` - maximum number of polynomials
+           for parallel reductions (default: 1000)
+
+        -  ``heuristic`` - Turn off heuristic by setting
+           ``heuristic=False`` (default: ``True``)
+
+        -  ``lazy`` - (default: ``True``)
+
+        -  ``invert`` - setting ``invert=True``
+           input and output get a transformation `x+1` for each
+           variable `x`, which shouldn't effect the calculated GB, but
+           the algorithm.
+
+        -  ``other_ordering_first`` - possible values are
+           ``False`` or an ordering code. In practice, many
+           Boolean examples have very few solutions and a very easy Groebner
+           basis. So, a complex walk algorithm (which cannot be implemented
+           using the data structures) seems unnecessary, as such Groebner
+           bases can be converted quite fast by the normal Buchberger
+           algorithm from one ordering into another ordering. (default:
+           ``False``)
+
+        -  ``prot`` - show protocol (default: False)
+
+        -  ``full_prot`` - show full protocol (default:
+           False)
+
+
+        EXAMPLES::
+
             sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4)
             sage: I = P.ideal(x0*x1*x2*x3 + x0*x1*x3 + x0*x1 + x0*x2 + x0)
             sage: I.groebner_basis()
@@ -3393,12 +3909,12 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
     def reduce(self, f):
         """
-        Reduce an element modulo the reduced Groebner basis for this
-        ideal. This returns 0 if and only if the element is in this
-        ideal. In any case, this reduction is unique up to monomial
-        orders.
+        Reduce an element modulo the reduced Groebner basis for this ideal.
+        This returns 0 if and only if the element is in this ideal. In any
+        case, this reduction is unique up to monomial orders.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P = PolynomialRing(GF(2),10, 'x')
             sage: B = BooleanPolynomialRing(10,'x')
             sage: I = sage.rings.ideal.Cyclic(P)
@@ -3498,30 +4014,36 @@ cdef class BooleSet:
     def __init__(self, param=None, ring=None):
         r"""
         Return a new set of boolan monomials. This data type is also
-        implemented on the top of ZDDs and allows to see polynomials
-        from a different angle. Also, it makes high-level set
-        operations possible, which are in most cases faster than
-        operations handling individual terms, because the complexity
-        of the algorithms depends only on the structure of the
-        diagrams.
+        implemented on the top of ZDDs and allows to see polynomials from a
+        different angle. Also, it makes high-level set operations possible,
+        which are in most cases faster than operations handling individual
+        terms, because the complexity of the algorithms depends only on the
+        structure of the diagrams.
 
-        \code{BooleanPolynomials} can easily be converted to
-        \code{BooleSets} by using the member function \code{set()}.
+        ``BooleanPolynomials`` can easily be converted to
+        ``BooleSets`` by using the member function
+        ``set()``.
 
         INPUT:
-            param -- either a \code{CCuddNaviator}, a \code{BooleSet}
-                     or \code{None}.
-            ring -- a boolean polynomial ring.
 
-        EXAMPLE:
+
+        -  ``param`` - either a ``CCuddNaviator``,
+           a ``BooleSet`` or ``None``.
+
+        -  ``ring`` - a boolean polynomial ring.
+
+
+        EXAMPLE::
+
             sage: from polybori import BooleSet
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: BS = BooleSet(B)
             sage: BS
             {}
 
-        NOTE: \code{BooleSet}s print as '{}' but are not Python
-        dictionaries.
+        .. note::
+
+           ``BooleSet``s print as '{}' but are not Python dictionaries.
         """
         if PY_TYPE_CHECK(param, CCuddNavigator):
             if ring is None:
@@ -3541,7 +4063,8 @@ cdef class BooleSet:
 
     def __repr__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from polybori import BooleSet
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: BS = BooleSet(B)
@@ -3552,9 +4075,10 @@ cdef class BooleSet:
 
     def set(self):
         r"""
-        Return \code{self}.
+        Return ``self``.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: BS = (a*b + c).set()
             sage: BS.set() is BS
@@ -3564,13 +4088,16 @@ cdef class BooleSet:
 
     def empty(self):
         r"""
-        Return \code{True} if this set is empty.
+        Return ``True`` if this set is empty.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
             sage: BS = (a*b + c).set()
             sage: BS.empty()
             False
+
+        ::
 
             sage: BS = B(0).set()
             sage: BS.empty()
@@ -3580,17 +4107,17 @@ cdef class BooleSet:
 
     def navigation(self):
         r"""
-        Navigators provide an interface to diagram nodes, accessing
-        their index as well as the corresponding then- and
-        else-branches.
+        Navigators provide an interface to diagram nodes, accessing their
+        index as well as the corresponding then- and else-branches.
 
         You should be very careful and always keep a reference to the
         original object, when dealing with navigators, as navigators
         contain only a raw pointer as data. For the same reason, it is
-        necessary to supply the ring as argument, when constructing a
-        set out of a navigator.
+        necessary to supply the ring as argument, when constructing a set
+        out of a navigator.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from polybori import BooleSet
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
@@ -3598,17 +4125,27 @@ cdef class BooleSet:
             sage: s = f.set(); s
             {{x1,x2}, {x2,x3,x4}, {x2,x4}, {x3}, {x4}, {}}
 
+        ::
+
             sage: nav = s.navigation()
             sage: BooleSet(nav,s.ring())
             {{x1,x2}, {x2,x3,x4}, {x2,x4}, {x3}, {x4}, {}}
 
+        ::
+
             sage: nav.value()
             1
 
+        ::
+
             sage: nav_else = nav.elseBranch()
+
+        ::
 
             sage: BooleSet(nav_else,s.ring())
             {{x2,x3,x4}, {x2,x4}, {x3}, {x4}, {}}
+
+        ::
 
             sage: nav_else.value()
             2
@@ -3619,7 +4156,8 @@ cdef class BooleSet:
         """
         Return the parent ring.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
             sage: f = x1*x2+x2*x3*x4+x2*x4+x3+x4+1
@@ -3631,15 +4169,21 @@ cdef class BooleSet:
     def cartesianProduct(self, BooleSet rhs):
         r"""
         Return the cartesian product of this set and the set
-        \var{rhs}.
+        ``rhs``.
 
         The Cartesian product of two sets X and Y is the set of all
-        possible ordered pairs whose first component is a member of X
-        and whose second component is a member of Y.
+        possible ordered pairs whose first component is a member of X and
+        whose second component is a member of Y.
 
-          $$X\times Y = \{(x,y) | x\in X\;\mathrm{and}\;y\in Y\}.$$
 
-        EXAMPLE:
+        .. math::
+
+            X\times Y = \{(x,y) | x\in X\;\mathrm{and}\;y\in Y\}.
+
+
+
+        EXAMPLE::
+
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
             sage: f = x1*x2+x2*x3
@@ -3657,13 +4201,20 @@ cdef class BooleSet:
     def diff(self, rhs):
         r"""
         Return the set theoretic difference of this set and the set
-        \var{rhs}.
+        ``rhs``.
 
-        The difference of two sets $X$ and $Y$ is defined as:
+        The difference of two sets `X` and `Y` is defined
+        as:
 
-          $$X\\ Y = \{x | x\in X\;\mathrm{and}\;x\not\in Y\}.$$
 
-        EXAMPLE:
+        .. math::
+
+            X \ Y = \{x | x\in X\;\mathrm{and}\;x\not\in Y\}.
+
+
+
+        EXAMPLE::
+
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
             sage: f = x1*x2+x2*x3
@@ -3687,13 +4238,19 @@ cdef class BooleSet:
     def union(self, rhs):
         r"""
         Return the set theoretic union of this set and the set
-        \var{rhs}.
+        ``rhs``.
 
-        The union of two sets $X$ and $Y$ is defined as:
+        The union of two sets `X` and `Y` is defined as:
 
-          $$X \cup Y = \{x | x\in X\;\mathrm{or}\;x\in Y\}.$$
 
-        EXAMPLE:
+        .. math::
+
+            X \cup Y = \{x | x\in X\;\mathrm{or}\;x\in Y\}.
+
+
+
+        EXAMPLE::
+
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
             sage: f = x1*x2+x2*x3
@@ -3725,7 +4282,8 @@ cdef class BooleSet:
         """
         Return the number of nodes in the ZDD.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
             sage: f = x1*x2+x2*x3
@@ -3743,7 +4301,8 @@ cdef class BooleSet:
         """
         Create an iterator over elements of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x, y> = BooleanPolynomialRing(2)
             sage: f = x*y+x+y+1; s = f.set()
             sage: list(s)
@@ -3753,7 +4312,8 @@ cdef class BooleSet:
 
     def __len__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
             sage: f = x1*x2+x2*x3
@@ -3766,7 +4326,8 @@ cdef class BooleSet:
 
     def __hash__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B = BooleanPolynomialRing(5,'x')
             sage: x0,x1,x2,x3,x4 = B.gens()
             sage: f = x1*x2+x2*x3
@@ -3822,7 +4383,8 @@ cdef class BooleSetIterator:
 
     def __next__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: f = B.random_element()
             sage: f
@@ -3877,14 +4439,16 @@ cdef class CCuddNavigator:
 
     def __richcmp__(self, CCuddNavigator other, int op):
         """
-        sage: R.<x,y>=BooleanPolynomialRing(2)
-        sage: p = R(0)
-        sage: p.navigation() == p.navigation()
-        True
-        sage: p.navigation() != p.navigation()
-        False
-        sage: p.navigation() == x.navigation()
-        False
+        ::
+
+            sage: R.<x,y>=BooleanPolynomialRing(2)
+            sage: p = R(0)
+            sage: p.navigation() == p.navigation()
+            True
+            sage: p.navigation() != p.navigation()
+            False
+            sage: p.navigation() == x.navigation()
+            False
         """
         cdef bint equal = (<CCuddNavigator>self)._pbnav.is_equal((<CCuddNavigator>other)._pbnav)
 
@@ -4356,11 +4920,19 @@ def if_then_else(root, a, b):
     then-branch as well as the index value of the new node.
 
     INPUT:
-        root -- a variable
-        a -- the if branch, a \code{BooleSet} or a \code{BoolePolynomial}
-        b -- the else branch, a \code{BooleSet} or a \code{BoolePolynomial}
 
-    EXAMPLE:
+
+    -  ``root`` - a variable
+
+    -  ``a`` - the if branch, a ``BooleSet`` or
+       a ``BoolePolynomial``
+
+    -  ``b`` - the else branch, a ``BooleSet``
+       or a ``BoolePolynomial``
+
+
+    EXAMPLE::
+
         sage: from polybori import if_then_else
         sage: B = BooleanPolynomialRing(6,'x')
         sage: x0,x1,x2,x3,x4,x5 = B.gens()
@@ -4369,8 +4941,12 @@ def if_then_else(root, a, b):
         sage: if_then_else(x1, f0, f1)
         {{x1,x2,x3}, {x1,x3}, {x4}}
 
+    ::
+
         sage: if_then_else(x1.lm().index(),f0,f1)
         {{x1,x2,x3}, {x1,x3}, {x4}}
+
+    ::
 
         sage: if_then_else(x5, f0, f1)
         Traceback (most recent call last):
@@ -4421,12 +4997,17 @@ def if_then_else(root, a, b):
 
 def top_index(s):
     r"""
-    Return the highest index in the parameter \var{s}.
+    Return the highest index in the parameter ``s``.
 
     INPUT:
-        s -- \code{BooleSet}, \code{BooleMonomial}, \code{BoolePolynomial}
 
-    EXAMPLE:
+
+    -  ``s`` - ``BooleSet``,
+       ``BooleMonomial``, ``BoolePolynomial``
+
+
+    EXAMPLE::
+
         sage: B.<x,y,z> = BooleanPolynomialRing(3)
         sage: from polybori import top_index
         sage: top_index(x.lm())
@@ -4448,38 +5029,48 @@ def top_index(s):
 def get_cring():
     """
     Return the currently active global ring, this is only relevant for
-    the native \PolyBoRi interface.
+    the native PolyBoRi interface.
 
-    sage: from polybori import declare_ring, get_cring, Block
-    sage: R = declare_ring([Block('x',2),Block('y',3)],globals())
-    sage: Q = get_cring(); Q
-    Boolean PolynomialRing in x(0), x(1), y(0), y(1), y(2)
-    sage: R is Q
-    True
+    ::
+
+        sage: from polybori import declare_ring, get_cring, Block
+        sage: R = declare_ring([Block('x',2),Block('y',3)],globals())
+        sage: Q = get_cring(); Q
+        Boolean PolynomialRing in x(0), x(1), y(0), y(1), y(2)
+        sage: R is Q
+        True
     """
     global cur_ring
     return cur_ring
 
 def set_cring(BooleanPolynomialRing R):
     """
-    Set the currently active global ring, this is only relevant for the native
-    \PolyBoRi interface.
+    Set the currently active global ring, this is only relevant for the
+    native PolyBoRi interface.
 
-    sage: from polybori import *
-    sage: declare_ring([Block('x',2),Block('y',3)],globals())
-    Boolean PolynomialRing in x(0), x(1), y(0), y(1), y(2)
-    sage: R = get_cring(); R
-    Boolean PolynomialRing in x(0), x(1), y(0), y(1), y(2)
+    ::
 
-    sage: declare_ring([Block('x',2),Block('y',2)],globals())
-    Boolean PolynomialRing in x(0), x(1), y(0), y(1)
+        sage: from polybori import *
+        sage: declare_ring([Block('x',2),Block('y',3)],globals())
+        Boolean PolynomialRing in x(0), x(1), y(0), y(1), y(2)
+        sage: R = get_cring(); R
+        Boolean PolynomialRing in x(0), x(1), y(0), y(1), y(2)
 
-    sage: get_cring()
-    Boolean PolynomialRing in x(0), x(1), y(0), y(1)
+    ::
 
-    sage: set_cring(R)
-    sage: get_cring()
-    Boolean PolynomialRing in x(0), x(1), y(0), y(1), y(2)
+        sage: declare_ring([Block('x',2),Block('y',2)],globals())
+        Boolean PolynomialRing in x(0), x(1), y(0), y(1)
+
+    ::
+
+        sage: get_cring()
+        Boolean PolynomialRing in x(0), x(1), y(0), y(1)
+
+    ::
+
+        sage: set_cring(R)
+        sage: get_cring()
+        Boolean PolynomialRing in x(0), x(1), y(0), y(1), y(2)
     """
     global cur_ring
     R._pbring.activate()
@@ -4489,7 +5080,8 @@ def unpickle_BooleanPolynomial(ring, string):
     """
     Unpickle boolean polynomials
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: T = TermOrder('deglex',2)+TermOrder('deglex',2)
         sage: P.<a,b,c,d> = BooleanPolynomialRing(4,order=T)
         sage: loads(dumps(a+b)) == a+b # indirect doctest
@@ -4501,7 +5093,8 @@ def unpickle_BooleanPolynomialRing(n, names, order):
     """
     Unpickle boolean polynomial rings.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: T = TermOrder('deglex',2)+TermOrder('deglex',2)
         sage: P.<a,b,c,d> = BooleanPolynomialRing(4,order=T)
         sage: loads(dumps(P)) == P  # indirect doctest

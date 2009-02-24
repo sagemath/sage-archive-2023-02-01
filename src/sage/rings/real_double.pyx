@@ -3,11 +3,15 @@ Double Precision Real Numbers
 
 EXAMPLES:
 
-We create the real double vector space of dimension $3$:
+We create the real double vector space of dimension `3`::
+
     sage: V = RDF^3; V
     Vector space of dimension 3 over Real Double Field
 
 Notice that this space is unique.
+
+::
+
     sage: V is RDF^3
     True
     sage: V is FreeModule(RDF, 3)
@@ -16,6 +20,9 @@ Notice that this space is unique.
     True
 
 Also, you can instantly create a space of large dimension.
+
+::
+
     sage: V = RDF^10000
 """
 
@@ -45,7 +52,8 @@ def is_RealDoubleField(x):
     """
     Returns True if x is the field of real double precision numbers.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.rings.real_double import is_RealDoubleField
         sage: is_RealDoubleField(RDF)
         True
@@ -57,24 +65,28 @@ def is_RealDoubleField(x):
 cdef class RealDoubleField_class(Field):
     """
     An approximation to the field of real numbers using double
-    precision floating point numbers. Answers derived from
-    calculations in this approximation may differ from what they would
-    be if those calculations were performed in the true field of
-    real numbers. This is due to the rounding errors inherent to
-    finite precision calculations.
+    precision floating point numbers. Answers derived from calculations
+    in this approximation may differ from what they would be if those
+    calculations were performed in the true field of real numbers. This
+    is due to the rounding errors inherent to finite precision
+    calculations.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: RR == RDF
         False
         sage: RDF == RealDoubleField()    # RDF is the shorthand
         True
+
+    ::
 
         sage: RDF(1)
         1.0
         sage: RDF(2/3)
         0.666666666667
 
-    A TypeError is raised if the coercion doesn't make sense:
+    A TypeError is raised if the coercion doesn't make sense::
+
         sage: RDF(QQ['x'].0)
         Traceback (most recent call last):
         ...
@@ -83,8 +95,9 @@ cdef class RealDoubleField_class(Field):
         3.0
 
     One can convert back and forth between double precision real
-    numbers and higher-precision ones, though of course there may
-    be loss of precision:
+    numbers and higher-precision ones, though of course there may be
+    loss of precision::
+
         sage: a = RealField(200)(2).sqrt(); a
         1.4142135623730950488016887242096980785696718753769480731767
         sage: b = RDF(a); b
@@ -104,7 +117,8 @@ cdef class RealDoubleField_class(Field):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: loads(dumps(RDF)) is RDF
             True
         """
@@ -114,7 +128,8 @@ cdef class RealDoubleField_class(Field):
         """
         Returns False, because doubles are not exact.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: RDF.is_exact()
             False
         """
@@ -141,7 +156,8 @@ cdef class RealDoubleField_class(Field):
         """
         Print out this real double field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RealDoubleField()
             Real Double Field
             sage: RDF
@@ -151,7 +167,8 @@ cdef class RealDoubleField_class(Field):
 
     def __cmp__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF == 5
             False
             sage: loads(dumps(RDF)) == RDF
@@ -164,12 +181,14 @@ cdef class RealDoubleField_class(Field):
     def construction(self):
         """
         Returns the functorial construction of self, namely, completion of
-        the rational numbers with respect to the prime at $\infinity$.
+        the rational numbers with respect to the prime at
+        `\infty`.
 
-        Also preserves other information that makes this field unique
-        (i.e. the Real Double Field).
+        Also preserves other information that makes this field unique (i.e.
+        the Real Double Field).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c, S = RDF.construction(); S
             Rational Field
             sage: RDF == c(S)
@@ -183,10 +202,11 @@ cdef class RealDoubleField_class(Field):
 
     def complex_field(self):
         """
-        Returns the complex field with the same precision as self,
-        ie, the complex double field.
+        Returns the complex field with the same precision as self, ie, the
+        complex double field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.complex_field()
             Complex Double Field
         """
@@ -195,10 +215,11 @@ cdef class RealDoubleField_class(Field):
 
     def algebraic_closure(self):
         """
-        Returns the algebraic closure of self,
-        ie, the complex double field.
+        Returns the algebraic closure of self, ie, the complex double
+        field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.algebraic_closure()
             Complex Double Field
         """
@@ -210,12 +231,17 @@ cdef class RealDoubleField_class(Field):
         Canonical coercion of x to the real double field.
 
         The rings that canonically coerce to the real double field are:
-             * the real double field itself
-             * int, long, integer, and rational rings
-             * real mathematical constants
-             * the mpfr real field with <= 53 bits of precision
 
-        EXAMPLES:
+        - the real double field itself
+
+        - int, long, integer, and rational rings
+
+        - real mathematical constants
+
+        - the MPFR real field with <= 53 bits of precision
+
+        EXAMPLES::
+
             sage: RDF.coerce(5)
             5.0
             sage: RDF.coerce(9499294r)
@@ -246,15 +272,17 @@ cdef class RealDoubleField_class(Field):
         Return a string representation of self in the Magma language.
 
         EXAMPLES:
-            Magma handles precision in decimal digits, so we lose a bit:
+
+        Magma handles precision in decimal digits, so we lose a
+        bit::
 
             sage: magma(RDF) # optional - magma
             Real field of precision 15
             sage: 10^15 < 2^53 < 10^16
             True
 
-            When we convert back from Magma, we convert to a generic real
-            field that has 53 bits of precision:
+        When we convert back from Magma, we convert to a generic real field
+        that has 53 bits of precision::
 
             sage: magma(RDF).sage() # optional - magma
             Real Field with 53 bits of precision
@@ -267,7 +295,8 @@ cdef class RealDoubleField_class(Field):
 
         Always returns 53.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.prec()
             53
         """
@@ -279,7 +308,8 @@ cdef class RealDoubleField_class(Field):
         fixed precision, this will only return a real double field if prec
         is exactly 53.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.to_prec(52)
             Real Field with 52 bits of precision
             sage: RDF.to_prec(53)
@@ -295,7 +325,9 @@ cdef class RealDoubleField_class(Field):
     def gen(self, n=0):
         """
         Return the generator of the real double field.
-        EXAMPLES:
+
+        EXAMPLES::
+
             sage: RDF.0
             1.0
             sage: RDF.gens()
@@ -310,11 +342,12 @@ cdef class RealDoubleField_class(Field):
 
     def is_atomic_repr(self):
         """
-        Returns True, to signify that elements of this field print
-        without sums, so parenthesis aren't required, e.g., in
-        coefficients of polynomials.
+        Returns True, to signify that elements of this field print without
+        sums, so parenthesis aren't required, e.g., in coefficients of
+        polynomials.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.is_atomic_repr()
             True
         """
@@ -323,9 +356,11 @@ cdef class RealDoubleField_class(Field):
     def is_finite(self):
         """
         Returns False, since the field of real numbers is not finite.
-        Technical note:  There exists an upper bound on the double representation.
+        Technical note: There exists an upper bound on the double
+        representation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.is_finite()
             False
         """
@@ -335,7 +370,8 @@ cdef class RealDoubleField_class(Field):
         """
         Returns 0, since the field of real numbers has characteristic 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.characteristic()
             0
         """
@@ -349,9 +385,11 @@ cdef class RealDoubleField_class(Field):
 
     def random_element(self, double min=-1, double max=1):
         """
-        Return a random element of this real double field in the interval [min, max].
+        Return a random element of this real double field in the interval
+        [min, max].
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.random_element()
             0.736945423566
             sage: RDF.random_element(min=100, max=110)
@@ -366,7 +404,8 @@ cdef class RealDoubleField_class(Field):
 
     def __hash__(self):
         """
-        TEST:
+        TEST::
+
             sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
             True
         """
@@ -376,7 +415,8 @@ cdef class RealDoubleField_class(Field):
         """
         Returns pi to double-precision.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.pi()
             3.14159265359
             sage: RDF.pi().sqrt()/2
@@ -389,7 +429,8 @@ cdef class RealDoubleField_class(Field):
         """
         Returns Euler's gamma constant to double precision
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.euler_constant()
             0.577215664902
         """
@@ -399,7 +440,8 @@ cdef class RealDoubleField_class(Field):
         """
         Returns log(2) to the precision of this field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.log2()
             0.69314718056
             sage: RDF(2).log()
@@ -410,7 +452,9 @@ cdef class RealDoubleField_class(Field):
     def factorial(self, int n):
         """
         Return the factorial of the integer n as a real number.
-        EXAMPLES:
+
+        EXAMPLES::
+
             sage: RDF.factorial(100)
             9.33262154439e+157
         """
@@ -420,10 +464,11 @@ cdef class RealDoubleField_class(Field):
 
     def zeta(self, n=2):
         """
-        Return an $n$-th root of unity in the real field,
-        if one exists, or raise a ValueError otherwise.
+        Return an `n`-th root of unity in the real field, if one
+        exists, or raise a ValueError otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.zeta()
             -1.0
             sage: RDF.zeta(1)
@@ -441,7 +486,8 @@ cdef class RealDoubleField_class(Field):
 
     def NaN(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.NaN()
             nan
         """
@@ -449,7 +495,8 @@ cdef class RealDoubleField_class(Field):
 
     def nan(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.nan()
             nan
         """
@@ -457,11 +504,11 @@ cdef class RealDoubleField_class(Field):
 
 cdef class RealDoubleElement(FieldElement):
     """
-    An approximation to a real number using double precision
-    floating point numbers. Answers derived from calculations with
-    such approximations may differ from what they would be if those
-    calculations were performed with true real numbers. This is due
-    to the rounding errors inherent to finite precision calculations.
+    An approximation to a real number using double precision floating
+    point numbers. Answers derived from calculations with such
+    approximations may differ from what they would be if those
+    calculations were performed with true real numbers. This is due to
+    the rounding errors inherent to finite precision calculations.
     """
     def __new__(self, x=None):
         (<Element>self)._parent = _RDF
@@ -470,7 +517,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Create a new RealDoubleElement with value x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(10^100)
             1e+100
         """
@@ -480,7 +528,8 @@ cdef class RealDoubleElement(FieldElement):
         r"""
         Return a string representation of self in the Magma language.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(10.5)
             10.5
             sage: magma(RDF(10.5)) # optional - magma
@@ -490,7 +539,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(-2.7)
             sage: loads(dumps(a)) == a
             True
@@ -509,7 +559,8 @@ cdef class RealDoubleElement(FieldElement):
 
         Always returns 53.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(0).prec()
             53
         """
@@ -560,9 +611,10 @@ cdef class RealDoubleElement(FieldElement):
 
     def real(self):
         """
-        Returns itself -- we're already real.
+        Returns itself - we're already real.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(3)
             sage: a.real()
             3.0
@@ -571,9 +623,10 @@ cdef class RealDoubleElement(FieldElement):
 
     def imag(self):
         """
-        Returns the imaginary part of this number.  (hint: it's zero.)
+        Returns the imaginary part of this number. (hint: it's zero.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(3)
             sage: a.imag()
             0.0
@@ -582,7 +635,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def __complex__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = 2303
             sage: RDF(a)
             2303.0
@@ -622,7 +676,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Return the real double field, which is the parent of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(2.3)
             sage: a.parent()
             Real Double Field
@@ -634,10 +689,11 @@ cdef class RealDoubleElement(FieldElement):
     def _interface_init_(self):
         """
         Returns self formatted as a string, suitable as input to another
-        computer algebra system.  (This is the default function used for
+        computer algebra system. (This is the default function used for
         exporting to other computer algebra systems.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s1 = RDF(sin(1)); s1
             0.841470984808
             sage: s1._interface_init_()
@@ -741,7 +797,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Return print version of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(2); a
             2.0
             sage: a^2
@@ -751,7 +808,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def _latex_(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: RDF(2e-100)._latex_()
             '2 \\times 10^{-100}'
         """
@@ -766,10 +824,11 @@ cdef class RealDoubleElement(FieldElement):
 
     def __hash__(self):
         """
-        Returns the hash of self, which coincides with the python
-        float (and often int) type.
+        Returns the hash of self, which coincides with the python float
+        (and often int) type.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: hash(RDF(1.2)) == hash(1.2r)
             True
         """
@@ -782,7 +841,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Return string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF('4.5'); a.str()
             '4.5'
             sage: a = RDF('49203480923840.2923904823048'); a.str()
@@ -809,7 +869,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Return copy of self, which since self is immutable, is just self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RDF('-1.6')
             sage: r.__copy__() is r
             True
@@ -820,7 +881,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         If in decimal this number is written n.defg, returns n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RDF('-1.6')
             sage: a = r.integer_part(); a
             -1
@@ -845,11 +907,12 @@ cdef class RealDoubleElement(FieldElement):
         """
         Compute the multiplicative inverse of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(-1.5)*RDF(2.5)
             sage: a.__invert__()
             -0.266666666667
-	    sage: ~a
+            sage: ~a
             -0.266666666667
         """
         cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
@@ -860,7 +923,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Add two real numbers with the same parent.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF('-1.5') + RDF('2.5')
             1.0
         """
@@ -870,7 +934,8 @@ cdef class RealDoubleElement(FieldElement):
 
     cpdef ModuleElement _iadd_(self, ModuleElement right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(0.5)
             sage: a += RDF(3); a
             3.5
@@ -883,7 +948,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Subtract two real numbers with the same parent.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF('-1.5') - RDF('2.5')
             -4.0
         """
@@ -893,7 +959,8 @@ cdef class RealDoubleElement(FieldElement):
 
     cpdef ModuleElement _isub_(self, ModuleElement right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(0.5)
             sage: a -= RDF(3); a
             -2.5
@@ -905,7 +972,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Multiply two real numbers with the same parent.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF('-1.5') * RDF('2.5')
             -3.75
         """
@@ -915,7 +983,8 @@ cdef class RealDoubleElement(FieldElement):
 
     cpdef RingElement _imul_(self, RingElement right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(2.5)
             sage: a *= RDF(3); a
             7.5
@@ -925,7 +994,8 @@ cdef class RealDoubleElement(FieldElement):
 
     cpdef RingElement _div_(self, RingElement right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF('-1.5') / RDF('2.5')
             -0.6
             sage: RDF(1)/RDF(0)
@@ -937,7 +1007,8 @@ cdef class RealDoubleElement(FieldElement):
 
     cpdef RingElement _idiv_(self, RingElement right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(1.5)
             sage: a /= RDF(2); a
             0.75
@@ -951,7 +1022,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Negates a real number.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: -RDF('-1.5')
             1.5
         """
@@ -963,7 +1035,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the absolute value of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: abs(RDF(1.5))
             1.5
             sage: abs(RDF(-1.5))
@@ -978,7 +1051,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the absolute value of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(1e10).abs()
             10000000000.0
             sage: RDF(-1e10).abs()
@@ -991,23 +1065,26 @@ cdef class RealDoubleElement(FieldElement):
 
     def __lshift__(x, y):
         """
-        LShifting a double is not supported; nor is lshifting a RealDoubleElement.
+        LShifting a double is not supported; nor is lshifting a
+        RealDoubleElement.
         """
         raise TypeError, "unsupported operand type(s) for <<"
 
     def __rshift__(x, y):
         """
-        RShifting a double is not supported; nor is rshifting a RealDoubleElement.
+        RShifting a double is not supported; nor is rshifting a
+        RealDoubleElement.
         """
         raise TypeError, "unsupported operand type(s) for >>"
 
     def multiplicative_order(self):
         r"""
-        Returns $n$ such that $\code{self}^n$ = 1.
+        Returns `n` such that self^n == 1.
 
-        Only $\pm 1$ have finite multiplicative_order order.
+        Only `\pm 1` have finite multiplicative_order order.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(1).multiplicative_order()
             1
             sage: RDF(-1).multiplicative_order()
@@ -1023,9 +1100,11 @@ cdef class RealDoubleElement(FieldElement):
 
     def sign(self):
         """
-        Returns -1,0, or 1 if self is negative, zero, or positive; respectively.
+        Returns -1,0, or 1 if self is negative, zero, or positive;
+        respectively.
 
-        Examples:
+        Examples::
+
             sage: RDF(-1.5).sign()
             -1
             sage: RDF(0).sign()
@@ -1046,9 +1125,11 @@ cdef class RealDoubleElement(FieldElement):
 
     def round(self):
         """
-        Given real number x, rounds up if fractional part is greater than .5,
-        rounds down if fractional part is lesser than .5.
-        EXAMPLES:
+        Given real number x, rounds up if fractional part is greater than
+        .5, rounds down if fractional part is lesser than .5.
+
+        EXAMPLES::
+
             sage: RDF(0.49).round()
             0
             sage: a=RDF(0.51).round(); a
@@ -1060,7 +1141,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the floor of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(2.99).floor()
             2
             sage: RDF(2.00).floor()
@@ -1074,10 +1156,10 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the ceiling of this number
 
-        OUTPUT:
-            integer
+        OUTPUT: integer
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(2.99).ceil()
             3
             sage: RDF(2.00).ceil()
@@ -1093,7 +1175,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Truncates this number (returns integer part).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(2.99).trunc()
             2
             sage: RDF(-2.00).trunc()
@@ -1105,11 +1188,11 @@ cdef class RealDoubleElement(FieldElement):
 
     def frac(self):
         """
-        frac returns a real number > -1 and < 1. it satisfies the
-        relation:
-            x = x.trunc() + x.frac()
+        frac returns a real number > -1 and < 1. it satisfies the relation:
+        x = x.trunc() + x.frac()
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(2.99).frac()
             0.99
             sage: RDF(2.50).frac()
@@ -1127,7 +1210,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Return self as a python float.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: float(RDF(1.5))
             1.5
             sage: type(float(RDF(1.5)))
@@ -1140,7 +1224,8 @@ cdef class RealDoubleElement(FieldElement):
         Returns self.__float__() for rpy to convert into the
         appropriate R object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = RDF(2.0)
             sage: n._rpy_()
             2.0
@@ -1153,7 +1238,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns integer truncation of this real number.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: int(RDF(2.99))
             2
             sage: int(RDF(-2.99))
@@ -1165,7 +1251,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns long integer truncation of this real number.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: int(RDF(10e15))
             10000000000000000L                   # 32-bit
             10000000000000000                    # 64-bit
@@ -1176,7 +1263,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def _complex_mpfr_field_(self, CC):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(1/3)
             sage: CC(a)
             0.333333333333333
@@ -1185,6 +1273,9 @@ cdef class RealDoubleElement(FieldElement):
 
         If we coerce to a higher-precision field the extra bits appear
         random; they are actualy 0's in base 2.
+
+        ::
+
             sage: a._complex_mpfr_field_(ComplexField(100))
             0.33333333333333331482961625625
             sage: a._complex_mpfr_field_(ComplexField(100)).str(2)
@@ -1194,7 +1285,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def _complex_double_(self, CDF):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CDF(RDF(1/3))
             0.333333333333
         """
@@ -1202,7 +1294,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def _pari_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(1.5)._pari_()
             1.50000000000000
         """
@@ -1216,7 +1309,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def is_NaN(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(1).is_NaN()
             False
             sage: a = RDF(0)/RDF(0)
@@ -1227,7 +1321,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def is_positive_infinity(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(1)/RDF(0)
             sage: a.is_positive_infinity()
             True
@@ -1239,7 +1334,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def is_negative_infinity(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(2)/RDF(0)
             sage: a.is_negative_infinity()
             False
@@ -1251,7 +1347,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def is_infinity(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(2); b = RDF(0)
             sage: (a/b).is_infinity()
             True
@@ -1277,7 +1374,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def NaN(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.NaN()
             nan
         """
@@ -1285,7 +1383,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def nan(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.nan()
             nan
         """
@@ -1296,18 +1395,25 @@ cdef class RealDoubleElement(FieldElement):
         The square root function.
 
         INPUT:
-            extend -- bool (default: True); if True, return
-                a square root in a complex field if necessary
-                if self is negative; otherwise raise a ValueError
-            all -- bool (default: False); if True, return a list
-                of all square roots.
 
-        EXAMPLES:
+
+        -  ``extend`` - bool (default: True); if True, return a
+           square root in a complex field if necessary if self is negative;
+           otherwise raise a ValueError
+
+        -  ``all`` - bool (default: False); if True, return a
+           list of all square roots.
+
+
+        EXAMPLES::
+
             sage: r = RDF(4.0)
             sage: r.sqrt()
             2.0
             sage: r.sqrt()^2 == r
             True
+
+        ::
 
             sage: r = RDF(4344)
             sage: r.sqrt()
@@ -1315,9 +1421,13 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.sqrt()^2 - r
             0.0
 
+        ::
+
             sage: r = RDF(-2.0)
             sage: r.sqrt()
             1.41421356237*I
+
+        ::
 
             sage: RDF(2).sqrt(all=True)
             [1.41421356237, -1.41421356237]
@@ -1342,10 +1452,12 @@ cdef class RealDoubleElement(FieldElement):
 
     def is_square(self):
         """
-        Returns whether or not this number is a square in this field.
-        For the real numbers, this is True if and only if self is non-negative.
+        Returns whether or not this number is a square in this field. For
+        the real numbers, this is True if and only if self is
+        non-negative.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(3.5).is_square()
             True
             sage: RDF(0).is_square()
@@ -1359,7 +1471,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Return the cubic root (defined over the real numbers) of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RDF(125.0); r.cube_root()
             5.0
             sage: r = RDF(-119.0)
@@ -1371,17 +1484,20 @@ cdef class RealDoubleElement(FieldElement):
 
     def nth_root(self, int n):
         """
-        Returns the $n^{th}$ root of self.
+        Returns the `n^{th}` root of self.
 
         INPUT:
-            n -- an integer
-        OUTPUT:
-            an real or complex double
 
-        The output is complex if self is negative
-        and n is even.
 
-        EXAMPLES:
+        -  ``n`` - an integer
+
+
+        OUTPUT: an real or complex double
+
+        The output is complex if self is negative and n is even.
+
+        EXAMPLES::
+
             sage: r = RDF(-125.0); r.nth_root(3)
             -5.0
             sage: r.nth_root(5)
@@ -1415,22 +1531,24 @@ cdef class RealDoubleElement(FieldElement):
 
     def __pow__(self, exponent, modulus):
         """
-        Compute self raised to the power of exponent, rounded in
-        the direction specified by the parent of self.
+        Compute self raised to the power of exponent, rounded in the
+        direction specified by the parent of self.
 
-        If the result is not a real number, self and the exponent are
-        both coerced to complex numbers (with sufficient precision),
-        then the exponentiation is computed in the complex numbers.
-        Thus this function can return either a real or complex number.
+        If the result is not a real number, self and the exponent are both
+        coerced to complex numbers (with sufficient precision), then the
+        exponentiation is computed in the complex numbers. Thus this
+        function can return either a real or complex number.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF('1.23456')
             sage: a^20
             67.6462977039
             sage: a^a
             1.29711148178
 
-        Symbolic examples:
+        Symbolic examples::
+
             sage: x, y = var('x,y')
             sage: RDF('-2.3')^(x+y^3+sin(x))
             (-2.3)^(y^3 + sin(x) + x)
@@ -1478,7 +1596,8 @@ cdef class RealDoubleElement(FieldElement):
 
     def log(self, base=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(2).log()
             0.69314718056
             sage: RDF(2).log(2)
@@ -1506,14 +1625,16 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns log to the base 2 of self
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RDF(16.0)
             sage: r.log2()
             4.0
 
+        ::
+
             sage: r = RDF(31.9); r.log2()
             4.99548451888
-
         """
         _sig_on
         a = self._new_c(gsl_sf_log(self._value) / M_LN2)
@@ -1525,7 +1646,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns log to the base 10 of self
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RDF('16.0'); r.log10()
             1.20411998266
             sage: r.log() / RDF(log(10))
@@ -1542,7 +1664,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns log to the base pi of self
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RDF(16); r.logpi()
             2.42204624559
             sage: r.log() / RDF(log(pi))
@@ -1557,12 +1680,15 @@ cdef class RealDoubleElement(FieldElement):
 
     def exp(self):
         r"""
-        Returns $e^\code{self}$
+        Returns `e^\mathtt{self}`
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RDF(0.0)
             sage: r.exp()
             1.0
+
+        ::
 
             sage: r = RDF('32.3')
             sage: a = r.exp(); a
@@ -1570,9 +1696,13 @@ cdef class RealDoubleElement(FieldElement):
             sage: a.log()
             32.3
 
+        ::
+
             sage: r = RDF('-32.3')
             sage: r.exp()
             9.3818445885e-15
+
+        ::
 
             sage: RDF(1000).exp()
             inf
@@ -1584,16 +1714,21 @@ cdef class RealDoubleElement(FieldElement):
 
     def exp2(self):
         """
-        Returns $2^\code{self}$
+        Returns `2^\mathtt{self}`
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RDF(0.0)
             sage: r.exp2()
             1.0
 
+        ::
+
             sage: r = RDF(32.0)
             sage: r.exp2()
             4294967296.0
+
+        ::
 
             sage: r = RDF(-32.3)
             sage: r.exp2()
@@ -1606,16 +1741,21 @@ cdef class RealDoubleElement(FieldElement):
 
     def exp10(self):
         r"""
-        Returns $10^\code{self}$
+        Returns `10^\mathtt{self}`
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = RDF(0.0)
             sage: r.exp10()
             1.0
 
+        ::
+
             sage: r = RDF(32.0)
             sage: r.exp10()
             1e+32
+
+        ::
 
             sage: r = RDF(-32.3)
             sage: r.exp10()
@@ -1630,7 +1770,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the cosine of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t=RDF.pi()/2
             sage: t.cos()
             6.12323399574e-17
@@ -1641,7 +1782,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the sine of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(2).sin()
             0.909297426826
         """
@@ -1649,12 +1791,15 @@ cdef class RealDoubleElement(FieldElement):
 
     def restrict_angle(self):
         r"""
-        Returns a number congruent to self mod $2\pi$ that lies in the interval $(-\pi, \pi]$.
+        Returns a number congruent to self mod `2\pi` that lies in
+        the interval `(-\pi, \pi]`.
 
-        Specifically, it is the unique $x \in (-\pi, \pi]$ such that $\code{self} = x + 2\pi n$
-        for some $n \in \Z$.
+        Specifically, it is the unique `x \in (-\pi, \pi]` such
+        that ```self`` = x + 2\pi n` for some
+        `n \in \mathbb{Z}`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(pi).restrict_angle()
             3.14159265359
             sage: RDF(pi + 1e-10).restrict_angle()
@@ -1668,7 +1813,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the tangent of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: q = RDF.pi()/3
             sage: q.tan()
             1.73205080757
@@ -1685,7 +1831,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns a pair consisting of the sine and cosine.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = RDF.pi()/6
             sage: t.sincos()
             (0.5, 0.866025403784)
@@ -1694,9 +1841,11 @@ cdef class RealDoubleElement(FieldElement):
 
     def hypot(self, other):
         r"""
-        Computes the value $\sqrt(self^2 + other^2)$ in such a way as to avoid overflow.
+        Computes the value `\sqrt(self^2 + other^2)` in such a way
+        as to avoid overflow.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = RDF(4e300); y = RDF(3e300);
             sage: x.hypot(y)
             5e+300
@@ -1712,7 +1861,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the inverse cosine of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: q = RDF.pi()/3
             sage: i = q.cos()
             sage: i.arccos() == q
@@ -1724,7 +1874,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the inverse sine of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: q = RDF.pi()/5
             sage: i = q.sin()
             sage: i.arcsin() == q
@@ -1736,7 +1887,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the inverse tangent of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: q = RDF.pi()/5
             sage: i = q.tan()
             sage: i.arctan() == q
@@ -1749,7 +1901,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the hyperbolic cosine of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: q = RDF.pi()/12
             sage: q.cosh()
             1.0344656401
@@ -1760,7 +1913,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the hyperbolic sine of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: q = RDF.pi()/12
             sage: q.sinh()
             0.264800227602
@@ -1771,7 +1925,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the hyperbolic tangent of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: q = RDF.pi()/12
             sage: q.tanh()
             0.255977789246
@@ -1782,7 +1937,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the hyperbolic inverse cosine of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: q = RDF.pi()/2
             sage: i = q.cosh() ; i
             2.50917847866
@@ -1795,7 +1951,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the hyperbolic inverse sine of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: q = RDF.pi()/2
             sage: i = q.sinh() ; i
             2.30129890231
@@ -1808,7 +1965,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the hyperbolic inverse tangent of this number
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: q = RDF.pi()/2
             sage: i = q.tanh() ; i
             0.917152335667
@@ -1819,9 +1977,10 @@ cdef class RealDoubleElement(FieldElement):
 
     def sech(self):
         r"""
-        This function returns the  hyperbolic secant.
+        This function returns the hyperbolic secant.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(pi).sech()
             0.0862667383341
             sage: CDF(pi).sech()
@@ -1833,7 +1992,8 @@ cdef class RealDoubleElement(FieldElement):
         r"""
         This function returns the hyperbolic cosecant.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(pi).csch()
             0.08658953753
             sage: CDF(pi).csch()
@@ -1845,7 +2005,8 @@ cdef class RealDoubleElement(FieldElement):
         r"""
         This function returns the hyperbolic cotangent.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(pi).coth()
             1.0037418732
             sage: CDF(pi).coth()
@@ -1857,18 +2018,24 @@ cdef class RealDoubleElement(FieldElement):
         """
         Return the arithmetic-geometric mean of self and other. The
         arithmetic-geometric mean is the common limit of the sequences
-        $u_n$ and $v_n$, where $u_0$ is self, $v_0$ is other,
-        $u_{n+1}$ is the arithmetic mean of $u_n$ and $v_n$, and
-        $v_{n+1}$ is the geometric mean of u_n and v_n. If any operand
-        is negative, the return value is \code{NaN}.
+        `u_n` and `v_n`, where `u_0` is self,
+        `v_0` is other, `u_{n+1}` is the arithmetic mean
+        of `u_n` and `v_n`, and `v_{n+1}` is the
+        geometric mean of u_n and v_n. If any operand is negative, the
+        return value is ``NaN``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(1.5)
             sage: b = RDF(2.3)
             sage: a.agm(b)
             1.87864845581
 
-        The arithmetic-geometric always lies between the geometric and arithmetic mean.
+        The arithmetic-geometric always lies between the geometric and
+        arithmetic mean.
+
+        ::
+
             sage: sqrt(a*b) < a.agm(b) < (a+b)/2
             True
         """
@@ -1878,9 +2045,10 @@ cdef class RealDoubleElement(FieldElement):
         """
         Returns the value of the error function on self.
 
-        EXAMPLES:
-           sage: RDF(6).erf()
-           1.0
+        EXAMPLES::
+
+            sage: RDF(6).erf()
+            1.0
         """
         return self._new_c(gsl_sf_erf(self._value))
 
@@ -1888,11 +2056,12 @@ cdef class RealDoubleElement(FieldElement):
         """
         The Euler gamma function. Return gamma of self.
 
-        EXAMPLES:
-           sage: RDF(6).gamma()
-           120.0
-           sage: RDF(1.5).gamma()
-           0.886226925453
+        EXAMPLES::
+
+            sage: RDF(6).gamma()
+            120.0
+            sage: RDF(1.5).gamma()
+            0.886226925453
         """
         _sig_on
         a = self._new_c(gsl_sf_gamma(self._value))
@@ -1903,10 +2072,13 @@ cdef class RealDoubleElement(FieldElement):
         r"""
         Return the Riemann zeta function evaluated at this real number.
 
-        \note{PARI is vastly more efficient at computing the Riemann zeta
-        function.   See the example below for how to use it.}
+        .. note::
 
-        EXAMPLES:
+           PARI is vastly more efficient at computing the Riemann zeta
+           function. See the example below for how to use it.
+
+        EXAMPLES::
+
             sage: RDF(2).zeta()
             1.64493406685
             sage: RDF.pi()^2/6
@@ -1922,14 +2094,16 @@ cdef class RealDoubleElement(FieldElement):
 
     def algdep(self, n):
         """
-        Returns a polynomial of degree at most $n$ which is approximately
-        satisfied by this number.  Note that the returned polynomial
-        need not be irreducible, and indeed usually won't be if this number
-        is a good approximation to an algebraic number of degree less than $n$.
+        Returns a polynomial of degree at most `n` which is
+        approximately satisfied by this number. Note that the returned
+        polynomial need not be irreducible, and indeed usually won't be if
+        this number is a good approximation to an algebraic number of
+        degree less than `n`.
 
         ALGORITHM: Uses the PARI C-library algdep command.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: r = RDF(2).sqrt(); r
             1.41421356237
             sage: r.algdep(5)
@@ -1939,14 +2113,16 @@ cdef class RealDoubleElement(FieldElement):
 
     def algebraic_dependency(self, n):
         """
-        Returns a polynomial of degree at most $n$ which is approximately
-        satisfied by this number.  Note that the returned polynomial
-        need not be irreducible, and indeed usually won't be if this number
-        is a good approximation to an algebraic number of degree less than $n$.
+        Returns a polynomial of degree at most `n` which is
+        approximately satisfied by this number. Note that the returned
+        polynomial need not be irreducible, and indeed usually won't be if
+        this number is a good approximation to an algebraic number of
+        degree less than `n`.
 
         ALGORITHM: Uses the PARI C-library algdep command.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: r = sqrt(RDF(2)); r
             1.41421356237
             sage: r.algdep(5)
@@ -1957,9 +2133,11 @@ cdef class RealDoubleElement(FieldElement):
 cdef class ToRDF(Morphism):
     def __init__(self, R):
         """
-        Fast morphism from anything with a __float__ method to an RDF element.
+        Fast morphism from anything with a __float__ method to an RDF
+        element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = RDF.coerce_map_from(ZZ); f
             Native morphism:
               From: Integer Ring
@@ -2010,7 +2188,8 @@ def RealDoubleField():
     """
     Return the unique instance of the Real Double Field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: RealDoubleField() is RealDoubleField()
         True
     """
@@ -2184,6 +2363,7 @@ hook_fast_tp_functions()
 
 cdef hook_fast_tp_functions():
     """
+
     """
     global global_dummy_element
 

@@ -29,7 +29,7 @@ following additional ways to compute with matrices:
    GAP, Maxima, and Singular all have a notion of matrices.
 
 -  The GSL C-library is included with Sage, and can be used via
-   SageX. See ``sage/matrix/matrixrealdoubledense.py`` for
+   Cython. See :mod:`sage.matrix.matrix_real_double_dense` for
    example code that does this.
 
 -  The optional ``scipy`` module provides support for

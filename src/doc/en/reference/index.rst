@@ -20,15 +20,15 @@ usage of Sage. The examples are all tested with each release of
 Sage, and should produce exactly the same output as in this manual,
 except for line breaks.
 
-The Sage command line is briefly described in Chapter
-:ref:`ch:cmdline`, which lists the command line options. For
-more details about the command line, see the Sage tutorial.
+The Sage command line is briefly described in :ref:`ch:cmdline`, which
+lists the command line options. For more details about the command
+line, see the Sage tutorial.
 
-The Sage graphical user interface is described in Chapter
-:ref:`ch:notebook`. This graphical user interface is unusual
-in that it operates via your web browser. It provides you with Sage
-worksheets that you can edit and evaluate, which contain scalable
-typeset mathematics and beautiful antialised images.
+The Sage graphical user interface is described in
+:ref:`ch:notebook`. This graphical user interface is unusual in that
+it operates via your web browser. It provides you with Sage worksheets
+that you can edit and evaluate, which contain scalable typeset
+mathematics and beautiful antialised images.
 
 Enjoy Sage!
 

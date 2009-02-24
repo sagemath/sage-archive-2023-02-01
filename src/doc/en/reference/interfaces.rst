@@ -4,10 +4,12 @@ Interpreter Interfaces
 ======================
 
 Sage provides a unified interface to the best computational
-software. This is accomplished using both C-libraries (see Chapter
+software. This is accomplished using both C-libraries (see
 :ref:`ch:libraries`) and interpreter interfaces, which are
 implemented using pseudo-tty's, system files, etc. This chapter is
 about these interpreter interfaces.
+
+.. note::
 
     Each interface requires that the corresponding software is
     installed on your computer. Sage includes GAP, PARI, Singular, and
@@ -16,10 +18,10 @@ about these interpreter interfaces.
 
 
     There is overhead associated with each call to one of these
-    systems. For example, computing ``2+2`` thousands of
-    times using the GAP interface will be slower than doing it directly
-    in Sage. In contrast, the C-library interfaces of Chapter
-    :ref:`ch:libraries` incur less overhead.
+    systems. For example, computing ``2+2`` thousands of times using
+    the GAP interface will be slower than doing it directly in
+    Sage. In contrast, the C-library interfaces of :ref:`ch:libraries`
+    incur less overhead.
 
 
 In addition to the commands described for each of the interfaces
@@ -52,8 +54,8 @@ things. For example, using gap as an example:
 
 
 The console function is very useful on occasion, since you get the
-exact actual program available (esp., useful for tab completion and
-testing to make sure nothing funny is going on).
+exact actual program available (especially useful for tab completion
+and testing to make sure nothing funny is going on).
 
 .. toctree::
    :maxdepth: 2

@@ -574,7 +574,8 @@ cdef class RealDoubleElement(FieldElement):
         two, it is gap between this number and the next closest distinct
         number that can be represented.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RDF(1)
             sage: a - a.ulp() == a
             False
@@ -650,7 +651,8 @@ cdef class RealDoubleElement(FieldElement):
         If this floating-point number is actually an integer, return
         that integer.  Otherwise, raise an exception.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ(RDF(237.0))
             237
             sage: ZZ(RDF(0.0/0.0))
@@ -707,7 +709,8 @@ cdef class RealDoubleElement(FieldElement):
         r"""
         Produce an expression which will reproduce this value when evaluated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage_input(RDF(NaN), verify=True)
             # Verified
             RDF(NaN)
@@ -1103,7 +1106,7 @@ cdef class RealDoubleElement(FieldElement):
         Returns -1,0, or 1 if self is negative, zero, or positive;
         respectively.
 
-        Examples::
+        EXAMPLES::
 
             sage: RDF(-1.5).sign()
             -1

@@ -72,8 +72,8 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
     eigenvalues and the e is a matrix whose columns are the
     eigenvectors.
 
-    To solve a linear system Ax = b where A = [[1,2] and b = [5,6]
-    [3,4]]
+    To solve a linear system Ax = b where A = [[1,2],[3,4]] and
+    b = [5,6].
 
     ::
 

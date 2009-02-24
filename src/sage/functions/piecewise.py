@@ -634,7 +634,11 @@ class PiecewisePolynomial:
         By default, returns the indefinite integral of the function.
         If definite=True is given, returns the definite integral.
 
-        AUTHOR: Paul Butler
+        AUTHOR:
+
+        - Paul Butler
+
+        EXAMPLES::
 
             sage: f1(x) = 1
             sage: f2(x) = 1-x
@@ -840,16 +844,16 @@ class PiecewisePolynomial:
 
         EXAMPLES::
 
-                   sage: f1(x) = 1
-                   sage: f2(x) = 1-x
-                   sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
-                   sage: f.derivative()
-                   Piecewise defined function with 2 parts, [[(0, 1), 0], [(1, 2), -1]]
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            sage: f.derivative()
+            Piecewise defined function with 2 parts, [[(0, 1), 0], [(1, 2), -1]]
             sage: f1(x) = -1
-                   sage: f2(x) = 2
-                   sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
-                   sage: f.derivative()
-                   Piecewise defined function with 2 parts, [[(0, pi/2), 0], [(pi/2, pi), 0]]
+            sage: f2(x) = 2
+            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f.derivative()
+            Piecewise defined function with 2 parts, [[(0, pi/2), 0], [(pi/2, pi), 0]]
 
         ::
 
@@ -894,13 +898,13 @@ class PiecewisePolynomial:
 
         EXAMPLES::
 
-                   sage: f1(x) = 1
+            sage: f1(x) = 1
             sage: f2(x) = 1-x
-                   sage: f3(x) = exp(x)
-                   sage: f4(x) = sin(2*x)
-                   sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
-                   sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
-                   sage: P
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
+            sage: P
 
         Remember: to view this, type show(P) or P.save("path/myplot.png")
         and then open it in a graphics viewer such as GIMP.
@@ -928,19 +932,19 @@ class PiecewisePolynomial:
 
         EXAMPLES::
 
-                   sage: f(x) = x^2
-                   sage: f = Piecewise([[(-1,1),f]])
-                   sage: f.fourier_series_cosine_coefficient(2,1)
-                   1/pi^2
             sage: f(x) = x^2
-                   sage: f = Piecewise([[(-pi,pi),f]])
-                   sage: f.fourier_series_cosine_coefficient(2,pi)
-                   1
-                   sage: f1(x) = -1
-                   sage: f2(x) = 2
-                   sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
-                   sage: f.fourier_series_cosine_coefficient(5,pi)
-                   -3/(5*pi)
+            sage: f = Piecewise([[(-1,1),f]])
+            sage: f.fourier_series_cosine_coefficient(2,1)
+            1/pi^2
+            sage: f(x) = x^2
+            sage: f = Piecewise([[(-pi,pi),f]])
+            sage: f.fourier_series_cosine_coefficient(2,pi)
+            1
+            sage: f1(x) = -1
+            sage: f2(x) = 2
+            sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f.fourier_series_cosine_coefficient(5,pi)
+            -3/(5*pi)
         """
         from sage.all import cos, pi
         x = var('x')
@@ -1009,8 +1013,7 @@ class PiecewisePolynomial:
 
         .. math::
 
-                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-
+           f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
 
         as a string.
 
@@ -1262,30 +1265,30 @@ class PiecewisePolynomial:
 
         EXAMPLES::
 
-                   sage: f1(x) = 1
-                   sage: f2(x) = 1-x
-                   sage: f3(x) = exp(x)
-                   sage: f4(x) = sin(2*x)
-                   sage: f = Piecewise([[(-10,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
-                   sage: f.fourier_series_value(101,10)
-                   1/2
-                   sage: f.fourier_series_value(100,10)
-                   1
-                   sage: f.fourier_series_value(10,10)
-                   (sin(20) + 1)/2
-                   sage: f.fourier_series_value(20,10)
-                   1
-                   sage: f.fourier_series_value(30,10)
-                   (sin(20) + 1)/2
-                   sage: f1(x) = -1
-                   sage: f2(x) = 2
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
+            sage: f = Piecewise([[(-10,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f.fourier_series_value(101,10)
+            1/2
+            sage: f.fourier_series_value(100,10)
+            1
+            sage: f.fourier_series_value(10,10)
+            (sin(20) + 1)/2
+            sage: f.fourier_series_value(20,10)
+            1
+            sage: f.fourier_series_value(30,10)
+            (sin(20) + 1)/2
+            sage: f1(x) = -1
+            sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,0),lambda x:0],[(0,pi/2),f1],[(pi/2,pi),f2]])
-                   sage: f.fourier_series_value(-1,pi)
-                   0
-                   sage: f.fourier_series_value(20,pi)
-                   -1
-                   sage: f.fourier_series_value(pi/2,pi)
-                   1/2
+            sage: f.fourier_series_value(-1,pi)
+            0
+            sage: f.fourier_series_value(20,pi)
+            -1
+            sage: f.fourier_series_value(pi/2,pi)
+            1/2
         """
         xnew = x - int(RR(x/(2*L)))*2*L
         endpts = self.end_points()
@@ -1477,16 +1480,16 @@ class PiecewisePolynomial:
 
 	    sage: x = PolynomialRing(QQ,'x').gen()
 	    sage: f1 = x^0
-	           sage: f2 = 1-x
-	           sage: f3 = 2*x
-	           sage: f4 = 10-x
-	           sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f2 = 1-x
+            sage: f3 = 2*x
+            sage: f4 = 10-x
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
 	    sage: g1 = x-2
-	           sage: g2 = x-5
-	           sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
+            sage: g2 = x-5
+            sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
 	    sage: h = f+g
 	    sage: h
-	           Piecewise defined function with 5 parts, [[(0, 1), x - 1], [(1, 2), -1], [(2, 3), 3*x - 2], [(3, 5), 8], [(5, 10), 5]]
+            Piecewise defined function with 5 parts, [[(0, 1), x - 1], [(1, 2), -1], [(2, 3), 3*x - 2], [(3, 5), 8], [(5, 10), 5]]
 
 	Note that in this case the functions must be defined using
 	polynomial expressions *not* using the lambda notation.
@@ -1506,18 +1509,18 @@ class PiecewisePolynomial:
 
 	    sage: x = PolynomialRing(QQ,'x').gen()
 	    sage: f1 = x^0
-	           sage: f2 = 1-x
-	           sage: f3 = 2*x
-	           sage: f4 = 10-x
-	           sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f2 = 1-x
+            sage: f3 = 2*x
+            sage: f4 = 10-x
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
 	    sage: g1 = x-2
-	           sage: g2 = x-5
-	           sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
+            sage: g2 = x-5
+            sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
 	    sage: h = f*g
 	    sage: h
 	    Piecewise defined function with 5 parts, [[(0, 1), x - 2], [(1, 2), -x^2 + 3*x - 2], [(2, 3), 2*x^2 - 4*x], [(3, 5), -x^2 + 12*x - 20], [(5, 10), -x^2 + 15*x - 50]]
-	           sage: g*(11/2)
-	           Piecewise defined function with 2 parts, [[(0, 5), 11/2*x - 11], [(5, 10), 11/2*x - 55/2]]
+            sage: g*(11/2)
+            Piecewise defined function with 2 parts, [[(0, 5), 11/2*x - 11], [(5, 10), 11/2*x - 55/2]]
 
 	Note that in this method the functions must be defined using
 	polynomial expressions *not* using the lambda notation.

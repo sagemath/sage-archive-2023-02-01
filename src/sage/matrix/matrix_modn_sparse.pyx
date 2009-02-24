@@ -167,8 +167,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         -  ``entries``
 
-           - a Python list of triples (i,j,x), where 0 = i nrows, 0 =
-             j ncols, and x is coercible to an int. The i,j entry of
+           - a Python list of triples (i,j,x), where 0 <= i < nrows, 0 <=
+             j < ncols, and x is coercible to an int. The i,j entry of
              self is set to x. The x's can be 0.
 
            - Alternatively, entries can be a list of *all* the

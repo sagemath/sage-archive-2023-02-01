@@ -875,7 +875,7 @@ cdef class Matrix(matrix1.Matrix):
     cdef _det_by_minors(self, Py_ssize_t level):
         """
         Compute the determinant of the upper-left level x level submatrix
-        of self. Does not handle degenerate cases, level MUST be = 2
+        of self. Does not handle degenerate cases, level MUST be >= 2
         """
         cdef Py_ssize_t n, i
         if level == 2:

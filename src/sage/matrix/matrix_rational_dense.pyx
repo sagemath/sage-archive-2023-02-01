@@ -565,7 +565,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
            - If self is not invertible, a ZeroDivisionError is raised.
 
-           - The n x n cases for n = 2 are handcoded for speed.
+           - The n x n cases for n <= 2 are handcoded for speed.
 
         EXAMPLES::
 
@@ -1722,11 +1722,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     def _lift_crt_rr_with_lcm(self, res, mm):
         """
         Optimizations: When doing the rational_recon lift of a (mod m)
-        first see if a sqrt(m/2) in which case it lifts to an integer
+        first see if |a| < sqrt(m/2) in which case it lifts to an integer
         (often a=0 or 1).
 
         If that fails, keep track of the lcm d of denominators found so
-        far, and check to see if z = a\*d lifts to an integer with z =
+        far, and check to see if z = a\*d lifts to an integer with |z| <=
         sqrt(m/2). If so, no need to do rational recon. This should be the
         case for most a after a while, and should saves substantial time!
         """

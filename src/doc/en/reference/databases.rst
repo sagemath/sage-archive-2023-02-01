@@ -28,9 +28,9 @@ database engine.
 -  Database files can be freely shared between machines with
    different byte orders.
 
--  Supports databases up to 2 tebibytes (241 bytes) in size.
+-  Supports databases up to 2 tebibytes (2^41 bytes) in size.
 
--  Strings and BLOBs up to 2 gibibytes (231 bytes) in size.
+-  Strings and BLOBs up to 2 gibibytes (2^31 bytes) in size.
 
 -  Small code footprint: less than 250KiB fully configured or less
    than 150KiB with optional features omitted.

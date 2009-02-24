@@ -89,7 +89,7 @@ version information.
 
    They are named in honor of Charles Hermite.
 
--  Each *Legendre polynomial* `P_n(x)` is an $n$-th degree polynomial.
+-  Each *Legendre polynomial* `P_n(x)` is an `n`-th degree polynomial.
    It may be expressed using Rodrigues' formula:
 
    .. math::
@@ -108,7 +108,7 @@ version information.
 
       \int_{-1}^{1} P_m(x) P_n(x)\,dx = {\frac{2}{2n + 1}} \delta_{mn}
 
-   The *Legendre function of the second kind* $Q_n(x)$ is another
+   The *Legendre function of the second kind* `Q_n(x)` is another
    (linearly independent) solution to the Legendre differential equation.
    It is not an ""orthogonal polynomial"" however.
 
